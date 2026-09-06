@@ -674,6 +674,7 @@ public:
     dldata(const dldata & org)
       : dlist(org.dlist),
         age(org.age) { }
+    dldata & operator=(const dldata & org) = default;
     SoGLDisplayList *dlist;
     uint32_t age;
   };
