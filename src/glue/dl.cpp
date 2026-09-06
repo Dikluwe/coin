@@ -154,10 +154,10 @@
 #include <Inventor/C/errors/debugerror.h>
 #include <Inventor/C/glue/dl.h>
 #include <Inventor/C/tidbits.h>
-#include <Inventor/system/gl.h> /* for glGetString */
 #include <Inventor/SbString.h>
 
 #include "glue/dlp.h"
+#include "glue/gl-core.h" /* for glGetString */
 #include "tidbitsp.h"
 
 #ifndef MAXPATHLEN
