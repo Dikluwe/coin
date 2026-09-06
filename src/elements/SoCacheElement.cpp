@@ -138,6 +138,7 @@ SoCacheElement::pop(SoState * state, const SoElement * prevTopElement)
                                           prevTopElement
                                          )
      );
+  COIN_ASSUME(prev != NULL);
   if (prev->cache) {
     prev->cache->unref();
     prev->cache = NULL;
@@ -329,5 +330,13 @@ SoCacheElement::setInvalid(const SbBool newvalue)
 SoCache *
 SoCacheElement::getCurrentCache(SoState * const state)
 {
-  return (coin_assert_cast<const SoCacheElement *>(state->getElementNoPush(classStackIndex)))->cache;
+  const SoCacheElement * elem = coin_safe_cast<const SoCacheElement *>
+    (state->getElementNoPush(classStackIndex));
+  if (!elem) {
+    SoDebugError::post("SoCacheElement::getCurrentCache",
+                       "SoCacheElement not enabled for this action -- "
+                       "missing SO_ENABLE()? Returning default value.");
+    return NULL;
+  }
+  return elem->cache;
 }
