@@ -107,6 +107,7 @@
 #include <Inventor/actions/SoSearchAction.h>
 #include <Inventor/actions/SoGetMatrixAction.h>
 #include <Inventor/lists/SoPathList.h>
+#include <Inventor/errors/SoDebugError.h>
 
 #include <data/draggerDefaults/transformerDragger.h>
 
@@ -810,6 +811,8 @@ SoTransformerDragger::SoTransformerDragger(void)
 
   this->state = INACTIVE;
   PRIVATE(this)->constraintState = CONSTRAINT_OFF;
+  PRIVATE(this)->ctrlDown = FALSE;
+  PRIVATE(this)->shiftDown = FALSE;
   // FIXME: according to SGI classdoc, this flag is supposed to be
   // default TRUE?  Investigate. 20011208 mortene.
   PRIVATE(this)->locateHighlighting = FALSE;
@@ -1098,7 +1101,8 @@ void
 SoTransformerDragger::metaKeyChangeCB(void *, SoDragger *d)
 {
   SoTransformerDragger * thisp = THISP(d);
-  if (!thisp->isActive.getValue()) return;
+  if (!thisp->isActive.getValue() ||
+      PRIVATE(thisp)->whatkind == WHATKIND_NONE) return;
 
   const SoEvent *event = thisp->getEvent();
   if (PRIVATE(thisp)->shiftDown != event->wasShiftDown()) {
@@ -1184,7 +1188,22 @@ SoTransformerDragger::dragStart(void)
       PRIVATE(this)->whatnum = i;
     }
   }
-  assert(found);
+  if (!found) {
+    // Can happen when the same dragger part geometry ends up shared
+    // across pick paths from more than one selection/pick root (e.g.
+    // multiple SoSelection nodes) -- the picked path then does not
+    // contain any of this particular dragger's own named parts. Ignore
+    // the pick rather than aborting: PRIVATE(this)->whatkind is still
+    // WHATKIND_NONE at this point (set in the constructor and reset by
+    // dragFinish()), which drag() and dragFinish() already treat as a
+    // no-op. See Coin issue #174.
+#if COIN_DEBUG
+    SoDebugError::postWarning("SoTransformerDragger::dragStart",
+                               "could not find picked dragger part in "
+                               "pick path -- ignoring this drag");
+#endif // COIN_DEBUG
+    return;
+  }
 
   PRIVATE(this)->ctrlDown = event->wasCtrlDown();
   PRIVATE(this)->shiftDown = event->wasShiftDown();
@@ -1318,7 +1337,9 @@ SoTransformerDragger::drag(void)
     this->dragRotate();
     break;
   default:
-    assert(0 && "illegal whatkind");
+    // WHATKIND_NONE: dragStart() already warned that it couldn't
+    // determine which part was picked (Coin issue #174) and returned
+    // without starting a drag -- nothing to do here.
     break;
   }
 }
@@ -1796,7 +1817,10 @@ SoTransformerDragger::dragFinish(void)
     this->setSwitchValue("scaleBoxFeedbackSwitch", SO_SWITCH_NONE);
     break;
   default:
-    assert(0 && "unknown whatkind");
+    // WHATKIND_NONE: dragStart() already warned that it couldn't
+    // determine which part was picked (Coin issue #174) and never
+    // turned on any of the feedback switches cleaned up above -- fall
+    // through to the general reset below.
     break;
   }
 
