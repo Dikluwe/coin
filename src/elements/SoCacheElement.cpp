@@ -338,5 +338,9 @@ SoCacheElement::getCurrentCache(SoState * const state)
                        "missing SO_ENABLE()? Returning default value.");
     return NULL;
   }
-  return elem->cache;
+  // A push can leave this depth empty while an ancestor's cache is open.
+  while (elem && !elem->cache) {
+    elem = coin_safe_cast<const SoCacheElement *>(elem->getNextInStack());
+  }
+  return elem ? elem->cache : NULL;
 }
