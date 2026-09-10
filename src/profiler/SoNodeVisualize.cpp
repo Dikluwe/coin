@@ -47,8 +47,7 @@
 
 #include <Inventor/annex/Profiler/nodekits/SoNodeVisualize.h>
 
-#include <map>
-#include <string>
+#include "misc/SbHash.h" 
 
 #include <Inventor/SoDB.h>
 #include <Inventor/SoInput.h>
@@ -141,33 +140,28 @@ namespace {
     }
 
     void clear() {
-      std::map<const TextureImageData *, SoTexture2 *>::iterator it, end;
-      for (it = this->nodemap.begin(), end = this->nodemap.end();
-           it != end; ++it) {
-        it->second->unref();
-        it->second = NULL;
+      for (SbHash<const TextureImageData *, SoTexture2 *>::const_iterator it = this->nodemap.const_begin();
+           it != this->nodemap.const_end();
+           ++it) {
+        it->obj->unref();
       }
       this->nodemap.clear();
     }
 
     SoTexture2 * operator[](const TextureImageData & data)
     {
-      std::map<const TextureImageData *, SoTexture2 *>::iterator e;
-      e = this->nodemap.find(&data);
-      if (e == this->nodemap.end()) {
-        // not found, create
-        SoTexture2 * node = TextureDict::createTexture(&data);
+      SoTexture2 * node = NULL;
+      if (!this->nodemap.get(&data, node)) {
+        node = TextureDict::createTexture(&data);
         node->ref();
-        this->nodemap[&data] = node;
-        return node;
-      } else {
-        return e->second;
+        this->nodemap.put(&data, node);
       }
+      return node;
     }
 
 
   private:
-    std::map<const TextureImageData *, SoTexture2 *> nodemap;
+    SbHash<const TextureImageData *, SoTexture2 *> nodemap;
   };
 }
 
