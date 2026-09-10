@@ -58,13 +58,9 @@
 #endif // _MSC_VER
 
 #include <cstring>
+#include <memory>
 #include <cassert>
-#include "misc/SbHash.h"
-
-inline unsigned int SbHashFunc(const SbName & key)
-{
-  return SbHashFunc(reinterpret_cast<size_t>(key.getString()));
-}
+#include "misc/SbHashName.h"
 
 #include <Inventor/SbName.h>
 #include <Inventor/errors/SoDebugError.h>
@@ -155,22 +151,18 @@ ScXMLElt::setXMLAttribute(const char * attribute, const char * value)
   assert(attribute);
   const SbName attrname(attribute);
   char * existing = NULL;
-  if (PRIVATE(this)->attributemap.get(attrname, existing)) {
+  PRIVATE(this)->attributemap.get(attrname, existing);
+  if (!value) {
+    PRIVATE(this)->attributemap.erase(attrname);
     delete [] existing;
-    if (!value) {
-      PRIVATE(this)->attributemap.erase(attrname);
-    } else {
-      char * valuedup = new char [ strlen(value) + 1 ];
-      strcpy(valuedup, value);
-      PRIVATE(this)->attributemap.put(attrname, valuedup);
-    }
-  } else {
-    if (value) {
-      char * valuedup = new char [ strlen(value) + 1 ];
-      strcpy(valuedup, value);
-      PRIVATE(this)->attributemap.put(attrname, valuedup);
-    }
+    return;
   }
+  // Preserve getter-backed inputs, including substrings of the old value.
+  std::unique_ptr<char[]> valuedup(new char [strlen(value) + 1]);
+  strcpy(valuedup.get(), value);
+  PRIVATE(this)->attributemap.put(attrname, valuedup.get());
+  valuedup.release();
+  delete [] existing;
 }
 
 /*!
@@ -271,3 +263,26 @@ ScXMLElt::isContainedIn(const ScXMLElt * element) const
 }
 
 #undef PRIVATE
+
+#ifdef COIN_TEST_SUITE
+#include <Inventor/scxml/ScXMLStateElt.h>
+#include <cstring>
+
+BOOST_AUTO_TEST_CASE(xml_attribute_replacement_aliases)
+{
+  ScXMLStateElt element;
+  element.setXMLAttribute("custom", "prefix-value");
+  element.setXMLAttribute("custom", element.getXMLAttribute("custom"));
+  BOOST_CHECK_MESSAGE(strcmp(element.getXMLAttribute("custom"), "prefix-value") == 0,
+                      "attribute self-replacement preserves its value");
+  element.setXMLAttribute("custom", element.getXMLAttribute("custom") + 7);
+  BOOST_CHECK_MESSAGE(strcmp(element.getXMLAttribute("custom"), "value") == 0,
+                      "attribute replacement accepts an old-value substring");
+  element.setXMLAttribute("custom", NULL);
+  BOOST_CHECK_MESSAGE(element.getXMLAttribute("custom") == NULL,
+                      "NULL removes the attribute");
+  element.setXMLAttribute("custom", NULL);
+  BOOST_CHECK_MESSAGE(element.getXMLAttribute("custom") == NULL,
+                      "removing a missing attribute is harmless");
+}
+#endif // COIN_TEST_SUITE
