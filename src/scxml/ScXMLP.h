@@ -33,9 +33,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 \**************************************************************************/
 
-#include <map>
-
+#include <Inventor/SbName.h>
 #include <Inventor/SoType.h>
+
+#include "misc/SbHash.h"
+
+inline unsigned int SbHashFunc(const SbName & key)
+{
+  return SbHashFunc(reinterpret_cast<size_t>(key.getString()));
+}
 
 struct cc_xml_doc;
 struct cc_xml_elt;
@@ -59,14 +65,11 @@ public:
 
   static ScXMLStateMachine * readXMLData(cc_xml_doc * doc);
 
-  typedef std::map<const char *, SoType> TypeDict;
-  typedef std::pair<const char *, SoType> TypeEntry;
+  typedef SbHash<SbName, SoType> TypeDict;
 
 protected:
-  typedef std::map<const char *, TypeDict *> NamespaceDict;
-  typedef std::pair<const char *, TypeDict *> NamespaceEntry;
-  typedef std::map<const char *, NamespaceDict *> TargettypeDict;
-  typedef std::pair<const char *, NamespaceDict *> TargettypeEntry;
+  typedef SbHash<SbName, TypeDict *> NamespaceDict;
+  typedef SbHash<SbName, NamespaceDict *> TargettypeDict;
 
   static NamespaceDict * namespaces;
   static TargettypeDict * targettypes;
