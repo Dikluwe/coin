@@ -47,7 +47,7 @@
 
 #include <Inventor/annex/Profiler/nodekits/SoNodeVisualize.h>
 
-#include "misc/SbHash.h" 
+#include "misc/SbHash.h"
 
 #include <Inventor/SoDB.h>
 #include <Inventor/SoInput.h>
