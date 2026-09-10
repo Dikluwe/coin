@@ -3,6 +3,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -12,7 +13,7 @@ namespace CoinTest {
 struct AbortTestCase { };
 
 struct TestCase {
-  const char * name;
+  std::string name;
   void (*fn)(void);
   const char * file;
   int line;
@@ -43,9 +44,12 @@ inline Context *& current_context(void)
 }
 
 struct Registrar {
-  Registrar(const char * name, void (*fn)(void), const char * file, int line)
+  Registrar(const char * suite, const char * name,
+            void (*fn)(void), const char * file, int line)
   {
-    registry().push_back(TestCase{name, fn, file, line});
+    registry().push_back(TestCase{suite[0] ? std::string(suite) + "/" + name
+                                           : std::string(name),
+                                  fn, file, line});
   }
 };
 
@@ -100,14 +104,64 @@ inline void check_equal(const A & a, const B & b,
   }
 }
 
-inline int run_all(void)
+inline bool wildcard_match(const char * pattern, const char * value)
+{
+  const char * star = NULL;
+  const char * retry = NULL;
+  while (*value) {
+    if (*pattern == '?' || *pattern == *value) {
+      ++pattern;
+      ++value;
+    }
+    else if (*pattern == '*') {
+      star = pattern++;
+      retry = value;
+    }
+    else if (star) {
+      pattern = star + 1;
+      value = ++retry;
+    }
+    else return false;
+  }
+  while (*pattern == '*') ++pattern;
+  return *pattern == '\0';
+}
+
+inline bool selected(const std::string & name, const std::string & filters)
+{
+  size_t begin = 0;
+  while (begin <= filters.size()) {
+    const size_t end = filters.find(',', begin);
+    const std::string filter = filters.substr(begin, end - begin);
+    if (!filter.empty() && wildcard_match(filter.c_str(), name.c_str())) return true;
+    if (end == std::string::npos) break;
+    begin = end + 1;
+  }
+  return false;
+}
+
+inline int run_all(int argc, char * argv[])
 {
   const std::vector<TestCase> & tests = registry();
+  std::string filters;
+  for (int i = 1; i < argc; ++i) {
+    const char prefix[] = "--run_test=";
+    if (std::strncmp(argv[i], prefix, sizeof(prefix) - 1) == 0) {
+      filters = argv[i] + sizeof(prefix) - 1;
+    }
+    else if (std::strcmp(argv[i], "--run_test") == 0 && i + 1 < argc) {
+      filters = argv[++i];
+    }
+  }
+
   int failedtests = 0;
   int totalchecks = 0;
+  size_t selectedtests = 0;
 
   for (size_t i = 0; i < tests.size(); ++i) {
     const TestCase & tc = tests[i];
+    if (!filters.empty() && !selected(tc.name, filters)) continue;
+    ++selectedtests;
 
     Context ctx;
     current_context() = &ctx;
@@ -127,7 +181,7 @@ inline int run_all(void)
 
     if (ctx.failed) {
       failedtests += 1;
-      std::fprintf(stderr, "[FAIL] %s (%s:%d)\n", tc.name, tc.file, tc.line);
+      std::fprintf(stderr, "[FAIL] %s (%s:%d)\n", tc.name.c_str(), tc.file, tc.line);
       for (size_t f = 0; f < ctx.failures.size(); ++f) {
         const Failure & fail = ctx.failures[f];
         std::fprintf(stderr, "  %s:%d: %s\n", fail.file, fail.line, fail.message.c_str());
@@ -135,12 +189,17 @@ inline int run_all(void)
     }
   }
 
+  if (selectedtests == 0 && !filters.empty()) {
+    std::fprintf(stderr, "[FAIL] no tests matched --run_test=%s\n", filters.c_str());
+    return 1;
+  }
+
   if (failedtests == 0) {
-    std::fprintf(stderr, "[OK] %zu tests, %d checks\n", tests.size(), totalchecks);
+    std::fprintf(stderr, "[OK] %zu tests, %d checks\n", selectedtests, totalchecks);
     return 0;
   }
 
-  std::fprintf(stderr, "[FAIL] %d/%zu tests failed, %d checks\n", failedtests, tests.size(), totalchecks);
+  std::fprintf(stderr, "[FAIL] %d/%zu tests failed, %d checks\n", failedtests, selectedtests, totalchecks);
   return 1;
 }
 
@@ -155,6 +214,10 @@ inline int run_all(void)
 #define COIN_TEST_CONCAT_INNER(a, b) a##b
 #define COIN_TEST_CONCAT(a, b) COIN_TEST_CONCAT_INNER(a, b)
 
+#ifndef COIN_TEST_SUITE_NAME
+#define COIN_TEST_SUITE_NAME ""
+#endif
+
 #define BOOST_AUTO_TEST_SUITE(name) namespace name { enum { coin_testsuite_dummy = 0 };
 #define BOOST_AUTO_TEST_SUITE_END() }
 #define BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(name, n) /* no-op */
@@ -162,7 +225,8 @@ inline int run_all(void)
 #define BOOST_AUTO_TEST_CASE(name)                                            \
   static void COIN_TEST_CONCAT(coin_test_fn_, __LINE__)(void);                \
   static ::CoinTest::Registrar COIN_TEST_CONCAT(coin_test_reg_, __LINE__)(    \
-    #name, &COIN_TEST_CONCAT(coin_test_fn_, __LINE__), __FILE__, __LINE__);  \
+    COIN_TEST_SUITE_NAME, #name, &COIN_TEST_CONCAT(coin_test_fn_, __LINE__),   \
+    __FILE__, __LINE__);                                                      \
   static void COIN_TEST_CONCAT(coin_test_fn_, __LINE__)(void)
 
 #define BOOST_CHECK_MESSAGE(cond, msg) \

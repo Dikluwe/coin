@@ -41,6 +41,8 @@
 using namespace SIM::Coin3D::Coin;
 using namespace SIM::Coin3D::Coin::TestSuite;
 @COIN_STR_TEST_INCL@
+#undef COIN_TEST_SUITE_NAME
+#define COIN_TEST_SUITE_NAME "@COIN_STR_TEST_CLASS@_TestSuite"
 BOOST_AUTO_TEST_SUITE(@COIN_STR_TEST_CLASS@_TestSuite);
 @COIN_STR_TEST_CODE@
 BOOST_AUTO_TEST_SUITE_END();
