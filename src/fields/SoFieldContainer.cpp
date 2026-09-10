@@ -104,6 +104,7 @@ static void sofieldcontainer_userdata_cleanup(void);
 static void sofieldcontainer_construct_copydict(void * closure);
 static void sofieldcontainer_destruct_copydict(void * closure);
 static void sofieldcontainer_copydict_cleanup(void);
+static void sofieldcontainer_mfieldsizes_cleanup(void);
 static void SoFieldContainer_cleanupClass(void);
 }
 
@@ -113,11 +114,27 @@ SoType SoFieldContainer::classTypeId STATIC_SOTYPE_INIT;
 typedef SbHash<const SoFieldContainer *, void *> UserDataMap;
 static UserDataMap * sofieldcontainer_userdata_dict = NULL;
 
+inline unsigned int
+SbHashFunc(const SbName & key)
+{
+  return SbHashFunc(reinterpret_cast<size_t>(key.getString()));
+}
+
+typedef SbHash<SbName, size_t> MFieldSizeMap;
+static MFieldSizeMap * sofieldcontainer_mfield_sizes = NULL;
+
 void
 sofieldcontainer_userdata_cleanup(void)
 {
   delete sofieldcontainer_userdata_dict;
   sofieldcontainer_userdata_dict = NULL;
+}
+
+void
+sofieldcontainer_mfieldsizes_cleanup(void)
+{
+  delete sofieldcontainer_mfield_sizes;
+  sofieldcontainer_mfield_sizes = NULL;
 }
 
 // *************************************************************************
@@ -250,6 +267,50 @@ SoFieldContainer::initClass(void)
 
   sofieldcontainer_userdata_dict = new UserDataMap;
   coin_atexit(sofieldcontainer_userdata_cleanup, CC_ATEXIT_NORMAL);
+
+  sofieldcontainer_mfield_sizes = new MFieldSizeMap;
+#define REGISTER_MFIELD_SIZE(type) \
+  sofieldcontainer_mfield_sizes->put(SbName(SO__QUOTE(type)), \
+    sizeof(SbTypeInfo<So##type>::DataType[2]) / 2)
+  REGISTER_MFIELD_SIZE(MFBitMask);
+  REGISTER_MFIELD_SIZE(MFBool);
+  REGISTER_MFIELD_SIZE(MFColor);
+  REGISTER_MFIELD_SIZE(MFColorRGBA);
+  REGISTER_MFIELD_SIZE(MFDouble);
+  REGISTER_MFIELD_SIZE(MFEngine);
+  REGISTER_MFIELD_SIZE(MFEnum);
+  REGISTER_MFIELD_SIZE(MFFloat);
+  REGISTER_MFIELD_SIZE(MFInt32);
+  REGISTER_MFIELD_SIZE(MFMatrix);
+  REGISTER_MFIELD_SIZE(MFName);
+  REGISTER_MFIELD_SIZE(MFNode);
+  REGISTER_MFIELD_SIZE(MFPlane);
+  REGISTER_MFIELD_SIZE(MFRotation);
+  REGISTER_MFIELD_SIZE(MFShort);
+  REGISTER_MFIELD_SIZE(MFString);
+  REGISTER_MFIELD_SIZE(MFTime);
+  REGISTER_MFIELD_SIZE(MFUInt32);
+  REGISTER_MFIELD_SIZE(MFUShort);
+  REGISTER_MFIELD_SIZE(MFVec2b);
+  REGISTER_MFIELD_SIZE(MFVec2d);
+  REGISTER_MFIELD_SIZE(MFVec2f);
+  REGISTER_MFIELD_SIZE(MFVec2i32);
+  REGISTER_MFIELD_SIZE(MFVec2s);
+  REGISTER_MFIELD_SIZE(MFVec3b);
+  REGISTER_MFIELD_SIZE(MFVec3d);
+  REGISTER_MFIELD_SIZE(MFVec3f);
+  REGISTER_MFIELD_SIZE(MFVec3i32);
+  REGISTER_MFIELD_SIZE(MFVec3s);
+  REGISTER_MFIELD_SIZE(MFVec4b);
+  REGISTER_MFIELD_SIZE(MFVec4d);
+  REGISTER_MFIELD_SIZE(MFVec4f);
+  REGISTER_MFIELD_SIZE(MFVec4i32);
+  REGISTER_MFIELD_SIZE(MFVec4s);
+  REGISTER_MFIELD_SIZE(MFVec4ub);
+  REGISTER_MFIELD_SIZE(MFVec4ui32);
+  REGISTER_MFIELD_SIZE(MFVec4us);
+#undef REGISTER_MFIELD_SIZE
+  coin_atexit(sofieldcontainer_mfieldsizes_cleanup, CC_ATEXIT_NORMAL);
 
   sofieldcontainer_copydictstorage =
     new SbStorage(sizeof(sofieldcontainer_copydict),
@@ -1114,138 +1175,12 @@ SoFieldContainer::getFieldsMemorySize(size_t & managed, size_t & unmanaged) cons
       int numelements = mfield->getNum();
       size_t elementsize = 0;
 
-#define SBNAMESTRING(arg) \
-  static const SbName SO__CONCAT(arg, _string)(SO__QUOTE(arg))
-
-      SBNAMESTRING(MFBitMask);
-      SBNAMESTRING(MFBool);
-      SBNAMESTRING(MFColor);
-      SBNAMESTRING(MFColorRGBA);
-      SBNAMESTRING(MFDouble);
-      SBNAMESTRING(MFEngine);
-      SBNAMESTRING(MFEnum);
-      SBNAMESTRING(MFFloat);
-      SBNAMESTRING(MFInt32);
-      SBNAMESTRING(MFMatrix);
-      SBNAMESTRING(MFName);
-      SBNAMESTRING(MFNode);
-      SBNAMESTRING(MFPlane);
-      SBNAMESTRING(MFRotation);
-      SBNAMESTRING(MFShort);
-      SBNAMESTRING(MFString);
-      SBNAMESTRING(MFTime);
-      SBNAMESTRING(MFUInt32);
-      SBNAMESTRING(MFUShort);
-      SBNAMESTRING(MFVec2b);
-      SBNAMESTRING(MFVec2d);
-      SBNAMESTRING(MFVec2f);
-      SBNAMESTRING(MFVec2i32);
-      SBNAMESTRING(MFVec2s);
-      SBNAMESTRING(MFVec3b);
-      SBNAMESTRING(MFVec3d);
-      SBNAMESTRING(MFVec3f);
-      SBNAMESTRING(MFVec3i32);
-      SBNAMESTRING(MFVec3s);
-      SBNAMESTRING(MFVec4b);
-      SBNAMESTRING(MFVec4d);
-      SBNAMESTRING(MFVec4f);
-      SBNAMESTRING(MFVec4i32);
-      SBNAMESTRING(MFVec4s);
-      SBNAMESTRING(MFVec4ub);
-      SBNAMESTRING(MFVec4ui32);
-      SBNAMESTRING(MFVec4us);
-
-      // TODO: stuff these values into an std::map<> instead of this ifelse...
-      const char * mftypekey = mftype.getName().getString();
-      if (mftypekey == MFBitMask_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFBitMask>::DataType[2]) / 2;
-      } else if (mftypekey == MFBool_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFBool>::DataType[2]) / 2;
-      } else if (mftypekey == MFColor_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFColor>::DataType[2]) / 2;
-      } else if (mftypekey == MFColorRGBA_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFColorRGBA>::DataType[2]) / 2;
-      } else if (mftypekey == MFDouble_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFDouble>::DataType[2]) / 2;
-      } else if (mftypekey == MFEngine_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFEngine>::DataType[2]) / 2;
-      } else if (mftypekey == MFEnum_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFEnum>::DataType[2]) / 2;
-      } else if (mftypekey == MFFloat_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFFloat>::DataType[2]) / 2;
-      } else if (mftypekey == MFInt32_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFInt32>::DataType[2]) / 2;
-      } else if (mftypekey == MFMatrix_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFMatrix>::DataType[2]) / 2;
-      } else if (mftypekey == MFName_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFName>::DataType[2]) / 2;
-      } else if (mftypekey == MFNode_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFNode>::DataType[2]) / 2;
-      } else if (mftypekey == MFPlane_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFPlane>::DataType[2]) / 2;
-      } else if (mftypekey == MFRotation_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFRotation>::DataType[2]) / 2;
-      } else if (mftypekey == MFShort_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFShort>::DataType[2]) / 2;
-      } else if (mftypekey == MFString_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFString>::DataType[2]) / 2;
-        // FIXME: should we add strlen(str[i]) to memory size? would
-        // potentially take some time to compute. 20080302 larsa
-        //for (int c = 0; c < numelements; ++c) {
-        //  add strlen(string[c]) + 1 to memory size?
-        //}
-      } else if (mftypekey == MFTime_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFTime>::DataType[2]) / 2;
-      } else if (mftypekey == MFUInt32_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFUInt32>::DataType[2]) / 2;
-      } else if (mftypekey == MFUShort_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFUShort>::DataType[2]) / 2;
-      } else if (mftypekey == MFVec2b_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFVec2b>::DataType[2]) / 2;
-      } else if (mftypekey == MFVec2d_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFVec2d>::DataType[2]) / 2;
-      } else if (mftypekey == MFVec2f_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFVec2f>::DataType[2]) / 2;
-      } else if (mftypekey == MFVec2i32_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFVec2i32>::DataType[2]) / 2;
-      } else if (mftypekey == MFVec2s_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFVec2s>::DataType[2]) / 2;
-      } else if (mftypekey == MFVec3b_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFVec3b>::DataType[2]) / 2;
-      } else if (mftypekey == MFVec3d_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFVec3d>::DataType[2]) / 2;
-      } else if (mftypekey == MFVec3f_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFVec3f>::DataType[2]) / 2;
-      } else if (mftypekey == MFVec3i32_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFVec3i32>::DataType[2]) / 2;
-      } else if (mftypekey == MFVec3s_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFVec3s>::DataType[2]) / 2;
-      } else if (mftypekey == MFVec4b_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFVec4b>::DataType[2]) / 2;
-      } else if (mftypekey == MFVec4d_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFVec4d>::DataType[2]) / 2;
-      } else if (mftypekey == MFVec4f_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFVec4f>::DataType[2]) / 2;
-      } else if (mftypekey == MFVec4i32_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFVec4i32>::DataType[2]) / 2;
-      } else if (mftypekey == MFVec4s_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFVec4s>::DataType[2]) / 2;
-      } else if (mftypekey == MFVec4ub_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFVec4ub>::DataType[2]) / 2;
-      } else if (mftypekey == MFVec4ui32_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFVec4ui32>::DataType[2]) / 2;
-      } else if (mftypekey == MFVec4us_string.getString()) {
-        elementsize = sizeof(SbTypeInfo<SoMFVec4us>::DataType[2]) / 2;
-      } else {
-        // unsupported field type -- contribute nothing to the total
-        // rather than corrupting it: elementsize is a size_t, so the
-        // previous "-1 means unknown" sentinel here actually wrapped
-        // to SIZE_MAX and then overflowed further down in
-        // "managed/unmanaged += elementsize * numelements".
-        elementsize = 0;
+      // Extension field types are intentionally omitted: their element size
+      // is unknown to the base Coin library.
+      if (!sofieldcontainer_mfield_sizes->get(mftype.getName(), elementsize)) {
+        continue;
       }
-
-#undef SBNAMESTRING
+      }
 
       if (mfield->isDeleteValuesEnabled()) {
         // assume this is a self-managed multi-field
@@ -1294,3 +1229,33 @@ SoFieldContainer::getUserData(void) const
 
 #undef FLAG_DONOTIFY
 #undef FLAG_FIRSTINSTANCE
+
+#ifdef COIN_TEST_SUITE
+
+#include <Inventor/nodes/SoCoordinate3.h>
+
+BOOST_AUTO_TEST_CASE(mfield_memory_size_uses_registered_element_size)
+{
+  SoCoordinate3 * coordinates = new SoCoordinate3;
+  coordinates->ref();
+  const SbVec3f points[] = {
+    SbVec3f(1.0f, 2.0f, 3.0f),
+    SbVec3f(4.0f, 5.0f, 6.0f),
+    SbVec3f(7.0f, 8.0f, 9.0f)
+  };
+
+  coordinates->point.setValues(0, 3, points);
+  size_t managed = 0;
+  size_t unmanaged = 0;
+  coordinates->getFieldsMemorySize(managed, unmanaged);
+  BOOST_CHECK_EQUAL(managed, sizeof(points));
+  BOOST_CHECK_EQUAL(unmanaged, size_t(0));
+
+  coordinates->point.setValuesPointer(3, const_cast<SbVec3f *>(points));
+  coordinates->getFieldsMemorySize(managed, unmanaged);
+  BOOST_CHECK_EQUAL(managed, size_t(0));
+  BOOST_CHECK_EQUAL(unmanaged, sizeof(points));
+  coordinates->unref();
+}
+
+#endif // COIN_TEST_SUITE
