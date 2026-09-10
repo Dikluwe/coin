@@ -73,8 +73,8 @@
 #include <Inventor/annex/Profiler/SoProfiler.h>
 #include "profiler/SoProfilerP.h"
 
-#include <string>
-#include <vector>
+#include <Inventor/lists/SbList.h>
+#include <Inventor/SbString.h>
 
 #include <Inventor/errors/SoDebugError.h>
 #include <Inventor/SoType.h>
@@ -136,18 +136,19 @@ namespace {
   };
 
   void
-  tokenize(const std::string & input, const std::string & delimiters, std::vector<std::string> & tokens, int count = -1)
+  tokenize(const char * input, const char * delimiters, SbList<SbString> & tokens, int count = -1)
   {
-    std::string::size_type last_pos = 0, pos = 0;
+    if (!input || !delimiters) return;
+    const char * cur = input;
     while (TRUE) {
       --count;
-      pos = input.find_first_of(delimiters, last_pos);
-      if ((pos == std::string::npos) || (count == 0)) {
-        tokens.push_back(input.substr(last_pos));
+      const char * pos = strpbrk(cur, delimiters);
+      if (pos == NULL || count == 0) {
+        tokens.append(SbString(cur));
         break;
       } else {
-        tokens.push_back(input.substr(last_pos, pos - last_pos));
-        last_pos = pos + 1;
+        tokens.append(SbString(cur, 0, static_cast<int>(pos - cur)));
+        cur = pos + 1;
       }
     }
   }
@@ -305,31 +306,30 @@ SoProfilerP::parseCoinProfilerVariable(void)
 
   const char * env = coin_getenv(SoDBP::EnvVars::COIN_PROFILER);
   if (env == NULL) return;
-  std::vector<std::string> parameters;
+  SbList<SbString> parameters;
   tokenize(env, ":", parameters);
-  if ((parameters.size() == 1) &&
-      (parameters[0].find_first_not_of("+-0123456789 \t") == std::string::npos)) {
+  if ((parameters.getLength() == 1) &&
+      (parameters[0].getString()[strspn(parameters[0].getString(), "+-0123456789 \t")] == '\0')) {
     // just have a numeral value (or nothing) - old semantics
-    profiler::enabled = atoi(parameters[0].data()) > 0 ? TRUE : FALSE;
+    profiler::enabled = atoi(parameters[0].getString()) > 0 ? TRUE : FALSE;
   }
-  else if (parameters.size() > 0) {
-    std::vector<std::string>::iterator it = parameters.begin();
-    while (it != parameters.end()) {
-      if ((*it).compare("on") == 0) {
+  else if (parameters.getLength() > 0) {
+    for (int i = 0; i < parameters.getLength(); ++i) {
+      const SbString & token = parameters[i];
+      if (token == "on") {
         profiler::enabled = TRUE;
       }
-      else if ((*it).compare("off") == 0) {
+      else if (token == "off") {
         profiler::enabled = FALSE;
       }
-      else if ((*it).compare("syncgl") == 0) {
+      else if (token == "syncgl") {
         profiler::enabled = TRUE;
         profiler::rendering::syncgl = TRUE;
       }
       else {
         SoDebugError::postWarning("SoProfilerP::parseCoinProfilerVariable",
-                                  "invalid token '%s'", (*it).data());
+                                  "invalid token '%s'", token.getString());
       }
-      ++it;
     }
   }
 }
@@ -339,66 +339,66 @@ SoProfilerP::parseCoinProfilerOverlayVariable(void)
 {
   const char * env = coin_getenv(SoDBP::EnvVars::COIN_PROFILER_OVERLAY);
   if (env == NULL) return;
-  std::vector<std::string> parameters;
+  SbList<SbString> parameters;
   tokenize(env, ":", parameters);
 
-  if (parameters.size() == 1 && atoi(parameters[0].data()) > 0) {
+  if (parameters.getLength() == 1 && atoi(parameters[0].getString()) > 0) {
     // old behaviour, default setup
     profiler::overlay::active = TRUE;
     // SoDebugError::postInfo("SoProfiler::initialize", "default old behaviour parsing");
   }
-  else if (parameters.size() > 0) {
+  else if (parameters.getLength() > 0) {
     // SoDebugError::postInfo("SoProfiler::initialize", "new tokenized parsing");
 
-    for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it) {
-      if (it == parameters.begin()) {
+    for (int i = 0; i < parameters.getLength(); ++i) {
+      if (i == 0) {
         profiler::overlay::active = TRUE;
       }
 
-      std::vector<std::string> param, subargs;
-      tokenize(*it, "=", param, 2);
-      if (param.size() > 1) {
-        tokenize(param[1], ",", subargs);
+      SbList<SbString> param, subargs;
+      tokenize(parameters[i].getString(), "=", param, 2);
+      if (param.getLength() > 1) {
+        tokenize(param[1].getString(), ",", subargs);
       }
 
       // configure if the profiling system should continuously
       // schedule redraws to get more "live" data on the overlay
-      if (param[0].compare("autoredraw") == 0) {
-        if (param.size() == 1) {
+      if (param[0] == "autoredraw") {
+        if (param.getLength() == 1) {
           // no argument ->continuous redraws
           profiler::rendering::redraw_rate = 0.0f;
         } else {
           // argument decides redraw-delay-rate
-          profiler::rendering::redraw_rate = static_cast<float>(atof(param[1].data()));
+          profiler::rendering::redraw_rate = static_cast<float>(atof(param[1].getString()));
         }
         if (profiler::rendering::redraw_rate < 0.0f) {
           profiler::rendering::redraw_rate = -1.0f; // -1 exact means no redraws
         }
       }
 
-      else if (param[0].compare("stdout") == 0) {
+      else if (param[0] == "stdout") {
         profiler::overlay::active = FALSE;
         profiler::console::active = TRUE;
         profiler::console::onstdout = TRUE;
       }
 
-      else if (param[0].compare("stderr") == 0) {
+      else if (param[0] == "stderr") {
         profiler::overlay::active = FALSE;
         profiler::console::active = TRUE;
         profiler::console::onstderr = TRUE;
       }
 
-      else if (param[0].compare("clear") == 0 && profiler::console::active) {
+      else if (param[0] == "clear" && profiler::console::active) {
         profiler::console::clear = TRUE;
       }
 
-      else if (param[0].compare("header") == 0 && profiler::console::active) {
+      else if (param[0] == "header" && profiler::console::active) {
         profiler::console::header = TRUE;
       }
 
-      else if (param[0].compare("lines") == 0) {
-        if (subargs.size() > 0) {
-          profiler::console::lines = atoi(subargs[0].data());
+      else if (param[0] == "lines") {
+        if (subargs.getLength() > 0) {
+          profiler::console::lines = atoi(subargs[0].getString());
           if (profiler::console::lines < 0 || profiler::console::lines > 512) {
             SoDebugError::postWarning("SoProfiler",
                                       "Number of lines out of range. Setting 20.",
@@ -411,15 +411,15 @@ SoProfilerP::parseCoinProfilerOverlayVariable(void)
         }
       }
 
-      else if (param[0].compare("action") == 0) {
-        if (subargs.size() > 0) {
-          SoType actiontype = SoType::fromName(subargs[0].data());
+      else if (param[0] == "action") {
+        if (subargs.getLength() > 0) {
+          SoType actiontype = SoType::fromName(subargs[0].getString());
           if (actiontype.isDerivedFrom(SoAction::getClassTypeId())) {
             SoProfilerP::setActionType(actiontype);
           } else {
             SoDebugError::postWarning("SoProfiler",
                                       "Classname '%s' does not specify an action type.",
-                                      subargs[0].data());
+                                      subargs[0].getString());
           }
         } else {
           SoDebugError::postWarning("SoProfiler",
@@ -427,21 +427,21 @@ SoProfilerP::parseCoinProfilerOverlayVariable(void)
         }
       }
 
-      else if (param[0].compare("category") == 0) {
-        if (subargs.size() > 0) {
-          if (subargs[0].compare("nodes") == 0) {
+      else if (param[0] == "category") {
+        if (subargs.getLength() > 0) {
+          if (subargs[0] == "nodes") {
             profiler::console::category =
               SoProfilingReportGenerator::NODES;
-          } else if (subargs[0].compare("types") == 0) {
+          } else if (subargs[0] == "types") {
             profiler::console::category =
               SoProfilingReportGenerator::TYPES;
-          } else if (subargs[0].compare("names") == 0) {
+          } else if (subargs[0] == "names") {
             profiler::console::category =
               SoProfilingReportGenerator::NAMES;
           } else {
             SoDebugError::postWarning("SoProfiler",
                                       "'category' argument must be nodes, types, or names - was '%s'.",
-                                      subargs[0].data());
+                                      subargs[0].getString());
           }
         } else {
           SoDebugError::postWarning("SoProfiler",
@@ -450,64 +450,61 @@ SoProfilerP::parseCoinProfilerOverlayVariable(void)
       }
 
       // configure if and how we should display toplists
-      else if (param[0].compare("toplist") == 0) {
+      else if (param[0] == "toplist") {
         enum TopListType { NODE_TYPE, NODE_NAME, ACTION_TYPE, INVALID } toplisttype = INVALID;
-        if (subargs.size() > 0 && subargs[0].compare("nodes") == 0) {
+        if (subargs.getLength() > 0 && subargs[0] == "nodes") {
           // top-list based on node type statistics
           toplisttype = NODE_TYPE;
         }
-        else if (subargs.size() > 0 && subargs[0].compare("names") == 0) {
+        else if (subargs.getLength() > 0 && subargs[0] == "names") {
           // top-list based on named node statistics
           toplisttype = NODE_NAME;
         }
-        else if (subargs.size() > 0 && subargs[0].compare("actions") == 0) {
+        else if (subargs.getLength() > 0 && subargs[0] == "actions") {
           // top-list based on action type statistics
           toplisttype = ACTION_TYPE;
         }
-        else if (subargs.size() > 0) {
+        else if (subargs.getLength() > 0) {
           // default to node type
           toplisttype = INVALID;
         }
         if (toplisttype != INVALID) {
-          std::vector<std::string>::iterator it = subargs.begin();
-          ++it;
-          while (it != subargs.end()) {
-            std::vector<std::string> subarg;
-            tokenize((*it).data(), "=", subarg, 2);
-            if (subarg[0].compare("header") == 0) {
+          for (int j = 1; j < subargs.getLength(); ++j) {
+            SbList<SbString> subarg;
+            tokenize(subargs[j].getString(), "=", subarg, 2);
+            if (subarg[0] == "header") {
               // display header on toplist
             }
-            else if (subarg[0].compare("lines") == 0) {
+            else if (subarg[0] == "lines") {
               // needs numeric argument
-              if (subarg.size() == 2) {
-                /*int lines = atoi(subarg[1].data());*/
+              if (subarg.getLength() == 2) {
+                /*int lines = atoi(subarg[1].getString());*/
               } else {
                 // error: toplist.lines needs a numeric argument`
               }
             }
-            else if ((subarg[0].compare("action") == 0) && (toplisttype != ACTION_TYPE)) {
+            else if ((subarg[0] == "action") && (toplisttype != ACTION_TYPE)) {
               // need name of action
-              if (subarg.size() == 2) {
-                SoType actiontype = SoType::fromName(subarg[1].data());
+              if (subarg.getLength() == 2) {
+                SoType actiontype = SoType::fromName(subarg[1].getString());
                 if (actiontype.isDerivedFrom(SoAction::getClassTypeId())) {
                   SoProfilerP::setActionType(actiontype);
                 } else {
                   SoDebugError::postWarning("SoProfiler",
                                             "classname '%s' does not specify an action type",
-                                            subarg[1].data());
+                                            subarg[1].getString());
                   // error - must specify action type
                 }
               } else {
                 // error: toplist.action needs an SoAction-derived type name
               }
             }
-            else if ((subarg[0].compare("inclusive") == 0) && (toplisttype != ACTION_TYPE)) {
+            else if ((subarg[0] == "inclusive") && (toplisttype != ACTION_TYPE)) {
               // no argument
             }
-            else if ((subarg[0].compare("exclusive") == 0) && (toplisttype != ACTION_TYPE)) {
+            else if ((subarg[0] == "exclusive") && (toplisttype != ACTION_TYPE)) {
               // no argument
             }
-            ++it;
           }
         } else {
           // FIXME: implement proper action
@@ -515,12 +512,12 @@ SoProfilerP::parseCoinProfilerOverlayVariable(void)
       }
 
       // configure charts
-      else if (param[0].compare("graph") == 0) {
+      else if (param[0] == "graph") {
         // FIXME: implement proper action
       }
 
       // configure scene graph view
-      else if (param[0].compare("sceneview") == 0) {
+      else if (param[0] == "sceneview") {
         // FIXME: implement proper action
       }
 
@@ -528,7 +525,7 @@ SoProfilerP::parseCoinProfilerOverlayVariable(void)
       else {
         SoDebugError::postWarning("SoProfiler::initialize",
                                   "Unknown COIN_PROFILER_OVERLAY parameter '%s'.",
-                                  param[0].data());
+                                  param[0].getString());
       }
     }
 
