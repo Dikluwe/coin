@@ -284,15 +284,14 @@ ScXML::registerEvaluatorType(SbName profilename, SoType evaluatortype)
                        "Evaluator type must be derived from ScXMLEvaluator");
     return FALSE;
   }
-  ScXMLP::TypeDict::iterator it = ScXMLP::profileevaluators->find(profilename.getString());
-  if (it != ScXMLP::profileevaluators->end()) {
+  SoType dummy;
+  if (ScXMLP::profileevaluators->get(profilename, dummy)) {
     SoDebugError::post("ScXML::registerEvaluatorType",
                        "Evaluator for profile '%s' already registered.\n",
                        profilename.getString());
     return FALSE;
   }
-  ScXMLP::TypeEntry entry(profilename.getString(), evaluatortype);
-  ScXMLP::profileevaluators->insert(entry);
+  ScXMLP::profileevaluators->put(profilename, evaluatortype);
   return TRUE;
 }
 
@@ -302,20 +301,20 @@ ScXML::unregisterEvaluatorType(SbName profilename, SoType evaluatortype)
   assert(!evaluatortype.isBad());
   assert(ScXMLP::profileevaluators);
 
-  ScXMLP::TypeDict::iterator it = ScXMLP::profileevaluators->find(profilename.getString());
-  if (it == ScXMLP::profileevaluators->end()) {
+  SoType existing;
+  if (!ScXMLP::profileevaluators->get(profilename, existing)) {
     SoDebugError::post("ScXML::unregisterEvaluatorType",
                        "No evaluator type is registered for profile '%s'.\n",
                        profilename.getString());
     return FALSE;
   }
-  if (it->second != evaluatortype) {
+  if (existing != evaluatortype) {
     SoDebugError::post("ScXML::unregisterEvaluatorType",
                        "Different evaluator type registered for profile '%s'.\n",
                        profilename.getString());
     return FALSE;
   }
-  ScXMLP::profileevaluators->erase(it);
+  ScXMLP::profileevaluators->erase(profilename);
   return TRUE;
 }
 
@@ -324,12 +323,12 @@ ScXML::getEvaluatorTypeForProfile(SbName profilename)
 {
   assert(ScXMLP::profileevaluators);
 
-  ScXMLP::TypeDict::iterator it = ScXMLP::profileevaluators->find(profilename.getString());
-  if (it == ScXMLP::profileevaluators->end()) {
-    // no type registered for profile
-    return SoType::badType();
+  SoType evaluatortype;
+  if (ScXMLP::profileevaluators->get(profilename, evaluatortype)) {
+    return evaluatortype;
   }
-  return it->second;
+  // no type registered for profile
+  return SoType::badType();
 }
 
 // *************************************************************************

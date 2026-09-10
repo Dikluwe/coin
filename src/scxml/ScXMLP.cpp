@@ -98,19 +98,12 @@ ScXMLP::registerInvokeClassType(const char * xmlns, const char * targettype, con
 void
 ScXMLP::registerClassType(NamespaceDict * nsdict, const char * xmlns, const char * classname, SoType type)
 {
-  assert(xmlns);
+  assert(xmlns && classname);
 
   TypeDict * typedict = ScXMLP::getTypeDict(nsdict, xmlns);
   assert(typedict);
 
-  SbName classnamename(classname);
-  const char * key = classnamename.getString();
-  TypeDict::iterator it = typedict->find(key);
-  if (it != typedict->end()) {
-    it->second = type;
-  } else {
-    typedict->insert(TypeEntry(key, type));
-  }
+  typedict->put(SbName(classname), type);
 }
 
 /*
@@ -118,16 +111,15 @@ ScXMLP::registerClassType(NamespaceDict * nsdict, const char * xmlns, const char
 ScXMLP::TypeDict *
 ScXMLP::getTypeDict(NamespaceDict * nsdict, const char * xmlns)
 {
-  SbName xmlnsname(xmlns); // uniqify on string pointer
-  const char * key = xmlnsname.getString();
-  NamespaceDict::iterator it = nsdict->find(key);
-  if (it != nsdict->end()) {
-    return it->second;
-  } else {
-    TypeDict * dict = new TypeDict;
-    nsdict->insert(NamespaceEntry(key, dict));
+  assert(nsdict && xmlns);
+  SbName key(xmlns);
+  TypeDict * dict = NULL;
+  if (nsdict->get(key, dict)) {
     return dict;
   }
+  dict = new TypeDict;
+  nsdict->put(key, dict);
+  return dict;
 }
 
 // *************************************************************************
@@ -138,25 +130,17 @@ ScXMLP::getClassType(NamespaceDict * nsdict, const char * xmlns, const char * cl
 {
   assert(xmlns && classname);
 
-  const SbName classnamename(classname);
-  const char * key = classnamename.getString();
+  const SbName key(classname);
+  SoType type = SoType::badType();
 
-  ScXMLP::TypeDict * typedict = NULL;
-
-  typedict = ScXMLP::getTypeDict(nsdict, xmlns);
-  if (typedict) {
-    TypeDict::iterator it = typedict->find(key);
-    if (it != typedict->end()) {
-      return it->second;
-    }
+  ScXMLP::TypeDict * typedict = ScXMLP::getTypeDict(nsdict, xmlns);
+  if (typedict && typedict->get(key, type)) {
+    return type;
   }
 
   typedict = ScXMLP::getTypeDict(nsdict, SCXML_DEFAULT_NS);
-  if (typedict) {
-    TypeDict::iterator it = typedict->find(key);
-    if (it != typedict->end()) {
-      return it->second;
-    }
+  if (typedict && typedict->get(key, type)) {
+    return type;
   }
 
   return SoType::badType();
@@ -167,16 +151,15 @@ ScXMLP::getClassType(NamespaceDict * nsdict, const char * xmlns, const char * cl
 ScXMLP::NamespaceDict *
 ScXMLP::getNamespaceDict(TargettypeDict * ttdict, const char * targettype)
 {
-  SbName targettypename(targettype); // uniqify on string pointer
-  const char * key = targettypename.getString();
-  TargettypeDict::iterator it = ttdict->find(key);
-  if (it != ttdict->end()) {
-    return it->second;
-  } else {
-    NamespaceDict * dict = new NamespaceDict;
-    ttdict->insert(TargettypeEntry(key, dict));
+  assert(ttdict && targettype);
+  SbName key(targettype);
+  NamespaceDict * dict = NULL;
+  if (ttdict->get(key, dict)) {
     return dict;
   }
+  dict = new NamespaceDict;
+  ttdict->put(key, dict);
+  return dict;
 }
 
 /*
@@ -286,10 +269,10 @@ void
 ScXMLP::cleanup_namespacedict(NamespaceDict * dict)
 {
   assert(dict);
-  NamespaceDict::iterator it = dict->begin();
-  while (it != dict->end()) {
-    delete it->second;
-    ++it;
+  for (NamespaceDict::const_iterator it = dict->const_begin();
+       it != dict->const_end();
+       ++it) {
+    delete it->obj;
   }
 }
 
@@ -297,12 +280,12 @@ void
 ScXMLP::cleanup_targettypes(void)
 {
   assert(ScXMLP::targettypes);
-  TargettypeDict::iterator it = ScXMLP::targettypes->begin();
-  while (it != ScXMLP::targettypes->end()) {
-    ScXMLP::NamespaceDict * dict = it->second;
+  for (TargettypeDict::const_iterator it = ScXMLP::targettypes->const_begin();
+       it != ScXMLP::targettypes->const_end();
+       ++it) {
+    ScXMLP::NamespaceDict * dict = it->obj;
     cleanup_namespacedict(dict);
     delete dict;
-    ++it;
   }
   delete ScXMLP::targettypes;
   ScXMLP::targettypes = NULL;

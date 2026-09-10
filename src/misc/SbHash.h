@@ -309,6 +309,12 @@ class SbHash {
     delete [] this->buckets;
   }
 
+  void deleteEntry(SbHashEntry * entry)
+  {
+    entry->~SbHashEntry();
+    cc_memalloc_deallocate(this->memhandler, entry);
+  }
+
   void clear(void)
   {
     unsigned int i;
@@ -316,7 +322,7 @@ class SbHash {
       while (this->buckets[i]) {
         SbHashEntry * entry = this->buckets[i];
         this->buckets[i] = entry->next;
-        delete entry;
+        this->deleteEntry(entry);
       }
     }
     memset(this->buckets, 0, this->size * sizeof(SbHashEntry *));
@@ -373,7 +379,7 @@ class SbHash {
         else {
           prev->next = next;
         }
-        delete entry;
+        this->deleteEntry(entry);
         return 1;
       }
       prev = entry;
@@ -440,7 +446,7 @@ protected:
         this->put(entry->key, entry->obj);
         SbHashEntry * preventry = entry;
         entry = entry->next;
-        delete preventry;
+        this->deleteEntry(preventry);
       }
     }
     delete [] oldbuckets;
