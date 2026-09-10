@@ -43,7 +43,6 @@
 #include <cassert>
 #include <cstring>
 #include <memory>
-#include "misc/SbHashName.h"
 
 #include <Inventor/scxml/ScXML.h>
 
@@ -51,21 +50,16 @@
 
 class ScXMLEvent::PImpl {
 public:
-  // Event association sets are normally small. Avoid the SbHash default of
-  // 257 buckets for every event and every queued clone; the table grows
-  // automatically when an event carries more associations.
-  PImpl(void) : associations(11) { }
+  PImpl(void) { }
   ~PImpl(void)
   {
-    for (SbHash<SbName, const char *>::const_iterator it = this->associations.const_begin();
-         it != this->associations.const_end();
-         ++it) {
-      delete [] const_cast<char *>(it->obj);
+    for (int i = 0; i < this->associationvalues.getLength(); ++i) {
+      delete [] const_cast<char *>(this->associationvalues[i]);
     }
-    this->associations.clear();
   }
 
-  SbHash<SbName, const char *> associations;
+  SbList<SbName> associationkeys;
+  SbList<const char *> associationvalues;
 };
 
 #define PRIVATE(obj) ((obj)->pimpl)
@@ -116,11 +110,16 @@ ScXMLEvent::setAssociation(const char * key, const char * value)
   // value may point into the association being replaced. Copy it first.
   std::unique_ptr<char[]> valuecopy(new char [strlen(value) + 1]);
   strcpy(valuecopy.get(), value);
-  const char * existing = NULL;
-  PRIVATE(this)->associations.get(dictentry, existing);
-  PRIVATE(this)->associations.put(dictentry, valuecopy.get());
-  valuecopy.release();
-  delete [] existing;
+  const int index = PRIVATE(this)->associationkeys.find(dictentry);
+  if (index >= 0) {
+    const char * existing = PRIVATE(this)->associationvalues[index];
+    PRIVATE(this)->associationvalues[index] = valuecopy.release();
+    delete [] existing;
+  }
+  else {
+    PRIVATE(this)->associationkeys.append(dictentry);
+    PRIVATE(this)->associationvalues.append(valuecopy.release());
+  }
 }
 
 const char *
@@ -128,28 +127,22 @@ ScXMLEvent::getAssociation(const char * key) const
 {
   assert(key);
   SbName dictentry(key);
-  const char * val = NULL;
-  if (PRIVATE(this)->associations.get(dictentry, val)) {
-    return val;
-  }
-  return NULL;
+  const int index = PRIVATE(this)->associationkeys.find(dictentry);
+  return index >= 0 ? PRIVATE(this)->associationvalues[index] : NULL;
 }
 
 size_t
 ScXMLEvent::getNumAssociations(void) const
 {
-  return PRIVATE(this)->associations.getNumElements();
+  return static_cast<size_t>(PRIVATE(this)->associationkeys.getLength());
 }
 
 size_t
 ScXMLEvent::getAssociationKeys(SbList<const char *> & keys) const
 {
   size_t count = 0;
-  for (SbHash<SbName, const char *>::const_iterator it =
-         PRIVATE(this)->associations.const_begin();
-       it != PRIVATE(this)->associations.const_end();
-       ++it) {
-    keys.append(it->key.getString());
+  for (int i = 0; i < PRIVATE(this)->associationkeys.getLength(); ++i) {
+    keys.append(PRIVATE(this)->associationkeys[i].getString());
     ++count;
   }
   return count;
