@@ -40,12 +40,7 @@
 
 #include <cassert>
 #include <cstring>
-#include "misc/SbHash.h"
-
-inline unsigned int SbHashFunc(const SbName & key)
-{
-  return SbHashFunc(reinterpret_cast<size_t>(key.getString()));
-}
+#include "misc/SbHashName.h"
 
 #include <memory>
 
@@ -112,13 +107,19 @@ ScXMLDocument::PImpl::fillIdentifierMaps(ScXMLElt * object)
   if (object->isOfType(ScXMLAbstractStateElt::getClassTypeId())) {
     ScXMLAbstractStateElt * state = static_cast<ScXMLStateElt *>(object);
     SbName id(state->getIdAttribute());
-    this->stateidmap->put(id, state);
+    ScXMLAbstractStateElt * existing = NULL;
+    if (!this->stateidmap->get(id, existing)) {
+      this->stateidmap->put(id, state);
+    }
   }
 
   if (object->isOfType(ScXMLDataElt::getClassTypeId())) {
     ScXMLDataElt * data = static_cast<ScXMLDataElt *>(object);
     const SbName id(data->getIDAttribute());
-    this->dataidmap->put(id, data);
+    ScXMLDataElt * existing = NULL;
+    if (!this->dataidmap->get(id, existing)) {
+      this->dataidmap->put(id, data);
+    }
   }
 
   if (object->isOfType(ScXMLAnchorElt::getClassTypeId())) {
@@ -407,5 +408,51 @@ ScXMLDocument::getDataById(SbName id) const
   }
   return NULL;
 }
+
+#ifdef COIN_TEST_SUITE
+
+#include <Inventor/scxml/ScXMLScxmlElt.h>
+#include <Inventor/scxml/ScXMLStateElt.h>
+#include <Inventor/scxml/ScXMLDataModelElt.h>
+#include <Inventor/scxml/ScXMLDataElt.h>
+
+BOOST_AUTO_TEST_CASE(identifier_maps_preserve_first_duplicate)
+{
+  ScXMLDocument document;
+  ScXMLScxmlElt * root = new ScXMLScxmlElt;
+
+  ScXMLStateElt * firststate = new ScXMLStateElt;
+  firststate->setIdAttribute("duplicate-state");
+  root->addState(firststate);
+  ScXMLStateElt * secondstate = new ScXMLStateElt;
+  secondstate->setIdAttribute("duplicate-state");
+  root->addState(secondstate);
+
+  ScXMLStateElt * container = new ScXMLStateElt;
+  container->setIdAttribute("container");
+  ScXMLDataModelElt * datamodel = new ScXMLDataModelElt;
+  ScXMLDataElt * firstdata = new ScXMLDataElt;
+  firstdata->setIDAttribute("duplicate-data");
+  datamodel->addData(firstdata);
+  ScXMLDataElt * seconddata = new ScXMLDataElt;
+  seconddata->setIDAttribute("duplicate-data");
+  datamodel->addData(seconddata);
+  container->setDataModel(datamodel);
+  root->addState(container);
+  document.setRoot(root);
+
+  BOOST_CHECK_MESSAGE(document.getStateById(SbName("duplicate-state")) ==
+                        root->getState(0),
+                      "the first state in traversal order owns a duplicate ID");
+  BOOST_CHECK_MESSAGE(document.getDataById(SbName("duplicate-data")) ==
+                        datamodel->getData(0),
+                      "the first data element in traversal order owns a duplicate ID");
+  BOOST_CHECK_MESSAGE(document.getStateById(SbName("missing")) == NULL,
+                      "an unknown state ID is not found");
+  BOOST_CHECK_MESSAGE(document.getDataById(SbName("missing")) == NULL,
+                      "an unknown data ID is not found");
+}
+
+#endif // COIN_TEST_SUITE
 
 #undef PRIVATE
