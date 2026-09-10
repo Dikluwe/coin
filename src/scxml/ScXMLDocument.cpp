@@ -40,7 +40,12 @@
 
 #include <cassert>
 #include <cstring>
-#include <map>
+#include "misc/SbHash.h"
+
+inline unsigned int SbHashFunc(const SbName & key)
+{
+  return SbHashFunc(reinterpret_cast<size_t>(key.getString()));
+}
 
 #include <memory>
 
@@ -87,8 +92,8 @@ public:
   std::unique_ptr<char[]> filename;
   std::unique_ptr<ScXMLScxmlElt> root;
 
-  typedef std::map<const char *, ScXMLAbstractStateElt *> StateIdMap;
-  typedef std::map<const char *, ScXMLDataElt *> DataIdMap;
+  typedef SbHash<SbName, ScXMLAbstractStateElt *> StateIdMap;
+  typedef SbHash<SbName, ScXMLDataElt *> DataIdMap;
   std::unique_ptr<StateIdMap> stateidmap;
   std::unique_ptr<DataIdMap> dataidmap;
 
@@ -107,13 +112,13 @@ ScXMLDocument::PImpl::fillIdentifierMaps(ScXMLElt * object)
   if (object->isOfType(ScXMLAbstractStateElt::getClassTypeId())) {
     ScXMLAbstractStateElt * state = static_cast<ScXMLStateElt *>(object);
     SbName id(state->getIdAttribute());
-    this->stateidmap->insert(std::pair<const char *, ScXMLAbstractStateElt *>(id.getString(), state));
+    this->stateidmap->put(id, state);
   }
 
   if (object->isOfType(ScXMLDataElt::getClassTypeId())) {
     ScXMLDataElt * data = static_cast<ScXMLDataElt *>(object);
     const SbName id(data->getIDAttribute());
-    this->dataidmap->insert(std::pair<const char *, ScXMLDataElt *>(id.getString(), data));
+    this->dataidmap->put(id, data);
   }
 
   if (object->isOfType(ScXMLAnchorElt::getClassTypeId())) {
@@ -380,10 +385,9 @@ ScXMLDocument::getStateById(SbName id) const
     PRIVATE(thisp)->dataidmap.reset(new PImpl::DataIdMap);
     PRIVATE(thisp)->fillIdentifierMaps(PRIVATE(this)->root.get());
   }
-  std::map<const char *, ScXMLAbstractStateElt *>::const_iterator it =
-    PRIVATE(this)->stateidmap->find(id.getString());
-  if (it != PRIVATE(this)->stateidmap->end()) {
-    return it->second;
+  ScXMLAbstractStateElt * state = NULL;
+  if (PRIVATE(this)->stateidmap->get(id, state)) {
+    return state;
   }
   return NULL;
 }
@@ -397,10 +401,9 @@ ScXMLDocument::getDataById(SbName id) const
     PRIVATE(thisp)->dataidmap.reset(new PImpl::DataIdMap);
     PRIVATE(thisp)->fillIdentifierMaps(PRIVATE(this)->root.get());
   }
-  std::map<const char *, ScXMLDataElt *>::const_iterator it =
-    PRIVATE(this)->dataidmap->find(id.getString());
-  if (it != PRIVATE(this)->dataidmap->end()) {
-    return it->second;
+  ScXMLDataElt * data = NULL;
+  if (PRIVATE(this)->dataidmap->get(id, data)) {
+    return data;
   }
   return NULL;
 }
