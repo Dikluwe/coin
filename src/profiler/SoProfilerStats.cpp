@@ -32,7 +32,12 @@
 
 #include <Inventor/annex/Profiler/nodes/SoProfilerStats.h>
 
-#include <map>
+#include "misc/SbHash.h"
+
+inline unsigned int SbHashFunc(const SbName & key)
+{
+  return SbHashFunc(reinterpret_cast<size_t>(key.getString()));
+}
 
 #include <Inventor/annex/Profiler/elements/SoProfilerElement.h>
 #include <Inventor/annex/Profiler/SbProfilingData.h>
@@ -120,9 +125,9 @@ public:
   void updateNodeTypeTimingMap(SoProfilerElement * e);
   void updateNodeTypeTimingFields();
 
-  std::map<int16_t, SbProfilingData *> action_map;
-  std::map<int16_t, TypeTimings> type_timings;
-  std::map<const char *, TypeTimings> name_timings;
+  SbHash<int16_t, SbProfilingData *> action_map;
+  SbHash<int16_t, TypeTimings> type_timings;
+  SbHash<SbName, TypeTimings> name_timings;
 
   SoProfilerStats * master;
 
@@ -153,14 +158,12 @@ SoProfilerStatsP::doAction(SoAction * action)
   if (!e) { return; }
 
 
-  std::map<int16_t, SbProfilingData *>::iterator it =
-    this->action_map.find(action->getTypeId().getKey());
-  if (it != this->action_map.end()) {
-    (*((*it).second)) += e->getProfilingData();
+  SbProfilingData * data = NULL;
+  if (this->action_map.get(action->getTypeId().getKey(), data)) {
+    *data += e->getProfilingData();
   } else {
-    SbProfilingData * data = new SbProfilingData(e->getProfilingData());
-    std::pair<int16_t, SbProfilingData *> entry(action->getTypeId().getKey(), data);
-    this->action_map.insert(entry);
+    data = new SbProfilingData(e->getProfilingData());
+    this->action_map.put(action->getTypeId().getKey(), data);
   }
 
   this->updateNodeTypeTimingMap(e);
@@ -178,10 +181,9 @@ SoProfilerStatsP::doAction(SoAction * action)
 void
 SoProfilerStatsP::clearProfilingData(void)
 {
-  std::map<int16_t, SbProfilingData *>::iterator it, end;
-  for (it = this->action_map.begin(), end = this->action_map.end();
-       it != end; ++it) {
-    delete (*it).second;
+  for (SbHash<int16_t, SbProfilingData *>::const_iterator it = this->action_map.const_begin();
+       it != this->action_map.const_end(); ++it) {
+    delete it->obj;
   }
   this->action_map.clear();
   this->action_timings.clear();
@@ -217,53 +219,41 @@ SoProfilerStatsP::updateNodeTypeTimingMap(SoProfilerElement * e)
   int keyCount = keys.getLength();
   for (int i = 0; i < keyCount; ++i) {
     SbProfilingNodeTypeKey k = keys[i];
-    std::map<int16_t, TypeTimings>::iterator it = this->type_timings.find(k);
-    if (it != this->type_timings.end()) {
-      TypeTimings & timings = it->second;
-      SbTime totaltime, maxtime;
-      uint32_t count;
-      data.getStatsForType(k, totaltime, maxtime, count);
+    TypeTimings timings;
+    SbTime totaltime, maxtime;
+    uint32_t count;
+    data.getStatsForType(k, totaltime, maxtime, count);
+    if (this->type_timings.get(k, timings)) {
       timings.total += totaltime;
       timings.max += maxtime;
       timings.count += count;
     } else {
-      TypeTimings timings;
-      SbTime totaltime, maxtime;
-      uint32_t count;
-      data.getStatsForType(k, totaltime, maxtime, count);
       timings.total = totaltime;
       timings.max = maxtime;
       timings.count = count;
-      std::pair<int16_t, TypeTimings> entry(k, timings);
-      this->type_timings.insert(entry);
     }
+    this->type_timings.put(k, timings);
   }
 #else
   SbList<SbProfilingNodeNameKey> keys;
   data.getStatsForNamesKeyList(keys);
   int keyCount = keys.getLength();
   for (int i = 0; i < keyCount; ++i) {
-    SbProfilingNodeNameKey k = keys[i];
-    std::map<const char *, TypeTimings>::iterator it = this->name_timings.find(k);
-    if (it != this->name_timings.end()) {
-      TypeTimings & timings = it->second;
-      SbTime totaltime, maxtime;
-      uint32_t count;
-      data.getStatsForName(k, totaltime, maxtime, count);
-      it->second.total += totaltime;
-      it->second.max += maxtime;
-      it->second.count += count;
+    SbName k(keys[i]);
+    TypeTimings timings;
+    SbTime totaltime, maxtime;
+    uint32_t count;
+    data.getStatsForName(keys[i], totaltime, maxtime, count);
+    if (this->name_timings.get(k, timings)) {
+      timings.total += totaltime;
+      timings.max += maxtime;
+      timings.count += count;
     } else {
-      TypeTimings timings;
-      SbTime totaltime, maxtime;
-      uint32_t count;
-      data.getStatsForName(k, totaltime, maxtime, count);
       timings.total = totaltime;
       timings.max = maxtime;
       timings.count = count;
-      std::pair<SbProfilingNodeNameKey, TypeTimings> entry(k, timings);
-      this->name_timings.insert(entry);
     }
+    this->name_timings.put(k, timings);
   }
 #endif
 } // updateNodeTypeTimingMaps
@@ -272,9 +262,9 @@ void
 SoProfilerStatsP::updateNodeTypeTimingFields()
 {
 #if BY_TYPE
-  int keyCount = (int) this->type_timings.size();
+  int keyCount = (int) this->type_timings.getNumElements();
 #else
-  int keyCount = (int) this->name_timings.size();
+  int keyCount = (int) this->name_timings.getNumElements();
 #endif
 
   PUBLIC(this)->renderedNodeType.setNum(keyCount);
@@ -291,20 +281,22 @@ SoProfilerStatsP::updateNodeTypeTimingFields()
 
   int index = 0;
 #if BY_TYPE
-  std::map<int16_t, TypeTimings>::iterator it, end;
-  for (it = this->type_timings.begin(), end = this->type_timings.end();
-       it != end; ++it, ++index) {
-    typeNameArr[index] = SoType::fromKey(it->first).getName();
-#else
-  std::map<const char *, TypeTimings>::iterator it, end;
-  for (it = this->name_timings.begin(), end = this->name_timings.end();
-       it != end; ++it, ++index) {
-    typeNameArr[index] = SbName(it->first);
-#endif
-    renderingTimePerNodeTypeArr[index] = it->second.total;
-    renderingTimeMaxPerNodeTypeArr[index] = it->second.max;
-    nodeTypeCountArr[index] = it->second.count;
+  for (SbHash<int16_t, TypeTimings>::const_iterator it = this->type_timings.const_begin();
+       it != this->type_timings.const_end(); ++it, ++index) {
+    typeNameArr[index] = SoType::fromKey(it->key).getName();
+    renderingTimePerNodeTypeArr[index] = it->obj.total;
+    renderingTimeMaxPerNodeTypeArr[index] = it->obj.max;
+    nodeTypeCountArr[index] = it->obj.count;
   }
+#else
+  for (SbHash<SbName, TypeTimings>::const_iterator it = this->name_timings.const_begin();
+       it != this->name_timings.const_end(); ++it, ++index) {
+    typeNameArr[index] = it->key;
+    renderingTimePerNodeTypeArr[index] = it->obj.total;
+    renderingTimeMaxPerNodeTypeArr[index] = it->obj.max;
+    nodeTypeCountArr[index] = it->obj.count;
+  }
+#endif
 
   PUBLIC(this)->renderedNodeType.finishEditing();
   PUBLIC(this)->renderingTimePerNodeType.finishEditing();
@@ -495,10 +487,9 @@ SoProfilerStats::notify(SoNotList * COIN_UNUSED_ARG(l))
 const SbProfilingData &
 SoProfilerStats::getProfilingData(SoType actiontype) const
 {
-  std::map<int16_t, SbProfilingData *>::const_iterator it =
-    PRIVATE(this)->action_map.find(actiontype.getKey());
-  if (it != PRIVATE(this)->action_map.end()) {
-    return (*((*it).second));
+  SbProfilingData * data = NULL;
+  if (PRIVATE(this)->action_map.get(actiontype.getKey(), data)) {
+    return *data;
   }
 
   static SbProfilingData nodata;
