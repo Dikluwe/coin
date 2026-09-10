@@ -45,7 +45,7 @@
 */
 
 #include <cassert>
-#include <map>
+#include "misc/SbHashName.h"
 #include <list>
 #include <algorithm>
 
@@ -87,14 +87,9 @@ public:
 
 // *************************************************************************
 
-typedef std::map<const char *, ScXMLEventTarget *> SessionMap;
-typedef std::pair<const char *, ScXMLEventTarget *> SessionMapEntry;
-
-typedef std::map<const char *, SessionMap *> TargetMap;
-typedef std::pair<const char *, SessionMap *> TargetMapEntry;
-
-typedef std::map<const char *, TargetMap *> TargetTypeMap;
-typedef std::pair<const char *, TargetMap *> TargetTypeMapEntry;
+typedef SbHash<SbName, ScXMLEventTarget *> SessionMap;
+typedef SbHash<SbName, SessionMap *> TargetMap;
+typedef SbHash<SbName, TargetMap *> TargetTypeMap;
 
 class ScXMLEventTarget::PImpl {
 public:
@@ -195,29 +190,21 @@ ScXMLEventTarget::registerEventTarget(ScXMLEventTarget * target, const char * se
 
   assert(ScXMLEventTarget::PImpl::targettypes);
   ScXMLP::lock();
-  TargetTypeMap::iterator typeit = ScXMLEventTarget::PImpl::targettypes->find(targettypename.getString());
   TargetMap * targetmap = NULL;
-  if (typeit != ScXMLEventTarget::PImpl::targettypes->end()) {
-    targetmap = typeit->second;
-  } else {
+  if (!ScXMLEventTarget::PImpl::targettypes->get(targettypename, targetmap)) {
     targetmap = new TargetMap;
-    TargetTypeMapEntry entry(targettypename.getString(), targetmap);
-    ScXMLEventTarget::PImpl::targettypes->insert(entry);
+    ScXMLEventTarget::PImpl::targettypes->put(targettypename, targetmap);
   }
 
-  TargetMap::iterator targetit = targetmap->find(targetnamename.getString());
   SessionMap * sessionmap = NULL;
-  if (targetit != targetmap->end()) {
-    sessionmap = targetit->second;
-  } else {
+  if (!targetmap->get(targetnamename, sessionmap)) {
     sessionmap = new SessionMap;
-    TargetMapEntry entry(targetnamename.getString(), sessionmap);
-    targetmap->insert(entry);
+    targetmap->put(targetnamename, sessionmap);
   }
 
-  SessionMap::iterator sessionit = sessionmap->find(targetsessionid.getString());
-  if (sessionit != sessionmap->end()) {
-    if (target == sessionit->second) {
+  ScXMLEventTarget * existing = NULL;
+  if (sessionmap->get(targetsessionid, existing)) {
+    if (target == existing) {
       // already registered
       SoDebugError::post("ScXMLEventTarget::registerEventTarget",
                          "type/name/session tuple already registered for this target");
@@ -226,8 +213,7 @@ ScXMLEventTarget::registerEventTarget(ScXMLEventTarget * target, const char * se
                          "type/name/session tuple already registered for another target");
     }
   } else {
-    SessionMapEntry entry(targetsessionid.getString(), target);
-    sessionmap->insert(entry);
+    sessionmap->put(targetsessionid, target);
   }
 
   ScXMLEventTarget::PImpl::targets.append(target);
@@ -253,43 +239,40 @@ ScXMLEventTarget::unregisterEventTarget(ScXMLEventTarget * target, const char * 
 
   assert(ScXMLEventTarget::PImpl::targettypes);
   ScXMLP::lock();
-  TargetTypeMap::iterator typeit = ScXMLEventTarget::PImpl::targettypes->find(targettypename.getString());
-  if (unlikely(typeit == ScXMLEventTarget::PImpl::targettypes->end())) {
+  TargetMap * targetmap = NULL;
+  if (unlikely(!ScXMLEventTarget::PImpl::targettypes->get(targettypename, targetmap))) {
     SoDebugError::post("ScXMLEventTarget::unregisterEventTarget",
                        "given target type ('%s') not registered",
                        targettypename.getString());
     ScXMLP::unlock();
     return;
   }
-  TargetMap * targetmap = typeit->second;
 
-  TargetMap::iterator targetit = targetmap->find(targetnamename.getString());
-  if unlikely (targetit == targetmap->end()) {
+  SessionMap * sessionmap = NULL;
+  if (unlikely(!targetmap->get(targetnamename, sessionmap))) {
     SoDebugError::post("ScXMLEventTarget::unregisterEventTarget",
                        "given target name not registered");
     ScXMLP::unlock();
     return;
   }
 
-  SessionMap * sessionmap = targetit->second;
-
-  SessionMap::iterator sessionit = sessionmap->find(targetsessionid.getString());
-  if unlikely (sessionit == sessionmap->end()) {
-      SoDebugError::post("ScXMLEventTarget::unregisterEventTarget",
-                         "given target session not registered");
-      ScXMLP::unlock();
-      return;
+  ScXMLEventTarget * registered = NULL;
+  if (unlikely(!sessionmap->get(targetsessionid, registered))) {
+    SoDebugError::post("ScXMLEventTarget::unregisterEventTarget",
+                       "given target session not registered");
+    ScXMLP::unlock();
+    return;
   }
 
-  if (target == sessionit->second) {
-    sessionmap->erase(sessionit);
-    if (sessionmap->empty()) {
-      targetmap->erase(targetit);
-      if (targetmap->empty()) {
-        ScXMLEventTarget::PImpl::targettypes->erase(typeit);
+  if (target == registered) {
+    sessionmap->erase(targetsessionid);
+    if (sessionmap->getNumElements() == 0) {
+      targetmap->erase(targetnamename);
+      delete sessionmap;
+      if (targetmap->getNumElements() == 0) {
+        ScXMLEventTarget::PImpl::targettypes->erase(targettypename);
         delete targetmap;
       }
-      delete sessionmap;
     }
   }
   else {
@@ -315,36 +298,20 @@ ScXMLEventTarget::getEventTarget(const char * targettype, const char * targetnam
 
   assert(ScXMLEventTarget::PImpl::targettypes);
   ScXMLP::lock();
-  TargetTypeMap::iterator typeit = ScXMLEventTarget::PImpl::targettypes->find(targettypename.getString());
-  if unlikely (typeit == ScXMLEventTarget::PImpl::targettypes->end()) {
-    // SoDebugError::post("ScXMLEventTarget::getEventTarget",
-    //                    "given target type ('%s') not registered 1",
-    //                    targettypename.getString());
-    ScXMLP::unlock();
-    return NULL;
-  }
-  TargetMap * targetmap = typeit->second;
-
-  TargetMap::iterator targetit = targetmap->find(targetnamename.getString());
-  if unlikely (targetit == targetmap->end()) {
-    // SoDebugError::post("ScXMLEventTarget::getEventTarget",
-    //                    "given target (type '%s' '%s') not registered",
-    //                    targettypename.getString(), targetnamename.getString());
-    ScXMLP::unlock();
-    return NULL;
-  }
-  SessionMap * sessionmap = targetit->second;
-
-  SessionMap::iterator sessionit = sessionmap->find(targetsessionid.getString());
-  if unlikely (targetit == targetmap->end()) {
-    // SoDebugError::post("ScXMLEventTarget::getEventTarget",
-    //                    "given target (type '%s' '%s') with session '%s' not registered",
-    //                    targettypename.getString(), targetnamename.getString(), targetsessionid.getString());
+  TargetMap * targetmap = NULL;
+  if (unlikely(!ScXMLEventTarget::PImpl::targettypes->get(targettypename, targetmap))) {
     ScXMLP::unlock();
     return NULL;
   }
 
-  ScXMLEventTarget * target = sessionit->second;
+  SessionMap * sessionmap = NULL;
+  if (unlikely(!targetmap->get(targetnamename, sessionmap))) {
+    ScXMLP::unlock();
+    return NULL;
+  }
+
+  ScXMLEventTarget * target = NULL;
+  sessionmap->get(targetsessionid, target);
   ScXMLP::unlock();
   return target;
 }
