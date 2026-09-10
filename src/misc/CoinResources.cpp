@@ -86,12 +86,12 @@
 #include "tidbitsp.h"
 #include "coindefs.h"
 
-#if COIN_WORKAROUND(COIN_MSVC, <= COIN_MSVC_6_0_VERSION)
-// symbol length truncation
-#pragma warning(disable:4786)
-#endif // VC6.0
+#include "misc/SbHash.h"
 
-#include <map>
+inline unsigned int SbHashFunc(const SbName & key)
+{
+  return SbHashFunc(reinterpret_cast<size_t>(key.getString()));
+}
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 2048
@@ -113,9 +113,9 @@ namespace CoinResources { namespace {
       SbByteBuffer internalbuf;
     };
 
-    typedef std::map<const char *, ResourceHandle *> ResourceMap;
+    typedef SbHash<SbName, ResourceHandle *> ResourceMap;
 
-    ResourceMap * resourcemap;
+    ResourceMap * resourcemap = NULL;
 
     ResourceHandle * getResourceHandle(const char * resloc);
     ResourceHandle * createResourceHandle(const char * resloc);
@@ -124,35 +124,36 @@ namespace CoinResources { namespace {
     void
     cleanup(void)
     {
-      ResourceMap::iterator it = resourcemap->begin();
-      while (it != resourcemap->end()) {
-        delete it->second;
-        ++it;
+      if (resourcemap) {
+        for (ResourceMap::const_iterator it = resourcemap->const_begin();
+             it != resourcemap->const_end();
+             ++it) {
+          delete it->obj;
+        }
+        delete resourcemap;
+        resourcemap = NULL;
       }
-      delete resourcemap;
-      resourcemap = NULL;
     }
 
     ResourceHandle *
     getResourceHandle(const char * resloc)
     {
-      assert(resloc);
-      SbName reslochash(resloc);
-      ResourceMap::iterator it =
-        resourcemap->find(reslochash.getString());
-      if (it == resourcemap->end()) return NULL;
-      return it->second;
+      assert(resloc && resourcemap);
+      ResourceHandle * handle = NULL;
+      if (resourcemap->get(SbName(resloc), handle)) {
+        return handle;
+      }
+      return NULL;
     }
 
     ResourceHandle *
     createResourceHandle(const char * resloc)
     {
-      assert(resloc);
-      SbName reslochash(resloc);
+      assert(resloc && resourcemap);
+      SbName name(resloc);
       ResourceHandle * handle = new ResourceHandle;
-      handle->resloc = const_cast<char *>(reslochash.getString());
-      std::pair<const char *, ResourceHandle *> mapentry(reslochash.getString(), handle);
-      resourcemap->insert(mapentry);
+      handle->resloc = const_cast<char *>(name.getString());
+      resourcemap->put(name, handle);
       return handle;
     }
     static const char PREFIX [] = "coin:";
@@ -323,14 +324,15 @@ CoinResources::set(const char * resloc, const SbByteBuffer & buffer, ResourceFla
 void
 CoinResources::freeLoadedExternals(void)
 {
-  CoinResources::ResourceMap::iterator it =
-    CoinResources::resourcemap->begin();
-  while (it != CoinResources::resourcemap->end()) {
-    ResourceHandle * handle = it->second;
+  if (!CoinResources::resourcemap) return;
+  for (CoinResources::ResourceMap::const_iterator it =
+         CoinResources::resourcemap->const_begin();
+       it != CoinResources::resourcemap->const_end();
+       ++it) {
+    ResourceHandle * handle = it->obj;
     if (!handle->loadedbuf.empty()) {
       //FIXME: This may be entirely unnecessary with the SbByteBuffer class BFG 20090212
       handle->loadedbuf = SbByteBuffer();
     }
-    ++it;
   }
 }
