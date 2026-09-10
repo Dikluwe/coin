@@ -98,6 +98,7 @@ ScXMLEltReader::setXMLAttributes(ScXMLElt * scxmlelt, cc_xml_elt * xmlelt)
 class ScXMLElt::PImpl {
 public:
   typedef SbHash<SbName, char *> AttributeMap;
+  PImpl(void) : attributemap(11) { }
   AttributeMap attributemap;
 
   ~PImpl(void)

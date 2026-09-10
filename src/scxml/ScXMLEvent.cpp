@@ -51,7 +51,10 @@
 
 class ScXMLEvent::PImpl {
 public:
-  PImpl(void) { }
+  // Event association sets are normally small. Avoid the SbHash default of
+  // 257 buckets for every event and every queued clone; the table grows
+  // automatically when an event carries more associations.
+  PImpl(void) : associations(11) { }
   ~PImpl(void)
   {
     for (SbHash<SbName, const char *>::const_iterator it = this->associations.const_begin();
