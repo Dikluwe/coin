@@ -60,10 +60,6 @@
   \sa SoBase::getClassTypeId
 */
 
-#include <cstring>
-#include <cassert>
-#include "misc/SbHashName.h"
-
 #include <Inventor/SbName.h>
 #include <Inventor/scxml/ScXML.h>
 
@@ -72,19 +68,6 @@
 // *************************************************************************
 
 class ScXMLObject::PImpl {
-public:
-  typedef SbHash<SbName, char *> AttributeMap;
-  AttributeMap attributemap;
-
-  ~PImpl(void)
-  {
-    for (AttributeMap::const_iterator it = this->attributemap.const_begin();
-         it != this->attributemap.const_end();
-         ++it) {
-      delete [] it->obj;
-    }
-    this->attributemap.clear();
-  }
 };
 
 #define PRIVATE(obj) ((obj)->pimpl)
