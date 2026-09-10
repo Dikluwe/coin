@@ -75,6 +75,10 @@ struct TextureImageData {
   const unsigned char * pixels;
 };
 
+inline unsigned int SbHashFunc(const TextureImageData * key) {
+  return SbHashFunc(reinterpret_cast<size_t>(key));
+}
+
 static const unsigned char material_1_data[] = {
   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
 };
@@ -126,7 +130,7 @@ namespace {
       //This code should only be called from a static context, so we
       //cannot do any unreffing of Coin-nodes
 
-      assert(this->nodemap.size()==0);
+      assert(this->nodemap.getNumElements() == 0);
 #if 0
       clear();
 #endif
