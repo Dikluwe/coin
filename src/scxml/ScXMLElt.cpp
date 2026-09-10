@@ -59,7 +59,12 @@
 
 #include <cstring>
 #include <cassert>
-#include <map>
+#include "misc/SbHash.h"
+
+inline unsigned int SbHashFunc(const SbName & key)
+{
+  return SbHashFunc(reinterpret_cast<size_t>(key.getString()));
+}
 
 #include <Inventor/SbName.h>
 #include <Inventor/errors/SoDebugError.h>
@@ -96,16 +101,15 @@ ScXMLEltReader::setXMLAttributes(ScXMLElt * scxmlelt, cc_xml_elt * xmlelt)
 
 class ScXMLElt::PImpl {
 public:
-  typedef std::map<const char *, char *> AttributeMap;
-  typedef std::pair<const char *, char *> AttributeEntry;
+  typedef SbHash<SbName, char *> AttributeMap;
   AttributeMap attributemap;
 
   ~PImpl(void)
   {
-    AttributeMap::iterator it = this->attributemap.begin();
-    while (it != this->attributemap.end()) {
-      delete [] it->second;
-      ++it;
+    for (AttributeMap::const_iterator it = this->attributemap.const_begin();
+         it != this->attributemap.const_end();
+         ++it) {
+      delete [] it->obj;
     }
     this->attributemap.clear();
   }
@@ -149,24 +153,22 @@ void
 ScXMLElt::setXMLAttribute(const char * attribute, const char * value)
 {
   assert(attribute);
-  const SbName attrname(attribute); // uniqify on string pointer
-  PImpl::AttributeMap::iterator it =
-    PRIVATE(this)->attributemap.find(attrname.getString());
-  if (it == PRIVATE(this)->attributemap.end()) {
+  const SbName attrname(attribute);
+  char * existing = NULL;
+  if (PRIVATE(this)->attributemap.get(attrname, existing)) {
+    delete [] existing;
+    if (!value) {
+      PRIVATE(this)->attributemap.erase(attrname);
+    } else {
+      char * valuedup = new char [ strlen(value) + 1 ];
+      strcpy(valuedup, value);
+      PRIVATE(this)->attributemap.put(attrname, valuedup);
+    }
+  } else {
     if (value) {
       char * valuedup = new char [ strlen(value) + 1 ];
       strcpy(valuedup, value);
-      PRIVATE(this)->attributemap.insert(
-        PImpl::AttributeEntry(attrname.getString(), valuedup));
-    }
-  } else {
-    delete [] it->second;
-    it->second = NULL;
-    if (!value) {
-      PRIVATE(this)->attributemap.erase(it);
-    } else {
-      it->second = new char [ strlen(value) + 1 ];
-      strcpy(it->second, value);
+      PRIVATE(this)->attributemap.put(attrname, valuedup);
     }
   }
 }
@@ -179,10 +181,9 @@ const char *
 ScXMLElt::getXMLAttribute(const char * attribute) const
 {
   const SbName attrname(attribute);
-  PImpl::AttributeMap::const_iterator it =
-    PRIVATE(this)->attributemap.find(attrname.getString());
-  if (it != PRIVATE(this)->attributemap.end()) {
-    return it->second;
+  char * val = NULL;
+  if (PRIVATE(this)->attributemap.get(attrname, val)) {
+    return val;
   }
   return NULL;
 }

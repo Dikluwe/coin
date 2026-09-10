@@ -42,7 +42,12 @@
 
 #include <cassert>
 #include <cstring>
-#include <map>
+#include "misc/SbHash.h"
+
+inline unsigned int SbHashFunc(const SbName & key)
+{
+  return SbHashFunc(reinterpret_cast<size_t>(key.getString()));
+}
 
 #include <Inventor/scxml/ScXML.h>
 
@@ -53,10 +58,15 @@ public:
   PImpl(void) { }
   ~PImpl(void)
   {
-    // FIXME: delete strings in associations map (values only)
+    for (SbHash<SbName, const char *>::const_iterator it = this->associations.const_begin();
+         it != this->associations.const_end();
+         ++it) {
+      delete [] const_cast<char *>(it->obj);
+    }
+    this->associations.clear();
   }
 
-  std::map<const char *, const char *> associations;
+  SbHash<SbName, const char *> associations;
 };
 
 #define PRIVATE(obj) ((obj)->pimpl)
@@ -104,17 +114,13 @@ ScXMLEvent::setAssociation(const char * key, const char * value)
 {
   assert(key && value);
   SbName dictentry(key);
-  std::map<const char *, const char *>::iterator findit =
-    PRIVATE(this)->associations.find(dictentry.getString());
+  const char * existing = NULL;
+  if (PRIVATE(this)->associations.get(dictentry, existing)) {
+    delete [] const_cast<char *>(existing);
+  }
   char * valuecopy = new char [strlen(value) + 1];
   strcpy(valuecopy, value);
-  if (findit != PRIVATE(this)->associations.end()) {
-    delete [] findit->second;
-    findit->second = valuecopy;
-  } else {
-    std::pair<const char *, const char *> newentry(dictentry.getString(), valuecopy);
-    PRIVATE(this)->associations.insert(newentry);
-  }
+  PRIVATE(this)->associations.put(dictentry, valuecopy);
 }
 
 const char *
@@ -122,10 +128,9 @@ ScXMLEvent::getAssociation(const char * key) const
 {
   assert(key);
   SbName dictentry(key);
-  std::map<const char *, const char *>::const_iterator findit =
-    PRIVATE(this)->associations.find(dictentry.getString());
-  if (findit != PRIVATE(this)->associations.end()) {
-    return findit->second;
+  const char * val = NULL;
+  if (PRIVATE(this)->associations.get(dictentry, val)) {
+    return val;
   }
   return NULL;
 }
@@ -133,19 +138,19 @@ ScXMLEvent::getAssociation(const char * key) const
 size_t
 ScXMLEvent::getNumAssociations(void) const
 {
-  return PRIVATE(this)->associations.size();
+  return PRIVATE(this)->associations.getNumElements();
 }
 
 size_t
 ScXMLEvent::getAssociationKeys(SbList<const char *> & keys) const
 {
-  std::map<const char *, const char *>::const_iterator it =
-    PRIVATE(this)->associations.begin();
   size_t count = 0;
-  while (it != PRIVATE(this)->associations.end()) {
-    keys.append(it->first);
+  for (SbHash<SbName, const char *>::const_iterator it =
+         PRIVATE(this)->associations.const_begin();
+       it != PRIVATE(this)->associations.const_end();
+       ++it) {
+    keys.append(it->key.getString());
     ++count;
-    ++it;
   }
   return count;
 }
