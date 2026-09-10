@@ -36,12 +36,7 @@
 #include <Inventor/SbName.h>
 #include <Inventor/SoType.h>
 
-#include "misc/SbHash.h"
-
-inline unsigned int SbHashFunc(const SbName & key)
-{
-  return SbHashFunc(reinterpret_cast<size_t>(key.getString()));
-}
+#include "misc/SbHashName.h"
 
 struct cc_xml_doc;
 struct cc_xml_elt;

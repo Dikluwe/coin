@@ -45,6 +45,7 @@ set(COIN_MISC_INTERNAL_FILES
 	CoinStaticObjectInDLL.h
 	CoinStaticObjectInDLL.cpp
 	SbHash.h
+	SbHashName.h
 	SoBaseP.h
 	SoBaseP.cpp
 	SoCompactPathList.h
