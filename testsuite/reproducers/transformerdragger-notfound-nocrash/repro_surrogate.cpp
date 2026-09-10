@@ -23,6 +23,7 @@
 // picking -- no GL context needed), through mouse-down, mouse-move and
 // mouse-up, confirming none of dragStart()/drag()/dragFinish() abort.
 
+#include "../CoinCleanup.h"
 #include <cstdio>
 #include <Inventor/SoDB.h>
 #include <Inventor/SoInteraction.h>
@@ -43,6 +44,7 @@ int
 main()
 {
   SoDB::init();
+  CoinReproducerCleanup cleanup;
   SoInteraction::init();
 
   SoSeparator * root = new SoSeparator;
@@ -147,6 +149,8 @@ main()
   action.apply(root);
   fprintf(stderr, "[repro] mouse-up handled, no abort\n");
 
+  // Remove the surrogate reference back to root before releasing the graph.
+  dragger->setPartAsPath("surroundScale", NULL);
   surrogatepath->unref();
   root->unref();
 

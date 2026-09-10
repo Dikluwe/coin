@@ -1847,9 +1847,10 @@ DEF root Separator {
 	   }
 	   
 	
-       root->unref();
 	   newroot->unref();
 #endif
+       // The original graph exists even when VRML97 checks are excluded.
+       root->unref();
  }
 
 #endif // COIN_TEST_SUITE

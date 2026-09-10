@@ -35,6 +35,7 @@
 // See run.sh in this directory for how to build and run this against a
 // given libCoin build.
 
+#include "../CoinCleanup.h"
 #include <cstdio>
 #include <cstring>
 #include <cmath>
@@ -223,6 +224,7 @@ runSequence(const char * kind)
 int main()
 {
   SoDB::init();
+  CoinReproducerCleanup cleanup;
   runSequence("scale");
   runSequence("rotation");
   runSequence("rotationxyz");

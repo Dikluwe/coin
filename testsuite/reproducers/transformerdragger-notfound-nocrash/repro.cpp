@@ -40,6 +40,7 @@
 // -- ExposedTransformerDragger below is plain, un-registered C++
 // subclassing (no new SO_KIT type) purely to call them from this repro.
 
+#include "../CoinCleanup.h"
 #include <cstdio>
 #include <Inventor/SoDB.h>
 #include <Inventor/SoInteraction.h>
@@ -55,6 +56,7 @@ int
 main()
 {
   SoDB::init();
+  CoinReproducerCleanup cleanup;
   SoInteraction::init();
 
   ExposedTransformerDragger * dragger = new ExposedTransformerDragger;

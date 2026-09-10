@@ -150,6 +150,9 @@ LINE    [^\n]*
 
 {WHITE}solid{WHITE}{LINE}$	{
 	  char * ptr = stl_yytext;
+	  /* The ASCII format probe scans this header before rewinding. */
+	  free(reader->info);
+	  reader->info = NULL;
 	  while ( *ptr == ' ' || *ptr == '\t' ) ptr++;
 	  while ( *ptr != ' ' && *ptr != '\t' ) ptr++;
 	  while ( *ptr && (*ptr == ' ' || *ptr == '\t') ) ptr++;
@@ -908,6 +911,8 @@ stl_reader_create(const char * filename)
   } while ( FALSE );
 
   /* the file is not an stl file */
+  free(reader->info);
+  reader->info = NULL;
   (void)fclose(reader->file);
   free(reader->filename);
   reader->filename = NULL;
@@ -1126,6 +1131,7 @@ stl_writer_destroy(stl_writer * writer)
     stl_facet_destroy(writer->facet);
     writer->facet = NULL;
   }
+  free(writer->filename);
   free(writer);
   return STL_OK;
 } /* stl_writer_destroy() */
