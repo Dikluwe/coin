@@ -1180,7 +1180,6 @@ SoFieldContainer::getFieldsMemorySize(size_t & managed, size_t & unmanaged) cons
       if (!sofieldcontainer_mfield_sizes->get(mftype.getName(), elementsize)) {
         continue;
       }
-      }
 
       if (mfield->isDeleteValuesEnabled()) {
         // assume this is a self-managed multi-field
