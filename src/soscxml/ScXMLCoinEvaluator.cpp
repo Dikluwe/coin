@@ -70,9 +70,147 @@
 
 class ScXMLCoinEvaluator::PImpl {
 public:
+  enum { SMALL_CAPACITY = 4 };
+
+  struct Temporary {
+    Temporary(void) : object(NULL) { }
+    Temporary(const SbName & keyarg, ScXMLDataObj * objectarg)
+      : key(keyarg), object(objectarg) { }
+
+    SbName key;
+    ScXMLDataObj * object;
+  };
+
   typedef SbHash<SbName, ScXMLDataObj *> TemporaryMap;
-  TemporaryMap temporaries;
+
+  PImpl(void) : numsmalltemporaries(0), temporaries(NULL), usinghash(FALSE) { }
+  ~PImpl(void);
+
+  ScXMLDataObj * get(const SbName & key) const;
+  void put(const SbName & key, ScXMLDataObj * object);
+  void clear(void);
+  void dump(void) const;
+
+private:
+  static void dumpTemporary(const SbName & key, ScXMLDataObj * object);
+
+  Temporary smalltemporaries[SMALL_CAPACITY];
+  int numsmalltemporaries;
+  TemporaryMap * temporaries;
+  SbBool usinghash;
 };
+
+ScXMLCoinEvaluator::PImpl::~PImpl(void)
+{
+  this->clear();
+  delete this->temporaries;
+}
+
+ScXMLDataObj *
+ScXMLCoinEvaluator::PImpl::get(const SbName & key) const
+{
+  if (this->usinghash) {
+    ScXMLDataObj * object = NULL;
+    return this->temporaries->get(key, object) ? object : NULL;
+  }
+
+  const int length = this->numsmalltemporaries;
+  for (int i = 0; i < length; ++i) {
+    if (this->smalltemporaries[i].key == key) {
+      return this->smalltemporaries[i].object;
+    }
+  }
+  return NULL;
+}
+
+void
+ScXMLCoinEvaluator::PImpl::put(const SbName & key, ScXMLDataObj * object)
+{
+  if (this->usinghash) {
+    ScXMLDataObj * existing = NULL;
+    if (this->temporaries->get(key, existing)) delete existing;
+    this->temporaries->put(key, object);
+    return;
+  }
+
+  const int length = this->numsmalltemporaries;
+  for (int i = 0; i < length; ++i) {
+    if (this->smalltemporaries[i].key == key) {
+      delete this->smalltemporaries[i].object;
+      this->smalltemporaries[i].object = object;
+      return;
+    }
+  }
+
+  if (length < SMALL_CAPACITY) {
+    this->smalltemporaries[this->numsmalltemporaries++] = Temporary(key, object);
+    return;
+  }
+
+  if (this->temporaries == NULL) {
+    this->temporaries = new TemporaryMap(11);
+  }
+  assert(this->temporaries->getNumElements() == 0);
+  for (int i = 0; i < length; ++i) {
+    const Temporary & temporary = this->smalltemporaries[i];
+    this->temporaries->put(temporary.key, temporary.object);
+  }
+  this->numsmalltemporaries = 0;
+  this->usinghash = TRUE;
+  this->temporaries->put(key, object);
+}
+
+void
+ScXMLCoinEvaluator::PImpl::clear(void)
+{
+  if (this->usinghash) {
+    for (TemporaryMap::const_iterator it = this->temporaries->const_begin();
+         it != this->temporaries->const_end(); ++it) {
+      delete it->obj;
+    }
+    this->temporaries->clear();
+    this->usinghash = FALSE;
+    return;
+  }
+
+  const int length = this->numsmalltemporaries;
+  for (int i = 0; i < length; ++i) {
+    delete this->smalltemporaries[i].object;
+  }
+  this->numsmalltemporaries = 0;
+}
+
+void
+ScXMLCoinEvaluator::PImpl::dumpTemporary(const SbName & key,
+                                         ScXMLDataObj * object)
+{
+  if (object->isOfType(ScXMLConstantDataObj::getClassTypeId())) {
+    SbString value;
+    ScXMLConstantDataObj * cobj = static_cast<ScXMLConstantDataObj *>(object);
+    cobj->convertToString(value);
+    printf("> TEMP variable '%s' with value '%s'.\n",
+           key.getString(), value.getString());
+  } else {
+    printf("> TEMP variable '%s' with unknown value.\n", key.getString());
+  }
+}
+
+void
+ScXMLCoinEvaluator::PImpl::dump(void) const
+{
+  if (this->usinghash) {
+    for (TemporaryMap::const_iterator it = this->temporaries->const_begin();
+         it != this->temporaries->const_end(); ++it) {
+      dumpTemporary(it->key, it->obj);
+    }
+    return;
+  }
+
+  for (int i = 0; i < this->numsmalltemporaries; ++i) {
+    const Temporary & temporary = this->smalltemporaries[i];
+    dumpTemporary(temporary.key, temporary.object);
+  }
+}
 
 #define PRIVATE(obj) ((obj)->pimpl)
 
@@ -167,11 +305,9 @@ ScXMLCoinEvaluator::setAtLocation(const char * location, ScXMLDataObj * obj)
       cobj = static_cast<ScXMLConstantDataObj *>(res);
     }
     assert(cobj);
-    ScXMLDataObj * existing = NULL;
-    if (PRIVATE(this)->temporaries.get(varname, existing)) {
-      delete existing;
-    }
-    PRIVATE(this)->temporaries.put(varname, cobj->clone());
+    // Clone before replacing: cobj may refer to the value already stored here.
+    ScXMLDataObj * copy = cobj->clone();
+    PRIVATE(this)->put(varname, copy);
     return TRUE;
   }
 
@@ -278,19 +414,13 @@ ScXMLCoinEvaluator::locate(const char * location) const
 
   if (strncmp(location, "coin:temp.", 10) == 0) {
     SbName varname(location + 10);
-    ScXMLDataObj * obj = NULL;
-    if (PRIVATE(this)->temporaries.get(varname, obj)) {
-      return obj;
-    }
-    return NULL;
+    return PRIVATE(this)->get(varname);
   }
   else if (strpbrk(location, ":.") == NULL) {
     // maybe implicit location path
     SbName varname(location);
-    ScXMLDataObj * obj = NULL;
-    if (PRIVATE(this)->temporaries.get(varname, obj)) {
-      return obj;
-    }
+    ScXMLDataObj * obj = PRIVATE(this)->get(varname);
+    if (obj) return obj;
     // no return - passing through
   }
 
@@ -388,30 +518,13 @@ ScXMLCoinEvaluator::locate(const char * location) const
 void
 ScXMLCoinEvaluator::clearTemporaryVariables(void)
 {
-  for (PImpl::TemporaryMap::const_iterator it = PRIVATE(this)->temporaries.const_begin();
-       it != PRIVATE(this)->temporaries.const_end();
-       ++it) {
-    delete it->obj;
-  }
-  PRIVATE(this)->temporaries.clear();
+  PRIVATE(this)->clear();
 }
 
 void
 ScXMLCoinEvaluator::dumpTemporaries(void)
 {
-  for (PImpl::TemporaryMap::const_iterator it = PRIVATE(this)->temporaries.const_begin();
-       it != PRIVATE(this)->temporaries.const_end();
-       ++it) {
-    if (it->obj->isOfType(ScXMLConstantDataObj::getClassTypeId())) {
-      SbString value;
-      ScXMLConstantDataObj * cobj = static_cast<ScXMLConstantDataObj *>(it->obj);
-      cobj->convertToString(value);
-      printf("> TEMP variable '%s' with value '%s'.\n",
-             it->key.getString(), value.getString());
-    } else {
-      printf("> TEMP variable '%s' with unknown value.\n", it->key.getString());
-    }
-  }
+  PRIVATE(this)->dump();
 }
 
 #undef PRIVATE
@@ -691,7 +804,9 @@ ScXMLCoinLengthFuncExprDataObj::evaluateNow(ScXMLStateMachine * sm, ScXMLDataObj
 
 #include <cmath>
 #include <cfloat>
+#include <cstring>
 
+#include <Inventor/SbString.h>
 #include <Inventor/scxml/ScXMLStateMachine.h>
 
 template<class EXPECTED_TYPE>
@@ -760,6 +875,63 @@ BOOST_AUTO_TEST_CASE(BasicExpressions)
   TestReturnValue<ScXMLBoolDataObj>("M_PI != M_LN2",TRUE,evaluator.get());
   TestReturnValue<ScXMLBoolDataObj>("M_PI == M_LN2",FALSE,evaluator.get());
   TestReturnValue<ScXMLBoolDataObj>("false && !false",FALSE,evaluator.get());
+}
+
+BOOST_AUTO_TEST_CASE(TemporaryStoragePromotion)
+{
+  ScXMLStateMachine sm;
+  ScXMLCoinEvaluator evaluator;
+  evaluator.setStateMachine(&sm);
+
+  for (int i = 0; i < 5; ++i) {
+    SbString location;
+    location.sprintf("coin:temp.k%d", i);
+    SbString value;
+    value.sprintf("value%d", i);
+    ScXMLStringDataObj input(value.getString());
+    BOOST_REQUIRE(evaluator.setAtLocation(location.getString(), &input));
+  }
+
+  for (int i = 0; i < 5; ++i) {
+    SbString location;
+    location.sprintf("coin:temp.k%d", i);
+    ScXMLDataObj * result = evaluator.locate(location.getString());
+    BOOST_REQUIRE(result != NULL);
+    BOOST_REQUIRE(result->isOfType(ScXMLStringDataObj::getClassTypeId()));
+    SbString expected;
+    expected.sprintf("value%d", i);
+    BOOST_CHECK(strcmp(static_cast<ScXMLStringDataObj *>(result)->getString(),
+                       expected.getString()) == 0);
+  }
+
+  // Replacing a value with itself must clone it before deleting the old value.
+  ScXMLDataObj * alias = evaluator.locate("coin:temp.k0");
+  BOOST_REQUIRE(alias != NULL);
+  BOOST_REQUIRE(evaluator.setAtLocation("coin:temp.k0", alias));
+  ScXMLDataObj * replacement = evaluator.locate("coin:temp.k0");
+  BOOST_REQUIRE(replacement != NULL);
+  BOOST_CHECK(strcmp(static_cast<ScXMLStringDataObj *>(replacement)->getString(),
+                     "value0") == 0);
+
+  evaluator.clearTemporaryVariables();
+  for (int i = 0; i < 5; ++i) {
+    SbString location;
+    location.sprintf("coin:temp.k%d", i);
+    BOOST_CHECK(evaluator.locate(location.getString()) == NULL);
+  }
+
+  // A new event starts in compact mode, then can promote the retained hash again.
+  for (int i = 0; i < 5; ++i) {
+    SbString location;
+    location.sprintf("coin:temp.next%d", i);
+    ScXMLStringDataObj input("next");
+    BOOST_REQUIRE(evaluator.setAtLocation(location.getString(), &input));
+  }
+  BOOST_CHECK(evaluator.locate("coin:temp.next0") != NULL);
+  BOOST_CHECK(evaluator.locate("coin:temp.next4") != NULL);
+
+  evaluator.clearTemporaryVariables();
+  evaluator.setStateMachine(NULL);
 }
 
 #endif // !COIN_TEST_SUITE
