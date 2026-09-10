@@ -13,7 +13,8 @@ namespace CoinTest {
 struct AbortTestCase { };
 
 struct TestCase {
-  std::string name;
+  const char * suite;
+  const char * name;
   void (*fn)(void);
   const char * file;
   int line;
@@ -47,9 +48,7 @@ struct Registrar {
   Registrar(const char * suite, const char * name,
             void (*fn)(void), const char * file, int line)
   {
-    registry().push_back(TestCase{suite[0] ? std::string(suite) + "/" + name
-                                           : std::string(name),
-                                  fn, file, line});
+    registry().push_back(TestCase{suite, name, fn, file, line});
   }
 };
 
@@ -127,15 +126,31 @@ inline bool wildcard_match(const char * pattern, const char * value)
   return *pattern == '\0';
 }
 
-inline bool selected(const std::string & name, const std::string & filters)
+inline bool selected(const char * suite, const char * name, const char * filters)
 {
-  size_t begin = 0;
-  while (begin <= filters.size()) {
-    const size_t end = filters.find(',', begin);
-    const std::string filter = filters.substr(begin, end - begin);
-    if (!filter.empty() && wildcard_match(filter.c_str(), name.c_str())) return true;
-    if (end == std::string::npos) break;
-    begin = end + 1;
+  char fullname[2048];
+  size_t length = 0;
+  for (const char * p = suite; *p; ++p) {
+    if (length + 1 >= sizeof(fullname)) return false;
+    fullname[length++] = *p;
+  }
+  if (length) fullname[length++] = '/';
+  for (const char * p = name; *p; ++p) {
+    if (length + 1 >= sizeof(fullname)) return false;
+    fullname[length++] = *p;
+  }
+  fullname[length] = '\0';
+
+  while (*filters) {
+    char pattern[2048];
+    size_t patternlength = 0;
+    while (*filters && *filters != ',') {
+      if (patternlength + 1 >= sizeof(pattern)) return false;
+      pattern[patternlength++] = *filters++;
+    }
+    pattern[patternlength] = '\0';
+    if (patternlength && wildcard_match(pattern, fullname)) return true;
+    if (*filters == ',') ++filters;
   }
   return false;
 }
@@ -143,7 +158,7 @@ inline bool selected(const std::string & name, const std::string & filters)
 inline int run_all(int argc, char * argv[])
 {
   const std::vector<TestCase> & tests = registry();
-  std::string filters;
+  const char * filters = NULL;
   for (int i = 1; i < argc; ++i) {
     const char prefix[] = "--run_test=";
     if (std::strncmp(argv[i], prefix, sizeof(prefix) - 1) == 0) {
@@ -160,7 +175,7 @@ inline int run_all(int argc, char * argv[])
 
   for (size_t i = 0; i < tests.size(); ++i) {
     const TestCase & tc = tests[i];
-    if (!filters.empty() && !selected(tc.name, filters)) continue;
+    if (filters && filters[0] && !selected(tc.suite, tc.name, filters)) continue;
     ++selectedtests;
 
     Context ctx;
@@ -181,7 +196,8 @@ inline int run_all(int argc, char * argv[])
 
     if (ctx.failed) {
       failedtests += 1;
-      std::fprintf(stderr, "[FAIL] %s (%s:%d)\n", tc.name.c_str(), tc.file, tc.line);
+      std::fprintf(stderr, "[FAIL] %s%s%s (%s:%d)\n",
+                   tc.suite, tc.suite[0] ? "/" : "", tc.name, tc.file, tc.line);
       for (size_t f = 0; f < ctx.failures.size(); ++f) {
         const Failure & fail = ctx.failures[f];
         std::fprintf(stderr, "  %s:%d: %s\n", fail.file, fail.line, fail.message.c_str());
@@ -189,8 +205,8 @@ inline int run_all(int argc, char * argv[])
     }
   }
 
-  if (selectedtests == 0 && !filters.empty()) {
-    std::fprintf(stderr, "[FAIL] no tests matched --run_test=%s\n", filters.c_str());
+  if (selectedtests == 0 && filters && filters[0]) {
+    std::fprintf(stderr, "[FAIL] no tests matched --run_test=%s\n", filters);
     return 1;
   }
 
