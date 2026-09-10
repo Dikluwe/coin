@@ -70,7 +70,7 @@
 
 class ScXMLCoinEvaluator::PImpl {
 public:
-  enum { SMALL_CAPACITY = 4 };
+  enum { SMALL_CAPACITY = 7 };
 
   struct Temporary {
     Temporary(void) : object(NULL) { }
@@ -883,7 +883,7 @@ BOOST_AUTO_TEST_CASE(TemporaryStoragePromotion)
   ScXMLCoinEvaluator evaluator;
   evaluator.setStateMachine(&sm);
 
-  for (int i = 0; i < 5; ++i) {
+  for (int i = 0; i < 8; ++i) {
     SbString location;
     location.sprintf("coin:temp.k%d", i);
     SbString value;
@@ -892,7 +892,7 @@ BOOST_AUTO_TEST_CASE(TemporaryStoragePromotion)
     BOOST_REQUIRE(evaluator.setAtLocation(location.getString(), &input));
   }
 
-  for (int i = 0; i < 5; ++i) {
+  for (int i = 0; i < 8; ++i) {
     SbString location;
     location.sprintf("coin:temp.k%d", i);
     ScXMLDataObj * result = evaluator.locate(location.getString());
@@ -914,21 +914,21 @@ BOOST_AUTO_TEST_CASE(TemporaryStoragePromotion)
                      "value0") == 0);
 
   evaluator.clearTemporaryVariables();
-  for (int i = 0; i < 5; ++i) {
+  for (int i = 0; i < 8; ++i) {
     SbString location;
     location.sprintf("coin:temp.k%d", i);
     BOOST_CHECK(evaluator.locate(location.getString()) == NULL);
   }
 
   // A new event starts in compact mode, then can promote the retained hash again.
-  for (int i = 0; i < 5; ++i) {
+  for (int i = 0; i < 8; ++i) {
     SbString location;
     location.sprintf("coin:temp.next%d", i);
     ScXMLStringDataObj input("next");
     BOOST_REQUIRE(evaluator.setAtLocation(location.getString(), &input));
   }
   BOOST_CHECK(evaluator.locate("coin:temp.next0") != NULL);
-  BOOST_CHECK(evaluator.locate("coin:temp.next4") != NULL);
+  BOOST_CHECK(evaluator.locate("coin:temp.next7") != NULL);
 
   evaluator.clearTemporaryVariables();
   evaluator.setStateMachine(NULL);
