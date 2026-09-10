@@ -2309,6 +2309,22 @@ BOOST_AUTO_TEST_CASE(dragger_deep_copy)
   copy->unref();
 }
 
+#include <TransformerIgnoredPickTest.h>
+
+static void transformer_ignored_pick_check(bool passed, const char * message)
+{
+  BOOST_CHECK_MESSAGE(passed, message);
+}
+
+BOOST_AUTO_TEST_CASE(ignored_pick_mouse_lifecycle)
+{
+  TransformerIgnoredPickTest::run(false, transformer_ignored_pick_check);
+}
+
+BOOST_AUTO_TEST_CASE(ignored_pick_modifier_lifecycle)
+{
+  TransformerIgnoredPickTest::run(true, transformer_ignored_pick_check);
+}
 #endif // COIN_TEST_SUITE
 
 #endif // HAVE_DRAGGERS

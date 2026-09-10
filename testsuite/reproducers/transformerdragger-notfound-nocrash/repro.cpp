@@ -31,10 +31,7 @@
 // guaranteed by the constructor to have whatkind == WHATKIND_NONE (the
 // exact state dragStart() leaves behind when it can't find a match) --
 // proving the "unknown/none" case in both functions no longer aborts.
-// (dragStart()'s own new early-return was verified by source inspection:
-// see the commit message for why driving it live would require either a
-// real multi-selection pick-routing scenario or the surrogate-part
-// mechanism, neither of which is exercised here.)
+// The shared surrogate scenario exercises dragStart() through real picking.
 //
 // drag()/dragStart()/dragFinish() are `protected` on SoTransformerDragger
 // -- ExposedTransformerDragger below is plain, un-registered C++
@@ -69,6 +66,7 @@ main()
   fprintf(stderr, "[repro] dragFinish() returned without aborting\n");
 
   dragger->unref();
+  SoDB::finish();
 
   fprintf(stderr, "[repro] PASS\n");
   return 0;

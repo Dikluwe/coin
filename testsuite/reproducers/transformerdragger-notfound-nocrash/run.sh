@@ -13,18 +13,13 @@
 #    exercises dragStart()'s own early-return live, not just its
 #    downstream effect on drag()/dragFinish()..
 #
-#  - repro_metakey.cpp: targeted check for the metaKeyChangeCB guard
-#    (WHATKIND_NONE early-return) and ctrlDown/shiftDown initialization.
-#    Drives the real handleEvent() machinery with modifier key events
-#    while isActive==TRUE and whatkind==NONE, verifying that no abort
-#    occurs, that getCurrentState() stays INACTIVE, and that
-#    getMotionMatrix() and the valueChanged callback count are unchanged.
+#  - repro_metakey.cpp: observable behavior during modifier events after
+#    an ignored pick. This does not count internal drag() calls or prove
+#    initialization of private modifier flags; see README.md.
 #
 #   testsuite/reproducers/transformerdragger-notfound-nocrash/run.sh /path/to/build/lib
 #
 # Prints PASS and exits 0 if all checks hold.
-
-CDPATH= cd "$(dirname "$0")" || exit 2
 
 LIBDIR="$1"
 if [ -z "$LIBDIR" ]; then
@@ -32,12 +27,15 @@ if [ -z "$LIBDIR" ]; then
   exit 2
 fi
 
+LIBDIR="$(CDPATH= cd "$LIBDIR" && pwd)" || exit 2
+CDPATH= cd "$(dirname "$0")" || exit 2
+
 CXX=${CXX:-c++}
 SRCINCLUDE="$(CDPATH= cd ../../.. && pwd)/include" || exit 2
 
 export LD_LIBRARY_PATH="$LIBDIR${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
-"$CXX" -O1 -g repro.cpp -o repro -I"$SRCINCLUDE" -I"$LIBDIR/../include" -L"$LIBDIR" -lCoin || exit 2
+"$CXX" ${CXXFLAGS:--O1 -g} repro.cpp -o repro -I"$SRCINCLUDE" -I"$LIBDIR/../include" -L"$LIBDIR" -lCoin ${LDFLAGS:-} || exit 2
 ./repro
 status=$?
 if [ "$status" -ne 0 ]; then
@@ -45,7 +43,7 @@ if [ "$status" -ne 0 ]; then
   exit "$status"
 fi
 
-"$CXX" -O1 -g repro_surrogate.cpp -o repro_surrogate -I"$SRCINCLUDE" -I"$LIBDIR/../include" -L"$LIBDIR" -lCoin || exit 2
+"$CXX" ${CXXFLAGS:--O1 -g} repro_surrogate.cpp -o repro_surrogate -I"$SRCINCLUDE" -I"$LIBDIR/../include" -L"$LIBDIR" -lCoin ${LDFLAGS:-} || exit 2
 ./repro_surrogate
 status=$?
 if [ "$status" -ne 0 ]; then
@@ -53,7 +51,7 @@ if [ "$status" -ne 0 ]; then
   exit "$status"
 fi
 
-"$CXX" -O1 -g repro_metakey.cpp -o repro_metakey -I"$SRCINCLUDE" -I"$LIBDIR/../include" -L"$LIBDIR" -lCoin || exit 2
+"$CXX" ${CXXFLAGS:--O1 -g} repro_metakey.cpp -o repro_metakey -I"$SRCINCLUDE" -I"$LIBDIR/../include" -L"$LIBDIR" -lCoin ${LDFLAGS:-} || exit 2
 ./repro_metakey
 status=$?
 if [ "$status" -ne 0 ]; then
