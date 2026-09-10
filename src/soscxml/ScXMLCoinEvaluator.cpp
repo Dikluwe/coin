@@ -45,7 +45,12 @@
 
 #include <cassert>
 #include <cstring>
-#include <map>
+#include "misc/SbHash.h"
+
+inline unsigned int SbHashFunc(const SbName & key)
+{
+  return SbHashFunc(reinterpret_cast<size_t>(key.getString()));
+}
 
 #include <memory>
 
@@ -70,7 +75,8 @@
 
 class ScXMLCoinEvaluator::PImpl {
 public:
-  std::map<const char *, ScXMLDataObj *> temporaries;
+  typedef SbHash<SbName, ScXMLDataObj *> TemporaryMap;
+  TemporaryMap temporaries;
 };
 
 #define PRIVATE(obj) ((obj)->pimpl)
@@ -143,15 +149,6 @@ ScXMLCoinEvaluator::setAtLocation(const char * location, ScXMLDataObj * obj)
   // 1) CHECK 1 - location is temporary variable?
   if (strncmp(location, "coin:temp.", 10) == 0) {
     SbName varname(location + 10);
-    const char * handle = varname.getString();
-
-    // already exists?
-    std::map<const char *, ScXMLDataObj *>::iterator it =
-      PRIVATE(this)->temporaries.find(handle);
-    if (it != PRIVATE(this)->temporaries.end()) {
-      delete it->second;
-      PRIVATE(this)->temporaries.erase(it); // erase it
-    }
 
     ScXMLConstantDataObj * cobj = NULL;
     if (obj->getTypeId().isDerivedFrom(ScXMLConstantDataObj::getClassTypeId())) {
@@ -174,11 +171,12 @@ ScXMLCoinEvaluator::setAtLocation(const char * location, ScXMLDataObj * obj)
       }
       cobj = static_cast<ScXMLConstantDataObj *>(res);
     }
-    std::pair<const char *, ScXMLDataObj *> entry;
-    entry.first = handle;
     assert(cobj);
-    entry.second = cobj->clone();
-    PRIVATE(this)->temporaries.insert(entry);
+    ScXMLDataObj * existing = NULL;
+    if (PRIVATE(this)->temporaries.get(varname, existing)) {
+      delete existing;
+    }
+    PRIVATE(this)->temporaries.put(varname, cobj->clone());
     return TRUE;
   }
 
@@ -285,20 +283,18 @@ ScXMLCoinEvaluator::locate(const char * location) const
 
   if (strncmp(location, "coin:temp.", 10) == 0) {
     SbName varname(location + 10);
-    std::map<const char *, ScXMLDataObj *>::const_iterator it =
-      PRIVATE(this)->temporaries.find(varname.getString());
-    if (it == PRIVATE(this)->temporaries.end()) {
-      return NULL;
+    ScXMLDataObj * obj = NULL;
+    if (PRIVATE(this)->temporaries.get(varname, obj)) {
+      return obj;
     }
-    return it->second;
+    return NULL;
   }
   else if (strpbrk(location, ":.") == NULL) {
     // maybe implicit location path
     SbName varname(location);
-    std::map<const char *, ScXMLDataObj *>::const_iterator it =
-      PRIVATE(this)->temporaries.find(varname.getString());
-    if (it != PRIVATE(this)->temporaries.end()) {
-      return it->second;
+    ScXMLDataObj * obj = NULL;
+    if (PRIVATE(this)->temporaries.get(varname, obj)) {
+      return obj;
     }
     // no return - passing through
   }
@@ -397,10 +393,10 @@ ScXMLCoinEvaluator::locate(const char * location) const
 void
 ScXMLCoinEvaluator::clearTemporaryVariables(void)
 {
-  std::map<const char *, ScXMLDataObj *>::iterator it = PRIVATE(this)->temporaries.begin();
-  while (it != PRIVATE(this)->temporaries.end()) {
-    delete it->second;
-    ++it;
+  for (PImpl::TemporaryMap::const_iterator it = PRIVATE(this)->temporaries.const_begin();
+       it != PRIVATE(this)->temporaries.const_end();
+       ++it) {
+    delete it->obj;
   }
   PRIVATE(this)->temporaries.clear();
 }
@@ -408,18 +404,18 @@ ScXMLCoinEvaluator::clearTemporaryVariables(void)
 void
 ScXMLCoinEvaluator::dumpTemporaries(void)
 {
-  std::map<const char *, ScXMLDataObj *>::iterator it = PRIVATE(this)->temporaries.begin();
-  while (it != PRIVATE(this)->temporaries.end()) {
-    if (it->second->isOfType(ScXMLConstantDataObj::getClassTypeId())) {
+  for (PImpl::TemporaryMap::const_iterator it = PRIVATE(this)->temporaries.const_begin();
+       it != PRIVATE(this)->temporaries.const_end();
+       ++it) {
+    if (it->obj->isOfType(ScXMLConstantDataObj::getClassTypeId())) {
       SbString value;
-      ScXMLConstantDataObj * cobj = static_cast<ScXMLConstantDataObj *>(it->second);
+      ScXMLConstantDataObj * cobj = static_cast<ScXMLConstantDataObj *>(it->obj);
       cobj->convertToString(value);
       printf("> TEMP variable '%s' with value '%s'.\n",
-             it->first, value.getString());
+             it->key.getString(), value.getString());
     } else {
-      printf("> TEMP variable '%s' with unknown value.\n", it->first);
+      printf("> TEMP variable '%s' with unknown value.\n", it->key.getString());
     }
-    ++it;
   }
 }
 

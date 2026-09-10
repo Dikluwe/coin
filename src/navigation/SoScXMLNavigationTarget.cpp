@@ -46,7 +46,12 @@
 #include <cassert>
 #include <cstring>
 #include <cstdio>
-#include <map>
+#include "misc/SbHash.h"
+
+inline unsigned int SbHashFunc(const SbName & key)
+{
+  return SbHashFunc(reinterpret_cast<size_t>(key.getString()));
+}
 
 #include <memory>
 
@@ -67,8 +72,7 @@ class SoScXMLNavigationTarget::PImpl {
 public:
   PImpl(void) : sessiondatamap(NULL) { }
 
-  typedef std::map<const char *, SoScXMLNavigationTarget::Data *> SessionDataMap;
-  typedef std::pair<const char *, SoScXMLNavigationTarget::Data *> SessionDataEntry;
+  typedef SbHash<SbName, SoScXMLNavigationTarget::Data *> SessionDataMap;
 
   SessionDataMap * sessiondatamap;
 };
@@ -100,16 +104,15 @@ SoScXMLNavigationTarget::SoScXMLNavigationTarget(void)
 
 SoScXMLNavigationTarget::~SoScXMLNavigationTarget(void)
 {
-  PImpl::SessionDataMap::iterator it = PRIVATE(this)->sessiondatamap->begin();
-  while (it != PRIVATE(this)->sessiondatamap->end()) {
-    // we could warn about undeleted data here, but it could be caused by natural
-    // causes like systems being taken down while the user is interacting, so we'll
-    // let these go unwarned.
-    delete it->second;
-    ++it;
+  if (PRIVATE(this)->sessiondatamap) {
+    for (PImpl::SessionDataMap::const_iterator it = PRIVATE(this)->sessiondatamap->const_begin();
+         it != PRIVATE(this)->sessiondatamap->const_end();
+         ++it) {
+      delete it->obj;
+    }
+    delete PRIVATE(this)->sessiondatamap;
+    PRIVATE(this)->sessiondatamap = NULL;
   }
-  delete PRIVATE(this)->sessiondatamap;
-  PRIVATE(this)->sessiondatamap = NULL;
 }
 
 /*!
@@ -123,16 +126,11 @@ SoScXMLNavigationTarget::getSessionData(SbName sessionid, NewDataFunc * construc
 {
   Data * data = NULL;
   SoScXMLNavigation::syncLock();
-  PImpl::SessionDataMap::iterator findit =
-    PRIVATE(this)->sessiondatamap->find(sessionid.getString());
-  if (findit == PRIVATE(this)->sessiondatamap->end()) {
+  if (!PRIVATE(this)->sessiondatamap->get(sessionid, data)) {
     assert(constructor);
     data = (*constructor)();
     assert(data);
-    PImpl::SessionDataEntry entry(sessionid.getString(), data);
-    PRIVATE(this)->sessiondatamap->insert(entry);
-  } else {
-    data = findit->second;
+    PRIVATE(this)->sessiondatamap->put(sessionid, data);
   }
   SoScXMLNavigation::syncUnlock();
   return data;
@@ -145,11 +143,9 @@ void
 SoScXMLNavigationTarget::freeSessionData(SbName sessionid)
 {
   SoScXMLNavigation::syncLock();
-  PImpl::SessionDataMap::iterator findit =
-    PRIVATE(this)->sessiondatamap->find(sessionid.getString());
-  if (findit != PRIVATE(this)->sessiondatamap->end()) {
-    Data * data = findit->second;
-    PRIVATE(this)->sessiondatamap->erase(findit);
+  Data * data = NULL;
+  if (PRIVATE(this)->sessiondatamap->get(sessionid, data)) {
+    PRIVATE(this)->sessiondatamap->erase(sessionid);
     delete data;
   }
   SoScXMLNavigation::syncUnlock();
