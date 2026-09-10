@@ -58,7 +58,23 @@ public:
     }
   }
 
-  SbList<SbName> associationkeys;
+  int findAssociation(const char * key, int & insertion) const
+  {
+    int first = 0;
+    int last = this->associationkeys.getLength();
+    const size_t needle = reinterpret_cast<size_t>(key);
+    while (first < last) {
+      const int middle = first + (last - first) / 2;
+      const size_t candidate = reinterpret_cast<size_t>(this->associationkeys[middle]);
+      if (candidate < needle) first = middle + 1;
+      else last = middle;
+    }
+    insertion = first;
+    return first < this->associationkeys.getLength() &&
+           this->associationkeys[first] == key ? first : -1;
+  }
+
+  SbList<const char *> associationkeys;
   SbList<const char *> associationvalues;
 };
 
@@ -106,19 +122,20 @@ void
 ScXMLEvent::setAssociation(const char * key, const char * value)
 {
   assert(key && value);
-  SbName dictentry(key);
+  const char * dictentry = SbName(key).getString();
   // value may point into the association being replaced. Copy it first.
   std::unique_ptr<char[]> valuecopy(new char [strlen(value) + 1]);
   strcpy(valuecopy.get(), value);
-  const int index = PRIVATE(this)->associationkeys.find(dictentry);
+  int insertion = 0;
+  const int index = PRIVATE(this)->findAssociation(dictentry, insertion);
   if (index >= 0) {
     const char * existing = PRIVATE(this)->associationvalues[index];
     PRIVATE(this)->associationvalues[index] = valuecopy.release();
     delete [] existing;
   }
   else {
-    PRIVATE(this)->associationkeys.append(dictentry);
-    PRIVATE(this)->associationvalues.append(valuecopy.release());
+    PRIVATE(this)->associationkeys.insert(dictentry, insertion);
+    PRIVATE(this)->associationvalues.insert(valuecopy.release(), insertion);
   }
 }
 
@@ -126,8 +143,9 @@ const char *
 ScXMLEvent::getAssociation(const char * key) const
 {
   assert(key);
-  SbName dictentry(key);
-  const int index = PRIVATE(this)->associationkeys.find(dictentry);
+  const char * dictentry = SbName(key).getString();
+  int insertion = 0;
+  const int index = PRIVATE(this)->findAssociation(dictentry, insertion);
   return index >= 0 ? PRIVATE(this)->associationvalues[index] : NULL;
 }
 
@@ -142,7 +160,7 @@ ScXMLEvent::getAssociationKeys(SbList<const char *> & keys) const
 {
   size_t count = 0;
   for (int i = 0; i < PRIVATE(this)->associationkeys.getLength(); ++i) {
-    keys.append(PRIVATE(this)->associationkeys[i].getString());
+    keys.append(PRIVATE(this)->associationkeys[i]);
     ++count;
   }
   return count;
