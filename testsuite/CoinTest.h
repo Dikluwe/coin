@@ -134,7 +134,10 @@ inline bool selected(const char * suite, const char * name, const char * filters
     if (length + 1 >= sizeof(fullname)) return false;
     fullname[length++] = *p;
   }
-  if (length) fullname[length++] = '/';
+  if (length) {
+    if (length + 1 >= sizeof(fullname)) return false;
+    fullname[length++] = '/';
+  }
   for (const char * p = name; *p; ++p) {
     if (length + 1 >= sizeof(fullname)) return false;
     fullname[length++] = *p;
