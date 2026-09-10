@@ -45,12 +45,7 @@
 
 #include <cassert>
 #include <cstring>
-#include "misc/SbHash.h"
-
-inline unsigned int SbHashFunc(const SbName & key)
-{
-  return SbHashFunc(reinterpret_cast<size_t>(key.getString()));
-}
+#include "misc/SbHashName.h"
 
 #include <memory>
 
