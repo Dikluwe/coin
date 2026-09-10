@@ -146,7 +146,8 @@ namespace {
         tokens.append(SbString(cur));
         break;
       } else {
-        tokens.append(SbString(cur, 0, static_cast<int>(pos - cur)));
+        const int len = static_cast<int>(pos - cur);
+        tokens.append(len > 0 ? SbString(cur, 0, len - 1) : SbString(""));
         cur = pos + 1;
       }
     }
