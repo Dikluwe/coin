@@ -49,12 +49,16 @@
 
 #include <algorithm> // std::reverse
 #include <cstring>
-#include <map>
 #include <vector>
 
 #include <Inventor/SbName.h>
 #include <Inventor/SoFullPath.h>
 #include <Inventor/nodes/SoNode.h>
+#include "misc/SbHash.h"
+
+inline unsigned int SbHashFunc(const SbName & key) {
+  return SbHashFunc(reinterpret_cast<size_t>(key.getString()));
+}
 
 // *************************************************************************
 
@@ -161,8 +165,8 @@ public:
   std::vector<SbNodeProfilingData> nodeData;
   int lastPathIndex;
 
-  std::map<SbProfilingNodeTypeKey, SbTypeProfilingData> nodeTypeData;
-  std::map<SbProfilingNodeNameKey, SbNameProfilingData> nodeNameData;
+  SbHash<SbProfilingNodeTypeKey, SbTypeProfilingData> nodeTypeData;
+  SbHash<SbName, SbNameProfilingData> nodeNameData;
 
 }; // SbProfilingDataP
 
@@ -217,8 +221,8 @@ SbProfilingData::reset(void)
   PRIVATE(this)->nodeTypeData.clear();
   PRIVATE(this)->nodeNameData.clear();
   assert(PRIVATE(this)->nodeData.size() == 0);
-  assert(PRIVATE(this)->nodeTypeData.size() == 0);
-  assert(PRIVATE(this)->nodeNameData.size() == 0);
+  assert(PRIVATE(this)->nodeTypeData.getNumElements() == 0);
+  assert(PRIVATE(this)->nodeNameData.getNumElements() == 0);
 }
 
 /*!
@@ -360,46 +364,44 @@ SbProfilingData::operator += (const SbProfilingData & rhs)
   }
 
   { // nodeTypeData
-    typedef std::map<SbProfilingNodeTypeKey, SbTypeProfilingData> maptype;
-    maptype::const_iterator srctypeit = PRIVATE(&rhs)->nodeTypeData.begin();
-    while (srctypeit != PRIVATE(&rhs)->nodeTypeData.end()) {
-      maptype::iterator dsttypeit = PRIVATE(this)->nodeTypeData.find(srctypeit->first);
-      if (dsttypeit != PRIVATE(this)->nodeTypeData.end()) {
-        dsttypeit->second.totaltime += srctypeit->second.totaltime;
-        dsttypeit->second.count += srctypeit->second.count;
-        if (srctypeit->second.maximumtime > dsttypeit->second.maximumtime) {
-          dsttypeit->second.maximumtime = srctypeit->second.maximumtime;
+    for (SbHash<SbProfilingNodeTypeKey, SbTypeProfilingData>::const_iterator srctypeit =
+           PRIVATE(&rhs)->nodeTypeData.const_begin();
+         srctypeit != PRIVATE(&rhs)->nodeTypeData.const_end(); ++srctypeit) {
+      SbTypeProfilingData existing;
+      if (PRIVATE(this)->nodeTypeData.get(srctypeit->key, existing)) {
+        existing.totaltime += srctypeit->obj.totaltime;
+        existing.count += srctypeit->obj.count;
+        if (srctypeit->obj.maximumtime > existing.maximumtime) {
+          existing.maximumtime = srctypeit->obj.maximumtime;
         }
+        PRIVATE(this)->nodeTypeData.put(srctypeit->key, existing);
       } else {
-        // new type entry - copy data in
-        PRIVATE(this)->nodeTypeData.insert(*srctypeit);
+        PRIVATE(this)->nodeTypeData.put(srctypeit->key, srctypeit->obj);
       }
-      ++srctypeit;
     }
   }
 
   { // nodeNameData
-    typedef std::map<SbProfilingNodeNameKey, SbNameProfilingData> maptype;
-    maptype::const_iterator srctypeit = PRIVATE(&rhs)->nodeNameData.begin();
-    while (srctypeit != PRIVATE(&rhs)->nodeNameData.end()) {
-      maptype::iterator dsttypeit = PRIVATE(this)->nodeNameData.find(srctypeit->first);
-      if (dsttypeit != PRIVATE(this)->nodeNameData.end()) {
-        dsttypeit->second.totaltime += srctypeit->second.totaltime;
-        dsttypeit->second.count += srctypeit->second.count;
-        if (srctypeit->second.maximumtime > dsttypeit->second.maximumtime) {
-          dsttypeit->second.maximumtime = srctypeit->second.maximumtime;
+    for (SbHash<SbName, SbNameProfilingData>::const_iterator srctypeit =
+           PRIVATE(&rhs)->nodeNameData.const_begin();
+         srctypeit != PRIVATE(&rhs)->nodeNameData.const_end(); ++srctypeit) {
+      SbNameProfilingData existing;
+      if (PRIVATE(this)->nodeNameData.get(srctypeit->key, existing)) {
+        existing.totaltime += srctypeit->obj.totaltime;
+        existing.count += srctypeit->obj.count;
+        if (srctypeit->obj.maximumtime > existing.maximumtime) {
+          existing.maximumtime = srctypeit->obj.maximumtime;
         }
+        PRIVATE(this)->nodeNameData.put(srctypeit->key, existing);
       } else {
-        // new type entry - copy data in
-        PRIVATE(this)->nodeNameData.insert(*srctypeit);
+        PRIVATE(this)->nodeNameData.put(srctypeit->key, srctypeit->obj);
       }
-      ++srctypeit;
     }
   }
 
   assert(PRIVATE(this)->nodeData.size() >= PRIVATE(&rhs)->nodeData.size());
-  assert(PRIVATE(this)->nodeTypeData.size() >= PRIVATE(&rhs)->nodeTypeData.size());
-  assert(PRIVATE(this)->nodeNameData.size() >= PRIVATE(&rhs)->nodeNameData.size());
+  assert(PRIVATE(this)->nodeTypeData.getNumElements() >= PRIVATE(&rhs)->nodeTypeData.getNumElements());
+  assert(PRIVATE(this)->nodeNameData.getNumElements() >= PRIVATE(&rhs)->nodeNameData.getNumElements());
 
   return *this;
 }
@@ -768,20 +770,19 @@ SbProfilingData::setNodeTiming(int idx, SbTime timing)
 
   // 2) set for type
   SbProfilingNodeTypeKey typekey = PRIVATE(this)->nodeData[idx].nodetype;
-  std::map<SbProfilingNodeTypeKey, SbTypeProfilingData>::iterator typeit =
-    PRIVATE(this)->nodeTypeData.find(typekey);
-  if (typeit != PRIVATE(this)->nodeTypeData.end()) {
-    typeit->second.totaltime += timing;
-    typeit->second.count += 1;
-    if (typeit->second.maximumtime < timing) {
-      typeit->second.maximumtime = timing;
+  SbTypeProfilingData typedata;
+  if (PRIVATE(this)->nodeTypeData.get(typekey, typedata)) {
+    typedata.totaltime += timing;
+    typedata.count += 1;
+    if (typedata.maximumtime < timing) {
+      typedata.maximumtime = timing;
     }
+    PRIVATE(this)->nodeTypeData.put(typekey, typedata);
   } else {
-    SbTypeProfilingData data;
-    data.totaltime = timing;
-    data.maximumtime = timing;
-    data.count = 1;
-    PRIVATE(this)->nodeTypeData.insert(std::pair<SbProfilingNodeTypeKey, SbTypeProfilingData>(typekey, data));
+    typedata.totaltime = timing;
+    typedata.maximumtime = timing;
+    typedata.count = 1;
+    PRIVATE(this)->nodeTypeData.put(typekey, typedata);
   }
 
   // 3) set for name
@@ -795,30 +796,31 @@ SbProfilingData::setNodeTiming(int idx, SbTime timing)
     SbProfilingNodeNameKey namekey =
       PRIVATE(this)->nodeData[parentidx].nodename;
     if (namekey != SbName::empty().getString()) {
-      std::map<SbProfilingNodeNameKey, SbNameProfilingData>::iterator nameit =
-        PRIVATE(this)->nodeNameData.find(namekey);
-      if (nameit != PRIVATE(this)->nodeNameData.end()) {
-        nameit->second.totaltime += timing;
+      SbName name(namekey);
+      SbNameProfilingData namedata;
+      if (PRIVATE(this)->nodeNameData.get(name, namedata)) {
+        namedata.totaltime += timing;
         if (idx == parentidx) { // entry at named node level
           // DISABLED: we won't know the "unit" time for this aggregate
           // time-sum so we can't give maximum unit time. we'll need to
           // store total-time from preTraversal() to figure it
           // out i think. 20080304 larsa
-          //if (nameit->second.maximumtime < timing) {
-          //  nameit->second.maximumtime = timing;
+          //if (namedata.maximumtime < timing) {
+          //  namedata.maximumtime = timing;
           //}
-          nameit->second.count += 1;
+          namedata.count += 1;
         }
+        PRIVATE(this)->nodeNameData.put(name, namedata);
       } else {
-        SbNameProfilingData data;
-        data.totaltime = timing;
-        //data.maximumtime = timing;
+        namedata.totaltime = timing;
+        //namedata.maximumtime = timing;
         if (idx == parentidx) {
-          data.count += 1;
+          namedata.count += 1;
         } else {
           // FIXME: implement proper action
+          namedata.count = 0;
         }
-        PRIVATE(this)->nodeNameData.insert(std::pair<SbProfilingNodeNameKey, SbNameProfilingData>(namekey, data));
+        PRIVATE(this)->nodeNameData.put(name, namedata);
       }
       if (!inclusive) break;
     }
@@ -840,14 +842,15 @@ SbProfilingData::preOffsetNodeTiming(int idx, SbTime timing)
   // 2) adjust for type
   SbProfilingNodeKey tailnode = PRIVATE(this)->nodeData[idx].node;
   SbProfilingNodeTypeKey typekey = PRIVATE(this)->nodeData[idx].nodetype;
-  std::map<SbProfilingNodeTypeKey, SbTypeProfilingData>::iterator typeit =
-    PRIVATE(this)->nodeTypeData.find(typekey);
-  if (typeit != PRIVATE(this)->nodeTypeData.end()) {
-    typeit->second.totaltime += timing;
+  SbTypeProfilingData typedata;
+  if (PRIVATE(this)->nodeTypeData.get(typekey, typedata)) {
+    typedata.totaltime += timing;
+    PRIVATE(this)->nodeTypeData.put(typekey, typedata);
   } else {
-    SbTypeProfilingData data;
-    data.totaltime = timing;
-    PRIVATE(this)->nodeTypeData.insert(std::pair<SbProfilingNodeTypeKey, SbTypeProfilingData>(typekey, data));
+    typedata.totaltime = timing;
+    typedata.maximumtime = SbTime::zero();
+    typedata.count = 0;
+    PRIVATE(this)->nodeTypeData.put(typekey, typedata);
   }
 
   // 3) adjust for name
@@ -860,23 +863,25 @@ SbProfilingData::preOffsetNodeTiming(int idx, SbTime timing)
   while (parentidx != -1) {
     SbProfilingNodeNameKey namekey = PRIVATE(this)->nodeData[parentidx].nodename;
     if (namekey != SbName::empty().getString()) {
-      std::map<SbProfilingNodeNameKey, SbNameProfilingData>::iterator nameit =
-        PRIVATE(this)->nodeNameData.find(namekey);
-      if (nameit != PRIVATE(this)->nodeNameData.end()) {
-        nameit->second.totaltime += timing;
+      SbName name(namekey);
+      SbNameProfilingData namedata;
+      if (PRIVATE(this)->nodeNameData.get(name, namedata)) {
+        namedata.totaltime += timing;
         if (idx == parentidx) { // entry at named node level
           // DISABLED: we won't know the "unit" time for this aggregate
           // time-sum so we can't give maximum unit time. we'll need to
           // store total-time from preTraversal() to figure it
           // out i think. 20080304 larsa
-          //if (nameit->second.maximumtime < timing) {
-          //  nameit->second.maximumtime = timing;
+          //if (namedata.maximumtime < timing) {
+          //  namedata.maximumtime = timing;
           //}
         }
+        PRIVATE(this)->nodeNameData.put(name, namedata);
       } else {
-        SbNameProfilingData data;
-        data.totaltime = timing;
-        PRIVATE(this)->nodeNameData.insert(std::pair<SbProfilingNodeNameKey, SbNameProfilingData>(namekey, data));
+        namedata.totaltime = timing;
+        namedata.maximumtime = SbTime::zero();
+        namedata.count = 0;
+        PRIVATE(this)->nodeNameData.put(name, namedata);
       }
       if (!inclusive) break;
     }
@@ -1076,12 +1081,11 @@ int
 SbProfilingData::getLongestNameLength(void) const
 {
   size_t longest = 0;
-  std::map<SbProfilingNodeNameKey, SbNameProfilingData>::const_iterator it =
-    PRIVATE(this)->nodeNameData.begin();
-  while (it != PRIVATE(this)->nodeNameData.end()) {
-    const size_t len = strlen(it->first);
+  for (SbHash<SbName, SbNameProfilingData>::const_iterator it =
+         PRIVATE(this)->nodeNameData.const_begin();
+       it != PRIVATE(this)->nodeNameData.const_end(); ++it) {
+    const size_t len = strlen(it->key.getString());
     if (len > longest) longest = len;
-    ++it;
   }
   return (int)longest;
 }
@@ -1093,13 +1097,12 @@ int
 SbProfilingData::getLongestTypeNameLength(void) const
 {
   size_t longest = 0;
-  std::map<SbProfilingNodeTypeKey, SbTypeProfilingData>::const_iterator it =
-    PRIVATE(this)->nodeTypeData.begin();
-  while (it != PRIVATE(this)->nodeTypeData.end()) {
-    SoType type = SoType::fromKey(it->first);
+  for (SbHash<SbProfilingNodeTypeKey, SbTypeProfilingData>::const_iterator it =
+         PRIVATE(this)->nodeTypeData.const_begin();
+       it != PRIVATE(this)->nodeTypeData.const_end(); ++it) {
+    SoType type = SoType::fromKey(it->key);
     const size_t len = strlen(type.getName().getString());
     if (len > longest) longest = len;
-    ++it;
   }
   return (int)longest;
 }
@@ -1155,9 +1158,9 @@ SbProfilingData::getProfilingDataSize(void) const
   size_t nodestatsize =
     PRIVATE(this)->nodeData.capacity() * sizeof(SbNodeProfilingData);
   size_t typestatsize =
-    PRIVATE(this)->nodeTypeData.size() * sizeof(SbTypeProfilingData);
+    PRIVATE(this)->nodeTypeData.getNumElements() * sizeof(SbTypeProfilingData);
   size_t namestatsize =
-    PRIVATE(this)->nodeNameData.size() * sizeof(SbNameProfilingData);
+    PRIVATE(this)->nodeNameData.getNumElements() * sizeof(SbNameProfilingData);
   return nodestatsize + typestatsize + namestatsize + sizeof(SbProfilingDataP);
 }
 
@@ -1168,11 +1171,10 @@ void
 SbProfilingData::getStatsForTypesKeyList(SbList<SbProfilingNodeTypeKey> & keys_out) const
 {
   keys_out.truncate(0);
-  std::map<SbProfilingNodeTypeKey, SbTypeProfilingData>::const_iterator it =
-    PRIVATE(this)->nodeTypeData.begin();
-  while (it != PRIVATE(this)->nodeTypeData.end()) {
-    keys_out.append(it->first);
-    ++it;
+  for (SbHash<SbProfilingNodeTypeKey, SbTypeProfilingData>::const_iterator it =
+         PRIVATE(this)->nodeTypeData.const_begin();
+       it != PRIVATE(this)->nodeTypeData.const_end(); ++it) {
+    keys_out.append(it->key);
   }
 }
 
@@ -1184,12 +1186,12 @@ SbProfilingData::getStatsForType(SbProfilingNodeTypeKey type,
                                  SbTime & totaltime, SbTime & maxtime,
                                  uint32_t & count) const
 {
-  std::map<SbProfilingNodeTypeKey, SbTypeProfilingData>::const_iterator it =
-    PRIVATE(this)->nodeTypeData.find(type);
-  assert(it != PRIVATE(this)->nodeTypeData.end());
-  totaltime = it->second.totaltime;
-  maxtime = it->second.maximumtime;
-  count = it->second.count;
+  SbTypeProfilingData data;
+  SbBool found = PRIVATE(this)->nodeTypeData.get(type, data);
+  assert(found);
+  totaltime = data.totaltime;
+  maxtime = data.maximumtime;
+  count = data.count;
 }
 
 // *************************************************************************
@@ -1201,11 +1203,10 @@ void
 SbProfilingData::getStatsForNamesKeyList(SbList<SbProfilingNodeNameKey> & keys_out) const
 {
   keys_out.truncate(0);
-  std::map<SbProfilingNodeNameKey, SbNameProfilingData>::const_iterator it =
-    PRIVATE(this)->nodeNameData.begin();
-  while (it != PRIVATE(this)->nodeNameData.end()) {
-    keys_out.append(it->first);
-    ++it;
+  for (SbHash<SbName, SbNameProfilingData>::const_iterator it =
+         PRIVATE(this)->nodeNameData.const_begin();
+       it != PRIVATE(this)->nodeNameData.const_end(); ++it) {
+    keys_out.append(it->key.getString());
   }
 }
 
@@ -1217,13 +1218,13 @@ SbProfilingData::getStatsForName(SbProfilingNodeNameKey name,
                                  SbTime & totaltime, SbTime & maxtime,
                                  uint32_t & count) const
 {
-  std::map<SbProfilingNodeNameKey, SbNameProfilingData>::const_iterator it =
-    PRIVATE(this)->nodeNameData.find(name);
-  assert(it != PRIVATE(this)->nodeNameData.end());
-  totaltime = it->second.totaltime;
+  SbNameProfilingData data;
+  SbBool found = PRIVATE(this)->nodeNameData.get(SbName(name), data);
+  assert(found);
+  totaltime = data.totaltime;
   // FIXME: maximum time for when grouping into name is not yet supported
-  maxtime = it->second.maximumtime;
-  count = it->second.count;
+  maxtime = data.maximumtime;
+  count = data.count;
 }
 
 // *************************************************************************
