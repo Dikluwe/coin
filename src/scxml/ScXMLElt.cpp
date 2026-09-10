@@ -58,8 +58,9 @@
 #endif // _MSC_VER
 
 #include <cstring>
+#include <memory>
 #include <cassert>
-#include <map>
+#include "misc/SbHashName.h"
 
 #include <Inventor/SbName.h>
 #include <Inventor/errors/SoDebugError.h>
@@ -96,16 +97,15 @@ ScXMLEltReader::setXMLAttributes(ScXMLElt * scxmlelt, cc_xml_elt * xmlelt)
 
 class ScXMLElt::PImpl {
 public:
-  typedef std::map<const char *, char *> AttributeMap;
-  typedef std::pair<const char *, char *> AttributeEntry;
+  typedef SbHash<SbName, char *> AttributeMap;
   AttributeMap attributemap;
 
   ~PImpl(void)
   {
-    AttributeMap::iterator it = this->attributemap.begin();
-    while (it != this->attributemap.end()) {
-      delete [] it->second;
-      ++it;
+    for (AttributeMap::const_iterator it = this->attributemap.const_begin();
+         it != this->attributemap.const_end();
+         ++it) {
+      delete [] it->obj;
     }
     this->attributemap.clear();
   }
@@ -149,26 +149,20 @@ void
 ScXMLElt::setXMLAttribute(const char * attribute, const char * value)
 {
   assert(attribute);
-  const SbName attrname(attribute); // uniqify on string pointer
-  PImpl::AttributeMap::iterator it =
-    PRIVATE(this)->attributemap.find(attrname.getString());
-  if (it == PRIVATE(this)->attributemap.end()) {
-    if (value) {
-      char * valuedup = new char [ strlen(value) + 1 ];
-      strcpy(valuedup, value);
-      PRIVATE(this)->attributemap.insert(
-        PImpl::AttributeEntry(attrname.getString(), valuedup));
-    }
-  } else {
-    delete [] it->second;
-    it->second = NULL;
-    if (!value) {
-      PRIVATE(this)->attributemap.erase(it);
-    } else {
-      it->second = new char [ strlen(value) + 1 ];
-      strcpy(it->second, value);
-    }
+  const SbName attrname(attribute);
+  char * existing = NULL;
+  PRIVATE(this)->attributemap.get(attrname, existing);
+  if (!value) {
+    PRIVATE(this)->attributemap.erase(attrname);
+    delete [] existing;
+    return;
   }
+  // Preserve getter-backed inputs, including substrings of the old value.
+  std::unique_ptr<char[]> valuedup(new char [strlen(value) + 1]);
+  strcpy(valuedup.get(), value);
+  PRIVATE(this)->attributemap.put(attrname, valuedup.get());
+  valuedup.release();
+  delete [] existing;
 }
 
 /*!
@@ -179,10 +173,9 @@ const char *
 ScXMLElt::getXMLAttribute(const char * attribute) const
 {
   const SbName attrname(attribute);
-  PImpl::AttributeMap::const_iterator it =
-    PRIVATE(this)->attributemap.find(attrname.getString());
-  if (it != PRIVATE(this)->attributemap.end()) {
-    return it->second;
+  char * val = NULL;
+  if (PRIVATE(this)->attributemap.get(attrname, val)) {
+    return val;
   }
   return NULL;
 }
@@ -270,3 +263,26 @@ ScXMLElt::isContainedIn(const ScXMLElt * element) const
 }
 
 #undef PRIVATE
+
+#ifdef COIN_TEST_SUITE
+#include <Inventor/scxml/ScXMLStateElt.h>
+#include <cstring>
+
+BOOST_AUTO_TEST_CASE(xml_attribute_replacement_aliases)
+{
+  ScXMLStateElt element;
+  element.setXMLAttribute("custom", "prefix-value");
+  element.setXMLAttribute("custom", element.getXMLAttribute("custom"));
+  BOOST_CHECK_MESSAGE(strcmp(element.getXMLAttribute("custom"), "prefix-value") == 0,
+                      "attribute self-replacement preserves its value");
+  element.setXMLAttribute("custom", element.getXMLAttribute("custom") + 7);
+  BOOST_CHECK_MESSAGE(strcmp(element.getXMLAttribute("custom"), "value") == 0,
+                      "attribute replacement accepts an old-value substring");
+  element.setXMLAttribute("custom", NULL);
+  BOOST_CHECK_MESSAGE(element.getXMLAttribute("custom") == NULL,
+                      "NULL removes the attribute");
+  element.setXMLAttribute("custom", NULL);
+  BOOST_CHECK_MESSAGE(element.getXMLAttribute("custom") == NULL,
+                      "removing a missing attribute is harmless");
+}
+#endif // COIN_TEST_SUITE

@@ -62,7 +62,7 @@
 
 #include <cstring>
 #include <cassert>
-#include <map>
+#include "misc/SbHashName.h"
 
 #include <Inventor/SbName.h>
 #include <Inventor/scxml/ScXML.h>
@@ -73,16 +73,15 @@
 
 class ScXMLObject::PImpl {
 public:
-  typedef std::map<const char *, char *> AttributeMap;
-  typedef std::pair<const char *, char *> AttributeEntry;
+  typedef SbHash<SbName, char *> AttributeMap;
   AttributeMap attributemap;
 
   ~PImpl(void)
   {
-    AttributeMap::iterator it = this->attributemap.begin();
-    while (it != this->attributemap.end()) {
-      delete [] it->second;
-      ++it;
+    for (AttributeMap::const_iterator it = this->attributemap.const_begin();
+         it != this->attributemap.const_end();
+         ++it) {
+      delete [] it->obj;
     }
     this->attributemap.clear();
   }

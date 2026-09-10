@@ -42,7 +42,8 @@
 
 #include <cassert>
 #include <cstring>
-#include <map>
+#include <memory>
+#include "misc/SbHashName.h"
 
 #include <Inventor/scxml/ScXML.h>
 
@@ -53,10 +54,15 @@ public:
   PImpl(void) { }
   ~PImpl(void)
   {
-    // FIXME: delete strings in associations map (values only)
+    for (SbHash<SbName, const char *>::const_iterator it = this->associations.const_begin();
+         it != this->associations.const_end();
+         ++it) {
+      delete [] const_cast<char *>(it->obj);
+    }
+    this->associations.clear();
   }
 
-  std::map<const char *, const char *> associations;
+  SbHash<SbName, const char *> associations;
 };
 
 #define PRIVATE(obj) ((obj)->pimpl)
@@ -104,17 +110,14 @@ ScXMLEvent::setAssociation(const char * key, const char * value)
 {
   assert(key && value);
   SbName dictentry(key);
-  std::map<const char *, const char *>::iterator findit =
-    PRIVATE(this)->associations.find(dictentry.getString());
-  char * valuecopy = new char [strlen(value) + 1];
-  strcpy(valuecopy, value);
-  if (findit != PRIVATE(this)->associations.end()) {
-    delete [] findit->second;
-    findit->second = valuecopy;
-  } else {
-    std::pair<const char *, const char *> newentry(dictentry.getString(), valuecopy);
-    PRIVATE(this)->associations.insert(newentry);
-  }
+  // value may point into the association being replaced. Copy it first.
+  std::unique_ptr<char[]> valuecopy(new char [strlen(value) + 1]);
+  strcpy(valuecopy.get(), value);
+  const char * existing = NULL;
+  PRIVATE(this)->associations.get(dictentry, existing);
+  PRIVATE(this)->associations.put(dictentry, valuecopy.get());
+  valuecopy.release();
+  delete [] existing;
 }
 
 const char *
@@ -122,10 +125,9 @@ ScXMLEvent::getAssociation(const char * key) const
 {
   assert(key);
   SbName dictentry(key);
-  std::map<const char *, const char *>::const_iterator findit =
-    PRIVATE(this)->associations.find(dictentry.getString());
-  if (findit != PRIVATE(this)->associations.end()) {
-    return findit->second;
+  const char * val = NULL;
+  if (PRIVATE(this)->associations.get(dictentry, val)) {
+    return val;
   }
   return NULL;
 }
@@ -133,19 +135,19 @@ ScXMLEvent::getAssociation(const char * key) const
 size_t
 ScXMLEvent::getNumAssociations(void) const
 {
-  return PRIVATE(this)->associations.size();
+  return PRIVATE(this)->associations.getNumElements();
 }
 
 size_t
 ScXMLEvent::getAssociationKeys(SbList<const char *> & keys) const
 {
-  std::map<const char *, const char *>::const_iterator it =
-    PRIVATE(this)->associations.begin();
   size_t count = 0;
-  while (it != PRIVATE(this)->associations.end()) {
-    keys.append(it->first);
+  for (SbHash<SbName, const char *>::const_iterator it =
+         PRIVATE(this)->associations.const_begin();
+       it != PRIVATE(this)->associations.const_end();
+       ++it) {
+    keys.append(it->key.getString());
     ++count;
-    ++it;
   }
   return count;
 }
@@ -173,3 +175,38 @@ ScXMLEvent::copyContents(const ScXMLEvent * rhs)
 }
 
 #undef PRIVATE
+
+#ifdef COIN_TEST_SUITE
+#include <cstring>
+
+BOOST_AUTO_TEST_CASE(association_replacement_aliases)
+{
+  ScXMLEvent event;
+  event.setAssociation("key", "prefix-value");
+  event.setAssociation("key", event.getAssociation("key"));
+  BOOST_CHECK_MESSAGE(strcmp(event.getAssociation("key"), "prefix-value") == 0,
+                      "replacing an association with its own value preserves it");
+  event.setAssociation("key", event.getAssociation("key") + 7);
+  BOOST_CHECK_MESSAGE(strcmp(event.getAssociation("key"), "value") == 0,
+                      "a substring of the old value remains valid during replacement");
+  BOOST_CHECK_MESSAGE(event.getNumAssociations() == 1, "replacement keeps one key");
+  event.setAssociation("key", "");
+  BOOST_CHECK_MESSAGE(strcmp(event.getAssociation("key"), "") == 0,
+                      "empty association values are retained");
+}
+
+BOOST_AUTO_TEST_CASE(association_clone_owns_values)
+{
+  ScXMLEvent * original = new ScXMLEvent;
+  original->setAssociation("first", "one");
+  original->setAssociation("second", "two");
+  ScXMLEvent * copy = original->clone();
+  delete original;
+  BOOST_CHECK_MESSAGE(strcmp(copy->getAssociation("first"), "one") == 0,
+                      "clone owns its first association");
+  BOOST_CHECK_MESSAGE(strcmp(copy->getAssociation("second"), "two") == 0,
+                      "clone owns its second association");
+  BOOST_CHECK_MESSAGE(copy->getNumAssociations() == 2, "clone retains both keys");
+  delete copy;
+}
+#endif // COIN_TEST_SUITE
