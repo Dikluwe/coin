@@ -42,6 +42,7 @@
 
 #include <cassert>
 #include <cstring>
+#include <map>
 #include <memory>
 
 #include <Inventor/scxml/ScXML.h>
@@ -50,32 +51,20 @@
 
 class ScXMLEvent::PImpl {
 public:
+  typedef std::map<const char *, const char *> AssociationMap;
+
   PImpl(void) { }
   ~PImpl(void)
   {
-    for (int i = 0; i < this->associationvalues.getLength(); ++i) {
-      delete [] const_cast<char *>(this->associationvalues[i]);
+    for (AssociationMap::const_iterator it = this->associations.begin();
+         it != this->associations.end();
+         ++it) {
+      delete [] const_cast<char *>(it->second);
     }
+    this->associations.clear();
   }
 
-  int findAssociation(const char * key, int & insertion) const
-  {
-    int first = 0;
-    int last = this->associationkeys.getLength();
-    const size_t needle = reinterpret_cast<size_t>(key);
-    while (first < last) {
-      const int middle = first + (last - first) / 2;
-      const size_t candidate = reinterpret_cast<size_t>(this->associationkeys[middle]);
-      if (candidate < needle) first = middle + 1;
-      else last = middle;
-    }
-    insertion = first;
-    return first < this->associationkeys.getLength() &&
-           this->associationkeys[first] == key ? first : -1;
-  }
-
-  SbList<const char *> associationkeys;
-  SbList<const char *> associationvalues;
+  AssociationMap associations;
 };
 
 #define PRIVATE(obj) ((obj)->pimpl)
@@ -126,16 +115,16 @@ ScXMLEvent::setAssociation(const char * key, const char * value)
   // value may point into the association being replaced. Copy it first.
   std::unique_ptr<char[]> valuecopy(new char [strlen(value) + 1]);
   strcpy(valuecopy.get(), value);
-  int insertion = 0;
-  const int index = PRIVATE(this)->findAssociation(dictentry, insertion);
-  if (index >= 0) {
-    const char * existing = PRIVATE(this)->associationvalues[index];
-    PRIVATE(this)->associationvalues[index] = valuecopy.release();
-    delete [] existing;
+  PImpl::AssociationMap::iterator existing =
+    PRIVATE(this)->associations.find(dictentry);
+  if (existing != PRIVATE(this)->associations.end()) {
+    const char * oldvalue = existing->second;
+    existing->second = valuecopy.release();
+    delete [] oldvalue;
   }
   else {
-    PRIVATE(this)->associationkeys.insert(dictentry, insertion);
-    PRIVATE(this)->associationvalues.insert(valuecopy.release(), insertion);
+    PRIVATE(this)->associations.insert(
+      PImpl::AssociationMap::value_type(dictentry, valuecopy.release()));
   }
 }
 
@@ -144,23 +133,25 @@ ScXMLEvent::getAssociation(const char * key) const
 {
   assert(key);
   const char * dictentry = SbName(key).getString();
-  int insertion = 0;
-  const int index = PRIVATE(this)->findAssociation(dictentry, insertion);
-  return index >= 0 ? PRIVATE(this)->associationvalues[index] : NULL;
+  PImpl::AssociationMap::const_iterator existing =
+    PRIVATE(this)->associations.find(dictentry);
+  return existing != PRIVATE(this)->associations.end() ? existing->second : NULL;
 }
 
 size_t
 ScXMLEvent::getNumAssociations(void) const
 {
-  return static_cast<size_t>(PRIVATE(this)->associationkeys.getLength());
+  return PRIVATE(this)->associations.size();
 }
 
 size_t
 ScXMLEvent::getAssociationKeys(SbList<const char *> & keys) const
 {
   size_t count = 0;
-  for (int i = 0; i < PRIVATE(this)->associationkeys.getLength(); ++i) {
-    keys.append(PRIVATE(this)->associationkeys[i]);
+  for (PImpl::AssociationMap::const_iterator it = PRIVATE(this)->associations.begin();
+       it != PRIVATE(this)->associations.end();
+       ++it) {
+    keys.append(it->first);
     ++count;
   }
   return count;
