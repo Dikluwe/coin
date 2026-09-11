@@ -255,3 +255,37 @@ BOOST_AUTO_TEST_CASE(SbSmallMap_differential_operation_sequence)
     }
   }
 }
+
+BOOST_AUTO_TEST_CASE(SbSmallMap_bump_context_registry_pattern)
+{
+  struct ProgramRecord {
+    unsigned int directional;
+    unsigned int point;
+  } records[8];
+
+  SbSmallMap<int, ProgramRecord *> diffuse;
+  SbSmallMap<int, ProgramRecord *> specular;
+
+  for (int context = 0; context < 4; ++context) {
+    records[context].directional = static_cast<unsigned int>(context + 10);
+    records[context].point = static_cast<unsigned int>(context + 20);
+    BOOST_REQUIRE(diffuse.put(context, &records[context]));
+    BOOST_REQUIRE(specular.put(context, &records[context + 4]));
+  }
+
+  for (int context = 0; context < 4; ++context) {
+    ProgramRecord * diffuseprogram = NULL;
+    ProgramRecord * specularprogram = NULL;
+    BOOST_REQUIRE(diffuse.get(context, diffuseprogram));
+    BOOST_REQUIRE(specular.get(context, specularprogram));
+    BOOST_CHECK_EQUAL(diffuseprogram, &records[context]);
+    BOOST_CHECK_EQUAL(specularprogram, &records[context + 4]);
+  }
+
+  BOOST_CHECK(!diffuse.put(2, &records[7]));
+  ProgramRecord * updated = NULL;
+  BOOST_REQUIRE(diffuse.get(2, updated));
+  BOOST_CHECK_EQUAL(updated, &records[7]);
+  BOOST_CHECK_EQUAL(diffuse.getNumElements(), 4U);
+  BOOST_CHECK_EQUAL(specular.getNumElements(), 4U);
+}
