@@ -402,6 +402,23 @@ BOOST_AUTO_TEST_CASE(SbName_supports_names_larger_than_an_arena_chunk)
   BOOST_CHECK(first.getString() == second.getString());
 }
 
+BOOST_AUTO_TEST_CASE(SbName_preserves_addresses_across_large_name_sets)
+{
+  const unsigned int numkeys = 20000;
+  std::vector<std::string> keys;
+  std::vector<const char *> addresses;
+  keys.reserve(numkeys);
+  addresses.reserve(numkeys);
+
+  for (unsigned int key = 0; key < numkeys; ++key) {
+    keys.push_back(std::string("large-sbname-set-") + std::to_string(key));
+    addresses.push_back(SbName(keys.back().c_str()).getString());
+  }
+  for (unsigned int key = 0; key < numkeys; ++key) {
+    BOOST_CHECK(SbName(keys[key].c_str()).getString() == addresses[key]);
+  }
+}
+
 #ifdef HAVE_THREADS
 BOOST_AUTO_TEST_CASE(SbName_concurrent_interning_preserves_pointer_identity)
 {

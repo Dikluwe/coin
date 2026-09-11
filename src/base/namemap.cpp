@@ -33,6 +33,8 @@
 #include "base/namemap.h"
 
 #include <atomic>
+#include <cassert>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <mutex>
@@ -43,6 +45,7 @@
 
 #ifndef COIN_WORKAROUND_NO_USING_STD_FUNCS
 using std::malloc;
+using std::realloc;
 using std::free;
 using std::strlen;
 using std::strcmp;
@@ -73,6 +76,8 @@ static const size_t NAME_CHUNK_CAPACITY = 4096 - 32;
 static const unsigned int NAME_SHARD_COUNT = 32;
 static const unsigned int NAME_INITIAL_BUCKET_COUNT = 64;
 static const unsigned int NAME_MAX_AVERAGE_CHAIN = 8;
+static const unsigned int NAME_ENTRY_BLOCK_SIZE = 256;
+static const uint32_t NAME_INVALID_ENTRY = UINT32_MAX;
 // This covers the common vocabulary of a traversal without making every
 // application thread carry a large secondary name table.
 static const unsigned int NAME_LOCAL_CACHE_SIZE = 256;
@@ -84,27 +89,30 @@ struct NamemapMemChunk {
 };
 
 struct NamemapBucketEntry {
-  unsigned long hashvalue;
   const char * str;
-  struct NamemapBucketEntry * next;
+  uint32_t hashvalue;
+  uint32_t next;
+};
+
+struct NamemapEntryBlock {
+  struct NamemapBucketEntry entries[NAME_ENTRY_BLOCK_SIZE];
 };
 
 struct NamemapShard {
   void * mutex;
-  struct NamemapBucketEntry ** buckets;
+  uint32_t * buckets;
   unsigned int bucketcount;
-  unsigned int entries;
+  uint32_t entries;
+  struct NamemapEntryBlock ** entryblocks;
+  unsigned int entryblockcount;
+  unsigned int entryblockcapacity;
   struct NamemapMemChunk * headchunk;
-};
-
-struct NamemapLocalCacheEntry {
-  unsigned long hashvalue;
-  const char * str;
 };
 
 struct NamemapLocalCache {
   unsigned int generation;
-  struct NamemapLocalCacheEntry entries[NAME_LOCAL_CACHE_SIZE];
+  const char * strings[NAME_LOCAL_CACHE_SIZE];
+  uint16_t fingerprints[NAME_LOCAL_CACHE_SIZE];
 };
 
 static std::mutex namemap_init_mutex;
@@ -142,14 +150,13 @@ namemap_cleanup(void)
     }
     shard.headchunk = NULL;
 
-    for (unsigned int bucket = 0; bucket < shard.bucketcount; ++bucket) {
-      struct NamemapBucketEntry * entry = shard.buckets[bucket];
-      while (entry) {
-        struct NamemapBucketEntry * next = entry->next;
-        free(entry);
-        entry = next;
-      }
+    for (unsigned int block = 0; block < shard.entryblockcount; ++block) {
+      free(shard.entryblocks[block]);
     }
+    free(shard.entryblocks);
+    shard.entryblocks = NULL;
+    shard.entryblockcount = 0;
+    shard.entryblockcapacity = 0;
     free(shard.buckets);
     shard.buckets = NULL;
     shard.bucketcount = 0;
@@ -169,12 +176,16 @@ namemap_init(void)
   for (unsigned int i = 0; i < NAME_SHARD_COUNT; ++i) {
     struct NamemapShard & shard = nameshards[i];
     CC_MUTEX_CONSTRUCT(shard.mutex);
-    shard.buckets = static_cast<struct NamemapBucketEntry **>(
-      malloc(sizeof(struct NamemapBucketEntry *) * NAME_INITIAL_BUCKET_COUNT));
-    (void)memset(shard.buckets, 0,
-                 sizeof(struct NamemapBucketEntry *) * NAME_INITIAL_BUCKET_COUNT);
+    shard.buckets = static_cast<uint32_t *>(
+      malloc(sizeof(uint32_t) * NAME_INITIAL_BUCKET_COUNT));
+    for (unsigned int bucket = 0; bucket < NAME_INITIAL_BUCKET_COUNT; ++bucket) {
+      shard.buckets[bucket] = NAME_INVALID_ENTRY;
+    }
     shard.bucketcount = NAME_INITIAL_BUCKET_COUNT;
     shard.entries = 0;
+    shard.entryblocks = NULL;
+    shard.entryblockcount = 0;
+    shard.entryblockcapacity = 0;
     shard.headchunk = NULL;
   }
 
@@ -226,57 +237,82 @@ namemap_bucket_index(unsigned int mixedhash, unsigned int bucketcount)
   return (mixedhash / NAME_SHARD_COUNT) & (bucketcount - 1);
 }
 
+static struct NamemapBucketEntry &
+namemap_entry(struct NamemapShard & shard, uint32_t entryidx)
+{
+  assert(entryidx < shard.entries);
+  return shard.entryblocks[entryidx / NAME_ENTRY_BLOCK_SIZE]->
+    entries[entryidx % NAME_ENTRY_BLOCK_SIZE];
+}
+
+static uint32_t
+namemap_allocate_entry(struct NamemapShard & shard)
+{
+  assert(shard.entries != NAME_INVALID_ENTRY);
+  const uint32_t entryidx = shard.entries;
+  if ((entryidx % NAME_ENTRY_BLOCK_SIZE) == 0) {
+    if (shard.entryblockcount == shard.entryblockcapacity) {
+      const unsigned int newcapacity = shard.entryblockcapacity == 0
+        ? 4 : shard.entryblockcapacity * 2;
+      shard.entryblocks = static_cast<struct NamemapEntryBlock **>(
+        realloc(shard.entryblocks,
+                sizeof(struct NamemapEntryBlock *) * newcapacity));
+      shard.entryblockcapacity = newcapacity;
+    }
+    shard.entryblocks[shard.entryblockcount++] =
+      static_cast<struct NamemapEntryBlock *>(
+        malloc(sizeof(struct NamemapEntryBlock)));
+  }
+  ++shard.entries;
+  return entryidx;
+}
+
 static const char *
-namemap_cache_find(const char * str, unsigned long hashvalue,
-                   unsigned int mixedhash)
+namemap_cache_find(const char * str, unsigned int mixedhash)
 {
   const unsigned int generation = namemap_generation.load(std::memory_order_acquire);
   if (namemap_local_cache.generation != generation) {
-    (void)memset(namemap_local_cache.entries, 0,
-                 sizeof(namemap_local_cache.entries));
+    (void)memset(namemap_local_cache.strings, 0,
+                 sizeof(namemap_local_cache.strings));
     namemap_local_cache.generation = generation;
   }
 
-  const struct NamemapLocalCacheEntry & cached =
-    namemap_local_cache.entries[mixedhash % NAME_LOCAL_CACHE_SIZE];
-  if (cached.str != NULL && cached.hashvalue == hashvalue &&
-      (cached.str == str || strcmp(cached.str, str) == 0)) {
-    return cached.str;
+  const unsigned int cacheidx = mixedhash % NAME_LOCAL_CACHE_SIZE;
+  const char * cached = namemap_local_cache.strings[cacheidx];
+  if (cached != NULL &&
+      namemap_local_cache.fingerprints[cacheidx] ==
+        static_cast<uint16_t>(mixedhash >> 16) &&
+      (cached == str || strcmp(cached, str) == 0)) {
+    return cached;
   }
   return NULL;
 }
 
 static void
-namemap_cache_store(unsigned long hashvalue, unsigned int mixedhash,
-                    const char * str)
+namemap_cache_store(unsigned int mixedhash, const char * str)
 {
-  struct NamemapLocalCacheEntry & cached =
-    namemap_local_cache.entries[mixedhash % NAME_LOCAL_CACHE_SIZE];
-  cached.hashvalue = hashvalue;
-  cached.str = str;
+  const unsigned int cacheidx = mixedhash % NAME_LOCAL_CACHE_SIZE;
+  namemap_local_cache.strings[cacheidx] = str;
+  namemap_local_cache.fingerprints[cacheidx] =
+    static_cast<uint16_t>(mixedhash >> 16);
 }
 
 static void
 namemap_grow_shard(struct NamemapShard & shard)
 {
   const unsigned int newcount = shard.bucketcount * 2;
-  struct NamemapBucketEntry ** newbuckets =
-    static_cast<struct NamemapBucketEntry **>(
-      malloc(sizeof(struct NamemapBucketEntry *) * newcount));
-  (void)memset(newbuckets, 0,
-               sizeof(struct NamemapBucketEntry *) * newcount);
+  uint32_t * newbuckets = static_cast<uint32_t *>(
+    malloc(sizeof(uint32_t) * newcount));
+  for (unsigned int bucket = 0; bucket < newcount; ++bucket) {
+    newbuckets[bucket] = NAME_INVALID_ENTRY;
+  }
 
-  for (unsigned int bucket = 0; bucket < shard.bucketcount; ++bucket) {
-    struct NamemapBucketEntry * entry = shard.buckets[bucket];
-    while (entry != NULL) {
-      struct NamemapBucketEntry * next = entry->next;
-      const unsigned int mixedhash = namemap_mix_hash(
-        static_cast<unsigned int>(entry->hashvalue));
-      const unsigned int newbucket = namemap_bucket_index(mixedhash, newcount);
-      entry->next = newbuckets[newbucket];
-      newbuckets[newbucket] = entry;
-      entry = next;
-    }
+  for (uint32_t entryidx = 0; entryidx < shard.entries; ++entryidx) {
+    struct NamemapBucketEntry & entry = namemap_entry(shard, entryidx);
+    const unsigned int mixedhash = namemap_mix_hash(entry.hashvalue);
+    const unsigned int newbucket = namemap_bucket_index(mixedhash, newcount);
+    entry.next = newbuckets[newbucket];
+    newbuckets[newbucket] = entryidx;
   }
   free(shard.buckets);
   shard.buckets = newbuckets;
@@ -286,42 +322,43 @@ namemap_grow_shard(struct NamemapShard & shard)
 static const char *
 namemap_find_or_add_string(const char * str, SbBool addifnotfound)
 {
-  unsigned long h;
-  struct NamemapBucketEntry * entry;
+  const uint32_t h = cc_string_hash_text(str);
 
-  h = cc_string_hash_text(str);
   namemap_ensure_initialized();
 
-  const unsigned int mixedhash = namemap_mix_hash(static_cast<unsigned int>(h));
-  const char * cached = namemap_cache_find(str, h, mixedhash);
+  const unsigned int mixedhash = namemap_mix_hash(h);
+  const char * cached = namemap_cache_find(str, mixedhash);
   if (cached != NULL) return cached;
 
   struct NamemapShard & shard = nameshards[mixedhash % NAME_SHARD_COUNT];
   CC_MUTEX_LOCK(shard.mutex);
   const unsigned int bucket = namemap_bucket_index(mixedhash, shard.bucketcount);
-  entry = shard.buckets[bucket];
+  uint32_t entryidx = shard.buckets[bucket];
 
-  while (entry != NULL) {
-    if (entry->hashvalue == h && strcmp(entry->str, str) == 0) { break; }
-    entry = entry->next;
+  while (entryidx != NAME_INVALID_ENTRY) {
+    struct NamemapBucketEntry & entry = namemap_entry(shard, entryidx);
+    if (entry.hashvalue == h && strcmp(entry.str, str) == 0) { break; }
+    entryidx = entry.next;
   }
 
-  if ((entry == NULL) && addifnotfound) {
-    entry = static_cast<struct NamemapBucketEntry *>(malloc(sizeof(struct NamemapBucketEntry)));
-    entry->str = find_string_address(shard, str);
-    entry->hashvalue = h;
-    entry->next = shard.buckets[bucket];
+  if ((entryidx == NAME_INVALID_ENTRY) && addifnotfound) {
+    entryidx = namemap_allocate_entry(shard);
+    struct NamemapBucketEntry & entry = namemap_entry(shard, entryidx);
+    entry.str = find_string_address(shard, str);
+    entry.hashvalue = h;
+    entry.next = shard.buckets[bucket];
 
-    shard.buckets[bucket] = entry;
-    ++shard.entries;
+    shard.buckets[bucket] = entryidx;
     if (shard.entries > shard.bucketcount * NAME_MAX_AVERAGE_CHAIN) {
       namemap_grow_shard(shard);
     }
   }
 
+  const char * result = entryidx != NAME_INVALID_ENTRY
+    ? namemap_entry(shard, entryidx).str : NULL;
   CC_MUTEX_UNLOCK(shard.mutex);
-  if (entry != NULL) namemap_cache_store(h, mixedhash, entry->str);
-  return entry ? entry->str : NULL;
+  if (result != NULL) namemap_cache_store(mixedhash, result);
+  return result;
 }
 
 /* ************************************************************************* */
