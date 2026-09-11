@@ -386,3 +386,55 @@ SbName::empty(void) // static
   }
   return *emptyname;
 }
+
+#ifdef COIN_TEST_SUITE
+
+#include <string>
+#include <thread>
+#include <vector>
+
+BOOST_AUTO_TEST_CASE(SbName_supports_names_larger_than_an_arena_chunk)
+{
+  const std::string text(70000, 'n');
+  const SbName first(text.c_str());
+  const SbName second(text.c_str());
+  BOOST_CHECK_EQUAL(first.getLength(), static_cast<int>(text.size()));
+  BOOST_CHECK(first.getString() == second.getString());
+}
+
+#ifdef HAVE_THREADS
+BOOST_AUTO_TEST_CASE(SbName_concurrent_interning_preserves_pointer_identity)
+{
+  const unsigned int numthreads = 8;
+  const unsigned int numkeys = 257;
+  std::vector<std::string> keys;
+  for (unsigned int key = 0; key < numkeys; ++key) {
+    keys.push_back(std::string("concurrent-sbname-") + std::to_string(key));
+  }
+
+  std::vector<std::vector<const char *> > addresses(
+    numthreads, std::vector<const char *>(numkeys, NULL));
+  std::vector<std::thread> threads;
+  for (unsigned int thread = 0; thread < numthreads; ++thread) {
+    threads.push_back(std::thread([&, thread]() {
+      for (unsigned int repeat = 0; repeat < 8; ++repeat) {
+        for (unsigned int key = 0; key < numkeys; ++key) {
+          const SbName name(keys[key].c_str());
+          addresses[thread][key] = name.getString();
+        }
+      }
+    }));
+  }
+  for (unsigned int thread = 0; thread < numthreads; ++thread) {
+    threads[thread].join();
+  }
+
+  for (unsigned int key = 0; key < numkeys; ++key) {
+    for (unsigned int thread = 1; thread < numthreads; ++thread) {
+      BOOST_CHECK(addresses[thread][key] == addresses[0][key]);
+    }
+  }
+}
+#endif // HAVE_THREADS
+
+#endif // COIN_TEST_SUITE
