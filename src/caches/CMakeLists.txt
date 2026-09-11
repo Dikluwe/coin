@@ -15,6 +15,7 @@ set(COIN_CACHES_FILES
 
 # Files excluded from public API documentation, included in complete documentation.
 set(COIN_CACHES_INTERNAL_FILES
+	SoCompiledSceneCache.h
 	SoGlyphCache.h
 	SoGlyphCache.cpp
 	SoShaderProgramCache.h
