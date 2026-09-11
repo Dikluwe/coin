@@ -32,6 +32,8 @@
 
 #include "shapenodes/soshape_bumprender.h"
 
+#include "misc/SbHash.h"
+
 #include <cassert>
 
 #ifdef HAVE_CONFIG_H

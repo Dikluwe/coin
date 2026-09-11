@@ -33,6 +33,7 @@
 #include "misc/SbSmallMap.h"
 #include "CoinTest.h"
 
+#include <cstdint>
 #include <map>
 #include <new>
 
@@ -254,4 +255,42 @@ BOOST_AUTO_TEST_CASE(SbSmallMap_differential_operation_sequence)
       if (expected != reference.end()) BOOST_CHECK_EQUAL(actual, expected->second);
     }
   }
+}
+
+BOOST_AUTO_TEST_CASE(SbSmallMap_bump_context_registry_pattern)
+{
+  struct ProgramRecord {
+    unsigned int directional;
+    unsigned int point;
+  };
+
+  SbSmallMap<uint32_t, ProgramRecord> diffuse;
+  SbSmallMap<uint32_t, ProgramRecord> specular;
+
+  for (uint32_t context = 0; context < 4; ++context) {
+    const ProgramRecord diffuseprogram = { context + 10U, context + 20U };
+    const ProgramRecord specularprogram = { context + 30U, context + 40U };
+    BOOST_REQUIRE(diffuse.put(context, diffuseprogram));
+    BOOST_REQUIRE(specular.put(context, specularprogram));
+  }
+
+  for (uint32_t context = 0; context < 4; ++context) {
+    ProgramRecord diffuseprogram = { 0, 0 };
+    ProgramRecord specularprogram = { 0, 0 };
+    BOOST_REQUIRE(diffuse.get(context, diffuseprogram));
+    BOOST_REQUIRE(specular.get(context, specularprogram));
+    BOOST_CHECK_EQUAL(diffuseprogram.directional, context + 10U);
+    BOOST_CHECK_EQUAL(diffuseprogram.point, context + 20U);
+    BOOST_CHECK_EQUAL(specularprogram.directional, context + 30U);
+    BOOST_CHECK_EQUAL(specularprogram.point, context + 40U);
+  }
+
+  const ProgramRecord replacement = { 70U, 80U };
+  BOOST_CHECK(!diffuse.put(2U, replacement));
+  ProgramRecord updated = { 0, 0 };
+  BOOST_REQUIRE(diffuse.get(2U, updated));
+  BOOST_CHECK_EQUAL(updated.directional, 70U);
+  BOOST_CHECK_EQUAL(updated.point, 80U);
+  BOOST_CHECK_EQUAL(diffuse.getNumElements(), 4U);
+  BOOST_CHECK_EQUAL(specular.getNumElements(), 4U);
 }

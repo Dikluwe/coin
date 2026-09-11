@@ -40,7 +40,7 @@
 #include <Inventor/SoPrimitiveVertex.h>
 #include <Inventor/C/glue/gl.h>
 
-#include "misc/SbHash.h"
+#include "misc/SbSmallMap.h"
 
 // *************************************************************************
 
@@ -101,10 +101,10 @@ private:
   SbVec3f lightvec;
   SbBool ispointlight;
 
-  typedef SbHash<uint32_t, diffuse_programidx> ContextId2DiffuseStruct;
+  typedef SbSmallMap<uint32_t, diffuse_programidx> ContextId2DiffuseStruct;
   ContextId2DiffuseStruct diffuseprogramdict;
 
-  typedef SbHash<uint32_t, spec_programidx> ContextId2SpecStruct;
+  typedef SbSmallMap<uint32_t, spec_programidx> ContextId2SpecStruct;
   ContextId2SpecStruct specularprogramdict;
 };
 
