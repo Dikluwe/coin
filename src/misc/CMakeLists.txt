@@ -44,7 +44,10 @@ set(COIN_MISC_INTERNAL_FILES
 	AudioTools.cpp
 	CoinStaticObjectInDLL.h
 	CoinStaticObjectInDLL.cpp
+	SbAdaptiveMap.h
 	SbHash.h
+	SbHashName.h
+	SbRobinHoodHash.h
 	SoBaseP.h
 	SoBaseP.cpp
 	SoCompactPathList.h
