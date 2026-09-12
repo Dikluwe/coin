@@ -135,8 +135,8 @@ SoAudioDeviceP::clean()
 // *************************************************************************
 
 SoAudioDeviceP::SoAudioDeviceP(SoAudioDevice * master)
-  : master(master)
 {
+  this->master = master;
   this->context = NULL;
   this->device = NULL;
   this->enabled = FALSE;
