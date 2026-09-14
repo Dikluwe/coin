@@ -44,6 +44,7 @@
 
 #include <climits>
 #include <new>
+#include <stdexcept>
 
 /*!
   \fn SbPList::SbPList(const int sizehint)
@@ -66,21 +67,23 @@
   \fn void * SbPList::get(const int index) const
 
   Returns element at \a index. Does \e not expand array bounds if \a
-  index is outside the list.
+  index is outside the list. Throws \c std::out_of_range for an invalid
+  index.
 */
 
 /*!
   \fn void SbPList::set(const int index, void * item)
 
   Index operator to set element at \a index. Does \e not expand array
-  bounds if \a index is outside the list.
+  bounds if \a index is outside the list. Throws \c std::out_of_range for
+  an invalid index.
 */
 
 /*!
   \fn void SbPList::removeFast(const int index)
 
   Remove the item at \a index, moving the last item into its place and
-  truncating the list.
+  truncating the list. Throws \c std::out_of_range for an invalid index.
 */
 
 /*!
@@ -98,6 +101,9 @@
  If \a fit is non-zero, will also shrink the internal size of the
  allocated array. Note that this is much less efficient than not
  re-fitting the array size.
+
+ Throws \c std::out_of_range if \a length is negative or larger than the
+ current list length.
 */
 
 /*!
@@ -108,6 +114,9 @@
 
   The caller is \e not responsible for freeing up the array, as it is
   just a pointer into the internal array used by the list.
+
+  For an empty list, the default \a start of zero returns the internal empty
+  array view. Other invalid start indices throw \c std::out_of_range.
 */
 
 /*!
@@ -118,6 +127,8 @@
   Will automatically expand the size of the internal array if \a index
   is outside the current bounds of the list. The values of any
   additional pointers are then set to \c NULL.
+
+  Throws \c std::out_of_range for a negative index.
 */
 
 /*!
@@ -235,14 +246,14 @@ SbPList::find(const void * item) const
 /*!
   Insert \a item at index \a insertbefore.
 
-  \a insertbefore should not be larger than the current number of
-  items in the list.
+  \a insertbefore may be equal to, but not larger than, the current number
+  of items in the list. Throws \c std::out_of_range for an invalid index.
 */
 void
 SbPList::insert(void * item, const int insertbefore) {
-#ifdef COIN_EXTRA_DEBUG
-  assert(insertbefore >= 0 && insertbefore <= this->numitems);
-#endif // COIN_EXTRA_DEBUG
+  if (insertbefore < 0 || insertbefore > this->numitems) {
+    SbPList::invalidIndex("SbPList::insert(): index out of range");
+  }
   if (this->numitems == this->itembuffersize) this->grow();
 
   for (int i = this->numitems; i > insertbefore; i--)
@@ -274,9 +285,9 @@ SbPList::removeItem(void * item)
 void
 SbPList::remove(const int index)
 {
-#ifdef COIN_EXTRA_DEBUG
-  assert(index >= 0 && index < this->numitems);
-#endif // COIN_EXTRA_DEBUG
+  if (index < 0 || index >= this->numitems) {
+    SbPList::invalidIndex("SbPList::remove(): index out of range");
+  }
   this->numitems--;
   for (int i = index; i < this->numitems; i++)
     this->itembuffer[i] = this->itembuffer[i + 1];
@@ -294,6 +305,12 @@ SbPList::operator==(const SbPList & l) const
   for (int i = 0; i < this->numitems; i++)
     if (this->itembuffer[i] != l.itembuffer[i]) return FALSE;
   return TRUE;
+}
+
+void
+SbPList::invalidIndex(const char * operation)
+{
+  throw std::out_of_range(operation);
 }
 
 // Validate an expanding subscript before converting it to a list size.
@@ -340,7 +357,6 @@ SbPList::grow(const int size)
 
 #include <climits>
 #include <vector>
-#include <stdexcept>
 
 // Directed study coverage for SbPList's historical Open Inventor contracts.
 // These tests are intentionally local to the component while we decide which

@@ -21,11 +21,11 @@ LDFLAGS='-fsanitize=address,undefined' \
   /dev/shm/coin-build-sbplist-asan/lib
 ```
 
-A passing matrix means every invalid operation was rejected by an assertion
-or diagnosed by a sanitizer, and that an injected allocation failure left the
-list reusable. It does **not** mean the API handles invalid indices safely. On
-a normal build without `COIN_EXTRA_DEBUG`, these preconditions are unchecked
-and executing the same operations is undefined behavior.
+A passing matrix means every invalid operation was rejected by an exception or
+assertion, or diagnosed by a sanitizer, and that an injected allocation failure
+left the list reusable. `SbPList` now rejects invalid logical indices with
+`std::out_of_range` in normal builds as well as debug builds. The expanding
+`operator[]` retains its historical behavior for non-negative indices.
 
 The allocation tests override array allocation in the reproducer process and
 throw `std::bad_alloc` at deterministic allocation boundaries. They verify the
@@ -41,7 +41,7 @@ to a defensive limit of 32. At each injected failure the original callback,
 userdata and owned-adapter state must remain callable, and the destination is
 then regrown across its inline-to-heap boundary to prove it remains reusable.
 
-## Current baseline
+## Baseline before the refactoring
 
 Against `origin/master` on 2026-09-13, the ASan/UBSan pass diagnoses 12 of 21
 invalid-index modes and leaves nine observable violations silent. The MSan
@@ -67,6 +67,10 @@ owned-callback side table. The current memberwise assignment can leave stale
 capacity, split function/userdata pairs, or metadata that describes a
 different logical list. Invocation and subsequent growth expose those partial
 states.
+
+On `codex/diagnose-sbplist-indices`, all 21 invalid-index modes are rejected
+before an array access. The `SoCallbackList` failures remain a separate,
+higher-level issue and are not fixed by the index diagnostics.
 
 ## MemorySanitizer pass
 
