@@ -118,6 +118,22 @@ foreach(profile_mode unset off 0 on 1 syncgl invalid)
       -P ${CMAKE_CURRENT_SOURCE_DIR}/reproducers/soprofiler-initclass-ordering/verify.cmake)
 endforeach()
 
+# Allocation-failure injection replaces global operator new, so this cannot
+# share the CoinTests process.  One fresh process per failure point also keeps
+# a broken assignment from hiding later failure points.
+add_executable(CoinCallbackListAssignmentTest
+  reproducers/socallbacklist-assignment-exception-safety/repro.cpp)
+target_link_libraries(CoinCallbackListAssignmentTest Coin ${COIN_TARGET_LINK_LIBRARIES})
+target_include_directories(CoinCallbackListAssignmentTest PRIVATE
+  ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+  ${COIN_TARGET_INCLUDE_DIRECTORIES})
+foreach(allocation_ordinal 1 2 3 4 5 6 7 8 9 10 11 12)
+  add_test(NAME CallbackListAssignmentFailure_${allocation_ordinal}
+    COMMAND CoinCallbackListAssignmentTest ${allocation_ordinal})
+  set_tests_properties(CallbackListAssignmentFailure_${allocation_ordinal}
+    PROPERTIES SKIP_RETURN_CODE 77)
+endforeach()
+
 include(CheckCoreGLHeaders.cmake)
 
 # Many warnings are generated from test macros on macOS with Xcode.
