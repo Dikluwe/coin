@@ -671,6 +671,56 @@ BOOST_AUTO_TEST_CASE(copy_reallocation_failure_preserves_destination)
   BOOST_CHECK_EQUAL(destination[1].value, 2);
 }
 
+BOOST_AUTO_TEST_CASE(in_place_assignment_failures_keep_logical_length)
+{
+  {
+    SbList<SbListThrowingValue> list;
+    list.append(SbListThrowingValue(1));
+    list.append(SbListThrowingValue(2));
+
+    bool threw = false;
+    SbListThrowingValue::throwAfter(0);
+    try { list.append(SbListThrowingValue(3)); }
+    catch (const std::runtime_error &) { threw = true; }
+    SbListThrowingValue::disableFailure();
+
+    BOOST_REQUIRE(threw);
+    BOOST_REQUIRE_EQUAL(list.getLength(), 2);
+    BOOST_CHECK_EQUAL(list[0].value, 1);
+    BOOST_CHECK_EQUAL(list[1].value, 2);
+  }
+
+  {
+    SbList<SbListThrowingValue> list;
+    for (int i = 0; i < 3; i++) list.append(SbListThrowingValue(i + 1));
+
+    bool threw = false;
+    SbListThrowingValue::throwAfter(0);
+    try { list.remove(0); }
+    catch (const std::runtime_error &) { threw = true; }
+    SbListThrowingValue::disableFailure();
+
+    BOOST_REQUIRE(threw);
+    BOOST_REQUIRE_EQUAL(list.getLength(), 3);
+    for (int i = 0; i < 3; i++) BOOST_CHECK_EQUAL(list[i].value, i + 1);
+  }
+
+  {
+    SbList<SbListThrowingValue> list;
+    for (int i = 0; i < 3; i++) list.append(SbListThrowingValue(i + 1));
+
+    bool threw = false;
+    SbListThrowingValue::throwAfter(0);
+    try { list.removeFast(0); }
+    catch (const std::runtime_error &) { threw = true; }
+    SbListThrowingValue::disableFailure();
+
+    BOOST_REQUIRE(threw);
+    BOOST_REQUIRE_EQUAL(list.getLength(), 3);
+    for (int i = 0; i < 3; i++) BOOST_CHECK_EQUAL(list[i].value, i + 1);
+  }
+}
+
 // Regression test for the real-world usage pattern found in e.g.
 // SoLightPath::setHead(), SoBaseKit::createFieldList() and
 // SbHeap::emptyHeap(): truncate(0) immediately followed by append(),
