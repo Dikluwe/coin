@@ -90,7 +90,7 @@
   \code
   SbList<SbBool> flags(2); // Assume we need only 2 elements. Note
                            // that the list is still 0 elements long.
-  flags[0] = TRUE;         // Ouch. List is still 0 elements long.
+  flags[0] = TRUE;         // Throws: list is still 0 elements long.
   \endcode
 
   Since this conceptual misunderstanding is so easy to make, you're
@@ -118,6 +118,9 @@
   \fn void SbList<Type>::copy(const SbList<Type> & l)
 
   Make this list a copy of \a l.
+
+  If allocating or copying the new storage throws, newly allocated storage is
+  released. When reallocation is required, this list is left unchanged.
  */
 
 /*!
@@ -136,6 +139,9 @@
   only available for the sake of having the option to optimize memory
   usage for the unlikely event that you should throw around huge
   SbList objects within your application.
+
+  If allocating or copying the compact storage throws, the original storage
+  remains active.
  */
 
 /*!
@@ -157,8 +163,8 @@
 
   Insert \a item at index \a insertbefore.
 
-  \a insertbefore should not be larger than the current number of
-  items in the list.
+  \a insertbefore may equal, but must not be larger than, the current number
+  of items in the list. Throws \c std::out_of_range for an invalid index.
  */
 
 
@@ -167,20 +173,22 @@
 
   Removes an \a item from the list. If there are several items with
   the same value, removes the \a item with the lowest index.
+
+  If \a item is not present, the list is left unchanged.
 */
 
 /*!
   \fn void SbList<Type>::remove(const int index)
 
   Remove the item at \a index, moving all subsequent items downwards
-  one place in the list.
+  one place in the list. Throws \c std::out_of_range for an invalid index.
 */
 
 /*!
   \fn void SbList<Type>::removeFast(const int index)
 
   Remove the item at \a index, moving the last item into its place and
-  truncating the list.
+  truncating the list. Throws \c std::out_of_range for an invalid index.
 */
 
 /*!
@@ -198,6 +206,9 @@
  If \a fit is non-zero, will also shrink the internal size of the
  allocated array. Note that this is much less efficient than not
  re-fitting the array size.
+
+ Throws \c std::out_of_range if \a length is negative or larger than the
+ current list length.
 */
 
 /*!
@@ -212,6 +223,8 @@
   \fn Type SbList<Type>::pop(void)
 
   Pops off the last element of the list and returns it.
+
+  Throws \c std::out_of_range if the list is empty.
 */
 
 /*!
@@ -222,18 +235,25 @@
 
   The caller is \e not responsible for freeing up the array, as it is
   just a pointer into the internal array used by the list.
+
+  For an empty list, the default \a start of zero returns the internal empty
+  array view. Other invalid start indices throw \c std::out_of_range.
 */
 
 /*!
   \fn Type SbList<Type>::operator[](const int index) const
 
   Returns a copy of item at \a index.
+
+  Throws \c std::out_of_range for an invalid index.
 */
 
 /*!
   \fn Type & SbList<Type>::operator[](const int index)
 
   Returns a reference to item at \a index.
+
+  Throws \c std::out_of_range for an invalid index.
 */
 
 /*!
@@ -255,6 +275,8 @@
 
   Expand the list to contain \a size items. The new items added at the
   end have undefined value.
+
+  Throws \c std::out_of_range if \a size is negative.
 */
 
 /*!
