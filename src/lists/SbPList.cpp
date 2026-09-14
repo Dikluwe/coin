@@ -318,3 +318,181 @@ SbPList::grow(const int size)
   if (this->itembuffer != this->builtinbuffer) delete[] this->itembuffer;
   this->itembuffer = newbuffer;
 }
+
+#ifdef COIN_TEST_SUITE
+
+// Directed study coverage for SbPList's historical Open Inventor contracts.
+// These tests are intentionally local to the component while we decide which
+// behaviors are suitable for an upstream regression suite.
+
+class SbPListTestAccess : public SbPList {
+public:
+  SbPListTestAccess(const int sizehint = 4) : SbPList(sizehint) { }
+
+  int capacity(void) const { return this->getArraySize(); }
+};
+
+BOOST_AUTO_TEST_CASE(default_storage_and_append_contract)
+{
+  int a = 1;
+  int b = 2;
+  int c = 3;
+  int d = 4;
+  int e = 5;
+
+  SbPListTestAccess list;
+  BOOST_CHECK_EQUAL(list.getLength(), 0);
+  BOOST_CHECK_EQUAL(list.capacity(), 4);
+
+  list.append(&a);
+  list.append(&b);
+  list.append(&c);
+  list.append(&d);
+  BOOST_CHECK_EQUAL(list.capacity(), 4);
+
+  list.append(&e);
+  BOOST_CHECK_EQUAL(list.getLength(), 5);
+  BOOST_CHECK_EQUAL(list.capacity(), 8);
+  BOOST_CHECK(list.find(&a) == 0);
+  BOOST_CHECK(list.find(&e) == 4);
+  BOOST_CHECK(list.find(NULL) == -1);
+
+  void ** array = list.getArrayPtr();
+  BOOST_CHECK(array[0] == &a);
+  BOOST_CHECK(array[4] == &e);
+}
+
+BOOST_AUTO_TEST_CASE(index_operator_expands_even_through_const_list)
+{
+  int value = 42;
+  SbPList list;
+  const SbPList & constlist = list;
+
+  void *& slot = constlist[6];
+
+  BOOST_CHECK_EQUAL(list.getLength(), 7);
+  for (int i = 0; i < 7; i++) {
+    BOOST_CHECK(list.get(i) == NULL);
+  }
+  BOOST_CHECK(slot == NULL);
+
+  // This mutation through a const reference is part of the historical API.
+  constlist[6] = &value;
+  BOOST_CHECK(list.get(6) == &value);
+  BOOST_CHECK_EQUAL(list.getLength(), 7);
+}
+
+BOOST_AUTO_TEST_CASE(insert_and_removal_contracts)
+{
+  int a = 1;
+  int b = 2;
+  int c = 3;
+  int duplicate = 4;
+
+  SbPList list;
+  list.append(&a);
+  list.append(&duplicate);
+  list.append(&b);
+  list.append(&duplicate);
+  list.insert(&c, 2);
+
+  BOOST_REQUIRE_EQUAL(list.getLength(), 5);
+  BOOST_CHECK(list[0] == &a);
+  BOOST_CHECK(list[1] == &duplicate);
+  BOOST_CHECK(list[2] == &c);
+  BOOST_CHECK(list[3] == &b);
+  BOOST_CHECK(list[4] == &duplicate);
+
+  list.removeItem(&duplicate);
+  BOOST_REQUIRE_EQUAL(list.getLength(), 4);
+  BOOST_CHECK(list[0] == &a);
+  BOOST_CHECK(list[1] == &c);
+  BOOST_CHECK(list[2] == &b);
+  BOOST_CHECK(list[3] == &duplicate);
+
+  list.remove(1);
+  BOOST_REQUIRE_EQUAL(list.getLength(), 3);
+  BOOST_CHECK(list[0] == &a);
+  BOOST_CHECK(list[1] == &b);
+  BOOST_CHECK(list[2] == &duplicate);
+
+  list.removeFast(0);
+  BOOST_REQUIRE_EQUAL(list.getLength(), 2);
+  BOOST_CHECK(list[0] == &duplicate);
+  BOOST_CHECK(list[1] == &b);
+}
+
+#if !defined(COIN_EXTRA_DEBUG)
+BOOST_AUTO_TEST_CASE(removing_missing_item_preserves_list)
+{
+  int present = 1;
+  int missing = 2;
+
+  SbPList list;
+  list.append(&present);
+  list.removeItem(&missing);
+  BOOST_REQUIRE_EQUAL(list.getLength(), 1);
+  BOOST_CHECK(list[0] == &present);
+
+  SbPList empty;
+  empty.removeItem(&missing);
+  BOOST_CHECK_EQUAL(empty.getLength(), 0);
+}
+#endif // !COIN_EXTRA_DEBUG
+
+BOOST_AUTO_TEST_CASE(copy_assignment_and_self_assignment_are_independent)
+{
+  int a = 1;
+  int b = 2;
+  int replacement = 3;
+
+  SbPList original;
+  original.append(&a);
+  original.append(&b);
+
+  SbPList copy(original);
+  SbPList assigned;
+  assigned = original;
+  assigned = assigned;
+
+  original.set(0, &replacement);
+  BOOST_CHECK(original[0] == &replacement);
+  BOOST_CHECK(copy[0] == &a);
+  BOOST_CHECK(assigned[0] == &a);
+  BOOST_CHECK(copy == assigned);
+  BOOST_CHECK(copy != original);
+}
+
+BOOST_AUTO_TEST_CASE(fit_moves_between_heap_and_builtin_storage)
+{
+  int values[9];
+  SbPListTestAccess list;
+  for (int i = 0; i < 9; i++) {
+    values[i] = i;
+    list.append(&values[i]);
+  }
+  BOOST_CHECK_EQUAL(list.capacity(), 16);
+
+  list.truncate(6, TRUE);
+  BOOST_CHECK_EQUAL(list.getLength(), 6);
+  BOOST_CHECK_EQUAL(list.capacity(), 6);
+  for (int i = 0; i < 6; i++) BOOST_CHECK(list[i] == &values[i]);
+
+  list.truncate(3, TRUE);
+  BOOST_CHECK_EQUAL(list.getLength(), 3);
+  BOOST_CHECK_EQUAL(list.capacity(), 4);
+  for (int i = 0; i < 3; i++) BOOST_CHECK(list[i] == &values[i]);
+}
+
+BOOST_AUTO_TEST_CASE(size_hint_reserves_without_changing_length)
+{
+  SbPListTestAccess small(1);
+  BOOST_CHECK_EQUAL(small.getLength(), 0);
+  BOOST_CHECK_EQUAL(small.capacity(), 4);
+
+  SbPListTestAccess hinted(9);
+  BOOST_CHECK_EQUAL(hinted.getLength(), 0);
+  BOOST_CHECK_EQUAL(hinted.capacity(), 9);
+}
+
+#endif // COIN_TEST_SUITE
