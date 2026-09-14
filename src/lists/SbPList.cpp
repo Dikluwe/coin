@@ -340,6 +340,7 @@ SbPList::grow(const int size)
 
 #include <climits>
 #include <vector>
+#include <stdexcept>
 
 // Directed study coverage for SbPList's historical Open Inventor contracts.
 // These tests are intentionally local to the component while we decide which
@@ -793,6 +794,47 @@ BOOST_AUTO_TEST_CASE(valid_operations_match_vector_model)
 
     sbplist_check_model(list, model);
   }
+}
+
+BOOST_AUTO_TEST_CASE(invalid_index_operations_throw_and_preserve_state)
+{
+  int first = 1;
+  int second = 2;
+  int replacement = 3;
+  SbPList list;
+  list.append(&first);
+  list.append(&second);
+
+  BOOST_REQUIRE_THROW(list[-1], std::out_of_range);
+  BOOST_REQUIRE_THROW(list.get(-1), std::out_of_range);
+  BOOST_REQUIRE_THROW(list.get(2), std::out_of_range);
+  BOOST_REQUIRE_THROW(list.set(-1, &replacement), std::out_of_range);
+  BOOST_REQUIRE_THROW(list.set(2, &replacement), std::out_of_range);
+  BOOST_REQUIRE_THROW(list.getArrayPtr(-1), std::out_of_range);
+  BOOST_REQUIRE_THROW(list.getArrayPtr(2), std::out_of_range);
+  BOOST_REQUIRE_THROW(list.insert(&replacement, -1), std::out_of_range);
+  BOOST_REQUIRE_THROW(list.insert(&replacement, 3), std::out_of_range);
+  BOOST_REQUIRE_THROW(list.remove(-1), std::out_of_range);
+  BOOST_REQUIRE_THROW(list.remove(2), std::out_of_range);
+  BOOST_REQUIRE_THROW(list.removeFast(-1), std::out_of_range);
+  BOOST_REQUIRE_THROW(list.removeFast(2), std::out_of_range);
+  BOOST_REQUIRE_THROW(list.truncate(-1), std::out_of_range);
+  BOOST_REQUIRE_THROW(list.truncate(3), std::out_of_range);
+
+  BOOST_REQUIRE_EQUAL(list.getLength(), 2);
+  BOOST_CHECK(list.get(0) == &first);
+  BOOST_CHECK(list.get(1) == &second);
+}
+
+BOOST_AUTO_TEST_CASE(empty_array_view_and_end_insertion_remain_valid)
+{
+  int value = 1;
+  SbPList list;
+
+  BOOST_CHECK(list.getArrayPtr(0) != NULL);
+  list.insert(&value, 0);
+  BOOST_REQUIRE_EQUAL(list.getLength(), 1);
+  BOOST_CHECK(list.get(0) == &value);
 }
 
 #endif // COIN_TEST_SUITE
