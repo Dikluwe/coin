@@ -322,6 +322,7 @@ SbPList::grow(const int size)
 #ifdef COIN_TEST_SUITE
 
 #include <climits>
+#include <vector>
 
 // Directed study coverage for SbPList's historical Open Inventor contracts.
 // These tests are intentionally local to the component while we decide which
@@ -333,6 +334,17 @@ public:
 
   int capacity(void) const { return this->getArraySize(); }
 };
+
+static void
+sbplist_check_model(const SbPListTestAccess & list,
+                    const std::vector<void *> & model)
+{
+  BOOST_REQUIRE_EQUAL(list.getLength(), static_cast<int>(model.size()));
+  BOOST_CHECK(list.capacity() >= list.getLength());
+  for (size_t i = 0; i < model.size(); i++) {
+    BOOST_CHECK(list.get(static_cast<int>(i)) == model[i]);
+  }
+}
 
 BOOST_AUTO_TEST_CASE(default_storage_and_append_contract)
 {
@@ -551,6 +563,136 @@ BOOST_AUTO_TEST_CASE(fit_empty_list_restores_reusable_builtin_storage)
   BOOST_CHECK_EQUAL(list.getLength(), 1);
   BOOST_CHECK(list.get(0) == &values[0]);
   BOOST_CHECK_EQUAL(list.capacity(), 4);
+}
+
+BOOST_AUTO_TEST_CASE(growth_changes_only_at_capacity_boundaries)
+{
+  int values[33];
+  SbPListTestAccess list;
+  for (int i = 0; i < 33; i++) {
+    values[i] = i;
+    list.append(&values[i]);
+    const int expected = i < 4 ? 4 : i < 8 ? 8 : i < 16 ? 16 : i < 32 ? 32 : 64;
+    BOOST_CHECK_EQUAL(list.capacity(), expected);
+    BOOST_CHECK_EQUAL(list.getLength(), i + 1);
+    for (int j = 0; j <= i; j++) BOOST_CHECK(list.get(j) == &values[j]);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(size_hint_boundaries_reserve_exactly_above_builtin)
+{
+  const int hints[] = { 0, 1, 3, 4, 5, 7, 8, 9, 15, 16, 17 };
+  for (size_t i = 0; i < sizeof(hints) / sizeof(hints[0]); i++) {
+    SbPListTestAccess list(hints[i]);
+    BOOST_CHECK_EQUAL(list.getLength(), 0);
+    BOOST_CHECK_EQUAL(list.capacity(), hints[i] <= 4 ? 4 : hints[i]);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(repeated_fit_and_regrow_cycles_preserve_items)
+{
+  int values[12];
+  for (int i = 0; i < 12; i++) values[i] = i;
+
+  SbPListTestAccess list;
+  for (int round = 0; round < 8; round++) {
+    list.truncate(0, TRUE);
+    BOOST_CHECK_EQUAL(list.capacity(), 4);
+
+    for (int i = 0; i < 9; i++) list.append(&values[i]);
+    BOOST_CHECK_EQUAL(list.capacity(), 16);
+
+    list.truncate(5, TRUE);
+    BOOST_CHECK_EQUAL(list.capacity(), 5);
+    list.append(&values[9]);
+    BOOST_CHECK_EQUAL(list.capacity(), 10);
+
+    list.truncate(3, TRUE);
+    BOOST_CHECK_EQUAL(list.capacity(), 4);
+    for (int i = 0; i < 3; i++) BOOST_CHECK(list.get(i) == &values[i]);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(valid_operations_match_vector_model)
+{
+  int values[64];
+  for (int i = 0; i < 64; i++) values[i] = i;
+
+  SbPListTestAccess list;
+  std::vector<void *> model;
+  unsigned int randomstate = 0x5b91f00dU;
+
+  for (int step = 0; step < 4000; step++) {
+    randomstate = randomstate * 1664525U + 1013904223U;
+    unsigned int operation = (randomstate >> 16) % 9U;
+    void * value = &values[(randomstate >> 8) % 64U];
+
+    if (model.empty()) operation = 0;
+    if (model.size() > 192 && (operation == 0 || operation == 1 || operation == 6)) {
+      operation = 4;
+    }
+
+    switch (operation) {
+    case 0:
+      list.append(value);
+      model.push_back(value);
+      break;
+    case 1: {
+      const int index = static_cast<int>(randomstate % (model.size() + 1));
+      list.insert(value, index);
+      model.insert(model.begin() + index, value);
+      break;
+    }
+    case 2: {
+      const int index = static_cast<int>(randomstate % model.size());
+      list.remove(index);
+      model.erase(model.begin() + index);
+      break;
+    }
+    case 3: {
+      const int index = static_cast<int>(randomstate % model.size());
+      list.removeFast(index);
+      model[index] = model.back();
+      model.pop_back();
+      break;
+    }
+    case 4: {
+      const int length = static_cast<int>(randomstate % (model.size() + 1));
+      const int dofit = (randomstate >> 31) != 0;
+      list.truncate(length, dofit);
+      model.resize(length);
+      break;
+    }
+    case 5: {
+      const int index = static_cast<int>(randomstate % model.size());
+      list.set(index, value);
+      model[index] = value;
+      break;
+    }
+    case 6: {
+      const int index = static_cast<int>(model.size() + 1 + randomstate % 7U);
+      void *& slot = list[index];
+      model.resize(index + 1, NULL);
+      BOOST_CHECK(slot == NULL);
+      slot = value;
+      model[index] = value;
+      break;
+    }
+    case 7:
+      list.fit();
+      break;
+    case 8: {
+      SbPList copy(list);
+      SbPList assigned;
+      assigned = list;
+      BOOST_CHECK(copy == assigned);
+      BOOST_CHECK(copy == list);
+      break;
+    }
+    }
+
+    sbplist_check_model(list, model);
+  }
 }
 
 #endif // COIN_TEST_SUITE

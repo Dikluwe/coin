@@ -34,12 +34,23 @@ negative-subscript
 maximum-subscript
 negative-get
 negative-set
+past-end-get
+past-end-set
 negative-array-start
+past-end-array-start
 negative-insert
+past-end-insert
+maximum-insert
 negative-remove
 negative-remove-fast
+past-end-remove
+past-end-remove-fast
 negative-truncate
 oversize-truncate
+oversize-truncate-within-capacity
+minimum-truncate
+maximum-truncate
+oversize-truncate-fit
 "
 
 failures=0
@@ -58,18 +69,51 @@ for mode in $modes; do
   fi
 done
 
-logfile="$OUT/failed-growth-state.log"
-set +e
-ASAN_OPTIONS="allocator_may_return_null=1${ASAN_OPTIONS:+:$ASAN_OPTIONS}" \
-  "$OUT/repro" failed-growth-state >"$logfile" 2>&1
-status=$?
-set -e
-if [ "$status" -eq 0 ]; then
-  echo "PASS: list remained reusable after an injected allocation failure"
+allocation_modes="
+failed-growth-append
+failed-growth-insert
+failed-growth-subscript
+failed-assignment
+failed-fit
+failed-constructor
+failed-copy-constructor
+"
+
+if [ "${SKIP_ALLOCATION_TESTS:-0}" -ne 1 ]; then
+  for mode in $allocation_modes; do
+    logfile="$OUT/$mode.log"
+    set +e
+    ASAN_OPTIONS="allocator_may_return_null=1${ASAN_OPTIONS:+:$ASAN_OPTIONS}" \
+      "$OUT/repro" "$mode" >"$logfile" 2>&1
+    status=$?
+    set -e
+    if [ "$status" -eq 0 ]; then
+      echo "PASS: $mode preserved a reusable list"
+    else
+      echo "FAIL: $mode left the list inconsistent" >&2
+      sed -n '1,12p' "$logfile" >&2
+      failures=$((failures + 1))
+    fi
+  done
+
+  "$CXX" ${CXXFLAGS:-} -O1 -g "$HERE/callback-allocation.cpp" \
+    -o "$OUT/callback-allocation" \
+    -I"$SOURCE/include" -I"$LIBDIR/../include" -L"$LIBDIR" \
+    ${LDFLAGS:-} -lCoin
+  logfile="$OUT/failed-callback-assignment.log"
+  set +e
+  "$OUT/callback-allocation" >"$logfile" 2>&1
+  status=$?
+  set -e
+  if [ "$status" -eq 0 ]; then
+    echo "PASS: failed callback assignment preserved paired side state"
+  else
+    echo "FAIL: failed callback assignment split function/data side state" >&2
+    sed -n '1,12p' "$logfile" >&2
+    failures=$((failures + 1))
+  fi
 else
-  echo "FAIL: allocation failure left the list in an inconsistent state" >&2
-  sed -n '1,12p' "$logfile" >&2
-  failures=$((failures + 1))
+  echo "SKIP: allocation interposition disabled for this sanitizer runtime"
 fi
 
 if [ "$failures" -ne 0 ]; then
