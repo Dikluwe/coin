@@ -321,6 +321,8 @@ SbPList::grow(const int size)
 
 #ifdef COIN_TEST_SUITE
 
+#include <climits>
+
 // Directed study coverage for SbPList's historical Open Inventor contracts.
 // These tests are intentionally local to the component while we decide which
 // behaviors are suitable for an upstream regression suite.
@@ -493,6 +495,62 @@ BOOST_AUTO_TEST_CASE(size_hint_reserves_without_changing_length)
   SbPListTestAccess hinted(9);
   BOOST_CHECK_EQUAL(hinted.getLength(), 0);
   BOOST_CHECK_EQUAL(hinted.capacity(), 9);
+}
+
+BOOST_AUTO_TEST_CASE(nonpositive_size_hints_use_builtin_storage)
+{
+  SbPListTestAccess zero(0);
+  SbPListTestAccess negative(-1);
+  SbPListTestAccess minimum(INT_MIN);
+
+  BOOST_CHECK_EQUAL(zero.getLength(), 0);
+  BOOST_CHECK_EQUAL(zero.capacity(), 4);
+  BOOST_CHECK_EQUAL(negative.getLength(), 0);
+  BOOST_CHECK_EQUAL(negative.capacity(), 4);
+  BOOST_CHECK_EQUAL(minimum.getLength(), 0);
+  BOOST_CHECK_EQUAL(minimum.capacity(), 4);
+}
+
+BOOST_AUTO_TEST_CASE(distant_index_preserves_items_and_null_fills_gap)
+{
+  int first = 1;
+  int second = 2;
+  SbPListTestAccess list;
+  list.append(&first);
+  list.append(&second);
+
+  const SbPList & constlist = list;
+  void *& distant = constlist[1024];
+
+  BOOST_REQUIRE_EQUAL(list.getLength(), 1025);
+  BOOST_CHECK_EQUAL(list.capacity(), 1025);
+  BOOST_CHECK(list.get(0) == &first);
+  BOOST_CHECK(list.get(1) == &second);
+  for (int i = 2; i < 1025; i++) {
+    BOOST_CHECK(list.get(i) == NULL);
+  }
+
+  distant = &first;
+  BOOST_CHECK(list.get(1024) == &first);
+}
+
+BOOST_AUTO_TEST_CASE(fit_empty_list_restores_reusable_builtin_storage)
+{
+  int values[9];
+  SbPListTestAccess list(9);
+  for (int i = 0; i < 9; i++) {
+    values[i] = i;
+    list.append(&values[i]);
+  }
+
+  list.truncate(0, TRUE);
+  BOOST_CHECK_EQUAL(list.getLength(), 0);
+  BOOST_CHECK_EQUAL(list.capacity(), 4);
+
+  list.append(&values[0]);
+  BOOST_CHECK_EQUAL(list.getLength(), 1);
+  BOOST_CHECK(list.get(0) == &values[0]);
+  BOOST_CHECK_EQUAL(list.capacity(), 4);
 }
 
 #endif // COIN_TEST_SUITE
