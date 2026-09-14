@@ -71,8 +71,10 @@ done
 
 allocation_modes="
 failed-growth-append
+failed-growth-append-heap
 failed-growth-insert
 failed-growth-subscript
+failed-growth-distant-subscript
 failed-assignment
 failed-fit
 failed-constructor
@@ -100,16 +102,27 @@ if [ "${SKIP_ALLOCATION_TESTS:-0}" -ne 1 ]; then
     -o "$OUT/callback-allocation" \
     -I"$SOURCE/include" -I"$LIBDIR/../include" -L"$LIBDIR" \
     ${LDFLAGS:-} -lCoin
-  logfile="$OUT/failed-callback-assignment.log"
-  set +e
-  "$OUT/callback-allocation" >"$logfile" 2>&1
-  status=$?
-  set -e
-  if [ "$status" -eq 0 ]; then
-    echo "PASS: failed callback assignment preserved paired side state"
-  else
-    echo "FAIL: failed callback assignment split function/data side state" >&2
-    sed -n '1,12p' "$logfile" >&2
+  ordinal=1
+  while [ "$ordinal" -le 32 ]; do
+    logfile="$OUT/failed-callback-assignment-$ordinal.log"
+    set +e
+    "$OUT/callback-allocation" "$ordinal" >"$logfile" 2>&1
+    status=$?
+    set -e
+    if [ "$status" -eq 77 ]; then
+      echo "PASS: exercised every allocation point in callback assignment"
+      break
+    elif [ "$status" -eq 0 ]; then
+      echo "PASS: callback assignment allocation $ordinal preserved all side state"
+    else
+      echo "FAIL: callback assignment allocation $ordinal split side state" >&2
+      sed -n '1,12p' "$logfile" >&2
+      failures=$((failures + 1))
+    fi
+    ordinal=$((ordinal + 1))
+  done
+  if [ "$ordinal" -gt 32 ]; then
+    echo "FAIL: callback allocation matrix exceeded its 32-point safety bound" >&2
     failures=$((failures + 1))
   fi
 else

@@ -15,6 +15,12 @@
 static void * volatile sink;
 static bool fail_array_allocation;
 
+class SbPListTestAccess : public SbPList {
+public:
+  explicit SbPListTestAccess(const int sizehint = 4) : SbPList(sizehint) { }
+  int capacity(void) const { return this->getArraySize(); }
+};
+
 #if !defined(SBPLIST_NO_ALLOCATION_INTERPOSE)
 void *
 operator new[](std::size_t bytes)
@@ -53,9 +59,12 @@ inject_bad_alloc(Operation operation)
 }
 
 static bool
-has_items(const SbPList & list, void ** items, int count)
+has_state(const SbPListTestAccess & list, void ** items, int count,
+          int capacity, void ** array)
 {
   if (list.getLength() != count) return false;
+  if (list.capacity() != capacity) return false;
+  if (list.getArrayPtr() != array) return false;
   for (int i = 0; i < count; i++) {
     if (list.get(i) != items[i]) return false;
   }
@@ -71,7 +80,7 @@ main(int argc, char ** argv)
   }
 
   int value = 42;
-  SbPList list;
+  SbPListTestAccess list;
 
   if (std::strcmp(argv[1], "negative-subscript") == 0) {
     list[-1] = &value;
@@ -165,11 +174,14 @@ main(int argc, char ** argv)
   }
   else if (std::strcmp(argv[1], "failed-growth-append") == 0) {
     int values[5] = { 0, 1, 2, 3, 4 };
+    void * expected[4];
     for (int i = 0; i < 4; i++) list.append(&values[i]);
+    for (int i = 0; i < 4; i++) expected[i] = &values[i];
+    void ** oldarray = list.getArrayPtr();
 
     const bool allocationfailed = inject_bad_alloc([&]() { list.append(&values[4]); });
-    if (!allocationfailed || list.getLength() != 4) {
-      std::fprintf(stderr, "growth failure did not preserve the list length\n");
+    if (!allocationfailed || !has_state(list, expected, 4, 4, oldarray)) {
+      std::fprintf(stderr, "growth failure did not preserve the complete list state\n");
       return 1;
     }
 
@@ -181,35 +193,80 @@ main(int argc, char ** argv)
     std::fprintf(stderr, "failed growth preserved a reusable list\n");
     return 0;
   }
+  else if (std::strcmp(argv[1], "failed-growth-append-heap") == 0) {
+    int values[9];
+    void * expected[8];
+    for (int i = 0; i < 8; i++) {
+      values[i] = i;
+      list.append(&values[i]);
+      expected[i] = &values[i];
+    }
+    values[8] = 8;
+    void ** oldarray = list.getArrayPtr();
+    const bool allocationfailed = inject_bad_alloc([&]() { list.append(&values[8]); });
+    if (!allocationfailed || !has_state(list, expected, 8, 8, oldarray)) return 1;
+    list.append(&values[8]);
+    return list.getLength() == 9 && list.capacity() == 16 &&
+           list.get(8) == &values[8] ? 0 : 1;
+  }
   else if (std::strcmp(argv[1], "failed-growth-insert") == 0) {
     int values[5] = { 0, 1, 2, 3, 4 };
-    for (int i = 0; i < 4; i++) list.append(&values[i]);
+    void * expected[4];
+    for (int i = 0; i < 4; i++) {
+      list.append(&values[i]);
+      expected[i] = &values[i];
+    }
+    void ** oldarray = list.getArrayPtr();
     const bool allocationfailed = inject_bad_alloc([&]() { list.insert(&values[4], 2); });
-    if (!allocationfailed || list.getLength() != 4) return 1;
+    if (!allocationfailed || !has_state(list, expected, 4, 4, oldarray)) return 1;
     list.insert(&values[4], 2);
     return list.getLength() == 5 && list.get(2) == &values[4] ? 0 : 1;
   }
   else if (std::strcmp(argv[1], "failed-growth-subscript") == 0) {
     int values[5] = { 0, 1, 2, 3, 4 };
-    for (int i = 0; i < 4; i++) list.append(&values[i]);
+    void * expected[4];
+    for (int i = 0; i < 4; i++) {
+      list.append(&values[i]);
+      expected[i] = &values[i];
+    }
+    void ** oldarray = list.getArrayPtr();
     const bool allocationfailed = inject_bad_alloc([&]() { list[4] = &values[4]; });
-    if (!allocationfailed || list.getLength() != 4) return 1;
+    if (!allocationfailed || !has_state(list, expected, 4, 4, oldarray)) return 1;
     list[4] = &values[4];
     return list.getLength() == 5 && list.get(4) == &values[4] ? 0 : 1;
+  }
+  else if (std::strcmp(argv[1], "failed-growth-distant-subscript") == 0) {
+    int values[3] = { 0, 1, 2 };
+    void * expected[2] = { &values[0], &values[1] };
+    list.append(&values[0]);
+    list.append(&values[1]);
+    void ** oldarray = list.getArrayPtr();
+    const bool allocationfailed = inject_bad_alloc([&]() { list[1024] = &values[2]; });
+    if (!allocationfailed || !has_state(list, expected, 2, 4, oldarray)) return 1;
+    list[1024] = &values[2];
+    if (list.getLength() != 1025 || list.capacity() != 1025) return 1;
+    if (list.get(0) != &values[0] || list.get(1) != &values[1]) return 1;
+    for (int i = 2; i < 1024; i++) if (list.get(i) != NULL) return 1;
+    return list.get(1024) == &values[2] ? 0 : 1;
   }
   else if (std::strcmp(argv[1], "failed-assignment") == 0) {
     int sourcevalues[5] = { 0, 1, 2, 3, 4 };
     int destinationvalues[4] = { 10, 11, 12, 13 };
-    SbPList source;
-    SbPList destination;
+    SbPListTestAccess source;
+    SbPListTestAccess destination;
     void * expected[4];
     for (int i = 0; i < 5; i++) source.append(&sourcevalues[i]);
+    void * sourceexpected[5];
+    for (int i = 0; i < 5; i++) sourceexpected[i] = &sourcevalues[i];
+    void ** sourcearray = source.getArrayPtr();
     for (int i = 0; i < 4; i++) {
       destination.append(&destinationvalues[i]);
       expected[i] = &destinationvalues[i];
     }
+    void ** oldarray = destination.getArrayPtr();
     const bool allocationfailed = inject_bad_alloc([&]() { destination = source; });
-    if (!allocationfailed || !has_items(destination, expected, 4)) return 1;
+    if (!allocationfailed || !has_state(destination, expected, 4, 4, oldarray)) return 1;
+    if (!has_state(source, sourceexpected, 5, 8, sourcearray)) return 1;
     destination = source;
     return destination == source ? 0 : 1;
   }
@@ -222,26 +279,38 @@ main(int argc, char ** argv)
     list.truncate(6);
     void * expected[6];
     for (int i = 0; i < 6; i++) expected[i] = &values[i];
+    void ** oldarray = list.getArrayPtr();
     const bool allocationfailed = inject_bad_alloc([&]() { list.fit(); });
-    if (!allocationfailed || !has_items(list, expected, 6)) return 1;
+    if (!allocationfailed || !has_state(list, expected, 6, 16, oldarray)) return 1;
+    list.fit();
+    if (list.getLength() != 6 || list.capacity() != 6) return 1;
+    for (int i = 0; i < 6; i++) if (list.get(i) != expected[i]) return 1;
     list.append(&values[9]);
-    return list.getLength() == 7 && list.get(6) == &values[9] ? 0 : 1;
+    return list.getLength() == 7 && list.capacity() == 12 &&
+           list.get(6) == &values[9] ? 0 : 1;
   }
   else if (std::strcmp(argv[1], "failed-constructor") == 0) {
     const bool allocationfailed = inject_bad_alloc([&]() { SbPList temporary(9); });
     if (!allocationfailed) return 1;
-    list.append(&value);
-    return list.getLength() == 1 && list.get(0) == &value ? 0 : 1;
+    SbPListTestAccess retry(9);
+    retry.append(&value);
+    return retry.getLength() == 1 && retry.capacity() == 9 &&
+           retry.get(0) == &value ? 0 : 1;
   }
   else if (std::strcmp(argv[1], "failed-copy-constructor") == 0) {
     int values[6];
-    SbPList source;
+    SbPListTestAccess source;
     for (int i = 0; i < 5; i++) {
       values[i] = i;
       source.append(&values[i]);
     }
+    void * expected[5];
+    for (int i = 0; i < 5; i++) expected[i] = &values[i];
+    void ** oldarray = source.getArrayPtr();
     const bool allocationfailed = inject_bad_alloc([&]() { SbPList temporary(source); });
-    if (!allocationfailed) return 1;
+    if (!allocationfailed || !has_state(source, expected, 5, 8, oldarray)) return 1;
+    SbPList copy(source);
+    if (copy != source) return 1;
     source.append(&values[5]);
     return source.getLength() == 6 && source.get(5) == &values[5] ? 0 : 1;
   }

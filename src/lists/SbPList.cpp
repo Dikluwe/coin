@@ -346,6 +346,16 @@ sbplist_check_model(const SbPListTestAccess & list,
   }
 }
 
+class SbPListLifetimeProbe {
+public:
+  explicit SbPListLifetimeProbe(int & destructioncounter)
+    : counter(destructioncounter) { }
+  ~SbPListLifetimeProbe() { ++this->counter; }
+
+private:
+  int & counter;
+};
+
 BOOST_AUTO_TEST_CASE(default_storage_and_append_contract)
 {
   int a = 1;
@@ -374,6 +384,27 @@ BOOST_AUTO_TEST_CASE(default_storage_and_append_contract)
   void ** array = list.getArrayPtr();
   BOOST_CHECK(array[0] == &a);
   BOOST_CHECK(array[4] == &e);
+}
+
+BOOST_AUTO_TEST_CASE(array_view_is_contiguous_and_stable_without_growth)
+{
+  int values[5] = { 0, 1, 2, 3, 4 };
+  SbPList list;
+  list.append(&values[0]);
+
+  void ** initial = list.getArrayPtr();
+  for (int i = 1; i < 4; i++) {
+    list.append(&values[i]);
+    BOOST_CHECK(list.getArrayPtr() == initial);
+  }
+  BOOST_CHECK(list.getArrayPtr(2) == initial + 2);
+  BOOST_CHECK(initial[0] == &values[0]);
+  BOOST_CHECK(initial[3] == &values[3]);
+
+  list.append(&values[4]);
+  void ** grown = list.getArrayPtr();
+  BOOST_CHECK(grown != initial);
+  for (int i = 0; i < 5; i++) BOOST_CHECK(grown[i] == &values[i]);
 }
 
 BOOST_AUTO_TEST_CASE(index_operator_expands_even_through_const_list)
@@ -475,6 +506,58 @@ BOOST_AUTO_TEST_CASE(copy_assignment_and_self_assignment_are_independent)
   BOOST_CHECK(assigned[0] == &a);
   BOOST_CHECK(copy == assigned);
   BOOST_CHECK(copy != original);
+}
+
+BOOST_AUTO_TEST_CASE(items_are_non_owning_and_copies_are_shallow)
+{
+  int destructions = 0;
+  SbPListLifetimeProbe * first = new SbPListLifetimeProbe(destructions);
+  SbPListLifetimeProbe * second = new SbPListLifetimeProbe(destructions);
+
+  {
+    SbPList list;
+    list.append(first);
+    list.append(NULL);
+    list.append(first);
+    list.append(second);
+
+    SbPList copy(list);
+    BOOST_REQUIRE_EQUAL(copy.getLength(), 4);
+    BOOST_CHECK(copy.get(0) == first);
+    BOOST_CHECK(copy.get(1) == NULL);
+    BOOST_CHECK(copy.get(2) == first);
+    BOOST_CHECK(copy.get(3) == second);
+
+    list.remove(0);
+    list.truncate(0, TRUE);
+    BOOST_CHECK_EQUAL(destructions, 0);
+  }
+
+  BOOST_CHECK_EQUAL(destructions, 0);
+  delete first;
+  BOOST_CHECK_EQUAL(destructions, 1);
+  delete second;
+  BOOST_CHECK_EQUAL(destructions, 2);
+}
+
+BOOST_AUTO_TEST_CASE(null_is_a_regular_stored_value)
+{
+  int value = 1;
+  SbPList list;
+  list.append(NULL);
+  list.insert(&value, 0);
+  list.append(NULL);
+
+  BOOST_REQUIRE_EQUAL(list.getLength(), 3);
+  BOOST_CHECK(list.get(0) == &value);
+  BOOST_CHECK(list.get(1) == NULL);
+  BOOST_CHECK(list.get(2) == NULL);
+  BOOST_CHECK_EQUAL(list.find(NULL), 1);
+
+  list.removeItem(NULL);
+  BOOST_REQUIRE_EQUAL(list.getLength(), 2);
+  BOOST_CHECK(list.get(0) == &value);
+  BOOST_CHECK(list.get(1) == NULL);
 }
 
 BOOST_AUTO_TEST_CASE(fit_moves_between_heap_and_builtin_storage)

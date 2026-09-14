@@ -27,10 +27,19 @@ list reusable. It does **not** mean the API handles invalid indices safely. On
 a normal build without `COIN_EXTRA_DEBUG`, these preconditions are unchecked
 and executing the same operations is undefined behavior.
 
-The allocation test overrides array allocation in the reproducer process and
-throws `std::bad_alloc` exactly when appending the fifth item forces the first
-heap growth. It then retries the append. This deterministically checks the
-exception guarantee without depending on host memory pressure or overcommit.
+The allocation tests override array allocation in the reproducer process and
+throw `std::bad_alloc` at deterministic allocation boundaries. They verify the
+complete pre-call state -- length, capacity, backing-array identity and item
+values -- before reusing the list. The matrix covers inline-to-heap and
+heap-to-heap append growth, insert growth, adjacent and distant `operator[]`
+growth, assignment, `fit()`, construction and copy construction without
+depending on host memory pressure or overcommit.
+
+`callback-allocation.cpp` interposes both scalar and array allocation and
+walks every allocation point observed during `SoCallbackList` assignment, up
+to a defensive limit of 32. At each injected failure the original callback,
+userdata and owned-adapter state must remain callable, and the destination is
+then regrown across its inline-to-heap boundary to prove it remains reusable.
 
 ## Current baseline
 
@@ -46,18 +55,18 @@ immediately before `builtinbuffer`. The three past-end mutations stay within
 reserved storage: `set(length)` writes outside the logical list, while both
 removal functions silently discard the actual last item.
 
-Four injected-allocation modes fail: growth reached through `append()`,
-`insert()`, `operator[]` and assignment. `grow()` updates `itembuffersize`
-before `new[]` succeeds, so retries trust stale capacity and access beyond
-`builtinbuffer`. `fit()`, direct construction and copy construction preserve
-usable state under the same deterministic allocation failure.
+Six injected growth/allocation modes fail: both append growth boundaries,
+growth reached through `insert()`, adjacent and distant `operator[]`, and
+assignment. `grow()` updates `itembuffersize` before `new[]` succeeds, so
+retries trust stale capacity and access beyond the actual allocation.
+`fit()`, direct construction and copy construction preserve usable state under
+the same deterministic allocation failure.
 
-`callback-allocation.cpp` fails the second array allocation during
-`SoCallbackList` assignment. This lands between copying its function-list and
-userdata-list `SbPList` members and tests the higher-level pair invariant plus
-the owned-callback side table. The current memberwise assignment leaves five
-functions paired with four userdata entries, and invoking the destination is
-diagnosed by ASan.
+The callback matrix includes failures in either `SbPList` member and in the
+owned-callback side table. The current memberwise assignment can leave stale
+capacity, split function/userdata pairs, or metadata that describes a
+different logical list. Invocation and subsequent growth expose those partial
+states.
 
 ## MemorySanitizer pass
 

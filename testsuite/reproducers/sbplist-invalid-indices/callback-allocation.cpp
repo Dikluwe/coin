@@ -10,13 +10,12 @@
 #include <cstdio>
 #include <new>
 
-static int array_allocations_until_failure = -1;
+static int allocations_until_failure = -1;
 
-void *
-operator new[](std::size_t bytes)
+static void *
+allocate_or_throw(std::size_t bytes)
 {
-  if (array_allocations_until_failure > 0 &&
-      --array_allocations_until_failure == 0) {
+  if (allocations_until_failure > 0 && --allocations_until_failure == 0) {
     throw std::bad_alloc();
   }
   void * memory = std::malloc(bytes);
@@ -24,11 +23,43 @@ operator new[](std::size_t bytes)
   return memory;
 }
 
+void *
+operator new(std::size_t bytes)
+{
+  return allocate_or_throw(bytes);
+}
+
+void *
+operator new[](std::size_t bytes)
+{
+  return allocate_or_throw(bytes);
+}
+
+void
+operator delete(void * memory) noexcept
+{
+  std::free(memory);
+}
+
 void
 operator delete[](void * memory) noexcept
 {
   std::free(memory);
 }
+
+#if defined(__cpp_sized_deallocation)
+void
+operator delete(void * memory, std::size_t) noexcept
+{
+  std::free(memory);
+}
+
+void
+operator delete[](void * memory, std::size_t) noexcept
+{
+  std::free(memory);
+}
+#endif
 
 class CallbackAllocationSelection : public SoSelection {
 public:
@@ -43,8 +74,14 @@ callback_allocation_typed(void * userdata, SoSelection *)
 }
 
 int
-main()
+main(int argc, char ** argv)
 {
+  const int failureordinal = argc == 2 ? std::atoi(argv[1]) : 2;
+  if (failureordinal <= 0) {
+    std::fprintf(stderr, "usage: %s POSITIVE_ALLOCATION_ORDINAL\n", argv[0]);
+    return 2;
+  }
+
   SoDB::init();
   SoInteraction::init();
   int sourcecalls = 0;
@@ -62,37 +99,48 @@ main()
   }
 
   bool allocationfailed = false;
-  array_allocations_until_failure = 2;
+  allocations_until_failure = failureordinal;
   try {
     destination->callbacks() = source->callbacks();
   }
   catch (const std::bad_alloc &) {
     allocationfailed = true;
   }
-  array_allocations_until_failure = -1;
+  allocations_until_failure = -1;
 
   if (!allocationfailed) {
-    std::fprintf(stderr, "FAIL: the injected second array allocation succeeded\n");
+    std::fprintf(stderr, "SKIP: assignment made fewer than %d allocations\n",
+                 failureordinal);
     destination->unref();
     source->unref();
     SoDB::finish();
-    return 1;
+    return 77;
   }
 
-  // A strong guarantee leaves the four original callback/data pairs intact.
-  // The current memberwise assignment leaves five functions but four data
-  // entries, so firing the list reaches a mismatched fifth registration.
+  // A strong guarantee leaves the four original callback/data/owner triples
+  // intact regardless of which allocation in the assignment failed.
   destination->fire();
-  const bool preserved = destinationcalls == 4 && sourcecalls == 0 &&
-                         destination->callbacks().getNumCallbacks() == 4;
+  bool preserved = destinationcalls == 4 && sourcecalls == 0 &&
+                   destination->callbacks().getNumCallbacks() == 4;
+
+  // Reuse crosses the 4 -> 5 inline/heap boundary and detects stale capacity
+  // left by a failed first SbPList allocation as well as split callback state.
+  destination->addChangeCallback(callback_allocation_typed, &destinationcalls);
+  destination->fire();
+  preserved = preserved && destinationcalls == 9 && sourcecalls == 0 &&
+              destination->callbacks().getNumCallbacks() == 5;
 
   destination->unref();
   source->unref();
   SoDB::finish();
   if (!preserved) {
-    std::fprintf(stderr, "FAIL: callback assignment lost pair consistency\n");
+    std::fprintf(stderr,
+                 "FAIL: callback assignment allocation %d lost original state\n",
+                 failureordinal);
     return 1;
   }
-  std::fprintf(stderr, "PASS: callback assignment preserved all original pairs\n");
+  std::fprintf(stderr,
+               "PASS: callback assignment allocation %d preserved original state\n",
+               failureordinal);
   return 0;
 }
