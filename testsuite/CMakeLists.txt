@@ -134,6 +134,22 @@ foreach(allocation_ordinal 1 2 3 4 5 6 7 8 9 10 11 12)
     PROPERTIES SKIP_RETURN_CODE 77)
 endforeach()
 
+add_executable(CoinCallbackListAddTest
+  reproducers/socallbacklist-add-exception-safety/repro.cpp)
+target_link_libraries(CoinCallbackListAddTest Coin ${COIN_TARGET_LINK_LIBRARIES})
+target_include_directories(CoinCallbackListAddTest PRIVATE
+  ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+  ${COIN_TARGET_INCLUDE_DIRECTORIES})
+foreach(callback_kind raw typed)
+  foreach(allocation_ordinal 1 2 3 4 5 6 7 8 9 10 11 12)
+    add_test(NAME CallbackListAddFailure_${callback_kind}_${allocation_ordinal}
+      COMMAND CoinCallbackListAddTest ${callback_kind} ${allocation_ordinal})
+    set_tests_properties(
+      CallbackListAddFailure_${callback_kind}_${allocation_ordinal}
+      PROPERTIES SKIP_RETURN_CODE 77)
+  endforeach()
+endforeach()
+
 include(CheckCoreGLHeaders.cmake)
 
 # Many warnings are generated from test macros on macOS with Xcode.
