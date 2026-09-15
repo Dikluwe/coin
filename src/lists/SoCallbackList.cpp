@@ -291,8 +291,12 @@ SoCallbackList::SoCallbackList(void)
   memberwise copy cannot be retroactively given the same guarantee.
 */
 SoCallbackList::SoCallbackList(const SoCallbackList & list)
-  : funclist(list.funclist), datalist(list.datalist)
 {
+  // Copy only after both members have finished construction. If copying the
+  // ownership registry throws after SbPList has allocated its buffer, normal
+  // member unwinding then releases both the buffer and any registry entry.
+  this->funclist.copy(list.funclist);
+  this->datalist.copy(list.datalist);
 }
 
 /*!
