@@ -48,6 +48,8 @@ public:
   // including implicit SoCallbackList copies in already-compiled clients.
   static void copyData(const SbPList * source, const SbPList * destination);
   static void clearData(const SbPList * list);
+  static void swapData(const SbPList * lhs, const SbPList * rhs);
+  static void swapLists(SbPList * lhs, SbPList * rhs);
   // identity/userdata remain the externally visible registration pair.
   // invoke/context provide the correctly typed, owning adapter.
   static void addCallback(SoCallbackList * list, SoCallbackListCB * identity,

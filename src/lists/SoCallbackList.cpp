@@ -44,18 +44,11 @@
 #include <Inventor/lists/SoCallbackList.h>
 
 #include "lists/SoCallbackListP.h"
-#include "misc/SbHash.h"
-
 #include <atomic>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <vector>
-
-inline unsigned int
-SbHashFunc(const SbPList * key)
-{
-  return SbHashFunc(reinterpret_cast<size_t>(key));
-}
 
 namespace {
 std::atomic<bool> haveOwnedData(false);
@@ -69,7 +62,7 @@ typedef std::vector<OwnedCallback> OwnedCallbacks;
 
 struct CallbackOwners {
   std::mutex mutex;
-  SbHash<const SbPList *, OwnedCallbacks> lists;
+  std::map<const SbPList *, OwnedCallbacks> lists;
 };
 
 CallbackOwners & callbackOwners()
@@ -86,7 +79,9 @@ OwnedCallbacks snapshotOwners(const SbPList * list)
   CallbackOwners & owners = callbackOwners();
   std::lock_guard<std::mutex> lock(owners.mutex);
   OwnedCallbacks entries;
-  owners.lists.get(list, entries);
+  std::map<const SbPList *, OwnedCallbacks>::const_iterator it =
+    owners.lists.find(list);
+  if (it != owners.lists.end()) entries = it->second;
   return entries;
 }
 
@@ -98,11 +93,13 @@ void releaseOwner(const SbPList * list, int index)
   CallbackOwners & owners = callbackOwners();
   {
     std::lock_guard<std::mutex> lock(owners.mutex);
-    OwnedCallbacks entries;
-    if (!owners.lists.get(list, entries)) return;
+    std::map<const SbPList *, OwnedCallbacks>::iterator it =
+      owners.lists.find(list);
+    if (it == owners.lists.end()) return;
+    OwnedCallbacks & entries = it->second;
     for (size_t i = 0; i < entries.size();) {
       if (entries[i].index == index) {
-        removed = entries[i].data;
+        removed.swap(entries[i].data);
         entries.erase(entries.begin() + i);
       }
       else {
@@ -110,9 +107,8 @@ void releaseOwner(const SbPList * list, int index)
         ++i;
       }
     }
-    if (entries.empty()) owners.lists.erase(list);
-    else owners.lists.put(list, entries);
-    haveOwnedData.store(owners.lists.getNumElements() != 0);
+    if (entries.empty()) owners.lists.erase(it);
+    haveOwnedData.store(!owners.lists.empty());
   }
 }
 
@@ -123,9 +119,12 @@ void releaseOwners(const SbPList * list)
   CallbackOwners & owners = callbackOwners();
   {
     std::lock_guard<std::mutex> lock(owners.mutex);
-    if (!owners.lists.get(list, removed)) return;
-    owners.lists.erase(list);
-    haveOwnedData.store(owners.lists.getNumElements() != 0);
+    std::map<const SbPList *, OwnedCallbacks>::iterator it =
+      owners.lists.find(list);
+    if (it == owners.lists.end()) return;
+    removed.swap(it->second);
+    owners.lists.erase(it);
+    haveOwnedData.store(!owners.lists.empty());
   }
 }
 } // namespace
@@ -145,11 +144,105 @@ SoCallbackListP::copyData(const SbPList * source, const SbPList * destination)
   {
     std::lock_guard<std::mutex> lock(owners.mutex);
     OwnedCallbacks sourceentries;
-    const bool hassource = owners.lists.get(source, sourceentries);
-    const bool hasdestination = owners.lists.get(destination, previous);
-    if (hassource) owners.lists.put(destination, sourceentries);
-    else if (hasdestination) owners.lists.erase(destination);
-    haveOwnedData.store(owners.lists.getNumElements() != 0);
+    std::map<const SbPList *, OwnedCallbacks>::const_iterator sourceit =
+      owners.lists.find(source);
+    if (sourceit != owners.lists.end()) sourceentries = sourceit->second;
+    std::map<const SbPList *, OwnedCallbacks>::iterator destinationit =
+      owners.lists.find(destination);
+    if (sourceit != owners.lists.end()) {
+      if (destinationit == owners.lists.end()) {
+        owners.lists.insert(std::make_pair(destination, sourceentries));
+      }
+      else {
+        previous.swap(destinationit->second);
+        destinationit->second.swap(sourceentries);
+      }
+    }
+    else if (destinationit != owners.lists.end()) {
+      previous.swap(destinationit->second);
+      owners.lists.erase(destinationit);
+    }
+    haveOwnedData.store(!owners.lists.empty());
+  }
+}
+
+void
+SoCallbackListP::swapData(const SbPList * lhs, const SbPList * rhs)
+{
+  if (lhs == rhs || !haveOwnedData.load()) return;
+  CallbackOwners & owners = callbackOwners();
+  std::lock_guard<std::mutex> lock(owners.mutex);
+  std::map<const SbPList *, OwnedCallbacks>::iterator lhsit =
+    owners.lists.find(lhs);
+  std::map<const SbPList *, OwnedCallbacks>::iterator rhsit =
+    owners.lists.find(rhs);
+  if (lhsit == owners.lists.end() && rhsit == owners.lists.end()) return;
+
+  if (lhsit == owners.lists.end()) {
+    owners.lists.insert(std::make_pair(lhs, OwnedCallbacks()));
+    lhsit = owners.lists.find(lhs);
+  }
+  if (rhsit == owners.lists.end()) {
+    owners.lists.insert(std::make_pair(rhs, OwnedCallbacks()));
+    rhsit = owners.lists.find(rhs);
+  }
+  lhsit->second.swap(rhsit->second);
+  if (lhsit->second.empty()) owners.lists.erase(lhsit);
+  if (rhsit->second.empty()) owners.lists.erase(rhsit);
+  haveOwnedData.store(!owners.lists.empty());
+}
+
+void
+SoCallbackListP::swapLists(SbPList * lhs, SbPList * rhs)
+{
+  if (lhs == rhs) return;
+
+  const bool lhsbuiltin = lhs->itembuffer == lhs->builtinbuffer;
+  const bool rhsbuiltin = rhs->itembuffer == rhs->builtinbuffer;
+  if (!lhsbuiltin && !rhsbuiltin) {
+    int size = lhs->itembuffersize;
+    lhs->itembuffersize = rhs->itembuffersize;
+    rhs->itembuffersize = size;
+    int length = lhs->numitems;
+    lhs->numitems = rhs->numitems;
+    rhs->numitems = length;
+    void ** buffer = lhs->itembuffer;
+    lhs->itembuffer = rhs->itembuffer;
+    rhs->itembuffer = buffer;
+  }
+  else if (lhsbuiltin && rhsbuiltin) {
+    const int lhslength = lhs->numitems;
+    const int rhslength = rhs->numitems;
+    const int minitems = lhslength < rhslength ? lhslength : rhslength;
+    for (int i = 0; i < minitems; ++i) {
+      void * item = lhs->builtinbuffer[i];
+      lhs->builtinbuffer[i] = rhs->builtinbuffer[i];
+      rhs->builtinbuffer[i] = item;
+    }
+    for (int i = minitems; i < lhslength; ++i) {
+      rhs->builtinbuffer[i] = lhs->builtinbuffer[i];
+    }
+    for (int i = minitems; i < rhslength; ++i) {
+      lhs->builtinbuffer[i] = rhs->builtinbuffer[i];
+    }
+    lhs->numitems = rhslength;
+    rhs->numitems = lhslength;
+  }
+  else {
+    SbPList * dynamiclist = lhsbuiltin ? rhs : lhs;
+    SbPList * builtinlist = lhsbuiltin ? lhs : rhs;
+    for (int i = 0; i < builtinlist->numitems; ++i) {
+      dynamiclist->builtinbuffer[i] = builtinlist->builtinbuffer[i];
+    }
+    void ** buffer = dynamiclist->itembuffer;
+    const int size = dynamiclist->itembuffersize;
+    const int length = dynamiclist->numitems;
+    dynamiclist->itembuffer = dynamiclist->builtinbuffer;
+    dynamiclist->itembuffersize = SbPList::DEFAULTSIZE;
+    dynamiclist->numitems = builtinlist->numitems;
+    builtinlist->itembuffer = buffer;
+    builtinlist->itembuffersize = size;
+    builtinlist->numitems = length;
   }
 }
 
@@ -190,11 +283,42 @@ SoCallbackList::SoCallbackList(void)
 }
 
 /*!
+  Copy constructor. The callback pairs and any owned typed adapters are
+  committed as one logical snapshot.
+
+  Applications must be recompiled to use this out-of-line implementation.
+  Already-compiled clients that embedded the formerly compiler-generated
+  memberwise copy cannot be retroactively given the same guarantee.
+*/
+SoCallbackList::SoCallbackList(const SoCallbackList & list)
+  : funclist(list.funclist), datalist(list.datalist)
+{
+}
+
+/*!
   Destructor.
 */
 SoCallbackList::~SoCallbackList(void)
 {
   releaseOwners(&this->datalist);
+}
+
+/*!
+  Assignment operator. If allocation fails, both operands retain their
+  complete previous callback registrations.
+
+  Applications must be recompiled to use this out-of-line implementation;
+  already-compiled memberwise assignment remains outside this guarantee.
+*/
+SoCallbackList &
+SoCallbackList::operator=(const SoCallbackList & list)
+{
+  if (this == &list) return *this;
+  SoCallbackList replacement(list);
+  SoCallbackListP::swapData(&this->datalist, &replacement.datalist);
+  SoCallbackListP::swapLists(&this->funclist, &replacement.funclist);
+  SoCallbackListP::swapLists(&this->datalist, &replacement.datalist);
+  return *this;
 }
 
 /*!
