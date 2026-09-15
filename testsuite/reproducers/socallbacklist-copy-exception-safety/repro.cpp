@@ -163,9 +163,11 @@ static int copyCase(long failafter, FixtureKind kind)
     source->callbacks().clearCallbacks();
     source->unref();
     ok = ok && verify(*copy, recorder, kind, 100, 6, &copyToken);
-    // MIXED is T,R,T,R,T,R, so regs[1] is the first raw registration.
-    copy->removeCallback(rawCallback, &regs[kind == MIXED ? 1 : 0]);
-    if (kind == RAW_ONLY || kind == MIXED) ok = ok && copy->getNumCallbacks() == 5;
+    if (kind != TYPED_ONLY) {
+      // MIXED is T,R,T,R,T,R, so regs[1] is the first raw registration.
+      copy->removeCallback(rawCallback, &regs[kind == MIXED ? 1 : 0]);
+      ok = ok && copy->getNumCallbacks() == 5;
+    }
     copy->~SoCallbackList();
     return ok ? 10 : 1;
   }
