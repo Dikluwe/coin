@@ -179,6 +179,18 @@ if(NOT WIN32)
   add_test(NAME SbPListGrowthFailure COMMAND CoinSbPListGrowthFailureTest)
 endif()
 
+add_executable(SoPathAssignmentAuditorContract
+  reproducers/sopath-assignment-auditor-lifecycle/repro.cpp)
+target_link_libraries(SoPathAssignmentAuditorContract
+  Coin ${COIN_TARGET_LINK_LIBRARIES})
+target_include_directories(SoPathAssignmentAuditorContract PRIVATE
+  ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+  ${COIN_TARGET_INCLUDE_DIRECTORIES})
+foreach(assignment_case reassign self-assign)
+  add_test(NAME SoPathAssignmentAuditor_${assignment_case}
+    COMMAND SoPathAssignmentAuditorContract ${assignment_case})
+endforeach()
+
 # These public-API tests need fresh processes: CoinTests initializes SoDB
 # before running its inline cases, which is too late to test startup options.
 add_executable(CoinProfilerInitTest
