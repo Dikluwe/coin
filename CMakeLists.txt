@@ -80,6 +80,7 @@ include(CoinCMakeUtilities)
 
 option(COIN_BUILD_SHARED_LIBS "Build shared library when ON (default), static when OFF." ON)
 option(COIN_BUILD_TESTS "Build unit tests when ON (default), skips them when OFF." ON)
+option(COIN_BUILD_BENCHMARKS "Build opt-in performance benchmarks when ON." OFF)
 option(COIN_BUILD_DOCUMENTATION "Build and install API documentation (requires Doxygen)." OFF)
 option(COIN_BUILD_AWESOME_DOCUMENTATION "Build and install API documentation in new modern style (requires Doxygen)." OFF)
 option(COIN_BUILD_EXAMPLES "Build examples when ON (default), skips them when OFF." OFF)
@@ -933,6 +934,10 @@ endif()
 if(COIN_BUILD_TESTS)
   enable_testing()
   add_subdirectory(testsuite)
+endif()
+
+if(COIN_BUILD_BENCHMARKS)
+  add_subdirectory(benchmarks)
 endif()
 
 # add_feature_info(ThreadSafe COIN_THREADSAFE "Thread safe render traversals.")
