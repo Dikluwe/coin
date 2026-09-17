@@ -18,6 +18,13 @@ namespace {
 
 volatile std::uint64_t benchmarkSink = 0;
 
+// Make the local hash observable without adding work to the measured API.
+// This prevents the optimizer from deleting an otherwise empty construction.
+inline void escape(const void * pointer)
+{
+  __asm__ __volatile__("" : : "g"(pointer) : "memory");
+}
+
 struct Payload {
   Payload(int seed = 0)
   {
@@ -242,6 +249,54 @@ int main(int argc, char ** argv)
   }
 
   std::vector<BenchmarkCase> benchmarks;
+
+  benchmarks.push_back(BenchmarkCase{
+    "empty_default_4096", 4096,
+    []() -> std::uint64_t {
+      std::uint64_t sum = 0;
+      for (int i = 0; i < 4096; ++i) {
+        SbHash<int, int> hash;
+        escape(&hash);
+        sum += hash.getNumElements();
+      }
+      return sum;
+    }});
+
+  benchmarks.push_back(BenchmarkCase{
+    "first_put_default_4096", 4096,
+    []() -> std::uint64_t {
+      std::uint64_t sum = 0;
+      for (int i = 0; i < 4096; ++i) {
+        SbHash<int, int> hash;
+        hash.put(i, i);
+        sum += hash.getNumElements();
+      }
+      return sum;
+    }});
+
+  benchmarks.push_back(BenchmarkCase{
+    "first_put_size3_4096", 4096,
+    []() -> std::uint64_t {
+      std::uint64_t sum = 0;
+      for (int i = 0; i < 4096; ++i) {
+        SbHash<int, int> hash(3);
+        hash.put(i, i);
+        sum += hash.getNumElements();
+      }
+      return sum;
+    }});
+
+  benchmarks.push_back(BenchmarkCase{
+    "reuse_put_erase_4096", 4096,
+    []() -> std::uint64_t {
+      SbHash<int, int> hash(3);
+      std::uint64_t sum = 0;
+      for (int i = 0; i < 4096; ++i) {
+        hash.put(i, i);
+        sum += hash.erase(i);
+      }
+      return sum;
+    }});
 
   benchmarks.push_back(BenchmarkCase{
     "resize_int_payload_4", 4,
