@@ -42,6 +42,175 @@
 #error InternalMacroTest is not part of the Coin library.
 #endif
 
+#include <Inventor/SbString.h>
+
 #include "misc/SbHash.h"
+#include "CoinTest.h"
 
 static_assert(sizeof(SbHash<int, int>) > 0, "private Coin type is unavailable");
+
+namespace {
+
+class SbHashCopyCounter {
+public:
+  SbHashCopyCounter(int valuearg = 0) : value(valuearg) { }
+  SbHashCopyCounter(const SbHashCopyCounter & other) : value(other.value) {
+    ++copies;
+  }
+  ~SbHashCopyCounter() { ++destructions; }
+
+  SbHashCopyCounter & operator=(const SbHashCopyCounter & other) {
+    this->value = other.value;
+    return *this;
+  }
+
+  static int copies;
+  static int destructions;
+  int value;
+};
+
+int SbHashCopyCounter::copies = 0;
+int SbHashCopyCounter::destructions = 0;
+
+class SbHashProbe : public SbHash<unsigned int, int> {
+public:
+  SbHashProbe(unsigned int sizearg) : SbHash<unsigned int, int>(sizearg) { }
+
+  unsigned int bucketCount(void) const {
+    return this->getNumBuckets();
+  }
+
+  unsigned int resizeThreshold(void) const {
+    return this->getResizeThreshold();
+  }
+
+  unsigned int bucketIndex(unsigned int key) const {
+    return this->getIndex(key);
+  }
+
+  void stats(int & bucketsUsed, int & buckets, int & elements,
+             float & average, int & maximum) {
+    this->getStats(bucketsUsed, buckets, elements, average, maximum);
+  }
+};
+
+class SbHashRelinkProbe : public SbHash<int, SbHashCopyCounter> {
+public:
+  SbHashRelinkProbe(unsigned int sizearg) :
+    SbHash<int, SbHashCopyCounter>(sizearg) { }
+
+  unsigned int bucketCount(void) const {
+    return this->getNumBuckets();
+  }
+
+  unsigned int resizeThreshold(void) const {
+    return this->getResizeThreshold();
+  }
+};
+
+} // namespace
+
+BOOST_AUTO_TEST_CASE(SbHash_preserves_legacy_bucket_mapping)
+{
+  SbHashProbe hash(257);
+  BOOST_CHECK_EQUAL(hash.bucketIndex(0U), 0U);
+  BOOST_CHECK_EQUAL(hash.bucketIndex(1U), 1U);
+  BOOST_CHECK_EQUAL(hash.bucketIndex(2U), 2U);
+  BOOST_CHECK_EQUAL(hash.bucketIndex(3U), 3U);
+  BOOST_CHECK_EQUAL(hash.bucketIndex(255U), 255U);
+  BOOST_CHECK_EQUAL(hash.bucketIndex(258U), 1U);
+}
+
+BOOST_AUTO_TEST_CASE(SbHash_hashes_c_strings_without_temporary_allocation)
+{
+  const char * text = "SbHash";
+  const SbString string(text);
+
+  static_assert(noexcept(SbHashFunc(text)),
+                "C-string hashing must satisfy the SbHash noexcept contract");
+  BOOST_CHECK_EQUAL(SbHashFunc(static_cast<const char *>(NULL)), 0U);
+  BOOST_CHECK_EQUAL(SbHashFunc(text), SbHashFunc(string));
+}
+
+BOOST_AUTO_TEST_CASE(SbHash_resize_relinks_entries_at_real_threshold)
+{
+  SbHashRelinkProbe hash(3);
+  SbHashCopyCounter one(1);
+  SbHashCopyCounter two(2);
+  SbHashCopyCounter three(3);
+  SbHashCopyCounter four(4);
+
+  BOOST_CHECK_EQUAL(hash.bucketCount(), 5U);
+  BOOST_CHECK_EQUAL(hash.resizeThreshold(), 3U);
+
+  BOOST_REQUIRE(hash.put(1, one));
+  BOOST_REQUIRE(hash.put(2, two));
+  BOOST_REQUIRE(hash.put(3, three));
+  BOOST_CHECK_EQUAL(hash.bucketCount(), 5U);
+
+  SbHash<int, SbHashCopyCounter>::const_iterator before = hash.find(1);
+  BOOST_REQUIRE(before != hash.const_end());
+  const SbHashCopyCounter * address = &before->obj;
+
+  SbHashCopyCounter::copies = 0;
+  SbHashCopyCounter::destructions = 0;
+
+  BOOST_REQUIRE(hash.put(4, four));
+  BOOST_CHECK_EQUAL(hash.bucketCount(), 11U);
+  BOOST_CHECK_EQUAL(SbHashCopyCounter::copies, 1);
+  BOOST_CHECK_EQUAL(SbHashCopyCounter::destructions, 0);
+
+  SbHash<int, SbHashCopyCounter>::const_iterator after = hash.find(1);
+  BOOST_REQUIRE(after != hash.const_end());
+  BOOST_CHECK_EQUAL(&after->obj, address);
+  BOOST_CHECK_EQUAL(after->obj.value, 1);
+  BOOST_CHECK_EQUAL(hash.getNumElements(), 4U);
+}
+
+BOOST_AUTO_TEST_CASE(SbHash_iterates_and_handles_self_assignment)
+{
+  SbHash<unsigned int, int> hash(3);
+  BOOST_REQUIRE(hash.put(1U, 10));
+  BOOST_REQUIRE(hash.put(2U, 20));
+  BOOST_REQUIRE(hash.put(3U, 30));
+
+  int sum = 0;
+  unsigned int count = 0;
+  for (SbHash<unsigned int, int>::iterator it = hash.begin();
+       it != hash.end(); ++it) {
+    sum += it->obj;
+    ++count;
+  }
+  BOOST_CHECK_EQUAL(count, 3U);
+  BOOST_CHECK_EQUAL(sum, 60);
+
+  hash = hash;
+  BOOST_CHECK_EQUAL(hash.getNumElements(), 3U);
+  BOOST_REQUIRE(hash.get(3U, sum));
+  BOOST_CHECK_EQUAL(sum, 30);
+}
+
+BOOST_AUTO_TEST_CASE(SbHash_statistics_use_floating_point_and_handle_empty)
+{
+  SbHashProbe hash(3);
+  int bucketsUsed = -1;
+  int buckets = -1;
+  int elements = -1;
+  int maximum = -1;
+  float average = -1.0f;
+
+  hash.stats(bucketsUsed, buckets, elements, average, maximum);
+  BOOST_CHECK_EQUAL(bucketsUsed, 0);
+  BOOST_CHECK_EQUAL(elements, 0);
+  BOOST_CHECK_EQUAL(average, 0.0f);
+
+  BOOST_REQUIRE(hash.put(0U, 1));
+  BOOST_REQUIRE(hash.put(5U, 2));
+  BOOST_REQUIRE(hash.put(1U, 3));
+  hash.stats(bucketsUsed, buckets, elements, average, maximum);
+  BOOST_CHECK_EQUAL(buckets, 5);
+  BOOST_CHECK_EQUAL(bucketsUsed, 2);
+  BOOST_CHECK_EQUAL(elements, 3);
+  BOOST_CHECK_EQUAL(average, 1.5f);
+  BOOST_CHECK_EQUAL(maximum, 2);
+}
