@@ -68,6 +68,15 @@
 #include <Inventor/nodes/SoTranslation.h>
 #include <Inventor/nodes/SoVertexProperty.h>
 
+#include "misc/SbMapStats.h"
+
+namespace {
+  int texturedict_statslot(void) {
+    static const int slot = SBMAPSTATS_SLOT("SoNodeVisualize::TextureDict::nodemap");
+    return slot;
+  }
+}
+
 struct TextureImageData {
   int width;
   int height;
@@ -140,20 +149,25 @@ namespace {
     }
 
     void clear() {
+      SBMAPSTATS_ITERATE(texturedict_statslot(), this->nodemap.getNumElements());
       for (TextureMap::const_iterator it = this->nodemap.const_begin();
            it != this->nodemap.const_end(); ++it) {
         it->obj->unref();
       }
+      SBMAPSTATS_CLEAR(texturedict_statslot(), this->nodemap.getNumElements());
       this->nodemap.clear();
     }
 
     SoTexture2 * operator[](const TextureImageData & data)
     {
       SoTexture2 * node = NULL;
-      if (!this->nodemap.get(&data, node)) {
+      const bool hit = this->nodemap.get(&data, node);
+      SBMAPSTATS_GET(texturedict_statslot(), this->nodemap.getNumElements());
+      if (!hit) {
         node = TextureDict::createTexture(&data);
         node->ref();
         this->nodemap.put(&data, node);
+        SBMAPSTATS_PUT(texturedict_statslot(), this->nodemap.getNumElements());
       }
       return node;
     }

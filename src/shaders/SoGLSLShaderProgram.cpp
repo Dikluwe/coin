@@ -38,6 +38,14 @@
 #include "shaders/SoGLSLShaderObject.h"
 #include <Inventor/errors/SoDebugError.h>
 #include "glue/glp.h"
+#include "misc/SbMapStats.h"
+
+namespace {
+  int programhandles_statslot(void) {
+    static const int slot = SBMAPSTATS_SLOT("SoGLSLShaderProgram::programHandles");
+    return slot;
+  }
+}
 
 // *************************************************************************
 
@@ -48,6 +56,7 @@
 
 SoGLSLShaderProgram::SoGLSLShaderProgram(void)
 {
+  SBMAPSTATS_OWNER_CREATED(programhandles_statslot());
   this->isExecutable = FALSE;
   this->neededlinking = TRUE;
   SoContextHandler::addContextDestructionCallback(context_destruction_cb, this);
@@ -55,6 +64,7 @@ SoGLSLShaderProgram::SoGLSLShaderProgram(void)
 
 SoGLSLShaderProgram::~SoGLSLShaderProgram()
 {
+  SBMAPSTATS_OWNER_DESTROYED(programhandles_statslot());
   SoContextHandler::removeContextDestructionCallback(context_destruction_cb, this);
   this->deletePrograms();
 }
@@ -64,11 +74,15 @@ void
 SoGLSLShaderProgram::deleteProgram(const cc_glglue * g)
 {
   COIN_GLhandle glhandle = 0;
-  if (this->programHandles.get(g->contextid, glhandle)) {
+  SBMAPSTATS_CONTEXT(programhandles_statslot(), g->contextid);
+  const bool programhandles_hit = this->programHandles.get(g->contextid, glhandle);
+  SBMAPSTATS_GET(programhandles_statslot(), this->programHandles.getNumElements());
+  if (programhandles_hit) {
     uintptr_t tmp = (uintptr_t) glhandle;
     SoGLCacheContextElement::scheduleDeleteCallback(g->contextid,
                                                     really_delete_object, (void*) tmp);
     this->programHandles.erase(g->contextid);
+    SBMAPSTATS_ERASE(programhandles_statslot(), this->programHandles.getNumElements());
   }
 }
 
@@ -76,14 +90,17 @@ void
 SoGLSLShaderProgram::deletePrograms(void)
 {
   SbList <uint32_t> keylist;
+  SBMAPSTATS_ITERATE(programhandles_statslot(), this->programHandles.getNumElements());
   this->programHandles.makeKeyList(keylist);
   for (int i = 0; i < keylist.getLength(); i++) {
     COIN_GLhandle glhandle = 0;
     (void) this->programHandles.get(keylist[i], glhandle);
+    SBMAPSTATS_GET(programhandles_statslot(), this->programHandles.getNumElements());
     uintptr_t tmp = (uintptr_t) glhandle;
     SoGLCacheContextElement::scheduleDeleteCallback(keylist[i],
                                                     really_delete_object, (void*) tmp);
     this->programHandles.erase(keylist[i]);
+    SBMAPSTATS_ERASE(programhandles_statslot(), this->programHandles.getNumElements());
   }
 }
 
@@ -214,9 +231,13 @@ COIN_GLhandle
 SoGLSLShaderProgram::getProgramHandle(const cc_glglue * g, const SbBool create)
 {
   COIN_GLhandle handle = 0;
-  if (!this->programHandles.get(g->contextid, handle) && create) {
+  SBMAPSTATS_CONTEXT(programhandles_statslot(), g->contextid);
+  const bool programhandles_hit = this->programHandles.get(g->contextid, handle);
+  SBMAPSTATS_GET(programhandles_statslot(), this->programHandles.getNumElements());
+  if (!programhandles_hit && create) {
     handle = g->glCreateProgramObjectARB();
     this->programHandles.put(g->contextid, handle);
+    SBMAPSTATS_PUT(programhandles_statslot(), this->programHandles.getNumElements());
   }
   return handle;
 }
@@ -233,11 +254,14 @@ SoGLSLShaderProgram::context_destruction_cb(uint32_t cachecontext, void * userda
   SoGLSLShaderProgram * thisp = (SoGLSLShaderProgram*) userdata;
 
   COIN_GLhandle glhandle = 0;
-  if (thisp->programHandles.get(cachecontext, glhandle)) {
+  const bool programhandles_hit = thisp->programHandles.get(cachecontext, glhandle);
+  SBMAPSTATS_GET(programhandles_statslot(), thisp->programHandles.getNumElements());
+  if (programhandles_hit) {
     // just delete immediately. The context is current
     const cc_glglue * glue = cc_glglue_instance(cachecontext);
     glue->glDeleteObjectARB(glhandle);
     thisp->programHandles.erase(cachecontext);
+    SBMAPSTATS_ERASE(programhandles_statslot(), thisp->programHandles.getNumElements());
   }
 }
 

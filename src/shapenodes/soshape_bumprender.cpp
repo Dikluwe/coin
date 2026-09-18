@@ -36,6 +36,19 @@
 
 #include <cassert>
 
+#include "misc/SbMapStats.h"
+
+namespace {
+  int diffuseprogramdict_statslot(void) {
+    static const int slot = SBMAPSTATS_SLOT("soshape_bumprender::diffuseprogramdict");
+    return slot;
+  }
+  int specularprogramdict_statslot(void) {
+    static const int slot = SBMAPSTATS_SLOT("soshape_bumprender::specularprogramdict");
+    return slot;
+  }
+}
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif // HAVE_CONFIG_H
@@ -301,13 +314,19 @@ soshape_bumprender_load_program(const cc_glglue * glue,
 
 soshape_bumprender::soshape_bumprender(void)
 {
+  SBMAPSTATS_OWNER_CREATED(diffuseprogramdict_statslot());
+  SBMAPSTATS_OWNER_CREATED(specularprogramdict_statslot());
   SoContextHandler::addContextDestructionCallback(context_destruction_cb, this);
 }
 
 soshape_bumprender::~soshape_bumprender()
 {
+  SBMAPSTATS_OWNER_DESTROYED(diffuseprogramdict_statslot());
+  SBMAPSTATS_OWNER_DESTROYED(specularprogramdict_statslot());
   SoContextHandler::removeContextDestructionCallback(context_destruction_cb, this);
 
+  SBMAPSTATS_ITERATE(specularprogramdict_statslot(),
+                     this->specularprogramdict.getNumElements());
   for (ContextId2SpecStruct::const_iterator iter =
          this->specularprogramdict.const_begin();
        iter != this->specularprogramdict.const_end(); ++iter) {
@@ -323,8 +342,12 @@ soshape_bumprender::~soshape_bumprender()
       }
     }
   }
+  SBMAPSTATS_CLEAR(specularprogramdict_statslot(),
+                   this->specularprogramdict.getNumElements());
   this->specularprogramdict.clear();
 
+  SBMAPSTATS_ITERATE(diffuseprogramdict_statslot(),
+                     this->diffuseprogramdict.getNumElements());
   for (ContextId2DiffuseStruct::const_iterator iter =
          this->diffuseprogramdict.const_begin();
        iter != this->diffuseprogramdict.const_end(); ++iter) {
@@ -340,6 +363,8 @@ soshape_bumprender::~soshape_bumprender()
       }
     }
   }
+  SBMAPSTATS_CLEAR(diffuseprogramdict_statslot(),
+                   this->diffuseprogramdict.getNumElements());
   this->diffuseprogramdict.clear();
 }
 
@@ -361,6 +386,10 @@ soshape_bumprender::context_destruction_cb(uint32_t contextid, void * userdata)
     thisp->specularprogramdict.get(contextid, specularprograms);
   const SbBool havediffuse =
     thisp->diffuseprogramdict.get(contextid, diffuseprograms);
+  SBMAPSTATS_GET(specularprogramdict_statslot(),
+                 thisp->specularprogramdict.getNumElements());
+  SBMAPSTATS_GET(diffuseprogramdict_statslot(),
+                 thisp->diffuseprogramdict.getNumElements());
 
   if (!havespecular && !havediffuse) return;
 
@@ -373,6 +402,8 @@ soshape_bumprender::context_destruction_cb(uint32_t contextid, void * userdata)
     };
     soshape_bumprender_delete_programs(glue, programs, 3);
     (void) thisp->specularprogramdict.erase(contextid);
+    SBMAPSTATS_ERASE(specularprogramdict_statslot(),
+                     thisp->specularprogramdict.getNumElements());
   }
   if (havediffuse) {
     const GLuint programs[] = {
@@ -382,6 +413,8 @@ soshape_bumprender::context_destruction_cb(uint32_t contextid, void * userdata)
     };
     soshape_bumprender_delete_programs(glue, programs, 3);
     (void) thisp->diffuseprogramdict.erase(contextid);
+    SBMAPSTATS_ERASE(diffuseprogramdict_statslot(),
+                     thisp->diffuseprogramdict.getNumElements());
   }
 }
 
@@ -404,7 +437,11 @@ soshape_bumprender::ensureDiffusePrograms(const cc_glglue * glue,
 {
   const uint32_t contextid =
     (uint32_t) SoGLCacheContextElement::get(state);
-  if (this->diffuseprogramdict.get(contextid, programs)) return TRUE;
+  SBMAPSTATS_CONTEXT(diffuseprogramdict_statslot(), contextid);
+  const SbBool hit = this->diffuseprogramdict.get(contextid, programs);
+  SBMAPSTATS_GET(diffuseprogramdict_statslot(),
+                 this->diffuseprogramdict.getNumElements());
+  if (hit) return TRUE;
 
   programs.pointlight = 0; // Pointlight diffuse rendering is not implemented.
   programs.dirlight = 0;
@@ -427,6 +464,8 @@ soshape_bumprender::ensureDiffusePrograms(const cc_glglue * glue,
   }
 
   (void) this->diffuseprogramdict.put(contextid, programs);
+  SBMAPSTATS_PUT(diffuseprogramdict_statslot(),
+                 this->diffuseprogramdict.getNumElements());
   return TRUE;
 }
 
@@ -437,7 +476,11 @@ soshape_bumprender::ensurePrograms(const cc_glglue * glue,
 {
   const uint32_t contextid =
     (uint32_t) SoGLCacheContextElement::get(state);
-  if (this->specularprogramdict.get(contextid, programs)) return TRUE;
+  SBMAPSTATS_CONTEXT(specularprogramdict_statslot(), contextid);
+  const SbBool hit = this->specularprogramdict.get(contextid, programs);
+  SBMAPSTATS_GET(specularprogramdict_statslot(),
+                 this->specularprogramdict.getNumElements());
+  if (hit) return TRUE;
 
   programs.fragment = 0;
   programs.dirlight = 0;
@@ -464,6 +507,8 @@ soshape_bumprender::ensurePrograms(const cc_glglue * glue,
   }
 
   (void) this->specularprogramdict.put(contextid, programs);
+  SBMAPSTATS_PUT(specularprogramdict_statslot(),
+                 this->specularprogramdict.getNumElements());
   return TRUE;
 }
 
