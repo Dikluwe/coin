@@ -34,6 +34,19 @@
 
 #include <cassert>
 
+#include "misc/SbMapStats.h"
+
+namespace {
+  int diffuseprogramdict_statslot(void) {
+    static const int slot = SBMAPSTATS_SLOT("soshape_bumprender::diffuseprogramdict");
+    return slot;
+  }
+  int specularprogramdict_statslot(void) {
+    static const int slot = SBMAPSTATS_SLOT("soshape_bumprender::specularprogramdict");
+    return slot;
+  }
+}
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif // HAVE_CONFIG_H
@@ -257,12 +270,16 @@ soshape_bumprender_specularprogramdeletion(unsigned long COIN_UNUSED_ARG(key), v
 
 soshape_bumprender::soshape_bumprender(void)
 {
+  SBMAPSTATS_OWNER_CREATED(diffuseprogramdict_statslot());
+  SBMAPSTATS_OWNER_CREATED(specularprogramdict_statslot());
   this->diffuseprogramsinitialized = FALSE;
   this->programsinitialized = FALSE;
 }
 
 soshape_bumprender::~soshape_bumprender()
 {
+  SBMAPSTATS_OWNER_DESTROYED(diffuseprogramdict_statslot());
+  SBMAPSTATS_OWNER_DESTROYED(specularprogramdict_statslot());
 
   // FIXME: Cannot delete programs just yet, as we dont know if the
   // context was valid or not. We must wait for new functionality to be
@@ -288,7 +305,10 @@ soshape_bumprender::initDiffusePrograms(const cc_glglue * glue, SoState * state)
 {
   const int contextid = SoGLCacheContextElement::get(state);
   diffuse_programidx * old;
-  if (this->diffuseprogramdict.get(contextid, old)) {
+  SBMAPSTATS_CONTEXT(diffuseprogramdict_statslot(), contextid);
+  const bool diffuseprogramdict_hit = this->diffuseprogramdict.get(contextid, old);
+  SBMAPSTATS_GET(diffuseprogramdict_statslot(), this->diffuseprogramdict.getNumElements());
+  if (diffuseprogramdict_hit) {
     this->diffusebumpdirlightvertexprogramid = old->dirlight;
     this->normalrenderingvertexprogramid = old->normalrendering;
   }
@@ -332,6 +352,7 @@ soshape_bumprender::initDiffusePrograms(const cc_glglue * glue, SoState * state)
     newstruct->normalrendering = this->normalrenderingvertexprogramid;
 
     (void) this->diffuseprogramdict.put(contextid, newstruct);
+    SBMAPSTATS_PUT(diffuseprogramdict_statslot(), this->diffuseprogramdict.getNumElements());
 
   }
 
@@ -343,7 +364,10 @@ soshape_bumprender::initPrograms(const cc_glglue * glue, SoState * state)
 {
   const int contextid = SoGLCacheContextElement::get(state);
   spec_programidx * old;
-  if (this->specularprogramdict.get(contextid, old)) {
+  SBMAPSTATS_CONTEXT(specularprogramdict_statslot(), contextid);
+  const bool specularprogramdict_hit = this->specularprogramdict.get(contextid, old);
+  SBMAPSTATS_GET(specularprogramdict_statslot(), this->specularprogramdict.getNumElements());
+  if (specularprogramdict_hit) {
     this->fragmentprogramid = old->fragment;
     this->dirlightvertexprogramid = old->dirlight;
     this->pointlightvertexprogramid = old->pointlight;
@@ -401,6 +425,7 @@ soshape_bumprender::initPrograms(const cc_glglue * glue, SoState * state)
     newstruct->pointlight = this->pointlightvertexprogramid;
 
     (void) this->specularprogramdict.put(contextid, newstruct);
+    SBMAPSTATS_PUT(specularprogramdict_statslot(), this->specularprogramdict.getNumElements());
   }
 
   this->programsinitialized = TRUE;

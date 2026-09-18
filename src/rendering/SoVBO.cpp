@@ -57,6 +57,14 @@
 #include "threads/threadsutilp.h"
 #include "glue/glp.h"
 #include "tidbitsp.h"
+#include "misc/SbMapStats.h"
+
+namespace {
+  int vbohash_statslot(void) {
+    static const int slot = SBMAPSTATS_SLOT("SoVBO::vbohash");
+    return slot;
+  }
+}
 
 static int vbo_vertex_count_min_limit = -1;
 static int vbo_vertex_count_max_limit = -1;
@@ -83,6 +91,7 @@ SoVBO::SoVBO(const GLenum target, const GLenum usage)
     didalloc(FALSE),
     vbohash(5)
 {
+  SBMAPSTATS_OWNER_CREATED(vbohash_statslot());
   SoContextHandler::addContextDestructionCallback(context_destruction_cb, this);
 }
 
@@ -103,8 +112,10 @@ SoVBO::vbo_delete(void * closure, uint32_t contextid)
 */
 SoVBO::~SoVBO()
 {
+  SBMAPSTATS_OWNER_DESTROYED(vbohash_statslot());
   SoContextHandler::removeContextDestructionCallback(context_destruction_cb, this);
   // schedule delete for all allocated GL resources
+  SBMAPSTATS_ITERATE(vbohash_statslot(), this->vbohash.getNumElements());
   for(
       SbHash<uint32_t, GLuint>::const_iterator iter =
        this->vbohash.const_begin();
@@ -205,6 +216,7 @@ void *
 SoVBO::allocBufferData(intptr_t size, SbUniqueId dataid)
 {
   // schedule delete for all allocated GL resources
+  SBMAPSTATS_ITERATE(vbohash_statslot(), this->vbohash.getNumElements());
   for(
       SbHash<uint32_t, GLuint>::const_iterator iter =
        this->vbohash.const_begin();
@@ -216,6 +228,7 @@ SoVBO::allocBufferData(intptr_t size, SbUniqueId dataid)
   }
 
   // clear hash table
+  SBMAPSTATS_CLEAR(vbohash_statslot(), this->vbohash.getNumElements());
   this->vbohash.clear();
 
   if (this->didalloc && this->datasize == size) {
@@ -243,6 +256,7 @@ void
 SoVBO::setBufferData(const GLvoid * data, intptr_t size, SbUniqueId dataid)
 {
   // schedule delete for all allocated GL resources
+  SBMAPSTATS_ITERATE(vbohash_statslot(), this->vbohash.getNumElements());
   for(
       SbHash<uint32_t, GLuint>::const_iterator iter =
        this->vbohash.const_begin();
@@ -255,6 +269,7 @@ SoVBO::setBufferData(const GLvoid * data, intptr_t size, SbUniqueId dataid)
 
 
   // clear hash table
+  SBMAPSTATS_CLEAR(vbohash_statslot(), this->vbohash.getNumElements());
   this->vbohash.clear();
 
   // clean up old buffer (if any)
@@ -306,7 +321,10 @@ SoVBO::bindBuffer(uint32_t contextid)
   const cc_glglue * glue = cc_glglue_instance((int) contextid);
 
   GLuint buffer;
-  if (!this->vbohash.get(contextid, buffer)) {
+  SBMAPSTATS_CONTEXT(vbohash_statslot(), contextid);
+  const bool vbohash_hit = this->vbohash.get(contextid, buffer);
+  SBMAPSTATS_GET(vbohash_statslot(), this->vbohash.getNumElements());
+  if (!vbohash_hit) {
     // need to create a new buffer for this context
     cc_glglue_glGenBuffers(glue, 1, &buffer);
     cc_glglue_glBindBuffer(glue, this->target, buffer);
@@ -315,6 +333,7 @@ SoVBO::bindBuffer(uint32_t contextid)
                            this->data,
                            this->usage);
     this->vbohash.put(contextid, buffer);
+    SBMAPSTATS_PUT(vbohash_statslot(), this->vbohash.getNumElements());
   }
   else {
     // buffer already exists, bind it
@@ -348,10 +367,13 @@ SoVBO::context_destruction_cb(uint32_t context, void * userdata)
   GLuint buffer;
   SoVBO * thisp = (SoVBO*) userdata;
 
-  if (thisp->vbohash.get(context, buffer)) {
+  const bool vbohash_hit = thisp->vbohash.get(context, buffer);
+  SBMAPSTATS_GET(vbohash_statslot(), thisp->vbohash.getNumElements());
+  if (vbohash_hit) {
     const cc_glglue * glue = cc_glglue_instance((int) context);
     cc_glglue_glDeleteBuffers(glue, 1, &buffer);
     thisp->vbohash.erase(context);
+    SBMAPSTATS_ERASE(vbohash_statslot(), thisp->vbohash.getNumElements());
   }
 }
 

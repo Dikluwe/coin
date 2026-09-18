@@ -376,10 +376,18 @@
 
 #include "nodes/SoSubNodeP.h"
 #include "misc/SbHash.h"
+#include "misc/SbMapStats.h"
 #include "glue/cg.h"
 #include "shaders/SoGLShaderObject.h"
 #include "shaders/SoGLShaderParameter.h"
 #include "shaders/SoGLCgShaderParameter.h"
+
+namespace {
+  int glparams_statslot(void) {
+    static const int slot = SBMAPSTATS_SLOT("SoUniformShaderParameterP::glparams");
+    return slot;
+  }
+}
 
 /* **************************************************************************
  * *** SoShaderParameter ***
@@ -423,9 +431,11 @@ SoShaderParameter::~SoShaderParameter()
 
 class SoUniformShaderParameterP {
 public:
-  SoUniformShaderParameterP() { }
+  SoUniformShaderParameterP() { SBMAPSTATS_OWNER_CREATED(glparams_statslot()); }
   ~SoUniformShaderParameterP() {
+    SBMAPSTATS_OWNER_DESTROYED(glparams_statslot());
     SbList <uint32_t> keylist;
+    SBMAPSTATS_ITERATE(glparams_statslot(), this->glparams.getNumElements());
     this->glparams.makeKeyList(keylist);
     for (int i = 0; i < keylist.getLength(); i++) {
       SoGLShaderParameter * param;
@@ -470,14 +480,19 @@ SoUniformShaderParameter::ensureParameter(SoGLShaderObject * shader)
   assert(shader);
   const uint32_t context = shader->getCacheContext();
   SoGLShaderParameter * param;
-  if (!PRIVATE(this)->glparams.get(context, param)) {
+  SBMAPSTATS_CONTEXT(glparams_statslot(), context);
+  const bool glparams_hit = PRIVATE(this)->glparams.get(context, param);
+  SBMAPSTATS_GET(glparams_statslot(), PRIVATE(this)->glparams.getNumElements());
+  if (!glparams_hit) {
     param = shader->getNewParameter();
     (void) PRIVATE(this)->glparams.put(context, param);
+    SBMAPSTATS_PUT(glparams_statslot(), PRIVATE(this)->glparams.getNumElements());
   }
   if (param->shaderType() != shader->shaderType()) {
     SoUniformShaderParameterP::deleteGLParameter(param);
     param = shader->getNewParameter();
     (void) PRIVATE(this)->glparams.put(context, param);
+    SBMAPSTATS_PUT(glparams_statslot(), PRIVATE(this)->glparams.getNumElements());
   }
 }
 
@@ -485,7 +500,10 @@ SoGLShaderParameter *
 SoUniformShaderParameter::getGLShaderParameter(const uint32_t cachecontext)
 {
   SoGLShaderParameter * glparam;
-  if (PRIVATE(this)->glparams.get(cachecontext, glparam)) return glparam;
+  SBMAPSTATS_CONTEXT(glparams_statslot(), cachecontext);
+  const bool glparams_hit = PRIVATE(this)->glparams.get(cachecontext, glparam);
+  SBMAPSTATS_GET(glparams_statslot(), PRIVATE(this)->glparams.getNumElements());
+  if (glparams_hit) return glparam;
   return NULL;
 }
 
