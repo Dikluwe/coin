@@ -12,6 +12,8 @@ session does not necessarily activate:
 - `bump_multicontext.cpp`: the diffuse and specular legacy bump-program maps in
   two real GLX contexts;
 - `profiler_textures.cpp`: all six static profiler texture categories, twice;
+- `profiler_textures_benchmark.cpp`: compares the six-entry cache lifecycle
+  and steady lookup cost against the current `std::map` representation;
 - `vbo_offscreen.cpp`: an earlier offscreen probe retained for provenance; the
   scene does not engage the VBO path on this machine.
 
@@ -31,7 +33,19 @@ The two-context GLSL driver produced maximum cardinality two in all three maps:
 
 The profiler texture dictionary reached its fixed cardinality of six, with 18
 lookups and six insertions. The relevant comparison is with `std::map`, not
-`SbHash`; the separate local benchmark favored `SbSmallMap` for this lifecycle.
+`SbHash`. A Release benchmark reproducing six insertions, 18 lookups, one full
+iteration and cleanup produced these medians over five complete runs:
+
+| Container | Lifecycle | Steady lookup | Allocations per lifecycle |
+|---|---:|---:|---:|
+| `SbSmallMap` | 73.87 ns | 2.49 ns | 1 |
+| `std::map` | 188.43 ns | 2.73 ns | 6 |
+
+Four of the five lifecycle runs were between 71.50 and 75.43 ns for
+`SbSmallMap`; one scheduler outlier measured 150.58 ns. The allocation count is
+deterministic. The benchmark therefore supports the migration primarily by
+reducing six tree-node allocations to one contiguous spill allocation; lookup
+performance at six entries remains approximately tied.
 
 The bump driver found a design issue that must be handled before considering a
 container migration:
