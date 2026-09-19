@@ -31,6 +31,13 @@ The two-context GLSL driver produced maximum cardinality two in all three maps:
 | `SoShaderObjectP::glshaderobjects` | 60 | 4 | 2 | 2 |
 | `SoUniformShaderParameterP::glparams` | 4 | 2 | 2 | 2 |
 
+The migrated `codex/maps/use/gl-contexts-small` branch was then tested against
+the same driver using two direct GLX contexts. Three passes in each context and
+a final return to the first context completed successfully. A FreeCAD safe-mode
+smoke test loaded the migrated standalone `libCoin`, created three Part shapes,
+cycled through seven camera views and exited with
+`SBSMALLMAP_FREECAD_GL_OK`. The complete Release CTest suite passed 8/8.
+
 The profiler texture dictionary reached its fixed cardinality of six, with 18
 lookups and six insertions. The relevant comparison is with `std::map`, not
 `SbHash`. A Release benchmark reproducing six insertions, 18 lookups, one full
