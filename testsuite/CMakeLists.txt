@@ -164,6 +164,21 @@ if(NOT WIN32)
     PASS_REGULAR_EXPRESSION "\\[OK\\] 1 tests")
 endif()
 
+# Replacing operator new[] across a shared-library boundary is not portable
+# on Windows, so keep the deterministic allocation-failure test on platforms
+# where executable symbol interposition applies to the linked Coin library.
+if(NOT WIN32)
+  add_executable(CoinSbPListGrowthFailureTest
+    SbPListGrowthFailureTest.cpp)
+  target_link_libraries(CoinSbPListGrowthFailureTest
+    Coin ${COIN_TARGET_LINK_LIBRARIES})
+  target_include_directories(CoinSbPListGrowthFailureTest PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_BINARY_DIR}/include
+    ${COIN_TARGET_INCLUDE_DIRECTORIES})
+  add_test(NAME SbPListGrowthFailure COMMAND CoinSbPListGrowthFailureTest)
+endif()
+
 # These public-API tests need fresh processes: CoinTests initializes SoDB
 # before running its inline cases, which is too late to test startup options.
 add_executable(CoinProfilerInitTest
