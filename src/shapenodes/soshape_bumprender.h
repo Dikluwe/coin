@@ -40,6 +40,7 @@
 #include <Inventor/SoPrimitiveVertex.h>
 #include <Inventor/C/glue/gl.h>
 
+#include "misc/SbHash.h"
 #include "misc/SbSmallMap.h"
 
 // *************************************************************************
@@ -101,7 +102,9 @@ private:
   SbVec3f lightvec;
   SbBool ispointlight;
 
-  typedef SbSmallMap<uint32_t, diffuse_programidx> ContextId2DiffuseStruct;
+  // The diffuse ARB path is currently disabled. Keep its empty registry on
+  // SbHash's lazy storage instead of paying for unused inline entries.
+  typedef SbHash<uint32_t, diffuse_programidx> ContextId2DiffuseStruct;
   ContextId2DiffuseStruct diffuseprogramdict;
 
   typedef SbSmallMap<uint32_t, spec_programidx> ContextId2SpecStruct;
