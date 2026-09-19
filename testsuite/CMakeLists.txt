@@ -83,22 +83,31 @@ add_executable(CoinTests
 	TestSuiteUtils.cpp
 	TestSuiteMisc.cpp
 	InternalMacroTest.cpp
+	InternalSmallMapTest.cpp
 	${COIN_TEST_SOURCES}
 )
 
 # Private Coin symbols are not exported from the Windows DLL. Compile the
-# dictionary implementation into the test executable so basedictTest.cpp can
-# exercise it without making cc_dict part of the public ABI. Static builds can
+# dictionary and small SbHash support implementations into the test executable
+# without making those symbols part of the public ABI. Static builds can
 # resolve the private symbols directly from the Coin archive.
 if(WIN32 AND COIN_BUILD_SHARED_LIBS)
 	target_sources(CoinTests PRIVATE
 		${PROJECT_SOURCE_DIR}/src/base/dict.cpp
-		CcDictWin32TestSupport.cpp)
-	set_source_files_properties(${PROJECT_SOURCE_DIR}/src/base/dict.cpp PROPERTIES
-		COMPILE_DEFINITIONS COIN_INTERNAL)
+		CcDictWin32TestSupport.cpp
+		CoinGeqPrimeNumberWin32TestSupport.cpp
+		SbHashFuncSbStringWin32TestSupport.cpp)
+	set_source_files_properties(
+		${PROJECT_SOURCE_DIR}/src/base/dict.cpp
+		CoinGeqPrimeNumberWin32TestSupport.cpp
+		SbHashFuncSbStringWin32TestSupport.cpp
+		PROPERTIES COMPILE_DEFINITIONS COIN_INTERNAL)
 endif()
-set_source_files_properties(InternalMacroTest.cpp PROPERTIES
+
+set_source_files_properties(InternalMacroTest.cpp InternalSmallMapTest.cpp PROPERTIES
 	COMPILE_DEFINITIONS COIN_INTERNAL)
+set_property(SOURCE InternalSmallMapTest.cpp APPEND PROPERTY
+	COMPILE_DEFINITIONS COIN_SMALLMAP_TESTING)
 set_target_properties(CoinTests PROPERTIES DEBUG_POSTFIX "${CMAKE_DEBUG_POSTFIX}")
 target_link_libraries(CoinTests Coin ${COIN_TARGET_LINK_LIBRARIES})
 target_include_directories(CoinTests PRIVATE
