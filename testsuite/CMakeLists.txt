@@ -229,6 +229,18 @@ add_test(NAME SoTempPathReplaceTail_valid_replacement
 add_test(NAME SoTempPathReplaceTail_empty_noop
   COMMAND SoTempPathReplaceTailContract empty-noop)
 
+add_executable(SoTempPathPolicyContract
+  reproducers/sotemppath-policy-preservation/repro.cpp)
+target_link_libraries(SoTempPathPolicyContract
+  Coin ${COIN_TARGET_LINK_LIBRARIES})
+target_include_directories(SoTempPathPolicyContract PRIVATE
+  ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+  ${COIN_TARGET_INCLUDE_DIRECTORIES})
+add_test(NAME SoTempPathPolicy_nonempty_destination
+  COMMAND SoTempPathPolicyContract nonempty-destination)
+add_test(NAME SoTempPathPolicy_empty_destination
+  COMMAND SoTempPathPolicyContract empty-destination)
+
 # These public-API tests need fresh processes: CoinTests initializes SoDB
 # before running its inline cases, which is too late to test startup options.
 add_executable(CoinProfilerInitTest
