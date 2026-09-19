@@ -116,6 +116,7 @@ private:
   static void cleanupClass(void);
   static void * createInstance(void);
   void append(SoNode * const node, const int index);
+  void removePathAuditors(const int startindex);
   void truncate(const int length, const SbBool donotify);
   SbBool readInstance(SoInput * in, unsigned short flags) override;
   void setFirstHidden(void);

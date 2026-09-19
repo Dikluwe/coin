@@ -241,6 +241,18 @@ add_test(NAME SoTempPathPolicy_nonempty_destination
 add_test(NAME SoTempPathPolicy_empty_destination
   COMMAND SoTempPathPolicyContract empty-destination)
 
+add_executable(SoPathAssignmentAuditorContract
+  reproducers/sopath-assignment-auditor-lifecycle/repro.cpp)
+target_link_libraries(SoPathAssignmentAuditorContract
+  Coin ${COIN_TARGET_LINK_LIBRARIES})
+target_include_directories(SoPathAssignmentAuditorContract PRIVATE
+  ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+  ${COIN_TARGET_INCLUDE_DIRECTORIES})
+foreach(assignment_case reassign self-assign copy-construct)
+  add_test(NAME SoPathAssignmentAuditor_${assignment_case}
+    COMMAND SoPathAssignmentAuditorContract ${assignment_case})
+endforeach()
+
 # These public-API tests need fresh processes: CoinTests initializes SoDB
 # before running its inline cases, which is too late to test startup options.
 add_executable(CoinProfilerInitTest
