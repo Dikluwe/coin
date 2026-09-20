@@ -1,0 +1,46 @@
+Base: lab/all-fixes-integration 56ece93a8e
+Build: Release, GCC 13.3.0
+CPU: AMD Ryzen 7 5800H, 8 cores / 16 threads
+RAM: 62 GiB
+GPU: AMD Radeon Graphics (radeonsi, renoir, ACO)
+Mesa: 25.2.8
+Target: 256 x 256 offscreen GLX
+
+$ ./run.sh /tmp/coin-honeycomb-build/lib construct 1000
+mode=construct side=1000 holes=1000000 arrays=2 seconds=0.000095 max_rss_kib=12316
+wall=0.00 user=0.00 system=0.00 max_rss_kib=12876
+
+$ ./run.sh /tmp/coin-honeycomb-build/lib bbox 1000 60
+mode=bbox side=1000 seconds=0.773610 max_rss_kib=12512 min=(-0.942,-0.866,0.000) max=(3147.850,1819.046,0.000)
+wall=0.78 user=0.77 system=0.00 max_rss_kib=13104 exit=0
+
+$ ./run.sh /tmp/coin-honeycomb-build/lib render 1000 60
+Coin warning in glxglue_context_create_pbuffer(): glXChooseFBConfig() gave no valid configs
+mode=render side=1000 rendered=1 seconds=0.556231 max_rss_kib=88156
+wall=0.58 user=0.93 system=0.10 max_rss_kib=88540 exit=0
+
+$ ./run.sh /tmp/coin-honeycomb-build/lib construct 10000
+mode=construct side=10000 holes=100000000 arrays=2 seconds=0.000089 max_rss_kib=12524
+wall=0.00 user=0.00 system=0.00 max_rss_kib=13116
+
+$ ./run.sh /tmp/coin-honeycomb-build/lib bbox 10000 60
+Command exited with non-zero status 124
+wall=60.00 user=59.98 system=0.00 max_rss_kib=12516 exit=124
+
+$ ./run.sh /tmp/coin-honeycomb-build/lib render 10000 60
+Coin warning in glxglue_context_create_pbuffer(): glXChooseFBConfig() gave no valid configs
+mode=render side=10000 rendered=1 seconds=49.342055 max_rss_kib=88236
+wall=49.36 user=89.00 system=6.19 max_rss_kib=88620 exit=0
+
+$ ./run.sh /tmp/coin-honeycomb-build/lib construct 100000
+mode=construct side=100000 holes=10000000000 arrays=4 seconds=0.000067 max_rss_kib=12156
+wall=0.00 user=0.00 system=0.00 max_rss_kib=12748
+
+$ ./run.sh /tmp/coin-honeycomb-build/lib bbox 100000 10
+Command exited with non-zero status 124
+wall=10.00 user=9.99 system=0.00 max_rss_kib=12252 exit=124
+
+$ ./run.sh /tmp/coin-honeycomb-build/lib render 100000 10
+Coin warning in glxglue_context_create_pbuffer(): glXChooseFBConfig() gave no valid configs
+Command exited with non-zero status 124
+wall=10.00 user=17.81 system=1.29 max_rss_kib=87656 exit=124
