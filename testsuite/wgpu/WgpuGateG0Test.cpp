@@ -195,10 +195,11 @@ int main() {
     FramePlan plan;
     plan.clearColor = SbColor4f(0.0f, 0.0f, 0.0f, 1.0f);
 
-    // Provide 32 valid vertices/indices so wraparound sum (16) is strictly less than buffer size (32)
+    // Provide 48 valid vertices/indices so wraparound sum (32) is strictly less than buffer size (48)
+    // and indexCount (0x30 = 48) is a valid multiple of 3 for TRIANGLE_LIST.
     VertexSnapshot vs;
-    plan.vertices.assign(32, vs);
-    plan.indices.assign(32, 0);
+    plan.vertices.assign(48, vs);
+    plan.indices.assign(48, 0);
     plan.materials.push_back(MaterialSnapshot{});
     plan.lightingStates.push_back(LightingSnapshot{});
     plan.cameras.push_back(CameraSnapshot{});
@@ -208,15 +209,16 @@ int main() {
     DrawPacket dp;
     dp.topology = PrimitiveTopology::TRIANGLE_LIST;
     dp.renderStateSlot = 0;
-    // Overflowing range: firstIndex = 0xFFFFFFF0, indexCount = 0x20
-    // Sum wraps around to 0x10 in 32-bit math!
+    // Overflowing range: firstIndex = 0xFFFFFFF0, indexCount = 0x30 (48)
+    // Sum wraps around to 0x20 (32) in 32-bit math, which is <= 48!
     dp.geometry.firstIndex = 0xFFFFFFF0U;
-    dp.geometry.indexCount = 0x20U;
+    dp.geometry.indexCount = 0x30U;
     plan.draws.push_back(dp);
 
     std::string diag;
     bool valid = plan.isValid(&diag);
-    TEST_ASSERT(!valid, "Plan with overflowing index range must be rejected by safe subtraction validation");
+    TEST_ASSERT(!valid && diag.find("Draw index range out of bounds") != std::string::npos,
+                "Plan with overflowing index range must be rejected specifically by bounds check");
     TEST_ASSERT(!diag.empty(), "Diagnostic message must be provided on overflow rejection");
 
     // Overflowing vertex range: firstVertex = 0xFFFFFFFF, vertexCount = 10
