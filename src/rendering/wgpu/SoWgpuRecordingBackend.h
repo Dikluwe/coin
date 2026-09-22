@@ -9,6 +9,8 @@ public:
   SoWgpuRecordingBackend();
   ~SoWgpuRecordingBackend() override;
 
+  bool isGpuBackend() const override { return false; }
+  BackendStatus getStatus() const override;
   BackendStatus prepare(SoWgpuRenderTargetP & target) override;
   BackendStatus submit(const FramePlan & frame,
                        SoWgpuRenderTargetP & target) override;
