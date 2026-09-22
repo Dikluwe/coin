@@ -15,10 +15,10 @@
 #include <cmath>
 
 struct VertexSnapshot {
-  float position[3];
-  float normal[3];
-  float texcoord[2];
-  uint32_t materialSlot;
+  float position[3] = {0.0f, 0.0f, 0.0f};
+  float normal[3] = {0.0f, 0.0f, 1.0f};
+  float texcoord[2] = {0.0f, 0.0f};
+  uint32_t materialSlot = 0;
 };
 
 enum class PrimitiveTopology : uint32_t {
@@ -28,27 +28,27 @@ enum class PrimitiveTopology : uint32_t {
 };
 
 struct GeometryRange {
-  uint32_t firstVertex;
-  uint32_t vertexCount;
-  uint32_t firstIndex;
-  uint32_t indexCount;
+  uint32_t firstVertex = 0;
+  uint32_t vertexCount = 0;
+  uint32_t firstIndex = 0;
+  uint32_t indexCount = 0;
 };
 
 struct DrawPacket {
-  PrimitiveTopology topology;
-  GeometryRange geometry;
-  uint32_t renderStateSlot;
-  uint32_t frameNodeOrdinal; // estável apenas dentro do frame/log
-  SbUniqueId sourceNodeId;   // cache/invalidação; não entra no golden log
+  PrimitiveTopology topology = PrimitiveTopology::TRIANGLE_LIST;
+  GeometryRange geometry = {};
+  uint32_t renderStateSlot = 0;
+  uint32_t frameNodeOrdinal = 0; // estável apenas dentro do frame/log
+  SbUniqueId sourceNodeId = 0;   // cache/invalidação; não entra no golden log
 };
 
 struct MaterialSnapshot {
-  float ambient[4];
-  float diffuse[4];
-  float specular[4];
-  float emission[4];
-  float shininess;
-  float transparency;
+  float ambient[4] = {0.2f, 0.2f, 0.2f, 1.0f};
+  float diffuse[4] = {0.8f, 0.8f, 0.8f, 1.0f};
+  float specular[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  float emission[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  float shininess = 0.2f;
+  float transparency = 0.0f;
 };
 
 enum class LightType : uint32_t {
@@ -58,11 +58,11 @@ enum class LightType : uint32_t {
 };
 
 struct LightSourceSnapshot {
-  LightType type;
-  float color[3];
-  float intensity;
-  float direction[3];
-  float position[3];
+  LightType type = LightType::DIRECTIONAL;
+  float color[3] = {1.0f, 1.0f, 1.0f};
+  float intensity = 1.0f;
+  float direction[3] = {0.0f, 0.0f, -1.0f};
+  float position[3] = {0.0f, 0.0f, 0.0f};
 };
 
 struct LightingSnapshot {
@@ -70,34 +70,47 @@ struct LightingSnapshot {
 };
 
 struct CameraSnapshot {
-  SbMatrix viewMatrix;
-  SbMatrix projectionMatrixCoin;
-  bool isPerspective;
-  float nearDistance;
-  float farDistance;
-  float focalDistance;
-  float aspectRatio;
+  SbMatrix viewMatrix = SbMatrix::identity();
+  SbMatrix projectionMatrixCoin = SbMatrix::identity();
+  bool isPerspective = true;
+  float nearDistance = 0.1f;
+  float farDistance = 100.0f;
+  float focalDistance = 5.0f;
+  float aspectRatio = 1.0f;
 };
 
 struct ViewportSnapshot {
-  int32_t x;
-  int32_t y;
-  int32_t width;
-  int32_t height;
+  int32_t x = 0;
+  int32_t y = 0;
+  int32_t width = 640;
+  int32_t height = 480;
+};
+
+enum class CullMode : uint32_t {
+  NONE = 0,
+  BACK = 1,
+  FRONT = 2
+};
+
+enum class FrontFace : uint32_t {
+  CCW = 0,
+  CW = 1
 };
 
 struct RenderStateSnapshot {
-  SbMatrix model;
-  SbMatrix view;
-  SbMatrix projectionCoin;
-  uint32_t materialSlot;
-  uint32_t lightingSlot;
-  uint32_t cameraSlot;
-  uint32_t viewportSlot;
+  SbMatrix model = SbMatrix::identity();
+  SbMatrix view = SbMatrix::identity();
+  SbMatrix projectionCoin = SbMatrix::identity();
+  uint32_t materialSlot = 0;
+  uint32_t lightingSlot = 0;
+  uint32_t cameraSlot = 0;
+  uint32_t viewportSlot = 0;
+  CullMode cullMode = CullMode::BACK;
+  FrontFace frontFace = FrontFace::CCW;
 };
 
 struct FramePlan {
-  SbColor4f clearColor;
+  SbColor4f clearColor = SbColor4f(0.0f, 0.0f, 0.0f, 1.0f);
   std::vector<VertexSnapshot> vertices;
   std::vector<uint32_t> indices;
   std::vector<MaterialSnapshot> materials;

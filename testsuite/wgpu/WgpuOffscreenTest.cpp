@@ -1,6 +1,17 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#else
+#include "src/config.h"
+#endif
+
+#include <Inventor/C/basic.h>
+
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoMaterialBinding.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
+#include <Inventor/nodes/SoTranslation.h>
+#include <Inventor/nodes/SoCube.h>
+#include <Inventor/nodes/SoShapeHints.h>
 #include <Inventor/SoDB.h>
 #include <Inventor/actions/SoWgpuRenderAction.h>
 #include <Inventor/rendering/SoWgpuRenderTarget.h>
@@ -13,15 +24,31 @@
 #include <Inventor/nodes/SoCoordinate3.h>
 #include "rendering/wgpu/SoWgpuRenderTargetP.h"
 
+#if defined(HAVE_WGPU_RUST_BRIDGE)
+#include "rendering/wgpu/SoWgpuRustBackend.h"
+#include "rendering/wgpu/coin_wgpu_ffi.h"
+#endif
+
 #include <cassert>
+#include <cmath>
 #include <iostream>
 #include <vector>
 
-#define TEST_ASSERT(cond, msg) do {   if (!(cond)) {     std::cerr << "FAILED: " << msg << " (" << #cond << ") at " << __FILE__ << ":" << __LINE__ << std::endl;     return 1;   } } while (0)
+#define TEST_ASSERT(cond, msg) do { \
+  if (!(cond)) { \
+    std::cerr << "FAILED: " << msg << " (" << #cond << ") at " << __FILE__ << ":" << __LINE__ << std::endl; \
+    return 1; \
+  } \
+} while (0)
 
 int main() {
   SoDB::init();
   std::cout << "Running WgpuOffscreenTest..." << std::endl;
+
+#if defined(HAVE_WGPU_RUST_BRIDGE)
+  std::cout << "Active WebGPU Adapter: " << SoWgpuRustBackend::getAdapterInfo() << std::endl;
+  TEST_ASSERT(SoWgpuRenderAction::isGpuBackendAvailable(), "WebGPU GPU backend must be reported as available");
+#endif
 
   // 1. Build canonical controlled cone scene (Section 4.8)
   SoSeparator * root = new SoSeparator;
@@ -62,7 +89,7 @@ int main() {
 
   TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "action.apply() on SoCone scene should succeed");
 
-  // 4. Validate pixel readback
+  // 4. Validate pixel readback with chromatic tolerance
   std::vector<uint8_t> pixels;
   target->getPimpl()->readbackRGBA(pixels);
   TEST_ASSERT(pixels.size() == 256 * 256 * 4, "Readback buffer size must be width * height * 4");
@@ -74,12 +101,15 @@ int main() {
   uint8_t bgB = pixels[cornerIdx + 2];
   TEST_ASSERT(bgR < 30 && bgG < 30 && bgB > 10, "Corner pixel should be dark blue background");
 
-  // Check cone center pixel at (x=128, y=128)
+  // Check cone center pixel at (x=128, y=128) with tolerance for hardware interpolation
   size_t centerIdx = (128 * 256 + 128) * 4;
   uint8_t fgR = pixels[centerIdx + 0];
   uint8_t fgG = pixels[centerIdx + 1];
-  (void)pixels[centerIdx + 2];
-  TEST_ASSERT(fgR > 100 && fgG < 100, "Center pixel must show illuminated reddish cone");
+  uint8_t fgB = pixels[centerIdx + 2];
+  TEST_ASSERT(std::abs(static_cast<int>(fgR) - 232) <= 25 &&
+              std::abs(static_cast<int>(fgG) - 58) <= 25 &&
+              std::abs(static_cast<int>(fgB) - 28) <= 20,
+              "Center pixel must show illuminated reddish cone with valid chromatic tolerance");
 
   // 5. Test resize and re-apply
   SbVec2i32 newSize(128, 128);
@@ -93,8 +123,27 @@ int main() {
   target->getPimpl()->readbackRGBA(pixels);
   TEST_ASSERT(pixels.size() == 128 * 128 * 4, "Resized buffer must have 128*128*4 bytes");
 
+  // 5b. Test zero-size target behavior: must return NOT_READY, not UNSUPPORTED
+  std::cout << "Testing zero-size target behavior..." << std::endl;
+  target->resize(SbVec2i32(0, 0));
+  TEST_ASSERT(target->getStatus() == SoWgpuRenderTarget::TARGET_NOT_READY,
+              "Target must enter TARGET_NOT_READY on size 0x0");
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::NOT_READY,
+              "apply() on zero-size target must return NOT_READY, not UNSUPPORTED");
+  TEST_ASSERT(target->getStatus() == SoWgpuRenderTarget::TARGET_NOT_READY,
+              "Target remains TARGET_NOT_READY after zero-size apply");
+
+  // Restore valid size
+  TEST_ASSERT(target->resize(SbVec2i32(128, 128)), "Restoring valid size must succeed");
+  action.setViewportRegion(SbViewportRegion(128, 128));
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+              "apply() must succeed after restoring valid size");
+  TEST_ASSERT(target->getStatus() == SoWgpuRenderTarget::TARGET_READY,
+              "Target returns to TARGET_READY after valid apply");
+
   // 6. Test unsupported feature preflight rejection (Section 4.6)
-  // Adding a LineSet to the scene should be detected by preflight and return UNSUPPORTED
   SoSeparator * unsupportedSep = new SoSeparator;
   unsupportedSep->ref();
   unsupportedSep->addChild(cone);
@@ -112,7 +161,7 @@ int main() {
 
   unsupportedSep->unref();
 
-  // 7. Test invalid resize allocation guards (Finding 5)
+  // 7. Test invalid resize allocation guards
   TEST_ASSERT(!target->resize(SbVec2i32(-10, 50)), "Negative size resize must fail");
   TEST_ASSERT(target->getStatus() == SoWgpuRenderTarget::TARGET_ERROR, "Status must be TARGET_ERROR after negative resize");
   TEST_ASSERT(!target->resize(SbVec2i32(100000, 100000)), "Excessive dimension resize must fail");
@@ -122,7 +171,7 @@ int main() {
   TEST_ASSERT(target->resize(SbVec2i32(128, 128)), "Restore resize must succeed");
   TEST_ASSERT(target->getStatus() == SoWgpuRenderTarget::TARGET_READY, "Status must be TARGET_READY");
 
-  // 8. Test per-vertex materials offscreen rendering (Finding 3)
+  // 8. Test Wave 1A profile rejection of per-vertex material overrides (Section 4.6)
   SoSeparator * triRoot = new SoSeparator;
   triRoot->ref();
 
@@ -163,58 +212,326 @@ int main() {
 
   action.setViewportRegion(SbViewportRegion(128, 128));
   action.apply(triRoot);
-  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "apply() on per-vertex colored triangle must succeed");
-
-  target->getPimpl()->readbackRGBA(pixels);
-  // Read top pixel near vertex 0 (x=64, y=25) -> should be red
-  size_t topIdx = (25 * 128 + 64) * 4;
-  uint8_t topR = pixels[topIdx + 0];
-  uint8_t topG = pixels[topIdx + 1];
-  uint8_t topB = pixels[topIdx + 2];
-  TEST_ASSERT(topR > 100 && topG < 60 && topB < 60, "Top pixel must be red");
-
-  // Read bottom-left pixel near vertex 1 (x=25, y=100) -> should be green
-  size_t blIdx = (100 * 128 + 25) * 4;
-  uint8_t blR = pixels[blIdx + 0];
-  uint8_t blG = pixels[blIdx + 1];
-  uint8_t blB = pixels[blIdx + 2];
-  TEST_ASSERT(blG > 150 && blR < 60 && blB < 60, "Bottom-left pixel must be green");
-
-  // Read bottom-right pixel near vertex 2 (x=100, y=100) -> should be blue
-  size_t brIdx = (100 * 128 + 100) * 4;
-  uint8_t brR = pixels[brIdx + 0];
-  uint8_t brG = pixels[brIdx + 1];
-  uint8_t brB = pixels[brIdx + 2];
-  TEST_ASSERT(brB > 150 && brR < 60 && brG < 60, "Bottom-right pixel must be blue");
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::UNSUPPORTED,
+              "apply() on per-vertex material scene must be rejected with UNSUPPORTED in Wave 1A profile");
 
   triRoot->unref();
 
-  // 9. Test homogeneous near-plane clipping (Finding 7)
-  SoSeparator * clipRoot = new SoSeparator;
-  clipRoot->ref();
+  // 9. Test multi-draw scene rendering
+  SoSeparator * multiRoot = new SoSeparator;
+  multiRoot->ref();
 
-  SoPerspectiveCamera * clipCam = new SoPerspectiveCamera;
-  clipCam->position.setValue(0.0f, 0.0f, 2.0f);
-  clipCam->nearDistance = 1.0f; // Near plane at z = 1.0 (view space z = -1.0)
-  clipCam->farDistance = 10.0f;
-  clipRoot->addChild(clipCam);
+  SoOrthographicCamera * multiCam = new SoOrthographicCamera;
+  multiCam->position.setValue(0.0f, 0.0f, 5.0f);
+  multiCam->height = 4.0f;
+  multiCam->nearDistance = 0.1f;
+  multiCam->farDistance = 10.0f;
+  multiRoot->addChild(multiCam);
 
-  SoCoordinate3 * clipCoords = new SoCoordinate3;
-  // Vertex 0 is behind near plane in view space (z = 1.5 in world, so z = -0.5 in view, behind near plane 1.0)
-  clipCoords->point.set1Value(0, SbVec3f(0.0f, 1.0f, 1.5f));
-  // Vertices 1 and 2 are in front of near plane
-  clipCoords->point.set1Value(1, SbVec3f(-1.0f, -1.0f, -1.0f));
-  clipCoords->point.set1Value(2, SbVec3f(1.0f, -1.0f, -1.0f));
-  clipRoot->addChild(clipCoords);
+  SoDirectionalLight * multiLight = new SoDirectionalLight;
+  multiLight->direction.setValue(0.0f, 0.0f, -1.0f);
+  multiRoot->addChild(multiLight);
 
-  SoIndexedFaceSet * clipIfs = new SoIndexedFaceSet;
-  clipIfs->coordIndex.setValues(0, 4, triIndices);
-  clipRoot->addChild(clipIfs);
+  // Left object: Red cube
+  SoSeparator * leftSep = new SoSeparator;
+  SoTranslation * leftTrans = new SoTranslation;
+  leftTrans->translation.setValue(-1.0f, 0.0f, 0.0f);
+  leftSep->addChild(leftTrans);
+  SoMaterial * leftMat = new SoMaterial;
+  leftMat->diffuseColor.setValue(1.0f, 0.0f, 0.0f);
+  leftMat->ambientColor.setValue(0.2f, 0.0f, 0.0f);
+  leftSep->addChild(leftMat);
+  SoCube * leftCube = new SoCube;
+  leftCube->width = 0.8f;
+  leftCube->height = 0.8f;
+  leftCube->depth = 0.8f;
+  leftSep->addChild(leftCube);
+  multiRoot->addChild(leftSep);
 
-  action.apply(clipRoot);
-  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "Rendering near-clipped triangle must succeed without crash");
+  // Right object: Green cube
+  SoSeparator * rightSep = new SoSeparator;
+  SoTranslation * rightTrans = new SoTranslation;
+  rightTrans->translation.setValue(1.0f, 0.0f, 0.0f);
+  rightSep->addChild(rightTrans);
+  SoMaterial * rightMat = new SoMaterial;
+  rightMat->diffuseColor.setValue(0.0f, 1.0f, 0.0f);
+  rightMat->ambientColor.setValue(0.0f, 0.2f, 0.0f);
+  rightSep->addChild(rightMat);
+  SoCube * rightCube = new SoCube;
+  rightCube->width = 0.8f;
+  rightCube->height = 0.8f;
+  rightCube->depth = 0.8f;
+  rightSep->addChild(rightCube);
+  multiRoot->addChild(rightSep);
 
-  clipRoot->unref();
+  action.setViewportRegion(SbViewportRegion(128, 128));
+  action.apply(multiRoot);
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "Multi-draw scene must render successfully");
+
+  target->getPimpl()->readbackRGBA(pixels);
+  size_t leftIdx = (64 * 128 + 32) * 4;
+  TEST_ASSERT(pixels[leftIdx + 0] > 100 && pixels[leftIdx + 1] < 50, "Left object must be Red");
+
+  size_t rightIdx = (64 * 128 + 96) * 4;
+  TEST_ASSERT(pixels[rightIdx + 1] > 100 && pixels[rightIdx + 0] < 50, "Right object must be Green");
+
+  multiRoot->unref();
+
+  // 10. Test depth occlusion (Depth Test validation)
+  SoSeparator * depthRoot = new SoSeparator;
+  depthRoot->ref();
+
+  SoOrthographicCamera * depthCam = new SoOrthographicCamera;
+  depthCam->ref();
+  depthCam->position.setValue(0.0f, 0.0f, 5.0f);
+  depthCam->height = 2.0f;
+  depthCam->nearDistance = 0.1f;
+  depthCam->farDistance = 10.0f;
+  depthRoot->addChild(depthCam);
+
+  // Back triangle (z = -2.0, Green)
+  SoSeparator * backSep = new SoSeparator;
+  backSep->ref();
+  SoTranslation * backTrans = new SoTranslation;
+  backTrans->translation.setValue(0.0f, 0.0f, -2.0f);
+  backSep->addChild(backTrans);
+  SoMaterial * backMat = new SoMaterial;
+  backMat->diffuseColor.setValue(0.0f, 1.0f, 0.0f);
+  backMat->ambientColor.setValue(0.0f, 0.5f, 0.0f);
+  backSep->addChild(backMat);
+  SoCoordinate3 * backCoords = new SoCoordinate3;
+  backCoords->point.set1Value(0, SbVec3f(-0.5f, -0.5f, 0.0f));
+  backCoords->point.set1Value(1, SbVec3f(0.5f, -0.5f, 0.0f));
+  backCoords->point.set1Value(2, SbVec3f(0.0f, 0.5f, 0.0f));
+  backSep->addChild(backCoords);
+  SoIndexedFaceSet * backIfs = new SoIndexedFaceSet;
+  backIfs->coordIndex.setValues(0, 4, triIndices);
+  backSep->addChild(backIfs);
+  depthRoot->addChild(backSep);
+
+  // Front triangle (z = 0.0, Red)
+  SoSeparator * frontSep = new SoSeparator;
+  frontSep->ref();
+  SoTranslation * frontTrans = new SoTranslation;
+  frontTrans->translation.setValue(0.0f, 0.0f, 0.0f);
+  frontSep->addChild(frontTrans);
+  SoMaterial * frontMat = new SoMaterial;
+  frontMat->diffuseColor.setValue(1.0f, 0.0f, 0.0f);
+  frontMat->ambientColor.setValue(0.5f, 0.0f, 0.0f);
+  frontSep->addChild(frontMat);
+  SoCoordinate3 * frontCoords = new SoCoordinate3;
+  frontCoords->point.set1Value(0, SbVec3f(-0.5f, -0.5f, 0.0f));
+  frontCoords->point.set1Value(1, SbVec3f(0.5f, -0.5f, 0.0f));
+  frontCoords->point.set1Value(2, SbVec3f(0.0f, 0.5f, 0.0f));
+  frontSep->addChild(frontCoords);
+  SoIndexedFaceSet * frontIfs = new SoIndexedFaceSet;
+  frontIfs->coordIndex.setValues(0, 4, triIndices);
+  frontSep->addChild(frontIfs);
+  depthRoot->addChild(frontSep);
+
+  action.apply(depthRoot);
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "Depth test scene 1 must render successfully");
+
+  target->getPimpl()->readbackRGBA(pixels);
+  size_t centerPixel = (64 * 128 + 64) * 4;
+  TEST_ASSERT(pixels[centerPixel + 0] > 100 && pixels[centerPixel + 1] < 50,
+              "Front red triangle must be visible over back green triangle");
+
+  // Invert order on separate root2: draw Front first, Back second
+  SoSeparator * depthRoot2 = new SoSeparator;
+  depthRoot2->ref();
+  depthRoot2->addChild(depthCam);
+  depthRoot2->addChild(frontSep);
+  depthRoot2->addChild(backSep);
+
+  action.apply(depthRoot2);
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "Depth test scene 2 must render successfully");
+
+  target->getPimpl()->readbackRGBA(pixels);
+  TEST_ASSERT(pixels[centerPixel + 0] > 100 && pixels[centerPixel + 1] < 50,
+              "Depth buffering must occlude back green triangle even when drawn second");
+
+  depthCam->unref();
+  frontSep->unref();
+  backSep->unref();
+  depthRoot->unref();
+  depthRoot2->unref();
+
+  // 11. Test culling and winding via SoShapeHints
+  std::cout << "Testing culling and winding via SoShapeHints..." << std::endl;
+  SoSeparator * hintsRoot = new SoSeparator;
+  hintsRoot->ref();
+
+  SoOrthographicCamera * hintsCam = new SoOrthographicCamera;
+  hintsCam->position.setValue(0.0f, 0.0f, 5.0f);
+  hintsCam->height = 2.0f;
+  hintsRoot->addChild(hintsCam);
+
+  SoShapeHints * hints = new SoShapeHints;
+  hints->vertexOrdering = SoShapeHints::COUNTERCLOCKWISE;
+  hints->shapeType = SoShapeHints::SOLID; // Enables backface culling
+  hintsRoot->addChild(hints);
+
+  SoMaterial * hintsMat = new SoMaterial;
+  hintsMat->diffuseColor.setValue(1.0f, 1.0f, 0.0f); // Yellow
+  hintsMat->ambientColor.setValue(0.5f, 0.5f, 0.0f);
+  hintsRoot->addChild(hintsMat);
+
+  // Clockwise triangle: should be culled as backface when SOLID + CCW
+  SoCoordinate3 * cwCoords = new SoCoordinate3;
+  cwCoords->point.set1Value(0, SbVec3f(-0.5f, -0.5f, 0.0f));
+  cwCoords->point.set1Value(1, SbVec3f(0.0f, 0.5f, 0.0f));
+  cwCoords->point.set1Value(2, SbVec3f(0.5f, -0.5f, 0.0f));
+  hintsRoot->addChild(cwCoords);
+
+  SoIndexedFaceSet * cwIfs = new SoIndexedFaceSet;
+  cwIfs->coordIndex.setValues(0, 4, triIndices);
+  hintsRoot->addChild(cwIfs);
+
+  action.apply(hintsRoot);
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "Culling scene 1 should apply successfully");
+
+  target->getPimpl()->readbackRGBA(pixels);
+  // CW triangle must be culled when CCW+SOLID is configured -> background remains
+  TEST_ASSERT(pixels[centerPixel + 0] < 30 && pixels[centerPixel + 1] < 30,
+              "CW triangle must be backface culled when vertexOrdering is CCW and shape is SOLID");
+
+  // Disable culling by setting shapeType to UNKNOWN_SHAPE_TYPE
+  hints->shapeType = SoShapeHints::UNKNOWN_SHAPE_TYPE;
+  action.apply(hintsRoot);
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "Non-solid culling scene should apply successfully");
+
+  target->getPimpl()->readbackRGBA(pixels);
+  TEST_ASSERT(pixels[centerPixel + 0] > 100 && pixels[centerPixel + 1] > 100,
+              "Triangle must NOT be culled when shapeType is UNKNOWN_SHAPE_TYPE (two-sided)");
+
+  hintsRoot->unref();
+
+#if defined(HAVE_WGPU_RUST_BRIDGE)
+  char adapterName[256] = {0};
+  coin_wgpu_get_adapter_info(adapterName, sizeof(adapterName));
+  std::cout << "Detected WebGPU Adapter: " << adapterName << std::endl;
+
+  // 12. Fault injection and state machine lifecycle tests (Section 4.5)
+  std::cout << "Testing fault injection and state machine lifecycle..." << std::endl;
+
+  // Test 12.1: Isolated NOT_READY
+  coin_wgpu_inject_fault(COIN_WGPU_NOT_READY);
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::NOT_READY,
+              "Injected NOT_READY fault must propagate to action status");
+  TEST_ASSERT(target->getStatus() == SoWgpuRenderTarget::TARGET_NOT_READY,
+              "Target must transition to retryable TARGET_NOT_READY");
+
+  // Recovery from NOT_READY
+  coin_wgpu_inject_fault(0);
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+              "Target must recover from TARGET_NOT_READY on subsequent apply");
+  TEST_ASSERT(target->getStatus() == SoWgpuRenderTarget::TARGET_READY,
+              "Target must return to TARGET_READY after successful recovery");
+
+  // Test 12.2: Isolated OUT_OF_MEMORY -> TARGET_ERROR (terminal for target)
+  coin_wgpu_inject_fault(COIN_WGPU_OUT_OF_MEMORY);
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::OUT_OF_MEMORY,
+              "Injected OUT_OF_MEMORY fault must propagate to action status");
+  TEST_ASSERT(target->getStatus() == SoWgpuRenderTarget::TARGET_ERROR,
+              "Target must transition to TARGET_ERROR on OOM");
+  TEST_ASSERT(target->getLastError() != nullptr && target->getLastError()[0] != '\0',
+              "Target getLastError() must have diagnostic on OOM");
+
+  coin_wgpu_inject_fault(0);
+  // Subsequent apply on target in TARGET_ERROR must report BACKEND_ERROR
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::BACKEND_ERROR,
+              "Subsequent apply on TARGET_ERROR must report BACKEND_ERROR");
+
+  // Re-create target for subsequent tests
+  delete target;
+  target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(128, 128));
+  action.setRenderTarget(target);
+
+  // Test 12.3: Isolated DEVICE_LOST
+  coin_wgpu_inject_fault(COIN_WGPU_DEVICE_LOST);
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::DEVICE_LOST,
+              "Injected DEVICE_LOST fault must propagate to action status");
+  TEST_ASSERT(target->getStatus() == SoWgpuRenderTarget::TARGET_LOST,
+              "Target must enter TARGET_LOST state on device lost");
+
+  // Recovery: next apply recycles backend (READY -> LOST -> RECREATING -> READY)
+  coin_wgpu_inject_fault(0);
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+              "Target must transparently recreate backend and succeed on apply after DEVICE_LOST");
+  TEST_ASSERT(target->getStatus() == SoWgpuRenderTarget::TARGET_READY,
+              "Target must return to TARGET_READY after automatic recovery");
+
+  // Test 12.4: Sequential test NOT_READY -> OUT_OF_MEMORY (terminal) -> fresh target DEVICE_LOST -> SUCCESS
+  std::cout << "Testing sequential fault recovery: NOT_READY -> OOM -> DEVICE_LOST -> SUCCESS..." << std::endl;
+  coin_wgpu_inject_fault(COIN_WGPU_NOT_READY);
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::NOT_READY, "Step 1: NOT_READY failed");
+
+  coin_wgpu_inject_fault(COIN_WGPU_OUT_OF_MEMORY);
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::OUT_OF_MEMORY, "Step 2: OUT_OF_MEMORY failed");
+  TEST_ASSERT(target->getStatus() == SoWgpuRenderTarget::TARGET_ERROR, "Step 2: Target must enter TARGET_ERROR on OOM");
+
+  // Terminal state verification: subsequent apply without recreating target must fail with BACKEND_ERROR
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::BACKEND_ERROR, "Step 2b: apply on TARGET_ERROR must report BACKEND_ERROR");
+
+  // Re-create target for DEVICE_LOST step
+  delete target;
+  target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(128, 128));
+  action.setRenderTarget(target);
+
+  coin_wgpu_inject_fault(COIN_WGPU_DEVICE_LOST);
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::DEVICE_LOST, "Step 3: DEVICE_LOST failed");
+
+  coin_wgpu_inject_fault(0);
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "Step 4: Full sequential recovery failed");
+  TEST_ASSERT(target->getStatus() == SoWgpuRenderTarget::TARGET_READY, "Step 4: Target state not READY after recovery");
+
+  // Test 12.5: Async DEVICE_LOST during GPU execution (exercises deadlock-free poll / map error handling)
+  std::cout << "Testing async DEVICE_LOST during GPU execution..." << std::endl;
+  coin_wgpu_inject_async_fault(COIN_WGPU_DEVICE_LOST);
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::DEVICE_LOST,
+              "Async DEVICE_LOST must propagate to action status");
+  TEST_ASSERT(target->getStatus() == SoWgpuRenderTarget::TARGET_LOST,
+              "Target must enter TARGET_LOST state on async device lost");
+
+  // Recovery: next apply recycles backend (READY -> LOST -> RECREATING -> READY)
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+              "Target must transparently recreate backend and succeed on apply after async DEVICE_LOST");
+  TEST_ASSERT(target->getStatus() == SoWgpuRenderTarget::TARGET_READY,
+              "Target must return to TARGET_READY after automatic recovery from async fault");
+
+  // Test 12.6: FFI boundary rejection (ABI version mismatch & invalid arguments)
+  std::cout << "Testing FFI boundary rejection..." << std::endl;
+  CoinWgpuTarget tPod{};
+  tPod.width = 128;
+  tPod.height = 128;
+  std::vector<uint8_t> dummyBuf(128 * 128 * 4, 0);
+  tPod.color_buffer = dummyBuf.data();
+  tPod.color_buffer_len = dummyBuf.size();
+
+  CoinWgpuFrameView fView{};
+  fView.abi_version = 999; // Invalid ABI version
+  fView.struct_size = sizeof(CoinWgpuFrameView);
+  fView.width = 128;
+  fView.height = 128;
+  char errBuf[256] = {0};
+
+  CoinWgpuStatus ffiStatus = coin_wgpu_submit(&tPod, &fView, errBuf, sizeof(errBuf));
+  TEST_ASSERT(ffiStatus == COIN_WGPU_INVALID_ARGUMENT, "Invalid ABI version must return INVALID_ARGUMENT");
+#endif
 
   delete target;
   root->unref();

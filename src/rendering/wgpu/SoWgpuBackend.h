@@ -12,7 +12,23 @@ enum class BackendStatus {
   UNSUPPORTED,
   OUT_OF_MEMORY,
   DEVICE_LOST,
-  BACKEND_ERROR
+  BACKEND_ERROR,
+  SURFACE_LOST
+};
+
+struct FrameExecutionResult {
+  BackendStatus status;
+  std::string diagnostic;
+
+  FrameExecutionResult()
+    : status(BackendStatus::SUCCESS), diagnostic("")
+  {
+  }
+
+  FrameExecutionResult(BackendStatus s, const std::string & d)
+    : status(s), diagnostic(d)
+  {
+  }
 };
 
 class SoWgpuBackend {

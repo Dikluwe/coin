@@ -21,7 +21,7 @@
  * this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
  * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
  * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
@@ -54,7 +54,8 @@ public:
     UNSUPPORTED,
     OUT_OF_MEMORY,
     DEVICE_LOST,
-    BACKEND_ERROR
+    BACKEND_ERROR,
+    SURFACE_LOST
   };
 
   static void initClass(void);
@@ -77,6 +78,8 @@ public:
   const SbString & getLastError(void) const;
 
   const SbString & getRecordingLog(void) const;
+
+  using SoAction::apply;
 
   void apply(SoNode * root) override;
   void apply(SoPath * path) override;

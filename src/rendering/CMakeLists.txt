@@ -23,12 +23,24 @@ if(COIN_BUILD_WGPU)
 		wgpu/SoWgpuRecordingBackend.cpp
 		wgpu/SoWgpuRenderTarget.cpp
 	)
+	if(COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE")
+		list(APPEND COIN_RENDERING_FILES
+			wgpu/SoWgpuRustBackend.cpp
+		)
+	elseif(COIN_WGPU_BACKEND STREQUAL "DAWN" OR COIN_WGPU_BACKEND STREQUAL "WGPU_NATIVE")
+		list(APPEND COIN_RENDERING_FILES
+			wgpu/SoWgpuNativeBackend.cpp
+		)
+	endif()
 	list(APPEND COIN_RENDERING_INTERNAL_FILES
 		wgpu/SoWgpuFramePlan.h
 		wgpu/SoWgpuFramePlanBuilder.h
 		wgpu/SoWgpuBackend.h
 		wgpu/SoWgpuRecordingBackend.h
 		wgpu/SoWgpuRenderTargetP.h
+		wgpu/SoWgpuNativeBackend.h
+		wgpu/SoWgpuRustBackend.h
+		wgpu/coin_wgpu_ffi.h
 	)
 endif()
 

@@ -133,31 +133,62 @@ if(DISABLE_WARNING_TAUTOLOGCOMPARE)
 	target_compile_options(CoinTests PUBLIC -Wno-tautological-compare)
 endif()
 
+option(COIN_TEST_WGPU_STRICT_DISPLAY "Enable strict X11 display test in CTest where missing DISPLAY is a failure" OFF)
+
 if(COIN_BUILD_WGPU)
 	add_executable(WgpuRenderActionTest
 		actions/WgpuRenderActionTest.cpp
 	)
+	set_target_properties(WgpuRenderActionTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 	target_link_libraries(WgpuRenderActionTest Coin ${COIN_TARGET_LINK_LIBRARIES})
 	target_include_directories(WgpuRenderActionTest PRIVATE
 		${CMAKE_CURRENT_SOURCE_DIR}
 		${PROJECT_SOURCE_DIR}/include
 		${PROJECT_SOURCE_DIR}/src
 		${PROJECT_BINARY_DIR}/include
+		${PROJECT_BINARY_DIR}/src
 		${COIN_TARGET_INCLUDE_DIRECTORIES}
 	)
 	add_test(NAME WgpuRenderActionTest COMMAND WgpuRenderActionTest)
+	set_tests_properties(WgpuRenderActionTest PROPERTIES TIMEOUT 30)
 
 	add_executable(WgpuOffscreenTest
 		wgpu/WgpuOffscreenTest.cpp
 	)
-	set_target_properties(WgpuOffscreenTest PROPERTIES COMPILE_DEFINITIONS COIN_INTERNAL)
+	set_target_properties(WgpuOffscreenTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 	target_link_libraries(WgpuOffscreenTest Coin ${COIN_TARGET_LINK_LIBRARIES})
 	target_include_directories(WgpuOffscreenTest PRIVATE
 		${CMAKE_CURRENT_SOURCE_DIR}
 		${PROJECT_SOURCE_DIR}/include
 		${PROJECT_SOURCE_DIR}/src
 		${PROJECT_BINARY_DIR}/include
+		${PROJECT_BINARY_DIR}/src
 		${COIN_TARGET_INCLUDE_DIRECTORIES}
 	)
 	add_test(NAME WgpuOffscreenTest COMMAND WgpuOffscreenTest)
+	set_tests_properties(WgpuOffscreenTest PROPERTIES TIMEOUT 30)
+
+	if(COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE" AND (UNIX AND NOT APPLE AND X11_FOUND))
+		add_executable(WgpuSurfaceTest
+			wgpu/WgpuSurfaceTest.cpp
+		)
+		set_target_properties(WgpuSurfaceTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H;HAVE_X11=1")
+		target_link_libraries(WgpuSurfaceTest Coin ${X11_LIBRARIES} ${COIN_TARGET_LINK_LIBRARIES})
+		target_include_directories(WgpuSurfaceTest PRIVATE
+			${CMAKE_CURRENT_SOURCE_DIR}
+			${PROJECT_SOURCE_DIR}/include
+			${PROJECT_SOURCE_DIR}/src
+			${PROJECT_BINARY_DIR}/include
+			${PROJECT_BINARY_DIR}/src
+			${X11_INCLUDE_DIR}
+			${COIN_TARGET_INCLUDE_DIRECTORIES}
+		)
+		add_test(NAME WgpuSurfaceTest COMMAND WgpuSurfaceTest)
+		set_tests_properties(WgpuSurfaceTest PROPERTIES TIMEOUT 30)
+
+		if(COIN_TEST_WGPU_STRICT_DISPLAY)
+			add_test(NAME WgpuSurfaceDisplayStrictTest COMMAND WgpuSurfaceTest --require-display)
+			set_tests_properties(WgpuSurfaceDisplayStrictTest PROPERTIES TIMEOUT 30)
+		endif()
+	endif()
 endif()

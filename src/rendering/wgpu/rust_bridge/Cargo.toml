@@ -1,0 +1,13 @@
+[package]
+name = "coin_wgpu_rust_bridge"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+wgpu = "24"
+pollster = "0.4"
+bytemuck = { version = "1.21", features = ["derive"] }
+raw-window-handle = "0.6"

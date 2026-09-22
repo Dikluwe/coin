@@ -155,7 +155,8 @@ option(COIN_BUILD_LEGACY_GL_RENDERER
 set(COIN_HAVE_LEGACY_GL_RENDERER ${COIN_BUILD_LEGACY_GL_RENDERER})
 
 option(COIN_BUILD_WGPU "Build the experimental WebGPU render action" OFF)
-set(COIN_WGPU_BACKEND "RECORDING" CACHE STRING
+option(COIN_BUILD_WGPU_WINDOW_EXAMPLE "Build the experimental WebGPU window example" OFF)
+set(COIN_WGPU_BACKEND "RUST_BRIDGE" CACHE STRING
     "WebGPU backend: RECORDING, DAWN, WGPU_NATIVE or RUST_BRIDGE")
 set_property(CACHE COIN_WGPU_BACKEND PROPERTY STRINGS
              RECORDING DAWN WGPU_NATIVE RUST_BRIDGE)
@@ -167,17 +168,87 @@ if(COIN_BUILD_WGPU)
       message(FATAL_ERROR "COIN_WGPU_BACKEND is set to DAWN, but the Dawn WebGPU package was not found.")
     endif()
     set(HAVE_WGPU_DAWN 1)
+    if(TARGET dawn::webgpu_dawn)
+      list(APPEND COIN_TARGET_LINK_LIBRARIES dawn::webgpu_dawn)
+    elseif(TARGET webgpu_dawn)
+      list(APPEND COIN_TARGET_LINK_LIBRARIES webgpu_dawn)
+    else()
+      message(FATAL_ERROR "Dawn package found but target dawn::webgpu_dawn or webgpu_dawn is missing.")
+    endif()
   elseif(COIN_WGPU_BACKEND STREQUAL "WGPU_NATIVE")
     find_package(wgpu_native QUIET CONFIG)
     if(NOT wgpu_native_FOUND)
       message(FATAL_ERROR "COIN_WGPU_BACKEND is set to WGPU_NATIVE, but the wgpu-native library was not found.")
     endif()
     set(HAVE_WGPU_NATIVE 1)
+    if(TARGET wgpu_native::wgpu_native)
+      list(APPEND COIN_TARGET_LINK_LIBRARIES wgpu_native::wgpu_native)
+    elseif(TARGET wgpu_native)
+      list(APPEND COIN_TARGET_LINK_LIBRARIES wgpu_native)
+    else()
+      message(FATAL_ERROR "wgpu-native package found but target wgpu_native::wgpu_native or wgpu_native is missing.")
+    endif()
+  elseif(COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE")
+    find_program(CARGO_EXECUTABLE cargo REQUIRED)
+    set(RUST_BRIDGE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/wgpu/rust_bridge")
+    set(RUST_TARGET_DIR "${CMAKE_CURRENT_BINARY_DIR}/rust_target")
+    if(CMAKE_BUILD_TYPE MATCHES "Debug|DEBUG")
+      set(RUST_PROFILE_DIR "debug")
+      set(CARGO_BUILD_FLAGS "--locked")
+    else()
+      set(RUST_PROFILE_DIR "release")
+      set(CARGO_BUILD_FLAGS "--locked" "--release")
+    endif()
+    set(RUST_LIB_PATH "${RUST_TARGET_DIR}/${RUST_PROFILE_DIR}/libcoin_wgpu_rust_bridge.a")
+
+    add_custom_command(
+      OUTPUT "${RUST_LIB_PATH}"
+      COMMAND ${CMAKE_COMMAND} -E env CARGO_TARGET_DIR=${RUST_TARGET_DIR} ${CARGO_EXECUTABLE} build ${CARGO_BUILD_FLAGS} --manifest-path "${RUST_BRIDGE_DIR}/Cargo.toml"
+      WORKING_DIRECTORY "${RUST_BRIDGE_DIR}"
+      DEPENDS "${RUST_BRIDGE_DIR}/src/lib.rs" "${RUST_BRIDGE_DIR}/Cargo.toml" "${RUST_BRIDGE_DIR}/Cargo.lock" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/wgpu/shaders/coin_standard.wgsl"
+      COMMENT "Building Rust WebGPU bridge library (${RUST_PROFILE_DIR})..."
+      VERBATIM
+    )
+    add_custom_target(coin_wgpu_rust_bridge_build ALL DEPENDS "${RUST_LIB_PATH}")
+
+    add_library(coin_wgpu_rust_bridge::coin_wgpu_rust_bridge STATIC IMPORTED GLOBAL)
+    set_target_properties(coin_wgpu_rust_bridge::coin_wgpu_rust_bridge PROPERTIES
+      IMPORTED_LOCATION "${RUST_LIB_PATH}"
+    )
+    add_dependencies(coin_wgpu_rust_bridge::coin_wgpu_rust_bridge coin_wgpu_rust_bridge_build)
+
+    find_package(Threads REQUIRED)
+    set(COIN_WGPU_LINK_LIBRARIES
+      coin_wgpu_rust_bridge::coin_wgpu_rust_bridge
+      Threads::Threads
+      ${CMAKE_DL_LIBS}
+      m
+    )
+    set(HAVE_WGPU_RUST_BRIDGE 1)
   elseif(COIN_WGPU_BACKEND STREQUAL "RECORDING")
     message(STATUS "COIN_WGPU_BACKEND is set to RECORDING: using deterministic recording log and reference software rasterizer.")
   else()
-    message(FATAL_ERROR "Unsupported COIN_WGPU_BACKEND: . Supported backends are RECORDING, DAWN, WGPU_NATIVE.")
+    message(FATAL_ERROR "Unsupported COIN_WGPU_BACKEND: ${COIN_WGPU_BACKEND}. Supported backends are RECORDING, DAWN, WGPU_NATIVE, RUST_BRIDGE.")
   endif()
+endif()
+
+if(UNIX AND NOT APPLE AND NOT X11_FOUND)
+  find_package(X11 QUIET)
+endif()
+
+if(COIN_BUILD_WGPU)
+  set(COIN_HAVE_WGPU ON)
+  if(COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE" AND (UNIX AND NOT APPLE AND X11_FOUND))
+    set(HAVE_WGPU_WINDOW_SURFACE 1)
+    set(COIN_HAVE_WGPU_WINDOW_SURFACE ON)
+  else()
+    unset(HAVE_WGPU_WINDOW_SURFACE)
+    set(COIN_HAVE_WGPU_WINDOW_SURFACE OFF)
+  endif()
+else()
+  set(COIN_HAVE_WGPU OFF)
+  unset(HAVE_WGPU_WINDOW_SURFACE)
+  set(COIN_HAVE_WGPU_WINDOW_SURFACE OFF)
 endif()
 
 check_include_file_cxx(thread HAVE_STD_THREAD)
@@ -950,11 +1021,19 @@ unset(COIN_DOCUMENTATION_FILES CACHE)
 # they are put in DOXYGEN_EXCLUDE.
 unset(COIN_INTERNAL_DOCUMENTATION_FILES CACHE)
 
+if(COIN_WGPU_LINK_LIBRARIES)
+  list(APPEND COIN_TARGET_LINK_LIBRARIES ${COIN_WGPU_LINK_LIBRARIES})
+endif()
+
+if(COIN_BUILD_WGPU AND COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE" AND NOT COIN_BUILD_SHARED_LIBS)
+  install(FILES "${RUST_LIB_PATH}" DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT development OPTIONAL)
+endif()
+
 add_subdirectory(include)
 add_subdirectory(data)
 add_subdirectory(src)
 
-if (COIN_BUILD_EXAMPLES)
+if (COIN_BUILD_EXAMPLES OR COIN_BUILD_WGPU_WINDOW_EXAMPLE)
   add_subdirectory(examples)
 endif()
 

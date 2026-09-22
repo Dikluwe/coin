@@ -1,4 +1,8 @@
+#include <setup.h>
 #include "rendering/wgpu/SoWgpuFramePlan.h"
+#include "rendering/wgpu/SoWgpuRenderTargetP.h"
+#include <Inventor/rendering/SoWgpuRenderTarget.h>
+#include <Inventor/rendering/SoWgpuNativeSurface.h>
 #include <Inventor/nodes/SoMaterialBinding.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/SoDB.h>
@@ -327,7 +331,7 @@ int testForbiddenUsage() {
 int testBackendAvailability() {
   // When built without Dawn / wgpu-native, isGpuBackendAvailable must be FALSE
   SbBool avail = SoWgpuRenderAction::isGpuBackendAvailable();
-#if defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
+#if defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE) || defined(HAVE_WGPU_RUST_BRIDGE)
   TEST_ASSERT(avail == TRUE, "isGpuBackendAvailable must be TRUE when hardware backend is compiled");
 #else
   TEST_ASSERT(avail == FALSE, "isGpuBackendAvailable must be FALSE in software/recording mode");
@@ -456,7 +460,10 @@ int testPlanOverflowAndSlotValidation() {
   rs.lightingSlot = 0;
   plan.renderStates.push_back(rs);
 
-  VertexSnapshot v;
+  VertexSnapshot v{};
+  v.position[0] = 0.0f; v.position[1] = 0.0f; v.position[2] = 0.0f;
+  v.normal[0] = 0.0f; v.normal[1] = 0.0f; v.normal[2] = 1.0f;
+  v.texcoord[0] = 0.0f; v.texcoord[1] = 0.0f;
   v.materialSlot = 0;
   plan.vertices.push_back(v);
   plan.vertices.push_back(v);
@@ -491,13 +498,132 @@ int testPlanOverflowAndSlotValidation() {
   return 0;
 }
 
+
+int testProfileMultiLightAndPerVertexTransparency() {
+  // Test Finding 3: Multi-light rejection and per-vertex transparency
+  FramePlan plan;
+  plan.viewports.push_back(ViewportSnapshot{});
+  plan.cameras.push_back(CameraSnapshot{});
+
+  MaterialSnapshot opaqueMat;
+  opaqueMat.transparency = 0.0f;
+  plan.materials.push_back(opaqueMat);
+
+  MaterialSnapshot transparentMat;
+  transparentMat.transparency = 0.5f;
+  plan.materials.push_back(transparentMat);
+
+  LightingSnapshot singleLight;
+  LightSourceSnapshot l1;
+  l1.type = LightType::DIRECTIONAL;
+  singleLight.lights.push_back(l1);
+  plan.lightingStates.push_back(singleLight);
+
+  LightingSnapshot multiLight;
+  multiLight.lights.push_back(l1);
+  multiLight.lights.push_back(l1);
+  plan.lightingStates.push_back(multiLight);
+
+  RenderStateSnapshot rs;
+  rs.viewportSlot = 0;
+  rs.cameraSlot = 0;
+  rs.materialSlot = 0; // opaque
+  rs.lightingSlot = 0; // single light
+  plan.renderStates.push_back(rs);
+
+  VertexSnapshot v0{}, v1{}, v2{};
+  v0.materialSlot = 0;
+  v1.materialSlot = 0;
+  v2.materialSlot = 0;
+  plan.vertices.push_back(v0);
+  plan.vertices.push_back(v1);
+  plan.vertices.push_back(v2);
+
+  plan.indices.push_back(0);
+  plan.indices.push_back(1);
+  plan.indices.push_back(2);
+
+  DrawPacket draw;
+  draw.renderStateSlot = 0;
+  draw.topology = PrimitiveTopology::TRIANGLE_LIST;
+  draw.geometry.firstVertex = 0;
+  draw.geometry.vertexCount = 3;
+  draw.geometry.firstIndex = 0;
+  draw.geometry.indexCount = 3;
+  plan.draws.push_back(draw);
+
+  std::string diag;
+  // Case 1: Valid single light, opaque
+  TEST_ASSERT(SoWgpuRenderTargetP::validateProfile(plan, diag), "Base profile should be valid");
+
+  // Case 2: Multi-light must be rejected
+  plan.renderStates[0].lightingSlot = 1; // multiLight
+  TEST_ASSERT(!SoWgpuRenderTargetP::validateProfile(plan, diag), "Multi-light must be rejected by validateProfile");
+  TEST_ASSERT(diag.find("Multiple lights") != std::string::npos, "Diagnostic must mention multiple lights");
+  plan.renderStates[0].lightingSlot = 0; // restore
+
+  // Case 3: Per-vertex transparency must be rejected
+  plan.vertices[1].materialSlot = 1; // transparentMat
+  TEST_ASSERT(!SoWgpuRenderTargetP::validateProfile(plan, diag), "Per-vertex transparency must be rejected");
+  TEST_ASSERT(diag.find("transparency") != std::string::npos, "Diagnostic must mention transparency");
+  plan.vertices[1].materialSlot = 0; // restore
+
+  return 0;
+}
+
+int testBaseApplyNotHidden() {
+  // Test Finding 4: SoAction::apply(SoAction*) is not hidden
+  void (SoAction::*applyActionFn)(SoAction*) = &SoWgpuRenderAction::apply;
+  TEST_ASSERT(applyActionFn != nullptr, "apply(SoAction*) must be accessible via SoWgpuRenderAction");
+
+  SoSeparator * root = new SoSeparator;
+  root->ref();
+  SoWgpuRenderAction action1;
+  SoWgpuRenderAction action2;
+  // If we apply action1 to a node, then action2.apply(&action1) copies what action1 was applied to
+  // (though action1 is done, let's verify compiler and method binding)
+  root->unref();
+  return 0;
+}
+
+int testWindowTargetRecordingBackend() {
+#if !defined(HAVE_WGPU_RUST_BRIDGE)
+  SoWgpuNativeSurfaceDescriptor desc{};
+  desc.abiVersion = COIN_WGPU_NATIVE_SURFACE_ABI_VERSION;
+  desc.structSize = sizeof(desc);
+  desc.type = COIN_WGPU_SURFACE_XLIB;
+  desc.reserved = 0;
+  desc.native.xlib.display = (void*)0x1234;
+  desc.native.xlib.window = 1;
+
+  SoWgpuRenderTarget * target = SoWgpuRenderTarget::createWindow(desc, SbVec2i32(100, 100));
+  TEST_ASSERT(target != nullptr, "Target pointer must not be null");
+  TEST_ASSERT(target->getStatus() == SoWgpuRenderTarget::TARGET_ERROR, "Status must be TARGET_ERROR in RECORDING mode");
+  TEST_ASSERT(std::string(target->getLastError()).find("RECORDING") != std::string::npos, "Diagnostic must mention RECORDING backend");
+
+  SoSeparator * root = new SoSeparator;
+  root->ref();
+  SoWgpuRenderAction action;
+  action.setRenderTarget(target);
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::BACKEND_ERROR, "apply on TARGET_ERROR must report BACKEND_ERROR");
+  TEST_ASSERT(action.getLastError().getLength() > 0, "action getLastError must be populated");
+  root->unref();
+  delete target;
+#endif
+  return 0;
+}
+
 int main() {
 
   SoDB::init();
   std::cout << "Running WgpuRenderActionTest..." << std::endl;
 
   int failed = 0;
-    if (testBackendAvailability()) { std::cerr << "testBackendAvailability failed" << std::endl; failed++; }
+      if (testWindowTargetRecordingBackend()) { std::cerr << "testWindowTargetRecordingBackend failed" << std::endl; failed++; }
+  if (testProfileMultiLightAndPerVertexTransparency()) { std::cerr << "testProfileMultiLightAndPerVertexTransparency failed" << std::endl; failed++; }
+  if (testBaseApplyNotHidden()) { std::cerr << "testBaseApplyNotHidden failed" << std::endl; failed++; }
+  if (testBackendAvailability()) { std::cerr << "testBackendAvailability failed" << std::endl; failed++; }
   if (testMultipleRootsPathList()) { std::cerr << "testMultipleRootsPathList failed" << std::endl; failed++; }
   if (testPerVertexMaterialCapture()) { std::cerr << "testPerVertexMaterialCapture failed" << std::endl; failed++; }
   if (testLightTransformWithRotatedCamera()) { std::cerr << "testLightTransformWithRotatedCamera failed" << std::endl; failed++; }

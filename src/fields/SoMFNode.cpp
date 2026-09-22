@@ -627,6 +627,7 @@ SoMFNode::replaceNode(SoNode * oldnode, SoNode * newnode)
 
 #ifdef COIN_TEST_SUITE
 
+#include <Inventor/SoInput.h>
 #include <Inventor/errors/SoReadError.h>
 
 // Do-nothing error handler for ignoring read errors while testing.

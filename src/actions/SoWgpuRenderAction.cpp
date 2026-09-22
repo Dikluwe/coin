@@ -1,9 +1,18 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#else
+#include "src/config.h"
+#endif
+
 #include <Inventor/actions/SoWgpuRenderAction.h>
 #include <Inventor/actions/SoSubAction.h>
 #include <Inventor/nodes/SoShape.h>
 #include "actions/SoWgpuRenderActionP.h"
 #include "rendering/wgpu/SoWgpuRenderTargetP.h"
 #include "actions/SoSubActionP.h"
+#if defined(HAVE_WGPU_RUST_BRIDGE)
+#include "rendering/wgpu/SoWgpuRustBackend.h"
+#endif
 
 SO_ACTION_SOURCE(SoWgpuRenderAction);
 
@@ -16,7 +25,9 @@ SoWgpuRenderAction::initClass(void)
 SbBool
 SoWgpuRenderAction::isGpuBackendAvailable(void)
 {
-#if defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
+#if defined(HAVE_WGPU_RUST_BRIDGE)
+  return SoWgpuRustBackend::isAvailable() ? TRUE : FALSE;
+#elif defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
   return TRUE;
 #else
   return FALSE;
@@ -206,21 +217,40 @@ SoWgpuRenderActionP::executeApply(F traversalFn)
   }
 
   // Target provided: validate target status
-  if (this->target->getStatus() != SoWgpuRenderTarget::TARGET_READY) {
-    this->lastStatus = SoWgpuRenderAction::NOT_READY;
-    this->lastError = "Render target is not ready";
+  // TARGET_READY, TARGET_NOT_READY and TARGET_LOST are retryable/recoverable.
+  // Only fatal TARGET_ERROR blocks immediately.
+  if (this->target->getStatus() == SoWgpuRenderTarget::TARGET_ERROR) {
+    this->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
+    const char * tgtErr = this->target->getLastError();
+    this->lastError = (tgtErr && tgtErr[0]) ? tgtErr : "Render target is in fatal TARGET_ERROR state";
     return;
   }
 
   // Execute frame on target
-  std::string execError;
-  if (!this->target->pimpl->executeFrame(plan, execError)) {
-    if (execError.rfind("UNSUPPORTED", 0) == 0) {
-      this->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
-    } else {
-      this->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
+  FrameExecutionResult execRes = this->target->pimpl->executeFrame(plan);
+  if (execRes.status != BackendStatus::SUCCESS) {
+    switch (execRes.status) {
+      case BackendStatus::NOT_READY:
+        this->lastStatus = SoWgpuRenderAction::NOT_READY;
+        break;
+      case BackendStatus::UNSUPPORTED:
+        this->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
+        break;
+      case BackendStatus::OUT_OF_MEMORY:
+        this->lastStatus = SoWgpuRenderAction::OUT_OF_MEMORY;
+        break;
+      case BackendStatus::DEVICE_LOST:
+        this->lastStatus = SoWgpuRenderAction::DEVICE_LOST;
+        break;
+      case BackendStatus::SURFACE_LOST:
+        this->lastStatus = SoWgpuRenderAction::SURFACE_LOST;
+        break;
+      case BackendStatus::BACKEND_ERROR:
+      default:
+        this->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
+        break;
     }
-    this->lastError = execError.c_str();
+    this->lastError = execRes.diagnostic.c_str();
     return;
   }
 

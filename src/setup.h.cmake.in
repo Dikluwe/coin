@@ -146,6 +146,22 @@
 #cmakedefine HAVE_WGPU_NATIVE
 
 /***************************************************************************
+ * HAVE_WGPU_RUST_BRIDGE
+ *
+ * Rust bridge WebGPU hardware backend support.
+ */
+
+#cmakedefine HAVE_WGPU_RUST_BRIDGE
+
+/***************************************************************************
+ * HAVE_WGPU_WINDOW_SURFACE
+ *
+ * Native window surface presentation support for WebGPU.
+ */
+
+#cmakedefine HAVE_WGPU_WINDOW_SURFACE
+
+/***************************************************************************
  * The end.
  *
  * Make sure this header file is not installed, and only used when building

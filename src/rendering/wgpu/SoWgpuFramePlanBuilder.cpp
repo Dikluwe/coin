@@ -12,6 +12,7 @@
 #include <Inventor/SbMatrix.h>
 #include <Inventor/SbColor.h>
 #include <Inventor/misc/SoState.h>
+#include <Inventor/elements/SoShapeHintsElement.h>
 
 #include <cassert>
 #include <cmath>
@@ -207,6 +208,17 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
   }
 
   // 5. RenderState
+  SoShapeHintsElement::VertexOrdering vo;
+  SoShapeHintsElement::ShapeType st;
+  SoShapeHintsElement::FaceType ft;
+  SoShapeHintsElement::get(state, vo, st, ft);
+
+  CullMode cullMode = CullMode::NONE;
+  if (st == SoShapeHintsElement::SOLID && vo != SoShapeHintsElement::UNKNOWN_ORDERING) {
+    cullMode = CullMode::BACK;
+  }
+  FrontFace frontFace = (vo == SoShapeHintsElement::CLOCKWISE) ? FrontFace::CW : FrontFace::CCW;
+
   RenderStateSnapshot rs;
   rs.model = action->getModelMatrix();
   rs.view = camSnap.viewMatrix;
@@ -215,6 +227,8 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
   rs.lightingSlot = lightingSlot;
   rs.cameraSlot = cameraSlot;
   rs.viewportSlot = viewportSlot;
+  rs.cullMode = cullMode;
+  rs.frontFace = frontFace;
 
   uint32_t rsSlot = 0;
   bool rsFound = false;
@@ -224,6 +238,8 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
         existing.lightingSlot == lightingSlot &&
         existing.cameraSlot == cameraSlot &&
         existing.viewportSlot == viewportSlot &&
+        existing.cullMode == cullMode &&
+        existing.frontFace == frontFace &&
         existing.model == rs.model &&
         existing.view == rs.view &&
         existing.projectionCoin == rs.projectionCoin) {

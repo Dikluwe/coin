@@ -87,3 +87,44 @@ jobs:
           name: MacOS-Artifacts-LegacyGL-${{ matrix.legacy_renderer.value }}
           path: cmake_install_dir/
         if: always()
+
+  ubuntu-wgpu-build:
+    name: Ubuntu · WebGPU (Rust Bridge + Strict X11 Display)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - name: Install dependencies
+        run: |
+          sudo apt-get -y update
+          sudo apt-get -y install \
+            freeglut3-dev \
+            libx11-dev \
+            libxext-dev \
+            xvfb \
+            xauth \
+            mesa-vulkan-drivers \
+            libvulkan-dev \
+            vulkan-tools
+      - name: Ensure Rust toolchain
+        run: |
+          if ! command -v cargo >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+            source "$HOME/.cargo/env"
+          fi
+          rustc --version
+          cargo --version
+      - name: Build and test with WebGPU and strict X11 display
+        run: |
+          if [ -f "$HOME/.cargo/env" ]; then
+            source "$HOME/.cargo/env"
+          fi
+          .github/scripts/build-and-test-wgpu.sh
+      - name: Create Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: Ubuntu-Artifacts-WebGPU
+          path: cmake_install_dir/
+        if: always()

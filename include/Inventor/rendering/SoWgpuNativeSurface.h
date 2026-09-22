@@ -1,5 +1,5 @@
-#ifndef COIN_SOWGPURENDERTARGET_H
-#define COIN_SOWGPURENDERTARGET_H
+#ifndef COIN_SOWGPUNATIVESURFACE_H
+#define COIN_SOWGPUNATIVESURFACE_H
 
 /**************************************************************************\
  * Copyright (c) Kongsberg Oil & Gas Technologies AS
@@ -34,46 +34,54 @@
 \**************************************************************************/
 
 #include <Inventor/SbBasic.h>
-#include <Inventor/SbVec2i32.h>
-#include <Inventor/tools/SbPimplPtr.h>
-#include <Inventor/rendering/SoWgpuNativeSurface.h>
+#include <stdint.h>
 
-class SoWgpuRenderTargetP;
-class SoWgpuRenderActionP;
+#define COIN_WGPU_NATIVE_SURFACE_ABI_VERSION 1
 
-class COIN_DLL_API SoWgpuRenderTarget {
-public:
-  enum Status {
-    TARGET_READY = 0,
-    TARGET_NOT_READY,
-    TARGET_LOST,
-    TARGET_ERROR,
-    TARGET_SURFACE_LOST
-  };
-
-  static SoWgpuRenderTarget * createOffscreen(const SbVec2i32 & size);
-  static SoWgpuRenderTarget * createWindow(
-    const SoWgpuNativeSurfaceDescriptor & descriptor,
-    const SbVec2i32 & framebufferSize);
-
-  ~SoWgpuRenderTarget(void);
-
-  Status getStatus(void) const;
-  const char * getLastError(void) const;
-  const SbVec2i32 & getSize(void) const;
-  SbBool resize(const SbVec2i32 & size);
-
-private:
-  SoWgpuRenderTarget(void);
-  SbPimplPtr<SoWgpuRenderTargetP> pimpl;
-  friend class SoWgpuRenderAction;
-  friend class SoWgpuRenderActionP;
-  friend class SoWgpuRenderTargetP;
-#ifdef COIN_INTERNAL
-public:
-  SbPimplPtr<SoWgpuRenderTargetP> & getPimpl(void) { return this->pimpl; }
-  const SbPimplPtr<SoWgpuRenderTargetP> & getPimpl(void) const { return this->pimpl; }
-#endif
+enum SoWgpuNativeSurfaceType {
+  COIN_WGPU_SURFACE_XLIB = 1,
+  COIN_WGPU_SURFACE_WAYLAND = 2,
+  COIN_WGPU_SURFACE_WIN32 = 3,
+  COIN_WGPU_SURFACE_APPKIT_LAYER = 4
 };
 
-#endif // !COIN_SOWGPURENDERTARGET_H
+/**
+ * Tagged and versioned descriptor for native window presentation surfaces.
+ *
+ * Contract & Lifetime:
+ * 1. Coin DOES NOT own the native window, display, connection or presentation layer.
+ * 2. The host application must keep these handles valid until SoWgpuRenderTarget is destroyed.
+ * 3. SoWgpuRenderTarget must be destroyed BEFORE destroying the underlying window or toolkit.
+ * 4. Creation, resize, apply and destruction must occur on the thread owning the window.
+ * 5. Size passed to SoWgpuRenderTarget must be in framebuffer pixels, not logical window points.
+ */
+struct SoWgpuNativeSurfaceDescriptor {
+  uint32_t abiVersion;
+  uint32_t structSize;
+  uint32_t type;
+  uint32_t reserved;
+
+  union {
+    struct {
+      void * display;
+      uint64_t window;
+    } xlib;
+
+    struct {
+      void * display;
+      void * surface;
+    } wayland;
+
+    struct {
+      void * hinstance;
+      void * hwnd;
+    } win32;
+
+    struct {
+      void * metalLayer;
+      void * reserved;
+    } appkit;
+  } native;
+};
+
+#endif // !COIN_SOWGPUNATIVESURFACE_H

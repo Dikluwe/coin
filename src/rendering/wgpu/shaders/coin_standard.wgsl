@@ -43,7 +43,7 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
     let n = normalize(input.normal_view);
     var l = vec3<f32>(0.0, 0.0, 1.0);
     if (u.params.y <= 0.5 && u.params.z > 0.5) {
-        l = normalize(u.light_direction_intensity.xyz);
+        l = normalize(-u.light_direction_intensity.xyz);
     }
     let v = normalize(-input.position_view);
     let h = normalize(l + v);
