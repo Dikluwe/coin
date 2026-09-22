@@ -24,6 +24,7 @@
 #include "rendering/wgpu/SoWgpuRenderTargetP.h"
 #include "rendering/wgpu/SoWgpuFramePlan.h"
 #include "rendering/wgpu/SoWgpuBackend.h"
+#include "rendering/wgpu/SoWgpuCpuReferenceBackend.h"
 
 #if defined(HAVE_WGPU_RUST_BRIDGE)
 #include "rendering/wgpu/SoWgpuRustBackend.h"
@@ -130,6 +131,10 @@ int main() {
     mb->value = SoMaterialBinding::PER_VERTEX;
     root->addChild(mb);
 
+    SoDirectionalLight * dl = new SoDirectionalLight;
+    dl->direction.setValue(0.0f, 0.0f, -1.0f);
+    root->addChild(dl);
+
     SoIndexedFaceSet * ifs = new SoIndexedFaceSet;
     const int32_t indices[] = {0, 1, 2, -1};
     ifs->coordIndex.setValues(0, 4, indices);
@@ -137,11 +142,34 @@ int main() {
 
     SoWgpuRenderAction action(SbViewportRegion(64, 64));
     SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
+    target->getPimpl()->backend = std::unique_ptr<SoWgpuBackend>(new SoWgpuCpuReferenceBackend());
     action.setRenderTarget(target);
     action.apply(root);
 
     TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
                 "Rendering PER_VERTEX material scene must succeed without UNSUPPORTED error");
+
+    // Verify in recording log that vertices have distinct material slots (B03)
+    SoWgpuRenderAction recordAction(SbViewportRegion(64, 64));
+    recordAction.apply(root);
+    SbString recLog = recordAction.getRecordingLog();
+    TEST_ASSERT(recLog.find("matSlot=0") != -1 && recLog.find("matSlot=1") != -1 && recLog.find("matSlot=2") != -1,
+                "PER_VERTEX scene vertices must reference distinct material slots, not collapse to v0");
+
+    // Verify in CPU rasterizer readback that vertices render with distinct colors
+    std::vector<uint8_t> pixels;
+    target->getPimpl()->readbackRGBA(pixels);
+    bool hasGreenDominant = false;
+    bool hasBlueDominant = false;
+    for (size_t i = 0; i < pixels.size(); i += 4) {
+      uint8_t r = pixels[i + 0];
+      uint8_t g = pixels[i + 1];
+      uint8_t b = pixels[i + 2];
+      if (g > 50 && g > r + 20) hasGreenDominant = true;
+      if (b > 50 && b > r + 20) hasBlueDominant = true;
+    }
+    TEST_ASSERT(hasGreenDominant, "PER_VERTEX rasterization must produce green-dominant pixels near vertex 1");
+    TEST_ASSERT(hasBlueDominant, "PER_VERTEX rasterization must produce blue-dominant pixels near vertex 2");
 
     delete target;
     root->unref();
@@ -180,7 +208,10 @@ int main() {
     TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "Apply with rotated camera must succeed");
 
     std::string logRotated(action.getRecordingLog().getString());
-    TEST_ASSERT(logRotated.find("lightingStates count: ") != std::string::npos, "Rotated light state must be captured");
+    TEST_ASSERT(logInitial.find("dir=[0.0000,0.0000,-1.0000]") != std::string::npos,
+                "Initial directional light in view space must be along -Z");
+    TEST_ASSERT(logRotated.find("dir=[1.0000,0.0000,0.0000]") != std::string::npos,
+                "Rotated light direction must strictly be [1, 0, 0] in view space without duplicate transform");
 
     root->unref();
     std::cout << "   [PASS] G0.3 Directional light in view space" << std::endl;
@@ -315,6 +346,10 @@ int main() {
     coords->point.set1Value(1, SbVec3f( 5.0f, -5.0f, -2.0f)); // In front of eye
     coords->point.set1Value(2, SbVec3f( 0.0f,  5.0f, -1.0f)); // In front of eye
     root->addChild(coords);
+
+    SoDirectionalLight * dl = new SoDirectionalLight;
+    dl->direction.setValue(0.0f, 0.0f, -1.0f);
+    root->addChild(dl);
 
     SoIndexedFaceSet * ifs = new SoIndexedFaceSet;
     const int32_t indices[] = {0, 1, 2, -1};
