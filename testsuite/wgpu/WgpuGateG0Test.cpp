@@ -195,10 +195,10 @@ int main() {
     FramePlan plan;
     plan.clearColor = SbColor4f(0.0f, 0.0f, 0.0f, 1.0f);
 
-    // Provide 1 valid vertex
+    // Provide 32 valid vertices/indices so wraparound sum (16) is strictly less than buffer size (32)
     VertexSnapshot vs;
-    plan.vertices.push_back(vs);
-    plan.indices.push_back(0);
+    plan.vertices.assign(32, vs);
+    plan.indices.assign(32, 0);
     plan.materials.push_back(MaterialSnapshot{});
     plan.lightingStates.push_back(LightingSnapshot{});
     plan.cameras.push_back(CameraSnapshot{});
