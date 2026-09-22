@@ -21,6 +21,7 @@
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoCone.h>
 #include <Inventor/nodes/SoLineSet.h>
+#include <Inventor/nodes/SoDrawStyle.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include "rendering/wgpu/SoWgpuRenderTargetP.h"
 
@@ -148,6 +149,9 @@ int main() {
   unsupportedSep->ref();
   unsupportedSep->addChild(cone);
 
+  SoDrawStyle * ds = new SoDrawStyle;
+  ds->lineWidth = 2.0f;
+  unsupportedSep->addChild(ds);
   SoCoordinate3 * coords = new SoCoordinate3;
   coords->point.set1Value(0, 0, 0, 0);
   coords->point.set1Value(1, 1, 1, 1);
@@ -155,7 +159,7 @@ int main() {
   unsupportedSep->addChild(new SoLineSet);
 
   action.apply(unsupportedSep);
-  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::UNSUPPORTED, "Non-triangle topology must be rejected with UNSUPPORTED");
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::UNSUPPORTED, "Unsupported feature (lineWidth > 1.0) must be rejected with UNSUPPORTED");
   std::string err = action.getLastError().getString();
   TEST_ASSERT(err.find("UNSUPPORTED") != std::string::npos, "Diagnostic message must explain unsupported capability");
 

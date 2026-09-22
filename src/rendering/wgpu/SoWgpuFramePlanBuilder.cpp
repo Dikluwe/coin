@@ -1,3 +1,4 @@
+#include <iostream>
 #include "rendering/wgpu/SoWgpuFramePlanBuilder.h"
 
 #include <Inventor/actions/SoCallbackAction.h>

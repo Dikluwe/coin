@@ -283,7 +283,6 @@ SoWgpuRenderTargetP::validateProfile(const FramePlan & frame, const SbVec2i32 & 
       }
     }
 
-    const auto & rs = frame.renderStates[d.renderStateSlot];
     if (rs.lightingSlot < frame.lightingStates.size()) {
       const auto & ls = frame.lightingStates[rs.lightingSlot];
       if (ls.lights.size() > 1) {

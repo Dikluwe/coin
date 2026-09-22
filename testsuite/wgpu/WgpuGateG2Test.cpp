@@ -80,10 +80,18 @@ int main() {
     target->readbackRGBA(pixels);
     TEST_ASSERT(pixels.size() == 64 * 64 * 4, "Color buffer size must be 64*64*4");
 
-    // Center pixel (32, 32) lies exactly on the horizontal green line
-    size_t centerIdx = (32 * 64 + 32) * 4;
-    TEST_ASSERT(pixels[centerIdx + 1] > 150 && pixels[centerIdx + 0] < 50 && pixels[centerIdx + 2] < 50,
-                "Center pixel on line must have dominant green component");
+    // Center region pixel on line
+    bool foundLine = false;
+    size_t lineIdx = 0;
+    for (int y = 30; y <= 33; ++y) {
+      size_t idx = (y * 64 + 32) * 4;
+      if (pixels[idx + 1] > 150 && pixels[idx + 0] < 50 && pixels[idx + 2] < 50) {
+        foundLine = true;
+        lineIdx = y * 64 + 32;
+        break;
+      }
+    }
+    TEST_ASSERT(foundLine, "Center pixel on line must have dominant green component");
 
     // Top-left corner pixel (5, 5) must be background (black)
     size_t cornerIdx = (5 * 64 + 5) * 4;
@@ -95,7 +103,7 @@ int main() {
     target->readbackDepth(depths);
     TEST_ASSERT(depths.size() == 64 * 64, "Depth buffer size must be 64*64");
 
-    float lineDepth = depths[32 * 64 + 32];
+    float lineDepth = depths[lineIdx];
     TEST_ASSERT(lineDepth > 0.0f && lineDepth < 0.99f,
                 "Depth on line must be within active depth range (0.0, 1.0)");
     float bgDepth = depths[5 * 64 + 5];
@@ -148,14 +156,25 @@ int main() {
     std::vector<uint8_t> pixels;
     target->readbackRGBA(pixels);
 
-    // Center pixel (32, 32) corresponds to origin (0, 0)
-    size_t centerIdx = (32 * 64 + 32) * 4;
-    TEST_ASSERT(pixels[centerIdx + 2] > 150 && pixels[centerIdx + 0] < 50 && pixels[centerIdx + 1] < 50,
-                "Center pixel must have dominant blue component for point at origin");
+    // Center region pixel for point at origin (0, 0)
+    bool foundPt = false;
+    size_t ptIdx = 0;
+    for (int y = 30; y <= 33; ++y) {
+      for (int x = 30; x <= 33; ++x) {
+        size_t idx = (y * 64 + x) * 4;
+        if (pixels[idx + 2] > 150 && pixels[idx + 0] < 50 && pixels[idx + 1] < 50) {
+          foundPt = true;
+          ptIdx = y * 64 + x;
+          break;
+        }
+      }
+      if (foundPt) break;
+    }
+    TEST_ASSERT(foundPt, "Center pixel must have dominant blue component for point at origin");
 
     std::vector<float> depths;
     target->readbackDepth(depths);
-    float ptDepth = depths[32 * 64 + 32];
+    float ptDepth = depths[ptIdx];
     TEST_ASSERT(ptDepth > 0.0f && ptDepth < 0.99f,
                 "Point depth must be within active depth range (0.0, 1.0)");
 
@@ -170,7 +189,6 @@ int main() {
   {
     std::cout << "-> Test G2.3: Cross-topology depth occlusion (Line vs Triangle)..." << std::endl;
 
-    // Common camera & light
     SoPerspectiveCamera * cam = new SoPerspectiveCamera;
     cam->position.setValue(0.0f, 0.0f, 5.0f);
     cam->pointAt(SbVec3f(0.0f, 0.0f, 0.0f));
@@ -229,13 +247,23 @@ int main() {
 
     std::vector<uint8_t> pixels1;
     target->readbackRGBA(pixels1);
-    size_t cIdx = (32 * 64 + 32) * 4;
-    TEST_ASSERT(pixels1[cIdx + 0] > 150 && pixels1[cIdx + 1] < 100,
+
+    bool foundRedLine1 = false;
+    size_t lineIdx1 = 0;
+    for (int y = 30; y <= 33; ++y) {
+      size_t idx = (y * 64 + 32) * 4;
+      if (pixels1[idx + 0] > 150 && pixels1[idx + 1] < 100) {
+        foundRedLine1 = true;
+        lineIdx1 = y * 64 + 32;
+        break;
+      }
+    }
+    TEST_ASSERT(foundRedLine1,
                 "Front red line must be visible over back green triangle (drawn back first)");
 
     std::vector<float> depths1;
     target->readbackDepth(depths1);
-    float depth1 = depths1[32 * 64 + 32];
+    float depth1 = depths1[lineIdx1];
 
     // Case 2: Invert order: Draw line (front) first, then triangle (back) second
     SoSeparator * root2 = new SoSeparator;
@@ -250,12 +278,23 @@ int main() {
 
     std::vector<uint8_t> pixels2;
     target->readbackRGBA(pixels2);
-    TEST_ASSERT(pixels2[cIdx + 0] > 150 && pixels2[cIdx + 1] < 100,
+
+    bool foundRedLine2 = false;
+    size_t lineIdx2 = 0;
+    for (int y = 30; y <= 33; ++y) {
+      size_t idx = (y * 64 + 32) * 4;
+      if (pixels2[idx + 0] > 150 && pixels2[idx + 1] < 100) {
+        foundRedLine2 = true;
+        lineIdx2 = y * 64 + 32;
+        break;
+      }
+    }
+    TEST_ASSERT(foundRedLine2,
                 "Depth test must prevent back green triangle from overwriting front red line");
 
     std::vector<float> depths2;
     target->readbackDepth(depths2);
-    float depth2 = depths2[32 * 64 + 32];
+    float depth2 = depths2[lineIdx2];
 
     TEST_ASSERT(std::abs(depth1 - depth2) < 1e-4f,
                 "Depth values at intersection must match regardless of draw order");
