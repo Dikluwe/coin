@@ -41,6 +41,12 @@ SoWgpuRecordingBackend::~SoWgpuRecordingBackend()
 }
 
 BackendStatus
+SoWgpuRecordingBackend::getStatus() const
+{
+  return BackendStatus::SUCCESS;
+}
+
+BackendStatus
 SoWgpuRecordingBackend::prepare(SoWgpuRenderTargetP & /*target*/)
 {
   return BackendStatus::SUCCESS;
