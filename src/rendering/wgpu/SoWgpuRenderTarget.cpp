@@ -90,18 +90,33 @@ SoWgpuRenderTargetP::initWindow(const SoWgpuNativeSurfaceDescriptor & desc, cons
     return false;
   }
 
-  switch (desc.type) {
-    case COIN_WGPU_SURFACE_XLIB:
-      if (!desc.native.xlib.display || desc.native.xlib.window == 0) {
-        this->status = SoWgpuRenderTarget::TARGET_ERROR;
-        this->lastError = "Invalid Xlib surface handles: null display or zero window";
-        return false;
-      }
-      break;
-    default:
+  if (desc.type == COIN_WGPU_SURFACE_XLIB) {
+    if (desc.native.xlib.display == nullptr) {
       this->status = SoWgpuRenderTarget::TARGET_ERROR;
-      this->lastError = "Unsupported native surface type";
+      this->lastError = "Null display pointer in Xlib surface descriptor";
       return false;
+    }
+    if (desc.native.xlib.window == 0) {
+      this->status = SoWgpuRenderTarget::TARGET_ERROR;
+      this->lastError = "Window ID must be non-zero in Xlib surface descriptor";
+      return false;
+    }
+  } else if (desc.type == COIN_WGPU_SURFACE_WAYLAND) {
+    this->status = SoWgpuRenderTarget::TARGET_ERROR;
+    this->lastError = "Wayland surface descriptor not supported in Onda 1B";
+    return false;
+  } else if (desc.type == COIN_WGPU_SURFACE_WIN32) {
+    this->status = SoWgpuRenderTarget::TARGET_ERROR;
+    this->lastError = "Win32 surface descriptor not supported in Onda 1B";
+    return false;
+  } else if (desc.type == COIN_WGPU_SURFACE_APPKIT_LAYER) {
+    this->status = SoWgpuRenderTarget::TARGET_ERROR;
+    this->lastError = "AppKit layer surface descriptor not supported in Onda 1B";
+    return false;
+  } else {
+    this->status = SoWgpuRenderTarget::TARGET_ERROR;
+    this->lastError = "Unknown native surface type in SoWgpuNativeSurfaceDescriptor";
+    return false;
   }
 
   if (fbSize[0] <= 0 || fbSize[1] <= 0) {
