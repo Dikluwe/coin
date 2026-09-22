@@ -12,6 +12,7 @@
 
 #if defined(HAVE_WGPU_RUST_BRIDGE)
 #include "rendering/wgpu/SoWgpuRustBackend.h"
+#include "rendering/wgpu/coin_wgpu_ffi.h"
 #elif defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
 #include "rendering/wgpu/SoWgpuNativeBackend.h"
 #endif
@@ -30,12 +31,14 @@
 #include <cstring>
 #include <new>
 
+static_assert(sizeof(SoWgpuNativeSurfaceDescriptor) >= 32, "SoWgpuNativeSurfaceDescriptor size check");
+
 // SoWgpuRenderTargetP private implementation
 
 SoWgpuRenderTargetP::SoWgpuRenderTargetP(const SbVec2i32 & sz)
   : kind(KIND_OFFSCREEN),
     status(SoWgpuRenderTarget::TARGET_READY),
-    size(0, 0),
+    size(sz),
     generation(0),
     surfaceId(0),
     suspended(false),
@@ -47,6 +50,14 @@ SoWgpuRenderTargetP::SoWgpuRenderTargetP(const SbVec2i32 & sz)
 
 SoWgpuRenderTargetP::~SoWgpuRenderTargetP()
 {
+#if defined(HAVE_WGPU_RUST_BRIDGE)
+  if (this->surfaceId != 0) {
+    char errBuf[256] = {0};
+    coin_wgpu_surface_destroy(this->surfaceId, errBuf, sizeof(errBuf));
+    this->surfaceId = 0;
+  }
+#endif
+  this->backend.reset();
 }
 
 bool
@@ -63,17 +74,43 @@ SoWgpuRenderTargetP::initWindow(const SoWgpuNativeSurfaceDescriptor & desc, cons
   this->lastError = "Native window surface targets are not supported by the RECORDING backend; RUST_BRIDGE backend is required.";
   return false;
 #else
-  if (desc.platform == SO_WGPU_SURFACE_PLATFORM_NONE || desc.window_handle == 0) {
+  if (desc.abiVersion != COIN_WGPU_NATIVE_SURFACE_ABI_VERSION) {
     this->status = SoWgpuRenderTarget::TARGET_ERROR;
-    this->lastError = "Invalid native surface descriptor: missing platform or window handle";
+    this->lastError = "Invalid ABI version in SoWgpuNativeSurfaceDescriptor: expected 1";
     return false;
   }
+  if (desc.structSize != sizeof(SoWgpuNativeSurfaceDescriptor)) {
+    this->status = SoWgpuRenderTarget::TARGET_ERROR;
+    this->lastError = "Invalid structSize in SoWgpuNativeSurfaceDescriptor";
+    return false;
+  }
+  if (desc.reserved != 0) {
+    this->status = SoWgpuRenderTarget::TARGET_ERROR;
+    this->lastError = "Reserved field must be 0 in SoWgpuNativeSurfaceDescriptor";
+    return false;
+  }
+
+  switch (desc.type) {
+    case COIN_WGPU_SURFACE_XLIB:
+      if (!desc.native.xlib.display || desc.native.xlib.window == 0) {
+        this->status = SoWgpuRenderTarget::TARGET_ERROR;
+        this->lastError = "Invalid Xlib surface handles: null display or zero window";
+        return false;
+      }
+      break;
+    default:
+      this->status = SoWgpuRenderTarget::TARGET_ERROR;
+      this->lastError = "Unsupported native surface type";
+      return false;
+  }
+
   if (fbSize[0] <= 0 || fbSize[1] <= 0) {
     this->size = fbSize;
     this->status = SoWgpuRenderTarget::TARGET_NOT_READY;
     this->lastError = "Window surface framebuffer size is not ready (zero or negative)";
     return true;
   }
+
   this->size = fbSize;
   this->status = SoWgpuRenderTarget::TARGET_READY;
   this->lastError.clear();
@@ -404,31 +441,7 @@ SoWgpuRenderTarget::getSize(void) const
 }
 
 SbBool
-SoWgpuRenderTarget::resize(const SbVec2i32 & newSize)
+SoWgpuRenderTarget::resize(const SbVec2i32 & size)
 {
-  return this->pimpl->resize(newSize) ? TRUE : FALSE;
-}
-
-void
-SoWgpuRenderTarget::readbackRGBA(std::vector<uint8_t> & outRgba) const
-{
-  this->pimpl->readbackRGBA(outRgba);
-}
-
-uint32_t
-SoWgpuRenderTarget::getGeneration(void) const
-{
-  return this->pimpl->generation;
-}
-
-SbBool
-SoWgpuRenderTarget::isWindowTarget(void) const
-{
-  return this->pimpl->kind == SoWgpuRenderTargetP::KIND_WINDOW ? TRUE : FALSE;
-}
-
-const SoWgpuNativeSurfaceDescriptor &
-SoWgpuRenderTarget::getNativeSurfaceDescriptor(void) const
-{
-  return this->pimpl->nativeDesc;
+  return this->pimpl->resize(size) ? TRUE : FALSE;
 }
