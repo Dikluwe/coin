@@ -43,7 +43,7 @@
 } while (0)
 
 // Helper: Custom callback node to test reentrancy (B08)
-static void reentrantCallback(void * userdata, SoCallbackAction * /*action*/) {
+static void reentrantCallback(void * userdata, SoAction * /*action*/) {
   SoWgpuRenderAction * renderAction = static_cast<SoWgpuRenderAction *>(userdata);
   SoSeparator * dummy = new SoSeparator;
   dummy->ref();
