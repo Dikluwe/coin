@@ -184,6 +184,22 @@ if(COIN_BUILD_WGPU)
 	add_test(NAME WgpuGateG0Test COMMAND WgpuGateG0Test)
 	set_tests_properties(WgpuGateG0Test PROPERTIES TIMEOUT 30)
 
+	add_executable(WgpuGateG1Test
+		wgpu/WgpuGateG1Test.cpp
+	)
+	set_target_properties(WgpuGateG1Test PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(WgpuGateG1Test Coin ${COIN_TARGET_LINK_LIBRARIES})
+	target_include_directories(WgpuGateG1Test PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}
+		${PROJECT_SOURCE_DIR}/include
+		${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include
+		${PROJECT_BINARY_DIR}/src
+		${COIN_TARGET_INCLUDE_DIRECTORIES}
+	)
+	add_test(NAME WgpuGateG1Test COMMAND WgpuGateG1Test)
+	set_tests_properties(WgpuGateG1Test PROPERTIES TIMEOUT 30)
+
 	if(COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE" AND (UNIX AND NOT APPLE AND X11_FOUND))
 		add_executable(WgpuSurfaceTest
 			wgpu/WgpuSurfaceTest.cpp
