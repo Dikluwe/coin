@@ -74,7 +74,7 @@ BackendStatus
 SoWgpuNativeBackend::prepare(SoWgpuRenderTargetP & /*target*/)
 {
 #if defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
-  if (this->isReady) return BackendStatus::SUCCESS;
+  if (this->isReady) return SubmitResult(BackendStatus::SUCCESS, "");
 
   WGPUInstanceDescriptor instDesc = {};
   instDesc.nextInChain = nullptr;
@@ -90,7 +90,7 @@ SoWgpuNativeBackend::prepare(SoWgpuRenderTargetP & /*target*/)
   wgpuInstanceRequestAdapter(this->instance, &opt, onAdapterRequestEnded, &this->adapter);
   if (!this->adapter) {
     this->lastError = "No compatible WebGPU adapter found";
-    return BackendStatus::NOT_READY;
+    return SubmitResult(BackendStatus::NOT_READY, this->lastError);
   }
 
   WGPUDeviceDescriptor devDesc = {};
@@ -98,7 +98,7 @@ SoWgpuNativeBackend::prepare(SoWgpuRenderTargetP & /*target*/)
   wgpuAdapterRequestDevice(this->adapter, &devDesc, onDeviceRequestEnded, &this->device);
   if (!this->device) {
     this->lastError = "Failed to create WebGPU device";
-    return BackendStatus::NOT_READY;
+    return SubmitResult(BackendStatus::NOT_READY, this->lastError);
   }
 
   this->queue = wgpuDeviceGetQueue(this->device);
@@ -108,14 +108,14 @@ SoWgpuNativeBackend::prepare(SoWgpuRenderTargetP & /*target*/)
   }
 
   this->isReady = true;
-  return BackendStatus::SUCCESS;
+  return SubmitResult(BackendStatus::SUCCESS, "");
 #else
   this->lastError = "Native WebGPU backend not enabled at compile time";
   return BackendStatus::UNSUPPORTED;
 #endif
 }
 
-BackendStatus
+SubmitResult
 SoWgpuNativeBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target)
 {
 #if defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
@@ -243,7 +243,7 @@ SoWgpuNativeBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & targe
   if (depthView) wgpuTextureViewRelease(depthView);
   if (depthTex) wgpuTextureRelease(depthTex);
 
-  return BackendStatus::SUCCESS;
+  return SubmitResult(BackendStatus::SUCCESS, "");
 #else
   this->lastError = "Native WebGPU backend not enabled at compile time";
   return BackendStatus::UNSUPPORTED;

@@ -39,6 +39,8 @@ public:
   bool resize(const SbVec2i32 & newSize);
   void clear(float r, float g, float b, float a, float depthVal = 1.0f);
   void readbackRGBA(std::vector<uint8_t> & outRgba) const;
+  void readbackDepth(std::vector<float> & outDepth) const;
+  uint64_t lastSubmissionSerial{0};
 
   // Preflight validation according to Onda 1 profile (Section 4.6)
   static FrameExecutionResult validateProfile(const FramePlan & frame, const SbVec2i32 & targetSize);

@@ -112,6 +112,9 @@ typedef struct CoinWgpuTarget {
   uint32_t height;
   uint8_t * color_buffer;
   uint64_t color_buffer_len;
+  float * depth_buffer;
+  uint64_t depth_buffer_len;
+  uint64_t submission_serial;
 } CoinWgpuTarget;
 
 int32_t coin_wgpu_is_available(void);

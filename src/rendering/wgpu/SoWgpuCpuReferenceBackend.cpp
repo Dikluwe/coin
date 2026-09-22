@@ -1,4 +1,5 @@
 #include "rendering/wgpu/SoWgpuCpuReferenceBackend.h"
+#include <atomic>
 #include "rendering/wgpu/SoWgpuRenderTargetP.h"
 #include <Inventor/SbMatrix.h>
 #include <Inventor/SbVec2f.h>
@@ -183,10 +184,11 @@ SoWgpuCpuReferenceBackend::prepare(SoWgpuRenderTargetP & target)
   }
   this->status = BackendStatus::SUCCESS;
   this->lastError.clear();
-  return BackendStatus::SUCCESS;
+  static std::atomic<uint64_t> globalCpuSerial(1);
+  return SubmitResult(BackendStatus::SUCCESS, "", globalCpuSerial.fetch_add(1));
 }
 
-BackendStatus
+SubmitResult
 SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target)
 {
   try {
@@ -345,7 +347,8 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
     target.status = SoWgpuRenderTarget::TARGET_READY;
     this->status = BackendStatus::SUCCESS;
     this->lastError.clear();
-    return BackendStatus::SUCCESS;
+    static std::atomic<uint64_t> globalCpuSerial(1);
+  return SubmitResult(BackendStatus::SUCCESS, "", globalCpuSerial.fetch_add(1));
   } catch (const std::bad_alloc &) {
     this->status = BackendStatus::OUT_OF_MEMORY;
     this->lastError = "Out of memory during software rasterization";

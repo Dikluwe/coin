@@ -240,6 +240,12 @@ SoWgpuRenderTargetP::readbackRGBA(std::vector<uint8_t> & outRgba) const
   outRgba = this->colorBuffer;
 }
 
+void
+SoWgpuRenderTargetP::readbackDepth(std::vector<float> & outDepth) const
+{
+  outDepth = this->depthBuffer;
+}
+
 FrameExecutionResult
 SoWgpuRenderTargetP::validateProfile(const FramePlan & frame, const SbVec2i32 & targetSize)
 {
@@ -383,38 +389,46 @@ SoWgpuRenderTargetP::executeFrame(const FramePlan & frame)
     this->status = SoWgpuRenderTarget::TARGET_READY;
   }
 
-  BackendStatus res = this->backend->submit(frame, *this);
-  if (res != BackendStatus::SUCCESS) {
-    std::string lastErr = this->backend ? this->backend->getLastError() : std::string();
+  if (this->kind == KIND_OFFSCREEN) {
+    size_t pixelCount = static_cast<size_t>(this->size[0] * this->size[1]);
+    if (this->depthBuffer.size() != pixelCount) {
+      this->depthBuffer.assign(pixelCount, 1.0f);
+    }
+  }
+
+  SubmitResult res = this->backend->submit(frame, *this);
+  if (res.status != BackendStatus::SUCCESS) {
+    std::string lastErr = res.diagnostic.empty() ? (this->backend ? this->backend->getLastError() : std::string()) : res.diagnostic;
     this->lastError = lastErr;
-    if (res == BackendStatus::DEVICE_LOST) {
+    if (res.status == BackendStatus::DEVICE_LOST) {
       if (lastErr.empty()) lastErr = "WebGPU device lost during frame submission";
       this->lastError = lastErr;
       this->generation++;
       this->backend.reset();
       this->status = SoWgpuRenderTarget::TARGET_LOST;
-      return FrameExecutionResult(BackendStatus::DEVICE_LOST, lastErr);
-    } else if (res == BackendStatus::NOT_READY) {
+      return SubmitResult(BackendStatus::DEVICE_LOST, lastErr, res.submissionSerial);
+    } else if (res.status == BackendStatus::NOT_READY) {
       this->status = SoWgpuRenderTarget::TARGET_NOT_READY;
-      return FrameExecutionResult(BackendStatus::NOT_READY, lastErr);
-    } else if (res == BackendStatus::SURFACE_LOST) {
+      return SubmitResult(BackendStatus::NOT_READY, lastErr, res.submissionSerial);
+    } else if (res.status == BackendStatus::SURFACE_LOST) {
       this->status = SoWgpuRenderTarget::TARGET_SURFACE_LOST;
-      return FrameExecutionResult(BackendStatus::SURFACE_LOST, lastErr);
-    } else if (res == BackendStatus::OUT_OF_MEMORY) {
+      return SubmitResult(BackendStatus::SURFACE_LOST, lastErr, res.submissionSerial);
+    } else if (res.status == BackendStatus::OUT_OF_MEMORY) {
       this->status = SoWgpuRenderTarget::TARGET_ERROR;
-      return FrameExecutionResult(BackendStatus::OUT_OF_MEMORY, lastErr);
-    } else if (res == BackendStatus::UNSUPPORTED) {
+      return SubmitResult(BackendStatus::OUT_OF_MEMORY, lastErr, res.submissionSerial);
+    } else if (res.status == BackendStatus::UNSUPPORTED) {
       this->status = SoWgpuRenderTarget::TARGET_ERROR;
-      return FrameExecutionResult(BackendStatus::UNSUPPORTED, lastErr);
+      return SubmitResult(BackendStatus::UNSUPPORTED, lastErr, res.submissionSerial);
     } else {
       this->status = SoWgpuRenderTarget::TARGET_ERROR;
-      return FrameExecutionResult(BackendStatus::BACKEND_ERROR, lastErr);
+      return SubmitResult(BackendStatus::BACKEND_ERROR, lastErr, res.submissionSerial);
     }
   }
 
+  this->lastSubmissionSerial = res.submissionSerial;
   this->status = SoWgpuRenderTarget::TARGET_READY;
   this->lastError.clear();
-  return FrameExecutionResult(BackendStatus::SUCCESS, "");
+  return res;
 }
 
 // Public SoWgpuRenderTarget class implementation
@@ -460,6 +474,18 @@ const SbVec2i32 &
 SoWgpuRenderTarget::getSize(void) const
 {
   return this->pimpl->size;
+}
+
+void
+SoWgpuRenderTarget::readbackDepth(std::vector<float> & outDepth) const
+{
+  this->pimpl->readbackDepth(outDepth);
+}
+
+uint64_t
+SoWgpuRenderTarget::getLastSubmissionSerial(void) const
+{
+  return this->pimpl->lastSubmissionSerial;
 }
 
 SbBool

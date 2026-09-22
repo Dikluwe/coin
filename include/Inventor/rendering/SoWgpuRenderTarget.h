@@ -62,6 +62,8 @@ public:
   const char * getLastError(void) const;
   const SbVec2i32 & getSize(void) const;
   SbBool resize(const SbVec2i32 & size);
+  void readbackDepth(std::vector<float> & outDepth) const;
+  uint64_t getLastSubmissionSerial(void) const;
 
 private:
   SoWgpuRenderTarget(void);

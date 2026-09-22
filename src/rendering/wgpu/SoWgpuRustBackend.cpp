@@ -37,7 +37,7 @@ static_assert(alignof(CoinWgpuRenderState) == 4, "CoinWgpuRenderState alignment 
 static_assert(offsetof(CoinWgpuRenderState, cull_mode) == 236, "CoinWgpuRenderState cull_mode offset mismatch");
 static_assert(offsetof(CoinWgpuRenderState, front_face) == 240, "CoinWgpuRenderState front_face offset mismatch");
 
-static_assert(sizeof(CoinWgpuTarget) == 24, "CoinWgpuTarget size mismatch");
+static_assert(sizeof(CoinWgpuTarget) == 48, "CoinWgpuTarget size mismatch");
 static_assert(sizeof(CoinWgpuFrameView) == 112, "CoinWgpuFrameView size mismatch");
 static_assert(sizeof(CoinWgpuNativeSurfaceDescriptor) == 32, "CoinWgpuNativeSurfaceDescriptor size mismatch");
 static_assert(sizeof(CoinWgpuSurfaceCreateInfo) == 48, "CoinWgpuSurfaceCreateInfo size mismatch");
@@ -134,7 +134,7 @@ SoWgpuRustBackend::prepare(SoWgpuRenderTargetP & target)
   return BackendStatus::SUCCESS;
 }
 
-BackendStatus
+SubmitResult
 SoWgpuRustBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target)
 {
   if (target.kind == SoWgpuRenderTargetP::KIND_OFFSCREEN) {
@@ -270,6 +270,7 @@ SoWgpuRustBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target)
 
   char errBuf[512] = {0};
   CoinWgpuStatus st = COIN_WGPU_OK;
+  uint64_t serial = 0;
 
   if (target.kind == SoWgpuRenderTargetP::KIND_WINDOW) {
     st = coin_wgpu_surface_submit(target.surfaceId, &fView, errBuf, sizeof(errBuf));
@@ -280,33 +281,37 @@ SoWgpuRustBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target)
     tPod.height = static_cast<uint32_t>(target.size[1]);
     tPod.color_buffer = target.colorBuffer.data();
     tPod.color_buffer_len = static_cast<uint64_t>(target.colorBuffer.size());
+    tPod.depth_buffer = target.depthBuffer.data();
+    tPod.depth_buffer_len = static_cast<uint64_t>(target.depthBuffer.size());
+    tPod.submission_serial = 0;
 
     // 7. Submit to WebGPU via FFI
     st = coin_wgpu_submit(&tPod, &fView, errBuf, sizeof(errBuf));
+    serial = tPod.submission_serial;
   }
 
   if (st != COIN_WGPU_OK) {
     this->lastError = errBuf[0] ? errBuf : "WebGPU bridge execution failed";
     switch (st) {
       case COIN_WGPU_NOT_READY:
-        return BackendStatus::NOT_READY;
+        return SubmitResult(BackendStatus::NOT_READY, this->lastError, serial);
       case COIN_WGPU_UNSUPPORTED:
-        return BackendStatus::UNSUPPORTED;
+        return SubmitResult(BackendStatus::UNSUPPORTED, this->lastError, serial);
       case COIN_WGPU_OUT_OF_MEMORY:
-        return BackendStatus::OUT_OF_MEMORY;
+        return SubmitResult(BackendStatus::OUT_OF_MEMORY, this->lastError, serial);
       case COIN_WGPU_DEVICE_LOST:
-        return BackendStatus::DEVICE_LOST;
+        return SubmitResult(BackendStatus::DEVICE_LOST, this->lastError, serial);
       case COIN_WGPU_SURFACE_LOST:
-        return BackendStatus::SURFACE_LOST;
+        return SubmitResult(BackendStatus::SURFACE_LOST, this->lastError, serial);
       case COIN_WGPU_INVALID_ARGUMENT:
       case COIN_WGPU_BACKEND_ERROR:
       default:
-        return BackendStatus::BACKEND_ERROR;
+        return SubmitResult(BackendStatus::BACKEND_ERROR, this->lastError, serial);
     }
   }
 
   this->lastError.clear();
-  return BackendStatus::SUCCESS;
+  return SubmitResult(BackendStatus::SUCCESS, "", serial);
 }
 
 void

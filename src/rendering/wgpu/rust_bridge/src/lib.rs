@@ -133,12 +133,18 @@ pub struct CoinWgpuFrameView {
 }
 
 #[repr(C)]
+#[derive(Copy, Clone, Debug)]
 pub struct CoinWgpuTarget {
     pub width: u32,
     pub height: u32,
     pub color_buffer: *mut u8,
     pub color_buffer_len: u64,
+    pub depth_buffer: *mut f32,
+    pub depth_buffer_len: u64,
+    pub submission_serial: u64,
 }
+
+static GLOBAL_SUBMISSION_SERIAL: AtomicU64 = AtomicU64::new(1);
 
 static WGSL_SHADER: &str = include_str!("../../shaders/coin_standard.wgsl");
 
@@ -1712,7 +1718,7 @@ pub extern "C" fn coin_wgpu_submit(
             return CoinWgpuStatus::InvalidArgument;
         }
 
-        let tgt = unsafe { &*target };
+        let tgt = unsafe { &mut *target };
         let f = unsafe { &*frame };
 
         // 3. ABI version and struct size validation
@@ -1981,7 +1987,7 @@ pub extern "C" fn coin_wgpu_submit(
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Depth32Float,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
             view_formats: &[],
         };
         let depth_texture = ctx.device.create_texture(&depth_desc);
@@ -2044,6 +2050,44 @@ pub extern "C" fn coin_wgpu_submit(
             },
         );
 
+        let depth_unpadded = width * 4;
+        let depth_bytes_per_row = (depth_unpadded + 255) & !255;
+        let depth_staging_size = (depth_bytes_per_row as u64) * (height as u64);
+        let depth_staging_info = if !tgt.depth_buffer.is_null()
+            && tgt.depth_buffer_len >= (width as u64) * (height as u64)
+        {
+            let dbuf = ctx.device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("Offscreen Depth Staging Buffer"),
+                size: depth_staging_size,
+                usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            });
+            copy_encoder.copy_texture_to_buffer(
+                wgpu::TexelCopyTextureInfo {
+                    texture: &depth_texture,
+                    mip_level: 0,
+                    origin: wgpu::Origin3d::ZERO,
+                    aspect: wgpu::TextureAspect::DepthOnly,
+                },
+                wgpu::TexelCopyBufferInfo {
+                    buffer: &dbuf,
+                    layout: wgpu::TexelCopyBufferLayout {
+                        offset: 0,
+                        bytes_per_row: Some(depth_bytes_per_row),
+                        rows_per_image: Some(height),
+                    },
+                },
+                wgpu::Extent3d {
+                    width,
+                    height,
+                    depth_or_array_layers: 1,
+                },
+            );
+            Some((dbuf, depth_bytes_per_row))
+        } else {
+            None
+        };
+
         ctx.queue.submit([cmd_buffer, copy_encoder.finish()]);
 
         let buffer_slice = staging_buffer.slice(..);
@@ -2051,6 +2095,14 @@ pub extern "C" fn coin_wgpu_submit(
         buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
             let _ = sender.send(result);
         });
+
+        let (depth_sender, depth_receiver) = std::sync::mpsc::channel();
+        let depth_slice_holder = depth_staging_info.as_ref().map(|(buf, _)| buf.slice(..));
+        if let Some(ref dslice) = depth_slice_holder {
+            dslice.map_async(wgpu::MapMode::Read, move |result| {
+                let _ = depth_sender.send(result);
+            });
+        }
 
         let _ = ctx.device.poll(wgpu::Maintain::Wait);
 
@@ -2117,6 +2169,26 @@ pub extern "C" fn coin_wgpu_submit(
                             .copy_from_slice(&data[src_offset..src_offset + row_bytes]);
                     }
                 }
+
+                if let (Some(ref dslice), Some((_, d_bpr))) = (&depth_slice_holder, &depth_staging_info) {
+                    if let Ok(Ok(())) = depth_receiver.recv() {
+                        let ddata = dslice.get_mapped_range();
+                        let dfloats: &[f32] = bytemuck::cast_slice(&ddata);
+                        let floats_per_row = (*d_bpr / 4) as usize;
+                        let row_floats = width as usize;
+                        let out_depth = unsafe { std::slice::from_raw_parts_mut(tgt.depth_buffer, (width * height) as usize) };
+                        for y in 0..height as usize {
+                            let src_off = y * floats_per_row;
+                            let dst_off = y * row_floats;
+                            if dst_off + row_floats <= out_depth.len() && src_off + row_floats <= dfloats.len() {
+                                out_depth[dst_off..dst_off + row_floats]
+                                    .copy_from_slice(&dfloats[src_off..src_off + row_floats]);
+                            }
+                        }
+                    }
+                }
+
+                tgt.submission_serial = GLOBAL_SUBMISSION_SERIAL.fetch_add(1, Ordering::SeqCst);
                 CoinWgpuStatus::Ok
             }
             Ok(Err(buf_err)) => {

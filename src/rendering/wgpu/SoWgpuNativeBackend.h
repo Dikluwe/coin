@@ -22,8 +22,8 @@ public:
   bool isGpuBackend() const override { return true; }
   BackendStatus getStatus() const override;
   BackendStatus prepare(SoWgpuRenderTargetP & target) override;
-  BackendStatus submit(const FramePlan & frame,
-                       SoWgpuRenderTargetP & target) override;
+  SubmitResult submit(const FramePlan & frame,
+                      SoWgpuRenderTargetP & target) override;
   void poll() override;
   const std::string & getLastError() const override { return this->lastError; }
 
