@@ -184,8 +184,7 @@ SoWgpuCpuReferenceBackend::prepare(SoWgpuRenderTargetP & target)
   }
   this->status = BackendStatus::SUCCESS;
   this->lastError.clear();
-  static std::atomic<uint64_t> globalCpuSerial(1);
-  return SubmitResult(BackendStatus::SUCCESS, "", globalCpuSerial.fetch_add(1));
+  return BackendStatus::SUCCESS;
 }
 
 SubmitResult
@@ -198,7 +197,7 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
     if (width <= 0 || height <= 0) {
       this->status = BackendStatus::NOT_READY;
       this->lastError = "Target size is zero or negative";
-      return BackendStatus::NOT_READY;
+      return SubmitResult(BackendStatus::NOT_READY, this->lastError);
     }
 
     target.clear(frame.clearColor[0], frame.clearColor[1], frame.clearColor[2], frame.clearColor[3], 1.0f);
@@ -353,6 +352,6 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
     this->status = BackendStatus::OUT_OF_MEMORY;
     this->lastError = "Out of memory during software rasterization";
     target.status = SoWgpuRenderTarget::TARGET_ERROR;
-    return BackendStatus::OUT_OF_MEMORY;
+    return SubmitResult(BackendStatus::OUT_OF_MEMORY, this->lastError);
   }
 }

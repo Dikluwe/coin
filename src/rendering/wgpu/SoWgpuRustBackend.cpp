@@ -333,7 +333,7 @@ SoWgpuRustBackend::SoWgpuRustBackend() : status(BackendStatus::UNSUPPORTED), las
 SoWgpuRustBackend::~SoWgpuRustBackend() {}
 BackendStatus SoWgpuRustBackend::getStatus() const { return status; }
 BackendStatus SoWgpuRustBackend::prepare(SoWgpuRenderTargetP &) { return BackendStatus::UNSUPPORTED; }
-BackendStatus SoWgpuRustBackend::submit(const FramePlan &, SoWgpuRenderTargetP &) { return BackendStatus::UNSUPPORTED; }
+SubmitResult SoWgpuRustBackend::submit(const FramePlan &, SoWgpuRenderTargetP &) { return SubmitResult(BackendStatus::UNSUPPORTED, "Rust bridge not compiled in"); }
 void SoWgpuRustBackend::poll() {}
 const std::string & SoWgpuRustBackend::getLastError() const { return lastError; }
 bool SoWgpuRustBackend::isAvailable() { return false; }

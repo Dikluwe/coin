@@ -34,6 +34,8 @@
 \**************************************************************************/
 
 #include <Inventor/SbBasic.h>
+#include <vector>
+#include <cstdint>
 #include <Inventor/SbVec2i32.h>
 #include <Inventor/tools/SbPimplPtr.h>
 #include <Inventor/rendering/SoWgpuNativeSurface.h>
@@ -62,6 +64,7 @@ public:
   const char * getLastError(void) const;
   const SbVec2i32 & getSize(void) const;
   SbBool resize(const SbVec2i32 & size);
+  void readbackRGBA(std::vector<uint8_t> & outPixels) const;
   void readbackDepth(std::vector<float> & outDepth) const;
   uint64_t getLastSubmissionSerial(void) const;
 

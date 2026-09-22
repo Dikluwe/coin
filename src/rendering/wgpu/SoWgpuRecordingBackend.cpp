@@ -52,12 +52,12 @@ SoWgpuRecordingBackend::prepare(SoWgpuRenderTargetP & /*target*/)
   return BackendStatus::SUCCESS;
 }
 
-BackendStatus
+SubmitResult
 SoWgpuRecordingBackend::submit(const FramePlan & frame,
                                SoWgpuRenderTargetP & /*target*/)
 {
   this->lastRecordingLog = this->recordToString(frame);
-  return BackendStatus::SUCCESS;
+  return SubmitResult(BackendStatus::SUCCESS, "", ++this->submissionSerial);
 }
 
 void

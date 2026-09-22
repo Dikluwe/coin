@@ -39,7 +39,6 @@
 
 int main() {
   SoDB::init();
-  SoWgpuRenderAction::initClass();
 
   std::cout << "Running WgpuGateG1Test (Onda 2B Backend WebGPU Real)..." << std::endl;
 
@@ -156,6 +155,7 @@ int main() {
     frontSep->ref();
     SoMaterial * redMat = new SoMaterial;
     redMat->diffuseColor.setValue(1.0f, 0.0f, 0.0f);
+    redMat->ambientColor.setValue(0.0f, 0.0f, 0.0f);
     frontSep->addChild(redMat);
     SoCoordinate3 * frontCoords = new SoCoordinate3;
     frontCoords->point.set1Value(0, SbVec3f(-1.0f, -1.0f, 1.0f));
@@ -172,6 +172,7 @@ int main() {
     backSep->ref();
     SoMaterial * greenMat = new SoMaterial;
     greenMat->diffuseColor.setValue(0.0f, 1.0f, 0.0f);
+    greenMat->ambientColor.setValue(0.0f, 0.0f, 0.0f);
     backSep->addChild(greenMat);
     SoCoordinate3 * backCoords = new SoCoordinate3;
     backCoords->point.set1Value(0, SbVec3f(-1.0f, -1.0f, -1.0f));
@@ -295,6 +296,8 @@ int main() {
     TEST_ASSERT(target->getStatus() == SoWgpuRenderTarget::TARGET_LOST,
                 "Target must enter TARGET_LOST state on DEVICE_LOST");
 
+    // Clear fault to simulate restored device environment and verify transparent recovery
+    coin_wgpu_inject_fault(0);
     // Next frame must transparently recover and succeed
     action.apply(root);
     TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,

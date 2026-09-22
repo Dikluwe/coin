@@ -477,6 +477,12 @@ SoWgpuRenderTarget::getSize(void) const
 }
 
 void
+SoWgpuRenderTarget::readbackRGBA(std::vector<uint8_t> & outPixels) const
+{
+  this->pimpl->readbackRGBA(outPixels);
+}
+
+void
 SoWgpuRenderTarget::readbackDepth(std::vector<float> & outDepth) const
 {
   this->pimpl->readbackDepth(outDepth);
