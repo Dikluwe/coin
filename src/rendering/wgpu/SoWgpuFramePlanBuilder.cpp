@@ -160,6 +160,12 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
   camSnap.isPerspective = (vv.getProjectionType() == SbViewVolume::PERSPECTIVE);
   camSnap.nearDistance = vv.getNearDist();
   camSnap.farDistance = vv.getNearDist() + vv.getDepth();
+  if (camSnap.isPerspective && camSnap.nearDistance <= 0.0f) {
+    camSnap.nearDistance = 0.1f;
+  }
+  if (camSnap.farDistance <= camSnap.nearDistance) {
+    camSnap.farDistance = camSnap.nearDistance + 100.0f;
+  }
   camSnap.focalDistance = action->getFocalDistance();
   const SbViewportRegion & vp = action->getViewportRegion();
   camSnap.aspectRatio = vp.getViewportAspectRatio();

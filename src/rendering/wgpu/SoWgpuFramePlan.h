@@ -181,8 +181,8 @@ struct FramePlan {
         if (outDiagnostic) *outDiagnostic = "Camera matrix contains non-finite values";
         return false;
       }
-      if (!isFiniteF(c.nearDistance) || !isFiniteF(c.farDistance) || c.nearDistance <= 0.0f || c.farDistance <= c.nearDistance) {
-        if (outDiagnostic) *outDiagnostic = "Camera clip planes are invalid or non-positive";
+      if (!isFiniteF(c.nearDistance) || !isFiniteF(c.farDistance) || c.farDistance <= c.nearDistance) {
+        if (outDiagnostic) *outDiagnostic = "Camera clip planes are invalid or inverted";
         return false;
       }
     }
