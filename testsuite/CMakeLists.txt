@@ -132,3 +132,32 @@ CHECK_CXX_COMPILER_FLAG(-Wtautological-compare DISABLE_WARNING_TAUTOLOGCOMPARE)
 if(DISABLE_WARNING_TAUTOLOGCOMPARE)
 	target_compile_options(CoinTests PUBLIC -Wno-tautological-compare)
 endif()
+
+if(COIN_BUILD_WGPU)
+	add_executable(WgpuRenderActionTest
+		actions/WgpuRenderActionTest.cpp
+	)
+	target_link_libraries(WgpuRenderActionTest Coin ${COIN_TARGET_LINK_LIBRARIES})
+	target_include_directories(WgpuRenderActionTest PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}
+		${PROJECT_SOURCE_DIR}/include
+		${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include
+		${COIN_TARGET_INCLUDE_DIRECTORIES}
+	)
+	add_test(NAME WgpuRenderActionTest COMMAND WgpuRenderActionTest)
+
+	add_executable(WgpuOffscreenTest
+		wgpu/WgpuOffscreenTest.cpp
+	)
+	set_target_properties(WgpuOffscreenTest PROPERTIES COMPILE_DEFINITIONS COIN_INTERNAL)
+	target_link_libraries(WgpuOffscreenTest Coin ${COIN_TARGET_LINK_LIBRARIES})
+	target_include_directories(WgpuOffscreenTest PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}
+		${PROJECT_SOURCE_DIR}/include
+		${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include
+		${COIN_TARGET_INCLUDE_DIRECTORIES}
+	)
+	add_test(NAME WgpuOffscreenTest COMMAND WgpuOffscreenTest)
+endif()

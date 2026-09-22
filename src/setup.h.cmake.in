@@ -122,6 +122,14 @@
 #cmakedefine COIN_HAVE_JAVASCRIPT
 
 /***************************************************************************
+ * HAVE_WGPU
+ *
+ * WebGPU experimental render action support.
+ */
+
+#cmakedefine HAVE_WGPU
+
+/***************************************************************************
  * The end.
  *
  * Make sure this header file is not installed, and only used when building

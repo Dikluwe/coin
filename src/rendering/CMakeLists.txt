@@ -17,6 +17,21 @@ set(COIN_RENDERING_FILES
 	CoinOffscreenGLCanvas.cpp
 )
 
+if(COIN_BUILD_WGPU)
+	list(APPEND COIN_RENDERING_FILES
+		wgpu/SoWgpuFramePlanBuilder.cpp
+		wgpu/SoWgpuRecordingBackend.cpp
+		wgpu/SoWgpuRenderTarget.cpp
+	)
+	list(APPEND COIN_RENDERING_INTERNAL_FILES
+		wgpu/SoWgpuFramePlan.h
+		wgpu/SoWgpuFramePlanBuilder.h
+		wgpu/SoWgpuBackend.h
+		wgpu/SoWgpuRecordingBackend.h
+		wgpu/SoWgpuRenderTargetP.h
+	)
+endif()
+
 # Files excluded from public API documentation, included in complete documentation.
 set(COIN_RENDERING_INTERNAL_FILES
 	SoGL.h

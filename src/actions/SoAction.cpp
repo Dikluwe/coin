@@ -226,6 +226,9 @@
 #include "tidbitsp.h"
 #include "coindefs.h" // COIN_OBSOLETED
 #include "actions/SoActionP.h"
+#ifdef HAVE_WGPU
+#include <Inventor/actions/SoWgpuRenderAction.h>
+#endif
 #include "misc/SoDBP.h" // for global envvar COIN_PROFILER
 #include "misc/SoCompactPathList.h"
 
@@ -429,6 +432,9 @@ SoAction::initClasses(void)
 #ifdef HAVE_VRML97
   SoToVRML2Action::initClass();
 #endif // HAVE_VRML97
+#ifdef HAVE_WGPU
+  SoWgpuRenderAction::initClass();
+#endif
 }
 
 /*!
