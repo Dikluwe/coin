@@ -93,9 +93,9 @@ int main() {
     TEST_ASSERT(log.getLength() > 0, "Recording log must not be empty");
     std::string logStr(log.getString());
     // Both SoCone and SoCube generate multiple draw calls or triangles
-    TEST_ASSERT(logStr.find("DRAWS count=") != std::string::npos, "Log must include draws section");
+    TEST_ASSERT(logStr.find("draws count: ") != std::string::npos, "Log must include draws section");
     // Verify that multiple draws were recorded
-    size_t drawsPos = logStr.find("DRAWS count=");
+    size_t drawsPos = logStr.find("draws count: ");
     TEST_ASSERT(drawsPos != std::string::npos, "DRAWS count must be present");
 
     p1->unref();
@@ -172,7 +172,7 @@ int main() {
     TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "Apply with camera and light must succeed");
 
     std::string logInitial(action.getRecordingLog().getString());
-    TEST_ASSERT(logInitial.find("LIGHTING_STATES count=") != std::string::npos, "Lighting state must be captured");
+    TEST_ASSERT(logInitial.find("lightingStates count: ") != std::string::npos, "Lighting state must be captured");
 
     // Now rotate camera 90 degrees around Y axis (look towards +X)
     cam->orientation.setValue(SbVec3f(0.0f, 1.0f, 0.0f), static_cast<float>(M_PI / 2.0));
@@ -180,7 +180,7 @@ int main() {
     TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "Apply with rotated camera must succeed");
 
     std::string logRotated(action.getRecordingLog().getString());
-    TEST_ASSERT(logRotated.find("LIGHTING_STATES count=") != std::string::npos, "Rotated light state must be captured");
+    TEST_ASSERT(logRotated.find("lightingStates count: ") != std::string::npos, "Rotated light state must be captured");
 
     root->unref();
     std::cout << "   [PASS] G0.3 Directional light in view space" << std::endl;
