@@ -12,6 +12,8 @@
 #include "actions/SoSubActionP.h"
 #if defined(HAVE_WGPU_RUST_BRIDGE)
 #include "rendering/wgpu/SoWgpuRustBackend.h"
+#elif defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
+#include "rendering/wgpu/SoWgpuNativeBackend.h"
 #endif
 
 SO_ACTION_SOURCE(SoWgpuRenderAction);
@@ -28,7 +30,7 @@ SoWgpuRenderAction::isGpuBackendAvailable(void)
 #if defined(HAVE_WGPU_RUST_BRIDGE)
   return SoWgpuRustBackend::isAvailable() ? TRUE : FALSE;
 #elif defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
-  return TRUE;
+  return SoWgpuNativeBackend::isAvailable() ? TRUE : FALSE;
 #else
   return FALSE;
 #endif

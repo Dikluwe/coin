@@ -21,17 +21,17 @@ set(COIN_ACTIONS_FILES
 	SoAudioRenderAction.cpp
 )
 
-if(COIN_BUILD_WGPU)
-	list(APPEND COIN_ACTIONS_FILES SoWgpuRenderAction.cpp)
-	list(APPEND COIN_ACTIONS_INTERNAL_FILES SoWgpuRenderActionP.h)
-endif()
-
 # Files excluded from public API documentation, included in complete documentation.
 set(COIN_ACTIONS_INTERNAL_FILES
 	SoActionP.h
 	SoActionP.cpp
 	SoSubActionP.h
 )
+
+if(COIN_BUILD_WGPU)
+	list(APPEND COIN_ACTIONS_FILES SoWgpuRenderAction.cpp)
+	list(APPEND COIN_ACTIONS_INTERNAL_FILES SoWgpuRenderActionP.h)
+endif()
 
 # build library
 if(COIN_BUILD_SINGLE_LIB)

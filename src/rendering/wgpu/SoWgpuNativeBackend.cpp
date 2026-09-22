@@ -12,7 +12,8 @@
 #include <vector>
 
 SoWgpuNativeBackend::SoWgpuNativeBackend()
-  : lastError("")
+  : status(BackendStatus::SUCCESS)
+  , lastError("")
 #if defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
   , instance(nullptr)
   , adapter(nullptr)
@@ -21,6 +22,22 @@ SoWgpuNativeBackend::SoWgpuNativeBackend()
   , isReady(false)
 #endif
 {
+}
+
+BackendStatus
+SoWgpuNativeBackend::getStatus() const
+{
+  return this->status;
+}
+
+bool
+SoWgpuNativeBackend::isAvailable()
+{
+#if defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
+  return false; // Native backend spike is pending in Wave 2B
+#else
+  return false;
+#endif
 }
 
 SoWgpuNativeBackend::~SoWgpuNativeBackend()

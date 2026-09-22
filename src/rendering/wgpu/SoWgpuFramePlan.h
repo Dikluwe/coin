@@ -57,12 +57,14 @@ enum class LightType : uint32_t {
   SPOT = 2
 };
 
+// Contract: Light direction and position are strictly in View Space (camera space).
+// Backends consume direction/position directly without applying camera viewMatrix again.
 struct LightSourceSnapshot {
   LightType type = LightType::DIRECTIONAL;
   float color[3] = {1.0f, 1.0f, 1.0f};
   float intensity = 1.0f;
-  float direction[3] = {0.0f, 0.0f, -1.0f};
-  float position[3] = {0.0f, 0.0f, 0.0f};
+  float direction[3] = {0.0f, 0.0f, -1.0f}; // View space direction
+  float position[3] = {0.0f, 0.0f, 0.0f};   // View space position
 };
 
 struct LightingSnapshot {
@@ -123,6 +125,16 @@ struct FramePlan {
   inline bool isValid(std::string * outDiagnostic = nullptr) const {
     auto isFiniteF = [](float v) { return std::isfinite(v); };
 
+    auto isMatrixFinite = [&](const SbMatrix & m) {
+      const float (*mat)[4] = m.getValue();
+      for (int r = 0; r < 4; ++r) {
+        for (int c = 0; c < 4; ++c) {
+          if (!isFiniteF(mat[r][c])) return false;
+        }
+      }
+      return true;
+    };
+
     // Validate clear color
     for (int i = 0; i < 4; ++i) {
       if (!isFiniteF(clearColor[i])) {
@@ -132,7 +144,8 @@ struct FramePlan {
     }
 
     // Validate vertices
-    for (size_t i = 0; i < vertices.size(); ++i) {
+    const size_t numVertices = vertices.size();
+    for (size_t i = 0; i < numVertices; ++i) {
       const auto & v = vertices[i];
       for (int k = 0; k < 3; ++k) {
         if (!isFiniteF(v.position[k]) || !isFiniteF(v.normal[k])) {
@@ -153,9 +166,23 @@ struct FramePlan {
     }
 
     // Validate indices
-    for (size_t i = 0; i < indices.size(); ++i) {
-      if (indices[i] >= vertices.size()) {
+    const size_t numIndices = indices.size();
+    for (size_t i = 0; i < numIndices; ++i) {
+      if (indices[i] >= numVertices) {
         if (outDiagnostic) *outDiagnostic = "Index out of range of vertex buffer";
+        return false;
+      }
+    }
+
+    // Validate cameras
+    for (size_t i = 0; i < cameras.size(); ++i) {
+      const auto & c = cameras[i];
+      if (!isMatrixFinite(c.viewMatrix) || !isMatrixFinite(c.projectionMatrixCoin)) {
+        if (outDiagnostic) *outDiagnostic = "Camera matrix contains non-finite values";
+        return false;
+      }
+      if (!isFiniteF(c.nearDistance) || !isFiniteF(c.farDistance) || c.nearDistance <= 0.0f || c.farDistance <= c.nearDistance) {
+        if (outDiagnostic) *outDiagnostic = "Camera clip planes are invalid or non-positive";
         return false;
       }
     }
@@ -168,15 +195,13 @@ struct FramePlan {
         return false;
       }
       const auto & geom = d.geometry;
-      uint64_t vStart = static_cast<uint64_t>(geom.firstVertex);
-      uint64_t vCount = static_cast<uint64_t>(geom.vertexCount);
-      if (vStart + vCount > static_cast<uint64_t>(vertices.size())) {
+
+      // Safe subtraction validation against 32-bit overflow (B05)
+      if (geom.firstVertex > numVertices || geom.vertexCount > (numVertices - geom.firstVertex)) {
         if (outDiagnostic) *outDiagnostic = "Draw vertex range out of bounds";
         return false;
       }
-      uint64_t iStart = static_cast<uint64_t>(geom.firstIndex);
-      uint64_t iCount = static_cast<uint64_t>(geom.indexCount);
-      if (iStart + iCount > static_cast<uint64_t>(indices.size())) {
+      if (geom.firstIndex > numIndices || geom.indexCount > (numIndices - geom.firstIndex)) {
         if (outDiagnostic) *outDiagnostic = "Draw index range out of bounds";
         return false;
       }
@@ -191,6 +216,10 @@ struct FramePlan {
       }
 
       const auto & rs = renderStates[d.renderStateSlot];
+      if (!isMatrixFinite(rs.model) || !isMatrixFinite(rs.view) || !isMatrixFinite(rs.projectionCoin)) {
+        if (outDiagnostic) *outDiagnostic = "RenderState matrix contains non-finite values";
+        return false;
+      }
       if (materials.empty() || rs.materialSlot >= materials.size()) {
         if (outDiagnostic) *outDiagnostic = "RenderState materialSlot out of range";
         return false;

@@ -43,8 +43,15 @@ static_assert(sizeof(CoinWgpuNativeSurfaceDescriptor) == 32, "CoinWgpuNativeSurf
 static_assert(sizeof(CoinWgpuSurfaceCreateInfo) == 48, "CoinWgpuSurfaceCreateInfo size mismatch");
 
 SoWgpuRustBackend::SoWgpuRustBackend()
-  : lastError("")
+  : status(BackendStatus::SUCCESS),
+    lastError("")
 {
+}
+
+BackendStatus
+SoWgpuRustBackend::getStatus() const
+{
+  return this->status;
 }
 
 SoWgpuRustBackend::~SoWgpuRustBackend()
@@ -317,8 +324,9 @@ SoWgpuRustBackend::getLastError() const
 // Stub implementation when Rust bridge is disabled
 #include "rendering/wgpu/SoWgpuRustBackend.h"
 
-SoWgpuRustBackend::SoWgpuRustBackend() : lastError("Rust bridge not compiled in") {}
+SoWgpuRustBackend::SoWgpuRustBackend() : status(BackendStatus::UNSUPPORTED), lastError("Rust bridge not compiled in") {}
 SoWgpuRustBackend::~SoWgpuRustBackend() {}
+BackendStatus SoWgpuRustBackend::getStatus() const { return status; }
 BackendStatus SoWgpuRustBackend::prepare(SoWgpuRenderTargetP &) { return BackendStatus::UNSUPPORTED; }
 BackendStatus SoWgpuRustBackend::submit(const FramePlan &, SoWgpuRenderTargetP &) { return BackendStatus::UNSUPPORTED; }
 void SoWgpuRustBackend::poll() {}

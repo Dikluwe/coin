@@ -34,6 +34,8 @@ struct FrameExecutionResult {
 class SoWgpuBackend {
 public:
   virtual ~SoWgpuBackend() {}
+  virtual bool isGpuBackend() const = 0;
+  virtual BackendStatus getStatus() const = 0;
   virtual BackendStatus prepare(SoWgpuRenderTargetP & target) = 0;
   virtual BackendStatus submit(const FramePlan & frame,
                                SoWgpuRenderTargetP & target) = 0;

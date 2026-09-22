@@ -17,33 +17,6 @@ set(COIN_RENDERING_FILES
 	CoinOffscreenGLCanvas.cpp
 )
 
-if(COIN_BUILD_WGPU)
-	list(APPEND COIN_RENDERING_FILES
-		wgpu/SoWgpuFramePlanBuilder.cpp
-		wgpu/SoWgpuRecordingBackend.cpp
-		wgpu/SoWgpuRenderTarget.cpp
-	)
-	if(COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE")
-		list(APPEND COIN_RENDERING_FILES
-			wgpu/SoWgpuRustBackend.cpp
-		)
-	elseif(COIN_WGPU_BACKEND STREQUAL "DAWN" OR COIN_WGPU_BACKEND STREQUAL "WGPU_NATIVE")
-		list(APPEND COIN_RENDERING_FILES
-			wgpu/SoWgpuNativeBackend.cpp
-		)
-	endif()
-	list(APPEND COIN_RENDERING_INTERNAL_FILES
-		wgpu/SoWgpuFramePlan.h
-		wgpu/SoWgpuFramePlanBuilder.h
-		wgpu/SoWgpuBackend.h
-		wgpu/SoWgpuRecordingBackend.h
-		wgpu/SoWgpuRenderTargetP.h
-		wgpu/SoWgpuNativeBackend.h
-		wgpu/SoWgpuRustBackend.h
-		wgpu/coin_wgpu_ffi.h
-	)
-endif()
-
 # Files excluded from public API documentation, included in complete documentation.
 set(COIN_RENDERING_INTERNAL_FILES
 	SoGL.h
@@ -65,6 +38,35 @@ set(COIN_RENDERING_INTERNAL_FILES
 	CoinOffscreenGLCanvas.h
 	CoinOffscreenGLCanvas.cpp
 )
+
+if(COIN_BUILD_WGPU)
+	list(APPEND COIN_RENDERING_FILES
+		wgpu/SoWgpuFramePlanBuilder.cpp
+		wgpu/SoWgpuRecordingBackend.cpp
+		wgpu/SoWgpuCpuReferenceBackend.cpp
+		wgpu/SoWgpuRenderTarget.cpp
+	)
+	if(COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE")
+		list(APPEND COIN_RENDERING_FILES
+			wgpu/SoWgpuRustBackend.cpp
+		)
+	elseif(COIN_WGPU_BACKEND STREQUAL "DAWN" OR COIN_WGPU_BACKEND STREQUAL "WGPU_NATIVE")
+		list(APPEND COIN_RENDERING_FILES
+			wgpu/SoWgpuNativeBackend.cpp
+		)
+	endif()
+	list(APPEND COIN_RENDERING_INTERNAL_FILES
+		wgpu/SoWgpuFramePlan.h
+		wgpu/SoWgpuFramePlanBuilder.h
+		wgpu/SoWgpuBackend.h
+		wgpu/SoWgpuRecordingBackend.h
+		wgpu/SoWgpuCpuReferenceBackend.h
+		wgpu/SoWgpuRenderTargetP.h
+		wgpu/SoWgpuNativeBackend.h
+		wgpu/SoWgpuRustBackend.h
+		wgpu/coin_wgpu_ffi.h
+	)
+endif()
 
 # build library
 if(COIN_BUILD_SINGLE_LIB)
