@@ -119,10 +119,17 @@ SoWgpuRenderTargetP::initWindow(const SoWgpuNativeSurfaceDescriptor & desc, cons
     return false;
   }
 
-  if (fbSize[0] <= 0 || fbSize[1] <= 0) {
+  if (fbSize[0] < 0 || fbSize[1] < 0) {
+    this->status = SoWgpuRenderTarget::TARGET_ERROR;
+    this->lastError = "Framebuffer dimensions must not be negative";
+    return false;
+  }
+
+  if (fbSize[0] == 0 || fbSize[1] == 0) {
     this->size = fbSize;
+    this->suspended = true;
+    this->needsReconfigure = true;
     this->status = SoWgpuRenderTarget::TARGET_NOT_READY;
-    this->lastError = "Window surface framebuffer size is not ready (zero or negative)";
     return true;
   }
 
