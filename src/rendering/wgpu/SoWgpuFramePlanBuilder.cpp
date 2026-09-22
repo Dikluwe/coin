@@ -235,6 +235,10 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
   rs.viewportSlot = viewportSlot;
   rs.cullMode = cullMode;
   rs.frontFace = frontFace;
+  float curLw = action->getLineWidth();
+  float curPs = action->getPointSize();
+  rs.lineWidth = (curLw <= 0.0f) ? 1.0f : curLw;
+  rs.pointSize = (curPs <= 0.0f) ? 1.0f : curPs;
 
   uint32_t rsSlot = 0;
   bool rsFound = false;
@@ -246,6 +250,8 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
         existing.viewportSlot == viewportSlot &&
         existing.cullMode == cullMode &&
         existing.frontFace == frontFace &&
+        existing.lineWidth == rs.lineWidth &&
+        existing.pointSize == rs.pointSize &&
         existing.model == rs.model &&
         existing.view == rs.view &&
         existing.projectionCoin == rs.projectionCoin) {

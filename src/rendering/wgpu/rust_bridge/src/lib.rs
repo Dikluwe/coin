@@ -147,9 +147,12 @@ pub struct CoinWgpuTarget {
 static GLOBAL_SUBMISSION_SERIAL: AtomicU64 = AtomicU64::new(1);
 
 static WGSL_SHADER: &str = include_str!("../../shaders/coin_standard.wgsl");
+static WGSL_LINE_SHADER: &str = include_str!("../../shaders/coin_line.wgsl");
+static WGSL_POINT_SHADER: &str = include_str!("../../shaders/coin_point.wgsl");
 
 #[derive(Hash, PartialEq, Eq, Clone, Debug)]
 struct PipelineKey {
+    topology: u32,
     color_format: wgpu::TextureFormat,
     depth_format: wgpu::TextureFormat,
     sample_count: u32,
@@ -163,6 +166,8 @@ struct DeviceState {
     device: wgpu::Device,
     queue: wgpu::Queue,
     shader_module: wgpu::ShaderModule,
+    line_shader_module: wgpu::ShaderModule,
+    point_shader_module: wgpu::ShaderModule,
     bind_group_layout: wgpu::BindGroupLayout,
     pipeline_layout: wgpu::PipelineLayout,
     pipelines: Mutex<HashMap<PipelineKey, wgpu::RenderPipeline>>,
@@ -469,6 +474,16 @@ fn get_or_init_device<'a>(
         source: wgpu::ShaderSource::Wgsl(WGSL_SHADER.into()),
     });
 
+    let line_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some("coin_line.wgsl"),
+        source: wgpu::ShaderSource::Wgsl(WGSL_LINE_SHADER.into()),
+    });
+
+    let point_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some("coin_point.wgsl"),
+        source: wgpu::ShaderSource::Wgsl(WGSL_POINT_SHADER.into()),
+    });
+
     let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         label: Some("Coin Uniform BindGroupLayout"),
         entries: &[wgpu::BindGroupLayoutEntry {
@@ -498,6 +513,8 @@ fn get_or_init_device<'a>(
         device,
         queue,
         shader_module: shader,
+        line_shader_module: line_shader,
+        point_shader_module: point_shader,
         bind_group_layout,
         pipeline_layout,
         pipelines: Mutex::new(HashMap::new()),
@@ -600,17 +617,27 @@ fn configure_surface_record(
 
 fn get_or_create_pipeline<'a>(
     ctx: &'a DeviceState,
+    topology: u32,
     color_format: wgpu::TextureFormat,
     depth_format: wgpu::TextureFormat,
     cull_face: Option<wgpu::Face>,
     front_face: wgpu::FrontFace,
 ) -> Result<wgpu::RenderPipeline, String> {
     let mut map = ctx.pipelines.lock().map_err(|e| e.to_string())?;
+
+    // Lines and Points have culling disabled by specification
+    let (primitive_topology, selected_shader, effective_cull) = match topology {
+        1 => (wgpu::PrimitiveTopology::LineList, &ctx.line_shader_module, None),
+        2 => (wgpu::PrimitiveTopology::PointList, &ctx.point_shader_module, None),
+        _ => (wgpu::PrimitiveTopology::TriangleList, &ctx.shader_module, cull_face),
+    };
+
     let key = PipelineKey {
+        topology,
         color_format,
         depth_format,
         sample_count: 1,
-        cull_mode: cull_face,
+        cull_mode: effective_cull,
         front_face,
     };
     if let Some(p) = map.get(&key) {
@@ -634,19 +661,25 @@ fn get_or_create_pipeline<'a>(
         ],
     };
 
+    let pipeline_label = match topology {
+        1 => "Coin Line Render Pipeline",
+        2 => "Coin Point Render Pipeline",
+        _ => "Coin Standard Render Pipeline",
+    };
+
     let pipeline = ctx
         .device
         .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("Coin Standard Render Pipeline"),
+            label: Some(pipeline_label),
             layout: Some(&ctx.pipeline_layout),
             vertex: wgpu::VertexState {
-                module: &ctx.shader_module,
+                module: selected_shader,
                 entry_point: Some("vs_main"),
                 buffers: &[vertex_buffer_layout],
                 compilation_options: wgpu::PipelineCompilationOptions::default(),
             },
             fragment: Some(wgpu::FragmentState {
-                module: &ctx.shader_module,
+                module: selected_shader,
                 entry_point: Some("fs_main"),
                 targets: &[Some(wgpu::ColorTargetState {
                     format: color_format,
@@ -656,10 +689,10 @@ fn get_or_create_pipeline<'a>(
                 compilation_options: wgpu::PipelineCompilationOptions::default(),
             }),
             primitive: wgpu::PrimitiveState {
-                topology: wgpu::PrimitiveTopology::TriangleList,
+                topology: primitive_topology,
                 strip_index_format: None,
                 front_face,
-                cull_mode: cull_face,
+                cull_mode: effective_cull,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 unclipped_depth: false,
                 conservative: false,
@@ -781,6 +814,7 @@ fn encode_frame(
 
             let pipeline = match get_or_create_pipeline(
                 ctx,
+                draw.topology,
                 color_format,
                 wgpu::TextureFormat::Depth32Float,
                 cull_face,

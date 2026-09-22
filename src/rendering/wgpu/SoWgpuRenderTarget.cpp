@@ -256,14 +256,31 @@ SoWgpuRenderTargetP::validateProfile(const FramePlan & frame, const SbVec2i32 & 
 
   for (size_t i = 0; i < frame.draws.size(); ++i) {
     const auto & d = frame.draws[i];
-    if (d.topology != PrimitiveTopology::TRIANGLE_LIST) {
+    if (d.topology != PrimitiveTopology::TRIANGLE_LIST &&
+        d.topology != PrimitiveTopology::LINE_LIST &&
+        d.topology != PrimitiveTopology::POINT_LIST) {
       std::ostringstream ss;
-      ss << "UNSUPPORTED: Draw " << i << " topology is not TRIANGLE_LIST. Wave 1 profile requires TRIANGLE_LIST.";
+      ss << "UNSUPPORTED: Draw " << i << " topology is unsupported.";
       return FrameExecutionResult{BackendStatus::UNSUPPORTED, ss.str()};
     }
 
     if (d.renderStateSlot >= frame.renderStates.size()) {
       return FrameExecutionResult{BackendStatus::BACKEND_ERROR, "Invalid renderStateSlot in draw packet"};
+    }
+
+    const auto & rs = frame.renderStates[d.renderStateSlot];
+    if (d.topology == PrimitiveTopology::LINE_LIST) {
+      if (rs.lineWidth > 1.0f + 1e-4f) {
+        std::ostringstream ss;
+        ss << "UNSUPPORTED: Line width " << rs.lineWidth << " > 1.0 is unsupported in native line-list topology.";
+        return FrameExecutionResult{BackendStatus::UNSUPPORTED, ss.str()};
+      }
+    } else if (d.topology == PrimitiveTopology::POINT_LIST) {
+      if (rs.pointSize > 1.0f + 1e-4f) {
+        std::ostringstream ss;
+        ss << "UNSUPPORTED: Point size " << rs.pointSize << " > 1.0 is unsupported in native point-list topology.";
+        return FrameExecutionResult{BackendStatus::UNSUPPORTED, ss.str()};
+      }
     }
 
     const auto & rs = frame.renderStates[d.renderStateSlot];

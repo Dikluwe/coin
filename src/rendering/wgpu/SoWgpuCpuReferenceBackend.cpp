@@ -204,9 +204,7 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
 
     for (size_t dIdx = 0; dIdx < frame.draws.size(); ++dIdx) {
       const auto & draw = frame.draws[dIdx];
-      if (draw.topology != PrimitiveTopology::TRIANGLE_LIST) {
-        continue;
-      }
+// Process supported topologies
       if (draw.renderStateSlot >= frame.renderStates.size()) {
         continue;
       }
@@ -243,8 +241,9 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
         continue;
       }
 
-      uint32_t endIdx = draw.geometry.firstIndex + draw.geometry.indexCount;
-      for (uint32_t idx = draw.geometry.firstIndex; idx + 2 < endIdx; idx += 3) {
+      if (draw.topology == PrimitiveTopology::TRIANGLE_LIST) {
+        uint32_t endIdx = draw.geometry.firstIndex + draw.geometry.indexCount;
+        for (uint32_t idx = draw.geometry.firstIndex; idx + 2 < endIdx; idx += 3) {
         uint32_t i0 = frame.indices[idx];
         uint32_t i1 = frame.indices[idx + 1];
         uint32_t i2 = frame.indices[idx + 2];
@@ -339,6 +338,96 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
                             frame,
                             rs.cullMode, rs.frontFace,
                             target.depthBuffer, target.colorBuffer);
+        }
+      }
+      } else if (draw.topology == PrimitiveTopology::LINE_LIST) {
+        uint32_t endIdx = draw.geometry.firstIndex + draw.geometry.indexCount;
+        for (uint32_t idx = draw.geometry.firstIndex; idx + 1 < endIdx; idx += 2) {
+          uint32_t i0 = frame.indices[idx];
+          uint32_t i1 = frame.indices[idx + 1];
+          if (i0 >= frame.vertices.size() || i1 >= frame.vertices.size()) continue;
+
+          const VertexSnapshot & v0 = frame.vertices[i0];
+          const VertexSnapshot & v1 = frame.vertices[i1];
+
+          SbVec4f clip0, clip1;
+          mvpWgpu.multVecMatrix(SbVec4f(v0.position[0], v0.position[1], v0.position[2], 1.0f), clip0);
+          mvpWgpu.multVecMatrix(SbVec4f(v1.position[0], v1.position[1], v1.position[2], 1.0f), clip1);
+
+          if (clip0[3] < 1e-5f || clip1[3] < 1e-5f) continue;
+
+          float x0 = (clip0[0] / clip0[3] + 1.0f) * 0.5f * width;
+          float y0 = (1.0f - clip0[1] / clip0[3]) * 0.5f * height;
+          float z0 = clip0[2] / clip0[3];
+
+          float x1 = (clip1[0] / clip1[3] + 1.0f) * 0.5f * width;
+          float y1 = (1.0f - clip1[1] / clip1[3]) * 0.5f * height;
+          float z1 = clip1[2] / clip1[3];
+
+          const auto & m0 = frame.materials[v0.materialSlot < frame.materials.size() ? v0.materialSlot : 0];
+          const auto & m1 = frame.materials[v1.materialSlot < frame.materials.size() ? v1.materialSlot : 0];
+
+          float dx = x1 - x0;
+          float dy = y1 - y0;
+          float dist = std::max(std::abs(dx), std::abs(dy));
+          int steps = std::max(1, static_cast<int>(std::ceil(dist)));
+
+          for (int s = 0; s <= steps; ++s) {
+            float t = static_cast<float>(s) / static_cast<float>(steps);
+            int px = static_cast<int>(std::round(x0 + t * dx));
+            int py = static_cast<int>(std::round(y0 + t * dy));
+            float z = z0 + t * (z1 - z0);
+
+            if (px >= 0 && px < width && py >= 0 && py < height && z >= 0.0f && z <= 1.0f) {
+              size_t pIdx = py * width + px;
+              if (z <= target.depthBuffer[pIdx]) {
+                target.depthBuffer[pIdx] = z;
+                float r = (1.0f - t) * (m0.diffuse[0] + m0.ambient[0]) + t * (m1.diffuse[0] + m1.ambient[0]);
+                float g = (1.0f - t) * (m0.diffuse[1] + m0.ambient[1]) + t * (m1.diffuse[1] + m1.ambient[1]);
+                float b = (1.0f - t) * (m0.diffuse[2] + m0.ambient[2]) + t * (m1.diffuse[2] + m1.ambient[2]);
+                size_t cIdx = pIdx * 4;
+                if (cIdx + 3 < target.colorBuffer.size()) {
+                  target.colorBuffer[cIdx + 0] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, r * 255.0f)));
+                  target.colorBuffer[cIdx + 1] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, g * 255.0f)));
+                  target.colorBuffer[cIdx + 2] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, b * 255.0f)));
+                  target.colorBuffer[cIdx + 3] = 255;
+                }
+              }
+            }
+          }
+        }
+      } else if (draw.topology == PrimitiveTopology::POINT_LIST) {
+        uint32_t endIdx = draw.geometry.firstIndex + draw.geometry.indexCount;
+        for (uint32_t idx = draw.geometry.firstIndex; idx < endIdx; ++idx) {
+          uint32_t i0 = frame.indices[idx];
+          if (i0 >= frame.vertices.size()) continue;
+
+          const VertexSnapshot & v0 = frame.vertices[i0];
+          SbVec4f clip0;
+          mvpWgpu.multVecMatrix(SbVec4f(v0.position[0], v0.position[1], v0.position[2], 1.0f), clip0);
+          if (clip0[3] < 1e-5f) continue;
+
+          int px = static_cast<int>(std::round((clip0[0] / clip0[3] + 1.0f) * 0.5f * width));
+          int py = static_cast<int>(std::round((1.0f - clip0[1] / clip0[3]) * 0.5f * height));
+          float z = clip0[2] / clip0[3];
+
+          if (px >= 0 && px < width && py >= 0 && py < height && z >= 0.0f && z <= 1.0f) {
+            size_t pIdx = py * width + px;
+            if (z <= target.depthBuffer[pIdx]) {
+              target.depthBuffer[pIdx] = z;
+              const auto & m0 = frame.materials[v0.materialSlot < frame.materials.size() ? v0.materialSlot : 0];
+              float r = m0.diffuse[0] + m0.ambient[0];
+              float g = m0.diffuse[1] + m0.ambient[1];
+              float b = m0.diffuse[2] + m0.ambient[2];
+              size_t cIdx = pIdx * 4;
+              if (cIdx + 3 < target.colorBuffer.size()) {
+                target.colorBuffer[cIdx + 0] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, r * 255.0f)));
+                target.colorBuffer[cIdx + 1] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, g * 255.0f)));
+                target.colorBuffer[cIdx + 2] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, b * 255.0f)));
+                target.colorBuffer[cIdx + 3] = 255;
+              }
+            }
+          }
         }
       }
     }

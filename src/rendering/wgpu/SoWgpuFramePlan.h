@@ -109,6 +109,8 @@ struct RenderStateSnapshot {
   uint32_t viewportSlot = 0;
   CullMode cullMode = CullMode::BACK;
   FrontFace frontFace = FrontFace::CCW;
+  float lineWidth = 1.0f;
+  float pointSize = 1.0f;
 };
 
 struct FramePlan {

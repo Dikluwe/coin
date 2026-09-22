@@ -205,7 +205,7 @@ if(COIN_BUILD_WGPU)
       OUTPUT "${RUST_LIB_PATH}"
       COMMAND ${CMAKE_COMMAND} -E env CARGO_TARGET_DIR=${RUST_TARGET_DIR} ${CARGO_EXECUTABLE} build ${CARGO_BUILD_FLAGS} --manifest-path "${RUST_BRIDGE_DIR}/Cargo.toml"
       WORKING_DIRECTORY "${RUST_BRIDGE_DIR}"
-      DEPENDS "${RUST_BRIDGE_DIR}/src/lib.rs" "${RUST_BRIDGE_DIR}/Cargo.toml" "${RUST_BRIDGE_DIR}/Cargo.lock" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/wgpu/shaders/coin_standard.wgsl"
+      DEPENDS "${RUST_BRIDGE_DIR}/src/lib.rs" "${RUST_BRIDGE_DIR}/Cargo.toml" "${RUST_BRIDGE_DIR}/Cargo.lock" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/wgpu/shaders/coin_standard.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/wgpu/shaders/coin_line.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/wgpu/shaders/coin_point.wgsl"
       COMMENT "Building Rust WebGPU bridge library (${RUST_PROFILE_DIR})..."
       VERBATIM
     )
