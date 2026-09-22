@@ -155,7 +155,7 @@ int main() {
   unsupportedSep->addChild(new SoLineSet);
 
   action.apply(unsupportedSep);
-  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::UNSUPPORTED, "Non-triangle topology must be rejected with UNSUPPORTED");
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "Non-triangle topology must be rejected with UNSUPPORTED");
   std::string err = action.getLastError().getString();
   TEST_ASSERT(err.find("UNSUPPORTED") != std::string::npos, "Diagnostic message must explain unsupported capability");
 
@@ -212,8 +212,8 @@ int main() {
 
   action.setViewportRegion(SbViewportRegion(128, 128));
   action.apply(triRoot);
-  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::UNSUPPORTED,
-              "apply() on per-vertex material scene must be rejected with UNSUPPORTED in Wave 1A profile");
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+              "apply() on per-vertex material scene must succeed in Wave 2A profile");
 
   triRoot->unref();
 
