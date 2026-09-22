@@ -16,7 +16,11 @@ SoWgpuRenderAction::initClass(void)
 SbBool
 SoWgpuRenderAction::isGpuBackendAvailable(void)
 {
+#if defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
   return TRUE;
+#else
+  return FALSE;
+#endif
 }
 
 SoWgpuRenderAction::SoWgpuRenderAction(void)
@@ -97,68 +101,48 @@ SoWgpuRenderAction::getRecordingLog(void) const
 }
 
 void
+SoWgpuRenderAction::apply(SoNode * root)
+{
+  this->pimpl->executeApply([&]() {
+    if (root) {
+      this->inherited::apply(root);
+    }
+  });
+}
+
+void
+SoWgpuRenderAction::apply(SoPath * path)
+{
+  this->pimpl->executeApply([&]() {
+    if (path) {
+      this->inherited::apply(path);
+    }
+  });
+}
+
+void
+SoWgpuRenderAction::apply(const SoPathList & pathlist, SbBool obeysrules)
+{
+  this->pimpl->executeApply([&]() {
+    this->inherited::apply(pathlist, obeysrules);
+  });
+}
+
+void
 SoWgpuRenderAction::beginTraversal(SoNode * root)
 {
-  if (this->pimpl->isTraversing) {
-    this->pimpl->lastStatus = INVALID_SCENE;
-    this->pimpl->lastError = "Nested apply() calls are not permitted on SoWgpuRenderAction";
-    return;
-  }
-
-  struct ReentrancyGuard {
-    bool & flag;
-    ReentrancyGuard(bool & f) : flag(f) { flag = true; }
-    ~ReentrancyGuard() { flag = false; }
-  } guard(this->pimpl->isTraversing);
-
-  this->pimpl->builder.beginFrame(this->pimpl->backgroundColor, this->getViewportRegion());
-
-  if (root) {
-    this->inherited::beginTraversal(root);
-  }
-
-  FramePlan plan;
-  std::string err;
-  if (!this->pimpl->builder.build(plan, &err)) {
-    this->pimpl->lastStatus = INVALID_SCENE;
-    this->pimpl->lastError = err.c_str();
-    return;
-  }
-
-  if (this->pimpl->target == NULL) {
-    // Mode 0: Recording backend
-    this->pimpl->lastRecordingLog = this->pimpl->recordingBackend.recordToString(plan).c_str();
-    this->pimpl->lastValidPlan = plan;
-    this->pimpl->hasLastValidPlan = true;
-    this->pimpl->lastStatus = SUCCESS;
-    this->pimpl->lastError = "";
-    return;
-  }
-
-  // Target provided: validate target status
-  if (this->pimpl->target->getStatus() != SoWgpuRenderTarget::TARGET_READY) {
-    this->pimpl->lastStatus = NOT_READY;
-    this->pimpl->lastError = "Render target is not ready";
-    return;
-  }
-
-  // Execute frame on target
-  std::string execError;
-  if (!this->pimpl->target->pimpl->executeFrame(plan, execError)) {
-    if (execError.rfind("UNSUPPORTED", 0) == 0) {
-      this->pimpl->lastStatus = UNSUPPORTED;
-    } else {
-      this->pimpl->lastStatus = BACKEND_ERROR;
+  if (this->pimpl->isApplying) {
+    if (root) {
+      this->inherited::beginTraversal(root);
     }
-    this->pimpl->lastError = execError.c_str();
     return;
   }
 
-  this->pimpl->lastRecordingLog = this->pimpl->recordingBackend.recordToString(plan).c_str();
-  this->pimpl->lastValidPlan = plan;
-  this->pimpl->hasLastValidPlan = true;
-  this->pimpl->lastStatus = SUCCESS;
-  this->pimpl->lastError = "";
+  this->pimpl->executeApply([&]() {
+    if (root) {
+      this->inherited::beginTraversal(root);
+    }
+  });
 }
 
 // SoWgpuRenderActionP implementation
@@ -169,12 +153,82 @@ SoWgpuRenderActionP::SoWgpuRenderActionP(SoWgpuRenderAction * m)
     backgroundColor(0.0f, 0.0f, 0.0f, 1.0f),
     lastStatus(SoWgpuRenderAction::SUCCESS),
     hasLastValidPlan(false),
-    isTraversing(false)
+    isApplying(false),
+    hasReentrancyError(false)
 {
 }
 
 SoWgpuRenderActionP::~SoWgpuRenderActionP()
 {
+}
+
+template <typename F>
+void
+SoWgpuRenderActionP::executeApply(F traversalFn)
+{
+  if (this->isApplying) {
+    this->lastStatus = SoWgpuRenderAction::INVALID_SCENE;
+    this->lastError = "Nested apply() calls are not permitted on SoWgpuRenderAction";
+    this->hasReentrancyError = true;
+    return;
+  }
+
+  this->isApplying = true;
+  this->hasReentrancyError = false;
+  this->builder.beginFrame(this->backgroundColor, this->master->getViewportRegion());
+
+  traversalFn();
+
+  this->isApplying = false;
+
+  if (this->hasReentrancyError) {
+    this->lastStatus = SoWgpuRenderAction::INVALID_SCENE;
+    this->lastError = "Nested apply() calls are not permitted on SoWgpuRenderAction";
+    return;
+  }
+
+  FramePlan plan;
+  std::string err;
+  if (!this->builder.build(plan, &err)) {
+    this->lastStatus = SoWgpuRenderAction::INVALID_SCENE;
+    this->lastError = err.c_str();
+    return;
+  }
+
+  if (this->target == NULL) {
+    // Mode 0: Recording backend
+    this->lastRecordingLog = this->recordingBackend.recordToString(plan).c_str();
+    this->lastValidPlan = plan;
+    this->hasLastValidPlan = true;
+    this->lastStatus = SoWgpuRenderAction::SUCCESS;
+    this->lastError = "";
+    return;
+  }
+
+  // Target provided: validate target status
+  if (this->target->getStatus() != SoWgpuRenderTarget::TARGET_READY) {
+    this->lastStatus = SoWgpuRenderAction::NOT_READY;
+    this->lastError = "Render target is not ready";
+    return;
+  }
+
+  // Execute frame on target
+  std::string execError;
+  if (!this->target->pimpl->executeFrame(plan, execError)) {
+    if (execError.rfind("UNSUPPORTED", 0) == 0) {
+      this->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
+    } else {
+      this->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
+    }
+    this->lastError = execError.c_str();
+    return;
+  }
+
+  this->lastRecordingLog = this->recordingBackend.recordToString(plan).c_str();
+  this->lastValidPlan = plan;
+  this->hasLastValidPlan = true;
+  this->lastStatus = SoWgpuRenderAction::SUCCESS;
+  this->lastError = "";
 }
 
 void

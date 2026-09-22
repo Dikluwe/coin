@@ -133,7 +133,7 @@ struct FramePlan {
           return false;
         }
       }
-      if (v.materialSlot >= materials.size() && !materials.empty()) {
+      if (materials.empty() || v.materialSlot >= materials.size()) {
         if (outDiagnostic) *outDiagnostic = "Vertex references out-of-range material slot";
         return false;
       }
@@ -155,11 +155,15 @@ struct FramePlan {
         return false;
       }
       const auto & geom = d.geometry;
-      if (geom.firstVertex + geom.vertexCount > vertices.size()) {
+      uint64_t vStart = static_cast<uint64_t>(geom.firstVertex);
+      uint64_t vCount = static_cast<uint64_t>(geom.vertexCount);
+      if (vStart + vCount > static_cast<uint64_t>(vertices.size())) {
         if (outDiagnostic) *outDiagnostic = "Draw vertex range out of bounds";
         return false;
       }
-      if (geom.firstIndex + geom.indexCount > indices.size()) {
+      uint64_t iStart = static_cast<uint64_t>(geom.firstIndex);
+      uint64_t iCount = static_cast<uint64_t>(geom.indexCount);
+      if (iStart + iCount > static_cast<uint64_t>(indices.size())) {
         if (outDiagnostic) *outDiagnostic = "Draw index range out of bounds";
         return false;
       }
@@ -174,19 +178,19 @@ struct FramePlan {
       }
 
       const auto & rs = renderStates[d.renderStateSlot];
-      if (rs.materialSlot >= materials.size() && !materials.empty()) {
+      if (materials.empty() || rs.materialSlot >= materials.size()) {
         if (outDiagnostic) *outDiagnostic = "RenderState materialSlot out of range";
         return false;
       }
-      if (rs.lightingSlot >= lightingStates.size() && !lightingStates.empty()) {
+      if (lightingStates.empty() || rs.lightingSlot >= lightingStates.size()) {
         if (outDiagnostic) *outDiagnostic = "RenderState lightingSlot out of range";
         return false;
       }
-      if (rs.cameraSlot >= cameras.size() && !cameras.empty()) {
+      if (cameras.empty() || rs.cameraSlot >= cameras.size()) {
         if (outDiagnostic) *outDiagnostic = "RenderState cameraSlot out of range";
         return false;
       }
-      if (rs.viewportSlot >= viewports.size() && !viewports.empty()) {
+      if (viewports.empty() || rs.viewportSlot >= viewports.size()) {
         if (outDiagnostic) *outDiagnostic = "RenderState viewportSlot out of range";
         return false;
       }

@@ -54,9 +54,8 @@ SoWgpuFramePlanBuilder::reset()
 }
 
 uint32_t
-SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materialIndex)
+SoWgpuFramePlanBuilder::captureMaterial(SoCallbackAction * action, int materialIndex)
 {
-  // 1. Material
   SbColor amb(0.2f, 0.2f, 0.2f), diff(0.8f, 0.8f, 0.8f), spec(0.0f, 0.0f, 0.0f), emiss(0.0f, 0.0f, 0.0f);
   float shin = 0.2f, transp = 0.0f;
   action->getMaterial(amb, diff, spec, emiss, shin, transp, materialIndex >= 0 ? materialIndex : 0);
@@ -69,20 +68,22 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
   matSnap.shininess = shin;
   matSnap.transparency = transp;
 
-  uint32_t materialSlot = 0;
-  bool matFound = false;
   for (size_t i = 0; i < this->currentPlan.materials.size(); ++i) {
     const auto & m = this->currentPlan.materials[i];
     if (std::memcmp(&m, &matSnap, sizeof(MaterialSnapshot)) == 0) {
-      materialSlot = static_cast<uint32_t>(i);
-      matFound = true;
-      break;
+      return static_cast<uint32_t>(i);
     }
   }
-  if (!matFound) {
-    materialSlot = static_cast<uint32_t>(this->currentPlan.materials.size());
-    this->currentPlan.materials.push_back(matSnap);
-  }
+  uint32_t materialSlot = static_cast<uint32_t>(this->currentPlan.materials.size());
+  this->currentPlan.materials.push_back(matSnap);
+  return materialSlot;
+}
+
+uint32_t
+SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materialIndex)
+{
+  // 1. Material
+  uint32_t materialSlot = this->captureMaterial(action, materialIndex);
 
   // 2. Lighting
   LightingSnapshot lightSnap;
@@ -299,12 +300,15 @@ SoWgpuFramePlanBuilder::addTriangle(SoCallbackAction * action,
 {
   if (!v0 || !v1 || !v2) return;
   uint32_t rsSlot = this->captureRenderState(action, v0->getMaterialIndex());
-  uint32_t matSlot = this->currentPlan.renderStates[rsSlot].materialSlot;
   this->ensureDrawPacket(PrimitiveTopology::TRIANGLE_LIST, rsSlot, action->getCurPathTail());
 
-  uint32_t i0 = this->addVertex(v0, matSlot);
-  uint32_t i1 = this->addVertex(v1, matSlot);
-  uint32_t i2 = this->addVertex(v2, matSlot);
+  uint32_t m0 = this->captureMaterial(action, v0->getMaterialIndex());
+  uint32_t m1 = this->captureMaterial(action, v1->getMaterialIndex());
+  uint32_t m2 = this->captureMaterial(action, v2->getMaterialIndex());
+
+  uint32_t i0 = this->addVertex(v0, m0);
+  uint32_t i1 = this->addVertex(v1, m1);
+  uint32_t i2 = this->addVertex(v2, m2);
 
   this->currentPlan.indices.push_back(i0);
   this->currentPlan.indices.push_back(i1);
@@ -322,11 +326,13 @@ SoWgpuFramePlanBuilder::addLine(SoCallbackAction * action,
 {
   if (!v0 || !v1) return;
   uint32_t rsSlot = this->captureRenderState(action, v0->getMaterialIndex());
-  uint32_t matSlot = this->currentPlan.renderStates[rsSlot].materialSlot;
   this->ensureDrawPacket(PrimitiveTopology::LINE_LIST, rsSlot, action->getCurPathTail());
 
-  uint32_t i0 = this->addVertex(v0, matSlot);
-  uint32_t i1 = this->addVertex(v1, matSlot);
+  uint32_t m0 = this->captureMaterial(action, v0->getMaterialIndex());
+  uint32_t m1 = this->captureMaterial(action, v1->getMaterialIndex());
+
+  uint32_t i0 = this->addVertex(v0, m0);
+  uint32_t i1 = this->addVertex(v1, m1);
 
   this->currentPlan.indices.push_back(i0);
   this->currentPlan.indices.push_back(i1);
@@ -342,10 +348,10 @@ SoWgpuFramePlanBuilder::addPoint(SoCallbackAction * action,
 {
   if (!vertex) return;
   uint32_t rsSlot = this->captureRenderState(action, vertex->getMaterialIndex());
-  uint32_t matSlot = this->currentPlan.renderStates[rsSlot].materialSlot;
   this->ensureDrawPacket(PrimitiveTopology::POINT_LIST, rsSlot, action->getCurPathTail());
 
-  uint32_t i0 = this->addVertex(vertex, matSlot);
+  uint32_t m0 = this->captureMaterial(action, vertex->getMaterialIndex());
+  uint32_t i0 = this->addVertex(vertex, m0);
 
   this->currentPlan.indices.push_back(i0);
 

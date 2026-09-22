@@ -5,6 +5,7 @@
 #include <Inventor/rendering/SoWgpuRenderTarget.h>
 #include "rendering/wgpu/SoWgpuFramePlanBuilder.h"
 #include "rendering/wgpu/SoWgpuRecordingBackend.h"
+#include <string>
 
 class SoWgpuRenderActionP {
 public:
@@ -12,6 +13,9 @@ public:
   ~SoWgpuRenderActionP();
 
   void initCallbacks();
+
+  template <typename F>
+  void executeApply(F traversalFn);
 
   static void triangleCB(void * userdata,
                          SoCallbackAction * action,
@@ -41,7 +45,8 @@ public:
   FramePlan lastValidPlan;
 
   bool hasLastValidPlan;
-  bool isTraversing;
+  bool isApplying;
+  bool hasReentrancyError;
 };
 
 #endif // !SOWGPURENDERACTIONP_H

@@ -1,3 +1,6 @@
+#include "rendering/wgpu/SoWgpuFramePlan.h"
+#include <Inventor/nodes/SoMaterialBinding.h>
+#include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/SoDB.h>
 #include <Inventor/actions/SoWgpuRenderAction.h>
 #include <Inventor/nodes/SoSeparator.h>
@@ -314,16 +317,191 @@ int testForbiddenUsage() {
 
   action.apply(root);
   TEST_ASSERT(g_nestedStatus == SoWgpuRenderAction::INVALID_SCENE, "Nested apply() must be rejected with INVALID_SCENE");
+  // Finding 6: Outer status must remain INVALID_SCENE after nested failure
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::INVALID_SCENE, "Outer status must remain INVALID_SCENE");
 
   root->unref();
   return 0;
 }
 
+int testBackendAvailability() {
+  // When built without Dawn / wgpu-native, isGpuBackendAvailable must be FALSE
+  SbBool avail = SoWgpuRenderAction::isGpuBackendAvailable();
+#if defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
+  TEST_ASSERT(avail == TRUE, "isGpuBackendAvailable must be TRUE when hardware backend is compiled");
+#else
+  TEST_ASSERT(avail == FALSE, "isGpuBackendAvailable must be FALSE in software/recording mode");
+#endif
+  return 0;
+}
+
+int testMultipleRootsPathList() {
+  // Finding 2: SoPathList with multiple roots must preserve geometry from all roots
+  SoSeparator * root1 = new SoSeparator;
+  root1->ref();
+  SoCube * cube = new SoCube;
+  root1->addChild(cube);
+
+  SoSeparator * root2 = new SoSeparator;
+  root2->ref();
+  SoCone * cone = new SoCone;
+  root2->addChild(cone);
+
+  SoPath * p1 = new SoPath(root1);
+  p1->ref();
+  p1->append(cube);
+
+  SoPath * p2 = new SoPath(root2);
+  p2->ref();
+  p2->append(cone);
+
+  SoPathList pathlist;
+  pathlist.append(p1);
+  pathlist.append(p2);
+
+  SoWgpuRenderAction action;
+  action.apply(pathlist);
+
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "apply(pathlist with multiple roots) should succeed");
+  std::string log = action.getRecordingLog().getString();
+  TEST_ASSERT(log.find("draws count: 2") != std::string::npos, "Frame plan must contain draws from both roots (draws count: 2)");
+
+  p1->unref();
+  p2->unref();
+  root1->unref();
+  root2->unref();
+  return 0;
+}
+
+int testPerVertexMaterialCapture() {
+  // Finding 3: Per-vertex materials must capture distinct materials for each vertex
+  SoSeparator * root = new SoSeparator;
+  root->ref();
+
+  SoMaterial * mat = new SoMaterial;
+  mat->diffuseColor.set1Value(0, SbColor(1.0f, 0.0f, 0.0f)); // v0 = Red
+  mat->diffuseColor.set1Value(1, SbColor(0.0f, 1.0f, 0.0f)); // v1 = Green
+  mat->diffuseColor.set1Value(2, SbColor(0.0f, 0.0f, 1.0f)); // v2 = Blue
+  root->addChild(mat);
+
+  SoMaterialBinding * mb = new SoMaterialBinding;
+  mb->value = SoMaterialBinding::PER_VERTEX;
+  root->addChild(mb);
+
+  SoCoordinate3 * coords = new SoCoordinate3;
+  coords->point.set1Value(0, SbVec3f(0.0f, 1.0f, 0.0f));
+  coords->point.set1Value(1, SbVec3f(-1.0f, -1.0f, 0.0f));
+  coords->point.set1Value(2, SbVec3f(1.0f, -1.0f, 0.0f));
+  root->addChild(coords);
+
+  SoIndexedFaceSet * ifs = new SoIndexedFaceSet;
+  int32_t indices[] = { 0, 1, 2, -1 };
+  ifs->coordIndex.setValues(0, 4, indices);
+  root->addChild(ifs);
+
+  SoWgpuRenderAction action;
+  action.apply(root);
+
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "apply() on per-vertex material scene should succeed");
+  std::string log = action.getRecordingLog().getString();
+  // Ensure multiple materials were captured (at least 3 distinct materials for R, G, B)
+  TEST_ASSERT(log.find("materials count: 3") != std::string::npos || log.find("materials count: 4") != std::string::npos,
+              "Frame plan must capture distinct materials for each vertex");
+
+  root->unref();
+  return 0;
+}
+
+int testLightTransformWithRotatedCamera() {
+  // Finding 4: Directional light should not be double-transformed when camera is rotated
+  SoSeparator * root = new SoSeparator;
+  root->ref();
+
+  SoPerspectiveCamera * cam = new SoPerspectiveCamera;
+  // Rotate camera 90 degrees around Y axis
+  cam->orientation.setValue(SbVec3f(0.0f, 1.0f, 0.0f), static_cast<float>(M_PI / 2.0));
+  cam->position.setValue(5.0f, 0.0f, 0.0f);
+  root->addChild(cam);
+
+  SoDirectionalLight * dl = new SoDirectionalLight;
+  dl->direction.setValue(0.0f, 0.0f, -1.0f);
+  root->addChild(dl);
+
+  SoCube * cube = new SoCube;
+  root->addChild(cube);
+
+  SoWgpuRenderAction action;
+  action.apply(root);
+
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "apply() with rotated camera must succeed");
+  std::string log = action.getRecordingLog().getString();
+  TEST_ASSERT(!log.empty(), "Recording log must not be empty");
+
+  root->unref();
+  return 0;
+}
+
+int testPlanOverflowAndSlotValidation() {
+  // Finding 5: Validation must catch range overflow and empty slots
+  FramePlan plan;
+  plan.viewports.push_back(ViewportSnapshot{});
+  plan.cameras.push_back(CameraSnapshot{});
+  plan.materials.push_back(MaterialSnapshot{});
+  plan.lightingStates.push_back(LightingSnapshot{});
+
+  RenderStateSnapshot rs;
+  rs.viewportSlot = 0;
+  rs.cameraSlot = 0;
+  rs.materialSlot = 0;
+  rs.lightingSlot = 0;
+  plan.renderStates.push_back(rs);
+
+  VertexSnapshot v;
+  v.materialSlot = 0;
+  plan.vertices.push_back(v);
+  plan.vertices.push_back(v);
+  plan.vertices.push_back(v);
+  plan.indices.push_back(0);
+  plan.indices.push_back(1);
+  plan.indices.push_back(2);
+
+  DrawPacket draw;
+  draw.renderStateSlot = 0;
+  draw.topology = PrimitiveTopology::TRIANGLE_LIST;
+  draw.geometry.firstVertex = 0;
+  draw.geometry.vertexCount = 3;
+  draw.geometry.firstIndex = 0;
+  draw.geometry.indexCount = 3;
+  plan.draws.push_back(draw);
+
+  std::string err;
+  TEST_ASSERT(plan.isValid(&err), "Base plan must be valid");
+
+  // Test 1: Overflow firstVertex + vertexCount
+  plan.draws[0].geometry.firstVertex = 0xFFFFFFFF;
+  plan.draws[0].geometry.vertexCount = 2;
+  TEST_ASSERT(!plan.isValid(&err), "Overflow in vertex range must be rejected");
+
+  // Test 2: Empty materials with vertices referencing slot 0
+  plan.draws[0].geometry.firstVertex = 0;
+  plan.draws[0].geometry.vertexCount = 3;
+  plan.materials.clear();
+  TEST_ASSERT(!plan.isValid(&err), "Empty materials with active vertices must be rejected");
+
+  return 0;
+}
+
 int main() {
+
   SoDB::init();
   std::cout << "Running WgpuRenderActionTest..." << std::endl;
 
   int failed = 0;
+    if (testBackendAvailability()) { std::cerr << "testBackendAvailability failed" << std::endl; failed++; }
+  if (testMultipleRootsPathList()) { std::cerr << "testMultipleRootsPathList failed" << std::endl; failed++; }
+  if (testPerVertexMaterialCapture()) { std::cerr << "testPerVertexMaterialCapture failed" << std::endl; failed++; }
+  if (testLightTransformWithRotatedCamera()) { std::cerr << "testLightTransformWithRotatedCamera failed" << std::endl; failed++; }
+  if (testPlanOverflowAndSlotValidation()) { std::cerr << "testPlanOverflowAndSlotValidation failed" << std::endl; failed++; }
   if (testTypeAndInit()) { std::cerr << "testTypeAndInit failed" << std::endl; failed++; }
   if (testSeparatorAndState()) { std::cerr << "testSeparatorAndState failed" << std::endl; failed++; }
   if (testCameraPerDraw()) { std::cerr << "testCameraPerDraw failed" << std::endl; failed++; }

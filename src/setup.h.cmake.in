@@ -130,6 +130,22 @@
 #cmakedefine HAVE_WGPU
 
 /***************************************************************************
+ * HAVE_WGPU_DAWN
+ *
+ * Dawn WebGPU hardware backend support.
+ */
+
+#cmakedefine HAVE_WGPU_DAWN
+
+/***************************************************************************
+ * HAVE_WGPU_NATIVE
+ *
+ * wgpu-native WebGPU hardware backend support.
+ */
+
+#cmakedefine HAVE_WGPU_NATIVE
+
+/***************************************************************************
  * The end.
  *
  * Make sure this header file is not installed, and only used when building

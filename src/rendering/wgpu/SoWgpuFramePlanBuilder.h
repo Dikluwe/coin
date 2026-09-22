@@ -31,6 +31,7 @@ public:
   bool build(FramePlan & outPlan, std::string * outError = nullptr);
 
 private:
+  uint32_t captureMaterial(SoCallbackAction * action, int materialIndex);
   uint32_t captureRenderState(SoCallbackAction * action, int materialIndex);
   uint32_t addVertex(const SoPrimitiveVertex * pv, uint32_t materialSlot);
   void ensureDrawPacket(PrimitiveTopology topology, uint32_t renderStateSlot, SoNode * node);
