@@ -19,7 +19,7 @@
 #include <Inventor/nodes/SoCone.h>
 #include <Inventor/nodes/SoTranslation.h>
 #include <Inventor/nodes/SoCallback.h>
-#include <Inventor/SoPathList.h>
+#include <Inventor/lists/SoPathList.h>
 
 #include "rendering/wgpu/SoWgpuRenderTargetP.h"
 #include "rendering/wgpu/SoWgpuFramePlan.h"
