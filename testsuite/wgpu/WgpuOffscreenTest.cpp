@@ -155,7 +155,7 @@ int main() {
   unsupportedSep->addChild(new SoLineSet);
 
   action.apply(unsupportedSep);
-  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "Non-triangle topology must be rejected with UNSUPPORTED");
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::UNSUPPORTED, "Non-triangle topology must be rejected with UNSUPPORTED");
   std::string err = action.getLastError().getString();
   TEST_ASSERT(err.find("UNSUPPORTED") != std::string::npos, "Diagnostic message must explain unsupported capability");
 
