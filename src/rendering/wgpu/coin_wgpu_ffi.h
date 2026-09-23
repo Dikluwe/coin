@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 8
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 9
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -180,6 +180,18 @@ typedef struct CoinWgpuCacheStats {
   uint64_t submission_serial;
 } CoinWgpuCacheStats;
 
+typedef struct CoinWgpuPerformanceStats {
+  uint64_t texture_uploads;
+  uint64_t texture_hits;
+  uint64_t texture_uploaded_bytes;
+  uint64_t texture_evictions;
+  uint64_t texture_active_entries;
+  uint64_t texture_retired_entries;
+  uint64_t pipeline_compilations;
+  uint64_t pipeline_hits;
+  uint64_t pipeline_active_entries;
+} CoinWgpuPerformanceStats;
+
 int32_t coin_wgpu_is_available(void);
 
 void coin_wgpu_get_adapter_info(char * buffer, size_t buffer_len);
@@ -220,6 +232,7 @@ CoinWgpuStatus coin_wgpu_surface_destroy(
 );
 
 void coin_wgpu_get_cache_stats(CoinWgpuCacheStats * stats);
+void coin_wgpu_get_performance_stats(CoinWgpuPerformanceStats * stats);
 
 void coin_wgpu_poll_device(void);
 

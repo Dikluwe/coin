@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicI32, AtomicU32, AtomicU64, Ordering};
 use std::sync::Mutex;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 8;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 9;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 pub type CoinWgpuSurfaceId = u64;
@@ -89,6 +89,20 @@ pub struct CoinWgpuCacheStats {
     pub retired_entries: u64,
     pub completed_serial: u64,
     pub submission_serial: u64,
+}
+
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Default)]
+pub struct CoinWgpuPerformanceStats {
+    pub texture_uploads: u64,
+    pub texture_hits: u64,
+    pub texture_uploaded_bytes: u64,
+    pub texture_evictions: u64,
+    pub texture_active_entries: u64,
+    pub texture_retired_entries: u64,
+    pub pipeline_compilations: u64,
+    pub pipeline_hits: u64,
+    pub pipeline_active_entries: u64,
 }
 
 #[repr(C)]
@@ -390,6 +404,10 @@ struct RetiredTexture {
 struct TextureCache {
     entries: HashMap<TextureKey, CachedTextureEntry>,
     retired: Vec<RetiredTexture>,
+    uploads: u64,
+    hits: u64,
+    uploaded_bytes: u64,
+    evictions: u64,
 }
 
 #[derive(Hash, PartialEq, Eq, Clone, Copy, Debug)]
@@ -415,6 +433,8 @@ struct DeviceState {
     bind_group_layout: wgpu::BindGroupLayout,
     pipeline_layout: wgpu::PipelineLayout,
     pipelines: Mutex<HashMap<PipelineKey, wgpu::RenderPipeline>>,
+    pipeline_compilations: AtomicU64,
+    pipeline_hits: AtomicU64,
     cache: Mutex<GeometryCache>,
     default_texture: wgpu::Texture,
     default_texture_view: wgpu::TextureView,
@@ -848,6 +868,8 @@ fn get_or_init_device<'a>(
         bind_group_layout,
         pipeline_layout,
         pipelines: Mutex::new(HashMap::new()),
+        pipeline_compilations: AtomicU64::new(0),
+        pipeline_hits: AtomicU64::new(0),
         cache: Mutex::new(GeometryCache::default()),
         default_texture,
         default_texture_view,
@@ -977,6 +999,7 @@ fn get_or_create_pipeline<'a>(
         front_face,
     };
     if let Some(p) = map.get(&key) {
+        ctx.pipeline_hits.fetch_add(1, Ordering::Relaxed);
         return Ok(p.clone());
     }
 
@@ -1056,6 +1079,7 @@ fn get_or_create_pipeline<'a>(
         });
 
     map.insert(key, pipeline.clone());
+    ctx.pipeline_compilations.fetch_add(1, Ordering::Relaxed);
     Ok(pipeline)
 }
 
@@ -1170,6 +1194,7 @@ fn encode_frame(
         if let Some(entry) = tex_cache.entries.get_mut(&key) {
             if entry.pixels_copy == pixel_bytes {
                 entry.last_submitted_serial = current_submission_serial;
+                tex_cache.hits += 1;
                 continue;
             }
         }
@@ -1210,6 +1235,8 @@ fn encode_frame(
         );
 
         let view = wgpu_tex.create_view(&wgpu::TextureViewDescriptor::default());
+        tex_cache.uploads += 1;
+        tex_cache.uploaded_bytes += pixel_bytes.len() as u64;
         let old = tex_cache.entries.insert(
             key,
             CachedTextureEntry {
@@ -1224,6 +1251,28 @@ fn encode_frame(
             tex_cache.retired.push(RetiredTexture {
                 texture: old_entry.texture,
                 retired_at_serial: current_submission_serial,
+            });
+        }
+    }
+
+    // Retain recent textures for reuse, but retire images no longer referenced by
+    // the scene. The serial ties release to GPU completion, not CPU traversal.
+    const MAX_STALE_TEXTURE_SERIALS: u64 = 8;
+    let stale_textures: Vec<TextureKey> = tex_cache
+        .entries
+        .iter()
+        .filter(|(_, entry)| {
+            current_submission_serial.saturating_sub(entry.last_submitted_serial)
+                > MAX_STALE_TEXTURE_SERIALS
+        })
+        .map(|(key, _)| key.clone())
+        .collect();
+    for key in stale_textures {
+        if let Some(entry) = tex_cache.entries.remove(&key) {
+            tex_cache.evictions += 1;
+            tex_cache.retired.push(RetiredTexture {
+                texture: entry.texture,
+                retired_at_serial: entry.last_submitted_serial,
             });
         }
     }
@@ -3204,12 +3253,46 @@ pub extern "C" fn coin_wgpu_get_cache_stats(stats: *mut CoinWgpuCacheStats) {
 }
 
 #[no_mangle]
+pub extern "C" fn coin_wgpu_get_performance_stats(stats: *mut CoinWgpuPerformanceStats) {
+    let _ = std::panic::catch_unwind(|| {
+        if stats.is_null() {
+            return;
+        }
+        let mut out = CoinWgpuPerformanceStats::default();
+        if let Ok(guard) = RUNTIME_CTX.lock() {
+            if let Some(dev) = guard.as_ref().and_then(|runtime| runtime.device_state.as_ref()) {
+                if let Ok(cache) = dev.texture_cache.lock() {
+                    out.texture_uploads = cache.uploads;
+                    out.texture_hits = cache.hits;
+                    out.texture_uploaded_bytes = cache.uploaded_bytes;
+                    out.texture_evictions = cache.evictions;
+                    out.texture_active_entries = cache.entries.len() as u64;
+                    out.texture_retired_entries = cache.retired.len() as u64;
+                }
+                if let Ok(pipelines) = dev.pipelines.lock() {
+                    out.pipeline_compilations = dev.pipeline_compilations.load(Ordering::Relaxed);
+                    out.pipeline_active_entries = pipelines.len() as u64;
+                }
+                out.pipeline_hits = dev.pipeline_hits.load(Ordering::Relaxed);
+            }
+        }
+        unsafe {
+            *stats = out;
+        }
+    });
+}
+
+#[no_mangle]
 pub extern "C" fn coin_wgpu_poll_device() {
     let _ = std::panic::catch_unwind(|| {
         if let Ok(guard) = RUNTIME_CTX.lock() {
             if let Some(runtime) = guard.as_ref() {
                 if let Some(dev) = &runtime.device_state {
                     let _ = dev.device.poll(wgpu::Maintain::Poll);
+                    let completed = GLOBAL_COMPLETED_SERIAL.load(Ordering::SeqCst);
+                    if let Ok(mut textures) = dev.texture_cache.lock() {
+                        textures.retired.retain(|entry| entry.retired_at_serial > completed);
+                    }
                 }
             }
         }

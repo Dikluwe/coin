@@ -350,6 +350,23 @@ if(COIN_BUILD_WGPU)
 	add_test(NAME WgpuFogTest COMMAND WgpuFogTest)
 	set_tests_properties(WgpuFogTest PROPERTIES TIMEOUT 30)
 
+	if(COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE")
+		add_executable(WgpuPerformanceTest wgpu/WgpuPerformanceTest.cpp)
+		set_target_properties(WgpuPerformanceTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+		target_link_libraries(WgpuPerformanceTest CoinWgpuExperimental Coin)
+		target_include_directories(WgpuPerformanceTest PRIVATE
+			${CMAKE_CURRENT_SOURCE_DIR}
+			${PROJECT_SOURCE_DIR}/experimental/include
+			${PROJECT_SOURCE_DIR}/include
+			${PROJECT_SOURCE_DIR}/src
+			${PROJECT_BINARY_DIR}/include
+			${PROJECT_BINARY_DIR}/src
+			${COIN_TARGET_INCLUDE_DIRECTORIES}
+		)
+		add_test(NAME WgpuPerformanceTest COMMAND WgpuPerformanceTest)
+		set_tests_properties(WgpuPerformanceTest PROPERTIES TIMEOUT 30)
+	endif()
+
 	if(COIN_TEST_WGPU_GL_REFERENCE)
 		if(NOT (UNIX AND NOT APPLE AND X11_FOUND))
 			message(FATAL_ERROR "COIN_TEST_WGPU_GL_REFERENCE requires X11 on Unix")

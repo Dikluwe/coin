@@ -4,7 +4,7 @@ Esta implementação é opt-in (`COIN_BUILD_WGPU=ON`) e fica em
 `CoinWgpuExperimental`, separada de `libCoin`. A ação e o alvo de renderização
 estão em `experimental/include` para uso na árvore de build; não são API nem
 ABI pública instalada do Coin 4. A ponte C++/Rust é privada e versionada
-(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=8` nesta revisão). Não promova esses
+(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=9` nesta revisão). Não promova esses
 headers a consumidores externos como se fossem estáveis.
 
 ## Perfil implementado
@@ -64,9 +64,25 @@ suspensão zero-size, fault injection de superfície e recuperação de device
 lost. `WgpuStabilizationTest` já cobre falha transacional de alocação do cache;
 `WgpuOffscreenTest` e `WgpuSurfaceTest` cobrem OOM e estados do alvo.
 
-## Antes de considerar a Onda 3 concluída
+## Medição quantitativa da 3E
 
-Ainda faltam medições quantitativas reproduzíveis de upload de pixels, hits e
-misses de textura, compilação/reuso de pipeline e retenção de recursos após
-muitas trocas de textura. Os testes de correção e cache existentes não substituem
-essa evidência de desempenho/lifecycle.
+O comando abaixo executa a cena de 64×64 em 31 frames: aquecimento, repetição
+estática, 20 mutações da textura 4×4 e nove frames após remover a textura.
+
+```sh
+ctest --test-dir build-wgpu --repeat until-fail:3 -V -R '^WgpuPerformanceTest$'
+```
+
+Na NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan, driver NVIDIA 610.43.02),
+três execuções produziram os mesmos contadores: 21 uploads de textura
+(um inicial + 20 misses por mutação), um hit estático, 1.344 bytes RGBA8
+enviados, 12 evicções após as mutações, nove entradas ativas nesse ponto e
+zero após remover a textura. O pipeline foi compilado uma vez e reutilizado
+30 vezes. O tempo dos 31 frames foi 105,4–126,3 ms (mediana 112,3 ms);
+é observação local, não limite de desempenho portátil. A política privada
+retém texturas sem uso por até oito submissões e as aposenta pelo serial de
+conclusão da GPU, evitando retenção indefinida após mudança de cena.
+
+A evidência da 3E vale para esta configuração Linux/Vulkan/X11 e para o
+perfil opaco descrito acima; outros adaptadores e sistemas de janela ainda
+precisam da própria validação antes de qualquer promessa de suporte.
