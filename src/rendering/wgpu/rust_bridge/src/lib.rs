@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicI32, AtomicU32, AtomicU64, Ordering};
 use std::sync::Mutex;
 
-pub const COIN_WGPU_ABI_VERSION: u32 = 3;
+pub const COIN_WGPU_ABI_VERSION: u32 = 4;
 
 pub type CoinWgpuSurfaceId = u64;
 pub const COIN_WGPU_INVALID_SURFACE_ID: CoinWgpuSurfaceId = 0;
@@ -68,6 +68,26 @@ pub struct CoinWgpuDraw {
     pub first_index: u32,
     pub index_count: u32,
     pub render_state_slot: u32,
+    pub stable_node_id: u64,
+    pub draw_ordinal: u32,
+    pub reserved: u32,
+    pub source_revision: u64,
+}
+
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Default)]
+pub struct CoinWgpuCacheStats {
+    pub cumulative_uploads: u64,
+    pub cumulative_hits: u64,
+    pub cumulative_misses: u64,
+    pub cumulative_uploaded_bytes: u64,
+    pub frame_uploaded_bytes: u64,
+    pub frame_uploads: u64,
+    pub frame_hits: u64,
+    pub active_entries: u64,
+    pub retired_entries: u64,
+    pub completed_serial: u64,
+    pub submission_serial: u64,
 }
 
 #[repr(C)]
@@ -145,6 +165,36 @@ pub struct CoinWgpuTarget {
 }
 
 static GLOBAL_SUBMISSION_SERIAL: AtomicU64 = AtomicU64::new(1);
+static GLOBAL_COMPLETED_SERIAL: AtomicU64 = AtomicU64::new(0);
+
+pub struct CachedGeometryEntry {
+    pub vertex_buffer: wgpu::Buffer,
+    pub index_buffer: Option<wgpu::Buffer>,
+    pub vertex_count: u32,
+    pub index_count: u32,
+    pub size_bytes: u64,
+    pub last_accessed_serial: u64,
+}
+
+pub struct RetiredBuffer {
+    pub vertex_buffer: wgpu::Buffer,
+    pub index_buffer: Option<wgpu::Buffer>,
+    pub retired_at_serial: u64,
+    pub size_bytes: u64,
+}
+
+#[derive(Default)]
+pub struct GeometryCache {
+    pub active_entries: HashMap<(u64, u32), (u64, CachedGeometryEntry)>,
+    pub deferred_release: Vec<RetiredBuffer>,
+    pub cumulative_uploads: u64,
+    pub cumulative_hits: u64,
+    pub cumulative_misses: u64,
+    pub cumulative_uploaded_bytes: u64,
+    pub frame_uploaded_bytes: u64,
+    pub frame_uploads: u64,
+    pub frame_hits: u64,
+}
 
 static WGSL_SHADER: &str = include_str!("../../shaders/coin_standard.wgsl");
 static WGSL_LINE_SHADER: &str = include_str!("../../shaders/coin_line.wgsl");
@@ -171,6 +221,7 @@ struct DeviceState {
     bind_group_layout: wgpu::BindGroupLayout,
     pipeline_layout: wgpu::PipelineLayout,
     pipelines: Mutex<HashMap<PipelineKey, wgpu::RenderPipeline>>,
+    cache: Mutex<GeometryCache>,
 }
 
 struct SurfaceRecord {
@@ -518,6 +569,7 @@ fn get_or_init_device<'a>(
         bind_group_layout,
         pipeline_layout,
         pipelines: Mutex::new(HashMap::new()),
+        cache: Mutex::new(GeometryCache::default()),
     });
 
     Ok(runtime.device_state.as_mut().unwrap())
@@ -728,11 +780,29 @@ fn encode_frame(
 ) -> Result<wgpu::CommandBuffer, (CoinWgpuStatus, String)> {
     use wgpu::util::DeviceExt;
 
-    let v_buffer = if !vertices_slice.is_empty() {
+    // 1. Process pending GPU completion events and lock geometry cache
+    let _ = ctx.device.poll(wgpu::Maintain::Poll);
+    let mut cache = ctx.cache.lock().unwrap();
+
+    // Reset per-frame telemetry counters
+    cache.frame_uploaded_bytes = 0;
+    cache.frame_uploads = 0;
+    cache.frame_hits = 0;
+
+    // Drain safely retired buffers whose work on GPU has completed
+    let completed_serial = GLOBAL_COMPLETED_SERIAL.load(Ordering::SeqCst);
+    cache.deferred_release.retain(|retired| {
+        retired.retired_at_serial > completed_serial
+    });
+
+    let current_submission_serial = GLOBAL_SUBMISSION_SERIAL.load(Ordering::SeqCst);
+
+    // 2. Prepare uncached fallback buffers if there are any legacy/uncached draws
+    let uncached_v_buffer = if draws_slice.iter().any(|d| d.stable_node_id == 0) && !vertices_slice.is_empty() {
         Some(
             ctx.device
                 .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                    label: Some("Coin Vertex Buffer"),
+                    label: Some("Coin Uncached Vertex Buffer"),
                     contents: bytemuck::cast_slice(vertices_slice),
                     usage: wgpu::BufferUsages::VERTEX,
                 }),
@@ -741,11 +811,13 @@ fn encode_frame(
         None
     };
 
-    let i_buffer = if !indices_slice.is_empty() {
+    let uncached_i_buffer = if draws_slice.iter().any(|d| d.stable_node_id == 0 && d.index_count > 0)
+        && !indices_slice.is_empty()
+    {
         Some(
             ctx.device
                 .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                    label: Some("Coin Index Buffer"),
+                    label: Some("Coin Uncached Index Buffer"),
                     contents: bytemuck::cast_slice(indices_slice),
                     usage: wgpu::BufferUsages::INDEX,
                 }),
@@ -754,6 +826,106 @@ fn encode_frame(
         None
     };
 
+    // 3. Update cache for cached draws (stable_node_id != 0)
+    for draw in draws_slice {
+        if draw.index_count == 0 || draw.stable_node_id == 0 {
+            continue;
+        }
+
+        let key = (draw.stable_node_id, draw.draw_ordinal);
+        let hit = if let Some((rev, _entry)) = cache.active_entries.get(&key) {
+            *rev == draw.source_revision
+        } else {
+            false
+        };
+
+        if hit {
+            cache.cumulative_hits += 1;
+            cache.frame_hits += 1;
+            if let Some((_rev, entry)) = cache.active_entries.get_mut(&key) {
+                entry.last_accessed_serial = current_submission_serial;
+            }
+        } else {
+            cache.cumulative_misses += 1;
+            cache.cumulative_uploads += 1;
+            cache.frame_uploads += 1;
+
+            // Evict and safely retire previous revision if it existed
+            if let Some((_old_rev, old_entry)) = cache.active_entries.remove(&key) {
+                cache.deferred_release.push(RetiredBuffer {
+                    vertex_buffer: old_entry.vertex_buffer,
+                    index_buffer: old_entry.index_buffer,
+                    retired_at_serial: current_submission_serial,
+                    size_bytes: old_entry.size_bytes,
+                });
+            }
+
+            // Extract vertices for this draw
+            let start_v = draw.first_vertex as usize;
+            let end_v = start_v + draw.vertex_count as usize;
+            if end_v > vertices_slice.len() {
+                return Err((
+                    CoinWgpuStatus::InvalidArgument,
+                    format!(
+                        "Cached draw vertex range out of bounds: {}..{} > {}",
+                        start_v,
+                        end_v,
+                        vertices_slice.len()
+                    ),
+                ));
+            }
+            let draw_vertices = &vertices_slice[start_v..end_v];
+            let v_buf = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Coin Cached Draw Vertex Buffer"),
+                contents: bytemuck::cast_slice(draw_vertices),
+                usage: wgpu::BufferUsages::VERTEX,
+            });
+            let v_size = (draw_vertices.len() * std::mem::size_of::<CoinWgpuVertex>()) as u64;
+
+            // Extract and rebase indices for this draw
+            let start_i = draw.first_index as usize;
+            let end_i = start_i + draw.index_count as usize;
+            if end_i > indices_slice.len() {
+                return Err((
+                    CoinWgpuStatus::InvalidArgument,
+                    format!(
+                        "Cached draw index range out of bounds: {}..{} > {}",
+                        start_i,
+                        end_i,
+                        indices_slice.len()
+                    ),
+                ));
+            }
+            let raw_indices = &indices_slice[start_i..end_i];
+            let local_indices: Vec<u32> = raw_indices
+                .iter()
+                .map(|&idx| idx.saturating_sub(draw.first_vertex))
+                .collect();
+            let i_buf = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Coin Cached Draw Index Buffer"),
+                contents: bytemuck::cast_slice(&local_indices),
+                usage: wgpu::BufferUsages::INDEX,
+            });
+            let i_size = (local_indices.len() * std::mem::size_of::<u32>()) as u64;
+
+            let total_bytes = v_size + i_size;
+            cache.cumulative_uploaded_bytes += total_bytes;
+            cache.frame_uploaded_bytes += total_bytes;
+
+            let new_entry = CachedGeometryEntry {
+                vertex_buffer: v_buf,
+                index_buffer: Some(i_buf),
+                vertex_count: draw.vertex_count,
+                index_count: draw.index_count,
+                size_bytes: total_bytes,
+                last_accessed_serial: current_submission_serial,
+            };
+
+            cache.active_entries.insert(key, (draw.source_revision, new_entry));
+        }
+    }
+
+    // 4. Begin render pass
     let mut encoder = ctx
         .device
         .create_command_encoder(&wgpu::CommandEncoderDescriptor {
@@ -787,13 +959,6 @@ fn encode_frame(
             timestamp_writes: None,
             occlusion_query_set: None,
         });
-
-        if let Some(vb) = &v_buffer {
-            pass.set_vertex_buffer(0, vb.slice(..));
-        }
-        if let Some(ib) = &i_buffer {
-            pass.set_index_buffer(ib.slice(..), wgpu::IndexFormat::Uint32);
-        }
 
         for draw in draws_slice {
             if draw.index_count == 0 {
@@ -876,9 +1041,29 @@ fn encode_frame(
             });
 
             pass.set_bind_group(0, &bind_group, &[]);
-            let start_idx = draw.first_index;
-            let end_idx = start_idx + draw.index_count;
-            pass.draw_indexed(start_idx..end_idx, 0, 0..1);
+
+            if draw.stable_node_id != 0 {
+                let key = (draw.stable_node_id, draw.draw_ordinal);
+                if let Some((_rev, entry)) = cache.active_entries.get(&key) {
+                    pass.set_vertex_buffer(0, entry.vertex_buffer.slice(..));
+                    if let Some(ref ib) = entry.index_buffer {
+                        pass.set_index_buffer(ib.slice(..), wgpu::IndexFormat::Uint32);
+                        pass.draw_indexed(0..entry.index_count, 0, 0..1);
+                    } else {
+                        pass.draw(0..entry.vertex_count, 0..1);
+                    }
+                }
+            } else {
+                if let Some(vb) = &uncached_v_buffer {
+                    pass.set_vertex_buffer(0, vb.slice(..));
+                }
+                if let Some(ib) = &uncached_i_buffer {
+                    pass.set_index_buffer(ib.slice(..), wgpu::IndexFormat::Uint32);
+                }
+                let start_idx = draw.first_index;
+                let end_idx = start_idx + draw.index_count;
+                pass.draw_indexed(start_idx..end_idx, 0, 0..1);
+            }
         }
     }
 
@@ -1650,6 +1835,10 @@ pub extern "C" fn coin_wgpu_surface_submit(
         };
 
         // 10. Submit and Present
+        let sub_serial = GLOBAL_SUBMISSION_SERIAL.fetch_add(1, Ordering::SeqCst);
+        dev.queue.on_submitted_work_done(move || {
+            GLOBAL_COMPLETED_SERIAL.store(sub_serial, Ordering::SeqCst);
+        });
         dev.queue.submit(std::iter::once(cmd_buffer));
         surface_texture.present();
 
@@ -2122,6 +2311,10 @@ pub extern "C" fn coin_wgpu_submit(
             None
         };
 
+        let sub_serial = GLOBAL_SUBMISSION_SERIAL.fetch_add(1, Ordering::SeqCst);
+        ctx.queue.on_submitted_work_done(move || {
+            GLOBAL_COMPLETED_SERIAL.store(sub_serial, Ordering::SeqCst);
+        });
         ctx.queue.submit([cmd_buffer, copy_encoder.finish()]);
 
         let buffer_slice = staging_buffer.slice(..);
@@ -2222,7 +2415,7 @@ pub extern "C" fn coin_wgpu_submit(
                     }
                 }
 
-                tgt.submission_serial = GLOBAL_SUBMISSION_SERIAL.fetch_add(1, Ordering::SeqCst);
+                tgt.submission_serial = sub_serial;
                 CoinWgpuStatus::Ok
             }
             Ok(Err(buf_err)) => {
@@ -2273,4 +2466,49 @@ pub extern "C" fn coin_wgpu_submit(
             CoinWgpuStatus::BackendError
         }
     }
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_get_cache_stats(stats: *mut CoinWgpuCacheStats) {
+    let _ = std::panic::catch_unwind(|| {
+        if stats.is_null() {
+            return;
+        }
+        let mut out = CoinWgpuCacheStats::default();
+        if let Ok(guard) = RUNTIME_CTX.lock() {
+            if let Some(runtime) = guard.as_ref() {
+                if let Some(dev) = &runtime.device_state {
+                    if let Ok(cache) = dev.cache.lock() {
+                        out.cumulative_uploads = cache.cumulative_uploads;
+                        out.cumulative_hits = cache.cumulative_hits;
+                        out.cumulative_misses = cache.cumulative_misses;
+                        out.cumulative_uploaded_bytes = cache.cumulative_uploaded_bytes;
+                        out.frame_uploaded_bytes = cache.frame_uploaded_bytes;
+                        out.frame_uploads = cache.frame_uploads;
+                        out.frame_hits = cache.frame_hits;
+                        out.active_entries = cache.active_entries.len() as u64;
+                        out.retired_entries = cache.deferred_release.len() as u64;
+                    }
+                }
+            }
+        }
+        out.completed_serial = GLOBAL_COMPLETED_SERIAL.load(Ordering::SeqCst);
+        out.submission_serial = GLOBAL_SUBMISSION_SERIAL.load(Ordering::SeqCst);
+        unsafe {
+            *stats = out;
+        }
+    });
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_poll_device() {
+    let _ = std::panic::catch_unwind(|| {
+        if let Ok(guard) = RUNTIME_CTX.lock() {
+            if let Some(runtime) = guard.as_ref() {
+                if let Some(dev) = &runtime.device_state {
+                    let _ = dev.device.poll(wgpu::Maintain::Poll);
+                }
+            }
+        }
+    });
 }

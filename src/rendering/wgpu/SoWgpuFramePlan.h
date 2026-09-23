@@ -40,6 +40,9 @@ struct DrawPacket {
   uint32_t renderStateSlot = 0;
   uint32_t frameNodeOrdinal = 0; // estável apenas dentro do frame/log
   SbUniqueId sourceNodeId = 0;   // cache/invalidação; não entra no golden log
+  uint64_t stableNodeId = 0;
+  uint32_t drawOrdinal = 0;
+  uint64_t sourceRevision = 0;
 };
 
 struct MaterialSnapshot {

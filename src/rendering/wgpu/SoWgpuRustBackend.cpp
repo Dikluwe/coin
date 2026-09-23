@@ -26,8 +26,15 @@ static_assert(offsetof(CoinWgpuVertex, normal) == 12, "CoinWgpuVertex normal off
 static_assert(offsetof(CoinWgpuVertex, texcoord) == 24, "CoinWgpuVertex texcoord offset mismatch");
 static_assert(offsetof(CoinWgpuVertex, material_slot) == 32, "CoinWgpuVertex material_slot offset mismatch");
 
-static_assert(sizeof(CoinWgpuDraw) == 24, "CoinWgpuDraw size mismatch");
-static_assert(alignof(CoinWgpuDraw) == 4, "CoinWgpuDraw alignment mismatch");
+static_assert(sizeof(CoinWgpuDraw) == 48, "CoinWgpuDraw size mismatch");
+static_assert(alignof(CoinWgpuDraw) == 8, "CoinWgpuDraw alignment mismatch");
+static_assert(offsetof(CoinWgpuDraw, stable_node_id) == 24, "CoinWgpuDraw stable_node_id offset mismatch");
+static_assert(offsetof(CoinWgpuDraw, draw_ordinal) == 32, "CoinWgpuDraw draw_ordinal offset mismatch");
+static_assert(offsetof(CoinWgpuDraw, reserved) == 36, "CoinWgpuDraw reserved offset mismatch");
+static_assert(offsetof(CoinWgpuDraw, source_revision) == 40, "CoinWgpuDraw source_revision offset mismatch");
+
+static_assert(sizeof(CoinWgpuCacheStats) == 88, "CoinWgpuCacheStats size mismatch");
+static_assert(alignof(CoinWgpuCacheStats) == 8, "CoinWgpuCacheStats alignment mismatch");
 
 static_assert(sizeof(CoinWgpuMaterial) == 72, "CoinWgpuMaterial size mismatch");
 static_assert(alignof(CoinWgpuMaterial) == 4, "CoinWgpuMaterial alignment mismatch");
@@ -174,6 +181,10 @@ SoWgpuRustBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target)
     drawsPod[i].first_index = d.geometry.firstIndex;
     drawsPod[i].index_count = d.geometry.indexCount;
     drawsPod[i].render_state_slot = d.renderStateSlot;
+    drawsPod[i].stable_node_id = d.stableNodeId;
+    drawsPod[i].draw_ordinal = d.drawOrdinal;
+    drawsPod[i].reserved = 0;
+    drawsPod[i].source_revision = d.sourceRevision;
   }
 
   // 3. Pack materials

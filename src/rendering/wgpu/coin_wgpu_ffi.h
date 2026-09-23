@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_ABI_VERSION 3
+#define COIN_WGPU_ABI_VERSION 4
 
 typedef uint64_t CoinWgpuSurfaceId;
 #define COIN_WGPU_INVALID_SURFACE_ID UINT64_C(0)
@@ -62,6 +62,10 @@ typedef struct CoinWgpuDraw {
   uint32_t first_index;
   uint32_t index_count;
   uint32_t render_state_slot;
+  uint64_t stable_node_id;
+  uint32_t draw_ordinal;
+  uint32_t reserved;
+  uint64_t source_revision;
 } CoinWgpuDraw;
 
 typedef struct CoinWgpuMaterial {
@@ -117,6 +121,20 @@ typedef struct CoinWgpuTarget {
   uint64_t submission_serial;
 } CoinWgpuTarget;
 
+typedef struct CoinWgpuCacheStats {
+  uint64_t cumulative_uploads;
+  uint64_t cumulative_hits;
+  uint64_t cumulative_misses;
+  uint64_t cumulative_uploaded_bytes;
+  uint64_t frame_uploaded_bytes;
+  uint64_t frame_uploads;
+  uint64_t frame_hits;
+  uint64_t active_entries;
+  uint64_t retired_entries;
+  uint64_t completed_serial;
+  uint64_t submission_serial;
+} CoinWgpuCacheStats;
+
 int32_t coin_wgpu_is_available(void);
 
 void coin_wgpu_get_adapter_info(char * buffer, size_t buffer_len);
@@ -155,6 +173,10 @@ CoinWgpuStatus coin_wgpu_surface_destroy(
   char * error_buf,
   size_t error_buf_len
 );
+
+void coin_wgpu_get_cache_stats(CoinWgpuCacheStats * stats);
+
+void coin_wgpu_poll_device(void);
 
 void coin_wgpu_inject_fault(int32_t fault_code);
 

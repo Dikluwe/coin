@@ -43,8 +43,23 @@
 class SoWgpuRenderTargetP;
 class SoWgpuRenderActionP;
 
+struct SoWgpuCacheTelemetry {
+  uint64_t cumulativeUploads = 0;
+  uint64_t cumulativeHits = 0;
+  uint64_t cumulativeMisses = 0;
+  uint64_t cumulativeUploadedBytes = 0;
+  uint64_t frameUploadedBytes = 0;
+  uint64_t frameUploads = 0;
+  uint64_t frameHits = 0;
+  uint64_t activeEntries = 0;
+  uint64_t retiredEntries = 0;
+  uint64_t completedSerial = 0;
+  uint64_t submissionSerial = 0;
+};
+
 class COIN_DLL_API SoWgpuRenderTarget {
 public:
+  typedef struct ::SoWgpuCacheTelemetry SoWgpuCacheTelemetry;
   enum Status {
     TARGET_READY = 0,
     TARGET_NOT_READY,
@@ -67,6 +82,8 @@ public:
   void readbackRGBA(std::vector<uint8_t> & outPixels) const;
   void readbackDepth(std::vector<float> & outDepth) const;
   uint64_t getLastSubmissionSerial(void) const;
+  SbBool getCacheTelemetry(SoWgpuCacheTelemetry & outTelemetry) const;
+  void pollDevice(void);
 
 private:
   SoWgpuRenderTarget(void);

@@ -515,3 +515,34 @@ SoWgpuRenderTarget::resize(const SbVec2i32 & size)
 {
   return this->pimpl->resize(size) ? TRUE : FALSE;
 }
+
+SbBool
+SoWgpuRenderTarget::getCacheTelemetry(SoWgpuCacheTelemetry & outTelemetry) const
+{
+#if defined(HAVE_WGPU_RUST_BRIDGE)
+  CoinWgpuCacheStats stats;
+  coin_wgpu_get_cache_stats(&stats);
+  outTelemetry.cumulativeUploads = stats.cumulative_uploads;
+  outTelemetry.cumulativeHits = stats.cumulative_hits;
+  outTelemetry.cumulativeMisses = stats.cumulative_misses;
+  outTelemetry.cumulativeUploadedBytes = stats.cumulative_uploaded_bytes;
+  outTelemetry.frameUploadedBytes = stats.frame_uploaded_bytes;
+  outTelemetry.frameUploads = stats.frame_uploads;
+  outTelemetry.frameHits = stats.frame_hits;
+  outTelemetry.activeEntries = stats.active_entries;
+  outTelemetry.retiredEntries = stats.retired_entries;
+  outTelemetry.completedSerial = stats.completed_serial;
+  outTelemetry.submissionSerial = stats.submission_serial;
+  return TRUE;
+#else
+  return FALSE;
+#endif
+}
+
+void
+SoWgpuRenderTarget::pollDevice(void)
+{
+#if defined(HAVE_WGPU_RUST_BRIDGE)
+  coin_wgpu_poll_device();
+#endif
+}

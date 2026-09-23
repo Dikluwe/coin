@@ -678,6 +678,26 @@ SoWgpuFramePlanBuilder::processIndexedFaceSet(SoCallbackAction * action,
   dp.geometry.vertexCount += static_cast<uint32_t>(stagingVertices.size());
   dp.geometry.indexCount += static_cast<uint32_t>(stagingIndices.size());
 
+  uint64_t h = 14695981039346656037ULL;
+  auto hashBytes = [&](const void * data, size_t len) {
+    const uint8_t * b = static_cast<const uint8_t *>(data);
+    for (size_t k = 0; k < len; ++k) {
+      h ^= static_cast<uint64_t>(b[k]);
+      h *= 1099511628211ULL;
+    }
+  };
+  if (!view.positions.empty()) hashBytes(view.positions.data, view.positions.size * sizeof(SbVec3f));
+  if (!view.normals.empty()) hashBytes(view.normals.data, view.normals.size * sizeof(SbVec3f));
+  if (!view.texcoords.empty()) hashBytes(view.texcoords.data, view.texcoords.size * sizeof(SbVec2f));
+  if (!stagingIndices.empty()) hashBytes(stagingIndices.data(), stagingIndices.size() * sizeof(uint32_t));
+  uint32_t binds[2] = { static_cast<uint32_t>(view.materialBinding), static_cast<uint32_t>(view.normalBinding) };
+  hashBytes(binds, sizeof(binds));
+  if (h == 0) h = 1;
+
+  dp.stableNodeId = reinterpret_cast<uint64_t>(node);
+  dp.drawOrdinal = 0;
+  dp.sourceRevision = h;
+
   return FastPathResult::SUCCESS_PRUNE;
 }
 
@@ -846,6 +866,24 @@ SoWgpuFramePlanBuilder::processIndexedLineSet(SoCallbackAction * action,
   DrawPacket & dp = this->currentPlan.draws[this->currentDrawIndex];
   dp.geometry.vertexCount += static_cast<uint32_t>(stagingVertices.size());
   dp.geometry.indexCount += static_cast<uint32_t>(stagingIndices.size());
+
+  uint64_t h = 14695981039346656037ULL;
+  auto hashBytes = [&](const void * data, size_t len) {
+    const uint8_t * b = static_cast<const uint8_t *>(data);
+    for (size_t k = 0; k < len; ++k) {
+      h ^= static_cast<uint64_t>(b[k]);
+      h *= 1099511628211ULL;
+    }
+  };
+  if (!view.positions.empty()) hashBytes(view.positions.data, view.positions.size * sizeof(SbVec3f));
+  if (!stagingIndices.empty()) hashBytes(stagingIndices.data(), stagingIndices.size() * sizeof(uint32_t));
+  uint32_t binds[2] = { static_cast<uint32_t>(view.materialBinding), 0 };
+  hashBytes(binds, sizeof(binds));
+  if (h == 0) h = 1;
+
+  dp.stableNodeId = reinterpret_cast<uint64_t>(node);
+  dp.drawOrdinal = 0;
+  dp.sourceRevision = h;
 
   return FastPathResult::SUCCESS_PRUNE;
 }

@@ -232,6 +232,22 @@ if(COIN_BUILD_WGPU)
 	add_test(NAME WgpuIndexedFastPathTest COMMAND WgpuIndexedFastPathTest)
 	set_tests_properties(WgpuIndexedFastPathTest PROPERTIES TIMEOUT 30)
 
+	add_executable(WgpuCacheTest
+		wgpu/WgpuCacheTest.cpp
+	)
+	set_target_properties(WgpuCacheTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(WgpuCacheTest Coin ${COIN_TARGET_LINK_LIBRARIES})
+	target_include_directories(WgpuCacheTest PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}
+		${PROJECT_SOURCE_DIR}/include
+		${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include
+		${PROJECT_BINARY_DIR}/src
+		${COIN_TARGET_INCLUDE_DIRECTORIES}
+	)
+	add_test(NAME WgpuCacheTest COMMAND WgpuCacheTest)
+	set_tests_properties(WgpuCacheTest PROPERTIES TIMEOUT 30)
+
 	if(COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE" AND (UNIX AND NOT APPLE AND X11_FOUND))
 		add_executable(WgpuSurfaceTest
 			wgpu/WgpuSurfaceTest.cpp
