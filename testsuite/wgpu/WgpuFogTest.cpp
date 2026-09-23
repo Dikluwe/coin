@@ -210,6 +210,7 @@ bool compare(SoSeparator * scene, int x, int y, Sample & cpu,
 }
 
 bool checkInvalidBridgeFog() {
+#if defined(HAVE_WGPU_RUST_BRIDGE)
   if (!SoWgpuRenderAction::isGpuBackendAvailable()) return true;
   CoinWgpuRenderState state{};
   state.fog_mode = 4;
@@ -235,6 +236,9 @@ bool checkInvalidBridgeFog() {
   const CoinWgpuStatus status = coin_wgpu_submit(&target, &frame, error, sizeof(error));
   return check(status == COIN_WGPU_INVALID_ARGUMENT, "FFI accepted invalid fog mode") &&
          check(target.submission_serial == 0, "invalid fog frame was submitted");
+#else
+  return true; // The CPU/Recording path has no Rust FFI submission.
+#endif
 }
 }
 

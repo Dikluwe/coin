@@ -164,6 +164,7 @@ bool checkParity(SoSeparator * root, std::array<int, 3> & cpuRgb,
   return true;
 }
 bool checkBridgeLimit() {
+#if defined(HAVE_WGPU_RUST_BRIDGE)
   if (!SoWgpuRenderAction::isGpuBackendAvailable()) return true;
   CoinWgpuRenderState state{};
   state.light_count = 9;
@@ -188,6 +189,9 @@ bool checkBridgeLimit() {
   const CoinWgpuStatus status = coin_wgpu_submit(&target, &frame, error, sizeof(error));
   return check(status == COIN_WGPU_UNSUPPORTED, "FFI accepted light_count=9") &&
          check(target.submission_serial == 0, "invalid FFI frame was submitted");
+#else
+  return true; // Bridge-specific contract is covered only by RUST_BRIDGE.
+#endif
 }
 
 bool renderGlCenter(SoSeparator * root, std::array<int, 3> & rgb) {

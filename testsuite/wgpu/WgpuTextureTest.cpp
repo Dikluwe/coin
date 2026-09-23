@@ -13,6 +13,8 @@
 #include <Inventor/nodes/SoTextureCoordinate2.h>
 #include <Inventor/nodes/SoTexture2Transform.h>
 #include <Inventor/nodes/SoComplexity.h>
+#include <Inventor/nodes/SoLineSet.h>
+#include <Inventor/nodes/SoPointSet.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include <Inventor/nodes/SoPerspectiveCamera.h>
@@ -617,6 +619,49 @@ static bool testQualityZeroDisablesTexture() {
   return true;
 }
 
+static bool testTexturedLineAndPointRejected() {
+  for (int topology = 0; topology < 2; ++topology) {
+    SoSeparator * root = new SoSeparator;
+    root->ref();
+    root->addChild(new SoPerspectiveCamera);
+
+    SoTexture2 * texture = new SoTexture2;
+    const unsigned char green[] = {0, 255, 0, 0, 255, 0,
+                                   0, 255, 0, 0, 255, 0};
+    texture->image.setValue(SbVec2s(2, 2), 3, green);
+    root->addChild(texture);
+
+    SoTextureCoordinate2 * uv = new SoTextureCoordinate2;
+    uv->point.set1Value(0, SbVec2f(0.0f, 0.0f));
+    uv->point.set1Value(1, SbVec2f(1.0f, 1.0f));
+    root->addChild(uv);
+
+    SoCoordinate3 * coords = new SoCoordinate3;
+    coords->point.set1Value(0, SbVec3f(-0.5f, 0.0f, 0.0f));
+    coords->point.set1Value(1, SbVec3f( 0.5f, 0.0f, 0.0f));
+    root->addChild(coords);
+    if (topology == 0) {
+      SoLineSet * lines = new SoLineSet;
+      lines->numVertices.set1Value(0, 2);
+      root->addChild(lines);
+    } else {
+      SoPointSet * points = new SoPointSet;
+      points->numPoints = 1;
+      root->addChild(points);
+    }
+
+    SoWgpuRenderAction action(SbViewportRegion(32, 32));
+    action.apply(root);
+    ASSERT_TRUE(action.getLastStatus() == SoWgpuRenderAction::UNSUPPORTED,
+                "Textured line/point must fail explicitly");
+    const char * expected = topology == 0 ? "Textured lines" : "Textured points";
+    ASSERT_TRUE(std::strstr(action.getLastError().getString(), expected) != nullptr,
+                "Textured line/point must report an actionable diagnostic");
+    root->unref();
+  }
+  return true;
+}
+
 int main(int argc, char ** argv) {
   SoDB::init();
   SoWgpuRenderAction::initClass();
@@ -628,6 +673,7 @@ int main(int argc, char ** argv) {
   if (!testTextureFormats1to4Components()) return 1;
   if (!testModulateModelStrict()) return 1;
   if (!testUnsupportedRejections()) return 1;
+  if (!testTexturedLineAndPointRejected()) return 1;
   if (!testTextureCoordinatesExplicitVsProcedural()) return 1;
   if (!testTextureTransformAndWrap()) return 1;
   if (!testMultipleDrawsDifferentTextures()) return 1;

@@ -11,7 +11,7 @@ A especificação [`SoWgpu-Onda0-Onda1.md`](../../estudos/So/SoWgpu-Onda0-Onda1.
 Para a Onda 1A (renderização offscreen em GPU real), três rotas técnicas foram avaliadas:
 1. **Dawn (C++ / Google):** Requer compilação e empacotamento complexos do Chromium/Dawn, indisponível nativamente nos repositórios padrão da maioria das distribuições Linux e com interface C++ mutável.
 2. **wgpu-native (C-API / Mozilla / gfx-rs):** Biblioteca C sobre `wgpu`, porém com evolução rápida de cabeçalhos (`webgpu.h` v22+ com futures e callback info assíncronos) que geram incompatibilidades frequentes de compilação sem um SDK empacotado globalmente no ambiente.
-3. **Bridge Rust com `wgpu` (`RUST_BRIDGE`):** Utiliza diretamente o ecossistema `wgpu` em Rust através de uma C-ABI estritamente tipada e congelada (`coin_wgpu_ffi.h`), permitindo compilação reproduzível via Cargo (`cargo build --locked`), integração comprovada com drivers Vulkan e GPUs dedicadas (NVIDIA RTX 3060), e execução hermética.
+3. **Bridge Rust com `wgpu` (`RUST_BRIDGE`):** Utiliza diretamente o ecossistema `wgpu` em Rust através de uma C-ABI privada, estritamente tipada e versionada (`coin_wgpu_ffi.h`), permitindo compilação reproduzível via Cargo (`cargo build --locked`), integração comprovada com drivers Vulkan e GPUs dedicadas (NVIDIA RTX 3060), e execução hermética.
 
 Além disso, o modo `RECORDING` já fornece um rasterizador de software em CPU determinístico para ambientes de CI onde hardware de GPU não está disponível.
 
@@ -29,5 +29,5 @@ Adotamos a seguinte estratégia de backends para o Coin3D:
   - ABI C hermética e versionada que isola o runtime Rust de qualquer vazamento de tipos ou ABI C++ no Coin.
   - Segurança de memória na fronteira FFI via `std::panic::catch_unwind` e checagem estrita de bounds.
 - **Negativas / Mitigações:**
-  - Exigência do compilador Rust (`cargo` / `rustc`) quando `COIN_WGPU_BACKEND=RUST_BRIDGE` for ativado. (Mitigação: `COIN_WGPU_BACKEND=RECORDING` continua disponível sem qualquer dependência além de C++20).
+  - Exigência do compilador Rust (`cargo` / `rustc`) quando `COIN_WGPU_BACKEND=RUST_BRIDGE` for ativado. (Mitigação: `COIN_WGPU_BACKEND=RECORDING` continua disponível sem Rust, com o mínimo de C++11 do Coin).
   - Isolamento de artefatos de compilação: `CARGO_TARGET_DIR` deve sempre apontar para dentro do diretório de build do CMake para não poluir o repositório Git.

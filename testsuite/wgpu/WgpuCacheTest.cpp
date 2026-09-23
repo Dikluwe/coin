@@ -167,6 +167,7 @@ int main() {
     std::cout << "   [PASS] Tests 1, 2, 3: Warm-up, selective mutation, safe retirement" << std::endl;
   }
 
+#if defined(HAVE_WGPU_RUST_BRIDGE)
   // =========================================================================
   // Test 4: O(1) Logical Invalidation under Device Lost & Clean Recovery
   // =========================================================================
@@ -225,6 +226,7 @@ int main() {
     std::cout << "   [PASS] Test 4: O(1) Device Lost invalidation and clean recovery" << std::endl;
   }
 
+#endif
   // =========================================================================
   // Test 5: Exact Visual Equivalence between Initial Upload and Cache Hits
   // =========================================================================

@@ -732,6 +732,12 @@ SoWgpuFramePlanBuilder::addLine(SoCallbackAction * action,
 {
   if (!v0 || !v1) return;
   uint32_t rsSlot = this->captureRenderState(action, v0->getMaterialIndex());
+  if (this->isUnsupported) return;
+  if (this->currentPlan.renderStates[rsSlot].hasTexture) {
+    this->isUnsupported = true;
+    this->builderError = "Textured lines are not supported";
+    return;
+  }
   this->ensureDrawPacket(PrimitiveTopology::LINE_LIST, rsSlot, action->getCurPathTail());
 
   uint32_t m0 = this->captureMaterial(action, v0->getMaterialIndex());
@@ -754,6 +760,12 @@ SoWgpuFramePlanBuilder::addPoint(SoCallbackAction * action,
 {
   if (!vertex) return;
   uint32_t rsSlot = this->captureRenderState(action, vertex->getMaterialIndex());
+  if (this->isUnsupported) return;
+  if (this->currentPlan.renderStates[rsSlot].hasTexture) {
+    this->isUnsupported = true;
+    this->builderError = "Textured points are not supported";
+    return;
+  }
   this->ensureDrawPacket(PrimitiveTopology::POINT_LIST, rsSlot, action->getCurPathTail());
 
   uint32_t m0 = this->captureMaterial(action, vertex->getMaterialIndex());

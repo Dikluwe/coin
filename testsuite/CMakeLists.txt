@@ -140,6 +140,10 @@ option(COIN_TEST_WGPU_STRICT_DISPLAY "Enable strict X11 display test in CTest wh
 option(COIN_TEST_WGPU_GL_REFERENCE "Enable strict Coin/GL offscreen lighting reference under Xvfb" OFF)
 
 if(COIN_BUILD_WGPU)
+	if((COIN_TEST_WGPU_STRICT_DISPLAY OR COIN_TEST_WGPU_GL_REFERENCE) AND
+	   NOT COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE")
+		message(FATAL_ERROR "Strict WebGPU display/GL reference tests require COIN_WGPU_BACKEND=RUST_BRIDGE")
+	endif()
 	add_executable(WgpuRenderActionTest
 		actions/WgpuRenderActionTest.cpp
 	)
@@ -276,6 +280,7 @@ if(COIN_BUILD_WGPU)
 	add_test(NAME WgpuStabilizationTest COMMAND WgpuStabilizationTest)
 	set_tests_properties(WgpuStabilizationTest PROPERTIES TIMEOUT 30)
 
+	if(COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE")
 	add_executable(WgpuMaterialTest
 		wgpu/WgpuMaterialTest.cpp
 	)
@@ -292,6 +297,7 @@ if(COIN_BUILD_WGPU)
 	)
 	add_test(NAME WgpuMaterialTest COMMAND WgpuMaterialTest)
 	set_tests_properties(WgpuMaterialTest PROPERTIES TIMEOUT 30)
+	endif()
 
 	add_executable(WgpuTextureTest
 		wgpu/WgpuTextureTest.cpp
