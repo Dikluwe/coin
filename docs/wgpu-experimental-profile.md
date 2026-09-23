@@ -50,12 +50,23 @@ etapa deu 100% de compatibilidade binária e de fonte. Os 878 headers instalados
 são idênticos em ON/OFF e não incluem WebGPU. Um consumer C++11 externo do
 pacote Coin instalado compilou e executou.
 
+## Evidência adicional da 3E
+
+A comparação histórica do Coin estável também foi feita com
+`abi-dumper`/`abi-compliance-checker`: builds limpos, Debug, C++11 e
+`COIN_BUILD_WGPU=OFF` do baseline `a8b55d0dc5` e deste HEAD tiveram 100%
+de compatibilidade binária e de fonte, sem problemas nem avisos. Isso não
+promete compatibilidade com os três headers WebGPU experimentais que existiam
+no baseline e foram removidos no isolamento 3B.
+
+O teste estrito de janela X11 sob Xvfb passou com frames repetidos, resize,
+suspensão zero-size, fault injection de superfície e recuperação de device
+lost. `WgpuStabilizationTest` já cobre falha transacional de alocação do cache;
+`WgpuOffscreenTest` e `WgpuSurfaceTest` cobrem OOM e estados do alvo.
+
 ## Antes de considerar a Onda 3 concluída
 
-Ainda faltam medições reprodutíveis de upload/cache/pipeline, injeção controlada
-de falhas de alocação, repetição/resize de janela e auditoria ABI contra o
-baseline histórico `a8b55d0dc5` (distinta da comparação ON/OFF). A auditoria
-deve distinguir a API pública estável do Coin dos três headers WebGPU
-experimentais que existiam nesse baseline e foram removidos no isolamento 3B.
-Esses gates pertencem à 3E; os testes de correção das subondas anteriores não
-os substituem.
+Ainda faltam medições quantitativas reproduzíveis de upload de pixels, hits e
+misses de textura, compilação/reuso de pipeline e retenção de recursos após
+muitas trocas de textura. Os testes de correção e cache existentes não substituem
+essa evidência de desempenho/lifecycle.
