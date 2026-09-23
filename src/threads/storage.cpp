@@ -581,7 +581,7 @@ storage_test_get_from_worker(void * closure)
   return NULL;
 }
 
-BOOST_AUTO_TEST_CASE(cc_storage_explicit_thread_cleanup_detaches_worker_block)
+BOOST_AUTO_TEST_CASE(cc_storage_thread_exit_cleans_worker_block)
 {
   storage_test_construct_count = 0;
   storage_test_destruct_count = 0;
@@ -589,27 +589,74 @@ BOOST_AUTO_TEST_CASE(cc_storage_explicit_thread_cleanup_detaches_worker_block)
   cc_storage * storage = cc_storage_construct_etc(sizeof(int),
                                                    storage_test_construct,
                                                    storage_test_destruct);
-  storage_test_thread_data data = { storage, 0, NULL };
+  const unsigned int numthreads = 32;
+  for (unsigned int i = 0; i < numthreads; i++) {
+    storage_test_thread_data data = { storage, 0, NULL };
+    cc_thread * thread =
+      cc_thread_construct(storage_test_get_from_worker, &data);
+    BOOST_REQUIRE(thread != NULL);
+    BOOST_REQUIRE_EQUAL(cc_thread_join(thread, NULL), CC_OK);
+    cc_thread_destruct(thread);
+    BOOST_REQUIRE(data.value != NULL);
+    BOOST_CHECK_EQUAL(cc_storage_thread_cleanup(data.threadid), 0U);
+  }
+
+  BOOST_CHECK_EQUAL(storage_test_construct_count, numthreads);
+  BOOST_CHECK_EQUAL(storage_test_destruct_count, numthreads);
+
+  int apply_count = 0;
+  cc_storage_apply_to_all(storage, storage_test_apply, &apply_count);
+  BOOST_CHECK_EQUAL(apply_count, 0);
+
+  cc_storage_destruct(storage);
+  BOOST_CHECK_EQUAL(storage_test_destruct_count, numthreads);
+}
+
+static cc_storage * storage_test_exit_reentrant_storage;
+static int storage_test_exit_reentrant_construct_count;
+static int storage_test_exit_reentrant_destruct_count;
+
+static void
+storage_test_exit_reentrant_construct(void * data)
+{
+  storage_test_exit_reentrant_construct_count++;
+  *static_cast<int *>(data) = 23;
+}
+
+static void
+storage_test_exit_reentrant_destruct(void *)
+{
+  storage_test_exit_reentrant_destruct_count++;
+  if (storage_test_exit_reentrant_destruct_count == 1) {
+    int * value = static_cast<int *>(
+      cc_storage_get(storage_test_exit_reentrant_storage));
+    BOOST_REQUIRE(value != NULL);
+    BOOST_CHECK_EQUAL(*value, 23);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(cc_storage_thread_exit_handles_reentrant_destructor)
+{
+  storage_test_exit_reentrant_construct_count = 0;
+  storage_test_exit_reentrant_destruct_count = 0;
+  storage_test_exit_reentrant_storage =
+    cc_storage_construct_etc(sizeof(int),
+                             storage_test_exit_reentrant_construct,
+                             storage_test_exit_reentrant_destruct);
+
+  storage_test_thread_data data = {
+    storage_test_exit_reentrant_storage, 0, NULL
+  };
   cc_thread * thread = cc_thread_construct(storage_test_get_from_worker, &data);
   BOOST_REQUIRE(thread != NULL);
   BOOST_REQUIRE_EQUAL(cc_thread_join(thread, NULL), CC_OK);
   cc_thread_destruct(thread);
 
-  BOOST_REQUIRE(data.value != NULL);
-  BOOST_CHECK_EQUAL(*static_cast<int *>(data.value), 17);
-  BOOST_CHECK_EQUAL(storage_test_construct_count, 1);
-  BOOST_CHECK_EQUAL(storage_test_destruct_count, 0);
+  BOOST_CHECK_EQUAL(storage_test_exit_reentrant_construct_count, 2);
+  BOOST_CHECK_EQUAL(storage_test_exit_reentrant_destruct_count, 2);
 
-  BOOST_CHECK_EQUAL(cc_storage_thread_cleanup(data.threadid), 1U);
-  BOOST_CHECK_EQUAL(storage_test_destruct_count, 1);
-
-  int apply_count = 0;
-  cc_storage_apply_to_all(storage, storage_test_apply, &apply_count);
-  BOOST_CHECK_EQUAL(apply_count, 0);
-  BOOST_CHECK_EQUAL(cc_storage_thread_cleanup(data.threadid), 0U);
-
-  cc_storage_destruct(storage);
-  BOOST_CHECK_EQUAL(storage_test_destruct_count, 1);
+  cc_storage_destruct(storage_test_exit_reentrant_storage);
+  storage_test_exit_reentrant_storage = NULL;
 }
 
 #endif /* HAVE_THREADS */

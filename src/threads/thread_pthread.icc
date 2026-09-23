@@ -32,9 +32,80 @@
 
 /* this file should only be included from thread.c */
 
+typedef struct {
+  unsigned long threadid;
+  int exiting;
+} cc_pthread_storage_guard;
+
+static pthread_key_t cc_pthread_storage_guard_key;
+static pthread_once_t cc_pthread_storage_guard_once = PTHREAD_ONCE_INIT;
+static int cc_pthread_storage_guard_status = CC_ERROR;
+
+static void
+cc_pthread_storage_guard_destruct(void * closure)
+{
+  cc_pthread_storage_guard * guard =
+    (cc_pthread_storage_guard *) closure;
+  assert(guard != NULL);
+
+  guard->exiting = TRUE;
+  int status = pthread_setspecific(cc_pthread_storage_guard_key, guard);
+  assert(status == 0);
+  if (status != 0) {
+    (void) cc_storage_thread_cleanup(guard->threadid);
+    free(guard);
+    return;
+  }
+
+#ifdef PTHREAD_DESTRUCTOR_ITERATIONS
+  const unsigned int maxiterations = PTHREAD_DESTRUCTOR_ITERATIONS;
+#else
+  const unsigned int maxiterations = 4;
+#endif
+
+  unsigned int iteration = 0;
+  unsigned int cleaned;
+  do {
+    cleaned = cc_storage_thread_cleanup(guard->threadid);
+    iteration++;
+  } while (cleaned > 0 && iteration < maxiterations);
+
+  status = pthread_setspecific(cc_pthread_storage_guard_key, NULL);
+  assert(status == 0);
+  free(guard);
+}
+
+static void
+cc_pthread_storage_guard_init(void)
+{
+  cc_pthread_storage_guard_status =
+    pthread_key_create(&cc_pthread_storage_guard_key,
+                       cc_pthread_storage_guard_destruct);
+  assert(cc_pthread_storage_guard_status == 0);
+}
+
 static void
 internal_storage_guard_ensure(void)
 {
+  int status = pthread_once(&cc_pthread_storage_guard_once,
+                            cc_pthread_storage_guard_init);
+  assert(status == 0);
+  if (status != 0) return;
+  if (cc_pthread_storage_guard_status != 0) return;
+
+  cc_pthread_storage_guard * guard = (cc_pthread_storage_guard *)
+    pthread_getspecific(cc_pthread_storage_guard_key);
+  if (guard != NULL) return;
+
+  guard = (cc_pthread_storage_guard *) malloc(sizeof(cc_pthread_storage_guard));
+  assert(guard != NULL);
+  if (guard == NULL) return;
+
+  guard->threadid = cc_thread_id();
+  guard->exiting = FALSE;
+  status = pthread_setspecific(cc_pthread_storage_guard_key, guard);
+  assert(status == 0);
+  if (status != 0) free(guard);
 }
 
 static int
