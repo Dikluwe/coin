@@ -38,13 +38,15 @@ ainda não estão concluídas.
 ## Evidência parcial da 4D (ponte privada)
 
 `WgpuAsyncReadbackTest` exerce duas solicitações fora de ordem, polling não
-bloqueante, buffers pequenos e sobrepostos, cancelamento, mudança de tamanho,
-falha de mapeamento injetada e perda de dispositivo. O staging pertence ao
+bloqueante, buffers pequenos e sobrepostos, cancelamento, resize com pedido
+anterior pendente, equivalência exata de cor/profundidade com o readback
+síncrono, falha de mapeamento injetada e perda de dispositivo com invalidação
+dos demais tickets e recuperação em nova geração. O staging pertence ao
 runtime Rust até poll/cancel; os callbacks não retêm ponteiros do target nem do
 frame. Um ensaio local na NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) usou
 65.536 bytes de staging para duas capturas RGBA8+Depth32 de 64×64 e levou
-67,1 ms no roundtrip completo do teste; não é medida isolada de latência de
-readback nem SLA. A action/target C++ ainda usa o caminho síncrono.
+247,1 ms no roundtrip completo do teste ampliado; não é medida isolada de
+latência de readback nem SLA. A action/target C++ ainda usa o caminho síncrono.
 
 ## Build e testes
 

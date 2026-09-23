@@ -134,6 +134,19 @@ int main() {
              std::abs(redDepth[32u * 64u + 32u] - 1.0f) < 0.001f,
              "first request retained its own attachments", error)) return 1;
 
+  CoinWgpuTarget synchronous{};
+  synchronous.width = red.width;
+  synchronous.height = red.height;
+  std::vector<uint8_t> synchronousColor(redColor.size(), 0);
+  std::vector<float> synchronousDepth(redDepth.size(), 0.0f);
+  synchronous.color_buffer = synchronousColor.data();
+  synchronous.color_buffer_len = synchronousColor.size();
+  synchronous.depth_buffer = synchronousDepth.data();
+  synchronous.depth_buffer_len = synchronousDepth.size();
+  if (!check(coin_wgpu_submit(&synchronous, &red, error, sizeof(error)) == COIN_WGPU_OK &&
+             synchronousColor == redColor && synchronousDepth == redDepth,
+             "async and synchronous readback must match exactly", error)) return 1;
+
   CoinWgpuReadbackTicket cancelled{};
   if (!request(red, false, cancelled) ||
       !check(coin_wgpu_readback_cancel(cancelled.token) == COIN_WGPU_OK,
@@ -143,8 +156,8 @@ int main() {
              "cancelled token rejected")) return 1;
 
   CoinWgpuFrameView yellow = clearFrame(32, 32, &material, 1, 1, 0);
-  CoinWgpuReadbackTicket resized{};
-  if (!request(yellow, false, resized)) return 1;
+  CoinWgpuReadbackTicket oldSize{}, resized{};
+  if (!request(red, false, oldSize) || !request(yellow, false, resized)) return 1;
   std::vector<uint8_t> yellowColor(32u * 32u * 4u, 17);
   std::vector<float> noDepth;
   const CoinWgpuStatus resizeResult = pollUntilReady(resized, yellowColor, noDepth,
@@ -152,6 +165,10 @@ int main() {
   if (!check(resizeResult == COIN_WGPU_OK && resized.width == 32 &&
              resized.depth_bytes == 0 && colorIs(yellowColor, 32, 32, 255, 255, 0),
              "resized request has independent dimensions", error)) return 1;
+  std::vector<uint8_t> oldColor(64u * 64u * 4u, 17);
+  if (!check(pollUntilReady(oldSize, oldColor, noDepth, error, sizeof(error)) == COIN_WGPU_OK &&
+             colorIs(oldColor, 64, 64, 255, 0, 0),
+             "pending old-size request survives newer resized submission", error)) return 1;
 
   CoinWgpuReadbackTicket mapFailure{};
   if (!request(red, true, mapFailure)) return 1;
@@ -164,12 +181,22 @@ int main() {
              untouchedColor[0] == 17 && untouchedDepth[0] == -1.0f,
              "map failure must not publish partial attachments", error)) return 1;
 
-  CoinWgpuReadbackTicket lost{};
-  if (!request(red, false, lost)) return 1;
+  CoinWgpuReadbackTicket lost{}, lostPeer{};
+  if (!request(red, false, lost) || !request(green, false, lostPeer)) return 1;
   coin_wgpu_inject_async_fault(COIN_WGPU_DEVICE_LOST);
   if (!check(coin_wgpu_readback_poll(lost.token, nullptr, 0, nullptr, 0,
                                     error, sizeof(error)) == COIN_WGPU_DEVICE_LOST,
-             "device loss invalidates pending readback")) return 1;
+             "device loss invalidates pending readback") ||
+      !check(coin_wgpu_readback_poll(lostPeer.token, nullptr, 0, nullptr, 0,
+                                    error, sizeof(error)) == COIN_WGPU_INVALID_ARGUMENT,
+             "device loss invalidates all peer tickets")) return 1;
+  CoinWgpuReadbackTicket recovered{};
+  if (!request(yellow, false, recovered)) return 1;
+  std::vector<uint8_t> recoveredColor(32u * 32u * 4u, 17);
+  if (!check(pollUntilReady(recovered, recoveredColor, noDepth, error, sizeof(error)) == COIN_WGPU_OK &&
+             recovered.generation > lost.generation &&
+             colorIs(recoveredColor, 32, 32, 255, 255, 0),
+             "new generation recovers after device loss", error)) return 1;
   coin_wgpu_reset_context();
   const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
     std::chrono::steady_clock::now() - runStart).count();
