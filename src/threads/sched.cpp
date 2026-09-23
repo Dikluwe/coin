@@ -45,6 +45,7 @@
 #include <Inventor/C/threads/sched.h>
 
 #include <cassert>
+#include <cfloat>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -130,9 +131,8 @@ sched_item_compare(void * o1, void * o2)
   sched_item * i1 = (sched_item *) o1;
   sched_item * i2 = (sched_item *) o2;
   
-  float diff = i1->priority - i2->priority;
-  if (diff > 0) return 1;
-  else if (diff < 0) return -1;
+  if (i1->priority > i2->priority) return 1;
+  else if (i1->priority < i2->priority) return -1;
   return 0;
 }
 
@@ -251,7 +251,7 @@ cc_sched_schedule(cc_sched * sched,
                   cc_sched_f * workfunc, void * closure,
                   float priority)
 {
-  if (workfunc == NULL) return 0;
+  if (workfunc == NULL || !(priority >= -FLT_MAX && priority <= FLT_MAX)) return 0;
 
   sched_item * item;
   uint32_t schedid;
@@ -364,6 +364,7 @@ void
 cc_sched_change_priority(cc_sched * sched, 
                          uint32_t schedid, float priority)
 {
+  if (!(priority >= -FLT_MAX && priority <= FLT_MAX)) return;
   void * item;
   cc_mutex_lock(sched->mutex);
   
@@ -383,6 +384,8 @@ cc_sched_change_priority(cc_sched * sched,
 #endif /* __cplusplus */
 
 #ifdef COIN_TEST_SUITE
+#include <cfloat>
+#include <limits>
 
 static void
 sched_test_callback(void * closure)
@@ -413,6 +416,33 @@ BOOST_AUTO_TEST_CASE(cc_sched_tracks_paused_and_cancelled_jobs)
   BOOST_CHECK_EQUAL(cc_sched_get_num_remaining(sched), 0);
   BOOST_CHECK_EQUAL(calls, 0);
 
+  cc_sched_destruct(sched);
+}
+
+BOOST_AUTO_TEST_CASE(cc_sched_rejects_nonfinite_priorities)
+{
+  cc_sched * sched = cc_sched_construct(1);
+  int calls = 0;
+  cc_sched_set_num_allowed(sched, 0);
+
+  const float nan = std::numeric_limits<float>::quiet_NaN();
+  const float inf = std::numeric_limits<float>::infinity();
+  BOOST_CHECK_EQUAL(cc_sched_schedule(sched, sched_test_callback, &calls, nan), 0u);
+  BOOST_CHECK_EQUAL(cc_sched_schedule(sched, sched_test_callback, &calls, inf), 0u);
+  BOOST_CHECK_EQUAL(cc_sched_schedule(sched, sched_test_callback, &calls, -inf), 0u);
+
+  const uint32_t id = cc_sched_schedule(sched, sched_test_callback,
+                                        &calls, FLT_MAX);
+  BOOST_CHECK(id != 0);
+  const uint32_t low = cc_sched_schedule(sched, sched_test_callback,
+                                          &calls, -FLT_MAX);
+  BOOST_CHECK(low != 0);
+  cc_sched_change_priority(sched, id, nan);
+  cc_sched_change_priority(sched, id, inf);
+  BOOST_CHECK_EQUAL(cc_sched_get_num_remaining(sched), 2);
+  BOOST_CHECK(cc_sched_unschedule(sched, id));
+  BOOST_CHECK(cc_sched_unschedule(sched, low));
+  BOOST_CHECK_EQUAL(calls, 0);
   cc_sched_destruct(sched);
 }
 
