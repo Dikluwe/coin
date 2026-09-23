@@ -75,6 +75,7 @@
 #include <Inventor/C/errors/debugerror.h>
 
 #include "threads/threadp.h"
+#include "threads/storagep.h"
 #include "threads/mutexp.h"
 #include "threads/recmutexp.h"
 #include "threads/syncp.h"
@@ -99,6 +100,12 @@
 #ifdef USE_W32THREAD
 #include "threads/thread_win32.icc"
 #endif /* USE_W32THREAD */
+
+void
+cc_thread_storage_guard_ensure(void)
+{
+  internal_storage_guard_ensure();
+}
 
 /*
 */

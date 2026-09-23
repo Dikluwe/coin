@@ -69,8 +69,12 @@
    cc_mutex interfaces *working*, dummy skeletons when no thread
    abstractions are available?  20040615 mortene. */
 #ifdef HAVE_THREADS
+#include <Inventor/C/base/list.h>
 #include <Inventor/C/threads/thread.h>
 #include <Inventor/C/threads/mutex.h>
+#include "threads/mutexp.h"
+#include "threads/threadp.h"
+#include "tidbitsp.h"
 #endif /* HAVE_THREADS */
 
 #include "threads/storagep.h"
@@ -83,6 +87,55 @@ extern "C" {
 
 /* private functions */
 
+typedef struct {
+  void * value;
+  void (*destructor)(void *);
+} cc_storage_cleanup_item;
+
+typedef struct {
+  void ** values;
+  unsigned int length;
+} cc_storage_hash_snapshot;
+
+static void storage_hash_collect(uintptr_t key, void * val, void * closure);
+
+
+#ifdef HAVE_THREADS
+
+static cc_list * cc_storage_live_storages = NULL;
+
+static void
+cc_storage_registry_cleanup(void)
+{
+  cc_mutex_global_lock();
+  if (cc_storage_live_storages != NULL) {
+    assert(cc_list_get_length(cc_storage_live_storages) == 0);
+    cc_list_destruct(cc_storage_live_storages);
+    cc_storage_live_storages = NULL;
+  }
+  cc_mutex_global_unlock();
+}
+
+static void
+cc_storage_registry_ensure_locked(void)
+{
+  if (cc_storage_live_storages == NULL) {
+    cc_storage_live_storages = cc_list_construct();
+    coin_atexit(cc_storage_registry_cleanup, CC_ATEXIT_THREADING_SUBSYSTEM);
+  }
+}
+
+static void
+cc_storage_registry_add(cc_storage * storage)
+{
+  cc_mutex_global_lock();
+  cc_storage_registry_ensure_locked();
+  cc_list_append(cc_storage_live_storages, storage);
+  cc_mutex_global_unlock();
+}
+
+#endif /* HAVE_THREADS */
+
 static cc_storage *
 cc_storage_init(unsigned int size, void (*constructor)(void *), 
                 void (*destructor)(void *)) 
@@ -94,6 +147,7 @@ cc_storage_init(unsigned int size, void (*constructor)(void *),
   storage->dict = cc_dict_construct(8, 0.75f);
 #ifdef HAVE_THREADS
   storage->mutex = cc_mutex_construct();
+  cc_storage_registry_add(storage);
 #endif /* HAVE_THREADS */
 
   return storage;
@@ -134,7 +188,45 @@ cc_storage_destruct(cc_storage * storage)
 {
   assert(storage != NULL);
 
+#ifdef HAVE_THREADS
+  cc_storage_hash_snapshot snapshot;
+  snapshot.values = NULL;
+  snapshot.length = 0;
+
+  cc_mutex_global_lock();
+  cc_mutex_lock(storage->mutex);
+
+  const unsigned int numelements = cc_dict_get_num_elements(storage->dict);
+  if (numelements > 0) {
+    snapshot.values = (void **) malloc(sizeof(void *) * numelements);
+    assert(snapshot.values != NULL);
+    if (snapshot.values == NULL) {
+      cc_mutex_unlock(storage->mutex);
+      cc_mutex_global_unlock();
+      return;
+    }
+    cc_dict_apply(storage->dict, storage_hash_collect, &snapshot);
+    assert(snapshot.length == numelements);
+    cc_dict_clear(storage->dict);
+  }
+
+  if (cc_storage_live_storages != NULL) {
+    cc_list_remove_item(cc_storage_live_storages, storage);
+  }
+  cc_mutex_unlock(storage->mutex);
+  cc_mutex_global_unlock();
+
+  for (unsigned int i = 0; i < snapshot.length; i++) {
+    if (storage->destructor != NULL) {
+      storage->destructor(snapshot.values[i]);
+    }
+    free(snapshot.values[i]);
+  }
+  free(snapshot.values);
+#else /* ! HAVE_THREADS */
   cc_dict_apply(storage->dict, cc_storage_hash_destruct_cb, storage);
+#endif /* ! HAVE_THREADS */
+
   cc_dict_destruct(storage->dict);
 
 #ifdef HAVE_THREADS
@@ -156,6 +248,7 @@ cc_storage_get(cc_storage * storage)
   unsigned long threadid = 0;
 
 #ifdef HAVE_THREADS
+  cc_thread_storage_guard_ensure();
   threadid = cc_thread_id();
 
   cc_mutex_lock(storage->mutex);
@@ -175,12 +268,6 @@ cc_storage_get(cc_storage * storage)
 
   return val;
 }
-
-/* struct needed for collecting a point-in-time snapshot from cc_dict */
-typedef struct {
-  void ** values;
-  unsigned int length;
-} cc_storage_hash_snapshot;
 
 static void 
 storage_hash_collect(uintptr_t COIN_UNUSED_ARG(key), void * val, void * closure)
@@ -232,10 +319,58 @@ cc_storage_apply_to_all(cc_storage * storage,
 
 /* ********************************************************************** */
 
-void 
-cc_storage_thread_cleanup(unsigned long COIN_UNUSED_ARG(threadid))
+unsigned int
+cc_storage_thread_cleanup(unsigned long threadid)
 {
-  /* FIXME: remove and destruct all data for this thread for all storages */
+#ifdef HAVE_THREADS
+  cc_storage_cleanup_item * items = NULL;
+  unsigned int numitems = 0;
+
+  cc_mutex_global_lock();
+  if (cc_storage_live_storages == NULL) {
+    cc_mutex_global_unlock();
+    return 0;
+  }
+
+  const int numstorages = cc_list_get_length(cc_storage_live_storages);
+  if (numstorages > 0) {
+    items = (cc_storage_cleanup_item *)
+      malloc(sizeof(cc_storage_cleanup_item) * (unsigned int) numstorages);
+    assert(items != NULL);
+    if (items == NULL) {
+      cc_mutex_global_unlock();
+      return 0;
+    }
+  }
+
+  for (int i = 0; i < numstorages; i++) {
+    cc_storage * storage =
+      (cc_storage *) cc_list_get(cc_storage_live_storages, i);
+    void * value = NULL;
+
+    cc_mutex_lock(storage->mutex);
+    if (cc_dict_get(storage->dict, threadid, &value)) {
+      (void) cc_dict_remove(storage->dict, threadid);
+      items[numitems].value = value;
+      items[numitems].destructor = storage->destructor;
+      numitems++;
+    }
+    cc_mutex_unlock(storage->mutex);
+  }
+  cc_mutex_global_unlock();
+
+  for (unsigned int i = 0; i < numitems; i++) {
+    if (items[i].destructor != NULL) {
+      items[i].destructor(items[i].value);
+    }
+    free(items[i].value);
+  }
+  free(items);
+  return numitems;
+#else /* ! HAVE_THREADS */
+  (void) threadid;
+  return 0;
+#endif /* ! HAVE_THREADS */
 }
 
 /* ********************************************************************** */
@@ -348,6 +483,8 @@ cc_storage_thread_cleanup(unsigned long COIN_UNUSED_ARG(threadid))
 
 #ifdef COIN_TEST_SUITE
 
+#include <Inventor/C/threads/thread.h>
+#include "threads/storage_test_config.h"
 #include <Inventor/threads/SbStorage.h>
 #include <Inventor/threads/SbTypedStorage.h>
 
@@ -423,6 +560,59 @@ BOOST_AUTO_TEST_CASE(cc_storage_preserves_same_thread_value_and_lifecycle)
   cc_storage_destruct(storage);
   BOOST_CHECK_EQUAL(storage_test_destruct_count, 1);
 }
+
+#ifdef HAVE_THREADS
+
+extern "C" unsigned int cc_storage_thread_cleanup(unsigned long threadid);
+
+typedef struct {
+  cc_storage * storage;
+  unsigned long threadid;
+  void * value;
+} storage_test_thread_data;
+
+static void *
+storage_test_get_from_worker(void * closure)
+{
+  storage_test_thread_data * data =
+    static_cast<storage_test_thread_data *>(closure);
+  data->threadid = cc_thread_id();
+  data->value = cc_storage_get(data->storage);
+  return NULL;
+}
+
+BOOST_AUTO_TEST_CASE(cc_storage_explicit_thread_cleanup_detaches_worker_block)
+{
+  storage_test_construct_count = 0;
+  storage_test_destruct_count = 0;
+
+  cc_storage * storage = cc_storage_construct_etc(sizeof(int),
+                                                   storage_test_construct,
+                                                   storage_test_destruct);
+  storage_test_thread_data data = { storage, 0, NULL };
+  cc_thread * thread = cc_thread_construct(storage_test_get_from_worker, &data);
+  BOOST_REQUIRE(thread != NULL);
+  BOOST_REQUIRE_EQUAL(cc_thread_join(thread, NULL), CC_OK);
+  cc_thread_destruct(thread);
+
+  BOOST_REQUIRE(data.value != NULL);
+  BOOST_CHECK_EQUAL(*static_cast<int *>(data.value), 17);
+  BOOST_CHECK_EQUAL(storage_test_construct_count, 1);
+  BOOST_CHECK_EQUAL(storage_test_destruct_count, 0);
+
+  BOOST_CHECK_EQUAL(cc_storage_thread_cleanup(data.threadid), 1U);
+  BOOST_CHECK_EQUAL(storage_test_destruct_count, 1);
+
+  int apply_count = 0;
+  cc_storage_apply_to_all(storage, storage_test_apply, &apply_count);
+  BOOST_CHECK_EQUAL(apply_count, 0);
+  BOOST_CHECK_EQUAL(cc_storage_thread_cleanup(data.threadid), 0U);
+
+  cc_storage_destruct(storage);
+  BOOST_CHECK_EQUAL(storage_test_destruct_count, 1);
+}
+
+#endif /* HAVE_THREADS */
 
 static_assert(!std::is_copy_constructible<SbStorage>::value,
               "SbStorage must not copy its owning cc_storage pointer");

@@ -34,6 +34,11 @@
 
 #include "glue/win32api.h"
 
+static void
+internal_storage_guard_ensure(void)
+{
+}
+
 static DWORD WINAPI
 cc_w32thread_thread_proc(LPVOID lpParameter)
 {

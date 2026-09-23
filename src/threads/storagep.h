@@ -58,7 +58,7 @@ extern "C" {
     cc_mutex * mutex;
   };
   
-  void cc_storage_thread_cleanup(unsigned long threadid);
+  unsigned int cc_storage_thread_cleanup(unsigned long threadid);
 
 /* ********************************************************************** */
 

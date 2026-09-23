@@ -32,6 +32,11 @@
 
 /* this file should only be included from thread.c */
 
+static void
+internal_storage_guard_ensure(void)
+{
+}
+
 static int
 internal_init(cc_thread * thread)
 {
