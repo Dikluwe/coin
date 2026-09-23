@@ -35,6 +35,8 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdlib>
+#include <climits>
+#include <stdint.h>
 
 #include "coindefs.h"
 
@@ -58,21 +60,25 @@ struct cc_list {
 
 /* ********************************************************************** */
 
-static void 
-list_grow(cc_list * list) 
+static int
+list_grow(cc_list * list)
 {
-  int i, n;
-  void ** newbuffer;
-  list->itembuffersize <<= 1;
+  if (list->itembuffersize >= INT_MAX) return FALSE;
+  const int newsize = list->itembuffersize > INT_MAX / 2
+    ? INT_MAX : list->itembuffersize * 2;
+  if (static_cast<size_t>(newsize) > SIZE_MAX / sizeof(void *)) return FALSE;
 
-  newbuffer = static_cast<void**>(malloc(list->itembuffersize*sizeof(void*)));
-  
-  n = list->numitems;
-  for (i = 0; i < n; i++) newbuffer[i] = list->itembuffer[i];
-  if (list->itembuffer != list->builtinbuffer) {
-    free(list->itembuffer);
+  void ** newbuffer = static_cast<void **>(
+    malloc(static_cast<size_t>(newsize) * sizeof(void *)));
+  if (newbuffer == NULL) return FALSE;
+
+  for (int i = 0; i < list->numitems; i++) {
+    newbuffer[i] = list->itembuffer[i];
   }
+  if (list->itembuffer != list->builtinbuffer) free(list->itembuffer);
   list->itembuffer = newbuffer;
+  list->itembuffersize = newsize;
+  return TRUE;
 }
 
 /* ********************************************************************** */
@@ -87,10 +93,18 @@ cc_list *
 cc_list_construct_sized(int size)
 {
   cc_list * list = static_cast<cc_list*>(malloc(sizeof(cc_list)));
-  assert(list);
+  if (list == NULL) return NULL;
   if (size > CC_LIST_DEFAULT_SIZE) {
-    list->itembuffer = static_cast<void**>(malloc(sizeof(void*)*size));
-    assert(list->itembuffer);
+    if (static_cast<size_t>(size) > SIZE_MAX / sizeof(void *)) {
+      free(list);
+      return NULL;
+    }
+    list->itembuffer = static_cast<void **>(
+      malloc(static_cast<size_t>(size) * sizeof(void *)));
+    if (list->itembuffer == NULL) {
+      free(list);
+      return NULL;
+    }
     list->itembuffersize = size;
   }
   else {
@@ -106,6 +120,7 @@ cc_list_clone(cc_list * list)
 {
   int i;
   cc_list * cloned = cc_list_construct_sized(list->numitems);
+  if (cloned == NULL) return NULL;
 
   for (i = 0; i < list->numitems; i++) {
     cloned->itembuffer[i] = list->itembuffer[i];
@@ -117,6 +132,7 @@ cc_list_clone(cc_list * list)
 void
 cc_list_destruct(cc_list * list)
 {
+  if (list == NULL) return;
   if (list->itembuffer != list->builtinbuffer) {
     free(list->itembuffer);
   }
@@ -126,9 +142,7 @@ cc_list_destruct(cc_list * list)
 void
 cc_list_append(cc_list * list, void * item)
 {
-  if (list->numitems == list->itembuffersize) {
-    list_grow(list);
-  }
+  if (list->numitems == list->itembuffersize && !list_grow(list)) return;
   list->itembuffer[list->numitems++] = item;
 }
 
@@ -147,9 +161,7 @@ cc_list_insert(cc_list * list, void * item, int insertbefore)
 {
   int i;
   if (insertbefore < 0 || insertbefore > list->numitems) return;
-  if (list->numitems == list->itembuffersize) {
-    list_grow(list);
-  }  
+  if (list->numitems == list->itembuffersize && !list_grow(list)) return;
   for (i = list->numitems; i > insertbefore; i--) {
     list->itembuffer[i] = list->itembuffer[i-1];
   }
@@ -191,8 +203,12 @@ cc_list_fit(cc_list * list)
   
   if (items < list->itembuffersize) {
     void ** newitembuffer = list->builtinbuffer;
-    if (items > CC_LIST_DEFAULT_SIZE) newitembuffer = static_cast<void**>(malloc(sizeof(void*)*items));
-    
+    if (items > CC_LIST_DEFAULT_SIZE) {
+      newitembuffer = static_cast<void **>(
+        malloc(static_cast<size_t>(items) * sizeof(void *)));
+      if (newitembuffer == NULL) return;
+    }
+
     if (newitembuffer != list->itembuffer) {
       for (i = 0; i < items; i++) {
         newitembuffer[i] = list->itembuffer[i];
@@ -294,6 +310,25 @@ BOOST_AUTO_TEST_CASE(cc_list_empty_pop_is_safe)
   cc_list * list = cc_list_construct();
   BOOST_CHECK(cc_list_pop(list) == NULL);
   BOOST_CHECK_EQUAL(cc_list_get_length(list), 0);
+  cc_list_destruct(list);
+}
+
+BOOST_AUTO_TEST_CASE(cc_list_growth_and_fit_preserve_elements)
+{
+  int values[9] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+  cc_list * list = cc_list_construct_sized(5);
+  BOOST_REQUIRE(list != NULL);
+  for (int i = 0; i < 9; i++) cc_list_append(list, &values[i]);
+  BOOST_REQUIRE_EQUAL(cc_list_get_length(list), 9);
+  for (int i = 0; i < 9; i++) BOOST_CHECK(cc_list_get(list, i) == &values[i]);
+
+  cc_list_truncate(list, 6);
+  cc_list_fit(list);
+  for (int i = 0; i < 6; i++) BOOST_CHECK(cc_list_get(list, i) == &values[i]);
+
+  cc_list_truncate(list, 3);
+  cc_list_fit(list);
+  for (int i = 0; i < 3; i++) BOOST_CHECK(cc_list_get(list, i) == &values[i]);
   cc_list_destruct(list);
 }
 
