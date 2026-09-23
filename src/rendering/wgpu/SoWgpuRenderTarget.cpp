@@ -8,6 +8,7 @@
 #include <Inventor/rendering/SoWgpuRenderTarget.h>
 #include <Inventor/rendering/SoWgpuNativeSurface.h>
 #include "rendering/wgpu/SoWgpuFramePlan.h"
+#include "rendering/wgpu/SoWgpuComposition.h"
 #include "rendering/wgpu/SoWgpuCpuReferenceBackend.h"
 
 #if defined(HAVE_WGPU_RUST_BRIDGE)
@@ -253,6 +254,10 @@ SoWgpuRenderTargetP::validateProfile(const FramePlan & frame, const SbVec2i32 & 
   if (!frame.isValid(&planDiag)) {
     return FrameExecutionResult{BackendStatus::BACKEND_ERROR, "Invalid FramePlan: " + planDiag};
   }
+  std::vector<SoWgpuCompositionItem> compositionOrder;
+  if (!coin_wgpu_composition_order(frame, compositionOrder, planDiag)) {
+    return FrameExecutionResult{BackendStatus::UNSUPPORTED, planDiag};
+  }
 
   for (size_t i = 0; i < frame.draws.size(); ++i) {
     const auto & d = frame.draws[i];
@@ -301,15 +306,6 @@ SoWgpuRenderTargetP::validateProfile(const FramePlan & frame, const SbVec2i32 & 
       }
     }
 
-    if (rs.materialSlot < frame.materials.size()) {
-      const auto & mat = frame.materials[rs.materialSlot];
-      if (mat.transparency > 0.0f || mat.diffuse[3] < 1.0f) {
-        std::ostringstream ss;
-        ss << "UNSUPPORTED: Draw " << i << " requires alpha composition (transparency=" << mat.transparency << ", diffuse alpha=" << mat.diffuse[3] << "); opaque profile only.";
-        return FrameExecutionResult{BackendStatus::UNSUPPORTED, ss.str()};
-      }
-    }
-
     // Check viewport coverage: Wave 1A supports only single viewport covering entire target
     if (rs.viewportSlot < frame.viewports.size()) {
       const auto & vp = frame.viewports[rs.viewportSlot];
@@ -328,22 +324,6 @@ SoWgpuRenderTargetP::validateProfile(const FramePlan & frame, const SbVec2i32 & 
       return FrameExecutionResult{BackendStatus::BACKEND_ERROR, "Draw index range out of bounds in geometry"};
     }
 
-    // Check materials referenced by vertices in this draw (B03: PER_VERTEX supported)
-    uint32_t endIdx = geom.firstIndex + geom.indexCount;
-    for (uint32_t idx = geom.firstIndex; idx < endIdx; ++idx) {
-      uint32_t vIdx = frame.indices[idx];
-      if (vIdx < frame.vertices.size()) {
-        uint32_t mSlot = frame.vertices[vIdx].materialSlot;
-        if (mSlot < frame.materials.size()) {
-          if (frame.materials[mSlot].transparency > 0.0f || frame.materials[mSlot].diffuse[3] < 1.0f) {
-            std::ostringstream ss;
-            ss << "UNSUPPORTED: Draw " << i << " references vertex with material transparency="
-               << frame.materials[mSlot].transparency << ", diffuse alpha=" << frame.materials[mSlot].diffuse[3] << "); alpha composition requires Wave 4.";
-            return FrameExecutionResult{BackendStatus::UNSUPPORTED, ss.str()};
-          }
-        }
-      }
-    }
   }
 
   return FrameExecutionResult(BackendStatus::SUCCESS, "");

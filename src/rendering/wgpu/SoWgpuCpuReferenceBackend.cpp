@@ -1,5 +1,6 @@
 #include "rendering/wgpu/SoWgpuCpuReferenceBackend.h"
 #include <atomic>
+#include "rendering/wgpu/SoWgpuComposition.h"
 #include "rendering/wgpu/SoWgpuRenderTargetP.h"
 #include <Inventor/SbMatrix.h>
 #include <Inventor/SbVec2f.h>
@@ -126,6 +127,7 @@ static void rasterizeTriangle(const ShadedVertex & sv0, const ShadedVertex & sv1
                               int width, int height,
                               const LightingSnapshot & lighting, const RenderStateSnapshot & rs,
                               const FramePlan & frame,
+                              bool blend,
                               std::vector<float> & depthBuffer, std::vector<uint8_t> & colorBuffer)
 {
   SbVec2f scrPos[3];
@@ -181,7 +183,7 @@ static void rasterizeTriangle(const ShadedVertex & sv0, const ShadedVertex & sv1
 
       // Depth test LessEqual
       if (zVal > depthBuffer[pIdx]) continue;
-      depthBuffer[pIdx] = zVal;
+      if (!blend) depthBuffer[pIdx] = zVal;
 
       // Perspective-correct barycentric interpolation
       float pNormW = l0 * invW[0] + l1 * invW[1] + l2 * invW[2];
@@ -281,21 +283,34 @@ static void rasterizeTriangle(const ShadedVertex & sv0, const ShadedVertex & sv1
         }
       }
 
+      float sourceAlpha = m0.diffuse[3];
       if (rs.hasTexture && rs.textureImageSlot < frame.textures.size() && rs.samplerSlot < frame.samplers.size()) {
         SbVec2f tc = sv0.texCoord * b0 + sv1.texCoord * b1 + sv2.texCoord * b2;
         SbVec4f texCol = sampleTexture(frame.textures[rs.textureImageSlot], frame.samplers[rs.samplerSlot], tc[0], tc[1]);
         finalR *= texCol[0];
         finalG *= texCol[1];
         finalB *= texCol[2];
+        sourceAlpha *= texCol[3];
       }
 
       applyFog(rs, -vPos[2], finalR, finalG, finalB);
       size_t cIdx = pIdx * 4;
       if (cIdx + 3 < colorBuffer.size()) {
+        if (blend) {
+          if (sourceAlpha <= 0.0f) continue;
+          const float invAlpha = 1.0f - sourceAlpha;
+          const float dstR = colorBuffer[cIdx + 0] / 255.0f;
+          const float dstG = colorBuffer[cIdx + 1] / 255.0f;
+          const float dstB = colorBuffer[cIdx + 2] / 255.0f;
+          const float dstA = colorBuffer[cIdx + 3] / 255.0f;
+          finalR = std::max(0.0f, std::min(1.0f, finalR)) * sourceAlpha + dstR * invAlpha;
+          finalG = std::max(0.0f, std::min(1.0f, finalG)) * sourceAlpha + dstG * invAlpha;
+          finalB = std::max(0.0f, std::min(1.0f, finalB)) * sourceAlpha + dstB * invAlpha;
+          colorBuffer[cIdx + 3] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, (sourceAlpha + dstA * invAlpha) * 255.0f)));
+        } else colorBuffer[cIdx + 3] = 255;
         colorBuffer[cIdx + 0] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, finalR * 255.0f)));
         colorBuffer[cIdx + 1] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, finalG * 255.0f)));
         colorBuffer[cIdx + 2] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, finalB * 255.0f)));
-        colorBuffer[cIdx + 3] = 255;
       }
     }
   }
@@ -344,11 +359,20 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
       return SubmitResult(BackendStatus::NOT_READY, this->lastError);
     }
 
+    std::vector<SoWgpuCompositionItem> order;
+    std::string compositionError;
+    if (!coin_wgpu_composition_order(frame, order, compositionError)) {
+      this->status = BackendStatus::UNSUPPORTED;
+      this->lastError = compositionError;
+      return SubmitResult(BackendStatus::UNSUPPORTED, compositionError);
+    }
+
     target.clear(frame.clearColor[0], frame.clearColor[1], frame.clearColor[2], frame.clearColor[3], 1.0f);
 
-    for (size_t dIdx = 0; dIdx < frame.draws.size(); ++dIdx) {
-      const auto & draw = frame.draws[dIdx];
-// Process supported topologies
+    for (size_t dIdx = 0; dIdx < order.size(); ++dIdx) {
+      const auto & draw = frame.draws[order[dIdx].drawIndex];
+      const bool blend = order[dIdx].blend;
+      // Process supported topologies
       if (draw.renderStateSlot >= frame.renderStates.size()) {
         continue;
       }
@@ -477,7 +501,7 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
           rasterizeTriangle(outPoly[0], outPoly[tIdx], outPoly[tIdx + 1],
                             width, height,
                             lighting, rs,
-                            frame,
+                            frame, blend,
                             target.depthBuffer, target.colorBuffer);
         }
       }

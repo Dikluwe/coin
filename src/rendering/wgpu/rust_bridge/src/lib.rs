@@ -11,7 +11,9 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicI32, AtomicU32, AtomicU64, Ordering};
 use std::sync::Mutex;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 9;
+mod composition;
+
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 10;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 pub type CoinWgpuSurfaceId = u64;
@@ -375,6 +377,7 @@ struct PipelineKey {
     sample_count: u32,
     cull_mode: Option<wgpu::Face>,
     front_face: wgpu::FrontFace,
+    blend: bool,
 }
 
 #[derive(Hash, PartialEq, Eq, Clone, Debug)]
@@ -980,6 +983,7 @@ fn get_or_create_pipeline<'a>(
     depth_format: wgpu::TextureFormat,
     cull_face: Option<wgpu::Face>,
     front_face: wgpu::FrontFace,
+    blend: bool,
 ) -> Result<wgpu::RenderPipeline, String> {
     let mut map = ctx.pipelines.lock().map_err(|e| e.to_string())?;
 
@@ -997,6 +1001,7 @@ fn get_or_create_pipeline<'a>(
         sample_count: 1,
         cull_mode: effective_cull,
         front_face,
+        blend,
     };
     if let Some(p) = map.get(&key) {
         ctx.pipeline_hits.fetch_add(1, Ordering::Relaxed);
@@ -1052,7 +1057,20 @@ fn get_or_create_pipeline<'a>(
                 entry_point: Some("fs_main"),
                 targets: &[Some(wgpu::ColorTargetState {
                     format: color_format,
-                    blend: Some(wgpu::BlendState::REPLACE),
+                    blend: Some(if blend {
+                        wgpu::BlendState {
+                            color: wgpu::BlendComponent {
+                                src_factor: wgpu::BlendFactor::SrcAlpha,
+                                dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+                                operation: wgpu::BlendOperation::Add,
+                            },
+                            alpha: wgpu::BlendComponent {
+                                src_factor: wgpu::BlendFactor::One,
+                                dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+                                operation: wgpu::BlendOperation::Add,
+                            },
+                        }
+                    } else { wgpu::BlendState::REPLACE }),
                     write_mask: wgpu::ColorWrites::ALL,
                 })],
                 compilation_options: wgpu::PipelineCompilationOptions::default(),
@@ -1068,7 +1086,7 @@ fn get_or_create_pipeline<'a>(
             },
             depth_stencil: Some(wgpu::DepthStencilState {
                 format: depth_format,
-                depth_write_enabled: true,
+                depth_write_enabled: !blend,
                 depth_compare: wgpu::CompareFunction::LessEqual,
                 stencil: wgpu::StencilState::default(),
                 bias: wgpu::DepthBiasState::default(),
@@ -1090,6 +1108,7 @@ fn encode_frame(
     vertices_slice: &[CoinWgpuVertex],
     indices_slice: &[u32],
     draws_slice: &[CoinWgpuDraw],
+    draw_order: &[composition::CompositionItem],
     materials_slice: &[CoinWgpuMaterial],
     states_slice: &[CoinWgpuRenderState],
     textures_slice: &[CoinWgpuTexture],
@@ -1099,23 +1118,7 @@ fn encode_frame(
     depth_view: &wgpu::TextureView,
 ) -> Result<wgpu::CommandBuffer, (CoinWgpuStatus, String)> {
     use wgpu::util::DeviceExt;
-    // The opaque pipeline replaces color and writes depth. Direct FFI callers
-    // must not bypass the action's alpha rejection and get incorrect pixels.
-    // Check before mutating any persistent cache or encoding a command.
-    for (material_index, material) in materials_slice.iter().enumerate() {
-        if !material.transparency.is_finite()
-            || !(0.0..=1.0).contains(&material.transparency)
-            || !material.diffuse[3].is_finite()
-            || !(0.0..=1.0).contains(&material.diffuse[3]) {
-            return Err((CoinWgpuStatus::InvalidArgument,
-                format!("Material {} has invalid transparency or diffuse alpha", material_index)));
-        }
-        if material.transparency > 0.0 || material.diffuse[3] < 1.0 {
-            return Err((CoinWgpuStatus::Unsupported,
-                format!("Material {} requires alpha composition (Wave 4); opaque pipeline cannot render it", material_index)));
-        }
-    }
-
+    // Composition was preflighted before surface acquisition or target allocation.
     // Preflight the entire lighting payload before cache mutation or command encoding.
     for (state_index, state) in states_slice.iter().enumerate() {
         if state.light_count > 8 {
@@ -1534,33 +1537,34 @@ fn encode_frame(
         }
     }
 
-    // 4. Begin render pass
+    // 4. Encode the opaque pass, then a load-preserving transparent pass when needed.
     let mut encoder = ctx
         .device
         .create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("Coin Frame Encoder"),
         });
 
-    {
+    let has_blended_draws = draw_order.iter().any(|item| item.blend);
+    for blended_pass in [false, true].iter().copied().take(if has_blended_draws { 2 } else { 1 }) {
         let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-            label: Some("Coin Main Pass"),
+            label: Some(if blended_pass { "Coin Transparent Pass" } else { "Coin Opaque Pass" }),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                 view: color_view,
                 resolve_target: None,
                 ops: wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(wgpu::Color {
+                    load: if blended_pass { wgpu::LoadOp::Load } else { wgpu::LoadOp::Clear(wgpu::Color {
                         r: clear_color[0] as f64,
                         g: clear_color[1] as f64,
                         b: clear_color[2] as f64,
                         a: clear_color[3] as f64,
-                    }),
+                    }) },
                     store: wgpu::StoreOp::Store,
                 },
             })],
             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                 view: depth_view,
                 depth_ops: Some(wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(1.0),
+                    load: if blended_pass { wgpu::LoadOp::Load } else { wgpu::LoadOp::Clear(1.0) },
                     store: wgpu::StoreOp::Store,
                 }),
                 stencil_ops: None,
@@ -1569,7 +1573,11 @@ fn encode_frame(
             occlusion_query_set: None,
         });
 
-        for draw in draws_slice {
+        for item in draw_order {
+            if item.blend != blended_pass {
+                continue;
+            }
+            let draw = &draws_slice[item.draw_index];
             if draw.index_count == 0 {
                 continue;
             }
@@ -1593,6 +1601,7 @@ fn encode_frame(
                 wgpu::TextureFormat::Depth32Float,
                 cull_face,
                 front_face,
+                item.blend,
             ) {
                 Ok(p) => p,
                 Err(e) => return Err((CoinWgpuStatus::BackendError, e)),
@@ -2348,6 +2357,16 @@ pub extern "C" fn coin_wgpu_surface_submit(
             }
         }
 
+        // Reject unsupported composition before acquiring a swapchain texture.
+        let draw_order = match composition::order(
+            vertices_slice, indices_slice, draws_slice, materials_slice, states_slice, textures_slice) {
+            Ok(order) => order,
+            Err((status, message)) => {
+                set_error(error_buf, error_buf_len, &message);
+                return status;
+            }
+        };
+
         // 6. Lock RuntimeContext and resolve surface
         let mut guard = match RUNTIME_CTX.lock() {
             Ok(g) => g,
@@ -2547,6 +2566,7 @@ pub extern "C" fn coin_wgpu_surface_submit(
             vertices_slice,
             indices_slice,
             draws_slice,
+            &draw_order,
             materials_slice,
             states_slice,
             textures_slice,
@@ -2923,6 +2943,16 @@ pub extern "C" fn coin_wgpu_submit(
             }
         }
 
+        // Reject unsupported composition before allocating offscreen attachments.
+        let draw_order = match composition::order(
+            vertices_slice, indices_slice, draws_slice, materials_slice, states_slice, textures_slice) {
+            Ok(order) => order,
+            Err((status, message)) => {
+                set_error(error_buf, error_buf_len, &message);
+                return status;
+            }
+        };
+
         // 7. Initialize WebGPU Device
         if let Err(e) = init_runtime_if_needed() {
             set_error(error_buf, error_buf_len, &e);
@@ -2989,6 +3019,7 @@ pub extern "C" fn coin_wgpu_submit(
             vertices_slice,
             indices_slice,
             draws_slice,
+            &draw_order,
             materials_slice,
             states_slice,
             textures_slice,
@@ -3145,45 +3176,60 @@ pub extern "C" fn coin_wgpu_submit(
             Ok(Ok(())) => {
                 let data = buffer_slice.get_mapped_range();
                 let row_bytes = (width * 4) as usize;
-                let out_buf = match validate_slice_mut(
-                    tgt.color_buffer,
-                    required_target_len,
-                    "target color buffer",
-                    error_buf,
-                    error_buf_len,
-                ) {
-                    Ok(b) => b,
-                    Err(st) => return st,
-                };
+                let mut pending_color = vec![0u8; required_target_len as usize];
                 for y in 0..height as usize {
                     let src_offset = y * bytes_per_row as usize;
                     let dst_offset = y * row_bytes;
-                    if dst_offset + row_bytes <= out_buf.len()
-                        && src_offset + row_bytes <= data.len()
-                    {
-                        out_buf[dst_offset..dst_offset + row_bytes]
-                            .copy_from_slice(&data[src_offset..src_offset + row_bytes]);
+                    if src_offset + row_bytes > data.len() {
+                        set_error(error_buf, error_buf_len, "Mapped color staging buffer is truncated");
+                        return CoinWgpuStatus::BackendError;
                     }
+                    pending_color[dst_offset..dst_offset + row_bytes]
+                        .copy_from_slice(&data[src_offset..src_offset + row_bytes]);
                 }
 
+                let mut pending_depth = None;
                 if let (Some(ref dslice), Some((_, d_bpr))) = (&depth_slice_holder, &depth_staging_info) {
-                    if let Ok(Ok(())) = depth_receiver.recv() {
-                        let ddata = dslice.get_mapped_range();
-                        let dfloats: &[f32] = bytemuck::cast_slice(&ddata);
-                        let floats_per_row = (*d_bpr / 4) as usize;
-                        let row_floats = width as usize;
-                        let out_depth = unsafe { std::slice::from_raw_parts_mut(tgt.depth_buffer, (width * height) as usize) };
-                        for y in 0..height as usize {
-                            let src_off = y * floats_per_row;
-                            let dst_off = y * row_floats;
-                            if dst_off + row_floats <= out_depth.len() && src_off + row_floats <= dfloats.len() {
-                                out_depth[dst_off..dst_off + row_floats]
-                                    .copy_from_slice(&dfloats[src_off..src_off + row_floats]);
-                            }
+                    match depth_receiver.recv() {
+                        Ok(Ok(())) => (),
+                        Ok(Err(e)) => {
+                            set_error(error_buf, error_buf_len, &format!("Depth buffer mapping failed: {:?}", e));
+                            return CoinWgpuStatus::BackendError;
+                        }
+                        Err(e) => {
+                            set_error(error_buf, error_buf_len, &format!("Depth mapping channel failed: {:?}", e));
+                            return CoinWgpuStatus::BackendError;
                         }
                     }
+                    let ddata = dslice.get_mapped_range();
+                    let dfloats: &[f32] = bytemuck::cast_slice(&ddata);
+                    let floats_per_row = (*d_bpr / 4) as usize;
+                    let row_floats = width as usize;
+                    let mut depth = vec![1.0f32; (width as usize) * (height as usize)];
+                    for y in 0..height as usize {
+                        let src_off = y * floats_per_row;
+                        let dst_off = y * row_floats;
+                        if src_off + row_floats > dfloats.len() {
+                            set_error(error_buf, error_buf_len, "Mapped depth staging buffer is truncated");
+                            return CoinWgpuStatus::BackendError;
+                        }
+                        depth[dst_off..dst_off + row_floats]
+                            .copy_from_slice(&dfloats[src_off..src_off + row_floats]);
+                    }
+                    pending_depth = Some(depth);
                 }
 
+                // Publish both attachments only after every requested map succeeds.
+                let out_buf = match validate_slice_mut(tgt.color_buffer, required_target_len,
+                    "target color buffer", error_buf, error_buf_len) {
+                    Ok(b) => b,
+                    Err(st) => return st,
+                };
+                out_buf.copy_from_slice(&pending_color);
+                if let Some(depth) = pending_depth {
+                    let out_depth = unsafe { std::slice::from_raw_parts_mut(tgt.depth_buffer, depth.len()) };
+                    out_depth.copy_from_slice(&depth);
+                }
                 tgt.submission_serial = sub_serial;
                 CoinWgpuStatus::Ok
             }

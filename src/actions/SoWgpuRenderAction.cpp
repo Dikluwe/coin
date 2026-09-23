@@ -10,6 +10,7 @@
 #include <Inventor/nodes/SoLight.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
+#include <Inventor/nodes/SoSceneTexture2.h>
 #include <Inventor/nodes/SoVertexProperty.h>
 #include <Inventor/bundles/SoTextureCoordinateBundle.h>
 #include <Inventor/elements/SoCoordinateElement.h>
@@ -301,6 +302,7 @@ SoWgpuRenderActionP::initCallbacks()
   this->master->addPointCallback(SoShape::getClassTypeId(), pointCB, this);
 
   this->master->addPreCallback(SoLight::getClassTypeId(), lightPreCB, this);
+  this->master->addPreCallback(SoSceneTexture2::getClassTypeId(), sceneTexturePreCB, this);
   this->master->addPreCallback(SoIndexedFaceSet::getClassTypeId(), indexedFaceSetPreCB, this);
   this->master->addPreCallback(SoIndexedLineSet::getClassTypeId(), indexedLineSetPreCB, this);
 }
@@ -333,6 +335,17 @@ SoWgpuRenderActionP::pointCB(void * userdata,
 {
   SoWgpuRenderActionP * p = static_cast<SoWgpuRenderActionP *>(userdata);
   p->builder.addPoint(action, vertex);
+}
+
+SoCallbackAction::Response
+SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
+                                       SoCallbackAction * /*action*/,
+                                       const SoNode * /*node*/)
+{
+  SoWgpuRenderActionP * p = static_cast<SoWgpuRenderActionP *>(userdata);
+  p->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
+  p->lastError = "SoSceneTexture2 render-to-texture is outside the WebGPU profile";
+  return SoCallbackAction::ABORT;
 }
 
 SoCallbackAction::Response

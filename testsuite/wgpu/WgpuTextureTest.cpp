@@ -12,6 +12,8 @@
 #include <Inventor/nodes/SoTexture2.h>
 #include <Inventor/nodes/SoTextureCoordinate2.h>
 #include <Inventor/nodes/SoTexture2Transform.h>
+#include <Inventor/nodes/SoTransparencyType.h>
+#include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoComplexity.h>
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/nodes/SoPointSet.h>
@@ -136,6 +138,55 @@ static bool testTextureFormats1to4Components() {
   return true;
 }
 
+// 4B: two- and four-component alpha images enter the blended pass.
+static bool testAlphaTextureFormats() {
+  for (int components : {2, 4}) {
+    SoSeparator * root = new SoSeparator;
+    root->ref();
+    SoPerspectiveCamera * cam = new SoPerspectiveCamera;
+    cam->position.setValue(0.0f, 0.0f, 2.5f);
+    cam->pointAt(SbVec3f(0.0f, 0.0f, 0.0f));
+    root->addChild(cam);
+    SoTransparencyType * mode = new SoTransparencyType;
+    mode->value = SoTransparencyType::SORTED_OBJECT_BLEND;
+    root->addChild(mode);
+    SoLightModel * lighting = new SoLightModel;
+    lighting->model = SoLightModel::BASE_COLOR;
+    root->addChild(lighting);
+    SoMaterial * material = new SoMaterial;
+    material->diffuseColor.setValue(1.0f, 0.0f, 0.0f);
+    root->addChild(material);
+    SoTexture2 * texture = new SoTexture2;
+    unsigned char pixels[4 * 4 * 4] = {};
+    for (int i = 0; i < 16; ++i) {
+      for (int c = 0; c < components; ++c) pixels[i * components + c] = 255;
+      pixels[i * components + components - 1] = 128;
+    }
+    texture->image.setValue(SbVec2s(4, 4), components, pixels);
+    root->addChild(createTexturedQuad(texture));
+
+    SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
+    SoWgpuRenderAction action(SbViewportRegion(64, 64));
+    action.setBackgroundColor(SbColor4f(0, 0, 1, 1));
+    action.setRenderTarget(target);
+    action.apply(root);
+    const bool ok = action.getLastStatus() == SoWgpuRenderAction::SUCCESS;
+    if (!ok) std::cerr << action.getLastError().getString() << std::endl;
+    std::vector<uint8_t> color;
+    target->readbackRGBA(color);
+    const size_t pixel = (32u * 64u + 40u) * 4u;
+    const bool blended = color.size() == 64u * 64u * 4u &&
+                         color[pixel] >= 120 && color[pixel] <= 140 &&
+                         color[pixel + 1] <= 10 &&
+                         color[pixel + 2] >= 115 && color[pixel + 2] <= 140 &&
+                         color[pixel + 3] == 255;
+    delete target;
+    root->unref();
+    ASSERT_TRUE(ok && blended, "Two-/four-component texture alpha must blend over background");
+  }
+  return true;
+}
+
 // 2. testModulateModelStrict
 static bool testModulateModelStrict() {
   std::cout << "-> Test 2: MODULATE model color verification..." << std::endl;
@@ -202,9 +253,9 @@ static bool testModulateModelStrict() {
 
 // 3. testUnsupportedRejections
 static bool testUnsupportedRejections() {
-  std::cout << "-> Test 3: Strict UNSUPPORTED rejections for Subwave 3B profile..." << std::endl;
+  std::cout << "-> Test 3: Strict UNSUPPORTED rejections outside the texture profile..." << std::endl;
 
-  // Case 3A: Texture with alpha < 255
+  // Case 3A: Alpha texture without explicit SORTED_OBJECT_BLEND mode
   {
     SoSeparator * root = new SoSeparator;
     root->ref();
@@ -225,12 +276,14 @@ static bool testUnsupportedRejections() {
     action.apply(root);
 
     ASSERT_TRUE(action.getLastStatus() == SoWgpuRenderAction::UNSUPPORTED,
-                "Texture with alpha < 255 must be rejected with UNSUPPORTED");
+                "Alpha texture without supported composition mode must be rejected");
+    ASSERT_TRUE(std::strstr(action.getLastError().getString(), "SORTED_OBJECT_BLEND") != nullptr,
+                "Alpha rejection must identify the required composition mode");
     delete target;
     root->unref();
   }
 
-  // Case 3B: Material with transparency > 0 and texture
+  // Case 3B: Transparent textured material without explicit composition mode
   {
     SoSeparator * root = new SoSeparator;
     root->ref();
@@ -250,7 +303,9 @@ static bool testUnsupportedRejections() {
     action.apply(root);
 
     ASSERT_TRUE(action.getLastStatus() == SoWgpuRenderAction::UNSUPPORTED,
-                "Material with transparency > 0 with texture must be rejected with UNSUPPORTED");
+                "Transparent textured material without supported composition mode must be rejected");
+    ASSERT_TRUE(std::strstr(action.getLastError().getString(), "SORTED_OBJECT_BLEND") != nullptr,
+                "Material rejection must identify the required composition mode");
     delete target;
     root->unref();
   }
@@ -671,6 +726,7 @@ int main(int argc, char ** argv) {
   std::cout << "========================================================\n";
 
   if (!testTextureFormats1to4Components()) return 1;
+  if (!testAlphaTextureFormats()) return 1;
   if (!testModulateModelStrict()) return 1;
   if (!testUnsupportedRejections()) return 1;
   if (!testTexturedLineAndPointRejected()) return 1;

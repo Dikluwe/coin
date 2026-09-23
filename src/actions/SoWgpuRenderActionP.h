@@ -37,6 +37,10 @@ public:
                                                SoCallbackAction * action,
                                                const SoNode * node);
 
+  static SoCallbackAction::Response sceneTexturePreCB(void * userdata,
+                                                      SoCallbackAction * action,
+                                                      const SoNode * node);
+
   static SoCallbackAction::Response indexedFaceSetPreCB(void * userdata,
                                                        SoCallbackAction * action,
                                                        const SoNode * node);

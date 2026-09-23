@@ -6,6 +6,7 @@
 
 #include "rendering/wgpu/SoWgpuNativeBackend.h"
 #include "rendering/wgpu/SoWgpuRenderTargetP.h"
+#include "rendering/wgpu/SoWgpuComposition.h"
 
 #include <cstring>
 #include <iostream>
@@ -119,6 +120,18 @@ SubmitResult
 SoWgpuNativeBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target)
 {
 #if defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
+  std::vector<SoWgpuCompositionItem> compositionOrder;
+  std::string compositionDiagnostic;
+  if (!coin_wgpu_composition_order(frame, compositionOrder, compositionDiagnostic)) {
+    this->lastError = compositionDiagnostic;
+    return BackendStatus::UNSUPPORTED;
+  }
+  for (const SoWgpuCompositionItem & item : compositionOrder) {
+    if (item.blend) {
+      this->lastError = "UNSUPPORTED: native WebGPU backend has no transparent pipeline";
+      return BackendStatus::UNSUPPORTED;
+    }
+  }
   if (!this->isReady) {
     BackendStatus st = this->prepare(target);
     if (st != BackendStatus::SUCCESS) return SubmitResult(st, this->lastError);

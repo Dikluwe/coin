@@ -1,5 +1,6 @@
 #include <iostream>
 #include "rendering/wgpu/SoWgpuFramePlanBuilder.h"
+#include "rendering/wgpu/SoWgpuComposition.h"
 
 #include <Inventor/actions/SoCallbackAction.h>
 #include <Inventor/SoPrimitiveVertex.h>
@@ -15,6 +16,7 @@
 #include <Inventor/SbColor.h>
 #include <Inventor/misc/SoState.h>
 #include <Inventor/elements/SoShapeHintsElement.h>
+#include <Inventor/elements/SoShapeStyleElement.h>
 #include <Inventor/elements/SoLazyElement.h>
 #include <Inventor/elements/SoMultiTextureImageElement.h>
 #include <Inventor/elements/SoMultiTextureMatrixElement.h>
@@ -287,16 +289,10 @@ SoWgpuFramePlanBuilder::captureTexture(SoCallbackAction * action, RenderStateSna
     for (size_t i = 0; i < pixelCount; ++i) {
       uint8_t val = rawBytes[i * 2 + 0];
       uint8_t alpha = rawBytes[i * 2 + 1];
-      if (alpha < 255) {
-        if (outError) *outError = "Non-opaque texture alpha is not supported in Subwave 3B";
-        this->isUnsupported = true;
-        this->builderError = (outError ? *outError : "Non-opaque texture alpha is not supported");
-        return false;
-      }
       rgba[i * 4 + 0] = val;
       rgba[i * 4 + 1] = val;
       rgba[i * 4 + 2] = val;
-      rgba[i * 4 + 3] = 255;
+      rgba[i * 4 + 3] = alpha;
     }
   } else if (numComponents == 3) {
     for (size_t i = 0; i < pixelCount; ++i) {
@@ -308,12 +304,6 @@ SoWgpuFramePlanBuilder::captureTexture(SoCallbackAction * action, RenderStateSna
   } else if (numComponents == 4) {
     for (size_t i = 0; i < pixelCount; ++i) {
       uint8_t alpha = rawBytes[i * 4 + 3];
-      if (alpha < 255) {
-        if (outError) *outError = "Non-opaque texture alpha is not supported in Subwave 3B";
-        this->isUnsupported = true;
-        this->builderError = (outError ? *outError : "Non-opaque texture alpha is not supported");
-        return false;
-      }
       rgba[i * 4 + 0] = rawBytes[i * 4 + 0];
       rgba[i * 4 + 1] = rawBytes[i * 4 + 1];
       rgba[i * 4 + 2] = rawBytes[i * 4 + 2];
@@ -324,17 +314,6 @@ SoWgpuFramePlanBuilder::captureTexture(SoCallbackAction * action, RenderStateSna
     this->isUnsupported = true;
     this->builderError = (outError ? *outError : "Unsupported number of texture components");
     return false;
-  }
-
-  // Also check if material is transparent
-  if (rs.materialSlot < this->currentPlan.materials.size()) {
-    const auto & mat = this->currentPlan.materials[rs.materialSlot];
-    if (mat.transparency > 0.0f || mat.diffuse[3] < 1.0f) {
-      if (outError) *outError = "Textured rendering with transparent material is not supported in Subwave 3B";
-      this->isUnsupported = true;
-      this->builderError = (outError ? *outError : "Textured rendering with transparent material is not supported");
-      return false;
-    }
   }
 
   // 8. Content digest & Image deduplication
@@ -587,6 +566,7 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
   rs.cullMode = cullMode;
   rs.frontFace = frontFace;
   rs.lightModel = lm;
+  rs.transparencyType = SoShapeStyleElement::getTransparencyType(state);
   float ambientIntensity = 0.0f;
   SbColor ambientColor, fogColor;
   SbVec3f lightAttenuation;
@@ -614,6 +594,7 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
     if (existing.materialSlot == materialSlot &&
         existing.lightingSlot == lightingSlot &&
         existing.lightModel == rs.lightModel &&
+        existing.transparencyType == rs.transparencyType &&
         existing.cameraSlot == cameraSlot &&
         existing.viewportSlot == viewportSlot &&
         existing.cullMode == cullMode &&
@@ -786,6 +767,14 @@ SoWgpuFramePlanBuilder::build(FramePlan & outPlan, std::string * outError)
     return false;
   }
   if (!this->currentPlan.isValid(outError)) {
+    return false;
+  }
+  std::vector<SoWgpuCompositionItem> order;
+  std::string compositionError;
+  if (!coin_wgpu_composition_order(this->currentPlan, order, compositionError)) {
+    this->isUnsupported = true;
+    this->builderError = compositionError;
+    if (outError) *outError = compositionError;
     return false;
   }
   outPlan = this->currentPlan;

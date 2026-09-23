@@ -1,4 +1,5 @@
 #include "rendering/wgpu/SoWgpuRecordingBackend.h"
+#include "rendering/wgpu/SoWgpuComposition.h"
 
 #include <sstream>
 #include <iomanip>
@@ -205,6 +206,19 @@ SoWgpuRecordingBackend::recordToString(const FramePlan & frame)
         << " fv=" << d.geometry.firstVertex << " vc=" << d.geometry.vertexCount
         << " fi=" << d.geometry.firstIndex << " ic=" << d.geometry.indexCount
         << " ordinal=" << d.frameNodeOrdinal << "\n";
+  }
+  std::vector<SoWgpuCompositionItem> order;
+  std::string compositionError;
+  if (coin_wgpu_composition_order(frame, order, compositionError)) {
+    bool hasBlend = false;
+    for (size_t i = 0; i < order.size(); ++i) hasBlend = hasBlend || order[i].blend;
+    if (hasBlend) {
+      out << "composition: SORTED_OBJECT_BLEND\n";
+      for (size_t i = 0; i < order.size(); ++i) {
+        out << "  submit draw " << order[i].drawIndex
+            << " pass=" << (order[i].blend ? "BLEND" : "OPAQUE") << "\n";
+      }
+    }
   }
 
   return out.str();

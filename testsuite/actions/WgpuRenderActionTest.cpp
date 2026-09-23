@@ -511,6 +511,7 @@ int testProfileMultiLightAndPerVertexTransparency() {
 
   MaterialSnapshot transparentMat;
   transparentMat.transparency = 0.5f;
+  transparentMat.diffuse[3] = 0.5f;
   plan.materials.push_back(transparentMat);
 
   LightingSnapshot singleLight;
@@ -568,7 +569,7 @@ int testProfileMultiLightAndPerVertexTransparency() {
   // Case 3: Per-vertex transparency must be rejected
   plan.vertices[1].materialSlot = 1; // transparentMat
   TEST_ASSERT(!SoWgpuRenderTargetP::validateProfile(plan, diag), "Per-vertex transparency must be rejected");
-  TEST_ASSERT(diag.find("transparency") != std::string::npos, "Diagnostic must mention transparency");
+  TEST_ASSERT(diag.find("mixed") != std::string::npos, "Diagnostic must mention mixed alpha");
   plan.vertices[1].materialSlot = 0; // restore
 
   return 0;

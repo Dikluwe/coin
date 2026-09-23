@@ -4,7 +4,7 @@ Esta implementação é opt-in (`COIN_BUILD_WGPU=ON`) e fica em
 `CoinWgpuExperimental`, separada de `libCoin`. A ação e o alvo de renderização
 estão em `experimental/include` para uso na árvore de build; não são API nem
 ABI pública instalada do Coin 4. A ponte C++/Rust é privada e versionada
-(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=9` nesta revisão). Não promova esses
+(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=10` nesta revisão). Não promova esses
 headers a consumidores externos como se fossem estáveis.
 
 ## Perfil implementado
@@ -12,17 +12,25 @@ headers a consumidores externos como se fossem estáveis.
 | Área | Suportado agora | Fora do perfil / rejeição esperada |
 | --- | --- | --- |
 | Geometria | Triângulos de callback e `SoIndexedFaceSet`; linhas e pontos sem textura, inclusive `SoIndexedLineSet` | Topologias sem caminho implementado não têm paridade prometida |
-| Materiais | `BASE_COLOR` e iluminação do perfil opaco; índices e bindings testados | Mistura/transparência de material com textura |
+| Materiais | `BASE_COLOR`, iluminação e alpha uniforme por draw; `SoTransparencyType::SORTED_OBJECT_BLEND` em triângulos transparentes | Outros modos de transparência; alpha heterogêneo por vértice; linhas/pontos transparentes |
 | Luzes | Direcional, pontual e spot, até oito ativas por draw | Excesso de oito luzes deve retornar `UNSUPPORTED` |
-| Textura | `SoTexture2` na unidade 0, UV explícita, 1–4 componentes, alpha opaco, `MODULATE`, `REPEAT`/`CLAMP`, qualidade 0 ou 0,5 | Unidades adicionais, UV procedural/default, alpha parcial, `REPLACE`/`DECAL`/`BLEND`, linhas/pontos texturizados |
-| Ambiente | Fog `NONE`, `HAZE`, `FOG` e `SMOKE` em distância de view space; fog depois de luz/textura e sem alterar alpha | Fórmulas ou estados de fog fora desses quatro modos |
+| Textura | `SoTexture2` na unidade 0, UV explícita, 1–4 componentes incluindo alpha de imagem, `MODULATE`, `REPEAT`/`CLAMP`, qualidade 0 ou 0,5 | Unidades adicionais, UV procedural/default, `REPLACE`/`DECAL`/`BLEND`, linhas/pontos texturizados |
+| Composição | Opacos primeiro e transparentes em pass separado, ordenados estavelmente por profundidade média em view space; depth write desligado para transparentes | Ordenação por triângulo, interseções e transparência independente da ordem |
+| Ambiente | Fog `NONE`, `HAZE`, `FOG` e `SMOKE` em distância de view space; fog depois de luz/textura e antes da composição, sem alterar alpha | Fórmulas ou estados de fog fora desses quatro modos |
 | Raster | Front face e backface culling de `SoShapeHints` em triângulos, inclusive reflexão | Culling de linhas/pontos (não aplicável ao pipeline dessas topologias) |
-| Alvos | Offscreen com cor/profundidade e janela X11 no backend Rust | Outros sistemas de janela ainda não validados |
+| Alvos | Offscreen com cor/profundidade e janela X11 no backend Rust; readback síncrono publica cor e profundidade conjuntamente | `SoSceneTexture2`/render-to-texture, readback assíncrono real, outros sistemas de janela |
 
 Recursos não suportados devem produzir `UNSUPPORTED` e diagnóstico, não uma
 imagem aparentemente válida que ignore silenciosamente parte do estado. A
 referência CPU e o Recording permitem testar o contrato sem GPU; a paridade de
 pixels exige GPU real e, opcionalmente, Coin/GL.
+
+A Onda 4 está **parcial**: 4A/4B e os dois passes básicos de 4C estão
+implementados, sem alterar a ABI pública do Coin 4. O render-to-texture de
+`SoSceneTexture2` é rejeitado antes da submissão; o readback 4D ainda é
+síncrono. O backend native/Dawn não possui pipeline transparente e rejeita esse
+perfil explicitamente. Não se deve declarar 4C, 4D ou 4E concluídas por causa
+dos testes atuais.
 
 ## Build e testes
 

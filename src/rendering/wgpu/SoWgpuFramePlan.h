@@ -170,6 +170,7 @@ struct RenderStateSnapshot {
   uint32_t textureImageSlot = 0;
   uint32_t samplerSlot = 0;
   TextureModel textureModel = TextureModel::MODULATE;
+  int32_t transparencyType = 0; // SoGLRenderAction::TransparencyType, captured per draw
   FogMode fogMode = FogMode::NONE;
   float fogColor[3] = {1.0f, 1.0f, 1.0f};
   float fogStart = 0.0f;
@@ -216,6 +217,10 @@ struct FramePlan {
       if (!isFiniteF(m.transparency) || m.transparency < 0.0f || m.transparency > 1.0f ||
           !isFiniteF(m.diffuse[3]) || m.diffuse[3] < 0.0f || m.diffuse[3] > 1.0f) {
         if (outDiagnostic) *outDiagnostic = "Material has invalid transparency or diffuse alpha";
+        return false;
+      }
+      if (std::abs(m.diffuse[3] + m.transparency - 1.0f) > 1.0e-5f) {
+        if (outDiagnostic) *outDiagnostic = "Material alpha and transparency are inconsistent";
         return false;
       }
     }
