@@ -74,6 +74,9 @@ public:
   void setBackgroundColor(const SbColor4f & color);
   const SbColor4f & getBackgroundColor(void) const;
 
+  void setFastPathEnabled(SbBool enable);
+  SbBool isFastPathEnabled(void) const;
+
   Status getLastStatus(void) const;
   const SbString & getLastError(void) const;
 

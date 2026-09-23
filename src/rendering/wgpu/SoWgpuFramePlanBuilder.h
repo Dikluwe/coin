@@ -2,6 +2,7 @@
 #define COIN_SOWGPUFRAMEPLANBUILDER_H
 
 #include "rendering/wgpu/SoWgpuFramePlan.h"
+#include "rendering/wgpu/SoWgpuDirectGeometry.h"
 #include <Inventor/SbViewportRegion.h>
 
 class SoCallbackAction;
@@ -27,6 +28,16 @@ public:
 
   void addPoint(SoCallbackAction * action,
                 const SoPrimitiveVertex * vertex);
+
+  FastPathResult processIndexedFaceSet(SoCallbackAction * action,
+                                       const DirectGeometryView & view,
+                                       SoNode * node,
+                                       std::string * outError = nullptr);
+
+  FastPathResult processIndexedLineSet(SoCallbackAction * action,
+                                       const DirectGeometryView & view,
+                                       SoNode * node,
+                                       std::string * outError = nullptr);
 
   bool build(FramePlan & outPlan, std::string * outError = nullptr);
 

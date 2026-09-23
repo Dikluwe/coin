@@ -398,3 +398,454 @@ SoWgpuFramePlanBuilder::build(FramePlan & outPlan, std::string * outError)
   outPlan = this->currentPlan;
   return true;
 }
+
+#include <map>
+
+FastPathResult
+SoWgpuFramePlanBuilder::processIndexedFaceSet(SoCallbackAction * action,
+                                             const DirectGeometryView & view,
+                                             SoNode * node,
+                                             std::string * outError)
+{
+  if (!action) {
+    if (outError) *outError = "Null SoCallbackAction in processIndexedFaceSet";
+    return FastPathResult::INVALID_SCENE;
+  }
+
+  if (view.positions.empty() || view.coordIndex.empty()) {
+    return FastPathResult::SUCCESS_PRUNE;
+  }
+
+  const size_t numPositions = view.positions.size;
+  const size_t numIndices = view.coordIndex.size;
+
+  // 1. Preflight of positions: verify finite values
+  for (size_t i = 0; i < numPositions; ++i) {
+    const SbVec3f & p = view.positions[i];
+    if (!std::isfinite(p[0]) || !std::isfinite(p[1]) || !std::isfinite(p[2])) {
+      if (outError) *outError = "IndexedFaceSet vertex position contains NaN or Inf";
+      return FastPathResult::INVALID_SCENE;
+    }
+  }
+
+  // 2. Parse faces and check indices
+  struct FaceInfo {
+    size_t startIndex;
+    size_t count;
+  };
+  std::vector<FaceInfo> faces;
+
+  size_t currentStart = 0;
+  size_t currentCount = 0;
+  for (size_t i = 0; i < numIndices; ++i) {
+    int32_t idx = view.coordIndex[i];
+    if (idx < -1) {
+      if (outError) *outError = "IndexedFaceSet contains invalid negative coordinate index < -1";
+      return FastPathResult::INVALID_SCENE;
+    }
+    if (idx == -1) {
+      if (currentCount > 0) {
+        faces.push_back(FaceInfo{currentStart, currentCount});
+      }
+      currentStart = i + 1;
+      currentCount = 0;
+    } else {
+      if (static_cast<size_t>(idx) >= numPositions) {
+        if (outError) *outError = "IndexedFaceSet coordinate index out of bounds";
+        return FastPathResult::INVALID_SCENE;
+      }
+      currentCount++;
+    }
+  }
+  if (currentCount > 0) {
+    faces.push_back(FaceInfo{currentStart, currentCount});
+  }
+
+  if (faces.empty()) {
+    return FastPathResult::SUCCESS_PRUNE;
+  }
+
+  // 3. Topology & convexity check
+  for (size_t f = 0; f < faces.size(); ++f) {
+    size_t count = faces[f].count;
+    if (count < 3) {
+      continue; // Degenerate face ignored
+    }
+    if (count > 4) {
+      // General N-gons require robust tessellation from Coin's fallback cache
+      return FastPathResult::FALLBACK_CONTINUE;
+    }
+    if (count == 4) {
+      size_t s = faces[f].startIndex;
+      int32_t i0 = view.coordIndex[s];
+      int32_t i1 = view.coordIndex[s + 1];
+      int32_t i2 = view.coordIndex[s + 2];
+      int32_t i3 = view.coordIndex[s + 3];
+      if (!SoWgpuFastPathValidator::isQuadConvex(view.positions[i0],
+                                                 view.positions[i1],
+                                                 view.positions[i2],
+                                                 view.positions[i3])) {
+        // Concave or twisted quad: divert to fallback
+        return FastPathResult::FALLBACK_CONTINUE;
+      }
+    }
+  }
+
+  // 4. Staging validation and attribute resolution
+  std::vector<VertexSnapshot> stagingVertices;
+  std::vector<uint32_t> stagingIndices;
+  std::map<VertexDeduplicationKey, uint32_t> uniqueVertexMap;
+
+  uint32_t defaultMatSlot = this->captureMaterial(action, 0);
+
+  auto getOrAddVertex = [&](int32_t coordIdx, int32_t normalIdx, int32_t texIdx, int32_t matIdx,
+                            const SbVec3f & pos, const SbVec3f & norm, const SbVec2f & tc, uint32_t matSlot) -> uint32_t {
+    VertexDeduplicationKey key;
+    key.coordIdx = coordIdx;
+    key.normalIdx = normalIdx;
+    key.texCoordIdx = texIdx;
+    key.materialIdx = matIdx;
+
+    auto it = uniqueVertexMap.find(key);
+    if (it != uniqueVertexMap.end()) {
+      return it->second;
+    }
+
+    VertexSnapshot vs;
+    vs.position[0] = pos[0]; vs.position[1] = pos[1]; vs.position[2] = pos[2];
+    vs.normal[0] = norm[0]; vs.normal[1] = norm[1]; vs.normal[2] = norm[2];
+    vs.texcoord[0] = tc[0]; vs.texcoord[1] = tc[1];
+    vs.materialSlot = matSlot;
+
+    uint32_t newIdx = static_cast<uint32_t>(stagingVertices.size());
+    stagingVertices.push_back(vs);
+    uniqueVertexMap[key] = newIdx;
+    return newIdx;
+  };
+
+  size_t validFaceIdx = 0;
+  for (size_t f = 0; f < faces.size(); ++f) {
+    size_t count = faces[f].count;
+    if (count < 3) continue;
+
+    size_t s = faces[f].startIndex;
+
+    // Resolve face normal
+    SbVec3f faceNormal(0.0f, 0.0f, 1.0f);
+    if (view.normalBinding == SoNormalBindingElement::OVERALL && !view.normals.empty()) {
+      faceNormal = view.normals[0];
+    } else if ((view.normalBinding == SoNormalBindingElement::PER_FACE ||
+                view.normalBinding == SoNormalBindingElement::PER_PART) &&
+               !view.normals.empty()) {
+      size_t nIdx = (view.normalIndex.empty()) ? validFaceIdx : static_cast<size_t>(view.normalIndex[validFaceIdx]);
+      if (nIdx < view.normals.size) {
+        faceNormal = view.normals[nIdx];
+      }
+    } else if (view.normals.empty()) {
+      // Calculate geometric face normal
+      int32_t c0 = view.coordIndex[s];
+      int32_t c1 = view.coordIndex[s + 1];
+      int32_t c2 = view.coordIndex[s + 2];
+      SbVec3f fn = (view.positions[c1] - view.positions[c0]).cross(view.positions[c2] - view.positions[c0]);
+      if (fn.sqrLength() > 1e-10f) {
+        fn.normalize();
+        faceNormal = fn;
+      }
+    }
+
+    // Resolve face material
+    uint32_t faceMatSlot = defaultMatSlot;
+    if (view.materialBinding == SoMaterialBindingElement::PER_FACE ||
+        view.materialBinding == SoMaterialBindingElement::PER_PART) {
+      int matIdx = static_cast<int>(validFaceIdx);
+      if (!view.materialIndex.empty() && validFaceIdx < view.materialIndex.size) {
+        matIdx = view.materialIndex[validFaceIdx];
+      }
+      faceMatSlot = this->captureMaterial(action, matIdx);
+    }
+
+    auto resolveVertex = [&](size_t vertOffsetInFace) -> uint32_t {
+      size_t indexInCoordIndex = s + vertOffsetInFace;
+      int32_t cIdx = view.coordIndex[indexInCoordIndex];
+      const SbVec3f & pos = view.positions[cIdx];
+
+      // Normal
+      SbVec3f norm = faceNormal;
+      int32_t nKey = 0;
+      if (view.normalBinding == SoNormalBindingElement::PER_FACE ||
+          view.normalBinding == SoNormalBindingElement::PER_FACE_INDEXED ||
+          view.normalBinding == SoNormalBindingElement::PER_PART ||
+          view.normalBinding == SoNormalBindingElement::PER_PART_INDEXED) {
+        nKey = static_cast<int32_t>(validFaceIdx);
+      } else if (view.normalBinding == SoNormalBindingElement::PER_VERTEX ||
+                 view.normalBinding == SoNormalBindingElement::PER_VERTEX_INDEXED) {
+        nKey = cIdx;
+        if (!view.normals.empty()) {
+          size_t nIdx = cIdx;
+          if (!view.normalIndex.empty() && indexInCoordIndex < view.normalIndex.size) {
+            int32_t ni = view.normalIndex[indexInCoordIndex];
+            if (ni >= 0 && static_cast<size_t>(ni) < view.normals.size) {
+              nIdx = static_cast<size_t>(ni);
+            }
+          }
+          if (nIdx < view.normals.size) {
+            norm = view.normals[nIdx];
+            nKey = static_cast<int32_t>(nIdx);
+          }
+        }
+      }
+
+      // Material
+      uint32_t matSlot = faceMatSlot;
+      int32_t mKey = 0;
+      if (view.materialBinding == SoMaterialBindingElement::PER_FACE ||
+          view.materialBinding == SoMaterialBindingElement::PER_FACE_INDEXED ||
+          view.materialBinding == SoMaterialBindingElement::PER_PART ||
+          view.materialBinding == SoMaterialBindingElement::PER_PART_INDEXED) {
+        mKey = static_cast<int32_t>(validFaceIdx);
+      } else if (view.materialBinding == SoMaterialBindingElement::PER_VERTEX ||
+                 view.materialBinding == SoMaterialBindingElement::PER_VERTEX_INDEXED) {
+        mKey = cIdx;
+        if (!view.materialIndex.empty() && indexInCoordIndex < view.materialIndex.size) {
+          int32_t mi = view.materialIndex[indexInCoordIndex];
+          if (mi >= 0) mKey = mi;
+        }
+        matSlot = this->captureMaterial(action, mKey);
+      }
+
+      // TexCoord
+      SbVec2f tc(0.0f, 0.0f);
+      int32_t tKey = 0;
+      if (!view.texcoords.empty()) {
+        size_t tIdx = cIdx;
+        if (!view.texCoordIndex.empty() && indexInCoordIndex < view.texCoordIndex.size) {
+          int32_t ti = view.texCoordIndex[indexInCoordIndex];
+          if (ti >= 0 && static_cast<size_t>(ti) < view.texcoords.size) {
+            tIdx = static_cast<size_t>(ti);
+          }
+        }
+        if (tIdx < view.texcoords.size) {
+          tc = view.texcoords[tIdx];
+          tKey = static_cast<int32_t>(tIdx);
+        }
+      }
+
+      return getOrAddVertex(cIdx, nKey, tKey, mKey, pos, norm, tc, matSlot);
+    };
+
+    if (count == 3) {
+      uint32_t v0 = resolveVertex(0);
+      uint32_t v1 = resolveVertex(1);
+      uint32_t v2 = resolveVertex(2);
+      stagingIndices.push_back(v0);
+      stagingIndices.push_back(v1);
+      stagingIndices.push_back(v2);
+    } else if (count == 4) {
+      uint32_t v0 = resolveVertex(0);
+      uint32_t v1 = resolveVertex(1);
+      uint32_t v2 = resolveVertex(2);
+      uint32_t v3 = resolveVertex(3);
+      // Triangle 1: (0, 1, 2)
+      stagingIndices.push_back(v0);
+      stagingIndices.push_back(v1);
+      stagingIndices.push_back(v2);
+      // Triangle 2: (0, 2, 3)
+      stagingIndices.push_back(v0);
+      stagingIndices.push_back(v2);
+      stagingIndices.push_back(v3);
+    }
+
+    validFaceIdx++;
+  }
+
+  if (stagingIndices.empty()) {
+    return FastPathResult::SUCCESS_PRUNE;
+  }
+
+  // 5. Atomic commit phase
+  uint32_t rsSlot = this->captureRenderState(action, 0);
+  this->ensureDrawPacket(PrimitiveTopology::TRIANGLE_LIST, rsSlot, node);
+
+  uint32_t vertexOffset = static_cast<uint32_t>(this->currentPlan.vertices.size());
+  for (size_t i = 0; i < stagingVertices.size(); ++i) {
+    this->currentPlan.vertices.push_back(stagingVertices[i]);
+  }
+  for (size_t i = 0; i < stagingIndices.size(); ++i) {
+    this->currentPlan.indices.push_back(vertexOffset + stagingIndices[i]);
+  }
+
+  DrawPacket & dp = this->currentPlan.draws[this->currentDrawIndex];
+  dp.geometry.vertexCount += static_cast<uint32_t>(stagingVertices.size());
+  dp.geometry.indexCount += static_cast<uint32_t>(stagingIndices.size());
+
+  return FastPathResult::SUCCESS_PRUNE;
+}
+
+FastPathResult
+SoWgpuFramePlanBuilder::processIndexedLineSet(SoCallbackAction * action,
+                                             const DirectGeometryView & view,
+                                             SoNode * node,
+                                             std::string * outError)
+{
+  if (!action) {
+    if (outError) *outError = "Null SoCallbackAction in processIndexedLineSet";
+    return FastPathResult::INVALID_SCENE;
+  }
+
+  if (view.positions.empty() || view.coordIndex.empty()) {
+    return FastPathResult::SUCCESS_PRUNE;
+  }
+
+  const size_t numPositions = view.positions.size;
+  const size_t numIndices = view.coordIndex.size;
+
+  // 1. Verify finite coordinates
+  for (size_t i = 0; i < numPositions; ++i) {
+    const SbVec3f & p = view.positions[i];
+    if (!std::isfinite(p[0]) || !std::isfinite(p[1]) || !std::isfinite(p[2])) {
+      if (outError) *outError = "IndexedLineSet vertex position contains NaN or Inf";
+      return FastPathResult::INVALID_SCENE;
+    }
+  }
+
+  // 2. Parse lines and bounds check
+  struct LineInfo {
+    size_t startIndex;
+    size_t count;
+  };
+  std::vector<LineInfo> polylines;
+
+  size_t currentStart = 0;
+  size_t currentCount = 0;
+  for (size_t i = 0; i < numIndices; ++i) {
+    int32_t idx = view.coordIndex[i];
+    if (idx < -1) {
+      if (outError) *outError = "IndexedLineSet contains invalid negative coordinate index < -1";
+      return FastPathResult::INVALID_SCENE;
+    }
+    if (idx == -1) {
+      if (currentCount > 0) {
+        polylines.push_back(LineInfo{currentStart, currentCount});
+      }
+      currentStart = i + 1;
+      currentCount = 0;
+    } else {
+      if (static_cast<size_t>(idx) >= numPositions) {
+        if (outError) *outError = "IndexedLineSet coordinate index out of bounds";
+        return FastPathResult::INVALID_SCENE;
+      }
+      currentCount++;
+    }
+  }
+  if (currentCount > 0) {
+    polylines.push_back(LineInfo{currentStart, currentCount});
+  }
+
+  if (polylines.empty()) {
+    return FastPathResult::SUCCESS_PRUNE;
+  }
+
+  // 3. Staging validation and deduplication
+  std::vector<VertexSnapshot> stagingVertices;
+  std::vector<uint32_t> stagingIndices;
+  std::map<VertexDeduplicationKey, uint32_t> uniqueVertexMap;
+
+  uint32_t defaultMatSlot = this->captureMaterial(action, 0);
+
+  auto getOrAddVertex = [&](int32_t coordIdx, int32_t normalIdx, int32_t texIdx, int32_t matIdx,
+                            const SbVec3f & pos, const SbVec3f & norm, const SbVec2f & tc, uint32_t matSlot) -> uint32_t {
+    VertexDeduplicationKey key;
+    key.coordIdx = coordIdx;
+    key.normalIdx = normalIdx;
+    key.texCoordIdx = texIdx;
+    key.materialIdx = matIdx;
+
+    auto it = uniqueVertexMap.find(key);
+    if (it != uniqueVertexMap.end()) {
+      return it->second;
+    }
+
+    VertexSnapshot vs;
+    vs.position[0] = pos[0]; vs.position[1] = pos[1]; vs.position[2] = pos[2];
+    vs.normal[0] = norm[0]; vs.normal[1] = norm[1]; vs.normal[2] = norm[2];
+    vs.texcoord[0] = tc[0]; vs.texcoord[1] = tc[1];
+    vs.materialSlot = matSlot;
+
+    uint32_t newIdx = static_cast<uint32_t>(stagingVertices.size());
+    stagingVertices.push_back(vs);
+    uniqueVertexMap[key] = newIdx;
+    return newIdx;
+  };
+
+  size_t validLineIdx = 0;
+  for (size_t l = 0; l < polylines.size(); ++l) {
+    size_t count = polylines[l].count;
+    if (count < 2) continue; // Degenerate line
+
+    size_t s = polylines[l].startIndex;
+
+    uint32_t lineMatSlot = defaultMatSlot;
+    if (view.materialBinding == SoMaterialBindingElement::PER_FACE ||
+        view.materialBinding == SoMaterialBindingElement::PER_PART) {
+      int matIdx = static_cast<int>(validLineIdx);
+      if (!view.materialIndex.empty() && validLineIdx < view.materialIndex.size) {
+        matIdx = view.materialIndex[validLineIdx];
+      }
+      lineMatSlot = this->captureMaterial(action, matIdx);
+    }
+
+    auto resolveVertex = [&](size_t vertOffsetInLine) -> uint32_t {
+      size_t indexInCoordIndex = s + vertOffsetInLine;
+      int32_t cIdx = view.coordIndex[indexInCoordIndex];
+      const SbVec3f & pos = view.positions[cIdx];
+      SbVec3f norm(0.0f, 0.0f, 1.0f);
+
+      uint32_t matSlot = lineMatSlot;
+      int32_t mKey = (view.materialBinding == SoMaterialBindingElement::OVERALL) ? 0 : static_cast<int32_t>(validLineIdx);
+      if (view.materialBinding == SoMaterialBindingElement::PER_VERTEX ||
+          view.materialBinding == SoMaterialBindingElement::PER_VERTEX_INDEXED) {
+        int mIdx = cIdx;
+        if (!view.materialIndex.empty() && indexInCoordIndex < view.materialIndex.size) {
+          int32_t mi = view.materialIndex[indexInCoordIndex];
+          if (mi >= 0) mIdx = mi;
+        }
+        matSlot = this->captureMaterial(action, mIdx);
+        mKey = mIdx;
+      }
+
+      SbVec2f tc(0.0f, 0.0f);
+      return getOrAddVertex(cIdx, 0, 0, mKey, pos, norm, tc, matSlot);
+    };
+
+    for (size_t seg = 0; seg + 1 < count; ++seg) {
+      uint32_t v0 = resolveVertex(seg);
+      uint32_t v1 = resolveVertex(seg + 1);
+      stagingIndices.push_back(v0);
+      stagingIndices.push_back(v1);
+    }
+
+    validLineIdx++;
+  }
+
+  if (stagingIndices.empty()) {
+    return FastPathResult::SUCCESS_PRUNE;
+  }
+
+  // 4. Atomic commit
+  uint32_t rsSlot = this->captureRenderState(action, 0);
+  this->ensureDrawPacket(PrimitiveTopology::LINE_LIST, rsSlot, node);
+
+  uint32_t vertexOffset = static_cast<uint32_t>(this->currentPlan.vertices.size());
+  for (size_t i = 0; i < stagingVertices.size(); ++i) {
+    this->currentPlan.vertices.push_back(stagingVertices[i]);
+  }
+  for (size_t i = 0; i < stagingIndices.size(); ++i) {
+    this->currentPlan.indices.push_back(vertexOffset + stagingIndices[i]);
+  }
+
+  DrawPacket & dp = this->currentPlan.draws[this->currentDrawIndex];
+  dp.geometry.vertexCount += static_cast<uint32_t>(stagingVertices.size());
+  dp.geometry.indexCount += static_cast<uint32_t>(stagingIndices.size());
+
+  return FastPathResult::SUCCESS_PRUNE;
+}

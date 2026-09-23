@@ -32,6 +32,14 @@ public:
                       SoCallbackAction * action,
                       const SoPrimitiveVertex * vertex);
 
+  static SoCallbackAction::Response indexedFaceSetPreCB(void * userdata,
+                                                       SoCallbackAction * action,
+                                                       const SoNode * node);
+
+  static SoCallbackAction::Response indexedLineSetPreCB(void * userdata,
+                                                       SoCallbackAction * action,
+                                                       const SoNode * node);
+
   SoWgpuRenderAction * master;
   SoWgpuRenderTarget * target;
   SbViewportRegion viewport;
@@ -47,6 +55,7 @@ public:
   bool hasLastValidPlan;
   bool isApplying;
   bool hasReentrancyError;
+  bool fastPathEnabled;
 };
 
 #endif // !SOWGPURENDERACTIONP_H
