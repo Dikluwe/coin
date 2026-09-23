@@ -61,6 +61,8 @@ public:
     { return cc_fifo_reclaim(this->fifo, item); }
 
 private:
+  SbFifo(const SbFifo &) = delete;
+  SbFifo & operator=(const SbFifo &) = delete;
   cc_fifo * fifo;
 };
 

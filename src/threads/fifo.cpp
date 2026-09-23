@@ -199,7 +199,10 @@ unsigned int
 cc_fifo_size(cc_fifo * fifo)
 {
   assert(fifo != NULL);
-  return fifo->elements;
+  cc_mutex_lock(&fifo->access);
+  const unsigned int elements = fifo->elements;
+  cc_mutex_unlock(&fifo->access);
+  return elements;
 }
 
 /* ********************************************************************** */
@@ -358,6 +361,14 @@ i_unlink_head(cc_fifo * fifo) /* static */
 }
 
 #ifdef COIN_TEST_SUITE
+
+#include <Inventor/threads/SbFifo.h>
+#include <type_traits>
+
+static_assert(!std::is_copy_constructible<SbFifo>::value,
+              "SbFifo owns its queue and must not be copied");
+static_assert(!std::is_copy_assignable<SbFifo>::value,
+              "SbFifo owns its queue and must not be assigned");
 
 BOOST_AUTO_TEST_CASE(cc_fifo_reclaim_preserves_queue_invariants)
 {
