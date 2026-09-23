@@ -34,9 +34,105 @@
 
 #include "glue/win32api.h"
 
+typedef void (NTAPI * cc_win32_fls_callback)(void *);
+typedef DWORD (WINAPI * cc_win32_fls_alloc_func)(cc_win32_fls_callback);
+typedef BOOL (WINAPI * cc_win32_fls_free_func)(DWORD);
+typedef void * (WINAPI * cc_win32_fls_get_value_func)(DWORD);
+typedef BOOL (WINAPI * cc_win32_fls_set_value_func)(DWORD, void *);
+
+typedef struct {
+  unsigned long threadid;
+  int exiting;
+} cc_win32_storage_guard;
+
+static cc_win32_fls_alloc_func cc_win32_fls_alloc = NULL;
+static cc_win32_fls_free_func cc_win32_fls_free = NULL;
+static cc_win32_fls_get_value_func cc_win32_fls_get_value = NULL;
+static cc_win32_fls_set_value_func cc_win32_fls_set_value = NULL;
+static DWORD cc_win32_storage_guard_index = 0xffffffffUL;
+
+static void NTAPI
+cc_win32_storage_guard_destruct(void * closure)
+{
+  cc_win32_storage_guard * guard =
+    (cc_win32_storage_guard *) closure;
+  assert(guard != NULL);
+
+  guard->exiting = TRUE;
+  if (!cc_win32_fls_set_value(cc_win32_storage_guard_index, guard)) {
+    (void) cc_storage_thread_cleanup(guard->threadid);
+    free(guard);
+    return;
+  }
+
+  const unsigned int maxiterations = 4;
+  unsigned int iteration = 0;
+  unsigned int cleaned;
+  do {
+    cleaned = cc_storage_thread_cleanup(guard->threadid);
+    iteration++;
+  } while (cleaned > 0 && iteration < maxiterations);
+
+  (void) cc_win32_fls_set_value(cc_win32_storage_guard_index, NULL);
+  free(guard);
+}
+
+static void
+cc_win32_storage_guard_cleanup(void)
+{
+  if (cc_win32_storage_guard_index != 0xffffffffUL) {
+    (void) cc_win32_fls_free(cc_win32_storage_guard_index);
+    cc_win32_storage_guard_index = 0xffffffffUL;
+  }
+}
+
+static void
+internal_storage_guard_init(void)
+{
+  HINSTANCE kernel32 = GetModuleHandle("kernel32.dll");
+  assert(kernel32 != NULL);
+  if (kernel32 != NULL) {
+    cc_win32_fls_alloc = (cc_win32_fls_alloc_func)
+      GetProcAddress(kernel32, "FlsAlloc");
+    cc_win32_fls_free = (cc_win32_fls_free_func)
+      GetProcAddress(kernel32, "FlsFree");
+    cc_win32_fls_get_value = (cc_win32_fls_get_value_func)
+      GetProcAddress(kernel32, "FlsGetValue");
+    cc_win32_fls_set_value = (cc_win32_fls_set_value_func)
+      GetProcAddress(kernel32, "FlsSetValue");
+
+    if (cc_win32_fls_alloc != NULL &&
+        cc_win32_fls_free != NULL &&
+        cc_win32_fls_get_value != NULL &&
+        cc_win32_fls_set_value != NULL) {
+      cc_win32_storage_guard_index =
+        cc_win32_fls_alloc(cc_win32_storage_guard_destruct);
+      if (cc_win32_storage_guard_index != 0xffffffffUL) {
+        coin_atexit(cc_win32_storage_guard_cleanup,
+                    CC_ATEXIT_THREADING_SUBSYSTEM);
+      }
+    }
+  }
+}
+
 static void
 internal_storage_guard_ensure(void)
 {
+  if (cc_win32_storage_guard_index == 0xffffffffUL) return;
+
+  cc_win32_storage_guard * guard = (cc_win32_storage_guard *)
+    cc_win32_fls_get_value(cc_win32_storage_guard_index);
+  if (guard != NULL) return;
+
+  guard = (cc_win32_storage_guard *) malloc(sizeof(cc_win32_storage_guard));
+  assert(guard != NULL);
+  if (guard == NULL) return;
+
+  guard->threadid = cc_thread_id();
+  guard->exiting = FALSE;
+  if (!cc_win32_fls_set_value(cc_win32_storage_guard_index, guard)) {
+    free(guard);
+  }
 }
 
 static DWORD WINAPI

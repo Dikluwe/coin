@@ -217,6 +217,7 @@ cc_thread_init(void)
   cc_mutex_init();
   cc_sync_init();
 #ifdef USE_W32THREAD
+  internal_storage_guard_init();
   /* needed to quickly generate a thread-id for each thread */
   win32_threadid_idx = TlsAlloc();
   assert(win32_threadid_idx != TLS_OUT_OF_INDEXES); 
