@@ -91,8 +91,10 @@ dict_resize(cc_dict * ht, unsigned int newsize)
   for (i = 0; i < oldsize; i++) {
     cc_dict_entry * he = oldbuckets[i];
     while (he) {
-      cc_dict_put(ht, he->key, he->val);
+      cc_dict_entry * oldentry = he;
       he = he->next;
+      cc_dict_put(ht, oldentry->key, oldentry->val);
+      cc_memalloc_deallocate(ht->memalloc, oldentry);
     }
   }
   free(oldbuckets);
@@ -285,10 +287,42 @@ cc_dict_get_num_elements(cc_dict * ht)
 /*!
   Set the hash func that is used to map key values into
   a bucket index.
+
+  \a func must not be NULL.
+
+  Existing entries are reindexed using the new function. The entries
+  themselves are preserved; only their bucket links are changed.
 */
 void
 cc_dict_set_hash_func(cc_dict * ht, cc_dict_hash_func * func)
 {
+  assert(ht != NULL);
+  assert(func != NULL);
+  if (func == NULL) return;
+  if (ht->hashfunc == func) return;
+  if (ht->elements == 0) {
+    ht->hashfunc = func;
+    return;
+  }
+
+  cc_dict_entry ** buckets = (cc_dict_entry **)
+    calloc(ht->size, sizeof(cc_dict_entry *));
+  assert(buckets != NULL);
+  if (buckets == NULL) return;
+
+  for (unsigned int i = 0; i < ht->size; ++i) {
+    cc_dict_entry * entry = ht->buckets[i];
+    while (entry != NULL) {
+      cc_dict_entry * next = entry->next;
+      const unsigned int idx = (unsigned int) (func(entry->key) % ht->size);
+      entry->next = buckets[idx];
+      buckets[idx] = entry;
+      entry = next;
+    }
+  }
+
+  free(ht->buckets);
+  ht->buckets = buckets;
   ht->hashfunc = func;
 }
 
@@ -333,5 +367,69 @@ cc_dict_print_stat(cc_dict * ht)
                          "Used buckets %u of %u (%u elements), "
                          "avg chain length: %.2f, max chain length: %u\n",
                          used_buckets, ht->size, ht->elements,
-                         (float)ht->elements / used_buckets, max_chain_l);
+                         used_buckets > 0 ?
+                           (float)ht->elements / used_buckets : 0.0f,
+                         max_chain_l);
 }
+
+#ifdef COIN_TEST_SUITE
+
+extern "C" {
+  typedef struct cc_dict cc_dict;
+  typedef uintptr_t cc_dict_hash_func(const uintptr_t key);
+  cc_dict * cc_dict_construct(unsigned int size, float loadfactor);
+  void cc_dict_destruct(cc_dict * ht);
+  SbBool cc_dict_put(cc_dict * ht, uintptr_t key, void * val);
+  SbBool cc_dict_get(cc_dict * ht, uintptr_t key, void ** val);
+  unsigned int cc_dict_get_num_elements(cc_dict * ht);
+  void cc_dict_set_hash_func(cc_dict * ht, cc_dict_hash_func * func);
+  void cc_dict_print_stat(cc_dict * ht);
+}
+
+static uintptr_t
+cc_dict_test_mixed_hash(const uintptr_t key)
+{
+  return (key ^ (key >> 17)) * static_cast<uintptr_t>(2654435761u);
+}
+
+BOOST_AUTO_TEST_CASE(cc_dict_rehashes_existing_entries)
+{
+  cc_dict * dict = cc_dict_construct(2, 0.25f);
+  int values[128];
+  for (uintptr_t key = 0; key < 128; ++key) {
+    values[key] = static_cast<int>(key);
+    BOOST_CHECK(cc_dict_put(dict, key, &values[key]));
+  }
+
+  cc_dict_set_hash_func(dict, cc_dict_test_mixed_hash);
+  BOOST_CHECK_EQUAL(cc_dict_get_num_elements(dict), 128U);
+  for (uintptr_t key = 0; key < 128; ++key) {
+    void * value = NULL;
+    BOOST_CHECK(cc_dict_get(dict, key, &value));
+    BOOST_CHECK(value == &values[key]);
+  }
+
+  cc_dict_destruct(dict);
+}
+
+BOOST_AUTO_TEST_CASE(cc_dict_resize_and_empty_statistics_are_safe)
+{
+  cc_dict * dict = cc_dict_construct(1, 0.1f);
+  int values[512];
+  for (uintptr_t key = 0; key < 512; ++key) {
+    values[key] = static_cast<int>(key);
+    cc_dict_put(dict, key, &values[key]);
+  }
+  for (uintptr_t key = 0; key < 512; ++key) {
+    void * value = NULL;
+    BOOST_CHECK(cc_dict_get(dict, key, &value));
+    BOOST_CHECK(value == &values[key]);
+  }
+  cc_dict_destruct(dict);
+
+  dict = cc_dict_construct(0, 0.75f);
+  cc_dict_print_stat(dict);
+  cc_dict_destruct(dict);
+}
+
+#endif // COIN_TEST_SUITE
