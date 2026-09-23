@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 10
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 11
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -166,6 +166,22 @@ typedef struct CoinWgpuTarget {
   uint64_t submission_serial;
 } CoinWgpuTarget;
 
+typedef struct CoinWgpuReadbackTicket {
+  uint32_t abi_version;
+  uint32_t struct_size;
+  uint64_t token;
+  uint64_t generation;
+  uint64_t submission_serial;
+  uint32_t width;
+  uint32_t height;
+  uint32_t color_format; /* 0=RGBA8_UNORM */
+  uint32_t depth_format; /* 1=DEPTH32_FLOAT, 0=no depth */
+  uint32_t color_row_pitch;
+  uint32_t depth_row_pitch;
+  uint64_t color_bytes;
+  uint64_t depth_bytes;
+} CoinWgpuReadbackTicket;
+
 typedef struct CoinWgpuCacheStats {
   uint64_t cumulative_uploads;
   uint64_t cumulative_hits;
@@ -202,6 +218,32 @@ CoinWgpuStatus coin_wgpu_submit(
   char * error_buf,
   size_t error_buf_len
 );
+
+/* Async offscreen submission keeps staging buffers in the bridge until poll/cancel.
+   Target output pointers are ignored; width/height and depth_buffer_len select
+   attachments (depth_buffer_len is a count of floats). The ticket reports
+   generation, serial, RGBA8/depth32 formats, pitches and packed output sizes.
+   poll returns NOT_READY without blocking and publishes both attachments only
+   on OK. No callback retains target/frame pointers. */
+CoinWgpuStatus coin_wgpu_submit_async(
+  CoinWgpuTarget * target,
+  const CoinWgpuFrameView * frame,
+  CoinWgpuReadbackTicket * out_ticket,
+  char * error_buf,
+  size_t error_buf_len
+);
+
+CoinWgpuStatus coin_wgpu_readback_poll(
+  uint64_t token,
+  uint8_t * color_buffer,
+  uint64_t color_buffer_len,
+  float * depth_buffer,
+  uint64_t depth_buffer_len,
+  char * error_buf,
+  size_t error_buf_len
+);
+
+CoinWgpuStatus coin_wgpu_readback_cancel(uint64_t token);
 
 CoinWgpuStatus coin_wgpu_surface_create(
   const CoinWgpuSurfaceCreateInfo * info,

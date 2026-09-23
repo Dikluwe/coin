@@ -13,7 +13,7 @@ use std::sync::Mutex;
 
 mod composition;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 10;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 11;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 pub type CoinWgpuSurfaceId = u64;
@@ -246,6 +246,25 @@ pub struct CoinWgpuTarget {
     pub submission_serial: u64,
 }
 
+#[repr(C)]
+#[derive(Copy, Clone, Debug)]
+pub struct CoinWgpuReadbackTicket {
+    pub abi_version: u32,
+    pub struct_size: u32,
+    pub token: u64,
+    pub generation: u64,
+    pub submission_serial: u64,
+    pub width: u32,
+    pub height: u32,
+    pub color_format: u32,
+    pub depth_format: u32,
+    pub color_row_pitch: u32,
+    pub depth_row_pitch: u32,
+    pub color_bytes: u64,
+    pub depth_bytes: u64,
+}
+
+static NEXT_READBACK_TOKEN: AtomicU64 = AtomicU64::new(1);
 static GLOBAL_SUBMISSION_SERIAL: AtomicU64 = AtomicU64::new(1);
 static GLOBAL_COMPLETED_SERIAL: AtomicU64 = AtomicU64::new(0);
 static LAST_SUBMITTED_SERIAL: AtomicU64 = AtomicU64::new(0);
@@ -460,11 +479,71 @@ struct SurfaceRecord {
     depth_view: Option<wgpu::TextureView>,
 }
 
+type ReadbackMapResult = Result<(), wgpu::BufferAsyncError>;
+
+struct PendingReadback {
+    ticket: CoinWgpuReadbackTicket,
+    color: wgpu::Buffer,
+    color_receiver: std::sync::mpsc::Receiver<ReadbackMapResult>,
+    color_ready: Option<Result<(), String>>,
+    depth: Option<wgpu::Buffer>,
+    depth_receiver: Option<std::sync::mpsc::Receiver<ReadbackMapResult>>,
+    depth_ready: Option<Result<(), String>>,
+}
+
 struct RuntimeContext {
     instance: wgpu::Instance,
     surfaces: HashMap<CoinWgpuSurfaceId, SurfaceRecord>,
     device_state: Option<DeviceState>,
     device_generation: u64,
+    pending_readbacks: HashMap<u64, PendingReadback>,
+    retired_readbacks: Vec<PendingReadback>,
+}
+
+fn update_readback_mapping(job: &mut PendingReadback) {
+    if job.color_ready.is_none() {
+        match job.color_receiver.try_recv() {
+            Ok(Ok(())) => job.color_ready = Some(Ok(())),
+            Ok(Err(error)) => job.color_ready = Some(Err(format!("{:?}", error))),
+            Err(std::sync::mpsc::TryRecvError::Disconnected) =>
+                job.color_ready = Some(Err("Color mapping channel disconnected".to_string())),
+            Err(std::sync::mpsc::TryRecvError::Empty) => (),
+        }
+    }
+    if job.depth_ready.is_none() {
+        if let Some(receiver) = job.depth_receiver.as_ref() {
+            match receiver.try_recv() {
+                Ok(Ok(())) => job.depth_ready = Some(Ok(())),
+                Ok(Err(error)) => job.depth_ready = Some(Err(format!("{:?}", error))),
+                Err(std::sync::mpsc::TryRecvError::Disconnected) =>
+                    job.depth_ready = Some(Err("Depth mapping channel disconnected".to_string())),
+                Err(std::sync::mpsc::TryRecvError::Empty) => (),
+            }
+        } else {
+            job.depth_ready = Some(Ok(()));
+        }
+    }
+}
+
+fn reap_cancelled_readbacks(runtime: &mut RuntimeContext) {
+    if let Some(device) = runtime.device_state.as_ref() {
+        let _ = device.device.poll(wgpu::Maintain::Poll);
+    }
+    runtime.retired_readbacks.retain_mut(|job| {
+        update_readback_mapping(job);
+        if job.color_ready.is_none() || job.depth_ready.is_none() {
+            return true;
+        }
+        if matches!(job.color_ready.as_ref(), Some(Ok(()))) {
+            job.color.unmap();
+        }
+        if matches!(job.depth_ready.as_ref(), Some(Ok(()))) {
+            if let Some(buffer) = job.depth.as_ref() {
+                buffer.unmap();
+            }
+        }
+        false
+    });
 }
 
 static RUNTIME_CTX: Mutex<Option<RuntimeContext>> = Mutex::new(None);
@@ -674,6 +753,8 @@ fn init_runtime_if_needed() -> Result<(), String> {
             surfaces: HashMap::new(),
             device_state: None,
             device_generation: 0,
+            pending_readbacks: HashMap::new(),
+            retired_readbacks: Vec::new(),
         });
     }
     Ok(())
@@ -1832,6 +1913,8 @@ pub extern "C" fn coin_wgpu_reset_context() {
             if let Some(runtime) = guard.as_mut() {
                 runtime.device_state = None;
                 runtime.surfaces.clear();
+                runtime.pending_readbacks.clear();
+                runtime.retired_readbacks.clear();
                 runtime.device_generation += 1;
             }
         }
@@ -2634,10 +2717,10 @@ pub extern "C" fn coin_wgpu_surface_submit(
     })
 }
 
-#[no_mangle]
-pub extern "C" fn coin_wgpu_submit(
+fn coin_wgpu_submit_internal(
     target: *mut CoinWgpuTarget,
     frame: *const CoinWgpuFrameView,
+    out_ticket: *mut CoinWgpuReadbackTicket,
     error_buf: *mut std::os::raw::c_char,
     error_buf_len: usize,
 ) -> CoinWgpuStatus {
@@ -2691,6 +2774,19 @@ pub extern "C" fn coin_wgpu_submit(
             return CoinWgpuStatus::InvalidArgument;
         }
 
+        if !out_ticket.is_null() {
+            if (out_ticket as usize) % std::mem::align_of::<CoinWgpuReadbackTicket>() != 0 {
+                set_error(error_buf, error_buf_len, "Misaligned readback ticket pointer");
+                return CoinWgpuStatus::InvalidArgument;
+            }
+            let ticket = unsafe { &mut *out_ticket };
+            if ticket.abi_version != COIN_WGPU_ABI_VERSION
+                || ticket.struct_size as usize != std::mem::size_of::<CoinWgpuReadbackTicket>() {
+                set_error(error_buf, error_buf_len, "Readback ticket ABI version or size mismatch");
+                return CoinWgpuStatus::InvalidArgument;
+            }
+            ticket.token = 0;
+        }
         let tgt = unsafe { &mut *target };
         let f = unsafe { &*frame };
 
@@ -2754,7 +2850,15 @@ pub extern "C" fn coin_wgpu_submit(
                 return CoinWgpuStatus::InvalidArgument;
             }
         };
-        let bytes_per_row = ((unaligned_bytes + 255) & !255) as u32;
+        let bytes_per_row = match unaligned_bytes.checked_add(255)
+            .map(|bytes| bytes & !255)
+            .and_then(|bytes| u32::try_from(bytes).ok()) {
+            Some(bytes) => bytes,
+            None => {
+                set_error(error_buf, error_buf_len, "Aligned color row pitch overflows u32");
+                return CoinWgpuStatus::InvalidArgument;
+            }
+        };
         let required_target_len = match (unaligned_bytes as u64).checked_mul(height as u64) {
             Some(len) => len,
             None => {
@@ -2767,7 +2871,8 @@ pub extern "C" fn coin_wgpu_submit(
             }
         };
 
-        if tgt.color_buffer.is_null() || tgt.color_buffer_len < required_target_len {
+        if out_ticket.is_null()
+            && (tgt.color_buffer.is_null() || tgt.color_buffer_len < required_target_len) {
             set_error(
                 error_buf,
                 error_buf_len,
@@ -2967,6 +3072,13 @@ pub extern "C" fn coin_wgpu_submit(
             }
         };
         let runtime = guard.as_mut().unwrap();
+        if !out_ticket.is_null() {
+            reap_cancelled_readbacks(runtime);
+            if runtime.pending_readbacks.len() + runtime.retired_readbacks.len() >= 16 {
+                set_error(error_buf, error_buf_len, "Too many pending readbacks");
+                return CoinWgpuStatus::NotReady;
+            }
+        }
 
         let device_state = match get_or_init_device(runtime, None) {
             Ok(d) => d as *mut DeviceState,
@@ -3075,8 +3187,9 @@ pub extern "C" fn coin_wgpu_submit(
         let depth_unpadded = width * 4;
         let depth_bytes_per_row = (depth_unpadded + 255) & !255;
         let depth_staging_size = (depth_bytes_per_row as u64) * (height as u64);
-        let depth_staging_info = if !tgt.depth_buffer.is_null()
-            && tgt.depth_buffer_len >= (width as u64) * (height as u64)
+        let depth_requested = tgt.depth_buffer_len >= (width as u64) * (height as u64)
+            && (!out_ticket.is_null() || !tgt.depth_buffer.is_null());
+        let depth_staging_info = if depth_requested
         {
             let dbuf = ctx.device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("Offscreen Depth Staging Buffer"),
@@ -3129,6 +3242,39 @@ pub extern "C" fn coin_wgpu_submit(
             dslice.map_async(wgpu::MapMode::Read, move |result| {
                 let _ = depth_sender.send(result);
             });
+        }
+
+        if !out_ticket.is_null() {
+            let token = NEXT_READBACK_TOKEN.fetch_add(1, Ordering::SeqCst);
+            let ticket = CoinWgpuReadbackTicket {
+                abi_version: COIN_WGPU_ABI_VERSION,
+                struct_size: std::mem::size_of::<CoinWgpuReadbackTicket>() as u32,
+                token,
+                generation: runtime.device_generation,
+                submission_serial: sub_serial,
+                width,
+                height,
+                color_format: 0,
+                depth_format: if depth_staging_info.is_some() { 1 } else { 0 },
+                color_row_pitch: bytes_per_row,
+                depth_row_pitch: if depth_staging_info.is_some() { depth_bytes_per_row } else { 0 },
+                color_bytes: required_target_len,
+                depth_bytes: if depth_staging_info.is_some() {
+                    (width as u64) * (height as u64) * 4
+                } else { 0 },
+            };
+            runtime.pending_readbacks.insert(token, PendingReadback {
+                ticket,
+                color: staging_buffer.clone(),
+                color_receiver: receiver,
+                color_ready: None,
+                depth: depth_staging_info.as_ref().map(|(buffer, _)| buffer.clone()),
+                depth_receiver: if depth_staging_info.is_some() { Some(depth_receiver) } else { None },
+                depth_ready: None,
+            });
+            unsafe { *out_ticket = ticket; }
+            tgt.submission_serial = sub_serial;
+            return CoinWgpuStatus::Ok;
         }
 
         let _ = ctx.device.poll(wgpu::Maintain::Wait);
@@ -3284,6 +3430,197 @@ pub extern "C" fn coin_wgpu_submit(
 }
 
 #[no_mangle]
+pub extern "C" fn coin_wgpu_submit(
+    target: *mut CoinWgpuTarget,
+    frame: *const CoinWgpuFrameView,
+    error_buf: *mut std::os::raw::c_char,
+    error_buf_len: usize,
+) -> CoinWgpuStatus {
+    coin_wgpu_submit_internal(target, frame, std::ptr::null_mut(), error_buf, error_buf_len)
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_submit_async(
+    target: *mut CoinWgpuTarget,
+    frame: *const CoinWgpuFrameView,
+    out_ticket: *mut CoinWgpuReadbackTicket,
+    error_buf: *mut std::os::raw::c_char,
+    error_buf_len: usize,
+) -> CoinWgpuStatus {
+    if out_ticket.is_null() {
+        set_error(error_buf, error_buf_len, "Null async readback ticket pointer");
+        return CoinWgpuStatus::InvalidArgument;
+    }
+    coin_wgpu_submit_internal(target, frame, out_ticket, error_buf, error_buf_len)
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_readback_poll(
+    token: u64,
+    color_buffer: *mut u8,
+    color_buffer_len: u64,
+    depth_buffer: *mut f32,
+    depth_buffer_len: u64,
+    error_buf: *mut std::os::raw::c_char,
+    error_buf_len: usize,
+) -> CoinWgpuStatus {
+    std::panic::catch_unwind(|| {
+        if token == 0 {
+            set_error(error_buf, error_buf_len, "Invalid readback token");
+            return CoinWgpuStatus::InvalidArgument;
+        }
+        let mut guard = match RUNTIME_CTX.lock() {
+            Ok(guard) => guard,
+            Err(_) => return CoinWgpuStatus::BackendError,
+        };
+        let runtime = match guard.as_mut() {
+            Some(runtime) => runtime,
+            None => return CoinWgpuStatus::InvalidArgument,
+        };
+        reap_cancelled_readbacks(runtime);
+        if !runtime.pending_readbacks.contains_key(&token) {
+            set_error(error_buf, error_buf_len, "Unknown or cancelled readback token");
+            return CoinWgpuStatus::InvalidArgument;
+        }
+        let injected_fault = FAULT_INJECTION_ASYNC.swap(0, Ordering::SeqCst);
+        if injected_fault == CoinWgpuStatus::BackendError as i32 {
+            if let Some(job) = runtime.pending_readbacks.remove(&token) {
+                runtime.retired_readbacks.push(job);
+            }
+            set_error(error_buf, error_buf_len, "Injected asynchronous map failure");
+            return CoinWgpuStatus::BackendError;
+        }
+        if injected_fault == CoinWgpuStatus::DeviceLost as i32
+            || DEVICE_LOST_OCCURRED.swap(false, Ordering::SeqCst) {
+            runtime.pending_readbacks.clear();
+            runtime.retired_readbacks.clear();
+            runtime.device_state = None;
+            runtime.device_generation += 1;
+            set_error(error_buf, error_buf_len, "Device lost during asynchronous readback");
+            return CoinWgpuStatus::DeviceLost;
+        }
+        if let Some(device) = runtime.device_state.as_ref() {
+            let _ = device.device.poll(wgpu::Maintain::Poll);
+        }
+        let generation = runtime.device_generation;
+        let job = runtime.pending_readbacks.get_mut(&token).unwrap();
+        if job.ticket.generation != generation {
+            runtime.pending_readbacks.remove(&token);
+            set_error(error_buf, error_buf_len, "Readback generation is stale");
+            return CoinWgpuStatus::DeviceLost;
+        }
+        update_readback_mapping(job);
+        if job.color_ready.is_none() || job.depth_ready.is_none() {
+            return CoinWgpuStatus::NotReady;
+        }
+        if let Some(message) = job.color_ready.as_ref().and_then(|result| result.as_ref().err())
+            .or_else(|| job.depth_ready.as_ref().and_then(|result| result.as_ref().err())) {
+            let message = message.clone();
+            runtime.pending_readbacks.remove(&token);
+            set_error(error_buf, error_buf_len, &format!("Readback mapping failed: {}", message));
+            return CoinWgpuStatus::BackendError;
+        }
+        let ticket = job.ticket;
+        if color_buffer.is_null() || color_buffer_len < ticket.color_bytes
+            || (ticket.depth_bytes != 0 && (depth_buffer.is_null()
+                || depth_buffer_len < ticket.depth_bytes / 4
+                || (depth_buffer as usize) % std::mem::align_of::<f32>() != 0)) {
+            set_error(error_buf, error_buf_len, "Readback output buffers are missing or too small");
+            return CoinWgpuStatus::InvalidArgument;
+        }
+        if ticket.depth_bytes != 0 {
+            let color_start = color_buffer as usize;
+            let depth_start = depth_buffer as usize;
+            let color_end = color_start.checked_add(ticket.color_bytes as usize);
+            let depth_end = depth_start.checked_add(ticket.depth_bytes as usize);
+            if color_end.is_none() || depth_end.is_none()
+                || (color_start < depth_end.unwrap() && depth_start < color_end.unwrap()) {
+                set_error(error_buf, error_buf_len, "Readback output buffers overlap or overflow");
+                return CoinWgpuStatus::InvalidArgument;
+            }
+        }
+        let color_output = match validate_slice_mut(color_buffer, ticket.color_bytes,
+            "readback color buffer", error_buf, error_buf_len) {
+            Ok(output) => output,
+            Err(status) => return status,
+        };
+        let mut depth_output = None;
+        if ticket.depth_bytes != 0 {
+            depth_output = Some(match validate_slice_mut(depth_buffer, ticket.depth_bytes / 4,
+                "readback depth buffer", error_buf, error_buf_len) {
+                Ok(output) => output,
+                Err(status) => return status,
+            });
+        }
+        let job = runtime.pending_readbacks.remove(&token).unwrap();
+        let color_view = job.color.slice(..).get_mapped_range();
+        let row_bytes = ticket.width as usize * 4;
+        let mut color = vec![0u8; ticket.color_bytes as usize];
+        for y in 0..ticket.height as usize {
+            let source = y * ticket.color_row_pitch as usize;
+            let destination = y * row_bytes;
+            if source + row_bytes > color_view.len() {
+                set_error(error_buf, error_buf_len, "Mapped color readback is truncated");
+                return CoinWgpuStatus::BackendError;
+            }
+            color[destination..destination + row_bytes]
+                .copy_from_slice(&color_view[source..source + row_bytes]);
+        }
+        drop(color_view);
+        job.color.unmap();
+
+        let mut depth = None;
+        if let Some(buffer) = job.depth.as_ref() {
+            let depth_view = buffer.slice(..).get_mapped_range();
+            let mapped: &[f32] = bytemuck::cast_slice(&depth_view);
+            let row_floats = ticket.width as usize;
+            let pitch_floats = ticket.depth_row_pitch as usize / 4;
+            let mut pixels = vec![1.0f32; (ticket.depth_bytes / 4) as usize];
+            for y in 0..ticket.height as usize {
+                let source = y * pitch_floats;
+                let destination = y * row_floats;
+                if source + row_floats > mapped.len() {
+                    set_error(error_buf, error_buf_len, "Mapped depth readback is truncated");
+                    return CoinWgpuStatus::BackendError;
+                }
+                pixels[destination..destination + row_floats]
+                    .copy_from_slice(&mapped[source..source + row_floats]);
+            }
+            drop(depth_view);
+            buffer.unmap();
+            depth = Some(pixels);
+        }
+
+        color_output.copy_from_slice(&color);
+        if let (Some(pixels), Some(output)) = (depth, depth_output) {
+            output.copy_from_slice(&pixels);
+        }
+        CoinWgpuStatus::Ok
+    }).unwrap_or_else(|_| {
+        set_error(error_buf, error_buf_len, "Panic during asynchronous readback");
+        CoinWgpuStatus::BackendError
+    })
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_readback_cancel(token: u64) -> CoinWgpuStatus {
+    std::panic::catch_unwind(|| {
+        let mut guard = match RUNTIME_CTX.lock() {
+            Ok(guard) => guard,
+            Err(_) => return CoinWgpuStatus::BackendError,
+        };
+        if let Some(runtime) = guard.as_mut() {
+            if let Some(job) = runtime.pending_readbacks.remove(&token) {
+                runtime.retired_readbacks.push(job);
+                reap_cancelled_readbacks(runtime);
+                return CoinWgpuStatus::Ok;
+            }
+        }
+        CoinWgpuStatus::InvalidArgument
+    }).unwrap_or(CoinWgpuStatus::BackendError)
+}
+
+#[no_mangle]
 pub extern "C" fn coin_wgpu_get_cache_stats(stats: *mut CoinWgpuCacheStats) {
     let _ = std::panic::catch_unwind(|| {
         if stats.is_null() {
@@ -3348,8 +3685,9 @@ pub extern "C" fn coin_wgpu_get_performance_stats(stats: *mut CoinWgpuPerformanc
 #[no_mangle]
 pub extern "C" fn coin_wgpu_poll_device() {
     let _ = std::panic::catch_unwind(|| {
-        if let Ok(guard) = RUNTIME_CTX.lock() {
-            if let Some(runtime) = guard.as_ref() {
+        if let Ok(mut guard) = RUNTIME_CTX.lock() {
+            if let Some(runtime) = guard.as_mut() {
+                reap_cancelled_readbacks(runtime);
                 if let Some(dev) = &runtime.device_state {
                     let _ = dev.device.poll(wgpu::Maintain::Poll);
                     let completed = GLOBAL_COMPLETED_SERIAL.load(Ordering::SeqCst);

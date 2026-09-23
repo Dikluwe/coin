@@ -4,7 +4,7 @@ Esta implementação é opt-in (`COIN_BUILD_WGPU=ON`) e fica em
 `CoinWgpuExperimental`, separada de `libCoin`. A ação e o alvo de renderização
 estão em `experimental/include` para uso na árvore de build; não são API nem
 ABI pública instalada do Coin 4. A ponte C++/Rust é privada e versionada
-(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=10` nesta revisão). Não promova esses
+(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=11` nesta revisão). Não promova esses
 headers a consumidores externos como se fossem estáveis.
 
 ## Perfil implementado
@@ -18,7 +18,7 @@ headers a consumidores externos como se fossem estáveis.
 | Composição | Opacos primeiro e transparentes em pass separado, ordenados estavelmente por profundidade média em view space; depth write desligado para transparentes | Ordenação por triângulo, interseções e transparência independente da ordem |
 | Ambiente | Fog `NONE`, `HAZE`, `FOG` e `SMOKE` em distância de view space; fog depois de luz/textura e antes da composição, sem alterar alpha | Fórmulas ou estados de fog fora desses quatro modos |
 | Raster | Front face e backface culling de `SoShapeHints` em triângulos, inclusive reflexão | Culling de linhas/pontos (não aplicável ao pipeline dessas topologias) |
-| Alvos | Offscreen com cor/profundidade e janela X11 no backend Rust; readback síncrono publica cor e profundidade conjuntamente | `SoSceneTexture2`/render-to-texture, readback assíncrono real, outros sistemas de janela |
+| Alvos | Offscreen com cor/profundidade e janela X11 no backend Rust; readback síncrono atômico e submit/poll/cancel assíncrono na ponte privada | `SoSceneTexture2`/render-to-texture, API assíncrona da action/target C++, outros sistemas de janela |
 
 Recursos não suportados devem produzir `UNSUPPORTED` e diagnóstico, não uma
 imagem aparentemente válida que ignore silenciosamente parte do estado. A
@@ -27,10 +27,24 @@ pixels exige GPU real e, opcionalmente, Coin/GL.
 
 A Onda 4 está **parcial**: 4A/4B e os dois passes básicos de 4C estão
 implementados, sem alterar a ABI pública do Coin 4. O render-to-texture de
-`SoSceneTexture2` é rejeitado antes da submissão; o readback 4D ainda é
-síncrono. O backend native/Dawn não possui pipeline transparente e rejeita esse
-perfil explicitamente. Não se deve declarar 4C, 4D ou 4E concluídas por causa
-dos testes atuais.
+`SoSceneTexture2` é rejeitado antes da submissão. A ponte privada Rust
+agora oferece submit/poll/cancel de readback verdadeiramente assíncrono, com
+token, geração, serial, formatos, pitch e publicação atômica de cor/profundidade.
+O método da action/target C++ continua síncrono; a integração dessa API ao
+fluxo público experimental ainda falta. O backend native/Dawn não possui
+pipeline transparente e rejeita esse perfil explicitamente. 4C, 4D e 4E
+ainda não estão concluídas.
+
+## Evidência parcial da 4D (ponte privada)
+
+`WgpuAsyncReadbackTest` exerce duas solicitações fora de ordem, polling não
+bloqueante, buffers pequenos e sobrepostos, cancelamento, mudança de tamanho,
+falha de mapeamento injetada e perda de dispositivo. O staging pertence ao
+runtime Rust até poll/cancel; os callbacks não retêm ponteiros do target nem do
+frame. Um ensaio local na NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) usou
+65.536 bytes de staging para duas capturas RGBA8+Depth32 de 64×64 e levou
+67,1 ms no roundtrip completo do teste; não é medida isolada de latência de
+readback nem SLA. A action/target C++ ainda usa o caminho síncrono.
 
 ## Build e testes
 

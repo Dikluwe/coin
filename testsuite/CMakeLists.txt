@@ -380,6 +380,20 @@ if(COIN_BUILD_WGPU)
 		)
 		add_test(NAME WgpuPerformanceTest COMMAND WgpuPerformanceTest)
 		set_tests_properties(WgpuPerformanceTest PROPERTIES TIMEOUT 30)
+
+		add_executable(WgpuAsyncReadbackTest wgpu/WgpuAsyncReadbackTest.cpp)
+		set_target_properties(WgpuAsyncReadbackTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+		target_link_libraries(WgpuAsyncReadbackTest CoinWgpuExperimental Coin)
+		target_include_directories(WgpuAsyncReadbackTest PRIVATE
+			${PROJECT_SOURCE_DIR}/experimental/include
+			${PROJECT_SOURCE_DIR}/include
+			${PROJECT_SOURCE_DIR}/src
+			${PROJECT_BINARY_DIR}/include
+			${PROJECT_BINARY_DIR}/src
+			${COIN_TARGET_INCLUDE_DIRECTORIES}
+		)
+		add_test(NAME WgpuAsyncReadbackTest COMMAND WgpuAsyncReadbackTest)
+		set_tests_properties(WgpuAsyncReadbackTest PROPERTIES TIMEOUT 30)
 	endif()
 
 	if(COIN_TEST_WGPU_GL_REFERENCE)
