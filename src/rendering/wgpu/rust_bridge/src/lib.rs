@@ -166,6 +166,7 @@ pub struct CoinWgpuTarget {
 
 static GLOBAL_SUBMISSION_SERIAL: AtomicU64 = AtomicU64::new(1);
 static GLOBAL_COMPLETED_SERIAL: AtomicU64 = AtomicU64::new(0);
+static LAST_SUBMITTED_SERIAL: AtomicU64 = AtomicU64::new(0);
 
 pub struct CachedGeometryEntry {
     pub vertex_buffer: wgpu::Buffer,
@@ -173,7 +174,7 @@ pub struct CachedGeometryEntry {
     pub vertex_count: u32,
     pub index_count: u32,
     pub size_bytes: u64,
-    pub last_accessed_serial: u64,
+    pub last_submitted_serial: u64,
 }
 
 pub struct RetiredBuffer {
@@ -183,7 +184,6 @@ pub struct RetiredBuffer {
     pub size_bytes: u64,
 }
 
-#[derive(Default)]
 pub struct GeometryCache {
     pub active_entries: HashMap<(u64, u32), (u64, CachedGeometryEntry)>,
     pub deferred_release: Vec<RetiredBuffer>,
@@ -194,6 +194,93 @@ pub struct GeometryCache {
     pub frame_uploaded_bytes: u64,
     pub frame_uploads: u64,
     pub frame_hits: u64,
+    pub total_active_geometry_bytes: u64,
+    pub max_active_geometry_bytes: u64,
+    pub max_stale_serials: u64,
+    pub cumulative_evictions: u64,
+}
+
+impl Default for GeometryCache {
+    fn default() -> Self {
+        Self {
+            active_entries: HashMap::new(),
+            deferred_release: Vec::new(),
+            cumulative_uploads: 0,
+            cumulative_hits: 0,
+            cumulative_misses: 0,
+            cumulative_uploaded_bytes: 0,
+            frame_uploaded_bytes: 0,
+            frame_uploads: 0,
+            frame_hits: 0,
+            total_active_geometry_bytes: 0,
+            max_active_geometry_bytes: 128 * 1024 * 1024,
+            max_stale_serials: 10,
+            cumulative_evictions: 0,
+        }
+    }
+}
+
+impl GeometryCache {
+    pub fn evict_stale(&mut self, current_serial: u64) {
+        let threshold = self.max_stale_serials;
+        let mut to_remove = Vec::new();
+        for (&key, (_rev, entry)) in &self.active_entries {
+            if current_serial > entry.last_submitted_serial + threshold {
+                to_remove.push(key);
+            }
+        }
+        for key in to_remove {
+            if let Some((_rev, entry)) = self.active_entries.remove(&key) {
+                self.total_active_geometry_bytes = self
+                    .total_active_geometry_bytes
+                    .saturating_sub(entry.size_bytes);
+                self.cumulative_evictions += 1;
+                self.deferred_release.push(RetiredBuffer {
+                    vertex_buffer: entry.vertex_buffer,
+                    index_buffer: entry.index_buffer,
+                    retired_at_serial: entry.last_submitted_serial,
+                    size_bytes: entry.size_bytes,
+                });
+            }
+        }
+    }
+
+    pub fn evict_for_budget(
+        &mut self,
+        incoming_bytes: u64,
+        frame_active_keys: &std::collections::HashSet<(u64, u32)>,
+    ) {
+        if self.total_active_geometry_bytes + incoming_bytes <= self.max_active_geometry_bytes {
+            return;
+        }
+
+        let mut candidates: Vec<((u64, u32), u64, u64)> = self
+            .active_entries
+            .iter()
+            .filter(|(&key, _)| !frame_active_keys.contains(&key))
+            .map(|(&key, (_rev, entry))| (key, entry.last_submitted_serial, entry.size_bytes))
+            .collect();
+
+        candidates.sort_by_key(|&(_, serial, _)| serial);
+
+        for (key, _, _) in candidates {
+            if self.total_active_geometry_bytes + incoming_bytes <= self.max_active_geometry_bytes {
+                break;
+            }
+            if let Some((_rev, entry)) = self.active_entries.remove(&key) {
+                self.total_active_geometry_bytes = self
+                    .total_active_geometry_bytes
+                    .saturating_sub(entry.size_bytes);
+                self.cumulative_evictions += 1;
+                self.deferred_release.push(RetiredBuffer {
+                    vertex_buffer: entry.vertex_buffer,
+                    index_buffer: entry.index_buffer,
+                    retired_at_serial: entry.last_submitted_serial,
+                    size_bytes: entry.size_bytes,
+                });
+            }
+        }
+    }
 }
 
 static WGSL_SHADER: &str = include_str!("../../shaders/coin_standard.wgsl");
@@ -259,6 +346,7 @@ pub const FAULT_SURFACE_LOST_PERSISTENT: i32 = 104;
 pub const FAULT_SURFACE_OUT_OF_MEMORY: i32 = 105;
 pub const FAULT_SURFACE_OTHER: i32 = 106;
 pub const FAULT_CONFIGURE_FAILURE: i32 = 107;
+pub const FAULT_CACHE_ALLOC_FAIL: i32 = 201;
 
 static FAULT_SURFACE_OUTDATED_COUNT: AtomicI32 = AtomicI32::new(0);
 static FAULT_SURFACE_LOST_COUNT: AtomicI32 = AtomicI32::new(0);
@@ -797,6 +885,17 @@ fn encode_frame(
 
     let current_submission_serial = GLOBAL_SUBMISSION_SERIAL.load(Ordering::SeqCst);
 
+    // Evict stale entries unreferenced beyond threshold
+    cache.evict_stale(LAST_SUBMITTED_SERIAL.load(Ordering::SeqCst));
+
+    // Collect keys active in the current frame to strictly protect them from LRU eviction
+    let mut frame_active_keys = std::collections::HashSet::new();
+    for draw in draws_slice {
+        if draw.index_count > 0 && draw.stable_node_id != 0 {
+            frame_active_keys.insert((draw.stable_node_id, draw.draw_ordinal));
+        }
+    }
+
     // 2. Prepare uncached fallback buffers if there are any legacy/uncached draws
     let uncached_v_buffer = if draws_slice.iter().any(|d| d.stable_node_id == 0) && !vertices_slice.is_empty() {
         Some(
@@ -826,6 +925,9 @@ fn encode_frame(
         None
     };
 
+    // Temporary storage for oversized draws exceeding cache budget
+    let mut oversized_entries: HashMap<(u64, u32), CachedGeometryEntry> = HashMap::new();
+
     // 3. Update cache for cached draws (stable_node_id != 0)
     for draw in draws_slice {
         if draw.index_count == 0 || draw.stable_node_id == 0 {
@@ -843,21 +945,17 @@ fn encode_frame(
             cache.cumulative_hits += 1;
             cache.frame_hits += 1;
             if let Some((_rev, entry)) = cache.active_entries.get_mut(&key) {
-                entry.last_accessed_serial = current_submission_serial;
+                entry.last_submitted_serial = current_submission_serial;
             }
         } else {
-            cache.cumulative_misses += 1;
-            cache.cumulative_uploads += 1;
-            cache.frame_uploads += 1;
-
-            // Evict and safely retire previous revision if it existed
-            if let Some((_old_rev, old_entry)) = cache.active_entries.remove(&key) {
-                cache.deferred_release.push(RetiredBuffer {
-                    vertex_buffer: old_entry.vertex_buffer,
-                    index_buffer: old_entry.index_buffer,
-                    retired_at_serial: current_submission_serial,
-                    size_bytes: old_entry.size_bytes,
-                });
+            // Check for simulated allocation failure (transactional rollback test)
+            let fault = FAULT_INJECTION.load(Ordering::SeqCst);
+            if fault == FAULT_CACHE_ALLOC_FAIL {
+                FAULT_INJECTION.store(0, Ordering::SeqCst);
+                return Err((
+                    CoinWgpuStatus::OutOfMemory,
+                    "Simulated cache buffer allocation failure (OOM)".to_string(),
+                ));
             }
 
             // Extract vertices for this draw
@@ -875,11 +973,6 @@ fn encode_frame(
                 ));
             }
             let draw_vertices = &vertices_slice[start_v..end_v];
-            let v_buf = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some("Coin Cached Draw Vertex Buffer"),
-                contents: bytemuck::cast_slice(draw_vertices),
-                usage: wgpu::BufferUsages::VERTEX,
-            });
             let v_size = (draw_vertices.len() * std::mem::size_of::<CoinWgpuVertex>()) as u64;
 
             // Extract and rebase indices for this draw
@@ -901,14 +994,40 @@ fn encode_frame(
                 .iter()
                 .map(|&idx| idx.saturating_sub(draw.first_vertex))
                 .collect();
+            let i_size = (local_indices.len() * std::mem::size_of::<u32>()) as u64;
+            let total_bytes = v_size + i_size;
+
+            // Evict inactive entries to accommodate incoming bytes if needed
+            cache.evict_for_budget(total_bytes, &frame_active_keys);
+
+            // Transactional allocation: allocate buffers before touching existing cache entry
+            let v_buf = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Coin Cached Draw Vertex Buffer"),
+                contents: bytemuck::cast_slice(draw_vertices),
+                usage: wgpu::BufferUsages::VERTEX,
+            });
             let i_buf = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                 label: Some("Coin Cached Draw Index Buffer"),
                 contents: bytemuck::cast_slice(&local_indices),
                 usage: wgpu::BufferUsages::INDEX,
             });
-            let i_size = (local_indices.len() * std::mem::size_of::<u32>()) as u64;
 
-            let total_bytes = v_size + i_size;
+            // Evict previous revision safely if it existed, recording its true last_submitted_serial
+            if let Some((_old_rev, old_entry)) = cache.active_entries.remove(&key) {
+                cache.total_active_geometry_bytes = cache
+                    .total_active_geometry_bytes
+                    .saturating_sub(old_entry.size_bytes);
+                cache.deferred_release.push(RetiredBuffer {
+                    vertex_buffer: old_entry.vertex_buffer,
+                    index_buffer: old_entry.index_buffer,
+                    retired_at_serial: old_entry.last_submitted_serial,
+                    size_bytes: old_entry.size_bytes,
+                });
+            }
+
+            cache.cumulative_misses += 1;
+            cache.cumulative_uploads += 1;
+            cache.frame_uploads += 1;
             cache.cumulative_uploaded_bytes += total_bytes;
             cache.frame_uploaded_bytes += total_bytes;
 
@@ -918,10 +1037,16 @@ fn encode_frame(
                 vertex_count: draw.vertex_count,
                 index_count: draw.index_count,
                 size_bytes: total_bytes,
-                last_accessed_serial: current_submission_serial,
+                last_submitted_serial: current_submission_serial,
             };
 
-            cache.active_entries.insert(key, (draw.source_revision, new_entry));
+            if total_bytes > cache.max_active_geometry_bytes {
+                // Oversized geometry larger than entire budget: render in current frame but do not retain
+                oversized_entries.insert(key, new_entry);
+            } else {
+                cache.total_active_geometry_bytes += total_bytes;
+                cache.active_entries.insert(key, (draw.source_revision, new_entry));
+            }
         }
     }
 
@@ -1052,6 +1177,14 @@ fn encode_frame(
                     } else {
                         pass.draw(0..entry.vertex_count, 0..1);
                     }
+                } else if let Some(entry) = oversized_entries.get(&key) {
+                    pass.set_vertex_buffer(0, entry.vertex_buffer.slice(..));
+                    if let Some(ref ib) = entry.index_buffer {
+                        pass.set_index_buffer(ib.slice(..), wgpu::IndexFormat::Uint32);
+                        pass.draw_indexed(0..entry.index_count, 0, 0..1);
+                    } else {
+                        pass.draw(0..entry.vertex_count, 0..1);
+                    }
                 }
             } else {
                 if let Some(vb) = &uncached_v_buffer {
@@ -1065,6 +1198,16 @@ fn encode_frame(
                 pass.draw_indexed(start_idx..end_idx, 0, 0..1);
             }
         }
+    }
+
+    // Retire any oversized buffers immediately after pass completion
+    for (_, entry) in oversized_entries {
+        cache.deferred_release.push(RetiredBuffer {
+            vertex_buffer: entry.vertex_buffer,
+            index_buffer: entry.index_buffer,
+            retired_at_serial: current_submission_serial,
+            size_bytes: entry.size_bytes,
+        });
     }
 
     Ok(encoder.finish())
@@ -1137,6 +1280,8 @@ pub extern "C" fn coin_wgpu_reset_context() {
                 runtime.device_generation += 1;
             }
         }
+        LAST_SUBMITTED_SERIAL.store(0, Ordering::SeqCst);
+        GLOBAL_COMPLETED_SERIAL.store(0, Ordering::SeqCst);
         DEVICE_LOST_OCCURRED.store(false, Ordering::SeqCst);
         LAST_ASYNC_ERROR_KIND.store(0, Ordering::SeqCst);
         FAULT_SURFACE_OUTDATED_COUNT.store(0, Ordering::SeqCst);
@@ -1836,10 +1981,11 @@ pub extern "C" fn coin_wgpu_surface_submit(
 
         // 10. Submit and Present
         let sub_serial = GLOBAL_SUBMISSION_SERIAL.fetch_add(1, Ordering::SeqCst);
+        LAST_SUBMITTED_SERIAL.store(sub_serial, Ordering::SeqCst);
+        dev.queue.submit(std::iter::once(cmd_buffer));
         dev.queue.on_submitted_work_done(move || {
             GLOBAL_COMPLETED_SERIAL.store(sub_serial, Ordering::SeqCst);
         });
-        dev.queue.submit(std::iter::once(cmd_buffer));
         surface_texture.present();
 
         // Check if device lost or async errors occurred during submit/present
@@ -2312,10 +2458,11 @@ pub extern "C" fn coin_wgpu_submit(
         };
 
         let sub_serial = GLOBAL_SUBMISSION_SERIAL.fetch_add(1, Ordering::SeqCst);
+        LAST_SUBMITTED_SERIAL.store(sub_serial, Ordering::SeqCst);
+        ctx.queue.submit([cmd_buffer, copy_encoder.finish()]);
         ctx.queue.on_submitted_work_done(move || {
             GLOBAL_COMPLETED_SERIAL.store(sub_serial, Ordering::SeqCst);
         });
-        ctx.queue.submit([cmd_buffer, copy_encoder.finish()]);
 
         let buffer_slice = staging_buffer.slice(..);
         let (sender, receiver) = std::sync::mpsc::channel();
@@ -2493,7 +2640,7 @@ pub extern "C" fn coin_wgpu_get_cache_stats(stats: *mut CoinWgpuCacheStats) {
             }
         }
         out.completed_serial = GLOBAL_COMPLETED_SERIAL.load(Ordering::SeqCst);
-        out.submission_serial = GLOBAL_SUBMISSION_SERIAL.load(Ordering::SeqCst);
+        out.submission_serial = LAST_SUBMITTED_SERIAL.load(Ordering::SeqCst);
         unsafe {
             *stats = out;
         }
@@ -2507,6 +2654,57 @@ pub extern "C" fn coin_wgpu_poll_device() {
             if let Some(runtime) = guard.as_ref() {
                 if let Some(dev) = &runtime.device_state {
                     let _ = dev.device.poll(wgpu::Maintain::Poll);
+                }
+            }
+        }
+    });
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_set_cache_budget(max_bytes: u64, max_stale_serials: u64) {
+    let _ = std::panic::catch_unwind(|| {
+        if let Ok(guard) = RUNTIME_CTX.lock() {
+            if let Some(runtime) = guard.as_ref() {
+                if let Some(dev) = &runtime.device_state {
+                    if let Ok(mut cache) = dev.cache.lock() {
+                        cache.max_active_geometry_bytes = max_bytes;
+                        cache.max_stale_serials = max_stale_serials;
+                    }
+                }
+            }
+        }
+    });
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_trim_cache() {
+    let _ = std::panic::catch_unwind(|| {
+        if let Ok(guard) = RUNTIME_CTX.lock() {
+            if let Some(runtime) = guard.as_ref() {
+                if let Some(dev) = &runtime.device_state {
+                    if let Ok(mut cache) = dev.cache.lock() {
+                        let last_serial = LAST_SUBMITTED_SERIAL.load(Ordering::SeqCst);
+                        let mut to_remove = Vec::new();
+                        for (&key, (_rev, entry)) in &cache.active_entries {
+                            if entry.last_submitted_serial < last_serial {
+                                to_remove.push(key);
+                            }
+                        }
+                        for key in to_remove {
+                            if let Some((_rev, entry)) = cache.active_entries.remove(&key) {
+                                cache.total_active_geometry_bytes = cache
+                                    .total_active_geometry_bytes
+                                    .saturating_sub(entry.size_bytes);
+                                cache.cumulative_evictions += 1;
+                                cache.deferred_release.push(RetiredBuffer {
+                                    vertex_buffer: entry.vertex_buffer,
+                                    index_buffer: entry.index_buffer,
+                                    retired_at_serial: entry.last_submitted_serial,
+                                    size_bytes: entry.size_bytes,
+                                });
+                            }
+                        }
+                    }
                 }
             }
         }

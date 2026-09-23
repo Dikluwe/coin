@@ -53,6 +53,7 @@ SoWgpuFramePlanBuilder::reset()
   this->nodeCounter = 0;
   this->inFrame = false;
   this->hasActiveDraw = false;
+  this->nodeOccurrenceCount.clear();
 }
 
 uint32_t
@@ -294,10 +295,10 @@ SoWgpuFramePlanBuilder::addVertex(const SoPrimitiveVertex * pv, uint32_t materia
 }
 
 void
-SoWgpuFramePlanBuilder::ensureDrawPacket(PrimitiveTopology topology, uint32_t renderStateSlot, SoNode * node)
+SoWgpuFramePlanBuilder::ensureDrawPacket(PrimitiveTopology topology, uint32_t renderStateSlot, SoNode * node, bool forceNewPacket)
 {
   SbUniqueId nodeId = node ? node->getNodeId() : 0;
-  if (this->hasActiveDraw) {
+  if (!forceNewPacket && this->hasActiveDraw) {
     const DrawPacket & active = this->currentPlan.draws[this->currentDrawIndex];
     if (active.topology == topology &&
         active.renderStateSlot == renderStateSlot &&
@@ -662,9 +663,9 @@ SoWgpuFramePlanBuilder::processIndexedFaceSet(SoCallbackAction * action,
     return FastPathResult::SUCCESS_PRUNE;
   }
 
-  // 5. Atomic commit phase
+  // 5. Atomic commit phase (force dedicated packet per fast-path occurrence)
   uint32_t rsSlot = this->captureRenderState(action, 0);
-  this->ensureDrawPacket(PrimitiveTopology::TRIANGLE_LIST, rsSlot, node);
+  this->ensureDrawPacket(PrimitiveTopology::TRIANGLE_LIST, rsSlot, node, /*forceNewPacket=*/true);
 
   uint32_t vertexOffset = static_cast<uint32_t>(this->currentPlan.vertices.size());
   for (size_t i = 0; i < stagingVertices.size(); ++i) {
@@ -675,9 +676,10 @@ SoWgpuFramePlanBuilder::processIndexedFaceSet(SoCallbackAction * action,
   }
 
   DrawPacket & dp = this->currentPlan.draws[this->currentDrawIndex];
-  dp.geometry.vertexCount += static_cast<uint32_t>(stagingVertices.size());
-  dp.geometry.indexCount += static_cast<uint32_t>(stagingIndices.size());
+  dp.geometry.vertexCount = static_cast<uint32_t>(stagingVertices.size());
+  dp.geometry.indexCount = static_cast<uint32_t>(stagingIndices.size());
 
+  // Canonical serialization hash matching ABI CoinWgpuVertex
   uint64_t h = 14695981039346656037ULL;
   auto hashBytes = [&](const void * data, size_t len) {
     const uint8_t * b = static_cast<const uint8_t *>(data);
@@ -686,16 +688,20 @@ SoWgpuFramePlanBuilder::processIndexedFaceSet(SoCallbackAction * action,
       h *= 1099511628211ULL;
     }
   };
-  if (!view.positions.empty()) hashBytes(view.positions.data, view.positions.size * sizeof(SbVec3f));
-  if (!view.normals.empty()) hashBytes(view.normals.data, view.normals.size * sizeof(SbVec3f));
-  if (!view.texcoords.empty()) hashBytes(view.texcoords.data, view.texcoords.size * sizeof(SbVec2f));
-  if (!stagingIndices.empty()) hashBytes(stagingIndices.data(), stagingIndices.size() * sizeof(uint32_t));
-  uint32_t binds[2] = { static_cast<uint32_t>(view.materialBinding), static_cast<uint32_t>(view.normalBinding) };
-  hashBytes(binds, sizeof(binds));
+  for (const auto & v : stagingVertices) {
+    hashBytes(v.position, sizeof(v.position));
+    hashBytes(v.normal, sizeof(v.normal));
+    hashBytes(v.texcoord, sizeof(v.texcoord));
+    hashBytes(&v.materialSlot, sizeof(v.materialSlot));
+  }
+  if (!stagingIndices.empty()) {
+    hashBytes(stagingIndices.data(), stagingIndices.size() * sizeof(uint32_t));
+  }
   if (h == 0) h = 1;
 
-  dp.stableNodeId = reinterpret_cast<uint64_t>(node);
-  dp.drawOrdinal = 0;
+  uint64_t stableId = reinterpret_cast<uint64_t>(node);
+  dp.stableNodeId = stableId;
+  dp.drawOrdinal = this->nodeOccurrenceCount[stableId]++;
   dp.sourceRevision = h;
 
   return FastPathResult::SUCCESS_PRUNE;
@@ -851,9 +857,9 @@ SoWgpuFramePlanBuilder::processIndexedLineSet(SoCallbackAction * action,
     return FastPathResult::SUCCESS_PRUNE;
   }
 
-  // 4. Atomic commit
+  // 4. Atomic commit (force dedicated packet per fast-path occurrence)
   uint32_t rsSlot = this->captureRenderState(action, 0);
-  this->ensureDrawPacket(PrimitiveTopology::LINE_LIST, rsSlot, node);
+  this->ensureDrawPacket(PrimitiveTopology::LINE_LIST, rsSlot, node, /*forceNewPacket=*/true);
 
   uint32_t vertexOffset = static_cast<uint32_t>(this->currentPlan.vertices.size());
   for (size_t i = 0; i < stagingVertices.size(); ++i) {
@@ -864,9 +870,10 @@ SoWgpuFramePlanBuilder::processIndexedLineSet(SoCallbackAction * action,
   }
 
   DrawPacket & dp = this->currentPlan.draws[this->currentDrawIndex];
-  dp.geometry.vertexCount += static_cast<uint32_t>(stagingVertices.size());
-  dp.geometry.indexCount += static_cast<uint32_t>(stagingIndices.size());
+  dp.geometry.vertexCount = static_cast<uint32_t>(stagingVertices.size());
+  dp.geometry.indexCount = static_cast<uint32_t>(stagingIndices.size());
 
+  // Canonical serialization hash matching ABI CoinWgpuVertex
   uint64_t h = 14695981039346656037ULL;
   auto hashBytes = [&](const void * data, size_t len) {
     const uint8_t * b = static_cast<const uint8_t *>(data);
@@ -875,14 +882,20 @@ SoWgpuFramePlanBuilder::processIndexedLineSet(SoCallbackAction * action,
       h *= 1099511628211ULL;
     }
   };
-  if (!view.positions.empty()) hashBytes(view.positions.data, view.positions.size * sizeof(SbVec3f));
-  if (!stagingIndices.empty()) hashBytes(stagingIndices.data(), stagingIndices.size() * sizeof(uint32_t));
-  uint32_t binds[2] = { static_cast<uint32_t>(view.materialBinding), 0 };
-  hashBytes(binds, sizeof(binds));
+  for (const auto & v : stagingVertices) {
+    hashBytes(v.position, sizeof(v.position));
+    hashBytes(v.normal, sizeof(v.normal));
+    hashBytes(v.texcoord, sizeof(v.texcoord));
+    hashBytes(&v.materialSlot, sizeof(v.materialSlot));
+  }
+  if (!stagingIndices.empty()) {
+    hashBytes(stagingIndices.data(), stagingIndices.size() * sizeof(uint32_t));
+  }
   if (h == 0) h = 1;
 
-  dp.stableNodeId = reinterpret_cast<uint64_t>(node);
-  dp.drawOrdinal = 0;
+  uint64_t stableId = reinterpret_cast<uint64_t>(node);
+  dp.stableNodeId = stableId;
+  dp.drawOrdinal = this->nodeOccurrenceCount[stableId]++;
   dp.sourceRevision = h;
 
   return FastPathResult::SUCCESS_PRUNE;

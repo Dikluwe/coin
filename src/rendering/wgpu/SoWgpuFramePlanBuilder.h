@@ -4,6 +4,7 @@
 #include "rendering/wgpu/SoWgpuFramePlan.h"
 #include "rendering/wgpu/SoWgpuDirectGeometry.h"
 #include <Inventor/SbViewportRegion.h>
+#include <unordered_map>
 
 class SoCallbackAction;
 class SoPrimitiveVertex;
@@ -45,13 +46,14 @@ private:
   uint32_t captureMaterial(SoCallbackAction * action, int materialIndex);
   uint32_t captureRenderState(SoCallbackAction * action, int materialIndex);
   uint32_t addVertex(const SoPrimitiveVertex * pv, uint32_t materialSlot);
-  void ensureDrawPacket(PrimitiveTopology topology, uint32_t renderStateSlot, SoNode * node);
+  void ensureDrawPacket(PrimitiveTopology topology, uint32_t renderStateSlot, SoNode * node, bool forceNewPacket = false);
 
   FramePlan currentPlan;
   uint32_t currentDrawIndex;
   uint32_t nodeCounter;
   bool inFrame;
   bool hasActiveDraw;
+  std::unordered_map<uint64_t, uint32_t> nodeOccurrenceCount;
 };
 
 #endif // !COIN_SOWGPUFRAMEPLANBUILDER_H

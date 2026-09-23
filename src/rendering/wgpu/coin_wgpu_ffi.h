@@ -178,6 +178,10 @@ void coin_wgpu_get_cache_stats(CoinWgpuCacheStats * stats);
 
 void coin_wgpu_poll_device(void);
 
+void coin_wgpu_set_cache_budget(uint64_t max_bytes, uint64_t max_stale_serials);
+
+void coin_wgpu_trim_cache(void);
+
 void coin_wgpu_inject_fault(int32_t fault_code);
 
 void coin_wgpu_inject_async_fault(int32_t fault_code);
