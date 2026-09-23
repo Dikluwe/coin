@@ -93,8 +93,8 @@ wpool_idle_cb(cc_worker * worker, void * data)
     cc_list_append(pool->idlepool, worker);
   }
 
-  if (pool->iswaiting) {
-    cc_condvar_wake_one(pool->waitcond);
+  if (pool->numwaiters > 0) {
+    cc_condvar_wake_all(pool->waitcond);
   }
   wpool_unlock(pool);
 }
@@ -105,14 +105,15 @@ wpool_idle_cb(cc_worker * worker, void * data)
 static void
 wpool_wait(cc_wpool * pool, int num)
 {
-  pool->iswaiting = TRUE;
+  pool->numwaiters++;
   while (cc_list_get_length(pool->idlepool) < num) {
     /* wait() will atomically unlock the mutex, and wait
      * for signal. When signal arrived, the mutex will again be
      * atomically locked. */
     cc_condvar_wait(pool->waitcond, pool->mutex);
   }
-  pool->iswaiting = FALSE;
+  assert(pool->numwaiters > 0);
+  pool->numwaiters--;
 }
 
 static void
@@ -153,10 +154,11 @@ cc_wpool_construct(int numworkers)
   cc_wpool * pool = (cc_wpool*) malloc(sizeof(cc_wpool));
 
   pool->mutex = cc_mutex_construct();
+  pool->sizemutex = cc_mutex_construct();
   pool->waitcond = cc_condvar_construct();
   pool->idlepool = cc_list_construct();
   pool->busypool = cc_list_construct();
-  pool->iswaiting = FALSE;
+  pool->numwaiters = 0;
   pool->numworkers = 0;
 
   cc_wpool_set_num_workers(pool, numworkers);
@@ -186,6 +188,7 @@ cc_wpool_destruct(cc_wpool * pool)
   cc_list_destruct(pool->idlepool);
   cc_list_destruct(pool->busypool);
   cc_mutex_destruct(pool->mutex);
+  cc_mutex_destruct(pool->sizemutex);
   cc_condvar_destruct(pool->waitcond);
   free(pool);
 }
@@ -196,7 +199,10 @@ cc_wpool_destruct(cc_wpool * pool)
 int
 cc_wpool_get_num_workers(cc_wpool * pool)
 {
-  return pool->numworkers;
+  cc_mutex_lock(pool->sizemutex);
+  const int numworkers = pool->numworkers;
+  cc_mutex_unlock(pool->sizemutex);
+  return numworkers;
 }
 
 /*!
@@ -206,12 +212,13 @@ void
 cc_wpool_set_num_workers(cc_wpool * pool, int newnum)
 {
   if (newnum < 0) newnum = 0;
-  if (newnum == pool->numworkers) return;
+  wpool_lock(pool);
+  if (newnum == pool->numworkers) {
+    wpool_unlock(pool);
+    return;
+  }
 
-  cc_wpool_wait_all(pool);
-
-  /* no need to call lock()/unlock(), since all threads
-   * are guaranteed to be idle */
+  wpool_wait(pool, pool->numworkers);
 
   if (newnum > pool->numworkers) {
     wpool_add_workers(pool, newnum - pool->numworkers);
@@ -222,7 +229,10 @@ cc_wpool_set_num_workers(cc_wpool * pool, int newnum)
       cc_worker_destruct((cc_worker*) cc_list_pop(pool->idlepool));
     }
   }
+  cc_mutex_lock(pool->sizemutex);
   pool->numworkers = newnum;
+  cc_mutex_unlock(pool->sizemutex);
+  wpool_unlock(pool);
 }
 
 /*!
@@ -270,12 +280,12 @@ cc_wpool_wait_all(cc_wpool * pool)
 SbBool
 cc_wpool_try_begin(cc_wpool * pool, int numworkersneeded)
 {
-  if (numworkersneeded < 0 || numworkersneeded > pool->numworkers) {
-    return FALSE;
-  }
-
   int n;
   wpool_lock(pool);
+  if (numworkersneeded < 0 || numworkersneeded > pool->numworkers) {
+    wpool_unlock(pool);
+    return FALSE;
+  }
 
   n = cc_list_get_length(pool->idlepool);
   if (n < numworkersneeded) {
@@ -298,6 +308,12 @@ cc_wpool_begin(cc_wpool * pool, int numworkersneeded)
 {
   int n;
   wpool_lock(pool);
+
+  if (numworkersneeded < 0) numworkersneeded = 0;
+  if (numworkersneeded > pool->numworkers) {
+    numworkersneeded = pool->numworkers;
+  }
+
   n = cc_list_get_length(pool->idlepool);
   if (n < numworkersneeded) {
     wpool_wait(pool, numworkersneeded);
@@ -347,6 +363,12 @@ cc_wpool_end(cc_wpool * pool)
 
 #ifdef COIN_TEST_SUITE
 
+#include <Inventor/C/threads/thread.h>
+#include <threads/wpool_test_config.h>
+#include <atomic>
+#include <chrono>
+#include <thread>
+
 static void
 wpool_test_callback(void * closure)
 {
@@ -364,6 +386,14 @@ BOOST_AUTO_TEST_CASE(cc_wpool_rejects_invalid_worker_counts)
 
   cc_wpool_set_num_workers(pool, -2);
   BOOST_CHECK_EQUAL(cc_wpool_get_num_workers(pool), 0);
+
+  cc_wpool_begin(pool, -1);
+  BOOST_CHECK_EQUAL(cc_wpool_get_num_workers(pool), 0);
+  cc_wpool_end(pool);
+
+  cc_wpool_begin(pool, 1);
+  BOOST_CHECK_EQUAL(cc_wpool_get_num_workers(pool), 0);
+  cc_wpool_end(pool);
 
   cc_wpool_destruct(pool);
 }
@@ -387,6 +417,160 @@ BOOST_AUTO_TEST_CASE(cc_wpool_ignores_null_and_excess_starts)
   BOOST_REQUIRE(cc_wpool_try_begin(pool, 1));
   cc_wpool_end(pool);
 
+  cc_wpool_destruct(pool);
+}
+
+typedef struct {
+  cc_mutex * mutex;
+  cc_condvar * condvar;
+  SbBool entered;
+  SbBool release;
+} wpool_test_gate;
+
+static void
+wpool_test_gate_construct(wpool_test_gate * gate)
+{
+  gate->mutex = cc_mutex_construct();
+  gate->condvar = cc_condvar_construct();
+  gate->entered = FALSE;
+  gate->release = FALSE;
+}
+
+static void
+wpool_test_gate_destruct(wpool_test_gate * gate)
+{
+  cc_condvar_destruct(gate->condvar);
+  cc_mutex_destruct(gate->mutex);
+}
+
+static void
+wpool_test_blocking_callback(void * closure)
+{
+  wpool_test_gate * gate = static_cast<wpool_test_gate *>(closure);
+  cc_mutex_lock(gate->mutex);
+  gate->entered = TRUE;
+  cc_condvar_wake_all(gate->condvar);
+  while (!gate->release) {
+    cc_condvar_wait(gate->condvar, gate->mutex);
+  }
+  cc_mutex_unlock(gate->mutex);
+}
+
+static void
+wpool_test_wait_until_entered(wpool_test_gate * gate)
+{
+  cc_mutex_lock(gate->mutex);
+  while (!gate->entered) {
+    cc_condvar_wait(gate->condvar, gate->mutex);
+  }
+  cc_mutex_unlock(gate->mutex);
+}
+
+static void
+wpool_test_release(wpool_test_gate * gate)
+{
+  cc_mutex_lock(gate->mutex);
+  gate->release = TRUE;
+  cc_condvar_wake_all(gate->condvar);
+  cc_mutex_unlock(gate->mutex);
+}
+
+static void
+wpool_test_atomic_callback(void * closure)
+{
+  std::atomic<int> * calls = static_cast<std::atomic<int> *>(closure);
+  calls->fetch_add(1, std::memory_order_relaxed);
+}
+
+typedef struct {
+  cc_wpool * pool;
+  std::atomic<int> * jobcalls;
+  std::atomic<int> * completed;
+} wpool_test_controller_data;
+
+static void *
+wpool_test_controller(void * closure)
+{
+  wpool_test_controller_data * data =
+    static_cast<wpool_test_controller_data *>(closure);
+  cc_wpool_begin(data->pool, 1);
+  cc_wpool_start_worker(data->pool, wpool_test_atomic_callback,
+                        data->jobcalls);
+  cc_wpool_end(data->pool);
+  data->completed->fetch_add(1, std::memory_order_release);
+  return NULL;
+}
+
+static SbBool
+wpool_test_wait_for_value(std::atomic<int> * value, int expected)
+{
+  const std::chrono::steady_clock::time_point deadline =
+    std::chrono::steady_clock::now() + std::chrono::seconds(5);
+  while (std::chrono::steady_clock::now() < deadline) {
+    if (value->load(std::memory_order_acquire) == expected) return TRUE;
+    std::this_thread::yield();
+  }
+  return value->load(std::memory_order_acquire) == expected;
+}
+
+static SbBool
+wpool_test_wait_for_waiters(cc_wpool * pool, unsigned int expected)
+{
+  const std::chrono::steady_clock::time_point deadline =
+    std::chrono::steady_clock::now() + std::chrono::seconds(5);
+  while (std::chrono::steady_clock::now() < deadline) {
+    cc_mutex_lock(pool->mutex);
+    const unsigned int numwaiters = pool->numwaiters;
+    cc_mutex_unlock(pool->mutex);
+    if (numwaiters == expected) return TRUE;
+    std::this_thread::yield();
+  }
+  return FALSE;
+}
+
+BOOST_AUTO_TEST_CASE(cc_wpool_wakes_each_waiting_controller)
+{
+  cc_wpool * pool = cc_wpool_construct(1);
+  wpool_test_gate gate;
+  wpool_test_gate_construct(&gate);
+
+  BOOST_REQUIRE(cc_wpool_try_begin(pool, 1));
+  cc_wpool_start_worker(pool, wpool_test_blocking_callback, &gate);
+  cc_wpool_end(pool);
+  wpool_test_wait_until_entered(&gate);
+
+  std::atomic<int> jobcalls(0);
+  std::atomic<int> completed(0);
+  wpool_test_controller_data data = { pool, &jobcalls, &completed };
+  cc_thread * first = cc_thread_construct(wpool_test_controller, &data);
+  cc_thread * second = cc_thread_construct(wpool_test_controller, &data);
+  BOOST_REQUIRE(first != NULL);
+  BOOST_REQUIRE(second != NULL);
+
+  const SbBool bothwaiting = wpool_test_wait_for_waiters(pool, 2);
+  wpool_test_release(&gate);
+  const SbBool completedwithoutrescue =
+    bothwaiting && wpool_test_wait_for_value(&completed, 2);
+
+  if (!completedwithoutrescue) {
+    cc_mutex_lock(pool->mutex);
+    cc_condvar_wake_all(pool->waitcond);
+    cc_mutex_unlock(pool->mutex);
+    (void) wpool_test_wait_for_value(&completed, 2);
+  }
+
+  cc_thread_join(first, NULL);
+  cc_thread_join(second, NULL);
+  cc_thread_destruct(first);
+  cc_thread_destruct(second);
+  cc_wpool_wait_all(pool);
+
+  BOOST_CHECK(bothwaiting);
+  BOOST_CHECK(completedwithoutrescue);
+  BOOST_CHECK_EQUAL(completed.load(std::memory_order_acquire), 2);
+  BOOST_CHECK_EQUAL(jobcalls.load(std::memory_order_relaxed), 2);
+
+  wpool_test_gate_destruct(&gate);
   cc_wpool_destruct(pool);
 }
 
