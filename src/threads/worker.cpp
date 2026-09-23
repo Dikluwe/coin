@@ -67,11 +67,11 @@ extern "C" {
 static void 
 worker_thread_loop(cc_worker * worker)
 {
-  cc_mutex_lock(worker->mutex);
   cc_mutex_lock(worker->beginmutex);
-  /* signal master that we've entered the scheduling loop */
+  /* Signal the controller before taking the work mutex. */
   cc_condvar_wake_one(worker->begincond);
   cc_mutex_unlock(worker->beginmutex);
+  cc_mutex_lock(worker->mutex);
 
   while (!worker->shutdown || worker->haswork) {
     /* A condition variable can wake without a matching signal. Keep a
@@ -118,21 +118,17 @@ static void
 worker_start_thread(cc_worker * worker)
 {
   if (!worker->threadisrunning) {
-    cc_mutex_lock(worker->beginmutex);
-    /* Unlock worker mutex before starting thread. The new thread will use
-       mutex and beginmutex  to synchronize */
+    /* Never hold the work mutex while acquiring the startup mutex. */
     cc_mutex_unlock(worker->mutex);
+    cc_mutex_lock(worker->beginmutex);
     worker->thread = cc_thread_construct(worker_thread_entry, worker);
-    
-    /* Wait for thread to get to the main loop. The new thread will
-     have worker->mutex locked when this signal arrives */
+
+    /* The new thread signals after entering its scheduling loop. */
     cc_condvar_wait(worker->begincond, worker->beginmutex);
-    
-    /* lock thread again so that we know the new thread is waiting for
-       a signal before we return */
+    cc_mutex_unlock(worker->beginmutex);
+
     cc_mutex_lock(worker->mutex);
     worker->threadisrunning = 1;
-    cc_mutex_unlock(worker->beginmutex);
   }
 }
 
