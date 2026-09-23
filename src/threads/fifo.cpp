@@ -255,7 +255,7 @@ SbBool
 cc_fifo_peek(cc_fifo * fifo, void ** item, uint32_t * type)
 {
   assert(fifo != NULL);
-  if ( fifo->head == NULL ) return FALSE;
+  if ( item == NULL || fifo->head == NULL ) return FALSE;
   *item = fifo->head->item;
   if ( type != NULL ) *type = fifo->head->type;
   return TRUE;
@@ -288,6 +288,7 @@ cc_fifo_reclaim(cc_fifo * fifo, void * itemptr)
       if ( prev == NULL ) fifo->head = item->next;
       else prev->next = item->next;
       if ( fifo->tail == item ) fifo->tail = prev;
+      fifo->elements--;
       /* and reset/store the container */
       item->item = NULL;
       item->type = 0;
@@ -355,3 +356,52 @@ i_unlink_head(cc_fifo * fifo) /* static */
   fifo->elements -= 1;
   return item;
 }
+
+#ifdef COIN_TEST_SUITE
+
+BOOST_AUTO_TEST_CASE(cc_fifo_reclaim_preserves_queue_invariants)
+{
+  cc_fifo * fifo = cc_fifo_new();
+  int first = 1;
+  int second = 2;
+  void * item = NULL;
+  uint32_t type = 0;
+
+  cc_fifo_assign(fifo, &first, 10);
+  cc_fifo_assign(fifo, &second, 20);
+
+  cc_fifo_lock(fifo);
+  BOOST_CHECK(cc_fifo_reclaim(fifo, &first));
+  cc_fifo_unlock(fifo);
+  BOOST_CHECK_EQUAL(cc_fifo_size(fifo), 1U);
+
+  BOOST_CHECK(cc_fifo_try_retrieve(fifo, &item, &type));
+  BOOST_CHECK(item == &second);
+  BOOST_CHECK_EQUAL(type, 20U);
+  BOOST_CHECK_EQUAL(cc_fifo_size(fifo), 0U);
+
+  cc_fifo_assign(fifo, &first, 30);
+  cc_fifo_lock(fifo);
+  BOOST_CHECK(cc_fifo_reclaim(fifo, &first));
+  cc_fifo_unlock(fifo);
+  BOOST_CHECK_EQUAL(cc_fifo_size(fifo), 0U);
+  BOOST_CHECK(!cc_fifo_try_retrieve(fifo, &item, &type));
+
+  cc_fifo_delete(fifo);
+}
+
+BOOST_AUTO_TEST_CASE(cc_fifo_peek_rejects_null_output)
+{
+  cc_fifo * fifo = cc_fifo_new();
+  int value = 1;
+  cc_fifo_assign(fifo, &value, 10);
+
+  cc_fifo_lock(fifo);
+  BOOST_CHECK(!cc_fifo_peek(fifo, NULL, NULL));
+  cc_fifo_unlock(fifo);
+  BOOST_CHECK_EQUAL(cc_fifo_size(fifo), 1U);
+
+  cc_fifo_delete(fifo);
+}
+
+#endif // COIN_TEST_SUITE
