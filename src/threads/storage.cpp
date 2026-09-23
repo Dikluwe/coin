@@ -248,9 +248,18 @@ cc_storage_get(cc_storage * storage)
   unsigned long threadid = 0;
 
 #ifdef HAVE_THREADS
-  cc_thread_storage_guard_ensure();
   threadid = cc_thread_id();
 
+  cc_mutex_lock(storage->mutex);
+  if (cc_dict_get(storage->dict, threadid, &val)) {
+    cc_mutex_unlock(storage->mutex);
+    return val;
+  }
+  cc_mutex_unlock(storage->mutex);
+
+  /* Register cleanup only when this thread first needs a block.  Keep the
+     global thread-id lock outside the storage lock on Win32. */
+  cc_thread_storage_guard_ensure();
   cc_mutex_lock(storage->mutex);
 #endif /* HAVE_THREADS */
 
@@ -489,6 +498,9 @@ cc_storage_thread_cleanup(unsigned long threadid)
 #include <Inventor/threads/SbTypedStorage.h>
 
 #include <type_traits>
+#ifdef HAVE_THREADS
+#include <thread>
+#endif
 
 static int storage_test_construct_count;
 static int storage_test_destruct_count;
@@ -610,6 +622,27 @@ BOOST_AUTO_TEST_CASE(cc_storage_thread_exit_cleans_worker_block)
 
   cc_storage_destruct(storage);
   BOOST_CHECK_EQUAL(storage_test_destruct_count, numthreads);
+}
+
+BOOST_AUTO_TEST_CASE(cc_storage_thread_exit_cleans_external_thread_block)
+{
+  storage_test_construct_count = 0;
+  storage_test_destruct_count = 0;
+
+  cc_storage * storage = cc_storage_construct_etc(sizeof(int),
+                                                   storage_test_construct,
+                                                   storage_test_destruct);
+  storage_test_thread_data data = { storage, 0, NULL };
+  std::thread thread(storage_test_get_from_worker, &data);
+  thread.join();
+
+  BOOST_REQUIRE(data.value != NULL);
+  BOOST_CHECK_EQUAL(storage_test_construct_count, 1);
+  BOOST_CHECK_EQUAL(storage_test_destruct_count, 1);
+  BOOST_CHECK_EQUAL(cc_storage_thread_cleanup(data.threadid), 0U);
+
+  cc_storage_destruct(storage);
+  BOOST_CHECK_EQUAL(storage_test_destruct_count, 1);
 }
 
 static cc_storage * storage_test_exit_reentrant_storage;
