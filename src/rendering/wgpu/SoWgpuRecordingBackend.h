@@ -1,10 +1,11 @@
+#include <Inventor/CoinWgpuExport.h>
 #ifndef COIN_SOWGPURECORDINGBACKEND_H
 #define COIN_SOWGPURECORDINGBACKEND_H
 
 #include "rendering/wgpu/SoWgpuBackend.h"
 #include <string>
 
-class SoWgpuRecordingBackend : public SoWgpuBackend {
+class COIN_WGPU_DLL_API SoWgpuRecordingBackend : public SoWgpuBackend {
 public:
   SoWgpuRecordingBackend();
   ~SoWgpuRecordingBackend() override;

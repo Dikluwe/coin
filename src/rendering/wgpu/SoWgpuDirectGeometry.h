@@ -25,7 +25,8 @@ struct SoWgpuSpan {
 enum class FastPathResult {
   SUCCESS_PRUNE = 0,
   FALLBACK_CONTINUE = 1,
-  INVALID_SCENE = 2
+  INVALID_SCENE = 2,
+  UNSUPPORTED = 3
 };
 
 struct VertexDeduplicationKey {

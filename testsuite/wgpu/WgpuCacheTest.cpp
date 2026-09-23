@@ -32,6 +32,7 @@
 
 int main() {
   SoDB::init();
+  SoWgpuRenderAction::initClass();
 
   std::cout << "Running WgpuCacheTest (Onda 2E GPU Resource Cache & Safe Retirement)..." << std::endl;
 

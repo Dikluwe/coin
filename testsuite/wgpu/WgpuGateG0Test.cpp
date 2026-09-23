@@ -54,6 +54,7 @@ static void reentrantCallback(void * userdata, SoAction * /*action*/) {
 
 int main() {
   SoDB::init();
+  SoWgpuRenderAction::initClass();
   std::cout << "Running WgpuGateG0Test (Onda 2A Saneamento)..." << std::endl;
 
   // =========================================================================

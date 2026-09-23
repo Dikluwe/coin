@@ -7,6 +7,7 @@
 #include <Inventor/actions/SoWgpuRenderAction.h>
 #include <Inventor/actions/SoSubAction.h>
 #include <Inventor/nodes/SoShape.h>
+#include <Inventor/nodes/SoLight.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include <Inventor/nodes/SoVertexProperty.h>
@@ -230,7 +231,11 @@ SoWgpuRenderActionP::executeApply(F traversalFn)
   FramePlan plan;
   std::string err;
   if (!this->builder.build(plan, &err)) {
-    this->lastStatus = SoWgpuRenderAction::INVALID_SCENE;
+    if (this->builder.isUnsupportedBuild()) {
+      this->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
+    } else {
+      this->lastStatus = SoWgpuRenderAction::INVALID_SCENE;
+    }
     this->lastError = err.c_str();
     return;
   }
@@ -295,6 +300,7 @@ SoWgpuRenderActionP::initCallbacks()
   this->master->addLineSegmentCallback(SoShape::getClassTypeId(), lineCB, this);
   this->master->addPointCallback(SoShape::getClassTypeId(), pointCB, this);
 
+  this->master->addPreCallback(SoLight::getClassTypeId(), lightPreCB, this);
   this->master->addPreCallback(SoIndexedFaceSet::getClassTypeId(), indexedFaceSetPreCB, this);
   this->master->addPreCallback(SoIndexedLineSet::getClassTypeId(), indexedLineSetPreCB, this);
 }
@@ -327,6 +333,16 @@ SoWgpuRenderActionP::pointCB(void * userdata,
 {
   SoWgpuRenderActionP * p = static_cast<SoWgpuRenderActionP *>(userdata);
   p->builder.addPoint(action, vertex);
+}
+
+SoCallbackAction::Response
+SoWgpuRenderActionP::lightPreCB(void * userdata,
+                               SoCallbackAction * action,
+                               const SoNode * /*node*/)
+{
+  SoWgpuRenderActionP * p = static_cast<SoWgpuRenderActionP *>(userdata);
+  p->builder.recordLightAttenuation(action);
+  return SoCallbackAction::CONTINUE;
 }
 
 SoCallbackAction::Response
@@ -369,9 +385,17 @@ SoWgpuRenderActionP::indexedFaceSetPreCB(void * userdata,
   }
 
   SoTextureCoordinateBundle tb(action, FALSE, FALSE);
-  if (tb.needCoordinates() && tb.isFunction()) {
-    if (vp) state->pop();
-    return SoCallbackAction::CONTINUE;
+  if (tb.needCoordinates()) {
+    const SoMultiTextureCoordinateElement * tcElem = SoMultiTextureCoordinateElement::getInstance(state);
+    if (tcElem) {
+      auto ct = tcElem->getType(0);
+      if (ct == SoMultiTextureCoordinateElement::DEFAULT || ct == SoMultiTextureCoordinateElement::FUNCTION) {
+        if (vp) state->pop();
+        p->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
+        p->lastError = "Procedural/DEFAULT texture coordinates are not supported in Subwave 3B";
+        return SoCallbackAction::ABORT;
+      }
+    }
   }
 
   DirectGeometryView view;
@@ -385,14 +409,28 @@ SoWgpuRenderActionP::indexedFaceSetPreCB(void * userdata,
   if (ifs->coordIndex.getNum() > 0) {
     view.coordIndex = SoWgpuSpan<int32_t>(ifs->coordIndex.getValues(0), static_cast<size_t>(ifs->coordIndex.getNum()));
   }
-  if (ifs->normalIndex.getNum() > 0 && ifs->normalIndex[0] >= 0) {
+  if (ifs->normalIndex.getNum() > 0 && !(ifs->normalIndex.getNum() == 1 && ifs->normalIndex[0] == -1)) {
     view.normalIndex = SoWgpuSpan<int32_t>(ifs->normalIndex.getValues(0), static_cast<size_t>(ifs->normalIndex.getNum()));
   }
-  if (ifs->materialIndex.getNum() > 0 && ifs->materialIndex[0] >= 0) {
+  if (ifs->materialIndex.getNum() > 0 && !(ifs->materialIndex.getNum() == 1 && ifs->materialIndex[0] == -1)) {
     view.materialIndex = SoWgpuSpan<int32_t>(ifs->materialIndex.getValues(0), static_cast<size_t>(ifs->materialIndex.getNum()));
   }
-  if (ifs->textureCoordIndex.getNum() > 0 && ifs->textureCoordIndex[0] >= 0) {
+  if (ifs->textureCoordIndex.getNum() > 0 && !(ifs->textureCoordIndex.getNum() == 1 && ifs->textureCoordIndex[0] == -1)) {
     view.texCoordIndex = SoWgpuSpan<int32_t>(ifs->textureCoordIndex.getValues(0), static_cast<size_t>(ifs->textureCoordIndex.getNum()));
+  }
+
+  const SoMultiTextureCoordinateElement * tcElem = SoMultiTextureCoordinateElement::getInstance(state);
+  if (tcElem) {
+    SoMultiTextureCoordinateElement::CoordType ct = tcElem->getType(0);
+    if (ct == SoMultiTextureCoordinateElement::EXPLICIT) {
+      int32_t numTc = tcElem->getNum(0);
+      if (numTc > 0) {
+        const SbVec2f * tcPtr = tcElem->getArrayPtr2(0);
+        if (tcPtr) {
+          view.texcoords = SoWgpuSpan<SbVec2f>(tcPtr, static_cast<size_t>(numTc));
+        }
+      }
+    }
   }
 
   view.materialBinding = SoMaterialBindingElement::get(state);
@@ -410,6 +448,10 @@ SoWgpuRenderActionP::indexedFaceSetPreCB(void * userdata,
   } else if (res == FastPathResult::INVALID_SCENE) {
     p->lastStatus = SoWgpuRenderAction::INVALID_SCENE;
     p->lastError = err.empty() ? "Invalid scene in IndexedFaceSet" : err.c_str();
+    return SoCallbackAction::ABORT;
+  } else if (res == FastPathResult::UNSUPPORTED) {
+    p->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
+    p->lastError = err.empty() ? "Unsupported feature in IndexedFaceSet" : err.c_str();
     return SoCallbackAction::ABORT;
   } else {
     return SoCallbackAction::CONTINUE;
@@ -461,7 +503,7 @@ SoWgpuRenderActionP::indexedLineSetPreCB(void * userdata,
   if (ils->coordIndex.getNum() > 0) {
     view.coordIndex = SoWgpuSpan<int32_t>(ils->coordIndex.getValues(0), static_cast<size_t>(ils->coordIndex.getNum()));
   }
-  if (ils->materialIndex.getNum() > 0 && ils->materialIndex[0] >= 0) {
+  if (ils->materialIndex.getNum() > 0 && !(ils->materialIndex.getNum() == 1 && ils->materialIndex[0] == -1)) {
     view.materialIndex = SoWgpuSpan<int32_t>(ils->materialIndex.getValues(0), static_cast<size_t>(ils->materialIndex.getNum()));
   }
 
@@ -479,6 +521,10 @@ SoWgpuRenderActionP::indexedLineSetPreCB(void * userdata,
   } else if (res == FastPathResult::INVALID_SCENE) {
     p->lastStatus = SoWgpuRenderAction::INVALID_SCENE;
     p->lastError = err.empty() ? "Invalid scene in IndexedLineSet" : err.c_str();
+    return SoCallbackAction::ABORT;
+  } else if (res == FastPathResult::UNSUPPORTED) {
+    p->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
+    p->lastError = err.empty() ? "Unsupported feature in IndexedLineSet" : err.c_str();
     return SoCallbackAction::ABORT;
   } else {
     return SoCallbackAction::CONTINUE;

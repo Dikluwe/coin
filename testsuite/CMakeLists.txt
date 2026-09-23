@@ -87,8 +87,10 @@ set_target_properties(CoinTests PROPERTIES DEBUG_POSTFIX "${CMAKE_DEBUG_POSTFIX}
 target_link_libraries(CoinTests Coin ${COIN_TARGET_LINK_LIBRARIES})
 target_include_directories(CoinTests PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}
-	${PROJECT_SOURCE_DIR}/include
-	${PROJECT_SOURCE_DIR}/include/Inventor/annex
+	${PROJECT_SOURCE_DIR}/experimental/include
+		${PROJECT_SOURCE_DIR}/include
+	${PROJECT_SOURCE_DIR}/experimental/include
+		${PROJECT_SOURCE_DIR}/include/Inventor/annex
 	${PROJECT_SOURCE_DIR}/src
 	${PROJECT_BINARY_DIR}/include
 	${COIN_TARGET_INCLUDE_DIRECTORIES}
@@ -114,7 +116,8 @@ add_executable(CoinProfilerInitTest
   reproducers/soprofiler-initclass-ordering/repro.cpp)
 target_link_libraries(CoinProfilerInitTest Coin ${COIN_TARGET_LINK_LIBRARIES})
 target_include_directories(CoinProfilerInitTest PRIVATE
-  ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+  ${PROJECT_SOURCE_DIR}/experimental/include
+		${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
   ${COIN_TARGET_INCLUDE_DIRECTORIES})
 foreach(profile_mode unset off 0 on 1 syncgl invalid)
   add_test(NAME ProfilerInit_${profile_mode}
@@ -134,15 +137,17 @@ if(DISABLE_WARNING_TAUTOLOGCOMPARE)
 endif()
 
 option(COIN_TEST_WGPU_STRICT_DISPLAY "Enable strict X11 display test in CTest where missing DISPLAY is a failure" OFF)
+option(COIN_TEST_WGPU_GL_REFERENCE "Enable strict Coin/GL offscreen lighting reference under Xvfb" OFF)
 
 if(COIN_BUILD_WGPU)
 	add_executable(WgpuRenderActionTest
 		actions/WgpuRenderActionTest.cpp
 	)
 	set_target_properties(WgpuRenderActionTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
-	target_link_libraries(WgpuRenderActionTest Coin ${COIN_TARGET_LINK_LIBRARIES})
+	target_link_libraries(WgpuRenderActionTest CoinWgpuExperimental Coin)
 	target_include_directories(WgpuRenderActionTest PRIVATE
 		${CMAKE_CURRENT_SOURCE_DIR}
+		${PROJECT_SOURCE_DIR}/experimental/include
 		${PROJECT_SOURCE_DIR}/include
 		${PROJECT_SOURCE_DIR}/src
 		${PROJECT_BINARY_DIR}/include
@@ -156,9 +161,10 @@ if(COIN_BUILD_WGPU)
 		wgpu/WgpuOffscreenTest.cpp
 	)
 	set_target_properties(WgpuOffscreenTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
-	target_link_libraries(WgpuOffscreenTest Coin ${COIN_TARGET_LINK_LIBRARIES})
+	target_link_libraries(WgpuOffscreenTest CoinWgpuExperimental Coin)
 	target_include_directories(WgpuOffscreenTest PRIVATE
 		${CMAKE_CURRENT_SOURCE_DIR}
+		${PROJECT_SOURCE_DIR}/experimental/include
 		${PROJECT_SOURCE_DIR}/include
 		${PROJECT_SOURCE_DIR}/src
 		${PROJECT_BINARY_DIR}/include
@@ -172,9 +178,10 @@ if(COIN_BUILD_WGPU)
 		wgpu/WgpuGateG0Test.cpp
 	)
 	set_target_properties(WgpuGateG0Test PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
-	target_link_libraries(WgpuGateG0Test Coin ${COIN_TARGET_LINK_LIBRARIES})
+	target_link_libraries(WgpuGateG0Test CoinWgpuExperimental Coin)
 	target_include_directories(WgpuGateG0Test PRIVATE
 		${CMAKE_CURRENT_SOURCE_DIR}
+		${PROJECT_SOURCE_DIR}/experimental/include
 		${PROJECT_SOURCE_DIR}/include
 		${PROJECT_SOURCE_DIR}/src
 		${PROJECT_BINARY_DIR}/include
@@ -188,9 +195,10 @@ if(COIN_BUILD_WGPU)
 		wgpu/WgpuGateG1Test.cpp
 	)
 	set_target_properties(WgpuGateG1Test PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
-	target_link_libraries(WgpuGateG1Test Coin ${COIN_TARGET_LINK_LIBRARIES})
+	target_link_libraries(WgpuGateG1Test CoinWgpuExperimental Coin)
 	target_include_directories(WgpuGateG1Test PRIVATE
 		${CMAKE_CURRENT_SOURCE_DIR}
+		${PROJECT_SOURCE_DIR}/experimental/include
 		${PROJECT_SOURCE_DIR}/include
 		${PROJECT_SOURCE_DIR}/src
 		${PROJECT_BINARY_DIR}/include
@@ -204,9 +212,10 @@ if(COIN_BUILD_WGPU)
 		wgpu/WgpuGateG2Test.cpp
 	)
 	set_target_properties(WgpuGateG2Test PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
-	target_link_libraries(WgpuGateG2Test Coin ${COIN_TARGET_LINK_LIBRARIES})
+	target_link_libraries(WgpuGateG2Test CoinWgpuExperimental Coin)
 	target_include_directories(WgpuGateG2Test PRIVATE
 		${CMAKE_CURRENT_SOURCE_DIR}
+		${PROJECT_SOURCE_DIR}/experimental/include
 		${PROJECT_SOURCE_DIR}/include
 		${PROJECT_SOURCE_DIR}/src
 		${PROJECT_BINARY_DIR}/include
@@ -220,9 +229,10 @@ if(COIN_BUILD_WGPU)
 		wgpu/WgpuIndexedFastPathTest.cpp
 	)
 	set_target_properties(WgpuIndexedFastPathTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
-	target_link_libraries(WgpuIndexedFastPathTest Coin ${COIN_TARGET_LINK_LIBRARIES})
+	target_link_libraries(WgpuIndexedFastPathTest CoinWgpuExperimental Coin)
 	target_include_directories(WgpuIndexedFastPathTest PRIVATE
 		${CMAKE_CURRENT_SOURCE_DIR}
+		${PROJECT_SOURCE_DIR}/experimental/include
 		${PROJECT_SOURCE_DIR}/include
 		${PROJECT_SOURCE_DIR}/src
 		${PROJECT_BINARY_DIR}/include
@@ -236,9 +246,10 @@ if(COIN_BUILD_WGPU)
 		wgpu/WgpuCacheTest.cpp
 	)
 	set_target_properties(WgpuCacheTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
-	target_link_libraries(WgpuCacheTest Coin ${COIN_TARGET_LINK_LIBRARIES})
+	target_link_libraries(WgpuCacheTest CoinWgpuExperimental Coin)
 	target_include_directories(WgpuCacheTest PRIVATE
 		${CMAKE_CURRENT_SOURCE_DIR}
+		${PROJECT_SOURCE_DIR}/experimental/include
 		${PROJECT_SOURCE_DIR}/include
 		${PROJECT_SOURCE_DIR}/src
 		${PROJECT_BINARY_DIR}/include
@@ -252,9 +263,10 @@ if(COIN_BUILD_WGPU)
 		wgpu/WgpuStabilizationTest.cpp
 	)
 	set_target_properties(WgpuStabilizationTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
-	target_link_libraries(WgpuStabilizationTest Coin ${COIN_TARGET_LINK_LIBRARIES})
+	target_link_libraries(WgpuStabilizationTest CoinWgpuExperimental Coin)
 	target_include_directories(WgpuStabilizationTest PRIVATE
 		${CMAKE_CURRENT_SOURCE_DIR}
+		${PROJECT_SOURCE_DIR}/experimental/include
 		${PROJECT_SOURCE_DIR}/include
 		${PROJECT_SOURCE_DIR}/src
 		${PROJECT_BINARY_DIR}/include
@@ -264,15 +276,87 @@ if(COIN_BUILD_WGPU)
 	add_test(NAME WgpuStabilizationTest COMMAND WgpuStabilizationTest)
 	set_tests_properties(WgpuStabilizationTest PROPERTIES TIMEOUT 30)
 
+	add_executable(WgpuMaterialTest
+		wgpu/WgpuMaterialTest.cpp
+	)
+	set_target_properties(WgpuMaterialTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(WgpuMaterialTest CoinWgpuExperimental Coin)
+	target_include_directories(WgpuMaterialTest PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}
+		${PROJECT_SOURCE_DIR}/experimental/include
+		${PROJECT_SOURCE_DIR}/include
+		${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include
+		${PROJECT_BINARY_DIR}/src
+		${COIN_TARGET_INCLUDE_DIRECTORIES}
+	)
+	add_test(NAME WgpuMaterialTest COMMAND WgpuMaterialTest)
+	set_tests_properties(WgpuMaterialTest PROPERTIES TIMEOUT 30)
+
+	add_executable(WgpuTextureTest
+		wgpu/WgpuTextureTest.cpp
+	)
+	set_target_properties(WgpuTextureTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(WgpuTextureTest CoinWgpuExperimental Coin)
+	target_include_directories(WgpuTextureTest PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}
+		${PROJECT_SOURCE_DIR}/experimental/include
+		${PROJECT_SOURCE_DIR}/include
+		${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include
+		${PROJECT_BINARY_DIR}/src
+		${COIN_TARGET_INCLUDE_DIRECTORIES}
+	)
+	add_test(NAME WgpuTextureTest COMMAND WgpuTextureTest)
+	set_tests_properties(WgpuTextureTest PROPERTIES TIMEOUT 30)
+
+	add_executable(WgpuLightingTest
+		wgpu/WgpuLightingTest.cpp
+	)
+	set_target_properties(WgpuLightingTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(WgpuLightingTest CoinWgpuExperimental Coin)
+	target_include_directories(WgpuLightingTest PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}
+		${PROJECT_SOURCE_DIR}/experimental/include
+		${PROJECT_SOURCE_DIR}/include
+		${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include
+		${PROJECT_BINARY_DIR}/src
+		${COIN_TARGET_INCLUDE_DIRECTORIES}
+	)
+	add_test(NAME WgpuLightingTest COMMAND WgpuLightingTest)
+	set_tests_properties(WgpuLightingTest PROPERTIES TIMEOUT 30)
+
+	if(COIN_TEST_WGPU_GL_REFERENCE)
+		if(NOT (UNIX AND NOT APPLE AND X11_FOUND))
+			message(FATAL_ERROR "COIN_TEST_WGPU_GL_REFERENCE requires X11 on Unix")
+		endif()
+		find_program(COIN_XVFB_RUN_EXECUTABLE xvfb-run)
+		if(NOT COIN_XVFB_RUN_EXECUTABLE)
+			message(FATAL_ERROR "COIN_TEST_WGPU_GL_REFERENCE requires xvfb-run")
+		endif()
+		add_test(NAME WgpuLightingGlReferenceTest
+			COMMAND ${CMAKE_COMMAND} -E env
+				LIBGL_ALWAYS_SOFTWARE=1
+				COIN_GLX_PIXMAP_DIRECT_RENDERING=1
+				COIN_GLXGLUE_NO_PBUFFERS=1
+				COIN_WGPU_REQUIRE_GL_REFERENCE=1
+				${COIN_XVFB_RUN_EXECUTABLE} -a
+				-s "-screen 0 1024x768x24 +extension GLX +render -noreset"
+				$<TARGET_FILE:WgpuLightingTest>)
+		set_tests_properties(WgpuLightingGlReferenceTest PROPERTIES TIMEOUT 60)
+	endif()
+
 	if(COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE" AND (UNIX AND NOT APPLE AND X11_FOUND))
 		add_executable(WgpuSurfaceTest
 			wgpu/WgpuSurfaceTest.cpp
 		)
 		set_target_properties(WgpuSurfaceTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H;HAVE_X11=1")
-		target_link_libraries(WgpuSurfaceTest Coin ${X11_LIBRARIES} ${COIN_TARGET_LINK_LIBRARIES})
+		target_link_libraries(WgpuSurfaceTest CoinWgpuExperimental Coin ${X11_LIBRARIES})
 		target_include_directories(WgpuSurfaceTest PRIVATE
 			${CMAKE_CURRENT_SOURCE_DIR}
-			${PROJECT_SOURCE_DIR}/include
+			${PROJECT_SOURCE_DIR}/experimental/include
+		${PROJECT_SOURCE_DIR}/include
 			${PROJECT_SOURCE_DIR}/src
 			${PROJECT_BINARY_DIR}/include
 			${PROJECT_BINARY_DIR}/src

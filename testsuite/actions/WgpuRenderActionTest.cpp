@@ -556,10 +556,13 @@ int testProfileMultiLightAndPerVertexTransparency() {
   // Case 1: Valid single light, opaque
   TEST_ASSERT(SoWgpuRenderTargetP::validateProfile(plan, diag), "Base profile should be valid");
 
-  // Case 2: Multi-light must be rejected
+  // Case 2: two lights are supported in 3C; nine exceed the published budget.
   plan.renderStates[0].lightingSlot = 1; // multiLight
-  TEST_ASSERT(!SoWgpuRenderTargetP::validateProfile(plan, diag), "Multi-light must be rejected by validateProfile");
-  TEST_ASSERT(diag.find("Multiple lights") != std::string::npos, "Diagnostic must mention multiple lights");
+  TEST_ASSERT(SoWgpuRenderTargetP::validateProfile(plan, diag), "Two lights should be supported");
+  plan.lightingStates[1].lights.resize(9, l1);
+  TEST_ASSERT(!SoWgpuRenderTargetP::validateProfile(plan, diag), "Nine lights must be rejected by validateProfile");
+  TEST_ASSERT(diag.find("eight") != std::string::npos, "Diagnostic must mention eight-light limit");
+  plan.lightingStates[1].lights.resize(2);
   plan.renderStates[0].lightingSlot = 0; // restore
 
   // Case 3: Per-vertex transparency must be rejected
@@ -617,6 +620,7 @@ int testWindowTargetRecordingBackend() {
 int main() {
 
   SoDB::init();
+  SoWgpuRenderAction::initClass();
   std::cout << "Running WgpuRenderActionTest..." << std::endl;
 
   int failed = 0;

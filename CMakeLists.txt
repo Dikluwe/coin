@@ -1021,17 +1021,13 @@ unset(COIN_DOCUMENTATION_FILES CACHE)
 # they are put in DOXYGEN_EXCLUDE.
 unset(COIN_INTERNAL_DOCUMENTATION_FILES CACHE)
 
-if(COIN_WGPU_LINK_LIBRARIES)
-  list(APPEND COIN_TARGET_LINK_LIBRARIES ${COIN_WGPU_LINK_LIBRARIES})
-endif()
-
-if(COIN_BUILD_WGPU AND COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE" AND NOT COIN_BUILD_SHARED_LIBS)
-  install(FILES "${RUST_LIB_PATH}" DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT development OPTIONAL)
-endif()
 
 add_subdirectory(include)
 add_subdirectory(data)
 add_subdirectory(src)
+if(COIN_BUILD_WGPU)
+  add_subdirectory(src/rendering/wgpu)
+endif()
 
 if (COIN_BUILD_EXAMPLES OR COIN_BUILD_WGPU_WINDOW_EXAMPLE)
   add_subdirectory(examples)

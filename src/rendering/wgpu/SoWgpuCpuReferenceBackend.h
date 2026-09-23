@@ -1,10 +1,11 @@
+#include <Inventor/CoinWgpuExport.h>
 #ifndef COIN_SOWGPUCPUREFERENCEBACKEND_H
 #define COIN_SOWGPUCPUREFERENCEBACKEND_H
 
 #include "rendering/wgpu/SoWgpuBackend.h"
 #include <string>
 
-class SoWgpuCpuReferenceBackend : public SoWgpuBackend {
+class COIN_WGPU_DLL_API SoWgpuCpuReferenceBackend : public SoWgpuBackend {
 public:
   SoWgpuCpuReferenceBackend();
   virtual ~SoWgpuCpuReferenceBackend();

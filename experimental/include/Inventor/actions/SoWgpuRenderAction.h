@@ -33,6 +33,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 \**************************************************************************/
 
+#include <Inventor/CoinWgpuExport.h>
 #include <Inventor/actions/SoCallbackAction.h>
 #include <Inventor/SbColor4f.h>
 #include <Inventor/SbString.h>
@@ -41,7 +42,7 @@
 class SoWgpuRenderActionP;
 class SoWgpuRenderTarget;
 
-class COIN_DLL_API SoWgpuRenderAction : public SoCallbackAction {
+class COIN_WGPU_DLL_API SoWgpuRenderAction : public SoCallbackAction {
   typedef SoCallbackAction inherited;
   SO_ACTION_HEADER(SoWgpuRenderAction);
 

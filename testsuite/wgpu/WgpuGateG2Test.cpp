@@ -33,6 +33,7 @@
 
 int main() {
   SoDB::init();
+  SoWgpuRenderAction::initClass();
 
   std::cout << "Running WgpuGateG2Test (Onda 2C Native Topologies: Lines and Points)..." << std::endl;
 

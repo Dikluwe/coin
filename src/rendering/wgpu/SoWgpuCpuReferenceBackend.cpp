@@ -18,6 +18,7 @@ struct ShadedVertex {
   SbVec4f clipPos;
   SbVec3f viewPos;
   SbVec3f viewNormal;
+  SbVec2f texCoord;
   uint32_t materialSlot;
 };
 
@@ -31,15 +32,81 @@ inline ShadedVertex interpolateVertex(const ShadedVertex & a, const ShadedVertex
   out.viewPos = a.viewPos + (b.viewPos - a.viewPos) * t;
   out.viewNormal = a.viewNormal + (b.viewNormal - a.viewNormal) * t;
   out.viewNormal.normalize();
+  out.texCoord = a.texCoord + (b.texCoord - a.texCoord) * t;
   out.materialSlot = (t < 0.5f ? a.materialSlot : b.materialSlot);
   return out;
 }
 
+inline SbVec4f sampleTexture(const TextureImageSnapshot & tex, const SamplerSnapshot & samp, float u, float v) {
+  if (tex.width == 0 || tex.height == 0 || tex.pixelsRgba.empty()) {
+    return SbVec4f(1.0f, 1.0f, 1.0f, 1.0f);
+  }
+
+  // Wrap U
+  float uCoord = u;
+  if (samp.wrapS == TextureWrap::REPEAT) {
+    uCoord = uCoord - std::floor(uCoord);
+  } else {
+    uCoord = std::max(0.0f, std::min(1.0f, uCoord));
+  }
+
+  // Wrap V
+  float vCoord = v;
+  if (samp.wrapT == TextureWrap::REPEAT) {
+    vCoord = vCoord - std::floor(vCoord);
+  } else {
+    vCoord = std::max(0.0f, std::min(1.0f, vCoord));
+  }
+
+  float fx = uCoord * static_cast<float>(tex.width) - 0.5f;
+  float fy = vCoord * static_cast<float>(tex.height) - 0.5f;
+  int x0 = static_cast<int>(std::floor(fx));
+  int y0 = static_cast<int>(std::floor(fy));
+  int x1 = x0 + 1;
+  int y1 = y0 + 1;
+  float wx = fx - std::floor(fx);
+  float wy = fy - std::floor(fy);
+
+  auto fetchPixel = [&](int x, int y) -> SbVec4f {
+    if (samp.wrapS == TextureWrap::REPEAT) {
+      x = ((x % static_cast<int>(tex.width)) + tex.width) % tex.width;
+    } else {
+      x = std::max(0, std::min(static_cast<int>(tex.width) - 1, x));
+    }
+    if (samp.wrapT == TextureWrap::REPEAT) {
+      y = ((y % static_cast<int>(tex.height)) + tex.height) % tex.height;
+    } else {
+      y = std::max(0, std::min(static_cast<int>(tex.height) - 1, y));
+    }
+    size_t idx = (static_cast<size_t>(y) * tex.width + static_cast<size_t>(x)) * 4;
+    return SbVec4f(
+      static_cast<float>(tex.pixelsRgba[idx + 0]) / 255.0f,
+      static_cast<float>(tex.pixelsRgba[idx + 1]) / 255.0f,
+      static_cast<float>(tex.pixelsRgba[idx + 2]) / 255.0f,
+      static_cast<float>(tex.pixelsRgba[idx + 3]) / 255.0f
+    );
+  };
+
+  if (samp.filter == TextureFilter::NEAREST) {
+    int nx = static_cast<int>(std::floor(uCoord * static_cast<float>(tex.width)));
+    int ny = static_cast<int>(std::floor(vCoord * static_cast<float>(tex.height)));
+    return fetchPixel(nx, ny);
+  }
+
+  SbVec4f p00 = fetchPixel(x0, y0);
+  SbVec4f p10 = fetchPixel(x1, y0);
+  SbVec4f p01 = fetchPixel(x0, y1);
+  SbVec4f p11 = fetchPixel(x1, y1);
+
+  SbVec4f top = p00 * (1.0f - wx) + p10 * wx;
+  SbVec4f bot = p01 * (1.0f - wx) + p11 * wx;
+  return top * (1.0f - wy) + bot * wy;
+}
+
 static void rasterizeTriangle(const ShadedVertex & sv0, const ShadedVertex & sv1, const ShadedVertex & sv2,
                               int width, int height,
-                              const SbVec3f & lightDirView, float lightIntensity, const SbColor & lightCol,
+                              const LightingSnapshot & lighting, const RenderStateSnapshot & rs,
                               const FramePlan & frame,
-                              CullMode cullMode, FrontFace frontFace,
                               std::vector<float> & depthBuffer, std::vector<uint8_t> & colorBuffer)
 {
   SbVec2f scrPos[3];
@@ -58,9 +125,9 @@ static void rasterizeTriangle(const ShadedVertex & sv0, const ShadedVertex & sv1
   }
 
   float area = edgeFunction(scrPos[0], scrPos[1], scrPos[2]);
-  float orientArea = (frontFace == FrontFace::CW ? -area : area);
-  if (cullMode == CullMode::BACK && orientArea <= 0.0f) return;
-  if (cullMode == CullMode::FRONT && orientArea >= 0.0f) return;
+  float orientArea = (rs.frontFace == FrontFace::CW ? -area : area);
+  if (rs.cullMode == CullMode::BACK && orientArea <= 0.0f) return;
+  if (rs.cullMode == CullMode::FRONT && orientArea >= 0.0f) return;
   if (std::abs(area) < 1e-5f) return; // Degenerate
 
   int minX = std::max(0, static_cast<int>(std::floor(std::min({scrPos[0][0], scrPos[1][0], scrPos[2][0]}))));
@@ -137,14 +204,71 @@ static void rasterizeTriangle(const ShadedVertex & sv0, const ShadedVertex & sv1
 
       float shininess = m0.shininess * b0 + m1.shininess * b1 + m2.shininess * b2;
 
-      float diffFactor = std::max(0.0f, n.dot(lightDirView));
-      SbVec3f h = lightDirView + viewDir;
-      h.normalize();
-      float specFactor = (diffFactor > 0.0f ? std::pow(std::max(0.0f, n.dot(h)), std::max(1.0f, shininess * 128.0f)) : 0.0f);
+      SbVec3f emiss(
+        m0.emission[0] * b0 + m1.emission[0] * b1 + m2.emission[0] * b2,
+        m0.emission[1] * b0 + m1.emission[1] * b1 + m2.emission[1] * b2,
+        m0.emission[2] * b0 + m1.emission[2] * b1 + m2.emission[2] * b2
+      );
 
-      float finalR = amb[0] + diff[0] * lightCol[0] * diffFactor * lightIntensity + spec[0] * specFactor * lightIntensity;
-      float finalG = amb[1] + diff[1] * lightCol[1] * diffFactor * lightIntensity + spec[1] * specFactor * lightIntensity;
-      float finalB = amb[2] + diff[2] * lightCol[2] * diffFactor * lightIntensity + spec[2] * specFactor * lightIntensity;
+      float finalR = 0.0f;
+      float finalG = 0.0f;
+      float finalB = 0.0f;
+
+      if (rs.lightModel == LightModel::BASE_COLOR) {
+        finalR = diff[0];
+        finalG = diff[1];
+        finalB = diff[2];
+      } else {
+        finalR = amb[0] * lighting.ambientColor[0] * lighting.ambientIntensity + emiss[0];
+        finalG = amb[1] * lighting.ambientColor[1] * lighting.ambientIntensity + emiss[1];
+        finalB = amb[2] * lighting.ambientColor[2] * lighting.ambientIntensity + emiss[2];
+        for (size_t lightIndex = 0; lightIndex < lighting.lights.size(); ++lightIndex) {
+          const LightSourceSnapshot & light = lighting.lights[lightIndex];
+          SbVec3f toLight;
+          float attenuation = 1.0f;
+          if (light.type == LightType::DIRECTIONAL) {
+            toLight.setValue(-light.direction[0], -light.direction[1], -light.direction[2]);
+            toLight.normalize();
+          } else {
+            SbVec3f lightPos(light.position[0], light.position[1], light.position[2]);
+            SbVec3f delta = lightPos - vPos;
+            const float distance = delta.length();
+            if (distance <= 1.0e-6f) continue;
+            toLight = delta / distance;
+            const float denominator = light.attenuation[2] +
+              light.attenuation[1] * distance +
+              light.attenuation[0] * distance * distance;
+            if (denominator <= 1.0e-6f) continue;
+            attenuation = 1.0f / denominator;
+            if (light.type == LightType::SPOT) {
+              SbVec3f lightDirection(light.direction[0], light.direction[1], light.direction[2]);
+              lightDirection.normalize();
+              const float coneCos = lightDirection.dot(-toLight);
+              if (coneCos < std::cos(light.cutOffAngle)) continue;
+              attenuation *= std::pow(std::max(coneCos, 0.0f), light.dropOffRate * 128.0f);
+            }
+          }
+          const float diffuseFactor = std::max(0.0f, n.dot(toLight));
+          if (diffuseFactor <= 0.0f) continue;
+          SbVec3f halfVector = toLight + viewDir;
+          halfVector.normalize();
+          const float exponent = shininess * 128.0f;
+          const float specularFactor = exponent > 0.0f
+            ? std::pow(std::max(n.dot(halfVector), 0.0001f), exponent) : 1.0f;
+          const float strength = light.intensity * attenuation;
+          finalR += (diff[0] * diffuseFactor + spec[0] * specularFactor) * light.color[0] * strength;
+          finalG += (diff[1] * diffuseFactor + spec[1] * specularFactor) * light.color[1] * strength;
+          finalB += (diff[2] * diffuseFactor + spec[2] * specularFactor) * light.color[2] * strength;
+        }
+      }
+
+      if (rs.hasTexture && rs.textureImageSlot < frame.textures.size() && rs.samplerSlot < frame.samplers.size()) {
+        SbVec2f tc = sv0.texCoord * b0 + sv1.texCoord * b1 + sv2.texCoord * b2;
+        SbVec4f texCol = sampleTexture(frame.textures[rs.textureImageSlot], frame.samplers[rs.samplerSlot], tc[0], tc[1]);
+        finalR *= texCol[0];
+        finalG *= texCol[1];
+        finalB *= texCol[2];
+      }
 
       size_t cIdx = pIdx * 4;
       if (cIdx + 3 < colorBuffer.size()) {
@@ -223,17 +347,7 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
       SbMatrix projWgpu = rs.projectionCoin * C;
       SbMatrix mvpWgpu = modelView * projWgpu;
 
-      // B04: Directional light direction in view space (already in view space in FramePlan)
-      SbVec3f lightDirView(0.0f, 0.0f, 1.0f);
-      float lightIntensity = 1.0f;
-      SbColor lightCol(1.0f, 1.0f, 1.0f);
-      if (rs.lightingSlot < frame.lightingStates.size() && !frame.lightingStates[rs.lightingSlot].lights.empty()) {
-        const auto & l = frame.lightingStates[rs.lightingSlot].lights[0];
-        lightDirView.setValue(-l.direction[0], -l.direction[1], -l.direction[2]);
-        lightDirView.normalize();
-        lightIntensity = l.intensity;
-        lightCol.setValue(l.color[0], l.color[1], l.color[2]);
-      }
+      const LightingSnapshot & lighting = frame.lightingStates[rs.lightingSlot];
 
       // Safe bounds validation against 32-bit overflow (B05)
       const size_t totalIndices = frame.indices.size();
@@ -271,6 +385,14 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
           sv[k].viewNormal.normalize();
 
           sv[k].materialSlot = rawV[k]->materialSlot;
+          if (rs.hasTexture) {
+            SbVec4f tc4(rawV[k]->texcoord[0], rawV[k]->texcoord[1], 0.0f, 1.0f);
+            SbVec4f tcTrans;
+            rs.textureMatrix.multVecMatrix(tc4, tcTrans);
+            sv[k].texCoord.setValue(tcTrans[0], tcTrans[1]);
+          } else {
+            sv[k].texCoord.setValue(rawV[k]->texcoord[0], rawV[k]->texcoord[1]);
+          }
         }
 
         // B09: Robust frustum clipping against eye near and near depth plane
@@ -334,9 +456,8 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
         for (size_t tIdx = 1; tIdx + 1 < outPoly.size(); ++tIdx) {
           rasterizeTriangle(outPoly[0], outPoly[tIdx], outPoly[tIdx + 1],
                             width, height,
-                            lightDirView, lightIntensity, lightCol,
+                            lighting, rs,
                             frame,
-                            rs.cullMode, rs.frontFace,
                             target.depthBuffer, target.colorBuffer);
         }
       }
@@ -382,9 +503,15 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
               size_t pIdx = py * width + px;
               if (z <= target.depthBuffer[pIdx]) {
                 target.depthBuffer[pIdx] = z;
-                float r = (1.0f - t) * (m0.diffuse[0] + m0.ambient[0]) + t * (m1.diffuse[0] + m1.ambient[0]);
-                float g = (1.0f - t) * (m0.diffuse[1] + m0.ambient[1]) + t * (m1.diffuse[1] + m1.ambient[1]);
-                float b = (1.0f - t) * (m0.diffuse[2] + m0.ambient[2]) + t * (m1.diffuse[2] + m1.ambient[2]);
+                float r = (rs.lightModel == LightModel::BASE_COLOR)
+                  ? ((1.0f - t) * m0.diffuse[0] + t * m1.diffuse[0])
+                  : ((1.0f - t) * (m0.diffuse[0] + m0.ambient[0] + m0.emission[0]) + t * (m1.diffuse[0] + m1.ambient[0] + m1.emission[0]));
+                float g = (rs.lightModel == LightModel::BASE_COLOR)
+                  ? ((1.0f - t) * m0.diffuse[1] + t * m1.diffuse[1])
+                  : ((1.0f - t) * (m0.diffuse[1] + m0.ambient[1] + m0.emission[1]) + t * (m1.diffuse[1] + m1.ambient[1] + m1.emission[1]));
+                float b = (rs.lightModel == LightModel::BASE_COLOR)
+                  ? ((1.0f - t) * m0.diffuse[2] + t * m1.diffuse[2])
+                  : ((1.0f - t) * (m0.diffuse[2] + m0.ambient[2] + m0.emission[2]) + t * (m1.diffuse[2] + m1.ambient[2] + m1.emission[2]));
                 size_t cIdx = pIdx * 4;
                 if (cIdx + 3 < target.colorBuffer.size()) {
                   target.colorBuffer[cIdx + 0] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, r * 255.0f)));
@@ -416,9 +543,15 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
             if (z <= target.depthBuffer[pIdx]) {
               target.depthBuffer[pIdx] = z;
               const auto & m0 = frame.materials[v0.materialSlot < frame.materials.size() ? v0.materialSlot : 0];
-              float r = m0.diffuse[0] + m0.ambient[0];
-              float g = m0.diffuse[1] + m0.ambient[1];
-              float b = m0.diffuse[2] + m0.ambient[2];
+              float r = (rs.lightModel == LightModel::BASE_COLOR)
+                ? m0.diffuse[0]
+                : (m0.diffuse[0] + m0.ambient[0] + m0.emission[0]);
+              float g = (rs.lightModel == LightModel::BASE_COLOR)
+                ? m0.diffuse[1]
+                : (m0.diffuse[1] + m0.ambient[1] + m0.emission[1]);
+              float b = (rs.lightModel == LightModel::BASE_COLOR)
+                ? m0.diffuse[2]
+                : (m0.diffuse[2] + m0.ambient[2] + m0.emission[2]);
               size_t cIdx = pIdx * 4;
               if (cIdx + 3 < target.colorBuffer.size()) {
                 target.colorBuffer[cIdx + 0] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, r * 255.0f)));

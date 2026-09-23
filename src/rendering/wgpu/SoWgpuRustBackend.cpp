@@ -15,6 +15,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <algorithm>
 #include <cstring>
 #include <vector>
 
@@ -39,13 +40,28 @@ static_assert(alignof(CoinWgpuCacheStats) == 8, "CoinWgpuCacheStats alignment mi
 static_assert(sizeof(CoinWgpuMaterial) == 72, "CoinWgpuMaterial size mismatch");
 static_assert(alignof(CoinWgpuMaterial) == 4, "CoinWgpuMaterial alignment mismatch");
 
-static_assert(sizeof(CoinWgpuRenderState) == 244, "CoinWgpuRenderState size mismatch");
+static_assert(sizeof(CoinWgpuTexture) == 40, "CoinWgpuTexture size mismatch");
+static_assert(alignof(CoinWgpuTexture) == 8, "CoinWgpuTexture alignment mismatch");
+static_assert(sizeof(CoinWgpuSampler) == 16, "CoinWgpuSampler size mismatch");
+static_assert(alignof(CoinWgpuSampler) == 4, "CoinWgpuSampler alignment mismatch");
+
+static_assert(sizeof(CoinWgpuRenderState) == 860, "CoinWgpuRenderState size mismatch");
 static_assert(alignof(CoinWgpuRenderState) == 4, "CoinWgpuRenderState alignment mismatch");
 static_assert(offsetof(CoinWgpuRenderState, cull_mode) == 236, "CoinWgpuRenderState cull_mode offset mismatch");
 static_assert(offsetof(CoinWgpuRenderState, front_face) == 240, "CoinWgpuRenderState front_face offset mismatch");
+static_assert(offsetof(CoinWgpuRenderState, light_model) == 244, "CoinWgpuRenderState light_model offset mismatch");
+static_assert(offsetof(CoinWgpuRenderState, texture_matrix) == 248, "CoinWgpuRenderState texture_matrix offset mismatch");
+static_assert(offsetof(CoinWgpuRenderState, has_texture) == 312, "CoinWgpuRenderState has_texture offset mismatch");
+static_assert(offsetof(CoinWgpuRenderState, texture_slot) == 316, "CoinWgpuRenderState texture_slot offset mismatch");
+static_assert(offsetof(CoinWgpuRenderState, sampler_slot) == 320, "CoinWgpuRenderState sampler_slot offset mismatch");
+static_assert(offsetof(CoinWgpuRenderState, texture_model) == 324, "CoinWgpuRenderState texture_model offset mismatch");
+static_assert(sizeof(CoinWgpuLight) == 64, "CoinWgpuLight size mismatch");
+static_assert(offsetof(CoinWgpuRenderState, light_count) == 328, "CoinWgpuRenderState light_count offset mismatch");
+static_assert(offsetof(CoinWgpuRenderState, ambient_light) == 332, "CoinWgpuRenderState ambient_light offset mismatch");
+static_assert(offsetof(CoinWgpuRenderState, lights) == 348, "CoinWgpuRenderState lights offset mismatch");
 
 static_assert(sizeof(CoinWgpuTarget) == 48, "CoinWgpuTarget size mismatch");
-static_assert(sizeof(CoinWgpuFrameView) == 112, "CoinWgpuFrameView size mismatch");
+static_assert(sizeof(CoinWgpuFrameView) == 144, "CoinWgpuFrameView size mismatch");
 static_assert(sizeof(CoinWgpuNativeSurfaceDescriptor) == 32, "CoinWgpuNativeSurfaceDescriptor size mismatch");
 static_assert(sizeof(CoinWgpuSurfaceCreateInfo) == 48, "CoinWgpuSurfaceCreateInfo size mismatch");
 
@@ -207,7 +223,7 @@ SoWgpuRustBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target)
 
     SbMatrix normalMatrix;
     float det = modelView.det4();
-    if (std::abs(det) > 1e-9f) {
+    if (std::abs(det) > 1e-12f) {
       normalMatrix = modelView.inverse().transpose();
     } else {
       normalMatrix = SbMatrix::identity();
@@ -228,7 +244,9 @@ SoWgpuRustBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target)
     std::memcpy(statesPod[i].normal_matrix, normalMatrix.getValue(), sizeof(float) * 16);
 
     bool hasLight = false;
-    if (rs.lightingSlot < frame.lightingStates.size() && !frame.lightingStates[rs.lightingSlot].lights.empty()) {
+    if (rs.lightModel == LightModel::PHONG &&
+        rs.lightingSlot < frame.lightingStates.size() &&
+        !frame.lightingStates[rs.lightingSlot].lights.empty()) {
       const auto & l = frame.lightingStates[rs.lightingSlot].lights[0];
       hasLight = true;
       statesPod[i].light_direction[0] = l.direction[0];
@@ -255,9 +273,75 @@ SoWgpuRustBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target)
     statesPod[i].material_slot = rs.materialSlot;
     statesPod[i].cull_mode = static_cast<uint32_t>(rs.cullMode);
     statesPod[i].front_face = static_cast<uint32_t>(rs.frontFace);
+    statesPod[i].light_model = static_cast<uint32_t>(rs.lightModel);
+    std::memcpy(statesPod[i].texture_matrix, rs.textureMatrix.getValue(), sizeof(float) * 16);
+    statesPod[i].has_texture = rs.hasTexture ? 1 : 0;
+    statesPod[i].texture_slot = rs.textureImageSlot;
+    statesPod[i].sampler_slot = rs.samplerSlot;
+    statesPod[i].texture_model = static_cast<uint32_t>(rs.textureModel);
+    statesPod[i].light_count = 0;
+    statesPod[i].ambient_light[3] = 1.0f;
+    if (rs.lightingSlot < frame.lightingStates.size()) {
+      const LightingSnapshot & lighting = frame.lightingStates[rs.lightingSlot];
+      for (int c = 0; c < 3; ++c) {
+        statesPod[i].ambient_light[c] =
+          lighting.ambientColor[c] * lighting.ambientIntensity;
+      }
+      if (rs.lightModel == LightModel::PHONG) {
+        if (lighting.lights.size() > COIN_WGPU_FFI_MAX_LIGHTS) {
+          this->lastError = "More than eight active lights in FramePlan";
+          this->status = BackendStatus::UNSUPPORTED;
+          return SubmitResult(BackendStatus::UNSUPPORTED, this->lastError);
+        }
+        const size_t count = lighting.lights.size();
+        statesPod[i].light_count = static_cast<uint32_t>(count);
+        for (size_t j = 0; j < count; ++j) {
+          const LightSourceSnapshot & src = lighting.lights[j];
+          CoinWgpuLight & dst = statesPod[i].lights[j];
+          for (int c = 0; c < 3; ++c) {
+            dst.position_type[c] = src.position[c];
+            dst.direction_cutoff[c] = src.direction[c];
+            dst.color_intensity[c] = src.color[c];
+          }
+          dst.position_type[3] = static_cast<float>(src.type);
+          dst.direction_cutoff[3] = std::cos(src.cutOffAngle);
+          dst.color_intensity[3] = src.intensity;
+          dst.attenuation_exponent[0] = src.attenuation[0];
+          dst.attenuation_exponent[1] = src.attenuation[1];
+          dst.attenuation_exponent[2] = src.attenuation[2];
+          dst.attenuation_exponent[3] = src.dropOffRate * 128.0f;
+        }
+      }
+    }
   }
 
-  // 5. Build frame view
+  // 5. Build textures and samplers
+  std::vector<CoinWgpuTexture> texturesPod;
+  texturesPod.reserve(frame.textures.size());
+  for (const auto & t : frame.textures) {
+    CoinWgpuTexture tp{};
+    tp.width = t.width;
+    tp.height = t.height;
+    tp.format = 0; // RGBA8_UNORM
+    tp.reserved = 0;
+    tp.content_digest = t.contentDigest;
+    tp.pixels = t.pixelsRgba.data();
+    tp.pixel_bytes_len = static_cast<uint64_t>(t.pixelsRgba.size());
+    texturesPod.push_back(tp);
+  }
+
+  std::vector<CoinWgpuSampler> samplersPod;
+  samplersPod.reserve(frame.samplers.size());
+  for (const auto & s : frame.samplers) {
+    CoinWgpuSampler sp{};
+    sp.wrap_s = static_cast<uint32_t>(s.wrapS);
+    sp.wrap_t = static_cast<uint32_t>(s.wrapT);
+    sp.filter = static_cast<uint32_t>(s.filter);
+    sp.reserved = 0;
+    samplersPod.push_back(sp);
+  }
+
+  // 6. Build frame view
   CoinWgpuFrameView fView{};
   fView.abi_version = COIN_WGPU_ABI_VERSION;
   fView.struct_size = sizeof(CoinWgpuFrameView);
@@ -271,6 +355,10 @@ SoWgpuRustBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target)
   fView.material_count = static_cast<uint64_t>(materialsPod.size());
   fView.states = statesPod.empty() ? nullptr : statesPod.data();
   fView.state_count = static_cast<uint64_t>(statesPod.size());
+  fView.textures = texturesPod.empty() ? nullptr : texturesPod.data();
+  fView.texture_count = static_cast<uint64_t>(texturesPod.size());
+  fView.samplers = samplersPod.empty() ? nullptr : samplersPod.data();
+  fView.sampler_count = static_cast<uint64_t>(samplersPod.size());
 
   fView.clear_color[0] = frame.clearColor[0];
   fView.clear_color[1] = frame.clearColor[1];

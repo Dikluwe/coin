@@ -49,6 +49,7 @@ int main(int argc, char ** argv) {
   }
 
   SoDB::init();
+  SoWgpuRenderAction::initClass();
   std::cout << "Starting Coin3D WebGPU Window Example (GLFW + X11)..." << std::endl;
 
   if (!glfwInit()) {
@@ -191,6 +192,7 @@ int main(int argc, char ** argv) {
   }
 
   SoDB::init();
+  SoWgpuRenderAction::initClass();
   std::cout << "Starting Coin3D WebGPU Window Example (Direct Xlib)..." << std::endl;
 
   Display * dpy = XOpenDisplay(NULL);

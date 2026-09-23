@@ -105,7 +105,9 @@ SoWgpuRecordingBackend::recordToString(const FramePlan & frame)
   out << "lightingStates count: " << frame.lightingStates.size() << "\n";
   for (size_t i = 0; i < frame.lightingStates.size(); ++i) {
     const auto & ls = frame.lightingStates[i];
-    out << "  lighting " << i << ": lights=" << ls.lights.size() << "\n";
+    out << "  lighting " << i << ": lights=" << ls.lights.size()
+        << " ambient=" << formatFloat(ls.ambientIntensity)
+        << " ambientColor=[" << formatFloat(ls.ambientColor[0]) << "," << formatFloat(ls.ambientColor[1]) << "," << formatFloat(ls.ambientColor[2]) << "]\n";
     for (size_t j = 0; j < ls.lights.size(); ++j) {
       const auto & l = ls.lights[j];
       const char * typeStr = (l.type == LightType::DIRECTIONAL ? "DIR" : (l.type == LightType::POINT ? "POINT" : "SPOT"));
@@ -113,7 +115,10 @@ SoWgpuRecordingBackend::recordToString(const FramePlan & frame)
           << " col=[" << formatFloat(l.color[0]) << "," << formatFloat(l.color[1]) << "," << formatFloat(l.color[2]) << "]"
           << " int=" << formatFloat(l.intensity)
           << " dir=[" << formatFloat(l.direction[0]) << "," << formatFloat(l.direction[1]) << "," << formatFloat(l.direction[2]) << "]"
-          << " pos=[" << formatFloat(l.position[0]) << "," << formatFloat(l.position[1]) << "," << formatFloat(l.position[2]) << "]\n";
+          << " pos=[" << formatFloat(l.position[0]) << "," << formatFloat(l.position[1]) << "," << formatFloat(l.position[2]) << "]"
+          << " attenuation=[" << formatFloat(l.attenuation[0]) << "," << formatFloat(l.attenuation[1]) << "," << formatFloat(l.attenuation[2]) << "]"
+          << " cutoff=" << formatFloat(l.cutOffAngle)
+          << " dropoff=" << formatFloat(l.dropOffRate) << "\n";
     }
   }
 
@@ -137,11 +142,36 @@ SoWgpuRecordingBackend::recordToString(const FramePlan & frame)
   out << "renderStates count: " << frame.renderStates.size() << "\n";
   for (size_t i = 0; i < frame.renderStates.size(); ++i) {
     const auto & rs = frame.renderStates[i];
-    out << "  renderState " << i << ": mat=" << rs.materialSlot << " light=" << rs.lightingSlot
-        << " cam=" << rs.cameraSlot << " vp=" << rs.viewportSlot << "\n"
+    out << "  renderState " << i << ": mat=" << rs.materialSlot << " light=" << rs.lightingSlot << " lightModel=" << (rs.lightModel == LightModel::BASE_COLOR ? "BASE_COLOR" : "PHONG")
+        << " cam=" << rs.cameraSlot << " vp=" << rs.viewportSlot
+        << " hasTex=" << (rs.hasTexture ? "1" : "0");
+    if (rs.hasTexture) {
+      out << " texSlot=" << rs.textureImageSlot << " sampSlot=" << rs.samplerSlot
+          << " texModel=" << (rs.textureModel == TextureModel::MODULATE ? "MODULATE" : "OTHER");
+    }
+    out << "\n"
         << "    model: " << formatMatrix(rs.model) << "\n"
         << "    view: " << formatMatrix(rs.view) << "\n"
         << "    projCoin: " << formatMatrix(rs.projectionCoin) << "\n";
+    if (rs.hasTexture) {
+      out << "    texMat: " << formatMatrix(rs.textureMatrix) << "\n";
+    }
+  }
+
+  out << "textures count: " << frame.textures.size() << "\n";
+  for (size_t i = 0; i < frame.textures.size(); ++i) {
+    const auto & t = frame.textures[i];
+    out << "  texture " << i << ": size=[" << t.width << "," << t.height << "] comp=" << t.components
+        << " digest=" << t.contentDigest << "\n";
+  }
+
+  out << "samplers count: " << frame.samplers.size() << "\n";
+  for (size_t i = 0; i < frame.samplers.size(); ++i) {
+    const auto & s = frame.samplers[i];
+    const char * wsStr = (s.wrapS == TextureWrap::REPEAT ? "REPEAT" : "CLAMP");
+    const char * wtStr = (s.wrapT == TextureWrap::REPEAT ? "REPEAT" : "CLAMP");
+    const char * fStr = (s.filter == TextureFilter::NEAREST ? "NEAREST" : "LINEAR");
+    out << "  sampler " << i << ": wrapS=" << wsStr << " wrapT=" << wtStr << " filter=" << fStr << "\n";
   }
 
   out << "vertices count: " << frame.vertices.size() << "\n";

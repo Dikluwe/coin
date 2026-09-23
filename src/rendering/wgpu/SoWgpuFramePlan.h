@@ -60,6 +60,8 @@ enum class LightType : uint32_t {
   SPOT = 2
 };
 
+static const size_t COIN_WGPU_MAX_LIGHTS = 8;
+
 // Contract: Light direction and position are strictly in View Space (camera space).
 // Backends consume direction/position directly without applying camera viewMatrix again.
 struct LightSourceSnapshot {
@@ -68,10 +70,15 @@ struct LightSourceSnapshot {
   float intensity = 1.0f;
   float direction[3] = {0.0f, 0.0f, -1.0f}; // View space direction
   float position[3] = {0.0f, 0.0f, 0.0f};   // View space position
+  float cutOffAngle = 0.785398163f;
+  float dropOffRate = 0.0f;
+  float attenuation[3] = {0.0f, 0.0f, 1.0f}; // quadratic, linear, constant at light traversal
 };
 
 struct LightingSnapshot {
   std::vector<LightSourceSnapshot> lights;
+  float ambientIntensity = 0.2f;
+  float ambientColor[3] = {1.0f, 1.0f, 1.0f};
 };
 
 struct CameraSnapshot {
@@ -102,6 +109,42 @@ enum class FrontFace : uint32_t {
   CW = 1
 };
 
+enum class LightModel : uint32_t {
+  BASE_COLOR = 0,
+  PHONG = 1
+};
+
+enum class TextureWrap : uint32_t {
+  REPEAT = 0,
+  CLAMP = 1
+};
+
+enum class TextureFilter : uint32_t {
+  NEAREST = 0,
+  LINEAR = 1
+};
+
+enum class TextureModel : uint32_t {
+  MODULATE = 0,
+  REPLACE = 1,
+  DECAL = 2,
+  BLEND = 3
+};
+
+struct TextureImageSnapshot {
+  uint32_t width = 0;
+  uint32_t height = 0;
+  uint32_t components = 4; // Canonical RGBA8Unorm
+  uint64_t contentDigest = 0;
+  std::vector<uint8_t> pixelsRgba;
+};
+
+struct SamplerSnapshot {
+  TextureWrap wrapS = TextureWrap::REPEAT;
+  TextureWrap wrapT = TextureWrap::REPEAT;
+  TextureFilter filter = TextureFilter::LINEAR;
+};
+
 struct RenderStateSnapshot {
   SbMatrix model = SbMatrix::identity();
   SbMatrix view = SbMatrix::identity();
@@ -112,8 +155,14 @@ struct RenderStateSnapshot {
   uint32_t viewportSlot = 0;
   CullMode cullMode = CullMode::BACK;
   FrontFace frontFace = FrontFace::CCW;
+  LightModel lightModel = LightModel::PHONG;
   float lineWidth = 1.0f;
   float pointSize = 1.0f;
+  SbMatrix textureMatrix = SbMatrix::identity();
+  bool hasTexture = false;
+  uint32_t textureImageSlot = 0;
+  uint32_t samplerSlot = 0;
+  TextureModel textureModel = TextureModel::MODULATE;
 };
 
 struct FramePlan {
@@ -125,6 +174,8 @@ struct FramePlan {
   std::vector<CameraSnapshot> cameras;
   std::vector<ViewportSnapshot> viewports;
   std::vector<RenderStateSnapshot> renderStates;
+  std::vector<TextureImageSnapshot> textures;
+  std::vector<SamplerSnapshot> samplers;
   std::vector<DrawPacket> draws;
 
   inline bool isValid(std::string * outDiagnostic = nullptr) const {
@@ -192,6 +243,101 @@ struct FramePlan {
       }
     }
 
+    // Validate textures
+    for (size_t i = 0; i < textures.size(); ++i) {
+      const auto & tex = textures[i];
+      if (tex.width == 0 || tex.height == 0) {
+        if (outDiagnostic) *outDiagnostic = "Texture contains zero width or height";
+        return false;
+      }
+      if (tex.width > 8192 || tex.height > 8192) {
+        if (outDiagnostic) *outDiagnostic = "Texture dimensions exceed 8192 limit";
+        return false;
+      }
+      uint64_t expectedBytes = static_cast<uint64_t>(tex.width) * static_cast<uint64_t>(tex.height) * 4ULL;
+      if (tex.pixelsRgba.size() != expectedBytes) {
+        if (outDiagnostic) *outDiagnostic = "Texture pixel buffer size mismatch";
+        return false;
+      }
+    }
+
+    // The Coin 4 experimental module has a fixed, explicit per-draw light budget.
+    for (size_t i = 0; i < lightingStates.size(); ++i) {
+      const LightingSnapshot & ls = lightingStates[i];
+      if (ls.lights.size() > COIN_WGPU_MAX_LIGHTS) {
+        if (outDiagnostic) *outDiagnostic = "More than eight active lights";
+        return false;
+      }
+      if (!isFiniteF(ls.ambientIntensity) || ls.ambientIntensity < 0.0f) {
+        if (outDiagnostic) *outDiagnostic = "Invalid ambient intensity";
+        return false;
+      }
+      for (int c = 0; c < 3; ++c) {
+        if (!isFiniteF(ls.ambientColor[c])) {
+          if (outDiagnostic) *outDiagnostic = "Invalid ambient color";
+          return false;
+        }
+      }
+      for (size_t j = 0; j < ls.lights.size(); ++j) {
+        const LightSourceSnapshot & l = ls.lights[j];
+        if (l.type != LightType::DIRECTIONAL && l.type != LightType::POINT && l.type != LightType::SPOT) {
+          if (outDiagnostic) *outDiagnostic = "Unsupported light type";
+          return false;
+        }
+        if (!isFiniteF(l.intensity) || l.intensity < 0.0f ||
+            !isFiniteF(l.cutOffAngle) || !isFiniteF(l.dropOffRate)) {
+          if (outDiagnostic) *outDiagnostic = "Invalid light intensity or cone";
+          return false;
+        }
+        bool anyAttenuation = false;
+        for (int c = 0; c < 3; ++c) {
+          if (!isFiniteF(l.color[c]) || !isFiniteF(l.direction[c]) || !isFiniteF(l.position[c]) ||
+              !isFiniteF(l.attenuation[c]) || l.attenuation[c] < 0.0f) {
+            if (outDiagnostic) *outDiagnostic = "Invalid light vector, color or attenuation";
+            return false;
+          }
+          anyAttenuation = anyAttenuation || l.attenuation[c] > 0.0f;
+        }
+        if (l.type != LightType::DIRECTIONAL && !anyAttenuation) {
+          if (outDiagnostic) *outDiagnostic = "Degenerate positional light attenuation";
+          return false;
+        }
+        if (l.type != LightType::POINT) {
+          const float dirLengthSq = l.direction[0] * l.direction[0] +
+            l.direction[1] * l.direction[1] + l.direction[2] * l.direction[2];
+          if (dirLengthSq <= 1.0e-12f) {
+            if (outDiagnostic) *outDiagnostic = "Zero light direction";
+            return false;
+          }
+        }
+        if (l.type == LightType::SPOT &&
+            (l.cutOffAngle < 0.0f || l.cutOffAngle > 1.570796327f ||
+             l.dropOffRate < 0.0f || l.dropOffRate > 1.0f)) {
+          if (outDiagnostic) *outDiagnostic = "Spot cone outside supported range";
+          return false;
+        }
+      }
+    }
+
+    // Validate render states textureMatrix and slots
+    for (size_t i = 0; i < renderStates.size(); ++i) {
+      const auto & rs = renderStates[i];
+      if (rs.hasTexture) {
+        if (!isMatrixFinite(rs.textureMatrix)) {
+          if (outDiagnostic) *outDiagnostic = "RenderState contains non-finite texture matrix";
+          return false;
+        }
+        if (rs.textureImageSlot >= textures.size()) {
+          if (outDiagnostic) *outDiagnostic = "RenderState references out-of-bounds texture image slot";
+          return false;
+        }
+        if (rs.samplerSlot >= samplers.size()) {
+          if (outDiagnostic) *outDiagnostic = "RenderState references out-of-bounds sampler slot";
+          return false;
+        }
+      }
+    }
+
     // Validate draws
     for (size_t i = 0; i < draws.size(); ++i) {
       const auto & d = draws[i];
@@ -233,6 +379,15 @@ struct FramePlan {
         if (outDiagnostic) *outDiagnostic = "RenderState lightingSlot out of range";
         return false;
       }
+      if (d.topology == PrimitiveTopology::TRIANGLE_LIST && rs.lightModel == LightModel::PHONG) {
+        const SbMatrix modelView = rs.model * rs.view;
+        const float determinant = modelView.det4();
+        if (!isFiniteF(determinant) || std::abs(determinant) <= 1.0e-12f) {
+          if (outDiagnostic) *outDiagnostic = "Singular model-view normal matrix";
+          return false;
+        }
+      }
+
       if (cameras.empty() || rs.cameraSlot >= cameras.size()) {
         if (outDiagnostic) *outDiagnostic = "RenderState cameraSlot out of range";
         return false;

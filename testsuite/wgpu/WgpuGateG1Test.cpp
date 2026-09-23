@@ -39,6 +39,7 @@
 
 int main() {
   SoDB::init();
+  SoWgpuRenderAction::initClass();
 
   std::cout << "Running WgpuGateG1Test (Onda 2B Backend WebGPU Real)..." << std::endl;
 

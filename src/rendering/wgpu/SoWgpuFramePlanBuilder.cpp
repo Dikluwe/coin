@@ -9,11 +9,19 @@
 #include <Inventor/nodes/SoPointLight.h>
 #include <Inventor/nodes/SoSpotLight.h>
 #include <Inventor/elements/SoLightElement.h>
+#include <Inventor/elements/SoEnvironmentElement.h>
 #include <Inventor/SbViewVolume.h>
 #include <Inventor/SbMatrix.h>
 #include <Inventor/SbColor.h>
 #include <Inventor/misc/SoState.h>
 #include <Inventor/elements/SoShapeHintsElement.h>
+#include <Inventor/elements/SoLazyElement.h>
+#include <Inventor/elements/SoMultiTextureImageElement.h>
+#include <Inventor/elements/SoMultiTextureMatrixElement.h>
+#include <Inventor/elements/SoTextureQualityElement.h>
+#include <Inventor/elements/SoTextureUnitElement.h>
+#include <Inventor/elements/SoMultiTextureCoordinateElement.h>
+#include <Inventor/elements/SoTextureCoordinateBindingElement.h>
 
 #include <cassert>
 #include <cmath>
@@ -22,7 +30,9 @@ SoWgpuFramePlanBuilder::SoWgpuFramePlanBuilder()
   : currentDrawIndex(0),
     nodeCounter(0),
     inFrame(false),
-    hasActiveDraw(false)
+    hasActiveDraw(false),
+    hasError(false),
+    isUnsupported(false)
 {
 }
 
@@ -48,12 +58,33 @@ SoWgpuFramePlanBuilder::reset()
   this->currentPlan.cameras.clear();
   this->currentPlan.viewports.clear();
   this->currentPlan.renderStates.clear();
+  this->currentPlan.textures.clear();
+  this->currentPlan.samplers.clear();
   this->currentPlan.draws.clear();
   this->currentDrawIndex = 0;
   this->nodeCounter = 0;
   this->inFrame = false;
   this->hasActiveDraw = false;
+  this->hasError = false;
+  this->isUnsupported = false;
+  this->builderError.clear();
   this->nodeOccurrenceCount.clear();
+  this->lightAttenuationByIndex.clear();
+}
+
+void
+SoWgpuFramePlanBuilder::recordLightAttenuation(SoCallbackAction * action)
+{
+  SoState * state = action ? action->getState() : nullptr;
+  if (!state) return;
+  const int index = SoLightElement::getLights(state).getLength();
+  if (index < 0) return;
+  const size_t slot = static_cast<size_t>(index);
+  if (this->lightAttenuationByIndex.size() <= slot) {
+    this->lightAttenuationByIndex.resize(slot + 1, SbVec3f(0.0f, 0.0f, 1.0f));
+  }
+  // The GL path fixes attenuation at the light node, before later SoEnvironment nodes.
+  this->lightAttenuationByIndex[slot] = SoEnvironmentElement::getLightAttenuation(state);
 }
 
 uint32_t
@@ -61,7 +92,20 @@ SoWgpuFramePlanBuilder::captureMaterial(SoCallbackAction * action, int materialI
 {
   SbColor amb(0.2f, 0.2f, 0.2f), diff(0.8f, 0.8f, 0.8f), spec(0.0f, 0.0f, 0.0f), emiss(0.0f, 0.0f, 0.0f);
   float shin = 0.2f, transp = 0.0f;
-  action->getMaterial(amb, diff, spec, emiss, shin, transp, materialIndex >= 0 ? materialIndex : 0);
+
+  int safeIndex = (materialIndex >= 0) ? materialIndex : 0;
+  SoState * state = action ? action->getState() : nullptr;
+  if (state) {
+    const SoLazyElement * lazy = SoLazyElement::getInstance(state);
+    if (lazy) {
+      int32_t numDiff = lazy->getNumDiffuse();
+      if (numDiff > 0 && safeIndex >= numDiff) {
+        safeIndex = numDiff - 1;
+      }
+    }
+  }
+
+  action->getMaterial(amb, diff, spec, emiss, shin, transp, safeIndex);
 
   MaterialSnapshot matSnap;
   matSnap.ambient[0] = amb[0]; matSnap.ambient[1] = amb[1]; matSnap.ambient[2] = amb[2]; matSnap.ambient[3] = 1.0f;
@@ -82,21 +126,304 @@ SoWgpuFramePlanBuilder::captureMaterial(SoCallbackAction * action, int materialI
   return materialSlot;
 }
 
+static uint64_t computeFnv1a64(const uint8_t * data, size_t len)
+{
+  uint64_t hash = 14695981039346656037ULL;
+  for (size_t i = 0; i < len; ++i) {
+    hash ^= static_cast<uint64_t>(data[i]);
+    hash *= 1099511628211ULL;
+  }
+  return hash;
+}
+
+bool
+SoWgpuFramePlanBuilder::captureTexture(SoCallbackAction * action, RenderStateSnapshot & rs, std::string * outError)
+{
+  SoState * state = action ? action->getState() : nullptr;
+  if (!state) {
+    rs.hasTexture = false;
+    rs.textureImageSlot = 0;
+    rs.samplerSlot = 0;
+    return true;
+  }
+
+  // 1. Verify if any texture units > 0 have images enabled
+  for (int u = 1; u < 16; ++u) {
+    SbVec2s sz;
+    int nc = 0;
+    SoMultiTextureImageElement::Wrap ws, wt;
+    SoMultiTextureImageElement::Model mod;
+    SbColor blendCol;
+    const unsigned char * p = SoMultiTextureImageElement::get(state, u, sz, nc, ws, wt, mod, blendCol);
+    if (p != nullptr && sz[0] > 0 && sz[1] > 0 && nc > 0) {
+      if (outError) *outError = "Texture units > 0 are not supported in Subwave 3B";
+      this->isUnsupported = true;
+      this->builderError = (outError ? *outError : "Texture units > 0 are not supported in Subwave 3B");
+      return false;
+    }
+  }
+
+  // 2. Fetch unit 0 image
+  SbVec2s imgSize;
+  int numComponents = 0;
+  SoMultiTextureImageElement::Wrap wrapS;
+  SoMultiTextureImageElement::Wrap wrapT;
+  SoMultiTextureImageElement::Model model;
+  SbColor blendColor;
+  const unsigned char * rawBytes = SoMultiTextureImageElement::get(state, 0, imgSize, numComponents, wrapS, wrapT, model, blendColor);
+
+  if (!rawBytes || imgSize[0] <= 0 || imgSize[1] <= 0 || numComponents <= 0) {
+    rs.hasTexture = false;
+    rs.textureImageSlot = 0;
+    rs.samplerSlot = 0;
+    return true;
+  }
+
+  // Check for procedural/DEFAULT texture coordinates
+  const SoMultiTextureCoordinateElement * tcElem = SoMultiTextureCoordinateElement::getInstance(state);
+  if (tcElem) {
+    auto ct = tcElem->getType(0);
+    if (ct == SoMultiTextureCoordinateElement::DEFAULT || ct == SoMultiTextureCoordinateElement::FUNCTION) {
+      if (outError) *outError = "Procedural/DEFAULT texture coordinates are not supported in Subwave 3B";
+      this->isUnsupported = true;
+      this->builderError = (outError ? *outError : "Procedural/DEFAULT texture coordinates are not supported in Subwave 3B");
+      return false;
+    }
+  }
+
+  // 3. Texture quality
+  float quality = SoTextureQualityElement::get(state);
+  if (quality <= 0.0f) {
+    // Texture disabled by quality
+    rs.hasTexture = false;
+    rs.textureImageSlot = 0;
+    rs.samplerSlot = 0;
+    return true;
+  }
+  if (std::abs(quality - 0.5f) > 0.05f) {
+    if (outError) *outError = "Unsupported texture quality, only 0.0 (off) and 0.5 (linear) are supported in Subwave 3B";
+    this->isUnsupported = true;
+    this->builderError = (outError ? *outError : "Unsupported texture quality in Subwave 3B");
+    return false;
+  }
+
+  // 4. Check for Coin dummy texture injected for missing/pending filenames (2x2, 1 component, all 0xff)
+  if (imgSize[0] == 2 && imgSize[1] == 2 && numComponents == 1 &&
+      rawBytes[0] == 0xff && rawBytes[1] == 0xff && rawBytes[2] == 0xff && rawBytes[3] == 0xff) {
+    if (outError) *outError = "Pending or missing texture file detected (dummy texture rejected in Subwave 3B)";
+    this->isUnsupported = true;
+    this->builderError = (outError ? *outError : "Pending or missing texture file detected");
+    return false;
+  }
+
+  // 5. Wrap modes (switch on Coin enum values)
+  TextureWrap snapWrapS = TextureWrap::REPEAT;
+  TextureWrap snapWrapT = TextureWrap::REPEAT;
+  switch (wrapS) {
+    case SoMultiTextureImageElement::REPEAT:
+      snapWrapS = TextureWrap::REPEAT;
+      break;
+    case SoMultiTextureImageElement::CLAMP:
+      snapWrapS = TextureWrap::CLAMP;
+      break;
+    default:
+      if (outError) *outError = "Unsupported wrapS mode (only REPEAT and CLAMP supported in Subwave 3B)";
+      this->isUnsupported = true;
+      this->builderError = (outError ? *outError : "Unsupported wrapS mode");
+      return false;
+  }
+
+  switch (wrapT) {
+    case SoMultiTextureImageElement::REPEAT:
+      snapWrapT = TextureWrap::REPEAT;
+      break;
+    case SoMultiTextureImageElement::CLAMP:
+      snapWrapT = TextureWrap::CLAMP;
+      break;
+    default:
+      if (outError) *outError = "Unsupported wrapT mode (only REPEAT and CLAMP supported in Subwave 3B)";
+      this->isUnsupported = true;
+      this->builderError = (outError ? *outError : "Unsupported wrapT mode");
+      return false;
+  }
+
+  // 6. Texture model (switch on Coin enum values)
+  switch (model) {
+    case SoMultiTextureImageElement::MODULATE:
+      rs.textureModel = TextureModel::MODULATE;
+      break;
+    case SoMultiTextureImageElement::REPLACE:
+    case SoMultiTextureImageElement::DECAL:
+    case SoMultiTextureImageElement::BLEND:
+    default:
+      if (outError) *outError = "Unsupported texture model (only MODULATE supported in Subwave 3B)";
+      this->isUnsupported = true;
+      this->builderError = (outError ? *outError : "Unsupported texture model");
+      return false;
+  }
+
+  // 7. Canonical RGBA8 conversion and strict opacity validation
+  uint32_t w = static_cast<uint32_t>(imgSize[0]);
+  uint32_t h = static_cast<uint32_t>(imgSize[1]);
+  if (w > 8192 || h > 8192) {
+    if (outError) *outError = "Texture dimensions exceed 8192";
+    this->isUnsupported = true;
+    this->builderError = (outError ? *outError : "Texture dimensions exceed 8192");
+    return false;
+  }
+
+  size_t pixelCount = static_cast<size_t>(w) * static_cast<size_t>(h);
+  std::vector<uint8_t> rgba(pixelCount * 4);
+
+  if (numComponents == 1) {
+    for (size_t i = 0; i < pixelCount; ++i) {
+      uint8_t val = rawBytes[i];
+      rgba[i * 4 + 0] = val;
+      rgba[i * 4 + 1] = val;
+      rgba[i * 4 + 2] = val;
+      rgba[i * 4 + 3] = 255;
+    }
+  } else if (numComponents == 2) {
+    for (size_t i = 0; i < pixelCount; ++i) {
+      uint8_t val = rawBytes[i * 2 + 0];
+      uint8_t alpha = rawBytes[i * 2 + 1];
+      if (alpha < 255) {
+        if (outError) *outError = "Non-opaque texture alpha is not supported in Subwave 3B";
+        this->isUnsupported = true;
+        this->builderError = (outError ? *outError : "Non-opaque texture alpha is not supported");
+        return false;
+      }
+      rgba[i * 4 + 0] = val;
+      rgba[i * 4 + 1] = val;
+      rgba[i * 4 + 2] = val;
+      rgba[i * 4 + 3] = 255;
+    }
+  } else if (numComponents == 3) {
+    for (size_t i = 0; i < pixelCount; ++i) {
+      rgba[i * 4 + 0] = rawBytes[i * 3 + 0];
+      rgba[i * 4 + 1] = rawBytes[i * 3 + 1];
+      rgba[i * 4 + 2] = rawBytes[i * 3 + 2];
+      rgba[i * 4 + 3] = 255;
+    }
+  } else if (numComponents == 4) {
+    for (size_t i = 0; i < pixelCount; ++i) {
+      uint8_t alpha = rawBytes[i * 4 + 3];
+      if (alpha < 255) {
+        if (outError) *outError = "Non-opaque texture alpha is not supported in Subwave 3B";
+        this->isUnsupported = true;
+        this->builderError = (outError ? *outError : "Non-opaque texture alpha is not supported");
+        return false;
+      }
+      rgba[i * 4 + 0] = rawBytes[i * 4 + 0];
+      rgba[i * 4 + 1] = rawBytes[i * 4 + 1];
+      rgba[i * 4 + 2] = rawBytes[i * 4 + 2];
+      rgba[i * 4 + 3] = alpha;
+    }
+  } else {
+    if (outError) *outError = "Unsupported number of texture components";
+    this->isUnsupported = true;
+    this->builderError = (outError ? *outError : "Unsupported number of texture components");
+    return false;
+  }
+
+  // Also check if material is transparent
+  if (rs.materialSlot < this->currentPlan.materials.size()) {
+    const auto & mat = this->currentPlan.materials[rs.materialSlot];
+    if (mat.transparency > 0.0f || mat.diffuse[3] < 1.0f) {
+      if (outError) *outError = "Textured rendering with transparent material is not supported in Subwave 3B";
+      this->isUnsupported = true;
+      this->builderError = (outError ? *outError : "Textured rendering with transparent material is not supported");
+      return false;
+    }
+  }
+
+  // 8. Content digest & Image deduplication
+  uint64_t digest = computeFnv1a64(rgba.data(), rgba.size());
+  uint32_t texSlot = UINT32_MAX;
+  for (size_t i = 0; i < this->currentPlan.textures.size(); ++i) {
+    const auto & t = this->currentPlan.textures[i];
+    if (t.width == w && t.height == h && t.contentDigest == digest && t.pixelsRgba == rgba) {
+      texSlot = static_cast<uint32_t>(i);
+      break;
+    }
+  }
+  if (texSlot == UINT32_MAX) {
+    texSlot = static_cast<uint32_t>(this->currentPlan.textures.size());
+    TextureImageSnapshot tSnap;
+    tSnap.width = w;
+    tSnap.height = h;
+    tSnap.components = 4;
+    tSnap.contentDigest = digest;
+    tSnap.pixelsRgba = std::move(rgba);
+    this->currentPlan.textures.push_back(std::move(tSnap));
+  }
+
+  // 9. Sampler deduplication
+  SamplerSnapshot sampSnap;
+  sampSnap.wrapS = snapWrapS;
+  sampSnap.wrapT = snapWrapT;
+  sampSnap.filter = TextureFilter::LINEAR;
+
+  uint32_t sampSlot = UINT32_MAX;
+  for (size_t i = 0; i < this->currentPlan.samplers.size(); ++i) {
+    const auto & s = this->currentPlan.samplers[i];
+    if (s.wrapS == sampSnap.wrapS &&
+        s.wrapT == sampSnap.wrapT &&
+        s.filter == sampSnap.filter) {
+      sampSlot = static_cast<uint32_t>(i);
+      break;
+    }
+  }
+  if (sampSlot == UINT32_MAX) {
+    sampSlot = static_cast<uint32_t>(this->currentPlan.samplers.size());
+    this->currentPlan.samplers.push_back(sampSnap);
+  }
+
+  // 10. Texture matrix
+  rs.textureMatrix = SoMultiTextureMatrixElement::get(state, 0);
+  rs.hasTexture = true;
+  rs.textureImageSlot = texSlot;
+  rs.samplerSlot = sampSlot;
+
+  return true;
+}
+
 uint32_t
 SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materialIndex)
 {
   // 1. Material
   uint32_t materialSlot = this->captureMaterial(action, materialIndex);
 
-  // 2. Lighting
+  // 2. Lighting & LightModel
+  LightModel lm = LightModel::PHONG;
   LightingSnapshot lightSnap;
+  if (action && action->getState()) {
+    SoState * envState = action->getState();
+    const SbColor & ambient = SoEnvironmentElement::getAmbientColor(envState);
+    lightSnap.ambientIntensity = SoEnvironmentElement::getAmbientIntensity(envState);
+    for (int k = 0; k < 3; ++k) {
+      lightSnap.ambientColor[k] = ambient[k];
+    }
+  }
   SoState * state = action->getState();
   if (state) {
+    int32_t model = SoLazyElement::getLightModel(state);
+    if (model == SoLazyElement::BASE_COLOR) {
+      lm = LightModel::BASE_COLOR;
+    }
+  }
+
+  if (lm == LightModel::PHONG && state) {
     const SoNodeList & lights = SoLightElement::getLights(state);
     for (int i = 0; i < lights.getLength(); ++i) {
       SoLight * l = static_cast<SoLight *>(lights[i]);
       if (l && l->on.getValue()) {
         LightSourceSnapshot src;
+        const SbVec3f & attenuation =
+          static_cast<size_t>(i) < this->lightAttenuationByIndex.size()
+            ? this->lightAttenuationByIndex[static_cast<size_t>(i)]
+            : SoEnvironmentElement::getLightAttenuation(state);
+        for (int k = 0; k < 3; ++k) src.attenuation[k] = attenuation[k];
         const SbColor & c = l->color.getValue();
         src.color[0] = c[0]; src.color[1] = c[1]; src.color[2] = c[2];
         src.intensity = l->intensity.getValue();
@@ -125,8 +452,21 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
           dir.normalize();
           src.position[0] = pos[0]; src.position[1] = pos[1]; src.position[2] = pos[2];
           src.direction[0] = dir[0]; src.direction[1] = dir[1]; src.direction[2] = dir[2];
+          const float cutoff = sl->cutOffAngle.getValue();
+          const float dropoff = sl->dropOffRate.getValue();
+          src.cutOffAngle = std::isfinite(cutoff) ? std::max(0.0f, std::min(1.570796327f, cutoff)) : cutoff;
+          src.dropOffRate = std::isfinite(dropoff) ? std::max(0.0f, std::min(1.0f, dropoff)) : dropoff;
+        } else {
+          this->isUnsupported = true;
+          this->builderError = "Unsupported SoLight subtype";
+          break;
         }
         lightSnap.lights.push_back(src);
+        if (lightSnap.lights.size() > COIN_WGPU_MAX_LIGHTS) {
+          this->isUnsupported = true;
+          this->builderError = "More than eight active lights in draw";
+          break;
+        }
       }
     }
   }
@@ -135,9 +475,18 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
   for (size_t i = 0; i < this->currentPlan.lightingStates.size(); ++i) {
     const auto & ls = this->currentPlan.lightingStates[i];
     if (ls.lights.size() == lightSnap.lights.size()) {
+      if (ls.ambientIntensity != lightSnap.ambientIntensity ||
+          std::memcmp(ls.ambientColor, lightSnap.ambientColor, sizeof(ls.ambientColor)) != 0) continue;
       bool allMatch = true;
       for (size_t k = 0; k < ls.lights.size(); ++k) {
-        if (std::memcmp(&ls.lights[k], &lightSnap.lights[k], sizeof(LightSourceSnapshot)) != 0) {
+        const LightSourceSnapshot & a = ls.lights[k];
+        const LightSourceSnapshot & b = lightSnap.lights[k];
+        if (a.type != b.type || a.intensity != b.intensity ||
+            a.cutOffAngle != b.cutOffAngle || a.dropOffRate != b.dropOffRate ||
+            std::memcmp(a.color, b.color, sizeof(a.color)) != 0 ||
+            std::memcmp(a.direction, b.direction, sizeof(a.direction)) != 0 ||
+            std::memcmp(a.position, b.position, sizeof(a.position)) != 0 ||
+            std::memcmp(a.attenuation, b.attenuation, sizeof(a.attenuation)) != 0) {
           allMatch = false;
           break;
         }
@@ -237,10 +586,13 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
   rs.viewportSlot = viewportSlot;
   rs.cullMode = cullMode;
   rs.frontFace = frontFace;
+  rs.lightModel = lm;
   float curLw = action->getLineWidth();
   float curPs = action->getPointSize();
   rs.lineWidth = (curLw <= 0.0f) ? 1.0f : curLw;
   rs.pointSize = (curPs <= 0.0f) ? 1.0f : curPs;
+
+  this->captureTexture(action, rs, &this->builderError);
 
   uint32_t rsSlot = 0;
   bool rsFound = false;
@@ -248,12 +600,19 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
     const auto & existing = this->currentPlan.renderStates[i];
     if (existing.materialSlot == materialSlot &&
         existing.lightingSlot == lightingSlot &&
+        existing.lightModel == rs.lightModel &&
         existing.cameraSlot == cameraSlot &&
         existing.viewportSlot == viewportSlot &&
         existing.cullMode == cullMode &&
         existing.frontFace == frontFace &&
         existing.lineWidth == rs.lineWidth &&
         existing.pointSize == rs.pointSize &&
+        existing.hasTexture == rs.hasTexture &&
+        (!rs.hasTexture || (
+          existing.textureImageSlot == rs.textureImageSlot &&
+          existing.samplerSlot == rs.samplerSlot &&
+          existing.textureModel == rs.textureModel &&
+          existing.textureMatrix == rs.textureMatrix)) &&
         existing.model == rs.model &&
         existing.view == rs.view &&
         existing.projectionCoin == rs.projectionCoin) {
@@ -393,6 +752,10 @@ SoWgpuFramePlanBuilder::addPoint(SoCallbackAction * action,
 bool
 SoWgpuFramePlanBuilder::build(FramePlan & outPlan, std::string * outError)
 {
+  if (this->hasError || this->isUnsupported) {
+    if (outError) *outError = this->builderError.empty() ? "Builder encountered unsupported or invalid feature" : this->builderError;
+    return false;
+  }
   if (!this->currentPlan.isValid(outError)) {
     return false;
   }
@@ -415,6 +778,48 @@ SoWgpuFramePlanBuilder::processIndexedFaceSet(SoCallbackAction * action,
 
   if (view.positions.empty() || view.coordIndex.empty()) {
     return FastPathResult::SUCCESS_PRUNE;
+  }
+
+  if (this->isUnsupported) {
+    if (outError) *outError = this->builderError.empty() ? "Unsupported feature in IndexedFaceSet" : this->builderError;
+    return FastPathResult::UNSUPPORTED;
+  }
+
+  SoState * state = action->getState();
+  if (state) {
+    SbVec2s sz;
+    int nc = 0;
+    const unsigned char * bytes = SoMultiTextureImageElement::getImage(state, 0, sz, nc);
+    bool hasTex = (bytes != nullptr && sz[0] > 0 && sz[1] > 0 && nc > 0);
+    if (hasTex) {
+      const SoMultiTextureCoordinateElement * tcElem = SoMultiTextureCoordinateElement::getInstance(state);
+      if (tcElem) {
+        auto ct = tcElem->getType(0);
+        if (ct == SoMultiTextureCoordinateElement::DEFAULT || ct == SoMultiTextureCoordinateElement::FUNCTION) {
+          if (outError) *outError = "Procedural/DEFAULT texture coordinates are not supported in Subwave 3B";
+          return FastPathResult::UNSUPPORTED;
+        }
+      }
+      if (view.texcoords.empty()) {
+        if (outError) *outError = "Explicit texture coordinates missing for textured IndexedFaceSet";
+        return FastPathResult::UNSUPPORTED;
+      }
+    }
+  }
+
+  // Preflight textureCoordIndex
+  if (!view.texCoordIndex.empty()) {
+    for (size_t ti = 0; ti < view.texCoordIndex.size; ++ti) {
+      int32_t val = view.texCoordIndex[ti];
+      if (val < -1) {
+        if (outError) *outError = "IndexedFaceSet textureCoordIndex contains invalid negative index < -1";
+        return FastPathResult::INVALID_SCENE;
+      }
+      if (!view.texcoords.empty() && val >= 0 && static_cast<size_t>(val) >= view.texcoords.size) {
+        if (outError) *outError = "IndexedFaceSet textureCoordIndex references out-of-bounds texture coordinate";
+        return FastPathResult::INVALID_SCENE;
+      }
+    }
   }
 
   const size_t numPositions = view.positions.size;
@@ -492,12 +897,33 @@ SoWgpuFramePlanBuilder::processIndexedFaceSet(SoCallbackAction * action,
     }
   }
 
-  // 4. Staging validation and attribute resolution
+  // 4. Validate materialIndex preflight
+  if (!view.materialIndex.empty()) {
+    int32_t numDiff = 0;
+    if (action && action->getState()) {
+      const SoLazyElement * lazy = SoLazyElement::getInstance(action->getState());
+      if (lazy) numDiff = lazy->getNumDiffuse();
+    }
+    for (size_t mi = 0; mi < view.materialIndex.size; ++mi) {
+      int32_t val = view.materialIndex[mi];
+      if (val < -1) {
+        if (outError) *outError = "IndexedFaceSet contains invalid negative material index < -1";
+        return FastPathResult::INVALID_SCENE;
+      }
+      if (numDiff > 0 && val >= numDiff) {
+        if (outError) *outError = "IndexedFaceSet materialIndex references out-of-bounds material";
+        return FastPathResult::INVALID_SCENE;
+      }
+    }
+  }
+
+  // 5. Staging validation and attribute resolution
   std::vector<VertexSnapshot> stagingVertices;
   std::vector<uint32_t> stagingIndices;
   std::map<VertexDeduplicationKey, uint32_t> uniqueVertexMap;
 
   uint32_t defaultMatSlot = this->captureMaterial(action, 0);
+  size_t matVertexCounter = 0;
 
   auto getOrAddVertex = [&](int32_t coordIdx, int32_t normalIdx, int32_t texIdx, int32_t matIdx,
                             const SbVec3f & pos, const SbVec3f & norm, const SbVec2f & tc, uint32_t matSlot) -> uint32_t {
@@ -556,13 +982,19 @@ SoWgpuFramePlanBuilder::processIndexedFaceSet(SoCallbackAction * action,
 
     // Resolve face material
     uint32_t faceMatSlot = defaultMatSlot;
+    int32_t faceMatIdx = static_cast<int32_t>(validFaceIdx);
     if (view.materialBinding == SoMaterialBindingElement::PER_FACE ||
         view.materialBinding == SoMaterialBindingElement::PER_PART) {
-      int matIdx = static_cast<int>(validFaceIdx);
+      // Non-indexed: use validFaceIdx directly without checking materialIndex
+      faceMatSlot = this->captureMaterial(action, static_cast<int>(validFaceIdx));
+    } else if (view.materialBinding == SoMaterialBindingElement::PER_FACE_INDEXED ||
+               view.materialBinding == SoMaterialBindingElement::PER_PART_INDEXED) {
+      // Indexed: use materialIndex if present, otherwise fallback to validFaceIdx
       if (!view.materialIndex.empty() && validFaceIdx < view.materialIndex.size) {
-        matIdx = view.materialIndex[validFaceIdx];
+        int32_t mi = view.materialIndex[validFaceIdx];
+        if (mi >= 0) faceMatIdx = mi;
       }
-      faceMatSlot = this->captureMaterial(action, matIdx);
+      faceMatSlot = this->captureMaterial(action, faceMatIdx);
     }
 
     auto resolveVertex = [&](size_t vertOffsetInFace) -> uint32_t {
@@ -599,19 +1031,28 @@ SoWgpuFramePlanBuilder::processIndexedFaceSet(SoCallbackAction * action,
       // Material
       uint32_t matSlot = faceMatSlot;
       int32_t mKey = 0;
-      if (view.materialBinding == SoMaterialBindingElement::PER_FACE ||
-          view.materialBinding == SoMaterialBindingElement::PER_FACE_INDEXED ||
-          view.materialBinding == SoMaterialBindingElement::PER_PART ||
-          view.materialBinding == SoMaterialBindingElement::PER_PART_INDEXED) {
+      if (view.materialBinding == SoMaterialBindingElement::OVERALL) {
+        mKey = 0;
+        matSlot = defaultMatSlot;
+      } else if (view.materialBinding == SoMaterialBindingElement::PER_FACE ||
+                 view.materialBinding == SoMaterialBindingElement::PER_PART) {
         mKey = static_cast<int32_t>(validFaceIdx);
-      } else if (view.materialBinding == SoMaterialBindingElement::PER_VERTEX ||
-                 view.materialBinding == SoMaterialBindingElement::PER_VERTEX_INDEXED) {
-        mKey = cIdx;
+        matSlot = faceMatSlot;
+      } else if (view.materialBinding == SoMaterialBindingElement::PER_FACE_INDEXED ||
+                 view.materialBinding == SoMaterialBindingElement::PER_PART_INDEXED) {
+        mKey = faceMatIdx;
+        matSlot = faceMatSlot;
+      } else if (view.materialBinding == SoMaterialBindingElement::PER_VERTEX) {
+        mKey = static_cast<int32_t>(matVertexCounter++);
+        matSlot = this->captureMaterial(action, mKey);
+      } else if (view.materialBinding == SoMaterialBindingElement::PER_VERTEX_INDEXED) {
+        int mIdx = cIdx;
         if (!view.materialIndex.empty() && indexInCoordIndex < view.materialIndex.size) {
           int32_t mi = view.materialIndex[indexInCoordIndex];
-          if (mi >= 0) mKey = mi;
+          if (mi >= 0) mIdx = mi;
         }
-        matSlot = this->captureMaterial(action, mKey);
+        mKey = mIdx;
+        matSlot = this->captureMaterial(action, mIdx);
       }
 
       // TexCoord
@@ -665,6 +1106,10 @@ SoWgpuFramePlanBuilder::processIndexedFaceSet(SoCallbackAction * action,
 
   // 5. Atomic commit phase (force dedicated packet per fast-path occurrence)
   uint32_t rsSlot = this->captureRenderState(action, 0);
+  if (this->isUnsupported) {
+    if (outError) *outError = this->builderError.empty() ? "Unsupported feature in IndexedFaceSet" : this->builderError;
+    return FastPathResult::UNSUPPORTED;
+  }
   this->ensureDrawPacket(PrimitiveTopology::TRIANGLE_LIST, rsSlot, node, /*forceNewPacket=*/true);
 
   uint32_t vertexOffset = static_cast<uint32_t>(this->currentPlan.vertices.size());
@@ -722,6 +1167,22 @@ SoWgpuFramePlanBuilder::processIndexedLineSet(SoCallbackAction * action,
     return FastPathResult::SUCCESS_PRUNE;
   }
 
+  if (this->isUnsupported) {
+    if (outError) *outError = this->builderError.empty() ? "Unsupported feature in IndexedLineSet" : this->builderError;
+    return FastPathResult::UNSUPPORTED;
+  }
+
+  SoState * state = action->getState();
+  if (state) {
+    SbVec2s sz;
+    int nc = 0;
+    const unsigned char * bytes = SoMultiTextureImageElement::getImage(state, 0, sz, nc);
+    if (bytes != nullptr && sz[0] > 0 && sz[1] > 0 && nc > 0) {
+      if (outError) *outError = "Textured lines are not supported in Subwave 3B";
+      return FastPathResult::UNSUPPORTED;
+    }
+  }
+
   const size_t numPositions = view.positions.size;
   const size_t numIndices = view.coordIndex.size;
 
@@ -771,7 +1232,27 @@ SoWgpuFramePlanBuilder::processIndexedLineSet(SoCallbackAction * action,
     return FastPathResult::SUCCESS_PRUNE;
   }
 
-  // 3. Staging validation and deduplication
+  // 3. Validate materialIndex preflight
+  if (!view.materialIndex.empty()) {
+    int32_t numDiff = 0;
+    if (action && action->getState()) {
+      const SoLazyElement * lazy = SoLazyElement::getInstance(action->getState());
+      if (lazy) numDiff = lazy->getNumDiffuse();
+    }
+    for (size_t mi = 0; mi < view.materialIndex.size; ++mi) {
+      int32_t val = view.materialIndex[mi];
+      if (val < -1) {
+        if (outError) *outError = "IndexedLineSet contains invalid negative material index < -1";
+        return FastPathResult::INVALID_SCENE;
+      }
+      if (numDiff > 0 && val >= numDiff) {
+        if (outError) *outError = "IndexedLineSet materialIndex references out-of-bounds material";
+        return FastPathResult::INVALID_SCENE;
+      }
+    }
+  }
+
+  // 4. Staging validation and deduplication
   std::vector<VertexSnapshot> stagingVertices;
   std::vector<uint32_t> stagingIndices;
   std::map<VertexDeduplicationKey, uint32_t> uniqueVertexMap;
@@ -804,6 +1285,9 @@ SoWgpuFramePlanBuilder::processIndexedLineSet(SoCallbackAction * action,
   };
 
   size_t validLineIdx = 0;
+  size_t totalSegmentIdx = 0;
+  size_t matLineVertexCounter = 0;
+
   for (size_t l = 0; l < polylines.size(); ++l) {
     size_t count = polylines[l].count;
     if (count < 2) continue; // Degenerate line
@@ -811,43 +1295,66 @@ SoWgpuFramePlanBuilder::processIndexedLineSet(SoCallbackAction * action,
     size_t s = polylines[l].startIndex;
 
     uint32_t lineMatSlot = defaultMatSlot;
-    if (view.materialBinding == SoMaterialBindingElement::PER_FACE ||
-        view.materialBinding == SoMaterialBindingElement::PER_PART) {
-      int matIdx = static_cast<int>(validLineIdx);
+    int32_t lineMatIdx = static_cast<int32_t>(validLineIdx);
+    if (view.materialBinding == SoMaterialBindingElement::PER_FACE) { // PER_LINE non-indexed
+      lineMatSlot = this->captureMaterial(action, static_cast<int>(validLineIdx));
+    } else if (view.materialBinding == SoMaterialBindingElement::PER_FACE_INDEXED) { // PER_LINE_INDEXED
       if (!view.materialIndex.empty() && validLineIdx < view.materialIndex.size) {
-        matIdx = view.materialIndex[validLineIdx];
+        int32_t mi = view.materialIndex[validLineIdx];
+        if (mi >= 0) lineMatIdx = mi;
       }
-      lineMatSlot = this->captureMaterial(action, matIdx);
+      lineMatSlot = this->captureMaterial(action, lineMatIdx);
     }
 
-    auto resolveVertex = [&](size_t vertOffsetInLine) -> uint32_t {
-      size_t indexInCoordIndex = s + vertOffsetInLine;
-      int32_t cIdx = view.coordIndex[indexInCoordIndex];
-      const SbVec3f & pos = view.positions[cIdx];
-      SbVec3f norm(0.0f, 0.0f, 1.0f);
-
-      uint32_t matSlot = lineMatSlot;
-      int32_t mKey = (view.materialBinding == SoMaterialBindingElement::OVERALL) ? 0 : static_cast<int32_t>(validLineIdx);
-      if (view.materialBinding == SoMaterialBindingElement::PER_VERTEX ||
-          view.materialBinding == SoMaterialBindingElement::PER_VERTEX_INDEXED) {
-        int mIdx = cIdx;
-        if (!view.materialIndex.empty() && indexInCoordIndex < view.materialIndex.size) {
-          int32_t mi = view.materialIndex[indexInCoordIndex];
-          if (mi >= 0) mIdx = mi;
+    for (size_t seg = 0; seg + 1 < count; ++seg) {
+      uint32_t segMatSlot = lineMatSlot;
+      int32_t segMatIdx = lineMatIdx;
+      if (view.materialBinding == SoMaterialBindingElement::PER_PART) { // PER_SEGMENT non-indexed
+        segMatIdx = static_cast<int32_t>(totalSegmentIdx);
+        segMatSlot = this->captureMaterial(action, segMatIdx);
+      } else if (view.materialBinding == SoMaterialBindingElement::PER_PART_INDEXED) { // PER_SEGMENT_INDEXED
+        segMatIdx = static_cast<int32_t>(totalSegmentIdx);
+        if (!view.materialIndex.empty() && totalSegmentIdx < view.materialIndex.size) {
+          int32_t mi = view.materialIndex[totalSegmentIdx];
+          if (mi >= 0) segMatIdx = mi;
         }
-        matSlot = this->captureMaterial(action, mIdx);
-        mKey = mIdx;
+        segMatSlot = this->captureMaterial(action, segMatIdx);
       }
 
-      SbVec2f tc(0.0f, 0.0f);
-      return getOrAddVertex(cIdx, 0, 0, mKey, pos, norm, tc, matSlot);
-    };
+      auto resolveLineVertex = [&](size_t vertOffsetInLine) -> uint32_t {
+        size_t indexInCoordIndex = s + vertOffsetInLine;
+        int32_t cIdx = view.coordIndex[indexInCoordIndex];
+        const SbVec3f & pos = view.positions[cIdx];
+        SbVec3f norm(0.0f, 0.0f, 1.0f);
 
-    for (size_t seg = 0; seg + 1 < count; ++seg) {
-      uint32_t v0 = resolveVertex(seg);
-      uint32_t v1 = resolveVertex(seg + 1);
+        uint32_t matSlot = segMatSlot;
+        int32_t mKey = segMatIdx;
+        if (view.materialBinding == SoMaterialBindingElement::OVERALL) {
+          mKey = 0;
+          matSlot = defaultMatSlot;
+        } else if (view.materialBinding == SoMaterialBindingElement::PER_VERTEX) {
+          mKey = static_cast<int32_t>(matLineVertexCounter++);
+          matSlot = this->captureMaterial(action, mKey);
+        } else if (view.materialBinding == SoMaterialBindingElement::PER_VERTEX_INDEXED) {
+          int mIdx = cIdx;
+          if (!view.materialIndex.empty() && indexInCoordIndex < view.materialIndex.size) {
+            int32_t mi = view.materialIndex[indexInCoordIndex];
+            if (mi >= 0) mIdx = mi;
+          }
+          matSlot = this->captureMaterial(action, mIdx);
+          mKey = mIdx;
+        }
+
+        SbVec2f tc(0.0f, 0.0f);
+        return getOrAddVertex(cIdx, 0, 0, mKey, pos, norm, tc, matSlot);
+      };
+
+      uint32_t v0 = resolveLineVertex(seg);
+      uint32_t v1 = resolveLineVertex(seg + 1);
       stagingIndices.push_back(v0);
       stagingIndices.push_back(v1);
+
+      totalSegmentIdx++;
     }
 
     validLineIdx++;
@@ -859,6 +1366,10 @@ SoWgpuFramePlanBuilder::processIndexedLineSet(SoCallbackAction * action,
 
   // 4. Atomic commit (force dedicated packet per fast-path occurrence)
   uint32_t rsSlot = this->captureRenderState(action, 0);
+  if (this->isUnsupported) {
+    if (outError) *outError = this->builderError.empty() ? "Unsupported feature in IndexedLineSet" : this->builderError;
+    return FastPathResult::UNSUPPORTED;
+  }
   this->ensureDrawPacket(PrimitiveTopology::LINE_LIST, rsSlot, node, /*forceNewPacket=*/true);
 
   uint32_t vertexOffset = static_cast<uint32_t>(this->currentPlan.vertices.size());

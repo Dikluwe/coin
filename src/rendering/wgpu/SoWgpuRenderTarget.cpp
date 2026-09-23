@@ -285,15 +285,17 @@ SoWgpuRenderTargetP::validateProfile(const FramePlan & frame, const SbVec2i32 & 
 
     if (rs.lightingSlot < frame.lightingStates.size()) {
       const auto & ls = frame.lightingStates[rs.lightingSlot];
-      if (ls.lights.size() > 1) {
+      if (ls.lights.size() > COIN_WGPU_MAX_LIGHTS) {
         std::ostringstream ss;
-        ss << "UNSUPPORTED: Multiple lights (" << ls.lights.size() << ") present. Wave 1 profile supports at most 1 directional light.";
+        ss << "UNSUPPORTED: More than eight active lights (" << ls.lights.size() << ") in draw.";
         return FrameExecutionResult{BackendStatus::UNSUPPORTED, ss.str()};
       }
       for (size_t l = 0; l < ls.lights.size(); ++l) {
-        if (ls.lights[l].type != LightType::DIRECTIONAL) {
+        if (ls.lights[l].type != LightType::DIRECTIONAL &&
+            ls.lights[l].type != LightType::POINT &&
+            ls.lights[l].type != LightType::SPOT) {
           std::ostringstream ss;
-          ss << "UNSUPPORTED: Light " << l << " is not directional. Wave 1 profile supports only directional lights.";
+          ss << "UNSUPPORTED: Light " << l << " has unsupported type.";
           return FrameExecutionResult{BackendStatus::UNSUPPORTED, ss.str()};
         }
       }

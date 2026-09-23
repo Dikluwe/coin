@@ -1,10 +1,11 @@
+#include <Inventor/CoinWgpuExport.h>
 #ifndef COIN_SOWGPURUSTBACKEND_H
 #define COIN_SOWGPURUSTBACKEND_H
 
 #include "rendering/wgpu/SoWgpuBackend.h"
 #include <string>
 
-class SoWgpuRustBackend : public SoWgpuBackend {
+class COIN_WGPU_DLL_API SoWgpuRustBackend : public SoWgpuBackend {
 public:
   SoWgpuRustBackend();
   virtual ~SoWgpuRustBackend();

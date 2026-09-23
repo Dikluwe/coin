@@ -17,6 +17,7 @@ public:
 
   void beginFrame(const SbColor4f & clearColor, const SbViewportRegion & viewport);
   void reset();
+  void recordLightAttenuation(SoCallbackAction * action);
 
   void addTriangle(SoCallbackAction * action,
                    const SoPrimitiveVertex * v0,
@@ -41,10 +42,12 @@ public:
                                        std::string * outError = nullptr);
 
   bool build(FramePlan & outPlan, std::string * outError = nullptr);
+  bool isUnsupportedBuild() const { return this->isUnsupported; }
 
 private:
   uint32_t captureMaterial(SoCallbackAction * action, int materialIndex);
   uint32_t captureRenderState(SoCallbackAction * action, int materialIndex);
+  bool captureTexture(SoCallbackAction * action, RenderStateSnapshot & rs, std::string * outError = nullptr);
   uint32_t addVertex(const SoPrimitiveVertex * pv, uint32_t materialSlot);
   void ensureDrawPacket(PrimitiveTopology topology, uint32_t renderStateSlot, SoNode * node, bool forceNewPacket = false);
 
@@ -53,7 +56,11 @@ private:
   uint32_t nodeCounter;
   bool inFrame;
   bool hasActiveDraw;
+  bool hasError;
+  bool isUnsupported;
+  std::string builderError;
   std::unordered_map<uint64_t, uint32_t> nodeOccurrenceCount;
+  std::vector<SbVec3f> lightAttenuationByIndex;
 };
 
 #endif // !COIN_SOWGPUFRAMEPLANBUILDER_H

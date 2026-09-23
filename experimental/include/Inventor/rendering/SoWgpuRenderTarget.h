@@ -1,5 +1,6 @@
 #ifndef COIN_SOWGPURENDERTARGET_H
 #define COIN_SOWGPURENDERTARGET_H
+#include <Inventor/CoinWgpuExport.h>
 
 /**************************************************************************\
  * Copyright (c) Kongsberg Oil & Gas Technologies AS
@@ -57,7 +58,7 @@ struct SoWgpuCacheTelemetry {
   uint64_t submissionSerial = 0;
 };
 
-class COIN_DLL_API SoWgpuRenderTarget {
+class COIN_WGPU_DLL_API SoWgpuRenderTarget {
 public:
   typedef struct ::SoWgpuCacheTelemetry SoWgpuCacheTelemetry;
   enum Status {

@@ -58,6 +58,7 @@ int main(int argc, char ** argv) {
   }
 
   SoDB::init();
+  SoWgpuRenderAction::initClass();
   std::cout << "Running WgpuSurfaceTest..." << std::endl;
 
   // Build canonical cone scene

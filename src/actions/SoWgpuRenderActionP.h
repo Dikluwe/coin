@@ -1,3 +1,4 @@
+#include <Inventor/CoinWgpuExport.h>
 #ifndef SOWGPURENDERACTIONP_H
 #define SOWGPURENDERACTIONP_H
 
@@ -7,7 +8,7 @@
 #include "rendering/wgpu/SoWgpuRecordingBackend.h"
 #include <string>
 
-class SoWgpuRenderActionP {
+class COIN_WGPU_DLL_API SoWgpuRenderActionP {
 public:
   SoWgpuRenderActionP(SoWgpuRenderAction * master = nullptr);
   ~SoWgpuRenderActionP();
@@ -31,6 +32,10 @@ public:
   static void pointCB(void * userdata,
                       SoCallbackAction * action,
                       const SoPrimitiveVertex * vertex);
+
+  static SoCallbackAction::Response lightPreCB(void * userdata,
+                                               SoCallbackAction * action,
+                                               const SoNode * node);
 
   static SoCallbackAction::Response indexedFaceSetPreCB(void * userdata,
                                                        SoCallbackAction * action,

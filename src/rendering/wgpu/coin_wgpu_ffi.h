@@ -8,7 +8,9 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_ABI_VERSION 4
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 7
+#define COIN_WGPU_FFI_MAX_LIGHTS 8
+#define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
 typedef uint64_t CoinWgpuSurfaceId;
 #define COIN_WGPU_INVALID_SURFACE_ID UINT64_C(0)
@@ -77,6 +79,31 @@ typedef struct CoinWgpuMaterial {
   float transparency;
 } CoinWgpuMaterial;
 
+typedef struct CoinWgpuTexture {
+  uint32_t width;
+  uint32_t height;
+  uint32_t format; /* 0=RGBA8_UNORM */
+  uint32_t reserved;
+  uint64_t content_digest;
+  const uint8_t * pixels;
+  uint64_t pixel_bytes_len;
+} CoinWgpuTexture;
+
+typedef struct CoinWgpuSampler {
+  uint32_t wrap_s; /* 0=REPEAT, 1=CLAMP_TO_EDGE */
+  uint32_t wrap_t; /* 0=REPEAT, 1=CLAMP_TO_EDGE */
+  uint32_t filter; /* 0=NEAREST, 1=LINEAR */
+  uint32_t reserved;
+} CoinWgpuSampler;
+
+
+typedef struct CoinWgpuLight {
+  float position_type[4];       /* xyz view-space position, w: 0=directional, 1=point, 2=spot */
+  float direction_cutoff[4];    /* xyz view-space direction, w: cos(cutOffAngle) */
+  float color_intensity[4];     /* rgb and intensity */
+  float attenuation_exponent[4]; /* quadratic, linear, constant, dropOffRate * 128 */
+} CoinWgpuLight;
+
 typedef struct CoinWgpuRenderState {
   float model_view[16];
   float model_view_projection[16];
@@ -88,6 +115,15 @@ typedef struct CoinWgpuRenderState {
   uint32_t material_slot;
   uint32_t cull_mode;  /* 0=None, 1=Back, 2=Front */
   uint32_t front_face; /* 0=Ccw, 1=Cw */
+  uint32_t light_model; /* 0=BaseColor, 1=Phong */
+  float texture_matrix[16];
+  uint32_t has_texture;
+  uint32_t texture_slot;
+  uint32_t sampler_slot;
+  uint32_t texture_model;
+  uint32_t light_count;
+  float ambient_light[4];
+  CoinWgpuLight lights[COIN_WGPU_FFI_MAX_LIGHTS];
 } CoinWgpuRenderState;
 
 typedef struct CoinWgpuFrameView {
@@ -105,6 +141,11 @@ typedef struct CoinWgpuFrameView {
   uint64_t material_count;
   const CoinWgpuRenderState * states;
   uint64_t state_count;
+
+  const CoinWgpuTexture * textures;
+  uint64_t texture_count;
+  const CoinWgpuSampler * samplers;
+  uint64_t sampler_count;
 
   float clear_color[4];
   uint32_t width;

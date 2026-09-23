@@ -1,3 +1,4 @@
+#include <Inventor/CoinWgpuExport.h>
 #ifndef SOWGPURENDERTARGETP_H
 #define SOWGPURENDERTARGETP_H
 
@@ -11,7 +12,7 @@
 #include <string>
 #include <memory>
 
-class SoWgpuRenderTargetP {
+class COIN_WGPU_DLL_API SoWgpuRenderTargetP {
 public:
   enum TargetKind {
     KIND_OFFSCREEN = 0,

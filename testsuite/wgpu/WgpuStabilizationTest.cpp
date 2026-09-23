@@ -30,6 +30,7 @@
 
 int main() {
   SoDB::init();
+  SoWgpuRenderAction::initClass();
 
   std::cout << "Running WgpuStabilizationTest (Onda 2F Concurrency, Packet Separation, Exact Hash & Budget)..." << std::endl;
 

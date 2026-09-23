@@ -33,6 +33,7 @@
 
 int main() {
   SoDB::init();
+  SoWgpuRenderAction::initClass();
 
   std::cout << "Running WgpuIndexedFastPathTest (Onda 2D Indexed Fast Path)..." << std::endl;
 
