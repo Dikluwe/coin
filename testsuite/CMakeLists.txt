@@ -327,6 +327,23 @@ if(COIN_BUILD_WGPU)
 	add_test(NAME WgpuLightingTest COMMAND WgpuLightingTest)
 	set_tests_properties(WgpuLightingTest PROPERTIES TIMEOUT 30)
 
+	add_executable(WgpuFogTest
+		wgpu/WgpuFogTest.cpp
+	)
+	set_target_properties(WgpuFogTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(WgpuFogTest CoinWgpuExperimental Coin)
+	target_include_directories(WgpuFogTest PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}
+		${PROJECT_SOURCE_DIR}/experimental/include
+		${PROJECT_SOURCE_DIR}/include
+		${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include
+		${PROJECT_BINARY_DIR}/src
+		${COIN_TARGET_INCLUDE_DIRECTORIES}
+	)
+	add_test(NAME WgpuFogTest COMMAND WgpuFogTest)
+	set_tests_properties(WgpuFogTest PROPERTIES TIMEOUT 30)
+
 	if(COIN_TEST_WGPU_GL_REFERENCE)
 		if(NOT (UNIX AND NOT APPLE AND X11_FOUND))
 			message(FATAL_ERROR "COIN_TEST_WGPU_GL_REFERENCE requires X11 on Unix")
@@ -345,6 +362,16 @@ if(COIN_BUILD_WGPU)
 				-s "-screen 0 1024x768x24 +extension GLX +render -noreset"
 				$<TARGET_FILE:WgpuLightingTest>)
 		set_tests_properties(WgpuLightingGlReferenceTest PROPERTIES TIMEOUT 60)
+		add_test(NAME WgpuFogGlReferenceTest
+			COMMAND ${CMAKE_COMMAND} -E env
+				LIBGL_ALWAYS_SOFTWARE=1
+				COIN_GLX_PIXMAP_DIRECT_RENDERING=1
+				COIN_GLXGLUE_NO_PBUFFERS=1
+				COIN_WGPU_REQUIRE_GL_REFERENCE=1
+				${COIN_XVFB_RUN_EXECUTABLE} -a
+				-s "-screen 0 1024x768x24 +extension GLX +render -noreset"
+				$<TARGET_FILE:WgpuFogTest>)
+		set_tests_properties(WgpuFogGlReferenceTest PROPERTIES TIMEOUT 60)
 	endif()
 
 	if(COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE" AND (UNIX AND NOT APPLE AND X11_FOUND))

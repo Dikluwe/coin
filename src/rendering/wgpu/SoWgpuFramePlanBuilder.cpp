@@ -587,6 +587,19 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
   rs.cullMode = cullMode;
   rs.frontFace = frontFace;
   rs.lightModel = lm;
+  float ambientIntensity = 0.0f;
+  SbColor ambientColor, fogColor;
+  SbVec3f lightAttenuation;
+  int32_t fogType = SoEnvironmentElement::NONE;
+  float fogVisibility = 0.0f;
+  float fogStart = 0.0f;
+  SoEnvironmentElement::get(state, ambientIntensity, ambientColor,
+                            lightAttenuation, fogType, fogColor,
+                            fogVisibility, fogStart);
+  rs.fogMode = static_cast<FogMode>(fogType);
+  for (int c = 0; c < 3; ++c) rs.fogColor[c] = fogColor[c];
+  rs.fogStart = fogStart;
+  rs.fogEnd = fogVisibility > 0.0f ? fogVisibility : camSnap.farDistance;
   float curLw = action->getLineWidth();
   float curPs = action->getPointSize();
   rs.lineWidth = (curLw <= 0.0f) ? 1.0f : curLw;
@@ -605,6 +618,10 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
         existing.viewportSlot == viewportSlot &&
         existing.cullMode == cullMode &&
         existing.frontFace == frontFace &&
+        existing.fogMode == rs.fogMode &&
+        existing.fogStart == rs.fogStart &&
+        existing.fogEnd == rs.fogEnd &&
+        std::memcmp(existing.fogColor, rs.fogColor, sizeof(rs.fogColor)) == 0 &&
         existing.lineWidth == rs.lineWidth &&
         existing.pointSize == rs.pointSize &&
         existing.hasTexture == rs.hasTexture &&

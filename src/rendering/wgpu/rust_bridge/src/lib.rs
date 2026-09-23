@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicI32, AtomicU32, AtomicU64, Ordering};
 use std::sync::Mutex;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 7;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 8;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 pub type CoinWgpuSurfaceId = u64;
@@ -146,6 +146,8 @@ pub struct CoinWgpuUniforms {
     pub params: [f32; 4],
     pub texture_matrix: [[f32; 4]; 4],
     pub tex_params: [f32; 4],
+    pub fog_color_mode: [f32; 4],
+    pub fog_range: [f32; 4],
     pub ambient_light: [f32; 4],
     pub light_meta: [f32; 4],
     pub lights: [CoinWgpuLight; 8],
@@ -173,6 +175,10 @@ pub struct CoinWgpuRenderState {
     pub light_count: u32,
     pub ambient_light: [f32; 4],
     pub lights: [CoinWgpuLight; 8],
+    pub fog_mode: u32,
+    pub fog_color: [f32; 3],
+    pub fog_start: f32,
+    pub fog_end: f32,
 }
 
 #[repr(C)]
@@ -1080,6 +1086,13 @@ fn encode_frame(
             return Err((CoinWgpuStatus::InvalidArgument,
                 format!("State {} has non-finite ambient or normal matrix", state_index)));
         }
+        if state.fog_mode > 3 || !state.fog_color.iter().all(|v| v.is_finite())
+            || !state.fog_start.is_finite() || !state.fog_end.is_finite()
+            || (state.fog_mode != 0 && state.fog_end <= 0.0)
+            || (state.fog_mode == 1 && state.fog_end <= state.fog_start) {
+            return Err((CoinWgpuStatus::InvalidArgument,
+                format!("State {} has invalid fog parameters", state_index)));
+        }
         for (light_index, light) in state.lights[..state.light_count as usize].iter().enumerate() {
             let finite = light.position_type.iter().chain(light.direction_cutoff.iter())
                 .chain(light.color_intensity.iter()).chain(light.attenuation_exponent.iter())
@@ -1592,6 +1605,13 @@ fn encode_frame(
                 ambient_light: st.ambient_light,
                 light_meta: [st.light_count as f32, 0.0, 0.0, 0.0],
                 lights: st.lights,
+                fog_color_mode: [
+                    st.fog_color[0],
+                    st.fog_color[1],
+                    st.fog_color[2],
+                    st.fog_mode as f32,
+                ],
+                fog_range: [st.fog_start, st.fog_end, 0.0, 0.0],
             };
 
             let u_buffer = ctx

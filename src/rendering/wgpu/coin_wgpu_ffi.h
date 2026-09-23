@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 7
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 8
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -124,6 +124,10 @@ typedef struct CoinWgpuRenderState {
   uint32_t light_count;
   float ambient_light[4];
   CoinWgpuLight lights[COIN_WGPU_FFI_MAX_LIGHTS];
+  uint32_t fog_mode; /* 0=None, 1=Haze, 2=Fog, 3=Smoke */
+  float fog_color[3];
+  float fog_start;
+  float fog_end;
 } CoinWgpuRenderState;
 
 typedef struct CoinWgpuFrameView {

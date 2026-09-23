@@ -45,7 +45,7 @@ static_assert(alignof(CoinWgpuTexture) == 8, "CoinWgpuTexture alignment mismatch
 static_assert(sizeof(CoinWgpuSampler) == 16, "CoinWgpuSampler size mismatch");
 static_assert(alignof(CoinWgpuSampler) == 4, "CoinWgpuSampler alignment mismatch");
 
-static_assert(sizeof(CoinWgpuRenderState) == 860, "CoinWgpuRenderState size mismatch");
+static_assert(sizeof(CoinWgpuRenderState) == 884, "CoinWgpuRenderState size mismatch");
 static_assert(alignof(CoinWgpuRenderState) == 4, "CoinWgpuRenderState alignment mismatch");
 static_assert(offsetof(CoinWgpuRenderState, cull_mode) == 236, "CoinWgpuRenderState cull_mode offset mismatch");
 static_assert(offsetof(CoinWgpuRenderState, front_face) == 240, "CoinWgpuRenderState front_face offset mismatch");
@@ -59,6 +59,10 @@ static_assert(sizeof(CoinWgpuLight) == 64, "CoinWgpuLight size mismatch");
 static_assert(offsetof(CoinWgpuRenderState, light_count) == 328, "CoinWgpuRenderState light_count offset mismatch");
 static_assert(offsetof(CoinWgpuRenderState, ambient_light) == 332, "CoinWgpuRenderState ambient_light offset mismatch");
 static_assert(offsetof(CoinWgpuRenderState, lights) == 348, "CoinWgpuRenderState lights offset mismatch");
+static_assert(offsetof(CoinWgpuRenderState, fog_mode) == 860, "CoinWgpuRenderState fog_mode offset mismatch");
+static_assert(offsetof(CoinWgpuRenderState, fog_color) == 864, "CoinWgpuRenderState fog_color offset mismatch");
+static_assert(offsetof(CoinWgpuRenderState, fog_start) == 876, "CoinWgpuRenderState fog_start offset mismatch");
+static_assert(offsetof(CoinWgpuRenderState, fog_end) == 880, "CoinWgpuRenderState fog_end offset mismatch");
 
 static_assert(sizeof(CoinWgpuTarget) == 48, "CoinWgpuTarget size mismatch");
 static_assert(sizeof(CoinWgpuFrameView) == 144, "CoinWgpuFrameView size mismatch");
@@ -279,6 +283,10 @@ SoWgpuRustBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target)
     statesPod[i].texture_slot = rs.textureImageSlot;
     statesPod[i].sampler_slot = rs.samplerSlot;
     statesPod[i].texture_model = static_cast<uint32_t>(rs.textureModel);
+    statesPod[i].fog_mode = static_cast<uint32_t>(rs.fogMode);
+    for (int c = 0; c < 3; ++c) statesPod[i].fog_color[c] = rs.fogColor[c];
+    statesPod[i].fog_start = rs.fogStart;
+    statesPod[i].fog_end = rs.fogEnd;
     statesPod[i].light_count = 0;
     statesPod[i].ambient_light[3] = 1.0f;
     if (rs.lightingSlot < frame.lightingStates.size()) {

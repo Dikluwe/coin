@@ -144,6 +144,11 @@ SoWgpuRecordingBackend::recordToString(const FramePlan & frame)
     const auto & rs = frame.renderStates[i];
     out << "  renderState " << i << ": mat=" << rs.materialSlot << " light=" << rs.lightingSlot << " lightModel=" << (rs.lightModel == LightModel::BASE_COLOR ? "BASE_COLOR" : "PHONG")
         << " cam=" << rs.cameraSlot << " vp=" << rs.viewportSlot
+        << " fogMode=" << static_cast<uint32_t>(rs.fogMode)
+        << " fogColor=[" << formatFloat(rs.fogColor[0]) << ","
+        << formatFloat(rs.fogColor[1]) << "," << formatFloat(rs.fogColor[2]) << "]"
+        << " fogRange=[" << formatFloat(rs.fogStart) << ","
+        << formatFloat(rs.fogEnd) << "]"
         << " hasTex=" << (rs.hasTexture ? "1" : "0");
     if (rs.hasTexture) {
       out << " texSlot=" << rs.textureImageSlot << " sampSlot=" << rs.samplerSlot

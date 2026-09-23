@@ -103,6 +103,25 @@ inline SbVec4f sampleTexture(const TextureImageSnapshot & tex, const SamplerSnap
   return top * (1.0f - wy) + bot * wy;
 }
 
+inline void applyFog(const RenderStateSnapshot & rs, float eyeDepth,
+                     float & red, float & green, float & blue) {
+  if (rs.fogMode == FogMode::NONE) return;
+  const float distance = std::max(0.0f, eyeDepth);
+  float factor = 1.0f;
+  if (rs.fogMode == FogMode::HAZE) {
+    factor = (rs.fogEnd - distance) / (rs.fogEnd - rs.fogStart);
+  } else if (rs.fogMode == FogMode::FOG) {
+    factor = std::exp(-5.545f * distance / rs.fogEnd);
+  } else {
+    const float x = 2.35f * distance / rs.fogEnd;
+    factor = std::exp(-(x * x));
+  }
+  factor = std::max(0.0f, std::min(1.0f, factor));
+  red = rs.fogColor[0] * (1.0f - factor) + red * factor;
+  green = rs.fogColor[1] * (1.0f - factor) + green * factor;
+  blue = rs.fogColor[2] * (1.0f - factor) + blue * factor;
+}
+
 static void rasterizeTriangle(const ShadedVertex & sv0, const ShadedVertex & sv1, const ShadedVertex & sv2,
                               int width, int height,
                               const LightingSnapshot & lighting, const RenderStateSnapshot & rs,
@@ -270,6 +289,7 @@ static void rasterizeTriangle(const ShadedVertex & sv0, const ShadedVertex & sv1
         finalB *= texCol[2];
       }
 
+      applyFog(rs, -vPos[2], finalR, finalG, finalB);
       size_t cIdx = pIdx * 4;
       if (cIdx + 3 < colorBuffer.size()) {
         colorBuffer[cIdx + 0] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, finalR * 255.0f)));
@@ -474,6 +494,9 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
           SbVec4f clip0, clip1;
           mvpWgpu.multVecMatrix(SbVec4f(v0.position[0], v0.position[1], v0.position[2], 1.0f), clip0);
           mvpWgpu.multVecMatrix(SbVec4f(v1.position[0], v1.position[1], v1.position[2], 1.0f), clip1);
+          SbVec4f view0, view1;
+          modelView.multVecMatrix(SbVec4f(v0.position[0], v0.position[1], v0.position[2], 1.0f), view0);
+          modelView.multVecMatrix(SbVec4f(v1.position[0], v1.position[1], v1.position[2], 1.0f), view1);
 
           if (clip0[3] < 1e-5f || clip1[3] < 1e-5f) continue;
 
@@ -512,6 +535,7 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
                 float b = (rs.lightModel == LightModel::BASE_COLOR)
                   ? ((1.0f - t) * m0.diffuse[2] + t * m1.diffuse[2])
                   : ((1.0f - t) * (m0.diffuse[2] + m0.ambient[2] + m0.emission[2]) + t * (m1.diffuse[2] + m1.ambient[2] + m1.emission[2]));
+                applyFog(rs, -((1.0f - t) * view0[2] + t * view1[2]), r, g, b);
                 size_t cIdx = pIdx * 4;
                 if (cIdx + 3 < target.colorBuffer.size()) {
                   target.colorBuffer[cIdx + 0] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, r * 255.0f)));
@@ -532,6 +556,8 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
           const VertexSnapshot & v0 = frame.vertices[i0];
           SbVec4f clip0;
           mvpWgpu.multVecMatrix(SbVec4f(v0.position[0], v0.position[1], v0.position[2], 1.0f), clip0);
+          SbVec4f view0;
+          modelView.multVecMatrix(SbVec4f(v0.position[0], v0.position[1], v0.position[2], 1.0f), view0);
           if (clip0[3] < 1e-5f) continue;
 
           int px = static_cast<int>(std::round((clip0[0] / clip0[3] + 1.0f) * 0.5f * width));
@@ -552,6 +578,7 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
               float b = (rs.lightModel == LightModel::BASE_COLOR)
                 ? m0.diffuse[2]
                 : (m0.diffuse[2] + m0.ambient[2] + m0.emission[2]);
+              applyFog(rs, -view0[2], r, g, b);
               size_t cIdx = pIdx * 4;
               if (cIdx + 3 < target.colorBuffer.size()) {
                 target.colorBuffer[cIdx + 0] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, r * 255.0f)));

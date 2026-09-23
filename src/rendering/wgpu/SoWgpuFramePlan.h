@@ -145,6 +145,13 @@ struct SamplerSnapshot {
   TextureFilter filter = TextureFilter::LINEAR;
 };
 
+enum class FogMode : uint32_t {
+  NONE = 0,
+  HAZE = 1,
+  FOG = 2,
+  SMOKE = 3
+};
+
 struct RenderStateSnapshot {
   SbMatrix model = SbMatrix::identity();
   SbMatrix view = SbMatrix::identity();
@@ -163,6 +170,10 @@ struct RenderStateSnapshot {
   uint32_t textureImageSlot = 0;
   uint32_t samplerSlot = 0;
   TextureModel textureModel = TextureModel::MODULATE;
+  FogMode fogMode = FogMode::NONE;
+  float fogColor[3] = {1.0f, 1.0f, 1.0f};
+  float fogStart = 0.0f;
+  float fogEnd = 10.0f;
 };
 
 struct FramePlan {
@@ -322,6 +333,23 @@ struct FramePlan {
     // Validate render states textureMatrix and slots
     for (size_t i = 0; i < renderStates.size(); ++i) {
       const auto & rs = renderStates[i];
+      if (rs.fogMode != FogMode::NONE && rs.fogMode != FogMode::HAZE &&
+          rs.fogMode != FogMode::FOG && rs.fogMode != FogMode::SMOKE) {
+        if (outDiagnostic) *outDiagnostic = "Unsupported fog mode";
+        return false;
+      }
+      if (!isFiniteF(rs.fogStart) || !isFiniteF(rs.fogEnd) ||
+          (rs.fogMode != FogMode::NONE && rs.fogEnd <= 0.0f) ||
+          (rs.fogMode == FogMode::HAZE && rs.fogEnd <= rs.fogStart)) {
+        if (outDiagnostic) *outDiagnostic = "Invalid fog range";
+        return false;
+      }
+      for (int c = 0; c < 3; ++c) {
+        if (!isFiniteF(rs.fogColor[c])) {
+          if (outDiagnostic) *outDiagnostic = "Invalid fog color";
+          return false;
+        }
+      }
       if (rs.hasTexture) {
         if (!isMatrixFinite(rs.textureMatrix)) {
           if (outDiagnostic) *outDiagnostic = "RenderState contains non-finite texture matrix";
