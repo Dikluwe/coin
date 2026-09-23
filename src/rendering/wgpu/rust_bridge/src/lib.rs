@@ -1099,6 +1099,23 @@ fn encode_frame(
     depth_view: &wgpu::TextureView,
 ) -> Result<wgpu::CommandBuffer, (CoinWgpuStatus, String)> {
     use wgpu::util::DeviceExt;
+    // The opaque pipeline replaces color and writes depth. Direct FFI callers
+    // must not bypass the action's alpha rejection and get incorrect pixels.
+    // Check before mutating any persistent cache or encoding a command.
+    for (material_index, material) in materials_slice.iter().enumerate() {
+        if !material.transparency.is_finite()
+            || !(0.0..=1.0).contains(&material.transparency)
+            || !material.diffuse[3].is_finite()
+            || !(0.0..=1.0).contains(&material.diffuse[3]) {
+            return Err((CoinWgpuStatus::InvalidArgument,
+                format!("Material {} has invalid transparency or diffuse alpha", material_index)));
+        }
+        if material.transparency > 0.0 || material.diffuse[3] < 1.0 {
+            return Err((CoinWgpuStatus::Unsupported,
+                format!("Material {} requires alpha composition (Wave 4); opaque pipeline cannot render it", material_index)));
+        }
+    }
+
     // Preflight the entire lighting payload before cache mutation or command encoding.
     for (state_index, state) in states_slice.iter().enumerate() {
         if state.light_count > 8 {

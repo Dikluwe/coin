@@ -586,14 +586,32 @@ static bool testOpaqueRuleForAlpha() {
 
   char err[256] = {0};
   CoinWgpuStatus status = coin_wgpu_submit(&target, &fView, err, sizeof(err));
-  ASSERT_TRUE(status == COIN_WGPU_OK, "Submit for opaque alpha failed: " + std::string(err));
+  ASSERT_TRUE(status == COIN_WGPU_UNSUPPORTED, "Direct FFI must reject alpha before Wave 4 blending is implemented");
+  ASSERT_TRUE(std::string(err).find("alpha composition") != std::string::npos, "Alpha rejection needs a diagnostic");
+  ASSERT_TRUE(target.submission_serial == 0, "Unsupported alpha must not submit a partial frame");
+
+  mat.diffuse[3] = 1.0f;
+  mat.transparency = 0.0001f;
+  status = coin_wgpu_submit(&target, &fView, err, sizeof(err));
+  ASSERT_TRUE(status == COIN_WGPU_UNSUPPORTED, "Even a small nonzero transparency needs composition");
+  ASSERT_TRUE(target.submission_serial == 0, "Small alpha must not submit a partial frame");
+
+  mat.transparency = std::nanf("");
+  status = coin_wgpu_submit(&target, &fView, err, sizeof(err));
+  ASSERT_TRUE(status == COIN_WGPU_INVALID_ARGUMENT, "Non-finite transparency must be invalid");
+  ASSERT_TRUE(target.submission_serial == 0, "Invalid alpha must not submit a partial frame");
+
+  mat.diffuse[3] = 1.0f;
+  mat.transparency = 0.0f;
+  err[0] = '\0';
+  status = coin_wgpu_submit(&target, &fView, err, sizeof(err));
+  ASSERT_TRUE(status == COIN_WGPU_OK, "Opaque submission after alpha rejection failed: " + std::string(err));
 
   size_t centerIdx = (32 * W + 32) * 4;
   uint8_t r = colBuf[centerIdx];
   uint8_t a = colBuf[centerIdx + 3];
-  // Opaque rule: R is pure 255 (not blended with clearColor black), A is ~128 (0.5f)
-  ASSERT_TRUE(r > 240, "Color must remain pure opaque without background blending in Wave 3");
-  ASSERT_TRUE(a > 115 && a < 140, "Alpha channel must preserve the material alpha (~128)");
+  ASSERT_TRUE(r > 240, "Opaque recovery must render the expected color");
+  ASSERT_TRUE(a == 255, "Opaque recovery must preserve full alpha");
 
   return true;
 }

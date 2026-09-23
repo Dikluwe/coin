@@ -303,9 +303,9 @@ SoWgpuRenderTargetP::validateProfile(const FramePlan & frame, const SbVec2i32 & 
 
     if (rs.materialSlot < frame.materials.size()) {
       const auto & mat = frame.materials[rs.materialSlot];
-      if (mat.transparency > 0.001f) {
+      if (mat.transparency > 0.0f || mat.diffuse[3] < 1.0f) {
         std::ostringstream ss;
-        ss << "UNSUPPORTED: Draw " << i << " has transparency=" << mat.transparency << ". Wave 1 profile supports only opaque objects.";
+        ss << "UNSUPPORTED: Draw " << i << " requires alpha composition (transparency=" << mat.transparency << ", diffuse alpha=" << mat.diffuse[3] << "); opaque profile only.";
         return FrameExecutionResult{BackendStatus::UNSUPPORTED, ss.str()};
       }
     }
@@ -335,10 +335,10 @@ SoWgpuRenderTargetP::validateProfile(const FramePlan & frame, const SbVec2i32 & 
       if (vIdx < frame.vertices.size()) {
         uint32_t mSlot = frame.vertices[vIdx].materialSlot;
         if (mSlot < frame.materials.size()) {
-          if (frame.materials[mSlot].transparency > 0.001f) {
+          if (frame.materials[mSlot].transparency > 0.0f || frame.materials[mSlot].diffuse[3] < 1.0f) {
             std::ostringstream ss;
             ss << "UNSUPPORTED: Draw " << i << " references vertex with material transparency="
-               << frame.materials[mSlot].transparency << ". Wave 1 profile supports only opaque objects.";
+               << frame.materials[mSlot].transparency << ", diffuse alpha=" << frame.materials[mSlot].diffuse[3] << "); alpha composition requires Wave 4.";
             return FrameExecutionResult{BackendStatus::UNSUPPORTED, ss.str()};
           }
         }

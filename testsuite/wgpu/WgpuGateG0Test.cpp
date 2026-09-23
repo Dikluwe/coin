@@ -265,6 +265,25 @@ int main() {
     std::cout << "   [PASS] G0.4 32-bit overflow protection" << std::endl;
   }
 
+  // Wave 4 preflight: invalid alpha must fail even without a GPU backend.
+  {
+    FramePlan plan;
+    plan.materials.push_back(MaterialSnapshot{});
+    std::string diag;
+    TEST_ASSERT(plan.isValid(&diag), "Default material must be valid");
+    plan.materials[0].transparency = std::nanf("");
+    TEST_ASSERT(!plan.isValid(&diag) && diag.find("invalid transparency") != std::string::npos,
+                "Non-finite transparency must be rejected by FramePlan");
+    plan.materials[0].transparency = -0.1f;
+    TEST_ASSERT(!plan.isValid(&diag), "Negative transparency must be rejected by FramePlan");
+    plan.materials[0].transparency = 0.0f;
+    plan.materials[0].diffuse[3] = 1.1f;
+    TEST_ASSERT(!plan.isValid(&diag), "Diffuse alpha over one must be rejected by FramePlan");
+    plan.materials[0].diffuse[3] = std::nanf("");
+    TEST_ASSERT(!plan.isValid(&diag), "Non-finite diffuse alpha must be rejected by FramePlan");
+  }
+
+
   // =========================================================================
   // G0.5: Target Overflow & OOM Handling (B06)
   // Multiplicative overflow in target size is rejected safely without crashing.

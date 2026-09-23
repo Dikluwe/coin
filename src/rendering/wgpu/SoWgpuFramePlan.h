@@ -210,6 +210,16 @@ struct FramePlan {
       }
     }
 
+    // Alpha is a compositing contract, not an arbitrary shader payload.
+    for (size_t i = 0; i < materials.size(); ++i) {
+      const auto & m = materials[i];
+      if (!isFiniteF(m.transparency) || m.transparency < 0.0f || m.transparency > 1.0f ||
+          !isFiniteF(m.diffuse[3]) || m.diffuse[3] < 0.0f || m.diffuse[3] > 1.0f) {
+        if (outDiagnostic) *outDiagnostic = "Material has invalid transparency or diffuse alpha";
+        return false;
+      }
+    }
+
     // Validate vertices
     const size_t numVertices = vertices.size();
     for (size_t i = 0; i < numVertices; ++i) {
