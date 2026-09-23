@@ -74,7 +74,7 @@ BackendStatus
 SoWgpuNativeBackend::prepare(SoWgpuRenderTargetP & /*target*/)
 {
 #if defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
-  if (this->isReady) return SubmitResult(BackendStatus::SUCCESS, "");
+  if (this->isReady) return BackendStatus::SUCCESS;
 
   WGPUInstanceDescriptor instDesc = {};
   instDesc.nextInChain = nullptr;
@@ -90,7 +90,7 @@ SoWgpuNativeBackend::prepare(SoWgpuRenderTargetP & /*target*/)
   wgpuInstanceRequestAdapter(this->instance, &opt, onAdapterRequestEnded, &this->adapter);
   if (!this->adapter) {
     this->lastError = "No compatible WebGPU adapter found";
-    return SubmitResult(BackendStatus::NOT_READY, this->lastError);
+    return BackendStatus::NOT_READY;
   }
 
   WGPUDeviceDescriptor devDesc = {};
@@ -98,7 +98,7 @@ SoWgpuNativeBackend::prepare(SoWgpuRenderTargetP & /*target*/)
   wgpuAdapterRequestDevice(this->adapter, &devDesc, onDeviceRequestEnded, &this->device);
   if (!this->device) {
     this->lastError = "Failed to create WebGPU device";
-    return SubmitResult(BackendStatus::NOT_READY, this->lastError);
+    return BackendStatus::NOT_READY;
   }
 
   this->queue = wgpuDeviceGetQueue(this->device);
@@ -108,7 +108,7 @@ SoWgpuNativeBackend::prepare(SoWgpuRenderTargetP & /*target*/)
   }
 
   this->isReady = true;
-  return SubmitResult(BackendStatus::SUCCESS, "");
+  return BackendStatus::SUCCESS;
 #else
   this->lastError = "Native WebGPU backend not enabled at compile time";
   return BackendStatus::UNSUPPORTED;
@@ -121,7 +121,7 @@ SoWgpuNativeBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & targe
 #if defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
   if (!this->isReady) {
     BackendStatus st = this->prepare(target);
-    if (st != BackendStatus::SUCCESS) return st;
+    if (st != BackendStatus::SUCCESS) return SubmitResult(st, this->lastError);
   }
 
   int width = target.size[0];
