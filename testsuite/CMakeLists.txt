@@ -365,6 +365,20 @@ if(COIN_BUILD_WGPU)
 	add_test(NAME WgpuCompositionTest COMMAND WgpuCompositionTest)
 	set_tests_properties(WgpuCompositionTest PROPERTIES TIMEOUT 30)
 
+	add_executable(WgpuSceneTextureTest wgpu/WgpuSceneTextureTest.cpp)
+	set_target_properties(WgpuSceneTextureTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(WgpuSceneTextureTest CoinWgpuExperimental Coin)
+	target_include_directories(WgpuSceneTextureTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include
+		${PROJECT_SOURCE_DIR}/include
+		${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include
+		${PROJECT_BINARY_DIR}/src
+		${COIN_TARGET_INCLUDE_DIRECTORIES}
+	)
+	add_test(NAME WgpuSceneTextureTest COMMAND WgpuSceneTextureTest)
+	set_tests_properties(WgpuSceneTextureTest PROPERTIES TIMEOUT 30)
+
 	if(COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE")
 		add_executable(WgpuPerformanceTest wgpu/WgpuPerformanceTest.cpp)
 		set_target_properties(WgpuPerformanceTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")

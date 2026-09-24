@@ -18,16 +18,18 @@ headers a consumidores externos como se fossem estáveis.
 | Composição | Opacos primeiro e transparentes em pass separado, ordenados estavelmente por profundidade média em view space; depth write desligado para transparentes | Ordenação por triângulo, interseções e transparência independente da ordem |
 | Ambiente | Fog `NONE`, `HAZE`, `FOG` e `SMOKE` em distância de view space; fog depois de luz/textura e antes da composição, sem alterar alpha | Fórmulas ou estados de fog fora desses quatro modos |
 | Raster | Front face e backface culling de `SoShapeHints` em triângulos, inclusive reflexão | Culling de linhas/pontos (não aplicável ao pipeline dessas topologias) |
-| Alvos | Offscreen com cor/profundidade e janela X11 no backend Rust; readback síncrono atômico; `applyAsync` com ticket e query/poll/cancel no offscreen experimental | `SoSceneTexture2`/render-to-texture, readback assíncrono de janela e outros sistemas de janela |
+| Alvos | Offscreen com cor/profundidade e janela X11 no backend Rust; readback síncrono atômico; `applyAsync` com ticket e query/poll/cancel; `SoSceneTexture2` RGBA8 staged em passes dependentes | RTT GPU→GPU direto, formatos/estados de `SoSceneTexture2` fora do perfil, readback assíncrono de janela e outros sistemas de janela |
 
 Recursos não suportados devem produzir `UNSUPPORTED` e diagnóstico, não uma
 imagem aparentemente válida que ignore silenciosamente parte do estado. A
 referência CPU e o Recording permitem testar o contrato sem GPU; a paridade de
 pixels exige GPU real e, opcionalmente, Coin/GL.
 
-A Onda 4 está **parcial**: 4A/4B e os dois passes básicos de 4C estão
-implementados, sem alterar a ABI pública do Coin 4. O render-to-texture de
-`SoSceneTexture2` é rejeitado antes da submissão. A ponte privada Rust oferece
+A Onda 4 está **parcial**: 4A/4B, os passes opaco/transparente de 4C e um
+perfil mínimo staged de `SoSceneTexture2` estão implementados, sem alterar
+a ABI pública do Coin 4. A subcena é renderizada em alvo offscreen e seus
+pixels RGBA8 são transferidos por readback/upload ao pass pai; isto ainda
+não é render-to-texture GPU→GPU direto. A ponte privada Rust oferece
 submit/query/poll/cancel de readback verdadeiramente assíncrono, com token,
 geração, serial, formatos, pitch e publicação atômica de cor/profundidade.
 `SoWgpuRenderAction::applyAsync` devolve o ticket; as funções estáticas do
@@ -38,8 +40,28 @@ até outro `apply` síncrono, evitando apresentar o frame anterior como atual.
 A query não aloca os vetores de saída enquanto o GPU readback está pendente.
 O backend native/Dawn não possui pipeline transparente e rejeita esse perfil
 explicitamente. A 4D está implementada no perfil offscreen Rust, inclusive
-polls concorrentes; 4C (render-to-texture) e 4E ainda não estão concluídas.
-A medição isolada de latência de readback pertence ao gate 4E.
+polls concorrentes. A 4C ainda não cobre GPU→GPU direto nem toda a semântica
+de `SoSceneTexture2`; 4E também está pendente. A medição isolada de latência
+de readback pertence ao gate 4E.
+
+## Evidência parcial da 4C (SoSceneTexture2 staged)
+
+`SoSceneTexture2` aceita somente unidade 0, `RGBA8`, `MODULATE`,
+`REPEAT`/`CLAMP`, `transparencyFunction=NONE`, sem
+`sceneTransparencyType`, com cena não nula e tamanho de 1 a 2048 por eixo.
+Cada apply admite até 64 MiB de pixels RGBA8 intermediários e oito passes
+aninhados; ciclos, formatos e estados fora desse perfil retornam
+`UNSUPPORTED` com diagnóstico. O pass filho termina e fornece readback
+antes de o pai carregar a imagem como textura; as linhas são invertidas
+uma vez para conciliar as origens de framebuffer e imagem Coin. A textura
+gerada participa das mesmas regras de alpha da 4B. O frame pai só é
+publicado depois da construção e validação completa do seu FramePlan.
+
+`WgpuSceneTextureTest` cobre amostragem superior/inferior (orientação),
+duas dependências aninhadas, troca de target, rejeição no segundo pass sem
+alterar o frame publicado, ciclo e recuperação após resize em Rust e
+Recording/CPU. Este caminho é funcional, mas a cópia GPU→CPU→GPU por
+frame não é a solução final de recursos GPU compartilhados.
 
 ## Evidência da 4D (ponte privada e action experimental)
 

@@ -7,6 +7,10 @@
 #include "rendering/wgpu/SoWgpuFramePlanBuilder.h"
 #include "rendering/wgpu/SoWgpuRecordingBackend.h"
 #include <string>
+#include <deque>
+#include <vector>
+#include <cstdint>
+#include <cstddef>
 
 class COIN_WGPU_DLL_API SoWgpuRenderActionP {
 public:
@@ -61,6 +65,9 @@ public:
   SoWgpuFramePlanBuilder builder;
   SoWgpuRecordingBackend recordingBackend;
   FramePlan lastValidPlan;
+  // Owns staged scene-texture pixels for the entire parent traversal.
+  std::deque<std::vector<uint8_t> > sceneTexturePixels;
+  size_t sceneTextureStagedBytes = 0;
 
   bool hasLastValidPlan;
   bool isApplying;

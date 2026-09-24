@@ -17,6 +17,13 @@
 #include <Inventor/elements/SoNormalElement.h>
 #include <Inventor/elements/SoMaterialBindingElement.h>
 #include <Inventor/elements/SoNormalBindingElement.h>
+#include <Inventor/elements/SoMultiTextureImageElement.h>
+#include <Inventor/elements/SoMultiTextureEnabledElement.h>
+#include <Inventor/elements/SoTextureQualityElement.h>
+#include <Inventor/elements/SoTextureUnitElement.h>
+#include <Inventor/elements/SoTextureOverrideElement.h>
+#include <algorithm>
+#include <memory>
 #include <Inventor/misc/SoState.h>
 
 #include "actions/SoWgpuRenderActionP.h"
@@ -229,6 +236,8 @@ SoWgpuRenderActionP::executeApply(F traversalFn)
 
   this->isApplying = true;
   this->hasReentrancyError = false;
+  this->sceneTexturePixels.clear();
+  this->sceneTextureStagedBytes = 0;
   this->builder.beginFrame(this->backgroundColor, this->master->getViewportRegion());
 
   traversalFn();
@@ -362,13 +371,114 @@ SoWgpuRenderActionP::pointCB(void * userdata,
 
 SoCallbackAction::Response
 SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
-                                       SoCallbackAction * /*action*/,
-                                       const SoNode * /*node*/)
+                                       SoCallbackAction * action,
+                                       const SoNode * node)
 {
   SoWgpuRenderActionP * p = static_cast<SoWgpuRenderActionP *>(userdata);
-  p->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
-  p->lastError = "SoSceneTexture2 render-to-texture is outside the WebGPU profile";
-  return SoCallbackAction::ABORT;
+  const SoSceneTexture2 * texture = static_cast<const SoSceneTexture2 *>(node);
+  SoState * state = action ? action->getState() : NULL;
+  if (!state) {
+    p->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
+    p->lastError = "SoSceneTexture2 has no traversal state";
+    return SoCallbackAction::ABORT;
+  }
+  if (SoTextureOverrideElement::getImageOverride(state)) {
+    return SoCallbackAction::CONTINUE;
+  }
+  if (SoTextureUnitElement::get(state) != 0 ||
+      texture->type.getValue() != SoSceneTexture2::RGBA8 ||
+      texture->model.getValue() != SoSceneTexture2::MODULATE ||
+      (texture->wrapS.getValue() != SoSceneTexture2::REPEAT &&
+       texture->wrapS.getValue() != SoSceneTexture2::CLAMP) ||
+      (texture->wrapT.getValue() != SoSceneTexture2::REPEAT &&
+       texture->wrapT.getValue() != SoSceneTexture2::CLAMP) ||
+      texture->transparencyFunction.getValue() != SoSceneTexture2::NONE ||
+      texture->sceneTransparencyType.getValue() != NULL) {
+    p->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
+    p->lastError = "SoSceneTexture2 supports only unit 0, RGBA8, MODULATE, REPEAT/CLAMP, NONE transparency function and no sceneTransparencyType";
+    return SoCallbackAction::ABORT;
+  }
+
+  if (SoTextureQualityElement::get(state) <= 0.0f) {
+    SoMultiTextureImageElement::setDefault(state, const_cast<SoSceneTexture2 *>(texture), 0);
+    SoMultiTextureEnabledElement::set(state, const_cast<SoSceneTexture2 *>(texture), 0, FALSE);
+    return SoCallbackAction::CONTINUE;
+  }
+
+  const SbVec2s size = texture->size.getValue();
+  SoNode * scene = texture->scene.getValue();
+  if (!scene || size[0] <= 0 || size[1] <= 0 ||
+      size[0] > 2048 || size[1] > 2048) {
+    p->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
+    p->lastError = "SoSceneTexture2 requires a scene and dimensions in 1..2048";
+    return SoCallbackAction::ABORT;
+  }
+
+  const size_t stagedBytes = size_t(size[0]) * size_t(size[1]) * 4;
+  const size_t maxStagedBytes = size_t(64) * 1024 * 1024;
+  if (stagedBytes > maxStagedBytes - p->sceneTextureStagedBytes) {
+    p->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
+    p->lastError = "SoSceneTexture2 staged RGBA8 budget exceeds 64 MiB per apply";
+    return SoCallbackAction::ABORT;
+  }
+
+  static thread_local std::vector<const SoSceneTexture2 *> activeTextures;
+  if (activeTextures.size() >= 8 ||
+      std::find(activeTextures.begin(), activeTextures.end(), texture) != activeTextures.end()) {
+    p->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
+    p->lastError = "SoSceneTexture2 dependency cycle or nesting beyond eight passes";
+    return SoCallbackAction::ABORT;
+  }
+  activeTextures.push_back(texture);
+  struct ActiveTextureGuard {
+    std::vector<const SoSceneTexture2 *> & stack;
+    ~ActiveTextureGuard() { stack.pop_back(); }
+  } guard{activeTextures};
+
+  const SbVec4f background = texture->backgroundColor.getValue();
+  std::unique_ptr<SoWgpuRenderTarget> childTarget(
+    SoWgpuRenderTarget::createOffscreen(SbVec2i32(size[0], size[1])));
+  if (!childTarget || childTarget->getStatus() != SoWgpuRenderTarget::TARGET_READY) {
+    p->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
+    p->lastError = "Cannot create SoSceneTexture2 offscreen target";
+    return SoCallbackAction::ABORT;
+  }
+  SoWgpuRenderAction childAction(SbViewportRegion(size[0], size[1]));
+  childAction.setRenderTarget(childTarget.get());
+  childAction.setBackgroundColor(SbColor4f(background[0], background[1],
+                                           background[2], background[3]));
+  childAction.apply(scene);
+  if (childAction.getLastStatus() != SoWgpuRenderAction::SUCCESS) {
+    p->lastStatus = childAction.getLastStatus();
+    p->lastError = SbString("SoSceneTexture2 subscene: ") + childAction.getLastError();
+    return SoCallbackAction::ABORT;
+  }
+
+  std::vector<uint8_t> pixels;
+  childTarget->readbackRGBA(pixels);
+  const size_t required = size_t(size[0]) * size_t(size[1]) * 4;
+  if (pixels.size() != required) {
+    p->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
+    p->lastError = "SoSceneTexture2 subscene returned incomplete RGBA8 readback";
+    return SoCallbackAction::ABORT;
+  }
+  // WebGPU readback rows start at the top; Coin image bytes use the opposite
+  // texture origin. Flip once before the parent pass uploads this image.
+  const size_t rowBytes = size_t(size[0]) * 4;
+  for (size_t y = 0; y < size_t(size[1]) / 2; ++y) {
+    std::swap_ranges(pixels.begin() + y * rowBytes,
+                     pixels.begin() + (y + 1) * rowBytes,
+                     pixels.begin() + (size_t(size[1]) - 1 - y) * rowBytes);
+  }
+  p->sceneTexturePixels.push_back(std::move(pixels));
+  p->sceneTextureStagedBytes += stagedBytes;
+  SoMultiTextureImageElement::set(state, const_cast<SoSceneTexture2 *>(texture), 0,
+    size, 4, p->sceneTexturePixels.back().data(),
+    static_cast<SoMultiTextureImageElement::Wrap>(texture->wrapS.getValue()),
+    static_cast<SoMultiTextureImageElement::Wrap>(texture->wrapT.getValue()),
+    SoMultiTextureImageElement::MODULATE, texture->blendColor.getValue());
+  SoMultiTextureEnabledElement::set(state, const_cast<SoSceneTexture2 *>(texture), 0, TRUE);
+  return SoCallbackAction::CONTINUE;
 }
 
 SoCallbackAction::Response
