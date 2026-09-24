@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 12
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 14
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -25,6 +25,12 @@ typedef enum CoinWgpuStatus {
   COIN_WGPU_BACKEND_ERROR = 6,
   COIN_WGPU_SURFACE_LOST = 7
 } CoinWgpuStatus;
+
+/* Private test-only faults for RTT resource creation and binding. */
+#define COIN_WGPU_FAULT_RTT_COLOR_ALLOC 301
+#define COIN_WGPU_FAULT_RTT_COLOR_VIEW 302
+#define COIN_WGPU_FAULT_RTT_DEPTH_ALLOC 303
+#define COIN_WGPU_FAULT_RTT_BIND_GROUP 304
 
 typedef enum CoinWgpuNativeSurfaceType {
   COIN_WGPU_NATIVE_XLIB = 1,
@@ -82,7 +88,7 @@ typedef struct CoinWgpuMaterial {
 typedef struct CoinWgpuTexture {
   uint32_t width;
   uint32_t height;
-  uint32_t format; /* 0=RGBA8_UNORM */
+  uint32_t format; /* 0=RGBA8_UNORM bytes; 1=private GPU RTT token */
   uint32_t reserved;
   uint64_t content_digest;
   const uint8_t * pixels;
@@ -219,6 +225,20 @@ CoinWgpuStatus coin_wgpu_submit(
   size_t error_buf_len
 );
 
+/* Render an offscreen pass to a sampleable texture without CPU readback.
+   The token belongs to one device generation and must be released after
+   its consumers are submitted. */
+CoinWgpuStatus coin_wgpu_submit_texture(
+  CoinWgpuTarget * target,
+  const CoinWgpuFrameView * frame,
+  uint64_t * out_token,
+  char * error_buf,
+  size_t error_buf_len
+);
+
+void coin_wgpu_release_texture(uint64_t token);
+void coin_wgpu_rtt_resource_counts(uint64_t * active, uint64_t * retired);
+
 /* Async offscreen submission keeps staging buffers in the bridge until poll/cancel.
    Target output pointers are ignored; width/height and depth_buffer_len select
    attachments (depth_buffer_len is a count of floats). The ticket reports
@@ -291,6 +311,8 @@ void coin_wgpu_set_cache_budget(uint64_t max_bytes, uint64_t max_stale_serials);
 void coin_wgpu_trim_cache(void);
 
 void coin_wgpu_inject_fault(int32_t fault_code);
+/* Test-only deterministic fault on an offscreen submit after skipped submits. */
+void coin_wgpu_inject_fault_after_submits(int32_t fault_code, uint32_t skipped_submits);
 
 void coin_wgpu_inject_async_fault(int32_t fault_code);
 

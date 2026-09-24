@@ -24,18 +24,83 @@
 #include <Inventor/elements/SoTextureOverrideElement.h>
 #include <algorithm>
 #include <memory>
+#include <cstdlib>
 #include <Inventor/misc/SoState.h>
+#include <cstring>
 
 #include "actions/SoWgpuRenderActionP.h"
 #include "rendering/wgpu/SoWgpuRenderTargetP.h"
 #include "actions/SoSubActionP.h"
 #if defined(HAVE_WGPU_RUST_BRIDGE)
 #include "rendering/wgpu/SoWgpuRustBackend.h"
+#include "rendering/wgpu/coin_wgpu_ffi.h"
 #elif defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
 #include "rendering/wgpu/SoWgpuNativeBackend.h"
 #endif
 
 SO_ACTION_SOURCE(SoWgpuRenderAction);
+
+#if defined(HAVE_WGPU_RUST_BRIDGE)
+namespace {
+// Byte equality is deliberately conservative: padding can prevent a cache hit,
+// but it cannot make different captured fields compare equal.
+template <typename T>
+bool samePlainSnapshots(const std::vector<T> & a, const std::vector<T> & b)
+{
+  return a.size() == b.size() &&
+    (a.empty() || std::memcmp(a.data(), b.data(), a.size() * sizeof(T)) == 0);
+}
+
+bool sameCameras(const std::vector<CameraSnapshot> & a,
+                 const std::vector<CameraSnapshot> & b)
+{
+  if (a.size() != b.size()) return false;
+  for (size_t i = 0; i < a.size(); ++i) {
+    const CameraSnapshot & x = a[i];
+    const CameraSnapshot & y = b[i];
+    if (std::memcmp(x.viewMatrix.getValue(), y.viewMatrix.getValue(), sizeof(float) * 16) != 0 ||
+        std::memcmp(x.projectionMatrixCoin.getValue(), y.projectionMatrixCoin.getValue(), sizeof(float) * 16) != 0 ||
+        x.isPerspective != y.isPerspective || x.nearDistance != y.nearDistance ||
+        x.farDistance != y.farDistance || x.focalDistance != y.focalDistance ||
+        x.aspectRatio != y.aspectRatio) return false;
+  }
+  return true;
+}
+
+bool sameDirectPlan(const FramePlan & a, const FramePlan & b)
+{
+  for (int i = 0; i < 4; ++i) {
+    if (a.clearColor[i] != b.clearColor[i]) return false;
+  }
+  if (!samePlainSnapshots(a.vertices, b.vertices) ||
+      a.indices != b.indices ||
+      !samePlainSnapshots(a.materials, b.materials) ||
+      !sameCameras(a.cameras, b.cameras) ||
+      !samePlainSnapshots(a.viewports, b.viewports) ||
+      !samePlainSnapshots(a.renderStates, b.renderStates) ||
+      !samePlainSnapshots(a.samplers, b.samplers) ||
+      !samePlainSnapshots(a.draws, b.draws) ||
+      a.lightingStates.size() != b.lightingStates.size() ||
+      a.textures.size() != b.textures.size()) return false;
+  for (size_t i = 0; i < a.lightingStates.size(); ++i) {
+    const LightingSnapshot & x = a.lightingStates[i];
+    const LightingSnapshot & y = b.lightingStates[i];
+    if (x.ambientIntensity != y.ambientIntensity ||
+        std::memcmp(x.ambientColor, y.ambientColor, sizeof(x.ambientColor)) != 0 ||
+        !samePlainSnapshots(x.lights, y.lights)) return false;
+  }
+  for (size_t i = 0; i < a.textures.size(); ++i) {
+    const TextureImageSnapshot & x = a.textures[i];
+    const TextureImageSnapshot & y = b.textures[i];
+    if (x.width != y.width || x.height != y.height ||
+        x.components != y.components || x.contentDigest != y.contentDigest ||
+        x.gpuToken != y.gpuToken || x.gpuOpaque != y.gpuOpaque ||
+        x.pixelsRgba != y.pixelsRgba) return false;
+  }
+  return true;
+}
+} // namespace
+#endif
 
 void
 SoWgpuRenderAction::initClass(void)
@@ -236,6 +301,37 @@ SoWgpuRenderActionP::executeApply(F traversalFn)
 
   this->isApplying = true;
   this->hasReentrancyError = false;
+
+#if defined(HAVE_WGPU_RUST_BRIDGE)
+  const bool ownsDirectTokens = !this->sceneTextureDirectTokens;
+  if (ownsDirectTokens) {
+    this->sceneTextureDirectTokens = std::make_shared<std::vector<uint64_t> >();
+  }
+  struct DirectTextureScope {
+    SoWgpuRenderActionP * action;
+    bool owns;
+    ~DirectTextureScope() {
+      if (!owns) return;
+      for (uint64_t token : *action->sceneTextureDirectTokens) {
+        coin_wgpu_release_texture(token);
+      }
+      action->sceneTextureDirectTokens.reset();
+    }
+  } directTextureScope{this, ownsDirectTokens};
+
+  const char * directMode = std::getenv("COIN_WGPU_RTT_GPU_DIRECT");
+  const bool ownsDirectPasses = !this->directPasses && !this->planOnly &&
+    this->target && this->target->pimpl->kind == SoWgpuRenderTargetP::KIND_OFFSCREEN &&
+    directMode && directMode[0] == '1' && directMode[1] == '\0';
+  if (ownsDirectPasses) {
+    this->directPasses = std::make_shared<std::vector<DirectPass> >();
+  }
+  struct DirectPassScope {
+    SoWgpuRenderActionP * action;
+    bool owns;
+    ~DirectPassScope() { if (owns) action->directPasses.reset(); }
+  } directPassScope{this, ownsDirectPasses};
+#endif
   this->sceneTexturePixels.clear();
   if (!this->sceneTextureStagedBytes) {
     this->sceneTextureStagedBytes = std::make_shared<size_t>(0);
@@ -269,6 +365,14 @@ SoWgpuRenderActionP::executeApply(F traversalFn)
     return;
   }
 
+  if (this->planOnly) {
+    this->lastValidPlan = std::move(plan);
+    this->hasLastValidPlan = true;
+    this->lastStatus = SoWgpuRenderAction::SUCCESS;
+    this->lastError = "";
+    return;
+  }
+
   if (this->target == NULL) {
     if (this->asyncTicket) {
       this->lastStatus = SoWgpuRenderAction::NO_TARGET;
@@ -291,6 +395,88 @@ SoWgpuRenderActionP::executeApply(F traversalFn)
     this->lastError = (tgtErr && tgtErr[0]) ? tgtErr : "Render target is in fatal TARGET_ERROR state";
     return;
   }
+
+#if defined(HAVE_WGPU_RUST_BRIDGE)
+  if (this->directPasses) {
+    auto setGraphFailure = [this](const FrameExecutionResult & result) {
+      switch (result.status) {
+        case BackendStatus::UNSUPPORTED: this->lastStatus = SoWgpuRenderAction::UNSUPPORTED; break;
+        case BackendStatus::NOT_READY: this->lastStatus = SoWgpuRenderAction::NOT_READY; break;
+        case BackendStatus::OUT_OF_MEMORY: this->lastStatus = SoWgpuRenderAction::OUT_OF_MEMORY; break;
+        case BackendStatus::DEVICE_LOST: this->lastStatus = SoWgpuRenderAction::DEVICE_LOST; break;
+        case BackendStatus::SURFACE_LOST: this->lastStatus = SoWgpuRenderAction::SURFACE_LOST; break;
+        default: this->lastStatus = SoWgpuRenderAction::BACKEND_ERROR; break;
+      }
+      this->lastError = result.diagnostic.c_str();
+    };
+    // Validate every producer and the consumer before the first GPU submit.
+    // Child plans are appended in postorder, so only earlier IDs are legal.
+    for (size_t i = 0; i < this->directPasses->size(); ++i) {
+      const DirectPass & pass = (*this->directPasses)[i];
+      for (const TextureImageSnapshot & texture : pass.plan.textures) {
+        if (texture.gpuToken > i) {
+          this->lastStatus = SoWgpuRenderAction::INVALID_SCENE;
+          this->lastError = "SoSceneTexture2 pass references a missing or future producer";
+          return;
+        }
+      }
+      FrameExecutionResult check = SoWgpuRenderTargetP::validateProfile(pass.plan, pass.size);
+      if (check.status != BackendStatus::SUCCESS) {
+        setGraphFailure(check);
+        return;
+      }
+    }
+    for (const TextureImageSnapshot & texture : plan.textures) {
+      if (texture.gpuToken > this->directPasses->size()) {
+        this->lastStatus = SoWgpuRenderAction::INVALID_SCENE;
+        this->lastError = "Parent pass references a missing SoSceneTexture2 producer";
+        return;
+      }
+    }
+    FrameExecutionResult rootCheck =
+      SoWgpuRenderTargetP::validateProfile(plan, this->target->pimpl->size);
+    if (rootCheck.status != BackendStatus::SUCCESS) {
+      setGraphFailure(rootCheck);
+      return;
+    }
+
+    std::vector<uint64_t> resolved(this->directPasses->size() + 1, 0);
+    auto resolveTextures = [&resolved](FramePlan & frame) {
+      for (TextureImageSnapshot & texture : frame.textures) {
+        if (texture.gpuToken != 0) {
+          texture.gpuToken = resolved[static_cast<size_t>(texture.gpuToken)];
+          texture.contentDigest = texture.gpuToken;
+        }
+      }
+    };
+    for (size_t i = 0; i < this->directPasses->size(); ++i) {
+      const DirectPass & pass = (*this->directPasses)[i];
+      FramePlan childFrame = pass.plan;
+      resolveTextures(childFrame);
+      std::unique_ptr<SoWgpuRenderTarget> childTarget(
+        SoWgpuRenderTargetP::createDirectOffscreen(pass.size));
+      if (!childTarget || childTarget->getStatus() != SoWgpuRenderTarget::TARGET_READY) {
+        this->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
+        this->lastError = "Cannot create planned SoSceneTexture2 offscreen target";
+        return;
+      }
+      FrameExecutionResult result = childTarget->pimpl->executeFrame(childFrame);
+      if (result.status != BackendStatus::SUCCESS) {
+        setGraphFailure(result);
+        return;
+      }
+      const uint64_t token = childTarget->pimpl->directTextureToken;
+      if (!token) {
+        this->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
+        this->lastError = "Planned SoSceneTexture2 pass returned no GPU texture";
+        return;
+      }
+      resolved[i + 1] = token;
+      this->sceneTextureDirectTokens->push_back(token);
+    }
+    resolveTextures(plan);
+  }
+#endif
 
   // Execute frame on target
   FrameExecutionResult execRes = this->asyncTicket
@@ -408,6 +594,13 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
     return SoCallbackAction::CONTINUE;
   }
 
+  bool useDirect = false;
+#if defined(HAVE_WGPU_RUST_BRIDGE)
+  const char * directMode = std::getenv("COIN_WGPU_RTT_GPU_DIRECT");
+  useDirect = p->directPasses &&
+              directMode && directMode[0] == '1' && directMode[1] == '\0';
+#endif
+
   const SbVec2s size = texture->size.getValue();
   SoNode * scene = texture->scene.getValue();
   if (!scene || size[0] <= 0 || size[1] <= 0 ||
@@ -417,11 +610,14 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
     return SoCallbackAction::ABORT;
   }
 
-  const size_t stagedBytes = size_t(size[0]) * size_t(size[1]) * 4;
-  const size_t maxStagedBytes = size_t(64) * 1024 * 1024;
-  if (stagedBytes > maxStagedBytes - *p->sceneTextureStagedBytes) {
+  // Direct RTT retains RGBA8 color and depth32 attachments simultaneously.
+  const size_t chargedBytes = size_t(size[0]) * size_t(size[1]) * (useDirect ? 8 : 4);
+  const size_t maxBudgetBytes = size_t(64) * 1024 * 1024;
+  if (!useDirect && chargedBytes > maxBudgetBytes - *p->sceneTextureStagedBytes) {
     p->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
-    p->lastError = "SoSceneTexture2 staged RGBA8 budget exceeds 64 MiB per apply";
+    p->lastError = useDirect
+      ? "SoSceneTexture2 GPU attachment budget exceeds 64 MiB per apply"
+      : "SoSceneTexture2 staged RGBA8 budget exceeds 64 MiB per apply";
     return SoCallbackAction::ABORT;
   }
 
@@ -438,16 +634,21 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
     ~ActiveTextureGuard() { stack.pop_back(); }
   } guard{activeTextures};
 
-  *p->sceneTextureStagedBytes += stagedBytes;
+  if (!useDirect) *p->sceneTextureStagedBytes += chargedBytes;
   const SbVec4f background = texture->backgroundColor.getValue();
-  std::unique_ptr<SoWgpuRenderTarget> childTarget(
-    SoWgpuRenderTarget::createOffscreen(SbVec2i32(size[0], size[1])));
-  if (!childTarget || childTarget->getStatus() != SoWgpuRenderTarget::TARGET_READY) {
-    p->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
-    p->lastError = "Cannot create SoSceneTexture2 offscreen target";
-    return SoCallbackAction::ABORT;
+  std::unique_ptr<SoWgpuRenderTarget> childTarget;
+  if (!useDirect) {
+    childTarget.reset(SoWgpuRenderTarget::createOffscreen(SbVec2i32(size[0], size[1])));
+    if (!childTarget || childTarget->getStatus() != SoWgpuRenderTarget::TARGET_READY) {
+      p->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
+      p->lastError = "Cannot create SoSceneTexture2 offscreen target";
+      return SoCallbackAction::ABORT;
+    }
   }
   SoWgpuRenderAction childAction(SbViewportRegion(size[0], size[1]));
+  childAction.pimpl->sceneTextureDirectTokens = p->sceneTextureDirectTokens;
+  childAction.pimpl->directPasses = p->directPasses;
+  childAction.pimpl->planOnly = useDirect;
   childAction.setRenderTarget(childTarget.get());
   childAction.setBackgroundColor(SbColor4f(background[0], background[1],
                                            background[2], background[3]));
@@ -459,6 +660,62 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
     return SoCallbackAction::ABORT;
   }
 
+#if defined(HAVE_WGPU_RUST_BRIDGE)
+  if (useDirect) {
+    if (!p->directPasses || !childAction.pimpl->hasLastValidPlan) {
+      p->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
+      p->lastError = "SoSceneTexture2 direct pass was not planned";
+      return SoCallbackAction::ABORT;
+    }
+    const SbVec2i32 passSize(size[0], size[1]);
+    const FramePlan & snapshot = childAction.pimpl->lastValidPlan;
+    uint64_t token = 0;
+    for (size_t i = 0; i < p->directPasses->size(); ++i) {
+      const SoWgpuRenderActionP::DirectPass & existing = (*p->directPasses)[i];
+      if (existing.size == passSize && sameDirectPlan(existing.plan, snapshot)) {
+        token = i + 1;
+        break;
+      }
+    }
+    if (!token) {
+      if (chargedBytes > maxBudgetBytes - *p->sceneTextureStagedBytes) {
+        p->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
+        p->lastError = "SoSceneTexture2 GPU attachment budget exceeds 64 MiB per apply";
+        return SoCallbackAction::ABORT;
+      }
+      *p->sceneTextureStagedBytes += chargedBytes;
+      SoWgpuRenderActionP::DirectPass pass;
+      pass.plan = std::move(childAction.pimpl->lastValidPlan);
+      pass.size = passSize;
+      p->directPasses->push_back(std::move(pass));
+      token = p->directPasses->size();
+    }
+    p->sceneTexturePixels.emplace_back(4, 0);
+    std::vector<uint8_t> & marker = p->sceneTexturePixels.back();
+    for (unsigned int i = 0; i < 4; ++i) marker[i] = static_cast<uint8_t>(token >> (i * 8));
+    SoMultiTextureImageElement::set(state, const_cast<SoSceneTexture2 *>(texture), 0,
+      SbVec2s(1, 1), 4, marker.data(),
+      static_cast<SoMultiTextureImageElement::Wrap>(texture->wrapS.getValue()),
+      static_cast<SoMultiTextureImageElement::Wrap>(texture->wrapT.getValue()),
+      SoMultiTextureImageElement::MODULATE, texture->blendColor.getValue());
+    SbVec2s markerSize;
+    int markerComponents = 0;
+    SoMultiTextureImageElement::Wrap ws, wt;
+    SoMultiTextureImageElement::Model model;
+    SbColor blend;
+    const unsigned char * image = SoMultiTextureImageElement::get(
+      state, 0, markerSize, markerComponents, ws, wt, model, blend);
+    if (!image || markerSize != SbVec2s(1, 1) || markerComponents != 4) {
+      p->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
+      p->lastError = "SoSceneTexture2 direct GPU marker was not retained by traversal state";
+      return SoCallbackAction::ABORT;
+    }
+    p->builder.registerDirectTexture(image, token,
+      static_cast<uint32_t>(size[0]), static_cast<uint32_t>(size[1]), background[3] >= 1.0f);
+    SoMultiTextureEnabledElement::set(state, const_cast<SoSceneTexture2 *>(texture), 0, TRUE);
+    return SoCallbackAction::CONTINUE;
+  }
+#endif
   std::vector<uint8_t> pixels;
   childTarget->readbackRGBA(pixels);
   const size_t required = size_t(size[0]) * size_t(size[1]) * 4;

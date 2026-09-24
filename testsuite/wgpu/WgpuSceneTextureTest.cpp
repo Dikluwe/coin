@@ -16,8 +16,12 @@
 #include <Inventor/nodes/SoTextureCoordinate2.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
+#if defined(HAVE_WGPU_RUST_BRIDGE)
+#include "rendering/wgpu/coin_wgpu_ffi.h"
+#endif
 
 #include <cstdint>
+#include <cstdlib>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -126,6 +130,47 @@ int main() {
              baseline[lower + 2] > baseline[lower],
              "scene texture has incorrect colors or vertical orientation", action)) return 1;
 
+#if defined(HAVE_WGPU_RUST_BRIDGE)
+  const char * sharingMode = std::getenv("COIN_WGPU_RTT_GPU_DIRECT");
+  if (sharingMode && sharingMode[0] == '1' && sharingMode[1] == '\0') {
+    SoSeparator * secondConsumer = makeTexturedQuad(sceneTexture);
+    parent->addChild(secondConsumer);
+    CoinWgpuCacheStats beforeSharedProducer{};
+    coin_wgpu_get_cache_stats(&beforeSharedProducer);
+    action.apply(parent);
+    CoinWgpuCacheStats afterSharedProducer{};
+    coin_wgpu_get_cache_stats(&afterSharedProducer);
+    std::vector<uint8_t> sharedPixels;
+    target->readbackRGBA(sharedPixels);
+    if (afterSharedProducer.submission_serial != beforeSharedProducer.submission_serial + 2 ||
+        sharedPixels != baseline) {
+      std::cerr << "shared RTT submits="
+                << (afterSharedProducer.submission_serial - beforeSharedProducer.submission_serial)
+                << " pixelsEqual=" << (sharedPixels == baseline) << "\n";
+    }
+    if (!check(action.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
+               afterSharedProducer.submission_serial == beforeSharedProducer.submission_serial + 2 &&
+               sharedPixels == baseline,
+               "equivalent consumers did not share one GPU producer", action)) return 1;
+    parent->removeChild(secondConsumer);
+    SoSceneTexture2 * differentProducer = new SoSceneTexture2;
+    differentProducer->size.setValue(32, 32);
+    differentProducer->scene.setValue(child);
+    differentProducer->backgroundColor.setValue(0, 1, 0, 1);
+    differentProducer->type.setValue(SoSceneTexture2::RGBA8);
+    SoSeparator * differentConsumer = makeTexturedQuad(differentProducer);
+    parent->addChild(differentConsumer);
+    CoinWgpuCacheStats beforeDifferentProducer{};
+    coin_wgpu_get_cache_stats(&beforeDifferentProducer);
+    action.apply(parent);
+    CoinWgpuCacheStats afterDifferentProducer{};
+    coin_wgpu_get_cache_stats(&afterDifferentProducer);
+    if (!check(action.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
+               afterDifferentProducer.submission_serial == beforeDifferentProducer.submission_serial + 3,
+               "producers with different clear colors were incorrectly shared", action)) return 1;
+    parent->removeChild(differentConsumer);
+  }
+#endif
   red->diffuseColor.setValue(0, 1, 0);
   action.apply(parent);
   std::vector<uint8_t> changedScene;
@@ -204,12 +249,25 @@ int main() {
   invalidSecond->scene.setValue(child);
   invalidSecond->type.setValue(SoSceneTexture2::DEPTH);
   parent->addChild(invalidSecond);
+#if defined(HAVE_WGPU_RUST_BRIDGE)
+  CoinWgpuCacheStats beforeInvalidPass{};
+  coin_wgpu_get_cache_stats(&beforeInvalidPass);
+#endif
   action.apply(parent);
   std::vector<uint8_t> afterFailure;
   target->readbackRGBA(afterFailure);
   if (!check(action.getLastStatus() == SoWgpuRenderAction::UNSUPPORTED &&
              afterFailure == nestedColor,
              "second-pass rejection changed published parent frame", action)) return 1;
+#if defined(HAVE_WGPU_RUST_BRIDGE)
+  const char * preflightMode = std::getenv("COIN_WGPU_RTT_GPU_DIRECT");
+  if (preflightMode && preflightMode[0] == '1' && preflightMode[1] == '\0') {
+    CoinWgpuCacheStats afterInvalidPass{};
+    coin_wgpu_get_cache_stats(&afterInvalidPass);
+    if (!check(afterInvalidPass.submission_serial == beforeInvalidPass.submission_serial,
+               "preflight submitted a child before rejecting the second pass", action)) return 1;
+  }
+#endif
   parent->removeChild(invalidSecond);
 
   sceneTexture->scene.setValue(parent);
@@ -229,6 +287,160 @@ int main() {
   target->readbackRGBA(resized);
   if (!check(resized.size() == 96u * 96u * 4u,
              "resized parent frame missing", action)) return 1;
+
+#if defined(HAVE_WGPU_RUST_BRIDGE)
+  const char * directMode = std::getenv("COIN_WGPU_RTT_GPU_DIRECT");
+  if (directMode && directMode[0] == '1' && directMode[1] == '\0') {
+    CoinWgpuPerformanceStats stats{};
+    coin_wgpu_get_performance_stats(&stats);
+    if (!check(stats.texture_uploaded_bytes == 0,
+               "direct RTT unexpectedly uploaded intermediate pixels", action)) return 1;
+
+    coin_wgpu_poll_device();
+    uint64_t activeRtt = UINT64_MAX;
+    uint64_t retiredRtt = UINT64_MAX;
+    coin_wgpu_rtt_resource_counts(&activeRtt, &retiredRtt);
+    if (!check(activeRtt == 0 && retiredRtt == 0,
+               "direct RTT resources were not retired after the completed parent frame", action)) return 1;
+    // The child is valid, but the parent viewport is not. Preflight must
+    // reject the complete graph before submitting even its first producer.
+    CoinWgpuCacheStats beforeBadParent{};
+    coin_wgpu_get_cache_stats(&beforeBadParent);
+    action.setViewportRegion(SbViewportRegion(64, 64));
+    action.apply(parent);
+    CoinWgpuCacheStats afterBadParent{};
+    coin_wgpu_get_cache_stats(&afterBadParent);
+    std::vector<uint8_t> afterBadParentPixels;
+    target->readbackRGBA(afterBadParentPixels);
+    if (!check(action.getLastStatus() == SoWgpuRenderAction::UNSUPPORTED &&
+               afterBadParent.submission_serial == beforeBadParent.submission_serial &&
+               afterBadParentPixels == resized,
+               "invalid parent was not rejected before child submit", action)) return 1;
+    action.setViewportRegion(SbViewportRegion(96, 96));
+    coin_wgpu_inject_fault(COIN_WGPU_DEVICE_LOST);
+    action.apply(parent);
+    coin_wgpu_inject_fault(COIN_WGPU_OK);
+    std::vector<uint8_t> afterLoss;
+    target->readbackRGBA(afterLoss);
+    if (!check(action.getLastStatus() == SoWgpuRenderAction::DEVICE_LOST &&
+               afterLoss == resized,
+               "device loss published a partial parent frame", action)) return 1;
+    action.apply(parent);
+    std::vector<uint8_t> recovered;
+    target->readbackRGBA(recovered);
+    if (!check(action.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
+               recovered == resized,
+               "direct RTT did not recover on the next apply", action)) return 1;
+    // Lose the device after a child GPU submit, before the parent submit.
+    for (int loss = 0; loss < 2; ++loss) {
+      CoinWgpuCacheStats beforeMidGraphLoss{};
+      coin_wgpu_get_cache_stats(&beforeMidGraphLoss);
+      coin_wgpu_inject_fault_after_submits(COIN_WGPU_DEVICE_LOST, 1);
+      action.apply(parent);
+      CoinWgpuCacheStats afterMidGraphLoss{};
+      coin_wgpu_get_cache_stats(&afterMidGraphLoss);
+      std::vector<uint8_t> midGraphPixels;
+      target->readbackRGBA(midGraphPixels);
+      uint64_t liveAfterLoss = UINT64_MAX;
+      uint64_t retiredAfterLoss = UINT64_MAX;
+      coin_wgpu_rtt_resource_counts(&liveAfterLoss, &retiredAfterLoss);
+      if (!check(action.getLastStatus() == SoWgpuRenderAction::DEVICE_LOST &&
+                 afterMidGraphLoss.submission_serial == beforeMidGraphLoss.submission_serial + 1 &&
+                 midGraphPixels == resized && liveAfterLoss == 0 && retiredAfterLoss == 0,
+                 "mid-graph device loss leaked a producer or published a partial frame", action)) return 1;
+      action.apply(parent);
+      std::vector<uint8_t> restoredAfterMidGraphLoss;
+      target->readbackRGBA(restoredAfterMidGraphLoss);
+      if (!check(action.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
+                 restoredAfterMidGraphLoss == resized,
+                 "mid-graph device loss did not recover on a new apply", action)) return 1;
+    }
+    // The child is already submitted; force loss while the parent waits
+    // for its own GPU work, before either color or depth is published.
+    coin_wgpu_inject_async_fault(COIN_WGPU_DEVICE_LOST);
+    action.apply(parent);
+    std::vector<uint8_t> afterParentSubmitLoss;
+    target->readbackRGBA(afterParentSubmitLoss);
+    uint64_t liveAfterParentLoss = UINT64_MAX;
+    uint64_t retiredAfterParentLoss = UINT64_MAX;
+    coin_wgpu_rtt_resource_counts(&liveAfterParentLoss, &retiredAfterParentLoss);
+    if (!check(action.getLastStatus() == SoWgpuRenderAction::DEVICE_LOST &&
+               afterParentSubmitLoss == resized &&
+               liveAfterParentLoss == 0 && retiredAfterParentLoss == 0,
+               "loss during parent submit leaked RTT or published a partial frame", action)) return 1;
+    action.apply(parent);
+    std::vector<uint8_t> recoveredAfterParentLoss;
+    target->readbackRGBA(recoveredAfterParentLoss);
+    if (!check(action.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
+               recoveredAfterParentLoss == resized,
+               "loss during parent submit did not recover", action)) return 1;
+    coin_wgpu_inject_fault_after_submits(COIN_WGPU_OUT_OF_MEMORY, 0);
+    action.apply(parent);
+    std::vector<uint8_t> afterChildOom;
+    target->readbackRGBA(afterChildOom);
+    if (!check(action.getLastStatus() == SoWgpuRenderAction::OUT_OF_MEMORY &&
+               afterChildOom == resized,
+               "OOM before child texture creation published a partial frame", action)) return 1;
+    action.apply(parent);
+    if (!check(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+               "OOM before child texture creation did not recover", action)) return 1;
+
+    coin_wgpu_inject_fault_after_submits(COIN_WGPU_OUT_OF_MEMORY, 1);
+    action.apply(parent);
+    std::vector<uint8_t> afterParentOom;
+    target->readbackRGBA(afterParentOom);
+    coin_wgpu_poll_device();
+    uint64_t liveAfterOom = UINT64_MAX, retiredAfterOom = UINT64_MAX;
+    coin_wgpu_rtt_resource_counts(&liveAfterOom, &retiredAfterOom);
+    if (!check(action.getLastStatus() == SoWgpuRenderAction::OUT_OF_MEMORY &&
+               afterParentOom == resized && liveAfterOom == 0 && retiredAfterOom == 0,
+               "OOM after child submit leaked RTT or published a partial frame", action)) return 1;
+    SoWgpuRenderTarget * replacement = SoWgpuRenderTarget::createOffscreen(SbVec2i32(96, 96));
+    if (!check(replacement && replacement->getStatus() == SoWgpuRenderTarget::TARGET_READY,
+               "cannot replace fatal OOM target", action)) return 1;
+    action.setRenderTarget(replacement);
+    delete target;
+    target = replacement;
+    action.apply(parent);
+    std::vector<uint8_t> recoveredAfterOom;
+    target->readbackRGBA(recoveredAfterOom);
+    if (!check(action.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
+               recoveredAfterOom == resized,
+               "OOM did not recover with a new target", action)) return 1;
+    const int32_t resourceFaults[] = {
+      COIN_WGPU_FAULT_RTT_COLOR_ALLOC,
+      COIN_WGPU_FAULT_RTT_COLOR_VIEW,
+      COIN_WGPU_FAULT_RTT_DEPTH_ALLOC,
+      COIN_WGPU_FAULT_RTT_BIND_GROUP
+    };
+    for (int32_t fault : resourceFaults) {
+      coin_wgpu_inject_fault(fault);
+      action.apply(parent);
+      coin_wgpu_inject_fault(COIN_WGPU_OK);
+      std::vector<uint8_t> afterResourceFault;
+      target->readbackRGBA(afterResourceFault);
+      coin_wgpu_poll_device();
+      uint64_t activeFaultRtt = UINT64_MAX, retiredFaultRtt = UINT64_MAX;
+      coin_wgpu_rtt_resource_counts(&activeFaultRtt, &retiredFaultRtt);
+      if (!check(action.getLastStatus() == SoWgpuRenderAction::OUT_OF_MEMORY &&
+                 afterResourceFault == resized &&
+                 activeFaultRtt == 0 && retiredFaultRtt == 0,
+                 "RTT resource failpoint leaked a texture or published a frame", action)) return 1;
+      SoWgpuRenderTarget * nextTarget = SoWgpuRenderTarget::createOffscreen(SbVec2i32(96, 96));
+      if (!check(nextTarget && nextTarget->getStatus() == SoWgpuRenderTarget::TARGET_READY,
+                 "cannot replace target after RTT resource fault", action)) return 1;
+      action.setRenderTarget(nextTarget);
+      delete target;
+      target = nextTarget;
+      action.apply(parent);
+      std::vector<uint8_t> afterResourceRecovery;
+      target->readbackRGBA(afterResourceRecovery);
+      if (!check(action.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
+                 afterResourceRecovery == resized,
+                 "RTT resource failpoint did not recover", action)) return 1;
+    }
+  }
+#endif
 
   delete target;
   parent->unref();

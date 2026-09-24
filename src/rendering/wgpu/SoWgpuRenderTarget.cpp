@@ -196,17 +196,22 @@ SoWgpuRenderTargetP::resize(const SbVec2i32 & newSize)
     this->lastError = "Target dimensions exceed maximum limits or overflow calculation";
     return false;
   }
-  size_t pixelCount = static_cast<size_t>(w * h);
-  try {
-    this->colorBuffer.assign(pixelCount * 4, 0);
-    this->depthBuffer.assign(pixelCount, 1.0f);
-  } catch (const std::bad_alloc &) {
-    this->size = SbVec2i32(0, 0);
+  if (this->directTextureOutput) {
     this->colorBuffer.clear();
     this->depthBuffer.clear();
-    this->status = SoWgpuRenderTarget::TARGET_ERROR;
-    this->lastError = "Out of memory allocating target buffers";
-    return false;
+  } else {
+    size_t pixelCount = static_cast<size_t>(w * h);
+    try {
+      this->colorBuffer.assign(pixelCount * 4, 0);
+      this->depthBuffer.assign(pixelCount, 1.0f);
+    } catch (const std::bad_alloc &) {
+      this->size = SbVec2i32(0, 0);
+      this->colorBuffer.clear();
+      this->depthBuffer.clear();
+      this->status = SoWgpuRenderTarget::TARGET_ERROR;
+      this->lastError = "Out of memory allocating target buffers";
+      return false;
+    }
   }
   this->size = newSize;
   this->status = SoWgpuRenderTarget::TARGET_READY;
@@ -414,7 +419,7 @@ SoWgpuRenderTargetP::executeFrameInternal(const FramePlan & frame,
     this->status = SoWgpuRenderTarget::TARGET_READY;
   }
 
-  if (this->kind == KIND_OFFSCREEN) {
+  if (this->kind == KIND_OFFSCREEN && !this->directTextureOutput) {
     size_t pixelCount = static_cast<size_t>(this->size[0] * this->size[1]);
     if (this->depthBuffer.size() != pixelCount) {
       this->depthBuffer.assign(pixelCount, 1.0f);
@@ -462,7 +467,7 @@ SoWgpuRenderTargetP::executeFrameInternal(const FramePlan & frame,
   }
 
   this->lastSubmissionSerial = res.submissionSerial;
-  this->synchronousReadbackValid = (outTicket == NULL);
+  this->synchronousReadbackValid = (outTicket == NULL && !this->directTextureOutput);
   this->status = SoWgpuRenderTarget::TARGET_READY;
   this->lastError.clear();
   return res;
@@ -482,6 +487,15 @@ SoWgpuRenderTarget *
 SoWgpuRenderTarget::createOffscreen(const SbVec2i32 & size)
 {
   SoWgpuRenderTarget * target = new SoWgpuRenderTarget();
+  target->pimpl->resize(size);
+  return target;
+}
+
+SoWgpuRenderTarget *
+SoWgpuRenderTargetP::createDirectOffscreen(const SbVec2i32 & size)
+{
+  SoWgpuRenderTarget * target = new SoWgpuRenderTarget();
+  target->pimpl->directTextureOutput = true;
   target->pimpl->resize(size);
   return target;
 }

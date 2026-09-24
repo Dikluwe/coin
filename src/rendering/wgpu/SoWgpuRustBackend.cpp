@@ -184,7 +184,8 @@ SoWgpuRustBackend::submitInternal(const FramePlan & frame, SoWgpuRenderTargetP &
     return SubmitResult(BackendStatus::UNSUPPORTED, this->lastError);
   }
   if (target.kind == SoWgpuRenderTargetP::KIND_OFFSCREEN) {
-    if (target.colorBuffer.empty() || target.size[0] <= 0 || target.size[1] <= 0) {
+    if ((!target.directTextureOutput && target.colorBuffer.empty()) ||
+        target.size[0] <= 0 || target.size[1] <= 0) {
       this->lastError = "Render target buffer is not allocated";
       return BackendStatus::NOT_READY;
     }
@@ -349,10 +350,10 @@ SoWgpuRustBackend::submitInternal(const FramePlan & frame, SoWgpuRenderTargetP &
     CoinWgpuTexture tp{};
     tp.width = t.width;
     tp.height = t.height;
-    tp.format = 0; // RGBA8_UNORM
-    tp.reserved = 0;
-    tp.content_digest = t.contentDigest;
-    tp.pixels = t.pixelsRgba.data();
+    tp.format = t.gpuToken ? 1 : 0; // Private RTT token or RGBA8 bytes.
+    tp.reserved = t.gpuToken && t.gpuOpaque ? 1 : 0;
+    tp.content_digest = t.gpuToken ? t.gpuToken : t.contentDigest;
+    tp.pixels = t.gpuToken ? nullptr : t.pixelsRgba.data();
     tp.pixel_bytes_len = static_cast<uint64_t>(t.pixelsRgba.size());
     texturesPod.push_back(tp);
   }
@@ -412,7 +413,11 @@ SoWgpuRustBackend::submitInternal(const FramePlan & frame, SoWgpuRenderTargetP &
     tPod.submission_serial = 0;
 
     // 7. Submit to WebGPU via FFI
-    if (outTicket) {
+    target.directTextureToken = 0;
+    if (target.directTextureOutput) {
+      if (outTicket) return SubmitResult(BackendStatus::UNSUPPORTED, "GPU-only RTT cannot request a readback ticket");
+      st = coin_wgpu_submit_texture(&tPod, &fView, &target.directTextureToken, errBuf, sizeof(errBuf));
+    } else if (outTicket) {
       CoinWgpuReadbackTicket bridgeTicket{};
       bridgeTicket.abi_version = COIN_WGPU_ABI_VERSION;
       bridgeTicket.struct_size = sizeof(bridgeTicket);

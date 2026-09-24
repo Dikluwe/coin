@@ -68,9 +68,18 @@ public:
   FramePlan lastValidPlan;
   // Owns staged scene-texture pixels for the entire parent traversal.
   std::deque<std::vector<uint8_t> > sceneTexturePixels;
-  // Shared by child actions during one top-level apply.
+  // Shared reservation for staged RGBA8 or direct color+depth attachments.
   std::shared_ptr<size_t> sceneTextureStagedBytes;
 
+  // Private Rust RTT tokens owned by the top-level apply, shared with children.
+  std::shared_ptr<std::vector<uint64_t> > sceneTextureDirectTokens;
+  struct DirectPass {
+    FramePlan plan;
+    SbVec2i32 size;
+  };
+  // Per-apply topological order; identifiers are one-based indices until submit.
+  std::shared_ptr<std::vector<DirectPass> > directPasses;
+  bool planOnly = false;
   bool hasLastValidPlan;
   bool isApplying;
   bool hasReentrancyError;

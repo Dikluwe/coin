@@ -26,6 +26,8 @@ public:
   SoWgpuRenderTarget::Status status{SoWgpuRenderTarget::TARGET_READY};
   SbVec2i32 size{0, 0};
   std::vector<uint8_t> colorBuffer; // RGBA8 (offscreen)
+  bool directTextureOutput{false}; // Private child pass: no CPU readback.
+  uint64_t directTextureToken{0};
   std::vector<float> depthBuffer;   // Depth [0, 1] (offscreen software / CPU fallback)
   uint32_t generation{0};
   bool synchronousReadbackValid{true};
@@ -39,6 +41,7 @@ public:
 
   bool initWindow(const SoWgpuNativeSurfaceDescriptor & desc, const SbVec2i32 & fbSize);
   bool resize(const SbVec2i32 & newSize);
+  static SoWgpuRenderTarget * createDirectOffscreen(const SbVec2i32 & size);
   void clear(float r, float g, float b, float a, float depthVal = 1.0f);
   void readbackRGBA(std::vector<uint8_t> & outRgba) const;
   void readbackDepth(std::vector<float> & outDepth) const;

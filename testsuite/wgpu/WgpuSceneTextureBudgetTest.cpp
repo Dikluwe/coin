@@ -15,6 +15,7 @@
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/rendering/SoWgpuRenderTarget.h>
 
+#include <cstdlib>
 #include <cstdint>
 #include <iostream>
 #include <string>
@@ -55,10 +56,13 @@ SoSeparator * makeChain(const std::vector<SbVec2s> & sizes,
     witness->setCallback(countTraversal, leafTraversalCount);
     child->addChild(witness);
   }
+  int passOrdinal = 0;
   for (std::vector<SbVec2s>::const_reverse_iterator it = sizes.rbegin();
        it != sizes.rend(); ++it) {
     SoSeparator * parent = new SoSeparator;
-    parent->addChild(makeTexture(*it, child));
+    SoSceneTexture2 * texture = makeTexture(*it, child);
+    texture->backgroundColor.setValue(float(++passOrdinal) / 10.0f, 0, 0, 1);
+    parent->addChild(texture);
     child = parent;
   }
   return child;
@@ -105,14 +109,16 @@ int main() {
   SoWgpuRenderAction action(SbViewportRegion(16, 16));
   action.setRenderTarget(target);
 
-  // Four 2048 x 2048 RGBA8 subpasses total exactly 64 MiB. The two
-  // skipped passes would push the apply over the limit if they were charged.
+  // Staged: four RGBA8 passes; direct: two color+depth passes. Each
+  // variant totals exactly 64 MiB. Skipped passes are not charged.
   SoSeparator * exactLimit = new SoSeparator;
   exactLimit->ref();
   exactLimit->addChild(makeSkippedByQuality());
   exactLimit->addChild(makeSkippedByOverride());
-  const std::vector<SbVec2s> fourLarge(4, SbVec2s(2048, 2048));
-  exactLimit->addChild(makeChain(fourLarge));
+  const char * directMode = std::getenv("COIN_WGPU_RTT_GPU_DIRECT");
+  const bool direct = directMode && directMode[0] == '1' && directMode[1] == '\0';
+  const std::vector<SbVec2s> exactLarge(direct ? 2 : 4, SbVec2s(2048, 2048));
+  exactLimit->addChild(makeChain(exactLarge));
 
   action.setBackgroundColor(SbColor4f(0.1f, 0.2f, 0.8f, 1.0f));
   action.apply(exactLimit);
@@ -124,9 +130,10 @@ int main() {
   if (!check(published.size() == 16u * 16u * 4u,
              "exact-boundary apply did not publish a frame", action)) return 1;
 
-  // The fifth nested subpass costs just four bytes. Its scene must not
-  // even be traversed once the shared reservation would exceed 64 MiB.
-  std::vector<SbVec2s> overLimit = fourLarge;
+  // One more nested subpass exceeds 64 MiB. Direct mode must capture the
+  // plan before deciding whether it shares a producer; staged mode can
+  // reject before entering that subscene.
+  std::vector<SbVec2s> overLimit = exactLarge;
   overLimit.push_back(SbVec2s(1, 1));
   int rejectedLeafTraversals = 0;
   SoSeparator * exceedsLimit = makeChain(overLimit, &rejectedLeafTraversals);
@@ -135,9 +142,15 @@ int main() {
   action.apply(exceedsLimit);
   std::vector<uint8_t> afterFailure;
   target->readbackRGBA(afterFailure);
-  if (!check(isBudgetError(action) && rejectedLeafTraversals == 0 &&
-             afterFailure == published,
-             "nested over-budget apply rendered a subpass or published a frame",
+  const bool rejectedAsExpected = isBudgetError(action) &&
+    rejectedLeafTraversals == (direct ? 1 : 0) && afterFailure == published;
+  if (!rejectedAsExpected) {
+    std::cerr << "budget diagnostic: status=" << action.getLastStatus()
+              << " leaf=" << rejectedLeafTraversals
+              << " preserved=" << (afterFailure == published) << "\n";
+  }
+  if (!check(rejectedAsExpected,
+             "nested over-budget apply submitted or published a frame",
              action)) return 1;
 
   // A rejected apply must not leave any budget charged to the next apply.
@@ -151,6 +164,36 @@ int main() {
              action)) return 1;
 
   exceedsLimit->unref();
+  if (direct) {
+    // Three occurrences but only two distinct 2048² producers cost 64 MiB.
+    // A fourth, distinct producer must be rejected without publishing.
+    SoSeparator * shared = new SoSeparator;
+    shared->ref();
+    SoSceneTexture2 * first = makeTexture(SbVec2s(2048, 2048), new SoSeparator);
+    first->backgroundColor.setValue(1, 0, 0, 1);
+    SoSceneTexture2 * second = makeTexture(SbVec2s(2048, 2048), new SoSeparator);
+    second->backgroundColor.setValue(0, 1, 0, 1);
+    shared->addChild(first);
+    shared->addChild(first);
+    shared->addChild(second);
+    action.apply(shared);
+    if (!check(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+               "shared producer was charged twice at the 64 MiB boundary",
+               action)) return 1;
+    std::vector<uint8_t> sharedFrame;
+    target->readbackRGBA(sharedFrame);
+
+    SoSceneTexture2 * third = makeTexture(SbVec2s(2048, 2048), new SoSeparator);
+    third->backgroundColor.setValue(0, 0, 1, 1);
+    shared->addChild(third);
+    action.apply(shared);
+    std::vector<uint8_t> afterSharedFailure;
+    target->readbackRGBA(afterSharedFailure);
+    if (!check(isBudgetError(action) && afterSharedFailure == sharedFrame,
+               "distinct producer exceeded the 64 MiB limit without rollback",
+               action)) return 1;
+    shared->unref();
+  }
   exactLimit->unref();
   delete target;
   std::cout << "WgpuSceneTextureBudgetTest passed\n";

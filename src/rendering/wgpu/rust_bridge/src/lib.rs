@@ -13,7 +13,7 @@ use std::sync::Mutex;
 
 mod composition;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 12;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 14;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 pub type CoinWgpuSurfaceId = u64;
@@ -123,7 +123,7 @@ pub struct CoinWgpuMaterial {
 pub struct CoinWgpuTexture {
     pub width: u32,
     pub height: u32,
-    pub format: u32, // 0 = RGBA8_UNORM
+    pub format: u32, // 0 = RGBA8_UNORM bytes; 1 = private GPU RTT token
     pub reserved: u32,
     pub content_digest: u64,
     pub pixels: *const u8,
@@ -264,6 +264,7 @@ pub struct CoinWgpuReadbackTicket {
     pub depth_bytes: u64,
 }
 
+static NEXT_RTT_TOKEN: AtomicU64 = AtomicU64::new(1);
 static NEXT_READBACK_TOKEN: AtomicU64 = AtomicU64::new(1);
 static GLOBAL_SUBMISSION_SERIAL: AtomicU64 = AtomicU64::new(1);
 static GLOBAL_COMPLETED_SERIAL: AtomicU64 = AtomicU64::new(0);
@@ -432,6 +433,27 @@ struct TextureCache {
     evictions: u64,
 }
 
+struct RttTexture {
+    #[allow(dead_code)] // The GPU handle is retained for lifetime, not read on the CPU.
+    texture: wgpu::Texture,
+    view: wgpu::TextureView,
+    width: u32,
+    height: u32,
+    opaque: bool,
+}
+struct RetiredRttTexture {
+    #[allow(dead_code)] // Retirement keeps the view alive until the submission fence.
+    resource: RttTexture, // Retain both texture and view until the fence.
+    retired_at_serial: u64,
+}
+
+
+#[derive(Default)]
+struct RttRegistry {
+    active: HashMap<u64, RttTexture>,
+    retired: Vec<RetiredRttTexture>,
+}
+
 #[derive(Hash, PartialEq, Eq, Clone, Copy, Debug)]
 struct SamplerKey {
     wrap_s: u32,
@@ -463,6 +485,7 @@ struct DeviceState {
     default_sampler: wgpu::Sampler,
     texture_cache: Mutex<TextureCache>,
     sampler_cache: Mutex<SamplerCache>,
+    rtt_textures: Mutex<RttRegistry>,
 }
 
 struct SurfaceRecord {
@@ -552,6 +575,8 @@ static NEXT_SURFACE_ID: AtomicU64 = AtomicU64::new(1);
 static FAULT_INJECTION: AtomicI32 = AtomicI32::new(0);
 static FAULT_INJECTION_ASYNC: AtomicI32 = AtomicI32::new(0);
 
+static FAULT_AFTER_SUBMITS: AtomicI32 = AtomicI32::new(-1);
+static FAULT_AFTER_CODE: AtomicI32 = AtomicI32::new(0);
 // Fault injection codes for surface
 pub const FAULT_SURFACE_TIMEOUT: i32 = 101;
 pub const FAULT_SURFACE_OUTDATED_ONCE: i32 = 102;
@@ -561,6 +586,10 @@ pub const FAULT_SURFACE_OUT_OF_MEMORY: i32 = 105;
 pub const FAULT_SURFACE_OTHER: i32 = 106;
 pub const FAULT_CONFIGURE_FAILURE: i32 = 107;
 pub const FAULT_CACHE_ALLOC_FAIL: i32 = 201;
+pub const FAULT_RTT_COLOR_ALLOC: i32 = 301;
+pub const FAULT_RTT_COLOR_VIEW: i32 = 302;
+pub const FAULT_RTT_DEPTH_ALLOC: i32 = 303;
+pub const FAULT_RTT_BIND_GROUP: i32 = 304;
 
 static FAULT_SURFACE_OUTDATED_COUNT: AtomicI32 = AtomicI32::new(0);
 static FAULT_SURFACE_LOST_COUNT: AtomicI32 = AtomicI32::new(0);
@@ -960,6 +989,7 @@ fn get_or_init_device<'a>(
         default_sampler,
         texture_cache: Mutex::new(TextureCache::default()),
         sampler_cache: Mutex::new(SamplerCache::default()),
+        rtt_textures: Mutex::new(RttRegistry::default()),
     });
 
     Ok(runtime.device_state.as_mut().unwrap())
@@ -1252,6 +1282,8 @@ fn encode_frame(
 
     let mut tex_cache = ctx.texture_cache.lock().unwrap();
     let mut samp_cache = ctx.sampler_cache.lock().unwrap();
+    let mut rtt_cache = ctx.rtt_textures.lock().unwrap();
+    rtt_cache.retired.retain(|retired| retired.retired_at_serial > completed_serial);
 
     // Drain safely retired textures whose work on GPU has completed
     tex_cache.retired.retain(|retired| {
@@ -1267,6 +1299,23 @@ fn encode_frame(
                 CoinWgpuStatus::InvalidArgument,
                 format!("Texture {} dimensions invalid: {}x{}", t_idx, t.width, t.height),
             ));
+        }
+        if t.format == 1 {
+            let entry = rtt_cache.active.get(&t.content_digest).ok_or_else(|| (
+                CoinWgpuStatus::InvalidArgument,
+                format!("Texture {} has stale or unknown RTT token", t_idx),
+            ))?;
+            if entry.width != t.width || entry.height != t.height
+                || t.reserved != u32::from(entry.opaque)
+                || !t.pixels.is_null() || t.pixel_bytes_len != 0 {
+                return Err((CoinWgpuStatus::InvalidArgument,
+                    format!("Texture {} RTT token metadata mismatch", t_idx)));
+            }
+            continue;
+        }
+        if t.format != 0 {
+            return Err((CoinWgpuStatus::Unsupported,
+                format!("Texture {} format is unsupported", t_idx)));
         }
         let expected_bytes = match (t.width as u64).checked_mul(t.height as u64).and_then(|x| x.checked_mul(4)) {
             Some(sz) => sz,
@@ -1735,7 +1784,13 @@ fn encode_frame(
                     wrap_t: s.wrap_t,
                     filter: s.filter,
                 };
-                let view_ref = tex_cache.entries.get(&t_key).map(|e| &e.view).unwrap_or(&ctx.default_texture_view);
+                let view_ref = if t.format == 1 {
+                    &rtt_cache.active.get(&t.content_digest)
+                        .expect("RTT token preflighted before encoding").view
+                } else {
+                    tex_cache.entries.get(&t_key).map(|e| &e.view)
+                        .unwrap_or(&ctx.default_texture_view)
+                };
                 let samp_ref = samp_cache.entries.get(&s_key).unwrap_or(&ctx.default_sampler);
                 (view_ref, samp_ref)
             } else {
@@ -1773,7 +1828,7 @@ fn encode_frame(
                 tex_params: [
                     if st.has_texture != 0 { 1.0 } else { 0.0 },
                     st.texture_model as f32,
-                    0.0,
+                    if st.has_texture != 0 && textures_slice[st.texture_slot as usize].format == 1 { 1.0 } else { 0.0 },
                     0.0,
                 ],
                 ambient_light: st.ambient_light,
@@ -1796,6 +1851,11 @@ fn encode_frame(
                     usage: wgpu::BufferUsages::UNIFORM,
                 });
 
+            if st.has_texture != 0 &&
+                FAULT_INJECTION.load(Ordering::SeqCst) == FAULT_RTT_BIND_GROUP {
+                return Err((CoinWgpuStatus::OutOfMemory,
+                    "Injected RTT bind-group creation failure".to_string()));
+            }
             let bind_group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
                 label: Some("Draw Bind Group"),
                 layout: &ctx.bind_group_layout,
@@ -1917,6 +1977,12 @@ pub extern "C" fn coin_wgpu_get_adapter_info(buffer: *mut std::os::raw::c_char, 
 #[no_mangle]
 pub extern "C" fn coin_wgpu_inject_fault(fault_code: i32) {
     FAULT_INJECTION.store(fault_code, Ordering::SeqCst);
+}
+#[no_mangle]
+pub extern "C" fn coin_wgpu_inject_fault_after_submits(fault_code: i32, skipped_submits: u32) {
+    let remaining = if fault_code == 0 { -1 } else { skipped_submits.min(i32::MAX as u32) as i32 };
+    FAULT_AFTER_CODE.store(fault_code, Ordering::SeqCst);
+    FAULT_AFTER_SUBMITS.store(remaining, Ordering::SeqCst);
 }
 
 #[no_mangle]
@@ -2739,12 +2805,21 @@ fn coin_wgpu_submit_internal(
     target: *mut CoinWgpuTarget,
     frame: *const CoinWgpuFrameView,
     out_ticket: *mut CoinWgpuReadbackTicket,
+    out_texture: *mut u64,
     error_buf: *mut std::os::raw::c_char,
     error_buf_len: usize,
 ) -> CoinWgpuStatus {
     let res = std::panic::catch_unwind(|| {
         // 1. Fault injection check
-        let fault = FAULT_INJECTION.load(Ordering::SeqCst);
+        let delayed = FAULT_AFTER_SUBMITS.fetch_update(
+            Ordering::SeqCst, Ordering::SeqCst,
+            |remaining| if remaining >= 0 { Some(remaining - 1) } else { None },
+        ).ok() == Some(0);
+        let fault = if delayed {
+            FAULT_AFTER_CODE.swap(0, Ordering::SeqCst)
+        } else {
+            FAULT_INJECTION.load(Ordering::SeqCst)
+        };
         if fault == CoinWgpuStatus::NotReady as i32 {
             set_error(error_buf, error_buf_len, "Injected NOT_READY fault");
             return CoinWgpuStatus::NotReady;
@@ -2804,6 +2879,13 @@ fn coin_wgpu_submit_internal(
                 return CoinWgpuStatus::InvalidArgument;
             }
             ticket.token = 0;
+        }
+        if !out_texture.is_null() {
+            if !out_ticket.is_null() || (out_texture as usize) % std::mem::align_of::<u64>() != 0 {
+                set_error(error_buf, error_buf_len, "Invalid RTT output token pointer");
+                return CoinWgpuStatus::InvalidArgument;
+            }
+            unsafe { *out_texture = 0; }
         }
         let tgt = unsafe { &mut *target };
         let f = unsafe { &*frame };
@@ -2889,7 +2971,7 @@ fn coin_wgpu_submit_internal(
             }
         };
 
-        if out_ticket.is_null()
+        if out_ticket.is_null() && out_texture.is_null()
             && (tgt.color_buffer.is_null() || tgt.color_buffer_len < required_target_len) {
             set_error(
                 error_buf,
@@ -3107,6 +3189,11 @@ fn coin_wgpu_submit_internal(
         };
         let ctx = unsafe { &mut *device_state };
 
+
+        if !out_texture.is_null() && ctx.rtt_textures.lock().unwrap().active.len() >= 64 {
+            set_error(error_buf, error_buf_len, "Too many active RTT textures");
+            return CoinWgpuStatus::OutOfMemory;
+        }
         // 8. Create target textures for offscreen
         let texture_desc = wgpu::TextureDescriptor {
             label: Some("Offscreen Color Texture"),
@@ -3119,10 +3206,18 @@ fn coin_wgpu_submit_internal(
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Rgba8Unorm,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::TEXTURE_BINDING,
             view_formats: &[],
         };
+        if fault == FAULT_RTT_COLOR_ALLOC && !out_texture.is_null() {
+            set_error(error_buf, error_buf_len, "Injected RTT color texture allocation failure");
+            return CoinWgpuStatus::OutOfMemory;
+        }
         let color_texture = ctx.device.create_texture(&texture_desc);
+        if fault == FAULT_RTT_COLOR_VIEW && !out_texture.is_null() {
+            set_error(error_buf, error_buf_len, "Injected RTT color view creation failure");
+            return CoinWgpuStatus::OutOfMemory;
+        }
         let color_view = color_texture.create_view(&wgpu::TextureViewDescriptor::default());
 
         let depth_desc = wgpu::TextureDescriptor {
@@ -3140,6 +3235,10 @@ fn coin_wgpu_submit_internal(
             view_formats: &[],
         };
         let depth_texture = ctx.device.create_texture(&depth_desc);
+        if fault == FAULT_RTT_DEPTH_ALLOC && !out_texture.is_null() {
+            set_error(error_buf, error_buf_len, "Injected RTT depth attachment failure");
+            return CoinWgpuStatus::OutOfMemory;
+        }
         let depth_view = depth_texture.create_view(&wgpu::TextureViewDescriptor::default());
 
         // 9. Encode draw calls with the exact same shared encode_frame
@@ -3164,6 +3263,30 @@ fn coin_wgpu_submit_internal(
                 return status;
             }
         };
+
+        if !out_texture.is_null() {
+            let token = NEXT_RTT_TOKEN.fetch_add(1, Ordering::SeqCst);
+            if token == 0 {
+                set_error(error_buf, error_buf_len, "RTT token space exhausted");
+                return CoinWgpuStatus::OutOfMemory;
+            }
+            let serial = GLOBAL_SUBMISSION_SERIAL.fetch_add(1, Ordering::SeqCst);
+            LAST_SUBMITTED_SERIAL.store(serial, Ordering::SeqCst);
+            ctx.queue.submit([cmd_buffer]);
+            ctx.queue.on_submitted_work_done(move || {
+                GLOBAL_COMPLETED_SERIAL.store(serial, Ordering::SeqCst);
+            });
+            ctx.rtt_textures.lock().unwrap().active.insert(token, RttTexture {
+                texture: color_texture,
+                opaque: f.clear_color[3] >= 1.0,
+                view: color_view,
+                width,
+                height,
+            });
+            tgt.submission_serial = serial;
+            unsafe { *out_texture = token; }
+            return CoinWgpuStatus::Ok;
+        }
 
         // 10. Copy to staging buffer for readback
         let staging_size = (bytes_per_row as u64) * (height as u64);
@@ -3454,9 +3577,65 @@ pub extern "C" fn coin_wgpu_submit(
     error_buf: *mut std::os::raw::c_char,
     error_buf_len: usize,
 ) -> CoinWgpuStatus {
-    coin_wgpu_submit_internal(target, frame, std::ptr::null_mut(), error_buf, error_buf_len)
+    coin_wgpu_submit_internal(target, frame, std::ptr::null_mut(), std::ptr::null_mut(), error_buf, error_buf_len)
 }
 
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_submit_texture(
+    target: *mut CoinWgpuTarget,
+    frame: *const CoinWgpuFrameView,
+    out_token: *mut u64,
+    error_buf: *mut std::os::raw::c_char,
+    error_buf_len: usize,
+) -> CoinWgpuStatus {
+    if out_token.is_null() || (out_token as usize) % std::mem::align_of::<u64>() != 0 {
+        set_error(error_buf, error_buf_len, "Null or misaligned RTT output token pointer");
+        return CoinWgpuStatus::InvalidArgument;
+    }
+    unsafe { *out_token = 0; }
+    coin_wgpu_submit_internal(target, frame, std::ptr::null_mut(), out_token, error_buf, error_buf_len)
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_release_texture(token: u64) {
+    let _ = std::panic::catch_unwind(|| {
+        if token == 0 { return; }
+        if let Ok(mut guard) = RUNTIME_CTX.lock() {
+            if let Some(runtime) = guard.as_mut() {
+                if let Some(ctx) = runtime.device_state.as_mut() {
+                    if let Ok(mut textures) = ctx.rtt_textures.lock() {
+                        if let Some(entry) = textures.active.remove(&token) {
+                            let serial = LAST_SUBMITTED_SERIAL.load(Ordering::SeqCst);
+                            if GLOBAL_COMPLETED_SERIAL.load(Ordering::SeqCst) < serial {
+                                textures.retired.push(RetiredRttTexture {
+                                    resource: entry,
+                                    retired_at_serial: serial,
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_rtt_resource_counts(active: *mut u64, retired: *mut u64) {
+    if (!active.is_null() && (active as usize) % std::mem::align_of::<u64>() != 0)
+        || (!retired.is_null() && (retired as usize) % std::mem::align_of::<u64>() != 0) {
+        return;
+    }
+    let (a, r) = std::panic::catch_unwind(|| {
+        let guard = RUNTIME_CTX.lock().ok()?;
+        let ctx = guard.as_ref()?.device_state.as_ref()?;
+        let textures = ctx.rtt_textures.lock().ok()?;
+        Some((textures.active.len() as u64, textures.retired.len() as u64))
+    }).ok().flatten().unwrap_or((0, 0));
+    if !active.is_null() { unsafe { *active = a; } }
+    if !retired.is_null() { unsafe { *retired = r; } }
+}
 #[no_mangle]
 pub extern "C" fn coin_wgpu_submit_async(
     target: *mut CoinWgpuTarget,
@@ -3469,7 +3648,7 @@ pub extern "C" fn coin_wgpu_submit_async(
         set_error(error_buf, error_buf_len, "Null async readback ticket pointer");
         return CoinWgpuStatus::InvalidArgument;
     }
-    coin_wgpu_submit_internal(target, frame, out_ticket, error_buf, error_buf_len)
+    coin_wgpu_submit_internal(target, frame, out_ticket, std::ptr::null_mut(), error_buf, error_buf_len)
 }
 
 fn check_readback_ready(
@@ -3754,6 +3933,9 @@ pub extern "C" fn coin_wgpu_poll_device() {
                     let _ = dev.device.poll(wgpu::Maintain::Poll);
                     let completed = GLOBAL_COMPLETED_SERIAL.load(Ordering::SeqCst);
                     if let Ok(mut textures) = dev.texture_cache.lock() {
+                        textures.retired.retain(|entry| entry.retired_at_serial > completed);
+                    }
+                    if let Ok(mut textures) = dev.rtt_textures.lock() {
                         textures.retired.retain(|entry| entry.retired_at_serial > completed);
                     }
                 }

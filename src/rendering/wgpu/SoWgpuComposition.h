@@ -74,8 +74,9 @@ coin_wgpu_composition_order(const FramePlan & frame,
       }
       int8_t & cached = textureHasAlpha[rs.textureImageSlot];
       if (cached < 0) {
-        const std::vector<uint8_t> & pixels = frame.textures[rs.textureImageSlot].pixelsRgba;
-        cached = 0;
+        const TextureImageSnapshot & texture = frame.textures[rs.textureImageSlot];
+        const std::vector<uint8_t> & pixels = texture.pixelsRgba;
+        cached = texture.gpuToken != 0 && !texture.gpuOpaque ? 1 : 0;
         for (size_t byte = 3; byte < pixels.size(); byte += 4) {
           if (pixels[byte] != 255) { cached = 1; break; }
         }

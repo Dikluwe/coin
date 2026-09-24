@@ -136,6 +136,8 @@ struct TextureImageSnapshot {
   uint32_t height = 0;
   uint32_t components = 4; // Canonical RGBA8Unorm
   uint64_t contentDigest = 0;
+  uint64_t gpuToken = 0; // Private Rust RTT resource; zero means CPU pixels.
+  bool gpuOpaque = false; // Proven by an opaque child clear and alpha-preserving blend.
   std::vector<uint8_t> pixelsRgba;
 };
 
@@ -281,8 +283,12 @@ struct FramePlan {
         return false;
       }
       uint64_t expectedBytes = static_cast<uint64_t>(tex.width) * static_cast<uint64_t>(tex.height) * 4ULL;
-      if (tex.pixelsRgba.size() != expectedBytes) {
+      if (tex.gpuToken == 0 && tex.pixelsRgba.size() != expectedBytes) {
         if (outDiagnostic) *outDiagnostic = "Texture pixel buffer size mismatch";
+        return false;
+      }
+      if (tex.gpuToken != 0 && !tex.pixelsRgba.empty()) {
+        if (outDiagnostic) *outDiagnostic = "GPU texture must not carry CPU pixels";
         return false;
       }
     }

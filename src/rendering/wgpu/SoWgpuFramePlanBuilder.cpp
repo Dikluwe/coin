@@ -70,8 +70,16 @@ SoWgpuFramePlanBuilder::reset()
   this->hasError = false;
   this->isUnsupported = false;
   this->builderError.clear();
+  this->directTextures.clear();
   this->nodeOccurrenceCount.clear();
   this->lightAttenuationByIndex.clear();
+}
+
+void
+SoWgpuFramePlanBuilder::registerDirectTexture(const unsigned char * image,
+                                               uint64_t token, uint32_t width, uint32_t height, bool opaque)
+{
+  this->directTextures[image] = DirectTexture{token, width, height, opaque};
 }
 
 void
@@ -265,8 +273,19 @@ SoWgpuFramePlanBuilder::captureTexture(SoCallbackAction * action, RenderStateSna
   }
 
   // 7. Canonical RGBA8 conversion and strict opacity validation
-  uint32_t w = static_cast<uint32_t>(imgSize[0]);
-  uint32_t h = static_cast<uint32_t>(imgSize[1]);
+  const auto direct = this->directTextures.find(rawBytes);
+  bool isDirect = direct != this->directTextures.end() &&
+                  imgSize[0] == 1 && imgSize[1] == 1 && numComponents == 4;
+  if (isDirect) {
+    for (unsigned int i = 0; i < 4; ++i) {
+      if (rawBytes[i] != static_cast<uint8_t>(direct->second.token >> (i * 8))) {
+        isDirect = false;
+        break;
+      }
+    }
+  }
+  uint32_t w = isDirect ? direct->second.width : static_cast<uint32_t>(imgSize[0]);
+  uint32_t h = isDirect ? direct->second.height : static_cast<uint32_t>(imgSize[1]);
   if (w > 8192 || h > 8192) {
     if (outError) *outError = "Texture dimensions exceed 8192";
     this->isUnsupported = true;
@@ -274,54 +293,60 @@ SoWgpuFramePlanBuilder::captureTexture(SoCallbackAction * action, RenderStateSna
     return false;
   }
 
-  size_t pixelCount = static_cast<size_t>(w) * static_cast<size_t>(h);
-  std::vector<uint8_t> rgba(pixelCount * 4);
+  std::vector<uint8_t> rgba;
+  if (!isDirect) {
+    size_t pixelCount = static_cast<size_t>(w) * static_cast<size_t>(h);
+    rgba.resize(pixelCount * 4);
 
-  if (numComponents == 1) {
-    for (size_t i = 0; i < pixelCount; ++i) {
-      uint8_t val = rawBytes[i];
-      rgba[i * 4 + 0] = val;
-      rgba[i * 4 + 1] = val;
-      rgba[i * 4 + 2] = val;
-      rgba[i * 4 + 3] = 255;
+    if (numComponents == 1) {
+      for (size_t i = 0; i < pixelCount; ++i) {
+        uint8_t val = rawBytes[i];
+        rgba[i * 4 + 0] = val;
+        rgba[i * 4 + 1] = val;
+        rgba[i * 4 + 2] = val;
+        rgba[i * 4 + 3] = 255;
+      }
+    } else if (numComponents == 2) {
+      for (size_t i = 0; i < pixelCount; ++i) {
+        uint8_t val = rawBytes[i * 2 + 0];
+        uint8_t alpha = rawBytes[i * 2 + 1];
+        rgba[i * 4 + 0] = val;
+        rgba[i * 4 + 1] = val;
+        rgba[i * 4 + 2] = val;
+        rgba[i * 4 + 3] = alpha;
+      }
+    } else if (numComponents == 3) {
+      for (size_t i = 0; i < pixelCount; ++i) {
+        rgba[i * 4 + 0] = rawBytes[i * 3 + 0];
+        rgba[i * 4 + 1] = rawBytes[i * 3 + 1];
+        rgba[i * 4 + 2] = rawBytes[i * 3 + 2];
+        rgba[i * 4 + 3] = 255;
+      }
+    } else if (numComponents == 4) {
+      for (size_t i = 0; i < pixelCount; ++i) {
+        uint8_t alpha = rawBytes[i * 4 + 3];
+        rgba[i * 4 + 0] = rawBytes[i * 4 + 0];
+        rgba[i * 4 + 1] = rawBytes[i * 4 + 1];
+        rgba[i * 4 + 2] = rawBytes[i * 4 + 2];
+        rgba[i * 4 + 3] = alpha;
+      }
+    } else {
+      if (outError)
+        *outError = "Unsupported number of texture components";
+      this->isUnsupported = true;
+      this->builderError =
+          (outError ? *outError : "Unsupported number of texture components");
+      return false;
     }
-  } else if (numComponents == 2) {
-    for (size_t i = 0; i < pixelCount; ++i) {
-      uint8_t val = rawBytes[i * 2 + 0];
-      uint8_t alpha = rawBytes[i * 2 + 1];
-      rgba[i * 4 + 0] = val;
-      rgba[i * 4 + 1] = val;
-      rgba[i * 4 + 2] = val;
-      rgba[i * 4 + 3] = alpha;
-    }
-  } else if (numComponents == 3) {
-    for (size_t i = 0; i < pixelCount; ++i) {
-      rgba[i * 4 + 0] = rawBytes[i * 3 + 0];
-      rgba[i * 4 + 1] = rawBytes[i * 3 + 1];
-      rgba[i * 4 + 2] = rawBytes[i * 3 + 2];
-      rgba[i * 4 + 3] = 255;
-    }
-  } else if (numComponents == 4) {
-    for (size_t i = 0; i < pixelCount; ++i) {
-      uint8_t alpha = rawBytes[i * 4 + 3];
-      rgba[i * 4 + 0] = rawBytes[i * 4 + 0];
-      rgba[i * 4 + 1] = rawBytes[i * 4 + 1];
-      rgba[i * 4 + 2] = rawBytes[i * 4 + 2];
-      rgba[i * 4 + 3] = alpha;
-    }
-  } else {
-    if (outError) *outError = "Unsupported number of texture components";
-    this->isUnsupported = true;
-    this->builderError = (outError ? *outError : "Unsupported number of texture components");
-    return false;
   }
 
   // 8. Content digest & Image deduplication
-  uint64_t digest = computeFnv1a64(rgba.data(), rgba.size());
+  uint64_t digest = isDirect ? direct->second.token : computeFnv1a64(rgba.data(), rgba.size());
   uint32_t texSlot = UINT32_MAX;
   for (size_t i = 0; i < this->currentPlan.textures.size(); ++i) {
     const auto & t = this->currentPlan.textures[i];
-    if (t.width == w && t.height == h && t.contentDigest == digest && t.pixelsRgba == rgba) {
+    if (t.width == w && t.height == h && t.contentDigest == digest &&
+        t.gpuToken == (isDirect ? direct->second.token : 0) && t.pixelsRgba == rgba) {
       texSlot = static_cast<uint32_t>(i);
       break;
     }
@@ -332,7 +357,9 @@ SoWgpuFramePlanBuilder::captureTexture(SoCallbackAction * action, RenderStateSna
     tSnap.width = w;
     tSnap.height = h;
     tSnap.components = 4;
+    tSnap.gpuOpaque = isDirect && direct->second.opaque;
     tSnap.contentDigest = digest;
+    tSnap.gpuToken = isDirect ? direct->second.token : 0;
     tSnap.pixelsRgba = std::move(rgba);
     this->currentPlan.textures.push_back(std::move(tSnap));
   }

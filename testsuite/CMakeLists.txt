@@ -394,6 +394,13 @@ if(COIN_BUILD_WGPU)
 	set_tests_properties(WgpuSceneTextureBudgetTest PROPERTIES TIMEOUT 240)
 
 	if(COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE")
+		add_test(NAME WgpuSceneTextureDirectTest COMMAND WgpuSceneTextureTest)
+		set_tests_properties(WgpuSceneTextureDirectTest PROPERTIES
+			TIMEOUT 30 ENVIRONMENT "COIN_WGPU_RTT_GPU_DIRECT=1")
+		add_test(NAME WgpuSceneTextureBudgetDirectTest COMMAND WgpuSceneTextureBudgetTest)
+		set_tests_properties(WgpuSceneTextureBudgetDirectTest PROPERTIES
+			TIMEOUT 240 ENVIRONMENT "COIN_WGPU_RTT_GPU_DIRECT=1")
+
 		add_executable(WgpuPerformanceTest wgpu/WgpuPerformanceTest.cpp)
 		set_target_properties(WgpuPerformanceTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 		target_link_libraries(WgpuPerformanceTest CoinWgpuExperimental Coin)
@@ -436,6 +443,12 @@ if(COIN_BUILD_WGPU)
 		)
 		add_test(NAME WgpuAsyncActionTest COMMAND WgpuAsyncActionTest)
 		set_tests_properties(WgpuAsyncActionTest PROPERTIES TIMEOUT 30)
+		add_test(NAME WgpuAsyncActionDirectTest COMMAND WgpuAsyncActionTest)
+		set_tests_properties(WgpuAsyncActionDirectTest PROPERTIES
+			TIMEOUT 30 ENVIRONMENT "COIN_WGPU_RTT_GPU_DIRECT=1")
+		add_test(NAME WgpuAsyncActionDirectStressTest COMMAND WgpuAsyncActionTest)
+		set_tests_properties(WgpuAsyncActionDirectStressTest PROPERTIES
+			TIMEOUT 240 ENVIRONMENT "COIN_WGPU_RTT_GPU_DIRECT=1;COIN_WGPU_RTT_STRESS=1")
 	endif()
 
 	if(COIN_TEST_WGPU_GL_REFERENCE)

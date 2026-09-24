@@ -120,21 +120,30 @@ pub(super) fn order(
                             format!("Draw {} texture size overflows", draw_index),
                         )
                     })?;
-                if texture.width == 0
-                    || texture.height == 0
-                    || texture.width > 8192
-                    || texture.height > 8192
-                    || texture.pixel_bytes_len != expected
-                    || texture.pixels.is_null()
-                {
-                    return Err((
-                        CoinWgpuStatus::InvalidArgument,
-                        format!("Draw {} texture pixels are invalid", draw_index),
-                    ));
+                if texture.width == 0 || texture.height == 0
+                    || texture.width > 8192 || texture.height > 8192 {
+                    return Err((CoinWgpuStatus::InvalidArgument,
+                        format!("Draw {} texture dimensions are invalid", draw_index)));
                 }
-                let pixels =
-                    unsafe { std::slice::from_raw_parts(texture.pixels, expected as usize) };
-                texture_alpha = pixels.chunks_exact(4).any(|pixel| pixel[3] != 255);
+                if texture.format == 1 {
+                    if texture.content_digest == 0 || !texture.pixels.is_null()
+                        || texture.pixel_bytes_len != 0 {
+                        return Err((CoinWgpuStatus::InvalidArgument,
+                            format!("Draw {} RTT token is invalid", draw_index)));
+                    }
+                    texture_alpha = texture.reserved == 0; // Opaque child clear is proven by producer.
+                } else if texture.format == 0 {
+                    if texture.pixel_bytes_len != expected || texture.pixels.is_null() {
+                        return Err((CoinWgpuStatus::InvalidArgument,
+                            format!("Draw {} texture pixels are invalid", draw_index)));
+                    }
+                    let pixels =
+                        unsafe { std::slice::from_raw_parts(texture.pixels, expected as usize) };
+                    texture_alpha = pixels.chunks_exact(4).any(|pixel| pixel[3] != 255);
+                } else {
+                    return Err((CoinWgpuStatus::Unsupported,
+                        format!("Draw {} texture format is unsupported", draw_index)));
+                }
                 texture_alpha_cache[slot] = Some(texture_alpha);
             }
         }

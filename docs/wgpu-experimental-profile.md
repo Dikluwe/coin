@@ -4,7 +4,7 @@ Esta implementação é opt-in (`COIN_BUILD_WGPU=ON`) e fica em
 `CoinWgpuExperimental`, separada de `libCoin`. A ação e o alvo de renderização
 estão em `experimental/include` para uso na árvore de build; não são API nem
 ABI pública instalada do Coin 4. A ponte C++/Rust é privada e versionada
-(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=12` nesta revisão). Não promova esses
+(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=14` nesta revisão). Não promova esses
 headers a consumidores externos como se fossem estáveis.
 
 ## Perfil implementado
@@ -18,7 +18,7 @@ headers a consumidores externos como se fossem estáveis.
 | Composição | Opacos primeiro e transparentes em pass separado, ordenados estavelmente por profundidade média em view space; depth write desligado para transparentes | Ordenação por triângulo, interseções e transparência independente da ordem |
 | Ambiente | Fog `NONE`, `HAZE`, `FOG` e `SMOKE` em distância de view space; fog depois de luz/textura e antes da composição, sem alterar alpha | Fórmulas ou estados de fog fora desses quatro modos |
 | Raster | Front face e backface culling de `SoShapeHints` em triângulos, inclusive reflexão | Culling de linhas/pontos (não aplicável ao pipeline dessas topologias) |
-| Alvos | Offscreen com cor/profundidade e janela X11 no backend Rust; readback síncrono atômico; `applyAsync` com ticket e query/poll/cancel; `SoSceneTexture2` RGBA8 staged em passes dependentes | RTT GPU→GPU direto, formatos/estados de `SoSceneTexture2` fora do perfil, readback assíncrono de janela e outros sistemas de janela |
+| Alvos | Offscreen com cor/profundidade e janela X11 no backend Rust; readback síncrono atômico; `applyAsync` com ticket e query/poll/cancel; `SoSceneTexture2` RGBA8 staged por padrão e GPU→GPU direto opt-in em offscreen Rust | Outros formatos/estados de `SoSceneTexture2`, RTT direto de janela, readback assíncrono de janela e outros sistemas de janela |
 
 Recursos não suportados devem produzir `UNSUPPORTED` e diagnóstico, não uma
 imagem aparentemente válida que ignore silenciosamente parte do estado. A
@@ -28,10 +28,11 @@ pixels exige GPU real e, opcionalmente, Coin/GL.
 A Onda 4 está **concluída no perfil mínimo delimitado**: 4A/4B,
 composição e render-to-texture staged de 4C, readback assíncrono offscreen
 de 4D e gates/medição de 4E. Não houve alteração da ABI pública do Coin 4.
-A subcena de `SoSceneTexture2` é renderizada em alvo offscreen; seus pixels
-RGBA8 passam por readback/upload antes do pass pai. GPU→GPU direto, formatos
-e estados adicionais de `SoSceneTexture2` continuam fora do perfil e não
-são apresentados como concluídos. A ponte privada Rust oferece
+Por padrão, a subcena de `SoSceneTexture2` passa por readback/upload
+antes do pai. No backend Rust offscreen, `COIN_WGPU_RTT_GPU_DIRECT=1`
+habilita a rota experimental GPU→GPU: o filho produz uma texture view
+amostrada pelo pai, sem transferência intermediária de pixels. Outros formatos
+e estados de `SoSceneTexture2` continuam fora do perfil. A ponte privada Rust oferece
 submit/query/poll/cancel de readback assíncrono, com token, geração, serial,
 formatos, pitch e publicação atômica de cor/profundidade.
 `SoWgpuRenderAction::applyAsync` devolve o ticket; as funções estáticas do
@@ -67,6 +68,43 @@ frame não é a solução final de recursos GPU compartilhados.
 aceitação exata de 64 MiB, rejeição antes do quinto subpass, preservação do
 frame publicado e orçamento novo no apply seguinte. Qualidade zero e override
 de imagem não consomem esse orçamento.
+
+
+## Caminho RTT GPU→GPU direto (4F experimental)
+
+Com `COIN_WGPU_RTT_GPU_DIRECT=1` e target offscreen Rust, a subcena
+`SoSceneTexture2` produz attachment RGBA8 com `TEXTURE_BINDING`. Dois
+consumidores compartilham o produtor somente quando tamanho e snapshot
+capturado coincidem integralmente; estados distintos não são colapsados.
+O pai amostra a view GPU e o shader ajusta V para manter a orientação Coin.
+O target filho não aloca color/depth CPU; não há readback, staging ou upload
+**intermediário**. Readback final do target pai continua disponível.
+Tokens são liberados ao fim do apply e retidos no bridge até o serial GPU
+seguro. O clear opaco prova alpha opaco; nos demais casos a composição trata
+a textura como potencialmente transparente.
+
+`WgpuSceneTextureDirectTest` cobre imagem, alpha, aninhamento, ciclo,
+resize, dois consumidores equivalentes ou distintos, zero bytes de upload
+intermediário e perda do device antes do filho, entre filho e pai e durante
+o submit pai. OOM é injetado antes e depois do filho; frame anterior e
+recursos são preservados/aposentados, com recuperação explícita no próximo
+apply ou em novo target. Falhas de criação de textura, view, depth e bind
+group também exigem rollback. `WgpuAsyncActionDirectStressTest` executa 1.024
+submits com tickets sobrepostos, mutação, troca de target e cancel/poll;
+`WgpuAsyncActionDirectTest` esvazia o cache de geometria com ticket pendente.
+
+Os passes filhos são capturados em ordem topológica; todos os planos
+(filhos e pai) são pré-validados antes do primeiro submit. Serial permanece
+inalterado após falha de pass ou perfil do pai. O limite de 64 MiB por
+apply conta RGBA8 staged por ocorrência ou color+depth32 por produtor único
+na rota direta. O caso de três ocorrências/dois produtores no limite e a
+rejeição de um terceiro produtor distinto estão cobertos por teste.
+O teto de oito níveis permanece; o bridge limita a 64 texturas RTT ativas.
+A rota permanece opt-in e restrita ao perfil offscreen RGBA8. O gate local
+passou 25/25 testes Rust e 14/14 Recording, build OFF, símbolos ON/OFF
+idênticos e `abidiff` sem remoções ou alterações contra `libCoin.so.80`.
+Quatro testes diretos passaram em ASan/UBSan com LeakSanitizer desativado:
+há vazamento global preexistente de 32 bytes em `SoDB::init`/`SoSFTime`.
 
 ## Evidência da 4D (ponte privada e action experimental)
 

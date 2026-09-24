@@ -18,7 +18,7 @@ struct Uniforms {
     light_color: vec4<f32>,
     params: vec4<f32>, // x=shininess, y=headlight, z=light_enabled, w=light_model
     texture_matrix: mat4x4<f32>,
-    tex_params: vec4<f32>, // x=has_texture, y=texture_model, z=unused, w=unused
+    tex_params: vec4<f32>, // x=has_texture, y=texture_model, z=direct RTT (flip V)
     fog_color_mode: vec4<f32>, // rgb and mode
     fog_range: vec4<f32>, // x=start, y=end
     ambient_light: vec4<f32>,
@@ -154,7 +154,8 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
     }
 
     if (u.tex_params.x > 0.5) {
-        let tex_col = textureSample(t_diffuse, s_diffuse, input.texcoord);
+        let uv = select(input.texcoord, vec2<f32>(input.texcoord.x, 1.0 - input.texcoord.y), u.tex_params.z > 0.5);
+        let tex_col = textureSample(t_diffuse, s_diffuse, uv);
         // MODULATE: multiply base color by texture sample before fog.
         base_color = vec4<f32>(base_color.rgb * tex_col.rgb,
                                base_color.a * tex_col.a);
