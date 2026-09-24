@@ -3,6 +3,7 @@
 #include "rendering/wgpu/SoWgpuComposition.h"
 
 #include <Inventor/actions/SoCallbackAction.h>
+#include <Inventor/caches/SoNormalCache.h>
 #include <Inventor/SoPrimitiveVertex.h>
 #include <Inventor/nodes/SoNode.h>
 #include <Inventor/nodes/SoLight.h>
@@ -16,6 +17,8 @@
 #include <Inventor/SbColor.h>
 #include <Inventor/misc/SoState.h>
 #include <Inventor/elements/SoShapeHintsElement.h>
+#include <Inventor/elements/SoCreaseAngleElement.h>
+#include <Inventor/elements/SoLightModelElement.h>
 #include <Inventor/elements/SoShapeStyleElement.h>
 #include <Inventor/elements/SoLazyElement.h>
 #include <Inventor/elements/SoMultiTextureImageElement.h>
@@ -27,6 +30,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <limits>
 
 SoWgpuFramePlanBuilder::SoWgpuFramePlanBuilder()
   : currentDrawIndex(0),
@@ -812,10 +816,11 @@ SoWgpuFramePlanBuilder::build(FramePlan & outPlan, std::string * outError)
 
 FastPathResult
 SoWgpuFramePlanBuilder::processIndexedFaceSet(SoCallbackAction * action,
-                                             const DirectGeometryView & view,
+                                             const DirectGeometryView & inputView,
                                              SoNode * node,
                                              std::string * outError)
 {
+  DirectGeometryView view = inputView;
   if (!action) {
     if (outError) *outError = "Null SoCallbackAction in processIndexedFaceSet";
     return FastPathResult::INVALID_SCENE;
@@ -960,6 +965,38 @@ SoWgpuFramePlanBuilder::processIndexedFaceSet(SoCallbackAction * action,
         return FastPathResult::INVALID_SCENE;
       }
     }
+  }
+
+  // Coin's GL path generates missing normals from creaseAngle. A geometric
+  // face normal combined with a coordinate-only deduplication key is wrong
+  // at a hard edge: the second face reuses the first face's vertex normal.
+  // Validate indices above before invoking SoNormalCache, which reads them.
+  SoNormalCache generatedNormals(NULL);
+  if (view.normals.empty() &&
+      (!state || SoLightModelElement::get(state) != SoLightModelElement::BASE_COLOR)) {
+    if (!state ||
+        (view.normalBinding != SoNormalBindingElement::PER_VERTEX &&
+         view.normalBinding != SoNormalBindingElement::PER_VERTEX_INDEXED) ||
+        numPositions > std::numeric_limits<unsigned int>::max() ||
+        numIndices > static_cast<size_t>(std::numeric_limits<int>::max())) {
+      return FastPathResult::FALLBACK_CONTINUE;
+    }
+    const SbBool ccw = SoShapeHintsElement::getVertexOrdering(state) !=
+      SoShapeHintsElement::CLOCKWISE;
+    const SbBool vrml1 = node && node->getNodeType() == SoNode::VRML1;
+    generatedNormals.generatePerVertex(
+      view.positions.data, static_cast<unsigned int>(numPositions),
+      view.coordIndex.data, static_cast<int>(numIndices),
+      SoCreaseAngleElement::get(state, vrml1), NULL, -1, ccw);
+    if (generatedNormals.getNum() <= 0 ||
+        generatedNormals.getNumIndices() != static_cast<int>(numIndices)) {
+      return FastPathResult::FALLBACK_CONTINUE;
+    }
+    view.normals = SoWgpuSpan<SbVec3f>(
+      generatedNormals.getNormals(), static_cast<size_t>(generatedNormals.getNum()));
+    view.normalIndex = SoWgpuSpan<int32_t>(
+      generatedNormals.getIndices(), static_cast<size_t>(generatedNormals.getNumIndices()));
+    view.normalBinding = SoNormalBindingElement::PER_VERTEX_INDEXED;
   }
 
   // 5. Staging validation and attribute resolution

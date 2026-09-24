@@ -13,6 +13,7 @@
 #include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoCoordinate3.h>
+#include <Inventor/nodes/SoShapeHints.h>
 #include <Inventor/nodes/SoNormal.h>
 #include <Inventor/nodes/SoNormalBinding.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
@@ -448,6 +449,99 @@ int main() {
     std::cout << "   [PASS] Test 7: Strict pixel and depth equivalence verified" << std::endl;
   }
 
-  std::cout << "\nALL 7 TESTS IN WgpuIndexedFastPathTest PASSED!" << std::endl;
+  // Test 8: missing normals must honor creaseAngle in the indexed fast path.
+  // The shared edge is 90 degrees: hard at zero, smooth above PI/2.
+  {
+    std::cout << "-> Test 8: Generated normals at hard and smooth edges..." << std::endl;
+    for (int variant = 0; variant < 2; ++variant) {
+      SoSeparator * root = new SoSeparator;
+      root->ref();
+
+      SoPerspectiveCamera * camera = new SoPerspectiveCamera;
+      camera->position.setValue(2.0f, 2.0f, 3.0f);
+      camera->pointAt(SbVec3f(0.3f, 0.3f, 0.3f));
+      camera->nearDistance = 0.1f;
+      camera->farDistance = 10.0f;
+      root->addChild(camera);
+      SoDirectionalLight * light = new SoDirectionalLight;
+      light->direction.setValue(-0.3f, -0.5f, -1.0f);
+      root->addChild(light);
+      SoMaterial * material = new SoMaterial;
+      material->diffuseColor.setValue(0.8f, 0.5f, 0.2f);
+      root->addChild(material);
+      SoShapeHints * hints = new SoShapeHints;
+      hints->shapeType = SoShapeHints::SOLID;
+      hints->creaseAngle = variant == 0 ? 0.0f : 1.6f;
+      root->addChild(hints);
+
+      SoCoordinate3 * coords = new SoCoordinate3;
+      coords->point.set1Value(0, SbVec3f(0.0f, 0.0f, 0.0f));
+      coords->point.set1Value(1, SbVec3f(1.0f, 0.0f, 0.0f));
+      coords->point.set1Value(2, SbVec3f(0.0f, 1.0f, 0.0f));
+      coords->point.set1Value(3, SbVec3f(0.0f, 0.0f, 1.0f));
+      root->addChild(coords);
+      SoIndexedFaceSet * ifs = new SoIndexedFaceSet;
+      const int32_t indices[] = {0, 1, 2, -1, 0, 3, 1, -1};
+      ifs->coordIndex.setValues(0, 8, indices);
+      root->addChild(ifs);
+
+      SoWgpuRenderAction recording;
+      recording.setFastPathEnabled(TRUE);
+      recording.apply(root);
+      TEST_ASSERT(recording.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+                  "Generated-normal fast path must succeed");
+      const std::string log = recording.getRecordingLog().getString();
+      if (variant == 0) {
+        TEST_ASSERT(log.find("vertices count: 6") != std::string::npos,
+                    "Hard edge must split shared positions by face normal");
+      } else {
+        TEST_ASSERT(log.find("norm=[0.0000,0.7071,0.7071]") != std::string::npos,
+                    "Smooth edge must receive the crease-angle averaged normal");
+      }
+
+      std::vector<uint8_t> fastPixels, fallbackPixels;
+      {
+        SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(96, 96));
+        SoWgpuRenderAction action(SbViewportRegion(96, 96));
+        action.setRenderTarget(target);
+        action.setFastPathEnabled(TRUE);
+        action.apply(root);
+        TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+                    "Generated-normal fast render must succeed");
+        target->readbackRGBA(fastPixels);
+        delete target;
+      }
+      {
+        SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(96, 96));
+        SoWgpuRenderAction action(SbViewportRegion(96, 96));
+        action.setRenderTarget(target);
+        action.setFastPathEnabled(FALSE);
+        action.apply(root);
+        TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+                    "Generated-normal fallback render must succeed");
+        target->readbackRGBA(fallbackPixels);
+        delete target;
+      }
+      TEST_ASSERT(fastPixels.size() == fallbackPixels.size() && !fastPixels.empty(),
+                  "Both paths must return the same nonempty RGBA buffer");
+      size_t foreground = 0, mismatchedPixels = 0;
+      for (size_t i = 0; i < fastPixels.size(); i += 4) {
+        if (fastPixels[i] > 30 || fastPixels[i + 1] > 30 ||
+            fastPixels[i + 2] > 30) ++foreground;
+        if (std::abs(int(fastPixels[i]) - int(fallbackPixels[i])) > 1 ||
+            std::abs(int(fastPixels[i + 1]) - int(fallbackPixels[i + 1])) > 1 ||
+            std::abs(int(fastPixels[i + 2]) - int(fallbackPixels[i + 2])) > 1) {
+          ++mismatchedPixels;
+        }
+      }
+      TEST_ASSERT(foreground > 100, "The wedge must be visible in the image");
+      TEST_ASSERT(mismatchedPixels == 0,
+                  "Fast path generated normals must match Coin fallback pixels");
+      root->unref();
+    }
+    std::cout << "   [PASS] Test 8: Hard and smooth generated normals verified" << std::endl;
+  }
+
+  std::cout << "\nALL 8 TESTS IN WgpuIndexedFastPathTest PASSED!" << std::endl;
   return 0;
 }
