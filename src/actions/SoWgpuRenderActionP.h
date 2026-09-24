@@ -6,6 +6,7 @@
 #include <Inventor/rendering/SoWgpuRenderTarget.h>
 #include "rendering/wgpu/SoWgpuDiagnosticShell.h"
 #include "rendering/wgpu/SoWgpuFramePlanBuilder.h"
+#include "rendering/wgpu/SoWgpuFrameReuseCore.h"
 #include "rendering/wgpu/SoWgpuRecordingBackend.h"
 #include <Inventor/sensors/SoNodeSensor.h>
 #include <string>
@@ -26,7 +27,7 @@ public:
   void setDiagnostic(const SoWgpuActionDiagnostic & diagnostic);
   static void cameraSensorCB(void * data, SoSensor * sensor);
   void rememberFrameRoot(SoNode * root);
-  bool prepareCameraOverlay(SoNode * root, FramePlan & plan);
+  bool prepareCameraOverlay(SoNode * root, SoWgpuCameraOverlayUndo & undo);
 
   template <typename F>
   void executeApply(F traversalFn, SoNode * cacheRoot = NULL);

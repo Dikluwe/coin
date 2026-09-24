@@ -32,6 +32,21 @@ struct SoWgpuFrameReuseDecision {
     : kind(k), baseRevision(base) {}
 };
 
+/** Only the camera-derived fields needed to restore a failed frame. */
+struct SoWgpuCameraStateUndo {
+  SbMatrix view = SbMatrix::identity();
+  SbMatrix projectionCoin = SbMatrix::identity();
+  float fogEnd = 0.0f;
+};
+
+/** Private transactional backup; never owns geometry or GPU resources. */
+struct SoWgpuCameraOverlayUndo {
+  uint64_t revision = 0;
+  CameraSnapshot camera;
+  std::vector<SoWgpuCameraStateUndo> states;
+  bool active = false;
+};
+
 /** Traversal-free classification of the relationship between two plans. */
 class SoWgpuFrameReuseCore {
 public:
@@ -41,6 +56,13 @@ public:
   COIN_WGPU_DLL_API static bool cameraOverlay(
     const FramePlan & previous, const CameraSnapshot & camera,
     uint64_t revision, FramePlan & result);
+  /** Requires a previously validated plan; changes camera-derived fields only. */
+  COIN_WGPU_DLL_API static bool beginCameraOverlay(
+    FramePlan & plan, const CameraSnapshot & camera, uint64_t revision,
+    SoWgpuCameraOverlayUndo & undo);
+  /** Restore an uncommitted overlay after a failed frame execution. */
+  COIN_WGPU_DLL_API static void rollbackCameraOverlay(
+    FramePlan & plan, SoWgpuCameraOverlayUndo & undo);
 };
 
 #endif // !COIN_SOWGPUFRAMEREUSECORE_H

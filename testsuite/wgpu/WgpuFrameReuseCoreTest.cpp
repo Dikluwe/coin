@@ -5,6 +5,7 @@
 #endif
 
 #include "rendering/wgpu/SoWgpuFrameReuseCore.h"
+#include "rendering/wgpu/SoWgpuRenderTargetP.h"
 
 #include <Inventor/SoDB.h>
 
@@ -76,6 +77,29 @@ main()
               overlay.indices == previous.indices &&
               overlay.renderStates[0].view == moved,
               "camera overlay must preserve geometry and replace camera state");
+  FramePlan inPlace = previous;
+  const VertexSnapshot * originalVertices = inPlace.vertices.data();
+  const uint32_t * originalIndices = inPlace.indices.data();
+  SoWgpuCameraOverlayUndo undo;
+  ok &= check(SoWgpuFrameReuseCore::beginCameraOverlay(
+                inPlace, current.cameras[0], 47, undo) &&
+              undo.active && undo.revision == previous.revision &&
+              inPlace.revision == 47 &&
+              inPlace.vertices.data() == originalVertices &&
+              inPlace.indices.data() == originalIndices &&
+              inPlace.renderStates[0].view == moved,
+              "transactional overlay must not copy geometry");
+  SoWgpuFrameReuseCore::rollbackCameraOverlay(inPlace, undo);
+  ok &= check(!undo.active && inPlace.revision == previous.revision &&
+              inPlace.hasSamePayload(previous) &&
+              inPlace.vertices.data() == originalVertices,
+              "rollback must restore the exact previous plan");
+  CameraSnapshot invalidCamera = current.cameras[0];
+  invalidCamera.farDistance = invalidCamera.nearDistance;
+  ok &= check(!SoWgpuFrameReuseCore::beginCameraOverlay(
+                inPlace, invalidCamera, 48, undo) && !undo.active &&
+              inPlace.revision == previous.revision,
+              "invalid camera must fail before mutating the cached plan");
   FramePlan unsuitable = previous;
   unsuitable.renderStates[0].lightModel = LightModel::PHONG;
   ok &= check(!SoWgpuFrameReuseCore::cameraOverlay(
@@ -119,6 +143,39 @@ main()
   decision = SoWgpuFrameReuseCore::classify(previous, current);
   ok &= check(decision.kind == SoWgpuFrameReuseKind::UNKNOWN,
               "opaque connector resources must not infer reusable ownership");
+
+  FramePlan targetFrame = previous;
+  targetFrame.viewports[0].width = 64;
+  targetFrame.viewports[0].height = 64;
+  SoWgpuRenderTargetP target(SbVec2i32(64, 64));
+  FrameExecutionResult executed = target.executeFrame(targetFrame);
+  ok &= check(executed.status == BackendStatus::SUCCESS &&
+              target.lastValidatedPlanRevision == 41,
+              "target must validate the initial frame");
+  targetFrame.revision = 42;
+  targetFrame.cameras[0].viewMatrix = moved;
+  targetFrame.renderStates[0].view = moved;
+  executed = target.executeFrame(targetFrame,
+    SoWgpuFrameReuseDecision(SoWgpuFrameReuseKind::CAMERA_PATCH, 41));
+  ok &= check(executed.status == BackendStatus::SUCCESS &&
+              target.lastValidatedPlanRevision == 42,
+              "target must advance the validated camera-patch revision");
+  targetFrame.revision = 43;
+  targetFrame.indices[0] = 99;
+  executed = target.executeFrame(targetFrame,
+    SoWgpuFrameReuseDecision(SoWgpuFrameReuseKind::CAMERA_PATCH, 41));
+  ok &= check(executed.status != BackendStatus::SUCCESS &&
+              target.lastValidatedPlanRevision == 42,
+              "stale base must revalidate and reject invalid geometry");
+  targetFrame.indices[0] = 0;
+  ok &= check(target.resize(SbVec2i32(128, 128)) &&
+              target.lastValidatedPlanRevision == 0,
+              "resize must invalidate the target validation revision");
+  targetFrame.revision = 44;
+  executed = target.executeFrame(targetFrame,
+    SoWgpuFrameReuseDecision(SoWgpuFrameReuseKind::CAMERA_PATCH, 42));
+  ok &= check(executed.status != BackendStatus::SUCCESS,
+              "resize must recheck the viewport before camera reuse");
 
   if (!ok) return 1;
   std::cout << "WgpuFrameReuseCoreTest passed\n";

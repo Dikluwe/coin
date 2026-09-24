@@ -339,7 +339,8 @@ SoWgpuRenderActionP::rememberFrameRoot(SoNode * root)
 }
 
 bool
-SoWgpuRenderActionP::prepareCameraOverlay(SoNode * root, FramePlan & plan)
+SoWgpuRenderActionP::prepareCameraOverlay(SoNode * root,
+                                         SoWgpuCameraOverlayUndo & undo)
 {
   if (!root || root != this->cachedRoot || !this->cachedCamera ||
       this->cameraSensor.getAttachedNode() != root ||
@@ -369,9 +370,9 @@ SoWgpuRenderActionP::prepareCameraOverlay(SoNode * root, FramePlan & plan)
   snapshot.aspectRatio = adjusted.getViewportAspectRatio();
   if (this->cameraPatchInvalidated ||
       this->cameraSensor.getAttachedNode() != root) return false;
-  return SoWgpuFrameReuseCore::cameraOverlay(
+  return SoWgpuFrameReuseCore::beginCameraOverlay(
     this->lastValidPlan, snapshot,
-    SoWgpuFramePlanBuilder::nextRevision(), plan);
+    SoWgpuFramePlanBuilder::nextRevision(), undo);
 }
 
 template <typename F>
@@ -436,13 +437,23 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     this->sceneTextureStagedBytes = std::make_shared<size_t>(0);
   }
   FramePlan plan;
+  SoWgpuCameraOverlayUndo overlayUndo;
+  struct CameraOverlayScope {
+    FramePlan & frame;
+    SoWgpuCameraOverlayUndo & undo;
+    bool committed;
+    ~CameraOverlayScope() {
+      if (!committed) SoWgpuFrameReuseCore::rollbackCameraOverlay(frame, undo);
+    }
+  } overlayScope{this->lastValidPlan, overlayUndo, false};
   ProfileClock::time_point profileTraversed = ProfileClock::now();
   ProfileClock::time_point profilePlanned = profileTraversed;
   const bool cameraOverlay = !traversalSkipped && planCacheAllowed &&
-    this->hasLastValidPlan && this->prepareCameraOverlay(cacheRoot, plan);
+    !this->planOnly && this->hasLastValidPlan &&
+    this->prepareCameraOverlay(cacheRoot, overlayUndo);
   if (cameraOverlay) {
     reuseDecision = SoWgpuFrameReuseDecision(
-      SoWgpuFrameReuseKind::CAMERA_PATCH, this->lastValidPlan.revision);
+      SoWgpuFrameReuseKind::CAMERA_PATCH, overlayUndo.revision);
   }
   if (!traversalSkipped && !cameraOverlay) {
     this->builder.beginFrame(this->backgroundColor, this->master->getViewportRegion());
@@ -485,10 +496,11 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   const bool reusePreviousPlan =
     reuseDecision.kind == SoWgpuFrameReuseKind::REUSE &&
     this->hasLastValidPlan;
-  const FramePlan & framePlan = reusePreviousPlan ? this->lastValidPlan : plan;
+  const bool useCachedPlan = reusePreviousPlan || cameraOverlay;
+  const FramePlan & framePlan = useCachedPlan ? this->lastValidPlan : plan;
 
   if (this->planOnly) {
-    if (!reusePreviousPlan) {
+    if (!useCachedPlan) {
       this->lastValidPlan = std::move(plan);
       this->hasLastValidPlan = true;
     }
@@ -506,7 +518,7 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     // Mode 0: Recording backend
     this->lastRecordingLog = this->recordingBackend.recordToString(framePlan).c_str();
     this->recordingLogValid = true;
-    if (!reusePreviousPlan) {
+    if (!useCachedPlan) {
       this->lastValidPlan = std::move(plan);
       this->hasLastValidPlan = true;
     }
@@ -517,6 +529,7 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       else if (!traversalSkipped)
         this->rememberFrameRoot(planCacheAllowed ? cacheRoot : NULL);
     }
+    overlayScope.committed = true;
     this->setDiagnostic(SoWgpuDiagnosticShell::success());
     return;
   }
@@ -638,9 +651,11 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     sample.reuseKind = reuseDecision.kind;
     std::cerr << SoWgpuDiagnosticShell::formatActionPhase(sample) << '\n';
   }
-  if (!reusePreviousPlan) {
+  if (!useCachedPlan) {
     this->lastValidPlan = std::move(plan);
     this->hasLastValidPlan = true;
+    this->recordingLogValid = false;
+  } else if (cameraOverlay) {
     this->recordingLogValid = false;
   }
   if (cacheRoot) {
@@ -650,6 +665,7 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     else if (!traversalSkipped)
       this->rememberFrameRoot(planCacheAllowed ? cacheRoot : NULL);
   }
+  overlayScope.committed = true;
   this->setDiagnostic(SoWgpuDiagnosticShell::success());
 }
 

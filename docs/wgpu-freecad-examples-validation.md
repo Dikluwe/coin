@@ -283,9 +283,59 @@ COIN_GLX_PIXMAP_DIRECT_RENDERING=1 \
 ```
 
 Para RSS isolado, repetir o benchmark com `--backend wgpu` e `--backend gl`
-em processos separados sob `/usr/bin/time -v`. O próximo alvo é evitar a
-cópia integral do FramePlan e reduzir validação/cópias na ponte Rust, sem
-perder o fallback de revisão-base.
+em processos separados sob `/usr/bin/time -v`.
+
+#### Overlay transacional e validação do target — campanha de 2026-09-24
+
+O Prompt 007 aplica a mudança de câmera diretamente ao FramePlan privado já
+validado, mantendo os vetores de geometria no lugar. Se `apply()` ou
+`applyAsync()` falhar, o Wiring restaura câmera, estados derivados e revisão.
+O target C++ reaproveita sua validação de perfil somente quando a revisão-base
+do `camera_patch` coincide com sua última revisão validada; resize ou base
+obsoleta exigem validação completa. A ponte Rust continua fazendo sua própria
+validação de entrada para cada nova revisão de câmera.
+
+No Assembly exportado, Release/AMD RADV RENOIR, `BASE_COLOR`, 512×512, oito
+warmup e 30 frames com câmera em movimento e readback RGBA, medimos:
+
+| Implementação | WebGPU mediana / p95 (ms) | Coin/GL mediana / p95 (ms) |
+| --- | ---: | ---: |
+| Prompt 006, campanha anterior | 4,62694 / 6,20546 | 0,46698 / 0,935525 |
+| Overlay transacional, comparação pareada | 4,40449 / 5,58902 | 0,514238 / 0,883425 |
+| Overlay + validação C++ reaproveitada, comparação pareada | 3,92649 / 6,30354 | 0,683714 / 1,04536 |
+| Build final, repetição pareada | 3,15660 / 4,32228 | 0,599847 / 1,01720 |
+
+As campanhas não são amostras pareadas entre versões e há variação visível no
+GL e no p95 WebGPU; por isso a tabela demonstra oportunidade e ausência de
+regressão grande, não estabelece um ganho estatístico fechado de frame. Mesmo
+na repetição final, WebGPU ficou cerca de 5,3 vezes mais lento que GL na
+mediana. O traço opt-in do overlay mostra `frame_plan_ms` de ~0,015–0,030 ms,
+ante ~0,4–0,5 ms no plano copiado. O traço não integra a tabela de latência.
+A validação Rust remanescente consumiu cerca de 0,57–0,95 ms em frames
+observados; o custo de backend completo ficou na faixa ~3,2–4,0 ms.
+Um processo WebGPU isolado com apenas o overlay transacional teve pico RSS
+140768 KiB, contra 141972 KiB na campanha anterior com cópia; processos
+distintos não permitem atribuir essa diferença à mudança. RTT direto e
+readback assíncrono não foram medidos como ganhos.
+
+No build final, processos isolados com o mesmo comando `--dynamic` mediram
+WebGPU 3,32241/3,72706 ms, pico RSS 140632 KiB, e GL
+0,644591/0,953686 ms, pico RSS 96552 KiB. São comparações de processos,
+não um delta de memória causal. O trace de quatro frames medidos, após oito
+warmup, separou por frame de câmera: traversal ~0,003–0,005 ms,
+`frame_plan_ms` ~0,015–0,025 ms, pack ~0,003–0,008 ms, validação Rust
+~0,57–0,79 ms, preparação/encode ~0,17–0,25 ms, submit ~0,10–0,11 ms,
+espera GPU ~0,35–1,39 ms e publicação do readback ~0,76–1,07 ms.
+Esses intervalos são diagnósticos com tracing ligado, não substituem a
+mediana/p95 sem tracing da tabela. A repetição pareada teve 0 uploads de
+geometria no último frame; o primeiro enviou 1316856 bytes.
+
+O teste de pixels para a câmera em movimento continuou exato frente à
+travessia integral; o teste do target cobre base obsoleta e resize. A
+comparação visual do primeiro frame com GL permanece um gate separado, não
+mede o overlay; na repetição final, MAE RGB 0 e IoU 1 após inverter a origem
+vertical. Debug Rust 42/42, Release Rust 42/42 e Debug Recording 28/28
+passaram. A viewport real do FreeCAD segue fora do ensaio.
 
 ### Qualidade e memória
 

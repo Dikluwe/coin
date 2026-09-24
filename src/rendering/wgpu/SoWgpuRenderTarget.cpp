@@ -405,14 +405,24 @@ SoWgpuRenderTargetP::executeFrameInternal(const FramePlan & frame,
     return FrameExecutionResult(BackendStatus::NOT_READY, this->lastError);
   }
 
-  if (frame.revision == 0 || frame.revision != this->lastValidatedPlanRevision) {
+  // Core/Wiring prove that camera_patch preserves the validated geometry,
+  // draw structure and target viewport. A different base (including resize,
+  // which clears lastValidatedPlanRevision) takes the full validation path.
+  const bool validatedCameraPatch =
+    reuse.kind == SoWgpuFrameReuseKind::CAMERA_PATCH &&
+    reuse.baseRevision != 0 &&
+    reuse.baseRevision == this->lastValidatedPlanRevision &&
+    frame.revision != 0 &&
+    frame.revision != reuse.baseRevision;
+  if (!validatedCameraPatch &&
+      (frame.revision == 0 || frame.revision != this->lastValidatedPlanRevision)) {
     FrameExecutionResult val = this->validateProfile(frame, this->size);
     if (val.status != BackendStatus::SUCCESS) {
       this->lastError = val.diagnostic;
       return val;
     }
-    this->lastValidatedPlanRevision = frame.revision;
   }
+  this->lastValidatedPlanRevision = frame.revision;
 
   if (this->status == SoWgpuRenderTarget::TARGET_LOST ||
       this->status == SoWgpuRenderTarget::TARGET_SURFACE_LOST ||

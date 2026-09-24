@@ -75,6 +75,14 @@
   changed viewport or background also invalidates the cached root. Wiring
   captures the new Coin view volume, Core overlays only camera-dependent
   snapshots, and Infra still validates the owned base revision before packing.
+  The overlay is transactional: Core checks the new camera and existing
+  render-state references, then changes only the cached camera, its dependent
+  state and the revision in place. Wiring rolls those fields back if frame
+  execution fails. Geometry arrays keep their addresses. The private target
+  may reuse its full profile validation only when the camera patch names its
+  currently validated base; a stale base or resize forces full validation.
+  The Rust connector retains its own ABI-boundary validation, including on
+  each new camera revision.
   This is not a replacement for the Open Inventor traversal model. With phase
   tracing enabled, <tt>plan_reuse</tt> and <tt>pack_mode</tt> expose the path.
 

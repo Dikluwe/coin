@@ -648,6 +648,10 @@ int testCameraOverlayAndFallback() {
   camera->position.setValue(0.25f, 0.0f, 5.0f);
   camera->nearDistance = 0.2f;
   camera->farDistance = 20.0f;
+  SoWgpuReadbackTicket missingTargetTicket{};
+  cached.applyAsync(root, missingTargetTicket);
+  TEST_ASSERT(cached.getLastStatus() == SoWgpuRenderAction::NO_TARGET,
+              "Camera overlay must roll back after missing async target");
   cached.apply(root);
   fresh.apply(root);
   TEST_ASSERT(cached.getLastStatus() == SoWgpuRenderAction::SUCCESS &&

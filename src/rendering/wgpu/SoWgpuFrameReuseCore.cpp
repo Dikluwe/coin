@@ -7,6 +7,8 @@
 #include "rendering/wgpu/SoWgpuFrameReuseCore.h"
 
 #include <cstring>
+#include <cmath>
+#include <cassert>
 #include <utility>
 
 namespace {
@@ -190,31 +192,80 @@ SoWgpuFrameReuseCore::cameraOverlay(const FramePlan & previous,
                                     uint64_t revision,
                                     FramePlan & result)
 {
-  if (previous.revision == 0 || revision == 0 ||
-      revision == previous.revision || previous.cameras.size() != 1 ||
-      previous.renderStates.empty() || hasOpaqueConnectorResource(previous)) {
-    return false;
-  }
-  const CameraSnapshot & oldCamera = previous.cameras[0];
-  for (const RenderStateSnapshot & rs : previous.renderStates) {
-    if (rs.cameraSlot != 0 || rs.lightModel != LightModel::BASE_COLOR ||
-        rs.fogMode != FogMode::NONE ||
-        !sameMatrix(rs.view, oldCamera.viewMatrix) ||
-        !sameMatrix(rs.projectionCoin, oldCamera.projectionMatrixCoin)) {
-      return false;
-    }
-  }
   FramePlan candidate = previous;
-  candidate.revision = revision;
-  candidate.cameras[0] = camera;
-  for (RenderStateSnapshot & rs : candidate.renderStates) {
-    rs.view = camera.viewMatrix;
-    rs.projectionCoin = camera.projectionMatrixCoin;
-    // With default visibility, captureRenderState derives fogEnd from the
-    // camera even when fog is disabled. Preserve Recording equivalence.
-    if (rs.fogEnd == oldCamera.farDistance) rs.fogEnd = camera.farDistance;
-  }
+  SoWgpuCameraOverlayUndo undo;
+  if (!SoWgpuFrameReuseCore::beginCameraOverlay(
+        candidate, camera, revision, undo)) return false;
   if (!candidate.isValid()) return false;
   result = std::move(candidate);
   return true;
+}
+
+bool
+SoWgpuFrameReuseCore::beginCameraOverlay(
+  FramePlan & plan, const CameraSnapshot & camera, uint64_t revision,
+  SoWgpuCameraOverlayUndo & undo)
+{
+  if (undo.active || plan.revision == 0 || revision == 0 ||
+      revision == plan.revision || plan.cameras.size() != 1 ||
+      plan.renderStates.empty() || hasOpaqueConnectorResource(plan) ||
+      !std::isfinite(camera.nearDistance) ||
+      !std::isfinite(camera.farDistance) ||
+      camera.farDistance <= camera.nearDistance ||
+      !std::isfinite(camera.focalDistance) ||
+      !std::isfinite(camera.aspectRatio) || camera.aspectRatio <= 0.0f) {
+    return false;
+  }
+  for (int row = 0; row < 4; ++row) {
+    for (int col = 0; col < 4; ++col) {
+      if (!std::isfinite(camera.viewMatrix[row][col]) ||
+          !std::isfinite(camera.projectionMatrixCoin[row][col])) return false;
+    }
+  }
+  const CameraSnapshot & oldCamera = plan.cameras[0];
+  for (const RenderStateSnapshot & rs : plan.renderStates) {
+    if (rs.cameraSlot != 0 || rs.lightModel != LightModel::BASE_COLOR ||
+        rs.fogMode != FogMode::NONE ||
+        !sameMatrix(rs.view, oldCamera.viewMatrix) ||
+        !sameMatrix(rs.projectionCoin, oldCamera.projectionMatrixCoin)) return false;
+  }
+
+  SoWgpuCameraOverlayUndo prepared;
+  prepared.revision = plan.revision;
+  prepared.camera = oldCamera;
+  prepared.states.reserve(plan.renderStates.size());
+  for (const RenderStateSnapshot & rs : plan.renderStates) {
+    SoWgpuCameraStateUndo state;
+    state.view = rs.view;
+    state.projectionCoin = rs.projectionCoin;
+    state.fogEnd = rs.fogEnd;
+    prepared.states.push_back(state);
+  }
+  prepared.active = true;
+  undo = std::move(prepared);
+  for (RenderStateSnapshot & rs : plan.renderStates) {
+    rs.view = camera.viewMatrix;
+    rs.projectionCoin = camera.projectionMatrixCoin;
+    // Default visibility derives fogEnd from the camera even with no fog.
+    if (rs.fogEnd == oldCamera.farDistance) rs.fogEnd = camera.farDistance;
+  }
+  plan.cameras[0] = camera;
+  plan.revision = revision;
+  return true;
+}
+
+void
+SoWgpuFrameReuseCore::rollbackCameraOverlay(
+  FramePlan & plan, SoWgpuCameraOverlayUndo & undo)
+{
+  if (!undo.active) return;
+  assert(plan.cameras.size() == 1 && plan.renderStates.size() == undo.states.size());
+  plan.revision = undo.revision;
+  plan.cameras[0] = undo.camera;
+  for (size_t i = 0; i < undo.states.size(); ++i) {
+    plan.renderStates[i].view = undo.states[i].view;
+    plan.renderStates[i].projectionCoin = undo.states[i].projectionCoin;
+    plan.renderStates[i].fogEnd = undo.states[i].fogEnd;
+  }
+  undo.active = false;
 }

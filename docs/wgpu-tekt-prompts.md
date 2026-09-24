@@ -365,7 +365,64 @@ superiority. A separate WebGPU process measured 4.55145/5.36009 ms and
 and 96440 KiB. Different processes are not a memory-reduction claim.
 The remaining costs include whole-plan copying and Rust bridge validation.
 
-### Prompt 007: owned Rust context
+### Prompt 007: transactional camera overlay and target validation
+
+**Intent:** Remove whole-FramePlan copying and repeated C++ profile validation
+from proven camera-only frames without weakening the independent Rust FFI
+boundary. Keep the Open Inventor notification and exact-type proof from
+Prompt 006.
+
+**Core:** patch only the camera snapshot, dependent render-state matrices,
+derived fog distance and revision of an already validated private FramePlan.
+Validate the new camera before mutation and retain a small undo record; do not
+copy geometry, textures or draw packets. A failed apply must restore the
+original plan and revision exactly.
+
+**Shell:** retain existing status strings and phase keys so before/after
+profiling remains comparable. Never interpret a traced frame as an untraced
+latency sample.
+
+**Infra:** the C++ target may reuse profile validation only if the camera
+patch's base equals the revision last validated for that target. Resize or a
+stale base must use full validation. The Rust bridge still validates its
+incoming FFI view on each new revision; optimizing that boundary needs a
+separate proof.
+
+**Wiring:** apply the Core overlay to the action's cached plan only in the
+already-proven camera-only path. Commit on success; roll back on any action or
+target failure. Plan-only traversal is unchanged.
+
+**Positive oracle:** geometry vector addresses remain stable, Recording and
+GPU pixels match a fresh traversal, and the traced `frame_plan_ms` falls to
+microseconds for the exported Assembly camera path.
+
+**Negative oracle:** invalid camera fails before mutation; a failed
+`applyAsync()` with no target restores the prior plan and can retry; stale
+target base and resize force full validation.
+
+**Unknown oracle:** unsupported nodes, lighting, fog, viewport changes and
+opaque resources keep the prior conservative full path.
+
+**Gates:** full Debug Rust, Release Rust and Debug Recording suites, Release
+median/p95 against Coin/GL on the same AMD GPU, first-frame visual gate,
+memory observation and no new `libCoin` symbols. A smaller phase time is not
+automatically a whole-frame win.
+
+**Result (2026-09-24):** the transactional plan and target validation gate
+passed Debug Rust 42/42, Release Rust 42/42 and Debug Recording 28/28.
+Assembly camera movement preserved exact GPU pixels against full traversal;
+the first-frame Coin/GL gate remained aligned RGB MAE 0, silhouette IoU 1.
+With eight warmup and 30 measured frames on AMD RADV RENOIR at 512x512,
+including RGBA readback, the final paired run gave WebGPU median/p95
+3.15660/4.32228 ms and Coin/GL 0.599847/1.01720 ms. A separate WebGPU
+process reached 140632 KiB peak RSS versus 96552 KiB for a separate GL
+process. Trace-only camera frames showed ~0.015–0.025 ms FramePlan work but
+~0.57–0.79 ms Rust validation; variable GPU wait and readback remain major
+costs. Across-version runs are not paired and GL times varied, so the phase
+reduction is established more strongly than a whole-frame speedup. The
+exported Assembly is not FreeCAD's actual viewport.
+
+### Prompt 008: owned Rust context
 
 Replace ambient connector state with explicit private context ownership without
 changing public Coin ABI. Device, caches, serials, readback and fault injection
