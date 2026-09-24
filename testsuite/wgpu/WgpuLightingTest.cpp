@@ -32,7 +32,7 @@
 #include <string>
 #include <vector>
 
-static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 16, "Frame revision bridge protocol");
+static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 17, "Frame revision bridge protocol");
 static_assert(sizeof(CoinWgpuLight) == 64, "3C light layout");
 
 namespace {

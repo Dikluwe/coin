@@ -35,6 +35,7 @@ SoWgpuFfiFrame::prepare(const FramePlan & frame, uint32_t width, uint32_t height
   if (frame.revision != 0 && frame.revision == this->packedRevision) {
     this->reused = true;
     this->prepareKind = SoWgpuFrameReuseKind::REUSE;
+    this->view.camera_base_revision = 0;
     this->view.width = width;
     this->view.height = height;
     return true;
@@ -42,10 +43,12 @@ SoWgpuFfiFrame::prepare(const FramePlan & frame, uint32_t width, uint32_t height
   this->reused = false;
 
   if (reuse.kind == SoWgpuFrameReuseKind::CAMERA_PATCH &&
+      frame.revision != 0 && frame.revision != reuse.baseRevision &&
       reuse.baseRevision != 0 && reuse.baseRevision == this->packedRevision &&
       this->states.size() == frame.renderStates.size()) {
     if (!this->packStates(frame, outDiagnostic)) return false;
     this->bindView(frame, width, height);
+    this->view.camera_base_revision = reuse.baseRevision;
     this->packedRevision = frame.revision;
     this->prepareKind = SoWgpuFrameReuseKind::CAMERA_PATCH;
     return true;

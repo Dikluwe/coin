@@ -55,6 +55,7 @@ main()
       !check(packed.reusedLastPrepare(), "same non-zero revision was not reused")) return 1;
   const CoinWgpuFrameView & reused = packed.getView();
   if (!check(reused.width == 128 && reused.height == 16, "reuse did not update target dimensions") ||
+      !check(reused.camera_base_revision == 0, "exact reuse must not claim a camera patch") ||
       !check(reused.vertices[0].position[0] == 2.0f, "reuse observed a mutated source frame") ||
       !check(reused.indices[0] == 0, "reuse observed mutated source indices") ||
       !check(reused.textures[0].pixels[0] == 10, "reuse observed mutated texture bytes")) return 1;
@@ -74,6 +75,8 @@ main()
              "camera patch packing failed") ||
       !check(packed.lastPrepareKind() == SoWgpuFrameReuseKind::CAMERA_PATCH,
              "camera patch repacked immutable arrays") ||
+      !check(packed.getView().camera_base_revision == 42,
+             "camera patch did not name its packed base") ||
       !check(packed.getView().vertices[0].position[0] == 9.0f,
              "camera patch changed packed geometry")) return 1;
 
@@ -85,6 +88,8 @@ main()
              "stale camera patch fallback failed") ||
       !check(packed.lastPrepareKind() == SoWgpuFrameReuseKind::FULL_REBUILD,
              "stale camera base did not force full packing") ||
+      !check(packed.getView().camera_base_revision == 0,
+             "full fallback retained a camera patch hint") ||
       !check(packed.getView().vertices[0].position[0] == 11.0f,
              "stale camera fallback did not refresh geometry")) return 1;
 

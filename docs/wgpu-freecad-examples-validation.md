@@ -337,6 +337,45 @@ mede o overlay; na repetição final, MAE RGB 0 e IoU 1 após inverter a origem
 vertical. Debug Rust 42/42, Release Rust 42/42 e Debug Recording 28/28
 passaram. A viewport real do FreeCAD segue fora do ensaio.
 
+#### Cena validada com dono Rust — campanha de 2026-09-24
+
+O Prompt 008A acrescenta uma revisão-base ao protocolo **privado** C++/Rust
+(versão 17). Para quadros opacos, sem textura, o dispositivo Rust guarda uma
+cópia validada da geometria, materiais e ordem de composição. Um patch de
+câmera usa essa cópia e lê do chamador apenas os estados alterados. Base
+obsoleta, outro dispositivo, geração perdida, resize, transparência ou
+texturas seguem pelo caminho integral. O cache CPU é limitado a 32 MiB;
+cenas maiores continuam na validação integral. Não muda a ABI pública de
+`libCoin`.
+
+AMD RADV RENOIR, Release, Assembly exportado, `BASE_COLOR`, 512×512, câmera
+movida a cada frame, oito warmup e 30 amostras, render mais readback RGBA,
+WebGPU e Coin/GL no mesmo processo:
+
+| Repetição | WebGPU mediana / p95 (ms) | Coin/GL mediana / p95 (ms) |
+| --- | ---: | ---: |
+| 1 | 2,16270 / 2,55116 | 0,418146 / 0,902754 |
+| 2 | 2,05821 / 2,83999 | 0,477274 / 0,862460 |
+| 3 | 2,14292 / 2,82476 | 0,404401 / 0,788676 |
+
+A campanha anterior sem cache proprietário registrou 3,15660/4,32228 ms
+para WebGPU e 0,599847/1,01720 ms para GL, mas foi executada antes e não é
+um A/B intercalado. O ganho de fase é mais bem demonstrado: no trace de
+câmera, `validation_ms` caiu de ~0,57–0,79 para ~0,004–0,009 ms. O frame
+inteiro continua ~4–5 vezes mais lento que GL nas novas repetições; espera GPU
+e readback seguem relevantes. Trace não integra os valores da tabela.
+
+Um processo WebGPU isolado mediu 2,07345/2,30443 ms e pico RSS 142008 KiB;
+o anterior mediu 140632 KiB em outro processo. A cópia de geometria possuída
+pelo Rust custa memória, mas esses picos não isolam causalmente a diferença.
+O último frame teve zero uploads de geometria. O teste FFI usa ponteiros de
+geometria nulos no patch para provar que o Rust lê sua própria cópia, compara
+pixels com um frame completo de referência e verifica estado divergente,
+base obsoleta e novo dispositivo sem publicar saída. No gate visual GL do
+primeiro frame, a MAE
+RGB alinhada foi 0 e a IoU de silhueta 1. Esse gate não mede a câmera em
+movimento nem a viewport real do FreeCAD.
+
 ### Qualidade e memória
 
 Uma nova comparação Release das quatro cenas, no primeiro frame (logo, sem

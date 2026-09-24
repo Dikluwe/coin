@@ -427,3 +427,54 @@ exported Assembly is not FreeCAD's actual viewport.
 Replace ambient connector state with explicit private context ownership without
 changing public Coin ABI. Device, caches, serials, readback and fault injection
 must have a defined owner and loss/recovery lifecycle.
+
+#### Prompt 008A: device-owned validated camera scene
+
+**Intent:** Remove repeated geometry/composition validation from proven
+camera-only frames while keeping Rust responsible for memory and ABI safety.
+This is one slice of Prompt 008, not a completed removal of all ambient state.
+
+**Core:** unchanged; Coin-native camera overlay and Open Inventor traversal
+proof remain those of Prompts 006–007.
+
+**Shell:** preserve error status and phase keys. Report phase reductions and
+whole-frame latency separately.
+
+**Infra:** bump only the private C++/Rust protocol to 17. The C++ packer
+emits a nonzero camera base only when it actually reused its immutable arrays.
+On a fully validated, opaque, untextured frame, the Rust device owns a copy of
+vertices, indices, draws, materials, states and composition order, capped at
+32 MiB of retained CPU data. Its camera
+patch uses those owned arrays and validates the changed state; it does not
+dereference caller geometry pointers. The snapshot belongs to one device
+generation and disappears on device loss/destruction. Any missing/stale base,
+size, count, state or generation mismatch takes the full FFI path. Textures,
+RTT and transparent composition stay on that path.
+
+**Wiring:** unchanged; action and target continue to use their existing
+conservative camera decision and rollback.
+
+**Positive oracle:** a patch with null caller geometry pointers renders the
+same pixels as a full reference on another device; Rust `validation_ms` drops
+without new geometry uploads.
+
+**Negative oracle:** stale base, a changed non-camera state, RTT and a new device
+with the old base reject null geometry pointers without publishing pixels or
+an RTT token.
+Full C++ packing clears the camera hint.
+
+**Gates:** full Rust/Recording suites, Release paired median/p95 versus GL,
+visual MAE/IoU and isolated peak RSS. No new `libCoin` symbols. The actual
+FreeCAD viewport remains outside scope.
+
+**Result (2026-09-24):** Debug Rust 42/42, Release Rust 42/42 and Debug
+Recording 28/28 passed. On Assembly camera frames the traced Rust validation
+fell from ~0.57–0.79 to ~0.004–0.009 ms. Three untraced Release/AMD paired
+30-frame runs gave WebGPU medians 2.058–2.163 ms versus GL 0.404–0.477 ms;
+their p95s were 2.551–2.840 and 0.789–0.903 ms respectively. The earlier
+WebGPU run was 3.157/4.322 ms, but not interleaved with these runs, so the
+phase reduction is the firm claim. Isolated WebGPU peak RSS was 142008 KiB,
+versus 140632 KiB in an earlier process; the owned copy has a 32 MiB cap.
+The first-frame GL gate remained MAE RGB 0/IoU 1. The FFI test proves that
+camera patches can render from Rust-owned geometry with null caller geometry
+pointers, while stale/changed-state/device cases fail closed.

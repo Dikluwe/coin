@@ -404,6 +404,107 @@ bool cacheIsolation() {
   return true;
 }
 
+bool validatedCameraSceneOwnership() {
+  CoinWgpuDeviceId fast = 0, reference = 0;
+  if (!createDevice(fast) || !createDevice(reference)) return false;
+  const CoinWgpuVertex vertices[3] = {
+    {{-0.75f, -0.75f, 0.0f}, {0, 0, 1}, {0, 0}, 0},
+    {{ 0.75f, -0.75f, 0.0f}, {0, 0, 1}, {0, 0}, 0},
+    {{ 0.00f,  0.75f, 0.0f}, {0, 0, 1}, {0, 0}, 0}
+  };
+  const uint32_t indices[3] = {0, 1, 2};
+  CoinWgpuDraw draw{};
+  draw.vertex_count = 3;
+  draw.index_count = 3;
+  draw.stable_node_id = 0xCA4Eu;
+  draw.source_revision = 1;
+  CoinWgpuMaterial material{};
+  material.diffuse[0] = 1.0f;
+  material.diffuse[1] = 0.2f;
+  material.diffuse[2] = 0.1f;
+  material.diffuse[3] = 1.0f;
+  CoinWgpuRenderState state{};
+  for (unsigned i = 0; i < 4; ++i) {
+    state.model_view[i * 5] = 1.0f;
+    state.model_view_projection[i * 5] = 1.0f;
+    state.normal_matrix[i * 5] = 1.0f;
+    state.texture_matrix[i * 5] = 1.0f;
+  }
+  CoinWgpuFrameView frame = clearFrame(0, 0, 0);
+  frame.frame_revision = 41001;
+  frame.vertices = vertices;
+  frame.vertex_count = 3;
+  frame.indices = indices;
+  frame.index_count = 3;
+  frame.draws = &draw;
+  frame.draw_count = 1;
+  frame.materials = &material;
+  frame.material_count = 1;
+  frame.states = &state;
+  frame.state_count = 1;
+  std::vector<uint8_t> base(kSide * kSide * 4u, kSentinel);
+  CoinWgpuTarget target = targetFor(fast, &base);
+  char error[512] = {};
+  if (!check(coin_wgpu_submit(&target, &frame, error, sizeof(error)) == COIN_WGPU_OK,
+             "owned scene base submission", error)) return false;
+
+  state.model_view[12] = 0.2f;
+  state.model_view_projection[12] = 0.2f;
+  frame.frame_revision = 41002;
+  std::vector<uint8_t> expected(kSide * kSide * 4u, kSentinel);
+  target = targetFor(reference, &expected);
+  error[0] = 0;
+  if (!check(coin_wgpu_submit(&target, &frame, error, sizeof(error)) == COIN_WGPU_OK,
+             "full camera reference submission", error)) return false;
+
+  frame.camera_base_revision = 41001;
+  frame.vertices = nullptr;
+  frame.indices = nullptr;
+  frame.draws = nullptr;
+  frame.materials = nullptr;
+  std::vector<uint8_t> actual(kSide * kSide * 4u, kSentinel);
+  target = targetFor(fast, &actual);
+  error[0] = 0;
+  if (!check(coin_wgpu_submit(&target, &frame, error, sizeof(error)) == COIN_WGPU_OK &&
+             actual == expected && actual != base,
+             "camera patch must use Rust-owned geometry and match full traversal", error)) return false;
+
+  frame.frame_revision = 41003;
+  frame.camera_base_revision = 41002;
+  uint64_t rttToken = 0;
+  target = targetFor(fast);
+  error[0] = 0;
+  if (!check(coin_wgpu_submit_texture(&target, &frame, &rttToken, error, sizeof(error)) ==
+             COIN_WGPU_INVALID_ARGUMENT && rttToken == 0,
+             "RTT must not use owned camera geometry", error)) return false;
+  state.material_slot = 99;
+  std::vector<uint8_t> rejected(kSide * kSide * 4u, kSentinel);
+  target = targetFor(fast, &rejected);
+  error[0] = 0;
+  if (!check(coin_wgpu_submit(&target, &frame, error, sizeof(error)) == COIN_WGPU_INVALID_ARGUMENT &&
+             unchanged(rejected), "state mutation must not reuse owned geometry", error)) return false;
+
+  state.material_slot = 0;
+  frame.frame_revision = 41004;
+  frame.camera_base_revision = 41001;
+  target = targetFor(fast, &rejected);
+  error[0] = 0;
+  if (!check(coin_wgpu_submit(&target, &frame, error, sizeof(error)) == COIN_WGPU_INVALID_ARGUMENT &&
+             unchanged(rejected), "stale camera base must take full validation", error)) return false;
+
+  coin_wgpu_device_destroy(fast);
+  if (!createDevice(fast)) return false;
+  frame.camera_base_revision = 41002;
+  target = targetFor(fast, &rejected);
+  error[0] = 0;
+  const bool lostBaseRejected = check(
+      coin_wgpu_submit(&target, &frame, error, sizeof(error)) == COIN_WGPU_INVALID_ARGUMENT &&
+      unchanged(rejected), "new device must not inherit a validated scene", error);
+  coin_wgpu_device_destroy(fast);
+  coin_wgpu_device_destroy(reference);
+  return lostBaseRejected;
+}
+
 bool concurrentSubmissions() {
   CoinWgpuDeviceId first = 0, second = 0;
   if (!createDevice(first) || !createDevice(second)) return false;
@@ -477,7 +578,8 @@ int main(int argc, char ** argv) {
   const bool runStress = argc > 1 && std::string(argv[1]) == "--stress";
   const bool passed = runStress ? stress() :
                       (invalidHandles() && lifecycleAndIsolation() && rttOwnership() &&
-                       cacheIsolation() && concurrentSubmissions());
+                       cacheIsolation() && validatedCameraSceneOwnership() &&
+                       concurrentSubmissions());
   if (passed) std::cout << "WgpuMultiDeviceTest passed"
                         << (runStress ? " (stress)" : "") << '\n';
   return passed ? 0 : 1;

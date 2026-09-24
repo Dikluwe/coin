@@ -13,7 +13,7 @@ use std::sync::{Arc, Mutex};
 
 mod composition;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 16;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 17;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 pub type CoinWgpuSurfaceId = u64;
@@ -234,6 +234,7 @@ pub struct CoinWgpuFrameView {
     pub clear_color: [f32; 4],
     pub width: u32,
     pub height: u32,
+    pub camera_base_revision: u64,
 }
 
 #[repr(C)]
@@ -470,6 +471,86 @@ struct SamplerCache {
     entries: HashMap<SamplerKey, wgpu::Sampler>,
 }
 
+// The offscreen camera fast path reads geometry only from this Rust-owned
+// snapshot. A revision hint alone never licenses dereferencing caller-owned
+// geometry without full validation. One snapshot belongs to one device
+// generation and is discarded with that device on loss/destruction.
+struct ValidatedGeometry {
+    vertices: Vec<CoinWgpuVertex>,
+    indices: Vec<u32>,
+    draws: Vec<CoinWgpuDraw>,
+    materials: Vec<CoinWgpuMaterial>,
+    max_abs_position: f64,
+}
+
+struct ValidatedScene {
+    revision: u64,
+    generation: u64,
+    width: u32,
+    height: u32,
+    clear_color: [f32; 4],
+    geometry: Arc<ValidatedGeometry>,
+    states: Vec<CoinWgpuRenderState>,
+    draw_order: Vec<composition::CompositionItem>,
+}
+
+fn same_camera_independent_state(a: &CoinWgpuRenderState, b: &CoinWgpuRenderState) -> bool {
+    a.light_direction == b.light_direction && a.light_color == b.light_color
+        && a.light_intensity == b.light_intensity && a.has_light == b.has_light
+        && a.material_slot == b.material_slot && a.cull_mode == b.cull_mode
+        && a.front_face == b.front_face && a.light_model == b.light_model
+        && a.texture_matrix == b.texture_matrix && a.has_texture == b.has_texture
+        && a.texture_slot == b.texture_slot && a.sampler_slot == b.sampler_slot
+        && a.texture_model == b.texture_model && a.light_count == b.light_count
+        && a.ambient_light == b.ambient_light && a.fog_mode == b.fog_mode
+        && a.fog_color == b.fog_color && a.fog_start == b.fog_start
+        && a.lights.iter().zip(b.lights.iter()).all(|(x, y)| {
+            x.position_type == y.position_type && x.direction_cutoff == y.direction_cutoff
+                && x.color_intensity == y.color_intensity
+                && x.attenuation_exponent == y.attenuation_exponent
+        })
+}
+
+fn camera_states_match(scene: &ValidatedScene, states: &[CoinWgpuRenderState]) -> bool {
+    scene.states.len() == states.len() && scene.states.iter().zip(states).all(|(old, next)| {
+        if old.light_model != 0 || old.fog_mode != 0 || old.has_texture != 0
+            || !same_camera_independent_state(old, next)
+            || !next.model_view.iter().chain(next.model_view_projection.iter())
+                .chain(next.normal_matrix.iter()).all(|x| x.is_finite())
+            || !next.fog_end.is_finite() {
+            return false;
+        }
+        // Composition preflight rejects non-finite view-space depth. Bound
+        // the changed matrix against the previously validated positions.
+        let m = &next.model_view;
+        let bound = scene.geometry.max_abs_position
+            * (f64::from(m[2]).abs() + f64::from(m[6]).abs() + f64::from(m[10]).abs())
+            + f64::from(m[14]).abs();
+        bound <= f64::from(f32::MAX)
+    })
+}
+
+fn camera_scene_eligible(
+    vertices: &[CoinWgpuVertex], indices: &[u32], draws: &[CoinWgpuDraw],
+    materials: &[CoinWgpuMaterial],
+    states: &[CoinWgpuRenderState], order: &[composition::CompositionItem],
+    textures: &[CoinWgpuTexture], samplers: &[CoinWgpuSampler],
+) -> bool {
+    const MAX_OWNED_SCENE_BYTES: usize = 32 * 1024 * 1024;
+    let owned_bytes = std::mem::size_of_val(vertices)
+        .saturating_add(std::mem::size_of_val(indices))
+        .saturating_add(std::mem::size_of_val(draws))
+        .saturating_add(std::mem::size_of_val(materials))
+        .saturating_add(std::mem::size_of_val(states))
+        .saturating_add(std::mem::size_of_val(order));
+    owned_bytes <= MAX_OWNED_SCENE_BYTES
+        && textures.is_empty() && samplers.is_empty()
+        && states.iter().all(|s| s.light_model == 0 && s.fog_mode == 0 && s.has_texture == 0)
+        && materials.iter().all(|m| m.diffuse[3] == 1.0 && m.transparency == 0.0)
+        && order.iter().all(|item| !item.blend)
+        && vertices.iter().all(|v| v.position.iter().all(|x| x.is_finite()))
+}
+
 struct DeviceState {
     adapter: wgpu::Adapter,
     adapter_name: String,
@@ -489,6 +570,7 @@ struct DeviceState {
     default_sampler: wgpu::Sampler,
     texture_cache: Mutex<TextureCache>,
     sampler_cache: Mutex<SamplerCache>,
+    validated_scene: Option<Arc<ValidatedScene>>,
     rtt_textures: Mutex<RttRegistry>,
     device_id: CoinWgpuDeviceId,
     generation: u64,
@@ -1023,6 +1105,7 @@ fn get_or_init_device_impl<'a>(
         default_sampler,
         texture_cache: Mutex::new(TextureCache::default()),
         sampler_cache: Mutex::new(SamplerCache::default()),
+        validated_scene: None,
         rtt_textures: Mutex::new(RttRegistry::default()),
         device_id: 0,
         generation: runtime.device_generation,
@@ -3203,49 +3286,70 @@ fn coin_wgpu_submit_internal(
             return CoinWgpuStatus::InvalidArgument;
         }
 
-        // 5. Slice bounds and alignment validation
-        let vertices_slice = match validate_slice(
-            f.vertices,
-            f.vertex_count,
-            "vertices",
-            error_buf,
-            error_buf_len,
-        ) {
-            Ok(s) => s,
-            Err(st) => return st,
-        };
-        let indices_slice = match validate_slice(
-            f.indices,
-            f.index_count,
-            "indices",
-            error_buf,
-            error_buf_len,
-        ) {
-            Ok(s) => s,
-            Err(st) => return st,
-        };
-        let draws_slice =
-            match validate_slice(f.draws, f.draw_count, "draws", error_buf, error_buf_len) {
-                Ok(s) => s,
-                Err(st) => return st,
-            };
-        let materials_slice = match validate_slice(
-            f.materials,
-            f.material_count,
-            "materials",
-            error_buf,
-            error_buf_len,
-        ) {
-            Ok(s) => s,
-            Err(st) => return st,
-        };
+        // 5. Validate the changed states before considering a camera hint.
+        // All immutable pointers are ignored only if this device still owns
+        // the validated base. A stale/mismatched hint takes the old full path.
         let states_slice =
             match validate_slice(f.states, f.state_count, "states", error_buf, error_buf_len) {
                 Ok(s) => s,
                 Err(st) => return st,
             };
 
-        let textures_slice = if f.texture_count > 0 {
+        let owned_patch = if out_texture.is_null() && f.camera_base_revision != 0
+            && f.frame_revision != 0 && f.frame_revision != f.camera_base_revision
+            && f.texture_count == 0 && f.sampler_count == 0 {
+            RUNTIME_CTX.lock().ok().and_then(|guard| {
+                let runtime = guard.as_ref()?;
+                let device = if tgt.device_id == 0 {
+                    runtime.device_state.as_ref()
+                } else {
+                    runtime.extra_devices.get(&tgt.device_id)
+                }?;
+                let scene = device.validated_scene.as_ref()?;
+                let geometry = &scene.geometry;
+                (scene.revision == f.camera_base_revision
+                    && scene.generation == device.generation
+                    && scene.width == width && scene.height == height
+                    && scene.clear_color == f.clear_color
+                    && geometry.vertices.len() as u64 == f.vertex_count
+                    && geometry.indices.len() as u64 == f.index_count
+                    && geometry.draws.len() as u64 == f.draw_count
+                    && geometry.materials.len() as u64 == f.material_count
+                    && camera_states_match(scene, states_slice))
+                    .then(|| scene.clone())
+            })
+        } else { None };
+
+        let vertices_slice = if let Some(scene) = owned_patch.as_ref() {
+            scene.geometry.vertices.as_slice()
+        } else {
+            match validate_slice(f.vertices, f.vertex_count, "vertices", error_buf, error_buf_len) {
+                Ok(s) => s, Err(st) => return st,
+            }
+        };
+        let indices_slice = if let Some(scene) = owned_patch.as_ref() {
+            scene.geometry.indices.as_slice()
+        } else {
+            match validate_slice(f.indices, f.index_count, "indices", error_buf, error_buf_len) {
+                Ok(s) => s, Err(st) => return st,
+            }
+        };
+        let draws_slice = if let Some(scene) = owned_patch.as_ref() {
+            scene.geometry.draws.as_slice()
+        } else {
+            match validate_slice(f.draws, f.draw_count, "draws", error_buf, error_buf_len) {
+                Ok(s) => s, Err(st) => return st,
+            }
+        };
+        let materials_slice = if let Some(scene) = owned_patch.as_ref() {
+            scene.geometry.materials.as_slice()
+        } else {
+            match validate_slice(f.materials, f.material_count, "materials", error_buf, error_buf_len) {
+                Ok(s) => s, Err(st) => return st,
+            }
+        };
+
+        let textures_slice = if owned_patch.is_some() { &[] } else if f.texture_count > 0 {
             match validate_slice(f.textures, f.texture_count, "textures", error_buf, error_buf_len) {
                 Ok(s) => s,
                 Err(st) => return st,
@@ -3254,7 +3358,7 @@ fn coin_wgpu_submit_internal(
             &[]
         };
 
-        let samplers_slice = if f.sampler_count > 0 {
+        let samplers_slice = if owned_patch.is_some() { &[] } else if f.sampler_count > 0 {
             match validate_slice(f.samplers, f.sampler_count, "samplers", error_buf, error_buf_len) {
                 Ok(s) => s,
                 Err(st) => return st,
@@ -3264,7 +3368,7 @@ fn coin_wgpu_submit_internal(
         };
 
         // 6. Strict validation and composition are immutable for one private FramePlan revision.
-        let cached_draw_order = if f.frame_revision != 0 {
+        let cached_draw_order = if owned_patch.is_none() && f.frame_revision != 0 {
             VALIDATED_FRAME_CACHE.lock().ok().and_then(|cache| {
                 cache.as_ref().and_then(|(revision, order)| {
                     if *revision == f.frame_revision { Some(order.clone()) } else { None }
@@ -3273,7 +3377,10 @@ fn coin_wgpu_submit_internal(
         } else {
             None
         };
-        let draw_order = if let Some(order) = cached_draw_order {
+        let mut fully_validated = false;
+        let draw_order = if let Some(scene) = owned_patch.as_ref() {
+            scene.draw_order.clone()
+        } else if let Some(order) = cached_draw_order {
             order
         } else {
         for (i, draw) in draws_slice.iter().enumerate() {
@@ -3393,6 +3500,7 @@ fn coin_wgpu_submit_internal(
                 *cache = Some((f.frame_revision, computed_draw_order.clone()));
             }
         }
+        fully_validated = true;
         computed_draw_order
         };
 
@@ -3426,6 +3534,19 @@ fn coin_wgpu_submit_internal(
             }
         };
         let ctx = unsafe { &mut *device_state };
+        if let Some(scene) = owned_patch.as_ref() {
+            if scene.generation != ctx.generation {
+                set_error(error_buf, error_buf_len, "Camera base belongs to a lost device generation");
+                return CoinWgpuStatus::DeviceLost;
+            }
+            // Another submit may have replaced the device's base while the
+            // incoming state was checked. Never encode against a stale GPU
+            // geometry cache, even though the old CPU snapshot is still alive.
+            if !ctx.validated_scene.as_ref().is_some_and(|current| Arc::ptr_eq(current, scene)) {
+                set_error(error_buf, error_buf_len, "Camera base is no longer current on this device");
+                return CoinWgpuStatus::NotReady;
+            }
+        }
         let profile_validated = std::time::Instant::now();
 
 
@@ -3502,6 +3623,48 @@ fn coin_wgpu_submit_internal(
                 return status;
             }
         };
+        if f.frame_revision != 0 && (owned_patch.is_some() || fully_validated) {
+            let next_scene = if let Some(scene) = owned_patch.as_ref() {
+                Some(Arc::new(ValidatedScene {
+                    revision: f.frame_revision,
+                    generation: ctx.generation,
+                    width,
+                    height,
+                    clear_color: f.clear_color,
+                    geometry: scene.geometry.clone(),
+                    states: states_slice.to_vec(),
+                    draw_order: draw_order.clone(),
+                }))
+            } else if camera_scene_eligible(vertices_slice, indices_slice, draws_slice,
+                materials_slice,
+                states_slice, &draw_order, textures_slice, samplers_slice) {
+                let max_abs_position = vertices_slice.iter()
+                    .flat_map(|v| v.position).map(|x| f64::from(x).abs())
+                    .fold(0.0_f64, f64::max);
+                Some(Arc::new(ValidatedScene {
+                    revision: f.frame_revision,
+                    generation: ctx.generation,
+                    width,
+                    height,
+                    clear_color: f.clear_color,
+                    geometry: Arc::new(ValidatedGeometry {
+                        vertices: vertices_slice.to_vec(),
+                        indices: indices_slice.to_vec(),
+                        draws: draws_slice.to_vec(),
+                        materials: materials_slice.to_vec(),
+                        max_abs_position,
+                    }),
+                    states: states_slice.to_vec(),
+                    draw_order: draw_order.clone(),
+                }))
+            } else { None };
+            ctx.validated_scene = next_scene;
+            if owned_patch.is_some() {
+                if let Ok(mut cache) = VALIDATED_FRAME_CACHE.lock() {
+                    *cache = Some((f.frame_revision, draw_order.clone()));
+                }
+            }
+        }
         let profile_encoded = std::time::Instant::now();
 
         if !out_texture.is_null() {

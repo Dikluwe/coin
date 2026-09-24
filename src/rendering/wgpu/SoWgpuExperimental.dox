@@ -82,7 +82,14 @@
   may reuse its full profile validation only when the camera patch names its
   currently validated base; a stale base or resize forces full validation.
   The Rust connector retains its own ABI-boundary validation, including on
-  each new camera revision.
+  each new camera revision unless its device owns the matching validated
+  opaque, untextured scene. For that restricted case, the private frame view
+  names the camera base revision and Rust reads immutable geometry only from
+  its own snapshot. It checks camera-derived states before reuse; a stale
+  base, different device generation, texture or unsupported state takes the
+  full validation path. The retained CPU payload is capped at 32 MiB; RTT
+  uses the full path. Device destruction/loss drops the snapshot. This
+  changes only the private bridge protocol, not the public Coin 4 ABI.
   This is not a replacement for the Open Inventor traversal model. With phase
   tracing enabled, <tt>plan_reuse</tt> and <tt>pack_mode</tt> expose the path.
 
