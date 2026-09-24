@@ -4,6 +4,7 @@
 
 #include <Inventor/actions/SoWgpuRenderAction.h>
 #include <Inventor/rendering/SoWgpuRenderTarget.h>
+#include "rendering/wgpu/SoWgpuDiagnosticShell.h"
 #include "rendering/wgpu/SoWgpuFramePlanBuilder.h"
 #include "rendering/wgpu/SoWgpuRecordingBackend.h"
 #include <string>
@@ -19,6 +20,7 @@ public:
   ~SoWgpuRenderActionP();
 
   void initCallbacks();
+  void setDiagnostic(const SoWgpuActionDiagnostic & diagnostic);
 
   template <typename F>
   void executeApply(F traversalFn, SoNode * cacheRoot = NULL);
@@ -60,6 +62,7 @@ public:
   SbViewportRegion viewport;
   SbColor4f backgroundColor;
   SoWgpuRenderAction::Status lastStatus;
+  SoWgpuDiagnosticDomain lastDiagnosticDomain;
   SbString lastError;
   mutable SbString lastRecordingLog;
 

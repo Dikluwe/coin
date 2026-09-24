@@ -30,6 +30,7 @@
 #include <Inventor/misc/SoState.h>
 
 #include "actions/SoWgpuRenderActionP.h"
+#include "rendering/wgpu/SoWgpuDiagnosticShell.h"
 #include "rendering/wgpu/SoWgpuImageCore.h"
 #include "rendering/wgpu/SoWgpuRenderTargetP.h"
 #include "actions/SoSubActionP.h"
@@ -172,8 +173,9 @@ SoWgpuRenderAction::applyAsync(SoNode * root, SoWgpuReadbackTicket & outTicket)
 {
   outTicket = SoWgpuReadbackTicket{};
   if (this->pimpl->isApplying) {
-    this->pimpl->lastStatus = INVALID_SCENE;
-    this->pimpl->lastError = "Nested applyAsync() calls are not permitted";
+    this->pimpl->setDiagnostic(SoWgpuDiagnosticShell::action(
+      INVALID_SCENE, SoWgpuDiagnosticDomain::ACTION,
+      SbString("Nested applyAsync() calls are not permitted")));
     this->pimpl->hasReentrancyError = true;
     return;
   }
@@ -225,6 +227,7 @@ SoWgpuRenderActionP::SoWgpuRenderActionP(SoWgpuRenderAction * m)
     asyncTicket(NULL),
     backgroundColor(0.0f, 0.0f, 0.0f, 1.0f),
     lastStatus(SoWgpuRenderAction::SUCCESS),
+    lastDiagnosticDomain(SoWgpuDiagnosticDomain::NONE),
     hasLastValidPlan(false),
     recordingLogValid(false),
     isApplying(false),
@@ -237,16 +240,25 @@ SoWgpuRenderActionP::~SoWgpuRenderActionP()
 {
 }
 
+void
+SoWgpuRenderActionP::setDiagnostic(const SoWgpuActionDiagnostic & diagnostic)
+{
+  this->lastStatus = diagnostic.status;
+  this->lastDiagnosticDomain = diagnostic.domain;
+  this->lastError = diagnostic.message;
+}
+
 template <typename F>
 void
 SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
 {
   typedef std::chrono::steady_clock ProfileClock;
   const ProfileClock::time_point profileBegin = ProfileClock::now();
-  const bool tracePhases = std::getenv("COIN_WGPU_TRACE_PHASES") != NULL;
+  const bool tracePhases = SoWgpuDiagnosticShell::phaseTracingEnabled();
   if (this->isApplying) {
-    this->lastStatus = SoWgpuRenderAction::INVALID_SCENE;
-    this->lastError = "Nested apply() calls are not permitted on SoWgpuRenderAction";
+    this->setDiagnostic(SoWgpuDiagnosticShell::action(
+      SoWgpuRenderAction::INVALID_SCENE, SoWgpuDiagnosticDomain::ACTION,
+      SbString("Nested apply() calls are not permitted on SoWgpuRenderAction")));
     this->hasReentrancyError = true;
     return;
   }
@@ -305,8 +317,9 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
 
   this->sceneTextureStagedBytes.reset();
   if (this->hasReentrancyError) {
-    this->lastStatus = SoWgpuRenderAction::INVALID_SCENE;
-    this->lastError = "Nested apply() calls are not permitted on SoWgpuRenderAction";
+    this->setDiagnostic(SoWgpuDiagnosticShell::action(
+      SoWgpuRenderAction::INVALID_SCENE, SoWgpuDiagnosticDomain::ACTION,
+      SbString("Nested apply() calls are not permitted on SoWgpuRenderAction")));
     return;
   }
 
@@ -316,12 +329,10 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
 
   std::string err;
   if (!planCacheHit && !this->builder.build(plan, &err)) {
-    if (this->builder.isUnsupportedBuild()) {
-      this->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
-    } else {
-      this->lastStatus = SoWgpuRenderAction::INVALID_SCENE;
-    }
-    this->lastError = err.c_str();
+    const SoWgpuRenderAction::Status status = this->builder.isUnsupportedBuild()
+      ? SoWgpuRenderAction::UNSUPPORTED : SoWgpuRenderAction::INVALID_SCENE;
+    this->setDiagnostic(SoWgpuDiagnosticShell::action(
+      status, SoWgpuDiagnosticDomain::FRAME_PLAN, SbString(err.c_str())));
     return;
   }
   profilePlanned = ProfileClock::now();
@@ -332,15 +343,15 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       this->lastValidPlan = std::move(plan);
       this->hasLastValidPlan = true;
     }
-    this->lastStatus = SoWgpuRenderAction::SUCCESS;
-    this->lastError = "";
+    this->setDiagnostic(SoWgpuDiagnosticShell::success());
     return;
   }
 
   if (this->target == NULL) {
     if (this->asyncTicket) {
-      this->lastStatus = SoWgpuRenderAction::NO_TARGET;
-      this->lastError = "applyAsync() requires an offscreen render target";
+      this->setDiagnostic(SoWgpuDiagnosticShell::action(
+        SoWgpuRenderAction::NO_TARGET, SoWgpuDiagnosticDomain::TARGET,
+        SbString("applyAsync() requires an offscreen render target")));
       return;
     }
     // Mode 0: Recording backend
@@ -354,31 +365,23 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
         this->cachedRootId = cacheRoot->getNodeId();
       }
     }
-    this->lastStatus = SoWgpuRenderAction::SUCCESS;
-    this->lastError = "";
+    this->setDiagnostic(SoWgpuDiagnosticShell::success());
     return;
   }
 
   // Target provided: validate target status
   if (this->target->getStatus() == SoWgpuRenderTarget::TARGET_ERROR) {
-    this->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
     const char * tgtErr = this->target->getLastError();
-    this->lastError = (tgtErr && tgtErr[0]) ? tgtErr : "Render target is in fatal TARGET_ERROR state";
+    this->setDiagnostic(SoWgpuDiagnosticShell::fromTarget(
+      this->target->getStatus(), (tgtErr && tgtErr[0])
+        ? tgtErr : "Render target is in fatal TARGET_ERROR state"));
     return;
   }
 
 #if defined(HAVE_WGPU_RUST_BRIDGE)
   if (this->directPasses) {
     auto setGraphFailure = [this](const FrameExecutionResult & result) {
-      switch (result.status) {
-        case BackendStatus::UNSUPPORTED: this->lastStatus = SoWgpuRenderAction::UNSUPPORTED; break;
-        case BackendStatus::NOT_READY: this->lastStatus = SoWgpuRenderAction::NOT_READY; break;
-        case BackendStatus::OUT_OF_MEMORY: this->lastStatus = SoWgpuRenderAction::OUT_OF_MEMORY; break;
-        case BackendStatus::DEVICE_LOST: this->lastStatus = SoWgpuRenderAction::DEVICE_LOST; break;
-        case BackendStatus::SURFACE_LOST: this->lastStatus = SoWgpuRenderAction::SURFACE_LOST; break;
-        default: this->lastStatus = SoWgpuRenderAction::BACKEND_ERROR; break;
-      }
-      this->lastError = result.diagnostic.c_str();
+      this->setDiagnostic(SoWgpuDiagnosticShell::fromBackend(result));
     };
     // Validate every producer and the consumer before the first GPU submit.
     // Child plans are appended in postorder, so only earlier IDs are legal.
@@ -386,8 +389,10 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       const DirectPass & pass = (*this->directPasses)[i];
       for (const TextureImageSnapshot & texture : pass.plan.textures) {
         if (texture.gpuToken > i) {
-          this->lastStatus = SoWgpuRenderAction::INVALID_SCENE;
-          this->lastError = "SoSceneTexture2 pass references a missing or future producer";
+          this->setDiagnostic(SoWgpuDiagnosticShell::action(
+            SoWgpuRenderAction::INVALID_SCENE,
+            SoWgpuDiagnosticDomain::FRAME_PLAN,
+            SbString("SoSceneTexture2 pass references a missing or future producer")));
           return;
         }
       }
@@ -399,8 +404,10 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     }
     for (const TextureImageSnapshot & texture : plan.textures) {
       if (texture.gpuToken > this->directPasses->size()) {
-        this->lastStatus = SoWgpuRenderAction::INVALID_SCENE;
-        this->lastError = "Parent pass references a missing SoSceneTexture2 producer";
+        this->setDiagnostic(SoWgpuDiagnosticShell::action(
+          SoWgpuRenderAction::INVALID_SCENE,
+          SoWgpuDiagnosticDomain::FRAME_PLAN,
+          SbString("Parent pass references a missing SoSceneTexture2 producer")));
         return;
       }
     }
@@ -427,8 +434,10 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       std::unique_ptr<SoWgpuRenderTarget> childTarget(
         SoWgpuRenderTargetP::createDirectOffscreen(pass.size));
       if (!childTarget || childTarget->getStatus() != SoWgpuRenderTarget::TARGET_READY) {
-        this->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
-        this->lastError = "Cannot create planned SoSceneTexture2 offscreen target";
+        this->setDiagnostic(SoWgpuDiagnosticShell::action(
+          SoWgpuRenderAction::BACKEND_ERROR,
+          SoWgpuDiagnosticDomain::TARGET,
+          SbString("Cannot create planned SoSceneTexture2 offscreen target")));
         return;
       }
       FrameExecutionResult result = childTarget->pimpl->executeFrame(childFrame);
@@ -438,8 +447,10 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       }
       const uint64_t token = childTarget->pimpl->directTextureToken;
       if (!token) {
-        this->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
-        this->lastError = "Planned SoSceneTexture2 pass returned no GPU texture";
+        this->setDiagnostic(SoWgpuDiagnosticShell::action(
+          SoWgpuRenderAction::BACKEND_ERROR,
+          SoWgpuDiagnosticDomain::BACKEND,
+          SbString("Planned SoSceneTexture2 pass returned no GPU texture")));
         return;
       }
       resolved[i + 1] = token;
@@ -454,43 +465,24 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     ? this->target->pimpl->executeFrameAsync(framePlan, *this->asyncTicket)
     : this->target->pimpl->executeFrame(framePlan);
   if (execRes.status != BackendStatus::SUCCESS) {
-    switch (execRes.status) {
-      case BackendStatus::NOT_READY:
-        this->lastStatus = SoWgpuRenderAction::NOT_READY;
-        break;
-      case BackendStatus::UNSUPPORTED:
-        this->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
-        break;
-      case BackendStatus::OUT_OF_MEMORY:
-        this->lastStatus = SoWgpuRenderAction::OUT_OF_MEMORY;
-        break;
-      case BackendStatus::DEVICE_LOST:
-        this->lastStatus = SoWgpuRenderAction::DEVICE_LOST;
-        break;
-      case BackendStatus::SURFACE_LOST:
-        this->lastStatus = SoWgpuRenderAction::SURFACE_LOST;
-        break;
-      case BackendStatus::BACKEND_ERROR:
-      default:
-        this->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
-        break;
-    }
-    this->lastError = execRes.diagnostic.c_str();
+    this->setDiagnostic(SoWgpuDiagnosticShell::fromBackend(execRes));
     return;
   }
 
   const ProfileClock::time_point profileExecuted = ProfileClock::now();
   if (tracePhases) {
-    const double traversalMs = std::chrono::duration<double, std::milli>(profileTraversed - profileBegin).count();
-    const double framePlanMs = std::chrono::duration<double, std::milli>(profilePlanned - profileTraversed).count();
-    const double backendMs = std::chrono::duration<double, std::milli>(profileExecuted - profilePlanned).count();
-    std::cerr << "COIN_WGPU_PHASE action traversal_ms=" << traversalMs
-              << " frame_plan_ms=" << framePlanMs
-              << " backend_ms=" << backendMs
-              << " vertices=" << framePlan.vertices.size()
-              << " indices=" << framePlan.indices.size()
-              << " draws=" << framePlan.draws.size()
-              << " plan_cache_hit=" << (planCacheHit ? 1 : 0) << '\n';
+    SoWgpuActionPhaseSample sample;
+    sample.traversalMs = std::chrono::duration<double, std::milli>(
+      profileTraversed - profileBegin).count();
+    sample.framePlanMs = std::chrono::duration<double, std::milli>(
+      profilePlanned - profileTraversed).count();
+    sample.backendMs = std::chrono::duration<double, std::milli>(
+      profileExecuted - profilePlanned).count();
+    sample.vertices = framePlan.vertices.size();
+    sample.indices = framePlan.indices.size();
+    sample.draws = framePlan.draws.size();
+    sample.planCacheHit = planCacheHit;
+    std::cerr << SoWgpuDiagnosticShell::formatActionPhase(sample) << '\n';
   }
   if (!planCacheHit) {
     this->lastValidPlan = std::move(plan);
@@ -501,8 +493,7 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       this->cachedRootId = cacheRoot->getNodeId();
     }
   }
-  this->lastStatus = SoWgpuRenderAction::SUCCESS;
-  this->lastError = "";
+  this->setDiagnostic(SoWgpuDiagnosticShell::success());
 }
 
 void
@@ -557,8 +548,9 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
   const SoSceneTexture2 * texture = static_cast<const SoSceneTexture2 *>(node);
   SoState * state = action ? action->getState() : NULL;
   if (!state) {
-    p->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
-    p->lastError = "SoSceneTexture2 has no traversal state";
+    p->setDiagnostic(SoWgpuDiagnosticShell::action(
+      SoWgpuRenderAction::BACKEND_ERROR, SoWgpuDiagnosticDomain::ACTION,
+      SbString("SoSceneTexture2 has no traversal state")));
     return SoCallbackAction::ABORT;
   }
   if (SoTextureOverrideElement::getImageOverride(state)) {
@@ -573,8 +565,9 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
        texture->wrapT.getValue() != SoSceneTexture2::CLAMP) ||
       texture->transparencyFunction.getValue() != SoSceneTexture2::NONE ||
       texture->sceneTransparencyType.getValue() != NULL) {
-    p->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
-    p->lastError = "SoSceneTexture2 supports only unit 0, RGBA8, MODULATE, REPEAT/CLAMP, NONE transparency function and no sceneTransparencyType";
+    p->setDiagnostic(SoWgpuDiagnosticShell::action(
+      SoWgpuRenderAction::UNSUPPORTED, SoWgpuDiagnosticDomain::FRAME_PLAN,
+      SbString("SoSceneTexture2 supports only unit 0, RGBA8, MODULATE, REPEAT/CLAMP, NONE transparency function and no sceneTransparencyType")));
     return SoCallbackAction::ABORT;
   }
 
@@ -595,8 +588,9 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
   SoNode * scene = texture->scene.getValue();
   if (!scene || size[0] <= 0 || size[1] <= 0 ||
       size[0] > 2048 || size[1] > 2048) {
-    p->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
-    p->lastError = "SoSceneTexture2 requires a scene and dimensions in 1..2048";
+    p->setDiagnostic(SoWgpuDiagnosticShell::action(
+      SoWgpuRenderAction::UNSUPPORTED, SoWgpuDiagnosticDomain::FRAME_PLAN,
+      SbString("SoSceneTexture2 requires a scene and dimensions in 1..2048")));
     return SoCallbackAction::ABORT;
   }
 
@@ -604,18 +598,20 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
   const size_t chargedBytes = size_t(size[0]) * size_t(size[1]) * (useDirect ? 8 : 4);
   const size_t maxBudgetBytes = size_t(64) * 1024 * 1024;
   if (!useDirect && chargedBytes > maxBudgetBytes - *p->sceneTextureStagedBytes) {
-    p->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
-    p->lastError = useDirect
-      ? "SoSceneTexture2 GPU attachment budget exceeds 64 MiB per apply"
-      : "SoSceneTexture2 staged RGBA8 budget exceeds 64 MiB per apply";
+    p->setDiagnostic(SoWgpuDiagnosticShell::action(
+      SoWgpuRenderAction::UNSUPPORTED, SoWgpuDiagnosticDomain::TARGET,
+      SbString(useDirect
+        ? "SoSceneTexture2 GPU attachment budget exceeds 64 MiB per apply"
+        : "SoSceneTexture2 staged RGBA8 budget exceeds 64 MiB per apply")));
     return SoCallbackAction::ABORT;
   }
 
   static thread_local std::vector<const SoSceneTexture2 *> activeTextures;
   if (activeTextures.size() >= 8 ||
       std::find(activeTextures.begin(), activeTextures.end(), texture) != activeTextures.end()) {
-    p->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
-    p->lastError = "SoSceneTexture2 dependency cycle or nesting beyond eight passes";
+    p->setDiagnostic(SoWgpuDiagnosticShell::action(
+      SoWgpuRenderAction::UNSUPPORTED, SoWgpuDiagnosticDomain::FRAME_PLAN,
+      SbString("SoSceneTexture2 dependency cycle or nesting beyond eight passes")));
     return SoCallbackAction::ABORT;
   }
   activeTextures.push_back(texture);
@@ -630,8 +626,9 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
   if (!useDirect) {
     childTarget.reset(SoWgpuRenderTarget::createOffscreen(SbVec2i32(size[0], size[1])));
     if (!childTarget || childTarget->getStatus() != SoWgpuRenderTarget::TARGET_READY) {
-      p->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
-      p->lastError = "Cannot create SoSceneTexture2 offscreen target";
+      p->setDiagnostic(SoWgpuDiagnosticShell::action(
+        SoWgpuRenderAction::BACKEND_ERROR, SoWgpuDiagnosticDomain::TARGET,
+        SbString("Cannot create SoSceneTexture2 offscreen target")));
       return SoCallbackAction::ABORT;
     }
   }
@@ -645,16 +642,18 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
   childAction.pimpl->sceneTextureStagedBytes = p->sceneTextureStagedBytes;
   childAction.apply(scene);
   if (childAction.getLastStatus() != SoWgpuRenderAction::SUCCESS) {
-    p->lastStatus = childAction.getLastStatus();
-    p->lastError = SbString("SoSceneTexture2 subscene: ") + childAction.getLastError();
+    p->setDiagnostic(SoWgpuDiagnosticShell::withContext(
+      childAction.getLastStatus(), childAction.pimpl->lastDiagnosticDomain,
+      "SoSceneTexture2 subscene", childAction.getLastError()));
     return SoCallbackAction::ABORT;
   }
 
 #if defined(HAVE_WGPU_RUST_BRIDGE)
   if (useDirect) {
     if (!p->directPasses || !childAction.pimpl->hasLastValidPlan) {
-      p->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
-      p->lastError = "SoSceneTexture2 direct pass was not planned";
+      p->setDiagnostic(SoWgpuDiagnosticShell::action(
+        SoWgpuRenderAction::BACKEND_ERROR, SoWgpuDiagnosticDomain::FRAME_PLAN,
+        SbString("SoSceneTexture2 direct pass was not planned")));
       return SoCallbackAction::ABORT;
     }
     const SbVec2i32 passSize(size[0], size[1]);
@@ -669,8 +668,9 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
     }
     if (!token) {
       if (chargedBytes > maxBudgetBytes - *p->sceneTextureStagedBytes) {
-        p->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
-        p->lastError = "SoSceneTexture2 GPU attachment budget exceeds 64 MiB per apply";
+        p->setDiagnostic(SoWgpuDiagnosticShell::action(
+          SoWgpuRenderAction::UNSUPPORTED, SoWgpuDiagnosticDomain::TARGET,
+          SbString("SoSceneTexture2 GPU attachment budget exceeds 64 MiB per apply")));
         return SoCallbackAction::ABORT;
       }
       *p->sceneTextureStagedBytes += chargedBytes;
@@ -696,8 +696,9 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
     const unsigned char * image = SoMultiTextureImageElement::get(
       state, 0, markerSize, markerComponents, ws, wt, model, blend);
     if (!image || markerSize != SbVec2s(1, 1) || markerComponents != 4) {
-      p->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
-      p->lastError = "SoSceneTexture2 direct GPU marker was not retained by traversal state";
+      p->setDiagnostic(SoWgpuDiagnosticShell::action(
+        SoWgpuRenderAction::BACKEND_ERROR, SoWgpuDiagnosticDomain::ACTION,
+        SbString("SoSceneTexture2 direct GPU marker was not retained by traversal state")));
       return SoCallbackAction::ABORT;
     }
     p->builder.registerDirectTexture(image, token,
@@ -710,15 +711,17 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
   childTarget->readbackRGBA(pixels);
   const size_t required = size_t(size[0]) * size_t(size[1]) * 4;
   if (pixels.size() != required) {
-    p->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
-    p->lastError = "SoSceneTexture2 subscene returned incomplete RGBA8 readback";
+    p->setDiagnostic(SoWgpuDiagnosticShell::action(
+      SoWgpuRenderAction::BACKEND_ERROR, SoWgpuDiagnosticDomain::READBACK,
+      SbString("SoSceneTexture2 subscene returned incomplete RGBA8 readback")));
     return SoCallbackAction::ABORT;
   }
   if (!SoWgpuImageCore::flipRgba8Rows(
         pixels, SbVec2i32(static_cast<int32_t>(size[0]),
                          static_cast<int32_t>(size[1])))) {
-    p->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
-    p->lastError = "SoSceneTexture2 subscene returned invalid RGBA8 dimensions";
+    p->setDiagnostic(SoWgpuDiagnosticShell::action(
+      SoWgpuRenderAction::BACKEND_ERROR, SoWgpuDiagnosticDomain::READBACK,
+      SbString("SoSceneTexture2 subscene returned invalid RGBA8 dimensions")));
     return SoCallbackAction::ABORT;
   }
   p->sceneTexturePixels.push_back(std::move(pixels));
@@ -787,8 +790,9 @@ SoWgpuRenderActionP::indexedFaceSetPreCB(void * userdata,
       auto ct = tcElem->getType(0);
       if (ct == SoMultiTextureCoordinateElement::DEFAULT || ct == SoMultiTextureCoordinateElement::FUNCTION) {
         if (vp) state->pop();
-        p->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
-        p->lastError = "Procedural/DEFAULT texture coordinates are not supported in Subwave 3B";
+        p->setDiagnostic(SoWgpuDiagnosticShell::action(
+          SoWgpuRenderAction::UNSUPPORTED, SoWgpuDiagnosticDomain::FRAME_PLAN,
+          SbString("Procedural/DEFAULT texture coordinates are not supported in Subwave 3B")));
         return SoCallbackAction::ABORT;
       }
     }
@@ -842,12 +846,14 @@ SoWgpuRenderActionP::indexedFaceSetPreCB(void * userdata,
   if (res == FastPathResult::SUCCESS_PRUNE) {
     return SoCallbackAction::PRUNE;
   } else if (res == FastPathResult::INVALID_SCENE) {
-    p->lastStatus = SoWgpuRenderAction::INVALID_SCENE;
-    p->lastError = err.empty() ? "Invalid scene in IndexedFaceSet" : err.c_str();
+    p->setDiagnostic(SoWgpuDiagnosticShell::action(
+      SoWgpuRenderAction::INVALID_SCENE, SoWgpuDiagnosticDomain::FRAME_PLAN,
+      SbString(err.empty() ? "Invalid scene in IndexedFaceSet" : err.c_str())));
     return SoCallbackAction::ABORT;
   } else if (res == FastPathResult::UNSUPPORTED) {
-    p->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
-    p->lastError = err.empty() ? "Unsupported feature in IndexedFaceSet" : err.c_str();
+    p->setDiagnostic(SoWgpuDiagnosticShell::action(
+      SoWgpuRenderAction::UNSUPPORTED, SoWgpuDiagnosticDomain::FRAME_PLAN,
+      SbString(err.empty() ? "Unsupported feature in IndexedFaceSet" : err.c_str())));
     return SoCallbackAction::ABORT;
   } else {
     return SoCallbackAction::CONTINUE;
@@ -915,12 +921,14 @@ SoWgpuRenderActionP::indexedLineSetPreCB(void * userdata,
   if (res == FastPathResult::SUCCESS_PRUNE) {
     return SoCallbackAction::PRUNE;
   } else if (res == FastPathResult::INVALID_SCENE) {
-    p->lastStatus = SoWgpuRenderAction::INVALID_SCENE;
-    p->lastError = err.empty() ? "Invalid scene in IndexedLineSet" : err.c_str();
+    p->setDiagnostic(SoWgpuDiagnosticShell::action(
+      SoWgpuRenderAction::INVALID_SCENE, SoWgpuDiagnosticDomain::FRAME_PLAN,
+      SbString(err.empty() ? "Invalid scene in IndexedLineSet" : err.c_str())));
     return SoCallbackAction::ABORT;
   } else if (res == FastPathResult::UNSUPPORTED) {
-    p->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
-    p->lastError = err.empty() ? "Unsupported feature in IndexedLineSet" : err.c_str();
+    p->setDiagnostic(SoWgpuDiagnosticShell::action(
+      SoWgpuRenderAction::UNSUPPORTED, SoWgpuDiagnosticDomain::FRAME_PLAN,
+      SbString(err.empty() ? "Unsupported feature in IndexedLineSet" : err.c_str())));
     return SoCallbackAction::ABORT;
   } else {
     return SoCallbackAction::CONTINUE;

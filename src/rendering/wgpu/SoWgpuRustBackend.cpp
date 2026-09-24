@@ -7,6 +7,7 @@
 #if defined(HAVE_WGPU_RUST_BRIDGE)
 #include "rendering/wgpu/SoWgpuRustBackend.h"
 #include "rendering/wgpu/SoWgpuFfiFrame.h"
+#include "rendering/wgpu/SoWgpuDiagnosticShell.h"
 #include "rendering/wgpu/SoWgpuRenderTargetP.h"
 #include "rendering/wgpu/coin_wgpu_ffi.h"
 
@@ -178,7 +179,7 @@ SoWgpuRustBackend::submitInternal(const FramePlan & frame, SoWgpuRenderTargetP &
 {
   typedef std::chrono::steady_clock ProfileClock;
   const ProfileClock::time_point profileBegin = ProfileClock::now();
-  const bool tracePhases = std::getenv("COIN_WGPU_TRACE_PHASES") != NULL;
+  const bool tracePhases = SoWgpuDiagnosticShell::phaseTracingEnabled();
   if (outTicket && target.kind != SoWgpuRenderTargetP::KIND_OFFSCREEN) {
     this->lastError = "Asynchronous readback requires an offscreen target";
     return SubmitResult(BackendStatus::UNSUPPORTED, this->lastError);
@@ -256,12 +257,13 @@ SoWgpuRustBackend::submitInternal(const FramePlan & frame, SoWgpuRenderTargetP &
     const ProfileClock::time_point profileBridgeDone = ProfileClock::now();
     serial = tPod.submission_serial;
     if (tracePhases) {
-      std::cerr << "COIN_WGPU_PHASE bridge pack_ms="
-                << std::chrono::duration<double, std::milli>(profilePacked - profileBegin).count()
-                << " pack_cache_hit=" << (packCacheHit ? 1 : 0)
-                << " ffi_ms="
-                << std::chrono::duration<double, std::milli>(profileBridgeDone - profilePacked).count()
-                << '\n';
+      SoWgpuBridgePhaseSample sample;
+      sample.packMs = std::chrono::duration<double, std::milli>(
+        profilePacked - profileBegin).count();
+      sample.ffiMs = std::chrono::duration<double, std::milli>(
+        profileBridgeDone - profilePacked).count();
+      sample.packCacheHit = packCacheHit;
+      std::cerr << SoWgpuDiagnosticShell::formatBridgePhase(sample) << '\n';
     }
   }
 

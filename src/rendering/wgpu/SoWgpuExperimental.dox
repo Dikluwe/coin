@@ -39,6 +39,11 @@
   contracts. Only headers under <tt>experimental/include</tt> form the
   experimental source API.
 
+  Status translation and C++ phase-line formatting have a private Shell owner.
+  Public callers still observe only the existing status enums and diagnostic
+  strings. <tt>COIN_WGPU_TRACE_PHASES</tt> enables stable, whitespace-delimited
+  <tt>key=value</tt> records prefixed by <tt>COIN_WGPU_PHASE</tt>.
+
   \section coin_wgpu_targets Targets and readback
 
   SoWgpuRenderTarget creates either an offscreen target or a target backed by

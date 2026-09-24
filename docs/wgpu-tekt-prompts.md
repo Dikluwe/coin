@@ -161,8 +161,43 @@ test passes in Recording and Rust builds; all product suites remain green.
 
 ### Prompt 003: diagnostic Shell
 
-Centralize backend-status translation, structured errors and phase reporting.
-Core and Infra identify outcomes; Shell renders them; Wiring chooses fallback.
+**Intent:** Give language-facing WebGPU outcomes one private owner without
+changing the public action, target or scene-manager interfaces.
+
+**Core:** unchanged. Validation and transformation continue to return
+mechanical outcomes and diagnostics without printing.
+
+**Shell:** introduce a structured action diagnostic containing public status,
+private domain and existing message. Own the backend/target-to-action status
+tables, stable status/domain names, trace enablement and deterministic C++
+phase-line formatting.
+
+**Infra:** retain translation of raw private FFI status codes into
+BackendStatus. Report SubmitResult; do not choose public action policy.
+
+**Wiring:** publish Shell results through the existing getLastStatus() and
+getLastError() accessors. It still decides abort, fallback and traversal order.
+
+**Positive oracle:** every BackendStatus has one expected public action status,
+and known phase samples produce the documented key order.
+
+**Negative oracle:** unknown/error statuses fail closed as BACKEND_ERROR;
+diagnostic context must not discard the original message.
+
+**Unknown oracle:** tracing remains opt-in by environment presence; disabling
+it must avoid phase formatting on the frame path.
+
+**Gates:** preserve public error strings and trace keys; pass Recording, Debug
+Rust and Release Rust suites; keep new symbols out of libCoin.
+
+**Result (2026-09-24):** the private SoWgpuDiagnosticShell now owns action
+diagnostics, backend/target status policy and the C++ action/bridge phase
+records. Debug Rust passed 40/40 tests, Debug Recording passed 26/26 and
+Release Rust passed 40/40. The opt-in Release trace retained the existing
+<tt>rust</tt>, <tt>bridge</tt> and <tt>action</tt> records; the new symbols
+exist only in libCoinWgpuExperimental. A full Doxygen generation included the
+updated experimental page. This increment makes no frame-time improvement
+claim: formatting stays outside the frame path unless tracing is enabled.
 
 ### Prompt 004: traversal capture versus geometry transformation
 

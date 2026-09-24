@@ -9,6 +9,7 @@
 #include <Inventor/rendering/SoWgpuNativeSurface.h>
 #include <Inventor/nodes/SoNode.h>
 #include <Inventor/SbViewportRegion.h>
+#include "rendering/wgpu/SoWgpuDiagnosticShell.h"
 
 struct SoWgpuSceneManager::P {
   SoWgpuRenderTarget * target = nullptr;
@@ -25,9 +26,10 @@ SoWgpuSceneManager::SoWgpuSceneManager(const SbVec2i32 & offscreenSize)
   this->pimpl->action = new SoWgpuRenderAction(SbViewportRegion(offscreenSize[0], offscreenSize[1]));
   this->pimpl->action->setRenderTarget(this->pimpl->target);
   if (this->pimpl->target->getStatus() != SoWgpuRenderTarget::TARGET_READY) {
-    this->pimpl->status = this->pimpl->target->getStatus() == SoWgpuRenderTarget::TARGET_NOT_READY
-      ? SoWgpuRenderAction::NOT_READY : SoWgpuRenderAction::BACKEND_ERROR;
-    this->pimpl->error = this->pimpl->target->getLastError();
+    const SoWgpuActionDiagnostic diagnostic = SoWgpuDiagnosticShell::fromTarget(
+      this->pimpl->target->getStatus(), this->pimpl->target->getLastError());
+    this->pimpl->status = diagnostic.status;
+    this->pimpl->error = diagnostic.message;
   }
 }
 
@@ -39,9 +41,10 @@ SoWgpuSceneManager::SoWgpuSceneManager(const SoWgpuNativeSurfaceDescriptor & nat
   this->pimpl->action = new SoWgpuRenderAction(SbViewportRegion(framebufferSize[0], framebufferSize[1]));
   this->pimpl->action->setRenderTarget(this->pimpl->target);
   if (this->pimpl->target->getStatus() != SoWgpuRenderTarget::TARGET_READY) {
-    this->pimpl->status = this->pimpl->target->getStatus() == SoWgpuRenderTarget::TARGET_NOT_READY
-      ? SoWgpuRenderAction::NOT_READY : SoWgpuRenderAction::BACKEND_ERROR;
-    this->pimpl->error = this->pimpl->target->getLastError();
+    const SoWgpuActionDiagnostic diagnostic = SoWgpuDiagnosticShell::fromTarget(
+      this->pimpl->target->getStatus(), this->pimpl->target->getLastError());
+    this->pimpl->status = diagnostic.status;
+    this->pimpl->error = diagnostic.message;
   }
 }
 
@@ -90,8 +93,8 @@ SoWgpuSceneManager::resize(const SbVec2i32 & framebufferSize)
   }
   this->pimpl->action->setViewportRegion(
     SbViewportRegion(framebufferSize[0], framebufferSize[1]));
-  this->pimpl->status = this->pimpl->target->getStatus() == SoWgpuRenderTarget::TARGET_READY
-    ? SoWgpuRenderAction::SUCCESS : SoWgpuRenderAction::NOT_READY;
+  this->pimpl->status = SoWgpuDiagnosticShell::actionStatus(
+    this->pimpl->target->getStatus());
   this->pimpl->error = this->pimpl->target->getLastError();
   return TRUE;
 }
