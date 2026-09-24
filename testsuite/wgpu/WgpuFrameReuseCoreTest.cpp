@@ -67,6 +67,26 @@ main()
   decision = SoWgpuFrameReuseCore::classify(previous, current);
   ok &= check(decision.kind == SoWgpuFrameReuseKind::CAMERA_PATCH,
               "camera-only dependency footprint must patch");
+  FramePlan overlay;
+  ok &= check(SoWgpuFrameReuseCore::cameraOverlay(
+                previous, current.cameras[0], 46, overlay) &&
+              overlay.revision == 46 &&
+              overlay.vertices.size() == previous.vertices.size() &&
+              overlay.vertices[0].position[0] == previous.vertices[0].position[0] &&
+              overlay.indices == previous.indices &&
+              overlay.renderStates[0].view == moved,
+              "camera overlay must preserve geometry and replace camera state");
+  FramePlan unsuitable = previous;
+  unsuitable.renderStates[0].lightModel = LightModel::PHONG;
+  ok &= check(!SoWgpuFrameReuseCore::cameraOverlay(
+                unsuitable, current.cameras[0], 47, overlay) &&
+              overlay.revision == 46,
+              "view-dependent lighting must reject mechanical overlay");
+  unsuitable = previous;
+  unsuitable.renderStates[0].fogMode = FogMode::FOG;
+  ok &= check(!SoWgpuFrameReuseCore::cameraOverlay(
+                unsuitable, current.cameras[0], 48, overlay),
+              "fog must reject mechanical overlay");
 
   current = previous;
   current.revision = 43;

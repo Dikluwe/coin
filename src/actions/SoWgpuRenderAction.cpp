@@ -12,6 +12,21 @@
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include <Inventor/nodes/SoSceneTexture2.h>
 #include <Inventor/nodes/SoVertexProperty.h>
+#include <Inventor/nodes/SoCamera.h>
+#include <Inventor/nodes/SoPerspectiveCamera.h>
+#include <Inventor/nodes/SoOrthographicCamera.h>
+#include <Inventor/nodes/SoGroup.h>
+#include <Inventor/nodes/SoSeparator.h>
+#include <Inventor/nodes/SoCoordinate3.h>
+#include <Inventor/nodes/SoNormal.h>
+#include <Inventor/nodes/SoNormalBinding.h>
+#include <Inventor/nodes/SoMaterial.h>
+#include <Inventor/nodes/SoMaterialBinding.h>
+#include <Inventor/nodes/SoShapeHints.h>
+#include <Inventor/nodes/SoLightModel.h>
+#include <Inventor/nodes/SoTranslation.h>
+#include <Inventor/nodes/SoCube.h>
+#include <Inventor/SbViewVolume.h>
 #include <Inventor/bundles/SoTextureCoordinateBundle.h>
 #include <Inventor/elements/SoCoordinateElement.h>
 #include <Inventor/elements/SoNormalElement.h>
@@ -233,8 +248,10 @@ SoWgpuRenderActionP::SoWgpuRenderActionP(SoWgpuRenderAction * m)
     recordingLogValid(false),
     isApplying(false),
     hasReentrancyError(false),
-    fastPathEnabled(true)
+    fastPathEnabled(true),
+    cameraSensor(SoWgpuRenderActionP::cameraSensorCB, this)
 {
+  this->cameraSensor.setPriority(0);
 }
 
 SoWgpuRenderActionP::~SoWgpuRenderActionP()
@@ -247,6 +264,114 @@ SoWgpuRenderActionP::setDiagnostic(const SoWgpuActionDiagnostic & diagnostic)
   this->lastStatus = diagnostic.status;
   this->lastDiagnosticDomain = diagnostic.domain;
   this->lastError = diagnostic.message;
+}
+
+namespace {
+// Exact types only: custom subclasses and view-dependent traversal fall back.
+bool
+cameraStableScene(SoNode * root, SoCamera * camera)
+{
+  std::vector<SoNode *> pending(1, root);
+  while (!pending.empty()) {
+    SoNode * node = pending.back();
+    pending.pop_back();
+    const SoType type = node->getTypeId();
+    if (node == camera) continue;
+    if (type == SoSeparator::getClassTypeId() ||
+        type == SoGroup::getClassTypeId()) {
+      SoGroup * group = static_cast<SoGroup *>(node);
+      for (int i = 0; i < group->getNumChildren(); ++i) {
+        pending.push_back(group->getChild(i));
+      }
+    } else if (type != SoCoordinate3::getClassTypeId() &&
+               type != SoNormal::getClassTypeId() &&
+               type != SoNormalBinding::getClassTypeId() &&
+               type != SoMaterial::getClassTypeId() &&
+               type != SoMaterialBinding::getClassTypeId() &&
+               type != SoShapeHints::getClassTypeId() &&
+               type != SoLightModel::getClassTypeId() &&
+               type != SoTranslation::getClassTypeId() &&
+               type != SoIndexedFaceSet::getClassTypeId() &&
+               type != SoIndexedLineSet::getClassTypeId() &&
+               type != SoCube::getClassTypeId()) {
+      return false;
+    }
+  }
+  return true;
+}
+}
+
+void
+SoWgpuRenderActionP::cameraSensorCB(void * data, SoSensor * sensor)
+{
+  SoWgpuRenderActionP * self = static_cast<SoWgpuRenderActionP *>(data);
+  SoNodeSensor * nodeSensor = static_cast<SoNodeSensor *>(sensor);
+  if (self->cachedCamera &&
+      nodeSensor->getTriggerNode() == self->cachedCamera &&
+      nodeSensor->getTriggerField() &&
+      nodeSensor->getTriggerOperationType() == SoNotRec::FIELD_UPDATE) {
+    self->cameraOnlyDirty = true;
+  } else {
+    self->cameraPatchInvalidated = true;
+  }
+}
+
+void
+SoWgpuRenderActionP::rememberFrameRoot(SoNode * root)
+{
+  this->cameraSensor.detach();
+  this->cachedCamera = NULL;
+  this->cameraOnlyDirty = false;
+  this->cameraPatchInvalidated = false;
+  if (!root || root->getTypeId() != SoSeparator::getClassTypeId()) return;
+  SoSeparator * group = static_cast<SoSeparator *>(root);
+  if (group->getNumChildren() < 2) return;
+  SoNode * first = group->getChild(0);
+  const SoType type = first->getTypeId();
+  if (type != SoPerspectiveCamera::getClassTypeId() &&
+      type != SoOrthographicCamera::getClassTypeId()) return;
+  SoCamera * camera = static_cast<SoCamera *>(first);
+  if (camera->viewportMapping.getValue() != SoCamera::ADJUST_CAMERA &&
+      camera->viewportMapping.getValue() != SoCamera::LEAVE_ALONE) return;
+  if (!cameraStableScene(root, camera)) return;
+  this->cachedCamera = camera;
+  this->cameraSensor.attach(root);
+}
+
+bool
+SoWgpuRenderActionP::prepareCameraOverlay(SoNode * root, FramePlan & plan)
+{
+  if (!root || root != this->cachedRoot || !this->cachedCamera ||
+      this->cameraSensor.getAttachedNode() != root ||
+      !this->cameraOnlyDirty || this->cameraPatchInvalidated ||
+      static_cast<SoGroup *>(root)->getChild(0) != this->cachedCamera) return false;
+
+  SbViewportRegion adjusted;
+  const SbViewVolume vv = this->cachedCamera->getViewVolume(
+    this->master->getViewportRegion(), adjusted, SbMatrix::identity());
+  if (adjusted != this->master->getViewportRegion()) return false;
+  CameraSnapshot snapshot;
+  if (vv.getDepth() == 0.0f || vv.getWidth() == 0.0f ||
+      vv.getHeight() == 0.0f) {
+    snapshot.viewMatrix = SbMatrix::identity();
+    snapshot.projectionMatrixCoin = SbMatrix::identity();
+  } else {
+    vv.getMatrices(snapshot.viewMatrix, snapshot.projectionMatrixCoin);
+  }
+  snapshot.isPerspective = vv.getProjectionType() == SbViewVolume::PERSPECTIVE;
+  snapshot.nearDistance = vv.getNearDist();
+  snapshot.farDistance = vv.getNearDist() + vv.getDepth();
+  if (snapshot.isPerspective && snapshot.nearDistance <= 0.0f)
+    snapshot.nearDistance = 0.1f;
+  if (snapshot.farDistance <= snapshot.nearDistance)
+    snapshot.farDistance = snapshot.nearDistance + 100.0f;
+  snapshot.focalDistance = this->cachedCamera->focalDistance.getValue();
+  snapshot.aspectRatio = adjusted.getViewportAspectRatio();
+  if (this->cameraPatchInvalidated ||
+      this->cameraSensor.getAttachedNode() != root) return false;
+  return SoWgpuFrameReuseCore::cameraOverlay(
+    this->lastValidPlan, snapshot,
+    SoWgpuFramePlanBuilder::nextRevision(), plan);
 }
 
 template <typename F>
@@ -300,7 +425,8 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   } directPassScope{this, ownsDirectPasses};
 #endif
   const bool traversalSkipped = planCacheAllowed && cacheRoot && this->hasLastValidPlan &&
-    this->cachedRoot == cacheRoot && this->cachedRootId == cacheRoot->getNodeId();
+    this->cachedRoot == cacheRoot && this->cachedRootId == cacheRoot->getNodeId() &&
+    !this->cameraOnlyDirty && !this->cameraPatchInvalidated;
   SoWgpuFrameReuseDecision reuseDecision = traversalSkipped
     ? SoWgpuFrameReuseDecision(SoWgpuFrameReuseKind::REUSE,
                                this->lastValidPlan.revision)
@@ -312,7 +438,13 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   FramePlan plan;
   ProfileClock::time_point profileTraversed = ProfileClock::now();
   ProfileClock::time_point profilePlanned = profileTraversed;
-  if (!traversalSkipped) {
+  const bool cameraOverlay = !traversalSkipped && planCacheAllowed &&
+    this->hasLastValidPlan && this->prepareCameraOverlay(cacheRoot, plan);
+  if (cameraOverlay) {
+    reuseDecision = SoWgpuFrameReuseDecision(
+      SoWgpuFrameReuseKind::CAMERA_PATCH, this->lastValidPlan.revision);
+  }
+  if (!traversalSkipped && !cameraOverlay) {
     this->builder.beginFrame(this->backgroundColor, this->master->getViewportRegion());
     traversalFn();
     profileTraversed = ProfileClock::now();
@@ -333,7 +465,7 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   }
 
   std::string err;
-  if (!traversalSkipped && !this->builder.build(plan, &err)) {
+  if (!traversalSkipped && !cameraOverlay && !this->builder.build(plan, &err)) {
     const SoWgpuRenderAction::Status status = this->builder.isUnsupportedBuild()
       ? SoWgpuRenderAction::UNSUPPORTED : SoWgpuRenderAction::INVALID_SCENE;
     this->setDiagnostic(SoWgpuDiagnosticShell::action(
@@ -341,7 +473,7 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     return;
   }
   profilePlanned = ProfileClock::now();
-  if (!traversalSkipped) {
+  if (!traversalSkipped && !cameraOverlay) {
     if (planCacheAllowed && cacheRoot && this->hasLastValidPlan &&
         this->cachedRoot == cacheRoot) {
       reuseDecision = SoWgpuFrameReuseCore::classify(this->lastValidPlan, plan);
@@ -381,6 +513,9 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     if (cacheRoot) {
       this->cachedRoot = cacheRoot;
       this->cachedRootId = cacheRoot->getNodeId();
+      if (cameraOverlay) this->cameraOnlyDirty = false;
+      else if (!traversalSkipped)
+        this->rememberFrameRoot(planCacheAllowed ? cacheRoot : NULL);
     }
     this->setDiagnostic(SoWgpuDiagnosticShell::success());
     return;
@@ -499,7 +634,7 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     sample.vertices = framePlan.vertices.size();
     sample.indices = framePlan.indices.size();
     sample.draws = framePlan.draws.size();
-    sample.planCacheHit = traversalSkipped;
+    sample.planCacheHit = traversalSkipped || cameraOverlay;
     sample.reuseKind = reuseDecision.kind;
     std::cerr << SoWgpuDiagnosticShell::formatActionPhase(sample) << '\n';
   }
@@ -511,6 +646,9 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   if (cacheRoot) {
     this->cachedRoot = cacheRoot;
     this->cachedRootId = cacheRoot->getNodeId();
+    if (cameraOverlay) this->cameraOnlyDirty = false;
+    else if (!traversalSkipped)
+      this->rememberFrameRoot(planCacheAllowed ? cacheRoot : NULL);
   }
   this->setDiagnostic(SoWgpuDiagnosticShell::success());
 }

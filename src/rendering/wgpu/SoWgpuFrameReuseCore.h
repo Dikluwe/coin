@@ -38,6 +38,9 @@ public:
   COIN_WGPU_DLL_API static SoWgpuFrameReuseDecision classify(
     const FramePlan & previous,
     const FramePlan & current);
+  COIN_WGPU_DLL_API static bool cameraOverlay(
+    const FramePlan & previous, const CameraSnapshot & camera,
+    uint64_t revision, FramePlan & result);
 };
 
 #endif // !COIN_SOWGPUFRAMEREUSECORE_H

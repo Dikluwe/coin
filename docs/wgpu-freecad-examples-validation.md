@@ -235,6 +235,58 @@ do primeiro frame ficou em MAE RGB 0 e IoU 1. Um processo WebGPU isolado para
 a mesma carga registrou pico RSS de 144496 KiB; por ser outra execução, não é
 tratado como redução de memória.
 
+#### Overlay de câmera conservador — campanha de 2026-09-24
+
+O Prompt 006 reaproveita o FramePlan sem percorrer a geometria somente para
+uma raiz `SoSeparator` com câmera direta e nós de tipos conhecidos estáticos,
+`BASE_COLOR` e fog desligado. Um `SoNodeSensor` imediato invalida o atalho
+quando qualquer outro nó ou a estrutura muda. As demais cenas continuam com
+traversal Coin. RTT direto e a viewport real do FreeCAD não foram avaliados.
+
+AMD RADV RENOIR, Release, Assembly exportado, 512×512, câmera deslocada a
+cada frame, oito warmup e 30 amostras, render mais readback RGBA:
+
+| Execução | WebGPU mediana / p95 (ms) | Coin/GL mediana / p95 (ms) |
+| --- | ---: | ---: |
+| Ambos no mesmo processo | 4,62694 / 6,20546 | 0,46698 / 0,935525 |
+| Processos isolados | 4,55145 / 5,36009 | 0,398563 / 0,679306 |
+
+O WebGPU anterior, nas mesmas condições de cena e GPU, tinha mediana/p95
+22,3452/24,1579 ms. A nova mediana é cerca de 79,3% menor, mas ainda fica
+~9,9 vezes acima do GL no mesmo processo. A medição isolada registrou pico
+RSS de 141972 KiB para WebGPU e 96440 KiB para GL; os processos não medem
+delta de memória atribuível somente ao overlay. O trace opt-in mostrou
+`plan_cache_hit=1`, `plan_reuse=camera_patch`, `pack_mode=camera_patch` e
+travessia de cerca de 0,002–0,004 ms nos frames subsequentes. Trace altera
+o tempo total e não foi usado nos números da tabela.
+
+O teste `WgpuRenderActionTest` compara o log Recording e pixels RGBA da GPU
+para overlay e travessia nova; também cobre mutação de geometria e inserção
+de filho. Uma comparação do primeiro frame exportado com GL, após inverter
+a origem vertical, conservou MAE RGB 0 e IoU de silhueta 1. Esse primeiro
+frame não exercita o overlay; o teste de pixels cobre a câmera em movimento.
+
+Reprodução com o Assembly exportado deste estudo:
+
+```sh
+VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
+COIN_GLX_PIXMAP_DIRECT_RENDERING=1 \
+  "$COIN_WGPU_BUILD_DIR/bin/wgpu_gl_benchmark" \
+  --backend both --dynamic --frames 30 --warmup 8 --size 512 \
+  --scene "/home/dikluwe/Área de trabalho/Estudo coin/estudos/So/SoWgpu-FreeCAD-Exemplos/cenas/Assembly.iv"
+
+VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
+COIN_GLX_PIXMAP_DIRECT_RENDERING=1 \
+  "$COIN_WGPU_BUILD_DIR/bin/wgpu_freecad_compare" \
+  "/home/dikluwe/Área de trabalho/Estudo coin/estudos/So/SoWgpu-FreeCAD-Exemplos/cenas/Assembly.iv" \
+  /tmp/coin-wgpu-assembly-visual 512
+```
+
+Para RSS isolado, repetir o benchmark com `--backend wgpu` e `--backend gl`
+em processos separados sob `/usr/bin/time -v`. O próximo alvo é evitar a
+cópia integral do FramePlan e reduzir validação/cópias na ponte Rust, sem
+perder o fallback de revisão-base.
+
 ### Qualidade e memória
 
 Uma nova comparação Release das quatro cenas, no primeiro frame (logo, sem

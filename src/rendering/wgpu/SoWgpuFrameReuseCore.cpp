@@ -7,6 +7,7 @@
 #include "rendering/wgpu/SoWgpuFrameReuseCore.h"
 
 #include <cstring>
+#include <utility>
 
 namespace {
 template <typename T>
@@ -181,4 +182,39 @@ SoWgpuFrameReuseCore::classify(const FramePlan & previous,
   }
   return SoWgpuFrameReuseDecision(SoWgpuFrameReuseKind::FULL_REBUILD,
                                   previous.revision);
+}
+
+bool
+SoWgpuFrameReuseCore::cameraOverlay(const FramePlan & previous,
+                                    const CameraSnapshot & camera,
+                                    uint64_t revision,
+                                    FramePlan & result)
+{
+  if (previous.revision == 0 || revision == 0 ||
+      revision == previous.revision || previous.cameras.size() != 1 ||
+      previous.renderStates.empty() || hasOpaqueConnectorResource(previous)) {
+    return false;
+  }
+  const CameraSnapshot & oldCamera = previous.cameras[0];
+  for (const RenderStateSnapshot & rs : previous.renderStates) {
+    if (rs.cameraSlot != 0 || rs.lightModel != LightModel::BASE_COLOR ||
+        rs.fogMode != FogMode::NONE ||
+        !sameMatrix(rs.view, oldCamera.viewMatrix) ||
+        !sameMatrix(rs.projectionCoin, oldCamera.projectionMatrixCoin)) {
+      return false;
+    }
+  }
+  FramePlan candidate = previous;
+  candidate.revision = revision;
+  candidate.cameras[0] = camera;
+  for (RenderStateSnapshot & rs : candidate.renderStates) {
+    rs.view = camera.viewMatrix;
+    rs.projectionCoin = camera.projectionMatrixCoin;
+    // With default visibility, captureRenderState derives fogEnd from the
+    // camera even when fog is disabled. Preserve Recording equivalence.
+    if (rs.fogEnd == oldCamera.farDistance) rs.fogEnd = camera.farDistance;
+  }
+  if (!candidate.isValid()) return false;
+  result = std::move(candidate);
+  return true;
 }

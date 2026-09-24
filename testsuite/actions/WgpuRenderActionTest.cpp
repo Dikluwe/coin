@@ -19,6 +19,7 @@
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoPerspectiveCamera.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
+#include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/SoPath.h>
 #include <Inventor/lists/SoPathList.h>
@@ -27,6 +28,7 @@
 #include <cmath>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #define TEST_ASSERT(cond, msg) do {   if (!(cond)) {     std::cerr << "FAILED: " << msg << " (" << #cond << ") at " << __FILE__ << ":" << __LINE__ << std::endl;     return 1;   } } while (0)
 
@@ -618,6 +620,88 @@ int testWindowTargetRecordingBackend() {
   return 0;
 }
 
+int testCameraOverlayAndFallback() {
+  SoSeparator * root = new SoSeparator;
+  root->ref();
+  SoPerspectiveCamera * camera = new SoPerspectiveCamera;
+  camera->position.setValue(0.0f, 0.0f, 5.0f);
+  root->addChild(camera);
+  SoLightModel * lightModel = new SoLightModel;
+  lightModel->model = SoLightModel::BASE_COLOR;
+  root->addChild(lightModel);
+  SoCoordinate3 * coordinates = new SoCoordinate3;
+  coordinates->point.set1Value(0, SbVec3f(-1.0f, -1.0f, 0.0f));
+  coordinates->point.set1Value(1, SbVec3f(1.0f, -1.0f, 0.0f));
+  coordinates->point.set1Value(2, SbVec3f(0.0f, 1.0f, 0.0f));
+  root->addChild(coordinates);
+  SoIndexedFaceSet * faces = new SoIndexedFaceSet;
+  const int32_t indices[] = {0, 1, 2, -1};
+  faces->coordIndex.setValues(0, 4, indices);
+  root->addChild(faces);
+
+  SoWgpuRenderAction cached(SbViewportRegion(128, 128));
+  SoWgpuRenderAction fresh(SbViewportRegion(128, 128));
+  cached.apply(root);
+  TEST_ASSERT(cached.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+              "Initial eligible frame should succeed");
+
+  camera->position.setValue(0.25f, 0.0f, 5.0f);
+  camera->nearDistance = 0.2f;
+  camera->farDistance = 20.0f;
+  cached.apply(root);
+  fresh.apply(root);
+  TEST_ASSERT(cached.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
+              fresh.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+              "Moved-camera frames should succeed");
+  TEST_ASSERT(std::string(cached.getRecordingLog().getString()) ==
+              std::string(fresh.getRecordingLog().getString()),
+              "Camera overlay must match a full traversal");
+
+  coordinates->point.set1Value(2, SbVec3f(0.0f, 1.25f, 0.0f));
+  cached.apply(root);
+  fresh.apply(root);
+  TEST_ASSERT(std::string(cached.getRecordingLog().getString()) ==
+              std::string(fresh.getRecordingLog().getString()),
+              "Geometry notification must force an equivalent full traversal");
+
+  root->addChild(new SoCube);
+  camera->position.setValue(-0.25f, 0.0f, 5.0f);
+  cached.apply(root);
+  fresh.apply(root);
+  TEST_ASSERT(std::string(cached.getRecordingLog().getString()) ==
+              std::string(fresh.getRecordingLog().getString()),
+              "Structural notification must force an equivalent full traversal");
+#if defined(HAVE_WGPU_RUST_BRIDGE)
+  SoWgpuRenderTarget * cachedTarget =
+    SoWgpuRenderTarget::createOffscreen(SbVec2i32(128, 128));
+  SoWgpuRenderTarget * freshTarget =
+    SoWgpuRenderTarget::createOffscreen(SbVec2i32(128, 128));
+  TEST_ASSERT(cachedTarget && freshTarget, "GPU comparison targets must exist");
+  SoWgpuRenderAction cachedGpu(SbViewportRegion(128, 128));
+  SoWgpuRenderAction freshGpu(SbViewportRegion(128, 128));
+  cachedGpu.setRenderTarget(cachedTarget);
+  freshGpu.setRenderTarget(freshTarget);
+  cachedGpu.apply(root);
+  TEST_ASSERT(cachedGpu.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+              "Initial GPU frame must succeed");
+  camera->position.setValue(0.5f, 0.0f, 5.0f);
+  cachedGpu.apply(root);
+  freshGpu.apply(root);
+  TEST_ASSERT(cachedGpu.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
+              freshGpu.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+              "Moved-camera GPU frames must succeed");
+  std::vector<uint8_t> cachedPixels, freshPixels;
+  cachedTarget->readbackRGBA(cachedPixels);
+  freshTarget->readbackRGBA(freshPixels);
+  TEST_ASSERT(!cachedPixels.empty() && cachedPixels == freshPixels,
+              "Camera overlay pixels must match a full GPU traversal");
+  delete cachedTarget;
+  delete freshTarget;
+#endif
+  root->unref();
+  return 0;
+}
+
 int main() {
 
   SoDB::init();
@@ -625,6 +709,7 @@ int main() {
   std::cout << "Running WgpuRenderActionTest..." << std::endl;
 
   int failed = 0;
+  if (testCameraOverlayAndFallback()) { std::cerr << "testCameraOverlayAndFallback failed" << std::endl; failed++; }
       if (testWindowTargetRecordingBackend()) { std::cerr << "testWindowTargetRecordingBackend failed" << std::endl; failed++; }
   if (testProfileMultiLightAndPerVertexTransparency()) { std::cerr << "testProfileMultiLightAndPerVertexTransparency failed" << std::endl; failed++; }
   if (testBaseApplyNotHidden()) { std::cerr << "testBaseApplyNotHidden failed" << std::endl; failed++; }

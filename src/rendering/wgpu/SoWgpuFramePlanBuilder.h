@@ -44,6 +44,7 @@ public:
 
   bool build(FramePlan & outPlan, std::string * outError = nullptr);
   bool isUnsupportedBuild() const { return this->isUnsupported; }
+  static uint64_t nextRevision();
 
 private:
   uint32_t captureMaterial(SoCallbackAction * action, int materialIndex);

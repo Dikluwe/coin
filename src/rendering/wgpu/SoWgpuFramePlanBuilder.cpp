@@ -809,12 +809,17 @@ SoWgpuFramePlanBuilder::build(FramePlan & outPlan, std::string * outError)
     return false;
   }
   outPlan = this->currentPlan;
-  static std::atomic<uint64_t> nextRevision(1);
-  outPlan.revision = nextRevision.fetch_add(1, std::memory_order_relaxed);
-  if (outPlan.revision == 0) {
-    outPlan.revision = nextRevision.fetch_add(1, std::memory_order_relaxed);
-  }
+  outPlan.revision = SoWgpuFramePlanBuilder::nextRevision();
   return true;
+}
+
+uint64_t
+SoWgpuFramePlanBuilder::nextRevision()
+{
+  static std::atomic<uint64_t> revision(1);
+  uint64_t value = revision.fetch_add(1, std::memory_order_relaxed);
+  if (value == 0) value = revision.fetch_add(1, std::memory_order_relaxed);
+  return value;
 }
 
 namespace {

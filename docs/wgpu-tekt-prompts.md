@@ -312,7 +312,60 @@ reported 144496 KiB peak RSS. Traversal plus FramePlan construction still
 dominates the dynamic workload, and the exported meshes still do not measure
 the real FreeCAD viewport.
 
-### Prompt 006: owned Rust context
+### Prompt 006: camera-only overlay with Coin notification proof
+
+**Intent:** Avoid the expensive geometry traversal when a supported static
+scene changes only its camera, without bypassing Open Inventor semantics or
+changing Coin 4 public ABI. Preserve full traversal as the default.
+
+**Core:** given an existing validated FramePlan and a newly captured
+CameraSnapshot, copy immutable payload and replace only camera-dependent
+states. Refuse PHONG, fog, multiple cameras, opaque connector tokens and
+inconsistent render-state camera references. Use one revision source for full
+plans and overlays.
+
+**Shell:** preserve existing diagnostics and phase keys; expose the same
+`camera_patch` choice for a traversal-free overlay as for a classified full
+capture. Do not equate a trace with an untraced performance sample.
+
+**Infra:** keep ownership of packed buffers and the stale-base fallback. No
+new direct RTT or asynchronous timing claim.
+
+**Wiring:** attach an immediate SoNodeSensor to the last successful root.
+Permit the overlay only for an exact SoSeparator with a direct first-child
+Perspective/Orthographic camera, uncropped viewport and a closed exact-type
+allowlist of camera-independent groups, geometry and state nodes. Every
+notification must originate in a camera field; structural, geometry, mixed
+or unknown notifications force a normal Coin traversal. Capture the camera
+through Coin's view-volume API, then ask Core for the mechanical overlay.
+
+**Positive oracle:** moved-camera Recording output and GPU pixels equal a
+fresh full traversal, while phase tracing shows `plan_cache_hit=1`,
+`plan_reuse=camera_patch` and microsecond traversal.
+
+**Negative oracle:** geometry edit and child insertion match a fresh full
+traversal. PHONG and fog refuse the Core overlay.
+
+**Unknown oracle:** custom nodes, camera-dependent traversal, paths,
+multiple cameras, direct RTT and unsupported viewport mapping retain the
+full path.
+
+**Gates:** Debug Rust 42/42, Release Rust 42/42 and Debug Recording 28/28
+tests (including 33/33 and 19/19 WebGPU-specific tests respectively); exported
+Assembly BASE_COLOR GL comparison on the same AMD GPU remains aligned RGB
+MAE 0 and silhouette IoU 1. Exported meshes are not the FreeCAD viewport.
+
+**Result (2026-09-24):** the Assembly dynamic benchmark at 512x512, eight
+warmup and 30 measured frames, including RGBA readback, changed from the
+previous WebGPU run's median/p95 22.3452/24.1579 ms to 4.62694/6.20546 ms
+in a same-process AMD RADV RENOIR comparison. Coin GL measured
+0.46698/0.935525 ms in the new run: this is a WebGPU improvement, not GL
+superiority. A separate WebGPU process measured 4.55145/5.36009 ms and
+141972 KiB peak RSS; a separate GL process measured 0.398563/0.679306 ms
+and 96440 KiB. Different processes are not a memory-reduction claim.
+The remaining costs include whole-plan copying and Rust bridge validation.
+
+### Prompt 007: owned Rust context
 
 Replace ambient connector state with explicit private context ownership without
 changing public Coin ABI. Device, caches, serials, readback and fault injection

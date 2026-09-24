@@ -64,11 +64,19 @@
   hint becomes a full pack rather than observing unrelated storage. Opaque
   GPU texture tokens and unversioned plans remain <tt>unknown</tt>.
 
-  An unchanged scene-root identifier still skips traversal. A camera-only
-  change currently requires normal Coin traversal and FramePlan construction
-  before it can be classified; the optimization removes immutable FFI
-  repacking, not that traversal cost. With phase tracing enabled,
-  <tt>plan_reuse</tt> and <tt>pack_mode</tt> expose the chosen paths.
+  An unchanged scene-root identifier still skips traversal. A restricted
+  camera overlay also avoids geometry traversal: the root must be an exact
+  SoSeparator with one direct first-child perspective or orthographic camera,
+  and all remaining nodes must be from a small exact-type, camera-independent
+  allowlist. Only BASE_COLOR draws without fog or opaque GPU texture tokens
+  qualify. A priority-zero SoNodeSensor on the root proves that every change
+  since the last successful frame originated in a camera field; structural,
+  geometry, unknown and mixed notifications force full Coin traversal. A
+  changed viewport or background also invalidates the cached root. Wiring
+  captures the new Coin view volume, Core overlays only camera-dependent
+  snapshots, and Infra still validates the owned base revision before packing.
+  This is not a replacement for the Open Inventor traversal model. With phase
+  tracing enabled, <tt>plan_reuse</tt> and <tt>pack_mode</tt> expose the path.
 
   \section coin_wgpu_targets Targets and readback
 

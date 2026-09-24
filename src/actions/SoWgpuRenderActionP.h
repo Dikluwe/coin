@@ -7,12 +7,15 @@
 #include "rendering/wgpu/SoWgpuDiagnosticShell.h"
 #include "rendering/wgpu/SoWgpuFramePlanBuilder.h"
 #include "rendering/wgpu/SoWgpuRecordingBackend.h"
+#include <Inventor/sensors/SoNodeSensor.h>
 #include <string>
 #include <deque>
 #include <vector>
 #include <memory>
 #include <cstdint>
 #include <cstddef>
+
+class SoCamera;
 
 class COIN_WGPU_DLL_API SoWgpuRenderActionP {
 public:
@@ -21,6 +24,9 @@ public:
 
   void initCallbacks();
   void setDiagnostic(const SoWgpuActionDiagnostic & diagnostic);
+  static void cameraSensorCB(void * data, SoSensor * sensor);
+  void rememberFrameRoot(SoNode * root);
+  bool prepareCameraOverlay(SoNode * root, FramePlan & plan);
 
   template <typename F>
   void executeApply(F traversalFn, SoNode * cacheRoot = NULL);
@@ -90,6 +96,10 @@ public:
   bool fastPathEnabled;
   SoNode * cachedRoot = NULL;
   SbUniqueId cachedRootId = 0;
+  SoNodeSensor cameraSensor;
+  SoCamera * cachedCamera = NULL;
+  bool cameraOnlyDirty = false;
+  bool cameraPatchInvalidated = false;
 };
 
 #endif // !SOWGPURENDERACTIONP_H
