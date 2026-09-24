@@ -6,21 +6,14 @@
 
 #if defined(HAVE_WGPU_RUST_BRIDGE)
 #include "rendering/wgpu/SoWgpuRustBackend.h"
+#include "rendering/wgpu/SoWgpuFfiFrame.h"
 #include "rendering/wgpu/SoWgpuRenderTargetP.h"
 #include "rendering/wgpu/coin_wgpu_ffi.h"
 
-#include <Inventor/SbMatrix.h>
-#include <Inventor/SbVec3f.h>
-#include <Inventor/SbColor.h>
-
 #include <cassert>
-#include <cmath>
-#include <algorithm>
 #include <chrono>
 #include <cstdlib>
-#include <cstring>
 #include <iostream>
-#include <vector>
 
 // Static assertions ensuring ABI compatibility with Rust bridge
 static_assert(sizeof(CoinWgpuVertex) == 36, "CoinWgpuVertex size mismatch");
@@ -74,7 +67,8 @@ static_assert(sizeof(CoinWgpuSurfaceCreateInfo) == 48, "CoinWgpuSurfaceCreateInf
 
 SoWgpuRustBackend::SoWgpuRustBackend()
   : status(BackendStatus::SUCCESS),
-    lastError("")
+    lastError(""),
+    ffiFrame(new SoWgpuFfiFrame)
 {
 }
 
@@ -202,205 +196,17 @@ SoWgpuRustBackend::submitInternal(const FramePlan & frame, SoWgpuRenderTargetP &
     }
   }
 
-  // 1. Pack vertices
-  std::vector<CoinWgpuVertex> verticesPod(frame.vertices.size());
-  for (size_t i = 0; i < frame.vertices.size(); ++i) {
-    const auto & v = frame.vertices[i];
-    verticesPod[i].position[0] = v.position[0];
-    verticesPod[i].position[1] = v.position[1];
-    verticesPod[i].position[2] = v.position[2];
-    verticesPod[i].normal[0] = v.normal[0];
-    verticesPod[i].normal[1] = v.normal[1];
-    verticesPod[i].normal[2] = v.normal[2];
-    verticesPod[i].texcoord[0] = v.texcoord[0];
-    verticesPod[i].texcoord[1] = v.texcoord[1];
-    verticesPod[i].material_slot = v.materialSlot;
+  std::string packDiagnostic;
+  if (!this->ffiFrame->prepare(frame,
+                               static_cast<uint32_t>(target.size[0]),
+                               static_cast<uint32_t>(target.size[1]),
+                               packDiagnostic)) {
+    this->lastError = packDiagnostic;
+    this->status = BackendStatus::UNSUPPORTED;
+    return SubmitResult(BackendStatus::UNSUPPORTED, this->lastError);
   }
-
-  // 2. Pack draws
-  std::vector<CoinWgpuDraw> drawsPod(frame.draws.size());
-  for (size_t i = 0; i < frame.draws.size(); ++i) {
-    const auto & d = frame.draws[i];
-    drawsPod[i].topology = static_cast<uint32_t>(d.topology);
-    drawsPod[i].first_vertex = d.geometry.firstVertex;
-    drawsPod[i].vertex_count = d.geometry.vertexCount;
-    drawsPod[i].first_index = d.geometry.firstIndex;
-    drawsPod[i].index_count = d.geometry.indexCount;
-    drawsPod[i].render_state_slot = d.renderStateSlot;
-    drawsPod[i].stable_node_id = d.stableNodeId;
-    drawsPod[i].draw_ordinal = d.drawOrdinal;
-    drawsPod[i].reserved = 0;
-    drawsPod[i].source_revision = d.sourceRevision;
-  }
-
-  // 3. Pack materials
-  std::vector<CoinWgpuMaterial> materialsPod(frame.materials.size());
-  for (size_t i = 0; i < frame.materials.size(); ++i) {
-    const auto & m = frame.materials[i];
-    std::memcpy(materialsPod[i].ambient, m.ambient, sizeof(m.ambient));
-    std::memcpy(materialsPod[i].diffuse, m.diffuse, sizeof(m.diffuse));
-    std::memcpy(materialsPod[i].specular, m.specular, sizeof(m.specular));
-    std::memcpy(materialsPod[i].emission, m.emission, sizeof(m.emission));
-    materialsPod[i].shininess = m.shininess;
-    materialsPod[i].transparency = m.transparency;
-  }
-
-  // 4. Pack render states
-  std::vector<CoinWgpuRenderState> statesPod(frame.renderStates.size());
-  for (size_t i = 0; i < frame.renderStates.size(); ++i) {
-    const auto & rs = frame.renderStates[i];
-    SbMatrix modelView = rs.model * rs.view;
-
-    SbMatrix normalMatrix;
-    float det = modelView.det4();
-    if (std::abs(det) > 1e-12f) {
-      normalMatrix = modelView.inverse().transpose();
-    } else {
-      normalMatrix = SbMatrix::identity();
-    }
-
-    // Clip space conversion from Coin [-1, 1] to WebGPU [0, 1]
-    SbMatrix C(
-      1.0f, 0.0f, 0.0f, 0.0f,
-      0.0f, 1.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 0.5f, 0.0f,
-      0.0f, 0.0f, 0.5f, 1.0f
-    );
-    SbMatrix projWgpu = rs.projectionCoin * C;
-    SbMatrix mvpWgpu = modelView * projWgpu;
-
-    std::memcpy(statesPod[i].model_view, modelView.getValue(), sizeof(float) * 16);
-    std::memcpy(statesPod[i].model_view_projection, mvpWgpu.getValue(), sizeof(float) * 16);
-    std::memcpy(statesPod[i].normal_matrix, normalMatrix.getValue(), sizeof(float) * 16);
-
-    bool hasLight = false;
-    if (rs.lightModel == LightModel::PHONG &&
-        rs.lightingSlot < frame.lightingStates.size() &&
-        !frame.lightingStates[rs.lightingSlot].lights.empty()) {
-      const auto & l = frame.lightingStates[rs.lightingSlot].lights[0];
-      hasLight = true;
-      statesPod[i].light_direction[0] = l.direction[0];
-      statesPod[i].light_direction[1] = l.direction[1];
-      statesPod[i].light_direction[2] = l.direction[2];
-      statesPod[i].light_direction[3] = 0.0f;
-      statesPod[i].light_color[0] = l.color[0];
-      statesPod[i].light_color[1] = l.color[1];
-      statesPod[i].light_color[2] = l.color[2];
-      statesPod[i].light_color[3] = 1.0f;
-      statesPod[i].light_intensity = l.intensity;
-    } else {
-      statesPod[i].light_direction[0] = 0.0f;
-      statesPod[i].light_direction[1] = 0.0f;
-      statesPod[i].light_direction[2] = 1.0f;
-      statesPod[i].light_direction[3] = 0.0f;
-      statesPod[i].light_color[0] = 1.0f;
-      statesPod[i].light_color[1] = 1.0f;
-      statesPod[i].light_color[2] = 1.0f;
-      statesPod[i].light_color[3] = 1.0f;
-      statesPod[i].light_intensity = 1.0f;
-    }
-    statesPod[i].has_light = hasLight ? 1 : 0;
-    statesPod[i].material_slot = rs.materialSlot;
-    statesPod[i].cull_mode = static_cast<uint32_t>(rs.cullMode);
-    statesPod[i].front_face = static_cast<uint32_t>(rs.frontFace);
-    statesPod[i].light_model = static_cast<uint32_t>(rs.lightModel);
-    std::memcpy(statesPod[i].texture_matrix, rs.textureMatrix.getValue(), sizeof(float) * 16);
-    statesPod[i].has_texture = rs.hasTexture ? 1 : 0;
-    statesPod[i].texture_slot = rs.textureImageSlot;
-    statesPod[i].sampler_slot = rs.samplerSlot;
-    statesPod[i].texture_model = static_cast<uint32_t>(rs.textureModel);
-    statesPod[i].fog_mode = static_cast<uint32_t>(rs.fogMode);
-    for (int c = 0; c < 3; ++c) statesPod[i].fog_color[c] = rs.fogColor[c];
-    statesPod[i].fog_start = rs.fogStart;
-    statesPod[i].fog_end = rs.fogEnd;
-    statesPod[i].light_count = 0;
-    statesPod[i].ambient_light[3] = 1.0f;
-    if (rs.lightingSlot < frame.lightingStates.size()) {
-      const LightingSnapshot & lighting = frame.lightingStates[rs.lightingSlot];
-      for (int c = 0; c < 3; ++c) {
-        statesPod[i].ambient_light[c] =
-          lighting.ambientColor[c] * lighting.ambientIntensity;
-      }
-      if (rs.lightModel == LightModel::PHONG) {
-        if (lighting.lights.size() > COIN_WGPU_FFI_MAX_LIGHTS) {
-          this->lastError = "More than eight active lights in FramePlan";
-          this->status = BackendStatus::UNSUPPORTED;
-          return SubmitResult(BackendStatus::UNSUPPORTED, this->lastError);
-        }
-        const size_t count = lighting.lights.size();
-        statesPod[i].light_count = static_cast<uint32_t>(count);
-        for (size_t j = 0; j < count; ++j) {
-          const LightSourceSnapshot & src = lighting.lights[j];
-          CoinWgpuLight & dst = statesPod[i].lights[j];
-          for (int c = 0; c < 3; ++c) {
-            dst.position_type[c] = src.position[c];
-            dst.direction_cutoff[c] = src.direction[c];
-            dst.color_intensity[c] = src.color[c];
-          }
-          dst.position_type[3] = static_cast<float>(src.type);
-          dst.direction_cutoff[3] = std::cos(src.cutOffAngle);
-          dst.color_intensity[3] = src.intensity;
-          dst.attenuation_exponent[0] = src.attenuation[0];
-          dst.attenuation_exponent[1] = src.attenuation[1];
-          dst.attenuation_exponent[2] = src.attenuation[2];
-          dst.attenuation_exponent[3] = src.dropOffRate * 128.0f;
-        }
-      }
-    }
-  }
-
-  // 5. Build textures and samplers
-  std::vector<CoinWgpuTexture> texturesPod;
-  texturesPod.reserve(frame.textures.size());
-  for (const auto & t : frame.textures) {
-    CoinWgpuTexture tp{};
-    tp.width = t.width;
-    tp.height = t.height;
-    tp.format = t.gpuToken ? 1 : 0; // Private RTT token or RGBA8 bytes.
-    tp.reserved = t.gpuToken && t.gpuOpaque ? 1 : 0;
-    tp.content_digest = t.gpuToken ? t.gpuToken : t.contentDigest;
-    tp.pixels = t.gpuToken ? nullptr : t.pixelsRgba.data();
-    tp.pixel_bytes_len = static_cast<uint64_t>(t.pixelsRgba.size());
-    texturesPod.push_back(tp);
-  }
-
-  std::vector<CoinWgpuSampler> samplersPod;
-  samplersPod.reserve(frame.samplers.size());
-  for (const auto & s : frame.samplers) {
-    CoinWgpuSampler sp{};
-    sp.wrap_s = static_cast<uint32_t>(s.wrapS);
-    sp.wrap_t = static_cast<uint32_t>(s.wrapT);
-    sp.filter = static_cast<uint32_t>(s.filter);
-    sp.reserved = 0;
-    samplersPod.push_back(sp);
-  }
-
-  // 6. Build frame view
-  CoinWgpuFrameView fView{};
-  fView.abi_version = COIN_WGPU_ABI_VERSION;
-  fView.struct_size = sizeof(CoinWgpuFrameView);
-  fView.frame_revision = frame.revision;
-  fView.vertices = verticesPod.empty() ? nullptr : verticesPod.data();
-  fView.vertex_count = static_cast<uint64_t>(verticesPod.size());
-  fView.indices = frame.indices.empty() ? nullptr : frame.indices.data();
-  fView.index_count = static_cast<uint64_t>(frame.indices.size());
-  fView.draws = drawsPod.empty() ? nullptr : drawsPod.data();
-  fView.draw_count = static_cast<uint64_t>(drawsPod.size());
-  fView.materials = materialsPod.empty() ? nullptr : materialsPod.data();
-  fView.material_count = static_cast<uint64_t>(materialsPod.size());
-  fView.states = statesPod.empty() ? nullptr : statesPod.data();
-  fView.state_count = static_cast<uint64_t>(statesPod.size());
-  fView.textures = texturesPod.empty() ? nullptr : texturesPod.data();
-  fView.texture_count = static_cast<uint64_t>(texturesPod.size());
-  fView.samplers = samplersPod.empty() ? nullptr : samplersPod.data();
-  fView.sampler_count = static_cast<uint64_t>(samplersPod.size());
-
-  fView.clear_color[0] = frame.clearColor[0];
-  fView.clear_color[1] = frame.clearColor[1];
-  fView.clear_color[2] = frame.clearColor[2];
-  fView.clear_color[3] = frame.clearColor[3];
-  fView.width = static_cast<uint32_t>(target.size[0]);
-  fView.height = static_cast<uint32_t>(target.size[1]);
+  const CoinWgpuFrameView & fView = this->ffiFrame->getView();
+  const bool packCacheHit = this->ffiFrame->reusedLastPrepare();
   const ProfileClock::time_point profilePacked = ProfileClock::now();
 
   char errBuf[512] = {0};
@@ -452,6 +258,7 @@ SoWgpuRustBackend::submitInternal(const FramePlan & frame, SoWgpuRenderTargetP &
     if (tracePhases) {
       std::cerr << "COIN_WGPU_PHASE bridge pack_ms="
                 << std::chrono::duration<double, std::milli>(profilePacked - profileBegin).count()
+                << " pack_cache_hit=" << (packCacheHit ? 1 : 0)
                 << " ffi_ms="
                 << std::chrono::duration<double, std::milli>(profileBridgeDone - profilePacked).count()
                 << '\n';

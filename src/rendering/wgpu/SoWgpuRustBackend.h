@@ -3,9 +3,11 @@
 #define COIN_SOWGPURUSTBACKEND_H
 
 #include "rendering/wgpu/SoWgpuBackend.h"
+#include <memory>
 #include <string>
 
 struct SoWgpuReadbackTicket;
+class SoWgpuFfiFrame;
 
 class COIN_WGPU_DLL_API SoWgpuRustBackend : public SoWgpuBackend {
 public:
@@ -30,6 +32,7 @@ private:
                               SoWgpuReadbackTicket * outTicket);
   BackendStatus status;
   std::string lastError;
+  std::unique_ptr<SoWgpuFfiFrame> ffiFrame;
 };
 
 #endif // !COIN_SOWGPURUSTBACKEND_H

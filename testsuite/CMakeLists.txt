@@ -415,6 +415,23 @@ if(COIN_BUILD_WGPU)
 		set_tests_properties(WgpuSceneTextureBudgetDirectTest PROPERTIES
 			TIMEOUT 240 ENVIRONMENT "COIN_WGPU_RTT_GPU_DIRECT=1")
 
+		add_executable(WgpuFfiFrameTest
+			wgpu/WgpuFfiFrameTest.cpp
+			${PROJECT_SOURCE_DIR}/src/rendering/wgpu/SoWgpuFfiFrame.cpp
+		)
+		set_target_properties(WgpuFfiFrameTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+		target_link_libraries(WgpuFfiFrameTest Coin)
+		target_include_directories(WgpuFfiFrameTest PRIVATE
+			${PROJECT_SOURCE_DIR}/experimental/include
+			${PROJECT_SOURCE_DIR}/include
+			${PROJECT_SOURCE_DIR}/src
+			${PROJECT_BINARY_DIR}/include
+			${PROJECT_BINARY_DIR}/src
+			${COIN_TARGET_INCLUDE_DIRECTORIES}
+		)
+		add_test(NAME WgpuFfiFrameTest COMMAND WgpuFfiFrameTest)
+		set_tests_properties(WgpuFfiFrameTest PROPERTIES TIMEOUT 30)
+
 		add_executable(WgpuPerformanceTest wgpu/WgpuPerformanceTest.cpp)
 		set_target_properties(WgpuPerformanceTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 		target_link_libraries(WgpuPerformanceTest CoinWgpuExperimental Coin)
