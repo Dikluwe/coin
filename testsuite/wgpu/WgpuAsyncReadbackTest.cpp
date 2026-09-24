@@ -156,6 +156,29 @@ int main() {
              synchronousColor == redColor && synchronousDepth == redDepth,
              "async and synchronous readback must match exactly", error)) return 1;
 
+  // Exercise completed staging reuse across synchronous and asynchronous
+  // requests: a recycled mapped buffer must never leak the previous frame.
+  synchronous.depth_buffer = nullptr;
+  synchronous.depth_buffer_len = 0;
+  for (int i = 0; i < 12; ++i) {
+    const CoinWgpuFrameView & frame = (i % 2 == 0) ? red : green;
+    if (!check(coin_wgpu_submit(&synchronous, &frame, error, sizeof(error)) == COIN_WGPU_OK &&
+               colorIs(synchronousColor, 64, 64,
+                       i % 2 == 0 ? 255 : 0, i % 2 == 0 ? 0 : 255, 0),
+               "repeated synchronous color-only readback", error)) return 1;
+  }
+  std::vector<float> noDepth;
+  for (int i = 0; i < 4; ++i) {
+    CoinWgpuReadbackTicket reused{};
+    const CoinWgpuFrameView & frame = (i % 2 == 0) ? red : green;
+    if (!request(frame, false, reused)) return 1;
+    std::vector<uint8_t> pixels(64u * 64u * 4u, 17);
+    if (!check(pollUntilReady(reused, pixels, noDepth, error, sizeof(error)) == COIN_WGPU_OK &&
+               colorIs(pixels, 64, 64,
+                       i % 2 == 0 ? 255 : 0, i % 2 == 0 ? 0 : 255, 0),
+               "repeated asynchronous color-only readback", error)) return 1;
+  }
+
   CoinWgpuReadbackTicket cancelled{};
   if (!request(red, false, cancelled) ||
       !check(coin_wgpu_readback_cancel(cancelled.token) == COIN_WGPU_OK,
@@ -168,7 +191,6 @@ int main() {
   CoinWgpuReadbackTicket oldSize{}, resized{};
   if (!request(red, false, oldSize) || !request(yellow, false, resized)) return 1;
   std::vector<uint8_t> yellowColor(32u * 32u * 4u, 17);
-  std::vector<float> noDepth;
   const CoinWgpuStatus resizeResult = pollUntilReady(resized, yellowColor, noDepth,
                                                      error, sizeof(error));
   if (!check(resizeResult == COIN_WGPU_OK && resized.width == 32 &&

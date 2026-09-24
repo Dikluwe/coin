@@ -571,6 +571,7 @@ struct DeviceState {
     texture_cache: Mutex<TextureCache>,
     sampler_cache: Mutex<SamplerCache>,
     validated_scene: Option<Arc<ValidatedScene>>,
+    readback_pool: Arc<Mutex<ReadbackPool>>,
     rtt_textures: Mutex<RttRegistry>,
     device_id: CoinWgpuDeviceId,
     generation: u64,
@@ -597,6 +598,54 @@ struct SurfaceRecord {
 
 type ReadbackMapResult = Result<(), wgpu::BufferAsyncError>;
 
+// Only unmapped, completed buffers may enter this device-owned pool. Keeping
+// free buffers bounded avoids turning a resize sequence into unbounded RSS.
+#[derive(Default)]
+struct ReadbackPool {
+    free: HashMap<u64, Vec<wgpu::Buffer>>,
+    free_bytes: u64,
+    free_count: usize,
+}
+
+impl ReadbackPool {
+    const MAX_FREE_BYTES: u64 = 16 * 1024 * 1024;
+    const MAX_BUFFER_BYTES: u64 = 8 * 1024 * 1024;
+    const MAX_FREE_BUFFERS: usize = 16;
+
+    fn acquire(&mut self, device: &wgpu::Device, size: u64) -> (wgpu::Buffer, bool) {
+        let reused = self.free.get_mut(&size).and_then(Vec::pop);
+        if let Some(buffer) = reused {
+            if self.free.get(&size).is_some_and(Vec::is_empty) {
+                self.free.remove(&size);
+            }
+            self.free_bytes -= size;
+            self.free_count -= 1;
+            return (buffer, true);
+        }
+        (device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Coin Readback Staging Buffer"),
+            size,
+            usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        }), false)
+    }
+
+    fn recycle(&mut self, buffer: wgpu::Buffer) {
+        let size = buffer.size();
+        if size > Self::MAX_BUFFER_BYTES
+            || self.free_bytes.saturating_add(size) > Self::MAX_FREE_BYTES
+            || self.free_count >= Self::MAX_FREE_BUFFERS {
+            return;
+        }
+        let entries = self.free.entry(size).or_default();
+        if entries.len() < 2 {
+            entries.push(buffer);
+            self.free_bytes += size;
+            self.free_count += 1;
+        }
+    }
+}
+
 struct PendingReadback {
     ticket: CoinWgpuReadbackTicket,
     color: wgpu::Buffer,
@@ -606,6 +655,7 @@ struct PendingReadback {
     depth: Option<wgpu::Buffer>,
     depth_receiver: Option<std::sync::mpsc::Receiver<ReadbackMapResult>>,
     depth_ready: Option<Result<(), String>>,
+    pool: Arc<Mutex<ReadbackPool>>,
 }
 
 struct RuntimeContext {
@@ -659,10 +709,16 @@ fn reap_cancelled_readbacks(runtime: &mut RuntimeContext) {
         }
         if matches!(job.color_ready.as_ref(), Some(Ok(()))) {
             job.color.unmap();
+            if let Ok(mut pool) = job.pool.lock() {
+                pool.recycle(job.color.clone());
+            }
         }
         if matches!(job.depth_ready.as_ref(), Some(Ok(()))) {
             if let Some(buffer) = job.depth.as_ref() {
                 buffer.unmap();
+                if let Ok(mut pool) = job.pool.lock() {
+                    pool.recycle(buffer.clone());
+                }
             }
         }
         false
@@ -1106,6 +1162,7 @@ fn get_or_init_device_impl<'a>(
         texture_cache: Mutex::new(TextureCache::default()),
         sampler_cache: Mutex::new(SamplerCache::default()),
         validated_scene: None,
+        readback_pool: Arc::new(Mutex::new(ReadbackPool::default())),
         rtt_textures: Mutex::new(RttRegistry::default()),
         device_id: 0,
         generation: runtime.device_generation,
@@ -3696,12 +3753,8 @@ fn coin_wgpu_submit_internal(
 
         // 10. Copy to staging buffer for readback
         let staging_size = (bytes_per_row as u64) * (height as u64);
-        let staging_buffer = ctx.device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("Staging Buffer"),
-            size: staging_size,
-            usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
+        let (staging_buffer, color_staging_reused) = ctx.readback_pool
+            .lock().unwrap().acquire(&ctx.device, staging_size);
 
         let mut copy_encoder = ctx
             .device
@@ -3738,12 +3791,8 @@ fn coin_wgpu_submit_internal(
             && (!out_ticket.is_null() || !tgt.depth_buffer.is_null());
         let depth_staging_info = if depth_requested
         {
-            let dbuf = ctx.device.create_buffer(&wgpu::BufferDescriptor {
-                label: Some("Offscreen Depth Staging Buffer"),
-                size: depth_staging_size,
-                usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
-                mapped_at_creation: false,
-            });
+            let (dbuf, _) = ctx.readback_pool
+                .lock().unwrap().acquire(&ctx.device, depth_staging_size);
             copy_encoder.copy_texture_to_buffer(
                 wgpu::TexelCopyTextureInfo {
                     texture: &depth_texture,
@@ -3824,6 +3873,7 @@ fn coin_wgpu_submit_internal(
                 depth: depth_staging_info.as_ref().map(|(buffer, _)| buffer.clone()),
                 depth_receiver: if depth_staging_info.is_some() { Some(depth_receiver) } else { None },
                 depth_ready: None,
+                pool: ctx.readback_pool.clone(),
             });
             unsafe { *out_ticket = ticket; }
             tgt.submission_serial = sub_serial;
@@ -3892,16 +3942,32 @@ fn coin_wgpu_submit_internal(
             Ok(Ok(())) => {
                 let data = buffer_slice.get_mapped_range();
                 let row_bytes = (width * 4) as usize;
-                let mut pending_color = vec![0u8; required_target_len as usize];
-                for y in 0..height as usize {
-                    let src_offset = y * bytes_per_row as usize;
-                    let dst_offset = y * row_bytes;
-                    if src_offset + row_bytes > data.len() {
-                        set_error(error_buf, error_buf_len, "Mapped color staging buffer is truncated");
-                        return CoinWgpuStatus::BackendError;
+                if (data.len() as u64) < staging_size {
+                    set_error(error_buf, error_buf_len, "Mapped color staging buffer is truncated");
+                    return CoinWgpuStatus::BackendError;
+                }
+                // Color-only output has no second attachment to commit
+                // atomically, so publish rows directly to the caller buffer.
+                let mut pending_color = depth_staging_info.as_ref()
+                    .map(|_| vec![0u8; required_target_len as usize]);
+                if let Some(ref mut color) = pending_color {
+                    for y in 0..height as usize {
+                        let source = y * bytes_per_row as usize;
+                        let destination = y * row_bytes;
+                        color[destination..destination + row_bytes]
+                            .copy_from_slice(&data[source..source + row_bytes]);
                     }
-                    pending_color[dst_offset..dst_offset + row_bytes]
-                        .copy_from_slice(&data[src_offset..src_offset + row_bytes]);
+                } else {
+                    let output = match validate_slice_mut(tgt.color_buffer, required_target_len,
+                        "target color buffer", error_buf, error_buf_len) {
+                        Ok(output) => output, Err(status) => return status,
+                    };
+                    for y in 0..height as usize {
+                        let source = y * bytes_per_row as usize;
+                        let destination = y * row_bytes;
+                        output[destination..destination + row_bytes]
+                            .copy_from_slice(&data[source..source + row_bytes]);
+                    }
                 }
 
                 let mut pending_depth = None;
@@ -3936,25 +4002,37 @@ fn coin_wgpu_submit_internal(
                 }
 
                 // Publish both attachments only after every requested map succeeds.
-                let out_buf = match validate_slice_mut(tgt.color_buffer, required_target_len,
-                    "target color buffer", error_buf, error_buf_len) {
-                    Ok(b) => b,
-                    Err(st) => return st,
-                };
-                out_buf.copy_from_slice(&pending_color);
+                if let Some(color) = pending_color {
+                    let out_buf = match validate_slice_mut(tgt.color_buffer, required_target_len,
+                        "target color buffer", error_buf, error_buf_len) {
+                        Ok(b) => b,
+                        Err(st) => return st,
+                    };
+                    out_buf.copy_from_slice(&color);
+                }
                 if let Some(depth) = pending_depth {
                     let out_depth = unsafe { std::slice::from_raw_parts_mut(tgt.depth_buffer, depth.len()) };
                     out_depth.copy_from_slice(&depth);
                 }
+                drop(data);
+                staging_buffer.unmap();
+                if let Ok(mut pool) = ctx.readback_pool.lock() {
+                    pool.recycle(staging_buffer.clone());
+                    if let Some((buffer, _)) = depth_staging_info.as_ref() {
+                        buffer.unmap();
+                        pool.recycle(buffer.clone());
+                    }
+                }
                 tgt.submission_serial = sub_serial;
                 if trace_phases {
                     let profile_done = std::time::Instant::now();
-                    eprintln!("COIN_WGPU_PHASE rust validation_ms={:.6} prepare_encode_ms={:.6} submit_ms={:.6} gpu_wait_ms={:.6} readback_publish_ms={:.6}",
+                    eprintln!("COIN_WGPU_PHASE rust validation_ms={:.6} prepare_encode_ms={:.6} submit_ms={:.6} gpu_wait_ms={:.6} readback_publish_ms={:.6} staging_color_reused={}",
                         (profile_validated - profile_start).as_secs_f64() * 1000.0,
                         (profile_encoded - profile_validated).as_secs_f64() * 1000.0,
                         (profile_submitted - profile_submit_begin).as_secs_f64() * 1000.0,
                         (profile_wait_done - profile_wait_begin).as_secs_f64() * 1000.0,
-                        (profile_done - profile_publish_begin).as_secs_f64() * 1000.0);
+                        (profile_done - profile_publish_begin).as_secs_f64() * 1000.0,
+                        u8::from(color_staging_reused));
                 }
                 CoinWgpuStatus::Ok
             }
@@ -4274,19 +4352,27 @@ pub extern "C" fn coin_wgpu_readback_poll(
         let job = runtime.pending_readbacks.remove(&token).unwrap();
         let color_view = job.color.slice(..).get_mapped_range();
         let row_bytes = ticket.width as usize * 4;
-        let mut color = vec![0u8; ticket.color_bytes as usize];
+        if (ticket.color_row_pitch as u64) * (ticket.height as u64) > color_view.len() as u64 {
+            set_error(error_buf, error_buf_len, "Mapped color readback is truncated");
+            return CoinWgpuStatus::BackendError;
+        }
+        let mut color = job.depth.as_ref().map(|_| vec![0u8; ticket.color_bytes as usize]);
         for y in 0..ticket.height as usize {
             let source = y * ticket.color_row_pitch as usize;
             let destination = y * row_bytes;
-            if source + row_bytes > color_view.len() {
-                set_error(error_buf, error_buf_len, "Mapped color readback is truncated");
-                return CoinWgpuStatus::BackendError;
+            if let Some(ref mut pending) = color {
+                pending[destination..destination + row_bytes]
+                    .copy_from_slice(&color_view[source..source + row_bytes]);
+            } else {
+                color_output[destination..destination + row_bytes]
+                    .copy_from_slice(&color_view[source..source + row_bytes]);
             }
-            color[destination..destination + row_bytes]
-                .copy_from_slice(&color_view[source..source + row_bytes]);
         }
         drop(color_view);
         job.color.unmap();
+        if let Ok(mut pool) = job.pool.lock() {
+            pool.recycle(job.color.clone());
+        }
 
         let mut depth = None;
         if let Some(buffer) = job.depth.as_ref() {
@@ -4307,10 +4393,15 @@ pub extern "C" fn coin_wgpu_readback_poll(
             }
             drop(depth_view);
             buffer.unmap();
+            if let Ok(mut pool) = job.pool.lock() {
+                pool.recycle(buffer.clone());
+            }
             depth = Some(pixels);
         }
 
-        color_output.copy_from_slice(&color);
+        if let Some(color) = color {
+            color_output.copy_from_slice(&color);
+        }
         if let (Some(pixels), Some(output)) = (depth, depth_output) {
             output.copy_from_slice(&pixels);
         }

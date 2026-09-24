@@ -45,6 +45,15 @@ invalida os accessors síncronos até o próximo render bem-sucedido. A opção
 não se aplica a targets de janela ou passes RTT GPU-only. Recording/CPU
 mantém o depth interno para rasterização, ocultando apenas sua saída.
 
+O conector Rust mantém um pool privado de staging por device, com no máximo
+16 MiB e 16 buffers livres, até dois por tamanho. Buffers acima de 8 MiB não
+são retidos. Um buffer só retorna ao pool após completar o mapeamento,
+descartar a view e desmapear. Tickets pendentes continuam donos dos buffers;
+cancelamento não os disponibiliza antes de a GPU terminar. RGBA-only copia
+diretamente do mapeamento para a saída do chamador; cor+depth conserva a
+publicação atômica. Isto não altera qual frame o caminho síncrono retorna.
+O trace opt-in expõe `staging_color_reused` para verificar o reuso.
+
 ## Perfil implementado
 
 | Área | Suportado agora | Fora do perfil / rejeição esperada |

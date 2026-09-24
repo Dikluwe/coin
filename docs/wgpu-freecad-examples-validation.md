@@ -519,6 +519,50 @@ o fallback para GLX pixmap. A primeira tabela mede erro de imagem e
 silhueta; a segunda mede tempo end-to-end. O comparador instalado também passou
 em um prefixo temporário, sem `LD_LIBRARY_PATH` da árvore de build.
 
+### Pool de staging e cópia RGBA direta — Prompt 008C (2026-09-24)
+
+Build Release Rust, AMD RADV RENOIR, `BASE_COLOR`, câmera movida a cada
+frame, RGBA-only e readback síncrono incluído. O GL usa o mesmo output de cor.
+Cada linha abaixo é um processo pareado `--backend both`, com 10 warmup e
+60 frames medidos em 512×512:
+
+| Cena e repetição | WebGPU mediana/p95 (ms) | Coin/GL mediana/p95 (ms) |
+| --- | ---: | ---: |
+| PartDesign 1 | 0,373 / 0,706 | 0,588 / 1,060 |
+| PartDesign 2 | 0,381 / 0,678 | 0,371 / 0,845 |
+| PartDesign 3 | 0,389 / 0,677 | 0,400 / 0,896 |
+| Assembly 1 | 0,522 / 0,831 | 0,416 / 0,818 |
+| Assembly 2 | 0,524 / 0,794 | 0,436 / 0,845 |
+| Assembly 3 | 0,501 / 0,757 | 0,415 / 0,895 |
+
+Um único processo anterior à alteração mediu PartDesign 1,829/2,205 ms
+contra GL 0,415/0,865. Ele não foi intercalado com a nova implementação;
+a variação entre processos e a ausência de A/B entre os binários impedem
+atribuir a redução end-to-end especificamente ao pool. O trace
+mostra `staging_color_reused=0` no primeiro frame e 1 nos seguintes; trace
+não integra a tabela. O pool não atrasa a identidade do frame síncrono.
+
+Em PartDesign 1024×1024, 10 warmup/40 frames, o processo pareado RGBA-only
+mediu WebGPU 3,853/4,430 ms e GL 1,394/1,699 ms. Em processos WebGPU
+isolados, RGBA-only mediu 3,929/4,845 ms com pico RSS 143136 KiB;
+cor+depth mediu 9,666/10,358 ms e 155032 KiB. O RSS inclui runtime e
+driver, não é VRAM. Color+depth não é comparação equivalente ao GL RGBA.
+O comparador visual, após inverter verticalmente o GL, manteve PartDesign
+MAE RGB 0,001358/IoU 0,999978 e Assembly MAE 0/IoU 1. A viewport real do
+FreeCAD continua fora do escopo. Release Rust 42/42, Debug Rust 42/42 e
+Recording 28/28 passaram.
+
+Reprodução (usar `PartDesign.iv` ou `Assembly.iv` em `SCENE`):
+
+```sh
+SCENE='/home/dikluwe/Área de trabalho/Estudo coin/estudos/So/SoWgpu-FreeCAD-Exemplos/cenas/PartDesign.iv'
+VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
+COIN_GLX_PIXMAP_DIRECT_RENDERING=1 \
+  /tmp/coin-wgpu-tekt-release/bin/wgpu_gl_benchmark --backend both \
+  --readback color --dynamic --frames 60 --warmup 10 --size 512 \
+  --scene "$SCENE"
+```
+
 ## Próximo gate necessário para integração real
 
 Fazer um build **isolado** do FreeCAD contra a mesma revisão do Coin/WebGPU,

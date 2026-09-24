@@ -526,3 +526,52 @@ At 1024x1024 PartDesign, a 40-frame RGBA-only paired run measured WebGPU
 reported aligned MAE RGB 0/IoU 1 on Assembly and 0.001358/0.999978 on
 PartDesign. These are exported meshes, not the FreeCAD viewport. Color-only
 is a measured improvement, not WebGPU/GL performance parity.
+
+#### Prompt 008C: bounded device-owned readback staging
+
+**Intent:** Reuse completed offscreen staging buffers and remove the extra
+CPU color copy when only RGBA is requested. Do not substitute frame N-1 for
+frame N or describe asynchronous submission as lower end-to-end latency.
+
+**Core:** unchanged; the row-pitch transformation remains mechanical and
+retains the color+depth transactional publication rule.
+
+**Shell:** extend opt-in Rust phase tracing with `staging_color_reused=0|1`.
+Report phase timings separately from untraced whole-frame medians/p95s.
+
+**Infra:** a pool belongs to each Rust device generation. Acquire exact-size
+unmapped MAP_READ|COPY_DST buffers; recycle only after a successful map,
+completed GPU work, dropped mapped view and `unmap()`. Keep at most two free
+buffers per size, 16 free buffers and 16 MiB free per device. Buffers above
+8 MiB are not retained. In-flight async tickets keep their own pool owner.
+Cancellation retires a buffer only after its map completes. A new device
+generation gets a new pool; old-generation tickets are invalidated rather
+than recycled into it. Color-only sync and async outputs copy mapped rows
+directly to their caller buffers after validating the full mapped extent;
+color+depth continues to stage both CPU attachments until both
+maps and copies succeed.
+
+**Wiring:** unchanged. Existing synchronous and asynchronous contracts,
+including ticket generation/serial and target readback policy, are preserved.
+
+**Positive oracle:** repeated alternating-color sync and async frames never
+publish a previous frame; trace shows one initial staging allocation followed
+by reuse. Color-only and color+depth outputs remain correct.
+
+**Negative oracle:** pending tickets remain independent across resize and
+device loss; failed maps, cancelled tickets and invalid output buffers do not
+publish partial attachments or return a buffer to the pool prematurely.
+
+**Gates:** full Release/Debug Rust and Recording suites, visual MAE/IoU versus
+GL, Release median/p95 and isolated peak RSS. Do not claim an A/B speedup from
+non-interleaved historical runs. No new public Coin 4 ABI or private FFI
+protocol fields.
+
+**Result (2026-09-24):** Release Rust 42/42, Debug Rust 42/42, Recording
+28/28. The first traced RGBA frame had `staging_color_reused=0`; later
+frames had 1. See the reproducible campaign in
+`wgpu-freecad-examples-validation.md`. At 512² PartDesign WebGPU beat GL
+in two of three paired medians, while Assembly remained behind in all three;
+there is no general median advantage. At 1024² PartDesign remained slower
+than GL. The next candidate is persistent camera-frame GPU uniforms/bind
+groups, measured independently.

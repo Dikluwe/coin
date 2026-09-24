@@ -111,6 +111,18 @@
   SoWgpuReadbackTicket remains valid independently of the originating action
   and target; successful polling consumes it.
 
+  Offscreen readback staging buffers are reused only after their map has
+  completed, the mapped view has been dropped, and the buffer has been
+  unmapped. The pool is owned by one Rust device generation and retains at
+  most two free buffers per size, 16 free buffers and 16 MiB free. Buffers
+  above 8 MiB are not cached. In-flight asynchronous tickets retain their
+  buffers independently; cancellation does not release a buffer still used
+  by the GPU. Color-only readback copies mapped rows directly to its output
+  buffer; color plus depth retains transactional publication. This resource
+  reuse does not change synchronous frame identity or promise an asynchronous
+  latency improvement. <tt>staging_color_reused</tt> is available in opt-in Rust
+  phase traces.
+
   \section coin_wgpu_profile Measurement contract
 
   Performance comparisons should use Release builds and report traversal and
