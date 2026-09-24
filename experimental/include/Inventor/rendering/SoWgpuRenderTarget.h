@@ -38,6 +38,7 @@
 #include <vector>
 #include <cstdint>
 #include <Inventor/SbVec2i32.h>
+#include <Inventor/SbString.h>
 #include <Inventor/tools/SbPimplPtr.h>
 #include <Inventor/rendering/SoWgpuNativeSurface.h>
 
@@ -58,6 +59,21 @@ struct SoWgpuCacheTelemetry {
   uint64_t submissionSerial = 0;
 };
 
+// Experimental ticket: valid independently of the action and target lifetime.
+struct SoWgpuReadbackTicket {
+  uint64_t token = 0;
+  uint64_t generation = 0;
+  uint64_t submissionSerial = 0;
+  uint32_t width = 0;
+  uint32_t height = 0;
+  uint32_t colorFormat = 0; // RGBA8_UNORM
+  uint32_t depthFormat = 0; // 0=none, 1=DEPTH32_FLOAT
+  uint32_t colorRowPitch = 0;
+  uint32_t depthRowPitch = 0;
+  uint64_t colorBytes = 0;
+  uint64_t depthBytes = 0;
+};
+
 class COIN_WGPU_DLL_API SoWgpuRenderTarget {
 public:
   typedef struct ::SoWgpuCacheTelemetry SoWgpuCacheTelemetry;
@@ -67,6 +83,15 @@ public:
     TARGET_LOST,
     TARGET_ERROR,
     TARGET_SURFACE_LOST
+  };
+
+  enum ReadbackStatus {
+    READBACK_READY = 0,
+    READBACK_NOT_READY,
+    READBACK_INVALID_TICKET,
+    READBACK_DEVICE_LOST,
+    READBACK_ERROR,
+    READBACK_UNSUPPORTED
   };
 
   static SoWgpuRenderTarget * createOffscreen(const SbVec2i32 & size);
@@ -82,6 +107,13 @@ public:
   SbBool resize(const SbVec2i32 & size);
   void readbackRGBA(std::vector<uint8_t> & outPixels) const;
   void readbackDepth(std::vector<float> & outDepth) const;
+  // Poll/cancel do not require the original target to remain alive. Outputs are
+  // changed together only on READBACK_READY; a ticket is consumed on success.
+  static ReadbackStatus pollReadback(const SoWgpuReadbackTicket & ticket,
+                                     std::vector<uint8_t> & outColor,
+                                     std::vector<float> & outDepth,
+                                     SbString * diagnostic = nullptr);
+  static SbBool cancelReadback(const SoWgpuReadbackTicket & ticket);
   uint64_t getLastSubmissionSerial(void) const;
   SbBool getCacheTelemetry(SoWgpuCacheTelemetry & outTelemetry) const;
   void pollDevice(void);

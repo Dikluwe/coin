@@ -238,13 +238,15 @@ SoWgpuRenderTargetP::clear(float r, float g, float b, float a, float depthVal)
 void
 SoWgpuRenderTargetP::readbackRGBA(std::vector<uint8_t> & outRgba) const
 {
-  outRgba = this->colorBuffer;
+  if (this->synchronousReadbackValid) outRgba = this->colorBuffer;
+  else outRgba.clear();
 }
 
 void
 SoWgpuRenderTargetP::readbackDepth(std::vector<float> & outDepth) const
 {
-  outDepth = this->depthBuffer;
+  if (this->synchronousReadbackValid) outDepth = this->depthBuffer;
+  else outDepth.clear();
 }
 
 FrameExecutionResult
@@ -347,6 +349,31 @@ SoWgpuRenderTargetP::validateProfile(const FramePlan & frame, std::string & outD
 FrameExecutionResult
 SoWgpuRenderTargetP::executeFrame(const FramePlan & frame)
 {
+  return this->executeFrameInternal(frame, NULL);
+}
+
+FrameExecutionResult
+SoWgpuRenderTargetP::executeFrameAsync(const FramePlan & frame,
+                                       SoWgpuReadbackTicket & outTicket)
+{
+  outTicket = SoWgpuReadbackTicket{};
+  return this->executeFrameInternal(frame, &outTicket);
+}
+
+FrameExecutionResult
+SoWgpuRenderTargetP::executeFrameInternal(const FramePlan & frame,
+                                          SoWgpuReadbackTicket * outTicket)
+{
+  if (outTicket && this->kind != KIND_OFFSCREEN) {
+    return FrameExecutionResult(BackendStatus::UNSUPPORTED,
+                                "applyAsync() requires an offscreen target");
+  }
+#if !defined(HAVE_WGPU_RUST_BRIDGE)
+  if (outTicket) {
+    return FrameExecutionResult(BackendStatus::UNSUPPORTED,
+                                "Asynchronous readback requires the Rust bridge backend");
+  }
+#endif
   if (this->suspended || this->size[0] <= 0 || this->size[1] <= 0) {
     this->status = SoWgpuRenderTarget::TARGET_NOT_READY;
     this->lastError = "Target is suspended or has zero size";
@@ -394,7 +421,18 @@ SoWgpuRenderTargetP::executeFrame(const FramePlan & frame)
     }
   }
 
-  SubmitResult res = this->backend->submit(frame, *this);
+  SubmitResult res;
+#if defined(HAVE_WGPU_RUST_BRIDGE)
+  if (outTicket) {
+    SoWgpuRustBackend * rust = dynamic_cast<SoWgpuRustBackend *>(this->backend.get());
+    res = rust ? rust->submitAsync(frame, *this, *outTicket)
+               : SubmitResult(BackendStatus::UNSUPPORTED,
+                              "Asynchronous readback requires the Rust bridge backend");
+  } else
+#endif
+  {
+    res = this->backend->submit(frame, *this);
+  }
   if (res.status != BackendStatus::SUCCESS) {
     std::string lastErr = res.diagnostic.empty() ? (this->backend ? this->backend->getLastError() : std::string()) : res.diagnostic;
     this->lastError = lastErr;
@@ -424,6 +462,7 @@ SoWgpuRenderTargetP::executeFrame(const FramePlan & frame)
   }
 
   this->lastSubmissionSerial = res.submissionSerial;
+  this->synchronousReadbackValid = (outTicket == NULL);
   this->status = SoWgpuRenderTarget::TARGET_READY;
   this->lastError.clear();
   return res;
@@ -484,6 +523,92 @@ void
 SoWgpuRenderTarget::readbackDepth(std::vector<float> & outDepth) const
 {
   this->pimpl->readbackDepth(outDepth);
+}
+
+SoWgpuRenderTarget::ReadbackStatus
+SoWgpuRenderTarget::pollReadback(const SoWgpuReadbackTicket & ticket,
+                                  std::vector<uint8_t> & outColor,
+                                  std::vector<float> & outDepth,
+                                  SbString * diagnostic)
+{
+  if (diagnostic) *diagnostic = "";
+#if defined(HAVE_WGPU_RUST_BRIDGE)
+  const uint64_t pixels = uint64_t(ticket.width) * uint64_t(ticket.height);
+  const uint64_t bytes = pixels * 4;
+  const uint64_t rowPitch = (uint64_t(ticket.width) * 4 + 255) & ~uint64_t(255);
+  if (ticket.token == 0 || ticket.width == 0 || ticket.height == 0 ||
+      ticket.width > 16384 || ticket.height > 16384 ||
+      ticket.colorFormat != 0 || ticket.colorBytes != bytes ||
+      ticket.colorRowPitch != rowPitch ||
+      (ticket.depthFormat != 0 && ticket.depthFormat != 1) ||
+      (ticket.depthFormat == 0 && (ticket.depthBytes != 0 || ticket.depthRowPitch != 0)) ||
+      (ticket.depthFormat == 1 && (ticket.depthBytes != bytes ||
+          ticket.depthRowPitch != rowPitch))) {
+    if (diagnostic) *diagnostic = "Invalid asynchronous readback ticket";
+    return READBACK_INVALID_TICKET;
+  }
+
+  char error[512] = {0};
+  const CoinWgpuStatus readiness =
+    coin_wgpu_readback_query(ticket.token, error, sizeof(error));
+  if (readiness != COIN_WGPU_OK) {
+    if (diagnostic && error[0]) *diagnostic = error;
+    switch (readiness) {
+      case COIN_WGPU_NOT_READY: return READBACK_NOT_READY;
+      case COIN_WGPU_INVALID_ARGUMENT: return READBACK_INVALID_TICKET;
+      case COIN_WGPU_DEVICE_LOST: return READBACK_DEVICE_LOST;
+      case COIN_WGPU_UNSUPPORTED: return READBACK_UNSUPPORTED;
+      default: return READBACK_ERROR;
+    }
+  }
+
+  std::vector<uint8_t> color;
+  std::vector<float> depth;
+  try {
+    color.resize(static_cast<size_t>(ticket.colorBytes));
+    if (ticket.depthFormat == 1) {
+      depth.resize(static_cast<size_t>(ticket.depthBytes / 4));
+    }
+  } catch (const std::exception &) {
+    if (diagnostic) *diagnostic = "Cannot allocate asynchronous readback outputs";
+    return READBACK_ERROR;
+  }
+  error[0] = 0;
+  const CoinWgpuStatus status = coin_wgpu_readback_poll(ticket.token,
+    color.data(), color.size(), depth.empty() ? NULL : depth.data(),
+    depth.size(), error, sizeof(error));
+  if (status == COIN_WGPU_OK) {
+    outColor.swap(color);
+    outDepth.swap(depth);
+    return READBACK_READY;
+  }
+  if (diagnostic && error[0]) *diagnostic = error;
+  switch (status) {
+    case COIN_WGPU_NOT_READY: return READBACK_NOT_READY;
+    case COIN_WGPU_INVALID_ARGUMENT: return READBACK_INVALID_TICKET;
+    case COIN_WGPU_DEVICE_LOST: return READBACK_DEVICE_LOST;
+    case COIN_WGPU_UNSUPPORTED: return READBACK_UNSUPPORTED;
+    default: return READBACK_ERROR;
+  }
+#else
+  (void)ticket;
+  (void)outColor;
+  (void)outDepth;
+  if (diagnostic) *diagnostic = "Asynchronous readback requires the Rust bridge backend";
+  return READBACK_UNSUPPORTED;
+#endif
+}
+
+SbBool
+SoWgpuRenderTarget::cancelReadback(const SoWgpuReadbackTicket & ticket)
+{
+#if defined(HAVE_WGPU_RUST_BRIDGE)
+  return ticket.token != 0 && coin_wgpu_readback_cancel(ticket.token) == COIN_WGPU_OK
+    ? TRUE : FALSE;
+#else
+  (void)ticket;
+  return FALSE;
+#endif
 }
 
 uint64_t

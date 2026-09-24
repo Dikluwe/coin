@@ -164,6 +164,25 @@ SoWgpuRustBackend::prepare(SoWgpuRenderTargetP & target)
 SubmitResult
 SoWgpuRustBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target)
 {
+  return this->submitInternal(frame, target, NULL);
+}
+
+SubmitResult
+SoWgpuRustBackend::submitAsync(const FramePlan & frame, SoWgpuRenderTargetP & target,
+                               SoWgpuReadbackTicket & outTicket)
+{
+  outTicket = SoWgpuReadbackTicket{};
+  return this->submitInternal(frame, target, &outTicket);
+}
+
+SubmitResult
+SoWgpuRustBackend::submitInternal(const FramePlan & frame, SoWgpuRenderTargetP & target,
+                                  SoWgpuReadbackTicket * outTicket)
+{
+  if (outTicket && target.kind != SoWgpuRenderTargetP::KIND_OFFSCREEN) {
+    this->lastError = "Asynchronous readback requires an offscreen target";
+    return SubmitResult(BackendStatus::UNSUPPORTED, this->lastError);
+  }
   if (target.kind == SoWgpuRenderTargetP::KIND_OFFSCREEN) {
     if (target.colorBuffer.empty() || target.size[0] <= 0 || target.size[1] <= 0) {
       this->lastError = "Render target buffer is not allocated";
@@ -393,7 +412,27 @@ SoWgpuRustBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target)
     tPod.submission_serial = 0;
 
     // 7. Submit to WebGPU via FFI
-    st = coin_wgpu_submit(&tPod, &fView, errBuf, sizeof(errBuf));
+    if (outTicket) {
+      CoinWgpuReadbackTicket bridgeTicket{};
+      bridgeTicket.abi_version = COIN_WGPU_ABI_VERSION;
+      bridgeTicket.struct_size = sizeof(bridgeTicket);
+      st = coin_wgpu_submit_async(&tPod, &fView, &bridgeTicket, errBuf, sizeof(errBuf));
+      if (st == COIN_WGPU_OK) {
+        outTicket->token = bridgeTicket.token;
+        outTicket->generation = bridgeTicket.generation;
+        outTicket->submissionSerial = bridgeTicket.submission_serial;
+        outTicket->width = bridgeTicket.width;
+        outTicket->height = bridgeTicket.height;
+        outTicket->colorFormat = bridgeTicket.color_format;
+        outTicket->depthFormat = bridgeTicket.depth_format;
+        outTicket->colorRowPitch = bridgeTicket.color_row_pitch;
+        outTicket->depthRowPitch = bridgeTicket.depth_row_pitch;
+        outTicket->colorBytes = bridgeTicket.color_bytes;
+        outTicket->depthBytes = bridgeTicket.depth_bytes;
+      }
+    } else {
+      st = coin_wgpu_submit(&tPod, &fView, errBuf, sizeof(errBuf));
+    }
     serial = tPod.submission_serial;
   }
 
@@ -441,6 +480,7 @@ SoWgpuRustBackend::~SoWgpuRustBackend() {}
 BackendStatus SoWgpuRustBackend::getStatus() const { return status; }
 BackendStatus SoWgpuRustBackend::prepare(SoWgpuRenderTargetP &) { return BackendStatus::UNSUPPORTED; }
 SubmitResult SoWgpuRustBackend::submit(const FramePlan &, SoWgpuRenderTargetP &) { return SubmitResult(BackendStatus::UNSUPPORTED, "Rust bridge not compiled in"); }
+SubmitResult SoWgpuRustBackend::submitAsync(const FramePlan &, SoWgpuRenderTargetP &, SoWgpuReadbackTicket &) { return SubmitResult(BackendStatus::UNSUPPORTED, "Rust bridge not compiled in"); }
 void SoWgpuRustBackend::poll() {}
 const std::string & SoWgpuRustBackend::getLastError() const { return lastError; }
 bool SoWgpuRustBackend::isAvailable() { return false; }

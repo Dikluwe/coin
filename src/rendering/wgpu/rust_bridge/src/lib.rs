@@ -13,7 +13,7 @@ use std::sync::Mutex;
 
 mod composition;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 11;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 12;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 pub type CoinWgpuSurfaceId = u64;
@@ -3454,6 +3454,93 @@ pub extern "C" fn coin_wgpu_submit_async(
     coin_wgpu_submit_internal(target, frame, out_ticket, error_buf, error_buf_len)
 }
 
+fn check_readback_ready(
+    runtime: &mut RuntimeContext,
+    token: u64,
+    error_buf: *mut std::os::raw::c_char,
+    error_buf_len: usize,
+) -> CoinWgpuStatus {
+    if token == 0 {
+        set_error(error_buf, error_buf_len, "Invalid readback token");
+        return CoinWgpuStatus::InvalidArgument;
+    }
+    reap_cancelled_readbacks(runtime);
+    if !runtime.pending_readbacks.contains_key(&token) {
+        set_error(error_buf, error_buf_len, "Unknown or cancelled readback token");
+        return CoinWgpuStatus::InvalidArgument;
+    }
+    let injected_fault = FAULT_INJECTION_ASYNC.swap(0, Ordering::SeqCst);
+    if injected_fault == CoinWgpuStatus::BackendError as i32 {
+        if let Some(job) = runtime.pending_readbacks.remove(&token) {
+            runtime.retired_readbacks.push(job);
+        }
+        set_error(error_buf, error_buf_len, "Injected asynchronous map failure");
+        return CoinWgpuStatus::BackendError;
+    }
+    if injected_fault == CoinWgpuStatus::DeviceLost as i32
+        || DEVICE_LOST_OCCURRED.swap(false, Ordering::SeqCst) {
+        runtime.pending_readbacks.clear();
+        runtime.retired_readbacks.clear();
+        runtime.device_state = None;
+        runtime.device_generation += 1;
+        set_error(error_buf, error_buf_len, "Device lost during asynchronous readback");
+        return CoinWgpuStatus::DeviceLost;
+    }
+    if let Some(device) = runtime.device_state.as_ref() {
+        let _ = device.device.poll(wgpu::Maintain::Poll);
+    }
+    let generation = runtime.device_generation;
+    let job = runtime.pending_readbacks.get_mut(&token).unwrap();
+    if job.ticket.generation != generation {
+        runtime.pending_readbacks.remove(&token);
+        set_error(error_buf, error_buf_len, "Readback generation is stale");
+        return CoinWgpuStatus::DeviceLost;
+    }
+    update_readback_mapping(job);
+    if job.color_ready.is_none() || job.depth_ready.is_none() {
+        return CoinWgpuStatus::NotReady;
+    }
+    if let Some(message) = job.color_ready.as_ref().and_then(|result| result.as_ref().err())
+        .or_else(|| job.depth_ready.as_ref().and_then(|result| result.as_ref().err())) {
+        let message = message.clone();
+        if let Some(failed) = runtime.pending_readbacks.remove(&token) {
+            if matches!(failed.color_ready.as_ref(), Some(Ok(()))) {
+                failed.color.unmap();
+            }
+            if matches!(failed.depth_ready.as_ref(), Some(Ok(()))) {
+                if let Some(buffer) = failed.depth.as_ref() {
+                    buffer.unmap();
+                }
+            }
+        }
+        set_error(error_buf, error_buf_len, &format!("Readback mapping failed: {}", message));
+        return CoinWgpuStatus::BackendError;
+    }
+    CoinWgpuStatus::Ok
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_readback_query(
+    token: u64,
+    error_buf: *mut std::os::raw::c_char,
+    error_buf_len: usize,
+) -> CoinWgpuStatus {
+    std::panic::catch_unwind(|| {
+        let mut guard = match RUNTIME_CTX.lock() {
+            Ok(guard) => guard,
+            Err(_) => return CoinWgpuStatus::BackendError,
+        };
+        let runtime = match guard.as_mut() {
+            Some(runtime) => runtime,
+            None => return CoinWgpuStatus::InvalidArgument,
+        };
+        check_readback_ready(runtime, token, error_buf, error_buf_len)
+    }).unwrap_or_else(|_| {
+        set_error(error_buf, error_buf_len, "Panic during asynchronous readback query");
+        CoinWgpuStatus::BackendError
+    })
+}
+
 #[no_mangle]
 pub extern "C" fn coin_wgpu_readback_poll(
     token: u64,
@@ -3465,10 +3552,6 @@ pub extern "C" fn coin_wgpu_readback_poll(
     error_buf_len: usize,
 ) -> CoinWgpuStatus {
     std::panic::catch_unwind(|| {
-        if token == 0 {
-            set_error(error_buf, error_buf_len, "Invalid readback token");
-            return CoinWgpuStatus::InvalidArgument;
-        }
         let mut guard = match RUNTIME_CTX.lock() {
             Ok(guard) => guard,
             Err(_) => return CoinWgpuStatus::BackendError,
@@ -3477,50 +3560,11 @@ pub extern "C" fn coin_wgpu_readback_poll(
             Some(runtime) => runtime,
             None => return CoinWgpuStatus::InvalidArgument,
         };
-        reap_cancelled_readbacks(runtime);
-        if !runtime.pending_readbacks.contains_key(&token) {
-            set_error(error_buf, error_buf_len, "Unknown or cancelled readback token");
-            return CoinWgpuStatus::InvalidArgument;
+        let readiness = check_readback_ready(runtime, token, error_buf, error_buf_len);
+        if readiness != CoinWgpuStatus::Ok {
+            return readiness;
         }
-        let injected_fault = FAULT_INJECTION_ASYNC.swap(0, Ordering::SeqCst);
-        if injected_fault == CoinWgpuStatus::BackendError as i32 {
-            if let Some(job) = runtime.pending_readbacks.remove(&token) {
-                runtime.retired_readbacks.push(job);
-            }
-            set_error(error_buf, error_buf_len, "Injected asynchronous map failure");
-            return CoinWgpuStatus::BackendError;
-        }
-        if injected_fault == CoinWgpuStatus::DeviceLost as i32
-            || DEVICE_LOST_OCCURRED.swap(false, Ordering::SeqCst) {
-            runtime.pending_readbacks.clear();
-            runtime.retired_readbacks.clear();
-            runtime.device_state = None;
-            runtime.device_generation += 1;
-            set_error(error_buf, error_buf_len, "Device lost during asynchronous readback");
-            return CoinWgpuStatus::DeviceLost;
-        }
-        if let Some(device) = runtime.device_state.as_ref() {
-            let _ = device.device.poll(wgpu::Maintain::Poll);
-        }
-        let generation = runtime.device_generation;
-        let job = runtime.pending_readbacks.get_mut(&token).unwrap();
-        if job.ticket.generation != generation {
-            runtime.pending_readbacks.remove(&token);
-            set_error(error_buf, error_buf_len, "Readback generation is stale");
-            return CoinWgpuStatus::DeviceLost;
-        }
-        update_readback_mapping(job);
-        if job.color_ready.is_none() || job.depth_ready.is_none() {
-            return CoinWgpuStatus::NotReady;
-        }
-        if let Some(message) = job.color_ready.as_ref().and_then(|result| result.as_ref().err())
-            .or_else(|| job.depth_ready.as_ref().and_then(|result| result.as_ref().err())) {
-            let message = message.clone();
-            runtime.pending_readbacks.remove(&token);
-            set_error(error_buf, error_buf_len, &format!("Readback mapping failed: {}", message));
-            return CoinWgpuStatus::BackendError;
-        }
-        let ticket = job.ticket;
+        let ticket = runtime.pending_readbacks.get(&token).unwrap().ticket;
         if color_buffer.is_null() || color_buffer_len < ticket.color_bytes
             || (ticket.depth_bytes != 0 && (depth_buffer.is_null()
                 || depth_buffer_len < ticket.depth_bytes / 4

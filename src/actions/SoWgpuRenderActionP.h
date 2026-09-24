@@ -51,6 +51,7 @@ public:
 
   SoWgpuRenderAction * master;
   SoWgpuRenderTarget * target;
+  SoWgpuReadbackTicket * asyncTicket; // Only valid during applyAsync().
   SbViewportRegion viewport;
   SbColor4f backgroundColor;
   SoWgpuRenderAction::Status lastStatus;

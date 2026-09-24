@@ -41,6 +41,7 @@
 
 class SoWgpuRenderActionP;
 class SoWgpuRenderTarget;
+struct SoWgpuReadbackTicket;
 
 class COIN_WGPU_DLL_API SoWgpuRenderAction : public SoCallbackAction {
   typedef SoCallbackAction inherited;
@@ -86,6 +87,9 @@ public:
   using SoAction::apply;
 
   void apply(SoNode * root) override;
+  // Offscreen Rust backend only. Returns a ticket on SUCCESS without waiting
+  // for GPU readback; use SoWgpuRenderTarget::pollReadback/cancelReadback.
+  void applyAsync(SoNode * root, SoWgpuReadbackTicket & outTicket);
   void apply(SoPath * path) override;
   void apply(const SoPathList & pathlist, SbBool obeysrules = FALSE) override;
 

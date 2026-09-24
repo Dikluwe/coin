@@ -148,6 +148,21 @@ SoWgpuRenderAction::apply(SoNode * root)
 }
 
 void
+SoWgpuRenderAction::applyAsync(SoNode * root, SoWgpuReadbackTicket & outTicket)
+{
+  outTicket = SoWgpuReadbackTicket{};
+  if (this->pimpl->isApplying) {
+    this->pimpl->lastStatus = INVALID_SCENE;
+    this->pimpl->lastError = "Nested applyAsync() calls are not permitted";
+    this->pimpl->hasReentrancyError = true;
+    return;
+  }
+  this->pimpl->asyncTicket = &outTicket;
+  this->apply(root);
+  this->pimpl->asyncTicket = NULL;
+}
+
+void
 SoWgpuRenderAction::apply(SoPath * path)
 {
   this->pimpl->executeApply([&]() {
@@ -187,6 +202,7 @@ SoWgpuRenderAction::beginTraversal(SoNode * root)
 SoWgpuRenderActionP::SoWgpuRenderActionP(SoWgpuRenderAction * m)
   : master(m),
     target(NULL),
+    asyncTicket(NULL),
     backgroundColor(0.0f, 0.0f, 0.0f, 1.0f),
     lastStatus(SoWgpuRenderAction::SUCCESS),
     hasLastValidPlan(false),
@@ -242,6 +258,11 @@ SoWgpuRenderActionP::executeApply(F traversalFn)
   }
 
   if (this->target == NULL) {
+    if (this->asyncTicket) {
+      this->lastStatus = SoWgpuRenderAction::NO_TARGET;
+      this->lastError = "applyAsync() requires an offscreen render target";
+      return;
+    }
     // Mode 0: Recording backend
     this->lastRecordingLog = this->recordingBackend.recordToString(plan).c_str();
     this->lastValidPlan = plan;
@@ -260,7 +281,9 @@ SoWgpuRenderActionP::executeApply(F traversalFn)
   }
 
   // Execute frame on target
-  FrameExecutionResult execRes = this->target->pimpl->executeFrame(plan);
+  FrameExecutionResult execRes = this->asyncTicket
+    ? this->target->pimpl->executeFrameAsync(plan, *this->asyncTicket)
+    : this->target->pimpl->executeFrame(plan);
   if (execRes.status != BackendStatus::SUCCESS) {
     switch (execRes.status) {
       case BackendStatus::NOT_READY:

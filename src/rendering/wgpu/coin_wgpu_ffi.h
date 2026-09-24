@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 11
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 12
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -229,6 +229,14 @@ CoinWgpuStatus coin_wgpu_submit_async(
   CoinWgpuTarget * target,
   const CoinWgpuFrameView * frame,
   CoinWgpuReadbackTicket * out_ticket,
+  char * error_buf,
+  size_t error_buf_len
+);
+
+/* Nonblocking readiness check; OK means mapping is complete but does not
+   consume the token or publish output. */
+CoinWgpuStatus coin_wgpu_readback_query(
+  uint64_t token,
   char * error_buf,
   size_t error_buf_len
 );

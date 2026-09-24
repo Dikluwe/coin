@@ -4,7 +4,7 @@ Esta implementação é opt-in (`COIN_BUILD_WGPU=ON`) e fica em
 `CoinWgpuExperimental`, separada de `libCoin`. A ação e o alvo de renderização
 estão em `experimental/include` para uso na árvore de build; não são API nem
 ABI pública instalada do Coin 4. A ponte C++/Rust é privada e versionada
-(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=11` nesta revisão). Não promova esses
+(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=12` nesta revisão). Não promova esses
 headers a consumidores externos como se fossem estáveis.
 
 ## Perfil implementado
@@ -18,7 +18,7 @@ headers a consumidores externos como se fossem estáveis.
 | Composição | Opacos primeiro e transparentes em pass separado, ordenados estavelmente por profundidade média em view space; depth write desligado para transparentes | Ordenação por triângulo, interseções e transparência independente da ordem |
 | Ambiente | Fog `NONE`, `HAZE`, `FOG` e `SMOKE` em distância de view space; fog depois de luz/textura e antes da composição, sem alterar alpha | Fórmulas ou estados de fog fora desses quatro modos |
 | Raster | Front face e backface culling de `SoShapeHints` em triângulos, inclusive reflexão | Culling de linhas/pontos (não aplicável ao pipeline dessas topologias) |
-| Alvos | Offscreen com cor/profundidade e janela X11 no backend Rust; readback síncrono atômico e submit/poll/cancel assíncrono na ponte privada | `SoSceneTexture2`/render-to-texture, API assíncrona da action/target C++, outros sistemas de janela |
+| Alvos | Offscreen com cor/profundidade e janela X11 no backend Rust; readback síncrono atômico; `applyAsync` com ticket e query/poll/cancel no offscreen experimental | `SoSceneTexture2`/render-to-texture, readback assíncrono de janela e outros sistemas de janela |
 
 Recursos não suportados devem produzir `UNSUPPORTED` e diagnóstico, não uma
 imagem aparentemente válida que ignore silenciosamente parte do estado. A
@@ -27,15 +27,21 @@ pixels exige GPU real e, opcionalmente, Coin/GL.
 
 A Onda 4 está **parcial**: 4A/4B e os dois passes básicos de 4C estão
 implementados, sem alterar a ABI pública do Coin 4. O render-to-texture de
-`SoSceneTexture2` é rejeitado antes da submissão. A ponte privada Rust
-agora oferece submit/poll/cancel de readback verdadeiramente assíncrono, com
-token, geração, serial, formatos, pitch e publicação atômica de cor/profundidade.
-O método da action/target C++ continua síncrono; a integração dessa API ao
-fluxo público experimental ainda falta. O backend native/Dawn não possui
-pipeline transparente e rejeita esse perfil explicitamente. 4C, 4D e 4E
-ainda não estão concluídas.
+`SoSceneTexture2` é rejeitado antes da submissão. A ponte privada Rust oferece
+submit/query/poll/cancel de readback verdadeiramente assíncrono, com token,
+geração, serial, formatos, pitch e publicação atômica de cor/profundidade.
+`SoWgpuRenderAction::applyAsync` devolve o ticket; as funções estáticas do
+`SoWgpuRenderTarget` consultam, publicam ou cancelam o resultado sem depender
+da vida da action/target original. `apply` e readback síncronos permanecem.
+Após `applyAsync`, os accessors síncronos do target devolvem vetores vazios
+até outro `apply` síncrono, evitando apresentar o frame anterior como atual.
+A query não aloca os vetores de saída enquanto o GPU readback está pendente.
+O backend native/Dawn não possui pipeline transparente e rejeita esse perfil
+explicitamente. A 4D está implementada no perfil offscreen Rust, inclusive
+polls concorrentes; 4C (render-to-texture) e 4E ainda não estão concluídas.
+A medição isolada de latência de readback pertence ao gate 4E.
 
-## Evidência parcial da 4D (ponte privada)
+## Evidência da 4D (ponte privada e action experimental)
 
 `WgpuAsyncReadbackTest` exerce duas solicitações fora de ordem, polling não
 bloqueante, buffers pequenos e sobrepostos, cancelamento, resize com pedido
@@ -45,8 +51,11 @@ dos demais tickets e recuperação em nova geração. O staging pertence ao
 runtime Rust até poll/cancel; os callbacks não retêm ponteiros do target nem do
 frame. Um ensaio local na NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) usou
 65.536 bytes de staging para duas capturas RGBA8+Depth32 de 64×64 e levou
-247,1 ms no roundtrip completo do teste ampliado; não é medida isolada de
-latência de readback nem SLA. A action/target C++ ainda usa o caminho síncrono.
+271,4 ms no roundtrip completo do teste ampliado; não é medida isolada de
+latência de readback nem SLA. `WgpuAsyncActionTest` submete uma cena com cone
+pela action, faz resize e destrói action/target antes do poll, compara cor e
+profundidade exatamente ao caminho síncrono e verifica cancelamento, ticket
+consumido e dois polls em threads distintas com resultados independentes.
 
 ## Build e testes
 

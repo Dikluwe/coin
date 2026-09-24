@@ -104,12 +104,18 @@ int main() {
              "ticket metadata")) return 1;
 
   char error[512] = {};
+  const CoinWgpuStatus initialQuery =
+    coin_wgpu_readback_query(second.token, error, sizeof(error));
+  if (!check(initialQuery == COIN_WGPU_NOT_READY || initialQuery == COIN_WGPU_OK,
+             "query must be nonblocking and preserve pending ticket", error)) return 1;
   std::vector<uint8_t> tooSmall(4, 17);
   std::vector<float> tooShallow(4, -1.0f);
   const CoinWgpuStatus small = pollUntilReady(second, tooSmall, tooShallow,
                                                error, sizeof(error));
   if (!check(small == COIN_WGPU_INVALID_ARGUMENT && tooSmall[0] == 17 &&
-             tooShallow[0] == -1.0f, "small buffers cannot publish partial output", error)) return 1;
+             tooShallow[0] == -1.0f, "small buffers cannot publish partial output", error) ||
+      !check(coin_wgpu_readback_query(second.token, error, sizeof(error)) == COIN_WGPU_OK,
+             "query reports ready without consuming ticket", error)) return 1;
 
   std::vector<float> overlapping(64u * 64u * 2u, -1.0f);
   const CoinWgpuStatus overlap = coin_wgpu_readback_poll(second.token,
@@ -124,7 +130,10 @@ int main() {
                                                      error, sizeof(error));
   if (!check(secondResult == COIN_WGPU_OK && colorIs(greenColor, 64, 64, 0, 255, 0) &&
              std::abs(greenDepth[32u * 64u + 32u] - 1.0f) < 0.001f,
-             "second request completed first", error)) return 1;
+             "second request completed first", error) ||
+      !check(coin_wgpu_readback_query(second.token, error, sizeof(error)) ==
+               COIN_WGPU_INVALID_ARGUMENT,
+             "query rejects consumed ticket", error)) return 1;
 
   std::vector<uint8_t> redColor(64u * 64u * 4u, 17);
   std::vector<float> redDepth(64u * 64u, -1.0f);
@@ -184,8 +193,8 @@ int main() {
   CoinWgpuReadbackTicket lost{}, lostPeer{};
   if (!request(red, false, lost) || !request(green, false, lostPeer)) return 1;
   coin_wgpu_inject_async_fault(COIN_WGPU_DEVICE_LOST);
-  if (!check(coin_wgpu_readback_poll(lost.token, nullptr, 0, nullptr, 0,
-                                    error, sizeof(error)) == COIN_WGPU_DEVICE_LOST,
+  if (!check(coin_wgpu_readback_query(lost.token, error, sizeof(error)) ==
+               COIN_WGPU_DEVICE_LOST,
              "device loss invalidates pending readback") ||
       !check(coin_wgpu_readback_poll(lostPeer.token, nullptr, 0, nullptr, 0,
                                     error, sizeof(error)) == COIN_WGPU_INVALID_ARGUMENT,

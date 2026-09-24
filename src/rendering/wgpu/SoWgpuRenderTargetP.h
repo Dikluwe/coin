@@ -28,6 +28,7 @@ public:
   std::vector<uint8_t> colorBuffer; // RGBA8 (offscreen)
   std::vector<float> depthBuffer;   // Depth [0, 1] (offscreen software / CPU fallback)
   uint32_t generation{0};
+  bool synchronousReadbackValid{true};
 
   // Window surface specific members
   SoWgpuNativeSurfaceDescriptor nativeDesc{};
@@ -49,8 +50,14 @@ public:
 
   // Render execution for target (offscreen or window)
   FrameExecutionResult executeFrame(const FramePlan & frame);
+  FrameExecutionResult executeFrameAsync(const FramePlan & frame,
+                                         SoWgpuReadbackTicket & outTicket);
 
   std::unique_ptr<SoWgpuBackend> backend;
+
+private:
+  FrameExecutionResult executeFrameInternal(const FramePlan & frame,
+                                             SoWgpuReadbackTicket * outTicket);
 };
 
 #endif // !SOWGPURENDERTARGETP_H
