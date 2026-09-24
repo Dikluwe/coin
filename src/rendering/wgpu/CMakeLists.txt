@@ -3,6 +3,8 @@
 set(COIN_WGPU_SOURCES
 	SoWgpuFramePlanBuilder.cpp
 	SoWgpuRecordingBackend.cpp
+	SoWgpuCapabilities.cpp
+	SoWgpuSceneManager.cpp
 	SoWgpuCpuReferenceBackend.cpp
 	SoWgpuRenderTarget.cpp
 	${PROJECT_SOURCE_DIR}/src/actions/SoWgpuRenderAction.cpp
@@ -26,6 +28,7 @@ target_include_directories(CoinWgpuExperimental PUBLIC
 	$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/experimental/include>
 	$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
 	$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
+	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 target_include_directories(CoinWgpuExperimental PRIVATE
@@ -37,3 +40,31 @@ target_link_libraries(CoinWgpuExperimental PRIVATE
 	Coin
 	${COIN_WGPU_LINK_LIBRARIES}
 )
+
+if(COIN_INSTALL_WGPU_EXPERIMENTAL)
+	include(CMakePackageConfigHelpers)
+	set(_coin_wgpu_package_dir "${CMAKE_INSTALL_LIBDIR}/cmake/CoinWgpuExperimental")
+	configure_package_config_file(
+		${CMAKE_CURRENT_SOURCE_DIR}/coin-wgpu-experimental-config.cmake.in
+		${CMAKE_CURRENT_BINARY_DIR}/CoinWgpuExperimentalConfig.cmake
+		INSTALL_DESTINATION ${_coin_wgpu_package_dir})
+	write_basic_package_version_file(
+		${CMAKE_CURRENT_BINARY_DIR}/CoinWgpuExperimentalConfigVersion.cmake
+		VERSION ${PROJECT_VERSION}
+		COMPATIBILITY SameMajorVersion)
+	install(TARGETS CoinWgpuExperimental EXPORT CoinWgpuExperimentalTargets
+		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime
+		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT runtime
+		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT development)
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/experimental/include/Inventor/
+		DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Inventor
+		COMPONENT development FILES_MATCHING PATTERN "*.h")
+	install(FILES
+		${CMAKE_CURRENT_BINARY_DIR}/CoinWgpuExperimentalConfig.cmake
+		${CMAKE_CURRENT_BINARY_DIR}/CoinWgpuExperimentalConfigVersion.cmake
+		DESTINATION ${_coin_wgpu_package_dir} COMPONENT development)
+	install(EXPORT CoinWgpuExperimentalTargets
+		FILE CoinWgpuExperimentalTargets.cmake
+		NAMESPACE CoinWgpuExperimental::
+		DESTINATION ${_coin_wgpu_package_dir} COMPONENT development)
+endif()
