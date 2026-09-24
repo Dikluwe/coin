@@ -10,6 +10,17 @@
 struct SoWgpuReadbackTicket;
 class SoWgpuFfiFrame;
 
+/**
+ * @brief Private connector from Coin's experimental FramePlan to wgpu-native.
+ *
+ * Camera-only frames may reuse Rust-owned geometry after the bridge validates
+ * the base revision and device generation. Setting
+ * @c COIN_WGPU_CAMERA_BINDINGS=1 additionally tests persistent material and
+ * draw bindings in that path. This experiment is off by default because the
+ * current Release A/B improves 512x512 camera-frame medians but has not
+ * established a general advantage over GL or a 1024x1024 p95 gain.
+ * Window, RTT and textured frames do not use those persistent bindings.
+ */
 class COIN_WGPU_DLL_API SoWgpuRustBackend : public SoWgpuBackend {
 public:
   SoWgpuRustBackend();

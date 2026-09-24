@@ -9,7 +9,7 @@ use pollster::block_on;
 use raw_window_handle::{RawDisplayHandle, RawWindowHandle, XlibDisplayHandle, XlibWindowHandle};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicI32, AtomicU32, AtomicU64, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, OnceLock};
 
 mod composition;
 
@@ -494,6 +494,18 @@ struct ValidatedScene {
     draw_order: Vec<composition::CompositionItem>,
 }
 
+// Device-local bindings for one validated camera scene. Only uniforms change.
+struct CameraDrawBinding {
+    uniform_buffer: wgpu::Buffer,
+    bind_group: wgpu::BindGroup,
+}
+
+struct CameraGpuBindings {
+    geometry: Arc<ValidatedGeometry>,
+    materials_buffer: wgpu::Buffer,
+    draws: Vec<Option<CameraDrawBinding>>,
+}
+
 fn same_camera_independent_state(a: &CoinWgpuRenderState, b: &CoinWgpuRenderState) -> bool {
     a.light_direction == b.light_direction && a.light_color == b.light_color
         && a.light_intensity == b.light_intensity && a.has_light == b.has_light
@@ -570,6 +582,9 @@ struct DeviceState {
     default_sampler: wgpu::Sampler,
     texture_cache: Mutex<TextureCache>,
     sampler_cache: Mutex<SamplerCache>,
+    camera_bindings: Mutex<Option<CameraGpuBindings>>,
+    camera_bindings_reused: AtomicU32,
+    camera_bindings_created: AtomicU32,
     validated_scene: Option<Arc<ValidatedScene>>,
     readback_pool: Arc<Mutex<ReadbackPool>>,
     rtt_textures: Mutex<RttRegistry>,
@@ -1161,6 +1176,9 @@ fn get_or_init_device_impl<'a>(
         default_sampler,
         texture_cache: Mutex::new(TextureCache::default()),
         sampler_cache: Mutex::new(SamplerCache::default()),
+        camera_bindings: Mutex::new(None),
+        camera_bindings_reused: AtomicU32::new(0),
+        camera_bindings_created: AtomicU32::new(0),
         validated_scene: None,
         readback_pool: Arc::new(Mutex::new(ReadbackPool::default())),
         rtt_textures: Mutex::new(RttRegistry::default()),
@@ -1534,6 +1552,7 @@ fn encode_frame(
     states_slice: &[CoinWgpuRenderState],
     textures_slice: &[CoinWgpuTexture],
     samplers_slice: &[CoinWgpuSampler],
+    camera_geometry: Option<&Arc<ValidatedGeometry>>,
     color_view: &wgpu::TextureView,
     color_format: wgpu::TextureFormat,
     depth_view: &wgpu::TextureView,
@@ -1575,6 +1594,8 @@ fn encode_frame(
     }
 
 
+    ctx.camera_bindings_reused.store(0, Ordering::Relaxed);
+    ctx.camera_bindings_created.store(0, Ordering::Relaxed);
     // 1. Process pending GPU completion events and lock geometry cache
     let _ = ctx.device.poll(wgpu::Maintain::Poll);
     let mut cache = ctx.cache.lock().unwrap();
@@ -1827,11 +1848,42 @@ fn encode_frame(
         bytemuck::cast_slice(&gpu_materials)
     };
 
-    let materials_buffer = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("Frame Materials Storage Buffer"),
-        contents: material_bytes,
-        usage: wgpu::BufferUsages::STORAGE,
+    // Keep the experiment switch process-local so the same binary can be
+    // benchmarked against its previous behavior. It is opt-in, bounded and
+    // applies only to the already-validated, untextured camera patch.
+    static CAMERA_GPU_CACHE_ENABLED: OnceLock<bool> = OnceLock::new();
+    let camera_geometry = camera_geometry.filter(|_| {
+        *CAMERA_GPU_CACHE_ENABLED.get_or_init(|| {
+            std::env::var("COIN_WGPU_CAMERA_BINDINGS").as_deref() == Ok("1")
+        })
+        && !draws_slice.is_empty()
+        && !materials_slice.is_empty()
+        && draws_slice.len() <= 512
+        && mat_buffer_size.saturating_add(draws_slice.len()
+            .saturating_mul(std::mem::size_of::<CoinWgpuUniforms>())) <= 4 * 1024 * 1024
     });
+    let mut camera_bindings = ctx.camera_bindings.lock().unwrap();
+    if !camera_geometry.is_some_and(|geometry| camera_bindings.as_ref()
+        .is_some_and(|entry| Arc::ptr_eq(&entry.geometry, geometry))) {
+        *camera_bindings = None;
+    }
+    let materials_buffer = if let Some(entry) = camera_bindings.as_ref() {
+        entry.materials_buffer.clone()
+    } else {
+        let buffer = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Frame Materials Storage Buffer"),
+            contents: material_bytes,
+            usage: wgpu::BufferUsages::STORAGE,
+        });
+        if let Some(geometry) = camera_geometry {
+            *camera_bindings = Some(CameraGpuBindings {
+                geometry: geometry.clone(),
+                materials_buffer: buffer.clone(),
+                draws: (0..draws_slice.len()).map(|_| None).collect(),
+            });
+        }
+        buffer
+    };
 
     // Collect keys active in the current frame to strictly protect them from LRU eviction
     let mut frame_active_keys = std::collections::HashSet::new();
@@ -2153,43 +2205,65 @@ fn encode_frame(
                 fog_range: [st.fog_start, st.fog_end, 0.0, 0.0],
             };
 
-            let u_buffer = ctx
-                .device
-                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                    label: Some("Draw Uniform Buffer"),
-                    contents: bytemuck::bytes_of(&uniforms),
-                    usage: wgpu::BufferUsages::UNIFORM,
-                });
-
             if st.has_texture != 0 &&
                 FAULT_INJECTION.load(Ordering::SeqCst) == FAULT_RTT_BIND_GROUP {
                 return Err((CoinWgpuStatus::OutOfMemory,
                     "Injected RTT bind-group creation failure".to_string()));
             }
-            let bind_group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                label: Some("Draw Bind Group"),
-                layout: &ctx.bind_group_layout,
-                entries: &[
-                    wgpu::BindGroupEntry {
-                        binding: 0,
-                        resource: u_buffer.as_entire_binding(),
+            let create_binding = |persistent: bool| {
+                let u_buffer = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("Draw Uniform Buffer"),
+                    contents: bytemuck::bytes_of(&uniforms),
+                    usage: if persistent {
+                        wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST
+                    } else {
+                        wgpu::BufferUsages::UNIFORM
                     },
-                    wgpu::BindGroupEntry {
-                        binding: 1,
-                        resource: materials_buffer.as_entire_binding(),
-                    },
-                    wgpu::BindGroupEntry {
-                        binding: 2,
-                        resource: wgpu::BindingResource::TextureView(tex_view),
-                    },
-                    wgpu::BindGroupEntry {
-                        binding: 3,
-                        resource: wgpu::BindingResource::Sampler(samp),
-                    },
-                ],
-            });
-
-            pass.set_bind_group(0, &bind_group, &[]);
+                });
+                let bind_group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                    label: Some("Draw Bind Group"),
+                    layout: &ctx.bind_group_layout,
+                    entries: &[
+                        wgpu::BindGroupEntry {
+                            binding: 0,
+                            resource: u_buffer.as_entire_binding(),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 1,
+                            resource: materials_buffer.as_entire_binding(),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 2,
+                            resource: wgpu::BindingResource::TextureView(tex_view),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 3,
+                            resource: wgpu::BindingResource::Sampler(samp),
+                        },
+                    ],
+                });
+                CameraDrawBinding { uniform_buffer: u_buffer, bind_group }
+            };
+            // Queue writes are submitted before this frame's command buffer.
+            // They cannot alter a preceding submission; wgpu keeps the
+            // underlying resources alive while that submission is in flight.
+            let transient_binding;
+            let binding = if let Some(entry) = camera_bindings.as_mut() {
+                let slot = &mut entry.draws[item.draw_index];
+                if slot.is_none() {
+                    *slot = Some(create_binding(true));
+                    ctx.camera_bindings_created.fetch_add(1, Ordering::Relaxed);
+                } else {
+                    ctx.queue.write_buffer(&slot.as_ref().unwrap().uniform_buffer, 0,
+                        bytemuck::bytes_of(&uniforms));
+                    ctx.camera_bindings_reused.fetch_add(1, Ordering::Relaxed);
+                }
+                slot.as_ref().unwrap()
+            } else {
+                transient_binding = create_binding(false);
+                &transient_binding
+            };
+            pass.set_bind_group(0, &binding.bind_group, &[]);
 
             if draw.stable_node_id != 0 {
                 let key = (draw.stable_node_id, draw.draw_ordinal);
@@ -3048,6 +3122,7 @@ pub extern "C" fn coin_wgpu_surface_submit(
             states_slice,
             textures_slice,
             samplers_slice,
+            None,
             &color_view,
             record.color_format,
             depth_view,
@@ -3670,6 +3745,7 @@ fn coin_wgpu_submit_internal(
             states_slice,
             textures_slice,
             samplers_slice,
+            owned_patch.as_ref().map(|scene| &scene.geometry),
             &color_view,
             wgpu::TextureFormat::Rgba8Unorm,
             &depth_view,
@@ -4026,13 +4102,15 @@ fn coin_wgpu_submit_internal(
                 tgt.submission_serial = sub_serial;
                 if trace_phases {
                     let profile_done = std::time::Instant::now();
-                    eprintln!("COIN_WGPU_PHASE rust validation_ms={:.6} prepare_encode_ms={:.6} submit_ms={:.6} gpu_wait_ms={:.6} readback_publish_ms={:.6} staging_color_reused={}",
+                    eprintln!("COIN_WGPU_PHASE rust validation_ms={:.6} prepare_encode_ms={:.6} submit_ms={:.6} gpu_wait_ms={:.6} readback_publish_ms={:.6} staging_color_reused={} camera_bindings_created={} camera_bindings_reused={}",
                         (profile_validated - profile_start).as_secs_f64() * 1000.0,
                         (profile_encoded - profile_validated).as_secs_f64() * 1000.0,
                         (profile_submitted - profile_submit_begin).as_secs_f64() * 1000.0,
                         (profile_wait_done - profile_wait_begin).as_secs_f64() * 1000.0,
                         (profile_done - profile_publish_begin).as_secs_f64() * 1000.0,
-                        u8::from(color_staging_reused));
+                        u8::from(color_staging_reused),
+                        ctx.camera_bindings_created.load(Ordering::Relaxed),
+                        ctx.camera_bindings_reused.load(Ordering::Relaxed));
                 }
                 CoinWgpuStatus::Ok
             }

@@ -35,6 +35,16 @@ preparação/encode, submit, espera GPU e publicação de readback. A espera GPU
 usa `device.poll(Maintain::Wait)` e inclui render mais cópias para staging;
 não deve ser apresentada como timestamp de execução GPU isolada.
 
+O experimento privado `COIN_WGPU_CAMERA_BINDINGS=1` reutiliza o buffer de
+materiais, uniform buffers e bind groups apenas em patches de câmera opacos,
+sem textura e já validados no device Rust. O padrão permanece desligado:
+o A/B Release contrabalançado melhorou a mediana WebGPU em 512², mas não
+o p95 em 1024² nem demonstrou vantagem geral sobre GL. O trace expõe
+`camera_bindings_created`/`camera_bindings_reused`. O cache fica limitado
+a 512 draws e 4 MiB de payload GPU calculado, sendo invalidado ao sair do
+perfil ou trocar a geometria/device. Consulte o Prompt 008D e as medições em
+`wgpu-freecad-examples-validation.md`.
+
 O target offscreen preserva cor+profundidade como padrão. O método experimental
 `SoWgpuRenderTarget::setDepthReadbackEnabled(FALSE)` pede somente cor ao
 conector Rust: o depth attachment e o depth test continuam ativos, mas não há

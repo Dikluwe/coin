@@ -575,3 +575,52 @@ in two of three paired medians, while Assembly remained behind in all three;
 there is no general median advantage. At 1024² PartDesign remained slower
 than GL. The next candidate is persistent camera-frame GPU uniforms/bind
 groups, measured independently.
+
+#### Prompt 008D: bindings persistentes para patches de câmera
+
+**Intent:** testar se manter o storage de materiais, uniform buffers e bind
+groups no dispositivo reduz a preparação de frames com apenas câmera alterada.
+Não presumir ganho end-to-end: comparar o mesmo binário com a opção ligada e
+desligada, incluindo GL, readback, p95, imagem e RSS.
+
+**Core:** inalterado. A decisão de patch continua a exigir estados
+independentes da câmera idênticos e geometria validada pertencente ao Rust.
+
+**Shell:** a telemetria opt-in acrescenta `camera_bindings_created` e
+`camera_bindings_reused` ao trace Rust. O ensaio não promove ganho de CPU
+isolado a ganho de frame completo.
+
+**Infra:** `COIN_WGPU_CAMERA_BINDINGS=1` habilita o experimento por processo;
+o padrão é desligado. Um cache privado por dispositivo identifica a mesma
+`Arc<ValidatedGeometry>`, retém o buffer imutável de materiais e até um
+uniform buffer/bind group por draw. `Queue::write_buffer` atualiza apenas
+uniforms já existentes antes do submit seguinte. O cache limita-se a 512
+draws e 4 MiB de payload calculado de materiais+uniforms, sendo descartado
+ao trocar geometria, ao renderizar sem patch elegível ou ao recriar o device.
+Texturas, RTT e janela continuam no caminho anterior. Nenhum campo FFI ou
+símbolo público do Coin 4 foi acrescentado.
+
+**Wiring:** a action e o target conservam a escolha de patch anterior.
+Somente o encoder Rust recebe a geometria validada quando essa escolha já
+foi confirmada pelo dispositivo e pela revisão-base.
+
+**Positive oracle:** três revisões sucessivas com ponteiros de geometria
+nulos no patch igualam pixel a pixel frames completos num segundo device;
+o primeiro patch cria e os seguintes reutilizam o binding. Dois patches
+assíncronos submetidos sem aguardar o primeiro readback conservam cada um
+sua própria câmera. A imagem exportada em `BASE_COLOR` mantém MAE/IoU
+contra GL.
+
+**Negative oracle:** revisão-base obsoleta, estado não relacionado à câmera,
+RTT e device recriado não leem ponteiros nulos nem publicam pixels; frames
+fora do perfil invalidam os bindings. A memória retida é limitada.
+
+**Gates/result (2026-09-24):** Release Rust 42/42, Debug Rust 42/42 com a
+opção ligada e Recording 28/28; comparação visual PartDesign
+MAE 0,001358/IoU 0,999978 e Assembly MAE 0/IoU 1 após inverter o GL.
+Seis pares A/B contrabalançados por cena a 512² reduziram a mediana WebGPU
+em 18,2% no PartDesign e 10,1% no Assembly; três pares de PartDesign a
+1024² não mostraram ganho robusto do p95 nem vantagem geral sobre GL.
+O experimento permanece opt-in. Medidas, RSS e reprodução em
+`wgpu-freecad-examples-validation.md`. O comparador
+visual de cena completa não testa a viewport real do FreeCAD.

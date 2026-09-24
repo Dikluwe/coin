@@ -469,8 +469,87 @@ bool validatedCameraSceneOwnership() {
              actual == expected && actual != base,
              "camera patch must use Rust-owned geometry and match full traversal", error)) return false;
 
-  frame.frame_revision = 41003;
-  frame.camera_base_revision = 41002;
+  // The first patch creates persistent bindings; later patches must update
+  // their uniforms without leaking a previous frame's camera transform.
+  for (unsigned iteration = 0; iteration < 2; ++iteration) {
+    state.model_view[12] = 0.35f + 0.15f * iteration;
+    state.model_view_projection[12] = state.model_view[12];
+    frame.frame_revision = 41003 + iteration;
+    frame.camera_base_revision = 41002 + iteration;
+    CoinWgpuFrameView full = frame;
+    full.camera_base_revision = 0;
+    full.vertices = vertices;
+    full.indices = indices;
+    full.draws = &draw;
+    full.materials = &material;
+    std::vector<uint8_t> fullPixels(kSide * kSide * 4u, kSentinel);
+    target = targetFor(reference, &fullPixels);
+    error[0] = 0;
+    if (!check(coin_wgpu_submit(&target, &full, error, sizeof(error)) == COIN_WGPU_OK,
+               "repeated full camera reference submission", error)) return false;
+    std::vector<uint8_t> patchPixels(kSide * kSide * 4u, kSentinel);
+    target = targetFor(fast, &patchPixels);
+    error[0] = 0;
+    if (!check(coin_wgpu_submit(&target, &frame, error, sizeof(error)) == COIN_WGPU_OK &&
+               patchPixels == fullPixels && patchPixels != actual,
+               "repeated camera patch must match full submission", error)) return false;
+    actual.swap(patchPixels);
+  }
+
+  // Build both reference images first, then leave two camera patches in
+  // flight together. Rewriting the same uniform buffer must not let the
+  // second camera transform contaminate the first ticket.
+  std::vector<uint8_t> asyncExpected[2] = {
+    std::vector<uint8_t>(kSide * kSide * 4u, kSentinel),
+    std::vector<uint8_t>(kSide * kSide * 4u, kSentinel)
+  };
+  for (unsigned iteration = 0; iteration < 2; ++iteration) {
+    state.model_view[12] = 0.65f + 0.15f * iteration;
+    state.model_view_projection[12] = state.model_view[12];
+    CoinWgpuFrameView full = frame;
+    full.camera_base_revision = 0;
+    full.vertices = vertices;
+    full.indices = indices;
+    full.draws = &draw;
+    full.materials = &material;
+    full.frame_revision = 41005 + iteration;
+    target = targetFor(reference, &asyncExpected[iteration]);
+    error[0] = 0;
+    if (!check(coin_wgpu_submit(&target, &full, error, sizeof(error)) == COIN_WGPU_OK,
+               "async camera full reference", error)) return false;
+  }
+  CoinWgpuReadbackTicket asyncTickets[2] = {};
+  for (unsigned iteration = 0; iteration < 2; ++iteration) {
+    state.model_view[12] = 0.65f + 0.15f * iteration;
+    state.model_view_projection[12] = state.model_view[12];
+    frame.frame_revision = 41005 + iteration;
+    frame.camera_base_revision = 41004 + iteration;
+    asyncTickets[iteration].abi_version = COIN_WGPU_ABI_VERSION;
+    asyncTickets[iteration].struct_size = sizeof(CoinWgpuReadbackTicket);
+    target = targetFor(fast);
+    error[0] = 0;
+    if (!check(coin_wgpu_submit_async(&target, &frame, &asyncTickets[iteration],
+                                      error, sizeof(error)) == COIN_WGPU_OK &&
+               asyncTickets[iteration].token != 0,
+               "async camera patch submission", error)) return false;
+  }
+  for (unsigned iteration = 0; iteration < 2; ++iteration) {
+    std::vector<uint8_t> pixels(kSide * kSide * 4u, kSentinel);
+    CoinWgpuStatus status = COIN_WGPU_NOT_READY;
+    for (unsigned attempt = 0; attempt < 5000 && status == COIN_WGPU_NOT_READY; ++attempt) {
+      status = coin_wgpu_readback_poll(asyncTickets[iteration].token,
+                                      pixels.data(), pixels.size(), nullptr, 0,
+                                      error, sizeof(error));
+      if (status == COIN_WGPU_NOT_READY) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      }
+    }
+    if (!check(status == COIN_WGPU_OK && pixels == asyncExpected[iteration],
+               "in-flight camera ticket must match its own full frame", error)) return false;
+  }
+
+  frame.frame_revision = 41007;
+  frame.camera_base_revision = 41006;
   uint64_t rttToken = 0;
   target = targetFor(fast);
   error[0] = 0;
@@ -485,7 +564,7 @@ bool validatedCameraSceneOwnership() {
              unchanged(rejected), "state mutation must not reuse owned geometry", error)) return false;
 
   state.material_slot = 0;
-  frame.frame_revision = 41004;
+  frame.frame_revision = 41008;
   frame.camera_base_revision = 41001;
   target = targetFor(fast, &rejected);
   error[0] = 0;
@@ -494,7 +573,7 @@ bool validatedCameraSceneOwnership() {
 
   coin_wgpu_device_destroy(fast);
   if (!createDevice(fast)) return false;
-  frame.camera_base_revision = 41002;
+  frame.camera_base_revision = 41006;
   target = targetFor(fast, &rejected);
   error[0] = 0;
   const bool lostBaseRejected = check(

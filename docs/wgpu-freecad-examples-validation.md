@@ -563,6 +563,81 @@ COIN_GLX_PIXMAP_DIRECT_RENDERING=1 \
   --scene "$SCENE"
 ```
 
+### Bindings persistentes de câmera — Prompt 008D (2026-09-24)
+
+O encoder Rust pode reter o storage buffer de materiais e um uniform
+buffer/bind group por draw para a mesma geometria validada, atualizando só
+os uniforms antes do submit. `COIN_WGPU_CAMERA_BINDINGS=1` liga esse teste;
+o padrão é **desligado**. O cache privado é limitado a 512 draws e 4 MiB
+de payload de materiais+uniforms e é descartado ao trocar a geometria,
+device ou sair do patch de câmera. A ABI pública do Coin 4 e o protocolo
+privado FFI não mudaram. O trace opt-in mostrou 0 bindings no frame
+completo, 1 criado no primeiro patch e 1 reutilizado em cada patch seguinte
+do PartDesign. O teste de múltiplos devices compara três patches sucessivos
+pixel a pixel contra frames completos; dois patches assíncronos ficam em voo
+ao mesmo tempo e cada ticket corresponde à sua câmera. O teste ainda cobre
+RTT, base obsoleta, estado não-câmera e recriação do device.
+
+A/B do **binário final Release**, AMD RADV RENOIR, `BASE_COLOR`, câmera
+movida por frame, RGBA-only com readback síncrono incluído. Em 512×512,
+cada processo mediu 120 frames após 20 warmup, com WebGPU e GL pareados.
+Foram seis pares por cena: três na ordem off→on e três na ordem on→off.
+A tabela reporta a **mediana das seis medianas por processo** e a
+**mediana dos seis p95 por processo**, não um percentil reagrupado. Tempo
+em ms; RSS em KiB.
+
+| Cena | Cache | WebGPU mediana/p95 | Coin/GL pareado mediana/p95 | Faixa das medianas WebGPU | Pico RSS dos processos |
+| --- | --- | ---: | ---: | ---: | ---: |
+| PartDesign | off | 0,487 / 0,831 | 0,403 / 0,897 | 0,415–0,573 | 147096–147484 |
+| PartDesign | on | 0,398 / 0,739 | 0,394 / 0,832 | 0,378–0,464 | 146952–147604 |
+| Assembly | off | 0,531 / 0,866 | 0,423 / 0,888 | 0,526–0,597 | 157320–158012 |
+| Assembly | on | 0,477 / 0,839 | 0,440 / 0,921 | 0,465–0,545 | 157464–157804 |
+
+O cache reduziu a mediana WebGPU em todos os 12 pares de 512²: 18,2% no
+PartDesign e 10,1% no Assembly na mediana das medianas. Isso é melhoria
+mensurável do WebGPU neste perfil, não prova de vantagem geral sobre GL.
+GL também variou entre processos; o Assembly ainda ficou atrás do GL.
+
+Em PartDesign 1024×1024, três pares com ordem off→on, on→off, off→on;
+60 frames após 10 warmup, também RGBA-only. Cada célula lista
+mediana/p95 dos processos 1 · 2 · 3:
+
+| Cache | WebGPU | Coin/GL pareado | Pico RSS (KiB) |
+| --- | --- | --- | ---: |
+| off | 3,965/4,593 · 3,974/4,878 · 4,157/4,948 | 1,295/1,785 · 1,122/1,614 · 1,346/1,861 | 159308–159680 |
+| on | 3,954/5,214 · 3,990/4,614 · 3,958/5,175 | 1,266/1,707 · 1,128/1,595 · 1,281/1,707 | 159532–159932 |
+
+O RSS é do **processo conjunto** WebGPU+GL, não VRAM nem custo isolado do
+cache. Em 1024², a mediana quase não mudou, o p95 piorou em dois dos três
+pares e o WebGPU segue bem atrás do GL. Por isso o cache permanece opt-in
+até ensaios mais amplos. RTT direto e readback assíncrono não participam
+deste A/B nem justificam ganho de latência aqui.
+
+O comparador visual de cenas completas manteve PartDesign MAE RGB
+0,001358/IoU 0,999978 e Assembly MAE 0/IoU 1 após inverter verticalmente
+o GL. Esse comparador não exercita o cache de patches; o teste de múltiplos
+devices é o oráculo desse caminho. Release Rust 42/42 e Debug Rust 42/42
+passaram com o cache ligado; Recording 28/28 passou. A viewport real do
+FreeCAD continua sem teste.
+
+Reprodução, substituindo `SCENE` por `Assembly.iv` para a outra cena:
+
+```sh
+SCENE='/home/dikluwe/Área de trabalho/Estudo coin/estudos/So/SoWgpu-FreeCAD-Exemplos/cenas/PartDesign.iv'
+for order in '0 1' '1 0'; do
+  for rep in 1 2 3; do
+    for mode in $order; do
+      COIN_WGPU_CAMERA_BINDINGS="$mode" \
+      VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
+      COIN_GLX_PIXMAP_DIRECT_RENDERING=1 \
+        /tmp/coin-wgpu-tekt-release/bin/wgpu_gl_benchmark --backend both \
+        --readback color --dynamic --frames 120 --warmup 20 --size 512 \
+        --scene "$SCENE"
+    done
+  done
+done
+```
+
 ## Próximo gate necessário para integração real
 
 Fazer um build **isolado** do FreeCAD contra a mesma revisão do Coin/WebGPU,
