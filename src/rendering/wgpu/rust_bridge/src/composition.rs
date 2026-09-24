@@ -4,6 +4,7 @@ use super::{
 };
 use std::cmp::Ordering;
 
+#[derive(Clone)]
 pub(super) struct CompositionItem {
     pub draw_index: usize,
     pub blend: bool,

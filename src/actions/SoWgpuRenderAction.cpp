@@ -23,8 +23,10 @@
 #include <Inventor/elements/SoTextureUnitElement.h>
 #include <Inventor/elements/SoTextureOverrideElement.h>
 #include <algorithm>
+#include <chrono>
 #include <memory>
 #include <cstdlib>
+#include <iostream>
 #include <Inventor/misc/SoState.h>
 #include <cstring>
 
@@ -147,6 +149,7 @@ SoWgpuRenderAction::setViewportRegion(const SbViewportRegion & region)
 {
   inherited::setViewportRegion(region);
   this->pimpl->viewport = region;
+  this->pimpl->cachedRoot = NULL;
 }
 
 const SbViewportRegion &
@@ -171,6 +174,7 @@ void
 SoWgpuRenderAction::setBackgroundColor(const SbColor4f & color)
 {
   this->pimpl->backgroundColor = color;
+  this->pimpl->cachedRoot = NULL;
 }
 
 const SbColor4f &
@@ -183,6 +187,7 @@ void
 SoWgpuRenderAction::setFastPathEnabled(SbBool enable)
 {
   this->pimpl->fastPathEnabled = (enable != FALSE);
+  this->pimpl->cachedRoot = NULL;
 }
 
 SbBool
@@ -206,6 +211,11 @@ SoWgpuRenderAction::getLastError(void) const
 const SbString &
 SoWgpuRenderAction::getRecordingLog(void) const
 {
+  if (this->pimpl->hasLastValidPlan && !this->pimpl->recordingLogValid) {
+    this->pimpl->lastRecordingLog =
+      this->pimpl->recordingBackend.recordToString(this->pimpl->lastValidPlan).c_str();
+    this->pimpl->recordingLogValid = true;
+  }
   return this->pimpl->lastRecordingLog;
 }
 
@@ -216,7 +226,7 @@ SoWgpuRenderAction::apply(SoNode * root)
     if (root) {
       this->inherited::apply(root);
     }
-  });
+  }, root);
 }
 
 void
@@ -278,6 +288,7 @@ SoWgpuRenderActionP::SoWgpuRenderActionP(SoWgpuRenderAction * m)
     backgroundColor(0.0f, 0.0f, 0.0f, 1.0f),
     lastStatus(SoWgpuRenderAction::SUCCESS),
     hasLastValidPlan(false),
+    recordingLogValid(false),
     isApplying(false),
     hasReentrancyError(false),
     fastPathEnabled(true)
@@ -290,8 +301,11 @@ SoWgpuRenderActionP::~SoWgpuRenderActionP()
 
 template <typename F>
 void
-SoWgpuRenderActionP::executeApply(F traversalFn)
+SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
 {
+  typedef std::chrono::steady_clock ProfileClock;
+  const ProfileClock::time_point profileBegin = ProfileClock::now();
+  const bool tracePhases = std::getenv("COIN_WGPU_TRACE_PHASES") != NULL;
   if (this->isApplying) {
     this->lastStatus = SoWgpuRenderAction::INVALID_SCENE;
     this->lastError = "Nested apply() calls are not permitted on SoWgpuRenderAction";
@@ -301,6 +315,7 @@ SoWgpuRenderActionP::executeApply(F traversalFn)
 
   this->isApplying = true;
   this->hasReentrancyError = false;
+  bool planCacheAllowed = true;
 
 #if defined(HAVE_WGPU_RUST_BRIDGE)
   const bool ownsDirectTokens = !this->sceneTextureDirectTokens;
@@ -325,6 +340,7 @@ SoWgpuRenderActionP::executeApply(F traversalFn)
     directMode && directMode[0] == '1' && directMode[1] == '\0';
   if (ownsDirectPasses) {
     this->directPasses = std::make_shared<std::vector<DirectPass> >();
+    planCacheAllowed = false;
   }
   struct DirectPassScope {
     SoWgpuRenderActionP * action;
@@ -332,13 +348,20 @@ SoWgpuRenderActionP::executeApply(F traversalFn)
     ~DirectPassScope() { if (owns) action->directPasses.reset(); }
   } directPassScope{this, ownsDirectPasses};
 #endif
+  const bool planCacheHit = planCacheAllowed && cacheRoot && this->hasLastValidPlan &&
+    this->cachedRoot == cacheRoot && this->cachedRootId == cacheRoot->getNodeId();
   this->sceneTexturePixels.clear();
   if (!this->sceneTextureStagedBytes) {
     this->sceneTextureStagedBytes = std::make_shared<size_t>(0);
   }
-  this->builder.beginFrame(this->backgroundColor, this->master->getViewportRegion());
-
-  traversalFn();
+  FramePlan plan;
+  ProfileClock::time_point profileTraversed = ProfileClock::now();
+  ProfileClock::time_point profilePlanned = profileTraversed;
+  if (!planCacheHit) {
+    this->builder.beginFrame(this->backgroundColor, this->master->getViewportRegion());
+    traversalFn();
+    profileTraversed = ProfileClock::now();
+  }
 
   this->isApplying = false;
 
@@ -353,9 +376,8 @@ SoWgpuRenderActionP::executeApply(F traversalFn)
     return;
   }
 
-  FramePlan plan;
   std::string err;
-  if (!this->builder.build(plan, &err)) {
+  if (!planCacheHit && !this->builder.build(plan, &err)) {
     if (this->builder.isUnsupportedBuild()) {
       this->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
     } else {
@@ -364,10 +386,14 @@ SoWgpuRenderActionP::executeApply(F traversalFn)
     this->lastError = err.c_str();
     return;
   }
+  profilePlanned = ProfileClock::now();
+  const FramePlan & framePlan = planCacheHit ? this->lastValidPlan : plan;
 
   if (this->planOnly) {
-    this->lastValidPlan = std::move(plan);
-    this->hasLastValidPlan = true;
+    if (!planCacheHit) {
+      this->lastValidPlan = std::move(plan);
+      this->hasLastValidPlan = true;
+    }
     this->lastStatus = SoWgpuRenderAction::SUCCESS;
     this->lastError = "";
     return;
@@ -380,9 +406,16 @@ SoWgpuRenderActionP::executeApply(F traversalFn)
       return;
     }
     // Mode 0: Recording backend
-    this->lastRecordingLog = this->recordingBackend.recordToString(plan).c_str();
-    this->lastValidPlan = plan;
-    this->hasLastValidPlan = true;
+    this->lastRecordingLog = this->recordingBackend.recordToString(framePlan).c_str();
+    this->recordingLogValid = true;
+    if (!planCacheHit) {
+      this->lastValidPlan = std::move(plan);
+      this->hasLastValidPlan = true;
+      if (cacheRoot) {
+        this->cachedRoot = cacheRoot;
+        this->cachedRootId = cacheRoot->getNodeId();
+      }
+    }
     this->lastStatus = SoWgpuRenderAction::SUCCESS;
     this->lastError = "";
     return;
@@ -480,8 +513,8 @@ SoWgpuRenderActionP::executeApply(F traversalFn)
 
   // Execute frame on target
   FrameExecutionResult execRes = this->asyncTicket
-    ? this->target->pimpl->executeFrameAsync(plan, *this->asyncTicket)
-    : this->target->pimpl->executeFrame(plan);
+    ? this->target->pimpl->executeFrameAsync(framePlan, *this->asyncTicket)
+    : this->target->pimpl->executeFrame(framePlan);
   if (execRes.status != BackendStatus::SUCCESS) {
     switch (execRes.status) {
       case BackendStatus::NOT_READY:
@@ -508,9 +541,28 @@ SoWgpuRenderActionP::executeApply(F traversalFn)
     return;
   }
 
-  this->lastRecordingLog = this->recordingBackend.recordToString(plan).c_str();
-  this->lastValidPlan = plan;
-  this->hasLastValidPlan = true;
+  const ProfileClock::time_point profileExecuted = ProfileClock::now();
+  if (tracePhases) {
+    const double traversalMs = std::chrono::duration<double, std::milli>(profileTraversed - profileBegin).count();
+    const double framePlanMs = std::chrono::duration<double, std::milli>(profilePlanned - profileTraversed).count();
+    const double backendMs = std::chrono::duration<double, std::milli>(profileExecuted - profilePlanned).count();
+    std::cerr << "COIN_WGPU_PHASE action traversal_ms=" << traversalMs
+              << " frame_plan_ms=" << framePlanMs
+              << " backend_ms=" << backendMs
+              << " vertices=" << framePlan.vertices.size()
+              << " indices=" << framePlan.indices.size()
+              << " draws=" << framePlan.draws.size()
+              << " plan_cache_hit=" << (planCacheHit ? 1 : 0) << '\n';
+  }
+  if (!planCacheHit) {
+    this->lastValidPlan = std::move(plan);
+    this->hasLastValidPlan = true;
+    this->recordingLogValid = false;
+    if (cacheRoot) {
+      this->cachedRoot = cacheRoot;
+      this->cachedRootId = cacheRoot->getNodeId();
+    }
+  }
   this->lastStatus = SoWgpuRenderAction::SUCCESS;
   this->lastError = "";
 }

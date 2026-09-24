@@ -21,7 +21,7 @@ public:
   void initCallbacks();
 
   template <typename F>
-  void executeApply(F traversalFn);
+  void executeApply(F traversalFn, SoNode * cacheRoot = NULL);
 
   static void triangleCB(void * userdata,
                          SoCallbackAction * action,
@@ -61,7 +61,7 @@ public:
   SbColor4f backgroundColor;
   SoWgpuRenderAction::Status lastStatus;
   SbString lastError;
-  SbString lastRecordingLog;
+  mutable SbString lastRecordingLog;
 
   SoWgpuFramePlanBuilder builder;
   SoWgpuRecordingBackend recordingBackend;
@@ -81,9 +81,12 @@ public:
   std::shared_ptr<std::vector<DirectPass> > directPasses;
   bool planOnly = false;
   bool hasLastValidPlan;
+  mutable bool recordingLogValid;
   bool isApplying;
   bool hasReentrancyError;
   bool fastPathEnabled;
+  SoNode * cachedRoot = NULL;
+  SbUniqueId cachedRootId = 0;
 };
 
 #endif // !SOWGPURENDERACTIONP_H

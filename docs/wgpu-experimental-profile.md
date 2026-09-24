@@ -6,12 +6,34 @@ estão em `experimental/include`. Desde a Onda 6, esses headers e a biblioteca
 podem ser instalados com `COIN_INSTALL_WGPU_EXPERIMENTAL=ON`, mas continuam
 experimentais, fora da API e ABI públicas estáveis de `libCoin` no Coin 4.
 A ponte C++/Rust é privada e versionada
-(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=15` nesta revisão). Não promova esses
+(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=16` nesta revisão). Não promova esses
 headers a consumidores externos como se fossem estáveis.
 
 O guia de produto, a matriz de capacidades, o manager, os exemplos instaláveis,
 o benchmark e a política de evolução para o Coin 5 estão em
 [`wgpu-wave6-product.md`](wgpu-wave6-product.md).
+
+## Cache privado e perfil por fase
+
+`apply(SoNode *)` reutiliza um único `FramePlan` por action quando o ponteiro
+da raiz e `SoNode::getNodeId()` continuam iguais. Notificações de descendentes,
+mudança de viewport, fundo ou fast path invalidam o plano. O cache é
+deliberadamente desligado na rota RTT GPU→GPU direta, cujos tokens pertencem
+a um único apply. O log textual de Recording é gerado de forma preguiçosa ao
+consultar `getRecordingLog()`; o backend Recording sem target continua com o
+mesmo conteúdo determinístico.
+
+Uma revisão de FramePlan, privada e monotônica no processo, permite evitar
+validação estrutural duplicada no mesmo target e na ponte Rust. Revisão zero
+significa plano externo/manual e força validação completa. Resize zera a
+revisão validada. Esse campo motivou a revisão 16 da ponte privada; nenhum
+header público estável ou símbolo de `libCoin` mudou.
+
+Para diagnóstico, `COIN_WGPU_TRACE_PHASES=1` escreve tempos de traversal,
+construção do FramePlan, empacotamento da ponte, validação Rust,
+preparação/encode, submit, espera GPU e publicação de readback. A espera GPU
+usa `device.poll(Maintain::Wait)` e inclui render mais cópias para staging;
+não deve ser apresentada como timestamp de execução GPU isolada.
 
 ## Perfil implementado
 

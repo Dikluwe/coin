@@ -453,11 +453,11 @@ int main() {
     action.apply(parent);
     std::vector<uint8_t> afterParentOom;
     target->readbackRGBA(afterParentOom);
-    coin_wgpu_poll_device();
     uint64_t liveAfterOom = UINT64_MAX, retiredAfterOom = UINT64_MAX;
+    coin_wgpu_poll_device();
     coin_wgpu_rtt_resource_counts(&liveAfterOom, &retiredAfterOom);
     if (!check(action.getLastStatus() == SoWgpuRenderAction::OUT_OF_MEMORY &&
-               afterParentOom == resized && liveAfterOom == 0 && retiredAfterOom == 0,
+               afterParentOom == resized && liveAfterOom == 0 && retiredAfterOom <= 1,
                "OOM after child submit leaked RTT or published a partial frame", action)) return 1;
     SoWgpuRenderTarget * replacement = SoWgpuRenderTarget::createOffscreen(SbVec2i32(96, 96));
     if (!check(replacement && replacement->getStatus() == SoWgpuRenderTarget::TARGET_READY,
@@ -468,8 +468,12 @@ int main() {
     action.apply(parent);
     std::vector<uint8_t> recoveredAfterOom;
     target->readbackRGBA(recoveredAfterOom);
+    coin_wgpu_poll_device();
+    uint64_t liveAfterRecovery = UINT64_MAX, retiredAfterRecovery = UINT64_MAX;
+    coin_wgpu_rtt_resource_counts(&liveAfterRecovery, &retiredAfterRecovery);
     if (!check(action.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
-               recoveredAfterOom == resized,
+               recoveredAfterOom == resized && liveAfterRecovery == 0 &&
+               retiredAfterRecovery == 0,
                "OOM did not recover with a new target", action)) return 1;
     const int32_t resourceFaults[] = {
       COIN_WGPU_FAULT_RTT_COLOR_ALLOC,
@@ -488,7 +492,7 @@ int main() {
       coin_wgpu_rtt_resource_counts(&activeFaultRtt, &retiredFaultRtt);
       if (!check(action.getLastStatus() == SoWgpuRenderAction::OUT_OF_MEMORY &&
                  afterResourceFault == resized &&
-                 activeFaultRtt == 0 && retiredFaultRtt == 0,
+                 activeFaultRtt == 0 && retiredFaultRtt <= 1,
                  "RTT resource failpoint leaked a texture or published a frame", action)) return 1;
       SoWgpuRenderTarget * nextTarget = SoWgpuRenderTarget::createOffscreen(SbVec2i32(96, 96));
       if (!check(nextTarget && nextTarget->getStatus() == SoWgpuRenderTarget::TARGET_READY,
@@ -499,8 +503,15 @@ int main() {
       action.apply(parent);
       std::vector<uint8_t> afterResourceRecovery;
       target->readbackRGBA(afterResourceRecovery);
+      coin_wgpu_poll_device();
+      uint64_t activeAfterResourceRecovery = UINT64_MAX;
+      uint64_t retiredAfterResourceRecovery = UINT64_MAX;
+      coin_wgpu_rtt_resource_counts(&activeAfterResourceRecovery,
+                                    &retiredAfterResourceRecovery);
       if (!check(action.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
-                 afterResourceRecovery == resized,
+                 afterResourceRecovery == resized &&
+                 activeAfterResourceRecovery == 0 &&
+                 retiredAfterResourceRecovery == 0,
                  "RTT resource failpoint did not recover", action)) return 1;
     }
   }

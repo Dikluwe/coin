@@ -121,43 +121,125 @@ corrigido e tríptico **WebGPU antes | WebGPU corrigido | GL**, para cada um
 dos sete exemplos. As imagens anteriores foram preservadas.
 
 
-## Linha de base de desempenho — ainda sem ganho sobre GL
+## Perfil e otimização de desempenho
 
-O benchmark aceita `--scene arquivo.iv`, além da cena sintética de 36 cubos.
-No mesmo adaptador AMD RADV/GL, build **Debug**, 512×512, `BASE_COLOR`,
-4 frames de aquecimento e 12 medidos, com renderização e leitura RGBA
-incluídas, foram observadas estas medianas:
+A linha de base anterior foi medida em Debug, 512×512, `BASE_COLOR`, com
+render e leitura RGBA incluídos. WebGPU marcava 8,629 ms/frame no PartDesign e
+193,640 ms/frame no Assembly, contra 0,566 e 0,569 ms/frame no Coin/GL. O
+perfil por fase mostrou que o Assembly não estava limitado pela GPU: a maior
+parte do tempo era CPU reconstruindo e validando a mesma cena estática.
 
-| Exemplo | WebGPU (ms/frame) | Coin/GL (ms/frame) |
+Três custos foram removidos sem alterar a ABI pública de `libCoin`:
+
+1. O caminho GPU serializava todo o `FramePlan`, inclusive vértices e índices,
+   em texto após cada frame. O log continua com a mesma semântica, mas agora é
+   materializado somente quando `getRecordingLog()` é consultado.
+2. Cada `SoWgpuRenderAction` mantém um único `FramePlan` privado para
+   `apply(SoNode *)` quando raiz e `SoNode::getNodeId()` não mudam. Notificações
+   de descendentes alteram esse ID; viewport, cor de fundo e fast path também
+   invalidam o plano. A rota RTT GPU→GPU direta não usa o cache, pois seus
+   tokens têm vida por apply.
+3. Cada plano construído recebe uma revisão privada. Validação estrutural e
+   ordem de composição já aprovadas são reutilizadas no target C++ e na ponte
+   Rust. Planos manuais, com revisão zero, continuam sendo validados sempre.
+
+No mesmo build Debug, após essas mudanças, PartDesign caiu para mediana
+5,578 ms e Assembly para 4,843 ms: reduções de 35,4% e 97,5% contra as
+respectivas linhas de base WebGPU. O GL observado nessa execução foi 1,035 e
+4,393 ms; a diferença para os valores GL históricos confirma que resultados
+de campanhas distintas não devem ser comparados como se fossem uma única
+amostra controlada.
+
+### Decomposição por fase
+
+`COIN_WGPU_TRACE_PHASES=1` habilita a instrumentação opt-in. No Assembly
+Release, após dois frames de aquecimento, as medianas de cinco frames foram:
+
+| Fase (ms) | Cena estática | Câmera alterada a cada frame |
 | --- | ---: | ---: |
-| PartDesign | 8,629 | 0,566 |
-| FEM | 6,398 | 0,450 |
-| EngineBlock | 40,933 | 0,412 |
-| Draft | 18,851 | 0,490 |
-| Assembly | 193,640 | 0,569 |
-| BIM | 57,252 | 0,487 |
-| ArchDetail | 48,517 | 0,576 |
+| traversal Coin | 0,003 | 14,392 |
+| construção do FramePlan | 0,001 | 1,372 |
+| empacotamento C++→FFI | 0,162 | 0,360 |
+| validação Rust | 0,004 | 0,363 |
+| preparação/encode | 0,158 | 0,172 |
+| `queue.submit()` no CPU | 0,087 | 0,092 |
+| espera GPU | 0,335 | 0,327 |
+| publicação do readback | 0,837 | 1,627 |
 
-**WebGPU não apresenta melhoria de desempenho neste ensaio; está
-substancialmente atrás do GL.** Os números são uma linha de base diagnóstica,
-não uma conclusão para Release, outras GPUs ou a viewport interativa. Uma
-segunda execução de Assembly confirmou a ordem de grandeza (191,6 ms
-WebGPU; 0,446 ms GL): a chamada `render()` respondeu por 191,5 ms e a cópia
-posterior do buffer RGBA por 0,13 ms. A telemetria do último frame mostrou
-zero uploads, zero bytes enviados e um cache hit. Isso descarta o upload
-repetido e a cópia pública de RGBA como explicação única para esse caso, mas
-**não** separa ainda traversal/planejamento, submit, trabalho GPU e readback
-interno. É preciso perfilar essas fases antes de alterar o pipeline.
+As fases da ponte ficam aninhadas no tempo total do backend e não devem ser
+somadas à linha de action. Em particular, “espera GPU” é o intervalo de
+`device.poll(Maintain::Wait)`: inclui execução de render e cópias GPU para
+staging, não é timestamp de hardware isolado. “Publicação” inclui map/unpack e
+cópia para os vetores do target. A cópia pública posterior de RGBA teve
+mediana de 0,078 ms no Assembly estático; portanto o readback interno, não
+essa cópia final, é o componente mais relevante depois do cache hit.
 
-Paridade visual é o piso, não a meta. Para afirmar vantagem sobre GL será
-necessário: repetir o benchmark em Release, na
-mesma GPU e com cenas estáticas e dinâmicas; medir mediana, p95, uso de
-memória, uploads e latência de interação; e demonstrar ganho reproduzível
-sem reduzir a qualidade. Uma meta de produto proposta, ainda **não
-atingida**, é p95 pelo menos 20% menor nos modelos pesados (EngineBlock,
-Assembly e BIM) e ausência de regressão relevante nos leves. RTT GPU→GPU,
-readback assíncrono e recuperação após perda do device também precisam ser
-medidos em fluxos reais; sua existência por si só não prova superioridade.
+### Comparação Release reproduzível
+
+AMD Radeon Graphics (RADV RENOIR), Vulkan/GL na mesma GPU, Release/C++11,
+512×512, `BASE_COLOR`, 8 frames de aquecimento e 30 medidos, render e readback
+RGBA incluídos:
+
+| Cena estática | WebGPU mediana / p95 (ms) | Coin/GL mediana / p95 (ms) |
+| --- | ---: | ---: |
+| PartDesign | 3,056 / 3,765 | 1,057 / 1,377 |
+| EngineBlock | 2,842 / 3,274 | 2,175 / 2,317 |
+| Assembly | **1,977 / 2,283** | 4,221 / 4,826 |
+| BIM | 2,725 / 3,141 | 2,017 / 2,329 |
+
+Há uma melhoria mensurável sobre GL no Assembly estático: 53,2% na mediana e
+52,7% no p95. PartDesign, EngineBlock e BIM ainda ficam atrás; portanto esta
+campanha **não demonstra superioridade geral**. A meta proposta de p95 20%
+menor nos modelos pesados foi atingida somente no Assembly.
+
+Para não esconder invalidação do plano, `--dynamic` translada a câmera antes
+de cada frame com a mesma sequência nos dois backends:
+
+| Cena dinâmica | WebGPU mediana / p95 (ms) | Coin/GL mediana / p95 (ms) |
+| --- | ---: | ---: |
+| PartDesign | 3,087 / 3,465 | 1,018 / 1,199 |
+| Assembly | 20,387 / 21,096 | 4,006 / 4,727 |
+
+O Assembly dinâmico confirma a prioridade seguinte: traversal e construção
+do plano somam cerca de 15,8 ms, enquanto a espera GPU fica perto de 0,33 ms.
+O cache acelera cenas realmente estáticas; não é evidência de ganho na
+viewport interativa do FreeCAD.
+
+### Qualidade e memória
+
+Uma nova comparação Release das quatro cenas, no primeiro frame (logo, sem
+cache hit de plano), manteve IoU de silhueta 1,000000 após alinhar a origem
+vertical. MAE RGB alinhada WebGPU/GL:
+
+| Cena | BASE_COLOR | PHONG |
+| --- | ---: | ---: |
+| PartDesign | 0,655 | 0,798 |
+| EngineBlock | 0,638 | 0,696 |
+| Assembly | 0,907 | 0,924 |
+| BIM | 0,681 | 0,876 |
+
+Todos os gates permaneceram abaixo de MAE 1 e acima de IoU 0,99. A tabela de
+correção de normais acima permanece como o teste A/B histórico; esta campanha
+Release usa outro build e serve como gate de não regressão da otimização, não
+como substituição daqueles valores.
+
+No Assembly estático, `/usr/bin/time -v` em processos separados mediu pico
+RSS de 148.424 KiB no WebGPU e 119.604 KiB no GL: WebGPU consumiu 28.820 KiB
+(24,1%) a mais. O número inclui runtime, driver e memória CPU do processo, não
+é medida de VRAM. A telemetria WebGPU registrou um único upload de geometria
+de 1.316.856 bytes; os 30 frames medidos tiveram zero uploads e um cache hit.
+
+### Próximas otimizações, em ordem
+
+1. Cache incremental por subárvore/estado, começando por câmera, para não
+   refazer 14,4 ms de traversal quando apenas a view muda.
+2. Reutilizar empacotamento POD e buffers/attachments de staging por revisão,
+   reduzindo alocações e cópias sem relaxar validação.
+3. Adicionar timestamp queries para separar execução GPU de cópias para
+   staging; o marcador atual não permite essa conclusão.
+4. Medir RTT direto e readback assíncrono em fluxos de produto. Eles não foram
+   usados para justificar os ganhos acima e sua existência não implica menor
+   tempo end-to-end.
 
 As sete cenas originais `.iv` e 35 PNGs da primeira campanha persistem em
 `/home/dikluwe/Área de trabalho/Estudo coin/estudos/So/SoWgpu-FreeCAD-Exemplos/`.
@@ -173,8 +255,12 @@ comparações lado a lado, **esquerda = WebGPU, direita = GL**. Em especial,
 ```sh
 export FREECAD_BUILD_DIR=/mnt/Laranja/Git/externos/freecad-build
 export FREECAD_EXAMPLE_DIR=/mnt/Laranja/Git/externos/freecad-source/data/examples
-export COIN_WGPU_BUILD_DIR=/dev/shm/coin-wave6-rust
+export COIN_WGPU_BUILD_DIR=/dev/shm/coin-wgpu-release
 export FREECAD_WGPU_OUT=$(mktemp -d /tmp/coin-freecad-wgpu.XXXXXX)
+cmake -S . -B "$COIN_WGPU_BUILD_DIR" -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_CXX_STANDARD=11 -DCOIN_BUILD_WGPU=ON \
+  -DCOIN_WGPU_BACKEND=RUST_BRIDGE -DCOIN_BUILD_TESTS=ON \
+  -DCOIN_TEST_WGPU_GL_REFERENCE=ON
 cmake --build "$COIN_WGPU_BUILD_DIR" --target wgpu_freecad_compare wgpu_gl_benchmark -j4
 
 PYTHONPATH="$FREECAD_BUILD_DIR/lib" LD_LIBRARY_PATH="$FREECAD_BUILD_DIR/lib" \
@@ -191,7 +277,14 @@ COIN_GLX_PIXMAP_DIRECT_RENDERING=1 \
 VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
 COIN_GLX_PIXMAP_DIRECT_RENDERING=1 \
   "$COIN_WGPU_BUILD_DIR/bin/wgpu_gl_benchmark" \
-  --scene "$FREECAD_WGPU_OUT/PartDesign.iv" --frames 12 --warmup 4 --size 512
+  --scene "$FREECAD_WGPU_OUT/PartDesign.iv" --frames 30 --warmup 8 --size 512
+
+# Invalida o plano ao mover a câmera; use --backend wgpu ou gl para RSS isolado.
+VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
+COIN_GLX_PIXMAP_DIRECT_RENDERING=1 \
+  "$COIN_WGPU_BUILD_DIR/bin/wgpu_gl_benchmark" \
+  --scene "$FREECAD_WGPU_OUT/PartDesign.iv" --frames 30 --warmup 8 \
+  --size 512 --dynamic
 ```
 
 Para os outros documentos, usar `--object Box --object Plane` (FEM),

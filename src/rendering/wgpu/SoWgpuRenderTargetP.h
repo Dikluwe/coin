@@ -46,6 +46,7 @@ public:
   void readbackRGBA(std::vector<uint8_t> & outRgba) const;
   void readbackDepth(std::vector<float> & outDepth) const;
   uint64_t lastSubmissionSerial{0};
+  uint64_t lastValidatedPlanRevision{0};
 
   // Preflight validation according to Onda 1 profile (Section 4.6)
   static FrameExecutionResult validateProfile(const FramePlan & frame, const SbVec2i32 & targetSize);

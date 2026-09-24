@@ -144,6 +144,7 @@ SoWgpuRenderTargetP::initWindow(const SoWgpuNativeSurfaceDescriptor & desc, cons
 bool
 SoWgpuRenderTargetP::resize(const SbVec2i32 & newSize)
 {
+  this->lastValidatedPlanRevision = 0;
   if (this->kind == KIND_WINDOW) {
     if (newSize[0] < 0 || newSize[1] < 0) {
       this->size = SbVec2i32(0, 0);
@@ -385,10 +386,13 @@ SoWgpuRenderTargetP::executeFrameInternal(const FramePlan & frame,
     return FrameExecutionResult(BackendStatus::NOT_READY, this->lastError);
   }
 
-  FrameExecutionResult val = this->validateProfile(frame, this->size);
-  if (val.status != BackendStatus::SUCCESS) {
-    this->lastError = val.diagnostic;
-    return val;
+  if (frame.revision == 0 || frame.revision != this->lastValidatedPlanRevision) {
+    FrameExecutionResult val = this->validateProfile(frame, this->size);
+    if (val.status != BackendStatus::SUCCESS) {
+      this->lastError = val.diagnostic;
+      return val;
+    }
+    this->lastValidatedPlanRevision = frame.revision;
   }
 
   if (this->status == SoWgpuRenderTarget::TARGET_LOST ||

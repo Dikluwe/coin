@@ -29,6 +29,7 @@
 #include <Inventor/elements/SoTextureCoordinateBindingElement.h>
 
 #include <cassert>
+#include <atomic>
 #include <cmath>
 #include <limits>
 
@@ -809,6 +810,11 @@ SoWgpuFramePlanBuilder::build(FramePlan & outPlan, std::string * outError)
     return false;
   }
   outPlan = this->currentPlan;
+  static std::atomic<uint64_t> nextRevision(1);
+  outPlan.revision = nextRevision.fetch_add(1, std::memory_order_relaxed);
+  if (outPlan.revision == 0) {
+    outPlan.revision = nextRevision.fetch_add(1, std::memory_order_relaxed);
+  }
   return true;
 }
 

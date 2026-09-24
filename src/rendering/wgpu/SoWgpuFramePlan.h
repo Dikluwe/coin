@@ -180,6 +180,7 @@ struct RenderStateSnapshot {
 };
 
 struct FramePlan {
+  uint64_t revision = 0;
   SbColor4f clearColor = SbColor4f(0.0f, 0.0f, 0.0f, 1.0f);
   std::vector<VertexSnapshot> vertices;
   std::vector<uint32_t> indices;

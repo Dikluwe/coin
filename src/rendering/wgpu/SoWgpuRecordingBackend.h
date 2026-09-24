@@ -18,7 +18,7 @@ public:
   void poll() override;
   const std::string & getLastError() const override;
 
-  std::string recordToString(const FramePlan & frame);
+  std::string recordToString(const FramePlan & frame) const;
   const std::string & getLastRecordingLog() const;
 
 private:

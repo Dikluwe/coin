@@ -13,7 +13,7 @@ use std::sync::{Arc, Mutex};
 
 mod composition;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 15;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 16;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 pub type CoinWgpuSurfaceId = u64;
@@ -212,6 +212,7 @@ pub struct GpuMaterial {
 pub struct CoinWgpuFrameView {
     pub abi_version: u32,
     pub struct_size: u32,
+    pub frame_revision: u64,
 
     pub vertices: *const CoinWgpuVertex,
     pub vertex_count: u64,
@@ -587,6 +588,8 @@ fn reap_cancelled_readbacks(runtime: &mut RuntimeContext) {
 }
 
 static RUNTIME_CTX: Mutex<Option<RuntimeContext>> = Mutex::new(None);
+static VALIDATED_FRAME_CACHE: Mutex<Option<(u64, Vec<composition::CompositionItem>)>> =
+    Mutex::new(None);
 static NEXT_SURFACE_ID: AtomicU64 = AtomicU64::new(1);
 
 static FAULT_INJECTION: AtomicI32 = AtomicI32::new(0);
@@ -2980,6 +2983,8 @@ fn coin_wgpu_submit_internal(
     error_buf_len: usize,
 ) -> CoinWgpuStatus {
     let res = std::panic::catch_unwind(|| {
+        let profile_start = std::time::Instant::now();
+        let trace_phases = std::env::var_os("COIN_WGPU_TRACE_PHASES").is_some();
         // 1. Fault injection check
         let requested_device = if !target.is_null()
             && (target as usize) % std::mem::align_of::<CoinWgpuTarget>() == 0 {
@@ -3258,7 +3263,19 @@ fn coin_wgpu_submit_internal(
             &[]
         };
 
-        // 6. Strict validation of each draw packet against buffers and states
+        // 6. Strict validation and composition are immutable for one private FramePlan revision.
+        let cached_draw_order = if f.frame_revision != 0 {
+            VALIDATED_FRAME_CACHE.lock().ok().and_then(|cache| {
+                cache.as_ref().and_then(|(revision, order)| {
+                    if *revision == f.frame_revision { Some(order.clone()) } else { None }
+                })
+            })
+        } else {
+            None
+        };
+        let draw_order = if let Some(order) = cached_draw_order {
+            order
+        } else {
         for (i, draw) in draws_slice.iter().enumerate() {
             let idx_end = match draw.first_index.checked_add(draw.index_count) {
                 Some(end) => end as usize,
@@ -3363,13 +3380,20 @@ fn coin_wgpu_submit_internal(
         }
 
         // Reject unsupported composition before allocating offscreen attachments.
-        let draw_order = match composition::order(
+        let computed_draw_order = match composition::order(
             vertices_slice, indices_slice, draws_slice, materials_slice, states_slice, textures_slice) {
             Ok(order) => order,
             Err((status, message)) => {
                 set_error(error_buf, error_buf_len, &message);
                 return status;
             }
+        };
+        if f.frame_revision != 0 {
+            if let Ok(mut cache) = VALIDATED_FRAME_CACHE.lock() {
+                *cache = Some((f.frame_revision, computed_draw_order.clone()));
+            }
+        }
+        computed_draw_order
         };
 
         // 7. Initialize WebGPU Device
@@ -3402,6 +3426,7 @@ fn coin_wgpu_submit_internal(
             }
         };
         let ctx = unsafe { &mut *device_state };
+        let profile_validated = std::time::Instant::now();
 
 
         if !out_texture.is_null() && ctx.rtt_textures.lock().unwrap().active.len() >= 64 {
@@ -3477,6 +3502,7 @@ fn coin_wgpu_submit_internal(
                 return status;
             }
         };
+        let profile_encoded = std::time::Instant::now();
 
         if !out_texture.is_null() {
             let token = NEXT_RTT_TOKEN.fetch_add(1, Ordering::SeqCst);
@@ -3584,7 +3610,9 @@ fn coin_wgpu_submit_internal(
         let sub_serial = GLOBAL_SUBMISSION_SERIAL.fetch_add(1, Ordering::SeqCst);
         LAST_SUBMITTED_SERIAL.store(sub_serial, Ordering::SeqCst);
         let local_serial = ctx.last_submitted_serial.fetch_add(1, Ordering::SeqCst) + 1;
+        let profile_submit_begin = std::time::Instant::now();
         ctx.queue.submit([cmd_buffer, copy_encoder.finish()]);
+        let profile_submitted = std::time::Instant::now();
         let completed = ctx.completed_serial.clone();
         ctx.queue.on_submitted_work_done(move || {
             completed.fetch_max(local_serial, Ordering::SeqCst);
@@ -3639,7 +3667,9 @@ fn coin_wgpu_submit_internal(
             return CoinWgpuStatus::Ok;
         }
 
+        let profile_wait_begin = std::time::Instant::now();
         let _ = ctx.device.poll(wgpu::Maintain::Wait);
+        let profile_wait_done = std::time::Instant::now();
         if ctx.device_id != 0 {
             if ctx.lost.swap(false, Ordering::SeqCst) {
                 lose_extra_device(runtime, tgt.device_id);
@@ -3694,6 +3724,7 @@ fn coin_wgpu_submit_internal(
             return CoinWgpuStatus::BackendError;
         }
 
+        let profile_publish_begin = std::time::Instant::now();
         match receiver.recv() {
             Ok(Ok(())) => {
                 let data = buffer_slice.get_mapped_range();
@@ -3753,6 +3784,15 @@ fn coin_wgpu_submit_internal(
                     out_depth.copy_from_slice(&depth);
                 }
                 tgt.submission_serial = sub_serial;
+                if trace_phases {
+                    let profile_done = std::time::Instant::now();
+                    eprintln!("COIN_WGPU_PHASE rust validation_ms={:.6} prepare_encode_ms={:.6} submit_ms={:.6} gpu_wait_ms={:.6} readback_publish_ms={:.6}",
+                        (profile_validated - profile_start).as_secs_f64() * 1000.0,
+                        (profile_encoded - profile_validated).as_secs_f64() * 1000.0,
+                        (profile_submitted - profile_submit_begin).as_secs_f64() * 1000.0,
+                        (profile_wait_done - profile_wait_begin).as_secs_f64() * 1000.0,
+                        (profile_done - profile_publish_begin).as_secs_f64() * 1000.0);
+                }
                 CoinWgpuStatus::Ok
             }
             Ok(Err(buf_err)) => {

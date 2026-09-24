@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 15
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 16
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -140,6 +140,7 @@ typedef struct CoinWgpuRenderState {
 typedef struct CoinWgpuFrameView {
   uint32_t abi_version;
   uint32_t struct_size;
+  uint64_t frame_revision;
 
   const CoinWgpuVertex * vertices;
   uint64_t vertex_count;

@@ -16,7 +16,10 @@
 #include <cassert>
 #include <cmath>
 #include <algorithm>
+#include <chrono>
+#include <cstdlib>
 #include <cstring>
+#include <iostream>
 #include <vector>
 
 // Static assertions ensuring ABI compatibility with Rust bridge
@@ -65,7 +68,7 @@ static_assert(offsetof(CoinWgpuRenderState, fog_start) == 876, "CoinWgpuRenderSt
 static_assert(offsetof(CoinWgpuRenderState, fog_end) == 880, "CoinWgpuRenderState fog_end offset mismatch");
 
 static_assert(sizeof(CoinWgpuTarget) == 56, "CoinWgpuTarget size mismatch");
-static_assert(sizeof(CoinWgpuFrameView) == 144, "CoinWgpuFrameView size mismatch");
+static_assert(sizeof(CoinWgpuFrameView) == 152, "CoinWgpuFrameView size mismatch");
 static_assert(sizeof(CoinWgpuNativeSurfaceDescriptor) == 32, "CoinWgpuNativeSurfaceDescriptor size mismatch");
 static_assert(sizeof(CoinWgpuSurfaceCreateInfo) == 48, "CoinWgpuSurfaceCreateInfo size mismatch");
 
@@ -179,6 +182,9 @@ SubmitResult
 SoWgpuRustBackend::submitInternal(const FramePlan & frame, SoWgpuRenderTargetP & target,
                                   SoWgpuReadbackTicket * outTicket)
 {
+  typedef std::chrono::steady_clock ProfileClock;
+  const ProfileClock::time_point profileBegin = ProfileClock::now();
+  const bool tracePhases = std::getenv("COIN_WGPU_TRACE_PHASES") != NULL;
   if (outTicket && target.kind != SoWgpuRenderTargetP::KIND_OFFSCREEN) {
     this->lastError = "Asynchronous readback requires an offscreen target";
     return SubmitResult(BackendStatus::UNSUPPORTED, this->lastError);
@@ -373,6 +379,7 @@ SoWgpuRustBackend::submitInternal(const FramePlan & frame, SoWgpuRenderTargetP &
   CoinWgpuFrameView fView{};
   fView.abi_version = COIN_WGPU_ABI_VERSION;
   fView.struct_size = sizeof(CoinWgpuFrameView);
+  fView.frame_revision = frame.revision;
   fView.vertices = verticesPod.empty() ? nullptr : verticesPod.data();
   fView.vertex_count = static_cast<uint64_t>(verticesPod.size());
   fView.indices = frame.indices.empty() ? nullptr : frame.indices.data();
@@ -394,6 +401,7 @@ SoWgpuRustBackend::submitInternal(const FramePlan & frame, SoWgpuRenderTargetP &
   fView.clear_color[3] = frame.clearColor[3];
   fView.width = static_cast<uint32_t>(target.size[0]);
   fView.height = static_cast<uint32_t>(target.size[1]);
+  const ProfileClock::time_point profilePacked = ProfileClock::now();
 
   char errBuf[512] = {0};
   CoinWgpuStatus st = COIN_WGPU_OK;
@@ -439,7 +447,15 @@ SoWgpuRustBackend::submitInternal(const FramePlan & frame, SoWgpuRenderTargetP &
     } else {
       st = coin_wgpu_submit(&tPod, &fView, errBuf, sizeof(errBuf));
     }
+    const ProfileClock::time_point profileBridgeDone = ProfileClock::now();
     serial = tPod.submission_serial;
+    if (tracePhases) {
+      std::cerr << "COIN_WGPU_PHASE bridge pack_ms="
+                << std::chrono::duration<double, std::milli>(profilePacked - profileBegin).count()
+                << " ffi_ms="
+                << std::chrono::duration<double, std::milli>(profileBridgeDone - profilePacked).count()
+                << '\n';
+    }
   }
 
   if (st != COIN_WGPU_OK) {

@@ -79,7 +79,7 @@ SoWgpuRecordingBackend::getLastRecordingLog() const
 }
 
 std::string
-SoWgpuRecordingBackend::recordToString(const FramePlan & frame)
+SoWgpuRecordingBackend::recordToString(const FramePlan & frame) const
 {
   std::ostringstream out;
   out.imbue(std::locale::classic());

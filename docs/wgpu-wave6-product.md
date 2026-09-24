@@ -84,19 +84,28 @@ executou contra o prefixo instalado, e o header de capacidades compilou em
 C11. A lista de símbolos exportados de `libCoin.so` foi idêntica em builds
 WebGPU ON/OFF equivalentes.
 
-Na primeira execução Rust com quatro testes em paralelo, o gate antigo
-`WgpuSceneTextureDirectTest` falhou na injeção de OOM após o pass filho;
-passou três vezes isolado e na suíte serial. Isto sugere interferência por
-carga GPU entre testes, mas a causa não foi provada. Para um gate local
-confiável da Onda 6, executar a suíte Rust em série; a estabilidade do teste
-sob paralelismo continua uma investigação separada.
+Após a otimização de FramePlan, os mesmos gates foram reexecutados: 35/35 em
+Debug/Rust e 24/24 em Debug/Recording. Um build Release/Rust com as duas
+referências GL adicionais passou 37/37. O gate RTT aceita que um recurso já
+removido da tabela ativa permaneça, de forma segura, na fila de aposentadoria
+após um poll não bloqueante; exige drenagem zero depois do frame de
+recuperação.
+
+O gate antigo `WgpuSceneTextureDirectTest` exigia que um único poll
+não bloqueante drenasse imediatamente a fila RTT após OOM. O perfil mais
+rápido expôs a corrida: o token já estava fora da tabela ativa, mas o trabalho
+GPU podia continuar pendente. O teste agora aceita no máximo uma entrada
+aposentada nesse ponto e exige zero depois do frame de recuperação. Isso
+preserva a verificação de vazamento sem transformar `poll` em espera por idle.
 
 
 ## Medição comparativa
 
-`wgpu_gl_benchmark` executa a mesma cena estática de 36 cubos em offscreen
-nos dois renderizadores, com frames de aquecimento e leitura de RGBA incluída
-nos tempos. Reporta adaptador, tamanho, mediana, p95, mínimo e máximo.
+`wgpu_gl_benchmark` executa a mesma cena em offscreen nos dois renderizadores,
+com frames de aquecimento e leitura de RGBA incluída nos tempos. Reporta
+adaptador, tamanho, mediana, p95, mínimo e máximo. `--scene` carrega uma cena
+Inventor, `--dynamic` altera a câmera em cada frame e `--backend wgpu|gl`
+permite medir memória em processos separados.
 
 ```sh
 xvfb-run -a env COIN_GLX_PIXMAP_DIRECT_RENDERING=1 \
@@ -106,24 +115,27 @@ xvfb-run -a env COIN_GLX_PIXMAP_DIRECT_RENDERING=1 \
 
 Os dois caminhos têm implementações e custos de readback diferentes; isto é
 uma comparação end-to-end, **não** um microbenchmark equivalente de GPU nem
-um SLA de desempenho. Repetir em Release, registrar GPU/driver e testar cena
-dinâmica antes de uma conclusão de produto. Um contexto GLX funcional é
+um SLA de desempenho. Uma comparação interpretável deve usar Release,
+registrar GPU/driver e testar cenas estáticas e dinâmicas. Um contexto GLX funcional é
 necessário mesmo sob Xvfb. Neste ambiente, o Coin precisa de
 `COIN_GLX_PIXMAP_DIRECT_RENDERING=1`: sem isso, tenta inicialmente um
 contexto indireto e falha. Com a opção, o benchmark executou. Ainda é
 necessário alinhar o adaptador GL e WebGPU antes de interpretar desempenho.
-O benchmark também aceita `--scene cena.iv`. No ensaio com sete exemplos
-exportados do FreeCAD, os dois caminhos usaram a mesma GPU AMD: houve
-paridade geométrica em `BASE_COLOR`, mas WebGPU Debug foi mais lento que GL
-em todos os modelos. A divergência inicial de iluminação `PHONG` vinha da
-geração de normais no caminho rápido WebGPU e foi corrigida no Coin, sem
-alterar as cenas exportadas nem a ABI pública do Coin 4. Depois da correção,
-o erro médio RGB de `PHONG` contra GL nos sete exemplos originais ficou
-entre 0,019 e 0,207, com IoU de silhueta entre 0,999860 e 1,000000. Isso
-demonstra paridade no perfil testado, não superioridade visual. Ainda não
-há ganho de desempenho demonstrado; os testes usam malhas exportadas
-offscreen, não a viewport real do FreeCAD. Resultados, condições de medição
-e imagens em
+No ensaio Release/C++11, AMD RADV, 512×512, 8 frames de aquecimento e 30
+medidos, o WebGPU estático superou GL no Assembly: mediana 1,977 contra
+4,221 ms e p95 2,283 contra 4,826 ms, com readback incluído. Não houve ganho
+nos outros três modelos reavaliados. Ao alterar a câmera a cada frame, o
+Assembly ficou em 20,387/21,096 ms (mediana/p95) contra 4,006/4,727 ms no GL;
+traversal e FramePlan ainda dominam. O RSS isolado do Assembly estático foi
+148.424 KiB no WebGPU e 119.604 KiB no GL.
+
+A divergência inicial de iluminação `PHONG` vinha da geração de normais no
+caminho rápido WebGPU e foi corrigida no Coin, sem alterar as cenas exportadas
+nem a ABI pública do Coin 4. A nova campanha Release manteve MAE abaixo de 1
+e IoU 1,0 nas quatro cenas avaliadas. Isso demonstra paridade no perfil
+testado e um ganho estático específico, não superioridade geral nem ganho na
+viewport real do FreeCAD. RTT direto e readback assíncrono não foram usados
+para justificar esses números. Resultados, condições de medição e imagens em
 [`wgpu-freecad-examples-validation.md`](wgpu-freecad-examples-validation.md).
 
 ## Política de estabilidade e Coin 5
