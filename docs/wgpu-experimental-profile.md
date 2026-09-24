@@ -58,8 +58,9 @@ gerada participa das mesmas regras de alpha da 4B. O frame pai só é
 publicado depois da construção e validação completa do seu FramePlan.
 
 `WgpuSceneTextureTest` cobre amostragem superior/inferior (orientação),
-duas dependências aninhadas, troca de target, rejeição no segundo pass sem
-alterar o frame publicado, ciclo e recuperação após resize em Rust e
+mutação da subcena entre frames, alpha sobre fundo colorido e subcena
+sem draws, duas dependências aninhadas, troca de target, rejeição no segundo
+pass sem alterar o frame publicado, ciclo e recuperação após resize em Rust e
 Recording/CPU. Este caminho é funcional, mas a cópia GPU→CPU→GPU por
 frame não é a solução final de recursos GPU compartilhados.
 

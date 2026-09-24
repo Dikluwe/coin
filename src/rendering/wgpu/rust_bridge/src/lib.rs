@@ -1418,9 +1418,12 @@ fn encode_frame(
     // Evict stale entries unreferenced beyond threshold
     cache.evict_stale(LAST_SUBMITTED_SERIAL.load(Ordering::SeqCst));
 
-    // 1b. Material storage buffer and slot validation
-    if materials_slice.is_empty() {
-        return Err((CoinWgpuStatus::InvalidArgument, "Frame material_count must be > 0".to_string()));
+    // A clear-only pass has no draw/material. A draw still requires material slots.
+    if materials_slice.is_empty() && !draws_slice.is_empty() {
+        return Err((
+            CoinWgpuStatus::InvalidArgument,
+            "Frame with draws requires material_count > 0".to_string(),
+        ));
     }
 
     let mat_buffer_size = match materials_slice.len().checked_mul(std::mem::size_of::<GpuMaterial>()) {
@@ -1450,9 +1453,24 @@ fn encode_frame(
         }
     }).collect();
 
+    // WebGPU does not permit a zero-sized storage binding. This sentinel is
+    // unreachable because there are no draws in a material-free frame.
+    let fallback_material = [GpuMaterial {
+        ambient: [0.0; 4],
+        diffuse: [0.0; 4],
+        specular: [0.0; 4],
+        emission: [0.0; 4],
+        params: [0.0; 4],
+    }];
+    let material_bytes: &[u8] = if gpu_materials.is_empty() {
+        bytemuck::cast_slice(&fallback_material)
+    } else {
+        bytemuck::cast_slice(&gpu_materials)
+    };
+
     let materials_buffer = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("Frame Materials Storage Buffer"),
-        contents: bytemuck::cast_slice(&gpu_materials),
+        contents: material_bytes,
         usage: wgpu::BufferUsages::STORAGE,
     });
 

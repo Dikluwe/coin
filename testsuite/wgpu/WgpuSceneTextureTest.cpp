@@ -12,6 +12,7 @@
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoSceneTexture2.h>
+#include <Inventor/nodes/SoTransparencyType.h>
 #include <Inventor/nodes/SoTextureCoordinate2.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
@@ -97,6 +98,9 @@ int main() {
   SoSeparator * parent = new SoSeparator;
   parent->ref();
   parent->addChild(makeCamera());
+  SoTransparencyType * blendMode = new SoTransparencyType;
+  blendMode->value = SoTransparencyType::SORTED_OBJECT_BLEND;
+  parent->addChild(blendMode);
   SoLightModel * parentLighting = new SoLightModel;
   parentLighting->model = SoLightModel::BASE_COLOR;
   parent->addChild(parentLighting);
@@ -121,6 +125,43 @@ int main() {
              baseline[upper] > 80 &&
              baseline[lower + 2] > baseline[lower],
              "scene texture has incorrect colors or vertical orientation", action)) return 1;
+
+  red->diffuseColor.setValue(0, 1, 0);
+  action.apply(parent);
+  std::vector<uint8_t> changedScene;
+  target->readbackRGBA(changedScene);
+  if (!check(action.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
+             changedScene.size() == baseline.size() &&
+             changedScene[upper + 1] > changedScene[upper] &&
+             changedScene[upper + 1] > changedScene[upper + 2],
+             "subscene mutation did not refresh the staged texture", action)) return 1;
+  red->diffuseColor.setValue(1, 0, 0);
+  action.apply(parent);
+  std::vector<uint8_t> restoredScene;
+  target->readbackRGBA(restoredScene);
+  if (!check(action.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
+             restoredScene == baseline,
+             "restored subscene did not recover original pixels", action)) return 1;
+
+  SoSeparator * clearOnlyScene = new SoSeparator;
+  clearOnlyScene->ref();
+  sceneTexture->scene.setValue(clearOnlyScene);
+  sceneTexture->backgroundColor.setValue(1, 0, 0, 0.5f);
+  action.setBackgroundColor(SbColor4f(0, 0, 1, 1));
+  action.apply(parent);
+  std::vector<uint8_t> alphaColor;
+  target->readbackRGBA(alphaColor);
+  const size_t center = (32u * 64u + 32u) * 4u;
+  if (!check(action.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
+             alphaColor.size() == baseline.size() &&
+             alphaColor[center] > 80 && alphaColor[center] < 180 &&
+             alphaColor[center + 1] < 40 &&
+             alphaColor[center + 2] > 80 && alphaColor[center + 2] < 180,
+             "scene texture alpha did not blend over the parent background", action)) return 1;
+  sceneTexture->scene.setValue(child);
+  sceneTexture->backgroundColor.setValue(0, 0, 1, 1);
+  action.setBackgroundColor(SbColor4f(0, 0, 0, 1));
+  clearOnlyScene->unref();
 
   SoWgpuRenderTarget * swapped = SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
   action.setRenderTarget(swapped);
