@@ -79,6 +79,7 @@ add_executable(CoinTests
 	TestSuiteUtils.cpp
 	TestSuiteMisc.cpp
 	InternalMacroTest.cpp
+	WorkerConcurrencyTest.cpp
 	${COIN_TEST_SOURCES}
 )
 
