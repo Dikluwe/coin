@@ -302,6 +302,70 @@ int main() {
     coin_wgpu_rtt_resource_counts(&activeRtt, &retiredRtt);
     if (!check(activeRtt == 0 && retiredRtt == 0,
                "direct RTT resources were not retired after the completed parent frame", action)) return 1;
+    // Two parent consumers share a producer in a nested DAG. Losing the
+    // device after either child submit must not publish a partial parent.
+    SoSeparator * nestedScene = new SoSeparator;
+    nestedScene->ref();
+    nestedScene->addChild(makeCamera());
+    SoLightModel * nestedLighting = new SoLightModel;
+    nestedLighting->model = SoLightModel::BASE_COLOR;
+    nestedScene->addChild(nestedLighting);
+    SoMaterial * nestedWhite = new SoMaterial;
+    nestedWhite->diffuseColor.setValue(1, 1, 1);
+    nestedScene->addChild(nestedWhite);
+    SoSceneTexture2 * nestedProducer = new SoSceneTexture2;
+    nestedProducer->size.setValue(32, 32);
+    nestedProducer->scene.setValue(child);
+    nestedProducer->backgroundColor.setValue(0, 0, 1, 1);
+    nestedScene->addChild(makeTexturedQuad(nestedProducer));
+    sceneTexture->scene.setValue(nestedScene);
+    SoSeparator * sharedConsumer = makeTexturedQuad(sceneTexture);
+    parent->addChild(sharedConsumer);
+    CoinWgpuCacheStats beforeNested{};
+    coin_wgpu_get_cache_stats(&beforeNested);
+    action.apply(parent);
+    CoinWgpuCacheStats afterNested{};
+    coin_wgpu_get_cache_stats(&afterNested);
+    std::vector<uint8_t> nestedSharedPixels;
+    target->readbackRGBA(nestedSharedPixels);
+    if (!check(action.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
+               afterNested.submission_serial == beforeNested.submission_serial + 3 &&
+               nestedSharedPixels.size() == resized.size(),
+               "nested shared DAG did not submit two producers and one parent", action)) return 1;
+    for (unsigned int completedChildren = 1; completedChildren <= 2; ++completedChildren) {
+      CoinWgpuCacheStats beforeNestedLoss{};
+      coin_wgpu_get_cache_stats(&beforeNestedLoss);
+      coin_wgpu_inject_fault_after_submits(COIN_WGPU_DEVICE_LOST, completedChildren);
+      action.apply(parent);
+      CoinWgpuCacheStats afterNestedLoss{};
+      coin_wgpu_get_cache_stats(&afterNestedLoss);
+      std::vector<uint8_t> preservedNestedPixels;
+      target->readbackRGBA(preservedNestedPixels);
+      coin_wgpu_poll_device();
+      uint64_t nestedActive = UINT64_MAX, nestedRetired = UINT64_MAX;
+      coin_wgpu_rtt_resource_counts(&nestedActive, &nestedRetired);
+      if (!check(action.getLastStatus() == SoWgpuRenderAction::DEVICE_LOST &&
+                 afterNestedLoss.submission_serial ==
+                   beforeNestedLoss.submission_serial + completedChildren &&
+                 preservedNestedPixels == nestedSharedPixels &&
+                 nestedActive == 0 && nestedRetired == 0,
+                 "nested device loss leaked RTT or published a partial frame", action)) return 1;
+      action.apply(parent);
+      std::vector<uint8_t> recoveredNestedPixels;
+      target->readbackRGBA(recoveredNestedPixels);
+      if (!check(action.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
+                 recoveredNestedPixels == nestedSharedPixels,
+                 "nested shared DAG did not recover after device loss", action)) return 1;
+    }
+    parent->removeChild(sharedConsumer);
+    sceneTexture->scene.setValue(child);
+    nestedScene->unref();
+    action.apply(parent);
+    std::vector<uint8_t> restoredAfterNested;
+    target->readbackRGBA(restoredAfterNested);
+    if (!check(action.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
+               restoredAfterNested == resized,
+               "restoring the parent after nested losses changed its frame", action)) return 1;
     // The child is valid, but the parent viewport is not. Preflight must
     // reject the complete graph before submitting even its first producer.
     CoinWgpuCacheStats beforeBadParent{};

@@ -281,6 +281,49 @@ int main() {
              redColor == sceneExpectedColor && redDepth == sceneExpectedDepth,
              "overlapping RTT tickets did not retain independent snapshots")) return 1;
   material->diffuseColor.setValue(0.8f, 0.2f, 0.1f);
+#if defined(HAVE_WGPU_RUST_BRIDGE)
+  if (directRtt && directRtt[0] == '1' && directRtt[1] == '\0') {
+    uint64_t previousGeneration = 0;
+    for (int loss = 0; loss < 2; ++loss) {
+      SoWgpuReadbackTicket pendingLoss{};
+      syncAction.applyAsync(texturedParent, pendingLoss);
+      if (!check(syncAction.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
+                 pendingLoss.token != 0 &&
+                 (loss == 0 || pendingLoss.generation > previousGeneration),
+                 "direct RTT ticket was not submitted in a new generation")) return 1;
+      previousGeneration = pendingLoss.generation;
+      coin_wgpu_inject_async_fault(COIN_WGPU_DEVICE_LOST);
+      std::vector<uint8_t> untouchedColor(1, 0x5a);
+      std::vector<float> untouchedDepth(1, -1.0f);
+      if (!check(SoWgpuRenderTarget::pollReadback(
+                   pendingLoss, untouchedColor, untouchedDepth, &diagnostic) ==
+                   SoWgpuRenderTarget::READBACK_DEVICE_LOST &&
+                 untouchedColor.size() == 1 && untouchedColor[0] == 0x5a &&
+                 untouchedDepth.size() == 1 && untouchedDepth[0] == -1.0f,
+                 "device loss published a pending direct RTT ticket")) return 1;
+      coin_wgpu_poll_device();
+      uint64_t activeRtt = UINT64_MAX, retiredRtt = UINT64_MAX;
+      coin_wgpu_rtt_resource_counts(&activeRtt, &retiredRtt);
+      if (!check(activeRtt == 0 && retiredRtt == 0,
+                 "device loss retained an RTT resource from the old generation")) return 1;
+      syncAction.apply(texturedParent);
+      std::vector<uint8_t> recoveredColor;
+      std::vector<float> recoveredDepth;
+      synchronous->readbackRGBA(recoveredColor);
+      synchronous->readbackDepth(recoveredDepth);
+      if (!check(syncAction.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
+                 recoveredColor == sceneExpectedColor &&
+                 recoveredDepth == sceneExpectedDepth,
+                 "direct RTT did not recover after pending ticket loss")) return 1;
+      if (!check(SoWgpuRenderTarget::pollReadback(
+                   pendingLoss, untouchedColor, untouchedDepth, &diagnostic) ==
+                   SoWgpuRenderTarget::READBACK_INVALID_TICKET &&
+                 untouchedColor.size() == 1 && untouchedColor[0] == 0x5a &&
+                 untouchedDepth.size() == 1 && untouchedDepth[0] == -1.0f,
+                 "stale direct RTT ticket wrote into caller buffers")) return 1;
+    }
+  }
+#endif
   const uint64_t publishedSerial = synchronous->getLastSubmissionSerial();
   sceneTexture->type.setValue(SoSceneTexture2::DEPTH);
   SoWgpuReadbackTicket rejectedScene{};

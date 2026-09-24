@@ -4,7 +4,7 @@ Esta implementação é opt-in (`COIN_BUILD_WGPU=ON`) e fica em
 `CoinWgpuExperimental`, separada de `libCoin`. A ação e o alvo de renderização
 estão em `experimental/include` para uso na árvore de build; não são API nem
 ABI pública instalada do Coin 4. A ponte C++/Rust é privada e versionada
-(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=14` nesta revisão). Não promova esses
+(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=15` nesta revisão). Não promova esses
 headers a consumidores externos como se fossem estáveis.
 
 ## Perfil implementado
@@ -92,6 +92,10 @@ apply ou em novo target. Falhas de criação de textura, view, depth e bind
 group também exigem rollback. `WgpuAsyncActionDirectStressTest` executa 1.024
 submits com tickets sobrepostos, mutação, troca de target e cancel/poll;
 `WgpuAsyncActionDirectTest` esvazia o cache de geometria com ticket pendente.
+Após a Onda 5, o teste direto também injeta perda depois de cada filho de um
+DAG aninhado com dois consumidores do mesmo produtor, exigindo frame intacto,
+recursos RTT esvaziados e recuperação completa. O teste assíncrono cobre
+duas perdas sucessivas com ticket RTT pendente e buffers do chamador intactos.
 
 Os passes filhos são capturados em ordem topológica; todos os planos
 (filhos e pai) são pré-validados antes do primeiro submit. Serial permanece
