@@ -201,9 +201,48 @@ claim: formatting stays outside the frame path unless tracing is enabled.
 
 ### Prompt 004: traversal capture versus geometry transformation
 
-Keep `SoCallbackAction`, `SoState`, elements and bundles in Wiring. Separate the
-mechanical indexed-geometry and normal algorithms so they can be tested without
-driving a traversal.
+**Intent:** Keep Open Inventor traversal authoritative while making indexed
+geometry validation, triangulation, deduplication and generated normals
+independently testable.
+
+**Core:** accept Coin-native spans plus already-captured facts. Validate
+indices and finite coordinates, retain the conservative Coin tessellation
+fallback, generate normals with Coin facilities, resolve bindings, emit an
+atomic indexed result and calculate its backend-visible payload digest. It
+must not own an action, state, element, node or GPU resource.
+
+**Shell:** unchanged. Preserve every existing indexed-geometry diagnostic.
+
+**Infra:** unchanged. The backend continues to consume the same FramePlan.
+
+**Wiring:** continue to own `SoCallbackAction`, `SoState`, element queries,
+material lookup, render-state capture, fallback choice and atomic FramePlan
+commit.
+
+**Positive oracle:** convex faces, polylines and missing per-vertex normals
+transform without a scene-graph traversal.
+
+**Negative oracle:** invalid input returns no partial geometry and keeps the
+existing diagnostic.
+
+**Unknown oracle:** concave, twisted or general polygon topology continues
+through Coin's callback/tessellation fallback.
+
+**Gates:** direct Core tests pass in Recording and Rust builds; the existing
+fast-path, visual and GL-reference suites remain green; new symbols stay out
+of libCoin.
+
+**Result (2026-09-24):** indexed face/line validation, sentinel parsing,
+convex-quad triangulation, attribute binding, vertex deduplication, generated
+normals and payload hashing moved to SoWgpuIndexedGeometryCore. The Builder
+captures traversal facts, resolves Coin materials and commits the transformed
+result atomically. Its implementation decreased from 1501 to 1021 lines while
+the algorithms became callable without SoAction or SoState. Debug Rust passed
+41/41 tests, Debug Recording passed 27/27 and Release Rust passed 41/41,
+including the existing fast-path and GL-reference tests. Doxygen regenerated
+the experimental overview without a warning for the new Core, and dynamic
+symbols remain confined to libCoinWgpuExperimental. This atomization makes no
+frame-time improvement claim.
 
 ### Prompt 005: typed frame reuse
 

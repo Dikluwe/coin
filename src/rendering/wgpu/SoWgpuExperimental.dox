@@ -44,6 +44,11 @@
   strings. <tt>COIN_WGPU_TRACE_PHASES</tt> enables stable, whitespace-delimited
   <tt>key=value</tt> records prefixed by <tt>COIN_WGPU_PHASE</tt>.
 
+  Indexed geometry follows a capture/transform boundary. Wiring reads
+  SoCallbackAction, SoState and elements, while a traversal-free Core validates
+  and transforms Coin-native indexed arrays. Concave and general polygons
+  continue through Coin's established tessellation fallback.
+
   \section coin_wgpu_targets Targets and readback
 
   SoWgpuRenderTarget creates either an offscreen target or a target backed by

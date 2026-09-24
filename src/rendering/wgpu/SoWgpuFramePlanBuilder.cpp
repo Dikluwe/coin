@@ -1,9 +1,9 @@
 #include <iostream>
 #include "rendering/wgpu/SoWgpuFramePlanBuilder.h"
 #include "rendering/wgpu/SoWgpuComposition.h"
+#include "rendering/wgpu/SoWgpuIndexedGeometryCore.h"
 
 #include <Inventor/actions/SoCallbackAction.h>
-#include <Inventor/caches/SoNormalCache.h>
 #include <Inventor/SoPrimitiveVertex.h>
 #include <Inventor/nodes/SoNode.h>
 #include <Inventor/nodes/SoLight.h>
@@ -31,7 +31,6 @@
 #include <cassert>
 #include <atomic>
 #include <cmath>
-#include <limits>
 
 SoWgpuFramePlanBuilder::SoWgpuFramePlanBuilder()
   : currentDrawIndex(0),
@@ -818,684 +817,205 @@ SoWgpuFramePlanBuilder::build(FramePlan & outPlan, std::string * outError)
   return true;
 }
 
-#include <map>
+namespace {
+
+SoWgpuIndexedGeometryOptions
+captureIndexedGeometryOptions(SoCallbackAction * action, SoNode * node)
+{
+  SoWgpuIndexedGeometryOptions options;
+  SoState * state = action ? action->getState() : NULL;
+  options.hasTraversalState = state != NULL;
+  if (!state) return options;
+
+  const SoLazyElement * lazy = SoLazyElement::getInstance(state);
+  if (lazy) options.materialCount = lazy->getNumDiffuse();
+
+  SbVec2s textureSize;
+  int textureComponents = 0;
+  const unsigned char * textureBytes =
+    SoMultiTextureImageElement::getImage(
+      state, 0, textureSize, textureComponents);
+  options.hasTexture = textureBytes != NULL &&
+    textureSize[0] > 0 && textureSize[1] > 0 &&
+    textureComponents > 0;
+  if (options.hasTexture) {
+    const SoMultiTextureCoordinateElement * coordinates =
+      SoMultiTextureCoordinateElement::getInstance(state);
+    if (coordinates) {
+      const SoMultiTextureCoordinateElement::CoordType type =
+        coordinates->getType(0);
+      options.proceduralTextureCoordinates =
+        type == SoMultiTextureCoordinateElement::DEFAULT ||
+        type == SoMultiTextureCoordinateElement::FUNCTION;
+    }
+  }
+
+  options.baseColorLighting =
+    SoLightModelElement::get(state) == SoLightModelElement::BASE_COLOR;
+  options.counterClockwise =
+    SoShapeHintsElement::getVertexOrdering(state) !=
+      SoShapeHintsElement::CLOCKWISE;
+  const SbBool vrml1 = node && node->getNodeType() == SoNode::VRML1;
+  options.creaseAngle = SoCreaseAngleElement::get(state, vrml1);
+  return options;
+}
+
+void
+publishCoreDiagnostic(const SoWgpuIndexedGeometryResult & result,
+                      std::string * outError)
+{
+  if (outError && !result.diagnostic.empty()) {
+    *outError = result.diagnostic;
+  }
+}
+
+} // namespace
 
 FastPathResult
-SoWgpuFramePlanBuilder::processIndexedFaceSet(SoCallbackAction * action,
-                                             const DirectGeometryView & inputView,
-                                             SoNode * node,
-                                             std::string * outError)
+SoWgpuFramePlanBuilder::processIndexedFaceSet(
+  SoCallbackAction * action,
+  const DirectGeometryView & view,
+  SoNode * node,
+  std::string * outError)
 {
-  DirectGeometryView view = inputView;
   if (!action) {
     if (outError) *outError = "Null SoCallbackAction in processIndexedFaceSet";
     return FastPathResult::INVALID_SCENE;
   }
-
   if (view.positions.empty() || view.coordIndex.empty()) {
     return FastPathResult::SUCCESS_PRUNE;
   }
-
   if (this->isUnsupported) {
-    if (outError) *outError = this->builderError.empty() ? "Unsupported feature in IndexedFaceSet" : this->builderError;
+    if (outError) {
+      *outError = this->builderError.empty()
+        ? "Unsupported feature in IndexedFaceSet"
+        : this->builderError;
+    }
     return FastPathResult::UNSUPPORTED;
   }
 
-  SoState * state = action->getState();
-  if (state) {
-    SbVec2s sz;
-    int nc = 0;
-    const unsigned char * bytes = SoMultiTextureImageElement::getImage(state, 0, sz, nc);
-    bool hasTex = (bytes != nullptr && sz[0] > 0 && sz[1] > 0 && nc > 0);
-    if (hasTex) {
-      const SoMultiTextureCoordinateElement * tcElem = SoMultiTextureCoordinateElement::getInstance(state);
-      if (tcElem) {
-        auto ct = tcElem->getType(0);
-        if (ct == SoMultiTextureCoordinateElement::DEFAULT || ct == SoMultiTextureCoordinateElement::FUNCTION) {
-          if (outError) *outError = "Procedural/DEFAULT texture coordinates are not supported in Subwave 3B";
-          return FastPathResult::UNSUPPORTED;
-        }
-      }
-      if (view.texcoords.empty()) {
-        if (outError) *outError = "Explicit texture coordinates missing for textured IndexedFaceSet";
-        return FastPathResult::UNSUPPORTED;
-      }
-    }
+  const SoWgpuIndexedGeometryOptions options =
+    captureIndexedGeometryOptions(action, node);
+  SoWgpuIndexedGeometryResult transformed =
+    SoWgpuIndexedGeometryCore::buildFaces(view, options);
+  publishCoreDiagnostic(transformed, outError);
+  if (transformed.status != FastPathResult::SUCCESS_PRUNE ||
+      transformed.indices.empty()) {
+    return transformed.status;
   }
 
-  // Preflight textureCoordIndex
-  if (!view.texCoordIndex.empty()) {
-    for (size_t ti = 0; ti < view.texCoordIndex.size; ++ti) {
-      int32_t val = view.texCoordIndex[ti];
-      if (val < -1) {
-        if (outError) *outError = "IndexedFaceSet textureCoordIndex contains invalid negative index < -1";
-        return FastPathResult::INVALID_SCENE;
-      }
-      if (!view.texcoords.empty() && val >= 0 && static_cast<size_t>(val) >= view.texcoords.size) {
-        if (outError) *outError = "IndexedFaceSet textureCoordIndex references out-of-bounds texture coordinate";
-        return FastPathResult::INVALID_SCENE;
-      }
-    }
+  // Material lookup and the atomic FramePlan commit remain in Wiring.
+  this->captureMaterial(action, 0);
+  for (size_t i = 0; i < transformed.vertices.size(); ++i) {
+    transformed.vertices[i].vertex.materialSlot = this->captureMaterial(
+      action, transformed.vertices[i].materialIndex);
   }
 
-  const size_t numPositions = view.positions.size;
-  const size_t numIndices = view.coordIndex.size;
-
-  // 1. Preflight of positions: verify finite values
-  for (size_t i = 0; i < numPositions; ++i) {
-    const SbVec3f & p = view.positions[i];
-    if (!std::isfinite(p[0]) || !std::isfinite(p[1]) || !std::isfinite(p[2])) {
-      if (outError) *outError = "IndexedFaceSet vertex position contains NaN or Inf";
-      return FastPathResult::INVALID_SCENE;
-    }
-  }
-
-  // 2. Parse faces and check indices
-  struct FaceInfo {
-    size_t startIndex;
-    size_t count;
-  };
-  std::vector<FaceInfo> faces;
-
-  size_t currentStart = 0;
-  size_t currentCount = 0;
-  for (size_t i = 0; i < numIndices; ++i) {
-    int32_t idx = view.coordIndex[i];
-    if (idx < -1) {
-      if (outError) *outError = "IndexedFaceSet contains invalid negative coordinate index < -1";
-      return FastPathResult::INVALID_SCENE;
-    }
-    if (idx == -1) {
-      if (currentCount > 0) {
-        faces.push_back(FaceInfo{currentStart, currentCount});
-      }
-      currentStart = i + 1;
-      currentCount = 0;
-    } else {
-      if (static_cast<size_t>(idx) >= numPositions) {
-        if (outError) *outError = "IndexedFaceSet coordinate index out of bounds";
-        return FastPathResult::INVALID_SCENE;
-      }
-      currentCount++;
-    }
-  }
-  if (currentCount > 0) {
-    faces.push_back(FaceInfo{currentStart, currentCount});
-  }
-
-  if (faces.empty()) {
-    return FastPathResult::SUCCESS_PRUNE;
-  }
-
-  // 3. Topology & convexity check
-  for (size_t f = 0; f < faces.size(); ++f) {
-    size_t count = faces[f].count;
-    if (count < 3) {
-      continue; // Degenerate face ignored
-    }
-    if (count > 4) {
-      // General N-gons require robust tessellation from Coin's fallback cache
-      return FastPathResult::FALLBACK_CONTINUE;
-    }
-    if (count == 4) {
-      size_t s = faces[f].startIndex;
-      int32_t i0 = view.coordIndex[s];
-      int32_t i1 = view.coordIndex[s + 1];
-      int32_t i2 = view.coordIndex[s + 2];
-      int32_t i3 = view.coordIndex[s + 3];
-      if (!SoWgpuFastPathValidator::isQuadConvex(view.positions[i0],
-                                                 view.positions[i1],
-                                                 view.positions[i2],
-                                                 view.positions[i3])) {
-        // Concave or twisted quad: divert to fallback
-        return FastPathResult::FALLBACK_CONTINUE;
-      }
-    }
-  }
-
-  // 4. Validate materialIndex preflight
-  if (!view.materialIndex.empty()) {
-    int32_t numDiff = 0;
-    if (action && action->getState()) {
-      const SoLazyElement * lazy = SoLazyElement::getInstance(action->getState());
-      if (lazy) numDiff = lazy->getNumDiffuse();
-    }
-    for (size_t mi = 0; mi < view.materialIndex.size; ++mi) {
-      int32_t val = view.materialIndex[mi];
-      if (val < -1) {
-        if (outError) *outError = "IndexedFaceSet contains invalid negative material index < -1";
-        return FastPathResult::INVALID_SCENE;
-      }
-      if (numDiff > 0 && val >= numDiff) {
-        if (outError) *outError = "IndexedFaceSet materialIndex references out-of-bounds material";
-        return FastPathResult::INVALID_SCENE;
-      }
-    }
-  }
-
-  // Coin's GL path generates missing normals from creaseAngle. A geometric
-  // face normal combined with a coordinate-only deduplication key is wrong
-  // at a hard edge: the second face reuses the first face's vertex normal.
-  // Validate indices above before invoking SoNormalCache, which reads them.
-  SoNormalCache generatedNormals(NULL);
-  if (view.normals.empty() &&
-      (!state || SoLightModelElement::get(state) != SoLightModelElement::BASE_COLOR)) {
-    if (!state ||
-        (view.normalBinding != SoNormalBindingElement::PER_VERTEX &&
-         view.normalBinding != SoNormalBindingElement::PER_VERTEX_INDEXED) ||
-        numPositions > std::numeric_limits<unsigned int>::max() ||
-        numIndices > static_cast<size_t>(std::numeric_limits<int>::max())) {
-      return FastPathResult::FALLBACK_CONTINUE;
-    }
-    const SbBool ccw = SoShapeHintsElement::getVertexOrdering(state) !=
-      SoShapeHintsElement::CLOCKWISE;
-    const SbBool vrml1 = node && node->getNodeType() == SoNode::VRML1;
-    generatedNormals.generatePerVertex(
-      view.positions.data, static_cast<unsigned int>(numPositions),
-      view.coordIndex.data, static_cast<int>(numIndices),
-      SoCreaseAngleElement::get(state, vrml1), NULL, -1, ccw);
-    if (generatedNormals.getNum() <= 0 ||
-        generatedNormals.getNumIndices() != static_cast<int>(numIndices)) {
-      return FastPathResult::FALLBACK_CONTINUE;
-    }
-    view.normals = SoWgpuSpan<SbVec3f>(
-      generatedNormals.getNormals(), static_cast<size_t>(generatedNormals.getNum()));
-    view.normalIndex = SoWgpuSpan<int32_t>(
-      generatedNormals.getIndices(), static_cast<size_t>(generatedNormals.getNumIndices()));
-    view.normalBinding = SoNormalBindingElement::PER_VERTEX_INDEXED;
-  }
-
-  // 5. Staging validation and attribute resolution
-  std::vector<VertexSnapshot> stagingVertices;
-  std::vector<uint32_t> stagingIndices;
-  std::map<VertexDeduplicationKey, uint32_t> uniqueVertexMap;
-
-  uint32_t defaultMatSlot = this->captureMaterial(action, 0);
-  size_t matVertexCounter = 0;
-
-  auto getOrAddVertex = [&](int32_t coordIdx, int32_t normalIdx, int32_t texIdx, int32_t matIdx,
-                            const SbVec3f & pos, const SbVec3f & norm, const SbVec2f & tc, uint32_t matSlot) -> uint32_t {
-    VertexDeduplicationKey key;
-    key.coordIdx = coordIdx;
-    key.normalIdx = normalIdx;
-    key.texCoordIdx = texIdx;
-    key.materialIdx = matIdx;
-
-    auto it = uniqueVertexMap.find(key);
-    if (it != uniqueVertexMap.end()) {
-      return it->second;
-    }
-
-    VertexSnapshot vs;
-    vs.position[0] = pos[0]; vs.position[1] = pos[1]; vs.position[2] = pos[2];
-    vs.normal[0] = norm[0]; vs.normal[1] = norm[1]; vs.normal[2] = norm[2];
-    vs.texcoord[0] = tc[0]; vs.texcoord[1] = tc[1];
-    vs.materialSlot = matSlot;
-
-    uint32_t newIdx = static_cast<uint32_t>(stagingVertices.size());
-    stagingVertices.push_back(vs);
-    uniqueVertexMap[key] = newIdx;
-    return newIdx;
-  };
-
-  size_t validFaceIdx = 0;
-  for (size_t f = 0; f < faces.size(); ++f) {
-    size_t count = faces[f].count;
-    if (count < 3) continue;
-
-    size_t s = faces[f].startIndex;
-
-    // Resolve face normal
-    SbVec3f faceNormal(0.0f, 0.0f, 1.0f);
-    if (view.normalBinding == SoNormalBindingElement::OVERALL && !view.normals.empty()) {
-      faceNormal = view.normals[0];
-    } else if ((view.normalBinding == SoNormalBindingElement::PER_FACE ||
-                view.normalBinding == SoNormalBindingElement::PER_PART) &&
-               !view.normals.empty()) {
-      size_t nIdx = (view.normalIndex.empty()) ? validFaceIdx : static_cast<size_t>(view.normalIndex[validFaceIdx]);
-      if (nIdx < view.normals.size) {
-        faceNormal = view.normals[nIdx];
-      }
-    } else if (view.normals.empty()) {
-      // Calculate geometric face normal
-      int32_t c0 = view.coordIndex[s];
-      int32_t c1 = view.coordIndex[s + 1];
-      int32_t c2 = view.coordIndex[s + 2];
-      SbVec3f fn = (view.positions[c1] - view.positions[c0]).cross(view.positions[c2] - view.positions[c0]);
-      if (fn.sqrLength() > 1e-10f) {
-        fn.normalize();
-        faceNormal = fn;
-      }
-    }
-
-    // Resolve face material
-    uint32_t faceMatSlot = defaultMatSlot;
-    int32_t faceMatIdx = static_cast<int32_t>(validFaceIdx);
-    if (view.materialBinding == SoMaterialBindingElement::PER_FACE ||
-        view.materialBinding == SoMaterialBindingElement::PER_PART) {
-      // Non-indexed: use validFaceIdx directly without checking materialIndex
-      faceMatSlot = this->captureMaterial(action, static_cast<int>(validFaceIdx));
-    } else if (view.materialBinding == SoMaterialBindingElement::PER_FACE_INDEXED ||
-               view.materialBinding == SoMaterialBindingElement::PER_PART_INDEXED) {
-      // Indexed: use materialIndex if present, otherwise fallback to validFaceIdx
-      if (!view.materialIndex.empty() && validFaceIdx < view.materialIndex.size) {
-        int32_t mi = view.materialIndex[validFaceIdx];
-        if (mi >= 0) faceMatIdx = mi;
-      }
-      faceMatSlot = this->captureMaterial(action, faceMatIdx);
-    }
-
-    auto resolveVertex = [&](size_t vertOffsetInFace) -> uint32_t {
-      size_t indexInCoordIndex = s + vertOffsetInFace;
-      int32_t cIdx = view.coordIndex[indexInCoordIndex];
-      const SbVec3f & pos = view.positions[cIdx];
-
-      // Normal
-      SbVec3f norm = faceNormal;
-      int32_t nKey = 0;
-      if (view.normalBinding == SoNormalBindingElement::PER_FACE ||
-          view.normalBinding == SoNormalBindingElement::PER_FACE_INDEXED ||
-          view.normalBinding == SoNormalBindingElement::PER_PART ||
-          view.normalBinding == SoNormalBindingElement::PER_PART_INDEXED) {
-        nKey = static_cast<int32_t>(validFaceIdx);
-      } else if (view.normalBinding == SoNormalBindingElement::PER_VERTEX ||
-                 view.normalBinding == SoNormalBindingElement::PER_VERTEX_INDEXED) {
-        nKey = cIdx;
-        if (!view.normals.empty()) {
-          size_t nIdx = cIdx;
-          if (!view.normalIndex.empty() && indexInCoordIndex < view.normalIndex.size) {
-            int32_t ni = view.normalIndex[indexInCoordIndex];
-            if (ni >= 0 && static_cast<size_t>(ni) < view.normals.size) {
-              nIdx = static_cast<size_t>(ni);
-            }
-          }
-          if (nIdx < view.normals.size) {
-            norm = view.normals[nIdx];
-            nKey = static_cast<int32_t>(nIdx);
-          }
-        }
-      }
-
-      // Material
-      uint32_t matSlot = faceMatSlot;
-      int32_t mKey = 0;
-      if (view.materialBinding == SoMaterialBindingElement::OVERALL) {
-        mKey = 0;
-        matSlot = defaultMatSlot;
-      } else if (view.materialBinding == SoMaterialBindingElement::PER_FACE ||
-                 view.materialBinding == SoMaterialBindingElement::PER_PART) {
-        mKey = static_cast<int32_t>(validFaceIdx);
-        matSlot = faceMatSlot;
-      } else if (view.materialBinding == SoMaterialBindingElement::PER_FACE_INDEXED ||
-                 view.materialBinding == SoMaterialBindingElement::PER_PART_INDEXED) {
-        mKey = faceMatIdx;
-        matSlot = faceMatSlot;
-      } else if (view.materialBinding == SoMaterialBindingElement::PER_VERTEX) {
-        mKey = static_cast<int32_t>(matVertexCounter++);
-        matSlot = this->captureMaterial(action, mKey);
-      } else if (view.materialBinding == SoMaterialBindingElement::PER_VERTEX_INDEXED) {
-        int mIdx = cIdx;
-        if (!view.materialIndex.empty() && indexInCoordIndex < view.materialIndex.size) {
-          int32_t mi = view.materialIndex[indexInCoordIndex];
-          if (mi >= 0) mIdx = mi;
-        }
-        mKey = mIdx;
-        matSlot = this->captureMaterial(action, mIdx);
-      }
-
-      // TexCoord
-      SbVec2f tc(0.0f, 0.0f);
-      int32_t tKey = 0;
-      if (!view.texcoords.empty()) {
-        size_t tIdx = cIdx;
-        if (!view.texCoordIndex.empty() && indexInCoordIndex < view.texCoordIndex.size) {
-          int32_t ti = view.texCoordIndex[indexInCoordIndex];
-          if (ti >= 0 && static_cast<size_t>(ti) < view.texcoords.size) {
-            tIdx = static_cast<size_t>(ti);
-          }
-        }
-        if (tIdx < view.texcoords.size) {
-          tc = view.texcoords[tIdx];
-          tKey = static_cast<int32_t>(tIdx);
-        }
-      }
-
-      return getOrAddVertex(cIdx, nKey, tKey, mKey, pos, norm, tc, matSlot);
-    };
-
-    if (count == 3) {
-      uint32_t v0 = resolveVertex(0);
-      uint32_t v1 = resolveVertex(1);
-      uint32_t v2 = resolveVertex(2);
-      stagingIndices.push_back(v0);
-      stagingIndices.push_back(v1);
-      stagingIndices.push_back(v2);
-    } else if (count == 4) {
-      uint32_t v0 = resolveVertex(0);
-      uint32_t v1 = resolveVertex(1);
-      uint32_t v2 = resolveVertex(2);
-      uint32_t v3 = resolveVertex(3);
-      // Triangle 1: (0, 1, 2)
-      stagingIndices.push_back(v0);
-      stagingIndices.push_back(v1);
-      stagingIndices.push_back(v2);
-      // Triangle 2: (0, 2, 3)
-      stagingIndices.push_back(v0);
-      stagingIndices.push_back(v2);
-      stagingIndices.push_back(v3);
-    }
-
-    validFaceIdx++;
-  }
-
-  if (stagingIndices.empty()) {
-    return FastPathResult::SUCCESS_PRUNE;
-  }
-
-  // 5. Atomic commit phase (force dedicated packet per fast-path occurrence)
-  uint32_t rsSlot = this->captureRenderState(action, 0);
+  const uint32_t renderStateSlot = this->captureRenderState(action, 0);
   if (this->isUnsupported) {
-    if (outError) *outError = this->builderError.empty() ? "Unsupported feature in IndexedFaceSet" : this->builderError;
+    if (outError) {
+      *outError = this->builderError.empty()
+        ? "Unsupported feature in IndexedFaceSet"
+        : this->builderError;
+    }
     return FastPathResult::UNSUPPORTED;
   }
-  this->ensureDrawPacket(PrimitiveTopology::TRIANGLE_LIST, rsSlot, node, /*forceNewPacket=*/true);
+  this->ensureDrawPacket(
+    PrimitiveTopology::TRIANGLE_LIST, renderStateSlot, node, true);
 
-  uint32_t vertexOffset = static_cast<uint32_t>(this->currentPlan.vertices.size());
-  for (size_t i = 0; i < stagingVertices.size(); ++i) {
-    this->currentPlan.vertices.push_back(stagingVertices[i]);
+  const uint32_t vertexOffset =
+    static_cast<uint32_t>(this->currentPlan.vertices.size());
+  for (size_t i = 0; i < transformed.vertices.size(); ++i) {
+    this->currentPlan.vertices.push_back(transformed.vertices[i].vertex);
   }
-  for (size_t i = 0; i < stagingIndices.size(); ++i) {
-    this->currentPlan.indices.push_back(vertexOffset + stagingIndices[i]);
+  for (size_t i = 0; i < transformed.indices.size(); ++i) {
+    this->currentPlan.indices.push_back(
+      vertexOffset + transformed.indices[i]);
   }
 
-  DrawPacket & dp = this->currentPlan.draws[this->currentDrawIndex];
-  dp.geometry.vertexCount = static_cast<uint32_t>(stagingVertices.size());
-  dp.geometry.indexCount = static_cast<uint32_t>(stagingIndices.size());
-
-  // Canonical serialization hash matching ABI CoinWgpuVertex
-  uint64_t h = 14695981039346656037ULL;
-  auto hashBytes = [&](const void * data, size_t len) {
-    const uint8_t * b = static_cast<const uint8_t *>(data);
-    for (size_t k = 0; k < len; ++k) {
-      h ^= static_cast<uint64_t>(b[k]);
-      h *= 1099511628211ULL;
-    }
-  };
-  for (const auto & v : stagingVertices) {
-    hashBytes(v.position, sizeof(v.position));
-    hashBytes(v.normal, sizeof(v.normal));
-    hashBytes(v.texcoord, sizeof(v.texcoord));
-    hashBytes(&v.materialSlot, sizeof(v.materialSlot));
-  }
-  if (!stagingIndices.empty()) {
-    hashBytes(stagingIndices.data(), stagingIndices.size() * sizeof(uint32_t));
-  }
-  if (h == 0) h = 1;
-
-  uint64_t stableId = reinterpret_cast<uint64_t>(node);
-  dp.stableNodeId = stableId;
-  dp.drawOrdinal = this->nodeOccurrenceCount[stableId]++;
-  dp.sourceRevision = h;
-
+  DrawPacket & packet = this->currentPlan.draws[this->currentDrawIndex];
+  packet.geometry.vertexCount =
+    static_cast<uint32_t>(transformed.vertices.size());
+  packet.geometry.indexCount =
+    static_cast<uint32_t>(transformed.indices.size());
+  const uint64_t stableId = reinterpret_cast<uint64_t>(node);
+  packet.stableNodeId = stableId;
+  packet.drawOrdinal = this->nodeOccurrenceCount[stableId]++;
+  packet.sourceRevision = SoWgpuIndexedGeometryCore::payloadDigest(
+    transformed.vertices, transformed.indices);
   return FastPathResult::SUCCESS_PRUNE;
 }
 
 FastPathResult
-SoWgpuFramePlanBuilder::processIndexedLineSet(SoCallbackAction * action,
-                                             const DirectGeometryView & view,
-                                             SoNode * node,
-                                             std::string * outError)
+SoWgpuFramePlanBuilder::processIndexedLineSet(
+  SoCallbackAction * action,
+  const DirectGeometryView & view,
+  SoNode * node,
+  std::string * outError)
 {
   if (!action) {
     if (outError) *outError = "Null SoCallbackAction in processIndexedLineSet";
     return FastPathResult::INVALID_SCENE;
   }
-
   if (view.positions.empty() || view.coordIndex.empty()) {
     return FastPathResult::SUCCESS_PRUNE;
   }
-
   if (this->isUnsupported) {
-    if (outError) *outError = this->builderError.empty() ? "Unsupported feature in IndexedLineSet" : this->builderError;
+    if (outError) {
+      *outError = this->builderError.empty()
+        ? "Unsupported feature in IndexedLineSet"
+        : this->builderError;
+    }
     return FastPathResult::UNSUPPORTED;
   }
 
-  SoState * state = action->getState();
-  if (state) {
-    SbVec2s sz;
-    int nc = 0;
-    const unsigned char * bytes = SoMultiTextureImageElement::getImage(state, 0, sz, nc);
-    if (bytes != nullptr && sz[0] > 0 && sz[1] > 0 && nc > 0) {
-      if (outError) *outError = "Textured lines are not supported in Subwave 3B";
-      return FastPathResult::UNSUPPORTED;
-    }
+  const SoWgpuIndexedGeometryOptions options =
+    captureIndexedGeometryOptions(action, node);
+  SoWgpuIndexedGeometryResult transformed =
+    SoWgpuIndexedGeometryCore::buildLines(view, options);
+  publishCoreDiagnostic(transformed, outError);
+  if (transformed.status != FastPathResult::SUCCESS_PRUNE ||
+      transformed.indices.empty()) {
+    return transformed.status;
   }
 
-  const size_t numPositions = view.positions.size;
-  const size_t numIndices = view.coordIndex.size;
-
-  // 1. Verify finite coordinates
-  for (size_t i = 0; i < numPositions; ++i) {
-    const SbVec3f & p = view.positions[i];
-    if (!std::isfinite(p[0]) || !std::isfinite(p[1]) || !std::isfinite(p[2])) {
-      if (outError) *outError = "IndexedLineSet vertex position contains NaN or Inf";
-      return FastPathResult::INVALID_SCENE;
-    }
+  this->captureMaterial(action, 0);
+  for (size_t i = 0; i < transformed.vertices.size(); ++i) {
+    transformed.vertices[i].vertex.materialSlot = this->captureMaterial(
+      action, transformed.vertices[i].materialIndex);
   }
 
-  // 2. Parse lines and bounds check
-  struct LineInfo {
-    size_t startIndex;
-    size_t count;
-  };
-  std::vector<LineInfo> polylines;
-
-  size_t currentStart = 0;
-  size_t currentCount = 0;
-  for (size_t i = 0; i < numIndices; ++i) {
-    int32_t idx = view.coordIndex[i];
-    if (idx < -1) {
-      if (outError) *outError = "IndexedLineSet contains invalid negative coordinate index < -1";
-      return FastPathResult::INVALID_SCENE;
-    }
-    if (idx == -1) {
-      if (currentCount > 0) {
-        polylines.push_back(LineInfo{currentStart, currentCount});
-      }
-      currentStart = i + 1;
-      currentCount = 0;
-    } else {
-      if (static_cast<size_t>(idx) >= numPositions) {
-        if (outError) *outError = "IndexedLineSet coordinate index out of bounds";
-        return FastPathResult::INVALID_SCENE;
-      }
-      currentCount++;
-    }
-  }
-  if (currentCount > 0) {
-    polylines.push_back(LineInfo{currentStart, currentCount});
-  }
-
-  if (polylines.empty()) {
-    return FastPathResult::SUCCESS_PRUNE;
-  }
-
-  // 3. Validate materialIndex preflight
-  if (!view.materialIndex.empty()) {
-    int32_t numDiff = 0;
-    if (action && action->getState()) {
-      const SoLazyElement * lazy = SoLazyElement::getInstance(action->getState());
-      if (lazy) numDiff = lazy->getNumDiffuse();
-    }
-    for (size_t mi = 0; mi < view.materialIndex.size; ++mi) {
-      int32_t val = view.materialIndex[mi];
-      if (val < -1) {
-        if (outError) *outError = "IndexedLineSet contains invalid negative material index < -1";
-        return FastPathResult::INVALID_SCENE;
-      }
-      if (numDiff > 0 && val >= numDiff) {
-        if (outError) *outError = "IndexedLineSet materialIndex references out-of-bounds material";
-        return FastPathResult::INVALID_SCENE;
-      }
-    }
-  }
-
-  // 4. Staging validation and deduplication
-  std::vector<VertexSnapshot> stagingVertices;
-  std::vector<uint32_t> stagingIndices;
-  std::map<VertexDeduplicationKey, uint32_t> uniqueVertexMap;
-
-  uint32_t defaultMatSlot = this->captureMaterial(action, 0);
-
-  auto getOrAddVertex = [&](int32_t coordIdx, int32_t normalIdx, int32_t texIdx, int32_t matIdx,
-                            const SbVec3f & pos, const SbVec3f & norm, const SbVec2f & tc, uint32_t matSlot) -> uint32_t {
-    VertexDeduplicationKey key;
-    key.coordIdx = coordIdx;
-    key.normalIdx = normalIdx;
-    key.texCoordIdx = texIdx;
-    key.materialIdx = matIdx;
-
-    auto it = uniqueVertexMap.find(key);
-    if (it != uniqueVertexMap.end()) {
-      return it->second;
-    }
-
-    VertexSnapshot vs;
-    vs.position[0] = pos[0]; vs.position[1] = pos[1]; vs.position[2] = pos[2];
-    vs.normal[0] = norm[0]; vs.normal[1] = norm[1]; vs.normal[2] = norm[2];
-    vs.texcoord[0] = tc[0]; vs.texcoord[1] = tc[1];
-    vs.materialSlot = matSlot;
-
-    uint32_t newIdx = static_cast<uint32_t>(stagingVertices.size());
-    stagingVertices.push_back(vs);
-    uniqueVertexMap[key] = newIdx;
-    return newIdx;
-  };
-
-  size_t validLineIdx = 0;
-  size_t totalSegmentIdx = 0;
-  size_t matLineVertexCounter = 0;
-
-  for (size_t l = 0; l < polylines.size(); ++l) {
-    size_t count = polylines[l].count;
-    if (count < 2) continue; // Degenerate line
-
-    size_t s = polylines[l].startIndex;
-
-    uint32_t lineMatSlot = defaultMatSlot;
-    int32_t lineMatIdx = static_cast<int32_t>(validLineIdx);
-    if (view.materialBinding == SoMaterialBindingElement::PER_FACE) { // PER_LINE non-indexed
-      lineMatSlot = this->captureMaterial(action, static_cast<int>(validLineIdx));
-    } else if (view.materialBinding == SoMaterialBindingElement::PER_FACE_INDEXED) { // PER_LINE_INDEXED
-      if (!view.materialIndex.empty() && validLineIdx < view.materialIndex.size) {
-        int32_t mi = view.materialIndex[validLineIdx];
-        if (mi >= 0) lineMatIdx = mi;
-      }
-      lineMatSlot = this->captureMaterial(action, lineMatIdx);
-    }
-
-    for (size_t seg = 0; seg + 1 < count; ++seg) {
-      uint32_t segMatSlot = lineMatSlot;
-      int32_t segMatIdx = lineMatIdx;
-      if (view.materialBinding == SoMaterialBindingElement::PER_PART) { // PER_SEGMENT non-indexed
-        segMatIdx = static_cast<int32_t>(totalSegmentIdx);
-        segMatSlot = this->captureMaterial(action, segMatIdx);
-      } else if (view.materialBinding == SoMaterialBindingElement::PER_PART_INDEXED) { // PER_SEGMENT_INDEXED
-        segMatIdx = static_cast<int32_t>(totalSegmentIdx);
-        if (!view.materialIndex.empty() && totalSegmentIdx < view.materialIndex.size) {
-          int32_t mi = view.materialIndex[totalSegmentIdx];
-          if (mi >= 0) segMatIdx = mi;
-        }
-        segMatSlot = this->captureMaterial(action, segMatIdx);
-      }
-
-      auto resolveLineVertex = [&](size_t vertOffsetInLine) -> uint32_t {
-        size_t indexInCoordIndex = s + vertOffsetInLine;
-        int32_t cIdx = view.coordIndex[indexInCoordIndex];
-        const SbVec3f & pos = view.positions[cIdx];
-        SbVec3f norm(0.0f, 0.0f, 1.0f);
-
-        uint32_t matSlot = segMatSlot;
-        int32_t mKey = segMatIdx;
-        if (view.materialBinding == SoMaterialBindingElement::OVERALL) {
-          mKey = 0;
-          matSlot = defaultMatSlot;
-        } else if (view.materialBinding == SoMaterialBindingElement::PER_VERTEX) {
-          mKey = static_cast<int32_t>(matLineVertexCounter++);
-          matSlot = this->captureMaterial(action, mKey);
-        } else if (view.materialBinding == SoMaterialBindingElement::PER_VERTEX_INDEXED) {
-          int mIdx = cIdx;
-          if (!view.materialIndex.empty() && indexInCoordIndex < view.materialIndex.size) {
-            int32_t mi = view.materialIndex[indexInCoordIndex];
-            if (mi >= 0) mIdx = mi;
-          }
-          matSlot = this->captureMaterial(action, mIdx);
-          mKey = mIdx;
-        }
-
-        SbVec2f tc(0.0f, 0.0f);
-        return getOrAddVertex(cIdx, 0, 0, mKey, pos, norm, tc, matSlot);
-      };
-
-      uint32_t v0 = resolveLineVertex(seg);
-      uint32_t v1 = resolveLineVertex(seg + 1);
-      stagingIndices.push_back(v0);
-      stagingIndices.push_back(v1);
-
-      totalSegmentIdx++;
-    }
-
-    validLineIdx++;
-  }
-
-  if (stagingIndices.empty()) {
-    return FastPathResult::SUCCESS_PRUNE;
-  }
-
-  // 4. Atomic commit (force dedicated packet per fast-path occurrence)
-  uint32_t rsSlot = this->captureRenderState(action, 0);
+  const uint32_t renderStateSlot = this->captureRenderState(action, 0);
   if (this->isUnsupported) {
-    if (outError) *outError = this->builderError.empty() ? "Unsupported feature in IndexedLineSet" : this->builderError;
+    if (outError) {
+      *outError = this->builderError.empty()
+        ? "Unsupported feature in IndexedLineSet"
+        : this->builderError;
+    }
     return FastPathResult::UNSUPPORTED;
   }
-  this->ensureDrawPacket(PrimitiveTopology::LINE_LIST, rsSlot, node, /*forceNewPacket=*/true);
+  this->ensureDrawPacket(
+    PrimitiveTopology::LINE_LIST, renderStateSlot, node, true);
 
-  uint32_t vertexOffset = static_cast<uint32_t>(this->currentPlan.vertices.size());
-  for (size_t i = 0; i < stagingVertices.size(); ++i) {
-    this->currentPlan.vertices.push_back(stagingVertices[i]);
+  const uint32_t vertexOffset =
+    static_cast<uint32_t>(this->currentPlan.vertices.size());
+  for (size_t i = 0; i < transformed.vertices.size(); ++i) {
+    this->currentPlan.vertices.push_back(transformed.vertices[i].vertex);
   }
-  for (size_t i = 0; i < stagingIndices.size(); ++i) {
-    this->currentPlan.indices.push_back(vertexOffset + stagingIndices[i]);
+  for (size_t i = 0; i < transformed.indices.size(); ++i) {
+    this->currentPlan.indices.push_back(
+      vertexOffset + transformed.indices[i]);
   }
 
-  DrawPacket & dp = this->currentPlan.draws[this->currentDrawIndex];
-  dp.geometry.vertexCount = static_cast<uint32_t>(stagingVertices.size());
-  dp.geometry.indexCount = static_cast<uint32_t>(stagingIndices.size());
-
-  // Canonical serialization hash matching ABI CoinWgpuVertex
-  uint64_t h = 14695981039346656037ULL;
-  auto hashBytes = [&](const void * data, size_t len) {
-    const uint8_t * b = static_cast<const uint8_t *>(data);
-    for (size_t k = 0; k < len; ++k) {
-      h ^= static_cast<uint64_t>(b[k]);
-      h *= 1099511628211ULL;
-    }
-  };
-  for (const auto & v : stagingVertices) {
-    hashBytes(v.position, sizeof(v.position));
-    hashBytes(v.normal, sizeof(v.normal));
-    hashBytes(v.texcoord, sizeof(v.texcoord));
-    hashBytes(&v.materialSlot, sizeof(v.materialSlot));
-  }
-  if (!stagingIndices.empty()) {
-    hashBytes(stagingIndices.data(), stagingIndices.size() * sizeof(uint32_t));
-  }
-  if (h == 0) h = 1;
-
-  uint64_t stableId = reinterpret_cast<uint64_t>(node);
-  dp.stableNodeId = stableId;
-  dp.drawOrdinal = this->nodeOccurrenceCount[stableId]++;
-  dp.sourceRevision = h;
-
+  DrawPacket & packet = this->currentPlan.draws[this->currentDrawIndex];
+  packet.geometry.vertexCount =
+    static_cast<uint32_t>(transformed.vertices.size());
+  packet.geometry.indexCount =
+    static_cast<uint32_t>(transformed.indices.size());
+  const uint64_t stableId = reinterpret_cast<uint64_t>(node);
+  packet.stableNodeId = stableId;
+  packet.drawOrdinal = this->nodeOccurrenceCount[stableId]++;
+  packet.sourceRevision = SoWgpuIndexedGeometryCore::payloadDigest(
+    transformed.vertices, transformed.indices);
   return FastPathResult::SUCCESS_PRUNE;
 }
