@@ -52,12 +52,15 @@ struct cc_worker {
 
   SbBool threadisrunning;
   cc_mutex * mutex;
+  cc_mutex * joinmutex;
   cc_condvar * cond;
-  cc_mutex * beginmutex;
-  cc_condvar * begincond;
+  cc_condvar * statecond;
 
   SbBool shutdown;
   SbBool haswork;
+  SbBool working;
+  SbBool idleactive;
+  unsigned long idlecall;
   void (*workfunc)(void *);
   void * workclosure;
 
