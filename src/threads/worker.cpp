@@ -250,6 +250,9 @@ cc_worker_set_idle_callback(cc_worker * worker, cc_worker_idle_f * cb,
                             void * closure)
 {
   cc_mutex_lock(worker->mutex);
+  while (worker->busy) {
+    cc_condvar_wait(worker->idlecond, worker->mutex);
+  }
   worker->idlecb = cb;
   worker->idleclosure = closure;
   cc_mutex_unlock(worker->mutex);
