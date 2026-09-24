@@ -99,7 +99,8 @@ nos dois renderizadores, com frames de aquecimento e leitura de RGBA incluída
 nos tempos. Reporta adaptador, tamanho, mediana, p95, mínimo e máximo.
 
 ```sh
-xvfb-run -a build-wgpu/bin/wgpu_gl_benchmark \
+xvfb-run -a env COIN_GLX_PIXMAP_DIRECT_RENDERING=1 \
+  build-wgpu/bin/wgpu_gl_benchmark \
   --frames 30 --warmup 8 --size 256
 ```
 
@@ -107,9 +108,16 @@ Os dois caminhos têm implementações e custos de readback diferentes; isto é
 uma comparação end-to-end, **não** um microbenchmark equivalente de GPU nem
 um SLA de desempenho. Repetir em Release, registrar GPU/driver e testar cena
 dinâmica antes de uma conclusão de produto. Um contexto GLX funcional é
-necessário mesmo sob Xvfb. Em 24/09/2026 o build e o viewer passaram neste
-ambiente, mas o Coin/GL não conseguiu criar contexto GLX; portanto não há
-número comparativo local válido desta execução.
+necessário mesmo sob Xvfb. Neste ambiente, o Coin precisa de
+`COIN_GLX_PIXMAP_DIRECT_RENDERING=1`: sem isso, tenta inicialmente um
+contexto indireto e falha. Com a opção, o benchmark executou. Ainda é
+necessário alinhar o adaptador GL e WebGPU antes de interpretar desempenho.
+O benchmark também aceita `--scene cena.iv`. No ensaio com sete exemplos
+exportados do FreeCAD, os dois caminhos usaram a mesma GPU AMD: houve
+paridade geométrica em BASE_COLOR, mas WebGPU Debug foi mais lento que GL
+em todos os modelos e a iluminação PHONG ainda diverge. Portanto não há
+ganho de produto demonstrado. Resultados e imagens em
+[`wgpu-freecad-examples-validation.md`](wgpu-freecad-examples-validation.md).
 
 ## Política de estabilidade e Coin 5
 

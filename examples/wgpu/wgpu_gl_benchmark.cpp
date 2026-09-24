@@ -2,7 +2,9 @@
 // these numbers are observations on one adapter/driver, never a speed SLA.
 
 #include <Inventor/SoDB.h>
+#include <Inventor/SoInput.h>
 #include <Inventor/SoOffscreenRenderer.h>
+#include <Inventor/SbRotation.h>
 #include <Inventor/rendering/SoWgpuCapabilities.h>
 #include <Inventor/rendering/SoWgpuSceneManager.h>
 #include <Inventor/rendering/SoWgpuRenderTarget.h>
@@ -18,6 +20,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <string>
 #include <vector>
 
 namespace {
@@ -66,18 +69,41 @@ SoSeparator * createScene() {
   }
   return root;
 }
+
+SoSeparator * loadScene(const std::string & path, int side) {
+  SoInput input;
+  if (!input.openFile(path.c_str())) return NULL;
+  SoSeparator * imported = SoDB::readAll(&input);
+  if (!imported || imported->getNumChildren() == 0) return NULL;
+
+  SoSeparator * root = new SoSeparator;
+  root->ref();
+  SoPerspectiveCamera * camera = new SoPerspectiveCamera;
+  camera->orientation.setValue(SbRotation(SbVec3f(0.0f, 0.0f, -1.0f),
+                                          SbVec3f(-0.5f, -0.35f, -1.0f)));
+  root->addChild(camera);
+  SoLightModel * model = new SoLightModel;
+  model->model = SoLightModel::BASE_COLOR;
+  root->addChild(model);
+  root->addChild(imported);
+  camera->viewAll(root, SbViewportRegion(side, side), 1.15f);
+  return root;
+}
 }
 
 int main(int argc, char ** argv) {
   int frames = 30;
   int warmup = 8;
   int side = 256;
+  std::string scenePath;
   for (int i = 1; i < argc; ++i) {
     if (std::strcmp(argv[i], "--frames") == 0 && i + 1 < argc) frames = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--warmup") == 0 && i + 1 < argc) warmup = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--size") == 0 && i + 1 < argc) side = std::atoi(argv[++i]);
+    else if (std::strcmp(argv[i], "--scene") == 0 && i + 1 < argc) scenePath = argv[++i];
     else {
-      std::cerr << "Usage: wgpu_gl_benchmark [--frames 30] [--warmup 8] [--size 256]\n";
+      std::cerr << "Usage: wgpu_gl_benchmark [--frames 30] [--warmup 8]"
+                   " [--size 256] [--scene normalized.iv]\n";
       return 2;
     }
   }
@@ -97,16 +123,21 @@ int main(int argc, char ** argv) {
     return 2;
   }
 
-  SoSeparator * root = createScene();
+  SoSeparator * root = scenePath.empty() ? createScene() : loadScene(scenePath, side);
+  if (!root) {
+    std::cerr << "Cannot read normalized Inventor scene\n";
+    return 2;
+  }
   SoWgpuSceneManager wgpu(SbVec2i32(side, side));
   wgpu.setSceneGraph(root);
-  wgpu.setBackgroundColor(SbColor4f(0.1f, 0.1f, 0.15f, 1.0f));
+  const float blue = scenePath.empty() ? 0.15f : 0.1f;
+  wgpu.setBackgroundColor(SbColor4f(0.1f, 0.1f, blue, 1.0f));
   SoOffscreenRenderer gl(SbViewportRegion(side, side));
   gl.setComponents(SoOffscreenRenderer::RGB_TRANSPARENCY);
-  gl.setBackgroundColor(SbColor(0.1f, 0.1f, 0.15f));
+  gl.setBackgroundColor(SbColor(0.1f, 0.1f, blue));
 
   std::vector<uint8_t> rgba;
-  std::vector<double> wgpuMs, glMs;
+  std::vector<double> wgpuMs, wgpuRenderMs, wgpuCopyMs, glMs;
   for (int i = -warmup; i < frames; ++i) {
     const Clock::time_point begin = Clock::now();
     if (wgpu.render() != SoWgpuRenderAction::SUCCESS) {
@@ -114,6 +145,7 @@ int main(int argc, char ** argv) {
       root->unref();
       return 1;
     }
+    const Clock::time_point rendered = Clock::now();
     wgpu.getRenderTarget()->readbackRGBA(rgba);
     if (rgba.size() != size_t(side) * size_t(side) * 4u) {
       std::cerr << "WebGPU readback size mismatch\n";
@@ -121,7 +153,11 @@ int main(int argc, char ** argv) {
       return 1;
     }
     const Clock::time_point end = Clock::now();
-    if (i >= 0) wgpuMs.push_back(std::chrono::duration<double, std::milli>(end - begin).count());
+    if (i >= 0) {
+      wgpuMs.push_back(std::chrono::duration<double, std::milli>(end - begin).count());
+      wgpuRenderMs.push_back(std::chrono::duration<double, std::milli>(rendered - begin).count());
+      wgpuCopyMs.push_back(std::chrono::duration<double, std::milli>(end - rendered).count());
+    }
   }
   for (int i = -warmup; i < frames; ++i) {
     const Clock::time_point begin = Clock::now();
@@ -135,8 +171,20 @@ int main(int argc, char ** argv) {
   }
   root->unref();
   std::cout << "adapter=" << caps.adapter_name << " size=" << side << 'x' << side
-            << " warmup=" << warmup << " scene=36-cubes mode=render+rgba-readback\n";
+            << " warmup=" << warmup << " scene="
+            << (scenePath.empty() ? "36-cubes" : scenePath)
+            << " mode=render+rgba-readback\n";
   report("WebGPU", wgpuMs);
   report("CoinGL", glMs);
+  report("WebGPU_render", wgpuRenderMs);
+  report("WebGPU_copy", wgpuCopyMs);
+  SoWgpuCacheTelemetry cache;
+  if (wgpu.getRenderTarget()->getCacheTelemetry(cache)) {
+    std::cout << "WebGPU_cache last_frame_uploads=" << cache.frameUploads
+              << " last_frame_uploaded_bytes=" << cache.frameUploadedBytes
+              << " last_frame_hits=" << cache.frameHits
+              << " cumulative_uploads=" << cache.cumulativeUploads
+              << " cumulative_hits=" << cache.cumulativeHits << '\n';
+  }
   return 0;
 }
