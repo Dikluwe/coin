@@ -237,13 +237,16 @@ SoWgpuRenderActionP::executeApply(F traversalFn)
   this->isApplying = true;
   this->hasReentrancyError = false;
   this->sceneTexturePixels.clear();
-  this->sceneTextureStagedBytes = 0;
+  if (!this->sceneTextureStagedBytes) {
+    this->sceneTextureStagedBytes = std::make_shared<size_t>(0);
+  }
   this->builder.beginFrame(this->backgroundColor, this->master->getViewportRegion());
 
   traversalFn();
 
   this->isApplying = false;
 
+  this->sceneTextureStagedBytes.reset();
   if (this->hasReentrancyError) {
     this->lastStatus = SoWgpuRenderAction::INVALID_SCENE;
     this->lastError = "Nested apply() calls are not permitted on SoWgpuRenderAction";
@@ -416,7 +419,7 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
 
   const size_t stagedBytes = size_t(size[0]) * size_t(size[1]) * 4;
   const size_t maxStagedBytes = size_t(64) * 1024 * 1024;
-  if (stagedBytes > maxStagedBytes - p->sceneTextureStagedBytes) {
+  if (stagedBytes > maxStagedBytes - *p->sceneTextureStagedBytes) {
     p->lastStatus = SoWgpuRenderAction::UNSUPPORTED;
     p->lastError = "SoSceneTexture2 staged RGBA8 budget exceeds 64 MiB per apply";
     return SoCallbackAction::ABORT;
@@ -435,6 +438,7 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
     ~ActiveTextureGuard() { stack.pop_back(); }
   } guard{activeTextures};
 
+  *p->sceneTextureStagedBytes += stagedBytes;
   const SbVec4f background = texture->backgroundColor.getValue();
   std::unique_ptr<SoWgpuRenderTarget> childTarget(
     SoWgpuRenderTarget::createOffscreen(SbVec2i32(size[0], size[1])));
@@ -447,6 +451,7 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
   childAction.setRenderTarget(childTarget.get());
   childAction.setBackgroundColor(SbColor4f(background[0], background[1],
                                            background[2], background[3]));
+  childAction.pimpl->sceneTextureStagedBytes = p->sceneTextureStagedBytes;
   childAction.apply(scene);
   if (childAction.getLastStatus() != SoWgpuRenderAction::SUCCESS) {
     p->lastStatus = childAction.getLastStatus();
@@ -471,7 +476,6 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
                      pixels.begin() + (size_t(size[1]) - 1 - y) * rowBytes);
   }
   p->sceneTexturePixels.push_back(std::move(pixels));
-  p->sceneTextureStagedBytes += stagedBytes;
   SoMultiTextureImageElement::set(state, const_cast<SoSceneTexture2 *>(texture), 0,
     size, 4, p->sceneTexturePixels.back().data(),
     static_cast<SoMultiTextureImageElement::Wrap>(texture->wrapS.getValue()),

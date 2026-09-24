@@ -9,6 +9,7 @@
 #include <string>
 #include <deque>
 #include <vector>
+#include <memory>
 #include <cstdint>
 #include <cstddef>
 
@@ -67,7 +68,8 @@ public:
   FramePlan lastValidPlan;
   // Owns staged scene-texture pixels for the entire parent traversal.
   std::deque<std::vector<uint8_t> > sceneTexturePixels;
-  size_t sceneTextureStagedBytes = 0;
+  // Shared by child actions during one top-level apply.
+  std::shared_ptr<size_t> sceneTextureStagedBytes;
 
   bool hasLastValidPlan;
   bool isApplying;
