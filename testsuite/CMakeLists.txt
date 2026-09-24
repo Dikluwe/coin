@@ -430,6 +430,22 @@ if(COIN_BUILD_WGPU)
 		add_test(NAME WgpuAsyncReadbackTest COMMAND WgpuAsyncReadbackTest)
 		set_tests_properties(WgpuAsyncReadbackTest PROPERTIES TIMEOUT 30)
 
+		add_executable(WgpuMultiDeviceTest wgpu/WgpuMultiDeviceTest.cpp)
+		set_target_properties(WgpuMultiDeviceTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+		target_link_libraries(WgpuMultiDeviceTest CoinWgpuExperimental Coin)
+		target_include_directories(WgpuMultiDeviceTest PRIVATE
+			${PROJECT_SOURCE_DIR}/experimental/include
+			${PROJECT_SOURCE_DIR}/include
+			${PROJECT_SOURCE_DIR}/src
+			${PROJECT_BINARY_DIR}/include
+			${PROJECT_BINARY_DIR}/src
+			${COIN_TARGET_INCLUDE_DIRECTORIES}
+		)
+		add_test(NAME WgpuMultiDeviceTest COMMAND WgpuMultiDeviceTest)
+		set_tests_properties(WgpuMultiDeviceTest PROPERTIES TIMEOUT 60)
+		add_test(NAME WgpuMultiDeviceStressTest COMMAND WgpuMultiDeviceTest --stress)
+		set_tests_properties(WgpuMultiDeviceStressTest PROPERTIES TIMEOUT 300)
+
 		add_executable(WgpuAsyncActionTest wgpu/WgpuAsyncActionTest.cpp)
 		set_target_properties(WgpuAsyncActionTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 		target_link_libraries(WgpuAsyncActionTest CoinWgpuExperimental Coin)

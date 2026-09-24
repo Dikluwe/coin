@@ -8,12 +8,13 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 14
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 15
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
 typedef uint64_t CoinWgpuSurfaceId;
 #define COIN_WGPU_INVALID_SURFACE_ID UINT64_C(0)
+typedef uint64_t CoinWgpuDeviceId; /* zero selects the default device */
 
 typedef enum CoinWgpuStatus {
   COIN_WGPU_OK = 0,
@@ -170,6 +171,7 @@ typedef struct CoinWgpuTarget {
   float * depth_buffer;
   uint64_t depth_buffer_len;
   uint64_t submission_serial;
+  CoinWgpuDeviceId device_id;
 } CoinWgpuTarget;
 
 typedef struct CoinWgpuReadbackTicket {
@@ -215,6 +217,11 @@ typedef struct CoinWgpuPerformanceStats {
 } CoinWgpuPerformanceStats;
 
 int32_t coin_wgpu_is_available(void);
+
+CoinWgpuStatus coin_wgpu_device_create(CoinWgpuDeviceId * out_id,
+  char * error_buf, size_t error_buf_len);
+CoinWgpuStatus coin_wgpu_device_destroy(CoinWgpuDeviceId id);
+void coin_wgpu_inject_device_fault(CoinWgpuDeviceId id, int32_t code);
 
 void coin_wgpu_get_adapter_info(char * buffer, size_t buffer_len);
 

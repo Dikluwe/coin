@@ -64,7 +64,7 @@ static_assert(offsetof(CoinWgpuRenderState, fog_color) == 864, "CoinWgpuRenderSt
 static_assert(offsetof(CoinWgpuRenderState, fog_start) == 876, "CoinWgpuRenderState fog_start offset mismatch");
 static_assert(offsetof(CoinWgpuRenderState, fog_end) == 880, "CoinWgpuRenderState fog_end offset mismatch");
 
-static_assert(sizeof(CoinWgpuTarget) == 48, "CoinWgpuTarget size mismatch");
+static_assert(sizeof(CoinWgpuTarget) == 56, "CoinWgpuTarget size mismatch");
 static_assert(sizeof(CoinWgpuFrameView) == 144, "CoinWgpuFrameView size mismatch");
 static_assert(sizeof(CoinWgpuNativeSurfaceDescriptor) == 32, "CoinWgpuNativeSurfaceDescriptor size mismatch");
 static_assert(sizeof(CoinWgpuSurfaceCreateInfo) == 48, "CoinWgpuSurfaceCreateInfo size mismatch");
@@ -412,6 +412,7 @@ SoWgpuRustBackend::submitInternal(const FramePlan & frame, SoWgpuRenderTargetP &
     tPod.depth_buffer_len = static_cast<uint64_t>(target.depthBuffer.size());
     tPod.submission_serial = 0;
 
+    tPod.device_id = 0;
     // 7. Submit to WebGPU via FFI
     target.directTextureToken = 0;
     if (target.directTextureOutput) {

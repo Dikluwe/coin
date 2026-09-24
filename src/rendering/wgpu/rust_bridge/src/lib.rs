@@ -9,15 +9,16 @@ use pollster::block_on;
 use raw_window_handle::{RawDisplayHandle, RawWindowHandle, XlibDisplayHandle, XlibWindowHandle};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicI32, AtomicU32, AtomicU64, Ordering};
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 mod composition;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 14;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 15;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 pub type CoinWgpuSurfaceId = u64;
 pub const COIN_WGPU_INVALID_SURFACE_ID: CoinWgpuSurfaceId = 0;
+pub type CoinWgpuDeviceId = u64;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -244,6 +245,7 @@ pub struct CoinWgpuTarget {
     pub depth_buffer: *mut f32,
     pub depth_buffer_len: u64,
     pub submission_serial: u64,
+    pub device_id: CoinWgpuDeviceId,
 }
 
 #[repr(C)]
@@ -266,6 +268,7 @@ pub struct CoinWgpuReadbackTicket {
 
 static NEXT_RTT_TOKEN: AtomicU64 = AtomicU64::new(1);
 static NEXT_READBACK_TOKEN: AtomicU64 = AtomicU64::new(1);
+static NEXT_DEVICE_ID: AtomicU64 = AtomicU64::new(1);
 static GLOBAL_SUBMISSION_SERIAL: AtomicU64 = AtomicU64::new(1);
 static GLOBAL_COMPLETED_SERIAL: AtomicU64 = AtomicU64::new(0);
 static LAST_SUBMITTED_SERIAL: AtomicU64 = AtomicU64::new(0);
@@ -486,6 +489,13 @@ struct DeviceState {
     texture_cache: Mutex<TextureCache>,
     sampler_cache: Mutex<SamplerCache>,
     rtt_textures: Mutex<RttRegistry>,
+    device_id: CoinWgpuDeviceId,
+    generation: u64,
+    completed_serial: Arc<AtomicU64>,
+    last_submitted_serial: AtomicU64,
+    lost: Arc<AtomicBool>,
+    async_error: Arc<AtomicU32>,
+    injected_fault: AtomicI32,
 }
 
 struct SurfaceRecord {
@@ -508,6 +518,7 @@ struct PendingReadback {
     ticket: CoinWgpuReadbackTicket,
     color: wgpu::Buffer,
     color_receiver: std::sync::mpsc::Receiver<ReadbackMapResult>,
+    device_id: u64,
     color_ready: Option<Result<(), String>>,
     depth: Option<wgpu::Buffer>,
     depth_receiver: Option<std::sync::mpsc::Receiver<ReadbackMapResult>>,
@@ -521,6 +532,9 @@ struct RuntimeContext {
     device_generation: u64,
     pending_readbacks: HashMap<u64, PendingReadback>,
     retired_readbacks: Vec<PendingReadback>,
+    extra_devices: HashMap<u64, DeviceState>,
+    extra_generations: HashMap<u64, u64>,
+    dead_readbacks: HashMap<u64, CoinWgpuStatus>,
 }
 
 fn update_readback_mapping(job: &mut PendingReadback) {
@@ -550,6 +564,9 @@ fn update_readback_mapping(job: &mut PendingReadback) {
 
 fn reap_cancelled_readbacks(runtime: &mut RuntimeContext) {
     if let Some(device) = runtime.device_state.as_ref() {
+        let _ = device.device.poll(wgpu::Maintain::Poll);
+    }
+    for device in runtime.extra_devices.values() {
         let _ = device.device.poll(wgpu::Maintain::Poll);
     }
     runtime.retired_readbacks.retain_mut(|job| {
@@ -784,17 +801,21 @@ fn init_runtime_if_needed() -> Result<(), String> {
             device_generation: 0,
             pending_readbacks: HashMap::new(),
             retired_readbacks: Vec::new(),
+            extra_devices: HashMap::new(),
+            extra_generations: HashMap::new(),
+            dead_readbacks: HashMap::new(),
         });
     }
     Ok(())
 }
 
-fn get_or_init_device<'a>(
+fn get_or_init_device_impl<'a>(
     runtime: &'a mut RuntimeContext,
     target_surface: Option<&wgpu::Surface>,
+    isolated: bool,
 ) -> Result<&'a mut DeviceState, String> {
     // Check if device loss occurred asynchronously
-    if DEVICE_LOST_OCCURRED.swap(false, Ordering::SeqCst) {
+    if !isolated && DEVICE_LOST_OCCURRED.swap(false, Ordering::SeqCst) {
         runtime.device_state = None;
         runtime.device_generation += 1;
         LAST_ASYNC_ERROR_KIND.store(0, Ordering::SeqCst);
@@ -832,26 +853,34 @@ fn get_or_init_device<'a>(
     ))
     .map_err(|e| format!("Failed to create device: {}", e))?;
 
-    device.set_device_lost_callback(|reason, message| {
-        DEVICE_LOST_OCCURRED.store(true, Ordering::SeqCst);
-        if let Ok(mut lock) = LAST_ASYNC_ERROR_MSG.lock() {
-            *lock = format!("WebGPU device lost ({:?}): {}", reason, message);
-        }
-    });
-
-    device.on_uncaptured_error(Box::new(|error: wgpu::Error| {
-        match error {
-            wgpu::Error::OutOfMemory { .. } => {
-                LAST_ASYNC_ERROR_KIND.store(1, Ordering::SeqCst);
+    let lost_signal = Arc::new(AtomicBool::new(false));
+    let error_signal = Arc::new(AtomicU32::new(0));
+    if isolated {
+        let lost = lost_signal.clone();
+        device.set_device_lost_callback(move |_, _| {
+            lost.store(true, Ordering::SeqCst);
+        });
+        let error_kind = error_signal.clone();
+        device.on_uncaptured_error(Box::new(move |error: wgpu::Error| {
+            error_kind.store(if matches!(error, wgpu::Error::OutOfMemory { .. }) { 1 } else { 2 },
+                Ordering::SeqCst);
+        }));
+    } else {
+        device.set_device_lost_callback(|reason, message| {
+            DEVICE_LOST_OCCURRED.store(true, Ordering::SeqCst);
+            if let Ok(mut lock) = LAST_ASYNC_ERROR_MSG.lock() {
+                *lock = format!("WebGPU device lost ({:?}): {}", reason, message);
             }
-            _ => {
-                LAST_ASYNC_ERROR_KIND.store(2, Ordering::SeqCst);
+        });
+        device.on_uncaptured_error(Box::new(|error: wgpu::Error| {
+            LAST_ASYNC_ERROR_KIND.store(
+                if matches!(error, wgpu::Error::OutOfMemory { .. }) { 1 } else { 2 },
+                Ordering::SeqCst);
+            if let Ok(mut lock) = LAST_ASYNC_ERROR_MSG.lock() {
+                *lock = format!("WebGPU uncaptured error: {}", error);
             }
-        }
-        if let Ok(mut lock) = LAST_ASYNC_ERROR_MSG.lock() {
-            *lock = format!("WebGPU uncaptured error: {}", error);
-        }
-    }));
+        }));
+    }
 
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("coin_standard.wgsl"),
@@ -922,8 +951,10 @@ fn get_or_init_device<'a>(
         push_constant_ranges: &[],
     });
 
-    DEVICE_LOST_OCCURRED.store(false, Ordering::SeqCst);
-    LAST_ASYNC_ERROR_KIND.store(0, Ordering::SeqCst);
+    if !isolated {
+        DEVICE_LOST_OCCURRED.store(false, Ordering::SeqCst);
+        LAST_ASYNC_ERROR_KIND.store(0, Ordering::SeqCst);
+    }
 
     let default_texture = device.create_texture(&wgpu::TextureDescriptor {
         label: Some("Coin Default 1x1 White Texture"),
@@ -990,10 +1021,146 @@ fn get_or_init_device<'a>(
         texture_cache: Mutex::new(TextureCache::default()),
         sampler_cache: Mutex::new(SamplerCache::default()),
         rtt_textures: Mutex::new(RttRegistry::default()),
+        device_id: 0,
+        generation: runtime.device_generation,
+        completed_serial: Arc::new(AtomicU64::new(0)),
+        last_submitted_serial: AtomicU64::new(0),
+        lost: lost_signal,
+        async_error: error_signal,
+        injected_fault: AtomicI32::new(0),
     });
 
     Ok(runtime.device_state.as_mut().unwrap())
 }
+fn get_or_init_device<'a>(
+    runtime: &'a mut RuntimeContext,
+    target_surface: Option<&wgpu::Surface>,
+) -> Result<&'a mut DeviceState, String> {
+    get_or_init_device_impl(runtime, target_surface, false)
+
+}
+fn make_extra_device(id: CoinWgpuDeviceId, generation: u64) -> Result<DeviceState, String> {
+    // Only the default context owns surfaces. Every extra context requests its
+    // own logical Device/Queue; the physical adapter may be shared.
+    let mut isolated = RuntimeContext {
+        instance: wgpu::Instance::default(),
+        surfaces: HashMap::new(),
+        device_state: None,
+        device_generation: 0,
+        pending_readbacks: HashMap::new(),
+        retired_readbacks: Vec::new(),
+        extra_devices: HashMap::new(),
+        extra_generations: HashMap::new(),
+        dead_readbacks: HashMap::new(),
+    };
+    get_or_init_device_impl(&mut isolated, None, true)?;
+    let mut state = isolated.device_state.take().unwrap();
+    state.device_id = id;
+    state.generation = generation;
+    Ok(state)
+}
+
+fn invalidate_extra_readbacks(runtime: &mut RuntimeContext, id: CoinWgpuDeviceId) {
+    runtime.pending_readbacks.retain(|token, job| {
+        if job.device_id == id {
+            runtime.dead_readbacks.insert(*token, CoinWgpuStatus::DeviceLost);
+            false
+        } else { true }
+    });
+    runtime.retired_readbacks.retain(|job| job.device_id != id);
+    if runtime.dead_readbacks.len() > 1024 { runtime.dead_readbacks.clear(); }
+}
+
+fn lose_extra_device(runtime: &mut RuntimeContext, id: CoinWgpuDeviceId) {
+    runtime.extra_devices.remove(&id);
+    if let Some(generation) = runtime.extra_generations.get_mut(&id) {
+        *generation = generation.wrapping_add(1);
+    }
+    invalidate_extra_readbacks(runtime, id);
+}
+
+fn offscreen_device<'a>(runtime: &'a mut RuntimeContext, id: CoinWgpuDeviceId)
+    -> Result<&'a mut DeviceState, String> {
+    if id == 0 {
+        return get_or_init_device(runtime, None);
+    }
+    let generation = *runtime.extra_generations.get(&id)
+        .ok_or_else(|| format!("Unknown or destroyed WebGPU device {}", id))?;
+    if !runtime.extra_devices.contains_key(&id) {
+        runtime.extra_devices.insert(id, make_extra_device(id, generation)?);
+    }
+    Ok(runtime.extra_devices.get_mut(&id).unwrap())
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_device_create(
+    out_id: *mut u64,
+    error_buf: *mut std::os::raw::c_char,
+    error_buf_len: usize,
+) -> CoinWgpuStatus {
+    std::panic::catch_unwind(|| {
+        if out_id.is_null() || (out_id as usize) % std::mem::align_of::<u64>() != 0 {
+            set_error(error_buf, error_buf_len, "Null or misaligned device ID output");
+            return CoinWgpuStatus::InvalidArgument;
+        }
+        unsafe { *out_id = 0; }
+        if let Err(message) = init_runtime_if_needed() {
+            set_error(error_buf, error_buf_len, &message);
+            return CoinWgpuStatus::BackendError;
+        }
+        let mut guard = RUNTIME_CTX.lock().unwrap();
+        let runtime = guard.as_mut().unwrap();
+        let id = NEXT_DEVICE_ID.fetch_add(1, Ordering::SeqCst);
+        if id == 0 {
+            set_error(error_buf, error_buf_len, "WebGPU device ID space exhausted");
+            return CoinWgpuStatus::OutOfMemory;
+        }
+        let state = match make_extra_device(id, id) {
+            Ok(state) => state,
+            Err(message) => {
+                set_error(error_buf, error_buf_len, &message);
+                return CoinWgpuStatus::NotReady;
+            }
+        };
+        runtime.extra_generations.insert(id, id);
+        runtime.extra_devices.insert(id, state);
+        unsafe { *out_id = id; }
+        CoinWgpuStatus::Ok
+    }).unwrap_or_else(|_| {
+        set_error(error_buf, error_buf_len, "Panic while creating WebGPU device");
+        CoinWgpuStatus::BackendError
+    })
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_device_destroy(id: u64) -> CoinWgpuStatus {
+    std::panic::catch_unwind(|| {
+        if id == 0 { return CoinWgpuStatus::InvalidArgument; }
+        let mut guard = RUNTIME_CTX.lock().unwrap();
+        let Some(runtime) = guard.as_mut() else { return CoinWgpuStatus::InvalidArgument; };
+        if runtime.extra_generations.remove(&id).is_none() {
+            return CoinWgpuStatus::InvalidArgument;
+        }
+        runtime.extra_devices.remove(&id);
+        invalidate_extra_readbacks(runtime, id);
+        CoinWgpuStatus::Ok
+    }).unwrap_or(CoinWgpuStatus::BackendError)
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_inject_device_fault(id: u64, code: i32) {
+    if id == 0 {
+        FAULT_INJECTION.store(code, Ordering::SeqCst);
+        return;
+    }
+    if let Ok(mut guard) = RUNTIME_CTX.lock() {
+        if let Some(state) = guard.as_mut()
+            .and_then(|runtime| runtime.extra_devices.get_mut(&id)) {
+            state.injected_fault.store(code, Ordering::SeqCst);
+        }
+    }
+}
+
 
 fn configure_surface_record(
     record: &mut SurfaceRecord,
@@ -1275,7 +1442,7 @@ fn encode_frame(
     cache.frame_hits = 0;
 
     // Drain safely retired buffers whose work on GPU has completed
-    let completed_serial = GLOBAL_COMPLETED_SERIAL.load(Ordering::SeqCst);
+    let completed_serial = ctx.completed_serial.load(Ordering::SeqCst);
     cache.deferred_release.retain(|retired| {
         retired.retired_at_serial > completed_serial
     });
@@ -1290,7 +1457,7 @@ fn encode_frame(
         retired.retired_at_serial > completed_serial
     });
 
-    let current_submission_serial = GLOBAL_SUBMISSION_SERIAL.load(Ordering::SeqCst);
+    let current_submission_serial = ctx.last_submitted_serial.load(Ordering::SeqCst) + 1;
 
     // Upload and cache frame textures
     for (t_idx, t) in textures_slice.iter().enumerate() {
@@ -1465,7 +1632,7 @@ fn encode_frame(
     }
 
     // Evict stale entries unreferenced beyond threshold
-    cache.evict_stale(LAST_SUBMITTED_SERIAL.load(Ordering::SeqCst));
+    cache.evict_stale(ctx.last_submitted_serial.load(Ordering::SeqCst));
 
     // A clear-only pass has no draw/material. A draw still requires material slots.
     if materials_slice.is_empty() && !draws_slice.is_empty() {
@@ -1997,8 +2164,8 @@ pub extern "C" fn coin_wgpu_reset_context() {
             if let Some(runtime) = guard.as_mut() {
                 runtime.device_state = None;
                 runtime.surfaces.clear();
-                runtime.pending_readbacks.clear();
-                runtime.retired_readbacks.clear();
+                runtime.pending_readbacks.retain(|_, job| job.device_id != 0);
+                runtime.retired_readbacks.retain(|job| job.device_id != 0);
                 runtime.device_generation += 1;
             }
         }
@@ -2753,9 +2920,12 @@ pub extern "C" fn coin_wgpu_surface_submit(
         // 10. Submit and Present
         let sub_serial = GLOBAL_SUBMISSION_SERIAL.fetch_add(1, Ordering::SeqCst);
         LAST_SUBMITTED_SERIAL.store(sub_serial, Ordering::SeqCst);
+        let local_serial = dev.last_submitted_serial.fetch_add(1, Ordering::SeqCst) + 1;
         dev.queue.submit(std::iter::once(cmd_buffer));
+        let completed = dev.completed_serial.clone();
         dev.queue.on_submitted_work_done(move || {
-            GLOBAL_COMPLETED_SERIAL.store(sub_serial, Ordering::SeqCst);
+            completed.fetch_max(local_serial, Ordering::SeqCst);
+            GLOBAL_COMPLETED_SERIAL.fetch_max(sub_serial, Ordering::SeqCst);
         });
         surface_texture.present();
 
@@ -2811,11 +2981,16 @@ fn coin_wgpu_submit_internal(
 ) -> CoinWgpuStatus {
     let res = std::panic::catch_unwind(|| {
         // 1. Fault injection check
-        let delayed = FAULT_AFTER_SUBMITS.fetch_update(
+        let requested_device = if !target.is_null()
+            && (target as usize) % std::mem::align_of::<CoinWgpuTarget>() == 0 {
+            unsafe { (*target).device_id }
+        } else { 0 };
+
+        let delayed = requested_device == 0 && FAULT_AFTER_SUBMITS.fetch_update(
             Ordering::SeqCst, Ordering::SeqCst,
             |remaining| if remaining >= 0 { Some(remaining - 1) } else { None },
         ).ok() == Some(0);
-        let fault = if delayed {
+        let fault = if requested_device != 0 { 0 } else if delayed {
             FAULT_AFTER_CODE.swap(0, Ordering::SeqCst)
         } else {
             FAULT_INJECTION.load(Ordering::SeqCst)
@@ -2839,7 +3014,7 @@ fn coin_wgpu_submit_internal(
         }
 
         // 2. Real device lost check
-        if DEVICE_LOST_OCCURRED.swap(false, Ordering::SeqCst) {
+        if requested_device == 0 && DEVICE_LOST_OCCURRED.swap(false, Ordering::SeqCst) {
             if let Ok(mut guard) = RUNTIME_CTX.lock() {
                 if let Some(rt) = guard.as_mut() {
                     rt.device_state = None;
@@ -2888,6 +3063,45 @@ fn coin_wgpu_submit_internal(
             unsafe { *out_texture = 0; }
         }
         let tgt = unsafe { &mut *target };
+        if tgt.device_id != 0 {
+            let (fault, lost, error_kind) = {
+                let guard = RUNTIME_CTX.lock().unwrap();
+                let Some(runtime) = guard.as_ref() else {
+                    set_error(error_buf, error_buf_len, "Unknown WebGPU device");
+                    return CoinWgpuStatus::InvalidArgument;
+                };
+                if !runtime.extra_generations.contains_key(&tgt.device_id) {
+                    set_error(error_buf, error_buf_len, "Unknown or destroyed WebGPU device");
+                    return CoinWgpuStatus::InvalidArgument;
+                }
+                if let Some(device) = runtime.extra_devices.get(&tgt.device_id) {
+                    (device.injected_fault.swap(0, Ordering::SeqCst),
+                     device.lost.load(Ordering::SeqCst),
+                     device.async_error.swap(0, Ordering::SeqCst))
+                } else { (0, false, 0) }
+            };
+            if lost || fault == CoinWgpuStatus::DeviceLost as i32 {
+                if let Ok(mut guard) = RUNTIME_CTX.lock() {
+                    if let Some(runtime) = guard.as_mut() {
+                        lose_extra_device(runtime, tgt.device_id);
+                    }
+                }
+                set_error(error_buf, error_buf_len, "WebGPU device lost");
+                return CoinWgpuStatus::DeviceLost;
+            }
+            if fault == CoinWgpuStatus::OutOfMemory as i32 || error_kind == 1 {
+                set_error(error_buf, error_buf_len, "WebGPU device out of memory");
+                return CoinWgpuStatus::OutOfMemory;
+            }
+            if fault == CoinWgpuStatus::BackendError as i32 || error_kind == 2 {
+                set_error(error_buf, error_buf_len, "WebGPU device validation error");
+                return CoinWgpuStatus::BackendError;
+            }
+            if fault == CoinWgpuStatus::NotReady as i32 {
+                set_error(error_buf, error_buf_len, "WebGPU device not ready");
+                return CoinWgpuStatus::NotReady;
+            }
+        }
         let f = unsafe { &*frame };
 
         // 3. ABI version and struct size validation
@@ -3180,7 +3394,7 @@ fn coin_wgpu_submit_internal(
             }
         }
 
-        let device_state = match get_or_init_device(runtime, None) {
+        let device_state = match offscreen_device(runtime, tgt.device_id) {
             Ok(d) => d as *mut DeviceState,
             Err(e) => {
                 set_error(error_buf, error_buf_len, &e);
@@ -3272,9 +3486,12 @@ fn coin_wgpu_submit_internal(
             }
             let serial = GLOBAL_SUBMISSION_SERIAL.fetch_add(1, Ordering::SeqCst);
             LAST_SUBMITTED_SERIAL.store(serial, Ordering::SeqCst);
+            let local_serial = ctx.last_submitted_serial.fetch_add(1, Ordering::SeqCst) + 1;
             ctx.queue.submit([cmd_buffer]);
+            let completed = ctx.completed_serial.clone();
             ctx.queue.on_submitted_work_done(move || {
-                GLOBAL_COMPLETED_SERIAL.store(serial, Ordering::SeqCst);
+                completed.fetch_max(local_serial, Ordering::SeqCst);
+                GLOBAL_COMPLETED_SERIAL.fetch_max(serial, Ordering::SeqCst);
             });
             ctx.rtt_textures.lock().unwrap().active.insert(token, RttTexture {
                 texture: color_texture,
@@ -3366,9 +3583,12 @@ fn coin_wgpu_submit_internal(
 
         let sub_serial = GLOBAL_SUBMISSION_SERIAL.fetch_add(1, Ordering::SeqCst);
         LAST_SUBMITTED_SERIAL.store(sub_serial, Ordering::SeqCst);
+        let local_serial = ctx.last_submitted_serial.fetch_add(1, Ordering::SeqCst) + 1;
         ctx.queue.submit([cmd_buffer, copy_encoder.finish()]);
+        let completed = ctx.completed_serial.clone();
         ctx.queue.on_submitted_work_done(move || {
-            GLOBAL_COMPLETED_SERIAL.store(sub_serial, Ordering::SeqCst);
+            completed.fetch_max(local_serial, Ordering::SeqCst);
+            GLOBAL_COMPLETED_SERIAL.fetch_max(sub_serial, Ordering::SeqCst);
         });
 
         let buffer_slice = staging_buffer.slice(..);
@@ -3391,7 +3611,7 @@ fn coin_wgpu_submit_internal(
                 abi_version: COIN_WGPU_ABI_VERSION,
                 struct_size: std::mem::size_of::<CoinWgpuReadbackTicket>() as u32,
                 token,
-                generation: runtime.device_generation,
+                generation: ctx.generation,
                 submission_serial: sub_serial,
                 width,
                 height,
@@ -3406,6 +3626,7 @@ fn coin_wgpu_submit_internal(
             };
             runtime.pending_readbacks.insert(token, PendingReadback {
                 ticket,
+                device_id: ctx.device_id,
                 color: staging_buffer.clone(),
                 color_receiver: receiver,
                 color_ready: None,
@@ -3419,9 +3640,23 @@ fn coin_wgpu_submit_internal(
         }
 
         let _ = ctx.device.poll(wgpu::Maintain::Wait);
+        if ctx.device_id != 0 {
+            if ctx.lost.swap(false, Ordering::SeqCst) {
+                lose_extra_device(runtime, tgt.device_id);
+                set_error(error_buf, error_buf_len, "WebGPU device lost during submit");
+                return CoinWgpuStatus::DeviceLost;
+            }
+            let kind = ctx.async_error.swap(0, Ordering::SeqCst);
+            if kind != 0 {
+                set_error(error_buf, error_buf_len, "WebGPU asynchronous device error");
+                return if kind == 1 { CoinWgpuStatus::OutOfMemory }
+                    else { CoinWgpuStatus::BackendError };
+            }
+        }
+
 
         // Inject async fault if requested
-        let async_fault = FAULT_INJECTION_ASYNC.swap(0, Ordering::SeqCst);
+        let async_fault = if ctx.device_id == 0 { FAULT_INJECTION_ASYNC.swap(0, Ordering::SeqCst) } else { 0 };
         if async_fault == CoinWgpuStatus::DeviceLost as i32 {
             DEVICE_LOST_OCCURRED.store(true, Ordering::SeqCst);
             if let Ok(mut lock) = LAST_ASYNC_ERROR_MSG.lock() {
@@ -3430,7 +3665,7 @@ fn coin_wgpu_submit_internal(
         }
 
         // Check if device lost occurred during submit or poll
-        if DEVICE_LOST_OCCURRED.swap(false, Ordering::SeqCst) {
+        if ctx.device_id == 0 && DEVICE_LOST_OCCURRED.swap(false, Ordering::SeqCst) {
             runtime.device_state = None;
             runtime.device_generation += 1;
             let msg = LAST_ASYNC_ERROR_MSG
@@ -3442,7 +3677,7 @@ fn coin_wgpu_submit_internal(
         }
 
         // Check uncaptured errors
-        let error_kind = LAST_ASYNC_ERROR_KIND.swap(0, Ordering::SeqCst);
+        let error_kind = if ctx.device_id == 0 { LAST_ASYNC_ERROR_KIND.swap(0, Ordering::SeqCst) } else { 0 };
         if error_kind == 1 {
             let msg = LAST_ASYNC_ERROR_MSG
                 .lock()
@@ -3521,7 +3756,7 @@ fn coin_wgpu_submit_internal(
                 CoinWgpuStatus::Ok
             }
             Ok(Err(buf_err)) => {
-                if DEVICE_LOST_OCCURRED.swap(false, Ordering::SeqCst) {
+                if ctx.device_id == 0 && DEVICE_LOST_OCCURRED.swap(false, Ordering::SeqCst) {
                     runtime.device_state = None;
                     runtime.device_generation += 1;
                     set_error(
@@ -3540,7 +3775,7 @@ fn coin_wgpu_submit_internal(
                 }
             }
             Err(recv_err) => {
-                if DEVICE_LOST_OCCURRED.swap(false, Ordering::SeqCst) {
+                if ctx.device_id == 0 && DEVICE_LOST_OCCURRED.swap(false, Ordering::SeqCst) {
                     runtime.device_state = None;
                     runtime.device_generation += 1;
                     set_error(
@@ -3606,13 +3841,27 @@ pub extern "C" fn coin_wgpu_release_texture(token: u64) {
                 if let Some(ctx) = runtime.device_state.as_mut() {
                     if let Ok(mut textures) = ctx.rtt_textures.lock() {
                         if let Some(entry) = textures.active.remove(&token) {
-                            let serial = LAST_SUBMITTED_SERIAL.load(Ordering::SeqCst);
-                            if GLOBAL_COMPLETED_SERIAL.load(Ordering::SeqCst) < serial {
+                            let serial = ctx.last_submitted_serial.load(Ordering::SeqCst);
+                            if ctx.completed_serial.load(Ordering::SeqCst) < serial {
                                 textures.retired.push(RetiredRttTexture {
                                     resource: entry,
                                     retired_at_serial: serial,
                                 });
                             }
+                        }
+                    }
+                }
+                for ctx in runtime.extra_devices.values() {
+                    if let Ok(mut textures) = ctx.rtt_textures.lock() {
+                        if let Some(entry) = textures.active.remove(&token) {
+                            let serial = ctx.last_submitted_serial.load(Ordering::SeqCst);
+                            if ctx.completed_serial.load(Ordering::SeqCst) < serial {
+                                textures.retired.push(RetiredRttTexture {
+                                    resource: entry,
+                                    retired_at_serial: serial,
+                                });
+                            }
+                            break;
                         }
                     }
                 }
@@ -3629,9 +3878,14 @@ pub extern "C" fn coin_wgpu_rtt_resource_counts(active: *mut u64, retired: *mut 
     }
     let (a, r) = std::panic::catch_unwind(|| {
         let guard = RUNTIME_CTX.lock().ok()?;
-        let ctx = guard.as_ref()?.device_state.as_ref()?;
-        let textures = ctx.rtt_textures.lock().ok()?;
-        Some((textures.active.len() as u64, textures.retired.len() as u64))
+        let runtime = guard.as_ref()?;
+        let mut counts = (0, 0);
+        for ctx in runtime.device_state.iter().chain(runtime.extra_devices.values()) {
+            let textures = ctx.rtt_textures.lock().ok()?;
+            counts.0 += textures.active.len() as u64;
+            counts.1 += textures.retired.len() as u64;
+        }
+        Some(counts)
     }).ok().flatten().unwrap_or((0, 0));
     if !active.is_null() { unsafe { *active = a; } }
     if !retired.is_null() { unsafe { *retired = r; } }
@@ -3662,11 +3916,17 @@ fn check_readback_ready(
         return CoinWgpuStatus::InvalidArgument;
     }
     reap_cancelled_readbacks(runtime);
+    if let Some(status) = runtime.dead_readbacks.remove(&token) {
+        set_error(error_buf, error_buf_len, "Readback device was destroyed or lost");
+        return status;
+    }
     if !runtime.pending_readbacks.contains_key(&token) {
         set_error(error_buf, error_buf_len, "Unknown or cancelled readback token");
         return CoinWgpuStatus::InvalidArgument;
     }
-    let injected_fault = FAULT_INJECTION_ASYNC.swap(0, Ordering::SeqCst);
+    let owner = runtime.pending_readbacks.get(&token).unwrap().device_id;
+    let injected_fault = if owner == 0 { FAULT_INJECTION_ASYNC.swap(0, Ordering::SeqCst) }
+        else { 0 };
     if injected_fault == CoinWgpuStatus::BackendError as i32 {
         if let Some(job) = runtime.pending_readbacks.remove(&token) {
             runtime.retired_readbacks.push(job);
@@ -3675,9 +3935,9 @@ fn check_readback_ready(
         return CoinWgpuStatus::BackendError;
     }
     if injected_fault == CoinWgpuStatus::DeviceLost as i32
-        || DEVICE_LOST_OCCURRED.swap(false, Ordering::SeqCst) {
-        runtime.pending_readbacks.clear();
-        runtime.retired_readbacks.clear();
+        || (owner == 0 && DEVICE_LOST_OCCURRED.swap(false, Ordering::SeqCst)) {
+        runtime.pending_readbacks.retain(|_, job| job.device_id != 0);
+        runtime.retired_readbacks.retain(|job| job.device_id != 0);
         runtime.device_state = None;
         runtime.device_generation += 1;
         set_error(error_buf, error_buf_len, "Device lost during asynchronous readback");
@@ -3686,7 +3946,22 @@ fn check_readback_ready(
     if let Some(device) = runtime.device_state.as_ref() {
         let _ = device.device.poll(wgpu::Maintain::Poll);
     }
-    let generation = runtime.device_generation;
+    let generation = if owner == 0 {
+        runtime.device_generation
+    } else {
+        let Some(device) = runtime.extra_devices.get(&owner) else {
+            runtime.pending_readbacks.remove(&token);
+            set_error(error_buf, error_buf_len, "Readback device was destroyed");
+            return CoinWgpuStatus::DeviceLost;
+        };
+        if device.lost.load(Ordering::SeqCst) {
+            lose_extra_device(runtime, owner);
+            set_error(error_buf, error_buf_len, "Readback device was lost");
+            return CoinWgpuStatus::DeviceLost;
+        }
+        let _ = device.device.poll(wgpu::Maintain::Poll);
+        device.generation
+    };
     let job = runtime.pending_readbacks.get_mut(&token).unwrap();
     if job.ticket.generation != generation {
         runtime.pending_readbacks.remove(&token);
@@ -3931,7 +4206,20 @@ pub extern "C" fn coin_wgpu_poll_device() {
                 reap_cancelled_readbacks(runtime);
                 if let Some(dev) = &runtime.device_state {
                     let _ = dev.device.poll(wgpu::Maintain::Poll);
-                    let completed = GLOBAL_COMPLETED_SERIAL.load(Ordering::SeqCst);
+                    let completed = dev.completed_serial.load(Ordering::SeqCst);
+                    if let Ok(mut textures) = dev.texture_cache.lock() {
+                        textures.retired.retain(|entry| entry.retired_at_serial > completed);
+                    }
+                    if let Ok(mut textures) = dev.rtt_textures.lock() {
+                        textures.retired.retain(|entry| entry.retired_at_serial > completed);
+                    }
+                }
+                for dev in runtime.extra_devices.values() {
+                    let _ = dev.device.poll(wgpu::Maintain::Poll);
+                    let completed = dev.completed_serial.load(Ordering::SeqCst);
+                    if let Ok(mut cache) = dev.cache.lock() {
+                        cache.deferred_release.retain(|entry| entry.retired_at_serial > completed);
+                    }
                     if let Ok(mut textures) = dev.texture_cache.lock() {
                         textures.retired.retain(|entry| entry.retired_at_serial > completed);
                     }
@@ -3967,7 +4255,7 @@ pub extern "C" fn coin_wgpu_trim_cache() {
             if let Some(runtime) = guard.as_ref() {
                 if let Some(dev) = &runtime.device_state {
                     if let Ok(mut cache) = dev.cache.lock() {
-                        let last_serial = LAST_SUBMITTED_SERIAL.load(Ordering::SeqCst);
+                        let last_serial = dev.last_submitted_serial.load(Ordering::SeqCst);
                         let mut to_remove = Vec::new();
                         for (&key, (_rev, entry)) in &cache.active_entries {
                             if entry.last_submitted_serial < last_serial {
