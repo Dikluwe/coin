@@ -82,15 +82,19 @@ worker_thread_loop(cc_worker * worker)
     if (worker->haswork) {
       cc_worker_f * workfunc = worker->workfunc;
       void * workclosure = worker->workclosure;
+      cc_worker_idle_f * idlecb = worker->idlecb;
+      void * idleclosure = worker->idleclosure;
       worker->haswork = FALSE;
       worker->workfunc = NULL;
       worker->workclosure = NULL;
-      /* do the scheduled job */
+      /* Callbacks may acquire scheduler or pool locks. Never hold the
+         worker mutex while invoking them. */
+      cc_mutex_unlock(worker->mutex);
       workfunc(workclosure);
-      /* call the idle cb */
-      if (worker->idlecb) {
-        worker->idlecb(worker, worker->idleclosure);
-      }
+      if (idlecb) idlecb(worker, idleclosure);
+      cc_mutex_lock(worker->mutex);
+      worker->busy = FALSE;
+      cc_condvar_wake_all(worker->idlecond);
     }
   }
 
@@ -163,11 +167,13 @@ cc_worker_construct(void)
 
   worker->mutex = cc_mutex_construct();
   worker->cond = cc_condvar_construct();
+  worker->idlecond = cc_condvar_construct();
   worker->begincond = cc_condvar_construct();
   worker->beginmutex = cc_mutex_construct();
   worker->thread = NULL; /* delay creating thread */
   worker->threadisrunning = FALSE;
   worker->shutdown = FALSE;
+  worker->busy = FALSE;
   worker->haswork = FALSE;
   worker->workfunc = NULL;
   worker->workclosure = NULL;
@@ -188,6 +194,7 @@ cc_worker_destruct(cc_worker * worker)
   assert(worker->thread == NULL);
   cc_mutex_destruct(worker->mutex);
   cc_condvar_destruct(worker->cond);
+  cc_condvar_destruct(worker->idlecond);
   cc_condvar_destruct(worker->begincond);
   cc_mutex_destruct(worker->beginmutex);
   free(worker);
@@ -202,6 +209,10 @@ cc_worker_start(cc_worker * worker, cc_worker_f * workfunc, void * closure)
 {
   if (workfunc == NULL) return FALSE;
   cc_mutex_lock(worker->mutex);  
+  while (worker->busy) {
+    cc_condvar_wait(worker->idlecond, worker->mutex);
+  }
+  worker->busy = TRUE;
   worker->workfunc = workfunc;
   worker->workclosure = closure;
 
@@ -219,12 +230,9 @@ cc_worker_start(cc_worker * worker, cc_worker_f * workfunc, void * closure)
 SbBool 
 cc_worker_is_busy(cc_worker * worker)
 {
-  SbBool busy = TRUE;
-  
-  if (cc_mutex_try_lock(worker->mutex)) {
-    busy = FALSE;
-    cc_mutex_unlock(worker->mutex);
-  }
+  cc_mutex_lock(worker->mutex);
+  SbBool busy = worker->busy;
+  cc_mutex_unlock(worker->mutex);
   return busy;
 }
 
@@ -275,6 +283,43 @@ BOOST_AUTO_TEST_CASE(cc_worker_rejects_null_and_runs_each_task_once)
   cc_worker_wait(worker);
   BOOST_CHECK_EQUAL(calls, 2);
 
+  cc_worker_destruct(worker);
+}
+
+typedef struct {
+  cc_worker * worker;
+  SbBool workbusy;
+  SbBool idlebusy;
+  int calls;
+} worker_test_reentrant_state;
+
+static void
+worker_test_reentrant_work(void * closure)
+{
+  worker_test_reentrant_state * state =
+    static_cast<worker_test_reentrant_state *>(closure);
+  state->workbusy = cc_worker_is_busy(state->worker);
+  state->calls++;
+}
+
+static void
+worker_test_reentrant_idle(cc_worker * worker, void * closure)
+{
+  worker_test_reentrant_state * state =
+    static_cast<worker_test_reentrant_state *>(closure);
+  state->idlebusy = cc_worker_is_busy(worker);
+}
+
+BOOST_AUTO_TEST_CASE(cc_worker_callbacks_can_query_busy_state)
+{
+  cc_worker * worker = cc_worker_construct();
+  worker_test_reentrant_state state = { worker, FALSE, FALSE, 0 };
+  cc_worker_set_idle_callback(worker, worker_test_reentrant_idle, &state);
+  BOOST_REQUIRE(cc_worker_start(worker, worker_test_reentrant_work, &state));
+  cc_worker_wait(worker);
+  BOOST_CHECK(state.workbusy);
+  BOOST_CHECK(state.idlebusy);
+  BOOST_CHECK_EQUAL(state.calls, 1);
   cc_worker_destruct(worker);
 }
 
