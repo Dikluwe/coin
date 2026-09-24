@@ -12,10 +12,13 @@ class SoWgpuRenderTarget;
 struct SoWgpuNativeSurfaceDescriptor;
 struct SoWgpuReadbackTicket;
 
-/* Small experimental scene/target owner, not a SoRenderManager replacement.
+/** Small experimental scene/target owner, not a SoRenderManager replacement.
  * The caller owns the native window and handles its events. For a window,
  * destroy this manager before destroying the native window/display. Call
- * SoDB::init() and SoWgpuRenderAction::initClass() before construction. */
+ * SoDB::init() and SoWgpuRenderAction::initClass() before construction.
+ *
+ * \see coin_wgpu_experimental
+ */
 class COIN_WGPU_DLL_API SoWgpuSceneManager {
 public:
   explicit SoWgpuSceneManager(const SbVec2i32 & offscreenSize);

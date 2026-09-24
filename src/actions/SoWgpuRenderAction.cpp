@@ -28,9 +28,9 @@
 #include <cstdlib>
 #include <iostream>
 #include <Inventor/misc/SoState.h>
-#include <cstring>
 
 #include "actions/SoWgpuRenderActionP.h"
+#include "rendering/wgpu/SoWgpuImageCore.h"
 #include "rendering/wgpu/SoWgpuRenderTargetP.h"
 #include "actions/SoSubActionP.h"
 #if defined(HAVE_WGPU_RUST_BRIDGE)
@@ -41,68 +41,6 @@
 #endif
 
 SO_ACTION_SOURCE(SoWgpuRenderAction);
-
-#if defined(HAVE_WGPU_RUST_BRIDGE)
-namespace {
-// Byte equality is deliberately conservative: padding can prevent a cache hit,
-// but it cannot make different captured fields compare equal.
-template <typename T>
-bool samePlainSnapshots(const std::vector<T> & a, const std::vector<T> & b)
-{
-  return a.size() == b.size() &&
-    (a.empty() || std::memcmp(a.data(), b.data(), a.size() * sizeof(T)) == 0);
-}
-
-bool sameCameras(const std::vector<CameraSnapshot> & a,
-                 const std::vector<CameraSnapshot> & b)
-{
-  if (a.size() != b.size()) return false;
-  for (size_t i = 0; i < a.size(); ++i) {
-    const CameraSnapshot & x = a[i];
-    const CameraSnapshot & y = b[i];
-    if (std::memcmp(x.viewMatrix.getValue(), y.viewMatrix.getValue(), sizeof(float) * 16) != 0 ||
-        std::memcmp(x.projectionMatrixCoin.getValue(), y.projectionMatrixCoin.getValue(), sizeof(float) * 16) != 0 ||
-        x.isPerspective != y.isPerspective || x.nearDistance != y.nearDistance ||
-        x.farDistance != y.farDistance || x.focalDistance != y.focalDistance ||
-        x.aspectRatio != y.aspectRatio) return false;
-  }
-  return true;
-}
-
-bool sameDirectPlan(const FramePlan & a, const FramePlan & b)
-{
-  for (int i = 0; i < 4; ++i) {
-    if (a.clearColor[i] != b.clearColor[i]) return false;
-  }
-  if (!samePlainSnapshots(a.vertices, b.vertices) ||
-      a.indices != b.indices ||
-      !samePlainSnapshots(a.materials, b.materials) ||
-      !sameCameras(a.cameras, b.cameras) ||
-      !samePlainSnapshots(a.viewports, b.viewports) ||
-      !samePlainSnapshots(a.renderStates, b.renderStates) ||
-      !samePlainSnapshots(a.samplers, b.samplers) ||
-      !samePlainSnapshots(a.draws, b.draws) ||
-      a.lightingStates.size() != b.lightingStates.size() ||
-      a.textures.size() != b.textures.size()) return false;
-  for (size_t i = 0; i < a.lightingStates.size(); ++i) {
-    const LightingSnapshot & x = a.lightingStates[i];
-    const LightingSnapshot & y = b.lightingStates[i];
-    if (x.ambientIntensity != y.ambientIntensity ||
-        std::memcmp(x.ambientColor, y.ambientColor, sizeof(x.ambientColor)) != 0 ||
-        !samePlainSnapshots(x.lights, y.lights)) return false;
-  }
-  for (size_t i = 0; i < a.textures.size(); ++i) {
-    const TextureImageSnapshot & x = a.textures[i];
-    const TextureImageSnapshot & y = b.textures[i];
-    if (x.width != y.width || x.height != y.height ||
-        x.components != y.components || x.contentDigest != y.contentDigest ||
-        x.gpuToken != y.gpuToken || x.gpuOpaque != y.gpuOpaque ||
-        x.pixelsRgba != y.pixelsRgba) return false;
-  }
-  return true;
-}
-} // namespace
-#endif
 
 void
 SoWgpuRenderAction::initClass(void)
@@ -724,7 +662,7 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
     uint64_t token = 0;
     for (size_t i = 0; i < p->directPasses->size(); ++i) {
       const SoWgpuRenderActionP::DirectPass & existing = (*p->directPasses)[i];
-      if (existing.size == passSize && sameDirectPlan(existing.plan, snapshot)) {
+      if (existing.size == passSize && existing.plan.hasSamePayload(snapshot)) {
         token = i + 1;
         break;
       }
@@ -776,13 +714,12 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
     p->lastError = "SoSceneTexture2 subscene returned incomplete RGBA8 readback";
     return SoCallbackAction::ABORT;
   }
-  // WebGPU readback rows start at the top; Coin image bytes use the opposite
-  // texture origin. Flip once before the parent pass uploads this image.
-  const size_t rowBytes = size_t(size[0]) * 4;
-  for (size_t y = 0; y < size_t(size[1]) / 2; ++y) {
-    std::swap_ranges(pixels.begin() + y * rowBytes,
-                     pixels.begin() + (y + 1) * rowBytes,
-                     pixels.begin() + (size_t(size[1]) - 1 - y) * rowBytes);
+  if (!SoWgpuImageCore::flipRgba8Rows(
+        pixels, SbVec2i32(static_cast<int32_t>(size[0]),
+                         static_cast<int32_t>(size[1])))) {
+    p->lastStatus = SoWgpuRenderAction::BACKEND_ERROR;
+    p->lastError = "SoSceneTexture2 subscene returned invalid RGBA8 dimensions";
+    return SoCallbackAction::ABORT;
   }
   p->sceneTexturePixels.push_back(std::move(pixels));
   SoMultiTextureImageElement::set(state, const_cast<SoSceneTexture2 *>(texture), 0,

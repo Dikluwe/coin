@@ -35,6 +35,14 @@ enum CoinWgpuExperimentalFeature {
   COIN_WGPU_FEATURE_DIRECT_RTT = UINT64_C(1) << 9
 };
 
+/**
+ * Versioned capabilities returned by the experimental WebGPU module.
+ *
+ * Initialize access through coin_wgpu_experimental_query_capabilities()
+ * instead of assuming that a compiled feature has a runtime adapter.
+ *
+ * \see coin_wgpu_experimental
+ */
 typedef struct CoinWgpuExperimentalCapabilities {
   uint32_t struct_size;
   uint32_t version;
@@ -49,10 +57,14 @@ typedef struct CoinWgpuExperimentalCapabilities {
   char adapter_name[128]; /* empty when no runtime GPU adapter is available */
 } CoinWgpuExperimentalCapabilities;
 
-/* Returns 0 on success, 1 for an unsupported target, 2 for invalid output.
+/**
+ * Queries compiled capabilities and runtime GPU availability.
+ *
+ * \return 0 on success, 1 for an unsupported target, or 2 for invalid output.
  * Feature bits describe the compiled profile; gpu_available reports runtime
  * adapter availability separately. This is an experimental module contract,
- * not an addition to libCoin's public ABI. */
+ * not an addition to libCoin's public ABI.
+ */
 COIN_WGPU_DLL_API int32_t coin_wgpu_experimental_query_capabilities(
   uint32_t target, void * output, size_t output_size);
 

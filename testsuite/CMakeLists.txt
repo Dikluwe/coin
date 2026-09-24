@@ -209,6 +209,20 @@ if(COIN_BUILD_WGPU)
 	add_test(NAME WgpuGateG0Test COMMAND WgpuGateG0Test)
 	set_tests_properties(WgpuGateG0Test PROPERTIES TIMEOUT 30)
 
+	add_executable(WgpuFrameCoreTest wgpu/WgpuFrameCoreTest.cpp)
+	set_target_properties(WgpuFrameCoreTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(WgpuFrameCoreTest CoinWgpuExperimental Coin)
+	target_include_directories(WgpuFrameCoreTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include
+		${PROJECT_SOURCE_DIR}/include
+		${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include
+		${PROJECT_BINARY_DIR}/src
+		${COIN_TARGET_INCLUDE_DIRECTORIES}
+	)
+	add_test(NAME WgpuFrameCoreTest COMMAND WgpuFrameCoreTest)
+	set_tests_properties(WgpuFrameCoreTest PROPERTIES TIMEOUT 30)
+
 	add_executable(WgpuGateG1Test
 		wgpu/WgpuGateG1Test.cpp
 	)

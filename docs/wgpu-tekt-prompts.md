@@ -109,8 +109,55 @@ regression.
 
 ### Prompt 002: FramePlan algorithms
 
-Move validation, equality and image-result transformations out of orchestration
-while retaining Coin-native data types and existing diagnostics.
+**Intent:** Remove deterministic frame and image algorithms from action
+orchestration. Keep the action responsible for Open Inventor traversal and
+ordering, not for interpreting every captured field byte by byte.
+
+**Core:** make FramePlan validation and conservative payload equality explicit
+operations on the Coin-native plan. Add an image transformation that converts
+tightly packed top-origin RGBA8 readback to Coin's texture origin. The
+transformation validates dimensions before mutating data.
+
+**Shell:** keep all existing validation diagnostics byte-for-byte stable. A
+new image-boundary diagnostic may exist only for the previously unreachable
+case in which a supposedly complete RGBA8 result has invalid dimensions.
+
+**Infra:** unchanged. Device, submission, GPU resources and readback transport
+retain their owners.
+
+**Wiring:** SoWgpuRenderAction invokes the Core operations. RTT deduplication
+continues to ignore only FramePlan revision; staged SoSceneTexture2 continues
+to flip readback exactly once before publishing it to traversal state.
+
+**Positive oracle:** equal plans with different frame revisions compare equal,
+and a 2x2 RGBA8 image has its two rows exchanged.
+
+**Negative oracle:** changing any backend-visible payload rejects plan reuse,
+and an inconsistent image byte count is rejected without mutation.
+
+**Unknown oracle:** padding in plain captured snapshots may conservatively
+prevent reuse but must never allow different captured bytes to compare equal.
+
+**Gates:** existing validation tests retain their exact messages; the new Core
+test passes in Recording and Rust builds; all product suites remain green.
+
+### Prompt 002 result — 2026-09-24
+
+- FramePlan validation and conservative payload equality moved out of the
+  action and into compiled Core code. The validation messages and public
+  experimental API signatures did not change.
+- Staged SoSceneTexture2 row conversion moved to SoWgpuImageCore, which rejects
+  inconsistent dimensions without modifying the caller's buffer.
+- Debug/Rust passed 39/39 tests; Debug/Recording passed 25/25; Release/Rust
+  passed 39/39. WgpuFrameCoreTest covers the positive and negative oracles.
+- Doxygen 1.9.8 generated the experimental overview and the
+  SoWgpuRenderAction, SoWgpuRenderTarget and SoWgpuSceneManager pages. The
+  build retains Coin's pre-existing undocumented-member warnings.
+- Dynamic-symbol inspection found the new Core entry points only in
+  libCoinWgpuExperimental, with no FramePlan or SoWgpuImageCore symbol added
+  to libCoin.
+- This atomization does not claim a frame-time improvement; its purpose is to
+  give later performance changes a single testable owner.
 
 ### Prompt 003: diagnostic Shell
 

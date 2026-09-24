@@ -1,7 +1,9 @@
 # CMakeLists.txt for CoinWgpuExperimental shared library
 
 set(COIN_WGPU_SOURCES
+	SoWgpuFramePlan.cpp
 	SoWgpuFramePlanBuilder.cpp
+	SoWgpuImageCore.cpp
 	SoWgpuRecordingBackend.cpp
 	SoWgpuCapabilities.cpp
 	SoWgpuSceneManager.cpp

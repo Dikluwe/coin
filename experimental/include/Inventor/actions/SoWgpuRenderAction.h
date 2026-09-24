@@ -43,6 +43,17 @@ class SoWgpuRenderActionP;
 class SoWgpuRenderTarget;
 struct SoWgpuReadbackTicket;
 
+/**
+ * Experimental Open Inventor action that renders a Coin scene with WebGPU.
+ *
+ * The action preserves the SoAction traversal model and captures SoState into
+ * a private frame plan consumed by CoinWgpuExperimental. It does not add
+ * symbols to libCoin. A render target must be assigned before apply().
+ *
+ * \ingroup coin_actions
+ * \see coin_wgpu_experimental
+ * \see SoWgpuRenderTarget
+ */
 class COIN_WGPU_DLL_API SoWgpuRenderAction : public SoCallbackAction {
   typedef SoCallbackAction inherited;
   SO_ACTION_HEADER(SoWgpuRenderAction);
@@ -87,8 +98,13 @@ public:
   using SoAction::apply;
 
   void apply(SoNode * root) override;
-  // Offscreen Rust backend only. Returns a ticket on SUCCESS without waiting
-  // for GPU readback; use SoWgpuRenderTarget::pollReadback/cancelReadback.
+  /**
+   * Submits an offscreen frame without waiting for GPU readback.
+   *
+   * On SUCCESS, use SoWgpuRenderTarget::pollReadback() or
+   * SoWgpuRenderTarget::cancelReadback(). The ticket does not depend on this
+   * action or its target remaining alive.
+   */
   void applyAsync(SoNode * root, SoWgpuReadbackTicket & outTicket);
   void apply(SoPath * path) override;
   void apply(const SoPathList & pathlist, SbBool obeysrules = FALSE) override;

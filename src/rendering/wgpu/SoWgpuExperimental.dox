@@ -1,0 +1,71 @@
+/*! \page coin_wgpu_experimental Experimental WebGPU renderer
+
+  \brief Opt-in rendering path for evaluating WebGPU without changing the
+  public ABI of Coin 4 or replacing its Open Inventor traversal model.
+
+  The experimental renderer is built as a separate
+  <tt>CoinWgpuExperimental</tt> library. Applications opt in with
+  <tt>COIN_BUILD_WGPU</tt> and continue to own their Coin scene graphs and,
+  for window targets, the native window and event loop.
+
+  \section coin_wgpu_inventor Open Inventor contract
+
+  SoWgpuRenderAction is an SoAction. It traverses through SoCallbackAction,
+  observes SoState through elements and bundles, and obtains fallback
+  geometry through the usual primitive callbacks. It does not introduce a
+  second scene graph or a WebGPU-specific node hierarchy.
+
+  \section coin_wgpu_flow Frame flow
+
+  A frame has four implementation responsibilities. These names describe
+  ownership of decisions; they do not impose source directory layers.
+
+  - <b>Core</b> validates and transforms Coin-native captured data and
+    connector results. It does not traverse or submit GPU work.
+  - <b>Shell</b> turns outcomes into diagnostics, logs and profiling text.
+  - <b>Infra</b> owns the private WebGPU connector, device, queue, resources,
+    submission, presentation and readback.
+  - <b>Wiring</b> is the SoWgpuRenderAction orchestration that connects Coin
+    traversal, frame planning, a render target and result publication.
+
+  The concrete flow is:
+  \code
+  Coin scene graph -> SoWgpuRenderAction traversal -> FramePlan
+                   -> private backend connector -> WebGPU target
+                   -> readback/presentation -> application
+  \endcode
+
+  FramePlan and the C ABI used by the Rust bridge are private implementation
+  contracts. Only headers under <tt>experimental/include</tt> form the
+  experimental source API.
+
+  \section coin_wgpu_targets Targets and readback
+
+  SoWgpuRenderTarget creates either an offscreen target or a target backed by
+  a native surface descriptor. Synchronous rendering includes readback when
+  pixels are requested. SoWgpuRenderAction::applyAsync() separates submission
+  from polling, but does not by itself guarantee a lower total elapsed time.
+  SoWgpuReadbackTicket remains valid independently of the originating action
+  and target; successful polling consumes it.
+
+  \section coin_wgpu_profile Measurement contract
+
+  Performance comparisons should use Release builds and report traversal and
+  FramePlan construction, resource preparation, submit, GPU execution and
+  readback separately. Report median, p95, visual error and memory, and compare
+  against OpenGL on the same adapter and workload. Direct render-to-texture
+  and asynchronous readback are opt-in mechanisms, not performance claims.
+
+  \section coin_wgpu_limits Experimental status
+
+  The module is intentionally separate from <tt>libCoin</tt>. Its profile and
+  capabilities can change while it is experimental. Query
+  coin_wgpu_experimental_query_capabilities() before relying on optional
+  features, and treat SoWgpuRenderAction::UNSUPPORTED as a normal conservative
+  refusal when the captured Open Inventor state cannot be represented safely.
+
+  \see SoWgpuRenderAction
+  \see SoWgpuRenderTarget
+  \see SoWgpuSceneManager
+  \see coin_wgpu_experimental_query_capabilities
+*/

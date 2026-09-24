@@ -1,6 +1,7 @@
 #ifndef COIN_SOWGPUFRAMEPLAN_H
 #define COIN_SOWGPUFRAMEPLAN_H
 
+#include <Inventor/CoinWgpuExport.h>
 #include <Inventor/SbColor4f.h>
 #include <Inventor/SbColor.h>
 #include <Inventor/SbMatrix.h>
@@ -12,7 +13,6 @@
 #include <vector>
 #include <string>
 #include <cstdint>
-#include <cmath>
 
 struct VertexSnapshot {
   float position[3] = {0.0f, 0.0f, 0.0f};
@@ -179,6 +179,12 @@ struct RenderStateSnapshot {
   float fogEnd = 10.0f;
 };
 
+/**
+ * Private, Coin-native description of one captured WebGPU frame.
+ *
+ * The plan is the mechanical boundary between Open Inventor traversal and a
+ * concrete backend. It owns no GPU resources and performs no submission.
+ */
 struct FramePlan {
   uint64_t revision = 0;
   SbColor4f clearColor = SbColor4f(0.0f, 0.0f, 0.0f, 1.0f);
@@ -193,263 +199,21 @@ struct FramePlan {
   std::vector<SamplerSnapshot> samplers;
   std::vector<DrawPacket> draws;
 
-  inline bool isValid(std::string * outDiagnostic = nullptr) const {
-    auto isFiniteF = [](float v) { return std::isfinite(v); };
+  /**
+   * Checks semantic and range invariants before a backend consumes the plan.
+   *
+   * Existing diagnostic text is intentionally stable because the Shell layer
+   * can expose it to tests, logs and applications.
+   */
+  COIN_WGPU_DLL_API bool isValid(std::string * outDiagnostic = nullptr) const;
 
-    auto isMatrixFinite = [&](const SbMatrix & m) {
-      const float (*mat)[4] = m.getValue();
-      for (int r = 0; r < 4; ++r) {
-        for (int c = 0; c < 4; ++c) {
-          if (!isFiniteF(mat[r][c])) return false;
-        }
-      }
-      return true;
-    };
-
-    // Validate clear color
-    for (int i = 0; i < 4; ++i) {
-      if (!isFiniteF(clearColor[i])) {
-        if (outDiagnostic) *outDiagnostic = "Invalid clearColor (NaN or inf)";
-        return false;
-      }
-    }
-
-    // Alpha is a compositing contract, not an arbitrary shader payload.
-    for (size_t i = 0; i < materials.size(); ++i) {
-      const auto & m = materials[i];
-      if (!isFiniteF(m.transparency) || m.transparency < 0.0f || m.transparency > 1.0f ||
-          !isFiniteF(m.diffuse[3]) || m.diffuse[3] < 0.0f || m.diffuse[3] > 1.0f) {
-        if (outDiagnostic) *outDiagnostic = "Material has invalid transparency or diffuse alpha";
-        return false;
-      }
-      if (std::abs(m.diffuse[3] + m.transparency - 1.0f) > 1.0e-5f) {
-        if (outDiagnostic) *outDiagnostic = "Material alpha and transparency are inconsistent";
-        return false;
-      }
-    }
-
-    // Validate vertices
-    const size_t numVertices = vertices.size();
-    for (size_t i = 0; i < numVertices; ++i) {
-      const auto & v = vertices[i];
-      for (int k = 0; k < 3; ++k) {
-        if (!isFiniteF(v.position[k]) || !isFiniteF(v.normal[k])) {
-          if (outDiagnostic) *outDiagnostic = "Vertex contains non-finite position or normal";
-          return false;
-        }
-      }
-      for (int k = 0; k < 2; ++k) {
-        if (!isFiniteF(v.texcoord[k])) {
-          if (outDiagnostic) *outDiagnostic = "Vertex contains non-finite texcoord";
-          return false;
-        }
-      }
-      if (materials.empty() || v.materialSlot >= materials.size()) {
-        if (outDiagnostic) *outDiagnostic = "Vertex references out-of-range material slot";
-        return false;
-      }
-    }
-
-    // Validate indices
-    const size_t numIndices = indices.size();
-    for (size_t i = 0; i < numIndices; ++i) {
-      if (indices[i] >= numVertices) {
-        if (outDiagnostic) *outDiagnostic = "Index out of range of vertex buffer";
-        return false;
-      }
-    }
-
-    // Validate cameras
-    for (size_t i = 0; i < cameras.size(); ++i) {
-      const auto & c = cameras[i];
-      if (!isMatrixFinite(c.viewMatrix) || !isMatrixFinite(c.projectionMatrixCoin)) {
-        if (outDiagnostic) *outDiagnostic = "Camera matrix contains non-finite values";
-        return false;
-      }
-      if (!isFiniteF(c.nearDistance) || !isFiniteF(c.farDistance) || c.farDistance <= c.nearDistance) {
-        if (outDiagnostic) *outDiagnostic = "Camera clip planes are invalid or inverted";
-        return false;
-      }
-    }
-
-    // Validate textures
-    for (size_t i = 0; i < textures.size(); ++i) {
-      const auto & tex = textures[i];
-      if (tex.width == 0 || tex.height == 0) {
-        if (outDiagnostic) *outDiagnostic = "Texture contains zero width or height";
-        return false;
-      }
-      if (tex.width > 8192 || tex.height > 8192) {
-        if (outDiagnostic) *outDiagnostic = "Texture dimensions exceed 8192 limit";
-        return false;
-      }
-      uint64_t expectedBytes = static_cast<uint64_t>(tex.width) * static_cast<uint64_t>(tex.height) * 4ULL;
-      if (tex.gpuToken == 0 && tex.pixelsRgba.size() != expectedBytes) {
-        if (outDiagnostic) *outDiagnostic = "Texture pixel buffer size mismatch";
-        return false;
-      }
-      if (tex.gpuToken != 0 && !tex.pixelsRgba.empty()) {
-        if (outDiagnostic) *outDiagnostic = "GPU texture must not carry CPU pixels";
-        return false;
-      }
-    }
-
-    // The Coin 4 experimental module has a fixed, explicit per-draw light budget.
-    for (size_t i = 0; i < lightingStates.size(); ++i) {
-      const LightingSnapshot & ls = lightingStates[i];
-      if (ls.lights.size() > COIN_WGPU_MAX_LIGHTS) {
-        if (outDiagnostic) *outDiagnostic = "More than eight active lights";
-        return false;
-      }
-      if (!isFiniteF(ls.ambientIntensity) || ls.ambientIntensity < 0.0f) {
-        if (outDiagnostic) *outDiagnostic = "Invalid ambient intensity";
-        return false;
-      }
-      for (int c = 0; c < 3; ++c) {
-        if (!isFiniteF(ls.ambientColor[c])) {
-          if (outDiagnostic) *outDiagnostic = "Invalid ambient color";
-          return false;
-        }
-      }
-      for (size_t j = 0; j < ls.lights.size(); ++j) {
-        const LightSourceSnapshot & l = ls.lights[j];
-        if (l.type != LightType::DIRECTIONAL && l.type != LightType::POINT && l.type != LightType::SPOT) {
-          if (outDiagnostic) *outDiagnostic = "Unsupported light type";
-          return false;
-        }
-        if (!isFiniteF(l.intensity) || l.intensity < 0.0f ||
-            !isFiniteF(l.cutOffAngle) || !isFiniteF(l.dropOffRate)) {
-          if (outDiagnostic) *outDiagnostic = "Invalid light intensity or cone";
-          return false;
-        }
-        bool anyAttenuation = false;
-        for (int c = 0; c < 3; ++c) {
-          if (!isFiniteF(l.color[c]) || !isFiniteF(l.direction[c]) || !isFiniteF(l.position[c]) ||
-              !isFiniteF(l.attenuation[c]) || l.attenuation[c] < 0.0f) {
-            if (outDiagnostic) *outDiagnostic = "Invalid light vector, color or attenuation";
-            return false;
-          }
-          anyAttenuation = anyAttenuation || l.attenuation[c] > 0.0f;
-        }
-        if (l.type != LightType::DIRECTIONAL && !anyAttenuation) {
-          if (outDiagnostic) *outDiagnostic = "Degenerate positional light attenuation";
-          return false;
-        }
-        if (l.type != LightType::POINT) {
-          const float dirLengthSq = l.direction[0] * l.direction[0] +
-            l.direction[1] * l.direction[1] + l.direction[2] * l.direction[2];
-          if (dirLengthSq <= 1.0e-12f) {
-            if (outDiagnostic) *outDiagnostic = "Zero light direction";
-            return false;
-          }
-        }
-        if (l.type == LightType::SPOT &&
-            (l.cutOffAngle < 0.0f || l.cutOffAngle > 1.570796327f ||
-             l.dropOffRate < 0.0f || l.dropOffRate > 1.0f)) {
-          if (outDiagnostic) *outDiagnostic = "Spot cone outside supported range";
-          return false;
-        }
-      }
-    }
-
-    // Validate render states textureMatrix and slots
-    for (size_t i = 0; i < renderStates.size(); ++i) {
-      const auto & rs = renderStates[i];
-      if (rs.fogMode != FogMode::NONE && rs.fogMode != FogMode::HAZE &&
-          rs.fogMode != FogMode::FOG && rs.fogMode != FogMode::SMOKE) {
-        if (outDiagnostic) *outDiagnostic = "Unsupported fog mode";
-        return false;
-      }
-      if (!isFiniteF(rs.fogStart) || !isFiniteF(rs.fogEnd) ||
-          (rs.fogMode != FogMode::NONE && rs.fogEnd <= 0.0f) ||
-          (rs.fogMode == FogMode::HAZE && rs.fogEnd <= rs.fogStart)) {
-        if (outDiagnostic) *outDiagnostic = "Invalid fog range";
-        return false;
-      }
-      for (int c = 0; c < 3; ++c) {
-        if (!isFiniteF(rs.fogColor[c])) {
-          if (outDiagnostic) *outDiagnostic = "Invalid fog color";
-          return false;
-        }
-      }
-      if (rs.hasTexture) {
-        if (!isMatrixFinite(rs.textureMatrix)) {
-          if (outDiagnostic) *outDiagnostic = "RenderState contains non-finite texture matrix";
-          return false;
-        }
-        if (rs.textureImageSlot >= textures.size()) {
-          if (outDiagnostic) *outDiagnostic = "RenderState references out-of-bounds texture image slot";
-          return false;
-        }
-        if (rs.samplerSlot >= samplers.size()) {
-          if (outDiagnostic) *outDiagnostic = "RenderState references out-of-bounds sampler slot";
-          return false;
-        }
-      }
-    }
-
-    // Validate draws
-    for (size_t i = 0; i < draws.size(); ++i) {
-      const auto & d = draws[i];
-      if (d.renderStateSlot >= renderStates.size()) {
-        if (outDiagnostic) *outDiagnostic = "Draw references invalid renderStateSlot";
-        return false;
-      }
-      const auto & geom = d.geometry;
-
-      // Safe subtraction validation against 32-bit overflow (B05)
-      if (geom.firstVertex > numVertices || geom.vertexCount > (numVertices - geom.firstVertex)) {
-        if (outDiagnostic) *outDiagnostic = "Draw vertex range out of bounds";
-        return false;
-      }
-      if (geom.firstIndex > numIndices || geom.indexCount > (numIndices - geom.firstIndex)) {
-        if (outDiagnostic) *outDiagnostic = "Draw index range out of bounds";
-        return false;
-      }
-
-      if (d.topology == PrimitiveTopology::TRIANGLE_LIST && (geom.indexCount % 3 != 0)) {
-        if (outDiagnostic) *outDiagnostic = "Triangle list index count is not multiple of 3";
-        return false;
-      }
-      if (d.topology == PrimitiveTopology::LINE_LIST && (geom.indexCount % 2 != 0)) {
-        if (outDiagnostic) *outDiagnostic = "Line list index count is not multiple of 2";
-        return false;
-      }
-
-      const auto & rs = renderStates[d.renderStateSlot];
-      if (!isMatrixFinite(rs.model) || !isMatrixFinite(rs.view) || !isMatrixFinite(rs.projectionCoin)) {
-        if (outDiagnostic) *outDiagnostic = "RenderState matrix contains non-finite values";
-        return false;
-      }
-      if (materials.empty() || rs.materialSlot >= materials.size()) {
-        if (outDiagnostic) *outDiagnostic = "RenderState materialSlot out of range";
-        return false;
-      }
-      if (lightingStates.empty() || rs.lightingSlot >= lightingStates.size()) {
-        if (outDiagnostic) *outDiagnostic = "RenderState lightingSlot out of range";
-        return false;
-      }
-      if (d.topology == PrimitiveTopology::TRIANGLE_LIST && rs.lightModel == LightModel::PHONG) {
-        const SbMatrix modelView = rs.model * rs.view;
-        const float determinant = modelView.det4();
-        if (!isFiniteF(determinant) || std::abs(determinant) <= 1.0e-12f) {
-          if (outDiagnostic) *outDiagnostic = "Singular model-view normal matrix";
-          return false;
-        }
-      }
-
-      if (cameras.empty() || rs.cameraSlot >= cameras.size()) {
-        if (outDiagnostic) *outDiagnostic = "RenderState cameraSlot out of range";
-        return false;
-      }
-      if (viewports.empty() || rs.viewportSlot >= viewports.size()) {
-        if (outDiagnostic) *outDiagnostic = "RenderState viewportSlot out of range";
-        return false;
-      }
-    }
-
-    return true;
-  }
+  /**
+   * Compares captured payload for conservative reuse.
+   *
+   * Frame revision is deliberately ignored. A false result requires rebuild;
+   * a true result means every backend-visible captured field is equal.
+   */
+  COIN_WGPU_DLL_API bool hasSamePayload(const FramePlan & other) const;
 };
 
 #endif // !COIN_SOWGPUFRAMEPLAN_H

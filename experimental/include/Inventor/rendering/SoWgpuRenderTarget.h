@@ -45,6 +45,11 @@
 class SoWgpuRenderTargetP;
 class SoWgpuRenderActionP;
 
+/**
+ * Resource-cache counters for the most recent and cumulative submissions.
+ *
+ * Values are snapshots and do not transfer ownership of backend resources.
+ */
 struct SoWgpuCacheTelemetry {
   uint64_t cumulativeUploads = 0;
   uint64_t cumulativeHits = 0;
@@ -59,7 +64,12 @@ struct SoWgpuCacheTelemetry {
   uint64_t submissionSerial = 0;
 };
 
-// Experimental ticket: valid independently of the action and target lifetime.
+/**
+ * Opaque experimental handle for an asynchronous offscreen readback.
+ *
+ * A ticket remains valid independently of the action and target lifetime.
+ * Successful polling or explicit cancellation consumes it.
+ */
 struct SoWgpuReadbackTicket {
   uint64_t token = 0;
   uint64_t generation = 0;
@@ -74,6 +84,15 @@ struct SoWgpuReadbackTicket {
   uint64_t depthBytes = 0;
 };
 
+/**
+ * Experimental offscreen or native-window destination for WebGPU rendering.
+ *
+ * The target owns backend attachments and presentation state, but never owns
+ * native window handles supplied through SoWgpuNativeSurfaceDescriptor.
+ *
+ * \see coin_wgpu_experimental
+ * \see SoWgpuRenderAction
+ */
 class COIN_WGPU_DLL_API SoWgpuRenderTarget {
 public:
   typedef struct ::SoWgpuCacheTelemetry SoWgpuCacheTelemetry;
@@ -107,8 +126,12 @@ public:
   SbBool resize(const SbVec2i32 & size);
   void readbackRGBA(std::vector<uint8_t> & outPixels) const;
   void readbackDepth(std::vector<float> & outDepth) const;
-  // Poll/cancel do not require the original target to remain alive. Outputs are
-  // changed together only on READBACK_READY; a ticket is consumed on success.
+  /**
+   * Polls a ticket produced by SoWgpuRenderAction::applyAsync().
+   *
+   * The original action and target need not remain alive. Outputs change
+   * together only on READBACK_READY, which also consumes the ticket.
+   */
   static ReadbackStatus pollReadback(const SoWgpuReadbackTicket & ticket,
                                      std::vector<uint8_t> & outColor,
                                      std::vector<float> & outDepth,
