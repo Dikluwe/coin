@@ -162,7 +162,15 @@ SoWgpuRustBackend::prepare(SoWgpuRenderTargetP & target)
 SubmitResult
 SoWgpuRustBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target)
 {
-  return this->submitInternal(frame, target, NULL);
+  return this->submitInternal(frame, target, NULL,
+    SoWgpuFrameReuseDecision(SoWgpuFrameReuseKind::FULL_REBUILD, 0));
+}
+
+SubmitResult
+SoWgpuRustBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
+                          const SoWgpuFrameReuseDecision & reuse)
+{
+  return this->submitInternal(frame, target, NULL, reuse);
 }
 
 SubmitResult
@@ -170,12 +178,24 @@ SoWgpuRustBackend::submitAsync(const FramePlan & frame, SoWgpuRenderTargetP & ta
                                SoWgpuReadbackTicket & outTicket)
 {
   outTicket = SoWgpuReadbackTicket{};
-  return this->submitInternal(frame, target, &outTicket);
+  return this->submitInternal(frame, target, &outTicket,
+    SoWgpuFrameReuseDecision(SoWgpuFrameReuseKind::FULL_REBUILD, 0));
+}
+
+SubmitResult
+SoWgpuRustBackend::submitAsync(const FramePlan & frame,
+                               SoWgpuRenderTargetP & target,
+                               SoWgpuReadbackTicket & outTicket,
+                               const SoWgpuFrameReuseDecision & reuse)
+{
+  outTicket = SoWgpuReadbackTicket{};
+  return this->submitInternal(frame, target, &outTicket, reuse);
 }
 
 SubmitResult
 SoWgpuRustBackend::submitInternal(const FramePlan & frame, SoWgpuRenderTargetP & target,
-                                  SoWgpuReadbackTicket * outTicket)
+                                  SoWgpuReadbackTicket * outTicket,
+                                  const SoWgpuFrameReuseDecision & reuse)
 {
   typedef std::chrono::steady_clock ProfileClock;
   const ProfileClock::time_point profileBegin = ProfileClock::now();
@@ -201,6 +221,7 @@ SoWgpuRustBackend::submitInternal(const FramePlan & frame, SoWgpuRenderTargetP &
   if (!this->ffiFrame->prepare(frame,
                                static_cast<uint32_t>(target.size[0]),
                                static_cast<uint32_t>(target.size[1]),
+                               reuse,
                                packDiagnostic)) {
     this->lastError = packDiagnostic;
     this->status = BackendStatus::UNSUPPORTED;
@@ -263,6 +284,7 @@ SoWgpuRustBackend::submitInternal(const FramePlan & frame, SoWgpuRenderTargetP &
       sample.ffiMs = std::chrono::duration<double, std::milli>(
         profileBridgeDone - profilePacked).count();
       sample.packCacheHit = packCacheHit;
+      sample.packKind = this->ffiFrame->lastPrepareKind();
       std::cerr << SoWgpuDiagnosticShell::formatBridgePhase(sample) << '\n';
     }
   }
@@ -311,7 +333,9 @@ SoWgpuRustBackend::~SoWgpuRustBackend() {}
 BackendStatus SoWgpuRustBackend::getStatus() const { return status; }
 BackendStatus SoWgpuRustBackend::prepare(SoWgpuRenderTargetP &) { return BackendStatus::UNSUPPORTED; }
 SubmitResult SoWgpuRustBackend::submit(const FramePlan &, SoWgpuRenderTargetP &) { return SubmitResult(BackendStatus::UNSUPPORTED, "Rust bridge not compiled in"); }
+SubmitResult SoWgpuRustBackend::submit(const FramePlan &, SoWgpuRenderTargetP &, const SoWgpuFrameReuseDecision &) { return SubmitResult(BackendStatus::UNSUPPORTED, "Rust bridge not compiled in"); }
 SubmitResult SoWgpuRustBackend::submitAsync(const FramePlan &, SoWgpuRenderTargetP &, SoWgpuReadbackTicket &) { return SubmitResult(BackendStatus::UNSUPPORTED, "Rust bridge not compiled in"); }
+SubmitResult SoWgpuRustBackend::submitAsync(const FramePlan &, SoWgpuRenderTargetP &, SoWgpuReadbackTicket &, const SoWgpuFrameReuseDecision &) { return SubmitResult(BackendStatus::UNSUPPORTED, "Rust bridge not compiled in"); }
 void SoWgpuRustBackend::poll() {}
 const std::string & SoWgpuRustBackend::getLastError() const { return lastError; }
 bool SoWgpuRustBackend::isAvailable() { return false; }

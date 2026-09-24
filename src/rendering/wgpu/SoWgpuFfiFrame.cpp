@@ -12,7 +12,8 @@
 #include <cstring>
 
 SoWgpuFfiFrame::SoWgpuFfiFrame()
-  : packedRevision(0), reused(false), view{}
+  : packedRevision(0), reused(false),
+    prepareKind(SoWgpuFrameReuseKind::UNKNOWN), view{}
 {
 }
 
@@ -20,14 +21,35 @@ bool
 SoWgpuFfiFrame::prepare(const FramePlan & frame, uint32_t width, uint32_t height,
                         std::string & outDiagnostic)
 {
+  return this->prepare(frame, width, height,
+    SoWgpuFrameReuseDecision(SoWgpuFrameReuseKind::FULL_REBUILD, 0),
+    outDiagnostic);
+}
+
+bool
+SoWgpuFfiFrame::prepare(const FramePlan & frame, uint32_t width, uint32_t height,
+                        const SoWgpuFrameReuseDecision & reuse,
+                        std::string & outDiagnostic)
+{
   outDiagnostic.clear();
   if (frame.revision != 0 && frame.revision == this->packedRevision) {
     this->reused = true;
+    this->prepareKind = SoWgpuFrameReuseKind::REUSE;
     this->view.width = width;
     this->view.height = height;
     return true;
   }
   this->reused = false;
+
+  if (reuse.kind == SoWgpuFrameReuseKind::CAMERA_PATCH &&
+      reuse.baseRevision != 0 && reuse.baseRevision == this->packedRevision &&
+      this->states.size() == frame.renderStates.size()) {
+    if (!this->packStates(frame, outDiagnostic)) return false;
+    this->bindView(frame, width, height);
+    this->packedRevision = frame.revision;
+    this->prepareKind = SoWgpuFrameReuseKind::CAMERA_PATCH;
+    return true;
+  }
 
   this->vertices.resize(frame.vertices.size());
   for (size_t i = 0; i < frame.vertices.size(); ++i) {
@@ -68,6 +90,41 @@ SoWgpuFfiFrame::prepare(const FramePlan & frame, uint32_t width, uint32_t height
     dst.transparency = src.transparency;
   }
 
+  if (!this->packStates(frame, outDiagnostic)) return false;
+
+  this->texturePixels.resize(frame.textures.size());
+  this->textures.assign(frame.textures.size(), CoinWgpuTexture{});
+  for (size_t i = 0; i < frame.textures.size(); ++i) {
+    const TextureImageSnapshot & src = frame.textures[i];
+    CoinWgpuTexture & dst = this->textures[i];
+    this->texturePixels[i] = src.pixelsRgba;
+    dst.width = src.width;
+    dst.height = src.height;
+    dst.format = src.gpuToken ? 1 : 0;
+    dst.reserved = src.gpuToken && src.gpuOpaque ? 1 : 0;
+    dst.content_digest = src.gpuToken ? src.gpuToken : src.contentDigest;
+    dst.pixels = src.gpuToken ? NULL : this->texturePixels[i].data();
+    dst.pixel_bytes_len = static_cast<uint64_t>(this->texturePixels[i].size());
+  }
+
+  this->samplers.assign(frame.samplers.size(), CoinWgpuSampler{});
+  for (size_t i = 0; i < frame.samplers.size(); ++i) {
+    this->samplers[i].wrap_s = static_cast<uint32_t>(frame.samplers[i].wrapS);
+    this->samplers[i].wrap_t = static_cast<uint32_t>(frame.samplers[i].wrapT);
+    this->samplers[i].filter = static_cast<uint32_t>(frame.samplers[i].filter);
+  }
+
+  this->bindView(frame, width, height);
+  this->packedRevision = frame.revision;
+  this->prepareKind = reuse.kind == SoWgpuFrameReuseKind::RESOURCE_REBUILD
+    ? SoWgpuFrameReuseKind::RESOURCE_REBUILD
+    : SoWgpuFrameReuseKind::FULL_REBUILD;
+  return true;
+}
+
+bool
+SoWgpuFfiFrame::packStates(const FramePlan & frame, std::string & outDiagnostic)
+{
   this->states.assign(frame.renderStates.size(), CoinWgpuRenderState{});
   for (size_t i = 0; i < frame.renderStates.size(); ++i) {
     const RenderStateSnapshot & src = frame.renderStates[i];
@@ -134,6 +191,7 @@ SoWgpuFfiFrame::prepare(const FramePlan & frame, uint32_t width, uint32_t height
         if (lighting.lights.size() > COIN_WGPU_FFI_MAX_LIGHTS) {
           outDiagnostic = "More than eight active lights in FramePlan";
           this->packedRevision = 0;
+          this->prepareKind = SoWgpuFrameReuseKind::UNKNOWN;
           return false;
         }
         dst.light_count = static_cast<uint32_t>(lighting.lights.size());
@@ -156,31 +214,6 @@ SoWgpuFfiFrame::prepare(const FramePlan & frame, uint32_t width, uint32_t height
       }
     }
   }
-
-  this->texturePixels.resize(frame.textures.size());
-  this->textures.assign(frame.textures.size(), CoinWgpuTexture{});
-  for (size_t i = 0; i < frame.textures.size(); ++i) {
-    const TextureImageSnapshot & src = frame.textures[i];
-    CoinWgpuTexture & dst = this->textures[i];
-    this->texturePixels[i] = src.pixelsRgba;
-    dst.width = src.width;
-    dst.height = src.height;
-    dst.format = src.gpuToken ? 1 : 0;
-    dst.reserved = src.gpuToken && src.gpuOpaque ? 1 : 0;
-    dst.content_digest = src.gpuToken ? src.gpuToken : src.contentDigest;
-    dst.pixels = src.gpuToken ? NULL : this->texturePixels[i].data();
-    dst.pixel_bytes_len = static_cast<uint64_t>(this->texturePixels[i].size());
-  }
-
-  this->samplers.assign(frame.samplers.size(), CoinWgpuSampler{});
-  for (size_t i = 0; i < frame.samplers.size(); ++i) {
-    this->samplers[i].wrap_s = static_cast<uint32_t>(frame.samplers[i].wrapS);
-    this->samplers[i].wrap_t = static_cast<uint32_t>(frame.samplers[i].wrapT);
-    this->samplers[i].filter = static_cast<uint32_t>(frame.samplers[i].filter);
-  }
-
-  this->bindView(frame, width, height);
-  this->packedRevision = frame.revision;
   return true;
 }
 
@@ -220,4 +253,10 @@ bool
 SoWgpuFfiFrame::reusedLastPrepare() const
 {
   return this->reused;
+}
+
+SoWgpuFrameReuseKind
+SoWgpuFfiFrame::lastPrepareKind() const
+{
+  return this->prepareKind;
 }

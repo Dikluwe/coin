@@ -49,6 +49,27 @@
   and transforms Coin-native indexed arrays. Concave and general polygons
   continue through Coin's established tessellation fallback.
 
+  \section coin_wgpu_reuse Typed frame reuse
+
+  Consecutive private FramePlans have one conservative relationship:
+  <tt>reuse</tt>, <tt>camera_patch</tt>, <tt>resource_rebuild</tt>,
+  <tt>full_rebuild</tt> or <tt>unknown</tt>. Core classifies already captured
+  Coin-native data; Wiring keeps traversal and cache ownership; Infra applies
+  only the update it can prove against its currently owned base revision.
+
+  A camera patch preserves packed geometry, indices, draws, materials,
+  textures and samplers, and regenerates render-state matrices and uniforms.
+  It is accepted only if its base revision still matches the FFI packer. This
+  matters when actions or targets are reused in different orders: a stale
+  hint becomes a full pack rather than observing unrelated storage. Opaque
+  GPU texture tokens and unversioned plans remain <tt>unknown</tt>.
+
+  An unchanged scene-root identifier still skips traversal. A camera-only
+  change currently requires normal Coin traversal and FramePlan construction
+  before it can be classified; the optimization removes immutable FFI
+  repacking, not that traversal cost. With phase tracing enabled,
+  <tt>plan_reuse</tt> and <tt>pack_mode</tt> expose the chosen paths.
+
   \section coin_wgpu_targets Targets and readback
 
   SoWgpuRenderTarget creates either an offscreen target or a target backed by

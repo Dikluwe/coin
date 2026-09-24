@@ -7,6 +7,7 @@
 #include <Inventor/rendering/SoWgpuRenderTarget.h>
 
 #include "rendering/wgpu/SoWgpuBackend.h"
+#include "rendering/wgpu/SoWgpuFrameReuseCore.h"
 
 #include <cstddef>
 #include <string>
@@ -39,12 +40,14 @@ struct SoWgpuActionPhaseSample {
   size_t indices = 0;
   size_t draws = 0;
   bool planCacheHit = false;
+  SoWgpuFrameReuseKind reuseKind = SoWgpuFrameReuseKind::UNKNOWN;
 };
 
 struct SoWgpuBridgePhaseSample {
   double packMs = 0.0;
   double ffiMs = 0.0;
   bool packCacheHit = false;
+  SoWgpuFrameReuseKind packKind = SoWgpuFrameReuseKind::UNKNOWN;
 };
 
 // Language-facing policy for private WebGPU statuses, diagnostics and traces.
@@ -75,6 +78,8 @@ public:
     SoWgpuRenderAction::Status status);
   COIN_WGPU_DLL_API static const char * domainName(
     SoWgpuDiagnosticDomain domain);
+  COIN_WGPU_DLL_API static const char * reuseKindName(
+    SoWgpuFrameReuseKind kind);
 
   COIN_WGPU_DLL_API static bool phaseTracingEnabled(void);
   COIN_WGPU_DLL_API static std::string formatActionPhase(

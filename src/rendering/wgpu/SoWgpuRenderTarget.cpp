@@ -355,7 +355,15 @@ SoWgpuRenderTargetP::validateProfile(const FramePlan & frame, std::string & outD
 FrameExecutionResult
 SoWgpuRenderTargetP::executeFrame(const FramePlan & frame)
 {
-  return this->executeFrameInternal(frame, NULL);
+  return this->executeFrameInternal(frame, NULL,
+    SoWgpuFrameReuseDecision(SoWgpuFrameReuseKind::FULL_REBUILD, 0));
+}
+
+FrameExecutionResult
+SoWgpuRenderTargetP::executeFrame(const FramePlan & frame,
+                                  const SoWgpuFrameReuseDecision & reuse)
+{
+  return this->executeFrameInternal(frame, NULL, reuse);
 }
 
 FrameExecutionResult
@@ -363,12 +371,23 @@ SoWgpuRenderTargetP::executeFrameAsync(const FramePlan & frame,
                                        SoWgpuReadbackTicket & outTicket)
 {
   outTicket = SoWgpuReadbackTicket{};
-  return this->executeFrameInternal(frame, &outTicket);
+  return this->executeFrameInternal(frame, &outTicket,
+    SoWgpuFrameReuseDecision(SoWgpuFrameReuseKind::FULL_REBUILD, 0));
+}
+
+FrameExecutionResult
+SoWgpuRenderTargetP::executeFrameAsync(const FramePlan & frame,
+                                       SoWgpuReadbackTicket & outTicket,
+                                       const SoWgpuFrameReuseDecision & reuse)
+{
+  outTicket = SoWgpuReadbackTicket{};
+  return this->executeFrameInternal(frame, &outTicket, reuse);
 }
 
 FrameExecutionResult
 SoWgpuRenderTargetP::executeFrameInternal(const FramePlan & frame,
-                                          SoWgpuReadbackTicket * outTicket)
+                                          SoWgpuReadbackTicket * outTicket,
+                                          const SoWgpuFrameReuseDecision & reuse)
 {
   if (outTicket && this->kind != KIND_OFFSCREEN) {
     return FrameExecutionResult(BackendStatus::UNSUPPORTED,
@@ -434,9 +453,12 @@ SoWgpuRenderTargetP::executeFrameInternal(const FramePlan & frame,
 #if defined(HAVE_WGPU_RUST_BRIDGE)
   if (outTicket) {
     SoWgpuRustBackend * rust = dynamic_cast<SoWgpuRustBackend *>(this->backend.get());
-    res = rust ? rust->submitAsync(frame, *this, *outTicket)
+    res = rust ? rust->submitAsync(frame, *this, *outTicket, reuse)
                : SubmitResult(BackendStatus::UNSUPPORTED,
                               "Asynchronous readback requires the Rust bridge backend");
+  } else if (SoWgpuRustBackend * rust =
+               dynamic_cast<SoWgpuRustBackend *>(this->backend.get())) {
+    res = rust->submit(frame, *this, reuse);
   } else
 #endif
   {

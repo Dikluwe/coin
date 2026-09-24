@@ -3,6 +3,7 @@
 #define COIN_SOWGPURUSTBACKEND_H
 
 #include "rendering/wgpu/SoWgpuBackend.h"
+#include "rendering/wgpu/SoWgpuFrameReuseCore.h"
 #include <memory>
 #include <string>
 
@@ -19,8 +20,13 @@ public:
   virtual BackendStatus prepare(SoWgpuRenderTargetP & target) override;
   virtual SubmitResult submit(const FramePlan & frame,
                               SoWgpuRenderTargetP & target) override;
+  SubmitResult submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
+                      const SoWgpuFrameReuseDecision & reuse);
   SubmitResult submitAsync(const FramePlan & frame, SoWgpuRenderTargetP & target,
                            SoWgpuReadbackTicket & outTicket);
+  SubmitResult submitAsync(const FramePlan & frame, SoWgpuRenderTargetP & target,
+                           SoWgpuReadbackTicket & outTicket,
+                           const SoWgpuFrameReuseDecision & reuse);
   virtual void poll() override;
   virtual const std::string & getLastError() const override;
 
@@ -29,7 +35,8 @@ public:
 
 private:
   SubmitResult submitInternal(const FramePlan & frame, SoWgpuRenderTargetP & target,
-                              SoWgpuReadbackTicket * outTicket);
+                              SoWgpuReadbackTicket * outTicket,
+                              const SoWgpuFrameReuseDecision & reuse);
   BackendStatus status;
   std::string lastError;
   std::unique_ptr<SoWgpuFfiFrame> ffiFrame;

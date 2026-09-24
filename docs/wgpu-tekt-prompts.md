@@ -246,9 +246,71 @@ frame-time improvement claim.
 
 ### Prompt 005: typed frame reuse
 
-Replace binary whole-plan reuse with explicit outcomes: reuse, patch,
-resource rebuild, full rebuild or unknown. Start with a camera-only patch and
-fall back conservatively when dependencies are not known.
+**Intent:** Replace the binary whole-plan cache decision with an explicit,
+testable relationship between consecutive private FramePlans. Preserve the
+existing static-scene traversal skip while making smaller future updates
+possible without guessing about external resource ownership.
+
+**Core:** classify two nonzero revisions as exact reuse, camera-only patch,
+resource rebuild, full rebuild or unknown. A camera patch requires equal
+camera-independent payload, stable camera slots, and render-state view and
+projection matrices that agree with their referenced camera snapshots. Direct
+GPU texture tokens and unversioned plans are unknown.
+
+**Shell:** give every result one stable lowercase name. Extend the existing
+opt-in phase lines with `plan_reuse` and `pack_mode` while retaining
+`plan_cache_hit` and `pack_cache_hit` for existing consumers.
+
+**Infra:** accept a camera patch only when its `baseRevision` equals the
+revision currently owned by the FFI packer. Repack render states and their
+derived model-view, MVP and normal matrices; preserve packed geometry,
+indices, draws, materials, textures and samplers. A stale or missing base
+revision performs a full pack.
+
+**Wiring:** skip traversal for an unchanged root as before. After a changed
+root is captured and validated, classify it against the prior plan from the
+same root, reuse the prior immutable revision when equal, and pass the typed
+decision through the target to Infra. RTT direct mode remains unknown and
+keeps its conservative path.
+
+**Positive oracle:** equal payload reuses the previous revision; a base-color
+camera move is classified and packed as `camera_patch` without repacking
+geometry.
+
+**Negative oracle:** a stale camera-patch base revision forces a full pack;
+geometry changes never classify as a camera patch.
+
+**Unknown oracle:** unversioned plans and plans containing opaque connector
+texture tokens are unknown and receive no partial-reuse promise.
+
+**Gates:** direct Core and FFI tests cover all outcomes and stale-base
+fallback; camera, lighting and visual suites stay green; Debug Recording,
+Debug Rust and Release Rust pass; new symbols remain outside `libCoin`.
+
+**Result (2026-09-24):** SoWgpuFrameReuseCore now classifies all five
+outcomes, Wiring records the selected outcome, and the Rust Infra accepts a
+camera patch only when its owned packed revision equals the classified base.
+The Shell retained the old cache-hit keys and added `plan_reuse` and
+`pack_mode`. Debug Rust passed 42/42 tests, Debug Recording 28/28 and Release
+Rust 42/42; Doxygen generated the typed-reuse section, and dynamic symbol
+inspection found the new entries only in `libCoinWgpuExperimental`.
+
+The non-gating Release `WgpuFrameReuseBenchmark` compares both pack paths in
+one process with the Assembly payload sizes (22,005 vertices and 131,169
+indices). Across 250 samples, full packing measured median/p95
+0.051676/0.055704 ms and camera patch 0.000240/0.000250 ms, a 99.54% median
+reduction for this isolated phase. A real five-frame Assembly camera trace
+selected `camera_patch` on every measured frame and reported pack median/p95
+0.003917/0.004568 ms.
+
+This is not a whole-frame speedup claim. In the separate same-process
+Release comparison (512x512, eight warmup and 30 measured frames, RGBA
+readback included), dynamic Assembly measured WebGPU median/p95
+22.3452/24.1579 ms and GL 0.439217/0.792696 ms. The aligned first-frame visual
+gate remained exact (RGB MAE 0, silhouette IoU 1). An isolated WebGPU run
+reported 144496 KiB peak RSS. Traversal plus FramePlan construction still
+dominates the dynamic workload, and the exported meshes still do not measure
+the real FreeCAD viewport.
 
 ### Prompt 006: owned Rust context
 

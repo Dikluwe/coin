@@ -34,6 +34,8 @@ main()
   texture.pixelsRgba.push_back(30);
   texture.pixelsRgba.push_back(255);
   frame.textures.push_back(texture);
+  frame.lightingStates.push_back(LightingSnapshot{});
+  frame.renderStates.push_back(RenderStateSnapshot{});
 
   SoWgpuFfiFrame packed;
   std::string diagnostic;
@@ -61,6 +63,30 @@ main()
   if (!check(packed.prepare(frame, 128, 16, diagnostic), "new revision packing failed") ||
       !check(!packed.reusedLastPrepare(), "new revision incorrectly reused packing") ||
       !check(packed.getView().vertices[0].position[0] == 9.0f, "new revision was not repacked")) return 1;
+
+  frame.revision = 43;
+  SbMatrix moved = SbMatrix::identity();
+  moved.setTranslate(SbVec3f(0.5f, 0.0f, 0.0f));
+  frame.renderStates[0].view = moved;
+  const SoWgpuFrameReuseDecision cameraPatch(
+    SoWgpuFrameReuseKind::CAMERA_PATCH, 42);
+  if (!check(packed.prepare(frame, 128, 16, cameraPatch, diagnostic),
+             "camera patch packing failed") ||
+      !check(packed.lastPrepareKind() == SoWgpuFrameReuseKind::CAMERA_PATCH,
+             "camera patch repacked immutable arrays") ||
+      !check(packed.getView().vertices[0].position[0] == 9.0f,
+             "camera patch changed packed geometry")) return 1;
+
+  frame.revision = 44;
+  frame.vertices[0].position[0] = 11.0f;
+  const SoWgpuFrameReuseDecision stalePatch(
+    SoWgpuFrameReuseKind::CAMERA_PATCH, 41);
+  if (!check(packed.prepare(frame, 128, 16, stalePatch, diagnostic),
+             "stale camera patch fallback failed") ||
+      !check(packed.lastPrepareKind() == SoWgpuFrameReuseKind::FULL_REBUILD,
+             "stale camera base did not force full packing") ||
+      !check(packed.getView().vertices[0].position[0] == 11.0f,
+             "stale camera fallback did not refresh geometry")) return 1;
 
   frame.revision = 0;
   if (!check(packed.prepare(frame, 128, 16, diagnostic), "zero revision packing failed") ||

@@ -4,6 +4,7 @@ set(COIN_WGPU_SOURCES
 	SoWgpuDiagnosticShell.cpp
 	SoWgpuFramePlan.cpp
 	SoWgpuFramePlanBuilder.cpp
+	SoWgpuFrameReuseCore.cpp
 	SoWgpuImageCore.cpp
 	SoWgpuIndexedGeometryCore.cpp
 	SoWgpuRecordingBackend.cpp

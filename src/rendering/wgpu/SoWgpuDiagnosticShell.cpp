@@ -112,6 +112,19 @@ SoWgpuDiagnosticShell::domainName(SoWgpuDiagnosticDomain domain)
   }
 }
 
+const char *
+SoWgpuDiagnosticShell::reuseKindName(SoWgpuFrameReuseKind kind)
+{
+  switch (kind) {
+    case SoWgpuFrameReuseKind::REUSE: return "reuse";
+    case SoWgpuFrameReuseKind::CAMERA_PATCH: return "camera_patch";
+    case SoWgpuFrameReuseKind::RESOURCE_REBUILD: return "resource_rebuild";
+    case SoWgpuFrameReuseKind::FULL_REBUILD: return "full_rebuild";
+    case SoWgpuFrameReuseKind::UNKNOWN: return "unknown";
+    default: return "unknown";
+  }
+}
+
 bool
 SoWgpuDiagnosticShell::phaseTracingEnabled(void)
 {
@@ -129,7 +142,8 @@ SoWgpuDiagnosticShell::formatActionPhase(const SoWgpuActionPhaseSample & sample)
          << " vertices=" << sample.vertices
          << " indices=" << sample.indices
          << " draws=" << sample.draws
-         << " plan_cache_hit=" << (sample.planCacheHit ? 1 : 0);
+         << " plan_cache_hit=" << (sample.planCacheHit ? 1 : 0)
+         << " plan_reuse=" << reuseKindName(sample.reuseKind);
   return stream.str();
 }
 
@@ -140,6 +154,7 @@ SoWgpuDiagnosticShell::formatBridgePhase(const SoWgpuBridgePhaseSample & sample)
   stream.imbue(std::locale::classic());
   stream << "COIN_WGPU_PHASE bridge pack_ms=" << sample.packMs
          << " pack_cache_hit=" << (sample.packCacheHit ? 1 : 0)
-         << " ffi_ms=" << sample.ffiMs;
+         << " ffi_ms=" << sample.ffiMs
+         << " pack_mode=" << reuseKindName(sample.packKind);
   return stream.str();
 }

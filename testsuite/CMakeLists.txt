@@ -223,6 +223,20 @@ if(COIN_BUILD_WGPU)
 	add_test(NAME WgpuFrameCoreTest COMMAND WgpuFrameCoreTest)
 	set_tests_properties(WgpuFrameCoreTest PROPERTIES TIMEOUT 30)
 
+	add_executable(WgpuFrameReuseCoreTest wgpu/WgpuFrameReuseCoreTest.cpp)
+	set_target_properties(WgpuFrameReuseCoreTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(WgpuFrameReuseCoreTest CoinWgpuExperimental Coin)
+	target_include_directories(WgpuFrameReuseCoreTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include
+		${PROJECT_SOURCE_DIR}/include
+		${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include
+		${PROJECT_BINARY_DIR}/src
+		${COIN_TARGET_INCLUDE_DIRECTORIES}
+	)
+	add_test(NAME WgpuFrameReuseCoreTest COMMAND WgpuFrameReuseCoreTest)
+	set_tests_properties(WgpuFrameReuseCoreTest PROPERTIES TIMEOUT 30)
+
 	add_executable(WgpuDiagnosticShellTest wgpu/WgpuDiagnosticShellTest.cpp)
 	set_target_properties(WgpuDiagnosticShellTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 	target_link_libraries(WgpuDiagnosticShellTest CoinWgpuExperimental Coin)
@@ -473,6 +487,22 @@ if(COIN_BUILD_WGPU)
 		)
 		add_test(NAME WgpuFfiFrameTest COMMAND WgpuFfiFrameTest)
 		set_tests_properties(WgpuFfiFrameTest PROPERTIES TIMEOUT 30)
+
+		# Measurement utility only: no timing threshold is stable enough for CTest.
+		add_executable(WgpuFrameReuseBenchmark
+			wgpu/WgpuFrameReuseBenchmark.cpp
+			${PROJECT_SOURCE_DIR}/src/rendering/wgpu/SoWgpuFfiFrame.cpp
+		)
+		set_target_properties(WgpuFrameReuseBenchmark PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+		target_link_libraries(WgpuFrameReuseBenchmark Coin)
+		target_include_directories(WgpuFrameReuseBenchmark PRIVATE
+			${PROJECT_SOURCE_DIR}/experimental/include
+			${PROJECT_SOURCE_DIR}/include
+			${PROJECT_SOURCE_DIR}/src
+			${PROJECT_BINARY_DIR}/include
+			${PROJECT_BINARY_DIR}/src
+			${COIN_TARGET_INCLUDE_DIRECTORIES}
+		)
 
 		add_executable(WgpuPerformanceTest wgpu/WgpuPerformanceTest.cpp)
 		set_target_properties(WgpuPerformanceTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")

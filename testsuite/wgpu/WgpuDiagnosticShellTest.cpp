@@ -63,15 +63,17 @@ main()
   actionPhase.indices = 5;
   actionPhase.draws = 6;
   actionPhase.planCacheHit = true;
+  actionPhase.reuseKind = SoWgpuFrameReuseKind::CAMERA_PATCH;
   ok &= check(SoWgpuDiagnosticShell::formatActionPhase(actionPhase) ==
-    "COIN_WGPU_PHASE action traversal_ms=1.25 frame_plan_ms=2.5 backend_ms=3.75 vertices=4 indices=5 draws=6 plan_cache_hit=1",
+    "COIN_WGPU_PHASE action traversal_ms=1.25 frame_plan_ms=2.5 backend_ms=3.75 vertices=4 indices=5 draws=6 plan_cache_hit=1 plan_reuse=camera_patch",
     "action phase line changed");
 
   SoWgpuBridgePhaseSample bridgePhase;
   bridgePhase.packMs = 0.125;
   bridgePhase.ffiMs = 0.5;
+  bridgePhase.packKind = SoWgpuFrameReuseKind::RESOURCE_REBUILD;
   ok &= check(SoWgpuDiagnosticShell::formatBridgePhase(bridgePhase) ==
-    "COIN_WGPU_PHASE bridge pack_ms=0.125 pack_cache_hit=0 ffi_ms=0.5",
+    "COIN_WGPU_PHASE bridge pack_ms=0.125 pack_cache_hit=0 ffi_ms=0.5 pack_mode=resource_rebuild",
     "bridge phase line changed");
 
   ok &= check(std::strcmp(SoWgpuDiagnosticShell::statusName(
@@ -79,6 +81,9 @@ main()
               std::strcmp(SoWgpuDiagnosticShell::domainName(
                 SoWgpuDiagnosticDomain::FRAME_PLAN), "frame_plan") == 0,
               "stable status/domain names changed");
+  ok &= check(std::strcmp(SoWgpuDiagnosticShell::reuseKindName(
+                SoWgpuFrameReuseKind::FULL_REBUILD), "full_rebuild") == 0,
+              "reuse kind name changed");
 
   if (!ok) return 1;
   std::cout << "WgpuDiagnosticShellTest passed\n";

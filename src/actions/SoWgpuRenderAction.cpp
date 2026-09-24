@@ -31,6 +31,7 @@
 
 #include "actions/SoWgpuRenderActionP.h"
 #include "rendering/wgpu/SoWgpuDiagnosticShell.h"
+#include "rendering/wgpu/SoWgpuFrameReuseCore.h"
 #include "rendering/wgpu/SoWgpuImageCore.h"
 #include "rendering/wgpu/SoWgpuRenderTargetP.h"
 #include "actions/SoSubActionP.h"
@@ -298,8 +299,12 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     ~DirectPassScope() { if (owns) action->directPasses.reset(); }
   } directPassScope{this, ownsDirectPasses};
 #endif
-  const bool planCacheHit = planCacheAllowed && cacheRoot && this->hasLastValidPlan &&
+  const bool traversalSkipped = planCacheAllowed && cacheRoot && this->hasLastValidPlan &&
     this->cachedRoot == cacheRoot && this->cachedRootId == cacheRoot->getNodeId();
+  SoWgpuFrameReuseDecision reuseDecision = traversalSkipped
+    ? SoWgpuFrameReuseDecision(SoWgpuFrameReuseKind::REUSE,
+                               this->lastValidPlan.revision)
+    : SoWgpuFrameReuseDecision(SoWgpuFrameReuseKind::UNKNOWN, 0);
   this->sceneTexturePixels.clear();
   if (!this->sceneTextureStagedBytes) {
     this->sceneTextureStagedBytes = std::make_shared<size_t>(0);
@@ -307,7 +312,7 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   FramePlan plan;
   ProfileClock::time_point profileTraversed = ProfileClock::now();
   ProfileClock::time_point profilePlanned = profileTraversed;
-  if (!planCacheHit) {
+  if (!traversalSkipped) {
     this->builder.beginFrame(this->backgroundColor, this->master->getViewportRegion());
     traversalFn();
     profileTraversed = ProfileClock::now();
@@ -328,7 +333,7 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   }
 
   std::string err;
-  if (!planCacheHit && !this->builder.build(plan, &err)) {
+  if (!traversalSkipped && !this->builder.build(plan, &err)) {
     const SoWgpuRenderAction::Status status = this->builder.isUnsupportedBuild()
       ? SoWgpuRenderAction::UNSUPPORTED : SoWgpuRenderAction::INVALID_SCENE;
     this->setDiagnostic(SoWgpuDiagnosticShell::action(
@@ -336,10 +341,22 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     return;
   }
   profilePlanned = ProfileClock::now();
-  const FramePlan & framePlan = planCacheHit ? this->lastValidPlan : plan;
+  if (!traversalSkipped) {
+    if (planCacheAllowed && cacheRoot && this->hasLastValidPlan &&
+        this->cachedRoot == cacheRoot) {
+      reuseDecision = SoWgpuFrameReuseCore::classify(this->lastValidPlan, plan);
+    } else if (planCacheAllowed) {
+      reuseDecision = SoWgpuFrameReuseDecision(
+        SoWgpuFrameReuseKind::FULL_REBUILD, 0);
+    }
+  }
+  const bool reusePreviousPlan =
+    reuseDecision.kind == SoWgpuFrameReuseKind::REUSE &&
+    this->hasLastValidPlan;
+  const FramePlan & framePlan = reusePreviousPlan ? this->lastValidPlan : plan;
 
   if (this->planOnly) {
-    if (!planCacheHit) {
+    if (!reusePreviousPlan) {
       this->lastValidPlan = std::move(plan);
       this->hasLastValidPlan = true;
     }
@@ -357,13 +374,13 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     // Mode 0: Recording backend
     this->lastRecordingLog = this->recordingBackend.recordToString(framePlan).c_str();
     this->recordingLogValid = true;
-    if (!planCacheHit) {
+    if (!reusePreviousPlan) {
       this->lastValidPlan = std::move(plan);
       this->hasLastValidPlan = true;
-      if (cacheRoot) {
-        this->cachedRoot = cacheRoot;
-        this->cachedRootId = cacheRoot->getNodeId();
-      }
+    }
+    if (cacheRoot) {
+      this->cachedRoot = cacheRoot;
+      this->cachedRootId = cacheRoot->getNodeId();
     }
     this->setDiagnostic(SoWgpuDiagnosticShell::success());
     return;
@@ -462,8 +479,9 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
 
   // Execute frame on target
   FrameExecutionResult execRes = this->asyncTicket
-    ? this->target->pimpl->executeFrameAsync(framePlan, *this->asyncTicket)
-    : this->target->pimpl->executeFrame(framePlan);
+    ? this->target->pimpl->executeFrameAsync(
+        framePlan, *this->asyncTicket, reuseDecision)
+    : this->target->pimpl->executeFrame(framePlan, reuseDecision);
   if (execRes.status != BackendStatus::SUCCESS) {
     this->setDiagnostic(SoWgpuDiagnosticShell::fromBackend(execRes));
     return;
@@ -481,17 +499,18 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     sample.vertices = framePlan.vertices.size();
     sample.indices = framePlan.indices.size();
     sample.draws = framePlan.draws.size();
-    sample.planCacheHit = planCacheHit;
+    sample.planCacheHit = traversalSkipped;
+    sample.reuseKind = reuseDecision.kind;
     std::cerr << SoWgpuDiagnosticShell::formatActionPhase(sample) << '\n';
   }
-  if (!planCacheHit) {
+  if (!reusePreviousPlan) {
     this->lastValidPlan = std::move(plan);
     this->hasLastValidPlan = true;
     this->recordingLogValid = false;
-    if (cacheRoot) {
-      this->cachedRoot = cacheRoot;
-      this->cachedRootId = cacheRoot->getNodeId();
-    }
+  }
+  if (cacheRoot) {
+    this->cachedRoot = cacheRoot;
+    this->cachedRootId = cacheRoot->getNodeId();
   }
   this->setDiagnostic(SoWgpuDiagnosticShell::success());
 }

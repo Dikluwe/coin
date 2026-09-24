@@ -205,6 +205,36 @@ do plano somam cerca de 15,8 ms, enquanto a espera GPU fica perto de 0,33 ms.
 O cache acelera cenas realmente estáticas; não é evidência de ganho na
 viewport interativa do FreeCAD.
 
+#### Reutilização tipada de câmera — campanha de 2026-09-24
+
+Esta campanha pertence ao Prompt 005 da arquitetura Tekt e não substitui nem
+é combinada com as tabelas históricas acima. O Core classificou cada FramePlan
+dinâmico e a Infra atualizou somente os estados dependentes da câmera quando
+a revisão-base ainda era a que o empacotador possuía.
+
+O executável não-gate `WgpuFrameReuseBenchmark`, na build Release, reproduz a
+comparação isolada usando os tamanhos capturados do Assembly:
+
+```sh
+"$COIN_WGPU_BUILD_DIR/bin/WgpuFrameReuseBenchmark"
+```
+
+Em 250 amostras, 22.005 vértices e 131.169 índices, o empacotamento completo
+teve mediana/p95 de 0,051676/0,055704 ms; o `camera_patch`,
+0,000240/0,000250 ms. A redução de 99,54% vale apenas para essa fase. No traço
+real com dois frames de aquecimento e cinco medidos, todos os medidos foram
+`plan_reuse=camera_patch` e `pack_mode=camera_patch`, com mediana/p95 de
+0,003917/0,004568 ms no empacotamento.
+
+Na comparação integral, AMD RADV RENOIR, 512×512, `BASE_COLOR`, oito frames de
+aquecimento e 30 medidos, câmera alterada e readback RGBA incluído, WebGPU
+teve mediana/p95 de 22,3452/24,1579 ms e Coin/GL 0,439217/0,792696 ms. Portanto
+o ganho isolado não se converteu em superioridade de frame: traversal e
+construção do FramePlan continuam sendo a prioridade. O gate visual alinhado
+do primeiro frame ficou em MAE RGB 0 e IoU 1. Um processo WebGPU isolado para
+a mesma carga registrou pico RSS de 144496 KiB; por ser outra execução, não é
+tratado como redução de memória.
+
 ### Qualidade e memória
 
 Uma nova comparação Release das quatro cenas, no primeiro frame (logo, sem

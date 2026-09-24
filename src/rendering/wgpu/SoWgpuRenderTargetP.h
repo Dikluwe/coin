@@ -5,6 +5,7 @@
 #include <Inventor/rendering/SoWgpuRenderTarget.h>
 #include <Inventor/rendering/SoWgpuNativeSurface.h>
 #include "rendering/wgpu/SoWgpuFramePlan.h"
+#include "rendering/wgpu/SoWgpuFrameReuseCore.h"
 #include <Inventor/SbVec2i32.h>
 #include "rendering/wgpu/SoWgpuBackend.h"
 #include <vector>
@@ -54,14 +55,20 @@ public:
 
   // Render execution for target (offscreen or window)
   FrameExecutionResult executeFrame(const FramePlan & frame);
+  FrameExecutionResult executeFrame(const FramePlan & frame,
+                                    const SoWgpuFrameReuseDecision & reuse);
   FrameExecutionResult executeFrameAsync(const FramePlan & frame,
                                          SoWgpuReadbackTicket & outTicket);
+  FrameExecutionResult executeFrameAsync(const FramePlan & frame,
+                                         SoWgpuReadbackTicket & outTicket,
+                                         const SoWgpuFrameReuseDecision & reuse);
 
   std::unique_ptr<SoWgpuBackend> backend;
 
 private:
   FrameExecutionResult executeFrameInternal(const FramePlan & frame,
-                                             SoWgpuReadbackTicket * outTicket);
+                                             SoWgpuReadbackTicket * outTicket,
+                                             const SoWgpuFrameReuseDecision & reuse);
 };
 
 #endif // !SOWGPURENDERTARGETP_H
