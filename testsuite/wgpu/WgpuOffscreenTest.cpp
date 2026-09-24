@@ -114,10 +114,31 @@ int main() {
               std::abs(static_cast<int>(fgB) - 24) <= 12,
               "Center pixel must show illuminated reddish cone with valid chromatic tolerance");
 
+  // Depth remains an attachment for rendering, but its CPU readback is selectable.
+  // The default stays compatible with existing consumers.
+  std::vector<float> defaultDepth;
+  target->readbackDepth(defaultDepth);
+  TEST_ASSERT(target->isDepthReadbackEnabled() &&
+              defaultDepth.size() == 256u * 256u,
+              "New offscreen targets must provide depth readback by default");
+  const std::vector<uint8_t> defaultColor = pixels;
+  TEST_ASSERT(target->setDepthReadbackEnabled(FALSE) &&
+              !target->isDepthReadbackEnabled(), "Disable depth readback");
+  target->readbackRGBA(pixels);
+  TEST_ASSERT(pixels.empty(), "Changing readback mode must invalidate the old frame");
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+              "Color-only render should succeed");
+  target->readbackRGBA(pixels);
+  target->readbackDepth(defaultDepth);
+  TEST_ASSERT(pixels == defaultColor && defaultDepth.empty(),
+              "Color-only render must preserve color and suppress depth output");
+
   // 5. Test resize and re-apply
   SbVec2i32 newSize(128, 128);
   TEST_ASSERT(target->resize(newSize), "resize to 128x128 should succeed");
   TEST_ASSERT(target->getSize() == newSize, "Size should update after resize");
+  TEST_ASSERT(!target->isDepthReadbackEnabled(), "Resize must preserve readback policy");
 
   action.setViewportRegion(SbViewportRegion(128, 128));
   action.apply(root);
@@ -125,6 +146,18 @@ int main() {
 
   target->getPimpl()->readbackRGBA(pixels);
   TEST_ASSERT(pixels.size() == 128 * 128 * 4, "Resized buffer must have 128*128*4 bytes");
+  std::vector<float> resizedDepth;
+  target->readbackDepth(resizedDepth);
+  TEST_ASSERT(resizedDepth.empty(), "Color-only resize must not expose depth");
+  const std::vector<uint8_t> resizedColor = pixels;
+  TEST_ASSERT(target->setDepthReadbackEnabled(TRUE), "Restore depth readback");
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+              "Render after restoring depth should succeed");
+  target->readbackRGBA(pixels);
+  target->readbackDepth(resizedDepth);
+  TEST_ASSERT(pixels == resizedColor && resizedDepth.size() == 128u * 128u,
+              "Restoring depth must preserve color and publish depth again");
 
   // 5b. Test zero-size target behavior: must return NOT_READY, not UNSUPPORTED
   std::cout << "Testing zero-size target behavior..." << std::endl;

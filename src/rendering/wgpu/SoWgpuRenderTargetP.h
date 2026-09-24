@@ -27,6 +27,7 @@ public:
   SoWgpuRenderTarget::Status status{SoWgpuRenderTarget::TARGET_READY};
   SbVec2i32 size{0, 0};
   std::vector<uint8_t> colorBuffer; // RGBA8 (offscreen)
+  bool depthReadbackEnabled{true}; // Output policy; depth testing remains enabled.
   bool directTextureOutput{false}; // Private child pass: no CPU readback.
   uint64_t directTextureToken{0};
   std::vector<float> depthBuffer;   // Depth [0, 1] (offscreen software / CPU fallback)

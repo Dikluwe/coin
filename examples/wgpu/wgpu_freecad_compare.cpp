@@ -119,6 +119,11 @@ int main(int argc, char ** argv) {
   SoWgpuSceneManager wgpu(SbVec2i32(side, side));
   wgpu.setSceneGraph(scene);
   wgpu.setBackgroundColor(SbColor4f(0.1f, 0.1f, 0.1f, 1.0f));
+  if (!wgpu.getRenderTarget()->setDepthReadbackEnabled(FALSE)) {
+    std::cerr << "Cannot configure RGBA-only WebGPU target\n";
+    scene->unref();
+    return 1;
+  }
   const SoWgpuRenderAction::Status status = wgpu.render();
   if (status != SoWgpuRenderAction::SUCCESS) {
     std::cerr << "WebGPU failed with status " << int(status) << ": "

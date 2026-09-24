@@ -124,6 +124,15 @@ public:
   const char * getLastError(void) const;
   const SbVec2i32 & getSize(void) const;
   SbBool resize(const SbVec2i32 & size);
+  /**
+   * Request a depth readback on offscreen renders. Enabled by default.
+   * Disabling it leaves depth testing intact, but readbackDepth() returns
+   * an empty vector and async tickets omit depth. Changing the mode
+   * invalidates synchronous readback until the next successful render.
+   * Window targets do not support this setting.
+   */
+  SbBool setDepthReadbackEnabled(SbBool enabled);
+  SbBool isDepthReadbackEnabled(void) const;
   void readbackRGBA(std::vector<uint8_t> & outPixels) const;
   void readbackDepth(std::vector<float> & outDepth) const;
   /**

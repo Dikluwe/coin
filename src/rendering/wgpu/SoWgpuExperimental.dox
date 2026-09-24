@@ -93,6 +93,15 @@
   This is not a replacement for the Open Inventor traversal model. With phase
   tracing enabled, <tt>plan_reuse</tt> and <tt>pack_mode</tt> expose the path.
 
+  Offscreen targets return color and depth by default. The experimental
+  SoWgpuRenderTarget::setDepthReadbackEnabled() output policy can request color
+  only while retaining GPU depth testing. The Rust connector then omits depth
+  staging and mapping; the target's depth accessor is empty and asynchronous
+  tickets record no depth output. Switching policy invalidates synchronous
+  readback until another successful render. Window and direct RTT targets do
+  not accept this output policy. The GL comparison benchmark uses color only
+  by default and reports color+depth WebGPU runs separately.
+
   \section coin_wgpu_targets Targets and readback
 
   SoWgpuRenderTarget creates either an offscreen target or a target backed by

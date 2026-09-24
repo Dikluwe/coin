@@ -138,6 +138,23 @@ int main() {
              SoWgpuRenderTarget::READBACK_INVALID_TICKET,
              "completed ticket must be consumed")) return 1;
 
+  if (!check(synchronous->setDepthReadbackEnabled(FALSE),
+             "disable depth for async color-only readback")) return 1;
+  SoWgpuReadbackTicket colorOnlyTicket{};
+  syncAction.applyAsync(root, colorOnlyTicket);
+  if (!check(syncAction.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
+             colorOnlyTicket.token != 0 && colorOnlyTicket.depthFormat == 0 &&
+             colorOnlyTicket.depthBytes == 0 && colorOnlyTicket.depthRowPitch == 0,
+             "color-only ticket must omit depth metadata")) return 1;
+  if (!check(synchronous->setDepthReadbackEnabled(TRUE),
+             "restore depth while color-only ticket is pending")) return 1;
+  std::vector<uint8_t> colorOnlyPixels;
+  std::vector<float> colorOnlyDepth(1, -1.0f);
+  if (!check(pollUntilReady(colorOnlyTicket, colorOnlyPixels, colorOnlyDepth, diagnostic) ==
+             SoWgpuRenderTarget::READBACK_READY &&
+             colorOnlyPixels == expectedColor && colorOnlyDepth.empty(),
+             "color-only ticket must preserve color and omit depth after mode change")) return 1;
+
   SoWgpuReadbackTicket cancelled{};
   syncAction.applyAsync(root, cancelled);
   if (!check(syncAction.getLastStatus() == SoWgpuRenderAction::SUCCESS &&

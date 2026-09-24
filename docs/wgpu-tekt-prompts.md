@@ -478,3 +478,51 @@ versus 140632 KiB in an earlier process; the owned copy has a 32 MiB cap.
 The first-frame GL gate remained MAE RGB 0/IoU 1. The FFI test proves that
 camera patches can render from Rust-owned geometry with null caller geometry
 pointers, while stale/changed-state/device cases fail closed.
+
+#### Prompt 008B: explicit offscreen readback outputs
+
+**Intent:** Remove depth readback when a consumer needs only RGBA, without
+changing Coin 4's public ABI, depth testing or the default output contract.
+Keep the GL comparison honest about which attachments it times.
+
+**Core:** unchanged. Render geometry and depth testing are independent of
+which CPU outputs are requested.
+
+**Shell:** the benchmark defaults to `--readback color` for a comparable GL
+run. `--backend wgpu --readback color-depth` measures the legacy output
+contract separately. Do not label the latter as equivalent to GL color-only.
+
+**Infra:** the existing private target POD already represents an omitted depth
+output with a null pointer and zero length, so the Rust protocol stays at 17.
+The connector skips depth staging/copy/map in that case; async tickets record
+`depthFormat=0`, `depthBytes=0`. RTT GPU-only remains unchanged.
+
+**Wiring:** `SoWgpuRenderTarget` keeps depth readback enabled by default and
+offers an explicit experimental offscreen switch. It invalidates synchronous
+accessors on change; a submitted async ticket retains its own output policy.
+Window and direct RTT targets reject the switch. Recording/CPU still uses
+internal depth for rasterization while hiding unrequested depth output.
+
+**Positive oracle:** offscreen color is bit-identical with/without depth
+readback on the same scene; restoring depth returns a populated output;
+color-only tickets survive a later policy change. The exported-scene visual
+gate matches GL after origin alignment.
+
+**Gates:** Release/Debug Rust and Recording suites, median/p95 on the same
+AMD GPU, visual MAE/IoU, isolated peak RSS, Doxygen and no new `libCoin`
+symbols. Historical RGBA-labelled WebGPU runs copied depth internally and
+are not a directly paired baseline for the new benchmark default.
+
+**Result (2026-09-24):** the gates passed 42/42 Release Rust, 42/42 Debug
+Rust and 28/28 Recording. Release/AMD RADV RENOIR, `BASE_COLOR`, 512x512,
+camera changed each frame, 10 warmup and 60 measured frames: PartDesign
+RGBA-only WebGPU median/p95 1.281/1.621 ms versus Coin/GL 0.364/0.568;
+separate WebGPU color+depth 3.083/3.567 ms. Assembly RGBA-only WebGPU
+1.725/2.202 versus GL 0.429/0.882; separate color+depth 2.165/2.574.
+At 1024x1024 PartDesign, a 40-frame RGBA-only paired run measured WebGPU
+5.187/6.119 versus GL 1.141/1.822 ms; isolated WebGPU color+depth was
+11.942/13.023 ms. Isolated peak RSS was 146744 KiB for color-only and
+154864 KiB for color+depth at 1024x1024, one process each. The visual gate
+reported aligned MAE RGB 0/IoU 1 on Assembly and 0.001358/0.999978 on
+PartDesign. These are exported meshes, not the FreeCAD viewport. Color-only
+is a measured improvement, not WebGPU/GL performance parity.

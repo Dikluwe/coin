@@ -251,7 +251,7 @@ SoWgpuRenderTargetP::readbackRGBA(std::vector<uint8_t> & outRgba) const
 void
 SoWgpuRenderTargetP::readbackDepth(std::vector<float> & outDepth) const
 {
-  if (this->synchronousReadbackValid) outDepth = this->depthBuffer;
+  if (this->synchronousReadbackValid && this->depthReadbackEnabled) outDepth = this->depthBuffer;
   else outDepth.clear();
 }
 
@@ -567,6 +567,31 @@ void
 SoWgpuRenderTarget::readbackRGBA(std::vector<uint8_t> & outPixels) const
 {
   this->pimpl->readbackRGBA(outPixels);
+}
+
+SbBool
+SoWgpuRenderTarget::setDepthReadbackEnabled(SbBool enabled)
+{
+  if (this->pimpl->kind != SoWgpuRenderTargetP::KIND_OFFSCREEN ||
+      this->pimpl->directTextureOutput) {
+    this->pimpl->lastError = "Depth readback policy requires a CPU-readable offscreen target";
+    return FALSE;
+  }
+  const bool requested = enabled != FALSE;
+  if (this->pimpl->depthReadbackEnabled != requested) {
+    this->pimpl->depthReadbackEnabled = requested;
+    this->pimpl->synchronousReadbackValid = false;
+  }
+  this->pimpl->lastError.clear();
+  return TRUE;
+}
+
+SbBool
+SoWgpuRenderTarget::isDepthReadbackEnabled(void) const
+{
+  return this->pimpl->kind == SoWgpuRenderTargetP::KIND_OFFSCREEN &&
+         !this->pimpl->directTextureOutput && this->pimpl->depthReadbackEnabled
+           ? TRUE : FALSE;
 }
 
 void

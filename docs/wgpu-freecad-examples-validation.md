@@ -378,6 +378,52 @@ movimento nem a viewport real do FreeCAD.
 
 ### Qualidade e memória
 
+#### Readback explícito de saídas — campanha de 2026-09-24
+
+O Prompt 008B corrigiu uma assimetria do benchmark anterior: o WebGPU
+copiava cor **e profundidade** mesmo quando o programa lia apenas RGBA,
+enquanto o GL fornecia seu buffer de cor. O novo padrão do benchmark solicita
+apenas RGBA ao target WebGPU; cor+depth permanece o padrão da API experimental
+e é medido separadamente com `--backend wgpu --readback color-depth`. Portanto,
+os números RGBA de campanhas anteriores não são A/B pareado do novo padrão.
+
+AMD RADV RENOIR e GL radeonsi Renoir, Release, `BASE_COLOR`, 512×512, câmera
+alterada em cada frame, 10 warmup e 60 amostras:
+
+| Cena | WebGPU RGBA mediana/p95 (ms) | Coin/GL RGBA mediana/p95 (ms) | WebGPU cor+depth separado (ms) |
+| --- | ---: | ---: | ---: |
+| PartDesign | 1,281 / 1,621 | 0,364 / 0,568 | 3,083 / 3,567 |
+| Assembly | 1,725 / 2,202 | 0,429 / 0,882 | 2,165 / 2,574 |
+
+Em PartDesign 1024×1024, 10 warmup/40 amostras, RGBA mediu 5,187/6,119 ms
+contra 1,141/1,822 ms no GL. Em processos WebGPU isolados, RGBA mediu
+5,569/6,078 ms e pico RSS 146744 KiB; cor+depth mediu 11,942/13,023 ms e
+154864 KiB. O custo do depth readback varia com cena e resolução; não atribuir
+essa diferença somente a execução de shader. RTT direto e readback assíncrono
+não foram usados para justificar o ganho de latência síncrona.
+
+O comparador visual RGBA-only preservou no Assembly MAE RGB 0 e IoU 1 após
+inversão vertical; no PartDesign, MAE RGB 0,001358 e IoU 0,999978. O teste
+offscreen também exige cor idêntica ao alternar a política e depth novamente
+disponível após restaurá-la; o teste assíncrono exige ticket sem depth mesmo
+se o target mudar de política antes do poll. Isso não cobre a viewport real
+do FreeCAD.
+
+Reprodução (substituir o diretório de build conforme a máquina):
+
+```sh
+VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
+COIN_GLX_PIXMAP_DIRECT_RENDERING=1 \
+  "$COIN_WGPU_BUILD_DIR/bin/wgpu_gl_benchmark" --backend both \
+  --readback color --dynamic --frames 60 --warmup 10 --size 512 \
+  --scene "/home/dikluwe/Área de trabalho/Estudo coin/estudos/So/SoWgpu-FreeCAD-Exemplos/cenas/PartDesign.iv"
+
+VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
+  "$COIN_WGPU_BUILD_DIR/bin/wgpu_gl_benchmark" --backend wgpu \
+  --readback color-depth --dynamic --frames 60 --warmup 10 --size 512 \
+  --scene "/home/dikluwe/Área de trabalho/Estudo coin/estudos/So/SoWgpu-FreeCAD-Exemplos/cenas/PartDesign.iv"
+```
+
 Uma nova comparação Release das quatro cenas, no primeiro frame (logo, sem
 cache hit de plano), manteve IoU de silhueta 1,000000 após alinhar a origem
 vertical. MAE RGB alinhada WebGPU/GL:

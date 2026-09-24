@@ -102,7 +102,13 @@ preserva a verificação de vazamento sem transformar `poll` em espera por idle.
 ## Medição comparativa
 
 `wgpu_gl_benchmark` executa a mesma cena em offscreen nos dois renderizadores,
-com frames de aquecimento e leitura de RGBA incluída nos tempos. Reporta
+com frames de aquecimento e leitura de RGBA incluída nos tempos. Desde o
+Prompt 008B, o padrão `--readback color` não solicita depth ao WebGPU,
+igualando os outputs observados no GL. `--backend wgpu --readback color-depth`
+mede separadamente o contrato legado de cor+profundidade; essa modalidade
+não é apresentada como comparação equivalente com GL. Campanhas anteriores
+rotuladas como RGBA no WebGPU ainda copiavam depth internamente e não são um
+A/B pareado com o novo padrão. O benchmark reporta
 adaptador, tamanho, mediana, p95, mínimo e máximo. `--scene` carrega uma cena
 Inventor, `--dynamic` altera a câmera em cada frame e `--backend wgpu|gl`
 permite medir memória em processos separados.

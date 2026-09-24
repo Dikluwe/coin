@@ -244,8 +244,9 @@ SoWgpuRustBackend::submitInternal(const FramePlan & frame, SoWgpuRenderTargetP &
     tPod.height = static_cast<uint32_t>(target.size[1]);
     tPod.color_buffer = target.colorBuffer.data();
     tPod.color_buffer_len = static_cast<uint64_t>(target.colorBuffer.size());
-    tPod.depth_buffer = target.depthBuffer.data();
-    tPod.depth_buffer_len = static_cast<uint64_t>(target.depthBuffer.size());
+    tPod.depth_buffer = target.depthReadbackEnabled ? target.depthBuffer.data() : NULL;
+    tPod.depth_buffer_len = target.depthReadbackEnabled
+      ? static_cast<uint64_t>(target.depthBuffer.size()) : 0;
     tPod.submission_serial = 0;
 
     tPod.device_id = 0;

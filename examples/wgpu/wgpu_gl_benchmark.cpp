@@ -100,6 +100,7 @@ int main(int argc, char ** argv) {
   int side = 256;
   bool dynamic = false;
   std::string backend = "both";
+  std::string readback = "color";
   std::string scenePath;
   for (int i = 1; i < argc; ++i) {
     if (std::strcmp(argv[i], "--frames") == 0 && i + 1 < argc) frames = std::atoi(argv[++i]);
@@ -108,17 +109,23 @@ int main(int argc, char ** argv) {
     else if (std::strcmp(argv[i], "--scene") == 0 && i + 1 < argc) scenePath = argv[++i];
     else if (std::strcmp(argv[i], "--dynamic") == 0) dynamic = true;
     else if (std::strcmp(argv[i], "--backend") == 0 && i + 1 < argc) backend = argv[++i];
+    else if (std::strcmp(argv[i], "--readback") == 0 && i + 1 < argc) readback = argv[++i];
     else {
       std::cerr << "Usage: wgpu_gl_benchmark [--frames 30] [--warmup 8]"
                    " [--size 256] [--scene normalized.iv] [--dynamic]"
-                   " [--backend both|wgpu|gl]\n";
+                   " [--backend both|wgpu|gl] [--readback color|color-depth]\n";
       return 2;
     }
   }
   if (frames < 1 || frames > 10000 || warmup < 0 || warmup > 10000 ||
       side < 1 || side > 2048 ||
-      (backend != "both" && backend != "wgpu" && backend != "gl")) {
+      (backend != "both" && backend != "wgpu" && backend != "gl") ||
+      (readback != "color" && readback != "color-depth")) {
     std::cerr << "Invalid benchmark dimensions or sample count\n";
+    return 2;
+  }
+  if (readback == "color-depth" && backend != "wgpu") {
+    std::cerr << "Color+depth readback is WebGPU-only; GL comparison reads color\n";
     return 2;
   }
 
@@ -149,6 +156,11 @@ int main(int argc, char ** argv) {
     wgpu = new SoWgpuSceneManager(SbVec2i32(side, side));
     wgpu->setSceneGraph(root);
     wgpu->setBackgroundColor(SbColor4f(0.1f, 0.1f, blue, 1.0f));
+    if (!wgpu->getRenderTarget()->setDepthReadbackEnabled(readback == "color-depth")) {
+      std::cerr << "Cannot configure offscreen depth readback\n";
+      root->unref();
+      return 2;
+    }
   }
   SoOffscreenRenderer * gl = NULL;
   if (runGl) {
@@ -158,6 +170,7 @@ int main(int argc, char ** argv) {
   }
 
   std::vector<uint8_t> rgba;
+  std::vector<float> depth;
   std::vector<double> wgpuMs, wgpuRenderMs, wgpuCopyMs, glMs;
   const SbVec3f basePosition = camera->position.getValue();
   for (int i = -warmup; runWgpu && i < frames; ++i) {
@@ -177,6 +190,14 @@ int main(int argc, char ** argv) {
       std::cerr << "WebGPU readback size mismatch\n";
       root->unref();
       return 1;
+    }
+    if (readback == "color-depth") {
+      wgpu->getRenderTarget()->readbackDepth(depth);
+      if (depth.size() != size_t(side) * size_t(side)) {
+        std::cerr << "WebGPU depth readback size mismatch\n";
+        root->unref();
+        return 1;
+      }
     }
     const Clock::time_point end = Clock::now();
     if (i >= 0) {
@@ -205,7 +226,8 @@ int main(int argc, char ** argv) {
             << " backend=" << backend << " size=" << side << 'x' << side
             << " warmup=" << warmup << " scene="
             << (scenePath.empty() ? "36-cubes" : scenePath)
-            << " mode=render+rgba-readback"
+            << " mode=" << (readback == "color" ? "render+rgba-readback" :
+                             "render+rgba+depth-readback")
             << " scene_update=" << (dynamic ? "camera-each-frame" : "static") << '\n';
   if (runWgpu) {
     report("WebGPU", wgpuMs);

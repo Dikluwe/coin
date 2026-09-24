@@ -6,7 +6,7 @@ estão em `experimental/include`. Desde a Onda 6, esses headers e a biblioteca
 podem ser instalados com `COIN_INSTALL_WGPU_EXPERIMENTAL=ON`, mas continuam
 experimentais, fora da API e ABI públicas estáveis de `libCoin` no Coin 4.
 A ponte C++/Rust é privada e versionada
-(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=16` nesta revisão). Não promova esses
+(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=17` nesta revisão). Não promova esses
 headers a consumidores externos como se fossem estáveis.
 
 O guia de produto, a matriz de capacidades, o manager, os exemplos instaláveis,
@@ -34,6 +34,16 @@ construção do FramePlan, empacotamento da ponte, validação Rust,
 preparação/encode, submit, espera GPU e publicação de readback. A espera GPU
 usa `device.poll(Maintain::Wait)` e inclui render mais cópias para staging;
 não deve ser apresentada como timestamp de execução GPU isolada.
+
+O target offscreen preserva cor+profundidade como padrão. O método experimental
+`SoWgpuRenderTarget::setDepthReadbackEnabled(FALSE)` pede somente cor ao
+conector Rust: o depth attachment e o depth test continuam ativos, mas não há
+cópia/mapeamento/publicação de profundidade e `readbackDepth()` retorna vazio.
+Em `applyAsync`, o ticket desse frame tem `depthFormat=0` e `depthBytes=0`,
+independentemente de mudanças posteriores no target. Alternar a opção
+invalida os accessors síncronos até o próximo render bem-sucedido. A opção
+não se aplica a targets de janela ou passes RTT GPU-only. Recording/CPU
+mantém o depth interno para rasterização, ocultando apenas sua saída.
 
 ## Perfil implementado
 

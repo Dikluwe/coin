@@ -289,6 +289,10 @@ int main(int argc, char ** argv) {
 
       SoWgpuRenderTarget * windowTarget = SoWgpuRenderTarget::createWindow(nativeDesc, SbVec2i32(640, 480));
       TEST_ASSERT(windowTarget->getStatus() == SoWgpuRenderTarget::TARGET_READY, "Window target must be TARGET_READY");
+      TEST_ASSERT(!windowTarget->isDepthReadbackEnabled() &&
+                  !windowTarget->setDepthReadbackEnabled(FALSE) &&
+                  std::string(windowTarget->getLastError()).find("offscreen") != std::string::npos,
+                  "Window target must reject the offscreen depth readback policy");
 
       SoWgpuRenderAction action;
       action.setRenderTarget(windowTarget);
