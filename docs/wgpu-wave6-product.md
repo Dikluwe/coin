@@ -114,9 +114,16 @@ contexto indireto e falha. Com a opção, o benchmark executou. Ainda é
 necessário alinhar o adaptador GL e WebGPU antes de interpretar desempenho.
 O benchmark também aceita `--scene cena.iv`. No ensaio com sete exemplos
 exportados do FreeCAD, os dois caminhos usaram a mesma GPU AMD: houve
-paridade geométrica em BASE_COLOR, mas WebGPU Debug foi mais lento que GL
-em todos os modelos e a iluminação PHONG ainda diverge. Portanto não há
-ganho de produto demonstrado. Resultados e imagens em
+paridade geométrica em `BASE_COLOR`, mas WebGPU Debug foi mais lento que GL
+em todos os modelos. A divergência inicial de iluminação `PHONG` vinha da
+geração de normais no caminho rápido WebGPU e foi corrigida no Coin, sem
+alterar as cenas exportadas nem a ABI pública do Coin 4. Depois da correção,
+o erro médio RGB de `PHONG` contra GL nos sete exemplos originais ficou
+entre 0,019 e 0,207, com IoU de silhueta entre 0,999860 e 1,000000. Isso
+demonstra paridade no perfil testado, não superioridade visual. Ainda não
+há ganho de desempenho demonstrado; os testes usam malhas exportadas
+offscreen, não a viewport real do FreeCAD. Resultados, condições de medição
+e imagens em
 [`wgpu-freecad-examples-validation.md`](wgpu-freecad-examples-validation.md).
 
 ## Política de estabilidade e Coin 5
