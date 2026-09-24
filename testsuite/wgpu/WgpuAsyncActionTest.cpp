@@ -12,6 +12,11 @@
 #include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoCone.h>
+#include <Inventor/nodes/SoTextureCoordinate2.h>
+#include <Inventor/nodes/SoCoordinate3.h>
+#include <Inventor/nodes/SoIndexedFaceSet.h>
+#include <Inventor/nodes/SoLightModel.h>
+#include <Inventor/nodes/SoSceneTexture2.h>
 
 #include <chrono>
 #include <cstdint>
@@ -167,6 +172,88 @@ int main() {
     return 1;
   }
 
+  SoSeparator * texturedParent = new SoSeparator;
+  texturedParent->ref();
+  SoPerspectiveCamera * texturedCamera = new SoPerspectiveCamera;
+  texturedCamera->position.setValue(0.0f, 0.0f, 4.0f);
+  texturedCamera->nearDistance = 0.1f;
+  texturedCamera->farDistance = 10.0f;
+  texturedParent->addChild(texturedCamera);
+  SoLightModel * unlit = new SoLightModel;
+  unlit->model = SoLightModel::BASE_COLOR;
+  texturedParent->addChild(unlit);
+  SoMaterial * white = new SoMaterial;
+  white->diffuseColor.setValue(1.0f, 1.0f, 1.0f);
+  texturedParent->addChild(white);
+  SoSceneTexture2 * sceneTexture = new SoSceneTexture2;
+  sceneTexture->scene.setValue(root);
+  sceneTexture->size.setValue(32, 32);
+  sceneTexture->type.setValue(SoSceneTexture2::RGBA8);
+  sceneTexture->backgroundColor.setValue(0.0f, 0.0f, 1.0f, 1.0f);
+  texturedParent->addChild(sceneTexture);
+  SoTextureCoordinate2 * texcoord = new SoTextureCoordinate2;
+  texcoord->point.set1Value(0, SbVec2f(0, 0));
+  texcoord->point.set1Value(1, SbVec2f(1, 0));
+  texcoord->point.set1Value(2, SbVec2f(1, 1));
+  texcoord->point.set1Value(3, SbVec2f(0, 1));
+  texturedParent->addChild(texcoord);
+  SoCoordinate3 * quad = new SoCoordinate3;
+  quad->point.set1Value(0, SbVec3f(-1, -1, 0));
+  quad->point.set1Value(1, SbVec3f(1, -1, 0));
+  quad->point.set1Value(2, SbVec3f(1, 1, 0));
+  quad->point.set1Value(3, SbVec3f(-1, 1, 0));
+  texturedParent->addChild(quad);
+  SoIndexedFaceSet * face = new SoIndexedFaceSet;
+  const int32_t faceIndices[] = {0, 1, 2, 3, -1};
+  face->coordIndex.setValues(0, 5, faceIndices);
+  face->textureCoordIndex.setValues(0, 5, faceIndices);
+  texturedParent->addChild(face);
+
+  syncAction.apply(texturedParent);
+  std::vector<uint8_t> sceneExpectedColor;
+  std::vector<float> sceneExpectedDepth;
+  synchronous->readbackRGBA(sceneExpectedColor);
+  synchronous->readbackDepth(sceneExpectedDepth);
+  if (!check(syncAction.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
+             sceneExpectedColor.size() == 64u * 64u * 4u &&
+             sceneExpectedDepth.size() == 64u * 64u,
+             "synchronous scene-texture frame")) {
+    std::cerr << syncAction.getLastError().getString() << "\n";
+    return 1;
+  }
+
+  SoWgpuReadbackTicket sceneTicket{};
+  syncAction.applyAsync(texturedParent, sceneTicket);
+  if (!check(syncAction.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
+             sceneTicket.token != 0,
+             "async scene-texture submission")) return 1;
+  std::vector<uint8_t> staleSceneColor;
+  synchronous->readbackRGBA(staleSceneColor);
+  if (!check(staleSceneColor.empty(),
+             "async scene-texture submit must hide prior synchronous frame")) return 1;
+  material->diffuseColor.setValue(0.1f, 0.8f, 0.2f);
+
+  std::vector<uint8_t> sceneColor;
+  std::vector<float> sceneDepth;
+  if (!check(pollUntilReady(sceneTicket, sceneColor, sceneDepth, diagnostic) ==
+               SoWgpuRenderTarget::READBACK_READY &&
+             sceneColor == sceneExpectedColor &&
+             sceneDepth == sceneExpectedDepth,
+             "async scene-texture pixels and depth must match synchronous output")) {
+    std::cerr << diagnostic.getString() << "\n";
+    return 1;
+  }
+  material->diffuseColor.setValue(0.8f, 0.2f, 0.1f);
+
+  const uint64_t publishedSerial = synchronous->getLastSubmissionSerial();
+  sceneTexture->type.setValue(SoSceneTexture2::DEPTH);
+  SoWgpuReadbackTicket rejectedScene{};
+  syncAction.applyAsync(texturedParent, rejectedScene);
+  if (!check(syncAction.getLastStatus() == SoWgpuRenderAction::UNSUPPORTED &&
+             rejectedScene.token == 0 &&
+             synchronous->getLastSubmissionSerial() == publishedSerial,
+             "unsupported scene-texture pass must not submit parent frame")) return 1;
+  texturedParent->unref();
   delete synchronous;
   root->unref();
   std::cout << "WgpuAsyncActionTest passed\n";

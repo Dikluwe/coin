@@ -79,6 +79,10 @@ latência de readback nem SLA. `WgpuAsyncActionTest` submete uma cena com cone
 pela action, faz resize e destrói action/target antes do poll, compara cor e
 profundidade exatamente ao caminho síncrono e verifica cancelamento, ticket
 consumido e dois polls em threads distintas com resultados independentes.
+O mesmo teste encadeia `SoSceneTexture2` ao `applyAsync`: cor e profundidade
+coincidem com o frame síncrono mesmo após mutar a subcena antes do poll; o
+readback síncrono anterior fica inválido, e um pass fora do perfil não emite
+ticket nem avança o serial publicado do alvo pai.
 
 ## Build e testes
 
