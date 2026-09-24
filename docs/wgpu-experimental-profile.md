@@ -108,9 +108,13 @@ de `libCoin.so` foram idênticos em builds Debug/C++11 com WebGPU ON/OFF.
 Os 878 headers instalados são idênticos byte a byte; o consumidor externo
 C++11 do pacote instalado compilou e executou nos dois modos.
 
-Desde a base `f2613bca69` da Onda 4, o diff versionado em `include`, `src`,
-CMake e configuração do pacote toca apenas arquivos do módulo WebGPU;
-o gate histórico de ABI da 3E continua aplicável à `libCoin`.
+O gate histórico foi reexecutado em 23/09/2026 com dois worktrees limpos:
+`a8b55d0dc5` (Coin estável) e `71976f9c12` (fim da Onda 4), ambos
+`Debug`, C++11, biblioteca compartilhada e `COIN_BUILD_WGPU=OFF`.
+`abi-dumper` seguido de `abi-compliance-checker` reportou 100% de
+compatibilidade binária e de fonte, zero problemas e zero avisos. Os símbolos
+exportados também coincidiram exatamente. As alterações não commitadas do
+checkout principal não participaram dos builds.
 
 Esses gates cobrem o perfil declarado; não certificam GPU→GPU direto,
 transparência fora de `SORTED_OBJECT_BLEND` ou plataformas não testadas.
