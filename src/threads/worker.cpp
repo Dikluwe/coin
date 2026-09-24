@@ -258,32 +258,3 @@ cc_worker_set_idle_callback(cc_worker * worker, cc_worker_idle_f * cb,
 #ifdef __cplusplus
 } /* extern "C" */
 #endif /* __cplusplus */
-
-#ifdef COIN_TEST_SUITE
-
-static void
-worker_test_callback(void * closure)
-{
-  int * calls = static_cast<int *>(closure);
-  (*calls)++;
-}
-
-BOOST_AUTO_TEST_CASE(cc_worker_rejects_null_and_runs_each_task_once)
-{
-  cc_worker * worker = cc_worker_construct();
-  int calls = 0;
-
-  BOOST_CHECK(!cc_worker_start(worker, NULL, NULL));
-
-  BOOST_CHECK(cc_worker_start(worker, worker_test_callback, &calls));
-  cc_worker_wait(worker);
-  BOOST_CHECK_EQUAL(calls, 1);
-
-  BOOST_CHECK(cc_worker_start(worker, worker_test_callback, &calls));
-  cc_worker_wait(worker);
-  BOOST_CHECK_EQUAL(calls, 2);
-
-  cc_worker_destruct(worker);
-}
-
-#endif // COIN_TEST_SUITE

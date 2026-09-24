@@ -160,6 +160,7 @@ BOOST_AUTO_TEST_CASE(cc_worker_busy_query_works_in_both_callbacks)
 {
   cc_worker * worker = cc_worker_construct();
   BusyProbe probe(worker);
+  BOOST_CHECK(!cc_worker_start(worker, NULL, NULL));
   cc_worker_set_idle_callback(worker, busy_probe_idle, &probe);
 
   BOOST_REQUIRE(cc_worker_start(worker, busy_probe_work, &probe));

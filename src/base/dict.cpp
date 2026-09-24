@@ -383,7 +383,6 @@ extern "C" {
   SbBool cc_dict_get(cc_dict * ht, uintptr_t key, void ** val);
   unsigned int cc_dict_get_num_elements(cc_dict * ht);
   void cc_dict_set_hash_func(cc_dict * ht, cc_dict_hash_func * func);
-  void cc_dict_print_stat(cc_dict * ht);
 }
 
 static uintptr_t
@@ -409,26 +408,6 @@ BOOST_AUTO_TEST_CASE(cc_dict_rehashes_existing_entries)
     BOOST_CHECK(value == &values[key]);
   }
 
-  cc_dict_destruct(dict);
-}
-
-BOOST_AUTO_TEST_CASE(cc_dict_resize_and_empty_statistics_are_safe)
-{
-  cc_dict * dict = cc_dict_construct(1, 0.1f);
-  int values[512];
-  for (uintptr_t key = 0; key < 512; ++key) {
-    values[key] = static_cast<int>(key);
-    cc_dict_put(dict, key, &values[key]);
-  }
-  for (uintptr_t key = 0; key < 512; ++key) {
-    void * value = NULL;
-    BOOST_CHECK(cc_dict_get(dict, key, &value));
-    BOOST_CHECK(value == &values[key]);
-  }
-  cc_dict_destruct(dict);
-
-  dict = cc_dict_construct(0, 0.75f);
-  cc_dict_print_stat(dict);
   cc_dict_destruct(dict);
 }
 

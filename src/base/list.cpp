@@ -276,13 +276,15 @@ cc_list_pop(cc_list * list)
 
 #ifdef COIN_TEST_SUITE
 
-BOOST_AUTO_TEST_CASE(cc_list_rejects_invalid_indices)
+BOOST_AUTO_TEST_CASE(cc_list_preserves_state_on_invalid_operations)
 {
   int first = 1;
   int second = 2;
   int missing = 3;
   cc_list * list = cc_list_construct();
 
+  BOOST_CHECK(cc_list_pop(list) == NULL);
+  BOOST_CHECK_EQUAL(cc_list_get_length(list), 0);
   cc_list_append(list, &first);
   cc_list_append(list, &second);
 
@@ -302,14 +304,6 @@ BOOST_AUTO_TEST_CASE(cc_list_rejects_invalid_indices)
   BOOST_CHECK(cc_list_get(list, -1) == NULL);
   BOOST_CHECK(cc_list_get(list, 2) == NULL);
 
-  cc_list_destruct(list);
-}
-
-BOOST_AUTO_TEST_CASE(cc_list_empty_pop_is_safe)
-{
-  cc_list * list = cc_list_construct();
-  BOOST_CHECK(cc_list_pop(list) == NULL);
-  BOOST_CHECK_EQUAL(cc_list_get_length(list), 0);
   cc_list_destruct(list);
 }
 

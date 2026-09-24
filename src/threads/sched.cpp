@@ -394,6 +394,20 @@ sched_test_callback(void * closure)
   (*calls)++;
 }
 
+typedef struct {
+  int * order;
+  int * count;
+  int value;
+} sched_test_ordered_data;
+
+static void
+sched_test_ordered_callback(void * closure)
+{
+  sched_test_ordered_data * data = static_cast<sched_test_ordered_data *>(closure);
+  if (*data->count < 2) data->order[*data->count] = data->value;
+  ++*data->count;
+}
+
 BOOST_AUTO_TEST_CASE(cc_sched_tracks_paused_and_cancelled_jobs)
 {
   cc_sched * sched = cc_sched_construct(1);
@@ -410,7 +424,6 @@ BOOST_AUTO_TEST_CASE(cc_sched_tracks_paused_and_cancelled_jobs)
   BOOST_CHECK(first != second);
   BOOST_CHECK_EQUAL(cc_sched_get_num_remaining(sched), 2);
 
-  cc_sched_change_priority(sched, first, 3.0f);
   BOOST_CHECK(cc_sched_unschedule(sched, second));
   BOOST_CHECK(cc_sched_unschedule(sched, first));
   BOOST_CHECK_EQUAL(cc_sched_get_num_remaining(sched), 0);
@@ -431,17 +444,23 @@ BOOST_AUTO_TEST_CASE(cc_sched_rejects_nonfinite_priorities)
   BOOST_CHECK_EQUAL(cc_sched_schedule(sched, sched_test_callback, &calls, inf), 0u);
   BOOST_CHECK_EQUAL(cc_sched_schedule(sched, sched_test_callback, &calls, -inf), 0u);
 
-  const uint32_t id = cc_sched_schedule(sched, sched_test_callback,
-                                        &calls, FLT_MAX);
+  int order[2] = { 0, 0 };
+  int count = 0;
+  sched_test_ordered_data highjob = { order, &count, 1 };
+  sched_test_ordered_data lowjob = { order, &count, 2 };
+  const uint32_t id = cc_sched_schedule(sched, sched_test_ordered_callback,
+                                        &highjob, FLT_MAX);
   BOOST_CHECK(id != 0);
-  const uint32_t low = cc_sched_schedule(sched, sched_test_callback,
-                                          &calls, -FLT_MAX);
+  const uint32_t low = cc_sched_schedule(sched, sched_test_ordered_callback,
+                                          &lowjob, -FLT_MAX);
   BOOST_CHECK(low != 0);
   cc_sched_change_priority(sched, id, nan);
-  cc_sched_change_priority(sched, id, inf);
+  cc_sched_change_priority(sched, low, inf);
   BOOST_CHECK_EQUAL(cc_sched_get_num_remaining(sched), 2);
-  BOOST_CHECK(cc_sched_unschedule(sched, id));
-  BOOST_CHECK(cc_sched_unschedule(sched, low));
+  cc_sched_wait_all(sched);
+  BOOST_CHECK_EQUAL(count, 2);
+  BOOST_CHECK_EQUAL(order[0], 1);
+  BOOST_CHECK_EQUAL(order[1], 2);
   BOOST_CHECK_EQUAL(calls, 0);
   cc_sched_destruct(sched);
 }

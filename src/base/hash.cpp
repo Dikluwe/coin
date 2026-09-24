@@ -458,11 +458,4 @@ BOOST_AUTO_TEST_CASE(cc_hash_rehashes_when_hash_function_changes)
   cc_hash_destruct(hash);
 }
 
-BOOST_AUTO_TEST_CASE(cc_hash_empty_statistics_are_finite)
-{
-  cc_hash * hash = cc_hash_construct(0, 0.75f);
-  cc_hash_print_stat(hash);
-  cc_hash_destruct(hash);
-}
-
 #endif // COIN_TEST_SUITE

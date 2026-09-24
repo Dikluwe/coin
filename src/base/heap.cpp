@@ -567,13 +567,16 @@ BOOST_AUTO_TEST_CASE(heap_update) {
 
 BOOST_AUTO_TEST_CASE(cc_heap_accepts_zero_initial_capacity)
 {
-  mock_up::wrapped_value value = { 7 };
+  mock_up::wrapped_value values[] = {{3}, {1}, {2}};
   cc_heap * heap = cc_heap_construct(
     0, reinterpret_cast<cc_heap_compare_cb *>(mock_up::max_heap_compare_cb),
     TRUE);
   BOOST_REQUIRE(heap != NULL);
-  cc_heap_add(heap, &value);
-  BOOST_CHECK(cc_heap_extract_top(heap) == &value);
+  for (unsigned int i = 0; i < 3; ++i) cc_heap_add(heap, &values[i]);
+  BOOST_CHECK_EQUAL(cc_heap_elements(heap), 3u);
+  BOOST_CHECK(cc_heap_extract_top(heap) == &values[0]);
+  BOOST_CHECK(cc_heap_extract_top(heap) == &values[2]);
+  BOOST_CHECK(cc_heap_extract_top(heap) == &values[1]);
   BOOST_CHECK(cc_heap_empty(heap));
   cc_heap_destruct(heap);
 }
@@ -644,17 +647,6 @@ BOOST_AUTO_TEST_CASE(cc_heap_update_requires_remove_support)
 BOOST_AUTO_TEST_CASE(cc_heap_rejects_null_comparator)
 {
   BOOST_CHECK(cc_heap_construct(1, NULL, FALSE) == NULL);
-}
-
-BOOST_AUTO_TEST_CASE(cc_heap_grows_from_single_slot)
-{
-  mock_up::wrapped_value values[] = {{3}, {1}, {2}};
-  cc_heap * heap = cc_heap_construct(
-    1, reinterpret_cast<cc_heap_compare_cb *>(mock_up::min_heap_compare_cb), FALSE);
-  BOOST_REQUIRE(heap != NULL);
-  for (unsigned int i = 0; i < 3; ++i) cc_heap_add(heap, &values[i]);
-  BOOST_CHECK_EQUAL(cc_heap_elements(heap), 3u);
-  cc_heap_destruct(heap);
 }
 
 #endif //COIN_TEST_SUITE
