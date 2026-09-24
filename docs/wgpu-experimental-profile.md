@@ -25,13 +25,15 @@ imagem aparentemente válida que ignore silenciosamente parte do estado. A
 referência CPU e o Recording permitem testar o contrato sem GPU; a paridade de
 pixels exige GPU real e, opcionalmente, Coin/GL.
 
-A Onda 4 está **parcial**: 4A/4B, os passes opaco/transparente de 4C e um
-perfil mínimo staged de `SoSceneTexture2` estão implementados, sem alterar
-a ABI pública do Coin 4. A subcena é renderizada em alvo offscreen e seus
-pixels RGBA8 são transferidos por readback/upload ao pass pai; isto ainda
-não é render-to-texture GPU→GPU direto. A ponte privada Rust oferece
-submit/query/poll/cancel de readback verdadeiramente assíncrono, com token,
-geração, serial, formatos, pitch e publicação atômica de cor/profundidade.
+A Onda 4 está **concluída no perfil mínimo delimitado**: 4A/4B,
+composição e render-to-texture staged de 4C, readback assíncrono offscreen
+de 4D e gates/medição de 4E. Não houve alteração da ABI pública do Coin 4.
+A subcena de `SoSceneTexture2` é renderizada em alvo offscreen; seus pixels
+RGBA8 passam por readback/upload antes do pass pai. GPU→GPU direto, formatos
+e estados adicionais de `SoSceneTexture2` continuam fora do perfil e não
+são apresentados como concluídos. A ponte privada Rust oferece
+submit/query/poll/cancel de readback assíncrono, com token, geração, serial,
+formatos, pitch e publicação atômica de cor/profundidade.
 `SoWgpuRenderAction::applyAsync` devolve o ticket; as funções estáticas do
 `SoWgpuRenderTarget` consultam, publicam ou cancelam o resultado sem depender
 da vida da action/target original. `apply` e readback síncronos permanecem.
@@ -39,12 +41,9 @@ Após `applyAsync`, os accessors síncronos do target devolvem vetores vazios
 até outro `apply` síncrono, evitando apresentar o frame anterior como atual.
 A query não aloca os vetores de saída enquanto o GPU readback está pendente.
 O backend native/Dawn não possui pipeline transparente e rejeita esse perfil
-explicitamente. A 4D está implementada no perfil offscreen Rust, inclusive
-polls concorrentes. A 4C ainda não cobre GPU→GPU direto nem toda a semântica
-de `SoSceneTexture2`; 4E também está pendente. A medição isolada de latência
-de readback pertence ao gate 4E.
+explicitamente.
 
-## Evidência parcial da 4C (SoSceneTexture2 staged)
+## Evidência da 4C (perfil SoSceneTexture2 staged)
 
 `SoSceneTexture2` aceita somente unidade 0, `RGBA8`, `MODULATE`,
 `REPEAT`/`CLAMP`, `transparencyFunction=NONE`, sem
@@ -63,6 +62,11 @@ sem draws, duas dependências aninhadas, troca de target, rejeição no segundo
 pass sem alterar o frame publicado, ciclo e recuperação após resize em Rust e
 Recording/CPU. Este caminho é funcional, mas a cópia GPU→CPU→GPU por
 frame não é a solução final de recursos GPU compartilhados.
+
+`WgpuSceneTextureBudgetTest` verifica limite agregado em passes aninhados,
+aceitação exata de 64 MiB, rejeição antes do quinto subpass, preservação do
+frame publicado e orçamento novo no apply seguinte. Qualidade zero e override
+de imagem não consomem esse orçamento.
 
 ## Evidência da 4D (ponte privada e action experimental)
 
@@ -83,6 +87,33 @@ O mesmo teste encadeia `SoSceneTexture2` ao `applyAsync`: cor e profundidade
 coincidem com o frame síncrono mesmo após mutar a subcena antes do poll; o
 readback síncrono anterior fica inválido, e um pass fora do perfil não emite
 ticket nem avança o serial publicado do alvo pai.
+
+## Evidência de integração da 4E
+
+`WgpuPerformanceTest` mede em cada execução criação/reuso do pipeline de
+blend, serial de dois passes staged, bytes de upload intermediário e staging
+do ticket assíncrono, além do tempo entre o retorno de `applyAsync` e o poll
+pronto. Executar com `ctest --test-dir build-wgpu -V -R '^WgpuPerformanceTest$'`.
+Na NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan), Debug/C++11, 64×64: um
+pipeline blend novo e um hit no frame seguinte; dois passes RTT 32×32→64×64,
+4.096 bytes de upload da imagem filha e 7,47 ms para o RTT; 32.768 bytes de
+staging RGBA8+Depth32 e 1,16 ms do retorno de `applyAsync` ao poll pronto.
+Os tempos são uma observação local, não SLA. O valor de staging deriva dos
+pitches e dimensões retornados no ticket; os passes derivam do serial de
+submissão da ponte.
+
+O build Rust/GL de 23/09/2026 passou 30/30 testes sob Xvfb. O build
+Recording passou 23/23, a janela X11 estrita passou e os símbolos exportados
+de `libCoin.so` foram idênticos em builds Debug/C++11 com WebGPU ON/OFF.
+Os 878 headers instalados são idênticos byte a byte; o consumidor externo
+C++11 do pacote instalado compilou e executou nos dois modos.
+
+Desde a base `f2613bca69` da Onda 4, o diff versionado em `include`, `src`,
+CMake e configuração do pacote toca apenas arquivos do módulo WebGPU;
+o gate histórico de ABI da 3E continua aplicável à `libCoin`.
+
+Esses gates cobrem o perfil declarado; não certificam GPU→GPU direto,
+transparência fora de `SORTED_OBJECT_BLEND` ou plataformas não testadas.
 
 ## Build e testes
 

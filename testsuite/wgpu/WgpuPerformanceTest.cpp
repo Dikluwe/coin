@@ -13,14 +13,19 @@
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoSeparator.h>
+#include <Inventor/nodes/SoCube.h>
+#include <Inventor/nodes/SoSceneTexture2.h>
 #include <Inventor/nodes/SoTexture2.h>
 #include <Inventor/nodes/SoTextureCoordinate2.h>
+#include <Inventor/nodes/SoTransparencyType.h>
 #include "rendering/wgpu/coin_wgpu_ffi.h"
 
 #include <array>
 #include <chrono>
 #include <cstdint>
 #include <iostream>
+#include <thread>
+#include <vector>
 
 static_assert(sizeof(CoinWgpuPerformanceStats) == 9 * sizeof(uint64_t),
               "C/Rust performance stats layout mismatch");
@@ -41,7 +46,7 @@ void setColor(SoTexture2 * texture, uint8_t red) {
   texture->image.setValue(SbVec2s(4, 4), 3, pixels.data());
 }
 
-SoSeparator * makeScene(SoTexture2 *& texture) {
+SoSeparator * makeScene(SoTexture2 *& texture, SoMaterial *& material) {
   SoSeparator * root = new SoSeparator;
   root->ref();
   SoOrthographicCamera * camera = new SoOrthographicCamera;
@@ -53,7 +58,7 @@ SoSeparator * makeScene(SoTexture2 *& texture) {
   SoLightModel * light = new SoLightModel;
   light->model = SoLightModel::BASE_COLOR;
   root->addChild(light);
-  SoMaterial * material = new SoMaterial;
+  material = new SoMaterial;
   material->diffuseColor.setValue(1.0f, 1.0f, 1.0f);
   root->addChild(material);
   texture = new SoTexture2;
@@ -100,7 +105,8 @@ int main() {
   char adapter[256] = {};
   coin_wgpu_get_adapter_info(adapter, sizeof(adapter));
   SoTexture2 * texture = NULL;
-  SoSeparator * root = makeScene(texture);
+  SoMaterial * material = NULL;
+  SoSeparator * root = makeScene(texture, material);
   SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
   if (!check(target != NULL, "createOffscreen failed")) return 1;
   SoWgpuRenderAction action(SbViewportRegion(64, 64));
@@ -158,6 +164,80 @@ int main() {
 
   const double elapsedMs = std::chrono::duration<double, std::milli>(
       Clock::now() - start).count();
+
+  // Measure the first blended pipeline and verify that the next frame reuses it.
+  SoTransparencyType * blendMode = new SoTransparencyType;
+  blendMode->value = SoTransparencyType::SORTED_OBJECT_BLEND;
+  root->insertChild(blendMode, 2);
+  material->transparency.setValue(0.5f);
+  if (!render(action, root)) return 1;
+  CoinWgpuPerformanceStats firstBlend = {};
+  coin_wgpu_get_performance_stats(&firstBlend);
+  if (!render(action, root)) return 1;
+  CoinWgpuPerformanceStats secondBlend = {};
+  coin_wgpu_get_performance_stats(&secondBlend);
+  if (!check(firstBlend.pipeline_compilations == removed.pipeline_compilations + 1 &&
+             secondBlend.pipeline_compilations == firstBlend.pipeline_compilations &&
+             secondBlend.pipeline_hits > firstBlend.pipeline_hits,
+             "blended pipeline was not compiled once and reused")) return 1;
+
+  // The supported RTT path submits a 32x32 child, then a 64x64 parent.
+  material->transparency.setValue(0.0f);
+  SoSeparator * child = new SoSeparator;
+  child->addChild(new SoOrthographicCamera);
+  SoLightModel * childLight = new SoLightModel;
+  childLight->model = SoLightModel::BASE_COLOR;
+  child->addChild(childLight);
+  child->addChild(new SoCube);
+  SoSceneTexture2 * sceneTexture = new SoSceneTexture2;
+  sceneTexture->size.setValue(32, 32);
+  sceneTexture->scene.setValue(child);
+  sceneTexture->type.setValue(SoSceneTexture2::RGBA8);
+  root->insertChild(sceneTexture, root->getNumChildren() - 2);
+  CoinWgpuCacheStats beforeRtt = {};
+  coin_wgpu_get_cache_stats(&beforeRtt);
+  CoinWgpuPerformanceStats beforeRttPerf = {};
+  coin_wgpu_get_performance_stats(&beforeRttPerf);
+  const Clock::time_point rttStart = Clock::now();
+  if (!render(action, root)) return 1;
+  const double rttMs = std::chrono::duration<double, std::milli>(
+      Clock::now() - rttStart).count();
+  CoinWgpuCacheStats afterRtt = {};
+  coin_wgpu_get_cache_stats(&afterRtt);
+  CoinWgpuPerformanceStats afterRttPerf = {};
+  coin_wgpu_get_performance_stats(&afterRttPerf);
+  const uint64_t rttPasses = afterRtt.submission_serial - beforeRtt.submission_serial;
+  if (!check(rttPasses == 2 &&
+             afterRttPerf.texture_uploaded_bytes >=
+               beforeRttPerf.texture_uploaded_bytes + 32u * 32u * 4u,
+             "staged RTT did not submit child+parent and upload the child image")) return 1;
+
+  // Poll latency begins after submission: it excludes traversal and upload.
+  root->removeChild(sceneTexture);
+  SoWgpuReadbackTicket ticket{};
+  action.applyAsync(root, ticket);
+  if (!check(action.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
+             ticket.token != 0, "asynchronous performance readback submission")) return 1;
+  const Clock::time_point readbackStart = Clock::now();
+  std::vector<uint8_t> color;
+  std::vector<float> depth;
+  SoWgpuRenderTarget::ReadbackStatus readbackStatus =
+    SoWgpuRenderTarget::READBACK_NOT_READY;
+  for (int attempt = 0; attempt < 10000; ++attempt) {
+    readbackStatus = SoWgpuRenderTarget::pollReadback(ticket, color, depth);
+    if (readbackStatus != SoWgpuRenderTarget::READBACK_NOT_READY) break;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  const double readbackMs = std::chrono::duration<double, std::milli>(
+      Clock::now() - readbackStart).count();
+  const uint64_t stagingBytes =
+    (uint64_t(ticket.colorRowPitch) + uint64_t(ticket.depthRowPitch)) * ticket.height;
+  if (!check(readbackStatus == SoWgpuRenderTarget::READBACK_READY &&
+             color.size() == ticket.colorBytes &&
+             depth.size() * sizeof(float) == ticket.depthBytes &&
+             stagingBytes >= ticket.colorBytes + ticket.depthBytes,
+             "asynchronous readback metrics are incomplete")) return 1;
+
   std::cout << "adapter=" << adapter << " resolution=64x64 frames=31 elapsed_ms="
             << elapsedMs << " texture_uploads=" << mutated.texture_uploads
             << " texture_hits=" << mutated.texture_hits
@@ -166,7 +246,17 @@ int main() {
             << " texture_active_after_mutation=" << mutated.texture_active_entries
             << " texture_active_after_removal=" << removed.texture_active_entries
             << " pipeline_compilations=" << removed.pipeline_compilations
-            << " pipeline_hits=" << removed.pipeline_hits << "\n";
+            << " pipeline_hits=" << removed.pipeline_hits
+            << " blend_pipeline_compilations="
+            << firstBlend.pipeline_compilations - removed.pipeline_compilations
+            << " blend_pipeline_reuse_hits="
+            << secondBlend.pipeline_hits - firstBlend.pipeline_hits
+            << " staged_rtt_passes=" << rttPasses
+            << " staged_rtt_elapsed_ms=" << rttMs
+            << " staged_rtt_upload_bytes="
+            << afterRttPerf.texture_uploaded_bytes - beforeRttPerf.texture_uploaded_bytes
+            << " async_staging_bytes=" << stagingBytes
+            << " async_readback_poll_elapsed_ms=" << readbackMs << "\n";
 
   delete target;
   root->unref();
