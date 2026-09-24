@@ -31,18 +31,68 @@ métricas da tabela invertem as linhas GL antes de comparar. Sem essa
 normalização, as métricas seriam enganosas. `BASE_COLOR` mostrou paridade
 geométrica/pixel praticamente exata. Com luz direcional e `PHONG`, as
 silhuetas aparentes continuam próximas, mas há diferença visível de
-sombreamento, sobretudo no BIM e no ArchDetail. Isto é **falha de paridade de aparência
-para investigar**, não aprovação visual da iluminação. A tabela usa
-WebGPU/RADV e Coin/GL na mesma GPU AMD; PartDesign, EngineBlock, Assembly e BIM
-também deram resultados quase idênticos na comparação WebGPU/NVIDIA ×
+sombreamento, sobretudo no BIM e no ArchDetail. Isto é **falha de paridade de
+aparência nos arquivos sem normais explícitas**; o diagnóstico está abaixo.
+A tabela usa WebGPU/RADV e Coin/GL na mesma GPU AMD; PartDesign, EngineBlock,
+Assembly e BIM também deram resultados quase idênticos na comparação WebGPU/NVIDIA ×
 GL/AMD. Logo, a diferença não se explica apenas pela seleção de GPUs
-distintas; a causa específica ainda não foi isolada. A IoU é derivada de
+distintas. A IoU é derivada de
 pixels que diferem do fundo por um limiar de cor; superfícies escuras podem
 reduzir essa métrica sem alterar a geometria.
 
 O comparador falha automaticamente em `BASE_COLOR` se a MAE alinhada exceder
 1 ou a IoU ficar abaixo de 0,99; o modo `lit` é diagnóstico, sem gate de
 equivalência visual. Os sete gates básicos passaram na AMD.
+
+## Diagnóstico das bordas e da iluminação (teste A/B)
+
+As cenas originais têm `Coordinate3` e `IndexedFaceSet`, mas nenhum nó
+`Normal`. Seu `ShapeHints` não define `creaseAngle`, cujo padrão no Coin
+é zero. O caminho GL gera normais pela cache de `SoIndexedFaceSet`, respeitando
+esse ângulo. No caminho rápido WebGPU, quando não há normais explícitas,
+`SoWgpuFramePlanBuilder` calcula uma normal geométrica por face, mas no
+binding padrão `PER_VERTEX_INDEXED` deduplica o vértice por índice de
+coordenada (`nKey = cIdx`). Faces de um canto que compartilham coordenada
+podem então reutilizar a normal da primeira face. O shader interpola esses
+valores errados, produzindo o aspecto desfocado e escondendo visualmente
+cantos, embora a geometria e a silhueta permaneçam.
+
+Para isolar a causa, mantivemos as mesmas posições, índices, câmera, material
+e luz e adicionamos somente `NormalBinding PER_FACE` e normais geométricas
+explícitas por triângulo em cópias das cenas. Erro MAE RGB de `PHONG`,
+WebGPU contra GL alinhado verticalmente, 512×512 na mesma GPU AMD:
+
+| Exemplo | Sem normais explícitas | Com normais por face |
+| --- | ---: | ---: |
+| PartDesign | 10,858 | 0,163 |
+| FEM | 12,823 | 0,098 |
+| EngineBlock | 9,246 | 0,070 |
+| Draft | 0,037 | 0,037 |
+| Assembly | 3,352 | 0,019 |
+| BIM | 30,002 | 0,207 |
+| ArchDetail | 12,838 | 0,088 |
+
+A imagem GL original e a GL com normais explícitas ficaram praticamente
+idênticas (MAE de até 0,009 nível RGB). Assim, a queda do erro não se deve a
+termos mudado a referência GL nem a uma luz extra no WebGPU. PartDesign e
+EngineBlock tornam os cantos e furos mais evidentes, mas não são exceções
+estruturais: 72,4% e 73,0% de seus triângulos, respectivamente, usam ao
+menos um índice de vértice cuja normal de face difere mais de 30° da primeira
+face incidente; BIM chega a 79,1%, Assembly a 61,4%. Draft é quase coplanar
+nesse teste (0%) e já coincidia. A perda observada é de **aparência das
+bordas**, não de triângulos.
+
+A correção deve ser no backend: gerar/obter normais compatíveis com o
+`creaseAngle` e o binding efetivo do Coin antes da deduplicação, ou usar o
+fallback que já conhece essa geração. Fixar `PER_FACE` em toda cena seria
+incorreto quando há suavização intencional. Testar cantos duros e superfícies
+suaves sem normais explícitas, mantendo a ABI do Coin 4. O backend **ainda não
+foi corrigido** neste ensaio; as variantes servem apenas de prova diagnóstica.
+
+No estudo persistem sete cenas de diagnóstico em `cenas/diagnostico-normais/`
+e sete trípticos em `imagens/diagnostico-normais/`. Cada imagem mostra, da
+esquerda para a direita: **WebGPU original | WebGPU com normais por face | GL**.
+
 
 ## Linha de base de desempenho — ainda sem ganho sobre GL
 
@@ -73,7 +123,7 @@ repetido e a cópia pública de RGBA como explicação única para esse caso, ma
 interno. É preciso perfilar essas fases antes de alterar o pipeline.
 
 Paridade visual é o piso, não a meta. Para afirmar vantagem sobre GL será
-necessário: corrigir a diferença PHONG; repetir o benchmark em Release, na
+necessário: corrigir as normais do PHONG; repetir o benchmark em Release, na
 mesma GPU e com cenas estáticas e dinâmicas; medir mediana, p95, uso de
 memória, uploads e latência de interação; e demonstrar ganho reproduzível
 sem reduzir a qualidade. Uma meta de produto proposta, ainda **não
@@ -82,12 +132,12 @@ Assembly e BIM) e ausência de regressão relevante nos leves. RTT GPU→GPU,
 readback assíncrono e recuperação após perda do device também precisam ser
 medidos em fluxos reais; sua existência por si só não prova superioridade.
 
-As sete cenas `.iv` e 35 PNGs persistem em
+As sete cenas originais `.iv` e 35 PNGs da primeira campanha persistem em
 `/home/dikluwe/Área de trabalho/Estudo coin/estudos/So/SoWgpu-FreeCAD-Exemplos/`.
 Cada exemplo tem `base-wgpu`, `base-gl`, `lit-wgpu`, `lit-gl` e
 `lit-comparacao`; nos pares GL a origem vertical já foi corrigida. Nas
 comparações lado a lado, **esquerda = WebGPU, direita = GL**. Em especial,
-`imagens/BIM-lit-comparacao.png` registra a divergência de iluminação.
+`imagens/BIM-lit-comparacao.png` registra o artefato de normais iluminadas.
 
 
 
