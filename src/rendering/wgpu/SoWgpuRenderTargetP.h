@@ -33,6 +33,7 @@ public:
   std::vector<float> depthBuffer;   // Depth [0, 1] (offscreen software / CPU fallback)
   uint32_t generation{0};
   bool synchronousReadbackValid{true};
+  bool borrowedReadbackValid{false}; // Only after a successful synchronous frame.
 
   // Window surface specific members
   SoWgpuNativeSurfaceDescriptor nativeDesc{};

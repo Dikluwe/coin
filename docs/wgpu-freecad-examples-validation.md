@@ -713,6 +713,116 @@ COIN_GLX_PIXMAP_DIRECT_RENDERING=1 COIN_WGPU_CAMERA_BINDINGS=1 \
 Descartar as primeiras dez linhas `rust_cpu_detail`/`rust_gpu` do trace
 (warmup). Comparar o tempo total somente com o segundo comando, sem trace.
 
+## Attachments, cópia contígua e saída emprestada (Prompt 008F, 2026-09-24)
+
+Build Release Rust, AMD Radeon Graphics RADV RENOIR/Vulkan, `BASE_COLOR`,
+RGBA-only, cena normalizada e `COIN_WGPU_CAMERA_BINDINGS=1`. Os A/B
+abaixo usam o **mesmo binário**: o baseline força o loop antigo de linhas
+e desliga o cache; os demais mudam somente as opções indicadas. Cada processo
+mede 40 frames após 10 warmup; ordem contrabalançada. O Coin/GL é renderizado
+no mesmo processo/GPU, com `COIN_GLX_PIXMAP_DIRECT_RENDERING=1`.
+`copy` inclui a cópia pública `readbackRGBA()`; `borrow` apenas valida
+o ponteiro/tamanho da view, como o `getBuffer()` do GL. Os números não
+incluem a viewport real do FreeCAD.
+
+PartDesign 1024², **mediana das medianas** e **mediana dos p95** de três
+processos independentes, em ms/frame (não são percentis da amostra unida):
+
+| Configuração WebGPU | Mediana | p95 | Coin/GL pareado, mediana |
+| --- | ---: | ---: | ---: |
+| Cache off, linhas forçadas, saída copy | 4,3323 | 5,1584 | 1,5376 |
+| Cache on, linhas forçadas, saída copy | 2,6659 | 3,2042 | 1,5720 |
+| Cache off, cópia contígua, saída copy | 3,5298 | 4,2567 | 1,4800 |
+| Cache on, cópia contígua, saída copy | 1,5558 | 1,7997 | 1,4878 |
+| Cache on, cópia contígua, saída borrow | 1,0750 | 1,3125 | 1,4211 |
+
+O contrato atual com saída **copy** ganha 64,1% na mediana frente ao
+baseline antigo neste cenário; cache e cópia contígua contribuem
+separadamente. A view `borrow` elimina uma cópia C++ adicional, mas só
+serve a consumidores que terminam de usar os pixels antes do próximo
+render/resize. Não se pode atribuir esse ganho a GPU mais rápida: em
+40 frames traceados após 10 warmup (`COIN_WGPU_GPU_TIMESTAMPS=1`),
+attachments CPU caíram de 1,484 para 0,00095 ms por hit, e a cópia
+CPU da cor de 1,392 para 0,379 ms. A query de render GPU marcou
+0,0687/0,0684 ms (baseline/otimizado), e a de cópia GPU
+0,2076/0,1779 ms. O ganho observado é predominantemente de CPU;
+os tempos de trace são intrusivos e não formam um A/B de latência
+total sem trace.
+
+Em 512², três processos contrabalançados por cena, mediana das medianas
+e dos p95 por processo (ms/frame):
+
+| Cena | Baseline med/p95 | Cache+contígua+copy med/p95 | Cache+contígua+borrow med/p95 | Coin/GL pareado com copy, med |
+| --- | ---: | ---: | ---: | ---: |
+| PartDesign | 0,5199/0,7795 | 0,3593/0,6274 | 0,3263/0,6749 | 0,4298 |
+| Assembly | 0,4926/0,8592 | 0,4075/0,8414 | 0,3648/0,7575 | 0,4140 |
+
+No Assembly, o p95 de copy variou de 0,739 a 0,926 ms entre processos;
+o ganho de cauda é menos robusto que o de mediana. Estes números são
+menores que os antigos Debug 512², mas não devem ser comparados entre
+builds/protocolos diferentes.
+
+O comparador visual com cache ligado preservou PartDesign 512²
+MAE RGB 0,001358/IoU 0,999978 e Assembly 512² MAE 0/IoU 1 após
+inverter GL. A largura 513, que exige pitch com padding, deu PartDesign
+MAE 0,654724/IoU 1 tanto com cache ligado quanto desligado; não foi
+uma regressão do 008F. O teste Rust exercita cópia contígua e padded;
+os testes de repetição, RTT, async e device loss rodam com cache ligado.
+Na revisão final: Release Rust 42/42, Debug Rust 42/42, Recording 28/28,
+testes unitários Rust de cópia 2/2; fallback de linha forçado 2/2.
+
+Pico RSS de processo WebGPU-only em PartDesign 1024², 120 frames após
+20 warmup, mediana de três processos: baseline 143068 KiB,
+cache+cópia contígua+copy 142828 KiB e borrow 138932 KiB. Há
+ruído de alocador/driver: isso **não** mede VRAM nem prova economia de
+memória. O cache pode reter até 8 MiB de textures a 1024² (limite
+configurado de 32 MiB por device). Mantê-lo opt-in permite medir esse
+trade-off em mais GPUs.
+
+Dois tickets em voo (`--async-depth 2`) foram medidos separadamente,
+80 frames após 10 warmup, três pares de processos alternados. Em 512²,
+as medianas de submit e latência submit→readback foram 0,158 e
+1,046 ms; throughput 1362 fps versus 2499 fps síncronos com cache.
+Em 1024²: submit 1,722 ms, latência 3,609 ms e throughput 327 fps
+versus 641 fps síncronos com cache. O p95 mediano de latência async
+foi 1,782 ms em 512² e 6,187 ms em 1024². A mediana dos frames
+síncronos foi 0,359 ms em 512² e 1,536 ms em 1024².
+Esse ensaio async não reutiliza os attachments síncronos, portanto
+não isola o efeito da profundidade 2; não trouxe benefício demonstrado
+e não foi ativado no caminho normal. Submit curto não é frame entregue.
+
+Reprodução (trocar a cena/size e repetir alternando a ordem):
+
+```sh
+SCENE='/home/dikluwe/Área de trabalho/Estudo coin/estudos/So/SoWgpu-FreeCAD-Exemplos/cenas/PartDesign.iv'
+BENCH=/tmp/coin-wgpu-tekt-release/bin/wgpu_gl_benchmark
+env VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
+  COIN_GLX_PIXMAP_DIRECT_RENDERING=1 COIN_WGPU_CAMERA_BINDINGS=1 \
+  COIN_WGPU_ATTACHMENT_CACHE=0 COIN_WGPU_FORCE_ROW_COPY=1 \
+  "$BENCH" --backend both --readback color --rgba-output copy \
+  --frames 40 --warmup 10 --size 1024 --scene "$SCENE"
+env VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
+  COIN_GLX_PIXMAP_DIRECT_RENDERING=1 COIN_WGPU_CAMERA_BINDINGS=1 \
+  COIN_WGPU_ATTACHMENT_CACHE=1 COIN_WGPU_FORCE_ROW_COPY=0 \
+  "$BENCH" --backend both --readback color --rgba-output copy \
+  --frames 40 --warmup 10 --size 1024 --scene "$SCENE"
+env VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
+  COIN_WGPU_CAMERA_BINDINGS=1 COIN_WGPU_ATTACHMENT_CACHE=1 \
+  COIN_WGPU_FORCE_ROW_COPY=0 \
+  "$BENCH" --backend wgpu --readback color --async-depth 2 \
+  --frames 80 --warmup 10 --size 1024 --scene "$SCENE"
+env VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
+  COIN_WGPU_CAMERA_BINDINGS=1 COIN_WGPU_ATTACHMENT_CACHE=1 \
+  COIN_WGPU_FORCE_ROW_COPY=0 \
+  /usr/bin/time -f 'peak_rss_kib=%M' "$BENCH" --backend wgpu \
+  --readback color --rgba-output copy --frames 120 --warmup 20 \
+  --size 1024 --scene "$SCENE"
+env VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
+  COIN_GLX_PIXMAP_DIRECT_RENDERING=1 COIN_WGPU_ATTACHMENT_CACHE=1 \
+  /tmp/coin-wgpu-tekt-release/bin/wgpu_freecad_compare \
+  "$SCENE" /tmp/coin-wgpu-008f-visual 512
+```
+
 ## Próximo gate necessário para integração real
 
 Fazer um build **isolado** do FreeCAD contra a mesma revisão do Coin/WebGPU,

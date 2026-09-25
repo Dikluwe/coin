@@ -144,6 +144,7 @@ SoWgpuRenderTargetP::initWindow(const SoWgpuNativeSurfaceDescriptor & desc, cons
 bool
 SoWgpuRenderTargetP::resize(const SbVec2i32 & newSize)
 {
+  this->borrowedReadbackValid = false;
   this->lastValidatedPlanRevision = 0;
   if (this->kind == KIND_WINDOW) {
     if (newSize[0] < 0 || newSize[1] < 0) {
@@ -389,6 +390,7 @@ SoWgpuRenderTargetP::executeFrameInternal(const FramePlan & frame,
                                           SoWgpuReadbackTicket * outTicket,
                                           const SoWgpuFrameReuseDecision & reuse)
 {
+  this->borrowedReadbackValid = false;
   if (outTicket && this->kind != KIND_OFFSCREEN) {
     return FrameExecutionResult(BackendStatus::UNSUPPORTED,
                                 "applyAsync() requires an offscreen target");
@@ -504,6 +506,7 @@ SoWgpuRenderTargetP::executeFrameInternal(const FramePlan & frame,
 
   this->lastSubmissionSerial = res.submissionSerial;
   this->synchronousReadbackValid = (outTicket == NULL && !this->directTextureOutput);
+  this->borrowedReadbackValid = this->synchronousReadbackValid;
   this->status = SoWgpuRenderTarget::TARGET_READY;
   this->lastError.clear();
   return res;
@@ -569,6 +572,20 @@ SoWgpuRenderTarget::readbackRGBA(std::vector<uint8_t> & outPixels) const
   this->pimpl->readbackRGBA(outPixels);
 }
 
+const uint8_t *
+SoWgpuRenderTarget::borrowRGBA(std::size_t & byteCount) const
+{
+  byteCount = 0;
+  if (this->pimpl->kind != SoWgpuRenderTargetP::KIND_OFFSCREEN ||
+      !this->pimpl->synchronousReadbackValid ||
+      !this->pimpl->borrowedReadbackValid ||
+      this->pimpl->colorBuffer.empty()) {
+    return NULL;
+  }
+  byteCount = this->pimpl->colorBuffer.size();
+  return this->pimpl->colorBuffer.data();
+}
+
 SbBool
 SoWgpuRenderTarget::setDepthReadbackEnabled(SbBool enabled)
 {
@@ -581,6 +598,7 @@ SoWgpuRenderTarget::setDepthReadbackEnabled(SbBool enabled)
   if (this->pimpl->depthReadbackEnabled != requested) {
     this->pimpl->depthReadbackEnabled = requested;
     this->pimpl->synchronousReadbackValid = false;
+    this->pimpl->borrowedReadbackValid = false;
   }
   this->pimpl->lastError.clear();
   return TRUE;

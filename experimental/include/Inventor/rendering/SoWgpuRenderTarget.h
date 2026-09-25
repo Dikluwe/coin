@@ -37,6 +37,7 @@
 #include <Inventor/SbBasic.h>
 #include <vector>
 #include <cstdint>
+#include <cstddef>
 #include <Inventor/SbVec2i32.h>
 #include <Inventor/SbString.h>
 #include <Inventor/tools/SbPimplPtr.h>
@@ -134,6 +135,14 @@ public:
   SbBool setDepthReadbackEnabled(SbBool enabled);
   SbBool isDepthReadbackEnabled(void) const;
   void readbackRGBA(std::vector<uint8_t> & outPixels) const;
+  /**
+   * Borrow the last synchronous RGBA buffer without copying it.
+   * Returns NULL and sets byteCount to zero when no synchronous pixels are
+   * available. The pointer belongs to this target; it is invalidated by the
+   * next render, resize, output-policy change or target destruction. Copy it
+   * if pixels must outlive that operation. This is an experimental API only.
+   */
+  const uint8_t * borrowRGBA(std::size_t & byteCount) const;
   void readbackDepth(std::vector<float> & outDepth) const;
   /**
    * Polls a ticket produced by SoWgpuRenderAction::applyAsync().

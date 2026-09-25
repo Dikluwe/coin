@@ -665,3 +665,45 @@ candidato é reutilizar attachments por target/tamanho/geração de device,
 com limites de memória e invalidação rigorosa. Medidas e reprodução em
 `wgpu-freecad-examples-validation.md`; não há ganho de velocidade
 reivindicado por este prompt de diagnóstico.
+
+#### Prompt 008F: attachments concluídos, RGBA contíguo e view emprestada
+
+**Intent:** reduzir os custos encontrados no 008E sem mudar a ABI pública
+do Coin 4, a identidade do frame ou a publicação atômica de cor+depth.
+Medir os três ganhos separadamente e testar dois readbacks em voo antes
+de chamar qualquer etapa assíncrona de aceleração.
+
+**Core:** copiar RGBA do staging em um bloco quando o pitch não tem padding;
+manter o loop por linha quando há padding. Testes com larguras 64/65 verificam
+ambos. Uma flag de diagnóstico força o loop antigo para A/B.
+
+**Shell:** documentar a validade da view emprestada e expor no trace
+`attachments_reused`. O benchmark distingue saída `copy` de `borrow`,
+latência síncrona de throughput/latência assíncronos e marca resultados
+incomparáveis.
+
+**Infra:** `COIN_WGPU_ATTACHMENT_CACHE=1` guarda no máximo um par
+RGBA8/depth por device, tamanho e geração, com limite de 32 MiB e somente
+após concluir o readback síncrono. Async e RTT não compartilham esses
+attachments; resize/tamanho diferente e device loss impedem hit indevido.
+O experimento de profundidade 2 usa os tickets já existentes sem alterar
+`apply()`.
+
+**Wiring:** `borrowRGBA()` entrega uma view do buffer do target após
+render síncrono bem-sucedido. O ponteiro expira no próximo render, resize,
+troca de política ou destruição. `readbackRGBA()` continua copiando.
+
+**Gates:** A/B Release pareado e contrabalançado com GL na mesma GPU,
+40 frames após 10 warmup em 512²/1024²; mediana, p95, qualidade, RSS;
+testes Rust Release/Debug e Recording, largura com padding e device loss.
+Async deve reportar throughput e latência separados, sem promessa de ganho.
+Resultados, comandos e limitações em `wgpu-freecad-examples-validation.md`.
+
+**Resultado (2026-09-24):** Release Rust 42/42, Debug Rust 42/42,
+Recording 28/28 e testes Rust de cópia 2/2. Em PartDesign 1024²,
+cache+cópia contígua+saída copy reduziu a mediana de 4,332 para
+1,556 ms/frame (−64,1%); `borrow` chegou a 1,075 ms contra
+1,421 ms do GL pareado. A qualidade 512² manteve PartDesign
+MAE 0,001358/IoU 0,999978 e Assembly MAE 0/IoU 1. O pico RSS
+de processo não mediu VRAM. Profundidade async 2 foi mais lenta
+em throughput; ficou apenas no benchmark. Cache ainda opt-in.

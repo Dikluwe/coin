@@ -242,12 +242,20 @@ int main() {
     std::cerr << syncAction.getLastError().getString() << "\n";
     return 1;
   }
+  std::size_t borrowedSceneBytes = 0;
+  if (!check(synchronous->borrowRGBA(borrowedSceneBytes) != NULL &&
+             borrowedSceneBytes == sceneExpectedColor.size(),
+             "synchronous scene-texture frame must expose borrowed RGBA")) return 1;
 
   SoWgpuReadbackTicket sceneTicket{};
   syncAction.applyAsync(texturedParent, sceneTicket);
   if (!check(syncAction.getLastStatus() == SoWgpuRenderAction::SUCCESS &&
              sceneTicket.token != 0,
              "async scene-texture submission")) return 1;
+  borrowedSceneBytes = 1;
+  if (!check(synchronous->borrowRGBA(borrowedSceneBytes) == NULL &&
+             borrowedSceneBytes == 0,
+             "async submit must invalidate borrowed synchronous RGBA")) return 1;
   std::vector<uint8_t> staleSceneColor;
   synchronous->readbackRGBA(staleSceneColor);
   if (!check(staleSceneColor.empty(),

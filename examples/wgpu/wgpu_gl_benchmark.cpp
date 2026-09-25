@@ -19,8 +19,10 @@
 #include <chrono>
 #include <cstdlib>
 #include <cstring>
+#include <deque>
 #include <iostream>
 #include <string>
+#include <thread>
 #include <vector>
 
 namespace {
@@ -98,29 +100,36 @@ int main(int argc, char ** argv) {
   int frames = 30;
   int warmup = 8;
   int side = 256;
+  int asyncDepth = 0;
   bool dynamic = false;
   std::string backend = "both";
   std::string readback = "color";
+  std::string rgbaOutput = "copy";
   std::string scenePath;
   for (int i = 1; i < argc; ++i) {
     if (std::strcmp(argv[i], "--frames") == 0 && i + 1 < argc) frames = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--warmup") == 0 && i + 1 < argc) warmup = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--size") == 0 && i + 1 < argc) side = std::atoi(argv[++i]);
+    else if (std::strcmp(argv[i], "--async-depth") == 0 && i + 1 < argc) asyncDepth = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--scene") == 0 && i + 1 < argc) scenePath = argv[++i];
     else if (std::strcmp(argv[i], "--dynamic") == 0) dynamic = true;
     else if (std::strcmp(argv[i], "--backend") == 0 && i + 1 < argc) backend = argv[++i];
     else if (std::strcmp(argv[i], "--readback") == 0 && i + 1 < argc) readback = argv[++i];
+    else if (std::strcmp(argv[i], "--rgba-output") == 0 && i + 1 < argc) rgbaOutput = argv[++i];
     else {
       std::cerr << "Usage: wgpu_gl_benchmark [--frames 30] [--warmup 8]"
                    " [--size 256] [--scene normalized.iv] [--dynamic]"
-                   " [--backend both|wgpu|gl] [--readback color|color-depth]\n";
+                   " [--backend both|wgpu|gl] [--readback color|color-depth] [--rgba-output copy|borrow] [--async-depth 2]\n";
       return 2;
     }
   }
   if (frames < 1 || frames > 10000 || warmup < 0 || warmup > 10000 ||
       side < 1 || side > 2048 ||
       (backend != "both" && backend != "wgpu" && backend != "gl") ||
-      (readback != "color" && readback != "color-depth")) {
+      (readback != "color" && readback != "color-depth") ||
+      (rgbaOutput != "copy" && rgbaOutput != "borrow") ||
+      (asyncDepth != 0 && asyncDepth != 2) ||
+      (asyncDepth != 0 && (backend != "wgpu" || rgbaOutput != "copy"))) {
     std::cerr << "Invalid benchmark dimensions or sample count\n";
     return 2;
   }
@@ -169,6 +178,105 @@ int main(int argc, char ** argv) {
     gl->setBackgroundColor(SbColor(0.1f, 0.1f, blue));
   }
 
+  if (asyncDepth == 2) {
+    // Two distinct tickets are allowed in flight. Drain in submission order
+    // so the benchmark never substitutes frame N-1 for frame N.
+    struct Pending {
+      SoWgpuReadbackTicket ticket;
+      Clock::time_point submitted;
+    };
+    std::deque<Pending> pending;
+    std::vector<double> submitMs, latencyMs;
+    std::vector<uint8_t> color;
+    std::vector<float> depth;
+    const SbVec3f basePosition = camera->position.getValue();
+    const size_t colorBytes = size_t(side) * size_t(side) * 4u;
+    const size_t depthPixels = size_t(side) * size_t(side);
+    for (int i = 0; i < warmup; ++i) {
+      if (dynamic) {
+        const float offset = float(i + 1) * 0.0001f;
+        camera->position.setValue(basePosition + SbVec3f(offset, 0.0f, 0.0f));
+      }
+      if (wgpu->render() != SoWgpuRenderAction::SUCCESS) {
+        std::cerr << "WebGPU async warmup failed: " << wgpu->getLastError().getString() << '\n';
+        delete wgpu;
+        root->unref();
+        return 1;
+      }
+    }
+    auto drainOldest = [&]() -> bool {
+      const Clock::time_point deadline = Clock::now() + std::chrono::seconds(10);
+      for (;;) {
+        SbString diagnostic;
+        const SoWgpuRenderTarget::ReadbackStatus status =
+          SoWgpuRenderTarget::pollReadback(pending.front().ticket, color, depth, &diagnostic);
+        if (status == SoWgpuRenderTarget::READBACK_READY) {
+          if (color.size() != colorBytes ||
+              (readback == "color-depth" ? depth.size() != depthPixels : !depth.empty())) {
+            std::cerr << "WebGPU async readback size mismatch\n";
+            return false;
+          }
+          latencyMs.push_back(std::chrono::duration<double, std::milli>(
+            Clock::now() - pending.front().submitted).count());
+          pending.pop_front();
+          return true;
+        }
+        if (status != SoWgpuRenderTarget::READBACK_NOT_READY || Clock::now() >= deadline) {
+          std::cerr << "WebGPU async readback failed: " << diagnostic.getString() << '\n';
+          return false;
+        }
+        wgpu->getRenderTarget()->pollDevice();
+        std::this_thread::yield();
+      }
+    };
+    const Clock::time_point runBegin = Clock::now();
+    for (int i = 0; i < frames; ++i) {
+      if (dynamic) {
+        const float offset = float(i + warmup + 1) * 0.0001f;
+        camera->position.setValue(basePosition + SbVec3f(offset, 0.0f, 0.0f));
+      }
+      SoWgpuReadbackTicket ticket{};
+      const Clock::time_point begin = Clock::now();
+      if (wgpu->renderAsync(ticket) != SoWgpuRenderAction::SUCCESS) {
+        std::cerr << "WebGPU async submit failed: " << wgpu->getLastError().getString() << '\n';
+        delete wgpu;
+        root->unref();
+        return 1;
+      }
+      const Clock::time_point submitted = Clock::now();
+      submitMs.push_back(std::chrono::duration<double, std::milli>(submitted - begin).count());
+      pending.push_back(Pending{ticket, submitted});
+      if (pending.size() == 2 && !drainOldest()) {
+        delete wgpu;
+        root->unref();
+        return 1;
+      }
+    }
+    while (!pending.empty()) {
+      if (!drainOldest()) {
+        delete wgpu;
+        root->unref();
+        return 1;
+      }
+    }
+    const double elapsedMs = std::chrono::duration<double, std::milli>(
+      Clock::now() - runBegin).count();
+    std::cout << "adapter=" << caps.adapter_name << " backend=wgpu_async"
+              << " depth=2 size=" << side << 'x' << side << " warmup=" << warmup
+              << " scene=" << (scenePath.empty() ? "36-cubes" : scenePath)
+              << " mode=" << readback
+              << " scene_update=" << (dynamic ? "camera-each-frame" : "static") << '\n';
+    report("WebGPU_async_submit", submitMs);
+    report("WebGPU_async_latency", latencyMs);
+    std::cout << "WebGPU_async_throughput frames=" << frames
+              << " total_ms=" << elapsedMs
+              << " fps=" << double(frames) * 1000.0 / elapsedMs << '\n';
+    delete wgpu;
+    root->unref();
+    return 0;
+  }
+
+  double wgpuMeasuredTotalMs = 0.0;
   std::vector<uint8_t> rgba;
   std::vector<float> depth;
   std::vector<double> wgpuMs, wgpuRenderMs, wgpuCopyMs, glMs;
@@ -185,11 +293,21 @@ int main(int argc, char ** argv) {
       return 1;
     }
     const Clock::time_point rendered = Clock::now();
-    wgpu->getRenderTarget()->readbackRGBA(rgba);
-    if (rgba.size() != size_t(side) * size_t(side) * 4u) {
-      std::cerr << "WebGPU readback size mismatch\n";
-      root->unref();
-      return 1;
+    if (rgbaOutput == "borrow") {
+      std::size_t bytes = 0;
+      const uint8_t * pixels = wgpu->getRenderTarget()->borrowRGBA(bytes);
+      if (!pixels || bytes != size_t(side) * size_t(side) * 4u) {
+        std::cerr << "WebGPU borrowed readback unavailable\n";
+        root->unref();
+        return 1;
+      }
+    } else {
+      wgpu->getRenderTarget()->readbackRGBA(rgba);
+      if (rgba.size() != size_t(side) * size_t(side) * 4u) {
+        std::cerr << "WebGPU readback size mismatch\n";
+        root->unref();
+        return 1;
+      }
     }
     if (readback == "color-depth") {
       wgpu->getRenderTarget()->readbackDepth(depth);
@@ -201,6 +319,7 @@ int main(int argc, char ** argv) {
     }
     const Clock::time_point end = Clock::now();
     if (i >= 0) {
+      wgpuMeasuredTotalMs += std::chrono::duration<double, std::milli>(end - begin).count();
       wgpuMs.push_back(std::chrono::duration<double, std::milli>(end - begin).count());
       wgpuRenderMs.push_back(std::chrono::duration<double, std::milli>(rendered - begin).count());
       wgpuCopyMs.push_back(std::chrono::duration<double, std::milli>(end - rendered).count());
@@ -228,11 +347,15 @@ int main(int argc, char ** argv) {
             << (scenePath.empty() ? "36-cubes" : scenePath)
             << " mode=" << (readback == "color" ? "render+rgba-readback" :
                              "render+rgba+depth-readback")
+            << " rgba_output=" << rgbaOutput
             << " scene_update=" << (dynamic ? "camera-each-frame" : "static") << '\n';
   if (runWgpu) {
     report("WebGPU", wgpuMs);
     report("WebGPU_render", wgpuRenderMs);
     report("WebGPU_copy", wgpuCopyMs);
+    std::cout << "WebGPU_throughput frames=" << frames
+              << " total_ms=" << wgpuMeasuredTotalMs
+              << " fps=" << double(frames) * 1000.0 / wgpuMeasuredTotalMs << '\n';
   }
   if (runGl) report("CoinGL", glMs);
   SoWgpuCacheTelemetry cache;

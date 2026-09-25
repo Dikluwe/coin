@@ -540,6 +540,21 @@ impl GpuTimestampProbe {
     }
 }
 
+// One completed synchronous offscreen target per device. Async readbacks and
+// direct RTT keep their own attachments so no texture is reused in flight.
+struct CachedOffscreenAttachments {
+    width: u32,
+    height: u32,
+    color_texture: wgpu::Texture,
+    color_view: wgpu::TextureView,
+    depth_texture: wgpu::Texture,
+    depth_view: wgpu::TextureView,
+}
+
+impl CachedOffscreenAttachments {
+    const MAX_BYTES: u64 = 32 * 1024 * 1024;
+}
+
 fn same_camera_independent_state(a: &CoinWgpuRenderState, b: &CoinWgpuRenderState) -> bool {
     a.light_direction == b.light_direction && a.light_color == b.light_color
         && a.light_intensity == b.light_intensity && a.has_light == b.has_light
@@ -621,6 +636,7 @@ struct DeviceState {
     camera_bindings_created: AtomicU32,
     validated_scene: Option<Arc<ValidatedScene>>,
     readback_pool: Arc<Mutex<ReadbackPool>>,
+    cached_offscreen_attachments: Option<CachedOffscreenAttachments>,
     rtt_textures: Mutex<RttRegistry>,
     device_id: CoinWgpuDeviceId,
     generation: u64,
@@ -938,6 +954,25 @@ fn validate_slice_mut<'a, T>(
     Ok(unsafe { std::slice::from_raw_parts_mut(ptr, usize_count) })
 }
 
+// Callers validate the mapped extent and output length first. When the WebGPU
+// row pitch has no padding, one contiguous copy avoids per-row slice work.
+fn copy_color_rows(dst: &mut [u8], src: &[u8], width: u32, height: u32, pitch: u32) {
+    let row_bytes = width as usize * 4;
+    let rows = height as usize;
+    if pitch as usize == row_bytes &&
+        std::env::var("COIN_WGPU_FORCE_ROW_COPY").as_deref() != Ok("1") {
+        let bytes = row_bytes * rows;
+        dst[..bytes].copy_from_slice(&src[..bytes]);
+    } else {
+        for y in 0..rows {
+            let source = y * pitch as usize;
+            let destination = y * row_bytes;
+            dst[destination..destination + row_bytes]
+                .copy_from_slice(&src[source..source + row_bytes]);
+        }
+    }
+}
+
 fn set_error(buf: *mut std::os::raw::c_char, buf_len: usize, msg: &str) {
     if !buf.is_null() && buf_len > 0 {
         let bytes = msg.as_bytes();
@@ -1224,6 +1259,7 @@ fn get_or_init_device_impl<'a>(
         camera_bindings_created: AtomicU32::new(0),
         validated_scene: None,
         readback_pool: Arc::new(Mutex::new(ReadbackPool::default())),
+        cached_offscreen_attachments: None,
         rtt_textures: Mutex::new(RttRegistry::default()),
         device_id: 0,
         generation: runtime.device_generation,
@@ -3743,52 +3779,62 @@ fn coin_wgpu_submit_internal(
             set_error(error_buf, error_buf_len, "Too many active RTT textures");
             return CoinWgpuStatus::OutOfMemory;
         }
-        // 8. Create target textures for offscreen
-        let texture_desc = wgpu::TextureDescriptor {
-            label: Some("Offscreen Color Texture"),
-            size: wgpu::Extent3d {
-                width,
-                height,
-                depth_or_array_layers: 1,
-            },
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Rgba8Unorm,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::TEXTURE_BINDING,
-            view_formats: &[],
-        };
-        if fault == FAULT_RTT_COLOR_ALLOC && !out_texture.is_null() {
-            set_error(error_buf, error_buf_len, "Injected RTT color texture allocation failure");
-            return CoinWgpuStatus::OutOfMemory;
-        }
-        let color_texture = ctx.device.create_texture(&texture_desc);
-        if fault == FAULT_RTT_COLOR_VIEW && !out_texture.is_null() {
-            set_error(error_buf, error_buf_len, "Injected RTT color view creation failure");
-            return CoinWgpuStatus::OutOfMemory;
-        }
-        let color_view = color_texture.create_view(&wgpu::TextureViewDescriptor::default());
+        // 8. A completed synchronous frame may lend its attachments to the
+        // next synchronous frame on this device. Async and RTT submissions
+        // are excluded: their textures can still be in use by the GPU.
+        let attachment_cache_enabled = out_ticket.is_null() && out_texture.is_null()
+            && std::env::var("COIN_WGPU_ATTACHMENT_CACHE").as_deref() == Ok("1")
+            && (width as u64).checked_mul(height as u64)
+                .and_then(|pixels| pixels.checked_mul(8))
+                .is_some_and(|bytes| bytes <= CachedOffscreenAttachments::MAX_BYTES);
+        let cached = if out_ticket.is_null() && out_texture.is_null() {
+            ctx.cached_offscreen_attachments.take()
+                .filter(|entry| attachment_cache_enabled
+                    && entry.width == width && entry.height == height)
+        } else { None };
+        let attachments_reused = cached.is_some();
+        let (color_texture, color_view, depth_texture, depth_view) = if let Some(entry) = cached {
+            (entry.color_texture, entry.color_view, entry.depth_texture, entry.depth_view)
+        } else {
+            let texture_desc = wgpu::TextureDescriptor {
+                label: Some("Offscreen Color Texture"),
+                size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format: wgpu::TextureFormat::Rgba8Unorm,
+                usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::TEXTURE_BINDING,
+                view_formats: &[],
+            };
+            if fault == FAULT_RTT_COLOR_ALLOC && !out_texture.is_null() {
+                set_error(error_buf, error_buf_len, "Injected RTT color texture allocation failure");
+                return CoinWgpuStatus::OutOfMemory;
+            }
+            let color_texture = ctx.device.create_texture(&texture_desc);
+            if fault == FAULT_RTT_COLOR_VIEW && !out_texture.is_null() {
+                set_error(error_buf, error_buf_len, "Injected RTT color view creation failure");
+                return CoinWgpuStatus::OutOfMemory;
+            }
+            let color_view = color_texture.create_view(&wgpu::TextureViewDescriptor::default());
 
-        let depth_desc = wgpu::TextureDescriptor {
-            label: Some("Offscreen Depth Texture"),
-            size: wgpu::Extent3d {
-                width,
-                height,
-                depth_or_array_layers: 1,
-            },
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Depth32Float,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
-            view_formats: &[],
+            let depth_desc = wgpu::TextureDescriptor {
+                label: Some("Offscreen Depth Texture"),
+                size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format: wgpu::TextureFormat::Depth32Float,
+                usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
+                view_formats: &[],
+            };
+            let depth_texture = ctx.device.create_texture(&depth_desc);
+            if fault == FAULT_RTT_DEPTH_ALLOC && !out_texture.is_null() {
+                set_error(error_buf, error_buf_len, "Injected RTT depth attachment failure");
+                return CoinWgpuStatus::OutOfMemory;
+            }
+            let depth_view = depth_texture.create_view(&wgpu::TextureViewDescriptor::default());
+            (color_texture, color_view, depth_texture, depth_view)
         };
-        let depth_texture = ctx.device.create_texture(&depth_desc);
-        if fault == FAULT_RTT_DEPTH_ALLOC && !out_texture.is_null() {
-            set_error(error_buf, error_buf_len, "Injected RTT depth attachment failure");
-            return CoinWgpuStatus::OutOfMemory;
-        }
-        let depth_view = depth_texture.create_view(&wgpu::TextureViewDescriptor::default());
         let profile_attachments_created = trace_phases.then(std::time::Instant::now);
 
         // 9. Encode draw calls with the exact same shared encode_frame
@@ -4131,7 +4177,6 @@ fn coin_wgpu_submit_internal(
         match receiver.recv() {
             Ok(Ok(())) => {
                 let data = buffer_slice.get_mapped_range();
-                let row_bytes = (width * 4) as usize;
                 if (data.len() as u64) < staging_size {
                     set_error(error_buf, error_buf_len, "Mapped color staging buffer is truncated");
                     return CoinWgpuStatus::BackendError;
@@ -4142,23 +4187,13 @@ fn coin_wgpu_submit_internal(
                 let mut pending_color = depth_staging_info.as_ref()
                     .map(|_| vec![0u8; required_target_len as usize]);
                 if let Some(ref mut color) = pending_color {
-                    for y in 0..height as usize {
-                        let source = y * bytes_per_row as usize;
-                        let destination = y * row_bytes;
-                        color[destination..destination + row_bytes]
-                            .copy_from_slice(&data[source..source + row_bytes]);
-                    }
+                    copy_color_rows(color, &data, width, height, bytes_per_row);
                 } else {
                     let output = match validate_slice_mut(tgt.color_buffer, required_target_len,
                         "target color buffer", error_buf, error_buf_len) {
                         Ok(output) => output, Err(status) => return status,
                     };
-                    for y in 0..height as usize {
-                        let source = y * bytes_per_row as usize;
-                        let destination = y * row_bytes;
-                        output[destination..destination + row_bytes]
-                            .copy_from_slice(&data[source..source + row_bytes]);
-                    }
+                    copy_color_rows(output, &data, width, height, bytes_per_row);
                 }
                 let profile_color_copied = trace_phases.then(std::time::Instant::now);
 
@@ -4218,15 +4253,21 @@ fn coin_wgpu_submit_internal(
                     }
                 }
                 tgt.submission_serial = sub_serial;
+                if attachment_cache_enabled {
+                    ctx.cached_offscreen_attachments = Some(CachedOffscreenAttachments {
+                        width, height, color_texture, color_view, depth_texture, depth_view,
+                    });
+                }
                 if trace_phases {
                     let profile_done = std::time::Instant::now();
-                    eprintln!("COIN_WGPU_PHASE rust validation_ms={:.6} prepare_encode_ms={:.6} submit_ms={:.6} gpu_wait_ms={:.6} readback_publish_ms={:.6} staging_color_reused={} camera_bindings_created={} camera_bindings_reused={}",
+                    eprintln!("COIN_WGPU_PHASE rust validation_ms={:.6} prepare_encode_ms={:.6} submit_ms={:.6} gpu_wait_ms={:.6} readback_publish_ms={:.6} staging_color_reused={} attachments_reused={} camera_bindings_created={} camera_bindings_reused={}",
                         (profile_validated - profile_start).as_secs_f64() * 1000.0,
                         (profile_encoded - profile_validated).as_secs_f64() * 1000.0,
                         (profile_submitted - profile_submit_begin).as_secs_f64() * 1000.0,
                         (profile_wait_done - profile_wait_begin).as_secs_f64() * 1000.0,
                         (profile_done - profile_publish_begin).as_secs_f64() * 1000.0,
                         u8::from(color_staging_reused),
+                        u8::from(attachments_reused),
                         ctx.camera_bindings_created.load(Ordering::Relaxed),
                         ctx.camera_bindings_reused.load(Ordering::Relaxed));
                     let duration_ms = |start: std::time::Instant, end: std::time::Instant| {
@@ -4580,22 +4621,17 @@ pub extern "C" fn coin_wgpu_readback_poll(
         }
         let job = runtime.pending_readbacks.remove(&token).unwrap();
         let color_view = job.color.slice(..).get_mapped_range();
-        let row_bytes = ticket.width as usize * 4;
         if (ticket.color_row_pitch as u64) * (ticket.height as u64) > color_view.len() as u64 {
             set_error(error_buf, error_buf_len, "Mapped color readback is truncated");
             return CoinWgpuStatus::BackendError;
         }
         let mut color = job.depth.as_ref().map(|_| vec![0u8; ticket.color_bytes as usize]);
-        for y in 0..ticket.height as usize {
-            let source = y * ticket.color_row_pitch as usize;
-            let destination = y * row_bytes;
-            if let Some(ref mut pending) = color {
-                pending[destination..destination + row_bytes]
-                    .copy_from_slice(&color_view[source..source + row_bytes]);
-            } else {
-                color_output[destination..destination + row_bytes]
-                    .copy_from_slice(&color_view[source..source + row_bytes]);
-            }
+        if let Some(ref mut pending) = color {
+            copy_color_rows(pending, &color_view, ticket.width, ticket.height,
+                ticket.color_row_pitch);
+        } else {
+            copy_color_rows(color_output, &color_view, ticket.width, ticket.height,
+                ticket.color_row_pitch);
         }
         drop(color_view);
         job.color.unmap();
@@ -4804,4 +4840,33 @@ pub extern "C" fn coin_wgpu_trim_cache() {
             }
         }
     });
+}
+
+#[cfg(test)]
+mod row_copy_tests {
+    use super::copy_color_rows;
+
+    #[test]
+    fn contiguous_rows_copy_exactly() {
+        let src: Vec<u8> = (0..512).map(|n| (n % 251) as u8).collect();
+        let mut dst = vec![0; 512];
+        copy_color_rows(&mut dst, &src, 64, 2, 256);
+        assert_eq!(dst, src);
+    }
+
+    #[test]
+    fn padded_rows_skip_padding() {
+        let mut src = vec![0xee; 1024];
+        for row in 0..2 {
+            for col in 0..260 {
+                src[row * 512 + col] = ((row + col) % 251) as u8;
+            }
+        }
+        let mut dst = vec![0; 520];
+        copy_color_rows(&mut dst, &src, 65, 2, 512);
+        for row in 0..2 {
+            assert_eq!(&dst[row * 260..(row + 1) * 260],
+                &src[row * 512..row * 512 + 260]);
+        }
+    }
 }

@@ -30,6 +30,7 @@
 #include "rendering/wgpu/coin_wgpu_ffi.h"
 #endif
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -82,6 +83,9 @@ int main() {
   TEST_ASSERT(target != NULL, "createOffscreen must return non-NULL target");
   TEST_ASSERT(target->getStatus() == SoWgpuRenderTarget::TARGET_READY, "New offscreen target must be READY");
   TEST_ASSERT(target->getSize() == initialSize, "Target size must match initial size");
+  std::size_t preRenderBytes = 1;
+  TEST_ASSERT(target->borrowRGBA(preRenderBytes) == NULL && preRenderBytes == 0,
+              "Borrowed RGBA must be unavailable before the first render");
 
   // 3. Render action application
   SoWgpuRenderAction action(SbViewportRegion(256, 256));
@@ -95,6 +99,15 @@ int main() {
   std::vector<uint8_t> pixels;
   target->getPimpl()->readbackRGBA(pixels);
   TEST_ASSERT(pixels.size() == 256 * 256 * 4, "Readback buffer size must be width * height * 4");
+  std::size_t borrowedBytes = 0;
+  const uint8_t * borrowed = target->borrowRGBA(borrowedBytes);
+  TEST_ASSERT(borrowed != NULL && borrowedBytes == pixels.size() &&
+              std::equal(pixels.begin(), pixels.end(), borrowed),
+              "Borrowed RGBA view must match the copying accessor");
+  std::size_t repeatedBytes = 0;
+  TEST_ASSERT(target->borrowRGBA(repeatedBytes) == borrowed &&
+              repeatedBytes == borrowedBytes,
+              "Repeated borrowed reads must not move the target buffer");
 
   // Check background pixel at corner (x=5, y=5)
   size_t cornerIdx = (5 * 256 + 5) * 4;
@@ -126,6 +139,9 @@ int main() {
               !target->isDepthReadbackEnabled(), "Disable depth readback");
   target->readbackRGBA(pixels);
   TEST_ASSERT(pixels.empty(), "Changing readback mode must invalidate the old frame");
+  borrowedBytes = 1;
+  TEST_ASSERT(target->borrowRGBA(borrowedBytes) == NULL && borrowedBytes == 0,
+              "Borrowed RGBA must be unavailable after an output-policy change");
   action.apply(root);
   TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
               "Color-only render should succeed");
@@ -139,6 +155,9 @@ int main() {
   TEST_ASSERT(target->resize(newSize), "resize to 128x128 should succeed");
   TEST_ASSERT(target->getSize() == newSize, "Size should update after resize");
   TEST_ASSERT(!target->isDepthReadbackEnabled(), "Resize must preserve readback policy");
+  borrowedBytes = 1;
+  TEST_ASSERT(target->borrowRGBA(borrowedBytes) == NULL && borrowedBytes == 0,
+              "Resize must invalidate the borrowed RGBA view");
 
   action.setViewportRegion(SbViewportRegion(128, 128));
   action.apply(root);

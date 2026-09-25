@@ -74,6 +74,30 @@ diretamente do mapeamento para a saída do chamador; cor+depth conserva a
 publicação atômica. Isto não altera qual frame o caminho síncrono retorna.
 O trace opt-in expõe `staging_color_reused` para verificar o reuso.
 
+No offscreen **síncrono** Rust, `COIN_WGPU_ATTACHMENT_CACHE=1` retém um par
+de attachments RGBA8/depth por device e dimensões, até 32 MiB estimados.
+Ele só é devolvido ao cache após o readback terminar; tickets assíncronos e
+RTT direto mantêm attachments próprios. Resize, troca de tamanho e perda de
+device impedem reuso de recursos incompatíveis. O trace expõe
+`attachments_reused`. O cache permanece opt-in por enquanto.
+
+Se o pitch de staging é exatamente `width * 4`, a cor usa uma única cópia
+contígua; com padding, a cópia continua linha a linha. A variável de
+diagnóstico `COIN_WGPU_FORCE_ROW_COPY=1` força o caminho antigo para A/B.
+Em ambos os casos, a publicação conjunta de cor+depth continua atômica.
+O accessor experimental `SoWgpuRenderTarget::borrowRGBA()` evita a cópia
+adicional de `readbackRGBA()` no C++ quando o consumidor pode usar os pixels
+imediatamente. A view só existe após um render síncrono bem-sucedido e deixa
+de ser válida no próximo render, resize, troca de política ou destruição do
+target. A API com cópia mantém seu contrato.
+
+O benchmark `wgpu_gl_benchmark` aceita `--rgba-output borrow` e
+`--async-depth 2`. O segundo usa os tickets assíncronos existentes para
+medir submit, latência até readback e throughput de dois frames em voo;
+não muda o contrato de `apply()`, nem implica ganho de throughput.
+Resultados e comandos reproduzíveis estão em
+`wgpu-freecad-examples-validation.md`.
+
 ## Perfil implementado
 
 | Área | Suportado agora | Fora do perfil / rejeição esperada |

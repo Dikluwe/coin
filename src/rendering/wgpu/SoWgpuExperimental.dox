@@ -123,6 +123,27 @@
   latency improvement. <tt>staging_color_reused</tt> is available in opt-in Rust
   phase traces.
 
+  On the synchronous Rust offscreen path,
+  <tt>COIN_WGPU_ATTACHMENT_CACHE=1</tt> retains one completed RGBA8/depth
+  attachment pair per device and dimensions, up to 32 MiB. Async tickets
+  and direct RTT do not borrow this pair. The cached pair is reused only
+  after the previous synchronous readback completes; a different size or
+  device generation cannot reuse it. <tt>attachments_reused</tt> in the
+  phase trace reports cache hits. The cache is opt-in.
+
+  When color staging rows are contiguous, readback uses a single CPU copy;
+  padded rows still copy per row. <tt>COIN_WGPU_FORCE_ROW_COPY=1</tt> is a
+  diagnostic A/B switch. SoWgpuRenderTarget::borrowRGBA() exposes the last
+  successful synchronous pixels without a second C++ copy. The caller must
+  finish using the pointer before another render, resize, output-policy
+  change or target destruction. This borrowed view belongs only to the
+  experimental API; readbackRGBA() retains its copying contract.
+
+  The benchmark's <tt>--async-depth 2</tt> mode pipelines two existing
+  readback tickets and measures submit, end-to-end latency and throughput
+  separately. It preserves frame order and does not change the synchronous
+  API or promise a throughput benefit.
+
   \section coin_wgpu_profile Measurement contract
 
   Performance comparisons should use Release builds and report traversal and
