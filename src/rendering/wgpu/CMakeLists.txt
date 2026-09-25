@@ -51,6 +51,28 @@ elseif(COIN_WGPU_BACKEND STREQUAL "BGFX")
 			list(APPEND COIN_WGPU_SOURCES ${_shader_output})
 		endforeach()
 	endforeach()
+	foreach(_shader peel_next composite)
+		foreach(_renderer spirv glsl)
+			if(_renderer STREQUAL "spirv")
+				set(_shader_profile spirv)
+			else()
+				set(_shader_profile 330)
+			endif()
+			set(_shader_output ${_coin_bgfx_generated_dir}/coin_bgfx_fs_${_shader}_${_renderer}.h)
+			add_custom_command(OUTPUT ${_shader_output}
+				COMMAND ${COIN_BGFX_SHADERC_EXECUTABLE}
+					-f ${_coin_bgfx_shader_dir}/fs_${_shader}.sc
+					-o ${_shader_output}
+					--type fragment --platform linux --profile ${_shader_profile}
+					--varyingdef ${_coin_bgfx_shader_dir}/varying.def.sc
+					--bin2c coin_bgfx_fs_${_shader}_${_renderer}
+					-i ${COIN_BGFX_SHADER_INCLUDE_DIR}
+				DEPENDS ${_coin_bgfx_shader_dir}/fs_${_shader}.sc
+					${_coin_bgfx_shader_dir}/varying.def.sc
+				VERBATIM)
+			list(APPEND COIN_WGPU_SOURCES ${_shader_output})
+		endforeach()
+	endforeach()
 	list(APPEND COIN_WGPU_SOURCES SoWgpuBgfxBackend.cpp)
 endif()
 

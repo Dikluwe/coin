@@ -23,6 +23,7 @@ struct SoWgpuBgfxDraw {
   CullMode cullMode;
   FrontFace frontFace;
   bool blend = false;
+  float alpha = 1.0f;
 };
 
 struct SoWgpuBgfxPlan {

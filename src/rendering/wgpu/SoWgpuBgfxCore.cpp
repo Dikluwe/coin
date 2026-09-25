@@ -62,6 +62,7 @@ SoWgpuBgfxCore::lower(const FramePlan & frame, int width, int height,
       diagnostic = "BGFX evaluation requires nonempty indexed triangles";
       return false;
     }
+    float maxAlpha = 0.0f;
     for (uint32_t j = 0; j < draw.geometry.indexCount; ++j) {
       const uint32_t index = frame.indices[draw.geometry.firstIndex + j];
       if (index < draw.geometry.firstVertex ||
@@ -71,10 +72,12 @@ SoWgpuBgfxCore::lower(const FramePlan & frame, int width, int height,
       }
       const MaterialSnapshot & material = frame.materials[frame.vertices[index].materialSlot];
       if (!std::isfinite(material.diffuse[0]) || !std::isfinite(material.diffuse[1]) ||
-          !std::isfinite(material.diffuse[2])) {
+          !std::isfinite(material.diffuse[2]) ||
+          !std::isfinite(material.diffuse[3])) {
         diagnostic = "BGFX evaluation received non-finite material color";
         return false;
       }
+      if (material.diffuse[3] > maxAlpha) maxAlpha = material.diffuse[3];
     }
     const SbMatrix clipConversion(
       1.0f, 0.0f, 0.0f, 0.0f,
@@ -93,6 +96,7 @@ SoWgpuBgfxCore::lower(const FramePlan & frame, int width, int height,
     lowered.cullMode = state.cullMode;
     lowered.frontFace = state.frontFace;
     lowered.blend = item.blend;
+    lowered.alpha = maxAlpha;
     candidate.draws.push_back(lowered);
   }
 

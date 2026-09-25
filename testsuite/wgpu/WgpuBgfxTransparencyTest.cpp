@@ -54,8 +54,10 @@ void addQuad(SoSeparator * scene, const Rgb & color, float alpha,
   scene->addChild(object);
 }
 
-SoSeparator * makeScene(bool crossing)
+SoSeparator * makeScene(int scenario)
 {
+  const bool crossing = scenario == 1;
+  const bool occluded = scenario == 2;
   SoSeparator * scene = new SoSeparator;
   scene->ref();
   SoOrthographicCamera * camera = new SoOrthographicCamera;
@@ -73,7 +75,8 @@ SoSeparator * makeScene(bool crossing)
   // Deliberately not back-to-front: both renderers must schedule the draws.
   addQuad(scene, {{255, 0, 0}}, 0.5f,
           crossing ? 0.4f : 0.0f, crossing ? -0.4f : 0.0f);
-  addQuad(scene, {{0, 0, 255}}, 1.0f, -1.0f, -1.0f);
+  addQuad(scene, {{0, 0, 255}}, 1.0f,
+          occluded ? 0.8f : -1.0f, occluded ? 0.8f : -1.0f);
   addQuad(scene, {{0, 255, 0}}, 0.5f,
           crossing ? -0.4f : -0.5f, crossing ? 0.4f : -0.5f);
   return scene;
@@ -176,9 +179,13 @@ int main(int argc, char ** argv)
     std::cerr << "BGFX did not advertise sorted alpha composition\n";
     return 1;
   }
+  const char * mode = std::getenv("COIN_BGFX_TRANSPARENCY");
+  const bool expectLayers = mode && std::string(mode) == "sorted_layers";
   bool sawGl = false;
-  for (int crossing = 0; crossing != 2; ++crossing) {
-    SoSeparator * scene = makeScene(crossing != 0);
+  for (int scenario = 0; scenario != 3; ++scenario) {
+    const bool crossing = scenario == 1;
+    const bool occluded = scenario == 2;
+    SoSeparator * scene = makeScene(scenario);
     std::vector<uint8_t> bgfxPixels, glPixels, glLayersPixels;
     bool glAvailable = false;
     const int renderStatus = renderScene(scene, bgfxPixels, glPixels, glAvailable);
@@ -189,16 +196,18 @@ int main(int argc, char ** argv)
     scene->unref();
     if (renderStatus != 0) return renderStatus;
     sawGl = sawGl || glAvailable;
-    const char * name = crossing ? "crossing" : "layered";
+    const char * name = crossing ? "crossing" : (occluded ? "occluded" : "layered");
     const Rgb bgfxLeft = pixel(bgfxPixels, 32, 64, 4, false);
     const Rgb bgfxRight = pixel(bgfxPixels, 96, 64, 4, false);
     std::cout << name << ": ";
     printSample("BGFX left", bgfxLeft);
     std::cout << ' ';
     printSample("right", bgfxRight);
-    if (!crossing && (!near(bgfxLeft, {{128, 64, 64}}, 12) ||
-                      !near(bgfxRight, {{128, 64, 64}}, 12))) {
-      std::cerr << "\nBGFX failed the analytic layered alpha composition\n";
+    const Rgb expected = occluded ? Rgb{{0, 0, 255}} : Rgb{{128, 64, 64}};
+    if ((!crossing || expectLayers) &&
+        (!near(bgfxLeft, expected, 12) ||
+         !near(bgfxRight, crossing ? Rgb{{64, 128, 64}} : expected, 12))) {
+      std::cerr << "\nBGFX failed the analytic per-pixel composition\n";
       return 1;
     }
     if (glAvailable) {
@@ -221,6 +230,14 @@ int main(int argc, char ** argv)
       printSample("Coin/GL layers-or-fallback left", glLeft);
       std::cout << ' ';
       printSample("right", glRight);
+      const bool glActuallyPeeled =
+        near(glLeft, Rgb{{128, 64, 64}}, 12) &&
+        near(glRight, Rgb{{64, 128, 64}}, 12);
+      if (expectLayers && glActuallyPeeled && (!near(bgfxLeft, glLeft, 12) ||
+                           !near(bgfxRight, glRight, 12))) {
+        std::cerr << "\nBGFX depth peeling differs from Coin/GL layers\n";
+        return 1;
+      }
     }
     std::cout << '\n';
     if (!outputPrefix.empty()) {

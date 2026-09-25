@@ -93,7 +93,7 @@ ausência de readback, separadamente em Vulkan e OpenGL. Em 25/09/2026,
 em ambos os renderizadores. Isso não mede latência de apresentação nem cobre
 a viewport real do FreeCAD.
 
-Com os dois novos testes de transparência, 9/9 passaram no Xvfb sem forçar
+Com os quatro testes de transparência (objeto e camadas), 11/11 passaram no Xvfb sem forçar
 um ICD Vulkan. Forçar RADV nesse servidor fez apenas o teste de apresentação
 Vulkan falhar por ausência de DRI3; o teste offscreen de composição passou.
 
@@ -141,6 +141,48 @@ por Coin/GL, Rust/wgpu e este perfil BGFX; não demonstra um bug exclusivo do
 BGFX. A correção mais forte exige um algoritmo como depth peeling ou OIT,
 com custo e cobertura próprios. O ensaio não mede desempenho nem testa a
 viewport real do FreeCAD; em Xvfb, GL pode usar renderização por software.
+
+### Modo BGFX `sorted_layers` (experimental)
+
+`COIN_BGFX_TRANSPARENCY=sorted_layers` ativa quatro passagens de depth peeling
+por pixel no BGFX, tanto em Vulkan quanto em OpenGL. Sem essa variável, o
+comportamento segue a ordenação de objetos anterior (`object`). A Infra mantém
+alvos RGBA8/D32F por passagem, reutiliza o `FramePlan` e compõe as camadas
+de trás para a frente sobre a cena opaca. Isso não muda a ABI pública de
+`libCoin` nem solicita ao usuário outro tipo de nó Open Inventor.
+
+No cruzamento do ensaio acima, os pixels BGFX/OpenGL passaram de
+`(64,128,63)/(64,128,63)` no modo objeto para
+`(128,64,63)/(64,128,63)` em `sorted_layers`. BGFX/Vulkan deu
+`(64,128,64)/(64,128,64)` antes e as mesmas cores do OpenGL depois.
+O Coin/GL com `SORTED_LAYERS_BLEND` deu os mesmos pixels neste ambiente.
+O teste exige as cores analíticas mesmo quando o Coin/GL não dispõe de
+depth peeling e cai para ordenação de objetos. Um terceiro caso, com
+quadrilátero opaco à frente, exige `(0,0,255)`; ele revelou que o alvo
+offscreen BGFX anterior não tinha attachment de depth. A Infra agora cria
+RGBA8 + D24S8 explicitamente para esse alvo, inclusive no modo padrão.
+
+```sh
+cmake --build /tmp/coin-bgfx-evaluation-build --target WgpuBgfxTransparencyTest wgpu_viewer -j4
+xvfb-run -a -s '-screen 0 1024x768x24 +extension GLX +render -noreset' \
+  env COIN_GLX_PIXMAP_DIRECT_RENDERING=1 \
+  ctest --test-dir /tmp/coin-bgfx-evaluation-build \
+  -R '^(WgpuBgfx|WgpuBackendContract)' --output-on-failure
+# Janela A/B: repetir com COIN_BGFX_RENDERER=vulkan e opengl.
+COIN_BGFX_RENDERER=opengl COIN_BGFX_TRANSPARENCY=object \
+  /tmp/coin-bgfx-evaluation-build/bin/wgpu_viewer --transparency-demo
+COIN_BGFX_RENDERER=opengl COIN_BGFX_TRANSPARENCY=sorted_layers \
+  /tmp/coin-bgfx-evaluation-build/bin/wgpu_viewer --transparency-demo
+```
+
+Quatro camadas são um limite fixo deste protótipo, não cobertura geral da
+transparência do Coin. Mais fragmentos por pixel, mistura, formatos, materiais,
+iluminação e múltiplas viewports ainda exigem validação. As quatro duplas
+RGBA8/D32F acrescentam cerca de 8 MiB a 512² ou 253 MiB a 3840×2160,
+sem contar framebuffer base, readback e overhead do driver. A emissão de
+draws também cresce com as passagens. Não há benchmark Release do modo novo
+nem teste da viewport real do FreeCAD; os números de desempenho anteriores
+continuam sendo do modo objeto.
 
 ## Medição inicial — 24–25/09/2026
 

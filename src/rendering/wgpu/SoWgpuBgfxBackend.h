@@ -25,6 +25,10 @@ public:
 private:
   bool resize(int width, int height);
   void destroyFrameBuffers();
+  void encodeSortedLayers(const std::vector<SoWgpuBgfxDraw> & draws,
+                          bgfx::VertexBufferHandle vertices,
+                          bgfx::IndexBufferHandle indices,
+                          bgfx::FrameBufferHandle output);
   bool onApiThread() const;
 
   BackendStatus status;
@@ -33,12 +37,22 @@ private:
   bool initialized;
   bool presentToWindow;
   bool cameraPatchEnabled;
+  bool layeredTransparencyEnabled;
   uint64_t serial;
   int width;
   int height;
   bgfx::VertexLayout layout;
   bgfx::ProgramHandle program;
+  bgfx::ProgramHandle peelNextProgram;
+  bgfx::ProgramHandle compositeProgram;
+  bgfx::UniformHandle previousDepthSampler;
+  bgfx::UniformHandle previousColorSampler;
+  bgfx::UniformHandle layerSampler;
+  bgfx::UniformHandle depthInfoUniform;
+  bgfx::VertexBufferHandle fullscreenVertexBuffer;
+  bgfx::IndexBufferHandle fullscreenIndexBuffer;
   bgfx::FrameBufferHandle frameBuffer;
+  bgfx::FrameBufferHandle peelFrameBuffers[4];
   bgfx::TextureHandle readbackTexture;
   uint64_t cachedRevision;
   int cachedWidth;

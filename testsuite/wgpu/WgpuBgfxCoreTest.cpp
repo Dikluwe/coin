@@ -102,7 +102,8 @@ int main()
               "unselected transparency mode must be rejected");
   frame.renderStates[0].transparencyType = SoGLRenderAction::SORTED_OBJECT_BLEND;
   ok &= check(SoWgpuBgfxCore::lower(frame, 4, 4, false, plan, diagnostic) &&
-              plan.draws.size() == 1 && plan.draws[0].blend,
+              plan.draws.size() == 1 && plan.draws[0].blend &&
+              std::abs(plan.draws[0].alpha - 0.5f) < 1e-6f,
               "SORTED_OBJECT_BLEND alpha was not lowered");
   ok &= check(!SoWgpuBgfxCore::patchCamera(frame, false, plan, patched, diagnostic),
               "transparent camera patch must rebuild object order");
