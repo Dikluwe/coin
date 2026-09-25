@@ -317,6 +317,7 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
     bgfx::setState(drawState(draw));
     bgfx::submit(0, this->program);
   }
+  const Clock::time_point drawsEncoded = Clock::now();
   bgfx::TextureRegion destination;
   destination.handle = this->readbackTexture;
   bgfx::TextureRegion source;
@@ -358,6 +359,7 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
     this->lastError = "BGFX readback did not complete within sixteen frames";
     return SubmitResult(BackendStatus::BACKEND_ERROR, this->lastError);
   }
+  const Clock::time_point framesCompleted = Clock::now();
   // GL readback follows the framebuffer's bottom-left origin; Vulkan's
   // readback in this profile already matches the target's top-left RGBA view.
   // The row-swap is symmetric, so the shared mechanical image helper applies.
@@ -396,6 +398,8 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
     sample.lowerMs = ms(begin, lowered);
     sample.uploadMs = ms(lowered, uploaded);
     sample.encodeMs = ms(uploaded, encoded);
+    sample.drawEncodeMs = ms(uploaded, drawsEncoded);
+    sample.blitEncodeMs = ms(drawsEncoded, encoded);
     sample.gpuTimingRequested = traceGpu;
     sample.gpuQueryDrainMs = ms(gpuDrainBegin, gpuDrainComplete);
     sample.gpuQueryFrames = gpuQueryFrames;
@@ -403,6 +407,8 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
     sample.submitFrameMs = ms(readRequested, submitted);
     sample.gpuFrameMs = gpuFrameMs;
     sample.readWaitMs = ms(submitted, readComplete);
+    sample.frameWaitMs = ms(submitted, framesCompleted);
+    sample.rowFlipMs = ms(framesCompleted, readComplete);
     sample.vertices = plan->vertices.size();
     sample.draws = plan->draws.size();
     sample.readWaitFrames = readWaitFrames;

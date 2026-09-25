@@ -33,8 +33,25 @@
 #include <limits>
 #include <cstring>
 #include <new>
+#include <cstdlib>
 
 static_assert(sizeof(SoWgpuNativeSurfaceDescriptor) >= 32, "SoWgpuNativeSurfaceDescriptor size check");
+
+static bool
+prepareCpuDepthBuffer()
+{
+#if defined(HAVE_WGPU_BGFX)
+  // BGFX uses GPU depth and does not publish CPU depth in this profile.
+  // Retain the old behavior only as a same-binary performance control.
+  static const bool diagnosticFill = [] {
+    const char * flag = std::getenv("COIN_BGFX_DIAGNOSTIC_CPU_DEPTH_FILL");
+    return flag != NULL && std::strcmp(flag, "1") == 0;
+  }();
+  return diagnosticFill;
+#else
+  return true;
+#endif
+}
 
 // SoWgpuRenderTargetP private implementation
 
@@ -207,7 +224,11 @@ SoWgpuRenderTargetP::resize(const SbVec2i32 & newSize)
     size_t pixelCount = static_cast<size_t>(w * h);
     try {
       this->colorBuffer.assign(pixelCount * 4, 0);
-      this->depthBuffer.assign(pixelCount, 1.0f);
+      if (prepareCpuDepthBuffer()) {
+        this->depthBuffer.assign(pixelCount, 1.0f);
+      } else {
+        this->depthBuffer.clear();
+      }
     } catch (const std::bad_alloc &) {
       this->size = SbVec2i32(0, 0);
       this->colorBuffer.clear();
@@ -458,7 +479,8 @@ SoWgpuRenderTargetP::executeFrameInternal(const FramePlan & frame,
     this->status = SoWgpuRenderTarget::TARGET_READY;
   }
 
-  if (this->kind == KIND_OFFSCREEN && !this->directTextureOutput) {
+  if (prepareCpuDepthBuffer() && this->kind == KIND_OFFSCREEN &&
+      !this->directTextureOutput) {
     size_t pixelCount = static_cast<size_t>(this->size[0] * this->size[1]);
     if (this->depthBuffer.size() != pixelCount) {
       this->depthBuffer.assign(pixelCount, 1.0f);

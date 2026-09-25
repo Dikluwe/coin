@@ -279,6 +279,80 @@ Todos os caminhos ficaram mais lentos que na rodada anterior, portanto esta
 amostra não isola o custo da mudança de clear e não sustenta alegação de
 ganho ou regressão de performance. O ganho comprovado aqui é visual.
 
+## Remoção do depth CPU não publicado e trace refinado — 25/09/2026
+
+No perfil BGFX, a profundidade é testada na GPU, mas não é entregue ao
+chamador. O target alocava e preenchia um vetor de floats na CPU, de
+largura × altura, que o backend logo descartava. Agora ele não o aloca
+nem o preenche no build BGFX. O backend Rust e o Recording mantêm o
+comportamento anterior. O controle diagnóstico
+\`COIN_BGFX_DIAGNOSTIC_CPU_DEPTH_FILL=1\` restaura a alocação e o fill
+antigos para comparar os dois caminhos no mesmo binário; não habilita
+readback de profundidade no BGFX.
+
+Assembly exportado do FreeCAD, Release, AMD/Mesa/X11, BGFX/OpenGL,
+1024², \`BASE_COLOR\`, RGBA \`borrow\`, readback síncrono, 20 frames de
+aquecimento + 300 medidos em cada um de cinco processos por variante,
+intercalados. Os valores são medianas das cinco medianas, dos cinco p95
+e dos cinco picos RSS por processo:
+
+| Depth CPU | Mediana / p95 (ms) | Pico RSS (KiB) |
+| --- | ---: | ---: |
+| Fill antigo (\`=1\`) | 1,420 / 1,811 | 120.712 |
+| Sem fill (\`=0\`, padrão) | 1,079 / 1,497 | 116.688 |
+
+A melhora observada foi de 24,0% na mediana, 17,4% no p95 e 4.024 KiB
+de pico RSS a menos. O resultado é específico deste perfil offscreen;
+o RSS inclui BGFX, driver e demais bibliotecas, não mede VRAM. A/B
+anterior no mesmo binário a 512² também favoreceu o skip, de 0,402 /
+0,861 para 0,385 / 0,820 ms (mediana / p95). A tentativa de trocar a
+inversão de linhas por cópia de linhas inteiras não melhorou 1024² e
+foi revertida.
+
+Com \`COIN_WGPU_TRACE_PHASES=1\`, o trace BGFX agora separa
+\`draw_encode_ms\`, \`blit_encode_ms\`, \`frame_wait_ms\` e
+\`row_flip_ms\`. Os dois primeiros são custos de **emissão CPU**, não
+tempo de execução GPU. \`read_wait_ms\` ainda agrega espera por frames
+BGFX/driver/GPU e inversão de linhas; em um trace 1024² do Assembly,
+suas medianas foram ~1,189 ms, ~1,001 ms para \`frame_wait_ms\` e
+~0,183 ms para \`row_flip_ms\`. Trace altera o tempo absoluto.
+O teste visual repetido a 512² manteve MAE RGB 0 e IoU 1,0 contra
+Coin/GL para PartDesign e Assembly, após alinhar a orientação GL.
+
+Comparação final, no mesmo build Release e seleção AMD/Mesa/X11: cinco
+processos por caminho, BGFX/OpenGL e Coin/GL intercalados, 20 warmup +
+300 frames por processo, RGBA \`borrow\` no BGFX e \`getBuffer()\` no GL.
+Cada entrada é a mediana das cinco medianas / dos cinco p95 (ms):
+
+| Cena | Resolução | BGFX/OpenGL | Coin/GL |
+| --- | ---: | ---: | ---: |
+| PartDesign | 512² | 0,356 / 0,819 | 0,344 / 0,723 |
+| PartDesign | 1024² | 1,041 / 1,368 | 1,003 / 1,428 |
+| Assembly | 512² | 0,386 / 0,846 | 0,363 / 0,783 |
+| Assembly | 1024² | 1,040 / 1,421 | 1,100 / 1,503 |
+
+O BGFX se aproxima de Coin/GL, mas a liderança varia entre cenas e
+resoluções; uma rodada anterior do Assembly 1024² favorecia Coin/GL.
+Esses números incluem readback e não comparam janelas. Um render sem
+readback no BGFX ainda exigiria um experimento específico: pular
+\`bgfx::read\` mede a emissão de trabalho no host, não o tempo puro da GPU.
+
+Reprodução do A/B (substituir a cena e o prefixo do build, se necessário):
+
+\`\`\`sh
+for depth_fill in 1 0; do
+  env EGL_PLATFORM=x11 \
+    __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json \
+    VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
+    COIN_BGFX_RENDERER=opengl COIN_GLX_PIXMAP_DIRECT_RENDERING=1 \
+    COIN_BGFX_DIAGNOSTIC_CPU_DEPTH_FILL="$depth_fill" \
+    /usr/bin/time -f 'peak_rss_kib=%M' \
+    /tmp/coin-bgfx-evaluation-build/bin/wgpu_gl_benchmark \
+    --backend bgfx --size 1024 --warmup 20 --frames 300 \
+    --readback color --rgba-output borrow --scene /caminho/Assembly.iv
+done
+\`\`\`
+
 ## Próximo gate de produto
 
 Antes de aceitar BGFX como alternativa, ampliar o perfil sem falsos positivos:

@@ -15,6 +15,10 @@ int main()
   SoDB::init();
   SoWgpuRenderTargetP target(SbVec2i32(32, 32));
   target.depthReadbackEnabled = false;
+  if (!target.depthBuffer.empty()) {
+    std::cerr << "BGFX allocated an unpublished CPU depth buffer\n";
+    return 1;
+  }
   FramePlan frame;
   frame.clearColor = SbColor4f(0.0f, 0.0f, 0.0f, 1.0f);
   MaterialSnapshot material;
@@ -60,6 +64,10 @@ int main()
       target.colorBuffer[center + 1] > 30 ||
       target.colorBuffer[center + 2] > 30) {
     std::cerr << "BGFX center pixel did not contain the red triangle\n";
+    return 1;
+  }
+  if (!target.depthBuffer.empty()) {
+    std::cerr << "BGFX populated an unpublished CPU depth buffer\n";
     return 1;
   }
   // An asymmetric second frame detects an inverted readback origin.

@@ -157,9 +157,13 @@ SoWgpuDiagnosticShell::formatBgfxPhase(const SoWgpuBgfxPhaseSample & sample)
          << "COIN_WGPU_PHASE bgfx lower_ms=" << sample.lowerMs
          << " upload_ms=" << sample.uploadMs
          << " encode_ms=" << sample.encodeMs
+         << " draw_encode_ms=" << sample.drawEncodeMs
+         << " blit_encode_ms=" << sample.blitEncodeMs
          << " submit_frame_ms=" << sample.submitFrameMs
          << " read_request_ms=" << sample.readRequestMs
          << " read_wait_ms=" << sample.readWaitMs
+         << " frame_wait_ms=" << sample.frameWaitMs
+         << " row_flip_ms=" << sample.rowFlipMs
          << " vertices=" << sample.vertices
          << " draws=" << sample.draws
          << " read_wait_frames=" << sample.readWaitFrames

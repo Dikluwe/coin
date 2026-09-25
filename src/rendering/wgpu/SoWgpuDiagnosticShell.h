@@ -54,9 +54,13 @@ struct SoWgpuBgfxPhaseSample {
   double lowerMs = 0.0;
   double uploadMs = 0.0;
   double encodeMs = 0.0;
+  double drawEncodeMs = 0.0;
+  double blitEncodeMs = 0.0;
   double submitFrameMs = 0.0;
   double readRequestMs = 0.0;
   double readWaitMs = 0.0;
+  double frameWaitMs = 0.0;
+  double rowFlipMs = 0.0;
   double gpuFrameMs = -1.0;
   double gpuQueryDrainMs = 0.0;
   uint32_t gpuQueryFrames = 0;

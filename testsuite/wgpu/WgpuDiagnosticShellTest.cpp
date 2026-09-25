@@ -82,11 +82,19 @@ main()
   bgfxPhase.readWaitFrames = 3;
   bgfxPhase.gpuTimingRequested = true;
   bgfxPhase.gpuFrameMs = 0.125;
+  bgfxPhase.drawEncodeMs = 0.25;
+  bgfxPhase.blitEncodeMs = 0.375;
   bgfxPhase.gpuQueryDrainMs = 0.05;
   bgfxPhase.gpuQueryFrames = 1;
+  bgfxPhase.frameWaitMs = 0.5;
+  bgfxPhase.rowFlipMs = 0.125;
   const std::string bgfxTrace = SoWgpuDiagnosticShell::formatBgfxPhase(bgfxPhase);
   ok &= check(bgfxTrace.find("camera_patch=1") != std::string::npos &&
               bgfxTrace.find("read_wait_frames=3") != std::string::npos &&
+              bgfxTrace.find("draw_encode_ms=0.250000") != std::string::npos &&
+              bgfxTrace.find("blit_encode_ms=0.375000") != std::string::npos &&
+              bgfxTrace.find("frame_wait_ms=0.500000") != std::string::npos &&
+              bgfxTrace.find("row_flip_ms=0.125000") != std::string::npos &&
               bgfxTrace.find("gpu_frame_ms=0.125000") != std::string::npos &&
               bgfxTrace.find("gpu_query_frames=1") != std::string::npos,
               "BGFX phase trace lost camera or GPU timing fields");
