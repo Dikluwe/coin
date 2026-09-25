@@ -1,6 +1,6 @@
 # Avaliação BGFX sobre o `FramePlan` experimental
 
-Esta branch adiciona um conector **BGFX/Vulkan headless** a
+Esta branch adiciona um conector **BGFX headless (Vulkan ou OpenGL)** a
 `CoinWgpuExperimental`. O nome histórico `SoWgpuRenderAction` permanece apenas
 para compartilhar a travessia Coin e o `FramePlan`; BGFX não é wgpu-native,
 nem transforma essa ação em uma API gráfica estável. `libCoin` e a ABI pública
@@ -18,11 +18,13 @@ isola a troca do executor, sem duplicar um segundo scene graph.
 
 ## Perfil implementado
 
-- Linux, BGFX com renderer Vulkan, alvo offscreen e um alvo ativo por processo.
+- Linux, BGFX com renderer Vulkan por padrão ou OpenGL com
+  `COIN_BGFX_RENDERER=opengl`, alvo offscreen e um alvo ativo por processo.
 - Triângulos indexados opacos, sem textura/fog, `BASE_COLOR`, viewport inteira;
   clear, teste de profundidade e readback **somente RGBA** síncrono.
-- Ordem de draws preservada com `ViewMode::Sequential`; shaders SPIR-V gerados
-  por `shaderc` durante o build. Não há shader binário vendorizado.
+- Ordem de draws preservada com `ViewMode::Sequential`; shaders SPIR-V e GLSL
+  330 gerados por `shaderc` durante o build. O readback OpenGL é invertido
+  por linhas para cumprir a mesma orientação RGBA do Vulkan.
 - Um cache privado por target retém o plano convertido e os buffers de geometria
   quando a revisão não nula do `FramePlan`, dimensões e convenção de depth
   continuam iguais. O payload de geometria é limitado a 32 MiB; revisão zero
@@ -60,6 +62,10 @@ cmake -S . -B /tmp/coin-bgfx-release \
   -DCOIN_BGFX_SHADER_INCLUDE_DIR="$prefix/include/bgfx"
 cmake --build /tmp/coin-bgfx-release --target WgpuBgfxCoreTest WgpuBgfxOffscreenTest wgpu_gl_benchmark -j4
 ctest --test-dir /tmp/coin-bgfx-release -R '^WgpuBgfx' --output-on-failure
+env EGL_PLATFORM=x11 \
+  __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json \
+  COIN_BGFX_RENDERER=opengl \
+  /tmp/coin-bgfx-release/bin/WgpuBgfxOffscreenTest
 env VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
   COIN_GLX_PIXMAP_DIRECT_RENDERING=1 \
   /tmp/coin-bgfx-release/bin/wgpu_gl_benchmark \
@@ -67,8 +73,8 @@ env VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
   --readback color --rgba-output copy --scene /caminho/Assembly.iv
 ```
 
-O teste Core roda sem GPU. O teste offscreen desenha um triângulo vermelho e
-confere o pixel central; se Vulkan não inicializar, relata indisponibilidade.
+O teste Core roda sem GPU. O teste offscreen desenha um triângulo vermelho,
+confere orientação, cache e `CAMERA_PATCH` nos dois renderers em processos separados.
 Os testes de paridade do perfil WebGPU amplo não são uma afirmação de suporte
 BGFX e devem continuar rodando no backend Rust/Recording.
 
@@ -165,6 +171,70 @@ BGFX foram necessários para publicar cada readback. Não se deve subtrair
 esses tempos como se fossem estágios seriais independentes. Medições de
 performance comparáveis com GL devem deixar `COIN_WGPU_GPU_TIMESTAMPS`
 desligado.
+
+## Avaliação OpenGL do BGFX — 25/09/2026
+
+O mesmo build Release e o mesmo `FramePlan` agora executam BGFX/OpenGL por
+`COIN_BGFX_RENDERER=opengl`; Vulkan continua sendo o padrão. O teste
+`WgpuBgfxOffscreenTest` passou nos dois renderers. A primeira execução OpenGL
+revelou readback invertido; a Infra agora normaliza as linhas antes de publicar
+os pixels. Não há alteração de ABI pública do Coin 4.
+
+Este computador tem AMD e NVIDIA. Para comparar com Coin/GL na AMD, a medição
+fixou `EGL_PLATFORM=x11`,
+`__EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json`
+e o ICD RADV. `glxinfo -B` e a seção X11 de `eglinfo -B` identificaram
+radeonsi/RENOIR; o BGFX não reportou PCI vendor/device id para OpenGL, então
+a atribuição da GPU BGFX decorre da seleção EGL Mesa/X11, não de telemetria
+direta do BGFX. Sem fixar essa seleção, uma comparação nesta máquina é ambígua.
+
+Release, 512², `BASE_COLOR`, RGBA com readback, cenas `.iv` exportadas do
+FreeCAD (não a viewport real), 8 frames de aquecimento e 60 medidos por
+processo. Três rodadas intercaladas por cena e renderer. Cada valor abaixo é
+a mediana das três medianas ou dos três p95 por rodada; não é o percentil
+agregado de 180 frames. Coin/GL e BGFX foram medidos em processos separados.
+
+| Cena | BGFX/OpenGL mediana / p95 (ms) | Coin/GL mediana / p95 (ms) | BGFX/Vulkan mediana / p95 (ms) |
+| --- | ---: | ---: | ---: |
+| PartDesign | 0,364 / 0,450 | 0,326 / 0,345 | 1,688 / 1,866 |
+| Assembly | 0,376 / 0,446 | 0,345 / 0,411 | 1,733 / 2,033 |
+
+BGFX/OpenGL ficou aproximadamente 4,6× mais rápido que BGFX/Vulkan na
+mediana deste perfil, mas ainda 9–12% mais lento que Coin/GL. A causa exata
+da diferença entre os renderers BGFX não está isolada: o readback síncrono,
+progresso de frames e driver são medidos juntos; trace/timestamp perturba
+fortemente o tempo. Não atribuir todo o ganho à execução GPU ou ao row flip.
+
+Pico RSS mediano dos três processos por cena, em KiB:
+
+| Cena | BGFX/OpenGL | Coin/GL | BGFX/Vulkan |
+| --- | ---: | ---: | ---: |
+| PartDesign | 109.052 | 91.760 | 80.060 |
+| Assembly | 114.200 | 95.920 | 85.204 |
+
+RSS inclui bibliotecas/runtime/driver; não representa somente memória GPU.
+Na comparação visual das quatro cenas a 512², o IoU de silhueta foi 1,0
+após inverter as linhas GL e a MAE RGB foi PartDesign 0,655, Assembly 0,907,
+EngineBlock 0,638 e BIM 0,681. A diferença visual é essencialmente a mesma
+do BGFX/Vulkan, sem evidência de ganho de qualidade pelo backend OpenGL.
+
+Reprodução após o build acima (substituir o caminho da cena e repetir para
+`PartDesign.iv` e `Assembly.iv`):
+
+```sh
+SCENE=/caminho/Assembly.iv
+for backend_renderer in bgfx:opengl gl:opengl bgfx:vulkan; do
+  backend=${backend_renderer%:*}; renderer=${backend_renderer#*:}
+  env EGL_PLATFORM=x11 \
+    __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json \
+    VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
+    COIN_BGFX_RENDERER="$renderer" COIN_GLX_PIXMAP_DIRECT_RENDERING=1 \
+    /usr/bin/time -f 'peak_rss_kib=%M' \
+    /tmp/coin-bgfx-release/bin/wgpu_gl_benchmark \
+    --backend "$backend" --size 512 --warmup 8 --frames 60 \
+    --readback color --rgba-output copy --scene "$SCENE"
+done
+```
 
 ## Próximo gate de produto
 

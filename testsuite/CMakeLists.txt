@@ -250,7 +250,10 @@ if(COIN_BUILD_WGPU)
 			${COIN_TARGET_INCLUDE_DIRECTORIES}
 		)
 		add_test(NAME WgpuBgfxOffscreenTest COMMAND WgpuBgfxOffscreenTest)
-		set_tests_properties(WgpuBgfxOffscreenTest PROPERTIES TIMEOUT 30)
+		set_tests_properties(WgpuBgfxOffscreenTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77)
+		add_test(NAME WgpuBgfxOpenGLTest COMMAND WgpuBgfxOffscreenTest)
+		set_tests_properties(WgpuBgfxOpenGLTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77
+			ENVIRONMENT "COIN_BGFX_RENDERER=opengl")
 	endif()
 
 	add_executable(WgpuFrameReuseCoreTest wgpu/WgpuFrameReuseCoreTest.cpp)

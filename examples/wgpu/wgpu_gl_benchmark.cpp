@@ -144,6 +144,8 @@ int main(int argc, char ** argv) {
   const bool runWgpu = backend != "gl";
   const bool runGl = backend == "both" || backend == "gl";
   const char * rendererLabel = "WebGPU";
+  const char * bgfxRendererFlag = std::getenv("COIN_BGFX_RENDERER");
+  const bool bgfxOpenGl = bgfxRendererFlag && std::strcmp(bgfxRendererFlag, "opengl") == 0;
   if (runWgpu) {
     if (coin_wgpu_experimental_query_capabilities(
           COIN_WGPU_EXPERIMENTAL_OFFSCREEN, &caps, sizeof(caps)) != 0) {
@@ -157,7 +159,7 @@ int main(int argc, char ** argv) {
       std::cerr << "Requested GPU backend unavailable\n";
       return 2;
     }
-    rendererLabel = bgfx ? "BGFX" : "WebGPU";
+    rendererLabel = bgfx ? (bgfxOpenGl ? "BGFX-OpenGL" : "BGFX-Vulkan") : "WebGPU";
     if (bgfx && (asyncDepth != 0 || readback != "color")) {
       std::cerr << "BGFX evaluation supports synchronous RGBA only\n";
       return 2;
@@ -355,7 +357,8 @@ int main(int argc, char ** argv) {
   root->unref();
   std::cout << "adapter=" << (runWgpu ?
               (caps.backend == COIN_WGPU_EXPERIMENTAL_BGFX_EVALUATION ?
-                "BGFX-Vulkan-probed-by-frame" : caps.adapter_name) : "not-queried")
+                (bgfxOpenGl ? "BGFX-OpenGL-probed-by-frame" : "BGFX-Vulkan-probed-by-frame") :
+                caps.adapter_name) : "not-queried")
             << " backend=" << backend << " size=" << side << 'x' << side
             << " warmup=" << warmup << " scene="
             << (scenePath.empty() ? "36-cubes" : scenePath)

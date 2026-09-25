@@ -6,9 +6,12 @@
 
 #include "rendering/wgpu/SoWgpuBgfxBackend.h"
 #include "rendering/wgpu/SoWgpuBgfxCore.h"
+#include "rendering/wgpu/SoWgpuImageCore.h"
 #include "rendering/wgpu/SoWgpuDiagnosticShell.h"
 #include "rendering/wgpu/SoWgpuRenderTargetP.h"
 
+#include "coin_bgfx_vs_glsl.h"
+#include "coin_bgfx_fs_glsl.h"
 #include "coin_bgfx_vs_spirv.h"
 #include "coin_bgfx_fs_spirv.h"
 
@@ -28,7 +31,7 @@ uint64_t drawState(const SoWgpuBgfxDraw & draw)
   uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A |
                    BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS;
   // Coin's frontFace denotes the visible winding; BGFX state denotes the
-  // winding to discard. The Vulkan viewport origin remains top-left.
+  // winding to discard. BGFX accounts for each renderer's target origin.
   if (draw.cullMode == CullMode::BACK) {
     state |= draw.frontFace == FrontFace::CCW ? BGFX_STATE_CULL_CW : BGFX_STATE_CULL_CCW;
   } else if (draw.cullMode == CullMode::FRONT) {
@@ -85,24 +88,42 @@ SoWgpuBgfxBackend::prepare(SoWgpuRenderTargetP & target)
     this->lastError = "BGFX evaluation permits one active target per process";
     return BackendStatus::UNSUPPORTED;
   }
+  const char * rendererFlag = std::getenv("COIN_BGFX_RENDERER");
+  const bool useOpenGl = rendererFlag != nullptr && std::strcmp(rendererFlag, "opengl") == 0;
+  if (rendererFlag != nullptr && !useOpenGl && std::strcmp(rendererFlag, "vulkan") != 0) {
+    bgfxInUse.store(false);
+    this->lastError = "COIN_BGFX_RENDERER must be opengl or vulkan";
+    return BackendStatus::UNSUPPORTED;
+  }
+  const bgfx::RendererType::Enum renderer =
+    useOpenGl ? bgfx::RendererType::OpenGL : bgfx::RendererType::Vulkan;
   bgfx::Init init;
-  init.type = bgfx::RendererType::Vulkan;
+  init.type = renderer;
   init.swapChain.width = 0;
   init.swapChain.height = 0;
   if (!bgfx::init(init)) {
     bgfxInUse.store(false);
-    this->lastError = "BGFX could not initialize its headless Vulkan renderer";
+    this->lastError = useOpenGl ? "BGFX could not initialize its headless OpenGL renderer" :
+                                  "BGFX could not initialize its headless Vulkan renderer";
     return BackendStatus::NOT_READY;
   }
   this->initialized = true;
   this->apiThread = std::this_thread::get_id();
   const bgfx::Caps * caps = bgfx::getCaps();
-  if (caps->rendererType != bgfx::RendererType::Vulkan ||
+  if (SoWgpuDiagnosticShell::phaseTracingEnabled()) {
+    std::fprintf(stderr,
+      "COIN_WGPU_PHASE bgfx_device renderer=%s vendor_id=0x%04x device_id=0x%04x homogeneous_depth=%d\n",
+      useOpenGl ? "opengl" : "vulkan",
+      static_cast<unsigned int>(caps->vendorId),
+      static_cast<unsigned int>(caps->deviceId),
+      caps->homogeneousDepth ? 1 : 0);
+  }
+  if (caps->rendererType != renderer ||
       !(caps->supported & BGFX_CAPS_INDEX32) ||
       !(caps->formats[bgfx::TextureFormat::RGBA8] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
       !bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA8,
                             BGFX_TEXTURE_BLIT_DST | BGFX_TEXTURE_READ_BACK)) {
-    this->lastError = "BGFX Vulkan lacks RGBA8 framebuffer/readback or 32-bit indices";
+    this->lastError = "BGFX renderer lacks RGBA8 framebuffer/readback or 32-bit indices";
     this->status = BackendStatus::UNSUPPORTED;
     return this->status;
   }
@@ -110,14 +131,16 @@ SoWgpuBgfxBackend::prepare(SoWgpuRenderTargetP & target)
     .add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
     .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Float)
     .end();
-  bgfx::ShaderHandle vs = bgfx::createShader(bgfx::copy(coin_bgfx_vs_spirv,
-                                                      sizeof(coin_bgfx_vs_spirv)));
-  bgfx::ShaderHandle fs = bgfx::createShader(bgfx::copy(coin_bgfx_fs_spirv,
-                                                      sizeof(coin_bgfx_fs_spirv)));
+  bgfx::ShaderHandle vs = bgfx::createShader(useOpenGl ?
+    bgfx::copy(coin_bgfx_vs_glsl, sizeof(coin_bgfx_vs_glsl)) :
+    bgfx::copy(coin_bgfx_vs_spirv, sizeof(coin_bgfx_vs_spirv)));
+  bgfx::ShaderHandle fs = bgfx::createShader(useOpenGl ?
+    bgfx::copy(coin_bgfx_fs_glsl, sizeof(coin_bgfx_fs_glsl)) :
+    bgfx::copy(coin_bgfx_fs_spirv, sizeof(coin_bgfx_fs_spirv)));
   if (!bgfx::isValid(vs) || !bgfx::isValid(fs)) {
     if (bgfx::isValid(vs)) bgfx::destroy(vs);
     if (bgfx::isValid(fs)) bgfx::destroy(fs);
-    this->lastError = "BGFX failed to create its SPIR-V shaders";
+    this->lastError = "BGFX failed to create its renderer-specific shaders";
     this->status = BackendStatus::BACKEND_ERROR;
     return this->status;
   }
@@ -330,6 +353,18 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
       if (bgfx::isValid(ib)) bgfx::destroy(ib);
     }
     this->lastError = "BGFX readback did not complete within sixteen frames";
+    return SubmitResult(BackendStatus::BACKEND_ERROR, this->lastError);
+  }
+  // GL readback follows the framebuffer's bottom-left origin; Vulkan's
+  // readback in this profile already matches the target's top-left RGBA view.
+  // The row-swap is symmetric, so the shared mechanical image helper applies.
+  if (bgfx::getCaps()->rendererType == bgfx::RendererType::OpenGL &&
+      !SoWgpuImageCore::flipRgba8Rows(target.colorBuffer, target.size)) {
+    if (!retained) {
+      if (bgfx::isValid(vb)) bgfx::destroy(vb);
+      if (bgfx::isValid(ib)) bgfx::destroy(ib);
+    }
+    this->lastError = "BGFX OpenGL returned an invalid RGBA readback size";
     return SubmitResult(BackendStatus::BACKEND_ERROR, this->lastError);
   }
   const Clock::time_point readComplete = Clock::now();

@@ -15,6 +15,7 @@
 
 #include <cmath>
 #include <cstdint>
+#include <cstring>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -161,7 +162,11 @@ int main(int argc, char ** argv) {
     std::cerr << "Cannot write comparison images\n";
     return 2;
   }
-  std::cout << "adapter=" << (bgfx ? "BGFX-Vulkan-probed-by-frame" : caps.adapter_name)
+  const char * bgfxRendererFlag = std::getenv("COIN_BGFX_RENDERER");
+  const bool bgfxOpenGl = bgfxRendererFlag && std::strcmp(bgfxRendererFlag, "opengl") == 0;
+  std::cout << "adapter=" << (bgfx ?
+    (bgfxOpenGl ? "BGFX-OpenGL-probed-by-frame" : "BGFX-Vulkan-probed-by-frame") :
+    caps.adapter_name)
             << " side=" << side
             << " mode=" << (lit ? "lit" : "base_color") << '\n';
   compare(webgpuPixels, glPixels, side, false);

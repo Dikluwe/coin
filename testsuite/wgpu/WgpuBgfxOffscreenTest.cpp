@@ -47,8 +47,8 @@ int main()
 
   const FrameExecutionResult result = target.executeFrame(frame);
   if (result.status == BackendStatus::NOT_READY) {
-    std::cout << "BGFX Vulkan adapter unavailable: " << result.diagnostic << '\n';
-    return 0;
+    std::cout << "BGFX renderer unavailable: " << result.diagnostic << '\n';
+    return 77;
   }
   if (result.status != BackendStatus::SUCCESS) {
     std::cerr << "BGFX frame failed: " << result.diagnostic << '\n';

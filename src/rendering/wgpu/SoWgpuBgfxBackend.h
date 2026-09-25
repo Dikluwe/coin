@@ -8,7 +8,7 @@
 #include <bgfx/bgfx.h>
 #include <thread>
 
-/** Experimental BGFX/Vulkan Infra. One process-wide BGFX instance is used. */
+/** Experimental BGFX/Vulkan or OpenGL Infra. One process-wide instance is used. */
 class SoWgpuBgfxBackend : public SoWgpuBackend {
 public:
   SoWgpuBgfxBackend();
