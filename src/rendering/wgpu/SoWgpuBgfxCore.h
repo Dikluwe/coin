@@ -28,7 +28,7 @@ struct SoWgpuBgfxPlan {
   std::vector<SoWgpuBgfxVertex> vertices;
   std::vector<uint32_t> indices;
   std::vector<SoWgpuBgfxDraw> draws;
-  uint32_t clearRgba;
+  float clearColor[4];
 };
 
 class SoWgpuBgfxCore {

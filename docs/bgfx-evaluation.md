@@ -236,6 +236,49 @@ for backend_renderer in bgfx:opengl gl:opengl bgfx:vulkan; do
 done
 ```
 
+## Correção da cor de fundo — 25/09/2026
+
+A análise pixel a pixel das imagens anteriores encontrou uma causa única
+para a MAE do BGFX/OpenGL: todos os pixels de malha eram iguais aos do
+Coin/GL, mas todo pixel de fundo tinha `(26,26,26)` em BGFX contra
+`(25,25,25)` em Coin/GL. O Core arredondava o clear de `0,1` para um
+`uint32_t` antes da chamada ao BGFX. Agora conserva os quatro floats do
+`FramePlan` e a Infra usa a paleta float de clear do BGFX. Isso preserva
+a conversão final do renderer, inclusive no caminho de câmera em cache;
+uma mudança pequena de clear já invalida o `CAMERA_PATCH`.
+
+Nova comparação Release a 512², mesmas cenas `.iv`, BGFX/OpenGL ou Vulkan
+contra Coin/GL com inversão de linhas, na seleção AMD/Mesa/X11 acima:
+
+| Cena | MAE RGB BGFX/OpenGL antes → depois | MAE RGB BGFX/Vulkan depois | IoU OpenGL depois |
+| --- | ---: | ---: | ---: |
+| PartDesign | 0,655 → 0 | 0,00136 | 1,0 |
+| Assembly | 0,907 → 0 | 0 | 1,0 |
+| EngineBlock | 0,638 → 0 | 0,00180 | 1,0 |
+| BIM | 0,681 → 0 | 0,00068 | 1,0 |
+
+O zero significa **RGB idêntico** nessas quatro imagens; não afirma
+igualdade de alpha, depth, outros materiais ou da viewport real do FreeCAD.
+No Vulkan, restaram apenas 0–3 pixels divergentes por imagem, em bordas.
+O teste Core agora exige clear float sem quantização e recusa um camera patch
+se o clear mudar mesmo que a versão anterior arredondasse para o mesmo byte.
+
+Na repetição de tempo com 8 warmup e 3 × 60 frames em processos separados,
+mediana das três medianas e dos três p95 por rodada (ms):
+
+| Cena | BGFX/OpenGL | Coin/GL | BGFX/Vulkan |
+| --- | ---: | ---: | ---: |
+| PartDesign | 0,486 / 0,992 | 0,411 / 0,806 | 2,149 / 2,740 |
+| Assembly | 0,541 / 0,986 | 0,445 / 0,886 | 2,224 / 2,927 |
+
+Pico RSS mediano (KiB) PartDesign: 108.896 BGFX/OpenGL, 91.748 Coin/GL,
+79.876 BGFX/Vulkan. Assembly: 114.052, 95.980 e 85.216, respectivamente.
+Não é uma medida de memória GPU.
+
+Todos os caminhos ficaram mais lentos que na rodada anterior, portanto esta
+amostra não isola o custo da mudança de clear e não sustenta alegação de
+ganho ou regressão de performance. O ganho comprovado aqui é visual.
+
 ## Próximo gate de produto
 
 Antes de aceitar BGFX como alternativa, ampliar o perfil sem falsos positivos:

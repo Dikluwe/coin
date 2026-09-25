@@ -25,6 +25,7 @@ int main()
 {
   SoDB::init();
   FramePlan frame;
+  frame.clearColor = SbColor4f(0.1f, 0.2f, 0.3f, 1.0f);
   frame.materials.push_back(MaterialSnapshot());
   frame.lightingStates.push_back(LightingSnapshot());
   frame.cameras.push_back(CameraSnapshot());
@@ -52,6 +53,9 @@ int main()
   ok &= check(std::abs(plan.vertices[0].color[0] - 0.8f) < 1e-6f &&
               std::abs(plan.vertices[0].color[3] - 1.0f) < 1e-6f,
               "Coin diffuse color lost floating-point precision");
+  ok &= check(plan.clearColor[0] == frame.clearColor[0] &&
+              plan.clearColor[1] == frame.clearColor[1],
+              "Coin clear color was quantized before GPU submission");
   ok &= check(std::abs(plan.draws[0].mvp[10] - 0.5f) < 1e-6f &&
               std::abs(plan.draws[0].mvp[14] - 0.5f) < 1e-6f,
               "Coin clip depth was not converted to Vulkan range");
@@ -67,6 +71,10 @@ int main()
               std::memcmp(patched[0].mvp, movedPlan.draws[0].mvp,
                           sizeof(patched[0].mvp)) == 0,
               "camera patch differs from full lowering");
+  frame.clearColor = SbColor4f(0.1001f, 0.2f, 0.3f, 1.0f);
+  ok &= check(!SoWgpuBgfxCore::patchCamera(frame, false, plan, patched, diagnostic),
+              "camera patch accepted a changed float clear color");
+  frame.clearColor = SbColor4f(0.1f, 0.2f, 0.3f, 1.0f);
   frame.draws[0].geometry.indexCount = 2;
   ok &= check(!SoWgpuBgfxCore::patchCamera(frame, false, plan, patched, diagnostic) &&
               patched.size() == 1 &&

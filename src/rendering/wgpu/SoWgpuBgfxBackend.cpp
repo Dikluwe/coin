@@ -302,7 +302,10 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
   bgfx::setViewRect(0, 0, 0, static_cast<uint16_t>(this->width),
                     static_cast<uint16_t>(this->height));
   bgfx::setViewFrameBuffer(0, this->frameBuffer);
-  bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, plan->clearRgba, 1.0f);
+  // The packed clear API quantizes Coin's float color before the GL clear.
+  // Keep the float until the renderer converts it to its target format.
+  bgfx::setPaletteColor(0, plan->clearColor);
+  bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 1.0f, 0, 0);
   bgfx::setViewTransform(0, nullptr, nullptr);
   bgfx::touch(0);
   const std::vector<SoWgpuBgfxDraw> & draws =

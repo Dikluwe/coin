@@ -179,6 +179,8 @@
   explicitly. BGFX uses a process-wide API thread and this evaluation permits
   only one active target. OpenGL readback rows are normalized to the same
   target RGBA orientation.
+  Core preserves Coin's floating-point clear color, and Infra passes it to
+  BGFX's float clear palette without early RGBA8 quantization.
   Test each renderer in a separate process because BGFX initialization is
   process-global. The Coin 4 public ABI is unchanged. See
   <tt>docs/bgfx-evaluation.md</tt> for build, limitations and the Release/GL gate.

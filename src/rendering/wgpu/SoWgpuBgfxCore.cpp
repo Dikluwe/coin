@@ -6,17 +6,11 @@
 
 #include "rendering/wgpu/SoWgpuBgfxCore.h"
 
-#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <utility>
 
 namespace {
-uint32_t byteColor(float value)
-{
-  return static_cast<uint32_t>(std::lround(std::max(0.0f, std::min(1.0f, value)) * 255.0f));
-}
-
 bool finiteMatrix(const SbMatrix & matrix)
 {
   const float (*value)[4] = matrix.getValue();
@@ -111,11 +105,9 @@ SoWgpuBgfxCore::lower(const FramePlan & frame, int width, int height,
     candidate.vertices.push_back(dst);
   }
   candidate.indices = frame.indices;
-  float clear[4] = {frame.clearColor[0], frame.clearColor[1],
-                    frame.clearColor[2], frame.clearColor[3]};
-  candidate.clearRgba = (byteColor(clear[0]) << 24) |
-                        (byteColor(clear[1]) << 16) |
-                        (byteColor(clear[2]) << 8) | byteColor(clear[3]);
+  for (int channel = 0; channel < 4; ++channel) {
+    candidate.clearColor[channel] = frame.clearColor[channel];
+  }
   output = std::move(candidate);
   return true;
 }
@@ -137,14 +129,11 @@ SoWgpuBgfxCore::patchCamera(const FramePlan & frame, bool homogeneousDepth,
       return false;
     }
   }
-  const uint32_t clearRgba =
-    (byteColor(frame.clearColor[0]) << 24) |
-    (byteColor(frame.clearColor[1]) << 16) |
-    (byteColor(frame.clearColor[2]) << 8) |
-    byteColor(frame.clearColor[3]);
-  if (clearRgba != base.clearRgba) {
-    diagnostic = "BGFX camera patch changed the clear color";
-    return false;
+  for (int channel = 0; channel < 4; ++channel) {
+    if (frame.clearColor[channel] != base.clearColor[channel]) {
+      diagnostic = "BGFX camera patch changed the clear color";
+      return false;
+    }
   }
   std::vector<SoWgpuBgfxDraw> candidate = base.draws;
   const SbMatrix clipConversion(
