@@ -178,6 +178,14 @@
   only one active target. See <tt>docs/bgfx-evaluation.md</tt> for build,
   limitations and the required Release/GL comparison gate.
 
+  A validated camera-only FramePlan revision updates draw transforms while
+  retaining BGFX geometry buffers; other changes use full lowering.
+  <tt>COIN_BGFX_DISABLE_CAMERA_PATCH=1</tt> is an A/B diagnostic switch.
+  <tt>COIN_WGPU_TRACE_PHASES=1</tt> reports camera patch, upload and readback
+  phases. Adding <tt>COIN_WGPU_GPU_TIMESTAMPS=1</tt> probes the BGFX GPU
+  frame timestamp with extra frame advancement; do not use those perturbed
+  runs as the Release performance comparison.
+
   \section coin_wgpu_limits Experimental status
 
   The module is intentionally separate from <tt>libCoin</tt>. Its profile and

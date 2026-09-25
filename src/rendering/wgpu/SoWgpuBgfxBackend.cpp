@@ -15,6 +15,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <limits>
 #include <utility>
@@ -38,13 +39,15 @@ uint64_t drawState(const SoWgpuBgfxDraw & draw)
 }
 
 SoWgpuBgfxBackend::SoWgpuBgfxBackend()
-  : status(BackendStatus::NOT_READY), initialized(false), serial(0),
+  : status(BackendStatus::NOT_READY), initialized(false), cameraPatchEnabled(true), serial(0),
     width(0), height(0), program(BGFX_INVALID_HANDLE),
     frameBuffer(BGFX_INVALID_HANDLE), readbackTexture(BGFX_INVALID_HANDLE),
     cachedRevision(0), cachedWidth(0), cachedHeight(0),
     cachedHomogeneousDepth(false), cachedVertexBuffer(BGFX_INVALID_HANDLE),
     cachedIndexBuffer(BGFX_INVALID_HANDLE)
 {
+  const char * disabled = std::getenv("COIN_BGFX_DISABLE_CAMERA_PATCH");
+  this->cameraPatchEnabled = disabled == nullptr || std::strcmp(disabled, "1") != 0;
 }
 
 SoWgpuBgfxBackend::~SoWgpuBgfxBackend()
@@ -170,6 +173,13 @@ SoWgpuBgfxBackend::resize(int newWidth, int newHeight)
 SubmitResult
 SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target)
 {
+  return this->submit(frame, target, SoWgpuFrameReuseDecision());
+}
+
+SubmitResult
+SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
+                          const SoWgpuFrameReuseDecision & reuse)
+{
   if (!this->initialized || this->status != BackendStatus::SUCCESS || !this->onApiThread()) {
     this->lastError = "BGFX submission requires a prepared backend on its API thread";
     return SubmitResult(BackendStatus::NOT_READY, this->lastError);
@@ -181,15 +191,33 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target)
   }
   typedef std::chrono::steady_clock Clock;
   const Clock::time_point begin = Clock::now();
+  const bool tracePhases = SoWgpuDiagnosticShell::phaseTracingEnabled();
+  const char * gpuTimestampFlag = std::getenv("COIN_WGPU_GPU_TIMESTAMPS");
+  const bool traceGpu = tracePhases && gpuTimestampFlag != nullptr &&
+                        std::strcmp(gpuTimestampFlag, "1") == 0;
   const bool homogeneousDepth = bgfx::getCaps()->homogeneousDepth;
-  const bool cacheHit = frame.revision != 0 &&
-    frame.revision == this->cachedRevision &&
+  const bool cacheDimensionsMatch =
     target.size[0] == this->cachedWidth &&
     target.size[1] == this->cachedHeight &&
     homogeneousDepth == this->cachedHomogeneousDepth;
+  const bool cacheHit = frame.revision != 0 &&
+    frame.revision == this->cachedRevision && cacheDimensionsMatch;
+  const bool cameraPatchEligible =
+    this->cameraPatchEnabled &&
+    reuse.kind == SoWgpuFrameReuseKind::CAMERA_PATCH &&
+    reuse.baseRevision != 0 && reuse.baseRevision == this->cachedRevision &&
+    frame.revision != 0 && frame.revision != this->cachedRevision &&
+    cacheDimensionsMatch &&
+    (this->cachedPlan.draws.empty() ||
+      (bgfx::isValid(this->cachedVertexBuffer) &&
+       bgfx::isValid(this->cachedIndexBuffer)));
+  std::vector<SoWgpuBgfxDraw> cameraDraws;
+  const bool cameraPatchUsed = cameraPatchEligible &&
+    SoWgpuBgfxCore::patchCamera(frame, homogeneousDepth, this->cachedPlan,
+                                cameraDraws, this->lastError);
   SoWgpuBgfxPlan freshPlan;
   const SoWgpuBgfxPlan * plan = &this->cachedPlan;
-  if (!cacheHit) {
+  if (!cacheHit && !cameraPatchUsed) {
     if (!SoWgpuBgfxCore::lower(frame, target.size[0], target.size[1],
                               homogeneousDepth, freshPlan, this->lastError)) {
       return SubmitResult(BackendStatus::UNSUPPORTED, this->lastError);
@@ -210,12 +238,12 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target)
                                plan->draws.size() * sizeof(SoWgpuBgfxDraw);
   bgfx::VertexBufferHandle vb = BGFX_INVALID_HANDLE;
   bgfx::IndexBufferHandle ib = BGFX_INVALID_HANDLE;
-  if (cacheHit) {
+  if (cacheHit || cameraPatchUsed) {
     vb = this->cachedVertexBuffer;
     ib = this->cachedIndexBuffer;
   }
-  bool retained = cacheHit;
-  if (!cacheHit) {
+  bool retained = cacheHit || cameraPatchUsed;
+  if (!retained) {
     if (!plan->draws.empty()) {
       vb = bgfx::createVertexBuffer(bgfx::copy(plan->vertices.data(),
         static_cast<uint32_t>(plan->vertices.size() * sizeof(SoWgpuBgfxVertex))), this->layout);
@@ -254,7 +282,9 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target)
   bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, plan->clearRgba, 1.0f);
   bgfx::setViewTransform(0, nullptr, nullptr);
   bgfx::touch(0);
-  for (const SoWgpuBgfxDraw & draw : plan->draws) {
+  const std::vector<SoWgpuBgfxDraw> & draws =
+    cameraPatchUsed ? cameraDraws : plan->draws;
+  for (const SoWgpuBgfxDraw & draw : draws) {
     bgfx::setTransform(draw.mvp);
     bgfx::setVertexBuffer(0, vb);
     bgfx::setIndexBuffer(ib, draw.firstIndex, draw.indexCount);
@@ -274,10 +304,26 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target)
   const uint32_t readyFrame = bgfx::read(readRegion, target.colorBuffer.data());
   const Clock::time_point readRequested = Clock::now();
   uint32_t completedFrame = bgfx::frame();
+  uint32_t readWaitFrames = 1;
+  const uint32_t submittedFrame = completedFrame;
   const Clock::time_point submitted = Clock::now();
+  double gpuFrameMs = -1.0;
+  const auto captureGpuFrame = [&]() {
+    if (!traceGpu) return;
+    const bgfx::Stats * stats = bgfx::getStats();
+    if (stats && stats->gpuFrameNum == submittedFrame &&
+        stats->gpuTimerFreq > 0 && stats->gpuTimeEnd > stats->gpuTimeBegin) {
+      gpuFrameMs = double(stats->gpuTimeEnd - stats->gpuTimeBegin) *
+                   1000.0 / double(stats->gpuTimerFreq);
+    }
+  };
+  captureGpuFrame();
   // BGFX readback is delayed by multiple frames even for a synchronous API.
-  for (int attempts = 0; completedFrame < readyFrame && attempts < 16; ++attempts)
+  for (int attempts = 0; completedFrame < readyFrame && attempts < 16; ++attempts) {
     completedFrame = bgfx::frame();
+    ++readWaitFrames;
+    captureGpuFrame();
+  }
   if (completedFrame < readyFrame) {
     if (!retained) {
       if (bgfx::isValid(vb)) bgfx::destroy(vb);
@@ -287,12 +333,24 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target)
     return SubmitResult(BackendStatus::BACKEND_ERROR, this->lastError);
   }
   const Clock::time_point readComplete = Clock::now();
+  const Clock::time_point gpuDrainBegin = Clock::now();
+  uint32_t gpuQueryFrames = 0;
+  for (int attempts = 0; traceGpu && gpuFrameMs < 0.0 && attempts < 4; ++attempts) {
+    bgfx::frame();
+    ++gpuQueryFrames;
+    captureGpuFrame();
+  }
+  const Clock::time_point gpuDrainComplete = Clock::now();
   if (!retained) {
     if (bgfx::isValid(vb)) bgfx::destroy(vb);
     if (bgfx::isValid(ib)) bgfx::destroy(ib);
   }
+  if (cameraPatchUsed) {
+    this->cachedPlan.draws.swap(cameraDraws);
+    this->cachedRevision = frame.revision;
+  }
   target.depthBuffer.clear();
-  if (SoWgpuDiagnosticShell::phaseTracingEnabled()) {
+  if (tracePhases) {
     const auto ms = [](Clock::time_point a, Clock::time_point b) {
       return std::chrono::duration<double, std::milli>(b - a).count();
     };
@@ -300,12 +358,18 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target)
     sample.lowerMs = ms(begin, lowered);
     sample.uploadMs = ms(lowered, uploaded);
     sample.encodeMs = ms(uploaded, encoded);
+    sample.gpuTimingRequested = traceGpu;
+    sample.gpuQueryDrainMs = ms(gpuDrainBegin, gpuDrainComplete);
+    sample.gpuQueryFrames = gpuQueryFrames;
     sample.readRequestMs = ms(encoded, readRequested);
     sample.submitFrameMs = ms(readRequested, submitted);
+    sample.gpuFrameMs = gpuFrameMs;
     sample.readWaitMs = ms(submitted, readComplete);
     sample.vertices = plan->vertices.size();
     sample.draws = plan->draws.size();
-    sample.resourceCacheHit = cacheHit;
+    sample.readWaitFrames = readWaitFrames;
+    sample.resourceCacheHit = cacheHit || cameraPatchUsed;
+    sample.cameraPatchUsed = cameraPatchUsed;
     std::fprintf(stderr, "%s\n", SoWgpuDiagnosticShell::formatBgfxPhase(sample).c_str());
   }
   this->lastError.clear();

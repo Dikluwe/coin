@@ -76,6 +76,24 @@ main()
     "COIN_WGPU_PHASE bridge pack_ms=0.125 pack_cache_hit=0 ffi_ms=0.5 pack_mode=resource_rebuild",
     "bridge phase line changed");
 
+  SoWgpuBgfxPhaseSample bgfxPhase;
+  bgfxPhase.cameraPatchUsed = true;
+  bgfxPhase.resourceCacheHit = true;
+  bgfxPhase.readWaitFrames = 3;
+  bgfxPhase.gpuTimingRequested = true;
+  bgfxPhase.gpuFrameMs = 0.125;
+  bgfxPhase.gpuQueryDrainMs = 0.05;
+  bgfxPhase.gpuQueryFrames = 1;
+  const std::string bgfxTrace = SoWgpuDiagnosticShell::formatBgfxPhase(bgfxPhase);
+  ok &= check(bgfxTrace.find("camera_patch=1") != std::string::npos &&
+              bgfxTrace.find("read_wait_frames=3") != std::string::npos &&
+              bgfxTrace.find("gpu_frame_ms=0.125000") != std::string::npos &&
+              bgfxTrace.find("gpu_query_frames=1") != std::string::npos,
+              "BGFX phase trace lost camera or GPU timing fields");
+  bgfxPhase.gpuFrameMs = -1.0;
+  ok &= check(SoWgpuDiagnosticShell::formatBgfxPhase(bgfxPhase).find(
+                "gpu_frame_ms=unavailable") != std::string::npos,
+              "BGFX unavailable GPU timestamp must be explicit");
   ok &= check(std::strcmp(SoWgpuDiagnosticShell::statusName(
                 SoWgpuRenderAction::SURFACE_LOST), "SURFACE_LOST") == 0 &&
               std::strcmp(SoWgpuDiagnosticShell::domainName(

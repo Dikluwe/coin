@@ -57,9 +57,15 @@ struct SoWgpuBgfxPhaseSample {
   double submitFrameMs = 0.0;
   double readRequestMs = 0.0;
   double readWaitMs = 0.0;
+  double gpuFrameMs = -1.0;
+  double gpuQueryDrainMs = 0.0;
+  uint32_t gpuQueryFrames = 0;
   size_t vertices = 0;
   size_t draws = 0;
+  uint32_t readWaitFrames = 0;
   bool resourceCacheHit = false;
+  bool cameraPatchUsed = false;
+  bool gpuTimingRequested = false;
 };
 
 // Language-facing policy for private WebGPU statuses, diagnostics and traces.

@@ -162,7 +162,19 @@ SoWgpuDiagnosticShell::formatBgfxPhase(const SoWgpuBgfxPhaseSample & sample)
          << " read_wait_ms=" << sample.readWaitMs
          << " vertices=" << sample.vertices
          << " draws=" << sample.draws
-         << " resource_cache_hit=" << (sample.resourceCacheHit ? 1 : 0);
+         << " read_wait_frames=" << sample.readWaitFrames
+         << " resource_cache_hit=" << (sample.resourceCacheHit ? 1 : 0)
+         << " camera_patch=" << (sample.cameraPatchUsed ? 1 : 0);
+  stream << " gpu_query_drain_ms=" << sample.gpuQueryDrainMs
+         << " gpu_query_frames=" << sample.gpuQueryFrames;
+  if (sample.gpuFrameMs >= 0.0) {
+    stream << " gpu_frame_ms=" << sample.gpuFrameMs;
+  } else if (!sample.gpuTimingRequested) {
+    stream << " gpu_frame_ms=not_requested";
+  } else {
+    stream << " gpu_frame_ms=unavailable";
+  }
+
   return stream.str();
 }
 

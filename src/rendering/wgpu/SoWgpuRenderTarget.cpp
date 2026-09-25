@@ -478,7 +478,13 @@ SoWgpuRenderTargetP::executeFrameInternal(const FramePlan & frame,
   } else
 #endif
   {
-    res = this->backend->submit(frame, *this);
+#if defined(HAVE_WGPU_BGFX)
+    if (SoWgpuBgfxBackend * bgfx =
+          dynamic_cast<SoWgpuBgfxBackend *>(this->backend.get())) {
+      res = bgfx->submit(frame, *this, reuse);
+    } else
+#endif
+      res = this->backend->submit(frame, *this);
   }
   if (res.status != BackendStatus::SUCCESS) {
     std::string lastErr = res.diagnostic.empty() ? (this->backend ? this->backend->getLastError() : std::string()) : res.diagnostic;

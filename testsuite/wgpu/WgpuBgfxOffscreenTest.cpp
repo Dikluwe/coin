@@ -91,6 +91,52 @@ int main()
     std::cerr << "BGFX failed to invalidate changed material revision\n";
     return 1;
   }
+  const FramePlan greenFrame = frame;
+  frame.revision = 75;
+  SbMatrix shifted = SbMatrix::identity();
+  shifted.setTranslate(SbVec3f(1.5f, 0.0f, 0.0f));
+  frame.cameras[0].viewMatrix = shifted;
+  frame.renderStates[0].view = shifted;
+  const SoWgpuFrameReuseDecision shiftReuse =
+    SoWgpuFrameReuseCore::classify(greenFrame, frame);
+  if (shiftReuse.kind != SoWgpuFrameReuseKind::CAMERA_PATCH ||
+      target.executeFrame(frame, shiftReuse).status != BackendStatus::SUCCESS ||
+      target.colorBuffer[upper + 1] > 30) {
+    std::cerr << "BGFX camera patch failed to move the rendered triangle\n";
+    return 1;
+  }
+  const FramePlan shiftedFrame = frame;
+  frame.revision = 76;
+  frame.cameras[0].viewMatrix = SbMatrix::identity();
+  frame.renderStates[0].view = SbMatrix::identity();
+  const SoWgpuFrameReuseDecision restoreReuse =
+    SoWgpuFrameReuseCore::classify(shiftedFrame, frame);
+  if (restoreReuse.kind != SoWgpuFrameReuseKind::CAMERA_PATCH ||
+      target.executeFrame(frame, restoreReuse).status != BackendStatus::SUCCESS ||
+      target.colorBuffer[upper + 1] < 200) {
+    std::cerr << "BGFX camera patch failed to restore the rendered triangle\n";
+    return 1;
+  }
+  const FramePlan baseForComparison = frame;
+  frame.revision = 77;
+  SbMatrix subtleShift = SbMatrix::identity();
+  subtleShift.setTranslate(SbVec3f(0.25f, 0.0f, 0.0f));
+  frame.cameras[0].viewMatrix = subtleShift;
+  frame.renderStates[0].view = subtleShift;
+  const SoWgpuFrameReuseDecision comparisonReuse =
+    SoWgpuFrameReuseCore::classify(baseForComparison, frame);
+  if (comparisonReuse.kind != SoWgpuFrameReuseKind::CAMERA_PATCH ||
+      target.executeFrame(frame, comparisonReuse).status != BackendStatus::SUCCESS) {
+    std::cerr << "BGFX comparison camera patch failed\n";
+    return 1;
+  }
+  const std::vector<uint8_t> patchedPixels = target.colorBuffer;
+  frame.revision = 78;
+  if (target.executeFrame(frame).status != BackendStatus::SUCCESS ||
+      patchedPixels != target.colorBuffer) {
+    std::cerr << "BGFX camera patch differs from complete frame lowering\n";
+    return 1;
+  }
   std::cout << "WgpuBgfxOffscreenTest passed\n";
   return 0;
 }

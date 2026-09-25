@@ -27,6 +27,9 @@ isola a troca do executor, sem duplicar um segundo scene graph.
   quando a revisão não nula do `FramePlan`, dimensões e convenção de depth
   continuam iguais. O payload de geometria é limitado a 32 MiB; revisão zero
   nunca reutiliza. `COIN_WGPU_TRACE_PHASES=1` informa `resource_cache_hit`.
+- `CAMERA_PATCH` preserva buffers GPU e atualiza somente MVPs para uma
+  mudança de câmera validada; `COIN_BGFX_DISABLE_CAMERA_PATCH=1` permite
+  medir o caminho completo no mesmo build.
 - Profundidade não é publicada: chamar
   `SoWgpuRenderTarget::setDepthReadbackEnabled(FALSE)` antes de renderizar.
 - Iluminação, alpha, linhas/pontos, textura, RTT direto, janela X11 e
@@ -107,6 +110,62 @@ vértice de UNORM8 para float não reduziu a MAE de EngineBlock (0,640 em
 ambas as variantes); a diferença não deve ser atribuída só à quantização
 da cor do material. Imagens PPM desta rodada foram geradas apenas em `/tmp`.
 
+## CAMERA_PATCH e diagnóstico do gargalo — 25/09/2026
+
+Quando o Core comprova que só a câmera mudou, o Wiring passa
+`SoWgpuFrameReuseDecision::CAMERA_PATCH` ao BGFX. O Core recalcula apenas
+as matrizes dos draws; a Infra mantém vértices, índices e buffers GPU.
+Revisão-base, tamanho e convenção de profundidade precisam coincidir; caso
+contrário, há lowering completo. A revisão do cache só avança após readback
+bem-sucedido. `COIN_BGFX_DISABLE_CAMERA_PATCH=1` desliga apenas essa
+otimização para comparação A/B no mesmo binário. O trace informa
+`camera_patch`, `resource_cache_hit` e `read_wait_frames`.
+
+Release, mesma AMD e cenas exportadas, 512², `BASE_COLOR`, RGBA com
+readback, 8 warmup + 60 frames de câmera móvel por rodada. Três rodadas
+por modo, intercaladas; valores abaixo são as medianas das medianas/p95
+de cada rodada, não percentis agregados de 180 frames:
+
+| Cena | BGFX sem patch mediana / p95 (ms) | BGFX com patch mediana / p95 (ms) | Interpretação |
+| --- | ---: | ---: | --- |
+| PartDesign | 1,944 / 2,332 | 1,936 / 2,474 | Diferença dentro da variação |
+| Assembly | 3,080 / 3,599 | 1,931 / 2,419 | Mediana 37,3% menor; p95 32,8% menor |
+
+Reprodução (repetir para `PartDesign.iv`):
+
+```sh
+SCENE=/caminho/Assembly.iv
+for disabled in 1 0 0 1 1 0; do
+  env VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
+    COIN_GLX_PIXMAP_DIRECT_RENDERING=1 \
+    COIN_BGFX_DISABLE_CAMERA_PATCH="$disabled" \
+    /tmp/coin-bgfx-release/bin/wgpu_gl_benchmark \
+    --backend both --size 512 --warmup 8 --frames 60 --dynamic \
+    --readback color --rgba-output copy --scene "$SCENE"
+done
+```
+
+O GL permaneceu em cerca de 0,4 ms/frame nessas rodadas: o patch melhora
+BGFX, mas não o torna competitivo com GL nesse perfil. No Assembly, o trace
+passou de aproximadamente 0,7–1,2 ms de lowering e 0,1–0,6 ms de upload
+por frame para ~0,002 ms e <0,001 ms, respectivamente. O pico RSS em
+quatro processos separados foi 86.988–87.536 KiB sem patch e
+85.060–85.196 KiB com patch; isso não mede memória GPU. O teste Vulkan
+offscreen compara pixels do patch e do lowering completo e exige igualdade
+exata em 32². A equivalência visual da cena FreeCAD com câmera móvel ainda
+não foi medida em imagens exportadas.
+
+Com `COIN_WGPU_TRACE_PHASES=1 COIN_WGPU_GPU_TIMESTAMPS=1`, o conector
+avança frames BGFX adicionais, **só para diagnóstico**, até obter a query
+Vulkan do frame submetido. `gpu_frame_ms` é a duração GPU relatada pelo
+BGFX; `gpu_query_drain_ms`/ `gpu_query_frames` registram a perturbação.
+Numa rodada de 30 frames de Assembly com patch, a mediana foi ~0,126 ms
+para o frame GPU e ~1,85 ms para a espera CPU do readback; três avanços
+BGFX foram necessários para publicar cada readback. Não se deve subtrair
+esses tempos como se fossem estágios seriais independentes. Medições de
+performance comparáveis com GL devem deixar `COIN_WGPU_GPU_TIMESTAMPS`
+desligado.
+
 ## Próximo gate de produto
 
 Antes de aceitar BGFX como alternativa, ampliar o perfil sem falsos positivos:
@@ -116,5 +175,5 @@ orientação do readback contra GL. Em Release e na mesma GPU AMD, medir ao meno
 PartDesign e Assembly `BASE_COLOR` a 512²: mediana, p95, erro visual médio,
 RSS/pico de recursos, traversal/FramePlan, lowering, upload, submit, GPU e
 readback separados. O readback síncrono do BGFX avança vários frames e não
-deve ser confundido com apenas tempo de execução GPU. Nenhum ganho de tempo é
-afirmado nesta etapa.
+deve ser confundido com apenas tempo de execução GPU. Apesar do ganho para
+câmera móvel no Assembly, ainda não há vantagem sobre GL neste perfil.

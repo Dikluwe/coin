@@ -3,6 +3,7 @@
 
 #include "rendering/wgpu/SoWgpuBackend.h"
 #include "rendering/wgpu/SoWgpuBgfxCore.h"
+#include "rendering/wgpu/SoWgpuFrameReuseCore.h"
 
 #include <bgfx/bgfx.h>
 #include <thread>
@@ -16,6 +17,8 @@ public:
   BackendStatus getStatus() const override { return status; }
   BackendStatus prepare(SoWgpuRenderTargetP & target) override;
   SubmitResult submit(const FramePlan & frame, SoWgpuRenderTargetP & target) override;
+  SubmitResult submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
+                      const SoWgpuFrameReuseDecision & reuse);
   void poll() override;
   const std::string & getLastError() const override { return lastError; }
 
@@ -28,6 +31,7 @@ private:
   std::string lastError;
   std::thread::id apiThread;
   bool initialized;
+  bool cameraPatchEnabled;
   uint64_t serial;
   int width;
   int height;

@@ -9,6 +9,7 @@
 #include <Inventor/SoDB.h>
 
 #include <cmath>
+#include <cstring>
 #include <iostream>
 #include <limits>
 
@@ -54,6 +55,31 @@ int main()
   ok &= check(std::abs(plan.draws[0].mvp[10] - 0.5f) < 1e-6f &&
               std::abs(plan.draws[0].mvp[14] - 0.5f) < 1e-6f,
               "Coin clip depth was not converted to Vulkan range");
+  SbMatrix moved = SbMatrix::identity();
+  moved.setTranslate(SbVec3f(0.25f, 0.0f, 0.0f));
+  frame.cameras[0].viewMatrix = moved;
+  frame.renderStates[0].view = moved;
+  std::vector<SoWgpuBgfxDraw> patched;
+  SoWgpuBgfxPlan movedPlan;
+  ok &= check(SoWgpuBgfxCore::patchCamera(frame, false, plan, patched, diagnostic) &&
+              SoWgpuBgfxCore::lower(frame, 4, 4, false, movedPlan, diagnostic) &&
+              patched.size() == 1 &&
+              std::memcmp(patched[0].mvp, movedPlan.draws[0].mvp,
+                          sizeof(patched[0].mvp)) == 0,
+              "camera patch differs from full lowering");
+  frame.draws[0].geometry.indexCount = 2;
+  ok &= check(!SoWgpuBgfxCore::patchCamera(frame, false, plan, patched, diagnostic) &&
+              patched.size() == 1 &&
+              std::memcmp(patched[0].mvp, movedPlan.draws[0].mvp,
+                          sizeof(patched[0].mvp)) == 0,
+              "invalid camera patch must not publish partial draws");
+  frame.draws[0].geometry.indexCount = 3;
+  SbMatrix invalidCamera = moved;
+  invalidCamera[0][0] = std::numeric_limits<float>::quiet_NaN();
+  frame.renderStates[0].view = invalidCamera;
+  ok &= check(!SoWgpuBgfxCore::patchCamera(frame, false, plan, patched, diagnostic),
+              "non-finite camera patch must be rejected");
+  frame.renderStates[0].view = moved;
   const size_t originalDrawCount = plan.draws.size();
   frame.renderStates[0].fogMode = FogMode::FOG;
   ok &= check(!SoWgpuBgfxCore::lower(frame, 4, 4, false, plan, diagnostic) &&

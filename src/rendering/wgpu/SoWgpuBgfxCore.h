@@ -36,6 +36,13 @@ public:
   static bool lower(const FramePlan & frame, int width, int height,
                     bool homogeneousDepth, SoWgpuBgfxPlan & output,
                     std::string & diagnostic);
+  // Requires a validated CAMERA_PATCH relationship with the cached base.
+  // Recomputes only draw transforms; geometry, material and clear remain owned
+  // by the base plan until the caller commits a successful frame.
+  static bool patchCamera(const FramePlan & frame, bool homogeneousDepth,
+                          const SoWgpuBgfxPlan & base,
+                          std::vector<SoWgpuBgfxDraw> & output,
+                          std::string & diagnostic);
 };
 
 #endif

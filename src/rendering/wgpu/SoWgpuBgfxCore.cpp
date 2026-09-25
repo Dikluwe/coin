@@ -17,6 +17,17 @@ uint32_t byteColor(float value)
   return static_cast<uint32_t>(std::lround(std::max(0.0f, std::min(1.0f, value)) * 255.0f));
 }
 
+bool finiteMatrix(const SbMatrix & matrix)
+{
+  const float (*value)[4] = matrix.getValue();
+  for (int row = 0; row < 4; ++row) {
+    for (int col = 0; col < 4; ++col) {
+      if (!std::isfinite(value[row][col])) return false;
+    }
+  }
+  return true;
+}
+
 }
 
 bool
@@ -106,5 +117,72 @@ SoWgpuBgfxCore::lower(const FramePlan & frame, int width, int height,
                         (byteColor(clear[1]) << 16) |
                         (byteColor(clear[2]) << 8) | byteColor(clear[3]);
   output = std::move(candidate);
+  return true;
+}
+
+bool
+SoWgpuBgfxCore::patchCamera(const FramePlan & frame, bool homogeneousDepth,
+                            const SoWgpuBgfxPlan & base,
+                            std::vector<SoWgpuBgfxDraw> & output,
+                            std::string & diagnostic)
+{
+  diagnostic.clear();
+  if (frame.draws.size() != base.draws.size()) {
+    diagnostic = "BGFX camera patch changed the draw count";
+    return false;
+  }
+  for (int channel = 0; channel < 4; ++channel) {
+    if (!std::isfinite(frame.clearColor[channel])) {
+      diagnostic = "BGFX camera patch has a non-finite clear color";
+      return false;
+    }
+  }
+  const uint32_t clearRgba =
+    (byteColor(frame.clearColor[0]) << 24) |
+    (byteColor(frame.clearColor[1]) << 16) |
+    (byteColor(frame.clearColor[2]) << 8) |
+    byteColor(frame.clearColor[3]);
+  if (clearRgba != base.clearRgba) {
+    diagnostic = "BGFX camera patch changed the clear color";
+    return false;
+  }
+  std::vector<SoWgpuBgfxDraw> candidate = base.draws;
+  const SbMatrix clipConversion(
+    1.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 0.5f, 0.0f,
+    0.0f, 0.0f, 0.5f, 1.0f);
+  for (size_t i = 0; i < frame.draws.size(); ++i) {
+    const DrawPacket & draw = frame.draws[i];
+    const SoWgpuBgfxDraw & previous = base.draws[i];
+    if (draw.renderStateSlot >= frame.renderStates.size()) {
+      diagnostic = "BGFX camera patch has an invalid render-state slot";
+      return false;
+    }
+    const RenderStateSnapshot & state = frame.renderStates[draw.renderStateSlot];
+    if (draw.topology != PrimitiveTopology::TRIANGLE_LIST ||
+        draw.geometry.firstVertex != previous.firstVertex ||
+        draw.geometry.vertexCount != previous.vertexCount ||
+        draw.geometry.firstIndex != previous.firstIndex ||
+        draw.geometry.indexCount != previous.indexCount ||
+        state.cullMode != previous.cullMode ||
+        state.frontFace != previous.frontFace ||
+        state.lightModel != LightModel::BASE_COLOR ||
+        state.hasTexture || state.fogMode != FogMode::NONE) {
+      diagnostic = "BGFX camera patch changed non-camera draw state";
+      return false;
+    }
+    if (!finiteMatrix(state.model) || !finiteMatrix(state.view) ||
+        !finiteMatrix(state.projectionCoin)) {
+      diagnostic = "BGFX camera patch has a non-finite matrix";
+      return false;
+    }
+
+    const SbMatrix projection = homogeneousDepth
+      ? state.projectionCoin : state.projectionCoin * clipConversion;
+    const SbMatrix mvp = state.model * state.view * projection;
+    std::memcpy(candidate[i].mvp, mvp.getValue(), sizeof(candidate[i].mvp));
+  }
+  output.swap(candidate);
   return true;
 }
