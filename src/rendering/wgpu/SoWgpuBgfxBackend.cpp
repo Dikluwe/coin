@@ -29,7 +29,14 @@ std::atomic<bool> bgfxInUse(false);
 uint64_t drawState(const SoWgpuBgfxDraw & draw)
 {
   uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A |
-                   BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS;
+                   BGFX_STATE_DEPTH_TEST_LESS;
+  if (draw.blend) {
+    state |= BGFX_STATE_BLEND_FUNC_SEPARATE(BGFX_STATE_BLEND_SRC_ALPHA,
+      BGFX_STATE_BLEND_INV_SRC_ALPHA, BGFX_STATE_BLEND_ONE,
+      BGFX_STATE_BLEND_INV_SRC_ALPHA);
+  } else {
+    state |= BGFX_STATE_WRITE_Z;
+  }
   // Coin's frontFace denotes the visible winding; BGFX state denotes the
   // winding to discard. BGFX accounts for each renderer's target origin.
   if (draw.cullMode == CullMode::BACK) {

@@ -21,9 +21,12 @@ comparação isola a troca do executor, sem duplicar um segundo scene graph.
 - Linux, BGFX com renderer Vulkan por padrão ou OpenGL com
   `COIN_BGFX_RENDERER=opengl`; alvo offscreen ou janela Xlib, um alvo ativo
   por processo.
-- Triângulos indexados opacos, sem textura/fog, `BASE_COLOR`, viewport inteira;
-  clear e teste de profundidade. Offscreen: readback **somente RGBA** síncrono.
-  Janela: apresentação direta na swapchain, sem readback.
+- Triângulos indexados `BASE_COLOR`, sem textura/fog, viewport inteira;
+  materiais opacos ou alpha uniforme por draw com
+  `SoTransparencyType::SORTED_OBJECT_BLEND`. Opacos escrevem depth;
+  transparentes são ordenados por profundidade média, testam depth, não o
+  escrevem e usam blend source-over. Offscreen: readback **somente RGBA**
+  síncrono. Janela: apresentação direta na swapchain, sem readback.
 - Ordem de draws preservada com `ViewMode::Sequential`; shaders SPIR-V e GLSL
   330 gerados por `shaderc` durante o build. O readback OpenGL é invertido
   por linhas para cumprir a mesma orientação RGBA do Vulkan.
@@ -36,7 +39,7 @@ comparação isola a troca do executor, sem duplicar um segundo scene graph.
   medir o caminho completo no mesmo build.
 - Profundidade não é publicada: chamar
   `SoWgpuRenderTarget::setDepthReadbackEnabled(FALSE)` no alvo offscreen.
-- Iluminação, alpha, linhas/pontos, textura, RTT direto, Wayland e
+- Iluminação, outros modos de alpha, linhas/pontos, textura, RTT direto, Wayland e
   `applyAsync` retornam `UNSUPPORTED` em vez de aparentar paridade.
 - `gpu_available=0` na query de capacidades BGFX porque `bgfx::init` é global
   e não há probe inofensivo; a disponibilidade real é comprovada por um
@@ -62,7 +65,7 @@ cmake -S . -B /tmp/coin-bgfx-release \
   -DCMAKE_PREFIX_PATH="$prefix" \
   -DCOIN_BGFX_SHADERC_EXECUTABLE="$prefix/bin/shaderc" \
   -DCOIN_BGFX_SHADER_INCLUDE_DIR="$prefix/include/bgfx"
-cmake --build /tmp/coin-bgfx-release --target WgpuBgfxCoreTest WgpuBgfxOffscreenTest WgpuBgfxWindowTest WgpuBackendContractTest wgpu_window_cone wgpu_viewer wgpu_gl_benchmark -j4
+cmake --build /tmp/coin-bgfx-release --target WgpuBgfxCoreTest WgpuBgfxOffscreenTest WgpuBgfxTransparencyTest WgpuBgfxWindowTest WgpuBackendContractTest wgpu_window_cone wgpu_viewer wgpu_gl_benchmark -j4
 ctest --test-dir /tmp/coin-bgfx-release -R '^WgpuBgfx' --output-on-failure
 xvfb-run -a -s '-screen 0 1024x768x24 +extension GLX +render -noreset' \
   ctest --test-dir /tmp/coin-bgfx-release -R '^WgpuBgfxWindow' --output-on-failure
@@ -89,6 +92,55 @@ ausência de readback, separadamente em Vulkan e OpenGL. Em 25/09/2026,
 `wgpu_viewer --frames 5` e `wgpu_window_cone --frames 5` também passaram
 em ambos os renderizadores. Isso não mede latência de apresentação nem cobre
 a viewport real do FreeCAD.
+
+Com os dois novos testes de transparência, 9/9 passaram no Xvfb sem forçar
+um ICD Vulkan. Forçar RADV nesse servidor fez apenas o teste de apresentação
+Vulkan falhar por ausência de DRI3; o teste offscreen de composição passou.
+
+## Ensaio controlado de transparência — 25/09/2026
+
+`WgpuBgfxTransparencyTest` constrói a mesma cena Open Inventor para
+Coin/OpenGL e BGFX (Vulkan ou OpenGL), a 128² e `BASE_COLOR`.
+Há um quadrilátero azul opaco atrás de dois semitransparentes (vermelho e
+verde, alpha 0,5), inseridos fora da ordem de profundidade. No caso
+`layered`, as superfícies são paralelas; no `crossing`, vermelho e verde
+se cruzam. O teste exige composição analítica e concordância com Coin/GL
+nas camadas simples. No cruzamento registra os pixels sem impor paridade
+com depth peeling, que pode não estar disponível em outros drivers.
+
+```sh
+cmake --build /tmp/coin-bgfx-release --target WgpuBgfxTransparencyTest -j4
+xvfb-run -a -s '-screen 0 1024x768x24 +extension GLX +render -noreset' \
+  env COIN_GLX_PIXMAP_DIRECT_RENDERING=1 COIN_WGPU_REQUIRE_GL_REFERENCE=1 \
+  VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
+  /tmp/coin-bgfx-release/bin/WgpuBgfxTransparencyTest \
+  --output-prefix /tmp/coin-transparency-vulkan
+# Repetir com COIN_BGFX_RENDERER=opengl para BGFX/OpenGL.
+```
+
+Nesta execução em Xvfb, RGB nos pixels esquerdo/direito do cruzamento:
+
+| Caminho e modo | Esquerda | Direita |
+| --- | --- | --- |
+| BGFX/Vulkan, objeto | (64, 128, 64) | (64, 128, 64) |
+| BGFX/OpenGL, objeto | (64, 128, 63) | (64, 128, 63) |
+| Coin/OpenGL, `SORTED_OBJECT_BLEND` | (64, 128, 63) | (64, 128, 63) |
+| Coin/OpenGL, `SORTED_LAYERS_BLEND` | (128, 64, 63) | (64, 128, 63) |
+
+As camadas paralelas produziram (128, 64, 64) no BGFX/Vulkan e
+(128, 64, 63) no Coin/GL; BGFX/OpenGL coincidiu exatamente com Coin/GL.
+À esquerda do cruzamento, o vermelho está na frente: o resultado fisicamente
+esperado é aproximadamente (128, 64, 64), mas a ordenação por objeto mantém
+o verde na frente nos dois lados. O modo de camadas do Coin alcançou a
+ordem por pixel neste contexto; ele pode cair para ordenação por objeto se
+faltarem extensões ou formato depth/alpha. A saída do teste a chama
+`layers-or-fallback` para não ocultar essa possibilidade.
+
+Isto é um limite conhecido da **técnica** `SORTED_OBJECT_BLEND`, compartilhado
+por Coin/GL, Rust/wgpu e este perfil BGFX; não demonstra um bug exclusivo do
+BGFX. A correção mais forte exige um algoritmo como depth peeling ou OIT,
+com custo e cobertura próprios. O ensaio não mede desempenho nem testa a
+viewport real do FreeCAD; em Xvfb, GL pode usar renderização por software.
 
 ## Medição inicial — 24–25/09/2026
 
@@ -395,7 +447,8 @@ necessários para essas regras e para diagnosticar falhas de cada API.
 
 Antes de aceitar BGFX como alternativa, ampliar o perfil sem falsos positivos:
 profundidade de saída, iluminação, materiais por vértice, textura, fog,
-transparência e múltiplos alvos; validar culling, convenção de coordenadas e
+outros modos de transparência e múltiplos alvos; validar culling, convenção de
+coordenadas e
 orientação do readback contra GL. Em Release e na mesma GPU AMD, medir ao menos
 PartDesign e Assembly `BASE_COLOR` a 512²: mediana, p95, erro visual médio,
 RSS/pico de recursos, traversal/FramePlan, lowering, upload, submit, GPU e

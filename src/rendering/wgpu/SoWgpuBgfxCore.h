@@ -22,6 +22,7 @@ struct SoWgpuBgfxDraw {
   uint32_t indexCount;
   CullMode cullMode;
   FrontFace frontFace;
+  bool blend = false;
 };
 
 struct SoWgpuBgfxPlan {

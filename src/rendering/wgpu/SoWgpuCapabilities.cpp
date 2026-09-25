@@ -59,7 +59,8 @@ coin_wgpu_experimental_query_capabilities(uint32_t target,
   // No side-effect-free adapter probe exists for BGFX's process-wide init.
   // Availability is established by preparing a target.
   result.features = COIN_WGPU_FEATURE_TRIANGLES |
-                    COIN_WGPU_FEATURE_INDEXED_GEOMETRY;
+                    COIN_WGPU_FEATURE_INDEXED_GEOMETRY |
+                    COIN_WGPU_FEATURE_SORTED_ALPHA;
   result.max_lights_per_draw = 0;
   result.max_texture_units = 0;
 #else

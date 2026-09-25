@@ -5,6 +5,7 @@
 #endif
 
 #include "rendering/wgpu/SoWgpuBgfxCore.h"
+#include "rendering/wgpu/SoWgpuComposition.h"
 
 #include <cmath>
 #include <cstring>
@@ -36,9 +37,11 @@ SoWgpuBgfxCore::lower(const FramePlan & frame, int width, int height,
     return false;
   }
   if (!frame.isValid(&diagnostic)) return false;
+  std::vector<SoWgpuCompositionItem> order;
+  if (!coin_wgpu_composition_order(frame, order, diagnostic)) return false;
 
-  for (size_t i = 0; i < frame.draws.size(); ++i) {
-    const DrawPacket & draw = frame.draws[i];
+  for (const SoWgpuCompositionItem & item : order) {
+    const DrawPacket & draw = frame.draws[item.drawIndex];
     const RenderStateSnapshot & state = frame.renderStates[draw.renderStateSlot];
     const ViewportSnapshot & viewport = frame.viewports[state.viewportSlot];
     if ((state.cullMode != CullMode::NONE && state.cullMode != CullMode::BACK &&
@@ -72,10 +75,6 @@ SoWgpuBgfxCore::lower(const FramePlan & frame, int width, int height,
         diagnostic = "BGFX evaluation received non-finite material color";
         return false;
       }
-      if (material.diffuse[3] < 1.0f) {
-        diagnostic = "BGFX evaluation does not support transparent materials";
-        return false;
-      }
     }
     const SbMatrix clipConversion(
       1.0f, 0.0f, 0.0f, 0.0f,
@@ -93,6 +92,7 @@ SoWgpuBgfxCore::lower(const FramePlan & frame, int width, int height,
     lowered.indexCount = draw.geometry.indexCount;
     lowered.cullMode = state.cullMode;
     lowered.frontFace = state.frontFace;
+    lowered.blend = item.blend;
     candidate.draws.push_back(lowered);
   }
 
@@ -122,6 +122,12 @@ SoWgpuBgfxCore::patchCamera(const FramePlan & frame, bool homogeneousDepth,
   if (frame.draws.size() != base.draws.size()) {
     diagnostic = "BGFX camera patch changed the draw count";
     return false;
+  }
+  for (const SoWgpuBgfxDraw & draw : base.draws) {
+    if (draw.blend) {
+      diagnostic = "BGFX camera patch rebuilds transparent object order";
+      return false;
+    }
   }
   for (int channel = 0; channel < 4; ++channel) {
     if (!std::isfinite(frame.clearColor[channel])) {

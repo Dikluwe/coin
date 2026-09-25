@@ -6,6 +6,7 @@
 
 #include "rendering/wgpu/SoWgpuBgfxCore.h"
 
+#include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/SoDB.h>
 
 #include <cmath>
@@ -96,8 +97,15 @@ int main()
   frame.renderStates[0].fogMode = FogMode::NONE;
   frame.materials[0].diffuse[3] = 0.5f;
   frame.materials[0].transparency = 0.5f;
-  ok &= check(!SoWgpuBgfxCore::lower(frame, 4, 4, false, plan, diagnostic),
-              "transparent material must not render as opaque");
+  ok &= check(!SoWgpuBgfxCore::lower(frame, 4, 4, false, plan, diagnostic) &&
+              diagnostic.find("SORTED_OBJECT_BLEND") != std::string::npos,
+              "unselected transparency mode must be rejected");
+  frame.renderStates[0].transparencyType = SoGLRenderAction::SORTED_OBJECT_BLEND;
+  ok &= check(SoWgpuBgfxCore::lower(frame, 4, 4, false, plan, diagnostic) &&
+              plan.draws.size() == 1 && plan.draws[0].blend,
+              "SORTED_OBJECT_BLEND alpha was not lowered");
+  ok &= check(!SoWgpuBgfxCore::patchCamera(frame, false, plan, patched, diagnostic),
+              "transparent camera patch must rebuild object order");
   frame.materials[0].diffuse[3] = 1.0f;
   frame.materials[0].transparency = 0.0f;
   frame.materials[0].diffuse[0] = std::numeric_limits<float>::quiet_NaN();
