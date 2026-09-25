@@ -624,3 +624,44 @@ em 18,2% no PartDesign e 10,1% no Assembly; três pares de PartDesign a
 O experimento permanece opt-in. Medidas, RSS e reprodução em
 `wgpu-freecad-examples-validation.md`. O comparador
 visual de cena completa não testa a viewport real do FreeCAD.
+
+#### Prompt 008E: separar preparação, execução e readback
+
+**Intent:** localizar o gargalo antes de alterar o pipeline. Medir
+attachments, encode, staging, submit, espera, map, cópia/publicação e
+reciclagem separadamente; distinguir trabalho GPU de espera CPU. Preservar
+o caminho sem trace e a ABI pública Coin 4.
+
+**Core:** sem alteração de transformação ou contrato de pixels.
+
+**Shell:** `COIN_WGPU_TRACE_PHASES=1` acrescenta `rust_cpu_detail` com
+spans contíguos cujo total reconcilia por frame. `rust_gpu` explicita
+`ok`, `disabled`, `unsupported` ou erro da sonda. Não somar medianas de
+fases distintas nem chamar `device.poll` de duração da execução GPU.
+
+**Infra:** `COIN_WGPU_GPU_TIMESTAMPS=1`, junto ao trace, solicita
+`TIMESTAMP_QUERY` e `TIMESTAMP_QUERY_INSIDE_ENCODERS` somente se o adapter
+oferecer ambos. Quatro queries delimitam os passes de render e as cópias
+GPU→staging no offscreen síncrono. Resolve e map de 32 bytes ocorrem no
+próprio frame; falha da sonda não deve alterar os pixels nem o status do
+render. Sem as duas flags, nenhuma query/buffer da sonda é criada.
+
+**Wiring:** a action, o FramePlan e a ponte C++ continuam inalterados.
+O trace Rust acrescenta subfases aos marcadores já expostos pela ponte.
+
+**Gates:** build Release/Debug Rust e Recording, testes de device loss,
+trace curto com queries na AMD, 40 quadros após 10 warmup nas cenas
+PartDesign/Assembly, comparação não instrumentada com GL, MAE/IoU e RSS.
+Queries GPU são uma sonda intrusiva; seus tempos não formam um A/B de
+latência contra a execução normal.
+
+**Resultado (2026-09-24):** Release Rust 42/42, Debug Rust 42/42 e
+Recording 28/28. As 40 amostras por cena retornaram `rust_gpu status=ok`.
+Em PartDesign 1024², medianas traceadas de 1,360 ms na criação dos
+attachments e 1,214 ms na cópia CPU do readback, contra 0,065 ms de
+render e 0,152 ms de cópia GPU segundo queries. Em PartDesign 512²,
+attachments 0,015 ms, encode 0,044 ms, cópia CPU 0,066 ms. O próximo
+candidato é reutilizar attachments por target/tamanho/geração de device,
+com limites de memória e invalidação rigorosa. Medidas e reprodução em
+`wgpu-freecad-examples-validation.md`; não há ganho de velocidade
+reivindicado por este prompt de diagnóstico.

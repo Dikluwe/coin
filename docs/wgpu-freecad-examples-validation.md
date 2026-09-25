@@ -638,6 +638,81 @@ for order in '0 1' '1 0'; do
 done
 ```
 
+## Separação de fases CPU/GPU (Prompt 008E, 2026-09-24)
+
+Build Release Rust, AMD Radeon Graphics RADV RENOIR/Vulkan, `BASE_COLOR`,
+RGBA-only, `COIN_WGPU_CAMERA_BINDINGS=1`, 40 frames após 10 warmup por
+processo. Os campos `rust_cpu_detail` são spans de relógio CPU por frame;
+`rust_gpu` vem de queries hardware (quatro timestamps: começo/fim dos
+passes e começo/fim da cópia para staging). As queries só existem com
+`COIN_WGPU_TRACE_PHASES=1 COIN_WGPU_GPU_TIMESTAMPS=1` e se o adapter
+suportar os recursos exigidos. Todos os 40 frames medidos de cada cenário
+retornaram `status=ok`. GPU render/copy não incluem criação CPU de recursos,
+fila/espera do `device.poll`, map nem cópia para o vetor do chamador. A
+query de cópia inclui cor e profundidade se profundidade for pedida.
+
+Mediana/p95 em ms dos **frames traceados**; são percentis por coluna e
+portanto não devem ser somados entre colunas:
+
+| Cena/tamanho | Attachments CPU | Encode draws CPU | Staging CPU | Submit CPU | Espera CPU | Cópia cor CPU | Render GPU | Cópia GPU |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| PartDesign 512² | 0,0146/0,0163 | 0,0435/0,0484 | 0,0095/0,0134 | 0,0475/0,0517 | 0,2742/0,6271 | 0,0661/0,1000 | 0,0690/0,0904 | 0,0529/0,0691 |
+| Assembly 512² | 0,0163/0,0207 | 0,0711/0,1207 | 0,0096/0,0132 | 0,0524/0,0622 | 0,3006/0,6769 | 0,0761/0,1133 | 0,0964/0,1198 | 0,0563/0,0668 |
+| PartDesign 1024² | 1,3597/1,5506 | 0,1026/0,1487 | 0,0171/0,0249 | 0,0855/0,1185 | 0,4716/1,1708 | 1,2136/1,7586 | 0,0650/0,0765 | 0,1516/0,1989 |
+
+O `rust_cpu_detail` ainda separa validação, setup/leitura da sonda,
+snapshot, registro/recebimento do map, verificações, profundidade,
+publicação e reciclagem. Em PartDesign 1024², a mediana de setup da
+sonda foi 0,0485 ms e a de leitura da sonda 0,0017 ms. Em 512²,
+attachments+encode e espera dominam relativamente; em 1024², a criação
+dos attachments e a cópia CPU de cor são os maiores alvos isolados. O
+tempo de espera CPU não é uma medição isolada de execução GPU.
+
+Comparação **sem trace** em processo pareado WebGPU/CoinGL, mesma cena/GPU,
+40 frames após 10 warmup, mediana/p95 do tempo total com readback:
+
+| Cena/tamanho | WebGPU (ms) | CoinGL (ms) | Pico RSS WebGPU isolado (KiB) |
+| --- | ---: | ---: | ---: |
+| PartDesign 512² | 0,3686/0,6909 | 0,3467/0,8338 | 133976 |
+| Assembly 512² | 0,4765/0,6649 | 0,3769/0,7310 | 140072 |
+| PartDesign 1024² | 3,8188/4,6253 | 1,1924/1,4471 | 142996 |
+
+RSS veio de execuções WebGPU-only sem trace (`/usr/bin/time -f %M`), não
+é memória de GPU nem delta frente ao GL. Em execuções WebGPU-only dessa
+medição, PartDesign 512² foi 0,3473/0,4735 ms, Assembly 512²
+0,3967/0,4292 ms e PartDesign 1024² 3,8270/4,3839 ms. A variação
+entre processos recomenda repetir/contrabalançar um futuro A/B; esta
+instrumentação não reivindica aceleração. O comparador visual 512²
+manteve, após inverter GL, PartDesign MAE RGB 0,001358/IoU 0,999978 e
+Assembly MAE 0/IoU 1. A viewport real do FreeCAD não foi testada.
+Release Rust 42/42, Debug Rust 42/42, Recording 28/28 passaram.
+
+A suíte Release com as duas flags de trace passou 42/42 em execução serial.
+Uma execução paralela `-j4` com as flags teve falha única no teste de janela
+X11; o mesmo teste passou isolado sem trace, com trace CPU e com timestamps,
+e passou na suíte serial. Este teste é sensível à concorrência de GPU/X11;
+a falha paralela não foi reproduzida isoladamente.
+
+Reproduzir com a cena normalizada existente (trocar por `Assembly.iv` para
+a outra cena e usar `--size 1024` para o ensaio maior):
+
+```sh
+SCENE='/home/dikluwe/Área de trabalho/Estudo coin/estudos/So/SoWgpu-FreeCAD-Exemplos/cenas/PartDesign.iv'
+VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
+COIN_WGPU_CAMERA_BINDINGS=1 COIN_WGPU_TRACE_PHASES=1 \
+COIN_WGPU_GPU_TIMESTAMPS=1 \
+  /tmp/coin-wgpu-tekt-release/bin/wgpu_gl_benchmark --backend wgpu \
+  --readback color --frames 40 --warmup 10 --size 512 --scene "$SCENE"
+
+VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
+COIN_GLX_PIXMAP_DIRECT_RENDERING=1 COIN_WGPU_CAMERA_BINDINGS=1 \
+  /tmp/coin-wgpu-tekt-release/bin/wgpu_gl_benchmark --backend both \
+  --readback color --frames 40 --warmup 10 --size 512 --scene "$SCENE"
+```
+
+Descartar as primeiras dez linhas `rust_cpu_detail`/`rust_gpu` do trace
+(warmup). Comparar o tempo total somente com o segundo comando, sem trace.
+
 ## Próximo gate necessário para integração real
 
 Fazer um build **isolado** do FreeCAD contra a mesma revisão do Coin/WebGPU,

@@ -506,6 +506,40 @@ struct CameraGpuBindings {
     draws: Vec<Option<CameraDrawBinding>>,
 }
 
+// Four timestamps bracket the render pass(es) and the offscreen copy. The
+// buffers exist only for traced synchronous frames on timestamp-capable
+// devices; normal frames allocate none of these resources.
+struct GpuTimestampProbe {
+    queries: wgpu::QuerySet,
+    resolved: wgpu::Buffer,
+    readback: wgpu::Buffer,
+}
+
+impl GpuTimestampProbe {
+    const BYTES: u64 = 4 * std::mem::size_of::<u64>() as u64;
+
+    fn new(device: &wgpu::Device) -> Self {
+        let queries = device.create_query_set(&wgpu::QuerySetDescriptor {
+            label: Some("Coin GPU Phase Timestamps"),
+            ty: wgpu::QueryType::Timestamp,
+            count: 4,
+        });
+        let resolved = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Coin GPU Timestamp Resolve"),
+            size: Self::BYTES,
+            usage: wgpu::BufferUsages::QUERY_RESOLVE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
+        });
+        let readback = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Coin GPU Timestamp Readback"),
+            size: Self::BYTES,
+            usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+        Self { queries, resolved, readback }
+    }
+}
+
 fn same_camera_independent_state(a: &CoinWgpuRenderState, b: &CoinWgpuRenderState) -> bool {
     a.light_direction == b.light_direction && a.light_color == b.light_color
         && a.light_intensity == b.light_intensity && a.has_light == b.has_light
@@ -998,10 +1032,19 @@ fn get_or_init_device_impl<'a>(
     let adapter_info = adapter.get_info();
     let adapter_name = format!("{} ({:?})", adapter_info.name, adapter_info.backend);
 
+    // Hardware timestamps are strictly opt-in and never required for normal
+    // rendering. An unsupported adapter still runs the CPU phase trace.
+    let timestamp_features = wgpu::Features::TIMESTAMP_QUERY
+        | wgpu::Features::TIMESTAMP_QUERY_INSIDE_ENCODERS;
+    let enable_timestamps = std::env::var_os("COIN_WGPU_TRACE_PHASES").is_some()
+        && std::env::var("COIN_WGPU_GPU_TIMESTAMPS").as_deref() == Ok("1")
+        && adapter.features().contains(timestamp_features);
+    let required_features = if enable_timestamps { timestamp_features }
+        else { wgpu::Features::empty() };
     let (device, queue) = block_on(adapter.request_device(
         &wgpu::DeviceDescriptor {
             label: Some("Coin3D WebGPU Device"),
-            required_features: wgpu::Features::empty(),
+            required_features,
             required_limits: wgpu::Limits::default(),
             memory_hints: wgpu::MemoryHints::Performance,
         },
@@ -1553,6 +1596,7 @@ fn encode_frame(
     textures_slice: &[CoinWgpuTexture],
     samplers_slice: &[CoinWgpuSampler],
     camera_geometry: Option<&Arc<ValidatedGeometry>>,
+    timestamp_query: Option<&wgpu::QuerySet>,
     color_view: &wgpu::TextureView,
     color_format: wgpu::TextureFormat,
     depth_view: &wgpu::TextureView,
@@ -2079,7 +2123,11 @@ fn encode_frame(
                 }),
                 stencil_ops: None,
             }),
-            timestamp_writes: None,
+            timestamp_writes: timestamp_query.map(|query_set| wgpu::RenderPassTimestampWrites {
+                query_set,
+                beginning_of_pass_write_index: (!blended_pass).then_some(0),
+                end_of_pass_write_index: (blended_pass == has_blended_draws).then_some(1),
+            }),
             occlusion_query_set: None,
         });
 
@@ -3123,6 +3171,7 @@ pub extern "C" fn coin_wgpu_surface_submit(
             textures_slice,
             samplers_slice,
             None,
+            None,
             &color_view,
             record.color_format,
             depth_view,
@@ -3680,7 +3729,15 @@ fn coin_wgpu_submit_internal(
             }
         }
         let profile_validated = std::time::Instant::now();
-
+        let gpu_profile_requested = trace_phases
+            && std::env::var("COIN_WGPU_GPU_TIMESTAMPS").as_deref() == Ok("1")
+            && out_ticket.is_null() && out_texture.is_null();
+        let gpu_profile_features = wgpu::Features::TIMESTAMP_QUERY
+            | wgpu::Features::TIMESTAMP_QUERY_INSIDE_ENCODERS;
+        let gpu_probe = (gpu_profile_requested
+            && ctx.device.features().contains(gpu_profile_features))
+            .then(|| GpuTimestampProbe::new(&ctx.device));
+        let profile_probe_ready = trace_phases.then(std::time::Instant::now);
 
         if !out_texture.is_null() && ctx.rtt_textures.lock().unwrap().active.len() >= 64 {
             set_error(error_buf, error_buf_len, "Too many active RTT textures");
@@ -3732,6 +3789,7 @@ fn coin_wgpu_submit_internal(
             return CoinWgpuStatus::OutOfMemory;
         }
         let depth_view = depth_texture.create_view(&wgpu::TextureViewDescriptor::default());
+        let profile_attachments_created = trace_phases.then(std::time::Instant::now);
 
         // 9. Encode draw calls with the exact same shared encode_frame
         let cmd_buffer = match encode_frame(
@@ -3746,6 +3804,7 @@ fn coin_wgpu_submit_internal(
             textures_slice,
             samplers_slice,
             owned_patch.as_ref().map(|scene| &scene.geometry),
+            gpu_probe.as_ref().map(|probe| &probe.queries),
             &color_view,
             wgpu::TextureFormat::Rgba8Unorm,
             &depth_view,
@@ -3756,6 +3815,7 @@ fn coin_wgpu_submit_internal(
                 return status;
             }
         };
+        let profile_draw_encoded = trace_phases.then(std::time::Instant::now);
         if f.frame_revision != 0 && (owned_patch.is_some() || fully_validated) {
             let next_scene = if let Some(scene) = owned_patch.as_ref() {
                 Some(Arc::new(ValidatedScene {
@@ -3837,6 +3897,9 @@ fn coin_wgpu_submit_internal(
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
                 label: Some("Offscreen Copy Encoder"),
             });
+        if let Some(probe) = gpu_probe.as_ref() {
+            copy_encoder.write_timestamp(&probe.queries, 2);
+        }
 
         copy_encoder.copy_texture_to_buffer(
             wgpu::TexelCopyTextureInfo {
@@ -3895,6 +3958,14 @@ fn coin_wgpu_submit_internal(
             None
         };
 
+        if let Some(probe) = gpu_probe.as_ref() {
+            copy_encoder.write_timestamp(&probe.queries, 3);
+            copy_encoder.resolve_query_set(&probe.queries, 0..4, &probe.resolved, 0);
+            copy_encoder.copy_buffer_to_buffer(
+                &probe.resolved, 0, &probe.readback, 0, GpuTimestampProbe::BYTES,
+            );
+        }
+
         let sub_serial = GLOBAL_SUBMISSION_SERIAL.fetch_add(1, Ordering::SeqCst);
         LAST_SUBMITTED_SERIAL.store(sub_serial, Ordering::SeqCst);
         let local_serial = ctx.last_submitted_serial.fetch_add(1, Ordering::SeqCst) + 1;
@@ -3920,6 +3991,14 @@ fn coin_wgpu_submit_internal(
                 let _ = depth_sender.send(result);
             });
         }
+
+        let gpu_timestamp_receiver = gpu_probe.as_ref().map(|probe| {
+            let (sender, receiver) = std::sync::mpsc::channel();
+            probe.readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
+                let _ = sender.send(result);
+            });
+            receiver
+        });
 
         if !out_ticket.is_null() {
             let token = NEXT_READBACK_TOKEN.fetch_add(1, Ordering::SeqCst);
@@ -4013,6 +4092,41 @@ fn coin_wgpu_submit_internal(
             return CoinWgpuStatus::BackendError;
         }
 
+        let profile_gpu_read_begin = trace_phases.then(std::time::Instant::now);
+        let timestamp_period_ns = gpu_probe.as_ref()
+            .map(|_| ctx.queue.get_timestamp_period() as f64).unwrap_or(0.0);
+        let mut gpu_timing_status = if gpu_profile_requested { "unsupported" } else { "disabled" };
+        let mut gpu_timing_ms = None;
+        if let (Some(probe), Some(timestamp_receiver)) =
+            (gpu_probe.as_ref(), gpu_timestamp_receiver)
+        {
+            gpu_timing_status = "readback_error";
+            if matches!(timestamp_receiver.recv(), Ok(Ok(()))) {
+                let mapped = probe.readback.slice(..).get_mapped_range();
+                if mapped.len() >= GpuTimestampProbe::BYTES as usize
+                    && timestamp_period_ns.is_finite() && timestamp_period_ns > 0.0
+                {
+                    let ticks: [u64; 4] = std::array::from_fn(|index| {
+                        let offset = index * 8;
+                        u64::from_ne_bytes(mapped[offset..offset + 8].try_into().unwrap())
+                    });
+                    gpu_timing_status = "invalid_ticks";
+                    if let (Some(render_ticks), Some(copy_ticks)) =
+                        (ticks[1].checked_sub(ticks[0]), ticks[3].checked_sub(ticks[2]))
+                    {
+                        gpu_timing_ms = Some((
+                            render_ticks as f64 * timestamp_period_ns / 1_000_000.0,
+                            copy_ticks as f64 * timestamp_period_ns / 1_000_000.0,
+                        ));
+                        gpu_timing_status = "ok";
+                    }
+                } else {
+                    gpu_timing_status = "invalid_ticks";
+                }
+                drop(mapped);
+                probe.readback.unmap();
+            }
+        }
         let profile_publish_begin = std::time::Instant::now();
         match receiver.recv() {
             Ok(Ok(())) => {
@@ -4022,6 +4136,7 @@ fn coin_wgpu_submit_internal(
                     set_error(error_buf, error_buf_len, "Mapped color staging buffer is truncated");
                     return CoinWgpuStatus::BackendError;
                 }
+                let profile_color_mapped = trace_phases.then(std::time::Instant::now);
                 // Color-only output has no second attachment to commit
                 // atomically, so publish rows directly to the caller buffer.
                 let mut pending_color = depth_staging_info.as_ref()
@@ -4045,6 +4160,7 @@ fn coin_wgpu_submit_internal(
                             .copy_from_slice(&data[source..source + row_bytes]);
                     }
                 }
+                let profile_color_copied = trace_phases.then(std::time::Instant::now);
 
                 let mut pending_depth = None;
                 if let (Some(ref dslice), Some((_, d_bpr))) = (&depth_slice_holder, &depth_staging_info) {
@@ -4076,6 +4192,7 @@ fn coin_wgpu_submit_internal(
                     }
                     pending_depth = Some(depth);
                 }
+                let profile_depth_copied = trace_phases.then(std::time::Instant::now);
 
                 // Publish both attachments only after every requested map succeeds.
                 if let Some(color) = pending_color {
@@ -4090,6 +4207,7 @@ fn coin_wgpu_submit_internal(
                     let out_depth = unsafe { std::slice::from_raw_parts_mut(tgt.depth_buffer, depth.len()) };
                     out_depth.copy_from_slice(&depth);
                 }
+                let profile_outputs_published = trace_phases.then(std::time::Instant::now);
                 drop(data);
                 staging_buffer.unmap();
                 if let Ok(mut pool) = ctx.readback_pool.lock() {
@@ -4111,6 +4229,39 @@ fn coin_wgpu_submit_internal(
                         u8::from(color_staging_reused),
                         ctx.camera_bindings_created.load(Ordering::Relaxed),
                         ctx.camera_bindings_reused.load(Ordering::Relaxed));
+                    let duration_ms = |start: std::time::Instant, end: std::time::Instant| {
+                        (end - start).as_secs_f64() * 1000.0
+                    };
+                    let attachments = profile_attachments_created.unwrap();
+                    let draw_encoded = profile_draw_encoded.unwrap();
+                    let color_mapped = profile_color_mapped.unwrap();
+                    let color_copied = profile_color_copied.unwrap();
+                    let depth_copied = profile_depth_copied.unwrap();
+                    let outputs_published = profile_outputs_published.unwrap();
+                    eprintln!("COIN_WGPU_PHASE rust_cpu_detail total_ms={:.6} validation_ms={:.6} gpu_probe_setup_ms={:.6} attachments_ms={:.6} draw_encode_ms={:.6} scene_snapshot_ms={:.6} staging_prepare_ms={:.6} submit_ms={:.6} map_request_ms={:.6} gpu_wait_ms={:.6} post_wait_checks_ms={:.6} gpu_probe_read_ms={:.6} map_receive_ms={:.6} color_copy_ms={:.6} depth_copy_ms={:.6} output_commit_ms={:.6} recycle_ms={:.6}",
+                        duration_ms(profile_start, profile_done),
+                        duration_ms(profile_start, profile_validated),
+                        duration_ms(profile_validated, profile_probe_ready.unwrap()),
+                        duration_ms(profile_probe_ready.unwrap(), attachments),
+                        duration_ms(attachments, draw_encoded),
+                        duration_ms(draw_encoded, profile_encoded),
+                        duration_ms(profile_encoded, profile_submit_begin),
+                        duration_ms(profile_submit_begin, profile_submitted),
+                        duration_ms(profile_submitted, profile_wait_begin),
+                        duration_ms(profile_wait_begin, profile_wait_done),
+                        duration_ms(profile_wait_done, profile_gpu_read_begin.unwrap()),
+                        duration_ms(profile_gpu_read_begin.unwrap(), profile_publish_begin),
+                        duration_ms(profile_publish_begin, color_mapped),
+                        duration_ms(color_mapped, color_copied),
+                        duration_ms(color_copied, depth_copied),
+                        duration_ms(depth_copied, outputs_published),
+                        duration_ms(outputs_published, profile_done));
+                    if let Some((render_ms, copy_ms)) = gpu_timing_ms {
+                        eprintln!("COIN_WGPU_PHASE rust_gpu status={} render_ms={:.6} copy_ms={:.6} timestamp_period_ns={:.6}",
+                            gpu_timing_status, render_ms, copy_ms, timestamp_period_ns);
+                    } else {
+                        eprintln!("COIN_WGPU_PHASE rust_gpu status={}", gpu_timing_status);
+                    }
                 }
                 CoinWgpuStatus::Ok
             }

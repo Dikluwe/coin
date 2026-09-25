@@ -131,6 +131,17 @@
   against OpenGL on the same adapter and workload. Direct render-to-texture
   and asynchronous readback are opt-in mechanisms, not performance claims.
 
+  <tt>COIN_WGPU_TRACE_PHASES=1</tt> emits <tt>rust_cpu_detail</tt> records
+  separating attachment creation, draw encode, scene snapshot, staging,
+  submit, map request, GPU wait, map reception, color/depth CPU copy,
+  publication and recycling. Its <tt>total_ms</tt> includes all listed CPU
+  spans for one frame. With <tt>COIN_WGPU_GPU_TIMESTAMPS=1</tt> as well,
+  synchronous offscreen frames request GPU timestamp queries if supported
+  and emit <tt>rust_gpu render_ms</tt> and <tt>copy_ms</tt>; otherwise the
+  status says unsupported. Timestamp probing is opt-in and perturbs timing.
+  The CPU poll wait is not a GPU execution timestamp. GPU copy includes
+  both color and depth if depth readback was requested.
+
   \section coin_wgpu_limits Experimental status
 
   The module is intentionally separate from <tt>libCoin</tt>. Its profile and

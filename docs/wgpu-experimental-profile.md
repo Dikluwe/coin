@@ -35,6 +35,16 @@ preparação/encode, submit, espera GPU e publicação de readback. A espera GPU
 usa `device.poll(Maintain::Wait)` e inclui render mais cópias para staging;
 não deve ser apresentada como timestamp de execução GPU isolada.
 
+O mesmo trace agora emite `rust_cpu_detail`, repartindo o trabalho Rust em
+criação de attachments, encode dos draws, snapshot de cena, preparação de
+staging, submit, registro/espera do map, cópia de cor/profundidade,
+publicação e reciclagem. O campo `total_ms` é a soma das fases CPU dessa
+linha para um frame; as medianas de campos distintos não precisam somar.
+`COIN_WGPU_GPU_TIMESTAMPS=1` junto ao trace solicita queries GPU somente
+se o adapter suportar ambos os recursos de timestamp necessários; `rust_gpu`
+informa `render_ms` e `copy_ms` ou `status=unsupported`. Queries, resolve e
+readback da sonda afetam o frame medido e não são usados no caminho normal.
+
 O experimento privado `COIN_WGPU_CAMERA_BINDINGS=1` reutiliza o buffer de
 materiais, uniform buffers e bind groups apenas em patches de câmera opacos,
 sem textura e já validados no device Rust. O padrão permanece desligado:
