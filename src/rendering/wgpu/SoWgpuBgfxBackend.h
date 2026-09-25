@@ -31,6 +31,7 @@ private:
   std::string lastError;
   std::thread::id apiThread;
   bool initialized;
+  bool presentToWindow;
   bool cameraPatchEnabled;
   uint64_t serial;
   int width;

@@ -15,6 +15,7 @@
 #include <Inventor/nodes/SoPerspectiveCamera.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/nodes/SoMaterial.h>
+#include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoTransform.h>
 #include <Inventor/nodes/SoCone.h>
 
@@ -113,6 +114,11 @@ int main(int argc, char ** argv) {
   light->color.setValue(1.0f, 1.0f, 1.0f);
   light->intensity = 1.0f;
   root->addChild(light);
+#if defined(COIN_EXAMPLE_BGFX)
+  SoLightModel * baseColor = new SoLightModel;
+  baseColor->model = SoLightModel::BASE_COLOR;
+  root->addChild(baseColor);
+#endif
 
   SoMaterial * mat = new SoMaterial;
   mat->diffuseColor.setValue(0.9f, 0.3f, 0.2f);
@@ -251,6 +257,11 @@ int main(int argc, char ** argv) {
   light->color.setValue(1.0f, 1.0f, 1.0f);
   light->intensity = 1.0f;
   root->addChild(light);
+#if defined(COIN_EXAMPLE_BGFX)
+  SoLightModel * baseColor = new SoLightModel;
+  baseColor->model = SoLightModel::BASE_COLOR;
+  root->addChild(baseColor);
+#endif
 
   SoMaterial * mat = new SoMaterial;
   mat->diffuseColor.setValue(0.9f, 0.3f, 0.2f);

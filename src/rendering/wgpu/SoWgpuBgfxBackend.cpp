@@ -42,7 +42,8 @@ uint64_t drawState(const SoWgpuBgfxDraw & draw)
 }
 
 SoWgpuBgfxBackend::SoWgpuBgfxBackend()
-  : status(BackendStatus::NOT_READY), initialized(false), cameraPatchEnabled(true), serial(0),
+  : status(BackendStatus::NOT_READY), initialized(false), presentToWindow(false),
+    cameraPatchEnabled(true), serial(0),
     width(0), height(0), program(BGFX_INVALID_HANDLE),
     frameBuffer(BGFX_INVALID_HANDLE), readbackTexture(BGFX_INVALID_HANDLE),
     cachedRevision(0), cachedWidth(0), cachedHeight(0),
@@ -79,8 +80,12 @@ BackendStatus
 SoWgpuBgfxBackend::prepare(SoWgpuRenderTargetP & target)
 {
   if (this->initialized) return this->status;
-  if (target.kind != SoWgpuRenderTargetP::KIND_OFFSCREEN) {
-    this->lastError = "BGFX evaluation supports offscreen targets only";
+  this->presentToWindow = target.kind == SoWgpuRenderTargetP::KIND_WINDOW;
+  if (this->presentToWindow &&
+      (target.nativeDesc.type != COIN_WGPU_SURFACE_XLIB ||
+       target.nativeDesc.native.xlib.display == nullptr ||
+       target.nativeDesc.native.xlib.window == 0)) {
+    this->lastError = "BGFX window presentation requires a valid Xlib surface";
     return BackendStatus::UNSUPPORTED;
   }
   bool expected = false;
@@ -99,12 +104,23 @@ SoWgpuBgfxBackend::prepare(SoWgpuRenderTargetP & target)
     useOpenGl ? bgfx::RendererType::OpenGL : bgfx::RendererType::Vulkan;
   bgfx::Init init;
   init.type = renderer;
-  init.swapChain.width = 0;
-  init.swapChain.height = 0;
+  if (this->presentToWindow) {
+    init.platformData.type = bgfx::NativeWindowHandleType::Default;
+    init.swapChain.ndt = target.nativeDesc.native.xlib.display;
+    init.swapChain.nwh = reinterpret_cast<void *>(
+      static_cast<uintptr_t>(target.nativeDesc.native.xlib.window));
+    init.swapChain.width = static_cast<uint32_t>(target.size[0]);
+    init.swapChain.height = static_cast<uint32_t>(target.size[1]);
+  } else {
+    init.swapChain.width = 0;
+    init.swapChain.height = 0;
+  }
   if (!bgfx::init(init)) {
     bgfxInUse.store(false);
-    this->lastError = useOpenGl ? "BGFX could not initialize its headless OpenGL renderer" :
-                                  "BGFX could not initialize its headless Vulkan renderer";
+    this->lastError = this->presentToWindow ?
+      "BGFX could not initialize Xlib window presentation" :
+      (useOpenGl ? "BGFX could not initialize its headless OpenGL renderer" :
+                   "BGFX could not initialize its headless Vulkan renderer");
     return BackendStatus::NOT_READY;
   }
   this->initialized = true;
@@ -120,10 +136,11 @@ SoWgpuBgfxBackend::prepare(SoWgpuRenderTargetP & target)
   }
   if (caps->rendererType != renderer ||
       !(caps->supported & BGFX_CAPS_INDEX32) ||
-      !(caps->formats[bgfx::TextureFormat::RGBA8] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
-      !bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA8,
-                            BGFX_TEXTURE_BLIT_DST | BGFX_TEXTURE_READ_BACK)) {
-    this->lastError = "BGFX renderer lacks RGBA8 framebuffer/readback or 32-bit indices";
+      (!this->presentToWindow &&
+       (!(caps->formats[bgfx::TextureFormat::RGBA8] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
+        !bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA8,
+                              BGFX_TEXTURE_BLIT_DST | BGFX_TEXTURE_READ_BACK)))) {
+    this->lastError = "BGFX renderer lacks the required window/offscreen capabilities";
     this->status = BackendStatus::UNSUPPORTED;
     return this->status;
   }
@@ -174,8 +191,17 @@ SoWgpuBgfxBackend::resize(int newWidth, int newHeight)
 {
   if (newWidth == this->width && newHeight == this->height) return true;
   if (newWidth <= 0 || newHeight <= 0 || newWidth > 16384 || newHeight > 16384) {
-    this->lastError = "Invalid BGFX offscreen dimensions";
+    this->lastError = "Invalid BGFX target dimensions";
     return false;
+  }
+  if (this->presentToWindow) {
+    bgfx::SwapChain swapChain;
+    swapChain.width = static_cast<uint32_t>(newWidth);
+    swapChain.height = static_cast<uint32_t>(newHeight);
+    bgfx::reset(BGFX_RESET_NONE, &swapChain);
+    this->width = newWidth;
+    this->height = newHeight;
+    return true;
   }
   this->destroyFrameBuffers();
   this->frameBuffer = bgfx::createFrameBuffer(static_cast<uint16_t>(newWidth),
@@ -207,9 +233,10 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
     this->lastError = "BGFX submission requires a prepared backend on its API thread";
     return SubmitResult(BackendStatus::NOT_READY, this->lastError);
   }
-  if (target.kind != SoWgpuRenderTargetP::KIND_OFFSCREEN ||
-      target.directTextureOutput || target.depthReadbackEnabled) {
-    this->lastError = "BGFX evaluation supports offscreen synchronous RGBA readback only; disable depth readback";
+  if ((target.kind == SoWgpuRenderTargetP::KIND_WINDOW) != this->presentToWindow ||
+      target.directTextureOutput ||
+      (!this->presentToWindow && target.depthReadbackEnabled)) {
+    this->lastError = "BGFX supports Xlib presentation or offscreen color readback; disable offscreen depth readback";
     return SubmitResult(BackendStatus::UNSUPPORTED, this->lastError);
   }
   typedef std::chrono::steady_clock Clock;
@@ -301,7 +328,8 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
   bgfx::setViewMode(0, bgfx::ViewMode::Sequential);
   bgfx::setViewRect(0, 0, 0, static_cast<uint16_t>(this->width),
                     static_cast<uint16_t>(this->height));
-  bgfx::setViewFrameBuffer(0, this->frameBuffer);
+  const bgfx::FrameBufferHandle windowFrameBuffer = BGFX_INVALID_HANDLE;
+  bgfx::setViewFrameBuffer(0, this->presentToWindow ? windowFrameBuffer : this->frameBuffer);
   // The packed clear API quantizes Coin's float color before the GL clear.
   // Keep the float until the renderer converts it to its target format.
   bgfx::setPaletteColor(0, plan->clearColor);
@@ -318,6 +346,48 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
     bgfx::submit(0, this->program);
   }
   const Clock::time_point drawsEncoded = Clock::now();
+  if (this->presentToWindow) {
+    const uint32_t submittedFrame = bgfx::frame();
+    const Clock::time_point submitted = Clock::now();
+    if (!retained) {
+      if (bgfx::isValid(vb)) bgfx::destroy(vb);
+      if (bgfx::isValid(ib)) bgfx::destroy(ib);
+    }
+    if (cameraPatchUsed) {
+      this->cachedPlan.draws.swap(cameraDraws);
+      this->cachedRevision = frame.revision;
+    }
+    target.colorBuffer.clear();
+    target.depthBuffer.clear();
+    target.needsReconfigure = false;
+    if (tracePhases) {
+      SoWgpuBgfxPhaseSample sample;
+      const auto ms = [](Clock::time_point a, Clock::time_point b) {
+        return std::chrono::duration<double, std::milli>(b - a).count();
+      };
+      sample.lowerMs = ms(begin, lowered);
+      sample.uploadMs = ms(lowered, uploaded);
+      sample.encodeMs = ms(uploaded, drawsEncoded);
+      sample.drawEncodeMs = sample.encodeMs;
+      sample.submitFrameMs = ms(drawsEncoded, submitted);
+      sample.vertices = plan->vertices.size();
+      sample.draws = plan->draws.size();
+      sample.resourceCacheHit = cacheHit || cameraPatchUsed;
+      sample.cameraPatchUsed = cameraPatchUsed;
+      if (traceGpu) {
+        sample.gpuTimingRequested = true;
+        const bgfx::Stats * stats = bgfx::getStats();
+        if (stats && stats->gpuFrameNum == submittedFrame &&
+            stats->gpuTimerFreq > 0 && stats->gpuTimeEnd > stats->gpuTimeBegin) {
+          sample.gpuFrameMs = double(stats->gpuTimeEnd - stats->gpuTimeBegin) *
+                              1000.0 / double(stats->gpuTimerFreq);
+        }
+      }
+      std::fprintf(stderr, "%s\n", SoWgpuDiagnosticShell::formatBgfxPhase(sample).c_str());
+    }
+    this->lastError.clear();
+    return SubmitResult(BackendStatus::SUCCESS, "", ++this->serial);
+  }
   bgfx::TextureRegion destination;
   destination.handle = this->readbackTexture;
   bgfx::TextureRegion source;

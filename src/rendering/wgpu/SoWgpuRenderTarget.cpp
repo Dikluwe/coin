@@ -89,9 +89,9 @@ SoWgpuRenderTargetP::initWindow(const SoWgpuNativeSurfaceDescriptor & desc, cons
   this->colorBuffer.clear();
   this->depthBuffer.clear();
 
-#if !defined(HAVE_WGPU_RUST_BRIDGE)
+#if !defined(HAVE_WGPU_RUST_BRIDGE) && !defined(HAVE_WGPU_BGFX)
   this->status = SoWgpuRenderTarget::TARGET_ERROR;
-  this->lastError = "Native window surface targets are not supported by the RECORDING backend; RUST_BRIDGE backend is required.";
+  this->lastError = "Native window surface targets require the RUST_BRIDGE or BGFX backend.";
   return false;
 #else
   if (desc.abiVersion != COIN_WGPU_NATIVE_SURFACE_ABI_VERSION) {
@@ -537,7 +537,8 @@ SoWgpuRenderTargetP::executeFrameInternal(const FramePlan & frame,
   }
 
   this->lastSubmissionSerial = res.submissionSerial;
-  this->synchronousReadbackValid = (outTicket == NULL && !this->directTextureOutput);
+  this->synchronousReadbackValid = (outTicket == NULL &&
+    this->kind == KIND_OFFSCREEN && !this->directTextureOutput);
   this->borrowedReadbackValid = this->synchronousReadbackValid;
   this->status = SoWgpuRenderTarget::TARGET_READY;
   this->lastError.clear();

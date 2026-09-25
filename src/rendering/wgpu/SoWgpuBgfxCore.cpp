@@ -32,7 +32,7 @@ SoWgpuBgfxCore::lower(const FramePlan & frame, int width, int height,
   diagnostic.clear();
   SoWgpuBgfxPlan candidate;
   if (width <= 0 || height <= 0 || width > 16384 || height > 16384) {
-    diagnostic = "BGFX evaluation requires a nonzero offscreen target up to 16384 pixels per side";
+    diagnostic = "BGFX evaluation requires a nonzero target up to 16384 pixels per side";
     return false;
   }
   if (!frame.isValid(&diagnostic)) return false;

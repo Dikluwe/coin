@@ -273,6 +273,25 @@ if(COIN_BUILD_WGPU)
 		add_test(NAME WgpuBackendContractOpenGLTest COMMAND WgpuBackendContractTest)
 		set_tests_properties(WgpuBackendContractOpenGLTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77
 			ENVIRONMENT "COIN_BGFX_RENDERER=opengl")
+		if(X11_FOUND)
+			add_executable(WgpuBgfxWindowTest wgpu/WgpuBgfxWindowTest.cpp)
+			set_target_properties(WgpuBgfxWindowTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+			target_link_libraries(WgpuBgfxWindowTest CoinWgpuExperimental Coin ${X11_LIBRARIES})
+			target_include_directories(WgpuBgfxWindowTest PRIVATE
+				${PROJECT_SOURCE_DIR}/experimental/include
+				${PROJECT_SOURCE_DIR}/include
+				${PROJECT_SOURCE_DIR}/src
+				${PROJECT_BINARY_DIR}/include
+				${PROJECT_BINARY_DIR}/src
+				${X11_INCLUDE_DIR}
+				${COIN_TARGET_INCLUDE_DIRECTORIES}
+			)
+			add_test(NAME WgpuBgfxWindowTest COMMAND WgpuBgfxWindowTest)
+			set_tests_properties(WgpuBgfxWindowTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77)
+			add_test(NAME WgpuBgfxWindowOpenGLTest COMMAND WgpuBgfxWindowTest)
+			set_tests_properties(WgpuBgfxWindowOpenGLTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77
+				ENVIRONMENT "COIN_BGFX_RENDERER=opengl")
+		endif()
 	endif()
 
 	add_executable(WgpuFrameReuseCoreTest wgpu/WgpuFrameReuseCoreTest.cpp)

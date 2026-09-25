@@ -9,6 +9,7 @@
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoPerspectiveCamera.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
+#include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoTransform.h>
 #include <Inventor/nodes/SoCone.h>
@@ -38,7 +39,7 @@ int main(int argc, char ** argv) {
   CoinWgpuExperimentalCapabilities caps{};
   if (coin_wgpu_experimental_query_capabilities(
         COIN_WGPU_EXPERIMENTAL_XLIB_WINDOW, &caps, sizeof(caps)) != 0 ||
-      !caps.gpu_available) {
+      (!caps.gpu_available && caps.backend != COIN_WGPU_EXPERIMENTAL_BGFX_EVALUATION)) {
     std::cerr << "Xlib WebGPU presentation or adapter unavailable\n";
     return 2;
   }
@@ -86,6 +87,11 @@ int main(int argc, char ** argv) {
       SoDirectionalLight * light = new SoDirectionalLight;
       light->direction.setValue(-0.2f, -0.4f, -1.0f);
       root->addChild(light);
+      if (caps.backend == COIN_WGPU_EXPERIMENTAL_BGFX_EVALUATION) {
+        SoLightModel * baseColor = new SoLightModel;
+        baseColor->model = SoLightModel::BASE_COLOR;
+        root->addChild(baseColor);
+      }
       SoMaterial * material = new SoMaterial;
       material->diffuseColor.setValue(0.85f, 0.3f, 0.15f);
       material->specularColor.setValue(0.6f, 0.6f, 0.6f);

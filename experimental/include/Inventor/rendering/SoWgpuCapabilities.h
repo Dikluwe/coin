@@ -63,7 +63,9 @@ typedef struct CoinWgpuExperimentalCapabilities {
  *
  * \return 0 on success, 1 for an unsupported target, or 2 for invalid output.
  * Feature bits describe the compiled profile; gpu_available reports runtime
- * adapter availability separately. This is an experimental module contract,
+ * adapter availability separately. BGFX reports zero because initialization is
+ * process-global and cannot be used as a side-effect-free probe; create a target
+ * and submit a frame to test availability. This is an experimental contract,
  * not an addition to libCoin's public ABI.
  */
 COIN_WGPU_DLL_API int32_t coin_wgpu_experimental_query_capabilities(

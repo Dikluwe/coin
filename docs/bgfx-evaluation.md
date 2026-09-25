@@ -1,6 +1,6 @@
 # Avaliação BGFX sobre o `FramePlan` experimental
 
-Esta branch adiciona um conector **BGFX headless (Vulkan ou OpenGL)** a
+Esta branch adiciona um conector **BGFX (Vulkan ou OpenGL)** a
 `CoinWgpuExperimental`. O nome histórico `SoWgpuRenderAction` permanece apenas
 para compartilhar a travessia Coin e o `FramePlan`; BGFX não é wgpu-native,
 nem transforma essa ação em uma API gráfica estável. `libCoin` e a ABI pública
@@ -12,16 +12,18 @@ O Wiring existente continua a capturar Open Inventor com `SoCallbackAction` e
 entrega o mesmo `FramePlan`. `SoWgpuBgfxCore` valida um subconjunto e converte
 cor/material, geometria e matrizes sem incluir headers BGFX. A Infra
 `SoWgpuBgfxBackend` usa somente o plano convertido para criar shaders,
-buffers, framebuffer, submeter e fazer readback. Shell e diagnósticos existentes
-continuam a traduzir `UNSUPPORTED` e erros de backend. Assim a comparação
-isola a troca do executor, sem duplicar um segundo scene graph.
+buffers, apresentar na janela ou fazer readback offscreen. Shell e
+diagnósticos existentes traduzem `UNSUPPORTED` e erros de backend. Assim a
+comparação isola a troca do executor, sem duplicar um segundo scene graph.
 
 ## Perfil implementado
 
 - Linux, BGFX com renderer Vulkan por padrão ou OpenGL com
-  `COIN_BGFX_RENDERER=opengl`, alvo offscreen e um alvo ativo por processo.
+  `COIN_BGFX_RENDERER=opengl`; alvo offscreen ou janela Xlib, um alvo ativo
+  por processo.
 - Triângulos indexados opacos, sem textura/fog, `BASE_COLOR`, viewport inteira;
-  clear, teste de profundidade e readback **somente RGBA** síncrono.
+  clear e teste de profundidade. Offscreen: readback **somente RGBA** síncrono.
+  Janela: apresentação direta na swapchain, sem readback.
 - Ordem de draws preservada com `ViewMode::Sequential`; shaders SPIR-V e GLSL
   330 gerados por `shaderc` durante o build. O readback OpenGL é invertido
   por linhas para cumprir a mesma orientação RGBA do Vulkan.
@@ -33,12 +35,12 @@ isola a troca do executor, sem duplicar um segundo scene graph.
   mudança de câmera validada; `COIN_BGFX_DISABLE_CAMERA_PATCH=1` permite
   medir o caminho completo no mesmo build.
 - Profundidade não é publicada: chamar
-  `SoWgpuRenderTarget::setDepthReadbackEnabled(FALSE)` antes de renderizar.
-- Iluminação, alpha, linhas/pontos, textura, RTT direto, janela X11 e
+  `SoWgpuRenderTarget::setDepthReadbackEnabled(FALSE)` no alvo offscreen.
+- Iluminação, alpha, linhas/pontos, textura, RTT direto, Wayland e
   `applyAsync` retornam `UNSUPPORTED` em vez de aparentar paridade.
 - `gpu_available=0` na query de capacidades BGFX porque `bgfx::init` é global
   e não há probe inofensivo; a disponibilidade real é comprovada por um
-  `prepare`/frame offscreen. Os bits anunciados descrevem apenas o perfil.
+  `prepare`/frame. Os bits anunciados descrevem apenas o perfil.
 
 O BGFX tem estado de processo e thread de API próprios. O conector atual
 recusa alvos concorrentes; o alvo deve ser destruído na mesma thread que fez
@@ -56,12 +58,15 @@ dependências automaticamente. Exemplo após a instalação do BGFX em `$prefix`
 cmake -S . -B /tmp/coin-bgfx-release \
   -DCMAKE_BUILD_TYPE=Release -DCOIN_BUILD_WGPU=ON \
   -DCOIN_WGPU_BACKEND=BGFX -DCOIN_BUILD_TESTS=ON \
-  -DCOIN_BUILD_WGPU_BENCHMARKS=ON \
+  -DCOIN_BUILD_WGPU_BENCHMARKS=ON -DCOIN_BUILD_WGPU_WINDOW_EXAMPLE=ON \
   -DCMAKE_PREFIX_PATH="$prefix" \
   -DCOIN_BGFX_SHADERC_EXECUTABLE="$prefix/bin/shaderc" \
   -DCOIN_BGFX_SHADER_INCLUDE_DIR="$prefix/include/bgfx"
-cmake --build /tmp/coin-bgfx-release --target WgpuBgfxCoreTest WgpuBgfxOffscreenTest wgpu_gl_benchmark -j4
+cmake --build /tmp/coin-bgfx-release --target WgpuBgfxCoreTest WgpuBgfxOffscreenTest WgpuBgfxWindowTest WgpuBackendContractTest wgpu_window_cone wgpu_viewer wgpu_gl_benchmark -j4
 ctest --test-dir /tmp/coin-bgfx-release -R '^WgpuBgfx' --output-on-failure
+xvfb-run -a -s '-screen 0 1024x768x24 +extension GLX +render -noreset' \
+  ctest --test-dir /tmp/coin-bgfx-release -R '^WgpuBgfxWindow' --output-on-failure
+# Em uma sessão X11 real: COIN_BGFX_RENDERER=opengl /tmp/coin-bgfx-release/bin/wgpu_viewer
 env EGL_PLATFORM=x11 \
   __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json \
   COIN_BGFX_RENDERER=opengl \
@@ -77,6 +82,13 @@ O teste Core roda sem GPU. O teste offscreen desenha um triângulo vermelho,
 confere orientação, cache e `CAMERA_PATCH` nos dois renderers em processos separados.
 Os testes de paridade do perfil WebGPU amplo não são uma afirmação de suporte
 BGFX e devem continuar rodando no backend Rust/Recording.
+
+O teste X11 verifica os pixels da janela, resize, suspensão/restauração e
+ausência de readback, separadamente em Vulkan e OpenGL. Em 25/09/2026,
+7/7 testes direcionados de BGFX e contrato compartilhado passaram no Xvfb;
+`wgpu_viewer --frames 5` e `wgpu_window_cone --frames 5` também passaram
+em ambos os renderizadores. Isso não mede latência de apresentação nem cobre
+a viewport real do FreeCAD.
 
 ## Medição inicial — 24–25/09/2026
 

@@ -7,6 +7,9 @@ target_include_directories(wgpu_window_cone PRIVATE
 	${PROJECT_BINARY_DIR}/include
 	${COIN_TARGET_INCLUDE_DIRECTORIES}
 )
+if(COIN_WGPU_BACKEND STREQUAL "BGFX")
+	target_compile_definitions(wgpu_window_cone PRIVATE COIN_EXAMPLE_BGFX=1)
+endif()
 
 find_package(glfw3 3.3 QUIET)
 if(glfw3_FOUND AND X11_FOUND)
