@@ -104,9 +104,10 @@ Coin/OpenGL e BGFX (Vulkan ou OpenGL), a 128² e `BASE_COLOR`.
 Há um quadrilátero azul opaco atrás de dois semitransparentes (vermelho e
 verde, alpha 0,5), inseridos fora da ordem de profundidade. No caso
 `layered`, as superfícies são paralelas; no `crossing`, vermelho e verde
-se cruzam. O teste exige composição analítica e concordância com Coin/GL
-nas camadas simples. No cruzamento registra os pixels sem impor paridade
-com depth peeling, que pode não estar disponível em outros drivers.
+se cruzam. A composição BGFX é validada contra cores analíticas em todo o
+interior dos quadrados, incluindo o cruzamento. Coin/GL é uma comparação
+diagnóstica: o teste conta as diferenças na imagem inteira, mas não usa a
+saída Coin como oráculo para aprovar BGFX.
 
 ```sh
 cmake --build /tmp/coin-bgfx-release --target WgpuBgfxTransparencyTest -j4
@@ -127,20 +128,26 @@ Nesta execução em Xvfb, RGB nos pixels esquerdo/direito do cruzamento:
 | Coin/OpenGL, `SORTED_OBJECT_BLEND` | (64, 128, 63) | (64, 128, 63) |
 | Coin/OpenGL, `SORTED_LAYERS_BLEND` | (128, 64, 63) | (64, 128, 63) |
 
-As camadas paralelas produziram (128, 64, 64) no BGFX/Vulkan e
-(128, 64, 63) no Coin/GL; BGFX/OpenGL coincidiu exatamente com Coin/GL.
-À esquerda do cruzamento, o vermelho está na frente: o resultado fisicamente
-esperado é aproximadamente (128, 64, 64), mas a ordenação por objeto mantém
-o verde na frente nos dois lados. O modo de camadas do Coin alcançou a
-ordem por pixel neste contexto; ele pode cair para ordenação por objeto se
-faltarem extensões ou formato depth/alpha. A saída do teste a chama
-`layers-or-fallback` para não ocultar essa possibilidade.
+A tabela amostra somente dois pixels, e por isso ocultava o defeito central.
+Tomando BGFX `sorted_layers` como referência visual e tolerando até 2 níveis
+por canal, Coin/GL por objeto divergiu em 5.202 dos 16.384 pixels.
+Coin/GL `SORTED_LAYERS_BLEND` acertou os dois lados, mas divergiu em 612
+pixels: uma faixa vertical de 6×102 em `x=61..66`, `y=13..114`, onde
+aparece azul do quadrilátero de fundo em vez das duas camadas misturadas.
+Nas camadas paralelas e no caso opaco à frente, a diferença foi zero.
 
-Isto é um limite conhecido da **técnica** `SORTED_OBJECT_BLEND`, compartilhado
-por Coin/GL, Rust/wgpu e este perfil BGFX; não demonstra um bug exclusivo do
-BGFX. A correção mais forte exige um algoritmo como depth peeling ou OIT,
-com custo e cobertura próprios. O ensaio não mede desempenho nem testa a
-viewport real do FreeCAD; em Xvfb, GL pode usar renderização por software.
+O fragment program legado do Coin usa um limiar de profundidade fixo
+`0.0040000002` em `src/actions/SoGLRenderAction.cpp`. Ele é uma causa
+plausível para a faixa junto à interseção; ainda falta um A/B alterando esse
+limiar para confirmar. O modo do Coin também pode cair para ordenação por
+objeto quando faltam extensões ou formato depth/alpha; o teste mantém o
+rótulo `layers-or-fallback` por esse motivo.
+
+A falha ampla do modo por objeto é limite da técnica `SORTED_OBJECT_BLEND`,
+compartilhado por Coin/GL, Rust/wgpu e BGFX. A faixa residual do Coin em
+camadas é distinta e não deve ser normalizada como resultado correto. O
+ensaio não mede desempenho nem testa a viewport real do FreeCAD; em Xvfb,
+GL pode usar renderização por software.
 
 ### Modo BGFX `sorted_layers` (experimental)
 
@@ -154,13 +161,16 @@ de trás para a frente sobre a cena opaca. Isso não muda a ABI pública de
 No cruzamento do ensaio acima, os pixels BGFX/OpenGL passaram de
 `(64,128,63)/(64,128,63)` no modo objeto para
 `(128,64,63)/(64,128,63)` em `sorted_layers`. BGFX/Vulkan deu
-`(64,128,64)/(64,128,64)` antes e as mesmas cores do OpenGL depois.
-O Coin/GL com `SORTED_LAYERS_BLEND` deu os mesmos pixels neste ambiente.
-O teste exige as cores analíticas mesmo quando o Coin/GL não dispõe de
-depth peeling e cai para ordenação de objetos. Um terceiro caso, com
+`(64,128,64)/(64,128,64)` antes e a mesma ordem espacial depois, com
+variação de arredondamento de até um nível RGB. Coin/GL em camadas igualou
+apenas os dois pontos amostrados, não a imagem. O teste valida BGFX contra a
+composição analítica. Um terceiro caso, com
 quadrilátero opaco à frente, exige `(0,0,255)`; ele revelou que o alvo
 offscreen BGFX anterior não tinha attachment de depth. A Infra agora cria
-RGBA8 + D24S8 explicitamente para esse alvo, inclusive no modo padrão.
+RGBA8 mais depth explícito: D24S8 quando anunciado pelo BGFX, ou D32F.
+Na AMD/RADV desta máquina, D24S8 não é anunciado e D32F é usado. O teste
+offscreen passou com o ICD RADV forçado, tanto em `object` quanto em
+`sorted_layers`; forçar esse ICD no teste de janela Xvfb ainda exige DRI3.
 
 ```sh
 cmake --build /tmp/coin-bgfx-evaluation-build --target WgpuBgfxTransparencyTest wgpu_viewer -j4

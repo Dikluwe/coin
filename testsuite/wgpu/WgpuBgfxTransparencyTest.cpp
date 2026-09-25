@@ -156,6 +156,19 @@ bool near(const Rgb & actual, const Rgb & expected, int tolerance)
   return true;
 }
 
+size_t countDifferentPixels(const std::vector<uint8_t> & bgfxPixels,
+                            const std::vector<uint8_t> & glPixels, int tolerance)
+{
+  size_t mismatches = 0;
+  for (int y = 0; y < side; ++y) {
+    for (int x = 0; x < side; ++x) {
+      if (!near(pixel(bgfxPixels, x, y, 4, false),
+                pixel(glPixels, x, y, 3, true), tolerance)) ++mismatches;
+    }
+  }
+  return mismatches;
+}
+
 void printSample(const char * label, const Rgb & rgb)
 {
   std::cout << label << "=(" << rgb[0] << ',' << rgb[1] << ',' << rgb[2] << ')';
@@ -203,12 +216,20 @@ int main(int argc, char ** argv)
     printSample("BGFX left", bgfxLeft);
     std::cout << ' ';
     printSample("right", bgfxRight);
-    const Rgb expected = occluded ? Rgb{{0, 0, 255}} : Rgb{{128, 64, 64}};
-    if ((!crossing || expectLayers) &&
-        (!near(bgfxLeft, expected, 12) ||
-         !near(bgfxRight, crossing ? Rgb{{64, 128, 64}} : expected, 12))) {
-      std::cerr << "\nBGFX failed the analytic per-pixel composition\n";
-      return 1;
+    // Validate the whole interior analytically; the crossing center matters.
+    if (!crossing || expectLayers) {
+      for (int y = 20; y < side - 20; ++y) {
+        for (int x = 20; x < side - 20; ++x) {
+          const Rgb expected = occluded ? Rgb{{0, 0, 255}} :
+            (crossing && x >= side / 2 ? Rgb{{64, 128, 64}} :
+                                        Rgb{{128, 64, 64}});
+          if (!near(pixel(bgfxPixels, x, y, 4, false), expected, 12)) {
+            std::cerr << "\nBGFX failed analytic composition at ("
+                      << x << ',' << y << ")\n";
+            return 1;
+          }
+        }
+      }
     }
     if (glAvailable) {
       const Rgb glLeft = pixel(glPixels, 32, 64, 3, true);
@@ -217,11 +238,8 @@ int main(int argc, char ** argv)
       printSample("Coin/GL left", glLeft);
       std::cout << ' ';
       printSample("right", glRight);
-      if (!crossing && (!near(bgfxLeft, glLeft, 12) ||
-                        !near(bgfxRight, glRight, 12))) {
-        std::cerr << "\nBGFX and Coin/GL differ on nonintersecting layers\n";
-        return 1;
-      }
+      std::cout << " different_pixels="
+                << countDifferentPixels(bgfxPixels, glPixels, 2);
     }
     if (glLayersRendered) {
       const Rgb glLeft = pixel(glLayersPixels, 32, 64, 3, true);
@@ -230,14 +248,8 @@ int main(int argc, char ** argv)
       printSample("Coin/GL layers-or-fallback left", glLeft);
       std::cout << ' ';
       printSample("right", glRight);
-      const bool glActuallyPeeled =
-        near(glLeft, Rgb{{128, 64, 64}}, 12) &&
-        near(glRight, Rgb{{64, 128, 64}}, 12);
-      if (expectLayers && glActuallyPeeled && (!near(bgfxLeft, glLeft, 12) ||
-                           !near(bgfxRight, glRight, 12))) {
-        std::cerr << "\nBGFX depth peeling differs from Coin/GL layers\n";
-        return 1;
-      }
+      std::cout << " different_pixels="
+                << countDifferentPixels(bgfxPixels, glLayersPixels, 2);
     }
     std::cout << '\n';
     if (!outputPrefix.empty()) {

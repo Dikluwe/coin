@@ -196,12 +196,20 @@ SoWgpuBgfxBackend::prepare(SoWgpuRenderTargetP & target)
       static_cast<unsigned int>(caps->vendorId),
       static_cast<unsigned int>(caps->deviceId),
       caps->homogeneousDepth ? 1 : 0);
+    std::fprintf(stderr,
+      "COIN_WGPU_PHASE bgfx_formats rgba8=0x%x d24s8=0x%x d32f=0x%x readback=%d\n",
+      static_cast<unsigned int>(caps->formats[bgfx::TextureFormat::RGBA8]),
+      static_cast<unsigned int>(caps->formats[bgfx::TextureFormat::D24S8]),
+      static_cast<unsigned int>(caps->formats[bgfx::TextureFormat::D32F]),
+      bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA8,
+        BGFX_TEXTURE_BLIT_DST | BGFX_TEXTURE_READ_BACK) ? 1 : 0);
   }
   if (caps->rendererType != renderer ||
       !(caps->supported & BGFX_CAPS_INDEX32) ||
       (!this->presentToWindow &&
        (!(caps->formats[bgfx::TextureFormat::RGBA8] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
-        !(caps->formats[bgfx::TextureFormat::D24S8] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
+        (!(caps->formats[bgfx::TextureFormat::D24S8] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) &&
+         !(caps->formats[bgfx::TextureFormat::D32F] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER)) ||
         !bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA8,
                               BGFX_TEXTURE_BLIT_DST | BGFX_TEXTURE_READ_BACK)))) {
     this->lastError = "BGFX renderer lacks the required window/offscreen capabilities";
@@ -314,12 +322,16 @@ SoWgpuBgfxBackend::resize(int newWidth, int newHeight)
     swapChain.height = static_cast<uint32_t>(newHeight);
     bgfx::reset(BGFX_RESET_NONE, &swapChain);
   } else {
+    const bgfx::Caps * caps = bgfx::getCaps();
+    const bgfx::TextureFormat::Enum depthFormat =
+      (caps->formats[bgfx::TextureFormat::D24S8] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER)
+        ? bgfx::TextureFormat::D24S8 : bgfx::TextureFormat::D32F;
     bgfx::TextureHandle color = bgfx::createTexture2D(
       static_cast<uint16_t>(newWidth), static_cast<uint16_t>(newHeight),
       false, 1, bgfx::TextureFormat::RGBA8, peelTextureFlags);
     bgfx::TextureHandle depth = bgfx::createTexture2D(
       static_cast<uint16_t>(newWidth), static_cast<uint16_t>(newHeight),
-      false, 1, bgfx::TextureFormat::D24S8, BGFX_TEXTURE_RT_WRITE_ONLY);
+      false, 1, depthFormat, BGFX_TEXTURE_RT_WRITE_ONLY);
     if (!bgfx::isValid(color) || !bgfx::isValid(depth)) {
       if (bgfx::isValid(color)) bgfx::destroy(color);
       if (bgfx::isValid(depth)) bgfx::destroy(depth);
