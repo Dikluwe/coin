@@ -286,20 +286,20 @@ chamador. O target alocava e preenchia um vetor de floats na CPU, de
 largura × altura, que o backend logo descartava. Agora ele não o aloca
 nem o preenche no build BGFX. O backend Rust e o Recording mantêm o
 comportamento anterior. O controle diagnóstico
-\`COIN_BGFX_DIAGNOSTIC_CPU_DEPTH_FILL=1\` restaura a alocação e o fill
+`COIN_BGFX_DIAGNOSTIC_CPU_DEPTH_FILL=1` restaura a alocação e o fill
 antigos para comparar os dois caminhos no mesmo binário; não habilita
 readback de profundidade no BGFX.
 
 Assembly exportado do FreeCAD, Release, AMD/Mesa/X11, BGFX/OpenGL,
-1024², \`BASE_COLOR\`, RGBA \`borrow\`, readback síncrono, 20 frames de
+1024², `BASE_COLOR`, RGBA `borrow`, readback síncrono, 20 frames de
 aquecimento + 300 medidos em cada um de cinco processos por variante,
 intercalados. Os valores são medianas das cinco medianas, dos cinco p95
 e dos cinco picos RSS por processo:
 
 | Depth CPU | Mediana / p95 (ms) | Pico RSS (KiB) |
 | --- | ---: | ---: |
-| Fill antigo (\`=1\`) | 1,420 / 1,811 | 120.712 |
-| Sem fill (\`=0\`, padrão) | 1,079 / 1,497 | 116.688 |
+| Fill antigo (`=1`) | 1,420 / 1,811 | 120.712 |
+| Sem fill (`=0`, padrão) | 1,079 / 1,497 | 116.688 |
 
 A melhora observada foi de 24,0% na mediana, 17,4% no p95 e 4.024 KiB
 de pico RSS a menos. O resultado é específico deste perfil offscreen;
@@ -309,19 +309,19 @@ anterior no mesmo binário a 512² também favoreceu o skip, de 0,402 /
 inversão de linhas por cópia de linhas inteiras não melhorou 1024² e
 foi revertida.
 
-Com \`COIN_WGPU_TRACE_PHASES=1\`, o trace BGFX agora separa
-\`draw_encode_ms\`, \`blit_encode_ms\`, \`frame_wait_ms\` e
-\`row_flip_ms\`. Os dois primeiros são custos de **emissão CPU**, não
-tempo de execução GPU. \`read_wait_ms\` ainda agrega espera por frames
+Com `COIN_WGPU_TRACE_PHASES=1`, o trace BGFX agora separa
+`draw_encode_ms`, `blit_encode_ms`, `frame_wait_ms` e
+`row_flip_ms`. Os dois primeiros são custos de **emissão CPU**, não
+tempo de execução GPU. `read_wait_ms` ainda agrega espera por frames
 BGFX/driver/GPU e inversão de linhas; em um trace 1024² do Assembly,
-suas medianas foram ~1,189 ms, ~1,001 ms para \`frame_wait_ms\` e
-~0,183 ms para \`row_flip_ms\`. Trace altera o tempo absoluto.
+suas medianas foram ~1,189 ms, ~1,001 ms para `frame_wait_ms` e
+~0,183 ms para `row_flip_ms`. Trace altera o tempo absoluto.
 O teste visual repetido a 512² manteve MAE RGB 0 e IoU 1,0 contra
 Coin/GL para PartDesign e Assembly, após alinhar a orientação GL.
 
 Comparação final, no mesmo build Release e seleção AMD/Mesa/X11: cinco
 processos por caminho, BGFX/OpenGL e Coin/GL intercalados, 20 warmup +
-300 frames por processo, RGBA \`borrow\` no BGFX e \`getBuffer()\` no GL.
+300 frames por processo, RGBA `borrow` no BGFX e `getBuffer()` no GL.
 Cada entrada é a mediana das cinco medianas / dos cinco p95 (ms):
 
 | Cena | Resolução | BGFX/OpenGL | Coin/GL |
@@ -335,11 +335,11 @@ O BGFX se aproxima de Coin/GL, mas a liderança varia entre cenas e
 resoluções; uma rodada anterior do Assembly 1024² favorecia Coin/GL.
 Esses números incluem readback e não comparam janelas. Um render sem
 readback no BGFX ainda exigiria um experimento específico: pular
-\`bgfx::read\` mede a emissão de trabalho no host, não o tempo puro da GPU.
+`bgfx::read` mede a emissão de trabalho no host, não o tempo puro da GPU.
 
 Reprodução do A/B (substituir a cena e o prefixo do build, se necessário):
 
-\`\`\`sh
+```sh
 for depth_fill in 1 0; do
   env EGL_PLATFORM=x11 \
     __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json \
@@ -351,7 +351,33 @@ for depth_fill in 1 0; do
     --backend bgfx --size 1024 --warmup 20 --frames 300 \
     --readback color --rgba-output borrow --scene /caminho/Assembly.iv
 done
-\`\`\`
+```
+
+## Cobertura comum entre BGFX e Rust/wgpu
+
+O primeiro teste de contrato compartilhado é
+`WgpuBackendContractTest`. Ele constrói uma cena Open Inventor, usa
+`SoWgpuSceneManager` e confere o resultado RGBA, a vista emprestada,
+o resize e a política de profundidade. O mesmo código é compilado em
+builds separados para BGFX, Rust/wgpu e Recording; no build BGFX também
+roda com `COIN_BGFX_RENDERER=opengl`. Isso respeita a seleção de
+backend em CMake, sem tentar carregar os dois executores no mesmo
+processo.
+
+As expectativas são orientadas pela semântica do Coin e pela query de
+capacidades: triângulos indexados `BASE_COLOR` devem renderizar em
+todos os perfis estabelecidos. Ao trocar a cena para iluminação, quem
+anuncia `COIN_WGPU_FEATURE_LIGHTS` deve renderizar; quem não anuncia
+deve responder `UNSUPPORTED`, nunca mostrar uma imagem silenciosamente
+incorreta. A query BGFX ainda não é probe de disponibilidade da GPU:
+o teste só pula se a inicialização real retornar `NOT_READY`.
+
+Ampliaremos essa mesma matriz por recurso (linhas/pontos, materiais,
+texturas, alpha, depth, janela, múltiplos alvos). O contrato e as cenas
+de referência ficam comuns; shaders, formatos, sincronização,
+readback, ciclo de vida do dispositivo e handles de janela permanecem
+específicos das respectivas Infra. Testes específicos continuam
+necessários para essas regras e para diagnosticar falhas de cada API.
 
 ## Próximo gate de produto
 

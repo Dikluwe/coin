@@ -175,6 +175,22 @@ if(COIN_BUILD_WGPU)
 	add_test(NAME WgpuProductTest COMMAND WgpuProductTest)
 	set_tests_properties(WgpuProductTest PROPERTIES TIMEOUT 30)
 
+	# The same Coin-level contract runs against Rust/wgpu, BGFX and Recording
+	# in separate builds. Backend-specific behavior remains in separate tests.
+	add_executable(WgpuBackendContractTest wgpu/WgpuBackendContractTest.cpp)
+	set_target_properties(WgpuBackendContractTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(WgpuBackendContractTest CoinWgpuExperimental Coin)
+	target_include_directories(WgpuBackendContractTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include
+		${PROJECT_SOURCE_DIR}/include
+		${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include
+		${PROJECT_BINARY_DIR}/src
+		${COIN_TARGET_INCLUDE_DIRECTORIES}
+	)
+	add_test(NAME WgpuBackendContractTest COMMAND WgpuBackendContractTest)
+	set_tests_properties(WgpuBackendContractTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77)
+
 	add_executable(WgpuOffscreenTest
 		wgpu/WgpuOffscreenTest.cpp
 	)
@@ -253,6 +269,9 @@ if(COIN_BUILD_WGPU)
 		set_tests_properties(WgpuBgfxOffscreenTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77)
 		add_test(NAME WgpuBgfxOpenGLTest COMMAND WgpuBgfxOffscreenTest)
 		set_tests_properties(WgpuBgfxOpenGLTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77
+			ENVIRONMENT "COIN_BGFX_RENDERER=opengl")
+		add_test(NAME WgpuBackendContractOpenGLTest COMMAND WgpuBackendContractTest)
+		set_tests_properties(WgpuBackendContractOpenGLTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77
 			ENVIRONMENT "COIN_BGFX_RENDERER=opengl")
 	endif()
 
