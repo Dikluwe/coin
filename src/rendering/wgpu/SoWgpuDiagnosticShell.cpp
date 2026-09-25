@@ -8,6 +8,7 @@
 
 #include <cstdlib>
 #include <locale>
+#include <iomanip>
 #include <sstream>
 
 SoWgpuActionDiagnostic
@@ -144,6 +145,24 @@ SoWgpuDiagnosticShell::formatActionPhase(const SoWgpuActionPhaseSample & sample)
          << " draws=" << sample.draws
          << " plan_cache_hit=" << (sample.planCacheHit ? 1 : 0)
          << " plan_reuse=" << reuseKindName(sample.reuseKind);
+  return stream.str();
+}
+
+std::string
+SoWgpuDiagnosticShell::formatBgfxPhase(const SoWgpuBgfxPhaseSample & sample)
+{
+  std::ostringstream stream;
+  stream.imbue(std::locale::classic());
+  stream << std::fixed << std::setprecision(6)
+         << "COIN_WGPU_PHASE bgfx lower_ms=" << sample.lowerMs
+         << " upload_ms=" << sample.uploadMs
+         << " encode_ms=" << sample.encodeMs
+         << " submit_frame_ms=" << sample.submitFrameMs
+         << " read_request_ms=" << sample.readRequestMs
+         << " read_wait_ms=" << sample.readWaitMs
+         << " vertices=" << sample.vertices
+         << " draws=" << sample.draws
+         << " resource_cache_hit=" << (sample.resourceCacheHit ? 1 : 0);
   return stream.str();
 }
 

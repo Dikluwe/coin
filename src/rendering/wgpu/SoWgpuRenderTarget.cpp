@@ -16,6 +16,8 @@
 #include "rendering/wgpu/coin_wgpu_ffi.h"
 #elif defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
 #include "rendering/wgpu/SoWgpuNativeBackend.h"
+#elif defined(HAVE_WGPU_BGFX)
+#include "rendering/wgpu/SoWgpuBgfxBackend.h"
 #endif
 
 #include <Inventor/SbMatrix.h>
@@ -435,6 +437,8 @@ SoWgpuRenderTargetP::executeFrameInternal(const FramePlan & frame,
       this->backend = std::unique_ptr<SoWgpuBackend>(new SoWgpuRustBackend());
 #elif defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
       this->backend = std::unique_ptr<SoWgpuBackend>(new SoWgpuNativeBackend());
+#elif defined(HAVE_WGPU_BGFX)
+      this->backend = std::unique_ptr<SoWgpuBackend>(new SoWgpuBgfxBackend());
 #else
       this->backend = std::unique_ptr<SoWgpuBackend>(new SoWgpuCpuReferenceBackend());
 #endif

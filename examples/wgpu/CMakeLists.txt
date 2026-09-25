@@ -1,3 +1,4 @@
+if(COIN_BUILD_WGPU_WINDOW_EXAMPLE)
 add_executable(wgpu_window_cone wgpu_window_cone.cpp)
 
 target_include_directories(wgpu_window_cone PRIVATE
@@ -27,6 +28,7 @@ target_include_directories(wgpu_viewer PRIVATE
 	${PROJECT_BINARY_DIR}/include
 	${X11_INCLUDE_DIR}
 	${COIN_TARGET_INCLUDE_DIRECTORIES})
+endif()
 
 if(COIN_BUILD_LEGACY_GL_RENDERER)
 	add_executable(wgpu_gl_benchmark wgpu_gl_benchmark.cpp)
@@ -46,10 +48,12 @@ if(COIN_BUILD_LEGACY_GL_RENDERER)
 endif()
 
 if(COIN_INSTALL_WGPU_EXPERIMENTAL)
+	if(TARGET wgpu_window_cone)
 	set_target_properties(wgpu_window_cone wgpu_viewer PROPERTIES
 		INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
 	install(TARGETS wgpu_window_cone wgpu_viewer
 		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime)
+	endif()
 	if(TARGET wgpu_gl_benchmark)
 		set_target_properties(wgpu_gl_benchmark wgpu_freecad_compare PROPERTIES
 			INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")

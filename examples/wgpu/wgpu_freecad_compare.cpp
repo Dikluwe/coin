@@ -81,9 +81,14 @@ int main(int argc, char ** argv) {
   SoWgpuRenderAction::initClass();
   CoinWgpuExperimentalCapabilities caps{};
   if (coin_wgpu_experimental_query_capabilities(
-        COIN_WGPU_EXPERIMENTAL_OFFSCREEN, &caps, sizeof(caps)) != 0 ||
-      caps.backend != COIN_WGPU_EXPERIMENTAL_RUST || !caps.gpu_available) {
-    std::cerr << "Rust WebGPU offscreen adapter unavailable\n";
+        COIN_WGPU_EXPERIMENTAL_OFFSCREEN, &caps, sizeof(caps)) != 0) {
+    std::cerr << "Experimental offscreen capabilities unavailable\n";
+    return 2;
+  }
+  const bool bgfx = caps.backend == COIN_WGPU_EXPERIMENTAL_BGFX_EVALUATION;
+  if ((!bgfx && (caps.backend != COIN_WGPU_EXPERIMENTAL_RUST ||
+                 !caps.gpu_available)) || (bgfx && lit)) {
+    std::cerr << "Requested offscreen renderer/profile unavailable\n";
     return 2;
   }
 
@@ -151,12 +156,13 @@ int main(int argc, char ** argv) {
   const unsigned char * glBuffer = gl.getBuffer();
   std::vector<uint8_t> glPixels(glBuffer, glBuffer + expected);
   scene->unref();
-  if (!writePpm(std::string(argv[2]) + "-wgpu.ppm", webgpuPixels, side) ||
+  if (!writePpm(std::string(argv[2]) + (bgfx ? "-bgfx.ppm" : "-wgpu.ppm"), webgpuPixels, side) ||
       !writePpm(std::string(argv[2]) + "-gl.ppm", glPixels, side)) {
     std::cerr << "Cannot write comparison images\n";
     return 2;
   }
-  std::cout << "adapter=" << caps.adapter_name << " side=" << side
+  std::cout << "adapter=" << (bgfx ? "BGFX-Vulkan-probed-by-frame" : caps.adapter_name)
+            << " side=" << side
             << " mode=" << (lit ? "lit" : "base_color") << '\n';
   compare(webgpuPixels, glPixels, side, false);
   const Metrics aligned = compare(webgpuPixels, glPixels, side, true);

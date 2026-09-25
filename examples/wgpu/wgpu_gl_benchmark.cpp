@@ -119,13 +119,13 @@ int main(int argc, char ** argv) {
     else {
       std::cerr << "Usage: wgpu_gl_benchmark [--frames 30] [--warmup 8]"
                    " [--size 256] [--scene normalized.iv] [--dynamic]"
-                   " [--backend both|wgpu|gl] [--readback color|color-depth] [--rgba-output copy|borrow] [--async-depth 2]\n";
+                   " [--backend both|wgpu|bgfx|gl] [--readback color|color-depth] [--rgba-output copy|borrow] [--async-depth 2]\n";
       return 2;
     }
   }
   if (frames < 1 || frames > 10000 || warmup < 0 || warmup > 10000 ||
       side < 1 || side > 2048 ||
-      (backend != "both" && backend != "wgpu" && backend != "gl") ||
+      (backend != "both" && backend != "wgpu" && backend != "bgfx" && backend != "gl") ||
       (readback != "color" && readback != "color-depth") ||
       (rgbaOutput != "copy" && rgbaOutput != "borrow") ||
       (asyncDepth != 0 && asyncDepth != 2) ||
@@ -142,12 +142,24 @@ int main(int argc, char ** argv) {
   SoWgpuRenderAction::initClass();
   CoinWgpuExperimentalCapabilities caps{};
   const bool runWgpu = backend != "gl";
-  const bool runGl = backend != "wgpu";
+  const bool runGl = backend == "both" || backend == "gl";
+  const char * rendererLabel = "WebGPU";
   if (runWgpu) {
     if (coin_wgpu_experimental_query_capabilities(
-          COIN_WGPU_EXPERIMENTAL_OFFSCREEN, &caps, sizeof(caps)) != 0 ||
-        caps.backend != COIN_WGPU_EXPERIMENTAL_RUST || !caps.gpu_available) {
-      std::cerr << "Rust WebGPU offscreen adapter unavailable\n";
+          COIN_WGPU_EXPERIMENTAL_OFFSCREEN, &caps, sizeof(caps)) != 0) {
+      std::cerr << "Experimental offscreen capabilities unavailable\n";
+      return 2;
+    }
+    const bool rust = caps.backend == COIN_WGPU_EXPERIMENTAL_RUST && caps.gpu_available;
+    const bool bgfx = caps.backend == COIN_WGPU_EXPERIMENTAL_BGFX_EVALUATION;
+    if ((backend == "wgpu" && !rust) || (backend == "bgfx" && !bgfx) ||
+        (backend == "both" && !rust && !bgfx)) {
+      std::cerr << "Requested GPU backend unavailable\n";
+      return 2;
+    }
+    rendererLabel = bgfx ? "BGFX" : "WebGPU";
+    if (bgfx && (asyncDepth != 0 || readback != "color")) {
+      std::cerr << "BGFX evaluation supports synchronous RGBA only\n";
       return 2;
     }
   }
@@ -341,7 +353,9 @@ int main(int argc, char ** argv) {
     if (i >= 0) glMs.push_back(std::chrono::duration<double, std::milli>(end - begin).count());
   }
   root->unref();
-  std::cout << "adapter=" << (runWgpu ? caps.adapter_name : "not-queried")
+  std::cout << "adapter=" << (runWgpu ?
+              (caps.backend == COIN_WGPU_EXPERIMENTAL_BGFX_EVALUATION ?
+                "BGFX-Vulkan-probed-by-frame" : caps.adapter_name) : "not-queried")
             << " backend=" << backend << " size=" << side << 'x' << side
             << " warmup=" << warmup << " scene="
             << (scenePath.empty() ? "36-cubes" : scenePath)
@@ -350,10 +364,12 @@ int main(int argc, char ** argv) {
             << " rgba_output=" << rgbaOutput
             << " scene_update=" << (dynamic ? "camera-each-frame" : "static") << '\n';
   if (runWgpu) {
-    report("WebGPU", wgpuMs);
-    report("WebGPU_render", wgpuRenderMs);
-    report("WebGPU_copy", wgpuCopyMs);
-    std::cout << "WebGPU_throughput frames=" << frames
+    report(rendererLabel, wgpuMs);
+    report(caps.backend == COIN_WGPU_EXPERIMENTAL_BGFX_EVALUATION ?
+           "BGFX_render_and_readback" : "WebGPU_render", wgpuRenderMs);
+    report(caps.backend == COIN_WGPU_EXPERIMENTAL_BGFX_EVALUATION ?
+           "BGFX_publication_copy" : "WebGPU_copy", wgpuCopyMs);
+    std::cout << rendererLabel << "_throughput frames=" << frames
               << " total_ms=" << wgpuMeasuredTotalMs
               << " fps=" << double(frames) * 1000.0 / wgpuMeasuredTotalMs << '\n';
   }

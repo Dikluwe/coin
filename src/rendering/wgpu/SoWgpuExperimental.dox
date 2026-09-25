@@ -163,6 +163,21 @@
   The CPU poll wait is not a GPU execution timestamp. GPU copy includes
   both color and depth if depth readback was requested.
 
+  \section coin_wgpu_bgfx BGFX evaluation connector
+
+  The optional <tt>COIN_WGPU_BACKEND=BGFX</tt> branch reuses the Coin traversal
+  and private FramePlan but executes a deliberately smaller profile through
+  headless BGFX/Vulkan. Core lowers validated Coin-native snapshots without
+  BGFX headers; Infra owns the global BGFX instance, SPIR-V shader program,
+  GPU resources and synchronous RGBA readback; Wiring selects the backend.
+  This does not make BGFX a WebGPU implementation or extend Coin 4's stable
+  public ABI. The connector currently accepts only indexed, opaque,
+  untextured BASE_COLOR triangles in a full offscreen viewport, with depth
+  testing but no depth readback. Unsupported Open Inventor state is rejected
+  explicitly. BGFX uses a process-wide API thread and this evaluation permits
+  only one active target. See <tt>docs/bgfx-evaluation.md</tt> for build,
+  limitations and the required Release/GL comparison gate.
+
   \section coin_wgpu_limits Experimental status
 
   The module is intentionally separate from <tt>libCoin</tt>. Its profile and

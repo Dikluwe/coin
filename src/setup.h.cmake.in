@@ -153,6 +153,9 @@
 
 #cmakedefine HAVE_WGPU_RUST_BRIDGE
 
+/* Experimental headless BGFX/Vulkan evaluation backend. */
+#cmakedefine HAVE_WGPU_BGFX
+
 /***************************************************************************
  * HAVE_WGPU_WINDOW_SURFACE
  *

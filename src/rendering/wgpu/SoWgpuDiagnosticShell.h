@@ -50,6 +50,18 @@ struct SoWgpuBridgePhaseSample {
   SoWgpuFrameReuseKind packKind = SoWgpuFrameReuseKind::UNKNOWN;
 };
 
+struct SoWgpuBgfxPhaseSample {
+  double lowerMs = 0.0;
+  double uploadMs = 0.0;
+  double encodeMs = 0.0;
+  double submitFrameMs = 0.0;
+  double readRequestMs = 0.0;
+  double readWaitMs = 0.0;
+  size_t vertices = 0;
+  size_t draws = 0;
+  bool resourceCacheHit = false;
+};
+
 // Language-facing policy for private WebGPU statuses, diagnostics and traces.
 class SoWgpuDiagnosticShell {
 public:
@@ -86,6 +98,8 @@ public:
     const SoWgpuActionPhaseSample & sample);
   COIN_WGPU_DLL_API static std::string formatBridgePhase(
     const SoWgpuBridgePhaseSample & sample);
+  COIN_WGPU_DLL_API static std::string formatBgfxPhase(
+    const SoWgpuBgfxPhaseSample & sample);
 };
 
 #endif // !COIN_SOWGPUDIAGNOSTICSHELL_H

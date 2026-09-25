@@ -54,6 +54,15 @@ coin_wgpu_experimental_query_capabilities(uint32_t target,
   // supported rendering profile is not established.
   result.backend = COIN_WGPU_EXPERIMENTAL_NATIVE_SPIKE;
   if (target == COIN_WGPU_EXPERIMENTAL_XLIB_WINDOW) return 1;
+#elif defined(HAVE_WGPU_BGFX)
+  result.backend = COIN_WGPU_EXPERIMENTAL_BGFX_EVALUATION;
+  if (target == COIN_WGPU_EXPERIMENTAL_XLIB_WINDOW) return 1;
+  // No side-effect-free adapter probe exists for BGFX's process-wide init.
+  // Availability is established by preparing an offscreen target.
+  result.features = COIN_WGPU_FEATURE_TRIANGLES |
+                    COIN_WGPU_FEATURE_INDEXED_GEOMETRY;
+  result.max_lights_per_draw = 0;
+  result.max_texture_units = 0;
 #else
   result.backend = COIN_WGPU_EXPERIMENTAL_RECORDING;
   if (target == COIN_WGPU_EXPERIMENTAL_XLIB_WINDOW) return 1;

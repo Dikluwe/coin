@@ -5,6 +5,7 @@ set(COIN_WGPU_SOURCES
 	SoWgpuFramePlan.cpp
 	SoWgpuFramePlanBuilder.cpp
 	SoWgpuFrameReuseCore.cpp
+	SoWgpuBgfxCore.cpp
 	SoWgpuImageCore.cpp
 	SoWgpuIndexedGeometryCore.cpp
 	SoWgpuRecordingBackend.cpp
@@ -19,6 +20,31 @@ if(COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE")
 	list(APPEND COIN_WGPU_SOURCES SoWgpuFfiFrame.cpp SoWgpuRustBackend.cpp)
 elseif(COIN_WGPU_BACKEND STREQUAL "DAWN" OR COIN_WGPU_BACKEND STREQUAL "WGPU_NATIVE")
 	list(APPEND COIN_WGPU_SOURCES SoWgpuNativeBackend.cpp)
+elseif(COIN_WGPU_BACKEND STREQUAL "BGFX")
+	set(_coin_bgfx_shader_dir ${CMAKE_CURRENT_SOURCE_DIR}/shaders/bgfx)
+	set(_coin_bgfx_generated_dir ${CMAKE_CURRENT_BINARY_DIR}/bgfx-generated)
+	file(MAKE_DIRECTORY ${_coin_bgfx_generated_dir})
+	foreach(_stage vs fs)
+		if(_stage STREQUAL "vs")
+			set(_shader_type vertex)
+		else()
+			set(_shader_type fragment)
+		endif()
+		set(_shader_output ${_coin_bgfx_generated_dir}/coin_bgfx_${_stage}_spirv.h)
+		add_custom_command(OUTPUT ${_shader_output}
+			COMMAND ${COIN_BGFX_SHADERC_EXECUTABLE}
+				-f ${_coin_bgfx_shader_dir}/${_stage}_base_color.sc
+				-o ${_shader_output}
+				--type ${_shader_type} --platform linux --profile spirv
+				--varyingdef ${_coin_bgfx_shader_dir}/varying.def.sc
+				--bin2c coin_bgfx_${_stage}_spirv
+				-i ${COIN_BGFX_SHADER_INCLUDE_DIR}
+			DEPENDS ${_coin_bgfx_shader_dir}/${_stage}_base_color.sc
+				${_coin_bgfx_shader_dir}/varying.def.sc
+			VERBATIM)
+		list(APPEND COIN_WGPU_SOURCES ${_shader_output})
+	endforeach()
+	list(APPEND COIN_WGPU_SOURCES SoWgpuBgfxBackend.cpp)
 endif()
 
 add_library(CoinWgpuExperimental SHARED ${COIN_WGPU_SOURCES})
@@ -39,6 +65,7 @@ target_include_directories(CoinWgpuExperimental PUBLIC
 target_include_directories(CoinWgpuExperimental PRIVATE
 	${PROJECT_SOURCE_DIR}/src
 	${PROJECT_BINARY_DIR}/src
+	$<$<STREQUAL:${COIN_WGPU_BACKEND},BGFX>:${_coin_bgfx_generated_dir}>
 )
 
 target_link_libraries(CoinWgpuExperimental PRIVATE

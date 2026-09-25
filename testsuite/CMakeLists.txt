@@ -223,6 +223,36 @@ if(COIN_BUILD_WGPU)
 	add_test(NAME WgpuFrameCoreTest COMMAND WgpuFrameCoreTest)
 	set_tests_properties(WgpuFrameCoreTest PROPERTIES TIMEOUT 30)
 
+	add_executable(WgpuBgfxCoreTest wgpu/WgpuBgfxCoreTest.cpp
+		${PROJECT_SOURCE_DIR}/src/rendering/wgpu/SoWgpuBgfxCore.cpp)
+	set_target_properties(WgpuBgfxCoreTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(WgpuBgfxCoreTest CoinWgpuExperimental Coin)
+	target_include_directories(WgpuBgfxCoreTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include
+		${PROJECT_SOURCE_DIR}/include
+		${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include
+		${PROJECT_BINARY_DIR}/src
+		${COIN_TARGET_INCLUDE_DIRECTORIES}
+	)
+	add_test(NAME WgpuBgfxCoreTest COMMAND WgpuBgfxCoreTest)
+	set_tests_properties(WgpuBgfxCoreTest PROPERTIES TIMEOUT 30)
+	if(COIN_WGPU_BACKEND STREQUAL "BGFX")
+		add_executable(WgpuBgfxOffscreenTest wgpu/WgpuBgfxOffscreenTest.cpp)
+		set_target_properties(WgpuBgfxOffscreenTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+		target_link_libraries(WgpuBgfxOffscreenTest CoinWgpuExperimental Coin)
+		target_include_directories(WgpuBgfxOffscreenTest PRIVATE
+			${PROJECT_SOURCE_DIR}/experimental/include
+			${PROJECT_SOURCE_DIR}/include
+			${PROJECT_SOURCE_DIR}/src
+			${PROJECT_BINARY_DIR}/include
+			${PROJECT_BINARY_DIR}/src
+			${COIN_TARGET_INCLUDE_DIRECTORIES}
+		)
+		add_test(NAME WgpuBgfxOffscreenTest COMMAND WgpuBgfxOffscreenTest)
+		set_tests_properties(WgpuBgfxOffscreenTest PROPERTIES TIMEOUT 30)
+	endif()
+
 	add_executable(WgpuFrameReuseCoreTest wgpu/WgpuFrameReuseCoreTest.cpp)
 	set_target_properties(WgpuFrameReuseCoreTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 	target_link_libraries(WgpuFrameReuseCoreTest CoinWgpuExperimental Coin)
