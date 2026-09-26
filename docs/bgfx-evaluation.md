@@ -183,6 +183,8 @@ COIN_BGFX_RENDERER=opengl COIN_BGFX_TRANSPARENCY=object \
   /tmp/coin-bgfx-evaluation-build/bin/wgpu_viewer --transparency-demo
 COIN_BGFX_RENDERER=opengl COIN_BGFX_TRANSPARENCY=sorted_layers \
   /tmp/coin-bgfx-evaluation-build/bin/wgpu_viewer --transparency-demo
+COIN_BGFX_RENDERER=opengl COIN_BGFX_TRANSPARENCY=weighted_oit \
+  /tmp/coin-bgfx-evaluation-build/bin/wgpu_viewer --transparency-demo
 ```
 
 Quatro camadas são um limite fixo deste protótipo, não cobertura geral da
@@ -193,6 +195,39 @@ sem contar framebuffer base, readback e overhead do driver. A emissão de
 draws também cresce com as passagens. Não há benchmark Release do modo novo
 nem teste da viewport real do FreeCAD; os números de desempenho anteriores
 continuam sendo do modo objeto.
+
+### Modo BGFX `weighted_oit` (experimental)
+
+`COIN_BGFX_TRANSPARENCY=weighted_oit` ativa Weighted Blended Order-Independent
+Transparency. A cena opaca continua na view base; uma passagem adicional
+reconstrói somente a profundidade opaca e acumula toda a geometria transparente
+em dois attachments MRT (`RGBA16F` para cor/peso e `R16F` para revelação). Uma
+passagem fullscreen compõe o resultado sobre a cena opaca. O backend exige
+`BGFX_CAPS_BLEND_INDEPENDENT`, pelo menos dois color attachments e os formatos
+float amostráveis; quando isso não existe, retorna `UNSUPPORTED` em vez de
+alterar silenciosamente a técnica.
+
+Esse modo não é uma versão aproximada do código do Coin/GL: é uma estratégia
+de cobertura comum à Infra BGFX. Ela renderiza cada draw transparente uma vez,
+independentemente da ordem de submissão, contra quatro repetições no protótipo
+`sorted_layers`. Em contrapartida, mistura fragmentos por pesos de alpha e
+profundidade e não reproduz exatamente a composição source-over ordenada.
+`sorted_layers` permanece a referência de qualidade para cenas com até quatro
+camadas; `weighted_oit` é o candidato de interação com profundidade complexa.
+
+No ensaio de 128², BGFX/Vulkan produziu `(110,80,64)` nas camadas paralelas,
+`(109,82,64)/(81,110,64)` no cruzamento e `(0,0,255)` com o objeto opaco à
+frente. BGFX/OpenGL variou no máximo um nível nos pontos amostrados. O teste
+percorre toda a região interna: exige dominância da superfície próxima em cada
+lado do cruzamento, intervalo de composição transparente e ocultação opaca
+exata. Ele não exige igualdade com depth peeling, pois isso invalidaria a
+aproximação que está sendo avaliada.
+
+Os attachments weighted acrescentam aproximadamente 14 bytes por pixel
+(RGBA16F + R16F + depth de 32 bits): 3,5 MiB em 512² ou 110,7 MiB em 4K,
+sem contar framebuffer base, readback e overhead do driver. Ainda faltam
+benchmark Release, materiais/iluminação, muitas sobreposições e a viewport real
+do FreeCAD. Portanto o modo continua opt-in e não muda a ABI pública do Coin.
 
 ## Medição inicial — 24–25/09/2026
 

@@ -295,6 +295,12 @@ if(COIN_BUILD_WGPU)
 		add_test(NAME WgpuBgfxSortedLayersOpenGLTest COMMAND WgpuBgfxTransparencyTest)
 		set_tests_properties(WgpuBgfxSortedLayersOpenGLTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77
 			ENVIRONMENT "COIN_BGFX_TRANSPARENCY=sorted_layers;COIN_BGFX_RENDERER=opengl")
+		add_test(NAME WgpuBgfxWeightedOitTest COMMAND WgpuBgfxTransparencyTest)
+		set_tests_properties(WgpuBgfxWeightedOitTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77
+			ENVIRONMENT "COIN_BGFX_TRANSPARENCY=weighted_oit")
+		add_test(NAME WgpuBgfxWeightedOitOpenGLTest COMMAND WgpuBgfxTransparencyTest)
+		set_tests_properties(WgpuBgfxWeightedOitOpenGLTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77
+			ENVIRONMENT "COIN_BGFX_TRANSPARENCY=weighted_oit;COIN_BGFX_RENDERER=opengl")
 		if(X11_FOUND)
 			add_executable(WgpuBgfxWindowTest wgpu/WgpuBgfxWindowTest.cpp)
 			set_target_properties(WgpuBgfxWindowTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")

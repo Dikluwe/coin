@@ -89,10 +89,13 @@ int main(int argc, char ** argv) {
                                       BlackPixel(display, screen),
                                       WhitePixel(display, screen));
   const char * transparencyMode = std::getenv("COIN_BGFX_TRANSPARENCY");
-  XStoreName(display, window, transparencyDemo ?
-    (transparencyMode && std::strcmp(transparencyMode, "sorted_layers") == 0 ?
-      "Coin BGFX transparency: sorted_layers" : "Coin BGFX transparency: object") :
-    "Coin WebGPU experimental viewer");
+  const char * transparencyTitle =
+    transparencyMode && std::strcmp(transparencyMode, "sorted_layers") == 0 ?
+      "Coin BGFX transparency: sorted_layers" :
+    (transparencyMode && std::strcmp(transparencyMode, "weighted_oit") == 0 ?
+      "Coin BGFX transparency: weighted_oit" : "Coin BGFX transparency: object");
+  XStoreName(display, window, transparencyDemo ? transparencyTitle :
+             "Coin WebGPU experimental viewer");
   XSelectInput(display, window,
                ExposureMask | StructureNotifyMask | KeyPressMask | ButtonPressMask);
   Atom closeWindow = XInternAtom(display, "WM_DELETE_WINDOW", False);

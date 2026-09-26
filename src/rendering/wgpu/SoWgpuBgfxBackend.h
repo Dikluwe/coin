@@ -23,21 +23,31 @@ public:
   const std::string & getLastError() const override { return lastError; }
 
 private:
+  enum class TransparencyMode {
+    OBJECT,
+    SORTED_LAYERS,
+    WEIGHTED_OIT
+  };
+
   bool resize(int width, int height);
   void destroyFrameBuffers();
   void encodeSortedLayers(const std::vector<SoWgpuBgfxDraw> & draws,
                           bgfx::VertexBufferHandle vertices,
                           bgfx::IndexBufferHandle indices,
                           bgfx::FrameBufferHandle output);
+  void encodeWeightedOit(const std::vector<SoWgpuBgfxDraw> & draws,
+                         bgfx::VertexBufferHandle vertices,
+                         bgfx::IndexBufferHandle indices,
+                         bgfx::FrameBufferHandle output);
   bool onApiThread() const;
-
   BackendStatus status;
+
   std::string lastError;
   std::thread::id apiThread;
   bool initialized;
   bool presentToWindow;
   bool cameraPatchEnabled;
-  bool layeredTransparencyEnabled;
+  TransparencyMode transparencyMode;
   uint64_t serial;
   int width;
   int height;
@@ -45,13 +55,18 @@ private:
   bgfx::ProgramHandle program;
   bgfx::ProgramHandle peelNextProgram;
   bgfx::ProgramHandle compositeProgram;
+  bgfx::ProgramHandle weightedOitProgram;
+  bgfx::ProgramHandle weightedCompositeProgram;
   bgfx::UniformHandle previousDepthSampler;
   bgfx::UniformHandle previousColorSampler;
   bgfx::UniformHandle layerSampler;
+  bgfx::UniformHandle oitAccumSampler;
+  bgfx::UniformHandle oitRevealSampler;
   bgfx::UniformHandle depthInfoUniform;
   bgfx::VertexBufferHandle fullscreenVertexBuffer;
   bgfx::IndexBufferHandle fullscreenIndexBuffer;
   bgfx::FrameBufferHandle frameBuffer;
+  bgfx::FrameBufferHandle oitFrameBuffer;
   bgfx::FrameBufferHandle peelFrameBuffers[4];
   bgfx::TextureHandle readbackTexture;
   uint64_t cachedRevision;

@@ -194,6 +194,7 @@ int main(int argc, char ** argv)
   }
   const char * mode = std::getenv("COIN_BGFX_TRANSPARENCY");
   const bool expectLayers = mode && std::string(mode) == "sorted_layers";
+  const bool expectWeighted = mode && std::string(mode) == "weighted_oit";
   bool sawGl = false;
   for (int scenario = 0; scenario != 3; ++scenario) {
     const bool crossing = scenario == 1;
@@ -216,8 +217,28 @@ int main(int argc, char ** argv)
     printSample("BGFX left", bgfxLeft);
     std::cout << ' ';
     printSample("right", bgfxRight);
-    // Validate the whole interior analytically; the crossing center matters.
-    if (!crossing || expectLayers) {
+    // Exact peeling follows source-over composition. Weighted OIT is an
+    // approximation, so validate its ordering and occlusion invariants.
+    if (expectWeighted) {
+      for (int y = 20; y < side - 20; ++y) {
+        for (int x = 20; x < side - 20; ++x) {
+          const Rgb actual = pixel(bgfxPixels, x, y, 4, false);
+          const bool opaqueOcclusionFailed = occluded &&
+            !near(actual, Rgb{{0, 0, 255}}, 12);
+          const bool transparentRangeFailed = !occluded &&
+            (actual[0] < 35 || actual[1] < 35 || actual[2] < 45 || actual[2] > 90);
+          const bool orderingFailed = !occluded &&
+            ((!crossing && actual[0] <= actual[1]) ||
+             (crossing && x < 56 && actual[0] <= actual[1]) ||
+             (crossing && x > 72 && actual[1] <= actual[0]));
+          if (opaqueOcclusionFailed || transparentRangeFailed || orderingFailed) {
+            std::cerr << "\nBGFX weighted OIT invariant failed at ("
+                      << x << ',' << y << ")\n";
+            return 1;
+          }
+        }
+      }
+    } else if (!crossing || expectLayers) {
       for (int y = 20; y < side - 20; ++y) {
         for (int x = 20; x < side - 20; ++x) {
           const Rgb expected = occluded ? Rgb{{0, 0, 255}} :
