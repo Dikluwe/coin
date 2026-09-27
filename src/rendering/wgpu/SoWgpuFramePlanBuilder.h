@@ -18,6 +18,8 @@ public:
   void beginFrame(const SbColor4f & clearColor, const SbViewportRegion & viewport);
   void reset();
   void recordLightAttenuation(SoCallbackAction * action);
+  void beginAnnotation();
+  void endAnnotation();
 
   void registerDirectTexture(const unsigned char * image, uint64_t token, uint32_t width, uint32_t height, bool opaque);
   void addTriangle(SoCallbackAction * action,
@@ -50,6 +52,7 @@ private:
   uint32_t captureMaterial(SoCallbackAction * action, int materialIndex);
   uint32_t captureRenderState(SoCallbackAction * action, int materialIndex);
   bool captureTexture(SoCallbackAction * action, RenderStateSnapshot & rs, std::string * outError = nullptr);
+  bool expandStyledPrimitives(std::string * outError);
   uint32_t addVertex(const SoPrimitiveVertex * pv, uint32_t materialSlot);
   void ensureDrawPacket(PrimitiveTopology topology, uint32_t renderStateSlot, SoNode * node, bool forceNewPacket = false);
 
@@ -60,6 +63,10 @@ private:
   bool hasActiveDraw;
   bool hasError;
   bool isUnsupported;
+  uint32_t annotationDepth;
+  uint32_t currentAnnotationLayer;
+  uint32_t nextAnnotationLayer;
+  bool annotationDepthClearPending;
   std::string builderError;
   std::unordered_map<uint64_t, uint32_t> nodeOccurrenceCount;
   std::vector<SbVec3f> lightAttenuationByIndex;

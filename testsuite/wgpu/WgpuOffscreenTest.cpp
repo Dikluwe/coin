@@ -23,6 +23,7 @@
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/nodes/SoDrawStyle.h>
 #include <Inventor/nodes/SoCoordinate3.h>
+#include "rendering/wgpu/SoWgpuCpuReferenceBackend.h"
 #include "rendering/wgpu/SoWgpuRenderTargetP.h"
 
 #if defined(HAVE_WGPU_RUST_BRIDGE)
@@ -83,6 +84,8 @@ int main() {
   TEST_ASSERT(target != NULL, "createOffscreen must return non-NULL target");
   TEST_ASSERT(target->getStatus() == SoWgpuRenderTarget::TARGET_READY, "New offscreen target must be READY");
   TEST_ASSERT(target->getSize() == initialSize, "Target size must match initial size");
+  // Backend-specific GPU readback is covered by WgpuBgfxOffscreenTest.
+  target->getPimpl()->backend.reset(new SoWgpuCpuReferenceBackend);
   std::size_t preRenderBytes = 1;
   TEST_ASSERT(target->borrowRGBA(preRenderBytes) == NULL && preRenderBytes == 0,
               "Borrowed RGBA must be unavailable before the first render");
@@ -198,7 +201,7 @@ int main() {
   TEST_ASSERT(target->getStatus() == SoWgpuRenderTarget::TARGET_READY,
               "Target returns to TARGET_READY after valid apply");
 
-  // 6. Test unsupported feature preflight rejection (Section 4.6)
+  // 6. Test portable wide-line expansion.
   SoSeparator * unsupportedSep = new SoSeparator;
   unsupportedSep->ref();
   unsupportedSep->addChild(cone);
@@ -213,9 +216,7 @@ int main() {
   unsupportedSep->addChild(new SoLineSet);
 
   action.apply(unsupportedSep);
-  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::UNSUPPORTED, "Unsupported feature (lineWidth > 1.0) must be rejected with UNSUPPORTED");
-  std::string err = action.getLastError().getString();
-  TEST_ASSERT(err.find("UNSUPPORTED") != std::string::npos, "Diagnostic message must explain unsupported capability");
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "lineWidth > 1.0 must render through portable expansion");
 
   unsupportedSep->unref();
 

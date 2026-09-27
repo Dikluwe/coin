@@ -1,5 +1,7 @@
 @PACKAGE_INIT@
 
+@COIN_WGPU_CONFIG_FIND_DEPENDENCIES@
+
 include(CMakeFindDependencyMacro)
 find_dependency(Coin CONFIG)
 include("${CMAKE_CURRENT_LIST_DIR}/CoinWgpuExperimentalTargets.cmake")

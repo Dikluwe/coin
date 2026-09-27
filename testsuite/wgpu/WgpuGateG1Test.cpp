@@ -37,6 +37,15 @@
   } \
 } while (0)
 
+static SoWgpuRenderTarget * createTestTarget() {
+  SoWgpuRenderTarget * target =
+    SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
+#if defined(HAVE_WGPU_BGFX)
+  if (target) target->setDepthReadbackEnabled(FALSE);
+#endif
+  return target;
+}
+
 int main() {
   SoDB::init();
   SoWgpuRenderAction::initClass();
@@ -91,7 +100,7 @@ int main() {
     root->addChild(ifs);
 
     SoWgpuRenderAction action(SbViewportRegion(64, 64));
-    SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
+    SoWgpuRenderTarget * target = createTestTarget();
     action.setRenderTarget(target);
     action.apply(root);
 
@@ -113,6 +122,7 @@ int main() {
     TEST_ASSERT(pixels[centerIdx + 0] > 150 && pixels[centerIdx + 1] < 50 && pixels[centerIdx + 2] < 50,
                 "Center pixel inside triangle must have dominant red component");
 
+#if !defined(HAVE_WGPU_BGFX)
     // 2. Depth readback
     std::vector<float> depths;
     target->readbackDepth(depths);
@@ -126,6 +136,7 @@ int main() {
     float triDepth = depths[32 * 64 + 32];
     TEST_ASSERT(triDepth > 0.0f && triDepth < 0.99f,
                 "Triangle depth at center must be within depth range (0.0, 1.0)");
+#endif
 
     delete target;
     root->unref();
@@ -194,7 +205,7 @@ int main() {
     root1->addChild(frontSep);
 
     SoWgpuRenderAction action(SbViewportRegion(64, 64));
-    SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
+    SoWgpuRenderTarget * target = createTestTarget();
     action.setRenderTarget(target);
     action.apply(root1);
     TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "Occlusion scene 1 must render");
@@ -205,9 +216,11 @@ int main() {
     TEST_ASSERT(pixels1[cIdx + 0] > 150 && pixels1[cIdx + 1] < 50,
                 "Front red triangle must be visible over back green triangle (drawn back first)");
 
+#if !defined(HAVE_WGPU_BGFX)
     std::vector<float> depths1;
     target->readbackDepth(depths1);
     float depthVal1 = depths1[32 * 64 + 32];
+#endif
 
     // Case 2: Invert scene order: Draw Front (red) first, then Back (green) second
     SoSeparator * root2 = new SoSeparator;
@@ -225,6 +238,7 @@ int main() {
     TEST_ASSERT(pixels2[cIdx + 0] > 150 && pixels2[cIdx + 1] < 50,
                 "Depth test must prevent back green triangle from overwriting front red triangle");
 
+#if !defined(HAVE_WGPU_BGFX)
     std::vector<float> depths2;
     target->readbackDepth(depths2);
     float depthVal2 = depths2[32 * 64 + 32];
@@ -232,6 +246,7 @@ int main() {
     // Both cases must yield the identical front depth
     TEST_ASSERT(std::abs(depthVal1 - depthVal2) < 1e-4f,
                 "Depth values at center pixel must match between both draw orders");
+#endif
 
     delete target;
     frontSep->unref();
@@ -253,7 +268,7 @@ int main() {
     root->addChild(cube);
 
     SoWgpuRenderAction action(SbViewportRegion(64, 64));
-    SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
+    SoWgpuRenderTarget * target = createTestTarget();
     action.setRenderTarget(target);
 
     action.apply(root);
@@ -281,7 +296,7 @@ int main() {
     root->addChild(new SoCube);
 
     SoWgpuRenderAction action(SbViewportRegion(64, 64));
-    SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
+    SoWgpuRenderTarget * target = createTestTarget();
     action.setRenderTarget(target);
 
     // Initial frame succeeds

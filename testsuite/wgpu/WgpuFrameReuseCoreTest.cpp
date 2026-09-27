@@ -24,8 +24,11 @@ makePlan(uint64_t revision)
 {
   FramePlan plan;
   plan.revision = revision;
-  plan.vertices.push_back(VertexSnapshot{});
-  plan.indices.push_back(0);
+  plan.vertices.resize(3);
+  plan.vertices[0].position[0] = -0.5f;
+  plan.vertices[1].position[0] = 0.5f;
+  plan.vertices[2].position[1] = 0.5f;
+  plan.indices = {0, 1, 2};
   plan.materials.push_back(MaterialSnapshot{});
   plan.lightingStates.push_back(LightingSnapshot{});
   plan.cameras.push_back(CameraSnapshot{});
@@ -34,9 +37,9 @@ makePlan(uint64_t revision)
   state.lightModel = LightModel::BASE_COLOR;
   plan.renderStates.push_back(state);
   DrawPacket draw;
-  draw.topology = PrimitiveTopology::POINT_LIST;
-  draw.geometry.vertexCount = 1;
-  draw.geometry.indexCount = 1;
+  draw.topology = PrimitiveTopology::TRIANGLE_LIST;
+  draw.geometry.vertexCount = 3;
+  draw.geometry.indexCount = 3;
   draw.stableNodeId = 7;
   draw.sourceRevision = 11;
   plan.draws.push_back(draw);
@@ -148,6 +151,9 @@ main()
   targetFrame.viewports[0].width = 64;
   targetFrame.viewports[0].height = 64;
   SoWgpuRenderTargetP target(SbVec2i32(64, 64));
+#if defined(HAVE_WGPU_BGFX)
+  target.depthReadbackEnabled = false;
+#endif
   FrameExecutionResult executed = target.executeFrame(targetFrame);
   ok &= check(executed.status == BackendStatus::SUCCESS &&
               target.lastValidatedPlanRevision == 41,
@@ -174,8 +180,9 @@ main()
   targetFrame.revision = 44;
   executed = target.executeFrame(targetFrame,
     SoWgpuFrameReuseDecision(SoWgpuFrameReuseKind::CAMERA_PATCH, 42));
-  ok &= check(executed.status != BackendStatus::SUCCESS,
-              "resize must recheck the viewport before camera reuse");
+  ok &= check(executed.status == BackendStatus::SUCCESS &&
+              target.lastValidatedPlanRevision == 44,
+              "a valid subviewport must survive target resize and camera reuse");
 
   if (!ok) return 1;
   std::cout << "WgpuFrameReuseCoreTest passed\n";

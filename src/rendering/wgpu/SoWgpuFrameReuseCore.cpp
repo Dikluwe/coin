@@ -75,9 +75,13 @@ sameRenderStateExceptCamera(const RenderStateSnapshot & a,
     a.cameraSlot == b.cameraSlot && a.viewportSlot == b.viewportSlot &&
     a.cullMode == b.cullMode && a.frontFace == b.frontFace &&
     a.lightModel == b.lightModel && a.lineWidth == b.lineWidth &&
-    a.pointSize == b.pointSize && sameMatrix(a.textureMatrix, b.textureMatrix) &&
+    a.pointSize == b.pointSize && a.linePattern == b.linePattern &&
+    a.linePatternScaleFactor == b.linePatternScaleFactor &&
+    sameMatrix(a.textureMatrix, b.textureMatrix) &&
     a.hasTexture == b.hasTexture && a.textureImageSlot == b.textureImageSlot &&
     a.samplerSlot == b.samplerSlot && a.textureModel == b.textureModel &&
+    std::memcmp(a.textureBlendColor, b.textureBlendColor,
+                sizeof(a.textureBlendColor)) == 0 &&
     a.transparencyType == b.transparencyType && a.fogMode == b.fogMode &&
     std::memcmp(a.fogColor, b.fogColor, sizeof(a.fogColor)) == 0 &&
     a.fogStart == b.fogStart && a.fogEnd == b.fogEnd;
@@ -138,7 +142,9 @@ sameDrawStructure(const DrawPacket & a, const DrawPacket & b)
     a.frameNodeOrdinal == b.frameNodeOrdinal &&
     a.sourceNodeId == b.sourceNodeId &&
     a.stableNodeId == b.stableNodeId &&
-    a.drawOrdinal == b.drawOrdinal;
+    a.drawOrdinal == b.drawOrdinal &&
+    a.renderLayer == b.renderLayer &&
+    a.clearDepthBefore == b.clearDepthBefore;
 }
 
 bool

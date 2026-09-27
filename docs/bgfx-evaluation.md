@@ -21,12 +21,18 @@ comparação isola a troca do executor, sem duplicar um segundo scene graph.
 - Linux, BGFX com renderer Vulkan por padrão ou OpenGL com
   `COIN_BGFX_RENDERER=opengl`; alvo offscreen ou janela Xlib, um alvo ativo
   por processo.
-- Triângulos indexados `BASE_COLOR`, sem textura/fog, viewport inteira;
-  materiais opacos ou alpha uniforme por draw com
-  `SoTransparencyType::SORTED_OBJECT_BLEND`. Opacos escrevem depth;
-  transparentes são ordenados por profundidade média, testam depth, não o
-  escrevem e usam blend source-over. Offscreen: readback **somente RGBA**
-  síncrono. Janela: apresentação direta na swapchain, sem readback.
+- Triângulos indexados com `BASE_COLOR` ou termos PHONG completos
+  (ambiente, difusa, especular, emissão, `shininess`; luz direcional, pontual
+  e spot). Materiais e alpha por vértice/face são preservados. Linhas,
+  `SoIndexedLineSet` e pontos são expandidos deterministicamente para
+  triângulos em espaço de tela, incluindo largura, tamanho e padrão.
+- `SoTexture2` CPU-backed em RGBA8, UV explícita/procedural, matriz de textura,
+  `MODULATE`, `REPLACE`, `DECAL`, `BLEND`, `REPEAT`/`CLAMP` e filtro
+  nearest/linear. Alpha de textura participa de object blend, depth peeling e
+  weighted OIT. Fog, RTT direto e texturas GPU-token continuam fora do perfil.
+- Viewports/scissors por draw, inclusive múltiplas subviewports. Opacos escrevem
+  depth; transparentes testam depth e não o escrevem. Offscreen publica
+  readback **somente RGBA** síncrono; janela apresenta direto na swapchain.
 - Ordem de draws preservada com `ViewMode::Sequential`; shaders SPIR-V e GLSL
   330 gerados por `shaderc` durante o build. O readback OpenGL é invertido
   por linhas para cumprir a mesma orientação RGBA do Vulkan.
@@ -39,16 +45,43 @@ comparação isola a troca do executor, sem duplicar um segundo scene graph.
   medir o caminho completo no mesmo build.
 - Profundidade não é publicada: chamar
   `SoWgpuRenderTarget::setDepthReadbackEnabled(FALSE)` no alvo offscreen.
-- Iluminação, outros modos de alpha, linhas/pontos, textura, RTT direto, Wayland e
-  `applyAsync` retornam `UNSUPPORTED` em vez de aparentar paridade.
-- `gpu_available=0` na query de capacidades BGFX porque `bgfx::init` é global
-  e não há probe inofensivo; a disponibilidade real é comprovada por um
-  `prepare`/frame. Os bits anunciados descrevem apenas o perfil.
+- Fog, modos aditivos de alpha, RTT direto, Wayland, texturas residentes
+  externas e `applyAsync` retornam `UNSUPPORTED` em vez de aparentar paridade.
+  O PHONG BGFX é avaliado por fragmento, com posição e normal em view space,
+  materiais interpolados e até oito luzes direcionais, pontuais ou spot. O
+  mesmo cálculo é usado no caminho opaco, no depth peeling e no weighted OIT.
+- A query de capacidades v2 faz um `prepare` offscreen 1x1 temporário, avança
+  um frame e encerra o runtime antes de retornar. Ela informa renderer, IDs de
+  vendor/device, limites e formatos de framebuffer, MRT, independent blend,
+  compute e timestamps reais. Se outro target possuir o singleton, retorna
+  `COIN_WGPU_PROBE_BUSY` com diagnóstico, sem confundir ocupação com GPU ausente.
+  Para `XLIB_WINDOW`, a sonda valida GPU/renderer; a apresentação só é
+  comprovada ao preparar uma superfície Xlib real. Os bits `features` continuam
+  descrevendo separadamente o perfil implementado.
 
-O BGFX tem estado de processo e thread de API próprios. O conector atual
-recusa alvos concorrentes; o alvo deve ser destruído na mesma thread que fez
-`prepare`. Não deve ser carregado no mesmo processo de outro
-usuário de BGFX; uma futura integração precisaria de ownership compartilhado.
+### Política de múltiplos alvos
+
+A decisão desta avaliação é **manter explicitamente um único alvo BGFX preparado
+por processo**. Alvos adicionais podem existir como objetos Coin, mas seu
+`prepare` retorna `UNSUPPORTED` enquanto outro alvo possuir o runtime. A
+rejeição não altera o alvo ativo. Handoff serial é permitido: destruir ou
+liberar o backend preparado na mesma thread da API libera a reserva, e outro
+alvo pode preparar e renderizar normalmente.
+
+Não foi adotado um runtime global compartilhado nesta etapa. Essa alternativa
+exigiria ownership com referência contada, recursos globais separados dos
+caches de cada target, serialização de toda a API BGFX e swapchains adicionais
+para janelas; reutilizar parcialmente o singleton atual não seria suporte real
+a múltiplos alvos. O conector também não deve coexistir no processo com outro
+usuário de BGFX.
+
+Falhas fatais reportadas pelo callback BGFX, inclusive `DeviceLost`, são
+convertidas em `DEVICE_LOST`/`BACKEND_ERROR`. O alvo descarta o backend, chama
+`bgfx::shutdown()` na thread da API e libera a reserva global; o frame seguinte
+cria um runtime novo e reconstrói programas, uniforms, buffers, texturas e
+framebuffers a partir do `FramePlan`. Os testes injetam perda durante resize e
+durante submissão, além de falha parcial de `prepare`, e comprovam que uma nova
+inicialização funciona em Vulkan e OpenGL.
 
 ## Build reproduzível
 
@@ -86,8 +119,10 @@ confere orientação, cache e `CAMERA_PATCH` nos dois renderers em processos sep
 Os testes de paridade do perfil WebGPU amplo não são uma afirmação de suporte
 BGFX e devem continuar rodando no backend Rust/Recording.
 
-O teste X11 verifica os pixels da janela, resize, suspensão/restauração e
-ausência de readback, separadamente em Vulkan e OpenGL. Em 25/09/2026,
+O teste X11 verifica os pixels da janela Vulkan, resize, suspensão/restauração e
+ausência de readback. Variantes adicionais exercitam o adapter `SoRenderManager`
+em Vulkan e OpenGL; OpenGL é validado pela submissão porque `XGetImage` não é
+válido para esse swapchain, separadamente em Vulkan e OpenGL. Em 25/09/2026,
 7/7 testes direcionados de BGFX e contrato compartilhado passaram no Xvfb;
 `wgpu_viewer --frames 5` e `wgpu_window_cone --frames 5` também passaram
 em ambos os renderizadores. Isso não mede latência de apresentação nem cobre
@@ -96,6 +131,12 @@ a viewport real do FreeCAD.
 Com os quatro testes de transparência (objeto e camadas), 11/11 passaram no Xvfb sem forçar
 um ICD Vulkan. Forçar RADV nesse servidor fez apenas o teste de apresentação
 Vulkan falhar por ausência de DRI3; o teste offscreen de composição passou.
+
+Xvfb continua útil para regressão funcional, mas não certifica hardware. A matriz
+física AMD/RADV, AMD/radeonsi, Intel e NVIDIA, para Vulkan e OpenGL, está
+descrita em `docs/bgfx-gpu-matrix.md` e é executada pelo workflow manual
+`BGFX physical GPU matrix`. Cada célula verifica o driver antes dos testes e
+arquiva o inventário, as capacidades reais e o resultado CTest.
 
 ## Ensaio controlado de transparência — 25/09/2026
 
@@ -149,11 +190,39 @@ camadas é distinta e não deve ser normalizada como resultado correto. O
 ensaio não mede desempenho nem testa a viewport real do FreeCAD; em Xvfb,
 GL pode usar renderização por software.
 
+### Seleção e mapeamento dos modos Coin
+
+O padrão é `COIN_BGFX_TRANSPARENCY=auto`. O mapeamento é explícito:
+
+| Modo de transparência Coin | Estratégia BGFX em `auto` |
+|---|---|
+| `SCREEN_DOOR` | `object` |
+| `BLEND` | `object` |
+| `DELAYED_BLEND` | `object` |
+| `SORTED_OBJECT_BLEND` | `object` |
+| `SORTED_OBJECT_SORTED_TRIANGLE_BLEND` | `weighted_oit` |
+| `SORTED_LAYERS_BLEND` | `sorted_layers` |
+
+Os cinco primeiros modos podem ser definidos por `SoTransparencyType`.
+`SORTED_LAYERS_BLEND`, como no renderer OpenGL do Coin, é uma configuração
+global da action: use
+`SoWgpuRenderAction::setTransparencyType(SORTED_LAYERS_BLEND)`. Esse modo
+sobrescreve nós `SoTransparencyType` locais.
+
+Cenas com oito ou mais draws transparentes sob uma modalidade `object` também
+selecionam `weighted_oit`; cenas menores permanecem no caminho de menor custo.
+`COIN_BGFX_TRANSPARENCY=object`, `weighted_oit` ou `sorted_layers` força a
+técnica para diagnóstico e comparação. Se `auto` ou um modo Coin selecionar
+`weighted_oit` sem MRT/blend independente, ou `sorted_layers` sem D32F
+amostrável, o frame retorna `UNSUPPORTED` com a capacidade ausente. Não há
+troca silenciosa para `object`. Modos `ADD` não são mapeados para source-over e
+continuam explicitamente não suportados.
+
 ### Modo BGFX `sorted_layers` (experimental)
 
 `COIN_BGFX_TRANSPARENCY=sorted_layers` ativa quatro passagens de depth peeling
-por pixel no BGFX, tanto em Vulkan quanto em OpenGL. Sem essa variável, o
-comportamento segue a ordenação de objetos anterior (`object`). A Infra mantém
+por pixel no BGFX, tanto em Vulkan quanto em OpenGL. Em `auto`, essa técnica é
+escolhida por `SORTED_LAYERS_BLEND`. A Infra mantém
 alvos RGBA8/D32F por passagem, reutiliza o `FramePlan` e compõe as camadas
 de trás para a frente sobre a cena opaca. Isso não muda a ABI pública de
 `libCoin` nem solicita ao usuário outro tipo de nó Open Inventor.
@@ -188,13 +257,76 @@ COIN_BGFX_RENDERER=opengl COIN_BGFX_TRANSPARENCY=weighted_oit \
 ```
 
 Quatro camadas são um limite fixo deste protótipo, não cobertura geral da
-transparência do Coin. Mais fragmentos por pixel, mistura, formatos, materiais,
-iluminação e múltiplas viewports ainda exigem validação. As quatro duplas
+transparência do Coin. Texturas, iluminação PHONG, subviewports e
+oclusão opaca compartilham agora o mesmo lowering validado. As quatro duplas
 RGBA8/D32F acrescentam cerca de 8 MiB a 512² ou 253 MiB a 3840×2160,
 sem contar framebuffer base, readback e overhead do driver. A emissão de
 draws também cresce com as passagens. Não há benchmark Release do modo novo
 nem teste da viewport real do FreeCAD; os números de desempenho anteriores
 continuam sendo do modo objeto.
+
+## Integração com o FreeCAD real — 26/09/2026
+
+`SoWgpuRenderManagerAdapter` liga diretamente um `SoRenderManager` ao alvo
+nativo, encaminha resize em pixels físicos e preserva o mesmo contrato da
+ação WGPU. O patch opt-in para o `QuarterWidget` está em
+`examples/wgpu/freecad_coin_wgpu.patch.gz` e é aplicado com:
+
+```sh
+gzip -dc /caminho/coin/examples/wgpu/freecad_coin_wgpu.patch.gz | \
+  git -C /caminho/freecad apply
+```
+
+O FreeCAD deve ser configurado com `FREECAD_COIN_WGPU_EXPERIMENTAL=ON` e o
+pacote instalado `CoinWgpuExperimental` no `CMAKE_PREFIX_PATH`. Em execução,
+`FREECAD_COIN_WGPU=1` ativa o caminho; sem a variável, o `QuarterWidget`
+continua usando Coin/GL. O adaptador atual é deliberadamente restrito a Qt 6
+com o plugin X11/xcb.
+
+O teste real abriu `PartDesignExample.FCStd` no FreeCAD 26.3.0dev, criou BGFX
+Vulkan na GPU NVIDIA (`vendor_id=0x10de`, `device_id=0x2560`) e entregou ao
+backend 1.303 vértices, 2.264 índices e quatro draws por frame. O `QuarterWidget`
+mantém seu `QOpenGLWidget` lógico para eventos e callbacks do FreeCAD, enquanto
+a apresentação BGFX usa um filho X11 nativo isolado e recortado à viewport com
+`WA_DontCreateNativeAncestors`. Uma região de entrada XFixes vazia encaminha
+hit-test e hover ao widget Coin.
+
+A preseleção de faces agora é nativa no frame BGFX: `SoFCSelection` prepara o
+estado durante `SoCallbackAction`, `SoBrepFaceSet` remapeia o índice topológico
+para materiais por face, e o fast path só poda os tipos Coin exatos para não
+suprimir callbacks de subclasses. Não há mais troca para Coin/GL durante hover.
+A validação mostrou a face `Face6` em ciano e a remoção do realce sem apagar a
+peça. O painel inferior permaneceu visível. O filho não é marcado como
+`OpenGLSurface` e não é elevado via X11 a cada frame; o Qt mantém o stacking.
+Eventos de exibição solicitam novo desenho e a troca do viewport destrói o
+adapter e o XID antigos antes de criar os novos. Os avisos
+`QOpenGLContext::makeCurrent`/`QRhiGles2` não ocorreram na sessão final.
+
+O NaviCube também percorre agora seu scene graph retido durante
+`SoCallbackAction`. O adaptador aceita um root composto pelo superscene efetivo
+do `SoRenderManager`, foreground e decorations, preservando câmera e headlight.
+`SoAnnotation` cria camadas monotônicas; cada camada limpa somente o depth de seu
+subviewport e é emitida depois da cena, inclusive após `weighted_oit` e
+`sorted_layers`. No teste Vulkan com `weighted_oit`, o frame passou para 3.272
+vértices, 4.235 índices e 36--38 draws, incluindo 7--9 mudanças de textura do
+NaviCube. Restaurar e maximizar manteve a apresentação em 1.920x710 dentro da
+janela 1.920x1.008, preservando 298 pixels para o painel inferior.
+
+Ainda não são capturados `SoDepthBuffer` e `SoPolygonOffset`. Por isso o
+NaviCube já aparece e respeita viewport/ordem/alpha, mas detalhes coplanares
+podem divergir do GL; axis cross e rubber-band continuam fora do root WGPU até
+o contrato de depth incluir test, write e função.
+
+A geometria indexada preserva índices de material preexistentes quando uma ação
+substitui a lista por um único material: a captura de estado limita a consulta
+ao último material válido, como Coin/GL, em vez de rejeitar o frame. Um teste
+de regressão cobre esse caso. O limite restante mais importante é arquitetural:
+o runtime BGFX ainda aceita somente um alvo ativo por processo; múltiplas abas
+exigem um runtime global com referência contada e uma swapchain por janela.
+
+O ambiente local ainda contém uma instalação PySide 6.6 incompatível
+com o Qt 6.4 do build; isso produz avisos de módulos Python, mas não impediu o
+documento PartDesign nem o frame BGFX.
 
 ### Modo BGFX `weighted_oit` (experimental)
 
@@ -203,7 +335,7 @@ Transparency. A cena opaca continua na view base; uma passagem adicional
 reconstrói somente a profundidade opaca e acumula toda a geometria transparente
 em dois attachments MRT (`RGBA16F` para cor/peso e `R16F` para revelação). Uma
 passagem fullscreen compõe o resultado sobre a cena opaca. O backend exige
-`BGFX_CAPS_BLEND_INDEPENDENT`, pelo menos dois color attachments e os formatos
+`BGFX_CAPS_BLEND_INDEPENDENT`, três attachments totais e os formatos
 float amostráveis; quando isso não existe, retorna `UNSUPPORTED` em vez de
 alterar silenciosamente a técnica.
 
@@ -223,11 +355,24 @@ lado do cruzamento, intervalo de composição transparente e ocultação opaca
 exata. Ele não exige igualdade com depth peeling, pois isso invalidaria a
 aproximação que está sendo avaliada.
 
+
+O teste de estresse adicional usa 32 superfícies PHONG cruzadas, com alphas
+`0.001`, `0.08`, `0.35` e `0.999`, e renderiza a mesma cena nas duas ordens de
+submissão. Ele limita a diferença por canal, varre toda a região interna contra
+preto/branco espúrio e varre a moldura externa contra halos. Casos isolados
+validam a opacidade analítica de 32 camadas com alpha `0.001` e uma camada com
+alpha `0.999`. Outra cena combina, na mesma superfície transparente, textura
+RGBA em `MODULATE` com iluminação PHONG em duas intensidades. Um único
+`SoIndexedFaceSet`, com `PER_FACE`, contém dois triângulos transparentes que se
+intersectam e exige a inversão de dominância vermelho/verde nos dois lados do
+cruzamento. Os casos básicos mantêm ainda objetos opacos à frente e atrás das
+superfícies transparentes. A função de peso é limitada a 128 por fragmento
+para manter dezenas de contribuições abaixo do máximo FP16.
 Os attachments weighted acrescentam aproximadamente 14 bytes por pixel
 (RGBA16F + R16F + depth de 32 bits): 3,5 MiB em 512² ou 110,7 MiB em 4K,
-sem contar framebuffer base, readback e overhead do driver. Ainda faltam
-benchmark Release, materiais/iluminação, muitas sobreposições e a viewport real
-do FreeCAD. Portanto o modo continua opt-in e não muda a ABI pública do Coin.
+sem contar framebuffer base, readback e overhead do driver. Ainda falta benchmark Release desse modo. A viewport real do FreeCAD foi
+validada separadamente na integração Qt 6/X11 abaixo. O modo permanece experimental
+e não muda a ABI pública do Coin.
 
 ## Medição inicial — 24–25/09/2026
 
@@ -520,8 +665,9 @@ capacidades: triângulos indexados `BASE_COLOR` devem renderizar em
 todos os perfis estabelecidos. Ao trocar a cena para iluminação, quem
 anuncia `COIN_WGPU_FEATURE_LIGHTS` deve renderizar; quem não anuncia
 deve responder `UNSUPPORTED`, nunca mostrar uma imagem silenciosamente
-incorreta. A query BGFX ainda não é probe de disponibilidade da GPU:
-o teste só pula se a inicialização real retornar `NOT_READY`.
+incorreta. A query BGFX v2 inicializa um target temporário e comprova a
+disponibilidade da GPU antes do teste. O contrato também valida Vulkan e OpenGL, os formatos
+necessários e o diagnóstico `BUSY` quando o singleton já pertence a um target.
 
 Ampliaremos essa mesma matriz por recurso (linhas/pontos, materiais,
 texturas, alpha, depth, janela, múltiplos alvos). O contrato e as cenas
@@ -532,13 +678,11 @@ necessários para essas regras e para diagnosticar falhas de cada API.
 
 ## Próximo gate de produto
 
-Antes de aceitar BGFX como alternativa, ampliar o perfil sem falsos positivos:
-profundidade de saída, iluminação, materiais por vértice, textura, fog,
-outros modos de transparência e múltiplos alvos; validar culling, convenção de
-coordenadas e
-orientação do readback contra GL. Em Release e na mesma GPU AMD, medir ao menos
-PartDesign e Assembly `BASE_COLOR` a 512²: mediana, p95, erro visual médio,
-RSS/pico de recursos, traversal/FramePlan, lowering, upload, submit, GPU e
-readback separados. O readback síncrono do BGFX avança vários frames e não
-deve ser confundido com apenas tempo de execução GPU. Apesar do ganho para
-câmera móvel no Assembly, ainda não há vantagem sobre GL neste perfil.
+O perfil já cobre iluminação PHONG, materiais heterogêneos, texturas, linhas,
+pontos, transparência, subviewports e resize. Antes de aceitar BGFX como
+alternativa geral ainda faltam profundidade de saída, fog, modos aditivos,
+múltiplos alvos simultâneos e integração portátil além de Qt 6/X11; também é
+preciso ampliar a validação de culling e coordenadas contra Coin/GL. O readback
+síncrono do BGFX avança vários frames e não deve ser confundido com apenas
+tempo de execução GPU. Apesar do ganho para câmera móvel no Assembly, ainda
+não há vantagem geral sobre GL neste perfil.

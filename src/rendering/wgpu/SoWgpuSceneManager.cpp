@@ -83,6 +83,12 @@ SoWgpuSceneManager::setBackgroundColor(const SbColor4f & color)
   this->pimpl->action->setBackgroundColor(color);
 }
 
+void
+SoWgpuSceneManager::setViewportRegion(const SbViewportRegion & viewport)
+{
+  this->pimpl->action->setViewportRegion(viewport);
+}
+
 SbBool
 SoWgpuSceneManager::resize(const SbVec2i32 & framebufferSize)
 {
