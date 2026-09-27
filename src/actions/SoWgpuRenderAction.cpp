@@ -8,6 +8,8 @@
 #include <Inventor/actions/SoSubAction.h>
 #include <Inventor/nodes/SoShape.h>
 #include <Inventor/nodes/SoLight.h>
+#include <Inventor/nodes/SoAnnotation.h>
+#include <Inventor/nodes/SoDepthBuffer.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include <Inventor/nodes/SoSceneTexture2.h>
@@ -37,6 +39,10 @@
 #include <Inventor/elements/SoTextureQualityElement.h>
 #include <Inventor/elements/SoTextureUnitElement.h>
 #include <Inventor/elements/SoTextureOverrideElement.h>
+#include <Inventor/elements/SoShapeStyleElement.h>
+#include <Inventor/elements/SoLazyElement.h>
+#include <Inventor/elements/SoOverrideElement.h>
+#include <Inventor/elements/SoDepthBufferElement.h>
 #include <algorithm>
 #include <chrono>
 #include <memory>
@@ -53,6 +59,8 @@
 #if defined(HAVE_WGPU_RUST_BRIDGE)
 #include "rendering/wgpu/SoWgpuRustBackend.h"
 #include "rendering/wgpu/coin_wgpu_ffi.h"
+#elif defined(HAVE_WGPU_BGFX)
+#include "rendering/wgpu/SoWgpuBgfxBackend.h"
 #elif defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
 #include "rendering/wgpu/SoWgpuNativeBackend.h"
 #endif
@@ -63,6 +71,7 @@ void
 SoWgpuRenderAction::initClass(void)
 {
   SO_ACTION_INTERNAL_INIT_CLASS(SoWgpuRenderAction, SoCallbackAction);
+  SO_ENABLE(SoWgpuRenderAction, SoDepthBufferElement);
 }
 
 SbBool
@@ -116,7 +125,17 @@ SoWgpuRenderAction::getViewportRegion(void) const
 void
 SoWgpuRenderAction::setRenderTarget(SoWgpuRenderTarget * target)
 {
+#if defined(HAVE_WGPU_BGFX)
+  // The evaluation backend owns one process-wide BGFX instance. Switching
+  // targets must release the old instance so the new target can prepare it.
+  if (this->pimpl->target != target && this->pimpl->target != NULL &&
+      dynamic_cast<SoWgpuBgfxBackend *>(
+        this->pimpl->target->getPimpl()->backend.get()) != NULL) {
+    this->pimpl->target->getPimpl()->backend.reset();
+  }
+#endif
   this->pimpl->target = target;
+  this->pimpl->cachedRoot = NULL;
 }
 
 SoWgpuRenderTarget *
@@ -136,6 +155,21 @@ const SbColor4f &
 SoWgpuRenderAction::getBackgroundColor(void) const
 {
   return this->pimpl->backgroundColor;
+}
+
+void
+SoWgpuRenderAction::setTransparencyType(TransparencyType type)
+{
+  if (this->pimpl->transparencyType != type) {
+    this->pimpl->transparencyType = type;
+    this->pimpl->cachedRoot = NULL;
+  }
+}
+
+SoWgpuRenderAction::TransparencyType
+SoWgpuRenderAction::getTransparencyType(void) const
+{
+  return this->pimpl->transparencyType;
 }
 
 void
@@ -222,9 +256,19 @@ void
 SoWgpuRenderAction::beginTraversal(SoNode * root)
 {
   if (this->pimpl->isApplying) {
+    SoState * state = this->getState();
+    state->push();
+    SoShapeStyleElement::setTransparencyType(
+      state, static_cast<int32_t>(this->pimpl->transparencyType));
+    SoLazyElement::setTransparencyType(
+      state, static_cast<int32_t>(this->pimpl->transparencyType));
+    if (this->pimpl->transparencyType == SORTED_LAYERS_BLEND && root) {
+      SoOverrideElement::setTransparencyTypeOverride(state, root, TRUE);
+    }
     if (root) {
       this->inherited::beginTraversal(root);
     }
+    state->pop();
     return;
   }
 
@@ -242,6 +286,7 @@ SoWgpuRenderActionP::SoWgpuRenderActionP(SoWgpuRenderAction * m)
     target(NULL),
     asyncTicket(NULL),
     backgroundColor(0.0f, 0.0f, 0.0f, 1.0f),
+    transparencyType(SoWgpuRenderAction::SCREEN_DOOR),
     lastStatus(SoWgpuRenderAction::SUCCESS),
     lastDiagnosticDomain(SoWgpuDiagnosticDomain::NONE),
     hasLastValidPlan(false),
@@ -394,7 +439,7 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   this->hasReentrancyError = false;
   bool planCacheAllowed = true;
 
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_WGPU_RUST_BRIDGE) || defined(HAVE_WGPU_BGFX)
   const bool ownsDirectTokens = !this->sceneTextureDirectTokens;
   if (ownsDirectTokens) {
     this->sceneTextureDirectTokens = std::make_shared<std::vector<uint64_t> >();
@@ -405,8 +450,17 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     ~DirectTextureScope() {
       if (!owns) return;
       for (uint64_t token : *action->sceneTextureDirectTokens) {
+#if defined(HAVE_WGPU_RUST_BRIDGE)
         coin_wgpu_release_texture(token);
+#endif
       }
+#if defined(HAVE_WGPU_BGFX)
+      if (action->target) {
+        SoWgpuBgfxBackend * backend = dynamic_cast<SoWgpuBgfxBackend *>(
+          action->target->getPimpl()->backend.get());
+        if (backend) backend->finishDirectTextures(*action->sceneTextureDirectTokens);
+      }
+#endif
       action->sceneTextureDirectTokens.reset();
     }
   } directTextureScope{this, ownsDirectTokens};
@@ -543,7 +597,7 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     return;
   }
 
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_WGPU_RUST_BRIDGE) || defined(HAVE_WGPU_BGFX)
   if (this->directPasses) {
     auto setGraphFailure = [this](const FrameExecutionResult & result) {
       this->setDiagnostic(SoWgpuDiagnosticShell::fromBackend(result));
@@ -592,10 +646,30 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
         }
       }
     };
+#if defined(HAVE_WGPU_BGFX)
+    if (!this->target->pimpl->backend) {
+      this->target->pimpl->backend.reset(new SoWgpuBgfxBackend());
+      const BackendStatus prepared =
+        this->target->pimpl->backend->prepare(this->target->getPimpl().get());
+      if (prepared != BackendStatus::SUCCESS) {
+        setGraphFailure(SubmitResult(prepared,
+          this->target->pimpl->backend->getLastError()));
+        return;
+      }
+    }
+    SoWgpuBgfxBackend * directBgfx = dynamic_cast<SoWgpuBgfxBackend *>(
+      this->target->pimpl->backend.get());
+    if (!directBgfx) {
+      setGraphFailure(SubmitResult(BackendStatus::UNSUPPORTED,
+        "SoSceneTexture2 direct graph requires the BGFX backend"));
+      return;
+    }
+#endif
     for (size_t i = 0; i < this->directPasses->size(); ++i) {
       const DirectPass & pass = (*this->directPasses)[i];
       FramePlan childFrame = pass.plan;
       resolveTextures(childFrame);
+#if defined(HAVE_WGPU_RUST_BRIDGE)
       std::unique_ptr<SoWgpuRenderTarget> childTarget(
         SoWgpuRenderTargetP::createDirectOffscreen(pass.size));
       if (!childTarget || childTarget->getStatus() != SoWgpuRenderTarget::TARGET_READY) {
@@ -611,6 +685,15 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
         return;
       }
       const uint64_t token = childTarget->pimpl->directTextureToken;
+#else
+      uint64_t token = 0;
+      FrameExecutionResult result = directBgfx->submitDirectTexture(
+        childFrame, pass.size, pass.producerKey, token);
+      if (result.status != BackendStatus::SUCCESS) {
+        setGraphFailure(result);
+        return;
+      }
+#endif
       if (!token) {
         this->setDiagnostic(SoWgpuDiagnosticShell::action(
           SoWgpuRenderAction::BACKEND_ERROR,
@@ -677,6 +760,9 @@ SoWgpuRenderActionP::initCallbacks()
   this->master->addPointCallback(SoShape::getClassTypeId(), pointCB, this);
 
   this->master->addPreCallback(SoLight::getClassTypeId(), lightPreCB, this);
+  this->master->addPreCallback(SoDepthBuffer::getClassTypeId(), depthBufferPreCB, this);
+  this->master->addPreCallback(SoAnnotation::getClassTypeId(), annotationPreCB, this);
+  this->master->addPostCallback(SoAnnotation::getClassTypeId(), annotationPostCB, this);
   this->master->addPreCallback(SoSceneTexture2::getClassTypeId(), sceneTexturePreCB, this);
   this->master->addPreCallback(SoIndexedFaceSet::getClassTypeId(), indexedFaceSetPreCB, this);
   this->master->addPreCallback(SoIndexedLineSet::getClassTypeId(), indexedLineSetPreCB, this);
@@ -751,7 +837,7 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
   }
 
   bool useDirect = false;
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_WGPU_RUST_BRIDGE) || defined(HAVE_WGPU_BGFX)
   const char * directMode = std::getenv("COIN_WGPU_RTT_GPU_DIRECT");
   useDirect = p->directPasses &&
               directMode && directMode[0] == '1' && directMode[1] == '\0';
@@ -795,6 +881,15 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
 
   if (!useDirect) *p->sceneTextureStagedBytes += chargedBytes;
   const SbVec4f background = texture->backgroundColor.getValue();
+#if defined(HAVE_WGPU_BGFX)
+  // The evaluation backend owns a process-wide BGFX singleton. Release a
+  // previously prepared parent before executing staged child passes; the
+  // parent will be prepared again when its completed frame is submitted.
+  if (!useDirect && p->target != NULL &&
+      dynamic_cast<SoWgpuBgfxBackend *>(p->target->getPimpl()->backend.get()) != NULL) {
+    p->target->getPimpl()->backend.reset();
+  }
+#endif
   std::unique_ptr<SoWgpuRenderTarget> childTarget;
   if (!useDirect) {
     childTarget.reset(SoWgpuRenderTarget::createOffscreen(SbVec2i32(size[0], size[1])));
@@ -804,12 +899,22 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
         SbString("Cannot create SoSceneTexture2 offscreen target")));
       return SoCallbackAction::ABORT;
     }
+    // The staged SoSceneTexture2 path consumes RGBA8 only. Keeping the
+    // default CPU depth output enabled would reject this otherwise valid
+    // color-only pass on backends such as BGFX that do not publish depth.
+    if (!childTarget->setDepthReadbackEnabled(FALSE)) {
+      p->setDiagnostic(SoWgpuDiagnosticShell::action(
+        SoWgpuRenderAction::BACKEND_ERROR, SoWgpuDiagnosticDomain::TARGET,
+        SbString("Cannot configure SoSceneTexture2 color-only offscreen target")));
+      return SoCallbackAction::ABORT;
+    }
   }
   SoWgpuRenderAction childAction(SbViewportRegion(size[0], size[1]));
   childAction.pimpl->sceneTextureDirectTokens = p->sceneTextureDirectTokens;
   childAction.pimpl->directPasses = p->directPasses;
   childAction.pimpl->planOnly = useDirect;
   childAction.setRenderTarget(childTarget.get());
+  childAction.setTransparencyType(p->transparencyType);
   childAction.setBackgroundColor(SbColor4f(background[0], background[1],
                                            background[2], background[3]));
   childAction.pimpl->sceneTextureStagedBytes = p->sceneTextureStagedBytes;
@@ -821,7 +926,7 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
     return SoCallbackAction::ABORT;
   }
 
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_WGPU_RUST_BRIDGE) || defined(HAVE_WGPU_BGFX)
   if (useDirect) {
     if (!p->directPasses || !childAction.pimpl->hasLastValidPlan) {
       p->setDiagnostic(SoWgpuDiagnosticShell::action(
@@ -850,6 +955,8 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
       SoWgpuRenderActionP::DirectPass pass;
       pass.plan = std::move(childAction.pimpl->lastValidPlan);
       pass.size = passSize;
+      pass.producerKey = static_cast<uint64_t>(
+        reinterpret_cast<uintptr_t>(texture));
       p->directPasses->push_back(std::move(pass));
       token = p->directPasses->size();
     }
@@ -908,6 +1015,38 @@ SoWgpuRenderActionP::sceneTexturePreCB(void * userdata,
 }
 
 SoCallbackAction::Response
+SoWgpuRenderActionP::depthBufferPreCB(void *, SoCallbackAction * action, const SoNode * node)
+{
+  const SoDepthBuffer * depth = static_cast<const SoDepthBuffer *>(node);
+  SoState * state = action->getState();
+  SbBool test = depth->test.isIgnored()
+    ? SoDepthBufferElement::getTestEnable(state) : depth->test.getValue();
+  SbBool write = depth->write.isIgnored()
+    ? SoDepthBufferElement::getWriteEnable(state) : depth->write.getValue();
+  SoDepthBufferElement::DepthWriteFunction function = depth->function.isIgnored()
+    ? SoDepthBufferElement::getFunction(state)
+    : static_cast<SoDepthBufferElement::DepthWriteFunction>(depth->function.getValue());
+  const SbVec2f range = depth->range.isIgnored()
+    ? SoDepthBufferElement::getRange(state) : depth->range.getValue();
+  SoDepthBufferElement::set(state, test, write, function, range);
+  return SoCallbackAction::CONTINUE;
+}
+
+SoCallbackAction::Response
+SoWgpuRenderActionP::annotationPreCB(void * userdata, SoCallbackAction *, const SoNode *)
+{
+  static_cast<SoWgpuRenderActionP *>(userdata)->builder.beginAnnotation();
+  return SoCallbackAction::CONTINUE;
+}
+
+SoCallbackAction::Response
+SoWgpuRenderActionP::annotationPostCB(void * userdata, SoCallbackAction *, const SoNode *)
+{
+  static_cast<SoWgpuRenderActionP *>(userdata)->builder.endAnnotation();
+  return SoCallbackAction::CONTINUE;
+}
+
+SoCallbackAction::Response
 SoWgpuRenderActionP::lightPreCB(void * userdata,
                                SoCallbackAction * action,
                                const SoNode * /*node*/)
@@ -924,6 +1063,12 @@ SoWgpuRenderActionP::indexedFaceSetPreCB(void * userdata,
 {
   SoWgpuRenderActionP * p = static_cast<SoWgpuRenderActionP *>(userdata);
   if (!p->fastPathEnabled) {
+    return SoCallbackAction::CONTINUE;
+  }
+
+  // The direct path bypasses the node virtual callback implementation.
+  // Subclasses may prepare traversal state there, so only prune the exact type.
+  if (node->getTypeId() != SoIndexedFaceSet::getClassTypeId()) {
     return SoCallbackAction::CONTINUE;
   }
 
@@ -1040,6 +1185,11 @@ SoWgpuRenderActionP::indexedLineSetPreCB(void * userdata,
 {
   SoWgpuRenderActionP * p = static_cast<SoWgpuRenderActionP *>(userdata);
   if (!p->fastPathEnabled) {
+    return SoCallbackAction::CONTINUE;
+  }
+
+  // Preserve callback semantics for subclasses; see indexedFaceSetPreCB().
+  if (node->getTypeId() != SoIndexedLineSet::getClassTypeId()) {
     return SoCallbackAction::CONTINUE;
   }
 

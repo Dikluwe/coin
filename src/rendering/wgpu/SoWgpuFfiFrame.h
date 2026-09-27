@@ -25,7 +25,8 @@ public:
 private:
   SoWgpuFfiFrame(const SoWgpuFfiFrame &);
   SoWgpuFfiFrame & operator=(const SoWgpuFfiFrame &);
-  bool packStates(const FramePlan & frame, std::string & outDiagnostic);
+  bool packStates(const FramePlan & frame, uint32_t targetWidth, uint32_t targetHeight,
+                  std::string & outDiagnostic);
   void bindView(const FramePlan & frame, uint32_t width, uint32_t height);
 
   uint64_t packedRevision;

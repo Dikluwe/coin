@@ -36,6 +36,13 @@
     } \
   } while (0)
 
+static SoWgpuRenderTarget * createColorTarget(int width, int height) {
+  SoWgpuRenderTarget * target =
+    SoWgpuRenderTarget::createOffscreen(SbVec2i32(width, height));
+  if (target) target->setDepthReadbackEnabled(FALSE);
+  return target;
+}
+
 // Helper to construct a textured quad (Z=0, square -1 to 1)
 static SoSeparator * createTexturedQuad(SoTexture2 * texNode, bool addTexCoords = true) {
   SoSeparator * sep = new SoSeparator;
@@ -115,11 +122,13 @@ static bool testTextureFormats1to4Components() {
     ASSERT_TRUE(recLog.find("texModel=MODULATE") != -1, "Recording log must indicate texModel=MODULATE");
 
     // Offscreen render verification
-    SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
+    SoWgpuRenderTarget * target = createColorTarget(64, 64);
     SoWgpuRenderAction action(SbViewportRegion(64, 64));
     action.setRenderTarget(target);
     action.apply(root);
 
+    if (action.getLastStatus() != SoWgpuRenderAction::SUCCESS)
+      std::cerr << "Texture render error: " << action.getLastError().getString() << "\n";
     ASSERT_TRUE(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
                 "Render of format must succeed");
 
@@ -165,7 +174,7 @@ static bool testAlphaTextureFormats() {
     texture->image.setValue(SbVec2s(4, 4), components, pixels);
     root->addChild(createTexturedQuad(texture));
 
-    SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
+    SoWgpuRenderTarget * target = createColorTarget(64, 64);
     SoWgpuRenderAction action(SbViewportRegion(64, 64));
     action.setBackgroundColor(SbColor4f(0, 0, 1, 1));
     action.setRenderTarget(target);
@@ -227,7 +236,7 @@ static bool testModulateModelStrict() {
 
   root->addChild(createTexturedQuad(tex, true));
 
-  SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
+  SoWgpuRenderTarget * target = createColorTarget(64, 64);
   SoWgpuRenderAction action(SbViewportRegion(64, 64));
   action.setRenderTarget(target);
   action.apply(root);
@@ -255,7 +264,7 @@ static bool testModulateModelStrict() {
 static bool testUnsupportedRejections() {
   std::cout << "-> Test 3: Strict UNSUPPORTED rejections outside the texture profile..." << std::endl;
 
-  // Case 3A: Alpha texture without explicit SORTED_OBJECT_BLEND mode
+  // Case 3A: Alpha texture uses Coin default SCREEN_DOOR object composition
   {
     SoSeparator * root = new SoSeparator;
     root->ref();
@@ -270,20 +279,18 @@ static bool testUnsupportedRejections() {
     tex->image.setValue(SbVec2s(4, 4), 4, rgbaSemi);
     root->addChild(createTexturedQuad(tex, true));
 
-    SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(32, 32));
+    SoWgpuRenderTarget * target = createColorTarget(32, 32);
     SoWgpuRenderAction action(SbViewportRegion(32, 32));
     action.setRenderTarget(target);
     action.apply(root);
 
-    ASSERT_TRUE(action.getLastStatus() == SoWgpuRenderAction::UNSUPPORTED,
-                "Alpha texture without supported composition mode must be rejected");
-    ASSERT_TRUE(std::strstr(action.getLastError().getString(), "SORTED_OBJECT_BLEND") != nullptr,
-                "Alpha rejection must identify the required composition mode");
+    ASSERT_TRUE(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+                "Alpha texture must use the default Coin composition mapping");
     delete target;
     root->unref();
   }
 
-  // Case 3B: Transparent textured material without explicit composition mode
+  // Case 3B: Transparent textured material uses the default composition mode
   {
     SoSeparator * root = new SoSeparator;
     root->ref();
@@ -297,15 +304,13 @@ static bool testUnsupportedRejections() {
     tex->image.setValue(SbVec2s(4, 4), 3, rgb);
     root->addChild(createTexturedQuad(tex, true));
 
-    SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(32, 32));
+    SoWgpuRenderTarget * target = createColorTarget(32, 32);
     SoWgpuRenderAction action(SbViewportRegion(32, 32));
     action.setRenderTarget(target);
     action.apply(root);
 
-    ASSERT_TRUE(action.getLastStatus() == SoWgpuRenderAction::UNSUPPORTED,
-                "Transparent textured material without supported composition mode must be rejected");
-    ASSERT_TRUE(std::strstr(action.getLastError().getString(), "SORTED_OBJECT_BLEND") != nullptr,
-                "Material rejection must identify the required composition mode");
+    ASSERT_TRUE(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+                "Transparent textured material must use the default composition mapping");
     delete target;
     root->unref();
   }
@@ -330,7 +335,7 @@ static bool testUnsupportedRejections() {
     ils->coordIndex.setValues(0, 3, indices);
     root->addChild(ils);
 
-    SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(32, 32));
+    SoWgpuRenderTarget * target = createColorTarget(32, 32);
     SoWgpuRenderAction action(SbViewportRegion(32, 32));
     action.setRenderTarget(target);
     action.apply(root);
@@ -341,24 +346,30 @@ static bool testUnsupportedRejections() {
     root->unref();
   }
 
-  // Case 3D: Unsupported texture model (e.g. REPLACE, DECAL, BLEND)
-  {
+  // Case 3D: all Coin texture environment models are captured and rendered.
+  const SoTexture2::Model models[] = {
+    SoTexture2::MODULATE, SoTexture2::REPLACE, SoTexture2::DECAL, SoTexture2::BLEND
+  };
+  const char * modelNames[] = {"MODULATE", "REPLACE", "DECAL", "BLEND"};
+  for (int modelIndex = 0; modelIndex < 4; ++modelIndex) {
     SoSeparator * root = new SoSeparator;
     root->ref();
     SoTexture2 * tex = new SoTexture2;
-    tex->model.setValue(SoTexture2::REPLACE); // REPLACE unsupported in 3B
+    tex->model.setValue(models[modelIndex]);
+    tex->blendColor.setValue(0.25f, 0.5f, 0.75f);
     unsigned char rgb[4 * 4 * 3];
     std::memset(rgb, 200, sizeof(rgb));
     tex->image.setValue(SbVec2s(4, 4), 3, rgb);
     root->addChild(createTexturedQuad(tex, true));
-
-    SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(32, 32));
+    SoWgpuRenderTarget * target = createColorTarget(32, 32);
     SoWgpuRenderAction action(SbViewportRegion(32, 32));
     action.setRenderTarget(target);
     action.apply(root);
-
-    ASSERT_TRUE(action.getLastStatus() == SoWgpuRenderAction::UNSUPPORTED,
-                "Model REPLACE must be rejected with UNSUPPORTED");
+    ASSERT_TRUE(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+                "Every Coin texture model must render");
+    const std::string log = action.getRecordingLog().getString();
+    ASSERT_TRUE(log.find(std::string("texModel=") + modelNames[modelIndex]) != std::string::npos,
+                "Recording must preserve the selected texture model");
     delete target;
     root->unref();
   }
@@ -371,7 +382,7 @@ static bool testUnsupportedRejections() {
     tex->filename.setValue("non_existent_file_dummy_test_123.png");
     root->addChild(createTexturedQuad(tex, true));
 
-    SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(32, 32));
+    SoWgpuRenderTarget * target = createColorTarget(32, 32);
     SoWgpuRenderAction action(SbViewportRegion(32, 32));
     action.setRenderTarget(target);
     action.apply(root);
@@ -396,7 +407,7 @@ static bool testUnsupportedRejections() {
     tex->image.setValue(SbVec2s(4, 4), 3, rgb);
     root->addChild(createTexturedQuad(tex, true));
 
-    SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(32, 32));
+    SoWgpuRenderTarget * target = createColorTarget(32, 32);
     SoWgpuRenderAction action(SbViewportRegion(32, 32));
     action.setRenderTarget(target);
     action.apply(root);
@@ -426,7 +437,7 @@ static bool testTextureCoordinatesExplicitVsProcedural() {
     // Quad without SoTextureCoordinate2 node
     root->addChild(createTexturedQuad(tex, /*addTexCoords=*/false));
 
-    SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(32, 32));
+    SoWgpuRenderTarget * target = createColorTarget(32, 32);
     SoWgpuRenderAction action(SbViewportRegion(32, 32));
     action.setRenderTarget(target);
     action.apply(root);
@@ -472,7 +483,7 @@ static bool testTextureCoordinatesExplicitVsProcedural() {
     ifs->textureCoordIndex.setValues(0, 5, badTexIndices);
     root->addChild(ifs);
 
-    SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(32, 32));
+    SoWgpuRenderTarget * target = createColorTarget(32, 32);
     SoWgpuRenderAction action(SbViewportRegion(32, 32));
     action.setRenderTarget(target);
     action.apply(root);
@@ -517,7 +528,7 @@ static bool testTextureTransformAndWrap() {
   ASSERT_TRUE(log.find("texMat:") != -1, "Recording log must contain texMat");
 
   // Offscreen render verification
-  SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(32, 32));
+  SoWgpuRenderTarget * target = createColorTarget(32, 32);
   SoWgpuRenderAction action(SbViewportRegion(32, 32));
   action.setRenderTarget(target);
   action.apply(root);
@@ -571,7 +582,7 @@ static bool testMultipleDrawsDifferentTextures() {
               "Draws must bind different texture slots");
 
   // Offscreen render verification
-  SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
+  SoWgpuRenderTarget * target = createColorTarget(64, 64);
   SoWgpuRenderAction action(SbViewportRegion(64, 64));
   action.setRenderTarget(target);
   action.apply(root);
@@ -621,7 +632,7 @@ static bool testTextureDeduplicationAndCache() {
               "Different wrap modes must produce 2 sampler entries");
 
   // Offscreen render verification
-  SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
+  SoWgpuRenderTarget * target = createColorTarget(64, 64);
   SoWgpuRenderAction action(SbViewportRegion(64, 64));
   action.setRenderTarget(target);
   action.apply(root);
@@ -662,7 +673,7 @@ static bool testQualityZeroDisablesTexture() {
               "Recording log must indicate hasTex=0 when quality is 0.0");
 
   // Offscreen render verification
-  SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(32, 32));
+  SoWgpuRenderTarget * target = createColorTarget(32, 32);
   SoWgpuRenderAction action(SbViewportRegion(32, 32));
   action.setRenderTarget(target);
   action.apply(root);

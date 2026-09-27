@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 17
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 18
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -128,6 +128,8 @@ typedef struct CoinWgpuRenderState {
   uint32_t texture_slot;
   uint32_t sampler_slot;
   uint32_t texture_model;
+  float texture_blend_color[4];
+  int32_t viewport[4]; /* WebGPU top-left x, y, width, height */
   uint32_t light_count;
   float ambient_light[4];
   CoinWgpuLight lights[COIN_WGPU_FFI_MAX_LIGHTS];
@@ -135,6 +137,10 @@ typedef struct CoinWgpuRenderState {
   float fog_color[3];
   float fog_start;
   float fog_end;
+  uint32_t depth_test;
+  uint32_t depth_write;
+  uint32_t depth_function; /* 0=Never, 1=Always, 2=Less, 3=LessEqual, 4=Equal, 5=GreaterEqual, 6=Greater, 7=NotEqual */
+  float depth_range[2];
 } CoinWgpuRenderState;
 
 typedef struct CoinWgpuFrameView {

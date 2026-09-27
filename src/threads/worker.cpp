@@ -73,13 +73,20 @@ worker_thread_loop(cc_worker * worker)
   cc_condvar_wake_one(worker->begincond);
   cc_mutex_unlock(worker->beginmutex);
 
-  while (!worker->shutdown) {
-    /* wait for job */
-    cc_condvar_wait(worker->cond, worker->mutex);
-    /* check if there are more jobs */
-    if (!worker->shutdown) {
+  while (!worker->shutdown || worker->haswork) {
+    /* A condition variable can wake without a matching signal. Keep a
+       separate predicate so that such wakeups cannot repeat the last job. */
+    while (!worker->haswork && !worker->shutdown) {
+      cc_condvar_wait(worker->cond, worker->mutex);
+    }
+    if (worker->haswork) {
+      cc_worker_f * workfunc = worker->workfunc;
+      void * workclosure = worker->workclosure;
+      worker->haswork = FALSE;
+      worker->workfunc = NULL;
+      worker->workclosure = NULL;
       /* do the scheduled job */
-      worker->workfunc(worker->workclosure);
+      workfunc(workclosure);
       /* call the idle cb */
       if (worker->idlecb) {
         worker->idlecb(worker, worker->idleclosure);
@@ -87,7 +94,9 @@ worker_thread_loop(cc_worker * worker)
     }
   }
 
+  worker->haswork = FALSE;
   worker->workfunc = NULL;
+  worker->workclosure = NULL;
   /* remember to unlock mutex after we break out of the loop */
   cc_mutex_unlock(worker->mutex);
 }
@@ -163,6 +172,7 @@ cc_worker_construct(void)
   worker->thread = NULL; /* delay creating thread */
   worker->threadisrunning = FALSE;
   worker->shutdown = FALSE;
+  worker->haswork = FALSE;
   worker->workfunc = NULL;
   worker->workclosure = NULL;
   worker->idlecb = NULL;
@@ -194,8 +204,7 @@ cc_worker_destruct(cc_worker * worker)
 SbBool 
 cc_worker_start(cc_worker * worker, cc_worker_f * workfunc, void * closure)
 {
-  assert(workfunc);
-
+  if (workfunc == NULL) return FALSE;
   cc_mutex_lock(worker->mutex);  
   worker->workfunc = workfunc;
   worker->workclosure = closure;
@@ -203,7 +212,8 @@ cc_worker_start(cc_worker * worker, cc_worker_f * workfunc, void * closure)
   if (!worker->threadisrunning) {
     worker_start_thread(worker);
   }
-  
+
+  worker->haswork = TRUE;
   /* We now know that thread is waiting for a signal */
   cc_condvar_wake_one(worker->cond);
   cc_mutex_unlock(worker->mutex);
@@ -244,3 +254,32 @@ cc_worker_set_idle_callback(cc_worker * worker, cc_worker_idle_f * cb,
 #ifdef __cplusplus
 } /* extern "C" */
 #endif /* __cplusplus */
+
+#ifdef COIN_TEST_SUITE
+
+static void
+worker_test_callback(void * closure)
+{
+  int * calls = static_cast<int *>(closure);
+  (*calls)++;
+}
+
+BOOST_AUTO_TEST_CASE(cc_worker_rejects_null_and_runs_each_task_once)
+{
+  cc_worker * worker = cc_worker_construct();
+  int calls = 0;
+
+  BOOST_CHECK(!cc_worker_start(worker, NULL, NULL));
+
+  BOOST_CHECK(cc_worker_start(worker, worker_test_callback, &calls));
+  cc_worker_wait(worker);
+  BOOST_CHECK_EQUAL(calls, 1);
+
+  BOOST_CHECK(cc_worker_start(worker, worker_test_callback, &calls));
+  cc_worker_wait(worker);
+  BOOST_CHECK_EQUAL(calls, 2);
+
+  cc_worker_destruct(worker);
+}
+
+#endif // COIN_TEST_SUITE

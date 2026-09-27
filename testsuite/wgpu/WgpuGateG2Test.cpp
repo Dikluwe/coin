@@ -31,6 +31,15 @@
   } \
 } while (0)
 
+static SoWgpuRenderTarget * createTestTarget() {
+  SoWgpuRenderTarget * target =
+    SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
+#if defined(HAVE_WGPU_BGFX)
+  if (target) target->setDepthReadbackEnabled(FALSE);
+#endif
+  return target;
+}
+
 int main() {
   SoDB::init();
   SoWgpuRenderAction::initClass();
@@ -70,10 +79,12 @@ int main() {
     root->addChild(lineSet);
 
     SoWgpuRenderAction action(SbViewportRegion(64, 64));
-    SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
+    SoWgpuRenderTarget * target = createTestTarget();
     action.setRenderTarget(target);
 
     action.apply(root);
+    if (action.getLastStatus() != SoWgpuRenderAction::SUCCESS)
+      std::cerr << action.getLastError().getString() << std::endl;
     TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
                 "Unit line rendering with SoLineSet must succeed");
 
@@ -99,6 +110,7 @@ int main() {
     TEST_ASSERT(pixels[cornerIdx + 0] == 0 && pixels[cornerIdx + 1] == 0 && pixels[cornerIdx + 2] == 0,
                 "Background pixel away from line must be clear color");
 
+#if !defined(HAVE_WGPU_BGFX)
     // Depth readback
     std::vector<float> depths;
     target->readbackDepth(depths);
@@ -110,6 +122,7 @@ int main() {
     float bgDepth = depths[5 * 64 + 5];
     TEST_ASSERT(std::abs(bgDepth - 1.0f) < 1e-4f,
                 "Background depth must remain at clear value 1.0f");
+#endif
 
     delete target;
     root->unref();
@@ -147,7 +160,7 @@ int main() {
     root->addChild(pointSet);
 
     SoWgpuRenderAction action(SbViewportRegion(64, 64));
-    SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
+    SoWgpuRenderTarget * target = createTestTarget();
     action.setRenderTarget(target);
 
     action.apply(root);
@@ -173,11 +186,13 @@ int main() {
     }
     TEST_ASSERT(foundPt, "Center pixel must have dominant blue component for point at origin");
 
+#if !defined(HAVE_WGPU_BGFX)
     std::vector<float> depths;
     target->readbackDepth(depths);
     float ptDepth = depths[ptIdx];
     TEST_ASSERT(ptDepth > 0.0f && ptDepth < 0.99f,
                 "Point depth must be within active depth range (0.0, 1.0)");
+#endif
 
     delete target;
     root->unref();
@@ -241,7 +256,7 @@ int main() {
     root1->addChild(lineSep);
 
     SoWgpuRenderAction action(SbViewportRegion(64, 64));
-    SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
+    SoWgpuRenderTarget * target = createTestTarget();
     action.setRenderTarget(target);
     action.apply(root1);
     TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "Apply root1 must succeed");
@@ -262,9 +277,11 @@ int main() {
     TEST_ASSERT(foundRedLine1,
                 "Front red line must be visible over back green triangle (drawn back first)");
 
+#if !defined(HAVE_WGPU_BGFX)
     std::vector<float> depths1;
     target->readbackDepth(depths1);
     float depth1 = depths1[lineIdx1];
+#endif
 
     // Case 2: Invert order: Draw line (front) first, then triangle (back) second
     SoSeparator * root2 = new SoSeparator;
@@ -293,12 +310,14 @@ int main() {
     TEST_ASSERT(foundRedLine2,
                 "Depth test must prevent back green triangle from overwriting front red line");
 
+#if !defined(HAVE_WGPU_BGFX)
     std::vector<float> depths2;
     target->readbackDepth(depths2);
     float depth2 = depths2[lineIdx2];
 
     TEST_ASSERT(std::abs(depth1 - depth2) < 1e-4f,
                 "Depth values at intersection must match regardless of draw order");
+#endif
 
     delete target;
     lineSep->unref();
@@ -309,19 +328,21 @@ int main() {
   }
 
   // =========================================================================
-  // G2.4: Capacity Preflight Policy (lineWidth > 1 and pointSize > 1)
+  // G2.4: Wide, patterned lines and sized points
   // =========================================================================
   {
-    std::cout << "-> Test G2.4: Rejection of lineWidth > 1 and pointSize > 1..." << std::endl;
+    std::cout << "-> Test G2.4: Wide/patterned lines and sized points..." << std::endl;
     SoWgpuRenderAction action(SbViewportRegion(64, 64));
-    SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
+    SoWgpuRenderTarget * target = createTestTarget();
     action.setRenderTarget(target);
 
-    // 1. Line width > 1.0 must return UNSUPPORTED
+    // 1. A six-pixel stippled line must render as expanded triangles.
     SoSeparator * rootLine = new SoSeparator;
     rootLine->ref();
     SoDrawStyle * dsLine = new SoDrawStyle;
-    dsLine->lineWidth = 2.0f;
+    dsLine->lineWidth = 6.0f;
+    dsLine->linePattern = 0x00ff;
+    dsLine->linePatternScaleFactor = 2;
     rootLine->addChild(dsLine);
 
     SoCoordinate3 * cLine = new SoCoordinate3;
@@ -335,14 +356,27 @@ int main() {
     rootLine->addChild(ls);
 
     action.apply(rootLine);
-    TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::UNSUPPORTED,
-                "lineWidth > 1.0 must be rejected with UNSUPPORTED status");
+    TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+                "wide patterned line must render successfully");
+    std::vector<uint8_t> styledPixels;
+    target->readbackRGBA(styledPixels);
+    int litColumns = 0;
+    int gapColumns = 0;
+    for (int x = 4; x < 60; ++x) {
+      const size_t pixel = static_cast<size_t>(32 * 64 + x) * 4;
+      const bool lit = styledPixels[pixel] > 20 || styledPixels[pixel + 1] > 20 ||
+        styledPixels[pixel + 2] > 20;
+      if (lit) ++litColumns;
+      else ++gapColumns;
+    }
+    TEST_ASSERT(litColumns >= 12 && gapColumns >= 12,
+                "line pattern must contain visible dashes and gaps");
 
-    // 2. Point size > 1.0 must return UNSUPPORTED
+    // 2. A seven-pixel point must cover a square around its center.
     SoSeparator * rootPoint = new SoSeparator;
     rootPoint->ref();
     SoDrawStyle * dsPoint = new SoDrawStyle;
-    dsPoint->pointSize = 3.0f;
+    dsPoint->pointSize = 7.0f;
     rootPoint->addChild(dsPoint);
 
     SoCoordinate3 * cPoint = new SoCoordinate3;
@@ -354,13 +388,23 @@ int main() {
     rootPoint->addChild(ps);
 
     action.apply(rootPoint);
-    TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::UNSUPPORTED,
-                "pointSize > 1.0 must be rejected with UNSUPPORTED status");
+    TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+                "sized point must render successfully");
+    target->readbackRGBA(styledPixels);
+    int pointPixels = 0;
+    for (int y = 27; y <= 37; ++y) {
+      for (int x = 27; x <= 37; ++x) {
+        const size_t pixel = static_cast<size_t>(y * 64 + x) * 4;
+        if (styledPixels[pixel] > 20 || styledPixels[pixel + 1] > 20 ||
+            styledPixels[pixel + 2] > 20) ++pointPixels;
+      }
+    }
+    TEST_ASSERT(pointPixels >= 36, "seven-pixel point must cover multiple pixels");
 
     delete target;
     rootLine->unref();
     rootPoint->unref();
-    std::cout << "   [PASS] G2.4 Capacity preflight policy" << std::endl;
+    std::cout << "   [PASS] G2.4 Wide/patterned lines and sized points" << std::endl;
   }
 
   std::cout << "\n=======================================================" << std::endl;

@@ -254,6 +254,9 @@ if(COIN_BUILD_WGPU)
 	add_test(NAME WgpuBgfxCoreTest COMMAND WgpuBgfxCoreTest)
 	set_tests_properties(WgpuBgfxCoreTest PROPERTIES TIMEOUT 30)
 	if(COIN_WGPU_BACKEND STREQUAL "BGFX")
+		add_test(NAME WgpuProductOpenGLTest COMMAND WgpuProductTest)
+		set_tests_properties(WgpuProductOpenGLTest PROPERTIES TIMEOUT 30
+			ENVIRONMENT "COIN_BGFX_RENDERER=opengl")
 		add_executable(WgpuBgfxOffscreenTest wgpu/WgpuBgfxOffscreenTest.cpp)
 		set_target_properties(WgpuBgfxOffscreenTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 		target_link_libraries(WgpuBgfxOffscreenTest CoinWgpuExperimental Coin)
@@ -319,6 +322,12 @@ if(COIN_BUILD_WGPU)
 			add_test(NAME WgpuBgfxWindowOpenGLTest COMMAND WgpuBgfxWindowTest)
 			set_tests_properties(WgpuBgfxWindowOpenGLTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77
 				ENVIRONMENT "COIN_BGFX_RENDERER=opengl")
+			add_test(NAME WgpuBgfxRenderManagerAdapterTest COMMAND WgpuBgfxWindowTest)
+			set_tests_properties(WgpuBgfxRenderManagerAdapterTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77
+				ENVIRONMENT "COIN_BGFX_TEST_RENDER_MANAGER_ADAPTER=1")
+			add_test(NAME WgpuBgfxRenderManagerAdapterOpenGLTest COMMAND WgpuBgfxWindowTest)
+			set_tests_properties(WgpuBgfxRenderManagerAdapterOpenGLTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77
+				ENVIRONMENT "COIN_BGFX_TEST_RENDER_MANAGER_ADAPTER=1;COIN_BGFX_RENDERER=opengl")
 		endif()
 	endif()
 

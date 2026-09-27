@@ -78,10 +78,44 @@ main()
 
   SoWgpuBgfxPhaseSample bgfxPhase;
   bgfxPhase.cameraPatchUsed = true;
+  bgfxPhase.materialPatchUsed = true;
+  bgfxPhase.materialPatchRanges = 2;
+  bgfxPhase.materialPatchVertices = 6;
   bgfxPhase.resourceCacheHit = true;
+  bgfxPhase.textureCacheHit = true;
+  bgfxPhase.geometryBufferReused = true;
+  bgfxPhase.vertexBufferCapacity = 512;
+  bgfxPhase.indexBufferCapacity = 1024;
   bgfxPhase.readWaitFrames = 3;
+  bgfxPhase.readbackPipelineDepth = 3;
+  bgfxPhase.readbackLatencyFrames = 2;
+  bgfxPhase.readbackPipelineBytes = 12288;
+  bgfxPhase.readbackGpuStagingBytes = 6144;
+  bgfxPhase.readbackCpuStagingBytes = 6144;
+  bgfxPhase.readbackPublishedBytes = 2048;
+  bgfxPhase.readbackBootstrap = true;
   bgfxPhase.gpuTimingRequested = true;
   bgfxPhase.gpuFrameMs = 0.125;
+  bgfxPhase.gpuOpaqueMs = 0.025;
+  bgfxPhase.gpuTransparentMs = 0.05;
+  bgfxPhase.gpuCompositeMs = 0.0125;
+  bgfxPhase.gpuBlitReadbackMs = 0.02;
+  bgfxPhase.gpuWaitMs = 0.01;
+  bgfxPhase.gpuPassFrame = 7;
+  bgfxPhase.gpuResourceStatsAvailable = true;
+  bgfxPhase.gpuDrawSubmits = 9;
+  bgfxPhase.opaqueDraws = 3;
+  bgfxPhase.transparentDraws = 2;
+  bgfxPhase.logicalPipelineChanges = 2;
+  bgfxPhase.logicalMaterialChanges = 3;
+  bgfxPhase.logicalTextureChanges = 2;
+  bgfxPhase.logicalLightingChanges = 1;
+  bgfxPhase.opaqueGroupingEnabled = true;
+  bgfxPhase.opaqueOrderChanged = true;
+  bgfxPhase.gpuMemoryUsedBytes = 1024;
+  bgfxPhase.textureMemoryUsedBytes = 512;
+  bgfxPhase.renderTargetMemoryUsedBytes = 256;
+  bgfxPhase.gpuTextures = 4;
   bgfxPhase.drawEncodeMs = 0.25;
   bgfxPhase.blitEncodeMs = 0.375;
   bgfxPhase.gpuQueryDrainMs = 0.05;
@@ -90,12 +124,44 @@ main()
   bgfxPhase.rowFlipMs = 0.125;
   const std::string bgfxTrace = SoWgpuDiagnosticShell::formatBgfxPhase(bgfxPhase);
   ok &= check(bgfxTrace.find("camera_patch=1") != std::string::npos &&
+              bgfxTrace.find("material_patch=1") != std::string::npos &&
+              bgfxTrace.find("material_patch_ranges=2") != std::string::npos &&
+              bgfxTrace.find("material_patch_vertices=6") != std::string::npos &&
+              bgfxTrace.find("texture_cache_hit=1") != std::string::npos &&
+              bgfxTrace.find("geometry_buffer_reused=1") != std::string::npos &&
+              bgfxTrace.find("vertex_buffer_capacity=512") != std::string::npos &&
+              bgfxTrace.find("index_buffer_capacity=1024") != std::string::npos &&
               bgfxTrace.find("read_wait_frames=3") != std::string::npos &&
+              bgfxTrace.find("readback_pipeline_depth=3") != std::string::npos &&
+              bgfxTrace.find("readback_latency_frames=2") != std::string::npos &&
+              bgfxTrace.find("readback_pipeline_bytes=12288") != std::string::npos &&
+              bgfxTrace.find("readback_gpu_staging_bytes=6144") != std::string::npos &&
+              bgfxTrace.find("readback_cpu_staging_bytes=6144") != std::string::npos &&
+              bgfxTrace.find("readback_published_bytes=2048") != std::string::npos &&
+              bgfxTrace.find("readback_bootstrap=1") != std::string::npos &&
               bgfxTrace.find("draw_encode_ms=0.250000") != std::string::npos &&
               bgfxTrace.find("blit_encode_ms=0.375000") != std::string::npos &&
               bgfxTrace.find("frame_wait_ms=0.500000") != std::string::npos &&
               bgfxTrace.find("row_flip_ms=0.125000") != std::string::npos &&
               bgfxTrace.find("gpu_frame_ms=0.125000") != std::string::npos &&
+              bgfxTrace.find("gpu_opaque_ms=0.025000") != std::string::npos &&
+              bgfxTrace.find("gpu_transparent_ms=0.050000") != std::string::npos &&
+              bgfxTrace.find("gpu_composite_ms=0.012500") != std::string::npos &&
+              bgfxTrace.find("gpu_blit_readback_ms=0.020000") != std::string::npos &&
+              bgfxTrace.find("gpu_wait_ms=0.010000") != std::string::npos &&
+              bgfxTrace.find("gpu_pass_frame=7") != std::string::npos &&
+              bgfxTrace.find("gpu_resource_stats=1") != std::string::npos &&
+              bgfxTrace.find("gpu_draw_submits=9") != std::string::npos &&
+              bgfxTrace.find("opaque_draws=3") != std::string::npos &&
+              bgfxTrace.find("transparent_draws=2") != std::string::npos &&
+              bgfxTrace.find("opaque_grouping=1") != std::string::npos &&
+              bgfxTrace.find("opaque_reordered=1") != std::string::npos &&
+              bgfxTrace.find("logical_pipeline_changes=2") != std::string::npos &&
+              bgfxTrace.find("logical_material_changes=3") != std::string::npos &&
+              bgfxTrace.find("logical_texture_changes=2") != std::string::npos &&
+              bgfxTrace.find("logical_lighting_changes=1") != std::string::npos &&
+              bgfxTrace.find("gpu_memory_used_bytes=1024") != std::string::npos &&
+              bgfxTrace.find("gpu_textures=4") != std::string::npos &&
               bgfxTrace.find("gpu_query_frames=1") != std::string::npos,
               "BGFX phase trace lost camera or GPU timing fields");
   bgfxPhase.gpuFrameMs = -1.0;

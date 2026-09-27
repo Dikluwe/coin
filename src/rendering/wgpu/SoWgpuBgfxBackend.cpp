@@ -23,29 +23,117 @@
 #include "coin_bgfx_fs_weighted_composite_glsl.h"
 #include "coin_bgfx_fs_weighted_composite_spirv.h"
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <limits>
+#include <mutex>
 #include <utility>
 
 namespace {
 std::atomic<bool> bgfxInUse(false);
 
+class CoinBgfxCallback : public bgfx::CallbackI {
+public:
+  CoinBgfxCallback() : fatalCode(-1) { this->fatalMessage[0] = 0; }
+
+  void fatal(const char * filePath, uint16_t line, bgfx::Fatal::Enum code,
+             const char * message) override
+  {
+    {
+      std::lock_guard<std::mutex> guard(this->messageMutex);
+      std::snprintf(this->fatalMessage, sizeof(this->fatalMessage),
+        "BGFX fatal %d at %s:%u: %s", static_cast<int>(code),
+        filePath ? filePath : "unknown", static_cast<unsigned int>(line),
+        message ? message : "no diagnostic");
+    }
+    this->fatalCode.store(static_cast<int>(code), std::memory_order_release);
+  }
+
+  void traceVargs(const char * filePath, uint16_t line, const char * format,
+                  va_list args) override
+  {
+    std::fprintf(stderr, "BGFX %s:%u: ", filePath ? filePath : "unknown",
+                 static_cast<unsigned int>(line));
+    std::vfprintf(stderr, format, args);
+  }
+
+  void profilerBegin(const char *, uint32_t, const char *, uint16_t) override {}
+  void profilerBeginLiteral(const char *, uint32_t, const char *, uint16_t) override {}
+  void profilerEnd() override {}
+  uint32_t cacheReadSize(uint64_t) override { return 0; }
+  bool cacheRead(uint64_t, void *, uint32_t) override { return false; }
+  void cacheWrite(uint64_t, const void *, uint32_t) override {}
+  void screenShot(const char *, uint32_t, uint32_t, uint32_t,
+                  bgfx::TextureFormat::Enum, const void *, uint32_t, bool) override {}
+  void captureBegin(uint32_t, uint32_t, uint32_t,
+                    bgfx::TextureFormat::Enum, bool) override {}
+  void captureEnd() override {}
+  void captureFrame(const void *, uint32_t) override {}
+
+  bool failed() const
+  {
+    return this->fatalCode.load(std::memory_order_acquire) >= 0;
+  }
+
+  bool deviceLost() const
+  {
+    return this->fatalCode.load(std::memory_order_acquire) ==
+      static_cast<int>(bgfx::Fatal::DeviceLost);
+  }
+
+  std::string diagnostic() const
+  {
+    std::lock_guard<std::mutex> guard(this->messageMutex);
+    return this->fatalMessage;
+  }
+
+  void inject(bgfx::Fatal::Enum code, const char * message)
+  {
+    this->fatal("Coin fault injection", 0, code, message);
+  }
+
+private:
+  std::atomic<int> fatalCode;
+  mutable std::mutex messageMutex;
+  char fatalMessage[512];
+};
+
+bool consumeTestFault(const char * name)
+{
+  const char * value = std::getenv(name);
+  if (value == nullptr || std::strcmp(value, "1") != 0) return false;
+  // The BGFX evaluation is Linux-only. Consuming the flag makes recovery
+  // deterministic: the replacement backend must not inherit the same fault.
+  unsetenv(name);
+  return true;
+}
+
 uint64_t drawState(const SoWgpuBgfxDraw & draw)
 {
-  uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A |
-                   BGFX_STATE_DEPTH_TEST_LESS;
+  uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A;
+  if (draw.depthTest) {
+    switch (draw.depthFunction) {
+    case DepthFunction::NEVER: state |= BGFX_STATE_DEPTH_TEST_NEVER; break;
+    case DepthFunction::ALWAYS: state |= BGFX_STATE_DEPTH_TEST_ALWAYS; break;
+    case DepthFunction::LEQUAL: state |= BGFX_STATE_DEPTH_TEST_LEQUAL; break;
+    case DepthFunction::EQUAL: state |= BGFX_STATE_DEPTH_TEST_EQUAL; break;
+    case DepthFunction::GEQUAL: state |= BGFX_STATE_DEPTH_TEST_GEQUAL; break;
+    case DepthFunction::GREATER: state |= BGFX_STATE_DEPTH_TEST_GREATER; break;
+    case DepthFunction::NOTEQUAL: state |= BGFX_STATE_DEPTH_TEST_NOTEQUAL; break;
+    case DepthFunction::LESS: default: state |= BGFX_STATE_DEPTH_TEST_LESS; break;
+    }
+  }
+  if (draw.depthWrite) state |= BGFX_STATE_WRITE_Z;
   if (draw.blend) {
     state |= BGFX_STATE_BLEND_FUNC_SEPARATE(BGFX_STATE_BLEND_SRC_ALPHA,
       BGFX_STATE_BLEND_INV_SRC_ALPHA, BGFX_STATE_BLEND_ONE,
       BGFX_STATE_BLEND_INV_SRC_ALPHA);
-  } else {
-    state |= BGFX_STATE_WRITE_Z;
   }
-  // Coin's frontFace denotes the visible winding; BGFX state denotes the
+  // Coin.s frontFace denotes the visible winding; BGFX state denotes the
   // winding to discard. BGFX accounts for each renderer's target origin.
   if (draw.cullMode == CullMode::BACK) {
     state |= draw.frontFace == FrontFace::CCW ? BGFX_STATE_CULL_CW : BGFX_STATE_CULL_CCW;
@@ -53,6 +141,108 @@ uint64_t drawState(const SoWgpuBgfxDraw & draw)
     state |= draw.frontFace == FrontFace::CCW ? BGFX_STATE_CULL_CCW : BGFX_STATE_CULL_CW;
   }
   return state;
+}
+
+struct LogicalDrawStats {
+  uint32_t opaqueDraws = 0;
+  uint32_t transparentDraws = 0;
+  uint32_t pipelineChanges = 0;
+  uint32_t materialChanges = 0;
+  uint32_t textureChanges = 0;
+  uint32_t lightingChanges = 0;
+  bool opaqueOrderChanged = false;
+};
+
+bool samePipelineState(const SoWgpuBgfxDraw & lhs,
+                       const SoWgpuBgfxDraw & rhs)
+{
+  return drawState(lhs) == drawState(rhs) &&
+    std::memcmp(lhs.viewport, rhs.viewport, sizeof(lhs.viewport)) == 0;
+}
+
+bool sameTextureState(const SoWgpuBgfxDraw & lhs,
+                      const SoWgpuBgfxDraw & rhs)
+{
+  return lhs.hasTexture == rhs.hasTexture &&
+    lhs.textureSlot == rhs.textureSlot && lhs.textureModel == rhs.textureModel &&
+    lhs.wrapS == rhs.wrapS && lhs.wrapT == rhs.wrapT && lhs.filter == rhs.filter &&
+    std::memcmp(lhs.textureBlendColor, rhs.textureBlendColor,
+                sizeof(lhs.textureBlendColor)) == 0;
+}
+
+bool sameLightingState(const SoWgpuBgfxDraw & lhs,
+                       const SoWgpuBgfxDraw & rhs)
+{
+  return std::memcmp(lhs.ambientLight, rhs.ambientLight,
+                     sizeof(lhs.ambientLight)) == 0 &&
+    std::memcmp(lhs.lightCount, rhs.lightCount, sizeof(lhs.lightCount)) == 0 &&
+    std::memcmp(lhs.lightPositionType, rhs.lightPositionType,
+                sizeof(lhs.lightPositionType)) == 0 &&
+    std::memcmp(lhs.lightDirectionCutoff, rhs.lightDirectionCutoff,
+                sizeof(lhs.lightDirectionCutoff)) == 0 &&
+    std::memcmp(lhs.lightColorIntensity, rhs.lightColorIntensity,
+                sizeof(lhs.lightColorIntensity)) == 0 &&
+    std::memcmp(lhs.lightAttenuationDrop, rhs.lightAttenuationDrop,
+                sizeof(lhs.lightAttenuationDrop)) == 0;
+}
+
+LogicalDrawStats logicalDrawStats(
+  const std::vector<SoWgpuBgfxDraw> & original,
+  const std::vector<SoWgpuBgfxDraw> & encoded)
+{
+  LogicalDrawStats stats;
+  std::vector<uint32_t> originalOpaque;
+  std::vector<uint32_t> encodedOpaque;
+  const SoWgpuBgfxDraw * previous = nullptr;
+  for (const SoWgpuBgfxDraw & draw : original) {
+    if (!draw.blend) originalOpaque.push_back(draw.firstIndex);
+  }
+  for (const SoWgpuBgfxDraw & draw : encoded) {
+    if (draw.blend) ++stats.transparentDraws;
+    else {
+      ++stats.opaqueDraws;
+      encodedOpaque.push_back(draw.firstIndex);
+    }
+    if (!previous || !samePipelineState(*previous, draw)) ++stats.pipelineChanges;
+    if (!previous || previous->materialSignature != draw.materialSignature)
+      ++stats.materialChanges;
+    if (!previous || !sameTextureState(*previous, draw)) ++stats.textureChanges;
+    if (!previous || !sameLightingState(*previous, draw)) ++stats.lightingChanges;
+    previous = &draw;
+  }
+  stats.opaqueOrderChanged = originalOpaque != encodedOpaque;
+  return stats;
+}
+
+void copyLogicalDrawStats(const LogicalDrawStats & source,
+                          bool groupingEnabled,
+                          SoWgpuBgfxPhaseSample & destination)
+{
+  destination.opaqueDraws = source.opaqueDraws;
+  destination.transparentDraws = source.transparentDraws;
+  destination.logicalPipelineChanges = source.pipelineChanges;
+  destination.logicalMaterialChanges = source.materialChanges;
+  destination.logicalTextureChanges = source.textureChanges;
+  destination.logicalLightingChanges = source.lightingChanges;
+  destination.opaqueGroupingEnabled = groupingEnabled;
+  destination.opaqueOrderChanged = source.opaqueOrderChanged;
+}
+
+uint32_t pooledCapacity(size_t required)
+{
+  uint32_t capacity = 256;
+  while (capacity < required && capacity <= UINT32_MAX / 2u)
+    capacity *= 2u;
+  return capacity < required ? static_cast<uint32_t>(required) : capacity;
+}
+
+void setDrawScissor(const SoWgpuBgfxDraw & draw, int targetHeight)
+{
+  const int32_t top = targetHeight - draw.viewport[1] - draw.viewport[3];
+  bgfx::setScissor(static_cast<uint16_t>(draw.viewport[0]),
+                   static_cast<uint16_t>(top),
+                   static_cast<uint16_t>(draw.viewport[2]),
+                   static_cast<uint16_t>(draw.viewport[3]));
 }
 const uint8_t peelPasses = 4;
 const uint64_t peelTextureFlags = BGFX_TEXTURE_RT |
@@ -83,11 +273,72 @@ bgfx::ProgramHandle createLayerProgram(const uint8_t * vertexData,
   }
   return bgfx::createProgram(vs, fs, true);
 }
+
+bool captureGpuPasses(uint32_t submittedFrame, SoWgpuBgfxPhaseSample & sample)
+{
+  const bgfx::Stats * stats = bgfx::getStats();
+  if (!stats) return false;
+  sample.gpuResourceStatsAvailable = true;
+  if (stats->numDraw > sample.gpuDrawSubmits)
+    sample.gpuDrawSubmits = stats->numDraw;
+  sample.gpuMemoryUsedBytes = stats->gpuMemoryUsed >= 0 ? stats->gpuMemoryUsed : -1;
+  sample.textureMemoryUsedBytes = stats->textureMemoryUsed >= 0 ?
+    stats->textureMemoryUsed : -1;
+  sample.renderTargetMemoryUsedBytes = stats->rtMemoryUsed >= 0 ?
+    stats->rtMemoryUsed : -1;
+  sample.gpuVertexBuffers = stats->numVertexBuffers;
+  sample.gpuIndexBuffers = stats->numIndexBuffers;
+  sample.gpuTextures = stats->numTextures;
+  sample.gpuFrameBuffers = stats->numFrameBuffers;
+  sample.gpuPrograms = stats->numPrograms;
+  if (stats->gpuTimerFreq <= 0) return false;
+  const double gpuMilliseconds = 1000.0 / double(stats->gpuTimerFreq);
+  const bool targetFrame = stats->gpuFrameNum == submittedFrame &&
+    stats->gpuTimeEnd > stats->gpuTimeBegin;
+  if (targetFrame) {
+    sample.gpuFrameMs = double(stats->gpuTimeEnd - stats->gpuTimeBegin) *
+                        gpuMilliseconds;
+  }
+  if (stats->cpuTimerFreq > 0) {
+    sample.gpuWaitMs = double(stats->waitRender + stats->waitSubmit) *
+                       1000.0 / double(stats->cpuTimerFreq);
+  }
+  const auto add = [](double & total, double value) {
+    if (total < 0.0) total = 0.0;
+    total += value;
+  };
+  const bool needPasses = sample.gpuOpaqueMs < 0.0 &&
+    sample.gpuTransparentMs < 0.0 && sample.gpuCompositeMs < 0.0 &&
+    sample.gpuBlitReadbackMs < 0.0;
+  for (uint16_t index = 0; needPasses && index < stats->numViews; ++index) {
+    const bgfx::ViewStats & view = stats->viewStats[index];
+    if (view.gpuTimeEnd <= view.gpuTimeBegin) continue;
+    if (sample.gpuPassFrame == 0) sample.gpuPassFrame = view.gpuFrameNum;
+    if (view.gpuFrameNum != sample.gpuPassFrame) continue;
+    const double elapsed = double(view.gpuTimeEnd - view.gpuTimeBegin) *
+                           gpuMilliseconds;
+    if (std::strcmp(view.name, "opaque") == 0) {
+      add(sample.gpuOpaqueMs, elapsed);
+    } else if (std::strncmp(view.name, "transparent_accumulation", 24) == 0) {
+      add(sample.gpuTransparentMs, elapsed);
+    } else if (std::strcmp(view.name, "fullscreen_composition") == 0) {
+      add(sample.gpuCompositeMs, elapsed);
+    } else if (std::strcmp(view.name, "blit_readback") == 0) {
+      add(sample.gpuBlitReadbackMs, elapsed);
+    }
+  }
+  return targetFrame;
+}
 }
 
 SoWgpuBgfxBackend::SoWgpuBgfxBackend()
   : status(BackendStatus::NOT_READY), initialized(false), presentToWindow(false),
-    cameraPatchEnabled(true), transparencyMode(TransparencyMode::OBJECT), serial(0),
+    cameraPatchEnabled(true), drawGroupingEnabled(true), readbackPipelineDepth(1),
+    readbackCursor(0), readbackSequence(0),
+    transparencyMode(SoWgpuBgfxTransparencyMode::AUTO),
+    activeTransparencyStrategy(SoWgpuBgfxTransparencyStrategy::OBJECT),
+    weightedOitSupported(false), sortedLayersSupported(false), serial(0),
+    directTextureSerial(0),
     width(0), height(0), program(BGFX_INVALID_HANDLE),
     peelNextProgram(BGFX_INVALID_HANDLE), compositeProgram(BGFX_INVALID_HANDLE),
     weightedOitProgram(BGFX_INVALID_HANDLE),
@@ -96,28 +347,63 @@ SoWgpuBgfxBackend::SoWgpuBgfxBackend()
     previousColorSampler(BGFX_INVALID_HANDLE),
     layerSampler(BGFX_INVALID_HANDLE), oitAccumSampler(BGFX_INVALID_HANDLE),
     oitRevealSampler(BGFX_INVALID_HANDLE), depthInfoUniform(BGFX_INVALID_HANDLE),
+    textureSampler(BGFX_INVALID_HANDLE), textureParamsUniform(BGFX_INVALID_HANDLE),
+    textureBlendUniform(BGFX_INVALID_HANDLE),
+    ambientLightUniform(BGFX_INVALID_HANDLE), lightCountUniform(BGFX_INVALID_HANDLE),
+    lightPositionTypeUniform(BGFX_INVALID_HANDLE),
+    lightDirectionCutoffUniform(BGFX_INVALID_HANDLE),
+    lightColorIntensityUniform(BGFX_INVALID_HANDLE),
+    lightAttenuationDropUniform(BGFX_INVALID_HANDLE),
     fullscreenVertexBuffer(BGFX_INVALID_HANDLE),
     fullscreenIndexBuffer(BGFX_INVALID_HANDLE),
     frameBuffer(BGFX_INVALID_HANDLE), oitFrameBuffer(BGFX_INVALID_HANDLE),
-    readbackTexture(BGFX_INVALID_HANDLE),
+    readbackTexture(BGFX_INVALID_HANDLE), lastPublishedSequence(0),
+    defaultTexture(BGFX_INVALID_HANDLE),
     cachedRevision(0), cachedWidth(0), cachedHeight(0),
     cachedHomogeneousDepth(false), cachedVertexBuffer(BGFX_INVALID_HANDLE),
-    cachedIndexBuffer(BGFX_INVALID_HANDLE)
+    cachedIndexBuffer(BGFX_INVALID_HANDLE), cachedVertexCapacity(0),
+    cachedIndexCapacity(0)
 {
   for (uint8_t i = 0; i < peelPasses; ++i) this->peelFrameBuffers[i] = BGFX_INVALID_HANDLE;
   const char * disabled = std::getenv("COIN_BGFX_DISABLE_CAMERA_PATCH");
   this->cameraPatchEnabled = disabled == nullptr || std::strcmp(disabled, "1") != 0;
+  const char * groupingDisabled = std::getenv("COIN_BGFX_DISABLE_DRAW_GROUPING");
+  this->drawGroupingEnabled = groupingDisabled == nullptr ||
+    std::strcmp(groupingDisabled, "1") != 0;
+  const char * readbackDepth = std::getenv("COIN_BGFX_READBACK_PIPELINE_DEPTH");
+  if (readbackDepth && std::strcmp(readbackDepth, "2") == 0)
+    this->readbackPipelineDepth = 2;
+  else if (readbackDepth && std::strcmp(readbackDepth, "3") == 0)
+    this->readbackPipelineDepth = 3;
 }
 
 SoWgpuBgfxBackend::~SoWgpuBgfxBackend()
 {
+  this->shutdownRuntime();
+}
+
+BackendStatus
+SoWgpuBgfxBackend::checkRuntimeFailure(const char * operation)
+{
+  CoinBgfxCallback * cb = static_cast<CoinBgfxCallback *>(this->callback.get());
+  if (cb == nullptr || !cb->failed()) return BackendStatus::SUCCESS;
+  this->status = cb->deviceLost() ? BackendStatus::DEVICE_LOST :
+                                   BackendStatus::BACKEND_ERROR;
+  this->lastError = std::string(operation) + ": " + cb->diagnostic();
+  return this->status;
+}
+
+void
+SoWgpuBgfxBackend::destroyResources()
+{
   if (!this->initialized) return;
-  // bgfx is a process singleton and requires shutdown on its API thread.
-  if (!this->onApiThread()) {
-    std::fprintf(stderr, "BGFX evaluation: destroy the target on its API thread; global renderer left active\n");
-    return;
-  }
+  // Handles are no longer trustworthy after a fatal renderer/device error.
+  // bgfx::shutdown() owns their final release in that case.
+  CoinBgfxCallback * cb = static_cast<CoinBgfxCallback *>(this->callback.get());
+  if (cb != nullptr && cb->failed()) return;
   this->destroyFrameBuffers();
+  for (DirectTextureResource & resource : this->directTextures)
+    if (bgfx::isValid(resource.frameBuffer)) bgfx::destroy(resource.frameBuffer);
   if (bgfx::isValid(this->fullscreenVertexBuffer)) bgfx::destroy(this->fullscreenVertexBuffer);
   if (bgfx::isValid(this->fullscreenIndexBuffer)) bgfx::destroy(this->fullscreenIndexBuffer);
   if (bgfx::isValid(this->previousDepthSampler)) bgfx::destroy(this->previousDepthSampler);
@@ -126,6 +412,18 @@ SoWgpuBgfxBackend::~SoWgpuBgfxBackend()
   if (bgfx::isValid(this->depthInfoUniform)) bgfx::destroy(this->depthInfoUniform);
   if (bgfx::isValid(this->oitAccumSampler)) bgfx::destroy(this->oitAccumSampler);
   if (bgfx::isValid(this->oitRevealSampler)) bgfx::destroy(this->oitRevealSampler);
+  if (bgfx::isValid(this->textureSampler)) bgfx::destroy(this->textureSampler);
+  if (bgfx::isValid(this->textureParamsUniform)) bgfx::destroy(this->textureParamsUniform);
+  if (bgfx::isValid(this->textureBlendUniform)) bgfx::destroy(this->textureBlendUniform);
+  if (bgfx::isValid(this->ambientLightUniform)) bgfx::destroy(this->ambientLightUniform);
+  if (bgfx::isValid(this->lightCountUniform)) bgfx::destroy(this->lightCountUniform);
+  if (bgfx::isValid(this->lightPositionTypeUniform)) bgfx::destroy(this->lightPositionTypeUniform);
+  if (bgfx::isValid(this->lightDirectionCutoffUniform)) bgfx::destroy(this->lightDirectionCutoffUniform);
+  if (bgfx::isValid(this->lightColorIntensityUniform)) bgfx::destroy(this->lightColorIntensityUniform);
+  if (bgfx::isValid(this->lightAttenuationDropUniform)) bgfx::destroy(this->lightAttenuationDropUniform);
+  if (bgfx::isValid(this->defaultTexture)) bgfx::destroy(this->defaultTexture);
+  for (bgfx::TextureHandle texture : this->cachedTextures)
+    if (bgfx::isValid(texture)) bgfx::destroy(texture);
   if (bgfx::isValid(this->cachedVertexBuffer)) bgfx::destroy(this->cachedVertexBuffer);
   if (bgfx::isValid(this->cachedIndexBuffer)) bgfx::destroy(this->cachedIndexBuffer);
   if (bgfx::isValid(this->peelNextProgram)) bgfx::destroy(this->peelNextProgram);
@@ -133,7 +431,20 @@ SoWgpuBgfxBackend::~SoWgpuBgfxBackend()
   if (bgfx::isValid(this->program)) bgfx::destroy(this->program);
   if (bgfx::isValid(this->weightedOitProgram)) bgfx::destroy(this->weightedOitProgram);
   if (bgfx::isValid(this->weightedCompositeProgram)) bgfx::destroy(this->weightedCompositeProgram);
+}
+
+void
+SoWgpuBgfxBackend::shutdownRuntime()
+{
+  if (!this->initialized) return;
+  // bgfx is a process singleton and requires shutdown on its API thread.
+  if (!this->onApiThread()) {
+    std::fprintf(stderr, "BGFX evaluation: destroy the target on its API thread; global renderer left active\n");
+    return;
+  }
+  this->destroyResources();
   bgfx::shutdown();
+  this->initialized = false;
   bgfxInUse.store(false);
 }
 
@@ -156,19 +467,27 @@ SoWgpuBgfxBackend::prepare(SoWgpuRenderTargetP & target)
     return BackendStatus::UNSUPPORTED;
   }
   const char * transparencyMode = std::getenv("COIN_BGFX_TRANSPARENCY");
-  if (transparencyMode == nullptr || std::strcmp(transparencyMode, "object") == 0) {
-    this->transparencyMode = TransparencyMode::OBJECT;
+  if (transparencyMode == nullptr || std::strcmp(transparencyMode, "auto") == 0) {
+    this->transparencyMode = SoWgpuBgfxTransparencyMode::AUTO;
+  } else if (std::strcmp(transparencyMode, "object") == 0) {
+    this->transparencyMode = SoWgpuBgfxTransparencyMode::OBJECT;
   } else if (std::strcmp(transparencyMode, "sorted_layers") == 0) {
-    this->transparencyMode = TransparencyMode::SORTED_LAYERS;
+    this->transparencyMode = SoWgpuBgfxTransparencyMode::SORTED_LAYERS;
   } else if (std::strcmp(transparencyMode, "weighted_oit") == 0) {
-    this->transparencyMode = TransparencyMode::WEIGHTED_OIT;
+    this->transparencyMode = SoWgpuBgfxTransparencyMode::WEIGHTED_OIT;
   } else {
-    this->lastError = "COIN_BGFX_TRANSPARENCY must be object, sorted_layers, or weighted_oit";
+    this->lastError = "COIN_BGFX_TRANSPARENCY must be auto, object, weighted_oit, or sorted_layers";
     return BackendStatus::UNSUPPORTED;
   }
+  if (this->transparencyMode == SoWgpuBgfxTransparencyMode::WEIGHTED_OIT)
+    this->activeTransparencyStrategy = SoWgpuBgfxTransparencyStrategy::WEIGHTED_OIT;
+  else if (this->transparencyMode == SoWgpuBgfxTransparencyMode::SORTED_LAYERS)
+    this->activeTransparencyStrategy = SoWgpuBgfxTransparencyStrategy::SORTED_LAYERS;
+  else
+    this->activeTransparencyStrategy = SoWgpuBgfxTransparencyStrategy::OBJECT;
   bool expected = false;
   if (!bgfxInUse.compare_exchange_strong(expected, true)) {
-    this->lastError = "BGFX evaluation permits one active target per process";
+    this->lastError = "BGFX backend supports one active render target per process; destroy the prepared target on its API thread before preparing another";
     return BackendStatus::UNSUPPORTED;
   }
   const char * rendererFlag = std::getenv("COIN_BGFX_RENDERER");
@@ -182,6 +501,8 @@ SoWgpuBgfxBackend::prepare(SoWgpuRenderTargetP & target)
     useOpenGl ? bgfx::RendererType::OpenGL : bgfx::RendererType::Vulkan;
   bgfx::Init init;
   init.type = renderer;
+  this->callback.reset(new CoinBgfxCallback());
+  init.callback = this->callback.get();
   if (this->presentToWindow) {
     init.platformData.type = bgfx::NativeWindowHandleType::Default;
     init.swapChain.ndt = target.nativeDesc.native.xlib.display;
@@ -203,6 +524,11 @@ SoWgpuBgfxBackend::prepare(SoWgpuRenderTargetP & target)
   }
   this->initialized = true;
   this->apiThread = std::this_thread::get_id();
+  if (consumeTestFault("COIN_BGFX_TEST_FAIL_PREPARE_ONCE")) {
+    this->lastError = "Injected BGFX failure after runtime initialization";
+    this->status = BackendStatus::BACKEND_ERROR;
+    return this->status;
+  }
   const bgfx::Caps * caps = bgfx::getCaps();
   if (SoWgpuDiagnosticShell::phaseTracingEnabled()) {
     std::fprintf(stderr,
@@ -231,22 +557,22 @@ SoWgpuBgfxBackend::prepare(SoWgpuRenderTargetP & target)
     this->status = BackendStatus::UNSUPPORTED;
     return this->status;
   }
-  if (this->transparencyMode == TransparencyMode::SORTED_LAYERS &&
-      (!(caps->formats[bgfx::TextureFormat::RGBA8] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
-       !(caps->formats[bgfx::TextureFormat::D32F] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
-       !bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::D32F,
-                             peelTextureFlags))) {
+  this->sortedLayersSupported =
+    (caps->formats[bgfx::TextureFormat::RGBA8] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) &&
+    (caps->formats[bgfx::TextureFormat::D32F] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) &&
+    bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::D32F, peelTextureFlags);
+  this->weightedOitSupported =
+    (caps->supported & BGFX_CAPS_BLEND_INDEPENDENT) &&
+    caps->limits.maxFBAttachments >= 3 &&
+    bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA16F, peelTextureFlags) &&
+    bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::R16F, peelTextureFlags);
+
+  if (this->transparencyMode == SoWgpuBgfxTransparencyMode::SORTED_LAYERS && !this->sortedLayersSupported) {
     this->lastError = "BGFX sorted layers requires sampleable D32F and RGBA8 render targets";
     this->status = BackendStatus::UNSUPPORTED;
     return this->status;
   }
-  if (this->transparencyMode == TransparencyMode::WEIGHTED_OIT &&
-      (!(caps->supported & BGFX_CAPS_BLEND_INDEPENDENT) ||
-       caps->limits.maxFBAttachments < 2 ||
-       !bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA16F,
-                             peelTextureFlags) ||
-       !bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::R16F,
-                             peelTextureFlags))) {
+  if (this->transparencyMode == SoWgpuBgfxTransparencyMode::WEIGHTED_OIT && !this->weightedOitSupported) {
     this->lastError = "BGFX weighted OIT requires independent blending and sampleable RGBA16F/R16F render targets";
     this->status = BackendStatus::UNSUPPORTED;
     return this->status;
@@ -254,6 +580,13 @@ SoWgpuBgfxBackend::prepare(SoWgpuRenderTargetP & target)
   this->layout.begin()
     .add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
     .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Float)
+    .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
+    .add(bgfx::Attrib::TexCoord1, 3, bgfx::AttribType::Float)
+    .add(bgfx::Attrib::TexCoord2, 3, bgfx::AttribType::Float)
+    .add(bgfx::Attrib::Color1, 4, bgfx::AttribType::Float)
+    .add(bgfx::Attrib::Color2, 4, bgfx::AttribType::Float)
+    .add(bgfx::Attrib::Color3, 4, bgfx::AttribType::Float)
+    .add(bgfx::Attrib::TexCoord3, 2, bgfx::AttribType::Float)
     .end();
   bgfx::ShaderHandle vs = bgfx::createShader(useOpenGl ?
     bgfx::copy(coin_bgfx_vs_glsl, sizeof(coin_bgfx_vs_glsl)) :
@@ -274,7 +607,58 @@ SoWgpuBgfxBackend::prepare(SoWgpuRenderTargetP & target)
     this->status = BackendStatus::BACKEND_ERROR;
     return this->status;
   }
-  if (this->transparencyMode == TransparencyMode::SORTED_LAYERS) {
+  this->textureSampler = bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler);
+  this->textureParamsUniform = bgfx::createUniform("u_texParams", bgfx::UniformType::Vec4);
+  this->textureBlendUniform = bgfx::createUniform("u_texBlend", bgfx::UniformType::Vec4);
+  this->ambientLightUniform = bgfx::createUniform("u_ambientLight", bgfx::UniformType::Vec4);
+  this->lightCountUniform = bgfx::createUniform("u_lightCount", bgfx::UniformType::Vec4);
+  this->lightPositionTypeUniform = bgfx::createUniform("u_lightPositionType", bgfx::UniformType::Vec4, COIN_WGPU_MAX_LIGHTS);
+  this->lightDirectionCutoffUniform = bgfx::createUniform("u_lightDirectionCutoff", bgfx::UniformType::Vec4, COIN_WGPU_MAX_LIGHTS);
+  this->lightColorIntensityUniform = bgfx::createUniform("u_lightColorIntensity", bgfx::UniformType::Vec4, COIN_WGPU_MAX_LIGHTS);
+  this->lightAttenuationDropUniform = bgfx::createUniform("u_lightAttenuationDrop", bgfx::UniformType::Vec4, COIN_WGPU_MAX_LIGHTS);
+  const uint32_t whitePixel = UINT32_C(0xffffffff);
+  this->defaultTexture = bgfx::createTexture2D(1, 1, false, 1,
+    bgfx::TextureFormat::RGBA8, BGFX_TEXTURE_NONE,
+    bgfx::copy(&whitePixel, sizeof(whitePixel)));
+  if (!bgfx::isValid(this->textureSampler) ||
+      !bgfx::isValid(this->textureParamsUniform) ||
+      !bgfx::isValid(this->textureBlendUniform) ||
+      !bgfx::isValid(this->ambientLightUniform) ||
+      !bgfx::isValid(this->lightCountUniform) ||
+      !bgfx::isValid(this->lightPositionTypeUniform) ||
+      !bgfx::isValid(this->lightDirectionCutoffUniform) ||
+      !bgfx::isValid(this->lightColorIntensityUniform) ||
+      !bgfx::isValid(this->lightAttenuationDropUniform) ||
+      !bgfx::isValid(this->defaultTexture)) {
+    this->lastError = "BGFX could not allocate texture uniforms or default texture";
+    this->status = BackendStatus::BACKEND_ERROR;
+    return this->status;
+  }
+  const bool buildSortedLayers = this->sortedLayersSupported &&
+    (this->transparencyMode == SoWgpuBgfxTransparencyMode::AUTO ||
+     this->transparencyMode == SoWgpuBgfxTransparencyMode::SORTED_LAYERS);
+  const bool buildWeightedOit = this->weightedOitSupported &&
+    (this->transparencyMode == SoWgpuBgfxTransparencyMode::AUTO ||
+     this->transparencyMode == SoWgpuBgfxTransparencyMode::WEIGHTED_OIT);
+  if (buildSortedLayers || buildWeightedOit) {
+    this->depthInfoUniform = bgfx::createUniform("u_depthInfo", bgfx::UniformType::Vec4);
+    SoWgpuBgfxVertex fullscreen[3] = {};
+    fullscreen[0].position[0] = -1.0f; fullscreen[0].position[1] = -1.0f;
+    fullscreen[1].position[0] =  3.0f; fullscreen[1].position[1] = -1.0f;
+    fullscreen[2].position[0] = -1.0f; fullscreen[2].position[1] =  3.0f;
+    const uint16_t indices[3] = {0, 1, 2};
+    this->fullscreenVertexBuffer = bgfx::createVertexBuffer(
+      bgfx::copy(fullscreen, sizeof(fullscreen)), this->layout);
+    this->fullscreenIndexBuffer = bgfx::createIndexBuffer(bgfx::copy(indices, sizeof(indices)));
+    if (!bgfx::isValid(this->depthInfoUniform) ||
+        !bgfx::isValid(this->fullscreenVertexBuffer) ||
+        !bgfx::isValid(this->fullscreenIndexBuffer)) {
+      this->lastError = "BGFX could not allocate shared transparency resources";
+      this->status = BackendStatus::BACKEND_ERROR; return this->status;
+    }
+  }
+
+  if (buildSortedLayers) {
     const uint8_t * vertexShader = useOpenGl ? coin_bgfx_vs_glsl : coin_bgfx_vs_spirv;
     const uint32_t vertexBytes = useOpenGl ? sizeof(coin_bgfx_vs_glsl) : sizeof(coin_bgfx_vs_spirv);
     this->peelNextProgram = createLayerProgram(vertexShader, vertexBytes,
@@ -286,16 +670,6 @@ SoWgpuBgfxBackend::prepare(SoWgpuRenderTargetP & target)
     this->previousDepthSampler = bgfx::createUniform("s_prevDepth", bgfx::UniformType::Sampler);
     this->previousColorSampler = bgfx::createUniform("s_prevColor", bgfx::UniformType::Sampler);
     this->layerSampler = bgfx::createUniform("s_layer", bgfx::UniformType::Sampler);
-    this->depthInfoUniform = bgfx::createUniform("u_depthInfo", bgfx::UniformType::Vec4);
-    SoWgpuBgfxVertex fullscreen[3] = {};
-    fullscreen[0].position[0] = -1.0f; fullscreen[0].position[1] = -1.0f;
-    fullscreen[1].position[0] =  3.0f; fullscreen[1].position[1] = -1.0f;
-    fullscreen[2].position[0] = -1.0f; fullscreen[2].position[1] =  3.0f;
-    const uint16_t indices[3] = {0, 1, 2};
-    this->fullscreenVertexBuffer = bgfx::createVertexBuffer(
-      bgfx::copy(fullscreen, sizeof(fullscreen)), this->layout);
-    this->fullscreenIndexBuffer = bgfx::createIndexBuffer(
-      bgfx::copy(indices, sizeof(indices)));
     if (!bgfx::isValid(this->peelNextProgram) ||
         !bgfx::isValid(this->compositeProgram) ||
         !bgfx::isValid(this->previousDepthSampler) ||
@@ -309,7 +683,7 @@ SoWgpuBgfxBackend::prepare(SoWgpuRenderTargetP & target)
       return this->status;
     }
   }
-  if (this->transparencyMode == TransparencyMode::WEIGHTED_OIT) {
+  if (buildWeightedOit) {
     const uint8_t * vertexShader = useOpenGl ? coin_bgfx_vs_glsl : coin_bgfx_vs_spirv;
     const uint32_t vertexBytes = useOpenGl ? sizeof(coin_bgfx_vs_glsl) : sizeof(coin_bgfx_vs_spirv);
     this->weightedOitProgram = createLayerProgram(vertexShader, vertexBytes,
@@ -320,15 +694,6 @@ SoWgpuBgfxBackend::prepare(SoWgpuRenderTargetP & target)
       useOpenGl ? sizeof(coin_bgfx_fs_weighted_composite_glsl) : sizeof(coin_bgfx_fs_weighted_composite_spirv));
     this->oitAccumSampler = bgfx::createUniform("s_oitAccum", bgfx::UniformType::Sampler);
     this->oitRevealSampler = bgfx::createUniform("s_oitReveal", bgfx::UniformType::Sampler);
-    this->depthInfoUniform = bgfx::createUniform("u_depthInfo", bgfx::UniformType::Vec4);
-    SoWgpuBgfxVertex fullscreen[3] = {};
-    fullscreen[0].position[0] = -1.0f; fullscreen[0].position[1] = -1.0f;
-    fullscreen[1].position[0] =  3.0f; fullscreen[1].position[1] = -1.0f;
-    fullscreen[2].position[0] = -1.0f; fullscreen[2].position[1] =  3.0f;
-    const uint16_t indices[3] = {0, 1, 2};
-    this->fullscreenVertexBuffer = bgfx::createVertexBuffer(
-      bgfx::copy(fullscreen, sizeof(fullscreen)), this->layout);
-    this->fullscreenIndexBuffer = bgfx::createIndexBuffer(bgfx::copy(indices, sizeof(indices)));
     if (!bgfx::isValid(this->weightedOitProgram) ||
         !bgfx::isValid(this->weightedCompositeProgram) ||
         !bgfx::isValid(this->oitAccumSampler) ||
@@ -352,7 +717,8 @@ SoWgpuBgfxBackend::prepare(SoWgpuRenderTargetP & target)
     }
   }
   if (!this->resize(target.size[0], target.size[1])) {
-    this->status = BackendStatus::BACKEND_ERROR;
+    if (this->status != BackendStatus::DEVICE_LOST)
+      this->status = BackendStatus::BACKEND_ERROR;
     return this->status;
   }
   this->status = BackendStatus::SUCCESS;
@@ -371,6 +737,13 @@ SoWgpuBgfxBackend::destroyFrameBuffers()
   if (bgfx::isValid(this->oitFrameBuffer)) bgfx::destroy(this->oitFrameBuffer);
   this->oitFrameBuffer = BGFX_INVALID_HANDLE;
   if (bgfx::isValid(this->readbackTexture)) bgfx::destroy(this->readbackTexture);
+  for (ReadbackSlot & slot : this->readbackSlots)
+    if (bgfx::isValid(slot.texture)) bgfx::destroy(slot.texture);
+  this->readbackSlots.clear();
+  this->lastPublishedReadback.clear();
+  this->readbackCursor = 0;
+  this->readbackSequence = 0;
+  this->lastPublishedSequence = 0;
   if (bgfx::isValid(this->frameBuffer)) bgfx::destroy(this->frameBuffer);
   this->readbackTexture = BGFX_INVALID_HANDLE;
   this->frameBuffer = BGFX_INVALID_HANDLE;
@@ -383,6 +756,12 @@ SoWgpuBgfxBackend::resize(int newWidth, int newHeight)
   if (newWidth == this->width && newHeight == this->height) return true;
   if (newWidth <= 0 || newHeight <= 0 || newWidth > 16384 || newHeight > 16384) {
     this->lastError = "Invalid BGFX target dimensions";
+    return false;
+  }
+  if (consumeTestFault("COIN_BGFX_TEST_DEVICE_LOST_ON_RESIZE_ONCE")) {
+    static_cast<CoinBgfxCallback *>(this->callback.get())->inject(
+      bgfx::Fatal::DeviceLost, "injected device loss during resize");
+    this->checkRuntimeFailure("BGFX resize failed");
     return false;
   }
   this->destroyFrameBuffers();
@@ -416,16 +795,21 @@ SoWgpuBgfxBackend::resize(int newWidth, int newHeight)
       this->lastError = "BGFX could not create an offscreen color/depth framebuffer";
       return false;
     }
-    this->readbackTexture = bgfx::createTexture2D(static_cast<uint16_t>(newWidth),
-      static_cast<uint16_t>(newHeight), false, 1, bgfx::TextureFormat::RGBA8,
-      BGFX_TEXTURE_BLIT_DST | BGFX_TEXTURE_READ_BACK);
-    if (!bgfx::isValid(this->readbackTexture)) {
-      this->lastError = "BGFX could not allocate the offscreen readback texture";
-      this->destroyFrameBuffers();
-      return false;
+    const size_t readbackBytes = static_cast<size_t>(newWidth) * newHeight * 4u;
+    this->readbackSlots.resize(this->readbackPipelineDepth);
+    for (ReadbackSlot & slot : this->readbackSlots) {
+      slot.texture = bgfx::createTexture2D(static_cast<uint16_t>(newWidth),
+        static_cast<uint16_t>(newHeight), false, 1, bgfx::TextureFormat::RGBA8,
+        BGFX_TEXTURE_BLIT_DST | BGFX_TEXTURE_READ_BACK);
+      slot.pixels.resize(readbackBytes);
+      if (!bgfx::isValid(slot.texture)) {
+        this->lastError = "BGFX could not allocate the offscreen readback staging ring";
+        this->destroyFrameBuffers();
+        return false;
+      }
     }
   }
-  if (this->transparencyMode == TransparencyMode::SORTED_LAYERS) {
+  if (this->activeTransparencyStrategy == SoWgpuBgfxTransparencyStrategy::SORTED_LAYERS) {
     for (uint8_t pass = 0; pass < peelPasses; ++pass) {
       bgfx::TextureHandle color = bgfx::createTexture2D(
         static_cast<uint16_t>(newWidth), static_cast<uint16_t>(newHeight),
@@ -451,7 +835,7 @@ SoWgpuBgfxBackend::resize(int newWidth, int newHeight)
       }
     }
   }
-  if (this->transparencyMode == TransparencyMode::WEIGHTED_OIT) {
+  if (this->activeTransparencyStrategy == SoWgpuBgfxTransparencyStrategy::WEIGHTED_OIT) {
     bgfx::TextureHandle accum = bgfx::createTexture2D(
       static_cast<uint16_t>(newWidth), static_cast<uint16_t>(newHeight),
       false, 1, bgfx::TextureFormat::RGBA16F, peelTextureFlags);
@@ -460,6 +844,7 @@ SoWgpuBgfxBackend::resize(int newWidth, int newHeight)
       false, 1, bgfx::TextureFormat::R16F, peelTextureFlags);
     bgfx::TextureHandle depth = bgfx::createTexture2D(
       static_cast<uint16_t>(newWidth), static_cast<uint16_t>(newHeight),
+
       false, 1, depthFormat, BGFX_TEXTURE_RT_WRITE_ONLY);
     if (!bgfx::isValid(accum) || !bgfx::isValid(reveal) || !bgfx::isValid(depth)) {
       if (bgfx::isValid(accum)) bgfx::destroy(accum);
@@ -482,14 +867,64 @@ SoWgpuBgfxBackend::resize(int newWidth, int newHeight)
   }
   this->width = newWidth;
   this->height = newHeight;
-  return true;
+  return this->checkRuntimeFailure("BGFX resize failed") == BackendStatus::SUCCESS;
+}
+void
+SoWgpuBgfxBackend::bindDrawTexture(
+  const SoWgpuBgfxDraw & draw,
+  const std::vector<bgfx::TextureHandle> & textures)
+{
+  bgfx::TextureHandle texture = this->defaultTexture;
+  if (draw.hasTexture && draw.textureSlot < textures.size() &&
+      bgfx::isValid(textures[draw.textureSlot])) {
+    texture = textures[draw.textureSlot];
+  }
+  uint32_t flags = BGFX_SAMPLER_NONE;
+  if (draw.wrapS == TextureWrap::CLAMP) flags |= BGFX_SAMPLER_U_CLAMP;
+  if (draw.wrapT == TextureWrap::CLAMP) flags |= BGFX_SAMPLER_V_CLAMP;
+  if (draw.filter == TextureFilter::NEAREST) {
+    flags |= BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT |
+             BGFX_SAMPLER_MIP_POINT;
+  }
+  bool directRenderTarget = false;
+  if (draw.hasTexture && bgfx::isValid(texture)) {
+    for (const DirectTextureResource & resource : this->directTextures) {
+      const bgfx::TextureHandle direct = bgfx::getTexture(resource.frameBuffer, 0);
+      if (bgfx::isValid(direct) && direct.idx == texture.idx) {
+        directRenderTarget = true;
+        break;
+      }
+    }
+  }
+  const float params[4] = {
+    draw.hasTexture ? 1.0f : 0.0f,
+    static_cast<float>(draw.textureModel),
+    directRenderTarget && !bgfx::getCaps()->originBottomLeft ? 1.0f : 0.0f,
+    0.0f
+  };
+  bgfx::setUniform(this->textureParamsUniform, params);
+  bgfx::setUniform(this->textureBlendUniform, draw.textureBlendColor);
+  bgfx::setTexture(2, this->textureSampler, texture, flags);
+}
+
+
+void
+SoWgpuBgfxBackend::bindDrawLighting(const SoWgpuBgfxDraw & draw)
+{
+  bgfx::setUniform(this->ambientLightUniform, draw.ambientLight);
+  bgfx::setUniform(this->lightCountUniform, draw.lightCount);
+  bgfx::setUniform(this->lightPositionTypeUniform, draw.lightPositionType, COIN_WGPU_MAX_LIGHTS);
+  bgfx::setUniform(this->lightDirectionCutoffUniform, draw.lightDirectionCutoff, COIN_WGPU_MAX_LIGHTS);
+  bgfx::setUniform(this->lightColorIntensityUniform, draw.lightColorIntensity, COIN_WGPU_MAX_LIGHTS);
+  bgfx::setUniform(this->lightAttenuationDropUniform, draw.lightAttenuationDrop, COIN_WGPU_MAX_LIGHTS);
 }
 
 void
 SoWgpuBgfxBackend::encodeSortedLayers(const std::vector<SoWgpuBgfxDraw> & draws,
-                                      bgfx::VertexBufferHandle vertices,
-                                      bgfx::IndexBufferHandle indices,
-                                      bgfx::FrameBufferHandle output)
+                                      bgfx::DynamicVertexBufferHandle vertices,
+                                      bgfx::DynamicIndexBufferHandle indices,
+                                      bgfx::FrameBufferHandle output,
+                                      const std::vector<bgfx::TextureHandle> & textures)
 {
   const float transparentBlack[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   const float depthInfo[4] = {1.0f / float(this->width),
@@ -497,6 +932,7 @@ SoWgpuBgfxBackend::encodeSortedLayers(const std::vector<SoWgpuBgfxDraw> & draws,
   bgfx::setPaletteColor(1, transparentBlack);
   for (uint8_t pass = 0; pass < peelPasses; ++pass) {
     const uint8_t view = uint8_t(pass + 1);
+    bgfx::setViewName(view, "transparent_accumulation");
     bgfx::setViewMode(view, bgfx::ViewMode::Sequential);
     bgfx::setViewRect(view, 0, 0, static_cast<uint16_t>(this->width),
                       static_cast<uint16_t>(this->height));
@@ -506,19 +942,24 @@ SoWgpuBgfxBackend::encodeSortedLayers(const std::vector<SoWgpuBgfxDraw> & draws,
     bgfx::touch(view);
     // Opaque geometry supplies the occlusion depth in every peel pass.
     for (const SoWgpuBgfxDraw & draw : draws) {
-      if (draw.blend) continue;
+      if (draw.renderLayer != 0 || draw.blend) continue;
       bgfx::setTransform(draw.mvp);
       bgfx::setVertexBuffer(0, vertices);
       bgfx::setIndexBuffer(indices, draw.firstIndex, draw.indexCount);
       bgfx::setState(peelDrawState(draw, true));
+      setDrawScissor(draw, this->height);
+      this->bindDrawTexture(draw, textures);
+      this->bindDrawLighting(draw);
       bgfx::submit(view, this->program);
+
     }
     for (const SoWgpuBgfxDraw & draw : draws) {
-      if (!draw.blend || draw.alpha <= 0.0f) continue;
+      if (draw.renderLayer != 0 || !draw.blend || draw.alpha <= 0.0f) continue;
       bgfx::setTransform(draw.mvp);
       bgfx::setVertexBuffer(0, vertices);
       bgfx::setIndexBuffer(indices, draw.firstIndex, draw.indexCount);
       bgfx::setState(peelDrawState(draw, false));
+      setDrawScissor(draw, this->height);
       if (pass != 0) {
         bgfx::setUniform(this->depthInfoUniform, depthInfo);
         bgfx::setTexture(0, this->previousDepthSampler,
@@ -526,11 +967,14 @@ SoWgpuBgfxBackend::encodeSortedLayers(const std::vector<SoWgpuBgfxDraw> & draws,
         bgfx::setTexture(1, this->previousColorSampler,
                          bgfx::getTexture(this->peelFrameBuffers[pass - 1], 0));
       }
+      this->bindDrawTexture(draw, textures);
+      this->bindDrawLighting(draw);
       bgfx::submit(view, pass == 0 ? this->program : this->peelNextProgram);
     }
   }
 
   const uint8_t compositeView = uint8_t(peelPasses + 1);
+  bgfx::setViewName(compositeView, "fullscreen_composition");
   bgfx::setViewMode(compositeView, bgfx::ViewMode::Sequential);
   bgfx::setViewRect(compositeView, 0, 0, static_cast<uint16_t>(this->width),
                     static_cast<uint16_t>(this->height));
@@ -560,11 +1004,13 @@ SoWgpuBgfxBackend::encodeSortedLayers(const std::vector<SoWgpuBgfxDraw> & draws,
 
 void
 SoWgpuBgfxBackend::encodeWeightedOit(const std::vector<SoWgpuBgfxDraw> & draws,
-                                     bgfx::VertexBufferHandle vertices,
-                                     bgfx::IndexBufferHandle indices,
-                                     bgfx::FrameBufferHandle output)
+                                     bgfx::DynamicVertexBufferHandle vertices,
+                                     bgfx::DynamicIndexBufferHandle indices,
+                                     bgfx::FrameBufferHandle output,
+                                     const std::vector<bgfx::TextureHandle> & textures)
 {
   const uint8_t oitView = 1;
+  bgfx::setViewName(oitView, "transparent_accumulation");
   const float transparentBlack[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   const float opaqueWhite[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   const float depthInfo[4] = {1.0f / float(this->width),
@@ -583,16 +1029,20 @@ SoWgpuBgfxBackend::encodeWeightedOit(const std::vector<SoWgpuBgfxDraw> & draws,
   // Rebuild only opaque depth so transparent fragments behind opaque Coin
   // geometry cannot contribute to either accumulation attachment.
   for (const SoWgpuBgfxDraw & draw : draws) {
-    if (draw.blend) continue;
+    if (draw.renderLayer != 0 || draw.blend) continue;
     bgfx::setTransform(draw.mvp);
     bgfx::setVertexBuffer(0, vertices);
     bgfx::setIndexBuffer(indices, draw.firstIndex, draw.indexCount);
     bgfx::setState(peelDrawState(draw, true));
+    setDrawScissor(draw, this->height);
+    this->bindDrawTexture(draw, textures);
+    this->bindDrawLighting(draw);
     bgfx::submit(oitView, this->program);
+
   }
 
   for (const SoWgpuBgfxDraw & draw : draws) {
-    if (!draw.blend || draw.alpha <= 0.0f) continue;
+    if (draw.renderLayer != 0 || !draw.blend || draw.alpha <= 0.0f) continue;
     uint64_t state = drawState(draw);
     state &= ~(BGFX_STATE_WRITE_Z | BGFX_STATE_BLEND_MASK);
     state |= BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A |
@@ -604,10 +1054,15 @@ SoWgpuBgfxBackend::encodeWeightedOit(const std::vector<SoWgpuBgfxDraw> & draws,
     bgfx::setVertexBuffer(0, vertices);
     bgfx::setIndexBuffer(indices, draw.firstIndex, draw.indexCount);
     bgfx::setState(state, independentBlend);
+    setDrawScissor(draw, this->height);
+    this->bindDrawTexture(draw, textures);
+    this->bindDrawLighting(draw);
     bgfx::submit(oitView, this->weightedOitProgram);
+
   }
 
   const uint8_t compositeView = 2;
+  bgfx::setViewName(compositeView, "fullscreen_composition");
   bgfx::setViewMode(compositeView, bgfx::ViewMode::Sequential);
   bgfx::setViewRect(compositeView, 0, 0, static_cast<uint16_t>(this->width),
                     static_cast<uint16_t>(this->height));
@@ -633,6 +1088,87 @@ SoWgpuBgfxBackend::encodeWeightedOit(const std::vector<SoWgpuBgfxDraw> & draws,
                    bgfx::getTexture(this->oitFrameBuffer, 1));
   bgfx::setState(blendState);
   bgfx::submit(compositeView, this->weightedCompositeProgram);
+}
+
+bool
+SoWgpuBgfxBackend::encodeOverlayLayers(
+  const std::vector<SoWgpuBgfxDraw> & draws,
+  bgfx::DynamicVertexBufferHandle vertices,
+  bgfx::DynamicIndexBufferHandle indices,
+  bgfx::FrameBufferHandle output,
+  const std::vector<bgfx::TextureHandle> & textures,
+  uint8_t & nextView)
+{
+  uint32_t encodedLayer = 0;
+  for (const SoWgpuBgfxDraw & layerDraw : draws) {
+    if (layerDraw.renderLayer == 0 || layerDraw.renderLayer == encodedLayer) continue;
+    encodedLayer = layerDraw.renderLayer;
+    if (nextView > 252) {
+      this->lastError = "BGFX overlay layer count exceeds available view IDs";
+      return false;
+    }
+    const SoWgpuBgfxDraw * barrier = nullptr;
+    for (const SoWgpuBgfxDraw & draw : draws) {
+      if (draw.renderLayer == encodedLayer && draw.clearDepthBefore) {
+        barrier = &draw;
+        break;
+      }
+    }
+    if (barrier) {
+      const uint8_t clearView = nextView++;
+      const int32_t top = this->height - barrier->viewport[1] - barrier->viewport[3];
+      bgfx::setViewName(clearView, "overlay_depth_clear");
+      bgfx::setViewMode(clearView, bgfx::ViewMode::Sequential);
+      bgfx::setViewRect(clearView, static_cast<uint16_t>(barrier->viewport[0]),
+                        static_cast<uint16_t>(top),
+                        static_cast<uint16_t>(barrier->viewport[2]),
+                        static_cast<uint16_t>(barrier->viewport[3]));
+      bgfx::setViewFrameBuffer(clearView, output);
+      bgfx::setViewClear(clearView, BGFX_CLEAR_DEPTH, 1.0f, 0);
+      bgfx::setViewTransform(clearView, nullptr, nullptr);
+      bgfx::touch(clearView);
+    }
+    const uint8_t opaqueView = nextView++;
+    bgfx::setViewName(opaqueView, "overlay_opaque");
+    bgfx::setViewMode(opaqueView, bgfx::ViewMode::Sequential);
+    bgfx::setViewRect(opaqueView, 0, 0, static_cast<uint16_t>(this->width),
+                      static_cast<uint16_t>(this->height));
+    bgfx::setViewFrameBuffer(opaqueView, output);
+    bgfx::setViewClear(opaqueView, BGFX_CLEAR_NONE);
+    bgfx::setViewTransform(opaqueView, nullptr, nullptr);
+    bgfx::touch(opaqueView);
+    for (const SoWgpuBgfxDraw & draw : draws) {
+      if (draw.renderLayer != encodedLayer || draw.blend) continue;
+      bgfx::setTransform(draw.mvp);
+      bgfx::setVertexBuffer(0, vertices);
+      bgfx::setIndexBuffer(indices, draw.firstIndex, draw.indexCount);
+      bgfx::setState(drawState(draw));
+      setDrawScissor(draw, this->height);
+      this->bindDrawTexture(draw, textures);
+      this->bindDrawLighting(draw);
+      bgfx::submit(opaqueView, this->program);
+    }
+    const uint8_t transparentView = nextView++;
+    bgfx::setViewName(transparentView, "overlay_transparent");
+    bgfx::setViewMode(transparentView, bgfx::ViewMode::Sequential);
+    bgfx::setViewRect(transparentView, 0, 0, static_cast<uint16_t>(this->width),
+                      static_cast<uint16_t>(this->height));
+    bgfx::setViewFrameBuffer(transparentView, output);
+    bgfx::setViewClear(transparentView, BGFX_CLEAR_NONE);
+    bgfx::setViewTransform(transparentView, nullptr, nullptr);
+    for (const SoWgpuBgfxDraw & draw : draws) {
+      if (draw.renderLayer != encodedLayer || !draw.blend || draw.alpha <= 0.0f) continue;
+      bgfx::setTransform(draw.mvp);
+      bgfx::setVertexBuffer(0, vertices);
+      bgfx::setIndexBuffer(indices, draw.firstIndex, draw.indexCount);
+      bgfx::setState(drawState(draw));
+      setDrawScissor(draw, this->height);
+      this->bindDrawTexture(draw, textures);
+      this->bindDrawLighting(draw);
+      bgfx::submit(transparentView, this->program);
+    }
+  }
+  return true;
 }
 
 SubmitResult
@@ -661,6 +1197,7 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
   const char * gpuTimestampFlag = std::getenv("COIN_WGPU_GPU_TIMESTAMPS");
   const bool traceGpu = tracePhases && gpuTimestampFlag != nullptr &&
                         std::strcmp(gpuTimestampFlag, "1") == 0;
+  if (traceGpu) bgfx::setDebug(BGFX_DEBUG_PROFILER);
   const bool homogeneousDepth = bgfx::getCaps()->homogeneousDepth;
   const bool cacheDimensionsMatch =
     target.size[0] == this->cachedWidth &&
@@ -679,7 +1216,8 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
        bgfx::isValid(this->cachedIndexBuffer)));
   std::vector<SoWgpuBgfxDraw> cameraDraws;
   const bool cameraPatchUsed = cameraPatchEligible &&
-    SoWgpuBgfxCore::patchCamera(frame, homogeneousDepth, this->cachedPlan,
+    SoWgpuBgfxCore::patchCamera(frame, target.size[0], target.size[1],
+                                homogeneousDepth, this->cachedPlan,
                                 cameraDraws, this->lastError);
   SoWgpuBgfxPlan freshPlan;
   const SoWgpuBgfxPlan * plan = &this->cachedPlan;
@@ -690,9 +1228,32 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
     }
     plan = &freshPlan;
   }
+  std::vector<SoWgpuBgfxVertexRange> materialRanges;
+  const bool materialPatchEligible = !cacheHit && !cameraPatchUsed &&
+    reuse.kind == SoWgpuFrameReuseKind::RESOURCE_REBUILD &&
+    reuse.baseRevision != 0 && reuse.baseRevision == this->cachedRevision &&
+    cacheDimensionsMatch && bgfx::isValid(this->cachedVertexBuffer) &&
+    bgfx::isValid(this->cachedIndexBuffer);
+  const bool materialPatchUsed = materialPatchEligible &&
+    SoWgpuBgfxCore::materialPatchRanges(this->cachedPlan, freshPlan,
+                                        materialRanges);
+  const std::vector<SoWgpuBgfxDraw> & strategyDraws =
+    cameraPatchUsed ? cameraDraws : plan->draws;
+  SoWgpuBgfxTransparencyStrategy selectedStrategy;
+  if (!SoWgpuBgfxCore::selectTransparencyStrategy(strategyDraws,
+        this->transparencyMode, this->weightedOitSupported,
+        this->sortedLayersSupported, selectedStrategy, this->lastError)) {
+    return SubmitResult(BackendStatus::UNSUPPORTED, this->lastError);
+  }
+  if (selectedStrategy != this->activeTransparencyStrategy) {
+    this->destroyFrameBuffers();
+    this->activeTransparencyStrategy = selectedStrategy;
+  }
   const Clock::time_point lowered = Clock::now();
   if (!this->resize(target.size[0], target.size[1])) {
-    return SubmitResult(BackendStatus::OUT_OF_MEMORY, this->lastError);
+    const BackendStatus resizeStatus = this->status == BackendStatus::SUCCESS ?
+      BackendStatus::OUT_OF_MEMORY : this->status;
+    return SubmitResult(resizeStatus, this->lastError);
   }
   if (plan->vertices.size() > std::numeric_limits<uint32_t>::max() / sizeof(SoWgpuBgfxVertex) ||
       plan->indices.size() > std::numeric_limits<uint32_t>::max() / sizeof(uint32_t)) {
@@ -702,35 +1263,61 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
   const size_t geometryBytes = plan->vertices.size() * sizeof(SoWgpuBgfxVertex) +
                                plan->indices.size() * sizeof(uint32_t) +
                                plan->draws.size() * sizeof(SoWgpuBgfxDraw);
-  bgfx::VertexBufferHandle vb = BGFX_INVALID_HANDLE;
-  bgfx::IndexBufferHandle ib = BGFX_INVALID_HANDLE;
-  if (cacheHit || cameraPatchUsed) {
-    vb = this->cachedVertexBuffer;
-    ib = this->cachedIndexBuffer;
+  bgfx::DynamicVertexBufferHandle vb = this->cachedVertexBuffer;
+  bgfx::DynamicIndexBufferHandle ib = this->cachedIndexBuffer;
+  bool retained = cacheHit || cameraPatchUsed || materialPatchUsed;
+  bool geometryBufferReused = retained;
+  uint32_t materialPatchVertices = 0;
+  if (materialPatchUsed) {
+    for (const SoWgpuBgfxVertexRange & range : materialRanges) {
+      materialPatchVertices += range.count;
+      bgfx::update(vb, range.first, bgfx::copy(
+        freshPlan.vertices.data() + range.first,
+        range.count * static_cast<uint32_t>(sizeof(SoWgpuBgfxVertex))));
+    }
+    this->cachedPlan = std::move(freshPlan);
+    this->cachedRevision = frame.revision;
+    this->cachedWidth = target.size[0];
+    this->cachedHeight = target.size[1];
+    this->cachedHomogeneousDepth = homogeneousDepth;
+    plan = &this->cachedPlan;
   }
-  bool retained = cacheHit || cameraPatchUsed;
   if (!retained) {
     if (!plan->draws.empty()) {
-      vb = bgfx::createVertexBuffer(bgfx::copy(plan->vertices.data(),
-        static_cast<uint32_t>(plan->vertices.size() * sizeof(SoWgpuBgfxVertex))), this->layout);
-      ib = bgfx::createIndexBuffer(bgfx::copy(plan->indices.data(),
-        static_cast<uint32_t>(plan->indices.size() * sizeof(uint32_t))), BGFX_BUFFER_INDEX32);
-      if (!bgfx::isValid(vb) || !bgfx::isValid(ib)) {
+      const bool vertexPoolHit = bgfx::isValid(vb) &&
+        this->cachedVertexCapacity >= plan->vertices.size();
+      const bool indexPoolHit = bgfx::isValid(ib) &&
+        this->cachedIndexCapacity >= plan->indices.size();
+      geometryBufferReused = vertexPoolHit && indexPoolHit;
+      if (!vertexPoolHit) {
         if (bgfx::isValid(vb)) bgfx::destroy(vb);
+        this->cachedVertexCapacity = pooledCapacity(plan->vertices.size());
+        vb = bgfx::createDynamicVertexBuffer(this->cachedVertexCapacity,
+                                             this->layout);
+        this->cachedVertexBuffer = vb;
+      }
+      if (!indexPoolHit) {
         if (bgfx::isValid(ib)) bgfx::destroy(ib);
+        this->cachedIndexCapacity = pooledCapacity(plan->indices.size());
+        ib = bgfx::createDynamicIndexBuffer(this->cachedIndexCapacity,
+                                             BGFX_BUFFER_INDEX32);
+        this->cachedIndexBuffer = ib;
+      }
+      if (!bgfx::isValid(vb) || !bgfx::isValid(ib)) {
         this->lastError = "BGFX geometry upload failed";
         return SubmitResult(BackendStatus::OUT_OF_MEMORY, this->lastError);
       }
+      bgfx::update(vb, 0, bgfx::copy(plan->vertices.data(),
+        static_cast<uint32_t>(plan->vertices.size() * sizeof(SoWgpuBgfxVertex))));
+      bgfx::update(ib, 0, bgfx::copy(plan->indices.data(),
+        static_cast<uint32_t>(plan->indices.size() * sizeof(uint32_t))));
     }
-    if (bgfx::isValid(this->cachedVertexBuffer)) bgfx::destroy(this->cachedVertexBuffer);
-    if (bgfx::isValid(this->cachedIndexBuffer)) bgfx::destroy(this->cachedIndexBuffer);
-    this->cachedVertexBuffer = BGFX_INVALID_HANDLE;
-    this->cachedIndexBuffer = BGFX_INVALID_HANDLE;
+    for (bgfx::TextureHandle texture : this->cachedTextures)
+      if (bgfx::isValid(texture)) bgfx::destroy(texture);
+    this->cachedTextures.clear();
     this->cachedRevision = 0;
     if (frame.revision != 0 && geometryBytes <= 32u * 1024u * 1024u) {
       this->cachedPlan = std::move(freshPlan);
-      this->cachedVertexBuffer = vb;
-      this->cachedIndexBuffer = ib;
       this->cachedRevision = frame.revision;
       this->cachedWidth = target.size[0];
       this->cachedHeight = target.size[1];
@@ -740,7 +1327,71 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
     }
   }
 
+  std::vector<bgfx::TextureHandle> textures(
+    plan->textures.size(), BGFX_INVALID_HANDLE);
+  bool hasDirectTextures = false;
+  for (const SoWgpuBgfxTexture & texture : plan->textures)
+    if (texture.gpuToken != 0) hasDirectTextures = true;
+  std::vector<bool> textureOwned(plan->textures.size(), false);
+  bool textureCacheHit = !hasDirectTextures &&
+    (cacheHit || cameraPatchUsed || materialPatchUsed) &&
+    this->cachedTextures.size() == plan->textures.size();
+  for (bgfx::TextureHandle texture : this->cachedTextures) {
+    if (!bgfx::isValid(texture)) textureCacheHit = false;
+  }
+  if (textureCacheHit) textures = this->cachedTextures;
+  for (size_t textureIndex = 0;
+       !textureCacheHit && textureIndex < plan->textures.size(); ++textureIndex) {
+    const SoWgpuBgfxTexture & texture = plan->textures[textureIndex];
+    if (texture.gpuToken != 0) {
+      for (const DirectTextureResource & resource : this->directTextures) {
+        if (resource.token == texture.gpuToken) {
+          textures[textureIndex] = bgfx::getTexture(resource.frameBuffer, 0);
+          break;
+        }
+      }
+      if (!bgfx::isValid(textures[textureIndex])) {
+        this->lastError = "BGFX direct texture token is missing or expired";
+        return SubmitResult(BackendStatus::UNSUPPORTED, this->lastError);
+      }
+      continue;
+    }
+    if (texture.width == 0 || texture.height == 0 ||
+        texture.width > UINT16_MAX || texture.height > UINT16_MAX ||
+        texture.pixelsRgba.size() !=
+          static_cast<size_t>(texture.width) * texture.height * 4u) {
+      this->lastError = "BGFX texture dimensions or RGBA payload are invalid";
+      for (size_t i = 0; i < textures.size(); ++i)
+        if (textureOwned[i] && bgfx::isValid(textures[i])) bgfx::destroy(textures[i]);
+      return SubmitResult(BackendStatus::UNSUPPORTED, this->lastError);
+    }
+    textures[textureIndex] = bgfx::createTexture2D(
+      static_cast<uint16_t>(texture.width),
+      static_cast<uint16_t>(texture.height), false, 1,
+      bgfx::TextureFormat::RGBA8, BGFX_TEXTURE_NONE,
+      bgfx::copy(texture.pixelsRgba.data(),
+                 static_cast<uint32_t>(texture.pixelsRgba.size())));
+    if (!bgfx::isValid(textures[textureIndex])) {
+      this->lastError = "BGFX texture upload failed";
+      for (size_t i = 0; i < textures.size(); ++i)
+        if (textureOwned[i] && bgfx::isValid(textures[i])) bgfx::destroy(textures[i]);
+      return SubmitResult(BackendStatus::OUT_OF_MEMORY, this->lastError);
+    }
+    textureOwned[textureIndex] = true;
+  }
+  bool texturesRetained = textureCacheHit;
+  if (!textureCacheHit && retained && !hasDirectTextures) {
+    this->cachedTextures = textures;
+    texturesRetained = true;
+  }
+  const auto destroyTextures = [&]() {
+    if (texturesRetained) return;
+    for (size_t i = 0; i < textures.size(); ++i)
+      if (textureOwned[i] && bgfx::isValid(textures[i])) bgfx::destroy(textures[i]);
+  };
+
   const Clock::time_point uploaded = Clock::now();
+  bgfx::setViewName(0, "opaque");
   bgfx::setViewMode(0, bgfx::ViewMode::Sequential);
   bgfx::setViewRect(0, 0, 0, static_cast<uint16_t>(this->width),
                     static_cast<uint16_t>(this->height));
@@ -752,41 +1403,99 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
   bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 1.0f, 0, 0);
   bgfx::setViewTransform(0, nullptr, nullptr);
   bgfx::touch(0);
-  const std::vector<SoWgpuBgfxDraw> & draws =
+  const std::vector<SoWgpuBgfxDraw> & sourceDraws =
     cameraPatchUsed ? cameraDraws : plan->draws;
-  bool hasTransparentDraws = false;
-  if (this->transparencyMode != TransparencyMode::OBJECT) {
-    for (const SoWgpuBgfxDraw & draw : draws) {
-      if (draw.blend) { hasTransparentDraws = true; break; }
-    }
-  }
-  const bool useSortedLayers = hasTransparentDraws &&
-    this->transparencyMode == TransparencyMode::SORTED_LAYERS;
-  const bool useWeightedOit = hasTransparentDraws &&
-    this->transparencyMode == TransparencyMode::WEIGHTED_OIT;
+  std::vector<SoWgpuBgfxDraw> groupedDraws;
+  if (this->drawGroupingEnabled)
+    SoWgpuBgfxCore::groupOpaqueDraws(sourceDraws, groupedDraws);
+  const std::vector<SoWgpuBgfxDraw> & draws =
+    this->drawGroupingEnabled ? groupedDraws : sourceDraws;
+  const LogicalDrawStats drawStats = logicalDrawStats(sourceDraws, draws);
+  const bool useSortedLayers =
+    selectedStrategy == SoWgpuBgfxTransparencyStrategy::SORTED_LAYERS;
+  const bool useWeightedOit =
+    selectedStrategy == SoWgpuBgfxTransparencyStrategy::WEIGHTED_OIT;
+  uint8_t nextView = 2;
   for (const SoWgpuBgfxDraw & draw : draws) {
-    if ((useSortedLayers || useWeightedOit) && draw.blend) continue;
+    if (draw.renderLayer != 0 || draw.blend) continue;
     bgfx::setTransform(draw.mvp);
     bgfx::setVertexBuffer(0, vb);
     bgfx::setIndexBuffer(ib, draw.firstIndex, draw.indexCount);
     bgfx::setState(drawState(draw));
+    setDrawScissor(draw, this->height);
+    this->bindDrawTexture(draw, textures);
+    this->bindDrawLighting(draw);
     bgfx::submit(0, this->program);
+
   }
-  if (useSortedLayers) {
+  if (!useSortedLayers && !useWeightedOit) {
+    const uint8_t transparentView = 1;
+    bgfx::setViewName(transparentView, "transparent_accumulation");
+    bgfx::setViewMode(transparentView, bgfx::ViewMode::Sequential);
+    bgfx::setViewRect(transparentView, 0, 0,
+                      static_cast<uint16_t>(this->width),
+                      static_cast<uint16_t>(this->height));
+    bgfx::setViewFrameBuffer(transparentView,
+      this->presentToWindow ? windowFrameBuffer : this->frameBuffer);
+    bgfx::setViewClear(transparentView, BGFX_CLEAR_NONE);
+    bgfx::setViewTransform(transparentView, nullptr, nullptr);
+    for (const SoWgpuBgfxDraw & draw : draws) {
+      if (draw.renderLayer != 0 || !draw.blend || draw.alpha <= 0.0f) continue;
+      bgfx::setTransform(draw.mvp);
+      bgfx::setVertexBuffer(0, vb);
+      bgfx::setIndexBuffer(ib, draw.firstIndex, draw.indexCount);
+      bgfx::setState(drawState(draw));
+      setDrawScissor(draw, this->height);
+      this->bindDrawTexture(draw, textures);
+      this->bindDrawLighting(draw);
+      bgfx::submit(transparentView, this->program);
+    }
+  } else if (useSortedLayers) {
+    nextView = uint8_t(peelPasses + 2);
     this->encodeSortedLayers(draws, vb, ib,
-      this->presentToWindow ? windowFrameBuffer : this->frameBuffer);
+      this->presentToWindow ? windowFrameBuffer : this->frameBuffer,
+      textures);
   } else if (useWeightedOit) {
+    nextView = 3;
     this->encodeWeightedOit(draws, vb, ib,
-      this->presentToWindow ? windowFrameBuffer : this->frameBuffer);
+      this->presentToWindow ? windowFrameBuffer : this->frameBuffer,
+      textures);
+  }
+  if (!this->encodeOverlayLayers(draws, vb, ib,
+        this->presentToWindow ? windowFrameBuffer : this->frameBuffer,
+        textures, nextView)) {
+    destroyTextures();
+    return SubmitResult(BackendStatus::UNSUPPORTED, this->lastError);
   }
   const Clock::time_point drawsEncoded = Clock::now();
+  if (consumeTestFault("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE")) {
+    static_cast<CoinBgfxCallback *>(this->callback.get())->inject(
+      bgfx::Fatal::DeviceLost, "injected device loss during submission");
+  }
+  BackendStatus runtimeStatus = this->checkRuntimeFailure("BGFX submission failed");
+  if (runtimeStatus != BackendStatus::SUCCESS)
+    return SubmitResult(runtimeStatus, this->lastError);
   if (this->presentToWindow) {
     const uint32_t submittedFrame = bgfx::frame();
+    runtimeStatus = this->checkRuntimeFailure("BGFX frame submission failed");
+    if (runtimeStatus != BackendStatus::SUCCESS)
+      return SubmitResult(runtimeStatus, this->lastError);
     const Clock::time_point submitted = Clock::now();
-    if (!retained) {
-      if (bgfx::isValid(vb)) bgfx::destroy(vb);
-      if (bgfx::isValid(ib)) bgfx::destroy(ib);
+    SoWgpuBgfxPhaseSample sample;
+    sample.gpuTimingRequested = traceGpu;
+    const Clock::time_point gpuDrainBegin = Clock::now();
+    uint32_t gpuQueryFrames = 0;
+    for (int attempts = 0;
+         traceGpu && !captureGpuPasses(submittedFrame, sample) && attempts < 4;
+         ++attempts) {
+      bgfx::frame();
+      ++gpuQueryFrames;
     }
+    runtimeStatus = this->checkRuntimeFailure("BGFX profiling drain failed");
+    if (runtimeStatus != BackendStatus::SUCCESS)
+      return SubmitResult(runtimeStatus, this->lastError);
+    const Clock::time_point gpuDrainComplete = Clock::now();
+    destroyTextures();
     if (cameraPatchUsed) {
       this->cachedPlan.draws.swap(cameraDraws);
       this->cachedRevision = frame.revision;
@@ -795,7 +1504,6 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
     target.depthBuffer.clear();
     target.needsReconfigure = false;
     if (tracePhases) {
-      SoWgpuBgfxPhaseSample sample;
       const auto ms = [](Clock::time_point a, Clock::time_point b) {
         return std::chrono::duration<double, std::milli>(b - a).count();
       };
@@ -804,64 +1512,126 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
       sample.encodeMs = ms(uploaded, drawsEncoded);
       sample.drawEncodeMs = sample.encodeMs;
       sample.submitFrameMs = ms(drawsEncoded, submitted);
+      sample.gpuQueryDrainMs = ms(gpuDrainBegin, gpuDrainComplete);
+      sample.gpuQueryFrames = gpuQueryFrames;
       sample.vertices = plan->vertices.size();
       sample.draws = plan->draws.size();
       sample.resourceCacheHit = cacheHit || cameraPatchUsed;
+      sample.textureCacheHit = textureCacheHit;
+      sample.geometryBufferReused = geometryBufferReused;
+      sample.vertexBufferCapacity = this->cachedVertexCapacity;
+      sample.indexBufferCapacity = this->cachedIndexCapacity;
       sample.cameraPatchUsed = cameraPatchUsed;
-      if (traceGpu) {
-        sample.gpuTimingRequested = true;
-        const bgfx::Stats * stats = bgfx::getStats();
-        if (stats && stats->gpuFrameNum == submittedFrame &&
-            stats->gpuTimerFreq > 0 && stats->gpuTimeEnd > stats->gpuTimeBegin) {
-          sample.gpuFrameMs = double(stats->gpuTimeEnd - stats->gpuTimeBegin) *
-                              1000.0 / double(stats->gpuTimerFreq);
-        }
-      }
+      sample.materialPatchUsed = materialPatchUsed;
+      sample.materialPatchRanges = static_cast<uint32_t>(materialRanges.size());
+      sample.materialPatchVertices = materialPatchVertices;
+      copyLogicalDrawStats(drawStats, this->drawGroupingEnabled, sample);
       std::fprintf(stderr, "%s\n", SoWgpuDiagnosticShell::formatBgfxPhase(sample).c_str());
     }
     this->lastError.clear();
     return SubmitResult(BackendStatus::SUCCESS, "", ++this->serial);
   }
+  if (this->readbackSlots.empty()) {
+    this->lastError = "BGFX readback staging ring is not allocated";
+    return SubmitResult(BackendStatus::NOT_READY, this->lastError);
+  }
+  ReadbackSlot * writeSlot = NULL;
+  uint32_t preBlitWaitFrames = 0;
+  for (size_t offset = 0; offset < this->readbackSlots.size(); ++offset) {
+    ReadbackSlot & candidate = this->readbackSlots[
+      (this->readbackCursor + offset) % this->readbackSlots.size()];
+    if (!candidate.pending) {
+      writeSlot = &candidate;
+      this->readbackCursor = static_cast<uint32_t>(
+        (&candidate - this->readbackSlots.data() + 1) % this->readbackSlots.size());
+      break;
+    }
+  }
+  if (!writeSlot) {
+    ReadbackSlot * oldest = &this->readbackSlots[0];
+    for (ReadbackSlot & slot : this->readbackSlots) {
+      if (slot.sequence < oldest->sequence) oldest = &slot;
+    }
+    uint32_t completed = bgfx::frame();
+    ++preBlitWaitFrames;
+    for (int attempts = 0; completed < oldest->readyFrame && attempts < 16;
+         ++attempts) {
+      completed = bgfx::frame();
+      ++preBlitWaitFrames;
+    }
+    runtimeStatus = this->checkRuntimeFailure("BGFX readback backpressure failed");
+    if (runtimeStatus != BackendStatus::SUCCESS)
+      return SubmitResult(runtimeStatus, this->lastError);
+    if (completed < oldest->readyFrame) {
+      this->lastError = "BGFX readback pipeline backpressure exceeded sixteen frames";
+      return SubmitResult(BackendStatus::BACKEND_ERROR, this->lastError);
+    }
+    if (bgfx::getCaps()->rendererType == bgfx::RendererType::OpenGL &&
+        !SoWgpuImageCore::flipRgba8Rows(oldest->pixels, target.size)) {
+      this->lastError = "BGFX OpenGL returned an invalid pipelined readback size";
+      return SubmitResult(BackendStatus::BACKEND_ERROR, this->lastError);
+    }
+    this->lastPublishedReadback = oldest->pixels;
+    this->lastPublishedSequence = oldest->sequence;
+    oldest->pending = false;
+    writeSlot = oldest;
+  }
   bgfx::TextureRegion destination;
-  destination.handle = this->readbackTexture;
+  destination.handle = writeSlot->texture;
   bgfx::TextureRegion source;
   source.handle = bgfx::getTexture(this->frameBuffer);
-  const uint8_t blitView = useSortedLayers ? uint8_t(peelPasses + 2) :
-    (useWeightedOit ? uint8_t(3) : uint8_t(1));
+  const uint8_t blitView = nextView;
+  bgfx::setViewName(blitView, "blit_readback");
   bgfx::blit(blitView, destination, source);
   const Clock::time_point encoded = Clock::now();
   const size_t bytes = static_cast<size_t>(this->width) * static_cast<size_t>(this->height) * 4;
-  target.colorBuffer.resize(bytes);
   bgfx::TextureRegion readRegion;
-  readRegion.handle = this->readbackTexture;
-  const uint32_t readyFrame = bgfx::read(readRegion, target.colorBuffer.data());
+  readRegion.handle = writeSlot->texture;
+  writeSlot->sequence = ++this->readbackSequence;
+  writeSlot->readyFrame = bgfx::read(readRegion, writeSlot->pixels.data());
+  writeSlot->pending = true;
   const Clock::time_point readRequested = Clock::now();
   uint32_t completedFrame = bgfx::frame();
-  uint32_t readWaitFrames = 1;
+  runtimeStatus = this->checkRuntimeFailure("BGFX frame submission failed");
+  if (runtimeStatus != BackendStatus::SUCCESS)
+    return SubmitResult(runtimeStatus, this->lastError);
+  uint32_t readWaitFrames = preBlitWaitFrames + 1;
   const uint32_t submittedFrame = completedFrame;
   const Clock::time_point submitted = Clock::now();
-  double gpuFrameMs = -1.0;
+  destroyTextures();
+  SoWgpuBgfxPhaseSample gpuSample;
+  gpuSample.gpuTimingRequested = traceGpu;
   const auto captureGpuFrame = [&]() {
     if (!traceGpu) return;
-    const bgfx::Stats * stats = bgfx::getStats();
-    if (stats && stats->gpuFrameNum == submittedFrame &&
-        stats->gpuTimerFreq > 0 && stats->gpuTimeEnd > stats->gpuTimeBegin) {
-      gpuFrameMs = double(stats->gpuTimeEnd - stats->gpuTimeBegin) *
-                   1000.0 / double(stats->gpuTimerFreq);
-    }
+    captureGpuPasses(submittedFrame, gpuSample);
   };
   captureGpuFrame();
-  // BGFX readback is delayed by multiple frames even for a synchronous API.
-  for (int attempts = 0; completedFrame < readyFrame && attempts < 16; ++attempts) {
-    completedFrame = bgfx::frame();
-    ++readWaitFrames;
-    captureGpuFrame();
-  }
-  if (completedFrame < readyFrame) {
-    if (!retained) {
-      if (bgfx::isValid(vb)) bgfx::destroy(vb);
-      if (bgfx::isValid(ib)) bgfx::destroy(ib);
+  ReadbackSlot * publishSlot = NULL;
+  const auto selectReady = [&]() {
+    ReadbackSlot * selected = static_cast<ReadbackSlot *>(NULL);
+    for (ReadbackSlot & slot : this->readbackSlots) {
+      if (slot.pending && slot.readyFrame <= completedFrame &&
+          (!selected || slot.sequence < selected->sequence)) selected = &slot;
     }
+    return selected;
+  };
+  publishSlot = selectReady();
+  bool readbackBootstrap = false;
+  if (!publishSlot && (this->readbackPipelineDepth == 1 ||
+                       this->lastPublishedReadback.empty())) {
+    readbackBootstrap = true;
+    for (int attempts = 0;
+         !publishSlot && attempts < 16; ++attempts) {
+      completedFrame = bgfx::frame();
+      ++readWaitFrames;
+      captureGpuFrame();
+      publishSlot = selectReady();
+    }
+    runtimeStatus = this->checkRuntimeFailure("BGFX readback wait failed");
+    if (runtimeStatus != BackendStatus::SUCCESS)
+      return SubmitResult(runtimeStatus, this->lastError);
+  }
+  if (!publishSlot && this->lastPublishedReadback.empty()) {
     this->lastError = "BGFX readback did not complete within sixteen frames";
     return SubmitResult(BackendStatus::BACKEND_ERROR, this->lastError);
   }
@@ -869,28 +1639,33 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
   // GL readback follows the framebuffer's bottom-left origin; Vulkan's
   // readback in this profile already matches the target's top-left RGBA view.
   // The row-swap is symmetric, so the shared mechanical image helper applies.
-  if (bgfx::getCaps()->rendererType == bgfx::RendererType::OpenGL &&
-      !SoWgpuImageCore::flipRgba8Rows(target.colorBuffer, target.size)) {
-    if (!retained) {
-      if (bgfx::isValid(vb)) bgfx::destroy(vb);
-      if (bgfx::isValid(ib)) bgfx::destroy(ib);
+  uint32_t readbackLatencyFrames = 0;
+  if (publishSlot) {
+    if (bgfx::getCaps()->rendererType == bgfx::RendererType::OpenGL &&
+        !SoWgpuImageCore::flipRgba8Rows(publishSlot->pixels, target.size)) {
+      this->lastError = "BGFX OpenGL returned an invalid RGBA readback size";
+      return SubmitResult(BackendStatus::BACKEND_ERROR, this->lastError);
     }
-    this->lastError = "BGFX OpenGL returned an invalid RGBA readback size";
-    return SubmitResult(BackendStatus::BACKEND_ERROR, this->lastError);
+    this->lastPublishedReadback = publishSlot->pixels;
+    this->lastPublishedSequence = publishSlot->sequence;
+    publishSlot->pending = false;
   }
+  target.colorBuffer = this->lastPublishedReadback;
+  readbackLatencyFrames = static_cast<uint32_t>(
+    this->readbackSequence - this->lastPublishedSequence);
   const Clock::time_point readComplete = Clock::now();
   const Clock::time_point gpuDrainBegin = Clock::now();
   uint32_t gpuQueryFrames = 0;
-  for (int attempts = 0; traceGpu && gpuFrameMs < 0.0 && attempts < 4; ++attempts) {
+  for (int attempts = 0;
+       traceGpu && gpuSample.gpuFrameMs < 0.0 && attempts < 4; ++attempts) {
     bgfx::frame();
     ++gpuQueryFrames;
     captureGpuFrame();
   }
+  runtimeStatus = this->checkRuntimeFailure("BGFX profiling drain failed");
+  if (runtimeStatus != BackendStatus::SUCCESS)
+    return SubmitResult(runtimeStatus, this->lastError);
   const Clock::time_point gpuDrainComplete = Clock::now();
-  if (!retained) {
-    if (bgfx::isValid(vb)) bgfx::destroy(vb);
-    if (bgfx::isValid(ib)) bgfx::destroy(ib);
-  }
   if (cameraPatchUsed) {
     this->cachedPlan.draws.swap(cameraDraws);
     this->cachedRevision = frame.revision;
@@ -900,30 +1675,244 @@ SoWgpuBgfxBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
     const auto ms = [](Clock::time_point a, Clock::time_point b) {
       return std::chrono::duration<double, std::milli>(b - a).count();
     };
-    SoWgpuBgfxPhaseSample sample;
+    SoWgpuBgfxPhaseSample sample = gpuSample;
     sample.lowerMs = ms(begin, lowered);
     sample.uploadMs = ms(lowered, uploaded);
     sample.encodeMs = ms(uploaded, encoded);
     sample.drawEncodeMs = ms(uploaded, drawsEncoded);
     sample.blitEncodeMs = ms(drawsEncoded, encoded);
-    sample.gpuTimingRequested = traceGpu;
     sample.gpuQueryDrainMs = ms(gpuDrainBegin, gpuDrainComplete);
     sample.gpuQueryFrames = gpuQueryFrames;
     sample.readRequestMs = ms(encoded, readRequested);
     sample.submitFrameMs = ms(readRequested, submitted);
-    sample.gpuFrameMs = gpuFrameMs;
     sample.readWaitMs = ms(submitted, readComplete);
     sample.frameWaitMs = ms(submitted, framesCompleted);
     sample.rowFlipMs = ms(framesCompleted, readComplete);
     sample.vertices = plan->vertices.size();
     sample.draws = plan->draws.size();
     sample.readWaitFrames = readWaitFrames;
+    sample.readbackPipelineDepth = this->readbackPipelineDepth;
+    sample.readbackLatencyFrames = readbackLatencyFrames;
+    sample.readbackGpuStagingBytes = static_cast<uint64_t>(bytes) *
+      this->readbackSlots.size();
+    sample.readbackCpuStagingBytes = sample.readbackGpuStagingBytes;
+    sample.readbackPublishedBytes = this->lastPublishedReadback.size();
+    sample.readbackPipelineBytes = sample.readbackGpuStagingBytes +
+      sample.readbackCpuStagingBytes;
+    sample.readbackBootstrap = readbackBootstrap;
     sample.resourceCacheHit = cacheHit || cameraPatchUsed;
+    sample.textureCacheHit = textureCacheHit;
+    sample.geometryBufferReused = geometryBufferReused;
+    sample.vertexBufferCapacity = this->cachedVertexCapacity;
+    sample.indexBufferCapacity = this->cachedIndexCapacity;
     sample.cameraPatchUsed = cameraPatchUsed;
+    sample.materialPatchUsed = materialPatchUsed;
+    sample.materialPatchRanges = static_cast<uint32_t>(materialRanges.size());
+    sample.materialPatchVertices = materialPatchVertices;
+    copyLogicalDrawStats(drawStats, this->drawGroupingEnabled, sample);
     std::fprintf(stderr, "%s\n", SoWgpuDiagnosticShell::formatBgfxPhase(sample).c_str());
   }
   this->lastError.clear();
   return SubmitResult(BackendStatus::SUCCESS, "", ++this->serial);
+}
+
+SubmitResult
+SoWgpuBgfxBackend::submitDirectTexture(const FramePlan & frame,
+                                       const SbVec2i32 & size,
+                                       uint64_t producerKey,
+                                       uint64_t & token)
+{
+  token = 0;
+  if (!this->initialized || !this->onApiThread() || this->presentToWindow ||
+      producerKey == 0 || size[0] <= 0 || size[1] <= 0 ||
+      size[0] > 2048 || size[1] > 2048) {
+    return SubmitResult(BackendStatus::NOT_READY,
+                        "BGFX direct RTT requires a prepared offscreen backend");
+  }
+  SoWgpuBgfxPlan plan;
+  if (!SoWgpuBgfxCore::lower(frame, size[0], size[1],
+        bgfx::getCaps()->homogeneousDepth, plan, this->lastError)) {
+    return SubmitResult(BackendStatus::UNSUPPORTED, this->lastError);
+  }
+  SoWgpuBgfxTransparencyStrategy strategy;
+  if (!SoWgpuBgfxCore::selectTransparencyStrategy(plan.draws,
+        SoWgpuBgfxTransparencyMode::OBJECT, this->weightedOitSupported,
+        this->sortedLayersSupported, strategy, this->lastError) ||
+      strategy != SoWgpuBgfxTransparencyStrategy::OBJECT) {
+    this->lastError = "BGFX direct RTT currently requires object transparency";
+    return SubmitResult(BackendStatus::UNSUPPORTED, this->lastError);
+  }
+
+  DirectTextureResource * cachedResource = NULL;
+  for (DirectTextureResource & resource : this->directTextures) {
+    if (resource.producerKey == producerKey) {
+      cachedResource = &resource;
+      break;
+    }
+  }
+  if (cachedResource &&
+      (cachedResource->width != size[0] || cachedResource->height != size[1])) {
+    if (bgfx::isValid(cachedResource->frameBuffer))
+      bgfx::destroy(cachedResource->frameBuffer);
+    cachedResource->frameBuffer = BGFX_INVALID_HANDLE;
+  }
+  bgfx::FrameBufferHandle output = BGFX_INVALID_HANDLE;
+  if (cachedResource) output = cachedResource->frameBuffer;
+  const bool newOutput = !bgfx::isValid(output);
+  if (newOutput) {
+    const bgfx::Caps * caps = bgfx::getCaps();
+    const bgfx::TextureFormat::Enum depthFormat =
+      (caps->formats[bgfx::TextureFormat::D24S8] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER)
+        ? bgfx::TextureFormat::D24S8 : bgfx::TextureFormat::D32F;
+    bgfx::TextureHandle color = bgfx::createTexture2D(
+      static_cast<uint16_t>(size[0]), static_cast<uint16_t>(size[1]), false, 1,
+      bgfx::TextureFormat::RGBA8, peelTextureFlags);
+    bgfx::TextureHandle depth = bgfx::createTexture2D(
+      static_cast<uint16_t>(size[0]), static_cast<uint16_t>(size[1]), false, 1,
+      depthFormat, BGFX_TEXTURE_RT_WRITE_ONLY);
+    const bgfx::TextureHandle attachments[2] = {color, depth};
+    output = bgfx::createFrameBuffer(2, attachments, true);
+    if (!bgfx::isValid(color) || !bgfx::isValid(depth) || !bgfx::isValid(output)) {
+      if (bgfx::isValid(output)) bgfx::destroy(output);
+      else {
+        if (bgfx::isValid(color)) bgfx::destroy(color);
+        if (bgfx::isValid(depth)) bgfx::destroy(depth);
+      }
+      return SubmitResult(BackendStatus::OUT_OF_MEMORY,
+                          "BGFX could not allocate direct RTT framebuffer");
+    }
+  }
+
+  bgfx::VertexBufferHandle vb = BGFX_INVALID_HANDLE;
+  bgfx::IndexBufferHandle ib = BGFX_INVALID_HANDLE;
+  if (!plan.draws.empty()) {
+    vb = bgfx::createVertexBuffer(bgfx::copy(plan.vertices.data(),
+      static_cast<uint32_t>(plan.vertices.size() * sizeof(SoWgpuBgfxVertex))),
+      this->layout);
+    ib = bgfx::createIndexBuffer(bgfx::copy(plan.indices.data(),
+      static_cast<uint32_t>(plan.indices.size() * sizeof(uint32_t))),
+      BGFX_BUFFER_INDEX32);
+  }
+  if ((!plan.draws.empty()) && (!bgfx::isValid(vb) || !bgfx::isValid(ib))) {
+    if (bgfx::isValid(vb)) bgfx::destroy(vb);
+    if (bgfx::isValid(ib)) bgfx::destroy(ib);
+    if (newOutput) bgfx::destroy(output);
+    return SubmitResult(BackendStatus::OUT_OF_MEMORY,
+                        "BGFX could not allocate direct RTT geometry");
+  }
+
+  std::vector<bgfx::TextureHandle> textures(plan.textures.size(), BGFX_INVALID_HANDLE);
+  std::vector<bool> owned(plan.textures.size(), false);
+  for (size_t i = 0; i < plan.textures.size(); ++i) {
+    const SoWgpuBgfxTexture & source = plan.textures[i];
+    if (source.gpuToken != 0) {
+      for (const DirectTextureResource & resource : this->directTextures) {
+        if (resource.token == source.gpuToken)
+          textures[i] = bgfx::getTexture(resource.frameBuffer, 0);
+      }
+    } else {
+      textures[i] = bgfx::createTexture2D(static_cast<uint16_t>(source.width),
+        static_cast<uint16_t>(source.height), false, 1, bgfx::TextureFormat::RGBA8,
+        BGFX_TEXTURE_NONE, bgfx::copy(source.pixelsRgba.data(),
+          static_cast<uint32_t>(source.pixelsRgba.size())));
+      owned[i] = true;
+    }
+    if (!bgfx::isValid(textures[i])) {
+      for (size_t j = 0; j < textures.size(); ++j)
+        if (owned[j] && bgfx::isValid(textures[j])) bgfx::destroy(textures[j]);
+      if (bgfx::isValid(vb)) bgfx::destroy(vb);
+      if (bgfx::isValid(ib)) bgfx::destroy(ib);
+      if (newOutput) bgfx::destroy(output);
+      return SubmitResult(BackendStatus::UNSUPPORTED,
+                          "BGFX direct RTT references an invalid producer texture");
+    }
+  }
+
+  bgfx::setPaletteColor(0, plan.clearColor);
+  bgfx::setViewName(0, "rtt_opaque");
+  bgfx::setViewMode(0, bgfx::ViewMode::Sequential);
+  bgfx::setViewRect(0, 0, 0, static_cast<uint16_t>(size[0]),
+                    static_cast<uint16_t>(size[1]));
+  bgfx::setViewFrameBuffer(0, output);
+  bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 1.0f, 0, 0);
+  bgfx::touch(0);
+  for (const SoWgpuBgfxDraw & draw : plan.draws) {
+    if (draw.blend) continue;
+    bgfx::setTransform(draw.mvp);
+    bgfx::setVertexBuffer(0, vb);
+    bgfx::setIndexBuffer(ib, draw.firstIndex, draw.indexCount);
+    bgfx::setState(drawState(draw));
+    setDrawScissor(draw, size[1]);
+    this->bindDrawTexture(draw, textures);
+    this->bindDrawLighting(draw);
+    bgfx::submit(0, this->program);
+  }
+  bgfx::setViewName(1, "rtt_transparent");
+  bgfx::setViewMode(1, bgfx::ViewMode::Sequential);
+  bgfx::setViewRect(1, 0, 0, static_cast<uint16_t>(size[0]),
+                    static_cast<uint16_t>(size[1]));
+  bgfx::setViewFrameBuffer(1, output);
+  bgfx::setViewClear(1, BGFX_CLEAR_NONE);
+  for (const SoWgpuBgfxDraw & draw : plan.draws) {
+    if (!draw.blend || draw.alpha <= 0.0f) continue;
+    bgfx::setTransform(draw.mvp);
+    bgfx::setVertexBuffer(0, vb);
+    bgfx::setIndexBuffer(ib, draw.firstIndex, draw.indexCount);
+    bgfx::setState(drawState(draw));
+    setDrawScissor(draw, size[1]);
+    this->bindDrawTexture(draw, textures);
+    this->bindDrawLighting(draw);
+    bgfx::submit(1, this->program);
+  }
+  bgfx::frame();
+  for (size_t i = 0; i < textures.size(); ++i)
+    if (owned[i] && bgfx::isValid(textures[i])) bgfx::destroy(textures[i]);
+  if (bgfx::isValid(vb)) bgfx::destroy(vb);
+  if (bgfx::isValid(ib)) bgfx::destroy(ib);
+  if (!cachedResource) {
+    DirectTextureResource resource;
+    resource.token = ++this->directTextureSerial;
+    resource.producerKey = producerKey;
+    resource.width = size[0];
+    resource.height = size[1];
+    resource.frameBuffer = output;
+    resource.inUse = true;
+    this->directTextures.push_back(resource);
+    token = resource.token;
+  } else {
+    cachedResource->width = size[0];
+    cachedResource->height = size[1];
+    cachedResource->frameBuffer = output;
+    cachedResource->inUse = true;
+    token = cachedResource->token;
+  }
+  return SubmitResult(BackendStatus::SUCCESS, "", ++this->serial);
+}
+
+void
+SoWgpuBgfxBackend::releaseDirectTexture(uint64_t token)
+{
+  for (std::vector<DirectTextureResource>::iterator it = this->directTextures.begin();
+       it != this->directTextures.end(); ++it) {
+    if (it->token != token) continue;
+    it->inUse = false;
+    return;
+  }
+}
+
+void
+SoWgpuBgfxBackend::finishDirectTextures(const std::vector<uint64_t> & usedTokens)
+{
+  for (std::vector<DirectTextureResource>::iterator it = this->directTextures.begin();
+       it != this->directTextures.end();) {
+    if (std::find(usedTokens.begin(), usedTokens.end(), it->token) == usedTokens.end()) {
+      if (bgfx::isValid(it->frameBuffer)) bgfx::destroy(it->frameBuffer);
+      it = this->directTextures.erase(it);
+    } else {
+      it->inUse = false;
+      ++it;
+    }
+  }
 }
 
 void

@@ -28,6 +28,12 @@
 
 namespace {
 
+SoWgpuRenderTarget * makeColorTarget(const SbVec2i32 & size) {
+  SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(size);
+  if (target) target->setDepthReadbackEnabled(FALSE);
+  return target;
+}
+
 bool check(bool condition, const char * message, const SoWgpuRenderAction & action) {
   if (!condition) {
     std::cerr << "WgpuSceneTextureTest: " << message << ": "
@@ -113,7 +119,7 @@ int main() {
   parent->addChild(white);
   parent->addChild(makeTexturedQuad(sceneTexture));
 
-  SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
+  SoWgpuRenderTarget * target = makeColorTarget(SbVec2i32(64, 64));
   SoWgpuRenderAction action(SbViewportRegion(64, 64));
   action.setRenderTarget(target);
   action.apply(parent);
@@ -208,7 +214,7 @@ int main() {
   action.setBackgroundColor(SbColor4f(0, 0, 0, 1));
   clearOnlyScene->unref();
 
-  SoWgpuRenderTarget * swapped = SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
+  SoWgpuRenderTarget * swapped = makeColorTarget(SbVec2i32(64, 64));
   action.setRenderTarget(swapped);
   action.apply(parent);
   std::vector<uint8_t> swappedColor;
@@ -459,7 +465,7 @@ int main() {
     if (!check(action.getLastStatus() == SoWgpuRenderAction::OUT_OF_MEMORY &&
                afterParentOom == resized && liveAfterOom == 0 && retiredAfterOom <= 1,
                "OOM after child submit leaked RTT or published a partial frame", action)) return 1;
-    SoWgpuRenderTarget * replacement = SoWgpuRenderTarget::createOffscreen(SbVec2i32(96, 96));
+    SoWgpuRenderTarget * replacement = makeColorTarget(SbVec2i32(96, 96));
     if (!check(replacement && replacement->getStatus() == SoWgpuRenderTarget::TARGET_READY,
                "cannot replace fatal OOM target", action)) return 1;
     action.setRenderTarget(replacement);
@@ -494,7 +500,7 @@ int main() {
                  afterResourceFault == resized &&
                  activeFaultRtt == 0 && retiredFaultRtt <= 1,
                  "RTT resource failpoint leaked a texture or published a frame", action)) return 1;
-      SoWgpuRenderTarget * nextTarget = SoWgpuRenderTarget::createOffscreen(SbVec2i32(96, 96));
+      SoWgpuRenderTarget * nextTarget = makeColorTarget(SbVec2i32(96, 96));
       if (!check(nextTarget && nextTarget->getStatus() == SoWgpuRenderTarget::TARGET_READY,
                  "cannot replace target after RTT resource fault", action)) return 1;
       action.setRenderTarget(nextTarget);

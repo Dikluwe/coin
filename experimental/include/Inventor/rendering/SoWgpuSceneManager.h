@@ -8,6 +8,7 @@
 #include <Inventor/SbString.h>
 
 class SoNode;
+class SbViewportRegion;
 class SoWgpuRenderTarget;
 struct SoWgpuNativeSurfaceDescriptor;
 struct SoWgpuReadbackTicket;
@@ -32,6 +33,7 @@ public:
   void setSceneGraph(SoNode * root);
   SoNode * getSceneGraph() const;
   SoWgpuRenderTarget * getRenderTarget() const;
+  void setViewportRegion(const SbViewportRegion & viewport);
   void setBackgroundColor(const SbColor4f & color);
   SbBool resize(const SbVec2i32 & framebufferSize);
   SoWgpuRenderAction::Status render();

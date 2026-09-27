@@ -57,6 +57,7 @@ struct cc_worker {
   cc_condvar * begincond;
 
   SbBool shutdown;
+  SbBool haswork;
   void (*workfunc)(void *);
   void * workclosure;
 

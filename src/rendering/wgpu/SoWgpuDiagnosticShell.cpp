@@ -167,10 +167,25 @@ SoWgpuDiagnosticShell::formatBgfxPhase(const SoWgpuBgfxPhaseSample & sample)
          << " vertices=" << sample.vertices
          << " draws=" << sample.draws
          << " read_wait_frames=" << sample.readWaitFrames
+         << " readback_pipeline_depth=" << sample.readbackPipelineDepth
+         << " readback_latency_frames=" << sample.readbackLatencyFrames
+         << " readback_pipeline_bytes=" << sample.readbackPipelineBytes
+         << " readback_gpu_staging_bytes=" << sample.readbackGpuStagingBytes
+         << " readback_cpu_staging_bytes=" << sample.readbackCpuStagingBytes
+         << " readback_published_bytes=" << sample.readbackPublishedBytes
+         << " readback_bootstrap=" << (sample.readbackBootstrap ? 1 : 0)
          << " resource_cache_hit=" << (sample.resourceCacheHit ? 1 : 0)
-         << " camera_patch=" << (sample.cameraPatchUsed ? 1 : 0);
+         << " texture_cache_hit=" << (sample.textureCacheHit ? 1 : 0)
+         << " geometry_buffer_reused=" << (sample.geometryBufferReused ? 1 : 0)
+         << " vertex_buffer_capacity=" << sample.vertexBufferCapacity
+         << " index_buffer_capacity=" << sample.indexBufferCapacity
+         << " camera_patch=" << (sample.cameraPatchUsed ? 1 : 0)
+         << " material_patch=" << (sample.materialPatchUsed ? 1 : 0)
+         << " material_patch_ranges=" << sample.materialPatchRanges
+         << " material_patch_vertices=" << sample.materialPatchVertices;
   stream << " gpu_query_drain_ms=" << sample.gpuQueryDrainMs
-         << " gpu_query_frames=" << sample.gpuQueryFrames;
+         << " gpu_query_frames=" << sample.gpuQueryFrames
+         << " gpu_pass_frame=" << sample.gpuPassFrame;
   if (sample.gpuFrameMs >= 0.0) {
     stream << " gpu_frame_ms=" << sample.gpuFrameMs;
   } else if (!sample.gpuTimingRequested) {
@@ -178,6 +193,34 @@ SoWgpuDiagnosticShell::formatBgfxPhase(const SoWgpuBgfxPhaseSample & sample)
   } else {
     stream << " gpu_frame_ms=unavailable";
   }
+  const auto gpuPhase = [&stream](const char * name, double value) {
+    stream << ' ' << name << '=';
+    if (value >= 0.0) stream << value;
+    else stream << "unavailable";
+  };
+  gpuPhase("gpu_opaque_ms", sample.gpuOpaqueMs);
+  gpuPhase("gpu_transparent_ms", sample.gpuTransparentMs);
+  gpuPhase("gpu_composite_ms", sample.gpuCompositeMs);
+  gpuPhase("gpu_blit_readback_ms", sample.gpuBlitReadbackMs);
+  gpuPhase("gpu_wait_ms", sample.gpuWaitMs);
+  stream << " gpu_resource_stats=" << (sample.gpuResourceStatsAvailable ? 1 : 0)
+         << " gpu_draw_submits=" << sample.gpuDrawSubmits
+         << " opaque_draws=" << sample.opaqueDraws
+         << " transparent_draws=" << sample.transparentDraws
+         << " opaque_grouping=" << (sample.opaqueGroupingEnabled ? 1 : 0)
+         << " opaque_reordered=" << (sample.opaqueOrderChanged ? 1 : 0)
+         << " logical_pipeline_changes=" << sample.logicalPipelineChanges
+         << " logical_material_changes=" << sample.logicalMaterialChanges
+         << " logical_texture_changes=" << sample.logicalTextureChanges
+         << " logical_lighting_changes=" << sample.logicalLightingChanges
+         << " gpu_memory_used_bytes=" << sample.gpuMemoryUsedBytes
+         << " texture_memory_used_bytes=" << sample.textureMemoryUsedBytes
+         << " render_target_memory_used_bytes=" << sample.renderTargetMemoryUsedBytes
+         << " gpu_vertex_buffers=" << sample.gpuVertexBuffers
+         << " gpu_index_buffers=" << sample.gpuIndexBuffers
+         << " gpu_textures=" << sample.gpuTextures
+         << " gpu_framebuffers=" << sample.gpuFrameBuffers
+         << " gpu_programs=" << sample.gpuPrograms;
 
   return stream.str();
 }

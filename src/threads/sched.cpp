@@ -77,10 +77,11 @@ void cc_sched_set_num_threads(cc_sched * sched, int num) { assert(FALSE); }
 int cc_sched_get_num_threads(cc_sched * sched) { assert(FALSE); return 0; }
 uint32_t cc_sched_schedule(cc_sched * sched, 
                            cc_sched_f * workfunc, void * closure,
-                           float priority) { assert(FALSE); }
+                           float priority) { assert(FALSE); return 0; }
 void cc_sched_wait_all(cc_sched * sched) { assert(FALSE); }
 SbBool cc_sched_unschedule(cc_sched * sched, 
                            uint32_t schedid) { assert(FALSE); }
+int cc_sched_get_num_remaining(cc_sched * sched) { assert(FALSE); return 0; }
 void cc_sched_set_num_allowed(cc_sched * sched, 
                               int num)  { assert(FALSE); }
 void cc_sched_change_priority(cc_sched * sched, 
@@ -250,19 +251,24 @@ cc_sched_schedule(cc_sched * sched,
                   cc_sched_f * workfunc, void * closure,
                   float priority)
 {
+  if (workfunc == NULL) return 0;
+
   sched_item * item;
+  uint32_t schedid;
+  void * existing;
 
   cc_mutex_lock(sched->mutex);
   item = (sched_item *)cc_memalloc_allocate(sched->itemalloc);
+
+  do {
+    schedid = sched->schedid_counter++;
+  } while (schedid == 0 ||
+           cc_dict_get(sched->schedid_dict, schedid, &existing));
   
   item->workfunc = workfunc;
   item->closure = closure;
   item->priority = priority;
-  item->schedid = sched->schedid_counter++;
-  // avoid schedid == 0
-  if (item->schedid == 0) {
-    item->schedid = sched->schedid_counter++;
-  }
+  item->schedid = schedid;
   cc_heap_add(sched->itemheap, item);
   cc_dict_put(sched->schedid_dict, item->schedid, item);
   if (cc_dict_get_num_elements(sched->schedid_dict) == 1) {
@@ -271,7 +277,7 @@ cc_sched_schedule(cc_sched * sched,
 
   cc_mutex_unlock(sched->mutex);
 
-  return item->schedid;
+  return schedid;
 }
 
 /*!
@@ -375,5 +381,41 @@ cc_sched_change_priority(cc_sched * sched,
 #ifdef __cplusplus
 } /* extern "C" */
 #endif /* __cplusplus */
+
+#ifdef COIN_TEST_SUITE
+
+static void
+sched_test_callback(void * closure)
+{
+  int * calls = static_cast<int *>(closure);
+  (*calls)++;
+}
+
+BOOST_AUTO_TEST_CASE(cc_sched_tracks_paused_and_cancelled_jobs)
+{
+  cc_sched * sched = cc_sched_construct(1);
+  int calls = 0;
+  cc_sched_set_num_allowed(sched, 0);
+
+  const uint32_t first = cc_sched_schedule(sched, sched_test_callback,
+                                            &calls, 1.0f);
+  const uint32_t second = cc_sched_schedule(sched, sched_test_callback,
+                                             &calls, 2.0f);
+
+  BOOST_CHECK(first != 0);
+  BOOST_CHECK(second != 0);
+  BOOST_CHECK(first != second);
+  BOOST_CHECK_EQUAL(cc_sched_get_num_remaining(sched), 2);
+
+  cc_sched_change_priority(sched, first, 3.0f);
+  BOOST_CHECK(cc_sched_unschedule(sched, second));
+  BOOST_CHECK(cc_sched_unschedule(sched, first));
+  BOOST_CHECK_EQUAL(cc_sched_get_num_remaining(sched), 0);
+  BOOST_CHECK_EQUAL(calls, 0);
+
+  cc_sched_destruct(sched);
+}
+
+#endif // COIN_TEST_SUITE
 
 #endif /* HAVE_THREADS */
