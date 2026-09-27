@@ -39,6 +39,90 @@ cmake --build build-issue374 --target CoinLevelOfDetailBoundingBoxTest
 ctest --test-dir build-issue374 -R '^LevelOfDetailBoundingBox$' -V
 ```
 
+## Historical origin of the unreachable return
+
+### Precursor: SoSeparator, February 13, 2001
+
+Commit [`3203d285d3e462649b258cb2222cf2fd5a7f138e`](https://github.com/coin3d/coin/commit/3203d285d3e462649b258cb2222cf2fd5a7f138e),
+by Peder Blekken, has the message "Fix for cache to cache dependencies."
+It introduced this switch in `SoSeparator::getBoundingBox()`:
+
+```cpp
+case SoAction::IN_PATH:
+  iscaching = FALSE;
+  break;
+case SoAction::OFF_PATH:
+  return; // no need to do any more work
+```
+
+In that implementation the return was reachable and applied only to the
+separate `OFF_PATH` case. This exact structure and comment were still present
+in `SoSeparator.cpp` at the parent of the LOD change.
+
+### Introduction in SoLevelOfDetail, July 3, 2002
+
+Commit [`3b8ca9b8538839bad6ba2f08efa992cc23ca5d01`](https://github.com/coin3d/coin/commit/3b8ca9b8538839bad6ba2f08efa992cc23ca5d01),
+authored and committed by Peder Blekken at 14:55:36 UTC, states:
+"Improved/bugfixed bounding box calculations for this node. Problem reported
+by Kristofer Tingdahl."
+
+Before this commit, LOD did not override `getBoundingBox()` and inherited the
+SoGroup implementation. Its detail-selection code applied the bbox action
+directly to `this`. The change introduced the LOD's bbox cache, its own
+`getBoundingBox()` implementation, cache invalidation in `notify()`, and
+path-based bbox calculation with a reset path to retain upstream state while
+obtaining local geometry bounds.
+
+The new implementation already contained:
+
+```cpp
+case SoAction::OFF_PATH:
+case SoAction::IN_PATH:
+  // can't cache if we're not traversing all children
+  iscaching = FALSE;
+  break;
+  return; // no need to do any more work
+```
+
+Thus the return was unreachable from its first appearance in LOD; it did not
+become unreachable through a later insertion of `break`.
+
+The strong inference from the matching function structure, exact return
+comment, cache protocol, and the shared 1999 FIXME is that the implementation
+was adapted from SoSeparator, with the separate OFF_PATH case moved alongside
+IN_PATH while the old return was left behind. The commit message does not
+explicitly describe copying or explain why the return was retained, so the
+editing mistake is an inference rather than a documented author statement.
+
+The issue discussion attributes the introduction to Kristofer Tingdahl.
+Git records Peder Blekken as the author; Tingdahl is named as the reporter.
+
+### Follow-up on the same day
+
+At 15:25:01 UTC, commit
+[`fe0244a308af12ffd895d11503a71a6d810bfaaa`](https://github.com/coin3d/coin/commit/fe0244a308af12ffd895d11503a71a6d810bfaaa),
+also by Peder Blekken, says "Bounding box bugfix." It preserves/restores the
+accumulated action box, always pushes/pops state during child traversal, and
+sets the temporary box transform to identity for local cache storage.
+It leaves the unreachable return untouched.
+
+A Git pickaxe search over all local refs identifies the introduction above
+and the removal in `fed98ccbe9` on September 27, 2026. The exact dead statement
+therefore survived from its introduction for over 24 years. The history
+supports removing the leftover statement; it does not establish an intention
+to add an early return to the LOD traversal. The IN_PATH and OFF_PATH mutation
+tests below provide behavioral evidence against that alternative.
+
+Reproduce the historical inspection:
+
+```sh
+git log --all -S 'return; // no need to do any more work' -- src/nodes/SoLevelOfDetail.cpp
+git show 3203d285d3 -- src/nodes/SoSeparator.cpp
+git show 3b8ca9b85388 -- src/nodes/SoLevelOfDetail.cpp
+git show 3b8ca9b85388^:src/nodes/SoSeparator.cpp
+git show fe0244a308 -- src/nodes/SoLevelOfDetail.cpp
+```
+
 ## Study-based additions
 
 The personal `Estudo coin` notes `estudos/So/SoCache.md`,
