@@ -1,0 +1,48 @@
+name: Native Qt Quarter regressions
+on:
+  workflow_dispatch:
+jobs:
+  native:
+    runs-on: [self-hosted, linux, freecad-wgpu]
+    timeout-minutes: 40
+    env:
+      COIN_SOURCE_DIR: ${{ vars.COIN_SOURCE_DIR }}
+      COIN_BUILD_DIR: ${{ vars.COIN_BUILD_DIR }}
+      FREECAD_SOURCE_DIR: ${{ vars.FREECAD_SOURCE_DIR }}
+      FREECAD_BUILD_DIR: ${{ vars.FREECAD_BUILD_DIR }}
+      BGFX_INSTALL_DIR: ${{ vars.BGFX_INSTALL_DIR }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build harness and validate result gate
+        run: |
+          cmake -S testsuite/qt-quarter -B build/qt-quarter -G Ninja \
+            -DCOIN_SOURCE_DIR="$COIN_SOURCE_DIR" -DCOIN_BUILD_DIR="$COIN_BUILD_DIR" \
+            -DFREECAD_SOURCE_DIR="$FREECAD_SOURCE_DIR" -DFREECAD_BUILD_DIR="$FREECAD_BUILD_DIR"
+          cmake --build build/qt-quarter
+          python3 -m unittest discover -s testsuite/qt-quarter -p test_runner.py
+      - name: Xvfb software matrix
+        id: software
+        continue-on-error: true
+        run: |
+          export LD_LIBRARY_PATH="$COIN_BUILD_DIR/lib:$BGFX_INSTALL_DIR/lib:$FREECAD_BUILD_DIR/lib"
+          xvfb-run -a -s '-screen 0 1280x1024x24' python3 testsuite/qt-quarter/run.py \
+            --harness build/qt-quarter/QtQuarterRegression --freecad "$FREECAD_BUILD_DIR/bin/FreeCAD" \
+            --artifacts build/qt-quarter/xvfb
+      - name: Physical GPU matrix (runner must supply DISPLAY and ICD)
+        id: hardware
+        continue-on-error: true
+        run: |
+          export LD_LIBRARY_PATH="$COIN_BUILD_DIR/lib:$BGFX_INSTALL_DIR/lib:$FREECAD_BUILD_DIR/lib"
+          python3 testsuite/qt-quarter/run.py --harness build/qt-quarter/QtQuarterRegression \
+            --freecad "$FREECAD_BUILD_DIR/bin/FreeCAD" --require-hardware --artifacts build/qt-quarter/hardware
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-qt-results
+          path: build/qt-quarter
+      - name: Reject partial or unexecuted coverage
+        if: always()
+        env:
+          SOFTWARE_OUTCOME: ${{ steps.software.outcome }}
+          HARDWARE_OUTCOME: ${{ steps.hardware.outcome }}
+        run: test "$SOFTWARE_OUTCOME" = success && test "$HARDWARE_OUTCOME" = success
