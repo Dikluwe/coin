@@ -161,3 +161,27 @@ width band containing the entire centered target (the enclosing occluder is
 three times larger). Corner desktop notifications and the unrelated axis
 overlay are excluded; pixel-change/removal thresholds remain unchanged.
 Original full PNGs are retained for review.
+
+## Production ambiguity-resolution menu
+
+`freecad-selection-menu` requires `COIN_TEST_DELAYED_HELPER` and the real
+native FreeCAD viewport. It uses the production SelectionMenu::doPick modal
+popup with two geometry candidates; the helper drives its hover handlers
+and confirms Face2 through the actual Qt submenu/keyboard event path.
+The fixture hides the target inside an opaque object. Screenshots assert
+visible on-top preselection for Face1/Face2, no paths/pixels after cancellation,
+Face2 selection after confirmation and no residues/idle redraw after clear.
+Internal menu-active and preselection state must be reset on return.
+It does not test physical ray picking or the shortcut that opens the menu.
+
+Native captures now query X11 _NET_ACTIVE_WINDOW, not only Qt's possibly
+stale isActiveWindow during modal loops. An unavailable/foreign active window
+is SKIP. The popup scenario is not attached to the offscreen readback case:
+the attempted Qt offscreen integration timed out and is not a passing test.
+
+After closing the modal popup, two unchanged frame-counter samples 500 ms
+apart are required before the strict 1200 ms idle check. Settling is bounded
+to 3 seconds and never forces redraw. test_menu_idle.py executes the actual
+macro functions and rejects both a continuous loop and any frame during idle.
+The native matrix with this settling phase remains pending if the X11 focus
+gate reports SKIP; do not claim a complete pass from earlier partial runs.

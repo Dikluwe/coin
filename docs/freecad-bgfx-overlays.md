@@ -386,3 +386,60 @@ GPU física e submissão comprovadas, sem fallback. Seleção por caminho
 on-top, faces, objeto inteiro, resize, remoção e idle validados na viewport
 nativa. Runner/comparadores: **12/12 PASS**. O popup de seleção ambígua
 e o hit-testing físico do mouse continuam fora deste caso.
+
+## Continuação após os commits: popup real de seleção ambígua
+
+Commits de integração: Coin c8adf4d3bf e FreeCAD 228c679d78.
+As alterações não relacionadas permaneceram fora desses commits.
+
+O helper de testes agora instancia SelectionMenu de produção, chama doPick
+com candidatos Face1/Face2 e mantém o popup modal real. Hover usa os handlers
+de produção; a confirmação abre o submenu através do menu pai e envia
+Right/Return pelo caminho Qt de eventos de teclado. Não substitui o resultado
+da escolha nem chama onPicked artificialmente. Cancelamento fecha o popup.
+Verifica também limpeza de ClarifySelectionActive e da pré-seleção.
+
+O caso native freecad-selection-menu usa a peça encoberta para comprovar
+o destaque on-top durante hover, mudança de face, seleção confirmada e
+remoção. Paths e pixels são verificados, incluindo idle. É uma fixture com
+candidatos controlados; não valida ray picking físico nem o atalho de entrada
+do popup. Não exige alteração GL/BGFX adicional no menu Qt.
+
+A captura consulta _NET_ACTIVE_WINDOW do X11. isActiveWindow do Qt sozinho
+mostrou estado desatualizado durante o loop modal e capturou outra aplicação.
+Perda de foco X11 é SKIP. As tentativas smoke/diagnostic tiveram capturas
+inválidas; x11 revelou um problema do clique sintético que foi substituído
+pela abertura/confirmacão normal do submenu. Nenhuma dessas tentativas é
+declarada aprovação. A integração offscreen do popup foi removida da macro
+de readback após timeout; não é uma evidência de funcionamento do menu.
+
+Smoke nativo final: /tmp/freecad-selection-menu-keyboard/results.json,
+**1/1 PASS**, Vulkan/object/DPR 1x, GPU física sem fallback.
+CTest existente: **12/12 PASS**, /tmp/freecad-selection-menu-ctest.log.
+Runner/comparadores: **12/12 PASS**.
+
+Matriz inicial do popup: /tmp/freecad-selection-menu-matrix/results.json,
+**5 PASS, 2 SKIP, 1 FAIL**. Passaram as quatro variantes Vulkan e OpenGL
+weighted_oit/DPR 2x. OpenGL object/DPR 1x teve um frame adicional entre
+idle_start=115 e idle_end=116; a repetição reproduziu um único frame.
+Isso não comprova redraw contínuo, mas não foi aceito como PASS.
+
+A macro agora espera duas amostras consecutivas quietas, espaçadas 500 ms,
+após o fechamento/limpeza do popup, com limite total de 3 segundos. Depois
+mede 1200 ms de idle sem aceitar nenhum frame adicional. A fase de
+estabilização não solicita redraw. Quatro testes executam as próprias
+funções da macro e comprovam estabilidade mínima, reinício por frame tardio,
+falha de redraw contínuo e medição final estrita: suíte Python **16/16 PASS**.
+
+A matriz com essa fase final ficou em **0 PASS, 8 SKIP** por foco X11 em
+outra aplicação: /tmp/freecad-selection-menu-settled/results.json.
+A validação visual completa do popup e da nova estabilização ainda está
+pendente. Não alterar esse resultado para PASS nem declarar paridade de
+hit-testing físico. A tentativa de integração offscreen do popup foi
+removida; os readbacks existentes permanecem independentes do desktop.
+
+Regressão dos readbacks após a continuação: **4/4 PASS**, Vulkan/OpenGL ×
+object/weighted_oit, GPU física sem fallback,
+/tmp/freecad-selection-menu-readback-regression/results.json.
+O helper também exige que os dois callbacks de hover tenham sido executados;
+fechar o menu antes deles não pode produzir um PASS artificial.

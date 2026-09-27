@@ -5,6 +5,11 @@
 #include <Gui/Application.h>
 #include <Gui/ViewProvider.h>
 #include <Gui/ViewParams.h>
+#include <Gui/Selection/SelectionView.h>
+#include <Gui/Selection/Selection.h>
+#include <QTimer>
+#include <QApplication>
+#include <QKeyEvent>
 #include <Gui/Inventor/SoDrawingGrid.h>
 #include <Gui/Inventor/So3DAnnotation.h>
 #include <Gui/Selection/SoFCUnifiedSelection.h>
@@ -365,4 +370,74 @@ extern "C" int delayed_viewprovider_test(const char* artifacts)
         error = e.what();
         return 0;
     }
+}
+
+extern "C" int delayed_selection_menu_test(void* parent, int confirm,
+                                           int (*observe)(int))
+{
+    try {
+        auto* document = App::GetApplication().getActiveDocument();
+        require(document, "menu document missing");
+        auto* object = document->getObject("Box");
+        require(object, "menu object missing");
+        Gui::SelectionMenu menu(static_cast<QWidget*>(parent));
+        std::vector<Gui::PickData> picks;
+        for (const char* face : {"Face1", "Face2"})
+            picks.push_back({object,face,document->getName(),"Box",face});
+        bool valid = true;
+        int observedHovers = 0;
+        QString failure;
+        auto fail = [&](const char* message) {
+            valid=false; failure=QString::fromUtf8(message); menu.close();
+        };
+        QAction* first=nullptr;
+        QAction* second=nullptr;
+        QTimer::singleShot(100, &menu, [&] {
+            for (auto* category : menu.actions()) {
+                if (!category->menu()) continue;
+                for (auto* action : category->menu()->actions()) {
+                    if (action->text().contains("Face1")) first=action;
+                    if (action->text().contains("Face2")) second=action;
+                }
+            }
+            if (!first || !second || !Gui::Selection().isClarifySelectionActive()) {
+                fail("production menu entries/active state missing"); return;
+            }
+            menu.onHover(first);
+        });
+        QTimer::singleShot(800, &menu, [&] {
+            if (!valid) return;
+            if (!observe(1)) { fail("Face1 menu hover failed"); return; }
+            ++observedHovers;
+            menu.onHover(second);
+        });
+        QTimer::singleShot(1500, &menu, [&] {
+            if (!valid) return;
+            if (!observe(2)) { fail("Face2 menu hover failed"); return; }
+            ++observedHovers;
+            if (!confirm) { menu.close(); return; }
+            auto* submenu = qobject_cast<QMenu*>(second->parent());
+            if (!submenu) { fail("Face2 submenu missing"); return; }
+            menu.setActiveAction(submenu->menuAction());
+            QKeyEvent open(QEvent::KeyPress, Qt::Key_Right, Qt::NoModifier);
+            QApplication::sendEvent(&menu, &open);
+            QTimer::singleShot(400, submenu, [&, submenu] {
+            if (!submenu->isVisible()) { fail("Face submenu did not open"); return; }
+            submenu->setActiveAction(second);
+            QKeyEvent accept(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier);
+            QApplication::sendEvent(submenu, &accept);
+            });
+        });
+        QTimer::singleShot(5000,&menu,[&] { fail("production menu did not finish"); });
+        Gui::Selection().clearSelection();
+        auto picked=menu.doPick(picks,static_cast<QWidget*>(parent)->mapToGlobal(QPoint(5,5)));
+        require(valid,failure.toUtf8().constData());
+        require(observedHovers == 2, "menu closed before both hover checks");
+        require(!Gui::Selection().isClarifySelectionActive(), "menu active state leaked");
+        require(Gui::Selection().getPreselection().pObjectName == nullptr ||
+                !*Gui::Selection().getPreselection().pObjectName, "menu preselection leaked");
+        require(confirm ? picked.subName=="Face2" : picked.obj==nullptr,
+                "menu confirmation/cancellation result incorrect");
+        return 1;
+    } catch (const std::exception& e) { error=e.what(); return 0; }
 }

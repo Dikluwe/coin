@@ -12,7 +12,7 @@ import sys
 
 CASES = ('first-expose', 'frame-coalescing', 'idle', 'resize', 'maximize',
          'minimize', 'panel', 'dpr', 'recreate', 'wheel-rotation',
-         'two-viewports', 'freecad-multi', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-delayed-overlays', 'freecad-grid', 'freecad-path-selection', 'navicube', 'depth', 'polygon-offset', 'annotation',
+         'two-viewports', 'freecad-multi', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-delayed-overlays', 'freecad-grid', 'freecad-path-selection', 'freecad-selection-menu', 'navicube', 'depth', 'polygon-offset', 'annotation',
          'foregroundroot', 'decorationroot', 'axis-cross', 'rubber-band')
 EXIT = {'PASS': 0, 'SKIP': 77, 'UNSUPPORTED': 78, 'FAIL': 1}
 
@@ -121,7 +121,7 @@ def main():
                         for alpha in ('opaque', 'translucent') for scale in (1,)] if case == 'navicube' else [('object', 'opaque', s) for s in ((1, 2) if case == 'dpr' else (1,))]
             if case in ('two-viewports', 'freecad-multi', 'freecad-legacy-polyline', 'freecad-delayed-overlays'):
                 variants = [(mode, 'opaque', 1) for mode in ('object', 'weighted_oit')]
-            if case in ('freecad-overlays', 'freecad-flags', 'freecad-grid', 'freecad-path-selection'):
+            if case in ('freecad-overlays', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-selection-menu'):
                 variants = [(mode, 'opaque', scale) for mode in ('object', 'weighted_oit')
                             for scale in (1, 2)]
             variants = select_variants(variants, args.mode, args.scale)
@@ -136,16 +136,16 @@ def main():
                 if not env.get('DISPLAY'):
                     result = dict(status='SKIP', reason='no DISPLAY; native X11 surface cannot execute')
                     output = ''
-                elif case in ('hover', 'freecad-multi', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection') and session_locked() is True:
+                elif case in ('hover', 'freecad-multi', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-selection-menu') and session_locked() is True:
                     result = dict(status='SKIP', reason='desktop session locked; screen capture unavailable')
                     output = ''
                 elif case == 'maximize' and not window_manager:
                     result = dict(status='SKIP', reason='no EWMH window manager; maximize/restore cannot be verified')
                     output = ''
-                elif case in ('hover', 'freecad-multi', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-delayed-overlays') and not args.freecad:
+                elif case in ('hover', 'freecad-multi', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-selection-menu', 'freecad-delayed-overlays') and not args.freecad:
                     result = dict(status='UNSUPPORTED', reason='--freecad required for real FreeCAD viewport tests')
                     output = ''
-                elif case == 'freecad-delayed-overlays' and not Path(env.get('COIN_TEST_DELAYED_HELPER', '')).is_file():
+                elif case in ('freecad-delayed-overlays', 'freecad-selection-menu') and not Path(env.get('COIN_TEST_DELAYED_HELPER', '')).is_file():
                     result = dict(status='UNSUPPORTED', reason='COIN_TEST_DELAYED_HELPER is required')
                     output = ''
                 elif case == 'freecad-flags' and not Path(env.get('COIN_TEST_FLAG_HELPER', '')).is_file():
@@ -153,14 +153,15 @@ def main():
                     output = ''
                 else:
                     command = [str(args.harness.resolve()), case]
-                    if case in ('hover', 'freecad-multi', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-delayed-overlays'):
+                    if case in ('hover', 'freecad-multi', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-selection-menu', 'freecad-delayed-overlays'):
                         macro = {'hover': 'freecad_hover.FCMacro', 'freecad-multi': 'freecad_multi.FCMacro',
                                  'freecad-overlays': 'freecad_overlays.FCMacro',
                                  'freecad-legacy-polyline': 'freecad_legacy_polyline.FCMacro',
                                  'freecad-flags': 'freecad_flags.FCMacro',
                                  'freecad-delayed-overlays': 'freecad_delayed_overlays.FCMacro',
                                  'freecad-grid': 'freecad_grid.FCMacro',
-                                 'freecad-path-selection': 'freecad_path_selection.FCMacro'}[case]
+                                 'freecad-path-selection': 'freecad_path_selection.FCMacro',
+                                 'freecad-selection-menu': 'freecad_selection_menu.FCMacro'}[case]
                         profile = directory / 'private-profile'
                         profile.mkdir(exist_ok=True)
                         command = [str(args.freecad.resolve()),
@@ -174,7 +175,7 @@ def main():
                     try:
                         code, output = execute(command, env, args.timeout)
                         result = classify(code, output)
-                        if case in ('hover', 'freecad-multi', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection') and code in (0, 1) and session_locked() is True:
+                        if case in ('hover', 'freecad-multi', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-selection-menu') and code in (0, 1) and session_locked() is True:
                             result = dict(status='SKIP', reason='session locked during screen capture',
                                           captured_result=result)
                         if 'HARNESS_TIMEOUT' in output:

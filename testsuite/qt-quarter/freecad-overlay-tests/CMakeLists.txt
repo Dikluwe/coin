@@ -40,6 +40,8 @@ target_link_libraries(FreeCADFlagTestBridge PRIVATE Python3::Python Eigen3::Eige
     ${FREECAD_GUI} ${FREECAD_BASE} ${COIN_GPU} ${COIN_LIBRARY}
     Qt6::Widgets Qt6::OpenGL Qt6::OpenGLWidgets)
 add_library(FreeCADDelayedOverlayTestBridge SHARED ../FreeCADDelayedOverlayTestBridge.cpp)
+target_include_directories(FreeCADDelayedOverlayTestBridge PRIVATE
+    "${FREECAD_SOURCE_DIR}/src/Gui" "${FREECAD_BUILD_DIR}/src/Gui")
 target_compile_definitions(FreeCADDelayedOverlayTestBridge PRIVATE FREECAD_COIN_WGPU_EXPERIMENTAL QT_NO_KEYWORDS)
 target_include_directories(FreeCADDelayedOverlayTestBridge PRIVATE
     "${FREECAD_BUILD_DIR}" "${FREECAD_BUILD_DIR}/src"

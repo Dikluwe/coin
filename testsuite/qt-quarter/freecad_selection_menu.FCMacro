@@ -1,0 +1,90 @@
+from pathlib import Path
+import os
+exec((Path(os.environ['COIN_TEST_MACRO_DIR']) / 'freecad_path_selection.FCMacro').read_text())
+import ctypes
+import shiboken6
+
+report['test'] = 'freecad-selection-menu'
+bridge = ctypes.CDLL(os.environ['COIN_TEST_DELAYED_HELPER'])
+Observer = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.c_int)
+bridge.delayed_selection_menu_test.argtypes = [ctypes.c_void_p, ctypes.c_int, Observer]
+bridge.delayed_selection_menu_test.restype = ctypes.c_int
+bridge.delayed_overlay_error.restype = ctypes.c_char_p
+phase = 'cancel'
+
+@Observer
+def observe(face):
+    try:
+        require_active()
+        preselection = Gui.Selection.getPreselection()
+        if tuple(preselection.SubElementNames) != ('Face'+str(face),):
+            raise RuntimeError('menu hover did not switch production preselection')
+        if annotations() != 1:
+            raise RuntimeError('menu hover did not create exactly one on-top path')
+        image = original_capture(phase+'-face'+str(face))
+        reference = images['menu-off'] if face == 1 else images[phase+'-face1']
+        if changes(reference, image, region(image)) < 100:
+            raise RuntimeError('menu hover failed to update occluded target')
+        return 1
+    except Exception as error:
+        report['observer_error'] = str(error)
+        return 0
+
+def baseline():
+    require_active()
+    original_capture('menu-off')
+    if not bridge.delayed_selection_menu_test(
+            shiboken6.getCppPointer(Gui.getMainWindow())[0], 0, observe):
+        raise RuntimeError(bridge.delayed_overlay_error().decode())
+    step(cancelled)
+
+def cancelled():
+    global phase
+    image = capture('menu-cancelled')
+    report['cancel_paths'] = annotations()
+    report['cancel_selection_count'] = len(Gui.Selection.getSelection())
+    report['cancel_changed'] = changes(images['menu-off'], image, region(image))
+    if report['cancel_paths'] or report['cancel_selection_count'] or report['cancel_changed'] > 30:
+        raise RuntimeError('menu cancel left selection/path/pixels')
+    phase = 'confirm'
+    if not bridge.delayed_selection_menu_test(
+            shiboken6.getCppPointer(Gui.getMainWindow())[0], 1, observe):
+        raise RuntimeError(bridge.delayed_overlay_error().decode())
+    step(confirmed)
+
+def confirmed():
+    image = capture('menu-confirmed')
+    selection = Gui.Selection.getSelectionEx()
+    if len(selection) != 1 or tuple(selection[0].SubElementNames) != ('Face2',) or annotations() != 1:
+        raise RuntimeError('menu confirmation did not select Face2')
+    if changes(images['menu-off'], image, region(image)) < 100:
+        raise RuntimeError('confirmed menu selection missing')
+    Gui.Selection.clearSelection()
+    step(cleared)
+
+def cleared():
+    image = capture('menu-cleared')
+    if annotations() or changes(images['menu-off'], image, region(image)) > 30:
+        raise RuntimeError('menu clear left paths/pixels')
+    report['settle_samples'] = 0
+    report['settle_stable'] = 0
+    report['settle_frame'] = int(viewer_widget().property('wgpuFrameCount') or 0)
+    step(settle, 500)
+
+def settle():
+    require_active()
+    frame = int(viewer_widget().property('wgpuFrameCount') or 0)
+    report['settle_samples'] += 1
+    report['settle_stable'] = report['settle_stable']+1 if frame == report['settle_frame'] else 0
+    report['settle_frame'] = frame
+    if report['settle_stable'] >= 2:
+        report['idle_start'] = frame
+        step(menu_idle, 1200)
+    elif report['settle_samples'] >= 6:
+        raise RuntimeError('popup redraw did not settle within 3 seconds')
+    else:
+        step(settle, 500)
+
+def menu_idle():
+    require_active()
+    idle()

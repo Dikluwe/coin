@@ -6,12 +6,24 @@ from pivy import coin
 report['test'] = 'freecad-path-selection'
 original_capture = capture
 
-def capture(name):
-    if not Gui.getMainWindow().isActiveWindow():
-        report.update(status='SKIP', reason='FreeCAD not active; desktop capture obstructed')
+def require_active():
+    import subprocess
+    import re
+    try:
+        output = subprocess.check_output(
+            ['xprop', '-root', '_NET_ACTIVE_WINDOW'], text=True, timeout=2)
+        match = re.search(r'0x[0-9a-fA-F]+', output)
+        active = int(match.group(0), 16) if match else None
+    except Exception:
+        active = None
+    if active != int(Gui.getMainWindow().winId()):
+        report.update(status='SKIP', reason='X11 active window is not FreeCAD; desktop capture unavailable')
         (artifacts / 'result.json').write_text(json.dumps(report, indent=2))
         os.write(1, ('RESULT ' + json.dumps(report) + '\n').encode())
         os._exit(77)
+
+def capture(name):
+    require_active()
     return original_capture(name)
 
 App.ParamGet('User parameter:BaseApp/Preferences/View').SetBool('EnablePreselection', False)
