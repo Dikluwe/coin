@@ -129,6 +129,12 @@ endforeach()
 
 include(CheckCoreGLHeaders.cmake)
 
+add_executable(RenderManagerFramePreparationTest RenderManagerFramePreparationTest.cpp)
+target_link_libraries(RenderManagerFramePreparationTest Coin ${COIN_TARGET_LINK_LIBRARIES})
+target_include_directories(RenderManagerFramePreparationTest PRIVATE
+  ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include)
+add_test(NAME RenderManagerFramePreparationTest COMMAND RenderManagerFramePreparationTest)
+
 # Many warnings are generated from test macros on macOS with Xcode.
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG(-Wtautological-compare DISABLE_WARNING_TAUTOLOGCOMPARE)

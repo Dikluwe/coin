@@ -119,6 +119,10 @@ public:
                       const SbBool clearwindow = TRUE,
                       const SbBool clearzbuffer = TRUE);
 
+  // Pair successful preparation with finishFrame(), also on render failure.
+  SbBool prepareFrame(const SbBool processDelaySensors = TRUE);
+  void finishFrame(const SbBool rendered = TRUE);
+
   Superimposition * addSuperimposition(SoNode * scene,
                                        uint32_t flags =
                                        Superimposition::AUTOREDRAW |

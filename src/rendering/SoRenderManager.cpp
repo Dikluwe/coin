@@ -80,6 +80,7 @@
 #include <Inventor/actions/SoAudioRenderAction.h>
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/sensors/SoOneShotSensor.h>
+#include <Inventor/sensors/SoSensorManager.h>
 #include <Inventor/fields/SoSFTime.h>
 #include <Inventor/misc/SoAudioDevice.h>
 #include <Inventor/SoDB.h>
@@ -656,6 +657,51 @@ SoRenderManager::render(const SbBool clearwindow, const SbBool clearzbuffer)
     // let SoGLRenderAction handle the accumulation buffer
     this->render(PRIVATE(this)->glaction, TRUE, clearwindow, clearzbuffer);
   }
+}
+
+/*!
+  Prepare an external-renderer frame without applying SoGLRenderAction.
+  Application pre/post callbacks must themselves be backend-independent.
+  Returns FALSE on reentry. Pair success with finishFrame(), also on failure.
+*/
+SbBool
+SoRenderManager::prepareFrame(const SbBool processDelaySensors)
+{
+  if (PRIVATE(this)->frameprepared) return FALSE;
+  PRIVATE(this)->frameprepared = TRUE;
+  if (processDelaySensors && SoDB::getSensorManager()->isDelaySensorPending())
+    SoDB::getSensorManager()->processDelayQueue(FALSE);
+  PRIVATE(this)->invokePreRenderCallbacks();
+  if (PRIVATE(this)->scene && coin_sound_should_traverse() &&
+      SoAudioDevice::instance()->haveSound() && SoAudioDevice::instance()->isEnabled())
+    PRIVATE(this)->audiorenderaction->apply(PRIVATE(this)->scene);
+  if (PRIVATE(this)->autoclipping != NO_AUTO_CLIPPING)
+    PRIVATE(this)->setClippingPlanes();
+  // Consume requests satisfied by this frame, keeping notifications generated
+  // by traversal, animation and post callbacks scheduled for the next frame.
+  PRIVATE(this)->lock();
+  if (PRIVATE(this)->rootsensor && PRIVATE(this)->rootsensor->isScheduled())
+    PRIVATE(this)->rootsensor->unschedule();
+  if (PRIVATE(this)->redrawshot->isScheduled()) PRIVATE(this)->redrawshot->unschedule();
+  PRIVATE(this)->unlock();
+  return TRUE;
+}
+
+/*!
+  Complete external rendering. realTime updates only on success; post callbacks
+  run also on failure. Animation notifications remain scheduled.
+*/
+void
+SoRenderManager::finishFrame(const SbBool rendered)
+{
+  if (!PRIVATE(this)->frameprepared) return;
+  if (rendered && SoRenderManager::isRealTimeUpdateEnabled()) {
+    SoField * realtime = SoDB::getGlobalField("realTime");
+    if (realtime && realtime->getTypeId() == SoSFTime::getClassTypeId())
+      static_cast<SoSFTime *>(realtime)->setValue(SbTime::getTimeOfDay());
+  }
+  PRIVATE(this)->invokePostRenderCallbacks();
+  PRIVATE(this)->frameprepared = FALSE;
 }
 
 /*!

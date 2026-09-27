@@ -17,8 +17,9 @@ struct SoWgpuNativeSurfaceDescriptor;
  *
  * A Qt/FreeCAD viewport keeps owning its native window and SoRenderManager.
  * The owner updates the source viewport region before forwarding framebuffer
- * resize events to resize(); the adapter never mutates source state. Forward expose/paint events to
- * render(). Destroy the adapter before the native window or display.
+ * resize events to resize(). render() runs source prepareFrame/finishFrame,
+ * including sensors, callbacks, autoclip and animation, without applying a GL
+ * render action. Destroy the adapter before the native window or display.
  *
  * The adapter intentionally has no Qt dependency. Framebuffer sizes are in
  * device pixels, so Qt callers must apply devicePixelRatio().

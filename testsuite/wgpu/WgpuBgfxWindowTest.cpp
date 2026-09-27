@@ -6,6 +6,7 @@
 
 #include <Inventor/SoDB.h>
 #include <Inventor/SoRenderManager.h>
+#include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/rendering/SoWgpuRenderManagerAdapter.h>
 #include <Inventor/actions/SoWgpuRenderAction.h>
 #include <Inventor/rendering/SoWgpuCapabilities.h>
@@ -32,6 +33,13 @@
 #include <vector>
 
 namespace {
+class GLTraversalSpy : public SoGLRenderAction {
+public:
+  GLTraversalSpy() : SoGLRenderAction(SbViewportRegion(96, 96)), count(0) {}
+  int count;
+protected:
+  void beginTraversal(SoNode *) override { ++count; }
+};
 unsigned int channel(unsigned long pixel, unsigned long mask)
 {
   if (mask == 0) return 0;
@@ -207,6 +215,8 @@ int main()
   }
   if (adapterMode && result == 0) {
     SoRenderManager source;
+    GLTraversalSpy glspy;
+    source.setGLRenderAction(&glspy);
     source.setSceneGraph(scene);
     source.setViewportRegion(SbViewportRegion(96, 96));
     source.setBackgroundColor(SbColor4f(0.1f, 0.1f, 0.1f, 1.0f));
@@ -225,6 +235,11 @@ int main()
         result = 1;
       }
     }
+    if (glspy.count != 0) {
+      std::cerr << "Adapter invoked auxiliary GL rendering\n";
+      result = 1;
+    }
+    std::cout << "Adapter GL traversals=" << glspy.count << '\n';
     source.setSceneGraph(nullptr);
   }
   scene->unref();

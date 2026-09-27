@@ -93,9 +93,21 @@ SoWgpuRenderManagerAdapter::resize(const SbVec2i32 & framebufferSize)
 SoWgpuRenderAction::Status
 SoWgpuRenderManagerAdapter::render()
 {
+  if (!this->pimpl->source->prepareFrame()) {
+    this->pimpl->status = SoWgpuRenderAction::BACKEND_ERROR;
+    this->pimpl->error = "Recursive SoRenderManager frame preparation";
+    return this->pimpl->status;
+  }
+  struct FrameScope {
+    explicit FrameScope(SoRenderManager * source) : manager(source), rendered(FALSE) {}
+    SoRenderManager * manager;
+    SbBool rendered;
+    ~FrameScope() { manager->finishFrame(rendered); }
+  } scope(this->pimpl->source);
   if (!this->syncFromRenderManager()) return this->pimpl->status;
   this->pimpl->status = this->pimpl->renderer->render();
   this->pimpl->error = this->pimpl->renderer->getLastError();
+  scope.rendered = this->pimpl->status == SoWgpuRenderAction::SUCCESS;
   return this->pimpl->status;
 }
 
