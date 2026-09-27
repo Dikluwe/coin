@@ -24,6 +24,7 @@ struct Uniforms {
     ambient_light: vec4<f32>,
     light_meta: vec4<f32>,
     lights: array<GpuLight, 8>,
+    texture_blend_color: vec4<f32>,
 };
 
 struct GpuMaterial {
@@ -156,9 +157,20 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
     if (u.tex_params.x > 0.5) {
         let uv = select(input.texcoord, vec2<f32>(input.texcoord.x, 1.0 - input.texcoord.y), u.tex_params.z > 0.5);
         let tex_col = textureSample(t_diffuse, s_diffuse, uv);
-        // MODULATE: multiply base color by texture sample before fog.
-        base_color = vec4<f32>(base_color.rgb * tex_col.rgb,
-                               base_color.a * tex_col.a);
+        let model = u.tex_params.y;
+        if (model < 0.5) {
+            base_color = base_color * tex_col;
+        } else if (model < 1.5) {
+            base_color = tex_col;
+        } else if (model < 2.5) {
+            base_color = vec4<f32>(mix(base_color.rgb, tex_col.rgb, tex_col.a),
+                                   base_color.a);
+        } else {
+            base_color = vec4<f32>(mix(base_color.rgb,
+                                       u.texture_blend_color.rgb,
+                                       tex_col.rgb),
+                                   base_color.a * tex_col.a);
+        }
     }
     return apply_fog(base_color, -input.position_view.z);
 }

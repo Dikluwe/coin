@@ -180,8 +180,17 @@
   testing but no depth readback. Window targets do not read pixels back.
   Unsupported Open Inventor state is rejected
   explicitly. BGFX uses a process-wide API thread and this evaluation permits
-  only one active target. OpenGL readback rows are normalized to the same
-  target RGBA orientation.
+  only one prepared target per process. A concurrent prepare returns
+  UNSUPPORTED without disturbing the owner; releasing the owner on its API
+  thread permits a serial handoff. The version 2 capability query initializes a
+  temporary 1x1 offscreen target and releases it before returning. It reports
+  the actual renderer, GPU IDs, normalized format support, MRT, independent
+  blend, compute and timestamp support. If the singleton is already owned, the
+  query reports COIN_WGPU_PROBE_BUSY with the backend diagnostic instead of
+  declaring the GPU unavailable. For an Xlib target, this proves the GPU and
+  renderer only; real presentation still requires preparing the caller's native
+  surface. OpenGL readback rows are normalized to the same target RGBA
+  orientation.
   Core preserves Coin's floating-point clear color, and Infra passes it to
   BGFX's float clear palette without early RGBA8 quantization.
   Test each renderer in a separate process because BGFX initialization is

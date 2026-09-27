@@ -17,6 +17,9 @@
 #include <Inventor/SbColor.h>
 #include <Inventor/misc/SoState.h>
 #include <Inventor/elements/SoShapeHintsElement.h>
+#include <Inventor/elements/SoDepthBufferElement.h>
+#include <Inventor/elements/SoPolygonOffsetElement.h>
+#include <Inventor/elements/SoLinePatternElement.h>
 #include <Inventor/elements/SoCreaseAngleElement.h>
 #include <Inventor/elements/SoLightModelElement.h>
 #include <Inventor/elements/SoShapeStyleElement.h>
@@ -38,7 +41,11 @@ SoWgpuFramePlanBuilder::SoWgpuFramePlanBuilder()
     inFrame(false),
     hasActiveDraw(false),
     hasError(false),
-    isUnsupported(false)
+    isUnsupported(false),
+    annotationDepth(0),
+    currentAnnotationLayer(0),
+    nextAnnotationLayer(1),
+    annotationDepthClearPending(false)
 {
 }
 
@@ -73,10 +80,77 @@ SoWgpuFramePlanBuilder::reset()
   this->hasActiveDraw = false;
   this->hasError = false;
   this->isUnsupported = false;
+  this->savedAnnotationLayer = 0;
+  this->savedAnnotationClear = false;
+  this->foregroundLayer = 0;
+  this->annotationDepth = 0;
+  this->currentAnnotationLayer = 0;
+  this->nextAnnotationLayer = 1;
+  this->annotationDepthClearPending = false;
   this->builderError.clear();
   this->directTextures.clear();
   this->nodeOccurrenceCount.clear();
   this->lightAttenuationByIndex.clear();
+}
+
+void
+SoWgpuFramePlanBuilder::beginAnnotation()
+{
+  if (this->annotationDepth++ == 0) {
+    this->savedAnnotationLayer = this->currentAnnotationLayer;
+    this->savedAnnotationClear = this->annotationDepthClearPending;
+    this->currentAnnotationLayer = this->nextAnnotationLayer++;
+    this->annotationDepthClearPending = true;
+    this->hasActiveDraw = false;
+  }
+}
+
+void
+SoWgpuFramePlanBuilder::beginForeground()
+{
+  this->foregroundLayer = this->currentAnnotationLayer;
+  this->currentAnnotationLayer = this->nextAnnotationLayer++;
+  this->annotationDepthClearPending = false;
+  this->hasActiveDraw = false;
+}
+
+void
+SoWgpuFramePlanBuilder::endForeground()
+{
+  this->currentAnnotationLayer = this->foregroundLayer;
+  this->annotationDepthClearPending = false;
+  this->hasActiveDraw = false;
+}
+
+void
+SoWgpuFramePlanBuilder::reserveDelayedLayers(uint32_t count)
+{
+  // Reserve one shared pass between scene and ordinary foreground annotations.
+  for (DrawPacket & draw : this->currentPlan.draws)
+    if (draw.renderLayer) draw.renderLayer += count;
+  this->nextAnnotationLayer += count;
+}
+
+void
+SoWgpuFramePlanBuilder::beginDelayedAnnotations(uint32_t layer, bool clearDepth)
+{
+  this->savedAnnotationLayer = 0;
+  this->savedAnnotationClear = false;
+  this->annotationDepth = 1;
+  this->currentAnnotationLayer = layer;
+  this->annotationDepthClearPending = clearDepth;
+  this->hasActiveDraw = false;
+}
+
+void
+SoWgpuFramePlanBuilder::endAnnotation()
+{
+  if (this->annotationDepth == 0) return;
+  if (--this->annotationDepth == 0) {
+    this->currentAnnotationLayer = this->savedAnnotationLayer;
+    this->annotationDepthClearPending = this->savedAnnotationClear;
+    this->hasActiveDraw = false;
+  }
 }
 
 void
@@ -267,14 +341,24 @@ SoWgpuFramePlanBuilder::captureTexture(SoCallbackAction * action, RenderStateSna
       rs.textureModel = TextureModel::MODULATE;
       break;
     case SoMultiTextureImageElement::REPLACE:
+      rs.textureModel = TextureModel::REPLACE;
+      break;
     case SoMultiTextureImageElement::DECAL:
+      rs.textureModel = TextureModel::DECAL;
+      break;
     case SoMultiTextureImageElement::BLEND:
+      rs.textureModel = TextureModel::BLEND;
+      break;
     default:
-      if (outError) *outError = "Unsupported texture model (only MODULATE supported in Subwave 3B)";
+      if (outError) *outError = "Unsupported texture model";
       this->isUnsupported = true;
       this->builderError = (outError ? *outError : "Unsupported texture model");
       return false;
   }
+  rs.textureBlendColor[0] = blendColor[0];
+  rs.textureBlendColor[1] = blendColor[1];
+  rs.textureBlendColor[2] = blendColor[2];
+  rs.textureBlendColor[3] = 1.0f;
 
   // 7. Canonical RGBA8 conversion and strict opacity validation
   const auto direct = this->directTextures.find(rawBytes);
@@ -596,6 +680,22 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
   rs.viewportSlot = viewportSlot;
   rs.cullMode = cullMode;
   rs.frontFace = frontFace;
+  SbBool depthTest = TRUE;
+  SbBool depthWrite = TRUE;
+  SoDepthBufferElement::DepthWriteFunction depthFunction = SoDepthBufferElement::LESS;
+  SbVec2f depthRange(0.0f, 1.0f);
+  SoDepthBufferElement::get(state, depthTest, depthWrite, depthFunction, depthRange);
+  rs.depthTest = depthTest != FALSE;
+  rs.depthWrite = depthWrite != FALSE;
+  rs.depthFunction = static_cast<DepthFunction>(depthFunction);
+  rs.depthRange[0] = depthRange[0];
+  rs.depthRange[1] = depthRange[1];
+  SoPolygonOffsetElement::Style offsetStyles;
+  SbBool offsetEnabled;
+  SoPolygonOffsetElement::get(state, rs.polygonOffsetFactor,
+    rs.polygonOffsetUnits, offsetStyles, offsetEnabled);
+  rs.polygonOffsetStyles = static_cast<uint32_t>(offsetStyles);
+  rs.polygonOffsetEnabled = offsetEnabled != FALSE;
   rs.lightModel = lm;
   rs.transparencyType = SoShapeStyleElement::getTransparencyType(state);
   float ambientIntensity = 0.0f;
@@ -615,6 +715,10 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
   float curPs = action->getPointSize();
   rs.lineWidth = (curLw <= 0.0f) ? 1.0f : curLw;
   rs.pointSize = (curPs <= 0.0f) ? 1.0f : curPs;
+  rs.linePattern = state
+    ? static_cast<uint32_t>(SoLinePatternElement::get(state)) & 0xffffu : 0xffffu;
+  rs.linePatternScaleFactor = state
+    ? std::max(1, SoLinePatternElement::getScaleFactor(state)) : 1;
 
   this->captureTexture(action, rs, &this->builderError);
 
@@ -630,6 +734,15 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
         existing.viewportSlot == viewportSlot &&
         existing.cullMode == cullMode &&
         existing.frontFace == frontFace &&
+        existing.depthTest == rs.depthTest &&
+        existing.depthWrite == rs.depthWrite &&
+        existing.depthFunction == rs.depthFunction &&
+        existing.depthRange[0] == rs.depthRange[0] &&
+        existing.depthRange[1] == rs.depthRange[1] &&
+        existing.polygonOffsetEnabled == rs.polygonOffsetEnabled &&
+        existing.polygonOffsetFactor == rs.polygonOffsetFactor &&
+        existing.polygonOffsetUnits == rs.polygonOffsetUnits &&
+        existing.polygonOffsetStyles == rs.polygonOffsetStyles &&
         existing.fogMode == rs.fogMode &&
         existing.fogStart == rs.fogStart &&
         existing.fogEnd == rs.fogEnd &&
@@ -637,10 +750,14 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
         existing.lineWidth == rs.lineWidth &&
         existing.pointSize == rs.pointSize &&
         existing.hasTexture == rs.hasTexture &&
+        existing.linePattern == rs.linePattern &&
+        existing.linePatternScaleFactor == rs.linePatternScaleFactor &&
         (!rs.hasTexture || (
           existing.textureImageSlot == rs.textureImageSlot &&
           existing.samplerSlot == rs.samplerSlot &&
           existing.textureModel == rs.textureModel &&
+          std::memcmp(existing.textureBlendColor, rs.textureBlendColor,
+                      sizeof(rs.textureBlendColor)) == 0 &&
           existing.textureMatrix == rs.textureMatrix)) &&
         existing.model == rs.model &&
         existing.view == rs.view &&
@@ -690,6 +807,7 @@ SoWgpuFramePlanBuilder::ensureDrawPacket(PrimitiveTopology topology, uint32_t re
     const DrawPacket & active = this->currentPlan.draws[this->currentDrawIndex];
     if (active.topology == topology &&
         active.renderStateSlot == renderStateSlot &&
+        active.renderLayer == this->currentAnnotationLayer &&
         active.sourceNodeId == nodeId) {
       return; // Continue active packet
     }
@@ -700,6 +818,9 @@ SoWgpuFramePlanBuilder::ensureDrawPacket(PrimitiveTopology topology, uint32_t re
   dp.renderStateSlot = renderStateSlot;
   dp.frameNodeOrdinal = ++this->nodeCounter;
   dp.sourceNodeId = nodeId;
+  dp.renderLayer = this->currentAnnotationLayer;
+  dp.clearDepthBefore = dp.renderLayer != 0 && this->annotationDepthClearPending;
+  if (dp.clearDepthBefore) this->annotationDepthClearPending = false;
   dp.geometry.firstVertex = static_cast<uint32_t>(this->currentPlan.vertices.size());
   dp.geometry.vertexCount = 0;
   dp.geometry.firstIndex = static_cast<uint32_t>(this->currentPlan.indices.size());
@@ -791,10 +912,310 @@ SoWgpuFramePlanBuilder::addPoint(SoCallbackAction * action,
 }
 
 bool
+SoWgpuFramePlanBuilder::expandStyledPrimitives(std::string * outError)
+{
+  const size_t originalDrawCount = this->currentPlan.draws.size();
+  std::vector<DrawPacket> expandedDraws;
+  expandedDraws.reserve(originalDrawCount);
+
+  auto fail = [&](const char * message) {
+    this->hasError = true;
+    this->builderError = message;
+    if (outError) *outError = message;
+    return false;
+  };
+
+  auto materialAt = [&](uint32_t firstSlot, uint32_t secondSlot, float t) -> uint32_t {
+    if (t <= 0.0f || firstSlot == secondSlot) return firstSlot;
+    if (t >= 1.0f) return secondSlot;
+    const MaterialSnapshot first = this->currentPlan.materials[firstSlot];
+    const MaterialSnapshot second = this->currentPlan.materials[secondSlot];
+    MaterialSnapshot material;
+    for (int channel = 0; channel < 4; ++channel) {
+      material.ambient[channel] = first.ambient[channel] +
+        (second.ambient[channel] - first.ambient[channel]) * t;
+      material.diffuse[channel] = first.diffuse[channel] +
+        (second.diffuse[channel] - first.diffuse[channel]) * t;
+      material.specular[channel] = first.specular[channel] +
+        (second.specular[channel] - first.specular[channel]) * t;
+      material.emission[channel] = first.emission[channel] +
+        (second.emission[channel] - first.emission[channel]) * t;
+    }
+    material.shininess = first.shininess +
+      (second.shininess - first.shininess) * t;
+    material.transparency = first.transparency +
+      (second.transparency - first.transparency) * t;
+    for (size_t i = 0; i < this->currentPlan.materials.size(); ++i) {
+      if (std::memcmp(&this->currentPlan.materials[i], &material,
+                      sizeof(MaterialSnapshot)) == 0) {
+        return static_cast<uint32_t>(i);
+      }
+    }
+    const uint32_t slot =
+      static_cast<uint32_t>(this->currentPlan.materials.size());
+    this->currentPlan.materials.push_back(material);
+    return slot;
+  };
+
+  auto appendVertex = [&](float x, float y, float z,
+                          uint32_t materialSlot) -> uint32_t {
+    VertexSnapshot vertex;
+    vertex.position[0] = x;
+    vertex.position[1] = y;
+    vertex.position[2] = z;
+    vertex.normal[2] = 1.0f;
+    vertex.materialSlot = materialSlot;
+    const uint32_t index =
+      static_cast<uint32_t>(this->currentPlan.vertices.size());
+    this->currentPlan.vertices.push_back(vertex);
+    return index;
+  };
+
+  for (size_t drawIndex = 0; drawIndex < originalDrawCount; ++drawIndex) {
+    const DrawPacket original = this->currentPlan.draws[drawIndex];
+    if (original.topology == PrimitiveTopology::TRIANGLE_LIST) {
+      expandedDraws.push_back(original);
+      continue;
+    }
+    if (original.renderStateSlot >= this->currentPlan.renderStates.size()) {
+      return fail("Styled primitive references invalid render state");
+    }
+    const RenderStateSnapshot sourceState =
+      this->currentPlan.renderStates[original.renderStateSlot];
+    if (sourceState.viewportSlot >= this->currentPlan.viewports.size()) {
+      return fail("Styled primitive references invalid viewport");
+    }
+    const ViewportSnapshot viewport =
+      this->currentPlan.viewports[sourceState.viewportSlot];
+    if (viewport.width <= 0 || viewport.height <= 0) {
+      return fail("Styled primitive has an empty viewport");
+    }
+    if (original.geometry.firstIndex > this->currentPlan.indices.size() ||
+        original.geometry.indexCount >
+          this->currentPlan.indices.size() - original.geometry.firstIndex) {
+      return fail("Styled primitive index range is invalid");
+    }
+    auto foggedMaterialAt = [&](uint32_t materialSlot,
+                                const VertexSnapshot & vertex) -> uint32_t {
+      if (sourceState.fogMode == FogMode::NONE) return materialSlot;
+      MaterialSnapshot material = this->currentPlan.materials[materialSlot];
+      SbVec4f viewPosition;
+      const SbMatrix modelView = sourceState.model * sourceState.view;
+      modelView.multVecMatrix(
+        SbVec4f(vertex.position[0], vertex.position[1],
+                vertex.position[2], 1.0f), viewPosition);
+      const float distance = std::max(0.0f, -viewPosition[2]);
+      float factor = 1.0f;
+      if (sourceState.fogMode == FogMode::HAZE) {
+        factor = (sourceState.fogEnd - distance) /
+                 (sourceState.fogEnd - sourceState.fogStart);
+      } else if (sourceState.fogMode == FogMode::FOG) {
+        factor = std::exp(-5.545f * distance / sourceState.fogEnd);
+      } else {
+        const float fogDistance = 2.35f * distance / sourceState.fogEnd;
+        factor = std::exp(-(fogDistance * fogDistance));
+      }
+      factor = std::max(0.0f, std::min(1.0f, factor));
+      for (int channel = 0; channel < 3; ++channel) {
+        material.diffuse[channel] =
+          sourceState.fogColor[channel] * (1.0f - factor) +
+          material.diffuse[channel] * factor;
+      }
+      for (size_t i = 0; i < this->currentPlan.materials.size(); ++i) {
+        if (std::memcmp(&this->currentPlan.materials[i], &material,
+                        sizeof(MaterialSnapshot)) == 0) {
+          return static_cast<uint32_t>(i);
+        }
+      }
+      const uint32_t slot =
+        static_cast<uint32_t>(this->currentPlan.materials.size());
+      this->currentPlan.materials.push_back(material);
+      return slot;
+    };
+
+
+    RenderStateSnapshot state = sourceState;
+    state.polygonOffsetPrimitiveStyle =
+      original.topology == PrimitiveTopology::LINE_LIST ? 2u : 4u;
+    state.model = SbMatrix::identity();
+    state.view = SbMatrix::identity();
+    state.projectionCoin = SbMatrix::identity();
+    state.cullMode = CullMode::NONE;
+    state.lightModel = LightModel::BASE_COLOR;
+    state.lineWidth = 1.0f;
+    state.pointSize = 1.0f;
+    state.linePattern = 0xffffu;
+    state.linePatternScaleFactor = 1;
+    state.hasTexture = false;
+    state.fogMode = FogMode::NONE;
+    const uint32_t stateSlot =
+      static_cast<uint32_t>(this->currentPlan.renderStates.size());
+    this->currentPlan.renderStates.push_back(state);
+
+    DrawPacket expanded = original;
+    expanded.topology = PrimitiveTopology::TRIANGLE_LIST;
+    expanded.renderStateSlot = stateSlot;
+    expanded.geometry.firstVertex =
+      static_cast<uint32_t>(this->currentPlan.vertices.size());
+    expanded.geometry.vertexCount = 0;
+    expanded.geometry.firstIndex =
+      static_cast<uint32_t>(this->currentPlan.indices.size());
+    expanded.geometry.indexCount = 0;
+
+    const SbMatrix mvp =
+      sourceState.model * sourceState.view * sourceState.projectionCoin;
+    auto project = [&](const VertexSnapshot & vertex, SbVec3f & ndc) {
+      SbVec4f clip;
+      mvp.multVecMatrix(SbVec4f(vertex.position[0], vertex.position[1],
+                               vertex.position[2], 1.0f), clip);
+      if (!std::isfinite(clip[0]) || !std::isfinite(clip[1]) ||
+          !std::isfinite(clip[2]) || !std::isfinite(clip[3]) ||
+          clip[3] <= 1.0e-6f) return false;
+      ndc.setValue(clip[0] / clip[3], clip[1] / clip[3], clip[2] / clip[3]);
+      return std::isfinite(ndc[0]) && std::isfinite(ndc[1]) &&
+        std::isfinite(ndc[2]);
+    };
+
+    if (original.topology == PrimitiveTopology::LINE_LIST) {
+      const float width = std::max(sourceState.lineWidth, 1.0f);
+      const float halfWidth = width * 0.5f;
+      const uint32_t pattern = sourceState.linePattern & 0xffffu;
+      const float patternScale =
+        static_cast<float>(std::max(1, sourceState.linePatternScaleFactor));
+      for (size_t offset = 0; offset + 1 < original.geometry.indexCount;
+           offset += 2) {
+        const uint32_t firstIndex =
+          this->currentPlan.indices[original.geometry.firstIndex + offset];
+        const uint32_t secondIndex =
+          this->currentPlan.indices[original.geometry.firstIndex + offset + 1];
+        if (firstIndex >= this->currentPlan.vertices.size() ||
+            secondIndex >= this->currentPlan.vertices.size()) {
+          return fail("Styled line references invalid vertex");
+        }
+        const VertexSnapshot firstVertex = this->currentPlan.vertices[firstIndex];
+        const VertexSnapshot secondVertex = this->currentPlan.vertices[secondIndex];
+        if (firstVertex.materialSlot >= this->currentPlan.materials.size() ||
+            secondVertex.materialSlot >= this->currentPlan.materials.size()) {
+          return fail("Styled line references invalid material");
+        }
+        SbVec3f firstNdc, secondNdc;
+        if (!project(firstVertex, firstNdc) || !project(secondVertex, secondNdc))
+          continue;
+        const float dxPixels =
+          (secondNdc[0] - firstNdc[0]) * 0.5f * viewport.width;
+        const uint32_t firstMaterial =
+          foggedMaterialAt(firstVertex.materialSlot, firstVertex);
+        const uint32_t secondMaterial =
+          foggedMaterialAt(secondVertex.materialSlot, secondVertex);
+        const float dyPixels =
+          (secondNdc[1] - firstNdc[1]) * 0.5f * viewport.height;
+        const float lengthPixels =
+          std::sqrt(dxPixels * dxPixels + dyPixels * dyPixels);
+        if (lengthPixels <= 1.0e-6f || pattern == 0u) continue;
+        const float offsetX =
+          (-dyPixels / lengthPixels) * halfWidth * 2.0f / viewport.width;
+        const float offsetY =
+          (dxPixels / lengthPixels) * halfWidth * 2.0f / viewport.height;
+
+        float cursor = 0.0f;
+        while (cursor < lengthPixels - 1.0e-5f) {
+          float next = lengthPixels;
+          bool visible = true;
+          if (pattern != 0xffffu) {
+            const uint32_t patternCell =
+              static_cast<uint32_t>(std::floor(cursor / patternScale));
+            next = std::min(lengthPixels,
+              (static_cast<float>(patternCell) + 1.0f) * patternScale);
+            visible = (pattern & (1u << (patternCell & 15u))) != 0u;
+          }
+          if (next <= cursor + 1.0e-6f)
+            next = std::min(lengthPixels, cursor + patternScale);
+          if (visible) {
+            const float t0 = cursor / lengthPixels;
+            const float t1 = next / lengthPixels;
+            const SbVec3f start = firstNdc + (secondNdc - firstNdc) * t0;
+            const SbVec3f end = firstNdc + (secondNdc - firstNdc) * t1;
+            const uint32_t startMaterial = materialAt(
+              firstMaterial, secondMaterial, t0);
+            const uint32_t endMaterial = materialAt(
+              firstMaterial, secondMaterial, t1);
+            const uint32_t base =
+              static_cast<uint32_t>(this->currentPlan.vertices.size());
+            appendVertex(start[0] + offsetX, start[1] + offsetY,
+                         start[2], startMaterial);
+            appendVertex(start[0] - offsetX, start[1] - offsetY,
+                         start[2], startMaterial);
+            appendVertex(end[0] + offsetX, end[1] + offsetY,
+                         end[2], endMaterial);
+            appendVertex(end[0] - offsetX, end[1] - offsetY,
+                         end[2], endMaterial);
+            const uint32_t quadIndices[6] = {
+              base, base + 1, base + 2, base + 2, base + 1, base + 3
+            };
+            this->currentPlan.indices.insert(this->currentPlan.indices.end(),
+                                             quadIndices, quadIndices + 6);
+          }
+          cursor = next;
+        }
+      }
+    } else if (original.topology == PrimitiveTopology::POINT_LIST) {
+      const float halfSize = std::max(sourceState.pointSize, 1.0f) * 0.5f;
+      const float offsetX = halfSize * 2.0f / viewport.width;
+      const float offsetY = halfSize * 2.0f / viewport.height;
+      for (size_t offset = 0; offset < original.geometry.indexCount; ++offset) {
+        const uint32_t vertexIndex =
+          this->currentPlan.indices[original.geometry.firstIndex + offset];
+        if (vertexIndex >= this->currentPlan.vertices.size()) {
+          return fail("Styled point references invalid vertex");
+        }
+        const VertexSnapshot vertex = this->currentPlan.vertices[vertexIndex];
+        if (vertex.materialSlot >= this->currentPlan.materials.size()) {
+          return fail("Styled point references invalid material");
+        }
+        SbVec3f ndc;
+        if (!project(vertex, ndc)) continue;
+        const uint32_t materialSlot =
+          foggedMaterialAt(vertex.materialSlot, vertex);
+        const uint32_t base =
+          static_cast<uint32_t>(this->currentPlan.vertices.size());
+        appendVertex(ndc[0] - offsetX, ndc[1] - offsetY,
+                     ndc[2], materialSlot);
+        appendVertex(ndc[0] + offsetX, ndc[1] - offsetY,
+                     ndc[2], materialSlot);
+        appendVertex(ndc[0] - offsetX, ndc[1] + offsetY,
+                     ndc[2], materialSlot);
+        appendVertex(ndc[0] + offsetX, ndc[1] + offsetY,
+                     ndc[2], materialSlot);
+        const uint32_t quadIndices[6] = {
+          base, base + 1, base + 2, base + 2, base + 1, base + 3
+        };
+        this->currentPlan.indices.insert(this->currentPlan.indices.end(),
+                                         quadIndices, quadIndices + 6);
+      }
+    }
+
+    expanded.geometry.vertexCount =
+      static_cast<uint32_t>(this->currentPlan.vertices.size()) -
+      expanded.geometry.firstVertex;
+    expanded.geometry.indexCount =
+      static_cast<uint32_t>(this->currentPlan.indices.size()) -
+      expanded.geometry.firstIndex;
+    if (expanded.geometry.indexCount != 0) expandedDraws.push_back(expanded);
+  }
+
+  this->currentPlan.draws.swap(expandedDraws);
+  this->hasActiveDraw = false;
+  return true;
+}
+
+bool
 SoWgpuFramePlanBuilder::build(FramePlan & outPlan, std::string * outError)
 {
   if (this->hasError || this->isUnsupported) {
     if (outError) *outError = this->builderError.empty() ? "Builder encountered unsupported or invalid feature" : this->builderError;
+    return false;
+  }
+  if (!this->expandStyledPrimitives(outError)) {
     return false;
   }
   if (!this->currentPlan.isValid(outError)) {

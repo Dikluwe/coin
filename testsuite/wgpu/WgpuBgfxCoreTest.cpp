@@ -9,6 +9,7 @@
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/SoDB.h>
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <iostream>
@@ -49,6 +50,9 @@ int main()
   SoWgpuBgfxPlan plan;
   ok &= check(SoWgpuBgfxCore::lower(frame, 4, 4, false, plan, diagnostic),
               "valid BASE_COLOR triangle rejected");
+  ok &= check(plan.draws[0].viewport[0] == 0 && plan.draws[0].viewport[1] == 0 &&
+              plan.draws[0].viewport[2] == 4 && plan.draws[0].viewport[3] == 4,
+              "full viewport was not preserved during lowering");
   ok &= check(plan.vertices.size() == 3 && plan.indices.size() == 3 &&
               plan.draws.size() == 1, "geometry structure changed");
   ok &= check(std::abs(plan.vertices[0].color[0] - 0.8f) < 1e-6f &&
@@ -66,18 +70,18 @@ int main()
   frame.renderStates[0].view = moved;
   std::vector<SoWgpuBgfxDraw> patched;
   SoWgpuBgfxPlan movedPlan;
-  ok &= check(SoWgpuBgfxCore::patchCamera(frame, false, plan, patched, diagnostic) &&
+  ok &= check(SoWgpuBgfxCore::patchCamera(frame, 4, 4, false, plan, patched, diagnostic) &&
               SoWgpuBgfxCore::lower(frame, 4, 4, false, movedPlan, diagnostic) &&
               patched.size() == 1 &&
               std::memcmp(patched[0].mvp, movedPlan.draws[0].mvp,
                           sizeof(patched[0].mvp)) == 0,
               "camera patch differs from full lowering");
   frame.clearColor = SbColor4f(0.1001f, 0.2f, 0.3f, 1.0f);
-  ok &= check(!SoWgpuBgfxCore::patchCamera(frame, false, plan, patched, diagnostic),
+  ok &= check(!SoWgpuBgfxCore::patchCamera(frame, 4, 4, false, plan, patched, diagnostic),
               "camera patch accepted a changed float clear color");
   frame.clearColor = SbColor4f(0.1f, 0.2f, 0.3f, 1.0f);
   frame.draws[0].geometry.indexCount = 2;
-  ok &= check(!SoWgpuBgfxCore::patchCamera(frame, false, plan, patched, diagnostic) &&
+  ok &= check(!SoWgpuBgfxCore::patchCamera(frame, 4, 4, false, plan, patched, diagnostic) &&
               patched.size() == 1 &&
               std::memcmp(patched[0].mvp, movedPlan.draws[0].mvp,
                           sizeof(patched[0].mvp)) == 0,
@@ -86,9 +90,71 @@ int main()
   SbMatrix invalidCamera = moved;
   invalidCamera[0][0] = std::numeric_limits<float>::quiet_NaN();
   frame.renderStates[0].view = invalidCamera;
-  ok &= check(!SoWgpuBgfxCore::patchCamera(frame, false, plan, patched, diagnostic),
+  ok &= check(!SoWgpuBgfxCore::patchCamera(frame, 4, 4, false, plan, patched, diagnostic),
               "non-finite camera patch must be rejected");
   frame.renderStates[0].view = moved;
+  frame.viewports[0].x = 1;
+  frame.viewports[0].y = 1;
+  frame.viewports[0].width = 2;
+  frame.viewports[0].height = 2;
+  SoWgpuBgfxPlan subviewportPlan;
+  ok &= check(SoWgpuBgfxCore::lower(frame, 4, 4, false, subviewportPlan, diagnostic) &&
+              subviewportPlan.draws[0].viewport[0] == 1 &&
+              subviewportPlan.draws[0].viewport[1] == 1 &&
+              subviewportPlan.draws[0].viewport[2] == 2 &&
+              subviewportPlan.draws[0].viewport[3] == 2,
+              "bounded subviewport was not lowered");
+  frame.renderStates[0].depthTest = false;
+  frame.renderStates[0].depthWrite = false;
+  frame.renderStates[0].depthFunction = DepthFunction::ALWAYS;
+  frame.renderStates[0].depthRange[0] = 0.25f;
+  frame.renderStates[0].depthRange[1] = 0.75f;
+  SoWgpuBgfxPlan depthPlan;
+  ok &= check(SoWgpuBgfxCore::lower(frame, 4, 4, false, depthPlan, diagnostic) &&
+              !depthPlan.draws[0].depthTest && !depthPlan.draws[0].depthWrite &&
+              depthPlan.draws[0].depthFunction == DepthFunction::ALWAYS &&
+              depthPlan.draws[0].depthRange[0] == 0.25f &&
+              depthPlan.draws[0].depthRange[1] == 0.75f,
+              "depth state was not lowered to BGFX draws");
+  frame.renderStates[0].depthTest = true;
+  frame.renderStates[0].depthWrite = true;
+  frame.renderStates[0].depthFunction = DepthFunction::LESS;
+  frame.renderStates[0].depthRange[0] = 0.0f;
+  frame.renderStates[0].depthRange[1] = 1.0f;
+  ok &= check(!SoWgpuBgfxCore::patchCamera(frame, 4, 4, false, plan, patched, diagnostic),
+              "camera-only patch accepted a changed viewport");
+  frame.viewports[0].x = 3;
+  ok &= check(SoWgpuBgfxCore::lower(frame, 4, 4, false, subviewportPlan, diagnostic),
+              "partially external viewport was rejected");
+  int32_t clipped[4];
+  const int32_t partial[][4] = {{-1, 1, 2, 2}, {3, 1, 2, 2},
+                               {1, -1, 2, 2}, {1, 3, 2, 2}, {-2, -2, 8, 8}};
+  const int32_t expected[][4] = {{0, 1, 1, 2}, {3, 1, 1, 2},
+                                {1, 0, 2, 1}, {1, 3, 2, 1}, {0, 0, 4, 4}};
+  for (size_t i = 0; i < 5; ++i) {
+    ok &= check(SoWgpuBgfxCore::clipViewport(partial[i], 4, 4, clipped) &&
+                std::memcmp(clipped, expected[i], sizeof(clipped)) == 0,
+                "partial viewport intersection is incorrect");
+  }
+  const int32_t external[][4] = {{-4, 0, 4, 4}, {4, 0, 4, 4},
+                                {0, -4, 4, 4}, {0, 4, 4, 4},
+                                {INT32_MAX, 0, INT32_MAX, 4}};
+  for (const auto & rect : external)
+    ok &= check(!SoWgpuBgfxCore::clipViewport(rect, 4, 4, clipped),
+                "external viewport was not completely clipped");
+  frame.viewports[0].x = -1;
+  ok &= check(SoWgpuBgfxCore::lower(frame, 4, 4, false, subviewportPlan, diagnostic) &&
+              subviewportPlan.draws[0].viewport[0] == -1 &&
+              std::abs(subviewportPlan.draws[0].mvp[12] + 0.875f) < 1e-6f,
+              "clipping changed the original viewport projection");
+  ok &= check(SoWgpuBgfxCore::patchCamera(frame, 4, 4, false, subviewportPlan,
+                                         patched, diagnostic),
+              "camera patch rejected a preserved negative viewport");
+  frame.viewports[0].x = 0;
+  frame.viewports[0].y = 0;
+  frame.viewports[0].width = 4;
+  frame.viewports[0].height = 4;
+
   const size_t originalDrawCount = plan.draws.size();
   frame.renderStates[0].fogMode = FogMode::FOG;
   ok &= check(!SoWgpuBgfxCore::lower(frame, 4, 4, false, plan, diagnostic) &&
@@ -97,15 +163,210 @@ int main()
   frame.renderStates[0].fogMode = FogMode::NONE;
   frame.materials[0].diffuse[3] = 0.5f;
   frame.materials[0].transparency = 0.5f;
+  frame.renderStates[0].transparencyType = SoGLRenderAction::ADD;
   ok &= check(!SoWgpuBgfxCore::lower(frame, 4, 4, false, plan, diagnostic) &&
-              diagnostic.find("SORTED_OBJECT_BLEND") != std::string::npos,
-              "unselected transparency mode must be rejected");
+              diagnostic.find("supported mappings") != std::string::npos,
+              "additive transparency without an equivalent strategy must be rejected");
   frame.renderStates[0].transparencyType = SoGLRenderAction::SORTED_OBJECT_BLEND;
   ok &= check(SoWgpuBgfxCore::lower(frame, 4, 4, false, plan, diagnostic) &&
               plan.draws.size() == 1 && plan.draws[0].blend &&
               std::abs(plan.draws[0].alpha - 0.5f) < 1e-6f,
               "SORTED_OBJECT_BLEND alpha was not lowered");
-  ok &= check(!SoWgpuBgfxCore::patchCamera(frame, false, plan, patched, diagnostic),
+  frame.renderStates[0].depthTest = true;
+  frame.renderStates[0].depthWrite = true;
+  frame.renderStates[0].depthFunction = DepthFunction::LEQUAL;
+  SoWgpuBgfxPlan translucentCubeDepthPlan;
+  ok &= check(SoWgpuBgfxCore::lower(frame, 4, 4, false,
+                translucentCubeDepthPlan, diagnostic) &&
+              translucentCubeDepthPlan.draws[0].blend &&
+              translucentCubeDepthPlan.draws[0].depthTest &&
+              translucentCubeDepthPlan.draws[0].depthWrite &&
+              translucentCubeDepthPlan.draws[0].depthFunction == DepthFunction::LEQUAL,
+              "transparent cube depth-write LEQUAL state was not preserved");
+  frame.renderStates[0].depthWrite = false;
+  SoWgpuBgfxPlan labelDepthPlan;
+  ok &= check(SoWgpuBgfxCore::lower(frame, 4, 4, false,
+                labelDepthPlan, diagnostic) &&
+              labelDepthPlan.draws[0].blend &&
+              labelDepthPlan.draws[0].depthTest &&
+              !labelDepthPlan.draws[0].depthWrite &&
+              labelDepthPlan.draws[0].depthFunction == DepthFunction::LEQUAL,
+              "transparent label test-only LEQUAL state was not preserved");
+  frame.renderStates[0].depthWrite = true;
+  frame.renderStates[0].depthFunction = DepthFunction::LESS;
+  frame.renderStates[0].lightModel = LightModel::PHONG;
+  frame.lightingStates[0].ambientIntensity = 1.0f;
+  SoWgpuBgfxPlan litTransparentPlan;
+  ok &= check(SoWgpuBgfxCore::lower(frame, 4, 4, false,
+                litTransparentPlan, diagnostic) &&
+              litTransparentPlan.draws[0].blend &&
+              std::abs(litTransparentPlan.vertices[0].color[0] - 0.8f) < 1e-5f &&
+              std::abs(litTransparentPlan.vertices[0].color[3] - 0.5f) < 1e-5f &&
+              std::abs(litTransparentPlan.vertices[0].ambient[0] - 0.2f) < 1e-5f &&
+              litTransparentPlan.vertices[0].material[1] == 1.0f &&
+              litTransparentPlan.draws[0].ambientLight[3] == 1.0f,
+              "transparent PHONG inputs and alpha were not lowered together");
+  frame.renderStates[0].lightModel = LightModel::BASE_COLOR;
+  frame.lightingStates[0].ambientIntensity = 0.2f;
+  SoWgpuBgfxTransparencyStrategy selected = SoWgpuBgfxTransparencyStrategy::OBJECT;
+  ok &= check(SoWgpuBgfxCore::selectTransparencyStrategy(plan.draws,
+                SoWgpuBgfxTransparencyMode::AUTO, true, true, selected, diagnostic) &&
+              selected == SoWgpuBgfxTransparencyStrategy::OBJECT &&
+              diagnostic.empty(),
+              "simple AUTO transparency must use object strategy");
+  ok &= check(SoWgpuBgfxCore::selectTransparencyStrategy(plan.draws,
+                SoWgpuBgfxTransparencyMode::AUTO, false, false, selected, diagnostic) &&
+              selected == SoWgpuBgfxTransparencyStrategy::OBJECT &&
+              diagnostic.empty(),
+              "simple AUTO transparency must not require advanced capabilities");
+  std::vector<SoWgpuBgfxDraw> opaqueDraws(12, plan.draws[0]);
+  for (SoWgpuBgfxDraw & opaque : opaqueDraws) opaque.blend = false;
+  ok &= check(SoWgpuBgfxCore::selectTransparencyStrategy(opaqueDraws,
+                SoWgpuBgfxTransparencyMode::AUTO, false, false, selected, diagnostic) &&
+              selected == SoWgpuBgfxTransparencyStrategy::OBJECT &&
+              diagnostic.empty(),
+              "opaque-only AUTO frame must use the minimum-cost object path");
+  std::vector<SoWgpuBgfxDraw> boundaryDraws(7, plan.draws[0]);
+  ok &= check(SoWgpuBgfxCore::selectTransparencyStrategy(boundaryDraws,
+                SoWgpuBgfxTransparencyMode::AUTO, true, true, selected, diagnostic) &&
+              selected == SoWgpuBgfxTransparencyStrategy::OBJECT,
+              "AUTO must retain object below the complexity threshold");
+  std::vector<SoWgpuBgfxDraw> complexDraws(8, plan.draws[0]);
+  ok &= check(SoWgpuBgfxCore::selectTransparencyStrategy(complexDraws,
+                SoWgpuBgfxTransparencyMode::AUTO, true, true, selected, diagnostic) &&
+              selected == SoWgpuBgfxTransparencyStrategy::WEIGHTED_OIT,
+              "complex AUTO transparency must use weighted_oit");
+  ok &= check(SoWgpuBgfxCore::selectTransparencyStrategy(complexDraws,
+                SoWgpuBgfxTransparencyMode::OBJECT, false, false, selected, diagnostic) &&
+              selected == SoWgpuBgfxTransparencyStrategy::OBJECT,
+              "explicit object mode must remain the compatibility override");
+  ok &= check(!SoWgpuBgfxCore::selectTransparencyStrategy(complexDraws,
+                SoWgpuBgfxTransparencyMode::AUTO, false, true, selected, diagnostic) &&
+              selected == SoWgpuBgfxTransparencyStrategy::WEIGHTED_OIT &&
+              diagnostic.find("no fallback") != std::string::npos,
+              "missing independent blending must fail instead of falling back");
+  ok &= check(!SoWgpuBgfxCore::selectTransparencyStrategy(complexDraws,
+                SoWgpuBgfxTransparencyMode::WEIGHTED_OIT, false, true,
+                selected, diagnostic) &&
+              selected == SoWgpuBgfxTransparencyStrategy::WEIGHTED_OIT &&
+              diagnostic.find("no fallback") != std::string::npos,
+              "forced weighted_oit without MRT must fail without fallback");
+  plan.draws[0].transparencyStrategy = SoWgpuBgfxTransparencyStrategy::WEIGHTED_OIT;
+  ok &= check(SoWgpuBgfxCore::selectTransparencyStrategy(plan.draws,
+                SoWgpuBgfxTransparencyMode::AUTO, true, true, selected, diagnostic) &&
+              selected == SoWgpuBgfxTransparencyStrategy::WEIGHTED_OIT,
+              "sorted-triangle Coin mapping must select weighted_oit");
+  plan.draws[0].transparencyStrategy = SoWgpuBgfxTransparencyStrategy::SORTED_LAYERS;
+  ok &= check(SoWgpuBgfxCore::selectTransparencyStrategy(plan.draws,
+                SoWgpuBgfxTransparencyMode::AUTO, false, true, selected, diagnostic) &&
+              selected == SoWgpuBgfxTransparencyStrategy::SORTED_LAYERS,
+              "sorted_layers must take priority without requiring weighted OIT");
+  ok &= check(!SoWgpuBgfxCore::selectTransparencyStrategy(plan.draws,
+                SoWgpuBgfxTransparencyMode::AUTO, true, false, selected, diagnostic) &&
+              selected == SoWgpuBgfxTransparencyStrategy::SORTED_LAYERS &&
+              diagnostic.find("no fallback") != std::string::npos,
+              "missing depth peeling support must fail instead of falling back");
+  ok &= check(!SoWgpuBgfxCore::selectTransparencyStrategy(plan.draws,
+                SoWgpuBgfxTransparencyMode::SORTED_LAYERS, true, false,
+                selected, diagnostic) &&
+              selected == SoWgpuBgfxTransparencyStrategy::SORTED_LAYERS &&
+              diagnostic.find("no fallback") != std::string::npos,
+              "forced sorted_layers without depth targets must fail without fallback");
+  SoWgpuBgfxDraw weightedDraw = plan.draws[0];
+  weightedDraw.transparencyStrategy = SoWgpuBgfxTransparencyStrategy::WEIGHTED_OIT;
+  SoWgpuBgfxDraw sortedDraw = plan.draws[0];
+  sortedDraw.transparencyStrategy = SoWgpuBgfxTransparencyStrategy::SORTED_LAYERS;
+  std::vector<SoWgpuBgfxDraw> mixedRequirements = {weightedDraw, sortedDraw};
+  ok &= check(SoWgpuBgfxCore::selectTransparencyStrategy(mixedRequirements,
+                SoWgpuBgfxTransparencyMode::AUTO, true, true, selected, diagnostic) &&
+              selected == SoWgpuBgfxTransparencyStrategy::SORTED_LAYERS,
+              "highest-fidelity requirement must win in a mixed scene");
+  std::reverse(mixedRequirements.begin(), mixedRequirements.end());
+  ok &= check(SoWgpuBgfxCore::selectTransparencyStrategy(mixedRequirements,
+                SoWgpuBgfxTransparencyMode::AUTO, true, true, selected, diagnostic) &&
+              selected == SoWgpuBgfxTransparencyStrategy::SORTED_LAYERS,
+              "mixed-scene selection must not depend on draw order");
+  plan.draws[0].transparencyStrategy = SoWgpuBgfxTransparencyStrategy::OBJECT;
+  std::vector<SoWgpuBgfxDraw> unordered(5, plan.draws[0]);
+  unordered[0].blend = false;
+  unordered[0].materialSignature = 2;
+  unordered[0].firstIndex = 10;
+  unordered[1].blend = true;
+  unordered[1].materialSignature = 9;
+  unordered[1].firstIndex = 20;
+  unordered[2].blend = false;
+  unordered[2].materialSignature = 1;
+  unordered[2].firstIndex = 30;
+  unordered[3].blend = true;
+  unordered[3].materialSignature = 8;
+  unordered[3].firstIndex = 40;
+  unordered[4].blend = false;
+  unordered[4].materialSignature = 1;
+  unordered[4].firstIndex = 50;
+  std::vector<SoWgpuBgfxDraw> grouped;
+  SoWgpuBgfxCore::groupOpaqueDraws(unordered, grouped);
+  ok &= check(grouped.size() == unordered.size() &&
+              grouped[0].firstIndex == 30 && grouped[1].firstIndex == 50 &&
+              grouped[2].firstIndex == 10 &&
+              grouped[3].firstIndex == 20 && grouped[4].firstIndex == 40,
+              "opaque grouping changed stable material or transparent order");
+  std::vector<SoWgpuBgfxDraw> overlay = unordered;
+  for (SoWgpuBgfxDraw & draw : overlay) draw.renderLayer = 1;
+  SoWgpuBgfxCore::groupOpaqueDraws(overlay, grouped);
+  ok &= check(grouped.size() == overlay.size() &&
+              grouped[0].firstIndex == 10 && grouped[1].firstIndex == 20 &&
+              grouped[2].firstIndex == 30 && grouped[3].firstIndex == 40 &&
+              grouped[4].firstIndex == 50,
+              "overlay opaque/transparent draws must preserve traversal order");
+  const auto checkUnsafeGroupingPreservesOrder = [&](SoWgpuBgfxDraw unsafe,
+                                                      const char * message) {
+    std::vector<SoWgpuBgfxDraw> input = unordered;
+    input[2] = unsafe;
+    input[2].firstIndex = 30;
+    SoWgpuBgfxCore::groupOpaqueDraws(input, grouped);
+    return check(grouped.size() == input.size() &&
+                 grouped[0].firstIndex == 10 && grouped[1].firstIndex == 20 &&
+                 grouped[2].firstIndex == 30 && grouped[3].firstIndex == 40 &&
+                 grouped[4].firstIndex == 50, message);
+  };
+  SoWgpuBgfxDraw unsafe = unordered[2];
+  unsafe.depthFunction = DepthFunction::LEQUAL;
+  ok &= checkUnsafeGroupingPreservesOrder(unsafe,
+    "LEQUAL opaque draws must preserve traversal order");
+  unsafe = unordered[2];
+  unsafe.depthTest = false;
+  ok &= checkUnsafeGroupingPreservesOrder(unsafe,
+    "depth-test-disabled opaque draws must preserve traversal order");
+  unsafe = unordered[2];
+  unsafe.depthWrite = false;
+  ok &= checkUnsafeGroupingPreservesOrder(unsafe,
+    "depth-write-disabled opaque draws must preserve traversal order");
+  unsafe = unordered[2];
+  unsafe.depthRange[0] = 0.25f;
+  unsafe.depthRange[1] = 0.75f;
+  ok &= checkUnsafeGroupingPreservesOrder(unsafe,
+    "non-default depth ranges must preserve traversal order");
+  unsafe = unordered[2];
+  unsafe.polygonOffsetUnits = -1.0f;
+  ok &= checkUnsafeGroupingPreservesOrder(unsafe,
+    "polygon-offset opaque draws must preserve traversal order");
+  SoWgpuBgfxPlan materialBase = movedPlan;
+  SoWgpuBgfxPlan materialUpdate = materialBase;
+  materialUpdate.vertices[1].color[0] = 0.25f;
+  materialUpdate.vertices[1].ambient[2] = 0.75f;
+  materialUpdate.draws[0].materialSignature += 1;
+  std::vector<SoWgpuBgfxVertexRange> materialRanges;
+  ok &= check(SoWgpuBgfxCore::materialPatchRanges(
+                materialBase, materialUpdate, materialRanges) &&
+              materialRanges.size() == 1 && materialRanges[0].first == 1 &&
+              materialRanges[0].count == 1,
+              "material-only update did not produce a minimal vertex range");
+  materialUpdate.vertices[2].position[0] += 0.5f;
+  ok &= check(!SoWgpuBgfxCore::materialPatchRanges(
+                materialBase, materialUpdate, materialRanges) &&
+              materialRanges.size() == 1,
+              "geometry change was accepted as a material patch or published partial output");
+  ok &= check(!SoWgpuBgfxCore::patchCamera(frame, 4, 4, false, plan, patched, diagnostic),
               "transparent camera patch must rebuild object order");
   frame.materials[0].diffuse[3] = 1.0f;
   frame.materials[0].transparency = 0.0f;

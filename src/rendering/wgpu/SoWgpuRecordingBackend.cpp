@@ -31,6 +31,20 @@ std::string formatMatrix(const SbMatrix & m) {
   return ss.str();
 }
 
+const char * depthFunctionName(DepthFunction function) {
+  switch (function) {
+  case DepthFunction::NEVER: return "NEVER";
+  case DepthFunction::ALWAYS: return "ALWAYS";
+  case DepthFunction::LESS: return "LESS";
+  case DepthFunction::LEQUAL: return "LEQUAL";
+  case DepthFunction::EQUAL: return "EQUAL";
+  case DepthFunction::GEQUAL: return "GEQUAL";
+  case DepthFunction::GREATER: return "GREATER";
+  case DepthFunction::NOTEQUAL: return "NOTEQUAL";
+  }
+  return "UNKNOWN";
+}
+
 } // namespace
 
 SoWgpuRecordingBackend::SoWgpuRecordingBackend()
@@ -150,10 +164,30 @@ SoWgpuRecordingBackend::recordToString(const FramePlan & frame) const
         << formatFloat(rs.fogColor[1]) << "," << formatFloat(rs.fogColor[2]) << "]"
         << " fogRange=[" << formatFloat(rs.fogStart) << ","
         << formatFloat(rs.fogEnd) << "]"
+        << " lineWidth=" << formatFloat(rs.lineWidth)
+        << " pointSize=" << formatFloat(rs.pointSize)
+        << " linePattern=" << rs.linePattern
+        << " linePatternScale=" << rs.linePatternScaleFactor
+        << " depthTest=" << (rs.depthTest ? "1" : "0")
+        << " depthWrite=" << (rs.depthWrite ? "1" : "0")
+        << " depthFunction=" << depthFunctionName(rs.depthFunction)
+        << " depthRange=[" << formatFloat(rs.depthRange[0]) << ","
+        << formatFloat(rs.depthRange[1]) << "]"
+        << " polygonOffset=" << (rs.polygonOffsetEnabled ? "1" : "0")
+        << " offsetFactor=" << formatFloat(rs.polygonOffsetFactor)
+        << " offsetUnits=" << formatFloat(rs.polygonOffsetUnits)
+        << " offsetStyles=" << rs.polygonOffsetStyles
+        << " offsetPrimitiveStyle=" << rs.polygonOffsetPrimitiveStyle
         << " hasTex=" << (rs.hasTexture ? "1" : "0");
     if (rs.hasTexture) {
+      const char * textureModel = rs.textureModel == TextureModel::MODULATE ? "MODULATE" :
+        rs.textureModel == TextureModel::REPLACE ? "REPLACE" :
+        rs.textureModel == TextureModel::DECAL ? "DECAL" : "BLEND";
       out << " texSlot=" << rs.textureImageSlot << " sampSlot=" << rs.samplerSlot
-          << " texModel=" << (rs.textureModel == TextureModel::MODULATE ? "MODULATE" : "OTHER");
+          << " texModel=" << textureModel
+          << " texBlend=[" << formatFloat(rs.textureBlendColor[0]) << ","
+          << formatFloat(rs.textureBlendColor[1]) << ","
+          << formatFloat(rs.textureBlendColor[2]) << "]";
     }
     out << "\n"
         << "    model: " << formatMatrix(rs.model) << "\n"
@@ -205,7 +239,9 @@ SoWgpuRecordingBackend::recordToString(const FramePlan & frame) const
         << " rs=" << d.renderStateSlot
         << " fv=" << d.geometry.firstVertex << " vc=" << d.geometry.vertexCount
         << " fi=" << d.geometry.firstIndex << " ic=" << d.geometry.indexCount
-        << " ordinal=" << d.frameNodeOrdinal << "\n";
+        << " ordinal=" << d.frameNodeOrdinal
+        << " layer=" << d.renderLayer
+        << " clearDepthBefore=" << (d.clearDepthBefore ? 1 : 0) << "\n";
   }
   std::vector<SoWgpuCompositionItem> order;
   std::string compositionError;
@@ -213,10 +249,20 @@ SoWgpuRecordingBackend::recordToString(const FramePlan & frame) const
     bool hasBlend = false;
     for (size_t i = 0; i < order.size(); ++i) hasBlend = hasBlend || order[i].blend;
     if (hasBlend) {
-      out << "composition: SORTED_OBJECT_BLEND\n";
+      out << "composition: transparency\n";
       for (size_t i = 0; i < order.size(); ++i) {
         out << "  submit draw " << order[i].drawIndex
-            << " pass=" << (order[i].blend ? "BLEND" : "OPAQUE") << "\n";
+            << " pass=" << (order[i].blend ? "BLEND" : "OPAQUE");
+        if (order[i].blend) {
+          const DrawPacket & draw = frame.draws[order[i].drawIndex];
+          const RenderStateSnapshot & rs = frame.renderStates[draw.renderStateSlot];
+          SoWgpuCompositionItem::TransparencyStrategy strategy;
+          const char * mapping = NULL;
+          if (coin_wgpu_transparency_strategy(rs.transparencyType, strategy, mapping)) {
+            out << " strategy=" << mapping;
+          }
+        }
+        out << "\n";
       }
     }
   }

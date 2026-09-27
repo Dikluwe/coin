@@ -43,6 +43,8 @@ struct DrawPacket {
   uint64_t stableNodeId = 0;
   uint32_t drawOrdinal = 0;
   uint64_t sourceRevision = 0;
+  uint32_t renderLayer = 0;
+  bool clearDepthBefore = false;
 };
 
 struct MaterialSnapshot {
@@ -109,6 +111,17 @@ enum class FrontFace : uint32_t {
   CW = 1
 };
 
+enum class DepthFunction : uint32_t {
+  NEVER = 0,
+  ALWAYS = 1,
+  LESS = 2,
+  LEQUAL = 3,
+  EQUAL = 4,
+  GEQUAL = 5,
+  GREATER = 6,
+  NOTEQUAL = 7
+};
+
 enum class LightModel : uint32_t {
   BASE_COLOR = 0,
   PHONG = 1
@@ -136,7 +149,7 @@ struct TextureImageSnapshot {
   uint32_t height = 0;
   uint32_t components = 4; // Canonical RGBA8Unorm
   uint64_t contentDigest = 0;
-  uint64_t gpuToken = 0; // Private Rust RTT resource; zero means CPU pixels.
+  uint64_t gpuToken = 0; // Private GPU RTT resource; zero means CPU pixels.
   bool gpuOpaque = false; // Proven by an opaque child clear and alpha-preserving blend.
   std::vector<uint8_t> pixelsRgba;
 };
@@ -164,14 +177,26 @@ struct RenderStateSnapshot {
   uint32_t viewportSlot = 0;
   CullMode cullMode = CullMode::BACK;
   FrontFace frontFace = FrontFace::CCW;
+  bool depthTest = true;
+  bool depthWrite = true;
+  DepthFunction depthFunction = DepthFunction::LESS;
+  float depthRange[2] = {0.0f, 1.0f};
+  bool polygonOffsetEnabled = false;
+  float polygonOffsetFactor = 0.0f;
+  float polygonOffsetUnits = 0.0f;
+  uint32_t polygonOffsetStyles = 1;
+  uint32_t polygonOffsetPrimitiveStyle = 1; // Retained across line/point expansion.
   LightModel lightModel = LightModel::PHONG;
   float lineWidth = 1.0f;
   float pointSize = 1.0f;
+  uint32_t linePattern = 0xffffu;
+  int32_t linePatternScaleFactor = 1;
   SbMatrix textureMatrix = SbMatrix::identity();
   bool hasTexture = false;
   uint32_t textureImageSlot = 0;
   uint32_t samplerSlot = 0;
   TextureModel textureModel = TextureModel::MODULATE;
+  float textureBlendColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
   int32_t transparencyType = 0; // SoGLRenderAction::TransparencyType, captured per draw
   FogMode fogMode = FogMode::NONE;
   float fogColor[3] = {1.0f, 1.0f, 1.0f};

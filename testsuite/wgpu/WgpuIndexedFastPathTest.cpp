@@ -32,6 +32,15 @@
   } \
 } while (0)
 
+static SoWgpuRenderTarget * createTestTarget(int width, int height) {
+  SoWgpuRenderTarget * target =
+    SoWgpuRenderTarget::createOffscreen(SbVec2i32(width, height));
+#if defined(HAVE_WGPU_BGFX)
+  if (target) target->setDepthReadbackEnabled(FALSE);
+#endif
+  return target;
+}
+
 int main() {
   SoDB::init();
   SoWgpuRenderAction::initClass();
@@ -335,10 +344,10 @@ int main() {
     TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "IndexedLineSet fast path must succeed");
 
     std::string log = action.getRecordingLog().getString();
-    TEST_ASSERT(log.find("top=LINES") != std::string::npos,
-                "DrawPacket topology must be LINES");
-    TEST_ASSERT(log.find("ic=6") != std::string::npos,
-                "Polyline of 4 vertices must produce 3 segments = 6 indices");
+    TEST_ASSERT(log.find("top=TRIANGLES") != std::string::npos,
+                "Indexed lines must use portable triangle expansion");
+    TEST_ASSERT(log.find("ic=18") != std::string::npos,
+                "Three indexed segments must expand to three quads");
 
     root->unref();
     std::cout << "   [PASS] Test 6: IndexedLineSet fast path verified" << std::endl;
@@ -389,7 +398,7 @@ int main() {
     std::vector<uint8_t> pixelsFast;
     std::vector<float> depthFast;
     {
-      SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(W, H));
+      SoWgpuRenderTarget * target = createTestTarget(W, H);
       SoWgpuRenderAction action(SbViewportRegion(W, H));
       action.setRenderTarget(target);
       action.setFastPathEnabled(TRUE);
@@ -405,7 +414,7 @@ int main() {
     std::vector<uint8_t> pixelsFallback;
     std::vector<float> depthFallback;
     {
-      SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(W, H));
+      SoWgpuRenderTarget * target = createTestTarget(W, H);
       SoWgpuRenderAction action(SbViewportRegion(W, H));
       action.setRenderTarget(target);
       action.setFastPathEnabled(FALSE);
@@ -501,7 +510,7 @@ int main() {
 
       std::vector<uint8_t> fastPixels, fallbackPixels;
       {
-        SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(96, 96));
+        SoWgpuRenderTarget * target = createTestTarget(96, 96);
         SoWgpuRenderAction action(SbViewportRegion(96, 96));
         action.setRenderTarget(target);
         action.setFastPathEnabled(TRUE);
@@ -512,7 +521,7 @@ int main() {
         delete target;
       }
       {
-        SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(96, 96));
+        SoWgpuRenderTarget * target = createTestTarget(96, 96);
         SoWgpuRenderAction action(SbViewportRegion(96, 96));
         action.setRenderTarget(target);
         action.setFastPathEnabled(FALSE);

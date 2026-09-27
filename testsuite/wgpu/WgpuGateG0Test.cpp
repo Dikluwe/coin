@@ -378,6 +378,7 @@ int main() {
 
     SoWgpuRenderAction action(SbViewportRegion(64, 64));
     SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
+    target->getPimpl()->backend.reset(new SoWgpuCpuReferenceBackend);
     action.setRenderTarget(target);
 
     // Must execute cleanly without crash or abort

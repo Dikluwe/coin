@@ -42,7 +42,7 @@ static_assert(alignof(CoinWgpuTexture) == 8, "CoinWgpuTexture alignment mismatch
 static_assert(sizeof(CoinWgpuSampler) == 16, "CoinWgpuSampler size mismatch");
 static_assert(alignof(CoinWgpuSampler) == 4, "CoinWgpuSampler alignment mismatch");
 
-static_assert(sizeof(CoinWgpuRenderState) == 884, "CoinWgpuRenderState size mismatch");
+static_assert(sizeof(CoinWgpuRenderState) == 916, "CoinWgpuRenderState size mismatch");
 static_assert(alignof(CoinWgpuRenderState) == 4, "CoinWgpuRenderState alignment mismatch");
 static_assert(offsetof(CoinWgpuRenderState, cull_mode) == 236, "CoinWgpuRenderState cull_mode offset mismatch");
 static_assert(offsetof(CoinWgpuRenderState, front_face) == 240, "CoinWgpuRenderState front_face offset mismatch");
@@ -53,13 +53,15 @@ static_assert(offsetof(CoinWgpuRenderState, texture_slot) == 316, "CoinWgpuRende
 static_assert(offsetof(CoinWgpuRenderState, sampler_slot) == 320, "CoinWgpuRenderState sampler_slot offset mismatch");
 static_assert(offsetof(CoinWgpuRenderState, texture_model) == 324, "CoinWgpuRenderState texture_model offset mismatch");
 static_assert(sizeof(CoinWgpuLight) == 64, "CoinWgpuLight size mismatch");
-static_assert(offsetof(CoinWgpuRenderState, light_count) == 328, "CoinWgpuRenderState light_count offset mismatch");
-static_assert(offsetof(CoinWgpuRenderState, ambient_light) == 332, "CoinWgpuRenderState ambient_light offset mismatch");
-static_assert(offsetof(CoinWgpuRenderState, lights) == 348, "CoinWgpuRenderState lights offset mismatch");
-static_assert(offsetof(CoinWgpuRenderState, fog_mode) == 860, "CoinWgpuRenderState fog_mode offset mismatch");
-static_assert(offsetof(CoinWgpuRenderState, fog_color) == 864, "CoinWgpuRenderState fog_color offset mismatch");
-static_assert(offsetof(CoinWgpuRenderState, fog_start) == 876, "CoinWgpuRenderState fog_start offset mismatch");
-static_assert(offsetof(CoinWgpuRenderState, fog_end) == 880, "CoinWgpuRenderState fog_end offset mismatch");
+static_assert(offsetof(CoinWgpuRenderState, texture_blend_color) == 328, "CoinWgpuRenderState texture_blend_color offset mismatch");
+static_assert(offsetof(CoinWgpuRenderState, viewport) == 344, "CoinWgpuRenderState viewport offset mismatch");
+static_assert(offsetof(CoinWgpuRenderState, light_count) == 360, "CoinWgpuRenderState light_count offset mismatch");
+static_assert(offsetof(CoinWgpuRenderState, ambient_light) == 364, "CoinWgpuRenderState ambient_light offset mismatch");
+static_assert(offsetof(CoinWgpuRenderState, lights) == 380, "CoinWgpuRenderState lights offset mismatch");
+static_assert(offsetof(CoinWgpuRenderState, fog_mode) == 892, "CoinWgpuRenderState fog_mode offset mismatch");
+static_assert(offsetof(CoinWgpuRenderState, fog_color) == 896, "CoinWgpuRenderState fog_color offset mismatch");
+static_assert(offsetof(CoinWgpuRenderState, fog_start) == 908, "CoinWgpuRenderState fog_start offset mismatch");
+static_assert(offsetof(CoinWgpuRenderState, fog_end) == 912, "CoinWgpuRenderState fog_end offset mismatch");
 
 static_assert(sizeof(CoinWgpuTarget) == 56, "CoinWgpuTarget size mismatch");
 static_assert(sizeof(CoinWgpuFrameView) == 160, "CoinWgpuFrameView size mismatch");

@@ -1,0 +1,42 @@
+import ctypes
+import json
+import os
+from pathlib import Path
+import FreeCAD as App
+import FreeCADGui as Gui
+from PySide6 import QtCore
+
+artifacts = Path(os.environ['COIN_TEST_ARTIFACTS'])
+report = {'test': 'freecad-delayed-overlays', 'status': 'PASS',
+          'capture': 'hardware GPU offscreen readback; no desktop capture'}
+
+def run():
+    try:
+        App.ParamGet('User parameter:BaseApp/Preferences/View').SetBool(
+            'ShowSelectionBoundingBox', False)
+        App.ParamGet('User parameter:BaseApp/Preferences/View').SetUnsigned(
+            'SelectionColor', 0x00ff00ff)
+        helper = ctypes.CDLL(os.environ['COIN_TEST_DELAYED_HELPER'])
+        helper.delayed_overlay_test.argtypes = [ctypes.c_char_p]
+        helper.delayed_overlay_test.restype = ctypes.c_int
+        helper.delayed_overlay_error.restype = ctypes.c_char_p
+        helper.delayed_viewprovider_test.argtypes = [ctypes.c_char_p]
+        helper.delayed_viewprovider_test.restype = ctypes.c_int
+        if not helper.delayed_overlay_test(str(artifacts).encode()):
+            raise RuntimeError(helper.delayed_overlay_error().decode())
+        import Part
+        document = App.newDocument('DelayedOverlayFixture')
+        obj = document.addObject('Part::Feature', 'Box')
+        obj.Shape = Part.makeBox(2, 1, 1, App.Vector(-1, -.5, -.5))
+        obj.Placement = App.Placement(App.Vector(1, .4, -2), App.Rotation(App.Vector(0,0,1), 30))
+        document.recompute()
+        if not helper.delayed_viewprovider_test(str(artifacts).encode()):
+            raise RuntimeError(helper.delayed_overlay_error().decode())
+        App.closeDocument(document.Name)
+    except Exception as e:
+        report.update(status='FAIL', reason=str(e))
+    (artifacts / 'result.json').write_text(json.dumps(report, indent=2))
+    os.write(1, ('RESULT ' + json.dumps(report) + '\n').encode())
+    os._exit(0 if report['status'] == 'PASS' else 1)
+
+QtCore.QTimer.singleShot(200, run)

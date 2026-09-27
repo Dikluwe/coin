@@ -63,6 +63,22 @@ main()
               quadResult.indices[3] == 0,
               "convex quad was not transformed deterministically");
 
+  DirectGeometryView overriddenMaterialView =
+    makeView(quad, 4, quadIndices, 5);
+  const int32_t overriddenMaterialIndices[] = {7, 7, 7, 7, -1};
+  overriddenMaterialView.materialIndex =
+    SoWgpuSpan<int32_t>(overriddenMaterialIndices, 5);
+  overriddenMaterialView.materialBinding =
+    SoMaterialBindingElement::PER_VERTEX_INDEXED;
+  SoWgpuIndexedGeometryOptions overriddenMaterialOptions = baseColor;
+  overriddenMaterialOptions.materialCount = 1;
+  const SoWgpuIndexedGeometryResult overriddenMaterial =
+    SoWgpuIndexedGeometryCore::buildFaces(
+      overriddenMaterialView, overriddenMaterialOptions);
+  ok &= check(overriddenMaterial.status == FastPathResult::SUCCESS_PRUNE &&
+              overriddenMaterial.vertices.size() == 4,
+              "material override rejected pre-existing material indices");
+
   const int32_t invalidIndices[] = {0, 1, 7, -1};
   const SoWgpuIndexedGeometryResult invalid =
     SoWgpuIndexedGeometryCore::buildFaces(

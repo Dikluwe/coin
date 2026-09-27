@@ -1,0 +1,228 @@
+# Real legacy Gui::Polyline through Mesh_PolyCut / PolyClipSelection.
+# Requires the Mesh and MeshGui build targets; never substitutes a synthetic node.
+import json
+import os
+import traceback
+from pathlib import Path
+import FreeCAD as App
+import FreeCADGui as Gui
+from PySide6 import QtCore, QtGui, QtWidgets
+
+App.ParamGet('User parameter:BaseApp/Preferences/NotificationArea').SetBool(
+    'NotificationAreaEnabled', False)
+artifacts = Path(os.environ['COIN_TEST_ARTIFACTS'])
+artifacts.mkdir(parents=True, exist_ok=True)
+native = os.environ.get('FREECAD_COIN_WGPU') == '1'
+report = {'test': 'freecad-legacy-polyline', 'command': 'Mesh_PolyCut',
+          'native': native, 'status': 'PASS'}
+images = {}
+
+
+def finish(error=None):
+    if error:
+        report.update(status='FAIL', reason=str(error))
+        os.write(2, traceback.format_exc().encode())
+    (artifacts / 'result.json').write_text(json.dumps(report, indent=2))
+    os.write(1, ('RESULT ' + json.dumps(report) + '\n').encode())
+    os._exit(0 if report['status'] == 'PASS' else 1)
+
+
+def step(function, delay=600):
+    def guarded():
+        try:
+            function()
+        except Exception as error:
+            finish(error)
+    QtCore.QTimer.singleShot(delay, guarded)
+
+
+def viewer_widget():
+    global viewer_keepalive, viewport_keepalive
+    for widget in QtWidgets.QApplication.allWidgets():
+        if widget.isVisible() and 'View3DInventorViewer' in widget.metaObject().className():
+            viewer_keepalive = widget
+            viewport_keepalive = widget.viewport()
+            return widget
+    raise RuntimeError('no visible viewer')
+
+
+def capture(name):
+    widget = viewer_widget()
+    if native and (not widget.property('wgpuFrameCount') or
+                   widget.property('wgpuOpenGLViewport') or
+                   widget.property('wgpuFallbackReason')):
+        raise RuntimeError('BGFX frame missing or fallback occurred')
+    viewport = viewport_keepalive
+    p = viewport.mapToGlobal(QtCore.QPoint())
+    image = viewport.screen().grabWindow(
+        0, p.x(), p.y(), viewport.width(), viewport.height()).toImage()
+    if image.isNull() or not image.save(str(artifacts / (name + '.png'))):
+        raise RuntimeError('capture failed')
+    images[name] = image
+    return image
+
+
+def region(x, y, width, height):
+    scale = viewer_widget().devicePixelRatioF()
+    return QtCore.QRect(int(x*scale), int(y*scale), int(width*scale), int(height*scale))
+
+
+def blue_pixels(image, rect):
+    return sum(c.blue() > 150 and c.red() < 80 and c.green() < 80
+               for y in range(rect.top(), rect.bottom()+1)
+               for x in range(rect.left(), rect.right()+1)
+               for c in (image.pixelColor(x, y),))
+
+
+def changes(a, b, rect):
+    if a.size() != b.size():
+        raise RuntimeError('capture size changed')
+    return sum(a.pixel(x, y) != b.pixel(x, y)
+               for y in range(rect.top(), rect.bottom()+1)
+               for x in range(rect.left(), rect.right()+1))
+
+
+def send(kind, pos, button=QtCore.Qt.NoButton, buttons=QtCore.Qt.NoButton):
+    viewer_widget()
+    event = QtGui.QMouseEvent(
+        kind, QtCore.QPointF(pos), QtCore.QPointF(viewport_keepalive.mapToGlobal(pos)),
+        button, buttons, QtCore.Qt.NoModifier)
+    QtWidgets.QApplication.sendEvent(viewport_keepalive, event)
+
+
+def click(pos):
+    send(QtCore.QEvent.MouseMove, pos)
+    send(QtCore.QEvent.MouseButtonPress, pos, QtCore.Qt.LeftButton, QtCore.Qt.LeftButton)
+    send(QtCore.QEvent.MouseButtonRelease, pos, QtCore.Qt.LeftButton)
+
+
+def start():
+    global doc, view, mesh_object
+    try:
+        import Mesh
+        import MeshGui
+    except ImportError as error:
+        raise RuntimeError('real Polyline command requires built Mesh/MeshGui modules') from error
+    main = Gui.getMainWindow()
+    main.showNormal()
+    available = main.screen().availableGeometry()
+    main.resize(min(1100, available.width()-60), min(800, available.height()-60))
+    main.move(available.topLeft() + QtCore.QPoint(20, 20))
+    for dock in main.findChildren(QtWidgets.QDockWidget):
+        dock.hide()
+    Gui.activateWorkbench('MeshWorkbench')
+    doc = App.newDocument('LegacyPolylineParity')
+    mesh_object = doc.addObject('Mesh::Feature', 'Mesh')
+    mesh_object.Mesh = Mesh.Mesh([
+        ((0, 0, 0), (10, 0, 0), (0, 10, 0)),
+        ((10, 0, 0), (10, 10, 0), (0, 10, 0))])
+    doc.recompute()
+    view = Gui.activeDocument().activeView()
+    view.getViewer().setEnabledNaviCube(False)
+    view.getViewer().setGradientBackground('NONE')
+    view.getViewer().setBackgroundColor(0.15, 0.15, 0.15)
+    view.setNavigationType('Gui::CADNavigationStyle')
+    view.viewTop()
+    view.fitAll()
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(mesh_object)
+    step(begin, 1200)
+
+
+def begin():
+    widget = viewer_widget()
+    if viewport_keepalive.width() < 420 or viewport_keepalive.height() < 280:
+        raise RuntimeError('viewport too small for blank-area Polyline oracle')
+    widget.setFocus()
+    image = capture('polyline-off')
+    report['baseline_blue_pixels'] = blue_pixels(image, region(30, 45, 170, 200))
+    if report['baseline_blue_pixels']:
+        raise RuntimeError('baseline contains blue pixels in test area')
+    if 'Mesh_PolyCut' not in Gui.listCommands():
+        raise RuntimeError('Mesh_PolyCut command not registered')
+    Gui.runCommand('Mesh_PolyCut')
+    step(first_nodes, 250)
+
+
+def first_nodes():
+    click(QtCore.QPoint(40, 60))
+    click(QtCore.QPoint(180, 60))
+    send(QtCore.QEvent.MouseMove, QtCore.QPoint(180, 190))
+    step(first_capture)
+
+
+def first_capture():
+    image = capture('polyline-first')
+    report['first_blue_pixels'] = blue_pixels(image, region(30, 45, 170, 200))
+    report['first_changed_pixels'] = changes(images['polyline-off'], image,
+                                             region(30, 45, 170, 200))
+    if report['first_blue_pixels'] < 100 or report['first_changed_pixels'] < 100:
+        raise RuntimeError('legacy blue Polyline did not appear')
+    report['old_segment_pixels'] = blue_pixels(image, region(177, 115, 7, 60))
+    if report['old_segment_pixels'] < 20:
+        raise RuntimeError('initial cursor segment missing')
+    send(QtCore.QEvent.MouseMove, QtCore.QPoint(100, 230))
+    step(updated_capture)
+
+
+def updated_capture():
+    image = capture('polyline-updated')
+    report['updated_blue_pixels'] = blue_pixels(image, region(30, 45, 170, 200))
+    report['mouse_update_pixels'] = changes(images['polyline-first'], image,
+                                           region(30, 45, 170, 200))
+    report['remaining_old_segment_pixels'] = blue_pixels(image, region(177, 115, 7, 60))
+    if report['updated_blue_pixels'] < 100 or report['mouse_update_pixels'] < 100:
+        raise RuntimeError('Polyline did not follow mouse movement')
+    if report['remaining_old_segment_pixels'] > report['old_segment_pixels'] // 3:
+        raise RuntimeError('previous Polyline cursor segment remained')
+    # The real legacy selector finishes via a blocking popup on RMB release.
+    # Select its final (Cancel) action by position, independent of UI language.
+    step(cancel_popup, 100)
+    send(QtCore.QEvent.MouseButtonPress, QtCore.QPoint(100, 230),
+         QtCore.Qt.RightButton, QtCore.Qt.RightButton)
+    send(QtCore.QEvent.MouseButtonRelease, QtCore.QPoint(100, 230), QtCore.Qt.RightButton)
+    step(after_cancel)
+
+
+def cancel_popup(attempt=0):
+    menu = QtWidgets.QApplication.activePopupWidget()
+    if not isinstance(menu, QtWidgets.QMenu):
+        if attempt >= 20:
+            raise RuntimeError('legacy selector cancellation popup did not open')
+        step(lambda: cancel_popup(attempt+1), 100)
+        return
+    action = menu.actions()[-1]
+    if not action.isEnabled() or not action.isVisible():
+        raise RuntimeError('Cancel action unavailable')
+    menu.setActiveAction(action)
+    for kind in (QtCore.QEvent.KeyPress, QtCore.QEvent.KeyRelease):
+        QtWidgets.QApplication.sendEvent(
+            menu, QtGui.QKeyEvent(kind, QtCore.Qt.Key_Return, QtCore.Qt.NoModifier))
+    report['cancel_popup_observed'] = True
+
+
+def after_cancel():
+    if not report.get('cancel_popup_observed'):
+        raise RuntimeError('selection did not finish via its real Cancel action')
+    image = capture('polyline-cancelled')
+    report['cancelled_blue_pixels'] = blue_pixels(image, region(30, 45, 170, 200))
+    report['remaining_pixels'] = changes(images['polyline-off'], image,
+                                         region(30, 45, 170, 200))
+    if report['cancelled_blue_pixels'] or report['remaining_pixels'] > 20:
+        raise RuntimeError('Polyline remained after cancellation')
+    if mesh_object.Mesh.CountFacets != 2:
+        raise RuntimeError('Cancel modified the mesh')
+    report['idle_start'] = int(viewer_widget().property('wgpuFrameCount') or 0)
+    step(idle, 1200)
+
+
+def idle():
+    report['idle_end'] = int(viewer_widget().property('wgpuFrameCount') or 0)
+    if native and report['idle_end'] != report['idle_start']:
+        raise RuntimeError('legacy Polyline caused continuous idle redraw')
+    finish()
+
+
+# Fail clearly if a blocking modal interaction prevents the expected flow.
+step(lambda: finish(RuntimeError('legacy Polyline test timed out')), 30000)
+step(start, 1200)

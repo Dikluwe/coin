@@ -123,6 +123,24 @@ inline void applyFog(const RenderStateSnapshot & rs, float eyeDepth,
   blue = rs.fogColor[2] * (1.0f - factor) + blue * factor;
 }
 
+inline void writePixel(std::vector<uint8_t> & color, size_t offset,
+                       float red, float green, float blue, float alpha, bool blend) {
+  if (offset + 3 >= color.size()) return;
+  auto clamp01 = [](float value) { return std::max(0.0f, std::min(1.0f, value)); };
+  red = clamp01(red); green = clamp01(green); blue = clamp01(blue); alpha = clamp01(alpha);
+  if (blend) {
+    const float inverse = 1.0f - alpha;
+    red = red * alpha + (color[offset] / 255.0f) * inverse;
+    green = green * alpha + (color[offset + 1] / 255.0f) * inverse;
+    blue = blue * alpha + (color[offset + 2] / 255.0f) * inverse;
+    alpha += (color[offset + 3] / 255.0f) * inverse;
+  }
+  color[offset] = static_cast<uint8_t>(clamp01(red) * 255.0f);
+  color[offset + 1] = static_cast<uint8_t>(clamp01(green) * 255.0f);
+  color[offset + 2] = static_cast<uint8_t>(clamp01(blue) * 255.0f);
+  color[offset + 3] = static_cast<uint8_t>(clamp01(alpha) * 255.0f);
+}
+
 static void rasterizeTriangle(const ShadedVertex & sv0, const ShadedVertex & sv1, const ShadedVertex & sv2,
                               int width, int height,
                               const LightingSnapshot & lighting, const RenderStateSnapshot & rs,
@@ -134,6 +152,9 @@ static void rasterizeTriangle(const ShadedVertex & sv0, const ShadedVertex & sv1
   float invW[3];
   float ndcZ[3];
   const ShadedVertex * sv[3] = { &sv0, &sv1, &sv2 };
+  const ViewportSnapshot & viewport = frame.viewports[rs.viewportSlot];
+  const int viewportTop = height - viewport.y - viewport.height;
+
 
   for (int k = 0; k < 3; ++k) {
     float w = (sv[k]->clipPos[3] > 1e-6f ? sv[k]->clipPos[3] : 1e-6f);
@@ -141,8 +162,8 @@ static void rasterizeTriangle(const ShadedVertex & sv0, const ShadedVertex & sv1
     float nx = sv[k]->clipPos[0] * invW[k];
     float ny = sv[k]->clipPos[1] * invW[k];
     ndcZ[k] = sv[k]->clipPos[2] * invW[k];
-    scrPos[k].setValue((nx + 1.0f) * 0.5f * static_cast<float>(width),
-                       (1.0f - (ny + 1.0f) * 0.5f) * static_cast<float>(height));
+    scrPos[k].setValue(viewport.x + (nx + 1.0f) * 0.5f * viewport.width,
+                       viewportTop + (1.0f - (ny + 1.0f) * 0.5f) * viewport.height);
   }
 
   float area = edgeFunction(scrPos[0], scrPos[1], scrPos[2]);
@@ -151,12 +172,16 @@ static void rasterizeTriangle(const ShadedVertex & sv0, const ShadedVertex & sv1
   if (rs.cullMode == CullMode::FRONT && orientArea >= 0.0f) return;
   if (std::abs(area) < 1e-5f) return; // Degenerate
 
-  int minX = std::max(0, static_cast<int>(std::floor(std::min({scrPos[0][0], scrPos[1][0], scrPos[2][0]}))));
-  int maxX = std::min(width - 1, static_cast<int>(std::ceil(std::max({scrPos[0][0], scrPos[1][0], scrPos[2][0]}))));
-  int minY = std::max(0, static_cast<int>(std::floor(std::min({scrPos[0][1], scrPos[1][1], scrPos[2][1]}))));
-  int maxY = std::min(height - 1, static_cast<int>(std::ceil(std::max({scrPos[0][1], scrPos[1][1], scrPos[2][1]}))));
+  int minX = std::max(viewport.x, static_cast<int>(std::floor(std::min({scrPos[0][0], scrPos[1][0], scrPos[2][0]}))));
+  int maxX = std::min(viewport.x + viewport.width - 1, static_cast<int>(std::ceil(std::max({scrPos[0][0], scrPos[1][0], scrPos[2][0]}))));
+  int minY = std::max(viewportTop, static_cast<int>(std::floor(std::min({scrPos[0][1], scrPos[1][1], scrPos[2][1]}))));
+  int maxY = std::min(viewportTop + viewport.height - 1, static_cast<int>(std::ceil(std::max({scrPos[0][1], scrPos[1][1], scrPos[2][1]}))));
 
   float invArea = 1.0f / area;
+  minX = std::max(0, minX);
+  maxX = std::min(width - 1, maxX);
+  minY = std::max(0, minY);
+  maxY = std::min(height - 1, maxY);
 
   for (int py = minY; py <= maxY; ++py) {
     for (int px = minX; px <= maxX; ++px) {
@@ -283,14 +308,26 @@ static void rasterizeTriangle(const ShadedVertex & sv0, const ShadedVertex & sv1
         }
       }
 
-      float sourceAlpha = m0.diffuse[3];
+      float sourceAlpha = m0.diffuse[3] * b0 + m1.diffuse[3] * b1 + m2.diffuse[3] * b2;
       if (rs.hasTexture && rs.textureImageSlot < frame.textures.size() && rs.samplerSlot < frame.samplers.size()) {
         SbVec2f tc = sv0.texCoord * b0 + sv1.texCoord * b1 + sv2.texCoord * b2;
         SbVec4f texCol = sampleTexture(frame.textures[rs.textureImageSlot], frame.samplers[rs.samplerSlot], tc[0], tc[1]);
-        finalR *= texCol[0];
-        finalG *= texCol[1];
-        finalB *= texCol[2];
-        sourceAlpha *= texCol[3];
+        if (rs.textureModel == TextureModel::REPLACE) {
+          finalR = texCol[0]; finalG = texCol[1]; finalB = texCol[2];
+          sourceAlpha = texCol[3];
+        } else if (rs.textureModel == TextureModel::DECAL) {
+          finalR = finalR * (1.0f - texCol[3]) + texCol[0] * texCol[3];
+          finalG = finalG * (1.0f - texCol[3]) + texCol[1] * texCol[3];
+          finalB = finalB * (1.0f - texCol[3]) + texCol[2] * texCol[3];
+        } else if (rs.textureModel == TextureModel::BLEND) {
+          finalR = finalR * (1.0f - texCol[0]) + rs.textureBlendColor[0] * texCol[0];
+          finalG = finalG * (1.0f - texCol[1]) + rs.textureBlendColor[1] * texCol[1];
+          finalB = finalB * (1.0f - texCol[2]) + rs.textureBlendColor[2] * texCol[2];
+          sourceAlpha *= texCol[3];
+        } else {
+          finalR *= texCol[0]; finalG *= texCol[1]; finalB *= texCol[2];
+          sourceAlpha *= texCol[3];
+        }
       }
 
       applyFog(rs, -vPos[2], finalR, finalG, finalB);
@@ -369,8 +406,35 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
 
     target.clear(frame.clearColor[0], frame.clearColor[1], frame.clearColor[2], frame.clearColor[3], 1.0f);
 
+    uint32_t activeLayer = UINT32_MAX;
     for (size_t dIdx = 0; dIdx < order.size(); ++dIdx) {
       const auto & draw = frame.draws[order[dIdx].drawIndex];
+      if (draw.renderLayer != activeLayer) {
+        activeLayer = draw.renderLayer;
+        const DrawPacket * barrier = nullptr;
+        for (const DrawPacket & candidate : frame.draws) {
+          if (candidate.renderLayer == activeLayer && candidate.clearDepthBefore) {
+            barrier = &candidate;
+            break;
+          }
+        }
+        if (barrier) {
+          const RenderStateSnapshot & barrierState = frame.renderStates[barrier->renderStateSlot];
+          const ViewportSnapshot & clearViewport = frame.viewports[barrierState.viewportSlot];
+          const int64_t clearTop = int64_t(height) - clearViewport.y - clearViewport.height;
+          const int left = static_cast<int>(std::max<int64_t>(0, std::min<int64_t>(width, clearViewport.x)));
+          const int right = static_cast<int>(std::max<int64_t>(0, std::min<int64_t>(width,
+            int64_t(clearViewport.x) + clearViewport.width)));
+          const int top = static_cast<int>(std::max<int64_t>(0, std::min<int64_t>(height, clearTop)));
+          const int bottom = static_cast<int>(std::max<int64_t>(0, std::min<int64_t>(height,
+            clearTop + clearViewport.height)));
+          for (int y = top; y < bottom; ++y) {
+            const size_t begin = static_cast<size_t>(y) * width + left;
+            std::fill(target.depthBuffer.begin() + begin,
+                      target.depthBuffer.begin() + begin + right - left, 1.0f);
+          }
+        }
+      }
       const bool blend = order[dIdx].blend;
       // Process supported topologies
       if (draw.renderStateSlot >= frame.renderStates.size()) {
@@ -392,6 +456,8 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
       SbMatrix mvpWgpu = modelView * projWgpu;
 
       const LightingSnapshot & lighting = frame.lightingStates[rs.lightingSlot];
+      const ViewportSnapshot & viewport = frame.viewports[rs.viewportSlot];
+      const int viewportTop = height - viewport.y - viewport.height;
 
       // Safe bounds validation against 32-bit overflow (B05)
       const size_t totalIndices = frame.indices.size();
@@ -524,12 +590,12 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
 
           if (clip0[3] < 1e-5f || clip1[3] < 1e-5f) continue;
 
-          float x0 = (clip0[0] / clip0[3] + 1.0f) * 0.5f * width;
-          float y0 = (1.0f - clip0[1] / clip0[3]) * 0.5f * height;
+          float x0 = viewport.x + (clip0[0] / clip0[3] + 1.0f) * 0.5f * viewport.width;
+          float y0 = viewportTop + (1.0f - clip0[1] / clip0[3]) * 0.5f * viewport.height;
           float z0 = clip0[2] / clip0[3];
 
-          float x1 = (clip1[0] / clip1[3] + 1.0f) * 0.5f * width;
-          float y1 = (1.0f - clip1[1] / clip1[3]) * 0.5f * height;
+          float x1 = viewport.x + (clip1[0] / clip1[3] + 1.0f) * 0.5f * viewport.width;
+          float y1 = viewportTop + (1.0f - clip1[1] / clip1[3]) * 0.5f * viewport.height;
           float z1 = clip1[2] / clip1[3];
 
           const auto & m0 = frame.materials[v0.materialSlot < frame.materials.size() ? v0.materialSlot : 0];
@@ -546,10 +612,12 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
             int py = static_cast<int>(std::round(y0 + t * dy));
             float z = z0 + t * (z1 - z0);
 
-            if (px >= 0 && px < width && py >= 0 && py < height && z >= 0.0f && z <= 1.0f) {
+            if (px >= 0 && px < width && py >= 0 && py < height &&
+                px >= viewport.x && px < viewport.x + viewport.width &&
+                py >= viewportTop && py < viewportTop + viewport.height && z >= 0.0f && z <= 1.0f) {
               size_t pIdx = py * width + px;
               if (z <= target.depthBuffer[pIdx]) {
-                target.depthBuffer[pIdx] = z;
+                if (!blend) target.depthBuffer[pIdx] = z;
                 float r = (rs.lightModel == LightModel::BASE_COLOR)
                   ? ((1.0f - t) * m0.diffuse[0] + t * m1.diffuse[0])
                   : ((1.0f - t) * (m0.diffuse[0] + m0.ambient[0] + m0.emission[0]) + t * (m1.diffuse[0] + m1.ambient[0] + m1.emission[0]));
@@ -560,13 +628,8 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
                   ? ((1.0f - t) * m0.diffuse[2] + t * m1.diffuse[2])
                   : ((1.0f - t) * (m0.diffuse[2] + m0.ambient[2] + m0.emission[2]) + t * (m1.diffuse[2] + m1.ambient[2] + m1.emission[2]));
                 applyFog(rs, -((1.0f - t) * view0[2] + t * view1[2]), r, g, b);
-                size_t cIdx = pIdx * 4;
-                if (cIdx + 3 < target.colorBuffer.size()) {
-                  target.colorBuffer[cIdx + 0] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, r * 255.0f)));
-                  target.colorBuffer[cIdx + 1] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, g * 255.0f)));
-                  target.colorBuffer[cIdx + 2] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, b * 255.0f)));
-                  target.colorBuffer[cIdx + 3] = 255;
-                }
+                const float alpha = (1.0f - t) * m0.diffuse[3] + t * m1.diffuse[3];
+                writePixel(target.colorBuffer, pIdx * 4, r, g, b, alpha, blend);
               }
             }
           }
@@ -584,14 +647,16 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
           modelView.multVecMatrix(SbVec4f(v0.position[0], v0.position[1], v0.position[2], 1.0f), view0);
           if (clip0[3] < 1e-5f) continue;
 
-          int px = static_cast<int>(std::round((clip0[0] / clip0[3] + 1.0f) * 0.5f * width));
-          int py = static_cast<int>(std::round((1.0f - clip0[1] / clip0[3]) * 0.5f * height));
+          int px = static_cast<int>(std::round(viewport.x + (clip0[0] / clip0[3] + 1.0f) * 0.5f * viewport.width));
+          int py = static_cast<int>(std::round(viewportTop + (1.0f - clip0[1] / clip0[3]) * 0.5f * viewport.height));
           float z = clip0[2] / clip0[3];
 
-          if (px >= 0 && px < width && py >= 0 && py < height && z >= 0.0f && z <= 1.0f) {
+          if (px >= 0 && px < width && py >= 0 && py < height &&
+                px >= viewport.x && px < viewport.x + viewport.width &&
+              py >= viewportTop && py < viewportTop + viewport.height && z >= 0.0f && z <= 1.0f) {
             size_t pIdx = py * width + px;
             if (z <= target.depthBuffer[pIdx]) {
-              target.depthBuffer[pIdx] = z;
+              if (!blend) target.depthBuffer[pIdx] = z;
               const auto & m0 = frame.materials[v0.materialSlot < frame.materials.size() ? v0.materialSlot : 0];
               float r = (rs.lightModel == LightModel::BASE_COLOR)
                 ? m0.diffuse[0]
@@ -603,13 +668,7 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
                 ? m0.diffuse[2]
                 : (m0.diffuse[2] + m0.ambient[2] + m0.emission[2]);
               applyFog(rs, -view0[2], r, g, b);
-              size_t cIdx = pIdx * 4;
-              if (cIdx + 3 < target.colorBuffer.size()) {
-                target.colorBuffer[cIdx + 0] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, r * 255.0f)));
-                target.colorBuffer[cIdx + 1] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, g * 255.0f)));
-                target.colorBuffer[cIdx + 2] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, b * 255.0f)));
-                target.colorBuffer[cIdx + 3] = 255;
-              }
+              writePixel(target.colorBuffer, pIdx * 4, r, g, b, m0.diffuse[3], blend);
             }
           }
         }

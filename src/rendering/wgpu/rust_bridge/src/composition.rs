@@ -66,6 +66,7 @@ pub(super) fn order(
                 )
             })?;
         let alpha = material.diffuse[3];
+        let mut material_alpha = alpha < 1.0;
         let mut depth_sum = 0.0_f64;
         for &vertex_index in &indices[first..end] {
             let vertex = vertices.get(vertex_index as usize).ok_or_else(|| {
@@ -83,12 +84,7 @@ pub(super) fn order(
                             format!("Draw {} has invalid vertex material", draw_index),
                         )
                     })?;
-            if (vertex_material.diffuse[3] - alpha).abs() > 1.0e-6 {
-                return Err((
-                    CoinWgpuStatus::Unsupported,
-                    format!("Draw {} has mixed per-vertex material alpha", draw_index),
-                ));
-            }
+            material_alpha = material_alpha || vertex_material.diffuse[3] < 1.0;
             let m = &state.model_view;
             let p = vertex.position;
             let view_z = p[0] * m[2] + p[1] * m[6] + p[2] * m[10] + m[14];
@@ -148,13 +144,9 @@ pub(super) fn order(
                 texture_alpha_cache[slot] = Some(texture_alpha);
             }
         }
-        let blend = alpha < 1.0 || texture_alpha;
-        if blend && draw.topology != 0 {
-            return Err((
-                CoinWgpuStatus::Unsupported,
-                format!("Draw {} is a transparent line or point", draw_index),
-            ));
-        }
+        if state.texture_model == 2 { texture_alpha = false; }
+        if state.has_texture != 0 && state.texture_model == 1 { material_alpha = false; }
+        let blend = material_alpha || texture_alpha;
         let eye_depth = if end > first {
             (depth_sum / (end - first) as f64) as f32
         } else {

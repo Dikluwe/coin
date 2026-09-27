@@ -1,0 +1,177 @@
+# Real FreeCAD multi-document cameras and preselection, using native BGFX targets.
+import json
+import os
+import traceback
+from pathlib import Path
+import FreeCAD as App
+import FreeCADGui as Gui
+from PySide import QtCore, QtGui
+try:
+    from PySide import QtWidgets
+except ImportError:
+    QtWidgets = QtGui
+
+artifacts = Path(os.environ['COIN_TEST_ARTIFACTS'])
+report = {'test': 'freecad-multi', 'status': 'PASS'}
+docs = []
+views = []
+baseline = []
+stage_frames = []
+
+def finish(error=None):
+    if error:
+        report.update(status='FAIL', reason=str(error))
+        os.write(1, traceback.format_exc().encode())
+    (artifacts / 'freecad-multi-result.json').write_text(json.dumps(report, indent=2))
+    os.write(1, ('RESULT ' + json.dumps(report) + '\n').encode())
+    os._exit(0 if report['status'] == 'PASS' else 1)
+
+def quarters():
+    found = []
+    for widget in QtWidgets.QApplication.allWidgets():
+        try:
+            if widget.isVisible() and 'View3DInventorViewer' in widget.metaObject().className():
+                found.append(widget)
+        except RuntimeError:
+            pass
+    return sorted(found, key=lambda w: (w.mapToGlobal(QtCore.QPoint()).x(), w.mapToGlobal(QtCore.QPoint()).y()))
+
+def capture(widget, name):
+    if (not widget.property('wgpuFrameCount') or widget.property('wgpuOpenGLViewport') or
+            widget.property('wgpuFallbackReason')):
+        raise RuntimeError('viewport did not submit native BGFX frames (fallback forbidden)')
+    p = widget.mapToGlobal(QtCore.QPoint())
+    image = widget.screen().grabWindow(0, p.x(), p.y(), widget.width(), widget.height()).toImage()
+    if image.isNull() or not image.save(str(artifacts / (name + '.png'))):
+        raise RuntimeError('native multi-viewport capture failed')
+    colored = sum((lambda c: (c.red() > 100 and c.red() > 2*c.green() and c.red() > 2*c.blue()) or
+                   (c.blue() > 100 and c.blue() > 2*c.green() and c.blue() > 2*c.red()))(image.pixelColor(x,y))
+                  for y in range(0,image.height(),3) for x in range(0,image.width(),3))
+    if colored < 100:
+        raise RuntimeError('native viewport has no colored document geometry')
+    return image
+
+def changed(a, b):
+    if a.size() != b.size():
+        raise RuntimeError('unexpected viewport layout change during independence assertion')
+    return sum(a.pixel(x,y) != b.pixel(x,y)
+               for y in range(0, a.height(), 2) for x in range(0, a.width(), 2))
+
+def check_survivor():
+    try:
+        remaining = quarters()
+        if len(remaining) != 1:
+            raise RuntimeError('closing initialization owner did not leave one real viewport')
+        capture(remaining[0], 'survivor-after-owner-destroy')
+        report['owner_destroy_survivor'] = True
+        finish()
+    except Exception as error:
+        finish(error)
+
+def check_preselection():
+    try:
+        now = [capture(w, 'preselection-' + str(i)) for i,w in enumerate(views)]
+        changes = [changed(a,b) for a,b in zip(baseline,now)]
+        report['preselection_changed_samples'] = changes
+        if changes[0] < 100 or changes[1] > 10:
+            raise RuntimeError('preselection missing on first or leaked into second viewport')
+        Gui.Selection.clearPreselection()
+        run_lifecycle(0)
+    except Exception as error:
+        finish(error)
+
+def run_lifecycle(index):
+    global stage_frames
+    try:
+        main = Gui.getMainWindow()
+        def restore():
+            main.showNormal()
+            main.raise_()
+            main.activateWindow()
+        stages = [('resize', lambda: main.resize(main.width()-100, main.height()-80)),
+                  ('maximize', main.showMaximized), ('restore', restore),
+                  ('minimize', main.showMinimized), ('unminimize', restore)]
+        if index:
+            previous = stages[index-1][0]
+            if previous != 'minimize':
+                for i,w in enumerate(views):
+                    if int(w.property('wgpuFrameCount')) <= stage_frames[i]:
+                        raise RuntimeError(previous + ' did not submit a fresh frame for both targets')
+                    capture(w, 'lifecycle-' + previous + '-' + str(i))
+                report.setdefault('lifecycle', []).append(previous)
+        if index == len(stages):
+            App.closeDocument(docs[0].Name)
+            Gui.activeDocument().activeView().viewRear()
+            Gui.activeDocument().activeView().fitAll()
+            QtCore.QTimer.singleShot(900, check_survivor)
+            return
+        stage_frames = [int(w.property('wgpuFrameCount')) for w in views]
+        stages[index][1]()
+        QtCore.QTimer.singleShot(1000, lambda: run_lifecycle(index+1))
+    except Exception as error:
+        finish(error)
+
+def check_camera():
+    global baseline
+    try:
+        now = [capture(w, 'camera-' + str(i)) for i,w in enumerate(views)]
+        changes = [changed(a,b) for a,b in zip(baseline,now)]
+        report['camera_changed_samples'] = changes
+        if changes[0] < 100 or changes[1] > 10:
+            raise RuntimeError('camera update missing on first or leaked into second viewport')
+        baseline = now
+        point = docs[0].Box.Shape.Faces[0].CenterOfMass
+        Gui.Selection.setPreselection(docs[0].Box, 'Face1', point.x, point.y, point.z)
+        QtCore.QTimer.singleShot(800, check_preselection)
+    except Exception as error:
+        finish(error)
+
+def initial():
+    global views, baseline
+    try:
+        views = quarters()
+        if len(views) != 2:
+            raise RuntimeError('two tiled real FreeCAD viewports were not visible')
+        baseline = [capture(w, 'initial-' + str(i)) for i,w in enumerate(views)]
+        # Resolve document-to-widget association using activation, not tile order.
+        App.setActiveDocument(docs[0].Name)
+        first = next((w for w in views if w.hasFocus() or w.isAncestorOf(QtWidgets.QApplication.focusWidget())), None) if QtWidgets.QApplication.focusWidget() else None
+        if first is None:
+            # MDI titles identify the document even when keyboard focus is in a dock.
+            for w in views:
+                parent = w.parentWidget()
+                while parent:
+                    if docs[0].Label in parent.windowTitle():
+                        first = w
+                        break
+                    parent = parent.parentWidget()
+                if first:
+                    break
+        if first is None:
+            raise RuntimeError('could not associate first document with its native viewport')
+        index = views.index(first)
+        if index:
+            views.reverse(); baseline.reverse()
+        Gui.activeDocument().activeView().viewAxonometric()
+        QtCore.QTimer.singleShot(1000, check_camera)
+    except Exception as error:
+        finish(error)
+
+def start():
+    try:
+        App.ParamGet('User parameter:BaseApp/Preferences/General').SetBool('NotificationAreaEnabled', False)
+        for name,color in [('WgpuMultiFirst',(1.0,0.05,0.02)), ('WgpuMultiSecond',(0.03,0.15,1.0))]:
+            doc = App.newDocument(name)
+            box = doc.addObject('Part::Box','Box')
+            box.Length = 20; box.Width = 12; box.Height = 7
+            box.ViewObject.ShapeColor = color
+            doc.recompute()
+            Gui.activeDocument().activeView().viewTop()
+            Gui.activeDocument().activeView().fitAll()
+            docs.append(doc)
+        Gui.runCommand('Std_TileWindows')
+        QtCore.QTimer.singleShot(1800, initial)
+    except Exception as error:
+        finish(error)
+
+QtCore.QTimer.singleShot(1500, start)

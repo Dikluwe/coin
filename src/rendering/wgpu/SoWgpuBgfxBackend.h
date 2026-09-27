@@ -6,9 +6,10 @@
 #include "rendering/wgpu/SoWgpuFrameReuseCore.h"
 
 #include <bgfx/bgfx.h>
+#include <memory>
 #include <thread>
 
-/** Experimental BGFX/Vulkan or OpenGL Infra. One process-wide instance is used. */
+/** Experimental BGFX renderer. Targets share an API-thread-owned device. */
 class SoWgpuBgfxBackend : public SoWgpuBackend {
 public:
   SoWgpuBgfxBackend();
@@ -19,36 +20,78 @@ public:
   SubmitResult submit(const FramePlan & frame, SoWgpuRenderTargetP & target) override;
   SubmitResult submit(const FramePlan & frame, SoWgpuRenderTargetP & target,
                       const SoWgpuFrameReuseDecision & reuse);
+  SubmitResult submitDirectTexture(const FramePlan & frame,
+                                   const SbVec2i32 & size,
+                                   uint64_t producerKey,
+                                   uint64_t & token);
+  void releaseDirectTexture(uint64_t token);
+  void finishDirectTextures(const std::vector<uint64_t> & usedTokens);
   void poll() override;
   const std::string & getLastError() const override { return lastError; }
 
 private:
-  enum class TransparencyMode {
-    OBJECT,
-    SORTED_LAYERS,
-    WEIGHTED_OIT
+  struct ReadbackSlot {
+    bgfx::TextureHandle texture = BGFX_INVALID_HANDLE;
+    std::vector<uint8_t> pixels;
+    uint32_t readyFrame = 0;
+    uint64_t sequence = 0;
+    bool pending = false;
+  };
+  struct DirectTextureResource {
+    uint64_t token = 0;
+    uint64_t producerKey = 0;
+    int width = 0;
+    int height = 0;
+    bgfx::FrameBufferHandle frameBuffer = BGFX_INVALID_HANDLE;
+    bool inUse = false;
   };
 
   bool resize(int width, int height);
+  BackendStatus checkRuntimeFailure(const char * operation);
+  void destroyResources();
+  void shutdownRuntime();
   void destroyFrameBuffers();
   void encodeSortedLayers(const std::vector<SoWgpuBgfxDraw> & draws,
-                          bgfx::VertexBufferHandle vertices,
-                          bgfx::IndexBufferHandle indices,
-                          bgfx::FrameBufferHandle output);
+                          bgfx::DynamicVertexBufferHandle vertices,
+                          bgfx::DynamicIndexBufferHandle indices,
+                          bgfx::FrameBufferHandle output,
+                          const std::vector<bgfx::TextureHandle> & textures);
+  bool encodeOverlayLayers(const std::vector<SoWgpuBgfxDraw> & draws,
+                           bgfx::DynamicVertexBufferHandle vertices,
+                           bgfx::DynamicIndexBufferHandle indices,
+                           bgfx::FrameBufferHandle output,
+                           const std::vector<bgfx::TextureHandle> & textures,
+                           bgfx::ViewId & nextView);
   void encodeWeightedOit(const std::vector<SoWgpuBgfxDraw> & draws,
-                         bgfx::VertexBufferHandle vertices,
-                         bgfx::IndexBufferHandle indices,
-                         bgfx::FrameBufferHandle output);
+                         bgfx::DynamicVertexBufferHandle vertices,
+                         bgfx::DynamicIndexBufferHandle indices,
+                         bgfx::FrameBufferHandle output,
+                         const std::vector<bgfx::TextureHandle> & textures);
+  void bindDrawTexture(const SoWgpuBgfxDraw & draw,
+                       const std::vector<bgfx::TextureHandle> & textures);
+  void bindDrawLighting(const SoWgpuBgfxDraw & draw);
   bool onApiThread() const;
   BackendStatus status;
 
   std::string lastError;
   std::thread::id apiThread;
+  std::shared_ptr<bgfx::CallbackI> callback;
+  bgfx::ViewId viewBase;
+  void * nativeDisplay;
+  void * nativeWindow;
   bool initialized;
   bool presentToWindow;
   bool cameraPatchEnabled;
-  TransparencyMode transparencyMode;
+  bool drawGroupingEnabled;
+  uint32_t readbackPipelineDepth;
+  uint32_t readbackCursor;
+  uint64_t readbackSequence;
+  SoWgpuBgfxTransparencyMode transparencyMode;
+  SoWgpuBgfxTransparencyStrategy activeTransparencyStrategy;
+  bool weightedOitSupported;
+  bool sortedLayersSupported;
   uint64_t serial;
+  uint64_t directTextureSerial;
   int width;
   int height;
   bgfx::VertexLayout layout;
@@ -63,19 +106,37 @@ private:
   bgfx::UniformHandle oitAccumSampler;
   bgfx::UniformHandle oitRevealSampler;
   bgfx::UniformHandle depthInfoUniform;
+  bgfx::UniformHandle coinDepthUniform;
   bgfx::VertexBufferHandle fullscreenVertexBuffer;
   bgfx::IndexBufferHandle fullscreenIndexBuffer;
+  bgfx::UniformHandle textureSampler;
+  bgfx::UniformHandle textureParamsUniform;
+  bgfx::UniformHandle textureBlendUniform;
+  bgfx::UniformHandle ambientLightUniform;
+  bgfx::UniformHandle lightCountUniform;
+  bgfx::UniformHandle lightPositionTypeUniform;
+  bgfx::UniformHandle lightDirectionCutoffUniform;
+  bgfx::UniformHandle lightColorIntensityUniform;
+  bgfx::UniformHandle lightAttenuationDropUniform;
   bgfx::FrameBufferHandle frameBuffer;
   bgfx::FrameBufferHandle oitFrameBuffer;
   bgfx::FrameBufferHandle peelFrameBuffers[4];
   bgfx::TextureHandle readbackTexture;
+  std::vector<ReadbackSlot> readbackSlots;
+  std::vector<uint8_t> lastPublishedReadback;
+  uint64_t lastPublishedSequence;
+  std::vector<DirectTextureResource> directTextures;
   uint64_t cachedRevision;
   int cachedWidth;
   int cachedHeight;
   bool cachedHomogeneousDepth;
+  bgfx::TextureHandle defaultTexture;
   SoWgpuBgfxPlan cachedPlan;
-  bgfx::VertexBufferHandle cachedVertexBuffer;
-  bgfx::IndexBufferHandle cachedIndexBuffer;
+  std::vector<bgfx::TextureHandle> cachedTextures;
+  bgfx::DynamicVertexBufferHandle cachedVertexBuffer;
+  bgfx::DynamicIndexBufferHandle cachedIndexBuffer;
+  uint32_t cachedVertexCapacity;
+  uint32_t cachedIndexCapacity;
 };
 
 #endif

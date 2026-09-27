@@ -57,6 +57,7 @@ int SoRenderManagerRootSensor::debugrootnotifications = -1;
 SoRenderManagerP::SoRenderManagerP(SoRenderManager * publ)
 {
   this->publ = publ;
+  this->frameprepared = FALSE;
   this->getmatrixaction = NULL;
   this->getbboxaction = NULL;
   this->searchaction = NULL;

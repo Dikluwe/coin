@@ -11,9 +11,41 @@ struct SoWgpuCompositionItem {
   size_t drawIndex = 0;
   bool blend = false;
   float eyeDepth = 0.0f;
+  enum TransparencyStrategy {
+    OBJECT,
+    WEIGHTED_OIT,
+    SORTED_LAYERS
+  } transparencyStrategy = OBJECT;
 };
 
-// Private Coin 4 profile: each draw has uniform material alpha. Textured draws
+// Explicit compatibility mapping for the blend modes supported by the
+// experimental renderer. Additive modes deliberately remain unsupported:
+// mapping those to source-over blending would silently change their meaning.
+inline bool
+coin_wgpu_transparency_strategy(int32_t type,
+  SoWgpuCompositionItem::TransparencyStrategy & strategy,
+  const char * & name)
+{
+  switch (type) {
+  case SoGLRenderAction::SCREEN_DOOR:
+    strategy = SoWgpuCompositionItem::OBJECT; name = "SCREEN_DOOR -> object"; return true;
+  case SoGLRenderAction::BLEND:
+    strategy = SoWgpuCompositionItem::OBJECT; name = "BLEND -> object"; return true;
+  case SoGLRenderAction::DELAYED_BLEND:
+    strategy = SoWgpuCompositionItem::OBJECT; name = "DELAYED_BLEND -> object"; return true;
+  case SoGLRenderAction::SORTED_OBJECT_BLEND:
+    strategy = SoWgpuCompositionItem::OBJECT; name = "SORTED_OBJECT_BLEND -> object"; return true;
+  case SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND:
+    strategy = SoWgpuCompositionItem::WEIGHTED_OIT; name = "SORTED_OBJECT_SORTED_TRIANGLE_BLEND -> weighted_oit"; return true;
+  case SoGLRenderAction::SORTED_LAYERS_BLEND:
+    strategy = SoWgpuCompositionItem::SORTED_LAYERS; name = "SORTED_LAYERS_BLEND -> sorted_layers"; return true;
+  default:
+    name = "unsupported";
+    return false;
+  }
+}
+
+// Private Coin 4 profile: per-vertex material alpha is preserved. Textured draws
 // with any non-opaque texel enter the blended pass. Object-level depth sorting
 // is stable, but neither triangle-level sorting nor intersections are promised.
 inline bool
@@ -36,6 +68,7 @@ coin_wgpu_composition_order(const FramePlan & frame,
       return false;
     }
     const float alpha = frame.materials[rs.materialSlot].diffuse[3];
+    bool materialAlpha = alpha < 1.0f;
     const size_t first = draw.geometry.firstIndex;
     const size_t count = draw.geometry.indexCount;
     if (first > frame.indices.size() || count > frame.indices.size() - first) {
@@ -51,13 +84,11 @@ coin_wgpu_composition_order(const FramePlan & frame,
         return false;
       }
       const VertexSnapshot & vertex = frame.vertices[vertexIndex];
-      if (vertex.materialSlot >= frame.materials.size() ||
-          std::abs(frame.materials[vertex.materialSlot].diffuse[3] - alpha) > 1.0e-6f) {
-        std::ostringstream ss;
-        ss << "UNSUPPORTED: Draw " << i << " has mixed per-vertex material alpha";
-        diagnostic = ss.str();
+      if (vertex.materialSlot >= frame.materials.size()) {
+        diagnostic = "Invalid vertex material in composition order";
         return false;
       }
+      materialAlpha = materialAlpha || frame.materials[vertex.materialSlot].diffuse[3] < 1.0f;
       SbVec3f viewPosition;
       modelView.multVecMatrix(SbVec3f(vertex.position[0], vertex.position[1], vertex.position[2]), viewPosition);
       if (!std::isfinite(viewPosition[2])) {
@@ -83,32 +114,41 @@ coin_wgpu_composition_order(const FramePlan & frame,
       }
       textureAlpha = cached != 0;
     }
+    if (rs.hasTexture && rs.textureModel == TextureModel::REPLACE) materialAlpha = false;
+    if (rs.hasTexture && rs.textureModel == TextureModel::DECAL) textureAlpha = false;
+
     SoWgpuCompositionItem item;
     item.drawIndex = i;
-    item.blend = alpha < 1.0f || textureAlpha;
+    item.blend = materialAlpha || textureAlpha;
     item.eyeDepth = count ? static_cast<float>(depthSum / static_cast<double>(count)) : 0.0f;
     if (!std::isfinite(item.eyeDepth)) {
       diagnostic = "Invalid non-finite average eye depth in composition order";
       return false;
     }
     if (item.blend) {
-      if (draw.topology != PrimitiveTopology::TRIANGLE_LIST) {
+      const char * mapping = NULL;
+      if (!coin_wgpu_transparency_strategy(rs.transparencyType,
+                                            item.transparencyStrategy,
+                                            mapping)) {
         std::ostringstream ss;
-        ss << "UNSUPPORTED: Draw " << i << " is a transparent line or point";
-        diagnostic = ss.str();
-        return false;
-      }
-      if (rs.transparencyType != SoGLRenderAction::SORTED_OBJECT_BLEND) {
-        std::ostringstream ss;
-        ss << "UNSUPPORTED: Draw " << i << " requires SoTransparencyType::SORTED_OBJECT_BLEND";
+        ss << "UNSUPPORTED: Draw " << i << " uses Coin transparency mode "
+           << rs.transparencyType
+           << "; supported mappings are SCREEN_DOOR/BLEND/DELAYED_BLEND/SORTED_OBJECT_BLEND -> object, "
+              "SORTED_OBJECT_SORTED_TRIANGLE_BLEND -> weighted_oit, and SORTED_LAYERS_BLEND -> sorted_layers";
         diagnostic = ss.str();
         return false;
       }
     }
     order.push_back(item);
   }
-  std::stable_sort(order.begin(), order.end(), [](const SoWgpuCompositionItem & a,
+  std::stable_sort(order.begin(), order.end(), [&frame](const SoWgpuCompositionItem & a,
                                                    const SoWgpuCompositionItem & b) {
+    const uint32_t layerA = frame.draws[a.drawIndex].renderLayer;
+    const uint32_t layerB = frame.draws[b.drawIndex].renderLayer;
+    if (layerA != layerB) return layerA < layerB;
+    // Overlay layers follow immediate traversal order: their opaque depth
+    // writers and translucent labels can depend on the exact submission order.
+    if (layerA != 0) return false;
     if (a.blend != b.blend) return !a.blend;
     return a.blend && a.eyeDepth > b.eyeDepth;
   });

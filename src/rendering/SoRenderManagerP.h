@@ -84,6 +84,7 @@ public:
   }
 
   SoRenderManager * publ;
+  SbBool frameprepared;
   SoNodeSensor * rootsensor;
   SoNode * scene;
   SoCamera * camera;

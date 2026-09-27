@@ -232,6 +232,45 @@ FramePlan::isValid(std::string * outDiagnostic) const
 
   for (size_t i = 0; i < this->renderStates.size(); ++i) {
     const RenderStateSnapshot & state = this->renderStates[i];
+    if (state.viewportSlot >= this->viewports.size()) {
+      if (outDiagnostic) *outDiagnostic = "RenderState references out-of-bounds viewport slot";
+      return false;
+    }
+    if (state.depthFunction != DepthFunction::NEVER &&
+        state.depthFunction != DepthFunction::ALWAYS &&
+        state.depthFunction != DepthFunction::LESS &&
+        state.depthFunction != DepthFunction::LEQUAL &&
+        state.depthFunction != DepthFunction::EQUAL &&
+        state.depthFunction != DepthFunction::GEQUAL &&
+        state.depthFunction != DepthFunction::GREATER &&
+        state.depthFunction != DepthFunction::NOTEQUAL) {
+      if (outDiagnostic) *outDiagnostic = "Unsupported depth comparison function";
+      return false;
+    }
+    if (!isFiniteF(state.polygonOffsetFactor) || !isFiniteF(state.polygonOffsetUnits) ||
+        (state.polygonOffsetStyles & ~7u) != 0 ||
+        (state.polygonOffsetPrimitiveStyle != 1 &&
+         state.polygonOffsetPrimitiveStyle != 2 && state.polygonOffsetPrimitiveStyle != 4)) {
+      if (outDiagnostic) *outDiagnostic = "Invalid polygon offset";
+      return false;
+    }
+    if (!isFiniteF(state.depthRange[0]) || !isFiniteF(state.depthRange[1]) ||
+        state.depthRange[0] < 0.0f || state.depthRange[1] > 1.0f ||
+        state.depthRange[0] > state.depthRange[1]) {
+      if (outDiagnostic) *outDiagnostic = "Invalid depth range";
+      return false;
+    }
+    const ViewportSnapshot & viewport = this->viewports[state.viewportSlot];
+    if (viewport.width <= 0 || viewport.height <= 0) {
+      if (outDiagnostic) *outDiagnostic = "Viewport has invalid origin or extent";
+      return false;
+    }
+    if (!isFiniteF(state.lineWidth) || state.lineWidth <= 0.0f ||
+        !isFiniteF(state.pointSize) || state.pointSize <= 0.0f ||
+        state.linePatternScaleFactor < 1) {
+      if (outDiagnostic) *outDiagnostic = "Invalid line or point style";
+      return false;
+    }
     if (state.fogMode != FogMode::NONE && state.fogMode != FogMode::HAZE &&
         state.fogMode != FogMode::FOG && state.fogMode != FogMode::SMOKE) {
       if (outDiagnostic) *outDiagnostic = "Unsupported fog mode";
@@ -250,6 +289,20 @@ FramePlan::isValid(std::string * outDiagnostic) const
       }
     }
     if (state.hasTexture) {
+      if (state.textureModel != TextureModel::MODULATE &&
+          state.textureModel != TextureModel::REPLACE &&
+          state.textureModel != TextureModel::DECAL &&
+          state.textureModel != TextureModel::BLEND) {
+        if (outDiagnostic) *outDiagnostic = "RenderState contains unsupported texture model";
+        return false;
+      }
+      for (int c = 0; c < 4; ++c) {
+        if (!isFiniteF(state.textureBlendColor[c])) {
+          if (outDiagnostic) *outDiagnostic = "RenderState contains invalid texture blend color";
+          return false;
+        }
+      }
+
       if (!isMatrixFinite(state.textureMatrix)) {
         if (outDiagnostic) *outDiagnostic = "RenderState contains non-finite texture matrix";
         return false;
@@ -267,6 +320,10 @@ FramePlan::isValid(std::string * outDiagnostic) const
 
   for (size_t i = 0; i < this->draws.size(); ++i) {
     const DrawPacket & draw = this->draws[i];
+    if (draw.clearDepthBefore && draw.renderLayer == 0) {
+      if (outDiagnostic) *outDiagnostic = "Base layer cannot clear depth before a draw";
+      return false;
+    }
     if (draw.renderStateSlot >= this->renderStates.size()) {
       if (outDiagnostic) *outDiagnostic = "Draw references invalid renderStateSlot";
       return false;
@@ -306,15 +363,6 @@ FramePlan::isValid(std::string * outDiagnostic) const
     if (this->lightingStates.empty() || state.lightingSlot >= this->lightingStates.size()) {
       if (outDiagnostic) *outDiagnostic = "RenderState lightingSlot out of range";
       return false;
-    }
-    if (draw.topology == PrimitiveTopology::TRIANGLE_LIST &&
-        state.lightModel == LightModel::PHONG) {
-      const SbMatrix modelView = state.model * state.view;
-      const float determinant = modelView.det4();
-      if (!isFiniteF(determinant) || std::abs(determinant) <= 1.0e-12f) {
-        if (outDiagnostic) *outDiagnostic = "Singular model-view normal matrix";
-        return false;
-      }
     }
     if (this->cameras.empty() || state.cameraSlot >= this->cameras.size()) {
       if (outDiagnostic) *outDiagnostic = "RenderState cameraSlot out of range";

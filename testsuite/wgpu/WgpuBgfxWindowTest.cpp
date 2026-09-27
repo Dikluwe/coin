@@ -5,6 +5,9 @@
 #endif
 
 #include <Inventor/SoDB.h>
+#include <Inventor/SoRenderManager.h>
+#include <Inventor/actions/SoGLRenderAction.h>
+#include <Inventor/rendering/SoWgpuRenderManagerAdapter.h>
 #include <Inventor/actions/SoWgpuRenderAction.h>
 #include <Inventor/rendering/SoWgpuCapabilities.h>
 #include <Inventor/rendering/SoWgpuNativeSurface.h>
@@ -25,10 +28,18 @@
 #include <cstdlib>
 #include <iostream>
 #include <memory>
+#include <string>
 #include <thread>
 #include <vector>
 
 namespace {
+class GLTraversalSpy : public SoGLRenderAction {
+public:
+  GLTraversalSpy() : SoGLRenderAction(SbViewportRegion(96, 96)), count(0) {}
+  int count;
+protected:
+  void beginTraversal(SoNode *) override { ++count; }
+};
 unsigned int channel(unsigned long pixel, unsigned long mask)
 {
   if (mask == 0) return 0;
@@ -52,6 +63,19 @@ bool centerIsRed(Display * display, Window window, int width, int height)
   const unsigned int blue = channel(pixel, image->blue_mask);
   XDestroyImage(image);
   return red > 120 && red > green * 2 && red > blue * 2;
+}
+
+bool drawAdapterFrames(SoWgpuRenderManagerAdapter & adapter, int count)
+{
+  for (int i = 0; i < count; ++i) {
+    if (adapter.render() != SoWgpuRenderAction::SUCCESS) {
+      std::cerr << "BGFX SoRenderManager adapter frame failed: "
+                << adapter.getLastError().getString() << "\n";
+      return false;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(16));
+  }
+  return true;
 }
 
 bool drawFrames(SoWgpuRenderAction & action, SoSeparator * scene, int count)
@@ -87,7 +111,7 @@ int main()
   if (coin_wgpu_experimental_query_capabilities(
         COIN_WGPU_EXPERIMENTAL_XLIB_WINDOW, &caps, sizeof(caps)) != 0 ||
       caps.backend != COIN_WGPU_EXPERIMENTAL_BGFX_EVALUATION) {
-    XCloseDisplay(display);
+    // BGFX may retain driver-side Xlib state until process exit.
     std::cerr << "BGFX Xlib window capability is not advertised\n";
     return 1;
   }
@@ -120,8 +144,11 @@ int main()
   scene->addChild(material);
   scene->addChild(new SoCube);
 
+  const bool adapterMode = std::getenv("COIN_BGFX_TEST_RENDER_MANAGER_ADAPTER") != nullptr;
+  const char * renderer = std::getenv("COIN_BGFX_RENDERER");
+  const bool canReadWindow = renderer == nullptr || std::string(renderer) != "opengl";
   int result = 0;
-  {
+  if (!adapterMode) {
     std::unique_ptr<SoWgpuRenderTarget> target(
       SoWgpuRenderTarget::createWindow(desc, SbVec2i32(96, 96)));
     if (target->getStatus() != SoWgpuRenderTarget::TARGET_READY) {
@@ -141,7 +168,7 @@ int main()
         result = 77;
       } else if (action.getLastStatus() != SoWgpuRenderAction::SUCCESS ||
                  !drawFrames(action, scene, 8) ||
-                 !centerIsRed(display, window, 96, 96)) {
+                 canReadWindow && !centerIsRed(display, window, 96, 96)) {
         std::cerr << "BGFX Xlib window did not present the red cube\n";
         result = 1;
       }
@@ -162,7 +189,7 @@ int main()
         target->resize(SbVec2i32(128, 96));
         action.setViewportRegion(SbViewportRegion(128, 96));
         if (!drawFrames(action, scene, 8) ||
-            !centerIsRed(display, window, 128, 96)) {
+            canReadWindow && !centerIsRed(display, window, 128, 96)) {
           std::cerr << "BGFX Xlib resize failed\n";
           result = 1;
         }
@@ -179,16 +206,45 @@ int main()
         target->resize(SbVec2i32(128, 96));
         action.setViewportRegion(SbViewportRegion(128, 96));
         if (!drawFrames(action, scene, 8) ||
-            !centerIsRed(display, window, 128, 96)) {
+            canReadWindow && !centerIsRed(display, window, 128, 96)) {
           std::cerr << "BGFX Xlib window restoration failed\n";
           result = 1;
         }
       }
     }
   }
+  if (adapterMode && result == 0) {
+    SoRenderManager source;
+    GLTraversalSpy glspy;
+    source.setGLRenderAction(&glspy);
+    source.setSceneGraph(scene);
+    source.setViewportRegion(SbViewportRegion(96, 96));
+    source.setBackgroundColor(SbColor4f(0.1f, 0.1f, 0.1f, 1.0f));
+    SoWgpuRenderManagerAdapter adapter(source, desc, SbVec2i32(96, 96));
+    if (!drawAdapterFrames(adapter, 4)) {
+      std::cerr << "SoRenderManager adapter did not present an exposure\n";
+      result = 1;
+    } else {
+      XResizeWindow(display, window, 128, 96);
+      XSync(display, False);
+      source.setViewportRegion(SbViewportRegion(128, 96));
+      if (!adapter.resize(SbVec2i32(128, 96)) ||
+          source.getViewportRegion().getViewportSizePixels() != SbVec2s(128, 96) ||
+          !drawAdapterFrames(adapter, 4)) {
+        std::cerr << "SoRenderManager adapter resize lifecycle failed\n";
+        result = 1;
+      }
+    }
+    if (glspy.count != 0) {
+      std::cerr << "Adapter invoked auxiliary GL rendering\n";
+      result = 1;
+    }
+    std::cout << "Adapter GL traversals=" << glspy.count << '\n';
+    source.setSceneGraph(nullptr);
+  }
   scene->unref();
   XDestroyWindow(display, window);
-  XCloseDisplay(display);
+  // BGFX may retain driver-side Xlib state until process exit.
   if (result == 0) std::cout << "BGFX Xlib window presentation passed\n";
   return result;
 }

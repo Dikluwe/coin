@@ -8,6 +8,7 @@ set(COIN_WGPU_SOURCES
 	SoWgpuBgfxCore.cpp
 	SoWgpuImageCore.cpp
 	SoWgpuIndexedGeometryCore.cpp
+	SoWgpuRenderManagerAdapter.cpp
 	SoWgpuRecordingBackend.cpp
 	SoWgpuCapabilities.cpp
 	SoWgpuSceneManager.cpp
@@ -46,6 +47,7 @@ elseif(COIN_WGPU_BACKEND STREQUAL "BGFX")
 					--bin2c coin_bgfx_${_stage}_${_renderer}
 					-i ${COIN_BGFX_SHADER_INCLUDE_DIR}
 				DEPENDS ${_coin_bgfx_shader_dir}/${_stage}_base_color.sc
+					${_coin_bgfx_shader_dir}/coin_depth.sh
 					${_coin_bgfx_shader_dir}/varying.def.sc
 				VERBATIM)
 			list(APPEND COIN_WGPU_SOURCES ${_shader_output})
@@ -68,6 +70,7 @@ elseif(COIN_WGPU_BACKEND STREQUAL "BGFX")
 					--bin2c coin_bgfx_fs_${_shader}_${_renderer}
 					-i ${COIN_BGFX_SHADER_INCLUDE_DIR}
 				DEPENDS ${_coin_bgfx_shader_dir}/fs_${_shader}.sc
+					${_coin_bgfx_shader_dir}/coin_depth.sh
 					${_coin_bgfx_shader_dir}/varying.def.sc
 				VERBATIM)
 			list(APPEND COIN_WGPU_SOURCES ${_shader_output})
@@ -97,12 +100,20 @@ target_include_directories(CoinWgpuExperimental PRIVATE
 	$<$<STREQUAL:${COIN_WGPU_BACKEND},BGFX>:${_coin_bgfx_generated_dir}>
 )
 
-target_link_libraries(CoinWgpuExperimental PRIVATE
-	Coin
-	${COIN_WGPU_LINK_LIBRARIES}
-)
+target_link_libraries(CoinWgpuExperimental PRIVATE Coin)
+if(COIN_WGPU_BACKEND STREQUAL "BGFX")
+	target_link_libraries(CoinWgpuExperimental PUBLIC ${COIN_WGPU_LINK_LIBRARIES})
+else()
+	target_link_libraries(CoinWgpuExperimental PRIVATE ${COIN_WGPU_LINK_LIBRARIES})
+endif()
+
 
 if(COIN_INSTALL_WGPU_EXPERIMENTAL)
+	set(COIN_WGPU_CONFIG_FIND_DEPENDENCIES "")
+	if(COIN_WGPU_BACKEND STREQUAL "BGFX")
+		set(COIN_WGPU_CONFIG_FIND_DEPENDENCIES
+			"find_dependency(bgfx CONFIG)")
+	endif()
 	include(CMakePackageConfigHelpers)
 	set(_coin_wgpu_package_dir "${CMAKE_INSTALL_LIBDIR}/cmake/CoinWgpuExperimental")
 	configure_package_config_file(

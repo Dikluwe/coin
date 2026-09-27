@@ -129,6 +129,12 @@ endforeach()
 
 include(CheckCoreGLHeaders.cmake)
 
+add_executable(RenderManagerFramePreparationTest RenderManagerFramePreparationTest.cpp)
+target_link_libraries(RenderManagerFramePreparationTest Coin ${COIN_TARGET_LINK_LIBRARIES})
+target_include_directories(RenderManagerFramePreparationTest PRIVATE
+  ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include)
+add_test(NAME RenderManagerFramePreparationTest COMMAND RenderManagerFramePreparationTest)
+
 # Many warnings are generated from test macros on macOS with Xcode.
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG(-Wtautological-compare DISABLE_WARNING_TAUTOLOGCOMPARE)
@@ -252,8 +258,29 @@ if(COIN_BUILD_WGPU)
 		${COIN_TARGET_INCLUDE_DIRECTORIES}
 	)
 	add_test(NAME WgpuBgfxCoreTest COMMAND WgpuBgfxCoreTest)
+	add_executable(WgpuDepthContractTest wgpu/WgpuDepthContractTest.cpp
+		${PROJECT_SOURCE_DIR}/src/rendering/wgpu/SoWgpuBgfxCore.cpp
+		${PROJECT_SOURCE_DIR}/src/rendering/wgpu/SoWgpuFramePlanBuilder.cpp)
+	if(NOT COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE")
+		target_sources(WgpuDepthContractTest PRIVATE ${PROJECT_SOURCE_DIR}/src/rendering/wgpu/SoWgpuFfiFrame.cpp)
+	endif()
+	set_target_properties(WgpuDepthContractTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(WgpuDepthContractTest CoinWgpuExperimental Coin)
+	target_include_directories(WgpuDepthContractTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include
+		${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src)
+	add_test(NAME WgpuDepthContractTest COMMAND WgpuDepthContractTest)
 	set_tests_properties(WgpuBgfxCoreTest PROPERTIES TIMEOUT 30)
 	if(COIN_WGPU_BACKEND STREQUAL "BGFX")
+		add_test(NAME WgpuDepthContractVulkanTest COMMAND WgpuDepthContractTest --gpu)
+		add_test(NAME WgpuDepthContractOpenGLTest COMMAND WgpuDepthContractTest --gpu)
+		set_tests_properties(WgpuDepthContractVulkanTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77
+			ENVIRONMENT "COIN_BGFX_RENDERER=vulkan;COIN_BGFX_DISABLE_DRAW_GROUPING=1")
+		set_tests_properties(WgpuDepthContractOpenGLTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77
+			ENVIRONMENT "COIN_BGFX_RENDERER=opengl;COIN_BGFX_DISABLE_DRAW_GROUPING=1")
+		add_test(NAME WgpuProductOpenGLTest COMMAND WgpuProductTest)
+		set_tests_properties(WgpuProductOpenGLTest PROPERTIES TIMEOUT 30
+			ENVIRONMENT "COIN_BGFX_RENDERER=opengl")
 		add_executable(WgpuBgfxOffscreenTest wgpu/WgpuBgfxOffscreenTest.cpp)
 		set_target_properties(WgpuBgfxOffscreenTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 		target_link_libraries(WgpuBgfxOffscreenTest CoinWgpuExperimental Coin)
@@ -319,6 +346,36 @@ if(COIN_BUILD_WGPU)
 			add_test(NAME WgpuBgfxWindowOpenGLTest COMMAND WgpuBgfxWindowTest)
 			set_tests_properties(WgpuBgfxWindowOpenGLTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77
 				ENVIRONMENT "COIN_BGFX_RENDERER=opengl")
+			add_test(NAME WgpuBgfxRenderManagerAdapterTest COMMAND WgpuBgfxWindowTest)
+			set_tests_properties(WgpuBgfxRenderManagerAdapterTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77
+				ENVIRONMENT "COIN_BGFX_TEST_RENDER_MANAGER_ADAPTER=1")
+			add_test(NAME WgpuBgfxRenderManagerAdapterOpenGLTest COMMAND WgpuBgfxWindowTest)
+			set_tests_properties(WgpuBgfxRenderManagerAdapterOpenGLTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77
+				ENVIRONMENT "COIN_BGFX_TEST_RENDER_MANAGER_ADAPTER=1;COIN_BGFX_RENDERER=opengl")
+			add_executable(WgpuBgfxMultiWindowTest wgpu/WgpuBgfxMultiWindowTest.cpp)
+			set_target_properties(WgpuBgfxMultiWindowTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+			target_link_libraries(WgpuBgfxMultiWindowTest CoinWgpuExperimental Coin ${X11_LIBRARIES})
+			get_target_property(_bgfx_window_includes WgpuBgfxWindowTest INCLUDE_DIRECTORIES)
+			target_include_directories(WgpuBgfxMultiWindowTest PRIVATE ${_bgfx_window_includes})
+			add_test(NAME WgpuBgfxMultiWindowTest COMMAND WgpuBgfxMultiWindowTest)
+			set_tests_properties(WgpuBgfxMultiWindowTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77)
+			add_test(NAME WgpuBgfxMultiWindowOpenGLTest COMMAND WgpuBgfxMultiWindowTest)
+			set_tests_properties(WgpuBgfxMultiWindowOpenGLTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77
+				ENVIRONMENT "COIN_BGFX_RENDERER=opengl")
+			add_test(NAME WgpuBgfxMultiWindowOffscreenFirstTest COMMAND WgpuBgfxMultiWindowTest)
+			set_tests_properties(WgpuBgfxMultiWindowOffscreenFirstTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77
+				ENVIRONMENT "COIN_BGFX_TEST_OFFSCREEN_FIRST=1")
+			add_test(NAME WgpuBgfxMultiWindowOffscreenFirstOpenGLTest COMMAND WgpuBgfxMultiWindowTest)
+			set_tests_properties(WgpuBgfxMultiWindowOffscreenFirstOpenGLTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77
+				ENVIRONMENT "COIN_BGFX_TEST_OFFSCREEN_FIRST=1;COIN_BGFX_RENDERER=opengl")
+			foreach(_composition weighted_oit sorted_layers)
+				foreach(_renderer vulkan opengl)
+					set(_multi_composition_test "WgpuBgfxMultiWindow_${_composition}_${_renderer}Test")
+					add_test(NAME ${_multi_composition_test} COMMAND WgpuBgfxMultiWindowTest)
+					set_tests_properties(${_multi_composition_test} PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77
+						ENVIRONMENT "COIN_BGFX_TRANSPARENCY=${_composition};COIN_BGFX_RENDERER=${_renderer}")
+				endforeach()
+			endforeach()
 		endif()
 	endif()
 

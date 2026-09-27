@@ -51,6 +51,17 @@ public:
                                                SoCallbackAction * action,
                                                const SoNode * node);
 
+  static SoCallbackAction::Response depthBufferPreCB(void * userdata,
+                                                     SoCallbackAction * action,
+                                                     const SoNode * node);
+
+  static SoCallbackAction::Response annotationPreCB(void * userdata,
+                                                    SoCallbackAction * action,
+                                                    const SoNode * node);
+  static SoCallbackAction::Response annotationPostCB(void * userdata,
+                                                     SoCallbackAction * action,
+                                                     const SoNode * node);
+
   static SoCallbackAction::Response sceneTexturePreCB(void * userdata,
                                                       SoCallbackAction * action,
                                                       const SoNode * node);
@@ -68,6 +79,7 @@ public:
   SoWgpuReadbackTicket * asyncTicket; // Only valid during applyAsync().
   SbViewportRegion viewport;
   SbColor4f backgroundColor;
+  SoWgpuRenderAction::TransparencyType transparencyType;
   SoWgpuRenderAction::Status lastStatus;
   SoWgpuDiagnosticDomain lastDiagnosticDomain;
   SbString lastError;
@@ -81,14 +93,22 @@ public:
   // Shared reservation for staged RGBA8 or direct color+depth attachments.
   std::shared_ptr<size_t> sceneTextureStagedBytes;
 
-  // Private Rust RTT tokens owned by the top-level apply, shared with children.
+  // Private GPU RTT tokens owned by the top-level apply, shared with children.
   std::shared_ptr<std::vector<uint64_t> > sceneTextureDirectTokens;
   struct DirectPass {
     FramePlan plan;
     SbVec2i32 size;
+    uint64_t producerKey = 0;
   };
   // Per-apply topological order; identifiers are one-based indices until submit.
   std::shared_ptr<std::vector<DirectPass> > directPasses;
+  struct DelayedAnnotation {
+    SoPath * path;
+    int priority;
+  };
+  std::vector<DelayedAnnotation> delayedAnnotations;
+  std::vector<DelayedAnnotation> delayedOverlays;
+  bool replayingAnnotations = false;
   bool planOnly = false;
   bool hasLastValidPlan;
   mutable bool recordingLogValid;

@@ -38,17 +38,21 @@
 static_assert(sizeof(SoWgpuNativeSurfaceDescriptor) >= 32, "SoWgpuNativeSurfaceDescriptor size check");
 
 static bool
-prepareCpuDepthBuffer()
+prepareCpuDepthBuffer(const SoWgpuRenderTargetP * target)
 {
 #if defined(HAVE_WGPU_BGFX)
   // BGFX uses GPU depth and does not publish CPU depth in this profile.
-  // Retain the old behavior only as a same-binary performance control.
+  // A target can still explicitly use the CPU reference backend in the same
+  // binary, so decide from the prepared backend rather than the build alone.
   static const bool diagnosticFill = [] {
     const char * flag = std::getenv("COIN_BGFX_DIAGNOSTIC_CPU_DEPTH_FILL");
     return flag != NULL && std::strcmp(flag, "1") == 0;
   }();
-  return diagnosticFill;
+  if (diagnosticFill) return true;
+  return target != NULL && target->backend.get() != NULL &&
+         dynamic_cast<SoWgpuBgfxBackend *>(target->backend.get()) == NULL;
 #else
+  (void)target;
   return true;
 #endif
 }
@@ -224,7 +228,7 @@ SoWgpuRenderTargetP::resize(const SbVec2i32 & newSize)
     size_t pixelCount = static_cast<size_t>(w * h);
     try {
       this->colorBuffer.assign(pixelCount * 4, 0);
-      if (prepareCpuDepthBuffer()) {
+      if (prepareCpuDepthBuffer(this)) {
         this->depthBuffer.assign(pixelCount, 1.0f);
       } else {
         this->depthBuffer.clear();
@@ -338,14 +342,14 @@ SoWgpuRenderTargetP::validateProfile(const FramePlan & frame, const SbVec2i32 & 
       }
     }
 
-    // Check viewport coverage: Wave 1A supports only single viewport covering entire target
+    // Origins may be negative (e.g. a NaviCube larger than its window).
+    // Backends retain the original projection and clip rasterization to the target.
     if (rs.viewportSlot < frame.viewports.size()) {
       const auto & vp = frame.viewports[rs.viewportSlot];
-      if (vp.x != 0 || vp.y != 0 || vp.width != targetSize[0] || vp.height != targetSize[1]) {
+      if (vp.width <= 0 || vp.height <= 0) {
         std::ostringstream ss;
-        ss << "UNSUPPORTED: Draw " << i << " viewport (" << vp.x << "," << vp.y << " " << vp.width << "x" << vp.height
-           << ") does not cover entire target (" << targetSize[0] << "x" << targetSize[1] << ").";
-        return FrameExecutionResult{BackendStatus::UNSUPPORTED, ss.str()};
+        ss << "Invalid viewport for draw " << i << ": (" << vp.x << "," << vp.y << " " << vp.width << "x" << vp.height << ")";
+        return FrameExecutionResult{BackendStatus::BACKEND_ERROR, ss.str()};
       }
     }
 
@@ -479,7 +483,7 @@ SoWgpuRenderTargetP::executeFrameInternal(const FramePlan & frame,
     this->status = SoWgpuRenderTarget::TARGET_READY;
   }
 
-  if (prepareCpuDepthBuffer() && this->kind == KIND_OFFSCREEN &&
+  if (prepareCpuDepthBuffer(this) && this->kind == KIND_OFFSCREEN &&
       !this->directTextureOutput) {
     size_t pixelCount = static_cast<size_t>(this->size[0] * this->size[1]);
     if (this->depthBuffer.size() != pixelCount) {

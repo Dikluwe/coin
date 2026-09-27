@@ -35,6 +35,7 @@
 
 #include <Inventor/CoinWgpuExport.h>
 #include <Inventor/actions/SoCallbackAction.h>
+#include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/SbColor4f.h>
 #include <Inventor/SbString.h>
 #include <Inventor/tools/SbPimplPtr.h>
@@ -71,8 +72,38 @@ public:
     SURFACE_LOST
   };
 
+  enum TransparencyType {
+    SCREEN_DOOR = SoGLRenderAction::SCREEN_DOOR,
+    ADD = SoGLRenderAction::ADD,
+    DELAYED_ADD = SoGLRenderAction::DELAYED_ADD,
+    SORTED_OBJECT_ADD = SoGLRenderAction::SORTED_OBJECT_ADD,
+    BLEND = SoGLRenderAction::BLEND,
+    DELAYED_BLEND = SoGLRenderAction::DELAYED_BLEND,
+    SORTED_OBJECT_BLEND = SoGLRenderAction::SORTED_OBJECT_BLEND,
+    SORTED_OBJECT_SORTED_TRIANGLE_ADD =
+      SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_ADD,
+    SORTED_OBJECT_SORTED_TRIANGLE_BLEND =
+      SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND,
+    NONE = SoGLRenderAction::NONE,
+    SORTED_LAYERS_BLEND = SoGLRenderAction::SORTED_LAYERS_BLEND
+  };
+
   static void initClass(void);
   static SbBool isGpuBackendAvailable(void);
+
+  /**
+   * Defer the current callback path to the shared depth-tested annotation pass.
+   * Returns FALSE during replay (or outside apply); callers then traverse normally.
+   * Lower priorities render first, preserving traversal order for ties.
+   */
+  SbBool deferAnnotation(int priority = 0);
+  /** Normal delayed overlay pass, before depth-tested 3D annotations.
+   * A supplied path is copied; nullptr uses the current callback path.
+   */
+  SbBool deferOverlayPath(SoPath * path = nullptr, int priority = 0);
+  /** Viewer foreground pass: preserve depth state, do not clear depth. */
+  void beginForegroundPass();
+  void endForegroundPass();
 
   SoWgpuRenderAction(void);
   SoWgpuRenderAction(const SbViewportRegion & viewport);
@@ -86,6 +117,9 @@ public:
 
   void setBackgroundColor(const SbColor4f & color);
   const SbColor4f & getBackgroundColor(void) const;
+
+  void setTransparencyType(TransparencyType type);
+  TransparencyType getTransparencyType(void) const;
 
   void setFastPathEnabled(SbBool enable);
   SbBool isFastPathEnabled(void) const;

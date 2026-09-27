@@ -1,0 +1,164 @@
+# Real viewer-private overlays: axis cross and rubber-band during a Qt drag.
+import json
+import os
+import traceback
+from pathlib import Path
+import FreeCAD as App
+import FreeCADGui as Gui
+import Part
+from PySide6 import QtCore, QtGui, QtWidgets
+
+App.ParamGet('User parameter:BaseApp/Preferences/NotificationArea').SetBool(
+    'NotificationAreaEnabled', False)
+
+artifacts = Path(os.environ['COIN_TEST_ARTIFACTS'])
+artifacts.mkdir(parents=True, exist_ok=True)
+native = os.environ.get('FREECAD_COIN_WGPU') == '1'
+report = {'test': 'freecad-overlays', 'native': native, 'status': 'PASS'}
+images = {}
+
+def finish(error=None):
+    if error:
+        report.update(status='FAIL', reason=str(error))
+        os.write(2, traceback.format_exc().encode())
+    (artifacts / 'result.json').write_text(json.dumps(report, indent=2))
+    os.write(1, ('RESULT ' + json.dumps(report) + '\n').encode())
+    os._exit(0 if report['status'] == 'PASS' else 1)
+
+def step(function, delay=600):
+    def guarded():
+        try:
+            function()
+        except Exception as error:
+            finish(error)
+    QtCore.QTimer.singleShot(delay, guarded)
+
+def viewer_widget():
+    global viewer_keepalive, viewport_keepalive
+    # Use Qt-owned wrappers, not the short-lived wrapper returned by graphicsView().
+    for widget in QtWidgets.QApplication.allWidgets():
+        if widget.isVisible() and 'View3DInventorViewer' in widget.metaObject().className():
+            viewer_keepalive = widget
+            viewport_keepalive = widget.viewport()
+            return widget
+    raise RuntimeError('no visible viewer')
+
+def capture(name):
+    widget = viewer_widget()
+    if native and (not widget.property('wgpuFrameCount') or
+                   widget.property('wgpuOpenGLViewport') or
+                   widget.property('wgpuFallbackReason')):
+        raise RuntimeError('BGFX frame missing or fallback occurred')
+    viewport = widget.viewport()
+    p = viewport.mapToGlobal(QtCore.QPoint())
+    image = viewport.screen().grabWindow(0, p.x(), p.y(), viewport.width(), viewport.height()).toImage()
+    if image.isNull() or not image.save(str(artifacts / (name + '.png'))):
+        raise RuntimeError('capture failed')
+    images[name] = image
+    return image
+
+def changes(a, b, rect):
+    if a.size() != b.size():
+        raise RuntimeError('capture size changed')
+    return sum(a.pixel(x, y) != b.pixel(x, y)
+               for y in range(rect.top(), rect.bottom(), 2)
+               for x in range(rect.left(), rect.right(), 2))
+
+def send(kind, pos, button, buttons):
+    viewport = viewer_widget().viewport()
+    global_pos = viewport.mapToGlobal(pos)
+    event = QtGui.QMouseEvent(kind, QtCore.QPointF(pos), QtCore.QPointF(global_pos),
+                             button, buttons, QtCore.Qt.NoModifier)
+    QtWidgets.QApplication.sendEvent(viewport, event)
+
+def start():
+    global doc, view
+    main = Gui.getMainWindow()
+    main.showNormal()
+    available = main.screen().availableGeometry()
+    main.resize(min(1100, available.width()-60), min(800, available.height()-60))
+    main.move(available.topLeft() + QtCore.QPoint(20, 20))
+    for dock in main.findChildren(QtWidgets.QDockWidget):
+        dock.hide()
+    Gui.activateWorkbench('PartWorkbench')
+    doc = App.newDocument('OverlayParity')
+    obj = doc.addObject('Part::Feature', 'Box')
+    obj.Shape = Part.makeBox(10, 10, 10)
+    doc.recompute()
+    view = Gui.activeDocument().activeView()
+    view.getViewer().setEnabledNaviCube(False)
+    # Isolate overlays from the still-unported gradient background.
+    view.getViewer().setGradientBackground('NONE')
+    view.getViewer().setBackgroundColor(0.15, 0.15, 0.15)
+    view.setNavigationType('Gui::CADNavigationStyle')
+    view.viewAxonometric()
+    view.fitAll()
+    step(axes_baseline, 1200)
+
+def axes_baseline():
+    capture('axes-baseline')
+    step(axes_on)
+
+def axes_on():
+    image = capture('axes-on')
+    dpr = viewer_widget().devicePixelRatioF()
+    corner = QtCore.QRect(image.width() - int(220*dpr), image.height() - int(220*dpr),
+                         int(219*dpr), int(219*dpr))
+    report['axis_pixels'] = sum(
+        max(c.red(), c.green(), c.blue()) - min(c.red(), c.green(), c.blue()) > 80
+        for y in range(corner.top(), corner.bottom())
+        for x in range(corner.left(), corner.right())
+        for c in (image.pixelColor(x, y),))
+    if report['axis_pixels'] < 30:
+        raise RuntimeError('axis cross did not appear')
+    view.viewFront()
+    step(axes_rotated)
+
+def axes_rotated():
+    image = capture('axes-rotated')
+    dpr = viewer_widget().devicePixelRatioF()
+    corner = QtCore.QRect(image.width() - int(220*dpr), image.height() - int(220*dpr),
+                         int(219*dpr), int(219*dpr))
+    if changes(images['axes-on'], image, corner) < 20:
+        raise RuntimeError('axis cross did not follow camera')
+    step(begin_drag)
+
+def begin_drag():
+    capture('rubber-off')
+    start = QtCore.QPoint(50, 80)
+    send(QtCore.QEvent.MouseMove, start, QtCore.Qt.NoButton, QtCore.Qt.NoButton)
+    send(QtCore.QEvent.MouseButtonPress, start, QtCore.Qt.LeftButton, QtCore.Qt.LeftButton)
+    step(move_drag, 100)
+
+def move_drag():
+    send(QtCore.QEvent.MouseMove, QtCore.QPoint(140, 160), QtCore.Qt.NoButton, QtCore.Qt.LeftButton)
+    send(QtCore.QEvent.MouseMove, QtCore.QPoint(250, 240), QtCore.Qt.NoButton, QtCore.Qt.LeftButton)
+    step(during_drag)
+
+def during_drag():
+    image = capture('rubber-on')
+    dpr = viewer_widget().devicePixelRatioF()
+    interior = QtCore.QRect(int(70*dpr), int(100*dpr), int(160*dpr), int(120*dpr))
+    report['rubber_pixels'] = changes(images['rubber-off'], image, interior)
+    if report['rubber_pixels'] < 1000:
+        raise RuntimeError('rubber-band fill did not appear')
+    send(QtCore.QEvent.MouseButtonRelease, QtCore.QPoint(250, 240),
+         QtCore.Qt.LeftButton, QtCore.Qt.NoButton)
+    step(after_drag)
+
+def after_drag():
+    image = capture('rubber-released')
+    dpr = viewer_widget().devicePixelRatioF()
+    interior = QtCore.QRect(int(70*dpr), int(100*dpr), int(160*dpr), int(120*dpr))
+    if changes(images['rubber-off'], image, interior) > 20:
+        raise RuntimeError('rubber-band remained after release')
+    report['idle_start'] = int(viewer_widget().property('wgpuFrameCount') or 0)
+    step(idle, 1200)
+
+def idle():
+    report['idle_end'] = int(viewer_widget().property('wgpuFrameCount') or 0)
+    if native and report['idle_end'] != report['idle_start']:
+        raise RuntimeError('overlays caused continuous idle redraw')
+    finish()
+
+step(start, 1200)

@@ -23,6 +23,12 @@
 
 namespace {
 
+SoWgpuRenderTarget * makeColorTarget(const SbVec2i32 & size) {
+  SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(size);
+  if (target) target->setDepthReadbackEnabled(FALSE);
+  return target;
+}
+
 bool check(bool condition, const char * message,
            const SoWgpuRenderAction & action) {
   if (!condition) {
@@ -99,8 +105,7 @@ int main() {
   SoDB::init();
   SoWgpuRenderAction::initClass();
 
-  SoWgpuRenderTarget * target =
-    SoWgpuRenderTarget::createOffscreen(SbVec2i32(16, 16));
+  SoWgpuRenderTarget * target = makeColorTarget(SbVec2i32(16, 16));
   if (!target || target->getStatus() != SoWgpuRenderTarget::TARGET_READY) {
     std::cerr << "WgpuSceneTextureBudgetTest: offscreen target unavailable\n";
     delete target;

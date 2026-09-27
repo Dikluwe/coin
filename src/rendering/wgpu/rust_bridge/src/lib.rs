@@ -13,7 +13,7 @@ use std::sync::{Arc, Mutex, OnceLock};
 
 mod composition;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 17;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 19;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 pub type CoinWgpuSurfaceId = u64;
@@ -168,6 +168,7 @@ pub struct CoinWgpuUniforms {
     pub ambient_light: [f32; 4],
     pub light_meta: [f32; 4],
     pub lights: [CoinWgpuLight; 8],
+    pub texture_blend_color: [f32; 4],
 }
 
 #[repr(C)]
@@ -189,6 +190,8 @@ pub struct CoinWgpuRenderState {
     pub texture_slot: u32,
     pub sampler_slot: u32,
     pub texture_model: u32,
+    pub texture_blend_color: [f32; 4],
+    pub viewport: [i32; 4],
     pub light_count: u32,
     pub ambient_light: [f32; 4],
     pub lights: [CoinWgpuLight; 8],
@@ -196,7 +199,25 @@ pub struct CoinWgpuRenderState {
     pub fog_color: [f32; 3],
     pub fog_start: f32,
     pub fog_end: f32,
+    pub depth_test: u32,
+    pub depth_write: u32,
+    pub depth_function: u32,
+    pub depth_range: [f32; 2],
+    pub polygon_offset_enabled: u32,
+    pub polygon_offset_factor: f32,
+    pub polygon_offset_units: f32,
+    pub polygon_offset_styles: u32,
+    pub polygon_offset_primitive_style: u32,
 }
+
+const _: () = {
+    assert!(std::mem::size_of::<CoinWgpuRenderState>() == 956);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, polygon_offset_enabled) == 936);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, depth_test) == 916);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, depth_write) == 920);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, depth_function) == 924);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, depth_range) == 928);
+};
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
@@ -403,6 +424,10 @@ struct PipelineKey {
     cull_mode: Option<wgpu::Face>,
     front_face: wgpu::FrontFace,
     blend: bool,
+    depth_write: bool,
+    depth_compare: wgpu::CompareFunction,
+    depth_bias_constant: i32,
+    depth_bias_slope_bits: u32,
 }
 
 #[derive(Hash, PartialEq, Eq, Clone, Debug)]
@@ -562,9 +587,18 @@ fn same_camera_independent_state(a: &CoinWgpuRenderState, b: &CoinWgpuRenderStat
         && a.front_face == b.front_face && a.light_model == b.light_model
         && a.texture_matrix == b.texture_matrix && a.has_texture == b.has_texture
         && a.texture_slot == b.texture_slot && a.sampler_slot == b.sampler_slot
-        && a.texture_model == b.texture_model && a.light_count == b.light_count
+        && a.texture_model == b.texture_model
+        && a.texture_blend_color == b.texture_blend_color && a.viewport == b.viewport
+        && a.light_count == b.light_count
         && a.ambient_light == b.ambient_light && a.fog_mode == b.fog_mode
         && a.fog_color == b.fog_color && a.fog_start == b.fog_start
+        && a.depth_test == b.depth_test && a.depth_write == b.depth_write
+        && a.depth_function == b.depth_function && a.depth_range == b.depth_range
+        && a.polygon_offset_enabled == b.polygon_offset_enabled
+        && a.polygon_offset_factor == b.polygon_offset_factor
+        && a.polygon_offset_units == b.polygon_offset_units
+        && a.polygon_offset_styles == b.polygon_offset_styles
+        && a.polygon_offset_primitive_style == b.polygon_offset_primitive_style
         && a.lights.iter().zip(b.lights.iter()).all(|(x, y)| {
             x.position_type == y.position_type && x.direction_cutoff == y.direction_cutoff
                 && x.color_intensity == y.color_intensity
@@ -1494,6 +1528,53 @@ fn configure_surface_record(
     Ok(())
 }
 
+fn polygon_depth_bias(st: &CoinWgpuRenderState, topology: u32) -> Result<wgpu::DepthBiasState, String> {
+    if !st.polygon_offset_factor.is_finite() || !st.polygon_offset_units.is_finite()
+        || st.polygon_offset_styles & !7 != 0
+        || !matches!(st.polygon_offset_primitive_style, 1 | 2 | 4) {
+        return Err("Invalid polygon offset".to_string());
+    }
+    let style = match topology {
+        1 => 2, 2 => 4, _ => st.polygon_offset_primitive_style,
+    };
+    Ok(if st.polygon_offset_enabled != 0 && st.polygon_offset_styles & style != 0 {
+        wgpu::DepthBiasState {
+            constant: st.polygon_offset_units.round() as i32,
+            slope_scale: st.polygon_offset_factor,
+            clamp: 0.0,
+        }
+    } else { wgpu::DepthBiasState::default() })
+}
+
+#[cfg(test)]
+mod polygon_depth_tests {
+    use super::*;
+
+    #[test]
+    fn masks_signs_and_disable_preserve_pipeline_bias() {
+        // FFI state contains only scalar/array numeric fields; zero is valid.
+        let mut st: CoinWgpuRenderState = unsafe { std::mem::zeroed() };
+        st.polygon_offset_enabled = 1;
+        for primitive in [1, 2, 4] {
+            st.polygon_offset_primitive_style = primitive;
+            for mask in [1, 2, 4, 7] {
+                st.polygon_offset_styles = mask;
+                for sign in [-1.0, 1.0] {
+                    st.polygon_offset_factor = sign * 2.0;
+                    st.polygon_offset_units = sign * 3.6;
+                    let bias = polygon_depth_bias(&st, 0).unwrap();
+                    assert_eq!(bias.slope_scale, if mask & primitive != 0 { sign * 2.0 } else { 0.0 });
+                    assert_eq!(bias.constant, if mask & primitive != 0 { (sign * 4.0) as i32 } else { 0 });
+                }
+            }
+        }
+        st.polygon_offset_enabled = 0;
+        assert_eq!(polygon_depth_bias(&st, 0).unwrap().constant, 0);
+        st.polygon_offset_factor = f32::NAN;
+        assert!(polygon_depth_bias(&st, 0).is_err());
+    }
+}
+
 fn get_or_create_pipeline<'a>(
     ctx: &'a DeviceState,
     topology: u32,
@@ -1502,6 +1583,9 @@ fn get_or_create_pipeline<'a>(
     cull_face: Option<wgpu::Face>,
     front_face: wgpu::FrontFace,
     blend: bool,
+    depth_write: bool,
+    depth_compare: wgpu::CompareFunction,
+    depth_bias: wgpu::DepthBiasState,
 ) -> Result<wgpu::RenderPipeline, String> {
     let mut map = ctx.pipelines.lock().map_err(|e| e.to_string())?;
 
@@ -1520,6 +1604,10 @@ fn get_or_create_pipeline<'a>(
         cull_mode: effective_cull,
         front_face,
         blend,
+        depth_write,
+        depth_compare,
+        depth_bias_constant: depth_bias.constant,
+        depth_bias_slope_bits: depth_bias.slope_scale.to_bits(),
     };
     if let Some(p) = map.get(&key) {
         ctx.pipeline_hits.fetch_add(1, Ordering::Relaxed);
@@ -1604,10 +1692,10 @@ fn get_or_create_pipeline<'a>(
             },
             depth_stencil: Some(wgpu::DepthStencilState {
                 format: depth_format,
-                depth_write_enabled: !blend,
-                depth_compare: wgpu::CompareFunction::LessEqual,
+                depth_write_enabled: depth_write,
+                depth_compare,
                 stencil: wgpu::StencilState::default(),
-                bias: wgpu::DepthBiasState::default(),
+                bias: depth_bias,
             }),
             multisample: wgpu::MultisampleState::default(),
             multiview: None,
@@ -1623,6 +1711,8 @@ fn get_or_create_pipeline<'a>(
 fn encode_frame(
     ctx: &DeviceState,
     clear_color: [f32; 4],
+    target_width: u32,
+    target_height: u32,
     vertices_slice: &[CoinWgpuVertex],
     indices_slice: &[u32],
     draws_slice: &[CoinWgpuDraw],
@@ -2188,6 +2278,22 @@ fn encode_frame(
                 _ => wgpu::FrontFace::Ccw,
             };
 
+            let depth_compare = if st.depth_test == 0 {
+                wgpu::CompareFunction::Always
+            } else {
+                match st.depth_function {
+                    0 => wgpu::CompareFunction::Never,
+                    1 => wgpu::CompareFunction::Always,
+                    3 => wgpu::CompareFunction::LessEqual,
+                    4 => wgpu::CompareFunction::Equal,
+                    5 => wgpu::CompareFunction::GreaterEqual,
+                    6 => wgpu::CompareFunction::Greater,
+                    7 => wgpu::CompareFunction::NotEqual,
+                    _ => wgpu::CompareFunction::Less,
+                }
+            };
+            let depth_bias = polygon_depth_bias(st, draw.topology).map_err(|e|
+                (CoinWgpuStatus::InvalidArgument, format!("Draw {}: {}", item.draw_index, e)))?;
             let pipeline = match get_or_create_pipeline(
                 ctx,
                 draw.topology,
@@ -2196,6 +2302,9 @@ fn encode_frame(
                 cull_face,
                 front_face,
                 item.blend,
+                st.depth_write != 0,
+                depth_compare,
+                depth_bias,
             ) {
                 Ok(p) => p,
                 Err(e) => return Err((CoinWgpuStatus::BackendError, e)),
@@ -2279,6 +2388,7 @@ fn encode_frame(
                 ],
                 ambient_light: st.ambient_light,
                 light_meta: [st.light_count as f32, 0.0, 0.0, 0.0],
+                texture_blend_color: st.texture_blend_color,
                 lights: st.lights,
                 fog_color_mode: [
                     st.fog_color[0],
@@ -2348,6 +2458,28 @@ fn encode_frame(
                 &transient_binding
             };
             pass.set_bind_group(0, &binding.bind_group, &[]);
+            let viewport = if st.viewport[2] == 0 && st.viewport[3] == 0 {
+                [0, 0, target_width as i32, target_height as i32]
+            } else { st.viewport };
+            let right = i64::from(viewport[0]) + i64::from(viewport[2]);
+            let bottom = i64::from(viewport[1]) + i64::from(viewport[3]);
+            if viewport[0] < 0 || viewport[1] < 0 || viewport[2] <= 0 || viewport[3] <= 0
+                || right > i64::from(target_width) || bottom > i64::from(target_height) {
+                return Err((CoinWgpuStatus::InvalidArgument,
+                    format!("Draw {} has invalid viewport {:?}", item.draw_index, viewport)));
+            }
+            if !st.depth_range[0].is_finite() || !st.depth_range[1].is_finite()
+                || st.depth_range[0] < 0.0 || st.depth_range[1] > 1.0
+                || st.depth_range[0] > st.depth_range[1] {
+                return Err((CoinWgpuStatus::InvalidArgument,
+                    format!("Draw {} has invalid depth range {:?}", item.draw_index, st.depth_range)));
+            }
+            pass.set_viewport(viewport[0] as f32, viewport[1] as f32,
+                viewport[2] as f32, viewport[3] as f32,
+                st.depth_range[0], st.depth_range[1]);
+            pass.set_scissor_rect(viewport[0] as u32, viewport[1] as u32,
+                viewport[2] as u32, viewport[3] as u32);
+
 
             if draw.stable_node_id != 0 {
                 let key = (draw.stable_node_id, draw.draw_ordinal);
@@ -3198,6 +3330,8 @@ pub extern "C" fn coin_wgpu_surface_submit(
         let cmd_buffer = match encode_frame(
             dev,
             f.clear_color,
+            f.width,
+            f.height,
             vertices_slice,
             indices_slice,
             draws_slice,
@@ -3841,6 +3975,8 @@ fn coin_wgpu_submit_internal(
         let cmd_buffer = match encode_frame(
             ctx,
             f.clear_color,
+            f.width,
+            f.height,
             vertices_slice,
             indices_slice,
             draws_slice,

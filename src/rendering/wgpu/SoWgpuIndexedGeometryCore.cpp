@@ -117,19 +117,14 @@ positionsAreFinite(const DirectGeometryView & view)
 
 bool
 materialIndicesAreValid(const DirectGeometryView & view,
-                        int32_t materialCount,
                         const char * invalidNegative,
-                        const char * outOfBounds,
                         SoWgpuIndexedGeometryResult & failure)
 {
+  // Coin clamps material lookups after state overrides; preserve indices here.
   for (size_t i = 0; i < view.materialIndex.size; ++i) {
     const int32_t value = view.materialIndex[i];
     if (value < -1) {
       failure = finish(FastPathResult::INVALID_SCENE, invalidNegative);
-      return false;
-    }
-    if (materialCount > 0 && value >= materialCount) {
-      failure = finish(FastPathResult::INVALID_SCENE, outOfBounds);
       return false;
     }
   }
@@ -234,9 +229,8 @@ SoWgpuIndexedGeometryCore::buildFaces(
     }
   }
   if (!materialIndicesAreValid(
-        view, options.materialCount,
+        view,
         "IndexedFaceSet contains invalid negative material index < -1",
-        "IndexedFaceSet materialIndex references out-of-bounds material",
         failure)) return failure;
 
   SoNormalCache generatedNormals(NULL);
@@ -440,9 +434,8 @@ SoWgpuIndexedGeometryCore::buildLines(
         polylines, failure)) return failure;
   if (polylines.empty()) return finish(FastPathResult::SUCCESS_PRUNE);
   if (!materialIndicesAreValid(
-        view, options.materialCount,
+        view,
         "IndexedLineSet contains invalid negative material index < -1",
-        "IndexedLineSet materialIndex references out-of-bounds material",
         failure)) return failure;
 
   SoWgpuIndexedGeometryResult output;

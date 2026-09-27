@@ -6,8 +6,10 @@
 #include <Inventor/nodes/SoMaterialBinding.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/SoDB.h>
+#include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/actions/SoWgpuRenderAction.h>
 #include <Inventor/nodes/SoSeparator.h>
+#include <Inventor/nodes/SoAnnotation.h>
 #include <Inventor/nodes/SoTransform.h>
 #include <Inventor/nodes/SoTranslation.h>
 #include <Inventor/nodes/SoMaterial.h>
@@ -21,6 +23,7 @@
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
+#include <Inventor/nodes/SoDepthBuffer.h>
 #include <Inventor/SoPath.h>
 #include <Inventor/lists/SoPathList.h>
 
@@ -164,9 +167,15 @@ int testPrimitives() {
   action.apply(root);
   TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "apply should succeed");
   std::string log = action.getRecordingLog().getString();
-  TEST_ASSERT(log.find("top=TRIANGLES") != std::string::npos, "Should record TRIANGLES");
-  TEST_ASSERT(log.find("top=LINES") != std::string::npos, "Should record LINES");
-  TEST_ASSERT(log.find("top=POINTS") != std::string::npos, "Should record POINTS");
+  const size_t firstTriangle = log.find("top=TRIANGLES");
+  const size_t secondTriangle = firstTriangle == std::string::npos
+    ? std::string::npos : log.find("top=TRIANGLES", firstTriangle + 1);
+  const size_t thirdTriangle = secondTriangle == std::string::npos
+    ? std::string::npos : log.find("top=TRIANGLES", secondTriangle + 1);
+  TEST_ASSERT(firstTriangle != std::string::npos &&
+              secondTriangle != std::string::npos &&
+              thirdTriangle != std::string::npos,
+              "Triangles, lines and points should produce three portable triangle draws");
 
   root->unref();
   return 0;
@@ -532,6 +541,7 @@ int testProfileMultiLightAndPerVertexTransparency() {
   rs.cameraSlot = 0;
   rs.materialSlot = 0; // opaque
   rs.lightingSlot = 0; // single light
+  rs.transparencyType = SoGLRenderAction::SORTED_OBJECT_BLEND;
   plan.renderStates.push_back(rs);
 
   VertexSnapshot v0{}, v1{}, v2{};
@@ -568,10 +578,9 @@ int testProfileMultiLightAndPerVertexTransparency() {
   plan.lightingStates[1].lights.resize(2);
   plan.renderStates[0].lightingSlot = 0; // restore
 
-  // Case 3: Per-vertex transparency must be rejected
+  // Case 3: heterogeneous per-vertex alpha is a supported blended draw.
   plan.vertices[1].materialSlot = 1; // transparentMat
-  TEST_ASSERT(!SoWgpuRenderTargetP::validateProfile(plan, diag), "Per-vertex transparency must be rejected");
-  TEST_ASSERT(diag.find("mixed") != std::string::npos, "Diagnostic must mention mixed alpha");
+  TEST_ASSERT(SoWgpuRenderTargetP::validateProfile(plan, diag), "Per-vertex transparency should be supported");
   plan.vertices[1].materialSlot = 0; // restore
 
   return 0;
@@ -593,7 +602,7 @@ int testBaseApplyNotHidden() {
 }
 
 int testWindowTargetRecordingBackend() {
-#if !defined(HAVE_WGPU_RUST_BRIDGE)
+#if !defined(HAVE_WGPU_RUST_BRIDGE) && !defined(HAVE_WGPU_BGFX)
   SoWgpuNativeSurfaceDescriptor desc{};
   desc.abiVersion = COIN_WGPU_NATIVE_SURFACE_ABI_VERSION;
   desc.structSize = sizeof(desc);
@@ -706,6 +715,68 @@ int testCameraOverlayAndFallback() {
   return 0;
 }
 
+int testAnnotationLayers() {
+  SoSeparator * root = new SoSeparator;
+  root->ref();
+  root->addChild(new SoCube);
+  SoAnnotation * first = new SoAnnotation;
+  first->addChild(new SoCube);
+  root->addChild(first);
+  root->addChild(new SoCube);
+  SoAnnotation * second = new SoAnnotation;
+  second->addChild(new SoCube);
+  root->addChild(second);
+
+  SoWgpuRenderAction action(SbViewportRegion(64, 64));
+  action.apply(root);
+  const std::string log(action.getRecordingLog().getString());
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+              "SoAnnotation capture should succeed");
+  TEST_ASSERT(log.find("layer=0 clearDepthBefore=0") != std::string::npos,
+              "regular geometry should remain in the base layer");
+  TEST_ASSERT(log.find("layer=1 clearDepthBefore=1") != std::string::npos,
+              "first annotation should start layer one with a depth barrier");
+  TEST_ASSERT(log.find("layer=2 clearDepthBefore=1") != std::string::npos,
+              "second annotation should start a distinct layer with a depth barrier");
+  root->unref();
+  return 0;
+}
+
+int testDepthStateCapture() {
+  SoSeparator * root = new SoSeparator;
+  root->ref();
+
+  SoSeparator * cubeBranch = new SoSeparator;
+  SoDepthBuffer * cubeDepth = new SoDepthBuffer;
+  cubeDepth->test = TRUE;
+  cubeDepth->write = TRUE;
+  cubeDepth->function = SoDepthBuffer::LEQUAL;
+  cubeBranch->addChild(cubeDepth);
+  cubeBranch->addChild(new SoCube);
+  root->addChild(cubeBranch);
+
+  SoSeparator * labelBranch = new SoSeparator;
+  SoDepthBuffer * labelDepth = new SoDepthBuffer;
+  labelDepth->test = TRUE;
+  labelDepth->write = FALSE;
+  labelDepth->function = SoDepthBuffer::LEQUAL;
+  labelBranch->addChild(labelDepth);
+  labelBranch->addChild(new SoCube);
+  root->addChild(labelBranch);
+
+  SoWgpuRenderAction action(SbViewportRegion(64, 64));
+  action.apply(root);
+  const std::string log(action.getRecordingLog().getString());
+  TEST_ASSERT(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+              "SoDepthBuffer capture should succeed");
+  TEST_ASSERT(log.find("depthTest=1 depthWrite=1 depthFunction=LEQUAL") != std::string::npos,
+              "cube branch should capture depth write plus LEQUAL");
+  TEST_ASSERT(log.find("depthTest=1 depthWrite=0 depthFunction=LEQUAL") != std::string::npos,
+              "label branch should capture test-only LEQUAL");
+  root->unref();
+  return 0;
+}
+
 int main() {
 
   SoDB::init();
@@ -713,6 +784,8 @@ int main() {
   std::cout << "Running WgpuRenderActionTest..." << std::endl;
 
   int failed = 0;
+  if (testDepthStateCapture()) { std::cerr << "testDepthStateCapture failed" << std::endl; failed++; }
+  if (testAnnotationLayers()) { std::cerr << "testAnnotationLayers failed" << std::endl; failed++; }
   if (testCameraOverlayAndFallback()) { std::cerr << "testCameraOverlayAndFallback failed" << std::endl; failed++; }
       if (testWindowTargetRecordingBackend()) { std::cerr << "testWindowTargetRecordingBackend failed" << std::endl; failed++; }
   if (testProfileMultiLightAndPerVertexTransparency()) { std::cerr << "testProfileMultiLightAndPerVertexTransparency failed" << std::endl; failed++; }

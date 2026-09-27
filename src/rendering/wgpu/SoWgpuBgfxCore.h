@@ -7,11 +7,30 @@
 #include <string>
 #include <vector>
 
+enum class SoWgpuBgfxTransparencyMode {
+  AUTO,
+  OBJECT,
+  WEIGHTED_OIT,
+  SORTED_LAYERS
+};
+
+enum class SoWgpuBgfxTransparencyStrategy {
+  OBJECT,
+  WEIGHTED_OIT,
+  SORTED_LAYERS
+};
 // Backend-neutral lowering for the deliberately narrow BGFX evaluation profile.
 // No BGFX headers or GPU state leak into Core or Open Inventor traversal.
 struct SoWgpuBgfxVertex {
   float position[3];
   float color[4];
+  float texcoord[2];
+  float viewPosition[3];
+  float viewNormal[3];
+  float ambient[4];
+  float specular[4];
+  float emission[4];
+  float material[2]; // normalized shininess, per-fragment PHONG enabled
 };
 
 struct SoWgpuBgfxDraw {
@@ -22,8 +41,41 @@ struct SoWgpuBgfxDraw {
   uint32_t indexCount;
   CullMode cullMode;
   FrontFace frontFace;
+  bool depthTest = true;
+  bool depthWrite = true;
+  DepthFunction depthFunction = DepthFunction::LESS;
+  float depthRange[2] = {0.0f, 1.0f};
+  float polygonOffsetFactor = 0.0f; // Effective, style-filtered bias.
+  float polygonOffsetUnits = 0.0f;
   bool blend = false;
   float alpha = 1.0f;
+  SoWgpuBgfxTransparencyStrategy transparencyStrategy = SoWgpuBgfxTransparencyStrategy::OBJECT;
+  int32_t viewport[4] = {0, 0, 0, 0}; // Coin bottom-left x, y, width, height
+  uint32_t renderLayer = 0;
+  bool clearDepthBefore = false;
+  bool hasTexture = false;
+  uint32_t textureSlot = 0;
+  TextureModel textureModel = TextureModel::MODULATE;
+  float textureBlendColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  TextureWrap wrapS = TextureWrap::REPEAT;
+  TextureWrap wrapT = TextureWrap::REPEAT;
+  TextureFilter filter = TextureFilter::LINEAR;
+  float ambientLight[4] = {1.0f, 1.0f, 1.0f, 0.2f};
+  float lightCount[4] = {};
+  float lightPositionType[COIN_WGPU_MAX_LIGHTS][4] = {};
+  float lightDirectionCutoff[COIN_WGPU_MAX_LIGHTS][4] = {};
+  float lightColorIntensity[COIN_WGPU_MAX_LIGHTS][4] = {};
+  float lightAttenuationDrop[COIN_WGPU_MAX_LIGHTS][4] = {};
+  // Stable signature of every material referenced by this draw. Materials
+  // remain vertex data; this key is only used to cluster opaque submissions.
+  uint64_t materialSignature = 0;
+};
+
+struct SoWgpuBgfxTexture {
+  uint32_t width = 0;
+  uint32_t height = 0;
+  uint64_t gpuToken = 0;
+  std::vector<uint8_t> pixelsRgba;
 };
 
 struct SoWgpuBgfxPlan {
@@ -31,18 +83,44 @@ struct SoWgpuBgfxPlan {
   std::vector<uint32_t> indices;
   std::vector<SoWgpuBgfxDraw> draws;
   float clearColor[4];
+  std::vector<SoWgpuBgfxTexture> textures;
+};
+
+struct SoWgpuBgfxVertexRange {
+  uint32_t first = 0;
+  uint32_t count = 0;
 };
 
 class SoWgpuBgfxCore {
 public:
+  // Clip the scissor only; preserve the original viewport for projection and camera reuse.
+  // False means the viewport does not intersect the target.
+  static bool clipViewport(const int32_t viewport[4], int width, int height,
+                           int32_t clipped[4]);
   static bool lower(const FramePlan & frame, int width, int height,
                     bool homogeneousDepth, SoWgpuBgfxPlan & output,
                     std::string & diagnostic);
+  static bool selectTransparencyStrategy(
+    const std::vector<SoWgpuBgfxDraw> & draws,
+    SoWgpuBgfxTransparencyMode configuredMode,
+    bool weightedOitSupported,
+    bool sortedLayersSupported,
+    SoWgpuBgfxTransparencyStrategy & selected,
+    std::string & diagnostic);
+  // Reorders only opaque draws by pipeline/material/texture/uniform state.
+  // Transparent draws are appended in their original relative order.
+  static void groupOpaqueDraws(const std::vector<SoWgpuBgfxDraw> & draws,
+                               std::vector<SoWgpuBgfxDraw> & output);
+  // Detects a material-only lowered-plan change and returns the minimal
+  // contiguous vertex ranges that must be uploaded.
+  static bool materialPatchRanges(const SoWgpuBgfxPlan & base,
+                                  const SoWgpuBgfxPlan & updated,
+                                  std::vector<SoWgpuBgfxVertexRange> & ranges);
   // Requires a validated CAMERA_PATCH relationship with the cached base.
   // Recomputes only draw transforms; geometry, material and clear remain owned
   // by the base plan until the caller commits a successful frame.
-  static bool patchCamera(const FramePlan & frame, bool homogeneousDepth,
-                          const SoWgpuBgfxPlan & base,
+  static bool patchCamera(const FramePlan & frame, int width, int height,
+                          bool homogeneousDepth, const SoWgpuBgfxPlan & base,
                           std::vector<SoWgpuBgfxDraw> & output,
                           std::string & diagnostic);
 };

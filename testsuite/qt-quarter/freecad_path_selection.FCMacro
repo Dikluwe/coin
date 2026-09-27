@@ -1,0 +1,100 @@
+from pathlib import Path
+import os
+exec((Path(os.environ['COIN_TEST_MACRO_DIR']) / 'freecad_overlays.FCMacro').read_text())
+from pivy import coin
+
+report['test'] = 'freecad-path-selection'
+original_capture = capture
+
+def capture(name):
+    if not Gui.getMainWindow().isActiveWindow():
+        report.update(status='SKIP', reason='FreeCAD not active; desktop capture obstructed')
+        (artifacts / 'result.json').write_text(json.dumps(report, indent=2))
+        os.write(1, ('RESULT ' + json.dumps(report) + '\n').encode())
+        os._exit(77)
+    return original_capture(name)
+
+App.ParamGet('User parameter:BaseApp/Preferences/View').SetBool('EnablePreselection', False)
+
+def annotations():
+    search = coin.SoSearchAction()
+    search.setType(coin.SoType.fromName('SoFCPathAnnotation'), True)
+    search.setInterest(coin.SoSearchAction.ALL)
+    search.setSearchingAll(True)
+    search.apply(view.getSceneGraph())
+    return search.getPaths().getLength()
+
+def region(image):
+    # The centered target occupies one third of the enclosing occluder.
+    # This band contains its entire projected selection, but excludes desktop
+    # notifications at the screen corners and the unrelated axis overlay.
+    return QtCore.QRect(image.width()//4, 0, image.width()//2, image.height())
+
+def axes_baseline():
+    global original_size
+    Gui.getMainWindow().raise_()
+    Gui.getMainWindow().activateWindow()
+    doc.Box.ViewObject.OnTopWhenSelected = 1
+    original_size = Gui.getMainWindow().size()
+    Gui.Selection.clearSelection()
+    blocker = doc.addObject('Part::Feature', 'Occluder')
+    blocker.Shape = Part.makeBox(30, 30, 30, App.Vector(-10,-10,-10))
+    blocker.ViewObject.ShapeColor = (.3,.3,.3)
+    blocker.ViewObject.LineColor = (.3,.3,.3)
+    doc.recompute()
+    view.fitAll()
+    step(baseline, 1200)
+
+def baseline():
+    capture('selection-off')
+    if annotations():
+        raise RuntimeError('unexpected initial path annotation')
+    Gui.Selection.addSelection(doc.Box, 'Face1')
+    step(face1)
+
+def face1():
+    image = capture('selection-face1')
+    report['face1_paths'] = annotations()
+    report['face1_changed'] = changes(images['selection-off'], image, region(image))
+    if report['face1_paths'] != 1 or report['face1_changed'] < 100:
+        raise RuntimeError('on-top Face1 path selection missing')
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(doc.Box, 'Face2')
+    step(face2)
+
+def face2():
+    image = capture('selection-face2')
+    if annotations() != 1 or changes(images['selection-face1'], image, region(image)) < 100:
+        raise RuntimeError('on-top face switch did not update')
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(doc.Box)
+    step(whole)
+
+def whole():
+    image = capture('selection-whole')
+    if annotations() != 1 or changes(images['selection-face2'], image, region(image)) < 100:
+        raise RuntimeError('whole-object on-top selection missing')
+    main = Gui.getMainWindow()
+    main.resize(original_size.width()-120, original_size.height()-70)
+    step(resized)
+
+def resized():
+    image = capture('selection-resized')
+    if image.size() == images['selection-whole'].size() or annotations() != 1:
+        raise RuntimeError('selected path lost on resize')
+    Gui.getMainWindow().resize(original_size)
+    Gui.Selection.clearSelection()
+    step(removed)
+
+def removed():
+    image = capture('selection-removed')
+    if annotations() or changes(images['selection-off'], image, region(image)) > 30:
+        raise RuntimeError('selection removal left stale pixels/path')
+    report['idle_start'] = int(viewer_widget().property('wgpuFrameCount') or 0)
+    step(idle, 1200)
+
+def idle():
+    report['idle_end'] = int(viewer_widget().property('wgpuFrameCount') or 0)
+    if native and report['idle_start'] != report['idle_end']:
+        raise RuntimeError('selection caused continuous redraw')
+    finish()

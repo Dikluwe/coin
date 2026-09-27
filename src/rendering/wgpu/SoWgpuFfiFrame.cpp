@@ -9,7 +9,15 @@
 #include <Inventor/SbMatrix.h>
 
 #include <cmath>
+#include <cstddef>
 #include <cstring>
+
+static_assert(sizeof(CoinWgpuRenderState) == 956, "CoinWgpuRenderState ABI size changed");
+static_assert(offsetof(CoinWgpuRenderState, polygon_offset_enabled) == 936, "Polygon offset ABI tail changed");
+static_assert(offsetof(CoinWgpuRenderState, depth_test) == 916, "depth_test ABI offset changed");
+static_assert(offsetof(CoinWgpuRenderState, depth_write) == 920, "depth_write ABI offset changed");
+static_assert(offsetof(CoinWgpuRenderState, depth_function) == 924, "depth_function ABI offset changed");
+static_assert(offsetof(CoinWgpuRenderState, depth_range) == 928, "depth_range ABI offset changed");
 
 SoWgpuFfiFrame::SoWgpuFfiFrame()
   : packedRevision(0), reused(false),
@@ -46,7 +54,7 @@ SoWgpuFfiFrame::prepare(const FramePlan & frame, uint32_t width, uint32_t height
       frame.revision != 0 && frame.revision != reuse.baseRevision &&
       reuse.baseRevision != 0 && reuse.baseRevision == this->packedRevision &&
       this->states.size() == frame.renderStates.size()) {
-    if (!this->packStates(frame, outDiagnostic)) return false;
+    if (!this->packStates(frame, width, height, outDiagnostic)) return false;
     this->bindView(frame, width, height);
     this->view.camera_base_revision = reuse.baseRevision;
     this->packedRevision = frame.revision;
@@ -93,7 +101,7 @@ SoWgpuFfiFrame::prepare(const FramePlan & frame, uint32_t width, uint32_t height
     dst.transparency = src.transparency;
   }
 
-  if (!this->packStates(frame, outDiagnostic)) return false;
+  if (!this->packStates(frame, width, height, outDiagnostic)) return false;
 
   this->texturePixels.resize(frame.textures.size());
   this->textures.assign(frame.textures.size(), CoinWgpuTexture{});
@@ -126,7 +134,8 @@ SoWgpuFfiFrame::prepare(const FramePlan & frame, uint32_t width, uint32_t height
 }
 
 bool
-SoWgpuFfiFrame::packStates(const FramePlan & frame, std::string & outDiagnostic)
+SoWgpuFfiFrame::packStates(const FramePlan & frame, uint32_t targetWidth, uint32_t targetHeight,
+                           std::string & outDiagnostic)
 {
   this->states.assign(frame.renderStates.size(), CoinWgpuRenderState{});
   for (size_t i = 0; i < frame.renderStates.size(); ++i) {
@@ -179,10 +188,33 @@ SoWgpuFfiFrame::packStates(const FramePlan & frame, std::string & outDiagnostic)
     dst.texture_slot = src.textureImageSlot;
     dst.sampler_slot = src.samplerSlot;
     dst.texture_model = static_cast<uint32_t>(src.textureModel);
+    std::memcpy(dst.texture_blend_color, src.textureBlendColor,
+                sizeof(src.textureBlendColor));
+    if (src.viewportSlot < frame.viewports.size()) {
+      const ViewportSnapshot & viewport = frame.viewports[src.viewportSlot];
+      dst.viewport[0] = viewport.x;
+      dst.viewport[1] = static_cast<int32_t>(targetHeight) - viewport.y - viewport.height;
+      dst.viewport[2] = viewport.width;
+      dst.viewport[3] = viewport.height;
+    } else {
+      dst.viewport[0] = dst.viewport[1] = 0;
+      dst.viewport[2] = static_cast<int32_t>(targetWidth);
+      dst.viewport[3] = static_cast<int32_t>(targetHeight);
+    }
     dst.fog_mode = static_cast<uint32_t>(src.fogMode);
     std::memcpy(dst.fog_color, src.fogColor, sizeof(src.fogColor));
     dst.fog_start = src.fogStart;
     dst.fog_end = src.fogEnd;
+    dst.depth_test = src.depthTest ? 1u : 0u;
+    dst.depth_write = src.depthWrite ? 1u : 0u;
+    dst.depth_function = static_cast<uint32_t>(src.depthFunction);
+    dst.depth_range[0] = src.depthRange[0];
+    dst.depth_range[1] = src.depthRange[1];
+    dst.polygon_offset_enabled = src.polygonOffsetEnabled ? 1u : 0u;
+    dst.polygon_offset_factor = src.polygonOffsetFactor;
+    dst.polygon_offset_units = src.polygonOffsetUnits;
+    dst.polygon_offset_styles = src.polygonOffsetStyles;
+    dst.polygon_offset_primitive_style = src.polygonOffsetPrimitiveStyle;
     dst.ambient_light[3] = 1.0f;
 
     if (src.lightingSlot < frame.lightingStates.size()) {

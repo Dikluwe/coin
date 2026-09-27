@@ -8,17 +8,22 @@
 #include <Inventor/SoOffscreenRenderer.h>
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/actions/SoWgpuRenderAction.h>
+#include <Inventor/nodes/SoMaterialBinding.h>
 #include <Inventor/nodes/SoCoordinate3.h>
+#include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoTransparencyType.h>
+#include <Inventor/nodes/SoTexture2.h>
+#include <Inventor/nodes/SoTextureCoordinate2.h>
 #include <Inventor/rendering/SoWgpuCapabilities.h>
 #include <Inventor/rendering/SoWgpuRenderTarget.h>
 #include <Inventor/rendering/SoWgpuSceneManager.h>
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdint>
@@ -53,6 +58,139 @@ void addQuad(SoSeparator * scene, const Rgb & color, float alpha,
   object->addChild(face);
   scene->addChild(object);
 }
+
+SoSeparator * makeTexturedAlphaScene(float lightIntensity)
+{
+  SoSeparator * scene = new SoSeparator;
+  scene->ref();
+  SoOrthographicCamera * camera = new SoOrthographicCamera;
+  camera->position.setValue(0.0f, 0.0f, 5.0f);
+  camera->height = 2.0f;
+  scene->addChild(camera);
+  SoDirectionalLight * light = new SoDirectionalLight;
+  light->direction.setValue(0.0f, 0.0f, -1.0f);
+  light->intensity = lightIntensity;
+  scene->addChild(light);
+  SoMaterial * material = new SoMaterial;
+  material->ambientColor.setValue(0.0f, 0.0f, 0.0f);
+  material->diffuseColor.setValue(1.0f, 1.0f, 1.0f);
+  material->specularColor.setValue(0.0f, 0.0f, 0.0f);
+  scene->addChild(material);
+  SoTransparencyType * transparency = new SoTransparencyType;
+  transparency->value = SoTransparencyType::SORTED_OBJECT_BLEND;
+  scene->addChild(transparency);
+  SoTexture2 * texture = new SoTexture2;
+  texture->model = SoTexture2::MODULATE;
+  const unsigned char rgba[] = {0, 255, 0, 128, 0, 255, 0, 128,
+                                0, 255, 0, 128, 0, 255, 0, 128};
+  texture->image.setValue(SbVec2s(2, 2), 4, rgba);
+  scene->addChild(texture);
+  SoTextureCoordinate2 * texcoords = new SoTextureCoordinate2;
+  texcoords->point.set1Value(0, SbVec2f(0.0f, 0.0f));
+  texcoords->point.set1Value(1, SbVec2f(1.0f, 0.0f));
+  texcoords->point.set1Value(2, SbVec2f(1.0f, 1.0f));
+  texcoords->point.set1Value(3, SbVec2f(0.0f, 1.0f));
+  scene->addChild(texcoords);
+  SoCoordinate3 * coordinates = new SoCoordinate3;
+  coordinates->point.set1Value(0, SbVec3f(-0.8f, -0.8f, 0.0f));
+  coordinates->point.set1Value(1, SbVec3f( 0.8f, -0.8f, 0.0f));
+  coordinates->point.set1Value(2, SbVec3f( 0.8f,  0.8f, 0.0f));
+  coordinates->point.set1Value(3, SbVec3f(-0.8f,  0.8f, 0.0f));
+  scene->addChild(coordinates);
+  SoIndexedFaceSet * face = new SoIndexedFaceSet;
+  const int32_t indices[] = {0, 1, 2, 3, -1};
+  face->coordIndex.setValues(0, 5, indices);
+  face->textureCoordIndex.setValues(0, 5, indices);
+  scene->addChild(face);
+  return scene;
+}
+SoSeparator * makeIntersectingTriangleObjectScene()
+{
+  SoSeparator * scene = new SoSeparator;
+  scene->ref();
+  SoOrthographicCamera * camera = new SoOrthographicCamera;
+  camera->position.setValue(0.0f, 0.0f, 5.0f);
+  camera->height = 2.0f;
+  scene->addChild(camera);
+  SoLightModel * lightModel = new SoLightModel;
+  lightModel->model = SoLightModel::BASE_COLOR;
+  scene->addChild(lightModel);
+  SoTransparencyType * transparency = new SoTransparencyType;
+  transparency->value = SoTransparencyType::SORTED_OBJECT_SORTED_TRIANGLE_BLEND;
+  scene->addChild(transparency);
+  SoMaterial * materials = new SoMaterial;
+  materials->diffuseColor.set1Value(0, SbColor(1.0f, 0.0f, 0.0f));
+  materials->diffuseColor.set1Value(1, SbColor(0.0f, 1.0f, 0.0f));
+  materials->transparency.set1Value(0, 0.5f);
+  materials->transparency.set1Value(1, 0.5f);
+  scene->addChild(materials);
+  SoMaterialBinding * binding = new SoMaterialBinding;
+  binding->value = SoMaterialBinding::PER_FACE;
+  scene->addChild(binding);
+  SoCoordinate3 * coordinates = new SoCoordinate3;
+  coordinates->point.set1Value(0, SbVec3f(-0.9f, -0.8f,  0.45f));
+  coordinates->point.set1Value(1, SbVec3f( 0.9f, -0.8f, -0.45f));
+  coordinates->point.set1Value(2, SbVec3f( 0.0f,  0.9f,  0.0f));
+  coordinates->point.set1Value(3, SbVec3f(-0.9f,  0.8f, -0.45f));
+  coordinates->point.set1Value(4, SbVec3f( 0.9f,  0.8f,  0.45f));
+  coordinates->point.set1Value(5, SbVec3f( 0.0f, -0.9f,  0.0f));
+  scene->addChild(coordinates);
+  SoIndexedFaceSet * faces = new SoIndexedFaceSet;
+  const int32_t indices[] = {0, 1, 2, -1, 3, 4, 5, -1};
+  faces->coordIndex.setValues(0, 8, indices);
+  scene->addChild(faces);
+  return scene;
+}
+
+SoSeparator * makeAlphaStackScene(float alpha, int layerCount)
+{
+  SoSeparator * scene = new SoSeparator;
+  scene->ref();
+  SoOrthographicCamera * camera = new SoOrthographicCamera;
+  camera->position.setValue(0.0f, 0.0f, 5.0f);
+  camera->height = 2.0f;
+  scene->addChild(camera);
+  SoLightModel * lightModel = new SoLightModel;
+  lightModel->model = SoLightModel::BASE_COLOR;
+  scene->addChild(lightModel);
+  SoTransparencyType * transparency = new SoTransparencyType;
+  transparency->value = SoTransparencyType::SORTED_OBJECT_SORTED_TRIANGLE_BLEND;
+  scene->addChild(transparency);
+  for (int layer = 0; layer < layerCount; ++layer) {
+    const float z = layerCount == 1 ? 0.0f :
+      -0.5f + float(layer) / float(layerCount - 1);
+    addQuad(scene, {{255, 255, 255}}, alpha, z, z);
+  }
+  return scene;
+}
+SoSeparator * makeWeightedStressScene(bool reverse)
+{
+  SoSeparator * scene = new SoSeparator;
+  scene->ref();
+  SoOrthographicCamera * camera = new SoOrthographicCamera;
+  camera->position.setValue(0.0f, 0.0f, 5.0f);
+  camera->height = 2.0f;
+  camera->nearDistance = 0.1f;
+  camera->farDistance = 10.0f;
+  scene->addChild(camera);
+  SoDirectionalLight * light = new SoDirectionalLight;
+  light->direction.setValue(0.0f, 0.0f, -1.0f);
+  light->intensity = 0.75f;
+  scene->addChild(light);
+  SoTransparencyType * transparency = new SoTransparencyType;
+  transparency->value = SoTransparencyType::SORTED_OBJECT_SORTED_TRIANGLE_BLEND;
+  scene->addChild(transparency);
+  const Rgb colors[] = {{{240, 40, 20}}, {{20, 220, 50}}, {{30, 60, 240}}};
+  const float alphas[] = {0.001f, 0.08f, 0.35f, 0.999f};
+  for (int step = 0; step < 32; ++step) {
+    const int layer = reverse ? 31 - step : step;
+    const float z = -0.75f + float(layer) * (1.5f / 31.0f);
+    const float skew = (layer & 1) ? 0.12f : -0.12f;
+    addQuad(scene, colors[layer % 3], alphas[layer % 4], z - skew, z + skew);
+  }
+  return scene;
+}
+
 
 SoSeparator * makeScene(int scenario)
 {
@@ -282,6 +420,116 @@ int main(int argc, char ** argv)
         std::cerr << "Cannot write comparison PPM files\n";
         return 1;
       }
+    }
+  }
+  const bool expectAutoWeighted = mode == nullptr || std::string(mode) == "auto";
+  if (expectWeighted || expectAutoWeighted) {
+    std::vector<uint8_t> forwardPixels, reversePixels, ignoredGl;
+    bool ignoredGlAvailable = false;
+    SoSeparator * forward = makeWeightedStressScene(false);
+    int status = renderScene(forward, forwardPixels, ignoredGl, ignoredGlAvailable);
+    forward->unref();
+    if (status != 0) return status;
+    SoSeparator * reverse = makeWeightedStressScene(true);
+    status = renderScene(reverse, reversePixels, ignoredGl, ignoredGlAvailable);
+    reverse->unref();
+    if (status != 0) return status;
+    int maximumDifference = 0;
+    size_t interiorArtifactCount = 0;
+    for (int y = 24; y < side - 24; ++y) {
+      for (int x = 24; x < side - 24; ++x) {
+        const Rgb a = pixel(forwardPixels, x, y, 4, false);
+        const Rgb b = pixel(reversePixels, x, y, 4, false);
+        for (int channel = 0; channel < 3; ++channel)
+          maximumDifference = std::max(maximumDifference,
+            std::abs(a[channel] - b[channel]));
+        const int sum = a[0] + a[1] + a[2];
+        if (sum < 40 || (a[0] > 250 && a[1] > 250 && a[2] > 250))
+          ++interiorArtifactCount;
+      }
+    }
+    int maximumOutsideChannel = 0;
+    for (int y = 0; y < side; ++y) {
+      for (int x = 0; x < side; ++x) {
+        if (x >= 10 && x < side - 10 && y >= 10 && y < side - 10) continue;
+        const Rgb outside = pixel(forwardPixels, x, y, 4, false);
+        for (int channel = 0; channel < 3; ++channel)
+          maximumOutsideChannel = std::max(maximumOutsideChannel, outside[channel]);
+      }
+    }
+    if (maximumDifference > 3 || interiorArtifactCount != 0 ||
+        maximumOutsideChannel > 2) {
+      std::cerr << "Weighted OIT stress failed: order delta=" << maximumDifference
+                << " interior artifacts=" << interiorArtifactCount
+                << " outside max=" << maximumOutsideChannel << "\n";
+      return 1;
+    }
+    std::cout << "weighted stress: 32 crossing lit layers, max order delta="
+              << maximumDifference << ", outside max="
+              << maximumOutsideChannel << '\n';
+  }
+  if (expectWeighted) {
+    std::vector<uint8_t> bgfxPixels, comparisonPixels, glPixels;
+    bool glAvailable = false;
+    SoSeparator * dimTextured = makeTexturedAlphaScene(0.25f);
+    int renderStatus = renderScene(dimTextured, bgfxPixels, glPixels, glAvailable);
+    dimTextured->unref();
+    if (renderStatus != 0) return renderStatus;
+    SoSeparator * litTextured = makeTexturedAlphaScene(1.0f);
+    renderStatus = renderScene(litTextured, comparisonPixels, glPixels, glAvailable);
+    litTextured->unref();
+    if (renderStatus != 0) return renderStatus;
+    const Rgb dimCenter = pixel(bgfxPixels, side / 2, side / 2, 4, false);
+    const Rgb litCenter = pixel(comparisonPixels, side / 2, side / 2, 4, false);
+    if (litCenter[1] <= dimCenter[1] + 25 || litCenter[1] < 100 ||
+        litCenter[1] > 150 || litCenter[0] > 8 || litCenter[2] > 8) {
+      std::cerr << "Weighted OIT textured PHONG lighting failed: dim=("
+                << dimCenter[0] << ',' << dimCenter[1] << ',' << dimCenter[2]
+                << ") lit=(" << litCenter[0] << ',' << litCenter[1] << ','
+                << litCenter[2] << ")\n";
+      return 1;
+    }
+
+    SoSeparator * intersecting = makeIntersectingTriangleObjectScene();
+    renderStatus = renderScene(intersecting, bgfxPixels, glPixels, glAvailable);
+    intersecting->unref();
+    if (renderStatus != 0) return renderStatus;
+    const Rgb intersectionLeft = pixel(bgfxPixels, 40, side / 2, 4, false);
+    const Rgb intersectionRight = pixel(bgfxPixels, 88, side / 2, 4, false);
+    if (intersectionLeft[0] <= intersectionLeft[1] + 8 ||
+        intersectionRight[1] <= intersectionRight[0] + 8 ||
+        intersectionLeft[2] > 8 || intersectionRight[2] > 8) {
+      std::cerr << "Weighted OIT intra-object intersection failed: left=("
+                << intersectionLeft[0] << ',' << intersectionLeft[1] << ','
+                << intersectionLeft[2] << ") right=(" << intersectionRight[0]
+                << ',' << intersectionRight[1] << ',' << intersectionRight[2]
+                << ")\n";
+      return 1;
+    }
+
+    SoSeparator * nearZero = makeAlphaStackScene(0.001f, 32);
+    renderStatus = renderScene(nearZero, bgfxPixels, glPixels, glAvailable);
+    nearZero->unref();
+    if (renderStatus != 0) return renderStatus;
+    const Rgb nearZeroCenter = pixel(bgfxPixels, side / 2, side / 2, 4, false);
+    SoSeparator * nearOne = makeAlphaStackScene(0.999f, 1);
+    renderStatus = renderScene(nearOne, comparisonPixels, glPixels, glAvailable);
+    nearOne->unref();
+    if (renderStatus != 0) return renderStatus;
+    const Rgb nearOneCenter =
+      pixel(comparisonPixels, side / 2, side / 2, 4, false);
+    bool alphaExtremesFailed = false;
+    for (int channel = 0; channel < 3; ++channel) {
+      alphaExtremesFailed = alphaExtremesFailed ||
+        nearZeroCenter[channel] < 4 || nearZeroCenter[channel] > 12 ||
+        nearOneCenter[channel] < 248;
+    }
+    if (alphaExtremesFailed) {
+      std::cerr << "Weighted OIT alpha extremes failed: 32x0.001=("
+                << nearZeroCenter[0] << ',' << nearZeroCenter[1] << ','
+                << nearZeroCenter[2] << ") 1x0.999=(" << nearOneCenter[0]
+                << ',' << nearOneCenter[1] << ',' << nearOneCenter[2] << ")\n";
+      return 1;
     }
   }
   if (!sawGl && std::getenv("COIN_WGPU_REQUIRE_GL_REFERENCE")) {
