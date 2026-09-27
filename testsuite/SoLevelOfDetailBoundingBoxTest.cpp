@@ -211,6 +211,92 @@ BOOST_AUTO_TEST_CASE(lod_bbox_camera_space_bypasses_cache) {
   BOOST_CHECK_EQUAL(scene.traversals, 3);
 }
 
+// The bbox cache is local to the LOD, even when a shared LOD is visited
+// under different parent transforms (SoCache and SoGraphCore studies).
+BOOST_AUTO_TEST_CASE(lod_bbox_shared_node_cache_uses_each_parent_transform) {
+  Scene scene;
+  SoGetBoundingBoxAction action(SbViewportRegion(100, 100));
+  const SbVec3f offsets[] = { SbVec3f(20, 4, -2), SbVec3f(-30, -6, 8) };
+  for (int i = 0; i < 2; ++i) {
+    SoSeparator * parent = new SoSeparator;
+    parent->boundingBoxCaching = SoSeparator::OFF;
+    parent->ref();
+    SoTranslation * translation = new SoTranslation;
+    translation->translation = offsets[i];
+    parent->addChild(translation);
+    parent->addChild(scene.lod);
+    for (int repeat = 0; repeat < 2; ++repeat) {
+      action.apply(parent);
+      checkBox(action, SbVec3f(-6, -2, -3) + offsets[i],
+               SbVec3f(13, 2, 3) + offsets[i],
+               SbVec3f(2.5f, 0, 0) + offsets[i]);
+      BOOST_CHECK_EQUAL(scene.traversals, 1);
+    }
+    parent->unref();
+  }
+  action.apply(scene.lod);
+  checkFull(action);
+  BOOST_CHECK_EQUAL(scene.traversals, 1);
+}
+
+BOOST_AUTO_TEST_CASE(lod_bbox_child_list_mutations_invalidate_cache) {
+  Scene scene;
+  SoGetBoundingBoxAction action(SbViewportRegion(100, 100));
+  action.apply(scene.lod);
+  checkFull(action);
+  scene.lod->removeChild(2);
+  for (int repeat = 0; repeat < 2; ++repeat) {
+    action.apply(scene.lod);
+    checkBox(action, SbVec3f(-6, -2, -3), SbVec3f(-4, 2, 3),
+             SbVec3f(-5, 0, 0));
+    BOOST_CHECK_EQUAL(scene.traversals, 2);
+  }
+  SoCube * replacement = new SoCube;
+  replacement->width = 4;
+  replacement->height = 8;
+  replacement->depth = 10;
+  scene.lod->addChild(replacement);
+  for (int repeat = 0; repeat < 2; ++repeat) {
+    action.apply(scene.lod);
+    checkBox(action, SbVec3f(-6, -4, -5), SbVec3f(2, 4, 5),
+             SbVec3f(-2.5f, 0, 0));
+    BOOST_CHECK_EQUAL(scene.traversals, 3);
+  }
+  SoCube * larger = new SoCube;
+  larger->width = 8;
+  scene.lod->replaceChild(2, larger);
+  for (int repeat = 0; repeat < 2; ++repeat) {
+    action.apply(scene.lod);
+    checkBox(action, SbVec3f(-6, -2, -3), SbVec3f(4, 2, 3),
+             SbVec3f(-2.5f, 0, 0));
+    BOOST_CHECK_EQUAL(scene.traversals, 4);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(lod_bbox_empty_node_remains_usable_after_child_changes) {
+  SoLevelOfDetail * lod = new SoLevelOfDetail;
+  lod->ref();
+  SoGetBoundingBoxAction action(SbViewportRegion(100, 100));
+  for (int repeat = 0; repeat < 2; ++repeat) {
+    action.apply(lod);
+    BOOST_CHECK(action.getBoundingBox().isEmpty());
+    BOOST_CHECK(!action.isCenterSet());
+  }
+  lod->addChild(new SoCube);
+  for (int repeat = 0; repeat < 2; ++repeat) {
+    action.apply(lod);
+    checkBox(action, SbVec3f(-1, -1, -1), SbVec3f(1, 1, 1),
+             SbVec3f(0, 0, 0));
+  }
+  lod->removeAllChildren();
+  for (int repeat = 0; repeat < 2; ++repeat) {
+    action.apply(lod);
+    BOOST_CHECK(action.getBoundingBox().isEmpty());
+    BOOST_CHECK(!action.isCenterSet());
+  }
+  lod->unref();
+}
+
 int main() {
   SoDB::init();
   const int result = CoinTest::run_all();

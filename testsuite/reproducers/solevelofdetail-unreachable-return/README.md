@@ -39,20 +39,40 @@ cmake --build build-issue374 --target CoinLevelOfDetailBoundingBoxTest
 ctest --test-dir build-issue374 -R '^LevelOfDetailBoundingBox$' -V
 ```
 
+## Study-based additions
+
+The personal `Estudo coin` notes `estudos/So/SoCache.md`,
+`estudos/So/SoGraphCore.md`, and `estudos/API/Build-CI-Tests-Distribution.md`
+identify local bounding-box storage, DAG sharing, notification-driven cache
+invalidation, and isolated CTest reproducers as contracts worth verifying.
+The dedicated executable now also covers:
+
+- a shared LOD under two independently translated parents, checking that a
+  local cached box is transformed for each occurrence and is still local
+  when the LOD is subsequently visited directly;
+- removing, adding, and replacing children after the complete cache is warm,
+  checking new extents and centers as well as reuse on the second traversal;
+- empty-to-populated-to-empty transitions, including the absence of a center
+  for an empty bounding box.
+
+Parent separators in the sharing case have bounding-box caching disabled;
+this isolates traversal state without allowing a parent cache to hide an LOD
+cache error. The CTest entry has `scene`, `unit`, and `process-isolated` labels
+and a 30-second timeout.
+
 ## Recorded validation
 
-Validated on Linux with GCC 13.3.0 in Debug configuration:
+Validated on Linux with GCC 13.3.0 in Debug configuration for branch
+`codex/issue-374-bbox-tests`:
 
 | Source variant | Result |
 | --- | --- |
-| Original code with `return` after `break` | 5 tests / 172 checks passed |
-| Corrected code with unreachable `return` removed | 5 tests / 172 checks passed |
-| Deliberate mutation: reachable `return` before `break` | 2 of 5 tests failed (`IN_PATH` and `OFF_PATH`) |
-| Corrected code restored after mutation | 5 tests / 172 checks passed |
+| Corrected code with unreachable `return` removed | 8 tests / 261 checks passed |
+| Deliberate mutation: reachable `return` before `break` | 2 of 8 tests failed (`IN_PATH` and `OFF_PATH`) |
+| Corrected code restored after mutation | 8 tests / 261 checks passed |
 
 The mutation causes the `IN_PATH` bounding box and center checks to fail and
 skips the observable callback traversal in `OFF_PATH`. It confirms that the
-tests can distinguish continuing traversal from returning early. The original
-and corrected code produce the expected results, supporting removal of the
-dead statement without changing the intended flow. The mutation is not part
-of the committed source.
+tests distinguish continuing traversal from returning early. The mutation is
+not part of the committed source. Removing the unreachable statement itself
+has no runtime effect; these tests protect the intended traversal semantics.

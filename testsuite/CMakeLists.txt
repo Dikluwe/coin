@@ -152,3 +152,6 @@ target_include_directories(CoinLevelOfDetailBoundingBoxTest PRIVATE
   ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
   ${COIN_TARGET_INCLUDE_DIRECTORIES})
 add_test(NAME LevelOfDetailBoundingBox COMMAND CoinLevelOfDetailBoundingBoxTest)
+
+set_tests_properties(LevelOfDetailBoundingBox PROPERTIES
+  LABELS "scene;unit;process-isolated" TIMEOUT 30)
