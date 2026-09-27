@@ -45,6 +45,8 @@ struct SoWgpuBgfxDraw {
   bool depthWrite = true;
   DepthFunction depthFunction = DepthFunction::LESS;
   float depthRange[2] = {0.0f, 1.0f};
+  float polygonOffsetFactor = 0.0f; // Effective, style-filtered bias.
+  float polygonOffsetUnits = 0.0f;
   bool blend = false;
   float alpha = 1.0f;
   SoWgpuBgfxTransparencyStrategy transparencyStrategy = SoWgpuBgfxTransparencyStrategy::OBJECT;

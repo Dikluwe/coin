@@ -347,6 +347,7 @@ SoWgpuBgfxBackend::SoWgpuBgfxBackend()
     previousColorSampler(BGFX_INVALID_HANDLE),
     layerSampler(BGFX_INVALID_HANDLE), oitAccumSampler(BGFX_INVALID_HANDLE),
     oitRevealSampler(BGFX_INVALID_HANDLE), depthInfoUniform(BGFX_INVALID_HANDLE),
+    coinDepthUniform(BGFX_INVALID_HANDLE),
     textureSampler(BGFX_INVALID_HANDLE), textureParamsUniform(BGFX_INVALID_HANDLE),
     textureBlendUniform(BGFX_INVALID_HANDLE),
     ambientLightUniform(BGFX_INVALID_HANDLE), lightCountUniform(BGFX_INVALID_HANDLE),
@@ -410,6 +411,7 @@ SoWgpuBgfxBackend::destroyResources()
   if (bgfx::isValid(this->previousColorSampler)) bgfx::destroy(this->previousColorSampler);
   if (bgfx::isValid(this->layerSampler)) bgfx::destroy(this->layerSampler);
   if (bgfx::isValid(this->depthInfoUniform)) bgfx::destroy(this->depthInfoUniform);
+  if (bgfx::isValid(this->coinDepthUniform)) bgfx::destroy(this->coinDepthUniform);
   if (bgfx::isValid(this->oitAccumSampler)) bgfx::destroy(this->oitAccumSampler);
   if (bgfx::isValid(this->oitRevealSampler)) bgfx::destroy(this->oitRevealSampler);
   if (bgfx::isValid(this->textureSampler)) bgfx::destroy(this->textureSampler);
@@ -609,6 +611,7 @@ SoWgpuBgfxBackend::prepare(SoWgpuRenderTargetP & target)
   }
   this->textureSampler = bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler);
   this->textureParamsUniform = bgfx::createUniform("u_texParams", bgfx::UniformType::Vec4);
+  this->coinDepthUniform = bgfx::createUniform("u_coinDepth", bgfx::UniformType::Vec4);
   this->textureBlendUniform = bgfx::createUniform("u_texBlend", bgfx::UniformType::Vec4);
   this->ambientLightUniform = bgfx::createUniform("u_ambientLight", bgfx::UniformType::Vec4);
   this->lightCountUniform = bgfx::createUniform("u_lightCount", bgfx::UniformType::Vec4);
@@ -621,6 +624,7 @@ SoWgpuBgfxBackend::prepare(SoWgpuRenderTargetP & target)
     bgfx::TextureFormat::RGBA8, BGFX_TEXTURE_NONE,
     bgfx::copy(&whitePixel, sizeof(whitePixel)));
   if (!bgfx::isValid(this->textureSampler) ||
+      !bgfx::isValid(this->coinDepthUniform) ||
       !bgfx::isValid(this->textureParamsUniform) ||
       !bgfx::isValid(this->textureBlendUniform) ||
       !bgfx::isValid(this->ambientLightUniform) ||
@@ -911,6 +915,11 @@ SoWgpuBgfxBackend::bindDrawTexture(
 void
 SoWgpuBgfxBackend::bindDrawLighting(const SoWgpuBgfxDraw & draw)
 {
+  // A deterministic one-LSB D24 window-depth unit. D32F/driver-specific
+  // polygon offset resolution differs; see docs/wgpu-depth-contract.md.
+  const float depth[4] = {draw.depthRange[0], draw.depthRange[1],
+    draw.polygonOffsetFactor, draw.polygonOffsetUnits / 16777216.0f};
+  bgfx::setUniform(this->coinDepthUniform, depth);
   bgfx::setUniform(this->ambientLightUniform, draw.ambientLight);
   bgfx::setUniform(this->lightCountUniform, draw.lightCount);
   bgfx::setUniform(this->lightPositionTypeUniform, draw.lightPositionType, COIN_WGPU_MAX_LIGHTS);

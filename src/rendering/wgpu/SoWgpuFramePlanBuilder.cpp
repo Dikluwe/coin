@@ -18,6 +18,7 @@
 #include <Inventor/misc/SoState.h>
 #include <Inventor/elements/SoShapeHintsElement.h>
 #include <Inventor/elements/SoDepthBufferElement.h>
+#include <Inventor/elements/SoPolygonOffsetElement.h>
 #include <Inventor/elements/SoLinePatternElement.h>
 #include <Inventor/elements/SoCreaseAngleElement.h>
 #include <Inventor/elements/SoLightModelElement.h>
@@ -646,6 +647,12 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
   rs.depthFunction = static_cast<DepthFunction>(depthFunction);
   rs.depthRange[0] = depthRange[0];
   rs.depthRange[1] = depthRange[1];
+  SoPolygonOffsetElement::Style offsetStyles;
+  SbBool offsetEnabled;
+  SoPolygonOffsetElement::get(state, rs.polygonOffsetFactor,
+    rs.polygonOffsetUnits, offsetStyles, offsetEnabled);
+  rs.polygonOffsetStyles = static_cast<uint32_t>(offsetStyles);
+  rs.polygonOffsetEnabled = offsetEnabled != FALSE;
   rs.lightModel = lm;
   rs.transparencyType = SoShapeStyleElement::getTransparencyType(state);
   float ambientIntensity = 0.0f;
@@ -689,6 +696,10 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
         existing.depthFunction == rs.depthFunction &&
         existing.depthRange[0] == rs.depthRange[0] &&
         existing.depthRange[1] == rs.depthRange[1] &&
+        existing.polygonOffsetEnabled == rs.polygonOffsetEnabled &&
+        existing.polygonOffsetFactor == rs.polygonOffsetFactor &&
+        existing.polygonOffsetUnits == rs.polygonOffsetUnits &&
+        existing.polygonOffsetStyles == rs.polygonOffsetStyles &&
         existing.fogMode == rs.fogMode &&
         existing.fogStart == rs.fogStart &&
         existing.fogEnd == rs.fogEnd &&
@@ -981,6 +992,8 @@ SoWgpuFramePlanBuilder::expandStyledPrimitives(std::string * outError)
 
 
     RenderStateSnapshot state = sourceState;
+    state.polygonOffsetPrimitiveStyle =
+      original.topology == PrimitiveTopology::LINE_LIST ? 2u : 4u;
     state.model = SbMatrix::identity();
     state.view = SbMatrix::identity();
     state.projectionCoin = SbMatrix::identity();

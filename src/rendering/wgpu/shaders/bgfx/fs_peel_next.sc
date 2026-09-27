@@ -1,6 +1,7 @@
 $input v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition, v_viewNormal, v_material
 
 #include <bgfx_shader.sh>
+#include "coin_depth.sh"
 SAMPLER2D(s_prevDepth, 0);
 SAMPLER2D(s_prevColor, 1);
 uniform vec4 u_depthInfo;
@@ -68,6 +69,8 @@ vec4 coinTextureColor(vec4 materialColor, vec2 texcoord)
 
 void main()
 {
+  float windowDepth = coinWindowDepth(gl_FragCoord.z);
+  gl_FragDepth = windowDepth;
   vec4 diffuse = v_color0;
   vec4 ambient = v_ambient;
   vec4 specular = v_specular;
@@ -79,6 +82,6 @@ void main()
   vec4 previous = texture2D(s_prevColor, uv);
   if (previous.a <= 0.0) discard;
   float previousDepth = texture2D(s_prevDepth, uv).x;
-  if (gl_FragCoord.z <= previousDepth + 0.00001) discard;
+  if (windowDepth <= previousDepth + 0.00001) discard;
   gl_FragColor = coinTextureColor(coinMaterialColor(diffuse, ambient, specular, emission, viewPosition, viewNormal, material), v_texcoord0);
 }

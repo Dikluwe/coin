@@ -103,6 +103,7 @@ private:
   bgfx::UniformHandle oitAccumSampler;
   bgfx::UniformHandle oitRevealSampler;
   bgfx::UniformHandle depthInfoUniform;
+  bgfx::UniformHandle coinDepthUniform;
   bgfx::VertexBufferHandle fullscreenVertexBuffer;
   bgfx::IndexBufferHandle fullscreenIndexBuffer;
   bgfx::UniformHandle textureSampler;

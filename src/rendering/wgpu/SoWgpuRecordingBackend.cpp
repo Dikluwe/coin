@@ -171,6 +171,13 @@ SoWgpuRecordingBackend::recordToString(const FramePlan & frame) const
         << " depthTest=" << (rs.depthTest ? "1" : "0")
         << " depthWrite=" << (rs.depthWrite ? "1" : "0")
         << " depthFunction=" << depthFunctionName(rs.depthFunction)
+        << " depthRange=[" << formatFloat(rs.depthRange[0]) << ","
+        << formatFloat(rs.depthRange[1]) << "]"
+        << " polygonOffset=" << (rs.polygonOffsetEnabled ? "1" : "0")
+        << " offsetFactor=" << formatFloat(rs.polygonOffsetFactor)
+        << " offsetUnits=" << formatFloat(rs.polygonOffsetUnits)
+        << " offsetStyles=" << rs.polygonOffsetStyles
+        << " offsetPrimitiveStyle=" << rs.polygonOffsetPrimitiveStyle
         << " hasTex=" << (rs.hasTexture ? "1" : "0");
     if (rs.hasTexture) {
       const char * textureModel = rs.textureModel == TextureModel::MODULATE ? "MODULATE" :

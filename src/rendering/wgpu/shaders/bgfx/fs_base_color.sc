@@ -1,6 +1,7 @@
 $input v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition, v_viewNormal, v_material
 
 #include <bgfx_shader.sh>
+#include "coin_depth.sh"
 SAMPLER2D(s_texColor, 2);
 uniform vec4 u_texParams;
 uniform vec4 u_texBlend;
@@ -65,6 +66,7 @@ vec4 coinTextureColor(vec4 materialColor, vec2 texcoord)
 
 void main()
 {
+  gl_FragDepth = coinWindowDepth(gl_FragCoord.z);
   vec4 diffuse = v_color0;
   vec4 ambient = v_ambient;
   vec4 specular = v_specular;

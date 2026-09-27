@@ -312,10 +312,12 @@ vértices, 4.235 índices e 36--38 draws, incluindo 7--9 mudanças de textura do
 NaviCube. Restaurar e maximizar manteve a apresentação em 1.920x710 dentro da
 janela 1.920x1.008, preservando 298 pixels para o painel inferior.
 
-Ainda não são capturados `SoDepthBuffer` e `SoPolygonOffset`. Por isso o
-NaviCube já aparece e respeita viewport/ordem/alpha, mas detalhes coplanares
-podem divergir do GL; axis cross e rubber-band continuam fora do root WGPU até
-o contrato de depth incluir test, write e função.
+`SoDepthBuffer` e `SoPolygonOffset` são capturados por draw. BGFX aplica
+depth test/write/function, depth range e offset restrito a fill/line/point,
+inclusive nos overlays e nas passagens de transparência. O contrato e as
+aproximações de precisão estão em [wgpu-depth-contract.md](wgpu-depth-contract.md).
+A integração visual do NaviCube/axis cross/rubber-band no FreeCAD deve ser
+validada no aplicativo; os testes do Coin cobrem o comportamento coplanar.
 
 A geometria indexada preserva índices de material preexistentes quando uma ação
 substitui a lista por um único material: a captura de estado limita a consulta

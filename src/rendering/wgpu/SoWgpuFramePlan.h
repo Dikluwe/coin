@@ -181,6 +181,11 @@ struct RenderStateSnapshot {
   bool depthWrite = true;
   DepthFunction depthFunction = DepthFunction::LESS;
   float depthRange[2] = {0.0f, 1.0f};
+  bool polygonOffsetEnabled = false;
+  float polygonOffsetFactor = 0.0f;
+  float polygonOffsetUnits = 0.0f;
+  uint32_t polygonOffsetStyles = 1;
+  uint32_t polygonOffsetPrimitiveStyle = 1; // Retained across line/point expansion.
   LightModel lightModel = LightModel::PHONG;
   float lineWidth = 1.0f;
   float pointSize = 1.0f;

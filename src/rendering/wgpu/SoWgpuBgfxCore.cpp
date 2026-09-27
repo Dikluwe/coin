@@ -56,6 +56,8 @@ int compareDrawGroupingKey(const SoWgpuBgfxDraw & lhs,
   if (result == 0) result = compareValue(lhs.depthWrite, rhs.depthWrite);
   if (result == 0) result = compareValue(lhs.depthFunction, rhs.depthFunction);
   if (result == 0) result = compareBytes(lhs.depthRange, rhs.depthRange, sizeof(lhs.depthRange));
+  if (result == 0) result = compareValue(lhs.polygonOffsetFactor, rhs.polygonOffsetFactor);
+  if (result == 0) result = compareValue(lhs.polygonOffsetUnits, rhs.polygonOffsetUnits);
   if (result == 0) result = compareBytes(lhs.viewport, rhs.viewport, sizeof(lhs.viewport));
   if (result == 0) result = compareValue(lhs.materialSignature, rhs.materialSignature);
   if (result == 0) result = compareValue(lhs.hasTexture, rhs.hasTexture);
@@ -222,6 +224,11 @@ SoWgpuBgfxCore::lower(const FramePlan & frame, int width, int height,
     lowered.depthFunction = state.depthFunction;
     lowered.depthRange[0] = state.depthRange[0];
     lowered.depthRange[1] = state.depthRange[1];
+    if (state.polygonOffsetEnabled &&
+        (state.polygonOffsetStyles & state.polygonOffsetPrimitiveStyle) != 0) {
+      lowered.polygonOffsetFactor = state.polygonOffsetFactor;
+      lowered.polygonOffsetUnits = state.polygonOffsetUnits;
+    }
     lowered.blend = item.blend;
     switch (item.transparencyStrategy) {
     case SoWgpuCompositionItem::WEIGHTED_OIT:
@@ -495,6 +502,17 @@ SoWgpuBgfxCore::patchCamera(const FramePlan & frame, int width, int height,
         draw.geometry.indexCount != previous.indexCount ||
         state.cullMode != previous.cullMode ||
         state.frontFace != previous.frontFace ||
+        state.depthTest != previous.depthTest ||
+        state.depthWrite != previous.depthWrite ||
+        state.depthFunction != previous.depthFunction ||
+        state.depthRange[0] != previous.depthRange[0] ||
+        state.depthRange[1] != previous.depthRange[1] ||
+        ((state.polygonOffsetEnabled &&
+          (state.polygonOffsetStyles & state.polygonOffsetPrimitiveStyle))
+          ? state.polygonOffsetFactor : 0.0f) != previous.polygonOffsetFactor ||
+        ((state.polygonOffsetEnabled &&
+          (state.polygonOffsetStyles & state.polygonOffsetPrimitiveStyle))
+          ? state.polygonOffsetUnits : 0.0f) != previous.polygonOffsetUnits ||
         state.lightModel != LightModel::BASE_COLOR ||
         state.hasTexture != previous.hasTexture ||
         (state.hasTexture && state.textureImageSlot != previous.textureSlot) ||

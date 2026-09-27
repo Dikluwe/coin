@@ -32,7 +32,7 @@
 #include <string>
 #include <vector>
 
-static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 18, "Viewport and texture-model bridge protocol");
+static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 19, "Polygon offset bridge protocol");
 static_assert(sizeof(CoinWgpuLight) == 64, "3C light layout");
 
 namespace {

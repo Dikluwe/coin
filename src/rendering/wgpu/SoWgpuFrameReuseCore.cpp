@@ -74,6 +74,14 @@ sameRenderStateExceptCamera(const RenderStateSnapshot & a,
     a.materialSlot == b.materialSlot && a.lightingSlot == b.lightingSlot &&
     a.cameraSlot == b.cameraSlot && a.viewportSlot == b.viewportSlot &&
     a.cullMode == b.cullMode && a.frontFace == b.frontFace &&
+    a.depthTest == b.depthTest && a.depthWrite == b.depthWrite &&
+    a.depthFunction == b.depthFunction &&
+    std::memcmp(a.depthRange, b.depthRange, sizeof(a.depthRange)) == 0 &&
+    a.polygonOffsetEnabled == b.polygonOffsetEnabled &&
+    a.polygonOffsetFactor == b.polygonOffsetFactor &&
+    a.polygonOffsetUnits == b.polygonOffsetUnits &&
+    a.polygonOffsetStyles == b.polygonOffsetStyles &&
+    a.polygonOffsetPrimitiveStyle == b.polygonOffsetPrimitiveStyle &&
     a.lightModel == b.lightModel && a.lineWidth == b.lineWidth &&
     a.pointSize == b.pointSize && a.linePattern == b.linePattern &&
     a.linePatternScaleFactor == b.linePatternScaleFactor &&

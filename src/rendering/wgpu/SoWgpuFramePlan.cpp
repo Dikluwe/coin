@@ -247,6 +247,13 @@ FramePlan::isValid(std::string * outDiagnostic) const
       if (outDiagnostic) *outDiagnostic = "Unsupported depth comparison function";
       return false;
     }
+    if (!isFiniteF(state.polygonOffsetFactor) || !isFiniteF(state.polygonOffsetUnits) ||
+        (state.polygonOffsetStyles & ~7u) != 0 ||
+        (state.polygonOffsetPrimitiveStyle != 1 &&
+         state.polygonOffsetPrimitiveStyle != 2 && state.polygonOffsetPrimitiveStyle != 4)) {
+      if (outDiagnostic) *outDiagnostic = "Invalid polygon offset";
+      return false;
+    }
     if (!isFiniteF(state.depthRange[0]) || !isFiniteF(state.depthRange[1]) ||
         state.depthRange[0] < 0.0f || state.depthRange[1] > 1.0f ||
         state.depthRange[0] > state.depthRange[1]) {

@@ -47,6 +47,7 @@ elseif(COIN_WGPU_BACKEND STREQUAL "BGFX")
 					--bin2c coin_bgfx_${_stage}_${_renderer}
 					-i ${COIN_BGFX_SHADER_INCLUDE_DIR}
 				DEPENDS ${_coin_bgfx_shader_dir}/${_stage}_base_color.sc
+					${_coin_bgfx_shader_dir}/coin_depth.sh
 					${_coin_bgfx_shader_dir}/varying.def.sc
 				VERBATIM)
 			list(APPEND COIN_WGPU_SOURCES ${_shader_output})
@@ -69,6 +70,7 @@ elseif(COIN_WGPU_BACKEND STREQUAL "BGFX")
 					--bin2c coin_bgfx_fs_${_shader}_${_renderer}
 					-i ${COIN_BGFX_SHADER_INCLUDE_DIR}
 				DEPENDS ${_coin_bgfx_shader_dir}/fs_${_shader}.sc
+					${_coin_bgfx_shader_dir}/coin_depth.sh
 					${_coin_bgfx_shader_dir}/varying.def.sc
 				VERBATIM)
 			list(APPEND COIN_WGPU_SOURCES ${_shader_output})

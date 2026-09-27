@@ -252,8 +252,26 @@ if(COIN_BUILD_WGPU)
 		${COIN_TARGET_INCLUDE_DIRECTORIES}
 	)
 	add_test(NAME WgpuBgfxCoreTest COMMAND WgpuBgfxCoreTest)
+	add_executable(WgpuDepthContractTest wgpu/WgpuDepthContractTest.cpp
+		${PROJECT_SOURCE_DIR}/src/rendering/wgpu/SoWgpuBgfxCore.cpp
+		${PROJECT_SOURCE_DIR}/src/rendering/wgpu/SoWgpuFramePlanBuilder.cpp)
+	if(NOT COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE")
+		target_sources(WgpuDepthContractTest PRIVATE ${PROJECT_SOURCE_DIR}/src/rendering/wgpu/SoWgpuFfiFrame.cpp)
+	endif()
+	set_target_properties(WgpuDepthContractTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(WgpuDepthContractTest CoinWgpuExperimental Coin)
+	target_include_directories(WgpuDepthContractTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include
+		${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src)
+	add_test(NAME WgpuDepthContractTest COMMAND WgpuDepthContractTest)
 	set_tests_properties(WgpuBgfxCoreTest PROPERTIES TIMEOUT 30)
 	if(COIN_WGPU_BACKEND STREQUAL "BGFX")
+		add_test(NAME WgpuDepthContractVulkanTest COMMAND WgpuDepthContractTest --gpu)
+		add_test(NAME WgpuDepthContractOpenGLTest COMMAND WgpuDepthContractTest --gpu)
+		set_tests_properties(WgpuDepthContractVulkanTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77
+			ENVIRONMENT "COIN_BGFX_RENDERER=vulkan;COIN_BGFX_DISABLE_DRAW_GROUPING=1")
+		set_tests_properties(WgpuDepthContractOpenGLTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77
+			ENVIRONMENT "COIN_BGFX_RENDERER=opengl;COIN_BGFX_DISABLE_DRAW_GROUPING=1")
 		add_test(NAME WgpuProductOpenGLTest COMMAND WgpuProductTest)
 		set_tests_properties(WgpuProductOpenGLTest PROPERTIES TIMEOUT 30
 			ENVIRONMENT "COIN_BGFX_RENDERER=opengl")

@@ -12,7 +12,8 @@
 #include <cstddef>
 #include <cstring>
 
-static_assert(sizeof(CoinWgpuRenderState) == 936, "CoinWgpuRenderState ABI size changed");
+static_assert(sizeof(CoinWgpuRenderState) == 956, "CoinWgpuRenderState ABI size changed");
+static_assert(offsetof(CoinWgpuRenderState, polygon_offset_enabled) == 936, "Polygon offset ABI tail changed");
 static_assert(offsetof(CoinWgpuRenderState, depth_test) == 916, "depth_test ABI offset changed");
 static_assert(offsetof(CoinWgpuRenderState, depth_write) == 920, "depth_write ABI offset changed");
 static_assert(offsetof(CoinWgpuRenderState, depth_function) == 924, "depth_function ABI offset changed");
@@ -209,6 +210,11 @@ SoWgpuFfiFrame::packStates(const FramePlan & frame, uint32_t targetWidth, uint32
     dst.depth_function = static_cast<uint32_t>(src.depthFunction);
     dst.depth_range[0] = src.depthRange[0];
     dst.depth_range[1] = src.depthRange[1];
+    dst.polygon_offset_enabled = src.polygonOffsetEnabled ? 1u : 0u;
+    dst.polygon_offset_factor = src.polygonOffsetFactor;
+    dst.polygon_offset_units = src.polygonOffsetUnits;
+    dst.polygon_offset_styles = src.polygonOffsetStyles;
+    dst.polygon_offset_primitive_style = src.polygonOffsetPrimitiveStyle;
     dst.ambient_light[3] = 1.0f;
 
     if (src.lightingSlot < frame.lightingStates.size()) {
