@@ -179,6 +179,8 @@ CoinRenderRecordingBackend::recordToString(const CoinRenderFramePlan & frame) co
         << " offsetStyles=" << rs.polygonOffsetStyles
         << " offsetPrimitiveStyle=" << rs.polygonOffsetPrimitiveStyle
         << " hasTex=" << (rs.hasTexture ? "1" : "0");
+    if (rs.polygonOffsetSlopeBias != 0)
+      out << " offsetSlopeBias=" << formatFloat(rs.polygonOffsetSlopeBias);
     if (rs.hasTexture) {
       const char * textureModel = rs.textureModel == CoinRenderTextureModel::MODULATE ? "MODULATE" :
         rs.textureModel == CoinRenderTextureModel::REPLACE ? "REPLACE" :

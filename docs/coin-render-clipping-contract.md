@@ -41,7 +41,9 @@ os vértices e a interpolação de iluminação/textura. Camera patch com planos
 faz reconstrução: os vértices BGFX contêm posições de câmera, que também precisam
 ser atualizadas. Isso evita reutilizar posições antigas com uma nova câmera.
 
-**Infra wgpu:** ABI privada **22**, estado de **1088 bytes**, draw ainda com 56 bytes.
+**Infra wgpu:** clipping introduzido na ABI privada **22**, estado de **1088 bytes**.
+A revisão atual **23** tem **1092 bytes** com bias de inclinação; offsets de
+clipping conservados, draw ainda com 56 bytes.
 `clip_plane_count` fica no offset 956, `clip_planes` no 960. O packer C++ usa o
 mesmo Core; Rust valida o transporte e entrega uniformes ao WGSL. Os shaders
 standard/line/point usam a mesma estrutura de uniformes. Rust não descobre planos

@@ -3,6 +3,8 @@
 
 #include "rendering/coinrender/CoinRenderClipCore.h"
 #include "rendering/coinrender/CoinRenderLightingCore.h"
+#include <Inventor/SbVec3d.h>
+#include <limits>
 
 struct CoinRenderPolygonStyleVertex {
   CoinRenderVertexSnapshot vertex;
@@ -180,7 +182,8 @@ inline bool coin_render_prepare_polygon_style(
     const std::vector<CoinRenderVertexSnapshot>& ring, const CoinRenderRenderStateSnapshot& state,
     const std::vector<CoinRenderMaterialSnapshot>& materials,
     const CoinRenderLightingSnapshot& lighting, CoinRenderPolygonStyle style,
-    CoinRenderPolygonStyleResult& result, std::string& diagnostic) {
+    CoinRenderPolygonStyleResult& result, std::string& diagnostic,
+    const CoinRenderViewportSnapshot& viewport) {
   result = CoinRenderPolygonStyleResult{};
   if (style == CoinRenderPolygonStyle::LINES && state.linePattern != 0xffffu &&
       state.linePattern != 0) {
@@ -189,12 +192,6 @@ inline bool coin_render_prepare_polygon_style(
     return false;
   }
   const uint32_t primitiveStyle = style == CoinRenderPolygonStyle::LINES ? 2u : 4u;
-  if (state.polygonOffsetEnabled && (state.polygonOffsetStyles & primitiveStyle) &&
-      state.polygonOffsetFactor != 0) {
-    diagnostic =
-        "UNSUPPORTED: styled polygon slope offset requires the original polygon depth gradient";
-    return false;
-  }
   if (!coin_render_resolve_polygon_style(ring, state, materials, lighting, result.vertices,
                                          diagnostic))
     return false;
@@ -206,6 +203,65 @@ inline bool coin_render_prepare_polygon_style(
   result.state.cullMode = CoinRenderCullMode::NONE;
   result.state.clipPlanesWorld.clear();
   result.state.polygonOffsetPrimitiveStyle = lines ? 2u : 4u;
+  // The expanded strokes have another depth gradient. Resolve the original
+  // planar face in window coordinates, keeping the bias out of vertex clipping.
+  if (state.polygonOffsetEnabled && (state.polygonOffsetStyles & primitiveStyle) &&
+      state.polygonOffsetFactor != 0 && !result.vertices.empty()) {
+    if (viewport.width <= 0 || viewport.height <= 0) {
+      diagnostic = "Invalid viewport for polygon slope offset";
+      return false;
+    }
+    const SbVec3f origin(ring[0].position);
+    SbVec3f normal(0, 0, 0);
+    double extent = 0;
+    for (size_t i = 1; i < ring.size(); ++i) {
+      const SbVec3f delta = SbVec3f(ring[i].position) - origin;
+      extent = std::max(extent, double(delta.length()));
+      if (i + 1 < ring.size())
+        normal += delta.cross(SbVec3f(ring[i + 1].position) - origin);
+    }
+    normal.normalize();
+    for (const auto& vertex : ring) {
+      if (std::abs((SbVec3f(vertex.position) - origin).dot(normal)) > 1e-5 * extent) {
+        diagnostic = "UNSUPPORTED: polygon slope offset requires a planar original face";
+        return false;
+      }
+    }
+    const SbMatrix mvp = state.model * state.view * state.projectionCoin;
+    std::vector<SbVec3d> window;
+    for (const auto& vertex : result.vertices) {
+      SbVec4f clip;
+      mvp.multVecMatrix(SbVec4f(vertex.vertex.position[0], vertex.vertex.position[1],
+                                vertex.vertex.position[2], 1),
+                        clip);
+      window.push_back(
+          SbVec3d(double(clip[0]) / clip[3] * viewport.width * .5,
+                  double(clip[1]) / clip[3] * viewport.height * .5,
+                  double(clip[2]) / clip[3] * .5 * (state.depthRange[1] - state.depthRange[0])));
+    }
+    // Choose the largest determinant to avoid a nearly collinear corner triple.
+    double determinant = 0, dx = 0, dy = 0;
+    for (size_t i = 1; i + 1 < window.size(); ++i) {
+      const SbVec3d a = window[i] - window[0], b = window[i + 1] - window[0];
+      const double det = a[0] * b[1] - a[1] * b[0];
+      if (std::abs(det) > std::abs(determinant)) {
+        determinant = det;
+        dx = (a[2] * b[1] - a[1] * b[2]) / det;
+        dy = (a[0] * b[2] - a[2] * b[0]) / det;
+      }
+    }
+    if (determinant == 0) {
+      diagnostic = "UNSUPPORTED: polygon slope offset has zero projected area";
+      return false;
+    }
+    const double bias = state.polygonOffsetFactor * std::max(std::abs(dx), std::abs(dy));
+    if (!std::isfinite(bias) || std::abs(bias) > std::numeric_limits<float>::max()) {
+      diagnostic = "Invalid polygon slope offset";
+      return false;
+    }
+    result.state.polygonOffsetSlopeBias = float(bias);
+    result.state.polygonOffsetFactor = 0;
+  }
   for (uint32_t i = 0; i < result.vertices.size(); ++i) {
     result.indices.push_back(i);
     if (lines)

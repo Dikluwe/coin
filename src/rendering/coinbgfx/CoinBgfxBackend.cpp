@@ -1167,7 +1167,7 @@ CoinBgfxBackend::bindDrawLighting(const CoinBgfxDraw & draw, int targetHeight)
      renderer == bgfx::RendererType::OpenGLES)
       ? 1.0f / 8388608.0f : 1.0f / 16777216.0f;
   const float depth[4] = {draw.depthRange[0], draw.depthRange[1],
-    draw.polygonOffsetFactor, draw.polygonOffsetUnits * unitScale};
+    draw.polygonOffsetFactor, draw.polygonOffsetUnits * unitScale + draw.polygonOffsetSlopeBias};
   bgfx::setUniform(this->coinDepthUniform, depth);
   bgfx::setUniform(this->fogColorModeUniform, draw.fogColorMode);
   bgfx::setUniform(this->fogRangeUniform, draw.fogRange);

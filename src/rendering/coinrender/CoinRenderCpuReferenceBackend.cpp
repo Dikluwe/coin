@@ -126,7 +126,10 @@ inline void applyFog(const CoinRenderRenderStateSnapshot & rs, float eyeDepth,
 }
 
 inline float mappedDepth(float z, const CoinRenderRenderStateSnapshot & state) {
-  return state.depthRange[0] + z * (state.depthRange[1] - state.depthRange[0]);
+  float depth = state.depthRange[0] + z * (state.depthRange[1] - state.depthRange[0]);
+  if (state.polygonOffsetEnabled && (state.polygonOffsetStyles & state.polygonOffsetPrimitiveStyle))
+    depth += state.polygonOffsetSlopeBias;
+  return std::max(0.0f, std::min(1.0f, depth));
 }
 
 inline bool depthPass(float z, float stored, const CoinRenderRenderStateSnapshot & state) {

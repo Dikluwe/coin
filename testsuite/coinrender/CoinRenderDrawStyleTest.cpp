@@ -6,6 +6,10 @@
 #include <Inventor/SoDB.h>
 #include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/nodes/SoDrawStyle.h>
+#include <Inventor/nodes/SoPolygonOffset.h>
+#include <Inventor/nodes/SoDepthBuffer.h>
+#include "rendering/coinrender/CoinRenderFrameReuseCore.h"
+#include "rendering/coinrender/CoinRenderStateCore.h"
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoGroup.h>
 #include <Inventor/nodes/SoCube.h>
@@ -148,11 +152,11 @@ bool polygonCoreContract() {
   CoinRenderLightingSnapshot lighting;
   CoinRenderPolygonStyleResult resolved;std::string error;
   bool ok=check(coin_render_prepare_polygon_style(ring,state,materials,lighting,
-    CoinRenderPolygonStyle::LINES,resolved,error) && resolved.vertices.size()==4 && resolved.indices.size()==8,
+    CoinRenderPolygonStyle::LINES,resolved,error,CoinRenderViewportSnapshot{}) && resolved.vertices.size()==4 && resolved.indices.size()==8,
     "quad produces four original edges without a tessellation diagonal");
   state.clipPlanesWorld.push_back(SbPlane(SbVec3f(1,0,0),0));
   ok=check(coin_render_prepare_polygon_style(ring,state,materials,lighting,
-    CoinRenderPolygonStyle::POINTS,resolved,error) && resolved.vertices.size()==4 && resolved.indices.size()==4 &&
+    CoinRenderPolygonStyle::POINTS,resolved,error,CoinRenderViewportSnapshot{}) && resolved.vertices.size()==4 && resolved.indices.size()==4 &&
     resolved.state.clipPlanesWorld.empty(),"clipped quad has four points, including new cut corners") && ok;
   int cut=0;
   for(const auto & item:resolved.vertices)if(std::abs(item.vertex.position[0])<1e-6f) {
@@ -163,13 +167,13 @@ bool polygonCoreContract() {
   state.clipPlanesWorld.clear();state.cullMode=CoinRenderCullMode::BACK;
   std::reverse(ring.begin(),ring.end());
   ok=check(coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
-    resolved,error) && resolved.vertices.empty(),"culling precedes line expansion") && ok;
+    resolved,error,CoinRenderViewportSnapshot{}) && resolved.vertices.empty(),"culling precedes line expansion") && ok;
   state.frontFace=CoinRenderFrontFace::CW;
   ok=check(coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
-    resolved,error) && resolved.vertices.size()==4,"effective front-face winding is preserved") && ok;
+    resolved,error,CoinRenderViewportSnapshot{}) && resolved.vertices.size()==4,"effective front-face winding is preserved") && ok;
   state.frontFace=CoinRenderFrontFace::CCW;state.model.setScale(SbVec3f(-1,1,1));
   ok=check(coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
-    resolved,error) && resolved.vertices.size()==4,"mirrored model changes facing before stroke expansion") && ok;
+    resolved,error,CoinRenderViewportSnapshot{}) && resolved.vertices.size()==4,"mirrored model changes facing before stroke expansion") && ok;
   state.model=SbMatrix::identity();state.cullMode=CoinRenderCullMode::NONE;
   std::reverse(ring.begin(),ring.end());
   state.lightModel=CoinRenderLightModel::PHONG;lighting.ambientIntensity=0;
@@ -179,33 +183,76 @@ bool polygonCoreContract() {
   const float expected=(coin_render_shade_vertex(materials[0],SbVec3f(ring[0].position),SbVec3f(0,0,1),lighting,state)[0]+
     coin_render_shade_vertex(materials[1],SbVec3f(ring[1].position),SbVec3f(0,0,1),lighting,state)[0])*.5f;
   ok=check(coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
-    resolved,error),"PHONG polygon resolves before clipping") && ok;
+    resolved,error,CoinRenderViewportSnapshot{}),"PHONG polygon resolves before clipping") && ok;
   for(const auto & item:resolved.vertices)if(std::abs(item.vertex.position[0])<1e-6f && item.vertex.position[1]<0)
     ok=check(std::abs(item.material.diffuse[0]-expected)<1e-6f,"cut color interpolates already lit endpoints") && ok;
   state.clipPlanesWorld.clear();state.lightModel=CoinRenderLightModel::BASE_COLOR;
   ring[1].position[0]=1.5f;ring[2].position[0]=1.5f;
   ok=check(coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
-    resolved,error) && resolved.vertices.size()==4,"view-volume clipping creates complete contour") && ok;
+    resolved,error,CoinRenderViewportSnapshot{}) && resolved.vertices.size()==4,"view-volume clipping creates complete contour") && ok;
   for(const auto & item:resolved.vertices)ok=check(item.vertex.position[0]<=1.000001f,"viewport clipping bounds") && ok;
   SbViewVolume volume;volume.perspective(.785398163f,1,.1f,10);
   SbMatrix affine;volume.getMatrices(affine,state.projectionCoin);
   for(auto & vertex:ring){vertex.position[0]*=.2f;vertex.position[1]*=.2f;vertex.position[2]=-1;}
   ring[0].position[2]=.2f;
   ok=check(coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
-    resolved,error) && !resolved.vertices.empty(),"polygon crossing eye/near plane survives homogeneous clipping") && ok;
+    resolved,error,CoinRenderViewportSnapshot{}) && !resolved.vertices.empty(),"polygon crossing eye/near plane survives homogeneous clipping") && ok;
   state=CoinRenderRenderStateSnapshot{};state.cullMode=CoinRenderCullMode::NONE;
   std::vector<CoinRenderVertexSnapshot> concave(5);
   const float concaveXY[5][2]={{-.8f,-.8f},{.8f,-.8f},{0,0},{.8f,.8f},{-.8f,.8f}};
   for(int i=0;i<5;++i) {concave[i].position[0]=concaveXY[i][0];concave[i].position[1]=concaveXY[i][1];}
   ok=check(!coin_render_prepare_polygon_style(concave,state,materials,lighting,CoinRenderPolygonStyle::LINES,
-    resolved,error),"concave contours are rejected instead of joined incorrectly") && ok;
-  state.polygonOffsetEnabled=true;state.polygonOffsetStyles=2;state.polygonOffsetFactor=1;
-  ok=check(!coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
-    resolved,error),"original polygon slope offset requires explicit qualification") && ok;
+    resolved,error,CoinRenderViewportSnapshot{}),"concave contours are rejected instead of joined incorrectly") && ok;
   state=CoinRenderRenderStateSnapshot{};state.cullMode=CoinRenderCullMode::NONE;
   state.linePattern=0xaaaau;
   ok=check(!coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
-    resolved,error),"unqualified polygon stipple is explicitly rejected") && ok;
+    resolved,error,CoinRenderViewportSnapshot{}),"unqualified polygon stipple is explicitly rejected") && ok;
+  return ok;
+}
+bool slopeCoreContract() {
+  CoinRenderRenderStateSnapshot state;
+  state.lightModel=CoinRenderLightModel::BASE_COLOR;state.cullMode=CoinRenderCullMode::NONE;
+  state.polygonOffsetEnabled=true;state.polygonOffsetStyles=6;
+  std::vector<CoinRenderMaterialSnapshot> materials(1);
+  std::vector<CoinRenderVertexSnapshot> ring(4);
+  const float xy[4][2]={{-.8f,-.8f},{.8f,-.8f},{.8f,.8f},{-.8f,.8f}};
+  for(int i=0;i<4;++i) {
+    ring[i].position[0]=xy[i][0];ring[i].position[1]=xy[i][1];
+    ring[i].position[2]=.2f*xy[i][0]+.1f*xy[i][1];
+  }
+  CoinRenderLightingSnapshot lighting;CoinRenderPolygonStyleResult result;std::string error;
+  bool ok=true;
+  for(auto style:{CoinRenderPolygonStyle::LINES,CoinRenderPolygonStyle::POINTS})
+    for(float factor:{-2.0f,2.0f})for(int width:{64,128})for(int clipped:{0,1})for(int projective:{0,1}) {
+      CoinRenderViewportSnapshot viewport;viewport.width=width;viewport.height=32;
+      state.projectionCoin=SbMatrix::identity();state.projectionCoin[2][3]=projective ? .5f : 0;
+      state.polygonOffsetFactor=factor;state.depthRange[0]=.2f;state.depthRange[1]=.8f;
+      state.clipPlanesWorld.clear();if(clipped)state.clipPlanesWorld.push_back(SbPlane(SbVec3f(1,0,0),0));
+      // z_ndc=.2*x+.1*y, hence window slopes .6*.2/width and .6*.1/height.
+      const float expected=factor*std::max(.12f/width,.06f/32);
+      ok=check(coin_render_prepare_polygon_style(ring,state,materials,lighting,style,result,error,viewport) &&
+        std::abs(result.state.polygonOffsetSlopeBias-expected)<1e-8f && result.state.polygonOffsetFactor==0,
+        "original planar slope uses viewport, depth range, sign and survives clipping") && ok;
+    }
+  state.projectionCoin=SbMatrix::identity();
+  state.clipPlanesWorld.clear();state.depthRange[0]=0;state.depthRange[1]=1;
+  state.polygonOffsetStyles=1;
+  ok=check(coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
+    result,error,CoinRenderViewportSnapshot{}) && result.state.polygonOffsetSlopeBias==0,
+    "inactive style mask leaves slope disabled") && ok;
+  state.polygonOffsetStyles=6;ring[2].position[2]+=.1f;
+  ok=check(!coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
+    result,error,CoinRenderViewportSnapshot{}) && error.find("planar original face")!=std::string::npos,
+    "nonplanar original faces reject ambiguous slope even after clipping") && ok;
+  ring[2].position[2]-=.1f;
+  state.model.setScale(SbVec3f(0,1,1));
+  ok=check(!coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
+    result,error,CoinRenderViewportSnapshot{}) && error.find("zero projected area")!=std::string::npos,
+    "edge-on slope is explicitly unsupported") && ok;
+  CoinRenderFramePlan before,after;before.renderStates.push_back(state);after=before;
+  after.renderStates[0].polygonOffsetSlopeBias=.01f;
+  ok=check(!coin_render_same_state_except_camera(before.renderStates[0],after.renderStates[0]),
+    "resolved bias participates in state equality") && ok;
   return ok;
 }
 bool polygonCaptureContract() {
@@ -354,6 +401,69 @@ bool polygonActionContract(bool cpu) {
 #endif
   root->unref();return ok;
 }
+bool slopeActionContract(bool cpu) {
+  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(64,64)));
+  if(cpu)target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
+#ifdef HAVE_COIN_BGFX
+  target->setDepthReadbackEnabled(FALSE);
+#endif
+  SoSeparator * root=new SoSeparator;root->ref();
+  SoOrthographicCamera * camera=new SoOrthographicCamera;
+  camera->height=2;camera->position=SbVec3f(0,0,3);camera->nearDistance=.1f;camera->farDistance=10;
+  root->addChild(camera);
+  SoDepthBuffer * depth=new SoDepthBuffer;root->addChild(depth);
+  SoLightModel * lighting=new SoLightModel;lighting->model=SoLightModel::BASE_COLOR;root->addChild(lighting);
+  auto slanted=[](float extent) {
+    SoCoordinate3 * node=new SoCoordinate3;
+    const float xy[4][2]={{-1,-1},{1,-1},{1,1},{-1,1}};
+    for(int i=0;i<4;++i)node->point.set1Value(i,SbVec3f(extent*xy[i][0],extent*xy[i][1],
+      extent*(.2f*xy[i][0]+.1f*xy[i][1])));
+    return node;
+  };
+  SoMaterial * blue=new SoMaterial;blue->diffuseColor=SbColor(0,0,1);root->addChild(blue);
+  root->addChild(slanted(.95f));root->addChild(faces());
+  SoSeparator * overlay=new SoSeparator;root->addChild(overlay);
+  SoDrawStyle * drawStyle=style(SoDrawStyle::LINES);
+  drawStyle->lineWidth=6;drawStyle->pointSize=8;overlay->addChild(drawStyle);
+  SoPolygonOffset * offset=new SoPolygonOffset;offset->units=0;
+  offset->styles=SoPolygonOffset::LINES|SoPolygonOffset::POINTS;overlay->addChild(offset);
+  SoClipPlane * clip=new SoClipPlane;clip->on=FALSE;overlay->addChild(clip);
+  SoMaterial * red=new SoMaterial;red->diffuseColor=SbColor(1,0,0);overlay->addChild(red);
+  SoCoordinate3 * foreground=slanted(.6f);overlay->addChild(foreground);overlay->addChild(faces());
+  // Later coplanar fill must also respect the depth written by the offset stroke.
+  root->addChild(faces());
+  CoinRenderAction action(SbViewportRegion(64,64));action.setRenderTarget(target.get());
+  bool ok=true;
+  for(int fast:{0,1})for(int mode:{SoDrawStyle::LINES,SoDrawStyle::POINTS})
+    for(int range:{0,1})for(int clipped:{0,1})for(float factor:{-4.0f,4.0f,-2000.0f,2000.0f}) {
+      action.setFastPathEnabled(fast ? TRUE : FALSE);drawStyle->style=mode;
+      depth->range=range ? SbVec2f(.2f,.8f) : SbVec2f(0,1);
+      clip->on=clipped ? TRUE : FALSE;offset->factor=factor;
+      action.apply(root);std::vector<uint8_t> image;target->readbackRGBA(image);
+      const int x=clipped ? 32 : 13;
+      ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS &&
+        sample(image,x,13,factor<0 ? 255 : 0,0,factor<0 ? 0 : 255),
+        "original slope offset controls coplanar stroke oclusion, range, clipping and depth writes") && ok;
+    }
+  // A non-planar contour cannot silently use a gradient from one tessellation triangle.
+  std::vector<uint8_t> before,image;target->readbackRGBA(before);
+  const uint64_t serial=target->getLastSubmissionSerial();
+  SbVec3f position=foreground->point[2];position[2]+=.15f;foreground->point.set1Value(2,position);
+  action.apply(root);target->readbackRGBA(image);
+  ok=check(action.getLastStatus()==CoinRenderAction::UNSUPPORTED && image==before &&
+    target->getLastSubmissionSerial()==serial,"unsupported non-planar slope preserves publication") && ok;
+  position[2]-=.15f;foreground->point.set1Value(2,position);
+#if !defined(HAVE_COIN_BGFX)
+  offset->units=1;action.apply(root);
+  ok=check(action.getLastStatus()==CoinRenderAction::UNSUPPORTED &&
+    std::string(action.getLastError().getString()).find("depth precision qualification")!=std::string::npos,
+    "wgpu slope plus units exposes its precision limit") && ok;
+  offset->units=0;
+#endif
+  offset->factor=-4;action.apply(root);
+  ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS,"slope action recovers after rejection") && ok;
+  root->unref();return ok;
+}
 bool actionContract(bool cpu) {
   std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(64,64)));
   if(cpu) target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
@@ -414,10 +524,10 @@ bool actionContract(bool cpu) {
 }
 int main() {
   SoDB::init();CoinRenderAction::initClass();
-  if(!stateContract() || !polygonCoreContract() || !polygonCaptureContract() || !polygonActionContract(true) || !actionContract(true))return 1;
+  if(!stateContract() || !polygonCoreContract() || !slopeCoreContract() || !polygonCaptureContract() || !polygonActionContract(true) || !slopeActionContract(true) || !actionContract(true))return 1;
   if(!CoinRenderAction::isGpuBackendAvailable()) {
     std::cerr<<"[SKIP] GPU adapter unavailable\n";return 77;
   }
-  if(!polygonActionContract(false) || !actionContract(false))return 1;
+  if(!polygonActionContract(false) || !slopeActionContract(false) || !actionContract(false))return 1;
   std::cout<<"DrawStyle polygon/Core/INVISIBLE CPU/GPU contracts passed\n";return 0;
 }

@@ -199,6 +199,7 @@ bool lowerAndCache() {
       state.polygonOffsetEnabled = true;
       state.polygonOffsetFactor = -2;
       state.polygonOffsetUnits = 3;
+      state.polygonOffsetSlopeBias = -.02f;
       state.polygonOffsetStyles = styles;
       state.polygonOffsetPrimitiveStyle = primitive;
       CoinBgfxPlan lowered;
@@ -207,19 +208,24 @@ bool lowerAndCache() {
       if (lowered.draws.size() != 2) return false;
       ok &= check(lowered.draws[0].polygonOffsetFactor == 0 &&
         lowered.draws[1].polygonOffsetFactor == ((styles & primitive) ? -2 : 0) &&
-        lowered.draws[1].polygonOffsetUnits == ((styles & primitive) ? 3 : 0),
+        lowered.draws[1].polygonOffsetUnits == ((styles & primitive) ? 3 : 0) &&
+        lowered.draws[1].polygonOffsetSlopeBias == ((styles & primitive) ? -.02f : 0),
         "style filtering or per-draw isolation failed");
-      CoinRenderFramePlan changed = frame;
-      changed.revision = frame.revision + 1;
-      changed.renderStates[1].polygonOffsetUnits = -3;
-      ok &= check(CoinRenderFrameReuseCore::classify(frame,changed).kind !=
-        CoinRenderFrameReuseKind::REUSE &&
-        CoinRenderFrameReuseCore::classify(frame,changed).kind !=
-        CoinRenderFrameReuseKind::CAMERA_PATCH, "bias change reused stale cache");
+      CoinRenderFramePlan changed;
       std::vector<CoinBgfxDraw> patched;
-      if (styles & primitive) {
-        ok &= check(!CoinBgfxLowering::patchCamera(changed,32,32,false,lowered,patched,diagnostic),
-          "camera patch accepted changed effective bias");
+      for (int mutation : {0,1}) {
+        changed = frame;
+        changed.revision = frame.revision + 1;
+        if (mutation == 0) changed.renderStates[1].polygonOffsetUnits = -3;
+        else changed.renderStates[1].polygonOffsetSlopeBias = .02f;
+        ok &= check(CoinRenderFrameReuseCore::classify(frame,changed).kind !=
+          CoinRenderFrameReuseKind::REUSE &&
+          CoinRenderFrameReuseCore::classify(frame,changed).kind !=
+          CoinRenderFrameReuseKind::CAMERA_PATCH, "bias change reused stale cache");
+        if (styles & primitive) {
+          ok &= check(!CoinBgfxLowering::patchCamera(changed,32,32,false,lowered,patched,diagnostic),
+            "camera patch accepted changed effective bias");
+        }
       }
       changed = frame;
       changed.renderStates[1].depthRange[0] = 0.25f;

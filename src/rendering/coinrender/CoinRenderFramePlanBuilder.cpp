@@ -802,6 +802,8 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
         existing.polygonOffsetEnabled == rs.polygonOffsetEnabled &&
         existing.polygonOffsetFactor == rs.polygonOffsetFactor &&
         existing.polygonOffsetUnits == rs.polygonOffsetUnits &&
+        existing.polygonOffsetSlopeBias == rs.polygonOffsetSlopeBias &&
+        existing.polygonOffsetPrimitiveStyle == rs.polygonOffsetPrimitiveStyle &&
         existing.polygonOffsetStyles == rs.polygonOffsetStyles &&
         existing.fogMode == rs.fogMode &&
         existing.fogStart == rs.fogStart &&
@@ -1255,7 +1257,8 @@ void CoinRenderFramePlanBuilder::emitStyledPolygon(SoCallbackAction* action) {
   if (!coin_render_prepare_polygon_style(this->polygonVertices, sourceState,
                                          this->currentPlan.materials,
                                          this->currentPlan.lightingStates[sourceState.lightingSlot],
-                                         style, resolved, diagnostic)) {
+                                         style, resolved, diagnostic,
+                                         this->currentPlan.viewports[sourceState.viewportSlot])) {
     if (diagnostic.compare(0, 12, "UNSUPPORTED:") == 0)
       this->isUnsupported = true;
     else
@@ -1265,6 +1268,13 @@ void CoinRenderFramePlanBuilder::emitStyledPolygon(SoCallbackAction* action) {
   }
   if (resolved.vertices.empty())
     return;
+#if !defined(HAVE_COIN_BGFX)
+  if (resolved.state.polygonOffsetSlopeBias != 0 && sourceState.polygonOffsetUnits != 0) {
+    this->isUnsupported = true;
+    this->builderError = "UNSUPPORTED: wgpu polygon slope offset with nonzero units requires depth precision qualification";
+    return;
+  }
+#endif
   const uint32_t stateSlot = static_cast<uint32_t>(this->currentPlan.renderStates.size());
   this->currentPlan.renderStates.push_back(resolved.state);
   this->ensureDrawPacket(resolved.topology, stateSlot, this->polygonNode, true);

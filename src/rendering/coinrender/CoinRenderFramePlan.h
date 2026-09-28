@@ -203,6 +203,7 @@ struct CoinRenderRenderStateSnapshot {
   bool polygonOffsetEnabled = false;
   float polygonOffsetFactor = 0.0f;
   float polygonOffsetUnits = 0.0f;
+  float polygonOffsetSlopeBias = 0.0f; // Resolved original-face bias in window depth.
   uint32_t polygonOffsetStyles = 1;
   uint32_t polygonOffsetPrimitiveStyle = 1; // Retained across line/point expansion.
   CoinRenderLightModel lightModel = CoinRenderLightModel::PHONG;

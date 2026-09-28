@@ -5,7 +5,7 @@ O protocolo privado 21 transporta `CoinRenderDrawPacket::renderLayer` e
 C++ e Rust devem ser reconstruídos juntos. O draw tem 56 bytes desde a revisão 20;
 a revisão 21 usa o antigo campo reservado para o blend resolvido pelo Core.
 O estado tinha 956 bytes nessa entrega, incluindo polygon offset. Na revisão
-privada atual 22 tem 1088 bytes com clipping; os metadados de anotações permanecem
+privada atual 23 tem 1092 bytes com clipping e bias de inclinação; os metadados de anotações permanecem
 no draw de 56 bytes. Veja o [contrato de clipping](coin-render-clipping-contract.md).
 
 A camada zero recebe a composição resolvida pelo Core CoinRender. As demais

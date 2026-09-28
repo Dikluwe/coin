@@ -19,6 +19,7 @@ coin_render_same_state_except_camera(const CoinRenderRenderStateSnapshot & a,
     a.polygonOffsetEnabled == b.polygonOffsetEnabled &&
     a.polygonOffsetFactor == b.polygonOffsetFactor &&
     a.polygonOffsetUnits == b.polygonOffsetUnits &&
+    a.polygonOffsetSlopeBias == b.polygonOffsetSlopeBias &&
     a.polygonOffsetStyles == b.polygonOffsetStyles &&
     a.polygonOffsetPrimitiveStyle == b.polygonOffsetPrimitiveStyle &&
     a.lightModel == b.lightModel && a.lineWidth == b.lineWidth &&

@@ -13,7 +13,7 @@ use std::sync::{Arc, Mutex, OnceLock};
 
 mod composition;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 22;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 23;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 pub type CoinWgpuSurfaceId = u64;
@@ -221,10 +221,12 @@ pub struct CoinWgpuRenderState {
     pub polygon_offset_primitive_style: u32,
     pub clip_plane_count: u32,
     pub clip_planes: [[f32; 4]; 8],
+    pub polygon_offset_slope_bias: f32,
 }
 
 const _: () = {
-    assert!(std::mem::size_of::<CoinWgpuRenderState>() == 1088);
+    assert!(std::mem::size_of::<CoinWgpuRenderState>() == 1092);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, polygon_offset_slope_bias) == 1088);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, clip_plane_count) == 956);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, clip_planes) == 960);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, polygon_offset_enabled) == 936);
@@ -441,6 +443,7 @@ struct PipelineKey {
     blend: bool,
     depth_write: bool,
     depth_compare: wgpu::CompareFunction,
+    resolved_depth_bias: bool,
     depth_bias_constant: i32,
     depth_bias_slope_bits: u32,
 }
@@ -612,6 +615,7 @@ fn same_camera_independent_state(a: &CoinWgpuRenderState, b: &CoinWgpuRenderStat
         && a.polygon_offset_enabled == b.polygon_offset_enabled
         && a.polygon_offset_factor == b.polygon_offset_factor
         && a.polygon_offset_units == b.polygon_offset_units
+        && a.polygon_offset_slope_bias == b.polygon_offset_slope_bias
         && a.polygon_offset_styles == b.polygon_offset_styles
         && a.polygon_offset_primitive_style == b.polygon_offset_primitive_style
         && a.clip_plane_count == b.clip_plane_count && a.clip_planes == b.clip_planes
@@ -1547,7 +1551,7 @@ fn configure_surface_record(
 }
 
 fn polygon_depth_bias(st: &CoinWgpuRenderState, topology: u32) -> Result<wgpu::DepthBiasState, String> {
-    if !st.polygon_offset_factor.is_finite() || !st.polygon_offset_units.is_finite()
+    if !st.polygon_offset_factor.is_finite() || !st.polygon_offset_units.is_finite() || !st.polygon_offset_slope_bias.is_finite()
         || st.polygon_offset_styles & !7 != 0
         || !matches!(st.polygon_offset_primitive_style, 1 | 2 | 4) {
         return Err("Invalid polygon offset".to_string());
@@ -1636,6 +1640,7 @@ fn get_or_create_pipeline<'a>(
     depth_write: bool,
     depth_compare: wgpu::CompareFunction,
     depth_bias: wgpu::DepthBiasState,
+    resolved_depth_bias: bool,
 ) -> Result<wgpu::RenderPipeline, String> {
     let mut map = ctx.pipelines.lock().map_err(|e| e.to_string())?;
 
@@ -1656,6 +1661,7 @@ fn get_or_create_pipeline<'a>(
         blend,
         depth_write,
         depth_compare,
+        resolved_depth_bias,
         depth_bias_constant: depth_bias.constant,
         depth_bias_slope_bits: depth_bias.slope_scale.to_bits(),
     };
@@ -1710,7 +1716,7 @@ fn get_or_create_pipeline<'a>(
             },
             fragment: Some(wgpu::FragmentState {
                 module: selected_shader,
-                entry_point: Some("fs_main"),
+                entry_point: Some(if resolved_depth_bias { "fs_depth_bias" } else { "fs_main" }),
                 targets: &[Some(wgpu::ColorTargetState {
                     format: color_format,
                     blend: Some(if blend {
@@ -2384,6 +2390,13 @@ fn encode_frame(
                     _ => wgpu::CompareFunction::Less,
                 }
             };
+            let resolved_depth_bias = st.polygon_offset_enabled != 0
+                && st.polygon_offset_styles & st.polygon_offset_primitive_style != 0
+                && st.polygon_offset_slope_bias != 0.0;
+            if resolved_depth_bias && (st.polygon_offset_units != 0.0 || st.polygon_offset_factor != 0.0) {
+                return Err((CoinWgpuStatus::Unsupported,
+                    "Resolved polygon slope bias requires zero GPU factor and units".to_string()));
+            }
             let depth_bias = polygon_depth_bias(st, draw.topology).map_err(|e|
                 (CoinWgpuStatus::InvalidArgument, format!("Draw {}: {}", item.draw_index, e)))?;
             let pipeline = match get_or_create_pipeline(
@@ -2397,6 +2410,7 @@ fn encode_frame(
                 st.depth_write != 0,
                 depth_compare,
                 depth_bias,
+                resolved_depth_bias,
             ) {
                 Ok(p) => p,
                 Err(e) => return Err((CoinWgpuStatus::BackendError, e)),
@@ -2482,7 +2496,8 @@ fn encode_frame(
                 light_meta: [st.light_count as f32, 0.0, 0.0, 0.0],
                 texture_blend_color: st.texture_blend_color,
                 lights: st.lights,
-                clip_meta: [st.clip_plane_count as f32, 0.0, 0.0, 0.0],
+                clip_meta: [st.clip_plane_count as f32, st.polygon_offset_slope_bias,
+                    st.depth_range[0], st.depth_range[1]],
                 clip_planes: st.clip_planes,
                 fog_color_mode: [
                     st.fog_color[0],
@@ -2561,7 +2576,8 @@ fn encode_frame(
             }
             pass.set_viewport(viewport[0] as f32, viewport[1] as f32,
                 viewport[2] as f32, viewport[3] as f32,
-                st.depth_range[0], st.depth_range[1]);
+                if resolved_depth_bias { 0.0 } else { st.depth_range[0] },
+                if resolved_depth_bias { 1.0 } else { st.depth_range[1] });
             pass.set_scissor_rect(viewport[0] as u32, viewport[1] as u32,
                 viewport[2] as u32, viewport[3] as u32);
 

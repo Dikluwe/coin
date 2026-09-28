@@ -160,8 +160,7 @@ fn apply_fog(color: vec4<f32>, eye_depth: f32) -> vec4<f32> {
     return vec4<f32>(mix(u.fog_color_mode.rgb, color.rgb, factor), color.a);
 }
 
-@fragment
-fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
+fn fragment_color(input: VertexOutput) -> vec4<f32> {
     for (var i = 0u; i < 8u; i += 1u) {
         if (f32(i) >= u.clip_meta.x) { break; }
         if (dot(u.clip_planes[i], vec4<f32>(input.position_view, 1.0)) < 0.0) { discard; }
@@ -187,4 +186,25 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
         }
     }
     return apply_fog(base_color, -input.position_view.z);
+}
+
+@fragment
+fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
+    return fragment_color(input);
+}
+
+struct DepthBiasOutput {
+    @location(0) color: vec4<f32>,
+    @builtin(frag_depth) depth: f32,
+};
+
+// The Core supplies the original polygon slope, not the expanded stroke slope.
+// Use a full hardware depth range; map Coin's range here before applying bias.
+@fragment
+fn fs_depth_bias(input: VertexOutput) -> DepthBiasOutput {
+    var output: DepthBiasOutput;
+    output.color = fragment_color(input);
+    output.depth = clamp(mix(u.clip_meta.z, u.clip_meta.w, input.clip_position.z)
+                         + u.clip_meta.y, 0.0, 1.0);
+    return output;
 }

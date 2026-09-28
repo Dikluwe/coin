@@ -98,7 +98,8 @@ a multiplicidade pode afetar alpha e depth, como no GL.
 rasterizador CPU. A resolução de estilos e o rasterizador CPU usam a mesma
 função. Cores iluminadas e limitadas são interpoladas nos vértices novos de
 clipping, junto de alpha e UV. Infra consome geometria já resolvida: não há
-nova interpretação de SoDrawStyle nos executores, nem mudança de ABI Rust.
+nova interpretação de SoDrawStyle nos executores. O transporte do bias de
+inclinação usa a ABI privada Rust 23, descrita abaixo.
 
 A expansão existente aplica largura/tamanho, preservando depth e alpha no
 perfil validado. Linhas/pontos nativos mantêm sua topologia sob LINES/POINTS.
@@ -114,9 +115,12 @@ não aceita strokes preparados em coordenadas de tela.
 - Padrão de linha admite sólido (`0xffff`) e vazio (`0`). Outros padrões são
   rejeitados: continuidade entre arestas e contagem de fragmentos Coin/GL
   permanecem pendentes.
-- Offset ativado para o estilo admite factor zero. Factor diferente de zero é
-  rejeitado porque exige o gradiente de depth do polígono original. Precisão de
-  units e qualificação de depth/raster continuam vinculadas a P04/F12.
+- Offset por inclinação está implementado para contornos planos com área
+  projetada não zero. No wgpu, a combinação de inclinação não zero com units
+  não zero retorna UNSUPPORTED; units isolado conserva o caminho existente.
+  Precisão de units e qualificação de depth/raster continuam vinculadas a
+  P04/F12. Faces não planas e faces de lado com factor ativo têm diagnóstico
+  explícito; com factor zero, conservam o perfil anterior.
 - Texturas, inclusive unidades adicionais, e fog de polígonos estilizados no
   wgpu são rejeitados. BGFX usa o caminho existente de atributos homogêneos,
   texturas e fog por fragmento; sua matriz de combinações ainda precisa ser
@@ -153,6 +157,56 @@ resultados anteriores. Logs desta ampliação:
 `/tmp/coin-poly-bgfx-final-ctest.log`, `/tmp/coin-poly-wgpu-final-ctest.log`,
 `/tmp/coin-poly-bgfx-final-style.log` e `/tmp/coin-poly-wgpu-final-style.log`.
 
+## Offset por inclinação da face original
+
+O Core recebe também o viewport capturado. Para a face plana original, calcula
+`m = max(abs(dz_window/dx_pixel), abs(dz_window/dy_pixel))`, já incluindo o
+intervalo de depth. O estado resolvido transporta `factor * m` em
+`polygonOffsetSlopeBias` e zera o factor usado pela GPU. Clipping e culling
+continuam antes da expansão; o bias não modifica os vértices nem o recorte.
+Planaridade é verificada no contorno original, mesmo que um corte esconda parte
+da face, com tolerância de `1e-5` da extensão em coordenadas do objeto.
+
+A equação segue o contrato de polygon offset da
+[especificação OpenGL 2.1, seção 3.5.5](https://registry.khronos.org/OpenGL/specs/gl/glspec21.pdf).
+A inclinação dos triângulos que expandem os strokes não substitui a inclinação
+da face que lhes deu origem. Área projetada zero com factor ativo fica fora
+deste perfil, pois não oferece um gradiente finito único.
+
+BGFX soma esse bias ao componente constante já usado por `coinWindowDepth`;
+range, bias e clamp em `[0,1]` são aplicados no fragmento. O shader conserva o
+caminho existente de units. wgpu seleciona `fs_depth_bias` apenas para draws
+com bias resolvido ativo, usa viewport de depth `[0,1]` e aplica range Coin,
+bias e clamp no shader. A variante usa factor/units GPU zero; o caminho de
+pipeline anterior permanece para os demais draws. Essa escolha também evita
+que o clamp do viewport reduza o resultado ao intervalo Coin antes do bias.
+As regras de depth bias e saída de fragmento estão na
+[especificação WebGPU](https://www.w3.org/TR/webgpu/).
+
+A ABI privada wgpu passa para **23**: estado de **1092 bytes**, novo float no
+offset **1088**, com os offsets de clipping e o draw conservados. Igualdade,
+reuso, agrupamento BGFX, empacotamento e diagnóstico textual incluem o bias.
+O rasterizador CPU aplica o bias resolvido após o range, para referência do
+perfil testado com units zero.
+
+`CoinRenderDrawStyleTest` cobre fórmula numérica independente, dois tamanhos de
+viewport, projeção homogênea, range, sinais, clipping e máscara de estilo.
+A cena coplanar inclinada verifica LINES/POINTS, fast path ligado/desligado,
+oclusão antes/depois do stroke e bias suficiente para atingir o clamp sem
+eliminar geometria pelo clipping. Faces não planas preservam imagem e serial,
+e a action recupera após rejeição. O teste de depth valida transporte BGFX e
+invalidação por mudança isolada do bias; FFI e Naga validam o transporte Rust
+e as três variantes WGSL. Esses testes não encerram comparação visual Coin/GL,
+precisão de units nem a matriz de transparência.
+
+Em 2026-09-28, passaram **19 CTests wgpu**, **26 CTests BGFX** e
+**10 testes Rust** (oito unitários e dois de validação WGSL). Após a revisão
+final de diagnóstico e máscara efetiva, passaram novamente os contratos de
+frame e depth nos dois perfis. Logs locais:
+`/tmp/coin-slope-wgpu-ctest.log`, `/tmp/coin-slope-bgfx-ctest.log`,
+`/tmp/coin-slope-rust.log`, `/tmp/coin-slope-wgpu-review-tests.log` e
+`/tmp/coin-slope-bgfx-review-tests.log`.
+
 ## Checklist de P02
 
 - [x] INVISIBLE com estado efetivo Coin e supressão comum de captura.
@@ -162,7 +216,9 @@ resultados anteriores. Logs desta ampliação:
 - [x] Culling e clipping de contornos convexos, com bordas e pontos novos de corte.
 - [x] Gouraud antes de clipping, com UV/alpha interpolados e depth no perfil.
 - [ ] Contornos fora do perfil, subclasses e shapes customizados; definir sua matriz.
-- [ ] Padrão contínuo entre arestas e offset pelo gradiente do polígono original.
+- [x] Offset pelo gradiente da face plana original em Core, BGFX e wgpu (units zero).
+- [ ] Padrão contínuo entre arestas.
+- [ ] Offset fora do perfil plano; inclinação + units no wgpu e precisão P04/F12.
 - [ ] Fog e texturas de strokes no wgpu; matriz ampliada BGFX conforme P07/P08.
 - [ ] Sorting/transparência, precisão de raster e comparação Coin/GL/FreeCAD.
 

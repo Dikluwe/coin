@@ -59,6 +59,7 @@ int compareDrawGroupingKey(const CoinBgfxDraw & lhs,
   if (result == 0) result = compareBytes(lhs.depthRange, rhs.depthRange, sizeof(lhs.depthRange));
   if (result == 0) result = compareValue(lhs.polygonOffsetFactor, rhs.polygonOffsetFactor);
   if (result == 0) result = compareValue(lhs.polygonOffsetUnits, rhs.polygonOffsetUnits);
+  if (result == 0) result = compareValue(lhs.polygonOffsetSlopeBias, rhs.polygonOffsetSlopeBias);
   if (result == 0) result = compareBytes(lhs.clipMeta, rhs.clipMeta, sizeof(lhs.clipMeta));
   if (result == 0) result = compareBytes(lhs.clipPlanes, rhs.clipPlanes, sizeof(lhs.clipPlanes));
   if (result == 0) result = compareBytes(lhs.viewport, rhs.viewport, sizeof(lhs.viewport));
@@ -107,7 +108,8 @@ bool opaqueDrawCanBeGrouped(const CoinBgfxDraw & draw)
     (draw.depthTest && draw.depthWrite &&
      draw.depthFunction == CoinRenderDepthFunction::LESS &&
      draw.depthRange[0] == 0.0f && draw.depthRange[1] == 1.0f &&
-     draw.polygonOffsetFactor == 0.0f && draw.polygonOffsetUnits == 0.0f);
+     draw.polygonOffsetFactor == 0.0f && draw.polygonOffsetUnits == 0.0f &&
+     draw.polygonOffsetSlopeBias == 0.0f);
 }
 
 bool sameDrawExceptMaterial(const CoinBgfxDraw & lhs,
@@ -258,6 +260,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
         (state.polygonOffsetStyles & state.polygonOffsetPrimitiveStyle) != 0) {
       lowered.polygonOffsetFactor = state.polygonOffsetFactor;
       lowered.polygonOffsetUnits = state.polygonOffsetUnits;
+      lowered.polygonOffsetSlopeBias = state.polygonOffsetSlopeBias;
     }
     lowered.blend = item.blend;
     lowered.sourceNodeId = draw.sourceNodeId;
@@ -638,6 +641,9 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
         ((state.polygonOffsetEnabled &&
           (state.polygonOffsetStyles & state.polygonOffsetPrimitiveStyle))
           ? state.polygonOffsetUnits : 0.0f) != previous.polygonOffsetUnits ||
+        ((state.polygonOffsetEnabled &&
+          (state.polygonOffsetStyles & state.polygonOffsetPrimitiveStyle))
+          ? state.polygonOffsetSlopeBias : 0.0f) != previous.polygonOffsetSlopeBias ||
         !state.clipPlanesWorld.empty() || previous.clipMeta[0] != 0 ||
         state.lightModel != CoinRenderLightModel::BASE_COLOR ||
         state.fogMode != CoinRenderFogMode::NONE || previous.fogColorMode[3] != 0.0f ||

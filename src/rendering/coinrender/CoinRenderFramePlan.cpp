@@ -273,6 +273,7 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
       return false;
     }
     if (!isFiniteF(state.polygonOffsetFactor) || !isFiniteF(state.polygonOffsetUnits) ||
+        !isFiniteF(state.polygonOffsetSlopeBias) ||
         (state.polygonOffsetStyles & ~7u) != 0 ||
         (state.polygonOffsetPrimitiveStyle != 1 &&
          state.polygonOffsetPrimitiveStyle != 2 && state.polygonOffsetPrimitiveStyle != 4)) {

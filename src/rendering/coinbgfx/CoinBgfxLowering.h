@@ -48,6 +48,7 @@ struct CoinBgfxDraw {
   float depthRange[2] = {0.0f, 1.0f};
   float polygonOffsetFactor = 0.0f; // Effective, style-filtered bias.
   float polygonOffsetUnits = 0.0f;
+  float polygonOffsetSlopeBias = 0.0f;
   bool blend = false;
   SbUniqueId sourceNodeId = 0;
   bool sortTriangles = false;

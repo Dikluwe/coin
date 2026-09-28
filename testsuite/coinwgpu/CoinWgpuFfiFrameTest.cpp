@@ -37,6 +37,7 @@ main()
   frame.textures.push_back(texture);
   frame.lightingStates.push_back(CoinRenderLightingSnapshot{});
   frame.renderStates.push_back(CoinRenderRenderStateSnapshot{});
+  frame.renderStates[0].polygonOffsetSlopeBias = -.01f;
 
   CoinWgpuFfiFrame packed;
   std::string diagnostic;
@@ -45,6 +46,7 @@ main()
 
   const CoinWgpuFrameView & first = packed.getView();
   if (!check(first.width == 64 && first.height == 32, "target dimensions were not packed") ||
+      !check(first.states[0].polygon_offset_slope_bias == -.01f, "original polygon slope bias was not packed") ||
       !check(first.indices != frame.indices.data(), "packed indices do not own their storage") ||
       !check(first.textures[0].pixels != frame.textures[0].pixelsRgba.data(),
              "packed texture does not own its storage")) return 1;
