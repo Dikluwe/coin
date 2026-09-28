@@ -5,7 +5,6 @@
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <algorithm>
 #include <cmath>
-#include <sstream>
 
 struct CoinRenderCompositionItem {
   size_t drawIndex = 0;
@@ -15,6 +14,12 @@ struct CoinRenderCompositionItem {
   bool sortTriangles = false;
   bool sortObject = false;
   float eyeDepth = 0.0f;
+  bool screenDoor = false;
+  uint32_t screenDoorLevel = 0;
+  bool depthTest = true;
+  bool depthWrite = true;
+  CoinRenderDepthFunction depthFunction = CoinRenderDepthFunction::LESS;
+  float depthRange[2] = {0.0f, 1.0f};
   enum TransparencyStrategy {
     OBJECT,
     WEIGHTED_OIT,
@@ -22,44 +27,51 @@ struct CoinRenderCompositionItem {
   } transparencyStrategy = OBJECT;
 };
 
-// Explicit compatibility mapping for the blend modes supported by the
-// experimental renderer. Additive modes deliberately remain unsupported:
-// mapping those to source-over blending would silently change their meaning.
+// Names describe the Coin operation; GPU algorithms are selected by Infra.
 inline bool
 coin_render_transparency_strategy(int32_t type,
   CoinRenderCompositionItem::TransparencyStrategy & strategy,
   const char * & name)
 {
+  strategy = CoinRenderCompositionItem::OBJECT;
   switch (type) {
-  case SoGLRenderAction::SCREEN_DOOR:
-    strategy = CoinRenderCompositionItem::OBJECT; name = "SCREEN_DOOR -> object"; return true;
-  case SoGLRenderAction::BLEND:
-    strategy = CoinRenderCompositionItem::OBJECT; name = "BLEND -> object"; return true;
-  case SoGLRenderAction::DELAYED_BLEND:
-    strategy = CoinRenderCompositionItem::OBJECT; name = "DELAYED_BLEND -> object"; return true;
-  case SoGLRenderAction::SORTED_OBJECT_BLEND:
-    strategy = CoinRenderCompositionItem::OBJECT; name = "SORTED_OBJECT_BLEND -> object"; return true;
-  case SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND:
-    strategy = CoinRenderCompositionItem::WEIGHTED_OIT; name = "SORTED_OBJECT_SORTED_TRIANGLE_BLEND -> weighted_oit"; return true;
+#define COIN_RENDER_MODE(mode) case SoGLRenderAction::mode: name = #mode " -> object"; return true
+  COIN_RENDER_MODE(NONE);
+  COIN_RENDER_MODE(SCREEN_DOOR);
+  COIN_RENDER_MODE(ADD);
+  COIN_RENDER_MODE(BLEND);
+  COIN_RENDER_MODE(DELAYED_ADD);
+  COIN_RENDER_MODE(DELAYED_BLEND);
+  COIN_RENDER_MODE(SORTED_OBJECT_ADD);
+  COIN_RENDER_MODE(SORTED_OBJECT_BLEND);
+  COIN_RENDER_MODE(SORTED_OBJECT_SORTED_TRIANGLE_ADD);
+  COIN_RENDER_MODE(SORTED_OBJECT_SORTED_TRIANGLE_BLEND);
+#undef COIN_RENDER_MODE
   case SoGLRenderAction::SORTED_LAYERS_BLEND:
-    strategy = CoinRenderCompositionItem::SORTED_LAYERS; name = "SORTED_LAYERS_BLEND -> sorted_layers"; return true;
-  default:
-    name = "unsupported";
-    return false;
+    strategy = CoinRenderCompositionItem::SORTED_LAYERS;
+    name = "SORTED_LAYERS_BLEND -> sorted_layers"; return true;
+  default: name = "unsupported"; return false;
   }
 }
 
-// Private Coin 4 profile: per-vertex material alpha is preserved. Textured draws
-// with any non-opaque texel enter the blended pass. Object-level depth sorting
-// is stable, but neither triangle-level sorting nor intersections are promised.
+// Common Coin policy: classify alpha, resolve immediate/delayed/sorted draws,
+// preserve annotation traversal, and apply transparent-pass depth defaults.
+// This function consumes captured data only; it never traverses or submits.
 inline bool
 coin_render_composition_order(const CoinRenderFramePlan & frame,
                             std::vector<CoinRenderCompositionItem> & order,
-                            std::string & diagnostic,
-                            bool exactCoin = false)
+                            std::string & diagnostic)
 {
   order.clear();
   order.reserve(frame.draws.size());
+  for (const auto & material : frame.materials) {
+    const float alpha = material.diffuse[3], transparency = material.transparency;
+    if (!std::isfinite(alpha) || !std::isfinite(transparency) ||
+        alpha < 0 || alpha > 1 || transparency < 0 || transparency > 1 ||
+        std::abs(alpha + transparency - 1.0f) > 1.0e-5f) {
+      diagnostic = "Invalid or inconsistent material alpha/transparency"; return false;
+    }
+  }
   std::vector<int8_t> textureHasAlpha(frame.textures.size(), -1);
   for (size_t i = 0; i < frame.draws.size(); ++i) {
     const CoinRenderDrawPacket & draw = frame.draws[i];
@@ -81,7 +93,6 @@ coin_render_composition_order(const CoinRenderFramePlan & frame,
       return false;
     }
     SbMatrix modelView = rs.model * rs.view;
-    double depthSum = 0.0;
     float minDepth = 0, maxDepth = 0;
     for (size_t j = first; j < first + count; ++j) {
       const uint32_t vertexIndex = frame.indices[j];
@@ -102,9 +113,12 @@ coin_render_composition_order(const CoinRenderFramePlan & frame,
         return false;
       }
       float eyeDepth = -viewPosition[2];
-      if (exactCoin && rs.polygonOffsetPrimitiveStyle != 1) {
+      if (rs.polygonOffsetPrimitiveStyle != 1) {
         // Expanded strokes are in NDC. Recover their original eye-space depth
         // from the source camera rather than sorting on normalized depth.
+        if (rs.cameraSlot >= frame.cameras.size()) {
+          diagnostic = "Invalid stroke camera in composition order"; return false;
+        }
         const auto & projection = frame.cameras[rs.cameraSlot].projectionMatrixCoin;
         SbVec3f eye;
         projection.inverse().multVecMatrix(SbVec3f(vertex.position), eye);
@@ -112,7 +126,6 @@ coin_render_composition_order(const CoinRenderFramePlan & frame,
       }
       if (j == first) minDepth = maxDepth = eyeDepth;
       else { minDepth = std::min(minDepth, eyeDepth); maxDepth = std::max(maxDepth, eyeDepth); }
-      depthSum += eyeDepth;
     }
     for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
       const CoinRenderTextureUnitSnapshot tex = coin_render_texture_unit(rs, unit);
@@ -134,8 +147,11 @@ coin_render_composition_order(const CoinRenderFramePlan & frame,
     CoinRenderCompositionItem item;
     item.drawIndex = i;
     item.blend = materialAlpha;
-    item.eyeDepth = count ? (exactCoin ? (minDepth + maxDepth) * 0.5f : static_cast<float>(depthSum / static_cast<double>(count))) : 0.0f;
-    if (exactCoin && draw.hasSortingCenter) {
+    item.eyeDepth = count ? (minDepth + maxDepth) * 0.5f : 0.0f;
+    if (draw.hasSortingCenter) {
+      if (rs.cameraSlot >= frame.cameras.size()) {
+        diagnostic = "Invalid sorting camera in composition order"; return false;
+      }
       SbVec3f center;
       frame.cameras[rs.cameraSlot].viewMatrix.multVecMatrix(SbVec3f(draw.sortingCenterWorld), center);
       item.eyeDepth = -center[2];
@@ -144,10 +160,21 @@ coin_render_composition_order(const CoinRenderFramePlan & frame,
       diagnostic = "Invalid non-finite average eye depth in composition order";
       return false;
     }
-    if (exactCoin) {
+    {
       switch (rs.transparencyType) {
       case SoGLRenderAction::NONE:
-      case SoGLRenderAction::SCREEN_DOOR: item.blend = false; break;
+      case SoGLRenderAction::SCREEN_DOOR:
+        item.blend = false;
+        item.screenDoor = rs.transparencyType == SoGLRenderAction::SCREEN_DOOR;
+        if (item.screenDoor && rs.polygonOffsetPrimitiveStyle == 1) {
+          const float transparency = rs.screenDoorTransparency >= 0
+            ? rs.screenDoorTransparency : frame.materials[rs.materialSlot].transparency;
+          if (!std::isfinite(transparency)) {
+            diagnostic = "Invalid non-finite screen-door transparency"; return false;
+          }
+          item.screenDoorLevel = static_cast<uint32_t>(std::min(64, std::max(0, int(transparency * 64.0f))));
+        }
+        break;
       case SoGLRenderAction::ADD: item.additive = true; break;
       case SoGLRenderAction::BLEND: break;
       case SoGLRenderAction::DELAYED_ADD: item.additive = true; item.deferred = item.blend; break;
@@ -162,23 +189,26 @@ coin_render_composition_order(const CoinRenderFramePlan & frame,
         item.deferred = item.blend; item.transparencyStrategy = CoinRenderCompositionItem::SORTED_LAYERS; break;
       default: diagnostic = "Unknown Coin transparency mode"; return false;
       }
-    } else if (item.blend) {
-      const char * mapping = NULL;
-      if (!coin_render_transparency_strategy(rs.transparencyType,
-                                            item.transparencyStrategy,
-                                            mapping)) {
-        std::ostringstream ss;
-        ss << "UNSUPPORTED: Draw " << i << " uses Coin transparency mode "
-           << rs.transparencyType
-           << "; supported mappings are SCREEN_DOOR/BLEND/DELAYED_BLEND/SORTED_OBJECT_BLEND -> object, "
-              "SORTED_OBJECT_SORTED_TRIANGLE_BLEND -> weighted_oit, and SORTED_LAYERS_BLEND -> sorted_layers";
-        diagnostic = ss.str();
-        return false;
-      }
+    }
+    // Annotation paths execute immediately, including translucent depth writers.
+    item.deferred = item.deferred && draw.renderLayer == 0;
+    item.sortTriangles = item.sortTriangles && rs.polygonOffsetPrimitiveStyle == 1;
+    item.depthTest = rs.depthTest;
+    item.depthWrite = rs.depthWrite;
+    item.depthFunction = rs.depthFunction;
+    item.depthRange[0] = rs.depthRange[0];
+    item.depthRange[1] = rs.depthRange[1];
+    // SoGLRenderAction::renderSingle changes these defaults for the transparent
+    // traversal. Explicit SoDepthBuffer fields are reapplied by that traversal.
+    if (item.deferred) {
+      if (!(rs.explicitDepthMask & 1)) item.depthTest = true;
+      if (!(rs.explicitDepthMask & 2)) item.depthWrite = false;
+      if (!(rs.explicitDepthMask & 4)) item.depthFunction = CoinRenderDepthFunction::LEQUAL;
+      if (!(rs.explicitDepthMask & 8)) { item.depthRange[0] = 0; item.depthRange[1] = 1; }
     }
     order.push_back(item);
   }
-  std::stable_sort(order.begin(), order.end(), [&frame, exactCoin](const CoinRenderCompositionItem & a,
+  std::stable_sort(order.begin(), order.end(), [&frame](const CoinRenderCompositionItem & a,
                                                    const CoinRenderCompositionItem & b) {
     const uint32_t layerA = frame.draws[a.drawIndex].renderLayer;
     const uint32_t layerB = frame.draws[b.drawIndex].renderLayer;
@@ -186,15 +216,11 @@ coin_render_composition_order(const CoinRenderFramePlan & frame,
     // Overlay layers follow immediate traversal order: their opaque depth
     // writers and translucent labels can depend on the exact submission order.
     if (layerA != 0) return false;
-    if (exactCoin) {
-      if (a.deferred != b.deferred) return !a.deferred;
-      // Coin renders its sorted path list before its unsorted delayed list.
-      if (!a.deferred) return false;
-      if (a.sortObject != b.sortObject) return a.sortObject;
-      return a.sortObject && a.eyeDepth > b.eyeDepth;
-    }
-    if (a.blend != b.blend) return !a.blend;
-    return a.blend && a.eyeDepth > b.eyeDepth;
+    if (a.deferred != b.deferred) return !a.deferred;
+    // Coin renders its sorted path list before its unsorted delayed list.
+    if (!a.deferred) return false;
+    if (a.sortObject != b.sortObject) return a.sortObject;
+    return a.sortObject && a.eyeDepth > b.eyeDepth;
   });
   diagnostic.clear();
   return true;

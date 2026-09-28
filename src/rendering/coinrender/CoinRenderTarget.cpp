@@ -291,13 +291,7 @@ CoinRenderTargetP::validateProfile(const CoinRenderFramePlan & frame, const SbVe
     return CoinRenderFrameExecutionResult{CoinRenderBackendStatus::BACKEND_ERROR, "Invalid CoinRenderFramePlan: " + planDiag};
   }
   std::vector<CoinRenderCompositionItem> compositionOrder;
-  if (!coin_render_composition_order(frame, compositionOrder, planDiag,
-#if defined(HAVE_COIN_BGFX)
-      true
-#else
-      false
-#endif
-    )) {
+  if (!coin_render_composition_order(frame, compositionOrder, planDiag)) {
     return CoinRenderFrameExecutionResult{CoinRenderBackendStatus::UNSUPPORTED, planDiag};
   }
 
@@ -540,7 +534,9 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
       this->status = CoinRenderTarget::TARGET_ERROR;
       return CoinRenderSubmitResult(CoinRenderBackendStatus::OUT_OF_MEMORY, lastErr, res.submissionSerial);
     } else if (res.status == CoinRenderBackendStatus::UNSUPPORTED) {
-      this->status = CoinRenderTarget::TARGET_ERROR;
+      // A rejected frame does not invalidate the prepared GPU target or the
+      // last published image. The next supported request may use this target.
+      this->status = CoinRenderTarget::TARGET_READY;
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, lastErr, res.submissionSerial);
     } else {
       this->status = CoinRenderTarget::TARGET_ERROR;

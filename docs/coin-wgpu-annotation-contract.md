@@ -1,11 +1,12 @@
 # Anotações no conector Rust/wgpu
 
-O protocolo privado 20 transporta `CoinRenderDrawPacket::renderLayer` e
+O protocolo privado 21 transporta `CoinRenderDrawPacket::renderLayer` e
 `clearDepthBefore` em `CoinWgpuDraw::render_layer` e `clear_depth_before`.
-C++ e Rust devem ser reconstruídos juntos: o draw passa de 48 para 56 bytes.
+C++ e Rust devem ser reconstruídos juntos. O draw tem 56 bytes desde a revisão 20;
+a revisão 21 usa o antigo campo reservado para o blend resolvido pelo Core.
 O estado de renderização permanece com 956 bytes, incluindo polygon offset.
 
-A camada zero mantém o perfil de composição existente do Rust. As demais
+A camada zero recebe a composição resolvida pelo Core CoinRender. As demais
 camadas são executadas por número crescente e preservam a ordem de travessia,
 inclusive quando alternam geometria opaca e transparente. A limpeza de depth
 ocorre antes do draw marcado, em uma passagem sem attachment de cor, com
@@ -25,16 +26,15 @@ transparência Coin, nem qualifica toda a integração FreeCAD no wgpu.
 Validação:
 
 - `cargo test --offline --manifest-path src/rendering/coinwgpu/rust_bridge/Cargo.toml`:
-  ordenação de camadas, mistura opaco/transparente, barreiras, rejeições e frame vazio.
+  execução sem reclassificação/ordenação, camadas, flags, barreiras, rejeições e frame vazio.
 - `CoinRenderDepthContractTest`: transporte, reuso, camera patch e remoção dos metadados.
 - `CoinRenderAnnotationTest` (Rust): pixels offscreen para limpeza restrita à viewport,
   preservação da profundidade externa e ordem entre anotações opacas e transparentes.
   Retorna skip 77 se o backend GPU não estiver disponível.
 
-Resultado local em 2026-09-28: sete testes Rust passaram; os três alvos CTest
-acima passaram sem skips; `CoinRenderDepthContractTest --gpu` também passou.
-A suíte geral `CoinRenderCompositionTest` continua falhando em `GPU source-over`
-(canal azul esperado 63, observado 0). Seu fixture coloca a geometria opaca
-no far plane (depth 1), enquanto o executor Rust usa LESS contra o clear 1.
-A suíte geral e a paridade de transparência continuam pendentes; os testes
-específicos de anotações usam geometria dentro do intervalo de profundidade.
+Resultado local em 2026-09-28: a suíte geral `CoinRenderCompositionTest` agora
+passa na referência CPU, no wgpu e no BGFX/Vulkan. O Core produz os estados
+efetivos de depth e a fixture de source-over fica dentro do far plane sob LESS.
+Detalhes, evidências e limites em [composição comum](coin-render-composition-contract.md).
+As modalidades não implementadas no wgpu são rejeitadas explicitamente; a
+paridade completa das onze modalidades continua pendente.

@@ -44,9 +44,8 @@
 #include <Inventor/elements/SoLazyElement.h>
 #include <Inventor/elements/SoOverrideElement.h>
 #include <Inventor/elements/SoDepthBufferElement.h>
-#if defined(HAVE_COIN_BGFX)
+#include <Inventor/rendering/CoinRenderCapabilities.h>
 #include "rendering/coinrender/CoinRenderDepthPolicyElement.h"
-#endif
 #include <algorithm>
 #include <chrono>
 #include <memory>
@@ -76,10 +75,8 @@ CoinRenderAction::initClass(void)
 {
   SO_ACTION_INTERNAL_INIT_CLASS(CoinRenderAction, SoCallbackAction);
   SO_ENABLE(CoinRenderAction, SoDepthBufferElement);
-#if defined(HAVE_COIN_BGFX)
   CoinRenderDepthPolicyElement::initClass();
   SO_ENABLE(CoinRenderAction, CoinRenderDepthPolicyElement);
-#endif
 }
 
 SbBool
@@ -87,6 +84,11 @@ CoinRenderAction::isGpuBackendAvailable(void)
 {
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   return CoinWgpuBackend::isAvailable() ? TRUE : FALSE;
+#elif defined(HAVE_COIN_BGFX)
+  CoinRenderCapabilities caps{};
+  caps.struct_size = sizeof(caps);
+  return coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN,
+    &caps, sizeof(caps)) == 0 && caps.gpu_available ? TRUE : FALSE;
 #elif defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
   return CoinWgpuNativeBackend::isAvailable() ? TRUE : FALSE;
 #else
@@ -1146,11 +1148,9 @@ CoinRenderActionP::depthBufferPreCB(void *, SoCallbackAction * action, const SoN
   const SbVec2f range = depth->range.isIgnored()
     ? SoDepthBufferElement::getRange(state) : depth->range.getValue();
   SoDepthBufferElement::set(state, test, write, function, range);
-#if defined(HAVE_COIN_BGFX)
   CoinRenderDepthPolicyElement::add(state, (depth->test.isIgnored() ? 0 : 1) |
     (depth->write.isIgnored() ? 0 : 2) | (depth->function.isIgnored() ? 0 : 4) |
     (depth->range.isIgnored() ? 0 : 8));
-#endif
   return SoCallbackAction::CONTINUE;
 }
 

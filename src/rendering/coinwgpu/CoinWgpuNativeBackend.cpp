@@ -127,8 +127,8 @@ CoinWgpuNativeBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTarge
     return CoinRenderBackendStatus::UNSUPPORTED;
   }
   for (const CoinRenderCompositionItem & item : compositionOrder) {
-    if (item.blend) {
-      this->lastError = "UNSUPPORTED: native WebGPU backend has no transparent pipeline";
+    if (item.blend || item.screenDoorLevel != 0) {
+      this->lastError = "UNSUPPORTED: native WebGPU backend has no transparency executor";
       return CoinRenderBackendStatus::UNSUPPORTED;
     }
   }

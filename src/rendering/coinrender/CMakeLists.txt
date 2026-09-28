@@ -2,6 +2,7 @@
 
 set(COIN_RENDER_SOURCES
 	CoinRenderDiagnosticShell.cpp
+	CoinRenderDepthPolicyElement.cpp
 	CoinRenderFramePlan.cpp
 	CoinRenderFramePlanBuilder.cpp
 	CoinRenderFrameReuseCore.cpp
@@ -81,7 +82,7 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 			list(APPEND COIN_RENDER_SOURCES ${_shader_output})
 		endforeach()
 	endforeach()
-	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxBackend.cpp CoinRenderDepthPolicyElement.cpp)
+	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxBackend.cpp)
 endif()
 
 add_library(CoinRender SHARED ${COIN_RENDER_SOURCES})

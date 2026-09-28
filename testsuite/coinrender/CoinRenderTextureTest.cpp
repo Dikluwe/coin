@@ -290,7 +290,7 @@ static bool testUnsupportedRejections() {
     root->unref();
   }
 
-  // Case 3B: Transparent textured material uses the default composition mode
+  // Case 3B: Default SCREEN_DOOR is rejected; explicit sorted blend is supported
   {
     SoSeparator * root = new SoSeparator;
     root->ref();
@@ -309,8 +309,15 @@ static bool testUnsupportedRejections() {
     action.setRenderTarget(target);
     action.apply(root);
 
+    ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::UNSUPPORTED,
+                "Default SCREEN_DOOR must be rejected when stipple is required");
+    SoTransparencyType * mode = new SoTransparencyType;
+    mode->value = SoTransparencyType::SORTED_OBJECT_BLEND;
+    root->insertChild(mode, 0);
+    action.apply(root);
     ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::SUCCESS,
-                "Transparent textured material must use the default composition mapping");
+                "Explicit sorted blend must render transparent textured material: " +
+                  std::string(action.getLastError().getString()));
     delete target;
     root->unref();
   }

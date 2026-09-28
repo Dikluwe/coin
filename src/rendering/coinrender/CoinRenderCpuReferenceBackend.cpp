@@ -123,6 +123,25 @@ inline void applyFog(const CoinRenderRenderStateSnapshot & rs, float eyeDepth,
   blue = rs.fogColor[2] * (1.0f - factor) + blue * factor;
 }
 
+inline float mappedDepth(float z, const CoinRenderRenderStateSnapshot & state) {
+  return state.depthRange[0] + z * (state.depthRange[1] - state.depthRange[0]);
+}
+
+inline bool depthPass(float z, float stored, const CoinRenderRenderStateSnapshot & state) {
+  if (!state.depthTest) return true;
+  switch (state.depthFunction) {
+  case CoinRenderDepthFunction::NEVER: return false;
+  case CoinRenderDepthFunction::ALWAYS: return true;
+  case CoinRenderDepthFunction::LESS: return z < stored;
+  case CoinRenderDepthFunction::LEQUAL: return z <= stored;
+  case CoinRenderDepthFunction::EQUAL: return z == stored;
+  case CoinRenderDepthFunction::GEQUAL: return z >= stored;
+  case CoinRenderDepthFunction::GREATER: return z > stored;
+  case CoinRenderDepthFunction::NOTEQUAL: return z != stored;
+  }
+  return false;
+}
+
 inline void writePixel(std::vector<uint8_t> & color, size_t offset,
                        float red, float green, float blue, float alpha, bool blend) {
   if (offset + 3 >= color.size()) return;
@@ -282,9 +301,9 @@ static void rasterizeTriangle(const ShadedVertex & sv0, const ShadedVertex & sv1
       size_t pIdx = static_cast<size_t>(py * width + px);
       if (pIdx >= depthBuffer.size()) continue;
 
-      // Depth test LessEqual
-      if (zVal > depthBuffer[pIdx]) continue;
-      if (!blend) depthBuffer[pIdx] = zVal;
+      zVal = mappedDepth(zVal, rs);
+      if (!depthPass(zVal, depthBuffer[pIdx], rs)) continue;
+      if (rs.depthWrite) depthBuffer[pIdx] = zVal;
 
       // Perspective-correct barycentric interpolation
       float pNormW = l0 * invW[0] + l1 * invW[1] + l2 * invW[2];
@@ -336,7 +355,8 @@ static void rasterizeTriangle(const ShadedVertex & sv0, const ShadedVertex & sv1
           finalG = std::max(0.0f, std::min(1.0f, finalG)) * sourceAlpha + dstG * invAlpha;
           finalB = std::max(0.0f, std::min(1.0f, finalB)) * sourceAlpha + dstB * invAlpha;
           colorBuffer[cIdx + 3] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, (sourceAlpha + dstA * invAlpha) * 255.0f)));
-        } else colorBuffer[cIdx + 3] = 255;
+        } else colorBuffer[cIdx + 3] = static_cast<uint8_t>(std::lround(
+          std::max(0.0f, std::min(1.0f, sourceAlpha)) * 255.0f));
         colorBuffer[cIdx + 0] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, finalR * 255.0f)));
         colorBuffer[cIdx + 1] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, finalG * 255.0f)));
         colorBuffer[cIdx + 2] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, finalB * 255.0f)));
@@ -396,35 +416,33 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, compositionError);
     }
 
+    for (const auto & item : order) {
+      if ((item.blend && (item.additive || item.sortTriangles ||
+          item.transparencyStrategy == CoinRenderCompositionItem::SORTED_LAYERS)) ||
+          item.screenDoorLevel != 0) {
+        this->lastError = "UNSUPPORTED: CPU reference has no additive, triangle-sorted, sorted-layer or screen-door executor";
+        return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
+      }
+    }
+
     target.clear(frame.clearColor[0], frame.clearColor[1], frame.clearColor[2], frame.clearColor[3], 1.0f);
 
-    uint32_t activeLayer = UINT32_MAX;
     for (size_t dIdx = 0; dIdx < order.size(); ++dIdx) {
       const auto & draw = frame.draws[order[dIdx].drawIndex];
-      if (draw.renderLayer != activeLayer) {
-        activeLayer = draw.renderLayer;
-        const CoinRenderDrawPacket * barrier = nullptr;
-        for (const CoinRenderDrawPacket & candidate : frame.draws) {
-          if (candidate.renderLayer == activeLayer && candidate.clearDepthBefore) {
-            barrier = &candidate;
-            break;
-          }
-        }
-        if (barrier) {
-          const CoinRenderRenderStateSnapshot & barrierState = frame.renderStates[barrier->renderStateSlot];
-          const CoinRenderViewportSnapshot & clearViewport = frame.viewports[barrierState.viewportSlot];
-          const int64_t clearTop = int64_t(height) - clearViewport.y - clearViewport.height;
-          const int left = static_cast<int>(std::max<int64_t>(0, std::min<int64_t>(width, clearViewport.x)));
-          const int right = static_cast<int>(std::max<int64_t>(0, std::min<int64_t>(width,
-            int64_t(clearViewport.x) + clearViewport.width)));
-          const int top = static_cast<int>(std::max<int64_t>(0, std::min<int64_t>(height, clearTop)));
-          const int bottom = static_cast<int>(std::max<int64_t>(0, std::min<int64_t>(height,
-            clearTop + clearViewport.height)));
-          for (int y = top; y < bottom; ++y) {
-            const size_t begin = static_cast<size_t>(y) * width + left;
-            std::fill(target.depthBuffer.begin() + begin,
-                      target.depthBuffer.begin() + begin + right - left, 1.0f);
-          }
+      if (draw.clearDepthBefore) {
+        const CoinRenderRenderStateSnapshot & barrierState = frame.renderStates[draw.renderStateSlot];
+        const CoinRenderViewportSnapshot & clearViewport = frame.viewports[barrierState.viewportSlot];
+        const int64_t clearTop = int64_t(height) - clearViewport.y - clearViewport.height;
+        const int left = static_cast<int>(std::max<int64_t>(0, std::min<int64_t>(width, clearViewport.x)));
+        const int right = static_cast<int>(std::max<int64_t>(0, std::min<int64_t>(width,
+          int64_t(clearViewport.x) + clearViewport.width)));
+        const int top = static_cast<int>(std::max<int64_t>(0, std::min<int64_t>(height, clearTop)));
+        const int bottom = static_cast<int>(std::max<int64_t>(0, std::min<int64_t>(height,
+          clearTop + clearViewport.height)));
+        for (int y = top; y < bottom; ++y) {
+          const size_t begin = static_cast<size_t>(y) * width + left;
+          std::fill(target.depthBuffer.begin() + begin,
+                  target.depthBuffer.begin() + begin + right - left, 1.0f);
         }
       }
       const bool blend = order[dIdx].blend;
@@ -432,7 +450,13 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
       if (draw.renderStateSlot >= frame.renderStates.size()) {
         continue;
       }
-      const auto & rs = frame.renderStates[draw.renderStateSlot];
+      auto rs = frame.renderStates[draw.renderStateSlot];
+      const auto & composition = order[dIdx];
+      rs.depthTest = composition.depthTest;
+      rs.depthWrite = composition.depthWrite;
+      rs.depthFunction = composition.depthFunction;
+      rs.depthRange[0] = composition.depthRange[0];
+      rs.depthRange[1] = composition.depthRange[1];
 
       SbMatrix modelView = rs.model * rs.view;
       SbMatrix normalMatrix = modelView.inverse().transpose();
@@ -619,8 +643,9 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
                 px >= viewport.x && px < viewport.x + viewport.width &&
                 py >= viewportTop && py < viewportTop + viewport.height && z >= 0.0f && z <= 1.0f) {
               size_t pIdx = py * width + px;
-              if (z <= target.depthBuffer[pIdx]) {
-                if (!blend) target.depthBuffer[pIdx] = z;
+              z = mappedDepth(z, rs);
+            if (depthPass(z, target.depthBuffer[pIdx], rs)) {
+                if (rs.depthWrite) target.depthBuffer[pIdx] = z;
                 float r = (rs.lightModel == CoinRenderLightModel::BASE_COLOR)
                   ? ((1.0f - t) * m0.diffuse[0] + t * m1.diffuse[0])
                   : ((1.0f - t) * (m0.diffuse[0] + m0.ambient[0] + m0.emission[0]) + t * (m1.diffuse[0] + m1.ambient[0] + m1.emission[0]));
@@ -658,8 +683,9 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
                 px >= viewport.x && px < viewport.x + viewport.width &&
               py >= viewportTop && py < viewportTop + viewport.height && z >= 0.0f && z <= 1.0f) {
             size_t pIdx = py * width + px;
-            if (z <= target.depthBuffer[pIdx]) {
-              if (!blend) target.depthBuffer[pIdx] = z;
+            z = mappedDepth(z, rs);
+            if (depthPass(z, target.depthBuffer[pIdx], rs)) {
+              if (rs.depthWrite) target.depthBuffer[pIdx] = z;
               const auto & m0 = frame.materials[v0.materialSlot < frame.materials.size() ? v0.materialSlot : 0];
               float r = (rs.lightModel == CoinRenderLightModel::BASE_COLOR)
                 ? m0.diffuse[0]

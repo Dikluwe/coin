@@ -246,14 +246,12 @@ CoinRenderRecordingBackend::recordToString(const CoinRenderFramePlan & frame) co
   std::vector<CoinRenderCompositionItem> order;
   std::string compositionError;
   if (coin_render_composition_order(frame, order, compositionError)) {
-    bool hasBlend = false;
-    for (size_t i = 0; i < order.size(); ++i) hasBlend = hasBlend || order[i].blend;
-    if (hasBlend) {
+    if (!order.empty()) {
       out << "composition: transparency\n";
       for (size_t i = 0; i < order.size(); ++i) {
         out << "  submit draw " << order[i].drawIndex
             << " pass=" << (order[i].blend ? "BLEND" : "OPAQUE");
-        if (order[i].blend) {
+        {
           const CoinRenderDrawPacket & draw = frame.draws[order[i].drawIndex];
           const CoinRenderRenderStateSnapshot & rs = frame.renderStates[draw.renderStateSlot];
           CoinRenderCompositionItem::TransparencyStrategy strategy;
@@ -262,7 +260,13 @@ CoinRenderRecordingBackend::recordToString(const CoinRenderFramePlan & frame) co
             out << " strategy=" << mapping;
           }
         }
-        out << "\n";
+        out << " deferred=" << order[i].deferred
+            << " additive=" << order[i].additive
+            << " sortTriangles=" << order[i].sortTriangles
+            << " depthTest=" << order[i].depthTest
+            << " depthWrite=" << order[i].depthWrite
+            << " depthFunction=" << static_cast<uint32_t>(order[i].depthFunction)
+            << "\n";
       }
     }
   }

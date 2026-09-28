@@ -353,6 +353,7 @@ bool cacheIsolation() {
   material.diffuse[2] = 1.0f;
   material.diffuse[3] = 1.0f;
   CoinWgpuRenderState state{};
+  state.polygon_offset_primitive_style = 1; // Valid triangle style, with offset disabled.
   for (unsigned i = 0; i < 4; ++i) {
     state.model_view[i * 5] = 1.0f;
     state.model_view_projection[i * 5] = 1.0f;
@@ -424,6 +425,7 @@ bool validatedCameraSceneOwnership() {
   material.diffuse[2] = 0.1f;
   material.diffuse[3] = 1.0f;
   CoinWgpuRenderState state{};
+  state.polygon_offset_primitive_style = 1; // Valid triangle style, with offset disabled.
   for (unsigned i = 0; i < 4; ++i) {
     state.model_view[i * 5] = 1.0f;
     state.model_view_projection[i * 5] = 1.0f;

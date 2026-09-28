@@ -6,12 +6,12 @@ estão em `experimental/include`. Desde a Onda 6, esses headers e a biblioteca
 podem ser instalados com `COIN_INSTALL_RENDER_EXPERIMENTAL=ON`, mas continuam
 experimentais, fora da API e ABI públicas estáveis de `libCoin` no Coin 4.
 A ponte C++/Rust é privada e versionada
-(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=20` nesta revisão). Não promova esses
+(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=21` nesta revisão). Não promova esses
 headers a consumidores externos como se fossem estáveis.
 
 O guia de produto, a matriz de capacidades, o manager, os exemplos instaláveis,
 o benchmark e a política de evolução para o Coin 5 estão em
-[`wgpu-wave6-product.md`](wgpu-wave6-product.md).
+[`wgpu-wave6-product.md`](coin-render-wave6-product.md).
 
 ## Cache privado e perfil por fase
 
@@ -103,10 +103,10 @@ Resultados e comandos reproduzíveis estão em
 | Área | Suportado agora | Fora do perfil / rejeição esperada |
 | --- | --- | --- |
 | Geometria | Triângulos de callback e `SoIndexedFaceSet`; linhas e pontos sem textura, inclusive `SoIndexedLineSet` | Topologias sem caminho implementado não têm paridade prometida |
-| Materiais | `BASE_COLOR`, iluminação e alpha uniforme por draw; `SoTransparencyType::SORTED_OBJECT_BLEND` em triângulos transparentes | Outros modos de transparência; alpha heterogêneo por vértice; linhas/pontos transparentes |
+| Materiais | `BASE_COLOR`, iluminação e alpha uniforme por draw; `NONE`, `BLEND`, `DELAYED_BLEND` e `SORTED_OBJECT_BLEND` | Aditivo, stipple, sorting de triângulos e sorted layers; alpha heterogêneo por vértice; linhas/pontos transparentes |
 | Luzes | Direcional, pontual e spot, até oito ativas por draw | Excesso de oito luzes deve retornar `UNSUPPORTED` |
 | Textura | `SoTexture2` na unidade 0, UV explícita, 1–4 componentes incluindo alpha de imagem, `MODULATE`, `REPEAT`/`CLAMP`, qualidade 0 ou 0,5 | Unidades adicionais, UV procedural/default, `REPLACE`/`DECAL`/`BLEND`, linhas/pontos texturizados |
-| Composição | Opacos primeiro e transparentes em pass separado, ordenados estavelmente por profundidade média em view space; depth write desligado para transparentes | Ordenação por triângulo, interseções e transparência independente da ordem |
+| Composição | Composição resolvida no Core: BLEND imediato, DELAYED_BLEND adiado e SORTED_OBJECT_BLEND ordenado por centro capturado; depth efetivo respeita overrides explícitos | Ordenação por triângulo, interseções e transparência independente da ordem |
 | Ambiente | Fog `NONE`, `HAZE`, `FOG` e `SMOKE` em distância de view space; fog depois de luz/textura e antes da composição, sem alterar alpha | Fórmulas ou estados de fog fora desses quatro modos |
 | Raster | Front face e backface culling de `SoShapeHints` em triângulos, inclusive reflexão | Culling de linhas/pontos (não aplicável ao pipeline dessas topologias) |
 | Alvos | Offscreen com cor/profundidade e janela X11 no backend Rust; readback síncrono atômico; `applyAsync` com ticket e query/poll/cancel; `SoSceneTexture2` RGBA8 staged por padrão e GPU→GPU direto opt-in em offscreen Rust | Outros formatos/estados de `SoSceneTexture2`, RTT direto de janela, readback assíncrono de janela e outros sistemas de janela |
@@ -314,3 +314,10 @@ conclusão da GPU, evitando retenção indefinida após mudança de cena.
 A evidência da 3E vale para esta configuração Linux/Vulkan/X11 e para o
 perfil opaco descrito acima; outros adaptadores e sistemas de janela ainda
 precisam da própria validação antes de qualquer promessa de suporte.
+
+## Composição comum (2026-09-28)
+
+A03 foi fechado no Core, com transporte resolvido para BGFX e wgpu e correção
+da referência CPU. `CoinRenderCompositionTest` passou nos dois executores GPU;
+a evidência acima por fase permanece histórica. O suporte ainda não cobre as
+onze modalidades no wgpu. Consulte [contrato e limites atuais](coin-render-composition-contract.md).

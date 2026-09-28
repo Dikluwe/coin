@@ -6,9 +6,7 @@
 #include <iostream>
 #include "rendering/coinrender/CoinRenderFramePlanBuilder.h"
 #include <Inventor/nodes/SoShape.h>
-#if defined(HAVE_COIN_BGFX)
 #include "rendering/coinrender/CoinRenderDepthPolicyElement.h"
-#endif
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderIndexedGeometryCore.h"
 
@@ -722,10 +720,8 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   rs.depthWrite = depthWrite != FALSE;
   rs.depthFunction = static_cast<CoinRenderDepthFunction>(depthFunction);
   rs.screenDoorTransparency = std::max(0.0f, std::min(1.0f, SoLazyElement::getTransparency(state, 0)));
-#if defined(HAVE_COIN_BGFX)
   if (state->isElementEnabled(CoinRenderDepthPolicyElement::getClassStackIndex()))
     rs.explicitDepthMask = CoinRenderDepthPolicyElement::get(state);
-#endif
   rs.depthRange[0] = depthRange[0];
   rs.depthRange[1] = depthRange[1];
   SoPolygonOffsetElement::Style offsetStyles;
@@ -924,7 +920,6 @@ CoinRenderFramePlanBuilder::ensureDrawPacket(CoinRenderPrimitiveTopology topolog
 void
 CoinRenderFramePlanBuilder::captureSortingCenter(SoCallbackAction * action)
 {
-#if defined(HAVE_COIN_BGFX)
   auto & draw = this->currentPlan.draws[this->currentDrawIndex];
   if (draw.geometry.indexCount != 0 || draw.renderLayer != 0) return;
   const auto & state = this->currentPlan.renderStates[draw.renderStateSlot];
@@ -940,9 +935,6 @@ CoinRenderFramePlanBuilder::captureSortingCenter(SoCallbackAction * action)
   action->getModelMatrix().multVecMatrix(center, center);
   center.getValue(draw.sortingCenterWorld[0], draw.sortingCenterWorld[1], draw.sortingCenterWorld[2]);
   draw.hasSortingCenter = true;
-#else
-  (void)action;
-#endif
 }
 
 void
@@ -984,7 +976,7 @@ CoinRenderFramePlanBuilder::addLine(SoCallbackAction * action,
 #if !defined(HAVE_COIN_BGFX)
   if (this->currentPlan.renderStates[rsSlot].hasTexture) {
     this->isUnsupported = true;
-    this->builderError = "Textured lines/points currently require BGFX";
+    this->builderError = "Textured lines currently require CoinBgfx";
     return;
   }
 #endif
@@ -1015,7 +1007,7 @@ CoinRenderFramePlanBuilder::addPoint(SoCallbackAction * action,
 #if !defined(HAVE_COIN_BGFX)
   if (this->currentPlan.renderStates[rsSlot].hasTexture) {
     this->isUnsupported = true;
-    this->builderError = "Textured lines/points currently require BGFX";
+    this->builderError = "Textured points currently require CoinBgfx";
     return;
   }
 #endif
@@ -1632,13 +1624,7 @@ CoinRenderFramePlanBuilder::build(CoinRenderFramePlan & outPlan, std::string * o
   }
   std::vector<CoinRenderCompositionItem> order;
   std::string compositionError;
-  if (!coin_render_composition_order(this->currentPlan, order, compositionError,
-#if defined(HAVE_COIN_BGFX)
-      true
-#else
-      false
-#endif
-    )) {
+  if (!coin_render_composition_order(this->currentPlan, order, compositionError)) {
     this->isUnsupported = true;
     this->builderError = compositionError;
     if (outError) *outError = compositionError;

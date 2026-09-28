@@ -1,8 +1,8 @@
 # Renderização Coin: responsabilidades e checklist de fechamento
 
 Referência de acompanhamento criada em 2026-09-28 a partir do checkout e da
-auditoria funcional. Esta revisão é documental: não reexecuta a matriz GPU.
-Os resultados de anotações citados abaixo foram executados na etapa anterior.
+auditoria funcional. Atualizada com a implementação e validação da composição
+comum; evidências e limites em [contrato de composição](coin-render-composition-contract.md).
 
 ## Regra de organização
 
@@ -39,10 +39,10 @@ do pedido, enquanto Infra cria, retém e libera os recursos concretos.
 | `CoinRenderIndexedGeometryCore` | Core comum | Bons limites explícitos: arrays e fatos capturados, sem travessia nem recursos GPU. |
 | `CoinRenderFrameReuseCore` | Core comum | Classificação e atualização de câmera compartilháveis; Infra decide se seus buffers podem materializar o reuso. |
 | `CoinRenderImageCore` | Core comum | Transformação mecânica de linhas; readback e publicação são responsabilidades distintas. |
-| `CoinRenderComposition.h` | Core com semântica ainda dividida | Tem decisões de composição, mas `exactCoin` e os mapeamentos de estratégias convivem com outra interpretação em Rust. |
-| `CoinBgfxLowering` | Core específico + decisões comuns | Layout BGFX pode permanecer específico. Políticas Coin de transparência/depth e operações reaproveitáveis precisam ser extraídas. |
-| `CoinWgpuFfiFrame`, `CoinWgpuFfi.h` | Adaptação específica Rust/wgpu | Empacotamento e ABI privados do conector; devem transportar decisões resolvidas, sem redefinir o perfil Coin. |
-| `rust_bridge/src/composition.rs` | Core executado no lado Rust | Hoje reclassifica alpha e reordena draws. Deve consumir a composição comum resolvida; ser Rust não o torna Infra por si só. |
+| `CoinRenderComposition.h` | Core comum | Dono único de alpha, modalidade Coin, ordenação, screen door e profundidade efetiva; `exactCoin` removido. |
+| `CoinBgfxLowering` | Core específico + decisões comuns | Layout BGFX pode permanecer específico. Políticas de transparência/depth extraídas; outras operações reaproveitáveis continuam pendentes. |
+| `CoinWgpuFfiFrame`, `CoinWgpuFfi.h` | Adaptação específica Rust/wgpu | Empacotamento e ABI privados do conector; transportam draws ordenados, blend e variantes de depth resolvidos, na ABI privada 21. |
+| `rust_bridge/src/composition.rs` | Adaptação Infra | Valida flags, referências e sequência recebida; não reclassifica alpha nem reordena draws. |
 | `CoinBgfxBackend`, recursos e shaders BGFX | Infra BGFX | Devem permanecer específicos; recebem o plano resolvido e executam mecanismos compatíveis. |
 | `rust_bridge/src/lib.rs`, recursos e shaders WGSL | Infra wgpu, com lógica mecânica misturada | Execução específica; separar validação/adaptação de decisões semânticas. |
 | `CoinRenderTarget`, scene manager e adapter | Fachada comum + Wiring + Infra | Separar ciclo/publicação de operações nativas por método/colaborador. A API comum não precisa expor a classe concreta. |
@@ -58,9 +58,9 @@ Evidências principais: [captura e plano](../src/rendering/coinrender/CoinRender
 
 ## O que compartilhar e como nomear
 
-Nomes abaixo são propostas para componentes privados futuros, não uma renomeação
-aplicada. APIs públicas experimentais existentes exigem avaliação de compatibilidade
-antes de mudanças. O nome identifica domínio/backend; o sufixo identifica função.
+A migração CoinRender/CoinBgfx/CoinWgpu já foi aplicada. Alguns colaboradores
+abaixo ainda são propostas de extração futura. O nome identifica domínio/backend;
+o sufixo identifica função. Compatibilidade: [migração de nomes](coin-render-naming-migration.md).
 
 | Conteúdo | Dono | Nome/destino sugerido |
 |---|---|---|
@@ -116,21 +116,21 @@ Essas checkboxes são o modelo por item, não oito trabalhos globais já conclu�
 
 - [x] **A01 — Nome neutro para o contrato comum.** API, tipos, módulo, exemplos e testes migrados para `CoinRender`; componentes específicos usam `CoinBgfx`/`CoinWgpu`. Headers/pacote antigos encaminham a fonte; consumidores precisam ser recompilados. Evidência: [migração de nomes](coin-render-naming-migration.md).
 - [ ] **A02 — Limite Wiring/Core no builder.** Funções de transformação recebem snapshots/arrays Coin, sem acessar actions, paths ou `SoState`.
-- [ ] **A03 — Composição com dono único.** Classificação de alpha, modalidade Coin, ordenação e estados efetivos são produzidos uma vez no Core; retirar interpretação paralela de C++/Rust.
-- [ ] **A04 — Plano de execução comum.** Transportar sequência de draws, camadas, barreiras, blend/depth efetivos e dependências; cada Infra só adapta e executa.
-- [ ] **A05 — Extrair o comum de `CoinBgfxLowering`.** Manter layout/agrupamento BGFX específicos; mover decisões Coin e cálculos reutilizáveis para Core comum.
+- [x] **A03 — Composição com dono único.** Classificação de alpha, modalidade Coin, ordenação, screen door e estados efetivos estão no Core comum; interpretação paralela de C++/Rust removida. Fechado nesse escopo; suporte GPU e qualificação GL continuam em F01/F02. [Evidência](coin-render-composition-contract.md).
+- [ ] **A04 — Plano de execução comum.** Transportar sequência de draws, camadas, barreiras, blend/depth efetivos e dependências; cada Infra só adapta e executa. **Parcial:** sequência, camadas, barreiras e blend/depth transportados; rejeição não fatal com preservação/publicação validada; dependências RTT e plano integrado ainda abertos.
+- [ ] **A05 — Extrair o comum de `CoinBgfxLowering`.** Manter layout/agrupamento BGFX específicos; mover decisões Coin e cálculos reutilizáveis para Core comum. **Parcial:** transparência, screen door e depth efetivo extraídos nesta etapa.
 - [ ] **A06 — Recursos opacos com ownership definido.** Retirar da action a criação/liberação concreta de tokens BGFX/Rust; definir device, geração, retenção e dependências RTT.
 - [ ] **A07 — Configuração estruturada.** Shell interpreta env/texto e entrega opções tipadas; Wiring/Core não leem variáveis de ambiente para decidir semântica.
 - [ ] **A08 — Capacidades por contrato e alvo.** Separar fatos de hardware, mecanismos disponíveis e suporte Coin qualificado; unificar rejeições estruturadas.
 - [ ] **A09 — Resultados e profiling.** Infra entrega códigos e métricas; Shell formata texto; Wiring publica apenas resultados válidos.
-- [ ] **A10 — Matriz compartilhada de testes.** Mesmas fixtures e expectativas para cada executor; skips, aproximações e tolerâncias ficam visíveis.
+- [ ] **A10 — Matriz compartilhada de testes.** Mesmas fixtures e expectativas para cada executor; skips, aproximações e tolerâncias ficam visíveis. **Parcial:** composição comum executada em CPU, wgpu e BGFX; matriz geral ainda aberta.
 
 ## Checklist funcional priorizada
 
 | ID | Fechamento acompanhado | Dono da decisão comum | BGFX atual | wgpu atual | Próxima evidência necessária |
 |---|---|---|---|---|---|
-| F01 | Anotações: camada, ordem e barreira de depth | Core de composição | Caminho existente | Transporte e testes específicos fechados | Core único e fixtures Coin/GL compartilhadas; integração FreeCAD wgpu. |
-| F02 | Onze modalidades de transparência Coin e alpha final | Core de composição | Caminhos existentes, controles parciais | Composição simplificada; teste geral source-over falha | Estados efetivos, alpha, modos imediatos/atrasados/aditivos, sorting e referência GL. |
+| F01 | Anotações: camada, ordem e barreira de depth | Core de composição | Caminho existente | Transporte e testes específicos fechados | Planejamento comum fechado em M04; qualificação GL e integração FreeCAD wgpu ainda abertas. |
+| F02 | Onze modalidades de transparência Coin e alpha final | Core de composição | Caminhos existentes, controles parciais | Composição comum e source-over passam; aditivo/triângulos/camadas/stipple rejeitados | Estados efetivos, alpha, modos imediatos/atrasados/aditivos, sorting e referência GL. |
 | F03 | `SoClipPlane` | Captura Wiring + clipping Core | Sem caminho completo identificado na auditoria | Sem caminho completo identificado | Captura/transporte, espaços de coordenadas e execução/rejeição explícita. |
 | F04 | `SoDrawStyle`: LINES, POINTS, INVISIBLE | Core de geometria/estilo | Linhas/pontos dedicados não fecham estilo de shapes | Mesmo limite | Matriz por shape; gerar geometria comum e respeitar invisibilidade. |
 | F05 | `SoText2` | Captura Wiring + layout/rasterização Core | Sem caminho completo identificado | Sem caminho completo identificado | Estudar GL/fontes, âncora, tamanho, clipping e composição; implementação de atlas específica. |
@@ -156,10 +156,10 @@ hardware. Dawn/native permanece protótipo, sem entrar como executor equivalente
 
 ## Marcos já fechados no escopo
 
-- [x] **M01 — Metadados de anotações na ponte Rust.** `render_layer` e `clear_depth_before`, ABI privada 20, testes de empacotamento, reuso e camera patch.
+- [x] **M01 — Metadados de anotações na ponte Rust.** `render_layer` e `clear_depth_before`, introduzidos na ABI privada 20 (atual 21), testes de empacotamento, reuso e camera patch.
 - [x] **M02 — Execução offscreen de anotações no wgpu.** Testes de pixels para ordem opaco/transparente, depth write explícito, limpeza restrita à viewport, preservação do frame rejeitado e frame vazio; CTest sem skip na etapa anterior.
-- [x] **M03 — Registro dos limites dessa entrega.** [Contrato de anotações](wgpu-annotation-contract.md) documenta escopo e falha da suíte geral de composição.
-- [ ] **M04 — Anotações com planejamento comum.** M01/M02 não fecham A03/A04/F01; ainda há decisões de composição repetidas nos executores.
+- [x] **M03 — Registro dos limites dessa entrega.** [Contrato de anotações](coin-wgpu-annotation-contract.md) documenta o escopo e aponta a correção da suíte geral de composição.
+- [x] **M04 — Anotações com planejamento comum.** Ordem e depth efetivo compartilham o Core e as fixtures de composição. Isso fecha A03; A04/F01 continuam parciais por dependências/qualificação. [Evidência](coin-render-composition-contract.md).
 
 ## Registro a preencher a cada fechamento
 
@@ -180,5 +180,5 @@ Estado final: aberto / parcial / fechado no escopo / extensão
 ```
 
 Ordem de trabalho recomendada: A03/A04 junto de F01/F02; em seguida F03–F05;
-resolver A06 com F14; depois ampliar capacidades e matrizes. A01 pode ser
-incremental, acompanhando essas extrações, sem uma renomeação ampla como pré-requisito.
+resolver A06 com F14; depois ampliar capacidades e matrizes. A01 e A03 estão
+fechados nos escopos registrados; não substituem o fechamento funcional dos itens.

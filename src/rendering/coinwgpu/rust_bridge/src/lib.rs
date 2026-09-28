@@ -13,7 +13,7 @@ use std::sync::{Arc, Mutex, OnceLock};
 
 mod composition;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 20;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 21;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 pub type CoinWgpuSurfaceId = u64;
@@ -74,7 +74,7 @@ pub struct CoinWgpuDraw {
     pub render_state_slot: u32,
     pub stable_node_id: u64,
     pub draw_ordinal: u32,
-    pub reserved: u32,
+    pub composition_flags: u32,
     pub source_revision: u64,
     pub render_layer: u32,
     pub clear_depth_before: u32,
@@ -82,6 +82,7 @@ pub struct CoinWgpuDraw {
 
 const _: () = {
     assert!(std::mem::size_of::<CoinWgpuDraw>() == 56);
+    assert!(std::mem::offset_of!(CoinWgpuDraw, composition_flags) == 36);
     assert!(std::mem::offset_of!(CoinWgpuDraw, render_layer) == 48);
     assert!(std::mem::offset_of!(CoinWgpuDraw, clear_depth_before) == 52);
 };

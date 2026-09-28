@@ -165,7 +165,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
   }
   if (!frame.isValid(&diagnostic)) return false;
   std::vector<CoinRenderCompositionItem> order;
-  if (!coin_render_composition_order(frame, order, diagnostic, true)) return false;
+  if (!coin_render_composition_order(frame, order, diagnostic)) return false;
 
   for (const CoinRenderCompositionItem & item : order) {
     const CoinRenderDrawPacket & draw = frame.draws[item.drawIndex];
@@ -246,11 +246,11 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     lowered.indexCount = draw.geometry.indexCount;
     lowered.cullMode = state.cullMode;
     lowered.frontFace = state.frontFace;
-    lowered.depthTest = state.depthTest;
-    lowered.depthWrite = state.depthWrite;
-    lowered.depthFunction = state.depthFunction;
-    lowered.depthRange[0] = state.depthRange[0];
-    lowered.depthRange[1] = state.depthRange[1];
+    lowered.depthTest = item.depthTest;
+    lowered.depthWrite = item.depthWrite;
+    lowered.depthFunction = item.depthFunction;
+    lowered.depthRange[0] = item.depthRange[0];
+    lowered.depthRange[1] = item.depthRange[1];
     if (state.polygonOffsetEnabled &&
         (state.polygonOffsetStyles & state.polygonOffsetPrimitiveStyle) != 0) {
       lowered.polygonOffsetFactor = state.polygonOffsetFactor;
@@ -258,19 +258,11 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     }
     lowered.blend = item.blend;
     lowered.sourceNodeId = draw.sourceNodeId;
-    lowered.sortTriangles = item.sortTriangles && state.polygonOffsetPrimitiveStyle == 1;
-    lowered.deferred = item.deferred && draw.renderLayer == 0;
+    lowered.sortTriangles = item.sortTriangles;
+    lowered.deferred = item.deferred;
     lowered.additive = item.additive;
-    if (lowered.deferred) {
-      if (!(state.explicitDepthMask & 1)) lowered.depthTest = true;
-      if (!(state.explicitDepthMask & 2)) lowered.depthWrite = false;
-      if (!(state.explicitDepthMask & 4)) lowered.depthFunction = CoinRenderDepthFunction::LEQUAL;
-      if (!(state.explicitDepthMask & 8)) { lowered.depthRange[0] = 0; lowered.depthRange[1] = 1; }
-    }
-    if (state.transparencyType == SoGLRenderAction::SCREEN_DOOR &&
-        state.polygonOffsetPrimitiveStyle == 1)
-      lowered.screenDoor[0] = std::min(64, std::max(0, int((state.screenDoorTransparency >= 0 ? state.screenDoorTransparency : frame.materials[state.materialSlot].transparency) * 64.0f)));
-    lowered.screenDoor[3] = state.transparencyType == SoGLRenderAction::SCREEN_DOOR ? 1.0f : 0.0f;
+    lowered.screenDoor[0] = static_cast<float>(item.screenDoorLevel);
+    lowered.screenDoor[3] = item.screenDoor ? 1.0f : 0.0f;
 
     switch (item.transparencyStrategy) {
     case CoinRenderCompositionItem::WEIGHTED_OIT:

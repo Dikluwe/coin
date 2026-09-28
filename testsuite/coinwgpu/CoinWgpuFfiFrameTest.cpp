@@ -7,6 +7,7 @@
 #include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
 
 #include <cstdint>
+#include <Inventor/actions/SoGLRenderAction.h>
 #include <iostream>
 #include <string>
 
@@ -98,6 +99,45 @@ main()
       !check(!packed.reusedLastPrepare(), "zero revision was reused on first call") ||
       !check(packed.prepare(frame, 128, 16, diagnostic), "second zero revision packing failed") ||
       !check(!packed.reusedLastPrepare(), "zero revision was reused on second call")) return 1;
+
+  CoinRenderFramePlan sorted;
+  sorted.revision = 100;
+  sorted.materials.resize(1);
+  sorted.materials[0].diffuse[3] = 0.5f;
+  sorted.materials[0].transparency = 0.5f;
+  sorted.renderStates.resize(1);
+  sorted.renderStates[0].transparencyType = SoGLRenderAction::SORTED_OBJECT_BLEND;
+  sorted.vertices.resize(2);
+  sorted.vertices[0].position[2] = -2.0f;
+  sorted.vertices[1].position[2] = -4.0f;
+  sorted.indices = {0, 1};
+  sorted.draws.resize(2);
+  for (uint32_t i = 0; i < 2; ++i) {
+    sorted.draws[i].geometry.firstIndex = i;
+    sorted.draws[i].geometry.indexCount = 1;
+    sorted.draws[i].drawOrdinal = i;
+  }
+  CoinWgpuFfiFrame resolved;
+  if (!check(resolved.prepare(sorted, 64, 64, diagnostic), "resolved packing") ||
+      !check(resolved.getView().draws[0].draw_ordinal == 1 &&
+        resolved.getView().draws[0].composition_flags == 1, "resolved far-first order and blend") ||
+      !check(resolved.getView().states[resolved.getView().draws[0].render_state_slot].depth_write == 0 &&
+        resolved.getView().states[resolved.getView().draws[0].render_state_slot].depth_function == 3,
+        "resolved transparent depth")) return 1;
+  sorted.revision = 101;
+  sorted.renderStates[0].view = SbMatrix(1,0,0,0, 0,1,0,0, 0,0,-1,0, 0,0,0,1);
+  if (!check(resolved.prepare(sorted, 64, 64,
+      CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::CAMERA_PATCH, 100), diagnostic), "sorted camera patch") ||
+      !check(resolved.getView().draws[0].draw_ordinal == 0, "camera patch must recompute sorting") ||
+      !check(resolved.getView().camera_base_revision == 0, "reordered patch cannot reuse device-owned order")) return 1;
+  sorted.revision = 102;
+  sorted.renderStates[0].transparencyType = SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND;
+  if (!check(!resolved.prepare(sorted, 64, 64, diagnostic) && diagnostic.find("UNSUPPORTED") != std::string::npos,
+      "wgpu must reject triangle sorting instead of substituting weighted OIT")) return 1;
+  sorted.revision = 101;
+  sorted.renderStates[0].transparencyType = SoGLRenderAction::SORTED_OBJECT_BLEND;
+  if (!check(resolved.prepare(sorted, 64, 64, diagnostic) && !resolved.reusedLastPrepare(),
+      "failed pack must invalidate cached storage")) return 1;
 
   std::cout << "CoinWgpuFfiFrameTest passed\n";
   return 0;

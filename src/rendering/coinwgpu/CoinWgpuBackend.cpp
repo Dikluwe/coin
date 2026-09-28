@@ -28,7 +28,7 @@ static_assert(sizeof(CoinWgpuDraw) == 56, "CoinWgpuDraw size mismatch");
 static_assert(alignof(CoinWgpuDraw) == 8, "CoinWgpuDraw alignment mismatch");
 static_assert(offsetof(CoinWgpuDraw, stable_node_id) == 24, "CoinWgpuDraw stable_node_id offset mismatch");
 static_assert(offsetof(CoinWgpuDraw, draw_ordinal) == 32, "CoinWgpuDraw draw_ordinal offset mismatch");
-static_assert(offsetof(CoinWgpuDraw, reserved) == 36, "CoinWgpuDraw reserved offset mismatch");
+static_assert(offsetof(CoinWgpuDraw, composition_flags) == 36, "CoinWgpuDraw composition flags offset mismatch");
 static_assert(offsetof(CoinWgpuDraw, source_revision) == 40, "CoinWgpuDraw source_revision offset mismatch");
 
 static_assert(offsetof(CoinWgpuDraw, render_layer) == 48, "CoinWgpuDraw layer offset mismatch");

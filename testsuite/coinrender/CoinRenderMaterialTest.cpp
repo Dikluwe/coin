@@ -285,8 +285,14 @@ static bool testInvalidMaterialIndexHandling() {
     action.setFastPathEnabled(TRUE);
     action.apply(root);
 
-    ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::INVALID_SCENE,
-                "Out-of-bounds material index must reject scene as INVALID_SCENE");
+    // The common capture clamps positive lookups to the available material,
+    // matching the defensive lookup used by Coin/GL in debug builds.
+    ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::SUCCESS,
+                "Positive material index must resolve to the available material");
+    const std::string log(action.getRecordingLog().getString());
+    ASSERT_TRUE(log.find("matSlot=0") != std::string::npos &&
+                log.find("matSlot=100") == std::string::npos,
+                "Clamped material lookup must publish a valid captured slot");
 
     root->unref();
   }
@@ -328,6 +334,7 @@ static bool testStorageBufferLimitsAndSlotValidation() {
   mat.diffuse[0] = 1.0f; mat.diffuse[3] = 1.0f;
 
   CoinWgpuRenderState st{};
+  st.polygon_offset_primitive_style = 1; // Offset disabled; valid triangle style.
   st.cull_mode = 0;
   st.front_face = 0;
   st.light_model = 1;
@@ -400,6 +407,7 @@ static bool testBaseColorVsPhongLitAndUnlitGpu() {
   mat.emission[0] = 0.0f; mat.emission[1] = 1.0f; mat.emission[2] = 0.0f; mat.emission[3] = 1.0f;
 
   CoinWgpuRenderState st{};
+  st.polygon_offset_primitive_style = 1; // Offset disabled; valid triangle style.
   // Identity matrices
   st.model_view[0] = 1.0f; st.model_view[5] = 1.0f; st.model_view[10] = 1.0f; st.model_view[15] = 1.0f;
   st.model_view_projection[0] = 1.0f; st.model_view_projection[5] = 1.0f; st.model_view_projection[10] = 1.0f; st.model_view_projection[15] = 1.0f;
@@ -490,6 +498,7 @@ static bool testShininessZeroAndExponentConversion() {
   mat.shininess = 0.0f; // Shininess zero must be valid!
 
   CoinWgpuRenderState st{};
+  st.polygon_offset_primitive_style = 1; // Offset disabled; valid triangle style.
   st.model_view[0] = 1.0f; st.model_view[5] = 1.0f; st.model_view[10] = 1.0f; st.model_view[15] = 1.0f;
   st.model_view_projection[0] = 1.0f; st.model_view_projection[5] = 1.0f; st.model_view_projection[10] = 1.0f; st.model_view_projection[15] = 1.0f;
   st.normal_matrix[0] = 1.0f; st.normal_matrix[5] = 1.0f; st.normal_matrix[10] = 1.0f; st.normal_matrix[15] = 1.0f;
@@ -561,6 +570,7 @@ static bool testOpaqueRuleForAlpha() {
   mat.transparency = 0.5f;
 
   CoinWgpuRenderState st{};
+  st.polygon_offset_primitive_style = 1; // Offset disabled; valid triangle style.
   st.model_view[0] = 1.0f; st.model_view[5] = 1.0f; st.model_view[10] = 1.0f; st.model_view[15] = 1.0f;
   st.model_view_projection[0] = 1.0f; st.model_view_projection[5] = 1.0f; st.model_view_projection[10] = 1.0f; st.model_view_projection[15] = 1.0f;
   st.normal_matrix[0] = 1.0f; st.normal_matrix[5] = 1.0f; st.normal_matrix[10] = 1.0f; st.normal_matrix[15] = 1.0f;
@@ -584,6 +594,7 @@ static bool testOpaqueRuleForAlpha() {
   fView.state_count = 1;
   fView.clear_color[0] = 0.0f; fView.clear_color[1] = 0.0f; fView.clear_color[2] = 0.0f; fView.clear_color[3] = 1.0f;
 
+  draw.composition_flags = 1; // Producer resolved source-over blending.
   char err[256] = {0};
   CoinWgpuStatus status = coin_wgpu_submit(&target, &fView, err, sizeof(err));
   ASSERT_TRUE(status == COIN_WGPU_OK, "Direct FFI alpha blend failed: " + std::string(err));
@@ -592,6 +603,12 @@ static bool testOpaqueRuleForAlpha() {
   uint8_t a = colBuf[centerIdx + 3];
   ASSERT_TRUE(r > 115 && r < 140, "Half-alpha red must blend over black");
   ASSERT_TRUE(a == 255, "Source-over alpha over opaque clear must remain one");
+  draw.composition_flags = 0;
+  status = coin_wgpu_submit(&target, &fView, err, sizeof(err));
+  ASSERT_TRUE(status == COIN_WGPU_OK && colBuf[centerIdx] > 240 &&
+              colBuf[centerIdx + 3] > 115 && colBuf[centerIdx + 3] < 140,
+              "Infra must execute opaque metadata without reclassifying material alpha");
+  draw.composition_flags = 1;
   const uint64_t goodSerial = target.submission_serial;
 
   mat.diffuse[3] = 1.0f;
@@ -658,6 +675,7 @@ static bool testMaterialMutationWithGeometryCacheHit() {
   mat1.diffuse[0] = 1.0f; mat1.diffuse[3] = 1.0f;
 
   CoinWgpuRenderState st{};
+  st.polygon_offset_primitive_style = 1; // Offset disabled; valid triangle style.
   st.model_view[0] = 1.0f; st.model_view[5] = 1.0f; st.model_view[10] = 1.0f; st.model_view[15] = 1.0f;
   st.model_view_projection[0] = 1.0f; st.model_view_projection[5] = 1.0f; st.model_view_projection[10] = 1.0f; st.model_view_projection[15] = 1.0f;
   st.normal_matrix[0] = 1.0f; st.normal_matrix[5] = 1.0f; st.normal_matrix[10] = 1.0f; st.normal_matrix[15] = 1.0f;

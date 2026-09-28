@@ -7,6 +7,7 @@
 #include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
 
 #include <Inventor/SbMatrix.h>
+#include "rendering/coinrender/CoinRenderComposition.h"
 
 #include <cmath>
 #include <cstddef>
@@ -66,16 +67,21 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
 
   if (reuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH &&
       frame.revision != 0 && frame.revision != reuse.baseRevision &&
-      reuse.baseRevision != 0 && reuse.baseRevision == this->packedRevision &&
-      this->states.size() == frame.renderStates.size()) {
+      reuse.baseRevision != 0 && reuse.baseRevision == this->packedRevision) {
+    const auto previousDraws = this->draws;
+    this->packedRevision = 0;
     if (!this->packStates(frame, width, height, outDiagnostic)) return false;
+    const bool sameOrder = previousDraws.size() == this->draws.size() &&
+      (previousDraws.empty() || std::memcmp(previousDraws.data(), this->draws.data(),
+        previousDraws.size() * sizeof(CoinWgpuDraw)) == 0);
     this->bindView(frame, width, height);
-    this->view.camera_base_revision = reuse.baseRevision;
+    this->view.camera_base_revision = sameOrder ? reuse.baseRevision : 0;
     this->packedRevision = frame.revision;
     this->prepareKind = CoinRenderFrameReuseKind::CAMERA_PATCH;
     return true;
   }
 
+  this->packedRevision = 0;
   this->vertices.resize(frame.vertices.size());
   for (size_t i = 0; i < frame.vertices.size(); ++i) {
     const CoinRenderVertexSnapshot & src = frame.vertices[i];
@@ -87,24 +93,6 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
   }
 
   this->indices = frame.indices;
-  this->draws.resize(frame.draws.size());
-  for (size_t i = 0; i < frame.draws.size(); ++i) {
-    const CoinRenderDrawPacket & src = frame.draws[i];
-    CoinWgpuDraw & dst = this->draws[i];
-    dst.topology = static_cast<uint32_t>(src.topology);
-    dst.first_vertex = src.geometry.firstVertex;
-    dst.vertex_count = src.geometry.vertexCount;
-    dst.first_index = src.geometry.firstIndex;
-    dst.index_count = src.geometry.indexCount;
-    dst.render_state_slot = src.renderStateSlot;
-    dst.stable_node_id = src.stableNodeId;
-    dst.draw_ordinal = src.drawOrdinal;
-    dst.reserved = 0;
-    dst.source_revision = src.sourceRevision;
-    dst.render_layer = src.renderLayer;
-    dst.clear_depth_before = src.clearDepthBefore ? 1u : 0u;
-  }
-
   this->materials.resize(frame.materials.size());
   for (size_t i = 0; i < frame.materials.size(); ++i) {
     const CoinRenderMaterialSnapshot & src = frame.materials[i];
@@ -265,6 +253,47 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame, uint32_t targetW
       }
     }
   }
+  std::vector<CoinRenderCompositionItem> order;
+  if (!coin_render_composition_order(frame, order, outDiagnostic)) return false;
+  std::vector<CoinWgpuDraw> resolvedDraws;
+  resolvedDraws.reserve(order.size());
+  for (const auto & item : order) {
+    const auto & src = frame.draws[item.drawIndex];
+    const auto & state = frame.renderStates[src.renderStateSlot];
+    if ((item.blend && item.additive) || (item.blend && item.sortTriangles) ||
+        (item.blend && item.transparencyStrategy == CoinRenderCompositionItem::SORTED_LAYERS) ||
+        item.screenDoorLevel != 0) {
+      outDiagnostic = "UNSUPPORTED: CoinWgpu cannot execute additive, triangle-sorted, sorted-layer or screen-door transparency";
+      return false;
+    }
+    CoinWgpuDraw dst{};
+    dst.topology = static_cast<uint32_t>(src.topology);
+    dst.first_vertex = src.geometry.firstVertex;
+    dst.vertex_count = src.geometry.vertexCount;
+    dst.first_index = src.geometry.firstIndex;
+    dst.index_count = src.geometry.indexCount;
+    dst.render_state_slot = src.renderStateSlot;
+    dst.stable_node_id = src.stableNodeId;
+    dst.draw_ordinal = src.drawOrdinal;
+    dst.composition_flags = item.blend ? 1u : 0u;
+    dst.source_revision = src.sourceRevision;
+    dst.render_layer = src.renderLayer;
+    dst.clear_depth_before = src.clearDepthBefore ? 1u : 0u;
+    if (item.depthTest != state.depthTest || item.depthWrite != state.depthWrite ||
+        item.depthFunction != state.depthFunction ||
+        item.depthRange[0] != state.depthRange[0] || item.depthRange[1] != state.depthRange[1]) {
+      CoinWgpuRenderState resolved = this->states[src.renderStateSlot];
+      resolved.depth_test = item.depthTest ? 1u : 0u;
+      resolved.depth_write = item.depthWrite ? 1u : 0u;
+      resolved.depth_function = static_cast<uint32_t>(item.depthFunction);
+      resolved.depth_range[0] = item.depthRange[0];
+      resolved.depth_range[1] = item.depthRange[1];
+      dst.render_state_slot = static_cast<uint32_t>(this->states.size());
+      this->states.push_back(resolved);
+    }
+    resolvedDraws.push_back(dst);
+  }
+  this->draws.swap(resolvedDraws);
   return true;
 }
 

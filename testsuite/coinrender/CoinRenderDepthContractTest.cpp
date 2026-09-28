@@ -84,7 +84,7 @@ bool capture() {
       sawDefault = true;
       ok &= check(state.polygonOffsetFactor == 0 && state.polygonOffsetUnits == 0 &&
         state.depthTest && state.depthWrite && state.depthRange[0] == 0 &&
-        state.depthRange[1] == 1, "default state changed");
+        state.depthRange[1] == 1 && state.explicitDepthMask == 0, "default state changed");
     } else {
       sawFill |= state.polygonOffsetPrimitiveStyle == 1;
       sawLines |= state.polygonOffsetPrimitiveStyle == 2;
@@ -92,7 +92,7 @@ bool capture() {
       ok &= check(state.polygonOffsetFactor == -2 && state.polygonOffsetUnits == 4 &&
         state.polygonOffsetStyles == 6 && !state.depthTest && !state.depthWrite &&
         state.depthFunction == CoinRenderDepthFunction::GREATER &&
-        state.depthRange[0] == 0.2f && state.depthRange[1] == 0.8f,
+        state.depthRange[0] == 0.2f && state.depthRange[1] == 0.8f && state.explicitDepthMask == 15,
         "offset/depth state lost or merged across draws");
     }
   }
@@ -170,7 +170,7 @@ bool annotationTransport() {
   if (!check(ffi.prepare(frame, 32, 32, diagnostic), "annotation FFI packing")) return false;
   const auto matches = [&]() {
     const auto & view = ffi.getView();
-    return check(view.abi_version == 20 && view.draws[0].render_layer == 3 &&
+    return check(view.abi_version == COIN_WGPU_ABI_VERSION && view.draws[0].render_layer == 3 &&
       view.draws[0].clear_depth_before == 1 && view.draws[1].render_layer == 3 &&
       view.draws[1].clear_depth_before == 0, "annotation payload lost in FFI");
   };

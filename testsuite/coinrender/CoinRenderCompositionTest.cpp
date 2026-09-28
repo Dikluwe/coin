@@ -50,6 +50,8 @@ void configureTarget(CoinRenderTarget * target, bool cpu) {
 bool depthMatches(const Sample & sample, float expected, bool cpu) {
 #if defined(HAVE_COIN_BGFX)
   if (!cpu) return true;
+#else
+  (void)cpu;
 #endif
   return std::abs(sample.depth - expected) < 0.02f;
 }
@@ -122,7 +124,7 @@ CoinRenderFramePlan makePlan(bool textureAlpha = false) {
   // Deliberately reverse input order. The scheduler must submit blue opaque,
   // then green far, then red near.
   addQuad(plan, -2.0f, {{1, 0, 0}}, textureAlpha ? 1.0f : 0.5f, textureAlpha);
-  addQuad(plan, -5.0f, {{0, 0, 1}}, 1.0f);
+  addQuad(plan, -4.5f, {{0, 0, 1}}, 1.0f);
   if (!textureAlpha) addQuad(plan, -4.0f, {{0, 1, 0}}, 0.5f);
   if (textureAlpha) {
     CoinRenderTextureImageSnapshot texture;
@@ -182,11 +184,11 @@ bool testMaterialBlend() {
              "opaque/far/near ordering")) return false;
   Sample cpu;
   if (!render(plan, true, cpu) || !check(nearColor(cpu, {{127, 63, 63, 255}}, 3), "CPU source-over")) return false;
-  if (!check(std::abs(cpu.depth - 1.0f) < 0.01f, "transparent draws must not write depth")) return false;
+  if (!check(std::abs(cpu.depth - 0.875f) < 0.01f, "transparent draws must not write depth")) return false;
   if (CoinRenderAction::isGpuBackendAvailable()) {
     Sample gpu;
     if (!render(plan, false, gpu) || !check(nearColor(gpu, {{127, 63, 63, 255}}, 5), "GPU source-over")) return false;
-    if (!check(std::abs(gpu.depth - cpu.depth) < 0.01f, "CPU/GPU depth parity")) return false;
+    if (!check(depthMatches(gpu, cpu.depth, false), "CPU/GPU depth parity")) return false;
   }
   return true;
 }
@@ -239,13 +241,14 @@ bool testMixedOverlayRendersInTraversalOrder() {
   CoinRenderViewportSnapshot viewport;
   viewport.width = viewport.height = 64;
   plan.viewports.push_back(viewport);
-  addQuad(plan, -5.0f, {{0, 0, 1}}, 1.0f);
+  addQuad(plan, -4.5f, {{0, 0, 1}}, 1.0f);
   addQuad(plan, -2.0f, {{1, 0, 0}}, 0.5f);
   plan.draws.back().renderLayer = 1;
   plan.draws.back().clearDepthBefore = true;
   addQuad(plan, -4.0f, {{0, 1, 0}}, 1.0f);
   plan.draws.back().renderLayer = 1;
 
+  plan.renderStates[1].depthWrite = false;
   const bool gpuAvailable = CoinRenderAction::isGpuBackendAvailable();
   for (int backend = 0; backend < (gpuAvailable ? 2 : 1); ++backend) {
     Sample sample;
@@ -399,7 +402,7 @@ bool testTextureMutationAndSharing() {
         if (!check(std::abs(observed[c] - cpuPixels[i][c]) <= 6,
                    "GPU/CPU shared checkerboard parity")) { delete target; return false; }
       }
-      if (!depth.empty() && !check(std::abs(depth[pixel] - 1.0f) < 0.02f,
+      if (!depth.empty() && !check(std::abs(depth[pixel] - 0.875f) < 0.02f,
                  "transparent checkerboard must not write depth")) { delete target; return false; }
     }
     delete target;
@@ -420,7 +423,7 @@ bool testAlphaAndOcclusion() {
     viewport.width = 64;
     viewport.height = 64;
     zero.viewports.push_back(viewport);
-    addQuad(zero, -5.0f, {{0, 0, 1}}, 1.0f);
+    addQuad(zero, -4.5f, {{0, 0, 1}}, 1.0f);
     addQuad(zero, -2.0f, {{1, 0, 0}}, 0.0f);
     Sample pixel;
     if (!render(zero, cpu, pixel) ||
@@ -545,7 +548,7 @@ bool testMultipleViewports() {
   return true;
 }
 
-bool testOverlayDepthBarriersWithWeightedBase() {
+bool testOverlayDepthBarriersWithSortedBase() {
   CoinRenderFramePlan plan;
   plan.clearColor = SbColor4f(0, 0, 0, 1);
   plan.lightingStates.push_back(CoinRenderLightingSnapshot{});
@@ -556,7 +559,7 @@ bool testOverlayDepthBarriersWithWeightedBase() {
   addQuad(plan, -2.0f, {{1, 0, 0}}, 1.0f);
   addQuad(plan, -3.0f, {{0, 1, 0}}, 0.5f);
   plan.renderStates.back().transparencyType =
-    SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND;
+    SoGLRenderAction::SORTED_OBJECT_BLEND;
 
   CoinRenderViewportSnapshot lowerRight;
   lowerRight.x = 32; lowerRight.y = 0;
@@ -570,7 +573,7 @@ bool testOverlayDepthBarriersWithWeightedBase() {
   CoinRenderViewportSnapshot upperRight = lowerRight;
   upperRight.y = 32;
   plan.viewports.push_back(upperRight);
-  addQuad(plan, -5.0f, {{1, 1, 0}}, 1.0f);
+  addQuad(plan, -4.5f, {{1, 1, 0}}, 1.0f);
   plan.renderStates.back().viewportSlot = 2;
   plan.draws.back().renderLayer = 2;
   plan.draws.back().clearDepthBefore = true;
@@ -586,7 +589,7 @@ bool testOverlayDepthBarriersWithWeightedBase() {
     const size_t lower = static_cast<size_t>(48 * 64 + 48) * 4;
     const size_t upper = static_cast<size_t>(16 * 64 + 48) * 4;
     const bool ok = check(result.status == CoinRenderBackendStatus::SUCCESS,
-                          "weighted base plus overlay layers must render") &&
+                          "sorted base plus overlay layers must render") &&
       check(rgba.size() == 64u * 64u * 4u, "overlay readback size") &&
       check(rgba[lower] <= 8 && rgba[lower + 1] <= 8 && rgba[lower + 2] >= 247,
             "first annotation viewport must be blue after depth clear") &&
@@ -611,7 +614,7 @@ bool testFailurePreservesFrame() {
     target->readbackRGBA(beforeColor);
     target->readbackDepth(beforeDepth);
     const uint64_t beforeSerial = target->getLastSubmissionSerial();
-    valid.renderStates[0].transparencyType = SoGLRenderAction::ADD;
+    valid.renderStates[0].transparencyType = -1;
     const CoinRenderFrameExecutionResult rejected = target->getPimpl()->executeFrame(valid);
     target->readbackRGBA(afterColor);
     target->readbackDepth(afterDepth);
@@ -627,6 +630,93 @@ bool testFailurePreservesFrame() {
   return true;
 }
 
+bool testUnsupportedExecutorPreservesFrame() {
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+  const int modes[] = {SoGLRenderAction::ADD, SoGLRenderAction::SCREEN_DOOR,
+    SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND, SoGLRenderAction::SORTED_LAYERS_BLEND};
+  for (int backend = 0; backend < (CoinRenderAction::isGpuBackendAvailable() ? 2 : 1); ++backend) {
+    CoinRenderTarget * target = CoinRenderTarget::createOffscreen(SbVec2i32(64, 64));
+    configureTarget(target, backend == 0);
+    const auto initial = makePlan();
+    if (!check(target->getPimpl()->executeFrame(initial).status == CoinRenderBackendStatus::SUCCESS,
+        "initial frame before unsupported operation")) { delete target; return false; }
+    std::vector<uint8_t> before, after;
+    target->readbackRGBA(before);
+    const auto serial = target->getLastSubmissionSerial();
+    for (int mode : modes) {
+      auto unsupported = initial;
+      unsupported.renderStates[0].transparencyType = mode;
+      const auto result = target->getPimpl()->executeFrame(unsupported);
+      target->readbackRGBA(after);
+      if (!check(result.status == CoinRenderBackendStatus::UNSUPPORTED &&
+          before == after && target->getLastSubmissionSerial() == serial &&
+          target->getStatus() == CoinRenderTarget::TARGET_READY,
+          "unsupported Coin operation must preserve published frame and serial")) {
+        delete target; return false;
+      }
+    }
+    if (!check(target->getPimpl()->executeFrame(initial).status == CoinRenderBackendStatus::SUCCESS,
+        "valid frame must resume after unsupported operation")) { delete target; return false; }
+    delete target;
+  }
+#endif
+  return true;
+}
+
+bool testCommonTransparencyPolicy() {
+  struct Expectation { int mode; bool blend, deferred, additive, triangles, sorted; };
+  const Expectation cases[] = {
+    {SoGLRenderAction::NONE, false, false, false, false, false},
+    {SoGLRenderAction::SCREEN_DOOR, false, false, false, false, false},
+    {SoGLRenderAction::ADD, true, false, true, false, false},
+    {SoGLRenderAction::BLEND, true, false, false, false, false},
+    {SoGLRenderAction::DELAYED_ADD, true, true, true, false, false},
+    {SoGLRenderAction::DELAYED_BLEND, true, true, false, false, false},
+    {SoGLRenderAction::SORTED_OBJECT_ADD, true, true, true, false, true},
+    {SoGLRenderAction::SORTED_OBJECT_BLEND, true, true, false, false, true},
+    {SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_ADD, true, true, true, true, true},
+    {SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND, true, true, false, true, true},
+    {SoGLRenderAction::SORTED_LAYERS_BLEND, true, true, false, false, false}
+  };
+  for (const auto & expected : cases) {
+    auto plan = makePlan();
+    plan.renderStates[0].transparencyType = expected.mode;
+    std::vector<CoinRenderCompositionItem> order;
+    std::string diagnostic;
+    if (!check(coin_render_composition_order(plan, order, diagnostic), "common Coin mode")) return false;
+    const auto found = std::find_if(order.begin(), order.end(), [](const CoinRenderCompositionItem & item) { return item.drawIndex == 0; });
+    if (!check(found != order.end() && found->blend == expected.blend &&
+        found->deferred == expected.deferred && found->additive == expected.additive &&
+        found->sortTriangles == expected.triangles && found->sortObject == expected.sorted,
+        "Coin immediate/delayed/sorted/additive policy")) return false;
+    if (!check(found->depthWrite == !expected.deferred && found->depthFunction ==
+        (expected.deferred ? CoinRenderDepthFunction::LEQUAL : CoinRenderDepthFunction::LESS),
+        "transparent pass depth defaults")) return false;
+    auto & state = plan.renderStates[0];
+    state.explicitDepthMask = 15;
+    state.depthTest = false; state.depthWrite = true;
+    state.depthFunction = CoinRenderDepthFunction::GREATER;
+    state.depthRange[0] = 0.2f; state.depthRange[1] = 0.8f;
+    if (!coin_render_composition_order(plan, order, diagnostic)) return false;
+    const auto explicitItem = std::find_if(order.begin(), order.end(), [](const CoinRenderCompositionItem & item) { return item.drawIndex == 0; });
+    if (!check(!explicitItem->depthTest && explicitItem->depthWrite &&
+        explicitItem->depthFunction == CoinRenderDepthFunction::GREATER &&
+        explicitItem->depthRange[0] == 0.2f && explicitItem->depthRange[1] == 0.8f,
+        "explicit SoDepthBuffer fields survive deferred policy")) return false;
+  }
+  auto plan = makePlan();
+  plan.renderStates[0].transparencyType = SoGLRenderAction::BLEND;
+  std::vector<CoinRenderCompositionItem> order;
+  std::string diagnostic;
+  if (!check(coin_render_composition_order(plan, order, diagnostic) && order[0].drawIndex == 0,
+      "immediate BLEND retains traversal before opaque objects")) return false;
+  plan.renderStates[0].transparencyType = SoGLRenderAction::DELAYED_BLEND;
+  if (!check(coin_render_composition_order(plan, order, diagnostic) &&
+      order[0].drawIndex == 1 && order[1].drawIndex == 2 && order[2].drawIndex == 0,
+      "sorted transparent paths precede unsorted delayed paths")) return false;
+  return true;
+}
+
 bool testRejections() {
   CoinRenderFramePlan plan = makePlan();
   std::vector<CoinRenderCompositionItem> order;
@@ -637,19 +727,19 @@ bool testRejections() {
     {SoGLRenderAction::BLEND, CoinRenderCompositionItem::OBJECT},
     {SoGLRenderAction::DELAYED_BLEND, CoinRenderCompositionItem::OBJECT},
     {SoGLRenderAction::SORTED_OBJECT_BLEND, CoinRenderCompositionItem::OBJECT},
-    {SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND, CoinRenderCompositionItem::WEIGHTED_OIT},
+    {SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND, CoinRenderCompositionItem::OBJECT},
     {SoGLRenderAction::SORTED_LAYERS_BLEND, CoinRenderCompositionItem::SORTED_LAYERS}
   };
   for (const Mapping & mapping : mappings) {
     plan.renderStates[0].transparencyType = mapping.mode;
     if (!check(coin_render_composition_order(plan, order, diagnostic) &&
-               !order.empty() && order.back().transparencyStrategy == mapping.strategy,
+               !order.empty() && std::find_if(order.begin(), order.end(), [&mapping](const CoinRenderCompositionItem & item) { return item.drawIndex == 0 && item.transparencyStrategy == mapping.strategy; }) != order.end(),
                "Coin transparency mapping")) return false;
   }
-  plan.renderStates[0].transparencyType = SoGLRenderAction::ADD;
+  plan.renderStates[0].transparencyType = -1;
   if (!check(!coin_render_composition_order(plan, order, diagnostic) &&
-             diagnostic.find("supported mappings") != std::string::npos,
-             "unsupported additive transparency mode")) return false;
+             diagnostic.find("Unknown Coin transparency mode") != std::string::npos,
+             "unknown Coin transparency mode")) return false;
   plan.renderStates[0].transparencyType = SoGLRenderAction::SORTED_OBJECT_BLEND;
   plan.vertices[0].materialSlot = 1;
   const bool mixedBlend = coin_render_composition_order(plan, order, diagnostic) &&
@@ -687,7 +777,7 @@ bool testTraversal() {
     {SoTransparencyType::SORTED_OBJECT_BLEND,
      "strategy=SORTED_OBJECT_BLEND -> object"},
     {SoTransparencyType::SORTED_OBJECT_SORTED_TRIANGLE_BLEND,
-     "strategy=SORTED_OBJECT_SORTED_TRIANGLE_BLEND -> weighted_oit"}
+     "strategy=SORTED_OBJECT_SORTED_TRIANGLE_BLEND -> object"}
   };
 
   for (const TraversalMapping & mapping : mappings) {
@@ -762,9 +852,9 @@ int main(int argc, char ** argv) {
       !testTextureMutationAndSharing() ||
       !testAlphaAndOcclusion() || !testTargetIsolationAndResize() ||
       !testMultipleViewports() ||
-      !testOverlayDepthBarriersWithWeightedBase() ||
+      !testOverlayDepthBarriersWithSortedBase() ||
       !testFailurePreservesFrame() ||
-      !testRejections() || !testSceneTextureRejected() ||
+      !testUnsupportedExecutorPreservesFrame() || !testCommonTransparencyPolicy() || !testRejections() || !testSceneTextureRejected() ||
       !testTraversal()) return 1;
   std::cout << "CoinRenderCompositionTest passed\n";
   return 0;
