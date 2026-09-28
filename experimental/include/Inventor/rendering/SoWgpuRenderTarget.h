@@ -5,7 +5,6 @@
 #include <Inventor/rendering/CoinRenderTarget.h>
 #define COIN_WGPU_DLL_API COIN_RENDER_DLL_API
 typedef CoinRenderCacheTelemetry SoWgpuCacheTelemetry;
-typedef CoinRenderNativeSurface SoWgpuNativeSurface;
 typedef CoinRenderNativeSurfaceDescriptor SoWgpuNativeSurfaceDescriptor;
 typedef CoinRenderReadbackTicket SoWgpuReadbackTicket;
 typedef CoinRenderAction SoWgpuRenderAction;
