@@ -5,6 +5,7 @@
 #include <Inventor/SbColor4f.h>
 #include <Inventor/SbColor.h>
 #include <Inventor/SbMatrix.h>
+#include <Inventor/SbPlane.h>
 #include <Inventor/SbVec2f.h>
 #include <Inventor/SbVec2i32.h>
 #include <Inventor/SbVec3f.h>
@@ -70,6 +71,7 @@ enum class CoinRenderLightType : uint32_t {
 };
 
 static const size_t COIN_RENDER_MAX_LIGHTS = 8;
+static const size_t COIN_RENDER_MAX_CLIP_PLANES = 8;
 
 // Contract: Light direction and position are strictly in View Space (camera space).
 // Backends consume direction/position directly without applying camera viewMatrix again.
@@ -183,6 +185,7 @@ struct CoinRenderTextureUnitSnapshot {
 };
 
 struct CoinRenderRenderStateSnapshot {
+  std::vector<SbPlane> clipPlanesWorld; // Captured at plane traversal, not shape traversal.
   SbMatrix model = SbMatrix::identity();
   SbMatrix view = SbMatrix::identity();
   SbMatrix projectionCoin = SbMatrix::identity();

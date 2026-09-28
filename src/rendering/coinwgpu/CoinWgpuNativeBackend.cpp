@@ -132,6 +132,12 @@ CoinWgpuNativeBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTarge
       return CoinRenderBackendStatus::UNSUPPORTED;
     }
   }
+  for (const auto & state : frame.renderStates) {
+    if (!state.clipPlanesWorld.empty()) {
+      this->lastError = "UNSUPPORTED: native WebGPU spike has no clipping executor";
+      return CoinRenderBackendStatus::UNSUPPORTED;
+    }
+  }
   if (!this->isReady) {
     CoinRenderBackendStatus st = this->prepare(target);
     if (st != CoinRenderBackendStatus::SUCCESS) return CoinRenderSubmitResult(st, this->lastError);

@@ -40,7 +40,9 @@ para transparência imediata; rejeita operações que não possui.
 
 ## Transporte wgpu
 
-A revisão privada 21 conserva `CoinWgpuDraw` com 56 bytes e o estado com 956.
+A revisão privada 21 introduziu esse transporte com draw de 56 bytes e estado
+de 956. A revisão atual 22 conserva o draw e amplia o estado para 1088 bytes
+com equações de clipping; veja o [contrato de clipping](coin-render-clipping-contract.md).
 O antigo campo reservado no offset 36 passa a ser `composition_flags`, cujo
 bit 0 transporta blend. O array de draws já chega na ordem resolvida. Estados
 variantes são empacotados quando o passe adiado modifica a profundidade; um

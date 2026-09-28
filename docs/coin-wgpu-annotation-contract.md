@@ -4,7 +4,9 @@ O protocolo privado 21 transporta `CoinRenderDrawPacket::renderLayer` e
 `clearDepthBefore` em `CoinWgpuDraw::render_layer` e `clear_depth_before`.
 C++ e Rust devem ser reconstruídos juntos. O draw tem 56 bytes desde a revisão 20;
 a revisão 21 usa o antigo campo reservado para o blend resolvido pelo Core.
-O estado de renderização permanece com 956 bytes, incluindo polygon offset.
+O estado tinha 956 bytes nessa entrega, incluindo polygon offset. Na revisão
+privada atual 22 tem 1088 bytes com clipping; os metadados de anotações permanecem
+no draw de 56 bytes. Veja o [contrato de clipping](coin-render-clipping-contract.md).
 
 A camada zero recebe a composição resolvida pelo Core CoinRender. As demais
 camadas são executadas por número crescente e preservam a ordem de travessia,

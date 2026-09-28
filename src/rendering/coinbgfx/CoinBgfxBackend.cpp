@@ -426,6 +426,7 @@ CoinBgfxBackend::CoinBgfxBackend()
     layerSampler(BGFX_INVALID_HANDLE), oitAccumSampler(BGFX_INVALID_HANDLE),
     oitRevealSampler(BGFX_INVALID_HANDLE), depthInfoUniform(BGFX_INVALID_HANDLE),
     coinDepthUniform(BGFX_INVALID_HANDLE), screenDoorUniform(BGFX_INVALID_HANDLE),
+    clipMetaUniform(BGFX_INVALID_HANDLE), clipPlanesUniform(BGFX_INVALID_HANDLE),
     textureSampler(BGFX_INVALID_HANDLE), fogColorModeUniform(BGFX_INVALID_HANDLE),
     fogRangeUniform(BGFX_INVALID_HANDLE), textureParamsUniform(BGFX_INVALID_HANDLE),
     textureBlendUniform(BGFX_INVALID_HANDLE),
@@ -500,6 +501,8 @@ CoinBgfxBackend::destroyResources()
   if (bgfx::isValid(this->layerSampler)) bgfx::destroy(this->layerSampler);
   if (bgfx::isValid(this->depthInfoUniform)) bgfx::destroy(this->depthInfoUniform);
   if (bgfx::isValid(this->screenDoorUniform)) bgfx::destroy(this->screenDoorUniform);
+  if (bgfx::isValid(this->clipMetaUniform)) bgfx::destroy(this->clipMetaUniform);
+  if (bgfx::isValid(this->clipPlanesUniform)) bgfx::destroy(this->clipPlanesUniform);
   if (bgfx::isValid(this->coinDepthUniform)) bgfx::destroy(this->coinDepthUniform);
   if (bgfx::isValid(this->oitAccumSampler)) bgfx::destroy(this->oitAccumSampler);
   if (bgfx::isValid(this->oitRevealSampler)) bgfx::destroy(this->oitRevealSampler);
@@ -786,6 +789,8 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
   this->fogRangeUniform = bgfx::createUniform("u_fogRange", bgfx::UniformType::Vec4);
   this->textureParamsUniform = bgfx::createUniform("u_texParams", bgfx::UniformType::Vec4, COIN_RENDER_MAX_TEXTURE_UNITS);
   this->screenDoorUniform = bgfx::createUniform("u_screenDoor", bgfx::UniformType::Vec4);
+  this->clipMetaUniform = bgfx::createUniform("u_clipMeta", bgfx::UniformType::Vec4);
+  this->clipPlanesUniform = bgfx::createUniform("u_clipPlanes", bgfx::UniformType::Vec4, COIN_RENDER_MAX_CLIP_PLANES);
   this->coinDepthUniform = bgfx::createUniform("u_coinDepth", bgfx::UniformType::Vec4);
   this->textureBlendUniform = bgfx::createUniform("u_texBlend", bgfx::UniformType::Vec4, COIN_RENDER_MAX_TEXTURE_UNITS);
   this->ambientLightUniform = bgfx::createUniform("u_ambientLight", bgfx::UniformType::Vec4);
@@ -805,6 +810,8 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
       !bgfx::isValid(this->textureParamsUniform) ||
       !bgfx::isValid(this->textureBlendUniform) ||
       !bgfx::isValid(this->ambientLightUniform) ||
+      !bgfx::isValid(this->clipMetaUniform) ||
+      !bgfx::isValid(this->clipPlanesUniform) ||
       !bgfx::isValid(this->lightCountUniform) ||
       !bgfx::isValid(this->lightPositionTypeUniform) ||
       !bgfx::isValid(this->lightDirectionCutoffUniform) ||
@@ -1149,6 +1156,8 @@ CoinBgfxBackend::bindDrawLighting(const CoinBgfxDraw & draw, int targetHeight)
   const float door[4] = {draw.screenDoor[0], float(targetHeight > 0 ? targetHeight : this->height),
     bgfx::getCaps()->originBottomLeft ? 1.0f : 0.0f, draw.screenDoor[3]};
   bgfx::setUniform(this->screenDoorUniform, door);
+  bgfx::setUniform(this->clipMetaUniform, draw.clipMeta);
+  bgfx::setUniform(this->clipPlanesUniform, draw.clipPlanes, COIN_RENDER_MAX_CLIP_PLANES);
   // Use two D24 LSBs on GL to survive the gl_FragCoord-to-gl_FragDepth
   // floating-point round trip; other renderers retain the one-LSB contract.
   // Driver-specific native polygon offset resolution remains approximate.

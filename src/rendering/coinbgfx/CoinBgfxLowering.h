@@ -54,6 +54,8 @@ struct CoinBgfxDraw {
   bool deferred = false;
   bool additive = false;
   float screenDoor[4] = {0, 0, 0, 0};
+  float clipMeta[4] = {};
+  float clipPlanes[COIN_RENDER_MAX_CLIP_PLANES][4] = {};
   float alpha = 1.0f;
   CoinBgfxTransparencyStrategy transparencyStrategy = CoinBgfxTransparencyStrategy::OBJECT;
   int32_t viewport[4] = {0, 0, 0, 0}; // Coin bottom-left x, y, width, height

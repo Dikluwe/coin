@@ -5,6 +5,7 @@
 #endif
 
 #include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
+#include "rendering/coinrender/CoinRenderClipCore.h"
 
 #include <Inventor/SbMatrix.h>
 #include "rendering/coinrender/CoinRenderComposition.h"
@@ -13,7 +14,7 @@
 #include <cstddef>
 #include <cstring>
 
-static_assert(sizeof(CoinWgpuRenderState) == 956, "CoinWgpuRenderState ABI size changed");
+static_assert(sizeof(CoinWgpuRenderState) == 1088, "CoinWgpuRenderState ABI size changed");
 static_assert(offsetof(CoinWgpuRenderState, polygon_offset_enabled) == 936, "Polygon offset ABI tail changed");
 static_assert(offsetof(CoinWgpuRenderState, depth_test) == 916, "depth_test ABI offset changed");
 static_assert(offsetof(CoinWgpuRenderState, depth_write) == 920, "depth_write ABI offset changed");
@@ -145,6 +146,8 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame, uint32_t targetW
   for (size_t i = 0; i < frame.renderStates.size(); ++i) {
     const CoinRenderRenderStateSnapshot & src = frame.renderStates[i];
     CoinWgpuRenderState & dst = this->states[i];
+    dst.clip_plane_count = static_cast<uint32_t>(src.clipPlanesWorld.size());
+    if (!coin_render_clip_equations(src, dst.clip_planes, outDiagnostic)) return false;
     const SbMatrix modelView = src.model * src.view;
     const float determinant = modelView.det4();
     const SbMatrix normalMatrix = std::abs(determinant) > 1.0e-12f

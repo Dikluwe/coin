@@ -189,6 +189,14 @@ CoinRenderRecordingBackend::recordToString(const CoinRenderFramePlan & frame) co
           << formatFloat(rs.textureBlendColor[1]) << ","
           << formatFloat(rs.textureBlendColor[2]) << "]";
     }
+    if (!rs.clipPlanesWorld.empty()) {
+      out << " clipPlanesWorld=" << rs.clipPlanesWorld.size();
+      for (const SbPlane & plane : rs.clipPlanesWorld) {
+        const SbVec3f & n = plane.getNormal();
+        out << " [" << formatFloat(n[0]) << "," << formatFloat(n[1]) << ","
+            << formatFloat(n[2]) << "," << formatFloat(-plane.getDistanceFromOrigin()) << "]";
+      }
+    }
     out << "\n"
         << "    model: " << formatMatrix(rs.model) << "\n"
         << "    view: " << formatMatrix(rs.view) << "\n"

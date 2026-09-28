@@ -8,6 +8,8 @@
 #include <Inventor/nodes/SoShape.h>
 #include "rendering/coinrender/CoinRenderDepthPolicyElement.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
+#include "rendering/coinrender/CoinRenderClipCore.h"
+#include <Inventor/elements/SoClipPlaneElement.h>
 #include "rendering/coinrender/CoinRenderIndexedGeometryCore.h"
 
 #include <Inventor/actions/SoCallbackAction.h>
@@ -754,13 +756,23 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   rs.linePatternScaleFactor = state
     ? std::max(1, SoLinePatternElement::getScaleFactor(state)) : 1;
 
+  if (state) {
+    const SoClipPlaneElement * planes = SoClipPlaneElement::getInstance(state);
+    if (planes) for (int i = 0; i < planes->getNum(); ++i)
+      rs.clipPlanesWorld.push_back(planes->get(i, TRUE));
+  }
+  if (rs.clipPlanesWorld.size() > COIN_RENDER_MAX_CLIP_PLANES) {
+    this->isUnsupported = true;
+    this->builderError = "UNSUPPORTED: more than eight active Coin clipping planes";
+  }
   this->captureTexture(action, rs, &this->builderError);
 
   uint32_t rsSlot = 0;
   bool rsFound = false;
   for (size_t i = 0; i < this->currentPlan.renderStates.size(); ++i) {
     const auto & existing = this->currentPlan.renderStates[i];
-    if (existing.materialSlot == materialSlot &&
+    if (existing.clipPlanesWorld == rs.clipPlanesWorld &&
+        existing.materialSlot == materialSlot &&
         existing.lightingSlot == lightingSlot &&
         existing.lightModel == rs.lightModel &&
         existing.transparencyType == rs.transparencyType &&
@@ -1151,6 +1163,7 @@ CoinRenderFramePlanBuilder::expandStyledPrimitives(std::string * outError)
     CoinRenderRenderStateSnapshot state = sourceState;
     state.polygonOffsetPrimitiveStyle =
       original.topology == CoinRenderPrimitiveTopology::LINE_LIST ? 2u : 4u;
+    state.clipPlanesWorld.clear(); // Original strokes are clipped before expansion.
     state.model = SbMatrix::identity();
     state.view = SbMatrix::identity();
     state.projectionCoin = SbMatrix::identity();
@@ -1206,11 +1219,21 @@ CoinRenderFramePlanBuilder::expandStyledPrimitives(std::string * outError)
             secondIndex >= this->currentPlan.vertices.size()) {
           return fail("Styled line references invalid vertex");
         }
-        const CoinRenderVertexSnapshot firstVertex = this->currentPlan.vertices[firstIndex];
-        const CoinRenderVertexSnapshot secondVertex = this->currentPlan.vertices[secondIndex];
+        CoinRenderVertexSnapshot firstVertex = this->currentPlan.vertices[firstIndex];
+        CoinRenderVertexSnapshot secondVertex = this->currentPlan.vertices[secondIndex];
         if (firstVertex.materialSlot >= this->currentPlan.materials.size() ||
             secondVertex.materialSlot >= this->currentPlan.materials.size()) {
           return fail("Styled line references invalid material");
+        }
+        float clipFirst, clipLast;
+        if (!coin_render_clip_segment(sourceState, firstVertex, secondVertex,
+                                      clipFirst, clipLast)) continue;
+        if (clipFirst != 0 || clipLast != 1) {
+          const CoinRenderVertexSnapshot a = firstVertex, b = secondVertex;
+          firstVertex = coin_render_clip_interpolate(a, b, clipFirst,
+            materialAt(a.materialSlot, b.materialSlot, clipFirst));
+          secondVertex = coin_render_clip_interpolate(a, b, clipLast,
+            materialAt(a.materialSlot, b.materialSlot, clipLast));
         }
         SbVec3f firstNdc, secondNdc;
         if (!project(firstVertex, firstNdc) || !project(secondVertex, secondNdc))
@@ -1286,6 +1309,7 @@ CoinRenderFramePlanBuilder::expandStyledPrimitives(std::string * outError)
         if (vertex.materialSlot >= this->currentPlan.materials.size()) {
           return fail("Styled point references invalid material");
         }
+        if (!coin_render_clip_point(sourceState, vertex)) continue;
         SbVec3f ndc;
         if (!project(vertex, ndc)) continue;
         const uint32_t materialSlot =
@@ -1413,6 +1437,7 @@ CoinRenderFramePlanBuilder::expandStyledPrimitives(std::string * outError)
     CoinRenderRenderStateSnapshot state = sourceState;
     state.polygonOffsetPrimitiveStyle =
       original.topology == CoinRenderPrimitiveTopology::LINE_LIST ? 2u : 4u;
+    state.clipPlanesWorld.clear(); // Original strokes are clipped before expansion.
     state.model = SbMatrix::identity();
     state.view = SbMatrix::identity();
     state.projectionCoin = SbMatrix::identity();
@@ -1491,11 +1516,21 @@ CoinRenderFramePlanBuilder::expandStyledPrimitives(std::string * outError)
             secondIndex >= this->currentPlan.vertices.size()) {
           return fail("Styled line references invalid vertex");
         }
-        const CoinRenderVertexSnapshot firstVertex = this->currentPlan.vertices[firstIndex];
-        const CoinRenderVertexSnapshot secondVertex = this->currentPlan.vertices[secondIndex];
+        CoinRenderVertexSnapshot firstVertex = this->currentPlan.vertices[firstIndex];
+        CoinRenderVertexSnapshot secondVertex = this->currentPlan.vertices[secondIndex];
         if (firstVertex.materialSlot >= this->currentPlan.materials.size() ||
             secondVertex.materialSlot >= this->currentPlan.materials.size()) {
           return fail("Styled line references invalid material");
+        }
+        float clipFirst, clipLast;
+        if (!coin_render_clip_segment(sourceState, firstVertex, secondVertex,
+                                      clipFirst, clipLast)) continue;
+        if (clipFirst != 0 || clipLast != 1) {
+          const CoinRenderVertexSnapshot a = firstVertex, b = secondVertex;
+          firstVertex = coin_render_clip_interpolate(a, b, clipFirst,
+            materialAt(a.materialSlot, b.materialSlot, clipFirst));
+          secondVertex = coin_render_clip_interpolate(a, b, clipLast,
+            materialAt(a.materialSlot, b.materialSlot, clipLast));
         }
         SbVec3f firstNdc, secondNdc;
         float firstW, secondW;
@@ -1568,6 +1603,7 @@ CoinRenderFramePlanBuilder::expandStyledPrimitives(std::string * outError)
         if (vertex.materialSlot >= this->currentPlan.materials.size()) {
           return fail("Styled point references invalid material");
         }
+        if (!coin_render_clip_point(sourceState, vertex)) continue;
         SbVec3f ndc;
         float clipW;
         if (!project(vertex, ndc, clipW)) continue;

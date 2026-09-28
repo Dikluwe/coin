@@ -12,6 +12,8 @@ uniform vec4 u_texBlend[8];
 uniform vec4 u_fogColorMode;
 uniform vec4 u_fogRange;
 uniform vec4 u_screenDoor;
+uniform vec4 u_clipMeta;
+uniform vec4 u_clipPlanes[8];
 
 vec2 coinSurfaceUv(vec2 uv, vec4 params)
 {
@@ -27,6 +29,10 @@ vec4 coinTextureLayer(vec4 color, vec4 texColor, vec4 params, vec4 blendColor)
 vec4 coinSurfaceColor(vec2 pixelCoord, vec4 v_color0, vec2 v_texcoord0, vec3 v_viewPosition,
                       vec4 v_texcoords4, vec4 v_texcoords5, vec4 v_texcoords6, vec4 v_texcoords7)
 {
+  for (int i = 0; i < 8; ++i) {
+    if (float(i) >= u_clipMeta.x) break;
+    if (dot(u_clipPlanes[i], vec4(v_viewPosition, 1.0)) < 0.0) discard;
+  }
   // Coin's 32x32 polygon stipple, quantized into its 65 transparency levels.
   // Texture alpha is not a stipple source and expanded lines/points disable it.
   if (u_screenDoor.x > 0.5) {

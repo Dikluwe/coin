@@ -13,7 +13,7 @@ use std::sync::{Arc, Mutex, OnceLock};
 
 mod composition;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 21;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 22;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 pub type CoinWgpuSurfaceId = u64;
@@ -178,6 +178,8 @@ pub struct CoinWgpuUniforms {
     pub light_meta: [f32; 4],
     pub lights: [CoinWgpuLight; 8],
     pub texture_blend_color: [f32; 4],
+    pub clip_meta: [f32; 4],
+    pub clip_planes: [[f32; 4]; 8],
 }
 
 #[repr(C)]
@@ -217,10 +219,14 @@ pub struct CoinWgpuRenderState {
     pub polygon_offset_units: f32,
     pub polygon_offset_styles: u32,
     pub polygon_offset_primitive_style: u32,
+    pub clip_plane_count: u32,
+    pub clip_planes: [[f32; 4]; 8],
 }
 
 const _: () = {
-    assert!(std::mem::size_of::<CoinWgpuRenderState>() == 956);
+    assert!(std::mem::size_of::<CoinWgpuRenderState>() == 1088);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, clip_plane_count) == 956);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, clip_planes) == 960);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, polygon_offset_enabled) == 936);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, depth_test) == 916);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, depth_write) == 920);
@@ -608,6 +614,7 @@ fn same_camera_independent_state(a: &CoinWgpuRenderState, b: &CoinWgpuRenderStat
         && a.polygon_offset_units == b.polygon_offset_units
         && a.polygon_offset_styles == b.polygon_offset_styles
         && a.polygon_offset_primitive_style == b.polygon_offset_primitive_style
+        && a.clip_plane_count == b.clip_plane_count && a.clip_planes == b.clip_planes
         && a.lights.iter().zip(b.lights.iter()).all(|(x, y)| {
             x.position_type == y.position_type && x.direction_cutoff == y.direction_cutoff
                 && x.color_intensity == y.color_intensity
@@ -2475,6 +2482,8 @@ fn encode_frame(
                 light_meta: [st.light_count as f32, 0.0, 0.0, 0.0],
                 texture_blend_color: st.texture_blend_color,
                 lights: st.lights,
+                clip_meta: [st.clip_plane_count as f32, 0.0, 0.0, 0.0],
+                clip_planes: st.clip_planes,
                 fog_color_mode: [
                     st.fog_color[0],
                     st.fog_color[1],

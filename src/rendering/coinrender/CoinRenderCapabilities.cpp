@@ -190,6 +190,7 @@ coin_render_query_capabilities(uint32_t target,
                     COIN_RENDER_FEATURE_TEXTURE_2D |
                     COIN_RENDER_FEATURE_LIGHTS |
                     COIN_RENDER_FEATURE_FOG |
+                    COIN_RENDER_FEATURE_CLIP_PLANES |
                     COIN_RENDER_FEATURE_SORTED_ALPHA |
                     COIN_RENDER_FEATURE_COLOR_DEPTH;
   result.max_lights_per_draw = 8;
@@ -213,6 +214,7 @@ coin_render_query_capabilities(uint32_t target,
                     COIN_RENDER_FEATURE_TEXTURE_2D |
                     COIN_RENDER_FEATURE_LIGHTS |
                     COIN_RENDER_FEATURE_FOG |
+                    COIN_RENDER_FEATURE_CLIP_PLANES |
                     COIN_RENDER_FEATURE_SORTED_ALPHA;
   result.max_lights_per_draw = 8;
   result.max_texture_units = COIN_RENDER_MAX_TEXTURE_UNITS;

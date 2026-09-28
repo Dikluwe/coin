@@ -5,6 +5,7 @@
 #endif
 
 #include "rendering/coinrender/CoinRenderFrameReuseCore.h"
+#include "rendering/coinrender/CoinRenderStateCore.h"
 
 #include <cstring>
 #include <cmath>
@@ -66,37 +67,7 @@ sameMatrix(const SbMatrix & a, const SbMatrix & b)
   return std::memcmp(a.getValue(), b.getValue(), sizeof(float) * 16) == 0;
 }
 
-bool
-sameRenderStateExceptCamera(const CoinRenderRenderStateSnapshot & a,
-                            const CoinRenderRenderStateSnapshot & b)
-{
-  return sameMatrix(a.model, b.model) &&
-    a.materialSlot == b.materialSlot && a.lightingSlot == b.lightingSlot &&
-    a.cameraSlot == b.cameraSlot && a.viewportSlot == b.viewportSlot &&
-    a.cullMode == b.cullMode && a.frontFace == b.frontFace &&
-    a.depthTest == b.depthTest && a.depthWrite == b.depthWrite &&
-    a.explicitDepthMask == b.explicitDepthMask &&
-    a.screenDoorTransparency == b.screenDoorTransparency &&
-    a.depthFunction == b.depthFunction &&
-    std::memcmp(a.depthRange, b.depthRange, sizeof(a.depthRange)) == 0 &&
-    a.polygonOffsetEnabled == b.polygonOffsetEnabled &&
-    a.polygonOffsetFactor == b.polygonOffsetFactor &&
-    a.polygonOffsetUnits == b.polygonOffsetUnits &&
-    a.polygonOffsetStyles == b.polygonOffsetStyles &&
-    a.polygonOffsetPrimitiveStyle == b.polygonOffsetPrimitiveStyle &&
-    a.lightModel == b.lightModel && a.lineWidth == b.lineWidth &&
-    a.pointSize == b.pointSize && a.linePattern == b.linePattern &&
-    a.linePatternScaleFactor == b.linePatternScaleFactor &&
-    sameMatrix(a.textureMatrix, b.textureMatrix) &&
-    std::memcmp(a.extraTextures, b.extraTextures, sizeof(a.extraTextures)) == 0 &&
-    a.hasTexture == b.hasTexture && a.textureImageSlot == b.textureImageSlot &&
-    a.samplerSlot == b.samplerSlot && a.textureModel == b.textureModel &&
-    std::memcmp(a.textureBlendColor, b.textureBlendColor,
-                sizeof(a.textureBlendColor)) == 0 &&
-    a.transparencyType == b.transparencyType && a.fogMode == b.fogMode &&
-    std::memcmp(a.fogColor, b.fogColor, sizeof(a.fogColor)) == 0 &&
-    a.fogStart == b.fogStart && a.fogEnd == b.fogEnd;
-}
+
 
 bool
 hasOpaqueConnectorResource(const CoinRenderFramePlan & plan)
@@ -127,7 +98,7 @@ sameCameraIndependentPayload(const CoinRenderFramePlan & previous,
   for (size_t i = 0; i < previous.renderStates.size(); ++i) {
     const CoinRenderRenderStateSnapshot & a = previous.renderStates[i];
     const CoinRenderRenderStateSnapshot & b = current.renderStates[i];
-    if (!sameRenderStateExceptCamera(a, b) ||
+    if (!coin_render_same_state_except_camera(a, b) ||
         a.cameraSlot >= previous.cameras.size() ||
         b.cameraSlot >= current.cameras.size()) return false;
 

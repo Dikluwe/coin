@@ -25,6 +25,8 @@ struct Uniforms {
     light_meta: vec4<f32>,
     lights: array<GpuLight, 8>,
     texture_blend_color: vec4<f32>,
+    clip_meta: vec4<f32>,
+    clip_planes: array<vec4<f32>, 8>,
 };
 
 struct GpuMaterial {
@@ -160,6 +162,10 @@ fn apply_fog(color: vec4<f32>, eye_depth: f32) -> vec4<f32> {
 
 @fragment
 fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
+    for (var i = 0u; i < 8u; i += 1u) {
+        if (f32(i) >= u.clip_meta.x) { break; }
+        if (dot(u.clip_planes[i], vec4<f32>(input.position_view, 1.0)) < 0.0) { discard; }
+    }
     var base_color = input.diffuse_color;
 
     if (u.tex_params.x > 0.5) {

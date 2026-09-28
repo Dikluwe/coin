@@ -5,6 +5,8 @@
 #endif
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
+#include "rendering/coinrender/CoinRenderClipCore.h"
+#include "rendering/coinrender/CoinRenderStateCore.h"
 
 #include <cmath>
 #include <cstring>
@@ -49,11 +51,17 @@ CoinRenderFramePlan::hasSamePayload(const CoinRenderFramePlan & other) const
       !samePlainSnapshots(this->materials, other.materials) ||
       !sameCameras(this->cameras, other.cameras) ||
       !samePlainSnapshots(this->viewports, other.viewports) ||
-      !samePlainSnapshots(this->renderStates, other.renderStates) ||
+      this->renderStates.size() != other.renderStates.size() ||
       !samePlainSnapshots(this->samplers, other.samplers) ||
       !samePlainSnapshots(this->draws, other.draws) ||
       this->lightingStates.size() != other.lightingStates.size() ||
       this->textures.size() != other.textures.size()) return false;
+  for (size_t i = 0; i < this->renderStates.size(); ++i) {
+    const auto & a = this->renderStates[i];
+    const auto & b = other.renderStates[i];
+    if (!coin_render_same_state_except_camera(a, b) ||
+        a.view != b.view || a.projectionCoin != b.projectionCoin) return false;
+  }
   for (size_t i = 0; i < this->lightingStates.size(); ++i) {
     const CoinRenderLightingSnapshot & x = this->lightingStates[i];
     const CoinRenderLightingSnapshot & y = other.lightingStates[i];
@@ -243,6 +251,12 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
 
   for (size_t i = 0; i < this->renderStates.size(); ++i) {
     const CoinRenderRenderStateSnapshot & state = this->renderStates[i];
+    float clipEquations[COIN_RENDER_MAX_CLIP_PLANES][4] = {};
+    std::string clipDiagnostic;
+    if (!coin_render_clip_equations(state, clipEquations, clipDiagnostic)) {
+      if (outDiagnostic) *outDiagnostic = clipDiagnostic;
+      return false;
+    }
     if (state.viewportSlot >= this->viewports.size()) {
       if (outDiagnostic) *outDiagnostic = "RenderState references out-of-bounds viewport slot";
       return false;

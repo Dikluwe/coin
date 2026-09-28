@@ -1,4 +1,5 @@
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
+#include "rendering/coinrender/CoinRenderClipCore.h"
 #include <atomic>
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
@@ -235,6 +236,9 @@ static void rasterizeTriangle(const ShadedVertex & sv0, const ShadedVertex & sv1
                               bool blend,
                               std::vector<float> & depthBuffer, std::vector<uint8_t> & colorBuffer)
 {
+  float clipEquations[COIN_RENDER_MAX_CLIP_PLANES][4] = {};
+  std::string clipDiagnostic;
+  if (!coin_render_clip_equations(rs, clipEquations, clipDiagnostic)) return;
   SbVec2f scrPos[3];
   float invW[3];
   float ndcZ[3];
@@ -301,10 +305,6 @@ static void rasterizeTriangle(const ShadedVertex & sv0, const ShadedVertex & sv1
       size_t pIdx = static_cast<size_t>(py * width + px);
       if (pIdx >= depthBuffer.size()) continue;
 
-      zVal = mappedDepth(zVal, rs);
-      if (!depthPass(zVal, depthBuffer[pIdx], rs)) continue;
-      if (rs.depthWrite) depthBuffer[pIdx] = zVal;
-
       // Perspective-correct barycentric interpolation
       float pNormW = l0 * invW[0] + l1 * invW[1] + l2 * invW[2];
       float oneOverNormW = (pNormW > 1e-9f ? 1.0f / pNormW : 1.0f);
@@ -314,6 +314,17 @@ static void rasterizeTriangle(const ShadedVertex & sv0, const ShadedVertex & sv1
       float b2 = (l2 * invW[2]) * oneOverNormW;
 
       const SbVec3f vPos = sv0.viewPos * b0 + sv1.viewPos * b1 + sv2.viewPos * b2;
+      bool clipped = false;
+      for (size_t i = 0; i < rs.clipPlanesWorld.size(); ++i) {
+        const float * p = clipEquations[i];
+        if (p[0] * vPos[0] + p[1] * vPos[1] + p[2] * vPos[2] + p[3] < 0) {
+          clipped = true; break;
+        }
+      }
+      if (clipped) continue;
+      zVal = mappedDepth(zVal, rs);
+      if (!depthPass(zVal, depthBuffer[pIdx], rs)) continue;
+      if (rs.depthWrite) depthBuffer[pIdx] = zVal;
       const SbVec4f color = sv0.litColor * b0 + sv1.litColor * b1 + sv2.litColor * b2;
       float finalR = color[0], finalG = color[1], finalB = color[2];
       float sourceAlpha = color[3];
@@ -638,6 +649,10 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
             int px = static_cast<int>(std::round(x0 + t * dx));
             int py = static_cast<int>(std::round(y0 + t * dy));
             float z = z0 + t * (z1 - z0);
+            const float invW = (1 - t) / clip0[3] + t / clip1[3];
+            const float objectT = (t / clip1[3]) / invW;
+            const CoinRenderVertexSnapshot sample = coin_render_clip_interpolate(v0, v1, objectT, v0.materialSlot);
+            if (!coin_render_clip_point(rs, sample)) continue;
 
             if (px >= 0 && px < width && py >= 0 && py < height &&
                 px >= viewport.x && px < viewport.x + viewport.width &&
@@ -669,6 +684,7 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
           if (i0 >= frame.vertices.size()) continue;
 
           const CoinRenderVertexSnapshot & v0 = frame.vertices[i0];
+          if (!coin_render_clip_point(rs, v0)) continue;
           SbVec4f clip0;
           mvpWgpu.multVecMatrix(SbVec4f(v0.position[0], v0.position[1], v0.position[2], 1.0f), clip0);
           SbVec4f view0;

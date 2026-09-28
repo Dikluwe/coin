@@ -643,6 +643,33 @@ if(COIN_BUILD_RENDER)
 	add_test(NAME CoinRenderFogTest COMMAND CoinRenderFogTest)
 	set_tests_properties(CoinRenderFogTest PROPERTIES TIMEOUT 30)
 
+	add_executable(CoinRenderClipPlaneTest coinrender/CoinRenderClipPlaneTest.cpp
+		${PROJECT_SOURCE_DIR}/src/rendering/coinrender/CoinRenderFramePlanBuilder.cpp)
+	set_target_properties(CoinRenderClipPlaneTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinRenderClipPlaneTest CoinRender Coin)
+	target_include_directories(CoinRenderClipPlaneTest PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}
+		${PROJECT_SOURCE_DIR}/experimental/include
+		${PROJECT_SOURCE_DIR}/include
+		${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include
+		${PROJECT_BINARY_DIR}/src
+		${COIN_TARGET_INCLUDE_DIRECTORIES}
+	)
+	add_test(NAME CoinRenderClipPlaneTest COMMAND CoinRenderClipPlaneTest)
+	set_tests_properties(CoinRenderClipPlaneTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77)
+	if(COIN_RENDER_BACKEND STREQUAL "BGFX")
+		set_tests_properties(CoinRenderClipPlaneTest PROPERTIES ENVIRONMENT "COIN_BGFX_RENDERER=vulkan;COIN_BGFX_TRANSPARENCY=object")
+		foreach(renderer vulkan opengl)
+			foreach(mode object weighted_oit sorted_layers)
+				add_test(NAME CoinRenderClipPlane_${renderer}_${mode} COMMAND CoinRenderClipPlaneTest)
+				set_tests_properties(CoinRenderClipPlane_${renderer}_${mode} PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77
+					ENVIRONMENT "COIN_BGFX_RENDERER=${renderer};COIN_BGFX_TRANSPARENCY=${mode}")
+			endforeach()
+		endforeach()
+	endif()
+
+
 	add_executable(CoinRenderCompositionTest coinrender/CoinRenderCompositionTest.cpp)
 	set_target_properties(CoinRenderCompositionTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 	target_link_libraries(CoinRenderCompositionTest CoinRender Coin)

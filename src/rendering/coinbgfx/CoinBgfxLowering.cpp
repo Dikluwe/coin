@@ -5,6 +5,7 @@
 #endif
 
 #include "rendering/coinbgfx/CoinBgfxLowering.h"
+#include "rendering/coinrender/CoinRenderClipCore.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
 
 #include <cmath>
@@ -58,6 +59,8 @@ int compareDrawGroupingKey(const CoinBgfxDraw & lhs,
   if (result == 0) result = compareBytes(lhs.depthRange, rhs.depthRange, sizeof(lhs.depthRange));
   if (result == 0) result = compareValue(lhs.polygonOffsetFactor, rhs.polygonOffsetFactor);
   if (result == 0) result = compareValue(lhs.polygonOffsetUnits, rhs.polygonOffsetUnits);
+  if (result == 0) result = compareBytes(lhs.clipMeta, rhs.clipMeta, sizeof(lhs.clipMeta));
+  if (result == 0) result = compareBytes(lhs.clipPlanes, rhs.clipPlanes, sizeof(lhs.clipPlanes));
   if (result == 0) result = compareBytes(lhs.viewport, rhs.viewport, sizeof(lhs.viewport));
   if (result == 0) result = compareValue(lhs.materialSignature, rhs.materialSignature);
   if (result == 0) result = compareBytes(lhs.fogColorMode, rhs.fogColorMode, sizeof(lhs.fogColorMode));
@@ -261,6 +264,8 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     lowered.sortTriangles = item.sortTriangles;
     lowered.deferred = item.deferred;
     lowered.additive = item.additive;
+    lowered.clipMeta[0] = static_cast<float>(state.clipPlanesWorld.size());
+    if (!coin_render_clip_equations(state, lowered.clipPlanes, diagnostic)) return false;
     lowered.screenDoor[0] = static_cast<float>(item.screenDoorLevel);
     lowered.screenDoor[3] = item.screenDoor ? 1.0f : 0.0f;
 
@@ -633,6 +638,7 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
         ((state.polygonOffsetEnabled &&
           (state.polygonOffsetStyles & state.polygonOffsetPrimitiveStyle))
           ? state.polygonOffsetUnits : 0.0f) != previous.polygonOffsetUnits ||
+        !state.clipPlanesWorld.empty() || previous.clipMeta[0] != 0 ||
         state.lightModel != CoinRenderLightModel::BASE_COLOR ||
         state.fogMode != CoinRenderFogMode::NONE || previous.fogColorMode[3] != 0.0f ||
         state.polygonOffsetPrimitiveStyle != 1 ||

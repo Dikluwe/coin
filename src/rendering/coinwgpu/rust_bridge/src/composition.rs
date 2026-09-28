@@ -34,6 +34,15 @@ pub(super) fn order(
         }
         let state = states.get(draw.render_state_slot as usize).ok_or_else(||
             (CoinWgpuStatus::InvalidArgument, format!("Draw {} has invalid state", draw_index)))?;
+        if state.clip_plane_count > 8 {
+            return Err((CoinWgpuStatus::Unsupported, "More than eight clipping planes".into()));
+        }
+        for plane in &state.clip_planes[..state.clip_plane_count as usize] {
+            if !plane.iter().all(|v| v.is_finite())
+                || plane[..3].iter().map(|v| v * v).sum::<f32>() <= 1e-12 {
+                return Err((CoinWgpuStatus::InvalidArgument, "Invalid clipping plane".into()));
+            }
+        }
         if state.material_slot as usize >= materials.len() {
             return Err((CoinWgpuStatus::InvalidArgument, format!("Draw {} has invalid material", draw_index)));
         }
@@ -156,4 +165,19 @@ mod tests {
         assert!(order(&[], &[], &draws, &materials, &states, &[]).is_err());
         assert_eq!(passes(&[], &[]), vec![0..0]);
     }
+    #[test]
+    fn rejects_invalid_clip_payload_before_execution() {
+        let (draws, materials, mut states) = fixture(&[0], &[1.0]);
+        states[0].clip_plane_count = 9;
+        assert_eq!(order(&[], &[], &draws, &materials, &states, &[]).err().unwrap().0,
+                   CoinWgpuStatus::Unsupported);
+        states[0].clip_plane_count = 1;
+        assert_eq!(order(&[], &[], &draws, &materials, &states, &[]).err().unwrap().0,
+                   CoinWgpuStatus::InvalidArgument);
+        states[0].clip_planes[0] = [1.0, 0.0, 0.0, f32::NAN];
+        assert!(order(&[], &[], &draws, &materials, &states, &[]).is_err());
+        states[0].clip_planes[0][3] = -0.25;
+        assert!(order(&[], &[], &draws, &materials, &states, &[]).is_ok());
+    }
+
 }
