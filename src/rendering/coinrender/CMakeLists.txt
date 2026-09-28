@@ -5,7 +5,7 @@ set(COIN_RENDER_SOURCES
 	CoinRenderFramePlan.cpp
 	CoinRenderFramePlanBuilder.cpp
 	CoinRenderFrameReuseCore.cpp
-	SoWgpuBgfxCore.cpp
+	${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxLowering.cpp
 	CoinRenderImageCore.cpp
 	CoinRenderIndexedGeometryCore.cpp
 	CoinRenderManagerAdapter.cpp
@@ -22,8 +22,8 @@ if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
 elseif(COIN_RENDER_BACKEND STREQUAL "DAWN" OR COIN_RENDER_BACKEND STREQUAL "WGPU_NATIVE")
 	list(APPEND COIN_RENDER_SOURCES SoWgpuNativeBackend.cpp)
 elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
-	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/actions/SoBGFXRenderAction.cpp)
-	set(_coin_bgfx_shader_dir ${CMAKE_CURRENT_SOURCE_DIR}/shaders/bgfx)
+	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/actions/CoinBgfxAction.cpp)
+	set(_coin_bgfx_shader_dir ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/shaders)
 	set(_coin_bgfx_generated_dir ${CMAKE_CURRENT_BINARY_DIR}/bgfx-generated)
 	file(MAKE_DIRECTORY ${_coin_bgfx_generated_dir})
 	foreach(_stage vs fs)
@@ -81,7 +81,7 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 			list(APPEND COIN_RENDER_SOURCES ${_shader_output})
 		endforeach()
 	endforeach()
-	list(APPEND COIN_RENDER_SOURCES SoWgpuBgfxBackend.cpp CoinRenderDepthPolicyElement.cpp)
+	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxBackend.cpp CoinRenderDepthPolicyElement.cpp)
 endif()
 
 add_library(CoinRender SHARED ${COIN_RENDER_SOURCES})

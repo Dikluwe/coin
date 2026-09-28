@@ -1,0 +1,192 @@
+{
+  "phase": "bgfx",
+  "identifiers": {
+    "BgfxReadbackModesTest": "CoinBgfxReadbackModesTest",
+    "BgfxSurfaceFeaturesTest": "CoinBgfxSurfaceFeaturesTest",
+    "COIN_SOBGFXRENDERACTION_H": "COIN_BGFX_ACTION_H",
+    "COIN_SOWGPUBGFXBACKEND_H": "COIN_BGFX_BACKEND_H",
+    "COIN_SOWGPUBGFXCORE_H": "COIN_BGFX_LOWERING_H",
+    "COIN_SOWGPUBGFXDRAW_H": "COIN_BGFX_DRAW_H",
+    "COIN_SOWGPUBGFXPHASESAMPLE_H": "COIN_BGFX_PHASE_SAMPLE_H",
+    "COIN_SOWGPUBGFXPLAN_H": "COIN_BGFX_PLAN_H",
+    "COIN_SOWGPUBGFXTEXTURE_H": "COIN_BGFX_TEXTURE_H",
+    "COIN_SOWGPUBGFXTRANSPARENCYMODE_H": "COIN_BGFX_TRANSPARENCY_MODE_H",
+    "COIN_SOWGPUBGFXTRANSPARENCYSTRATEGY_H": "COIN_BGFX_TRANSPARENCY_STRATEGY_H",
+    "COIN_SOWGPUBGFXVERTEXRANGE_H": "COIN_BGFX_VERTEX_RANGE_H",
+    "COIN_SOWGPUBGFXVERTEX_H": "COIN_BGFX_VERTEX_H",
+    "HAVE_WGPU_BGFX": "HAVE_COIN_BGFX",
+    "SoBGFXRenderAction": "CoinBgfxAction",
+    "SoWgpuBgfxBackend": "CoinBgfxBackend",
+    "SoWgpuBgfxCore": "CoinBgfxLowering",
+    "SoWgpuBgfxDraw": "CoinBgfxDraw",
+    "SoWgpuBgfxPhaseSample": "CoinBgfxPhaseSample",
+    "SoWgpuBgfxPlan": "CoinBgfxPlan",
+    "SoWgpuBgfxTexture": "CoinBgfxTexture",
+    "SoWgpuBgfxTransparencyMode": "CoinBgfxTransparencyMode",
+    "SoWgpuBgfxTransparencyStrategy": "CoinBgfxTransparencyStrategy",
+    "SoWgpuBgfxVertex": "CoinBgfxVertex",
+    "SoWgpuBgfxVertexRange": "CoinBgfxVertexRange",
+    "WgpuBgfxCoreTest": "CoinBgfxCoreTest",
+    "WgpuBgfxMultiWindowOffscreenFirstOpenGLTest": "CoinBgfxMultiWindowOffscreenFirstOpenGLTest",
+    "WgpuBgfxMultiWindowOffscreenFirstTest": "CoinBgfxMultiWindowOffscreenFirstTest",
+    "WgpuBgfxMultiWindowOpenGLTest": "CoinBgfxMultiWindowOpenGLTest",
+    "WgpuBgfxMultiWindowTest": "CoinBgfxMultiWindowTest",
+    "WgpuBgfxMultiWindow_": "CoinBgfxMultiWindow_",
+    "WgpuBgfxOffscreenTest": "CoinBgfxOffscreenTest",
+    "WgpuBgfxOpenGLTest": "CoinBgfxOpenGLTest",
+    "WgpuBgfxRenderManagerAdapterOpenGLTest": "CoinBgfxRenderManagerAdapterOpenGLTest",
+    "WgpuBgfxRenderManagerAdapterTest": "CoinBgfxRenderManagerAdapterTest",
+    "WgpuBgfxSortedLayersOpenGLTest": "CoinBgfxSortedLayersOpenGLTest",
+    "WgpuBgfxSortedLayersTest": "CoinBgfxSortedLayersTest",
+    "WgpuBgfxTransparencyGlReferenceTest": "CoinBgfxTransparencyGlReferenceTest",
+    "WgpuBgfxTransparencyOpenGLTest": "CoinBgfxTransparencyOpenGLTest",
+    "WgpuBgfxTransparencyTest": "CoinBgfxTransparencyTest",
+    "WgpuBgfxWeightedOitOpenGLTest": "CoinBgfxWeightedOitOpenGLTest",
+    "WgpuBgfxWeightedOitTest": "CoinBgfxWeightedOitTest",
+    "WgpuBgfxWindow": "CoinBgfxWindow",
+    "WgpuBgfxWindowOpenGLTest": "CoinBgfxWindowOpenGLTest",
+    "WgpuBgfxWindowTest": "CoinBgfxWindowTest"
+  },
+  "paths": [
+    [
+      ".github/scripts/build-and-test-bgfx-gpu.sh",
+      ".github/scripts/build-and-test-coin-bgfx-gpu.sh"
+    ],
+    [
+      ".github/workflows/bgfx-gpu-matrix.yml",
+      ".github/workflows/coin-bgfx-gpu-matrix.yml"
+    ],
+    [
+      "docs/bgfx-evaluation.md",
+      "docs/coin-bgfx-evaluation.md"
+    ],
+    [
+      "docs/bgfx-gouraud-parity.md",
+      "docs/coin-bgfx-gouraud-parity.md"
+    ],
+    [
+      "docs/bgfx-gpu-matrix.md",
+      "docs/coin-bgfx-gpu-matrix.md"
+    ],
+    [
+      "docs/bgfx-linked-topology-lighting.md",
+      "docs/coin-bgfx-linked-topology-lighting.md"
+    ],
+    [
+      "docs/bgfx-multiple-viewports.md",
+      "docs/coin-bgfx-multiple-viewports.md"
+    ],
+    [
+      "docs/bgfx-recovery.md",
+      "docs/coin-bgfx-recovery.md"
+    ],
+    [
+      "docs/bgfx-surface-features.md",
+      "docs/coin-bgfx-surface-features.md"
+    ],
+    [
+      "docs/bgfx-transparency-readback.md",
+      "docs/coin-bgfx-transparency-readback.md"
+    ],
+    [
+      "docs/freecad-bgfx-overlays.md",
+      "docs/freecad-coin-bgfx-overlays.md"
+    ],
+    [
+      "experimental/include/Inventor/actions/SoBGFXRenderAction.h",
+      "experimental/include/Inventor/actions/CoinBgfxAction.h"
+    ],
+    [
+      "src/actions/SoBGFXRenderAction.cpp",
+      "src/actions/CoinBgfxAction.cpp"
+    ],
+    [
+      "src/rendering/coinrender/SoWgpuBgfxBackend.cpp",
+      "src/rendering/coinbgfx/CoinBgfxBackend.cpp"
+    ],
+    [
+      "src/rendering/coinrender/SoWgpuBgfxBackend.h",
+      "src/rendering/coinbgfx/CoinBgfxBackend.h"
+    ],
+    [
+      "src/rendering/coinrender/SoWgpuBgfxCore.cpp",
+      "src/rendering/coinbgfx/CoinBgfxLowering.cpp"
+    ],
+    [
+      "src/rendering/coinrender/SoWgpuBgfxCore.h",
+      "src/rendering/coinbgfx/CoinBgfxLowering.h"
+    ],
+    [
+      "src/rendering/coinrender/shaders/bgfx/coin_depth.sh",
+      "src/rendering/coinbgfx/shaders/coin_depth.sh"
+    ],
+    [
+      "src/rendering/coinrender/shaders/bgfx/coin_lighting.sh",
+      "src/rendering/coinbgfx/shaders/coin_lighting.sh"
+    ],
+    [
+      "src/rendering/coinrender/shaders/bgfx/coin_surface.sh",
+      "src/rendering/coinbgfx/shaders/coin_surface.sh"
+    ],
+    [
+      "src/rendering/coinrender/shaders/bgfx/fs_base_color.sc",
+      "src/rendering/coinbgfx/shaders/fs_base_color.sc"
+    ],
+    [
+      "src/rendering/coinrender/shaders/bgfx/fs_composite.sc",
+      "src/rendering/coinbgfx/shaders/fs_composite.sc"
+    ],
+    [
+      "src/rendering/coinrender/shaders/bgfx/fs_depth_readback.sc",
+      "src/rendering/coinbgfx/shaders/fs_depth_readback.sc"
+    ],
+    [
+      "src/rendering/coinrender/shaders/bgfx/fs_peel_next.sc",
+      "src/rendering/coinbgfx/shaders/fs_peel_next.sc"
+    ],
+    [
+      "src/rendering/coinrender/shaders/bgfx/fs_weighted_composite.sc",
+      "src/rendering/coinbgfx/shaders/fs_weighted_composite.sc"
+    ],
+    [
+      "src/rendering/coinrender/shaders/bgfx/fs_weighted_oit.sc",
+      "src/rendering/coinbgfx/shaders/fs_weighted_oit.sc"
+    ],
+    [
+      "src/rendering/coinrender/shaders/bgfx/varying.def.sc",
+      "src/rendering/coinbgfx/shaders/varying.def.sc"
+    ],
+    [
+      "src/rendering/coinrender/shaders/bgfx/vs_base_color.sc",
+      "src/rendering/coinbgfx/shaders/vs_base_color.sc"
+    ],
+    [
+      "testsuite/coinrender/BgfxReadbackModesTest.cpp",
+      "testsuite/coinbgfx/CoinBgfxReadbackModesTest.cpp"
+    ],
+    [
+      "testsuite/coinrender/BgfxSurfaceFeaturesTest.cpp",
+      "testsuite/coinbgfx/CoinBgfxSurfaceFeaturesTest.cpp"
+    ],
+    [
+      "testsuite/coinrender/WgpuBgfxCoreTest.cpp",
+      "testsuite/coinbgfx/CoinBgfxCoreTest.cpp"
+    ],
+    [
+      "testsuite/coinrender/WgpuBgfxMultiWindowTest.cpp",
+      "testsuite/coinbgfx/CoinBgfxMultiWindowTest.cpp"
+    ],
+    [
+      "testsuite/coinrender/WgpuBgfxOffscreenTest.cpp",
+      "testsuite/coinbgfx/CoinBgfxOffscreenTest.cpp"
+    ],
+    [
+      "testsuite/coinrender/WgpuBgfxTransparencyTest.cpp",
+      "testsuite/coinbgfx/CoinBgfxTransparencyTest.cpp"
+    ],
+    [
+      "testsuite/coinrender/WgpuBgfxWindowTest.cpp",
+      "testsuite/coinbgfx/CoinBgfxWindowTest.cpp"
+    ]
+  ]
+}

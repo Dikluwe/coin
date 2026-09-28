@@ -36,7 +36,7 @@ struct Sample {
 
 void configureTarget(CoinRenderTarget * target, bool cpu) {
   if (cpu) target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
   if (cpu) {
     const SbVec2i32 size = target->getPimpl()->size;
     target->getPimpl()->depthBuffer.assign(
@@ -48,7 +48,7 @@ void configureTarget(CoinRenderTarget * target, bool cpu) {
 }
 
 bool depthMatches(const Sample & sample, float expected, bool cpu) {
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
   if (!cpu) return true;
 #endif
   return std::abs(sample.depth - expected) < 0.02f;

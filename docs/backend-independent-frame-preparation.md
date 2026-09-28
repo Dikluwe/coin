@@ -34,7 +34,7 @@ Validation targets:
 
 - RenderManagerFramePreparationTest: run without DISPLAY. Sensors, pre/post
   pairing, reentry, camera/autoclip and realTime notifications, zero GL traversals.
-- WgpuBgfxRenderManagerAdapterTest and its OpenGL variant: real Xlib window
+- CoinBgfxRenderManagerAdapterTest and its OpenGL variant: real Xlib window
   presentation/resize with a GL action spy; no auxiliary GL traversal permitted.
 - CoinTests, CoinConfigCompatibility and ProfilerInit_*: traditional Coin regressions.
 

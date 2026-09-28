@@ -718,7 +718,7 @@ static bool testTexturedLineAndPointProfile() {
 
     CoinRenderAction action(SbViewportRegion(32, 32));
     action.apply(root);
-#ifdef HAVE_WGPU_BGFX
+#ifdef HAVE_COIN_BGFX
     ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::SUCCESS,
                 "BGFX must capture textured lines and points");
 #else

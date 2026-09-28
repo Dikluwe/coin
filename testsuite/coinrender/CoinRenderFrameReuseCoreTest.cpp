@@ -151,7 +151,7 @@ main()
   targetFrame.viewports[0].width = 64;
   targetFrame.viewports[0].height = 64;
   CoinRenderTargetP target(SbVec2i32(64, 64));
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
   target.depthReadbackEnabled = false;
 #endif
   CoinRenderFrameExecutionResult executed = target.executeFrame(targetFrame);

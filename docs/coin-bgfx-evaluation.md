@@ -1,7 +1,7 @@
 # Avaliação BGFX sobre o `CoinRenderFramePlan` experimental
 
 Esta branch adiciona um conector **BGFX (Vulkan ou OpenGL)** a
-`CoinRender`. A ação BGFX é `SoBGFXRenderAction`, um tipo Coin próprio.
+`CoinRender`. A ação BGFX é `CoinBgfxAction`, um tipo Coin próprio.
 `CoinRenderAction` permanece como base compartilhada e API de compatibilidade;
 BGFX não é wgpu-native,
 nem transforma essa ação em uma API gráfica estável. `libCoin` e a ABI pública
@@ -10,9 +10,9 @@ do Coin 4 não são alteradas.
 ## Por que a arquitetura ajuda
 
 O Wiring existente continua a capturar Open Inventor com `SoCallbackAction` e
-entrega o mesmo `CoinRenderFramePlan`. `SoWgpuBgfxCore` valida um subconjunto e converte
+entrega o mesmo `CoinRenderFramePlan`. `CoinBgfxLowering` valida um subconjunto e converte
 cor/material, geometria e matrizes sem incluir headers BGFX. A Infra
-`SoWgpuBgfxBackend` usa somente o plano convertido para criar shaders,
+`CoinBgfxBackend` usa somente o plano convertido para criar shaders,
 buffers, apresentar na janela ou fazer readback offscreen. Shell e
 diagnósticos existentes traduzem `UNSUPPORTED` e erros de backend. Assim a
 comparação isola a troca do executor, sem duplicar um segundo scene graph.
@@ -103,15 +103,15 @@ cmake -S . -B /tmp/coin-bgfx-release \
   -DCMAKE_PREFIX_PATH="$prefix" \
   -DCOIN_BGFX_SHADERC_EXECUTABLE="$prefix/bin/shaderc" \
   -DCOIN_BGFX_SHADER_INCLUDE_DIR="$prefix/include/bgfx"
-cmake --build /tmp/coin-bgfx-release --target WgpuBgfxCoreTest WgpuBgfxOffscreenTest WgpuBgfxTransparencyTest WgpuBgfxWindowTest CoinRenderBackendContractTest coin_render_window_cone coin_render_viewer coin_render_gl_benchmark -j4
+cmake --build /tmp/coin-bgfx-release --target CoinBgfxCoreTest CoinBgfxOffscreenTest CoinBgfxTransparencyTest CoinBgfxWindowTest CoinRenderBackendContractTest coin_render_window_cone coin_render_viewer coin_render_gl_benchmark -j4
 ctest --test-dir /tmp/coin-bgfx-release -R '^WgpuBgfx' --output-on-failure
 xvfb-run -a -s '-screen 0 1024x768x24 +extension GLX +render -noreset' \
-  ctest --test-dir /tmp/coin-bgfx-release -R '^WgpuBgfxWindow' --output-on-failure
+  ctest --test-dir /tmp/coin-bgfx-release -R '^CoinBgfxWindow' --output-on-failure
 # Em uma sessão X11 real: COIN_BGFX_RENDERER=opengl /tmp/coin-bgfx-release/bin/coin_render_viewer
 env EGL_PLATFORM=x11 \
   __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json \
   COIN_BGFX_RENDERER=opengl \
-  /tmp/coin-bgfx-release/bin/WgpuBgfxOffscreenTest
+  /tmp/coin-bgfx-release/bin/CoinBgfxOffscreenTest
 env VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
   COIN_GLX_PIXMAP_DIRECT_RENDERING=1 \
   /tmp/coin-bgfx-release/bin/coin_render_gl_benchmark \
@@ -139,13 +139,13 @@ Vulkan falhar por ausência de DRI3; o teste offscreen de composição passou.
 
 Xvfb continua útil para regressão funcional, mas não certifica hardware. A matriz
 física AMD/RADV, AMD/radeonsi, Intel e NVIDIA, para Vulkan e OpenGL, está
-descrita em `docs/bgfx-gpu-matrix.md` e é executada pelo workflow manual
+descrita em `docs/coin-bgfx-gpu-matrix.md` e é executada pelo workflow manual
 `BGFX physical GPU matrix`. Cada célula verifica o driver antes dos testes e
 arquiva o inventário, as capacidades reais e o resultado CTest.
 
 ## Ensaio controlado de transparência — 25/09/2026
 
-`WgpuBgfxTransparencyTest` constrói a mesma cena Open Inventor para
+`CoinBgfxTransparencyTest` constrói a mesma cena Open Inventor para
 Coin/OpenGL e BGFX (Vulkan ou OpenGL), a 128² e `BASE_COLOR`.
 Há um quadrilátero azul opaco atrás de dois semitransparentes (vermelho e
 verde, alpha 0,5), inseridos fora da ordem de profundidade. No caso
@@ -156,11 +156,11 @@ diagnóstica: o teste conta as diferenças na imagem inteira, mas não usa a
 saída Coin como oráculo para aprovar BGFX.
 
 ```sh
-cmake --build /tmp/coin-bgfx-release --target WgpuBgfxTransparencyTest -j4
+cmake --build /tmp/coin-bgfx-release --target CoinBgfxTransparencyTest -j4
 xvfb-run -a -s '-screen 0 1024x768x24 +extension GLX +render -noreset' \
   env COIN_GLX_PIXMAP_DIRECT_RENDERING=1 COIN_WGPU_REQUIRE_GL_REFERENCE=1 \
   VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
-  /tmp/coin-bgfx-release/bin/WgpuBgfxTransparencyTest \
+  /tmp/coin-bgfx-release/bin/CoinBgfxTransparencyTest \
   --output-prefix /tmp/coin-transparency-vulkan
 # Repetir com COIN_BGFX_RENDERER=opengl para BGFX/OpenGL.
 ```
@@ -230,7 +230,7 @@ offscreen passou com o ICD RADV forçado, tanto em `object` quanto em
 `sorted_layers`; forçar esse ICD no teste de janela Xvfb ainda exige DRI3.
 
 ```sh
-cmake --build /tmp/coin-bgfx-evaluation-build --target WgpuBgfxTransparencyTest coin_render_viewer -j4
+cmake --build /tmp/coin-bgfx-evaluation-build --target CoinBgfxTransparencyTest coin_render_viewer -j4
 xvfb-run -a -s '-screen 0 1024x768x24 +extension GLX +render -noreset' \
   env COIN_GLX_PIXMAP_DIRECT_RENDERING=1 \
   ctest --test-dir /tmp/coin-bgfx-evaluation-build \
@@ -462,7 +462,7 @@ desligado.
 
 O mesmo build Release e o mesmo `CoinRenderFramePlan` agora executam BGFX/OpenGL por
 `COIN_BGFX_RENDERER=opengl`; Vulkan continua sendo o padrão. O teste
-`WgpuBgfxOffscreenTest` passou nos dois renderers. A primeira execução OpenGL
+`CoinBgfxOffscreenTest` passou nos dois renderers. A primeira execução OpenGL
 revelou readback invertido; a Infra agora normaliza as linhas antes de publicar
 os pixels. Não há alteração de ABI pública do Coin 4.
 

@@ -602,7 +602,7 @@ int testBaseApplyNotHidden() {
 }
 
 int testWindowTargetRecordingBackend() {
-#if !defined(HAVE_WGPU_RUST_BRIDGE) && !defined(HAVE_WGPU_BGFX)
+#if !defined(HAVE_WGPU_RUST_BRIDGE) && !defined(HAVE_COIN_BGFX)
   CoinRenderNativeSurfaceDescriptor desc{};
   desc.abiVersion = COIN_RENDER_NATIVE_SURFACE_ABI_VERSION;
   desc.structSize = sizeof(desc);

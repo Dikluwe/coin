@@ -1,6 +1,6 @@
 # Transparência Coin e readback BGFX
 
-`SoBGFXRenderAction` executa todos os valores de `SoGLRenderAction::TransparencyType`.
+`CoinBgfxAction` executa todos os valores de `SoGLRenderAction::TransparencyType`.
 O padrão `COIN_BGFX_TRANSPARENCY=auto` mantém a modalidade Coin; não substitui
 ordenamento por triângulo por weighted OIT, nem muda de algoritmo quando cresce
 o número de draws.
@@ -71,7 +71,7 @@ cancelar todos os tickets permite reconstruir o runtime.
 
 ## Validação e limites
 
-`BgfxReadbackModesTest` verifica os onze valores, blending RGB, depth writes,
+`CoinBgfxReadbackModesTest` verifica os onze valores, blending RGB, depth writes,
 screen-door, sorting de triângulos, depth range/perspectiva/origem, API pública,
 cor-only, resize/destruição, cancelamento, tickets adulterados, thread da API,
 backpressure e device loss/recuperação em Vulkan e OpenGL.

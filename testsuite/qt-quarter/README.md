@@ -316,7 +316,7 @@ scenario at DPR 1, and DPR 2 passed on a fresh-session retry. The original DPR
 
 The previous missing-/tmp notes are historical. The recovered runtimes,
 build scripts and evidence now live under Coin's ignored
-`build-bgfx-recovery/`; see [recovery notes](../../docs/bgfx-recovery.md).
+`build-bgfx-recovery/`; see [recovery notes](../../docs/coin-bgfx-recovery.md).
 The App::Link hardware matrix passed 8/8 and the same-build Coin/GL
 reference passed 2/2 before the document-tab clipping correction.
 

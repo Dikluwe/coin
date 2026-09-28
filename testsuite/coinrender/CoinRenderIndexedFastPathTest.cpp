@@ -35,7 +35,7 @@
 static CoinRenderTarget * createTestTarget(int width, int height) {
   CoinRenderTarget * target =
     CoinRenderTarget::createOffscreen(SbVec2i32(width, height));
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
   if (target) target->setDepthReadbackEnabled(FALSE);
 #endif
   return target;

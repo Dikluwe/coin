@@ -86,19 +86,19 @@ Arquivos alterados (caminhos relativos ao repositório):
 - `src/rendering/coinrender/CoinRenderFramePlan.h`, `CoinRenderFramePlan.cpp`,
   `CoinRenderFramePlanBuilder.cpp`: estado, validação e captura por draw/estilo.
 - `src/rendering/coinrender/CoinRenderFrameReuseCore.cpp`: invalidação por offset/range/depth.
-- `src/rendering/coinrender/SoWgpuBgfxCore.h`, `SoWgpuBgfxCore.cpp`: lowering,
+- `src/rendering/coinbgfx/CoinBgfxLowering.h`, `CoinBgfxLowering.cpp`: lowering,
   filtragem de estilos, agrupamento e proteção do camera patch.
-- `src/rendering/coinrender/SoWgpuBgfxBackend.h`, `SoWgpuBgfxBackend.cpp`:
+- `src/rendering/coinbgfx/CoinBgfxBackend.h`, `CoinBgfxBackend.cpp`:
   ciclo de vida do uniform e aplicação por draw.
 - `src/rendering/coinrender/coin_wgpu_ffi.h`, `SoWgpuFfiFrame.cpp`,
   `rust_bridge/src/lib.rs`: protocolo privado 19, payload e pipeline Rust.
 - `src/rendering/coinrender/CoinRenderRecordingBackend.cpp`: diagnóstico do estado capturado.
-- `src/rendering/coinrender/shaders/bgfx/coin_depth.sh`, `fs_base_color.sc`,
+- `src/rendering/coinbgfx/shaders/coin_depth.sh`, `fs_base_color.sc`,
   `fs_peel_next.sc`, `fs_weighted_oit.sc`: profundidade compartilhada dos shaders.
 - `src/rendering/coinrender/CMakeLists.txt`: dependência do include dos shaders.
 - `testsuite/coinrender/CoinRenderDepthContractTest.cpp`, `CoinRenderLightingTest.cpp`,
   `testsuite/CMakeLists.txt`: testes e revisão do protocolo.
-- `docs/bgfx-evaluation.md`, `docs/coin-render-depth-contract.md`: suporte e limitações.
+- `docs/coin-bgfx-evaluation.md`, `docs/coin-render-depth-contract.md`: suporte e limitações.
 
 Validações executadas:
 

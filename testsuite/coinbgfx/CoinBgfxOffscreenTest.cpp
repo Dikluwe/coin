@@ -365,7 +365,7 @@ int main()
     return 1;
   }
   contender.backend.reset();
-  std::cout << "WgpuBgfxOffscreenTest passed\n";
+  std::cout << "CoinBgfxOffscreenTest passed\n";
 
 
   return 0;

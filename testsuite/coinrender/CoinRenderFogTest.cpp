@@ -7,9 +7,9 @@
 #include <Inventor/SoDB.h>
 #include <Inventor/SoOffscreenRenderer.h>
 #include <Inventor/actions/CoinRenderAction.h>
-#ifdef HAVE_WGPU_BGFX
-#include <Inventor/actions/SoBGFXRenderAction.h>
-#define FogRenderAction SoBGFXRenderAction
+#ifdef HAVE_COIN_BGFX
+#include <Inventor/actions/CoinBgfxAction.h>
+#define FogRenderAction CoinBgfxAction
 #else
 #define FogRenderAction CoinRenderAction
 #endif

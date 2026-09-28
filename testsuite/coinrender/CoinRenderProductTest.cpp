@@ -54,7 +54,7 @@ int main() {
              legacyCaps.struct_size == legacyCapsSize && legacyCaps.version == 1,
              "version 1 capability prefix is not compatible")) return 1;
 
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
   if (!check(coin_render_query_capabilities(
                COIN_RENDER_EXPERIMENTAL_OFFSCREEN, &caps, sizeof(caps)) == 0 &&
              caps.struct_size == sizeof(caps) &&
@@ -101,7 +101,7 @@ int main() {
              (windowCaps.features & COIN_RENDER_FEATURE_ASYNC_READBACK) == 0 &&
              (windowCaps.features & COIN_RENDER_FEATURE_DIRECT_RTT) == 0,
              "Rust target capability split is wrong")) return 1;
-#elif defined(HAVE_WGPU_BGFX) && defined(__linux__)
+#elif defined(HAVE_COIN_BGFX) && defined(__linux__)
   if (!check(coin_render_query_capabilities(
                COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW, &windowCaps, sizeof(windowCaps)) == 0 &&
              windowCaps.backend == COIN_RENDER_EXPERIMENTAL_BGFX_EVALUATION &&
@@ -120,7 +120,7 @@ int main() {
     std::cout << "No WebGPU adapter; manager rendering skipped\n";
     return 0;
   }
-#elif defined(HAVE_WGPU_BGFX)
+#elif defined(HAVE_COIN_BGFX)
   const char * rendererEnv = std::getenv("COIN_BGFX_RENDERER");
   const uint32_t expectedRenderer = rendererEnv != nullptr &&
     std::strcmp(rendererEnv, "opengl") == 0 ?
@@ -165,13 +165,13 @@ int main() {
     source.setBackgroundColor(SbColor4f(0.3f, 0.2f, 0.1f, 1.0f));
 
     CoinRenderManagerAdapter adapter(source, SbVec2i32(8, 8));
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
     adapter.getSceneManager()->getRenderTarget()->setDepthReadbackEnabled(FALSE);
 #endif
     if (!check(adapter.getSceneManager() != nullptr &&
                adapter.render() == CoinRenderAction::SUCCESS,
                "SoRenderManager adapter failed to render an exposure")) return 1;
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
     CoinRenderCapabilities sharedCaps{};
     if (!check(coin_render_query_capabilities(
                  COIN_RENDER_EXPERIMENTAL_OFFSCREEN, &sharedCaps, sizeof(sharedCaps)) == 0 &&
@@ -198,7 +198,7 @@ int main() {
 
 
   CoinRenderSceneManager * manager = new CoinRenderSceneManager(SbVec2i32(8, 8));
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
   manager->getRenderTarget()->setDepthReadbackEnabled(FALSE);
 #endif
   if (!check(manager->getRenderTarget() &&
@@ -227,7 +227,7 @@ int main() {
              manager->render() == CoinRenderAction::SUCCESS,
              "manager did not recover after resize")) return 1;
 
-#if defined(HAVE_WGPU_RUST_BRIDGE) || defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_BGFX)
   manager->getRenderTarget()->setDepthReadbackEnabled(TRUE);
   CoinRenderReadbackTicket ticket{};
   if (!check(manager->renderAsync(ticket) == CoinRenderAction::SUCCESS &&

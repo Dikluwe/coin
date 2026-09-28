@@ -40,7 +40,7 @@
 static CoinRenderTarget * createTestTarget() {
   CoinRenderTarget * target =
     CoinRenderTarget::createOffscreen(SbVec2i32(64, 64));
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
   if (target) target->setDepthReadbackEnabled(FALSE);
 #endif
   return target;
@@ -122,7 +122,7 @@ int main() {
     TEST_ASSERT(pixels[centerIdx + 0] > 150 && pixels[centerIdx + 1] < 50 && pixels[centerIdx + 2] < 50,
                 "Center pixel inside triangle must have dominant red component");
 
-#if !defined(HAVE_WGPU_BGFX)
+#if !defined(HAVE_COIN_BGFX)
     // 2. Depth readback
     std::vector<float> depths;
     target->readbackDepth(depths);
@@ -216,7 +216,7 @@ int main() {
     TEST_ASSERT(pixels1[cIdx + 0] > 150 && pixels1[cIdx + 1] < 50,
                 "Front red triangle must be visible over back green triangle (drawn back first)");
 
-#if !defined(HAVE_WGPU_BGFX)
+#if !defined(HAVE_COIN_BGFX)
     std::vector<float> depths1;
     target->readbackDepth(depths1);
     float depthVal1 = depths1[32 * 64 + 32];
@@ -238,7 +238,7 @@ int main() {
     TEST_ASSERT(pixels2[cIdx + 0] > 150 && pixels2[cIdx + 1] < 50,
                 "Depth test must prevent back green triangle from overwriting front red triangle");
 
-#if !defined(HAVE_WGPU_BGFX)
+#if !defined(HAVE_COIN_BGFX)
     std::vector<float> depths2;
     target->readbackDepth(depths2);
     float depthVal2 = depths2[32 * 64 + 32];

@@ -6,7 +6,7 @@
 #include <iostream>
 #include "rendering/coinrender/CoinRenderFramePlanBuilder.h"
 #include <Inventor/nodes/SoShape.h>
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
 #include "rendering/coinrender/CoinRenderDepthPolicyElement.h"
 #endif
 #include "rendering/coinrender/CoinRenderComposition.h"
@@ -254,7 +254,7 @@ CoinRenderFramePlanBuilder::captureTexture(SoCallbackAction * action, CoinRender
   }
   for (int unit = 1; unit <= lastEnabled; ++unit) {
     if (!SoMultiTextureEnabledElement::get(state, unit)) continue;
-#if !defined(HAVE_WGPU_BGFX)
+#if !defined(HAVE_COIN_BGFX)
     this->isUnsupported = true;
     this->builderError = "Multitexture requires the BGFX backend";
     if (outError) *outError = this->builderError;
@@ -722,7 +722,7 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   rs.depthWrite = depthWrite != FALSE;
   rs.depthFunction = static_cast<CoinRenderDepthFunction>(depthFunction);
   rs.screenDoorTransparency = std::max(0.0f, std::min(1.0f, SoLazyElement::getTransparency(state, 0)));
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
   if (state->isElementEnabled(CoinRenderDepthPolicyElement::getClassStackIndex()))
     rs.explicitDepthMask = CoinRenderDepthPolicyElement::get(state);
 #endif
@@ -924,7 +924,7 @@ CoinRenderFramePlanBuilder::ensureDrawPacket(CoinRenderPrimitiveTopology topolog
 void
 CoinRenderFramePlanBuilder::captureSortingCenter(SoCallbackAction * action)
 {
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
   auto & draw = this->currentPlan.draws[this->currentDrawIndex];
   if (draw.geometry.indexCount != 0 || draw.renderLayer != 0) return;
   const auto & state = this->currentPlan.renderStates[draw.renderStateSlot];
@@ -981,7 +981,7 @@ CoinRenderFramePlanBuilder::addLine(SoCallbackAction * action,
   if (!v0 || !v1) return;
   uint32_t rsSlot = this->captureRenderState(action, v0->getMaterialIndex());
   if (this->isUnsupported) return;
-#if !defined(HAVE_WGPU_BGFX)
+#if !defined(HAVE_COIN_BGFX)
   if (this->currentPlan.renderStates[rsSlot].hasTexture) {
     this->isUnsupported = true;
     this->builderError = "Textured lines/points currently require BGFX";
@@ -1012,7 +1012,7 @@ CoinRenderFramePlanBuilder::addPoint(SoCallbackAction * action,
   if (!vertex) return;
   uint32_t rsSlot = this->captureRenderState(action, vertex->getMaterialIndex());
   if (this->isUnsupported) return;
-#if !defined(HAVE_WGPU_BGFX)
+#if !defined(HAVE_COIN_BGFX)
   if (this->currentPlan.renderStates[rsSlot].hasTexture) {
     this->isUnsupported = true;
     this->builderError = "Textured lines/points currently require BGFX";
@@ -1032,7 +1032,7 @@ CoinRenderFramePlanBuilder::addPoint(SoCallbackAction * action,
   dp.geometry.indexCount += 1;
 }
 
-#if !defined(HAVE_WGPU_BGFX)
+#if !defined(HAVE_COIN_BGFX)
 bool
 CoinRenderFramePlanBuilder::expandStyledPrimitives(std::string * outError)
 {
@@ -1633,7 +1633,7 @@ CoinRenderFramePlanBuilder::build(CoinRenderFramePlan & outPlan, std::string * o
   std::vector<CoinRenderCompositionItem> order;
   std::string compositionError;
   if (!coin_render_composition_order(this->currentPlan, order, compositionError,
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
       true
 #else
       false
@@ -1804,7 +1804,7 @@ CoinRenderFramePlanBuilder::processIndexedLineSet(
   }
   int lastTextureUnit = -1;
   SoMultiTextureEnabledElement::getEnabledUnits(action->getState(), lastTextureUnit);
-#ifdef HAVE_WGPU_BGFX
+#ifdef HAVE_COIN_BGFX
   if (lastTextureUnit >= 0) return CoinRenderFastPathResult::FALLBACK_CONTINUE;
 #else
   if (lastTextureUnit > 0) return CoinRenderFastPathResult::FALLBACK_CONTINUE;

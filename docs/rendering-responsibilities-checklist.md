@@ -40,10 +40,10 @@ do pedido, enquanto Infra cria, retém e libera os recursos concretos.
 | `CoinRenderFrameReuseCore` | Core comum | Classificação e atualização de câmera compartilháveis; Infra decide se seus buffers podem materializar o reuso. |
 | `CoinRenderImageCore` | Core comum | Transformação mecânica de linhas; readback e publicação são responsabilidades distintas. |
 | `CoinRenderComposition.h` | Core com semântica ainda dividida | Tem decisões de composição, mas `exactCoin` e os mapeamentos de estratégias convivem com outra interpretação em Rust. |
-| `SoWgpuBgfxCore` | Core específico + decisões comuns | Layout BGFX pode permanecer específico. Políticas Coin de transparência/depth e operações reaproveitáveis precisam ser extraídas. |
+| `CoinBgfxLowering` | Core específico + decisões comuns | Layout BGFX pode permanecer específico. Políticas Coin de transparência/depth e operações reaproveitáveis precisam ser extraídas. |
 | `SoWgpuFfiFrame`, `coin_wgpu_ffi.h` | Adaptação específica Rust/wgpu | Empacotamento e ABI privados do conector; devem transportar decisões resolvidas, sem redefinir o perfil Coin. |
 | `rust_bridge/src/composition.rs` | Core executado no lado Rust | Hoje reclassifica alpha e reordena draws. Deve consumir a composição comum resolvida; ser Rust não o torna Infra por si só. |
-| `SoWgpuBgfxBackend`, recursos e shaders BGFX | Infra BGFX | Devem permanecer específicos; recebem o plano resolvido e executam mecanismos compatíveis. |
+| `CoinBgfxBackend`, recursos e shaders BGFX | Infra BGFX | Devem permanecer específicos; recebem o plano resolvido e executam mecanismos compatíveis. |
 | `rust_bridge/src/lib.rs`, recursos e shaders WGSL | Infra wgpu, com lógica mecânica misturada | Execução específica; separar validação/adaptação de decisões semânticas. |
 | `CoinRenderTarget`, scene manager e adapter | Fachada comum + Wiring + Infra | Separar ciclo/publicação de operações nativas por método/colaborador. A API comum não precisa expor a classe concreta. |
 | `CoinRenderCapabilities` | Infra + Core + Shell | Probe nativo é Infra; perfil efetivamente atendido é decisão comum; texto de diagnóstico é Shell. |
@@ -53,7 +53,7 @@ Evidências principais: [captura e plano](../src/rendering/coinrender/CoinRender
 [action e RTT](../src/actions/CoinRenderAction.cpp),
 [composição C++](../src/rendering/coinrender/CoinRenderComposition.h),
 [composição Rust](../src/rendering/coinrender/rust_bridge/src/composition.rs),
-[adaptação BGFX](../src/rendering/coinrender/SoWgpuBgfxCore.cpp),
+[adaptação BGFX](../src/rendering/coinbgfx/CoinBgfxLowering.cpp),
 [ciclo do manager](backend-independent-frame-preparation.md).
 
 ## O que compartilhar e como nomear
@@ -118,7 +118,7 @@ Essas checkboxes são o modelo por item, não oito trabalhos globais já conclu�
 - [ ] **A02 — Limite Wiring/Core no builder.** Funções de transformação recebem snapshots/arrays Coin, sem acessar actions, paths ou `SoState`.
 - [ ] **A03 — Composição com dono único.** Classificação de alpha, modalidade Coin, ordenação e estados efetivos são produzidos uma vez no Core; retirar interpretação paralela de C++/Rust.
 - [ ] **A04 — Plano de execução comum.** Transportar sequência de draws, camadas, barreiras, blend/depth efetivos e dependências; cada Infra só adapta e executa.
-- [ ] **A05 — Extrair o comum de `SoWgpuBgfxCore`.** Manter layout/agrupamento BGFX específicos; mover decisões Coin e cálculos reutilizáveis para Core comum.
+- [ ] **A05 — Extrair o comum de `CoinBgfxLowering`.** Manter layout/agrupamento BGFX específicos; mover decisões Coin e cálculos reutilizáveis para Core comum.
 - [ ] **A06 — Recursos opacos com ownership definido.** Retirar da action a criação/liberação concreta de tokens BGFX/Rust; definir device, geração, retenção e dependências RTT.
 - [ ] **A07 — Configuração estruturada.** Shell interpreta env/texto e entrega opções tipadas; Wiring/Core não leem variáveis de ambiente para decidir semântica.
 - [ ] **A08 — Capacidades por contrato e alvo.** Separar fatos de hardware, mecanismos disponíveis e suporte Coin qualificado; unificar rejeições estruturadas.

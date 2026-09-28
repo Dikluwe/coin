@@ -318,7 +318,7 @@ int main(int argc, char ** argv)
   const std::string outputPrefix =
     argc == 3 && std::string(argv[1]) == "--output-prefix" ? argv[2] : "";
   if (argc != 1 && outputPrefix.empty()) {
-    std::cerr << "Usage: WgpuBgfxTransparencyTest [--output-prefix path]\n";
+    std::cerr << "Usage: CoinBgfxTransparencyTest [--output-prefix path]\n";
     return 2;
   }
   SoDB::init();

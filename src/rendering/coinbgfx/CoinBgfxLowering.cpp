@@ -4,7 +4,7 @@
 #include "src/config.h"
 #endif
 
-#include "rendering/coinrender/SoWgpuBgfxCore.h"
+#include "rendering/coinbgfx/CoinBgfxLowering.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
 
 #include <cmath>
@@ -46,8 +46,8 @@ int compareBytes(const void * lhs, const void * rhs, size_t bytes)
   return comparison < 0 ? -1 : (comparison > 0 ? 1 : 0);
 }
 
-int compareDrawGroupingKey(const SoWgpuBgfxDraw & lhs,
-                           const SoWgpuBgfxDraw & rhs)
+int compareDrawGroupingKey(const CoinBgfxDraw & lhs,
+                           const CoinBgfxDraw & rhs)
 {
   int result = compareValue(lhs.renderLayer, rhs.renderLayer);
   if (result == 0) result = compareValue(lhs.cullMode, rhs.cullMode);
@@ -86,14 +86,14 @@ int compareDrawGroupingKey(const SoWgpuBgfxDraw & lhs,
   return result;
 }
 
-bool sameTexture(const SoWgpuBgfxTexture & lhs, const SoWgpuBgfxTexture & rhs)
+bool sameTexture(const CoinBgfxTexture & lhs, const CoinBgfxTexture & rhs)
 {
   return lhs.width == rhs.width && lhs.height == rhs.height &&
     lhs.gpuToken == rhs.gpuToken &&
     lhs.pixelsRgba == rhs.pixelsRgba;
 }
 
-bool opaqueDrawCanBeGrouped(const SoWgpuBgfxDraw & draw)
+bool opaqueDrawCanBeGrouped(const CoinBgfxDraw & draw)
 {
   // Reordering is only retained for Coin's ordinary opaque depth contract.
   // Non-default comparisons, disabled test/write, remapped depth ranges and
@@ -107,21 +107,21 @@ bool opaqueDrawCanBeGrouped(const SoWgpuBgfxDraw & draw)
      draw.polygonOffsetFactor == 0.0f && draw.polygonOffsetUnits == 0.0f);
 }
 
-bool sameDrawExceptMaterial(const SoWgpuBgfxDraw & lhs,
-                            const SoWgpuBgfxDraw & rhs)
+bool sameDrawExceptMaterial(const CoinBgfxDraw & lhs,
+                            const CoinBgfxDraw & rhs)
 {
-  SoWgpuBgfxDraw a = lhs;
-  SoWgpuBgfxDraw b = rhs;
+  CoinBgfxDraw a = lhs;
+  CoinBgfxDraw b = rhs;
   a.alpha = b.alpha = 0.0f;
   a.materialSignature = b.materialSignature = 0;
   return std::memcmp(&a, &b, sizeof(a)) == 0;
 }
 
-bool sameVertexExceptMaterial(const SoWgpuBgfxVertex & lhs,
-                              const SoWgpuBgfxVertex & rhs)
+bool sameVertexExceptMaterial(const CoinBgfxVertex & lhs,
+                              const CoinBgfxVertex & rhs)
 {
-  SoWgpuBgfxVertex a = lhs;
-  SoWgpuBgfxVertex b = rhs;
+  CoinBgfxVertex a = lhs;
+  CoinBgfxVertex b = rhs;
   std::memset(a.color, 0, sizeof(a.color));
   std::memset(b.color, 0, sizeof(b.color));
   std::memset(a.ambient, 0, sizeof(a.ambient));
@@ -137,7 +137,7 @@ bool sameVertexExceptMaterial(const SoWgpuBgfxVertex & lhs,
 }
 
 bool
-SoWgpuBgfxCore::clipViewport(const int32_t viewport[4], int width, int height,
+CoinBgfxLowering::clipViewport(const int32_t viewport[4], int width, int height,
                             int32_t clipped[4])
 {
   const int64_t left = std::max<int64_t>(0, viewport[0]);
@@ -153,12 +153,12 @@ SoWgpuBgfxCore::clipViewport(const int32_t viewport[4], int width, int height,
 }
 
 bool
-SoWgpuBgfxCore::lower(const CoinRenderFramePlan & frame, int width, int height,
-                      bool homogeneousDepth, SoWgpuBgfxPlan & output,
+CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height,
+                      bool homogeneousDepth, CoinBgfxPlan & output,
                       std::string & diagnostic)
 {
   diagnostic.clear();
-  SoWgpuBgfxPlan candidate;
+  CoinBgfxPlan candidate;
   if (width <= 0 || height <= 0 || width > 16384 || height > 16384) {
     diagnostic = "BGFX evaluation requires a nonzero target up to 16384 pixels per side";
     return false;
@@ -238,7 +238,7 @@ SoWgpuBgfxCore::lower(const CoinRenderFramePlan & frame, int width, int height,
       0.0f, 0.0f, 1.0f, 0.0f,
       tx, ty, 0.0f, 1.0f);
     const SbMatrix mvp = modelView * projection * viewportTransform;
-    SoWgpuBgfxDraw lowered{};
+    CoinBgfxDraw lowered{};
     std::memcpy(lowered.mvp, mvp.getValue(), sizeof(lowered.mvp));
     lowered.firstVertex = static_cast<uint32_t>(candidate.vertices.size());
     lowered.vertexCount = draw.geometry.indexCount;
@@ -274,11 +274,11 @@ SoWgpuBgfxCore::lower(const CoinRenderFramePlan & frame, int width, int height,
 
     switch (item.transparencyStrategy) {
     case CoinRenderCompositionItem::WEIGHTED_OIT:
-      lowered.transparencyStrategy = SoWgpuBgfxTransparencyStrategy::WEIGHTED_OIT; break;
+      lowered.transparencyStrategy = CoinBgfxTransparencyStrategy::WEIGHTED_OIT; break;
     case CoinRenderCompositionItem::SORTED_LAYERS:
-      lowered.transparencyStrategy = SoWgpuBgfxTransparencyStrategy::SORTED_LAYERS; break;
+      lowered.transparencyStrategy = CoinBgfxTransparencyStrategy::SORTED_LAYERS; break;
     default:
-      lowered.transparencyStrategy = SoWgpuBgfxTransparencyStrategy::OBJECT; break;
+      lowered.transparencyStrategy = CoinBgfxTransparencyStrategy::OBJECT; break;
     }
     lowered.alpha = maxAlpha;
     lowered.viewport[0] = viewport.x;
@@ -334,7 +334,7 @@ SoWgpuBgfxCore::lower(const CoinRenderFramePlan & frame, int width, int height,
     for (uint32_t j = 0; j < draw.geometry.indexCount; ++j) {
       const uint32_t sourceIndex = frame.indices[draw.geometry.firstIndex + j];
       const CoinRenderVertexSnapshot & source = frame.vertices[sourceIndex];
-      SoWgpuBgfxVertex vertex{};
+      CoinBgfxVertex vertex{};
       std::memcpy(vertex.position, source.position, sizeof(vertex.position));
       const CoinRenderMaterialSnapshot & material = frame.materials[source.materialSlot];
       lowered.materialSignature = hashBytes(lowered.materialSignature,
@@ -408,7 +408,7 @@ SoWgpuBgfxCore::lower(const CoinRenderFramePlan & frame, int width, int height,
 
   // Material binding may split a single Coin shape into multiple packets.
   // Sort all of that shape's triangles, not just each material run separately.
-  std::vector<SoWgpuBgfxDraw> sortedDraws;
+  std::vector<CoinBgfxDraw> sortedDraws;
   for (size_t begin = 0; begin < candidate.draws.size();) {
     size_t end = begin + 1;
     const auto & first = candidate.draws[begin];
@@ -422,7 +422,7 @@ SoWgpuBgfxCore::lower(const CoinRenderFramePlan & frame, int width, int height,
     }
     if (end == begin + 1) sortedDraws.push_back(first);
     else {
-      std::vector<SoWgpuBgfxDraw> triangles;
+      std::vector<CoinBgfxDraw> triangles;
       for (size_t drawIndex = begin; drawIndex < end; ++drawIndex) {
         const auto & source = candidate.draws[drawIndex];
         for (uint32_t index = source.firstIndex; index < source.firstIndex + source.indexCount; index += 3) {
@@ -432,13 +432,13 @@ SoWgpuBgfxCore::lower(const CoinRenderFramePlan & frame, int width, int height,
           triangles.push_back(triangle);
         }
       }
-      const auto eyeZ = [&](const SoWgpuBgfxDraw & draw) {
+      const auto eyeZ = [&](const CoinBgfxDraw & draw) {
         float z = 0;
         for (uint32_t i = 0; i < 3; ++i)
           z += candidate.vertices[candidate.indices[draw.firstIndex + i]].viewPosition[2];
         return z;
       };
-      std::stable_sort(triangles.begin(), triangles.end(), [&](const SoWgpuBgfxDraw & a, const SoWgpuBgfxDraw & b) {
+      std::stable_sort(triangles.begin(), triangles.end(), [&](const CoinBgfxDraw & a, const CoinBgfxDraw & b) {
         return eyeZ(a) < eyeZ(b);
       });
       sortedDraws.insert(sortedDraws.end(), triangles.begin(), triangles.end());
@@ -448,7 +448,7 @@ SoWgpuBgfxCore::lower(const CoinRenderFramePlan & frame, int width, int height,
   candidate.draws.swap(sortedDraws);
   candidate.textures.reserve(frame.textures.size());
   for (const CoinRenderTextureImageSnapshot & source : frame.textures) {
-    SoWgpuBgfxTexture texture;
+    CoinBgfxTexture texture;
     texture.width = source.width;
     texture.height = source.height;
     texture.gpuToken = source.gpuToken;
@@ -463,19 +463,19 @@ SoWgpuBgfxCore::lower(const CoinRenderFramePlan & frame, int width, int height,
 }
 
 void
-SoWgpuBgfxCore::groupOpaqueDraws(
-  const std::vector<SoWgpuBgfxDraw> & draws,
-  std::vector<SoWgpuBgfxDraw> & output)
+CoinBgfxLowering::groupOpaqueDraws(
+  const std::vector<CoinBgfxDraw> & draws,
+  std::vector<CoinBgfxDraw> & output)
 {
-  for (const SoWgpuBgfxDraw & draw : draws) {
+  for (const CoinBgfxDraw & draw : draws) {
     if (!opaqueDrawCanBeGrouped(draw)) {
       output = draws;
       return;
     }
   }
-  std::vector<SoWgpuBgfxDraw> candidate = draws;
+  std::vector<CoinBgfxDraw> candidate = draws;
   std::stable_sort(candidate.begin(), candidate.end(),
-    [](const SoWgpuBgfxDraw & lhs, const SoWgpuBgfxDraw & rhs) {
+    [](const CoinBgfxDraw & lhs, const CoinBgfxDraw & rhs) {
       if (lhs.renderLayer != rhs.renderLayer)
         return lhs.renderLayer < rhs.renderLayer;
       if (lhs.renderLayer != 0) return false;
@@ -487,12 +487,12 @@ SoWgpuBgfxCore::groupOpaqueDraws(
 }
 
 bool
-SoWgpuBgfxCore::materialPatchRanges(
-  const SoWgpuBgfxPlan & base,
-  const SoWgpuBgfxPlan & updated,
-  std::vector<SoWgpuBgfxVertexRange> & ranges)
+CoinBgfxLowering::materialPatchRanges(
+  const CoinBgfxPlan & base,
+  const CoinBgfxPlan & updated,
+  std::vector<CoinBgfxVertexRange> & ranges)
 {
-  std::vector<SoWgpuBgfxVertexRange> candidate;
+  std::vector<CoinBgfxVertexRange> candidate;
   if (base.vertices.size() != updated.vertices.size() ||
       base.indices != updated.indices || base.draws.size() != updated.draws.size() ||
       base.textures.size() != updated.textures.size() ||
@@ -509,9 +509,9 @@ SoWgpuBgfxCore::materialPatchRanges(
   for (size_t i = 0; i < base.vertices.size(); ++i) {
     if (!sameVertexExceptMaterial(base.vertices[i], updated.vertices[i])) return false;
     const bool changed = std::memcmp(&base.vertices[i], &updated.vertices[i],
-                                     sizeof(SoWgpuBgfxVertex)) != 0;
+                                     sizeof(CoinBgfxVertex)) != 0;
     if (changed && !rangeOpen) {
-      SoWgpuBgfxVertexRange range;
+      CoinBgfxVertexRange range;
       range.first = static_cast<uint32_t>(i);
       range.count = 1;
       candidate.push_back(range);
@@ -527,44 +527,44 @@ SoWgpuBgfxCore::materialPatchRanges(
 }
 
 bool
-SoWgpuBgfxCore::selectTransparencyStrategy(
-  const std::vector<SoWgpuBgfxDraw> & draws,
-  SoWgpuBgfxTransparencyMode configuredMode,
+CoinBgfxLowering::selectTransparencyStrategy(
+  const std::vector<CoinBgfxDraw> & draws,
+  CoinBgfxTransparencyMode configuredMode,
   bool weightedOitSupported,
   bool sortedLayersSupported,
-  SoWgpuBgfxTransparencyStrategy & selected,
+  CoinBgfxTransparencyStrategy & selected,
   std::string & diagnostic)
 {
   size_t transparentCount = 0;
-  SoWgpuBgfxTransparencyStrategy required = SoWgpuBgfxTransparencyStrategy::OBJECT;
-  for (const SoWgpuBgfxDraw & draw : draws) {
+  CoinBgfxTransparencyStrategy required = CoinBgfxTransparencyStrategy::OBJECT;
+  for (const CoinBgfxDraw & draw : draws) {
     if (!draw.blend || !draw.deferred || draw.additive || draw.renderLayer != 0) continue;
     ++transparentCount;
-    if (draw.transparencyStrategy == SoWgpuBgfxTransparencyStrategy::SORTED_LAYERS) {
-      required = SoWgpuBgfxTransparencyStrategy::SORTED_LAYERS;
-    } else if (required == SoWgpuBgfxTransparencyStrategy::OBJECT &&
-               draw.transparencyStrategy == SoWgpuBgfxTransparencyStrategy::WEIGHTED_OIT) {
-      required = SoWgpuBgfxTransparencyStrategy::WEIGHTED_OIT;
+    if (draw.transparencyStrategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS) {
+      required = CoinBgfxTransparencyStrategy::SORTED_LAYERS;
+    } else if (required == CoinBgfxTransparencyStrategy::OBJECT &&
+               draw.transparencyStrategy == CoinBgfxTransparencyStrategy::WEIGHTED_OIT) {
+      required = CoinBgfxTransparencyStrategy::WEIGHTED_OIT;
     }
   }
 
-  if (configuredMode == SoWgpuBgfxTransparencyMode::OBJECT)
-    selected = SoWgpuBgfxTransparencyStrategy::OBJECT;
-  else if (configuredMode == SoWgpuBgfxTransparencyMode::WEIGHTED_OIT)
-    selected = SoWgpuBgfxTransparencyStrategy::WEIGHTED_OIT;
-  else if (configuredMode == SoWgpuBgfxTransparencyMode::SORTED_LAYERS)
-    selected = SoWgpuBgfxTransparencyStrategy::SORTED_LAYERS;
+  if (configuredMode == CoinBgfxTransparencyMode::OBJECT)
+    selected = CoinBgfxTransparencyStrategy::OBJECT;
+  else if (configuredMode == CoinBgfxTransparencyMode::WEIGHTED_OIT)
+    selected = CoinBgfxTransparencyStrategy::WEIGHTED_OIT;
+  else if (configuredMode == CoinBgfxTransparencyMode::SORTED_LAYERS)
+    selected = CoinBgfxTransparencyStrategy::SORTED_LAYERS;
   else {
     selected = required;
     // AUTO preserves the selected Coin semantics; OIT is an explicit extension.
   }
 
-  if (transparentCount == 0) selected = SoWgpuBgfxTransparencyStrategy::OBJECT;
-  if (selected == SoWgpuBgfxTransparencyStrategy::WEIGHTED_OIT && !weightedOitSupported) {
+  if (transparentCount == 0) selected = CoinBgfxTransparencyStrategy::OBJECT;
+  if (selected == CoinBgfxTransparencyStrategy::WEIGHTED_OIT && !weightedOitSupported) {
     diagnostic = "weighted_oit was selected but MRT with independent blending and RGBA16F/R16F targets is unavailable; no fallback was applied";
     return false;
   }
-  if (selected == SoWgpuBgfxTransparencyStrategy::SORTED_LAYERS && !sortedLayersSupported) {
+  if (selected == CoinBgfxTransparencyStrategy::SORTED_LAYERS && !sortedLayersSupported) {
     diagnostic = "sorted_layers was selected but sampleable D32F/RGBA8 targets are unavailable; no fallback was applied";
     return false;
   }
@@ -573,9 +573,9 @@ SoWgpuBgfxCore::selectTransparencyStrategy(
 }
 
 bool
-SoWgpuBgfxCore::patchCamera(const CoinRenderFramePlan & frame, int width, int height,
-                            bool homogeneousDepth, const SoWgpuBgfxPlan & base,
-                            std::vector<SoWgpuBgfxDraw> & output,
+CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int height,
+                            bool homogeneousDepth, const CoinBgfxPlan & base,
+                            std::vector<CoinBgfxDraw> & output,
                             std::string & diagnostic)
 {
   diagnostic.clear();
@@ -583,7 +583,7 @@ SoWgpuBgfxCore::patchCamera(const CoinRenderFramePlan & frame, int width, int he
     diagnostic = "BGFX camera patch changed the draw count";
     return false;
   }
-  for (const SoWgpuBgfxDraw & draw : base.draws) {
+  for (const CoinBgfxDraw & draw : base.draws) {
     if (draw.blend) {
       diagnostic = "BGFX camera patch rebuilds transparent object order";
       return false;
@@ -601,7 +601,7 @@ SoWgpuBgfxCore::patchCamera(const CoinRenderFramePlan & frame, int width, int he
       return false;
     }
   }
-  std::vector<SoWgpuBgfxDraw> candidate = base.draws;
+  std::vector<CoinBgfxDraw> candidate = base.draws;
   const SbMatrix clipConversion(
     1.0f, 0.0f, 0.0f, 0.0f,
     0.0f, 1.0f, 0.0f, 0.0f,
@@ -609,7 +609,7 @@ SoWgpuBgfxCore::patchCamera(const CoinRenderFramePlan & frame, int width, int he
     0.0f, 0.0f, 0.5f, 1.0f);
   for (size_t i = 0; i < frame.draws.size(); ++i) {
     const CoinRenderDrawPacket & draw = frame.draws[i];
-    const SoWgpuBgfxDraw & previous = base.draws[i];
+    const CoinBgfxDraw & previous = base.draws[i];
     if (draw.renderStateSlot >= frame.renderStates.size()) {
       diagnostic = "BGFX camera patch has an invalid render-state slot";
       return false;

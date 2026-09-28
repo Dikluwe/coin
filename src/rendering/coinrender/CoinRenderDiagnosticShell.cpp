@@ -161,7 +161,7 @@ CoinRenderDiagnosticShell::formatActionPhase(const CoinRenderActionPhaseSample &
 }
 
 std::string
-CoinRenderDiagnosticShell::formatBgfxPhase(const SoWgpuBgfxPhaseSample & sample)
+CoinRenderDiagnosticShell::formatBgfxPhase(const CoinBgfxPhaseSample & sample)
 {
   std::ostringstream stream;
   stream.imbue(std::locale::classic());

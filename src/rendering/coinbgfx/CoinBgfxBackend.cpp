@@ -4,8 +4,8 @@
 #include "src/config.h"
 #endif
 
-#include "rendering/coinrender/SoWgpuBgfxBackend.h"
-#include "rendering/coinrender/SoWgpuBgfxCore.h"
+#include "rendering/coinbgfx/CoinBgfxBackend.h"
+#include "rendering/coinbgfx/CoinBgfxLowering.h"
 #include "rendering/coinrender/CoinRenderImageCore.h"
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
@@ -137,7 +137,7 @@ bool consumeTestFault(const char * name)
   return true;
 }
 
-uint64_t drawState(const SoWgpuBgfxDraw & draw)
+uint64_t drawState(const CoinBgfxDraw & draw)
 {
   uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A;
   if (draw.depthTest) {
@@ -180,15 +180,15 @@ struct LogicalDrawStats {
   bool opaqueOrderChanged = false;
 };
 
-bool samePipelineState(const SoWgpuBgfxDraw & lhs,
-                       const SoWgpuBgfxDraw & rhs)
+bool samePipelineState(const CoinBgfxDraw & lhs,
+                       const CoinBgfxDraw & rhs)
 {
   return drawState(lhs) == drawState(rhs) &&
     std::memcmp(lhs.viewport, rhs.viewport, sizeof(lhs.viewport)) == 0;
 }
 
-bool sameTextureState(const SoWgpuBgfxDraw & lhs,
-                      const SoWgpuBgfxDraw & rhs)
+bool sameTextureState(const CoinBgfxDraw & lhs,
+                      const CoinBgfxDraw & rhs)
 {
   return std::memcmp(lhs.extraTextures, rhs.extraTextures, sizeof(lhs.extraTextures)) == 0 &&
     lhs.hasTexture == rhs.hasTexture &&
@@ -198,8 +198,8 @@ bool sameTextureState(const SoWgpuBgfxDraw & lhs,
                 sizeof(lhs.textureBlendColor)) == 0;
 }
 
-bool sameLightingState(const SoWgpuBgfxDraw & lhs,
-                       const SoWgpuBgfxDraw & rhs)
+bool sameLightingState(const CoinBgfxDraw & lhs,
+                       const CoinBgfxDraw & rhs)
 {
   return std::memcmp(lhs.fogColorMode, rhs.fogColorMode, sizeof(lhs.fogColorMode)) == 0 &&
     std::memcmp(lhs.fogRange, rhs.fogRange, sizeof(lhs.fogRange)) == 0 &&
@@ -217,17 +217,17 @@ bool sameLightingState(const SoWgpuBgfxDraw & lhs,
 }
 
 LogicalDrawStats logicalDrawStats(
-  const std::vector<SoWgpuBgfxDraw> & original,
-  const std::vector<SoWgpuBgfxDraw> & encoded)
+  const std::vector<CoinBgfxDraw> & original,
+  const std::vector<CoinBgfxDraw> & encoded)
 {
   LogicalDrawStats stats;
   std::vector<uint32_t> originalOpaque;
   std::vector<uint32_t> encodedOpaque;
-  const SoWgpuBgfxDraw * previous = nullptr;
-  for (const SoWgpuBgfxDraw & draw : original) {
+  const CoinBgfxDraw * previous = nullptr;
+  for (const CoinBgfxDraw & draw : original) {
     if (!draw.blend) originalOpaque.push_back(draw.firstIndex);
   }
-  for (const SoWgpuBgfxDraw & draw : encoded) {
+  for (const CoinBgfxDraw & draw : encoded) {
     if (draw.blend) ++stats.transparentDraws;
     else {
       ++stats.opaqueDraws;
@@ -246,7 +246,7 @@ LogicalDrawStats logicalDrawStats(
 
 void copyLogicalDrawStats(const LogicalDrawStats & source,
                           bool groupingEnabled,
-                          SoWgpuBgfxPhaseSample & destination)
+                          CoinBgfxPhaseSample & destination)
 {
   destination.opaqueDraws = source.opaqueDraws;
   destination.transparentDraws = source.transparentDraws;
@@ -266,10 +266,10 @@ uint32_t pooledCapacity(size_t required)
   return capacity < required ? static_cast<uint32_t>(required) : capacity;
 }
 
-bool setDrawScissor(const SoWgpuBgfxDraw & draw, int targetWidth, int targetHeight)
+bool setDrawScissor(const CoinBgfxDraw & draw, int targetWidth, int targetHeight)
 {
   int32_t clipped[4];
-  if (!SoWgpuBgfxCore::clipViewport(draw.viewport, targetWidth, targetHeight, clipped))
+  if (!CoinBgfxLowering::clipViewport(draw.viewport, targetWidth, targetHeight, clipped))
     return false;
   const int32_t top = targetHeight - clipped[1] - clipped[3];
   bgfx::setScissor(static_cast<uint16_t>(clipped[0]),
@@ -283,7 +283,7 @@ const uint64_t peelTextureFlags = BGFX_TEXTURE_RT |
   BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |
   BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT;
 
-uint64_t peelDrawState(const SoWgpuBgfxDraw & draw, bool depthOnly)
+uint64_t peelDrawState(const CoinBgfxDraw & draw, bool depthOnly)
 {
   uint64_t state = drawState(draw);
   state &= ~(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A |
@@ -308,7 +308,7 @@ bgfx::ProgramHandle createLayerProgram(const uint8_t * vertexData,
   return bgfx::createProgram(vs, fs, true);
 }
 
-bool captureGpuPasses(uint32_t submittedFrame, SoWgpuBgfxPhaseSample & sample)
+bool captureGpuPasses(uint32_t submittedFrame, CoinBgfxPhaseSample & sample)
 {
   const bgfx::Stats * stats = bgfx::getStats();
   if (!stats) return false;
@@ -365,19 +365,19 @@ bool captureGpuPasses(uint32_t submittedFrame, SoWgpuBgfxPhaseSample & sample)
 }
 }
 
-struct SoWgpuBgfxBackend::AsyncEntry {
+struct CoinBgfxBackend::AsyncEntry {
   ReadbackSlot slot;
   CoinRenderReadbackTicket ticket;
   bool bottomLeft = false;
 };
 namespace {
-std::map<uint64_t, std::shared_ptr<SoWgpuBgfxBackend::AsyncEntry>> & asyncEntries()
+std::map<uint64_t, std::shared_ptr<CoinBgfxBackend::AsyncEntry>> & asyncEntries()
 {
-  static auto * entries = new std::map<uint64_t, std::shared_ptr<SoWgpuBgfxBackend::AsyncEntry>>;
+  static auto * entries = new std::map<uint64_t, std::shared_ptr<CoinBgfxBackend::AsyncEntry>>;
   return *entries;
 }
 uint64_t nextTicketToken = 1;
-std::vector<std::shared_ptr<SoWgpuBgfxBackend::AsyncEntry>> failedReadbacks;
+std::vector<std::shared_ptr<CoinBgfxBackend::AsyncEntry>> failedReadbacks;
 bool sameTicket(const CoinRenderReadbackTicket & a, const CoinRenderReadbackTicket & b)
 {
   return a.token == b.token && a.generation == b.generation &&
@@ -406,13 +406,13 @@ void releaseAsync(uint64_t token, bool failed = false)
   }
 }
 }
-SoWgpuBgfxBackend::SoWgpuBgfxBackend()
+CoinBgfxBackend::CoinBgfxBackend()
   : status(CoinRenderBackendStatus::NOT_READY), viewBase(0), nativeDisplay(nullptr),
     nativeWindow(nullptr), initialized(false), presentToWindow(false),
     cameraPatchEnabled(true), drawGroupingEnabled(true), readbackPipelineDepth(1),
     readbackCursor(0), readbackSequence(0),
-    transparencyMode(SoWgpuBgfxTransparencyMode::AUTO),
-    activeTransparencyStrategy(SoWgpuBgfxTransparencyStrategy::OBJECT),
+    transparencyMode(CoinBgfxTransparencyMode::AUTO),
+    activeTransparencyStrategy(CoinBgfxTransparencyStrategy::OBJECT),
     weightedOitSupported(false), sortedLayersSupported(false), serial(0),
     directTextureSerial(0),
     width(0), height(0), program(BGFX_INVALID_HANDLE),
@@ -458,13 +458,13 @@ SoWgpuBgfxBackend::SoWgpuBgfxBackend()
     this->readbackPipelineDepth = 3;
 }
 
-SoWgpuBgfxBackend::~SoWgpuBgfxBackend()
+CoinBgfxBackend::~CoinBgfxBackend()
 {
   this->shutdownRuntime();
 }
 
 CoinRenderBackendStatus
-SoWgpuBgfxBackend::checkRuntimeFailure(const char * operation)
+CoinBgfxBackend::checkRuntimeFailure(const char * operation)
 {
   CoinBgfxCallback * cb = static_cast<CoinBgfxCallback *>(this->callback.get());
   if (cb == nullptr || !cb->failed()) return CoinRenderBackendStatus::SUCCESS;
@@ -475,7 +475,7 @@ SoWgpuBgfxBackend::checkRuntimeFailure(const char * operation)
 }
 
 void
-SoWgpuBgfxBackend::destroyResources()
+CoinBgfxBackend::destroyResources()
 {
   if (!this->initialized) return;
   // Handles are no longer trustworthy after a fatal renderer/device error.
@@ -531,7 +531,7 @@ SoWgpuBgfxBackend::destroyResources()
 }
 
 void
-SoWgpuBgfxBackend::shutdownRuntime()
+CoinBgfxBackend::shutdownRuntime()
 {
   if (!this->initialized) return;
   // Release this target without interrupting other windows on the shared device.
@@ -566,13 +566,13 @@ SoWgpuBgfxBackend::shutdownRuntime()
 }
 
 bool
-SoWgpuBgfxBackend::onApiThread() const
+CoinBgfxBackend::onApiThread() const
 {
   return this->apiThread == std::this_thread::get_id();
 }
 
 CoinRenderBackendStatus
-SoWgpuBgfxBackend::prepare(CoinRenderTargetP & target)
+CoinBgfxBackend::prepare(CoinRenderTargetP & target)
 {
   if (this->initialized) {
     if (!this->onApiThread()) {
@@ -592,23 +592,23 @@ SoWgpuBgfxBackend::prepare(CoinRenderTargetP & target)
   }
   const char * transparencyMode = std::getenv("COIN_BGFX_TRANSPARENCY");
   if (transparencyMode == nullptr || std::strcmp(transparencyMode, "auto") == 0) {
-    this->transparencyMode = SoWgpuBgfxTransparencyMode::AUTO;
+    this->transparencyMode = CoinBgfxTransparencyMode::AUTO;
   } else if (std::strcmp(transparencyMode, "object") == 0) {
-    this->transparencyMode = SoWgpuBgfxTransparencyMode::OBJECT;
+    this->transparencyMode = CoinBgfxTransparencyMode::OBJECT;
   } else if (std::strcmp(transparencyMode, "sorted_layers") == 0) {
-    this->transparencyMode = SoWgpuBgfxTransparencyMode::SORTED_LAYERS;
+    this->transparencyMode = CoinBgfxTransparencyMode::SORTED_LAYERS;
   } else if (std::strcmp(transparencyMode, "weighted_oit") == 0) {
-    this->transparencyMode = SoWgpuBgfxTransparencyMode::WEIGHTED_OIT;
+    this->transparencyMode = CoinBgfxTransparencyMode::WEIGHTED_OIT;
   } else {
     this->lastError = "COIN_BGFX_TRANSPARENCY must be auto, object, weighted_oit, or sorted_layers";
     return CoinRenderBackendStatus::UNSUPPORTED;
   }
-  if (this->transparencyMode == SoWgpuBgfxTransparencyMode::WEIGHTED_OIT)
-    this->activeTransparencyStrategy = SoWgpuBgfxTransparencyStrategy::WEIGHTED_OIT;
-  else if (this->transparencyMode == SoWgpuBgfxTransparencyMode::SORTED_LAYERS)
-    this->activeTransparencyStrategy = SoWgpuBgfxTransparencyStrategy::SORTED_LAYERS;
+  if (this->transparencyMode == CoinBgfxTransparencyMode::WEIGHTED_OIT)
+    this->activeTransparencyStrategy = CoinBgfxTransparencyStrategy::WEIGHTED_OIT;
+  else if (this->transparencyMode == CoinBgfxTransparencyMode::SORTED_LAYERS)
+    this->activeTransparencyStrategy = CoinBgfxTransparencyStrategy::SORTED_LAYERS;
   else
-    this->activeTransparencyStrategy = SoWgpuBgfxTransparencyStrategy::OBJECT;
+    this->activeTransparencyStrategy = CoinBgfxTransparencyStrategy::OBJECT;
   const char * rendererFlag = std::getenv("COIN_BGFX_RENDERER");
   const bool useOpenGl = rendererFlag != nullptr && std::strcmp(rendererFlag, "opengl") == 0;
   if (rendererFlag != nullptr && !useOpenGl && std::strcmp(rendererFlag, "vulkan") != 0) {
@@ -733,12 +733,12 @@ SoWgpuBgfxBackend::prepare(CoinRenderTargetP & target)
     bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA16F, peelTextureFlags) &&
     bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::R16F, peelTextureFlags);
 
-  if (this->transparencyMode == SoWgpuBgfxTransparencyMode::SORTED_LAYERS && !this->sortedLayersSupported) {
+  if (this->transparencyMode == CoinBgfxTransparencyMode::SORTED_LAYERS && !this->sortedLayersSupported) {
     this->lastError = "BGFX sorted layers requires sampleable D32F and RGBA8 render targets";
     this->status = CoinRenderBackendStatus::UNSUPPORTED;
     return this->status;
   }
-  if (this->transparencyMode == SoWgpuBgfxTransparencyMode::WEIGHTED_OIT && !this->weightedOitSupported) {
+  if (this->transparencyMode == CoinBgfxTransparencyMode::WEIGHTED_OIT && !this->weightedOitSupported) {
     this->lastError = "BGFX weighted OIT requires independent blending and sampleable RGBA16F/R16F render targets";
     this->status = CoinRenderBackendStatus::UNSUPPORTED;
     return this->status;
@@ -816,14 +816,14 @@ SoWgpuBgfxBackend::prepare(CoinRenderTargetP & target)
     return this->status;
   }
   const bool buildSortedLayers = this->sortedLayersSupported &&
-    (this->transparencyMode == SoWgpuBgfxTransparencyMode::AUTO ||
-     this->transparencyMode == SoWgpuBgfxTransparencyMode::SORTED_LAYERS);
+    (this->transparencyMode == CoinBgfxTransparencyMode::AUTO ||
+     this->transparencyMode == CoinBgfxTransparencyMode::SORTED_LAYERS);
   const bool buildWeightedOit = this->weightedOitSupported &&
-    (this->transparencyMode == SoWgpuBgfxTransparencyMode::AUTO ||
-     this->transparencyMode == SoWgpuBgfxTransparencyMode::WEIGHTED_OIT);
+    (this->transparencyMode == CoinBgfxTransparencyMode::AUTO ||
+     this->transparencyMode == CoinBgfxTransparencyMode::WEIGHTED_OIT);
   if (!this->presentToWindow || buildSortedLayers || buildWeightedOit) {
     this->depthInfoUniform = bgfx::createUniform("u_depthInfo", bgfx::UniformType::Vec4);
-    SoWgpuBgfxVertex fullscreen[3] = {};
+    CoinBgfxVertex fullscreen[3] = {};
     fullscreen[0].position[0] = -1.0f; fullscreen[0].position[1] = -1.0f;
     fullscreen[1].position[0] =  3.0f; fullscreen[1].position[1] = -1.0f;
     fullscreen[2].position[0] = -1.0f; fullscreen[2].position[1] =  3.0f;
@@ -920,7 +920,7 @@ SoWgpuBgfxBackend::prepare(CoinRenderTargetP & target)
 }
 
 void
-SoWgpuBgfxBackend::destroyFrameBuffers()
+CoinBgfxBackend::destroyFrameBuffers()
 {
   for (uint8_t pass = 0; pass < peelPasses; ++pass) {
     if (bgfx::isValid(this->peelFrameBuffers[pass]))
@@ -955,7 +955,7 @@ SoWgpuBgfxBackend::destroyFrameBuffers()
 }
 
 bool
-SoWgpuBgfxBackend::resize(int newWidth, int newHeight)
+CoinBgfxBackend::resize(int newWidth, int newHeight)
 {
   if (newWidth == this->width && newHeight == this->height) return true;
   if (newWidth <= 0 || newHeight <= 0 || newWidth > 16384 || newHeight > 16384) {
@@ -1044,7 +1044,7 @@ SoWgpuBgfxBackend::resize(int newWidth, int newHeight)
       }
     }
   }
-  if (this->activeTransparencyStrategy == SoWgpuBgfxTransparencyStrategy::SORTED_LAYERS) {
+  if (this->activeTransparencyStrategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS) {
     for (uint8_t pass = 0; pass < peelPasses; ++pass) {
       bgfx::TextureHandle color = bgfx::createTexture2D(
         static_cast<uint16_t>(newWidth), static_cast<uint16_t>(newHeight),
@@ -1070,7 +1070,7 @@ SoWgpuBgfxBackend::resize(int newWidth, int newHeight)
       }
     }
   }
-  if (this->activeTransparencyStrategy == SoWgpuBgfxTransparencyStrategy::WEIGHTED_OIT) {
+  if (this->activeTransparencyStrategy == CoinBgfxTransparencyStrategy::WEIGHTED_OIT) {
     bgfx::TextureHandle accum = bgfx::createTexture2D(
       static_cast<uint16_t>(newWidth), static_cast<uint16_t>(newHeight),
       false, 1, bgfx::TextureFormat::RGBA16F, peelTextureFlags);
@@ -1105,13 +1105,13 @@ SoWgpuBgfxBackend::resize(int newWidth, int newHeight)
   return this->checkRuntimeFailure("BGFX resize failed") == CoinRenderBackendStatus::SUCCESS;
 }
 void
-SoWgpuBgfxBackend::bindDrawTexture(
-  const SoWgpuBgfxDraw & draw, const std::vector<bgfx::TextureHandle> & textures)
+CoinBgfxBackend::bindDrawTexture(
+  const CoinBgfxDraw & draw, const std::vector<bgfx::TextureHandle> & textures)
 {
   float params[COIN_RENDER_MAX_TEXTURE_UNITS][4] = {};
   float blend[COIN_RENDER_MAX_TEXTURE_UNITS][4] = {};
   for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
-    SoWgpuBgfxDraw::TextureLayer layer;
+    CoinBgfxDraw::TextureLayer layer;
     if (unit == 0) {
       layer.enabled = draw.hasTexture; layer.slot = draw.textureSlot;
       layer.model = draw.textureModel; layer.wrapS = draw.wrapS; layer.wrapT = draw.wrapT;
@@ -1144,7 +1144,7 @@ SoWgpuBgfxBackend::bindDrawTexture(
 
 
 void
-SoWgpuBgfxBackend::bindDrawLighting(const SoWgpuBgfxDraw & draw, int targetHeight)
+CoinBgfxBackend::bindDrawLighting(const CoinBgfxDraw & draw, int targetHeight)
 {
   const float door[4] = {draw.screenDoor[0], float(targetHeight > 0 ? targetHeight : this->height),
     bgfx::getCaps()->originBottomLeft ? 1.0f : 0.0f, draw.screenDoor[3]};
@@ -1171,7 +1171,7 @@ SoWgpuBgfxBackend::bindDrawLighting(const SoWgpuBgfxDraw & draw, int targetHeigh
 }
 
 void
-SoWgpuBgfxBackend::encodeSortedLayers(const std::vector<SoWgpuBgfxDraw> & draws,
+CoinBgfxBackend::encodeSortedLayers(const std::vector<CoinBgfxDraw> & draws,
                                       bgfx::DynamicVertexBufferHandle vertices,
                                       bgfx::DynamicIndexBufferHandle indices,
                                       bgfx::FrameBufferHandle output,
@@ -1192,7 +1192,7 @@ SoWgpuBgfxBackend::encodeSortedLayers(const std::vector<SoWgpuBgfxDraw> & draws,
     bgfx::setViewTransform(view, nullptr, nullptr);
     bgfx::touch(view);
     // Opaque geometry supplies the occlusion depth in every peel pass.
-    for (const SoWgpuBgfxDraw & draw : draws) {
+    for (const CoinBgfxDraw & draw : draws) {
       if (draw.renderLayer != 0 || (draw.blend && draw.deferred)) continue;
       bgfx::setTransform(draw.mvp);
       bgfx::setVertexBuffer(0, vertices);
@@ -1204,7 +1204,7 @@ SoWgpuBgfxBackend::encodeSortedLayers(const std::vector<SoWgpuBgfxDraw> & draws,
       bgfx::submit(view, this->program);
 
     }
-    for (const SoWgpuBgfxDraw & draw : draws) {
+    for (const CoinBgfxDraw & draw : draws) {
       if (draw.renderLayer != 0 || !draw.blend || !draw.deferred || draw.additive) continue;
       bgfx::setTransform(draw.mvp);
       bgfx::setVertexBuffer(0, vertices);
@@ -1254,7 +1254,7 @@ SoWgpuBgfxBackend::encodeSortedLayers(const std::vector<SoWgpuBgfxDraw> & draws,
 }
 
 void
-SoWgpuBgfxBackend::encodeWeightedOit(const std::vector<SoWgpuBgfxDraw> & draws,
+CoinBgfxBackend::encodeWeightedOit(const std::vector<CoinBgfxDraw> & draws,
                                      bgfx::DynamicVertexBufferHandle vertices,
                                      bgfx::DynamicIndexBufferHandle indices,
                                      bgfx::FrameBufferHandle output,
@@ -1279,7 +1279,7 @@ SoWgpuBgfxBackend::encodeWeightedOit(const std::vector<SoWgpuBgfxDraw> & draws,
 
   // Rebuild only opaque depth so transparent fragments behind opaque Coin
   // geometry cannot contribute to either accumulation attachment.
-  for (const SoWgpuBgfxDraw & draw : draws) {
+  for (const CoinBgfxDraw & draw : draws) {
     if (draw.renderLayer != 0 || (draw.blend && draw.deferred)) continue;
     bgfx::setTransform(draw.mvp);
     bgfx::setVertexBuffer(0, vertices);
@@ -1292,7 +1292,7 @@ SoWgpuBgfxBackend::encodeWeightedOit(const std::vector<SoWgpuBgfxDraw> & draws,
 
   }
 
-  for (const SoWgpuBgfxDraw & draw : draws) {
+  for (const CoinBgfxDraw & draw : draws) {
     if (draw.renderLayer != 0 || !draw.blend) continue;
     uint64_t state = drawState(draw);
     state &= ~(BGFX_STATE_WRITE_Z | BGFX_STATE_BLEND_MASK);
@@ -1342,8 +1342,8 @@ SoWgpuBgfxBackend::encodeWeightedOit(const std::vector<SoWgpuBgfxDraw> & draws,
 }
 
 bool
-SoWgpuBgfxBackend::encodeOverlayLayers(
-  const std::vector<SoWgpuBgfxDraw> & draws,
+CoinBgfxBackend::encodeOverlayLayers(
+  const std::vector<CoinBgfxDraw> & draws,
   bgfx::DynamicVertexBufferHandle vertices,
   bgfx::DynamicIndexBufferHandle indices,
   bgfx::FrameBufferHandle output,
@@ -1351,22 +1351,22 @@ SoWgpuBgfxBackend::encodeOverlayLayers(
   bgfx::ViewId & nextView)
 {
   uint32_t encodedLayer = 0;
-  for (const SoWgpuBgfxDraw & layerDraw : draws) {
+  for (const CoinBgfxDraw & layerDraw : draws) {
     if (layerDraw.renderLayer == 0 || layerDraw.renderLayer == encodedLayer) continue;
     encodedLayer = layerDraw.renderLayer;
     if (nextView > this->viewBase + targetViewCount - 3) {
       this->lastError = "BGFX overlay layer count exceeds available view IDs";
       return false;
     }
-    const SoWgpuBgfxDraw * barrier = nullptr;
-    for (const SoWgpuBgfxDraw & draw : draws) {
+    const CoinBgfxDraw * barrier = nullptr;
+    for (const CoinBgfxDraw & draw : draws) {
       if (draw.renderLayer == encodedLayer && draw.clearDepthBefore) {
         barrier = &draw;
         break;
       }
     }
     int32_t clipped[4];
-    if (barrier && SoWgpuBgfxCore::clipViewport(barrier->viewport, this->width,
+    if (barrier && CoinBgfxLowering::clipViewport(barrier->viewport, this->width,
                                                this->height, clipped)) {
       const bgfx::ViewId clearView = nextView++;
       const int32_t top = this->height - clipped[1] - clipped[3];
@@ -1393,7 +1393,7 @@ SoWgpuBgfxBackend::encodeOverlayLayers(
     bgfx::setViewClear(overlayView, BGFX_CLEAR_NONE);
     bgfx::setViewTransform(overlayView, nullptr, nullptr);
     bgfx::touch(overlayView);
-    for (const SoWgpuBgfxDraw & draw : draws) {
+    for (const CoinBgfxDraw & draw : draws) {
       if (draw.renderLayer != encodedLayer || false) continue;
       bgfx::setTransform(draw.mvp);
       bgfx::setVertexBuffer(0, vertices);
@@ -1409,20 +1409,20 @@ SoWgpuBgfxBackend::encodeOverlayLayers(
 }
 
 CoinRenderSubmitResult
-SoWgpuBgfxBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target)
+CoinBgfxBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target)
 {
   return this->submit(frame, target, CoinRenderFrameReuseDecision());
 }
 
 CoinRenderSubmitResult
-SoWgpuBgfxBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
+CoinBgfxBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
                           const CoinRenderFrameReuseDecision & reuse)
 {
   return this->submitInternal(frame, target, reuse, nullptr);
 }
 
 CoinRenderSubmitResult
-SoWgpuBgfxBackend::submitAsync(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
+CoinBgfxBackend::submitAsync(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
   CoinRenderReadbackTicket & ticket, const CoinRenderFrameReuseDecision & reuse)
 {
   ticket = CoinRenderReadbackTicket{};
@@ -1430,7 +1430,7 @@ SoWgpuBgfxBackend::submitAsync(const CoinRenderFramePlan & frame, CoinRenderTarg
 }
 
 CoinRenderSubmitResult
-SoWgpuBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
+CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
   const CoinRenderFrameReuseDecision & reuse, CoinRenderReadbackTicket * outTicket)
 {
   if (!this->initialized || this->status != CoinRenderBackendStatus::SUCCESS || !this->onApiThread()) {
@@ -1492,33 +1492,33 @@ SoWgpuBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderT
     (this->cachedPlan.draws.empty() ||
       (bgfx::isValid(this->cachedVertexBuffer) &&
        bgfx::isValid(this->cachedIndexBuffer)));
-  std::vector<SoWgpuBgfxDraw> cameraDraws;
+  std::vector<CoinBgfxDraw> cameraDraws;
   const bool cameraPatchUsed = cameraPatchEligible &&
-    SoWgpuBgfxCore::patchCamera(frame, target.size[0], target.size[1],
+    CoinBgfxLowering::patchCamera(frame, target.size[0], target.size[1],
                                 homogeneousDepth, this->cachedPlan,
                                 cameraDraws, this->lastError);
-  SoWgpuBgfxPlan freshPlan;
-  const SoWgpuBgfxPlan * plan = &this->cachedPlan;
+  CoinBgfxPlan freshPlan;
+  const CoinBgfxPlan * plan = &this->cachedPlan;
   if (!cacheHit && !cameraPatchUsed) {
-    if (!SoWgpuBgfxCore::lower(frame, target.size[0], target.size[1],
+    if (!CoinBgfxLowering::lower(frame, target.size[0], target.size[1],
                               homogeneousDepth, freshPlan, this->lastError)) {
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
     }
     plan = &freshPlan;
   }
-  std::vector<SoWgpuBgfxVertexRange> materialRanges;
+  std::vector<CoinBgfxVertexRange> materialRanges;
   const bool materialPatchEligible = !cacheHit && !cameraPatchUsed &&
     reuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD &&
     reuse.baseRevision != 0 && reuse.baseRevision == this->cachedRevision &&
     cacheDimensionsMatch && bgfx::isValid(this->cachedVertexBuffer) &&
     bgfx::isValid(this->cachedIndexBuffer);
   const bool materialPatchUsed = materialPatchEligible &&
-    SoWgpuBgfxCore::materialPatchRanges(this->cachedPlan, freshPlan,
+    CoinBgfxLowering::materialPatchRanges(this->cachedPlan, freshPlan,
                                         materialRanges);
-  const std::vector<SoWgpuBgfxDraw> & strategyDraws =
+  const std::vector<CoinBgfxDraw> & strategyDraws =
     cameraPatchUsed ? cameraDraws : plan->draws;
-  SoWgpuBgfxTransparencyStrategy selectedStrategy;
-  if (!SoWgpuBgfxCore::selectTransparencyStrategy(strategyDraws,
+  CoinBgfxTransparencyStrategy selectedStrategy;
+  if (!CoinBgfxLowering::selectTransparencyStrategy(strategyDraws,
         this->transparencyMode, this->weightedOitSupported,
         this->sortedLayersSupported, selectedStrategy, this->lastError)) {
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
@@ -1540,25 +1540,25 @@ SoWgpuBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderT
       CoinRenderBackendStatus::OUT_OF_MEMORY : this->status;
     return CoinRenderSubmitResult(resizeStatus, this->lastError);
   }
-  if (plan->vertices.size() > std::numeric_limits<uint32_t>::max() / sizeof(SoWgpuBgfxVertex) ||
+  if (plan->vertices.size() > std::numeric_limits<uint32_t>::max() / sizeof(CoinBgfxVertex) ||
       plan->indices.size() > std::numeric_limits<uint32_t>::max() / sizeof(uint32_t)) {
     this->lastError = "BGFX geometry exceeds buffer size limits";
     return CoinRenderSubmitResult(CoinRenderBackendStatus::OUT_OF_MEMORY, this->lastError);
   }
-  const size_t geometryBytes = plan->vertices.size() * sizeof(SoWgpuBgfxVertex) +
+  const size_t geometryBytes = plan->vertices.size() * sizeof(CoinBgfxVertex) +
                                plan->indices.size() * sizeof(uint32_t) +
-                               plan->draws.size() * sizeof(SoWgpuBgfxDraw);
+                               plan->draws.size() * sizeof(CoinBgfxDraw);
   bgfx::DynamicVertexBufferHandle vb = this->cachedVertexBuffer;
   bgfx::DynamicIndexBufferHandle ib = this->cachedIndexBuffer;
   bool retained = cacheHit || cameraPatchUsed || materialPatchUsed;
   bool geometryBufferReused = retained;
   uint32_t materialPatchVertices = 0;
   if (materialPatchUsed) {
-    for (const SoWgpuBgfxVertexRange & range : materialRanges) {
+    for (const CoinBgfxVertexRange & range : materialRanges) {
       materialPatchVertices += range.count;
       bgfx::update(vb, range.first, bgfx::copy(
         freshPlan.vertices.data() + range.first,
-        range.count * static_cast<uint32_t>(sizeof(SoWgpuBgfxVertex))));
+        range.count * static_cast<uint32_t>(sizeof(CoinBgfxVertex))));
     }
     this->cachedPlan = std::move(freshPlan);
     this->cachedRevision = frame.revision;
@@ -1593,7 +1593,7 @@ SoWgpuBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderT
         return CoinRenderSubmitResult(CoinRenderBackendStatus::OUT_OF_MEMORY, this->lastError);
       }
       bgfx::update(vb, 0, bgfx::copy(plan->vertices.data(),
-        static_cast<uint32_t>(plan->vertices.size() * sizeof(SoWgpuBgfxVertex))));
+        static_cast<uint32_t>(plan->vertices.size() * sizeof(CoinBgfxVertex))));
       bgfx::update(ib, 0, bgfx::copy(plan->indices.data(),
         static_cast<uint32_t>(plan->indices.size() * sizeof(uint32_t))));
     }
@@ -1615,7 +1615,7 @@ SoWgpuBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderT
   std::vector<bgfx::TextureHandle> textures(
     plan->textures.size(), BGFX_INVALID_HANDLE);
   bool hasDirectTextures = false;
-  for (const SoWgpuBgfxTexture & texture : plan->textures)
+  for (const CoinBgfxTexture & texture : plan->textures)
     if (texture.gpuToken != 0) hasDirectTextures = true;
   std::vector<bool> textureOwned(plan->textures.size(), false);
   bool textureCacheHit = !hasDirectTextures &&
@@ -1627,7 +1627,7 @@ SoWgpuBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderT
   if (textureCacheHit) textures = this->cachedTextures;
   for (size_t textureIndex = 0;
        !textureCacheHit && textureIndex < plan->textures.size(); ++textureIndex) {
-    const SoWgpuBgfxTexture & texture = plan->textures[textureIndex];
+    const CoinBgfxTexture & texture = plan->textures[textureIndex];
     if (texture.gpuToken != 0) {
       for (const DirectTextureResource & resource : this->directTextures) {
         if (resource.token == texture.gpuToken) {
@@ -1688,20 +1688,20 @@ SoWgpuBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderT
   bgfx::setViewClear(this->viewBase, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 1.0f, 0, 0);
   bgfx::setViewTransform(this->viewBase, nullptr, nullptr);
   bgfx::touch(this->viewBase);
-  const std::vector<SoWgpuBgfxDraw> & sourceDraws =
+  const std::vector<CoinBgfxDraw> & sourceDraws =
     cameraPatchUsed ? cameraDraws : plan->draws;
-  std::vector<SoWgpuBgfxDraw> groupedDraws;
+  std::vector<CoinBgfxDraw> groupedDraws;
   if (this->drawGroupingEnabled)
-    SoWgpuBgfxCore::groupOpaqueDraws(sourceDraws, groupedDraws);
-  const std::vector<SoWgpuBgfxDraw> & draws =
+    CoinBgfxLowering::groupOpaqueDraws(sourceDraws, groupedDraws);
+  const std::vector<CoinBgfxDraw> & draws =
     this->drawGroupingEnabled ? groupedDraws : sourceDraws;
   const LogicalDrawStats drawStats = logicalDrawStats(sourceDraws, draws);
   const bool useSortedLayers =
-    selectedStrategy == SoWgpuBgfxTransparencyStrategy::SORTED_LAYERS;
+    selectedStrategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS;
   const bool useWeightedOit =
-    selectedStrategy == SoWgpuBgfxTransparencyStrategy::WEIGHTED_OIT;
+    selectedStrategy == CoinBgfxTransparencyStrategy::WEIGHTED_OIT;
   bgfx::ViewId nextView = this->viewBase + 2;
-  for (const SoWgpuBgfxDraw & draw : draws) {
+  for (const CoinBgfxDraw & draw : draws) {
     if (draw.renderLayer != 0 || (draw.blend && draw.deferred)) continue;
     bgfx::setTransform(draw.mvp);
     bgfx::setVertexBuffer(0, vb);
@@ -1724,7 +1724,7 @@ SoWgpuBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderT
       this->presentToWindow ? windowFrameBuffer : this->frameBuffer);
     bgfx::setViewClear(transparentView, BGFX_CLEAR_NONE);
     bgfx::setViewTransform(transparentView, nullptr, nullptr);
-    for (const SoWgpuBgfxDraw & draw : draws) {
+    for (const CoinBgfxDraw & draw : draws) {
       if (draw.renderLayer != 0 || !draw.blend || !draw.deferred) continue;
       bgfx::setTransform(draw.mvp);
       bgfx::setVertexBuffer(0, vb);
@@ -1789,7 +1789,7 @@ SoWgpuBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderT
     if (runtimeStatus != CoinRenderBackendStatus::SUCCESS)
       return CoinRenderSubmitResult(runtimeStatus, this->lastError);
     const Clock::time_point submitted = Clock::now();
-    SoWgpuBgfxPhaseSample sample;
+    CoinBgfxPhaseSample sample;
     sample.gpuTimingRequested = traceGpu;
     const Clock::time_point gpuDrainBegin = Clock::now();
     uint32_t gpuQueryFrames = 0;
@@ -1991,7 +1991,7 @@ SoWgpuBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderT
   const uint32_t submittedFrame = completedFrame;
   const Clock::time_point submitted = Clock::now();
   destroyTextures();
-  SoWgpuBgfxPhaseSample gpuSample;
+  CoinBgfxPhaseSample gpuSample;
   gpuSample.gpuTimingRequested = traceGpu;
   const auto captureGpuFrame = [&]() {
     if (!traceGpu) return;
@@ -2073,7 +2073,7 @@ SoWgpuBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderT
     const auto ms = [](Clock::time_point a, Clock::time_point b) {
       return std::chrono::duration<double, std::milli>(b - a).count();
     };
-    SoWgpuBgfxPhaseSample sample = gpuSample;
+    CoinBgfxPhaseSample sample = gpuSample;
     sample.lowerMs = ms(begin, lowered);
     sample.uploadMs = ms(lowered, uploaded);
     sample.encodeMs = ms(uploaded, encoded);
@@ -2115,7 +2115,7 @@ SoWgpuBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderT
 }
 
 CoinRenderSubmitResult
-SoWgpuBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
+CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
                                        const SbVec2i32 & size,
                                        uint64_t producerKey,
                                        uint64_t & token)
@@ -2130,16 +2130,16 @@ SoWgpuBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
   const CoinRenderBackendStatus initialRuntimeStatus = this->checkRuntimeFailure("BGFX shared renderer failed before direct RTT");
   if (initialRuntimeStatus != CoinRenderBackendStatus::SUCCESS)
     return CoinRenderSubmitResult(initialRuntimeStatus, this->lastError);
-  SoWgpuBgfxPlan plan;
-  if (!SoWgpuBgfxCore::lower(frame, size[0], size[1],
+  CoinBgfxPlan plan;
+  if (!CoinBgfxLowering::lower(frame, size[0], size[1],
         bgfx::getCaps()->homogeneousDepth, plan, this->lastError)) {
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
   }
-  SoWgpuBgfxTransparencyStrategy strategy;
-  if (!SoWgpuBgfxCore::selectTransparencyStrategy(plan.draws,
-        SoWgpuBgfxTransparencyMode::OBJECT, this->weightedOitSupported,
+  CoinBgfxTransparencyStrategy strategy;
+  if (!CoinBgfxLowering::selectTransparencyStrategy(plan.draws,
+        CoinBgfxTransparencyMode::OBJECT, this->weightedOitSupported,
         this->sortedLayersSupported, strategy, this->lastError) ||
-      strategy != SoWgpuBgfxTransparencyStrategy::OBJECT) {
+      strategy != CoinBgfxTransparencyStrategy::OBJECT) {
     this->lastError = "BGFX direct RTT currently requires object transparency";
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
   }
@@ -2188,7 +2188,7 @@ SoWgpuBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
   bgfx::IndexBufferHandle ib = BGFX_INVALID_HANDLE;
   if (!plan.draws.empty()) {
     vb = bgfx::createVertexBuffer(bgfx::copy(plan.vertices.data(),
-      static_cast<uint32_t>(plan.vertices.size() * sizeof(SoWgpuBgfxVertex))),
+      static_cast<uint32_t>(plan.vertices.size() * sizeof(CoinBgfxVertex))),
       this->layout);
     ib = bgfx::createIndexBuffer(bgfx::copy(plan.indices.data(),
       static_cast<uint32_t>(plan.indices.size() * sizeof(uint32_t))),
@@ -2205,7 +2205,7 @@ SoWgpuBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
   std::vector<bgfx::TextureHandle> textures(plan.textures.size(), BGFX_INVALID_HANDLE);
   std::vector<bool> owned(plan.textures.size(), false);
   for (size_t i = 0; i < plan.textures.size(); ++i) {
-    const SoWgpuBgfxTexture & source = plan.textures[i];
+    const CoinBgfxTexture & source = plan.textures[i];
     if (source.gpuToken != 0) {
       for (const DirectTextureResource & resource : this->directTextures) {
         if (resource.token == source.gpuToken)
@@ -2237,7 +2237,7 @@ SoWgpuBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
   bgfx::setViewFrameBuffer(this->viewBase, output);
   bgfx::setViewClear(this->viewBase, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 1.0f, 0, 0);
   bgfx::touch(this->viewBase);
-  for (const SoWgpuBgfxDraw & draw : plan.draws) {
+  for (const CoinBgfxDraw & draw : plan.draws) {
     if (draw.blend && draw.deferred) continue;
     bgfx::setTransform(draw.mvp);
     bgfx::setVertexBuffer(0, vb);
@@ -2254,7 +2254,7 @@ SoWgpuBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
                     static_cast<uint16_t>(size[1]));
   bgfx::setViewFrameBuffer(this->viewBase + 1, output);
   bgfx::setViewClear(this->viewBase + 1, BGFX_CLEAR_NONE);
-  for (const SoWgpuBgfxDraw & draw : plan.draws) {
+  for (const CoinBgfxDraw & draw : plan.draws) {
     if (!draw.blend || !draw.deferred) continue;
     bgfx::setTransform(draw.mvp);
     bgfx::setVertexBuffer(0, vb);
@@ -2291,7 +2291,7 @@ SoWgpuBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
 }
 
 void
-SoWgpuBgfxBackend::releaseDirectTexture(uint64_t token)
+CoinBgfxBackend::releaseDirectTexture(uint64_t token)
 {
   for (std::vector<DirectTextureResource>::iterator it = this->directTextures.begin();
        it != this->directTextures.end(); ++it) {
@@ -2302,7 +2302,7 @@ SoWgpuBgfxBackend::releaseDirectTexture(uint64_t token)
 }
 
 void
-SoWgpuBgfxBackend::finishDirectTextures(const std::vector<uint64_t> & usedTokens)
+CoinBgfxBackend::finishDirectTextures(const std::vector<uint64_t> & usedTokens)
 {
   if (!this->initialized || !this->onApiThread()) return;
   if (this->checkRuntimeFailure("BGFX shared renderer failed before RTT retirement") !=
@@ -2320,7 +2320,7 @@ SoWgpuBgfxBackend::finishDirectTextures(const std::vector<uint64_t> & usedTokens
 }
 
 CoinRenderTarget::ReadbackStatus
-SoWgpuBgfxBackend::pollReadback(const CoinRenderReadbackTicket & ticket,
+CoinBgfxBackend::pollReadback(const CoinRenderReadbackTicket & ticket,
   std::vector<uint8_t> & color, std::vector<float> & depth, SbString * diagnostic)
 {
   auto & runtime = sharedRuntime();
@@ -2356,7 +2356,7 @@ SoWgpuBgfxBackend::pollReadback(const CoinRenderReadbackTicket & ticket,
 }
 
 bool
-SoWgpuBgfxBackend::cancelReadback(const CoinRenderReadbackTicket & ticket)
+CoinBgfxBackend::cancelReadback(const CoinRenderReadbackTicket & ticket)
 {
   auto & runtime = sharedRuntime();
   std::lock_guard<std::mutex> guard(runtime.mutex);
@@ -2378,7 +2378,7 @@ SoWgpuBgfxBackend::cancelReadback(const CoinRenderReadbackTicket & ticket)
 }
 
 void
-SoWgpuBgfxBackend::poll()
+CoinBgfxBackend::poll()
 {
   // Synchronous readback in submit() already advances BGFX frames.
 }

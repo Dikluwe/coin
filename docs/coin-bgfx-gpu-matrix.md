@@ -2,7 +2,7 @@
 
 A matriz de produto do conector BGFX roda em GPUs físicas; um resultado em
 Xvfb, llvmpipe, lavapipe, softpipe ou SwiftShader não conta como cobertura de
-hardware. O workflow manual `.github/workflows/bgfx-gpu-matrix.yml` usa runners
+hardware. O workflow manual `.github/workflows/coin-bgfx-gpu-matrix.yml` usa runners
 Linux autogerenciados e executa cada API em um processo separado.
 
 ## Células obrigatórias
@@ -44,7 +44,7 @@ pela sonda BGFX com o valor esperado.
 
 ## O que cada célula executa
 
-`.github/scripts/build-and-test-bgfx-gpu.sh` configura um build Release com
+`.github/scripts/build-and-test-coin-bgfx-gpu.sh` configura um build Release com
 BGFX, testes, janela Xlib e warnings estritos. Em seguida executa, somente para
 a API da célula:
 
@@ -69,7 +69,7 @@ export COIN_CI_GPU_VENDOR_PATTERN="AMD|Advanced Micro Devices"
 export COIN_CI_GPU_DRIVER_PATTERN="radv|MESA_RADV"
 export COIN_CI_GPU_VENDOR_ID=0x1002
 export VK_DRIVER_FILES=/usr/share/vulkan/icd.d/radeon_icd.json
-.github/scripts/build-and-test-bgfx-gpu.sh vulkan
+.github/scripts/build-and-test-coin-bgfx-gpu.sh vulkan
 ```
 
 Para radeonsi, remova `COIN_CI_GPU_VENDOR_ID`, ajuste os padrões para

@@ -10,8 +10,8 @@
 #include "rendering/coinrender/SoWgpuRustBackend.h"
 #endif
 
-#if defined(HAVE_WGPU_BGFX)
-#include "rendering/coinrender/SoWgpuBgfxBackend.h"
+#if defined(HAVE_COIN_BGFX)
+#include "rendering/coinbgfx/CoinBgfxBackend.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include <bgfx/bgfx.h>
 #endif
@@ -31,7 +31,7 @@ setDiagnostic(CoinRenderCapabilities & result, const std::string & text)
   std::snprintf(result.diagnostic, sizeof(result.diagnostic), "%s", text.c_str());
 }
 
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
 const char *
 rendererName(bgfx::RendererType::Enum renderer)
 {
@@ -87,7 +87,7 @@ probeBgfx(uint32_t target, CoinRenderCapabilities & result)
 {
   CoinRenderTargetP probeTarget(SbVec2i32(1, 1));
   probeTarget.depthReadbackEnabled = false;
-  SoWgpuBgfxBackend probeBackend;
+  CoinBgfxBackend probeBackend;
   const CoinRenderBackendStatus status = probeBackend.prepare(probeTarget);
   if (status != CoinRenderBackendStatus::SUCCESS) {
     const std::string error = probeBackend.getLastError().empty() ?
@@ -205,7 +205,7 @@ coin_render_query_capabilities(uint32_t target,
   result.probe_status = COIN_RENDER_PROBE_UNAVAILABLE;
   setDiagnostic(result, "Native WebGPU spike has no established runtime rendering profile");
   if (target == COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW) return 1;
-#elif defined(HAVE_WGPU_BGFX)
+#elif defined(HAVE_COIN_BGFX)
   result.backend = COIN_RENDER_EXPERIMENTAL_BGFX_EVALUATION;
   result.features = COIN_RENDER_FEATURE_TRIANGLES |
                     COIN_RENDER_FEATURE_INDEXED_GEOMETRY |

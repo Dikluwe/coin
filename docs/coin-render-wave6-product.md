@@ -35,7 +35,7 @@ essa rota, não que esteja ligada naquele processo. Consulte
 ## Manager e viewer
 
 `CoinRenderSceneManager` é um dono pequeno de `CoinRenderAction` (ou
-`SoBGFXRenderAction` em builds BGFX) e
+`CoinBgfxAction` em builds BGFX) e
 `CoinRenderTarget`, não um substituto de `SoRenderManager`/`SoSceneManager`.
 Inicialize `SoDB` e registre a action antes de construí-lo. O manager retém
 uma referência da raiz passada a `setSceneGraph()`, aceita resize inclusive
