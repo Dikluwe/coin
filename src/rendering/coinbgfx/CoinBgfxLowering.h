@@ -1,5 +1,5 @@
-#ifndef COIN_SOWGPUBGFXCORE_H
-#define COIN_SOWGPUBGFXCORE_H
+#ifndef COIN_BGFX_LOWERING_H
+#define COIN_BGFX_LOWERING_H
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
 
@@ -7,21 +7,21 @@
 #include <string>
 #include <vector>
 
-enum class SoWgpuBgfxTransparencyMode {
+enum class CoinBgfxTransparencyMode {
   AUTO,
   OBJECT,
   WEIGHTED_OIT,
   SORTED_LAYERS
 };
 
-enum class SoWgpuBgfxTransparencyStrategy {
+enum class CoinBgfxTransparencyStrategy {
   OBJECT,
   WEIGHTED_OIT,
   SORTED_LAYERS
 };
 // Backend-neutral lowering for the deliberately narrow BGFX evaluation profile.
 // No BGFX headers or GPU state leak into Core or Open Inventor traversal.
-struct SoWgpuBgfxVertex {
+struct CoinBgfxVertex {
   float position[3];
   float color[4];
   float texcoord[2];
@@ -34,7 +34,7 @@ struct SoWgpuBgfxVertex {
   float extraTexcoords[4][4]; // pairs of UVs for units 1..7
 };
 
-struct SoWgpuBgfxDraw {
+struct CoinBgfxDraw {
   float mvp[16];
   uint32_t firstVertex;
   uint32_t vertexCount;
@@ -55,7 +55,7 @@ struct SoWgpuBgfxDraw {
   bool additive = false;
   float screenDoor[4] = {0, 0, 0, 0};
   float alpha = 1.0f;
-  SoWgpuBgfxTransparencyStrategy transparencyStrategy = SoWgpuBgfxTransparencyStrategy::OBJECT;
+  CoinBgfxTransparencyStrategy transparencyStrategy = CoinBgfxTransparencyStrategy::OBJECT;
   int32_t viewport[4] = {0, 0, 0, 0}; // Coin bottom-left x, y, width, height
   uint32_t renderLayer = 0;
   bool clearDepthBefore = false;
@@ -88,57 +88,57 @@ struct SoWgpuBgfxDraw {
   uint64_t materialSignature = 0;
 };
 
-struct SoWgpuBgfxTexture {
+struct CoinBgfxTexture {
   uint32_t width = 0;
   uint32_t height = 0;
   uint64_t gpuToken = 0;
   std::vector<uint8_t> pixelsRgba;
 };
 
-struct SoWgpuBgfxPlan {
-  std::vector<SoWgpuBgfxVertex> vertices;
+struct CoinBgfxPlan {
+  std::vector<CoinBgfxVertex> vertices;
   std::vector<uint32_t> indices;
-  std::vector<SoWgpuBgfxDraw> draws;
+  std::vector<CoinBgfxDraw> draws;
   float clearColor[4];
-  std::vector<SoWgpuBgfxTexture> textures;
+  std::vector<CoinBgfxTexture> textures;
 };
 
-struct SoWgpuBgfxVertexRange {
+struct CoinBgfxVertexRange {
   uint32_t first = 0;
   uint32_t count = 0;
 };
 
-class SoWgpuBgfxCore {
+class CoinBgfxLowering {
 public:
   // Clip the scissor only; preserve the original viewport for projection and camera reuse.
   // False means the viewport does not intersect the target.
   static bool clipViewport(const int32_t viewport[4], int width, int height,
                            int32_t clipped[4]);
   static bool lower(const CoinRenderFramePlan & frame, int width, int height,
-                    bool homogeneousDepth, SoWgpuBgfxPlan & output,
+                    bool homogeneousDepth, CoinBgfxPlan & output,
                     std::string & diagnostic);
   static bool selectTransparencyStrategy(
-    const std::vector<SoWgpuBgfxDraw> & draws,
-    SoWgpuBgfxTransparencyMode configuredMode,
+    const std::vector<CoinBgfxDraw> & draws,
+    CoinBgfxTransparencyMode configuredMode,
     bool weightedOitSupported,
     bool sortedLayersSupported,
-    SoWgpuBgfxTransparencyStrategy & selected,
+    CoinBgfxTransparencyStrategy & selected,
     std::string & diagnostic);
   // Reorders only opaque draws by pipeline/material/texture/uniform state.
   // Transparent draws are appended in their original relative order.
-  static void groupOpaqueDraws(const std::vector<SoWgpuBgfxDraw> & draws,
-                               std::vector<SoWgpuBgfxDraw> & output);
+  static void groupOpaqueDraws(const std::vector<CoinBgfxDraw> & draws,
+                               std::vector<CoinBgfxDraw> & output);
   // Detects a material-only lowered-plan change and returns the minimal
   // contiguous vertex ranges that must be uploaded.
-  static bool materialPatchRanges(const SoWgpuBgfxPlan & base,
-                                  const SoWgpuBgfxPlan & updated,
-                                  std::vector<SoWgpuBgfxVertexRange> & ranges);
+  static bool materialPatchRanges(const CoinBgfxPlan & base,
+                                  const CoinBgfxPlan & updated,
+                                  std::vector<CoinBgfxVertexRange> & ranges);
   // Requires a validated CAMERA_PATCH relationship with the cached base.
   // Recomputes only draw transforms; geometry, material and clear remain owned
   // by the base plan until the caller commits a successful frame.
   static bool patchCamera(const CoinRenderFramePlan & frame, int width, int height,
-                          bool homogeneousDepth, const SoWgpuBgfxPlan & base,
-                          std::vector<SoWgpuBgfxDraw> & output,
+                          bool homogeneousDepth, const CoinBgfxPlan & base,
+                          std::vector<CoinBgfxDraw> & output,
                           std::string & diagnostic);
 };
 

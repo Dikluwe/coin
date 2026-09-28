@@ -93,21 +93,21 @@ cmake -S "${repository_dir}" -B "${build_dir}" -G Ninja \
   -DCOIN_BGFX_SHADERC_EXECUTABLE="${shaderc}" \
   -DCOIN_BGFX_SHADER_INCLUDE_DIR="${shader_include}"
 cmake --build "${build_dir}" --config Release --parallel --target \
-  BgfxReadbackModesTest \
-  BgfxSurfaceFeaturesTest \
+  CoinBgfxReadbackModesTest \
+  CoinBgfxSurfaceFeaturesTest \
   CoinRenderFogTest \
   CoinRenderProductTest \
   CoinRenderBackendContractTest \
-  WgpuBgfxCoreTest \
-  WgpuBgfxOffscreenTest \
-  WgpuBgfxTransparencyTest \
-  WgpuBgfxWindowTest \
-  WgpuBgfxMultiWindowTest
+  CoinBgfxCoreTest \
+  CoinBgfxOffscreenTest \
+  CoinBgfxTransparencyTest \
+  CoinBgfxWindowTest \
+  CoinBgfxMultiWindowTest
 
 if [[ "${renderer}" == vulkan ]]; then
-  readonly test_regex="^(BgfxReadbackModes_vulkan|BgfxSurface_vulkan_(object|weighted_oit|sorted_layers)|CoinRenderFogTest|CoinRenderProductTest|CoinRenderBackendContractTest|WgpuBgfxCoreTest|WgpuBgfxOffscreenTest|WgpuBgfxTransparencyTest|WgpuBgfxSortedLayersTest|WgpuBgfxWeightedOitTest|WgpuBgfxWindowTest|WgpuBgfxRenderManagerAdapterTest|WgpuBgfxMultiWindowTest|WgpuBgfxMultiWindowOffscreenFirstTest|WgpuBgfxMultiWindow_(weighted_oit|sorted_layers)_vulkanTest)$"
+  readonly test_regex="^(BgfxReadbackModes_vulkan|BgfxSurface_vulkan_(object|weighted_oit|sorted_layers)|CoinRenderFogTest|CoinRenderProductTest|CoinRenderBackendContractTest|CoinBgfxCoreTest|CoinBgfxOffscreenTest|CoinBgfxTransparencyTest|CoinBgfxSortedLayersTest|CoinBgfxWeightedOitTest|CoinBgfxWindowTest|CoinBgfxRenderManagerAdapterTest|CoinBgfxMultiWindowTest|CoinBgfxMultiWindowOffscreenFirstTest|CoinBgfxMultiWindow_(weighted_oit|sorted_layers)_vulkanTest)$"
 else
-  readonly test_regex="^(BgfxReadbackModes_opengl|BgfxSurface_opengl_(object|weighted_oit|sorted_layers)|CoinRenderFogTest|CoinRenderProductOpenGLTest|CoinRenderBackendContractOpenGLTest|WgpuBgfxCoreTest|WgpuBgfxOpenGLTest|WgpuBgfxTransparencyOpenGLTest|WgpuBgfxSortedLayersOpenGLTest|WgpuBgfxWeightedOitOpenGLTest|WgpuBgfxWindowOpenGLTest|WgpuBgfxRenderManagerAdapterOpenGLTest|WgpuBgfxMultiWindowOpenGLTest|WgpuBgfxMultiWindowOffscreenFirstOpenGLTest|WgpuBgfxMultiWindow_(weighted_oit|sorted_layers)_openglTest)$"
+  readonly test_regex="^(BgfxReadbackModes_opengl|BgfxSurface_opengl_(object|weighted_oit|sorted_layers)|CoinRenderFogTest|CoinRenderProductOpenGLTest|CoinRenderBackendContractOpenGLTest|CoinBgfxCoreTest|CoinBgfxOpenGLTest|CoinBgfxTransparencyOpenGLTest|CoinBgfxSortedLayersOpenGLTest|CoinBgfxWeightedOitOpenGLTest|CoinBgfxWindowOpenGLTest|CoinBgfxRenderManagerAdapterOpenGLTest|CoinBgfxMultiWindowOpenGLTest|CoinBgfxMultiWindowOffscreenFirstOpenGLTest|CoinBgfxMultiWindow_(weighted_oit|sorted_layers)_openglTest)$"
 fi
 
 ctest --test-dir "${build_dir}" -C Release -R "${test_regex}" \

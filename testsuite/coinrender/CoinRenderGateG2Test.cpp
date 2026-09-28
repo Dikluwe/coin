@@ -34,7 +34,7 @@
 static CoinRenderTarget * createTestTarget() {
   CoinRenderTarget * target =
     CoinRenderTarget::createOffscreen(SbVec2i32(64, 64));
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
   if (target) target->setDepthReadbackEnabled(FALSE);
 #endif
   return target;
@@ -110,7 +110,7 @@ int main() {
     TEST_ASSERT(pixels[cornerIdx + 0] == 0 && pixels[cornerIdx + 1] == 0 && pixels[cornerIdx + 2] == 0,
                 "Background pixel away from line must be clear color");
 
-#if !defined(HAVE_WGPU_BGFX)
+#if !defined(HAVE_COIN_BGFX)
     // Depth readback
     std::vector<float> depths;
     target->readbackDepth(depths);
@@ -186,7 +186,7 @@ int main() {
     }
     TEST_ASSERT(foundPt, "Center pixel must have dominant blue component for point at origin");
 
-#if !defined(HAVE_WGPU_BGFX)
+#if !defined(HAVE_COIN_BGFX)
     std::vector<float> depths;
     target->readbackDepth(depths);
     float ptDepth = depths[ptIdx];
@@ -277,7 +277,7 @@ int main() {
     TEST_ASSERT(foundRedLine1,
                 "Front red line must be visible over back green triangle (drawn back first)");
 
-#if !defined(HAVE_WGPU_BGFX)
+#if !defined(HAVE_COIN_BGFX)
     std::vector<float> depths1;
     target->readbackDepth(depths1);
     float depth1 = depths1[lineIdx1];
@@ -310,7 +310,7 @@ int main() {
     TEST_ASSERT(foundRedLine2,
                 "Depth test must prevent back green triangle from overwriting front red line");
 
-#if !defined(HAVE_WGPU_BGFX)
+#if !defined(HAVE_COIN_BGFX)
     std::vector<float> depths2;
     target->readbackDepth(depths2);
     float depth2 = depths2[lineIdx2];

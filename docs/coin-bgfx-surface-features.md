@@ -1,8 +1,8 @@
-# SoBGFXRenderAction, fog e superfícies texturizadas
+# CoinBgfxAction, fog e superfícies texturizadas
 
-O backend BGFX usa `SoBGFXRenderAction`, um tipo registrado no sistema de tipos
+O backend BGFX usa `CoinBgfxAction`, um tipo registrado no sistema de tipos
 Coin, derivado da infraestrutura compartilhada `CoinRenderAction`. Não é um
-`typedef`: `getTypeId().getName()` retorna `SoBGFXRenderAction`. O scene manager
+`typedef`: `getTypeId().getName()` retorna `CoinBgfxAction`. O scene manager
 usado pelo adaptador FreeCAD cria essa ação em builds BGFX. A base antiga continua
 disponível para compatibilidade e para o backend Rust/wgpu.
 
@@ -41,7 +41,7 @@ continuam sujeitos ao cache por revisão. A referência CPU usa uma regra de bor
 
 ## Verificação
 
-`BgfxSurfaceFeaturesTest` verifica o nome registrado, 1/2/8 unidades, unidade 7
+`CoinBgfxSurfaceFeaturesTest` verifica o nome registrado, 1/2/8 unidades, unidade 7
 isolada, modelos, alpha, fog, linhas/pontos, UV em perspectiva, stipple e rejeições.
 Inclui comparação CPU/BGFX e um oráculo numérico independente para a cascata e
 fog. O CTest executa Vulkan/OpenGL × object/weighted_oit/sorted_layers.

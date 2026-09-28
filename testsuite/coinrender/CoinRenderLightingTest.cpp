@@ -41,7 +41,7 @@ namespace {
 enum SceneLight { DIRECTIONAL, POINT, SPOT_INSIDE, SPOT_OUTSIDE };
 
 bool gpuAvailable() {
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
   // The legacy convenience probe deliberately excludes the experimental BGFX
   // profile. This test must nevertheless submit to it, never silently skip it.
   return true;
@@ -132,12 +132,12 @@ bool renderCenter(SoSeparator * root, bool cpu, std::array<int, 3> & rgb,
   CoinRenderTarget * target =
     CoinRenderTarget::createOffscreen(SbVec2i32(64, 64));
   if (!check(target != NULL, "createOffscreen failed")) return false;
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
   if (!cpu) target->setDepthReadbackEnabled(FALSE);
 #endif
   if (cpu) {
     target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
     target->getPimpl()->depthBuffer.assign(64u * 64u, 1.0f);
 #endif
   }
@@ -181,7 +181,7 @@ bool checkParity(SoSeparator * root, std::array<int, 3> & cpuRgb,
   float gpuDepth = 1.0f;
   if (!renderCenter(root, false, gpuRgb, &gpuDepth)) return false;
   if (gpuResult) *gpuResult = gpuRgb;
-#if !defined(HAVE_WGPU_BGFX)
+#if !defined(HAVE_COIN_BGFX)
   if (!check(std::abs(cpuDepth - gpuDepth) < 0.025f,
              "CPU/GPU center depth mismatch")) return false;
 #endif

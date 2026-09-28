@@ -195,7 +195,7 @@
   BGFX's float clear palette without early RGBA8 quantization.
   Test each renderer in a separate process because BGFX initialization is
   process-global. The Coin 4 public ABI is unchanged. See
-  <tt>docs/bgfx-evaluation.md</tt> for build, limitations and the Release/GL gate.
+  <tt>docs/coin-bgfx-evaluation.md</tt> for build, limitations and the Release/GL gate.
 
   A validated camera-only CoinRenderFramePlan revision updates draw transforms while
   retaining BGFX geometry buffers; other changes use full lowering.

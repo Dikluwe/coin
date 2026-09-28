@@ -10,9 +10,9 @@
 #include <Inventor/nodes/SoNode.h>
 #include <Inventor/SbViewportRegion.h>
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
-#if defined(HAVE_WGPU_BGFX)
-#include <Inventor/actions/SoBGFXRenderAction.h>
-using SceneRenderAction = SoBGFXRenderAction;
+#if defined(HAVE_COIN_BGFX)
+#include <Inventor/actions/CoinBgfxAction.h>
+using SceneRenderAction = CoinBgfxAction;
 #else
 using SceneRenderAction = CoinRenderAction;
 #endif

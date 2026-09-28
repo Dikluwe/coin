@@ -76,7 +76,7 @@ main()
     "COIN_RENDER_PHASE bridge pack_ms=0.125 pack_cache_hit=0 ffi_ms=0.5 pack_mode=resource_rebuild",
     "bridge phase line changed");
 
-  SoWgpuBgfxPhaseSample bgfxPhase;
+  CoinBgfxPhaseSample bgfxPhase;
   bgfxPhase.cameraPatchUsed = true;
   bgfxPhase.materialPatchUsed = true;
   bgfxPhase.materialPatchRanges = 2;

@@ -67,7 +67,7 @@ jobs:
         with:
           submodules: recursive
       - name: Verify and test physical GPU
-        run: .github/scripts/build-and-test-bgfx-gpu.sh "${{ matrix.renderer }}"
+        run: .github/scripts/build-and-test-coin-bgfx-gpu.sh "${{ matrix.renderer }}"
       - name: Upload GPU evidence
         if: always()
         uses: actions/upload-artifact@v7

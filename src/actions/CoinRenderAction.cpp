@@ -44,7 +44,7 @@
 #include <Inventor/elements/SoLazyElement.h>
 #include <Inventor/elements/SoOverrideElement.h>
 #include <Inventor/elements/SoDepthBufferElement.h>
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
 #include "rendering/coinrender/CoinRenderDepthPolicyElement.h"
 #endif
 #include <algorithm>
@@ -63,8 +63,8 @@
 #if defined(HAVE_WGPU_RUST_BRIDGE)
 #include "rendering/coinrender/SoWgpuRustBackend.h"
 #include "rendering/coinrender/coin_wgpu_ffi.h"
-#elif defined(HAVE_WGPU_BGFX)
-#include "rendering/coinrender/SoWgpuBgfxBackend.h"
+#elif defined(HAVE_COIN_BGFX)
+#include "rendering/coinbgfx/CoinBgfxBackend.h"
 #elif defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
 #include "rendering/coinrender/SoWgpuNativeBackend.h"
 #endif
@@ -76,7 +76,7 @@ CoinRenderAction::initClass(void)
 {
   SO_ACTION_INTERNAL_INIT_CLASS(CoinRenderAction, SoCallbackAction);
   SO_ENABLE(CoinRenderAction, SoDepthBufferElement);
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
   CoinRenderDepthPolicyElement::initClass();
   SO_ENABLE(CoinRenderAction, CoinRenderDepthPolicyElement);
 #endif
@@ -133,11 +133,11 @@ CoinRenderAction::getViewportRegion(void) const
 void
 CoinRenderAction::setRenderTarget(CoinRenderTarget * target)
 {
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
   // The evaluation backend owns one process-wide BGFX instance. Switching
   // targets must release the old instance so the new target can prepare it.
   if (this->pimpl->target != target && this->pimpl->target != NULL &&
-      dynamic_cast<SoWgpuBgfxBackend *>(
+      dynamic_cast<CoinBgfxBackend *>(
         this->pimpl->target->getPimpl()->backend.get()) != NULL) {
     this->pimpl->target->getPimpl()->backend.reset();
   }
@@ -494,7 +494,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   this->hasReentrancyError = false;
   bool planCacheAllowed = true;
 
-#if defined(HAVE_WGPU_RUST_BRIDGE) || defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_BGFX)
   const bool ownsDirectTokens = !this->sceneTextureDirectTokens;
   if (ownsDirectTokens) {
     this->sceneTextureDirectTokens = std::make_shared<std::vector<uint64_t> >();
@@ -509,9 +509,9 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
         coin_wgpu_release_texture(token);
 #endif
       }
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
       if (action->target) {
-        SoWgpuBgfxBackend * backend = dynamic_cast<SoWgpuBgfxBackend *>(
+        CoinBgfxBackend * backend = dynamic_cast<CoinBgfxBackend *>(
           action->target->getPimpl()->backend.get());
         if (backend) backend->finishDirectTextures(*action->sceneTextureDirectTokens);
       }
@@ -675,7 +675,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     return;
   }
 
-#if defined(HAVE_WGPU_RUST_BRIDGE) || defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_BGFX)
   if (this->directPasses) {
     auto setGraphFailure = [this](const CoinRenderFrameExecutionResult & result) {
       this->setDiagnostic(CoinRenderDiagnosticShell::fromBackend(result));
@@ -724,9 +724,9 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
         }
       }
     };
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
     if (!this->target->pimpl->backend) {
-      this->target->pimpl->backend.reset(new SoWgpuBgfxBackend());
+      this->target->pimpl->backend.reset(new CoinBgfxBackend());
       const CoinRenderBackendStatus prepared =
         this->target->pimpl->backend->prepare(this->target->getPimpl().get());
       if (prepared != CoinRenderBackendStatus::SUCCESS) {
@@ -735,7 +735,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
         return;
       }
     }
-    SoWgpuBgfxBackend * directBgfx = dynamic_cast<SoWgpuBgfxBackend *>(
+    CoinBgfxBackend * directBgfx = dynamic_cast<CoinBgfxBackend *>(
       this->target->pimpl->backend.get());
     if (!directBgfx) {
       setGraphFailure(CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED,
@@ -954,7 +954,7 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
   }
 
   bool useDirect = false;
-#if defined(HAVE_WGPU_RUST_BRIDGE) || defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_BGFX)
   const char * directMode = CoinRenderDiagnosticShell::environmentOption("COIN_RENDER_RTT_GPU_DIRECT");
   useDirect = p->directPasses &&
               directMode && directMode[0] == '1' && directMode[1] == '\0';
@@ -998,12 +998,12 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
 
   if (!useDirect) *p->sceneTextureStagedBytes += chargedBytes;
   const SbVec4f background = texture->backgroundColor.getValue();
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
   // The evaluation backend owns a process-wide BGFX singleton. Release a
   // previously prepared parent before executing staged child passes; the
   // parent will be prepared again when its completed frame is submitted.
   if (!useDirect && p->target != NULL &&
-      dynamic_cast<SoWgpuBgfxBackend *>(p->target->getPimpl()->backend.get()) != NULL) {
+      dynamic_cast<CoinBgfxBackend *>(p->target->getPimpl()->backend.get()) != NULL) {
     p->target->getPimpl()->backend.reset();
   }
 #endif
@@ -1043,7 +1043,7 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
     return SoCallbackAction::ABORT;
   }
 
-#if defined(HAVE_WGPU_RUST_BRIDGE) || defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_BGFX)
   if (useDirect) {
     if (!p->directPasses || !childAction.pimpl->hasLastValidPlan) {
       p->setDiagnostic(CoinRenderDiagnosticShell::action(
@@ -1146,7 +1146,7 @@ CoinRenderActionP::depthBufferPreCB(void *, SoCallbackAction * action, const SoN
   const SbVec2f range = depth->range.isIgnored()
     ? SoDepthBufferElement::getRange(state) : depth->range.getValue();
   SoDepthBufferElement::set(state, test, write, function, range);
-#if defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_BGFX)
   CoinRenderDepthPolicyElement::add(state, (depth->test.isIgnored() ? 0 : 1) |
     (depth->write.isIgnored() ? 0 : 2) | (depth->function.isIgnored() ? 0 : 4) |
     (depth->range.isIgnored() ? 0 : 8));

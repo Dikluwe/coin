@@ -18,7 +18,7 @@
 #include "rendering/coinrender/CoinRenderFramePlanBuilder.h"
 #include "rendering/coinrender/CoinRenderFrameReuseCore.h"
 #include "rendering/coinrender/SoWgpuFfiFrame.h"
-#include "rendering/coinrender/SoWgpuBgfxCore.h"
+#include "rendering/coinbgfx/CoinBgfxLowering.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include <cmath>
 #include <iostream>
@@ -201,9 +201,9 @@ bool lowerAndCache() {
       state.polygonOffsetUnits = 3;
       state.polygonOffsetStyles = styles;
       state.polygonOffsetPrimitiveStyle = primitive;
-      SoWgpuBgfxPlan lowered;
+      CoinBgfxPlan lowered;
       std::string diagnostic;
-      ok &= check(SoWgpuBgfxCore::lower(frame,32,32,false,lowered,diagnostic), "lowering failed");
+      ok &= check(CoinBgfxLowering::lower(frame,32,32,false,lowered,diagnostic), "lowering failed");
       if (lowered.draws.size() != 2) return false;
       ok &= check(lowered.draws[0].polygonOffsetFactor == 0 &&
         lowered.draws[1].polygonOffsetFactor == ((styles & primitive) ? -2 : 0) &&
@@ -216,16 +216,16 @@ bool lowerAndCache() {
         CoinRenderFrameReuseKind::REUSE &&
         CoinRenderFrameReuseCore::classify(frame,changed).kind !=
         CoinRenderFrameReuseKind::CAMERA_PATCH, "bias change reused stale cache");
-      std::vector<SoWgpuBgfxDraw> patched;
+      std::vector<CoinBgfxDraw> patched;
       if (styles & primitive) {
-        ok &= check(!SoWgpuBgfxCore::patchCamera(changed,32,32,false,lowered,patched,diagnostic),
+        ok &= check(!CoinBgfxLowering::patchCamera(changed,32,32,false,lowered,patched,diagnostic),
           "camera patch accepted changed effective bias");
       }
       changed = frame;
       changed.renderStates[1].depthRange[0] = 0.25f;
       ok &= check(CoinRenderFrameReuseCore::classify(frame,changed).kind !=
         CoinRenderFrameReuseKind::CAMERA_PATCH &&
-        !SoWgpuBgfxCore::patchCamera(changed,32,32,false,lowered,patched,diagnostic),
+        !CoinBgfxLowering::patchCamera(changed,32,32,false,lowered,patched,diagnostic),
         "range mutation reused camera-only cache");
     }
   }

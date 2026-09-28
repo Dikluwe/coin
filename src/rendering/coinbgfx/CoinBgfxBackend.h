@@ -1,8 +1,8 @@
-#ifndef COIN_SOWGPUBGFXBACKEND_H
-#define COIN_SOWGPUBGFXBACKEND_H
+#ifndef COIN_BGFX_BACKEND_H
+#define COIN_BGFX_BACKEND_H
 
 #include "rendering/coinrender/CoinRenderBackend.h"
-#include "rendering/coinrender/SoWgpuBgfxCore.h"
+#include "rendering/coinbgfx/CoinBgfxLowering.h"
 #include "rendering/coinrender/CoinRenderFrameReuseCore.h"
 
 #include <Inventor/rendering/CoinRenderTarget.h>
@@ -11,10 +11,10 @@
 #include <thread>
 
 /** Experimental BGFX renderer. Targets share an API-thread-owned device. */
-class SoWgpuBgfxBackend : public CoinRenderBackend {
+class CoinBgfxBackend : public CoinRenderBackend {
 public:
-  SoWgpuBgfxBackend();
-  ~SoWgpuBgfxBackend() override;
+  CoinBgfxBackend();
+  ~CoinBgfxBackend() override;
   bool isGpuBackend() const override { return true; }
   CoinRenderBackendStatus getStatus() const override { return status; }
   CoinRenderBackendStatus prepare(CoinRenderTargetP & target) override;
@@ -62,25 +62,25 @@ private:
   void destroyResources();
   void shutdownRuntime();
   void destroyFrameBuffers();
-  void encodeSortedLayers(const std::vector<SoWgpuBgfxDraw> & draws,
+  void encodeSortedLayers(const std::vector<CoinBgfxDraw> & draws,
                           bgfx::DynamicVertexBufferHandle vertices,
                           bgfx::DynamicIndexBufferHandle indices,
                           bgfx::FrameBufferHandle output,
                           const std::vector<bgfx::TextureHandle> & textures);
-  bool encodeOverlayLayers(const std::vector<SoWgpuBgfxDraw> & draws,
+  bool encodeOverlayLayers(const std::vector<CoinBgfxDraw> & draws,
                            bgfx::DynamicVertexBufferHandle vertices,
                            bgfx::DynamicIndexBufferHandle indices,
                            bgfx::FrameBufferHandle output,
                            const std::vector<bgfx::TextureHandle> & textures,
                            bgfx::ViewId & nextView);
-  void encodeWeightedOit(const std::vector<SoWgpuBgfxDraw> & draws,
+  void encodeWeightedOit(const std::vector<CoinBgfxDraw> & draws,
                          bgfx::DynamicVertexBufferHandle vertices,
                          bgfx::DynamicIndexBufferHandle indices,
                          bgfx::FrameBufferHandle output,
                          const std::vector<bgfx::TextureHandle> & textures);
-  void bindDrawTexture(const SoWgpuBgfxDraw & draw,
+  void bindDrawTexture(const CoinBgfxDraw & draw,
                        const std::vector<bgfx::TextureHandle> & textures);
-  void bindDrawLighting(const SoWgpuBgfxDraw & draw, int targetHeight = 0);
+  void bindDrawLighting(const CoinBgfxDraw & draw, int targetHeight = 0);
   bool onApiThread() const;
   CoinRenderBackendStatus status;
 
@@ -98,8 +98,8 @@ private:
   uint32_t readbackPipelineDepth;
   uint32_t readbackCursor;
   uint64_t readbackSequence;
-  SoWgpuBgfxTransparencyMode transparencyMode;
-  SoWgpuBgfxTransparencyStrategy activeTransparencyStrategy;
+  CoinBgfxTransparencyMode transparencyMode;
+  CoinBgfxTransparencyStrategy activeTransparencyStrategy;
   bool weightedOitSupported;
   bool sortedLayersSupported;
   uint64_t serial;
@@ -151,7 +151,7 @@ private:
   int cachedHeight;
   bool cachedHomogeneousDepth;
   bgfx::TextureHandle defaultTexture;
-  SoWgpuBgfxPlan cachedPlan;
+  CoinBgfxPlan cachedPlan;
   std::vector<bgfx::TextureHandle> cachedTextures;
   bgfx::DynamicVertexBufferHandle cachedVertexBuffer;
   bgfx::DynamicIndexBufferHandle cachedIndexBuffer;

@@ -84,7 +84,7 @@ int main() {
   TEST_ASSERT(target != NULL, "createOffscreen must return non-NULL target");
   TEST_ASSERT(target->getStatus() == CoinRenderTarget::TARGET_READY, "New offscreen target must be READY");
   TEST_ASSERT(target->getSize() == initialSize, "Target size must match initial size");
-  // Backend-specific GPU readback is covered by WgpuBgfxOffscreenTest.
+  // Backend-specific GPU readback is covered by CoinBgfxOffscreenTest.
   target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
   std::size_t preRenderBytes = 1;
   TEST_ASSERT(target->borrowRGBA(preRenderBytes) == NULL && preRenderBytes == 0,

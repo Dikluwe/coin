@@ -50,7 +50,7 @@ struct SoWgpuBridgePhaseSample {
   CoinRenderFrameReuseKind packKind = CoinRenderFrameReuseKind::UNKNOWN;
 };
 
-struct SoWgpuBgfxPhaseSample {
+struct CoinBgfxPhaseSample {
   double lowerMs = 0.0;
   double uploadMs = 0.0;
   double encodeMs = 0.0;
@@ -148,7 +148,7 @@ public:
   COIN_RENDER_DLL_API static std::string formatBridgePhase(
     const SoWgpuBridgePhaseSample & sample);
   COIN_RENDER_DLL_API static std::string formatBgfxPhase(
-    const SoWgpuBgfxPhaseSample & sample);
+    const CoinBgfxPhaseSample & sample);
 };
 
 #endif // !COIN_RENDER_DIAGNOSTIC_SHELL_H

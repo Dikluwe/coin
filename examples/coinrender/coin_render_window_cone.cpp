@@ -9,8 +9,8 @@
 
 #include <Inventor/SoDB.h>
 #if defined(COIN_EXAMPLE_BGFX)
-#include <Inventor/actions/SoBGFXRenderAction.h>
-using ExampleRenderAction = SoBGFXRenderAction;
+#include <Inventor/actions/CoinBgfxAction.h>
+using ExampleRenderAction = CoinBgfxAction;
 #else
 #include <Inventor/actions/CoinRenderAction.h>
 using ExampleRenderAction = CoinRenderAction;
