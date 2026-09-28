@@ -26,8 +26,8 @@
 #include "rendering/coinrender/CoinRenderBackend.h"
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
 
-#if defined(HAVE_WGPU_RUST_BRIDGE)
-#include "rendering/coinrender/SoWgpuRustBackend.h"
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+#include "rendering/coinwgpu/CoinWgpuBackend.h"
 #endif
 
 #include <cassert>
@@ -312,7 +312,7 @@ int main() {
   // =========================================================================
   {
     std::cout << "-> Test G0.6: Backend GPU availability isolation (B07)..." << std::endl;
-#if !defined(HAVE_WGPU_RUST_BRIDGE)
+#if !defined(HAVE_COIN_WGPU_RUST_BRIDGE)
     TEST_ASSERT(!CoinRenderAction::isGpuBackendAvailable(),
                 "RECORDING or CPU reference must report isGpuBackendAvailable() == FALSE");
 #endif

@@ -91,7 +91,7 @@ int main() {
 #endif
 
   CoinRenderCapabilities windowCaps{};
-#if defined(HAVE_WGPU_RUST_BRIDGE) && defined(__linux__)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE) && defined(__linux__)
   if (!check(caps.backend == COIN_RENDER_EXPERIMENTAL_RUST &&
              (caps.features & COIN_RENDER_FEATURE_ASYNC_READBACK) != 0 &&
              (caps.features & COIN_RENDER_FEATURE_DIRECT_RTT) != 0 &&
@@ -115,7 +115,7 @@ int main() {
              "unsupported window target was advertised")) return 1;
 #endif
 
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   if (!caps.gpu_available) {
     std::cout << "No WebGPU adapter; manager rendering skipped\n";
     return 0;
@@ -227,7 +227,7 @@ int main() {
              manager->render() == CoinRenderAction::SUCCESS,
              "manager did not recover after resize")) return 1;
 
-#if defined(HAVE_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_BGFX)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_BGFX)
   manager->getRenderTarget()->setDepthReadbackEnabled(TRUE);
   CoinRenderReadbackTicket ticket{};
   if (!check(manager->renderAsync(ticket) == CoinRenderAction::SUCCESS &&

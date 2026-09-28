@@ -4,12 +4,12 @@
 #include "src/config.h"
 #endif
 
-#if defined(HAVE_WGPU_RUST_BRIDGE)
-#include "rendering/coinrender/SoWgpuRustBackend.h"
-#include "rendering/coinrender/SoWgpuFfiFrame.h"
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+#include "rendering/coinwgpu/CoinWgpuBackend.h"
+#include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
-#include "rendering/coinrender/coin_wgpu_ffi.h"
+#include "rendering/coinwgpu/CoinWgpuFfi.h"
 
 #include <cassert>
 #include <chrono>
@@ -71,31 +71,31 @@ static_assert(sizeof(CoinWgpuFrameView) == 160, "CoinWgpuFrameView size mismatch
 static_assert(sizeof(CoinWgpuNativeSurfaceDescriptor) == 32, "CoinWgpuNativeSurfaceDescriptor size mismatch");
 static_assert(sizeof(CoinWgpuSurfaceCreateInfo) == 48, "CoinWgpuSurfaceCreateInfo size mismatch");
 
-SoWgpuRustBackend::SoWgpuRustBackend()
+CoinWgpuBackend::CoinWgpuBackend()
   : status(CoinRenderBackendStatus::SUCCESS),
     lastError(""),
-    ffiFrame(new SoWgpuFfiFrame)
+    ffiFrame(new CoinWgpuFfiFrame)
 {
 }
 
 CoinRenderBackendStatus
-SoWgpuRustBackend::getStatus() const
+CoinWgpuBackend::getStatus() const
 {
   return this->status;
 }
 
-SoWgpuRustBackend::~SoWgpuRustBackend()
+CoinWgpuBackend::~CoinWgpuBackend()
 {
 }
 
 bool
-SoWgpuRustBackend::isAvailable()
+CoinWgpuBackend::isAvailable()
 {
   return coin_wgpu_is_available() != 0;
 }
 
 std::string
-SoWgpuRustBackend::getAdapterInfo()
+CoinWgpuBackend::getAdapterInfo()
 {
   char buf[256] = {0};
   coin_wgpu_get_adapter_info(buf, sizeof(buf));
@@ -103,7 +103,7 @@ SoWgpuRustBackend::getAdapterInfo()
 }
 
 CoinRenderBackendStatus
-SoWgpuRustBackend::prepare(CoinRenderTargetP & target)
+CoinWgpuBackend::prepare(CoinRenderTargetP & target)
 {
   if (target.kind == CoinRenderTargetP::KIND_WINDOW) {
     if (target.surfaceId == 0) {
@@ -165,21 +165,21 @@ SoWgpuRustBackend::prepare(CoinRenderTargetP & target)
 }
 
 CoinRenderSubmitResult
-SoWgpuRustBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target)
+CoinWgpuBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target)
 {
   return this->submitInternal(frame, target, NULL,
     CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::FULL_REBUILD, 0));
 }
 
 CoinRenderSubmitResult
-SoWgpuRustBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
+CoinWgpuBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
                           const CoinRenderFrameReuseDecision & reuse)
 {
   return this->submitInternal(frame, target, NULL, reuse);
 }
 
 CoinRenderSubmitResult
-SoWgpuRustBackend::submitAsync(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
+CoinWgpuBackend::submitAsync(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
                                CoinRenderReadbackTicket & outTicket)
 {
   outTicket = CoinRenderReadbackTicket{};
@@ -188,7 +188,7 @@ SoWgpuRustBackend::submitAsync(const CoinRenderFramePlan & frame, CoinRenderTarg
 }
 
 CoinRenderSubmitResult
-SoWgpuRustBackend::submitAsync(const CoinRenderFramePlan & frame,
+CoinWgpuBackend::submitAsync(const CoinRenderFramePlan & frame,
                                CoinRenderTargetP & target,
                                CoinRenderReadbackTicket & outTicket,
                                const CoinRenderFrameReuseDecision & reuse)
@@ -198,7 +198,7 @@ SoWgpuRustBackend::submitAsync(const CoinRenderFramePlan & frame,
 }
 
 CoinRenderSubmitResult
-SoWgpuRustBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
+CoinWgpuBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
                                   CoinRenderReadbackTicket * outTicket,
                                   const CoinRenderFrameReuseDecision & reuse)
 {
@@ -284,7 +284,7 @@ SoWgpuRustBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderT
     const ProfileClock::time_point profileBridgeDone = ProfileClock::now();
     serial = tPod.submission_serial;
     if (tracePhases) {
-      SoWgpuBridgePhaseSample sample;
+      CoinWgpuBridgePhaseSample sample;
       sample.packMs = std::chrono::duration<double, std::milli>(
         profilePacked - profileBegin).count();
       sample.ffiMs = std::chrono::duration<double, std::milli>(
@@ -320,30 +320,30 @@ SoWgpuRustBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderT
 }
 
 void
-SoWgpuRustBackend::poll()
+CoinWgpuBackend::poll()
 {
 }
 
 const std::string &
-SoWgpuRustBackend::getLastError() const
+CoinWgpuBackend::getLastError() const
 {
   return this->lastError;
 }
 
 #else
 // Stub implementation when Rust bridge is disabled
-#include "rendering/coinrender/SoWgpuRustBackend.h"
+#include "rendering/coinwgpu/CoinWgpuBackend.h"
 
-SoWgpuRustBackend::SoWgpuRustBackend() : status(CoinRenderBackendStatus::UNSUPPORTED), lastError("Rust bridge not compiled in") {}
-SoWgpuRustBackend::~SoWgpuRustBackend() {}
-CoinRenderBackendStatus SoWgpuRustBackend::getStatus() const { return status; }
-CoinRenderBackendStatus SoWgpuRustBackend::prepare(CoinRenderTargetP &) { return CoinRenderBackendStatus::UNSUPPORTED; }
-CoinRenderSubmitResult SoWgpuRustBackend::submit(const CoinRenderFramePlan &, CoinRenderTargetP &) { return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, "Rust bridge not compiled in"); }
-CoinRenderSubmitResult SoWgpuRustBackend::submit(const CoinRenderFramePlan &, CoinRenderTargetP &, const CoinRenderFrameReuseDecision &) { return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, "Rust bridge not compiled in"); }
-CoinRenderSubmitResult SoWgpuRustBackend::submitAsync(const CoinRenderFramePlan &, CoinRenderTargetP &, CoinRenderReadbackTicket &) { return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, "Rust bridge not compiled in"); }
-CoinRenderSubmitResult SoWgpuRustBackend::submitAsync(const CoinRenderFramePlan &, CoinRenderTargetP &, CoinRenderReadbackTicket &, const CoinRenderFrameReuseDecision &) { return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, "Rust bridge not compiled in"); }
-void SoWgpuRustBackend::poll() {}
-const std::string & SoWgpuRustBackend::getLastError() const { return lastError; }
-bool SoWgpuRustBackend::isAvailable() { return false; }
-std::string SoWgpuRustBackend::getAdapterInfo() { return "None"; }
+CoinWgpuBackend::CoinWgpuBackend() : status(CoinRenderBackendStatus::UNSUPPORTED), lastError("Rust bridge not compiled in") {}
+CoinWgpuBackend::~CoinWgpuBackend() {}
+CoinRenderBackendStatus CoinWgpuBackend::getStatus() const { return status; }
+CoinRenderBackendStatus CoinWgpuBackend::prepare(CoinRenderTargetP &) { return CoinRenderBackendStatus::UNSUPPORTED; }
+CoinRenderSubmitResult CoinWgpuBackend::submit(const CoinRenderFramePlan &, CoinRenderTargetP &) { return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, "Rust bridge not compiled in"); }
+CoinRenderSubmitResult CoinWgpuBackend::submit(const CoinRenderFramePlan &, CoinRenderTargetP &, const CoinRenderFrameReuseDecision &) { return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, "Rust bridge not compiled in"); }
+CoinRenderSubmitResult CoinWgpuBackend::submitAsync(const CoinRenderFramePlan &, CoinRenderTargetP &, CoinRenderReadbackTicket &) { return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, "Rust bridge not compiled in"); }
+CoinRenderSubmitResult CoinWgpuBackend::submitAsync(const CoinRenderFramePlan &, CoinRenderTargetP &, CoinRenderReadbackTicket &, const CoinRenderFrameReuseDecision &) { return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, "Rust bridge not compiled in"); }
+void CoinWgpuBackend::poll() {}
+const std::string & CoinWgpuBackend::getLastError() const { return lastError; }
+bool CoinWgpuBackend::isAvailable() { return false; }
+std::string CoinWgpuBackend::getAdapterInfo() { return "None"; }
 #endif

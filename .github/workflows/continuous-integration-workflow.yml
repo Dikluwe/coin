@@ -121,7 +121,7 @@ jobs:
           if [ -f "$HOME/.cargo/env" ]; then
             source "$HOME/.cargo/env"
           fi
-          .github/scripts/build-and-test-wgpu.sh
+          .github/scripts/build-and-test-coin-wgpu.sh
       - name: Create Artifacts
         uses: actions/upload-artifact@v7
         with:

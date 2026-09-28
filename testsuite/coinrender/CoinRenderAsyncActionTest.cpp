@@ -18,8 +18,8 @@
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoSceneTexture2.h>
 
-#if defined(HAVE_WGPU_RUST_BRIDGE)
-#include "rendering/coinrender/coin_wgpu_ffi.h"
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+#include "rendering/coinwgpu/CoinWgpuFfi.h"
 #endif
 #include <cstdlib>
 #include <chrono>
@@ -260,7 +260,7 @@ int main() {
   synchronous->readbackRGBA(staleSceneColor);
   if (!check(staleSceneColor.empty(),
              "async scene-texture submit must hide prior synchronous frame")) return 1;
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   const char * directRtt = std::getenv("COIN_RENDER_RTT_GPU_DIRECT");
   if (directRtt && directRtt[0] == '1' && directRtt[1] == '\0') {
     coin_wgpu_trim_cache(); // Evict stale geometry while the RTT ticket is in flight.
@@ -306,7 +306,7 @@ int main() {
              redColor == sceneExpectedColor && redDepth == sceneExpectedDepth,
              "overlapping RTT tickets did not retain independent snapshots")) return 1;
   material->diffuseColor.setValue(0.8f, 0.2f, 0.1f);
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   if (directRtt && directRtt[0] == '1' && directRtt[1] == '\0') {
     uint64_t previousGeneration = 0;
     for (int loss = 0; loss < 2; ++loss) {
@@ -392,7 +392,7 @@ int main() {
                      "RTT stress poll after target destruction")) return 1;
         }
       }
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
       coin_wgpu_poll_device();
       uint64_t activeRtt = UINT64_MAX, retiredRtt = UINT64_MAX;
       coin_wgpu_rtt_resource_counts(&activeRtt, &retiredRtt);

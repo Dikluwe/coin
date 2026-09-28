@@ -20,9 +20,9 @@
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include "rendering/coinrender/CoinRenderBackend.h"
 
-#if defined(HAVE_WGPU_RUST_BRIDGE)
-#include "rendering/coinrender/SoWgpuRustBackend.h"
-#include "rendering/coinrender/coin_wgpu_ffi.h"
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+#include "rendering/coinwgpu/CoinWgpuBackend.h"
+#include "rendering/coinwgpu/CoinWgpuFfi.h"
 #endif
 
 #include <cassert>
@@ -57,7 +57,7 @@ int main() {
   // =========================================================================
   {
     std::cout << "-> Test G1.1: WebGPU backend availability query..." << std::endl;
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
     TEST_ASSERT(CoinRenderAction::isGpuBackendAvailable(),
                 "isGpuBackendAvailable() must return TRUE when compiled with real Rust/WGPU bridge");
 #endif
@@ -303,7 +303,7 @@ int main() {
     action.apply(root);
     TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS, "Initial frame must succeed");
 
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
     // Inject synchronous DEVICE_LOST fault
     coin_wgpu_inject_fault(COIN_WGPU_DEVICE_LOST);
     action.apply(root);

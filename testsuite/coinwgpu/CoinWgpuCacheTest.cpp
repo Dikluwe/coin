@@ -18,8 +18,8 @@
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
 
-#if defined(HAVE_WGPU_RUST_BRIDGE)
-#include "rendering/coinrender/coin_wgpu_ffi.h"
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+#include "rendering/coinwgpu/CoinWgpuFfi.h"
 #endif
 
 #include <cassert>
@@ -34,9 +34,9 @@ int main() {
   SoDB::init();
   CoinRenderAction::initClass();
 
-  std::cout << "Running CoinRenderCacheTest (Onda 2E GPU Resource Cache & Safe Retirement)..." << std::endl;
+  std::cout << "Running CoinWgpuCacheTest (Onda 2E GPU Resource Cache & Safe Retirement)..." << std::endl;
 
-#if !defined(HAVE_WGPU_RUST_BRIDGE)
+#if !defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   std::cout << "WGPU Rust bridge not enabled, skipping test." << std::endl;
   return 0;
 #endif
@@ -167,7 +167,7 @@ int main() {
     std::cout << "   [PASS] Tests 1, 2, 3: Warm-up, selective mutation, safe retirement" << std::endl;
   }
 
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   // =========================================================================
   // Test 4: O(1) Logical Invalidation under Device Lost & Clean Recovery
   // =========================================================================
@@ -295,6 +295,6 @@ int main() {
     std::cout << "   [PASS] Test 5: Exact visual equivalence verified" << std::endl;
   }
 
-  std::cout << "All CoinRenderCacheTest assertions PASSED successfully!" << std::endl;
+  std::cout << "All CoinWgpuCacheTest assertions PASSED successfully!" << std::endl;
   return 0;
 }

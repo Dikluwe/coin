@@ -90,7 +90,7 @@ Arquivos alterados (caminhos relativos ao repositório):
   filtragem de estilos, agrupamento e proteção do camera patch.
 - `src/rendering/coinbgfx/CoinBgfxBackend.h`, `CoinBgfxBackend.cpp`:
   ciclo de vida do uniform e aplicação por draw.
-- `src/rendering/coinrender/coin_wgpu_ffi.h`, `SoWgpuFfiFrame.cpp`,
+- `src/rendering/coinwgpu/CoinWgpuFfi.h`, `CoinWgpuFfiFrame.cpp`,
   `rust_bridge/src/lib.rs`: protocolo privado 19, payload e pipeline Rust.
 - `src/rendering/coinrender/CoinRenderRecordingBackend.cpp`: diagnóstico do estado capturado.
 - `src/rendering/coinbgfx/shaders/coin_depth.sh`, `fs_base_color.sc`,

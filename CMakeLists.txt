@@ -198,7 +198,7 @@ if(COIN_BUILD_RENDER)
     if(NOT Dawn_FOUND)
       message(FATAL_ERROR "COIN_RENDER_BACKEND is set to DAWN, but the Dawn WebGPU package was not found.")
     endif()
-    set(HAVE_WGPU_DAWN 1)
+    set(HAVE_COIN_DAWN 1)
     if(TARGET dawn::webgpu_dawn)
       list(APPEND COIN_TARGET_LINK_LIBRARIES dawn::webgpu_dawn)
     elseif(TARGET webgpu_dawn)
@@ -211,7 +211,7 @@ if(COIN_BUILD_RENDER)
     if(NOT wgpu_native_FOUND)
       message(FATAL_ERROR "COIN_RENDER_BACKEND is set to WGPU_NATIVE, but the wgpu-native library was not found.")
     endif()
-    set(HAVE_WGPU_NATIVE 1)
+    set(HAVE_COIN_WGPU_NATIVE 1)
     if(TARGET wgpu_native::wgpu_native)
       list(APPEND COIN_TARGET_LINK_LIBRARIES wgpu_native::wgpu_native)
     elseif(TARGET wgpu_native)
@@ -221,7 +221,7 @@ if(COIN_BUILD_RENDER)
     endif()
   elseif(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
     find_program(CARGO_EXECUTABLE cargo REQUIRED)
-    set(RUST_BRIDGE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinrender/rust_bridge")
+    set(RUST_BRIDGE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/rust_bridge")
     set(RUST_TARGET_DIR "${CMAKE_CURRENT_BINARY_DIR}/rust_target")
     if(CMAKE_BUILD_TYPE MATCHES "Debug|DEBUG")
       set(RUST_PROFILE_DIR "debug")
@@ -236,7 +236,7 @@ if(COIN_BUILD_RENDER)
       OUTPUT "${RUST_LIB_PATH}"
       COMMAND ${CMAKE_COMMAND} -E env CARGO_TARGET_DIR=${RUST_TARGET_DIR} ${CARGO_EXECUTABLE} build ${CARGO_BUILD_FLAGS} --manifest-path "${RUST_BRIDGE_DIR}/Cargo.toml"
       WORKING_DIRECTORY "${RUST_BRIDGE_DIR}"
-      DEPENDS "${RUST_BRIDGE_DIR}/src/lib.rs" "${RUST_BRIDGE_DIR}/src/composition.rs" "${RUST_BRIDGE_DIR}/Cargo.toml" "${RUST_BRIDGE_DIR}/Cargo.lock" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinrender/shaders/coin_standard.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinrender/shaders/coin_line.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinrender/shaders/coin_point.wgsl"
+      DEPENDS "${RUST_BRIDGE_DIR}/src/lib.rs" "${RUST_BRIDGE_DIR}/src/composition.rs" "${RUST_BRIDGE_DIR}/Cargo.toml" "${RUST_BRIDGE_DIR}/Cargo.lock" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_standard.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_line.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_point.wgsl"
       COMMENT "Building Rust WebGPU bridge library (${RUST_PROFILE_DIR})..."
       VERBATIM
     )
@@ -255,7 +255,7 @@ if(COIN_BUILD_RENDER)
       ${CMAKE_DL_LIBS}
       m
     )
-    set(HAVE_WGPU_RUST_BRIDGE 1)
+    set(HAVE_COIN_WGPU_RUST_BRIDGE 1)
   elseif(COIN_RENDER_BACKEND STREQUAL "RECORDING")
     message(STATUS "COIN_RENDER_BACKEND is set to RECORDING: using deterministic recording log and reference software rasterizer.")
   elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")

@@ -4,7 +4,7 @@
 #include "src/config.h"
 #endif
 
-#include "rendering/coinrender/SoWgpuFfiFrame.h"
+#include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
 
 #include <Inventor/SbMatrix.h>
 
@@ -19,14 +19,14 @@ static_assert(offsetof(CoinWgpuRenderState, depth_write) == 920, "depth_write AB
 static_assert(offsetof(CoinWgpuRenderState, depth_function) == 924, "depth_function ABI offset changed");
 static_assert(offsetof(CoinWgpuRenderState, depth_range) == 928, "depth_range ABI offset changed");
 
-SoWgpuFfiFrame::SoWgpuFfiFrame()
+CoinWgpuFfiFrame::CoinWgpuFfiFrame()
   : packedRevision(0), reused(false),
     prepareKind(CoinRenderFrameReuseKind::UNKNOWN), view{}
 {
 }
 
 bool
-SoWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height,
+CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height,
                         std::string & outDiagnostic)
 {
   return this->prepare(frame, width, height,
@@ -35,7 +35,7 @@ SoWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uint3
 }
 
 bool
-SoWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height,
+CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height,
                         const CoinRenderFrameReuseDecision & reuse,
                         std::string & outDiagnostic)
 {
@@ -150,7 +150,7 @@ SoWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uint3
 }
 
 bool
-SoWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame, uint32_t targetWidth, uint32_t targetHeight,
+CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame, uint32_t targetWidth, uint32_t targetHeight,
                            std::string & outDiagnostic)
 {
   this->states.assign(frame.renderStates.size(), CoinWgpuRenderState{});
@@ -269,7 +269,7 @@ SoWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame, uint32_t targetWid
 }
 
 void
-SoWgpuFfiFrame::bindView(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height)
+CoinWgpuFfiFrame::bindView(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height)
 {
   this->view = CoinWgpuFrameView{};
   this->view.abi_version = COIN_WGPU_ABI_VERSION;
@@ -295,19 +295,19 @@ SoWgpuFfiFrame::bindView(const CoinRenderFramePlan & frame, uint32_t width, uint
 }
 
 const CoinWgpuFrameView &
-SoWgpuFfiFrame::getView() const
+CoinWgpuFfiFrame::getView() const
 {
   return this->view;
 }
 
 bool
-SoWgpuFfiFrame::reusedLastPrepare() const
+CoinWgpuFfiFrame::reusedLastPrepare() const
 {
   return this->reused;
 }
 
 CoinRenderFrameReuseKind
-SoWgpuFfiFrame::lastPrepareKind() const
+CoinWgpuFfiFrame::lastPrepareKind() const
 {
   return this->prepareKind;
 }

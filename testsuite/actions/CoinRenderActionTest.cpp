@@ -342,7 +342,7 @@ int testForbiddenUsage() {
 int testBackendAvailability() {
   // When built without Dawn / wgpu-native, isGpuBackendAvailable must be FALSE
   SbBool avail = CoinRenderAction::isGpuBackendAvailable();
-#if defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE) || defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE) || defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   TEST_ASSERT(avail == TRUE, "isGpuBackendAvailable must be TRUE when hardware backend is compiled");
 #else
   TEST_ASSERT(avail == FALSE, "isGpuBackendAvailable must be FALSE in software/recording mode");
@@ -602,7 +602,7 @@ int testBaseApplyNotHidden() {
 }
 
 int testWindowTargetRecordingBackend() {
-#if !defined(HAVE_WGPU_RUST_BRIDGE) && !defined(HAVE_COIN_BGFX)
+#if !defined(HAVE_COIN_WGPU_RUST_BRIDGE) && !defined(HAVE_COIN_BGFX)
   CoinRenderNativeSurfaceDescriptor desc{};
   desc.abiVersion = COIN_RENDER_NATIVE_SURFACE_ABI_VERSION;
   desc.structSize = sizeof(desc);
@@ -684,7 +684,7 @@ int testCameraOverlayAndFallback() {
   TEST_ASSERT(std::string(cached.getRecordingLog().getString()) ==
               std::string(fresh.getRecordingLog().getString()),
               "Structural notification must force an equivalent full traversal");
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   CoinRenderTarget * cachedTarget =
     CoinRenderTarget::createOffscreen(SbVec2i32(128, 128));
   CoinRenderTarget * freshTarget =

@@ -4,7 +4,7 @@
 #include "src/config.h"
 #endif
 
-#include "rendering/coinrender/coin_wgpu_ffi.h"
+#include "rendering/coinwgpu/CoinWgpuFfi.h"
 
 #include <cmath>
 #include <chrono>

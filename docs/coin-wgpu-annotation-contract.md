@@ -24,7 +24,7 @@ transparência Coin, nem qualifica toda a integração FreeCAD no wgpu.
 
 Validação:
 
-- `cargo test --offline --manifest-path src/rendering/coinrender/rust_bridge/Cargo.toml`:
+- `cargo test --offline --manifest-path src/rendering/coinwgpu/rust_bridge/Cargo.toml`:
   ordenação de camadas, mistura opaco/transparente, barreiras, rejeições e frame vazio.
 - `CoinRenderDepthContractTest`: transporte, reuso, camera patch e remoção dos metadados.
 - `CoinRenderAnnotationTest` (Rust): pixels offscreen para limpeza restrita à viewport,

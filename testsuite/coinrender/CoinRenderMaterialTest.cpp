@@ -24,7 +24,7 @@
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
 #include "rendering/coinrender/CoinRenderFramePlanBuilder.h"
-#include "rendering/coinrender/coin_wgpu_ffi.h"
+#include "rendering/coinwgpu/CoinWgpuFfi.h"
 #include <Inventor/rendering/CoinRenderTarget.h>
 
 #include <iostream>
