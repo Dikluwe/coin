@@ -19,6 +19,7 @@ public:
   void reset();
   // Wiring reads the effective Coin state, including ignored fields and overrides.
   static bool isShapeInvisible(SoCallbackAction * action);
+  static int polygonDrawStyle(SoCallbackAction * action);
   void recordLightAttenuation(SoCallbackAction * action);
   void beginAnnotation();
   void reserveDelayedLayers(uint32_t count);
@@ -61,9 +62,23 @@ private:
   bool captureTextureUnit(SoCallbackAction * action, int unit, CoinRenderRenderStateSnapshot & rs, std::string * outError);
   void captureSortingCenter(SoCallbackAction * action);
   bool expandStyledPrimitives(std::string * outError);
+  void addStyledTriangle(SoCallbackAction * action, const SoPrimitiveVertex * v0,
+                         const SoPrimitiveVertex * v1, const SoPrimitiveVertex * v2);
+  void emitStyledPolygon(SoCallbackAction * action);
+  CoinRenderVertexSnapshot captureVertex(SoCallbackAction * action,
+    const SoPrimitiveVertex * pv, uint32_t materialSlot, const CoinRenderRenderStateSnapshot & state);
   uint32_t addVertex(SoCallbackAction * action, const SoPrimitiveVertex * pv, uint32_t materialSlot);
   void ensureDrawPacket(CoinRenderPrimitiveTopology topology, uint32_t renderStateSlot, SoNode * node, bool forceNewPacket = false);
 
+  SoNode * polygonNode = nullptr;
+  std::vector<CoinRenderVertexSnapshot> polygonVertices;
+  std::vector<SbVec3f> polygonPositions;
+  std::vector<bool> polygonCaptured;
+  uint32_t polygonState = 0;
+  int polygonStyle = 0;
+  int polygonTriangles = 0;
+  int polygonFaceIndex = -1;
+  int polygonPartIndex = -1;
   CoinRenderFramePlan currentPlan;
   uint32_t currentDrawIndex;
   uint32_t nodeCounter;

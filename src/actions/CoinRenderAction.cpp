@@ -7,6 +7,7 @@
 #include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/actions/SoSubAction.h>
 #include <Inventor/nodes/SoShape.h>
+#include <Inventor/nodes/SoDrawStyle.h>
 #include <Inventor/nodes/SoLight.h>
 #include <Inventor/nodes/SoAnnotation.h>
 #include <Inventor/nodes/SoDepthBuffer.h>
@@ -1191,6 +1192,10 @@ CoinRenderActionP::indexedFaceSetPreCB(void * userdata,
   if (!p->fastPathEnabled) {
     return SoCallbackAction::CONTINUE;
   }
+
+  // Preserve the original polygon details used by the common style resolver.
+  if (CoinRenderFramePlanBuilder::polygonDrawStyle(action) != SoDrawStyle::FILLED)
+    return SoCallbackAction::CONTINUE;
 
   // The direct path bypasses the node virtual callback implementation.
   // Subclasses may prepare traversal state there, so only prune the exact type.

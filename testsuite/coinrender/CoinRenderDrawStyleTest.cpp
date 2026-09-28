@@ -15,9 +15,21 @@
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/nodes/SoPointSet.h>
+#include <Inventor/nodes/SoFaceSet.h>
+#include <Inventor/nodes/SoRotation.h>
+#include <Inventor/nodes/SoSphere.h>
+#include <Inventor/nodes/SoCylinder.h>
+#include <Inventor/nodes/SoCone.h>
+#include <Inventor/nodes/SoComplexity.h>
+#include <Inventor/nodes/SoDirectionalLight.h>
+#include <Inventor/SbViewVolume.h>
+#include "rendering/coinrender/CoinRenderPolygonStyleCore.h"
+#include <algorithm>
+#include <cmath>
 #include <Inventor/nodes/SoClipPlane.h>
 #include <Inventor/nodes/SoTextureUnit.h>
 #include <Inventor/nodes/SoTexture2.h>
+#include <Inventor/nodes/SoTextureCoordinate2.h>
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
@@ -122,10 +134,225 @@ bool stateContract() {
   ok=check(capture(root,frame) && frame.draws.size()==1,"ignored style preserves inherited visibility") && ok;
   root->unref();return ok;
 }
+bool polygonCoreContract() {
+  CoinRenderRenderStateSnapshot state;state.lightModel=CoinRenderLightModel::BASE_COLOR;
+  state.cullMode=CoinRenderCullMode::NONE;
+  std::vector<CoinRenderMaterialSnapshot> materials(2);
+  materials[0].diffuse[3]=.2f;materials[1].diffuse[3]=.8f;
+  std::vector<CoinRenderVertexSnapshot> ring(4);
+  const float xy[4][2]={{-.8f,-.8f},{.8f,-.8f},{.8f,.8f},{-.8f,.8f}};
+  for(int i=0;i<4;++i) {
+    ring[i].position[0]=xy[i][0];ring[i].position[1]=xy[i][1];
+    ring[i].materialSlot=i==1 || i==2 ? 1 : 0;ring[i].texcoord[0]=i==1 || i==2 ? 1 : 0;
+  }
+  CoinRenderLightingSnapshot lighting;
+  CoinRenderPolygonStyleResult resolved;std::string error;
+  bool ok=check(coin_render_prepare_polygon_style(ring,state,materials,lighting,
+    CoinRenderPolygonStyle::LINES,resolved,error) && resolved.vertices.size()==4 && resolved.indices.size()==8,
+    "quad produces four original edges without a tessellation diagonal");
+  state.clipPlanesWorld.push_back(SbPlane(SbVec3f(1,0,0),0));
+  ok=check(coin_render_prepare_polygon_style(ring,state,materials,lighting,
+    CoinRenderPolygonStyle::POINTS,resolved,error) && resolved.vertices.size()==4 && resolved.indices.size()==4 &&
+    resolved.state.clipPlanesWorld.empty(),"clipped quad has four points, including new cut corners") && ok;
+  int cut=0;
+  for(const auto & item:resolved.vertices)if(std::abs(item.vertex.position[0])<1e-6f) {
+    ++cut;ok=check(std::abs(item.vertex.texcoord[0]-.5f)<1e-6f &&
+      std::abs(item.material.diffuse[3]-.5f)<1e-6f,"clipping interpolates original UV and alpha") && ok;
+  }
+  ok=check(cut==2,"one continuous cut edge has exactly two corners") && ok;
+  state.clipPlanesWorld.clear();state.cullMode=CoinRenderCullMode::BACK;
+  std::reverse(ring.begin(),ring.end());
+  ok=check(coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
+    resolved,error) && resolved.vertices.empty(),"culling precedes line expansion") && ok;
+  state.frontFace=CoinRenderFrontFace::CW;
+  ok=check(coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
+    resolved,error) && resolved.vertices.size()==4,"effective front-face winding is preserved") && ok;
+  state.frontFace=CoinRenderFrontFace::CCW;state.model.setScale(SbVec3f(-1,1,1));
+  ok=check(coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
+    resolved,error) && resolved.vertices.size()==4,"mirrored model changes facing before stroke expansion") && ok;
+  state.model=SbMatrix::identity();state.cullMode=CoinRenderCullMode::NONE;
+  std::reverse(ring.begin(),ring.end());
+  state.lightModel=CoinRenderLightModel::PHONG;lighting.ambientIntensity=0;
+  CoinRenderLightSourceSnapshot light;light.type=CoinRenderLightType::POINT;light.position[0]=1;
+  light.position[2]=1;lighting.lights.push_back(light);
+  state.clipPlanesWorld.push_back(SbPlane(SbVec3f(1,0,0),0));
+  const float expected=(coin_render_shade_vertex(materials[0],SbVec3f(ring[0].position),SbVec3f(0,0,1),lighting,state)[0]+
+    coin_render_shade_vertex(materials[1],SbVec3f(ring[1].position),SbVec3f(0,0,1),lighting,state)[0])*.5f;
+  ok=check(coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
+    resolved,error),"PHONG polygon resolves before clipping") && ok;
+  for(const auto & item:resolved.vertices)if(std::abs(item.vertex.position[0])<1e-6f && item.vertex.position[1]<0)
+    ok=check(std::abs(item.material.diffuse[0]-expected)<1e-6f,"cut color interpolates already lit endpoints") && ok;
+  state.clipPlanesWorld.clear();state.lightModel=CoinRenderLightModel::BASE_COLOR;
+  ring[1].position[0]=1.5f;ring[2].position[0]=1.5f;
+  ok=check(coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
+    resolved,error) && resolved.vertices.size()==4,"view-volume clipping creates complete contour") && ok;
+  for(const auto & item:resolved.vertices)ok=check(item.vertex.position[0]<=1.000001f,"viewport clipping bounds") && ok;
+  SbViewVolume volume;volume.perspective(.785398163f,1,.1f,10);
+  SbMatrix affine;volume.getMatrices(affine,state.projectionCoin);
+  for(auto & vertex:ring){vertex.position[0]*=.2f;vertex.position[1]*=.2f;vertex.position[2]=-1;}
+  ring[0].position[2]=.2f;
+  ok=check(coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
+    resolved,error) && !resolved.vertices.empty(),"polygon crossing eye/near plane survives homogeneous clipping") && ok;
+  state=CoinRenderRenderStateSnapshot{};state.cullMode=CoinRenderCullMode::NONE;
+  std::vector<CoinRenderVertexSnapshot> concave(5);
+  const float concaveXY[5][2]={{-.8f,-.8f},{.8f,-.8f},{0,0},{.8f,.8f},{-.8f,.8f}};
+  for(int i=0;i<5;++i) {concave[i].position[0]=concaveXY[i][0];concave[i].position[1]=concaveXY[i][1];}
+  ok=check(!coin_render_prepare_polygon_style(concave,state,materials,lighting,CoinRenderPolygonStyle::LINES,
+    resolved,error),"concave contours are rejected instead of joined incorrectly") && ok;
+  state.polygonOffsetEnabled=true;state.polygonOffsetStyles=2;state.polygonOffsetFactor=1;
+  ok=check(!coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
+    resolved,error),"original polygon slope offset requires explicit qualification") && ok;
+  state=CoinRenderRenderStateSnapshot{};state.cullMode=CoinRenderCullMode::NONE;
+  state.linePattern=0xaaaau;
+  ok=check(!coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
+    resolved,error),"unqualified polygon stipple is explicitly rejected") && ok;
+  return ok;
+}
+bool polygonCaptureContract() {
+  bool ok=true;
+  for(int mode:{SoDrawStyle::LINES,SoDrawStyle::POINTS}) {
+    SoSeparator * root=new SoSeparator;root->ref();
+    root->addChild(style(mode));root->addChild(coordinates());root->addChild(faces());
+    CoinRenderFramePlan frame;
+    ok=check(capture(root,frame) && frame.draws.size()==1 && frame.draws[0].geometry.vertexCount==16 &&
+             frame.draws[0].geometry.indexCount==24,
+             "face quad expands four edges or four points exactly once") && ok;
+    root->unref();
+    root=new SoSeparator;root->ref();root->addChild(style(mode));root->addChild(coordinates());
+    SoFaceSet * face=new SoFaceSet;face->numVertices=4;root->addChild(face);
+    ok=check(capture(root,frame) && frame.draws.size()==1 && frame.draws[0].geometry.vertexCount==16,
+             "non-indexed face retains its original quad contour") && ok;root->unref();
+    for(int count:{3,5}) {
+      root=new SoSeparator;root->ref();root->addChild(style(mode));
+      SoCoordinate3 * polygon=new SoCoordinate3;
+      for(int i=0;i<count;++i) {
+        const float angle=float(i)*6.283185307f/count;
+        polygon->point.set1Value(i,SbVec3f(.5f*std::cos(angle),.5f*std::sin(angle),0));
+      }
+      root->addChild(polygon);face=new SoFaceSet;face->numVertices=count;root->addChild(face);
+      ok=check(capture(root,frame) && frame.draws.size()==1 &&
+        frame.draws[0].geometry.vertexCount==static_cast<uint32_t>(count*4),
+        "triangles and convex pentagons preserve original contour multiplicity") && ok;
+      root->unref();
+    }
+    root=new SoSeparator;root->ref();root->addChild(style(mode));
+    SoRotation * rotation=new SoRotation;rotation->rotation=SbRotation(SbVec3f(1,2,3),.3f);root->addChild(rotation);
+    SoCube * cube=new SoCube;cube->width=.7f;cube->height=.7f;cube->depth=.7f;root->addChild(cube);
+    ok=check(capture(root,frame) && frame.draws.size()==6,"Cube retains six quad contours") && ok;
+    for(const auto & draw:frame.draws)ok=check(draw.geometry.vertexCount==16,"Cube does not expose quad diagonals or duplicate quad points") && ok;
+    root->unref();
+    root=new SoSeparator;root->ref();root->addChild(style(mode));
+    cube=new SoCube;cube->width=.7f;cube->height=.7f;cube->depth=.7f;root->addChild(cube);
+    ok=check(capture(root,frame) && frame.draws.size()==6,
+      "edge-on projected faces retain boundaries when polygon culling is disabled") && ok;
+    root->unref();
+    for(int shape=0;shape<3;++shape) {
+      root=new SoSeparator;root->ref();root->addChild(style(mode));
+      SoComplexity * complexity=new SoComplexity;complexity->value=.2f;root->addChild(complexity);
+      rotation=new SoRotation;rotation->rotation=SbRotation(SbVec3f(1,2,3),.3f);root->addChild(rotation);
+      if(shape==0) {SoSphere * sphere=new SoSphere;sphere->radius=.25f;root->addChild(sphere);}
+      if(shape==1) {SoCylinder * cylinder=new SoCylinder;cylinder->radius=.25f;cylinder->height=.5f;root->addChild(cylinder);}
+      if(shape==2) {SoCone * cone=new SoCone;cone->bottomRadius=.25f;cone->height=.5f;root->addChild(cone);}
+      ok=check(capture(root,frame) && !frame.draws.empty(),"procedural sphere/cylinder/cone contour capture") && ok;
+      size_t triangles=0,quads=0;
+      for(const auto & draw:frame.draws) {
+        triangles+=draw.geometry.vertexCount==12;quads+=draw.geometry.vertexCount==16;
+        ok=check(draw.geometry.vertexCount==12 || draw.geometry.vertexCount==16,
+          "procedural triangles and quads retain original primitive boundaries") && ok;
+      }
+      ok=check(triangles>0 && (shape==2 || quads>0),"procedural caps and quad strips are distinguished") && ok;
+      root->unref();
+    }
+    root=new SoSeparator;root->ref();root->addChild(style(mode));root->addChild(coordinates());
+    SoLineSet * lines=new SoLineSet;lines->numVertices=2;root->addChild(lines);
+    SoPointSet * points=new SoPointSet;points->numPoints=1;root->addChild(points);
+    ok=check(capture(root,frame) && frame.draws.size()==2 &&
+      frame.renderStates[frame.draws[0].renderStateSlot].polygonOffsetPrimitiveStyle==2 &&
+      frame.renderStates[frame.draws[1].renderStateSlot].polygonOffsetPrimitiveStyle==4,
+      "polygon mode leaves native line and point topologies intact") && ok;
+    root->unref();
+  }
+  return ok;
+}
 bool pixel(const std::vector<uint8_t> & image, int red, int blue) {
   const size_t offset=(32*64+32)*4;
   return image.size()==64*64*4 && std::abs(int(image[offset])-red)<=2 &&
     image[offset+1]<=2 && std::abs(int(image[offset+2])-blue)<=2;
+}
+bool sample(const std::vector<uint8_t> & image,int x,int y,int r,int g,int b) {
+  const size_t offset=(y*64+x)*4;
+  if(image.size()!=64*64*4)return false;
+  return std::abs(int(image[offset])-r)<=2 && std::abs(int(image[offset+1])-g)<=2 &&
+    std::abs(int(image[offset+2])-b)<=2;
+}
+bool polygonActionContract(bool cpu) {
+  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(64,64)));
+  if(cpu)target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
+#ifdef HAVE_COIN_BGFX
+  target->setDepthReadbackEnabled(FALSE);
+#endif
+  SoSeparator * root=new SoSeparator;root->ref();
+  SoOrthographicCamera * camera=new SoOrthographicCamera;camera->height=2;camera->position=SbVec3f(0,0,3);
+  camera->nearDistance=.1f;camera->farDistance=10;root->addChild(camera);
+  SoLightModel * lightModel=new SoLightModel;lightModel->model=SoLightModel::BASE_COLOR;root->addChild(lightModel);
+  root->addChild(new SoDirectionalLight);
+  SoMaterial * blue=new SoMaterial;blue->diffuseColor=SbColor(0,0,1);blue->ambientColor=SbColor(0,0,0);root->addChild(blue);
+  SoCoordinate3 * background=coordinates();
+  for(int i=0;i<4;++i) {SbVec3f position=background->point[i];position[2]=-.5f;background->point.set1Value(i,position);}
+  root->addChild(background);root->addChild(faces());
+  SoSeparator * foreground=new SoSeparator;root->addChild(foreground);
+  SoDrawStyle * drawStyle=style(SoDrawStyle::LINES);drawStyle->lineWidth=4;drawStyle->pointSize=6;foreground->addChild(drawStyle);
+  SoClipPlane * clip=new SoClipPlane;clip->on=FALSE;foreground->addChild(clip);
+  SoMaterial * red=new SoMaterial;red->diffuseColor=SbColor(1,0,0);red->ambientColor=SbColor(0,0,0);foreground->addChild(red);
+  foreground->addChild(coordinates());foreground->addChild(faces());
+  // Draw the far filled face again afterwards: depth written by the strokes
+  // must prevent this later draw from covering the red boundary/points.
+  root->addChild(faces());
+  CoinRenderAction action(SbViewportRegion(64,64));action.setRenderTarget(target.get());
+  action.setBackgroundColor(SbColor4f(0,0,0,1));bool ok=true;
+  for(int fast=0;fast<2;++fast)for(int lighting=0;lighting<2;++lighting) {
+    action.setFastPathEnabled(fast ? TRUE : FALSE);
+    lightModel->model=lighting ? SoLightModel::PHONG : SoLightModel::BASE_COLOR;
+    for(int mode:{SoDrawStyle::LINES,SoDrawStyle::POINTS})for(int clipped=0;clipped<2;++clipped) {
+      drawStyle->style=mode;clip->on=clipped ? TRUE : FALSE;
+      action.apply(root);std::vector<uint8_t> image;target->readbackRGBA(image);
+      ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS,"polygon style action CPU/GPU succeeds") && ok;
+      ok=check(sample(image,6,6,clipped ? 0 : 255,0,clipped ? 255 : 0),
+               "original left corner follows polygon clipping") && ok;
+      const bool cutLine=clipped && mode==SoDrawStyle::LINES;
+      ok=check(sample(image,32,32,cutLine ? 255 : 0,0,cutLine ? 0 : 255),
+               "wireframe has no tessellation diagonal; clipping creates the new cut edge") && ok;
+      if(clipped)ok=check(sample(image,32,6,255,0,0),"cut corner is emitted once in POINTS and retained in LINES") && ok;
+      const bool leftLine=!clipped && mode==SoDrawStyle::LINES;
+      ok=check(sample(image,6,32,leftLine ? 255 : 0,0,leftLine ? 0 : 255),
+               "POINTS emits corners only, while LINES retains boundary and foreground depth") && ok;
+    }
+  }
+  // Unsupported patterned polygons preserve the last publication, then recover.
+  drawStyle->style=SoDrawStyle::LINES;drawStyle->linePattern=0xaaaau;
+  const uint64_t serial=target->getLastSubmissionSerial();std::vector<uint8_t> before,image;
+  target->readbackRGBA(before);action.apply(root);target->readbackRGBA(image);
+  ok=check(action.getLastStatus()==CoinRenderAction::UNSUPPORTED && serial==target->getLastSubmissionSerial() &&
+           image==before,"unsupported polygon pattern does not publish") && ok;
+  drawStyle->linePattern=0xffffu;action.apply(root);
+  ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS,"polygon style recovers after unsupported pattern") && ok;
+#if !defined(HAVE_COIN_BGFX)
+  // Strokes currently lack the wgpu homogeneous UV/fog payload. Preserve a
+  // specific capability diagnostic, rather than reporting an incomplete face.
+  SoSeparator * textured=new SoSeparator;foreground->addChild(textured);
+  SoTexture2 * texture=new SoTexture2;const unsigned char white[]={255,255,255};
+  texture->image.setValue(SbVec2s(1,1),3,white);textured->addChild(texture);
+  SoTextureCoordinate2 * uv=new SoTextureCoordinate2;
+  const SbVec2f corners[]={SbVec2f(0,0),SbVec2f(1,0),SbVec2f(1,1),SbVec2f(0,1)};
+  uv->point.setValues(0,4,corners);textured->addChild(uv);textured->addChild(faces());
+  action.apply(root);
+  ok=check(action.getLastStatus()==CoinRenderAction::UNSUPPORTED &&
+    std::string(action.getLastError().getString()).find("Textured polygon styles")!=std::string::npos,
+    "unsupported textured wgpu polygon retains its specific diagnostic") && ok;
+  foreground->removeChild(textured);action.apply(root);
+  ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS,"wgpu polygon recovers after texture rejection") && ok;
+#endif
+  root->unref();return ok;
 }
 bool actionContract(bool cpu) {
   std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(64,64)));
@@ -137,7 +364,7 @@ bool actionContract(bool cpu) {
   SoOrthographicCamera * camera=new SoOrthographicCamera;camera->height=2;
   camera->position=SbVec3f(0,0,3);camera->nearDistance=.1f;camera->farDistance=10;root->addChild(camera);
   SoLightModel * light=new SoLightModel;light->model=SoLightModel::BASE_COLOR;root->addChild(light);
-  SoMaterial * blue=new SoMaterial;blue->diffuseColor=SbColor(0,0,1);root->addChild(blue);
+  SoMaterial * blue=new SoMaterial;blue->diffuseColor=SbColor(0,0,1);blue->ambientColor=SbColor(0,0,0);root->addChild(blue);
   root->addChild(coordinates());root->addChild(faces());
   SoSeparator * nested=new SoSeparator;root->addChild(nested);
   SoDrawStyle * visibility=style(SoDrawStyle::INVISIBLE);nested->addChild(visibility);
@@ -187,10 +414,10 @@ bool actionContract(bool cpu) {
 }
 int main() {
   SoDB::init();CoinRenderAction::initClass();
-  if(!stateContract() || !actionContract(true))return 1;
+  if(!stateContract() || !polygonCoreContract() || !polygonCaptureContract() || !polygonActionContract(true) || !actionContract(true))return 1;
   if(!CoinRenderAction::isGpuBackendAvailable()) {
     std::cerr<<"[SKIP] GPU adapter unavailable\n";return 77;
   }
-  if(!actionContract(false))return 1;
-  std::cout<<"DrawStyle INVISIBLE capture/CPU/GPU contracts passed\n";return 0;
+  if(!polygonActionContract(false) || !actionContract(false))return 1;
+  std::cout<<"DrawStyle polygon/Core/INVISIBLE CPU/GPU contracts passed\n";return 0;
 }

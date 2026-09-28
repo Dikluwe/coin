@@ -1,7 +1,8 @@
 # CoinRender: contrato e fechamento de SoDrawStyle
 
-P02/F04 continua aberto. Este registro distingue o fechamento de `INVISIBLE`
-da conversão de polígonos para `LINES` e `POINTS`, ainda pendente.
+P02/F04 continua aberto na matriz completa. INVISIBLE está implementado;
+LINES/POINTS agora têm resolução comum e um perfil de contornos convexos
+executado em CPU, BGFX e wgpu. Os limites restantes estão registrados abaixo.
 
 ## Fonte do contrato
 
@@ -69,20 +70,101 @@ clipping, composição e publicação. Logs locais:
 `/tmp/coin-drawstyle-wgpu-ctest.log`, `/tmp/coin-drawstyle-bgfx-ctest.log` e
 `/tmp/coin-drawstyle-bgfx-core-ctest.log`.
 
-## Checklist restante de P02
+## LINES/POINTS implementados no perfil convexo
+
+Wiring captura `SoDrawStyleElement` efetivo e usa os atributos dos callbacks,
+incluindo materiais, normais e UV. Faces com `SoFaceDetail` conservam a ordem do
+contorno fornecido pelo Coin; o builder verifica identidade do detalhe,
+coordenadas e consistência dos atributos entre callbacks. O fast path de
+IndexedFaceSet encaminha esses estilos aos callbacks para conservar os details.
+
+Para os tipos exatos SoCube, SoSphere, SoCylinder e SoCone, a montagem conhecida
+de `src/misc/SoGenerate.cpp` identifica quads, faixas de quads e triângulos das
+tampas. Os pares de callbacks de quads são verificados antes da reconstrução.
+A classificação é Wiring comum. Subclasses não herdam automaticamente essa
+suposição sobre generatePrimitives. Outros shapes precisam fornecer um
+SoFaceDetail recuperável; caso contrário, o pedido retorna UNSUPPORTED.
+
+`CoinRenderPolygonStyleCore.h` recebe o contorno com snapshots e decide a saída:
+iluminação por vértice, clipping homogêneo nos seis planos do volume de visão,
+clipping por SoClipPlane, culling, topologia, índices e estado resolvido. O
+clipping do contorno completo cria a borda de corte e seus dois extremos, sem
+expor a triangulação interna do quad. Culling considera projeção, winding e
+espelhamento. Faces projetadas de lado continuam emitindo bordas e pontos se
+culling estiver desligado. Não deduplicar pontos/arestas de polígonos distintos:
+a multiplicidade pode afetar alpha e depth, como no GL.
+
+`CoinRenderLightingCore.h` contém a fórmula Gouraud antes pertencente ao
+rasterizador CPU. A resolução de estilos e o rasterizador CPU usam a mesma
+função. Cores iluminadas e limitadas são interpoladas nos vértices novos de
+clipping, junto de alpha e UV. Infra consome geometria já resolvida: não há
+nova interpretação de SoDrawStyle nos executores, nem mudança de ABI Rust.
+
+A expansão existente aplica largura/tamanho, preservando depth e alpha no
+perfil validado. Linhas/pontos nativos mantêm sua topologia sob LINES/POINTS.
+Notificações do Coin invalidam o plano; o reuso de câmera/material existente
+não aceita strokes preparados em coordenadas de tela.
+
+### Limites explícitos
+
+- Contornos côncavos, coordenadas repetidas ambíguas, montagem incompleta ou
+  atributos inconsistentes retornam UNSUPPORTED. Esses casos não geram uma
+  aproximação com diagonais. A triangulação de faces côncavas do GL exige estudo
+  próprio para definir bordas efetivamente rasterizadas em cada shape.
+- Padrão de linha admite sólido (`0xffff`) e vazio (`0`). Outros padrões são
+  rejeitados: continuidade entre arestas e contagem de fragmentos Coin/GL
+  permanecem pendentes.
+- Offset ativado para o estilo admite factor zero. Factor diferente de zero é
+  rejeitado porque exige o gradiente de depth do polígono original. Precisão de
+  units e qualificação de depth/raster continuam vinculadas a P04/F12.
+- Texturas, inclusive unidades adicionais, e fog de polígonos estilizados no
+  wgpu são rejeitados. BGFX usa o caminho existente de atributos homogêneos,
+  texturas e fog por fragmento; sua matriz de combinações ainda precisa ser
+  qualificada para esses novos estilos, em conjunto com P07/P08.
+- Não declarar equivalência visual Coin/GL, cobertura de subclasses/custom
+  GLRender, todas as modalidades de transparência ou qualificação FreeCAD.
+  Os testes de clipping da rodada final ainda registraram indisponibilidade
+  da referência Coin/GL offscreen; a comparação dos novos estilos não foi
+  executada nesta entrega.
+
+### Evidência desta ampliação
+
+O mesmo CoinRenderDrawStyleTest agora verifica os contornos de IndexedFaceSet,
+FaceSet, triângulos, pentágonos convexos, Cube, Sphere, Cylinder e Cone; bordas
+sem diagonais, quatro pontos por quad, culling, espelhamento, cortes por planos
+de usuário e volume de visão, passagem pelo near plane, interpolação de UV/alpha
+e iluminação anterior ao clipping. Testes de pixels com fast path ligado e
+desligado cobrem LINES/POINTS, BASE_COLOR/PHONG, cantos e bordas de corte, ausência
+de diagonal e depth contra um fundo preenchido que também é desenhado
+depois dos strokes. Rejeição de padrões preserva
+imagem/serial e o próximo pedido sólido recupera a publicação.
+
+As rodadas finais passaram 19 CTests no perfil wgpu e 26 no perfil BGFX,
+em execução sem concorrência GPU entre os perfis. O teste de estilo foi
+reexecutado após fortalecer a verificação de depth e do diagnóstico de textura
+não suportada.
+Rodadas anteriores apresentaram falhas intermitentes OpenGL: segfault em
+CoinBgfxSortedLayersOpenGLTest/CoinBgfxWeightedOitOpenGLTest e SIGPIPE em
+CoinBgfxReadbackModes_opengl, após avisos GLX/EGL/DRI3. Os três passaram duas
+vezes cada em um novo Xvfb, isoladamente. A causa não foi determinada; não
+considerar isso qualificação da estabilidade do ambiente nem ocultar os
+resultados anteriores. Logs desta ampliação:
+`/tmp/coin-poly-bgfx-ctest.log`, `/tmp/coin-poly-bgfx-isolated.log`,
+`/tmp/coin-poly-bgfx-final-ctest.log`, `/tmp/coin-poly-wgpu-final-ctest.log`,
+`/tmp/coin-poly-bgfx-final-style.log` e `/tmp/coin-poly-wgpu-final-style.log`.
+
+## Checklist de P02
 
 - [x] INVISIBLE com estado efetivo Coin e supressão comum de captura.
 - [x] Publicação e invalidação de cache verificadas nos dois backends.
-- [ ] Capturar contornos originais para faces, quads e faixas, inclusive shapes
-  procedurais; declarar o comportamento de shapes customizados.
-- [ ] Resolver LINES/POINTS no Core sobre esses contornos, preservando bordas,
-  atributos, materiais e multiplicidade de rasterização entre polígonos.
-- [ ] Aplicar culling e clipping de polígonos, incluindo bordas novas de corte,
-  antes da expansão de largura/tamanho na geometria comum.
-- [ ] Preservar iluminação por vértice, fog, alpha, depth e polygon offset.
-- [ ] Validar tamanho, largura e padrão; integrar texturas conforme P07/P08,
-  mantendo explícito o limite atual de strokes texturizados no wgpu.
-- [ ] Matriz por shape em CPU/BGFX/wgpu e comparação Coin/GL disponível.
+- [x] Contornos de faces recuperáveis e tipos procedurais exatos documentados.
+- [x] LINES/POINTS no Core, sem diagonais de quads ou duplicação por triangulação.
+- [x] Culling e clipping de contornos convexos, com bordas e pontos novos de corte.
+- [x] Gouraud antes de clipping, com UV/alpha interpolados e depth no perfil.
+- [ ] Contornos fora do perfil, subclasses e shapes customizados; definir sua matriz.
+- [ ] Padrão contínuo entre arestas e offset pelo gradiente do polígono original.
+- [ ] Fog e texturas de strokes no wgpu; matriz ampliada BGFX conforme P07/P08.
+- [ ] Sorting/transparência, precisão de raster e comparação Coin/GL/FreeCAD.
 
-O suporte existente de LineSet/PointSet não comprova LINES/POINTS aplicados
-sobre polígonos. Não anunciar P02/F04 como fechado por esta entrega.
+O suporte de LineSet/PointSet continua distinto do estilo aplicado a polígonos.
+P02/F04 não deve ser marcado como integralmente fechado por este perfil.

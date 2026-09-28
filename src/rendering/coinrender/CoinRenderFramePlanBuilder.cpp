@@ -6,6 +6,13 @@
 #include <iostream>
 #include "rendering/coinrender/CoinRenderFramePlanBuilder.h"
 #include <Inventor/nodes/SoShape.h>
+#include <Inventor/nodes/SoCube.h>
+#include <Inventor/nodes/SoCone.h>
+#include <Inventor/nodes/SoCylinder.h>
+#include <Inventor/nodes/SoSphere.h>
+#include <Inventor/details/SoCylinderDetail.h>
+#include <Inventor/elements/SoDrawStyleElement.h>
+#include "rendering/coinrender/CoinRenderPolygonStyleCore.h"
 #include "rendering/coinrender/CoinRenderDepthPolicyElement.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderClipCore.h"
@@ -78,6 +85,11 @@ CoinRenderFramePlanBuilder::beginFrame(const SbColor4f & clearColor, const SbVie
 void
 CoinRenderFramePlanBuilder::reset()
 {
+  this->polygonNode = nullptr;
+  this->polygonVertices.clear();
+  this->polygonPositions.clear();
+  this->polygonCaptured.clear();
+  this->polygonTriangles = 0;
   this->currentPlan.vertices.clear();
   this->currentPlan.indices.clear();
   this->currentPlan.materials.clear();
@@ -823,8 +835,9 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   return rsSlot;
 }
 
-uint32_t
-CoinRenderFramePlanBuilder::addVertex(SoCallbackAction * action, const SoPrimitiveVertex * pv, uint32_t materialSlot)
+CoinRenderVertexSnapshot
+CoinRenderFramePlanBuilder::captureVertex(SoCallbackAction * action, const SoPrimitiveVertex * pv,
+  uint32_t materialSlot, const CoinRenderRenderStateSnapshot & rs)
 {
   CoinRenderVertexSnapshot v;
   const SbVec3f & pt = pv->getPoint();
@@ -844,8 +857,6 @@ CoinRenderFramePlanBuilder::addVertex(SoCallbackAction * action, const SoPrimiti
   v.materialSlot = materialSlot;
 
 
-  const CoinRenderRenderStateSnapshot & rs = this->currentPlan.renderStates[
-    this->currentPlan.draws[this->currentDrawIndex].renderStateSlot];
   SoState * state = action->getState();
   const auto * coords = SoMultiTextureCoordinateElement::getInstance(state);
   const auto * positions = SoCoordinateElement::getInstance(state);
@@ -892,9 +903,18 @@ CoinRenderFramePlanBuilder::addVertex(SoCallbackAction * action, const SoPrimiti
     }
   }
 
-  uint32_t idx = static_cast<uint32_t>(this->currentPlan.vertices.size());
-  this->currentPlan.vertices.push_back(v);
-  return idx;
+  return v;
+}
+
+uint32_t
+CoinRenderFramePlanBuilder::addVertex(SoCallbackAction * action, const SoPrimitiveVertex * pv, uint32_t materialSlot)
+{
+  const auto & rs = this->currentPlan.renderStates[
+    this->currentPlan.draws[this->currentDrawIndex].renderStateSlot];
+  const CoinRenderVertexSnapshot vertex = this->captureVertex(action, pv, materialSlot, rs);
+  const uint32_t index = static_cast<uint32_t>(this->currentPlan.vertices.size());
+  this->currentPlan.vertices.push_back(vertex);
+  return index;
 }
 
 void
@@ -956,6 +976,12 @@ CoinRenderFramePlanBuilder::isShapeInvisible(SoCallbackAction * action)
                     SoShapeStyleElement::INVISIBLE) != 0;
 }
 
+int
+CoinRenderFramePlanBuilder::polygonDrawStyle(SoCallbackAction * action)
+{
+  return SoDrawStyleElement::get(action->getState());
+}
+
 void
 CoinRenderFramePlanBuilder::addTriangle(SoCallbackAction * action,
                                    const SoPrimitiveVertex * v0,
@@ -963,6 +989,10 @@ CoinRenderFramePlanBuilder::addTriangle(SoCallbackAction * action,
                                    const SoPrimitiveVertex * v2)
 {
   if (!v0 || !v1 || !v2 || isShapeInvisible(action)) return;
+  if (polygonDrawStyle(action) != SoDrawStyleElement::FILLED) {
+    this->addStyledTriangle(action, v0, v1, v2);
+    return;
+  }
   uint32_t rsSlot = this->captureRenderState(action, v0->getMaterialIndex());
   this->ensureDrawPacket(CoinRenderPrimitiveTopology::TRIANGLE_LIST, rsSlot, action->getCurPathTail());
   this->captureSortingCenter(action);
@@ -1043,6 +1073,222 @@ CoinRenderFramePlanBuilder::addPoint(SoCallbackAction * action,
   dp.geometry.indexCount += 1;
 }
 
+void CoinRenderFramePlanBuilder::addStyledTriangle(SoCallbackAction* action,
+                                                   const SoPrimitiveVertex* v0,
+                                                   const SoPrimitiveVertex* v1,
+                                                   const SoPrimitiveVertex* v2) {
+  if (this->isUnsupported || this->hasError)
+    return;
+  SoNode* node = action->getCurPathTail();
+  const SoPrimitiveVertex* vertices[3] = {v0, v1, v2};
+  const SoDetail* detail = v0->getDetail();
+  const SoFaceDetail* face = detail && detail->isOfType(SoFaceDetail::getClassTypeId())
+                                 ? static_cast<const SoFaceDetail*>(detail)
+                                 : nullptr;
+  const bool cube = node->getTypeId() == SoCube::getClassTypeId();
+  const bool cone = node->getTypeId() == SoCone::getClassTypeId();
+  const bool cylinder = node->getTypeId() == SoCylinder::getClassTypeId();
+  const bool sphere = node->getTypeId() == SoSphere::getClassTypeId();
+  const auto* cylinderDetail =
+      cylinder && detail && detail->isOfType(SoCylinderDetail::getClassTypeId())
+          ? static_cast<const SoCylinderDetail*>(detail)
+          : nullptr;
+  bool quad = cube || (cylinderDetail && cylinderDetail->getPart() == SoCylinder::SIDES);
+  if (sphere) {
+    const float radius = static_cast<SoSphere*>(node)->radius.getValue();
+    bool pole = false;
+    for (const auto* vertex : vertices) {
+      const auto& position = vertex->getPoint();
+      pole = pole || (position[0] == 0 && position[2] == 0 &&
+                      (position[1] == radius || position[1] == -radius));
+    }
+    // SoGenerate emits cap triangles and interior QUAD_STRIP, matching SoGL.
+    quad = !pole;
+  }
+  auto reject = [&](const char* message) {
+    this->isUnsupported = true;
+    this->builderError = message;
+  };
+  if (!face && !cube && !cone && !sphere && !cylinderDetail) {
+    reject("Polygon style requires a recoverable original contour for this shape");
+    return;
+  }
+  if (this->polygonNode && this->polygonNode != node) {
+    reject("Original polygon contour was interrupted by another shape");
+    return;
+  }
+  if (!this->polygonNode) {
+    this->polygonNode = node;
+    this->polygonStyle = polygonDrawStyle(action);
+    this->polygonState = this->captureRenderState(action, v0->getMaterialIndex());
+    if (this->isUnsupported || this->hasError)
+      return;
+    const auto& state = this->currentPlan.renderStates[this->polygonState];
+#if !defined(HAVE_COIN_BGFX)
+    for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit)
+      if (coin_render_texture_unit(state, unit).enabled) {
+        reject("Textured polygon styles currently require CoinBgfx");
+        return;
+      }
+    if (state.fogMode != CoinRenderFogMode::NONE) {
+      reject("Styled polygon fog currently requires CoinBgfx fragment fog");
+      return;
+    }
+#endif
+    const size_t count = face ? static_cast<size_t>(face->getNumPoints()) : (quad ? 4 : 3);
+    if (count < 3) {
+      reject("Invalid original polygon contour");
+      return;
+    }
+    this->polygonTriangles = 0;
+    this->polygonFaceIndex = face ? face->getFaceIndex() : -1;
+    this->polygonPartIndex = face ? face->getPartIndex() : -1;
+    this->polygonPositions.clear();
+    this->polygonVertices.assign(count, CoinRenderVertexSnapshot{});
+    this->polygonCaptured.assign(count, false);
+    if (face) {
+      const auto* coordinates = SoCoordinateElement::getInstance(action->getState());
+      for (size_t i = 0; i < count; ++i) {
+        const int index = face->getPoint(static_cast<int>(i))->getCoordinateIndex();
+        if (index < 0 || index >= coordinates->getNum()) {
+          reject("Invalid face contour coordinate index");
+          return;
+        }
+        const SbVec3f position = coordinates->get3(index);
+        for (const auto& previous : this->polygonPositions)
+          if (previous == position) {
+            reject("Ambiguous repeated coordinate in polygon contour");
+            return;
+          }
+        this->polygonPositions.push_back(position);
+      }
+    } else {
+      for (int i = 0; i < 3; ++i)
+        this->polygonPositions.push_back(vertices[i]->getPoint());
+      if (quad)
+        this->polygonPositions.push_back(SbVec3f(0, 0, 0)); // Filled by the second callback.
+    }
+  }
+  if (face && this->polygonTriangles > 0) {
+    if (face->getNumPoints() != static_cast<int>(this->polygonPositions.size()) ||
+        face->getFaceIndex() != this->polygonFaceIndex ||
+        face->getPartIndex() != this->polygonPartIndex) {
+      reject("Face detail changed within an original polygon");
+      return;
+    }
+    const auto* coordinates = SoCoordinateElement::getInstance(action->getState());
+    for (size_t i = 0; i < this->polygonPositions.size(); ++i) {
+      const int index = face->getPoint(static_cast<int>(i))->getCoordinateIndex();
+      if (index < 0 || index >= coordinates->getNum() ||
+          coordinates->get3(index) != this->polygonPositions[i]) {
+        reject("Face contour changed within its triangle callbacks");
+        return;
+      }
+    }
+  }
+  if (this->polygonStyle != polygonDrawStyle(action)) {
+    reject("Draw style changed within an original polygon");
+    return;
+  }
+  if (quad && this->polygonTriangles == 1) {
+    if (v0->getPoint() != this->polygonPositions[0] ||
+        v1->getPoint() != this->polygonPositions[2]) {
+      reject("Procedural callbacks do not match the original quad assembly");
+      return;
+    }
+    this->polygonPositions[3] = v2->getPoint();
+  }
+  const auto state = this->currentPlan.renderStates[this->polygonState];
+  for (int i = 0; i < 3; ++i) {
+    size_t slot = this->polygonPositions.size();
+    // The quad's not-yet-captured fourth corner is intentionally excluded.
+    const size_t available =
+        quad && this->polygonTriangles == 0 ? 3 : this->polygonPositions.size();
+    for (size_t j = 0; j < available; ++j)
+      if (vertices[i]->getPoint() == this->polygonPositions[j]) {
+        slot = j;
+        break;
+      }
+    if (slot == this->polygonPositions.size()) {
+      reject("Triangle callback lost the original face contour");
+      return;
+    }
+    const uint32_t material = this->captureMaterial(action, vertices[i]->getMaterialIndex());
+    const auto captured = this->captureVertex(action, vertices[i], material, state);
+    if (!this->polygonCaptured[slot]) {
+      this->polygonVertices[slot] = captured;
+      this->polygonCaptured[slot] = true;
+    } else {
+      const auto& previous = this->polygonVertices[slot];
+      if (previous.materialSlot != captured.materialSlot ||
+          SbVec3f(previous.normal) != SbVec3f(captured.normal) ||
+          SbVec2f(previous.texcoord) != SbVec2f(captured.texcoord) ||
+          std::memcmp(previous.extraTexcoords, captured.extraTexcoords,
+                      sizeof(previous.extraTexcoords)) != 0) {
+        reject("Inconsistent attributes across triangles of one polygon");
+        return;
+      }
+    }
+  }
+  ++this->polygonTriangles;
+  if (this->polygonTriangles == static_cast<int>(this->polygonVertices.size()) - 2) {
+    for (bool captured : this->polygonCaptured)
+      if (!captured) {
+        reject("Original face contour has uncaptured vertices");
+        return;
+      }
+    this->emitStyledPolygon(action);
+    this->polygonNode = nullptr;
+    this->polygonPositions.clear();
+    this->polygonVertices.clear();
+    this->polygonCaptured.clear();
+  }
+}
+
+void CoinRenderFramePlanBuilder::emitStyledPolygon(SoCallbackAction* action) {
+  const auto sourceState = this->currentPlan.renderStates[this->polygonState];
+  CoinRenderPolygonStyleResult resolved;
+  const auto style = this->polygonStyle == SoDrawStyleElement::LINES
+                         ? CoinRenderPolygonStyle::LINES
+                         : CoinRenderPolygonStyle::POINTS;
+  std::string diagnostic;
+  if (!coin_render_prepare_polygon_style(this->polygonVertices, sourceState,
+                                         this->currentPlan.materials,
+                                         this->currentPlan.lightingStates[sourceState.lightingSlot],
+                                         style, resolved, diagnostic)) {
+    if (diagnostic.compare(0, 12, "UNSUPPORTED:") == 0)
+      this->isUnsupported = true;
+    else
+      this->hasError = true;
+    this->builderError = diagnostic;
+    return;
+  }
+  if (resolved.vertices.empty())
+    return;
+  const uint32_t stateSlot = static_cast<uint32_t>(this->currentPlan.renderStates.size());
+  this->currentPlan.renderStates.push_back(resolved.state);
+  this->ensureDrawPacket(resolved.topology, stateSlot, this->polygonNode, true);
+  this->captureSortingCenter(action);
+  const uint32_t first = static_cast<uint32_t>(this->currentPlan.vertices.size());
+  for (auto& item : resolved.vertices) {
+    uint32_t material = static_cast<uint32_t>(this->currentPlan.materials.size());
+    for (size_t i = 0; i < this->currentPlan.materials.size(); ++i)
+      if (std::memcmp(&item.material, &this->currentPlan.materials[i], sizeof(item.material)) ==
+          0) {
+        material = static_cast<uint32_t>(i);
+        break;
+      }
+    if (material == this->currentPlan.materials.size())
+      this->currentPlan.materials.push_back(item.material);
+    item.vertex.materialSlot = material;
+    this->currentPlan.vertices.push_back(item.vertex);
+  }
+  for (uint32_t index : resolved.indices)
+    this->currentPlan.indices.push_back(first + index);
+  auto& draw = this->currentPlan.draws[this->currentDrawIndex];
+  draw.geometry.vertexCount = static_cast<uint32_t>(resolved.vertices.size());
+  draw.geometry.indexCount = static_cast<uint32_t>(resolved.indices.size());
+}
 #if !defined(HAVE_COIN_BGFX)
 bool
 CoinRenderFramePlanBuilder::expandStyledPrimitives(std::string * outError)
@@ -1655,6 +1901,10 @@ CoinRenderFramePlanBuilder::expandStyledPrimitives(std::string * outError)
 bool
 CoinRenderFramePlanBuilder::build(CoinRenderFramePlan & outPlan, std::string * outError)
 {
+  if (this->polygonNode && !this->isUnsupported && !this->hasError) {
+    this->isUnsupported = true;
+    this->builderError = "Incomplete original polygon contour in primitive callbacks";
+  }
   if (this->hasError || this->isUnsupported) {
     if (outError) *outError = this->builderError.empty() ? "Builder encountered unsupported or invalid feature" : this->builderError;
     return false;
@@ -1753,6 +2003,9 @@ CoinRenderFramePlanBuilder::processIndexedFaceSet(
     return CoinRenderFastPathResult::INVALID_SCENE;
   }
   if (isShapeInvisible(action)) return CoinRenderFastPathResult::SUCCESS_PRUNE;
+  // The callback path carries original face details; direct triangulation loses them.
+  if (polygonDrawStyle(action) != SoDrawStyleElement::FILLED)
+    return CoinRenderFastPathResult::FALLBACK_CONTINUE;
   int lastTextureUnit = -1;
   SoMultiTextureEnabledElement::getEnabledUnits(action->getState(), lastTextureUnit);
   if (lastTextureUnit > 0) return CoinRenderFastPathResult::FALLBACK_CONTINUE;
