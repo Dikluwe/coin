@@ -75,6 +75,8 @@ sameRenderStateExceptCamera(const RenderStateSnapshot & a,
     a.cameraSlot == b.cameraSlot && a.viewportSlot == b.viewportSlot &&
     a.cullMode == b.cullMode && a.frontFace == b.frontFace &&
     a.depthTest == b.depthTest && a.depthWrite == b.depthWrite &&
+    a.explicitDepthMask == b.explicitDepthMask &&
+    a.screenDoorTransparency == b.screenDoorTransparency &&
     a.depthFunction == b.depthFunction &&
     std::memcmp(a.depthRange, b.depthRange, sizeof(a.depthRange)) == 0 &&
     a.polygonOffsetEnabled == b.polygonOffsetEnabled &&
@@ -86,6 +88,7 @@ sameRenderStateExceptCamera(const RenderStateSnapshot & a,
     a.pointSize == b.pointSize && a.linePattern == b.linePattern &&
     a.linePatternScaleFactor == b.linePatternScaleFactor &&
     sameMatrix(a.textureMatrix, b.textureMatrix) &&
+    std::memcmp(a.extraTextures, b.extraTextures, sizeof(a.extraTextures)) == 0 &&
     a.hasTexture == b.hasTexture && a.textureImageSlot == b.textureImageSlot &&
     a.samplerSlot == b.samplerSlot && a.textureModel == b.textureModel &&
     std::memcmp(a.textureBlendColor, b.textureBlendColor,
@@ -151,6 +154,8 @@ sameDrawStructure(const DrawPacket & a, const DrawPacket & b)
     a.sourceNodeId == b.sourceNodeId &&
     a.stableNodeId == b.stableNodeId &&
     a.drawOrdinal == b.drawOrdinal &&
+    a.hasSortingCenter == b.hasSortingCenter &&
+    (!a.hasSortingCenter || std::memcmp(a.sortingCenterWorld, b.sortingCenterWorld, sizeof(a.sortingCenterWorld)) == 0) &&
     a.renderLayer == b.renderLayer &&
     a.clearDepthBefore == b.clearDepthBefore;
 }
@@ -239,7 +244,7 @@ SoWgpuFrameReuseCore::beginCameraOverlay(
   const CameraSnapshot & oldCamera = plan.cameras[0];
   for (const RenderStateSnapshot & rs : plan.renderStates) {
     if (rs.cameraSlot != 0 || rs.lightModel != LightModel::BASE_COLOR ||
-        rs.fogMode != FogMode::NONE ||
+        rs.fogMode != FogMode::NONE || rs.polygonOffsetPrimitiveStyle != 1 ||
         !sameMatrix(rs.view, oldCamera.viewMatrix) ||
         !sameMatrix(rs.projectionCoin, oldCamera.projectionMatrixCoin)) return false;
   }

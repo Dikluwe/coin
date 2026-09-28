@@ -11,3 +11,6 @@ wgpu = "24"
 pollster = "0.4"
 bytemuck = { version = "1.21", features = ["derive"] }
 raw-window-handle = "0.6"
+
+[dev-dependencies]
+naga = { version = "24", features = ["wgsl-in"] }

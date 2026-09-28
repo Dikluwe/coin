@@ -56,8 +56,10 @@ private:
   uint32_t captureMaterial(SoCallbackAction * action, int materialIndex);
   uint32_t captureRenderState(SoCallbackAction * action, int materialIndex);
   bool captureTexture(SoCallbackAction * action, RenderStateSnapshot & rs, std::string * outError = nullptr);
+  bool captureTextureUnit(SoCallbackAction * action, int unit, RenderStateSnapshot & rs, std::string * outError);
+  void captureSortingCenter(SoCallbackAction * action);
   bool expandStyledPrimitives(std::string * outError);
-  uint32_t addVertex(const SoPrimitiveVertex * pv, uint32_t materialSlot);
+  uint32_t addVertex(SoCallbackAction * action, const SoPrimitiveVertex * pv, uint32_t materialSlot);
   void ensureDrawPacket(PrimitiveTopology topology, uint32_t renderStateSlot, SoNode * node, bool forceNewPacket = false);
 
   FramePlan currentPlan;

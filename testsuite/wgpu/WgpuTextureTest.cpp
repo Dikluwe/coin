@@ -685,7 +685,7 @@ static bool testQualityZeroDisablesTexture() {
   return true;
 }
 
-static bool testTexturedLineAndPointRejected() {
+static bool testTexturedLineAndPointProfile() {
   for (int topology = 0; topology < 2; ++topology) {
     SoSeparator * root = new SoSeparator;
     root->ref();
@@ -718,11 +718,16 @@ static bool testTexturedLineAndPointRejected() {
 
     SoWgpuRenderAction action(SbViewportRegion(32, 32));
     action.apply(root);
+#ifdef HAVE_WGPU_BGFX
+    ASSERT_TRUE(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+                "BGFX must capture textured lines and points");
+#else
     ASSERT_TRUE(action.getLastStatus() == SoWgpuRenderAction::UNSUPPORTED,
                 "Textured line/point must fail explicitly");
     const char * expected = topology == 0 ? "Textured lines" : "Textured points";
     ASSERT_TRUE(std::strstr(action.getLastError().getString(), expected) != nullptr,
                 "Textured line/point must report an actionable diagnostic");
+#endif
     root->unref();
   }
   return true;
@@ -740,7 +745,7 @@ int main(int argc, char ** argv) {
   if (!testAlphaTextureFormats()) return 1;
   if (!testModulateModelStrict()) return 1;
   if (!testUnsupportedRejections()) return 1;
-  if (!testTexturedLineAndPointRejected()) return 1;
+  if (!testTexturedLineAndPointProfile()) return 1;
   if (!testTextureCoordinatesExplicitVsProcedural()) return 1;
   if (!testTextureTransformAndWrap()) return 1;
   if (!testMultipleDrawsDifferentTextures()) return 1;

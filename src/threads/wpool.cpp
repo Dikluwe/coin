@@ -132,10 +132,12 @@ wpool_get_idle_worker(cc_wpool * pool)
 {
   cc_worker * worker;
   /* assumes pool is locked (begin() has been called) */
-  assert(cc_list_get_length(pool->idlepool));
+  if (cc_list_get_length(pool->idlepool) == 0) return NULL;
 
   worker = (cc_worker*) cc_list_pop(pool->idlepool);
-  cc_list_append(pool->busypool, worker);
+  if (worker != NULL) {
+    cc_list_append(pool->busypool, worker);
+  }
   return worker;
 }
 
@@ -203,6 +205,7 @@ cc_wpool_get_num_workers(cc_wpool * pool)
 void
 cc_wpool_set_num_workers(cc_wpool * pool, int newnum)
 {
+  if (newnum < 0) newnum = 0;
   if (newnum == pool->numworkers) return;
 
   cc_wpool_wait_all(pool);
@@ -267,6 +270,10 @@ cc_wpool_wait_all(cc_wpool * pool)
 SbBool
 cc_wpool_try_begin(cc_wpool * pool, int numworkersneeded)
 {
+  if (numworkersneeded < 0 || numworkersneeded > pool->numworkers) {
+    return FALSE;
+  }
+
   int n;
   wpool_lock(pool);
 
@@ -307,9 +314,10 @@ cc_wpool_begin(cc_wpool * pool, int numworkersneeded)
 void
 cc_wpool_start_worker(cc_wpool * pool, cc_wpool_f * workfunc, void * closure)
 {
+  if (workfunc == NULL) return;
+
   cc_worker * worker = wpool_get_idle_worker(pool);
-  assert(worker);
-  if (worker) {
+  if (worker != NULL) {
     cc_worker_start(worker, workfunc, closure);
   }
 }
@@ -336,3 +344,50 @@ cc_wpool_end(cc_wpool * pool)
 #ifdef __cplusplus
 } /* extern "C" */
 #endif /* __cplusplus */
+
+#ifdef COIN_TEST_SUITE
+
+static void
+wpool_test_callback(void * closure)
+{
+  int * calls = static_cast<int *>(closure);
+  (*calls)++;
+}
+
+BOOST_AUTO_TEST_CASE(cc_wpool_rejects_invalid_worker_counts)
+{
+  cc_wpool * pool = cc_wpool_construct(-1);
+
+  BOOST_CHECK_EQUAL(cc_wpool_get_num_workers(pool), 0);
+  BOOST_CHECK(!cc_wpool_try_begin(pool, -1));
+  BOOST_CHECK(!cc_wpool_try_begin(pool, 1));
+
+  cc_wpool_set_num_workers(pool, -2);
+  BOOST_CHECK_EQUAL(cc_wpool_get_num_workers(pool), 0);
+
+  cc_wpool_destruct(pool);
+}
+
+BOOST_AUTO_TEST_CASE(cc_wpool_ignores_null_and_excess_starts)
+{
+  cc_wpool * pool = cc_wpool_construct(1);
+  int calls = 0;
+
+  BOOST_CHECK(!cc_wpool_try_begin(pool, 2));
+  BOOST_REQUIRE(cc_wpool_try_begin(pool, 1));
+
+  cc_wpool_start_worker(pool, NULL, NULL);
+  cc_wpool_start_worker(pool, wpool_test_callback, &calls);
+  cc_wpool_start_worker(pool, wpool_test_callback, &calls);
+  cc_wpool_end(pool);
+
+  cc_wpool_wait_all(pool);
+  BOOST_CHECK_EQUAL(calls, 1);
+
+  BOOST_REQUIRE(cc_wpool_try_begin(pool, 1));
+  cc_wpool_end(pool);
+
+  cc_wpool_destruct(pool);
+}
+
+#endif // COIN_TEST_SUITE

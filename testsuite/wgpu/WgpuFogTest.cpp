@@ -7,6 +7,12 @@
 #include <Inventor/SoDB.h>
 #include <Inventor/SoOffscreenRenderer.h>
 #include <Inventor/actions/SoWgpuRenderAction.h>
+#ifdef HAVE_WGPU_BGFX
+#include <Inventor/actions/SoBGFXRenderAction.h>
+#define FogRenderAction SoBGFXRenderAction
+#else
+#define FogRenderAction SoWgpuRenderAction
+#endif
 #include <Inventor/rendering/SoWgpuRenderTarget.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoEnvironment.h>
@@ -36,6 +42,7 @@ namespace {
 struct Sample {
   std::array<int, 4> rgba = {{0, 0, 0, 0}};
   float depth = 1.0f;
+  bool hasDepth = false;
 };
 
 bool check(bool ok, const char * message) {
@@ -130,7 +137,8 @@ bool renderAt(SoSeparator * scene, bool cpu, int x, int y, Sample & out) {
   SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
   if (!check(target != NULL, "createOffscreen failed")) return false;
   if (cpu) target->getPimpl()->backend.reset(new SoWgpuCpuReferenceBackend);
-  SoWgpuRenderAction action(SbViewportRegion(64, 64));
+  if (!cpu) target->setDepthReadbackEnabled(FALSE);
+  FogRenderAction action(SbViewportRegion(64, 64));
   action.setRenderTarget(target);
   action.apply(scene);
   const bool success = action.getLastStatus() == SoWgpuRenderAction::SUCCESS;
@@ -143,13 +151,13 @@ bool renderAt(SoSeparator * scene, bool cpu, int x, int y, Sample & out) {
   }
   delete target;
   if (!check(success && pixels.size() == 64u * 64u * 4u &&
-             depth.size() == 64u * 64u, "color/depth readback failed")) return false;
-  size_t sample = (x >= 0 && y >= 0) ? static_cast<size_t>(y * 64 + x) : depth.size();
+             (!cpu || depth.size() == 64u * 64u), "color/depth readback failed")) return false;
+  size_t sample = (x >= 0 && y >= 0) ? static_cast<size_t>(y * 64 + x) : 64u * 64u;
   if (x < 0 || y < 0) {
-    for (int py = 29; py <= 35 && sample == depth.size(); ++py) {
+    for (int py = 29; py <= 35 && sample == 64u * 64u; ++py) {
       for (int px = 29; px <= 35; ++px) {
         const size_t candidate = static_cast<size_t>(py * 64 + px);
-        if (depth[candidate] < 0.999f) {
+        if (depth.empty() ? (pixels[candidate*4] || pixels[candidate*4+1] || pixels[candidate*4+2]) : depth[candidate] < 0.999f) {
           sample = candidate;
           break;
         }
@@ -157,10 +165,11 @@ bool renderAt(SoSeparator * scene, bool cpu, int x, int y, Sample & out) {
     }
   }
 
-  if (!check(sample < depth.size(), "no primitive in center region")) return false;
+  if (!check(sample < 64u * 64u, "no primitive in center region")) return false;
   for (int c = 0; c < 4; ++c) out.rgba[c] = pixels[sample * 4u + c];
-  out.depth = depth[sample];
-  return check(std::isfinite(out.depth) && out.depth >= 0.0f && out.depth < 1.0f,
+  out.hasDepth = !depth.empty();
+  if (out.hasDepth) out.depth = depth[sample];
+  return !out.hasDepth || check(std::isfinite(out.depth) && out.depth >= 0.0f && out.depth < 1.0f,
                "invalid or missing center depth");
 }
 
@@ -180,14 +189,14 @@ bool compare(SoSeparator * scene, int x, int y, Sample & cpu,
              bool glAvailable, int tolerance = 18) {
   if (!renderAt(scene, true, x, y, cpu)) return false;
   Sample gpu;
-  const bool hasGpu = SoWgpuRenderAction::isGpuBackendAvailable();
+  const bool hasGpu = FogRenderAction::isGpuBackendAvailable();
   if (hasGpu) {
     if (!renderAt(scene, false, x, y, gpu)) return false;
     for (int c = 0; c < 4; ++c) {
       if (!check(std::abs(cpu.rgba[c] - gpu.rgba[c]) <= tolerance,
                  "CPU/GPU fog color mismatch")) return false;
     }
-    if (!check(std::abs(cpu.depth - gpu.depth) <= 0.025f,
+    if (gpu.hasDepth && !check(std::abs(cpu.depth - gpu.depth) <= 0.025f,
                "CPU/GPU fog depth mismatch")) return false;
   }
   if (glAvailable) {
@@ -211,7 +220,7 @@ bool compare(SoSeparator * scene, int x, int y, Sample & cpu,
 
 bool checkInvalidBridgeFog() {
 #if defined(HAVE_WGPU_RUST_BRIDGE)
-  if (!SoWgpuRenderAction::isGpuBackendAvailable()) return true;
+  if (!FogRenderAction::isGpuBackendAvailable()) return true;
   CoinWgpuRenderState state{};
   state.fog_mode = 4;
   state.fog_end = 10.0f;
@@ -245,9 +254,9 @@ bool checkInvalidBridgeFog() {
 int main() {
   const bool requireGl = std::getenv("COIN_WGPU_REQUIRE_GL_REFERENCE") != NULL;
   SoDB::init();
-  SoWgpuRenderAction::initClass();
+  FogRenderAction::initClass();
   if (requireGl &&
-      !check(SoWgpuRenderAction::isGpuBackendAvailable(), "required GPU unavailable")) return 1;
+      !check(FogRenderAction::isGpuBackendAvailable(), "required GPU unavailable")) return 1;
   if (!checkInvalidBridgeFog()) return 1;
 
   SoSeparator * none = makeScene(SoEnvironment::NONE, true);

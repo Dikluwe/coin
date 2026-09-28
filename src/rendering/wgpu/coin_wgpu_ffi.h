@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 19
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 20
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -75,6 +75,8 @@ typedef struct CoinWgpuDraw {
   uint32_t draw_ordinal;
   uint32_t reserved;
   uint64_t source_revision;
+  uint32_t render_layer; /* zero=base; overlays retain traversal order */
+  uint32_t clear_depth_before; /* 0/1: clear only this draw's viewport */
 } CoinWgpuDraw;
 
 typedef struct CoinWgpuMaterial {

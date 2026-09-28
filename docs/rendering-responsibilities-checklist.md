@@ -1,0 +1,184 @@
+# Renderização Coin: responsabilidades e checklist de fechamento
+
+Referência de acompanhamento criada em 2026-09-28 a partir do checkout e da
+auditoria funcional. Esta revisão é documental: não reexecuta a matriz GPU.
+Os resultados de anotações citados abaixo foram executados na etapa anterior.
+
+## Regra de organização
+
+Coin define o comportamento. Wiring captura os fatos da cena e coordena o ciclo
+de vida. Core transforma esses fatos e produz decisões explícitas. Infra traduz
+essas decisões para recursos e comandos concretos. Shell lê configuração textual
+e apresenta resultados, diagnósticos e profiling.
+
+A organização é por responsabilidade, sem exigir quatro diretórios ou
+bibliotecas. Um componente específico de backend também pode pertencer ao Core:
+por exemplo, empacotar vértices para o layout BGFX é mecânico; criar o vertex
+buffer é Infra. Não incluir headers GPU não basta para tornar um algoritmo comum.
+
+A interpretação de transparência, bindings, anotações ou depth do Coin deve ter
+um único dono. Os executores podem validar seu payload e calcular detalhes
+mecânicos, mas não devem escolher novamente o significado da cena.
+
+Fluxo desejado:
+
+`Coin/SoState → captura Wiring → snapshots → planejamento Core → plano resolvido → adaptação/execução Infra → resultado estruturado → publicação Wiring / apresentação Shell`
+
+Os recursos GPU pertencem à Infra. O plano comum pode referenciar recursos por
+identidade opaca com contrato explícito de produtor, device, geração e validade;
+não deve depender do valor ou do tipo do handle nativo. Wiring coordena a vida
+do pedido, enquanto Infra cria, retém e libera os recursos concretos.
+
+## Como está o checkout
+
+| Componente atual | Responsabilidade real | Compartilhamento e pendência |
+|---|---|---|
+| `SoWgpuRenderAction`, callbacks e replay de paths | Wiring | Captura comum; a action ainda conhece BGFX/Rust, libera tokens concretos e lê configuração textual de RTT. |
+| `SoWgpuFramePlanBuilder` | Wiring + Core | Lê `SoCallbackAction`/`SoState` e também transforma geometria e monta o plano. Separar funções de captura e funções mecânicas, sem exigir separar o arquivo inteiro. |
+| `FramePlan` e snapshots em `SoWgpuFramePlan.h` | Contrato comum | Compartilháveis; `gpuToken`, limites e convenções precisam de significado independente do executor. |
+| `SoWgpuIndexedGeometryCore` | Core comum | Bons limites explícitos: arrays e fatos capturados, sem travessia nem recursos GPU. |
+| `SoWgpuFrameReuseCore` | Core comum | Classificação e atualização de câmera compartilháveis; Infra decide se seus buffers podem materializar o reuso. |
+| `SoWgpuImageCore` | Core comum | Transformação mecânica de linhas; readback e publicação são responsabilidades distintas. |
+| `SoWgpuComposition.h` | Core com semântica ainda dividida | Tem decisões de composição, mas `exactCoin` e os mapeamentos de estratégias convivem com outra interpretação em Rust. |
+| `SoWgpuBgfxCore` | Core específico + decisões comuns | Layout BGFX pode permanecer específico. Políticas Coin de transparência/depth e operações reaproveitáveis precisam ser extraídas. |
+| `SoWgpuFfiFrame`, `coin_wgpu_ffi.h` | Adaptação específica Rust/wgpu | Empacotamento e ABI privados do conector; devem transportar decisões resolvidas, sem redefinir o perfil Coin. |
+| `rust_bridge/src/composition.rs` | Core executado no lado Rust | Hoje reclassifica alpha e reordena draws. Deve consumir a composição comum resolvida; ser Rust não o torna Infra por si só. |
+| `SoWgpuBgfxBackend`, recursos e shaders BGFX | Infra BGFX | Devem permanecer específicos; recebem o plano resolvido e executam mecanismos compatíveis. |
+| `rust_bridge/src/lib.rs`, recursos e shaders WGSL | Infra wgpu, com lógica mecânica misturada | Execução específica; separar validação/adaptação de decisões semânticas. |
+| `SoWgpuRenderTarget`, scene manager e adapter | Fachada comum + Wiring + Infra | Separar ciclo/publicação de operações nativas por método/colaborador. A API comum não precisa expor a classe concreta. |
+| `SoWgpuCapabilities` | Infra + Core + Shell | Probe nativo é Infra; perfil efetivamente atendido é decisão comum; texto de diagnóstico é Shell. |
+| `SoWgpuDiagnosticShell` | Shell comum e extensões específicas | Mensagens/status/tempos comuns compartilháveis; contadores BGFX ou da ponte Rust devem conservar identificação específica. |
+
+Evidências principais: [captura e plano](../src/rendering/wgpu/SoWgpuFramePlanBuilder.cpp),
+[action e RTT](../src/actions/SoWgpuRenderAction.cpp),
+[composição C++](../src/rendering/wgpu/SoWgpuComposition.h),
+[composição Rust](../src/rendering/wgpu/rust_bridge/src/composition.rs),
+[adaptação BGFX](../src/rendering/wgpu/SoWgpuBgfxCore.cpp),
+[ciclo do manager](backend-independent-frame-preparation.md).
+
+## O que compartilhar e como nomear
+
+Nomes abaixo são propostas para componentes privados futuros, não uma renomeação
+aplicada. APIs públicas experimentais existentes exigem avaliação de compatibilidade
+antes de mudanças. O nome identifica domínio/backend; o sufixo identifica função.
+
+| Conteúdo | Dono | Nome/destino sugerido |
+|---|---|---|
+| Estado capturado, geometria, materiais, luzes, fog, texturas, câmera, viewport e clipping | Contrato comum | `CoinRenderFramePlan`, snapshots comuns. |
+| Integração de actions, travessia, callbacks, paths e captura de elementos | Wiring comum | Componentes de captura Coin; uma entrada BGFX/wgpu pode apenas selecionar/configurar o executor. |
+| Bindings, normais geradas, indexação, expansão de linhas/pontos e transformações de imagem | Core comum | `CoinRenderIndexedGeometryCore`, `CoinRenderStrokeCore`, `CoinRenderImageCore`. |
+| Composição Coin, camadas, barreiras, ordenação, estados efetivos de depth e dependências RTT | Core comum | `CoinRenderCompositionCore` e plano de execução resolvido. |
+| Identidade, revisão, classificação de reuso e invalidação | Core comum | `CoinRenderFrameReuseCore`. Buffers e fences permanecem específicos. |
+| Formato e orientação pública do readback, status/tickets e regras de publicação | Contrato comum + Wiring | Fachada comum; cópia, alinhamento, polling e sincronização em cada Infra. |
+| Testes de semântica, fixtures, expectativas e tolerâncias justificadas | Validação comum | Testes por capacidade Coin, executados por BGFX, wgpu e referência quando aplicável. |
+| Layout de vértices/uniforms e agrupamento por pipeline BGFX | Core específico | `CoinBgfxLowering`, `CoinBgfxDraw`, `CoinBgfxVertex`; extrair cálculos comuns quando possível. |
+| Views, programs, handles, framebuffer, submit, blit e readback BGFX | Infra BGFX | `CoinBgfxBackend`, recursos e shaders BGFX. |
+| ABI C/Rust, structs `repr(C)`, empacotamento e validação da ponte | Adaptação específica | `CoinWgpuFfiFrame`, `coin_wgpu_ffi`, identificando Rust bridge quando necessário. |
+| Pipeline, bind groups, command encoder, surfaces e staging wgpu | Infra wgpu | `CoinWgpuBackend`/`CoinWgpuRustBridge`; WGSL específico. |
+| Probe de formatos/limites/timestamps e tradução de convenções de clip/depth | Infra de cada backend | Nome BGFX/wgpu. A convenção Coin de entrada e a política de compatibilidade são comuns. |
+| Parsing textual, mensagens e formato de profiling | Shell comum | `CoinRenderDiagnosticShell`; parsers/contadores específicos identificados por backend. |
+| Escolha entre mecanismos equivalentes, como recursos de OIT e orçamento de passes | Política mecânica + Infra | Core seleciona entre capacidades estruturadas; Infra materializa. Uma aproximação visual exige modo explícito. |
+
+Não reutilizar silenciosamente `SCREEN_DOOR` ou sorting por triângulo como nomes
+para weighted OIT. OIT pode ser uma extensão melhor em determinados cenários,
+mas sua seleção e os limites de equivalência devem ficar explícitos.
+
+Compartilhar fórmulas, convenções e testes de iluminação não exige compartilhar
+literalmente o mesmo arquivo de shader entre WGSL e BGFX. As linguagens e bindings
+podem diferir; o significado e as expectativas não devem divergir por acidente.
+
+## Estados e critério de fechamento
+
+- **Aberto:** trabalho ainda não fechado ou sem evidência suficiente.
+- **Parcial:** existe implementação ou validação de parte do contrato/perfil.
+- **Fechado no escopo:** escopo e evidências estão definidos; não significa paridade universal.
+- **Extensão:** comportamento adicional, configurável e distinguível da compatibilidade Coin.
+
+Uma checkbox só pode ser marcada quando a entrega descrita estiver concluída.
+Implementação, execução e qualificação são acompanhadas separadamente. A ausência
+de suporte pode fechar o diagnóstico/contrato de rejeição, mas não fecha a entrega
+funcional da capacidade.
+
+Para cada pendência, usar estes critérios:
+
+- [ ] Identificar API/elementos/nós Coin e definir o comportamento observado pelo usuário.
+- [ ] Estudar o caminho GL no Coin, incluindo defaults, exceções e configuração da action.
+- [ ] Registrar o dono único da decisão e os dados que Wiring precisa capturar.
+- [ ] Definir saída do Core e limites/variantes do perfil, sem comandos GPU.
+- [ ] Implementar no BGFX ou rejeitar explicitamente antes de publicar um novo frame.
+- [ ] Implementar no wgpu ou rejeitar explicitamente antes de publicar um novo frame.
+- [ ] Testar captura → planejamento → adaptação → execução, com referência GL quando relevante.
+- [ ] Atualizar capacidades, documentação e profiling; registrar backend, device, formato e tolerância usados.
+
+Essas checkboxes são o modelo por item, não oito trabalhos globais já concluídos.
+
+## Checklist de arquitetura
+
+- [ ] **A01 — Nome neutro para o contrato comum.** Inventariar `SoWgpu*` reutilizado por BGFX, distinguir nomes privados e APIs públicas e definir migração compatível.
+- [ ] **A02 — Limite Wiring/Core no builder.** Funções de transformação recebem snapshots/arrays Coin, sem acessar actions, paths ou `SoState`.
+- [ ] **A03 — Composição com dono único.** Classificação de alpha, modalidade Coin, ordenação e estados efetivos são produzidos uma vez no Core; retirar interpretação paralela de C++/Rust.
+- [ ] **A04 — Plano de execução comum.** Transportar sequência de draws, camadas, barreiras, blend/depth efetivos e dependências; cada Infra só adapta e executa.
+- [ ] **A05 — Extrair o comum de `SoWgpuBgfxCore`.** Manter layout/agrupamento BGFX específicos; mover decisões Coin e cálculos reutilizáveis para Core comum.
+- [ ] **A06 — Recursos opacos com ownership definido.** Retirar da action a criação/liberação concreta de tokens BGFX/Rust; definir device, geração, retenção e dependências RTT.
+- [ ] **A07 — Configuração estruturada.** Shell interpreta env/texto e entrega opções tipadas; Wiring/Core não leem variáveis de ambiente para decidir semântica.
+- [ ] **A08 — Capacidades por contrato e alvo.** Separar fatos de hardware, mecanismos disponíveis e suporte Coin qualificado; unificar rejeições estruturadas.
+- [ ] **A09 — Resultados e profiling.** Infra entrega códigos e métricas; Shell formata texto; Wiring publica apenas resultados válidos.
+- [ ] **A10 — Matriz compartilhada de testes.** Mesmas fixtures e expectativas para cada executor; skips, aproximações e tolerâncias ficam visíveis.
+
+## Checklist funcional priorizada
+
+| ID | Fechamento acompanhado | Dono da decisão comum | BGFX atual | wgpu atual | Próxima evidência necessária |
+|---|---|---|---|---|---|
+| F01 | Anotações: camada, ordem e barreira de depth | Core de composição | Caminho existente | Transporte e testes específicos fechados | Core único e fixtures Coin/GL compartilhadas; integração FreeCAD wgpu. |
+| F02 | Onze modalidades de transparência Coin e alpha final | Core de composição | Caminhos existentes, controles parciais | Composição simplificada; teste geral source-over falha | Estados efetivos, alpha, modos imediatos/atrasados/aditivos, sorting e referência GL. |
+| F03 | `SoClipPlane` | Captura Wiring + clipping Core | Sem caminho completo identificado na auditoria | Sem caminho completo identificado | Captura/transporte, espaços de coordenadas e execução/rejeição explícita. |
+| F04 | `SoDrawStyle`: LINES, POINTS, INVISIBLE | Core de geometria/estilo | Linhas/pontos dedicados não fecham estilo de shapes | Mesmo limite | Matriz por shape; gerar geometria comum e respeitar invisibilidade. |
+| F05 | `SoText2` | Captura Wiring + layout/rasterização Core | Sem caminho completo identificado | Sem caminho completo identificado | Estudar GL/fontes, âncora, tamanho, clipping e composição; implementação de atlas específica. |
+| F06 | UV procedural/default | Captura Wiring + coordenadas Core | Rejeições e documentação contraditória | Rejeições identificadas | Resolver funções/defaults, espaços de coordenadas e matriz por shape. |
+| F07 | Multitextura e `SoTextureCombine` | Core de textura | Até oito unidades; combine rejeitado | Multitextura/combine rejeitados | Operações capturadas/resolvidas, limites declarados e shaders executores. |
+| F08 | Linhas/pontos texturizados e atributos de stroke | Core de geometria | Caminho existente | Transporte/execução incompletos | Mesma geometria capturada, clipping e interpolação; execução WGSL. |
+| F09 | Bindings, índices, materiais e alpha por vértice | Core de geometria/material | Implementações e ensaios existentes | Captura comum, requalificação pendente | Matriz completa por shape e bindings, incluindo normais geradas. |
+| F10 | Iluminação Coin/Gouraud, luzes e fog | Core de estado + contrato matemático | Comparações existentes | Shaders/caminhos existentes | Matriz numérica comum; limites de luzes e distinção de Phong por fragmento. |
+| F11 | Modelos de textura, filtros e qualidade | Core de textura | Modelos ensaiados; perfil limitado | Modelos presentes; docs antigas | Atualizar perfil, filtros/qualidade, formatos e comparações. |
+| F12 | Depth test/write/function/range, offset e clamp | Core de estados efetivos | Implementado no perfil; lacunas em range/clamp | Implementado no perfil; teste GPU depth passou | Defaults/overrides Coin, range invertido, clamp, precisão e raster de bordas. |
+| F13 | Viewports/scissor parcialmente externos | Core de viewport | Suporte parcial externo | Rejeita fora do alvo | Contrato comum da projeção/clipping; escolher adaptação ou rejeição conforme capacidade. |
+| F14 | RTT staged e GPU→GPU direto | Core de dependências + lifecycle Wiring | Direto existente, sem qualificação completa | Direto existente/documentado | Formatos/estados, ownership, ciclos, falhas e publicação transacional. |
+| F15 | Readback cor/depth, tickets e janela | Contrato comum + lifecycle Wiring | Cor/depth e async existentes | Cor/depth e async existentes | Readback de janela e orçamento; formatos, orientação e geração/serial. |
+| F16 | Weighted OIT e peeling | Core de política de extensão | OIT e quatro camadas | Sem executor equivalente identificado | Seleção explícita, alpha, orçamento de passes e camadas configuráveis. |
+| F17 | Múltiplos alvos/janelas | Lifecycle Wiring + política Core | Demonstração registrada de 64 alvos | Infraestrutura existente | Agendamento, isolamento, orçamento e equivalência qualificada. |
+| F18 | Qt/manager/FreeCAD, overlays e seleção | Wiring comum; adaptações Coin/host | Validação real mais ampla | Matriz equivalente pendente | Mesmas cenas e ações de usuário; links, arrays, documentos e montagem. |
+| F19 | Nós de workbenches que só fazem GLRender | Wiring/adaptação dos nós | Inventário incompleto | Inventário incompleto | Lista por nó/workbench e comportamento, sem assumir suporte pela travessia. |
+| F20 | SoImage, shaders customizados, sombras, 3D/cube maps | Contrato por capacidade | Sem caminho completo identificado | Sem caminho completo identificado | Descoberta Coin/GL, perfil, captura, planejamento e rejeições explícitas. |
+| F21 | Antialiasing, multipass e superfícies/plataformas | Core de política + Infra | Equivalência incompleta | Equivalência incompleta | Contrato de qualidade/action, mecanismos e matriz física Intel/NVIDIA/plataformas. |
+
+A matriz resume o checkout/auditoria; não deve ser lida como nova certificação de
+hardware. Dawn/native permanece protótipo, sem entrar como executor equivalente.
+
+## Marcos já fechados no escopo
+
+- [x] **M01 — Metadados de anotações na ponte Rust.** `render_layer` e `clear_depth_before`, ABI privada 20, testes de empacotamento, reuso e camera patch.
+- [x] **M02 — Execução offscreen de anotações no wgpu.** Testes de pixels para ordem opaco/transparente, depth write explícito, limpeza restrita à viewport, preservação do frame rejeitado e frame vazio; CTest sem skip na etapa anterior.
+- [x] **M03 — Registro dos limites dessa entrega.** [Contrato de anotações](wgpu-annotation-contract.md) documenta escopo e falha da suíte geral de composição.
+- [ ] **M04 — Anotações com planejamento comum.** M01/M02 não fecham A03/A04/F01; ainda há decisões de composição repetidas nos executores.
+
+## Registro a preencher a cada fechamento
+
+```text
+ID:
+Escopo Coin e referência GL (arquivos/funções):
+Dono da decisão comum:
+Dados capturados por Wiring:
+Saída resolvida do Core:
+Mecanismo BGFX / suporte ou rejeição:
+Mecanismo wgpu / suporte ou rejeição:
+Testes e resultados (sem omitir skips/falhas):
+Device, API, alvo/formato e tolerâncias:
+Documentação/capacidades atualizadas:
+Limites e extensões explícitas:
+Commit/PR ou artefato de evidência:
+Estado final: aberto / parcial / fechado no escopo / extensão
+```
+
+Ordem de trabalho recomendada: A03/A04 junto de F01/F02; em seguida F03–F05;
+resolver A06 com F14; depois ampliar capacidades e matrizes. A01 pode ser
+incremental, acompanhando essas extrações, sem uma renomeação ampla como pré-requisito.

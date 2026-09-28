@@ -30,7 +30,8 @@ struct SoWgpuBgfxVertex {
   float ambient[4];
   float specular[4];
   float emission[4];
-  float material[2]; // normalized shininess, per-fragment PHONG enabled
+  float material[4]; // shininess, PHONG enabled, homogeneous W, reserved
+  float extraTexcoords[4][4]; // pairs of UVs for units 1..7
 };
 
 struct SoWgpuBgfxDraw {
@@ -48,6 +49,11 @@ struct SoWgpuBgfxDraw {
   float polygonOffsetFactor = 0.0f; // Effective, style-filtered bias.
   float polygonOffsetUnits = 0.0f;
   bool blend = false;
+  SbUniqueId sourceNodeId = 0;
+  bool sortTriangles = false;
+  bool deferred = false;
+  bool additive = false;
+  float screenDoor[4] = {0, 0, 0, 0};
   float alpha = 1.0f;
   SoWgpuBgfxTransparencyStrategy transparencyStrategy = SoWgpuBgfxTransparencyStrategy::OBJECT;
   int32_t viewport[4] = {0, 0, 0, 0}; // Coin bottom-left x, y, width, height
@@ -60,6 +66,17 @@ struct SoWgpuBgfxDraw {
   TextureWrap wrapS = TextureWrap::REPEAT;
   TextureWrap wrapT = TextureWrap::REPEAT;
   TextureFilter filter = TextureFilter::LINEAR;
+  struct TextureLayer {
+    bool enabled = false;
+    uint32_t slot = 0;
+    TextureModel model = TextureModel::MODULATE;
+    float blendColor[4] = {0, 0, 0, 1};
+    TextureWrap wrapS = TextureWrap::REPEAT, wrapT = TextureWrap::REPEAT;
+    TextureFilter filter = TextureFilter::LINEAR;
+  };
+  TextureLayer extraTextures[COIN_WGPU_MAX_TEXTURE_UNITS - 1];
+  float fogColorMode[4] = {};
+  float fogRange[4] = {};
   float ambientLight[4] = {1.0f, 1.0f, 1.0f, 0.2f};
   float lightCount[4] = {};
   float lightPositionType[COIN_WGPU_MAX_LIGHTS][4] = {};

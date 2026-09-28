@@ -62,6 +62,9 @@ public:
                                                      SoCallbackAction * action,
                                                      const SoNode * node);
 
+  static SoCallbackAction::Response textureUnitsPreCB(void *, SoCallbackAction *, const SoNode *);
+  static SoCallbackAction::Response textureCombinePreCB(void *, SoCallbackAction *, const SoNode *);
+
   static SoCallbackAction::Response sceneTexturePreCB(void * userdata,
                                                       SoCallbackAction * action,
                                                       const SoNode * node);

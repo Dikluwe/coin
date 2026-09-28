@@ -22,6 +22,7 @@ if(COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE")
 elseif(COIN_WGPU_BACKEND STREQUAL "DAWN" OR COIN_WGPU_BACKEND STREQUAL "WGPU_NATIVE")
 	list(APPEND COIN_WGPU_SOURCES SoWgpuNativeBackend.cpp)
 elseif(COIN_WGPU_BACKEND STREQUAL "BGFX")
+	list(APPEND COIN_WGPU_SOURCES ${PROJECT_SOURCE_DIR}/src/actions/SoBGFXRenderAction.cpp)
 	set(_coin_bgfx_shader_dir ${CMAKE_CURRENT_SOURCE_DIR}/shaders/bgfx)
 	set(_coin_bgfx_generated_dir ${CMAKE_CURRENT_BINARY_DIR}/bgfx-generated)
 	file(MAKE_DIRECTORY ${_coin_bgfx_generated_dir})
@@ -48,12 +49,14 @@ elseif(COIN_WGPU_BACKEND STREQUAL "BGFX")
 					-i ${COIN_BGFX_SHADER_INCLUDE_DIR}
 				DEPENDS ${_coin_bgfx_shader_dir}/${_stage}_base_color.sc
 					${_coin_bgfx_shader_dir}/coin_depth.sh
+					${_coin_bgfx_shader_dir}/coin_lighting.sh
+					${_coin_bgfx_shader_dir}/coin_surface.sh
 					${_coin_bgfx_shader_dir}/varying.def.sc
 				VERBATIM)
 			list(APPEND COIN_WGPU_SOURCES ${_shader_output})
 		endforeach()
 	endforeach()
-	foreach(_shader peel_next composite weighted_oit weighted_composite)
+	foreach(_shader peel_next composite weighted_oit weighted_composite depth_readback)
 		foreach(_renderer spirv glsl)
 			if(_renderer STREQUAL "spirv")
 				set(_shader_profile spirv)
@@ -71,12 +74,14 @@ elseif(COIN_WGPU_BACKEND STREQUAL "BGFX")
 					-i ${COIN_BGFX_SHADER_INCLUDE_DIR}
 				DEPENDS ${_coin_bgfx_shader_dir}/fs_${_shader}.sc
 					${_coin_bgfx_shader_dir}/coin_depth.sh
+					${_coin_bgfx_shader_dir}/coin_lighting.sh
+					${_coin_bgfx_shader_dir}/coin_surface.sh
 					${_coin_bgfx_shader_dir}/varying.def.sc
 				VERBATIM)
 			list(APPEND COIN_WGPU_SOURCES ${_shader_output})
 		endforeach()
 	endforeach()
-	list(APPEND COIN_WGPU_SOURCES SoWgpuBgfxBackend.cpp)
+	list(APPEND COIN_WGPU_SOURCES SoWgpuBgfxBackend.cpp SoWgpuDepthPolicyElement.cpp)
 endif()
 
 add_library(CoinWgpuExperimental SHARED ${COIN_WGPU_SOURCES})

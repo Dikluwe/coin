@@ -242,7 +242,17 @@ const SbVec4f &
 SoTextureCoordinateBundle::get(const int index)
 {
   assert(coordElt && !(this->flags & FLAG_FUNCTION));
-  return coordElt->get4(index);
+  // A callback has one primary UV, even when only higher units are enabled.
+  // Do not read the DEFAULT unit-zero array in that case (asserts in Debug).
+  int unit = 0;
+  if (!this->glElt && !SoMultiTextureEnabledElement::get(this->state, 0)) {
+    int last = -1;
+    const SbBool * enabled = SoMultiTextureEnabledElement::getEnabledUnits(this->state, last);
+    for (int candidate = 1; candidate <= last; ++candidate) {
+      if (enabled[candidate]) { unit = candidate; break; }
+    }
+  }
+  return coordElt->get4(unit, index);
 }
 
 

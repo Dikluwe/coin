@@ -1,0 +1,224 @@
+# Native topology picking through nested links and nested assembly containers.
+from pathlib import Path
+import os
+exec((Path(os.environ['COIN_TEST_MACRO_DIR']) / 'freecad_mouse_links.FCMacro').read_text())
+
+report['test'] = 'freecad-mouse-link-topology'
+report['scenarios'] = []
+scenario_index = -1
+scenarios = ('nested-shape', 'assembly', 'nested-assembly')
+
+def pick_identity(info):
+    if not info:
+        return None
+    parent = info.get('ParentObject')
+    return (parent.Name, info['SubName']) if parent is not None else (
+        info.get('Object'), info.get('Component'))
+
+def expect_identity(actual, expected):
+    if actual != expected:
+        raise RuntimeError('wrong linked topology identity: ' + repr(actual) + ' != ' + repr(expected))
+
+def axes_baseline():
+    global original_size, input_probe
+    main = Gui.getMainWindow()
+    main.raise_()
+    main.activateWindow()
+    original_size = main.size()
+    input_probe = NativeInputProbe(main)
+    QtWidgets.QApplication.instance().installEventFilter(input_probe)
+    def record_button(event):
+        report.setdefault('button_events', []).append({key: event[key] for key in (
+            'Position', 'ShiftDown', 'CtrlDown', 'AltDown', 'State', 'Button')})
+    view.addEventCallback('SoMouseButtonEvent', record_button)
+    # Make topology sprites measurable even at a partly occluded corner.
+    doc.Box.ViewObject.PointSize = 6.0
+    doc.Box.ViewObject.LineWidth = 2.0
+    global source_assembly, sub_assembly, inner_shape, inner_assembly
+    source_assembly = doc.addObject('App::Part', 'SourceAssembly')
+    sub_assembly = doc.addObject('App::Part', 'SubAssembly')
+    source_assembly.addObject(sub_assembly)
+    sub_assembly.addObject(doc.Box)
+    sub_assembly.Placement = App.Placement(App.Vector(3, -2, 1),
+                                         App.Rotation(App.Vector(1, 2, 3), 19))
+    inner_shape = doc.addObject('App::Link', 'InnerShape')
+    inner_shape.setLink(doc.Box)
+    inner_shape.LinkPlacement = App.Placement(App.Vector(2, 1, 0), App.Rotation())
+    inner_assembly = doc.addObject('App::Link', 'InnerAssembly')
+    inner_assembly.setLink(source_assembly)
+    inner_assembly.LinkPlacement = App.Placement(App.Vector(-2, 3, 1),
+                                               App.Rotation(App.Vector(0, 0, 1), 11))
+    doc.recompute()
+    step(next_scenario)
+
+def next_scenario():
+    global scenario_index, current, links, path_prefix, candidates, element_index, shapes
+    scenario_index += 1
+    if scenario_index == len(scenarios):
+        if reference_gl:
+            finish()
+        else:
+            report.update(settle_samples=0, settle_stable=0,
+                          settle_frame=int(viewer_widget().property('wgpuFrameCount') or 0))
+            step(settle, 500)
+        return
+    Gui.Selection.clearSelection()
+    for name in ('LinkA', 'LinkB'):
+        if doc.getObject(name):
+            doc.removeObject(name)
+    scenario = scenarios[scenario_index]
+    source = {'nested-shape': inner_shape, 'assembly': source_assembly,
+              'nested-assembly': inner_assembly}[scenario]
+    links = [doc.addObject('App::Link', name) for name in ('LinkA', 'LinkB')]
+    for index, link in enumerate(links):
+        link.setLink(source)
+        # Compose source and instance placements across nested link levels.
+        link.LinkTransform = scenario != 'assembly'
+        link.LinkPlacement = App.Placement(App.Vector(index*35, 0, 0),
+                                          App.Rotation(App.Vector(0, 0, 1), index*13))
+    for obj in (source_assembly, inner_shape, inner_assembly):
+        obj.ViewObject.Visibility = False
+    doc.recompute()
+    path_prefix = '' if scenario == 'nested-shape' else 'SubAssembly.Box.'
+    shapes = {link.Name: Part.getShape(link, path_prefix, transform=True) for link in links}
+    current = {'name': scenario, 'elements': [], 'shape_bounds': {
+        name: [shape.BoundBox.XMin, shape.BoundBox.XMax] for name, shape in shapes.items()}}
+    report['scenarios'].append(current)
+    view.setCameraType(0 if scenario == 'nested-shape' else 1)
+    view.viewAxonometric()
+    hide_dock_ui()
+    view.fitAll()
+    move(QtCore.QPoint(15, 15))
+    element_index = -1
+    step(discover_topology, 1000)
+
+def discover_topology():
+    global candidates
+    candidates = []
+    viewport = viewer_widget().viewport()
+    for link in links:
+        for kind in ('Face', 'Edge', 'Vertex'):
+            chosen = None
+            topology = getattr(shapes[link.Name], {'Face': 'Faces', 'Edge': 'Edges',
+                                                  'Vertex': 'Vertexes'}[kind])
+            for index, element in enumerate(topology, 1):
+                center = project(element.Point if kind == 'Vertex' else element.CenterOfMass)
+                expected = (link.Name, path_prefix + kind + str(index))
+                for dx, dy in ((0, 0), (-1, 0), (1, 0), (0, -1), (0, 1)):
+                    point = center + QtCore.QPoint(dx, dy)
+                    if unobstructed(point) and pick_identity(raw_hit(point)) == expected:
+                        chosen = (expected, point, kind)
+                        break
+                if chosen:
+                    break
+            if not chosen:
+                raise RuntimeError('no visible linked ' + kind + ': ' + link.Name + '/' + current['name'])
+            candidates.append(chosen)
+    current['candidates'] = [{'identity': identity, 'point': [p.x(), p.y()]}
+                             for identity, p, kind in candidates]
+    step(next_topology)
+
+def topology_region(name, snapshot):
+    scale = viewer_widget().viewport().devicePixelRatioF()
+    points = [project(vertex.Point) for vertex in shapes[name].Vertexes]
+    x0, x1 = min(p.x() for p in points), max(p.x() for p in points)
+    y0, y1 = min(p.y() for p in points), max(p.y() for p in points)
+    return QtCore.QRect(round(x0*scale)-12, round(y0*scale)-12,
+                       round((x1-x0)*scale)+25, round((y1-y0)*scale)+25).intersected(
+                           QtCore.QRect(0, 0, snapshot.width()-1, snapshot.height()-1))
+
+def topology_pixels(snapshot):
+    identity, point, kind = candidates[element_index]
+    baseline = images[stage + '-baseline']
+    count = element_delta(baseline, snapshot, kind, point)
+    minimum = {'Face': 100, 'Edge': 20, 'Vertex': 6}[kind]
+    if count < minimum:
+        raise RuntimeError('missing linked topology highlight: ' + repr(identity))
+    other = 'LinkB' if identity[0] == 'LinkA' else 'LinkA'
+    leak = changes(baseline, snapshot, topology_region(other, snapshot))
+    if leak > 30:
+        raise RuntimeError('linked topology highlight leaked to ' + other)
+    return {'pixels': count, 'minimum': minimum, 'other_instance_pixels': leak}
+
+def next_topology():
+    global element_index, item, stage
+    element_index += 1
+    if element_index == len(candidates):
+        step(modifier_baseline)
+        return
+    identity, point, kind = candidates[element_index]
+    stage = current['name'] + '-' + identity[0] + '-' + kind
+    item = {'identity': identity, 'kind': kind}
+    current['elements'].append(item)
+    image(stage + '-baseline')
+    move(point)
+    step(topology_hover)
+
+def topology_hover():
+    identity, point, kind = candidates[element_index]
+    pre = Gui.Selection.getPreselection()
+    expect_identity((pre.ObjectName, tuple(pre.SubElementNames)), (identity[0], (identity[1],)))
+    expect_identity(pick_identity(raw_hit(point)), identity)
+    item['hover'] = topology_pixels(image(stage + '-hover'))
+    click()
+    step(topology_clicked)
+
+def selection_identities():
+    # resolve=1 collapses assembly paths to the source Box and loses instances.
+    return sorted((sel.ObjectName, tuple(sel.SubElementNames)) for sel in Gui.Selection.getSelectionEx(doc.Name, 0))
+
+def topology_clicked():
+    identity, point, kind = candidates[element_index]
+    expect_identity(selection_identities(), [(identity[0], (identity[1],))])
+    move(QtCore.QPoint(15, 15))
+    step(topology_background)
+
+def topology_background():
+    if Gui.Selection.getPreselection().ObjectName:
+        raise RuntimeError('linked topology preselection remained on background')
+    item['selection'] = topology_pixels(image(stage + '-selected'))
+    Gui.Selection.clearSelection()
+    step(topology_clean)
+
+def topology_clean():
+    count = delta(images[stage + '-baseline'], image(stage + '-cleared'))
+    item['cleanup_pixels'] = count
+    if count > 30:
+        raise RuntimeError('stale linked topology highlight')
+    # Captures remain on disk; retaining every DPR 2 image grows without bound.
+    images.clear()
+    step(next_topology)
+
+def modifier_baseline():
+    global modifier_targets
+    modifier_targets = [candidate for candidate in candidates if candidate[2] == 'Face']
+    move(modifier_targets[0][1])
+    step(modifier_click)
+
+def modifier_click():
+    click()
+    step(modifier_add)
+
+def modifier_add():
+    first = modifier_targets[0][0]
+    expect_identity(selection_identities(), [(first[0], (first[1],))])
+    move(modifier_targets[1][1])
+    step(modifier_ctrl)
+
+def modifier_ctrl():
+    key_click(0xffe3)
+    expected = sorted((target[0][0], (target[0][1],)) for target in modifier_targets)
+    expect_identity(selection_identities(), expected)
+    current['ctrl_selection'] = expected
+    Gui.Selection.clearSelection()
+    move(QtCore.QPoint(15, 15))
+    if current['name'] == 'nested-assembly' and not current.get('resized'):
+        current['resized'] = True
+        Gui.getMainWindow().resize(original_size.width()-140, original_size.height()-100)
+        hide_dock_ui()
+        view.fitAll()
+        global element_index
+        element_index = -1
+        step(discover_topology, 1000)
+    else:
+        step(next_scenario)

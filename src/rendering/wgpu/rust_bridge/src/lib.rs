@@ -13,7 +13,7 @@ use std::sync::{Arc, Mutex, OnceLock};
 
 mod composition;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 19;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 20;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 pub type CoinWgpuSurfaceId = u64;
@@ -76,7 +76,15 @@ pub struct CoinWgpuDraw {
     pub draw_ordinal: u32,
     pub reserved: u32,
     pub source_revision: u64,
+    pub render_layer: u32,
+    pub clear_depth_before: u32,
 }
+
+const _: () = {
+    assert!(std::mem::size_of::<CoinWgpuDraw>() == 56);
+    assert!(std::mem::offset_of!(CoinWgpuDraw, render_layer) == 48);
+    assert!(std::mem::offset_of!(CoinWgpuDraw, clear_depth_before) == 52);
+};
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Default)]
@@ -657,6 +665,7 @@ struct DeviceState {
     bind_group_layout: wgpu::BindGroupLayout,
     pipeline_layout: wgpu::PipelineLayout,
     pipelines: Mutex<HashMap<PipelineKey, wgpu::RenderPipeline>>,
+    annotation_depth_pipeline: Mutex<Option<wgpu::RenderPipeline>>,
     pipeline_compilations: AtomicU64,
     pipeline_hits: AtomicU64,
     cache: Mutex<GeometryCache>,
@@ -1280,6 +1289,7 @@ fn get_or_init_device_impl<'a>(
         bind_group_layout,
         pipeline_layout,
         pipelines: Mutex::new(HashMap::new()),
+        annotation_depth_pipeline: Mutex::new(None),
         pipeline_compilations: AtomicU64::new(0),
         pipeline_hits: AtomicU64::new(0),
         cache: Mutex::new(GeometryCache::default()),
@@ -1575,6 +1585,38 @@ mod polygon_depth_tests {
     }
 }
 
+// A depth-only fullscreen triangle, clipped to the annotation viewport. Loading
+// depth here preserves the rest of the target; color is never attached.
+fn annotation_depth_clear_pipeline(device: &wgpu::Device) -> wgpu::RenderPipeline {
+    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some("Coin Annotation Depth Clear Shader"),
+        source: wgpu::ShaderSource::Wgsl(std::borrow::Cow::Borrowed(r#"
+            @vertex fn vs_main(@builtin(vertex_index) index: u32) -> @builtin(position) vec4<f32> {
+                let positions = array<vec2<f32>, 3>(
+                    vec2<f32>(-1.0, -1.0), vec2<f32>(3.0, -1.0), vec2<f32>(-1.0, 3.0));
+                return vec4<f32>(positions[index], 1.0, 1.0);
+            }
+        "#)),
+    });
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        label: Some("Coin Annotation Depth Clear Pipeline"),
+        layout: None,
+        vertex: wgpu::VertexState {
+            module: &shader, entry_point: Some("vs_main"), buffers: &[],
+            compilation_options: wgpu::PipelineCompilationOptions::default(),
+        },
+        fragment: None,
+        primitive: wgpu::PrimitiveState::default(),
+        depth_stencil: Some(wgpu::DepthStencilState {
+            format: wgpu::TextureFormat::Depth32Float,
+            depth_write_enabled: true, depth_compare: wgpu::CompareFunction::Always,
+            stencil: wgpu::StencilState::default(), bias: wgpu::DepthBiasState::default(),
+        }),
+        multisample: wgpu::MultisampleState::default(),
+        multiview: None, cache: None,
+    })
+}
+
 fn get_or_create_pipeline<'a>(
     ctx: &'a DeviceState,
     topology: u32,
@@ -1707,6 +1749,21 @@ fn get_or_create_pipeline<'a>(
     Ok(pipeline)
 }
 
+fn resolved_viewport(state: &CoinWgpuRenderState, width: u32, height: u32)
+    -> Result<[i32; 4], (CoinWgpuStatus, String)> {
+    let viewport = if state.viewport[2] == 0 && state.viewport[3] == 0 {
+        [0, 0, width as i32, height as i32]
+    } else { state.viewport };
+    let right = i64::from(viewport[0]) + i64::from(viewport[2]);
+    let bottom = i64::from(viewport[1]) + i64::from(viewport[3]);
+    if viewport[0] < 0 || viewport[1] < 0 || viewport[2] <= 0 || viewport[3] <= 0
+        || right > i64::from(width) || bottom > i64::from(height) {
+        return Err((CoinWgpuStatus::InvalidArgument,
+            format!("Invalid viewport {:?}", viewport)));
+    }
+    Ok(viewport)
+}
+
 // Pure shared command encoder function strictly common to offscreen and window targets
 fn encode_frame(
     ctx: &DeviceState,
@@ -1731,6 +1788,7 @@ fn encode_frame(
     // Composition was preflighted before surface acquisition or target allocation.
     // Preflight the entire lighting payload before cache mutation or command encoding.
     for (state_index, state) in states_slice.iter().enumerate() {
+        resolved_viewport(state, target_width, target_height)?;
         if state.light_count > 8 {
             return Err((CoinWgpuStatus::Unsupported,
                 format!("State {} has more than eight active lights", state_index)));
@@ -2217,22 +2275,51 @@ fn encode_frame(
         }
     }
 
-    // 4. Encode the opaque pass, then a load-preserving transparent pass when needed.
+    // 4. Encode base composition followed by immediate annotation layers.
     let mut encoder = ctx
         .device
         .create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("Coin Frame Encoder"),
         });
 
-    let has_blended_draws = draw_order.iter().any(|item| item.blend);
-    for blended_pass in [false, true].iter().copied().take(if has_blended_draws { 2 } else { 1 }) {
+    let passes = composition::passes(draw_order, draws_slice);
+    let depth_clear_pipeline = if draws_slice.iter().any(|draw| draw.clear_depth_before != 0) {
+        let mut cached = ctx.annotation_depth_pipeline.lock().unwrap();
+        Some(cached.get_or_insert_with(|| annotation_depth_clear_pipeline(&ctx.device)).clone())
+    } else { None };
+    for (pass_index, range) in passes.iter().enumerate() {
+        if let Some(item) = draw_order.get(range.start) {
+            let draw = &draws_slice[item.draw_index];
+            if draw.clear_depth_before != 0 {
+                let viewport = resolved_viewport(&states_slice[draw.render_state_slot as usize],
+                    target_width, target_height)?;
+                let mut clear_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("Coin Annotation Depth Clear"),
+                    color_attachments: &[],
+                    depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                        view: depth_view,
+                        depth_ops: Some(wgpu::Operations {
+                            load: wgpu::LoadOp::Load,
+                            store: wgpu::StoreOp::Store,
+                        }),
+                        stencil_ops: None,
+                    }),
+                    timestamp_writes: None,
+                    occlusion_query_set: None,
+                });
+                clear_pass.set_pipeline(depth_clear_pipeline.as_ref().unwrap());
+                clear_pass.set_scissor_rect(viewport[0] as u32, viewport[1] as u32,
+                    viewport[2] as u32, viewport[3] as u32);
+                clear_pass.draw(0..3, 0..1);
+            }
+        }
         let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-            label: Some(if blended_pass { "Coin Transparent Pass" } else { "Coin Opaque Pass" }),
+            label: Some("Coin Composition Pass"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                 view: color_view,
                 resolve_target: None,
                 ops: wgpu::Operations {
-                    load: if blended_pass { wgpu::LoadOp::Load } else { wgpu::LoadOp::Clear(wgpu::Color {
+                    load: if pass_index != 0 { wgpu::LoadOp::Load } else { wgpu::LoadOp::Clear(wgpu::Color {
                         r: clear_color[0] as f64,
                         g: clear_color[1] as f64,
                         b: clear_color[2] as f64,
@@ -2244,23 +2331,20 @@ fn encode_frame(
             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                 view: depth_view,
                 depth_ops: Some(wgpu::Operations {
-                    load: if blended_pass { wgpu::LoadOp::Load } else { wgpu::LoadOp::Clear(1.0) },
+                    load: if pass_index != 0 { wgpu::LoadOp::Load } else { wgpu::LoadOp::Clear(1.0) },
                     store: wgpu::StoreOp::Store,
                 }),
                 stencil_ops: None,
             }),
             timestamp_writes: timestamp_query.map(|query_set| wgpu::RenderPassTimestampWrites {
                 query_set,
-                beginning_of_pass_write_index: (!blended_pass).then_some(0),
-                end_of_pass_write_index: (blended_pass == has_blended_draws).then_some(1),
+                beginning_of_pass_write_index: (pass_index == 0).then_some(0),
+                end_of_pass_write_index: (pass_index + 1 == passes.len()).then_some(1),
             }),
             occlusion_query_set: None,
         });
 
-        for item in draw_order {
-            if item.blend != blended_pass {
-                continue;
-            }
+        for item in &draw_order[range.clone()] {
             let draw = &draws_slice[item.draw_index];
             if draw.index_count == 0 {
                 continue;
@@ -2458,16 +2542,7 @@ fn encode_frame(
                 &transient_binding
             };
             pass.set_bind_group(0, &binding.bind_group, &[]);
-            let viewport = if st.viewport[2] == 0 && st.viewport[3] == 0 {
-                [0, 0, target_width as i32, target_height as i32]
-            } else { st.viewport };
-            let right = i64::from(viewport[0]) + i64::from(viewport[2]);
-            let bottom = i64::from(viewport[1]) + i64::from(viewport[3]);
-            if viewport[0] < 0 || viewport[1] < 0 || viewport[2] <= 0 || viewport[3] <= 0
-                || right > i64::from(target_width) || bottom > i64::from(target_height) {
-                return Err((CoinWgpuStatus::InvalidArgument,
-                    format!("Draw {} has invalid viewport {:?}", item.draw_index, viewport)));
-            }
+            let viewport = resolved_viewport(st, target_width, target_height)?;
             if !st.depth_range[0].is_finite() || !st.depth_range[1].is_finite()
                 || st.depth_range[0] < 0.0 || st.depth_range[1] > 1.0
                 || st.depth_range[0] > st.depth_range[1] {

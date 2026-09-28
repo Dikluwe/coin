@@ -14,11 +14,16 @@
 #include <string>
 #include <cstdint>
 
+static const size_t COIN_WGPU_MAX_TEXTURE_UNITS = 8;
+
 struct VertexSnapshot {
   float position[3] = {0.0f, 0.0f, 0.0f};
   float normal[3] = {0.0f, 0.0f, 1.0f};
   float texcoord[2] = {0.0f, 0.0f};
   uint32_t materialSlot = 0;
+  float extraTexcoords[COIN_WGPU_MAX_TEXTURE_UNITS - 1][2] = {};
+  float screenSpaceW = 1.0f; // Preserves perspective interpolation after stroke expansion.
+  float fogEyeDepth = -1.0f; // Negative means derive depth from model-view.
 };
 
 enum class PrimitiveTopology : uint32_t {
@@ -43,6 +48,8 @@ struct DrawPacket {
   uint64_t stableNodeId = 0;
   uint32_t drawOrdinal = 0;
   uint64_t sourceRevision = 0;
+  bool hasSortingCenter = false;
+  float sortingCenterWorld[3] = {0, 0, 0};
   uint32_t renderLayer = 0;
   bool clearDepthBefore = false;
 };
@@ -167,6 +174,14 @@ enum class FogMode : uint32_t {
   SMOKE = 3
 };
 
+struct TextureUnitSnapshot {
+  bool enabled = false;
+  uint32_t imageSlot = 0, samplerSlot = 0;
+  TextureModel model = TextureModel::MODULATE;
+  float blendColor[4] = {0, 0, 0, 1};
+  SbMatrix matrix = SbMatrix::identity();
+};
+
 struct RenderStateSnapshot {
   SbMatrix model = SbMatrix::identity();
   SbMatrix view = SbMatrix::identity();
@@ -179,6 +194,7 @@ struct RenderStateSnapshot {
   FrontFace frontFace = FrontFace::CCW;
   bool depthTest = true;
   bool depthWrite = true;
+  uint32_t explicitDepthMask = 0; // test=1, write=2, function=4, range=8; path replay overrides.
   DepthFunction depthFunction = DepthFunction::LESS;
   float depthRange[2] = {0.0f, 1.0f};
   bool polygonOffsetEnabled = false;
@@ -197,12 +213,26 @@ struct RenderStateSnapshot {
   uint32_t samplerSlot = 0;
   TextureModel textureModel = TextureModel::MODULATE;
   float textureBlendColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  float screenDoorTransparency = -1.0f; // Coin stipple uses transparency[0], independently of material binding.
   int32_t transparencyType = 0; // SoGLRenderAction::TransparencyType, captured per draw
   FogMode fogMode = FogMode::NONE;
   float fogColor[3] = {1.0f, 1.0f, 1.0f};
   float fogStart = 0.0f;
   float fogEnd = 10.0f;
+  TextureUnitSnapshot extraTextures[COIN_WGPU_MAX_TEXTURE_UNITS - 1];
 };
+
+inline TextureUnitSnapshot coin_wgpu_texture_unit(const RenderStateSnapshot & state, size_t unit) {
+  if (unit != 0) return state.extraTextures[unit - 1];
+  TextureUnitSnapshot result;
+  result.enabled = state.hasTexture;
+  result.imageSlot = state.textureImageSlot;
+  result.samplerSlot = state.samplerSlot;
+  result.model = state.textureModel;
+  result.matrix = state.textureMatrix;
+  for (int c = 0; c < 4; ++c) result.blendColor[c] = state.textureBlendColor[c];
+  return result;
+}
 
 /**
  * Private, Coin-native description of one captured WebGPU frame.

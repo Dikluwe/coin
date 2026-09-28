@@ -1,5 +1,14 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#else
+#include "src/config.h"
+#endif
 #include <iostream>
 #include "rendering/wgpu/SoWgpuFramePlanBuilder.h"
+#include <Inventor/nodes/SoShape.h>
+#if defined(HAVE_WGPU_BGFX)
+#include "rendering/wgpu/SoWgpuDepthPolicyElement.h"
+#endif
 #include "rendering/wgpu/SoWgpuComposition.h"
 #include "rendering/wgpu/SoWgpuIndexedGeometryCore.h"
 
@@ -25,6 +34,11 @@
 #include <Inventor/elements/SoShapeStyleElement.h>
 #include <Inventor/elements/SoLazyElement.h>
 #include <Inventor/elements/SoMultiTextureImageElement.h>
+#include <Inventor/elements/SoMultiTextureEnabledElement.h>
+#include <Inventor/elements/SoCoordinateElement.h>
+#include <Inventor/details/SoPointDetail.h>
+#include <Inventor/details/SoFaceDetail.h>
+#include <Inventor/details/SoLineDetail.h>
 #include <Inventor/elements/SoMultiTextureMatrixElement.h>
 #include <Inventor/elements/SoTextureQualityElement.h>
 #include <Inventor/elements/SoTextureUnitElement.h>
@@ -227,6 +241,36 @@ static uint64_t computeFnv1a64(const uint8_t * data, size_t len)
 bool
 SoWgpuFramePlanBuilder::captureTexture(SoCallbackAction * action, RenderStateSnapshot & rs, std::string * outError)
 {
+  if (!captureTextureUnit(action, 0, rs, outError)) return false;
+  SoState * state = action ? action->getState() : nullptr;
+  if (!state) return true;
+  int lastEnabled = -1;
+  SoMultiTextureEnabledElement::getEnabledUnits(state, lastEnabled);
+  if (lastEnabled >= static_cast<int>(COIN_WGPU_MAX_TEXTURE_UNITS)) {
+    this->isUnsupported = true;
+    this->builderError = "At most eight texture units are supported";
+    if (outError) *outError = this->builderError;
+    return false;
+  }
+  for (int unit = 1; unit <= lastEnabled; ++unit) {
+    if (!SoMultiTextureEnabledElement::get(state, unit)) continue;
+#if !defined(HAVE_WGPU_BGFX)
+    this->isUnsupported = true;
+    this->builderError = "Multitexture requires the BGFX backend";
+    if (outError) *outError = this->builderError;
+    return false;
+#else
+    RenderStateSnapshot captured;
+    if (!captureTextureUnit(action, unit, captured, outError)) return false;
+    rs.extraTextures[unit - 1] = coin_wgpu_texture_unit(captured, 0);
+#endif
+  }
+  return true;
+}
+
+bool
+SoWgpuFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int unit, RenderStateSnapshot & rs, std::string * outError)
+{
   SoState * state = action ? action->getState() : nullptr;
   if (!state) {
     rs.hasTexture = false;
@@ -235,30 +279,19 @@ SoWgpuFramePlanBuilder::captureTexture(SoCallbackAction * action, RenderStateSna
     return true;
   }
 
-  // 1. Verify if any texture units > 0 have images enabled
-  for (int u = 1; u < 16; ++u) {
-    SbVec2s sz;
-    int nc = 0;
-    SoMultiTextureImageElement::Wrap ws, wt;
-    SoMultiTextureImageElement::Model mod;
-    SbColor blendCol;
-    const unsigned char * p = SoMultiTextureImageElement::get(state, u, sz, nc, ws, wt, mod, blendCol);
-    if (p != nullptr && sz[0] > 0 && sz[1] > 0 && nc > 0) {
-      if (outError) *outError = "Texture units > 0 are not supported in Subwave 3B";
-      this->isUnsupported = true;
-      this->builderError = (outError ? *outError : "Texture units > 0 are not supported in Subwave 3B");
-      return false;
-    }
+  if (!SoMultiTextureEnabledElement::get(state, unit)) {
+    rs.hasTexture = false;
+    return true;
   }
 
-  // 2. Fetch unit 0 image
+  // Fetch this unit image
   SbVec2s imgSize;
   int numComponents = 0;
   SoMultiTextureImageElement::Wrap wrapS;
   SoMultiTextureImageElement::Wrap wrapT;
   SoMultiTextureImageElement::Model model;
   SbColor blendColor;
-  const unsigned char * rawBytes = SoMultiTextureImageElement::get(state, 0, imgSize, numComponents, wrapS, wrapT, model, blendColor);
+  const unsigned char * rawBytes = SoMultiTextureImageElement::get(state, unit, imgSize, numComponents, wrapS, wrapT, model, blendColor);
 
   if (!rawBytes || imgSize[0] <= 0 || imgSize[1] <= 0 || numComponents <= 0) {
     rs.hasTexture = false;
@@ -270,11 +303,11 @@ SoWgpuFramePlanBuilder::captureTexture(SoCallbackAction * action, RenderStateSna
   // Check for procedural/DEFAULT texture coordinates
   const SoMultiTextureCoordinateElement * tcElem = SoMultiTextureCoordinateElement::getInstance(state);
   if (tcElem) {
-    auto ct = tcElem->getType(0);
+    auto ct = tcElem->getType(unit);
     if (ct == SoMultiTextureCoordinateElement::DEFAULT || ct == SoMultiTextureCoordinateElement::FUNCTION) {
-      if (outError) *outError = "Procedural/DEFAULT texture coordinates are not supported in Subwave 3B";
+      if (outError) *outError = "Procedural/DEFAULT texture coordinates are unsupported for texture unit " + std::to_string(unit);
       this->isUnsupported = true;
-      this->builderError = (outError ? *outError : "Procedural/DEFAULT texture coordinates are not supported in Subwave 3B");
+      this->builderError = "Procedural/DEFAULT texture coordinates are unsupported for texture unit " + std::to_string(unit);
       return false;
     }
   }
@@ -474,7 +507,7 @@ SoWgpuFramePlanBuilder::captureTexture(SoCallbackAction * action, RenderStateSna
   }
 
   // 10. Texture matrix
-  rs.textureMatrix = SoMultiTextureMatrixElement::get(state, 0);
+  rs.textureMatrix = SoMultiTextureMatrixElement::get(state, unit);
   rs.hasTexture = true;
   rs.textureImageSlot = texSlot;
   rs.samplerSlot = sampSlot;
@@ -688,6 +721,11 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
   rs.depthTest = depthTest != FALSE;
   rs.depthWrite = depthWrite != FALSE;
   rs.depthFunction = static_cast<DepthFunction>(depthFunction);
+  rs.screenDoorTransparency = std::max(0.0f, std::min(1.0f, SoLazyElement::getTransparency(state, 0)));
+#if defined(HAVE_WGPU_BGFX)
+  if (state->isElementEnabled(SoWgpuDepthPolicyElement::getClassStackIndex()))
+    rs.explicitDepthMask = SoWgpuDepthPolicyElement::get(state);
+#endif
   rs.depthRange[0] = depthRange[0];
   rs.depthRange[1] = depthRange[1];
   SoPolygonOffsetElement::Style offsetStyles;
@@ -737,6 +775,8 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
         existing.depthTest == rs.depthTest &&
         existing.depthWrite == rs.depthWrite &&
         existing.depthFunction == rs.depthFunction &&
+        existing.explicitDepthMask == rs.explicitDepthMask &&
+        existing.screenDoorTransparency == rs.screenDoorTransparency &&
         existing.depthRange[0] == rs.depthRange[0] &&
         existing.depthRange[1] == rs.depthRange[1] &&
         existing.polygonOffsetEnabled == rs.polygonOffsetEnabled &&
@@ -749,6 +789,7 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
         std::memcmp(existing.fogColor, rs.fogColor, sizeof(rs.fogColor)) == 0 &&
         existing.lineWidth == rs.lineWidth &&
         existing.pointSize == rs.pointSize &&
+        std::memcmp(existing.extraTextures, rs.extraTextures, sizeof(rs.extraTextures)) == 0 &&
         existing.hasTexture == rs.hasTexture &&
         existing.linePattern == rs.linePattern &&
         existing.linePatternScaleFactor == rs.linePatternScaleFactor &&
@@ -775,7 +816,7 @@ SoWgpuFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materi
 }
 
 uint32_t
-SoWgpuFramePlanBuilder::addVertex(const SoPrimitiveVertex * pv, uint32_t materialSlot)
+SoWgpuFramePlanBuilder::addVertex(SoCallbackAction * action, const SoPrimitiveVertex * pv, uint32_t materialSlot)
 {
   VertexSnapshot v;
   const SbVec3f & pt = pv->getPoint();
@@ -793,6 +834,55 @@ SoWgpuFramePlanBuilder::addVertex(const SoPrimitiveVertex * pv, uint32_t materia
   v.texcoord[0] = tc[0];
   v.texcoord[1] = tc[1];
   v.materialSlot = materialSlot;
+
+
+  const RenderStateSnapshot & rs = this->currentPlan.renderStates[
+    this->currentPlan.draws[this->currentDrawIndex].renderStateSlot];
+  SoState * state = action->getState();
+  const auto * coords = SoMultiTextureCoordinateElement::getInstance(state);
+  const auto * positions = SoCoordinateElement::getInstance(state);
+  const SoDetail * detail = pv->getDetail();
+  int texIndex = -1;
+  auto matchPoint = [&](const SoPointDetail * point) {
+    if (!point || texIndex >= 0) return;
+    const int index = point->getCoordinateIndex();
+    if (index >= 0 && index < positions->getNum() &&
+        positions->get3(index).equals(pt, 1.0e-10f))
+      texIndex = point->getTextureCoordIndex();
+  };
+  if (detail && detail->isOfType(SoPointDetail::getClassTypeId()))
+    texIndex = static_cast<const SoPointDetail *>(detail)->getTextureCoordIndex();
+  else if (detail && detail->isOfType(SoFaceDetail::getClassTypeId())) {
+    const auto * face = static_cast<const SoFaceDetail *>(detail);
+    for (int i = 0; i < face->getNumPoints(); ++i) matchPoint(face->getPoint(i));
+  } else if (detail && detail->isOfType(SoLineDetail::getClassTypeId())) {
+    const auto * line = static_cast<const SoLineDetail *>(detail);
+    matchPoint(line->getPoint0()); matchPoint(line->getPoint1());
+  }
+  for (size_t unit = 1; unit < COIN_WGPU_MAX_TEXTURE_UNITS; ++unit) {
+    if (!rs.extraTextures[unit - 1].enabled) continue;
+    if (texIndex < 0 || texIndex >= coords->getNum(unit)) {
+      this->hasError = true;
+      this->builderError = "Multitexture explicit coordinates require a valid primitive detail index";
+      continue;
+    }
+    const int dimension = coords->getDimension(unit);
+    if (dimension == 2) {
+      const SbVec2f & uv = coords->get2(unit, texIndex);
+      v.extraTexcoords[unit - 1][0] = uv[0]; v.extraTexcoords[unit - 1][1] = uv[1];
+    } else if (dimension == 3) {
+      const SbVec3f & uv = coords->get3(unit, texIndex);
+      v.extraTexcoords[unit - 1][0] = uv[0]; v.extraTexcoords[unit - 1][1] = uv[1];
+    } else {
+      const SbVec4f & uv = coords->get4(unit, texIndex);
+      if (std::abs(uv[3]) <= 1.0e-8f) {
+        this->isUnsupported = true; this->builderError = "Invalid homogeneous texture coordinate";
+      } else {
+        v.extraTexcoords[unit - 1][0] = uv[0] / uv[3];
+        v.extraTexcoords[unit - 1][1] = uv[1] / uv[3];
+      }
+    }
+  }
 
   uint32_t idx = static_cast<uint32_t>(this->currentPlan.vertices.size());
   this->currentPlan.vertices.push_back(v);
@@ -832,6 +922,30 @@ SoWgpuFramePlanBuilder::ensureDrawPacket(PrimitiveTopology topology, uint32_t re
 }
 
 void
+SoWgpuFramePlanBuilder::captureSortingCenter(SoCallbackAction * action)
+{
+#if defined(HAVE_WGPU_BGFX)
+  auto & draw = this->currentPlan.draws[this->currentDrawIndex];
+  if (draw.geometry.indexCount != 0 || draw.renderLayer != 0) return;
+  const auto & state = this->currentPlan.renderStates[draw.renderStateSlot];
+  const int type = state.transparencyType;
+  if (type != SoGLRenderAction::SORTED_OBJECT_ADD && type != SoGLRenderAction::SORTED_OBJECT_BLEND &&
+      type != SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_ADD &&
+      type != SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND) return;
+  SoNode * node = action->getCurPathTail();
+  if (!node || !node->isOfType(SoShape::getClassTypeId())) return;
+  SbBox3f box; SbVec3f center;
+  static_cast<SoShape *>(node)->computeBBox(action, box, center);
+  if (box.isEmpty()) return;
+  action->getModelMatrix().multVecMatrix(center, center);
+  center.getValue(draw.sortingCenterWorld[0], draw.sortingCenterWorld[1], draw.sortingCenterWorld[2]);
+  draw.hasSortingCenter = true;
+#else
+  (void)action;
+#endif
+}
+
+void
 SoWgpuFramePlanBuilder::addTriangle(SoCallbackAction * action,
                                    const SoPrimitiveVertex * v0,
                                    const SoPrimitiveVertex * v1,
@@ -840,14 +954,15 @@ SoWgpuFramePlanBuilder::addTriangle(SoCallbackAction * action,
   if (!v0 || !v1 || !v2) return;
   uint32_t rsSlot = this->captureRenderState(action, v0->getMaterialIndex());
   this->ensureDrawPacket(PrimitiveTopology::TRIANGLE_LIST, rsSlot, action->getCurPathTail());
+  this->captureSortingCenter(action);
 
   uint32_t m0 = this->captureMaterial(action, v0->getMaterialIndex());
   uint32_t m1 = this->captureMaterial(action, v1->getMaterialIndex());
   uint32_t m2 = this->captureMaterial(action, v2->getMaterialIndex());
 
-  uint32_t i0 = this->addVertex(v0, m0);
-  uint32_t i1 = this->addVertex(v1, m1);
-  uint32_t i2 = this->addVertex(v2, m2);
+  uint32_t i0 = this->addVertex(action, v0, m0);
+  uint32_t i1 = this->addVertex(action, v1, m1);
+  uint32_t i2 = this->addVertex(action, v2, m2);
 
   this->currentPlan.indices.push_back(i0);
   this->currentPlan.indices.push_back(i1);
@@ -866,18 +981,21 @@ SoWgpuFramePlanBuilder::addLine(SoCallbackAction * action,
   if (!v0 || !v1) return;
   uint32_t rsSlot = this->captureRenderState(action, v0->getMaterialIndex());
   if (this->isUnsupported) return;
+#if !defined(HAVE_WGPU_BGFX)
   if (this->currentPlan.renderStates[rsSlot].hasTexture) {
     this->isUnsupported = true;
-    this->builderError = "Textured lines are not supported";
+    this->builderError = "Textured lines/points currently require BGFX";
     return;
   }
+#endif
   this->ensureDrawPacket(PrimitiveTopology::LINE_LIST, rsSlot, action->getCurPathTail());
+  this->captureSortingCenter(action);
 
   uint32_t m0 = this->captureMaterial(action, v0->getMaterialIndex());
   uint32_t m1 = this->captureMaterial(action, v1->getMaterialIndex());
 
-  uint32_t i0 = this->addVertex(v0, m0);
-  uint32_t i1 = this->addVertex(v1, m1);
+  uint32_t i0 = this->addVertex(action, v0, m0);
+  uint32_t i1 = this->addVertex(action, v1, m1);
 
   this->currentPlan.indices.push_back(i0);
   this->currentPlan.indices.push_back(i1);
@@ -894,15 +1012,18 @@ SoWgpuFramePlanBuilder::addPoint(SoCallbackAction * action,
   if (!vertex) return;
   uint32_t rsSlot = this->captureRenderState(action, vertex->getMaterialIndex());
   if (this->isUnsupported) return;
+#if !defined(HAVE_WGPU_BGFX)
   if (this->currentPlan.renderStates[rsSlot].hasTexture) {
     this->isUnsupported = true;
-    this->builderError = "Textured points are not supported";
+    this->builderError = "Textured lines/points currently require BGFX";
     return;
   }
+#endif
   this->ensureDrawPacket(PrimitiveTopology::POINT_LIST, rsSlot, action->getCurPathTail());
+  this->captureSortingCenter(action);
 
   uint32_t m0 = this->captureMaterial(action, vertex->getMaterialIndex());
-  uint32_t i0 = this->addVertex(vertex, m0);
+  uint32_t i0 = this->addVertex(action, vertex, m0);
 
   this->currentPlan.indices.push_back(i0);
 
@@ -911,6 +1032,7 @@ SoWgpuFramePlanBuilder::addPoint(SoCallbackAction * action,
   dp.geometry.indexCount += 1;
 }
 
+#if !defined(HAVE_WGPU_BGFX)
 bool
 SoWgpuFramePlanBuilder::expandStyledPrimitives(std::string * outError)
 {
@@ -1208,6 +1330,293 @@ SoWgpuFramePlanBuilder::expandStyledPrimitives(std::string * outError)
   return true;
 }
 
+#else
+bool
+SoWgpuFramePlanBuilder::expandStyledPrimitives(std::string * outError)
+{
+  const size_t originalDrawCount = this->currentPlan.draws.size();
+  std::vector<DrawPacket> expandedDraws;
+  expandedDraws.reserve(originalDrawCount);
+
+  auto fail = [&](const char * message) {
+    this->hasError = true;
+    this->builderError = message;
+    if (outError) *outError = message;
+    return false;
+  };
+
+  auto materialAt = [&](uint32_t firstSlot, uint32_t secondSlot, float t) -> uint32_t {
+    if (t <= 0.0f || firstSlot == secondSlot) return firstSlot;
+    if (t >= 1.0f) return secondSlot;
+    const MaterialSnapshot first = this->currentPlan.materials[firstSlot];
+    const MaterialSnapshot second = this->currentPlan.materials[secondSlot];
+    MaterialSnapshot material;
+    for (int channel = 0; channel < 4; ++channel) {
+      material.ambient[channel] = first.ambient[channel] +
+        (second.ambient[channel] - first.ambient[channel]) * t;
+      material.diffuse[channel] = first.diffuse[channel] +
+        (second.diffuse[channel] - first.diffuse[channel]) * t;
+      material.specular[channel] = first.specular[channel] +
+        (second.specular[channel] - first.specular[channel]) * t;
+      material.emission[channel] = first.emission[channel] +
+        (second.emission[channel] - first.emission[channel]) * t;
+    }
+    material.shininess = first.shininess +
+      (second.shininess - first.shininess) * t;
+    material.transparency = first.transparency +
+      (second.transparency - first.transparency) * t;
+    for (size_t i = 0; i < this->currentPlan.materials.size(); ++i) {
+      if (std::memcmp(&this->currentPlan.materials[i], &material,
+                      sizeof(MaterialSnapshot)) == 0) {
+        return static_cast<uint32_t>(i);
+      }
+    }
+    const uint32_t slot =
+      static_cast<uint32_t>(this->currentPlan.materials.size());
+    this->currentPlan.materials.push_back(material);
+    return slot;
+  };
+
+  auto appendVertex = [&](float x, float y, float z,
+                          uint32_t materialSlot, const VertexSnapshot & attributes) -> uint32_t {
+    VertexSnapshot vertex = attributes;
+    vertex.position[0] = x;
+    vertex.position[1] = y;
+    vertex.position[2] = z;
+    vertex.normal[2] = 1.0f;
+    vertex.materialSlot = materialSlot;
+    const uint32_t index =
+      static_cast<uint32_t>(this->currentPlan.vertices.size());
+    this->currentPlan.vertices.push_back(vertex);
+    return index;
+  };
+
+  for (size_t drawIndex = 0; drawIndex < originalDrawCount; ++drawIndex) {
+    const DrawPacket original = this->currentPlan.draws[drawIndex];
+    if (original.topology == PrimitiveTopology::TRIANGLE_LIST) {
+      expandedDraws.push_back(original);
+      continue;
+    }
+    if (original.renderStateSlot >= this->currentPlan.renderStates.size()) {
+      return fail("Styled primitive references invalid render state");
+    }
+    const RenderStateSnapshot sourceState =
+      this->currentPlan.renderStates[original.renderStateSlot];
+    if (sourceState.viewportSlot >= this->currentPlan.viewports.size()) {
+      return fail("Styled primitive references invalid viewport");
+    }
+    const ViewportSnapshot viewport =
+      this->currentPlan.viewports[sourceState.viewportSlot];
+    if (viewport.width <= 0 || viewport.height <= 0) {
+      return fail("Styled primitive has an empty viewport");
+    }
+    if (original.geometry.firstIndex > this->currentPlan.indices.size() ||
+        original.geometry.indexCount >
+          this->currentPlan.indices.size() - original.geometry.firstIndex) {
+      return fail("Styled primitive index range is invalid");
+    }
+
+
+
+    RenderStateSnapshot state = sourceState;
+    state.polygonOffsetPrimitiveStyle =
+      original.topology == PrimitiveTopology::LINE_LIST ? 2u : 4u;
+    state.model = SbMatrix::identity();
+    state.view = SbMatrix::identity();
+    state.projectionCoin = SbMatrix::identity();
+    state.cullMode = CullMode::NONE;
+    state.lightModel = LightModel::BASE_COLOR;
+    state.lineWidth = 1.0f;
+    state.pointSize = 1.0f;
+    state.linePattern = 0xffffu;
+    state.linePatternScaleFactor = 1;
+    const uint32_t stateSlot =
+      static_cast<uint32_t>(this->currentPlan.renderStates.size());
+    this->currentPlan.renderStates.push_back(state);
+
+    DrawPacket expanded = original;
+    expanded.topology = PrimitiveTopology::TRIANGLE_LIST;
+    expanded.renderStateSlot = stateSlot;
+    expanded.geometry.firstVertex =
+      static_cast<uint32_t>(this->currentPlan.vertices.size());
+    expanded.geometry.vertexCount = 0;
+    expanded.geometry.firstIndex =
+      static_cast<uint32_t>(this->currentPlan.indices.size());
+    expanded.geometry.indexCount = 0;
+
+    const SbMatrix mvp =
+      sourceState.model * sourceState.view * sourceState.projectionCoin;
+    auto project = [&](const VertexSnapshot & vertex, SbVec3f & ndc, float & clipW) {
+      SbVec4f clip;
+      mvp.multVecMatrix(SbVec4f(vertex.position[0], vertex.position[1],
+                               vertex.position[2], 1.0f), clip);
+      if (!std::isfinite(clip[0]) || !std::isfinite(clip[1]) ||
+          !std::isfinite(clip[2]) || !std::isfinite(clip[3]) ||
+          clip[3] <= 1.0e-6f) return false;
+      clipW = clip[3];
+      ndc.setValue(clip[0] / clip[3], clip[1] / clip[3], clip[2] / clip[3]);
+      return std::isfinite(ndc[0]) && std::isfinite(ndc[1]) &&
+        std::isfinite(ndc[2]);
+    };
+
+
+    const SbMatrix modelView = sourceState.model * sourceState.view;
+    auto eyeDepth = [&](const VertexSnapshot & vertex) {
+      SbVec3f view;
+      modelView.multVecMatrix(SbVec3f(vertex.position), view);
+      return std::max(0.0f, -view[2]);
+    };
+    auto attributesAt = [&](const VertexSnapshot & a, const VertexSnapshot & b,
+                            float wa, float wb, float screenT) {
+      VertexSnapshot out = a;
+      const float inverseW = (1.0f - screenT) / wa + screenT / wb;
+      const float t = (screenT / wb) / inverseW;
+      out.screenSpaceW = 1.0f / inverseW;
+      out.fogEyeDepth = sourceState.fogMode == FogMode::NONE ? -1.0f :
+        eyeDepth(a) * (1.0f - t) + eyeDepth(b) * t;
+      for (int c = 0; c < 2; ++c) {
+        out.texcoord[c] = a.texcoord[c] * (1.0f - t) + b.texcoord[c] * t;
+        for (size_t u = 0; u < COIN_WGPU_MAX_TEXTURE_UNITS - 1; ++u)
+          out.extraTexcoords[u][c] = a.extraTexcoords[u][c] * (1.0f - t) + b.extraTexcoords[u][c] * t;
+      }
+      out.materialSlot = materialAt(a.materialSlot, b.materialSlot, t);
+      return out;
+    };
+
+    if (original.topology == PrimitiveTopology::LINE_LIST) {
+      const float width = std::max(sourceState.lineWidth, 1.0f);
+      const float halfWidth = width * 0.5f;
+      const uint32_t pattern = sourceState.linePattern & 0xffffu;
+      const float patternScale =
+        static_cast<float>(std::max(1, sourceState.linePatternScaleFactor));
+      for (size_t offset = 0; offset + 1 < original.geometry.indexCount;
+           offset += 2) {
+        const uint32_t firstIndex =
+          this->currentPlan.indices[original.geometry.firstIndex + offset];
+        const uint32_t secondIndex =
+          this->currentPlan.indices[original.geometry.firstIndex + offset + 1];
+        if (firstIndex >= this->currentPlan.vertices.size() ||
+            secondIndex >= this->currentPlan.vertices.size()) {
+          return fail("Styled line references invalid vertex");
+        }
+        const VertexSnapshot firstVertex = this->currentPlan.vertices[firstIndex];
+        const VertexSnapshot secondVertex = this->currentPlan.vertices[secondIndex];
+        if (firstVertex.materialSlot >= this->currentPlan.materials.size() ||
+            secondVertex.materialSlot >= this->currentPlan.materials.size()) {
+          return fail("Styled line references invalid material");
+        }
+        SbVec3f firstNdc, secondNdc;
+        float firstW, secondW;
+        if (!project(firstVertex, firstNdc, firstW) || !project(secondVertex, secondNdc, secondW))
+          continue;
+        const float dxPixels =
+          (secondNdc[0] - firstNdc[0]) * 0.5f * viewport.width;
+        const float dyPixels =
+          (secondNdc[1] - firstNdc[1]) * 0.5f * viewport.height;
+        const float lengthPixels =
+          std::sqrt(dxPixels * dxPixels + dyPixels * dyPixels);
+        if (lengthPixels <= 1.0e-6f || pattern == 0u) continue;
+        const float offsetX =
+          (-dyPixels / lengthPixels) * halfWidth * 2.0f / viewport.width;
+        const float offsetY =
+          (dxPixels / lengthPixels) * halfWidth * 2.0f / viewport.height;
+
+        float cursor = 0.0f;
+        while (cursor < lengthPixels - 1.0e-5f) {
+          float next = lengthPixels;
+          bool visible = true;
+          if (pattern != 0xffffu) {
+            const uint32_t patternCell =
+              static_cast<uint32_t>(std::floor(cursor / patternScale));
+            next = std::min(lengthPixels,
+              (static_cast<float>(patternCell) + 1.0f) * patternScale);
+            visible = (pattern & (1u << (patternCell & 15u))) != 0u;
+          }
+          if (next <= cursor + 1.0e-6f)
+            next = std::min(lengthPixels, cursor + patternScale);
+          if (visible) {
+            const float t0 = cursor / lengthPixels;
+            const float t1 = next / lengthPixels;
+            const SbVec3f start = firstNdc + (secondNdc - firstNdc) * t0;
+            const SbVec3f end = firstNdc + (secondNdc - firstNdc) * t1;
+            const VertexSnapshot startAttributes = attributesAt(firstVertex, secondVertex, firstW, secondW, t0);
+            const VertexSnapshot endAttributes = attributesAt(firstVertex, secondVertex, firstW, secondW, t1);
+            const uint32_t startMaterial = startAttributes.materialSlot;
+            const uint32_t endMaterial = endAttributes.materialSlot;
+            const uint32_t base =
+              static_cast<uint32_t>(this->currentPlan.vertices.size());
+            appendVertex(start[0] + offsetX, start[1] + offsetY,
+                         start[2], startMaterial, startAttributes);
+            appendVertex(start[0] - offsetX, start[1] - offsetY,
+                         start[2], startMaterial, startAttributes);
+            appendVertex(end[0] + offsetX, end[1] + offsetY,
+                         end[2], endMaterial, endAttributes);
+            appendVertex(end[0] - offsetX, end[1] - offsetY,
+                         end[2], endMaterial, endAttributes);
+            const uint32_t quadIndices[6] = {
+              base, base + 1, base + 2, base + 2, base + 1, base + 3
+            };
+            this->currentPlan.indices.insert(this->currentPlan.indices.end(),
+                                             quadIndices, quadIndices + 6);
+          }
+          cursor = next;
+        }
+      }
+    } else if (original.topology == PrimitiveTopology::POINT_LIST) {
+      const float halfSize = std::max(sourceState.pointSize, 1.0f) * 0.5f;
+      const float offsetX = halfSize * 2.0f / viewport.width;
+      const float offsetY = halfSize * 2.0f / viewport.height;
+      for (size_t offset = 0; offset < original.geometry.indexCount; ++offset) {
+        const uint32_t vertexIndex =
+          this->currentPlan.indices[original.geometry.firstIndex + offset];
+        if (vertexIndex >= this->currentPlan.vertices.size()) {
+          return fail("Styled point references invalid vertex");
+        }
+        const VertexSnapshot vertex = this->currentPlan.vertices[vertexIndex];
+        if (vertex.materialSlot >= this->currentPlan.materials.size()) {
+          return fail("Styled point references invalid material");
+        }
+        SbVec3f ndc;
+        float clipW;
+        if (!project(vertex, ndc, clipW)) continue;
+        VertexSnapshot attributes = vertex;
+        attributes.screenSpaceW = clipW;
+        attributes.fogEyeDepth = sourceState.fogMode == FogMode::NONE ? -1.0f : eyeDepth(vertex);
+        const uint32_t materialSlot = vertex.materialSlot;
+        const uint32_t base =
+          static_cast<uint32_t>(this->currentPlan.vertices.size());
+        appendVertex(ndc[0] - offsetX, ndc[1] - offsetY,
+                     ndc[2], materialSlot, attributes);
+        appendVertex(ndc[0] + offsetX, ndc[1] - offsetY,
+                     ndc[2], materialSlot, attributes);
+        appendVertex(ndc[0] - offsetX, ndc[1] + offsetY,
+                     ndc[2], materialSlot, attributes);
+        appendVertex(ndc[0] + offsetX, ndc[1] + offsetY,
+                     ndc[2], materialSlot, attributes);
+        const uint32_t quadIndices[6] = {
+          base, base + 1, base + 2, base + 2, base + 1, base + 3
+        };
+        this->currentPlan.indices.insert(this->currentPlan.indices.end(),
+                                         quadIndices, quadIndices + 6);
+      }
+    }
+
+    expanded.geometry.vertexCount =
+      static_cast<uint32_t>(this->currentPlan.vertices.size()) -
+      expanded.geometry.firstVertex;
+    expanded.geometry.indexCount =
+      static_cast<uint32_t>(this->currentPlan.indices.size()) -
+      expanded.geometry.firstIndex;
+    if (expanded.geometry.indexCount != 0) expandedDraws.push_back(expanded);
+  }
+
+  this->currentPlan.draws.swap(expandedDraws);
+  this->hasActiveDraw = false;
+  return true;
+}
+
+#endif
+
 bool
 SoWgpuFramePlanBuilder::build(FramePlan & outPlan, std::string * outError)
 {
@@ -1223,7 +1632,13 @@ SoWgpuFramePlanBuilder::build(FramePlan & outPlan, std::string * outError)
   }
   std::vector<SoWgpuCompositionItem> order;
   std::string compositionError;
-  if (!coin_wgpu_composition_order(this->currentPlan, order, compositionError)) {
+  if (!coin_wgpu_composition_order(this->currentPlan, order, compositionError,
+#if defined(HAVE_WGPU_BGFX)
+      true
+#else
+      false
+#endif
+    )) {
     this->isUnsupported = true;
     this->builderError = compositionError;
     if (outError) *outError = compositionError;
@@ -1308,6 +1723,9 @@ SoWgpuFramePlanBuilder::processIndexedFaceSet(
     if (outError) *outError = "Null SoCallbackAction in processIndexedFaceSet";
     return FastPathResult::INVALID_SCENE;
   }
+  int lastTextureUnit = -1;
+  SoMultiTextureEnabledElement::getEnabledUnits(action->getState(), lastTextureUnit);
+  if (lastTextureUnit > 0) return FastPathResult::FALLBACK_CONTINUE;
   if (view.positions.empty() || view.coordIndex.empty()) {
     return FastPathResult::SUCCESS_PRUNE;
   }
@@ -1348,6 +1766,7 @@ SoWgpuFramePlanBuilder::processIndexedFaceSet(
   }
   this->ensureDrawPacket(
     PrimitiveTopology::TRIANGLE_LIST, renderStateSlot, node, true);
+  this->captureSortingCenter(action);
 
   const uint32_t vertexOffset =
     static_cast<uint32_t>(this->currentPlan.vertices.size());
@@ -1383,6 +1802,13 @@ SoWgpuFramePlanBuilder::processIndexedLineSet(
     if (outError) *outError = "Null SoCallbackAction in processIndexedLineSet";
     return FastPathResult::INVALID_SCENE;
   }
+  int lastTextureUnit = -1;
+  SoMultiTextureEnabledElement::getEnabledUnits(action->getState(), lastTextureUnit);
+#ifdef HAVE_WGPU_BGFX
+  if (lastTextureUnit >= 0) return FastPathResult::FALLBACK_CONTINUE;
+#else
+  if (lastTextureUnit > 0) return FastPathResult::FALLBACK_CONTINUE;
+#endif
   if (view.positions.empty() || view.coordIndex.empty()) {
     return FastPathResult::SUCCESS_PRUNE;
   }
@@ -1422,6 +1848,7 @@ SoWgpuFramePlanBuilder::processIndexedLineSet(
   }
   this->ensureDrawPacket(
     PrimitiveTopology::LINE_LIST, renderStateSlot, node, true);
+  this->captureSortingCenter(action);
 
   const uint32_t vertexOffset =
     static_cast<uint32_t>(this->currentPlan.vertices.size());

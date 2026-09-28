@@ -10,6 +10,10 @@
 struct SoWgpuCompositionItem {
   size_t drawIndex = 0;
   bool blend = false;
+  bool deferred = false;
+  bool additive = false;
+  bool sortTriangles = false;
+  bool sortObject = false;
   float eyeDepth = 0.0f;
   enum TransparencyStrategy {
     OBJECT,
@@ -51,7 +55,8 @@ coin_wgpu_transparency_strategy(int32_t type,
 inline bool
 coin_wgpu_composition_order(const FramePlan & frame,
                             std::vector<SoWgpuCompositionItem> & order,
-                            std::string & diagnostic)
+                            std::string & diagnostic,
+                            bool exactCoin = false)
 {
   order.clear();
   order.reserve(frame.draws.size());
@@ -77,6 +82,7 @@ coin_wgpu_composition_order(const FramePlan & frame,
     }
     SbMatrix modelView = rs.model * rs.view;
     double depthSum = 0.0;
+    float minDepth = 0, maxDepth = 0;
     for (size_t j = first; j < first + count; ++j) {
       const uint32_t vertexIndex = frame.indices[j];
       if (vertexIndex >= frame.vertices.size()) {
@@ -95,37 +101,68 @@ coin_wgpu_composition_order(const FramePlan & frame,
         diagnostic = "Invalid non-finite eye depth in composition order";
         return false;
       }
-      depthSum += -static_cast<double>(viewPosition[2]);
-    }
-    bool textureAlpha = false;
-    if (rs.hasTexture) {
-      if (rs.textureImageSlot >= frame.textures.size()) {
-        diagnostic = "Invalid texture in composition order";
-        return false;
+      float eyeDepth = -viewPosition[2];
+      if (exactCoin && rs.polygonOffsetPrimitiveStyle != 1) {
+        // Expanded strokes are in NDC. Recover their original eye-space depth
+        // from the source camera rather than sorting on normalized depth.
+        const auto & projection = frame.cameras[rs.cameraSlot].projectionMatrixCoin;
+        SbVec3f eye;
+        projection.inverse().multVecMatrix(SbVec3f(vertex.position), eye);
+        eyeDepth = -eye[2];
       }
-      int8_t & cached = textureHasAlpha[rs.textureImageSlot];
+      if (j == first) minDepth = maxDepth = eyeDepth;
+      else { minDepth = std::min(minDepth, eyeDepth); maxDepth = std::max(maxDepth, eyeDepth); }
+      depthSum += eyeDepth;
+    }
+    for (size_t unit = 0; unit < COIN_WGPU_MAX_TEXTURE_UNITS; ++unit) {
+      const TextureUnitSnapshot tex = coin_wgpu_texture_unit(rs, unit);
+      if (!tex.enabled) continue;
+      if (tex.imageSlot >= frame.textures.size()) {
+        diagnostic = "Invalid texture in composition order"; return false;
+      }
+      int8_t & cached = textureHasAlpha[tex.imageSlot];
       if (cached < 0) {
-        const TextureImageSnapshot & texture = frame.textures[rs.textureImageSlot];
-        const std::vector<uint8_t> & pixels = texture.pixelsRgba;
+        const TextureImageSnapshot & texture = frame.textures[tex.imageSlot];
         cached = texture.gpuToken != 0 && !texture.gpuOpaque ? 1 : 0;
-        for (size_t byte = 3; byte < pixels.size(); byte += 4) {
-          if (pixels[byte] != 255) { cached = 1; break; }
-        }
+        for (size_t byte = 3; byte < texture.pixelsRgba.size(); byte += 4)
+          if (texture.pixelsRgba[byte] != 255) { cached = 1; break; }
       }
-      textureAlpha = cached != 0;
+      if (tex.model == TextureModel::REPLACE) materialAlpha = cached != 0;
+      else if (tex.model != TextureModel::DECAL) materialAlpha = materialAlpha || cached != 0;
     }
-    if (rs.hasTexture && rs.textureModel == TextureModel::REPLACE) materialAlpha = false;
-    if (rs.hasTexture && rs.textureModel == TextureModel::DECAL) textureAlpha = false;
 
     SoWgpuCompositionItem item;
     item.drawIndex = i;
-    item.blend = materialAlpha || textureAlpha;
-    item.eyeDepth = count ? static_cast<float>(depthSum / static_cast<double>(count)) : 0.0f;
+    item.blend = materialAlpha;
+    item.eyeDepth = count ? (exactCoin ? (minDepth + maxDepth) * 0.5f : static_cast<float>(depthSum / static_cast<double>(count))) : 0.0f;
+    if (exactCoin && draw.hasSortingCenter) {
+      SbVec3f center;
+      frame.cameras[rs.cameraSlot].viewMatrix.multVecMatrix(SbVec3f(draw.sortingCenterWorld), center);
+      item.eyeDepth = -center[2];
+    }
     if (!std::isfinite(item.eyeDepth)) {
       diagnostic = "Invalid non-finite average eye depth in composition order";
       return false;
     }
-    if (item.blend) {
+    if (exactCoin) {
+      switch (rs.transparencyType) {
+      case SoGLRenderAction::NONE:
+      case SoGLRenderAction::SCREEN_DOOR: item.blend = false; break;
+      case SoGLRenderAction::ADD: item.additive = true; break;
+      case SoGLRenderAction::BLEND: break;
+      case SoGLRenderAction::DELAYED_ADD: item.additive = true; item.deferred = item.blend; break;
+      case SoGLRenderAction::DELAYED_BLEND: item.deferred = item.blend; break;
+      case SoGLRenderAction::SORTED_OBJECT_ADD: item.additive = true; item.sortObject = true; item.deferred = item.blend; break;
+      case SoGLRenderAction::SORTED_OBJECT_BLEND: item.sortObject = true; item.deferred = item.blend; break;
+      case SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_ADD:
+        item.additive = true; item.sortTriangles = true; item.sortObject = true; item.deferred = item.blend; break;
+      case SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND:
+        item.sortTriangles = true; item.sortObject = true; item.deferred = item.blend; break;
+      case SoGLRenderAction::SORTED_LAYERS_BLEND:
+        item.deferred = item.blend; item.transparencyStrategy = SoWgpuCompositionItem::SORTED_LAYERS; break;
+      default: diagnostic = "Unknown Coin transparency mode"; return false;
+      }
+    } else if (item.blend) {
       const char * mapping = NULL;
       if (!coin_wgpu_transparency_strategy(rs.transparencyType,
                                             item.transparencyStrategy,
@@ -141,7 +178,7 @@ coin_wgpu_composition_order(const FramePlan & frame,
     }
     order.push_back(item);
   }
-  std::stable_sort(order.begin(), order.end(), [&frame](const SoWgpuCompositionItem & a,
+  std::stable_sort(order.begin(), order.end(), [&frame, exactCoin](const SoWgpuCompositionItem & a,
                                                    const SoWgpuCompositionItem & b) {
     const uint32_t layerA = frame.draws[a.drawIndex].renderLayer;
     const uint32_t layerB = frame.draws[b.drawIndex].renderLayer;
@@ -149,6 +186,13 @@ coin_wgpu_composition_order(const FramePlan & frame,
     // Overlay layers follow immediate traversal order: their opaque depth
     // writers and translucent labels can depend on the exact submission order.
     if (layerA != 0) return false;
+    if (exactCoin) {
+      if (a.deferred != b.deferred) return !a.deferred;
+      // Coin renders its sorted path list before its unsorted delayed list.
+      if (!a.deferred) return false;
+      if (a.sortObject != b.sortObject) return a.sortObject;
+      return a.sortObject && a.eyeDepth > b.eyeDepth;
+    }
     if (a.blend != b.blend) return !a.blend;
     return a.blend && a.eyeDepth > b.eyeDepth;
   });

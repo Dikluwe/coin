@@ -13,6 +13,8 @@
 #include <Inventor/nodes/SoEnvironment.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoMaterial.h>
+#include <Inventor/nodes/SoComplexity.h>
+#include <Inventor/nodes/SoSphere.h>
 #include <Inventor/nodes/SoNormal.h>
 #include <Inventor/nodes/SoNormalBinding.h>
 #include <Inventor/nodes/SoPerspectiveCamera.h>
@@ -32,11 +34,21 @@
 #include <string>
 #include <vector>
 
-static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 19, "Polygon offset bridge protocol");
+static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 20, "Annotation bridge protocol");
 static_assert(sizeof(CoinWgpuLight) == 64, "3C light layout");
 
 namespace {
 enum SceneLight { DIRECTIONAL, POINT, SPOT_INSIDE, SPOT_OUTSIDE };
+
+bool gpuAvailable() {
+#if defined(HAVE_WGPU_BGFX)
+  // The legacy convenience probe deliberately excludes the experimental BGFX
+  // profile. This test must nevertheless submit to it, never silently skip it.
+  return true;
+#else
+  return SoWgpuRenderAction::isGpuBackendAvailable();
+#endif
+}
 
 bool check(bool condition, const char * message) {
   if (!condition) std::cerr << "WgpuLightingTest: " << message << "\n";
@@ -116,7 +128,7 @@ SoSeparator * makeScene(SceneLight kind, int lightCount,
 }
 
 bool renderCenter(SoSeparator * root, bool cpu, std::array<int, 3> & rgb,
-                  float * centerDepth = nullptr) {
+                  float * centerDepth = nullptr, int sampleX = 32, int sampleY = 32) {
   SoWgpuRenderTarget * target =
     SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
   if (!check(target != NULL, "createOffscreen failed")) return false;
@@ -148,7 +160,7 @@ bool renderCenter(SoSeparator * root, bool cpu, std::array<int, 3> & rgb,
   if (!check(success && pixels.size() == 64u * 64u * 4u &&
              (depth.size() == 64u * 64u || (!cpu && depth.empty())),
              "color/depth readback failed")) return false;
-  const size_t center = 32u * 64u + 32u;
+  const size_t center = static_cast<size_t>(sampleY) * 64u + sampleX;
   if (!depth.empty()) {
     if (!check(std::isfinite(depth[center]) && depth[center] >= 0.0f &&
                depth[center] <= 1.0f, "invalid center depth")) return false;
@@ -164,7 +176,7 @@ bool checkParity(SoSeparator * root, std::array<int, 3> & cpuRgb,
                  std::array<int, 3> * gpuResult = nullptr) {
   float cpuDepth = 1.0f;
   if (!renderCenter(root, true, cpuRgb, &cpuDepth)) return false;
-  if (!SoWgpuRenderAction::isGpuBackendAvailable()) return true;
+  if (!gpuAvailable()) return true;
   std::array<int, 3> gpuRgb = {{0, 0, 0}};
   float gpuDepth = 1.0f;
   if (!renderCenter(root, false, gpuRgb, &gpuDepth)) return false;
@@ -183,7 +195,7 @@ bool checkParity(SoSeparator * root, std::array<int, 3> & cpuRgb,
 }
 bool checkBridgeLimit() {
 #if defined(HAVE_WGPU_RUST_BRIDGE)
-  if (!SoWgpuRenderAction::isGpuBackendAvailable()) return true;
+  if (!gpuAvailable()) return true;
   CoinWgpuRenderState state{};
   state.light_count = 9;
   CoinWgpuFrameView frame{};
@@ -212,14 +224,15 @@ bool checkBridgeLimit() {
 #endif
 }
 
-bool renderGlCenter(SoSeparator * root, std::array<int, 3> & rgb) {
+bool renderGlCenter(SoSeparator * root, std::array<int, 3> & rgb,
+                    int sampleX = 32, int sampleY = 32) {
   SoOffscreenRenderer renderer(SbViewportRegion(64, 64));
   renderer.setComponents(SoOffscreenRenderer::RGB);
   renderer.setBackgroundColor(SbColor(0.0f, 0.0f, 0.0f));
   if (!renderer.render(root)) return false;
   const unsigned char * pixels = renderer.getBuffer();
   if (!pixels) return false;
-  const size_t index = (32u * 64u + 32u) * 3u;
+  const size_t index = (static_cast<size_t>(63 - sampleY) * 64u + sampleX) * 3u;
   for (int c = 0; c < 3; ++c) rgb[c] = pixels[index + c];
   return true;
 }
@@ -231,7 +244,7 @@ bool checkGlReference(const std::array<int, 3> & cpu,
                       int tolerance = 12) {
   for (int c = 0; c < 3; ++c) {
     if (std::abs(gl[c] - cpu[c]) > tolerance ||
-        (SoWgpuRenderAction::isGpuBackendAvailable() &&
+        (gpuAvailable() &&
          std::abs(gl[c] - gpu[c]) > tolerance)) {
       std::cerr << "Coin/GL mismatch in " << scene << " channel " << c
                 << ": GL=" << gl[c] << " CPU=" << cpu[c]
@@ -243,12 +256,131 @@ bool checkGlReference(const std::array<int, 3> & cpu,
 }
 }
 
+// These oracles are independent of both implementations. PHONG is Coin's
+// reflectance model; fixed-function GL_SMOOTH interpolates *lit colors*, not
+// normals, positions or material properties. In particular, a spotlight whose
+// cone misses all vertices does not illuminate the middle of a coarse face.
+bool checkGouraudOracles(bool glAvailable) {
+  SoSeparator * curved = makeScene(DIRECTIONAL, 1);
+  auto * material = static_cast<SoMaterial *>(curved->getChild(3));
+  material->diffuseColor.setValue(0.0f, 0.0f, 0.0f);
+  material->specularColor.setValue(1.0f, 1.0f, 1.0f);
+  material->shininess = 16.0f / 128.0f;
+  auto * normals = new SoNormal;
+  const SbVec3f curvedNormals[] = {
+    SbVec3f(0.8f, 0, 0.6f), SbVec3f(0, 0.8f, 0.6f),
+    SbVec3f(-0.8f, 0, 0.6f), SbVec3f(0, -0.8f, 0.6f)
+  };
+  normals->vector.setValues(0, 4, curvedNormals);
+  curved->insertChild(normals, curved->getNumChildren() - 1);
+  auto * binding = new SoNormalBinding;
+  binding->value = SoNormalBinding::PER_VERTEX_INDEXED;
+  curved->insertChild(binding, curved->getNumChildren() - 1);
+
+  SoSeparator * point = makeScene(POINT, 1);
+  SoSeparator * spot = makeScene(SPOT_INSIDE, 1);
+  SoSeparator * drop = makeScene(SPOT_INSIDE, 1);
+  auto * spotLight = static_cast<SoSpotLight *>(drop->getChild(2));
+  spotLight->cutOffAngle = 1.2f;
+  spotLight->dropOffRate = 1.0f / 128.0f;
+
+  SoSeparator * grazing = makeScene(DIRECTIONAL, 1);
+  static_cast<SoDirectionalLight *>(grazing->getChild(2))->direction.setValue(1, 0, 0);
+  auto * grazingMaterial = static_cast<SoMaterial *>(grazing->getChild(3));
+  grazingMaterial->diffuseColor.setValue(0, 0, 0);
+  grazingMaterial->specularColor.setValue(1, 1, 1);
+  grazingMaterial->shininess = 0.1f / 128.0f;
+  auto * grazingNormal = new SoNormal;
+  grazingNormal->vector.setValue(-0.6f, 0, -0.8f);
+  grazing->insertChild(grazingNormal, grazing->getNumChildren() - 1);
+  auto * grazingBinding = new SoNormalBinding;
+  grazingBinding->value = SoNormalBinding::OVERALL;
+  grazing->insertChild(grazingBinding, grazing->getNumChildren() - 1);
+
+  // All four vertices have the same distance / angle in these scenes.
+  const float pointExpected = 255.0f * 0.8f * 0.8f * 2.0f / std::sqrt(6.0f);
+  const float dropExpected = 255.0f * 0.8f * 0.8f / 3.0f;
+  const float specularExpected = 255.0f * 0.35f * std::pow(0.6f, 16.0f);
+  struct Oracle { SoSeparator * root; float value; const char * name; };
+  const Oracle cases[] = {
+    {curved, specularExpected, "curved normals: specular before interpolation"},
+    {point, pointExpected, "broad point-light face: vertex distance"},
+    {spot, 0.0f, "spot cone misses vertices: no fragment relighting"},
+    {drop, dropExpected, "spot drop-off: vertex cone factor"},
+    {grazing, 0.0f, "negative N.H: no artificial specular floor"}
+  };
+  for (const auto & oracle : cases) {
+    for (bool cpu : {true, false}) {
+      if (!cpu && !gpuAvailable()) continue;
+      std::array<int, 3> rgb{};
+      if (!renderCenter(oracle.root, cpu, rgb)) return false;
+      for (int channel = 0; channel < 3; ++channel) {
+        if (std::abs(rgb[channel] - oracle.value) > 3.0f) {
+          std::cerr << "Gouraud oracle failed: " << oracle.name
+                    << " cpu=" << cpu << " actual=" << rgb[channel]
+                    << " expected=" << oracle.value << "\n";
+          return false;
+        }
+      }
+    }
+    if (glAvailable) {
+      std::array<int, 3> gl{};
+      if (!renderGlCenter(oracle.root, gl)) return false;
+      for (int channel = 0; channel < 3; ++channel)
+        if (!check(std::abs(gl[channel] - oracle.value) <= 3.0f,
+                   oracle.name)) return false;
+    }
+    std::cout << "Gouraud oracle PASS: " << oracle.name << "\n";
+  }
+  for (const auto & oracle : cases) oracle.root->unref();
+  return true;
+}
+
+bool checkCurvedSurface(bool glAvailable) {
+  // Real SoSphere primitive callbacks, not just a flat face with supplied normals.
+  for (SceneLight kind : {DIRECTIONAL, POINT, SPOT_INSIDE}) {
+    SoSeparator * root = makeScene(kind, 1);
+    root->removeChild(root->getNumChildren() - 1);
+    root->removeChild(root->getNumChildren() - 1);
+    auto * material = static_cast<SoMaterial *>(root->getChild(3));
+    material->diffuseColor.setValue(0.3f, 0.4f, 0.5f);
+    material->specularColor.setValue(0.7f, 0.6f, 0.5f);
+    material->shininess = 0.2f;
+    auto * complexity = new SoComplexity;
+    complexity->value = 0.25f;
+    root->addChild(complexity);
+    auto * sphere = new SoSphere;
+    sphere->radius = 0.65f;
+    root->addChild(sphere);
+    if (kind == SPOT_INSIDE) {
+      auto * light = static_cast<SoSpotLight *>(root->getChild(2));
+      light->location.setValue(0.2f, 0.0f, 2.0f);
+      light->cutOffAngle = 0.6f;
+      light->dropOffRate = 0.1f;
+    }
+    for (const auto & pixel : {std::array<int, 2>{{24, 32}}, {{40, 32}},
+                               {{32, 24}}, {{32, 40}}, {{28, 28}}}) {
+      std::array<int, 3> cpu{}, gpu{}, gl{};
+      if (!renderCenter(root, true, cpu, nullptr, pixel[0], pixel[1])) return false;
+      if (gpuAvailable() && !renderCenter(root, false, gpu, nullptr, pixel[0], pixel[1])) return false;
+      for (int channel = 0; channel < 3; ++channel)
+        if (gpuAvailable() && !check(std::abs(cpu[channel] - gpu[channel]) <= 3,
+                                    "curved sphere CPU/GPU Gouraud mismatch")) return false;
+      if (glAvailable && (!renderGlCenter(root, gl, pixel[0], pixel[1]) ||
+                         !checkGlReference(cpu, gpu, gl, "curved sphere", 3))) return false;
+    }
+    root->unref();
+    std::cout << "Curved sphere Gouraud PASS: light=" << kind << "\n";
+  }
+  return true;
+}
+
 int main() {
   const bool requireGlReference = std::getenv("COIN_WGPU_REQUIRE_GL_REFERENCE") != nullptr;
   SoDB::init();
   SoWgpuRenderAction::initClass();
   if (requireGlReference &&
-      !check(SoWgpuRenderAction::isGpuBackendAvailable(),
+      !check(gpuAvailable(),
              "required WebGPU backend unavailable")) return 1;
   if (!checkBridgeLimit()) return 1;
 
@@ -283,8 +415,36 @@ int main() {
   } else {
     std::cout << "[SKIP] Coin/GL offscreen reference unavailable\n";
   }
+  if (!checkGouraudOracles(glAvailable) || !checkCurvedSurface(glAvailable)) return 1;
   one->unref();
   two->unref();
+
+  // GL_LIGHT_MODEL_LOCAL_VIEWER defaults to false: even an off-axis
+  // fragment sees the eye at +Z infinity, not at the camera origin.
+  SoSeparator * specularRef = makeScene(DIRECTIONAL, 1);
+  auto * specularMaterial = static_cast<SoMaterial *>(specularRef->getChild(3));
+  specularMaterial->diffuseColor.setValue(0.0f, 0.0f, 0.0f);
+  specularMaterial->specularColor.setValue(0.9f, 0.5f, 0.2f);
+  specularMaterial->shininess = 0.8f;
+  std::array<int, 3> specularCenter{}, specularGpu{}, specularGl{};
+  if (!checkParity(specularRef, specularCenter, &specularGpu)) return 1;
+  if (!check(specularCenter[0] > 70, "specular reference is dark")) return 1;
+  if (glAvailable && (!renderGlCenter(specularRef, specularGl) ||
+      !checkGlReference(specularCenter, specularGpu, specularGl, "infinite viewer specular", 2))) return 1;
+  for (int x : {16, 48}) {
+    std::array<int, 3> offAxisCpu{}, offAxisGpu{};
+    if (!renderCenter(specularRef, true, offAxisCpu, nullptr, x, 32)) return 1;
+    if (gpuAvailable() &&
+        !renderCenter(specularRef, false, offAxisGpu, nullptr, x, 32)) return 1;
+    for (int channel = 0; channel < 3; ++channel) {
+      if (!check(std::abs(offAxisCpu[channel] - specularCenter[channel]) <= 2,
+                 "off-axis CPU specular used a local viewer") ||
+          (gpuAvailable() &&
+           !check(std::abs(offAxisGpu[channel] - specularGpu[channel]) <= 2,
+                  "off-axis GPU specular used a local viewer"))) return 1;
+    }
+  }
+  specularRef->unref();
 
   SoSeparator * ambientRef = makeScene(DIRECTIONAL, 0, SbVec3f(0, 0, 1),
                                        1.0f, 0.0f, 0.1f);
@@ -330,10 +490,9 @@ int main() {
   if (!checkParity(pointConstant, pointRgb) || !checkParity(pointLinear, linearRgb) ||
       !check(pointRgb[0] > linearRgb[0] + 20, "point attenuation has no effect")) return 1;
   if (glAvailable) {
-    // Coin/GL shades vertices; a small quad avoids interpolation across a broad
-    // attenuation gradient when comparing it to WebGPU's fragment lighting.
-    SoSeparator * pointRefConstant = makeScene(POINT, 1, SbVec3f(0, 0, 1), 1.0f, 0.0f, 0.1f);
-    SoSeparator * pointRefLinear = makeScene(POINT, 1, SbVec3f(0, 1, 0), 1.0f, 0.0f, 0.1f);
+    // Broad faces deliberately exercise Gouraud positional-light interpolation.
+    SoSeparator * pointRefConstant = makeScene(POINT, 1);
+    SoSeparator * pointRefLinear = makeScene(POINT, 1, SbVec3f(0, 1, 0));
     std::array<int, 3> refConstant = {{0, 0, 0}}, refLinear = {{0, 0, 0}};
     std::array<int, 3> gpuConstant = {{0, 0, 0}}, gpuLinear = {{0, 0, 0}};
     std::array<int, 3> glConstant = {{0, 0, 0}}, glLinear = {{0, 0, 0}};
@@ -398,8 +557,8 @@ int main() {
              "degenerate point attenuation was not rejected")) return 1;
   degenerateAttenuation->unref();
 
-  SoSeparator * inside = makeScene(SPOT_INSIDE, 1);
-  SoSeparator * outside = makeScene(SPOT_OUTSIDE, 1);
+  SoSeparator * inside = makeScene(SPOT_INSIDE, 1, SbVec3f(0, 0, 1), 1.0f, 0.0f, 0.1f);
+  SoSeparator * outside = makeScene(SPOT_OUTSIDE, 1, SbVec3f(0, 0, 1), 1.0f, 0.0f, 0.1f);
   std::array<int, 3> insideRgb = {{0, 0, 0}}, outsideRgb = {{0, 0, 0}};
   if (!checkParity(inside, insideRgb) || !checkParity(outside, outsideRgb) ||
       !check(insideRgb[0] > outsideRgb[0] + 20, "spot cone has no effect")) return 1;
@@ -428,8 +587,8 @@ int main() {
   inside->unref();
   outside->unref();
 
-  SoSeparator * spotHard = makeScene(SPOT_INSIDE, 1);
-  SoSeparator * spotSoft = makeScene(SPOT_INSIDE, 1);
+  SoSeparator * spotHard = makeScene(SPOT_INSIDE, 1, SbVec3f(0, 0, 1), 1.0f, 0.0f, 0.1f);
+  SoSeparator * spotSoft = makeScene(SPOT_INSIDE, 1, SbVec3f(0, 0, 1), 1.0f, 0.0f, 0.1f);
   SoSpotLight * hardLight = static_cast<SoSpotLight *>(spotHard->getChild(2));
   SoSpotLight * softLight = static_cast<SoSpotLight *>(spotSoft->getChild(2));
   hardLight->location.setValue(0.3f, 0.0f, 1.0f);

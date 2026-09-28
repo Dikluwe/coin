@@ -9,14 +9,18 @@ Ela **não** promove WebGPU à API/ABI pública de `libCoin` no Coin 4.
 `coin_wgpu_experimental_query_capabilities()` retorna um struct C versionado
 (`CoinWgpuExperimentalCapabilities`) para `OFFSCREEN` ou `XLIB_WINDOW`.
 `features` descreve o perfil **compilado**; `gpu_available` informa, de forma
-separada, se o backend encontrou um adaptador nesta máquina. Retorno 1 indica
-alvo não suportado, 2 indica buffer inválido ou curto; nesses erros o buffer
-do chamador permanece intacto. O chamador deve fornecer `sizeof` do struct
-da versão 1. Não há negociação de versões futuras nesta onda.
+separada, se o backend encontrou um adaptador nesta máquina. A versão 2 também
+expõe `probe_status`, renderer, IDs de vendor/device, limite de attachments,
+flags normalizadas para RGBA8, D24S8, D32F, RGBA16F e R16F, além de MRT,
+independent blend, compute e timestamps. Retorno 1 indica alvo não suportado, 2
+indica buffer inválido ou curto; nesses erros o buffer permanece intacto. O
+prefixo exato da struct v1 continua aceito e é devolvido com `version=1`; novos
+consumidores fornecem `sizeof` da v2.
 
 | Backend | Offscreen | Janela Xlib/Linux | GPU | Readback assíncrono | RTT direto |
 | --- | --- | --- | --- | --- | --- |
 | Rust bridge | Sim | Sim | Se houver adaptador | Offscreen | Offscreen, opt-in |
+| BGFX | Sim | Sim | Probe temporário Vulkan/OpenGL | Não | Não |
 | Recording/CPU | Sim | Não | Não | Não | Não |
 | Dawn/wgpu-native spike | Sem perfil anunciado | Não | Não | Não | Não |
 
@@ -30,7 +34,8 @@ essa rota, não que esteja ligada naquele processo. Consulte
 
 ## Manager e viewer
 
-`SoWgpuSceneManager` é um dono pequeno de `SoWgpuRenderAction` e
+`SoWgpuSceneManager` é um dono pequeno de `SoWgpuRenderAction` (ou
+`SoBGFXRenderAction` em builds BGFX) e
 `SoWgpuRenderTarget`, não um substituto de `SoRenderManager`/`SoSceneManager`.
 Inicialize `SoDB` e registre a action antes de construí-lo. O manager retém
 uma referência da raiz passada a `setSceneGraph()`, aceita resize inclusive

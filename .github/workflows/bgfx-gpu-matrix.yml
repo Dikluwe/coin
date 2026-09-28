@@ -1,0 +1,77 @@
+name: BGFX physical GPU matrix
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bgfx-linux-gpu:
+    name: ${{ matrix.name }}
+    runs-on: [self-hosted, linux, x64, gpu, "${{ matrix.runner }}"]
+    timeout-minutes: 60
+    concurrency:
+      group: bgfx-gpu-${{ matrix.runner }}
+      cancel-in-progress: false
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: AMD · RADV · Vulkan
+            runner: amd-mesa
+            renderer: vulkan
+            vendor_pattern: AMD|Advanced Micro Devices
+            driver_pattern: radv|MESA_RADV
+            vendor_id: "0x1002"
+          - name: AMD · radeonsi · OpenGL
+            runner: amd-mesa
+            renderer: opengl
+            vendor_pattern: AMD|ATI
+            driver_pattern: radeonsi
+            vendor_id: ""
+          - name: Intel · Vulkan
+            runner: intel
+            renderer: vulkan
+            vendor_pattern: Intel
+            driver_pattern: ANV|Intel open-source Mesa|Mesa Intel
+            vendor_id: "0x8086"
+          - name: Intel · OpenGL
+            runner: intel
+            renderer: opengl
+            vendor_pattern: Intel
+            driver_pattern: iris|crocus|Intel
+            vendor_id: ""
+          - name: NVIDIA · Vulkan
+            runner: nvidia
+            renderer: vulkan
+            vendor_pattern: NVIDIA
+            driver_pattern: NVIDIA
+            vendor_id: "0x10de"
+          - name: NVIDIA · OpenGL
+            runner: nvidia
+            renderer: opengl
+            vendor_pattern: NVIDIA
+            driver_pattern: NVIDIA
+            vendor_id: ""
+    env:
+      COIN_BGFX_PREFIX: ${{ vars.COIN_BGFX_PREFIX }}
+      COIN_CI_GPU_VENDOR_PATTERN: ${{ matrix.vendor_pattern }}
+      COIN_CI_GPU_DRIVER_PATTERN: ${{ matrix.driver_pattern }}
+      COIN_CI_GPU_VENDOR_ID: ${{ matrix.vendor_id }}
+      COIN_CI_BUILD_DIR: ${{ github.workspace }}/cmake-bgfx-${{ matrix.renderer }}
+      COIN_CI_EVIDENCE_DIR: ${{ github.workspace }}/gpu-matrix-evidence
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - name: Verify and test physical GPU
+        run: .github/scripts/build-and-test-bgfx-gpu.sh "${{ matrix.renderer }}"
+      - name: Upload GPU evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: bgfx-${{ matrix.runner }}-${{ matrix.renderer }}-evidence
+          path: gpu-matrix-evidence/
+          if-no-files-found: warn

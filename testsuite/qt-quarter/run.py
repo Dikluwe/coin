@@ -12,9 +12,9 @@ import sys
 
 CASES = ('first-expose', 'frame-coalescing', 'idle', 'resize', 'maximize',
          'minimize', 'panel', 'dpr', 'recreate', 'wheel-rotation',
-         'two-viewports', 'freecad-multi', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-delayed-overlays', 'freecad-grid', 'freecad-path-selection', 'freecad-selection-menu', 'navicube', 'depth', 'polygon-offset', 'annotation',
+         'two-viewports', 'freecad-multi', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-delayed-overlays', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu', 'navicube', 'depth', 'polygon-offset', 'annotation',
          'foregroundroot', 'decorationroot', 'axis-cross', 'rubber-band')
-EXIT = {'PASS': 0, 'SKIP': 77, 'UNSUPPORTED': 78, 'FAIL': 1}
+EXIT = {'PASS': 0, 'REFERENCE_PASS': 0, 'SKIP': 77, 'UNSUPPORTED': 78, 'FAIL': 1}
 
 def execute(command, env, timeout):
     # FreeCAD may launch helper processes which otherwise retain stdout and
@@ -29,7 +29,7 @@ def execute(command, env, timeout):
             output, _ = proc.communicate()
             return -signal.SIGKILL, output + '\nHARNESS_TIMEOUT\n'
 
-def classify(code, output):
+def classify(code, output, require_bgfx=True):
     """Exit and structured result must agree; initialization is not submission."""
     matches = re.findall(r'^RESULT (.+)$', output, re.MULTILINE)
     try:
@@ -38,7 +38,9 @@ def classify(code, output):
         result = {}
     if result.get('status') not in EXIT or EXIT.get(result.get('status')) != code:
         return dict(status='FAIL', reason=f'missing/inconsistent RESULT; process exit {code}')
-    if result['status'] == 'PASS' and 'COIN_WGPU_PHASE bgfx lower_ms=' not in output:
+    if require_bgfx and (result.get('reference_gl') is True or result['status'] == 'REFERENCE_PASS'):
+        return dict(status='FAIL', reason='Coin/GL reference cannot count as BGFX validation')
+    if require_bgfx and result['status'] == 'PASS' and 'COIN_WGPU_PHASE bgfx lower_ms=' not in output:
         return dict(status='FAIL', reason='no BGFX submission evidence (GL fallback is not a pass)')
     return result
 
@@ -59,6 +61,13 @@ def session_locked():
             ('org.freedesktop.ScreenSaver', '/org/freedesktop/ScreenSaver'),
             ('org.gnome.ScreenSaver', '/org/gnome/ScreenSaver')):
         try:
+            owner = subprocess.run(
+                ['dbus-send', '--session', '--dest=org.freedesktop.DBus',
+                 '--type=method_call', '--print-reply', '/org/freedesktop/DBus',
+                 'org.freedesktop.DBus.NameHasOwner', 'string:' + service],
+                text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=1)
+            if owner.returncode != 0 or parse_lock_state(owner.stdout) is not True:
+                continue  # Never auto-start a screensaver just to read its state.
             probe = subprocess.run(
                 ['dbus-send', '--session', '--dest=' + service, '--type=method_call',
                  '--print-reply', path, service + '.GetActive'],
@@ -75,6 +84,24 @@ def select_variants(variants, modes=None, scales=None):
             if (not modes or v[0] in modes)
             and (not scales or v[2] in scales)]
 
+def checkpoint_results(directory, results):
+    checkpoint = directory / 'results.json.tmp'
+    checkpoint.write_text(json.dumps(results, indent=2))
+    checkpoint.replace(directory / 'results.json')
+
+def prepare_profile(profile, case):
+    profile.mkdir(exist_ok=True)
+    user = profile / 'user.cfg'
+    if case in ('freecad-mouse-links', 'freecad-mouse-link-topology') and not user.exists():
+        # This fixture tests model selection, not dock-overlay click-through.
+        # Initialize BEFORE DockWindowManager constructs its overlay controls.
+        user.write_text('''<?xml version="1.0" encoding="UTF-8"?>
+<FCParameters><FCParamGroup Name="Root"><FCParamGroup Name="BaseApp">
+<FCParamGroup Name="Preferences"><FCParamGroup Name="DockWindows">
+<FCBool Name="ActivateOverlay" Value="0"/>
+</FCParamGroup></FCParamGroup></FCParamGroup></FCParamGroup></FCParameters>
+''')
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--harness', required=True, type=Path)
@@ -88,7 +115,13 @@ def main():
     parser.add_argument('--freecad', type=Path, help='FreeCAD executable for real Face1 -> Face2 preselection')
     parser.add_argument('--timeout', type=int, default=45)
     parser.add_argument('--require-hardware', action='store_true')
+    parser.add_argument('--reference-gl', action='store_true',
+                        help='Coin/GL-only link baseline; never reports BGFX PASS')
     args = parser.parse_args()
+    if args.reference_gl and (args.case not in (['freecad-mouse-links'], ['freecad-mouse-link-topology']) or
+                              args.renderer != ['opengl'] or args.require_hardware or
+                              args.mode not in (None, ['object'])):
+        parser.error('--reference-gl requires one link case (freecad-mouse-links or freecad-mouse-link-topology), --renderer opengl, and no --require-hardware')
     args.artifacts = args.artifacts.resolve()
     args.artifacts.mkdir(parents=True, exist_ok=True)
     inventory = {}
@@ -105,7 +138,8 @@ def main():
                   'harness_sha256': hashlib.sha256(args.harness.read_bytes()).hexdigest() if args.harness.is_file() else None,
                   'environment': {key: os.environ.get(key) for key in
                     ('DISPLAY', 'LD_LIBRARY_PATH', 'VK_ICD_FILENAMES', 'VK_DRIVER_FILES',
-                     'EGL_PLATFORM', 'LIBGL_ALWAYS_SOFTWARE',
+                     'EGL_PLATFORM', '__EGL_VENDOR_LIBRARY_FILENAMES', '__GLX_VENDOR_LIBRARY_NAME',
+                     'DRI_PRIME', 'LIBGL_ALWAYS_SOFTWARE',
                      'MESA_LOADER_DRIVER_OVERRIDE', 'QT_QPA_PLATFORM',
                      'QT_OPENGL', 'QT_SCALE_FACTOR')}}
     (args.artifacts / 'provenance.json').write_text(json.dumps(provenance, indent=2))
@@ -121,14 +155,18 @@ def main():
                         for alpha in ('opaque', 'translucent') for scale in (1,)] if case == 'navicube' else [('object', 'opaque', s) for s in ((1, 2) if case == 'dpr' else (1,))]
             if case in ('two-viewports', 'freecad-multi', 'freecad-legacy-polyline', 'freecad-delayed-overlays'):
                 variants = [(mode, 'opaque', 1) for mode in ('object', 'weighted_oit')]
-            if case in ('freecad-overlays', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-selection-menu'):
+            if case in ('freecad-overlays', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu'):
                 variants = [(mode, 'opaque', scale) for mode in ('object', 'weighted_oit')
                             for scale in (1, 2)]
+            if args.reference_gl:
+                variants = [('object', 'opaque', scale) for scale in (1, 2)]
             variants = select_variants(variants, args.mode, args.scale)
             for mode, alpha, scale in variants:
                 directory = args.artifacts / f'{renderer}-{mode}-{alpha}-{scale}x-{case}'
                 directory.mkdir(exist_ok=True)
-                env = dict(os.environ, FREECAD_COIN_WGPU='1', QT_QPA_PLATFORM='xcb',
+                env = dict(os.environ, FREECAD_COIN_WGPU='0' if args.reference_gl else '1',
+                           COIN_TEST_GL_REFERENCE='1' if args.reference_gl else '0',
+                           QT_QPA_PLATFORM='xcb',
                            COIN_WGPU_TRACE_PHASES='1', COIN_BGFX_RENDERER=renderer,
                            COIN_BGFX_TRANSPARENCY=mode, COIN_TEST_ALPHA=alpha,
                            QT_SCALE_FACTOR=str(scale), COIN_TEST_ARTIFACTS=str(directory),
@@ -136,13 +174,13 @@ def main():
                 if not env.get('DISPLAY'):
                     result = dict(status='SKIP', reason='no DISPLAY; native X11 surface cannot execute')
                     output = ''
-                elif case in ('hover', 'freecad-multi', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-selection-menu') and session_locked() is True:
+                elif case in ('hover', 'freecad-multi', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu') and session_locked() is True:
                     result = dict(status='SKIP', reason='desktop session locked; screen capture unavailable')
                     output = ''
                 elif case == 'maximize' and not window_manager:
                     result = dict(status='SKIP', reason='no EWMH window manager; maximize/restore cannot be verified')
                     output = ''
-                elif case in ('hover', 'freecad-multi', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-selection-menu', 'freecad-delayed-overlays') and not args.freecad:
+                elif case in ('hover', 'freecad-multi', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu', 'freecad-delayed-overlays') and not args.freecad:
                     result = dict(status='UNSUPPORTED', reason='--freecad required for real FreeCAD viewport tests')
                     output = ''
                 elif case in ('freecad-delayed-overlays', 'freecad-selection-menu') and not Path(env.get('COIN_TEST_DELAYED_HELPER', '')).is_file():
@@ -153,7 +191,7 @@ def main():
                     output = ''
                 else:
                     command = [str(args.harness.resolve()), case]
-                    if case in ('hover', 'freecad-multi', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-selection-menu', 'freecad-delayed-overlays'):
+                    if case in ('hover', 'freecad-multi', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu', 'freecad-delayed-overlays'):
                         macro = {'hover': 'freecad_hover.FCMacro', 'freecad-multi': 'freecad_multi.FCMacro',
                                  'freecad-overlays': 'freecad_overlays.FCMacro',
                                  'freecad-legacy-polyline': 'freecad_legacy_polyline.FCMacro',
@@ -161,9 +199,13 @@ def main():
                                  'freecad-delayed-overlays': 'freecad_delayed_overlays.FCMacro',
                                  'freecad-grid': 'freecad_grid.FCMacro',
                                  'freecad-path-selection': 'freecad_path_selection.FCMacro',
+                                 'freecad-mouse-picking': 'freecad_mouse_picking.FCMacro',
+                                 'freecad-mouse-elements': 'freecad_mouse_elements.FCMacro',
+                                 'freecad-mouse-links': 'freecad_mouse_links.FCMacro',
+                                 'freecad-mouse-link-topology': 'freecad_mouse_link_topology.FCMacro',
                                  'freecad-selection-menu': 'freecad_selection_menu.FCMacro'}[case]
                         profile = directory / 'private-profile'
-                        profile.mkdir(exist_ok=True)
+                        prepare_profile(profile, case)
                         command = [str(args.freecad.resolve()),
                                    '--user-cfg', str(profile / 'user.cfg'),
                                    '--system-cfg', str(profile / 'system.cfg'),
@@ -174,8 +216,13 @@ def main():
                         env.update(FREECAD_COIN_WGPU='0', QT_QPA_PLATFORM='offscreen')
                     try:
                         code, output = execute(command, env, args.timeout)
-                        result = classify(code, output)
-                        if case in ('hover', 'freecad-multi', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-selection-menu') and code in (0, 1) and session_locked() is True:
+                        result = classify(code, output, require_bgfx=not args.reference_gl)
+                        if args.reference_gl and result['status'] == 'PASS':
+                            if result.get('reference_gl') is True:
+                                result['status'] = 'REFERENCE_PASS'
+                            else:
+                                result.update(status='FAIL', reason='reference macro did not identify Coin/GL')
+                        if case in ('hover', 'freecad-multi', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu') and code in (0, 1) and session_locked() is True:
                             result = dict(status='SKIP', reason='session locked during screen capture',
                                           captured_result=result)
                         if 'HARNESS_TIMEOUT' in output:
@@ -204,8 +251,10 @@ def main():
                     result.update(status='FAIL', reason='physical GPU execution was not proven')
                 (directory / 'result.json').write_text(json.dumps(result, indent=2))
                 results.append(result)
+                # Preserve completed cells if a long matrix is interrupted.
+                checkpoint_results(args.artifacts, results)
                 print(f"{result['status']:11} {directory.name}: {result.get('reason', '')}", flush=True)
-    (args.artifacts / 'results.json').write_text(json.dumps(results, indent=2))
+    checkpoint_results(args.artifacts, results)
     counts = {status: sum(r['status'] == status for r in results) for status in EXIT}
     print(json.dumps(counts))
     return next((EXIT[status] for status in ('FAIL', 'SKIP', 'UNSUPPORTED') if counts[status]), 0)

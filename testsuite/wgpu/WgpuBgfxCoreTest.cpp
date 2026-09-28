@@ -157,16 +157,18 @@ int main()
 
   const size_t originalDrawCount = plan.draws.size();
   frame.renderStates[0].fogMode = FogMode::FOG;
-  ok &= check(!SoWgpuBgfxCore::lower(frame, 4, 4, false, plan, diagnostic) &&
-              !diagnostic.empty() && plan.draws.size() == originalDrawCount,
-              "unsupported fog must fail transactionally");
+  frame.renderStates[0].fogEnd = 10.0f;
+  ok &= check(SoWgpuBgfxCore::lower(frame, 4, 4, false, plan, diagnostic) &&
+              plan.draws.size() == originalDrawCount &&
+              plan.draws[0].fogColorMode[3] == 2.0f && plan.draws[0].fogRange[1] == 10.0f,
+              "fog must be lowered into draw uniforms");
   frame.renderStates[0].fogMode = FogMode::NONE;
   frame.materials[0].diffuse[3] = 0.5f;
   frame.materials[0].transparency = 0.5f;
   frame.renderStates[0].transparencyType = SoGLRenderAction::ADD;
-  ok &= check(!SoWgpuBgfxCore::lower(frame, 4, 4, false, plan, diagnostic) &&
-              diagnostic.find("supported mappings") != std::string::npos,
-              "additive transparency without an equivalent strategy must be rejected");
+  ok &= check(SoWgpuBgfxCore::lower(frame, 4, 4, false, plan, diagnostic) &&
+              plan.draws[0].additive && !plan.draws[0].deferred && plan.draws[0].depthWrite,
+              "ADD must preserve immediate additive blending and depth writes");
   frame.renderStates[0].transparencyType = SoGLRenderAction::SORTED_OBJECT_BLEND;
   ok &= check(SoWgpuBgfxCore::lower(frame, 4, 4, false, plan, diagnostic) &&
               plan.draws.size() == 1 && plan.draws[0].blend &&
@@ -180,9 +182,9 @@ int main()
                 translucentCubeDepthPlan, diagnostic) &&
               translucentCubeDepthPlan.draws[0].blend &&
               translucentCubeDepthPlan.draws[0].depthTest &&
-              translucentCubeDepthPlan.draws[0].depthWrite &&
+              !translucentCubeDepthPlan.draws[0].depthWrite &&
               translucentCubeDepthPlan.draws[0].depthFunction == DepthFunction::LEQUAL,
-              "transparent cube depth-write LEQUAL state was not preserved");
+              "delayed transparency must disable depth writes while preserving LEQUAL");
   frame.renderStates[0].depthWrite = false;
   SoWgpuBgfxPlan labelDepthPlan;
   ok &= check(SoWgpuBgfxCore::lower(frame, 4, 4, false,
@@ -234,17 +236,16 @@ int main()
   std::vector<SoWgpuBgfxDraw> complexDraws(8, plan.draws[0]);
   ok &= check(SoWgpuBgfxCore::selectTransparencyStrategy(complexDraws,
                 SoWgpuBgfxTransparencyMode::AUTO, true, true, selected, diagnostic) &&
-              selected == SoWgpuBgfxTransparencyStrategy::WEIGHTED_OIT,
-              "complex AUTO transparency must use weighted_oit");
+              selected == SoWgpuBgfxTransparencyStrategy::OBJECT,
+              "AUTO must preserve Coin ordering regardless of object count");
   ok &= check(SoWgpuBgfxCore::selectTransparencyStrategy(complexDraws,
                 SoWgpuBgfxTransparencyMode::OBJECT, false, false, selected, diagnostic) &&
               selected == SoWgpuBgfxTransparencyStrategy::OBJECT,
               "explicit object mode must remain the compatibility override");
-  ok &= check(!SoWgpuBgfxCore::selectTransparencyStrategy(complexDraws,
+  ok &= check(SoWgpuBgfxCore::selectTransparencyStrategy(complexDraws,
                 SoWgpuBgfxTransparencyMode::AUTO, false, true, selected, diagnostic) &&
-              selected == SoWgpuBgfxTransparencyStrategy::WEIGHTED_OIT &&
-              diagnostic.find("no fallback") != std::string::npos,
-              "missing independent blending must fail instead of falling back");
+              selected == SoWgpuBgfxTransparencyStrategy::OBJECT,
+              "ordinary Coin transparency must not require independent blending");
   ok &= check(!SoWgpuBgfxCore::selectTransparencyStrategy(complexDraws,
                 SoWgpuBgfxTransparencyMode::WEIGHTED_OIT, false, true,
                 selected, diagnostic) &&
@@ -288,6 +289,7 @@ int main()
               "mixed-scene selection must not depend on draw order");
   plan.draws[0].transparencyStrategy = SoWgpuBgfxTransparencyStrategy::OBJECT;
   std::vector<SoWgpuBgfxDraw> unordered(5, plan.draws[0]);
+  for (auto & draw : unordered) { draw.deferred = true; draw.depthWrite = true; draw.depthFunction = DepthFunction::LESS; }
   unordered[0].blend = false;
   unordered[0].materialSignature = 2;
   unordered[0].firstIndex = 10;

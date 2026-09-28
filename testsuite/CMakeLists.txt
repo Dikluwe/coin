@@ -96,13 +96,34 @@ target_include_directories(CoinTests PRIVATE
 	${COIN_TARGET_INCLUDE_DIRECTORIES}
 )
 if(NOT WIN32)
-	target_sources(CoinTests PRIVATE GLUWrapperTest.cpp)
+	target_sources(CoinTests PRIVATE GLUWrapperTest.cpp GLUNurbsColorMapTest.cpp)
 	target_include_directories(CoinTests PRIVATE ${PROJECT_BINARY_DIR}/src)
 endif()
 if (USE_PTHREAD)
 	target_link_libraries(CoinTests pthread)
 endif()
 add_test(NAME CoinTests COMMAND CoinTests)
+
+# This render regression requires a real GLX display; enable it explicitly in
+# environments with X11 or run CTest under xvfb-run.
+option(COIN_TEST_NURBS_COLOR_GLX "Enable NURBS control-color GLX render tests" OFF)
+if(COIN_TEST_NURBS_COLOR_GLX)
+  find_package(X11 REQUIRED)
+  find_package(OpenGL REQUIRED)
+  add_executable(NurbsControlColorRenderTest
+    reproducers/nurbs-control-colors/repro.cpp)
+  target_include_directories(NurbsControlColorRenderTest PRIVATE
+    ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+    ${X11_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR})
+  target_link_libraries(NurbsControlColorRenderTest
+    Coin ${X11_LIBRARIES} OpenGL::GL)
+  add_test(NAME NurbsControlColorRender
+    COMMAND NurbsControlColorRenderTest)
+  add_test(NAME IndexedNurbsControlColorRender
+    COMMAND NurbsControlColorRenderTest indexed)
+  set_tests_properties(NurbsControlColorRender IndexedNurbsControlColorRender
+    PROPERTIES TIMEOUT 30)
+endif()
 
 add_test(NAME CoinConfigCompatibility
   COMMAND ${CMAKE_COMMAND}
@@ -245,6 +266,26 @@ if(COIN_BUILD_WGPU)
 	add_test(NAME WgpuFrameCoreTest COMMAND WgpuFrameCoreTest)
 	set_tests_properties(WgpuFrameCoreTest PROPERTIES TIMEOUT 30)
 
+	if(COIN_WGPU_BACKEND STREQUAL "BGFX")
+	add_executable(BgfxReadbackModesTest wgpu/BgfxReadbackModesTest.cpp)
+	set_target_properties(BgfxReadbackModesTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(BgfxReadbackModesTest CoinWgpuExperimental Coin)
+	target_include_directories(BgfxReadbackModesTest PRIVATE ${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	foreach(renderer vulkan opengl)
+		add_test(NAME BgfxReadbackModes_${renderer} COMMAND ${CMAKE_COMMAND} -E env COIN_BGFX_RENDERER=${renderer} COIN_BGFX_TRANSPARENCY=auto $<TARGET_FILE:BgfxReadbackModesTest>)
+		set_tests_properties(BgfxReadbackModes_${renderer} PROPERTIES TIMEOUT 90)
+	endforeach()
+	add_executable(BgfxSurfaceFeaturesTest wgpu/BgfxSurfaceFeaturesTest.cpp)
+	set_target_properties(BgfxSurfaceFeaturesTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(BgfxSurfaceFeaturesTest CoinWgpuExperimental Coin)
+	target_include_directories(BgfxSurfaceFeaturesTest PRIVATE ${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	foreach(renderer vulkan opengl)
+		foreach(mode object weighted_oit sorted_layers)
+			add_test(NAME BgfxSurface_${renderer}_${mode} COMMAND ${CMAKE_COMMAND} -E env COIN_BGFX_RENDERER=${renderer} COIN_BGFX_TRANSPARENCY=${mode} $<TARGET_FILE:BgfxSurfaceFeaturesTest>)
+			set_tests_properties(BgfxSurface_${renderer}_${mode} PROPERTIES TIMEOUT 90)
+		endforeach()
+	endforeach()
+	endif()
 	add_executable(WgpuBgfxCoreTest wgpu/WgpuBgfxCoreTest.cpp
 		${PROJECT_SOURCE_DIR}/src/rendering/wgpu/SoWgpuBgfxCore.cpp)
 	set_target_properties(WgpuBgfxCoreTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
@@ -261,9 +302,7 @@ if(COIN_BUILD_WGPU)
 	add_executable(WgpuDepthContractTest wgpu/WgpuDepthContractTest.cpp
 		${PROJECT_SOURCE_DIR}/src/rendering/wgpu/SoWgpuBgfxCore.cpp
 		${PROJECT_SOURCE_DIR}/src/rendering/wgpu/SoWgpuFramePlanBuilder.cpp)
-	if(NOT COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE")
-		target_sources(WgpuDepthContractTest PRIVATE ${PROJECT_SOURCE_DIR}/src/rendering/wgpu/SoWgpuFfiFrame.cpp)
-	endif()
+	target_sources(WgpuDepthContractTest PRIVATE ${PROJECT_SOURCE_DIR}/src/rendering/wgpu/SoWgpuFfiFrame.cpp)
 	set_target_properties(WgpuDepthContractTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 	target_link_libraries(WgpuDepthContractTest CoinWgpuExperimental Coin)
 	target_include_directories(WgpuDepthContractTest PRIVATE
@@ -559,6 +598,34 @@ if(COIN_BUILD_WGPU)
 	add_test(NAME WgpuLightingTest COMMAND WgpuLightingTest)
 	set_tests_properties(WgpuLightingTest PROPERTIES TIMEOUT 30)
 
+	add_executable(WgpuGouraudInterpolationTest
+		wgpu/WgpuGouraudInterpolationTest.cpp
+	)
+	set_target_properties(WgpuGouraudInterpolationTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(WgpuGouraudInterpolationTest CoinWgpuExperimental Coin)
+	target_include_directories(WgpuGouraudInterpolationTest PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}
+		${PROJECT_SOURCE_DIR}/experimental/include
+		${PROJECT_SOURCE_DIR}/include
+		${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include
+		${PROJECT_BINARY_DIR}/src
+		${COIN_TARGET_INCLUDE_DIRECTORIES}
+	)
+	add_test(NAME WgpuGouraudInterpolationTest COMMAND WgpuGouraudInterpolationTest)
+	set_tests_properties(WgpuGouraudInterpolationTest PROPERTIES TIMEOUT 30)
+	if(COIN_WGPU_BACKEND STREQUAL "BGFX")
+		foreach(_gouraud_renderer vulkan opengl)
+			foreach(_gouraud_mode object weighted_oit sorted_layers)
+				add_test(NAME WgpuGouraud_${_gouraud_renderer}_${_gouraud_mode}
+					COMMAND WgpuGouraudInterpolationTest)
+				set_tests_properties(WgpuGouraud_${_gouraud_renderer}_${_gouraud_mode}
+					PROPERTIES TIMEOUT 30 ENVIRONMENT
+					"COIN_BGFX_RENDERER=${_gouraud_renderer};COIN_BGFX_TRANSPARENCY=${_gouraud_mode}")
+			endforeach()
+		endforeach()
+	endif()
+
 	add_executable(WgpuFogTest
 		wgpu/WgpuFogTest.cpp
 	)
@@ -590,6 +657,10 @@ if(COIN_BUILD_WGPU)
 	)
 	add_test(NAME WgpuCompositionTest COMMAND WgpuCompositionTest)
 	set_tests_properties(WgpuCompositionTest PROPERTIES TIMEOUT 30)
+	if(COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE")
+		add_test(NAME WgpuAnnotationTest COMMAND WgpuCompositionTest --annotations)
+		set_tests_properties(WgpuAnnotationTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77)
+	endif()
 
 	add_executable(WgpuSceneTextureTest wgpu/WgpuSceneTextureTest.cpp)
 	set_target_properties(WgpuSceneTextureTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
@@ -733,6 +804,15 @@ if(COIN_BUILD_WGPU)
 		find_program(COIN_XVFB_RUN_EXECUTABLE xvfb-run)
 		if(NOT COIN_XVFB_RUN_EXECUTABLE)
 			message(FATAL_ERROR "COIN_TEST_WGPU_GL_REFERENCE requires xvfb-run")
+		endif()
+		if(COIN_WGPU_BACKEND STREQUAL "BGFX")
+			foreach(renderer vulkan opengl)
+				add_test(NAME BgfxReadbackModes_${renderer}_GlReference
+					COMMAND ${CMAKE_COMMAND} -E env COIN_BGFX_RENDERER=${renderer} COIN_BGFX_TRANSPARENCY=auto
+					COIN_BGFX_COMPARE_GL=1 COIN_GLX_PIXMAP_DIRECT_RENDERING=1 COIN_GLXGLUE_NO_PBUFFERS=1
+					${COIN_XVFB_RUN_EXECUTABLE} -a $<TARGET_FILE:BgfxReadbackModesTest>)
+				set_tests_properties(BgfxReadbackModes_${renderer}_GlReference PROPERTIES TIMEOUT 90)
+			endforeach()
 		endif()
 		add_test(NAME WgpuLightingGlReferenceTest
 			COMMAND ${CMAKE_COMMAND} -E env

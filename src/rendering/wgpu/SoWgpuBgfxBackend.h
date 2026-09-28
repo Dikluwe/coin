@@ -5,6 +5,7 @@
 #include "rendering/wgpu/SoWgpuBgfxCore.h"
 #include "rendering/wgpu/SoWgpuFrameReuseCore.h"
 
+#include <Inventor/rendering/SoWgpuRenderTarget.h>
 #include <bgfx/bgfx.h>
 #include <memory>
 #include <thread>
@@ -26,12 +27,20 @@ public:
                                    uint64_t & token);
   void releaseDirectTexture(uint64_t token);
   void finishDirectTextures(const std::vector<uint64_t> & usedTokens);
+  struct AsyncEntry;
+  SubmitResult submitAsync(const FramePlan & frame, SoWgpuRenderTargetP & target,
+                           SoWgpuReadbackTicket & ticket, const SoWgpuFrameReuseDecision & reuse);
+  static SoWgpuRenderTarget::ReadbackStatus pollReadback(const SoWgpuReadbackTicket & ticket,
+    std::vector<uint8_t> & color, std::vector<float> & depth, SbString * diagnostic);
+  static bool cancelReadback(const SoWgpuReadbackTicket & ticket);
   void poll() override;
   const std::string & getLastError() const override { return lastError; }
 
 private:
   struct ReadbackSlot {
     bgfx::TextureHandle texture = BGFX_INVALID_HANDLE;
+    bgfx::TextureHandle depthTexture = BGFX_INVALID_HANDLE;
+    std::vector<float> depth;
     std::vector<uint8_t> pixels;
     uint32_t readyFrame = 0;
     uint64_t sequence = 0;
@@ -46,6 +55,8 @@ private:
     bool inUse = false;
   };
 
+  SubmitResult submitInternal(const FramePlan & frame, SoWgpuRenderTargetP & target,
+                              const SoWgpuFrameReuseDecision & reuse, SoWgpuReadbackTicket * ticket);
   bool resize(int width, int height);
   BackendStatus checkRuntimeFailure(const char * operation);
   void destroyResources();
@@ -69,7 +80,7 @@ private:
                          const std::vector<bgfx::TextureHandle> & textures);
   void bindDrawTexture(const SoWgpuBgfxDraw & draw,
                        const std::vector<bgfx::TextureHandle> & textures);
-  void bindDrawLighting(const SoWgpuBgfxDraw & draw);
+  void bindDrawLighting(const SoWgpuBgfxDraw & draw, int targetHeight = 0);
   bool onApiThread() const;
   BackendStatus status;
 
@@ -83,6 +94,7 @@ private:
   bool presentToWindow;
   bool cameraPatchEnabled;
   bool drawGroupingEnabled;
+  bool readbackDepthEnabled = false;
   uint32_t readbackPipelineDepth;
   uint32_t readbackCursor;
   uint64_t readbackSequence;
@@ -96,6 +108,9 @@ private:
   int height;
   bgfx::VertexLayout layout;
   bgfx::ProgramHandle program;
+  bgfx::ProgramHandle depthReadProgram;
+  bgfx::UniformHandle readDepthSampler;
+  bgfx::FrameBufferHandle depthReadFrameBuffer;
   bgfx::ProgramHandle peelNextProgram;
   bgfx::ProgramHandle compositeProgram;
   bgfx::ProgramHandle weightedOitProgram;
@@ -107,9 +122,13 @@ private:
   bgfx::UniformHandle oitRevealSampler;
   bgfx::UniformHandle depthInfoUniform;
   bgfx::UniformHandle coinDepthUniform;
+  bgfx::UniformHandle screenDoorUniform;
   bgfx::VertexBufferHandle fullscreenVertexBuffer;
   bgfx::IndexBufferHandle fullscreenIndexBuffer;
   bgfx::UniformHandle textureSampler;
+  bgfx::UniformHandle extraTextureSamplers[COIN_WGPU_MAX_TEXTURE_UNITS - 1];
+  bgfx::UniformHandle fogColorModeUniform;
+  bgfx::UniformHandle fogRangeUniform;
   bgfx::UniformHandle textureParamsUniform;
   bgfx::UniformHandle textureBlendUniform;
   bgfx::UniformHandle ambientLightUniform;
@@ -124,6 +143,7 @@ private:
   bgfx::TextureHandle readbackTexture;
   std::vector<ReadbackSlot> readbackSlots;
   std::vector<uint8_t> lastPublishedReadback;
+  std::vector<float> lastPublishedDepth;
   uint64_t lastPublishedSequence;
   std::vector<DirectTextureResource> directTextures;
   uint64_t cachedRevision;

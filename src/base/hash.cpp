@@ -347,7 +347,30 @@ cc_hash_get_num_elements(cc_hash * ht)
 void
 cc_hash_set_hash_func(cc_hash * ht, cc_hash_func * func)
 {
+  if (func == NULL) func = hash_default_hashfunc;
+  if (ht->hashfunc == func) return;
+
+  cc_hash_entry ** oldbuckets = ht->buckets;
+  const unsigned int size = ht->size;
+  cc_hash_entry ** newbuckets =
+    (cc_hash_entry **) calloc(size, sizeof(cc_hash_entry *));
+  assert(newbuckets != NULL);
+  if (newbuckets == NULL) return;
+
   ht->hashfunc = func;
+  ht->buckets = newbuckets;
+
+  for (unsigned int i = 0; i < size; i++) {
+    cc_hash_entry * entry = oldbuckets[i];
+    while (entry != NULL) {
+      cc_hash_entry * next = entry->next;
+      const unsigned int idx = hash_get_index(ht, entry->key);
+      entry->next = ht->buckets[idx];
+      ht->buckets[idx] = entry;
+      entry = next;
+    }
+  }
+  free(oldbuckets);
 }
 
 /*!
@@ -391,5 +414,55 @@ cc_hash_print_stat(cc_hash * ht)
                          "Used buckets %u of %u (%u elements), "
                          "avg chain length: %.2f, max chain length: %u\n",
                          used_buckets, ht->size, ht->elements,
-                         (float)ht->elements / used_buckets, max_chain_l);
+                         used_buckets > 0 ?
+                           (float)ht->elements / used_buckets : 0.0f,
+                         max_chain_l);
 }
+
+#ifdef COIN_TEST_SUITE
+
+static cc_hash_key
+cc_hash_test_hash(const cc_hash_key key)
+{
+  return (key >> 3) ^ (key * 33);
+}
+
+BOOST_AUTO_TEST_CASE(cc_hash_rehashes_when_hash_function_changes)
+{
+  cc_hash * hash = cc_hash_construct(7, 0.75f);
+  int first = 1;
+  int second = 2;
+  int third = 3;
+  void * value = NULL;
+
+  BOOST_CHECK(cc_hash_put(hash, 1, &first));
+  BOOST_CHECK(cc_hash_put(hash, 8, &second));
+  BOOST_CHECK(cc_hash_put(hash, 15, &third));
+
+  cc_hash_set_hash_func(hash, cc_hash_test_hash);
+  BOOST_CHECK(cc_hash_get(hash, 1, &value));
+  BOOST_CHECK(value == &first);
+  BOOST_CHECK(cc_hash_get(hash, 8, &value));
+  BOOST_CHECK(value == &second);
+  BOOST_CHECK(cc_hash_get(hash, 15, &value));
+  BOOST_CHECK(value == &third);
+
+  cc_hash_set_hash_func(hash, NULL);
+  BOOST_CHECK(cc_hash_get(hash, 1, &value));
+  BOOST_CHECK(value == &first);
+  BOOST_CHECK(cc_hash_get(hash, 8, &value));
+  BOOST_CHECK(value == &second);
+  BOOST_CHECK(cc_hash_get(hash, 15, &value));
+  BOOST_CHECK(value == &third);
+
+  cc_hash_destruct(hash);
+}
+
+BOOST_AUTO_TEST_CASE(cc_hash_empty_statistics_are_finite)
+{
+  cc_hash * hash = cc_hash_construct(0, 0.75f);
+  cc_hash_print_stat(hash);
+  cc_hash_destruct(hash);
+}
+
+#endif // COIN_TEST_SUITE

@@ -41,7 +41,7 @@ static bool
 prepareCpuDepthBuffer(const SoWgpuRenderTargetP * target)
 {
 #if defined(HAVE_WGPU_BGFX)
-  // BGFX uses GPU depth and does not publish CPU depth in this profile.
+  // BGFX fills depth from the GPU; never synthesize a CPU depth result.
   // A target can still explicitly use the CPU reference backend in the same
   // binary, so decide from the prepared backend rather than the build alone.
   static const bool diagnosticFill = [] {
@@ -291,7 +291,13 @@ SoWgpuRenderTargetP::validateProfile(const FramePlan & frame, const SbVec2i32 & 
     return FrameExecutionResult{BackendStatus::BACKEND_ERROR, "Invalid FramePlan: " + planDiag};
   }
   std::vector<SoWgpuCompositionItem> compositionOrder;
-  if (!coin_wgpu_composition_order(frame, compositionOrder, planDiag)) {
+  if (!coin_wgpu_composition_order(frame, compositionOrder, planDiag,
+#if defined(HAVE_WGPU_BGFX)
+      true
+#else
+      false
+#endif
+    )) {
     return FrameExecutionResult{BackendStatus::UNSUPPORTED, planDiag};
   }
 
@@ -422,7 +428,7 @@ SoWgpuRenderTargetP::executeFrameInternal(const FramePlan & frame,
     return FrameExecutionResult(BackendStatus::UNSUPPORTED,
                                 "applyAsync() requires an offscreen target");
   }
-#if !defined(HAVE_WGPU_RUST_BRIDGE)
+#if !defined(HAVE_WGPU_RUST_BRIDGE) && !defined(HAVE_WGPU_BGFX)
   if (outTicket) {
     return FrameExecutionResult(BackendStatus::UNSUPPORTED,
                                 "Asynchronous readback requires the Rust bridge backend");
@@ -507,10 +513,12 @@ SoWgpuRenderTargetP::executeFrameInternal(const FramePlan & frame,
 #if defined(HAVE_WGPU_BGFX)
     if (SoWgpuBgfxBackend * bgfx =
           dynamic_cast<SoWgpuBgfxBackend *>(this->backend.get())) {
-      res = bgfx->submit(frame, *this, reuse);
+      res = outTicket ? bgfx->submitAsync(frame, *this, *outTicket, reuse)
+                      : bgfx->submit(frame, *this, reuse);
     } else
 #endif
-      res = this->backend->submit(frame, *this);
+      res = outTicket ? SubmitResult(BackendStatus::UNSUPPORTED, "The selected backend does not support asynchronous readback")
+                      : this->backend->submit(frame, *this);
   }
   if (res.status != BackendStatus::SUCCESS) {
     std::string lastErr = res.diagnostic.empty() ? (this->backend ? this->backend->getLastError() : std::string()) : res.diagnostic;
@@ -662,7 +670,9 @@ SoWgpuRenderTarget::pollReadback(const SoWgpuReadbackTicket & ticket,
                                   SbString * diagnostic)
 {
   if (diagnostic) *diagnostic = "";
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_WGPU_BGFX)
+  return SoWgpuBgfxBackend::pollReadback(ticket, outColor, outDepth, diagnostic);
+#elif defined(HAVE_WGPU_RUST_BRIDGE)
   const uint64_t pixels = uint64_t(ticket.width) * uint64_t(ticket.height);
   const uint64_t bytes = pixels * 4;
   const uint64_t rowPitch = (uint64_t(ticket.width) * 4 + 255) & ~uint64_t(255);
@@ -732,7 +742,9 @@ SoWgpuRenderTarget::pollReadback(const SoWgpuReadbackTicket & ticket,
 SbBool
 SoWgpuRenderTarget::cancelReadback(const SoWgpuReadbackTicket & ticket)
 {
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_WGPU_BGFX)
+  return SoWgpuBgfxBackend::cancelReadback(ticket) ? TRUE : FALSE;
+#elif defined(HAVE_WGPU_RUST_BRIDGE)
   return ticket.token != 0 && coin_wgpu_readback_cancel(ticket.token) == COIN_WGPU_OK
     ? TRUE : FALSE;
 #else

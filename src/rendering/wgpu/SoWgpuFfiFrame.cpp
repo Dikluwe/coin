@@ -40,6 +40,20 @@ SoWgpuFfiFrame::prepare(const FramePlan & frame, uint32_t width, uint32_t height
                         std::string & outDiagnostic)
 {
   outDiagnostic.clear();
+  for (const auto & state : frame.renderStates) {
+    for (const auto & texture : state.extraTextures) {
+      if (texture.enabled) {
+        outDiagnostic = "Multitexture requires the BGFX frame contract";
+        return false;
+      }
+    }
+  }
+  for (const auto & vertex : frame.vertices) {
+    if (vertex.screenSpaceW != 1.0f || vertex.fogEyeDepth >= 0.0f) {
+      outDiagnostic = "Homogeneous stroke attributes require the BGFX frame contract";
+      return false;
+    }
+  }
   if (frame.revision != 0 && frame.revision == this->packedRevision) {
     this->reused = true;
     this->prepareKind = SoWgpuFrameReuseKind::REUSE;
@@ -87,6 +101,8 @@ SoWgpuFfiFrame::prepare(const FramePlan & frame, uint32_t width, uint32_t height
     dst.draw_ordinal = src.drawOrdinal;
     dst.reserved = 0;
     dst.source_revision = src.sourceRevision;
+    dst.render_layer = src.renderLayer;
+    dst.clear_depth_before = src.clearDepthBefore ? 1u : 0u;
   }
 
   this->materials.resize(frame.materials.size());

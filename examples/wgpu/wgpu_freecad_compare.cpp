@@ -87,9 +87,10 @@ int main(int argc, char ** argv) {
     return 2;
   }
   const bool bgfx = caps.backend == COIN_WGPU_EXPERIMENTAL_BGFX_EVALUATION;
-  if ((!bgfx && (caps.backend != COIN_WGPU_EXPERIMENTAL_RUST ||
-                 !caps.gpu_available)) || (bgfx && lit)) {
-    std::cerr << "Requested offscreen renderer/profile unavailable\n";
+  if (!caps.gpu_available ||
+      (!bgfx && caps.backend != COIN_WGPU_EXPERIMENTAL_RUST)) {
+    std::cerr << "Requested offscreen renderer/profile unavailable: "
+              << caps.diagnostic << '\n';
     return 2;
   }
 
@@ -162,11 +163,7 @@ int main(int argc, char ** argv) {
     std::cerr << "Cannot write comparison images\n";
     return 2;
   }
-  const char * bgfxRendererFlag = std::getenv("COIN_BGFX_RENDERER");
-  const bool bgfxOpenGl = bgfxRendererFlag && std::strcmp(bgfxRendererFlag, "opengl") == 0;
-  std::cout << "adapter=" << (bgfx ?
-    (bgfxOpenGl ? "BGFX-OpenGL-probed-by-frame" : "BGFX-Vulkan-probed-by-frame") :
-    caps.adapter_name)
+  std::cout << "adapter=" << caps.adapter_name
             << " side=" << side
             << " mode=" << (lit ? "lit" : "base_color") << '\n';
   compare(webgpuPixels, glPixels, side, false);

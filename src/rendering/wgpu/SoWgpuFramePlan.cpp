@@ -122,6 +122,17 @@ FramePlan::isValid(std::string * outDiagnostic) const
         return false;
       }
     }
+    if (!isFiniteF(v.screenSpaceW) || v.screenSpaceW <= 0.0f ||
+        !isFiniteF(v.fogEyeDepth)) {
+      if (outDiagnostic) *outDiagnostic = "Invalid expanded primitive attributes";
+      return false;
+    }
+    for (size_t u = 0; u < COIN_WGPU_MAX_TEXTURE_UNITS - 1; ++u)
+      for (int c = 0; c < 2; ++c)
+        if (!isFiniteF(v.extraTexcoords[u][c])) {
+          if (outDiagnostic) *outDiagnostic = "Non-finite multitexture coordinate";
+          return false;
+        }
     if (this->materials.empty() || v.materialSlot >= this->materials.size()) {
       if (outDiagnostic) *outDiagnostic = "Vertex references out-of-range material slot";
       return false;
@@ -288,30 +299,32 @@ FramePlan::isValid(std::string * outDiagnostic) const
         return false;
       }
     }
-    if (state.hasTexture) {
-      if (state.textureModel != TextureModel::MODULATE &&
-          state.textureModel != TextureModel::REPLACE &&
-          state.textureModel != TextureModel::DECAL &&
-          state.textureModel != TextureModel::BLEND) {
+    for (size_t unit = 0; unit < COIN_WGPU_MAX_TEXTURE_UNITS; ++unit) {
+      const TextureUnitSnapshot tex = coin_wgpu_texture_unit(state, unit);
+      if (!tex.enabled) continue;
+      if (tex.model != TextureModel::MODULATE &&
+          tex.model != TextureModel::REPLACE &&
+          tex.model != TextureModel::DECAL &&
+          tex.model != TextureModel::BLEND) {
         if (outDiagnostic) *outDiagnostic = "RenderState contains unsupported texture model";
         return false;
       }
       for (int c = 0; c < 4; ++c) {
-        if (!isFiniteF(state.textureBlendColor[c])) {
+        if (!isFiniteF(tex.blendColor[c])) {
           if (outDiagnostic) *outDiagnostic = "RenderState contains invalid texture blend color";
           return false;
         }
       }
 
-      if (!isMatrixFinite(state.textureMatrix)) {
+      if (!isMatrixFinite(tex.matrix)) {
         if (outDiagnostic) *outDiagnostic = "RenderState contains non-finite texture matrix";
         return false;
       }
-      if (state.textureImageSlot >= this->textures.size()) {
+      if (tex.imageSlot >= this->textures.size()) {
         if (outDiagnostic) *outDiagnostic = "RenderState references out-of-bounds texture image slot";
         return false;
       }
-      if (state.samplerSlot >= this->samplers.size()) {
+      if (tex.samplerSlot >= this->samplers.size()) {
         if (outDiagnostic) *outDiagnostic = "RenderState references out-of-bounds sampler slot";
         return false;
       }
@@ -320,6 +333,11 @@ FramePlan::isValid(std::string * outDiagnostic) const
 
   for (size_t i = 0; i < this->draws.size(); ++i) {
     const DrawPacket & draw = this->draws[i];
+    if (draw.hasSortingCenter &&
+        (!isFiniteF(draw.sortingCenterWorld[0]) || !isFiniteF(draw.sortingCenterWorld[1]) || !isFiniteF(draw.sortingCenterWorld[2]))) {
+      if (outDiagnostic) *outDiagnostic = "Non-finite object sorting center";
+      return false;
+    }
     if (draw.clearDepthBefore && draw.renderLayer == 0) {
       if (outDiagnostic) *outDiagnostic = "Base layer cannot clear depth before a draw";
       return false;

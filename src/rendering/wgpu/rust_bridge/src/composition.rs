@@ -43,6 +43,12 @@ pub(super) fn order(
     let mut ordered = Vec::with_capacity(draws.len());
     let mut texture_alpha_cache = vec![None; textures.len()];
     for (draw_index, draw) in draws.iter().enumerate() {
+        if draw.clear_depth_before > 1 || (draw.render_layer == 0 && draw.clear_depth_before != 0) {
+            return Err((
+                CoinWgpuStatus::InvalidArgument,
+                format!("Draw {} has invalid annotation depth barrier", draw_index),
+            ));
+        }
         let state = states.get(draw.render_state_slot as usize).ok_or_else(|| {
             (
                 CoinWgpuStatus::InvalidArgument,
@@ -117,35 +123,52 @@ pub(super) fn order(
                             format!("Draw {} texture size overflows", draw_index),
                         )
                     })?;
-                if texture.width == 0 || texture.height == 0
-                    || texture.width > 8192 || texture.height > 8192 {
-                    return Err((CoinWgpuStatus::InvalidArgument,
-                        format!("Draw {} texture dimensions are invalid", draw_index)));
+                if texture.width == 0
+                    || texture.height == 0
+                    || texture.width > 8192
+                    || texture.height > 8192
+                {
+                    return Err((
+                        CoinWgpuStatus::InvalidArgument,
+                        format!("Draw {} texture dimensions are invalid", draw_index),
+                    ));
                 }
                 if texture.format == 1 {
-                    if texture.content_digest == 0 || !texture.pixels.is_null()
-                        || texture.pixel_bytes_len != 0 {
-                        return Err((CoinWgpuStatus::InvalidArgument,
-                            format!("Draw {} RTT token is invalid", draw_index)));
+                    if texture.content_digest == 0
+                        || !texture.pixels.is_null()
+                        || texture.pixel_bytes_len != 0
+                    {
+                        return Err((
+                            CoinWgpuStatus::InvalidArgument,
+                            format!("Draw {} RTT token is invalid", draw_index),
+                        ));
                     }
                     texture_alpha = texture.reserved == 0; // Opaque child clear is proven by producer.
                 } else if texture.format == 0 {
                     if texture.pixel_bytes_len != expected || texture.pixels.is_null() {
-                        return Err((CoinWgpuStatus::InvalidArgument,
-                            format!("Draw {} texture pixels are invalid", draw_index)));
+                        return Err((
+                            CoinWgpuStatus::InvalidArgument,
+                            format!("Draw {} texture pixels are invalid", draw_index),
+                        ));
                     }
                     let pixels =
                         unsafe { std::slice::from_raw_parts(texture.pixels, expected as usize) };
                     texture_alpha = pixels.chunks_exact(4).any(|pixel| pixel[3] != 255);
                 } else {
-                    return Err((CoinWgpuStatus::Unsupported,
-                        format!("Draw {} texture format is unsupported", draw_index)));
+                    return Err((
+                        CoinWgpuStatus::Unsupported,
+                        format!("Draw {} texture format is unsupported", draw_index),
+                    ));
                 }
                 texture_alpha_cache[slot] = Some(texture_alpha);
             }
         }
-        if state.texture_model == 2 { texture_alpha = false; }
-        if state.has_texture != 0 && state.texture_model == 1 { material_alpha = false; }
+        if state.texture_model == 2 {
+            texture_alpha = false;
+        }
+        if state.has_texture != 0 && state.texture_model == 1 {
+            material_alpha = false;
+        }
         let blend = material_alpha || texture_alpha;
         let eye_depth = if end > first {
             (depth_sum / (end - first) as f64) as f32
@@ -164,14 +187,114 @@ pub(super) fn order(
             eye_depth,
         });
     }
-    ordered.sort_by(|a, b| match (a.blend, b.blend) {
-        (false, true) => Ordering::Less,
-        (true, false) => Ordering::Greater,
-        (true, true) => b
-            .eye_depth
-            .partial_cmp(&a.eye_depth)
-            .unwrap_or(Ordering::Equal),
-        (false, false) => Ordering::Equal,
+    ordered.sort_by(|a, b| {
+        let layer_a = draws[a.draw_index].render_layer;
+        let layer_b = draws[b.draw_index].render_layer;
+        if layer_a != layer_b {
+            return layer_a.cmp(&layer_b);
+        }
+        if layer_a != 0 {
+            return Ordering::Equal;
+        }
+        match (a.blend, b.blend) {
+            (false, true) => Ordering::Less,
+            (true, false) => Ordering::Greater,
+            (true, true) => b
+                .eye_depth
+                .partial_cmp(&a.eye_depth)
+                .unwrap_or(Ordering::Equal),
+            (false, false) => Ordering::Equal,
+        }
     });
     Ok(ordered)
+}
+
+// Pass boundaries preserve overlay traversal and depth barriers. The base still
+// uses the existing opaque/transparent profile; annotation blending is per draw.
+pub(super) fn passes(
+    order: &[CompositionItem],
+    draws: &[CoinWgpuDraw],
+) -> Vec<std::ops::Range<usize>> {
+    let mut passes = Vec::new();
+    let mut start = 0;
+    for i in 1..order.len() {
+        let previous = &draws[order[i - 1].draw_index];
+        let current = &draws[order[i].draw_index];
+        if previous.render_layer != current.render_layer
+            || current.clear_depth_before != 0
+            || (current.render_layer == 0 && order[i - 1].blend != order[i].blend)
+        {
+            passes.push(start..i);
+            start = i;
+        }
+    }
+    // Even an empty frame must clear the attachments.
+    passes.push(start..order.len());
+    passes
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    fn fixture(
+        layers: &[u32],
+        alphas: &[f32],
+    ) -> (
+        Vec<CoinWgpuDraw>,
+        Vec<CoinWgpuMaterial>,
+        Vec<CoinWgpuRenderState>,
+    ) {
+        let draws = layers
+            .iter()
+            .enumerate()
+            .map(|(i, &layer)| CoinWgpuDraw {
+                render_state_slot: i as u32,
+                render_layer: layer,
+                ..unsafe { std::mem::zeroed() }
+            })
+            .collect();
+        let materials = alphas
+            .iter()
+            .map(|&alpha| CoinWgpuMaterial {
+                diffuse: [1.0, 1.0, 1.0, alpha],
+                transparency: 1.0 - alpha,
+                ..unsafe { std::mem::zeroed() }
+            })
+            .collect();
+        let states = (0..layers.len())
+            .map(|i| CoinWgpuRenderState {
+                material_slot: i as u32,
+                ..unsafe { std::mem::zeroed() }
+            })
+            .collect();
+        (draws, materials, states)
+    }
+    #[test]
+    fn base_sorts_but_overlays_preserve_mixed_traversal() {
+        let (draws, materials, states) =
+            fixture(&[2, 0, 1, 0, 1, 2], &[0.5, 0.5, 0.5, 1.0, 1.0, 1.0]);
+        let order = order(&[], &[], &draws, &materials, &states, &[]).unwrap();
+        assert_eq!(
+            order.iter().map(|item| item.draw_index).collect::<Vec<_>>(),
+            vec![3, 1, 2, 4, 0, 5]
+        );
+        assert_eq!(passes(&order, &draws), vec![0..1, 1..2, 2..4, 4..6]);
+    }
+    #[test]
+    fn depth_barrier_splits_even_within_one_overlay_layer() {
+        let (mut draws, materials, states) = fixture(&[1, 1, 1], &[1.0, 0.5, 1.0]);
+        draws[1].clear_depth_before = 1;
+        let order = order(&[], &[], &draws, &materials, &states, &[]).unwrap();
+        assert_eq!(passes(&order, &draws), vec![0..1, 1..3]);
+    }
+    #[test]
+    fn rejects_invalid_barriers_and_clears_empty_frame() {
+        let (mut draws, materials, states) = fixture(&[0], &[1.0]);
+        draws[0].clear_depth_before = 1;
+        assert!(order(&[], &[], &draws, &materials, &states, &[]).is_err());
+        draws[0].render_layer = 1;
+        draws[0].clear_depth_before = 2;
+        assert!(order(&[], &[], &draws, &materials, &states, &[]).is_err());
+        assert_eq!(passes(&[], &[]), vec![0..0]);
+    }
 }

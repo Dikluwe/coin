@@ -60,11 +60,12 @@ int main() {
              caps.struct_size == sizeof(caps) &&
              caps.version == COIN_WGPU_CAPABILITIES_VERSION &&
              caps.target == COIN_WGPU_EXPERIMENTAL_OFFSCREEN &&
-             (caps.features & COIN_WGPU_FEATURE_COLOR_DEPTH) == 0 &&
+             (caps.features & COIN_WGPU_FEATURE_COLOR_DEPTH) != 0 &&
              (caps.features & COIN_WGPU_FEATURE_LINES_POINTS) != 0 &&
              (caps.features & COIN_WGPU_FEATURE_TEXTURE_2D) != 0 &&
              (caps.features & COIN_WGPU_FEATURE_LIGHTS) != 0 &&
-             caps.max_lights_per_draw == 8 && caps.max_texture_units == 1 &&
+             caps.max_lights_per_draw == 8 && caps.max_texture_units == 8 &&
+             (caps.features & COIN_WGPU_FEATURE_FOG) != 0 &&
              caps.max_scene_texture_depth == 0 &&
              caps.gpu_available == 1 &&
              caps.probe_status == COIN_WGPU_PROBE_AVAILABLE &&
@@ -126,7 +127,7 @@ int main() {
       COIN_WGPU_RENDERER_OPENGL : COIN_WGPU_RENDERER_VULKAN;
   if (!check(caps.backend == COIN_WGPU_EXPERIMENTAL_BGFX_EVALUATION &&
              caps.gpu_available == 1 && caps.renderer == expectedRenderer &&
-             (caps.features & COIN_WGPU_FEATURE_ASYNC_READBACK) == 0 &&
+             (caps.features & COIN_WGPU_FEATURE_ASYNC_READBACK) != 0 &&
              (caps.features & COIN_WGPU_FEATURE_DIRECT_RTT) == 0,
              "BGFX runtime renderer or compiled feature report is wrong")) return 1;
 #else
@@ -226,7 +227,8 @@ int main() {
              manager->render() == SoWgpuRenderAction::SUCCESS,
              "manager did not recover after resize")) return 1;
 
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_WGPU_RUST_BRIDGE) || defined(HAVE_WGPU_BGFX)
+  manager->getRenderTarget()->setDepthReadbackEnabled(TRUE);
   SoWgpuReadbackTicket ticket{};
   if (!check(manager->renderAsync(ticket) == SoWgpuRenderAction::SUCCESS &&
              ticket.token != 0 && ticket.width == 16 && ticket.height == 16,

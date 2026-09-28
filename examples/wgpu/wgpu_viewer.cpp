@@ -73,8 +73,8 @@ int main(int argc, char ** argv) {
   CoinWgpuExperimentalCapabilities caps{};
   if (coin_wgpu_experimental_query_capabilities(
         COIN_WGPU_EXPERIMENTAL_XLIB_WINDOW, &caps, sizeof(caps)) != 0 ||
-      (!caps.gpu_available && caps.backend != COIN_WGPU_EXPERIMENTAL_BGFX_EVALUATION)) {
-    std::cerr << "Xlib WebGPU presentation or adapter unavailable\n";
+      !caps.gpu_available) {
+    std::cerr << "Xlib GPU probe unavailable: " << caps.diagnostic << '\n';
     return 2;
   }
 

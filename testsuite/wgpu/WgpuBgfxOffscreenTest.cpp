@@ -97,8 +97,8 @@ int main()
   frame.draws[0].renderLayer = 0;
   frame.draws[0].clearDepthBefore = false;
   // All three vertices have N.L = sqrt(1/2), while the interpolated and
-  // renormalized center normal has N.L close to 0.9. This distinguishes true
-  // fragment PHONG from the previous Gouraud result (~180 in UNORM8).
+  // renormalized center normal has N.L close to 0.9. Coin PHONG describes
+  // reflectance; compatibility requires Gouraud colors (~180 in UNORM8).
   frame.renderStates[0].lightModel = LightModel::PHONG;
   frame.materials[0].diffuse[0] = frame.materials[0].diffuse[1] =
     frame.materials[0].diffuse[2] = 1.0f;
@@ -116,10 +116,10 @@ int main()
   frame.vertices[2].normal[1] = diagonal;
   frame.vertices[2].normal[2] = diagonal;
   if (target.executeFrame(frame).status != BackendStatus::SUCCESS ||
-      target.colorBuffer[center] < 215 ||
-      target.colorBuffer[center + 1] < 215 ||
-      target.colorBuffer[center + 2] < 215) {
-    std::cerr << "BGFX PHONG was not evaluated with an interpolated fragment normal\n";
+      std::abs(int(target.colorBuffer[center]) - 180) > 2 ||
+      std::abs(int(target.colorBuffer[center + 1]) - 180) > 2 ||
+      std::abs(int(target.colorBuffer[center + 2]) - 180) > 2) {
+    std::cerr << "BGFX PHONG did not interpolate vertex lighting like Coin/GL\n";
     return 1;
   }
   frame.renderStates[0].lightModel = LightModel::BASE_COLOR;

@@ -176,20 +176,18 @@ cc_storage_get(cc_storage * storage)
   return val;
 }
 
-/* struct needed for cc_dict wrapper callback */
+/* struct needed for collecting a point-in-time snapshot from cc_dict */
 typedef struct {
-  cc_storage_apply_func * func;
-  void * closure;
-} cc_storage_hash_apply_data; 
+  void ** values;
+  unsigned int length;
+} cc_storage_hash_snapshot;
 
-/* callback from cc_dict_apply. will simply call the function specified
-   in cc_storage_apply_to_appl */
 static void 
-storage_hash_apply(uintptr_t COIN_UNUSED_ARG(key), void * val, void * closure)
+storage_hash_collect(uintptr_t COIN_UNUSED_ARG(key), void * val, void * closure)
 {
-  cc_storage_hash_apply_data * data = 
-    (cc_storage_hash_apply_data*) closure;
-  data->func(val, data->closure);
+  cc_storage_hash_snapshot * snapshot =
+    (cc_storage_hash_snapshot *) closure;
+  snapshot->values[snapshot->length++] = val;
 }
 
 void 
@@ -197,21 +195,38 @@ cc_storage_apply_to_all(cc_storage * storage,
                         cc_storage_apply_func * func, 
                         void * closure)
 {
-  /* need to set up a struct to use cc_dict_apply */
-  cc_storage_hash_apply_data mydata;
-  
-  /* store func and closure in struct */
-  mydata.func = func;
-  mydata.closure = closure;
+  if (func == NULL) return;
+
+  cc_storage_hash_snapshot snapshot;
+  snapshot.values = NULL;
+  snapshot.length = 0;
 
 #ifdef HAVE_THREADS
   cc_mutex_lock(storage->mutex);
-  cc_dict_apply(storage->dict, storage_hash_apply, &mydata);
-  cc_mutex_unlock(storage->mutex);
-#else /* ! HAVE_THREADS */
-  cc_dict_apply(storage->dict, storage_hash_apply, &mydata);
-#endif /* ! HAVE_THREADS */
+#endif /* HAVE_THREADS */
 
+  const unsigned int numelements = cc_dict_get_num_elements(storage->dict);
+  if (numelements > 0) {
+    snapshot.values = (void **) malloc(sizeof(void *) * numelements);
+    assert(snapshot.values != NULL);
+    if (snapshot.values == NULL) {
+#ifdef HAVE_THREADS
+      cc_mutex_unlock(storage->mutex);
+#endif /* HAVE_THREADS */
+      return;
+    }
+    cc_dict_apply(storage->dict, storage_hash_collect, &snapshot);
+    assert(snapshot.length == numelements);
+  }
+
+#ifdef HAVE_THREADS
+  cc_mutex_unlock(storage->mutex);
+#endif /* HAVE_THREADS */
+
+  for (unsigned int i = 0; i < snapshot.length; i++) {
+    func(snapshot.values[i], closure);
+  }
+  free(snapshot.values);
 }
 
 
@@ -330,3 +345,92 @@ cc_storage_thread_cleanup(unsigned long COIN_UNUSED_ARG(threadid))
 #ifdef __cplusplus
 } /* extern "C" */
 #endif /* __cplusplus */
+
+#ifdef COIN_TEST_SUITE
+
+#include <Inventor/threads/SbStorage.h>
+#include <Inventor/threads/SbTypedStorage.h>
+
+#include <type_traits>
+
+static int storage_test_construct_count;
+static int storage_test_destruct_count;
+
+static void
+storage_test_construct(void * data)
+{
+  storage_test_construct_count++;
+  *static_cast<int *>(data) = 17;
+}
+
+static void
+storage_test_destruct(void * data)
+{
+  storage_test_destruct_count++;
+  *static_cast<int *>(data) = 0;
+}
+
+static void
+storage_test_apply(void * data, void * closure)
+{
+  BOOST_CHECK_EQUAL(*static_cast<int *>(data), 17);
+  (*static_cast<int *>(closure))++;
+}
+
+typedef struct {
+  cc_storage * storage;
+  void * expected;
+  int calls;
+} storage_test_reentrant_data;
+
+static void
+storage_test_reentrant_apply(void * data, void * closure)
+{
+  storage_test_reentrant_data * state =
+    static_cast<storage_test_reentrant_data *>(closure);
+  BOOST_CHECK(data == state->expected);
+  BOOST_CHECK(cc_storage_get(state->storage) == state->expected);
+  state->calls++;
+}
+
+BOOST_AUTO_TEST_CASE(cc_storage_preserves_same_thread_value_and_lifecycle)
+{
+  storage_test_construct_count = 0;
+  storage_test_destruct_count = 0;
+
+  cc_storage * storage = cc_storage_construct_etc(sizeof(int),
+                                                   storage_test_construct,
+                                                   storage_test_destruct);
+  int * first = static_cast<int *>(cc_storage_get(storage));
+  int * second = static_cast<int *>(cc_storage_get(storage));
+
+  BOOST_REQUIRE(first != NULL);
+  BOOST_CHECK(first == second);
+  BOOST_CHECK_EQUAL(*first, 17);
+  BOOST_CHECK_EQUAL(storage_test_construct_count, 1);
+
+  int apply_count = 0;
+  cc_storage_apply_to_all(storage, storage_test_apply, &apply_count);
+  BOOST_CHECK_EQUAL(apply_count, 1);
+
+  storage_test_reentrant_data reentrant = { storage, first, 0 };
+  cc_storage_apply_to_all(storage, storage_test_reentrant_apply, &reentrant);
+  BOOST_CHECK_EQUAL(reentrant.calls, 1);
+
+  cc_storage_apply_to_all(storage, NULL, &apply_count);
+  BOOST_CHECK_EQUAL(apply_count, 1);
+
+  cc_storage_destruct(storage);
+  BOOST_CHECK_EQUAL(storage_test_destruct_count, 1);
+}
+
+static_assert(!std::is_copy_constructible<SbStorage>::value,
+              "SbStorage must not copy its owning cc_storage pointer");
+static_assert(!std::is_copy_assignable<SbStorage>::value,
+              "SbStorage must not copy-assign its owning cc_storage pointer");
+static_assert(!std::is_copy_constructible<SbTypedStorage<int *> >::value,
+              "SbTypedStorage must not copy its owning cc_storage pointer");
+static_assert(!std::is_copy_assignable<SbTypedStorage<int *> >::value,
+              "SbTypedStorage must not copy-assign its owning cc_storage pointer");
+
+#endif // COIN_TEST_SUITE

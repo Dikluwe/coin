@@ -13,6 +13,7 @@
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include <Inventor/nodes/SoSceneTexture2.h>
+#include <Inventor/nodes/SoTextureCombine.h>
 #include <Inventor/nodes/SoVertexProperty.h>
 #include <Inventor/nodes/SoCamera.h>
 #include <Inventor/nodes/SoPerspectiveCamera.h>
@@ -43,6 +44,9 @@
 #include <Inventor/elements/SoLazyElement.h>
 #include <Inventor/elements/SoOverrideElement.h>
 #include <Inventor/elements/SoDepthBufferElement.h>
+#if defined(HAVE_WGPU_BGFX)
+#include "rendering/wgpu/SoWgpuDepthPolicyElement.h"
+#endif
 #include <algorithm>
 #include <chrono>
 #include <memory>
@@ -72,6 +76,10 @@ SoWgpuRenderAction::initClass(void)
 {
   SO_ACTION_INTERNAL_INIT_CLASS(SoWgpuRenderAction, SoCallbackAction);
   SO_ENABLE(SoWgpuRenderAction, SoDepthBufferElement);
+#if defined(HAVE_WGPU_BGFX)
+  SoWgpuDepthPolicyElement::initClass();
+  SO_ENABLE(SoWgpuRenderAction, SoWgpuDepthPolicyElement);
+#endif
 }
 
 SbBool
@@ -822,6 +830,43 @@ SoWgpuRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   this->setDiagnostic(SoWgpuDiagnosticShell::success());
 }
 
+SoCallbackAction::Response
+SoWgpuRenderActionP::textureUnitsPreCB(void * userdata, SoCallbackAction * action, const SoNode *)
+{
+  auto * p = static_cast<SoWgpuRenderActionP *>(userdata);
+  SoState * state = action->getState();
+  int last = -1;
+  const SbBool * enabled = SoMultiTextureEnabledElement::getEnabledUnits(state, last);
+  if (last >= static_cast<int>(COIN_WGPU_MAX_TEXTURE_UNITS)) {
+    p->setDiagnostic(SoWgpuDiagnosticShell::action(
+      SoWgpuRenderAction::UNSUPPORTED, SoWgpuDiagnosticDomain::FRAME_PLAN,
+      SbString("At most eight texture units are supported")));
+    return SoCallbackAction::ABORT;
+  }
+  const auto * coords = SoMultiTextureCoordinateElement::getInstance(state);
+  for (int unit = 1; unit <= last; ++unit) {
+    if (enabled[unit] && coords->getType(unit) != SoMultiTextureCoordinateElement::EXPLICIT) {
+      // Coin callbacks have only one primary UV/function. Reject before the
+      // texture bundle attempts to call an absent unit-zero function.
+      p->setDiagnostic(SoWgpuDiagnosticShell::action(
+        SoWgpuRenderAction::UNSUPPORTED, SoWgpuDiagnosticDomain::FRAME_PLAN,
+        SbString("Additional texture units require explicit coordinates")));
+      return SoCallbackAction::ABORT;
+    }
+  }
+  return SoCallbackAction::CONTINUE;
+}
+
+SoCallbackAction::Response
+SoWgpuRenderActionP::textureCombinePreCB(void * userdata, SoCallbackAction *, const SoNode *)
+{
+  auto * p = static_cast<SoWgpuRenderActionP *>(userdata);
+  p->setDiagnostic(SoWgpuDiagnosticShell::action(
+    SoWgpuRenderAction::UNSUPPORTED, SoWgpuDiagnosticDomain::FRAME_PLAN,
+    SbString("SoTextureCombine is not supported; use SoTexture2 MODULATE, REPLACE, DECAL or BLEND")));
+  return SoCallbackAction::ABORT;
+}
+
 void
 SoWgpuRenderActionP::initCallbacks()
 {
@@ -829,10 +874,12 @@ SoWgpuRenderActionP::initCallbacks()
   this->master->addLineSegmentCallback(SoShape::getClassTypeId(), lineCB, this);
   this->master->addPointCallback(SoShape::getClassTypeId(), pointCB, this);
 
+  this->master->addPreCallback(SoShape::getClassTypeId(), textureUnitsPreCB, this);
   this->master->addPreCallback(SoLight::getClassTypeId(), lightPreCB, this);
   this->master->addPreCallback(SoDepthBuffer::getClassTypeId(), depthBufferPreCB, this);
   this->master->addPreCallback(SoAnnotation::getClassTypeId(), annotationPreCB, this);
   this->master->addPostCallback(SoAnnotation::getClassTypeId(), annotationPostCB, this);
+  this->master->addPreCallback(SoTextureCombine::getClassTypeId(), textureCombinePreCB, this);
   this->master->addPreCallback(SoSceneTexture2::getClassTypeId(), sceneTexturePreCB, this);
   this->master->addPreCallback(SoIndexedFaceSet::getClassTypeId(), indexedFaceSetPreCB, this);
   this->master->addPreCallback(SoIndexedLineSet::getClassTypeId(), indexedLineSetPreCB, this);
@@ -1099,6 +1146,11 @@ SoWgpuRenderActionP::depthBufferPreCB(void *, SoCallbackAction * action, const S
   const SbVec2f range = depth->range.isIgnored()
     ? SoDepthBufferElement::getRange(state) : depth->range.getValue();
   SoDepthBufferElement::set(state, test, write, function, range);
+#if defined(HAVE_WGPU_BGFX)
+  SoWgpuDepthPolicyElement::add(state, (depth->test.isIgnored() ? 0 : 1) |
+    (depth->write.isIgnored() ? 0 : 2) | (depth->function.isIgnored() ? 0 : 4) |
+    (depth->range.isIgnored() ? 0 : 8));
+#endif
   return SoCallbackAction::CONTINUE;
 }
 
@@ -1156,6 +1208,13 @@ SoWgpuRenderActionP::indexedFaceSetPreCB(void * userdata,
   if (vp) {
     state->push();
     const_cast<SoVertexProperty *>(vp)->doAction(action);
+  }
+
+  int lastTextureUnit = -1;
+  SoMultiTextureEnabledElement::getEnabledUnits(state, lastTextureUnit);
+  if (lastTextureUnit > 0) {
+    if (vp) state->pop();
+    return SoCallbackAction::CONTINUE;
   }
 
   const SoCoordinateElement * coords = SoCoordinateElement::getInstance(state);

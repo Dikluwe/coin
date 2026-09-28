@@ -119,7 +119,7 @@ int main(int argc, char ** argv) {
     else {
       std::cerr << "Usage: wgpu_gl_benchmark [--frames 30] [--warmup 8]"
                    " [--size 256] [--scene normalized.iv] [--dynamic]"
-                   " [--backend both|wgpu|bgfx|gl] [--readback color|color-depth] [--rgba-output copy|borrow] [--async-depth 2]\n";
+                   " [--backend both|wgpu|bgfx|gl] [--readback color|color-depth] [--rgba-output copy|borrow] [--async-depth 2|3]\n";
       return 2;
     }
   }
@@ -128,8 +128,10 @@ int main(int argc, char ** argv) {
       (backend != "both" && backend != "wgpu" && backend != "bgfx" && backend != "gl") ||
       (readback != "color" && readback != "color-depth") ||
       (rgbaOutput != "copy" && rgbaOutput != "borrow") ||
-      (asyncDepth != 0 && asyncDepth != 2) ||
-      (asyncDepth != 0 && (backend != "wgpu" || rgbaOutput != "copy"))) {
+      (asyncDepth != 0 && asyncDepth != 2 && asyncDepth != 3) ||
+      (asyncDepth == 3 && backend != "bgfx") ||
+      (asyncDepth != 0 && (backend != "wgpu" && backend != "bgfx")) ||
+      (asyncDepth != 0 && rgbaOutput != "copy")) {
     std::cerr << "Invalid benchmark dimensions or sample count\n";
     return 2;
   }
@@ -146,6 +148,7 @@ int main(int argc, char ** argv) {
   const char * rendererLabel = "WebGPU";
   const char * bgfxRendererFlag = std::getenv("COIN_BGFX_RENDERER");
   const bool bgfxOpenGl = bgfxRendererFlag && std::strcmp(bgfxRendererFlag, "opengl") == 0;
+  bool useBgfx = false;
   if (runWgpu) {
     if (coin_wgpu_experimental_query_capabilities(
           COIN_WGPU_EXPERIMENTAL_OFFSCREEN, &caps, sizeof(caps)) != 0) {
@@ -153,16 +156,21 @@ int main(int argc, char ** argv) {
       return 2;
     }
     const bool rust = caps.backend == COIN_WGPU_EXPERIMENTAL_RUST && caps.gpu_available;
-    const bool bgfx = caps.backend == COIN_WGPU_EXPERIMENTAL_BGFX_EVALUATION;
+    const bool bgfx = caps.backend == COIN_WGPU_EXPERIMENTAL_BGFX_EVALUATION && caps.gpu_available;
+    useBgfx = bgfx;
     if ((backend == "wgpu" && !rust) || (backend == "bgfx" && !bgfx) ||
         (backend == "both" && !rust && !bgfx)) {
       std::cerr << "Requested GPU backend unavailable\n";
       return 2;
     }
     rendererLabel = bgfx ? (bgfxOpenGl ? "BGFX-OpenGL" : "BGFX-Vulkan") : "WebGPU";
-    if (bgfx && (asyncDepth != 0 || readback != "color")) {
-      std::cerr << "BGFX evaluation supports synchronous RGBA only\n";
+    if (bgfx && readback != "color") {
+      std::cerr << "BGFX evaluation supports RGBA readback only\n";
       return 2;
+    }
+    if (bgfx && asyncDepth != 0) {
+      char depthText[2] = {static_cast<char>('0' + asyncDepth), '\0'};
+      setenv("COIN_BGFX_READBACK_PIPELINE_DEPTH", depthText, 1);
     }
   }
 
@@ -192,7 +200,7 @@ int main(int argc, char ** argv) {
     gl->setBackgroundColor(SbColor(0.1f, 0.1f, blue));
   }
 
-  if (asyncDepth == 2) {
+  if (asyncDepth == 2 && !useBgfx) {
     // Two distinct tickets are allowed in flight. Drain in submission order
     // so the benchmark never substitutes frame N-1 for frame N.
     struct Pending {
@@ -356,14 +364,13 @@ int main(int argc, char ** argv) {
   }
   root->unref();
   std::cout << "adapter=" << (runWgpu ?
-              (caps.backend == COIN_WGPU_EXPERIMENTAL_BGFX_EVALUATION ?
-                (bgfxOpenGl ? "BGFX-OpenGL-probed-by-frame" : "BGFX-Vulkan-probed-by-frame") :
-                caps.adapter_name) : "not-queried")
+              caps.adapter_name : "not-queried")
             << " backend=" << backend << " size=" << side << 'x' << side
             << " warmup=" << warmup << " scene="
             << (scenePath.empty() ? "36-cubes" : scenePath)
             << " mode=" << (readback == "color" ? "render+rgba-readback" :
                              "render+rgba+depth-readback")
+            << " pipeline_depth=" << (useBgfx ? (asyncDepth ? asyncDepth : 1) : 0)
             << " rgba_output=" << rgbaOutput
             << " scene_update=" << (dynamic ? "camera-each-frame" : "static") << '\n';
   if (runWgpu) {

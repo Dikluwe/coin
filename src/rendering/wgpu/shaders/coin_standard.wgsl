@@ -1,4 +1,4 @@
-// coin_standard.wgsl - Standard Blinn-Phong shader with 2D texture support for Coin3D WebGPU renderer
+// coin_standard.wgsl - Gouraud-interpolated Blinn-Phong reflectance with 2D texture support for Coin3D WebGPU renderer
 
 struct GpuLight {
     position_type: vec4<f32>,
@@ -63,6 +63,61 @@ struct VertexOutput {
     @location(4) texcoord: vec2<f32>,
 };
 
+// Coin PHONG is reflectance, not a request for fragment-normal interpolation.
+fn shade_vertex(mat: GpuMaterial, position_view: vec3<f32>, normal_view: vec3<f32>) -> vec4<f32> {
+    var base_color: vec4<f32>;
+
+    // LightModel::BASE_COLOR (u.params.w < 0.5):
+    // Pure diffuse color without light influence and without emission
+    if (u.params.w < 0.5) {
+        base_color = vec4<f32>(mat.diffuse.rgb, mat.diffuse.a);
+    } else {
+        // Coin's global ambient and emission apply even when no light is active.
+        let n = normalize(normal_view);
+        // Same infinite-viewer contract as Coin/GL, CPU and BGFX.
+        let v = vec3<f32>(0.0, 0.0, 1.0);
+        var rgb = mat.ambient.rgb * u.ambient_light.rgb + mat.emission.rgb;
+        for (var i: u32 = 0u; i < 8u; i = i + 1u) {
+            if (f32(i) >= u.light_meta.x) { break; }
+            let light = u.lights[i];
+            var to_light = vec3<f32>(0.0, 0.0, 1.0);
+            var attenuation = 1.0;
+            if (light.position_type.w < 0.5) {
+                to_light = normalize(-light.direction_cutoff.xyz);
+            } else {
+                let delta = light.position_type.xyz - position_view;
+                let distance = length(delta);
+                if (distance <= 0.000001) { continue; }
+                to_light = delta / distance;
+                let a = light.attenuation_exponent;
+                let denominator = a.z + a.y * distance + a.x * distance * distance;
+                if (denominator <= 0.000001) { continue; }
+                attenuation = 1.0 / denominator;
+                if (light.position_type.w > 1.5) {
+                    let cone_cos = dot(normalize(light.direction_cutoff.xyz), -to_light);
+                    if (cone_cos < light.direction_cutoff.w) { continue; }
+                    attenuation *= pow(max(cone_cos, 0.0), a.w);
+                }
+            }
+            let diffuse_factor = max(dot(n, to_light), 0.0);
+            if (diffuse_factor <= 0.0) { continue; }
+            let h = normalize(to_light + v);
+            let shininess_exp = mat.params.x * 128.0;
+            var specular_factor = 1.0;
+            if (shininess_exp > 0.0) {
+                specular_factor = pow(max(dot(n, h), 0.0), shininess_exp);
+            }
+            let light_rgb = light.color_intensity.rgb *
+                            light.color_intensity.w * attenuation;
+            rgb += (mat.diffuse.rgb * diffuse_factor +
+                    mat.specular.rgb * specular_factor) * light_rgb;
+        }
+        base_color = vec4<f32>(clamp(rgb, vec3<f32>(0.0), vec3<f32>(1.0)), mat.diffuse.a);
+    }
+
+    return base_color;
+}
+
 @vertex
 fn vs_main(input: VertexInput) -> VertexOutput {
     var output: VertexOutput;
@@ -72,7 +127,8 @@ fn vs_main(input: VertexInput) -> VertexOutput {
     output.position_view = position_view.xyz;
     output.normal_view = normalize(
         (u.normal_matrix * vec4<f32>(input.normal, 0.0)).xyz);
-    output.diffuse_color = materials[input.material_slot].diffuse;
+    output.diffuse_color = shade_vertex(materials[input.material_slot],
+                                       output.position_view, output.normal_view);
     output.material_slot = input.material_slot;
 
     if (u.tex_params.x > 0.5) {
@@ -104,55 +160,7 @@ fn apply_fog(color: vec4<f32>, eye_depth: f32) -> vec4<f32> {
 
 @fragment
 fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
-    let mat = materials[input.material_slot];
-    var base_color: vec4<f32>;
-
-    // LightModel::BASE_COLOR (u.params.w < 0.5):
-    // Pure diffuse color without light influence and without emission
-    if (u.params.w < 0.5) {
-        base_color = vec4<f32>(input.diffuse_color.rgb, input.diffuse_color.a);
-    } else {
-        // Coin's global ambient and emission apply even when no light is active.
-        let n = normalize(input.normal_view);
-        let v = normalize(-input.position_view);
-        var rgb = mat.ambient.rgb * u.ambient_light.rgb + mat.emission.rgb;
-        for (var i: u32 = 0u; i < 8u; i = i + 1u) {
-            if (f32(i) >= u.light_meta.x) { break; }
-            let light = u.lights[i];
-            var to_light = vec3<f32>(0.0, 0.0, 1.0);
-            var attenuation = 1.0;
-            if (light.position_type.w < 0.5) {
-                to_light = normalize(-light.direction_cutoff.xyz);
-            } else {
-                let delta = light.position_type.xyz - input.position_view;
-                let distance = length(delta);
-                if (distance <= 0.000001) { continue; }
-                to_light = delta / distance;
-                let a = light.attenuation_exponent;
-                let denominator = a.z + a.y * distance + a.x * distance * distance;
-                if (denominator <= 0.000001) { continue; }
-                attenuation = 1.0 / denominator;
-                if (light.position_type.w > 1.5) {
-                    let cone_cos = dot(normalize(light.direction_cutoff.xyz), -to_light);
-                    if (cone_cos < light.direction_cutoff.w) { continue; }
-                    attenuation *= pow(max(cone_cos, 0.0), a.w);
-                }
-            }
-            let diffuse_factor = max(dot(n, to_light), 0.0);
-            if (diffuse_factor <= 0.0) { continue; }
-            let h = normalize(to_light + v);
-            let shininess_exp = mat.params.x * 128.0;
-            var specular_factor = 1.0;
-            if (shininess_exp > 0.0) {
-                specular_factor = pow(max(dot(n, h), 0.0001), shininess_exp);
-            }
-            let light_rgb = light.color_intensity.rgb *
-                            light.color_intensity.w * attenuation;
-            rgb += (input.diffuse_color.rgb * diffuse_factor +
-                    mat.specular.rgb * specular_factor) * light_rgb;
-        }
-        base_color = vec4<f32>(rgb, input.diffuse_color.a);
-    }
+    var base_color = input.diffuse_color;
 
     if (u.tex_params.x > 0.5) {
         let uv = select(input.texcoord, vec2<f32>(input.texcoord.x, 1.0 - input.texcoord.y), u.tex_params.z > 0.5);

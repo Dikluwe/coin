@@ -1,0 +1,88 @@
+"""Interactive native BGFX demo; COIN_DEMO_GRID selects 4x4 or 8x8."""
+import json
+import math
+import os
+import FreeCAD as App
+import FreeCADGui as Gui
+import Part
+from PySide6 import QtCore, QtWidgets
+
+main = Gui.getMainWindow()
+App.ParamGet('User parameter:BaseApp/Preferences/NotificationArea').SetBool(
+    'NotificationAreaEnabled', False)
+main.showNormal()
+main.resize(1700, 1000)
+for dock in main.findChildren(QtWidgets.QDockWidget):
+    dock.hide()
+Gui.activateWorkbench('PartWorkbench')
+
+columns = int(os.environ.get('COIN_DEMO_GRID', '4'))
+count = columns * columns
+documents = []
+for index in range(count):
+    doc = App.newDocument('Viewport_%02d' % (index + 1))
+    doc.Label = 'BGFX %02d' % (index + 1)
+    obj = doc.addObject('Part::Feature', 'Piece')
+    base = Part.makeBox(30, 24, 8)
+    boss = Part.makeCylinder(9, 14, App.Vector(15, 12, 8))
+    hole = Part.makeCylinder(4, 30, App.Vector(15, 12, -1))
+    obj.Shape = base.fuse(boss).cut(hole)
+    hue = index / float(count)
+    import colorsys
+    obj.ViewObject.ShapeColor = colorsys.hsv_to_rgb(hue, 0.55, 0.95)
+    doc.recompute()
+    view = Gui.activeDocument().activeView()
+    view.viewAxonometric()
+    orientation = App.Rotation(App.Vector(0, 0, 1), index * 22.5).multiply(
+        App.Rotation(App.Vector(1, 0, 0), 55))
+    view.setCameraOrientation(orientation.Q)
+    view.fitAll()
+    documents.append(doc)
+
+mdi = main.findChild(QtWidgets.QMdiArea)
+assert mdi is not None, 'FreeCAD has no MDI area'
+
+def arrange():
+    windows = mdi.subWindowList()
+    width, height = mdi.viewport().width(), mdi.viewport().height()
+    for index, window in enumerate(windows):
+        window.showNormal()
+        x0, x1 = (index % columns) * width // columns, (index % columns + 1) * width // columns
+        y0, y1 = (index // columns) * height // columns, (index // columns + 1) * height // columns
+        window.setGeometry(x0, y0, x1 - x0, y1 - y0)
+    for doc in documents:
+        Gui.getDocument(doc.Name).activeView().fitAll()
+    main.raise_()
+    main.activateWindow()
+    main.setWindowTitle('BGFX Vulkan — %d viewports simultâneas — %d × %d' % (count, columns, columns))
+
+def verify():
+    widgets = [widget for widget in main.findChildren(QtWidgets.QWidget)
+               if widget.isVisible() and widget.property('wgpuFrameCount') is not None]
+    ready = [widget for widget in widgets
+             if int(widget.property('wgpuFrameCount') or 0) > 0
+             and not widget.property('wgpuFallbackReason')
+             and not widget.property('wgpuOpenGLViewport')]
+    result = {'viewports': len(widgets), 'native_bgfx': len(ready),
+              'frames': [int(widget.property('wgpuFrameCount') or 0) for widget in widgets],
+              'status': 'PASS' if len(ready) == count else 'FAIL'}
+    with open('/tmp/freecad-%d-viewports.json' % count, 'w') as output:
+        json.dump(result, output, indent=2)
+    main.statusBar().showMessage('%d/%d viewports BGFX nativas • Vulkan • câmeras independentes' % (len(ready), count))
+    os.write(2, ('BGFX_%d_VIEWPORTS ' % count + json.dumps(result) + '\n').encode())
+    position = main.mapToGlobal(QtCore.QPoint())
+    main.screen().grabWindow(0, position.x(), position.y(), main.width(), main.height()).save(
+        '/tmp/freecad-%d-viewports.png' % count)
+
+QtCore.QTimer.singleShot(1200, arrange)
+QtCore.QTimer.singleShot(7500, verify)
+if os.environ.get('COIN_DEMO_VALIDATE_CLIPPING') == '1':
+    # Exercise small cells after initial rendering; an early PASS alone is insufficient.
+    def resize_grid(width, height):
+        main.resize(width, height)
+        QtCore.QTimer.singleShot(250, arrange)
+    QtCore.QTimer.singleShot(10000, lambda: resize_grid(1200, 800))
+    QtCore.QTimer.singleShot(15000, verify)
+    QtCore.QTimer.singleShot(20000, lambda: resize_grid(1700, 1000))
+    QtCore.QTimer.singleShot(30000, verify)
+    QtCore.QTimer.singleShot(35000, QtWidgets.QApplication.instance().quit)

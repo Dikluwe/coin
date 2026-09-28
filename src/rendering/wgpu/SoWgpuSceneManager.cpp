@@ -10,6 +10,12 @@
 #include <Inventor/nodes/SoNode.h>
 #include <Inventor/SbViewportRegion.h>
 #include "rendering/wgpu/SoWgpuDiagnosticShell.h"
+#if defined(HAVE_WGPU_BGFX)
+#include <Inventor/actions/SoBGFXRenderAction.h>
+using SceneRenderAction = SoBGFXRenderAction;
+#else
+using SceneRenderAction = SoWgpuRenderAction;
+#endif
 
 struct SoWgpuSceneManager::P {
   SoWgpuRenderTarget * target = nullptr;
@@ -22,8 +28,9 @@ struct SoWgpuSceneManager::P {
 SoWgpuSceneManager::SoWgpuSceneManager(const SbVec2i32 & offscreenSize)
   : pimpl(new P)
 {
+  if (SceneRenderAction::getClassTypeId().isBad()) SceneRenderAction::initClass();
   this->pimpl->target = SoWgpuRenderTarget::createOffscreen(offscreenSize);
-  this->pimpl->action = new SoWgpuRenderAction(SbViewportRegion(offscreenSize[0], offscreenSize[1]));
+  this->pimpl->action = new SceneRenderAction(SbViewportRegion(offscreenSize[0], offscreenSize[1]));
   this->pimpl->action->setRenderTarget(this->pimpl->target);
   if (this->pimpl->target->getStatus() != SoWgpuRenderTarget::TARGET_READY) {
     const SoWgpuActionDiagnostic diagnostic = SoWgpuDiagnosticShell::fromTarget(
@@ -37,8 +44,9 @@ SoWgpuSceneManager::SoWgpuSceneManager(const SoWgpuNativeSurfaceDescriptor & nat
                                        const SbVec2i32 & framebufferSize)
   : pimpl(new P)
 {
+  if (SceneRenderAction::getClassTypeId().isBad()) SceneRenderAction::initClass();
   this->pimpl->target = SoWgpuRenderTarget::createWindow(nativeWindow, framebufferSize);
-  this->pimpl->action = new SoWgpuRenderAction(SbViewportRegion(framebufferSize[0], framebufferSize[1]));
+  this->pimpl->action = new SceneRenderAction(SbViewportRegion(framebufferSize[0], framebufferSize[1]));
   this->pimpl->action->setRenderTarget(this->pimpl->target);
   if (this->pimpl->target->getStatus() != SoWgpuRenderTarget::TARGET_READY) {
     const SoWgpuActionDiagnostic diagnostic = SoWgpuDiagnosticShell::fromTarget(

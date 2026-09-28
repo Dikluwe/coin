@@ -60,6 +60,9 @@ int compareDrawGroupingKey(const SoWgpuBgfxDraw & lhs,
   if (result == 0) result = compareValue(lhs.polygonOffsetUnits, rhs.polygonOffsetUnits);
   if (result == 0) result = compareBytes(lhs.viewport, rhs.viewport, sizeof(lhs.viewport));
   if (result == 0) result = compareValue(lhs.materialSignature, rhs.materialSignature);
+  if (result == 0) result = compareBytes(lhs.fogColorMode, rhs.fogColorMode, sizeof(lhs.fogColorMode));
+  if (result == 0) result = compareBytes(lhs.fogRange, rhs.fogRange, sizeof(lhs.fogRange));
+  if (result == 0) result = compareBytes(lhs.extraTextures, rhs.extraTextures, sizeof(lhs.extraTextures));
   if (result == 0) result = compareValue(lhs.hasTexture, rhs.hasTexture);
   if (result == 0) result = compareValue(lhs.textureSlot, rhs.textureSlot);
   if (result == 0) result = compareValue(lhs.textureModel, rhs.textureModel);
@@ -96,6 +99,7 @@ bool opaqueDrawCanBeGrouped(const SoWgpuBgfxDraw & draw)
   // Non-default comparisons, disabled test/write, remapped depth ranges and
   // polygon offset make overlapping draws order-sensitive. In those cases a
   // pipeline/material sort can visibly differ from sequential GL traversal.
+  if (draw.blend && !draw.deferred) return false;
   return draw.blend ||
     (draw.depthTest && draw.depthWrite &&
      draw.depthFunction == DepthFunction::LESS &&
@@ -161,7 +165,7 @@ SoWgpuBgfxCore::lower(const FramePlan & frame, int width, int height,
   }
   if (!frame.isValid(&diagnostic)) return false;
   std::vector<SoWgpuCompositionItem> order;
-  if (!coin_wgpu_composition_order(frame, order, diagnostic)) return false;
+  if (!coin_wgpu_composition_order(frame, order, diagnostic, true)) return false;
 
   for (const SoWgpuCompositionItem & item : order) {
     const DrawPacket & draw = frame.draws[item.drawIndex];
@@ -173,9 +177,8 @@ SoWgpuBgfxCore::lower(const FramePlan & frame, int width, int height,
       diagnostic = "BGFX evaluation received an unknown face/cull state";
       return false;
     }
-    if (draw.topology != PrimitiveTopology::TRIANGLE_LIST ||
-        state.fogMode != FogMode::NONE) {
-      diagnostic = "BGFX evaluation supports PHONG or BASE_COLOR triangles without fog";
+    if (draw.topology != PrimitiveTopology::TRIANGLE_LIST) {
+      diagnostic = "BGFX evaluation supports PHONG or BASE_COLOR triangles with fog";
       return false;
     }
     if (state.hasTexture) {
@@ -254,6 +257,21 @@ SoWgpuBgfxCore::lower(const FramePlan & frame, int width, int height,
       lowered.polygonOffsetUnits = state.polygonOffsetUnits;
     }
     lowered.blend = item.blend;
+    lowered.sourceNodeId = draw.sourceNodeId;
+    lowered.sortTriangles = item.sortTriangles && state.polygonOffsetPrimitiveStyle == 1;
+    lowered.deferred = item.deferred && draw.renderLayer == 0;
+    lowered.additive = item.additive;
+    if (lowered.deferred) {
+      if (!(state.explicitDepthMask & 1)) lowered.depthTest = true;
+      if (!(state.explicitDepthMask & 2)) lowered.depthWrite = false;
+      if (!(state.explicitDepthMask & 4)) lowered.depthFunction = DepthFunction::LEQUAL;
+      if (!(state.explicitDepthMask & 8)) { lowered.depthRange[0] = 0; lowered.depthRange[1] = 1; }
+    }
+    if (state.transparencyType == SoGLRenderAction::SCREEN_DOOR &&
+        state.polygonOffsetPrimitiveStyle == 1)
+      lowered.screenDoor[0] = std::min(64, std::max(0, int((state.screenDoorTransparency >= 0 ? state.screenDoorTransparency : frame.materials[state.materialSlot].transparency) * 64.0f)));
+    lowered.screenDoor[3] = state.transparencyType == SoGLRenderAction::SCREEN_DOOR ? 1.0f : 0.0f;
+
     switch (item.transparencyStrategy) {
     case SoWgpuCompositionItem::WEIGHTED_OIT:
       lowered.transparencyStrategy = SoWgpuBgfxTransparencyStrategy::WEIGHTED_OIT; break;
@@ -280,6 +298,19 @@ SoWgpuBgfxCore::lower(const FramePlan & frame, int width, int height,
       lowered.wrapT = sampler.wrapT;
       lowered.filter = sampler.filter;
     }
+    for (size_t unit = 1; unit < COIN_WGPU_MAX_TEXTURE_UNITS; ++unit) {
+      const auto & source = state.extraTextures[unit - 1];
+      auto & layer = lowered.extraTextures[unit - 1];
+      layer.enabled = source.enabled;
+      if (!source.enabled) continue;
+      layer.slot = source.imageSlot; layer.model = source.model;
+      std::memcpy(layer.blendColor, source.blendColor, sizeof(layer.blendColor));
+      const auto & sampler = frame.samplers[source.samplerSlot];
+      layer.wrapS = sampler.wrapS; layer.wrapT = sampler.wrapT; layer.filter = sampler.filter;
+    }
+    std::memcpy(lowered.fogColorMode, state.fogColor, sizeof(state.fogColor));
+    lowered.fogColorMode[3] = static_cast<float>(state.fogMode);
+    lowered.fogRange[0] = state.fogStart; lowered.fogRange[1] = state.fogEnd;
     const LightingSnapshot & lighting = frame.lightingStates[state.lightingSlot];
     lowered.ambientLight[0] = lighting.ambientColor[0];
     lowered.ambientLight[1] = lighting.ambientColor[1];
@@ -320,10 +351,12 @@ SoWgpuBgfxCore::lower(const FramePlan & frame, int width, int height,
       std::memcpy(vertex.ambient, material.ambient, sizeof(vertex.ambient));
       std::memcpy(vertex.specular, material.specular, sizeof(vertex.specular));
       std::memcpy(vertex.emission, material.emission, sizeof(vertex.emission));
+      vertex.material[2] = source.screenSpaceW;
       vertex.material[0] = material.shininess;
       vertex.material[1] = state.lightModel == LightModel::PHONG ? 1.0f : 0.0f;
       SbVec3f viewPosition;
       modelView.multVecMatrix(SbVec3f(source.position), viewPosition);
+      if (source.fogEyeDepth >= 0) viewPosition[2] = -source.fogEyeDepth;
       viewPosition.getValue(vertex.viewPosition[0], vertex.viewPosition[1],
                             vertex.viewPosition[2]);
       SbVec3f viewNormal;
@@ -339,13 +372,80 @@ SoWgpuBgfxCore::lower(const FramePlan & frame, int width, int height,
         vertex.texcoord[0] = transformed[0];
         vertex.texcoord[1] = transformed[1];
       }
+      for (size_t unit = 1; unit < COIN_WGPU_MAX_TEXTURE_UNITS; ++unit) {
+        const auto & layer = state.extraTextures[unit - 1];
+        if (!layer.enabled) continue;
+        SbVec4f uv;
+        layer.matrix.multVecMatrix(
+          SbVec4f(source.extraTexcoords[unit - 1][0], source.extraTexcoords[unit - 1][1], 0, 1), uv);
+        float * packed = &vertex.extraTexcoords[(unit - 1) / 2][((unit - 1) % 2) * 2];
+        packed[0] = uv[0]; packed[1] = uv[1];
+      }
       candidate.indices.push_back(
         static_cast<uint32_t>(candidate.vertices.size()));
       candidate.vertices.push_back(vertex);
     }
+    if (item.blend && item.sortTriangles && state.polygonOffsetPrimitiveStyle == 1) {
+      const uint32_t first = lowered.firstIndex;
+      std::vector<uint32_t> triangles(lowered.indexCount / 3);
+      for (uint32_t t = 0; t < triangles.size(); ++t) triangles[t] = t;
+      const auto depth = [&](uint32_t t) {
+        float z = 0;
+        for (uint32_t v = 0; v < 3; ++v)
+          z += candidate.vertices[candidate.indices[first + t * 3 + v]].viewPosition[2];
+        return z;
+      };
+      std::stable_sort(triangles.begin(), triangles.end(),
+        [&](uint32_t a, uint32_t b) { return depth(a) < depth(b); });
+      std::vector<uint32_t> sorted;
+      sorted.reserve(lowered.indexCount);
+      for (auto t : triangles) for (uint32_t v = 0; v < 3; ++v)
+        sorted.push_back(candidate.indices[first + t * 3 + v]);
+      std::copy(sorted.begin(), sorted.end(), candidate.indices.begin() + first);
+    }
     candidate.draws.push_back(lowered);
   }
 
+  // Material binding may split a single Coin shape into multiple packets.
+  // Sort all of that shape's triangles, not just each material run separately.
+  std::vector<SoWgpuBgfxDraw> sortedDraws;
+  for (size_t begin = 0; begin < candidate.draws.size();) {
+    size_t end = begin + 1;
+    const auto & first = candidate.draws[begin];
+    if (first.sortTriangles && first.blend && first.sourceNodeId && first.renderLayer == 0) {
+      while (end < candidate.draws.size()) {
+        const auto & next = candidate.draws[end];
+        if (!next.sortTriangles || !next.blend || next.sourceNodeId != first.sourceNodeId ||
+            next.renderLayer != first.renderLayer || std::memcmp(next.mvp, first.mvp, sizeof(first.mvp)) != 0) break;
+        ++end;
+      }
+    }
+    if (end == begin + 1) sortedDraws.push_back(first);
+    else {
+      std::vector<SoWgpuBgfxDraw> triangles;
+      for (size_t drawIndex = begin; drawIndex < end; ++drawIndex) {
+        const auto & source = candidate.draws[drawIndex];
+        for (uint32_t index = source.firstIndex; index < source.firstIndex + source.indexCount; index += 3) {
+          auto triangle = source;
+          triangle.firstIndex = index; triangle.indexCount = 3;
+          triangle.firstVertex = candidate.indices[index]; triangle.vertexCount = 3;
+          triangles.push_back(triangle);
+        }
+      }
+      const auto eyeZ = [&](const SoWgpuBgfxDraw & draw) {
+        float z = 0;
+        for (uint32_t i = 0; i < 3; ++i)
+          z += candidate.vertices[candidate.indices[draw.firstIndex + i]].viewPosition[2];
+        return z;
+      };
+      std::stable_sort(triangles.begin(), triangles.end(), [&](const SoWgpuBgfxDraw & a, const SoWgpuBgfxDraw & b) {
+        return eyeZ(a) < eyeZ(b);
+      });
+      sortedDraws.insert(sortedDraws.end(), triangles.begin(), triangles.end());
+    }
+    begin = end;
+  }
+  candidate.draws.swap(sortedDraws);
   candidate.textures.reserve(frame.textures.size());
   for (const TextureImageSnapshot & source : frame.textures) {
     SoWgpuBgfxTexture texture;
@@ -438,7 +538,7 @@ SoWgpuBgfxCore::selectTransparencyStrategy(
   size_t transparentCount = 0;
   SoWgpuBgfxTransparencyStrategy required = SoWgpuBgfxTransparencyStrategy::OBJECT;
   for (const SoWgpuBgfxDraw & draw : draws) {
-    if (!draw.blend) continue;
+    if (!draw.blend || !draw.deferred || draw.additive || draw.renderLayer != 0) continue;
     ++transparentCount;
     if (draw.transparencyStrategy == SoWgpuBgfxTransparencyStrategy::SORTED_LAYERS) {
       required = SoWgpuBgfxTransparencyStrategy::SORTED_LAYERS;
@@ -456,10 +556,7 @@ SoWgpuBgfxCore::selectTransparencyStrategy(
     selected = SoWgpuBgfxTransparencyStrategy::SORTED_LAYERS;
   else {
     selected = required;
-    // Eight or more overlapping draws are the point where object sorting is
-    // both fragile and needlessly expensive; weighted OIT stays interactive.
-    if (selected == SoWgpuBgfxTransparencyStrategy::OBJECT && transparentCount >= 8)
-      selected = SoWgpuBgfxTransparencyStrategy::WEIGHTED_OIT;
+    // AUTO preserves the selected Coin semantics; OIT is an explicit extension.
   }
 
   if (transparentCount == 0) selected = SoWgpuBgfxTransparencyStrategy::OBJECT;
@@ -545,9 +642,10 @@ SoWgpuBgfxCore::patchCamera(const FramePlan & frame, int width, int height,
           (state.polygonOffsetStyles & state.polygonOffsetPrimitiveStyle))
           ? state.polygonOffsetUnits : 0.0f) != previous.polygonOffsetUnits ||
         state.lightModel != LightModel::BASE_COLOR ||
+        state.fogMode != FogMode::NONE || previous.fogColorMode[3] != 0.0f ||
+        state.polygonOffsetPrimitiveStyle != 1 ||
         state.hasTexture != previous.hasTexture ||
-        (state.hasTexture && state.textureImageSlot != previous.textureSlot) ||
-        state.fogMode != FogMode::NONE) {
+        (state.hasTexture && state.textureImageSlot != previous.textureSlot)) {
       diagnostic = "BGFX camera patch changed non-camera draw state";
       return false;
     }

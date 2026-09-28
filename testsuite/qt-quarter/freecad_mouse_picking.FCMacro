@@ -1,0 +1,183 @@
+# Native XTest input: never manufacture selection/preselection through Gui.Selection.
+import ctypes
+import subprocess
+import re
+from pathlib import Path
+import os
+exec((Path(os.environ['COIN_TEST_MACRO_DIR']) / 'freecad_overlays.FCMacro').read_text())
+
+report['test'] = 'freecad-mouse-picking'
+App.ParamGet('User parameter:BaseApp/Preferences/View').SetBool('EnablePreselection', True)
+if os.environ.get('COIN_TEST_ISOLATED_X11') != '1':
+    raise RuntimeError('XTest requires a private session; use run_isolated.py')
+x11 = ctypes.CDLL('libX11.so.6')
+xtst = ctypes.CDLL('libXtst.so.6')
+x11.XOpenDisplay.argtypes = [ctypes.c_char_p]
+x11.XOpenDisplay.restype = ctypes.c_void_p
+x11.XFlush.argtypes = [ctypes.c_void_p]
+xtst.XTestFakeMotionEvent.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_ulong]
+xtst.XTestFakeButtonEvent.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_int, ctypes.c_ulong]
+display = x11.XOpenDisplay(os.environ['DISPLAY'].encode())
+if not display:
+    raise RuntimeError('cannot open private X11 display')
+
+def active():
+    output = subprocess.check_output(['xprop', '-root', '_NET_ACTIVE_WINDOW'], text=True, timeout=2)
+    match = re.search(r'0x[0-9a-fA-F]+', output)
+    if not match or int(match.group(), 16) != int(Gui.getMainWindow().winId()):
+        raise RuntimeError('FreeCAD lost X11 focus')
+
+def move(point):
+    active()
+    viewport = viewer_widget().viewport()
+    p = viewport.mapToGlobal(point)
+    scale = viewport.devicePixelRatioF()
+    if not xtst.XTestFakeMotionEvent(display, -1, round(p.x()*scale), round(p.y()*scale), 0):
+        raise RuntimeError('XTest motion failed')
+    x11.XFlush(display)
+
+def click():
+    active()
+    for pressed in (1, 0):
+        if not xtst.XTestFakeButtonEvent(display, 1, pressed, 0):
+            raise RuntimeError('XTest click failed')
+    x11.XFlush(display)
+
+def locate():
+    # Read-only SoRayPickAction supplies an independent expected face. Pick
+    # interior samples with neighbours on the same face, avoiding edge tolerance.
+    viewport = viewer_widget().viewport()
+    width, height = viewport.width(), viewport.height()
+    scale = viewport.devicePixelRatioF()
+    def hit(x, y):
+        info = view.getObjectInfo((round(x*scale), round((height-1-y)*scale)), 0)
+        return info.get('Component') if info and info.get('Object') == 'Box' else None
+    found = {}
+    for y in range(height//4, 3*height//4, max(10, height//20)):
+        for x in range(width//4, 3*width//4, max(10, width//20)):
+            face = hit(x, y)
+            if face and face.startswith('Face') and face not in found and all(
+                    hit(x+dx, y+dy) == face for dx, dy in ((-8,0),(8,0),(0,-8),(0,8))):
+                found[face] = QtCore.QPoint(x, y)
+    if len(found) < 2:
+        raise RuntimeError('ray-picking did not locate two visible face interiors')
+    report.setdefault('locations', []).append({f: [p.x(), p.y()] for f,p in found.items()})
+    return list(found.items())[:2]
+
+def image(name):
+    active()
+    return capture(name)
+
+def delta(a, b):
+    return changes(a, b, QtCore.QRect(0, 0, a.width()-1, a.height()-1))
+
+def check_hover(face):
+    pre = Gui.Selection.getPreselection()
+    report.setdefault('hovered', []).append(list(pre.SubElementNames))
+    if pre.ObjectName != 'Box' or list(pre.SubElementNames) != [face]:
+        raise RuntimeError('native mouse preselection does not match ray-picked ' + face)
+
+def axes_baseline():
+    global targets, original_size
+    Gui.getMainWindow().raise_()
+    Gui.getMainWindow().activateWindow()
+    original_size = Gui.getMainWindow().size()
+    step(prepare)
+
+def prepare():
+    global targets
+    targets = locate()
+    move(QtCore.QPoint(15, 15))
+    step(baseline)
+
+def baseline():
+    image('mouse-baseline')
+    move(targets[0][1])
+    step(first_hover)
+
+def first_hover():
+    check_hover(targets[0][0])
+    pixels = delta(images['mouse-baseline'], image('mouse-face-a'))
+    report['first_hover_pixels'] = pixels
+    if pixels < 100:
+        raise RuntimeError('mouse hover did not visibly highlight first face')
+    move(targets[1][1])
+    step(second_hover)
+
+def second_hover():
+    check_hover(targets[1][0])
+    pixels = delta(images['mouse-face-a'], image('mouse-face-b'))
+    report['face_transition_pixels'] = pixels
+    if pixels < 100:
+        raise RuntimeError('face-to-face motion did not update highlight')
+    click()
+    step(selected)
+
+def selected():
+    selection = Gui.Selection.getSelectionEx()
+    if len(selection) != 1 or selection[0].ObjectName != 'Box' or list(selection[0].SubElementNames) != [targets[1][0]]:
+        raise RuntimeError('native mouse click selected the wrong face')
+    report['clicked_face'] = targets[1][0]
+    move(QtCore.QPoint(15, 15))
+    step(background)
+
+def background():
+    if Gui.Selection.getPreselection().ObjectName:
+        raise RuntimeError('background motion did not clear preselection')
+    pixels = delta(images['mouse-baseline'], image('mouse-selected'))
+    report['selection_pixels'] = pixels
+    if pixels < 100:
+        raise RuntimeError('clicked face selection is not visible')
+    # Only cleanup uses the selection API; all positive selection is native input.
+    Gui.Selection.clearSelection()
+    step(clean)
+
+def clean():
+    if delta(images['mouse-baseline'], image('mouse-cleared')) > 30:
+        raise RuntimeError('stale selection/hover pixels after clearing')
+    Gui.getMainWindow().resize(original_size.width()-140, original_size.height()-100)
+    step(resized)
+
+def resized():
+    global targets
+    targets = locate()
+    image('mouse-resized-baseline')
+    move(targets[0][1])
+    step(resized_hover)
+
+def resized_hover():
+    check_hover(targets[0][0])
+    pixels = delta(images['mouse-resized-baseline'], image('mouse-resized-hover'))
+    report['resized_hover_pixels'] = pixels
+    if pixels < 100:
+        raise RuntimeError('picking/highlight failed after resize')
+    move(QtCore.QPoint(15, 15))
+    step(resized_clear)
+
+def resized_clear():
+    if Gui.Selection.getPreselection().ObjectName or delta(images['mouse-resized-baseline'], image('mouse-resized-cleared')) > 30:
+        raise RuntimeError('resized background did not clear hover')
+    report.update(settle_samples=0, settle_stable=0,
+                  settle_frame=int(viewer_widget().property('wgpuFrameCount')))
+    step(settle, 500)
+
+
+def settle():
+    active()
+    frame = int(viewer_widget().property('wgpuFrameCount'))
+    report['settle_samples'] += 1
+    report['settle_stable'] = report['settle_stable']+1 if frame == report['settle_frame'] else 0
+    report['settle_frame'] = frame
+    if report['settle_stable'] >= 2:
+        report['idle_start'] = frame
+        step(idle, 1200)
+    elif report['settle_samples'] >= 6:
+        raise RuntimeError('mouse redraw did not settle within 3 seconds')
+    else:
+        step(settle, 500)
+
+def idle():
+    report['idle_end'] = int(viewer_widget().property('wgpuFrameCount'))
+    if report['idle_start'] != report['idle_end']:
+        raise RuntimeError('mouse picking caused continuous idle redraw')
+    finish()

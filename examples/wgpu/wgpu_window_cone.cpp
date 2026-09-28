@@ -8,7 +8,13 @@
 \**************************************************************************/
 
 #include <Inventor/SoDB.h>
+#if defined(COIN_EXAMPLE_BGFX)
+#include <Inventor/actions/SoBGFXRenderAction.h>
+using ExampleRenderAction = SoBGFXRenderAction;
+#else
 #include <Inventor/actions/SoWgpuRenderAction.h>
+using ExampleRenderAction = SoWgpuRenderAction;
+#endif
 #include <Inventor/rendering/SoWgpuRenderTarget.h>
 #include <Inventor/rendering/SoWgpuNativeSurface.h>
 #include <Inventor/nodes/SoSeparator.h>
@@ -50,7 +56,7 @@ int main(int argc, char ** argv) {
   }
 
   SoDB::init();
-  SoWgpuRenderAction::initClass();
+  ExampleRenderAction::initClass();
   std::cout << "Starting Coin3D WebGPU Window Example (GLFW + X11)..." << std::endl;
 
   if (!glfwInit()) {
@@ -94,7 +100,7 @@ int main(int argc, char ** argv) {
     return 1;
   }
 
-  SoWgpuRenderAction action;
+  ExampleRenderAction action;
   action.setRenderTarget(target);
   action.setViewportRegion(SbViewportRegion(fbWidth, fbHeight));
   action.setBackgroundColor(SbColor4f(0.12f, 0.14f, 0.18f, 1.0f));
@@ -158,7 +164,7 @@ int main(int argc, char ** argv) {
     action.apply(root);
 
     auto st = action.getLastStatus();
-    if (st != SoWgpuRenderAction::SUCCESS && st != SoWgpuRenderAction::NOT_READY) {
+    if (st != ExampleRenderAction::SUCCESS && st != ExampleRenderAction::NOT_READY) {
       std::cerr << "RenderAction error: " << action.getLastError().getString() << std::endl;
       break;
     }
@@ -198,7 +204,7 @@ int main(int argc, char ** argv) {
   }
 
   SoDB::init();
-  SoWgpuRenderAction::initClass();
+  ExampleRenderAction::initClass();
   std::cout << "Starting Coin3D WebGPU Window Example (Direct Xlib)..." << std::endl;
 
   Display * dpy = XOpenDisplay(NULL);
@@ -237,7 +243,7 @@ int main(int argc, char ** argv) {
     return 1;
   }
 
-  SoWgpuRenderAction action;
+  ExampleRenderAction action;
   action.setRenderTarget(target);
   action.setViewportRegion(SbViewportRegion(960, 540));
   action.setBackgroundColor(SbColor4f(0.12f, 0.14f, 0.18f, 1.0f));
@@ -313,7 +319,7 @@ int main(int argc, char ** argv) {
     action.apply(root);
 
     auto st = action.getLastStatus();
-    if (st != SoWgpuRenderAction::SUCCESS && st != SoWgpuRenderAction::NOT_READY) {
+    if (st != ExampleRenderAction::SUCCESS && st != ExampleRenderAction::NOT_READY) {
       std::cerr << "RenderAction error: " << action.getLastError().getString() << std::endl;
       break;
     }

@@ -159,6 +159,36 @@ FramePlan fixture() {
   return frame;
 }
 
+bool annotationTransport() {
+  FramePlan frame = fixture();
+  frame.revision = 101;
+  frame.draws[0].renderLayer = 3;
+  frame.draws[0].clearDepthBefore = true;
+  frame.draws[1].renderLayer = 3;
+  SoWgpuFfiFrame ffi;
+  std::string diagnostic;
+  if (!check(ffi.prepare(frame, 32, 32, diagnostic), "annotation FFI packing")) return false;
+  const auto matches = [&]() {
+    const auto & view = ffi.getView();
+    return check(view.abi_version == 20 && view.draws[0].render_layer == 3 &&
+      view.draws[0].clear_depth_before == 1 && view.draws[1].render_layer == 3 &&
+      view.draws[1].clear_depth_before == 0, "annotation payload lost in FFI");
+  };
+  if (!matches() || !ffi.prepare(frame, 32, 32, diagnostic) ||
+      !check(ffi.reusedLastPrepare(), "annotation frame reuse") || !matches()) return false;
+  frame.revision = 102;
+  if (!ffi.prepare(frame, 32, 32,
+      SoWgpuFrameReuseDecision(SoWgpuFrameReuseKind::CAMERA_PATCH, 101), diagnostic) ||
+      !check(ffi.lastPrepareKind() == SoWgpuFrameReuseKind::CAMERA_PATCH,
+        "annotation camera patch") || !matches()) return false;
+  frame.revision = 103;
+  frame.draws[0].renderLayer = 0;
+  frame.draws[0].clearDepthBefore = false;
+  if (!ffi.prepare(frame, 32, 32, diagnostic)) return false;
+  return check(ffi.getView().draws[0].render_layer == 0 &&
+    ffi.getView().draws[0].clear_depth_before == 0, "annotation removal retained stale payload");
+}
+
 bool lowerAndCache() {
   bool ok = true;
   for (uint32_t primitive : {1u,2u,4u}) {
@@ -280,5 +310,5 @@ int main(int argc, char ** argv) {
   SoDB::init();
   SoWgpuRenderAction::initClass();
   if (argc == 2 && std::string(argv[1]) == "--gpu") return gpu();
-  return capture() && lowerAndCache() ? 0 : 1;
+  return capture() && lowerAndCache() && annotationTransport() ? 0 : 1;
 }

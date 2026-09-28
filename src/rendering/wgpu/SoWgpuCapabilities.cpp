@@ -212,9 +212,12 @@ coin_wgpu_experimental_query_capabilities(uint32_t target,
                     COIN_WGPU_FEATURE_LINES_POINTS |
                     COIN_WGPU_FEATURE_TEXTURE_2D |
                     COIN_WGPU_FEATURE_LIGHTS |
+                    COIN_WGPU_FEATURE_FOG |
                     COIN_WGPU_FEATURE_SORTED_ALPHA;
   result.max_lights_per_draw = 8;
-  result.max_texture_units = 1;
+  result.max_texture_units = COIN_WGPU_MAX_TEXTURE_UNITS;
+  if (target == COIN_WGPU_EXPERIMENTAL_OFFSCREEN)
+    result.features |= COIN_WGPU_FEATURE_COLOR_DEPTH | COIN_WGPU_FEATURE_ASYNC_READBACK;
   probeBgfx(target, result);
 #else
   result.backend = COIN_WGPU_EXPERIMENTAL_RECORDING;

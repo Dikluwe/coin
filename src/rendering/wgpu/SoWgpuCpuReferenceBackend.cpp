@@ -18,9 +18,9 @@ namespace {
 struct ShadedVertex {
   SbVec4f clipPos;
   SbVec3f viewPos;
-  SbVec3f viewNormal;
+  SbVec4f litColor;
   SbVec2f texCoord;
-  uint32_t materialSlot;
+  SbVec2f extraTexcoords[COIN_WGPU_MAX_TEXTURE_UNITS - 1];
 };
 
 inline float edgeFunction(const SbVec2f & a, const SbVec2f & b, const SbVec2f & c) {
@@ -31,10 +31,10 @@ inline ShadedVertex interpolateVertex(const ShadedVertex & a, const ShadedVertex
   ShadedVertex out;
   out.clipPos = a.clipPos + (b.clipPos - a.clipPos) * t;
   out.viewPos = a.viewPos + (b.viewPos - a.viewPos) * t;
-  out.viewNormal = a.viewNormal + (b.viewNormal - a.viewNormal) * t;
-  out.viewNormal.normalize();
+  out.litColor = a.litColor + (b.litColor - a.litColor) * t;
   out.texCoord = a.texCoord + (b.texCoord - a.texCoord) * t;
-  out.materialSlot = (t < 0.5f ? a.materialSlot : b.materialSlot);
+  for (size_t u = 0; u < COIN_WGPU_MAX_TEXTURE_UNITS - 1; ++u)
+    out.extraTexcoords[u] = a.extraTexcoords[u] + (b.extraTexcoords[u] - a.extraTexcoords[u]) * t;
   return out;
 }
 
@@ -141,9 +141,77 @@ inline void writePixel(std::vector<uint8_t> & color, size_t offset,
   color[offset + 3] = static_cast<uint8_t>(clamp01(alpha) * 255.0f);
 }
 
+
+static SbVec4f shadeVertex(const MaterialSnapshot & material,
+                          const SbVec3f & vPos, const SbVec3f & n,
+                          const LightingSnapshot & lighting, const RenderStateSnapshot & rs) {
+  const SbVec3f viewDir(0.0f, 0.0f, 1.0f);
+  const SbVec3f amb(material.ambient[0], material.ambient[1], material.ambient[2]);
+  const SbVec3f diff(material.diffuse[0], material.diffuse[1], material.diffuse[2]);
+  const SbVec3f spec(material.specular[0], material.specular[1], material.specular[2]);
+  const SbVec3f emiss(material.emission[0], material.emission[1], material.emission[2]);
+  float finalR = 0.0f;
+  float finalG = 0.0f;
+  float finalB = 0.0f;
+
+  if (rs.lightModel == LightModel::BASE_COLOR) {
+    finalR = diff[0];
+    finalG = diff[1];
+    finalB = diff[2];
+  } else {
+    finalR = amb[0] * lighting.ambientColor[0] * lighting.ambientIntensity + emiss[0];
+    finalG = amb[1] * lighting.ambientColor[1] * lighting.ambientIntensity + emiss[1];
+    finalB = amb[2] * lighting.ambientColor[2] * lighting.ambientIntensity + emiss[2];
+    for (size_t lightIndex = 0; lightIndex < lighting.lights.size(); ++lightIndex) {
+      const LightSourceSnapshot & light = lighting.lights[lightIndex];
+      SbVec3f toLight;
+      float attenuation = 1.0f;
+      if (light.type == LightType::DIRECTIONAL) {
+        toLight.setValue(-light.direction[0], -light.direction[1], -light.direction[2]);
+        toLight.normalize();
+      } else {
+        SbVec3f lightPos(light.position[0], light.position[1], light.position[2]);
+        SbVec3f delta = lightPos - vPos;
+        const float distance = delta.length();
+        if (distance <= 1.0e-6f) continue;
+        toLight = delta / distance;
+        const float denominator = light.attenuation[2] +
+          light.attenuation[1] * distance +
+          light.attenuation[0] * distance * distance;
+        if (denominator <= 1.0e-6f) continue;
+        attenuation = 1.0f / denominator;
+        if (light.type == LightType::SPOT) {
+          SbVec3f lightDirection(light.direction[0], light.direction[1], light.direction[2]);
+          lightDirection.normalize();
+          const float coneCos = lightDirection.dot(-toLight);
+          if (coneCos < std::cos(light.cutOffAngle)) continue;
+          attenuation *= std::pow(std::max(coneCos, 0.0f), light.dropOffRate * 128.0f);
+        }
+      }
+      const float diffuseFactor = std::max(0.0f, n.dot(toLight));
+      if (diffuseFactor <= 0.0f) continue;
+      SbVec3f halfVector = toLight + viewDir;
+      halfVector.normalize();
+      const float exponent = material.shininess * 128.0f;
+      const float specularFactor = exponent > 0.0f
+        ? std::pow(std::max(n.dot(halfVector), 0.0f), exponent) : 1.0f;
+      const float strength = light.intensity * attenuation;
+      finalR += (diff[0] * diffuseFactor + spec[0] * specularFactor) * light.color[0] * strength;
+      finalG += (diff[1] * diffuseFactor + spec[1] * specularFactor) * light.color[1] * strength;
+      finalB += (diff[2] * diffuseFactor + spec[2] * specularFactor) * light.color[2] * strength;
+    }
+  }
+
+
+  // GL clamps primary colors before interpolation, including clipped vertices.
+  return SbVec4f(std::max(0.0f, std::min(1.0f, finalR)),
+                 std::max(0.0f, std::min(1.0f, finalG)),
+                 std::max(0.0f, std::min(1.0f, finalB)), material.diffuse[3]);
+}
+
 static void rasterizeTriangle(const ShadedVertex & sv0, const ShadedVertex & sv1, const ShadedVertex & sv2,
                               int width, int height,
-                              const LightingSnapshot & lighting, const RenderStateSnapshot & rs,
+                              const RenderStateSnapshot & rs,
                               const FramePlan & frame,
                               bool blend,
                               std::vector<float> & depthBuffer, std::vector<uint8_t> & colorBuffer)
@@ -190,11 +258,19 @@ static void rasterizeTriangle(const ShadedVertex & sv0, const ShadedVertex & sv1
       float w1 = edgeFunction(scrPos[2], scrPos[0], p);
       float w2 = edgeFunction(scrPos[0], scrPos[1], p);
 
-      if (area > 0) {
-        if (w0 < 0.0f || w1 < 0.0f || w2 < 0.0f) continue;
-      } else {
-        if (w0 > 0.0f || w1 > 0.0f || w2 > 0.0f) continue;
-      }
+      // A shared edge belongs to exactly one triangle. Inclusive edges on
+      // both triangles double-blend expanded transparent lines and points.
+      auto covered = [&](float edge, const SbVec2f & first, const SbVec2f & second) {
+        const SbVec2f & a = area < 0 ? first : second;
+        const SbVec2f & b = area < 0 ? second : first;
+        const float signedEdge = area > 0 ? edge : -edge;
+        if (signedEdge != 0.0f) return signedEdge > 0.0f;
+        const float dy = b[1] - a[1], dx = b[0] - a[0];
+        return dy < 0.0f || (dy == 0.0f && dx > 0.0f);
+      };
+      if (!covered(w0, scrPos[1], scrPos[2]) ||
+          !covered(w1, scrPos[2], scrPos[0]) ||
+          !covered(w2, scrPos[0], scrPos[1])) continue;
 
       float l0 = w0 * invArea;
       float l1 = w1 * invArea;
@@ -218,111 +294,27 @@ static void rasterizeTriangle(const ShadedVertex & sv0, const ShadedVertex & sv1
       float b1 = (l1 * invW[1]) * oneOverNormW;
       float b2 = (l2 * invW[2]) * oneOverNormW;
 
-      SbVec3f n = sv0.viewNormal * b0 + sv1.viewNormal * b1 + sv2.viewNormal * b2;
-      n.normalize();
-
-      SbVec3f vPos = sv0.viewPos * b0 + sv1.viewPos * b1 + sv2.viewPos * b2;
-      SbVec3f viewDir = -vPos;
-      viewDir.normalize();
-
-      // B03: Material properties interpolated per-vertex
-      const auto & m0 = (sv0.materialSlot < frame.materials.size() ? frame.materials[sv0.materialSlot] : MaterialSnapshot{});
-      const auto & m1 = (sv1.materialSlot < frame.materials.size() ? frame.materials[sv1.materialSlot] : MaterialSnapshot{});
-      const auto & m2 = (sv2.materialSlot < frame.materials.size() ? frame.materials[sv2.materialSlot] : MaterialSnapshot{});
-
-      SbVec3f amb(
-        m0.ambient[0] * b0 + m1.ambient[0] * b1 + m2.ambient[0] * b2,
-        m0.ambient[1] * b0 + m1.ambient[1] * b1 + m2.ambient[1] * b2,
-        m0.ambient[2] * b0 + m1.ambient[2] * b1 + m2.ambient[2] * b2
-      );
-
-      SbVec3f diff(
-        m0.diffuse[0] * b0 + m1.diffuse[0] * b1 + m2.diffuse[0] * b2,
-        m0.diffuse[1] * b0 + m1.diffuse[1] * b1 + m2.diffuse[1] * b2,
-        m0.diffuse[2] * b0 + m1.diffuse[2] * b1 + m2.diffuse[2] * b2
-      );
-
-      SbVec3f spec(
-        m0.specular[0] * b0 + m1.specular[0] * b1 + m2.specular[0] * b2,
-        m0.specular[1] * b0 + m1.specular[1] * b1 + m2.specular[1] * b2,
-        m0.specular[2] * b0 + m1.specular[2] * b1 + m2.specular[2] * b2
-      );
-
-      float shininess = m0.shininess * b0 + m1.shininess * b1 + m2.shininess * b2;
-
-      SbVec3f emiss(
-        m0.emission[0] * b0 + m1.emission[0] * b1 + m2.emission[0] * b2,
-        m0.emission[1] * b0 + m1.emission[1] * b1 + m2.emission[1] * b2,
-        m0.emission[2] * b0 + m1.emission[2] * b1 + m2.emission[2] * b2
-      );
-
-      float finalR = 0.0f;
-      float finalG = 0.0f;
-      float finalB = 0.0f;
-
-      if (rs.lightModel == LightModel::BASE_COLOR) {
-        finalR = diff[0];
-        finalG = diff[1];
-        finalB = diff[2];
-      } else {
-        finalR = amb[0] * lighting.ambientColor[0] * lighting.ambientIntensity + emiss[0];
-        finalG = amb[1] * lighting.ambientColor[1] * lighting.ambientIntensity + emiss[1];
-        finalB = amb[2] * lighting.ambientColor[2] * lighting.ambientIntensity + emiss[2];
-        for (size_t lightIndex = 0; lightIndex < lighting.lights.size(); ++lightIndex) {
-          const LightSourceSnapshot & light = lighting.lights[lightIndex];
-          SbVec3f toLight;
-          float attenuation = 1.0f;
-          if (light.type == LightType::DIRECTIONAL) {
-            toLight.setValue(-light.direction[0], -light.direction[1], -light.direction[2]);
-            toLight.normalize();
-          } else {
-            SbVec3f lightPos(light.position[0], light.position[1], light.position[2]);
-            SbVec3f delta = lightPos - vPos;
-            const float distance = delta.length();
-            if (distance <= 1.0e-6f) continue;
-            toLight = delta / distance;
-            const float denominator = light.attenuation[2] +
-              light.attenuation[1] * distance +
-              light.attenuation[0] * distance * distance;
-            if (denominator <= 1.0e-6f) continue;
-            attenuation = 1.0f / denominator;
-            if (light.type == LightType::SPOT) {
-              SbVec3f lightDirection(light.direction[0], light.direction[1], light.direction[2]);
-              lightDirection.normalize();
-              const float coneCos = lightDirection.dot(-toLight);
-              if (coneCos < std::cos(light.cutOffAngle)) continue;
-              attenuation *= std::pow(std::max(coneCos, 0.0f), light.dropOffRate * 128.0f);
-            }
-          }
-          const float diffuseFactor = std::max(0.0f, n.dot(toLight));
-          if (diffuseFactor <= 0.0f) continue;
-          SbVec3f halfVector = toLight + viewDir;
-          halfVector.normalize();
-          const float exponent = shininess * 128.0f;
-          const float specularFactor = exponent > 0.0f
-            ? std::pow(std::max(n.dot(halfVector), 0.0001f), exponent) : 1.0f;
-          const float strength = light.intensity * attenuation;
-          finalR += (diff[0] * diffuseFactor + spec[0] * specularFactor) * light.color[0] * strength;
-          finalG += (diff[1] * diffuseFactor + spec[1] * specularFactor) * light.color[1] * strength;
-          finalB += (diff[2] * diffuseFactor + spec[2] * specularFactor) * light.color[2] * strength;
-        }
-      }
-
-      float sourceAlpha = m0.diffuse[3] * b0 + m1.diffuse[3] * b1 + m2.diffuse[3] * b2;
-      if (rs.hasTexture && rs.textureImageSlot < frame.textures.size() && rs.samplerSlot < frame.samplers.size()) {
-        SbVec2f tc = sv0.texCoord * b0 + sv1.texCoord * b1 + sv2.texCoord * b2;
-        SbVec4f texCol = sampleTexture(frame.textures[rs.textureImageSlot], frame.samplers[rs.samplerSlot], tc[0], tc[1]);
-        if (rs.textureModel == TextureModel::REPLACE) {
+      const SbVec3f vPos = sv0.viewPos * b0 + sv1.viewPos * b1 + sv2.viewPos * b2;
+      const SbVec4f color = sv0.litColor * b0 + sv1.litColor * b1 + sv2.litColor * b2;
+      float finalR = color[0], finalG = color[1], finalB = color[2];
+      float sourceAlpha = color[3];
+      for (size_t unit = 0; unit < COIN_WGPU_MAX_TEXTURE_UNITS; ++unit) {
+        const TextureUnitSnapshot layer = coin_wgpu_texture_unit(rs, unit);
+        if (!layer.enabled) continue;
+        const SbVec2f tc = unit == 0 ? sv0.texCoord * b0 + sv1.texCoord * b1 + sv2.texCoord * b2 :
+          sv0.extraTexcoords[unit - 1] * b0 + sv1.extraTexcoords[unit - 1] * b1 + sv2.extraTexcoords[unit - 1] * b2;
+        SbVec4f texCol = sampleTexture(frame.textures[layer.imageSlot], frame.samplers[layer.samplerSlot], tc[0], tc[1]);
+        if (layer.model == TextureModel::REPLACE) {
           finalR = texCol[0]; finalG = texCol[1]; finalB = texCol[2];
           sourceAlpha = texCol[3];
-        } else if (rs.textureModel == TextureModel::DECAL) {
+        } else if (layer.model == TextureModel::DECAL) {
           finalR = finalR * (1.0f - texCol[3]) + texCol[0] * texCol[3];
           finalG = finalG * (1.0f - texCol[3]) + texCol[1] * texCol[3];
           finalB = finalB * (1.0f - texCol[3]) + texCol[2] * texCol[3];
-        } else if (rs.textureModel == TextureModel::BLEND) {
-          finalR = finalR * (1.0f - texCol[0]) + rs.textureBlendColor[0] * texCol[0];
-          finalG = finalG * (1.0f - texCol[1]) + rs.textureBlendColor[1] * texCol[1];
-          finalB = finalB * (1.0f - texCol[2]) + rs.textureBlendColor[2] * texCol[2];
+        } else if (layer.model == TextureModel::BLEND) {
+          finalR = finalR * (1.0f - texCol[0]) + layer.blendColor[0] * texCol[0];
+          finalG = finalG * (1.0f - texCol[1]) + layer.blendColor[1] * texCol[1];
+          finalB = finalB * (1.0f - texCol[2]) + layer.blendColor[2] * texCol[2];
           sourceAlpha *= texCol[3];
         } else {
           finalR *= texCol[0]; finalG *= texCol[1]; finalB *= texCol[2];
@@ -486,15 +478,19 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
         for (int k = 0; k < 3; ++k) {
           SbVec4f objPos(rawV[k]->position[0], rawV[k]->position[1], rawV[k]->position[2], 1.0f);
           mvpWgpu.multVecMatrix(objPos, sv[k].clipPos);
+          sv[k].clipPos *= rawV[k]->screenSpaceW;
 
           SbVec3f objP3(rawV[k]->position[0], rawV[k]->position[1], rawV[k]->position[2]);
           modelView.multVecMatrix(objP3, sv[k].viewPos);
+          if (rawV[k]->fogEyeDepth >= 0) sv[k].viewPos[2] = -rawV[k]->fogEyeDepth;
 
           SbVec3f objN3(rawV[k]->normal[0], rawV[k]->normal[1], rawV[k]->normal[2]);
-          normalMatrix.multDirMatrix(objN3, sv[k].viewNormal);
-          sv[k].viewNormal.normalize();
-
-          sv[k].materialSlot = rawV[k]->materialSlot;
+          SbVec3f viewNormal;
+          normalMatrix.multDirMatrix(objN3, viewNormal);
+          viewNormal.normalize();
+          const auto & material = rawV[k]->materialSlot < frame.materials.size()
+            ? frame.materials[rawV[k]->materialSlot] : MaterialSnapshot{};
+          sv[k].litColor = shadeVertex(material, sv[k].viewPos, viewNormal, lighting, rs);
           if (rs.hasTexture) {
             SbVec4f tc4(rawV[k]->texcoord[0], rawV[k]->texcoord[1], 0.0f, 1.0f);
             SbVec4f tcTrans;
@@ -502,6 +498,13 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
             sv[k].texCoord.setValue(tcTrans[0], tcTrans[1]);
           } else {
             sv[k].texCoord.setValue(rawV[k]->texcoord[0], rawV[k]->texcoord[1]);
+          }
+          for (size_t unit = 1; unit < COIN_WGPU_MAX_TEXTURE_UNITS; ++unit) {
+            const auto & layer = rs.extraTextures[unit - 1];
+            SbVec4f uv;
+            layer.matrix.multVecMatrix(SbVec4f(rawV[k]->extraTexcoords[unit - 1][0],
+                                              rawV[k]->extraTexcoords[unit - 1][1], 0, 1), uv);
+            sv[k].extraTexcoords[unit - 1].setValue(uv[0], uv[1]);
           }
         }
 
@@ -566,7 +569,7 @@ SoWgpuCpuReferenceBackend::submit(const FramePlan & frame, SoWgpuRenderTargetP &
         for (size_t tIdx = 1; tIdx + 1 < outPoly.size(); ++tIdx) {
           rasterizeTriangle(outPoly[0], outPoly[tIdx], outPoly[tIdx + 1],
                             width, height,
-                            lighting, rs,
+                            rs,
                             frame, blend,
                             target.depthBuffer, target.colorBuffer);
         }

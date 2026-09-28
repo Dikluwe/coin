@@ -121,6 +121,7 @@ name = "coin_wgpu_rust_bridge"
 version = "0.1.0"
 dependencies = [
  "bytemuck",
+ "naga",
  "pollster",
  "raw-window-handle",
  "wgpu",

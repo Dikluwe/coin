@@ -257,6 +257,83 @@ bool testMixedOverlayRendersInTraversalOrder() {
   return true;
 }
 
+// The first annotation clears only the right half. A subsequent fullscreen
+// layer must remain occluded on the left, proving depth there was preserved.
+bool testAnnotationDepthClearViewport() {
+  FramePlan plan;
+  plan.clearColor = SbColor4f(0, 0, 0, 1);
+  plan.lightingStates.push_back(LightingSnapshot{});
+  plan.cameras.push_back(CameraSnapshot{});
+  ViewportSnapshot viewport;
+  viewport.width = viewport.height = 64;
+  plan.viewports.push_back(viewport);
+  addQuad(plan, -2.0f, {{1, 0, 0}}, 1.0f);
+  viewport.x = 32; viewport.width = 32;
+  plan.viewports.push_back(viewport);
+  addQuad(plan, -4.0f, {{0, 0, 1}}, 1.0f);
+  plan.renderStates.back().viewportSlot = 1;
+  plan.draws.back().renderLayer = 1;
+  plan.draws.back().clearDepthBefore = true;
+  addQuad(plan, -3.0f, {{0, 1, 0}}, 1.0f);
+  plan.draws.back().renderLayer = 2;
+  for (int backend = 0; backend < 2; ++backend) {
+    SoWgpuRenderTarget * target = SoWgpuRenderTarget::createOffscreen(SbVec2i32(64, 64));
+    configureTarget(target, backend == 0);
+    const auto result = target->getPimpl()->executeFrame(plan);
+    std::vector<uint8_t> rgba;
+    target->readbackRGBA(rgba);
+    bool ok = check(result.status == BackendStatus::SUCCESS && rgba.size() == 64u * 64u * 4u,
+      "annotation viewport frame/readback failed");
+    if (!ok) std::cerr << result.diagnostic << '\n';
+    if (ok) {
+      const size_t left = (32u * 64u + 16u) * 4u;
+      const size_t right = (32u * 64u + 48u) * 4u;
+      ok &= check(rgba[left] > 240 && rgba[left + 1] < 10,
+        "annotation clear leaked outside its viewport");
+      ok &= check(rgba[right] < 10 && rgba[right + 1] > 240,
+        "annotation clear did not release depth inside its viewport");
+    }
+    if (ok && backend == 1) {
+      const auto before = rgba;
+      const uint64_t serial = target->getLastSubmissionSerial();
+      plan.viewports[1].x = -1;
+      const auto rejected = target->getPimpl()->executeFrame(plan);
+      target->readbackRGBA(rgba);
+      ok &= check(rejected.status != BackendStatus::SUCCESS &&
+        rejected.diagnostic.find("viewport") != std::string::npos && rgba == before &&
+        target->getLastSubmissionSerial() == serial, "invalid annotation viewport changed the frame");
+      plan.viewports[1].x = 32;
+      FramePlan empty = plan;
+      empty.draws.clear();
+      const auto cleared = target->getPimpl()->executeFrame(empty);
+      target->readbackRGBA(rgba);
+      const size_t center = (32u * 64u + 16u) * 4u;
+      ok &= check(cleared.status == BackendStatus::SUCCESS && rgba[center] == 0 &&
+        rgba[center + 1] == 0 && rgba[center + 2] == 0 && rgba[center + 3] == 255,
+        "empty frame must still clear attachments");
+    }
+    delete target;
+    if (!ok) return false;
+  }
+  // A translucent annotation without depth writes followed by an opaque draw
+  // must execute in traversal order; opaque-first splitting would leave red.
+  plan = makePlan();
+  // Keep the opaque base inside the far plane under LESS depth testing.
+  for (size_t i = 4; i < 8; ++i) plan.vertices[i].position[2] = -4.5f;
+  plan.draws.erase(plan.draws.begin() + 2);
+  plan.draws[0].renderLayer = 1;
+  plan.draws[0].clearDepthBefore = true;
+  plan.renderStates[0].depthWrite = false;
+  addQuad(plan, -4.0f, {{0, 1, 0}}, 1.0f);
+  plan.draws.back().renderLayer = 1;
+  Sample sample;
+  if (!render(plan, false, sample) || !check(nearColor(sample, {{0, 255, 0, 255}}, 6),
+    "wgpu annotations reordered opaque and translucent draws")) return false;
+  plan.renderStates[0].depthWrite = true;
+  return render(plan, false, sample) && check(nearColor(sample, {{128, 0, 127, 255}}, 6),
+    "depth-writing translucent annotation must occlude the later opaque draw");
+}
+
 bool testTextureAlpha() {
   FramePlan plan = makePlan(true);
   Sample cpu;
@@ -670,9 +747,15 @@ bool testTraversal() {
 
 } // namespace
 
-int main() {
+int main(int argc, char ** argv) {
   SoDB::init();
   SoWgpuRenderAction::initClass();
+  if (argc == 2 && std::string(argv[1]) == "--annotations") {
+    if (!SoWgpuRenderAction::isGpuBackendAvailable()) return 77;
+    if (!testAnnotationDepthClearViewport()) return 1;
+    std::cout << "Wgpu annotation GPU regressions passed\n";
+    return 0;
+  }
   if (!testMaterialBlend() || !testStableDepthTie() ||
       !testOverlayPreservesTraversalOrder() ||
       !testMixedOverlayRendersInTraversalOrder() || !testTextureAlpha() ||
