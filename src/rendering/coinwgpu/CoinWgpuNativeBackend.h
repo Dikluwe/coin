@@ -10,14 +10,14 @@
 #include "rendering/coinrender/CoinRenderBackend.h"
 #include <string>
 
-#if defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
+#if defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
 #include <webgpu/webgpu.h>
 #endif
 
-class SoWgpuNativeBackend : public CoinRenderBackend {
+class CoinWgpuNativeBackend : public CoinRenderBackend {
 public:
-  SoWgpuNativeBackend();
-  virtual ~SoWgpuNativeBackend();
+  CoinWgpuNativeBackend();
+  virtual ~CoinWgpuNativeBackend();
 
   bool isGpuBackend() const override { return true; }
   CoinRenderBackendStatus getStatus() const override;
@@ -33,7 +33,7 @@ private:
   CoinRenderBackendStatus status;
   std::string lastError;
 
-#if defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
+#if defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
   WGPUInstance instance;
   WGPUAdapter adapter;
   WGPUDevice device;

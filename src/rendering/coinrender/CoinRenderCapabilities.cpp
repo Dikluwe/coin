@@ -6,8 +6,8 @@
 
 #include <Inventor/rendering/CoinRenderCapabilities.h>
 
-#if defined(HAVE_WGPU_RUST_BRIDGE)
-#include "rendering/coinrender/SoWgpuRustBackend.h"
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+#include "rendering/coinwgpu/CoinWgpuBackend.h"
 #endif
 
 #if defined(HAVE_WGPU_BGFX)
@@ -172,13 +172,13 @@ coin_render_query_capabilities(uint32_t target,
   result.target = target;
   result.probe_status = COIN_RENDER_PROBE_NOT_RUN;
 
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   result.backend = COIN_RENDER_EXPERIMENTAL_RUST;
-  result.gpu_available = SoWgpuRustBackend::isAvailable() ? 1u : 0u;
+  result.gpu_available = CoinWgpuBackend::isAvailable() ? 1u : 0u;
   result.probe_status = result.gpu_available ?
     COIN_RENDER_PROBE_AVAILABLE : COIN_RENDER_PROBE_UNAVAILABLE;
   if (result.gpu_available) {
-    const std::string name = SoWgpuRustBackend::getAdapterInfo();
+    const std::string name = CoinWgpuBackend::getAdapterInfo();
     std::strncpy(result.adapter_name, name.c_str(), sizeof(result.adapter_name) - 1);
     setDiagnostic(result, "Rust/wgpu adapter probe succeeded");
   } else {
@@ -200,7 +200,7 @@ coin_render_query_capabilities(uint32_t target,
     result.max_scene_texture_depth = 8;
     result.max_scene_texture_bytes_per_apply = UINT64_C(64) * 1024 * 1024;
   }
-#elif defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
+#elif defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
   result.backend = COIN_RENDER_EXPERIMENTAL_NATIVE_SPIKE;
   result.probe_status = COIN_RENDER_PROBE_UNAVAILABLE;
   setDiagnostic(result, "Native WebGPU spike has no established runtime rendering profile");

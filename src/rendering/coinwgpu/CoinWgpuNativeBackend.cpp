@@ -4,7 +4,7 @@
 #include "src/config.h"
 #endif
 
-#include "rendering/coinrender/SoWgpuNativeBackend.h"
+#include "rendering/coinwgpu/CoinWgpuNativeBackend.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
 
@@ -12,10 +12,10 @@
 #include <iostream>
 #include <vector>
 
-SoWgpuNativeBackend::SoWgpuNativeBackend()
+CoinWgpuNativeBackend::CoinWgpuNativeBackend()
   : status(CoinRenderBackendStatus::SUCCESS)
   , lastError("")
-#if defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
+#if defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
   , instance(nullptr)
   , adapter(nullptr)
   , device(nullptr)
@@ -26,24 +26,24 @@ SoWgpuNativeBackend::SoWgpuNativeBackend()
 }
 
 CoinRenderBackendStatus
-SoWgpuNativeBackend::getStatus() const
+CoinWgpuNativeBackend::getStatus() const
 {
   return this->status;
 }
 
 bool
-SoWgpuNativeBackend::isAvailable()
+CoinWgpuNativeBackend::isAvailable()
 {
-#if defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
+#if defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
   return false; // Native backend spike is pending in Wave 2B
 #else
   return false;
 #endif
 }
 
-SoWgpuNativeBackend::~SoWgpuNativeBackend()
+CoinWgpuNativeBackend::~CoinWgpuNativeBackend()
 {
-#if defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
+#if defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
   if (this->queue) { wgpuQueueRelease(this->queue); this->queue = nullptr; }
   if (this->device) { wgpuDeviceRelease(this->device); this->device = nullptr; }
   if (this->adapter) { wgpuAdapterRelease(this->adapter); this->adapter = nullptr; }
@@ -51,7 +51,7 @@ SoWgpuNativeBackend::~SoWgpuNativeBackend()
 #endif
 }
 
-#if defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
+#if defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
 static void onAdapterRequestEnded(WGPURequestAdapterStatus status,
                                  WGPUAdapter adapter,
                                  const char * message,
@@ -72,9 +72,9 @@ static void onDeviceRequestEnded(WGPURequestDeviceStatus status,
 #endif
 
 CoinRenderBackendStatus
-SoWgpuNativeBackend::prepare(CoinRenderTargetP & /*target*/)
+CoinWgpuNativeBackend::prepare(CoinRenderTargetP & /*target*/)
 {
-#if defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
+#if defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
   if (this->isReady) return CoinRenderBackendStatus::SUCCESS;
 
   WGPUInstanceDescriptor instDesc = {};
@@ -117,9 +117,9 @@ SoWgpuNativeBackend::prepare(CoinRenderTargetP & /*target*/)
 }
 
 CoinRenderSubmitResult
-SoWgpuNativeBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target)
+CoinWgpuNativeBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target)
 {
-#if defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
+#if defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
   std::vector<CoinRenderCompositionItem> compositionOrder;
   std::string compositionDiagnostic;
   if (!coin_render_composition_order(frame, compositionOrder, compositionDiagnostic)) {
@@ -264,13 +264,13 @@ SoWgpuNativeBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTargetP
 }
 
 void
-SoWgpuNativeBackend::poll()
+CoinWgpuNativeBackend::poll()
 {
-#if defined(HAVE_WGPU_DAWN)
+#if defined(HAVE_COIN_DAWN)
   if (this->device) {
     wgpuDeviceTick(this->device);
   }
-#elif defined(HAVE_WGPU_NATIVE)
+#elif defined(HAVE_COIN_WGPU_NATIVE)
   if (this->device) {
     wgpuDevicePoll(this->device, true, nullptr);
   }

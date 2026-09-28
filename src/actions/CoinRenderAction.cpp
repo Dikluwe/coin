@@ -60,13 +60,13 @@
 #include "rendering/coinrender/CoinRenderImageCore.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include "actions/SoSubActionP.h"
-#if defined(HAVE_WGPU_RUST_BRIDGE)
-#include "rendering/coinrender/SoWgpuRustBackend.h"
-#include "rendering/coinrender/coin_wgpu_ffi.h"
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+#include "rendering/coinwgpu/CoinWgpuBackend.h"
+#include "rendering/coinwgpu/CoinWgpuFfi.h"
 #elif defined(HAVE_WGPU_BGFX)
 #include "rendering/coinrender/SoWgpuBgfxBackend.h"
-#elif defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
-#include "rendering/coinrender/SoWgpuNativeBackend.h"
+#elif defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
+#include "rendering/coinwgpu/CoinWgpuNativeBackend.h"
 #endif
 
 SO_ACTION_SOURCE(CoinRenderAction);
@@ -85,10 +85,10 @@ CoinRenderAction::initClass(void)
 SbBool
 CoinRenderAction::isGpuBackendAvailable(void)
 {
-#if defined(HAVE_WGPU_RUST_BRIDGE)
-  return SoWgpuRustBackend::isAvailable() ? TRUE : FALSE;
-#elif defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
-  return SoWgpuNativeBackend::isAvailable() ? TRUE : FALSE;
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+  return CoinWgpuBackend::isAvailable() ? TRUE : FALSE;
+#elif defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
+  return CoinWgpuNativeBackend::isAvailable() ? TRUE : FALSE;
 #else
   return FALSE;
 #endif
@@ -494,7 +494,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   this->hasReentrancyError = false;
   bool planCacheAllowed = true;
 
-#if defined(HAVE_WGPU_RUST_BRIDGE) || defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE) || defined(HAVE_WGPU_BGFX)
   const bool ownsDirectTokens = !this->sceneTextureDirectTokens;
   if (ownsDirectTokens) {
     this->sceneTextureDirectTokens = std::make_shared<std::vector<uint64_t> >();
@@ -505,7 +505,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     ~DirectTextureScope() {
       if (!owns) return;
       for (uint64_t token : *action->sceneTextureDirectTokens) {
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
         coin_wgpu_release_texture(token);
 #endif
       }
@@ -675,7 +675,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     return;
   }
 
-#if defined(HAVE_WGPU_RUST_BRIDGE) || defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE) || defined(HAVE_WGPU_BGFX)
   if (this->directPasses) {
     auto setGraphFailure = [this](const CoinRenderFrameExecutionResult & result) {
       this->setDiagnostic(CoinRenderDiagnosticShell::fromBackend(result));
@@ -747,7 +747,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       const DirectPass & pass = (*this->directPasses)[i];
       CoinRenderFramePlan childFrame = pass.plan;
       resolveTextures(childFrame);
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
       std::unique_ptr<CoinRenderTarget> childTarget(
         CoinRenderTargetP::createDirectOffscreen(pass.size));
       if (!childTarget || childTarget->getStatus() != CoinRenderTarget::TARGET_READY) {
@@ -954,7 +954,7 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
   }
 
   bool useDirect = false;
-#if defined(HAVE_WGPU_RUST_BRIDGE) || defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE) || defined(HAVE_WGPU_BGFX)
   const char * directMode = CoinRenderDiagnosticShell::environmentOption("COIN_RENDER_RTT_GPU_DIRECT");
   useDirect = p->directPasses &&
               directMode && directMode[0] == '1' && directMode[1] == '\0';
@@ -1043,7 +1043,7 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
     return SoCallbackAction::ABORT;
   }
 
-#if defined(HAVE_WGPU_RUST_BRIDGE) || defined(HAVE_WGPU_BGFX)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE) || defined(HAVE_WGPU_BGFX)
   if (useDirect) {
     if (!p->directPasses || !childAction.pimpl->hasLastValidPlan) {
       p->setDiagnostic(CoinRenderDiagnosticShell::action(

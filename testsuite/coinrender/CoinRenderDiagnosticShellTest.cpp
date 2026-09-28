@@ -68,7 +68,7 @@ main()
     "COIN_RENDER_PHASE action traversal_ms=1.25 frame_plan_ms=2.5 backend_ms=3.75 vertices=4 indices=5 draws=6 plan_cache_hit=1 plan_reuse=camera_patch",
     "action phase line changed");
 
-  SoWgpuBridgePhaseSample bridgePhase;
+  CoinWgpuBridgePhaseSample bridgePhase;
   bridgePhase.packMs = 0.125;
   bridgePhase.ffiMs = 0.5;
   bridgePhase.packKind = CoinRenderFrameReuseKind::RESOURCE_REBUILD;

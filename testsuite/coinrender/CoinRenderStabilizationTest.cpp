@@ -18,7 +18,7 @@
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
 
-#include "rendering/coinrender/coin_wgpu_ffi.h"
+#include "rendering/coinwgpu/CoinWgpuFfi.h"
 
 #include <cassert>
 #include <cmath>
@@ -34,7 +34,7 @@ int main() {
 
   std::cout << "Running CoinRenderStabilizationTest (Onda 2F Concurrency, Packet Separation, Exact Hash & Budget)..." << std::endl;
 
-#if !defined(HAVE_WGPU_RUST_BRIDGE)
+#if !defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   std::cout << "WGPU Rust bridge not enabled, skipping test." << std::endl;
   return 0;
 #endif

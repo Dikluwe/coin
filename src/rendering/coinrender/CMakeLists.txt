@@ -18,9 +18,9 @@ set(COIN_RENDER_SOURCES
 )
 
 if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
-	list(APPEND COIN_RENDER_SOURCES SoWgpuFfiFrame.cpp SoWgpuRustBackend.cpp)
+	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuBackend.cpp)
 elseif(COIN_RENDER_BACKEND STREQUAL "DAWN" OR COIN_RENDER_BACKEND STREQUAL "WGPU_NATIVE")
-	list(APPEND COIN_RENDER_SOURCES SoWgpuNativeBackend.cpp)
+	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuNativeBackend.cpp)
 elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/actions/SoBGFXRenderAction.cpp)
 	set(_coin_bgfx_shader_dir ${CMAKE_CURRENT_SOURCE_DIR}/shaders/bgfx)

@@ -4,7 +4,7 @@
 #include "src/config.h"
 #endif
 
-#include "rendering/coinrender/SoWgpuFfiFrame.h"
+#include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
 
 #include <cstdint>
 #include <iostream>
@@ -13,7 +13,7 @@
 namespace {
 bool check(bool condition, const char * message)
 {
-  if (!condition) std::cerr << "WgpuFfiFrameTest: " << message << '\n';
+  if (!condition) std::cerr << "CoinWgpuFfiFrameTest: " << message << '\n';
   return condition;
 }
 }
@@ -37,7 +37,7 @@ main()
   frame.lightingStates.push_back(CoinRenderLightingSnapshot{});
   frame.renderStates.push_back(CoinRenderRenderStateSnapshot{});
 
-  SoWgpuFfiFrame packed;
+  CoinWgpuFfiFrame packed;
   std::string diagnostic;
   if (!check(packed.prepare(frame, 64, 32, diagnostic), "initial packing failed") ||
       !check(!packed.reusedLastPrepare(), "initial packing reported reuse")) return 1;
@@ -99,6 +99,6 @@ main()
       !check(packed.prepare(frame, 128, 16, diagnostic), "second zero revision packing failed") ||
       !check(!packed.reusedLastPrepare(), "zero revision was reused on second call")) return 1;
 
-  std::cout << "WgpuFfiFrameTest passed\n";
+  std::cout << "CoinWgpuFfiFrameTest passed\n";
   return 0;
 }

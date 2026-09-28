@@ -302,7 +302,7 @@ if(COIN_BUILD_RENDER)
 	add_executable(CoinRenderDepthContractTest coinrender/CoinRenderDepthContractTest.cpp
 		${PROJECT_SOURCE_DIR}/src/rendering/coinrender/SoWgpuBgfxCore.cpp
 		${PROJECT_SOURCE_DIR}/src/rendering/coinrender/CoinRenderFramePlanBuilder.cpp)
-	target_sources(CoinRenderDepthContractTest PRIVATE ${PROJECT_SOURCE_DIR}/src/rendering/coinrender/SoWgpuFfiFrame.cpp)
+	target_sources(CoinRenderDepthContractTest PRIVATE ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp)
 	set_target_properties(CoinRenderDepthContractTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 	target_link_libraries(CoinRenderDepthContractTest CoinRender Coin)
 	target_include_directories(CoinRenderDepthContractTest PRIVATE
@@ -511,12 +511,12 @@ if(COIN_BUILD_RENDER)
 	add_test(NAME CoinRenderIndexedFastPathTest COMMAND CoinRenderIndexedFastPathTest)
 	set_tests_properties(CoinRenderIndexedFastPathTest PROPERTIES TIMEOUT 30)
 
-	add_executable(CoinRenderCacheTest
-		coinrender/CoinRenderCacheTest.cpp
+	add_executable(CoinWgpuCacheTest
+		coinwgpu/CoinWgpuCacheTest.cpp
 	)
-	set_target_properties(CoinRenderCacheTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
-	target_link_libraries(CoinRenderCacheTest CoinRender Coin)
-	target_include_directories(CoinRenderCacheTest PRIVATE
+	set_target_properties(CoinWgpuCacheTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinWgpuCacheTest CoinRender Coin)
+	target_include_directories(CoinWgpuCacheTest PRIVATE
 		${CMAKE_CURRENT_SOURCE_DIR}
 		${PROJECT_SOURCE_DIR}/experimental/include
 		${PROJECT_SOURCE_DIR}/include
@@ -525,8 +525,8 @@ if(COIN_BUILD_RENDER)
 		${PROJECT_BINARY_DIR}/src
 		${COIN_TARGET_INCLUDE_DIRECTORIES}
 	)
-	add_test(NAME CoinRenderCacheTest COMMAND CoinRenderCacheTest)
-	set_tests_properties(CoinRenderCacheTest PROPERTIES TIMEOUT 30)
+	add_test(NAME CoinWgpuCacheTest COMMAND CoinWgpuCacheTest)
+	set_tests_properties(CoinWgpuCacheTest PROPERTIES TIMEOUT 30)
 
 	add_executable(CoinRenderStabilizationTest
 		coinrender/CoinRenderStabilizationTest.cpp
@@ -698,13 +698,13 @@ if(COIN_BUILD_RENDER)
 		set_tests_properties(CoinRenderSceneTextureBudgetDirectTest PROPERTIES
 			TIMEOUT 240 ENVIRONMENT "COIN_RENDER_RTT_GPU_DIRECT=1")
 
-		add_executable(WgpuFfiFrameTest
-			coinrender/WgpuFfiFrameTest.cpp
-			${PROJECT_SOURCE_DIR}/src/rendering/coinrender/SoWgpuFfiFrame.cpp
+		add_executable(CoinWgpuFfiFrameTest
+			coinwgpu/CoinWgpuFfiFrameTest.cpp
+			${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp
 		)
-		set_target_properties(WgpuFfiFrameTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
-		target_link_libraries(WgpuFfiFrameTest Coin)
-		target_include_directories(WgpuFfiFrameTest PRIVATE
+		set_target_properties(CoinWgpuFfiFrameTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+		target_link_libraries(CoinWgpuFfiFrameTest Coin)
+		target_include_directories(CoinWgpuFfiFrameTest PRIVATE
 			${PROJECT_SOURCE_DIR}/experimental/include
 			${PROJECT_SOURCE_DIR}/include
 			${PROJECT_SOURCE_DIR}/src
@@ -712,13 +712,13 @@ if(COIN_BUILD_RENDER)
 			${PROJECT_BINARY_DIR}/src
 			${COIN_TARGET_INCLUDE_DIRECTORIES}
 		)
-		add_test(NAME WgpuFfiFrameTest COMMAND WgpuFfiFrameTest)
-		set_tests_properties(WgpuFfiFrameTest PROPERTIES TIMEOUT 30)
+		add_test(NAME CoinWgpuFfiFrameTest COMMAND CoinWgpuFfiFrameTest)
+		set_tests_properties(CoinWgpuFfiFrameTest PROPERTIES TIMEOUT 30)
 
 		# Measurement utility only: no timing threshold is stable enough for CTest.
 		add_executable(CoinRenderFrameReuseBenchmark
 			coinrender/CoinRenderFrameReuseBenchmark.cpp
-			${PROJECT_SOURCE_DIR}/src/rendering/coinrender/SoWgpuFfiFrame.cpp
+			${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp
 		)
 		set_target_properties(CoinRenderFrameReuseBenchmark PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 		target_link_libraries(CoinRenderFrameReuseBenchmark Coin)
@@ -760,10 +760,10 @@ if(COIN_BUILD_RENDER)
 		add_test(NAME CoinRenderAsyncReadbackTest COMMAND CoinRenderAsyncReadbackTest)
 		set_tests_properties(CoinRenderAsyncReadbackTest PROPERTIES TIMEOUT 30)
 
-		add_executable(WgpuMultiDeviceTest coinrender/WgpuMultiDeviceTest.cpp)
-		set_target_properties(WgpuMultiDeviceTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
-		target_link_libraries(WgpuMultiDeviceTest CoinRender Coin)
-		target_include_directories(WgpuMultiDeviceTest PRIVATE
+		add_executable(CoinWgpuMultiDeviceTest coinwgpu/CoinWgpuMultiDeviceTest.cpp)
+		set_target_properties(CoinWgpuMultiDeviceTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+		target_link_libraries(CoinWgpuMultiDeviceTest CoinRender Coin)
+		target_include_directories(CoinWgpuMultiDeviceTest PRIVATE
 			${PROJECT_SOURCE_DIR}/experimental/include
 			${PROJECT_SOURCE_DIR}/include
 			${PROJECT_SOURCE_DIR}/src
@@ -771,9 +771,9 @@ if(COIN_BUILD_RENDER)
 			${PROJECT_BINARY_DIR}/src
 			${COIN_TARGET_INCLUDE_DIRECTORIES}
 		)
-		add_test(NAME WgpuMultiDeviceTest COMMAND WgpuMultiDeviceTest)
-		set_tests_properties(WgpuMultiDeviceTest PROPERTIES TIMEOUT 60)
-		add_test(NAME WgpuMultiDeviceStressTest COMMAND WgpuMultiDeviceTest --stress)
+		add_test(NAME CoinWgpuMultiDeviceTest COMMAND CoinWgpuMultiDeviceTest)
+		set_tests_properties(CoinWgpuMultiDeviceTest PROPERTIES TIMEOUT 60)
+		add_test(NAME WgpuMultiDeviceStressTest COMMAND CoinWgpuMultiDeviceTest --stress)
 		set_tests_properties(WgpuMultiDeviceStressTest PROPERTIES TIMEOUT 300)
 
 		add_executable(CoinRenderAsyncActionTest coinrender/CoinRenderAsyncActionTest.cpp)

@@ -130,28 +130,28 @@
 #cmakedefine HAVE_COIN_RENDER
 
 /***************************************************************************
- * HAVE_WGPU_DAWN
+ * HAVE_COIN_DAWN
  *
  * Dawn WebGPU hardware backend support.
  */
 
-#cmakedefine HAVE_WGPU_DAWN
+#cmakedefine HAVE_COIN_DAWN
 
 /***************************************************************************
- * HAVE_WGPU_NATIVE
+ * HAVE_COIN_WGPU_NATIVE
  *
  * wgpu-native WebGPU hardware backend support.
  */
 
-#cmakedefine HAVE_WGPU_NATIVE
+#cmakedefine HAVE_COIN_WGPU_NATIVE
 
 /***************************************************************************
- * HAVE_WGPU_RUST_BRIDGE
+ * HAVE_COIN_WGPU_RUST_BRIDGE
  *
  * Rust bridge WebGPU hardware backend support.
  */
 
-#cmakedefine HAVE_WGPU_RUST_BRIDGE
+#cmakedefine HAVE_COIN_WGPU_RUST_BRIDGE
 
 /* Experimental headless BGFX/Vulkan or OpenGL evaluation backend. */
 #cmakedefine HAVE_WGPU_BGFX

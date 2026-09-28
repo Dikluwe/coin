@@ -1,6 +1,6 @@
 #include <Inventor/CoinRenderExport.h>
-#ifndef COIN_SOWGPURUSTBACKEND_H
-#define COIN_SOWGPURUSTBACKEND_H
+#ifndef COIN_WGPU_BACKEND_H
+#define COIN_WGPU_BACKEND_H
 
 #include "rendering/coinrender/CoinRenderBackend.h"
 #include "rendering/coinrender/CoinRenderFrameReuseCore.h"
@@ -8,7 +8,7 @@
 #include <string>
 
 struct CoinRenderReadbackTicket;
-class SoWgpuFfiFrame;
+class CoinWgpuFfiFrame;
 
 /**
  * @brief Private connector from Coin's experimental CoinRenderFramePlan to wgpu-native.
@@ -21,10 +21,10 @@ class SoWgpuFfiFrame;
  * established a general advantage over GL or a 1024x1024 p95 gain.
  * Window, RTT and textured frames do not use those persistent bindings.
  */
-class COIN_RENDER_DLL_API SoWgpuRustBackend : public CoinRenderBackend {
+class COIN_RENDER_DLL_API CoinWgpuBackend : public CoinRenderBackend {
 public:
-  SoWgpuRustBackend();
-  virtual ~SoWgpuRustBackend();
+  CoinWgpuBackend();
+  virtual ~CoinWgpuBackend();
 
   bool isGpuBackend() const override { return true; }
   CoinRenderBackendStatus getStatus() const override;
@@ -50,7 +50,7 @@ private:
                               const CoinRenderFrameReuseDecision & reuse);
   CoinRenderBackendStatus status;
   std::string lastError;
-  std::unique_ptr<SoWgpuFfiFrame> ffiFrame;
+  std::unique_ptr<CoinWgpuFfiFrame> ffiFrame;
 };
 
-#endif // !COIN_SOWGPURUSTBACKEND_H
+#endif // !COIN_WGPU_BACKEND_H

@@ -11,11 +11,11 @@
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
 
-#if defined(HAVE_WGPU_RUST_BRIDGE)
-#include "rendering/coinrender/SoWgpuRustBackend.h"
-#include "rendering/coinrender/coin_wgpu_ffi.h"
-#elif defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
-#include "rendering/coinrender/SoWgpuNativeBackend.h"
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+#include "rendering/coinwgpu/CoinWgpuBackend.h"
+#include "rendering/coinwgpu/CoinWgpuFfi.h"
+#elif defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
+#include "rendering/coinwgpu/CoinWgpuNativeBackend.h"
 #elif defined(HAVE_WGPU_BGFX)
 #include "rendering/coinrender/SoWgpuBgfxBackend.h"
 #endif
@@ -74,7 +74,7 @@ CoinRenderTargetP::CoinRenderTargetP(const SbVec2i32 & sz)
 
 CoinRenderTargetP::~CoinRenderTargetP()
 {
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   if (this->surfaceId != 0) {
     char errBuf[256] = {0};
     coin_wgpu_surface_destroy(this->surfaceId, errBuf, sizeof(errBuf));
@@ -93,7 +93,7 @@ CoinRenderTargetP::initWindow(const CoinRenderNativeSurfaceDescriptor & desc, co
   this->colorBuffer.clear();
   this->depthBuffer.clear();
 
-#if !defined(HAVE_WGPU_RUST_BRIDGE) && !defined(HAVE_WGPU_BGFX)
+#if !defined(HAVE_COIN_WGPU_RUST_BRIDGE) && !defined(HAVE_WGPU_BGFX)
   this->status = CoinRenderTarget::TARGET_ERROR;
   this->lastError = "Native window surface targets require the RUST_BRIDGE or BGFX backend.";
   return false;
@@ -428,7 +428,7 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     return CoinRenderFrameExecutionResult(CoinRenderBackendStatus::UNSUPPORTED,
                                 "applyAsync() requires an offscreen target");
   }
-#if !defined(HAVE_WGPU_RUST_BRIDGE) && !defined(HAVE_WGPU_BGFX)
+#if !defined(HAVE_COIN_WGPU_RUST_BRIDGE) && !defined(HAVE_WGPU_BGFX)
   if (outTicket) {
     return CoinRenderFrameExecutionResult(CoinRenderBackendStatus::UNSUPPORTED,
                                 "Asynchronous readback requires the Rust bridge backend");
@@ -464,10 +464,10 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
       this->status == CoinRenderTarget::TARGET_NOT_READY ||
       !this->backend) {
     if (!this->backend) {
-#if defined(HAVE_WGPU_RUST_BRIDGE)
-      this->backend = std::unique_ptr<CoinRenderBackend>(new SoWgpuRustBackend());
-#elif defined(HAVE_WGPU_DAWN) || defined(HAVE_WGPU_NATIVE)
-      this->backend = std::unique_ptr<CoinRenderBackend>(new SoWgpuNativeBackend());
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+      this->backend = std::unique_ptr<CoinRenderBackend>(new CoinWgpuBackend());
+#elif defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
+      this->backend = std::unique_ptr<CoinRenderBackend>(new CoinWgpuNativeBackend());
 #elif defined(HAVE_WGPU_BGFX)
       this->backend = std::unique_ptr<CoinRenderBackend>(new SoWgpuBgfxBackend());
 #else
@@ -498,14 +498,14 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
   }
 
   CoinRenderSubmitResult res;
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   if (outTicket) {
-    SoWgpuRustBackend * rust = dynamic_cast<SoWgpuRustBackend *>(this->backend.get());
+    CoinWgpuBackend * rust = dynamic_cast<CoinWgpuBackend *>(this->backend.get());
     res = rust ? rust->submitAsync(frame, *this, *outTicket, reuse)
                : CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED,
                               "Asynchronous readback requires the Rust bridge backend");
-  } else if (SoWgpuRustBackend * rust =
-               dynamic_cast<SoWgpuRustBackend *>(this->backend.get())) {
+  } else if (CoinWgpuBackend * rust =
+               dynamic_cast<CoinWgpuBackend *>(this->backend.get())) {
     res = rust->submit(frame, *this, reuse);
   } else
 #endif
@@ -672,7 +672,7 @@ CoinRenderTarget::pollReadback(const CoinRenderReadbackTicket & ticket,
   if (diagnostic) *diagnostic = "";
 #if defined(HAVE_WGPU_BGFX)
   return SoWgpuBgfxBackend::pollReadback(ticket, outColor, outDepth, diagnostic);
-#elif defined(HAVE_WGPU_RUST_BRIDGE)
+#elif defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   const uint64_t pixels = uint64_t(ticket.width) * uint64_t(ticket.height);
   const uint64_t bytes = pixels * 4;
   const uint64_t rowPitch = (uint64_t(ticket.width) * 4 + 255) & ~uint64_t(255);
@@ -744,7 +744,7 @@ CoinRenderTarget::cancelReadback(const CoinRenderReadbackTicket & ticket)
 {
 #if defined(HAVE_WGPU_BGFX)
   return SoWgpuBgfxBackend::cancelReadback(ticket) ? TRUE : FALSE;
-#elif defined(HAVE_WGPU_RUST_BRIDGE)
+#elif defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   return ticket.token != 0 && coin_wgpu_readback_cancel(ticket.token) == COIN_WGPU_OK
     ? TRUE : FALSE;
 #else
@@ -768,7 +768,7 @@ CoinRenderTarget::resize(const SbVec2i32 & size)
 SbBool
 CoinRenderTarget::getCacheTelemetry(CoinRenderCacheTelemetry & outTelemetry) const
 {
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   CoinWgpuCacheStats stats;
   coin_wgpu_get_cache_stats(&stats);
   outTelemetry.cumulativeUploads = stats.cumulative_uploads;
@@ -791,7 +791,7 @@ CoinRenderTarget::getCacheTelemetry(CoinRenderCacheTelemetry & outTelemetry) con
 void
 CoinRenderTarget::pollDevice(void)
 {
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   coin_wgpu_poll_device();
 #endif
 }

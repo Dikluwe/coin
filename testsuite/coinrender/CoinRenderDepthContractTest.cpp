@@ -17,7 +17,7 @@
 #include <Inventor/nodes/SoShape.h>
 #include "rendering/coinrender/CoinRenderFramePlanBuilder.h"
 #include "rendering/coinrender/CoinRenderFrameReuseCore.h"
-#include "rendering/coinrender/SoWgpuFfiFrame.h"
+#include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
 #include "rendering/coinrender/SoWgpuBgfxCore.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include <cmath>
@@ -98,7 +98,7 @@ bool capture() {
   }
   ok &= check(sawDefault && sawFill && sawLines && sawPoints,
     "capture must retain default and fill/line/point styles after expansion");
-  SoWgpuFfiFrame ffi;
+  CoinWgpuFfiFrame ffi;
   ok &= check(ffi.prepare(frame, 32, 32, diagnostic), "FFI packing failed");
   for (size_t i = 0; i < frame.renderStates.size(); ++i) {
     const auto & src = frame.renderStates[i];
@@ -165,7 +165,7 @@ bool annotationTransport() {
   frame.draws[0].renderLayer = 3;
   frame.draws[0].clearDepthBefore = true;
   frame.draws[1].renderLayer = 3;
-  SoWgpuFfiFrame ffi;
+  CoinWgpuFfiFrame ffi;
   std::string diagnostic;
   if (!check(ffi.prepare(frame, 32, 32, diagnostic), "annotation FFI packing")) return false;
   const auto matches = [&]() {

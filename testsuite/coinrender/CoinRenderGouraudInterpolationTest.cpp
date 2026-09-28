@@ -101,7 +101,7 @@ static bool runCase(bool cpu, bool clipped, bool perspective) {
 int main() {
   SoDB::init();
   for (bool cpu : {true, false}) {
-#if !defined(HAVE_WGPU_BGFX) && !defined(HAVE_WGPU_RUST_BRIDGE)
+#if !defined(HAVE_WGPU_BGFX) && !defined(HAVE_COIN_WGPU_RUST_BRIDGE)
     if (!cpu) continue;
 #endif
     if (!runCase(cpu, false, false) || !runCase(cpu, true, false) ||

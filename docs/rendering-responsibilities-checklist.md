@@ -41,7 +41,7 @@ do pedido, enquanto Infra cria, retém e libera os recursos concretos.
 | `CoinRenderImageCore` | Core comum | Transformação mecânica de linhas; readback e publicação são responsabilidades distintas. |
 | `CoinRenderComposition.h` | Core com semântica ainda dividida | Tem decisões de composição, mas `exactCoin` e os mapeamentos de estratégias convivem com outra interpretação em Rust. |
 | `SoWgpuBgfxCore` | Core específico + decisões comuns | Layout BGFX pode permanecer específico. Políticas Coin de transparência/depth e operações reaproveitáveis precisam ser extraídas. |
-| `SoWgpuFfiFrame`, `coin_wgpu_ffi.h` | Adaptação específica Rust/wgpu | Empacotamento e ABI privados do conector; devem transportar decisões resolvidas, sem redefinir o perfil Coin. |
+| `CoinWgpuFfiFrame`, `CoinWgpuFfi.h` | Adaptação específica Rust/wgpu | Empacotamento e ABI privados do conector; devem transportar decisões resolvidas, sem redefinir o perfil Coin. |
 | `rust_bridge/src/composition.rs` | Core executado no lado Rust | Hoje reclassifica alpha e reordena draws. Deve consumir a composição comum resolvida; ser Rust não o torna Infra por si só. |
 | `SoWgpuBgfxBackend`, recursos e shaders BGFX | Infra BGFX | Devem permanecer específicos; recebem o plano resolvido e executam mecanismos compatíveis. |
 | `rust_bridge/src/lib.rs`, recursos e shaders WGSL | Infra wgpu, com lógica mecânica misturada | Execução específica; separar validação/adaptação de decisões semânticas. |
@@ -52,7 +52,7 @@ do pedido, enquanto Infra cria, retém e libera os recursos concretos.
 Evidências principais: [captura e plano](../src/rendering/coinrender/CoinRenderFramePlanBuilder.cpp),
 [action e RTT](../src/actions/CoinRenderAction.cpp),
 [composição C++](../src/rendering/coinrender/CoinRenderComposition.h),
-[composição Rust](../src/rendering/coinrender/rust_bridge/src/composition.rs),
+[composição Rust](../src/rendering/coinwgpu/rust_bridge/src/composition.rs),
 [adaptação BGFX](../src/rendering/coinrender/SoWgpuBgfxCore.cpp),
 [ciclo do manager](backend-independent-frame-preparation.md).
 
@@ -73,7 +73,7 @@ antes de mudanças. O nome identifica domínio/backend; o sufixo identifica fun�
 | Testes de semântica, fixtures, expectativas e tolerâncias justificadas | Validação comum | Testes por capacidade Coin, executados por BGFX, wgpu e referência quando aplicável. |
 | Layout de vértices/uniforms e agrupamento por pipeline BGFX | Core específico | `CoinBgfxLowering`, `CoinBgfxDraw`, `CoinBgfxVertex`; extrair cálculos comuns quando possível. |
 | Views, programs, handles, framebuffer, submit, blit e readback BGFX | Infra BGFX | `CoinBgfxBackend`, recursos e shaders BGFX. |
-| ABI C/Rust, structs `repr(C)`, empacotamento e validação da ponte | Adaptação específica | `CoinWgpuFfiFrame`, `coin_wgpu_ffi`, identificando Rust bridge quando necessário. |
+| ABI C/Rust, structs `repr(C)`, empacotamento e validação da ponte | Adaptação específica | `CoinWgpuFfiFrame`, `CoinWgpuFfi`, identificando Rust bridge quando necessário. |
 | Pipeline, bind groups, command encoder, surfaces e staging wgpu | Infra wgpu | `CoinWgpuBackend`/`CoinWgpuRustBridge`; WGSL específico. |
 | Probe de formatos/limites/timestamps e tradução de convenções de clip/depth | Infra de cada backend | Nome BGFX/wgpu. A convenção Coin de entrada e a política de compatibilidade são comuns. |
 | Parsing textual, mensagens e formato de profiling | Shell comum | `CoinRenderDiagnosticShell`; parsers/contadores específicos identificados por backend. |

@@ -25,7 +25,7 @@
 #include <Inventor/nodes/SoSpotLight.h>
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
-#include "rendering/coinrender/coin_wgpu_ffi.h"
+#include "rendering/coinwgpu/CoinWgpuFfi.h"
 
 #include <array>
 #include <cmath>
@@ -194,7 +194,7 @@ bool checkParity(SoSeparator * root, std::array<int, 3> & cpuRgb,
   return true;
 }
 bool checkBridgeLimit() {
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   if (!gpuAvailable()) return true;
   CoinWgpuRenderState state{};
   state.light_count = 9;

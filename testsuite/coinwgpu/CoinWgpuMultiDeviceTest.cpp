@@ -4,7 +4,7 @@
 #include "src/config.h"
 #endif
 
-#include "rendering/coinrender/coin_wgpu_ffi.h"
+#include "rendering/coinwgpu/CoinWgpuFfi.h"
 #include <algorithm>
 #include <atomic>
 #include <chrono>
@@ -22,7 +22,7 @@ constexpr uint8_t kSentinel = 37;
 
 bool check(bool condition, const char * description, const char * error = "") {
   if (!condition) {
-    std::cerr << "WgpuMultiDeviceTest: " << description;
+    std::cerr << "CoinWgpuMultiDeviceTest: " << description;
     if (error && error[0]) std::cerr << ": " << error;
     std::cerr << '\n';
   }
@@ -151,7 +151,7 @@ bool waitForNoRtt() {
     coin_wgpu_poll_device();
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
-  std::cerr << "WgpuMultiDeviceTest: RTT resources did not retire; active="
+  std::cerr << "CoinWgpuMultiDeviceTest: RTT resources did not retire; active="
             << active << " retired=" << retired << '\n';
   return false;
 }
@@ -659,7 +659,7 @@ int main(int argc, char ** argv) {
                       (invalidHandles() && lifecycleAndIsolation() && rttOwnership() &&
                        cacheIsolation() && validatedCameraSceneOwnership() &&
                        concurrentSubmissions());
-  if (passed) std::cout << "WgpuMultiDeviceTest passed"
+  if (passed) std::cout << "CoinWgpuMultiDeviceTest passed"
                         << (runStress ? " (stress)" : "") << '\n';
   return passed ? 0 : 1;
 }

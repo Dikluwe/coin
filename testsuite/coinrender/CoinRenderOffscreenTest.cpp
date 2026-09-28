@@ -26,9 +26,9 @@
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
 
-#if defined(HAVE_WGPU_RUST_BRIDGE)
-#include "rendering/coinrender/SoWgpuRustBackend.h"
-#include "rendering/coinrender/coin_wgpu_ffi.h"
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+#include "rendering/coinwgpu/CoinWgpuBackend.h"
+#include "rendering/coinwgpu/CoinWgpuFfi.h"
 #endif
 
 #include <algorithm>
@@ -49,8 +49,8 @@ int main() {
   CoinRenderAction::initClass();
   std::cout << "Running CoinRenderOffscreenTest..." << std::endl;
 
-#if defined(HAVE_WGPU_RUST_BRIDGE)
-  std::cout << "Active WebGPU Adapter: " << SoWgpuRustBackend::getAdapterInfo() << std::endl;
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+  std::cout << "Active WebGPU Adapter: " << CoinWgpuBackend::getAdapterInfo() << std::endl;
   TEST_ASSERT(CoinRenderAction::isGpuBackendAvailable(), "WebGPU GPU backend must be reported as available");
 #endif
 
@@ -466,7 +466,7 @@ int main() {
 
   hintsRoot->unref();
 
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   char adapterName[256] = {0};
   coin_wgpu_get_adapter_info(adapterName, sizeof(adapterName));
   std::cout << "Detected WebGPU Adapter: " << adapterName << std::endl;

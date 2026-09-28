@@ -1,18 +1,18 @@
-#ifndef COIN_SOWGPUFFIFRAME_H
-#define COIN_SOWGPUFFIFRAME_H
+#ifndef COIN_WGPU_FFI_FRAME_H
+#define COIN_WGPU_FFI_FRAME_H
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
 #include "rendering/coinrender/CoinRenderFrameReuseCore.h"
-#include "rendering/coinrender/coin_wgpu_ffi.h"
+#include "rendering/coinwgpu/CoinWgpuFfi.h"
 
 #include <cstdint>
 #include <string>
 #include <vector>
 
 // Private Infra owner for the storage referenced by CoinWgpuFrameView.
-class SoWgpuFfiFrame {
+class CoinWgpuFfiFrame {
 public:
-  SoWgpuFfiFrame();
+  CoinWgpuFfiFrame();
   bool prepare(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height,
                std::string & outDiagnostic);
   bool prepare(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height,
@@ -23,8 +23,8 @@ public:
   CoinRenderFrameReuseKind lastPrepareKind() const;
 
 private:
-  SoWgpuFfiFrame(const SoWgpuFfiFrame &);
-  SoWgpuFfiFrame & operator=(const SoWgpuFfiFrame &);
+  CoinWgpuFfiFrame(const CoinWgpuFfiFrame &);
+  CoinWgpuFfiFrame & operator=(const CoinWgpuFfiFrame &);
   bool packStates(const CoinRenderFramePlan & frame, uint32_t targetWidth, uint32_t targetHeight,
                   std::string & outDiagnostic);
   void bindView(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height);
@@ -43,4 +43,4 @@ private:
   std::vector<std::vector<uint8_t> > texturePixels;
 };
 
-#endif // !COIN_SOWGPUFFIFRAME_H
+#endif // !COIN_WGPU_FFI_FRAME_H

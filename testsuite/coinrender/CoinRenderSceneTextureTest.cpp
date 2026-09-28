@@ -16,8 +16,8 @@
 #include <Inventor/nodes/SoTextureCoordinate2.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
-#if defined(HAVE_WGPU_RUST_BRIDGE)
-#include "rendering/coinrender/coin_wgpu_ffi.h"
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+#include "rendering/coinwgpu/CoinWgpuFfi.h"
 #endif
 
 #include <cstdint>
@@ -136,7 +136,7 @@ int main() {
              baseline[lower + 2] > baseline[lower],
              "scene texture has incorrect colors or vertical orientation", action)) return 1;
 
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   const char * sharingMode = std::getenv("COIN_RENDER_RTT_GPU_DIRECT");
   if (sharingMode && sharingMode[0] == '1' && sharingMode[1] == '\0') {
     SoSeparator * secondConsumer = makeTexturedQuad(sceneTexture);
@@ -255,7 +255,7 @@ int main() {
   invalidSecond->scene.setValue(child);
   invalidSecond->type.setValue(SoSceneTexture2::DEPTH);
   parent->addChild(invalidSecond);
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   CoinWgpuCacheStats beforeInvalidPass{};
   coin_wgpu_get_cache_stats(&beforeInvalidPass);
 #endif
@@ -265,7 +265,7 @@ int main() {
   if (!check(action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
              afterFailure == nestedColor,
              "second-pass rejection changed published parent frame", action)) return 1;
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   const char * preflightMode = std::getenv("COIN_RENDER_RTT_GPU_DIRECT");
   if (preflightMode && preflightMode[0] == '1' && preflightMode[1] == '\0') {
     CoinWgpuCacheStats afterInvalidPass{};
@@ -294,7 +294,7 @@ int main() {
   if (!check(resized.size() == 96u * 96u * 4u,
              "resized parent frame missing", action)) return 1;
 
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   const char * directMode = std::getenv("COIN_RENDER_RTT_GPU_DIRECT");
   if (directMode && directMode[0] == '1' && directMode[1] == '\0') {
     CoinWgpuPerformanceStats stats{};

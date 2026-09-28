@@ -65,7 +65,7 @@ xvfb-run -a env COIN_GLX_PIXMAP_DIRECT_RENDERING=1 \
 xvfb-run -a ctest --test-dir build-bgfx-recovery/coin-build \
   --output-on-failure -E Window --parallel 4
 
-cargo test --offline --manifest-path src/rendering/coinrender/rust_bridge/Cargo.toml
+cargo test --offline --manifest-path src/rendering/coinwgpu/rust_bridge/Cargo.toml
 ```
 
 Na máquina híbrida, use a seleção local Mesa/AMD descrita no guia de recuperação.

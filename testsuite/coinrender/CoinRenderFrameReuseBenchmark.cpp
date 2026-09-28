@@ -5,7 +5,7 @@
 #include "src/config.h"
 #endif
 
-#include "rendering/coinrender/SoWgpuFfiFrame.h"
+#include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
 
 #include <Inventor/SbVec3f.h>
 
@@ -54,8 +54,8 @@ main()
 {
   CoinRenderFramePlan fullFrame = makePlan(1);
   CoinRenderFramePlan patchFrame = fullFrame;
-  SoWgpuFfiFrame fullPacker;
-  SoWgpuFfiFrame patchPacker;
+  CoinWgpuFfiFrame fullPacker;
+  CoinWgpuFfiFrame patchPacker;
   std::string diagnostic;
   if (!fullPacker.prepare(fullFrame, 512, 512, diagnostic) ||
       !patchPacker.prepare(patchFrame, 512, 512, diagnostic)) {

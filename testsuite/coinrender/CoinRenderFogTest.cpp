@@ -29,7 +29,7 @@
 #include <Inventor/nodes/SoTranslation.h>
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
-#include "rendering/coinrender/coin_wgpu_ffi.h"
+#include "rendering/coinwgpu/CoinWgpuFfi.h"
 
 #include <array>
 #include <cmath>
@@ -219,7 +219,7 @@ bool compare(SoSeparator * scene, int x, int y, Sample & cpu,
 }
 
 bool checkInvalidBridgeFog() {
-#if defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   if (!FogRenderAction::isGpuBackendAvailable()) return true;
   CoinWgpuRenderState state{};
   state.fog_mode = 4;

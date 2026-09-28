@@ -16,10 +16,10 @@
 #include <Inventor/nodes/SoCone.h>
 
 #include "rendering/coinrender/CoinRenderTargetP.h"
-#include "rendering/coinrender/coin_wgpu_ffi.h"
+#include "rendering/coinwgpu/CoinWgpuFfi.h"
 
-#if defined(HAVE_WGPU_RUST_BRIDGE)
-#include "rendering/coinrender/SoWgpuRustBackend.h"
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+#include "rendering/coinwgpu/CoinWgpuBackend.h"
 #endif
 
 #if defined(__linux__) || defined(__unix__)
@@ -239,7 +239,7 @@ int main(int argc, char ** argv) {
   // =========================================================================
   // Test 3: Idempotent Destruction
   // =========================================================================
-#if defined(HGPU_WGPU_RUST_BRIDGE) || defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HGPU_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   std::cout << "-> Test 3: Idempotent surface destruction FFI..." << std::endl;
   {
     char errBuf[256] = {0};
@@ -254,7 +254,7 @@ int main(int argc, char ** argv) {
   // =========================================================================
   // Test 4: Real X11 Window Presentation
   // =========================================================================
-#if defined(HAVE_X11) && defined(HAVE_WGPU_RUST_BRIDGE)
+#if defined(HAVE_X11) && defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   const char * displayEnv = std::getenv("DISPLAY");
   if (!displayEnv || !displayEnv[0]) {
     if (requireDisplay) {
