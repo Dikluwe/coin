@@ -24,7 +24,7 @@ new entry points do not apply it or issue any GL commands. Host callbacks must
 also be backend-independent. They are not an emulation of GL state initialization,
 stereo passes or GL superimposition rendering; the external renderer owns those.
 
-SoWgpuRenderManagerAdapter::render wraps its submission with these methods and
+CoinRenderManagerAdapter::render wraps its submission with these methods and
 uses scoped completion for early backend failure returns. Rebuild the experimental
 adapter against this Coin revision: an older core library lacks the new symbols.
 Private lifecycle state is kept in SoRenderManager's pimpl, without changing its

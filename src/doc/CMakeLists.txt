@@ -1,15 +1,15 @@
 # The experimental library is configured after src/, so register its Doxygen
 # inputs here while the global documentation file list is still being built.
-if(COIN_BUILD_WGPU AND
+if(COIN_BUILD_RENDER AND
    (COIN_BUILD_DOCUMENTATION OR COIN_BUILD_AWESOME_DOCUMENTATION))
   set(COIN_DOCUMENTATION_FILES
     ${COIN_DOCUMENTATION_FILES}
-    ${PROJECT_SOURCE_DIR}/src/rendering/wgpu/SoWgpuExperimental.dox
-    ${PROJECT_SOURCE_DIR}/experimental/include/Inventor/actions/SoWgpuRenderAction.h
-    ${PROJECT_SOURCE_DIR}/experimental/include/Inventor/rendering/SoWgpuCapabilities.h
-    ${PROJECT_SOURCE_DIR}/experimental/include/Inventor/rendering/SoWgpuNativeSurface.h
-    ${PROJECT_SOURCE_DIR}/experimental/include/Inventor/rendering/SoWgpuRenderTarget.h
-    ${PROJECT_SOURCE_DIR}/experimental/include/Inventor/rendering/SoWgpuSceneManager.h
+    ${PROJECT_SOURCE_DIR}/src/rendering/coinrender/CoinRenderExperimental.dox
+    ${PROJECT_SOURCE_DIR}/experimental/include/Inventor/actions/CoinRenderAction.h
+    ${PROJECT_SOURCE_DIR}/experimental/include/Inventor/rendering/CoinRenderCapabilities.h
+    ${PROJECT_SOURCE_DIR}/experimental/include/Inventor/rendering/CoinRenderNativeSurface.h
+    ${PROJECT_SOURCE_DIR}/experimental/include/Inventor/rendering/CoinRenderTarget.h
+    ${PROJECT_SOURCE_DIR}/experimental/include/Inventor/rendering/CoinRenderSceneManager.h
     CACHE INTERNAL "COIN_DOCUMENTATION_FILES")
 endif()
 

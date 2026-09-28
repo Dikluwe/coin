@@ -1,0 +1,740 @@
+{
+  "phase": "common",
+  "identifiers": {
+    "BackendStatus": "CoinRenderBackendStatus",
+    "COIN_BUILD_WGPU": "COIN_BUILD_RENDER",
+    "COIN_BUILD_WGPU_BENCHMARKS": "COIN_BUILD_RENDER_BENCHMARKS",
+    "COIN_BUILD_WGPU_WINDOW_EXAMPLE": "COIN_BUILD_RENDER_WINDOW_EXAMPLE",
+    "COIN_COINWGPUEXPORT_H": "COIN_COINRENDEREXPORT_H",
+    "COIN_EXPECT_WGPU": "COIN_EXPECT_RENDER",
+    "COIN_EXPECT_WGPU_WINDOW_SURFACE": "COIN_EXPECT_RENDER_WINDOW_SURFACE",
+    "COIN_HAVE_WGPU": "COIN_HAVE_RENDER",
+    "COIN_HAVE_WGPU_WINDOW_SURFACE": "COIN_HAVE_RENDER_WINDOW_SURFACE",
+    "COIN_INSTALL_WGPU_EXPERIMENTAL": "COIN_INSTALL_RENDER_EXPERIMENTAL",
+    "COIN_SOWGPUACTIONDIAGNOSTIC_H": "COIN_RENDER_ACTION_DIAGNOSTIC_H",
+    "COIN_SOWGPUACTIONPHASESAMPLE_H": "COIN_RENDER_ACTION_PHASE_SAMPLE_H",
+    "COIN_SOWGPUBACKEND_H": "COIN_RENDER_BACKEND_H",
+    "COIN_SOWGPUCACHETELEMETRY_H": "COIN_RENDER_CACHE_TELEMETRY_H",
+    "COIN_SOWGPUCAMERAOVERLAYUNDO_H": "COIN_RENDER_CAMERA_OVERLAY_UNDO_H",
+    "COIN_SOWGPUCAMERASTATEUNDO_H": "COIN_RENDER_CAMERA_STATE_UNDO_H",
+    "COIN_SOWGPUCAPABILITIES_H": "COIN_RENDER_CAPABILITIES_H",
+    "COIN_SOWGPUCOMPOSITIONITEM_H": "COIN_RENDER_COMPOSITION_ITEM_H",
+    "COIN_SOWGPUCOMPOSITION_H": "COIN_RENDER_COMPOSITION_H",
+    "COIN_SOWGPUCPUREFERENCEBACKEND_H": "COIN_RENDER_CPU_REFERENCE_BACKEND_H",
+    "COIN_SOWGPUDEPTHPOLICYELEMENT_H": "COIN_RENDER_DEPTH_POLICY_ELEMENT_H",
+    "COIN_SOWGPUDIAGNOSTICDOMAIN_H": "COIN_RENDER_DIAGNOSTIC_DOMAIN_H",
+    "COIN_SOWGPUDIAGNOSTICSHELL_H": "COIN_RENDER_DIAGNOSTIC_SHELL_H",
+    "COIN_SOWGPUDIRECTGEOMETRY_H": "COIN_RENDER_DIRECT_GEOMETRY_H",
+    "COIN_SOWGPUEXPERIMENTAL_H": "COIN_RENDER_EXPERIMENTAL_H",
+    "COIN_SOWGPUFRAMEPLANBUILDER_H": "COIN_RENDER_FRAME_PLAN_BUILDER_H",
+    "COIN_SOWGPUFRAMEPLAN_H": "COIN_RENDER_FRAME_PLAN_H",
+    "COIN_SOWGPUFRAMEREUSECORE_H": "COIN_RENDER_FRAME_REUSE_CORE_H",
+    "COIN_SOWGPUFRAMEREUSEDECISION_H": "COIN_RENDER_FRAME_REUSE_DECISION_H",
+    "COIN_SOWGPUFRAMEREUSEKIND_H": "COIN_RENDER_FRAME_REUSE_KIND_H",
+    "COIN_SOWGPUIMAGECORE_H": "COIN_RENDER_IMAGE_CORE_H",
+    "COIN_SOWGPUINDEXEDGEOMETRYCORE_H": "COIN_RENDER_INDEXED_GEOMETRY_CORE_H",
+    "COIN_SOWGPUINDEXEDGEOMETRYOPTIONS_H": "COIN_RENDER_INDEXED_GEOMETRY_OPTIONS_H",
+    "COIN_SOWGPUINDEXEDGEOMETRYRESULT_H": "COIN_RENDER_INDEXED_GEOMETRY_RESULT_H",
+    "COIN_SOWGPUINDEXEDVERTEX_H": "COIN_RENDER_INDEXED_VERTEX_H",
+    "COIN_SOWGPUNATIVESURFACEDESCRIPTOR_H": "COIN_RENDER_NATIVE_SURFACE_DESCRIPTOR_H",
+    "COIN_SOWGPUNATIVESURFACETYPE_H": "COIN_RENDER_NATIVE_SURFACE_TYPE_H",
+    "COIN_SOWGPUNATIVESURFACE_H": "COIN_RENDER_NATIVE_SURFACE_H",
+    "COIN_SOWGPUREADBACKTICKET_H": "COIN_RENDER_READBACK_TICKET_H",
+    "COIN_SOWGPURECORDINGBACKEND_H": "COIN_RENDER_RECORDING_BACKEND_H",
+    "COIN_SOWGPURENDERACTIONP_H": "COIN_RENDER_ACTION_P_H",
+    "COIN_SOWGPURENDERACTION_H": "COIN_RENDER_ACTION_H",
+    "COIN_SOWGPURENDERMANAGERADAPTER_H": "COIN_RENDER_MANAGER_ADAPTER_H",
+    "COIN_SOWGPURENDERTARGETP_H": "COIN_RENDER_TARGET_P_H",
+    "COIN_SOWGPURENDERTARGET_H": "COIN_RENDER_TARGET_H",
+    "COIN_SOWGPUSCENEMANAGER_H": "COIN_RENDER_SCENE_MANAGER_H",
+    "COIN_SOWGPUSPAN_H": "COIN_RENDER_SPAN_H",
+    "COIN_TEST_WGPU_GL_REFERENCE": "COIN_TEST_RENDER_GL_REFERENCE",
+    "COIN_TEST_WGPU_STRICT_DISPLAY": "COIN_TEST_RENDER_STRICT_DISPLAY",
+    "COIN_WGPU_BACKEND": "COIN_RENDER_BACKEND",
+    "COIN_WGPU_CAPABILITIES_VERSION": "COIN_RENDER_CAPABILITIES_VERSION",
+    "COIN_WGPU_CONFIG_FIND_DEPENDENCIES": "COIN_RENDER_CONFIG_FIND_DEPENDENCIES",
+    "COIN_WGPU_DLL_API": "COIN_RENDER_DLL_API",
+    "COIN_WGPU_EXPERIMENTAL_BGFX_EVALUATION": "COIN_RENDER_EXPERIMENTAL_BGFX_EVALUATION",
+    "COIN_WGPU_EXPERIMENTAL_NATIVE_SPIKE": "COIN_RENDER_EXPERIMENTAL_NATIVE_SPIKE",
+    "COIN_WGPU_EXPERIMENTAL_OFFSCREEN": "COIN_RENDER_EXPERIMENTAL_OFFSCREEN",
+    "COIN_WGPU_EXPERIMENTAL_RECORDING": "COIN_RENDER_EXPERIMENTAL_RECORDING",
+    "COIN_WGPU_EXPERIMENTAL_RUST": "COIN_RENDER_EXPERIMENTAL_RUST",
+    "COIN_WGPU_EXPERIMENTAL_XLIB_WINDOW": "COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW",
+    "COIN_WGPU_EXPORT_H": "COIN_RENDER_EXPORT_H",
+    "COIN_WGPU_FEATURE_ASYNC_READBACK": "COIN_RENDER_FEATURE_ASYNC_READBACK",
+    "COIN_WGPU_FEATURE_COLOR_DEPTH": "COIN_RENDER_FEATURE_COLOR_DEPTH",
+    "COIN_WGPU_FEATURE_DIRECT_RTT": "COIN_RENDER_FEATURE_DIRECT_RTT",
+    "COIN_WGPU_FEATURE_FOG": "COIN_RENDER_FEATURE_FOG",
+    "COIN_WGPU_FEATURE_INDEXED_GEOMETRY": "COIN_RENDER_FEATURE_INDEXED_GEOMETRY",
+    "COIN_WGPU_FEATURE_LIGHTS": "COIN_RENDER_FEATURE_LIGHTS",
+    "COIN_WGPU_FEATURE_LINES_POINTS": "COIN_RENDER_FEATURE_LINES_POINTS",
+    "COIN_WGPU_FEATURE_SORTED_ALPHA": "COIN_RENDER_FEATURE_SORTED_ALPHA",
+    "COIN_WGPU_FEATURE_TEXTURE_2D": "COIN_RENDER_FEATURE_TEXTURE_2D",
+    "COIN_WGPU_FEATURE_TRIANGLES": "COIN_RENDER_FEATURE_TRIANGLES",
+    "COIN_WGPU_FORMAT_FRAMEBUFFER": "COIN_RENDER_FORMAT_FRAMEBUFFER",
+    "COIN_WGPU_FORMAT_FRAMEBUFFER_MSAA": "COIN_RENDER_FORMAT_FRAMEBUFFER_MSAA",
+    "COIN_WGPU_FORMAT_IMAGE_READ": "COIN_RENDER_FORMAT_IMAGE_READ",
+    "COIN_WGPU_FORMAT_IMAGE_WRITE": "COIN_RENDER_FORMAT_IMAGE_WRITE",
+    "COIN_WGPU_FORMAT_TEXTURE_2D": "COIN_RENDER_FORMAT_TEXTURE_2D",
+    "COIN_WGPU_INTERNAL": "COIN_RENDER_INTERNAL",
+    "COIN_WGPU_LINK_LIBRARIES": "COIN_RENDER_LINK_LIBRARIES",
+    "COIN_WGPU_MAX_LIGHTS": "COIN_RENDER_MAX_LIGHTS",
+    "COIN_WGPU_MAX_TEXTURE_UNITS": "COIN_RENDER_MAX_TEXTURE_UNITS",
+    "COIN_WGPU_NATIVE_SURFACE_ABI_VERSION": "COIN_RENDER_NATIVE_SURFACE_ABI_VERSION",
+    "COIN_WGPU_PHASE": "COIN_RENDER_PHASE",
+    "COIN_WGPU_PROBE_AVAILABLE": "COIN_RENDER_PROBE_AVAILABLE",
+    "COIN_WGPU_PROBE_BUSY": "COIN_RENDER_PROBE_BUSY",
+    "COIN_WGPU_PROBE_ERROR": "COIN_RENDER_PROBE_ERROR",
+    "COIN_WGPU_PROBE_NOT_RUN": "COIN_RENDER_PROBE_NOT_RUN",
+    "COIN_WGPU_PROBE_UNAVAILABLE": "COIN_RENDER_PROBE_UNAVAILABLE",
+    "COIN_WGPU_RENDERER_OPENGL": "COIN_RENDER_RENDERER_OPENGL",
+    "COIN_WGPU_RENDERER_OTHER": "COIN_RENDER_RENDERER_OTHER",
+    "COIN_WGPU_RENDERER_UNKNOWN": "COIN_RENDER_RENDERER_UNKNOWN",
+    "COIN_WGPU_RENDERER_VULKAN": "COIN_RENDER_RENDERER_VULKAN",
+    "COIN_WGPU_RTT_GPU_DIRECT": "COIN_RENDER_RTT_GPU_DIRECT",
+    "COIN_WGPU_RUNTIME_COMPUTE": "COIN_RENDER_RUNTIME_COMPUTE",
+    "COIN_WGPU_RUNTIME_INDEPENDENT_BLEND": "COIN_RENDER_RUNTIME_INDEPENDENT_BLEND",
+    "COIN_WGPU_RUNTIME_MRT": "COIN_RENDER_RUNTIME_MRT",
+    "COIN_WGPU_RUNTIME_TIMESTAMPS": "COIN_RENDER_RUNTIME_TIMESTAMPS",
+    "COIN_WGPU_SOURCES": "COIN_RENDER_SOURCES",
+    "COIN_WGPU_SURFACE_APPKIT_LAYER": "COIN_RENDER_SURFACE_APPKIT_LAYER",
+    "COIN_WGPU_SURFACE_WAYLAND": "COIN_RENDER_SURFACE_WAYLAND",
+    "COIN_WGPU_SURFACE_WIN32": "COIN_RENDER_SURFACE_WIN32",
+    "COIN_WGPU_SURFACE_XLIB": "COIN_RENDER_SURFACE_XLIB",
+    "COIN_WGPU_TRACE_PHASES": "COIN_RENDER_TRACE_PHASES",
+    "CameraSnapshot": "CoinRenderCameraSnapshot",
+    "CoinRender": "CoinRender",
+    "CoinRenderBackend": "CoinRenderBackendKind",
+    "CoinRenderCapabilities": "CoinRenderCapabilities",
+    "CoinRenderFeature": "CoinRenderFeature",
+    "CoinRenderFormatFeature": "CoinRenderFormatFeature",
+    "CoinRenderProbeStatus": "CoinRenderProbeStatus",
+    "CoinRenderRenderer": "CoinRenderRenderer",
+    "CoinRenderRuntimeFeature": "CoinRenderRuntimeFeature",
+    "CoinRenderTarget": "CoinRenderTargetKind",
+    "CoinWgpuExport": "CoinRenderExport",
+    "Coin_HAVE_WGPU": "Coin_HAVE_RENDER",
+    "Coin_HAVE_WGPU_WINDOW_SURFACE": "Coin_HAVE_RENDER_WINDOW_SURFACE",
+    "CullMode": "CoinRenderCullMode",
+    "DepthFunction": "CoinRenderDepthFunction",
+    "DirectGeometryView": "CoinRenderDirectGeometryView",
+    "DrawPacket": "CoinRenderDrawPacket",
+    "FastPathResult": "CoinRenderFastPathResult",
+    "FogMode": "CoinRenderFogMode",
+    "FrameExecutionResult": "CoinRenderFrameExecutionResult",
+    "FramePlan": "CoinRenderFramePlan",
+    "FrontFace": "CoinRenderFrontFace",
+    "GeometryRange": "CoinRenderGeometryRange",
+    "HAVE_WGPU": "HAVE_COIN_RENDER",
+    "HAVE_WGPU_WINDOW_SURFACE": "HAVE_COIN_RENDER_WINDOW_SURFACE",
+    "LightModel": "CoinRenderLightModel",
+    "LightSourceSnapshot": "CoinRenderLightSourceSnapshot",
+    "LightType": "CoinRenderLightType",
+    "LightingSnapshot": "CoinRenderLightingSnapshot",
+    "MaterialSnapshot": "CoinRenderMaterialSnapshot",
+    "PrimitiveTopology": "CoinRenderPrimitiveTopology",
+    "RenderStateSnapshot": "CoinRenderRenderStateSnapshot",
+    "SamplerSnapshot": "CoinRenderSamplerSnapshot",
+    "SoWgpuActionDiagnostic": "CoinRenderActionDiagnostic",
+    "SoWgpuActionPhaseSample": "CoinRenderActionPhaseSample",
+    "SoWgpuBackend": "CoinRenderBackend",
+    "SoWgpuCacheTelemetry": "CoinRenderCacheTelemetry",
+    "SoWgpuCameraOverlayUndo": "CoinRenderCameraOverlayUndo",
+    "SoWgpuCameraStateUndo": "CoinRenderCameraStateUndo",
+    "SoWgpuCapabilities": "CoinRenderCapabilities",
+    "SoWgpuComposition": "CoinRenderComposition",
+    "SoWgpuCompositionItem": "CoinRenderCompositionItem",
+    "SoWgpuCpuReferenceBackend": "CoinRenderCpuReferenceBackend",
+    "SoWgpuDepthPolicyElement": "CoinRenderDepthPolicyElement",
+    "SoWgpuDiagnosticDomain": "CoinRenderDiagnosticDomain",
+    "SoWgpuDiagnosticShell": "CoinRenderDiagnosticShell",
+    "SoWgpuDirectGeometry": "CoinRenderDirectGeometry",
+    "SoWgpuExperimental": "CoinRenderExperimental",
+    "SoWgpuFramePlan": "CoinRenderFramePlan",
+    "SoWgpuFramePlanBuilder": "CoinRenderFramePlanBuilder",
+    "SoWgpuFrameReuseCore": "CoinRenderFrameReuseCore",
+    "SoWgpuFrameReuseDecision": "CoinRenderFrameReuseDecision",
+    "SoWgpuFrameReuseKind": "CoinRenderFrameReuseKind",
+    "SoWgpuImageCore": "CoinRenderImageCore",
+    "SoWgpuIndexedGeometryCore": "CoinRenderIndexedGeometryCore",
+    "SoWgpuIndexedGeometryOptions": "CoinRenderIndexedGeometryOptions",
+    "SoWgpuIndexedGeometryResult": "CoinRenderIndexedGeometryResult",
+    "SoWgpuIndexedVertex": "CoinRenderIndexedVertex",
+    "SoWgpuNativeSurface": "CoinRenderNativeSurface",
+    "SoWgpuNativeSurfaceDescriptor": "CoinRenderNativeSurfaceDescriptor",
+    "SoWgpuNativeSurfaceType": "CoinRenderNativeSurfaceType",
+    "SoWgpuReadbackTicket": "CoinRenderReadbackTicket",
+    "SoWgpuRecordingBackend": "CoinRenderRecordingBackend",
+    "SoWgpuRenderAction": "CoinRenderAction",
+    "SoWgpuRenderActionP": "CoinRenderActionP",
+    "SoWgpuRenderManagerAdapter": "CoinRenderManagerAdapter",
+    "SoWgpuRenderTarget": "CoinRenderTarget",
+    "SoWgpuRenderTargetP": "CoinRenderTargetP",
+    "SoWgpuSceneManager": "CoinRenderSceneManager",
+    "SoWgpuSpan": "CoinRenderSpan",
+    "SubmitResult": "CoinRenderSubmitResult",
+    "TextureFilter": "CoinRenderTextureFilter",
+    "TextureImageSnapshot": "CoinRenderTextureImageSnapshot",
+    "TextureModel": "CoinRenderTextureModel",
+    "TextureUnitSnapshot": "CoinRenderTextureUnitSnapshot",
+    "TextureWrap": "CoinRenderTextureWrap",
+    "VertexSnapshot": "CoinRenderVertexSnapshot",
+    "ViewportSnapshot": "CoinRenderViewportSnapshot",
+    "WgpuAnnotationTest": "CoinRenderAnnotationTest",
+    "WgpuAsyncActionDirectStressTest": "CoinRenderAsyncActionDirectStressTest",
+    "WgpuAsyncActionDirectTest": "CoinRenderAsyncActionDirectTest",
+    "WgpuAsyncActionTest": "CoinRenderAsyncActionTest",
+    "WgpuAsyncReadbackTest": "CoinRenderAsyncReadbackTest",
+    "WgpuBackendContract": "CoinRenderBackendContract",
+    "WgpuBackendContractOpenGLTest": "CoinRenderBackendContractOpenGLTest",
+    "WgpuBackendContractTest": "CoinRenderBackendContractTest",
+    "WgpuCacheTest": "CoinRenderCacheTest",
+    "WgpuCompositionTest": "CoinRenderCompositionTest",
+    "WgpuDepthContractOpenGLTest": "CoinRenderDepthContractOpenGLTest",
+    "WgpuDepthContractTest": "CoinRenderDepthContractTest",
+    "WgpuDepthContractVulkanTest": "CoinRenderDepthContractVulkanTest",
+    "WgpuDiagnosticShellTest": "CoinRenderDiagnosticShellTest",
+    "WgpuFogGlReferenceTest": "CoinRenderFogGlReferenceTest",
+    "WgpuFogTest": "CoinRenderFogTest",
+    "WgpuFrameCoreTest": "CoinRenderFrameCoreTest",
+    "WgpuFrameReuseBenchmark": "CoinRenderFrameReuseBenchmark",
+    "WgpuFrameReuseCoreTest": "CoinRenderFrameReuseCoreTest",
+    "WgpuGateG0Test": "CoinRenderGateG0Test",
+    "WgpuGateG1Test": "CoinRenderGateG1Test",
+    "WgpuGateG2Test": "CoinRenderGateG2Test",
+    "WgpuGouraudInterpolationTest": "CoinRenderGouraudInterpolationTest",
+    "WgpuGouraud_": "CoinRenderGouraud_",
+    "WgpuIndexedFastPathTest": "CoinRenderIndexedFastPathTest",
+    "WgpuIndexedGeometryCoreTest": "CoinRenderIndexedGeometryCoreTest",
+    "WgpuLightingGlReferenceTest": "CoinRenderLightingGlReferenceTest",
+    "WgpuLightingTest": "CoinRenderLightingTest",
+    "WgpuMaterialTest": "CoinRenderMaterialTest",
+    "WgpuOffscreen": "CoinRenderOffscreen",
+    "WgpuOffscreenTest": "CoinRenderOffscreenTest",
+    "WgpuPerformanceTest": "CoinRenderPerformanceTest",
+    "WgpuProductOpenGLTest": "CoinRenderProductOpenGLTest",
+    "WgpuProductTest": "CoinRenderProductTest",
+    "WgpuRenderAction": "CoinRenderRenderAction",
+    "WgpuRenderActionTest": "CoinRenderActionTest",
+    "WgpuSceneTextureBudgetDirectTest": "CoinRenderSceneTextureBudgetDirectTest",
+    "WgpuSceneTextureBudgetTest": "CoinRenderSceneTextureBudgetTest",
+    "WgpuSceneTextureDirectTest": "CoinRenderSceneTextureDirectTest",
+    "WgpuSceneTextureTest": "CoinRenderSceneTextureTest",
+    "WgpuStabilizationTest": "CoinRenderStabilizationTest",
+    "WgpuSurfaceDisplayStrictTest": "CoinRenderSurfaceDisplayStrictTest",
+    "WgpuSurfaceTest": "CoinRenderSurfaceTest",
+    "WgpuTextureTest": "CoinRenderTextureTest",
+    "coin_wgpu_composition_order": "coin_render_composition_order",
+    "coin_wgpu_experimental": "coin_render_experimental",
+    "coin_wgpu_experimental_query_capabilities": "coin_render_query_capabilities",
+    "coin_wgpu_transparency_strategy": "coin_render_transparency_strategy",
+    "freecad_coin_wgpu": "freecad_coin_render",
+    "wgpu_freecad_compare": "coin_render_freecad_compare",
+    "wgpu_gl_benchmark": "coin_render_gl_benchmark",
+    "wgpu_viewer": "coin_render_viewer",
+    "wgpu_window_benchmark": "coin_render_window_benchmark",
+    "wgpu_window_cone": "coin_render_window_cone"
+  },
+  "paths": [
+    [
+      "docs/adr/0001-wgpu-backend-selection.md",
+      "docs/adr/0001-coin-render-backend-selection.md"
+    ],
+    [
+      "docs/wgpu-annotation-contract.md",
+      "docs/coin-render-annotation-contract.md"
+    ],
+    [
+      "docs/wgpu-depth-contract.md",
+      "docs/coin-render-depth-contract.md"
+    ],
+    [
+      "docs/wgpu-experimental-profile.md",
+      "docs/coin-render-experimental-profile.md"
+    ],
+    [
+      "docs/wgpu-freecad-examples-validation.md",
+      "docs/coin-render-freecad-examples-validation.md"
+    ],
+    [
+      "docs/wgpu-tekt-prompts.md",
+      "docs/coin-render-tekt-prompts.md"
+    ],
+    [
+      "docs/wgpu-viewport-integration.md",
+      "docs/coin-render-viewport-integration.md"
+    ],
+    [
+      "docs/wgpu-wave6-product.md",
+      "docs/coin-render-wave6-product.md"
+    ],
+    [
+      "docs/wgpu-window-benchmark.md",
+      "docs/coin-render-window-benchmark.md"
+    ],
+    [
+      "examples/wgpu/CMakeLists.txt",
+      "examples/coinrender/CMakeLists.txt"
+    ],
+    [
+      "examples/wgpu/freecad_16_viewports.FCMacro",
+      "examples/coinrender/freecad_16_viewports.FCMacro"
+    ],
+    [
+      "examples/wgpu/freecad_coin_wgpu.patch.gz",
+      "examples/coinrender/freecad_coin_render.patch.gz"
+    ],
+    [
+      "examples/wgpu/freecad_export_iv.py",
+      "examples/coinrender/freecad_export_iv.py"
+    ],
+    [
+      "examples/wgpu/wgpu_freecad_compare.cpp",
+      "examples/coinrender/coin_render_freecad_compare.cpp"
+    ],
+    [
+      "examples/wgpu/wgpu_gl_benchmark.cpp",
+      "examples/coinrender/coin_render_gl_benchmark.cpp"
+    ],
+    [
+      "examples/wgpu/wgpu_viewer.cpp",
+      "examples/coinrender/coin_render_viewer.cpp"
+    ],
+    [
+      "examples/wgpu/wgpu_window_benchmark.cpp",
+      "examples/coinrender/coin_render_window_benchmark.cpp"
+    ],
+    [
+      "examples/wgpu/wgpu_window_cone.cpp",
+      "examples/coinrender/coin_render_window_cone.cpp"
+    ],
+    [
+      "experimental/include/Inventor/CoinWgpuExport.h",
+      "experimental/include/Inventor/CoinRenderExport.h"
+    ],
+    [
+      "experimental/include/Inventor/actions/SoWgpuRenderAction.h",
+      "experimental/include/Inventor/actions/CoinRenderAction.h"
+    ],
+    [
+      "experimental/include/Inventor/rendering/SoWgpuCapabilities.h",
+      "experimental/include/Inventor/rendering/CoinRenderCapabilities.h"
+    ],
+    [
+      "experimental/include/Inventor/rendering/SoWgpuNativeSurface.h",
+      "experimental/include/Inventor/rendering/CoinRenderNativeSurface.h"
+    ],
+    [
+      "experimental/include/Inventor/rendering/SoWgpuRenderManagerAdapter.h",
+      "experimental/include/Inventor/rendering/CoinRenderManagerAdapter.h"
+    ],
+    [
+      "experimental/include/Inventor/rendering/SoWgpuRenderTarget.h",
+      "experimental/include/Inventor/rendering/CoinRenderTarget.h"
+    ],
+    [
+      "experimental/include/Inventor/rendering/SoWgpuSceneManager.h",
+      "experimental/include/Inventor/rendering/CoinRenderSceneManager.h"
+    ],
+    [
+      "src/actions/SoWgpuRenderAction.cpp",
+      "src/actions/CoinRenderAction.cpp"
+    ],
+    [
+      "src/actions/SoWgpuRenderActionP.h",
+      "src/actions/CoinRenderActionP.h"
+    ],
+    [
+      "src/rendering/wgpu/CMakeLists.txt",
+      "src/rendering/coinrender/CMakeLists.txt"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuBackend.h",
+      "src/rendering/coinrender/CoinRenderBackend.h"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuBgfxBackend.cpp",
+      "src/rendering/coinrender/SoWgpuBgfxBackend.cpp"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuBgfxBackend.h",
+      "src/rendering/coinrender/SoWgpuBgfxBackend.h"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuBgfxCore.cpp",
+      "src/rendering/coinrender/SoWgpuBgfxCore.cpp"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuBgfxCore.h",
+      "src/rendering/coinrender/SoWgpuBgfxCore.h"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuCapabilities.cpp",
+      "src/rendering/coinrender/CoinRenderCapabilities.cpp"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuComposition.h",
+      "src/rendering/coinrender/CoinRenderComposition.h"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuCpuReferenceBackend.cpp",
+      "src/rendering/coinrender/CoinRenderCpuReferenceBackend.cpp"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuCpuReferenceBackend.h",
+      "src/rendering/coinrender/CoinRenderCpuReferenceBackend.h"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuDepthPolicyElement.cpp",
+      "src/rendering/coinrender/CoinRenderDepthPolicyElement.cpp"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuDepthPolicyElement.h",
+      "src/rendering/coinrender/CoinRenderDepthPolicyElement.h"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuDiagnosticShell.cpp",
+      "src/rendering/coinrender/CoinRenderDiagnosticShell.cpp"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuDiagnosticShell.h",
+      "src/rendering/coinrender/CoinRenderDiagnosticShell.h"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuDirectGeometry.h",
+      "src/rendering/coinrender/CoinRenderDirectGeometry.h"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuExperimental.dox",
+      "src/rendering/coinrender/CoinRenderExperimental.dox"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuFfiFrame.cpp",
+      "src/rendering/coinrender/SoWgpuFfiFrame.cpp"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuFfiFrame.h",
+      "src/rendering/coinrender/SoWgpuFfiFrame.h"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuFramePlan.cpp",
+      "src/rendering/coinrender/CoinRenderFramePlan.cpp"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuFramePlan.h",
+      "src/rendering/coinrender/CoinRenderFramePlan.h"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuFramePlanBuilder.cpp",
+      "src/rendering/coinrender/CoinRenderFramePlanBuilder.cpp"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuFramePlanBuilder.h",
+      "src/rendering/coinrender/CoinRenderFramePlanBuilder.h"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuFrameReuseCore.cpp",
+      "src/rendering/coinrender/CoinRenderFrameReuseCore.cpp"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuFrameReuseCore.h",
+      "src/rendering/coinrender/CoinRenderFrameReuseCore.h"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuImageCore.cpp",
+      "src/rendering/coinrender/CoinRenderImageCore.cpp"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuImageCore.h",
+      "src/rendering/coinrender/CoinRenderImageCore.h"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuIndexedGeometryCore.cpp",
+      "src/rendering/coinrender/CoinRenderIndexedGeometryCore.cpp"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuIndexedGeometryCore.h",
+      "src/rendering/coinrender/CoinRenderIndexedGeometryCore.h"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuNativeBackend.cpp",
+      "src/rendering/coinrender/SoWgpuNativeBackend.cpp"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuNativeBackend.h",
+      "src/rendering/coinrender/SoWgpuNativeBackend.h"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuRecordingBackend.cpp",
+      "src/rendering/coinrender/CoinRenderRecordingBackend.cpp"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuRecordingBackend.h",
+      "src/rendering/coinrender/CoinRenderRecordingBackend.h"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuRenderManagerAdapter.cpp",
+      "src/rendering/coinrender/CoinRenderManagerAdapter.cpp"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuRenderTarget.cpp",
+      "src/rendering/coinrender/CoinRenderTarget.cpp"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuRenderTargetP.h",
+      "src/rendering/coinrender/CoinRenderTargetP.h"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuRustBackend.cpp",
+      "src/rendering/coinrender/SoWgpuRustBackend.cpp"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuRustBackend.h",
+      "src/rendering/coinrender/SoWgpuRustBackend.h"
+    ],
+    [
+      "src/rendering/wgpu/SoWgpuSceneManager.cpp",
+      "src/rendering/coinrender/CoinRenderSceneManager.cpp"
+    ],
+    [
+      "src/rendering/wgpu/coin-wgpu-experimental-config.cmake.in",
+      "src/rendering/coinrender/coin-render-config.cmake.in"
+    ],
+    [
+      "src/rendering/wgpu/coin_wgpu_ffi.h",
+      "src/rendering/coinrender/coin_wgpu_ffi.h"
+    ],
+    [
+      "src/rendering/wgpu/rust_bridge/Cargo.lock",
+      "src/rendering/coinrender/rust_bridge/Cargo.lock"
+    ],
+    [
+      "src/rendering/wgpu/rust_bridge/Cargo.toml",
+      "src/rendering/coinrender/rust_bridge/Cargo.toml"
+    ],
+    [
+      "src/rendering/wgpu/rust_bridge/src/composition.rs",
+      "src/rendering/coinrender/rust_bridge/src/composition.rs"
+    ],
+    [
+      "src/rendering/wgpu/rust_bridge/src/lib.rs",
+      "src/rendering/coinrender/rust_bridge/src/lib.rs"
+    ],
+    [
+      "src/rendering/wgpu/rust_bridge/tests/gouraud_shader.rs",
+      "src/rendering/coinrender/rust_bridge/tests/gouraud_shader.rs"
+    ],
+    [
+      "src/rendering/wgpu/shaders/bgfx/coin_depth.sh",
+      "src/rendering/coinrender/shaders/bgfx/coin_depth.sh"
+    ],
+    [
+      "src/rendering/wgpu/shaders/bgfx/coin_lighting.sh",
+      "src/rendering/coinrender/shaders/bgfx/coin_lighting.sh"
+    ],
+    [
+      "src/rendering/wgpu/shaders/bgfx/coin_surface.sh",
+      "src/rendering/coinrender/shaders/bgfx/coin_surface.sh"
+    ],
+    [
+      "src/rendering/wgpu/shaders/bgfx/fs_base_color.sc",
+      "src/rendering/coinrender/shaders/bgfx/fs_base_color.sc"
+    ],
+    [
+      "src/rendering/wgpu/shaders/bgfx/fs_composite.sc",
+      "src/rendering/coinrender/shaders/bgfx/fs_composite.sc"
+    ],
+    [
+      "src/rendering/wgpu/shaders/bgfx/fs_depth_readback.sc",
+      "src/rendering/coinrender/shaders/bgfx/fs_depth_readback.sc"
+    ],
+    [
+      "src/rendering/wgpu/shaders/bgfx/fs_peel_next.sc",
+      "src/rendering/coinrender/shaders/bgfx/fs_peel_next.sc"
+    ],
+    [
+      "src/rendering/wgpu/shaders/bgfx/fs_weighted_composite.sc",
+      "src/rendering/coinrender/shaders/bgfx/fs_weighted_composite.sc"
+    ],
+    [
+      "src/rendering/wgpu/shaders/bgfx/fs_weighted_oit.sc",
+      "src/rendering/coinrender/shaders/bgfx/fs_weighted_oit.sc"
+    ],
+    [
+      "src/rendering/wgpu/shaders/bgfx/varying.def.sc",
+      "src/rendering/coinrender/shaders/bgfx/varying.def.sc"
+    ],
+    [
+      "src/rendering/wgpu/shaders/bgfx/vs_base_color.sc",
+      "src/rendering/coinrender/shaders/bgfx/vs_base_color.sc"
+    ],
+    [
+      "src/rendering/wgpu/shaders/coin_line.wgsl",
+      "src/rendering/coinrender/shaders/coin_line.wgsl"
+    ],
+    [
+      "src/rendering/wgpu/shaders/coin_point.wgsl",
+      "src/rendering/coinrender/shaders/coin_point.wgsl"
+    ],
+    [
+      "src/rendering/wgpu/shaders/coin_standard.wgsl",
+      "src/rendering/coinrender/shaders/coin_standard.wgsl"
+    ],
+    [
+      "testsuite/actions/WgpuRenderActionTest.cpp",
+      "testsuite/actions/CoinRenderActionTest.cpp"
+    ],
+    [
+      "testsuite/installed-wgpu-package-smoke/CMakeLists.txt",
+      "testsuite/installed-coin-render-package-smoke/CMakeLists.txt"
+    ],
+    [
+      "testsuite/installed-wgpu-package-smoke/main.cpp",
+      "testsuite/installed-coin-render-package-smoke/main.cpp"
+    ],
+    [
+      "testsuite/wgpu/BgfxReadbackModesTest.cpp",
+      "testsuite/coinrender/BgfxReadbackModesTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/BgfxSurfaceFeaturesTest.cpp",
+      "testsuite/coinrender/BgfxSurfaceFeaturesTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuAsyncActionTest.cpp",
+      "testsuite/coinrender/CoinRenderAsyncActionTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuAsyncReadbackTest.cpp",
+      "testsuite/coinrender/CoinRenderAsyncReadbackTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuBackendContractTest.cpp",
+      "testsuite/coinrender/CoinRenderBackendContractTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuBgfxCoreTest.cpp",
+      "testsuite/coinrender/WgpuBgfxCoreTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuBgfxMultiWindowTest.cpp",
+      "testsuite/coinrender/WgpuBgfxMultiWindowTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuBgfxOffscreenTest.cpp",
+      "testsuite/coinrender/WgpuBgfxOffscreenTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuBgfxTransparencyTest.cpp",
+      "testsuite/coinrender/WgpuBgfxTransparencyTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuBgfxWindowTest.cpp",
+      "testsuite/coinrender/WgpuBgfxWindowTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuCacheTest.cpp",
+      "testsuite/coinrender/CoinRenderCacheTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuCompositionTest.cpp",
+      "testsuite/coinrender/CoinRenderCompositionTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuDepthContractTest.cpp",
+      "testsuite/coinrender/CoinRenderDepthContractTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuDiagnosticShellTest.cpp",
+      "testsuite/coinrender/CoinRenderDiagnosticShellTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuFfiFrameTest.cpp",
+      "testsuite/coinrender/WgpuFfiFrameTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuFogTest.cpp",
+      "testsuite/coinrender/CoinRenderFogTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuFrameCoreTest.cpp",
+      "testsuite/coinrender/CoinRenderFrameCoreTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuFrameReuseBenchmark.cpp",
+      "testsuite/coinrender/CoinRenderFrameReuseBenchmark.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuFrameReuseCoreTest.cpp",
+      "testsuite/coinrender/CoinRenderFrameReuseCoreTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuGateG0Test.cpp",
+      "testsuite/coinrender/CoinRenderGateG0Test.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuGateG1Test.cpp",
+      "testsuite/coinrender/CoinRenderGateG1Test.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuGateG2Test.cpp",
+      "testsuite/coinrender/CoinRenderGateG2Test.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuGouraudInterpolationTest.cpp",
+      "testsuite/coinrender/CoinRenderGouraudInterpolationTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuIndexedFastPathTest.cpp",
+      "testsuite/coinrender/CoinRenderIndexedFastPathTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuIndexedGeometryCoreTest.cpp",
+      "testsuite/coinrender/CoinRenderIndexedGeometryCoreTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuLightingTest.cpp",
+      "testsuite/coinrender/CoinRenderLightingTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuMaterialTest.cpp",
+      "testsuite/coinrender/CoinRenderMaterialTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuMultiDeviceTest.cpp",
+      "testsuite/coinrender/WgpuMultiDeviceTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuOffscreenTest.cpp",
+      "testsuite/coinrender/CoinRenderOffscreenTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuPerformanceTest.cpp",
+      "testsuite/coinrender/CoinRenderPerformanceTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuProductTest.cpp",
+      "testsuite/coinrender/CoinRenderProductTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuSceneTextureBudgetTest.cpp",
+      "testsuite/coinrender/CoinRenderSceneTextureBudgetTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuSceneTextureTest.cpp",
+      "testsuite/coinrender/CoinRenderSceneTextureTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuStabilizationTest.cpp",
+      "testsuite/coinrender/CoinRenderStabilizationTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuSurfaceTest.cpp",
+      "testsuite/coinrender/CoinRenderSurfaceTest.cpp"
+    ],
+    [
+      "testsuite/wgpu/WgpuTextureTest.cpp",
+      "testsuite/coinrender/CoinRenderTextureTest.cpp"
+    ]
+  ]
+}

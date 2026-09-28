@@ -188,7 +188,7 @@
 
   Separator {
     # Render a cube not affected by lighting
-    LightModel { model BASE_COLOR }
+    CoinRenderLightModel { model BASE_COLOR }
     BaseColor { rgb = Calculator {
                         a = USE headlight . intensity
                         expression [ "oA = vec3f( a, a, a)" ]
@@ -200,7 +200,7 @@
 
   In the example, the color of the Cube is a function of the intensity
   of the DirectionalLight, even though the Cube is rendered without
-  lighting because of the BASE_COLOR LightModel.
+  lighting because of the BASE_COLOR CoinRenderLightModel.
 
 */
 

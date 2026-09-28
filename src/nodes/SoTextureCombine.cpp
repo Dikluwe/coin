@@ -117,7 +117,7 @@
           position 0 0 1
           viewportMapping LEAVE_ALONE
         }
-        LightModel { model BASE_COLOR }
+        CoinRenderLightModel { model BASE_COLOR }
         Coordinate3 {
           point [ -1 -1 0, 1 -1 0, 1 1 0, -1 1 0 ] 
         }
@@ -157,7 +157,7 @@
           position 0 0 1
           viewportMapping LEAVE_ALONE
         }
-        LightModel { model BASE_COLOR }
+        CoinRenderLightModel { model BASE_COLOR }
         Coordinate3 {
           point [ -1 -1 0, 1 -1 0, 1 1 0, -1 1 0 ] 
         }

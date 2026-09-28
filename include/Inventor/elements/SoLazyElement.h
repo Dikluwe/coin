@@ -100,7 +100,7 @@ public:
     DIFFUSE_ONLY_MASK = ALL_MASK &(~ OTHER_COLOR_MASK)
   };
 
-  enum LightModel {
+  enum CoinRenderLightModel {
     BASE_COLOR,
     PHONG
   };

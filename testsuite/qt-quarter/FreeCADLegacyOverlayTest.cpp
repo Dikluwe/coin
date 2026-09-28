@@ -1,6 +1,6 @@
 #include <Gui/GLPainter.h>
 #include <Inventor/SoDB.h>
-#include <Inventor/actions/SoWgpuRenderAction.h>
+#include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/nodes/SoAnnotation.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <iostream>
@@ -17,10 +17,10 @@ static std::string record(SoNode* scene, int width = 400, int height = 300)
     auto* layer = new SoAnnotation;
     layer->ref();
     layer->addChild(scene);
-    SoWgpuRenderAction action;
+    CoinRenderAction action;
     action.setViewportRegion(SbViewportRegion(width, height));
     action.apply(layer);
-    require(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "overlay extraction failed");
+    require(action.getLastStatus() == CoinRenderAction::SUCCESS, "overlay extraction failed");
     std::string result = action.getRecordingLog().getString();
     layer->unref();
     return result;
@@ -30,7 +30,7 @@ int main()
 {
     try {
         SoDB::init();
-        SoWgpuRenderAction::initClass();
+        CoinRenderAction::initClass();
         Gui::Rubberband rubber;
         require(!rubber.overlayScene(400, 300), "inactive rubberband visible");
         rubber.setWorking(true);

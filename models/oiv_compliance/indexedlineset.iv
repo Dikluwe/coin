@@ -142,14 +142,14 @@ Separator {
    }
 
 
-   # (ROW 3) With different LightModel settings.
+   # (ROW 3) With different CoinRenderLightModel settings.
    Translation { translation 0 +6 0 }
    Separator {
-      LightModel { model BASE_COLOR }
+      CoinRenderLightModel { model BASE_COLOR }
       USE ifs
 
       Translation { translation +5 0 0 }
-      LightModel { model PHONG }
+      CoinRenderLightModel { model PHONG }
       USE ifs
    }
 

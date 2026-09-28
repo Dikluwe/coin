@@ -122,12 +122,12 @@
 #cmakedefine COIN_HAVE_JAVASCRIPT
 
 /***************************************************************************
- * HAVE_WGPU
+ * HAVE_COIN_RENDER
  *
  * WebGPU experimental render action support.
  */
 
-#cmakedefine HAVE_WGPU
+#cmakedefine HAVE_COIN_RENDER
 
 /***************************************************************************
  * HAVE_WGPU_DAWN
@@ -157,12 +157,12 @@
 #cmakedefine HAVE_WGPU_BGFX
 
 /***************************************************************************
- * HAVE_WGPU_WINDOW_SURFACE
+ * HAVE_COIN_RENDER_WINDOW_SURFACE
  *
  * Native window surface presentation support for WebGPU.
  */
 
-#cmakedefine HAVE_WGPU_WINDOW_SURFACE
+#cmakedefine HAVE_COIN_RENDER_WINDOW_SURFACE
 
 /***************************************************************************
  * The end.

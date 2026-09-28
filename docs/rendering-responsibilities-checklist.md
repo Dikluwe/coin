@@ -33,27 +33,27 @@ do pedido, enquanto Infra cria, retém e libera os recursos concretos.
 
 | Componente atual | Responsabilidade real | Compartilhamento e pendência |
 |---|---|---|
-| `SoWgpuRenderAction`, callbacks e replay de paths | Wiring | Captura comum; a action ainda conhece BGFX/Rust, libera tokens concretos e lê configuração textual de RTT. |
-| `SoWgpuFramePlanBuilder` | Wiring + Core | Lê `SoCallbackAction`/`SoState` e também transforma geometria e monta o plano. Separar funções de captura e funções mecânicas, sem exigir separar o arquivo inteiro. |
-| `FramePlan` e snapshots em `SoWgpuFramePlan.h` | Contrato comum | Compartilháveis; `gpuToken`, limites e convenções precisam de significado independente do executor. |
-| `SoWgpuIndexedGeometryCore` | Core comum | Bons limites explícitos: arrays e fatos capturados, sem travessia nem recursos GPU. |
-| `SoWgpuFrameReuseCore` | Core comum | Classificação e atualização de câmera compartilháveis; Infra decide se seus buffers podem materializar o reuso. |
-| `SoWgpuImageCore` | Core comum | Transformação mecânica de linhas; readback e publicação são responsabilidades distintas. |
-| `SoWgpuComposition.h` | Core com semântica ainda dividida | Tem decisões de composição, mas `exactCoin` e os mapeamentos de estratégias convivem com outra interpretação em Rust. |
+| `CoinRenderAction`, callbacks e replay de paths | Wiring | Captura comum; a action ainda conhece BGFX/Rust, libera tokens concretos e lê configuração textual de RTT. |
+| `CoinRenderFramePlanBuilder` | Wiring + Core | Lê `SoCallbackAction`/`SoState` e também transforma geometria e monta o plano. Separar funções de captura e funções mecânicas, sem exigir separar o arquivo inteiro. |
+| `CoinRenderFramePlan` e snapshots em `CoinRenderFramePlan.h` | Contrato comum | Compartilháveis; `gpuToken`, limites e convenções precisam de significado independente do executor. |
+| `CoinRenderIndexedGeometryCore` | Core comum | Bons limites explícitos: arrays e fatos capturados, sem travessia nem recursos GPU. |
+| `CoinRenderFrameReuseCore` | Core comum | Classificação e atualização de câmera compartilháveis; Infra decide se seus buffers podem materializar o reuso. |
+| `CoinRenderImageCore` | Core comum | Transformação mecânica de linhas; readback e publicação são responsabilidades distintas. |
+| `CoinRenderComposition.h` | Core com semântica ainda dividida | Tem decisões de composição, mas `exactCoin` e os mapeamentos de estratégias convivem com outra interpretação em Rust. |
 | `SoWgpuBgfxCore` | Core específico + decisões comuns | Layout BGFX pode permanecer específico. Políticas Coin de transparência/depth e operações reaproveitáveis precisam ser extraídas. |
 | `SoWgpuFfiFrame`, `coin_wgpu_ffi.h` | Adaptação específica Rust/wgpu | Empacotamento e ABI privados do conector; devem transportar decisões resolvidas, sem redefinir o perfil Coin. |
 | `rust_bridge/src/composition.rs` | Core executado no lado Rust | Hoje reclassifica alpha e reordena draws. Deve consumir a composição comum resolvida; ser Rust não o torna Infra por si só. |
 | `SoWgpuBgfxBackend`, recursos e shaders BGFX | Infra BGFX | Devem permanecer específicos; recebem o plano resolvido e executam mecanismos compatíveis. |
 | `rust_bridge/src/lib.rs`, recursos e shaders WGSL | Infra wgpu, com lógica mecânica misturada | Execução específica; separar validação/adaptação de decisões semânticas. |
-| `SoWgpuRenderTarget`, scene manager e adapter | Fachada comum + Wiring + Infra | Separar ciclo/publicação de operações nativas por método/colaborador. A API comum não precisa expor a classe concreta. |
-| `SoWgpuCapabilities` | Infra + Core + Shell | Probe nativo é Infra; perfil efetivamente atendido é decisão comum; texto de diagnóstico é Shell. |
-| `SoWgpuDiagnosticShell` | Shell comum e extensões específicas | Mensagens/status/tempos comuns compartilháveis; contadores BGFX ou da ponte Rust devem conservar identificação específica. |
+| `CoinRenderTarget`, scene manager e adapter | Fachada comum + Wiring + Infra | Separar ciclo/publicação de operações nativas por método/colaborador. A API comum não precisa expor a classe concreta. |
+| `CoinRenderCapabilities` | Infra + Core + Shell | Probe nativo é Infra; perfil efetivamente atendido é decisão comum; texto de diagnóstico é Shell. |
+| `CoinRenderDiagnosticShell` | Shell comum e extensões específicas | Mensagens/status/tempos comuns compartilháveis; contadores BGFX ou da ponte Rust devem conservar identificação específica. |
 
-Evidências principais: [captura e plano](../src/rendering/wgpu/SoWgpuFramePlanBuilder.cpp),
-[action e RTT](../src/actions/SoWgpuRenderAction.cpp),
-[composição C++](../src/rendering/wgpu/SoWgpuComposition.h),
-[composição Rust](../src/rendering/wgpu/rust_bridge/src/composition.rs),
-[adaptação BGFX](../src/rendering/wgpu/SoWgpuBgfxCore.cpp),
+Evidências principais: [captura e plano](../src/rendering/coinrender/CoinRenderFramePlanBuilder.cpp),
+[action e RTT](../src/actions/CoinRenderAction.cpp),
+[composição C++](../src/rendering/coinrender/CoinRenderComposition.h),
+[composição Rust](../src/rendering/coinrender/rust_bridge/src/composition.rs),
+[adaptação BGFX](../src/rendering/coinrender/SoWgpuBgfxCore.cpp),
 [ciclo do manager](backend-independent-frame-preparation.md).
 
 ## O que compartilhar e como nomear

@@ -154,29 +154,49 @@ option(COIN_BUILD_LEGACY_GL_RENDERER
   ON)
 set(COIN_HAVE_LEGACY_GL_RENDERER ${COIN_BUILD_LEGACY_GL_RENDERER})
 
-option(COIN_BUILD_WGPU "Build the experimental WebGPU render action" OFF)
-option(COIN_BUILD_WGPU_WINDOW_EXAMPLE "Build the experimental WebGPU window example" OFF)
-option(COIN_BUILD_WGPU_BENCHMARKS "Build experimental renderer/GL comparison tools" OFF)
-option(COIN_INSTALL_WGPU_EXPERIMENTAL "Install the opt-in experimental WebGPU module and headers" OFF)
-if(COIN_INSTALL_WGPU_EXPERIMENTAL AND NOT COIN_BUILD_WGPU)
-  message(FATAL_ERROR "COIN_INSTALL_WGPU_EXPERIMENTAL requires COIN_BUILD_WGPU=ON")
+# Transitional source/build compatibility for the former WebGPU-named module.
+# New CoinRender cache options take precedence when both names are supplied.
+foreach(_coin_render_legacy_pair IN ITEMS
+  "COIN_BUILD_WGPU|COIN_BUILD_RENDER"
+  "COIN_BUILD_WGPU_WINDOW_EXAMPLE|COIN_BUILD_RENDER_WINDOW_EXAMPLE"
+  "COIN_BUILD_WGPU_BENCHMARKS|COIN_BUILD_RENDER_BENCHMARKS"
+  "COIN_INSTALL_WGPU_EXPERIMENTAL|COIN_INSTALL_RENDER_EXPERIMENTAL"
+  "COIN_WGPU_BACKEND|COIN_RENDER_BACKEND"
+  "COIN_TEST_WGPU_STRICT_DISPLAY|COIN_TEST_RENDER_STRICT_DISPLAY"
+  "COIN_TEST_WGPU_GL_REFERENCE|COIN_TEST_RENDER_GL_REFERENCE"
+)
+  string(REPLACE "|" ";" _coin_render_names "${_coin_render_legacy_pair}")
+  list(GET _coin_render_names 0 _coin_render_old)
+  list(GET _coin_render_names 1 _coin_render_new)
+  if(DEFINED ${_coin_render_old} AND NOT DEFINED ${_coin_render_new})
+    set(${_coin_render_new} "${${_coin_render_old}}" CACHE STRING
+      "CoinRender option migrated from ${_coin_render_old}")
+  endif()
+endforeach()
+
+option(COIN_BUILD_RENDER "Build the experimental CoinRender module" OFF)
+option(COIN_BUILD_RENDER_WINDOW_EXAMPLE "Build the experimental CoinRender window example" OFF)
+option(COIN_BUILD_RENDER_BENCHMARKS "Build experimental renderer/GL comparison tools" OFF)
+option(COIN_INSTALL_RENDER_EXPERIMENTAL "Install the opt-in experimental CoinRender module and headers" OFF)
+if(COIN_INSTALL_RENDER_EXPERIMENTAL AND NOT COIN_BUILD_RENDER)
+  message(FATAL_ERROR "COIN_INSTALL_RENDER_EXPERIMENTAL requires COIN_BUILD_RENDER=ON")
 endif()
-if(COIN_BUILD_WGPU_BENCHMARKS AND NOT COIN_BUILD_WGPU)
-  message(FATAL_ERROR "COIN_BUILD_WGPU_BENCHMARKS requires COIN_BUILD_WGPU=ON")
+if(COIN_BUILD_RENDER_BENCHMARKS AND NOT COIN_BUILD_RENDER)
+  message(FATAL_ERROR "COIN_BUILD_RENDER_BENCHMARKS requires COIN_BUILD_RENDER=ON")
 endif()
-if(COIN_BUILD_WGPU_BENCHMARKS AND NOT COIN_BUILD_LEGACY_GL_RENDERER)
-  message(FATAL_ERROR "COIN_BUILD_WGPU_BENCHMARKS requires COIN_BUILD_LEGACY_GL_RENDERER=ON")
+if(COIN_BUILD_RENDER_BENCHMARKS AND NOT COIN_BUILD_LEGACY_GL_RENDERER)
+  message(FATAL_ERROR "COIN_BUILD_RENDER_BENCHMARKS requires COIN_BUILD_LEGACY_GL_RENDERER=ON")
 endif()
-set(COIN_WGPU_BACKEND "RUST_BRIDGE" CACHE STRING
+set(COIN_RENDER_BACKEND "RUST_BRIDGE" CACHE STRING
     "Experimental render backend: RECORDING, DAWN, WGPU_NATIVE, RUST_BRIDGE or BGFX")
-set_property(CACHE COIN_WGPU_BACKEND PROPERTY STRINGS
+set_property(CACHE COIN_RENDER_BACKEND PROPERTY STRINGS
              RECORDING DAWN WGPU_NATIVE RUST_BRIDGE BGFX)
-if(COIN_BUILD_WGPU)
-  set(HAVE_WGPU 1)
-  if(COIN_WGPU_BACKEND STREQUAL "DAWN")
+if(COIN_BUILD_RENDER)
+  set(HAVE_COIN_RENDER 1)
+  if(COIN_RENDER_BACKEND STREQUAL "DAWN")
     find_package(Dawn QUIET CONFIG)
     if(NOT Dawn_FOUND)
-      message(FATAL_ERROR "COIN_WGPU_BACKEND is set to DAWN, but the Dawn WebGPU package was not found.")
+      message(FATAL_ERROR "COIN_RENDER_BACKEND is set to DAWN, but the Dawn WebGPU package was not found.")
     endif()
     set(HAVE_WGPU_DAWN 1)
     if(TARGET dawn::webgpu_dawn)
@@ -186,10 +206,10 @@ if(COIN_BUILD_WGPU)
     else()
       message(FATAL_ERROR "Dawn package found but target dawn::webgpu_dawn or webgpu_dawn is missing.")
     endif()
-  elseif(COIN_WGPU_BACKEND STREQUAL "WGPU_NATIVE")
+  elseif(COIN_RENDER_BACKEND STREQUAL "WGPU_NATIVE")
     find_package(wgpu_native QUIET CONFIG)
     if(NOT wgpu_native_FOUND)
-      message(FATAL_ERROR "COIN_WGPU_BACKEND is set to WGPU_NATIVE, but the wgpu-native library was not found.")
+      message(FATAL_ERROR "COIN_RENDER_BACKEND is set to WGPU_NATIVE, but the wgpu-native library was not found.")
     endif()
     set(HAVE_WGPU_NATIVE 1)
     if(TARGET wgpu_native::wgpu_native)
@@ -199,9 +219,9 @@ if(COIN_BUILD_WGPU)
     else()
       message(FATAL_ERROR "wgpu-native package found but target wgpu_native::wgpu_native or wgpu_native is missing.")
     endif()
-  elseif(COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE")
+  elseif(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
     find_program(CARGO_EXECUTABLE cargo REQUIRED)
-    set(RUST_BRIDGE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/wgpu/rust_bridge")
+    set(RUST_BRIDGE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinrender/rust_bridge")
     set(RUST_TARGET_DIR "${CMAKE_CURRENT_BINARY_DIR}/rust_target")
     if(CMAKE_BUILD_TYPE MATCHES "Debug|DEBUG")
       set(RUST_PROFILE_DIR "debug")
@@ -216,7 +236,7 @@ if(COIN_BUILD_WGPU)
       OUTPUT "${RUST_LIB_PATH}"
       COMMAND ${CMAKE_COMMAND} -E env CARGO_TARGET_DIR=${RUST_TARGET_DIR} ${CARGO_EXECUTABLE} build ${CARGO_BUILD_FLAGS} --manifest-path "${RUST_BRIDGE_DIR}/Cargo.toml"
       WORKING_DIRECTORY "${RUST_BRIDGE_DIR}"
-      DEPENDS "${RUST_BRIDGE_DIR}/src/lib.rs" "${RUST_BRIDGE_DIR}/src/composition.rs" "${RUST_BRIDGE_DIR}/Cargo.toml" "${RUST_BRIDGE_DIR}/Cargo.lock" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/wgpu/shaders/coin_standard.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/wgpu/shaders/coin_line.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/wgpu/shaders/coin_point.wgsl"
+      DEPENDS "${RUST_BRIDGE_DIR}/src/lib.rs" "${RUST_BRIDGE_DIR}/src/composition.rs" "${RUST_BRIDGE_DIR}/Cargo.toml" "${RUST_BRIDGE_DIR}/Cargo.lock" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinrender/shaders/coin_standard.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinrender/shaders/coin_line.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinrender/shaders/coin_point.wgsl"
       COMMENT "Building Rust WebGPU bridge library (${RUST_PROFILE_DIR})..."
       VERBATIM
     )
@@ -229,16 +249,16 @@ if(COIN_BUILD_WGPU)
     add_dependencies(coin_wgpu_rust_bridge::coin_wgpu_rust_bridge coin_wgpu_rust_bridge_build)
 
     find_package(Threads REQUIRED)
-    set(COIN_WGPU_LINK_LIBRARIES
+    set(COIN_RENDER_LINK_LIBRARIES
       coin_wgpu_rust_bridge::coin_wgpu_rust_bridge
       Threads::Threads
       ${CMAKE_DL_LIBS}
       m
     )
     set(HAVE_WGPU_RUST_BRIDGE 1)
-  elseif(COIN_WGPU_BACKEND STREQUAL "RECORDING")
-    message(STATUS "COIN_WGPU_BACKEND is set to RECORDING: using deterministic recording log and reference software rasterizer.")
-  elseif(COIN_WGPU_BACKEND STREQUAL "BGFX")
+  elseif(COIN_RENDER_BACKEND STREQUAL "RECORDING")
+    message(STATUS "COIN_RENDER_BACKEND is set to RECORDING: using deterministic recording log and reference software rasterizer.")
+  elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
     if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
       message(FATAL_ERROR "The BGFX evaluation currently supports Linux only.")
     endif()
@@ -248,11 +268,11 @@ if(COIN_BUILD_WGPU)
     endif()
     find_program(COIN_BGFX_SHADERC_EXECUTABLE NAMES shaderc REQUIRED)
     find_path(COIN_BGFX_SHADER_INCLUDE_DIR NAMES bgfx_shader.sh PATH_SUFFIXES bgfx REQUIRED)
-    set(COIN_WGPU_LINK_LIBRARIES bgfx::bgfx)
+    set(COIN_RENDER_LINK_LIBRARIES bgfx::bgfx)
     set(HAVE_WGPU_BGFX 1)
     message(STATUS "BGFX evaluation: Linux offscreen or Xlib window, Vulkan/OpenGL, BASE_COLOR indexed triangles and opt-in transparency modes")
   else()
-    message(FATAL_ERROR "Unsupported COIN_WGPU_BACKEND: ${COIN_WGPU_BACKEND}. Supported backends are RECORDING, DAWN, WGPU_NATIVE, RUST_BRIDGE, BGFX.")
+    message(FATAL_ERROR "Unsupported COIN_RENDER_BACKEND: ${COIN_RENDER_BACKEND}. Supported backends are RECORDING, DAWN, WGPU_NATIVE, RUST_BRIDGE, BGFX.")
   endif()
 endif()
 
@@ -260,19 +280,19 @@ if(UNIX AND NOT APPLE AND NOT X11_FOUND)
   find_package(X11 QUIET)
 endif()
 
-if(COIN_BUILD_WGPU)
-  set(COIN_HAVE_WGPU ON)
-  if(COIN_WGPU_BACKEND STREQUAL "RUST_BRIDGE" AND (UNIX AND NOT APPLE AND X11_FOUND))
-    set(HAVE_WGPU_WINDOW_SURFACE 1)
-    set(COIN_HAVE_WGPU_WINDOW_SURFACE ON)
+if(COIN_BUILD_RENDER)
+  set(COIN_HAVE_RENDER ON)
+  if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE" AND (UNIX AND NOT APPLE AND X11_FOUND))
+    set(HAVE_COIN_RENDER_WINDOW_SURFACE 1)
+    set(COIN_HAVE_RENDER_WINDOW_SURFACE ON)
   else()
-    unset(HAVE_WGPU_WINDOW_SURFACE)
-    set(COIN_HAVE_WGPU_WINDOW_SURFACE OFF)
+    unset(HAVE_COIN_RENDER_WINDOW_SURFACE)
+    set(COIN_HAVE_RENDER_WINDOW_SURFACE OFF)
   endif()
 else()
-  set(COIN_HAVE_WGPU OFF)
-  unset(HAVE_WGPU_WINDOW_SURFACE)
-  set(COIN_HAVE_WGPU_WINDOW_SURFACE OFF)
+  set(COIN_HAVE_RENDER OFF)
+  unset(HAVE_COIN_RENDER_WINDOW_SURFACE)
+  set(COIN_HAVE_RENDER_WINDOW_SURFACE OFF)
 endif()
 
 check_include_file_cxx(thread HAVE_STD_THREAD)
@@ -281,8 +301,8 @@ cmake_dependent_option(COIN_DEBUG_CHECK_THREAD "Enable thread check in several c
 report_prepare(
   COIN_BUILD_SHARED_LIBS
   COIN_BUILD_TESTS
-  COIN_BUILD_WGPU
-  COIN_WGPU_BACKEND
+  COIN_BUILD_RENDER
+  COIN_RENDER_BACKEND
   COIN_BUILD_DOCUMENTATION
   COIN_BUILD_INTERNAL_DOCUMENTATION
   COIN_BUILD_DOCUMENTATION_MAN
@@ -1049,11 +1069,11 @@ unset(COIN_INTERNAL_DOCUMENTATION_FILES CACHE)
 add_subdirectory(include)
 add_subdirectory(data)
 add_subdirectory(src)
-if(COIN_BUILD_WGPU)
-  add_subdirectory(src/rendering/wgpu)
+if(COIN_BUILD_RENDER)
+  add_subdirectory(src/rendering/coinrender)
 endif()
 
-if (COIN_BUILD_EXAMPLES OR COIN_BUILD_WGPU_WINDOW_EXAMPLE OR COIN_BUILD_WGPU_BENCHMARKS)
+if (COIN_BUILD_EXAMPLES OR COIN_BUILD_RENDER_WINDOW_EXAMPLE OR COIN_BUILD_RENDER_BENCHMARKS)
   add_subdirectory(examples)
 endif()
 

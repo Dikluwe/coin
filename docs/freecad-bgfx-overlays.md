@@ -217,13 +217,13 @@ não há alteração na configuração de bloqueio da sessão.
 Regressão da viewport nativa: `/tmp/freecad-native-parent-regressions/results.json`
 registra **6/6 PASS**, hover, overlays e múltiplas viewports em Vulkan/OpenGL
 (object, DPR 1x). CTest final: **7/7 PASS**.
-O patch reproduzível `examples/wgpu/freecad_coin_wgpu.patch.gz` foi atualizado
+O patch reproduzível `examples/coinrender/freecad_coin_render.patch.gz` foi atualizado
 com GLPainter, Flag, screen-space group e rubber-band; a checagem reversa do
 patch contra o checkout FreeCAD usado no build passou, sem alterar o checkout.
 
 ## So3DAnnotation — passagem adiada com profundidade
 
-O callback experimental do nó usa `SoWgpuRenderAction::deferAnnotation()`.
+O callback experimental do nó usa `CoinRenderAction::deferAnnotation()`.
 A ação guarda cópias referenciadas dos caminhos apenas durante o frame,
 ordena por prioridade com estabilidade para empates e reproduz os caminhos
 com os estados ancestrais. Anotações aninhadas participam do mesmo conjunto.

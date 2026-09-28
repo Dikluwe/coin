@@ -13,9 +13,9 @@
 #include <Gui/Inventor/SoDrawingGrid.h>
 #include <Gui/Inventor/So3DAnnotation.h>
 #include <Gui/Selection/SoFCUnifiedSelection.h>
-#include <Inventor/actions/SoWgpuRenderAction.h>
+#include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/details/SoFaceDetail.h>
-#include <Inventor/rendering/SoWgpuRenderTarget.h>
+#include <Inventor/rendering/CoinRenderTarget.h>
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoLineSet.h>
@@ -64,7 +64,7 @@ extern "C" int delayed_overlay_test(const char* artifacts)
     try {
         error.clear();
         const auto* initialQtContext = QOpenGLContext::currentContext();
-        SoWgpuRenderAction::initClass();
+        CoinRenderAction::initClass();
         auto* root = new SoSeparator;
         root->ref();
         auto* camera = new SoOrthographicCamera;
@@ -96,11 +96,11 @@ extern "C" int delayed_overlay_test(const char* artifacts)
         annotation3D->addChild(box(SbColor(0, 1, 0), 0, -5, 1));
         root->addChild(annotation3D);
 
-        SoWgpuRenderAction action(SbViewportRegion(128, 128));
+        CoinRenderAction action(SbViewportRegion(128, 128));
         action.setBackgroundColor(SbColor4f(1, 1, 1, 1));
-        action.setTransparencyType(SoWgpuRenderAction::SORTED_OBJECT_BLEND);
+        action.setTransparencyType(CoinRenderAction::SORTED_OBJECT_BLEND);
         action.apply(root);
-        require(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "recording failed");
+        require(action.getLastStatus() == CoinRenderAction::SUCCESS, "recording failed");
         std::string log = action.getRecordingLog().getString();
         require(log.find("layer=1 clearDepthBefore=0") != std::string::npos,
                 "normal delayed queue must not clear depth");
@@ -111,15 +111,15 @@ extern "C" int delayed_overlay_test(const char* artifacts)
         auto* gridLines = static_cast<SoLineSet*>(grid->getChild(1));
         require(gridLines->numVertices.getNum() == 80, "square grid geometry missing");
 
-        std::unique_ptr<SoWgpuRenderTarget> target(
-            SoWgpuRenderTarget::createOffscreen(SbVec2i32(128, 128)));
-        require(target && target->getStatus() == SoWgpuRenderTarget::TARGET_READY, "GPU unavailable");
+        std::unique_ptr<CoinRenderTarget> target(
+            CoinRenderTarget::createOffscreen(SbVec2i32(128, 128)));
+        require(target && target->getStatus() == CoinRenderTarget::TARGET_READY, "GPU unavailable");
         target->setDepthReadbackEnabled(FALSE);
         action.setRenderTarget(target.get());
         std::vector<uint8_t> pixels;
         auto submit = [&](const char* name) {
             action.apply(root);
-            require(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "GPU submit failed");
+            require(action.getLastStatus() == CoinRenderAction::SUCCESS, "GPU submit failed");
             target->readbackRGBA(pixels);
             const auto size = target->getSize();
             require(pixels.size() == size[0]*size[1]*4, "readback missing");
@@ -170,7 +170,7 @@ extern "C" int delayed_overlay_test(const char* artifacts)
         patchContainsBlue(65, 65); // bounding box must be an outline, not filled
         action.setRenderTarget(nullptr);
         action.apply(root);
-        require(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, action.getLastError().getString());
+        require(action.getLastStatus() == CoinRenderAction::SUCCESS, action.getLastError().getString());
         log = action.getRecordingLog().getString();
         QFile planFile(QString::fromUtf8(artifacts) + "/bbox-plan.txt");
         require(planFile.open(QIODevice::WriteOnly), "plan file open failed");
@@ -288,9 +288,9 @@ extern "C" int delayed_viewprovider_test(const char* artifacts)
         } preferences{params, oldProjected, oldTight, oldShow};
         params->setShowSelectionBoundingBox(true);
 
-        std::unique_ptr<SoWgpuRenderTarget> target(
-            SoWgpuRenderTarget::createOffscreen(SbVec2i32(128, 128)));
-        require(target && target->getStatus() == SoWgpuRenderTarget::TARGET_READY,
+        std::unique_ptr<CoinRenderTarget> target(
+            CoinRenderTarget::createOffscreen(SbVec2i32(128, 128)));
+        require(target && target->getStatus() == CoinRenderTarget::TARGET_READY,
                 "ViewProvider GPU unavailable");
         target->setDepthReadbackEnabled(FALSE);
         auto render = [&](SoNode* geometry, const std::string& name) {
@@ -305,11 +305,11 @@ extern "C" int delayed_viewprovider_test(const char* artifacts)
             lighting->model = SoLightModel::BASE_COLOR;
             scene->addChild(lighting);
             scene->addChild(geometry);
-            SoWgpuRenderAction action(SbViewportRegion(128,128));
+            CoinRenderAction action(SbViewportRegion(128,128));
             action.setBackgroundColor(SbColor4f(1,1,1,1));
             action.setRenderTarget(target.get());
             action.apply(scene);
-            require(action.getLastStatus() == SoWgpuRenderAction::SUCCESS,
+            require(action.getLastStatus() == CoinRenderAction::SUCCESS,
                     action.getLastError().getString());
             std::vector<uint8_t> pixels;
             target->readbackRGBA(pixels);

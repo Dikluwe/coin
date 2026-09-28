@@ -4,12 +4,12 @@
 #include <Quarter/QuarterWidget.h>
 #include <Inventor/SoDB.h>
 #include <Inventor/SoOffscreenRenderer.h>
-#include <Inventor/actions/SoWgpuRenderAction.h>
+#include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/misc/SoContextHandler.h>
-#include <Inventor/rendering/SoWgpuCapabilities.h>
-#include <Inventor/rendering/SoWgpuSceneManager.h>
-#include <Inventor/rendering/SoWgpuRenderTarget.h>
+#include <Inventor/rendering/CoinRenderCapabilities.h>
+#include <Inventor/rendering/CoinRenderSceneManager.h>
+#include <Inventor/rendering/CoinRenderTarget.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoMaterial.h>
@@ -279,12 +279,12 @@ void lifecycle(const QString & test) {
   if(view->surface()) capture(view->surface(),"final");
 }
 QImage readWgpu(SoNode * root) {
-  SoWgpuSceneManager manager(SbVec2i32(256,256));
+  CoinRenderSceneManager manager(SbVec2i32(256,256));
   manager.getRenderTarget()->setDepthReadbackEnabled(FALSE);
   manager.setBackgroundColor(SbColor4f(0.12f,0.16f,0.2f,1));
   manager.setSceneGraph(root);
   auto status=manager.render();
-  require(status==SoWgpuRenderAction::SUCCESS, manager.getLastError().getString());
+  require(status==CoinRenderAction::SUCCESS, manager.getLastError().getString());
   std::vector<uint8_t> pixels; manager.getRenderTarget()->readbackRGBA(pixels);
   require(pixels.size()==256*256*4,"successful GPU frame did not publish RGBA");
   return QImage(pixels.data(),256,256,256*4,QImage::Format_RGBA8888).copy();
@@ -454,9 +454,9 @@ int main(int argc,char **argv) {
     require(qEnvironmentVariableIntValue("FREECAD_COIN_WGPU")==1,"FREECAD_COIN_WGPU=1 is mandatory");
     require(app.platformName()=="xcb","native X11/xcb platform is mandatory");
     SIM::Coin3D::Quarter::Quarter::init();
-    SoWgpuRenderAction::initClass();
-    CoinWgpuExperimentalCapabilities caps{};
-    require(coin_wgpu_experimental_query_capabilities(COIN_WGPU_EXPERIMENTAL_OFFSCREEN,&caps,sizeof(caps))==0,"GPU capability query failed");
+    CoinRenderAction::initClass();
+    CoinRenderCapabilities caps{};
+    require(coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN,&caps,sizeof(caps))==0,"GPU capability query failed");
     report["adapter"]=QString::fromUtf8(caps.adapter_name);
     report["gpu_available"]=int(caps.gpu_available);
     // Some BGFX builds intentionally report zero for a side-effect-free query.

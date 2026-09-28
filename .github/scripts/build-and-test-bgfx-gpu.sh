@@ -95,9 +95,9 @@ cmake -S "${repository_dir}" -B "${build_dir}" -G Ninja \
 cmake --build "${build_dir}" --config Release --parallel --target \
   BgfxReadbackModesTest \
   BgfxSurfaceFeaturesTest \
-  WgpuFogTest \
-  WgpuProductTest \
-  WgpuBackendContractTest \
+  CoinRenderFogTest \
+  CoinRenderProductTest \
+  CoinRenderBackendContractTest \
   WgpuBgfxCoreTest \
   WgpuBgfxOffscreenTest \
   WgpuBgfxTransparencyTest \
@@ -105,14 +105,14 @@ cmake --build "${build_dir}" --config Release --parallel --target \
   WgpuBgfxMultiWindowTest
 
 if [[ "${renderer}" == vulkan ]]; then
-  readonly test_regex="^(BgfxReadbackModes_vulkan|BgfxSurface_vulkan_(object|weighted_oit|sorted_layers)|WgpuFogTest|WgpuProductTest|WgpuBackendContractTest|WgpuBgfxCoreTest|WgpuBgfxOffscreenTest|WgpuBgfxTransparencyTest|WgpuBgfxSortedLayersTest|WgpuBgfxWeightedOitTest|WgpuBgfxWindowTest|WgpuBgfxRenderManagerAdapterTest|WgpuBgfxMultiWindowTest|WgpuBgfxMultiWindowOffscreenFirstTest|WgpuBgfxMultiWindow_(weighted_oit|sorted_layers)_vulkanTest)$"
+  readonly test_regex="^(BgfxReadbackModes_vulkan|BgfxSurface_vulkan_(object|weighted_oit|sorted_layers)|CoinRenderFogTest|CoinRenderProductTest|CoinRenderBackendContractTest|WgpuBgfxCoreTest|WgpuBgfxOffscreenTest|WgpuBgfxTransparencyTest|WgpuBgfxSortedLayersTest|WgpuBgfxWeightedOitTest|WgpuBgfxWindowTest|WgpuBgfxRenderManagerAdapterTest|WgpuBgfxMultiWindowTest|WgpuBgfxMultiWindowOffscreenFirstTest|WgpuBgfxMultiWindow_(weighted_oit|sorted_layers)_vulkanTest)$"
 else
-  readonly test_regex="^(BgfxReadbackModes_opengl|BgfxSurface_opengl_(object|weighted_oit|sorted_layers)|WgpuFogTest|WgpuProductOpenGLTest|WgpuBackendContractOpenGLTest|WgpuBgfxCoreTest|WgpuBgfxOpenGLTest|WgpuBgfxTransparencyOpenGLTest|WgpuBgfxSortedLayersOpenGLTest|WgpuBgfxWeightedOitOpenGLTest|WgpuBgfxWindowOpenGLTest|WgpuBgfxRenderManagerAdapterOpenGLTest|WgpuBgfxMultiWindowOpenGLTest|WgpuBgfxMultiWindowOffscreenFirstOpenGLTest|WgpuBgfxMultiWindow_(weighted_oit|sorted_layers)_openglTest)$"
+  readonly test_regex="^(BgfxReadbackModes_opengl|BgfxSurface_opengl_(object|weighted_oit|sorted_layers)|CoinRenderFogTest|CoinRenderProductOpenGLTest|CoinRenderBackendContractOpenGLTest|WgpuBgfxCoreTest|WgpuBgfxOpenGLTest|WgpuBgfxTransparencyOpenGLTest|WgpuBgfxSortedLayersOpenGLTest|WgpuBgfxWeightedOitOpenGLTest|WgpuBgfxWindowOpenGLTest|WgpuBgfxRenderManagerAdapterOpenGLTest|WgpuBgfxMultiWindowOpenGLTest|WgpuBgfxMultiWindowOffscreenFirstOpenGLTest|WgpuBgfxMultiWindow_(weighted_oit|sorted_layers)_openglTest)$"
 fi
 
 ctest --test-dir "${build_dir}" -C Release -R "${test_regex}" \
   --output-on-failure 2>&1 | tee "${tests_file}"
-"${build_dir}/bin/WgpuProductTest" 2>&1 | tee "${capabilities_file}"
+"${build_dir}/bin/CoinRenderProductTest" 2>&1 | tee "${capabilities_file}"
 
 if ! grep -q "COIN_WGPU_CAPABILITIES" "${capabilities_file}"; then
   echo "Capability evidence line is missing" >&2

@@ -29,7 +29,7 @@ cmake --build "${build_dir}" --target install --config Release --parallel
 xvfb-run -a ctest --test-dir "${build_dir}" -C Release --output-on-failure
 
 # 4. Run the native window example under xvfb (renders 60 frames to native X11 window)
-xvfb-run -a "${build_dir}/bin/wgpu_window_cone" --frames 60
+xvfb-run -a "${build_dir}/bin/coin_render_window_cone" --frames 60
 
 # 5. Verify installed package smoke test
 cmake -S "${repository_dir}/testsuite/installed-package-smoke" \

@@ -14,7 +14,7 @@ endforeach()
 find_package(Qt6 REQUIRED COMPONENTS Widgets OpenGLWidgets Test)
 find_package(X11 REQUIRED)
 find_library(COIN_LIBRARY NAMES Coin PATHS "${COIN_BUILD_DIR}/lib" NO_DEFAULT_PATH REQUIRED)
-find_library(WGPU_LIBRARY NAMES CoinWgpuExperimental PATHS "${COIN_BUILD_DIR}/lib" NO_DEFAULT_PATH REQUIRED)
+find_library(RENDER_LIBRARY NAMES CoinRender PATHS "${COIN_BUILD_DIR}/lib" NO_DEFAULT_PATH REQUIRED)
 find_library(FREECAD_GUI_LIBRARY NAMES FreeCADGui PATHS "${FREECAD_BUILD_DIR}/lib" NO_DEFAULT_PATH REQUIRED)
 add_executable(QtQuarterRegression harness.cpp)
 target_compile_definitions(QtQuarterRegression PRIVATE FREECAD_COIN_WGPU_EXPERIMENTAL)
@@ -24,7 +24,7 @@ target_include_directories(QtQuarterRegression PRIVATE
   "${FREECAD_SOURCE_DIR}/src" "${FREECAD_SOURCE_DIR}/src/Gui"
   "${FREECAD_BUILD_DIR}/src" "${X11_INCLUDE_DIR}")
 target_link_libraries(QtQuarterRegression PRIVATE
-  "${FREECAD_GUI_LIBRARY}" "${WGPU_LIBRARY}" "${COIN_LIBRARY}"
+  "${FREECAD_GUI_LIBRARY}" "${RENDER_LIBRARY}" "${COIN_LIBRARY}"
   Qt6::Widgets Qt6::OpenGLWidgets Qt6::Test "${X11_LIBRARIES}")
 enable_testing()
 find_package(Python3 REQUIRED COMPONENTS Interpreter)

@@ -2,8 +2,8 @@
 #include <QImage>
 #include <QOpenGLContext>
 #include <Inventor/SoDB.h>
-#include <Inventor/actions/SoWgpuRenderAction.h>
-#include <Inventor/rendering/SoWgpuRenderTarget.h>
+#include <Inventor/actions/CoinRenderAction.h>
+#include <Inventor/rendering/CoinRenderTarget.h>
 #include <Inventor/nodes/SoAnnotation.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <iostream>
@@ -20,7 +20,7 @@ int main(int argc, char** argv)
 {
     try {
         SoDB::init();
-        SoWgpuRenderAction::initClass();
+        CoinRenderAction::initClass();
         auto* root = new SoAnnotation;
         root->ref();
         auto* scene = new SoSeparator;
@@ -48,26 +48,26 @@ int main(int argc, char** argv)
         require(scene->getNumChildren() == 3, "primitive insertion order/count changed");
         painter.drawPoint(0, 0);
         require(scene->getNumChildren() == 3, "drawing outside session modified scene");
-        SoWgpuRenderAction action;
+        CoinRenderAction action;
         action.setViewportRegion(SbViewportRegion(400, 300));
         action.apply(root);
-        require(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "recording failed");
+        require(action.getLastStatus() == CoinRenderAction::SUCCESS, "recording failed");
         std::string log = action.getRecordingLog().getString();
         require(log.find("transp=0.5000") != std::string::npos, "per-primitive alpha lost");
         require(log.find("pointSize=11.0000") != std::string::npos, "point size lost");
         require(log.find("linePattern=43690") != std::string::npos, "line stipple lost");
         require(log.find("depthTest=0 depthWrite=0") != std::string::npos, "depthless overlay lost");
         if (argc > 1 && std::string(argv[1]) == "--gpu") {
-            std::unique_ptr<SoWgpuRenderTarget> target(
-                SoWgpuRenderTarget::createOffscreen(SbVec2i32(400, 300)));
-            require(target && target->getStatus() == SoWgpuRenderTarget::TARGET_READY,
+            std::unique_ptr<CoinRenderTarget> target(
+                CoinRenderTarget::createOffscreen(SbVec2i32(400, 300)));
+            require(target && target->getStatus() == CoinRenderTarget::TARGET_READY,
                     "GPU target unavailable");
             target->setDepthReadbackEnabled(FALSE);
             action.setRenderTarget(target.get());
-            for (auto mode : {SoWgpuRenderAction::BLEND, SoWgpuRenderAction::SORTED_OBJECT_BLEND}) {
+            for (auto mode : {CoinRenderAction::BLEND, CoinRenderAction::SORTED_OBJECT_BLEND}) {
                 action.setTransparencyType(mode);
                 action.apply(root);
-                require(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "GPU submit failed");
+                require(action.getLastStatus() == CoinRenderAction::SUCCESS, "GPU submit failed");
                 std::vector<uint8_t> pixels;
                 target->readbackRGBA(pixels);
                 require(pixels.size() == 400*300*4, "GPU readback missing");
@@ -85,7 +85,7 @@ int main(int argc, char** argv)
             }
             scene->removeAllChildren();
             action.apply(root);
-            require(action.getLastStatus() == SoWgpuRenderAction::SUCCESS, "empty overlay submit failed");
+            require(action.getLastStatus() == CoinRenderAction::SUCCESS, "empty overlay submit failed");
             std::vector<uint8_t> cleared;
             target->readbackRGBA(cleared);
             require(cleared.size() == 400*300*4, "cleared frame readback missing");

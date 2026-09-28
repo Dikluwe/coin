@@ -42,7 +42,7 @@ mesmo contrato. Na atualização Gouraud, posição, normais e termos de luzes
 pontuais/spot passam a ser avaliados por vértice, antes da interpolação.
 Não é um modo local-viewer configurável nem captura de estado GL externo.
 
-`WgpuLightingTest` verifica um plano especular em posições fora do eixo da
+`CoinRenderLightingTest` verifica um plano especular em posições fora do eixo da
 câmera. A regressão falhou antes da correção e passou depois. Os 46 CTest
 selecionados passaram com Xvfb; isso não é prova de GPU física nem de
 disponibilidade da referência GL offscreen, que esteve indisponível ali.

@@ -57,7 +57,7 @@ A execução é serial. Cada job arquiva três evidências:
 
 - `<api>-inventory.txt`: `vulkaninfo --summary` ou `glxinfo -B`;
 - `<api>-capabilities.txt`: renderer, PCI IDs, formatos, MRT, independent blend,
-  compute e timestamps reportados por `coin_wgpu_experimental_query_capabilities`;
+  compute e timestamps reportados por `coin_render_query_capabilities`;
 - `<api>-tests.txt`: resultado completo do CTest daquela célula.
 
 Execução local equivalente:

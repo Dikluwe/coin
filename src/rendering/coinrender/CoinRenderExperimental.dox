@@ -1,0 +1,220 @@
+/*! \page coin_render_experimental Experimental WebGPU renderer
+
+  \brief Opt-in rendering path for evaluating WebGPU without changing the
+  public ABI of Coin 4 or replacing its Open Inventor traversal model.
+
+  The experimental renderer is built as a separate
+  <tt>CoinRender</tt> library. Applications opt in with
+  <tt>COIN_BUILD_RENDER</tt> and continue to own their Coin scene graphs and,
+  for window targets, the native window and event loop.
+
+  \section coin_wgpu_inventor Open Inventor contract
+
+  CoinRenderAction is an SoAction. It traverses through SoCallbackAction,
+  observes SoState through elements and bundles, and obtains fallback
+  geometry through the usual primitive callbacks. It does not introduce a
+  second scene graph or a WebGPU-specific node hierarchy.
+
+  \section coin_wgpu_flow Frame flow
+
+  A frame has four implementation responsibilities. These names describe
+  ownership of decisions; they do not impose source directory layers.
+
+  - <b>Core</b> validates and transforms Coin-native captured data and
+    connector results. It does not traverse or submit GPU work.
+  - <b>Shell</b> turns outcomes into diagnostics, logs and profiling text.
+  - <b>Infra</b> owns the private WebGPU connector, device, queue, resources,
+    submission, presentation and readback.
+  - <b>Wiring</b> is the CoinRenderAction orchestration that connects Coin
+    traversal, frame planning, a render target and result publication.
+
+  The concrete flow is:
+  \code
+  Coin scene graph -> CoinRenderAction traversal -> CoinRenderFramePlan
+                   -> private backend connector -> WebGPU target
+                   -> readback/presentation -> application
+  \endcode
+
+  CoinRenderFramePlan and the C ABI used by the Rust bridge are private implementation
+  contracts. Only headers under <tt>experimental/include</tt> form the
+  experimental source API.
+
+  Status translation and C++ phase-line formatting have a private Shell owner.
+  Public callers still observe only the existing status enums and diagnostic
+  strings. <tt>COIN_RENDER_TRACE_PHASES</tt> enables stable, whitespace-delimited
+  <tt>key=value</tt> records prefixed by <tt>COIN_RENDER_PHASE</tt>.
+
+  Indexed geometry follows a capture/transform boundary. Wiring reads
+  SoCallbackAction, SoState and elements, while a traversal-free Core validates
+  and transforms Coin-native indexed arrays. Concave and general polygons
+  continue through Coin's established tessellation fallback.
+
+  \section coin_wgpu_reuse Typed frame reuse
+
+  Consecutive private FramePlans have one conservative relationship:
+  <tt>reuse</tt>, <tt>camera_patch</tt>, <tt>resource_rebuild</tt>,
+  <tt>full_rebuild</tt> or <tt>unknown</tt>. Core classifies already captured
+  Coin-native data; Wiring keeps traversal and cache ownership; Infra applies
+  only the update it can prove against its currently owned base revision.
+
+  A camera patch preserves packed geometry, indices, draws, materials,
+  textures and samplers, and regenerates render-state matrices and uniforms.
+  It is accepted only if its base revision still matches the FFI packer. This
+  matters when actions or targets are reused in different orders: a stale
+  hint becomes a full pack rather than observing unrelated storage. Opaque
+  GPU texture tokens and unversioned plans remain <tt>unknown</tt>.
+
+  An unchanged scene-root identifier still skips traversal. A restricted
+  camera overlay also avoids geometry traversal: the root must be an exact
+  SoSeparator with one direct first-child perspective or orthographic camera,
+  and all remaining nodes must be from a small exact-type, camera-independent
+  allowlist. Only BASE_COLOR draws without fog or opaque GPU texture tokens
+  qualify. A priority-zero SoNodeSensor on the root proves that every change
+  since the last successful frame originated in a camera field; structural,
+  geometry, unknown and mixed notifications force full Coin traversal. A
+  changed viewport or background also invalidates the cached root. Wiring
+  captures the new Coin view volume, Core overlays only camera-dependent
+  snapshots, and Infra still validates the owned base revision before packing.
+  The overlay is transactional: Core checks the new camera and existing
+  render-state references, then changes only the cached camera, its dependent
+  state and the revision in place. Wiring rolls those fields back if frame
+  execution fails. Geometry arrays keep their addresses. The private target
+  may reuse its full profile validation only when the camera patch names its
+  currently validated base; a stale base or resize forces full validation.
+  The Rust connector retains its own ABI-boundary validation, including on
+  each new camera revision unless its device owns the matching validated
+  opaque, untextured scene. For that restricted case, the private frame view
+  names the camera base revision and Rust reads immutable geometry only from
+  its own snapshot. It checks camera-derived states before reuse; a stale
+  base, different device generation, texture or unsupported state takes the
+  full validation path. The retained CPU payload is capped at 32 MiB; RTT
+  uses the full path. Device destruction/loss drops the snapshot. This
+  changes only the private bridge protocol, not the public Coin 4 ABI.
+  This is not a replacement for the Open Inventor traversal model. With phase
+  tracing enabled, <tt>plan_reuse</tt> and <tt>pack_mode</tt> expose the path.
+
+  Offscreen targets return color and depth by default. The experimental
+  CoinRenderTarget::setDepthReadbackEnabled() output policy can request color
+  only while retaining GPU depth testing. The Rust connector then omits depth
+  staging and mapping; the target's depth accessor is empty and asynchronous
+  tickets record no depth output. Switching policy invalidates synchronous
+  readback until another successful render. Window and direct RTT targets do
+  not accept this output policy. The GL comparison benchmark uses color only
+  by default and reports color+depth WebGPU runs separately.
+
+  \section coin_wgpu_targets Targets and readback
+
+  CoinRenderTarget creates either an offscreen target or a target backed by
+  a native surface descriptor. Synchronous rendering includes readback when
+  pixels are requested. CoinRenderAction::applyAsync() separates submission
+  from polling, but does not by itself guarantee a lower total elapsed time.
+  CoinRenderReadbackTicket remains valid independently of the originating action
+  and target; successful polling consumes it.
+
+  Offscreen readback staging buffers are reused only after their map has
+  completed, the mapped view has been dropped, and the buffer has been
+  unmapped. The pool is owned by one Rust device generation and retains at
+  most two free buffers per size, 16 free buffers and 16 MiB free. Buffers
+  above 8 MiB are not cached. In-flight asynchronous tickets retain their
+  buffers independently; cancellation does not release a buffer still used
+  by the GPU. Color-only readback copies mapped rows directly to its output
+  buffer; color plus depth retains transactional publication. This resource
+  reuse does not change synchronous frame identity or promise an asynchronous
+  latency improvement. <tt>staging_color_reused</tt> is available in opt-in Rust
+  phase traces.
+
+  On the synchronous Rust offscreen path,
+  <tt>COIN_WGPU_ATTACHMENT_CACHE=1</tt> retains one completed RGBA8/depth
+  attachment pair per device and dimensions, up to 32 MiB. Async tickets
+  and direct RTT do not borrow this pair. The cached pair is reused only
+  after the previous synchronous readback completes; a different size or
+  device generation cannot reuse it. <tt>attachments_reused</tt> in the
+  phase trace reports cache hits. The cache is opt-in.
+
+  When color staging rows are contiguous, readback uses a single CPU copy;
+  padded rows still copy per row. <tt>COIN_WGPU_FORCE_ROW_COPY=1</tt> is a
+  diagnostic A/B switch. CoinRenderTarget::borrowRGBA() exposes the last
+  successful synchronous pixels without a second C++ copy. The caller must
+  finish using the pointer before another render, resize, output-policy
+  change or target destruction. This borrowed view belongs only to the
+  experimental API; readbackRGBA() retains its copying contract.
+
+  The benchmark's <tt>--async-depth 2</tt> mode pipelines two existing
+  readback tickets and measures submit, end-to-end latency and throughput
+  separately. It preserves frame order and does not change the synchronous
+  API or promise a throughput benefit.
+
+  \section coin_wgpu_profile Measurement contract
+
+  Performance comparisons should use Release builds and report traversal and
+  CoinRenderFramePlan construction, resource preparation, submit, GPU execution and
+  readback separately. Report median, p95, visual error and memory, and compare
+  against OpenGL on the same adapter and workload. Direct render-to-texture
+  and asynchronous readback are opt-in mechanisms, not performance claims.
+
+  <tt>COIN_RENDER_TRACE_PHASES=1</tt> emits <tt>rust_cpu_detail</tt> records
+  separating attachment creation, draw encode, scene snapshot, staging,
+  submit, map request, GPU wait, map reception, color/depth CPU copy,
+  publication and recycling. Its <tt>total_ms</tt> includes all listed CPU
+  spans for one frame. With <tt>COIN_WGPU_GPU_TIMESTAMPS=1</tt> as well,
+  synchronous offscreen frames request GPU timestamp queries if supported
+  and emit <tt>rust_gpu render_ms</tt> and <tt>copy_ms</tt>; otherwise the
+  status says unsupported. Timestamp probing is opt-in and perturbs timing.
+  The CPU poll wait is not a GPU execution timestamp. GPU copy includes
+  both color and depth if depth readback was requested.
+
+  \section coin_wgpu_bgfx BGFX evaluation connector
+
+  The optional <tt>COIN_RENDER_BACKEND=BGFX</tt> branch reuses the Coin traversal
+  and private CoinRenderFramePlan but executes a deliberately smaller profile through
+  BGFX/Vulkan by default, or BGFX/OpenGL when
+  <tt>COIN_BGFX_RENDERER=opengl</tt>, on Linux offscreen or Xlib windows.
+  Core lowers validated Coin-native
+  snapshots without BGFX headers; Infra owns the global BGFX instance,
+  renderer-specific SPIR-V/GLSL shader program,
+  GPU resources, offscreen RGBA readback and direct window presentation;
+  Wiring selects the backend.
+  This does not make BGFX a WebGPU implementation or extend Coin 4's stable
+  public ABI. The connector currently accepts only indexed, opaque,
+  untextured BASE_COLOR triangles in a full target viewport, with depth
+  testing but no depth readback. Window targets do not read pixels back.
+  Unsupported Open Inventor state is rejected
+  explicitly. BGFX uses a process-wide API thread and this evaluation permits
+  only one prepared target per process. A concurrent prepare returns
+  UNSUPPORTED without disturbing the owner; releasing the owner on its API
+  thread permits a serial handoff. The version 2 capability query initializes a
+  temporary 1x1 offscreen target and releases it before returning. It reports
+  the actual renderer, GPU IDs, normalized format support, MRT, independent
+  blend, compute and timestamp support. If the singleton is already owned, the
+  query reports COIN_RENDER_PROBE_BUSY with the backend diagnostic instead of
+  declaring the GPU unavailable. For an Xlib target, this proves the GPU and
+  renderer only; real presentation still requires preparing the caller's native
+  surface. OpenGL readback rows are normalized to the same target RGBA
+  orientation.
+  Core preserves Coin's floating-point clear color, and Infra passes it to
+  BGFX's float clear palette without early RGBA8 quantization.
+  Test each renderer in a separate process because BGFX initialization is
+  process-global. The Coin 4 public ABI is unchanged. See
+  <tt>docs/bgfx-evaluation.md</tt> for build, limitations and the Release/GL gate.
+
+  A validated camera-only CoinRenderFramePlan revision updates draw transforms while
+  retaining BGFX geometry buffers; other changes use full lowering.
+  <tt>COIN_BGFX_DISABLE_CAMERA_PATCH=1</tt> is an A/B diagnostic switch.
+  <tt>COIN_RENDER_TRACE_PHASES=1</tt> reports camera patch, upload and readback
+  phases. Adding <tt>COIN_WGPU_GPU_TIMESTAMPS=1</tt> probes the BGFX GPU
+  frame timestamp with extra frame advancement; do not use those perturbed
+  runs as the Release performance comparison.
+
+  \section coin_wgpu_limits Experimental status
+
+  The module is intentionally separate from <tt>libCoin</tt>. Its profile and
+  capabilities can change while it is experimental. Query
+  coin_render_query_capabilities() before relying on optional
+  features, and treat CoinRenderAction::UNSUPPORTED as a normal conservative
+  refusal when the captured Open Inventor state cannot be represented safely.
+
+  \see CoinRenderAction
+  \see CoinRenderTarget
+  \see CoinRenderSceneManager
+  \see coin_render_query_capabilities
+*/

@@ -39,15 +39,15 @@ class ResultGate(unittest.TestCase):
         self.assertEqual(classify(0, 'RESULT {"status":"PASS"}')['status'], 'FAIL')
 
     def test_initialization_is_not_submission(self):
-        self.assertEqual(classify(0, 'COIN_WGPU_PHASE bgfx_device\nRESULT {"status":"PASS"}')['status'], 'FAIL')
+        self.assertEqual(classify(0, 'COIN_RENDER_PHASE bgfx_device\nRESULT {"status":"PASS"}')['status'], 'FAIL')
 
     def test_real_submission(self):
-        self.assertEqual(classify(0, 'COIN_WGPU_PHASE bgfx lower_ms=1\nRESULT {"status":"PASS"}')['status'], 'PASS')
+        self.assertEqual(classify(0, 'COIN_RENDER_PHASE bgfx lower_ms=1\nRESULT {"status":"PASS"}')['status'], 'PASS')
 
     def test_explicit_gl_reference_does_not_weaken_bgfx_gate(self):
         result = 'RESULT {"status":"PASS", "reference_gl":true}'
         self.assertEqual(classify(0, result)['status'], 'FAIL')
-        self.assertEqual(classify(0, 'COIN_WGPU_PHASE bgfx lower_ms=1\n' + result)['status'], 'FAIL')
+        self.assertEqual(classify(0, 'COIN_RENDER_PHASE bgfx lower_ms=1\n' + result)['status'], 'FAIL')
         self.assertEqual(classify(0, 'RESULT {"status":"REFERENCE_PASS"}')['status'], 'FAIL')
         self.assertEqual(classify(0, result, require_bgfx=False)['status'], 'PASS')
         self.assertEqual(classify(-11, result, require_bgfx=False)['status'], 'FAIL')

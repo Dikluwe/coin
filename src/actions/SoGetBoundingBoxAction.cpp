@@ -178,7 +178,7 @@
 //      #Inventor V2.1 ascii
 //
 //      Separator {
-//         LightModel { model BASE_COLOR }
+//         CoinRenderLightModel { model BASE_COLOR }
 //
 //         Cube { height 5 }
 //

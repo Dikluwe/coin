@@ -1,18 +1,12 @@
-#ifndef COIN_WGPU_EXPORT_H
-#define COIN_WGPU_EXPORT_H
+#ifndef COIN_RENDER_LEGACY_COINWGPUEXPORT_H
+#define COIN_RENDER_LEGACY_COINWGPUEXPORT_H
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-  #if defined(COIN_WGPU_INTERNAL)
-    #define COIN_WGPU_DLL_API __declspec(dllexport)
-  #else
-    #define COIN_WGPU_DLL_API __declspec(dllimport)
-  #endif
-#else
-  #if defined(COIN_WGPU_INTERNAL)
-    #define COIN_WGPU_DLL_API __attribute__((visibility("default")))
-  #else
-    #define COIN_WGPU_DLL_API
-  #endif
+// Source compatibility only. Rebuild clients against CoinRender.
+#if defined(COIN_WGPU_INTERNAL) && !defined(COIN_RENDER_INTERNAL)
+#define COIN_RENDER_INTERNAL
 #endif
+#include <Inventor/CoinRenderExport.h>
+#define COIN_WGPU_DLL_API COIN_RENDER_DLL_API
+#define COIN_WGPU_EXPORT_H COIN_RENDER_EXPORT_H
 
-#endif // !COIN_WGPU_EXPORT_H
+#endif // COIN_RENDER_LEGACY_COINWGPUEXPORT_H

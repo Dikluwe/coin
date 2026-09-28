@@ -40,7 +40,7 @@ def classify(code, output, require_bgfx=True):
         return dict(status='FAIL', reason=f'missing/inconsistent RESULT; process exit {code}')
     if require_bgfx and (result.get('reference_gl') is True or result['status'] == 'REFERENCE_PASS'):
         return dict(status='FAIL', reason='Coin/GL reference cannot count as BGFX validation')
-    if require_bgfx and result['status'] == 'PASS' and 'COIN_WGPU_PHASE bgfx lower_ms=' not in output:
+    if require_bgfx and result['status'] == 'PASS' and 'COIN_RENDER_PHASE bgfx lower_ms=' not in output:
         return dict(status='FAIL', reason='no BGFX submission evidence (GL fallback is not a pass)')
     return result
 
@@ -167,7 +167,7 @@ def main():
                 env = dict(os.environ, FREECAD_COIN_WGPU='0' if args.reference_gl else '1',
                            COIN_TEST_GL_REFERENCE='1' if args.reference_gl else '0',
                            QT_QPA_PLATFORM='xcb',
-                           COIN_WGPU_TRACE_PHASES='1', COIN_BGFX_RENDERER=renderer,
+                           COIN_RENDER_TRACE_PHASES='1', COIN_BGFX_RENDERER=renderer,
                            COIN_BGFX_TRANSPARENCY=mode, COIN_TEST_ALPHA=alpha,
                            QT_SCALE_FACTOR=str(scale), COIN_TEST_ARTIFACTS=str(directory),
                            COIN_TEST_MACRO_DIR=str(Path(__file__).resolve().parent))
@@ -231,7 +231,7 @@ def main():
                         output = str(error)
                         result = dict(status='FAIL', reason='test executable could not start')
                 (directory / 'process.log').write_text(output)
-                devices = re.findall(r'COIN_WGPU_PHASE bgfx_device renderer=(\w+) vendor_id=(0x[0-9a-f]+) device_id=(0x[0-9a-f]+)', output)
+                devices = re.findall(r'COIN_RENDER_PHASE bgfx_device renderer=(\w+) vendor_id=(0x[0-9a-f]+) device_id=(0x[0-9a-f]+)', output)
                 if result['status'] == 'PASS' and (not devices or any(d[0] != renderer for d in devices)):
                     result.update(status='FAIL', reason='requested renderer was not proven; fallback is forbidden')
                 if devices and not result.get('adapter'):
@@ -242,7 +242,7 @@ def main():
                 known_vendor = bool(devices) and all(d[1] in ('0x1002', '0x10de', '0x8086', '0x13b5', '0x5143') for d in devices)
                 hardware = not actual_software and bool(devices) and (known_vendor or
                             (renderer == 'opengl' and 'accelerated: yes' in description))
-                submitted = 'COIN_WGPU_PHASE bgfx lower_ms=' in output
+                submitted = 'COIN_RENDER_PHASE bgfx lower_ms=' in output
                 result.update(test=case, renderer=renderer, mode=mode, alpha=alpha,
                               scale=scale, hardware_gpu=hardware and submitted,
                               gpu_submitted=submitted,

@@ -77,7 +77,7 @@ cor-only, resize/destruição, cancelamento, tickets adulterados, thread da API,
 backpressure e device loss/recuperação em Vulkan e OpenGL.
 `COIN_BGFX_COMPARE_GL=1` adiciona referência RGB Coin/GL de dez modalidades;
 sorted layers tem o ensaio independente já existente e o oráculo GPU deste teste.
-A matriz CTest opcional `COIN_TEST_WGPU_GL_REFERENCE` roda ambas as referências.
+A matriz CTest opcional `COIN_TEST_RENDER_GL_REFERENCE` roda ambas as referências.
 
 Isso não estabelece paridade bit-a-bit de RGBA com GL: o perfil existente de
 source-over mantém alpha de composição separado. Também não implementa as

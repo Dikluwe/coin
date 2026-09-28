@@ -1,7 +1,7 @@
 # SoBGFXRenderAction, fog e superfícies texturizadas
 
 O backend BGFX usa `SoBGFXRenderAction`, um tipo registrado no sistema de tipos
-Coin, derivado da infraestrutura compartilhada `SoWgpuRenderAction`. Não é um
+Coin, derivado da infraestrutura compartilhada `CoinRenderAction`. Não é um
 `typedef`: `getTypeId().getName()` retorna `SoBGFXRenderAction`. O scene manager
 usado pelo adaptador FreeCAD cria essa ação em builds BGFX. A base antiga continua
 disponível para compatibilidade e para o backend Rust/wgpu.
@@ -48,5 +48,5 @@ fog. O CTest executa Vulkan/OpenGL × object/weighted_oit/sorted_layers.
 
 Com `COIN_WGPU_REQUIRE_GL_REFERENCE=1`, também compara os pixels com Coin/GL.
 Essa referência pode rodar sob Xvfb (Mesa software); não é prova de apresentação
-OpenGL em hardware. `WgpuFogTest` exercita os quatro modos, câmeras ortográficas
+OpenGL em hardware. `CoinRenderFogTest` exercita os quatro modos, câmeras ortográficas
 e perspectiva, distâncias, textura, linhas, pontos e mudanças de estado.

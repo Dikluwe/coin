@@ -12,7 +12,7 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets OpenGL OpenGLWidgets)
 find_library(FREECAD_GUI FreeCADGui PATHS "${FREECAD_BUILD_DIR}/lib" REQUIRED NO_DEFAULT_PATH)
 find_library(FREECAD_BASE FreeCADBase PATHS "${FREECAD_BUILD_DIR}/lib" REQUIRED NO_DEFAULT_PATH)
 find_library(COIN_LIBRARY Coin PATHS "${COIN_PREFIX}/lib" REQUIRED NO_DEFAULT_PATH)
-find_library(COIN_GPU CoinWgpuExperimental PATHS "${COIN_PREFIX}/lib" REQUIRED NO_DEFAULT_PATH)
+find_library(COIN_GPU CoinRender PATHS "${COIN_PREFIX}/lib" REQUIRED NO_DEFAULT_PATH)
 
 foreach(name IN ITEMS FreeCADLegacyOverlayTest FreeCADGLPainterTest FreeCADFlagRasterTest FreeCAD3DAnnotationTest)
     add_executable(${name} "../${name}.cpp")
@@ -62,12 +62,12 @@ if(FREECAD_OVERLAY_GPU_TESTS)
             set(annotation "3DAnnotationGpu-${renderer}-${mode}")
             add_test(NAME ${annotation} COMMAND FreeCAD3DAnnotationTest --gpu)
             set_tests_properties(${annotation} PROPERTIES
-                ENVIRONMENT "COIN_BGFX_RENDERER=${renderer};COIN_BGFX_TRANSPARENCY=${mode};COIN_WGPU_TRACE_PHASES=1"
+                ENVIRONMENT "COIN_BGFX_RENDERER=${renderer};COIN_BGFX_TRANSPARENCY=${mode};COIN_RENDER_TRACE_PHASES=1"
                 TIMEOUT 30 RUN_SERIAL TRUE)
             set(name "GLPainterGpu-${renderer}-${mode}")
             add_test(NAME ${name} COMMAND FreeCADGLPainterTest --gpu)
             set_tests_properties(${name} PROPERTIES
-                ENVIRONMENT "COIN_BGFX_RENDERER=${renderer};COIN_BGFX_TRANSPARENCY=${mode};COIN_WGPU_TRACE_PHASES=1"
+                ENVIRONMENT "COIN_BGFX_RENDERER=${renderer};COIN_BGFX_TRANSPARENCY=${mode};COIN_RENDER_TRACE_PHASES=1"
                 TIMEOUT 30 RUN_SERIAL TRUE)
         endforeach()
     endforeach()

@@ -26,14 +26,14 @@ fragmento. O limite de oito luzes não mudou.
 
 - O teste anterior falhou: normais curvas produziram brilho `88/255`, embora
   o oráculo por vértice previsse `0.025/255`. A implementação corrigida passa.
-- `WgpuLightingTest`: cinco oráculos independentes (especular com normais
+- `CoinRenderLightingTest`: cinco oráculos independentes (especular com normais
   curvas, ponto em face larga, cone spot que não alcança os vértices,
   drop-off e `N.H` negativo), mais uma `SoSphere` real em cinco posições por
   luz direcional, pontual e spot. CPU/BGFX/Coin-GL ficam dentro de três níveis
   de UNORM8 por canal nas amostras da esfera.
 - O teste não ignora mais a GPU em builds BGFX, apesar da exclusão desse
   perfil experimental na antiga convenience query `isGpuBackendAvailable`.
-- `WgpuGouraudInterpolationTest`: oráculo de três materiais emissivos,
+- `CoinRenderGouraudInterpolationTest`: oráculo de três materiais emissivos,
   saturação antes de interpolar, alpha heterogêneo, perspectiva e clipping
   próximo. Seis variantes BGFX Vulkan/OpenGL × object/weighted_oit/sorted_layers.
 - 53 CTest selecionados, sem os testes `Window`, passaram sob Xvfb.
@@ -60,12 +60,12 @@ Depois de construir o runtime de [bgfx-recovery.md](bgfx-recovery.md):
 xvfb-run -a env COIN_GLX_PIXMAP_DIRECT_RENDERING=1 \
   COIN_GLXGLUE_NO_PBUFFERS=1 COIN_WGPU_REQUIRE_GL_REFERENCE=1 \
   COIN_BGFX_RENDERER=vulkan \
-  build-bgfx-recovery/coin-build/bin/WgpuLightingTest
+  build-bgfx-recovery/coin-build/bin/CoinRenderLightingTest
 
 xvfb-run -a ctest --test-dir build-bgfx-recovery/coin-build \
   --output-on-failure -E Window --parallel 4
 
-cargo test --offline --manifest-path src/rendering/wgpu/rust_bridge/Cargo.toml
+cargo test --offline --manifest-path src/rendering/coinrender/rust_bridge/Cargo.toml
 ```
 
 Na máquina híbrida, use a seleção local Mesa/AMD descrita no guia de recuperação.

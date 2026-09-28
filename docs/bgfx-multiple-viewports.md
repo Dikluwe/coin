@@ -113,7 +113,7 @@ OpenGL por software sob Xvfb também passa 2/2. A captura aguarda pixels por
 
 ## Demonstração 4 × 4
 
-`examples/wgpu/freecad_16_viewports.FCMacro` abre dezesseis documentos reais
+`examples/coinrender/freecad_16_viewports.FCMacro` abre dezesseis documentos reais
 em grade 4 × 4, com câmeras e cores independentes. Usa o perfil temporário
 informado na inicialização do FreeCAD, verifica dezesseis presenters nativos
 sem fallback e grava `/tmp/freecad-16-viewports.json` e
