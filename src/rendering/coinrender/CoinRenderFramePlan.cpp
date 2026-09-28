@@ -5,6 +5,7 @@
 #endif
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
+#include "rendering/coinrender/CoinRenderTextureCombineCore.h"
 #include "rendering/coinrender/CoinRenderClipCore.h"
 #include "rendering/coinrender/CoinRenderStateCore.h"
 
@@ -319,6 +320,10 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
     }
     for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
       const CoinRenderTextureUnitSnapshot tex = coin_render_texture_unit(state, unit);
+      if (!coin_render_validate_combine(state.textureCombines[unit])) {
+        if (outDiagnostic) *outDiagnostic = "Invalid texture combine program";
+        return false;
+      }
       if (!tex.enabled) continue;
       if (tex.model != CoinRenderTextureModel::MODULATE &&
           tex.model != CoinRenderTextureModel::REPLACE &&

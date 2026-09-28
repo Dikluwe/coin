@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 25
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 26
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -64,6 +64,7 @@ typedef struct CoinWgpuVertex {
   uint32_t material_slot;
   float screen_space_w; /* zero means ordinary unexpanded geometry */
   float fog_eye_depth_plus_one; /* zero means compute from model-view */
+  float extra_texcoords[7][2];
 } CoinWgpuVertex;
 
 typedef struct CoinWgpuDraw {
@@ -115,6 +116,12 @@ typedef struct CoinWgpuLight {
   float attenuation_exponent[4]; /* quadratic, linear, constant, dropOffRate * 128 */
 } CoinWgpuLight;
 
+typedef struct CoinWgpuTextureUnit {
+  float matrix[16];
+  uint32_t enabled, texture_slot, sampler_slot, model;
+  float blend_color[4];
+} CoinWgpuTextureUnit;
+
 typedef struct CoinWgpuRenderState {
   float model_view[16];
   float model_view_projection[16];
@@ -154,6 +161,8 @@ typedef struct CoinWgpuRenderState {
   float clip_planes[8][4]; /* CoinRender-resolved eye-space equations; keep dot >= 0 */
   float polygon_offset_slope_bias; /* CoinRender-resolved original-face window depth bias */
   uint32_t polygon_offset_max_depth_bits; /* 0: absent; IEEE-754 maximum depth bits + 1 */
+  CoinWgpuTextureUnit extra_textures[7];
+  float texture_combines[8][4][4];
 } CoinWgpuRenderState;
 
 typedef struct CoinWgpuFrameView {

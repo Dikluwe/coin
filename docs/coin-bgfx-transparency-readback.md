@@ -84,5 +84,5 @@ source-over mantém alpha de composição separado. Também não implementa as
 opções extras de `SoGLRenderAction` para custom sorting, passagem separada de
 backfaces não sólidas ou quantidade configurável de camadas além das quatro
 do perfil. Esses controles não devem ser confundidos com aceitar a enumeração
-de modalidades. `SoTextureCombine` e transporte portátil de superfícies ainda
-são pendências separadas.
+de modalidades. O transporte portátil de superfícies permanece pendente;
+SoTextureCombine está qualificado no [perfil P08](coin-render-multitexture-contract.md).

@@ -26,13 +26,14 @@ disponível para compatibilidade e para o backend Rust/wgpu.
 
 ## Limites explícitos
 
-`SoTextureCombine` não está implementado e retorna `UNSUPPORTED`, em vez de ser
-ignorado. Mais de oito unidades e coordenadas procedurais nas unidades
+`SoTextureCombine` está implementado pelo programa comum de P08, com operações
+e limites no [contrato](coin-render-multitexture-contract.md). Mais de oito
+unidades e coordenadas procedurais nas unidades
 adicionais também são rejeitadas. Esta entrega não acrescenta texturas 3D,
 cube maps, point sprites ou RTT direto. Transparência aditiva e readback GPU de
 depth/assíncrono são tratados em [bgfx-transparency-readback.md](bgfx-transparency-readback.md).
 O perfil de qualidade capturado continua aceitando 0 (desligado) e 0.5 (linear).
-O transporte Rust mantém sua ABI e rejeita novos atributos exclusivos de BGFX.
+O transporte Rust usa ABI privada 26 e oferece o mesmo contrato P08.
 
 Mudanças de câmera em geometria expandida ou com fog exigem recaptura, para não
 reutilizar posições de tela ou distâncias de câmera antigas. Recursos GPU

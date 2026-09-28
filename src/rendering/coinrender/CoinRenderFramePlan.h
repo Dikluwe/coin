@@ -178,6 +178,10 @@ enum class CoinRenderFogMode : uint32_t {
   SMOKE = 3
 };
 
+struct CoinRenderTextureCombineSnapshot {
+  float instructions[4][4] = {};
+};
+
 struct CoinRenderTextureUnitSnapshot {
   bool enabled = false;
   uint32_t imageSlot = 0, samplerSlot = 0;
@@ -228,6 +232,7 @@ struct CoinRenderRenderStateSnapshot {
   float fogStart = 0.0f;
   float fogEnd = 10.0f;
   CoinRenderTextureUnitSnapshot extraTextures[COIN_RENDER_MAX_TEXTURE_UNITS - 1];
+  CoinRenderTextureCombineSnapshot textureCombines[COIN_RENDER_MAX_TEXTURE_UNITS];
 };
 
 inline CoinRenderTextureUnitSnapshot coin_render_texture_unit(const CoinRenderRenderStateSnapshot & state, size_t unit) {

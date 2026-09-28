@@ -1,3 +1,4 @@
+#include "rendering/coinrender/CoinRenderTextureCombineCore.h"
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
 #include "rendering/coinrender/CoinRenderClipCore.h"
 #include "rendering/coinrender/CoinRenderLightingCore.h"
@@ -272,7 +273,11 @@ static void rasterizeTriangle(const ShadedVertex & sv0, const ShadedVertex & sv1
         const SbVec2f tc = unit == 0 ? sv0.texCoord * b0 + sv1.texCoord * b1 + sv2.texCoord * b2 :
           sv0.extraTexcoords[unit - 1] * b0 + sv1.extraTexcoords[unit - 1] * b1 + sv2.extraTexcoords[unit - 1] * b2;
         SbVec4f texCol = sampleTexture(frame.textures[layer.imageSlot], frame.samplers[layer.samplerSlot], tc[0], tc[1]);
-        if (layer.model == CoinRenderTextureModel::REPLACE) {
+        if (rs.textureCombines[unit].instructions[0][0] > .5f) {
+          const SbVec4f combined = coin_render_texture_combine(rs.textureCombines[unit], color,
+              texCol, SbVec4f(finalR, finalG, finalB, sourceAlpha));
+          finalR = combined[0]; finalG = combined[1]; finalB = combined[2]; sourceAlpha = combined[3];
+        } else if (layer.model == CoinRenderTextureModel::REPLACE) {
           finalR = texCol[0]; finalG = texCol[1]; finalB = texCol[2];
           sourceAlpha = texCol[3];
         } else if (layer.model == CoinRenderTextureModel::DECAL) {

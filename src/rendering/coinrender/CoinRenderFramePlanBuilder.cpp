@@ -19,6 +19,7 @@
 #include <Inventor/elements/SoDrawStyleElement.h>
 #include "rendering/coinrender/CoinRenderPolygonStyleCore.h"
 #include "rendering/coinrender/CoinRenderStrokeCore.h"
+#include "rendering/coinrender/CoinRenderTextureCombineCore.h"
 #include "rendering/coinrender/CoinRenderDepthPolicyElement.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderClipCore.h"
@@ -275,16 +276,22 @@ CoinRenderFramePlanBuilder::captureTexture(SoCallbackAction * action, CoinRender
   }
   for (int unit = 1; unit <= lastEnabled; ++unit) {
     if (!SoMultiTextureEnabledElement::get(state, unit)) continue;
-#if !defined(HAVE_COIN_BGFX)
-    this->isUnsupported = true;
-    this->builderError = "Multitexture requires the BGFX backend";
-    if (outError) *outError = this->builderError;
-    return false;
-#else
     CoinRenderRenderStateSnapshot captured;
     if (!captureTextureUnit(action, unit, captured, outError)) return false;
     rs.extraTextures[unit - 1] = coin_render_texture_unit(captured, 0);
-#endif
+
+  }
+  for (int unit = 0; unit <= lastEnabled; ++unit) {
+    if (!coin_render_texture_unit(rs, unit).enabled || SoTextureCombineElement::isDefault(state, unit)) continue;
+    SoTextureCombineElement::UnitData raw;
+    SoTextureCombineElement::get(state, unit, raw.rgboperation, raw.alphaoperation,
+      raw.rgbsource, raw.alphasource, raw.rgboperand, raw.alphaoperand,
+      raw.constantcolor, raw.rgbscale, raw.alphascale);
+    if (!coin_render_compile_combine(raw, rs.textureCombines[unit], this->builderError)) {
+      this->isUnsupported = true;
+      if (outError) *outError = this->builderError;
+      return false;
+    }
   }
   return true;
 }
@@ -822,6 +829,7 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
         existing.lineWidth == rs.lineWidth &&
         existing.pointSize == rs.pointSize &&
         std::memcmp(existing.extraTextures, rs.extraTextures, sizeof(rs.extraTextures)) == 0 &&
+        std::memcmp(existing.textureCombines, rs.textureCombines, sizeof(rs.textureCombines)) == 0 &&
         existing.hasTexture == rs.hasTexture &&
         existing.linePattern == rs.linePattern &&
         existing.linePatternScaleFactor == rs.linePatternScaleFactor &&
@@ -895,7 +903,10 @@ CoinRenderFramePlanBuilder::captureVertex(SoCallbackAction * action, const SoPri
     if (!rs.extraTextures[unit - 1].enabled) continue;
     if (texIndex < 0 || texIndex >= coords->getNum(unit)) {
       this->hasError = true;
-      this->builderError = "Multitexture explicit coordinates require a valid primitive detail index";
+      this->builderError = "Multitexture explicit coordinates require a valid primitive detail index: " +
+        std::string(action->getCurPathTail()->getTypeId().getName().getString()) +
+        " detail " + (detail ? detail->getTypeId().getName().getString() : "none") +
+        " index " + std::to_string(texIndex) + " count " + std::to_string(coords->getNum(unit));
       continue;
     }
     const int dimension = coords->getDimension(unit);
@@ -1514,11 +1525,7 @@ CoinRenderFramePlanBuilder::processIndexedLineSet(
   if (isShapeInvisible(action)) return CoinRenderFastPathResult::SUCCESS_PRUNE;
   int lastTextureUnit = -1;
   SoMultiTextureEnabledElement::getEnabledUnits(action->getState(), lastTextureUnit);
-#ifdef HAVE_COIN_BGFX
   if (lastTextureUnit >= 0) return CoinRenderFastPathResult::FALLBACK_CONTINUE;
-#else
-  if (lastTextureUnit > 0) return CoinRenderFastPathResult::FALLBACK_CONTINUE;
-#endif
   if (view.positions.empty() || view.coordIndex.empty()) {
     return CoinRenderFastPathResult::SUCCESS_PRUNE;
   }

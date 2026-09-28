@@ -67,6 +67,7 @@ int compareDrawGroupingKey(const CoinBgfxDraw & lhs,
   if (result == 0) result = compareBytes(lhs.fogColorMode, rhs.fogColorMode, sizeof(lhs.fogColorMode));
   if (result == 0) result = compareBytes(lhs.fogRange, rhs.fogRange, sizeof(lhs.fogRange));
   if (result == 0) result = compareBytes(lhs.extraTextures, rhs.extraTextures, sizeof(lhs.extraTextures));
+  if (result == 0) result = compareBytes(lhs.textureCombines, rhs.textureCombines, sizeof(lhs.textureCombines));
   if (result == 0) result = compareValue(lhs.hasTexture, rhs.hasTexture);
   if (result == 0) result = compareValue(lhs.textureSlot, rhs.textureSlot);
   if (result == 0) result = compareValue(lhs.textureModel, rhs.textureModel);
@@ -287,6 +288,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     lowered.viewport[3] = viewport.height;
     lowered.renderLayer = draw.renderLayer;
     lowered.clearDepthBefore = draw.clearDepthBefore;
+    std::memcpy(lowered.textureCombines, state.textureCombines, sizeof(lowered.textureCombines));
     lowered.hasTexture = state.hasTexture;
     lowered.textureSlot = state.textureImageSlot;
     lowered.textureModel = state.textureModel;

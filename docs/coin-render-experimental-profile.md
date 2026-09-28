@@ -6,7 +6,7 @@ estão em `experimental/include`. Desde a Onda 6, esses headers e a biblioteca
 podem ser instalados com `COIN_INSTALL_RENDER_EXPERIMENTAL=ON`, mas continuam
 experimentais, fora da API e ABI públicas estáveis de `libCoin` no Coin 4.
 A ponte C++/Rust é privada e versionada
-(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=25` nesta revisão). Não promova esses
+(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=26` nesta revisão). Não promova esses
 headers a consumidores externos como se fossem estáveis.
 
 O guia de produto, a matriz de capacidades, o manager, os exemplos instaláveis,
@@ -102,10 +102,10 @@ Resultados e comandos reproduzíveis estão em
 
 | Área | Suportado agora | Fora do perfil / rejeição esperada |
 | --- | --- | --- |
-| Geometria | Triângulos de callback e `SoIndexedFaceSet`; linhas e pontos com textura explícita na unidade 0, inclusive `SoIndexedLineSet` | Topologias sem caminho implementado não têm paridade prometida |
-| Materiais | `BASE_COLOR`, iluminação e alpha uniforme por draw; `NONE`, `BLEND`, `DELAYED_BLEND` e `SORTED_OBJECT_BLEND` | Aditivo, stipple, sorting de triângulos e sorted layers; alpha heterogêneo por vértice; linhas/pontos transparentes |
+| Geometria | Triângulos de callback e `SoIndexedFaceSet`; linhas e pontos com textura explícita nas unidades 0–7, inclusive `SoIndexedLineSet` | Topologias sem caminho implementado não têm paridade prometida |
+| Materiais | `BASE_COLOR`, iluminação e alpha uniforme por draw; `NONE`, `BLEND`, `DELAYED_BLEND` e `SORTED_OBJECT_BLEND` | Aditivo, stipple, sorting de triângulos e sorted layers; matriz geral de alpha heterogêneo por vértice; outras modalidades de transparência em strokes |
 | Luzes | Direcional, pontual e spot, até oito ativas por draw | Excesso de oito luzes deve retornar `UNSUPPORTED` |
-| Textura | `SoTexture2` na unidade 0, UV explícita, 1–4 componentes incluindo alpha de imagem, `MODULATE`/`REPLACE`/`DECAL`/`BLEND`, `REPEAT`/`CLAMP`, qualidade 0 ou 0,5 | Unidades adicionais e UV procedural/default |
+| Textura | `SoTexture2` nas unidades 0–7, UV explícita, SoTextureCombine (P08), 1–4 componentes no perfil legado incluindo alpha de imagem, `MODULATE`/`REPLACE`/`DECAL`/`BLEND`, `REPEAT`/`CLAMP`, qualidade 0 ou 0,5 | UV procedural/default; formatos/qualidade ampliados em P07 |
 | Composição | Composição resolvida no Core: BLEND imediato, DELAYED_BLEND adiado e SORTED_OBJECT_BLEND ordenado por centro capturado; depth efetivo respeita overrides explícitos | Ordenação por triângulo, interseções e transparência independente da ordem |
 | Ambiente | Fog `NONE`, `HAZE`, `FOG` e `SMOKE` em distância de view space; fog depois de luz/textura e antes da composição, sem alterar alpha | Fórmulas ou estados de fog fora desses quatro modos |
 | Raster | Front face e backface culling de `SoShapeHints` em triângulos, inclusive reflexão | Culling de linhas/pontos (não aplicável ao pipeline dessas topologias) |
@@ -325,18 +325,24 @@ onze modalidades no wgpu. Consulte [contrato e limites atuais](coin-render-compo
 ## Clipping Coin
 
 Até oito planos ativos, capturados em mundo e resolvidos por CoinRender, com
-recorte de strokes antes da expansão. Limites, ABI privada 25 e evidências no
+recorte de strokes antes da expansão. Limites, ABI privada 26 e evidências no
 [contrato de clipping](coin-render-clipping-contract.md).
 
 ## Offset de polígonos em LINES/POINTS
 
 CoinRender calcula a inclinação da face plana original antes da expansão.
 BGFX aplica o bias resolvido no fragmento; wgpu usa uma variante com saída de
-depth (ABI privada 25). O perfil wgpu combina inclinação com units fracionário na precisão D32Float;
+depth (ABI privada 26). O perfil wgpu combina inclinação com units fracionário na precisão D32Float;
 combinações fora do perfil recebem diagnóstico explícito. Faces não planas,
 precisão de units e qualificação visual continuam abertas no
 [contrato e checklist de estilo](coin-render-draw-style-contract.md).
 
 Expansão de strokes agora é comum em `CoinRenderStrokeCore.h`, com UV/cor
-em perspectiva e fog por fragmento. O vértice wgpu tem 44 bytes na ABI privada
-25; a matriz numérica e os limites estão no contrato de estilo.
+em perspectiva e fog por fragmento. O vértice wgpu tem 100 bytes na ABI privada
+26; a matriz numérica e os limites estão no contrato de estilo.
+
+## Fechamento P08
+
+Oito unidades e SoTextureCombine agora têm interpretação comum e execução
+CPU/BGFX/wgpu, inclusive em strokes. A matriz, os limites e a ABI privada 26
+estão no [contrato P08](coin-render-multitexture-contract.md).

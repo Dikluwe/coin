@@ -574,11 +574,14 @@ SoTextureCombine::doAction(SoAction * action)
   col[3] = tmp[3];
 
 
-  const cc_glglue * glue = 
-    cc_glglue_instance(SoGLCacheContextElement::get(state));
-  int maxunits = cc_glglue_max_texture_units(glue);
-
-  if (unit < maxunits) {
+  // Field interpretation also serves actions that capture texture state.
+  // Query GL hardware limits only for an actual GL render traversal.
+  SbBool supportedUnit = unit >= 0;
+  if (action->isOfType(SoGLRenderAction::getClassTypeId())) {
+    const cc_glglue * glue = cc_glglue_instance(SoGLCacheContextElement::get(state));
+    supportedUnit = supportedUnit && unit < cc_glglue_max_texture_units(glue);
+  }
+  if (supportedUnit && state->isElementEnabled(SoTextureCombineElement::getClassStackIndex())) {
     SoTextureCombineElement::set(state, this, unit,
                                  (SoTextureCombineElement::Operation) this->rgbOperation.getValue(),
                                  (SoTextureCombineElement::Operation) this->alphaOperation.getValue(),

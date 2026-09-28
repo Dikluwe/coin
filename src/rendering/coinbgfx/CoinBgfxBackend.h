@@ -133,6 +133,7 @@ private:
   bgfx::UniformHandle fogRangeUniform;
   bgfx::UniformHandle textureParamsUniform;
   bgfx::UniformHandle textureBlendUniform;
+  bgfx::UniformHandle textureCombineUniform;
   bgfx::UniformHandle ambientLightUniform;
   bgfx::UniformHandle lightCountUniform;
   bgfx::UniformHandle lightPositionTypeUniform;

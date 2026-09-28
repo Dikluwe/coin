@@ -13,7 +13,7 @@ use std::sync::{Arc, Mutex, OnceLock};
 
 mod composition;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 25;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 26;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 pub type CoinWgpuSurfaceId = u64;
@@ -63,6 +63,7 @@ pub struct CoinWgpuVertex {
     pub material_slot: u32,
     pub screen_space_w: f32,
     pub fog_eye_depth_plus_one: f32,
+    pub extra_texcoords: [[f32; 2]; 7],
 }
 
 #[repr(C)]
@@ -182,6 +183,21 @@ pub struct CoinWgpuUniforms {
     pub texture_blend_color: [f32; 4],
     pub clip_meta: [f32; 4],
     pub clip_planes: [[f32; 4]; 8],
+    pub extra_texture_matrices: [[[f32; 4]; 4]; 7],
+    pub extra_tex_params: [[f32; 4]; 7],
+    pub extra_texture_blends: [[f32; 4]; 7],
+    pub texture_combines: [[[f32; 4]; 4]; 8],
+}
+
+#[repr(C)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub struct CoinWgpuTextureUnit {
+    pub matrix: [f32; 16],
+    pub enabled: u32,
+    pub texture_slot: u32,
+    pub sampler_slot: u32,
+    pub model: u32,
+    pub blend_color: [f32; 4],
 }
 
 #[repr(C)]
@@ -225,11 +241,59 @@ pub struct CoinWgpuRenderState {
     pub clip_planes: [[f32; 4]; 8],
     pub polygon_offset_slope_bias: f32,
     pub polygon_offset_max_depth_bits: u32,
+    pub extra_textures: [CoinWgpuTextureUnit; 7],
+    pub texture_combines: [[[f32; 4]; 4]; 8],
+}
+
+// Validate the normalized transport program, without interpreting Coin enums.
+fn valid_texture_program(p: &[[f32; 4]; 4]) -> bool {
+    if !p.iter().flatten().all(|v| v.is_finite()) { return false; }
+    if p[0][0] == 0.0 { return true; }
+    let integer = |v: f32, lo: f32, hi: f32| v >= lo && v <= hi && v.fract() == 0.0;
+    p[0][0] == 1.0 && integer(p[0][1], 0.0, 7.0) && integer(p[0][2], 0.0, 5.0)
+        && (1..=2).all(|r| [1.0, 2.0, 4.0].contains(&p[r][3])
+            && (0..3).all(|c| integer(p[r][c], if r == 2 { 8.0 } else { 0.0 }, 15.0)))
+        && p[3].iter().all(|v| *v >= 0.0 && *v <= 1.0)
+}
+
+fn valid_texture_payload(st: &CoinWgpuRenderState) -> bool {
+    st.texture_combines.iter().all(valid_texture_program)
+        && st.extra_textures.iter().all(|t| t.enabled <= 1 && (t.enabled == 0
+            || (t.model <= 3 && t.matrix.iter().chain(t.blend_color.iter()).all(|v| v.is_finite()))))
+}
+
+#[cfg(test)]
+mod texture_payload_tests {
+    use super::*;
+    #[test]
+    fn rejects_malformed_programs_and_extra_unit_values() {
+        let mut state: CoinWgpuRenderState = unsafe { std::mem::zeroed() };
+        assert!(valid_texture_payload(&state));
+        let valid = [[1.0, 7.0, 5.0, 0.0], [0.0, 15.0, 4.0, 4.0],
+            [8.0, 15.0, 11.0, 2.0], [0.2, 0.4, 0.6, 0.8]];
+        state.texture_combines[7] = valid;
+        assert!(valid_texture_payload(&state));
+        for (r, c, value) in [(0, 0, 2.0), (0, 1, 7.5), (0, 2, 6.0),
+            (1, 0, 16.0), (2, 0, 7.0), (1, 3, 3.0), (3, 0, -0.1), (3, 2, f32::NAN)] {
+            state.texture_combines[7] = valid;
+            state.texture_combines[7][r][c] = value;
+            assert!(!valid_texture_payload(&state));
+        }
+        state.texture_combines[7] = valid;
+        state.extra_textures[6].enabled = 1;
+        assert!(valid_texture_payload(&state));
+        state.extra_textures[6].matrix[12] = f32::INFINITY;
+        assert!(!valid_texture_payload(&state));
+    }
 }
 
 const _: () = {
-    assert!(std::mem::size_of::<CoinWgpuVertex>() == 44);
-    assert!(std::mem::size_of::<CoinWgpuRenderState>() == 1096);
+    assert!(std::mem::size_of::<CoinWgpuTextureUnit>() == 96);
+    assert!(std::mem::offset_of!(CoinWgpuVertex, extra_texcoords) == 44);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, extra_textures) == 1096);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, texture_combines) == 1768);
+    assert!(std::mem::size_of::<CoinWgpuVertex>() == 100);
+    assert!(std::mem::size_of::<CoinWgpuRenderState>() == 2280);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, polygon_offset_max_depth_bits) == 1092);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, polygon_offset_slope_bias) == 1088);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, clip_plane_count) == 956);
@@ -610,6 +674,7 @@ fn same_camera_independent_state(a: &CoinWgpuRenderState, b: &CoinWgpuRenderStat
         && a.front_face == b.front_face && a.light_model == b.light_model
         && a.texture_matrix == b.texture_matrix && a.has_texture == b.has_texture
         && a.texture_slot == b.texture_slot && a.sampler_slot == b.sampler_slot
+        && a.extra_textures == b.extra_textures && a.texture_combines == b.texture_combines
         && a.texture_model == b.texture_model
         && a.texture_blend_color == b.texture_blend_color && a.viewport == b.viewport
         && a.light_count == b.light_count
@@ -634,7 +699,7 @@ fn same_camera_independent_state(a: &CoinWgpuRenderState, b: &CoinWgpuRenderStat
 
 fn camera_states_match(scene: &ValidatedScene, states: &[CoinWgpuRenderState]) -> bool {
     scene.states.len() == states.len() && scene.states.iter().zip(states).all(|(old, next)| {
-        if old.light_model != 0 || old.fog_mode != 0 || old.has_texture != 0
+        if old.light_model != 0 || old.fog_mode != 0 || (old.has_texture != 0 || old.extra_textures.iter().any(|t| t.enabled != 0))
             || !same_camera_independent_state(old, next)
             || !next.model_view.iter().chain(next.model_view_projection.iter())
                 .chain(next.normal_matrix.iter()).all(|x| x.is_finite())
@@ -666,7 +731,7 @@ fn camera_scene_eligible(
         .saturating_add(std::mem::size_of_val(order));
     owned_bytes <= MAX_OWNED_SCENE_BYTES
         && textures.is_empty() && samplers.is_empty()
-        && states.iter().all(|s| s.light_model == 0 && s.fog_mode == 0 && s.has_texture == 0)
+        && states.iter().all(|s| s.light_model == 0 && s.fog_mode == 0 && s.has_texture == 0 && s.extra_textures.iter().all(|t| t.enabled == 0))
         && materials.iter().all(|m| m.diffuse[3] == 1.0 && m.transparency == 0.0)
         && order.iter().all(|item| !item.blend)
         && vertices.iter().all(|v| v.position.iter().all(|x| x.is_finite()))
@@ -1198,46 +1263,25 @@ fn get_or_init_device_impl<'a>(
         wgpu::ShaderStages::FRAGMENT
     };
 
+    let mut layout_entries = vec![
+        wgpu::BindGroupLayoutEntry { binding: 0, visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
+            ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform,
+                has_dynamic_offset: false, min_binding_size: None }, count: None },
+        wgpu::BindGroupLayoutEntry { binding: 1, visibility: storage_visibility,
+            ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Storage { read_only: true },
+                has_dynamic_offset: false, min_binding_size: None }, count: None },
+    ];
+    for unit in 0..8 {
+        layout_entries.push(wgpu::BindGroupLayoutEntry { binding: 2 + 2 * unit,
+            visibility: wgpu::ShaderStages::FRAGMENT,
+            ty: wgpu::BindingType::Texture { sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                view_dimension: wgpu::TextureViewDimension::D2, multisampled: false }, count: None });
+        layout_entries.push(wgpu::BindGroupLayoutEntry { binding: 3 + 2 * unit,
+            visibility: wgpu::ShaderStages::FRAGMENT,
+            ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering), count: None });
+    }
     let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("Coin Uniform & Material BindGroupLayout"),
-        entries: &[
-            wgpu::BindGroupLayoutEntry {
-                binding: 0,
-                visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
-                ty: wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Uniform,
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
-                },
-                count: None,
-            },
-            wgpu::BindGroupLayoutEntry {
-                binding: 1,
-                visibility: storage_visibility,
-                ty: wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Storage { read_only: true },
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
-                },
-                count: None,
-            },
-            wgpu::BindGroupLayoutEntry {
-                binding: 2,
-                visibility: wgpu::ShaderStages::FRAGMENT,
-                ty: wgpu::BindingType::Texture {
-                    sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                    view_dimension: wgpu::TextureViewDimension::D2,
-                    multisampled: false,
-                },
-                count: None,
-            },
-            wgpu::BindGroupLayoutEntry {
-                binding: 3,
-                visibility: wgpu::ShaderStages::FRAGMENT,
-                ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
-                count: None,
-            },
-        ],
+        label: Some("Coin eight-unit texture program"), entries: &layout_entries,
     });
 
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -1779,6 +1823,13 @@ fn get_or_create_pipeline<'a>(
                 offset: 40,
                 shader_location: 5,
             },
+            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x2, offset: 44, shader_location: 6 },
+            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x2, offset: 52, shader_location: 7 },
+            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x2, offset: 60, shader_location: 8 },
+            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x2, offset: 68, shader_location: 9 },
+            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x2, offset: 76, shader_location: 10 },
+            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x2, offset: 84, shader_location: 11 },
+            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x2, offset: 92, shader_location: 12 },
         ],
     };
 
@@ -2145,7 +2196,8 @@ fn encode_frame(
     }
 
     for (v_idx, v) in vertices_slice.iter().enumerate() {
-        if !v.screen_space_w.is_finite() || v.screen_space_w < 0.0
+        if !v.extra_texcoords.iter().flatten().all(|x| x.is_finite())
+            || !v.screen_space_w.is_finite() || v.screen_space_w < 0.0
             || !v.fog_eye_depth_plus_one.is_finite() || v.fog_eye_depth_plus_one < 0.0 {
             return Err((CoinWgpuStatus::InvalidArgument,
                 format!("Vertex {} has invalid homogeneous stroke attributes", v_idx)));
@@ -2521,35 +2573,31 @@ fn encode_frame(
                 }
             }
 
-            let (tex_view, samp) = if st.has_texture != 0
-                && (st.texture_slot as usize) < textures_slice.len()
-                && (st.sampler_slot as usize) < samplers_slice.len()
-            {
-                let t = &textures_slice[st.texture_slot as usize];
-                let s = &samplers_slice[st.sampler_slot as usize];
-                let t_key = TextureKey {
-                    width: t.width,
-                    height: t.height,
-                    format: t.format,
-                    content_digest: t.content_digest,
-                };
-                let s_key = SamplerKey {
-                    wrap_s: s.wrap_s,
-                    wrap_t: s.wrap_t,
-                    filter: s.filter,
-                };
-                let view_ref = if t.format == 1 {
-                    &rtt_cache.active.get(&t.content_digest)
-                        .expect("RTT token preflighted before encoding").view
-                } else {
-                    tex_cache.entries.get(&t_key).map(|e| &e.view)
-                        .unwrap_or(&ctx.default_texture_view)
-                };
-                let samp_ref = samp_cache.entries.get(&s_key).unwrap_or(&ctx.default_sampler);
-                (view_ref, samp_ref)
-            } else {
-                (&ctx.default_texture_view, &ctx.default_sampler)
-            };
+            let layers: [CoinWgpuTextureUnit; 8] = std::array::from_fn(|unit| {
+                if unit == 0 { CoinWgpuTextureUnit { matrix: st.texture_matrix,
+                    enabled: st.has_texture, texture_slot: st.texture_slot,
+                    sampler_slot: st.sampler_slot, model: st.texture_model,
+                    blend_color: st.texture_blend_color } } else { st.extra_textures[unit - 1] }
+            });
+            let texture_bindings: Vec<_> = layers.iter().map(|layer| {
+                if layer.enabled == 0 { return (&ctx.default_texture_view, &ctx.default_sampler); }
+                let t = &textures_slice[layer.texture_slot as usize];
+                let s = &samplers_slice[layer.sampler_slot as usize];
+                let tk = TextureKey { width: t.width, height: t.height, format: t.format, content_digest: t.content_digest };
+                let sk = SamplerKey { wrap_s: s.wrap_s, wrap_t: s.wrap_t, filter: s.filter };
+                let view = if t.format == 1 {
+                    &rtt_cache.active.get(&t.content_digest).expect("RTT token preflighted before encoding").view
+                } else { tex_cache.entries.get(&tk).map(|e| &e.view).unwrap_or(&ctx.default_texture_view) };
+                (view, samp_cache.entries.get(&sk).unwrap_or(&ctx.default_sampler))
+            }).collect();
+            let extra_texture_matrices = std::array::from_fn(|unit| std::array::from_fn(|c|
+                std::array::from_fn(|row| st.extra_textures[unit].matrix[c * 4 + row])));
+            let extra_tex_params = std::array::from_fn(|unit| {
+                let t = st.extra_textures[unit];
+                [t.enabled as f32, t.model as f32,
+                    if t.enabled != 0 && textures_slice[t.texture_slot as usize].format == 1 { 1.0 } else { 0.0 }, 0.0]
+            });
+            let extra_texture_blends = std::array::from_fn(|unit| st.extra_textures[unit].blend_color);
 
             let mut tex_mat: [[f32; 4]; 4] = [[0.0; 4]; 4];
             for c in 0..4 {
@@ -2579,6 +2627,8 @@ fn encode_frame(
                     st.light_model as f32,
                 ],
                 texture_matrix: tex_mat,
+                extra_texture_matrices, extra_tex_params, extra_texture_blends,
+                texture_combines: st.texture_combines,
                 tex_params: [
                     if st.has_texture != 0 { 1.0 } else { 0.0 },
                     st.texture_model as f32,
@@ -2601,7 +2651,7 @@ fn encode_frame(
                 fog_range: [st.fog_start, st.fog_end, 0.0, 0.0],
             };
 
-            if st.has_texture != 0 &&
+            if layers.iter().any(|t| t.enabled != 0) &&
                 FAULT_INJECTION.load(Ordering::SeqCst) == FAULT_RTT_BIND_GROUP {
                 return Err((CoinWgpuStatus::OutOfMemory,
                     "Injected RTT bind-group creation failure".to_string()));
@@ -2616,27 +2666,18 @@ fn encode_frame(
                         wgpu::BufferUsages::UNIFORM
                     },
                 });
+                let mut entries = vec![
+                    wgpu::BindGroupEntry { binding: 0, resource: u_buffer.as_entire_binding() },
+                    wgpu::BindGroupEntry { binding: 1, resource: materials_buffer.as_entire_binding() },
+                ];
+                for (unit, (view, sampler)) in texture_bindings.iter().enumerate() {
+                    entries.push(wgpu::BindGroupEntry { binding: 2 + 2 * unit as u32,
+                        resource: wgpu::BindingResource::TextureView(view) });
+                    entries.push(wgpu::BindGroupEntry { binding: 3 + 2 * unit as u32,
+                        resource: wgpu::BindingResource::Sampler(sampler) });
+                }
                 let bind_group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                    label: Some("Draw Bind Group"),
-                    layout: &ctx.bind_group_layout,
-                    entries: &[
-                        wgpu::BindGroupEntry {
-                            binding: 0,
-                            resource: u_buffer.as_entire_binding(),
-                        },
-                        wgpu::BindGroupEntry {
-                            binding: 1,
-                            resource: materials_buffer.as_entire_binding(),
-                        },
-                        wgpu::BindGroupEntry {
-                            binding: 2,
-                            resource: wgpu::BindingResource::TextureView(tex_view),
-                        },
-                        wgpu::BindGroupEntry {
-                            binding: 3,
-                            resource: wgpu::BindingResource::Sampler(samp),
-                        },
-                    ],
+                    label: Some("Draw eight-unit texture bindings"), layout: &ctx.bind_group_layout, entries: &entries,
                 });
                 CameraDrawBinding { uniform_buffer: u_buffer, bind_group }
             };
@@ -3281,6 +3322,17 @@ pub extern "C" fn coin_wgpu_surface_submit(
                     &format!("Draw {}: material_slot out of bounds", i),
                 );
                 return CoinWgpuStatus::InvalidArgument;
+            }
+            if !valid_texture_payload(st) {
+                set_error(error_buf, error_buf_len, "Invalid normalized texture program or extra unit state");
+                return CoinWgpuStatus::InvalidArgument;
+            }
+            for layer in &st.extra_textures {
+                if layer.enabled != 0 && ((layer.texture_slot as usize) >= textures_slice.len() ||
+                    (layer.sampler_slot as usize) >= samplers_slice.len()) {
+                    set_error(error_buf, error_buf_len, "Extra texture or sampler out of bounds");
+                    return CoinWgpuStatus::InvalidArgument;
+                }
             }
             if st.has_texture != 0 {
                 if (st.texture_slot as usize) >= textures_slice.len() {
@@ -3994,6 +4046,17 @@ fn coin_wgpu_submit_internal(
                     &format!("Draw {}: material_slot out of bounds", i),
                 );
                 return CoinWgpuStatus::InvalidArgument;
+            }
+            if !valid_texture_payload(st) {
+                set_error(error_buf, error_buf_len, "Invalid normalized texture program or extra unit state");
+                return CoinWgpuStatus::InvalidArgument;
+            }
+            for layer in &st.extra_textures {
+                if layer.enabled != 0 && ((layer.texture_slot as usize) >= textures_slice.len() ||
+                    (layer.sampler_slot as usize) >= samplers_slice.len()) {
+                    set_error(error_buf, error_buf_len, "Extra texture or sampler out of bounds");
+                    return CoinWgpuStatus::InvalidArgument;
+                }
             }
             if st.has_texture != 0 {
                 if (st.texture_slot as usize) >= textures_slice.len() {

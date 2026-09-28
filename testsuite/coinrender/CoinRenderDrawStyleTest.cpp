@@ -271,19 +271,40 @@ bool slopeCoreContract() {
     "resolved bias participates in state equality") && ok;
   return ok;
 }
+// Caps can split one rasterized edge into several quads. Verify the retained
+// original index rings instead of assuming four generated vertices per edge.
+std::vector<uint32_t> capturedContourSizes(const CoinRenderFramePlan& frame, int mode) {
+  std::vector<uint32_t> sizes;
+  if (mode == SoDrawStyle::POINTS) {
+    for (const auto& draw : frame.draws) sizes.push_back(draw.geometry.vertexCount / 4);
+    return sizes;
+  }
+  if (frame.draws.empty()) return sizes;
+  const size_t limit = frame.draws.front().geometry.firstIndex;
+  for (size_t i = 0; i < limit;) {
+    const uint32_t start = frame.indices[i];
+    uint32_t next = start, count = 0;
+    do {
+      if (i + 1 >= limit || frame.indices[i] != next) return {};
+      next = frame.indices[i + 1]; i += 2; ++count;
+    } while (next != start);
+    if (count < 3) return {};
+    sizes.push_back(count);
+  }
+  return sizes;
+}
 bool polygonCaptureContract() {
   bool ok=true;
   for(int mode:{SoDrawStyle::LINES,SoDrawStyle::POINTS}) {
     SoSeparator * root=new SoSeparator;root->ref();
     root->addChild(style(mode));root->addChild(coordinates());root->addChild(faces());
     CoinRenderFramePlan frame;
-    ok=check(capture(root,frame) && frame.draws.size()==1 && frame.draws[0].geometry.vertexCount==16 &&
-             frame.draws[0].geometry.indexCount==24,
+    ok=check(capture(root,frame) && frame.draws.size()==1 && capturedContourSizes(frame,mode)==std::vector<uint32_t>{4},
              "face quad expands four edges or four points exactly once") && ok;
     root->unref();
     root=new SoSeparator;root->ref();root->addChild(style(mode));root->addChild(coordinates());
     SoFaceSet * face=new SoFaceSet;face->numVertices=4;root->addChild(face);
-    ok=check(capture(root,frame) && frame.draws.size()==1 && frame.draws[0].geometry.vertexCount==16,
+    ok=check(capture(root,frame) && frame.draws.size()==1 && capturedContourSizes(frame,mode)==std::vector<uint32_t>{4},
              "non-indexed face retains its original quad contour") && ok;root->unref();
     for(int count:{3,5}) {
       root=new SoSeparator;root->ref();root->addChild(style(mode));
@@ -294,7 +315,7 @@ bool polygonCaptureContract() {
       }
       root->addChild(polygon);face=new SoFaceSet;face->numVertices=count;root->addChild(face);
       ok=check(capture(root,frame) && frame.draws.size()==1 &&
-        frame.draws[0].geometry.vertexCount==static_cast<uint32_t>(count*4),
+        capturedContourSizes(frame,mode)==std::vector<uint32_t>{static_cast<uint32_t>(count)},
         "triangles and convex pentagons preserve original contour multiplicity") && ok;
       root->unref();
     }
@@ -302,7 +323,7 @@ bool polygonCaptureContract() {
     SoRotation * rotation=new SoRotation;rotation->rotation=SbRotation(SbVec3f(1,2,3),.3f);root->addChild(rotation);
     SoCube * cube=new SoCube;cube->width=.7f;cube->height=.7f;cube->depth=.7f;root->addChild(cube);
     ok=check(capture(root,frame) && frame.draws.size()==6,"Cube retains six quad contours") && ok;
-    for(const auto & draw:frame.draws)ok=check(draw.geometry.vertexCount==16,"Cube does not expose quad diagonals or duplicate quad points") && ok;
+    ok=check(capturedContourSizes(frame,mode)==std::vector<uint32_t>(6,4),"Cube does not expose quad diagonals or duplicate quad points") && ok;
     root->unref();
     root=new SoSeparator;root->ref();root->addChild(style(mode));
     cube=new SoCube;cube->width=.7f;cube->height=.7f;cube->depth=.7f;root->addChild(cube);
@@ -318,9 +339,11 @@ bool polygonCaptureContract() {
       if(shape==2) {SoCone * cone=new SoCone;cone->bottomRadius=.25f;cone->height=.5f;root->addChild(cone);}
       ok=check(capture(root,frame) && !frame.draws.empty(),"procedural sphere/cylinder/cone contour capture") && ok;
       size_t triangles=0,quads=0;
-      for(const auto & draw:frame.draws) {
-        triangles+=draw.geometry.vertexCount==12;quads+=draw.geometry.vertexCount==16;
-        ok=check(draw.geometry.vertexCount==12 || draw.geometry.vertexCount==16,
+      const auto contours=capturedContourSizes(frame,mode);
+      ok=check(contours.size()==frame.draws.size(),"each procedural draw retains one original contour") && ok;
+      for(uint32_t count:contours) {
+        triangles+=count==3;quads+=count==4;
+        ok=check(count==3 || count==4,
           "procedural triangles and quads retain original primitive boundaries") && ok;
       }
       ok=check(triangles>0 && (shape==2 || quads>0),"procedural caps and quad strips are distinguished") && ok;
@@ -417,7 +440,7 @@ bool homogeneousStrokeContract(bool cpu) {
 #endif
   bool ok=true;
   for(auto topology:{CoinRenderPrimitiveTopology::LINE_LIST,CoinRenderPrimitiveTopology::POINT_LIST})
-    for(int clipped:{0,1})for(int matrix:{0,1})for(int model=0;model<4;++model)for(int fog=1;fog<=3;++fog) {
+    for(int unit:{0,7})for(int clipped:{0,1})for(int matrix:{0,1})for(int model=0;model<4;++model)for(int fog=1;fog<=3;++fog) {
       CoinRenderFramePlan plan;plan.lightingStates.push_back(CoinRenderLightingSnapshot{});
       plan.cameras.push_back(CoinRenderCameraSnapshot{});
       CoinRenderViewportSnapshot viewport;viewport.width=viewport.height=64;plan.viewports.push_back(viewport);
@@ -440,12 +463,21 @@ bool homogeneousStrokeContract(bool cpu) {
       state.fogMode=static_cast<CoinRenderFogMode>(fog);state.fogColor[0]=state.fogColor[1]=0;
       state.fogColor[2]=1;state.fogStart=0;state.fogEnd=10;
       if(clipped)state.clipPlanesWorld.push_back(SbPlane(SbVec3f(1,0,0),0));
+      if(unit==7) {
+        state.extraTextures[6]=coin_render_texture_unit(state,0);
+        state.hasTexture=false;
+      }
       plan.renderStates.push_back(state);plan.vertices.resize(2);
       plan.vertices[0].position[0]=-.8f;plan.vertices[0].position[2]=-1;plan.vertices[0].texcoord[0]=.25f;
       plan.vertices[1].position[0]=3.2f;plan.vertices[1].position[2]=-4;plan.vertices[1].texcoord[0]=1;
       if(clipped && topology==CoinRenderPrimitiveTopology::POINT_LIST) {
         plan.vertices[0].position[0]=0;plan.vertices[0].position[2]=-1.6f;
         plan.vertices[0].texcoord[0]=.4f;
+      }
+      if(unit==7)for(auto& vertex:plan.vertices) {
+        vertex.extraTexcoords[6][0]=vertex.texcoord[0];
+        vertex.extraTexcoords[6][1]=vertex.texcoord[1];
+        vertex.texcoord[0]=99; // An accidental primary-UV lookup must fail.
       }
       plan.indices={0,1};CoinRenderDrawPacket draw;draw.topology=topology;
       draw.geometry.vertexCount=2;draw.geometry.indexCount=2;plan.draws.push_back(draw);
@@ -470,7 +502,7 @@ bool homogeneousStrokeContract(bool cpu) {
         std::abs(int(image[at])-int(std::lround(255*r*factor)))<=4 &&
         std::abs(int(image[at+1])-int(std::lround(255*g*factor)))<=4 &&
         std::abs(int(image[at+2])-int(std::lround(255*(b*factor+1-factor))))<=4;
-      if(!matches && image.size()==64*64*4)std::cerr<<"stroke "<<cpu<<','<<line<<','<<clipped<<','<<matrix<<','<<model<<','<<fog
+      if(!matches && image.size()==64*64*4)std::cerr<<"stroke unit "<<unit<<" "<<cpu<<','<<line<<','<<clipped<<','<<matrix<<','<<model<<','<<fog
         <<" pixel "<<int(image[at])<<','<<int(image[at+1])<<','<<int(image[at+2])<<" eye "<<eye<<" uv "<<uv<<'\n';
       ok=check(result.status==CoinRenderBackendStatus::SUCCESS && matches,
         "homogeneous UV, texture model/matrix and fragment fog match analytic perspective reference") && ok;

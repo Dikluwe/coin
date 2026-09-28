@@ -78,6 +78,7 @@ struct CoinBgfxDraw {
     CoinRenderTextureFilter filter = CoinRenderTextureFilter::LINEAR;
   };
   TextureLayer extraTextures[COIN_RENDER_MAX_TEXTURE_UNITS - 1];
+  CoinRenderTextureCombineSnapshot textureCombines[COIN_RENDER_MAX_TEXTURE_UNITS];
   float fogColorMode[4] = {};
   float fogRange[4] = {};
   float ambientLight[4] = {1.0f, 1.0f, 1.0f, 0.2f};

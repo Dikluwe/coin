@@ -313,7 +313,9 @@ void
 soshape_primdata::copyVertex(const int src, const int dest)
 {
   this->vertsArray[dest] = this->vertsArray[src];
-  if (this->faceDetail) {
+  // A strip advances both the primitive vertex and its endpoint indices.
+  // Line details need the same copy as face details for picking and callbacks.
+  if (this->faceDetail || this->lineDetail) {
     this->pointDetails[dest] = this->pointDetails[src];
     this->vertsArray[dest].setDetail(&this->pointDetails[dest]);
   }

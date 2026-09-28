@@ -27,6 +27,10 @@ struct Uniforms {
     texture_blend_color: vec4<f32>,
     clip_meta: vec4<f32>,
     clip_planes: array<vec4<f32>, 8>,
+    extra_texture_matrices: array<mat4x4<f32>, 7>,
+    extra_tex_params: array<vec4<f32>, 7>,
+    extra_texture_blends: array<vec4<f32>, 7>,
+    texture_combines: array<array<vec4<f32>, 4>, 8>,
 };
 
 struct GpuMaterial {
@@ -48,6 +52,21 @@ var t_diffuse: texture_2d<f32>;
 
 @group(0) @binding(3)
 var s_diffuse: sampler;
+@group(0) @binding(4) var t_texture1: texture_2d<f32>;
+@group(0) @binding(5) var s_texture1: sampler;
+@group(0) @binding(6) var t_texture2: texture_2d<f32>;
+@group(0) @binding(7) var s_texture2: sampler;
+@group(0) @binding(8) var t_texture3: texture_2d<f32>;
+@group(0) @binding(9) var s_texture3: sampler;
+@group(0) @binding(10) var t_texture4: texture_2d<f32>;
+@group(0) @binding(11) var s_texture4: sampler;
+@group(0) @binding(12) var t_texture5: texture_2d<f32>;
+@group(0) @binding(13) var s_texture5: sampler;
+@group(0) @binding(14) var t_texture6: texture_2d<f32>;
+@group(0) @binding(15) var s_texture6: sampler;
+@group(0) @binding(16) var t_texture7: texture_2d<f32>;
+@group(0) @binding(17) var s_texture7: sampler;
+
 
 struct VertexInput {
     @location(0) position: vec3<f32>,
@@ -56,6 +75,14 @@ struct VertexInput {
     @location(3) material_slot: u32,
     @location(4) screen_space_w: f32,
     @location(5) fog_eye_depth_plus_one: f32,
+    @location(6) uv1: vec2<f32>,
+    @location(7) uv2: vec2<f32>,
+    @location(8) uv3: vec2<f32>,
+    @location(9) uv4: vec2<f32>,
+    @location(10) uv5: vec2<f32>,
+    @location(11) uv6: vec2<f32>,
+    @location(12) uv7: vec2<f32>,
+
 };
 
 struct VertexOutput {
@@ -65,6 +92,14 @@ struct VertexOutput {
     @location(2) diffuse_color: vec4<f32>,
     @location(3) @interpolate(flat) material_slot: u32,
     @location(4) texcoord: vec2<f32>,
+    @location(5) uv1: vec2<f32>,
+    @location(6) uv2: vec2<f32>,
+    @location(7) uv3: vec2<f32>,
+    @location(8) uv4: vec2<f32>,
+    @location(9) uv5: vec2<f32>,
+    @location(10) uv6: vec2<f32>,
+    @location(11) uv7: vec2<f32>,
+
 };
 
 // Coin PHONG is reflectance, not a request for fragment-normal interpolation.
@@ -145,7 +180,52 @@ fn vs_main(input: VertexInput) -> VertexOutput {
         output.texcoord = input.texcoord;
     }
 
+    output.uv1 = (u.extra_texture_matrices[0] * vec4<f32>(input.uv1, 0.0, 1.0)).xy;
+    output.uv2 = (u.extra_texture_matrices[1] * vec4<f32>(input.uv2, 0.0, 1.0)).xy;
+    output.uv3 = (u.extra_texture_matrices[2] * vec4<f32>(input.uv3, 0.0, 1.0)).xy;
+    output.uv4 = (u.extra_texture_matrices[3] * vec4<f32>(input.uv4, 0.0, 1.0)).xy;
+    output.uv5 = (u.extra_texture_matrices[4] * vec4<f32>(input.uv5, 0.0, 1.0)).xy;
+    output.uv6 = (u.extra_texture_matrices[5] * vec4<f32>(input.uv6, 0.0, 1.0)).xy;
+    output.uv7 = (u.extra_texture_matrices[6] * vec4<f32>(input.uv7, 0.0, 1.0)).xy;
     return output;
+}
+
+// Mechanical execution of CoinRender's validated texture-combine program.
+fn combine_arg(code: f32, primary: vec4<f32>, tex: vec4<f32>, constant: vec4<f32>, previous: vec4<f32>) -> vec4<f32> {
+    let instruction = u32(code);
+    let source = instruction % 4u;
+    let operand = instruction / 4u;
+    var value = previous;
+    if (source == 0u) { value = primary; }
+    if (source == 1u) { value = tex; }
+    if (source == 2u) { value = constant; }
+    if (operand >= 2u) { value = vec4<f32>(value.a); }
+    if (operand == 1u || operand == 3u) { value = vec4<f32>(1.0) - value; }
+    return value;
+}
+fn combine_op(op: f32, a: vec4<f32>, b: vec4<f32>, c: vec4<f32>) -> vec4<f32> {
+    if (op < 0.5) { return a; }
+    if (op < 1.5) { return a * b; }
+    if (op < 2.5) { return a + b; }
+    if (op < 3.5) { return a + b - vec4<f32>(0.5); }
+    if (op < 4.5) { return a - b; }
+    if (op < 5.5) { return a * c + b * (vec4<f32>(1.0) - c); }
+    return vec4<f32>(4.0 * dot(a.rgb - vec3<f32>(0.5), b.rgb - vec3<f32>(0.5)));
+}
+fn texture_layer(primary: vec4<f32>, previous: vec4<f32>, tex: vec4<f32>, params: vec4<f32>, blend: vec4<f32>, unit: u32) -> vec4<f32> {
+    let p = u.texture_combines[unit];
+    if (p[0].x > 0.5) {
+        let rgb = combine_op(p[0].y, combine_arg(p[1].x, primary, tex, p[3], previous),
+            combine_arg(p[1].y, primary, tex, p[3], previous), combine_arg(p[1].z, primary, tex, p[3], previous));
+        let alpha = combine_op(p[0].z, combine_arg(p[2].x, primary, tex, p[3], previous),
+            combine_arg(p[2].y, primary, tex, p[3], previous), combine_arg(p[2].z, primary, tex, p[3], previous));
+        let a = select(alpha.a * p[2].w, rgb.r * p[2].w, p[0].y > 6.5);
+        return clamp(vec4<f32>(rgb.rgb * p[1].w, a), vec4<f32>(0.0), vec4<f32>(1.0));
+    }
+    if (params.y < 0.5) { return previous * tex; }
+    if (params.y < 1.5) { return tex; }
+    if (params.y < 2.5) { return vec4<f32>(mix(previous.rgb, tex.rgb, tex.a), previous.a); }
+    return vec4<f32>(mix(previous.rgb, blend.rgb, tex.rgb), previous.a * tex.a);
 }
 
 fn apply_fog(color: vec4<f32>, eye_depth: f32) -> vec4<f32> {
@@ -176,20 +256,49 @@ fn fragment_color(input: VertexOutput) -> vec4<f32> {
     if (u.tex_params.x > 0.5) {
         let uv = select(input.texcoord, vec2<f32>(input.texcoord.x, 1.0 - input.texcoord.y), u.tex_params.z > 0.5);
         let tex_col = textureSample(t_diffuse, s_diffuse, uv);
-        let model = u.tex_params.y;
-        if (model < 0.5) {
-            base_color = base_color * tex_col;
-        } else if (model < 1.5) {
-            base_color = tex_col;
-        } else if (model < 2.5) {
-            base_color = vec4<f32>(mix(base_color.rgb, tex_col.rgb, tex_col.a),
-                                   base_color.a);
-        } else {
-            base_color = vec4<f32>(mix(base_color.rgb,
-                                       u.texture_blend_color.rgb,
-                                       tex_col.rgb),
-                                   base_color.a * tex_col.a);
-        }
+        base_color = texture_layer(input.diffuse_color, base_color, tex_col, u.tex_params, u.texture_blend_color, 0u);
+    }
+    if (u.extra_tex_params[0].x > 0.5) {
+        let params = u.extra_tex_params[0];
+        let uv = select(input.uv1, vec2<f32>(input.uv1.x, 1.0 - input.uv1.y), params.z > 0.5);
+        let tex = textureSample(t_texture1, s_texture1, uv);
+        base_color = texture_layer(input.diffuse_color, base_color, tex, params, u.extra_texture_blends[0], 1u);
+    }
+    if (u.extra_tex_params[1].x > 0.5) {
+        let params = u.extra_tex_params[1];
+        let uv = select(input.uv2, vec2<f32>(input.uv2.x, 1.0 - input.uv2.y), params.z > 0.5);
+        let tex = textureSample(t_texture2, s_texture2, uv);
+        base_color = texture_layer(input.diffuse_color, base_color, tex, params, u.extra_texture_blends[1], 2u);
+    }
+    if (u.extra_tex_params[2].x > 0.5) {
+        let params = u.extra_tex_params[2];
+        let uv = select(input.uv3, vec2<f32>(input.uv3.x, 1.0 - input.uv3.y), params.z > 0.5);
+        let tex = textureSample(t_texture3, s_texture3, uv);
+        base_color = texture_layer(input.diffuse_color, base_color, tex, params, u.extra_texture_blends[2], 3u);
+    }
+    if (u.extra_tex_params[3].x > 0.5) {
+        let params = u.extra_tex_params[3];
+        let uv = select(input.uv4, vec2<f32>(input.uv4.x, 1.0 - input.uv4.y), params.z > 0.5);
+        let tex = textureSample(t_texture4, s_texture4, uv);
+        base_color = texture_layer(input.diffuse_color, base_color, tex, params, u.extra_texture_blends[3], 4u);
+    }
+    if (u.extra_tex_params[4].x > 0.5) {
+        let params = u.extra_tex_params[4];
+        let uv = select(input.uv5, vec2<f32>(input.uv5.x, 1.0 - input.uv5.y), params.z > 0.5);
+        let tex = textureSample(t_texture5, s_texture5, uv);
+        base_color = texture_layer(input.diffuse_color, base_color, tex, params, u.extra_texture_blends[4], 5u);
+    }
+    if (u.extra_tex_params[5].x > 0.5) {
+        let params = u.extra_tex_params[5];
+        let uv = select(input.uv6, vec2<f32>(input.uv6.x, 1.0 - input.uv6.y), params.z > 0.5);
+        let tex = textureSample(t_texture6, s_texture6, uv);
+        base_color = texture_layer(input.diffuse_color, base_color, tex, params, u.extra_texture_blends[5], 6u);
+    }
+    if (u.extra_tex_params[6].x > 0.5) {
+        let params = u.extra_tex_params[6];
+        let uv = select(input.uv7, vec2<f32>(input.uv7.x, 1.0 - input.uv7.y), params.z > 0.5);
+        let tex = textureSample(t_texture7, s_texture7, uv);
+        base_color = texture_layer(input.diffuse_color, base_color, tex, params, u.extra_texture_blends[6], 7u);
     }
     return apply_fog(base_color, -input.position_view.z);
 }

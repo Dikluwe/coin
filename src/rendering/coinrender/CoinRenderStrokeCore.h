@@ -152,7 +152,6 @@ inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& d
 
     if (original.topology == CoinRenderPrimitiveTopology::LINE_LIST) {
       const float width = std::max(sourceState.lineWidth, 1.0f);
-      const float halfWidth = width * 0.5f;
       const uint32_t pattern = sourceState.linePattern & 0xffffu;
       uint32_t polygonPhase = 0;
       uint32_t& phase = original.lineStripId ? stripPhases[original.lineStripId] : polygonPhase;
@@ -187,10 +186,11 @@ inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& d
         const float lengthPixels = std::sqrt(dxPixels * dxPixels + dyPixels * dyPixels);
         if (lengthPixels <= 1.0e-6f || pattern == 0u)
           continue;
-        float offsetX = (-dyPixels / lengthPixels) * halfWidth * 2.0f / viewport.width;
-        float offsetY = (dxPixels / lengthPixels) * halfWidth * 2.0f / viewport.height;
+        float offsetX = 0, offsetY = 0;
         std::vector<std::pair<float, float>> spans;
-        if (pattern != 0xffffu) {
+        {
+          // Solid and patterned lines use the same unit-fragment assembly.
+          // Rounded widths replicate those fragments along the minor axis.
           if (!sourceState.polygonLinePattern && original.lineStripId == 0)
             phase = 0;
           const bool xMajor = std::abs(dxPixels) >= std::abs(dyPixels);
@@ -203,8 +203,6 @@ inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& d
                                         (secondNdc[1] + 1.0) * .5 * viewport.height, pattern,
                                         sourceState.linePatternScaleFactor, phase, spans))
             return fail("Line stipple exceeds the Core raster budget");
-        } else {
-          spans.emplace_back(0.0f, 1.0f);
         }
         for (const auto& span : spans) {
           // Stipple operates on whole pixel cells, whose first/last boundaries
@@ -247,7 +245,8 @@ inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& d
         }
       }
     } else if (original.topology == CoinRenderPrimitiveTopology::POINT_LIST) {
-      const float halfSize = std::max(sourceState.pointSize, 1.0f) * 0.5f;
+      const float size = std::max(1.0f, std::floor(sourceState.pointSize + .5f));
+      const float halfSize = size * 0.5f;
       const float offsetX = halfSize * 2.0f / viewport.width;
       const float offsetY = halfSize * 2.0f / viewport.height;
       for (size_t offset = 0; offset < original.geometry.indexCount; ++offset) {
@@ -265,6 +264,13 @@ inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& d
         float clipW;
         if (!project(vertex, ndc, clipW))
           continue;
+        const bool odd = std::fmod(size, 2.0f) == 1.0f;
+        for (int axis = 0; axis < 2; ++axis) {
+          const float dimension = axis == 0 ? float(viewport.width) : float(viewport.height);
+          const float pixel = (ndc[axis] + 1) * .5f * dimension;
+          const float center = odd ? std::floor(pixel) + .5f : std::floor(pixel + .5f);
+          ndc[axis] = center * 2 / dimension - 1;
+        }
         CoinRenderVertexSnapshot attributes = vertex;
         attributes.screenSpaceW = clipW;
         attributes.fogEyeDepth =

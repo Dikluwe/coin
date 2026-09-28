@@ -49,13 +49,14 @@ Core transforma snapshots. Não exigir uma refatoração global prévia.
   fragmento deve ser distinguida como extensão.
 - [ ] **P07 — UV/texturas (F06/F11):** procedural/default, matriz, modelos
   MODULATE/REPLACE/DECAL/BLEND, wrap, filtros, qualidade e formatos.
-- [ ] **P08 — Multitextura/strokes (F07/F08):** SoTextureCombine, limites por unidade
-  e matriz ampliada de strokes; largura, padrão, cor, alpha e interpolação.
-  Textura explícita na unidade 0 e fog por fragmento já usam a mesma expansão
-  Core em BGFX/wgpu, com evidência numérica de perspectiva. Continuidade de
-  SoLineSet/SoIndexedLineSet e resets por polilinha/binding estão implementados
-  no perfil P08 documentado em `coin-render-draw-style-contract.md`; a
-  qualificação de raster, alpha, clipping e multitextura permanece aberta.
+- [x] **P08 — Multitextura/strokes (F07/F08):** oito unidades, SoTextureCombine,
+  UVs/matrizes independentes e execução comum em CPU/BGFX/wgpu; raster aliased,
+  largura/tamanho arredondados, padrão, cor/alpha, perspectiva, clipping,
+  rejeição sem publicação e recuperação qualificados no
+  [contrato P08](coin-render-multitexture-contract.md). Referência Coin/GL
+  obrigatória passou em wgpu e BGFX Vulkan/OpenGL. UV procedural/default,
+  formatos/qualidade, matriz geral de bindings e modalidades de transparência
+  permanecem respectivamente em P07/P05/P09, sem encerrar P02 integralmente.
 
 Fechamento: mesmas entradas e expectativas, decisões com um dono comum, shaders
 específicos. P08 depende dos contratos de P02/P05/P07. P05–P07 podem avançar por

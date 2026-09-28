@@ -52,7 +52,7 @@ comparação isola a troca do executor, sem duplicar um segundo scene graph.
   medir o caminho completo no mesmo build.
 - Profundidade offscreen é publicada por padrão; usar
   `CoinRenderTarget::setDepthReadbackEnabled(FALSE)` para solicitar somente cor.
-- `SoTextureCombine`, coordenadas procedurais nas unidades adicionais,
+- Coordenadas procedurais nas unidades adicionais,
   RTT direto, Wayland e texturas residentes externas retornam `UNSUPPORTED` em vez de aparentar paridade.
   O PHONG BGFX avalia materiais e até oito luzes direcionais, pontuais ou spot
   por vértice e interpola a cor iluminada (Gouraud), como o GL normal do Coin.
@@ -670,9 +670,11 @@ necessários para essas regras e para diagnosticar falhas de cada API.
 
 O perfil já cobre iluminação PHONG, materiais heterogêneos, texturas, linhas,
 pontos, transparência, subviewports e resize. Antes de aceitar BGFX como
-alternativa geral ainda faltam `SoTextureCombine`, os controles adicionais de
+alternativa geral ainda faltam os controles adicionais de
 sorting/backfaces/número de camadas, paridade RGBA bit-a-bit e integração portátil além de Qt 6/X11; também é
 preciso ampliar a validação de culling e coordenadas contra Coin/GL. O readback
 síncrono do BGFX avança vários frames e não deve ser confundido com apenas
 tempo de execução GPU. Apesar do ganho para câmera móvel no Assembly, ainda
 não há vantagem geral sobre GL neste perfil.
+
+Multitextura/SoTextureCombine foram qualificados no [perfil P08](coin-render-multitexture-contract.md).

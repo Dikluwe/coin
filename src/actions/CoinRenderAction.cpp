@@ -15,6 +15,7 @@
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include <Inventor/nodes/SoSceneTexture2.h>
 #include <Inventor/nodes/SoTextureCombine.h>
+#include <Inventor/elements/SoTextureCombineElement.h>
 #include <Inventor/nodes/SoVertexProperty.h>
 #include <Inventor/nodes/SoCamera.h>
 #include <Inventor/nodes/SoPerspectiveCamera.h>
@@ -76,6 +77,7 @@ CoinRenderAction::initClass(void)
 {
   SO_ACTION_INTERNAL_INIT_CLASS(CoinRenderAction, SoCallbackAction);
   SO_ENABLE(CoinRenderAction, SoDepthBufferElement);
+  SO_ENABLE(CoinRenderAction, SoTextureCombineElement);
   CoinRenderDepthPolicyElement::initClass();
   SO_ENABLE(CoinRenderAction, CoinRenderDepthPolicyElement);
 }
@@ -862,14 +864,21 @@ CoinRenderActionP::textureUnitsPreCB(void * userdata, SoCallbackAction * action,
   return SoCallbackAction::CONTINUE;
 }
 
+
 SoCallbackAction::Response
-CoinRenderActionP::textureCombinePreCB(void * userdata, SoCallbackAction *, const SoNode *)
+CoinRenderActionP::textureCombinePreCB(void * userdata, SoCallbackAction* action, const SoNode* node)
 {
-  auto * p = static_cast<CoinRenderActionP *>(userdata);
-  p->setDiagnostic(CoinRenderDiagnosticShell::action(
-    CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
-    SbString("SoTextureCombine is not supported; use SoTexture2 MODULATE, REPLACE, DECAL or BLEND")));
-  return SoCallbackAction::ABORT;
+  const int unit = SoTextureUnitElement::get(action->getState());
+  if (unit < 0 || unit >= static_cast<int>(COIN_RENDER_MAX_TEXTURE_UNITS)) {
+    auto* p = static_cast<CoinRenderActionP*>(userdata);
+    p->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::UNSUPPORTED,
+      CoinRenderDiagnosticDomain::FRAME_PLAN, SbString("At most eight texture units are supported")));
+    return SoCallbackAction::ABORT;
+  }
+  // Coin's generic callback implementation does not update this element.
+  // Use the node's own field/override interpretation with our enabled state.
+  const_cast<SoTextureCombine*>(static_cast<const SoTextureCombine*>(node))->doAction(action);
+  return SoCallbackAction::CONTINUE;
 }
 
 void
@@ -881,10 +890,10 @@ CoinRenderActionP::initCallbacks()
 
   this->master->addPreCallback(SoShape::getClassTypeId(), textureUnitsPreCB, this);
   this->master->addPreCallback(SoLight::getClassTypeId(), lightPreCB, this);
+  this->master->addPreCallback(SoTextureCombine::getClassTypeId(), textureCombinePreCB, this);
   this->master->addPreCallback(SoDepthBuffer::getClassTypeId(), depthBufferPreCB, this);
   this->master->addPreCallback(SoAnnotation::getClassTypeId(), annotationPreCB, this);
   this->master->addPostCallback(SoAnnotation::getClassTypeId(), annotationPostCB, this);
-  this->master->addPreCallback(SoTextureCombine::getClassTypeId(), textureCombinePreCB, this);
   this->master->addPreCallback(SoSceneTexture2::getClassTypeId(), sceneTexturePreCB, this);
   this->master->addPreCallback(SoIndexedFaceSet::getClassTypeId(), indexedFaceSetPreCB, this);
   this->master->addPreCallback(SoIndexedLineSet::getClassTypeId(), indexedLineSetPreCB, this);

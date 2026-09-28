@@ -190,7 +190,8 @@ bool samePipelineState(const CoinBgfxDraw & lhs,
 bool sameTextureState(const CoinBgfxDraw & lhs,
                       const CoinBgfxDraw & rhs)
 {
-  return std::memcmp(lhs.extraTextures, rhs.extraTextures, sizeof(lhs.extraTextures)) == 0 &&
+  return std::memcmp(lhs.textureCombines, rhs.textureCombines, sizeof(lhs.textureCombines)) == 0 &&
+    std::memcmp(lhs.extraTextures, rhs.extraTextures, sizeof(lhs.extraTextures)) == 0 &&
     lhs.hasTexture == rhs.hasTexture &&
     lhs.textureSlot == rhs.textureSlot && lhs.textureModel == rhs.textureModel &&
     lhs.wrapS == rhs.wrapS && lhs.wrapT == rhs.wrapT && lhs.filter == rhs.filter &&
@@ -429,7 +430,7 @@ CoinBgfxBackend::CoinBgfxBackend()
     clipMetaUniform(BGFX_INVALID_HANDLE), clipPlanesUniform(BGFX_INVALID_HANDLE),
     textureSampler(BGFX_INVALID_HANDLE), fogColorModeUniform(BGFX_INVALID_HANDLE),
     fogRangeUniform(BGFX_INVALID_HANDLE), textureParamsUniform(BGFX_INVALID_HANDLE),
-    textureBlendUniform(BGFX_INVALID_HANDLE),
+    textureBlendUniform(BGFX_INVALID_HANDLE), textureCombineUniform(BGFX_INVALID_HANDLE),
     ambientLightUniform(BGFX_INVALID_HANDLE), lightCountUniform(BGFX_INVALID_HANDLE),
     lightPositionTypeUniform(BGFX_INVALID_HANDLE),
     lightDirectionCutoffUniform(BGFX_INVALID_HANDLE),
@@ -513,6 +514,7 @@ CoinBgfxBackend::destroyResources()
   if (bgfx::isValid(this->fogRangeUniform)) bgfx::destroy(this->fogRangeUniform);
   if (bgfx::isValid(this->textureParamsUniform)) bgfx::destroy(this->textureParamsUniform);
   if (bgfx::isValid(this->textureBlendUniform)) bgfx::destroy(this->textureBlendUniform);
+  if (bgfx::isValid(this->textureCombineUniform)) bgfx::destroy(this->textureCombineUniform);
   if (bgfx::isValid(this->ambientLightUniform)) bgfx::destroy(this->ambientLightUniform);
   if (bgfx::isValid(this->lightCountUniform)) bgfx::destroy(this->lightCountUniform);
   if (bgfx::isValid(this->lightPositionTypeUniform)) bgfx::destroy(this->lightPositionTypeUniform);
@@ -793,6 +795,7 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
   this->clipPlanesUniform = bgfx::createUniform("u_clipPlanes", bgfx::UniformType::Vec4, COIN_RENDER_MAX_CLIP_PLANES);
   this->coinDepthUniform = bgfx::createUniform("u_coinDepth", bgfx::UniformType::Vec4);
   this->textureBlendUniform = bgfx::createUniform("u_texBlend", bgfx::UniformType::Vec4, COIN_RENDER_MAX_TEXTURE_UNITS);
+  this->textureCombineUniform = bgfx::createUniform("u_texCombine", bgfx::UniformType::Vec4, COIN_RENDER_MAX_TEXTURE_UNITS * 4);
   this->ambientLightUniform = bgfx::createUniform("u_ambientLight", bgfx::UniformType::Vec4);
   this->lightCountUniform = bgfx::createUniform("u_lightCount", bgfx::UniformType::Vec4);
   this->lightPositionTypeUniform = bgfx::createUniform("u_lightPositionType", bgfx::UniformType::Vec4, COIN_RENDER_MAX_LIGHTS);
@@ -809,6 +812,7 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
       !bgfx::isValid(this->coinDepthUniform) ||
       !bgfx::isValid(this->textureParamsUniform) ||
       !bgfx::isValid(this->textureBlendUniform) ||
+      !bgfx::isValid(this->textureCombineUniform) ||
       !bgfx::isValid(this->ambientLightUniform) ||
       !bgfx::isValid(this->clipMetaUniform) ||
       !bgfx::isValid(this->clipPlanesUniform) ||
@@ -1147,6 +1151,7 @@ CoinBgfxBackend::bindDrawTexture(
   }
   bgfx::setUniform(this->textureParamsUniform, params, COIN_RENDER_MAX_TEXTURE_UNITS);
   bgfx::setUniform(this->textureBlendUniform, blend, COIN_RENDER_MAX_TEXTURE_UNITS);
+  bgfx::setUniform(this->textureCombineUniform, draw.textureCombines, COIN_RENDER_MAX_TEXTURE_UNITS * 4);
 }
 
 

@@ -105,7 +105,9 @@ bool render(SoSeparator * root, bool cpu, std::vector<uint8_t> & pixels, bool fa
   if (cpu) target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
   CoinBgfxAction action(SbViewportRegion(64,64));
   action.setFastPathEnabled(fast); action.setRenderTarget(target.get());
-  action.setTransparencyType(CoinBgfxAction::SORTED_LAYERS_BLEND);
+  // Each sampled fixture has one contributing primitive at this pixel.
+  // CPU source-over is its oracle; the GPU exercises its configured mechanism.
+  action.setTransparencyType(cpu ? CoinBgfxAction::BLEND : CoinBgfxAction::SORTED_LAYERS_BLEND);
   action.apply(root);
   if (action.getLastStatus() != CoinBgfxAction::SUCCESS) {
     std::cerr << action.getLastError().getString() << '\n'; return false;
@@ -219,9 +221,10 @@ int main() {
   }
   {
     auto * root=scene(0,2,SoTexture2::MODULATE);
-    root->insertChild(new SoTextureCombine,root->getNumChildren()-1);
+    auto * invalid = new SoTextureCombine; invalid->rgbScale = 3;
+    root->insertChild(invalid,root->getNumChildren()-1);
     action.apply(root); root->unref();
-    if (!check(action.getLastStatus()==CoinBgfxAction::UNSUPPORTED,"custom combine must not be silently ignored")) return 1;
+    if (!check(action.getLastStatus()==CoinBgfxAction::UNSUPPORTED,"invalid combine scale must be rejected")) return 1;
   }
   {
     auto * root=scene(0,2,SoTexture2::REPLACE,255,false,false,true);
@@ -253,6 +256,23 @@ int main() {
     root->replaceChild(5,new SoTextureCoordinatePlane);
     action.apply(root); root->unref();
     if (!check(action.getLastStatus()==CoinBgfxAction::UNSUPPORTED,"procedural higher unit rejected before primitive generation")) return 1;
+  }
+  for(int topology=0;topology<3;++topology) {
+    auto* root=scene(topology,2,SoTexture2::MODULATE,128);
+    auto* combine=new SoTextureCombine;
+    combine->rgbOperation=SoTextureCombine::INTERPOLATE;
+    combine->constantColor=SbVec4f(.25f,.25f,.25f,.5f);
+    const int rgbSources[]={SoTextureCombine::PREVIOUS,SoTextureCombine::TEXTURE,SoTextureCombine::CONSTANT};
+    combine->rgbSource.setValues(0,3,rgbSources);
+    combine->alphaOperation=SoTextureCombine::REPLACE;
+    combine->alphaSource.set1Value(0,SoTextureCombine::CONSTANT);
+    root->insertChild(combine,8); // Unit one, before its Texture2 as in Coin/GL.
+    Pixel actual;const bool ok=compare(root,topology==2 ? 8 : 32,32,&actual);root->unref();
+    if(!check(ok,"combine executes in configured object/OIT/peeling surface pass"))return 1;
+    const float half=128.f/255;
+    const int expected[]={int((half*.25f+.75f)*.5f*255+.5f),
+      int((.25f+half*.75f)*.5f*255+.5f),128,255};
+    for(int c=0;c<4;++c)if(!check(std::abs(actual[c]-expected[c])<=3,"independent combine surface oracle"))return 1;
   }
   auto * overflow=scene(0,9,SoTexture2::MODULATE);
   action.apply(overflow); overflow->unref();

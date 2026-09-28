@@ -2,6 +2,7 @@
 #define COIN_RENDER_COMPOSITION_H
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
+#include "rendering/coinrender/CoinRenderTextureCombineCore.h"
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <algorithm>
 #include <cmath>
@@ -127,6 +128,7 @@ coin_render_composition_order(const CoinRenderFramePlan & frame,
       if (j == first) minDepth = maxDepth = eyeDepth;
       else { minDepth = std::min(minDepth, eyeDepth); maxDepth = std::max(maxDepth, eyeDepth); }
     }
+    const bool primaryAlpha = materialAlpha;
     for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
       const CoinRenderTextureUnitSnapshot tex = coin_render_texture_unit(rs, unit);
       if (!tex.enabled) continue;
@@ -140,7 +142,9 @@ coin_render_composition_order(const CoinRenderFramePlan & frame,
         for (size_t byte = 3; byte < texture.pixelsRgba.size(); byte += 4)
           if (texture.pixelsRgba[byte] != 255) { cached = 1; break; }
       }
-      if (tex.model == CoinRenderTextureModel::REPLACE) materialAlpha = cached != 0;
+      if (rs.textureCombines[unit].instructions[0][0] > .5f)
+        materialAlpha = coin_render_combine_may_have_alpha(rs.textureCombines[unit], primaryAlpha, cached != 0, materialAlpha);
+      else if (tex.model == CoinRenderTextureModel::REPLACE) materialAlpha = cached != 0;
       else if (tex.model != CoinRenderTextureModel::DECAL) materialAlpha = materialAlpha || cached != 0;
     }
 

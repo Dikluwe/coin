@@ -17,7 +17,7 @@
 #include <iostream>
 
 // Static assertions ensuring ABI compatibility with Rust bridge
-static_assert(sizeof(CoinWgpuVertex) == 44, "CoinWgpuVertex size mismatch");
+static_assert(sizeof(CoinWgpuVertex) == 100, "CoinWgpuVertex size mismatch");
 static_assert(alignof(CoinWgpuVertex) == 4, "CoinWgpuVertex alignment mismatch");
 static_assert(offsetof(CoinWgpuVertex, position) == 0, "CoinWgpuVertex position offset mismatch");
 static_assert(offsetof(CoinWgpuVertex, normal) == 12, "CoinWgpuVertex normal offset mismatch");
@@ -45,7 +45,7 @@ static_assert(alignof(CoinWgpuTexture) == 8, "CoinWgpuTexture alignment mismatch
 static_assert(sizeof(CoinWgpuSampler) == 16, "CoinWgpuSampler size mismatch");
 static_assert(alignof(CoinWgpuSampler) == 4, "CoinWgpuSampler alignment mismatch");
 
-static_assert(sizeof(CoinWgpuRenderState) == 1096, "CoinWgpuRenderState size mismatch");
+static_assert(sizeof(CoinWgpuRenderState) == 2280, "CoinWgpuRenderState size mismatch");
 static_assert(alignof(CoinWgpuRenderState) == 4, "CoinWgpuRenderState alignment mismatch");
 static_assert(offsetof(CoinWgpuRenderState, cull_mode) == 236, "CoinWgpuRenderState cull_mode offset mismatch");
 static_assert(offsetof(CoinWgpuRenderState, front_face) == 240, "CoinWgpuRenderState front_face offset mismatch");

@@ -14,7 +14,11 @@
 #include <cstddef>
 #include <cstring>
 
-static_assert(sizeof(CoinWgpuRenderState) == 1096, "CoinWgpuRenderState ABI size changed");
+static_assert(sizeof(CoinWgpuTextureUnit) == 96, "Texture unit ABI size changed");
+static_assert(offsetof(CoinWgpuVertex, extra_texcoords) == 44, "Extra UV ABI offset changed");
+static_assert(offsetof(CoinWgpuRenderState, extra_textures) == 1096, "Extra textures ABI offset changed");
+static_assert(offsetof(CoinWgpuRenderState, texture_combines) == 1768, "Combine ABI offset changed");
+static_assert(sizeof(CoinWgpuRenderState) == 2280, "CoinWgpuRenderState ABI size changed");
 static_assert(offsetof(CoinWgpuRenderState, polygon_offset_max_depth_bits) == 1092, "Maximum depth ABI offset changed");
 static_assert(offsetof(CoinWgpuRenderState, polygon_offset_slope_bias) == 1088, "Slope bias ABI offset changed");
 static_assert(offsetof(CoinWgpuRenderState, polygon_offset_enabled) == 936, "Polygon offset ABI tail changed");
@@ -44,14 +48,6 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
                         std::string & outDiagnostic)
 {
   outDiagnostic.clear();
-  for (const auto & state : frame.renderStates) {
-    for (const auto & texture : state.extraTextures) {
-      if (texture.enabled) {
-        outDiagnostic = "Multitexture requires the BGFX frame contract";
-        return false;
-      }
-    }
-  }
   if (frame.revision != 0 && frame.revision == this->packedRevision) {
     this->reused = true;
     this->prepareKind = CoinRenderFrameReuseKind::REUSE;
@@ -87,6 +83,7 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     std::memcpy(dst.normal, src.normal, sizeof(src.normal));
     std::memcpy(dst.texcoord, src.texcoord, sizeof(src.texcoord));
     dst.material_slot = src.materialSlot;
+    std::memcpy(dst.extra_texcoords, src.extraTexcoords, sizeof(dst.extra_texcoords));
     dst.screen_space_w = src.screenSpaceW;
     dst.fog_eye_depth_plus_one = src.fogEyeDepth >= 0 ? src.fogEyeDepth + 1.0f : 0.0f;
   }
@@ -189,6 +186,16 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame, uint32_t targetW
     dst.front_face = static_cast<uint32_t>(src.frontFace);
     dst.light_model = static_cast<uint32_t>(src.lightModel);
     std::memcpy(dst.texture_matrix, src.textureMatrix.getValue(), sizeof(float) * 16);
+    std::memcpy(dst.texture_combines, src.textureCombines, sizeof(dst.texture_combines));
+    for (size_t unit = 1; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+      const auto layer = coin_render_texture_unit(src, unit);
+      auto& target = dst.extra_textures[unit - 1];
+      std::memcpy(target.matrix, layer.matrix.getValue(), sizeof(target.matrix));
+      target.enabled = layer.enabled ? 1 : 0;
+      target.texture_slot = layer.imageSlot; target.sampler_slot = layer.samplerSlot;
+      target.model = static_cast<uint32_t>(layer.model);
+      std::memcpy(target.blend_color, layer.blendColor, sizeof(target.blend_color));
+    }
     dst.has_texture = src.hasTexture ? 1 : 0;
     dst.texture_slot = src.textureImageSlot;
     dst.sampler_slot = src.samplerSlot;

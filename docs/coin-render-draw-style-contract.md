@@ -436,9 +436,18 @@ de polígonos previamente documentadas continuam fora da equivalência pixel a p
 - [x] Inclinação + units fracionário no wgpu/D32Float, com readback numérico.
 - [ ] Offset fora do perfil plano e qualificação ampliada de precisão P04/F12.
 - [x] Fog por fragmento e textura explícita na unidade 0 em strokes wgpu/BGFX.
-- [ ] Multitextura, UV procedural/default e matriz ampliada P07/P08.
+- [x] Multitextura/combine e raster ampliado no [perfil P08](coin-render-multitexture-contract.md).
+- [ ] UV procedural/default, formatos/qualidade e matriz ampliada P07.
 - [x] Amostras de textura/fog e padrão contínuo comparadas com Coin/GL Mesa/llvmpipe.
-- [ ] Sorting/transparência, raster ampliado, drivers e integração FreeCAD.
+- [ ] Sorting/modalidades de transparência, drivers/MSAA e integração FreeCAD.
 
 O suporte de LineSet/PointSet continua distinto do estilo aplicado a polígonos.
 P02/F04 não deve ser marcado como integralmente fechado por este perfil.
+
+## P08 fechado no perfil documentado
+
+A ABI privada atual é 26 (vértice 100 bytes, estado 2280 bytes); os relatos
+de ABI 25 acima registram entregas anteriores. Multitextura/combine, raster
+aliased diagonal/fracionário e alpha/clipping estão qualificados no
+[contrato P08](coin-render-multitexture-contract.md). P02 permanece aberto
+para os limites e a qualificação ampliada registrados nesta checklist.
