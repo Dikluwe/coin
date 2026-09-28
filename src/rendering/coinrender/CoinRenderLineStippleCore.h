@@ -65,8 +65,10 @@ inline bool coin_render_polygon_stipple(double x0, double y0, double x1, double 
         double a = (cell - major0) / delta, b = (cell + 1 - major0) / delta;
         if (a > b)
           std::swap(a, b);
-        const float first = static_cast<float>(std::max(0.0, a));
-        const float end = static_cast<float>(std::min(1.0, b));
+        // Cover the complete raster cell, including the start pixel. The
+        // expander splits caps at source endpoints to preserve attributes.
+        const float first = static_cast<float>(a);
+        const float end = static_cast<float>(b);
         if (end > first) {
           if (!spans.empty() && std::abs(spans.back().second - first) < 1e-6f)
             spans.back().second = end;

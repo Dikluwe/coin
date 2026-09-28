@@ -306,8 +306,8 @@ vértices, faces indexadas/não indexadas, fast path ligado/desligado, larguras
 evitam as variações de cobertura de cantos permitidas pelo raster GL. O teste
 numérico independente cobre também diagonal, terminal aberto, repetição
 acima do limite e orçamento. A comparação GL obrigatória usa o comando acima.
-Essas amostras não encerram raster de todas as bordas, clipping com padrão,
-variações de primitivas procedurais, outros drivers ou FreeCAD.
+Essas amostras não encerram raster de todas as bordas, recortes fora da matriz
+ampliada abaixo, variações de primitivas procedurais, outros drivers ou FreeCAD.
 
 A rodada final passou **19/19 CTests wgpu**, **28/28 CTests BGFX** e
 **11/11 testes Rust/WGSL**, com execução GPU serial entre os perfis. A matriz
@@ -316,6 +316,60 @@ BGFX/OpenGL. Logs locais: `/tmp/coin-stipple-wgpu-ctest.log`,
 `/tmp/coin-stipple-bgfx-ctest.log`, `/tmp/coin-stipple-rust.log`,
 `/tmp/coin-stipple-wgpu-gl.log`, `/tmp/coin-stipple-bgfx-gl.log` e
 `/tmp/coin-stipple-bgfx-opengl-gl.log`.
+
+## Recortes com padrão e cobertura dos extremos (2026-09-28)
+
+O teste dos cantos encontrou perda de fragmentos iniciais: o intervalo visível
+começava exatamente no extremo da linha, que podia ficar na borda excluída de
+um triângulo expandido. O Core agora cobre a célula de raster inteira. A expansão
+divide o intervalo nos extremos originais: o corpo conserva sua interpolação
+homogênea, e as pequenas extensões conservam W, UV, material/alpha, fog e depth
+do extremo. A referência numérica verifica esses atributos com W=1,25 e 1,75.
+As arestas internas dos quads têm cobertura de um só triângulo; os testes de
+alpha detectam dupla aplicação da cor. A decisão continua exclusivamente no
+Core, sem interpretar elementos Coin dentro de BGFX/wgpu. A ABI permanece 25.
+
+A nova matriz usa quads planos 64×64, fast path ligado/desligado, larguras 1/3/6,
+repetição 1/2/5 e máscaras 0/ffff/000f/aaaa/9249. Ela inclui quatro cortes
+laterais por SoClipPlane, dois planos simultâneos e cortes near/far ortográficos.
+Cada configuração roda opaca e com alpha 50% em BLEND, DELAYED_BLEND e
+SORTED_OBJECT_BLEND. Expectativas independentes verificam fase contínua,
+extremos de cada aresta unitária e source-over único. Recorte total publica
+um novo clear e o pedido seguinte recupera a geometria. Os modos ensaiados têm
+uma face por cena; isso não qualifica ordenação entre objetos sobrepostos.
+Near/far usa LEQUAL para tornar visível a borda situada exatamente no far plane.
+
+CoinRender define uma fase determinística a partir do contorno recortado. GL
+permite fase inicial indeterminada em segmentos recortados (§3.4); a referência
+Mesa medida apresentou deslocamentos diferentes entre arestas. A comparação
+qualifica periodicidade nas arestas preservadas com um deslocamento por aresta
+que deve explicar todos os padrões, repetições, larguras e modos da matriz.
+A comparação exata de padrões sem recorte permanece obrigatória. Com máscara
+sólida/vazia, a presença de fragmentos nas arestas preservadas e nas bordas
+criadas por planos de usuário é comparada diretamente. Não se exige fase idêntica nos novos cortes.
+
+A referência Mesa desta execução também omitiu a nova borda near/far em
+amostras onde o Core, CPU e GPU a produzem. A especificação determina que bordas
+novas do polígono recortado sejam marcadas como boundary (§2.12). CoinRender
+preserva esse comportamento; a causa da divergência GL local não foi determinada.
+O teste registra o número de amostras diferentes nas bordas de profundidade,
+sem contabilizá-las como equivalência visual GL. Não existe SKIP quando a
+referência obrigatória não renderiza. Fonte:
+[OpenGL 2.1, §§2.12, 3.4 e 3.5.4](https://registry.khronos.org/OpenGL/specs/gl/glspec21.pdf).
+
+Esse fechamento cobre fase determinística e extremos em recortes do perfil
+descrito. Raster de diagonais/cantos fracionários, interpolação fora do intervalo
+original, viewport/scissor externos, MSAA e drivers físicos continuam em P04/P08.
+Não declarar comparação pixel a pixel de todos os recortes com Coin/GL.
+
+Nesta ampliação, passaram **19/19 CTests wgpu** e **28/28 CTests BGFX**.
+O teste de estilo final passou com referência CPU e GPU em wgpu/Vulkan,
+BGFX/Vulkan e BGFX/OpenGL. A referência GL obrigatória qualificou as comparações
+descritas acima; diferenças de fase e bordas near/far não foram contadas como
+igualdade pixel a pixel. Logs: `/tmp/coin-clip-stipple-wgpu-ctest.log`,
+`/tmp/coin-clip-stipple-bgfx-ctest.log`, `/tmp/coin-clip-stipple-wgpu-gl.log`,
+`/tmp/coin-clip-stipple-bgfx-gl.log`, `/tmp/coin-clip-stipple-bgfx-opengl-gl.log`
+e `/tmp/coin-clip-stipple-wgpu-final-test.log`.
 
 ## Checklist de P02
 
@@ -328,6 +382,7 @@ BGFX/OpenGL. Logs locais: `/tmp/coin-stipple-wgpu-ctest.log`,
 - [x] Matriz explícita de contornos fora do perfil e subclasses sem detalhe recuperável; rejeição não equivale a suporte.
 - [x] Offset pelo gradiente da face plana original em Core, BGFX e wgpu.
 - [x] Padrão contínuo entre arestas, contagem por fragmentos e reinício por polígono no perfil documentado.
+- [x] Recortes com padrão e cobertura dos extremos em CPU/BGFX/wgpu; alpha simples e publicação vazia no perfil documentado.
 - [x] Inclinação + units fracionário no wgpu/D32Float, com readback numérico.
 - [ ] Offset fora do perfil plano e qualificação ampliada de precisão P04/F12.
 - [x] Fog por fragmento e textura explícita na unidade 0 em strokes wgpu/BGFX.

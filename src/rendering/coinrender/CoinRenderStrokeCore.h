@@ -217,15 +217,30 @@ inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& d
           }
         }
         for (const auto& span : spans) {
-          {
-            const float t0 = span.first;
-            const float t1 = span.second;
-            const SbVec3f start = firstNdc + (secondNdc - firstNdc) * t0;
-            const SbVec3f end = firstNdc + (secondNdc - firstNdc) * t1;
+          // Stipple operates on whole pixel cells, whose first/last boundaries
+          // can lie beyond the original segment. Split those caps at the
+          // endpoints: original intervals keep exact homogeneous attributes,
+          // while caps retain endpoint depth, W, UV, color and fog. Shared
+          // triangle edges follow the rasterizer's single-owner coverage rule.
+          float cuts[4] = {span.first};
+          size_t cutCount = 1;
+          if (span.first < 0 && span.second > 0)
+            cuts[cutCount++] = 0;
+          if (span.first < 1 && span.second > 1)
+            cuts[cutCount++] = 1;
+          cuts[cutCount++] = span.second;
+          for (size_t part = 1; part < cutCount; ++part) {
+            const float t0 = cuts[part - 1], t1 = cuts[part];
+            const float attributeT0 = std::max(0.0f, std::min(1.0f, t0));
+            const float attributeT1 = std::max(0.0f, std::min(1.0f, t1));
+            SbVec3f start = firstNdc + (secondNdc - firstNdc) * t0;
+            SbVec3f end = firstNdc + (secondNdc - firstNdc) * t1;
+            start[2] = firstNdc[2] + (secondNdc[2] - firstNdc[2]) * attributeT0;
+            end[2] = firstNdc[2] + (secondNdc[2] - firstNdc[2]) * attributeT1;
             const CoinRenderVertexSnapshot startAttributes =
-                attributesAt(firstVertex, secondVertex, firstW, secondW, t0);
+                attributesAt(firstVertex, secondVertex, firstW, secondW, attributeT0);
             const CoinRenderVertexSnapshot endAttributes =
-                attributesAt(firstVertex, secondVertex, firstW, secondW, t1);
+                attributesAt(firstVertex, secondVertex, firstW, secondW, attributeT1);
             const uint32_t startMaterial = startAttributes.materialSlot;
             const uint32_t endMaterial = endAttributes.materialSlot;
             const uint32_t base = static_cast<uint32_t>(plan.vertices.size());

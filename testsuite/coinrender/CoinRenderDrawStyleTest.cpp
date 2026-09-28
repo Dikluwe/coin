@@ -582,6 +582,73 @@ bool polygonUnsupportedActionContract(bool cpu) {
   }
   root->unref();return ok;
 }
+bool polygonStippleCapCoreContract() {
+  CoinRenderFramePlan plan;
+  CoinRenderViewportSnapshot viewport;
+  viewport.width = viewport.height = 64;
+  plan.viewports.push_back(viewport);
+  plan.materials.resize(2);
+  plan.materials[0].diffuse[0] = .2f;
+  plan.materials[0].diffuse[3] = .5f;
+  plan.materials[1].diffuse[0] = .8f;
+  plan.materials[1].diffuse[3] = .8f;
+  CoinRenderRenderStateSnapshot state;
+  state.lightModel = CoinRenderLightModel::BASE_COLOR;
+  state.projectionCoin[2][3] = -.5f;
+  state.polygonLinePattern = true;
+  state.linePattern = 1;
+  state.linePatternScaleFactor = 256;
+  state.fogMode = CoinRenderFogMode::HAZE;
+  plan.renderStates.push_back(state);
+  plan.vertices.resize(2);
+  plan.vertices[0].position[0] = -.796875f * 1.25f;
+  plan.vertices[0].position[1] = -.796875f * 1.25f;
+  plan.vertices[0].position[2] = -.5f;
+  plan.vertices[0].texcoord[0] = .25f;
+  plan.vertices[1].position[0] = -.203125f * 1.75f;
+  plan.vertices[1].position[1] = -.796875f * 1.75f;
+  plan.vertices[1].position[2] = -1.5f;
+  plan.vertices[1].texcoord[0] = .9f;
+  plan.vertices[1].materialSlot = 1;
+  plan.indices = {0, 1};
+  CoinRenderDrawPacket draw;
+  draw.topology = CoinRenderPrimitiveTopology::LINE_LIST;
+  draw.geometry.vertexCount = 2;
+  draw.geometry.indexCount = 2;
+  plan.draws.push_back(draw);
+  std::string diagnostic;
+  bool ok = check(coin_render_expand_strokes(plan, diagnostic) && plan.draws.size() == 1,
+                  "stipple cap expansion succeeds");
+  if (!ok)
+    return false;
+  const auto& expanded = plan.draws[0];
+  bool capFound = false, bodyFound = false;
+  for (uint32_t i = 0; i < expanded.geometry.vertexCount; ++i) {
+    const auto& vertex = plan.vertices[expanded.geometry.firstVertex + i];
+    if (vertex.position[0] < -.796875f) {
+      capFound = true;
+      ok = check(vertex.screenSpaceW == 1.25f && vertex.fogEyeDepth == .5f &&
+                     vertex.texcoord[0] == .25f && vertex.materialSlot == 0 &&
+                     vertex.position[2] == -.4f,
+                 "cap retains exact endpoint W, UV, color, alpha, fog and unbiased depth") && ok;
+    } else if (vertex.position[0] < -.203125f) {
+      bodyFound = true;
+      const double screenT = (vertex.position[0] + .796875) / (.796875 - .203125);
+      const double inverseW = (1 - screenT) / 1.25 + screenT / 1.75;
+      const double t = (screenT / 1.75) / inverseW;
+      const auto& material = plan.materials[vertex.materialSlot];
+      ok = check(std::abs(vertex.screenSpaceW - 1 / inverseW) < 1e-6 &&
+                     std::abs(vertex.texcoord[0] - (.25 + .65 * t)) < 1e-6 &&
+                     std::abs(vertex.fogEyeDepth - (.5 + t)) < 1e-6 &&
+                     std::abs(material.diffuse[0] - (.2 + .6 * t)) < 1e-6 &&
+                     std::abs(material.diffuse[3] - (.5 + .3 * t)) < 1e-6 &&
+                     std::abs(vertex.position[2] - (-.4 + (-1.5 / 1.75 + .4) * screenT)) < 1e-6,
+                 "original interval keeps independent perspective attributes and linear window depth") && ok;
+    }
+  }
+  ok = check(capFound && bodyFound, "raster cap covers the start cell while retaining the original interval") && ok;
+  return ok;
+}
 bool polygonStippleCoreContract() {
   bool ok=true;uint32_t phase=0;std::vector<std::pair<float,float>> spans;
   const double points[5][2]={{6.5,6.5},{15.5,6.5},{15.5,14.5},{6.5,14.5},{6.5,6.5}};
@@ -680,6 +747,261 @@ bool polygonStippleActionContract(bool cpu) {
   }
   if(compareGl)std::cout<<"Coin/GL polygon stipple reference passed\n";
   root->unref();return ok;
+}
+bool polygonClippedStippleActionContract(bool cpu) {
+  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(64, 64)));
+  if (cpu)
+    target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
+#ifdef HAVE_COIN_BGFX
+  target->setDepthReadbackEnabled(FALSE);
+#endif
+  SoSeparator* root = new SoSeparator;
+  root->ref();
+  SoOrthographicCamera* camera = new SoOrthographicCamera;
+  camera->height = 2;
+  camera->position = SbVec3f(0, 0, 3);
+  camera->nearDistance = .1f;
+  camera->farDistance = 10;
+  root->addChild(camera);
+  SoDepthBuffer* depth = new SoDepthBuffer;
+  depth->function = SoDepthBuffer::LEQUAL;
+  root->addChild(depth);
+  SoLightModel* lighting = new SoLightModel;
+  lighting->model = SoLightModel::BASE_COLOR;
+  root->addChild(lighting);
+  SoMaterial* material = new SoMaterial;
+  material->diffuseColor = SbColor(1, 1, 1);
+  root->addChild(material);
+  SoDrawStyle* drawStyle = style(SoDrawStyle::LINES);
+  root->addChild(drawStyle);
+  SoClipPlane* firstClip = new SoClipPlane;
+  root->addChild(firstClip);
+  SoClipPlane* secondClip = new SoClipPlane;
+  root->addChild(secondClip);
+  SoCoordinate3* coords = new SoCoordinate3;
+  root->addChild(coords);
+  root->addChild(faces());
+  CoinRenderAction action(SbViewportRegion(64, 64));
+  action.setRenderTarget(target.get());
+  bool ok = true;
+  const bool compareGl = std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") != nullptr;
+  SoOffscreenRenderer gl(SbViewportRegion(64, 64));
+  gl.setComponents(SoOffscreenRenderer::RGB);
+  for (int clip = 0; clip < 8; ++clip) {
+    const int xy[4][2] = {{6, 6}, {45, 6}, {45, 31}, {6, 31}};
+    camera->nearDistance = clip >= 6 ? 1 : .1f;
+    for (int i = 0; i < 4; ++i) {
+      const float z =
+          clip == 6 ? 2.5f - .05f * (xy[i][0] - 6) : (clip == 7 ? -5.f - .1f * (xy[i][0] - 6) : 0);
+      coords->point.set1Value(i, SbVec3f((xy[i][0] + .5f) / 32 - 1, (xy[i][1] + .5f) / 32 - 1, z));
+    }
+    firstClip->on = clip > 0 && clip < 6 ? TRUE : FALSE;
+    secondClip->on = clip == 5 ? TRUE : FALSE;
+    if (clip == 1 || clip == 5)
+      firstClip->plane = SbPlane(SbVec3f(1, 0, 0), 16.5f / 32 - 1);
+    if (clip == 2)
+      firstClip->plane = SbPlane(SbVec3f(-1, 0, 0), -(35.5f / 32 - 1));
+    if (clip == 3)
+      firstClip->plane = SbPlane(SbVec3f(0, 1, 0), 14.5f / 32 - 1);
+    if (clip == 4)
+      firstClip->plane = SbPlane(SbVec3f(0, -1, 0), -(24.5f / 32 - 1));
+    secondClip->plane = SbPlane(SbVec3f(0, 1, 0), 14.5f / 32 - 1);
+    const int left = clip == 1 || clip == 5 || clip == 6 ? 16 : 6,
+              right = clip == 2 ? 35 : (clip == 7 ? 26 : 45);
+    const int bottom = clip == 3 || clip == 5 ? 14 : 6, top = clip == 4 ? 24 : 31;
+    const int width = right - left, height = top - bottom;
+    struct GlSample {
+      int counter, repeat, edge;
+      uint32_t pattern;
+      bool visible;
+    };
+    std::vector<GlSample> glSamples;
+    size_t frustumCutDifferences = 0;
+    for (int mode : {CoinRenderAction::BLEND, CoinRenderAction::DELAYED_BLEND,
+                     CoinRenderAction::SORTED_OBJECT_BLEND})
+      for (float transparency : {0.0f, .5f})
+        for (int fast : {0, 1})
+          for (int strokeWidth : {1, 3, 6})
+            for (int repeat : {1, 2, 5})
+              for (uint32_t pattern : {0u, 0xffffu, 0x000fu, 0xaaaau, 0x9249u}) {
+                action.setTransparencyType(static_cast<CoinRenderAction::TransparencyType>(mode));
+                gl.getGLRenderAction()->setTransparencyType(
+                    static_cast<SoGLRenderAction::TransparencyType>(mode));
+                material->transparency = transparency;
+                action.setFastPathEnabled(fast ? TRUE : FALSE);
+                drawStyle->lineWidth = strokeWidth;
+                drawStyle->linePattern = pattern;
+                drawStyle->linePatternScaleFactor = repeat;
+                action.apply(root);
+                std::vector<uint8_t> image;
+                target->readbackRGBA(image);
+                if (!check(action.getLastStatus() == CoinRenderAction::SUCCESS &&
+                               image.size() == 64 * 64 * 4,
+                           "clipped patterned contour renders")) {
+                  root->unref();
+                  return false;
+                }
+                const unsigned char* reference = nullptr;
+                if (compareGl) {
+                  if (!check(gl.render(root) && gl.getBuffer(),
+                             "required Coin/GL clipped stipple renders")) {
+                    root->unref();
+                    return false;
+                  }
+                  reference = gl.getBuffer();
+                }
+                auto sample = [&](int x, int y, int counter, int edge) {
+                  const bool expected = (pattern & (1u << ((counter / repeat) & 15))) != 0;
+                  const bool actual = image[((63 - y) * 64 + x) * 4] > 40;
+                  if (actual != expected)
+                    std::cerr << "clipped stipple " << clip << ',' << strokeWidth << ',' << repeat
+                              << ',' << pattern << " at " << x << ',' << y << " counter " << counter
+                              << " Core " << actual << '\n';
+                  ok = check(actual == expected &&
+                                 std::abs(int(image[((63 - y) * 64 + x) * 4]) -
+                                          (expected ? (transparency == 0 ? 255 : 128) : 0)) <= 2,
+                             "clipped contour keeps its continuous counter and single source-over "
+                             "coverage") &&
+                       ok;
+                  if (reference) {
+                    if (pattern == 0 || pattern == 0xffffu || clip == 0) {
+                      const bool same = (reference[(y * 64 + x) * 3] > 40) == actual;
+                      const bool frustumCut = (clip == 6 && edge == 2) || (clip == 7 && edge == 3);
+                      // The local Mesa reference can omit a newly created depth-plane
+                      // edge. CoinRender keeps the clipped polygon's boundary as
+                      // required by GL 2.1 section 2.12. Record this driver difference;
+                      // qualify all user-plane cuts and retained edges exactly.
+                      if (frustumCut && !same)
+                        ++frustumCutDifferences;
+                      else {
+                        if (!same)
+                          std::cerr << "GL clip geometry " << clip << ',' << strokeWidth << ','
+                                    << pattern << " xy " << x << ',' << y << " GL "
+                                    << int(reference[(y * 64 + x) * 3]) << " Core "
+                                    << int(image[((63 - y) * 64 + x) * 4]) << '\n';
+                        ok = check(same,
+                                   "Coin/GL retained geometry and user-plane boundaries agree") &&
+                             ok;
+                      }
+                    }
+                    glSamples.push_back(
+                        {counter, repeat, edge, pattern, reference[(y * 64 + x) * 3] > 40});
+                  }
+                };
+                for (int x = left + 4; x < right - 3; ++x) {
+                  sample(x, bottom, (clip == 4 ? width + height : height) + x - left, 0);
+                  sample(x, top, (clip == 4 ? 0 : height + width + height) + right - x, 1);
+                }
+                for (int y = bottom + 4; y < top - 3; ++y) {
+                  sample(left, y, (clip == 4 ? width : 0) + top - y, 2);
+                  sample(right, y,
+                         (clip == 4 ? width + height + width : height + width) + y - bottom, 3);
+                }
+                if (strokeWidth == 1 && pattern != 0xffffu) {
+                  // Every original unit-width fragment, including the start pixel,
+                  // belongs to one edge; terminal endpoints are excluded.
+                  const int cornerPhase[4] = {clip == 4 ? width + height : height,
+                                              clip == 4 ? width + height + width : height + width,
+                                              clip == 4 ? 0 : height + width + height,
+                                              clip == 4 ? width : 0};
+                  const int cornerXY[4][2] = {
+                      {left, bottom}, {right, bottom}, {right, top}, {left, top}};
+                  for (int i = 0; i < 4; ++i) {
+                    const bool expected = (pattern & (1u << ((cornerPhase[i] / repeat) & 15))) != 0;
+                    const bool actual =
+                        image[((63 - cornerXY[i][1]) * 64 + cornerXY[i][0]) * 4] > 40;
+                    if (actual != expected)
+                      std::cerr << "stipple corner " << clip << ',' << pattern << ',' << repeat
+                                << " corner " << i << " counter " << cornerPhase[i] << " got "
+                                << actual << '\n';
+                    ok = check(
+                             actual == expected &&
+                                 std::abs(
+                                     int(image[((63 - cornerXY[i][1]) * 64 + cornerXY[i][0]) * 4]) -
+                                     (expected ? (transparency == 0 ? 255 : 128) : 0)) <= 2,
+                             "stipple caps retain corner fragments without double blending") &&
+                         ok;
+                  }
+                }
+                if (!ok) {
+                  root->unref();
+                  return false;
+                }
+              }
+    if (compareGl) {
+      // GL allows an indeterminate initial phase on clipped segments.
+      // Newly created cut edges may also be split by the driver's polygon
+      // mechanism. Qualify retained edges by periodicity, with one phase per
+      // edge across all masks/repeats/widths. Core continuity is checked above.
+      for (int edge = 0; edge < 4; ++edge) {
+        const bool cut = (edge == 2 && (clip == 1 || clip == 5 || clip == 6)) ||
+                         (edge == 3 && (clip == 2 || clip == 7)) ||
+                         (edge == 0 && (clip == 3 || clip == 5)) || (edge == 1 && clip == 4);
+        if (cut)
+          continue;
+        bool periodic = false;
+        int found = 0;
+        const int perimeter = 2 * (width + height);
+        for (int displacement = -perimeter; displacement <= perimeter && !periodic;
+             ++displacement) {
+          if (clip == 0 && displacement != 0)
+            continue;
+          bool matches = true;
+          for (const auto& item : glSamples)
+            if (item.edge == edge) {
+              const int period = 16 * item.repeat;
+              const int phase = ((item.counter + displacement) % period + period) % period;
+              if (((item.pattern & (1u << (phase / item.repeat))) != 0) != item.visible) {
+                matches = false;
+                break;
+              }
+            }
+          if (matches) {
+            periodic = true;
+            found = displacement;
+          }
+        }
+        if (!periodic)
+          std::cerr << "GL clipped pattern has no retained-edge phase for clip " << clip << " edge "
+                    << edge << '\n';
+        ok =
+            check(periodic, "Coin/GL retained edge keeps pattern periodicity under clipping") && ok;
+        if (periodic)
+          std::cout << "Coin/GL clip " << clip << " edge " << edge << " phase displacement "
+                    << found << '\n';
+      }
+    }
+    if (compareGl && frustumCutDifferences)
+      std::cout << "Coin/GL depth-plane cut " << clip << " differs in " << frustumCutDifferences
+                << " samples; normative Core boundary tested separately\n";
+    if (!ok) {
+      root->unref();
+      return false;
+    }
+  }
+  const uint64_t serial = target->getLastSubmissionSerial();
+  firstClip->on = TRUE;
+  firstClip->plane = SbPlane(SbVec3f(1, 0, 0), 2);
+  secondClip->on = FALSE;
+  action.apply(root);
+  std::vector<uint8_t> clear;
+  target->readbackRGBA(clear);
+  bool empty = clear.size() == 64 * 64 * 4;
+  for (size_t i = 0; i + 3 < clear.size(); i += 4)
+    empty = empty && clear[i] == 0 && clear[i + 1] == 0 && clear[i + 2] == 0;
+  ok = check(action.getLastStatus() == CoinRenderAction::SUCCESS && empty &&
+                 target->getLastSubmissionSerial() > serial,
+             "fully clipped patterned polygon publishes a fresh clear") &&
+       ok;
+  firstClip->on = FALSE;
+  action.apply(root);
+  ok = check(action.getLastStatus() == CoinRenderAction::SUCCESS,
+             "patterned polygon recovers after complete clipping") &&
+       ok;
+  if (compareGl)
+    std::cout << "Coin/GL clipped geometry and retained-edge stipple reference passed\n";
+  root->unref();
+  return ok;
 }
 bool slopeActionContract(bool cpu) {
   std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(64,64)));
@@ -818,10 +1140,10 @@ bool actionContract(bool cpu) {
 }
 int main() {
   SoDB::init();DerivedStyleCube::initClass();CoinRenderAction::initClass();
-  if(!polygonStippleCoreContract() || !stateContract() || !polygonCoreContract() || !slopeCoreContract() || !polygonCaptureContract() || !polygonUnsupportedActionContract(true) || !polygonStippleActionContract(true) || !polygonActionContract(true) || !slopeActionContract(true) || !homogeneousStrokeContract(true) || !polygonAttributesActionContract(true) || !actionContract(true))return 1;
+  if(!polygonStippleCapCoreContract() || !polygonStippleCoreContract() || !stateContract() || !polygonCoreContract() || !slopeCoreContract() || !polygonCaptureContract() || !polygonUnsupportedActionContract(true) || !polygonClippedStippleActionContract(true) || !polygonStippleActionContract(true) || !polygonActionContract(true) || !slopeActionContract(true) || !homogeneousStrokeContract(true) || !polygonAttributesActionContract(true) || !actionContract(true))return 1;
   if(!CoinRenderAction::isGpuBackendAvailable()) {
     std::cerr<<"[SKIP] GPU adapter unavailable\n";return 77;
   }
-  if(!polygonUnsupportedActionContract(false) || !polygonStippleActionContract(false) || !polygonActionContract(false) || !slopeActionContract(false) || !homogeneousStrokeContract(false) || !polygonAttributesActionContract(false) || !actionContract(false))return 1;
+  if(!polygonUnsupportedActionContract(false) || !polygonClippedStippleActionContract(false) || !polygonStippleActionContract(false) || !polygonActionContract(false) || !slopeActionContract(false) || !homogeneousStrokeContract(false) || !polygonAttributesActionContract(false) || !actionContract(false))return 1;
   std::cout<<"DrawStyle polygon/Core/INVISIBLE CPU/GPU contracts passed\n";return 0;
 }
