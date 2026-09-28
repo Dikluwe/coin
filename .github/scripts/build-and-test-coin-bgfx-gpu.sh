@@ -105,9 +105,9 @@ cmake --build "${build_dir}" --config Release --parallel --target \
   CoinBgfxMultiWindowTest
 
 if [[ "${renderer}" == vulkan ]]; then
-  readonly test_regex="^(BgfxReadbackModes_vulkan|BgfxSurface_vulkan_(object|weighted_oit|sorted_layers)|CoinRenderFogTest|CoinRenderProductTest|CoinRenderBackendContractTest|CoinBgfxCoreTest|CoinBgfxOffscreenTest|CoinBgfxTransparencyTest|CoinBgfxSortedLayersTest|CoinBgfxWeightedOitTest|CoinBgfxWindowTest|CoinBgfxRenderManagerAdapterTest|CoinBgfxMultiWindowTest|CoinBgfxMultiWindowOffscreenFirstTest|CoinBgfxMultiWindow_(weighted_oit|sorted_layers)_vulkanTest)$"
+  readonly test_regex="^(CoinBgfxReadbackModes_vulkan|CoinBgfxSurface_vulkan_(object|weighted_oit|sorted_layers)|CoinRenderFogTest|CoinRenderProductTest|CoinRenderBackendContractTest|CoinBgfxCoreTest|CoinBgfxOffscreenTest|CoinBgfxTransparencyTest|CoinBgfxSortedLayersTest|CoinBgfxWeightedOitTest|CoinBgfxWindowTest|CoinBgfxRenderManagerAdapterTest|CoinBgfxMultiWindowTest|CoinBgfxMultiWindowOffscreenFirstTest|CoinBgfxMultiWindow_(weighted_oit|sorted_layers)_vulkanTest)$"
 else
-  readonly test_regex="^(BgfxReadbackModes_opengl|BgfxSurface_opengl_(object|weighted_oit|sorted_layers)|CoinRenderFogTest|CoinRenderProductOpenGLTest|CoinRenderBackendContractOpenGLTest|CoinBgfxCoreTest|CoinBgfxOpenGLTest|CoinBgfxTransparencyOpenGLTest|CoinBgfxSortedLayersOpenGLTest|CoinBgfxWeightedOitOpenGLTest|CoinBgfxWindowOpenGLTest|CoinBgfxRenderManagerAdapterOpenGLTest|CoinBgfxMultiWindowOpenGLTest|CoinBgfxMultiWindowOffscreenFirstOpenGLTest|CoinBgfxMultiWindow_(weighted_oit|sorted_layers)_openglTest)$"
+  readonly test_regex="^(CoinBgfxReadbackModes_opengl|CoinBgfxSurface_opengl_(object|weighted_oit|sorted_layers)|CoinRenderFogTest|CoinRenderProductOpenGLTest|CoinRenderBackendContractOpenGLTest|CoinBgfxCoreTest|CoinBgfxOpenGLTest|CoinBgfxTransparencyOpenGLTest|CoinBgfxSortedLayersOpenGLTest|CoinBgfxWeightedOitOpenGLTest|CoinBgfxWindowOpenGLTest|CoinBgfxRenderManagerAdapterOpenGLTest|CoinBgfxMultiWindowOpenGLTest|CoinBgfxMultiWindowOffscreenFirstOpenGLTest|CoinBgfxMultiWindow_(weighted_oit|sorted_layers)_openglTest)$"
 fi
 
 ctest --test-dir "${build_dir}" -C Release -R "${test_regex}" \
