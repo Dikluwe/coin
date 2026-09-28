@@ -116,8 +116,8 @@ não aceita strokes preparados em coordenadas de tela.
   rejeitados: continuidade entre arestas e contagem de fragmentos Coin/GL
   permanecem pendentes.
 - Offset por inclinação está implementado para contornos planos com área
-  projetada não zero. No wgpu, a combinação de inclinação não zero com units
-  não zero retorna UNSUPPORTED; units isolado conserva o caminho existente.
+  projetada não zero. No wgpu, inclinação e units são combinados na Infra usando a precisão
+  D32Float do maior depth do contorno; units isolado conserva o caminho existente.
   Precisão de units e qualificação de depth/raster continuam vinculadas a
   P04/F12. Faces não planas e faces de lado com factor ativo têm diagnóstico
   explícito; com factor zero, conservam o perfil anterior.
@@ -177,7 +177,9 @@ BGFX soma esse bias ao componente constante já usado por `coinWindowDepth`;
 range, bias e clamp em `[0,1]` são aplicados no fragmento. O shader conserva o
 caminho existente de units. wgpu seleciona `fs_depth_bias` apenas para draws
 com bias resolvido ativo, usa viewport de depth `[0,1]` e aplica range Coin,
-bias e clamp no shader. A variante usa factor/units GPU zero; o caminho de
+bias e clamp no shader. A variante usa factor/units GPU zero e soma units em janela, com quantum
+D32Float `2^(expoente(maxDepth)-23)`; valores fracionários são preservados.
+Esse cálculo da precisão pertence à Infra. O caminho de
 pipeline anterior permanece para os demais draws. Essa escolha também evita
 que o clamp do viewport reduza o resultado ao intervalo Coin antes do bias.
 As regras de depth bias e saída de fragmento estão na
@@ -207,6 +209,12 @@ frame e depth nos dois perfis. Logs locais:
 `/tmp/coin-slope-rust.log`, `/tmp/coin-slope-wgpu-review-tests.log` e
 `/tmp/coin-slope-bgfx-review-tests.log`.
 
+Em uma segunda rodada, o limite de inclinação + units no wgpu foi removido.
+Passaram o teste de estilo wgpu, três variantes BGFX e 11 testes Rust.
+Readback D32Float verificou units fracionário; sinais opostos de inclinação e
+units verificaram a soma por oclusão. Logs: `/tmp/coin-units-wgpu-tests.log`,
+`/tmp/coin-units-bgfx-tests.log` e `/tmp/coin-units-rust-tests.log`.
+
 ## Checklist de P02
 
 - [x] INVISIBLE com estado efetivo Coin e supressão comum de captura.
@@ -216,9 +224,10 @@ frame e depth nos dois perfis. Logs locais:
 - [x] Culling e clipping de contornos convexos, com bordas e pontos novos de corte.
 - [x] Gouraud antes de clipping, com UV/alpha interpolados e depth no perfil.
 - [ ] Contornos fora do perfil, subclasses e shapes customizados; definir sua matriz.
-- [x] Offset pelo gradiente da face plana original em Core, BGFX e wgpu (units zero).
+- [x] Offset pelo gradiente da face plana original em Core, BGFX e wgpu.
 - [ ] Padrão contínuo entre arestas.
-- [ ] Offset fora do perfil plano; inclinação + units no wgpu e precisão P04/F12.
+- [x] Inclinação + units fracionário no wgpu/D32Float, com readback numérico.
+- [ ] Offset fora do perfil plano e qualificação ampliada de precisão P04/F12.
 - [ ] Fog e texturas de strokes no wgpu; matriz ampliada BGFX conforme P07/P08.
 - [ ] Sorting/transparência, precisão de raster e comparação Coin/GL/FreeCAD.
 

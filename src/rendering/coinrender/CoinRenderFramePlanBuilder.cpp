@@ -1268,13 +1268,6 @@ void CoinRenderFramePlanBuilder::emitStyledPolygon(SoCallbackAction* action) {
   }
   if (resolved.vertices.empty())
     return;
-#if !defined(HAVE_COIN_BGFX)
-  if (resolved.state.polygonOffsetSlopeBias != 0 && sourceState.polygonOffsetUnits != 0) {
-    this->isUnsupported = true;
-    this->builderError = "UNSUPPORTED: wgpu polygon slope offset with nonzero units requires depth precision qualification";
-    return;
-  }
-#endif
   const uint32_t stateSlot = static_cast<uint32_t>(this->currentPlan.renderStates.size());
   this->currentPlan.renderStates.push_back(resolved.state);
   this->ensureDrawPacket(resolved.topology, stateSlot, this->polygonNode, true);

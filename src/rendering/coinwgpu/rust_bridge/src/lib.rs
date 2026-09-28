@@ -1568,9 +1568,67 @@ fn polygon_depth_bias(st: &CoinWgpuRenderState, topology: u32) -> Result<wgpu::D
     } else { wgpu::DepthBiasState::default() })
 }
 
+// D32Float precision is an Infra property. The Core's original-face slope
+// is constant per draw; the expanded contour retains its depth extrema.
+fn d32_depth_quantum(max_depth: f32) -> f32 {
+    let exponent = (max_depth.to_bits() >> 23) & 0xff;
+    if exponent == 0 { f32::from_bits(1) }
+    else { 2.0f32.powi(exponent as i32 - 127 - 23) }
+}
+
+fn resolved_polygon_bias(st: &CoinWgpuRenderState, draw: &CoinWgpuDraw,
+                         vertices: &[CoinWgpuVertex], indices: &[u32]) -> Result<f32, String> {
+    if st.polygon_offset_factor != 0.0 {
+        return Err("Resolved polygon slope bias requires zero GPU slope factor".to_string());
+    }
+    let mut max_depth = 0.0f32;
+    for index in &indices[draw.first_index as usize..(draw.first_index + draw.index_count) as usize] {
+        let p = vertices[*index as usize].position;
+        let m = &st.model_view_projection;
+        let z = m[2]*p[0] + m[6]*p[1] + m[10]*p[2] + m[14];
+        let w = m[3]*p[0] + m[7]*p[1] + m[11]*p[2] + m[15];
+        if !z.is_finite() || !w.is_finite() || w <= 0.0 {
+            return Err("Invalid clip depth for resolved polygon bias".to_string());
+        }
+        let depth = st.depth_range[0] + (z/w) * (st.depth_range[1]-st.depth_range[0]);
+        max_depth = max_depth.max(depth.clamp(0.0, 1.0));
+    }
+    let bias = st.polygon_offset_slope_bias + st.polygon_offset_units * d32_depth_quantum(max_depth);
+    if !bias.is_finite() { return Err("Invalid resolved polygon depth bias".to_string()); }
+    Ok(bias)
+}
+
 #[cfg(test)]
 mod polygon_depth_tests {
     use super::*;
+
+    #[test]
+    fn d32_quantum_tracks_exponent_and_fractional_units() {
+        for (depth, expected) in [(0.125, 2.0f32.powi(-26)),
+                                  (0.5, 2.0f32.powi(-24)),
+                                  (1.0, 2.0f32.powi(-23))] {
+            assert_eq!(d32_depth_quantum(depth), expected);
+        }
+        assert_eq!(d32_depth_quantum(0.0).to_bits(), 1);
+        let mut st: CoinWgpuRenderState = unsafe { std::mem::zeroed() };
+        st.model_view_projection[0] = 1.0;st.model_view_projection[5] = 1.0;
+        st.model_view_projection[10] = 1.0;st.model_view_projection[15] = 1.0;
+        st.depth_range = [0.0, 1.0];st.polygon_offset_slope_bias = -0.01;
+        let mut draw: CoinWgpuDraw = unsafe { std::mem::zeroed() };
+        draw.index_count = 2;
+        let mut vertices = [CoinWgpuVertex::zeroed(); 2];
+        vertices[0].position[2] = 0.1;vertices[1].position[2] = 0.5;
+        for units in [-3.5, 3.5] {
+            st.polygon_offset_units = units;
+            assert_eq!(resolved_polygon_bias(&st, &draw, &vertices, &[0,1]).unwrap(),
+                -0.01 + units * 2.0f32.powi(-24));
+        }
+        st.depth_range = [0.0, 0.25];st.polygon_offset_units = 4.0;
+        assert_eq!(resolved_polygon_bias(&st, &draw, &vertices, &[0,1]).unwrap(),
+            -0.01 + 4.0 * 2.0f32.powi(-26));
+        st.polygon_offset_factor = 1.0;
+        assert!(resolved_polygon_bias(&st, &draw, &vertices, &[0,1]).is_err());
+    }
 
     #[test]
     fn masks_signs_and_disable_preserve_pipeline_bias() {
@@ -2393,12 +2451,14 @@ fn encode_frame(
             let resolved_depth_bias = st.polygon_offset_enabled != 0
                 && st.polygon_offset_styles & st.polygon_offset_primitive_style != 0
                 && st.polygon_offset_slope_bias != 0.0;
-            if resolved_depth_bias && (st.polygon_offset_units != 0.0 || st.polygon_offset_factor != 0.0) {
-                return Err((CoinWgpuStatus::Unsupported,
-                    "Resolved polygon slope bias requires zero GPU factor and units".to_string()));
-            }
-            let depth_bias = polygon_depth_bias(st, draw.topology).map_err(|e|
+            let native_depth_bias = polygon_depth_bias(st, draw.topology).map_err(|e|
                 (CoinWgpuStatus::InvalidArgument, format!("Draw {}: {}", item.draw_index, e)))?;
+            let window_bias = if resolved_depth_bias {
+                resolved_polygon_bias(st, draw, vertices_slice, indices_slice).map_err(|e|
+                    (CoinWgpuStatus::InvalidArgument, format!("Draw {}: {}", item.draw_index, e)))?
+            } else { 0.0 };
+            let depth_bias = if resolved_depth_bias { wgpu::DepthBiasState::default() }
+                             else { native_depth_bias };
             let pipeline = match get_or_create_pipeline(
                 ctx,
                 draw.topology,
@@ -2496,7 +2556,7 @@ fn encode_frame(
                 light_meta: [st.light_count as f32, 0.0, 0.0, 0.0],
                 texture_blend_color: st.texture_blend_color,
                 lights: st.lights,
-                clip_meta: [st.clip_plane_count as f32, st.polygon_offset_slope_bias,
+                clip_meta: [st.clip_plane_count as f32, window_bias,
                     st.depth_range[0], st.depth_range[1]],
                 clip_planes: st.clip_planes,
                 fog_color_mode: [

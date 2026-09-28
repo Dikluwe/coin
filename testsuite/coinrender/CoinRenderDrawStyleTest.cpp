@@ -453,15 +453,29 @@ bool slopeActionContract(bool cpu) {
   ok=check(action.getLastStatus()==CoinRenderAction::UNSUPPORTED && image==before &&
     target->getLastSubmissionSerial()==serial,"unsupported non-planar slope preserves publication") && ok;
   position[2]-=.15f;foreground->point.set1Value(2,position);
-#if !defined(HAVE_COIN_BGFX)
-  offset->units=1;action.apply(root);
-  ok=check(action.getLastStatus()==CoinRenderAction::UNSUPPORTED &&
-    std::string(action.getLastError().getString()).find("depth precision qualification")!=std::string::npos,
-    "wgpu slope plus units exposes its precision limit") && ok;
-  offset->units=0;
-#endif
   offset->factor=-4;action.apply(root);
   ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS,"slope action recovers after rejection") && ok;
+  if(!cpu) {
+    // Units and slope can oppose each other; the sum decides coplanar occlusion.
+    for(int sign:{-1,1}) {
+      offset->factor=sign>0 ? -4 : 4;offset->units=float(sign)*200000.5f;
+      action.apply(root);std::vector<uint8_t> combined;target->readbackRGBA(combined);
+      ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS &&
+        sample(combined,32,13,sign<0 ? 255 : 0,0,sign<0 ? 0 : 255),
+        "fractional units combine with opposing original slope on GPU") && ok;
+    }
+#if !defined(HAVE_COIN_BGFX)
+    offset->factor=-4;offset->units=0;action.apply(root);
+    std::vector<float> baseline,biased;target->readbackDepth(baseline);
+    offset->units=16.5f;action.apply(root);target->readbackDepth(biased);
+    const size_t at=13*64+32;
+    // The original contour's depths lie in [.25,.5), so its D32 quantum is 2^-25.
+    const float quantum=std::ldexp(1.0f,-25);
+    ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS && baseline.size()==64*64 &&
+      biased.size()==baseline.size() && std::abs((biased[at]-baseline[at])-16.5f*quantum)<=quantum,
+      "D32 readback resolves fractional units with the original contour exponent") && ok;
+#endif
+  }
   root->unref();return ok;
 }
 bool actionContract(bool cpu) {

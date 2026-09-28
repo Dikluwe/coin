@@ -332,7 +332,7 @@ recorte de strokes antes da expansão. Limites, ABI privada 23 e evidências no
 
 CoinRender calcula a inclinação da face plana original antes da expansão.
 BGFX aplica o bias resolvido no fragmento; wgpu usa uma variante com saída de
-depth (ABI privada 23). O perfil wgpu admite inclinação com units zero;
+depth (ABI privada 23). O perfil wgpu combina inclinação com units fracionário na precisão D32Float;
 combinações fora do perfil recebem diagnóstico explícito. Faces não planas,
 precisão de units e qualificação visual continuam abertas no
 [contrato e checklist de estilo](coin-render-draw-style-contract.md).
