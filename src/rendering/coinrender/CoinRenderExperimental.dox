@@ -8,14 +8,14 @@
   <tt>COIN_BUILD_RENDER</tt> and continue to own their Coin scene graphs and,
   for window targets, the native window and event loop.
 
-  \section coin_wgpu_inventor Open Inventor contract
+  \section coin_render_inventor Open Inventor contract
 
   CoinRenderAction is an SoAction. It traverses through SoCallbackAction,
   observes SoState through elements and bundles, and obtains fallback
   geometry through the usual primitive callbacks. It does not introduce a
   second scene graph or a WebGPU-specific node hierarchy.
 
-  \section coin_wgpu_flow Frame flow
+  \section coin_render_flow Frame flow
 
   A frame has four implementation responsibilities. These names describe
   ownership of decisions; they do not impose source directory layers.
@@ -49,7 +49,7 @@
   and transforms Coin-native indexed arrays. Concave and general polygons
   continue through Coin's established tessellation fallback.
 
-  \section coin_wgpu_reuse Typed frame reuse
+  \section coin_render_reuse Typed frame reuse
 
   Consecutive private FramePlans have one conservative relationship:
   <tt>reuse</tt>, <tt>camera_patch</tt>, <tt>resource_rebuild</tt>,
@@ -102,7 +102,7 @@
   not accept this output policy. The GL comparison benchmark uses color only
   by default and reports color+depth WebGPU runs separately.
 
-  \section coin_wgpu_targets Targets and readback
+  \section coin_render_targets Targets and readback
 
   CoinRenderTarget creates either an offscreen target or a target backed by
   a native surface descriptor. Synchronous rendering includes readback when
@@ -144,7 +144,7 @@
   separately. It preserves frame order and does not change the synchronous
   API or promise a throughput benefit.
 
-  \section coin_wgpu_profile Measurement contract
+  \section coin_render_profile Measurement contract
 
   Performance comparisons should use Release builds and report traversal and
   CoinRenderFramePlan construction, resource preparation, submit, GPU execution and
@@ -163,7 +163,7 @@
   The CPU poll wait is not a GPU execution timestamp. GPU copy includes
   both color and depth if depth readback was requested.
 
-  \section coin_wgpu_bgfx BGFX evaluation connector
+  \section coin_bgfx_execution BGFX evaluation connector
 
   The optional <tt>COIN_RENDER_BACKEND=BGFX</tt> branch reuses the Coin traversal
   and private CoinRenderFramePlan but executes a deliberately smaller profile through
@@ -205,7 +205,7 @@
   frame timestamp with extra frame advancement; do not use those perturbed
   runs as the Release performance comparison.
 
-  \section coin_wgpu_limits Experimental status
+  \section coin_render_limits Experimental status
 
   The module is intentionally separate from <tt>libCoin</tt>. Its profile and
   capabilities can change while it is experimental. Query

@@ -34,3 +34,31 @@ ser usada como evidência de equivalência entre executores.
 
 O [mapa de nomes](coin-render-name-map.json) registra símbolos e caminhos
 migrados. Os exemplos e o patch FreeCAD distribuído usam os nomes principais.
+
+Estrutura principal após a integração:
+
+- `src/rendering/coinrender`: contrato, Core comum, fachadas e Shell.
+- `src/rendering/coinbgfx`: lowering, executor e shaders BGFX.
+- `src/rendering/coinwgpu`: adaptação C/Rust, executor, protótipos e shaders WGSL.
+- `src/actions`: integração Coin comum e a entrada específica `CoinBgfxAction`.
+- `testsuite/coinrender`, `testsuite/coinbgfx`, `testsuite/coinwgpu`: testes por escopo.
+- `examples/coinrender`: exemplos compartilhados e patch de integração FreeCAD.
+
+Mapas específicos: [CoinBgfx](coin-bgfx-name-map.json) e
+[CoinWgpu](coin-wgpu-name-map.json). Os arquivos de compatibilidade mantêm os
+nomes anteriores de propósito; não contêm a implementação principal.
+
+Validação da integração em 2026-09-28: builds Rust/wgpu e BGFX completos para
+módulo, testes selecionados e exemplos de janela. Passaram nove CTest no build
+Rust/wgpu, dez no BGFX/Vulkan e dois no BGFX/OpenGL, sem skips nesses conjuntos;
+As três variantes de superfície BGFX/Vulkan (object, weighted OIT e sorted layers)
+também passaram, totalizando 24 casos CTest nos dois builds. Sete testes Cargo
+e o teste direto de depth GPU wgpu passaram. Os dois exemplos de janela
+executaram três frames e terminaram com sucesso em sessões Xvfb isoladas.
+Instalação em prefixo isolado e execução dos consumidores moderno/legado passaram.
+A API legada de capacidades compilou como C99; headers legados compilaram como C++11.
+O patch FreeCAD renomeado passou na análise de hunks (`git apply --numstat`),
+sem aplicar alterações no checkout externo do FreeCAD.
+
+A falha geral `source-over` registrada na etapa de anotações permanece uma
+pendência semântica, não foi declarada resolvida pela migração de nomes.

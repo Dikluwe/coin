@@ -1,4 +1,4 @@
-// Minimal X11 WebGPU viewer for the experimental Coin 4 module.
+// Minimal X11 CoinRender viewer for the experimental Coin 4 module.
 // The native window stays owned by this executable, never by Coin.
 
 #include <Inventor/SoDB.h>
@@ -95,7 +95,7 @@ int main(int argc, char ** argv) {
     (transparencyMode && std::strcmp(transparencyMode, "weighted_oit") == 0 ?
       "Coin BGFX transparency: weighted_oit" : "Coin BGFX transparency: object");
   XStoreName(display, window, transparencyDemo ? transparencyTitle :
-             "Coin WebGPU experimental viewer");
+             "Coin CoinRender experimental viewer");
   XSelectInput(display, window,
                ExposureMask | StructureNotifyMask | KeyPressMask | ButtonPressMask);
   Atom closeWindow = XInternAtom(display, "WM_DELETE_WINDOW", False);
@@ -115,7 +115,7 @@ int main(int argc, char ** argv) {
     std::unique_ptr<CoinRenderSceneManager> manager(
       new CoinRenderSceneManager(surface, SbVec2i32(960, 540)));
     if (manager->getRenderTarget()->getStatus() == CoinRenderTarget::TARGET_ERROR) {
-      std::cerr << "Cannot create WebGPU target: "
+      std::cerr << "Cannot create CoinRender target: "
                 << manager->getLastError().getString() << '\n';
       exitCode = 1;
     } else {
@@ -204,7 +204,7 @@ int main(int argc, char ** argv) {
         const CoinRenderAction::Status status = manager->render();
         if (status != CoinRenderAction::SUCCESS &&
             status != CoinRenderAction::NOT_READY) {
-          std::cerr << "WebGPU render failed: "
+          std::cerr << "CoinRender render failed: "
                     << manager->getLastError().getString() << '\n';
           exitCode = 1;
           break;

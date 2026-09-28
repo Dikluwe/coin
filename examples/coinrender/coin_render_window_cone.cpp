@@ -2,7 +2,7 @@
  * Copyright (c) Kongsberg Oil & Gas Technologies AS
  * All rights reserved.
  *
- * Example: Real native window presentation using WebGPU (Onda 1B)
+ * Example: Real native window presentation using CoinRender (Onda 1B)
  * Presents a canonical SoCone using CoinRenderAction on an X11 / GLFW window
  * without any OpenGL context or glfwSwapBuffers.
 \**************************************************************************/
@@ -57,7 +57,7 @@ int main(int argc, char ** argv) {
 
   SoDB::init();
   ExampleRenderAction::initClass();
-  std::cout << "Starting Coin3D WebGPU Window Example (GLFW + X11)..." << std::endl;
+  std::cout << "Starting Coin3D CoinRender Window Example (GLFW + X11)..." << std::endl;
 
   if (!glfwInit()) {
     std::cerr << "Failed to initialize GLFW" << std::endl;
@@ -68,7 +68,7 @@ int main(int argc, char ** argv) {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-  GLFWwindow * window = glfwCreateWindow(960, 540, "Coin3D WebGPU Window (SoCone)", NULL, NULL);
+  GLFWwindow * window = glfwCreateWindow(960, 540, "Coin3D CoinRender Window (SoCone)", NULL, NULL);
   if (!window) {
     std::cerr << "Failed to create GLFW window" << std::endl;
     glfwTerminate();
@@ -93,7 +93,7 @@ int main(int argc, char ** argv) {
 
   CoinRenderTarget * target = CoinRenderTarget::createWindow(nativeDesc, SbVec2i32(fbWidth, fbHeight));
   if (target->getStatus() == CoinRenderTarget::TARGET_ERROR) {
-    std::cerr << "Failed to create WebGPU window target: " << target->getLastError() << std::endl;
+    std::cerr << "Failed to create CoinRender window target: " << target->getLastError() << std::endl;
     delete target;
     glfwDestroyWindow(window);
     glfwTerminate();
@@ -205,7 +205,7 @@ int main(int argc, char ** argv) {
 
   SoDB::init();
   ExampleRenderAction::initClass();
-  std::cout << "Starting Coin3D WebGPU Window Example (Direct Xlib)..." << std::endl;
+  std::cout << "Starting Coin3D CoinRender Window Example (Direct Xlib)..." << std::endl;
 
   Display * dpy = XOpenDisplay(NULL);
   if (!dpy) {
@@ -217,7 +217,7 @@ int main(int argc, char ** argv) {
   Window rootWin = RootWindow(dpy, screen);
   Window win = XCreateSimpleWindow(dpy, rootWin, 100, 100, 960, 540, 1,
                                    BlackPixel(dpy, screen), WhitePixel(dpy, screen));
-  XStoreName(dpy, win, "Coin3D WebGPU Window (SoCone - Direct Xlib)");
+  XStoreName(dpy, win, "Coin3D CoinRender Window (SoCone - Direct Xlib)");
   XSelectInput(dpy, win, ExposureMask | StructureNotifyMask | KeyPressMask);
 
   Atom wmDeleteMessage = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
@@ -236,7 +236,7 @@ int main(int argc, char ** argv) {
 
   CoinRenderTarget * target = CoinRenderTarget::createWindow(nativeDesc, SbVec2i32(960, 540));
   if (target->getStatus() == CoinRenderTarget::TARGET_ERROR) {
-    std::cerr << "Failed to create WebGPU window target: " << target->getLastError() << std::endl;
+    std::cerr << "Failed to create CoinRender window target: " << target->getLastError() << std::endl;
     delete target;
     XDestroyWindow(dpy, win);
     XCloseDisplay(dpy);

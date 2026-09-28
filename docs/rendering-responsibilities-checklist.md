@@ -114,7 +114,7 @@ Essas checkboxes são o modelo por item, não oito trabalhos globais já conclu�
 
 ## Checklist de arquitetura
 
-- [ ] **A01 — Nome neutro para o contrato comum.** Inventariar `SoWgpu*` reutilizado por BGFX, distinguir nomes privados e APIs públicas e definir migração compatível.
+- [x] **A01 — Nome neutro para o contrato comum.** API, tipos, módulo, exemplos e testes migrados para `CoinRender`; componentes específicos usam `CoinBgfx`/`CoinWgpu`. Headers/pacote antigos encaminham a fonte; consumidores precisam ser recompilados. Evidência: [migração de nomes](coin-render-naming-migration.md).
 - [ ] **A02 — Limite Wiring/Core no builder.** Funções de transformação recebem snapshots/arrays Coin, sem acessar actions, paths ou `SoState`.
 - [ ] **A03 — Composição com dono único.** Classificação de alpha, modalidade Coin, ordenação e estados efetivos são produzidos uma vez no Core; retirar interpretação paralela de C++/Rust.
 - [ ] **A04 — Plano de execução comum.** Transportar sequência de draws, camadas, barreiras, blend/depth efetivos e dependências; cada Infra só adapta e executa.
