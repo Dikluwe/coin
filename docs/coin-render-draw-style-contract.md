@@ -99,7 +99,7 @@ rasterizador CPU. A resolução de estilos e o rasterizador CPU usam a mesma
 função. Cores iluminadas e limitadas são interpoladas nos vértices novos de
 clipping, junto de alpha e UV. Infra consome geometria já resolvida: não há
 nova interpretação de SoDrawStyle nos executores. O transporte do bias de
-inclinação usa a ABI privada Rust 23, descrita abaixo.
+inclinação usa a ABI privada Rust 24, descrita abaixo.
 
 A expansão existente aplica largura/tamanho, preservando depth e alpha no
 perfil validado. Linhas/pontos nativos mantêm sua topologia sob LINES/POINTS.
@@ -121,10 +121,10 @@ não aceita strokes preparados em coordenadas de tela.
   Precisão de units e qualificação de depth/raster continuam vinculadas a
   P04/F12. Faces não planas e faces de lado com factor ativo têm diagnóstico
   explícito; com factor zero, conservam o perfil anterior.
-- Texturas, inclusive unidades adicionais, e fog de polígonos estilizados no
-  wgpu são rejeitados. BGFX usa o caminho existente de atributos homogêneos,
-  texturas e fog por fragmento; sua matriz de combinações ainda precisa ser
-  qualificada para esses novos estilos, em conjunto com P07/P08.
+- Textura na unidade 0 com UV explícito, quatro modelos e fog por fragmento
+  estão implementados em ambos os backends. Multitextura no wgpu e UV
+  procedural/default permanecem no escopo de P07/P08. A matriz de
+  transparência e de outras plataformas ainda exige qualificação.
 - Não declarar equivalência visual Coin/GL, cobertura de subclasses/custom
   GLRender, todas as modalidades de transparência ou qualificação FreeCAD.
   Os testes de clipping da rodada final ainda registraram indisponibilidade
@@ -215,6 +215,55 @@ Readback D32Float verificou units fracionário; sinais opostos de inclinação e
 units verificaram a soma por oclusão. Logs: `/tmp/coin-units-wgpu-tests.log`,
 `/tmp/coin-units-bgfx-tests.log` e `/tmp/coin-units-rust-tests.log`.
 
+## Expansão comum, texturas e fog
+
+`CoinRenderStrokeCore.h` é o único dono da expansão mecânica de linhas e
+pontos: clipping, largura/tamanho, atributos interpolados, peso homogêneo e
+distância de fog. O builder captura estado e chama o Core; a duplicação por
+backend foi removida. Linhas indexadas texturizadas usam callbacks Coin para
+preservar UV, enquanto o caminho direto continua para linhas sem textura.
+
+wgpu transporta `screen_space_w` e `fog_eye_depth_plus_one` na ABI privada
+**24**, com vértice de **44 bytes**. Estado continua com 1092 bytes e draw com
+56 bytes. O valor zero dos novos campos conserva a geometria comum de clientes
+FFI; fog explícito usa distância + 1, inclusive quando a distância é zero.
+O shader multiplica a posição homogênea por W e usa o fog capturado. As mesmas
+operações já existiam no BGFX e na referência CPU. Cor e UV têm interpolação
+em perspectiva; fog é avaliado no fragmento depois da textura.
+
+A referência analítica varia W de 1 a 4 e verifica clipping, duas matrizes UV,
+quatro modelos e três fórmulas de fog em linhas e pontos. A matriz de actions
+verifica polígonos LINES/POINTS recortados, UV interpolado na nova borda,
+SoTexture2Transform, MODULATE/REPLACE/DECAL/BLEND, HAZE/FOG/SMOKE, PHONG e
+fast path ligado/desligado. UV procedural/default e unidades adicionais não
+foram promovidos a suporte wgpu por essa entrega.
+
+A regressão desta extração passou 19 CTests wgpu e 28 CTests BGFX, contando
+as duas reexecuções de capacidade de textura após ajustar expectativas antigas:
+BGFX já implementava SCREEN_DOOR e ambos os backends agora aceitam strokes
+texturizados. Nove testes unitários e dois de WGSL também passaram. Logs:
+`/tmp/coin-stroke-wgpu-ctest.log`, `/tmp/coin-stroke-bgfx-ctest.log`,
+`/tmp/coin-stroke-bgfx-texture-tests.log` e `/tmp/coin-stroke-rust.log`.
+
+A referência Coin/GL foi recuperada usando Mesa/llvmpipe, GL 4.5 Compatibility,
+Mesa 25.2.8, pixmap GLX e contexto direto. A matriz acima também compara
+amostras RGB com Coin/GL, com tolerância de quatro níveis por canal, na
+referência CPU e nas saídas GPU. A execução é obrigatória com
+`COIN_RENDER_REQUIRE_GL_REFERENCE=1` e falha se o renderer GL não funcionar.
+Comando local reproduzível para wgpu:
+
+```sh
+__GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
+COIN_GLX_PIXMAP_DIRECT_RENDERING=1 COIN_RENDER_REQUIRE_GL_REFERENCE=1 \
+xvfb-run -a /mnt/Laranja/Git/externos/coin-build/bin/CoinRenderDrawStyleTest
+```
+
+Para BGFX, usar o executável em `build-bgfx-recovery/coin-build/bin` e
+`COIN_BGFX_RENDERER=vulkan` ou `opengl`. Evidências em
+`/tmp/coin-stroke-required-gl.log` e `/tmp/coin-stroke-required-gl-bgfx.log`.
+Isso fecha a comparação de amostras desse perfil com GL; ainda não fecha
+raster de todas as bordas, drivers físicos ou integração FreeCAD.
+
 ## Checklist de P02
 
 - [x] INVISIBLE com estado efetivo Coin e supressão comum de captura.
@@ -228,8 +277,10 @@ units verificaram a soma por oclusão. Logs: `/tmp/coin-units-wgpu-tests.log`,
 - [ ] Padrão contínuo entre arestas.
 - [x] Inclinação + units fracionário no wgpu/D32Float, com readback numérico.
 - [ ] Offset fora do perfil plano e qualificação ampliada de precisão P04/F12.
-- [ ] Fog e texturas de strokes no wgpu; matriz ampliada BGFX conforme P07/P08.
-- [ ] Sorting/transparência, precisão de raster e comparação Coin/GL/FreeCAD.
+- [x] Fog por fragmento e textura explícita na unidade 0 em strokes wgpu/BGFX.
+- [ ] Multitextura, UV procedural/default e matriz ampliada P07/P08.
+- [x] Amostras de textura/fog dos estilos comparadas com Coin/GL Mesa/llvmpipe.
+- [ ] Sorting/transparência, raster ampliado, drivers e integração FreeCAD.
 
 O suporte de LineSet/PointSet continua distinto do estilo aplicado a polígonos.
 P02/F04 não deve ser marcado como integralmente fechado por este perfil.

@@ -51,12 +51,6 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
       }
     }
   }
-  for (const auto & vertex : frame.vertices) {
-    if (vertex.screenSpaceW != 1.0f || vertex.fogEyeDepth >= 0.0f) {
-      outDiagnostic = "Homogeneous stroke attributes require the BGFX frame contract";
-      return false;
-    }
-  }
   if (frame.revision != 0 && frame.revision == this->packedRevision) {
     this->reused = true;
     this->prepareKind = CoinRenderFrameReuseKind::REUSE;
@@ -92,6 +86,8 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     std::memcpy(dst.normal, src.normal, sizeof(src.normal));
     std::memcpy(dst.texcoord, src.texcoord, sizeof(src.texcoord));
     dst.material_slot = src.materialSlot;
+    dst.screen_space_w = src.screenSpaceW;
+    dst.fog_eye_depth_plus_one = src.fogEyeDepth >= 0 ? src.fogEyeDepth + 1.0f : 0.0f;
   }
 
   this->indices = frame.indices;

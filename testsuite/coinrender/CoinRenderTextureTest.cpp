@@ -290,7 +290,7 @@ static bool testUnsupportedRejections() {
     root->unref();
   }
 
-  // Case 3B: Default SCREEN_DOOR is rejected; explicit sorted blend is supported
+  // Case 3B: SCREEN_DOOR follows backend capability; sorted blend is supported
   {
     SoSeparator * root = new SoSeparator;
     root->ref();
@@ -309,8 +309,13 @@ static bool testUnsupportedRejections() {
     action.setRenderTarget(target);
     action.apply(root);
 
+#ifdef HAVE_COIN_BGFX
+    ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::SUCCESS,
+                "BGFX implements SCREEN_DOOR for material alpha");
+#else
     ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::UNSUPPORTED,
                 "Default SCREEN_DOOR must be rejected when stipple is required");
+#endif
     SoTransparencyType * mode = new SoTransparencyType;
     mode->value = SoTransparencyType::SORTED_OBJECT_BLEND;
     root->insertChild(mode, 0);
@@ -331,6 +336,9 @@ static bool testUnsupportedRejections() {
     std::memset(rgb, 200, sizeof(rgb));
     tex->image.setValue(SbVec2s(4, 4), 3, rgb);
     root->addChild(tex);
+    SoTextureCoordinate2 * uv = new SoTextureCoordinate2;
+    uv->point.set1Value(0, SbVec2f(0,0));uv->point.set1Value(1, SbVec2f(1,1));
+    root->addChild(uv);
 
     SoCoordinate3 * coords = new SoCoordinate3;
     coords->point.set1Value(0, SbVec3f(0.0f, 0.0f, 0.0f));
@@ -347,8 +355,8 @@ static bool testUnsupportedRejections() {
     action.setRenderTarget(target);
     action.apply(root);
 
-    ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::UNSUPPORTED,
-                "Textured lines must be rejected with UNSUPPORTED");
+    ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::SUCCESS,
+                "Textured lines must use common homogeneous stroke expansion: " + std::string(action.getLastError().getString()));
     delete target;
     root->unref();
   }
@@ -725,16 +733,8 @@ static bool testTexturedLineAndPointProfile() {
 
     CoinRenderAction action(SbViewportRegion(32, 32));
     action.apply(root);
-#ifdef HAVE_COIN_BGFX
     ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::SUCCESS,
-                "BGFX must capture textured lines and points");
-#else
-    ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::UNSUPPORTED,
-                "Textured line/point must fail explicitly");
-    const char * expected = topology == 0 ? "Textured lines" : "Textured points";
-    ASSERT_TRUE(std::strstr(action.getLastError().getString(), expected) != nullptr,
-                "Textured line/point must report an actionable diagnostic");
-#endif
+                "Common Core must capture textured lines and points");
     root->unref();
   }
   return true;

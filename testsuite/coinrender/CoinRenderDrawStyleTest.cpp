@@ -4,12 +4,16 @@
 #include "src/config.h"
 #endif
 #include <Inventor/SoDB.h>
+#include <Inventor/SoOffscreenRenderer.h>
 #include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/nodes/SoDrawStyle.h>
 #include <Inventor/nodes/SoPolygonOffset.h>
 #include <Inventor/nodes/SoDepthBuffer.h>
+#include <Inventor/nodes/SoEnvironment.h>
+#include <Inventor/nodes/SoTexture2Transform.h>
 #include "rendering/coinrender/CoinRenderFrameReuseCore.h"
 #include "rendering/coinrender/CoinRenderStateCore.h"
+#include "rendering/coinrender/CoinRenderStrokeCore.h"
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoGroup.h>
 #include <Inventor/nodes/SoCube.h>
@@ -383,9 +387,6 @@ bool polygonActionContract(bool cpu) {
            image==before,"unsupported polygon pattern does not publish") && ok;
   drawStyle->linePattern=0xffffu;action.apply(root);
   ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS,"polygon style recovers after unsupported pattern") && ok;
-#if !defined(HAVE_COIN_BGFX)
-  // Strokes currently lack the wgpu homogeneous UV/fog payload. Preserve a
-  // specific capability diagnostic, rather than reporting an incomplete face.
   SoSeparator * textured=new SoSeparator;foreground->addChild(textured);
   SoTexture2 * texture=new SoTexture2;const unsigned char white[]={255,255,255};
   texture->image.setValue(SbVec2s(1,1),3,white);textured->addChild(texture);
@@ -393,12 +394,148 @@ bool polygonActionContract(bool cpu) {
   const SbVec2f corners[]={SbVec2f(0,0),SbVec2f(1,0),SbVec2f(1,1),SbVec2f(0,1)};
   uv->point.setValues(0,4,corners);textured->addChild(uv);textured->addChild(faces());
   action.apply(root);
-  ok=check(action.getLastStatus()==CoinRenderAction::UNSUPPORTED &&
-    std::string(action.getLastError().getString()).find("Textured polygon styles")!=std::string::npos,
-    "unsupported textured wgpu polygon retains its specific diagnostic") && ok;
+  ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS,
+    "textured polygon styles use the shared stroke payload") && ok;
   foreground->removeChild(textured);action.apply(root);
-  ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS,"wgpu polygon recovers after texture rejection") && ok;
+  ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS,"polygon remains valid after removing a texture") && ok;
+  root->unref();return ok;
+}
+bool homogeneousStrokeContract(bool cpu) {
+  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(64,64)));
+  if(cpu)target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
+#ifdef HAVE_COIN_BGFX
+  target->setDepthReadbackEnabled(FALSE);
 #endif
+  bool ok=true;
+  for(auto topology:{CoinRenderPrimitiveTopology::LINE_LIST,CoinRenderPrimitiveTopology::POINT_LIST})
+    for(int clipped:{0,1})for(int matrix:{0,1})for(int model=0;model<4;++model)for(int fog=1;fog<=3;++fog) {
+      CoinRenderFramePlan plan;plan.lightingStates.push_back(CoinRenderLightingSnapshot{});
+      plan.cameras.push_back(CoinRenderCameraSnapshot{});
+      CoinRenderViewportSnapshot viewport;viewport.width=viewport.height=64;plan.viewports.push_back(viewport);
+      CoinRenderMaterialSnapshot material;material.diffuse[0]=material.diffuse[1]=material.diffuse[2]=1;
+      plan.materials.push_back(material);
+      CoinRenderTextureImageSnapshot texture;texture.width=16;texture.height=1;
+      for(int i=0;i<16;++i) {texture.pixelsRgba.push_back(i*17);texture.pixelsRgba.push_back(0);
+        texture.pixelsRgba.push_back(0);texture.pixelsRgba.push_back(255);}
+      // Different payloads must have different digests; this image is constant across the matrix.
+      texture.contentDigest=1234567;plan.textures.push_back(texture);
+      CoinRenderSamplerSnapshot sampler;sampler.filter=CoinRenderTextureFilter::NEAREST;
+      sampler.wrapS=sampler.wrapT=CoinRenderTextureWrap::CLAMP;plan.samplers.push_back(sampler);
+      CoinRenderRenderStateSnapshot state;state.lightModel=CoinRenderLightModel::BASE_COLOR;
+      state.cullMode=CoinRenderCullMode::NONE;state.lineWidth=6;state.pointSize=8;
+      SbViewVolume volume;volume.perspective(1.570796327f,1,.1f,10);
+      SbMatrix affine;volume.getMatrices(affine,state.projectionCoin);
+      state.hasTexture=true;state.textureModel=static_cast<CoinRenderTextureModel>(model);
+      state.textureBlendColor[0]=state.textureBlendColor[1]=state.textureBlendColor[2]=0;
+      if(matrix)state.textureMatrix.setTranslate(SbVec3f(.1f,0,0));
+      state.fogMode=static_cast<CoinRenderFogMode>(fog);state.fogColor[0]=state.fogColor[1]=0;
+      state.fogColor[2]=1;state.fogStart=0;state.fogEnd=10;
+      if(clipped)state.clipPlanesWorld.push_back(SbPlane(SbVec3f(1,0,0),0));
+      plan.renderStates.push_back(state);plan.vertices.resize(2);
+      plan.vertices[0].position[0]=-.8f;plan.vertices[0].position[2]=-1;plan.vertices[0].texcoord[0]=.25f;
+      plan.vertices[1].position[0]=3.2f;plan.vertices[1].position[2]=-4;plan.vertices[1].texcoord[0]=1;
+      if(clipped && topology==CoinRenderPrimitiveTopology::POINT_LIST) {
+        plan.vertices[0].position[0]=0;plan.vertices[0].position[2]=-1.6f;
+        plan.vertices[0].texcoord[0]=.4f;
+      }
+      plan.indices={0,1};CoinRenderDrawPacket draw;draw.topology=topology;
+      draw.geometry.vertexCount=2;draw.geometry.indexCount=2;plan.draws.push_back(draw);
+      std::string diagnostic;
+      ok=check(coin_render_expand_strokes(plan,diagnostic),"common stroke expansion succeeds") && ok;
+      const auto result=target->getPimpl()->executeFrame(plan);
+      std::vector<uint8_t> image;target->readbackRGBA(image);
+      // Perspective-correct t at the sample: clip W is 1 and 4. Point clipping
+      // creates a corner at object t=.2; an uncut point keeps t=0.
+      const bool line=topology==CoinRenderPrimitiveTopology::LINE_LIST;
+      const double screenT=(32.5-6.4)/51.2;
+      const double t=line ? (screenT/4)/((1-screenT)+screenT/4) : (clipped ? .2 : 0);
+      const double eye=1+3*t,uv=.25+.75*t+(matrix ? .1 : 0);
+      const double texel=std::floor(uv*16)*17/255;
+      const double factor=fog==1 ? 1-eye/10 : (fog==2 ? std::exp(-5.545*eye/10) :
+        std::exp(-std::pow(2.35*eye/10,2)));
+      const double r=model==3 ? 1-texel : texel;
+      const double g=model==3 ? 1 : 0,b=model==3 ? 1 : 0;
+      const int x=line || clipped ? 32 : 6;
+      const size_t at=(32*64+x)*4;
+      const bool matches=image.size()==64*64*4 &&
+        std::abs(int(image[at])-int(std::lround(255*r*factor)))<=4 &&
+        std::abs(int(image[at+1])-int(std::lround(255*g*factor)))<=4 &&
+        std::abs(int(image[at+2])-int(std::lround(255*(b*factor+1-factor))))<=4;
+      if(!matches && image.size()==64*64*4)std::cerr<<"stroke "<<cpu<<','<<line<<','<<clipped<<','<<matrix<<','<<model<<','<<fog
+        <<" pixel "<<int(image[at])<<','<<int(image[at+1])<<','<<int(image[at+2])<<" eye "<<eye<<" uv "<<uv<<'\n';
+      ok=check(result.status==CoinRenderBackendStatus::SUCCESS && matches,
+        "homogeneous UV, texture model/matrix and fragment fog match analytic perspective reference") && ok;
+    }
+  return ok;
+}
+bool polygonAttributesActionContract(bool cpu) {
+  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(64,64)));
+  if(cpu)target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
+#ifdef HAVE_COIN_BGFX
+  target->setDepthReadbackEnabled(FALSE);
+#endif
+  SoSeparator * root=new SoSeparator;root->ref();
+  SoOrthographicCamera * camera=new SoOrthographicCamera;
+  camera->height=2;camera->position=SbVec3f(0,0,3);camera->nearDistance=.1f;camera->farDistance=10;
+  root->addChild(camera);
+  SoEnvironment * environment=new SoEnvironment;environment->fogColor=SbColor(0,0,1);
+  environment->fogVisibility=6;root->addChild(environment);
+  SoLightModel * lightModel=new SoLightModel;root->addChild(lightModel);root->addChild(new SoDirectionalLight);
+  SoMaterial * material=new SoMaterial;material->diffuseColor=SbColor(1,1,1);root->addChild(material);
+  SoDrawStyle * drawStyle=style(SoDrawStyle::LINES);drawStyle->lineWidth=4;drawStyle->pointSize=6;
+  root->addChild(drawStyle);
+  SoClipPlane * clip=new SoClipPlane;root->addChild(clip);
+  SoTexture2 * texture=new SoTexture2;texture->blendColor=SbColor(0,0,0);
+  texture->wrapS=SoTexture2::CLAMP;texture->wrapT=SoTexture2::CLAMP;
+  unsigned char gradient[16*3];for(int i=0;i<16;++i) {gradient[i*3]=i*17;gradient[i*3+1]=gradient[i*3+2]=0;}
+  texture->image.setValue(SbVec2s(16,1),3,gradient);root->addChild(texture);
+  SoTexture2Transform * transform=new SoTexture2Transform;root->addChild(transform);
+  SoTextureCoordinate2 * uv=new SoTextureCoordinate2;
+  const SbVec2f corners[]={SbVec2f(.25f,0),SbVec2f(1,0),SbVec2f(1,1),SbVec2f(.25f,1)};
+  uv->point.setValues(0,4,corners);root->addChild(uv);root->addChild(coordinates());root->addChild(faces());
+  CoinRenderAction action(SbViewportRegion(64,64));action.setRenderTarget(target.get());bool ok=true;
+  const bool compareGl=std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")!=nullptr;
+  SoOffscreenRenderer gl(SbViewportRegion(64,64));gl.setComponents(SoOffscreenRenderer::RGB);
+  for(int fast:{0,1})for(int lighting:{0,1})for(int mode:{SoDrawStyle::LINES,SoDrawStyle::POINTS})
+    for(int model=0;model<4;++model)for(int fog=1;fog<=3;++fog)for(int matrix:{0,1}) {
+      action.setFastPathEnabled(fast ? TRUE : FALSE);
+      lightModel->model=lighting ? SoLightModel::PHONG : SoLightModel::BASE_COLOR;
+      const SoTexture2::Model models[]={SoTexture2::MODULATE,SoTexture2::REPLACE,SoTexture2::DECAL,SoTexture2::BLEND};
+      drawStyle->style=mode;texture->model=models[model];environment->fogType=fog;
+      transform->translation=SbVec2f(matrix ? .1f : 0,0);
+      action.apply(root);std::vector<uint8_t> image;target->readbackRGBA(image);
+      if(action.getLastStatus()!=CoinRenderAction::SUCCESS) {
+        std::cerr << "polygon attrs diagnostic: " << action.getLastError().getString() << "\n";
+        root->unref();return false;
+      }
+      const double u=(mode==SoDrawStyle::LINES ? .63232421875 : .625)+(matrix ? .1 : 0);
+      const double texel=(u*16-.5)*17/255;
+      const double factor=fog==1 ? .5 : (fog==2 ? std::exp(-5.545*.5) : std::exp(-std::pow(2.35*.5,2)));
+      const double r=model==3 ? 1-texel : texel,g=model==3 ? 1 : 0,b=model==3 ? 1 : 0;
+      const size_t at=(6*64+32)*4;
+      const bool matches=image.size()==64*64*4 &&
+        std::abs(int(image[at])-int(std::lround(255*r*factor)))<=4 &&
+        std::abs(int(image[at+1])-int(std::lround(255*g*factor)))<=4 &&
+        std::abs(int(image[at+2])-int(std::lround(255*(b*factor+1-factor))))<=4;
+      if(!matches && image.size()==64*64*4)std::cerr<<"polygon attr "<<cpu<<','<<mode<<','<<model<<','<<fog
+        <<" pixel "<<int(image[at])<<','<<int(image[at+1])<<','<<int(image[at+2])<<'\n';
+      ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS && matches,
+        "polygon style captures UV, matrix, models and fragment fog after Coin clipping and PHONG") && ok;
+      if(compareGl) {
+        if(!check(gl.render(root) && gl.getBuffer()!=nullptr,"required Coin/GL reference renders")) {
+          root->unref();return false;
+        }
+        const unsigned char * reference=gl.getBuffer();const size_t glAt=(6*64+32)*3;
+        const bool same=std::abs(int(reference[glAt])-int(image[at]))<=4 &&
+          std::abs(int(reference[glAt+1])-int(image[at+1]))<=4 &&
+          std::abs(int(reference[glAt+2])-int(image[at+2]))<=4;
+        if(!same)std::cerr<<"GL polygon "<<mode<<','<<model<<','<<fog<<','<<matrix
+          <<" GL "<<int(reference[glAt])<<','<<int(reference[glAt+1])<<','<<int(reference[glAt+2])
+          <<" Core "<<int(image[at])<<','<<int(image[at+1])<<','<<int(image[at+2])<<'\n';
+        ok=check(same,"Coin/GL polygon texture/fog sample matches common Core reference") && ok;
+      }
+    }
+  if(compareGl && ok)std::cout<<"Coin/GL polygon attributes reference passed\n";
   root->unref();return ok;
 }
 bool slopeActionContract(bool cpu) {
@@ -538,10 +675,10 @@ bool actionContract(bool cpu) {
 }
 int main() {
   SoDB::init();CoinRenderAction::initClass();
-  if(!stateContract() || !polygonCoreContract() || !slopeCoreContract() || !polygonCaptureContract() || !polygonActionContract(true) || !slopeActionContract(true) || !actionContract(true))return 1;
+  if(!stateContract() || !polygonCoreContract() || !slopeCoreContract() || !polygonCaptureContract() || !polygonActionContract(true) || !slopeActionContract(true) || !homogeneousStrokeContract(true) || !polygonAttributesActionContract(true) || !actionContract(true))return 1;
   if(!CoinRenderAction::isGpuBackendAvailable()) {
     std::cerr<<"[SKIP] GPU adapter unavailable\n";return 77;
   }
-  if(!polygonActionContract(false) || !slopeActionContract(false) || !actionContract(false))return 1;
+  if(!polygonActionContract(false) || !slopeActionContract(false) || !homogeneousStrokeContract(false) || !polygonAttributesActionContract(false) || !actionContract(false))return 1;
   std::cout<<"DrawStyle polygon/Core/INVISIBLE CPU/GPU contracts passed\n";return 0;
 }

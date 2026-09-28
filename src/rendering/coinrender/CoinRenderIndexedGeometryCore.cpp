@@ -417,8 +417,8 @@ CoinRenderIndexedGeometryCore::buildLines(
     return finish(CoinRenderFastPathResult::SUCCESS_PRUNE);
   }
   if (options.hasTexture) {
-    return finish(CoinRenderFastPathResult::UNSUPPORTED,
-      "Textured lines are not supported in Subwave 3B");
+    return finish(CoinRenderFastPathResult::FALLBACK_CONTINUE,
+      "Textured lines require callback UV capture");
   }
   if (!positionsAreFinite(view)) {
     return finish(CoinRenderFastPathResult::INVALID_SCENE,

@@ -13,7 +13,7 @@ use std::sync::{Arc, Mutex, OnceLock};
 
 mod composition;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 23;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 24;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 pub type CoinWgpuSurfaceId = u64;
@@ -61,6 +61,8 @@ pub struct CoinWgpuVertex {
     pub normal: [f32; 3],
     pub texcoord: [f32; 2],
     pub material_slot: u32,
+    pub screen_space_w: f32,
+    pub fog_eye_depth_plus_one: f32,
 }
 
 #[repr(C)]
@@ -225,6 +227,7 @@ pub struct CoinWgpuRenderState {
 }
 
 const _: () = {
+    assert!(std::mem::size_of::<CoinWgpuVertex>() == 44);
     assert!(std::mem::size_of::<CoinWgpuRenderState>() == 1092);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, polygon_offset_slope_bias) == 1088);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, clip_plane_count) == 956);
@@ -1752,6 +1755,16 @@ fn get_or_create_pipeline<'a>(
                 offset: 32,
                 shader_location: 3,
             },
+            wgpu::VertexAttribute {
+                format: wgpu::VertexFormat::Float32,
+                offset: 36,
+                shader_location: 4,
+            },
+            wgpu::VertexAttribute {
+                format: wgpu::VertexFormat::Float32,
+                offset: 40,
+                shader_location: 5,
+            },
         ],
     };
 
@@ -2118,6 +2131,11 @@ fn encode_frame(
     }
 
     for (v_idx, v) in vertices_slice.iter().enumerate() {
+        if !v.screen_space_w.is_finite() || v.screen_space_w < 0.0
+            || !v.fog_eye_depth_plus_one.is_finite() || v.fog_eye_depth_plus_one < 0.0 {
+            return Err((CoinWgpuStatus::InvalidArgument,
+                format!("Vertex {} has invalid homogeneous stroke attributes", v_idx)));
+        }
         if (v.material_slot as usize) >= materials_slice.len() {
             return Err((CoinWgpuStatus::InvalidArgument, format!("Vertex {} references invalid material_slot {} >= material_count {}", v_idx, v.material_slot, materials_slice.len())));
         }

@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 23
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 24
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -62,6 +62,8 @@ typedef struct CoinWgpuVertex {
   float normal[3];
   float texcoord[2];
   uint32_t material_slot;
+  float screen_space_w; /* zero means ordinary unexpanded geometry */
+  float fog_eye_depth_plus_one; /* zero means compute from model-view */
 } CoinWgpuVertex;
 
 typedef struct CoinWgpuDraw {

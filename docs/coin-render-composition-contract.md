@@ -42,7 +42,7 @@ para transparência imediata; rejeita operações que não possui.
 
 A revisão privada 21 introduziu esse transporte com draw de 56 bytes e estado
 de 956. A revisão 22 conservou o draw e ampliou o estado para 1088 bytes
-com equações de clipping. A revisão atual 23 tem 1092 bytes, acrescentando o
+com equações de clipping. A revisão atual 24 tem 1092 bytes, acrescentando o
 bias de inclinação no offset 1088 e conservando os offsets anteriores; veja o [contrato de clipping](coin-render-clipping-contract.md).
 O antigo campo reservado no offset 36 passa a ser `composition_flags`, cujo
 bit 0 transporta blend. O array de draws já chega na ordem resolvida. Estados

@@ -26,6 +26,8 @@ main()
   frame.revision = 41;
   frame.vertices.resize(1);
   frame.vertices[0].position[0] = 2.0f;
+  frame.vertices[0].screenSpaceW = 2.0f;
+  frame.vertices[0].fogEyeDepth = 4.0f;
   frame.indices.push_back(0);
   CoinRenderTextureImageSnapshot texture;
   texture.width = 1;
@@ -46,6 +48,8 @@ main()
 
   const CoinWgpuFrameView & first = packed.getView();
   if (!check(first.width == 64 && first.height == 32, "target dimensions were not packed") ||
+      !check(first.vertices[0].screen_space_w == 2.0f && first.vertices[0].fog_eye_depth_plus_one == 5.0f,
+             "homogeneous stroke attributes were not packed") ||
       !check(first.states[0].polygon_offset_slope_bias == -.01f, "original polygon slope bias was not packed") ||
       !check(first.indices != frame.indices.data(), "packed indices do not own their storage") ||
       !check(first.textures[0].pixels != frame.textures[0].pixelsRgba.data(),

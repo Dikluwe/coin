@@ -27,7 +27,7 @@ escopos próprios de validação.
   sobre geometria comum; linhas/pontos dedicados não encerram esse item.
   INVISIBLE e LINES/POINTS de contornos convexos implementados no perfil
   documentado, incluindo offset da face plana original e units D32Float;
-  padrões, combinações de offset fora desse perfil, texturas/fog wgpu e qualificação
+  padrões, combinações de offset fora desse perfil, multitextura/UV procedural e qualificação
   completa permanecem no [contrato de estilo](coin-render-draw-style-contract.md).
 - [ ] **P03 — SoText2 (F05):** fontes, âncora, tamanho, clipping e composição;
   layout comum, atlas e recursos próprios de cada Infra.
@@ -49,7 +49,9 @@ Core transforma snapshots. Não exigir uma refatoração global prévia.
 - [ ] **P07 — UV/texturas (F06/F11):** procedural/default, matriz, modelos
   MODULATE/REPLACE/DECAL/BLEND, wrap, filtros, qualidade e formatos.
 - [ ] **P08 — Multitextura/strokes (F07/F08):** SoTextureCombine, limites por unidade
-  e linhas/pontos texturizados no wgpu; largura, padrão, cor, alpha e interpolação.
+  e matriz ampliada de strokes; largura, padrão, cor, alpha e interpolação.
+  Textura explícita na unidade 0 e fog por fragmento já usam a mesma expansão
+  Core em BGFX/wgpu, com evidência numérica de perspectiva.
 
 Fechamento: mesmas entradas e expectativas, decisões com um dono comum, shaders
 específicos. P08 depende dos contratos de P02/P05/P07. P05–P07 podem avançar por
@@ -143,5 +145,5 @@ funcional. Atualizar Pxx e Axx/Fxx associados somente no escopo comprovado.
 
 **Próxima entrega concreta: P02 — SoDrawStyle / F04.** Mapear o comportamento
 Coin/GL nos limites restantes: padrão entre arestas, qualificação ampliada de units,
-texturas/fog wgpu e shapes fora do perfil convexo. A resolução comum de contornos
+multitextura/UV procedural e shapes fora do perfil convexo. A resolução comum de contornos
 e INVISIBLE já têm evidência no escopo documentado.

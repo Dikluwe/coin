@@ -17,7 +17,7 @@
 #include <iostream>
 
 // Static assertions ensuring ABI compatibility with Rust bridge
-static_assert(sizeof(CoinWgpuVertex) == 36, "CoinWgpuVertex size mismatch");
+static_assert(sizeof(CoinWgpuVertex) == 44, "CoinWgpuVertex size mismatch");
 static_assert(alignof(CoinWgpuVertex) == 4, "CoinWgpuVertex alignment mismatch");
 static_assert(offsetof(CoinWgpuVertex, position) == 0, "CoinWgpuVertex position offset mismatch");
 static_assert(offsetof(CoinWgpuVertex, normal) == 12, "CoinWgpuVertex normal offset mismatch");

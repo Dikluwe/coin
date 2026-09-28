@@ -54,6 +54,8 @@ struct VertexInput {
     @location(1) normal: vec3<f32>,
     @location(2) texcoord: vec2<f32>,
     @location(3) material_slot: u32,
+    @location(4) screen_space_w: f32,
+    @location(5) fog_eye_depth_plus_one: f32,
 };
 
 struct VertexOutput {
@@ -127,6 +129,10 @@ fn vs_main(input: VertexInput) -> VertexOutput {
     output.clip_position =
         u.model_view_projection * vec4<f32>(input.position, 1.0);
     output.position_view = position_view.xyz;
+    output.clip_position *= select(1.0, input.screen_space_w, input.screen_space_w > 0.0);
+    if (input.fog_eye_depth_plus_one > 0.0) {
+        output.position_view.z = 1.0 - input.fog_eye_depth_plus_one;
+    }
     output.normal_view = normalize(
         (u.normal_matrix * vec4<f32>(input.normal, 0.0)).xyz);
     output.diffuse_color = shade_vertex(materials[input.material_slot],
