@@ -835,6 +835,8 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
 SoCallbackAction::Response
 CoinRenderActionP::textureUnitsPreCB(void * userdata, SoCallbackAction * action, const SoNode *)
 {
+  // PRUNE skips this shape only; subsequent state nodes still traverse.
+  if (CoinRenderFramePlanBuilder::isShapeInvisible(action)) return SoCallbackAction::PRUNE;
   auto * p = static_cast<CoinRenderActionP *>(userdata);
   SoState * state = action->getState();
   int last = -1;
@@ -1183,6 +1185,8 @@ CoinRenderActionP::indexedFaceSetPreCB(void * userdata,
                                         SoCallbackAction * action,
                                         const SoNode * node)
 {
+  // PRUNE skips this shape only; subsequent state nodes still traverse.
+  if (CoinRenderFramePlanBuilder::isShapeInvisible(action)) return SoCallbackAction::PRUNE;
   CoinRenderActionP * p = static_cast<CoinRenderActionP *>(userdata);
   if (!p->fastPathEnabled) {
     return SoCallbackAction::CONTINUE;
@@ -1312,6 +1316,8 @@ CoinRenderActionP::indexedLineSetPreCB(void * userdata,
                                         SoCallbackAction * action,
                                         const SoNode * node)
 {
+  // PRUNE skips this shape only; subsequent state nodes still traverse.
+  if (CoinRenderFramePlanBuilder::isShapeInvisible(action)) return SoCallbackAction::PRUNE;
   CoinRenderActionP * p = static_cast<CoinRenderActionP *>(userdata);
   if (!p->fastPathEnabled) {
     return SoCallbackAction::CONTINUE;

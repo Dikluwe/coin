@@ -949,13 +949,20 @@ CoinRenderFramePlanBuilder::captureSortingCenter(SoCallbackAction * action)
   draw.hasSortingCenter = true;
 }
 
+bool
+CoinRenderFramePlanBuilder::isShapeInvisible(SoCallbackAction * action)
+{
+  return action && (SoShapeStyleElement::get(action->getState())->getFlags() &
+                    SoShapeStyleElement::INVISIBLE) != 0;
+}
+
 void
 CoinRenderFramePlanBuilder::addTriangle(SoCallbackAction * action,
                                    const SoPrimitiveVertex * v0,
                                    const SoPrimitiveVertex * v1,
                                    const SoPrimitiveVertex * v2)
 {
-  if (!v0 || !v1 || !v2) return;
+  if (!v0 || !v1 || !v2 || isShapeInvisible(action)) return;
   uint32_t rsSlot = this->captureRenderState(action, v0->getMaterialIndex());
   this->ensureDrawPacket(CoinRenderPrimitiveTopology::TRIANGLE_LIST, rsSlot, action->getCurPathTail());
   this->captureSortingCenter(action);
@@ -982,7 +989,7 @@ CoinRenderFramePlanBuilder::addLine(SoCallbackAction * action,
                                 const SoPrimitiveVertex * v0,
                                 const SoPrimitiveVertex * v1)
 {
-  if (!v0 || !v1) return;
+  if (!v0 || !v1 || isShapeInvisible(action)) return;
   uint32_t rsSlot = this->captureRenderState(action, v0->getMaterialIndex());
   if (this->isUnsupported) return;
 #if !defined(HAVE_COIN_BGFX)
@@ -1013,7 +1020,7 @@ void
 CoinRenderFramePlanBuilder::addPoint(SoCallbackAction * action,
                                  const SoPrimitiveVertex * vertex)
 {
-  if (!vertex) return;
+  if (!vertex || isShapeInvisible(action)) return;
   uint32_t rsSlot = this->captureRenderState(action, vertex->getMaterialIndex());
   if (this->isUnsupported) return;
 #if !defined(HAVE_COIN_BGFX)
@@ -1745,6 +1752,7 @@ CoinRenderFramePlanBuilder::processIndexedFaceSet(
     if (outError) *outError = "Null SoCallbackAction in processIndexedFaceSet";
     return CoinRenderFastPathResult::INVALID_SCENE;
   }
+  if (isShapeInvisible(action)) return CoinRenderFastPathResult::SUCCESS_PRUNE;
   int lastTextureUnit = -1;
   SoMultiTextureEnabledElement::getEnabledUnits(action->getState(), lastTextureUnit);
   if (lastTextureUnit > 0) return CoinRenderFastPathResult::FALLBACK_CONTINUE;
@@ -1824,6 +1832,7 @@ CoinRenderFramePlanBuilder::processIndexedLineSet(
     if (outError) *outError = "Null SoCallbackAction in processIndexedLineSet";
     return CoinRenderFastPathResult::INVALID_SCENE;
   }
+  if (isShapeInvisible(action)) return CoinRenderFastPathResult::SUCCESS_PRUNE;
   int lastTextureUnit = -1;
   SoMultiTextureEnabledElement::getEnabledUnits(action->getState(), lastTextureUnit);
 #ifdef HAVE_COIN_BGFX

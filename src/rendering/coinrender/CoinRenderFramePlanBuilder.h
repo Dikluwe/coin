@@ -17,6 +17,8 @@ public:
 
   void beginFrame(const SbColor4f & clearColor, const SbViewportRegion & viewport);
   void reset();
+  // Wiring reads the effective Coin state, including ignored fields and overrides.
+  static bool isShapeInvisible(SoCallbackAction * action);
   void recordLightAttenuation(SoCallbackAction * action);
   void beginAnnotation();
   void reserveDelayedLayers(uint32_t count);

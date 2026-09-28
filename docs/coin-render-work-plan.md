@@ -25,6 +25,8 @@ escopos próprios de validação.
   qualificação visual GL/FreeCAD e matriz ampliada permanecem abertas.
 - [ ] **P02 — SoDrawStyle (F04):** LINES, POINTS e INVISIBLE por shape, resolvidos
   sobre geometria comum; linhas/pontos dedicados não encerram esse item.
+  INVISIBLE implementado e testado nos dois backends; LINES/POINTS e contornos
+  originais pendentes no [contrato de estilo](coin-render-draw-style-contract.md).
 - [ ] **P03 — SoText2 (F05):** fontes, âncora, tamanho, clipping e composição;
   layout comum, atlas e recursos próprios de cada Infra.
 - [ ] **P04 — Viewport/scissor e depth (F13/F12):** retângulos parcialmente externos,
@@ -138,4 +140,5 @@ qualificação separadamente. Rejeição explícita fecha diagnóstico, não sup
 funcional. Atualizar Pxx e Axx/Fxx associados somente no escopo comprovado.
 
 **Próxima entrega concreta: P02 — SoDrawStyle / F04.** Mapear o comportamento
-Coin/GL por shape e resolver LINES, POINTS e INVISIBLE no Core comum.
+Coin/GL por shape, capturar contornos originais e resolver LINES/POINTS no Core
+comum. INVISIBLE já foi fechado no escopo documentado.

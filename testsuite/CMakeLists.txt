@@ -670,6 +670,31 @@ if(COIN_BUILD_RENDER)
 	endif()
 
 
+	add_executable(CoinRenderDrawStyleTest coinrender/CoinRenderDrawStyleTest.cpp
+		${PROJECT_SOURCE_DIR}/src/rendering/coinrender/CoinRenderFramePlanBuilder.cpp)
+	set_target_properties(CoinRenderDrawStyleTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinRenderDrawStyleTest CoinRender Coin)
+	target_include_directories(CoinRenderDrawStyleTest PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}
+		${PROJECT_SOURCE_DIR}/experimental/include
+		${PROJECT_SOURCE_DIR}/include
+		${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include
+		${PROJECT_BINARY_DIR}/src
+		${COIN_TARGET_INCLUDE_DIRECTORIES}
+	)
+	add_test(NAME CoinRenderDrawStyleTest COMMAND CoinRenderDrawStyleTest)
+	set_tests_properties(CoinRenderDrawStyleTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77)
+	if(COIN_RENDER_BACKEND STREQUAL "BGFX")
+		set_tests_properties(CoinRenderDrawStyleTest PROPERTIES ENVIRONMENT "COIN_BGFX_RENDERER=vulkan;COIN_BGFX_TRANSPARENCY=object")
+		foreach(renderer vulkan opengl)
+			add_test(NAME CoinRenderDrawStyle_${renderer} COMMAND CoinRenderDrawStyleTest)
+			set_tests_properties(CoinRenderDrawStyle_${renderer} PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77
+				ENVIRONMENT "COIN_BGFX_RENDERER=${renderer};COIN_BGFX_TRANSPARENCY=object")
+		endforeach()
+	endif()
+
+
 	add_executable(CoinRenderCompositionTest coinrender/CoinRenderCompositionTest.cpp)
 	set_target_properties(CoinRenderCompositionTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 	target_link_libraries(CoinRenderCompositionTest CoinRender Coin)
