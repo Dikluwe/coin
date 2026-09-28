@@ -3,6 +3,7 @@
 
 #include "rendering/coinrender/CoinRenderClipCore.h"
 #include "rendering/coinrender/CoinRenderLineStippleCore.h"
+#include <unordered_map>
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -62,6 +63,7 @@ inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& d
     return index;
   };
 
+  std::unordered_map<uint64_t, uint32_t> stripPhases;
   for (size_t drawIndex = 0; drawIndex < originalDrawCount; ++drawIndex) {
     const CoinRenderDrawPacket original = plan.draws[drawIndex];
     if (original.topology == CoinRenderPrimitiveTopology::TRIANGLE_LIST) {
@@ -108,6 +110,7 @@ inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& d
     expanded.geometry.vertexCount = 0;
     expanded.geometry.firstIndex = static_cast<uint32_t>(plan.indices.size());
     expanded.geometry.indexCount = 0;
+    expanded.lineStripId = 0;
 
     const SbMatrix mvp = sourceState.model * sourceState.view * sourceState.projectionCoin;
     auto project = [&](const CoinRenderVertexSnapshot& vertex, SbVec3f& ndc, float& clipW) {
@@ -151,9 +154,8 @@ inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& d
       const float width = std::max(sourceState.lineWidth, 1.0f);
       const float halfWidth = width * 0.5f;
       const uint32_t pattern = sourceState.linePattern & 0xffffu;
-      const float patternScale =
-          static_cast<float>(std::max(1, sourceState.linePatternScaleFactor));
       uint32_t polygonPhase = 0;
+      uint32_t& phase = original.lineStripId ? stripPhases[original.lineStripId] : polygonPhase;
       for (size_t offset = 0; offset + 1 < original.geometry.indexCount; offset += 2) {
         const uint32_t firstIndex = plan.indices[original.geometry.firstIndex + offset];
         const uint32_t secondIndex = plan.indices[original.geometry.firstIndex + offset + 1];
@@ -188,33 +190,21 @@ inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& d
         float offsetX = (-dyPixels / lengthPixels) * halfWidth * 2.0f / viewport.width;
         float offsetY = (dxPixels / lengthPixels) * halfWidth * 2.0f / viewport.height;
         std::vector<std::pair<float, float>> spans;
-        if (sourceState.polygonLinePattern && pattern != 0xffffu) {
+        if (pattern != 0xffffu) {
+          if (!sourceState.polygonLinePattern && original.lineStripId == 0)
+            phase = 0;
           const bool xMajor = std::abs(dxPixels) >= std::abs(dyPixels);
           const float rasterHalfWidth = std::max(1.0f, std::floor(width + .5f)) * .5f;
           offsetX = xMajor ? 0 : rasterHalfWidth * 2 / viewport.width;
           offsetY = xMajor ? rasterHalfWidth * 2 / viewport.height : 0;
-          if (!coin_render_polygon_stipple((firstNdc[0] + 1.0) * .5 * viewport.width,
-                                           (firstNdc[1] + 1.0) * .5 * viewport.height,
-                                           (secondNdc[0] + 1.0) * .5 * viewport.width,
-                                           (secondNdc[1] + 1.0) * .5 * viewport.height, pattern,
-                                           sourceState.linePatternScaleFactor, polygonPhase, spans))
-            return fail("Polygon stipple exceeds the Core raster budget");
+          if (!coin_render_line_stipple((firstNdc[0] + 1.0) * .5 * viewport.width,
+                                        (firstNdc[1] + 1.0) * .5 * viewport.height,
+                                        (secondNdc[0] + 1.0) * .5 * viewport.width,
+                                        (secondNdc[1] + 1.0) * .5 * viewport.height, pattern,
+                                        sourceState.linePatternScaleFactor, phase, spans))
+            return fail("Line stipple exceeds the Core raster budget");
         } else {
-          float cursor = 0;
-          while (cursor < lengthPixels - 1e-5f) {
-            float next = lengthPixels;
-            bool visible = true;
-            if (pattern != 0xffffu) {
-              const uint32_t cell = static_cast<uint32_t>(std::floor(cursor / patternScale));
-              next = std::min(lengthPixels, (static_cast<float>(cell) + 1) * patternScale);
-              visible = (pattern & (1u << (cell & 15u))) != 0;
-            }
-            if (next <= cursor + 1e-6f)
-              next = std::min(lengthPixels, cursor + patternScale);
-            if (visible)
-              spans.emplace_back(cursor / lengthPixels, next / lengthPixels);
-            cursor = next;
-          }
+          spans.emplace_back(0.0f, 1.0f);
         }
         for (const auto& span : spans) {
           // Stipple operates on whole pixel cells, whose first/last boundaries

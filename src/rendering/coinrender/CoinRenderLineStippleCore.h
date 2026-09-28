@@ -7,12 +7,12 @@
 #include <utility>
 #include <vector>
 
-// Unit-width diamond-exit fragments define the polygon stipple counter.
+// Unit-width diamond-exit fragments define the line stipple counter.
 // Wide strokes replicate each bit across the minor axis. Coordinates are
 // relative to the integer viewport origin; no backend or scene state.
-inline bool coin_render_polygon_stipple(double x0, double y0, double x1, double y1,
-                                        uint32_t pattern, int repeat, uint32_t& phase,
-                                        std::vector<std::pair<float, float>>& spans) {
+inline bool coin_render_line_stipple(double x0, double y0, double x1, double y1, uint32_t pattern,
+                                     int repeat, uint32_t& phase,
+                                     std::vector<std::pair<float, float>>& spans) {
   spans.clear();
   if (!std::isfinite(x0) || !std::isfinite(y0) || !std::isfinite(x1) || !std::isfinite(y1))
     return false;

@@ -53,6 +53,8 @@ struct CoinRenderDrawPacket {
   float sortingCenterWorld[3] = {0, 0, 0};
   uint32_t renderLayer = 0;
   bool clearDepthBefore = false;
+  // Capture-only strip identity; consumed and cleared by StrokeCore before GPU submission.
+  uint64_t lineStripId = 0; // Zero means independent segments.
 };
 
 struct CoinRenderMaterialSnapshot {

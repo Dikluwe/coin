@@ -52,7 +52,10 @@ Core transforma snapshots. Não exigir uma refatoração global prévia.
 - [ ] **P08 — Multitextura/strokes (F07/F08):** SoTextureCombine, limites por unidade
   e matriz ampliada de strokes; largura, padrão, cor, alpha e interpolação.
   Textura explícita na unidade 0 e fog por fragmento já usam a mesma expansão
-  Core em BGFX/wgpu, com evidência numérica de perspectiva.
+  Core em BGFX/wgpu, com evidência numérica de perspectiva. Continuidade de
+  SoLineSet/SoIndexedLineSet e resets por polilinha/binding estão implementados
+  no perfil P08 documentado em `coin-render-draw-style-contract.md`; a
+  qualificação de raster, alpha, clipping e multitextura permanece aberta.
 
 Fechamento: mesmas entradas e expectativas, decisões com um dono comum, shaders
 específicos. P08 depende dos contratos de P02/P05/P07. P05–P07 podem avançar por

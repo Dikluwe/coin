@@ -22,6 +22,9 @@
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include <Inventor/nodes/SoLineSet.h>
+#include <Inventor/nodes/SoMaterialBinding.h>
+#include <Inventor/nodes/SoNormalBinding.h>
+#include <Inventor/nodes/SoNormal.h>
 #include <Inventor/nodes/SoPointSet.h>
 #include <Inventor/nodes/SoFaceSet.h>
 #include <Inventor/nodes/SoRotation.h>
@@ -654,36 +657,204 @@ bool polygonStippleCoreContract() {
   const double points[5][2]={{6.5,6.5},{15.5,6.5},{15.5,14.5},{6.5,14.5},{6.5,6.5}};
   const uint32_t expected[]={9,1,10,2};
   for(int edge=0;edge<4;++edge) {
-    ok=check(coin_render_polygon_stipple(points[edge][0],points[edge][1],points[edge+1][0],
+    ok=check(coin_render_line_stipple(points[edge][0],points[edge][1],points[edge+1][0],
       points[edge+1][1],0x000fu,1,phase,spans) && phase==expected[edge],
       "stipple counter continues across original polygon edges") && ok;
     if(edge==1)ok=check(spans.size()==1 && spans[0].first>.8f,
       "second edge consumes the previous edge's invisible cells") && ok;
   }
-  phase=0;ok=check(coin_render_polygon_stipple(6.5,6.5,15.5,14.5,0xaaaau,1,phase,spans) && phase==9,
+  phase=0;ok=check(coin_render_line_stipple(6.5,6.5,15.5,14.5,0xaaaau,1,phase,spans) && phase==9,
     "diagonal stipple counts fragments along the major axis, rather than Euclidean length") && ok;
   for(int repeat:{1,2,256,999}) {
-    phase=0;ok=check(coin_render_polygon_stipple(6.5,6.5,15.5,6.5,0x0001u,repeat,phase,spans) &&
+    phase=0;ok=check(coin_render_line_stipple(6.5,6.5,15.5,6.5,0x0001u,repeat,phase,spans) &&
       phase==9 && spans.size()==1 && std::abs(spans[0].second-std::min(8.5f,std::min(repeat,256)-.5f)/9)<1e-6f,
       "stipple repeat is clamped to Coin/GL's 1..256 range") && ok;
   }
-  phase=0;ok=check(coin_render_polygon_stipple(6.5,6.5,15.5,6.5,0,1,phase,spans) &&
+  phase=0;ok=check(coin_render_line_stipple(6.5,6.5,15.5,6.5,0,1,phase,spans) &&
     spans.empty() && phase==9,"invisible pattern still advances the Core counter") && ok;
-  ok=check(!coin_render_polygon_stipple(0,0,70000,0,1,1,phase,spans),"stipple work budget is explicit") && ok;
+  ok=check(!coin_render_line_stipple(0,0,70000,0,1,1,phase,spans),"stipple work budget is explicit") && ok;
   return ok;
 }
-bool polygonStippleActionContract(bool cpu) {
-  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(64,64)));
-  if(cpu)target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
+
+bool nativeStippleActionContract(bool cpu) {
+  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(64, 64)));
+  if (cpu)
+    target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
 #ifdef HAVE_COIN_BGFX
   target->setDepthReadbackEnabled(FALSE);
 #endif
-  SoSeparator* root=new SoSeparator;root->ref();
-  SoOrthographicCamera* camera=new SoOrthographicCamera;camera->height=2;camera->position=SbVec3f(0,0,3);
-  camera->nearDistance=.1f;camera->farDistance=10;root->addChild(camera);
-  SoLightModel* lighting=new SoLightModel;lighting->model=SoLightModel::BASE_COLOR;root->addChild(lighting);
-  SoMaterial* material=new SoMaterial;material->diffuseColor=SbColor(1,1,1);root->addChild(material);
-  SoDrawStyle* drawStyle=style(SoDrawStyle::LINES);root->addChild(drawStyle);
+  SoSeparator* root = new SoSeparator;
+  root->ref();
+  SoOrthographicCamera* camera = new SoOrthographicCamera;
+  camera->height = 2;
+  camera->position = SbVec3f(0, 0, 3);
+  camera->nearDistance = .1f;
+  camera->farDistance = 10;
+  root->addChild(camera);
+  SoLightModel* lighting = new SoLightModel;
+  root->addChild(lighting);
+  root->addChild(new SoDirectionalLight);
+  SoMaterial* material = new SoMaterial;
+  for (int i = 0; i < 8; ++i)
+    material->diffuseColor.set1Value(i, SbColor(1, 1, 1));
+  root->addChild(material);
+  SoMaterialBinding* mb = new SoMaterialBinding;
+  root->addChild(mb);
+  SoNormalBinding* nb = new SoNormalBinding;
+  root->addChild(nb);
+  SoNormal* normals = new SoNormal;
+  root->addChild(normals);
+  SoDrawStyle* drawStyle = style(SoDrawStyle::LINES);
+  root->addChild(drawStyle);
+  SoCoordinate3* coords = new SoCoordinate3;
+  root->addChild(coords);
+  // Two strips share an endpoint. A repeated interior vertex produces no fragment.
+  const int xy[][2] = {{6, 6}, {25, 6}, {25, 6}, {25, 25}, {25, 25}, {44, 25}, {44, 44}};
+  for (int i = 0; i < 7; ++i)
+    coords->point.set1Value(i, SbVec3f((xy[i][0] + .5f) / 32 - 1, (xy[i][1] + .5f) / 32 - 1, 0));
+  SoGroup* geometry = new SoGroup;
+  root->addChild(geometry);
+  CoinRenderAction action(SbViewportRegion(64, 64));
+  action.setRenderTarget(target.get());
+  action.setBackgroundColor(SbColor4f(0, 0, 0, 1));
+  const bool compareGl = std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") != nullptr;
+  SoOffscreenRenderer gl(SbViewportRegion(64, 64));
+  gl.setComponents(SoOffscreenRenderer::RGB);
+  bool ok = true;
+  for (int indexed : {0, 1})
+    for (int separateNodes : {0, 1}) {
+      geometry->removeAllChildren();
+      if (indexed) {
+        SoIndexedLineSet* first = new SoIndexedLineSet;
+        // PER_PART_INDEXED needs one valid material index per segment,
+        // including the degenerate pair; coordIndex separators are not indices.
+        const int32_t materialIndices[] = {0, 1, 2, 3, 4};
+        first->materialIndex.setValues(0, separateNodes ? 3 : 5, materialIndices);
+        const int32_t both[] = {0, 1, 2, 3, -1, 4, 5, 6, -1};
+        first->coordIndex.setValues(0, separateNodes ? 5 : 9, both);
+        geometry->addChild(first);
+        if (separateNodes) {
+          SoIndexedLineSet* second = new SoIndexedLineSet;
+          second->materialIndex.setValues(0, 2, materialIndices);
+          const int32_t next[] = {4, 5, 6, -1};
+          second->coordIndex.setValues(0, 4, next);
+          geometry->addChild(second);
+        }
+      } else {
+        SoLineSet* first = new SoLineSet;
+        const int32_t sizes[] = {4, 3};
+        first->numVertices.setValues(0, separateNodes ? 1 : 2, sizes);
+        geometry->addChild(first);
+        if (separateNodes) {
+          SoLineSet* second = new SoLineSet;
+          second->startIndex = 4;
+          second->numVertices = 3;
+          geometry->addChild(second);
+        }
+      }
+      for (int binding = 0; binding < 8; ++binding) {
+        // Different material slots split the captured packets within a strip.
+        // All colors stay above the visibility threshold used below.
+        for (int i = 0; i < 8; ++i)
+          material->diffuseColor.set1Value(
+              i, binding == 2 ? SbColor(.65f + .03f * i, .65f + .03f * i, .65f + .03f * i)
+                              : SbColor(1, 1, 1));
+        mb->value = binding == 1   ? SoMaterialBinding::PER_FACE
+                    : binding == 2 ? SoMaterialBinding::PER_VERTEX
+                    : binding == 3 ? SoMaterialBinding::PER_PART
+                    : binding == 4 ? SoMaterialBinding::PER_PART_INDEXED
+                                   : SoMaterialBinding::OVERALL;
+        nb->value = binding >= 5 ? SoNormalBinding::PER_PART : SoNormalBinding::OVERALL;
+        lighting->model = binding >= 6 ? SoLightModel::PHONG : SoLightModel::BASE_COLOR;
+        normals->vector.setNum(binding == 7 ? 0 : 8);
+        if (binding != 7)
+          for (int i = 0; i < 8; ++i)
+            normals->vector.set1Value(i, SbVec3f(0, 0, 1));
+        const bool independent = binding == 3 || binding == 4 || binding == 6;
+        for (int fast : {0, 1})
+          for (int width : {1, 3})
+            for (int repeat : {1, 2, 5, 256})
+              for (uint32_t pattern : {0u, 0xffffu, 0x000fu, 0xaaaau, 0x9249u}) {
+                action.setFastPathEnabled(fast ? TRUE : FALSE);
+                drawStyle->lineWidth = width;
+                drawStyle->linePattern = pattern;
+                drawStyle->linePatternScaleFactor = repeat;
+                action.apply(root);
+                std::vector<uint8_t> image;
+                target->readbackRGBA(image);
+                if (!check(action.getLastStatus() == CoinRenderAction::SUCCESS &&
+                               image.size() == 64 * 64 * 4,
+                           "native patterned strips render")) {
+                  root->unref();
+                  return false;
+                }
+                const unsigned char* reference = nullptr;
+                if (compareGl) {
+                  if (!check(gl.render(root) && gl.getBuffer(),
+                             "required Coin/GL native stipple renders")) {
+                    root->unref();
+                    return false;
+                  }
+                  reference = gl.getBuffer();
+                }
+                auto sample = [&](int x, int y, int counter) {
+                  const bool expected =
+                      (pattern & (1u << ((counter / std::min(repeat, 256)) & 15))) != 0;
+                  const bool actual = image[((63 - y) * 64 + x) * 4] > 127;
+                  const bool same = !reference || (reference[(y * 64 + x) * 3] > 127) == actual;
+                  if (actual != expected || !same)
+                    std::cerr << "native stipple " << cpu << ',' << indexed << ',' << separateNodes
+                              << ',' << binding << ',' << fast << ',' << width << ',' << repeat
+                              << ',' << pattern << " at " << x << ',' << y << " count " << counter
+                              << " Core " << actual << " GL "
+                              << (reference ? int(reference[(y * 64 + x) * 3]) : -1) << '\n';
+                  ok = check(actual == expected && same,
+                             "native stipple counts fragments, preserves strip phase and resets "
+                             "per binding/node") &&
+                       ok;
+                };
+                for (int t = 4; t <= 14; ++t) {
+                  sample(6 + t, 6, t);
+                  sample(25, 6 + t, (independent ? 0 : 19) + t);
+                  sample(25 + t, 25, t);
+                  sample(44, 25 + t, (independent ? 0 : 19) + t);
+                }
+                if (!ok) {
+                  root->unref();
+                  return false;
+                }
+              }
+      }
+    }
+  if (compareGl)
+    std::cout << "Coin/GL native stipple reference passed\n";
+  root->unref();
+  return ok;
+}
+
+bool polygonStippleActionContract(bool cpu) {
+  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(64, 64)));
+  if (cpu)
+    target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
+#ifdef HAVE_COIN_BGFX
+  target->setDepthReadbackEnabled(FALSE);
+#endif
+  SoSeparator* root = new SoSeparator;
+  root->ref();
+  SoOrthographicCamera* camera = new SoOrthographicCamera;
+  camera->height = 2;
+  camera->position = SbVec3f(0, 0, 3);
+  camera->nearDistance = .1f;
+  camera->farDistance = 10;
+  root->addChild(camera);
+  SoLightModel* lighting = new SoLightModel;
+  lighting->model = SoLightModel::BASE_COLOR;
+  root->addChild(lighting);
+  SoMaterial* material = new SoMaterial;
+  material->diffuseColor = SbColor(1, 1, 1);
+  root->addChild(material);
+  SoDrawStyle* drawStyle = style(SoDrawStyle::LINES);
+  root->addChild(drawStyle);
   SoCoordinate3* coords=new SoCoordinate3;
   root->addChild(coords);SoGroup* geometry=new SoGroup;root->addChild(geometry);
   CoinRenderAction action(SbViewportRegion(64,64));action.setRenderTarget(target.get());
@@ -1140,10 +1311,10 @@ bool actionContract(bool cpu) {
 }
 int main() {
   SoDB::init();DerivedStyleCube::initClass();CoinRenderAction::initClass();
-  if(!polygonStippleCapCoreContract() || !polygonStippleCoreContract() || !stateContract() || !polygonCoreContract() || !slopeCoreContract() || !polygonCaptureContract() || !polygonUnsupportedActionContract(true) || !polygonClippedStippleActionContract(true) || !polygonStippleActionContract(true) || !polygonActionContract(true) || !slopeActionContract(true) || !homogeneousStrokeContract(true) || !polygonAttributesActionContract(true) || !actionContract(true))return 1;
+  if(!nativeStippleActionContract(true) || !polygonStippleCapCoreContract() || !polygonStippleCoreContract() || !stateContract() || !polygonCoreContract() || !slopeCoreContract() || !polygonCaptureContract() || !polygonUnsupportedActionContract(true) || !polygonClippedStippleActionContract(true) || !polygonStippleActionContract(true) || !polygonActionContract(true) || !slopeActionContract(true) || !homogeneousStrokeContract(true) || !polygonAttributesActionContract(true) || !actionContract(true))return 1;
   if(!CoinRenderAction::isGpuBackendAvailable()) {
     std::cerr<<"[SKIP] GPU adapter unavailable\n";return 77;
   }
-  if(!polygonUnsupportedActionContract(false) || !polygonClippedStippleActionContract(false) || !polygonStippleActionContract(false) || !polygonActionContract(false) || !slopeActionContract(false) || !homogeneousStrokeContract(false) || !polygonAttributesActionContract(false) || !actionContract(false))return 1;
+  if(!nativeStippleActionContract(false) || !polygonUnsupportedActionContract(false) || !polygonClippedStippleActionContract(false) || !polygonStippleActionContract(false) || !polygonActionContract(false) || !slopeActionContract(false) || !homogeneousStrokeContract(false) || !polygonAttributesActionContract(false) || !actionContract(false))return 1;
   std::cout<<"DrawStyle polygon/Core/INVISIBLE CPU/GPU contracts passed\n";return 0;
 }

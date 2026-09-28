@@ -70,6 +70,10 @@ private:
   uint32_t addVertex(SoCallbackAction * action, const SoPrimitiveVertex * pv, uint32_t materialSlot);
   void ensureDrawPacket(CoinRenderPrimitiveTopology topology, uint32_t renderStateSlot, SoNode * node, bool forceNewPacket = false);
 
+  SoNode * lineNode = nullptr;
+  int lineIndex = -1;
+  uint64_t lineStripId = 0;
+  uint64_t nextLineStripId = 0;
   SoNode * polygonNode = nullptr;
   std::vector<CoinRenderVertexSnapshot> polygonVertices;
   std::vector<SbVec3f> polygonPositions;

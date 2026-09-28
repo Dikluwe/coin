@@ -272,8 +272,8 @@ repetição 1..256 e fase contínua entre as arestas. `CoinRenderStrokeCore.h`
 expande apenas os intervalos visíveis; largura replica o bit no eixo menor.
 O contador reinicia em cada contorno original, mesmo quando dois polígonos
 compartilham estado. O perfil atual limita cada segmento a 65.536 células e
-retorna diagnóstico quando o orçamento é ultrapassado. Linhas nativas mantêm
-seu contrato existente; continuidade entre segmentos de LineSet pertence a P08.
+retorna diagnóstico quando o orçamento é ultrapassado. A continuidade de linhas
+nativas em P08 foi ampliada no perfil descrito abaixo.
 
 O Coin envia faces de três/quatro vértices como TRIANGLES/QUADS e faces maiores
 como POLYGON. A referência Mesa consultada começa pela aresta de fechamento nos
@@ -370,6 +370,56 @@ igualdade pixel a pixel. Logs: `/tmp/coin-clip-stipple-wgpu-ctest.log`,
 `/tmp/coin-clip-stipple-bgfx-ctest.log`, `/tmp/coin-clip-stipple-wgpu-gl.log`,
 `/tmp/coin-clip-stipple-bgfx-gl.log`, `/tmp/coin-clip-stipple-bgfx-opengl-gl.log`
 e `/tmp/coin-clip-stipple-wgpu-final-test.log`.
+
+## Continuidade de linhas nativas em P08 (2026-09-28)
+
+- [x] Contador de fragmentos único para linhas nativas e contornos de polígonos.
+- [x] Continuidade de SoLineSet/SoIndexedLineSet e reset por polilinha/nó.
+- [x] Reset por segmento com material PER_PART/PER_PART_INDEXED ou normais
+  por segmento quando PHONG usa normais fornecidas.
+- [x] Continuidade entre packets com materiais diferentes, vértices repetidos
+  e polilinhas com um extremo compartilhado.
+- [ ] Qualificação ampliada de diagonais, extremos fracionários, alpha,
+  clipping de polilinhas, geometria ampliada/vertex arrays GL, MSAA e drivers físicos.
+
+Wiring captura os limites a partir de SoLineDetail e dos bindings efetivos,
+seguindo SoLineSet.cpp e SoIndexedLineSet.cpp. Normais por segmento não alteram
+a montagem GL quando o modelo é BASE_COLOR ou não há normais fornecidas.
+Uma identidade temporária de strip permite ao Core conservar a fase mesmo
+quando uma troca de material divide a captura em vários draws. O Core consome
+e remove essa identidade antes da submissão: não há mudança na ABI GPU 25.
+O Core conta fragmentos pelo mesmo teste de saída do diamante já usado nos
+contornos; não resta um algoritmo de comprimento euclidiano por backend.
+
+O caminho rápido IndexedLineSet com padrão usa fallback para os callbacks do
+Coin: o payload direto atual contém pares sem limites de polilinha. Linhas
+sólidas conservam o caminho direto. Customizações/subclasses e primitivas sem
+identificação nativa continuam como segmentos independentes; a continuidade
+dessas extensões não está qualificada. Não inferir ligação pela igualdade das
+coordenadas. Em recortes, o perfil continua contando os fragmentos visíveis;
+equivalência de fase com todos os drivers GL não foi estabelecida.
+
+A matriz usa os dois tipos de nó, uma ou duas instâncias, callbacks e fast path,
+oito combinações de bindings/normais/iluminação, larguras 1/3, repetições
+1/2/5/256 e cinco máscaras. Amostras internas têm expectativas independentes
+de fase e comparação obrigatória com Coin/GL Mesa/llvmpipe. As cores diferentes
+testam a continuidade entre packets; esse teste não qualifica toda a
+interpolação de cor/alpha. A cena tem sete coordenadas; a referência GL com
+vertex arrays em cargas maiores não foi qualificada. O helper mantém a verificação existente de limite
+256 para repetição fora do intervalo. Esse fechamento é parcial de P08/F08.
+
+Validação final: **19/19 CTests wgpu** e **28/28 CTests BGFX**, além da
+referência GL obrigatória CPU/GPU nos perfis wgpu, BGFX Vulkan e BGFX OpenGL.
+Logs: `/tmp/coin-native-stipple-wgpu-ctest.log`,
+`/tmp/coin-native-stipple-bgfx-ctest-final.log`,
+`/tmp/coin-native-stipple-wgpu-gl.log`, `/tmp/coin-native-stipple-bgfx-gl.log`
+e `/tmp/coin-native-stipple-bgfx-opengl-gl.log`.
+A primeira suíte BGFX registrou uma falha em `Device-loss setup failed` de
+CoinBgfxReadbackModes_opengl; o teste passou isoladamente e na repetição completa,
+sem alteração de código. A causa não foi determinada. Evidências preservadas em
+`/tmp/coin-native-stipple-bgfx-ctest.log` e
+`/tmp/coin-native-stipple-bgfx-readback-recheck.log`. As diferenças de clipping
+de polígonos previamente documentadas continuam fora da equivalência pixel a pixel.
 
 ## Checklist de P02
 

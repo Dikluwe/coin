@@ -10,6 +10,11 @@
 #include <Inventor/nodes/SoCone.h>
 #include <Inventor/nodes/SoCylinder.h>
 #include <Inventor/nodes/SoSphere.h>
+#include <Inventor/nodes/SoLineSet.h>
+#include <Inventor/nodes/SoIndexedLineSet.h>
+#include <Inventor/elements/SoMaterialBindingElement.h>
+#include <Inventor/elements/SoNormalBindingElement.h>
+#include <Inventor/elements/SoNormalElement.h>
 #include <Inventor/details/SoCylinderDetail.h>
 #include <Inventor/elements/SoDrawStyleElement.h>
 #include "rendering/coinrender/CoinRenderPolygonStyleCore.h"
@@ -102,6 +107,9 @@ CoinRenderFramePlanBuilder::reset()
   this->currentPlan.samplers.clear();
   this->currentPlan.draws.clear();
   this->currentDrawIndex = 0;
+  this->lineNode = nullptr;
+  this->lineIndex = -1;
+  this->lineStripId = this->nextLineStripId = 0;
   this->nodeCounter = 0;
   this->inFrame = false;
   this->hasActiveDraw = false;
@@ -1019,15 +1027,49 @@ CoinRenderFramePlanBuilder::addTriangle(SoCallbackAction * action,
   dp.geometry.indexCount += 3;
 }
 
-void
-CoinRenderFramePlanBuilder::addLine(SoCallbackAction * action,
-                                const SoPrimitiveVertex * v0,
-                                const SoPrimitiveVertex * v1)
-{
-  if (!v0 || !v1 || isShapeInvisible(action)) return;
+void CoinRenderFramePlanBuilder::addLine(SoCallbackAction* action, const SoPrimitiveVertex* v0,
+                                         const SoPrimitiveVertex* v1) {
+  if (!v0 || !v1 || isShapeInvisible(action))
+    return;
   uint32_t rsSlot = this->captureRenderState(action, v0->getMaterialIndex());
-  if (this->isUnsupported) return;
-  this->ensureDrawPacket(CoinRenderPrimitiveTopology::LINE_LIST, rsSlot, action->getCurPathTail());
+  if (this->isUnsupported)
+    return;
+  SoNode* node = action->getCurPathTail();
+  SoState* state = action->getState();
+  const SoDetail* detail = v0->getDetail();
+  const SoLineDetail* line = detail && detail->isOfType(SoLineDetail::getClassTypeId())
+                                 ? static_cast<const SoLineDetail*>(detail)
+                                 : nullptr;
+  const int materialBinding = SoMaterialBindingElement::get(state);
+  const int normalBinding = SoNormalBindingElement::get(state);
+  // Coin's native line nodes choose GL_LINES for per-segment bindings and
+  // GL_LINE_STRIP otherwise. Normals only influence GL assembly when used.
+  const bool normalsUsed = SoLightModelElement::get(state) != SoLightModelElement::BASE_COLOR &&
+                           SoNormalElement::getInstance(state)->getNum() > 0;
+  const bool independent =
+      materialBinding == SoMaterialBindingElement::PER_PART ||
+      materialBinding == SoMaterialBindingElement::PER_PART_INDEXED ||
+      (normalsUsed && (normalBinding == SoNormalBindingElement::PER_PART ||
+                       normalBinding == SoNormalBindingElement::PER_PART_INDEXED));
+  const bool knownStrip = line && !independent &&
+                          this->currentPlan.renderStates[rsSlot].linePattern != 0xffffu &&
+                          (node->getTypeId() == SoLineSet::getClassTypeId() ||
+                           node->getTypeId() == SoIndexedLineSet::getClassTypeId());
+  uint64_t strip = 0;
+  if (knownStrip) {
+    if (this->lineNode != node || this->lineIndex != line->getLineIndex() ||
+        line->getPartIndex() == 0 || !this->hasActiveDraw ||
+        this->currentPlan.draws[this->currentDrawIndex].topology !=
+            CoinRenderPrimitiveTopology::LINE_LIST)
+      this->lineStripId = ++this->nextLineStripId;
+    strip = this->lineStripId;
+  }
+  this->lineNode = node;
+  this->lineIndex = line ? line->getLineIndex() : -1;
+  const bool newStrip =
+      this->hasActiveDraw && this->currentPlan.draws[this->currentDrawIndex].lineStripId != strip;
+  this->ensureDrawPacket(CoinRenderPrimitiveTopology::LINE_LIST, rsSlot, node, newStrip);
+  this->currentPlan.draws[this->currentDrawIndex].lineStripId = strip;
   this->captureSortingCenter(action);
 
   uint32_t m0 = this->captureMaterial(action, v0->getMaterialIndex());
@@ -1039,18 +1081,18 @@ CoinRenderFramePlanBuilder::addLine(SoCallbackAction * action,
   this->currentPlan.indices.push_back(i0);
   this->currentPlan.indices.push_back(i1);
 
-  CoinRenderDrawPacket & dp = this->currentPlan.draws[this->currentDrawIndex];
+  CoinRenderDrawPacket& dp = this->currentPlan.draws[this->currentDrawIndex];
   dp.geometry.vertexCount += 2;
   dp.geometry.indexCount += 2;
 }
 
-void
-CoinRenderFramePlanBuilder::addPoint(SoCallbackAction * action,
-                                 const SoPrimitiveVertex * vertex)
-{
-  if (!vertex || isShapeInvisible(action)) return;
+void CoinRenderFramePlanBuilder::addPoint(SoCallbackAction* action,
+                                          const SoPrimitiveVertex* vertex) {
+  if (!vertex || isShapeInvisible(action))
+    return;
   uint32_t rsSlot = this->captureRenderState(action, vertex->getMaterialIndex());
-  if (this->isUnsupported) return;
+  if (this->isUnsupported)
+    return;
   this->ensureDrawPacket(CoinRenderPrimitiveTopology::POINT_LIST, rsSlot, action->getCurPathTail());
   this->captureSortingCenter(action);
 
@@ -1059,7 +1101,7 @@ CoinRenderFramePlanBuilder::addPoint(SoCallbackAction * action,
 
   this->currentPlan.indices.push_back(i0);
 
-  CoinRenderDrawPacket & dp = this->currentPlan.draws[this->currentDrawIndex];
+  CoinRenderDrawPacket& dp = this->currentPlan.draws[this->currentDrawIndex];
   dp.geometry.vertexCount += 1;
   dp.geometry.indexCount += 1;
 }
@@ -1491,6 +1533,8 @@ CoinRenderFramePlanBuilder::processIndexedLineSet(
 
   const CoinRenderIndexedGeometryOptions options =
     captureIndexedGeometryOptions(action, node);
+  if ((SoLinePatternElement::get(action->getState()) & 0xffffu) != 0xffffu)
+    return CoinRenderFastPathResult::FALLBACK_CONTINUE;
   CoinRenderIndexedGeometryResult transformed =
     CoinRenderIndexedGeometryCore::buildLines(view, options);
   publishCoreDiagnostic(transformed, outError);
