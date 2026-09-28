@@ -44,7 +44,7 @@ do pedido, enquanto Infra cria, retém e libera os recursos concretos.
 | `CoinRenderImageCore` | Core comum | Transformação mecânica de linhas; readback e publicação são responsabilidades distintas. |
 | `CoinRenderComposition.h` | Core comum | Dono único de alpha, modalidade Coin, ordenação, screen door e profundidade efetiva; `exactCoin` removido. |
 | `CoinBgfxLowering` | Core específico + decisões comuns | Layout BGFX pode permanecer específico. Políticas de transparência/depth extraídas; outras operações reaproveitáveis continuam pendentes. |
-| `CoinWgpuFfiFrame`, `CoinWgpuFfi.h` | Adaptação específica Rust/wgpu | Empacotamento e ABI privados do conector; transportam draws ordenados, blend e variantes de depth resolvidos, na ABI privada 24. |
+| `CoinWgpuFfiFrame`, `CoinWgpuFfi.h` | Adaptação específica Rust/wgpu | Empacotamento e ABI privados do conector; transportam draws ordenados, blend e variantes de depth resolvidos, na ABI privada 25. |
 | `rust_bridge/src/composition.rs` | Adaptação Infra | Valida flags, referências e sequência recebida; não reclassifica alpha nem reordena draws. |
 | `CoinBgfxBackend`, recursos e shaders BGFX | Infra BGFX | Devem permanecer específicos; recebem o plano resolvido e executam mecanismos compatíveis. |
 | `rust_bridge/src/lib.rs`, recursos e shaders WGSL | Infra wgpu, com lógica mecânica misturada | Execução específica; separar validação/adaptação de decisões semânticas. |
@@ -135,11 +135,11 @@ Essas checkboxes são o modelo por item, não oito trabalhos globais já conclu�
 | F01 | Anotações: camada, ordem e barreira de depth | Core de composição | Caminho existente | Transporte e testes específicos fechados | Planejamento comum fechado em M04; qualificação GL e integração FreeCAD wgpu ainda abertas. |
 | F02 | Onze modalidades de transparência Coin e alpha final | Core de composição | Caminhos existentes, controles parciais | Composição comum e source-over passam; aditivo/triângulos/camadas/stipple rejeitados | Estados efetivos, alpha, modos imediatos/atrasados/aditivos, sorting e referência GL. |
 | F03 | `SoClipPlane` | Captura Wiring + clipping Core | Até oito planos; object/OIT/layers ensaiados em GL/Vulkan | Até oito planos; captura/CPU/GPU ensaiados | P01 fechado no perfil: [contrato e limites](coin-render-clipping-contract.md). Qualificação visual GL, bordas/strokes, RTT e FreeCAD permanecem abertas. |
-| F04 | `SoDrawStyle`: LINES, POINTS, INVISIBLE | Wiring de visibilidade; Core de geometria/estilo | INVISIBLE e LINES/POINTS convexos; offset plano original; textura/fog ensaiados | Mesmo perfil, offset/units D32Float e textura explícita/fog em strokes | [Contrato e checklist](coin-render-draw-style-contract.md): padrões, offset fora do perfil plano/precisão, contornos fora do perfil e qualificação GL/FreeCAD. |
+| F04 | `SoDrawStyle`: LINES, POINTS, INVISIBLE | Wiring de visibilidade; Core de geometria/estilo | INVISIBLE e LINES/POINTS convexos; padrão contínuo; offset plano original; textura/fog ensaiados | Mesmo perfil, padrão contínuo, offset/units D32Float e textura explícita/fog em strokes | [Contrato e checklist](coin-render-draw-style-contract.md): raster ampliado de padrões/clipping, offset fora do perfil plano/precisão e qualificação GL/FreeCAD. Padrão contínuo e rejeição de contornos fora do perfil ensaiados. |
 | F05 | `SoText2` | Captura Wiring + layout/rasterização Core | Sem caminho completo identificado | Sem caminho completo identificado | Estudar GL/fontes, âncora, tamanho, clipping e composição; implementação de atlas específica. |
 | F06 | UV procedural/default | Captura Wiring + coordenadas Core | Rejeições e documentação contraditória | Rejeições identificadas | Resolver funções/defaults, espaços de coordenadas e matriz por shape. |
 | F07 | Multitextura e `SoTextureCombine` | Core de textura | Até oito unidades; combine rejeitado | Multitextura/combine rejeitados | Operações capturadas/resolvidas, limites declarados e shaders executores. |
-| F08 | Linhas/pontos texturizados e atributos de stroke | Core de geometria/stroke | Expansão comum, textura/fog ensaiados | Mesmo Core e atributos homogêneos na ABI 24 | Matriz ampliada de formatos, qualidade, multitextura e transparência. |
+| F08 | Linhas/pontos texturizados e atributos de stroke | Core de geometria/stroke | Expansão comum, textura/fog ensaiados | Mesmo Core e atributos homogêneos na ABI 25 | Matriz ampliada de formatos, qualidade, multitextura e transparência. |
 | F09 | Bindings, índices, materiais e alpha por vértice | Core de geometria/material | Implementações e ensaios existentes | Captura comum, requalificação pendente | Matriz completa por shape e bindings, incluindo normais geradas. |
 | F10 | Iluminação Coin/Gouraud, luzes e fog | Core de estado + contrato matemático | Comparações existentes | Shaders/caminhos existentes | Matriz numérica comum; limites de luzes e distinção de Phong por fragmento. |
 | F11 | Modelos de textura, filtros e qualidade | Core de textura | Modelos ensaiados; perfil limitado | Modelos presentes; docs antigas | Atualizar perfil, filtros/qualidade, formatos e comparações. |
@@ -159,12 +159,12 @@ hardware. Dawn/native permanece protótipo, sem entrar como executor equivalente
 
 ## Marcos já fechados no escopo
 
-- [x] **M01 — Metadados de anotações na ponte Rust.** `render_layer` e `clear_depth_before`, introduzidos na ABI privada 20 (atual 24), testes de empacotamento, reuso e camera patch.
+- [x] **M01 — Metadados de anotações na ponte Rust.** `render_layer` e `clear_depth_before`, introduzidos na ABI privada 20 (atual 25), testes de empacotamento, reuso e camera patch.
 - [x] **M02 — Execução offscreen de anotações no wgpu.** Testes de pixels para ordem opaco/transparente, depth write explícito, limpeza restrita à viewport, preservação do frame rejeitado e frame vazio; CTest sem skip na etapa anterior.
 - [x] **M03 — Registro dos limites dessa entrega.** [Contrato de anotações](coin-wgpu-annotation-contract.md) documenta o escopo e aponta a correção da suíte geral de composição.
 - [x] **M04 — Anotações com planejamento comum.** Ordem e depth efetivo compartilham o Core e as fixtures de composição. Isso fecha A03; A04/F01 continuam parciais por dependências/qualificação. [Evidência](coin-render-composition-contract.md).
 
-- [x] **M05 — Clipping comum (P01/F03).** Captura de planos em mundo, equações em Core, strokes recortados antes da expansão e execução BGFX/wgpu; ABI privada 24. [Contrato, evidências e limites](coin-render-clipping-contract.md).
+- [x] **M05 — Clipping comum (P01/F03).** Captura de planos em mundo, equações em Core, strokes recortados antes da expansão e execução BGFX/wgpu; ABI privada 25. [Contrato, evidências e limites](coin-render-clipping-contract.md).
 
 ## Registro a preencher a cada fechamento
 

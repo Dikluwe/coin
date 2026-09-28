@@ -20,11 +20,13 @@ coin_render_same_state_except_camera(const CoinRenderRenderStateSnapshot & a,
     a.polygonOffsetFactor == b.polygonOffsetFactor &&
     a.polygonOffsetUnits == b.polygonOffsetUnits &&
     a.polygonOffsetSlopeBias == b.polygonOffsetSlopeBias &&
+    a.polygonOffsetMaxDepth == b.polygonOffsetMaxDepth &&
     a.polygonOffsetStyles == b.polygonOffsetStyles &&
     a.polygonOffsetPrimitiveStyle == b.polygonOffsetPrimitiveStyle &&
     a.lightModel == b.lightModel && a.lineWidth == b.lineWidth &&
     a.pointSize == b.pointSize && a.linePattern == b.linePattern &&
     a.linePatternScaleFactor == b.linePatternScaleFactor &&
+    a.polygonLinePattern == b.polygonLinePattern &&
     a.textureMatrix == b.textureMatrix &&
     std::memcmp(a.extraTextures, b.extraTextures, sizeof(a.extraTextures)) == 0 &&
     a.hasTexture == b.hasTexture && a.textureImageSlot == b.textureImageSlot &&

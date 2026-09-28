@@ -45,7 +45,7 @@ static_assert(alignof(CoinWgpuTexture) == 8, "CoinWgpuTexture alignment mismatch
 static_assert(sizeof(CoinWgpuSampler) == 16, "CoinWgpuSampler size mismatch");
 static_assert(alignof(CoinWgpuSampler) == 4, "CoinWgpuSampler alignment mismatch");
 
-static_assert(sizeof(CoinWgpuRenderState) == 1092, "CoinWgpuRenderState size mismatch");
+static_assert(sizeof(CoinWgpuRenderState) == 1096, "CoinWgpuRenderState size mismatch");
 static_assert(alignof(CoinWgpuRenderState) == 4, "CoinWgpuRenderState alignment mismatch");
 static_assert(offsetof(CoinWgpuRenderState, cull_mode) == 236, "CoinWgpuRenderState cull_mode offset mismatch");
 static_assert(offsetof(CoinWgpuRenderState, front_face) == 240, "CoinWgpuRenderState front_face offset mismatch");

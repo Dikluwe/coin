@@ -6,7 +6,7 @@ estão em `experimental/include`. Desde a Onda 6, esses headers e a biblioteca
 podem ser instalados com `COIN_INSTALL_RENDER_EXPERIMENTAL=ON`, mas continuam
 experimentais, fora da API e ABI públicas estáveis de `libCoin` no Coin 4.
 A ponte C++/Rust é privada e versionada
-(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=24` nesta revisão). Não promova esses
+(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=25` nesta revisão). Não promova esses
 headers a consumidores externos como se fossem estáveis.
 
 O guia de produto, a matriz de capacidades, o manager, os exemplos instaláveis,
@@ -325,18 +325,18 @@ onze modalidades no wgpu. Consulte [contrato e limites atuais](coin-render-compo
 ## Clipping Coin
 
 Até oito planos ativos, capturados em mundo e resolvidos por CoinRender, com
-recorte de strokes antes da expansão. Limites, ABI privada 24 e evidências no
+recorte de strokes antes da expansão. Limites, ABI privada 25 e evidências no
 [contrato de clipping](coin-render-clipping-contract.md).
 
 ## Offset de polígonos em LINES/POINTS
 
 CoinRender calcula a inclinação da face plana original antes da expansão.
 BGFX aplica o bias resolvido no fragmento; wgpu usa uma variante com saída de
-depth (ABI privada 24). O perfil wgpu combina inclinação com units fracionário na precisão D32Float;
+depth (ABI privada 25). O perfil wgpu combina inclinação com units fracionário na precisão D32Float;
 combinações fora do perfil recebem diagnóstico explícito. Faces não planas,
 precisão de units e qualificação visual continuam abertas no
 [contrato e checklist de estilo](coin-render-draw-style-contract.md).
 
 Expansão de strokes agora é comum em `CoinRenderStrokeCore.h`, com UV/cor
 em perspectiva e fog por fragmento. O vértice wgpu tem 44 bytes na ABI privada
-24; a matriz numérica e os limites estão no contrato de estilo.
+25; a matriz numérica e os limites estão no contrato de estilo.

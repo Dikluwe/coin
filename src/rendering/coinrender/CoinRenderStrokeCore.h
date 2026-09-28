@@ -2,12 +2,14 @@
 #define COIN_RENDER_STROKE_CORE_H
 
 #include "rendering/coinrender/CoinRenderClipCore.h"
+#include "rendering/coinrender/CoinRenderLineStippleCore.h"
 #include <algorithm>
 #include <cmath>
 #include <cstring>
 
 // Mechanical expansion of captured strokes, shared by every GPU backend.
 inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& diagnostic) {
+  diagnostic.clear();
   const size_t originalDrawCount = plan.draws.size();
   std::vector<CoinRenderDrawPacket> expandedDraws;
   expandedDraws.reserve(originalDrawCount);
@@ -95,6 +97,7 @@ inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& d
     state.pointSize = 1.0f;
     state.linePattern = 0xffffu;
     state.linePatternScaleFactor = 1;
+    state.polygonLinePattern = false;
     const uint32_t stateSlot = static_cast<uint32_t>(plan.renderStates.size());
     plan.renderStates.push_back(state);
 
@@ -150,6 +153,7 @@ inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& d
       const uint32_t pattern = sourceState.linePattern & 0xffffu;
       const float patternScale =
           static_cast<float>(std::max(1, sourceState.linePatternScaleFactor));
+      uint32_t polygonPhase = 0;
       for (size_t offset = 0; offset + 1 < original.geometry.indexCount; offset += 2) {
         const uint32_t firstIndex = plan.indices[original.geometry.firstIndex + offset];
         const uint32_t secondIndex = plan.indices[original.geometry.firstIndex + offset + 1];
@@ -181,23 +185,41 @@ inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& d
         const float lengthPixels = std::sqrt(dxPixels * dxPixels + dyPixels * dyPixels);
         if (lengthPixels <= 1.0e-6f || pattern == 0u)
           continue;
-        const float offsetX = (-dyPixels / lengthPixels) * halfWidth * 2.0f / viewport.width;
-        const float offsetY = (dxPixels / lengthPixels) * halfWidth * 2.0f / viewport.height;
-
-        float cursor = 0.0f;
-        while (cursor < lengthPixels - 1.0e-5f) {
-          float next = lengthPixels;
-          bool visible = true;
-          if (pattern != 0xffffu) {
-            const uint32_t patternCell = static_cast<uint32_t>(std::floor(cursor / patternScale));
-            next = std::min(lengthPixels, (static_cast<float>(patternCell) + 1.0f) * patternScale);
-            visible = (pattern & (1u << (patternCell & 15u))) != 0u;
+        float offsetX = (-dyPixels / lengthPixels) * halfWidth * 2.0f / viewport.width;
+        float offsetY = (dxPixels / lengthPixels) * halfWidth * 2.0f / viewport.height;
+        std::vector<std::pair<float, float>> spans;
+        if (sourceState.polygonLinePattern && pattern != 0xffffu) {
+          const bool xMajor = std::abs(dxPixels) >= std::abs(dyPixels);
+          const float rasterHalfWidth = std::max(1.0f, std::floor(width + .5f)) * .5f;
+          offsetX = xMajor ? 0 : rasterHalfWidth * 2 / viewport.width;
+          offsetY = xMajor ? rasterHalfWidth * 2 / viewport.height : 0;
+          if (!coin_render_polygon_stipple((firstNdc[0] + 1.0) * .5 * viewport.width,
+                                           (firstNdc[1] + 1.0) * .5 * viewport.height,
+                                           (secondNdc[0] + 1.0) * .5 * viewport.width,
+                                           (secondNdc[1] + 1.0) * .5 * viewport.height, pattern,
+                                           sourceState.linePatternScaleFactor, polygonPhase, spans))
+            return fail("Polygon stipple exceeds the Core raster budget");
+        } else {
+          float cursor = 0;
+          while (cursor < lengthPixels - 1e-5f) {
+            float next = lengthPixels;
+            bool visible = true;
+            if (pattern != 0xffffu) {
+              const uint32_t cell = static_cast<uint32_t>(std::floor(cursor / patternScale));
+              next = std::min(lengthPixels, (static_cast<float>(cell) + 1) * patternScale);
+              visible = (pattern & (1u << (cell & 15u))) != 0;
+            }
+            if (next <= cursor + 1e-6f)
+              next = std::min(lengthPixels, cursor + patternScale);
+            if (visible)
+              spans.emplace_back(cursor / lengthPixels, next / lengthPixels);
+            cursor = next;
           }
-          if (next <= cursor + 1.0e-6f)
-            next = std::min(lengthPixels, cursor + patternScale);
-          if (visible) {
-            const float t0 = cursor / lengthPixels;
-            const float t1 = next / lengthPixels;
+        }
+        for (const auto& span : spans) {
+          {
+            const float t0 = span.first;
+            const float t1 = span.second;
             const SbVec3f start = firstNdc + (secondNdc - firstNdc) * t0;
             const SbVec3f end = firstNdc + (secondNdc - firstNdc) * t1;
             const CoinRenderVertexSnapshot startAttributes =
@@ -217,7 +239,6 @@ inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& d
                                              base + 2, base + 1, base + 3};
             plan.indices.insert(plan.indices.end(), quadIndices, quadIndices + 6);
           }
-          cursor = next;
         }
       }
     } else if (original.topology == CoinRenderPrimitiveTopology::POINT_LIST) {

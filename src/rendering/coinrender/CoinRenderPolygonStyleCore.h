@@ -185,12 +185,6 @@ inline bool coin_render_prepare_polygon_style(
     CoinRenderPolygonStyleResult& result, std::string& diagnostic,
     const CoinRenderViewportSnapshot& viewport) {
   result = CoinRenderPolygonStyleResult{};
-  if (style == CoinRenderPolygonStyle::LINES && state.linePattern != 0xffffu &&
-      state.linePattern != 0) {
-    diagnostic =
-        "UNSUPPORTED: patterned polygon boundaries require continuous Coin stipple semantics";
-    return false;
-  }
   const uint32_t primitiveStyle = style == CoinRenderPolygonStyle::LINES ? 2u : 4u;
   if (!coin_render_resolve_polygon_style(ring, state, materials, lighting, result.vertices,
                                          diagnostic))
@@ -203,6 +197,28 @@ inline bool coin_render_prepare_polygon_style(
   result.state.cullMode = CoinRenderCullMode::NONE;
   result.state.clipPlanesWorld.clear();
   result.state.polygonOffsetPrimitiveStyle = lines ? 2u : 4u;
+  result.state.polygonLinePattern = lines;
+  // Stipple can remove the deepest corner. Preserve the original face metric;
+  // the GPU backend owns the depth format's quantum.
+  if (state.polygonOffsetEnabled && (state.polygonOffsetStyles & primitiveStyle) &&
+      !result.vertices.empty()) {
+    const SbMatrix mvp = state.model * state.view * state.projectionCoin;
+    float maximum = 0;
+    for (const auto& item : result.vertices) {
+      SbVec4f clip;
+      mvp.multVecMatrix(
+          SbVec4f(item.vertex.position[0], item.vertex.position[1], item.vertex.position[2], 1),
+          clip);
+      const float depth = state.depthRange[0] + (clip[2] / clip[3] * .5f + .5f) *
+                                                    (state.depthRange[1] - state.depthRange[0]);
+      if (!std::isfinite(depth)) {
+        diagnostic = "Invalid original polygon depth";
+        return false;
+      }
+      maximum = std::max(maximum, std::max(0.0f, std::min(1.0f, depth)));
+    }
+    result.state.polygonOffsetMaxDepth = maximum;
+  }
   // The expanded strokes have another depth gradient. Resolve the original
   // planar face in window coordinates, keeping the bias out of vertex clipping.
   if (state.polygonOffsetEnabled && (state.polygonOffsetStyles & primitiveStyle) &&
@@ -263,9 +279,15 @@ inline bool coin_render_prepare_polygon_style(
     result.state.polygonOffsetFactor = 0;
   }
   for (uint32_t i = 0; i < result.vertices.size(); ++i) {
-    result.indices.push_back(i);
-    if (lines)
-      result.indices.push_back((i + 1) % result.vertices.size());
+    if (lines) {
+      // Coin emits triangles/quads separately, and larger rings as GL_POLYGON.
+      // Their first boundary differs with the provoking-vertex convention.
+      result.indices.push_back((i + (ring.size() > 4 ? 0 : result.vertices.size() - 1)) %
+                               result.vertices.size());
+      result.indices.push_back((i + (ring.size() > 4 ? 1 : 0)) % result.vertices.size());
+    } else {
+      result.indices.push_back(i);
+    }
   }
   return true;
 }

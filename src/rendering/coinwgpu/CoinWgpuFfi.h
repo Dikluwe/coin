@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 24
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 25
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -153,6 +153,7 @@ typedef struct CoinWgpuRenderState {
   uint32_t clip_plane_count;
   float clip_planes[8][4]; /* CoinRender-resolved eye-space equations; keep dot >= 0 */
   float polygon_offset_slope_bias; /* CoinRender-resolved original-face window depth bias */
+  uint32_t polygon_offset_max_depth_bits; /* 0: absent; IEEE-754 maximum depth bits + 1 */
 } CoinWgpuRenderState;
 
 typedef struct CoinWgpuFrameView {

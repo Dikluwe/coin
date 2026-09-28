@@ -27,7 +27,7 @@ escopos próprios de validação.
   sobre geometria comum; linhas/pontos dedicados não encerram esse item.
   INVISIBLE e LINES/POINTS de contornos convexos implementados no perfil
   documentado, incluindo offset da face plana original e units D32Float;
-  padrões, combinações de offset fora desse perfil, multitextura/UV procedural e qualificação
+  padrão contínuo e matriz explícita de contornos já verificados; combinações de offset fora desse perfil, multitextura/UV procedural e qualificação
   completa permanecem no [contrato de estilo](coin-render-draw-style-contract.md).
 - [ ] **P03 — SoText2 (F05):** fontes, âncora, tamanho, clipping e composição;
   layout comum, atlas e recursos próprios de cada Infra.
@@ -144,6 +144,6 @@ qualificação separadamente. Rejeição explícita fecha diagnóstico, não sup
 funcional. Atualizar Pxx e Axx/Fxx associados somente no escopo comprovado.
 
 **Próxima entrega concreta: P02 — SoDrawStyle / F04.** Mapear o comportamento
-Coin/GL nos limites restantes: padrão entre arestas, qualificação ampliada de units,
+Coin/GL nos limites restantes: raster de bordas e clipping com padrão, qualificação ampliada de units,
 multitextura/UV procedural e shapes fora do perfil convexo. A resolução comum de contornos
 e INVISIBLE já têm evidência no escopo documentado.

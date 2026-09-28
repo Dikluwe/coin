@@ -32,6 +32,7 @@
 #include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/SbViewVolume.h>
 #include "rendering/coinrender/CoinRenderPolygonStyleCore.h"
+#include "rendering/coinrender/CoinRenderLineStippleCore.h"
 #include <algorithm>
 #include <cmath>
 #include <Inventor/nodes/SoClipPlane.h>
@@ -50,6 +51,13 @@
 #include <memory>
 
 namespace {
+class DerivedStyleCube : public SoCube {
+  SO_NODE_HEADER(DerivedStyleCube);
+public:
+  DerivedStyleCube() { SO_NODE_CONSTRUCTOR(DerivedStyleCube); }
+  static void initClass() { SO_NODE_INIT_CLASS(DerivedStyleCube, SoCube, "Cube"); }
+};
+SO_NODE_SOURCE(DerivedStyleCube);
 bool check(bool condition, const char * message) {
   if (!condition) std::cerr << "CoinRenderDrawStyleTest: " << message << '\n';
   return condition;
@@ -209,8 +217,8 @@ bool polygonCoreContract() {
     resolved,error,CoinRenderViewportSnapshot{}),"concave contours are rejected instead of joined incorrectly") && ok;
   state=CoinRenderRenderStateSnapshot{};state.cullMode=CoinRenderCullMode::NONE;
   state.linePattern=0xaaaau;
-  ok=check(!coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
-    resolved,error,CoinRenderViewportSnapshot{}),"unqualified polygon stipple is explicitly rejected") && ok;
+  ok=check(coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
+    resolved,error,CoinRenderViewportSnapshot{}) && resolved.state.polygonLinePattern,"polygon pattern retains original contour ownership") && ok;
   return ok;
 }
 bool slopeCoreContract() {
@@ -235,7 +243,8 @@ bool slopeCoreContract() {
       // z_ndc=.2*x+.1*y, hence window slopes .6*.2/width and .6*.1/height.
       const float expected=factor*std::max(.12f/width,.06f/32);
       ok=check(coin_render_prepare_polygon_style(ring,state,materials,lighting,style,result,error,viewport) &&
-        std::abs(result.state.polygonOffsetSlopeBias-expected)<1e-8f && result.state.polygonOffsetFactor==0,
+        std::abs(result.state.polygonOffsetSlopeBias-expected)<1e-8f && result.state.polygonOffsetFactor==0 &&
+        std::abs(result.state.polygonOffsetMaxDepth-(.5f+.072f/(projective ? 1.12f : 1.f)))<1e-6f,
         "original planar slope uses viewport, depth range, sign and survives clipping") && ok;
     }
   state.projectionCoin=SbMatrix::identity();
@@ -379,14 +388,11 @@ bool polygonActionContract(bool cpu) {
                "POINTS emits corners only, while LINES retains boundary and foreground depth") && ok;
     }
   }
-  // Unsupported patterned polygons preserve the last publication, then recover.
   drawStyle->style=SoDrawStyle::LINES;drawStyle->linePattern=0xaaaau;
-  const uint64_t serial=target->getLastSubmissionSerial();std::vector<uint8_t> before,image;
-  target->readbackRGBA(before);action.apply(root);target->readbackRGBA(image);
-  ok=check(action.getLastStatus()==CoinRenderAction::UNSUPPORTED && serial==target->getLastSubmissionSerial() &&
-           image==before,"unsupported polygon pattern does not publish") && ok;
+  action.apply(root);
+  ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS,"polygon patterns share the Core expansion") && ok;
   drawStyle->linePattern=0xffffu;action.apply(root);
-  ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS,"polygon style recovers after unsupported pattern") && ok;
+  ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS,"polygon style switches back to solid") && ok;
   SoSeparator * textured=new SoSeparator;foreground->addChild(textured);
   SoTexture2 * texture=new SoTexture2;const unsigned char white[]={255,255,255};
   texture->image.setValue(SbVec2s(1,1),3,white);textured->addChild(texture);
@@ -538,6 +544,143 @@ bool polygonAttributesActionContract(bool cpu) {
   if(compareGl && ok)std::cout<<"Coin/GL polygon attributes reference passed\n";
   root->unref();return ok;
 }
+bool polygonUnsupportedActionContract(bool cpu) {
+  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(64,64)));
+  if(cpu)target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
+#ifdef HAVE_COIN_BGFX
+  target->setDepthReadbackEnabled(FALSE);
+#endif
+  SoSeparator* root=new SoSeparator;root->ref();
+  SoOrthographicCamera* camera=new SoOrthographicCamera;camera->height=2;camera->position=SbVec3f(0,0,3);
+  camera->nearDistance=.1f;camera->farDistance=10;root->addChild(camera);
+  SoLightModel* lighting=new SoLightModel;lighting->model=SoLightModel::BASE_COLOR;root->addChild(lighting);
+  SoMaterial* material=new SoMaterial;material->diffuseColor=SbColor(1,0,0);root->addChild(material);
+  SoDrawStyle* drawStyle=style(SoDrawStyle::FILLED);root->addChild(drawStyle);
+  SoGroup* geometry=new SoGroup;root->addChild(geometry);
+  DerivedStyleCube* cube=new DerivedStyleCube;cube->width=cube->height=cube->depth=.5f;geometry->addChild(cube);
+  CoinRenderAction action(SbViewportRegion(64,64));action.setRenderTarget(target.get());bool ok=true;
+  for(int shape=0;shape<2;++shape) {
+    if(shape) {
+      geometry->removeAllChildren();SoCoordinate3* coords=new SoCoordinate3;
+      const SbVec3f concave[]={SbVec3f(-.8f,-.8f,0),SbVec3f(.8f,-.8f,0),SbVec3f(0,0,0),
+        SbVec3f(.8f,.8f,0),SbVec3f(-.8f,.8f,0)};
+      coords->point.setValues(0,5,concave);geometry->addChild(coords);
+      SoFaceSet* face=new SoFaceSet;face->numVertices=5;geometry->addChild(face);
+    }
+    drawStyle->style=SoDrawStyle::FILLED;action.apply(root);
+    ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS,"unsupported style contour remains valid when FILLED") && ok;
+    std::vector<uint8_t> before,image;target->readbackRGBA(before);const uint64_t serial=target->getLastSubmissionSerial();
+    for(int mode:{SoDrawStyle::LINES,SoDrawStyle::POINTS}) {
+      drawStyle->style=mode;action.apply(root);target->readbackRGBA(image);
+      ok=check(action.getLastStatus()==CoinRenderAction::UNSUPPORTED && serial==target->getLastSubmissionSerial() &&
+        image==before,"subclasses without recoverable face details and concave contours reject without publication") && ok;
+    }
+    drawStyle->style=SoDrawStyle::INVISIBLE;action.apply(root);
+    ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS,"INVISIBLE needs no contour recovery") && ok;
+    drawStyle->style=SoDrawStyle::FILLED;action.apply(root);
+    ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS,"valid style recovers after unsupported contour") && ok;
+  }
+  root->unref();return ok;
+}
+bool polygonStippleCoreContract() {
+  bool ok=true;uint32_t phase=0;std::vector<std::pair<float,float>> spans;
+  const double points[5][2]={{6.5,6.5},{15.5,6.5},{15.5,14.5},{6.5,14.5},{6.5,6.5}};
+  const uint32_t expected[]={9,1,10,2};
+  for(int edge=0;edge<4;++edge) {
+    ok=check(coin_render_polygon_stipple(points[edge][0],points[edge][1],points[edge+1][0],
+      points[edge+1][1],0x000fu,1,phase,spans) && phase==expected[edge],
+      "stipple counter continues across original polygon edges") && ok;
+    if(edge==1)ok=check(spans.size()==1 && spans[0].first>.8f,
+      "second edge consumes the previous edge's invisible cells") && ok;
+  }
+  phase=0;ok=check(coin_render_polygon_stipple(6.5,6.5,15.5,14.5,0xaaaau,1,phase,spans) && phase==9,
+    "diagonal stipple counts fragments along the major axis, rather than Euclidean length") && ok;
+  for(int repeat:{1,2,256,999}) {
+    phase=0;ok=check(coin_render_polygon_stipple(6.5,6.5,15.5,6.5,0x0001u,repeat,phase,spans) &&
+      phase==9 && spans.size()==1 && std::abs(spans[0].second-std::min(8.5f,std::min(repeat,256)-.5f)/9)<1e-6f,
+      "stipple repeat is clamped to Coin/GL's 1..256 range") && ok;
+  }
+  phase=0;ok=check(coin_render_polygon_stipple(6.5,6.5,15.5,6.5,0,1,phase,spans) &&
+    spans.empty() && phase==9,"invisible pattern still advances the Core counter") && ok;
+  ok=check(!coin_render_polygon_stipple(0,0,70000,0,1,1,phase,spans),"stipple work budget is explicit") && ok;
+  return ok;
+}
+bool polygonStippleActionContract(bool cpu) {
+  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(64,64)));
+  if(cpu)target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
+#ifdef HAVE_COIN_BGFX
+  target->setDepthReadbackEnabled(FALSE);
+#endif
+  SoSeparator* root=new SoSeparator;root->ref();
+  SoOrthographicCamera* camera=new SoOrthographicCamera;camera->height=2;camera->position=SbVec3f(0,0,3);
+  camera->nearDistance=.1f;camera->farDistance=10;root->addChild(camera);
+  SoLightModel* lighting=new SoLightModel;lighting->model=SoLightModel::BASE_COLOR;root->addChild(lighting);
+  SoMaterial* material=new SoMaterial;material->diffuseColor=SbColor(1,1,1);root->addChild(material);
+  SoDrawStyle* drawStyle=style(SoDrawStyle::LINES);root->addChild(drawStyle);
+  SoCoordinate3* coords=new SoCoordinate3;
+  root->addChild(coords);SoGroup* geometry=new SoGroup;root->addChild(geometry);
+  CoinRenderAction action(SbViewportRegion(64,64));action.setRenderTarget(target.get());
+  const bool compareGl=std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")!=nullptr;
+  SoOffscreenRenderer gl(SbViewportRegion(64,64));gl.setComponents(SoOffscreenRenderer::RGB);
+  bool ok=true;
+  for(int count:{3,4,5})for(int indexed:{0,1}) {
+    const int triangleXY[3][2]={{6,6},{25,6},{6,20}};
+    const int quadXY[4][2]={{6,6},{25,6},{25,20},{6,20}};
+    const int pentagonXY[5][2]={{6,6},{25,6},{25,13},{16,20},{6,20}};
+    const int (*xy)[2]=count==3 ? triangleXY : (count==4 ? quadXY : pentagonXY);
+    coords->point.setNum(count*2);
+    for(int copy=0;copy<2;++copy)for(int i=0;i<count;++i)
+      coords->point.set1Value(copy*count+i,SbVec3f((xy[i][0]+copy*32+.5f)/32-1,(xy[i][1]+.5f)/32-1,0));
+    geometry->removeAllChildren();
+    if(indexed) {
+      SoIndexedFaceSet* shape=new SoIndexedFaceSet;std::vector<int32_t> indices;
+      for(int copy=0;copy<2;++copy) {for(int i=0;i<count;++i)indices.push_back(copy*count+i);indices.push_back(-1);}
+      shape->coordIndex.setValues(0,indices.size(),indices.data());geometry->addChild(shape);
+    } else {
+      SoFaceSet* shape=new SoFaceSet;const int32_t sizes[]={count,count};shape->numVertices.setValues(0,2,sizes);
+      geometry->addChild(shape);
+    }
+  for(int fast:{0,1})for(int width:{1,3,6})for(int repeat:{1,2,256})
+    for(uint32_t pattern:{0u,0xffffu,0x000fu,0xaaaau,0x9249u}) {
+      action.setFastPathEnabled(fast ? TRUE : FALSE);drawStyle->lineWidth=width;
+      drawStyle->linePattern=pattern;drawStyle->linePatternScaleFactor=repeat;
+      action.apply(root);std::vector<uint8_t> image;target->readbackRGBA(image);
+      if(!check(action.getLastStatus()==CoinRenderAction::SUCCESS && image.size()==64*64*4,
+        "patterned original polygons render through shared Core")) {root->unref();return false;}
+      const unsigned char* reference=nullptr;
+      if(compareGl) {
+        if(!check(gl.render(root) && gl.getBuffer(),"required Coin/GL polygon stipple reference renders")) {
+          root->unref();return false;
+        }
+        reference=gl.getBuffer();
+      }
+      auto pixel=[&](int x,int y,int counter) {
+        const bool expected=(pattern & (1u<<((counter/repeat)&15)))!=0;
+        const bool actual=image[((63-y)*64+x)*4]>127;
+        if(actual!=expected)std::cerr<<"stipple "<<cpu<<','<<width<<','<<repeat<<','<<pattern
+          <<" at "<<x<<','<<y<<" counter "<<counter<<" got "<<actual<<'\n';
+        ok=check(actual==expected,"pattern phase and reset agree with independent fragment counts") && ok;
+        if(reference) {
+          const bool same=(reference[(y*64+x)*3]>127)==actual;
+          if(!same)std::cerr<<"GL stipple "<<count<<','<<indexed<<','<<width<<','<<repeat<<','<<pattern<<" at "<<x<<','<<y
+            <<" GL "<<int(reference[(y*64+x)*3])<<" Core "<<int(image[((63-y)*64+x)*4])<<'\n';
+          ok=check(same,"Coin/GL polygon stipple matches shared Core away from corner raster ties") && ok;
+        }
+      };
+      // Interior samples avoid the GL implementation's permitted endpoint raster variation.
+      for(int shift:{0,32}) {
+        for(int x=10;x<=(count==3 ? 17 : 21);++x)pixel(x+shift,6,(count==5 ? 0 : 14)+x-6);
+        if(count==4)for(int x=10;x<=21;++x)pixel(x+shift,20,47+25-x);
+        if(count==5)for(int x=10;x<=12;++x)pixel(x+shift,20,35+16-x);
+        for(int y=10;y<=(count==3 ? 14 : 16);++y)pixel(6+shift,y,(count==5 ? 45 : 0)+20-y);
+        if(count==4)for(int y=10;y<=16;++y)pixel(25+shift,y,33+y-6);
+      }
+      if(!ok) {root->unref();return false;}
+    }
+  }
+  if(compareGl)std::cout<<"Coin/GL polygon stipple reference passed\n";
+  root->unref();return ok;
+}
 bool slopeActionContract(bool cpu) {
   std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(64,64)));
   if(cpu)target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
@@ -674,11 +817,11 @@ bool actionContract(bool cpu) {
 }
 }
 int main() {
-  SoDB::init();CoinRenderAction::initClass();
-  if(!stateContract() || !polygonCoreContract() || !slopeCoreContract() || !polygonCaptureContract() || !polygonActionContract(true) || !slopeActionContract(true) || !homogeneousStrokeContract(true) || !polygonAttributesActionContract(true) || !actionContract(true))return 1;
+  SoDB::init();DerivedStyleCube::initClass();CoinRenderAction::initClass();
+  if(!polygonStippleCoreContract() || !stateContract() || !polygonCoreContract() || !slopeCoreContract() || !polygonCaptureContract() || !polygonUnsupportedActionContract(true) || !polygonStippleActionContract(true) || !polygonActionContract(true) || !slopeActionContract(true) || !homogeneousStrokeContract(true) || !polygonAttributesActionContract(true) || !actionContract(true))return 1;
   if(!CoinRenderAction::isGpuBackendAvailable()) {
     std::cerr<<"[SKIP] GPU adapter unavailable\n";return 77;
   }
-  if(!polygonActionContract(false) || !slopeActionContract(false) || !homogeneousStrokeContract(false) || !polygonAttributesActionContract(false) || !actionContract(false))return 1;
+  if(!polygonUnsupportedActionContract(false) || !polygonStippleActionContract(false) || !polygonActionContract(false) || !slopeActionContract(false) || !homogeneousStrokeContract(false) || !polygonAttributesActionContract(false) || !actionContract(false))return 1;
   std::cout<<"DrawStyle polygon/Core/INVISIBLE CPU/GPU contracts passed\n";return 0;
 }

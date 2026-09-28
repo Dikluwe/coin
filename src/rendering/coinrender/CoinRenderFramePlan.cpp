@@ -274,6 +274,9 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
     }
     if (!isFiniteF(state.polygonOffsetFactor) || !isFiniteF(state.polygonOffsetUnits) ||
         !isFiniteF(state.polygonOffsetSlopeBias) ||
+        !isFiniteF(state.polygonOffsetMaxDepth) ||
+        (state.polygonOffsetMaxDepth != -1.0f &&
+         (state.polygonOffsetMaxDepth < 0.0f || state.polygonOffsetMaxDepth > 1.0f)) ||
         (state.polygonOffsetStyles & ~7u) != 0 ||
         (state.polygonOffsetPrimitiveStyle != 1 &&
          state.polygonOffsetPrimitiveStyle != 2 && state.polygonOffsetPrimitiveStyle != 4)) {

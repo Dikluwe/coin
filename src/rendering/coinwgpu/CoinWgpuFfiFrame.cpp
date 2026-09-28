@@ -14,7 +14,8 @@
 #include <cstddef>
 #include <cstring>
 
-static_assert(sizeof(CoinWgpuRenderState) == 1092, "CoinWgpuRenderState ABI size changed");
+static_assert(sizeof(CoinWgpuRenderState) == 1096, "CoinWgpuRenderState ABI size changed");
+static_assert(offsetof(CoinWgpuRenderState, polygon_offset_max_depth_bits) == 1092, "Maximum depth ABI offset changed");
 static_assert(offsetof(CoinWgpuRenderState, polygon_offset_slope_bias) == 1088, "Slope bias ABI offset changed");
 static_assert(offsetof(CoinWgpuRenderState, polygon_offset_enabled) == 936, "Polygon offset ABI tail changed");
 static_assert(offsetof(CoinWgpuRenderState, depth_test) == 916, "depth_test ABI offset changed");
@@ -218,6 +219,11 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame, uint32_t targetW
     dst.polygon_offset_factor = src.polygonOffsetFactor;
     dst.polygon_offset_units = src.polygonOffsetUnits;
     dst.polygon_offset_slope_bias = src.polygonOffsetSlopeBias;
+    dst.polygon_offset_max_depth_bits = 0;
+    if (src.polygonOffsetMaxDepth >= 0) {
+      std::memcpy(&dst.polygon_offset_max_depth_bits, &src.polygonOffsetMaxDepth, sizeof(float));
+      ++dst.polygon_offset_max_depth_bits;
+    }
     dst.polygon_offset_styles = src.polygonOffsetStyles;
     dst.polygon_offset_primitive_style = src.polygonOffsetPrimitiveStyle;
     dst.ambient_light[3] = 1.0f;

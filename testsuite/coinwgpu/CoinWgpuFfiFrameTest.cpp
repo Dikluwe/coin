@@ -40,6 +40,7 @@ main()
   frame.lightingStates.push_back(CoinRenderLightingSnapshot{});
   frame.renderStates.push_back(CoinRenderRenderStateSnapshot{});
   frame.renderStates[0].polygonOffsetSlopeBias = -.01f;
+  frame.renderStates[0].polygonOffsetMaxDepth = .75f;
 
   CoinWgpuFfiFrame packed;
   std::string diagnostic;
@@ -51,6 +52,7 @@ main()
       !check(first.vertices[0].screen_space_w == 2.0f && first.vertices[0].fog_eye_depth_plus_one == 5.0f,
              "homogeneous stroke attributes were not packed") ||
       !check(first.states[0].polygon_offset_slope_bias == -.01f, "original polygon slope bias was not packed") ||
+      !check(first.states[0].polygon_offset_max_depth_bits == UINT32_C(0x3f400001), "original maximum depth bits were not packed") ||
       !check(first.indices != frame.indices.data(), "packed indices do not own their storage") ||
       !check(first.textures[0].pixels != frame.textures[0].pixelsRgba.data(),
              "packed texture does not own its storage")) return 1;

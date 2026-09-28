@@ -804,6 +804,7 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
         existing.polygonOffsetFactor == rs.polygonOffsetFactor &&
         existing.polygonOffsetUnits == rs.polygonOffsetUnits &&
         existing.polygonOffsetSlopeBias == rs.polygonOffsetSlopeBias &&
+        existing.polygonOffsetMaxDepth == rs.polygonOffsetMaxDepth &&
         existing.polygonOffsetPrimitiveStyle == rs.polygonOffsetPrimitiveStyle &&
         existing.polygonOffsetStyles == rs.polygonOffsetStyles &&
         existing.fogMode == rs.fogMode &&
@@ -816,6 +817,7 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
         existing.hasTexture == rs.hasTexture &&
         existing.linePattern == rs.linePattern &&
         existing.linePatternScaleFactor == rs.linePatternScaleFactor &&
+        existing.polygonLinePattern == rs.polygonLinePattern &&
         (!rs.hasTexture || (
           existing.textureImageSlot == rs.textureImageSlot &&
           existing.samplerSlot == rs.samplerSlot &&

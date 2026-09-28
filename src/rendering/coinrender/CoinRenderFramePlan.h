@@ -203,6 +203,7 @@ struct CoinRenderRenderStateSnapshot {
   bool polygonOffsetEnabled = false;
   float polygonOffsetFactor = 0.0f;
   float polygonOffsetUnits = 0.0f;
+  float polygonOffsetMaxDepth = -1.0f; // Original clipped face; before stroke masking.
   float polygonOffsetSlopeBias = 0.0f; // Resolved original-face bias in window depth.
   uint32_t polygonOffsetStyles = 1;
   uint32_t polygonOffsetPrimitiveStyle = 1; // Retained across line/point expansion.
@@ -211,6 +212,7 @@ struct CoinRenderRenderStateSnapshot {
   float pointSize = 1.0f;
   uint32_t linePattern = 0xffffu;
   int32_t linePatternScaleFactor = 1;
+  bool polygonLinePattern = false; // One stipple counter for this original polygon.
   SbMatrix textureMatrix = SbMatrix::identity();
   bool hasTexture = false;
   uint32_t textureImageSlot = 0;

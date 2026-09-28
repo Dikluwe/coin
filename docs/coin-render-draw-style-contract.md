@@ -99,7 +99,7 @@ rasterizador CPU. A resolução de estilos e o rasterizador CPU usam a mesma
 função. Cores iluminadas e limitadas são interpoladas nos vértices novos de
 clipping, junto de alpha e UV. Infra consome geometria já resolvida: não há
 nova interpretação de SoDrawStyle nos executores. O transporte do bias de
-inclinação usa a ABI privada Rust 24, descrita abaixo.
+inclinação usa a ABI privada Rust 25, descrita abaixo.
 
 A expansão existente aplica largura/tamanho, preservando depth e alpha no
 perfil validado. Linhas/pontos nativos mantêm sua topologia sob LINES/POINTS.
@@ -112,12 +112,13 @@ não aceita strokes preparados em coordenadas de tela.
   atributos inconsistentes retornam UNSUPPORTED. Esses casos não geram uma
   aproximação com diagonais. A triangulação de faces côncavas do GL exige estudo
   próprio para definir bordas efetivamente rasterizadas em cada shape.
-- Padrão de linha admite sólido (`0xffff`) e vazio (`0`). Outros padrões são
-  rejeitados: continuidade entre arestas e contagem de fragmentos Coin/GL
-  permanecem pendentes.
+- Padrão de linha de 16 bits tem fase contínua por polígono, com repetição
+  limitada a 1..256 e contagem por fragmentos unitários. A primeira aresta
+  segue o perfil de montagem documentado abaixo; bordas e recortes gerais ainda
+  precisam de qualificação de raster ampliada.
 - Offset por inclinação está implementado para contornos planos com área
   projetada não zero. No wgpu, inclinação e units são combinados na Infra usando a precisão
-  D32Float do maior depth do contorno; units isolado conserva o caminho existente.
+  D32Float do maior depth original, preservado antes do padrão; FILLED conserva o bias nativo.
   Precisão de units e qualificação de depth/raster continuam vinculadas a
   P04/F12. Faces não planas e faces de lado com factor ativo têm diagnóstico
   explícito; com factor zero, conservam o perfil anterior.
@@ -127,9 +128,8 @@ não aceita strokes preparados em coordenadas de tela.
   transparência e de outras plataformas ainda exige qualificação.
 - Não declarar equivalência visual Coin/GL, cobertura de subclasses/custom
   GLRender, todas as modalidades de transparência ou qualificação FreeCAD.
-  Os testes de clipping da rodada final ainda registraram indisponibilidade
-  da referência Coin/GL offscreen; a comparação dos novos estilos não foi
-  executada nesta entrega.
+  A referência Coin/GL foi recuperada posteriormente com Mesa/GLX direto.
+  As matrizes de amostras qualificadas estão registradas abaixo.
 
 ### Evidência desta ampliação
 
@@ -140,8 +140,8 @@ de usuário e volume de visão, passagem pelo near plane, interpolação de UV/a
 e iluminação anterior ao clipping. Testes de pixels com fast path ligado e
 desligado cobrem LINES/POINTS, BASE_COLOR/PHONG, cantos e bordas de corte, ausência
 de diagonal e depth contra um fundo preenchido que também é desenhado
-depois dos strokes. Rejeição de padrões preserva
-imagem/serial e o próximo pedido sólido recupera a publicação.
+depois dos strokes. A rejeição de contornos fora do perfil preserva
+imagem/serial e o próximo pedido válido recupera a publicação.
 
 As rodadas finais passaram 19 CTests no perfil wgpu e 26 no perfil BGFX,
 em execução sem concorrência GPU entre os perfis. O teste de estilo foi
@@ -224,8 +224,8 @@ backend foi removida. Linhas indexadas texturizadas usam callbacks Coin para
 preservar UV, enquanto o caminho direto continua para linhas sem textura.
 
 wgpu transporta `screen_space_w` e `fog_eye_depth_plus_one` na ABI privada
-**24**, com vértice de **44 bytes**. Estado continua com 1092 bytes e draw com
-56 bytes. O valor zero dos novos campos conserva a geometria comum de clientes
+**25**, com vértice de **44 bytes**, estado de **1096 bytes** e draw de
+56 bytes. A revisão 25 acrescenta o máximo de depth da face original. O valor zero dos novos campos conserva a geometria comum de clientes
 FFI; fog explícito usa distância + 1, inclusive quando a distância é zero.
 O shader multiplica a posição homogênea por W e usa o fog capturado. As mesmas
 operações já existiam no BGFX e na referência CPU. Cor e UV têm interpolação
@@ -264,6 +264,59 @@ Para BGFX, usar o executável em `build-bgfx-recovery/coin-build/bin` e
 Isso fecha a comparação de amostras desse perfil com GL; ainda não fecha
 raster de todas as bordas, drivers físicos ou integração FreeCAD.
 
+## Padrão contínuo e matriz explícita de contornos (2026-09-28)
+
+`CoinRenderLineStippleCore.h` possui a contagem mecânica do padrão: fragmentos
+unitários pelo teste de saída do diamante, bits menos significativos primeiro,
+repetição 1..256 e fase contínua entre as arestas. `CoinRenderStrokeCore.h`
+expande apenas os intervalos visíveis; largura replica o bit no eixo menor.
+O contador reinicia em cada contorno original, mesmo quando dois polígonos
+compartilham estado. O perfil atual limita cada segmento a 65.536 células e
+retorna diagnóstico quando o orçamento é ultrapassado. Linhas nativas mantêm
+seu contrato existente; continuidade entre segmentos de LineSet pertence a P08.
+
+O Coin envia faces de três/quatro vértices como TRIANGLES/QUADS e faces maiores
+como POLYGON. A referência Mesa consultada começa pela aresta de fechamento nos
+primeiros e pela primeira aresta fornecida em POLYGON. O Core conserva essa
+ordem no perfil comum; a associação com a convenção de provoking vertex é uma
+inferência da montagem e da referência, não uma promessa para todos os drivers.
+Fontes: `SoFaceSet.cpp`, `SoIndexedFaceSet.cpp`, `SoGL.cpp` e
+[OpenGL 2.1, §§2.6.1, 3.4 e 3.5.4](https://registry.khronos.org/OpenGL/specs/gl/glspec21.pdf).
+
+O máximo de profundidade da face recortada é calculado antes da máscara.
+Isso evita alterar o quantum D32Float quando o padrão elimina o vértice mais
+profundo. Na ABI privada 25, `polygon_offset_max_depth_bits` ocupa offset 1092:
+zero significa ausência; os demais valores transportam os bits IEEE-754 + 1.
+O transporte preserva exatamente o expoente perto de potências de dois.
+Core fornece a medida geométrica; Infra wgpu decide o quantum do formato.
+Offsets anteriores de clipping e bias, vértices e draws permanecem iguais.
+
+| Entrada | Resultado de LINES/POINTS no perfil | Evidência |
+|---|---|---|
+| FaceSet/IndexedFaceSet convexos com detalhe recuperável | Contorno original, sem diagonais internas | Captura, Core, CPU, GPU; padrão GL em triângulos/quads/pentágonos |
+| Cube/Sphere/Cylinder/Cone de tipo exato | Montagem conhecida dos callbacks | Captura e multiplicidade dos contornos |
+| Subclasse sem detalhe de face recuperável | UNSUPPORTED | Action CPU/GPU preserva imagem e serial; FILLED/INVISIBLE recuperam |
+| Contorno côncavo | UNSUPPORTED | Core e action CPU/GPU preservam publicação |
+| Montagem incompleta ou atributos inconsistentes | UNSUPPORTED | Validação do builder; sem aproximação por triangulação |
+| Face não plana ou de área projetada zero com factor ativo | UNSUPPORTED | Core e publicação; factor zero conserva o perfil existente |
+
+A matriz de padrões verifica duas faces consecutivas, três quantidades de
+vértices, faces indexadas/não indexadas, fast path ligado/desligado, larguras
+1/3/6, repetição 1/2/256 e máscaras 0/ffff/000f/aaaa/9249. Amostras interiores
+evitam as variações de cobertura de cantos permitidas pelo raster GL. O teste
+numérico independente cobre também diagonal, terminal aberto, repetição
+acima do limite e orçamento. A comparação GL obrigatória usa o comando acima.
+Essas amostras não encerram raster de todas as bordas, clipping com padrão,
+variações de primitivas procedurais, outros drivers ou FreeCAD.
+
+A rodada final passou **19/19 CTests wgpu**, **28/28 CTests BGFX** e
+**11/11 testes Rust/WGSL**, com execução GPU serial entre os perfis. A matriz
+obrigatória Coin/GL passou com referência CPU e wgpu/Vulkan, BGFX/Vulkan e
+BGFX/OpenGL. Logs locais: `/tmp/coin-stipple-wgpu-ctest.log`,
+`/tmp/coin-stipple-bgfx-ctest.log`, `/tmp/coin-stipple-rust.log`,
+`/tmp/coin-stipple-wgpu-gl.log`, `/tmp/coin-stipple-bgfx-gl.log` e
+`/tmp/coin-stipple-bgfx-opengl-gl.log`.
+
 ## Checklist de P02
 
 - [x] INVISIBLE com estado efetivo Coin e supressão comum de captura.
@@ -272,14 +325,14 @@ raster de todas as bordas, drivers físicos ou integração FreeCAD.
 - [x] LINES/POINTS no Core, sem diagonais de quads ou duplicação por triangulação.
 - [x] Culling e clipping de contornos convexos, com bordas e pontos novos de corte.
 - [x] Gouraud antes de clipping, com UV/alpha interpolados e depth no perfil.
-- [ ] Contornos fora do perfil, subclasses e shapes customizados; definir sua matriz.
+- [x] Matriz explícita de contornos fora do perfil e subclasses sem detalhe recuperável; rejeição não equivale a suporte.
 - [x] Offset pelo gradiente da face plana original em Core, BGFX e wgpu.
-- [ ] Padrão contínuo entre arestas.
+- [x] Padrão contínuo entre arestas, contagem por fragmentos e reinício por polígono no perfil documentado.
 - [x] Inclinação + units fracionário no wgpu/D32Float, com readback numérico.
 - [ ] Offset fora do perfil plano e qualificação ampliada de precisão P04/F12.
 - [x] Fog por fragmento e textura explícita na unidade 0 em strokes wgpu/BGFX.
 - [ ] Multitextura, UV procedural/default e matriz ampliada P07/P08.
-- [x] Amostras de textura/fog dos estilos comparadas com Coin/GL Mesa/llvmpipe.
+- [x] Amostras de textura/fog e padrão contínuo comparadas com Coin/GL Mesa/llvmpipe.
 - [ ] Sorting/transparência, raster ampliado, drivers e integração FreeCAD.
 
 O suporte de LineSet/PointSet continua distinto do estilo aplicado a polígonos.

@@ -13,7 +13,7 @@ use std::sync::{Arc, Mutex, OnceLock};
 
 mod composition;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 24;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 25;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 pub type CoinWgpuSurfaceId = u64;
@@ -224,11 +224,13 @@ pub struct CoinWgpuRenderState {
     pub clip_plane_count: u32,
     pub clip_planes: [[f32; 4]; 8],
     pub polygon_offset_slope_bias: f32,
+    pub polygon_offset_max_depth_bits: u32,
 }
 
 const _: () = {
     assert!(std::mem::size_of::<CoinWgpuVertex>() == 44);
-    assert!(std::mem::size_of::<CoinWgpuRenderState>() == 1092);
+    assert!(std::mem::size_of::<CoinWgpuRenderState>() == 1096);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, polygon_offset_max_depth_bits) == 1092);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, polygon_offset_slope_bias) == 1088);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, clip_plane_count) == 956);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, clip_planes) == 960);
@@ -619,6 +621,7 @@ fn same_camera_independent_state(a: &CoinWgpuRenderState, b: &CoinWgpuRenderStat
         && a.polygon_offset_factor == b.polygon_offset_factor
         && a.polygon_offset_units == b.polygon_offset_units
         && a.polygon_offset_slope_bias == b.polygon_offset_slope_bias
+        && a.polygon_offset_max_depth_bits == b.polygon_offset_max_depth_bits
         && a.polygon_offset_styles == b.polygon_offset_styles
         && a.polygon_offset_primitive_style == b.polygon_offset_primitive_style
         && a.clip_plane_count == b.clip_plane_count && a.clip_planes == b.clip_planes
@@ -1555,6 +1558,8 @@ fn configure_surface_record(
 
 fn polygon_depth_bias(st: &CoinWgpuRenderState, topology: u32) -> Result<wgpu::DepthBiasState, String> {
     if !st.polygon_offset_factor.is_finite() || !st.polygon_offset_units.is_finite() || !st.polygon_offset_slope_bias.is_finite()
+        || (st.polygon_offset_max_depth_bits != 0 &&
+            !(0.0..=1.0).contains(&f32::from_bits(st.polygon_offset_max_depth_bits - 1)))
         || st.polygon_offset_styles & !7 != 0
         || !matches!(st.polygon_offset_primitive_style, 1 | 2 | 4) {
         return Err("Invalid polygon offset".to_string());
@@ -1572,7 +1577,7 @@ fn polygon_depth_bias(st: &CoinWgpuRenderState, topology: u32) -> Result<wgpu::D
 }
 
 // D32Float precision is an Infra property. The Core's original-face slope
-// is constant per draw; the expanded contour retains its depth extrema.
+// is constant per draw; Core captures the original face maximum before masking.
 fn d32_depth_quantum(max_depth: f32) -> f32 {
     let exponent = (max_depth.to_bits() >> 23) & 0xff;
     if exponent == 0 { f32::from_bits(1) }
@@ -1595,6 +1600,9 @@ fn resolved_polygon_bias(st: &CoinWgpuRenderState, draw: &CoinWgpuDraw,
         }
         let depth = st.depth_range[0] + (z/w) * (st.depth_range[1]-st.depth_range[0]);
         max_depth = max_depth.max(depth.clamp(0.0, 1.0));
+    }
+    if st.polygon_offset_max_depth_bits != 0 {
+        max_depth = f32::from_bits(st.polygon_offset_max_depth_bits - 1);
     }
     let bias = st.polygon_offset_slope_bias + st.polygon_offset_units * d32_depth_quantum(max_depth);
     if !bias.is_finite() { return Err("Invalid resolved polygon depth bias".to_string()); }
@@ -1629,6 +1637,12 @@ mod polygon_depth_tests {
         st.depth_range = [0.0, 0.25];st.polygon_offset_units = 4.0;
         assert_eq!(resolved_polygon_bias(&st, &draw, &vertices, &[0,1]).unwrap(),
             -0.01 + 4.0 * 2.0f32.powi(-26));
+        st.polygon_offset_max_depth_bits = 0.75f32.to_bits() + 1;
+        assert_eq!(resolved_polygon_bias(&st, &draw, &vertices, &[0,1]).unwrap(),
+            -0.01 + 4.0 * 2.0f32.powi(-24));
+        st.polygon_offset_max_depth_bits = f32::from_bits(0.5f32.to_bits() - 1).to_bits() + 1;
+        assert_eq!(resolved_polygon_bias(&st, &draw, &vertices, &[0,1]).unwrap(),
+            -0.01 + 4.0 * 2.0f32.powi(-25));
         st.polygon_offset_factor = 1.0;
         assert!(resolved_polygon_bias(&st, &draw, &vertices, &[0,1]).is_err());
     }
@@ -2468,7 +2482,8 @@ fn encode_frame(
             };
             let resolved_depth_bias = st.polygon_offset_enabled != 0
                 && st.polygon_offset_styles & st.polygon_offset_primitive_style != 0
-                && st.polygon_offset_slope_bias != 0.0;
+                && (st.polygon_offset_slope_bias != 0.0 ||
+                    (st.polygon_offset_max_depth_bits != 0 && st.polygon_offset_units != 0.0));
             let native_depth_bias = polygon_depth_bias(st, draw.topology).map_err(|e|
                 (CoinWgpuStatus::InvalidArgument, format!("Draw {}: {}", item.draw_index, e)))?;
             let window_bias = if resolved_depth_bias {
