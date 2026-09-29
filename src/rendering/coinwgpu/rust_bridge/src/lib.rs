@@ -7,6 +7,8 @@
 use bytemuck::{Pod, Zeroable};
 use pollster::block_on;
 use raw_window_handle::{RawDisplayHandle, RawWindowHandle, XlibDisplayHandle, XlibWindowHandle};
+#[cfg(target_os = "windows")]
+use raw_window_handle::{Win32WindowHandle, WindowsDisplayHandle};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicI32, AtomicU32, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
@@ -1193,8 +1195,26 @@ unsafe fn create_surface_from_descriptor(
         instance
             .create_surface_unsafe(target)
             .map_err(|e| format!("Failed to create X11 surface: {}", e))
+    } else if desc.r#type == 3 {
+        #[cfg(target_os = "windows")]
+        {
+            let hwnd = std::num::NonZeroIsize::new(desc.handle_b as isize)
+                .ok_or_else(|| "HWND must be non-null".to_string())?;
+            let mut window_handle = Win32WindowHandle::new(hwnd);
+            window_handle.hinstance = std::num::NonZeroIsize::new(desc.handle_a as isize);
+            let target = wgpu::SurfaceTargetUnsafe::RawHandle {
+                raw_display_handle: RawDisplayHandle::Windows(WindowsDisplayHandle::new()),
+                raw_window_handle: RawWindowHandle::Win32(window_handle),
+            };
+            instance.create_surface_unsafe(target)
+                .map_err(|e| format!("Failed to create Win32 surface: {}", e))
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            Err("Win32 surface requires Windows".to_string())
+        }
     } else {
-        Err("Native surface platform not supported in Onda 1B".to_string())
+        Err("Native surface platform not supported".to_string())
     }
 }
 
@@ -3341,6 +3361,7 @@ pub extern "C" fn coin_wgpu_query_runtime_capabilities(
             renderer: match info.backend {
                 wgpu::Backend::Vulkan => 1,
                 wgpu::Backend::Gl => 2,
+                wgpu::Backend::Dx12 => 4,
                 _ => 3,
             },
             vendor_id: info.vendor,

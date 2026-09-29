@@ -176,7 +176,7 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
   if (!output || (!legacyV1 && !legacyV2 && output_size < sizeof(CoinRenderCapabilities)))
     return 2;
   if (renderer != COIN_RENDER_RENDERER_UNKNOWN && renderer != COIN_RENDER_RENDERER_VULKAN &&
-      renderer != COIN_RENDER_RENDERER_OPENGL)
+      renderer != COIN_RENDER_RENDERER_OPENGL && renderer != COIN_RENDER_RENDERER_D3D12)
     return 2;
   const size_t copySize = legacyV1   ? capabilitiesV1Size
                           : legacyV2 ? capabilitiesV2Size

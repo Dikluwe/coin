@@ -7,7 +7,8 @@
 inline bool coin_render_valid_options(const CoinRenderOptions& options, std::string& diagnostic) {
   if (options.renderer != COIN_RENDER_RENDERER_UNKNOWN &&
       options.renderer != COIN_RENDER_RENDERER_VULKAN &&
-      options.renderer != COIN_RENDER_RENDERER_OPENGL) {
+      options.renderer != COIN_RENDER_RENDERER_OPENGL &&
+      options.renderer != COIN_RENDER_RENDERER_D3D12) {
     diagnostic = "Invalid renderer option";
     return false;
   }

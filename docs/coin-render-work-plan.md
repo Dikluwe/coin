@@ -159,6 +159,8 @@ Base de execução: [benchmark e mecanismos existentes](coin-render-window-bench
   [Primeira matriz física AMD/NVIDIA, células e lacunas](coin-render-p20-physical-matrix.md);
   Intel, NVIDIA BGFX/OpenGL e oráculos visuais continuam abertos.
 - [ ] **P21 — Windows:** Win32, D3D11/D3D12 e APIs disponíveis, resize/DPI/multiwindow.
+  [Rota Win32/wgpu preparada, sem qualificação nativa](coin-render-p21-windows.md);
+  BGFX/D3D11/D3D12, eventos reais e matriz Windows seguem abertos.
 - [ ] **P22 — macOS/Wayland:** Cocoa/Metal e Wayland nativo, superfícies,
   coordenadas, apresentação e ciclo de vida próprios.
 - [ ] **P23 — Android:** após desktop, pause/resume e recriação de superfície/recursos.
@@ -184,7 +186,9 @@ limites; documentação e commit de evidência. Registrar implementação, execu
 qualificação separadamente. Rejeição explícita fecha diagnóstico, não suporte
 funcional. Atualizar Pxx e Axx/Fxx associados somente no escopo comprovado.
 
-**Próxima entrega concreta: fechar P20 — matriz física.** As campanhas
+**Entrega atual: P21 — Windows.** A [rota Win32/wgpu inicial](coin-render-p21-windows.md)
+ainda precisa de build e execução nativos. P20 segue aberto para Intel, BGFX/OpenGL
+NVIDIA e oráculos visuais. As campanhas
 [P17](coin-render-p17-campaign.md), [P18](coin-render-p18-profiling.md) e
 [P19](coin-render-p19-reuse-readback.md) fixam cenas, métricas e A/B na Radeon.
 A [primeira execução P20](coin-render-p20-physical-matrix.md) amplia a evidência

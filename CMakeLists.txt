@@ -230,7 +230,11 @@ if(COIN_BUILD_RENDER)
       set(RUST_PROFILE_DIR "release")
       set(CARGO_BUILD_FLAGS "--locked" "--release")
     endif()
-    set(RUST_LIB_PATH "${RUST_TARGET_DIR}/${RUST_PROFILE_DIR}/libcoin_wgpu_rust_bridge.a")
+    if(WIN32 AND MSVC)
+      set(RUST_LIB_PATH "${RUST_TARGET_DIR}/${RUST_PROFILE_DIR}/coin_wgpu_rust_bridge.lib")
+    else()
+      set(RUST_LIB_PATH "${RUST_TARGET_DIR}/${RUST_PROFILE_DIR}/libcoin_wgpu_rust_bridge.a")
+    endif()
 
     add_custom_command(
       OUTPUT "${RUST_LIB_PATH}"
@@ -253,8 +257,12 @@ if(COIN_BUILD_RENDER)
       coin_wgpu_rust_bridge::coin_wgpu_rust_bridge
       Threads::Threads
       ${CMAKE_DL_LIBS}
-      m
     )
+    if(WIN32)
+      list(APPEND COIN_RENDER_LINK_LIBRARIES bcrypt crypt32 ntdll ole32 user32 userenv ws2_32)
+    else()
+      list(APPEND COIN_RENDER_LINK_LIBRARIES m)
+    endif()
     set(HAVE_COIN_WGPU_RUST_BRIDGE 1)
   elseif(COIN_RENDER_BACKEND STREQUAL "RECORDING")
     message(STATUS "COIN_RENDER_BACKEND is set to RECORDING: using deterministic recording log and reference software rasterizer.")
@@ -282,7 +290,8 @@ endif()
 
 if(COIN_BUILD_RENDER)
   set(COIN_HAVE_RENDER ON)
-  if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE" AND (UNIX AND NOT APPLE AND X11_FOUND))
+  if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE" AND
+     ((UNIX AND NOT APPLE AND X11_FOUND) OR WIN32))
     set(HAVE_COIN_RENDER_WINDOW_SURFACE 1)
     set(COIN_HAVE_RENDER_WINDOW_SURFACE ON)
   else()

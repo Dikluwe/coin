@@ -177,6 +177,24 @@ bool renderModes(bool cpu) {
       return false;
     }
   }
+#if !defined(_WIN32) && (defined(HAVE_COIN_BGFX) || defined(HAVE_COIN_WGPU_RUST_BRIDGE))
+  // D3D12 is a valid typed request, but this Linux device cannot execute it.
+  // The backend must reject it without silently selecting Vulkan or OpenGL.
+  {
+    CoinRenderOptions d3d12;
+    d3d12.renderer = COIN_RENDER_RENDERER_D3D12;
+    action.setRenderTarget(nullptr);
+    target.reset(CoinRenderTarget::createOffscreen(SbVec2i32(32, 32), d3d12));
+    action.setRenderTarget(target.get());
+    action.apply(root);
+    if (!check(action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+                   target->getLastSubmissionSerial() == 0,
+               "D3D12 request cannot fall back on Linux")) {
+      root->unref();
+      return false;
+    }
+  }
+#endif
   for (int invalid = 0; invalid < 3; ++invalid) {
     CoinRenderOptions bad;
     if (invalid == 0)

@@ -159,9 +159,17 @@ CoinRenderTargetP::initWindow(const CoinRenderNativeSurfaceDescriptor & desc, co
     this->lastError = "Wayland surface descriptor not supported in Onda 1B";
     return false;
   } else if (desc.type == COIN_RENDER_SURFACE_WIN32) {
+#if defined(_WIN32) && defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+    if (desc.native.win32.hwnd == nullptr) {
+      this->status = CoinRenderTarget::TARGET_ERROR;
+      this->lastError = "Null HWND in Win32 surface descriptor";
+      return false;
+    }
+#else
     this->status = CoinRenderTarget::TARGET_ERROR;
-    this->lastError = "Win32 surface descriptor not supported in Onda 1B";
+    this->lastError = "Win32 surface requires the Windows Rust bridge";
     return false;
+#endif
   } else if (desc.type == COIN_RENDER_SURFACE_APPKIT_LAYER) {
     this->status = CoinRenderTarget::TARGET_ERROR;
     this->lastError = "AppKit layer surface descriptor not supported in Onda 1B";

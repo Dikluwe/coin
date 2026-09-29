@@ -54,6 +54,7 @@ enum CoinRenderNativeSurfaceType {
  * 3. CoinRenderTarget must be destroyed BEFORE destroying the underlying window or toolkit.
  * 4. Creation, resize, apply and destruction must occur on the thread owning the window.
  * 5. Size passed to CoinRenderTarget must be in framebuffer pixels, not logical window points.
+ * 6. For Win32, hwnd is required and hinstance may be null; the caller keeps HWND alive.
  */
 struct CoinRenderNativeSurfaceDescriptor {
   uint32_t abiVersion;

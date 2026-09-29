@@ -128,8 +128,13 @@ CoinWgpuBackend::prepare(CoinRenderTargetP & target)
       if (target.nativeDesc.type == COIN_RENDER_SURFACE_XLIB) {
         info.native.handle_a = reinterpret_cast<uintptr_t>(target.nativeDesc.native.xlib.display);
         info.native.handle_b = target.nativeDesc.native.xlib.window;
+#if defined(_WIN32)
+      } else if (target.nativeDesc.type == COIN_RENDER_SURFACE_WIN32) {
+        info.native.handle_a = reinterpret_cast<uintptr_t>(target.nativeDesc.native.win32.hinstance);
+        info.native.handle_b = reinterpret_cast<uintptr_t>(target.nativeDesc.native.win32.hwnd);
+#endif
       } else {
-        this->lastError = "Native surface platform not supported in Onda 1B";
+        this->lastError = "Native surface platform not supported by this backend";
         return CoinRenderBackendStatus::UNSUPPORTED;
       }
 
