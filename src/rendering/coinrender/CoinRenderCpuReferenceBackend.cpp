@@ -160,10 +160,10 @@ inline void writePixel(std::vector<uint8_t> & color, size_t offset,
     blue = blue * alpha + (color[offset + 2] / 255.0f) * inverse;
     alpha += (color[offset + 3] / 255.0f) * inverse;
   }
-  color[offset] = static_cast<uint8_t>(clamp01(red) * 255.0f);
-  color[offset + 1] = static_cast<uint8_t>(clamp01(green) * 255.0f);
-  color[offset + 2] = static_cast<uint8_t>(clamp01(blue) * 255.0f);
-  color[offset + 3] = static_cast<uint8_t>(clamp01(alpha) * 255.0f);
+  color[offset] = static_cast<uint8_t>(std::lround(clamp01(red) * 255.0f));
+  color[offset + 1] = static_cast<uint8_t>(std::lround(clamp01(green) * 255.0f));
+  color[offset + 2] = static_cast<uint8_t>(std::lround(clamp01(blue) * 255.0f));
+  color[offset + 3] = static_cast<uint8_t>(std::lround(clamp01(alpha) * 255.0f));
 }
 
 struct CpuPeelFragment {
@@ -178,7 +178,8 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
                               const CoinRenderRenderStateSnapshot& rs,
                               const CoinRenderFramePlan& frame,
                               const CoinRenderCompositionItem& composition, CpuPeelBuffer* peeled,
-                              std::vector<float>& depthBuffer, std::vector<uint8_t>& colorBuffer) {
+                              uint32_t layerCount, std::vector<float>& depthBuffer,
+                              std::vector<uint8_t>& colorBuffer) {
   const bool blend = composition.blend;
   float clipEquations[COIN_RENDER_MAX_CLIP_PLANES][4] = {};
   std::string clipDiagnostic;
@@ -310,8 +311,19 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
 
       applyFog(rs, -vPos[2], finalR, finalG, finalB);
       if (peeled) {
-        (*peeled)[pIdx].push_back(
-            {zVal, SbVec4f(finalR, finalG, finalB, sourceAlpha), rs.depthWrite});
+        auto& layers = (*peeled)[pIdx];
+        const CpuPeelFragment fragment = {zVal, SbVec4f(finalR, finalG, finalB, sourceAlpha),
+                                          rs.depthWrite};
+        auto next =
+            std::lower_bound(layers.begin(), layers.end(), zVal,
+                             [](const CpuPeelFragment& a, float depth) { return a.depth < depth; });
+        if (next != layers.end() && next->depth == zVal)
+          *next = fragment;
+        else if (next != layers.end() || layers.size() < layerCount) {
+          layers.insert(next, fragment);
+          if (layers.size() > layerCount)
+            layers.pop_back();
+        }
         continue;
       }
       size_t cIdx = pIdx * 4;
@@ -394,6 +406,15 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, compositionError);
     }
 
+    const bool needsPeeling =
+        std::any_of(order.begin(), order.end(), [](const CoinRenderCompositionItem& item) {
+          return item.blend && item.deferred &&
+                 item.transparencyStrategy == CoinRenderCompositionItem::SORTED_LAYERS;
+        });
+    uint64_t requiredBytes = 0;
+    if (!coin_render_transparency_budget(width, height, frame.transparency, needsPeeling,
+                                         requiredBytes, compositionError))
+      return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, compositionError);
     target.clear(frame.clearColor[0], frame.clearColor[1], frame.clearColor[2], frame.clearColor[3], 1.0f);
 
     CpuPeelBuffer peeled;
@@ -415,7 +436,7 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
         for (const auto& fragment : fragments) {
           if (!layers.empty() && layers.back().depth == fragment.depth)
             layers.back() = fragment;
-          else if (layers.size() < 4)
+          else if (layers.size() < frame.transparency.layers)
             layers.push_back(fragment);
           else
             break;
@@ -603,8 +624,8 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
 
         for (size_t tIdx = 1; tIdx + 1 < outPoly.size(); ++tIdx) {
           rasterizeTriangle(outPoly[0], outPoly[tIdx], outPoly[tIdx + 1], width, height, rs, frame,
-                            composition, peel ? &peeled : nullptr, target.depthBuffer,
-                            target.colorBuffer);
+                            composition, peel ? &peeled : nullptr, frame.transparency.layers,
+                            target.depthBuffer, target.colorBuffer);
         }
       }
       } else if (draw.topology == CoinRenderPrimitiveTopology::LINE_LIST) {

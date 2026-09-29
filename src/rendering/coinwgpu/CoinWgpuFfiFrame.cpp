@@ -14,6 +14,13 @@
 #include <cstddef>
 #include <cstring>
 
+static_assert(sizeof(CoinWgpuFrameView) == 176, "Frame view ABI size changed");
+static_assert(offsetof(CoinWgpuFrameView, sorted_layers_passes) == 160,
+              "Layer count ABI offset changed");
+static_assert(offsetof(CoinWgpuFrameView, transparency_reserved) == 164,
+              "Transparency reserved ABI offset changed");
+static_assert(offsetof(CoinWgpuFrameView, transparency_budget_bytes) == 168,
+              "Transparency budget ABI offset changed");
 static_assert(sizeof(CoinWgpuTextureUnit) == 96, "Texture unit ABI size changed");
 static_assert(offsetof(CoinWgpuVertex, extra_texcoords) == 44, "Extra UV ABI offset changed");
 static_assert(offsetof(CoinWgpuRenderState, extra_textures) == 1096, "Extra textures ABI offset changed");
@@ -49,11 +56,21 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
 {
   outDiagnostic.clear();
   if (frame.revision != 0 && frame.revision == this->packedRevision) {
+    uint64_t requiredBytes = 0;
+    const bool needsPeeling =
+        std::any_of(this->draws.begin(), this->draws.end(), [](const CoinWgpuDraw& draw) {
+          return (draw.composition_flags & (1u << 3)) != 0;
+        });
+    if (!coin_render_transparency_budget(width, height, frame.transparency, needsPeeling,
+                                         requiredBytes, outDiagnostic))
+      return false;
     this->reused = true;
     this->prepareKind = CoinRenderFrameReuseKind::REUSE;
     this->view.camera_base_revision = 0;
     this->view.width = width;
     this->view.height = height;
+    this->view.sorted_layers_passes = frame.transparency.layers;
+    this->view.transparency_budget_bytes = frame.transparency.bufferBudget;
     return true;
   }
   this->reused = false;
@@ -270,6 +287,15 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame, uint32_t targetW
   std::vector<CoinRenderCompositionItem> order;
   if (!coin_render_composition_schedule(frame, order, outDiagnostic))
     return false;
+  uint64_t requiredBytes = 0;
+  const bool needsPeeling =
+      std::any_of(order.begin(), order.end(), [](const CoinRenderCompositionItem& item) {
+        return item.blend && item.deferred &&
+               item.transparencyStrategy == CoinRenderCompositionItem::SORTED_LAYERS;
+      });
+  if (!coin_render_transparency_budget(targetWidth, targetHeight, frame.transparency, needsPeeling,
+                                       requiredBytes, outDiagnostic))
+    return false;
   std::vector<CoinWgpuDraw> resolvedDraws;
   resolvedDraws.reserve(order.size());
   for (const auto & item : order) {
@@ -337,6 +363,8 @@ CoinWgpuFfiFrame::bindView(const CoinRenderFramePlan & frame, uint32_t width, ui
   for (int c = 0; c < 4; ++c) this->view.clear_color[c] = frame.clearColor[c];
   this->view.width = width;
   this->view.height = height;
+  this->view.sorted_layers_passes = frame.transparency.layers;
+  this->view.transparency_budget_bytes = frame.transparency.bufferBudget;
 }
 
 const CoinWgpuFrameView &

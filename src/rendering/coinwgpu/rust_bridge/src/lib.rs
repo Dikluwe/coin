@@ -14,8 +14,15 @@ use std::sync::{Arc, Mutex, OnceLock};
 mod composition;
 mod peeling;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 27;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 28;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
+
+const _: () = {
+    assert!(std::mem::size_of::<CoinWgpuFrameView>() == 176);
+    assert!(std::mem::offset_of!(CoinWgpuFrameView, sorted_layers_passes) == 160);
+    assert!(std::mem::offset_of!(CoinWgpuFrameView, transparency_reserved) == 164);
+    assert!(std::mem::offset_of!(CoinWgpuFrameView, transparency_budget_bytes) == 168);
+};
 
 pub type CoinWgpuSurfaceId = u64;
 pub const COIN_WGPU_INVALID_SURFACE_ID: CoinWgpuSurfaceId = 0;
@@ -345,6 +352,9 @@ pub struct CoinWgpuFrameView {
     pub width: u32,
     pub height: u32,
     pub camera_base_revision: u64,
+    pub sorted_layers_passes: u32,
+    pub transparency_reserved: u32,
+    pub transparency_budget_bytes: u64,
 }
 
 #[repr(C)]
@@ -2010,6 +2020,7 @@ fn encode_frame(
     color_format: wgpu::TextureFormat,
     depth_view: &wgpu::TextureView,
     depth_texture: &wgpu::Texture,
+    peel_passes: u32,
 ) -> Result<wgpu::CommandBuffer, (CoinWgpuStatus, String)> {
     use wgpu::util::DeviceExt;
     // Composition was preflighted before surface acquisition or target allocation.
@@ -2547,10 +2558,15 @@ fn encode_frame(
             occlusion_query_set: None,
         });
     }
-    let peeling = draw_order
-        .iter()
-        .any(|item| item.peel)
-        .then(|| peeling::Peeling::new(&ctx.device, target_width, target_height, color_format));
+    let peeling = draw_order.iter().any(|item| item.peel).then(|| {
+        peeling::Peeling::new(
+            &ctx.device,
+            target_width,
+            target_height,
+            color_format,
+            peel_passes as usize,
+        )
+    });
     let passes = composition::passes(draw_order, draws_slice);
     let depth_clear_pipeline = if draws_slice.iter().any(|draw| draw.clear_depth_before != 0) {
         let mut cached = ctx.annotation_depth_pipeline.lock().unwrap();
@@ -2617,7 +2633,7 @@ fn encode_frame(
                 },
             );
         }
-        for peel_step in 0..if is_peel { 4 } else { 1 } {
+        for peel_step in 0..if is_peel { peel_passes as usize } else { 1 } {
             let selected_color = if is_peel {
                 &peeling.as_ref().unwrap().colors[peel_step]
             } else {
@@ -2738,7 +2754,11 @@ fn encode_frame(
                 let pipeline = match get_or_create_pipeline(
                     ctx,
                     draw.topology,
-                    color_format,
+                    if is_peel {
+                        wgpu::TextureFormat::Rgba16Float
+                    } else {
+                        color_format
+                    },
                     wgpu::TextureFormat::Depth32Float,
                     cull_face,
                     front_face,
@@ -3725,6 +3745,18 @@ pub extern "C" fn coin_wgpu_surface_submit(
             }
         };
 
+        if let Err((status, message)) = peeling::validate_request(
+            f.sorted_layers_passes,
+            f.transparency_reserved,
+            f.transparency_budget_bytes,
+            f.width,
+            f.height,
+            draw_order.iter().any(|item| item.peel),
+        ) {
+            set_error(error_buf, error_buf_len, &message);
+            return status;
+        }
+
         // 6. Lock RuntimeContext and resolve surface
         let mut guard = match RUNTIME_CTX.lock() {
             Ok(g) => g,
@@ -3937,6 +3969,7 @@ pub extern "C" fn coin_wgpu_surface_submit(
             record.color_format,
             depth_view,
             record.depth_texture.as_ref().unwrap(),
+            f.sorted_layers_passes,
         ) {
             Ok(cmd) => cmd,
             Err((status, msg)) => {
@@ -4458,6 +4491,18 @@ fn coin_wgpu_submit_internal(
         computed_draw_order
         };
 
+        if let Err((status, message)) = peeling::validate_request(
+            f.sorted_layers_passes,
+            f.transparency_reserved,
+            f.transparency_budget_bytes,
+            f.width,
+            f.height,
+            draw_order.iter().any(|item| item.peel),
+        ) {
+            set_error(error_buf, error_buf_len, &message);
+            return status;
+        }
+
         // 7. Initialize WebGPU Device
         if let Err(e) = init_runtime_if_needed() {
             set_error(error_buf, error_buf_len, &e);
@@ -4594,6 +4639,7 @@ fn coin_wgpu_submit_internal(
             wgpu::TextureFormat::Rgba8Unorm,
             &depth_view,
             &depth_texture,
+            f.sorted_layers_passes,
         ) {
             Ok(cmd) => cmd,
             Err((status, msg)) => {

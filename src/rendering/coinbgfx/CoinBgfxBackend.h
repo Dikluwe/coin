@@ -102,6 +102,7 @@ private:
   CoinBgfxTransparencyStrategy activeTransparencyStrategy;
   bool weightedOitSupported;
   bool sortedLayersSupported;
+  uint32_t peelPassCount = 4;
   uint64_t serial;
   uint64_t directTextureSerial;
   int width;
@@ -142,7 +143,7 @@ private:
   bgfx::UniformHandle lightAttenuationDropUniform;
   bgfx::FrameBufferHandle frameBuffer;
   bgfx::FrameBufferHandle oitFrameBuffer;
-  bgfx::FrameBufferHandle peelFrameBuffers[4];
+  bgfx::FrameBufferHandle peelFrameBuffers[COIN_RENDER_MAX_PEEL_LAYERS];
   bgfx::TextureHandle readbackTexture;
   std::vector<ReadbackSlot> readbackSlots;
   std::vector<uint8_t> lastPublishedReadback;

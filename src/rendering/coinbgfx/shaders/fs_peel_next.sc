@@ -12,9 +12,7 @@ void main()
   float windowDepth = coinWindowDepth(gl_FragCoord.z);
   gl_FragDepth = windowDepth;
   vec2 uv = gl_FragCoord.xy * u_depthInfo.xy;
-  vec4 previous = texture2D(s_prevColor, uv);
-  if (previous.a <= 0.0) discard;
   float previousDepth = texture2D(s_prevDepth, uv).x;
-  if (windowDepth <= previousDepth + 0.00001) discard;
+  if (windowDepth <= previousDepth) discard;
   gl_FragColor = coinSurfaceColor(gl_FragCoord.xy, v_color0, v_texcoord0, v_viewPosition, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7);
 }

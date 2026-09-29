@@ -2,6 +2,7 @@
 #define COIN_RENDER_FRAME_PLAN_H
 
 #include <Inventor/CoinRenderExport.h>
+#include "rendering/coinrender/CoinRenderTransparencyCore.h"
 #include <Inventor/SbColor4f.h>
 #include <Inventor/SbColor.h>
 #include <Inventor/SbMatrix.h>
@@ -255,6 +256,7 @@ inline CoinRenderTextureUnitSnapshot coin_render_texture_unit(const CoinRenderRe
  */
 struct CoinRenderFramePlan {
   uint64_t revision = 0;
+  CoinRenderTransparencyOptions transparency;
   SbColor4f clearColor = SbColor4f(0.0f, 0.0f, 0.0f, 1.0f);
   std::vector<CoinRenderVertexSnapshot> vertices;
   std::vector<uint32_t> indices;

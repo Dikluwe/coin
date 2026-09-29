@@ -48,14 +48,21 @@ main()
       !check(!packed.reusedLastPrepare(), "initial packing reported reuse")) return 1;
 
   const CoinWgpuFrameView & first = packed.getView();
-  if (!check(first.width == 64 && first.height == 32, "target dimensions were not packed") ||
-      !check(first.vertices[0].screen_space_w == 2.0f && first.vertices[0].fog_eye_depth_plus_one == 5.0f,
+  if (!check(first.sorted_layers_passes == 4 && first.transparency_reserved == 0 &&
+                 first.transparency_budget_bytes == uint64_t(256) * 1024 * 1024,
+             "transparency options were not packed") ||
+      !check(first.width == 64 && first.height == 32, "target dimensions were not packed") ||
+      !check(first.vertices[0].screen_space_w == 2.0f &&
+                 first.vertices[0].fog_eye_depth_plus_one == 5.0f,
              "homogeneous stroke attributes were not packed") ||
-      !check(first.states[0].polygon_offset_slope_bias == -.01f, "original polygon slope bias was not packed") ||
-      !check(first.states[0].polygon_offset_max_depth_bits == UINT32_C(0x3f400001), "original maximum depth bits were not packed") ||
+      !check(first.states[0].polygon_offset_slope_bias == -.01f,
+             "original polygon slope bias was not packed") ||
+      !check(first.states[0].polygon_offset_max_depth_bits == UINT32_C(0x3f400001),
+             "original maximum depth bits were not packed") ||
       !check(first.indices != frame.indices.data(), "packed indices do not own their storage") ||
       !check(first.textures[0].pixels != frame.textures[0].pixelsRgba.data(),
-             "packed texture does not own its storage")) return 1;
+             "packed texture does not own its storage"))
+    return 1;
 
   frame.vertices[0].position[0] = 9.0f;
   frame.indices[0] = 7;
@@ -149,6 +156,17 @@ main()
   if (!check(resolved.prepare(sorted, 64, 64, diagnostic) && !resolved.reusedLastPrepare(),
       "failed pack must invalidate cached storage")) return 1;
 
+  sorted.revision = 200;
+  sorted.renderStates[0].transparencyType = SoGLRenderAction::SORTED_LAYERS_BLEND;
+  sorted.transparency.bufferBudget = uint64_t(64) * 64 * (16 * 4 + 8);
+  if (!check(resolved.prepare(sorted, 64, 64, diagnostic), "bounded initial peeling frame"))
+    return 1;
+  const auto oldWidth = resolved.getView().width;
+  if (!check(!resolved.prepare(sorted, 65, 64, diagnostic),
+             "reuse resize must recheck Core budget") ||
+      !check(resolved.getView().width == oldWidth, "budget rejection must preserve packed view") ||
+      !check(resolved.prepare(sorted, 64, 64, diagnostic), "reuse after rejected resize"))
+    return 1;
   std::cout << "CoinWgpuFfiFrameTest passed\n";
   return 0;
 }

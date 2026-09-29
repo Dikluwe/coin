@@ -45,16 +45,20 @@ esquerda, com 65 níveis `int(transparency*64)`. Alpha primário torna-se 1 ante
 da textura; alpha produzido por textura/combine permanece. Stipple não se
 aplica a linhas/pontos, inclusive strokes expandidos.
 
+O [contrato P10](coin-render-peeling-contract.md) amplia este fechamento histórico
+com 1..8 camadas, orçamento, precisão e qualificação de weighted OIT.
+
 ## Execução concreta e transporte
 
-CPU coleta fragmentos por pixel para a referência de camadas. BGFX reutiliza
-seus quatro passes de peeling e compositor. wgpu dispõe de quatro attachments
+CPU coleta fragmentos por pixel para a referência de camadas. BGFX executa
+passes configuráveis de peeling e compositor. wgpu dispõe de attachments
 de cor/profundidade e máscaras de escrita, snapshot da profundidade opaca e
 compositor GPU. O mecanismo de camadas não é substituído por sorting de objetos
 ou weighted OIT. No BGFX, a qualificação usa `COIN_BGFX_TRANSPARENCY=auto`.
 
-A revisão privada wgpu é **27**: vértice de 100 bytes, estado de 2280 e draw de
-56, com os mesmos tamanhos/offsets da revisão 26. `composition_flags` transporta
+P09 introduziu a revisão privada wgpu **27**. A atual **28** transporta opções
+no frame view de 176 bytes; vértice de 100 bytes, estado de 2280 e draw de
+56 conservam os tamanhos/offsets da revisão 26. `composition_flags` transporta
 blend (bit 0), aditivo (1), screen door (2), peeling (3) e nível de stipple
 (bits 8–14). C++ e Rust precisam ser reconstruídos juntos. Não muda a ABI
 pública do Coin. O bridge valida combinações de flags; não reclassifica alpha.
@@ -83,20 +87,21 @@ comum. Nessas duas fixtures o GL continua obrigatório, mas a verificação dos
 executores usa expectativas numéricas independentes. O alpha separado do
 framebuffer também usa expectativa numérica, não o blend clássico do GL.
 
-O perfil de camadas é fixo em **quatro**. A CPU e wgpu selecionam quatro
-profundidades transparentes distintas sobre o fundo opaco; o BGFX mantém seu
-mecanismo existente, com epsilon de peeling e interrupção por alpha zero.
+No fechamento histórico P09, o perfil era fixo em **quatro**; BGFX usava epsilon
+e interrupção por alpha zero. P10 substitui esse limite por 1..8 profundidades
+transparentes distintas sobre o fundo opaco, remove o epsilon fixo BGFX e
+permite continuar depois de alpha zero.
 A matriz P09 cobre até duas superfícies transparentes sobre fundo opaco,
 incluindo cruzamentos. Não certifica equivalência entre esses mecanismos em
 empates, fragmentos quase coplanares, cadeias interrompidas por alpha zero ou
 mais camadas. Essa qualificação ampliada, luzes, orçamento/configuração de
-passes e weighted OIT continuam em **P10/F16**.
+passes e weighted OIT estão agora qualificados no perfil **P10/F16**.
 
 O compositor BGFX publica cor sobre a profundidade opaca: peeling da camada
 base exige depth test LESS/LEQUAL/NEVER e write=false. Outros estados efetivos
 são rejeitados antes da submissão, inclusive escrita transparente explícita.
-CPU/wgpu possuem mecanismo de máscara de escrita; sua matriz ampliada de
-overrides nas camadas também fica em P10. Isso não restringe os overrides dos
+CPU/wgpu possuem mecanismo de máscara de escrita; P10 qualifica escrita
+transparente, teste desativado e GREATER nas camadas. Isso não restringe os overrides dos
 outros dez modos nem os estados capturados de anotações.
 
 Há outra diferença de raster já delimitada: GL pode repetir um vértice
@@ -104,7 +109,7 @@ compartilhado da tesselação em POINTS com sorting de triângulos. O Core conse
 um ponto por vértice original da face; as amostras comparativas usam um canto
 sem duplicação. P09 não encerra a qualificação integral P02, FreeCAD, MSAA,
 outros drivers/plataformas ou o spike native/Dawn. Camadas com polygon offset,
-clamp e viewports parcialmente externos exigem a qualificação própria P04/P10/P13.
+clamp e viewports parcialmente externos exigem a qualificação própria P04/P13.
 
 ## Execução local — 2026-09-28
 

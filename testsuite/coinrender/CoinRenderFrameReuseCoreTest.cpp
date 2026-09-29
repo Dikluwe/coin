@@ -184,6 +184,20 @@ main()
               target.lastValidatedPlanRevision == 44,
               "a valid subviewport must survive target resize and camera reuse");
 
+  auto optionsChanged = targetFrame;
+  optionsChanged.revision = targetFrame.revision + 1;
+  optionsChanged.transparency.layers = 8;
+  ok &= check(!targetFrame.hasSamePayload(optionsChanged) &&
+                  CoinRenderFrameReuseCore::classify(targetFrame, optionsChanged).kind ==
+                      CoinRenderFrameReuseKind::FULL_REBUILD,
+              "peel count changes must not reuse a captured camera/geometry plan");
+  optionsChanged = targetFrame;
+  optionsChanged.revision = targetFrame.revision + 1;
+  optionsChanged.transparency.bufferBudget /= 2;
+  ok &= check(!targetFrame.hasSamePayload(optionsChanged) &&
+                  CoinRenderFrameReuseCore::classify(targetFrame, optionsChanged).kind ==
+                      CoinRenderFrameReuseKind::FULL_REBUILD,
+              "budget changes must not reuse the old plan");
   if (!ok) return 1;
   std::cout << "CoinRenderFrameReuseCoreTest passed\n";
   return 0;

@@ -121,6 +121,14 @@ public:
   void setTransparencyType(TransparencyType type);
   TransparencyType getTransparencyType(void) const;
 
+  /** Experimental peeling profile: 1..8 layers, default 4. Invalid requests
+   * are rejected at apply() without changing the published frame. */
+  void setSortedLayersNumPasses(int passes);
+  int getSortedLayersNumPasses(void) const;
+  /** Conservative per-frame attachment budget; default 256 MiB. */
+  void setTransparencyBufferBudget(uint64_t bytes);
+  uint64_t getTransparencyBufferBudget(void) const;
+
   void setFastPathEnabled(SbBool enable);
   SbBool isFastPathEnabled(void) const;
 

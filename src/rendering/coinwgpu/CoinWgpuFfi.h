@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 27
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 28
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -192,6 +192,9 @@ typedef struct CoinWgpuFrameView {
   uint32_t height;
   /* Nonzero only when the private C++ packer actually reused this base. */
   uint64_t camera_base_revision;
+  uint32_t sorted_layers_passes;
+  uint32_t transparency_reserved;
+  uint64_t transparency_budget_bytes;
 } CoinWgpuFrameView;
 
 typedef struct CoinWgpuTarget {

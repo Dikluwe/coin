@@ -62,6 +62,9 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
                                           std::vector<CoinRenderCompositionItem>& order,
                                           std::string& diagnostic) {
   order.clear();
+  uint64_t unusedBudget = 0;
+  if (!coin_render_transparency_budget(1, 1, frame.transparency, false, unusedBudget, diagnostic))
+    return false;
   order.reserve(frame.draws.size());
   for (const auto& material : frame.materials) {
     const float alpha = material.diffuse[3], transparency = material.transparency;

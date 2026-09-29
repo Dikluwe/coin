@@ -155,6 +155,8 @@ CoinRenderFrameReuseDecision
 CoinRenderFrameReuseCore::classify(const CoinRenderFramePlan & previous,
                                const CoinRenderFramePlan & current)
 {
+  if (!coin_render_same_transparency_options(previous.transparency, current.transparency))
+    return CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::FULL_REBUILD, previous.revision);
   if (previous.revision == 0 || current.revision == 0 ||
       hasOpaqueConnectorResource(previous) ||
       hasOpaqueConnectorResource(current)) {

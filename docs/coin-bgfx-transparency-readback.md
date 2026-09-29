@@ -14,7 +14,7 @@ o número de draws.
 | `DELAYED_ADD` / `DELAYED_BLEND` | depois da passagem imediata, ordem de travessia | aditivo / source-over | não |
 | `SORTED_OBJECT_ADD` / `SORTED_OBJECT_BLEND` | objetos de trás para frente | aditivo / source-over | não |
 | `SORTED_OBJECT_SORTED_TRIANGLE_ADD` / `SORTED_OBJECT_SORTED_TRIANGLE_BLEND` | objetos e triângulos de trás para frente | aditivo / source-over | não |
-| `SORTED_LAYERS_BLEND` | quatro camadas por depth peeling | source-over | não no depth de saída |
+| `SORTED_LAYERS_BLEND` | 1..8 camadas por depth peeling | source-over | não no depth de saída |
 
 Screen-door reproduz a matriz Coin de 32×32 e sua quantização em 65 níveis.
 Ela usa `SoMaterial.transparency[0]`, independentemente de `MaterialBinding`,
@@ -30,7 +30,7 @@ write=false, `LEQUAL`, range `[0,1]`; campos de nós `SoDepthBuffer` no caminho
 sobrescrevem esses padrões, com o escopo da pilha Coin preservado. No peeling
 da camada base, o mecanismo BGFX exige test=true, write=false e função
 LESS/LEQUAL/NEVER; outros estados efetivos são rejeitados antes da submissão,
-conforme o [perfil P09](coin-render-transparency-contract.md).
+conforme os perfis [P09](coin-render-transparency-contract.md) e [P10](coin-render-peeling-contract.md).
 
 `weighted_oit` continua como extensão selecionável. Apenas transparência
 source-over atrasada participa de OIT; modalidades imediatas/aditivas conservam
@@ -85,7 +85,8 @@ A matriz CTest opcional `COIN_TEST_RENDER_GL_REFERENCE` roda ambas as referênci
 Isso não estabelece paridade bit-a-bit de RGBA com GL: o perfil existente de
 source-over mantém alpha de composição separado. Também não implementa as
 opções extras de `SoGLRenderAction` para custom sorting, passagem separada de
-backfaces não sólidas ou quantidade configurável de camadas além das quatro
-do perfil. Esses controles não devem ser confundidos com aceitar a enumeração
+backfaces não sólidas. P10 oferece 1..8 camadas (padrão quatro) e orçamento
+configurável; seu contrato declara precisão, alpha zero e limites de depth.
+Esses controles não devem ser confundidos com aceitar a enumeração
 de modalidades. O transporte portátil de superfícies permanece pendente;
 SoTextureCombine está qualificado no [perfil P08](coin-render-multitexture-contract.md).

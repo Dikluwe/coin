@@ -42,8 +42,9 @@ para transparência imediata; peeling e mecanismos GPU têm o [perfil P09](coin-
 
 A revisão privada 21 introduziu esse transporte com draw de 56 bytes e estado
 de 956. A revisão 22 conservou o draw e ampliou o estado para 1088 bytes
-com equações de clipping. A revisão atual 27 conserva o draw de 56 bytes, o vértice de 100 e o estado
-de 2280 da revisão 26 de multitextura. O campo no offset 36 é
+com equações de clipping. A revisão atual 28 acrescenta opções ao frame view
+de 176 bytes e conserva o draw de 56 bytes, o vértice de 100 e o estado de 2280
+da revisão 26 de multitextura. O campo no offset 36 é
 `composition_flags`: blend no bit 0, aditivo no 1, screen door no 2, peeling no
 3 e nível de stipple nos bits 8–14. O array de draws já chega na ordem resolvida. Estados
 variantes são empacotados quando o passe adiado modifica a profundidade; um
@@ -56,7 +57,8 @@ revisão em cache para que a próxima preparação reconstrua armazenamento vál
 C++ e Rust devem ser reconstruídos juntos; essa ABI permanece privada.
 
 P09 amplia o wgpu e a CPU para os onze modos, incluindo aditivo, screen door,
-triângulos ordenados pelo Core e peeling de quatro camadas. BGFX consome os
+triângulos ordenados pelo Core e peeling, ampliado para 1..8 camadas pelo
+[contrato P10](coin-render-peeling-contract.md). BGFX consome os
 mesmos intervalos e conserva os mecanismos concretos do seu perfil.
 Pedidos fora das capacidades preservam imagem publicada e serial e permitem
 um pedido válido seguinte; `UNSUPPORTED` de um frame não é erro fatal de recurso.
@@ -84,8 +86,8 @@ transparentes usam a profundidade efetiva do contrato comum.
 
 O registro A03 abaixo é histórico. P09 acrescenta alpha aditivo, sorting por
 triângulo e peeling no perfil delimitado, com comparação GL obrigatória.
-Equivalência universal GL, OIT, FreeCAD e dependências RTT comuns permanecem
-nas etapas próprias; os limites atuais constam do contrato P09.
+Equivalência universal GL, FreeCAD e dependências RTT comuns permanecem
+nas etapas próprias; os limites atuais constam dos contratos P09 e P10.
 
 A matriz ampliada expôs fixtures anteriores incorretas em materiais/multidevice.
 A biblioteca instalada da etapa anterior reproduziu os dois erros: expectativa

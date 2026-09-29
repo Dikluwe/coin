@@ -83,6 +83,7 @@ public:
   SbViewportRegion viewport;
   SbColor4f backgroundColor;
   CoinRenderAction::TransparencyType transparencyType;
+  CoinRenderTransparencyOptions transparencyOptions;
   CoinRenderAction::Status lastStatus;
   CoinRenderDiagnosticDomain lastDiagnosticDomain;
   SbString lastError;

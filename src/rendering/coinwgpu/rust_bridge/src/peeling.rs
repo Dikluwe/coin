@@ -1,4 +1,4 @@
-//! Concrete four-layer depth peeling. Coin decisions arrive in the draw plan.
+//! Concrete bounded depth peeling. Coin decisions arrive in the draw plan.
 use wgpu::*;
 
 pub(super) struct Peeling {
@@ -31,7 +31,13 @@ const COMPOSITE: &str = r#"
 "#;
 
 impl Peeling {
-    pub fn new(device: &Device, width: u32, height: u32, format: TextureFormat) -> Self {
+    pub fn new(
+        device: &Device,
+        width: u32,
+        height: u32,
+        format: TextureFormat,
+        layers: usize,
+    ) -> Self {
         let texture = |format, usage, label| {
             device.create_texture(&TextureDescriptor {
                 label: Some(label),
@@ -57,10 +63,10 @@ impl Peeling {
         let mut colors = Vec::new();
         let mut depths = Vec::new();
         let mut masks = Vec::new();
-        for _ in 0..4 {
+        for _ in 0..layers {
             colors.push(
                 texture(
-                    format,
+                    TextureFormat::Rgba16Float,
                     TextureUsages::RENDER_ATTACHMENT | TextureUsages::TEXTURE_BINDING,
                     "Coin peeled color",
                 )
@@ -118,7 +124,7 @@ impl Peeling {
                 },
             ],
         });
-        let bindings = (0..4)
+        let bindings = (0..layers)
             .map(|i| {
                 device.create_bind_group(&BindGroupDescriptor {
                     label: Some("Coin peel compositor layer"),
@@ -221,7 +227,7 @@ impl Peeling {
         timestamp: Option<&QuerySet>,
     ) {
         let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
-            label: Some("Coin four-layer source-over composite"),
+            label: Some("Coin bounded source-over composite"),
             color_attachments: &[Some(RenderPassColorAttachment {
                 view: color,
                 resolve_target: None,
@@ -245,7 +251,7 @@ impl Peeling {
             }),
             occlusion_query_set: None,
         });
-        for i in (0..4).rev() {
+        for i in (0..self.bindings.len()).rev() {
             pass.set_bind_group(0, &self.bindings[i], &[]);
             pass.set_pipeline(&self.color_pipeline);
             pass.draw(0..3, 0..1);
@@ -255,8 +261,63 @@ impl Peeling {
     }
 }
 
+// Validate concrete allocation size even for direct private ABI callers.
+pub(super) fn validate_request(
+    layers: u32,
+    reserved: u32,
+    budget: u64,
+    width: u32,
+    height: u32,
+    enabled: bool,
+) -> Result<(), (super::CoinWgpuStatus, String)> {
+    use super::CoinWgpuStatus;
+    if reserved != 0 {
+        return Err((
+            CoinWgpuStatus::InvalidArgument,
+            "Reserved transparency bits must be zero".into(),
+        ));
+    }
+    if !enabled {
+        return Ok(());
+    }
+    if !(1..=8).contains(&layers) || budget == 0 {
+        return Err((
+            CoinWgpuStatus::Unsupported,
+            "Peeling requires 1..8 layers and a nonzero buffer budget".into(),
+        ));
+    }
+    let required = u64::from(width)
+        .checked_mul(u64::from(height))
+        .and_then(|pixels| pixels.checked_mul(u64::from(layers) * 13 + 4))
+        .ok_or((
+            CoinWgpuStatus::Unsupported,
+            "Peeling allocation size overflows".into(),
+        ))?;
+    if required > budget {
+        return Err((
+            CoinWgpuStatus::Unsupported,
+            "Peeling attachment budget exceeded".into(),
+        ));
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn rejects_unbounded_and_over_budget_transport() {
+        use super::validate_request;
+        for layers in [0, 9, u32::MAX] {
+            assert!(validate_request(layers, 0, u64::MAX, 64, 64, true).is_err());
+        }
+        assert!(validate_request(8, 0, u64::MAX, u32::MAX, u32::MAX, true).is_err());
+        assert!(validate_request(8, 0, 0, 64, 64, true).is_err());
+        assert!(validate_request(8, 1, u64::MAX, 64, 64, true).is_err());
+        let physical_bytes = 64 * 64 * (8 * 13 + 4);
+        assert!(validate_request(8, 0, physical_bytes - 1, 64, 64, true).is_err());
+        assert!(validate_request(8, 0, physical_bytes, 64, 64, true).is_ok());
+        assert!(validate_request(0, 0, 0, 64, 64, false).is_ok());
+    }
     #[test]
     fn compositor_validates() {
         let module = naga::front::wgsl::parse_str(super::COMPOSITE).unwrap();

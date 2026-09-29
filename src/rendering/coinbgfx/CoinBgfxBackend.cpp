@@ -279,7 +279,6 @@ bool setDrawScissor(const CoinBgfxDraw & draw, int targetWidth, int targetHeight
                    static_cast<uint16_t>(clipped[3]));
   return true;
 }
-const uint8_t peelPasses = 4;
 const uint64_t peelTextureFlags = BGFX_TEXTURE_RT |
   BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |
   BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT;
@@ -447,7 +446,8 @@ CoinBgfxBackend::CoinBgfxBackend()
     cachedIndexCapacity(0)
 {
   for (auto & handle : this->extraTextureSamplers) handle = BGFX_INVALID_HANDLE;
-  for (uint8_t i = 0; i < peelPasses; ++i) this->peelFrameBuffers[i] = BGFX_INVALID_HANDLE;
+  for (uint8_t i = 0; i < COIN_RENDER_MAX_PEEL_LAYERS; ++i)
+    this->peelFrameBuffers[i] = BGFX_INVALID_HANDLE;
   const char * disabled = std::getenv("COIN_BGFX_DISABLE_CAMERA_PATCH");
   this->cameraPatchEnabled = disabled == nullptr || std::strcmp(disabled, "1") != 0;
   const char * groupingDisabled = std::getenv("COIN_BGFX_DISABLE_DRAW_GROUPING");
@@ -729,9 +729,11 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
     return this->status;
   }
   this->sortedLayersSupported =
-    (caps->formats[bgfx::TextureFormat::RGBA8] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) &&
-    (caps->formats[bgfx::TextureFormat::D32F] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) &&
-    bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::D32F, peelTextureFlags);
+      caps->limits.maxFBAttachments >= 2 &&
+      bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA16F, peelTextureFlags) &&
+      (caps->formats[bgfx::TextureFormat::RGBA16F] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) &&
+      (caps->formats[bgfx::TextureFormat::D32F] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) &&
+      bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::D32F, peelTextureFlags);
   this->weightedOitSupported =
     (caps->supported & BGFX_CAPS_BLEND_INDEPENDENT) &&
     caps->limits.maxFBAttachments >= 3 &&
@@ -739,7 +741,7 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
     bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::R16F, peelTextureFlags);
 
   if (this->transparencyMode == CoinBgfxTransparencyMode::SORTED_LAYERS && !this->sortedLayersSupported) {
-    this->lastError = "BGFX sorted layers requires sampleable D32F and RGBA8 render targets";
+    this->lastError = "BGFX sorted layers requires sampleable D32F and RGBA16F render targets";
     this->status = CoinRenderBackendStatus::UNSUPPORTED;
     return this->status;
   }
@@ -933,7 +935,7 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
 void
 CoinBgfxBackend::destroyFrameBuffers()
 {
-  for (uint8_t pass = 0; pass < peelPasses; ++pass) {
+  for (uint8_t pass = 0; pass < COIN_RENDER_MAX_PEEL_LAYERS; ++pass) {
     if (bgfx::isValid(this->peelFrameBuffers[pass]))
       bgfx::destroy(this->peelFrameBuffers[pass]);
     this->peelFrameBuffers[pass] = BGFX_INVALID_HANDLE;
@@ -1056,10 +1058,10 @@ CoinBgfxBackend::resize(int newWidth, int newHeight)
     }
   }
   if (this->activeTransparencyStrategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS) {
-    for (uint8_t pass = 0; pass < peelPasses; ++pass) {
-      bgfx::TextureHandle color = bgfx::createTexture2D(
-        static_cast<uint16_t>(newWidth), static_cast<uint16_t>(newHeight),
-        false, 1, bgfx::TextureFormat::RGBA8, peelTextureFlags);
+    for (uint8_t pass = 0; pass < this->peelPassCount; ++pass) {
+      bgfx::TextureHandle color =
+          bgfx::createTexture2D(static_cast<uint16_t>(newWidth), static_cast<uint16_t>(newHeight),
+                                false, 1, bgfx::TextureFormat::RGBA16F, peelTextureFlags);
       bgfx::TextureHandle depth = bgfx::createTexture2D(
         static_cast<uint16_t>(newWidth), static_cast<uint16_t>(newHeight),
         false, 1, bgfx::TextureFormat::D32F, peelTextureFlags);
@@ -1195,7 +1197,7 @@ CoinBgfxBackend::encodeSortedLayers(const std::vector<CoinBgfxDraw> & draws,
   const float depthInfo[4] = {1.0f / float(this->width),
                               1.0f / float(this->height), 0.0f, 0.0f};
   bgfx::setPaletteColor(1, transparentBlack);
-  for (uint8_t pass = 0; pass < peelPasses; ++pass) {
+  for (uint8_t pass = 0; pass < this->peelPassCount; ++pass) {
     const bgfx::ViewId view = this->viewBase + pass + 1;
     bgfx::setViewName(view, "transparent_accumulation");
     bgfx::setViewMode(view, bgfx::ViewMode::Sequential);
@@ -1207,7 +1209,8 @@ CoinBgfxBackend::encodeSortedLayers(const std::vector<CoinBgfxDraw> & draws,
     bgfx::touch(view);
     // Opaque geometry supplies the occlusion depth in every peel pass.
     for (const CoinBgfxDraw & draw : draws) {
-      if (draw.renderLayer != 0 || (draw.blend && draw.deferred)) continue;
+      if (draw.renderLayer != 0 || (draw.blend && draw.deferred) || !draw.depthWrite)
+        continue;
       bgfx::setTransform(draw.mvp);
       bgfx::setVertexBuffer(0, vertices);
       bgfx::setIndexBuffer(indices, draw.firstIndex, draw.indexCount);
@@ -1238,7 +1241,7 @@ CoinBgfxBackend::encodeSortedLayers(const std::vector<CoinBgfxDraw> & draws,
     }
   }
 
-  const bgfx::ViewId compositeView = this->viewBase + peelPasses + 1;
+  const bgfx::ViewId compositeView = this->viewBase + this->peelPassCount + 1;
   bgfx::setViewName(compositeView, "fullscreen_composition");
   bgfx::setViewMode(compositeView, bgfx::ViewMode::Sequential);
   bgfx::setViewRect(compositeView, 0, 0, static_cast<uint16_t>(this->width),
@@ -1255,7 +1258,7 @@ CoinBgfxBackend::encodeSortedLayers(const std::vector<CoinBgfxDraw> & draws,
     BGFX_STATE_BLEND_FUNC_SEPARATE(BGFX_STATE_BLEND_SRC_ALPHA,
       BGFX_STATE_BLEND_INV_SRC_ALPHA, BGFX_STATE_BLEND_ONE,
       BGFX_STATE_BLEND_INV_SRC_ALPHA);
-  for (int pass = int(peelPasses) - 1; pass >= 0; --pass) {
+  for (int pass = int(this->peelPassCount) - 1; pass >= 0; --pass) {
     bgfx::setTransform(identity);
     bgfx::setVertexBuffer(0, this->fullscreenVertexBuffer);
     bgfx::setIndexBuffer(this->fullscreenIndexBuffer);
@@ -1294,7 +1297,8 @@ CoinBgfxBackend::encodeWeightedOit(const std::vector<CoinBgfxDraw> & draws,
   // Rebuild only opaque depth so transparent fragments behind opaque Coin
   // geometry cannot contribute to either accumulation attachment.
   for (const CoinBgfxDraw & draw : draws) {
-    if (draw.renderLayer != 0 || (draw.blend && draw.deferred)) continue;
+    if (draw.renderLayer != 0 || (draw.blend && draw.deferred) || !draw.depthWrite)
+      continue;
     bgfx::setTransform(draw.mvp);
     bgfx::setVertexBuffer(0, vertices);
     bgfx::setIndexBuffer(indices, draw.firstIndex, draw.indexCount);
@@ -1307,7 +1311,8 @@ CoinBgfxBackend::encodeWeightedOit(const std::vector<CoinBgfxDraw> & draws,
   }
 
   for (const CoinBgfxDraw & draw : draws) {
-    if (draw.renderLayer != 0 || !draw.blend) continue;
+    if (draw.renderLayer != 0 || !draw.blend || !draw.deferred || draw.additive)
+      continue;
     uint64_t state = drawState(draw);
     state &= ~(BGFX_STATE_WRITE_Z | BGFX_STATE_BLEND_MASK);
     state |= BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A |
@@ -1537,7 +1542,17 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
         this->sortedLayersSupported, selectedStrategy, this->lastError)) {
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
   }
-  if (selectedStrategy != this->activeTransparencyStrategy) {
+  CoinRenderTransparencyOptions allocationOptions = frame.transparency;
+  if (selectedStrategy == CoinBgfxTransparencyStrategy::WEIGHTED_OIT)
+    allocationOptions.layers = 1;
+  uint64_t requiredBytes = 0;
+  if (!coin_render_transparency_budget(target.size[0], target.size[1], allocationOptions,
+                                       selectedStrategy != CoinBgfxTransparencyStrategy::OBJECT,
+                                       requiredBytes, this->lastError))
+    return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
+  if (selectedStrategy != this->activeTransparencyStrategy ||
+      (selectedStrategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS &&
+       this->peelPassCount != frame.transparency.layers)) {
     // Keep the native surface when opaque-only frames choose OBJECT or later
     // frames require OIT/peeling. BGFX creates resources before retiring old
     // ones: recreating a swapchain on the same X window here would race its
@@ -1547,6 +1562,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     this->destroyFrameBuffers();
     if (this->presentToWindow) this->frameBuffer = windowOutput;
     this->activeTransparencyStrategy = selectedStrategy;
+    this->peelPassCount = frame.transparency.layers;
   }
   const Clock::time_point lowered = Clock::now();
   if (!this->resize(target.size[0], target.size[1])) {
@@ -1750,7 +1766,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       bgfx::submit(transparentView, this->program);
     }
   } else if (useSortedLayers) {
-    nextView = this->viewBase + peelPasses + 2;
+    nextView = this->viewBase + this->peelPassCount + 2;
     this->encodeSortedLayers(draws, vb, ib,
       this->presentToWindow ? windowFrameBuffer : this->frameBuffer,
       textures);

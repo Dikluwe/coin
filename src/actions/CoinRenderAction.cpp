@@ -185,6 +185,28 @@ CoinRenderAction::getTransparencyType(void) const
   return this->pimpl->transparencyType;
 }
 
+void CoinRenderAction::setSortedLayersNumPasses(int passes) {
+  if (this->pimpl->transparencyOptions.layers != static_cast<uint32_t>(passes)) {
+    this->pimpl->transparencyOptions.layers = static_cast<uint32_t>(passes);
+    this->pimpl->cachedRoot = NULL;
+  }
+}
+
+int CoinRenderAction::getSortedLayersNumPasses(void) const {
+  return static_cast<int>(this->pimpl->transparencyOptions.layers);
+}
+
+void CoinRenderAction::setTransparencyBufferBudget(uint64_t bytes) {
+  if (this->pimpl->transparencyOptions.bufferBudget != bytes) {
+    this->pimpl->transparencyOptions.bufferBudget = bytes;
+    this->pimpl->cachedRoot = NULL;
+  }
+}
+
+uint64_t CoinRenderAction::getTransparencyBufferBudget(void) const {
+  return this->pimpl->transparencyOptions.bufferBudget;
+}
+
 void
 CoinRenderAction::setFastPathEnabled(SbBool enable)
 {
@@ -622,6 +644,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   }
   profilePlanned = ProfileClock::now();
   if (!traversalSkipped && !cameraOverlay) {
+    plan.transparency = this->transparencyOptions;
     if (planCacheAllowed && cacheRoot && this->hasLastValidPlan &&
         this->cachedRoot == cacheRoot) {
       reuseDecision = CoinRenderFrameReuseCore::classify(this->lastValidPlan, plan);
@@ -1046,6 +1069,8 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
   childAction.pimpl->planOnly = useDirect;
   childAction.setRenderTarget(childTarget.get());
   childAction.setTransparencyType(p->transparencyType);
+  childAction.setSortedLayersNumPasses(static_cast<int>(p->transparencyOptions.layers));
+  childAction.setTransparencyBufferBudget(p->transparencyOptions.bufferBudget);
   childAction.setBackgroundColor(SbColor4f(background[0], background[1],
                                            background[2], background[3]));
   childAction.pimpl->sceneTextureStagedBytes = p->sceneTextureStagedBytes;

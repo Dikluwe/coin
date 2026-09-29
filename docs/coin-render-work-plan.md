@@ -68,11 +68,13 @@ escopos delimitados.
   comum CPU/BGFX/wgpu; alpha final, depth, ordem imediata/adiada, anotações,
   sorting de triângulos, screen door e quatro camadas. Referência GL obrigatória
   e expectativas numéricas independentes no [contrato P09](coin-render-transparency-contract.md).
-  Estados avançados de depth em peeling, muitas camadas, epsilon/alpha zero e
-  orçamento/configuração seguem P10; FreeCAD e raster ampliado seguem suas etapas.
-- [ ] **P10 — OIT/peeling (F16):** luzes/texturas, muitas camadas, alpha extremo,
-  interseções dentro do objeto, oclusão opaca, saturação/halos, orçamento e camadas
-  configuráveis; decidir e declarar o perfil oferecido pelo wgpu.
+  A ampliação de camadas e controles consta de P10; FreeCAD e raster ampliado seguem suas etapas.
+- [x] **P10 — OIT/peeling (F16):** peeling comum de 1..8 camadas, orçamento de
+  attachments, alpha zero/precisão, luz/textura, interseções, oclusão e depth
+  qualificados no [contrato P10](coin-render-peeling-contract.md). Weighted OIT
+  é extensão explícita BGFX; wgpu oferece peeling. Overrides de depth fora do
+  mecanismo BGFX são rejeitados com preservação. Outros drivers, MSAA e a rota
+  direta BGFX de textura de cena seguem as campanhas próprias.
 - [ ] **P11 — Seleção/capacidades (A07/A08):** opções tipadas; distinguir hardware
   disponível, mecanismo implementado e contrato Coin qualificado por alvo.
 
