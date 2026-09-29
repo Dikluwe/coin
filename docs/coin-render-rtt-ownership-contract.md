@@ -1,5 +1,9 @@
 # CoinRender — P12: plano e ownership de RTT
 
+A execução e publicação deste contrato foram qualificadas em
+[P13](coin-render-rtt-publication-contract.md), incluindo correção da política
+Coin NONE e suporte a ALPHA_BLEND. A evidência abaixo registra a entrega P12.
+
 P12 fecha o planejamento comum e o ownership no perfil existente de
 `SoSceneTexture2`: unidade 0, RGBA8, MODULATE, REPEAT/CLAMP, função de
 transparência NONE, sem `sceneTransparencyType`, dimensões de 1..2048 por eixo,
@@ -106,19 +110,17 @@ no staged. O Core valida o grafo, dimensões, orçamento e os planos de perfil
 antes do primeiro submit. Falha conhecida de captura/perfil não publica o pai
 nem executa os produtores já capturados.
 
-No staged, uma textura cujo alpha não é demonstrado pela captura ainda precisa
-de readback para ser classificada. O preflight adia a seleção do mecanismo para
-os draws que dependem desse alpha. Após resolver os pixels, a composição comum
-faz a decisão normal, incluindo conflitos sem fallback. Uma textura realmente
-opaca não é rejeitada por uma previsão conservadora de transparência. Uma
-textura translúcida continua sujeita ao contrato de P11.
+No Core, uma imagem com política automática de alpha ainda pode depender de
+readback para classificação. O preflight adia sua seleção de mecanismo até
+resolver pixels, preservando conflitos sem fallback. P13 corrigiu a captura de
+`SoSceneTexture2` para usar a política explícita do Coin: NONE ignora alpha da
+textura no scheduling; ALPHA_BLEND o força. A inferência original de P12 pelos
+pixels não era suficiente para esse nó. A fixture staged foi corrigida em P13.
 
-Essa decisão adiada pode ocorrer depois de submeter produtores. Não é uma
-promessa de ausência universal de efeitos GPU antes de toda rejeição. O
-preflight completo de viewport parcialmente externo, formatos/estados ampliados,
-limites concretos de recursos, falhas assíncronas e publicação transacional
-integral permanecem em P04/P13/P14. BGFX direto segue o mecanismo OBJECT;
-P12 não qualifica peeling/OIT dentro do produtor direto.
+Falhas após executar produtores continuam possíveis; publicação transacional,
+limites concretos e tickets são qualificados no [P13](coin-render-rtt-publication-contract.md).
+Viewport parcialmente externo e recuperação geral permanecem P04/P14. BGFX
+direto segue OBJECT; peeling/OIT dentro do produtor direto continua fora do perfil.
 
 O orçamento continua sendo um débito contratual: staged cobra quatro bytes por
 pixel por ocorrência; direto cobra oito bytes por pixel por produtor distinto.

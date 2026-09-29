@@ -138,14 +138,15 @@ explicitamente.
 ## Evidência da 4C (perfil SoSceneTexture2 staged)
 
 `SoSceneTexture2` aceita somente unidade 0, `RGBA8`, `MODULATE`,
-`REPEAT`/`CLAMP`, `transparencyFunction=NONE`, sem
+`REPEAT`/`CLAMP`, `transparencyFunction=NONE` ou `ALPHA_BLEND` (P13), sem
 `sceneTransparencyType`, com cena não nula e tamanho de 1 a 2048 por eixo.
 Cada apply admite até 64 MiB de pixels RGBA8 intermediários e oito passes
 aninhados; ciclos, formatos e estados fora desse perfil retornam
 `UNSUPPORTED` com diagnóstico. O pass filho termina e fornece readback
 antes de o pai carregar a imagem como textura; as linhas são invertidas
 uma vez para conciliar as origens de framebuffer e imagem Coin. A textura
-gerada participa das mesmas regras de alpha da 4B. O frame pai só é
+gerada segue a política Coin NONE/ALPHA_BLEND para scheduling, preservando
+o alpha amostrado e a transparência do material. O frame pai só é
 publicado depois da construção e validação completa do seu CoinRenderFramePlan.
 
 `CoinRenderSceneTextureTest` cobre amostragem superior/inferior (orientação),
@@ -379,10 +380,27 @@ valida dimensões, dependências, revisão/payload, orçamento e owner/device/ge
 A Infra resolve cópias em pixels ou tokens, retém recursos até os consumidores e
 aposenta-os também nas saídas com falha. Tokens concretos não ficam na action.
 
-Alpha staged desconhecido é resolvido antes da seleção definitiva; o último
-snapshot staged pode reter pixels CPU para o log Recording preservar a decisão
-real. A ABI privada de frames continua na revisão 28; a consulta do epoch vivo
+O Core admite resolução staged antes da classificação de imagens com política
+automática de alpha. P13 corrigiu `SoSceneTexture2` para sua política explícita
+NONE/ALPHA_BLEND; o último snapshot staged continua retendo pixels CPU para o
+log Recording. A ABI privada de frames continua na revisão 28; a consulta do epoch vivo
 do dispositivo default é uma função aditiva. A06 e A04 fecham nos perfis atuais;
 F14/F15, publicação integral, formatos/estados ampliados, viewport externo e
 recuperação geral permanecem nas etapas próprias. Escopo, matriz de testes e
 limites: [contrato P12](coin-render-rtt-ownership-contract.md).
+
+
+## Evidência P13 — execução RTT e publicação
+
+P13 corrige a política NONE do Coin e suporta ALPHA_BLEND no snapshot comum;
+o Core decide transparência para todos os executores. Preflight detecta a
+capacidade restante de RTT do dispositivo wgpu default e a restrição OBJECT
+de produtores diretos BGFX antes de submeter produtores. Viewport externo
+wgpu é rejeitado em preflight; sua implementação continua P04.
+
+A publicação comum protege cor, depth, serial, revisão validada e borrowed RGBA
+contra falhas tardias, usando buffers candidatos reutilizáveis. Tickets só são
+expostos após validar seus metadados completos; erro preserva o último resultado
+e retorna ticket vazio. A consulta escalar de capacidade wgpu é aditiva, mantendo
+protocolo 28 e layouts FFI. Escopo, custos de memória e evidência:
+[contrato P13](coin-render-rtt-publication-contract.md).

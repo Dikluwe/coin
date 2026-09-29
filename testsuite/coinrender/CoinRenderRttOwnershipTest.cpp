@@ -2,9 +2,14 @@
 #include "config.h"
 #endif
 #include "rendering/coinrender/CoinRenderRttCore.h"
+#include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderRttExecution.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include <Inventor/SoDB.h>
+#include <Inventor/actions/SoGLRenderAction.h>
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+#include "rendering/coinwgpu/CoinWgpuFfi.h"
+#endif
 #include <iostream>
 #include <memory>
 
@@ -28,9 +33,36 @@ CoinRenderRttProducer producer(uint64_t source, int size = 1) {
   result.size = SbVec2i32(size, size);
   return result;
 }
+CoinRenderFramePlan triangle(bool transparent = false, int viewportWidth = 4) {
+  CoinRenderFramePlan result;
+  result.materials.push_back(CoinRenderMaterialSnapshot());
+  if (transparent) {
+    result.materials[0].diffuse[3] = 0.5f;
+    result.materials[0].transparency = 0.5f;
+  }
+  result.cameras.push_back(CoinRenderCameraSnapshot());
+  result.lightingStates.push_back(CoinRenderLightingSnapshot());
+  CoinRenderViewportSnapshot viewport;
+  viewport.width = viewportWidth;
+  viewport.height = 4;
+  result.viewports.push_back(viewport);
+  CoinRenderRenderStateSnapshot state;
+  state.lightModel = CoinRenderLightModel::BASE_COLOR;
+  state.transparencyType = SoGLRenderAction::SORTED_LAYERS_BLEND;
+  result.renderStates.push_back(state);
+  result.vertices.resize(3);
+  result.vertices[0].position[0] = -1;
+  result.vertices[1].position[0] = 1;
+  result.vertices[2].position[1] = 1;
+  result.indices = {0, 1, 2};
+  CoinRenderDrawPacket draw;
+  draw.geometry.vertexCount = draw.geometry.indexCount = 3;
+  result.draws.push_back(draw);
+  return result;
+}
 struct Witness {
   int submits = 0, finishes = 0;
-  bool sawDependency = false, failSecond = false, changeEpoch = false;
+  bool sawDependency = false, failSecond = false, changeEpoch = false, rejectPreflight = false;
   uint64_t epoch = 1;
   std::vector<uint64_t> retired;
 };
@@ -46,6 +78,12 @@ public:
   }
   CoinRenderSubmitResult submit(const CoinRenderFramePlan&, CoinRenderTargetP&) override {
     return {};
+  }
+  CoinRenderSubmitResult preflightRtt(const CoinRenderRttPlan&, const CoinRenderFramePlan&,
+                                      const SbVec2i32&) const override {
+    return witness->rejectPreflight
+               ? CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, "fixture GPU limit")
+               : CoinRenderSubmitResult();
   }
   CoinRenderDeviceDomain resourceDomain() const override {
     CoinRenderDeviceDomain result;
@@ -130,6 +168,27 @@ int main() {
                   budget.chargedBytes == CoinRenderRttPlan::budget(),
               "overbudget append is atomic");
 
+  {
+    auto policy = triangle();
+    policy.renderStates[0].hasTexture = true;
+    policy.textures = consumer(1, 4).textures;
+    policy.samplers.push_back(CoinRenderSamplerSnapshot());
+    policy.textures[0].sceneTransparencyFunction = SoSceneTexture2::NONE;
+    std::vector<CoinRenderCompositionItem> order;
+    ok &= check(coin_render_composition_order(policy, order, diagnostic) && !order[0].blend,
+                "Coin NONE suppresses unresolved texture transparency");
+    policy.textures[0].gpuOpaque = true;
+    policy.textures[0].sceneTransparencyFunction = SoSceneTexture2::ALPHA_BLEND;
+    ok &= check(coin_render_composition_order(policy, order, diagnostic) && order[0].blend,
+                "Coin ALPHA_BLEND forces transparency even with an opaque producer");
+    policy.textures[0].sceneTransparencyFunction = SoSceneTexture2::NONE;
+    policy.materials[0].diffuse[3] = policy.materials[0].transparency = .5f;
+    ok &= check(coin_render_composition_order(policy, order, diagnostic) && order[0].blend,
+                "Coin NONE preserves material transparency");
+    policy.textures[0].sceneTransparencyFunction = SoSceneTexture2::ALPHA_TEST;
+    ok &= check(!policy.isValid(&diagnostic), "unimplemented alpha test is explicit");
+  }
+
   CoinRenderRttResources resources;
   CoinRenderResourceStamp stamp;
   stamp.owner = 10;
@@ -141,10 +200,12 @@ int main() {
   texture.gpuToken = 72;
   ok &= check(resources.bind(1, 41, stamp, texture, diagnostic), "bind retained opaque resource");
   CoinRenderFramePlan output;
-  const auto captured = consumer(1);
+  auto captured = consumer(1);
+  captured.textures[0].sceneTransparencyFunction = SoSceneTexture2::ALPHA_BLEND;
   ok &= check(resources.resolve(captured, stamp, output, diagnostic) &&
                   output.textures[0].gpuToken == 72 && !output.textures[0].producerId &&
-                  captured.textures[0].producerId == 1 && !captured.textures[0].gpuToken,
+                  captured.textures[0].producerId == 1 && !captured.textures[0].gpuToken &&
+                  output.textures[0].sceneTransparencyFunction == SoSceneTexture2::ALPHA_BLEND,
               "resolve preserves immutable capture");
   for (int field = 0; field < 4; ++field) {
     auto stale = stamp;
@@ -219,6 +280,17 @@ int main() {
                 "whole graph validated before any GPU producer");
   }
   *witness = Witness();
+  witness->rejectPreflight = true;
+  {
+    CoinRenderRttExecution execution(&target, options);
+    CoinRenderFramePlan untouched;
+    untouched.revision = 555;
+    auto result = execution.prepare(executionGraph, root, untouched);
+    ok &= check(result.status == CoinRenderBackendStatus::UNSUPPORTED && witness->submits == 0 &&
+                    untouched.revision == 555,
+                "backend limit rejected before any producer");
+  }
+  *witness = Witness();
   target.kind = CoinRenderTargetP::KIND_WINDOW;
   {
     CoinRenderRttExecution execution(&target, options);
@@ -241,6 +313,65 @@ int main() {
   ok &= check(target.resourceOwnerId == owner && target.resourceGeneration > epoch &&
                   other.resourceOwnerId != owner,
               "target resize and identity are independent");
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+  {
+    auto inspector = CoinRenderTargetP::createBackend();
+    CoinRenderRttPlan capacity(COIN_RENDER_SCENE_TEXTURE_DIRECT);
+    for (unsigned source = 1; source <= 64; ++source)
+      ok &= check(capacity.append(producer(source), id, diagnostic), "capture capacity fixture");
+    ok &= check(inspector->preflightRtt(capacity, consumer(64), SbVec2i32(4, 4)).status ==
+                    CoinRenderBackendStatus::SUCCESS,
+                "64 direct producers fit the bridge");
+    capacity.append(producer(65), id, diagnostic);
+    CoinRenderTargetP noWork(SbVec2i32(4, 4));
+    CoinWgpuCacheStats before{}, after{};
+    coin_wgpu_get_cache_stats(&before);
+    CoinRenderRttExecution execution(&noWork, options);
+    CoinRenderFramePlan resolved;
+    const auto result = execution.prepare(capacity, consumer(65), resolved);
+    coin_wgpu_get_cache_stats(&after);
+    ok &= check(result.status == CoinRenderBackendStatus::UNSUPPORTED && !noWork.backend &&
+                    before.submission_serial == after.submission_serial,
+                "65th direct producer rejected without GPU work or device preparation");
+  }
+  for (auto mode : {COIN_RENDER_SCENE_TEXTURE_STAGED, COIN_RENDER_SCENE_TEXTURE_DIRECT}) {
+    CoinRenderRttPlan external(mode);
+    external.append(producer(10), id, diagnostic);
+    auto outside = producer(11, 4);
+    outside.plan = triangle(false, 5);
+    external.append(outside, id, diagnostic);
+    CoinRenderTargetP noWork(SbVec2i32(4, 4));
+    CoinWgpuCacheStats before{}, after{};
+    coin_wgpu_get_cache_stats(&before);
+    CoinRenderRttExecution execution(&noWork, options);
+    CoinRenderFramePlan resolved;
+    const auto result = execution.prepare(external, consumer(2, 4), resolved);
+    coin_wgpu_get_cache_stats(&after);
+    ok &= check(result.status == CoinRenderBackendStatus::UNSUPPORTED && !noWork.backend &&
+                    before.submission_serial == after.submission_serial,
+                "external second viewport rejected before either RTT mode submits first producer");
+  }
+#elif defined(HAVE_COIN_BGFX)
+  {
+    CoinRenderRttPlan limited(COIN_RENDER_SCENE_TEXTURE_DIRECT);
+    limited.append(producer(10), id, diagnostic);
+    auto layers = producer(11, 4);
+    layers.plan = triangle(true);
+    limited.append(layers, id, diagnostic);
+    CoinRenderTargetP noWork(SbVec2i32(4, 4));
+    CoinRenderRttExecution execution(&noWork, options);
+    CoinRenderFramePlan resolved;
+    const auto result = execution.prepare(limited, consumer(2, 4), resolved);
+    ok &= check(result.status == CoinRenderBackendStatus::UNSUPPORTED && !noWork.backend &&
+                    result.diagnostic.find("object transparency") != std::string::npos,
+                "second direct producer peeling rejected before BGFX initializes");
+    auto inspector = CoinRenderTargetP::createBackend();
+    limited.producers[1].plan = triangle(false);
+    ok &= check(inspector->preflightRtt(limited, consumer(2, 4), SbVec2i32(4, 4)).status ==
+                    CoinRenderBackendStatus::SUCCESS,
+                "opaque producer using Coin sorted layers does not require peeling");
+  }
+#endif
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_BGFX)
   // The same Coin origin may produce distinct captured payloads within one
   // apply. Both outputs must remain independently retained for its consumers.

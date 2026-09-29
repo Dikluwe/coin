@@ -163,6 +163,7 @@ struct CoinRenderTextureImageSnapshot {
   uint64_t contentDigest = 0;
   uint64_t producerId = 0; // Logical RTT dependency, scoped to one captured graph.
   uint64_t gpuToken = 0;   // Execution-only connector handle; capture never sets it.
+  int32_t sceneTransparencyFunction = -1; // -1: image alpha; otherwise captured Coin enum.
   bool gpuOpaque = false; // Proven by an opaque child clear and alpha-preserving blend.
   std::vector<uint8_t> pixelsRgba;
 };

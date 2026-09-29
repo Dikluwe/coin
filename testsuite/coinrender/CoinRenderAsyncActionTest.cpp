@@ -247,6 +247,25 @@ int main() {
              borrowedSceneBytes == sceneExpectedColor.size(),
              "synchronous scene-texture frame must expose borrowed RGBA")) return 1;
 
+  const uint8_t* publishedScenePointer = synchronous->borrowRGBA(borrowedSceneBytes);
+  const uint64_t publishedSceneSerial = synchronous->getLastSubmissionSerial();
+  sceneTexture->type.setValue(SoSceneTexture2::RGB32F);
+  CoinRenderReadbackTicket rejectedSceneTicket{};
+  rejectedSceneTicket.token = 987;
+  syncAction.applyAsync(texturedParent, rejectedSceneTicket);
+  std::vector<uint8_t> rejectedSceneColor;
+  std::vector<float> rejectedSceneDepth;
+  synchronous->readbackRGBA(rejectedSceneColor);
+  synchronous->readbackDepth(rejectedSceneDepth);
+  if (!check(syncAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+                 rejectedSceneTicket.token == 0 && rejectedSceneColor == sceneExpectedColor &&
+                 rejectedSceneDepth == sceneExpectedDepth &&
+                 synchronous->getLastSubmissionSerial() == publishedSceneSerial &&
+                 synchronous->borrowRGBA(borrowedSceneBytes) == publishedScenePointer,
+             "failed async RTT must preserve pixels, depth, serial and borrowed pointer"))
+    return 1;
+  sceneTexture->type.setValue(SoSceneTexture2::RGBA8);
+
   CoinRenderReadbackTicket sceneTicket{};
   syncAction.applyAsync(texturedParent, sceneTicket);
   if (!check(syncAction.getLastStatus() == CoinRenderAction::SUCCESS &&

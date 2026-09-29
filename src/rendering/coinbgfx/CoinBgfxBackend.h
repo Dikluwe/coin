@@ -32,6 +32,8 @@ public:
                                    const SbVec2i32 & size,
                                    uint64_t producerKey,
                                    uint64_t & token);
+  CoinRenderSubmitResult preflightRtt(const CoinRenderRttPlan&, const CoinRenderFramePlan&,
+                                      const SbVec2i32&) const override;
   CoinRenderDeviceDomain resourceDomain() const override;
   CoinRenderSubmitResult submitRtt(const CoinRenderFramePlan& frame, const SbVec2i32& size,
                                    uint64_t producer, CoinRenderTargetP&,

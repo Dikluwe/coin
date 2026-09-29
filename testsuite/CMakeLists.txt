@@ -781,6 +781,15 @@ if(COIN_BUILD_RENDER)
 		set_tests_properties(CoinRenderAnnotationTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77)
 	endif()
 
+	add_executable(CoinRenderPublicationTest coinrender/CoinRenderPublicationTest.cpp)
+	set_target_properties(CoinRenderPublicationTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinRenderPublicationTest CoinRender Coin)
+	target_include_directories(CoinRenderPublicationTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	add_test(NAME CoinRenderPublicationTest COMMAND CoinRenderPublicationTest)
+	set_tests_properties(CoinRenderPublicationTest PROPERTIES TIMEOUT 30)
+
 	add_executable(CoinRenderRttOwnershipTest coinrender/CoinRenderRttOwnershipTest.cpp)
 	set_target_properties(CoinRenderRttOwnershipTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 	target_link_libraries(CoinRenderRttOwnershipTest CoinRender Coin)

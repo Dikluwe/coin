@@ -192,8 +192,10 @@ CoinRenderFramePlanBuilder::endAnnotation()
 
 void CoinRenderFramePlanBuilder::registerSceneTexture(const unsigned char* image,
                                                       uint64_t producerId, uint32_t width,
-                                                      uint32_t height, bool opaque) {
-  this->sceneTextures[image] = SceneTexture{producerId, width, height, opaque};
+                                                      uint32_t height, bool opaque,
+                                                      int32_t transparencyFunction) {
+  this->sceneTextures[image] =
+      SceneTexture{producerId, width, height, opaque, transparencyFunction};
 }
 
 void
@@ -487,6 +489,8 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     const auto & t = this->currentPlan.textures[i];
     if (t.width == w && t.height == h && t.contentDigest == digest &&
         t.producerId == (isSceneTexture ? sceneTexture->second.producerId : 0) &&
+        t.sceneTransparencyFunction ==
+            (isSceneTexture ? sceneTexture->second.transparencyFunction : -1) &&
         t.pixelsRgba == rgba) {
       texSlot = static_cast<uint32_t>(i);
       break;
@@ -498,6 +502,8 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     tSnap.width = w;
     tSnap.height = h;
     tSnap.components = 4;
+    tSnap.sceneTransparencyFunction =
+        isSceneTexture ? sceneTexture->second.transparencyFunction : -1;
     tSnap.gpuOpaque = isSceneTexture && sceneTexture->second.opaque;
     tSnap.contentDigest = digest;
     tSnap.producerId = isSceneTexture ? sceneTexture->second.producerId : 0;

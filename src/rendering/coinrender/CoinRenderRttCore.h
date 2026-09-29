@@ -187,8 +187,10 @@ public:
         return false;
       }
       const bool opaque = texture.gpuOpaque;
+      const int32_t transparencyFunction = texture.sceneTransparencyFunction;
       texture = entry.texture;
       texture.gpuOpaque = opaque;
+      texture.sceneTransparencyFunction = transparencyFunction;
     }
     output = std::move(candidate);
     return true;

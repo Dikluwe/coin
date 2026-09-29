@@ -5,6 +5,7 @@
 #include <string>
 
 class CoinRenderTargetP;
+struct CoinRenderRttPlan;
 
 struct CoinRenderDeviceDomain {
   uint64_t device = 0;
@@ -41,6 +42,11 @@ public:
   virtual CoinRenderBackendStatus prepare(CoinRenderTargetP & target) = 0;
   virtual CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame,
                              CoinRenderTargetP & target) = 0;
+  // Inspect immutable captures without initializing a device or submitting work.
+  virtual CoinRenderSubmitResult preflightRtt(const CoinRenderRttPlan&, const CoinRenderFramePlan&,
+                                              const SbVec2i32&) const {
+    return {};
+  }
   virtual CoinRenderDeviceDomain resourceDomain() const { return {}; }
   virtual CoinRenderSubmitResult submitRtt(const CoinRenderFramePlan&, const SbVec2i32&, uint64_t,
                                            CoinRenderTargetP&, uint64_t&) {

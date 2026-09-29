@@ -20,6 +20,8 @@
 #include "rendering/coinwgpu/CoinWgpuFfi.h"
 #endif
 
+#include <chrono>
+#include <thread>
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
@@ -102,6 +104,7 @@ int main() {
 
   SoSceneTexture2 * sceneTexture = new SoSceneTexture2;
   sceneTexture->size.setValue(32, 32);
+  sceneTexture->transparencyFunction.setValue(SoSceneTexture2::NONE);
   sceneTexture->scene.setValue(child);
   sceneTexture->backgroundColor.setValue(0, 0, 1, 1);
   sceneTexture->type.setValue(SoSceneTexture2::RGBA8);
@@ -200,6 +203,16 @@ int main() {
   sceneTexture->scene.setValue(clearOnlyScene);
   sceneTexture->backgroundColor.setValue(1, 0, 0, 0.5f);
   action.setBackgroundColor(SbColor4f(0, 0, 1, 1));
+  action.apply(parent);
+  std::vector<uint8_t> noneColor;
+  target->readbackRGBA(noneColor);
+  const size_t noneCenter = (32u * 64u + 32u) * 4u;
+  if (!check(action.getLastStatus() == CoinRenderAction::SUCCESS &&
+                 noneColor.size() == baseline.size() && noneColor[noneCenter] > 240 &&
+                 noneColor[noneCenter + 2] < 20,
+             "Coin NONE must ignore texture alpha when scheduling blending", action))
+    return 1;
+  sceneTexture->transparencyFunction.setValue(SoSceneTexture2::ALPHA_BLEND);
   action.apply(parent);
   std::vector<uint8_t> alphaColor;
   target->readbackRGBA(alphaColor);
@@ -527,14 +540,78 @@ int main() {
   }
 #endif
 
+#if defined(HAVE_COIN_BGFX)
+  // RTT tickets use the same API thread as the BGFX runtime. Compare the
+  // resolved graph in sync/async and fail after allocating a private ticket.
+  action.apply(parent);
+  std::vector<uint8_t> asyncExpected;
+  target->readbackRGBA(asyncExpected);
+  if (!check(action.getLastStatus() == CoinRenderAction::SUCCESS, "BGFX RTT async baseline",
+             action))
+    return 1;
+  CoinRenderReadbackTicket rttTicket{};
+  action.applyAsync(parent, rttTicket);
+  if (!check(action.getLastStatus() == CoinRenderAction::SUCCESS && rttTicket.token &&
+                 rttTicket.depthBytes == 0 &&
+                 rttTicket.submissionSerial == target->getLastSubmissionSerial(),
+             "BGFX RTT async metadata", action))
+    return 1;
+  std::vector<uint8_t> asyncPixels;
+  std::vector<float> asyncDepth;
+  CoinRenderTarget::ReadbackStatus pollStatus = CoinRenderTarget::READBACK_NOT_READY;
+  for (unsigned attempt = 0; attempt < 5000 && pollStatus == CoinRenderTarget::READBACK_NOT_READY;
+       ++attempt) {
+    pollStatus = CoinRenderTarget::pollReadback(rttTicket, asyncPixels, asyncDepth);
+    if (pollStatus == CoinRenderTarget::READBACK_NOT_READY)
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  if (!check(pollStatus == CoinRenderTarget::READBACK_READY && asyncPixels == asyncExpected &&
+                 asyncDepth.empty(),
+             "BGFX RTT async pixels/orientation", action))
+    return 1;
+  action.apply(parent);
+  std::vector<uint8_t> beforeAsyncFault;
+  target->readbackRGBA(beforeAsyncFault);
+  const uint64_t beforeAsyncSerial = target->getLastSubmissionSerial();
+  std::size_t beforeAsyncBytes = 0;
+  const uint8_t* beforeAsyncPointer = target->borrowRGBA(beforeAsyncBytes);
+  setenv("COIN_BGFX_TEST_DEVICE_LOST_AFTER_ASYNC_ONCE", "1", 1);
+  CoinRenderReadbackTicket failedAsync{};
+  failedAsync.token = 999;
+  action.applyAsync(parent, failedAsync);
+  std::vector<uint8_t> afterAsyncFault;
+  target->readbackRGBA(afterAsyncFault);
+  std::size_t afterAsyncBytes = 0;
+  if (!check(action.getLastStatus() == CoinRenderAction::DEVICE_LOST && !failedAsync.token &&
+                 afterAsyncFault == beforeAsyncFault &&
+                 target->getLastSubmissionSerial() == beforeAsyncSerial &&
+                 target->borrowRGBA(afterAsyncBytes) == beforeAsyncPointer &&
+                 afterAsyncBytes == beforeAsyncBytes,
+             "late BGFX async failure must retire candidate ticket and preserve publication",
+             action))
+    return 1;
+  // Recovery requires retirement of the failed ticket's runtime reference.
+  CoinRenderTarget* recoveredTarget = makeColorTarget(target->getSize());
+  action.setRenderTarget(recoveredTarget);
+  delete target;
+  target = recoveredTarget;
+  action.apply(parent);
+  std::vector<uint8_t> asyncRecovery;
+  target->readbackRGBA(asyncRecovery);
+  if (!check(action.getLastStatus() == CoinRenderAction::SUCCESS && asyncRecovery == asyncExpected,
+             "BGFX RTT failed async ticket leaked a runtime reference", action))
+    return 1;
+#endif
+
   CoinRenderOptions stagedOptions = target->getOptions();
   stagedOptions.sceneTexture = COIN_RENDER_SCENE_TEXTURE_STAGED;
   stagedOptions.transparency = COIN_RENDER_TRANSPARENCY_OBJECT;
   action.setRenderTarget(nullptr);
   delete target;
 
-  // Unknown staged alpha must be resolved before deciding whether an OBJECT
-  // override conflicts with SORTED_LAYERS_BLEND. The transparent clear is
+  // SceneTexture NONE follows Coin's forced scheduling policy even when the
+  // produced pixels have alpha. An explicit ALPHA_BLEND must expose the mode
+  // conflict in preflight. The transparent clear is
   // fully covered by opaque geometry, so the resulting texture is opaque.
   SoSeparator* opaqueScene = new SoSeparator;
   opaqueScene->addChild(makeCamera());
@@ -589,16 +666,26 @@ int main() {
                    std::string::npos,
                "Recording log did not retain resolved staged alpha", alphaAction))
       return 1;
-    const uint64_t opaqueSerial = alphaTarget->getLastSubmissionSerial();
     opaqueMaterial->transparency = .5f;
+    alphaAction.apply(alphaParent);
+    std::vector<uint8_t> noneAlphaOutput;
+    alphaTarget->readbackRGBA(noneAlphaOutput);
+    if (!check(
+            alphaAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+                noneAlphaOutput.size() == opaqueOutput.size() && noneAlphaOutput[center + 3] < 255,
+            "Coin NONE must preserve sampled alpha without forcing parent blending", alphaAction))
+      return 1;
+    const uint64_t opaqueSerial = alphaTarget->getLastSubmissionSerial();
+    unknownAlpha->transparencyFunction.setValue(SoSceneTexture2::ALPHA_BLEND);
     alphaAction.apply(alphaParent);
     std::vector<uint8_t> rejectedOutput;
     alphaTarget->readbackRGBA(rejectedOutput);
     if (!check(alphaAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-                   rejectedOutput == opaqueOutput &&
+                   rejectedOutput == noneAlphaOutput &&
                    alphaTarget->getLastSubmissionSerial() == opaqueSerial,
                "resolved translucent texture bypassed the Coin mode conflict", alphaAction))
       return 1;
+    unknownAlpha->transparencyFunction.setValue(SoSceneTexture2::NONE);
     opaqueMaterial->transparency = 0;
     alphaAction.apply(alphaParent);
     std::vector<uint8_t> recoveredOutput;

@@ -29,7 +29,7 @@ public:
   void endAnnotation();
 
   void registerSceneTexture(const unsigned char* image, uint64_t producerId, uint32_t width,
-                            uint32_t height, bool opaque);
+                            uint32_t height, bool opaque, int32_t transparencyFunction);
   void addTriangle(SoCallbackAction * action,
                    const SoPrimitiveVertex * v0,
                    const SoPrimitiveVertex * v1,
@@ -106,6 +106,7 @@ private:
     uint32_t width;
     uint32_t height;
     bool opaque;
+    int32_t transparencyFunction;
   };
   std::unordered_map<const unsigned char*, SceneTexture> sceneTextures;
 };

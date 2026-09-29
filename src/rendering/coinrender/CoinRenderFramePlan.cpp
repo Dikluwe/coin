@@ -5,6 +5,7 @@
 #endif
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
+#include <Inventor/nodes/SoSceneTexture2.h>
 #include "rendering/coinrender/CoinRenderTextureCombineCore.h"
 #include "rendering/coinrender/CoinRenderClipCore.h"
 #include "rendering/coinrender/CoinRenderStateCore.h"
@@ -77,7 +78,8 @@ CoinRenderFramePlan::hasSamePayload(const CoinRenderFramePlan & other) const
     const CoinRenderTextureImageSnapshot & y = other.textures[i];
     if (x.width != y.width || x.height != y.height || x.components != y.components ||
         x.contentDigest != y.contentDigest || x.producerId != y.producerId ||
-        x.gpuToken != y.gpuToken || x.gpuOpaque != y.gpuOpaque || x.pixelsRgba != y.pixelsRgba)
+        x.gpuToken != y.gpuToken || x.gpuOpaque != y.gpuOpaque ||
+        x.sceneTransparencyFunction != y.sceneTransparencyFunction || x.pixelsRgba != y.pixelsRgba)
       return false;
   }
   return true;
@@ -172,6 +174,13 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
 
   for (size_t i = 0; i < this->textures.size(); ++i) {
     const CoinRenderTextureImageSnapshot & tex = this->textures[i];
+    if (tex.sceneTransparencyFunction != -1 &&
+        tex.sceneTransparencyFunction != SoSceneTexture2::NONE &&
+        tex.sceneTransparencyFunction != SoSceneTexture2::ALPHA_BLEND) {
+      if (outDiagnostic)
+        *outDiagnostic = "Unsupported scene texture transparency function";
+      return false;
+    }
     if (tex.width == 0 || tex.height == 0) {
       if (outDiagnostic) *outDiagnostic = "Texture contains zero width or height";
       return false;

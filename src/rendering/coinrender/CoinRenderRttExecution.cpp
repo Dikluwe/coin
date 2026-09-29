@@ -65,6 +65,16 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan& 
     return {};
   }
 
+  std::unique_ptr<CoinRenderBackend> preflightBackend;
+  CoinRenderBackend* inspector = target ? target->backend.get() : nullptr;
+  if (!inspector) {
+    preflightBackend = CoinRenderTargetP::createBackend();
+    inspector = preflightBackend.get();
+  }
+  check = inspector->preflightRtt(graph, root, target ? target->size : SbVec2i32(640, 480));
+  if (check.status != CoinRenderBackendStatus::SUCCESS)
+    return check;
+
   if (graph.mode == COIN_RENDER_SCENE_TEXTURE_DIRECT) {
     if (!target || target->kind != CoinRenderTargetP::KIND_OFFSCREEN)
       return {CoinRenderBackendStatus::UNSUPPORTED,

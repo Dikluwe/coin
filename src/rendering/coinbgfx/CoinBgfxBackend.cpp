@@ -10,6 +10,8 @@
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 #include "rendering/coinrender/CoinRenderSelectionCore.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
+#include "rendering/coinrender/CoinRenderRttCore.h"
+#include "rendering/coinrender/CoinRenderComposition.h"
 
 #include "coin_bgfx_fs_depth_readback_glsl.h"
 #include "coin_bgfx_fs_depth_readback_spirv.h"
@@ -2010,10 +2012,17 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     auto & ticket = asyncEntry->ticket;
     bgfx::frame(); // Submit only; polling advances completion without a wait loop.
     destroyTextures();
-    target.colorBuffer.clear(); target.depthBuffer.clear();
-    target.needsReconfigure = false;
-    *outTicket = ticket;
+    if (consumeTestFault("COIN_BGFX_TEST_DEVICE_LOST_AFTER_ASYNC_ONCE"))
+      static_cast<CoinBgfxCallback*>(this->callback.get())
+          ->inject(bgfx::Fatal::DeviceLost, "injected device loss after async ticket allocation");
     const auto asyncStatus = this->checkRuntimeFailure("BGFX asynchronous submission failed");
+    // Return the private allocation on failure so the common owner can cancel it.
+    *outTicket = ticket;
+    if (asyncStatus == CoinRenderBackendStatus::SUCCESS) {
+      target.colorBuffer.clear();
+      target.depthBuffer.clear();
+      target.needsReconfigure = false;
+    }
     return CoinRenderSubmitResult(asyncStatus, this->lastError, ticket.submissionSerial);
   }
   const Clock::time_point readRequested = Clock::now();
@@ -2062,10 +2071,22 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
   }
   const Clock::time_point framesCompleted = Clock::now();
+  uint32_t readbackLatencyFrames = 0;
+  const Clock::time_point readComplete = Clock::now();
+  const Clock::time_point gpuDrainBegin = Clock::now();
+  uint32_t gpuQueryFrames = 0;
+  for (int attempts = 0; traceGpu && gpuSample.gpuFrameMs < 0.0 && attempts < 4; ++attempts) {
+    bgfx::frame();
+    ++gpuQueryFrames;
+    captureGpuFrame();
+  }
+  runtimeStatus = this->checkRuntimeFailure("BGFX profiling drain failed");
+  if (runtimeStatus != CoinRenderBackendStatus::SUCCESS)
+    return CoinRenderSubmitResult(runtimeStatus, this->lastError);
+  const Clock::time_point gpuDrainComplete = Clock::now();
   // GL readback follows the framebuffer's bottom-left origin; Vulkan's
   // readback in this profile already matches the target's top-left RGBA view.
   // The row-swap is symmetric, so the shared mechanical image helper applies.
-  uint32_t readbackLatencyFrames = 0;
   if (publishSlot) {
     if (bgfx::getCaps()->rendererType == bgfx::RendererType::OpenGL &&
         !CoinRenderImageCore::flipRgba8Rows(publishSlot->pixels, target.size)) {
@@ -2084,19 +2105,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   target.colorBuffer = this->lastPublishedReadback;
   readbackLatencyFrames = static_cast<uint32_t>(
     this->readbackSequence - this->lastPublishedSequence);
-  const Clock::time_point readComplete = Clock::now();
-  const Clock::time_point gpuDrainBegin = Clock::now();
-  uint32_t gpuQueryFrames = 0;
-  for (int attempts = 0;
-       traceGpu && gpuSample.gpuFrameMs < 0.0 && attempts < 4; ++attempts) {
-    bgfx::frame();
-    ++gpuQueryFrames;
-    captureGpuFrame();
-  }
-  runtimeStatus = this->checkRuntimeFailure("BGFX profiling drain failed");
-  if (runtimeStatus != CoinRenderBackendStatus::SUCCESS)
-    return CoinRenderSubmitResult(runtimeStatus, this->lastError);
-  const Clock::time_point gpuDrainComplete = Clock::now();
+  const Clock::time_point readbackNormalized = Clock::now();
   if (cameraPatchUsed) {
     this->cachedPlan.draws.swap(cameraDraws);
     this->cachedRevision = frame.revision;
@@ -2119,7 +2128,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     sample.submitFrameMs = ms(readRequested, submitted);
     sample.readWaitMs = ms(submitted, readComplete);
     sample.frameWaitMs = ms(submitted, framesCompleted);
-    sample.rowFlipMs = ms(framesCompleted, readComplete);
+    sample.rowFlipMs = ms(gpuDrainComplete, readbackNormalized);
     sample.vertices = plan->vertices.size();
     sample.draws = plan->draws.size();
     sample.readWaitFrames = readWaitFrames;
@@ -2425,4 +2434,23 @@ void
 CoinBgfxBackend::poll()
 {
   // Synchronous readback in submit() already advances BGFX frames.
+}
+
+CoinRenderSubmitResult CoinBgfxBackend::preflightRtt(const CoinRenderRttPlan& graph,
+                                                     const CoinRenderFramePlan&,
+                                                     const SbVec2i32&) const {
+  if (graph.mode != COIN_RENDER_SCENE_TEXTURE_DIRECT)
+    return {};
+  for (const auto& producer : graph.producers) {
+    std::vector<CoinRenderCompositionItem> order;
+    std::string diagnostic;
+    if (!coin_render_composition_order(producer.plan, order, diagnostic))
+      return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};
+    for (const auto& item : order)
+      if (item.blend && item.deferred && !item.additive &&
+          item.transparencyStrategy != CoinRenderCompositionItem::OBJECT)
+        return {CoinRenderBackendStatus::UNSUPPORTED,
+                "BGFX direct RTT currently requires object transparency"};
+  }
+  return {};
 }

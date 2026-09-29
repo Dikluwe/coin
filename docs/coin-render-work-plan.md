@@ -91,11 +91,18 @@ entre mecanismos ou aproximações visuais.
 - [x] **P12 — Plano/ownership (A04/A06/F14):** grafo comum staged/direto,
   referências lógicas separadas de tokens GPU, revisão do produtor, owner/device,
   gerações, retenção e invalidação. Captura sem execução de produtores; recursos
-  concretos pertencem à Infra. Alpha staged é decidido após resolução, no
-  [contrato P12](coin-render-rtt-ownership-contract.md). Formatos/estados ampliados,
-  publicação integral e recuperação permanecem em P13/P14.
-- [ ] **P13 — RTT/publicação (F14/F15/A09):** staged versus direto, formatos,
-  orientação, dependências aninhadas, ciclos, falhas, tickets e publicação transacional.
+  concretos pertencem à Infra. Alpha automático pode depender de resolução
+  staged no [contrato P12](coin-render-rtt-ownership-contract.md); a política
+  explícita Coin do SoSceneTexture2 foi corrigida em P13. Execução/publicação
+  qualificadas em P13; formatos/estados ampliados continuam F14 e recuperação
+  geral permanece P14.
+- [x] **P13 — RTT/publicação (F14/F15/A09), perfil RGBA8:** staged/direto,
+  orientação, dependências/ciclos, preflight dos limites concretos, falhas,
+  tickets e publicação transacional qualificados. Política Coin NONE corrigida
+  e ALPHA_BLEND suportado no Core; cor/depth/serial/revisão/borrow preservados
+  em falha. [Contrato e checklist P13](coin-render-rtt-publication-contract.md).
+  Formatos/estados ampliados, ALPHA_TEST e RTT direto de janela continuam em F14;
+  recuperação geral e orçamento de múltiplos alvos pertencem a P14.
 - [ ] **P14 — Múltiplos alvos/recuperação (F17):** isolamento, agendamento, orçamento,
   resize/destruição e perda/reconstrução do dispositivo em ambos os executores.
 
@@ -159,8 +166,9 @@ limites; documentação e commit de evidência. Registrar implementação, execu
 qualificação separadamente. Rejeição explícita fecha diagnóstico, não suporte
 funcional. Atualizar Pxx e Axx/Fxx associados somente no escopo comprovado.
 
-**Próxima entrega concreta: P13 — execução e publicação de RTT.** Qualificar
-staged/direto sobre o grafo P12: formatos e orientação, preflight que depende dos
-resultados, limites concretos, tickets, falhas e publicação transacional.
-Viewport parcialmente externo acompanha P04; recuperação de múltiplos alvos,
-resize/destruição e perda/reconstrução geral do dispositivo acompanha P14.
+**Próxima entrega concreta: P14 — múltiplos alvos e recuperação.** Qualificar
+isolamento, agendamento e orçamento por alvo/dispositivo usando ownership P12 e
+publicação P13; resize/destruição, tickets pendentes e perda/reconstrução em ambos
+os executores. Viewport parcialmente externo continua P04; formatos/estados RTT
+fora do perfil RGBA8 permanecem registrados em F14. Profiling/memória e reuso de
+readback continuam P18/P19.

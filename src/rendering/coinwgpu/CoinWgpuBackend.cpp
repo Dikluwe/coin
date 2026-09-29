@@ -9,6 +9,7 @@
 #include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
+#include "rendering/coinrender/CoinRenderRttCore.h"
 #include "rendering/coinwgpu/CoinWgpuFfi.h"
 
 #include <cassert>
@@ -382,4 +383,35 @@ CoinRenderSubmitResult CoinWgpuBackend::submitRtt(const CoinRenderFramePlan& fra
 void CoinWgpuBackend::finishRtt(const std::vector<uint64_t>& tokens) {
   for (uint64_t token : tokens)
     coin_wgpu_release_texture(token);
+}
+
+CoinRenderSubmitResult CoinWgpuBackend::preflightRtt(const CoinRenderRttPlan& graph,
+                                                     const CoinRenderFramePlan& root,
+                                                     const SbVec2i32& size) const {
+  if (graph.mode == COIN_RENDER_SCENE_TEXTURE_DIRECT) {
+    if (graph.producers.size() > coin_wgpu_default_rtt_capacity())
+      return {CoinRenderBackendStatus::UNSUPPORTED,
+              "wgpu direct RTT exceeds the capacity of 64 retained textures"};
+  }
+  // The bridge cannot encode an external viewport in this profile (P04).
+  // Reject the entire capture before submitting any dependent RTT producer.
+  const auto check = [](const CoinRenderFramePlan& frame, const SbVec2i32& extent) {
+    for (const auto& draw : frame.draws) {
+      const auto& state = frame.renderStates[draw.renderStateSlot];
+      if (state.viewportSlot >= frame.viewports.size())
+        continue;
+      const auto& vp = frame.viewports[state.viewportSlot];
+      if (vp.x < 0 || vp.y < 0 || int64_t(vp.x) + vp.width > extent[0] ||
+          int64_t(vp.y) + vp.height > extent[1])
+        return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED,
+                                      "wgpu RTT preflight: external viewport requires P04 support");
+    }
+    return CoinRenderSubmitResult();
+  };
+  for (const auto& producer : graph.producers) {
+    auto result = check(producer.plan, producer.size);
+    if (result.status != CoinRenderBackendStatus::SUCCESS)
+      return result;
+  }
+  return check(root, size);
 }

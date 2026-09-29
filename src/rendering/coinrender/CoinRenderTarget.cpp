@@ -5,6 +5,7 @@
 #endif
 
 #include "rendering/coinrender/CoinRenderTargetP.h"
+#include "rendering/coinrender/CoinRenderReadbackCore.h"
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include <Inventor/rendering/CoinRenderNativeSurface.h>
 #include "rendering/coinrender/CoinRenderFramePlan.h"
@@ -177,6 +178,8 @@ CoinRenderTargetP::resize(const SbVec2i32 & newSize)
   ++this->resourceGeneration;
   this->borrowedReadbackValid = false;
   this->lastValidatedPlanRevision = 0;
+  std::vector<uint8_t>().swap(this->spareColorBuffer);
+  std::vector<float>().swap(this->spareDepthBuffer);
   if (this->kind == KIND_WINDOW) {
     if (newSize[0] < 0 || newSize[1] < 0) {
       this->size = SbVec2i32(0, 0);
@@ -400,20 +403,53 @@ CoinRenderTargetP::detachedFromAction()
 #endif
 }
 
-CoinRenderBackendStatus CoinRenderTargetP::prepareBackend() {
-  if (!this->backend) {
+std::unique_ptr<CoinRenderBackend> CoinRenderTargetP::createBackend() {
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-    this->backend = std::unique_ptr<CoinRenderBackend>(new CoinWgpuBackend());
+  return std::unique_ptr<CoinRenderBackend>(new CoinWgpuBackend());
 #elif defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
-    this->backend = std::unique_ptr<CoinRenderBackend>(new CoinWgpuNativeBackend());
+  return std::unique_ptr<CoinRenderBackend>(new CoinWgpuNativeBackend());
 #elif defined(HAVE_COIN_BGFX)
-    this->backend = std::unique_ptr<CoinRenderBackend>(new CoinBgfxBackend());
+  return std::unique_ptr<CoinRenderBackend>(new CoinBgfxBackend());
 #else
-    this->backend = std::unique_ptr<CoinRenderBackend>(new CoinRenderCpuReferenceBackend());
+  return std::unique_ptr<CoinRenderBackend>(new CoinRenderCpuReferenceBackend());
 #endif
-  }
+}
+
+CoinRenderBackendStatus CoinRenderTargetP::prepareBackend() {
+  if (!this->backend)
+    this->backend = createBackend();
   return this->backend->prepare(*this);
 }
+
+namespace {
+// Backends receive candidate buffers. A failed submission restores the exact
+// previous allocations, including borrowed pointers, without copying pixels.
+class ReadbackPublication {
+public:
+  explicit ReadbackPublication(CoinRenderTargetP& value) : target(value) {}
+  void prepare() {
+    if (target.kind != CoinRenderTargetP::KIND_OFFSCREEN || target.directTextureOutput)
+      return;
+    // Allocate before swapping so bad_alloc cannot disturb published storage.
+    target.spareColorBuffer.resize(target.colorBuffer.size());
+    target.spareDepthBuffer.resize(target.depthBuffer.size());
+    target.colorBuffer.swap(target.spareColorBuffer);
+    target.depthBuffer.swap(target.spareDepthBuffer);
+    active = true;
+  }
+  ~ReadbackPublication() {
+    if (active && !committed) {
+      target.colorBuffer.swap(target.spareColorBuffer);
+      target.depthBuffer.swap(target.spareDepthBuffer);
+    }
+  }
+  void commit() { committed = true; }
+
+private:
+  CoinRenderTargetP& target;
+  bool active = false, committed = false;
+};
+} // namespace
 
 CoinRenderFrameExecutionResult
 CoinRenderTargetP::executeFrame(const CoinRenderFramePlan & frame)
@@ -457,7 +493,6 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     return CoinRenderFrameExecutionResult(
         CoinRenderBackendStatus::UNSUPPORTED,
         this->optionsDiagnostic.empty() ? this->lastError : this->optionsDiagnostic);
-  this->borrowedReadbackValid = false;
   if (outTicket && this->kind != KIND_OFFSCREEN) {
     return CoinRenderFrameExecutionResult(CoinRenderBackendStatus::UNSUPPORTED,
                                 "applyAsync() requires an offscreen target");
@@ -491,7 +526,14 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
       return val;
     }
   }
-  this->lastValidatedPlanRevision = frame.revision;
+  ReadbackPublication publication(*this);
+  try {
+    publication.prepare();
+  } catch (const std::bad_alloc&) {
+    return {CoinRenderBackendStatus::OUT_OF_MEMORY, "Cannot allocate candidate readback buffers"};
+  }
+  CoinRenderReadbackTicket candidateTicket{};
+  CoinRenderReadbackTicket* submitTicket = outTicket ? &candidateTicket : NULL;
 
   if (this->status == CoinRenderTarget::TARGET_LOST ||
       this->status == CoinRenderTarget::TARGET_SURFACE_LOST ||
@@ -524,9 +566,9 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   if (outTicket) {
     CoinWgpuBackend * rust = dynamic_cast<CoinWgpuBackend *>(this->backend.get());
-    res = rust ? rust->submitAsync(frame, *this, *outTicket, reuse)
+    res = rust ? rust->submitAsync(frame, *this, *submitTicket, reuse)
                : CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED,
-                              "Asynchronous readback requires the Rust bridge backend");
+                                        "Asynchronous readback requires the Rust bridge backend");
   } else if (CoinWgpuBackend * rust =
                dynamic_cast<CoinWgpuBackend *>(this->backend.get())) {
     res = rust->submit(frame, *this, reuse);
@@ -536,14 +578,29 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
 #if defined(HAVE_COIN_BGFX)
     if (CoinBgfxBackend * bgfx =
           dynamic_cast<CoinBgfxBackend *>(this->backend.get())) {
-      res = outTicket ? bgfx->submitAsync(frame, *this, *outTicket, reuse)
+      res = outTicket ? bgfx->submitAsync(frame, *this, *submitTicket, reuse)
                       : bgfx->submit(frame, *this, reuse);
     } else
 #endif
       res = outTicket ? CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, "The selected backend does not support asynchronous readback")
                       : this->backend->submit(frame, *this);
   }
+  if (res.status == CoinRenderBackendStatus::SUCCESS && this->kind == KIND_OFFSCREEN &&
+      !this->directTextureOutput) {
+    const uint64_t pixels = uint64_t(this->size[0]) * this->size[1];
+    const bool complete =
+        outTicket
+            ? coin_render_complete_readback_ticket(candidateTicket, this->size,
+                                                   this->depthReadbackEnabled, res.submissionSerial)
+            : this->colorBuffer.size() == pixels * 4 &&
+                  (!this->depthReadbackEnabled || this->depthBuffer.size() == pixels);
+    if (!complete)
+      res = {CoinRenderBackendStatus::BACKEND_ERROR,
+             "Backend returned an incomplete readback result"};
+  }
   if (res.status != CoinRenderBackendStatus::SUCCESS) {
+    if (candidateTicket.token)
+      CoinRenderTarget::cancelReadback(candidateTicket);
     std::string lastErr = res.diagnostic.empty() ? (this->backend ? this->backend->getLastError() : std::string()) : res.diagnostic;
     this->lastError = lastErr;
     if (res.status == CoinRenderBackendStatus::DEVICE_LOST) {
@@ -574,6 +631,10 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     }
   }
 
+  publication.commit();
+  if (outTicket)
+    *outTicket = candidateTicket;
+  this->lastValidatedPlanRevision = frame.revision;
   this->lastSubmissionSerial = res.submissionSerial;
   this->synchronousReadbackValid = (outTicket == NULL &&
     this->kind == KIND_OFFSCREEN && !this->directTextureOutput);

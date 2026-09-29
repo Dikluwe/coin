@@ -38,7 +38,11 @@ public:
   static uint64_t allocateResourceOwnerId();
   uint64_t resourceOwnerId{0};
   uint64_t resourceGeneration{0};
+  static std::unique_ptr<CoinRenderBackend> createBackend();
   CoinRenderBackendStatus prepareBackend();
+  // Reusable candidate storage; never exposed while a submission is pending.
+  std::vector<uint8_t> spareColorBuffer;
+  std::vector<float> spareDepthBuffer;
   void detachedFromAction();
   bool synchronousReadbackValid{true};
   bool borrowedReadbackValid{false}; // Only after a successful synchronous frame.

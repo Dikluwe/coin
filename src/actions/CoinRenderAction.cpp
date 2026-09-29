@@ -847,18 +847,19 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
   if (SoTextureOverrideElement::getImageOverride(state)) {
     return SoCallbackAction::CONTINUE;
   }
-  if (SoTextureUnitElement::get(state) != 0 ||
-      texture->type.getValue() != SoSceneTexture2::RGBA8 ||
+  if (SoTextureUnitElement::get(state) != 0 || texture->type.getValue() != SoSceneTexture2::RGBA8 ||
       texture->model.getValue() != SoSceneTexture2::MODULATE ||
       (texture->wrapS.getValue() != SoSceneTexture2::REPEAT &&
        texture->wrapS.getValue() != SoSceneTexture2::CLAMP) ||
       (texture->wrapT.getValue() != SoSceneTexture2::REPEAT &&
        texture->wrapT.getValue() != SoSceneTexture2::CLAMP) ||
-      texture->transparencyFunction.getValue() != SoSceneTexture2::NONE ||
+      (texture->transparencyFunction.getValue() != SoSceneTexture2::NONE &&
+       texture->transparencyFunction.getValue() != SoSceneTexture2::ALPHA_BLEND) ||
       texture->sceneTransparencyType.getValue() != NULL) {
     p->setDiagnostic(CoinRenderDiagnosticShell::action(
-      CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
-      SbString("SoSceneTexture2 supports only unit 0, RGBA8, MODULATE, REPEAT/CLAMP, NONE transparency function and no sceneTransparencyType")));
+        CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+        SbString("SoSceneTexture2 supports only unit 0, RGBA8, MODULATE, REPEAT/CLAMP, "
+                 "NONE/ALPHA_BLEND transparency function and no sceneTransparencyType")));
     return SoCallbackAction::ABORT;
   }
 
@@ -936,7 +937,7 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
     return SoCallbackAction::ABORT;
   }
   p->builder.registerSceneTexture(image, producerId, uint32_t(size[0]), uint32_t(size[1]),
-                                  background[3] >= 1.0f);
+                                  background[3] >= 1.0f, texture->transparencyFunction.getValue());
   SoMultiTextureEnabledElement::set(state, const_cast<SoSceneTexture2 *>(texture), 0, TRUE);
   return SoCallbackAction::CONTINUE;
 }

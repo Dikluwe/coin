@@ -31,7 +31,8 @@ sameTextures(const std::vector<CoinRenderTextureImageSnapshot> & a,
     const CoinRenderTextureImageSnapshot & y = b[i];
     if (x.width != y.width || x.height != y.height || x.components != y.components ||
         x.contentDigest != y.contentDigest || x.producerId != y.producerId ||
-        x.gpuToken != y.gpuToken || x.gpuOpaque != y.gpuOpaque || x.pixelsRgba != y.pixelsRgba)
+        x.gpuToken != y.gpuToken || x.gpuOpaque != y.gpuOpaque ||
+        x.sceneTransparencyFunction != y.sceneTransparencyFunction || x.pixelsRgba != y.pixelsRgba)
       return false;
   }
   return true;

@@ -5393,6 +5393,44 @@ pub extern "C" fn coin_wgpu_release_texture(token: u64) {
     });
 }
 
+fn rtt_remaining_capacity(active: usize) -> u32 {
+    64usize.saturating_sub(active) as u32
+}
+
+// Captured C++ actions use the default device. Other explicit devices have
+// independent capacities, and a lost default device will be reconstructed.
+#[no_mangle]
+pub extern "C" fn coin_wgpu_default_rtt_capacity() -> u32 {
+    std::panic::catch_unwind(|| {
+        if DEVICE_LOST_OCCURRED.load(Ordering::Acquire) {
+            return 64;
+        }
+        let Ok(guard) = RUNTIME_CTX.lock() else {
+            return 0;
+        };
+        let Some(ctx) = guard
+            .as_ref()
+            .and_then(|runtime| runtime.device_state.as_ref())
+        else {
+            return 64;
+        };
+        let Ok(textures) = ctx.rtt_textures.lock() else {
+            return 0;
+        };
+        rtt_remaining_capacity(textures.active.len())
+    })
+    .unwrap_or(0)
+}
+
+#[cfg(test)]
+#[test]
+fn rtt_capacity_has_an_exact_saturating_boundary() {
+    assert_eq!(rtt_remaining_capacity(0), 64);
+    assert_eq!(rtt_remaining_capacity(63), 1);
+    assert_eq!(rtt_remaining_capacity(64), 0);
+    assert_eq!(rtt_remaining_capacity(65), 0);
+}
+
 #[no_mangle]
 pub extern "C" fn coin_wgpu_rtt_resource_counts(active: *mut u64, retired: *mut u64) {
     if (!active.is_null() && (active as usize) % std::mem::align_of::<u64>() != 0)

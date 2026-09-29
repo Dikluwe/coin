@@ -291,6 +291,8 @@ CoinWgpuStatus coin_wgpu_submit_texture(
 void coin_wgpu_release_texture(uint64_t token);
 uint64_t coin_wgpu_default_device_generation(void);
 void coin_wgpu_rtt_resource_counts(uint64_t * active, uint64_t * retired);
+// Remaining capacity on the default device; read-only and no device initialization.
+uint32_t coin_wgpu_default_rtt_capacity(void);
 
 /* Async offscreen submission keeps staging buffers in the bridge until poll/cancel.
    Target output pointers are ignored; width/height and depth_buffer_len select

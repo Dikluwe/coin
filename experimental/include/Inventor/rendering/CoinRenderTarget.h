@@ -147,7 +147,8 @@ public:
    * Borrow the last synchronous RGBA buffer without copying it.
    * Returns NULL and sets byteCount to zero when no synchronous pixels are
    * available. The pointer belongs to this target; it is invalidated by the
-   * next render, resize, output-policy change or target destruction. Copy it
+   * next successful render, resize, output-policy change or target destruction.
+   * Failed submissions preserve the previously published pixels and pointer. Copy it
    * if pixels must outlive that operation. This is an experimental API only.
    */
   const uint8_t * borrowRGBA(std::size_t & byteCount) const;

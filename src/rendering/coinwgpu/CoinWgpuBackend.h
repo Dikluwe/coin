@@ -38,6 +38,8 @@ public:
   CoinRenderSubmitResult submitAsync(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
                            CoinRenderReadbackTicket & outTicket,
                            const CoinRenderFrameReuseDecision & reuse);
+  CoinRenderSubmitResult preflightRtt(const CoinRenderRttPlan&, const CoinRenderFramePlan&,
+                                      const SbVec2i32&) const override;
   CoinRenderDeviceDomain resourceDomain() const override;
   CoinRenderSubmitResult submitRtt(const CoinRenderFramePlan&, const SbVec2i32&, uint64_t,
                                    CoinRenderTargetP&, uint64_t&) override;
