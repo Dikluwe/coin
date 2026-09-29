@@ -36,6 +36,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <vector>
 
 #define TEST_ASSERT(cond, msg) do { \
   if (!(cond)) { \
@@ -91,6 +92,13 @@ int main(int argc, char ** argv) {
   // Test 1: Contract Validation (Headless / Without Display)
   // =========================================================================
   std::cout << "-> Test 1: Descriptor contract validation..." << std::endl;
+
+  {
+    CoinRenderTarget * offscreen = CoinRenderTarget::createOffscreen(SbVec2i32(16, 16));
+    TEST_ASSERT(!offscreen->requestWindowReadbackRGBA(),
+                "Offscreen target must reject a window capture request");
+    delete offscreen;
+  }
 
   // 1.1 ABI version mismatch
   {
@@ -304,6 +312,32 @@ int main(int argc, char ** argv) {
         TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS, "Window render apply must succeed");
       }
 
+      // Explicit window capture publishes only the requested frame.
+      std::vector<uint8_t> windowRgba;
+      windowTarget->readbackRGBA(windowRgba);
+      TEST_ASSERT(windowRgba.empty(), "Normal window render must not read pixels");
+      TEST_ASSERT(windowTarget->requestWindowReadbackRGBA(), "Window capture request must succeed");
+      action.apply(root);
+      TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS, "Window capture render must succeed");
+      windowTarget->readbackRGBA(windowRgba);
+      TEST_ASSERT(windowRgba.size() == 640u * 480u * 4u,
+                  "Window capture must publish complete RGBA8");
+      const std::vector<uint8_t> capturedWindow = windowRgba;
+      coin_wgpu_inject_fault(101); // timeout before acquisition
+      TEST_ASSERT(windowTarget->requestWindowReadbackRGBA(), "Failed capture request must be accepted");
+      action.apply(root);
+      TEST_ASSERT(action.getLastStatus() == CoinRenderAction::NOT_READY,
+                  "Failed window capture must report NOT_READY");
+      windowTarget->readbackRGBA(windowRgba);
+      TEST_ASSERT(windowRgba == capturedWindow,
+                  "Failed window capture must preserve the last published frame");
+      coin_wgpu_inject_fault(0);
+      action.apply(root);
+      TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS,
+                  "Normal render after failed capture must recover");
+      windowTarget->readbackRGBA(windowRgba);
+      TEST_ASSERT(windowRgba.empty(), "Capture request must be one-shot");
+
       // Test Resize
       XResizeWindow(dpy, win, 800, 600);
       XFlush(dpy);
@@ -318,6 +352,8 @@ int main(int argc, char ** argv) {
 
       // Test Minimization / Suspension
       windowTarget->resize(SbVec2i32(0, 0));
+      TEST_ASSERT(!windowTarget->requestWindowReadbackRGBA(),
+                  "Suspended window must reject capture request");
       action.apply(root);
       TEST_ASSERT(action.getLastStatus() == CoinRenderAction::NOT_READY, "Minimization must return NOT_READY");
 

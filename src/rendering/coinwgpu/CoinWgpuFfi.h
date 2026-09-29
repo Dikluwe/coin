@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 28
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 29
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -346,6 +346,17 @@ CoinWgpuStatus coin_wgpu_surface_resize(
 CoinWgpuStatus coin_wgpu_surface_submit(
   CoinWgpuSurfaceId surface,
   const CoinWgpuFrameView * frame,
+  char * error_buf,
+  size_t error_buf_len
+);
+
+/* Capture RGBA8 from the exact frame submitted to this window. The caller
+ * supplies width*height*4 bytes; output is only committed on success. */
+CoinWgpuStatus coin_wgpu_surface_submit_readback(
+  CoinWgpuSurfaceId surface,
+  const CoinWgpuFrameView * frame,
+  uint8_t * rgba,
+  size_t rgba_len,
   char * error_buf,
   size_t error_buf_len
 );

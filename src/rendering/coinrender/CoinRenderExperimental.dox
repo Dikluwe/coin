@@ -111,6 +111,16 @@
   CoinRenderReadbackTicket remains valid independently of the originating action
   and target; successful polling consumes it.
 
+  A window does not read pixels by default. A one-shot
+  CoinRenderTarget::requestWindowReadbackRGBA() before the next window
+  submission requests a top-left RGBA8 copy of the presented frame.
+  CoinRenderTarget::readbackRGBA() returns it only after a complete successful
+  submission; ordinary subsequent presentation clears the published capture.
+  Window depth and asynchronous tickets remain unsupported. A requested RGBA
+  output above the common nominal 128 MiB budget is rejected before submission.
+  The window surface may reject capture when COPY_SRC or RGBA8/BGRA8 is unavailable,
+  without disabling normal presentation.
+
   Offscreen readback staging buffers are reused only after their map has
   completed, the mapped view has been dropped, and the buffer has been
   unmapped. The pool is owned by one Rust device generation and retains at

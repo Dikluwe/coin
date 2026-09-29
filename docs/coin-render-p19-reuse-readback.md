@@ -87,8 +87,9 @@ reportaram `readback=none`. O trace BGFX registrou zero em espera, pipeline e
 staging GPU/CPU de readback; o wgpu registrou zero em staging de cor/depth e
 pool livre. Houve attachments de apresentação, que não são readback. Assim,
 renderizar para janela não cria staging nem solicita cópia CPU de pixels,
-mesmo quando a cena muda. Leitura **explícita** de pixels de uma janela ainda
-não faz parte do perfil F15; esse suporte funcional permanece aberto. A
+mesmo quando a cena muda. A [captura explícita de janela RGBA8](coin-render-window-readback.md) foi
+fechada depois desta campanha; os números P19 acima continuam descrevendo
+o caminho normal sem pedido de pixels. A
 memória GPU total do driver e timestamps GPU de janela wgpu continuam
 indisponíveis, como em [P18](coin-render-p18-profiling.md).
 

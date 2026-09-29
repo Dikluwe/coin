@@ -14,7 +14,7 @@ use std::sync::{Arc, Mutex, OnceLock};
 mod composition;
 mod peeling;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 28;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 29;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
@@ -1660,7 +1660,8 @@ fn configure_surface_record(
     };
 
     let config = wgpu::SurfaceConfiguration {
-        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT |
+            (caps.usages & wgpu::TextureUsages::COPY_SRC),
         format: chosen_format,
         width,
         height,
@@ -3698,10 +3699,11 @@ pub extern "C" fn coin_wgpu_surface_destroy(
     res.unwrap_or(CoinWgpuStatus::Ok)
 }
 
-#[no_mangle]
-pub extern "C" fn coin_wgpu_surface_submit(
+fn coin_wgpu_surface_submit_internal(
     surface_id: CoinWgpuSurfaceId,
     frame: *const CoinWgpuFrameView,
+    readback_rgba: *mut u8,
+    readback_len: usize,
     error_buf: *mut std::os::raw::c_char,
     error_buf_len: usize,
 ) -> CoinWgpuStatus {
@@ -4063,6 +4065,27 @@ pub extern "C" fn coin_wgpu_surface_submit(
             }
         }
 
+        if !readback_rgba.is_null() {
+            let required = (f.width as usize).checked_mul(f.height as usize)
+                .and_then(|pixels| pixels.checked_mul(4));
+            if required != Some(readback_len) {
+                set_error(error_buf, error_buf_len, "Window RGBA output size mismatch");
+                return CoinWgpuStatus::InvalidArgument;
+            }
+            if !record.config.as_ref().is_some_and(|config|
+                config.usage.contains(wgpu::TextureUsages::COPY_SRC)) {
+                set_error(error_buf, error_buf_len, "Window surface does not support COPY_SRC readback");
+                return CoinWgpuStatus::Unsupported;
+            }
+            if !matches!(record.color_format, wgpu::TextureFormat::Bgra8Unorm |
+                wgpu::TextureFormat::Rgba8Unorm |
+                wgpu::TextureFormat::Bgra8UnormSrgb |
+                wgpu::TextureFormat::Rgba8UnormSrgb) {
+                set_error(error_buf, error_buf_len, "Window surface format is not RGBA8/BGRA8");
+                return CoinWgpuStatus::Unsupported;
+            }
+        }
+
         let profile_validated = trace_phases.then(std::time::Instant::now);
         // 8. Acquire texture with strictly 1 recovery attempt
         let mut acquire_result = if fault == FAULT_SURFACE_OUTDATED_ONCE
@@ -4218,17 +4241,81 @@ pub extern "C" fn coin_wgpu_surface_submit(
             }
         };
 
+        let mut capture_buffer = None;
+        let mut commands = vec![cmd_buffer];
+        if !readback_rgba.is_null() {
+            let bytes_per_row = (f.width * 4 + 255) & !255;
+            let staging = dev.device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("Window RGBA capture"),
+                size: u64::from(bytes_per_row) * u64::from(f.height),
+                usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+                mapped_at_creation: false,
+            });
+            let mut copy = dev.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                label: Some("Window RGBA capture copy"),
+            });
+            copy.copy_texture_to_buffer(
+                wgpu::TexelCopyTextureInfo {
+                    texture: &surface_texture.texture,
+                    mip_level: 0,
+                    origin: wgpu::Origin3d::ZERO,
+                    aspect: wgpu::TextureAspect::All,
+                },
+                wgpu::TexelCopyBufferInfo {
+                    buffer: &staging,
+                    layout: wgpu::TexelCopyBufferLayout {
+                        offset: 0,
+                        bytes_per_row: Some(bytes_per_row),
+                        rows_per_image: Some(f.height),
+                    },
+                },
+                wgpu::Extent3d { width: f.width, height: f.height, depth_or_array_layers: 1 },
+            );
+            commands.push(copy.finish());
+            capture_buffer = Some((staging, bytes_per_row));
+        }
         let profile_encoded = trace_phases.then(std::time::Instant::now);
         // 10. Submit and Present
         let sub_serial = GLOBAL_SUBMISSION_SERIAL.fetch_add(1, Ordering::SeqCst);
         LAST_SUBMITTED_SERIAL.store(sub_serial, Ordering::SeqCst);
         let local_serial = dev.last_submitted_serial.fetch_add(1, Ordering::SeqCst) + 1;
-        dev.queue.submit(std::iter::once(cmd_buffer));
+        dev.queue.submit(commands);
         let completed = dev.completed_serial.clone();
         dev.queue.on_submitted_work_done(move || {
             completed.fetch_max(local_serial, Ordering::SeqCst);
             GLOBAL_COMPLETED_SERIAL.fetch_max(sub_serial, Ordering::SeqCst);
         });
+        let mut captured_rgba = None;
+        if let Some((staging, bytes_per_row)) = capture_buffer {
+            let slice = staging.slice(..);
+            let (sender, receiver) = std::sync::mpsc::channel();
+            slice.map_async(wgpu::MapMode::Read, move |result| {
+                let _ = sender.send(result);
+            });
+            let _ = dev.device.poll(wgpu::Maintain::Wait);
+            if !matches!(receiver.try_recv(), Ok(Ok(()))) {
+                set_error(error_buf, error_buf_len, "Window RGBA capture map failed");
+                return CoinWgpuStatus::BackendError;
+            }
+            let mapped = slice.get_mapped_range();
+            let mut pixels = vec![0u8; readback_len];
+            let bgra = matches!(record.color_format, wgpu::TextureFormat::Bgra8Unorm |
+                wgpu::TextureFormat::Bgra8UnormSrgb);
+            for y in 0..f.height as usize {
+                let source = &mapped[y * bytes_per_row as usize..y * bytes_per_row as usize + f.width as usize * 4];
+                let destination = &mut pixels[y * f.width as usize * 4..(y + 1) * f.width as usize * 4];
+                if bgra {
+                    for (dst, src) in destination.chunks_exact_mut(4).zip(source.chunks_exact(4)) {
+                        dst.copy_from_slice(&[src[2], src[1], src[0], src[3]]);
+                    }
+                } else {
+                    destination.copy_from_slice(source);
+                }
+            }
+            drop(mapped);
+            staging.unmap();
+            captured_rgba = Some(pixels);
+        }
         surface_texture.present();
         let profile_presented = trace_phases.then(std::time::Instant::now);
 
@@ -4261,6 +4348,10 @@ pub extern "C" fn coin_wgpu_surface_submit(
             return CoinWgpuStatus::BackendError;
         }
 
+        if let Some(pixels) = captured_rgba {
+            unsafe { std::ptr::copy_nonoverlapping(pixels.as_ptr(), readback_rgba, pixels.len()); }
+        }
+
         if trace_phases {
             let duration_ms = |start: std::time::Instant, end: std::time::Instant| {
                 (end - start).as_secs_f64() * 1000.0
@@ -4269,11 +4360,15 @@ pub extern "C" fn coin_wgpu_surface_submit(
                 (profile_start.unwrap(), profile_validated.unwrap(),
                  profile_acquired.unwrap(), profile_encoded.unwrap(),
                  profile_presented.unwrap());
-            eprintln!("COIN_RENDER_PHASE rust_surface_cpu total_ms={:.6} validation_ms={:.6} acquire_ms={:.6} encode_ms={:.6} submit_present_ms={:.6} queue_submissions=1 command_buffers=1 gpu_timing=unavailable",
+            let capture_bytes = if readback_rgba.is_null() { 0 } else {
+                u64::from((f.width * 4 + 255) & !255) * u64::from(f.height)
+            };
+            eprintln!("COIN_RENDER_PHASE rust_surface_cpu total_ms={:.6} validation_ms={:.6} acquire_ms={:.6} encode_ms={:.6} submit_present_ms={:.6} capture_requested={} capture_staging_bytes={} queue_submissions=1 command_buffers={} gpu_timing=unavailable",
                 duration_ms(start, presented), duration_ms(start, validated),
                 duration_ms(validated, acquired), duration_ms(acquired, encoded),
-                duration_ms(encoded, presented));
-            trace_owned_resources(dev, "window", f.width, f.height, 0, 0);
+                duration_ms(encoded, presented), u8::from(!readback_rgba.is_null()),
+                capture_bytes, if readback_rgba.is_null() { 1 } else { 2 });
+            trace_owned_resources(dev, "window", f.width, f.height, capture_bytes, 0);
             let info = dev.adapter.get_info();
             let renderer = match info.backend {
                 wgpu::Backend::Vulkan => "vulkan",
@@ -4297,6 +4392,34 @@ pub extern "C" fn coin_wgpu_surface_submit(
         );
         CoinWgpuStatus::BackendError
     })
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_surface_submit(
+    surface_id: CoinWgpuSurfaceId,
+    frame: *const CoinWgpuFrameView,
+    error_buf: *mut std::os::raw::c_char,
+    error_buf_len: usize,
+) -> CoinWgpuStatus {
+    coin_wgpu_surface_submit_internal(surface_id, frame, std::ptr::null_mut(), 0,
+        error_buf, error_buf_len)
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_surface_submit_readback(
+    surface_id: CoinWgpuSurfaceId,
+    frame: *const CoinWgpuFrameView,
+    rgba: *mut u8,
+    rgba_len: usize,
+    error_buf: *mut std::os::raw::c_char,
+    error_buf_len: usize,
+) -> CoinWgpuStatus {
+    if rgba.is_null() {
+        set_error(error_buf, error_buf_len, "Window RGBA output pointer is null");
+        return CoinWgpuStatus::InvalidArgument;
+    }
+    coin_wgpu_surface_submit_internal(surface_id, frame, rgba, rgba_len,
+        error_buf, error_buf_len)
 }
 
 fn coin_wgpu_submit_internal(

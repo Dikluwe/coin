@@ -184,6 +184,31 @@ int main()
       }
 
       if (result == 0) {
+        if (!target->requestWindowReadbackRGBA()) {
+          std::cerr << "Window RGBA request rejected: " << target->getLastError() << '\n';
+          result = 1;
+        } else {
+          action.apply(scene);
+          target->readbackRGBA(rgba);
+          const size_t center = (48u * 96u + 48u) * 4u;
+          if (action.getLastStatus() != CoinRenderAction::SUCCESS ||
+              rgba.size() != 96u * 96u * 4u ||
+              rgba[center] < 120 || rgba[center] <= rgba[center + 1] * 2) {
+            std::cerr << "Explicit window RGBA capture missed the red cube\n";
+            result = 1;
+          }
+          if (result == 0) {
+            action.apply(scene);
+            target->readbackRGBA(rgba);
+            if (action.getLastStatus() != CoinRenderAction::SUCCESS || !rgba.empty()) {
+              std::cerr << "Ordinary window render exposed a stale capture\n";
+              result = 1;
+            }
+          }
+        }
+      }
+
+      if (result == 0) {
         XResizeWindow(display, window, 128, 96);
         XSync(display, False);
         target->resize(SbVec2i32(128, 96));

@@ -188,4 +188,4 @@ funcional. Atualizar Pxx e Axx/Fxx associados somente no escopo comprovado.
 P20 amplia drivers/plataformas sem extrapolar esses números. O
 [perfil P16](coin-render-freecad-viewport.md) é a base de interação comprovada.
 Texto, imagem, rótulos e geometria GL-only seguem F19/F20/P15; viewport
-parcialmente externo continua P04; RTT ampliado F14; leitura explícita de janela F15 permanece fora do perfil P19.
+parcialmente externo continua P04; RTT ampliado F14; captura explícita de janela RGBA8 foi fechada em [F15](coin-render-window-readback.md).

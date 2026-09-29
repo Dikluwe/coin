@@ -56,6 +56,7 @@ public:
   uint64_t surfaceId{0};
   bool suspended{false};
   bool needsReconfigure{false};
+  bool windowReadbackRequested{false};
   std::string lastError;
 
   bool initWindow(const CoinRenderNativeSurfaceDescriptor & desc, const SbVec2i32 & fbSize);

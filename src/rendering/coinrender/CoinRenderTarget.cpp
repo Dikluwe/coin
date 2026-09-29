@@ -198,6 +198,9 @@ CoinRenderTargetP::resize(const SbVec2i32 & newSize)
 {
   ++this->resourceGeneration;
   this->borrowedReadbackValid = false;
+  this->windowReadbackRequested = false;
+  this->synchronousReadbackValid = false;
+  this->colorBuffer.clear();
   this->lastValidatedPlanRevision = 0;
   std::vector<uint8_t>().swap(this->spareColorBuffer);
   std::vector<float>().swap(this->spareDepthBuffer);
@@ -500,10 +503,13 @@ class ReadbackPublication {
 public:
   explicit ReadbackPublication(CoinRenderTargetP& value) : target(value) {}
   void prepare() {
-    if (target.kind != CoinRenderTargetP::KIND_OFFSCREEN || target.directTextureOutput)
-      return;
+    if (target.directTextureOutput || (target.kind == CoinRenderTargetP::KIND_WINDOW &&
+        !target.windowReadbackRequested)) return;
     // Allocate before swapping so bad_alloc cannot disturb published storage.
-    target.spareColorBuffer.resize(target.colorBuffer.size());
+    const size_t colorBytes = target.kind == CoinRenderTargetP::KIND_WINDOW
+      ? size_t(target.size[0]) * size_t(target.size[1]) * 4u
+      : target.colorBuffer.size();
+    target.spareColorBuffer.resize(colorBytes);
     target.spareDepthBuffer.resize(target.depthBuffer.size());
     target.colorBuffer.swap(target.spareColorBuffer);
     target.depthBuffer.swap(target.spareDepthBuffer);
@@ -560,6 +566,11 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
                                           CoinRenderReadbackTicket * outTicket,
                                           const CoinRenderFrameReuseDecision & reuse)
 {
+  const bool captureWindow = this->kind == KIND_WINDOW && this->windowReadbackRequested;
+  struct RequestReset {
+    bool & request;
+    ~RequestReset() { request = false; }
+  } requestReset{this->windowReadbackRequested};
   if (!this->optionsDiagnostic.empty() ||
       !coin_render_valid_options(this->options, this->lastError))
     return CoinRenderFrameExecutionResult(
@@ -666,15 +677,16 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
       res = outTicket ? CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, "The selected backend does not support asynchronous readback")
                       : this->backend->submit(frame, *this);
   }
-  if (res.status == CoinRenderBackendStatus::SUCCESS && this->kind == KIND_OFFSCREEN &&
-      !this->directTextureOutput) {
+  if (res.status == CoinRenderBackendStatus::SUCCESS &&
+      (this->kind == KIND_OFFSCREEN || captureWindow) && !this->directTextureOutput) {
     const uint64_t pixels = uint64_t(this->size[0]) * this->size[1];
     const bool complete =
         outTicket
             ? coin_render_complete_readback_ticket(candidateTicket, this->size,
                                                    this->depthReadbackEnabled, res.submissionSerial)
             : this->colorBuffer.size() == pixels * 4 &&
-                  (!this->depthReadbackEnabled || this->depthBuffer.size() == pixels);
+                  (captureWindow || !this->depthReadbackEnabled ||
+                   this->depthBuffer.size() == pixels);
     if (!complete)
       res = {CoinRenderBackendStatus::BACKEND_ERROR,
              "Backend returned an incomplete readback result"};
@@ -715,14 +727,19 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
                                 preparedDomain.generation != completedDomain.generation))
     ++resourceGeneration;
   preparedDomain = completedDomain;
+  if (this->kind == KIND_WINDOW && !captureWindow) {
+    this->colorBuffer.clear();
+    this->depthBuffer.clear();
+  }
   publication.commit();
   if (outTicket)
     *outTicket = candidateTicket;
   this->lastValidatedPlanRevision = frame.revision;
   this->lastSubmissionSerial = res.submissionSerial;
   this->synchronousReadbackValid = (outTicket == NULL &&
-    this->kind == KIND_OFFSCREEN && !this->directTextureOutput);
-  this->borrowedReadbackValid = this->synchronousReadbackValid;
+    (this->kind == KIND_OFFSCREEN || captureWindow) && !this->directTextureOutput);
+  this->borrowedReadbackValid = this->synchronousReadbackValid &&
+    this->kind == KIND_OFFSCREEN;
   this->status = CoinRenderTarget::TARGET_READY;
   this->lastError.clear();
   return res;
@@ -796,6 +813,26 @@ const SbVec2i32 &
 CoinRenderTarget::getSize(void) const
 {
   return this->pimpl->size;
+}
+
+SbBool
+CoinRenderTarget::requestWindowReadbackRGBA(void)
+{
+  if (this->pimpl->kind != CoinRenderTargetP::KIND_WINDOW ||
+      this->pimpl->status != TARGET_READY || this->pimpl->suspended ||
+      this->pimpl->size[0] <= 0 || this->pimpl->size[1] <= 0) {
+    this->pimpl->lastError = "Window readback requires a ready window target";
+    return FALSE;
+  }
+  const uint64_t requested = uint64_t(this->pimpl->size[0]) *
+    uint64_t(this->pimpl->size[1]) * 4u;
+  if (!coin_render_readback_admitted(0, 0, requested)) {
+    this->pimpl->lastError = "Window RGBA capture exceeds the 128 MiB readback budget";
+    return FALSE;
+  }
+  this->pimpl->windowReadbackRequested = true;
+  this->pimpl->lastError.clear();
+  return TRUE;
 }
 
 void

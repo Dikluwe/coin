@@ -142,6 +142,12 @@ public:
    */
   SbBool setDepthReadbackEnabled(SbBool enabled);
   SbBool isDepthReadbackEnabled(void) const;
+  /** Request RGBA8 pixels from the next window frame submission only. A normal window
+   * render never allocates CPU staging. The request is consumed even if the
+   * submission fails; readbackRGBA() publishes only a complete successful frame.
+   * Returns FALSE for offscreen targets or an unready window.
+   */
+  SbBool requestWindowReadbackRGBA(void);
   void readbackRGBA(std::vector<uint8_t> & outPixels) const;
   /**
    * Borrow the last synchronous RGBA buffer without copying it.

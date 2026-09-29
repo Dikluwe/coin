@@ -32,6 +32,7 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -79,8 +80,66 @@ public:
   uint32_t cacheReadSize(uint64_t) override { return 0; }
   bool cacheRead(uint64_t, void *, uint32_t) override { return false; }
   void cacheWrite(uint64_t, const void *, uint32_t) override {}
-  void screenShot(const char *, uint32_t, uint32_t, uint32_t,
-                  bgfx::TextureFormat::Enum, const void *, uint32_t, bool) override {}
+  void screenShot(const char * name, uint32_t width, uint32_t height,
+                  uint32_t pitch, bgfx::TextureFormat::Enum format,
+                  const void * pixels, uint32_t bytes, bool bottomLeft) override
+  {
+    std::lock_guard<std::mutex> guard(this->screenshotMutex);
+    if (!name || !this->screenshotPending || name != this->screenshotName) return;
+    const bool validFormat = format == bgfx::TextureFormat::BGRA8 ||
+      format == bgfx::TextureFormat::RGBA8;
+    if (validFormat && pixels && width == this->screenshotWidth &&
+        height == this->screenshotHeight && pitch >= width * 4u &&
+        uint64_t(pitch) * height <= bytes) {
+      try {
+        this->screenshotPixels.resize(size_t(width) * height * 4u);
+        const uint8_t * source = static_cast<const uint8_t *>(pixels);
+        for (uint32_t y = 0; y < height; ++y) {
+          const uint8_t * row = source + size_t(bottomLeft ? height - 1 - y : y) * pitch;
+          uint8_t * output = this->screenshotPixels.data() + size_t(y) * width * 4u;
+          for (uint32_t x = 0; x < width; ++x) {
+            const uint8_t * pixel = row + size_t(x) * 4u;
+            output[x * 4u] = pixel[format == bgfx::TextureFormat::BGRA8 ? 2 : 0];
+            output[x * 4u + 1] = pixel[1];
+            output[x * 4u + 2] = pixel[format == bgfx::TextureFormat::BGRA8 ? 0 : 2];
+            output[x * 4u + 3] = pixel[3];
+          }
+        }
+      } catch (const std::bad_alloc &) { this->screenshotPixels.clear(); }
+    }
+    this->screenshotPending = false;
+    this->screenshotReady = true;
+    this->screenshotCondition.notify_all();
+  }
+
+  std::string beginScreenshot(uint32_t width, uint32_t height)
+  {
+    std::lock_guard<std::mutex> guard(this->screenshotMutex);
+    this->screenshotWidth = width; this->screenshotHeight = height;
+    this->screenshotPixels.clear();
+    this->screenshotReady = false; this->screenshotPending = true;
+    this->screenshotName = "coin-window-rgba-" + std::to_string(++this->screenshotSerial);
+    return this->screenshotName;
+  }
+
+  void cancelScreenshot()
+  {
+    std::lock_guard<std::mutex> guard(this->screenshotMutex);
+    this->screenshotPending = false;
+  }
+
+  bool takeScreenshot(std::vector<uint8_t> & output)
+  {
+    std::unique_lock<std::mutex> guard(this->screenshotMutex);
+    if (!this->screenshotCondition.wait_for(guard, std::chrono::seconds(5),
+          [this] { return this->screenshotReady; })) {
+      this->screenshotPending = false;
+      return false;
+    }
+    if (this->screenshotPixels.empty()) return false;
+    output.swap(this->screenshotPixels);
+    return true;
+  }
   void captureBegin(uint32_t, uint32_t, uint32_t,
                     bgfx::TextureFormat::Enum, bool) override {}
   void captureEnd() override {}
@@ -112,6 +171,15 @@ private:
   std::atomic<int> fatalCode;
   mutable std::mutex messageMutex;
   char fatalMessage[512];
+  std::mutex screenshotMutex;
+  std::condition_variable screenshotCondition;
+  std::vector<uint8_t> screenshotPixels;
+  uint32_t screenshotWidth = 0;
+  uint32_t screenshotHeight = 0;
+  bool screenshotPending = false;
+  bool screenshotReady = false;
+  uint64_t screenshotSerial = 0;
+  std::string screenshotName;
 };
 
 struct SharedBgfxRuntime {
@@ -1826,11 +1894,25 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   if (runtimeStatus != CoinRenderBackendStatus::SUCCESS)
     return CoinRenderSubmitResult(runtimeStatus, this->lastError);
   if (this->presentToWindow) {
+    CoinBgfxCallback * screenshotCallback =
+      static_cast<CoinBgfxCallback *>(this->callback.get());
+    if (target.windowReadbackRequested) {
+      const std::string requestName =
+        screenshotCallback->beginScreenshot(this->width, this->height);
+      bgfx::requestScreenShot(this->frameBuffer, requestName.c_str());
+    }
     const uint32_t submittedFrame = bgfx::frame();
     runtimeStatus = this->checkRuntimeFailure("BGFX frame submission failed");
-    if (runtimeStatus != CoinRenderBackendStatus::SUCCESS)
+    if (runtimeStatus != CoinRenderBackendStatus::SUCCESS) {
+      screenshotCallback->cancelScreenshot();
       return CoinRenderSubmitResult(runtimeStatus, this->lastError);
+    }
     const Clock::time_point submitted = Clock::now();
+    if (target.windowReadbackRequested &&
+        !screenshotCallback->takeScreenshot(target.colorBuffer)) {
+      this->lastError = "BGFX window screenshot unavailable or incomplete";
+      return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
+    }
     CoinBgfxPhaseSample sample;
     sample.gpuTimingRequested = traceGpu;
     const Clock::time_point gpuDrainBegin = Clock::now();
@@ -1850,7 +1932,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       this->cachedPlan.draws.swap(cameraDraws);
       this->cachedRevision = frame.revision;
     }
-    target.colorBuffer.clear();
+    if (!target.windowReadbackRequested) target.colorBuffer.clear();
     target.depthBuffer.clear();
     target.needsReconfigure = false;
     if (tracePhases) {
@@ -1875,6 +1957,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       sample.materialPatchUsed = materialPatchUsed;
       sample.materialPatchRanges = static_cast<uint32_t>(materialRanges.size());
       sample.materialPatchVertices = materialPatchVertices;
+      sample.readbackPublishedBytes = target.windowReadbackRequested
+        ? target.colorBuffer.size() : 0;
       copyLogicalDrawStats(drawStats, this->drawGroupingEnabled, sample);
       std::fprintf(stderr, "%s\n", CoinRenderDiagnosticShell::formatBgfxPhase(sample).c_str());
     }

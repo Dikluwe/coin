@@ -29,6 +29,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cstdint>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -50,8 +51,9 @@ struct Options {
   int frames;
   bool dynamic;
   bool materialDynamic;
+  bool captureWindow;
   Options() : backend("bgfx-vulkan"), transparency("object"),
-    width(960), height(540), warmup(60), frames(600), dynamic(false), materialDynamic(false) {}
+    width(960), height(540), warmup(60), frames(600), dynamic(false), materialDynamic(false), captureWindow(false) {}
 };
 
 struct GlxWindow {
@@ -69,7 +71,7 @@ void usage()
                " --transparency object|weighted_oit|sorted_layers"
                " [--scene normalized.iv]"
                " [--width 960] [--height 540] [--warmup 60] [--frames 600]"
-               " [--dynamic|--material-dynamic]\n";
+               " [--dynamic|--material-dynamic] [--capture-window]\n";
 }
 
 bool parseOptions(int argc, char ** argv, Options & options)
@@ -93,6 +95,8 @@ bool parseOptions(int argc, char ** argv, Options & options)
       options.dynamic = true;
     else if (std::strcmp(argv[i], "--material-dynamic") == 0)
       options.materialDynamic = true;
+    else if (std::strcmp(argv[i], "--capture-window") == 0)
+      options.captureWindow = true;
     else return false;
   }
   const bool backend = options.backend == "coin-gl" ||
@@ -101,7 +105,9 @@ bool parseOptions(int argc, char ** argv, Options & options)
   const bool transparency = options.transparency == "object" ||
     options.transparency == "weighted_oit" ||
     options.transparency == "sorted_layers";
-  if (!backend || !transparency || (options.dynamic && options.materialDynamic) ||
+  if (!backend || !transparency ||
+      (options.captureWindow && options.backend == "coin-gl") ||
+      (options.dynamic && options.materialDynamic) ||
       options.width < 1 || options.width > 8192 ||
       options.height < 1 || options.height > 8192 || options.warmup < 0 ||
       options.warmup > 100000 || options.frames < 1 || options.frames > 1000000)
@@ -274,7 +280,8 @@ void report(const Options & options, const std::vector<double> & frameMs,
     << " scene_update=" << (options.dynamic ? "transform-each-frame" :
       options.materialDynamic ? "material-each-frame" : "static")
     << " scene=" << (options.scenePath.empty() ? "builtin-overlap" : options.scenePath)
-    << " readback=none adapter=\"" << adapter << "\""
+    << " readback=" << (options.captureWindow ? "rgba-on-request" : "none")
+    << " adapter=\"" << adapter << "\""
     << " vendor_id=0x" << std::hex << vendor << " device_id=0x" << device << std::dec
     << " present_policy=off-requested"
     << " cpu_frame_median_ms=" << sorted[median]
@@ -385,6 +392,7 @@ int runNative(const Options & options, SoSeparator * root,
       std::vector<double> frameMs;
       frameMs.reserve(static_cast<size_t>(options.frames));
       Clock::time_point measuredBegin;
+      std::vector<uint8_t> captured;
       for (int frame = -options.warmup; frame < options.frames; ++frame) {
         if (options.dynamic)
           animation->rotation.setValue(SbVec3f(0.0f, 0.0f, 1.0f),
@@ -395,7 +403,22 @@ int runNative(const Options & options, SoSeparator * root,
             0.12f + float((frame + options.warmup) % 5) * 0.025f, 0.18f);
         consumeEvents(display);
         const Clock::time_point begin = Clock::now();
+        if (options.captureWindow &&
+            !manager.getRenderTarget()->requestWindowReadbackRGBA()) {
+          std::cerr << "Window capture request failed: "
+                    << manager.getRenderTarget()->getLastError() << '\n';
+          exitCode = 1;
+          break;
+        }
         const CoinRenderAction::Status status = manager.render();
+        if (status == CoinRenderAction::SUCCESS && options.captureWindow) {
+          manager.getRenderTarget()->readbackRGBA(captured);
+          if (captured.size() != size_t(options.width) * options.height * 4u) {
+            std::cerr << "Window capture returned incomplete RGBA\n";
+            exitCode = 1;
+            break;
+          }
+        }
         const Clock::time_point end = Clock::now();
         if (status != CoinRenderAction::SUCCESS) {
           std::cerr << "Native frame failed: " << manager.getLastError().getString() << '\n';
@@ -411,6 +434,14 @@ int runNative(const Options & options, SoSeparator * root,
           Clock::now() - measuredBegin).count();
         report(options, frameMs, totalMs,
           caps.adapter_name[0] ? caps.adapter_name : "native adapter", caps.vendor_id, caps.device_id);
+        if (options.captureWindow) {
+          uint64_t hash = UINT64_C(14695981039346656037);
+          for (uint8_t byte : captured) {
+            hash ^= byte;
+            hash *= UINT64_C(1099511628211);
+          }
+          std::cout << "window_rgba_fnv64=0x" << std::hex << hash << std::dec << '\n';
+        }
       }
     }
   }

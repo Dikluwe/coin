@@ -92,7 +92,8 @@ do chamador. Esse contrato e os metadados públicos continuam compatíveis com P
 - [ ] Formatos/estados ampliados e ALPHA_TEST: F14 continua parcial.
 - [x] Múltiplos alvos, admissão e reconstrução no perfil experimental atual: [P14](coin-render-multi-target-contract.md). Matriz física e memória total permanecem P20/P18.
 - [x] Profiling de passagens, recursos próprios e reuso/readback em pipeline: [P18](coin-render-p18-profiling.md) e [P19](coin-render-p19-reuse-readback.md).
-- [ ] Leitura explícita de pixels de janela e memória total do driver: F15/qualificação futura.
+- [x] Captura explícita RGBA8 de janela Xlib: [F15](coin-render-window-readback.md).
+- [ ] Memória total do driver e matriz física ampliada: P20/qualificação futura.
 - [ ] Matriz física de drivers/plataformas: P20.
 
 ## Evidência local
