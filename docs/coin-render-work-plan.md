@@ -55,8 +55,8 @@ Core transforma snapshots. Não exigir uma refatoração global prévia.
   rejeição sem publicação e recuperação qualificados no
   [contrato P08](coin-render-multitexture-contract.md). Referência Coin/GL
   obrigatória passou em wgpu e BGFX Vulkan/OpenGL. UV procedural/default,
-  formatos/qualidade, matriz geral de bindings e modalidades de transparência
-  permanecem respectivamente em P07/P05/P09, sem encerrar P02 integralmente.
+  formatos/qualidade e matriz geral de bindings seguem P07/P05; modalidades de
+  transparência foram qualificadas no perfil P09, sem encerrar P02 integralmente.
 
 Fechamento: mesmas entradas e expectativas, decisões com um dono comum, shaders
 específicos. P08 depende dos contratos de P02/P05/P07. P05–P07 podem avançar por
@@ -64,9 +64,12 @@ escopos delimitados.
 
 ## 3. Fechar composição e transparência funcional
 
-- [ ] **P09 — Modos Coin (F01/F02):** onze modalidades, alpha final, depth,
-  ordem imediata/atrasada, anotações e sorting; completar mecanismos ausentes no
-  wgpu: aditivo, triângulos, camadas e screen door.
+- [x] **P09 — Modos Coin (F01/F02):** onze modalidades no perfil funcional
+  comum CPU/BGFX/wgpu; alpha final, depth, ordem imediata/adiada, anotações,
+  sorting de triângulos, screen door e quatro camadas. Referência GL obrigatória
+  e expectativas numéricas independentes no [contrato P09](coin-render-transparency-contract.md).
+  Estados avançados de depth em peeling, muitas camadas, epsilon/alpha zero e
+  orçamento/configuração seguem P10; FreeCAD e raster ampliado seguem suas etapas.
 - [ ] **P10 — OIT/peeling (F16):** luzes/texturas, muitas camadas, alpha extremo,
   interseções dentro do objeto, oclusão opaca, saturação/halos, orçamento e camadas
   configuráveis; decidir e declarar o perfil oferecido pelo wgpu.

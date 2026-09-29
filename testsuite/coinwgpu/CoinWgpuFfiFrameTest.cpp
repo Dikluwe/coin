@@ -118,11 +118,11 @@ main()
   sorted.vertices.resize(2);
   sorted.vertices[0].position[2] = -2.0f;
   sorted.vertices[1].position[2] = -4.0f;
-  sorted.indices = {0, 1};
+  sorted.indices = {0,0,0,1,1,1};
   sorted.draws.resize(2);
   for (uint32_t i = 0; i < 2; ++i) {
-    sorted.draws[i].geometry.firstIndex = i;
-    sorted.draws[i].geometry.indexCount = 1;
+    sorted.draws[i].geometry.firstIndex = i*3;
+    sorted.draws[i].geometry.indexCount = 3;
     sorted.draws[i].drawOrdinal = i;
   }
   CoinWgpuFfiFrame resolved;
@@ -140,8 +140,10 @@ main()
       !check(resolved.getView().camera_base_revision == 0, "reordered patch cannot reuse device-owned order")) return 1;
   sorted.revision = 102;
   sorted.renderStates[0].transparencyType = SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND;
-  if (!check(!resolved.prepare(sorted, 64, 64, diagnostic) && diagnostic.find("UNSUPPORTED") != std::string::npos,
-      "wgpu must reject triangle sorting instead of substituting weighted OIT")) return 1;
+  if (!check(resolved.prepare(sorted,64,64,diagnostic) && resolved.getView().draw_count==2,
+      "triangle schedule is transported without an OIT substitution"))return 1;
+  sorted.revision=103;sorted.renderStates[0].transparencyType=-1;
+  if(!check(!resolved.prepare(sorted,64,64,diagnostic),"unknown mode rejects packing"))return 1;
   sorted.revision = 101;
   sorted.renderStates[0].transparencyType = SoGLRenderAction::SORTED_OBJECT_BLEND;
   if (!check(resolved.prepare(sorted, 64, 64, diagnostic) && !resolved.reusedLastPrepare(),

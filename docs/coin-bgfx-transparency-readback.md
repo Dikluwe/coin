@@ -23,11 +23,14 @@ linhas/pontos não recebem polygon stipple. Texturas continuam sendo aplicadas.
 Os modos ordenados usam o centro fornecido por `SoShape::computeBBox`, capturado
 em espaço global para continuar válido com mudanças de câmera. Linhas/pontos
 expandidos mantêm a modalidade do objeto, mas não têm os triângulos artificiais
-reordenados. A ordenação por triângulo também cruza packets de materiais
+reordenados. A ordenação por triângulo é resolvida no Core comum e também cruza packets de materiais
 pertencentes à mesma shape/instância. Os overlays mantêm sua ordem e estado
 de depth explícito. Na passagem atrasada, o estado padrão é test=true,
 write=false, `LEQUAL`, range `[0,1]`; campos de nós `SoDepthBuffer` no caminho
-sobrescrevem esses padrões, com o escopo da pilha Coin preservado.
+sobrescrevem esses padrões, com o escopo da pilha Coin preservado. No peeling
+da camada base, o mecanismo BGFX exige test=true, write=false e função
+LESS/LEQUAL/NEVER; outros estados efetivos são rejeitados antes da submissão,
+conforme o [perfil P09](coin-render-transparency-contract.md).
 
 `weighted_oit` continua como extensão selecionável. Apenas transparência
 source-over atrasada participa de OIT; modalidades imediatas/aditivas conservam

@@ -12,8 +12,9 @@ use std::sync::atomic::{AtomicBool, AtomicI32, AtomicU32, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
 
 mod composition;
+mod peeling;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 26;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 27;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 pub type CoinWgpuSurfaceId = u64;
@@ -187,6 +188,8 @@ pub struct CoinWgpuUniforms {
     pub extra_tex_params: [[f32; 4]; 7],
     pub extra_texture_blends: [[f32; 4]; 7],
     pub texture_combines: [[[f32; 4]; 4]; 8],
+    pub composition_meta: [f32; 4],
+    pub peel_meta: [f32; 4],
 }
 
 #[repr(C)]
@@ -510,6 +513,8 @@ struct PipelineKey {
     cull_mode: Option<wgpu::Face>,
     front_face: wgpu::FrontFace,
     blend: bool,
+    additive: bool,
+    peel: bool,
     depth_write: bool,
     depth_compare: wgpu::CompareFunction,
     resolved_depth_bias: bool,
@@ -754,6 +759,7 @@ struct DeviceState {
     cache: Mutex<GeometryCache>,
     default_texture: wgpu::Texture,
     default_texture_view: wgpu::TextureView,
+    default_depth_view: wgpu::TextureView,
     default_sampler: wgpu::Sampler,
     texture_cache: Mutex<TextureCache>,
     sampler_cache: Mutex<SamplerCache>,
@@ -1274,14 +1280,35 @@ fn get_or_init_device_impl<'a>(
     for unit in 0..8 {
         layout_entries.push(wgpu::BindGroupLayoutEntry { binding: 2 + 2 * unit,
             visibility: wgpu::ShaderStages::FRAGMENT,
-            ty: wgpu::BindingType::Texture { sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                view_dimension: wgpu::TextureViewDimension::D2, multisampled: false }, count: None });
-        layout_entries.push(wgpu::BindGroupLayoutEntry { binding: 3 + 2 * unit,
+            ty: wgpu::BindingType::Texture {
+                sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                view_dimension: wgpu::TextureViewDimension::D2,
+                multisampled: false,
+            },
+            count: None,
+        });
+        layout_entries.push(wgpu::BindGroupLayoutEntry {
+            binding: 3 + 2 * unit,
             visibility: wgpu::ShaderStages::FRAGMENT,
-            ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering), count: None });
+            ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+            count: None,
+        });
+    }
+    for binding in [18, 19] {
+        layout_entries.push(wgpu::BindGroupLayoutEntry {
+            binding,
+            visibility: wgpu::ShaderStages::FRAGMENT,
+            ty: wgpu::BindingType::Texture {
+                sample_type: wgpu::TextureSampleType::Depth,
+                view_dimension: wgpu::TextureViewDimension::D2,
+                multisampled: false,
+            },
+            count: None,
+        });
     }
     let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("Coin eight-unit texture program"), entries: &layout_entries,
+        label: Some("Coin eight-unit texture program"),
+        entries: &layout_entries,
     });
 
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -1340,6 +1367,22 @@ fn get_or_init_device_impl<'a>(
         ..Default::default()
     });
 
+    let default_depth_view = device
+        .create_texture(&wgpu::TextureDescriptor {
+            label: Some("Coin unused depth binding"),
+            size: wgpu::Extent3d {
+                width: 1,
+                height: 1,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Depth32Float,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING,
+            view_formats: &[],
+        })
+        .create_view(&wgpu::TextureViewDescriptor::default());
     runtime.device_state = Some(DeviceState {
         adapter,
         adapter_name,
@@ -1357,6 +1400,7 @@ fn get_or_init_device_impl<'a>(
         cache: Mutex::new(GeometryCache::default()),
         default_texture,
         default_texture_view,
+        default_depth_view,
         default_sampler,
         texture_cache: Mutex::new(TextureCache::default()),
         sampler_cache: Mutex::new(SamplerCache::default()),
@@ -1582,7 +1626,7 @@ fn configure_surface_record(
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
         format: wgpu::TextureFormat::Depth32Float,
-        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
         view_formats: &[],
     };
     let depth_texture = device_state.device.create_texture(&depth_desc);
@@ -1756,6 +1800,8 @@ fn get_or_create_pipeline<'a>(
     cull_face: Option<wgpu::Face>,
     front_face: wgpu::FrontFace,
     blend: bool,
+    additive: bool,
+    peel: bool,
     depth_write: bool,
     depth_compare: wgpu::CompareFunction,
     depth_bias: wgpu::DepthBiasState,
@@ -1778,6 +1824,8 @@ fn get_or_create_pipeline<'a>(
         cull_mode: effective_cull,
         front_face,
         blend,
+        additive,
+        peel,
         depth_write,
         depth_compare,
         resolved_depth_bias,
@@ -1839,6 +1887,45 @@ fn get_or_create_pipeline<'a>(
         _ => "Coin Standard Render Pipeline",
     };
 
+    let mut color_targets = vec![Some(wgpu::ColorTargetState {
+        format: color_format,
+        blend: Some(if blend {
+            wgpu::BlendState {
+                color: wgpu::BlendComponent {
+                    src_factor: wgpu::BlendFactor::SrcAlpha,
+                    dst_factor: if additive {
+                        wgpu::BlendFactor::One
+                    } else {
+                        wgpu::BlendFactor::OneMinusSrcAlpha
+                    },
+                    operation: wgpu::BlendOperation::Add,
+                },
+                alpha: wgpu::BlendComponent {
+                    src_factor: if additive {
+                        wgpu::BlendFactor::SrcAlpha
+                    } else {
+                        wgpu::BlendFactor::One
+                    },
+                    dst_factor: if additive {
+                        wgpu::BlendFactor::One
+                    } else {
+                        wgpu::BlendFactor::OneMinusSrcAlpha
+                    },
+                    operation: wgpu::BlendOperation::Add,
+                },
+            }
+        } else {
+            wgpu::BlendState::REPLACE
+        }),
+        write_mask: wgpu::ColorWrites::ALL,
+    })];
+    if peel {
+        color_targets.push(Some(wgpu::ColorTargetState {
+            format: wgpu::TextureFormat::R8Unorm,
+            blend: None,
+            write_mask: wgpu::ColorWrites::ALL,
+        }));
+    }
     let pipeline = ctx
         .device
         .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -1852,25 +1939,14 @@ fn get_or_create_pipeline<'a>(
             },
             fragment: Some(wgpu::FragmentState {
                 module: selected_shader,
-                entry_point: Some(if resolved_depth_bias { "fs_depth_bias" } else { "fs_main" }),
-                targets: &[Some(wgpu::ColorTargetState {
-                    format: color_format,
-                    blend: Some(if blend {
-                        wgpu::BlendState {
-                            color: wgpu::BlendComponent {
-                                src_factor: wgpu::BlendFactor::SrcAlpha,
-                                dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
-                                operation: wgpu::BlendOperation::Add,
-                            },
-                            alpha: wgpu::BlendComponent {
-                                src_factor: wgpu::BlendFactor::One,
-                                dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
-                                operation: wgpu::BlendOperation::Add,
-                            },
-                        }
-                    } else { wgpu::BlendState::REPLACE }),
-                    write_mask: wgpu::ColorWrites::ALL,
-                })],
+                entry_point: Some(if peel {
+                    "fs_peel"
+                } else if resolved_depth_bias {
+                    "fs_depth_bias"
+                } else {
+                    "fs_main"
+                }),
+                targets: &color_targets,
                 compilation_options: wgpu::PipelineCompilationOptions::default(),
             }),
             primitive: wgpu::PrimitiveState {
@@ -1933,6 +2009,7 @@ fn encode_frame(
     color_view: &wgpu::TextureView,
     color_format: wgpu::TextureFormat,
     depth_view: &wgpu::TextureView,
+    depth_texture: &wgpu::Texture,
 ) -> Result<wgpu::CommandBuffer, (CoinWgpuStatus, String)> {
     use wgpu::util::DeviceExt;
     // Composition was preflighted before surface acquisition or target allocation.
@@ -2438,17 +2515,62 @@ fn encode_frame(
             label: Some("Coin Frame Encoder"),
         });
 
+    {
+        let _clear = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("Coin initial attachments clear"),
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: color_view,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(wgpu::Color {
+                        r: clear_color[0] as f64,
+                        g: clear_color[1] as f64,
+                        b: clear_color[2] as f64,
+                        a: clear_color[3] as f64,
+                    }),
+                    store: wgpu::StoreOp::Store,
+                },
+            })],
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: depth_view,
+                depth_ops: Some(wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(1.0),
+                    store: wgpu::StoreOp::Store,
+                }),
+                stencil_ops: None,
+            }),
+            timestamp_writes: timestamp_query.map(|query_set| wgpu::RenderPassTimestampWrites {
+                query_set,
+                beginning_of_pass_write_index: Some(0),
+                end_of_pass_write_index: None,
+            }),
+            occlusion_query_set: None,
+        });
+    }
+    let peeling = draw_order
+        .iter()
+        .any(|item| item.peel)
+        .then(|| peeling::Peeling::new(&ctx.device, target_width, target_height, color_format));
     let passes = composition::passes(draw_order, draws_slice);
     let depth_clear_pipeline = if draws_slice.iter().any(|draw| draw.clear_depth_before != 0) {
         let mut cached = ctx.annotation_depth_pipeline.lock().unwrap();
-        Some(cached.get_or_insert_with(|| annotation_depth_clear_pipeline(&ctx.device)).clone())
-    } else { None };
+        Some(
+            cached
+                .get_or_insert_with(|| annotation_depth_clear_pipeline(&ctx.device))
+                .clone(),
+        )
+    } else {
+        None
+    };
     for (pass_index, range) in passes.iter().enumerate() {
         if let Some(item) = draw_order.get(range.start) {
             let draw = &draws_slice[item.draw_index];
             if draw.clear_depth_before != 0 {
-                let viewport = resolved_viewport(&states_slice[draw.render_state_slot as usize],
-                    target_width, target_height)?;
+                let viewport = resolved_viewport(
+                    &states_slice[draw.render_state_slot as usize],
+                    target_width,
+                    target_height,
+                )?;
                 let mut clear_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                     label: Some("Coin Annotation Depth Clear"),
                     color_attachments: &[],
@@ -2464,288 +2586,511 @@ fn encode_frame(
                     occlusion_query_set: None,
                 });
                 clear_pass.set_pipeline(depth_clear_pipeline.as_ref().unwrap());
-                clear_pass.set_scissor_rect(viewport[0] as u32, viewport[1] as u32,
-                    viewport[2] as u32, viewport[3] as u32);
+                clear_pass.set_scissor_rect(
+                    viewport[0] as u32,
+                    viewport[1] as u32,
+                    viewport[2] as u32,
+                    viewport[3] as u32,
+                );
                 clear_pass.draw(0..3, 0..1);
             }
         }
-        let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-            label: Some("Coin Composition Pass"),
-            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                view: color_view,
+        let is_peel = draw_order.get(range.start).is_some_and(|item| item.peel);
+        if is_peel {
+            encoder.copy_texture_to_texture(
+                wgpu::TexelCopyTextureInfo {
+                    texture: depth_texture,
+                    mip_level: 0,
+                    origin: wgpu::Origin3d::ZERO,
+                    aspect: wgpu::TextureAspect::DepthOnly,
+                },
+                wgpu::TexelCopyTextureInfo {
+                    texture: &peeling.as_ref().unwrap().opaque,
+                    mip_level: 0,
+                    origin: wgpu::Origin3d::ZERO,
+                    aspect: wgpu::TextureAspect::DepthOnly,
+                },
+                wgpu::Extent3d {
+                    width: target_width,
+                    height: target_height,
+                    depth_or_array_layers: 1,
+                },
+            );
+        }
+        for peel_step in 0..if is_peel { 4 } else { 1 } {
+            let selected_color = if is_peel {
+                &peeling.as_ref().unwrap().colors[peel_step]
+            } else {
+                color_view
+            };
+            let selected_depth = if is_peel {
+                &peeling.as_ref().unwrap().depths[peel_step]
+            } else {
+                depth_view
+            };
+            let mut color_attachments = vec![Some(wgpu::RenderPassColorAttachment {
+                view: selected_color,
                 resolve_target: None,
                 ops: wgpu::Operations {
-                    load: if pass_index != 0 { wgpu::LoadOp::Load } else { wgpu::LoadOp::Clear(wgpu::Color {
-                        r: clear_color[0] as f64,
-                        g: clear_color[1] as f64,
-                        b: clear_color[2] as f64,
-                        a: clear_color[3] as f64,
-                    }) },
+                    load: if is_peel {
+                        wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT)
+                    } else {
+                        wgpu::LoadOp::Load
+                    },
                     store: wgpu::StoreOp::Store,
                 },
-            })],
-            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                view: depth_view,
-                depth_ops: Some(wgpu::Operations {
-                    load: if pass_index != 0 { wgpu::LoadOp::Load } else { wgpu::LoadOp::Clear(1.0) },
-                    store: wgpu::StoreOp::Store,
-                }),
-                stencil_ops: None,
-            }),
-            timestamp_writes: timestamp_query.map(|query_set| wgpu::RenderPassTimestampWrites {
-                query_set,
-                beginning_of_pass_write_index: (pass_index == 0).then_some(0),
-                end_of_pass_write_index: (pass_index + 1 == passes.len()).then_some(1),
-            }),
-            occlusion_query_set: None,
-        });
-
-        for item in &draw_order[range.clone()] {
-            let draw = &draws_slice[item.draw_index];
-            if draw.index_count == 0 {
-                continue;
-            }
-            let st = &states_slice[draw.render_state_slot as usize];
-            let mat = &materials_slice[st.material_slot as usize];
-
-            let cull_face = match st.cull_mode {
-                0 => None,
-                2 => Some(wgpu::Face::Front),
-                _ => Some(wgpu::Face::Back),
-            };
-            let front_face = match st.front_face {
-                1 => wgpu::FrontFace::Cw,
-                _ => wgpu::FrontFace::Ccw,
-            };
-
-            let depth_compare = if st.depth_test == 0 {
-                wgpu::CompareFunction::Always
-            } else {
-                match st.depth_function {
-                    0 => wgpu::CompareFunction::Never,
-                    1 => wgpu::CompareFunction::Always,
-                    3 => wgpu::CompareFunction::LessEqual,
-                    4 => wgpu::CompareFunction::Equal,
-                    5 => wgpu::CompareFunction::GreaterEqual,
-                    6 => wgpu::CompareFunction::Greater,
-                    7 => wgpu::CompareFunction::NotEqual,
-                    _ => wgpu::CompareFunction::Less,
-                }
-            };
-            let resolved_depth_bias = st.polygon_offset_enabled != 0
-                && st.polygon_offset_styles & st.polygon_offset_primitive_style != 0
-                && (st.polygon_offset_slope_bias != 0.0 ||
-                    (st.polygon_offset_max_depth_bits != 0 && st.polygon_offset_units != 0.0));
-            let native_depth_bias = polygon_depth_bias(st, draw.topology).map_err(|e|
-                (CoinWgpuStatus::InvalidArgument, format!("Draw {}: {}", item.draw_index, e)))?;
-            let window_bias = if resolved_depth_bias {
-                resolved_polygon_bias(st, draw, vertices_slice, indices_slice).map_err(|e|
-                    (CoinWgpuStatus::InvalidArgument, format!("Draw {}: {}", item.draw_index, e)))?
-            } else { 0.0 };
-            let depth_bias = if resolved_depth_bias { wgpu::DepthBiasState::default() }
-                             else { native_depth_bias };
-            let pipeline = match get_or_create_pipeline(
-                ctx,
-                draw.topology,
-                color_format,
-                wgpu::TextureFormat::Depth32Float,
-                cull_face,
-                front_face,
-                item.blend,
-                st.depth_write != 0,
-                depth_compare,
-                depth_bias,
-                resolved_depth_bias,
-            ) {
-                Ok(p) => p,
-                Err(e) => return Err((CoinWgpuStatus::BackendError, e)),
-            };
-            pass.set_pipeline(&pipeline);
-
-            let mut mv: [[f32; 4]; 4] = [[0.0; 4]; 4];
-            let mut mvp: [[f32; 4]; 4] = [[0.0; 4]; 4];
-            let mut nm: [[f32; 4]; 4] = [[0.0; 4]; 4];
-            for c in 0..4 {
-                for r in 0..4 {
-                    mv[c][r] = st.model_view[c * 4 + r];
-                    mvp[c][r] = st.model_view_projection[c * 4 + r];
-                    nm[c][r] = st.normal_matrix[c * 4 + r];
-                }
-            }
-
-            let layers: [CoinWgpuTextureUnit; 8] = std::array::from_fn(|unit| {
-                if unit == 0 { CoinWgpuTextureUnit { matrix: st.texture_matrix,
-                    enabled: st.has_texture, texture_slot: st.texture_slot,
-                    sampler_slot: st.sampler_slot, model: st.texture_model,
-                    blend_color: st.texture_blend_color } } else { st.extra_textures[unit - 1] }
-            });
-            let texture_bindings: Vec<_> = layers.iter().map(|layer| {
-                if layer.enabled == 0 { return (&ctx.default_texture_view, &ctx.default_sampler); }
-                let t = &textures_slice[layer.texture_slot as usize];
-                let s = &samplers_slice[layer.sampler_slot as usize];
-                let tk = TextureKey { width: t.width, height: t.height, format: t.format, content_digest: t.content_digest };
-                let sk = SamplerKey { wrap_s: s.wrap_s, wrap_t: s.wrap_t, filter: s.filter };
-                let view = if t.format == 1 {
-                    &rtt_cache.active.get(&t.content_digest).expect("RTT token preflighted before encoding").view
-                } else { tex_cache.entries.get(&tk).map(|e| &e.view).unwrap_or(&ctx.default_texture_view) };
-                (view, samp_cache.entries.get(&sk).unwrap_or(&ctx.default_sampler))
-            }).collect();
-            let extra_texture_matrices = std::array::from_fn(|unit| std::array::from_fn(|c|
-                std::array::from_fn(|row| st.extra_textures[unit].matrix[c * 4 + row])));
-            let extra_tex_params = std::array::from_fn(|unit| {
-                let t = st.extra_textures[unit];
-                [t.enabled as f32, t.model as f32,
-                    if t.enabled != 0 && textures_slice[t.texture_slot as usize].format == 1 { 1.0 } else { 0.0 }, 0.0]
-            });
-            let extra_texture_blends = std::array::from_fn(|unit| st.extra_textures[unit].blend_color);
-
-            let mut tex_mat: [[f32; 4]; 4] = [[0.0; 4]; 4];
-            for c in 0..4 {
-                for r in 0..4 {
-                    tex_mat[c][r] = st.texture_matrix[c * 4 + r];
-                }
-            }
-
-            let uniforms = CoinWgpuUniforms {
-                model_view_projection: mvp,
-                model_view: mv,
-                normal_matrix: nm,
-                material_diffuse: mat.diffuse,
-                material_ambient: mat.ambient,
-                material_specular: mat.specular,
-                light_direction_intensity: [
-                    st.light_direction[0],
-                    st.light_direction[1],
-                    st.light_direction[2],
-                    st.light_intensity,
-                ],
-                light_color: st.light_color,
-                params: [
-                    mat.shininess,
-                    0.0,
-                    if st.has_light != 0 { 1.0 } else { 0.0 },
-                    st.light_model as f32,
-                ],
-                texture_matrix: tex_mat,
-                extra_texture_matrices, extra_tex_params, extra_texture_blends,
-                texture_combines: st.texture_combines,
-                tex_params: [
-                    if st.has_texture != 0 { 1.0 } else { 0.0 },
-                    st.texture_model as f32,
-                    if st.has_texture != 0 && textures_slice[st.texture_slot as usize].format == 1 { 1.0 } else { 0.0 },
-                    0.0,
-                ],
-                ambient_light: st.ambient_light,
-                light_meta: [st.light_count as f32, 0.0, 0.0, 0.0],
-                texture_blend_color: st.texture_blend_color,
-                lights: st.lights,
-                clip_meta: [st.clip_plane_count as f32, window_bias,
-                    st.depth_range[0], st.depth_range[1]],
-                clip_planes: st.clip_planes,
-                fog_color_mode: [
-                    st.fog_color[0],
-                    st.fog_color[1],
-                    st.fog_color[2],
-                    st.fog_mode as f32,
-                ],
-                fog_range: [st.fog_start, st.fog_end, 0.0, 0.0],
-            };
-
-            if layers.iter().any(|t| t.enabled != 0) &&
-                FAULT_INJECTION.load(Ordering::SeqCst) == FAULT_RTT_BIND_GROUP {
-                return Err((CoinWgpuStatus::OutOfMemory,
-                    "Injected RTT bind-group creation failure".to_string()));
-            }
-            let create_binding = |persistent: bool| {
-                let u_buffer = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                    label: Some("Draw Uniform Buffer"),
-                    contents: bytemuck::bytes_of(&uniforms),
-                    usage: if persistent {
-                        wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST
-                    } else {
-                        wgpu::BufferUsages::UNIFORM
+            })];
+            if is_peel {
+                color_attachments.push(Some(wgpu::RenderPassColorAttachment {
+                    view: &peeling.as_ref().unwrap().masks[peel_step],
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                        store: wgpu::StoreOp::Store,
                     },
-                });
-                let mut entries = vec![
-                    wgpu::BindGroupEntry { binding: 0, resource: u_buffer.as_entire_binding() },
-                    wgpu::BindGroupEntry { binding: 1, resource: materials_buffer.as_entire_binding() },
-                ];
-                for (unit, (view, sampler)) in texture_bindings.iter().enumerate() {
-                    entries.push(wgpu::BindGroupEntry { binding: 2 + 2 * unit as u32,
-                        resource: wgpu::BindingResource::TextureView(view) });
-                    entries.push(wgpu::BindGroupEntry { binding: 3 + 2 * unit as u32,
-                        resource: wgpu::BindingResource::Sampler(sampler) });
-                }
-                let bind_group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                    label: Some("Draw eight-unit texture bindings"), layout: &ctx.bind_group_layout, entries: &entries,
-                });
-                CameraDrawBinding { uniform_buffer: u_buffer, bind_group }
-            };
-            // Queue writes are submitted before this frame's command buffer.
-            // They cannot alter a preceding submission; wgpu keeps the
-            // underlying resources alive while that submission is in flight.
-            let transient_binding;
-            let binding = if let Some(entry) = camera_bindings.as_mut() {
-                let slot = &mut entry.draws[item.draw_index];
-                if slot.is_none() {
-                    *slot = Some(create_binding(true));
-                    ctx.camera_bindings_created.fetch_add(1, Ordering::Relaxed);
+                }));
+            }
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("Coin Composition Pass"),
+                color_attachments: &color_attachments,
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: selected_depth,
+                    depth_ops: Some(wgpu::Operations {
+                        load: if is_peel {
+                            wgpu::LoadOp::Clear(1.0)
+                        } else {
+                            wgpu::LoadOp::Load
+                        },
+                        store: wgpu::StoreOp::Store,
+                    }),
+                    stencil_ops: None,
+                }),
+                timestamp_writes: if !is_peel && pass_index + 1 == passes.len() {
+                    timestamp_query.map(|query_set| wgpu::RenderPassTimestampWrites {
+                        query_set,
+                        beginning_of_pass_write_index: None,
+                        end_of_pass_write_index: Some(1),
+                    })
                 } else {
-                    ctx.queue.write_buffer(&slot.as_ref().unwrap().uniform_buffer, 0,
-                        bytemuck::bytes_of(&uniforms));
-                    ctx.camera_bindings_reused.fetch_add(1, Ordering::Relaxed);
-                }
-                slot.as_ref().unwrap()
-            } else {
-                transient_binding = create_binding(false);
-                &transient_binding
-            };
-            pass.set_bind_group(0, &binding.bind_group, &[]);
-            let viewport = resolved_viewport(st, target_width, target_height)?;
-            if !st.depth_range[0].is_finite() || !st.depth_range[1].is_finite()
-                || st.depth_range[0] < 0.0 || st.depth_range[1] > 1.0
-                || st.depth_range[0] > st.depth_range[1] {
-                return Err((CoinWgpuStatus::InvalidArgument,
-                    format!("Draw {} has invalid depth range {:?}", item.draw_index, st.depth_range)));
-            }
-            pass.set_viewport(viewport[0] as f32, viewport[1] as f32,
-                viewport[2] as f32, viewport[3] as f32,
-                if resolved_depth_bias { 0.0 } else { st.depth_range[0] },
-                if resolved_depth_bias { 1.0 } else { st.depth_range[1] });
-            pass.set_scissor_rect(viewport[0] as u32, viewport[1] as u32,
-                viewport[2] as u32, viewport[3] as u32);
+                    None
+                },
+                occlusion_query_set: None,
+            });
 
+            for item in &draw_order[range.clone()] {
+                let draw = &draws_slice[item.draw_index];
+                if draw.index_count == 0 {
+                    continue;
+                }
+                let st = &states_slice[draw.render_state_slot as usize];
+                let mat = &materials_slice[st.material_slot as usize];
 
-            if draw.stable_node_id != 0 {
-                let key = (draw.stable_node_id, draw.draw_ordinal);
-                if let Some((_rev, entry)) = cache.active_entries.get(&key) {
-                    pass.set_vertex_buffer(0, entry.vertex_buffer.slice(..));
-                    if let Some(ref ib) = entry.index_buffer {
-                        pass.set_index_buffer(ib.slice(..), wgpu::IndexFormat::Uint32);
-                        pass.draw_indexed(0..entry.index_count, 0, 0..1);
-                    } else {
-                        pass.draw(0..entry.vertex_count, 0..1);
+                let cull_face = match st.cull_mode {
+                    0 => None,
+                    2 => Some(wgpu::Face::Front),
+                    _ => Some(wgpu::Face::Back),
+                };
+                let front_face = match st.front_face {
+                    1 => wgpu::FrontFace::Cw,
+                    _ => wgpu::FrontFace::Ccw,
+                };
+
+                let depth_compare = if st.depth_test == 0 {
+                    wgpu::CompareFunction::Always
+                } else {
+                    match st.depth_function {
+                        0 => wgpu::CompareFunction::Never,
+                        1 => wgpu::CompareFunction::Always,
+                        3 => wgpu::CompareFunction::LessEqual,
+                        4 => wgpu::CompareFunction::Equal,
+                        5 => wgpu::CompareFunction::GreaterEqual,
+                        6 => wgpu::CompareFunction::Greater,
+                        7 => wgpu::CompareFunction::NotEqual,
+                        _ => wgpu::CompareFunction::Less,
                     }
-                } else if let Some(entry) = oversized_entries.get(&key) {
-                    pass.set_vertex_buffer(0, entry.vertex_buffer.slice(..));
-                    if let Some(ref ib) = entry.index_buffer {
-                        pass.set_index_buffer(ib.slice(..), wgpu::IndexFormat::Uint32);
-                        pass.draw_indexed(0..entry.index_count, 0, 0..1);
+                };
+                let resolved_depth_bias = st.polygon_offset_enabled != 0
+                    && st.polygon_offset_styles & st.polygon_offset_primitive_style != 0
+                    && (st.polygon_offset_slope_bias != 0.0
+                        || (st.polygon_offset_max_depth_bits != 0
+                            && st.polygon_offset_units != 0.0));
+                let native_depth_bias = polygon_depth_bias(st, draw.topology).map_err(|e| {
+                    (
+                        CoinWgpuStatus::InvalidArgument,
+                        format!("Draw {}: {}", item.draw_index, e),
+                    )
+                })?;
+                let window_bias = if resolved_depth_bias {
+                    resolved_polygon_bias(st, draw, vertices_slice, indices_slice).map_err(|e| {
+                        (
+                            CoinWgpuStatus::InvalidArgument,
+                            format!("Draw {}: {}", item.draw_index, e),
+                        )
+                    })?
+                } else {
+                    0.0
+                };
+                let depth_bias = if resolved_depth_bias {
+                    wgpu::DepthBiasState::default()
+                } else {
+                    native_depth_bias
+                };
+                let pipeline = match get_or_create_pipeline(
+                    ctx,
+                    draw.topology,
+                    color_format,
+                    wgpu::TextureFormat::Depth32Float,
+                    cull_face,
+                    front_face,
+                    item.blend && !is_peel,
+                    item.additive,
+                    is_peel,
+                    is_peel || st.depth_write != 0,
+                    if is_peel {
+                        wgpu::CompareFunction::LessEqual
                     } else {
-                        pass.draw(0..entry.vertex_count, 0..1);
+                        depth_compare
+                    },
+                    depth_bias,
+                    resolved_depth_bias,
+                ) {
+                    Ok(p) => p,
+                    Err(e) => return Err((CoinWgpuStatus::BackendError, e)),
+                };
+                pass.set_pipeline(&pipeline);
+
+                let mut mv: [[f32; 4]; 4] = [[0.0; 4]; 4];
+                let mut mvp: [[f32; 4]; 4] = [[0.0; 4]; 4];
+                let mut nm: [[f32; 4]; 4] = [[0.0; 4]; 4];
+                for c in 0..4 {
+                    for r in 0..4 {
+                        mv[c][r] = st.model_view[c * 4 + r];
+                        mvp[c][r] = st.model_view_projection[c * 4 + r];
+                        nm[c][r] = st.normal_matrix[c * 4 + r];
                     }
                 }
-            } else {
-                if let Some(vb) = &uncached_v_buffer {
-                    pass.set_vertex_buffer(0, vb.slice(..));
+
+                let layers: [CoinWgpuTextureUnit; 8] = std::array::from_fn(|unit| {
+                    if unit == 0 {
+                        CoinWgpuTextureUnit {
+                            matrix: st.texture_matrix,
+                            enabled: st.has_texture,
+                            texture_slot: st.texture_slot,
+                            sampler_slot: st.sampler_slot,
+                            model: st.texture_model,
+                            blend_color: st.texture_blend_color,
+                        }
+                    } else {
+                        st.extra_textures[unit - 1]
+                    }
+                });
+                let texture_bindings: Vec<_> = layers
+                    .iter()
+                    .map(|layer| {
+                        if layer.enabled == 0 {
+                            return (&ctx.default_texture_view, &ctx.default_sampler);
+                        }
+                        let t = &textures_slice[layer.texture_slot as usize];
+                        let s = &samplers_slice[layer.sampler_slot as usize];
+                        let tk = TextureKey {
+                            width: t.width,
+                            height: t.height,
+                            format: t.format,
+                            content_digest: t.content_digest,
+                        };
+                        let sk = SamplerKey {
+                            wrap_s: s.wrap_s,
+                            wrap_t: s.wrap_t,
+                            filter: s.filter,
+                        };
+                        let view = if t.format == 1 {
+                            &rtt_cache
+                                .active
+                                .get(&t.content_digest)
+                                .expect("RTT token preflighted before encoding")
+                                .view
+                        } else {
+                            tex_cache
+                                .entries
+                                .get(&tk)
+                                .map(|e| &e.view)
+                                .unwrap_or(&ctx.default_texture_view)
+                        };
+                        (
+                            view,
+                            samp_cache.entries.get(&sk).unwrap_or(&ctx.default_sampler),
+                        )
+                    })
+                    .collect();
+                let extra_texture_matrices = std::array::from_fn(|unit| {
+                    std::array::from_fn(|c| {
+                        std::array::from_fn(|row| st.extra_textures[unit].matrix[c * 4 + row])
+                    })
+                });
+                let extra_tex_params = std::array::from_fn(|unit| {
+                    let t = st.extra_textures[unit];
+                    [
+                        t.enabled as f32,
+                        t.model as f32,
+                        if t.enabled != 0 && textures_slice[t.texture_slot as usize].format == 1 {
+                            1.0
+                        } else {
+                            0.0
+                        },
+                        0.0,
+                    ]
+                });
+                let extra_texture_blends =
+                    std::array::from_fn(|unit| st.extra_textures[unit].blend_color);
+
+                let mut tex_mat: [[f32; 4]; 4] = [[0.0; 4]; 4];
+                for c in 0..4 {
+                    for r in 0..4 {
+                        tex_mat[c][r] = st.texture_matrix[c * 4 + r];
+                    }
                 }
-                if let Some(ib) = &uncached_i_buffer {
-                    pass.set_index_buffer(ib.slice(..), wgpu::IndexFormat::Uint32);
+
+                let uniforms = CoinWgpuUniforms {
+                    model_view_projection: mvp,
+                    model_view: mv,
+                    normal_matrix: nm,
+                    material_diffuse: mat.diffuse,
+                    material_ambient: mat.ambient,
+                    material_specular: mat.specular,
+                    light_direction_intensity: [
+                        st.light_direction[0],
+                        st.light_direction[1],
+                        st.light_direction[2],
+                        st.light_intensity,
+                    ],
+                    light_color: st.light_color,
+                    params: [
+                        mat.shininess,
+                        0.0,
+                        if st.has_light != 0 { 1.0 } else { 0.0 },
+                        st.light_model as f32,
+                    ],
+                    texture_matrix: tex_mat,
+                    extra_texture_matrices,
+                    extra_tex_params,
+                    extra_texture_blends,
+                    texture_combines: st.texture_combines,
+                    composition_meta: [
+                        item.screen_door_level as f32,
+                        if item.screen_door { 1.0 } else { 0.0 },
+                        target_height as f32,
+                        0.0,
+                    ],
+                    peel_meta: [
+                        if is_peel { (peel_step + 1) as f32 } else { 0.0 },
+                        st.depth_test as f32,
+                        st.depth_function as f32,
+                        st.depth_write as f32,
+                    ],
+                    tex_params: [
+                        if st.has_texture != 0 { 1.0 } else { 0.0 },
+                        st.texture_model as f32,
+                        if st.has_texture != 0
+                            && textures_slice[st.texture_slot as usize].format == 1
+                        {
+                            1.0
+                        } else {
+                            0.0
+                        },
+                        0.0,
+                    ],
+                    ambient_light: st.ambient_light,
+                    light_meta: [st.light_count as f32, 0.0, 0.0, 0.0],
+                    texture_blend_color: st.texture_blend_color,
+                    lights: st.lights,
+                    clip_meta: [
+                        st.clip_plane_count as f32,
+                        window_bias,
+                        st.depth_range[0],
+                        st.depth_range[1],
+                    ],
+                    clip_planes: st.clip_planes,
+                    fog_color_mode: [
+                        st.fog_color[0],
+                        st.fog_color[1],
+                        st.fog_color[2],
+                        st.fog_mode as f32,
+                    ],
+                    fog_range: [st.fog_start, st.fog_end, 0.0, 0.0],
+                };
+
+                if layers.iter().any(|t| t.enabled != 0)
+                    && FAULT_INJECTION.load(Ordering::SeqCst) == FAULT_RTT_BIND_GROUP
+                {
+                    return Err((
+                        CoinWgpuStatus::OutOfMemory,
+                        "Injected RTT bind-group creation failure".to_string(),
+                    ));
                 }
-                let start_idx = draw.first_index;
-                let end_idx = start_idx + draw.index_count;
-                pass.draw_indexed(start_idx..end_idx, 0, 0..1);
+                let create_binding = |persistent: bool| {
+                    let u_buffer =
+                        ctx.device
+                            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                                label: Some("Draw Uniform Buffer"),
+                                contents: bytemuck::bytes_of(&uniforms),
+                                usage: if persistent {
+                                    wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST
+                                } else {
+                                    wgpu::BufferUsages::UNIFORM
+                                },
+                            });
+                    let mut entries = vec![
+                        wgpu::BindGroupEntry {
+                            binding: 0,
+                            resource: u_buffer.as_entire_binding(),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 1,
+                            resource: materials_buffer.as_entire_binding(),
+                        },
+                    ];
+                    for (unit, (view, sampler)) in texture_bindings.iter().enumerate() {
+                        entries.push(wgpu::BindGroupEntry {
+                            binding: 2 + 2 * unit as u32,
+                            resource: wgpu::BindingResource::TextureView(view),
+                        });
+                        entries.push(wgpu::BindGroupEntry {
+                            binding: 3 + 2 * unit as u32,
+                            resource: wgpu::BindingResource::Sampler(sampler),
+                        });
+                    }
+                    let previous = if is_peel && peel_step > 0 {
+                        &peeling.as_ref().unwrap().depths[peel_step - 1]
+                    } else {
+                        &ctx.default_depth_view
+                    };
+                    let opaque = if is_peel {
+                        &peeling.as_ref().unwrap().opaque_view
+                    } else {
+                        &ctx.default_depth_view
+                    };
+                    entries.push(wgpu::BindGroupEntry {
+                        binding: 18,
+                        resource: wgpu::BindingResource::TextureView(previous),
+                    });
+                    entries.push(wgpu::BindGroupEntry {
+                        binding: 19,
+                        resource: wgpu::BindingResource::TextureView(opaque),
+                    });
+                    let bind_group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                        label: Some("Draw eight-unit texture bindings"),
+                        layout: &ctx.bind_group_layout,
+                        entries: &entries,
+                    });
+                    CameraDrawBinding {
+                        uniform_buffer: u_buffer,
+                        bind_group,
+                    }
+                };
+                // Queue writes are submitted before this frame's command buffer.
+                // They cannot alter a preceding submission; wgpu keeps the
+                // underlying resources alive while that submission is in flight.
+                let transient_binding;
+                let binding = if let Some(entry) = camera_bindings.as_mut() {
+                    let slot = &mut entry.draws[item.draw_index];
+                    if slot.is_none() {
+                        *slot = Some(create_binding(true));
+                        ctx.camera_bindings_created.fetch_add(1, Ordering::Relaxed);
+                    } else {
+                        ctx.queue.write_buffer(
+                            &slot.as_ref().unwrap().uniform_buffer,
+                            0,
+                            bytemuck::bytes_of(&uniforms),
+                        );
+                        ctx.camera_bindings_reused.fetch_add(1, Ordering::Relaxed);
+                    }
+                    slot.as_ref().unwrap()
+                } else {
+                    transient_binding = create_binding(false);
+                    &transient_binding
+                };
+                pass.set_bind_group(0, &binding.bind_group, &[]);
+                let viewport = resolved_viewport(st, target_width, target_height)?;
+                if !st.depth_range[0].is_finite()
+                    || !st.depth_range[1].is_finite()
+                    || st.depth_range[0] < 0.0
+                    || st.depth_range[1] > 1.0
+                    || st.depth_range[0] > st.depth_range[1]
+                {
+                    return Err((
+                        CoinWgpuStatus::InvalidArgument,
+                        format!(
+                            "Draw {} has invalid depth range {:?}",
+                            item.draw_index, st.depth_range
+                        ),
+                    ));
+                }
+                pass.set_viewport(
+                    viewport[0] as f32,
+                    viewport[1] as f32,
+                    viewport[2] as f32,
+                    viewport[3] as f32,
+                    if resolved_depth_bias || is_peel {
+                        0.0
+                    } else {
+                        st.depth_range[0]
+                    },
+                    if resolved_depth_bias || is_peel {
+                        1.0
+                    } else {
+                        st.depth_range[1]
+                    },
+                );
+                pass.set_scissor_rect(
+                    viewport[0] as u32,
+                    viewport[1] as u32,
+                    viewport[2] as u32,
+                    viewport[3] as u32,
+                );
+
+                if draw.stable_node_id != 0 {
+                    let key = (draw.stable_node_id, draw.draw_ordinal);
+                    if let Some((_rev, entry)) = cache.active_entries.get(&key) {
+                        pass.set_vertex_buffer(0, entry.vertex_buffer.slice(..));
+                        if let Some(ref ib) = entry.index_buffer {
+                            pass.set_index_buffer(ib.slice(..), wgpu::IndexFormat::Uint32);
+                            pass.draw_indexed(0..entry.index_count, 0, 0..1);
+                        } else {
+                            pass.draw(0..entry.vertex_count, 0..1);
+                        }
+                    } else if let Some(entry) = oversized_entries.get(&key) {
+                        pass.set_vertex_buffer(0, entry.vertex_buffer.slice(..));
+                        if let Some(ref ib) = entry.index_buffer {
+                            pass.set_index_buffer(ib.slice(..), wgpu::IndexFormat::Uint32);
+                            pass.draw_indexed(0..entry.index_count, 0, 0..1);
+                        } else {
+                            pass.draw(0..entry.vertex_count, 0..1);
+                        }
+                    }
+                } else {
+                    if let Some(vb) = &uncached_v_buffer {
+                        pass.set_vertex_buffer(0, vb.slice(..));
+                    }
+                    if let Some(ib) = &uncached_i_buffer {
+                        pass.set_index_buffer(ib.slice(..), wgpu::IndexFormat::Uint32);
+                    }
+                    let start_idx = draw.first_index;
+                    let end_idx = start_idx + draw.index_count;
+                    pass.draw_indexed(start_idx..end_idx, 0, 0..1);
+                }
             }
+        }
+        if is_peel {
+            peeling.as_ref().unwrap().composite(
+                &mut encoder,
+                color_view,
+                depth_view,
+                if pass_index + 1 == passes.len() {
+                    timestamp_query
+                } else {
+                    None
+                },
+            );
         }
     }
 
@@ -3591,6 +3936,7 @@ pub extern "C" fn coin_wgpu_surface_submit(
             &color_view,
             record.color_format,
             depth_view,
+            record.depth_texture.as_ref().unwrap(),
         ) {
             Ok(cmd) => cmd,
             Err((status, msg)) => {
@@ -4247,6 +4593,7 @@ fn coin_wgpu_submit_internal(
             &color_view,
             wgpu::TextureFormat::Rgba8Unorm,
             &depth_view,
+            &depth_texture,
         ) {
             Ok(cmd) => cmd,
             Err((status, msg)) => {

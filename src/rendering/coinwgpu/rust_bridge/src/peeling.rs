@@ -1,0 +1,270 @@
+//! Concrete four-layer depth peeling. Coin decisions arrive in the draw plan.
+use wgpu::*;
+
+pub(super) struct Peeling {
+    pub opaque: Texture,
+    pub opaque_view: TextureView,
+    pub colors: Vec<TextureView>,
+    pub depths: Vec<TextureView>,
+    pub masks: Vec<TextureView>,
+    bindings: Vec<BindGroup>,
+    color_pipeline: RenderPipeline,
+    depth_pipeline: RenderPipeline,
+}
+
+const COMPOSITE: &str = r#"
+@group(0) @binding(0) var layer_color: texture_2d<f32>;
+@group(0) @binding(1) var layer_depth: texture_depth_2d;
+@group(0) @binding(2) var layer_mask: texture_2d<f32>;
+@vertex fn vs_main(@builtin(vertex_index) index:u32)->@builtin(position) vec4<f32> {
+    let x=f32((index<<1u)&2u);let y=f32(index&2u);
+    return vec4<f32>(x*2.0-1.0,y*2.0-1.0,0.0,1.0);
+}
+@fragment fn fs_color(@builtin(position) pixel:vec4<f32>)->@location(0) vec4<f32> {
+    return textureLoad(layer_color,vec2<i32>(pixel.xy),0);
+}
+@fragment fn fs_depth(@builtin(position) pixel:vec4<f32>)->@builtin(frag_depth) f32 {
+    let xy=vec2<i32>(pixel.xy);
+    if(textureLoad(layer_mask,xy,0).r<0.5){discard;}
+    return textureLoad(layer_depth,xy,0);
+}
+"#;
+
+impl Peeling {
+    pub fn new(device: &Device, width: u32, height: u32, format: TextureFormat) -> Self {
+        let texture = |format, usage, label| {
+            device.create_texture(&TextureDescriptor {
+                label: Some(label),
+                size: Extent3d {
+                    width,
+                    height,
+                    depth_or_array_layers: 1,
+                },
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: TextureDimension::D2,
+                format,
+                usage,
+                view_formats: &[],
+            })
+        };
+        let opaque = texture(
+            TextureFormat::Depth32Float,
+            TextureUsages::COPY_DST | TextureUsages::TEXTURE_BINDING,
+            "Coin opaque depth snapshot",
+        );
+        let opaque_view = opaque.create_view(&TextureViewDescriptor::default());
+        let mut colors = Vec::new();
+        let mut depths = Vec::new();
+        let mut masks = Vec::new();
+        for _ in 0..4 {
+            colors.push(
+                texture(
+                    format,
+                    TextureUsages::RENDER_ATTACHMENT | TextureUsages::TEXTURE_BINDING,
+                    "Coin peeled color",
+                )
+                .create_view(&TextureViewDescriptor::default()),
+            );
+            depths.push(
+                texture(
+                    TextureFormat::Depth32Float,
+                    TextureUsages::RENDER_ATTACHMENT | TextureUsages::TEXTURE_BINDING,
+                    "Coin peeled depth",
+                )
+                .create_view(&TextureViewDescriptor::default()),
+            );
+            masks.push(
+                texture(
+                    TextureFormat::R8Unorm,
+                    TextureUsages::RENDER_ATTACHMENT | TextureUsages::TEXTURE_BINDING,
+                    "Coin peeled depth-write mask",
+                )
+                .create_view(&TextureViewDescriptor::default()),
+            );
+        }
+        let layout = device.create_bind_group_layout(&BindGroupLayoutDescriptor {
+            label: Some("Coin peel compositor"),
+            entries: &[
+                BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: ShaderStages::FRAGMENT,
+                    ty: BindingType::Texture {
+                        sample_type: TextureSampleType::Float { filterable: false },
+                        view_dimension: TextureViewDimension::D2,
+                        multisampled: false,
+                    },
+                    count: None,
+                },
+                BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: ShaderStages::FRAGMENT,
+                    ty: BindingType::Texture {
+                        sample_type: TextureSampleType::Depth,
+                        view_dimension: TextureViewDimension::D2,
+                        multisampled: false,
+                    },
+                    count: None,
+                },
+                BindGroupLayoutEntry {
+                    binding: 2,
+                    visibility: ShaderStages::FRAGMENT,
+                    ty: BindingType::Texture {
+                        sample_type: TextureSampleType::Float { filterable: false },
+                        view_dimension: TextureViewDimension::D2,
+                        multisampled: false,
+                    },
+                    count: None,
+                },
+            ],
+        });
+        let bindings = (0..4)
+            .map(|i| {
+                device.create_bind_group(&BindGroupDescriptor {
+                    label: Some("Coin peel compositor layer"),
+                    layout: &layout,
+                    entries: &[
+                        BindGroupEntry {
+                            binding: 0,
+                            resource: BindingResource::TextureView(&colors[i]),
+                        },
+                        BindGroupEntry {
+                            binding: 1,
+                            resource: BindingResource::TextureView(&depths[i]),
+                        },
+                        BindGroupEntry {
+                            binding: 2,
+                            resource: BindingResource::TextureView(&masks[i]),
+                        },
+                    ],
+                })
+            })
+            .collect();
+        let shader = device.create_shader_module(ShaderModuleDescriptor {
+            label: Some("Coin peel compositor"),
+            source: ShaderSource::Wgsl(COMPOSITE.into()),
+        });
+        let pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
+            label: Some("Coin peel compositor"),
+            bind_group_layouts: &[&layout],
+            push_constant_ranges: &[],
+        });
+        let pipeline = |depth: bool| {
+            device.create_render_pipeline(&RenderPipelineDescriptor {
+                label: Some("Coin peel composite pipeline"),
+                layout: Some(&pipeline_layout),
+                vertex: VertexState {
+                    module: &shader,
+                    entry_point: Some("vs_main"),
+                    buffers: &[],
+                    compilation_options: Default::default(),
+                },
+                fragment: Some(FragmentState {
+                    module: &shader,
+                    entry_point: Some(if depth { "fs_depth" } else { "fs_color" }),
+                    targets: &[Some(ColorTargetState {
+                        format,
+                        blend: if depth {
+                            None
+                        } else {
+                            Some(BlendState {
+                                color: BlendComponent {
+                                    src_factor: BlendFactor::SrcAlpha,
+                                    dst_factor: BlendFactor::OneMinusSrcAlpha,
+                                    operation: BlendOperation::Add,
+                                },
+                                alpha: BlendComponent {
+                                    src_factor: BlendFactor::One,
+                                    dst_factor: BlendFactor::OneMinusSrcAlpha,
+                                    operation: BlendOperation::Add,
+                                },
+                            })
+                        },
+                        write_mask: if depth {
+                            ColorWrites::empty()
+                        } else {
+                            ColorWrites::ALL
+                        },
+                    })],
+                    compilation_options: Default::default(),
+                }),
+                primitive: PrimitiveState::default(),
+                depth_stencil: Some(DepthStencilState {
+                    format: TextureFormat::Depth32Float,
+                    depth_write_enabled: depth,
+                    depth_compare: CompareFunction::Always,
+                    stencil: Default::default(),
+                    bias: Default::default(),
+                }),
+                multisample: Default::default(),
+                multiview: None,
+                cache: None,
+            })
+        };
+        Self {
+            opaque,
+            opaque_view,
+            colors,
+            depths,
+            masks,
+            bindings,
+            color_pipeline: pipeline(false),
+            depth_pipeline: pipeline(true),
+        }
+    }
+
+    pub fn composite(
+        &self,
+        encoder: &mut CommandEncoder,
+        color: &TextureView,
+        depth: &TextureView,
+        timestamp: Option<&QuerySet>,
+    ) {
+        let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
+            label: Some("Coin four-layer source-over composite"),
+            color_attachments: &[Some(RenderPassColorAttachment {
+                view: color,
+                resolve_target: None,
+                ops: Operations {
+                    load: LoadOp::Load,
+                    store: StoreOp::Store,
+                },
+            })],
+            depth_stencil_attachment: Some(RenderPassDepthStencilAttachment {
+                view: depth,
+                depth_ops: Some(Operations {
+                    load: LoadOp::Load,
+                    store: StoreOp::Store,
+                }),
+                stencil_ops: None,
+            }),
+            timestamp_writes: timestamp.map(|query_set| RenderPassTimestampWrites {
+                query_set,
+                beginning_of_pass_write_index: None,
+                end_of_pass_write_index: Some(1),
+            }),
+            occlusion_query_set: None,
+        });
+        for i in (0..4).rev() {
+            pass.set_bind_group(0, &self.bindings[i], &[]);
+            pass.set_pipeline(&self.color_pipeline);
+            pass.draw(0..3, 0..1);
+            pass.set_pipeline(&self.depth_pipeline);
+            pass.draw(0..3, 0..1);
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn compositor_validates() {
+        let module = naga::front::wgsl::parse_str(super::COMPOSITE).unwrap();
+        naga::valid::Validator::new(
+            naga::valid::ValidationFlags::all(),
+            naga::valid::Capabilities::all(),
+        )
+        .validate(&module)
+        .unwrap();
+    }
+}

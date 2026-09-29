@@ -632,8 +632,7 @@ bool testFailurePreservesFrame() {
 
 bool testUnsupportedExecutorPreservesFrame() {
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-  const int modes[] = {SoGLRenderAction::ADD, SoGLRenderAction::SCREEN_DOOR,
-    SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND, SoGLRenderAction::SORTED_LAYERS_BLEND};
+  const int modes[] = {-1, 999};
   for (int backend = 0; backend < (CoinRenderAction::isGpuBackendAvailable() ? 2 : 1); ++backend) {
     CoinRenderTarget * target = CoinRenderTarget::createOffscreen(SbVec2i32(64, 64));
     configureTarget(target, backend == 0);

@@ -31,6 +31,8 @@ struct Uniforms {
     extra_tex_params: array<vec4<f32>, 7>,
     extra_texture_blends: array<vec4<f32>, 7>,
     texture_combines: array<array<vec4<f32>, 4>, 8>,
+    composition_meta: vec4<f32>,
+    peel_meta: vec4<f32>,
 };
 
 struct GpuMaterial {
@@ -251,54 +253,66 @@ fn fragment_color(input: VertexOutput) -> vec4<f32> {
         if (f32(i) >= u.clip_meta.x) { break; }
         if (dot(u.clip_planes[i], vec4<f32>(input.position_view, 1.0)) < 0.0) { discard; }
     }
-    var base_color = input.diffuse_color;
+    if (u.composition_meta.x > 0.5) {
+        var x=u32(input.clip_position.x); var y=u32(u.composition_meta.z-input.clip_position.y);
+        var rank=0u; var weight=256u;
+        for(var bit=0u;bit<5u;bit+=1u) {
+            let bx=x&1u;let by=y&1u;
+            rank+=select(2u*bx,3u-2u*bx,by!=0u)*weight;
+            x>>=1u;y>>=1u;weight>>=2u;
+        }
+        if(rank<u32(u.composition_meta.x)*16u){discard;}
+    }
+    var primary=input.diffuse_color;
+    if(u.composition_meta.y>0.5){primary.a=1.0;}
+    var base_color = primary;
 
     if (u.tex_params.x > 0.5) {
         let uv = select(input.texcoord, vec2<f32>(input.texcoord.x, 1.0 - input.texcoord.y), u.tex_params.z > 0.5);
         let tex_col = textureSample(t_diffuse, s_diffuse, uv);
-        base_color = texture_layer(input.diffuse_color, base_color, tex_col, u.tex_params, u.texture_blend_color, 0u);
+        base_color = texture_layer(primary, base_color, tex_col, u.tex_params, u.texture_blend_color, 0u);
     }
     if (u.extra_tex_params[0].x > 0.5) {
         let params = u.extra_tex_params[0];
         let uv = select(input.uv1, vec2<f32>(input.uv1.x, 1.0 - input.uv1.y), params.z > 0.5);
         let tex = textureSample(t_texture1, s_texture1, uv);
-        base_color = texture_layer(input.diffuse_color, base_color, tex, params, u.extra_texture_blends[0], 1u);
+        base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[0], 1u);
     }
     if (u.extra_tex_params[1].x > 0.5) {
         let params = u.extra_tex_params[1];
         let uv = select(input.uv2, vec2<f32>(input.uv2.x, 1.0 - input.uv2.y), params.z > 0.5);
         let tex = textureSample(t_texture2, s_texture2, uv);
-        base_color = texture_layer(input.diffuse_color, base_color, tex, params, u.extra_texture_blends[1], 2u);
+        base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[1], 2u);
     }
     if (u.extra_tex_params[2].x > 0.5) {
         let params = u.extra_tex_params[2];
         let uv = select(input.uv3, vec2<f32>(input.uv3.x, 1.0 - input.uv3.y), params.z > 0.5);
         let tex = textureSample(t_texture3, s_texture3, uv);
-        base_color = texture_layer(input.diffuse_color, base_color, tex, params, u.extra_texture_blends[2], 3u);
+        base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[2], 3u);
     }
     if (u.extra_tex_params[3].x > 0.5) {
         let params = u.extra_tex_params[3];
         let uv = select(input.uv4, vec2<f32>(input.uv4.x, 1.0 - input.uv4.y), params.z > 0.5);
         let tex = textureSample(t_texture4, s_texture4, uv);
-        base_color = texture_layer(input.diffuse_color, base_color, tex, params, u.extra_texture_blends[3], 4u);
+        base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[3], 4u);
     }
     if (u.extra_tex_params[4].x > 0.5) {
         let params = u.extra_tex_params[4];
         let uv = select(input.uv5, vec2<f32>(input.uv5.x, 1.0 - input.uv5.y), params.z > 0.5);
         let tex = textureSample(t_texture5, s_texture5, uv);
-        base_color = texture_layer(input.diffuse_color, base_color, tex, params, u.extra_texture_blends[4], 5u);
+        base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[4], 5u);
     }
     if (u.extra_tex_params[5].x > 0.5) {
         let params = u.extra_tex_params[5];
         let uv = select(input.uv6, vec2<f32>(input.uv6.x, 1.0 - input.uv6.y), params.z > 0.5);
         let tex = textureSample(t_texture6, s_texture6, uv);
-        base_color = texture_layer(input.diffuse_color, base_color, tex, params, u.extra_texture_blends[5], 6u);
+        base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[5], 6u);
     }
     if (u.extra_tex_params[6].x > 0.5) {
         let params = u.extra_tex_params[6];
         let uv = select(input.uv7, vec2<f32>(input.uv7.x, 1.0 - input.uv7.y), params.z > 0.5);
         let tex = textureSample(t_texture7, s_texture7, uv);
-        base_color = texture_layer(input.diffuse_color, base_color, tex, params, u.extra_texture_blends[6], 7u);
+        base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[6], 7u);
     }
     return apply_fog(base_color, -input.position_view.z);
 }
@@ -322,4 +336,27 @@ fn fs_depth_bias(input: VertexOutput) -> DepthBiasOutput {
     output.depth = clamp(mix(u.clip_meta.z, u.clip_meta.w, input.clip_position.z)
                          + u.clip_meta.y, 0.0, 1.0);
     return output;
+}
+
+@group(0) @binding(18) var previous_depth:texture_depth_2d;
+@group(0) @binding(19) var opaque_depth:texture_depth_2d;
+struct PeelOutput {
+    @location(0) color:vec4<f32>,
+    @location(1) write_depth:f32,
+    @builtin(frag_depth) depth:f32,
+};
+fn depth_accepts(depth:f32,stored:f32,op:u32)->bool {
+    switch op {
+        case 0u:{return false;} case 1u:{return true;} case 2u:{return depth<stored;}
+        case 3u:{return depth<=stored;} case 4u:{return depth==stored;} case 5u:{return depth>=stored;}
+        case 6u:{return depth>stored;} default:{return depth!=stored;}
+    }
+}
+@fragment fn fs_peel(input:VertexOutput)->PeelOutput {
+    var output:PeelOutput;output.color=fragment_color(input);
+    let xy=vec2<i32>(input.clip_position.xy);
+    let depth=clamp(mix(u.clip_meta.z,u.clip_meta.w,input.clip_position.z)+u.clip_meta.y,0.0,1.0);
+    if(u.peel_meta.y>0.5 && !depth_accepts(depth,textureLoad(opaque_depth,xy,0),u32(u.peel_meta.z))){discard;}
+    if(u.peel_meta.x>1.5 && depth<=textureLoad(previous_depth,xy,0)){discard;}
+    output.depth=depth;output.write_depth=u.peel_meta.w;return output;
 }

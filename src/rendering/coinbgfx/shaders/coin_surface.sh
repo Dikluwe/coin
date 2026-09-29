@@ -76,7 +76,7 @@ vec4 coinSurfaceColor(vec2 pixelCoord, vec4 v_color0, vec2 v_texcoord0, vec3 v_v
     for (int bit = 0; bit < 5; ++bit) {
       float bx = mod(x, 2.0);
       float by = mod(y, 2.0);
-      float digit = by < 0.5 ? bx * 2.0 : 3.0 - bx * 2.0;
+      float digit = by < 0.5 ? bx * 2.0 : 3.0 - 2.0 * bx;
       rank += digit * weight;
       x = floor(x * 0.5); y = floor(y * 0.5); weight *= 0.25;
     }
@@ -84,22 +84,23 @@ vec4 coinSurfaceColor(vec2 pixelCoord, vec4 v_color0, vec2 v_texcoord0, vec3 v_v
   }
   vec4 color = v_color0;
   if (u_screenDoor.w > 0.5) color.a = 1.0;
+  vec4 primary = color;
   if (u_texParams[0].x > 0.5)
-    color = coinTextureProgram(v_color0, color, texture2D(s_texColor, coinSurfaceUv(v_texcoord0, u_texParams[0])), u_texParams[0], u_texBlend[0], 0);
+    color = coinTextureProgram(primary, color, texture2D(s_texColor, coinSurfaceUv(v_texcoord0, u_texParams[0])), u_texParams[0], u_texBlend[0], 0);
   if (u_texParams[1].x > 0.5)
-    color = coinTextureProgram(v_color0, color, texture2D(s_texColor1, coinSurfaceUv(v_texcoords4.xy, u_texParams[1])), u_texParams[1], u_texBlend[1], 1);
+    color = coinTextureProgram(primary, color, texture2D(s_texColor1, coinSurfaceUv(v_texcoords4.xy, u_texParams[1])), u_texParams[1], u_texBlend[1], 1);
   if (u_texParams[2].x > 0.5)
-    color = coinTextureProgram(v_color0, color, texture2D(s_texColor2, coinSurfaceUv(v_texcoords4.zw, u_texParams[2])), u_texParams[2], u_texBlend[2], 2);
+    color = coinTextureProgram(primary, color, texture2D(s_texColor2, coinSurfaceUv(v_texcoords4.zw, u_texParams[2])), u_texParams[2], u_texBlend[2], 2);
   if (u_texParams[3].x > 0.5)
-    color = coinTextureProgram(v_color0, color, texture2D(s_texColor3, coinSurfaceUv(v_texcoords5.xy, u_texParams[3])), u_texParams[3], u_texBlend[3], 3);
+    color = coinTextureProgram(primary, color, texture2D(s_texColor3, coinSurfaceUv(v_texcoords5.xy, u_texParams[3])), u_texParams[3], u_texBlend[3], 3);
   if (u_texParams[4].x > 0.5)
-    color = coinTextureProgram(v_color0, color, texture2D(s_texColor4, coinSurfaceUv(v_texcoords5.zw, u_texParams[4])), u_texParams[4], u_texBlend[4], 4);
+    color = coinTextureProgram(primary, color, texture2D(s_texColor4, coinSurfaceUv(v_texcoords5.zw, u_texParams[4])), u_texParams[4], u_texBlend[4], 4);
   if (u_texParams[5].x > 0.5)
-    color = coinTextureProgram(v_color0, color, texture2D(s_texColor5, coinSurfaceUv(v_texcoords6.xy, u_texParams[5])), u_texParams[5], u_texBlend[5], 5);
+    color = coinTextureProgram(primary, color, texture2D(s_texColor5, coinSurfaceUv(v_texcoords6.xy, u_texParams[5])), u_texParams[5], u_texBlend[5], 5);
   if (u_texParams[6].x > 0.5)
-    color = coinTextureProgram(v_color0, color, texture2D(s_texColor6, coinSurfaceUv(v_texcoords6.zw, u_texParams[6])), u_texParams[6], u_texBlend[6], 6);
+    color = coinTextureProgram(primary, color, texture2D(s_texColor6, coinSurfaceUv(v_texcoords6.zw, u_texParams[6])), u_texParams[6], u_texBlend[6], 6);
   if (u_texParams[7].x > 0.5)
-    color = coinTextureProgram(v_color0, color, texture2D(s_texColor7, coinSurfaceUv(v_texcoords7.xy, u_texParams[7])), u_texParams[7], u_texBlend[7], 7);
+    color = coinTextureProgram(primary, color, texture2D(s_texColor7, coinSurfaceUv(v_texcoords7.xy, u_texParams[7])), u_texParams[7], u_texBlend[7], 7);
   float mode = u_fogColorMode.w;
   if (mode < 0.5) return color;
   float distanceToEye = max(-v_viewPosition.z, 0.0);

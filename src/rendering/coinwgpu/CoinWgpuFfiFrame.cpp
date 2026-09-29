@@ -268,28 +268,30 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame, uint32_t targetW
     }
   }
   std::vector<CoinRenderCompositionItem> order;
-  if (!coin_render_composition_order(frame, order, outDiagnostic)) return false;
+  if (!coin_render_composition_schedule(frame, order, outDiagnostic))
+    return false;
   std::vector<CoinWgpuDraw> resolvedDraws;
   resolvedDraws.reserve(order.size());
   for (const auto & item : order) {
     const auto & src = frame.draws[item.drawIndex];
     const auto & state = frame.renderStates[src.renderStateSlot];
-    if ((item.blend && item.additive) || (item.blend && item.sortTriangles) ||
-        (item.blend && item.transparencyStrategy == CoinRenderCompositionItem::SORTED_LAYERS) ||
-        item.screenDoorLevel != 0) {
-      outDiagnostic = "UNSUPPORTED: CoinWgpu cannot execute additive, triangle-sorted, sorted-layer or screen-door transparency";
-      return false;
-    }
     CoinWgpuDraw dst{};
     dst.topology = static_cast<uint32_t>(src.topology);
     dst.first_vertex = src.geometry.firstVertex;
     dst.vertex_count = src.geometry.vertexCount;
-    dst.first_index = src.geometry.firstIndex;
-    dst.index_count = src.geometry.indexCount;
+    dst.first_index = item.firstIndex;
+    dst.index_count = item.indexCount;
     dst.render_state_slot = src.renderStateSlot;
-    dst.stable_node_id = src.stableNodeId;
+    dst.stable_node_id = item.blend && item.sortTriangles ? 0 : src.stableNodeId;
     dst.draw_ordinal = src.drawOrdinal;
-    dst.composition_flags = item.blend ? 1u : 0u;
+    dst.composition_flags =
+        (item.blend ? 1u : 0u) | (item.additive && item.blend ? 2u : 0u) |
+        (item.screenDoor ? 4u : 0u) |
+        (item.blend && item.deferred &&
+                 item.transparencyStrategy == CoinRenderCompositionItem::SORTED_LAYERS
+             ? 8u
+             : 0u) |
+        (item.screenDoorLevel << 8);
     dst.source_revision = src.sourceRevision;
     dst.render_layer = src.renderLayer;
     dst.clear_depth_before = src.clearDepthBefore ? 1u : 0u;

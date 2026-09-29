@@ -290,7 +290,7 @@ static bool testUnsupportedRejections() {
     root->unref();
   }
 
-  // Case 3B: SCREEN_DOOR follows backend capability; sorted blend is supported
+  // Case 3B: Material screen door is supported by the qualified GPU executors
   {
     SoSeparator * root = new SoSeparator;
     root->ref();
@@ -309,9 +309,9 @@ static bool testUnsupportedRejections() {
     action.setRenderTarget(target);
     action.apply(root);
 
-#ifdef HAVE_COIN_BGFX
+#if defined(HAVE_COIN_BGFX) || defined(HAVE_COIN_WGPU_RUST_BRIDGE)
     ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::SUCCESS,
-                "BGFX implements SCREEN_DOOR for material alpha");
+                "The qualified GPU executor implements SCREEN_DOOR for material alpha");
 #else
     ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::UNSUPPORTED,
                 "Default SCREEN_DOOR must be rejected when stipple is required");

@@ -103,10 +103,10 @@ Resultados e comandos reproduzíveis estão em
 | Área | Suportado agora | Fora do perfil / rejeição esperada |
 | --- | --- | --- |
 | Geometria | Triângulos de callback e `SoIndexedFaceSet`; linhas e pontos com textura explícita nas unidades 0–7, inclusive `SoIndexedLineSet` | Topologias sem caminho implementado não têm paridade prometida |
-| Materiais | `BASE_COLOR`, iluminação e alpha uniforme por draw; `NONE`, `BLEND`, `DELAYED_BLEND` e `SORTED_OBJECT_BLEND` | Aditivo, stipple, sorting de triângulos e sorted layers; matriz geral de alpha heterogêneo por vértice; outras modalidades de transparência em strokes |
+| Materiais | `BASE_COLOR`, iluminação e alpha uniforme por draw; onze modalidades Coin no perfil P09, inclusive strokes | Matriz geral de alpha heterogêneo por vértice e bindings P05; qualificação ampliada de camadas P10 |
 | Luzes | Direcional, pontual e spot, até oito ativas por draw | Excesso de oito luzes deve retornar `UNSUPPORTED` |
 | Textura | `SoTexture2` nas unidades 0–7, UV explícita, SoTextureCombine (P08), 1–4 componentes no perfil legado incluindo alpha de imagem, `MODULATE`/`REPLACE`/`DECAL`/`BLEND`, `REPEAT`/`CLAMP`, qualidade 0 ou 0,5 | UV procedural/default; formatos/qualidade ampliados em P07 |
-| Composição | Composição resolvida no Core: BLEND imediato, DELAYED_BLEND adiado e SORTED_OBJECT_BLEND ordenado por centro capturado; depth efetivo respeita overrides explícitos | Ordenação por triângulo, interseções e transparência independente da ordem |
+| Composição | Onze modalidades resolvidas no Core, sorting de triângulos, screen door e peeling de quatro camadas por pixel; defaults/overrides de depth comuns | Peeling BGFX rejeita escrita transparente explícita e testes fora de LESS/LEQUAL/NEVER; muitas camadas, alpha zero/epsilon e orçamento em P10 |
 | Ambiente | Fog `NONE`, `HAZE`, `FOG` e `SMOKE` em distância de view space; fog depois de luz/textura e antes da composição, sem alterar alpha | Fórmulas ou estados de fog fora desses quatro modos |
 | Raster | Front face e backface culling de `SoShapeHints` em triângulos, inclusive reflexão | Culling de linhas/pontos (não aplicável ao pipeline dessas topologias) |
 | Alvos | Offscreen com cor/profundidade e janela X11 no backend Rust; readback síncrono atômico; `applyAsync` com ticket e query/poll/cancel; `SoSceneTexture2` RGBA8 staged por padrão e GPU→GPU direto opt-in em offscreen Rust | Outros formatos/estados de `SoSceneTexture2`, RTT direto de janela, readback assíncrono de janela e outros sistemas de janela |
@@ -346,3 +346,13 @@ em perspectiva e fog por fragmento. O vértice wgpu tem 100 bytes na ABI privada
 Oito unidades e SoTextureCombine agora têm interpretação comum e execução
 CPU/BGFX/wgpu, inclusive em strokes. A matriz, os limites e a ABI privada 26
 estão no [contrato P08](coin-render-multitexture-contract.md).
+
+## P09 — transparência funcional
+
+Onze modalidades compartilhadas, aditivo, screen door, sorting de triângulos
+e peeling de quatro camadas foram qualificados em CPU, Rust/wgpu e BGFX
+Vulkan/OpenGL. O plano de composição tem um dono no Core. A revisão privada
+atual é 27, mantendo os tamanhos da revisão 26 registrada em P08.
+O [contrato P09](coin-render-transparency-contract.md) declara as comparações
+GL, as expectativas numéricas de alpha e os limites de camadas/depth. P10,
+FreeCAD, raster ampliado e native/Dawn continuam fora desse fechamento.

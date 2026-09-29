@@ -10,7 +10,7 @@ fn standard_shader_validates_vertex_lighting() {
         .split("fn apply_fog").next().unwrap();
     let fragment = source.split("fn fragment_color").nth(1).unwrap();
     assert!(vertex.contains("shade_vertex(materials[input.material_slot]"));
-    assert!(fragment.contains("var base_color = input.diffuse_color"));
+    assert!(fragment.contains("var primary=input.diffuse_color"));
     assert!(!fragment.contains("shade_vertex") && !fragment.contains("materials["));
     assert!(source.contains("clamp(rgb, vec3<f32>(0.0), vec3<f32>(1.0))"));
 }

@@ -196,6 +196,27 @@ int main()
               "transparent label test-only LEQUAL state was not preserved");
   frame.renderStates[0].depthWrite = true;
   frame.renderStates[0].depthFunction = CoinRenderDepthFunction::LESS;
+  {
+    CoinRenderFramePlan layers = frame;
+    layers.renderStates[0].transparencyType = SoGLRenderAction::SORTED_LAYERS_BLEND;
+    CoinBgfxPlan accepted;
+    ok &= check(CoinBgfxLowering::lower(layers, 4, 4, false, accepted, diagnostic),
+                "default sorted layers profile rejected");
+    const auto beforeVertices = accepted.vertices.size();
+    const auto beforeDraws = accepted.draws.size();
+    for (int unsupported = 0; unsupported < 3; ++unsupported) {
+      auto request = layers;
+      auto& requested = request.renderStates[0];
+      requested.explicitDepthMask = 15;
+      requested.depthWrite = unsupported == 0;
+      requested.depthTest = unsupported != 1;
+      requested.depthFunction = unsupported == 2 ? CoinRenderDepthFunction::GREATER : CoinRenderDepthFunction::LEQUAL;
+      ok &= check(!CoinBgfxLowering::lower(request, 4, 4, false, accepted, diagnostic) &&
+                      diagnostic.find("BGFX sorted layers requires") != std::string::npos &&
+                      accepted.vertices.size() == beforeVertices && accepted.draws.size() == beforeDraws,
+                  "unsupported layer depth state must preserve the lowered plan");
+    }
+  }
   frame.renderStates[0].lightModel = CoinRenderLightModel::PHONG;
   frame.lightingStates[0].ambientIntensity = 1.0f;
   CoinBgfxPlan litTransparentPlan;

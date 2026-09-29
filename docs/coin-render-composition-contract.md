@@ -23,7 +23,7 @@ comandos GPU.
   antes da lista adiada sem sorting. Usam o centro capturado do bounding box;
   fixtures sem centro usam o centro do intervalo de profundidade.
 - `SORTED_OBJECT_SORTED_TRIANGLE_*` solicita também sorting de triângulos.
-  Essa solicitação não é substituída por weighted OIT.
+  O Core produz intervalos de triângulos ordenados, incluindo materiais da mesma shape/instância. Essa solicitação não é substituída por weighted OIT.
 - `SORTED_LAYERS_BLEND` solicita a estratégia específica de camadas.
 - Anotações são organizadas por camada e preservam a ordem de travessia dentro
   da camada, inclusive entre draws opacos e transparentes. Sua barreira limpa
@@ -36,16 +36,16 @@ comandos GPU.
 `CoinRenderCompositionItem` contém índice do draw, blend, adiamento, adição,
 sorting, estratégia, screen door e profundidade efetiva. O lowering BGFX apenas
 adapta esses valores. A CPU aplica função, range e escrita de depth, inclusive
-para transparência imediata; rejeita operações que não possui.
+para transparência imediata; peeling e mecanismos GPU têm o [perfil P09](coin-render-transparency-contract.md).
 
 ## Transporte wgpu
 
 A revisão privada 21 introduziu esse transporte com draw de 56 bytes e estado
 de 956. A revisão 22 conservou o draw e ampliou o estado para 1088 bytes
-com equações de clipping. A revisão atual 25 tem 1096 bytes, com máximo de depth original e o
-bias de inclinação no offset 1088 e conservando os offsets anteriores; veja o [contrato de clipping](coin-render-clipping-contract.md).
-O antigo campo reservado no offset 36 passa a ser `composition_flags`, cujo
-bit 0 transporta blend. O array de draws já chega na ordem resolvida. Estados
+com equações de clipping. A revisão atual 27 conserva o draw de 56 bytes, o vértice de 100 e o estado
+de 2280 da revisão 26 de multitextura. O campo no offset 36 é
+`composition_flags`: blend no bit 0, aditivo no 1, screen door no 2, peeling no
+3 e nível de stipple nos bits 8–14. O array de draws já chega na ordem resolvida. Estados
 variantes são empacotados quando o passe adiado modifica a profundidade; um
 estado compartilhado da captura não é alterado para afetar outros draws.
 
@@ -55,12 +55,13 @@ reutilize a sequência anterior do device. Falha de empacotamento invalida a
 revisão em cache para que a próxima preparação reconstrua armazenamento válido.
 C++ e Rust devem ser reconstruídos juntos; essa ABI permanece privada.
 
-O wgpu executa `NONE`, `BLEND`, `DELAYED_BLEND`, `SORTED_OBJECT_BLEND` e anotações
-no perfil existente de geometria/textura. Rejeita draws que exigem blend aditivo,
-sorting de triângulos, sorted layers ou stipple não nulo. A rejeição preserva
-imagem publicada e serial, mantém o alvo preparado e permite um pedido válido
-seguinte na mesma action. `UNSUPPORTED` de um frame não é erro fatal de recurso. Isso fecha o significado do pedido e seu diagnóstico,
-sem declarar implementadas essas capacidades GPU.
+P09 amplia o wgpu e a CPU para os onze modos, incluindo aditivo, screen door,
+triângulos ordenados pelo Core e peeling de quatro camadas. BGFX consome os
+mesmos intervalos e conserva os mecanismos concretos do seu perfil.
+Pedidos fora das capacidades preservam imagem publicada e serial e permitem
+um pedido válido seguinte; `UNSUPPORTED` de um frame não é erro fatal de recurso.
+O [contrato P09](coin-render-transparency-contract.md) delimita qualificação,
+overrides de peeling e particularidades da referência GL.
 
 ## Evidências e limites
 
@@ -72,7 +73,7 @@ BGFX agora é reconhecida pela fachada comum, evitando testes restritos à CPU.
 
 `CoinRenderDepthContractTest` verifica captura da máscara explícita, transporte,
 reuso e execução de profundidade. `CoinWgpuFfiFrameTest` verifica ordem/blend/depth
-resolvidos, inversão da ordem por câmera, rejeição de sorting não implementado e
+resolvidos, inversão da ordem por câmera, transporte de sorting de triângulos e
 invalidação do empacotamento rejeitado. Os testes Rust verificam execução sem
 reclassificação, sequência de camadas, flags inválidos, barreiras e frame vazio.
 
@@ -81,9 +82,10 @@ sob LESS contra clear=1, aceita indevidamente pela referência CPU. O fundo agor
 fica em depth=.875; as comparações respeitam a função declarada. Os passes
 transparentes usam a profundidade efetiva do contrato comum.
 
-Esta entrega não qualifica toda a equivalência GL, alpha aditivo, sorting por
-triângulo, peeling/OIT, a integração FreeCAD wgpu ou as dependências RTT como
-plano comum. A04, A05, A08, A10, F01 e F02 permanecem parciais nesses limites.
+O registro A03 abaixo é histórico. P09 acrescenta alpha aditivo, sorting por
+triângulo e peeling no perfil delimitado, com comparação GL obrigatória.
+Equivalência universal GL, OIT, FreeCAD e dependências RTT comuns permanecem
+nas etapas próprias; os limites atuais constam do contrato P09.
 
 A matriz ampliada expôs fixtures anteriores incorretas em materiais/multidevice.
 A biblioteca instalada da etapa anterior reproduziu os dois erros: expectativa

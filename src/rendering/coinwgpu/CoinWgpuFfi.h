@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 26
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 27
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -76,7 +76,7 @@ typedef struct CoinWgpuDraw {
   uint32_t render_state_slot;
   uint64_t stable_node_id;
   uint32_t draw_ordinal;
-  uint32_t composition_flags; /* bit 0=blend; order/depth resolved by CoinRender */
+  uint32_t composition_flags; /* 0=blend, 1=additive, 2=screen door, 3=peel; bits 8..14=door level */
   uint64_t source_revision;
   uint32_t render_layer; /* zero=base; overlays retain traversal order */
   uint32_t clear_depth_before; /* 0/1: clear only this draw's viewport */

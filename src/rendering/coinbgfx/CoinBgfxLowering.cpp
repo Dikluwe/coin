@@ -171,11 +171,14 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
   }
   if (!frame.isValid(&diagnostic)) return false;
   std::vector<CoinRenderCompositionItem> order;
-  if (!coin_render_composition_order(frame, order, diagnostic)) return false;
+  if (!coin_render_composition_schedule(frame, order, diagnostic))
+    return false;
 
-  for (const CoinRenderCompositionItem & item : order) {
-    const CoinRenderDrawPacket & draw = frame.draws[item.drawIndex];
-    const CoinRenderRenderStateSnapshot & state = frame.renderStates[draw.renderStateSlot];
+  for (const CoinRenderCompositionItem& item : order) {
+    CoinRenderDrawPacket draw = frame.draws[item.drawIndex];
+    draw.geometry.firstIndex = item.firstIndex;
+    draw.geometry.indexCount = item.indexCount;
+    const CoinRenderRenderStateSnapshot& state = frame.renderStates[draw.renderStateSlot];
     const CoinRenderViewportSnapshot & viewport = frame.viewports[state.viewportSlot];
     if ((state.cullMode != CoinRenderCullMode::NONE && state.cullMode != CoinRenderCullMode::BACK &&
          state.cullMode != CoinRenderCullMode::FRONT) ||
@@ -252,6 +255,17 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     lowered.indexCount = draw.geometry.indexCount;
     lowered.cullMode = state.cullMode;
     lowered.frontFace = state.frontFace;
+    // The current layer compositor publishes color over the opaque depth.
+    // Reject effective states this mechanism cannot preserve before submission.
+    if (item.blend && item.deferred &&
+        item.transparencyStrategy == CoinRenderCompositionItem::SORTED_LAYERS &&
+        (item.depthWrite || !item.depthTest ||
+         (item.depthFunction != CoinRenderDepthFunction::LESS &&
+          item.depthFunction != CoinRenderDepthFunction::LEQUAL &&
+          item.depthFunction != CoinRenderDepthFunction::NEVER))) {
+      diagnostic = "BGFX sorted layers requires depth test LESS/LEQUAL/NEVER and no transparent depth writes";
+      return false;
+    }
     lowered.depthTest = item.depthTest;
     lowered.depthWrite = item.depthWrite;
     lowered.depthFunction = item.depthFunction;
@@ -387,67 +401,9 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
         static_cast<uint32_t>(candidate.vertices.size()));
       candidate.vertices.push_back(vertex);
     }
-    if (item.blend && item.sortTriangles && state.polygonOffsetPrimitiveStyle == 1) {
-      const uint32_t first = lowered.firstIndex;
-      std::vector<uint32_t> triangles(lowered.indexCount / 3);
-      for (uint32_t t = 0; t < triangles.size(); ++t) triangles[t] = t;
-      const auto depth = [&](uint32_t t) {
-        float z = 0;
-        for (uint32_t v = 0; v < 3; ++v)
-          z += candidate.vertices[candidate.indices[first + t * 3 + v]].viewPosition[2];
-        return z;
-      };
-      std::stable_sort(triangles.begin(), triangles.end(),
-        [&](uint32_t a, uint32_t b) { return depth(a) < depth(b); });
-      std::vector<uint32_t> sorted;
-      sorted.reserve(lowered.indexCount);
-      for (auto t : triangles) for (uint32_t v = 0; v < 3; ++v)
-        sorted.push_back(candidate.indices[first + t * 3 + v]);
-      std::copy(sorted.begin(), sorted.end(), candidate.indices.begin() + first);
-    }
     candidate.draws.push_back(lowered);
   }
 
-  // Material binding may split a single Coin shape into multiple packets.
-  // Sort all of that shape's triangles, not just each material run separately.
-  std::vector<CoinBgfxDraw> sortedDraws;
-  for (size_t begin = 0; begin < candidate.draws.size();) {
-    size_t end = begin + 1;
-    const auto & first = candidate.draws[begin];
-    if (first.sortTriangles && first.blend && first.sourceNodeId && first.renderLayer == 0) {
-      while (end < candidate.draws.size()) {
-        const auto & next = candidate.draws[end];
-        if (!next.sortTriangles || !next.blend || next.sourceNodeId != first.sourceNodeId ||
-            next.renderLayer != first.renderLayer || std::memcmp(next.mvp, first.mvp, sizeof(first.mvp)) != 0) break;
-        ++end;
-      }
-    }
-    if (end == begin + 1) sortedDraws.push_back(first);
-    else {
-      std::vector<CoinBgfxDraw> triangles;
-      for (size_t drawIndex = begin; drawIndex < end; ++drawIndex) {
-        const auto & source = candidate.draws[drawIndex];
-        for (uint32_t index = source.firstIndex; index < source.firstIndex + source.indexCount; index += 3) {
-          auto triangle = source;
-          triangle.firstIndex = index; triangle.indexCount = 3;
-          triangle.firstVertex = candidate.indices[index]; triangle.vertexCount = 3;
-          triangles.push_back(triangle);
-        }
-      }
-      const auto eyeZ = [&](const CoinBgfxDraw & draw) {
-        float z = 0;
-        for (uint32_t i = 0; i < 3; ++i)
-          z += candidate.vertices[candidate.indices[draw.firstIndex + i]].viewPosition[2];
-        return z;
-      };
-      std::stable_sort(triangles.begin(), triangles.end(), [&](const CoinBgfxDraw & a, const CoinBgfxDraw & b) {
-        return eyeZ(a) < eyeZ(b);
-      });
-      sortedDraws.insert(sortedDraws.end(), triangles.begin(), triangles.end());
-    }
-    begin = end;
-  }
-  candidate.draws.swap(sortedDraws);
   candidate.textures.reserve(frame.textures.size());
   for (const CoinRenderTextureImageSnapshot & source : frame.textures) {
     CoinBgfxTexture texture;
