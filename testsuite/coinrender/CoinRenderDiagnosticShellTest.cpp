@@ -4,9 +4,11 @@
 #include "src/config.h"
 #endif
 
+#include <Inventor/rendering/SoWgpuNativeSurface.h>
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 
 #include <cstring>
+#include <cstdlib>
 #include <iostream>
 #include <string>
 
@@ -23,6 +25,31 @@ int
 main()
 {
   bool ok = true;
+  // The same textual mode must reach targets in every compiled backend.
+  const char * oldMode = std::getenv("COIN_RENDER_TRANSPARENCY");
+  const std::string savedMode = oldMode ? oldMode : "";
+#ifdef _WIN32
+  _putenv_s("COIN_RENDER_TRANSPARENCY", "weighted_oit");
+#else
+  setenv("COIN_RENDER_TRANSPARENCY", "weighted_oit", 1);
+#endif
+  std::string optionsError;
+  ok &= check(CoinRenderDiagnosticShell::renderOptions(optionsError).transparency ==
+                COIN_RENDER_TRANSPARENCY_WEIGHTED_OIT && optionsError.empty(),
+              "common transparency option did not reach the selected backend");
+#ifdef _WIN32
+  _putenv_s("COIN_RENDER_TRANSPARENCY", "invalid");
+#else
+  setenv("COIN_RENDER_TRANSPARENCY", "invalid", 1);
+#endif
+  CoinRenderDiagnosticShell::renderOptions(optionsError);
+  ok &= check(!optionsError.empty(), "invalid common option was silently ignored");
+#ifdef _WIN32
+  _putenv_s("COIN_RENDER_TRANSPARENCY", oldMode ? savedMode.c_str() : "");
+#else
+  if (oldMode) setenv("COIN_RENDER_TRANSPARENCY", savedMode.c_str(), 1);
+  else unsetenv("COIN_RENDER_TRANSPARENCY");
+#endif
   struct Mapping {
     CoinRenderBackendStatus backend;
     CoinRenderAction::Status action;

@@ -176,6 +176,9 @@ separado; o contrato Coin de shader também permanece aberto por si só.
   publicam linhas/faces/raiz retida na Wiring; Core aplica geometria/estilo comuns.
 - [ ] **I05 — Seleção e camadas (P16/F01/F18):** BRep, roots, paths/clarificação,
   hover/depth, overlays e gates de build; diagnosticar o comportamento por caso.
+  Part/BRep, grade, on-top, links/arrays e documentos estão qualificados no
+  [perfil P16](coin-render-freecad-viewport.md); clarificação e outros consumidores
+  permanecem nesta frente ampliada.
 - [ ] **I06 — Kits/draggers/viewport (P16):** atualização por callback de escala,
   cache, resize e câmera; picking/manipulação continuam do Coin/host.
 - [ ] **I07 — Shaders Coin (F20):** inventariar consumidores reais adicionais,
@@ -215,3 +218,8 @@ O teste Python contém três cenários. `--check` reproduziu o inventário sem
 candidatos não revisados ou revisões órfãs. Logs locais em
 `/tmp/coin-p15-recording-tests.log`, `/tmp/coin-p15-bgfx-tests.log` e
 `/tmp/coin-p15-wgpu-tests.log`.
+
+O P16 atualizou a identidade do inventário após neutralizar a integração
+Quarter/CMake para CoinRender. As 33 classes, 47 overrides e classificações
+permanecem iguais; a qualificação Part/BRep está registrada separadamente no
+[contrato P16](coin-render-freecad-viewport.md).

@@ -4206,6 +4206,22 @@ pub extern "C" fn coin_wgpu_surface_submit(
             return CoinWgpuStatus::BackendError;
         }
 
+        if std::env::var_os("COIN_RENDER_TRACE_PHASES")
+            .or_else(|| std::env::var_os("COIN_WGPU_TRACE_PHASES"))
+            .is_some()
+        {
+            let info = dev.adapter.get_info();
+            let renderer = match info.backend {
+                wgpu::Backend::Vulkan => "vulkan",
+                wgpu::Backend::Gl => "opengl",
+                wgpu::Backend::Metal => "metal",
+                wgpu::Backend::Dx12 => "dx12",
+                _ => "other",
+            };
+            eprintln!("COIN_RENDER_PHASE wgpu_surface renderer={} vendor_id={:#x} device_id={:#x} device_type={:?} surface={} serial={} size={}x{}",
+                renderer, info.vendor, info.device, info.device_type,
+                surface_id, sub_serial, f.width, f.height);
+        }
         CoinWgpuStatus::Ok
     });
 

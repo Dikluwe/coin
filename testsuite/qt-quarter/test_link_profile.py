@@ -23,7 +23,13 @@ class LinkProfile(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             profile = Path(temporary) / 'profile'
             prepare_profile(profile, 'freecad-overlays')
-            self.assertFalse((profile / 'user.cfg').exists())
+            root = ET.parse(profile / 'user.cfg').getroot()
+            prefs = root.find("./FCParamGroup/FCParamGroup/FCParamGroup[@Name='Preferences']")
+            self.assertIsNone(prefs.find("FCParamGroup[@Name='DockWindows']"))
+            flags = prefs.findall("FCParamGroup[@Name='NotificationArea']/FCBool")
+            self.assertEqual({f.get('Name'): f.get('Value') for f in flags},
+                             {'NotificationAreaEnabled': '0',
+                              'NonIntrusiveNotificationsEnabled': '0'})
 
     def test_existing_profile_is_not_overwritten(self):
         with tempfile.TemporaryDirectory() as temporary:

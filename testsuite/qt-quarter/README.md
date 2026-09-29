@@ -69,7 +69,7 @@ CTest displays code 77 explicitly as skipped and code 78 as nonpassing.
 SKIP is emitted before launching Qt when DISPLAY is absent. GPU setup/render
 errors are conservatively FAIL, not converted into alleged GPU absence.
 A capability query alone is never sufficient to pass or to skip rendering.
-PASS must include a structured result, matching exit status, a BGFX submission
+PASS must include a structured result, matching exit status, a matching backend submission
 trace and the case's pixel/state assertions. Crashes, missing results, wrong
 executable/library, fallback and timeouts fail. `--require-hardware` also fails
 a PASS whose selected adapter cannot be identified as physical.
@@ -93,7 +93,7 @@ success policy or silently discard UNSUPPORTED cells.
 | recreate | destroy/recreate production Quarter viewport; valid pixels | process remains alive |
 | wheel-rotation | actual Qt input to Quarter; displayed pixels must change | default examiner navigation; no synthetic camera edit |
 | hover | real FreeCAD Face1 → Face2 preselection and displayed change | `--freecad` mandatory; no UI hit-test |
-| two-viewports | two distinct native BGFX surfaces; independent cameras; transparent second target; destroy initialization owner, resize survivor, reopen first and destroy second | object and weighted OIT; bounded GPU visibility wait without a forced frame; GL fallback, singleton rejection, corruption and crash all FAIL |
+| two-viewports | two distinct native GPU surfaces; independent cameras; transparent second target; destroy initialization owner, resize survivor, reopen first and destroy second | object and weighted OIT; bounded GPU visibility wait without a forced frame; GL fallback, singleton rejection, corruption and crash all FAIL |
 | freecad-multi | two tiled FreeCAD documents; independent cameras/preselection; fresh frames in both after resize/maximize/minimize; owner destruction leaves rendered survivor | object and weighted OIT; `--freecad` mandatory; API-driven preselection, not physical hover |
 | NaviCube | seven orientations (six axis-aligned plus one oblique); production GL vs WGPU RGB MAE <6 and label-contribution mask disagreement <35% | labelled/unlabelled pairs isolate text, including translucent labels; front text/rear occlusion evaluated against independent GL traversal |
 | NaviCube modes | object + weighted_oit × opaque + translucent; Vulkan + BGFX/OpenGL | all four combinations, all seven PNG pairs retained |
@@ -377,3 +377,29 @@ This is not a Gouraud-versus-fragment-PHONG parity test for arbitrary meshes.
 The runner now atomically checkpoints completed results after each cell.
 An interrupted matrix is partial, not approval of unexecuted cells. The
 lighting gate still requires all eight native cells and both GL references.
+
+## P16: common manager and live FreeCAD backend profile
+
+`run.py --backend bgfx` is the default. `--backend wgpu --renderer vulkan`
+requires a matching CoinWgpu installation and actual `wgpu_surface` submission
+traces. Initialization, a GL reference, a late fallback or another backend's
+trace cannot pass the requested native backend. Both use the common
+`COIN_RENDER_TRANSPARENCY` option. Hardware requirements are verified per session
+and per submitted wgpu adapter.
+
+`freecad-viewport` uses the actual Part workbench, nested links to an App::Part,
+a link array, selection identity and presented pixels, array changes,
+save/reopen, document/owner destruction, camera and idle. It detects Part/PartGui
+loaded from two different build trees, which can break host Type checks while
+leaving apparently valid Python shapes. Keep all host modules from the same
+build in the library path when testing copied build trees.
+
+Owned test profiles disable NotificationArea notifications before launching
+FreeCAD so profiling diagnostics do not cover screenshots. Existing profile
+files remain intact. Reference-capable cases can run one at a time with
+`--reference-gl --renderer opengl` and without `--require-hardware`; these report
+REFERENCE_PASS. The live qualification and its limits are recorded in
+[the P16 contract](../../docs/coin-render-freecad-viewport.md).
+
+Filters selecting zero variants are an error, never an empty successful matrix.
+The multi-document hover oracle selects visible Face6 in the shared axonometric camera.

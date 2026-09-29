@@ -12,7 +12,8 @@ class ResultGate(unittest.TestCase):
         self.assertEqual(select_variants(variants), variants)
         self.assertEqual(select_variants(variants, ['object'], [2]),
                          [('object', 'opaque', 2)])
-        self.assertEqual(select_variants(variants[:1], scales=[2]), [])
+        with self.assertRaisesRegex(ValueError, 'no test variants'):
+            select_variants(variants[:1], scales=[2])
 
     def test_lock_probe_does_not_activate_services(self):
         with patch('run.subprocess.run', return_value=SimpleNamespace(
@@ -51,6 +52,21 @@ class ResultGate(unittest.TestCase):
         self.assertEqual(classify(0, 'RESULT {"status":"REFERENCE_PASS"}')['status'], 'FAIL')
         self.assertEqual(classify(0, result, require_bgfx=False)['status'], 'PASS')
         self.assertEqual(classify(-11, result, require_bgfx=False)['status'], 'FAIL')
+
+    def test_wgpu_native_submission_and_backend_identity(self):
+        trace = ('COIN_RENDER_PHASE wgpu_surface renderer=vulkan vendor_id=0x1002 '
+                 'device_id=0x1636 device_type=IntegratedGpu surface=1 serial=3 size=640x480\n')
+        result = 'RESULT {"status":"PASS"}'
+        self.assertEqual(classify(0, trace + result, backend='wgpu')['status'], 'PASS')
+        self.assertEqual(classify(0, trace + result)['status'], 'FAIL')
+        self.assertEqual(classify(0, 'COIN_RENDER_PHASE bgfx lower_ms=1\n' + result,
+                                  backend='wgpu')['status'], 'FAIL')
+        self.assertEqual(classify(0, trace.replace('serial=3', 'serial=0') + result,
+                                  backend='wgpu')['status'], 'FAIL')
+        self.assertEqual(classify(0, trace + 'switching viewport to Coin/GL\n' + result,
+                                  backend='wgpu')['status'], 'FAIL')
+        self.assertEqual(classify(0, trace + 'RESULT {"status":"REFERENCE_PASS"}',
+                                  backend='wgpu')['status'], 'FAIL')
 
     def test_distinct_nonpasses(self):
         for code, status in [(77, 'SKIP'), (78, 'UNSUPPORTED'), (1, 'FAIL')]:

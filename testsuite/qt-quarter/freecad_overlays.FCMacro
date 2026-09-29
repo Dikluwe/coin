@@ -14,7 +14,7 @@ App.ParamGet('User parameter:BaseApp/Preferences/NotificationArea').SetBool(
 artifacts = Path(os.environ['COIN_TEST_ARTIFACTS'])
 artifacts.mkdir(parents=True, exist_ok=True)
 native = os.environ.get('FREECAD_COIN_WGPU') == '1'
-report = {'test': 'freecad-overlays', 'native': native, 'status': 'PASS'}
+report = {'test': 'freecad-overlays', 'native': native, 'reference_gl': not native, 'status': 'PASS'}
 images = {}
 
 def finish(error=None):

@@ -157,7 +157,11 @@ CoinRenderOptions CoinRenderDiagnosticShell::renderOptions(std::string& diagnost
   diagnostic.clear();
 #if defined(HAVE_COIN_BGFX)
   options.renderer = rendererOption(diagnostic);
-  const char* mode = std::getenv("COIN_BGFX_TRANSPARENCY");
+#endif
+  const char* mode = environmentOption("COIN_RENDER_TRANSPARENCY");
+#if defined(HAVE_COIN_BGFX)
+  if (!mode) mode = std::getenv("COIN_BGFX_TRANSPARENCY");
+#endif
   if (mode) {
     if (std::strcmp(mode, "auto") == 0)
       options.transparency = COIN_RENDER_TRANSPARENCY_COIN;
@@ -168,9 +172,8 @@ CoinRenderOptions CoinRenderDiagnosticShell::renderOptions(std::string& diagnost
     else if (std::strcmp(mode, "weighted_oit") == 0)
       options.transparency = COIN_RENDER_TRANSPARENCY_WEIGHTED_OIT;
     else
-      diagnostic = "COIN_BGFX_TRANSPARENCY must be auto, object, weighted_oit, or sorted_layers";
+      diagnostic = "CoinRender transparency must be auto, object, weighted_oit, or sorted_layers";
   }
-#endif
   const char* direct = environmentOption("COIN_RENDER_RTT_GPU_DIRECT");
   if (direct) {
     if (std::strcmp(direct, "1") == 0)

@@ -8,6 +8,7 @@
 #include <Inventor/rendering/CoinRenderSceneManager.h>
 #include <Inventor/rendering/CoinRenderNativeSurface.h>
 #include <Inventor/SoRenderManager.h>
+#include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/nodes/SoNode.h>
 #include <Inventor/SbViewportRegion.h>
 
@@ -74,6 +75,11 @@ CoinRenderManagerAdapter::syncFromRenderManager()
     : this->pimpl->source->getSceneGraph());
   this->pimpl->renderer->setBackgroundColor(this->pimpl->source->getBackgroundColor());
   this->pimpl->renderer->setViewportRegion(this->pimpl->source->getViewportRegion());
+  // Preserve the Coin policy selected by the host; backend options choose the
+  // GPU mechanism without changing the manager's transparency semantics.
+  this->pimpl->renderer->setTransparencyType(
+    static_cast<CoinRenderAction::TransparencyType>(
+      this->pimpl->source->getGLRenderAction()->getTransparencyType()));
   this->pimpl->status = this->pimpl->renderer->getLastStatus();
   this->pimpl->error = this->pimpl->renderer->getLastError();
   return this->pimpl->status != CoinRenderAction::BACKEND_ERROR;

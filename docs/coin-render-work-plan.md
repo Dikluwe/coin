@@ -121,8 +121,11 @@ Esta frente pode avançar junto das entregas funcionais, reutilizando testes exi
   SoImage/Text2/shaders/GL-only caracterizados; candidatos a P16 e oito frentes de
   fechamento registradas no [inventário e checklist P15](coin-render-node-inventory.md).
   Addons externos e suporte funcional amplo F19/F20 permanecem fora desse fechamento.
-- [ ] **P16 — Qt/manager/FreeCAD (F18/F01):** mesmas cenas e ações em GL/BGFX/wgpu:
-  expose, resize, seleção, overlays, links, arrays, documentos e montagens.
+- [x] **P16 — Qt/manager/FreeCAD (F18/F01), perfil Part/BRep:** mesmas cenas e
+  ações em GL/BGFX OpenGL/BGFX Vulkan/wgpu Vulkan: expose, resize, seleção,
+  grade/on-top, links aninhados, arrays, documentos e montagem App::Part.
+  [Contrato, matriz, reprodução e limites](coin-render-freecad-viewport.md).
+  Outros workbenches e bloqueios F19/F20 continuam no inventário P15.
 
 Fechamento: viewport real utilizável no perfil declarado, com evidência de interação.
 Cena exportada não substitui esse teste. P15 começa cedo para orientar prioridades;
@@ -173,9 +176,10 @@ limites; documentação e commit de evidência. Registrar implementação, execu
 qualificação separadamente. Rejeição explícita fecha diagnóstico, não suporte
 funcional. Atualizar Pxx e Axx/Fxx associados somente no escopo comprovado.
 
-**Próxima entrega concreta: P16 — Qt/manager/FreeCAD.** Começar por Part/BRep,
-seleção e viewer com caminhos de captura já existentes; comparar cenas e ações
-reais nos três executores. O [P15](coin-render-node-inventory.md) declara bloqueios
-em texto, imagem, rótulos e geometria GL-only: resolver dependências exigidas por
-cada caso antes de certificá-lo. Viewport parcialmente externo continua P04;
-formatos/estados RTT ampliados F14; profiling/memória e persistência P18/P19.
+**Próxima entrega concreta: P17 — campanha comparável.** Separar janela sem
+readback de offscreen; declarar device/build/resolução, warmup/vsync e modalidades
+suportadas; medir mediana/p95 e throughput preservando o contrato do Coin.
+O [perfil P16](coin-render-freecad-viewport.md) é a base de interação comprovada.
+Texto, imagem, rótulos e geometria GL-only seguem F19/F20/P15; viewport
+parcialmente externo continua P04; RTT ampliado F14; instrumentação/memória e
+persistência P18/P19.

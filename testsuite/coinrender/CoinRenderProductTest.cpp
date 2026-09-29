@@ -7,6 +7,7 @@
 #include <Inventor/SoDB.h>
 #include <Inventor/SoRenderManager.h>
 #include <Inventor/rendering/CoinRenderManagerAdapter.h>
+#include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/rendering/CoinRenderCapabilities.h>
 #include <Inventor/rendering/CoinRenderSceneManager.h>
 #include <Inventor/rendering/CoinRenderTarget.h>
@@ -164,7 +165,14 @@ int main() {
     source.setViewportRegion(SbViewportRegion(8, 8));
     source.setBackgroundColor(SbColor4f(0.3f, 0.2f, 0.1f, 1.0f));
 
+    source.getGLRenderAction()->setTransparencyType(SoGLRenderAction::SORTED_OBJECT_BLEND);
     CoinRenderManagerAdapter adapter(source, SbVec2i32(8, 8));
+    if (!check(adapter.getSceneManager()->getTransparencyType() == CoinRenderAction::SORTED_OBJECT_BLEND,
+               "adapter did not inherit the host transparency policy")) return 1;
+    source.getGLRenderAction()->setTransparencyType(SoGLRenderAction::BLEND);
+    if (!check(adapter.syncFromRenderManager() &&
+               adapter.getSceneManager()->getTransparencyType() == CoinRenderAction::BLEND,
+               "adapter did not synchronize a transparency policy change")) return 1;
 #if defined(HAVE_COIN_BGFX)
     adapter.getSceneManager()->getRenderTarget()->setDepthReadbackEnabled(FALSE);
 #endif

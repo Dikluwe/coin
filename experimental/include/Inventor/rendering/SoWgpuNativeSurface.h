@@ -10,6 +10,7 @@
 #define COIN_WGPU_SURFACE_XLIB COIN_RENDER_SURFACE_XLIB
 typedef CoinRenderNativeSurfaceDescriptor SoWgpuNativeSurfaceDescriptor;
 typedef CoinRenderNativeSurfaceType SoWgpuNativeSurfaceType;
+class CoinRenderTarget;
 typedef CoinRenderTarget SoWgpuRenderTarget;
 
 #endif // COIN_RENDER_LEGACY_SOWGPUNATIVESURFACE_H

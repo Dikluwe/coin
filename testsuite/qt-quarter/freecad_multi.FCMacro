@@ -1,4 +1,4 @@
-# Real FreeCAD multi-document cameras and preselection, using native BGFX targets.
+# Real FreeCAD multi-document cameras and preselection in native backends or GL reference.
 import json
 import os
 import traceback
@@ -12,7 +12,8 @@ except ImportError:
     QtWidgets = QtGui
 
 artifacts = Path(os.environ['COIN_TEST_ARTIFACTS'])
-report = {'test': 'freecad-multi', 'status': 'PASS'}
+reference = os.environ.get('COIN_TEST_GL_REFERENCE') == '1'
+report = {'test': 'freecad-multi', 'status': 'PASS', 'reference_gl': reference}
 docs = []
 views = []
 baseline = []
@@ -37,9 +38,9 @@ def quarters():
     return sorted(found, key=lambda w: (w.mapToGlobal(QtCore.QPoint()).x(), w.mapToGlobal(QtCore.QPoint()).y()))
 
 def capture(widget, name):
-    if (not widget.property('wgpuFrameCount') or widget.property('wgpuOpenGLViewport') or
-            widget.property('wgpuFallbackReason')):
-        raise RuntimeError('viewport did not submit native BGFX frames (fallback forbidden)')
+    if not reference and (not widget.property('wgpuFrameCount') or widget.property('wgpuOpenGLViewport') or
+                          widget.property('wgpuFallbackReason')):
+        raise RuntimeError('viewport did not submit native backend frames (fallback forbidden)')
     p = widget.mapToGlobal(QtCore.QPoint())
     image = widget.screen().grabWindow(0, p.x(), p.y(), widget.width(), widget.height()).toImage()
     if image.isNull() or not image.save(str(artifacts / (name + '.png'))):
@@ -95,7 +96,7 @@ def run_lifecycle(index):
             previous = stages[index-1][0]
             if previous != 'minimize':
                 for i,w in enumerate(views):
-                    if int(w.property('wgpuFrameCount')) <= stage_frames[i]:
+                    if not reference and int(w.property('wgpuFrameCount') or 0) <= stage_frames[i]:
                         raise RuntimeError(previous + ' did not submit a fresh frame for both targets')
                     capture(w, 'lifecycle-' + previous + '-' + str(i))
                 report.setdefault('lifecycle', []).append(previous)
@@ -105,7 +106,7 @@ def run_lifecycle(index):
             Gui.activeDocument().activeView().fitAll()
             QtCore.QTimer.singleShot(900, check_survivor)
             return
-        stage_frames = [int(w.property('wgpuFrameCount')) for w in views]
+        stage_frames = [int(w.property('wgpuFrameCount') or 0) for w in views]
         stages[index][1]()
         QtCore.QTimer.singleShot(1000, lambda: run_lifecycle(index+1))
     except Exception as error:
@@ -120,8 +121,11 @@ def check_camera():
         if changes[0] < 100 or changes[1] > 10:
             raise RuntimeError('camera update missing on first or leaked into second viewport')
         baseline = now
-        point = docs[0].Box.Shape.Faces[0].CenterOfMass
-        Gui.Selection.setPreselection(docs[0].Box, 'Face1', point.x, point.y, point.z)
+        # The upper face is visible in the axonometric camera in every executor.
+        # A hidden face is not a valid oracle for a visible hover highlight.
+        point = docs[0].Box.Shape.Faces[5].CenterOfMass
+        report['preselection_subname'] = 'Face6'
+        Gui.Selection.setPreselection(docs[0].Box, 'Face6', point.x, point.y, point.z)
         QtCore.QTimer.singleShot(800, check_preselection)
     except Exception as error:
         finish(error)

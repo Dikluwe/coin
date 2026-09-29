@@ -35,6 +35,8 @@ public:
   CoinRenderTarget * getRenderTarget() const;
   void setViewportRegion(const SbViewportRegion & viewport);
   void setBackgroundColor(const SbColor4f & color);
+  void setTransparencyType(CoinRenderAction::TransparencyType type);
+  CoinRenderAction::TransparencyType getTransparencyType() const;
   SbBool resize(const SbVec2i32 & framebufferSize);
   CoinRenderAction::Status render();
   CoinRenderAction::Status renderAsync(CoinRenderReadbackTicket & ticket);

@@ -97,6 +97,18 @@ CoinRenderSceneManager::setViewportRegion(const SbViewportRegion & viewport)
   this->pimpl->action->setViewportRegion(viewport);
 }
 
+void
+CoinRenderSceneManager::setTransparencyType(CoinRenderAction::TransparencyType type)
+{
+  this->pimpl->action->setTransparencyType(type);
+}
+
+CoinRenderAction::TransparencyType
+CoinRenderSceneManager::getTransparencyType() const
+{
+  return this->pimpl->action->getTransparencyType();
+}
+
 SbBool
 CoinRenderSceneManager::resize(const SbVec2i32 & framebufferSize)
 {
