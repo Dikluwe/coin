@@ -3237,6 +3237,26 @@ fn portable_format_features(features: wgpu::TextureFormatFeatures) -> u32 {
     result
 }
 
+// Read-only epoch of the existing default device. Zero means unavailable;
+// this query never creates or reconstructs a device.
+#[no_mangle]
+pub extern "C" fn coin_wgpu_default_device_generation() -> u64 {
+    std::panic::catch_unwind(|| {
+        let guard = match RUNTIME_CTX.lock() {
+            Ok(g) => g,
+            Err(_) => return 0,
+        };
+        if DEVICE_LOST_OCCURRED.load(Ordering::SeqCst) {
+            return 0;
+        }
+        guard
+            .as_ref()
+            .and_then(|rt| rt.device_state.as_ref())
+            .map_or(0, |device| device.generation.checked_add(1).unwrap_or(0))
+    })
+    .unwrap_or(0)
+}
+
 #[no_mangle]
 pub extern "C" fn coin_wgpu_query_runtime_capabilities(
     output: *mut CoinWgpuRuntimeCapabilities,

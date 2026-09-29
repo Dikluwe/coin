@@ -58,15 +58,12 @@
 #include "actions/CoinRenderActionP.h"
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 #include "rendering/coinrender/CoinRenderFrameReuseCore.h"
-#include "rendering/coinrender/CoinRenderImageCore.h"
+#include "rendering/coinrender/CoinRenderRttExecution.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include "rendering/coinrender/CoinRenderSelectionCore.h"
 #include "actions/SoSubActionP.h"
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
 #include "rendering/coinwgpu/CoinWgpuBackend.h"
-#include "rendering/coinwgpu/CoinWgpuFfi.h"
-#elif defined(HAVE_COIN_BGFX)
-#include "rendering/coinbgfx/CoinBgfxBackend.h"
 #elif defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
 #include "rendering/coinwgpu/CoinWgpuNativeBackend.h"
 #endif
@@ -139,15 +136,8 @@ CoinRenderAction::getViewportRegion(void) const
 void
 CoinRenderAction::setRenderTarget(CoinRenderTarget * target)
 {
-#if defined(HAVE_COIN_BGFX)
-  // The evaluation backend owns one process-wide BGFX instance. Switching
-  // targets must release the old instance so the new target can prepare it.
-  if (this->pimpl->target != target && this->pimpl->target != NULL &&
-      dynamic_cast<CoinBgfxBackend *>(
-        this->pimpl->target->getPimpl()->backend.get()) != NULL) {
-    this->pimpl->target->getPimpl()->backend.reset();
-  }
-#endif
+  if (this->pimpl->target != target && this->pimpl->target)
+    this->pimpl->target->getPimpl()->detachedFromAction();
   this->pimpl->target = target;
   this->pimpl->cachedRoot = NULL;
 }
@@ -534,46 +524,21 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   this->hasReentrancyError = false;
   bool planCacheAllowed = true;
 
-#if defined(HAVE_COIN_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_BGFX)
-  const bool ownsDirectTokens = !this->sceneTextureDirectTokens;
-  if (ownsDirectTokens) {
-    this->sceneTextureDirectTokens = std::make_shared<std::vector<uint64_t> >();
-  }
-  struct DirectTextureScope {
+  const bool ownsSceneTexturePlan = !this->sceneTexturePlan;
+  if (ownsSceneTexturePlan)
+    this->sceneTexturePlan =
+        std::make_shared<CoinRenderRttPlan>(this->executionOptions.sceneTexture);
+  struct SceneTexturePlanScope {
     CoinRenderActionP * action;
     bool owns;
-    ~DirectTextureScope() {
-      if (!owns) return;
-      for (uint64_t token : *action->sceneTextureDirectTokens) {
-#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-        coin_wgpu_release_texture(token);
-#endif
-      }
-#if defined(HAVE_COIN_BGFX)
-      if (action->target) {
-        CoinBgfxBackend * backend = dynamic_cast<CoinBgfxBackend *>(
-          action->target->getPimpl()->backend.get());
-        if (backend) backend->finishDirectTextures(*action->sceneTextureDirectTokens);
-      }
-#endif
-      action->sceneTextureDirectTokens.reset();
+    ~SceneTexturePlanScope() {
+      if (owns)
+        action->sceneTexturePlan.reset();
     }
-  } directTextureScope{this, ownsDirectTokens};
-
-  const bool ownsDirectPasses =
-      !this->directPasses && !this->planOnly && this->target &&
-      this->target->pimpl->kind == CoinRenderTargetP::KIND_OFFSCREEN &&
-      this->executionOptions.sceneTexture == COIN_RENDER_SCENE_TEXTURE_DIRECT;
-  if (ownsDirectPasses) {
-    this->directPasses = std::make_shared<std::vector<DirectPass> >();
-    planCacheAllowed = false;
-  }
-  struct DirectPassScope {
-    CoinRenderActionP * action;
-    bool owns;
-    ~DirectPassScope() { if (owns) action->directPasses.reset(); }
-  } directPassScope{this, ownsDirectPasses};
-#endif
+  } sceneTexturePlanScope{this, ownsSceneTexturePlan};
+  for (const auto& texture : this->lastValidPlan.textures)
+    if (texture.producerId)
+      planCacheAllowed = false;
   const bool traversalSkipped = planCacheAllowed && cacheRoot && this->hasLastValidPlan &&
     this->cachedRoot == cacheRoot && this->cachedRootId == cacheRoot->getNodeId() &&
     !this->cameraOnlyDirty && !this->cameraPatchInvalidated;
@@ -582,9 +547,6 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
                                this->lastValidPlan.revision)
     : CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::UNKNOWN, 0);
   this->sceneTexturePixels.clear();
-  if (!this->sceneTextureStagedBytes) {
-    this->sceneTextureStagedBytes = std::make_shared<size_t>(0);
-  }
   CoinRenderFramePlan plan;
   CoinRenderCameraOverlayUndo overlayUndo;
   struct CameraOverlayScope {
@@ -635,7 +597,6 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
 
   this->isApplying = false;
 
-  this->sceneTextureStagedBytes.reset();
   if (this->hasReentrancyError) {
     this->setDiagnostic(CoinRenderDiagnosticShell::action(
       CoinRenderAction::INVALID_SCENE, CoinRenderDiagnosticDomain::ACTION,
@@ -656,6 +617,8 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     return;
   }
   profilePlanned = ProfileClock::now();
+  if (!this->sceneTexturePlan->producers.empty())
+    planCacheAllowed = false;
   if (!traversalSkipped && !cameraOverlay) {
     plan.transparency = this->transparencyOptions;
     plan.transparency.mode = this->executionOptions.transparency;
@@ -671,7 +634,8 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     reuseDecision.kind == CoinRenderFrameReuseKind::REUSE &&
     this->hasLastValidPlan;
   const bool useCachedPlan = reusePreviousPlan || cameraOverlay;
-  const CoinRenderFramePlan & framePlan = useCachedPlan ? this->lastValidPlan : plan;
+  const CoinRenderFramePlan& capturedPlan = useCachedPlan ? this->lastValidPlan : plan;
+  const CoinRenderFramePlan& framePlan = capturedPlan;
 
   if (this->planOnly) {
     if (!useCachedPlan) {
@@ -682,22 +646,42 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     return;
   }
 
-  if (this->target == NULL) {
-    if (this->asyncTicket) {
-      this->setDiagnostic(CoinRenderDiagnosticShell::action(
+  if (this->target && this->target->getStatus() == CoinRenderTarget::TARGET_ERROR) {
+    this->setDiagnostic(CoinRenderDiagnosticShell::fromTarget(this->target->getStatus(),
+                                                              this->target->getLastError()));
+    return;
+  }
+  if (!this->target && this->asyncTicket) {
+    this->setDiagnostic(CoinRenderDiagnosticShell::action(
         CoinRenderAction::NO_TARGET, CoinRenderDiagnosticDomain::TARGET,
         SbString("applyAsync() requires an offscreen render target")));
+    return;
+  }
+  CoinRenderRttExecution rttExecution(this->target ? &this->target->getPimpl().get() : nullptr,
+                                      this->executionOptions);
+  CoinRenderFramePlan resolvedPlan;
+  const bool hasSceneTextures = !this->sceneTexturePlan->producers.empty();
+  if (hasSceneTextures) {
+    const auto prepared = rttExecution.prepare(*this->sceneTexturePlan, capturedPlan, resolvedPlan);
+    if (prepared.status != CoinRenderBackendStatus::SUCCESS) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::fromBackend(prepared));
       return;
     }
+  }
+  const CoinRenderFramePlan& executionPlan = hasSceneTextures ? resolvedPlan : capturedPlan;
+  const bool retainStagedPixels =
+      hasSceneTextures && this->sceneTexturePlan->mode == COIN_RENDER_SCENE_TEXTURE_STAGED;
+
+  if (this->target == NULL) {
     // Mode 0: Recording backend
-    this->lastRecordingLog = this->recordingBackend.recordToString(framePlan).c_str();
+    this->lastRecordingLog = this->recordingBackend.recordToString(executionPlan).c_str();
     this->recordingLogValid = true;
     if (!useCachedPlan) {
-      this->lastValidPlan = std::move(plan);
+      this->lastValidPlan = retainStagedPixels ? std::move(resolvedPlan) : std::move(plan);
       this->hasLastValidPlan = true;
     }
     if (cacheRoot) {
-      this->cachedRoot = cacheRoot;
+      this->cachedRoot = planCacheAllowed ? cacheRoot : NULL;
       this->cachedRootId = cacheRoot->getNodeId();
       if (cameraOverlay) this->cameraOnlyDirty = false;
       else if (!traversalSkipped)
@@ -708,131 +692,11 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     return;
   }
 
-  // Target provided: validate target status
-  if (this->target->getStatus() == CoinRenderTarget::TARGET_ERROR) {
-    const char * tgtErr = this->target->getLastError();
-    this->setDiagnostic(CoinRenderDiagnosticShell::fromTarget(
-      this->target->getStatus(), (tgtErr && tgtErr[0])
-        ? tgtErr : "Render target is in fatal TARGET_ERROR state"));
-    return;
-  }
-
-#if defined(HAVE_COIN_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_BGFX)
-  if (this->directPasses) {
-    auto setGraphFailure = [this](const CoinRenderFrameExecutionResult & result) {
-      this->setDiagnostic(CoinRenderDiagnosticShell::fromBackend(result));
-    };
-    // Validate every producer and the consumer before the first GPU submit.
-    // Child plans are appended in postorder, so only earlier IDs are legal.
-    for (size_t i = 0; i < this->directPasses->size(); ++i) {
-      const DirectPass & pass = (*this->directPasses)[i];
-      for (const CoinRenderTextureImageSnapshot & texture : pass.plan.textures) {
-        if (texture.gpuToken > i) {
-          this->setDiagnostic(CoinRenderDiagnosticShell::action(
-            CoinRenderAction::INVALID_SCENE,
-            CoinRenderDiagnosticDomain::FRAME_PLAN,
-            SbString("SoSceneTexture2 pass references a missing or future producer")));
-          return;
-        }
-      }
-      CoinRenderFrameExecutionResult check = CoinRenderTargetP::validateProfile(pass.plan, pass.size);
-      if (check.status != CoinRenderBackendStatus::SUCCESS) {
-        setGraphFailure(check);
-        return;
-      }
-    }
-    for (const CoinRenderTextureImageSnapshot & texture : plan.textures) {
-      if (texture.gpuToken > this->directPasses->size()) {
-        this->setDiagnostic(CoinRenderDiagnosticShell::action(
-          CoinRenderAction::INVALID_SCENE,
-          CoinRenderDiagnosticDomain::FRAME_PLAN,
-          SbString("Parent pass references a missing SoSceneTexture2 producer")));
-        return;
-      }
-    }
-    CoinRenderFrameExecutionResult rootCheck =
-      CoinRenderTargetP::validateProfile(plan, this->target->pimpl->size);
-    if (rootCheck.status != CoinRenderBackendStatus::SUCCESS) {
-      setGraphFailure(rootCheck);
-      return;
-    }
-
-    std::vector<uint64_t> resolved(this->directPasses->size() + 1, 0);
-    auto resolveTextures = [&resolved](CoinRenderFramePlan & frame) {
-      for (CoinRenderTextureImageSnapshot & texture : frame.textures) {
-        if (texture.gpuToken != 0) {
-          texture.gpuToken = resolved[static_cast<size_t>(texture.gpuToken)];
-          texture.contentDigest = texture.gpuToken;
-        }
-      }
-    };
-#if defined(HAVE_COIN_BGFX)
-    if (!this->target->pimpl->backend) {
-      this->target->pimpl->backend.reset(new CoinBgfxBackend());
-      const CoinRenderBackendStatus prepared =
-        this->target->pimpl->backend->prepare(this->target->getPimpl().get());
-      if (prepared != CoinRenderBackendStatus::SUCCESS) {
-        setGraphFailure(CoinRenderSubmitResult(prepared,
-          this->target->pimpl->backend->getLastError()));
-        return;
-      }
-    }
-    CoinBgfxBackend * directBgfx = dynamic_cast<CoinBgfxBackend *>(
-      this->target->pimpl->backend.get());
-    if (!directBgfx) {
-      setGraphFailure(CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED,
-        "SoSceneTexture2 direct graph requires the BGFX backend"));
-      return;
-    }
-#endif
-    for (size_t i = 0; i < this->directPasses->size(); ++i) {
-      const DirectPass & pass = (*this->directPasses)[i];
-      CoinRenderFramePlan childFrame = pass.plan;
-      resolveTextures(childFrame);
-#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-      std::unique_ptr<CoinRenderTarget> childTarget(
-          CoinRenderTargetP::createDirectOffscreen(pass.size, this->target->pimpl->options));
-      if (!childTarget || childTarget->getStatus() != CoinRenderTarget::TARGET_READY) {
-        this->setDiagnostic(CoinRenderDiagnosticShell::action(
-          CoinRenderAction::BACKEND_ERROR,
-          CoinRenderDiagnosticDomain::TARGET,
-          SbString("Cannot create planned SoSceneTexture2 offscreen target")));
-        return;
-      }
-      CoinRenderFrameExecutionResult result = childTarget->pimpl->executeFrame(childFrame);
-      if (result.status != CoinRenderBackendStatus::SUCCESS) {
-        setGraphFailure(result);
-        return;
-      }
-      const uint64_t token = childTarget->pimpl->directTextureToken;
-#else
-      uint64_t token = 0;
-      CoinRenderFrameExecutionResult result = directBgfx->submitDirectTexture(
-        childFrame, pass.size, pass.producerKey, token);
-      if (result.status != CoinRenderBackendStatus::SUCCESS) {
-        setGraphFailure(result);
-        return;
-      }
-#endif
-      if (!token) {
-        this->setDiagnostic(CoinRenderDiagnosticShell::action(
-          CoinRenderAction::BACKEND_ERROR,
-          CoinRenderDiagnosticDomain::BACKEND,
-          SbString("Planned SoSceneTexture2 pass returned no GPU texture")));
-        return;
-      }
-      resolved[i + 1] = token;
-      this->sceneTextureDirectTokens->push_back(token);
-    }
-    resolveTextures(plan);
-  }
-#endif
-
   // Execute frame on target
-  CoinRenderFrameExecutionResult execRes = this->asyncTicket
-    ? this->target->pimpl->executeFrameAsync(
-        framePlan, *this->asyncTicket, reuseDecision)
-    : this->target->pimpl->executeFrame(framePlan, reuseDecision);
+  CoinRenderFrameExecutionResult execRes =
+      this->asyncTicket
+          ? this->target->pimpl->executeFrameAsync(executionPlan, *this->asyncTicket, reuseDecision)
+          : this->target->pimpl->executeFrame(executionPlan, reuseDecision);
   if (execRes.status != CoinRenderBackendStatus::SUCCESS) {
     this->setDiagnostic(CoinRenderDiagnosticShell::fromBackend(execRes));
     return;
@@ -855,14 +719,14 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     std::cerr << CoinRenderDiagnosticShell::formatActionPhase(sample) << '\n';
   }
   if (!useCachedPlan) {
-    this->lastValidPlan = std::move(plan);
+    this->lastValidPlan = retainStagedPixels ? std::move(resolvedPlan) : std::move(plan);
     this->hasLastValidPlan = true;
     this->recordingLogValid = false;
   } else if (cameraOverlay) {
     this->recordingLogValid = false;
   }
   if (cacheRoot) {
-    this->cachedRoot = cacheRoot;
+    this->cachedRoot = planCacheAllowed ? cacheRoot : NULL;
     this->cachedRootId = cacheRoot->getNodeId();
     if (cameraOverlay) this->cameraOnlyDirty = false;
     else if (!traversalSkipped)
@@ -1004,99 +868,33 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
     return SoCallbackAction::CONTINUE;
   }
 
-  bool useDirect = false;
-#if !defined(HAVE_COIN_WGPU_RUST_BRIDGE) && !defined(HAVE_COIN_BGFX)
-  if (p->executionOptions.sceneTexture == COIN_RENDER_SCENE_TEXTURE_DIRECT) {
-    p->setDiagnostic(CoinRenderDiagnosticShell::action(
-        CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
-        SbString("Direct scene texture is not implemented; no fallback was applied")));
-    return SoCallbackAction::ABORT;
-  }
-#endif
-#if defined(HAVE_COIN_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_BGFX)
-  useDirect =
-      p->directPasses && p->executionOptions.sceneTexture == COIN_RENDER_SCENE_TEXTURE_DIRECT;
-#endif
-
   const SbVec2s size = texture->size.getValue();
   SoNode * scene = texture->scene.getValue();
-  if (!scene || size[0] <= 0 || size[1] <= 0 ||
-      size[0] > 2048 || size[1] > 2048) {
+  std::string diagnostic;
+  const SbVec2i32 passSize(size[0], size[1]);
+  const uint64_t sourceRevision = texture->getNodeId();
+  if (!scene || !p->sceneTexturePlan ||
+      !p->sceneTexturePlan->enter(sourceRevision, passSize, diagnostic)) {
     p->setDiagnostic(CoinRenderDiagnosticShell::action(
-      CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
-      SbString("SoSceneTexture2 requires a scene and dimensions in 1..2048")));
+        CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+        SbString(diagnostic.empty() ? "SoSceneTexture2 requires a scene and dimensions in 1..2048"
+                                    : diagnostic.c_str())));
     return SoCallbackAction::ABORT;
   }
-
-  // Direct RTT retains RGBA8 color and depth32 attachments simultaneously.
-  const size_t chargedBytes = size_t(size[0]) * size_t(size[1]) * (useDirect ? 8 : 4);
-  const size_t maxBudgetBytes = size_t(64) * 1024 * 1024;
-  if (!useDirect && chargedBytes > maxBudgetBytes - *p->sceneTextureStagedBytes) {
-    p->setDiagnostic(CoinRenderDiagnosticShell::action(
-      CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::TARGET,
-      SbString(useDirect
-        ? "SoSceneTexture2 GPU attachment budget exceeds 64 MiB per apply"
-        : "SoSceneTexture2 staged RGBA8 budget exceeds 64 MiB per apply")));
-    return SoCallbackAction::ABORT;
-  }
-
-  static thread_local std::vector<const SoSceneTexture2 *> activeTextures;
-  if (activeTextures.size() >= 8 ||
-      std::find(activeTextures.begin(), activeTextures.end(), texture) != activeTextures.end()) {
-    p->setDiagnostic(CoinRenderDiagnosticShell::action(
-      CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
-      SbString("SoSceneTexture2 dependency cycle or nesting beyond eight passes")));
-    return SoCallbackAction::ABORT;
-  }
-  activeTextures.push_back(texture);
-  struct ActiveTextureGuard {
-    std::vector<const SoSceneTexture2 *> & stack;
-    ~ActiveTextureGuard() { stack.pop_back(); }
-  } guard{activeTextures};
-
-  if (!useDirect) *p->sceneTextureStagedBytes += chargedBytes;
+  struct ActiveTextureScope {
+    CoinRenderRttPlan& graph;
+    ~ActiveTextureScope() { graph.leave(); }
+  } scope{*p->sceneTexturePlan};
   const SbVec4f background = texture->backgroundColor.getValue();
-#if defined(HAVE_COIN_BGFX)
-  // The evaluation backend owns a process-wide BGFX singleton. Release a
-  // previously prepared parent before executing staged child passes; the
-  // parent will be prepared again when its completed frame is submitted.
-  if (!useDirect && p->target != NULL &&
-      dynamic_cast<CoinBgfxBackend *>(p->target->getPimpl()->backend.get()) != NULL) {
-    p->target->getPimpl()->backend.reset();
-  }
-#endif
-  std::unique_ptr<CoinRenderTarget> childTarget;
-  if (!useDirect) {
-    childTarget.reset(
-        CoinRenderTarget::createOffscreen(SbVec2i32(size[0], size[1]), p->executionOptions));
-    if (!childTarget || childTarget->getStatus() != CoinRenderTarget::TARGET_READY) {
-      p->setDiagnostic(CoinRenderDiagnosticShell::action(
-        CoinRenderAction::BACKEND_ERROR, CoinRenderDiagnosticDomain::TARGET,
-        SbString("Cannot create SoSceneTexture2 offscreen target")));
-      return SoCallbackAction::ABORT;
-    }
-    // The staged SoSceneTexture2 path consumes RGBA8 only. Keeping the
-    // default CPU depth output enabled would reject this otherwise valid
-    // color-only pass on backends such as BGFX that do not publish depth.
-    if (!childTarget->setDepthReadbackEnabled(FALSE)) {
-      p->setDiagnostic(CoinRenderDiagnosticShell::action(
-        CoinRenderAction::BACKEND_ERROR, CoinRenderDiagnosticDomain::TARGET,
-        SbString("Cannot configure SoSceneTexture2 color-only offscreen target")));
-      return SoCallbackAction::ABORT;
-    }
-  }
   CoinRenderAction childAction(SbViewportRegion(size[0], size[1]));
-  childAction.pimpl->sceneTextureDirectTokens = p->sceneTextureDirectTokens;
-  childAction.pimpl->directPasses = p->directPasses;
-  childAction.pimpl->planOnly = useDirect;
+  childAction.pimpl->sceneTexturePlan = p->sceneTexturePlan;
+  childAction.pimpl->planOnly = true;
   childAction.pimpl->executionOptions = p->executionOptions;
-  childAction.setRenderTarget(childTarget.get());
   childAction.setTransparencyType(p->transparencyType);
   childAction.setSortedLayersNumPasses(static_cast<int>(p->transparencyOptions.layers));
   childAction.setTransparencyBufferBudget(p->transparencyOptions.bufferBudget);
-  childAction.setBackgroundColor(SbColor4f(background[0], background[1],
-                                           background[2], background[3]));
-  childAction.pimpl->sceneTextureStagedBytes = p->sceneTextureStagedBytes;
+  childAction.setBackgroundColor(
+      SbColor4f(background[0], background[1], background[2], background[3]));
   childAction.apply(scene);
   if (childAction.getLastStatus() != CoinRenderAction::SUCCESS) {
     p->setDiagnostic(CoinRenderDiagnosticShell::withContext(
@@ -1104,91 +902,41 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
       "SoSceneTexture2 subscene", childAction.getLastError()));
     return SoCallbackAction::ABORT;
   }
-
-#if defined(HAVE_COIN_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_BGFX)
-  if (useDirect) {
-    if (!p->directPasses || !childAction.pimpl->hasLastValidPlan) {
-      p->setDiagnostic(CoinRenderDiagnosticShell::action(
-        CoinRenderAction::BACKEND_ERROR, CoinRenderDiagnosticDomain::FRAME_PLAN,
-        SbString("SoSceneTexture2 direct pass was not planned")));
-      return SoCallbackAction::ABORT;
-    }
-    const SbVec2i32 passSize(size[0], size[1]);
-    const CoinRenderFramePlan & snapshot = childAction.pimpl->lastValidPlan;
-    uint64_t token = 0;
-    for (size_t i = 0; i < p->directPasses->size(); ++i) {
-      const CoinRenderActionP::DirectPass & existing = (*p->directPasses)[i];
-      if (existing.size == passSize && existing.plan.hasSamePayload(snapshot)) {
-        token = i + 1;
-        break;
-      }
-    }
-    if (!token) {
-      if (chargedBytes > maxBudgetBytes - *p->sceneTextureStagedBytes) {
-        p->setDiagnostic(CoinRenderDiagnosticShell::action(
-          CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::TARGET,
-          SbString("SoSceneTexture2 GPU attachment budget exceeds 64 MiB per apply")));
-        return SoCallbackAction::ABORT;
-      }
-      *p->sceneTextureStagedBytes += chargedBytes;
-      CoinRenderActionP::DirectPass pass;
-      pass.plan = std::move(childAction.pimpl->lastValidPlan);
-      pass.size = passSize;
-      pass.producerKey = static_cast<uint64_t>(
-        reinterpret_cast<uintptr_t>(texture));
-      p->directPasses->push_back(std::move(pass));
-      token = p->directPasses->size();
-    }
-    p->sceneTexturePixels.emplace_back(4, 0);
-    std::vector<uint8_t> & marker = p->sceneTexturePixels.back();
-    for (unsigned int i = 0; i < 4; ++i) marker[i] = static_cast<uint8_t>(token >> (i * 8));
-    SoMultiTextureImageElement::set(state, const_cast<SoSceneTexture2 *>(texture), 0,
-      SbVec2s(1, 1), 4, marker.data(),
+  CoinRenderRttProducer producer;
+  producer.plan = std::move(childAction.pimpl->lastValidPlan);
+  producer.size = passSize;
+  producer.sourceRevision = sourceRevision;
+  uint64_t producerId = 0;
+  if (!p->sceneTexturePlan->append(std::move(producer), producerId, diagnostic)) {
+    p->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::UNSUPPORTED,
+                                                       CoinRenderDiagnosticDomain::FRAME_PLAN,
+                                                       SbString(diagnostic.c_str())));
+    return SoCallbackAction::ABORT;
+  }
+  p->sceneTexturePixels.emplace_back(4, 0);
+  auto& marker = p->sceneTexturePixels.back();
+  for (unsigned int i = 0; i < 4; ++i)
+    marker[i] = static_cast<uint8_t>(producerId >> (i * 8));
+  SoMultiTextureImageElement::set(
+      state, const_cast<SoSceneTexture2*>(texture), 0, SbVec2s(1, 1), 4, marker.data(),
       static_cast<SoMultiTextureImageElement::Wrap>(texture->wrapS.getValue()),
       static_cast<SoMultiTextureImageElement::Wrap>(texture->wrapT.getValue()),
       SoMultiTextureImageElement::MODULATE, texture->blendColor.getValue());
-    SbVec2s markerSize;
-    int markerComponents = 0;
-    SoMultiTextureImageElement::Wrap ws, wt;
-    SoMultiTextureImageElement::Model model;
-    SbColor blend;
-    const unsigned char * image = SoMultiTextureImageElement::get(
-      state, 0, markerSize, markerComponents, ws, wt, model, blend);
-    if (!image || markerSize != SbVec2s(1, 1) || markerComponents != 4) {
-      p->setDiagnostic(CoinRenderDiagnosticShell::action(
+  SbVec2s markerSize;
+  int markerComponents = 0;
+  SoMultiTextureImageElement::Wrap ws, wt;
+  SoMultiTextureImageElement::Model model;
+  SbColor blend;
+  const unsigned char* image =
+      SoMultiTextureImageElement::get(state, 0, markerSize, markerComponents, ws, wt, model, blend);
+  if (!image || markerSize != SbVec2s(1, 1) || markerComponents != 4) {
+    p->setDiagnostic(CoinRenderDiagnosticShell::action(
         CoinRenderAction::BACKEND_ERROR, CoinRenderDiagnosticDomain::ACTION,
-        SbString("SoSceneTexture2 direct GPU marker was not retained by traversal state")));
-      return SoCallbackAction::ABORT;
-    }
-    p->builder.registerDirectTexture(image, token,
-      static_cast<uint32_t>(size[0]), static_cast<uint32_t>(size[1]), background[3] >= 1.0f);
-    SoMultiTextureEnabledElement::set(state, const_cast<SoSceneTexture2 *>(texture), 0, TRUE);
-    return SoCallbackAction::CONTINUE;
-  }
-#endif
-  std::vector<uint8_t> pixels;
-  childTarget->readbackRGBA(pixels);
-  const size_t required = size_t(size[0]) * size_t(size[1]) * 4;
-  if (pixels.size() != required) {
-    p->setDiagnostic(CoinRenderDiagnosticShell::action(
-      CoinRenderAction::BACKEND_ERROR, CoinRenderDiagnosticDomain::READBACK,
-      SbString("SoSceneTexture2 subscene returned incomplete RGBA8 readback")));
+        SbString("SoSceneTexture2 logical marker was not retained by traversal state")));
     return SoCallbackAction::ABORT;
   }
-  if (!CoinRenderImageCore::flipRgba8Rows(
-        pixels, SbVec2i32(static_cast<int32_t>(size[0]),
-                         static_cast<int32_t>(size[1])))) {
-    p->setDiagnostic(CoinRenderDiagnosticShell::action(
-      CoinRenderAction::BACKEND_ERROR, CoinRenderDiagnosticDomain::READBACK,
-      SbString("SoSceneTexture2 subscene returned invalid RGBA8 dimensions")));
-    return SoCallbackAction::ABORT;
-  }
-  p->sceneTexturePixels.push_back(std::move(pixels));
-  SoMultiTextureImageElement::set(state, const_cast<SoSceneTexture2 *>(texture), 0,
-    size, 4, p->sceneTexturePixels.back().data(),
-    static_cast<SoMultiTextureImageElement::Wrap>(texture->wrapS.getValue()),
-    static_cast<SoMultiTextureImageElement::Wrap>(texture->wrapT.getValue()),
-    SoMultiTextureImageElement::MODULATE, texture->blendColor.getValue());
+  p->builder.registerSceneTexture(image, producerId, uint32_t(size[0]), uint32_t(size[1]),
+                                  background[3] >= 1.0f);
   SoMultiTextureEnabledElement::set(state, const_cast<SoSceneTexture2 *>(texture), 0, TRUE);
   return SoCallbackAction::CONTINUE;
 }

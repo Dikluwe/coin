@@ -117,6 +117,7 @@ struct SharedBgfxRuntime {
   std::shared_ptr<bgfx::CallbackI> callback;
   bgfx::RendererType::Enum renderer = bgfx::RendererType::Count;
   unsigned int references = 0;
+  uint64_t generation = 0;
   std::vector<bool> viewBlocks;
 };
 
@@ -666,6 +667,7 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
       return CoinRenderBackendStatus::NOT_READY;
     }
     runtime.apiThread = std::this_thread::get_id();
+    ++runtime.generation;
     runtime.renderer = renderer;
     runtime.viewBlocks.assign(bgfx::getCaps()->limits.maxViews / targetViewCount, false);
   }
@@ -2146,6 +2148,16 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   return CoinRenderSubmitResult(CoinRenderBackendStatus::SUCCESS, "", ++this->serial);
 }
 
+CoinRenderDeviceDomain CoinBgfxBackend::resourceDomain() const {
+  if (!this->initialized || !this->onApiThread() ||
+      static_cast<CoinBgfxCallback*>(this->callback.get())->failed())
+    return {};
+  CoinRenderDeviceDomain result;
+  result.device = 1; // One BGFX runtime per process; generation distinguishes recreation.
+  result.generation = sharedRuntime().generation;
+  return result;
+}
+
 CoinRenderSubmitResult
 CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
                                        const SbVec2i32 & size,
@@ -2178,7 +2190,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
 
   DirectTextureResource * cachedResource = NULL;
   for (DirectTextureResource & resource : this->directTextures) {
-    if (resource.producerKey == producerKey) {
+    if (resource.producerKey == producerKey && !resource.inUse) {
       cachedResource = &resource;
       break;
     }

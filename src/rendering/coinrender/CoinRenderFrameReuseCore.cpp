@@ -29,10 +29,10 @@ sameTextures(const std::vector<CoinRenderTextureImageSnapshot> & a,
   for (size_t i = 0; i < a.size(); ++i) {
     const CoinRenderTextureImageSnapshot & x = a[i];
     const CoinRenderTextureImageSnapshot & y = b[i];
-    if (x.width != y.width || x.height != y.height ||
-        x.components != y.components || x.contentDigest != y.contentDigest ||
-        x.gpuToken != y.gpuToken || x.gpuOpaque != y.gpuOpaque ||
-        x.pixelsRgba != y.pixelsRgba) return false;
+    if (x.width != y.width || x.height != y.height || x.components != y.components ||
+        x.contentDigest != y.contentDigest || x.producerId != y.producerId ||
+        x.gpuToken != y.gpuToken || x.gpuOpaque != y.gpuOpaque || x.pixelsRgba != y.pixelsRgba)
+      return false;
   }
   return true;
 }
@@ -73,7 +73,8 @@ bool
 hasOpaqueConnectorResource(const CoinRenderFramePlan & plan)
 {
   for (const CoinRenderTextureImageSnapshot & texture : plan.textures) {
-    if (texture.gpuToken != 0) return true;
+    if (texture.producerId != 0 || texture.gpuToken != 0)
+      return true;
   }
   return false;
 }

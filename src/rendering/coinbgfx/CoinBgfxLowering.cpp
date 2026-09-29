@@ -409,6 +409,10 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     CoinBgfxTexture texture;
     texture.width = source.width;
     texture.height = source.height;
+    if (source.producerId) {
+      diagnostic = "Unresolved scene texture producer at BGFX execution boundary";
+      return false;
+    }
     texture.gpuToken = source.gpuToken;
     texture.pixelsRgba = source.pixelsRgba;
     candidate.textures.push_back(std::move(texture));

@@ -6,6 +6,11 @@
 
 class CoinRenderTargetP;
 
+struct CoinRenderDeviceDomain {
+  uint64_t device = 0;
+  uint64_t generation = 0;
+};
+
 enum class CoinRenderBackendStatus {
   SUCCESS = 0,
   NOT_READY,
@@ -36,6 +41,14 @@ public:
   virtual CoinRenderBackendStatus prepare(CoinRenderTargetP & target) = 0;
   virtual CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame,
                              CoinRenderTargetP & target) = 0;
+  virtual CoinRenderDeviceDomain resourceDomain() const { return {}; }
+  virtual CoinRenderSubmitResult submitRtt(const CoinRenderFramePlan&, const SbVec2i32&, uint64_t,
+                                           CoinRenderTargetP&, uint64_t&) {
+    return {CoinRenderBackendStatus::UNSUPPORTED,
+            "Direct scene texture is not implemented; no fallback was applied"};
+  }
+  virtual void finishRtt(const std::vector<uint64_t>&) {}
+  virtual bool stagedRttRequiresRelease() const { return false; }
   virtual void poll() = 0;
   virtual const std::string & getLastError() const = 0;
 };

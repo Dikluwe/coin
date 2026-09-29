@@ -55,6 +55,12 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
                         std::string & outDiagnostic)
 {
   outDiagnostic.clear();
+  for (const auto& texture : frame.textures) {
+    if (texture.producerId) {
+      outDiagnostic = "Unresolved scene texture producer at wgpu execution boundary";
+      return false;
+    }
+  }
   if (frame.revision != 0 && frame.revision == this->packedRevision) {
     uint64_t requiredBytes = 0;
     const bool needsPeeling =

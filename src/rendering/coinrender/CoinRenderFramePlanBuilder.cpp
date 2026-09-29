@@ -5,6 +5,7 @@
 #endif
 #include <iostream>
 #include "rendering/coinrender/CoinRenderFramePlanBuilder.h"
+#include "rendering/coinrender/CoinRenderImageCore.h"
 #include <Inventor/nodes/SoShape.h>
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/nodes/SoCone.h>
@@ -124,7 +125,7 @@ CoinRenderFramePlanBuilder::reset()
   this->nextAnnotationLayer = 1;
   this->annotationDepthClearPending = false;
   this->builderError.clear();
-  this->directTextures.clear();
+  this->sceneTextures.clear();
   this->nodeOccurrenceCount.clear();
   this->lightAttenuationByIndex.clear();
 }
@@ -189,11 +190,10 @@ CoinRenderFramePlanBuilder::endAnnotation()
   }
 }
 
-void
-CoinRenderFramePlanBuilder::registerDirectTexture(const unsigned char * image,
-                                               uint64_t token, uint32_t width, uint32_t height, bool opaque)
-{
-  this->directTextures[image] = DirectTexture{token, width, height, opaque};
+void CoinRenderFramePlanBuilder::registerSceneTexture(const unsigned char* image,
+                                                      uint64_t producerId, uint32_t width,
+                                                      uint32_t height, bool opaque) {
+  this->sceneTextures[image] = SceneTexture{producerId, width, height, opaque};
 }
 
 void
@@ -248,16 +248,6 @@ CoinRenderFramePlanBuilder::captureMaterial(SoCallbackAction * action, int mater
   uint32_t materialSlot = static_cast<uint32_t>(this->currentPlan.materials.size());
   this->currentPlan.materials.push_back(matSnap);
   return materialSlot;
-}
-
-static uint64_t computeFnv1a64(const uint8_t * data, size_t len)
-{
-  uint64_t hash = 14695981039346656037ULL;
-  for (size_t i = 0; i < len; ++i) {
-    hash ^= static_cast<uint64_t>(data[i]);
-    hash *= 1099511628211ULL;
-  }
-  return hash;
 }
 
 bool
@@ -422,19 +412,19 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
   rs.textureBlendColor[3] = 1.0f;
 
   // 7. Canonical RGBA8 conversion and strict opacity validation
-  const auto direct = this->directTextures.find(rawBytes);
-  bool isDirect = direct != this->directTextures.end() &&
-                  imgSize[0] == 1 && imgSize[1] == 1 && numComponents == 4;
-  if (isDirect) {
+  const auto sceneTexture = this->sceneTextures.find(rawBytes);
+  bool isSceneTexture = sceneTexture != this->sceneTextures.end() && imgSize[0] == 1 &&
+                        imgSize[1] == 1 && numComponents == 4;
+  if (isSceneTexture) {
     for (unsigned int i = 0; i < 4; ++i) {
-      if (rawBytes[i] != static_cast<uint8_t>(direct->second.token >> (i * 8))) {
-        isDirect = false;
+      if (rawBytes[i] != static_cast<uint8_t>(sceneTexture->second.producerId >> (i * 8))) {
+        isSceneTexture = false;
         break;
       }
     }
   }
-  uint32_t w = isDirect ? direct->second.width : static_cast<uint32_t>(imgSize[0]);
-  uint32_t h = isDirect ? direct->second.height : static_cast<uint32_t>(imgSize[1]);
+  uint32_t w = isSceneTexture ? sceneTexture->second.width : static_cast<uint32_t>(imgSize[0]);
+  uint32_t h = isSceneTexture ? sceneTexture->second.height : static_cast<uint32_t>(imgSize[1]);
   if (w > 8192 || h > 8192) {
     if (outError) *outError = "Texture dimensions exceed 8192";
     this->isUnsupported = true;
@@ -443,7 +433,7 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
   }
 
   std::vector<uint8_t> rgba;
-  if (!isDirect) {
+  if (!isSceneTexture) {
     size_t pixelCount = static_cast<size_t>(w) * static_cast<size_t>(h);
     rgba.resize(pixelCount * 4);
 
@@ -490,12 +480,14 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
   }
 
   // 8. Content digest & Image deduplication
-  uint64_t digest = isDirect ? direct->second.token : computeFnv1a64(rgba.data(), rgba.size());
+  uint64_t digest =
+      isSceneTexture ? sceneTexture->second.producerId : CoinRenderImageCore::rgba8Digest(rgba);
   uint32_t texSlot = UINT32_MAX;
   for (size_t i = 0; i < this->currentPlan.textures.size(); ++i) {
     const auto & t = this->currentPlan.textures[i];
     if (t.width == w && t.height == h && t.contentDigest == digest &&
-        t.gpuToken == (isDirect ? direct->second.token : 0) && t.pixelsRgba == rgba) {
+        t.producerId == (isSceneTexture ? sceneTexture->second.producerId : 0) &&
+        t.pixelsRgba == rgba) {
       texSlot = static_cast<uint32_t>(i);
       break;
     }
@@ -506,9 +498,9 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     tSnap.width = w;
     tSnap.height = h;
     tSnap.components = 4;
-    tSnap.gpuOpaque = isDirect && direct->second.opaque;
+    tSnap.gpuOpaque = isSceneTexture && sceneTexture->second.opaque;
     tSnap.contentDigest = digest;
-    tSnap.gpuToken = isDirect ? direct->second.token : 0;
+    tSnap.producerId = isSceneTexture ? sceneTexture->second.producerId : 0;
     tSnap.pixelsRgba = std::move(rgba);
     this->currentPlan.textures.push_back(std::move(tSnap));
   }

@@ -88,9 +88,12 @@ entre mecanismos ou aproximações visuais.
 
 ## 4. Integrar recursos, RTT e ciclo de vida
 
-- [ ] **P12 — Plano/ownership (A04/A06/F14):** dependências RTT comuns; identidade
-  opaca, produtor, device, geração, retenção e invalidação; retirar criação/liberação
-  de tokens concretos da action.
+- [x] **P12 — Plano/ownership (A04/A06/F14):** grafo comum staged/direto,
+  referências lógicas separadas de tokens GPU, revisão do produtor, owner/device,
+  gerações, retenção e invalidação. Captura sem execução de produtores; recursos
+  concretos pertencem à Infra. Alpha staged é decidido após resolução, no
+  [contrato P12](coin-render-rtt-ownership-contract.md). Formatos/estados ampliados,
+  publicação integral e recuperação permanecem em P13/P14.
 - [ ] **P13 — RTT/publicação (F14/F15/A09):** staged versus direto, formatos,
   orientação, dependências aninhadas, ciclos, falhas, tickets e publicação transacional.
 - [ ] **P14 — Múltiplos alvos/recuperação (F17):** isolamento, agendamento, orçamento,
@@ -156,7 +159,8 @@ limites; documentação e commit de evidência. Registrar implementação, execu
 qualificação separadamente. Rejeição explícita fecha diagnóstico, não suporte
 funcional. Atualizar Pxx e Axx/Fxx associados somente no escopo comprovado.
 
-**Próxima entrega concreta: P12 — plano/ownership de RTT.** Unificar identidade
-opaca, produtor, device e geração dos recursos, retenção/invalidação e dependências;
-retirar criação/liberação de tokens concretos da action. P13 qualificará execução
-e publicação staged/direta sobre esse contrato.
+**Próxima entrega concreta: P13 — execução e publicação de RTT.** Qualificar
+staged/direto sobre o grafo P12: formatos e orientação, preflight que depende dos
+resultados, limites concretos, tickets, falhas e publicação transacional.
+Viewport parcialmente externo acompanha P04; recuperação de múltiplos alvos,
+resize/destruição e perda/reconstrução geral do dispositivo acompanha P14.

@@ -32,6 +32,14 @@ public:
                                    const SbVec2i32 & size,
                                    uint64_t producerKey,
                                    uint64_t & token);
+  CoinRenderDeviceDomain resourceDomain() const override;
+  CoinRenderSubmitResult submitRtt(const CoinRenderFramePlan& frame, const SbVec2i32& size,
+                                   uint64_t producer, CoinRenderTargetP&,
+                                   uint64_t& token) override {
+    return submitDirectTexture(frame, size, producer, token);
+  }
+  void finishRtt(const std::vector<uint64_t>& tokens) override { finishDirectTextures(tokens); }
+  bool stagedRttRequiresRelease() const override { return true; }
   void releaseDirectTexture(uint64_t token);
   void finishDirectTextures(const std::vector<uint64_t> & usedTokens);
   struct AsyncEntry;

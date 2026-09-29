@@ -61,7 +61,8 @@ inline bool coin_render_transparency_strategy(
 // This function consumes captured data only; it never traverses or submits.
 inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
                                           std::vector<CoinRenderCompositionItem>& order,
-                                          std::string& diagnostic) {
+                                          std::string& diagnostic,
+                                          bool deferUnresolvedAlpha = false) {
   order.clear();
   uint64_t unusedBudget = 0;
   if (!coin_render_transparency_budget(1, 1, frame.transparency, false, unusedBudget, diagnostic))
@@ -137,6 +138,7 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
       }
     }
     const bool primaryAlpha = materialAlpha;
+    bool unresolvedAlpha = false;
     for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
       const CoinRenderTextureUnitSnapshot tex = coin_render_texture_unit(rs, unit);
       if (!tex.enabled)
@@ -145,10 +147,12 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
         diagnostic = "Invalid texture in composition order";
         return false;
       }
+      unresolvedAlpha = unresolvedAlpha || (frame.textures[tex.imageSlot].producerId != 0 &&
+                                            !frame.textures[tex.imageSlot].gpuOpaque);
       int8_t& cached = textureHasAlpha[tex.imageSlot];
       if (cached < 0) {
         const CoinRenderTextureImageSnapshot& texture = frame.textures[tex.imageSlot];
-        cached = texture.gpuToken != 0 && !texture.gpuOpaque ? 1 : 0;
+        cached = (texture.producerId != 0 || texture.gpuToken != 0) && !texture.gpuOpaque ? 1 : 0;
         for (size_t byte = 3; byte < texture.pixelsRgba.size(); byte += 4)
           if (texture.pixelsRgba[byte] != 255) {
             cached = 1;
@@ -248,8 +252,10 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
           item.transparencyStrategy == CoinRenderCompositionItem::SORTED_LAYERS
               ? COIN_RENDER_MECHANISM_PEELING
               : COIN_RENDER_MECHANISM_OBJECT;
-      const auto selection =
-          coin_render_requested_mechanism(frame.transparency.mode, required, true);
+      const auto selection = coin_render_requested_mechanism(deferUnresolvedAlpha && unresolvedAlpha
+                                                                 ? COIN_RENDER_TRANSPARENCY_COIN
+                                                                 : frame.transparency.mode,
+                                                             required, true);
       if (selection.reason != COIN_RENDER_SELECTION_SUPPORTED) {
         diagnostic = coin_render_selection_diagnostic(selection.reason);
         return false;

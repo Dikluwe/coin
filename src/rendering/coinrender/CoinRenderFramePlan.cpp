@@ -75,10 +75,10 @@ CoinRenderFramePlan::hasSamePayload(const CoinRenderFramePlan & other) const
   for (size_t i = 0; i < this->textures.size(); ++i) {
     const CoinRenderTextureImageSnapshot & x = this->textures[i];
     const CoinRenderTextureImageSnapshot & y = other.textures[i];
-    if (x.width != y.width || x.height != y.height ||
-        x.components != y.components || x.contentDigest != y.contentDigest ||
-        x.gpuToken != y.gpuToken || x.gpuOpaque != y.gpuOpaque ||
-        x.pixelsRgba != y.pixelsRgba) return false;
+    if (x.width != y.width || x.height != y.height || x.components != y.components ||
+        x.contentDigest != y.contentDigest || x.producerId != y.producerId ||
+        x.gpuToken != y.gpuToken || x.gpuOpaque != y.gpuOpaque || x.pixelsRgba != y.pixelsRgba)
+      return false;
   }
   return true;
 }
@@ -182,11 +182,16 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
     }
     const uint64_t expectedBytes = static_cast<uint64_t>(tex.width) *
       static_cast<uint64_t>(tex.height) * 4ULL;
-    if (tex.gpuToken == 0 && tex.pixelsRgba.size() != expectedBytes) {
+    if (tex.producerId && tex.gpuToken) {
+      if (outDiagnostic)
+        *outDiagnostic = "Texture cannot be both planned and resolved";
+      return false;
+    }
+    if (tex.producerId == 0 && tex.gpuToken == 0 && tex.pixelsRgba.size() != expectedBytes) {
       if (outDiagnostic) *outDiagnostic = "Texture pixel buffer size mismatch";
       return false;
     }
-    if (tex.gpuToken != 0 && !tex.pixelsRgba.empty()) {
+    if ((tex.producerId != 0 || tex.gpuToken != 0) && !tex.pixelsRgba.empty()) {
       if (outDiagnostic) *outDiagnostic = "GPU texture must not carry CPU pixels";
       return false;
     }

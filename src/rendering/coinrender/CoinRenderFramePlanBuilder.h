@@ -28,7 +28,8 @@ public:
   void endForeground();
   void endAnnotation();
 
-  void registerDirectTexture(const unsigned char * image, uint64_t token, uint32_t width, uint32_t height, bool opaque);
+  void registerSceneTexture(const unsigned char* image, uint64_t producerId, uint32_t width,
+                            uint32_t height, bool opaque);
   void addTriangle(SoCallbackAction * action,
                    const SoPrimitiveVertex * v0,
                    const SoPrimitiveVertex * v1,
@@ -100,8 +101,13 @@ private:
   std::string builderError;
   std::unordered_map<uint64_t, uint32_t> nodeOccurrenceCount;
   std::vector<SbVec3f> lightAttenuationByIndex;
-  struct DirectTexture { uint64_t token; uint32_t width; uint32_t height; bool opaque; };
-  std::unordered_map<const unsigned char *, DirectTexture> directTextures;
+  struct SceneTexture {
+    uint64_t producerId;
+    uint32_t width;
+    uint32_t height;
+    bool opaque;
+  };
+  std::unordered_map<const unsigned char*, SceneTexture> sceneTextures;
 };
 
 #endif // !COIN_RENDER_FRAME_PLAN_BUILDER_H

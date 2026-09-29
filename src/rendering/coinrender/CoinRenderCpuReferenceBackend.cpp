@@ -388,6 +388,11 @@ CoinRenderCpuReferenceBackend::prepare(CoinRenderTargetP & target)
 CoinRenderSubmitResult
 CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target)
 {
+  for (const auto& texture : frame.textures) {
+    if (texture.producerId || texture.gpuToken)
+      return {CoinRenderBackendStatus::UNSUPPORTED,
+              "CPU execution requires resolved scene texture pixels"};
+  }
   try {
     int width = target.size[0];
     int height = target.size[1];

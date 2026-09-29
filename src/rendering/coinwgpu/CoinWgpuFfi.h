@@ -289,6 +289,7 @@ CoinWgpuStatus coin_wgpu_submit_texture(
 );
 
 void coin_wgpu_release_texture(uint64_t token);
+uint64_t coin_wgpu_default_device_generation(void);
 void coin_wgpu_rtt_resource_counts(uint64_t * active, uint64_t * retired);
 
 /* Async offscreen submission keeps staging buffers in the bridge until poll/cancel.

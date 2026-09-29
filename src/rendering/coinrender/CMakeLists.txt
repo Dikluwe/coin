@@ -14,6 +14,7 @@ set(COIN_RENDER_SOURCES
 	CoinRenderCapabilities.cpp
 	CoinRenderSceneManager.cpp
 	CoinRenderCpuReferenceBackend.cpp
+	CoinRenderRttExecution.cpp
 	CoinRenderTarget.cpp
 	${PROJECT_SOURCE_DIR}/src/actions/CoinRenderAction.cpp
 )

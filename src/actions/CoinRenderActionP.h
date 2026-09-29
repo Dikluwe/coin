@@ -8,6 +8,7 @@
 #include "rendering/coinrender/CoinRenderFramePlanBuilder.h"
 #include "rendering/coinrender/CoinRenderFrameReuseCore.h"
 #include "rendering/coinrender/CoinRenderRecordingBackend.h"
+#include "rendering/coinrender/CoinRenderRttCore.h"
 #include <Inventor/sensors/SoNodeSensor.h>
 #include <string>
 #include <deque>
@@ -95,18 +96,8 @@ public:
   CoinRenderFramePlan lastValidPlan;
   // Owns staged scene-texture pixels for the entire parent traversal.
   std::deque<std::vector<uint8_t> > sceneTexturePixels;
-  // Shared reservation for staged RGBA8 or direct color+depth attachments.
-  std::shared_ptr<size_t> sceneTextureStagedBytes;
-
-  // Private GPU RTT tokens owned by the top-level apply, shared with children.
-  std::shared_ptr<std::vector<uint64_t> > sceneTextureDirectTokens;
-  struct DirectPass {
-    CoinRenderFramePlan plan;
-    SbVec2i32 size;
-    uint64_t producerKey = 0;
-  };
-  // Per-apply topological order; identifiers are one-based indices until submit.
-  std::shared_ptr<std::vector<DirectPass> > directPasses;
+  // Shared logical graph, containing no backend handles or resources.
+  std::shared_ptr<CoinRenderRttPlan> sceneTexturePlan;
   struct DelayedAnnotation {
     SoPath * path;
     int priority;

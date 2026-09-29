@@ -6,7 +6,7 @@ estão em `experimental/include`. Desde a Onda 6, esses headers e a biblioteca
 podem ser instalados com `COIN_INSTALL_RENDER_EXPERIMENTAL=ON`, mas continuam
 experimentais, fora da API e ABI públicas estáveis de `libCoin` no Coin 4.
 A ponte C++/Rust é privada e versionada
-(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=26` nesta revisão). Não promova esses
+(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=28` nesta revisão). Não promova esses
 headers a consumidores externos como se fossem estáveis.
 
 O guia de produto, a matriz de capacidades, o manager, os exemplos instaláveis,
@@ -18,8 +18,8 @@ o benchmark e a política de evolução para o Coin 5 estão em
 `apply(SoNode *)` reutiliza um único `CoinRenderFramePlan` por action quando o ponteiro
 da raiz e `SoNode::getNodeId()` continuam iguais. Notificações de descendentes,
 mudança de viewport, fundo ou fast path invalidam o plano. O cache é
-deliberadamente desligado na rota RTT GPU→GPU direta, cujos tokens pertencem
-a um único apply. O log textual de Recording é gerado de forma preguiçosa ao
+deliberadamente desligado quando há RTT staged ou direto. As referências de
+produtor pertencem a um único grafo de apply, e tokens GPU ficam na execução. O log textual de Recording é gerado de forma preguiçosa ao
 consultar `getRecordingLog()`; o backend Recording sem target continua com o
 mesmo conteúdo determinístico.
 
@@ -369,3 +369,20 @@ e evidência de perfis qualificados; oito unidades também são anunciadas pelo 
 A consulta de janela verifica adaptador, sem certificar apresentação ou paridade.
 Seleção tem motivos estruturados e rejeita conflitos sem fallback silencioso.
 API, matrizes e limites no [contrato P11](coin-render-selection-contract.md).
+
+
+## Evidência P12 — grafo RTT e ownership comum
+
+Staged e direto capturam o mesmo grafo topológico de produtores, sem GPU durante
+callbacks de `SoSceneTexture2`. A action registra referências lógicas; o Core
+valida dimensões, dependências, revisão/payload, orçamento e owner/device/gerações.
+A Infra resolve cópias em pixels ou tokens, retém recursos até os consumidores e
+aposenta-os também nas saídas com falha. Tokens concretos não ficam na action.
+
+Alpha staged desconhecido é resolvido antes da seleção definitiva; o último
+snapshot staged pode reter pixels CPU para o log Recording preservar a decisão
+real. A ABI privada de frames continua na revisão 28; a consulta do epoch vivo
+do dispositivo default é uma função aditiva. A06 e A04 fecham nos perfis atuais;
+F14/F15, publicação integral, formatos/estados ampliados, viewport externo e
+recuperação geral permanecem nas etapas próprias. Escopo, matriz de testes e
+limites: [contrato P12](coin-render-rtt-ownership-contract.md).

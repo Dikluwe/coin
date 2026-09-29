@@ -38,6 +38,10 @@ public:
   CoinRenderSubmitResult submitAsync(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
                            CoinRenderReadbackTicket & outTicket,
                            const CoinRenderFrameReuseDecision & reuse);
+  CoinRenderDeviceDomain resourceDomain() const override;
+  CoinRenderSubmitResult submitRtt(const CoinRenderFramePlan&, const SbVec2i32&, uint64_t,
+                                   CoinRenderTargetP&, uint64_t&) override;
+  void finishRtt(const std::vector<uint64_t>&) override;
   virtual void poll() override;
   virtual const std::string & getLastError() const override;
 

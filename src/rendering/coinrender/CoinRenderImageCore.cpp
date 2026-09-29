@@ -30,3 +30,12 @@ CoinRenderImageCore::flipRgba8Rows(std::vector<uint8_t> & pixels,
   }
   return true;
 }
+
+uint64_t CoinRenderImageCore::rgba8Digest(const std::vector<uint8_t>& pixels) {
+  uint64_t hash = 14695981039346656037ULL;
+  for (uint8_t value : pixels) {
+    hash ^= value;
+    hash *= 1099511628211ULL;
+  }
+  return hash;
+}

@@ -356,3 +356,30 @@ const std::string & CoinWgpuBackend::getLastError() const { return lastError; }
 bool CoinWgpuBackend::isAvailable() { return false; }
 std::string CoinWgpuBackend::getAdapterInfo() { return "None"; }
 #endif
+
+CoinRenderDeviceDomain CoinWgpuBackend::resourceDomain() const {
+  CoinRenderDeviceDomain result;
+  result.generation = coin_wgpu_default_device_generation();
+  result.device = result.generation ? 1 : 0; // Existing C++ executor uses the default device.
+  return result;
+}
+
+CoinRenderSubmitResult CoinWgpuBackend::submitRtt(const CoinRenderFramePlan& frame,
+                                                  const SbVec2i32& size, uint64_t,
+                                                  CoinRenderTargetP& parent, uint64_t& token) {
+  CoinRenderTargetP child;
+  child.options = parent.options;
+  child.optionsDiagnostic.clear();
+  child.directTextureOutput = true;
+  child.depthReadbackEnabled = false;
+  child.resize(size);
+  token = 0;
+  CoinRenderSubmitResult result = this->submit(frame, child);
+  token = child.directTextureToken;
+  return result;
+}
+
+void CoinWgpuBackend::finishRtt(const std::vector<uint64_t>& tokens) {
+  for (uint64_t token : tokens)
+    coin_wgpu_release_texture(token);
+}

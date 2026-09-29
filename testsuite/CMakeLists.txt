@@ -781,6 +781,23 @@ if(COIN_BUILD_RENDER)
 		set_tests_properties(CoinRenderAnnotationTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77)
 	endif()
 
+	add_executable(CoinRenderRttOwnershipTest coinrender/CoinRenderRttOwnershipTest.cpp)
+	set_target_properties(CoinRenderRttOwnershipTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinRenderRttOwnershipTest CoinRender Coin)
+	target_include_directories(CoinRenderRttOwnershipTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	add_test(NAME CoinRenderRttOwnershipTest COMMAND CoinRenderRttOwnershipTest)
+	set_tests_properties(CoinRenderRttOwnershipTest PROPERTIES TIMEOUT 30)
+	if(COIN_RENDER_BACKEND STREQUAL "BGFX")
+		foreach(renderer vulkan opengl)
+			add_test(NAME CoinRenderRttOwnership_${renderer} COMMAND CoinRenderRttOwnershipTest)
+			set_tests_properties(CoinRenderRttOwnership_${renderer} PROPERTIES TIMEOUT 30
+				ENVIRONMENT "COIN_BGFX_RENDERER=${renderer};COIN_BGFX_TRANSPARENCY=auto")
+		endforeach()
+	endif()
+
+
 	add_executable(CoinRenderSceneTextureTest coinrender/CoinRenderSceneTextureTest.cpp)
 	set_target_properties(CoinRenderSceneTextureTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 	target_link_libraries(CoinRenderSceneTextureTest CoinRender Coin)
@@ -808,6 +825,23 @@ if(COIN_BUILD_RENDER)
 	)
 	add_test(NAME CoinRenderSceneTextureBudgetTest COMMAND CoinRenderSceneTextureBudgetTest)
 	set_tests_properties(CoinRenderSceneTextureBudgetTest PROPERTIES TIMEOUT 240)
+
+	if(COIN_RENDER_BACKEND STREQUAL "BGFX")
+		foreach(renderer vulkan opengl)
+			foreach(mode staged direct)
+				if(mode STREQUAL "direct")
+					set(_rtt_direct 1)
+				else()
+					set(_rtt_direct 0)
+				endif()
+				foreach(fixture SceneTexture SceneTextureBudget)
+					add_test(NAME CoinRender${fixture}_${renderer}_${mode} COMMAND CoinRender${fixture}Test)
+					set_tests_properties(CoinRender${fixture}_${renderer}_${mode} PROPERTIES TIMEOUT 240
+						ENVIRONMENT "COIN_BGFX_RENDERER=${renderer};COIN_BGFX_TRANSPARENCY=auto;COIN_RENDER_RTT_GPU_DIRECT=${_rtt_direct}")
+				endforeach()
+			endforeach()
+		endforeach()
+	endif()
 
 	if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
 		add_test(NAME CoinRenderSceneTextureDirectTest COMMAND CoinRenderSceneTextureTest)

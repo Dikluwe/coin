@@ -35,6 +35,11 @@ public:
   uint64_t directTextureToken{0};
   std::vector<float> depthBuffer;   // Depth [0, 1] (offscreen software / CPU fallback)
   uint32_t generation{0};
+  static uint64_t allocateResourceOwnerId();
+  uint64_t resourceOwnerId{0};
+  uint64_t resourceGeneration{0};
+  CoinRenderBackendStatus prepareBackend();
+  void detachedFromAction();
   bool synchronousReadbackValid{true};
   bool borrowedReadbackValid{false}; // Only after a successful synchronous frame.
 
@@ -47,8 +52,6 @@ public:
 
   bool initWindow(const CoinRenderNativeSurfaceDescriptor & desc, const SbVec2i32 & fbSize);
   bool resize(const SbVec2i32 & newSize);
-  static CoinRenderTarget* createDirectOffscreen(const SbVec2i32& size,
-                                                 const CoinRenderOptions& options);
   void clear(float r, float g, float b, float a, float depthVal = 1.0f);
   void readbackRGBA(std::vector<uint8_t> & outRgba) const;
   void readbackDepth(std::vector<float> & outDepth) const;
@@ -56,7 +59,9 @@ public:
   uint64_t lastValidatedPlanRevision{0};
 
   // Preflight validation according to Onda 1 profile (Section 4.6)
-  static CoinRenderFrameExecutionResult validateProfile(const CoinRenderFramePlan & frame, const SbVec2i32 & targetSize);
+  static CoinRenderFrameExecutionResult validateProfile(const CoinRenderFramePlan& frame,
+                                                        const SbVec2i32& targetSize,
+                                                        bool deferUnresolvedAlpha = false);
   static bool validateProfile(const CoinRenderFramePlan & frame, std::string & outDiagnostic);
 
   // Render execution for target (offscreen or window)

@@ -36,6 +36,7 @@
 #include <cstring>
 #include <new>
 #include <cstdlib>
+#include <atomic>
 
 static_assert(sizeof(CoinRenderNativeSurfaceDescriptor) >= 32, "CoinRenderNativeSurfaceDescriptor size check");
 
@@ -58,6 +59,11 @@ prepareCpuDepthBuffer(const CoinRenderTargetP * target)
 
 // CoinRenderTargetP private implementation
 
+uint64_t CoinRenderTargetP::allocateResourceOwnerId() {
+  static std::atomic<uint64_t> nextOwner{1};
+  return nextOwner.fetch_add(1);
+}
+
 CoinRenderTargetP::CoinRenderTargetP(const SbVec2i32 & sz)
   : kind(KIND_OFFSCREEN),
     status(CoinRenderTarget::TARGET_READY),
@@ -68,6 +74,7 @@ CoinRenderTargetP::CoinRenderTargetP(const SbVec2i32 & sz)
     needsReconfigure(false),
     lastError("")
 {
+  this->resourceOwnerId = allocateResourceOwnerId();
   this->options = CoinRenderDiagnosticShell::renderOptions(this->optionsDiagnostic);
   this->resize(sz);
 }
@@ -167,6 +174,7 @@ CoinRenderTargetP::initWindow(const CoinRenderNativeSurfaceDescriptor & desc, co
 bool
 CoinRenderTargetP::resize(const SbVec2i32 & newSize)
 {
+  ++this->resourceGeneration;
   this->borrowedReadbackValid = false;
   this->lastValidatedPlanRevision = 0;
   if (this->kind == KIND_WINDOW) {
@@ -283,15 +291,15 @@ CoinRenderTargetP::readbackDepth(std::vector<float> & outDepth) const
   else outDepth.clear();
 }
 
-CoinRenderFrameExecutionResult
-CoinRenderTargetP::validateProfile(const CoinRenderFramePlan & frame, const SbVec2i32 & targetSize)
-{
+CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfile(const CoinRenderFramePlan& frame,
+                                                                  const SbVec2i32& targetSize,
+                                                                  bool deferUnresolvedAlpha) {
   std::string planDiag;
   if (!frame.isValid(&planDiag)) {
     return CoinRenderFrameExecutionResult{CoinRenderBackendStatus::BACKEND_ERROR, "Invalid CoinRenderFramePlan: " + planDiag};
   }
   std::vector<CoinRenderCompositionItem> compositionOrder;
-  if (!coin_render_composition_order(frame, compositionOrder, planDiag)) {
+  if (!coin_render_composition_order(frame, compositionOrder, planDiag, deferUnresolvedAlpha)) {
     return CoinRenderFrameExecutionResult{CoinRenderBackendStatus::UNSUPPORTED, planDiag};
   }
 
@@ -380,6 +388,33 @@ CoinRenderTargetP::validateProfile(const CoinRenderFramePlan & frame, std::strin
   return true;
 }
 
+void
+CoinRenderTargetP::detachedFromAction()
+{
+#if defined(HAVE_COIN_BGFX)
+  // Preserve the existing target-switch policy of the shared BGFX runtime.
+  if (dynamic_cast<CoinBgfxBackend *>(this->backend.get())) {
+    this->backend.reset();
+    ++this->resourceGeneration;
+  }
+#endif
+}
+
+CoinRenderBackendStatus CoinRenderTargetP::prepareBackend() {
+  if (!this->backend) {
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+    this->backend = std::unique_ptr<CoinRenderBackend>(new CoinWgpuBackend());
+#elif defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
+    this->backend = std::unique_ptr<CoinRenderBackend>(new CoinWgpuNativeBackend());
+#elif defined(HAVE_COIN_BGFX)
+    this->backend = std::unique_ptr<CoinRenderBackend>(new CoinBgfxBackend());
+#else
+    this->backend = std::unique_ptr<CoinRenderBackend>(new CoinRenderCpuReferenceBackend());
+#endif
+  }
+  return this->backend->prepare(*this);
+}
+
 CoinRenderFrameExecutionResult
 CoinRenderTargetP::executeFrame(const CoinRenderFramePlan & frame)
 {
@@ -462,18 +497,7 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
       this->status == CoinRenderTarget::TARGET_SURFACE_LOST ||
       this->status == CoinRenderTarget::TARGET_NOT_READY ||
       !this->backend) {
-    if (!this->backend) {
-#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-      this->backend = std::unique_ptr<CoinRenderBackend>(new CoinWgpuBackend());
-#elif defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
-      this->backend = std::unique_ptr<CoinRenderBackend>(new CoinWgpuNativeBackend());
-#elif defined(HAVE_COIN_BGFX)
-      this->backend = std::unique_ptr<CoinRenderBackend>(new CoinBgfxBackend());
-#else
-      this->backend = std::unique_ptr<CoinRenderBackend>(new CoinRenderCpuReferenceBackend());
-#endif
-    }
-    CoinRenderBackendStatus prep = this->backend->prepare(*this);
+    CoinRenderBackendStatus prep = this->prepareBackend();
     if (prep != CoinRenderBackendStatus::SUCCESS) {
       std::string lastErr = this->backend->getLastError();
       this->lastError = lastErr;
@@ -526,6 +550,7 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
       if (lastErr.empty()) lastErr = "WebGPU device lost during frame submission";
       this->lastError = lastErr;
       this->generation++;
+      ++this->resourceGeneration;
       this->backend.reset();
       this->status = CoinRenderTarget::TARGET_LOST;
       return CoinRenderSubmitResult(CoinRenderBackendStatus::DEVICE_LOST, lastErr, res.submissionSerial);
@@ -572,14 +597,6 @@ CoinRenderTarget *
 CoinRenderTarget::createOffscreen(const SbVec2i32 & size)
 {
   CoinRenderTarget * target = new CoinRenderTarget();
-  target->pimpl->resize(size);
-  return target;
-}
-
-CoinRenderTarget* CoinRenderTargetP::createDirectOffscreen(const SbVec2i32& size,
-                                                           const CoinRenderOptions& options) {
-  CoinRenderTarget* target = CoinRenderTarget::createOffscreen(size, options);
-  target->pimpl->directTextureOutput = true;
   target->pimpl->resize(size);
   return target;
 }

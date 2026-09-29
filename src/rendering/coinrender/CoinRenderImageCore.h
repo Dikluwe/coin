@@ -11,6 +11,7 @@
 // This type neither performs readback nor reports user-facing diagnostics.
 class CoinRenderImageCore {
 public:
+  COIN_RENDER_DLL_API static uint64_t rgba8Digest(const std::vector<uint8_t>& pixels);
   // Converts top-origin tightly packed RGBA8 rows to Coin's bottom-origin
   // texture convention. Invalid dimensions or byte counts leave pixels intact.
   COIN_RENDER_DLL_API static bool flipRgba8Rows(

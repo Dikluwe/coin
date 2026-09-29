@@ -161,7 +161,8 @@ struct CoinRenderTextureImageSnapshot {
   uint32_t height = 0;
   uint32_t components = 4; // Canonical RGBA8Unorm
   uint64_t contentDigest = 0;
-  uint64_t gpuToken = 0; // Private GPU RTT resource; zero means CPU pixels.
+  uint64_t producerId = 0; // Logical RTT dependency, scoped to one captured graph.
+  uint64_t gpuToken = 0;   // Execution-only connector handle; capture never sets it.
   bool gpuOpaque = false; // Proven by an opaque child clear and alpha-preserving blend.
   std::vector<uint8_t> pixelsRgba;
 };

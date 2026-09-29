@@ -23,6 +23,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -266,13 +267,11 @@ int main() {
              afterFailure == nestedColor,
              "second-pass rejection changed published parent frame", action)) return 1;
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-  const char * preflightMode = std::getenv("COIN_RENDER_RTT_GPU_DIRECT");
-  if (preflightMode && preflightMode[0] == '1' && preflightMode[1] == '\0') {
-    CoinWgpuCacheStats afterInvalidPass{};
-    coin_wgpu_get_cache_stats(&afterInvalidPass);
-    if (!check(afterInvalidPass.submission_serial == beforeInvalidPass.submission_serial,
-               "preflight submitted a child before rejecting the second pass", action)) return 1;
-  }
+  CoinWgpuCacheStats afterInvalidPass{};
+  coin_wgpu_get_cache_stats(&afterInvalidPass);
+  if (!check(afterInvalidPass.submission_serial == beforeInvalidPass.submission_serial,
+             "preflight submitted a child before rejecting the second pass", action))
+    return 1;
 #endif
   parent->removeChild(invalidSecond);
 
@@ -528,7 +527,88 @@ int main() {
   }
 #endif
 
+  CoinRenderOptions stagedOptions = target->getOptions();
+  stagedOptions.sceneTexture = COIN_RENDER_SCENE_TEXTURE_STAGED;
+  stagedOptions.transparency = COIN_RENDER_TRANSPARENCY_OBJECT;
+  action.setRenderTarget(nullptr);
   delete target;
+
+  // Unknown staged alpha must be resolved before deciding whether an OBJECT
+  // override conflicts with SORTED_LAYERS_BLEND. The transparent clear is
+  // fully covered by opaque geometry, so the resulting texture is opaque.
+  SoSeparator* opaqueScene = new SoSeparator;
+  opaqueScene->addChild(makeCamera());
+  SoLightModel* opaqueLighting = new SoLightModel;
+  opaqueLighting->model = SoLightModel::BASE_COLOR;
+  opaqueScene->addChild(opaqueLighting);
+  SoTransparencyType* childObjectMode = new SoTransparencyType;
+  childObjectMode->value = SoTransparencyType::SORTED_OBJECT_BLEND;
+  opaqueScene->addChild(childObjectMode);
+  SoMaterial* opaqueMaterial = new SoMaterial;
+  opaqueMaterial->diffuseColor.setValue(1, 0, 0);
+  opaqueScene->addChild(opaqueMaterial);
+  SoCoordinate3* fullCoverage = new SoCoordinate3;
+  const SbVec3f coverage[] = {SbVec3f(-10, -10, 0), SbVec3f(10, -10, 0), SbVec3f(10, 10, 0),
+                              SbVec3f(-10, 10, 0)};
+  fullCoverage->point.setValues(0, 4, coverage);
+  opaqueScene->addChild(fullCoverage);
+  SoIndexedFaceSet* opaqueFace = new SoIndexedFaceSet;
+  opaqueFace->coordIndex.setValues(0, 5, upperIndices);
+  opaqueScene->addChild(opaqueFace);
+  SoSceneTexture2* unknownAlpha = new SoSceneTexture2;
+  unknownAlpha->scene = opaqueScene;
+  unknownAlpha->size.setValue(16, 16);
+  unknownAlpha->backgroundColor.setValue(0, 0, 0, 0);
+  unknownAlpha->type = SoSceneTexture2::RGBA8;
+  SoSeparator* alphaParent = new SoSeparator;
+  alphaParent->ref();
+  alphaParent->addChild(makeCamera());
+  SoLightModel* alphaLighting = new SoLightModel;
+  alphaLighting->model = SoLightModel::BASE_COLOR;
+  alphaParent->addChild(alphaLighting);
+  SoTransparencyType* rootLayersMode = new SoTransparencyType;
+  rootLayersMode->value.setValue(static_cast<int>(CoinRenderAction::SORTED_LAYERS_BLEND));
+  alphaParent->addChild(rootLayersMode);
+  alphaParent->addChild(makeTexturedQuad(unknownAlpha));
+  {
+    std::unique_ptr<CoinRenderTarget> alphaTarget(
+        CoinRenderTarget::createOffscreen(SbVec2i32(32, 32), stagedOptions));
+    alphaTarget->setDepthReadbackEnabled(FALSE);
+    CoinRenderAction alphaAction(SbViewportRegion(32, 32));
+    alphaAction.setRenderTarget(alphaTarget.get());
+    alphaAction.apply(alphaParent);
+    std::vector<uint8_t> opaqueOutput;
+    alphaTarget->readbackRGBA(opaqueOutput);
+    const size_t center = (16u * 32u + 16u) * 4u;
+    if (!check(alphaAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+                   opaqueOutput.size() == 32u * 32u * 4u && opaqueOutput[center] > 100 &&
+                   opaqueOutput[center + 3] == 255,
+               "unknown staged alpha rejected a fully opaque texture", alphaAction))
+      return 1;
+    if (!check(std::string(alphaAction.getRecordingLog().getString()).find("pass=OPAQUE") !=
+                   std::string::npos,
+               "Recording log did not retain resolved staged alpha", alphaAction))
+      return 1;
+    const uint64_t opaqueSerial = alphaTarget->getLastSubmissionSerial();
+    opaqueMaterial->transparency = .5f;
+    alphaAction.apply(alphaParent);
+    std::vector<uint8_t> rejectedOutput;
+    alphaTarget->readbackRGBA(rejectedOutput);
+    if (!check(alphaAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+                   rejectedOutput == opaqueOutput &&
+                   alphaTarget->getLastSubmissionSerial() == opaqueSerial,
+               "resolved translucent texture bypassed the Coin mode conflict", alphaAction))
+      return 1;
+    opaqueMaterial->transparency = 0;
+    alphaAction.apply(alphaParent);
+    std::vector<uint8_t> recoveredOutput;
+    alphaTarget->readbackRGBA(recoveredOutput);
+    if (!check(alphaAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+                   recoveredOutput == opaqueOutput,
+               "staged alpha decision did not recover", alphaAction))
+      return 1;
+  }
+  alphaParent->unref();
   parent->unref();
   child->unref();
   std::cout << "CoinRenderSceneTextureTest passed\n";
