@@ -1,0 +1,1420 @@
+{
+  "schema": 1,
+  "freecad_revision": "228c679d78845c3fb6f5eb3d1a27f48aceab68b5",
+  "source_digest": "85c3f9d4e3397acf788bc174ac9a3a24e269698012856b94070eb62e0380d538",
+  "scope": [
+    "src/Gui",
+    "src/Mod"
+  ],
+  "special_types": [
+    "SoImage",
+    "SoText2",
+    "SoTexture3",
+    "SoTextureCubeMap",
+    "SoSceneTextureCubeMap",
+    "SoShadowGroup",
+    "SoShaderProgram",
+    "SoVertexShader",
+    "SoFragmentShader",
+    "SoGeometryShader"
+  ],
+  "scanned_files": 5123,
+  "gl_nodes": {
+    "SmSwitchboard": {
+      "methods": [
+        {
+          "method": "doAction",
+          "source": "src/Gui/Inventor/SmSwitchboard.cpp",
+          "line": 118,
+          "empty_body": false,
+          "sha256": "2e4192076a1a510d1b2b469d226fb9e263f3364b4afc277984f6d176a79d3162",
+          "action_types": []
+        },
+        {
+          "method": "GLRender",
+          "source": "src/Gui/Inventor/SmSwitchboard.cpp",
+          "line": 156,
+          "empty_body": false,
+          "sha256": "2e4192076a1a510d1b2b469d226fb9e263f3364b4afc277984f6d176a79d3162",
+          "action_types": []
+        },
+        {
+          "method": "callback",
+          "source": "src/Gui/Inventor/SmSwitchboard.cpp",
+          "line": 178,
+          "empty_body": false,
+          "sha256": "2e4192076a1a510d1b2b469d226fb9e263f3364b4afc277984f6d176a79d3162",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "CAPTURE_CANDIDATE",
+        "owner": "Wiring host + Core estado",
+        "next": "P16",
+        "reason": "Callback executa a mesma decisão doAction ou travessia do GL; qualificar paths, câmera, resize e overrides no host."
+      }
+    },
+    "So3DAnnotation": {
+      "methods": [
+        {
+          "method": "callback",
+          "source": "src/Gui/Inventor/So3DAnnotation.cpp",
+          "line": 148,
+          "empty_body": false,
+          "sha256": "b39bd1abaf5cd0b790f8c630e577d9165814fed3f2e740d4312af42247ed7a44",
+          "action_types": [
+            "SoWgpuRenderAction"
+          ]
+        },
+        {
+          "method": "GLRender",
+          "source": "src/Gui/Inventor/So3DAnnotation.cpp",
+          "line": 161,
+          "empty_body": false,
+          "sha256": "b39bd1abaf5cd0b790f8c630e577d9165814fed3f2e740d4312af42247ed7a44",
+          "action_types": []
+        },
+        {
+          "method": "GLRenderBelowPath",
+          "source": "src/Gui/Inventor/So3DAnnotation.cpp",
+          "line": 177,
+          "empty_body": false,
+          "sha256": "b39bd1abaf5cd0b790f8c630e577d9165814fed3f2e740d4312af42247ed7a44",
+          "action_types": []
+        },
+        {
+          "method": "GLRenderInPath",
+          "source": "src/Gui/Inventor/So3DAnnotation.cpp",
+          "line": 188,
+          "empty_body": false,
+          "sha256": "b39bd1abaf5cd0b790f8c630e577d9165814fed3f2e740d4312af42247ed7a44",
+          "action_types": []
+        },
+        {
+          "method": "GLRenderOffPath",
+          "source": "src/Gui/Inventor/So3DAnnotation.cpp",
+          "line": 199,
+          "empty_body": true,
+          "sha256": "b39bd1abaf5cd0b790f8c630e577d9165814fed3f2e740d4312af42247ed7a44",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "PARTIAL",
+        "owner": "Wiring host + Core camadas",
+        "next": "P16",
+        "reason": "Callback tem deferred paths sob FREECAD_COIN_WGPU_EXPERIMENTAL usando SoWgpuRenderAction. Nome legado não define executor: conferir flag e alias para CoinRender em cada build; qualificar ordem/depth/path no host."
+      }
+    },
+    "SoAutoZoomTranslation": {
+      "methods": [
+        {
+          "method": "GLRender",
+          "source": "src/Gui/Inventor/SoAutoZoomTranslation.cpp",
+          "line": 89,
+          "empty_body": false,
+          "sha256": "587511ee2d46f745c7fc93b1524308cf0ec32935eebd99ee0dbf1175850721e8",
+          "action_types": []
+        },
+        {
+          "method": "doAction",
+          "source": "src/Gui/Inventor/SoAutoZoomTranslation.cpp",
+          "line": 96,
+          "empty_body": false,
+          "sha256": "587511ee2d46f745c7fc93b1524308cf0ec32935eebd99ee0dbf1175850721e8",
+          "action_types": []
+        },
+        {
+          "method": "callback",
+          "source": "src/Gui/Inventor/SoAutoZoomTranslation.cpp",
+          "line": 136,
+          "empty_body": false,
+          "sha256": "587511ee2d46f745c7fc93b1524308cf0ec32935eebd99ee0dbf1175850721e8",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "CAPTURE_CANDIDATE",
+        "owner": "Wiring host + Core estado",
+        "next": "P16",
+        "reason": "Callback executa a mesma decisão doAction ou travessia do GL; qualificar paths, câmera, resize e overrides no host."
+      }
+    },
+    "SoBrepEdgeSet": {
+      "methods": [
+        {
+          "method": "callback",
+          "source": "src/Mod/Part/Gui/SoBrepEdgeSet.cpp",
+          "line": 294,
+          "empty_body": false,
+          "sha256": "ce0ce133a4b80bf2471cc29f41f0824d2f9a058c299a22859d76b58772ba4605",
+          "action_types": []
+        },
+        {
+          "method": "GLRender",
+          "source": "src/Mod/Part/Gui/SoBrepEdgeSet.cpp",
+          "line": 323,
+          "empty_body": false,
+          "sha256": "ce0ce133a4b80bf2471cc29f41f0824d2f9a058c299a22859d76b58772ba4605",
+          "action_types": []
+        },
+        {
+          "method": "GLRenderBelowPath",
+          "source": "src/Mod/Part/Gui/SoBrepEdgeSet.cpp",
+          "line": 488,
+          "empty_body": false,
+          "sha256": "ce0ce133a4b80bf2471cc29f41f0824d2f9a058c299a22859d76b58772ba4605",
+          "action_types": []
+        },
+        {
+          "method": "doAction",
+          "source": "src/Mod/Part/Gui/SoBrepEdgeSet.cpp",
+          "line": 630,
+          "empty_body": false,
+          "sha256": "ce0ce133a4b80bf2471cc29f41f0824d2f9a058c299a22859d76b58772ba4605",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "PARTIAL",
+        "owner": "Wiring contexto de seleção + Core composição",
+        "next": "P16",
+        "reason": "Callbacks locais já capturam seleção/material e geometria. Não certificam equivalência de delayed paths, clarificação, hover, depth e overlays GL; testar fonte com patches atuais."
+      }
+    },
+    "SoBrepFaceSet": {
+      "methods": [
+        {
+          "method": "doAction",
+          "source": "src/Mod/Part/Gui/SoBrepFaceSet.cpp",
+          "line": 217,
+          "empty_body": false,
+          "sha256": "5d41f37fa7f7faf24bf054c64ae800b9c66dcab427e6283e35237053ed14d32b",
+          "action_types": []
+        },
+        {
+          "method": "callback",
+          "source": "src/Mod/Part/Gui/SoBrepFaceSet.cpp",
+          "line": 668,
+          "empty_body": false,
+          "sha256": "5d41f37fa7f7faf24bf054c64ae800b9c66dcab427e6283e35237053ed14d32b",
+          "action_types": []
+        },
+        {
+          "method": "GLRender",
+          "source": "src/Mod/Part/Gui/SoBrepFaceSet.cpp",
+          "line": 692,
+          "empty_body": false,
+          "sha256": "5d41f37fa7f7faf24bf054c64ae800b9c66dcab427e6283e35237053ed14d32b",
+          "action_types": []
+        },
+        {
+          "method": "GLRenderBelowPath",
+          "source": "src/Mod/Part/Gui/SoBrepFaceSet.cpp",
+          "line": 806,
+          "empty_body": false,
+          "sha256": "5d41f37fa7f7faf24bf054c64ae800b9c66dcab427e6283e35237053ed14d32b",
+          "action_types": []
+        },
+        {
+          "method": "generatePrimitives",
+          "source": "src/Mod/Part/Gui/SoBrepFaceSet.cpp",
+          "line": 811,
+          "empty_body": false,
+          "sha256": "5d41f37fa7f7faf24bf054c64ae800b9c66dcab427e6283e35237053ed14d32b",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "PARTIAL",
+        "owner": "Wiring contexto de seleção + Core composição",
+        "next": "P16",
+        "reason": "Callbacks locais já capturam seleção/material e geometria. Não certificam equivalência de delayed paths, clarificação, hover, depth e overlays GL; testar fonte com patches atuais."
+      }
+    },
+    "SoBrepPointSet": {
+      "methods": [
+        {
+          "method": "callback",
+          "source": "src/Mod/Part/Gui/SoBrepPointSet.cpp",
+          "line": 188,
+          "empty_body": false,
+          "sha256": "e11011899f5a6315ad475e1690c539b36ede7206b7623ae7214355bac5ba69b0",
+          "action_types": []
+        },
+        {
+          "method": "GLRender",
+          "source": "src/Mod/Part/Gui/SoBrepPointSet.cpp",
+          "line": 205,
+          "empty_body": false,
+          "sha256": "e11011899f5a6315ad475e1690c539b36ede7206b7623ae7214355bac5ba69b0",
+          "action_types": []
+        },
+        {
+          "method": "GLRenderBelowPath",
+          "source": "src/Mod/Part/Gui/SoBrepPointSet.cpp",
+          "line": 343,
+          "empty_body": false,
+          "sha256": "e11011899f5a6315ad475e1690c539b36ede7206b7623ae7214355bac5ba69b0",
+          "action_types": []
+        },
+        {
+          "method": "doAction",
+          "source": "src/Mod/Part/Gui/SoBrepPointSet.cpp",
+          "line": 479,
+          "empty_body": false,
+          "sha256": "e11011899f5a6315ad475e1690c539b36ede7206b7623ae7214355bac5ba69b0",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "PARTIAL",
+        "owner": "Wiring contexto de seleção + Core composição",
+        "next": "P16",
+        "reason": "Callbacks locais já capturam seleção/material e geometria. Não certificam equivalência de delayed paths, clarificação, hover, depth e overlays GL; testar fonte com patches atuais."
+      }
+    },
+    "SoDatumLabel": {
+      "methods": [
+        {
+          "method": "generatePrimitives",
+          "source": "src/Gui/SoDatumLabel.cpp",
+          "line": 1204,
+          "empty_body": false,
+          "sha256": "bc4ee268f5d5aa433973a56a1dce9e18b48fdbed23b40a8352d99e0fe9f3686c",
+          "action_types": []
+        },
+        {
+          "method": "GLRender",
+          "source": "src/Gui/SoDatumLabel.cpp",
+          "line": 1661,
+          "empty_body": false,
+          "sha256": "bc4ee268f5d5aa433973a56a1dce9e18b48fdbed23b40a8352d99e0fe9f3686c",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "PARTIAL",
+        "owner": "Wiring preparação de rótulo + Core layout",
+        "next": "P03/F20 antes do P16 Sketcher/Measure",
+        "reason": "generatePrimitives depende de imgWidth/imgHeight preparados; GLRender prepara cena/raster e altera culling/transparência. Primitivas de picking não certificam rótulo completo em frame frio."
+      }
+    },
+    "SoDrawingGrid": {
+      "methods": [
+        {
+          "method": "callback",
+          "source": "src/Gui/Inventor/SoDrawingGrid.cpp",
+          "line": 136,
+          "empty_body": false,
+          "sha256": "959b2d9235c7bd9ad3c34af873c1606f2251a523bc3813d0870f3533745d312c",
+          "action_types": [
+            "SoWgpuRenderAction"
+          ]
+        },
+        {
+          "method": "GLRenderBelowPath",
+          "source": "src/Gui/Inventor/SoDrawingGrid.cpp",
+          "line": 149,
+          "empty_body": false,
+          "sha256": "959b2d9235c7bd9ad3c34af873c1606f2251a523bc3813d0870f3533745d312c",
+          "action_types": []
+        },
+        {
+          "method": "GLRenderInPath",
+          "source": "src/Gui/Inventor/SoDrawingGrid.cpp",
+          "line": 164,
+          "empty_body": false,
+          "sha256": "959b2d9235c7bd9ad3c34af873c1606f2251a523bc3813d0870f3533745d312c",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "PARTIAL",
+        "owner": "Wiring host + Core camadas",
+        "next": "P16",
+        "reason": "Callback tem deferred paths sob FREECAD_COIN_WGPU_EXPERIMENTAL usando SoWgpuRenderAction. Nome legado não define executor: conferir flag e alias para CoinRender em cada build; qualificar ordem/depth/path no host."
+      }
+    },
+    "SoFCBoundingBox": {
+      "methods": [
+        {
+          "method": "GLRender",
+          "source": "src/Gui/Inventor/SoFCBoundingBox.cpp",
+          "line": 129,
+          "empty_body": false,
+          "sha256": "f2a3eec643bf831fd1958dbc642fce8a0390a5b80e169295c1bf15047a3a4a2e",
+          "action_types": []
+        },
+        {
+          "method": "generatePrimitives",
+          "source": "src/Gui/Inventor/SoFCBoundingBox.cpp",
+          "line": 261,
+          "empty_body": true,
+          "sha256": "f2a3eec643bf831fd1958dbc642fce8a0390a5b80e169295c1bf15047a3a4a2e",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "BLOCKED",
+        "owner": "Wiring host + Core geometria",
+        "next": "F19/P16",
+        "reason": "generatePrimitives vazio; GLRender produz caixa/polos/polígono ou atravessa raiz privada. Não assumir primitivas de picking ou ancestral como substituto visual."
+      }
+    },
+    "SoFCColorBar": {
+      "methods": [
+        {
+          "method": "GLRenderBelowPath",
+          "source": "src/Gui/SoFCColorBar.cpp",
+          "line": 522,
+          "empty_body": false,
+          "sha256": "c6cb964c1d38043dad00a376f298a9419f93f8cb31e4d58950ed465785dfc291",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "PARTIAL",
+        "owner": "Wiring viewport + Core layout/texto",
+        "next": "P03/P16",
+        "reason": "Separator retido contém geometria e SoText2; prepareViewport roda em GLBelowPath. Qualificar atualização no callback e substituir texto ausente."
+      }
+    },
+    "SoFCControlPoints": {
+      "methods": [
+        {
+          "method": "GLRender",
+          "source": "src/Mod/Part/Gui/SoFCShapeObject.cpp",
+          "line": 241,
+          "empty_body": false,
+          "sha256": "93bf544c1b19ea3570a5a9586b1afa1eed724303df6fb1e47e14a03e9b985727",
+          "action_types": []
+        },
+        {
+          "method": "generatePrimitives",
+          "source": "src/Mod/Part/Gui/SoFCShapeObject.cpp",
+          "line": 287,
+          "empty_body": true,
+          "sha256": "93bf544c1b19ea3570a5a9586b1afa1eed724303df6fb1e47e14a03e9b985727",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "BLOCKED",
+        "owner": "Wiring host + Core geometria",
+        "next": "F19/P16",
+        "reason": "generatePrimitives vazio; GLRender produz caixa/polos/polígono ou atravessa raiz privada. Não assumir primitivas de picking ou ancestral como substituto visual."
+      }
+    },
+    "SoFCIndexedFaceSet": {
+      "methods": [
+        {
+          "method": "GLRender",
+          "source": "src/Mod/Mesh/Gui/SoFCIndexedFaceSet.cpp",
+          "line": 487,
+          "empty_body": false,
+          "sha256": "17fa4c87d677858ce18972ca6bcacac8bdd9cf29b91231fbeaf8ed1b8996be8d",
+          "action_types": []
+        },
+        {
+          "method": "doAction",
+          "source": "src/Mod/Mesh/Gui/SoFCIndexedFaceSet.cpp",
+          "line": 946,
+          "empty_body": false,
+          "sha256": "17fa4c87d677858ce18972ca6bcacac8bdd9cf29b91231fbeaf8ed1b8996be8d",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "PARTIAL",
+        "owner": "Wiring seleção Mesh + Core geometria",
+        "next": "P16",
+        "reason": "Faces herdadas são capturáveis; GLRender e doAction de ações especializadas têm seleção própria. Presença de doAction não prova sua execução no callback CoinRender."
+      }
+    },
+    "SoFCMeshGridNode": {
+      "methods": [
+        {
+          "method": "GLRender",
+          "source": "src/Mod/Mesh/Gui/SoFCMeshObject.cpp",
+          "line": 445,
+          "empty_body": false,
+          "sha256": "e68d0973c965db9a0015c10b6b0562683008c625916038db804dda2810417c27",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "BLOCKED",
+        "owner": "Wiring host + Core linhas",
+        "next": "F19/P16 Mesh",
+        "reason": "SoNode desenha grid diretamente com glBegin(GL_LINES), sem callback equivalente ou primitivas; publicar geometria lógica antes da Infra."
+      }
+    },
+    "SoFCMeshObjectBoundary": {
+      "methods": [
+        {
+          "method": "GLRender",
+          "source": "src/Mod/Mesh/Gui/SoFCMeshObject.cpp",
+          "line": 1665,
+          "empty_body": false,
+          "sha256": "e68d0973c965db9a0015c10b6b0562683008c625916038db804dda2810417c27",
+          "action_types": []
+        },
+        {
+          "method": "generatePrimitives",
+          "source": "src/Mod/Mesh/Gui/SoFCMeshObject.cpp",
+          "line": 1711,
+          "empty_body": false,
+          "sha256": "e68d0973c965db9a0015c10b6b0562683008c625916038db804dda2810417c27",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "CAPTURE_CANDIDATE",
+        "owner": "Wiring elemento Mesh + Core primitivas",
+        "next": "P16",
+        "reason": "MeshObjectNode instala SoFCMeshObjectElement no callback; shapes emitem primitivas. Qualificar bindings, segmentos, fronteiras e aproximação renderTriangleLimit versus GL."
+      }
+    },
+    "SoFCMeshObjectNode": {
+      "methods": [
+        {
+          "method": "doAction",
+          "source": "src/Mod/Mesh/Gui/SoFCMeshObject.cpp",
+          "line": 538,
+          "empty_body": false,
+          "sha256": "e68d0973c965db9a0015c10b6b0562683008c625916038db804dda2810417c27",
+          "action_types": []
+        },
+        {
+          "method": "GLRender",
+          "source": "src/Mod/Mesh/Gui/SoFCMeshObject.cpp",
+          "line": 544,
+          "empty_body": false,
+          "sha256": "e68d0973c965db9a0015c10b6b0562683008c625916038db804dda2810417c27",
+          "action_types": []
+        },
+        {
+          "method": "callback",
+          "source": "src/Mod/Mesh/Gui/SoFCMeshObject.cpp",
+          "line": 550,
+          "empty_body": false,
+          "sha256": "e68d0973c965db9a0015c10b6b0562683008c625916038db804dda2810417c27",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "CAPTURE_CANDIDATE",
+        "owner": "Wiring elemento Mesh + Core primitivas",
+        "next": "P16",
+        "reason": "MeshObjectNode instala SoFCMeshObjectElement no callback; shapes emitem primitivas. Qualificar bindings, segmentos, fronteiras e aproximação renderTriangleLimit versus GL."
+      }
+    },
+    "SoFCMeshObjectShape": {
+      "methods": [
+        {
+          "method": "GLRender",
+          "source": "src/Mod/Mesh/Gui/SoFCMeshObject.cpp",
+          "line": 632,
+          "empty_body": false,
+          "sha256": "e68d0973c965db9a0015c10b6b0562683008c625916038db804dda2810417c27",
+          "action_types": []
+        },
+        {
+          "method": "doAction",
+          "source": "src/Mod/Mesh/Gui/SoFCMeshObject.cpp",
+          "line": 954,
+          "empty_body": false,
+          "sha256": "e68d0973c965db9a0015c10b6b0562683008c625916038db804dda2810417c27",
+          "action_types": []
+        },
+        {
+          "method": "generatePrimitives",
+          "source": "src/Mod/Mesh/Gui/SoFCMeshObject.cpp",
+          "line": 1091,
+          "empty_body": false,
+          "sha256": "e68d0973c965db9a0015c10b6b0562683008c625916038db804dda2810417c27",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "CAPTURE_CANDIDATE",
+        "owner": "Wiring elemento Mesh + Core primitivas",
+        "next": "P16",
+        "reason": "MeshObjectNode instala SoFCMeshObjectElement no callback; shapes emitem primitivas. Qualificar bindings, segmentos, fronteiras e aproximação renderTriangleLimit versus GL."
+      }
+    },
+    "SoFCMeshSegmentShape": {
+      "methods": [
+        {
+          "method": "GLRender",
+          "source": "src/Mod/Mesh/Gui/SoFCMeshObject.cpp",
+          "line": 1256,
+          "empty_body": false,
+          "sha256": "e68d0973c965db9a0015c10b6b0562683008c625916038db804dda2810417c27",
+          "action_types": []
+        },
+        {
+          "method": "generatePrimitives",
+          "source": "src/Mod/Mesh/Gui/SoFCMeshObject.cpp",
+          "line": 1512,
+          "empty_body": false,
+          "sha256": "e68d0973c965db9a0015c10b6b0562683008c625916038db804dda2810417c27",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "CAPTURE_CANDIDATE",
+        "owner": "Wiring elemento Mesh + Core primitivas",
+        "next": "P16",
+        "reason": "MeshObjectNode instala SoFCMeshObjectElement no callback; shapes emitem primitivas. Qualificar bindings, segmentos, fronteiras e aproximação renderTriangleLimit versus GL."
+      }
+    },
+    "SoFCPathAnnotation": {
+      "methods": [
+        {
+          "method": "callback",
+          "source": "src/Gui/Selection/SoFCUnifiedSelection.cpp",
+          "line": 2433,
+          "empty_body": false,
+          "sha256": "d699f1a731c629d2d7af35cd67f6f26221734c4625cf40bc59c760d3b43a0d02",
+          "action_types": [
+            "SoWgpuRenderAction"
+          ]
+        },
+        {
+          "method": "GLRender",
+          "source": "src/Gui/Selection/SoFCUnifiedSelection.cpp",
+          "line": 2562,
+          "empty_body": false,
+          "sha256": "d699f1a731c629d2d7af35cd67f6f26221734c4625cf40bc59c760d3b43a0d02",
+          "action_types": []
+        },
+        {
+          "method": "GLRenderBelowPath",
+          "source": "src/Gui/Selection/SoFCUnifiedSelection.cpp",
+          "line": 2605,
+          "empty_body": false,
+          "sha256": "d699f1a731c629d2d7af35cd67f6f26221734c4625cf40bc59c760d3b43a0d02",
+          "action_types": []
+        },
+        {
+          "method": "GLRenderInPath",
+          "source": "src/Gui/Selection/SoFCUnifiedSelection.cpp",
+          "line": 2736,
+          "empty_body": false,
+          "sha256": "d699f1a731c629d2d7af35cd67f6f26221734c4625cf40bc59c760d3b43a0d02",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "PARTIAL",
+        "owner": "Wiring host + Core camadas",
+        "next": "P16",
+        "reason": "Callback tem deferred paths sob FREECAD_COIN_WGPU_EXPERIMENTAL usando SoWgpuRenderAction. Nome legado não define executor: conferir flag e alias para CoinRender em cada build; qualificar ordem/depth/path no host."
+      }
+    },
+    "SoFCScreenSpaceGroup": {
+      "methods": [
+        {
+          "method": "doAction",
+          "source": "src/Gui/Inventor/SoFCScreenSpaceGroup.cpp",
+          "line": 121,
+          "empty_body": false,
+          "sha256": "cc2536b87fc82fea3ce16bae695021a5d43efeeb4ab620d11e877b3c8091b5ca",
+          "action_types": []
+        },
+        {
+          "method": "callback",
+          "source": "src/Gui/Inventor/SoFCScreenSpaceGroup.cpp",
+          "line": 127,
+          "empty_body": false,
+          "sha256": "cc2536b87fc82fea3ce16bae695021a5d43efeeb4ab620d11e877b3c8091b5ca",
+          "action_types": []
+        },
+        {
+          "method": "GLRenderBelowPath",
+          "source": "src/Gui/Inventor/SoFCScreenSpaceGroup.cpp",
+          "line": 143,
+          "empty_body": false,
+          "sha256": "cc2536b87fc82fea3ce16bae695021a5d43efeeb4ab620d11e877b3c8091b5ca",
+          "action_types": []
+        },
+        {
+          "method": "GLRenderInPath",
+          "source": "src/Gui/Inventor/SoFCScreenSpaceGroup.cpp",
+          "line": 157,
+          "empty_body": false,
+          "sha256": "cc2536b87fc82fea3ce16bae695021a5d43efeeb4ab620d11e877b3c8091b5ca",
+          "action_types": []
+        },
+        {
+          "method": "GLRenderOffPath",
+          "source": "src/Gui/Inventor/SoFCScreenSpaceGroup.cpp",
+          "line": 171,
+          "empty_body": true,
+          "sha256": "cc2536b87fc82fea3ce16bae695021a5d43efeeb4ab620d11e877b3c8091b5ca",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "CAPTURE_CANDIDATE",
+        "owner": "Wiring host + Core geometria/composição",
+        "next": "P16",
+        "reason": "Callback prepara estado e percorre geometria retida; generatePrimitives vazio no NaviCube não implica omissão, pois renderCoin atravessa callbackRoot."
+      }
+    },
+    "SoFCSelection": {
+      "methods": [
+        {
+          "method": "doAction",
+          "source": "src/Gui/Selection/SoFCSelection.cpp",
+          "line": 157,
+          "empty_body": false,
+          "sha256": "f4cfb9172cb9156383514379eeab57571ef660093ad7936fcde73c849bf2478b",
+          "action_types": []
+        },
+        {
+          "method": "callback",
+          "source": "src/Gui/Selection/SoFCSelection.cpp",
+          "line": 557,
+          "empty_body": false,
+          "sha256": "f4cfb9172cb9156383514379eeab57571ef660093ad7936fcde73c849bf2478b",
+          "action_types": []
+        },
+        {
+          "method": "GLRenderBelowPath",
+          "source": "src/Gui/Selection/SoFCSelection.cpp",
+          "line": 586,
+          "empty_body": false,
+          "sha256": "f4cfb9172cb9156383514379eeab57571ef660093ad7936fcde73c849bf2478b",
+          "action_types": []
+        },
+        {
+          "method": "GLRender",
+          "source": "src/Gui/Selection/SoFCSelection.cpp",
+          "line": 622,
+          "empty_body": false,
+          "sha256": "f4cfb9172cb9156383514379eeab57571ef660093ad7936fcde73c849bf2478b",
+          "action_types": []
+        },
+        {
+          "method": "GLRenderInPath",
+          "source": "src/Gui/Selection/SoFCSelection.cpp",
+          "line": 652,
+          "empty_body": false,
+          "sha256": "f4cfb9172cb9156383514379eeab57571ef660093ad7936fcde73c849bf2478b",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "PARTIAL",
+        "owner": "Wiring contexto de seleção + Core composição",
+        "next": "P16",
+        "reason": "Callbacks locais já capturam seleção/material e geometria. Não certificam equivalência de delayed paths, clarificação, hover, depth e overlays GL; testar fonte com patches atuais."
+      }
+    },
+    "SoFCSelectionRoot": {
+      "methods": [
+        {
+          "method": "GLRenderBelowPath",
+          "source": "src/Gui/Selection/SoFCUnifiedSelection.cpp",
+          "line": 2025,
+          "empty_body": false,
+          "sha256": "d699f1a731c629d2d7af35cd67f6f26221734c4625cf40bc59c760d3b43a0d02",
+          "action_types": []
+        },
+        {
+          "method": "GLRenderInPath",
+          "source": "src/Gui/Selection/SoFCUnifiedSelection.cpp",
+          "line": 2030,
+          "empty_body": false,
+          "sha256": "d699f1a731c629d2d7af35cd67f6f26221734c4625cf40bc59c760d3b43a0d02",
+          "action_types": []
+        },
+        {
+          "method": "callback",
+          "source": "src/Gui/Selection/SoFCUnifiedSelection.cpp",
+          "line": 2173,
+          "empty_body": false,
+          "sha256": "d699f1a731c629d2d7af35cd67f6f26221734c4625cf40bc59c760d3b43a0d02",
+          "action_types": []
+        },
+        {
+          "method": "doAction",
+          "source": "src/Gui/Selection/SoFCUnifiedSelection.cpp",
+          "line": 2180,
+          "empty_body": false,
+          "sha256": "d699f1a731c629d2d7af35cd67f6f26221734c4625cf40bc59c760d3b43a0d02",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "PARTIAL",
+        "owner": "Wiring contexto de seleção + Core composição",
+        "next": "P16",
+        "reason": "Callbacks locais já capturam seleção/material e geometria. Não certificam equivalência de delayed paths, clarificação, hover, depth e overlays GL; testar fonte com patches atuais."
+      }
+    },
+    "SoFCSeparator": {
+      "methods": [
+        {
+          "method": "GLRenderBelowPath",
+          "source": "src/Gui/Selection/SoFCUnifiedSelection.cpp",
+          "line": 1321,
+          "empty_body": false,
+          "sha256": "d699f1a731c629d2d7af35cd67f6f26221734c4625cf40bc59c760d3b43a0d02",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "CAPTURE_CANDIDATE",
+        "owner": "Wiring travessia e cache",
+        "next": "P16",
+        "reason": "Override GLBelowPath trata modo de cache e chama SoSeparator. Descendentes podem atravessar via callback herdado; cache GL não precisa ser reproduzido na Infra nova."
+      }
+    },
+    "SoFCTransform": {
+      "methods": [
+        {
+          "method": "GLRender",
+          "source": "src/Gui/Inventor/SoFCTransform.cpp",
+          "line": 49,
+          "empty_body": false,
+          "sha256": "557aad2e7f1949577feab4d91751dcba6e8a273d5753e068545d0256437e04c7",
+          "action_types": []
+        },
+        {
+          "method": "callback",
+          "source": "src/Gui/Inventor/SoFCTransform.cpp",
+          "line": 54,
+          "empty_body": false,
+          "sha256": "557aad2e7f1949577feab4d91751dcba6e8a273d5753e068545d0256437e04c7",
+          "action_types": []
+        },
+        {
+          "method": "doAction",
+          "source": "src/Gui/Inventor/SoFCTransform.cpp",
+          "line": 74,
+          "empty_body": false,
+          "sha256": "557aad2e7f1949577feab4d91751dcba6e8a273d5753e068545d0256437e04c7",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "CAPTURE_CANDIDATE",
+        "owner": "Wiring host + Core estado",
+        "next": "P16",
+        "reason": "Callback executa a mesma decisão doAction ou travessia do GL; qualificar paths, câmera, resize e overrides no host."
+      }
+    },
+    "SoFCUnifiedSelection": {
+      "methods": [
+        {
+          "method": "doAction",
+          "source": "src/Gui/Selection/SoFCUnifiedSelection.cpp",
+          "line": 477,
+          "empty_body": false,
+          "sha256": "d699f1a731c629d2d7af35cd67f6f26221734c4625cf40bc59c760d3b43a0d02",
+          "action_types": []
+        },
+        {
+          "method": "GLRenderBelowPath",
+          "source": "src/Gui/Selection/SoFCUnifiedSelection.cpp",
+          "line": 1052,
+          "empty_body": false,
+          "sha256": "d699f1a731c629d2d7af35cd67f6f26221734c4625cf40bc59c760d3b43a0d02",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "PARTIAL",
+        "owner": "Wiring seleção/host",
+        "next": "P16",
+        "reason": "Descendentes e contexto podem atravessar; GLBelowPath altera bounding-box global e cursor QOpenGLWidget. Side effects de GUI exigem adaptação do host, não shaders."
+      }
+    },
+    "SoFrameLabel": {
+      "methods": [
+        {
+          "method": "GLRender",
+          "source": "src/Gui/SoLabelNodes.cpp",
+          "line": 502,
+          "empty_body": false,
+          "sha256": "cd149d244acd27e33152a6a5594c08314e6f2cff0c32c3c7f9cc37cd554db765",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "BLOCKED",
+        "owner": "Wiring captura + Core imagem/layout",
+        "next": "F20/P03",
+        "reason": "StringLabel é SoNode com GLRender percorrendo textRoot privado; não tem callback. FrameLabel herda SoImage mas prepara imagem só no GLRender, além da lacuna de textura do SoImage isolado."
+      }
+    },
+    "SoGLWidgetNode": {
+      "methods": [
+        {
+          "method": "doAction",
+          "source": "src/Gui/SoFCInteractiveElement.cpp",
+          "line": 199,
+          "empty_body": false,
+          "sha256": "7e34d4fd4e950729086f647d053849cdb68e21d33e040c20fb645fa5667b3577",
+          "action_types": []
+        },
+        {
+          "method": "GLRender",
+          "source": "src/Gui/SoFCInteractiveElement.cpp",
+          "line": 205,
+          "empty_body": false,
+          "sha256": "7e34d4fd4e950729086f647d053849cdb68e21d33e040c20fb645fa5667b3577",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "HOST_ONLY",
+        "owner": "Wiring Qt/host",
+        "next": "P16",
+        "reason": "Instala SoGLWidgetElement associado ao QOpenGLWidget no GLRender. Não é geometria; adaptar contexto de host e consumidores, sem emular handles GL no Core."
+      }
+    },
+    "SoNaviCube": {
+      "methods": [
+        {
+          "method": "callback",
+          "source": "src/Gui/Inventor/SoNaviCube.cpp",
+          "line": 1434,
+          "empty_body": false,
+          "sha256": "cbd0ca0c9b11bd281404f5d56d61df97d41533d0287c4a342844c266b7b66bde",
+          "action_types": []
+        },
+        {
+          "method": "GLRender",
+          "source": "src/Gui/Inventor/SoNaviCube.cpp",
+          "line": 1439,
+          "empty_body": false,
+          "sha256": "cbd0ca0c9b11bd281404f5d56d61df97d41533d0287c4a342844c266b7b66bde",
+          "action_types": []
+        },
+        {
+          "method": "generatePrimitives",
+          "source": "src/Gui/Inventor/SoNaviCube.cpp",
+          "line": 1573,
+          "empty_body": false,
+          "sha256": "cbd0ca0c9b11bd281404f5d56d61df97d41533d0287c4a342844c266b7b66bde",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "CAPTURE_CANDIDATE",
+        "owner": "Wiring host + Core geometria/composição",
+        "next": "P16",
+        "reason": "Callback prepara estado e percorre geometria retida; generatePrimitives vazio no NaviCube não implica omissão, pois renderCoin atravessa callbackRoot."
+      }
+    },
+    "SoPolygon": {
+      "methods": [
+        {
+          "method": "GLRender",
+          "source": "src/Mod/Mesh/Gui/SoPolygon.cpp",
+          "line": 71,
+          "empty_body": false,
+          "sha256": "770d35f50370f821ed7ff72e06ce954a4b9df7b05e921ac62f5a7696be69c429",
+          "action_types": []
+        },
+        {
+          "method": "generatePrimitives",
+          "source": "src/Mod/Mesh/Gui/SoPolygon.cpp",
+          "line": 133,
+          "empty_body": true,
+          "sha256": "770d35f50370f821ed7ff72e06ce954a4b9df7b05e921ac62f5a7696be69c429",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "BLOCKED",
+        "owner": "Wiring host + Core geometria",
+        "next": "F19/P16",
+        "reason": "generatePrimitives vazio; GLRender produz caixa/polos/polígono ou atravessa raiz privada. Não assumir primitivas de picking ou ancestral como substituto visual."
+      }
+    },
+    "SoScreenSpaceScale": {
+      "methods": [
+        {
+          "method": "GLRender",
+          "source": "src/Mod/Measure/Gui/SoScreenSpaceScale.cpp",
+          "line": 81,
+          "empty_body": false,
+          "sha256": "be6b62b3ac514e5804488679b3a429bd8185f96fe848f134793c26ea8075ad1c",
+          "action_types": []
+        },
+        {
+          "method": "doAction",
+          "source": "src/Mod/Measure/Gui/SoScreenSpaceScale.cpp",
+          "line": 86,
+          "empty_body": false,
+          "sha256": "be6b62b3ac514e5804488679b3a429bd8185f96fe848f134793c26ea8075ad1c",
+          "action_types": []
+        },
+        {
+          "method": "callback",
+          "source": "src/Mod/Measure/Gui/SoScreenSpaceScale.cpp",
+          "line": 98,
+          "empty_body": false,
+          "sha256": "be6b62b3ac514e5804488679b3a429bd8185f96fe848f134793c26ea8075ad1c",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "CAPTURE_CANDIDATE",
+        "owner": "Wiring host + Core estado",
+        "next": "P16",
+        "reason": "Callback executa a mesma decisão doAction ou travessia do GL; qualificar paths, câmera, resize e overrides no host."
+      }
+    },
+    "SoShapeScale": {
+      "methods": [
+        {
+          "method": "GLRender",
+          "source": "src/Gui/Inventor/SoAxisCrossKit.cpp",
+          "line": 83,
+          "empty_body": false,
+          "sha256": "bae43dfa4f406dac12f9c0d92428ca22d531a861452c023ae93048c981e0a287",
+          "action_types": []
+        },
+        {
+          "method": "doAction",
+          "source": "src/Gui/Inventor/SoAxisCrossKit.cpp",
+          "line": 89,
+          "empty_body": false,
+          "sha256": "bae43dfa4f406dac12f9c0d92428ca22d531a861452c023ae93048c981e0a287",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "PARTIAL",
+        "owner": "Wiring câmera/manipulação + Core transformações",
+        "next": "P16",
+        "reason": "Geometria do kit/dragger é herdada, mas escala/cache é atualizado no GLRender; doAction existente no ShapeScale não garante callback invocando-o. Qualificar callback e interação sem aquecer GL antes."
+      }
+    },
+    "SoStringLabel": {
+      "methods": [
+        {
+          "method": "GLRender",
+          "source": "src/Gui/SoLabelNodes.cpp",
+          "line": 171,
+          "empty_body": false,
+          "sha256": "cd149d244acd27e33152a6a5594c08314e6f2cff0c32c3c7f9cc37cd554db765",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "BLOCKED",
+        "owner": "Wiring captura + Core imagem/layout",
+        "next": "F20/P03",
+        "reason": "StringLabel é SoNode com GLRender percorrendo textRoot privado; não tem callback. FrameLabel herda SoImage mas prepara imagem só no GLRender, além da lacuna de textura do SoImage isolado."
+      }
+    },
+    "SoTransformDragger": {
+      "methods": [
+        {
+          "method": "GLRender",
+          "source": "src/Gui/Inventor/Draggers/SoTransformDragger.cpp",
+          "line": 527,
+          "empty_body": false,
+          "sha256": "01e90f20a62f3851b5de7499c5883c1172cabb8364df997a8824527944c07b3b",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "PARTIAL",
+        "owner": "Wiring câmera/manipulação + Core transformações",
+        "next": "P16",
+        "reason": "Geometria do kit/dragger é herdada, mas escala/cache é atualizado no GLRender; doAction existente no ShapeScale não garante callback invocando-o. Qualificar callback e interação sem aquecer GL antes."
+      }
+    },
+    "SoZoomTranslation": {
+      "methods": [
+        {
+          "method": "GLRender",
+          "source": "src/Mod/Sketcher/Gui/SoZoomTranslation.cpp",
+          "line": 83,
+          "empty_body": false,
+          "sha256": "89fa69aef38ddb4407ab4699c0d485b95c9457f72071111cc792a24242387c15",
+          "action_types": []
+        },
+        {
+          "method": "doAction",
+          "source": "src/Mod/Sketcher/Gui/SoZoomTranslation.cpp",
+          "line": 89,
+          "empty_body": false,
+          "sha256": "89fa69aef38ddb4407ab4699c0d485b95c9457f72071111cc792a24242387c15",
+          "action_types": []
+        },
+        {
+          "method": "callback",
+          "source": "src/Mod/Sketcher/Gui/SoZoomTranslation.cpp",
+          "line": 137,
+          "empty_body": false,
+          "sha256": "89fa69aef38ddb4407ab4699c0d485b95c9457f72071111cc792a24242387c15",
+          "action_types": []
+        }
+      ],
+      "review": {
+        "status": "CAPTURE_CANDIDATE",
+        "owner": "Wiring host + Core estado",
+        "next": "P16",
+        "reason": "Callback executa a mesma decisão doAction ou travessia do GL; qualificar paths, câmera, resize e overrides no host."
+      }
+    }
+  },
+  "special_node_creations": [
+    {
+      "node": "SoImage",
+      "source": "src/Gui/3Dconnexion/navlib/NavlibPivot.cpp",
+      "line": 291
+    },
+    {
+      "node": "SoText2",
+      "source": "src/Gui/Inventor/SoAxisCrossKit.cpp",
+      "line": 365
+    },
+    {
+      "node": "SoText2",
+      "source": "src/Gui/Inventor/SoFCBoundingBox.cpp",
+      "line": 102
+    },
+    {
+      "node": "SoText2",
+      "source": "src/Gui/Inventor/SoFCBoundingBox.cpp",
+      "line": 115
+    },
+    {
+      "node": "SoImage",
+      "source": "src/Gui/ManualAlignment.cpp",
+      "line": 470
+    },
+    {
+      "node": "SoText2",
+      "source": "src/Gui/Quarter/SoQTQuarterAdaptor.cpp",
+      "line": 108
+    },
+    {
+      "node": "SoText2",
+      "source": "src/Gui/SoFCColorBar.cpp",
+      "line": 375
+    },
+    {
+      "node": "SoText2",
+      "source": "src/Gui/SoFCColorBar.cpp",
+      "line": 397
+    },
+    {
+      "node": "SoText2",
+      "source": "src/Gui/ViewProviderAnnotation.cpp",
+      "line": 152
+    },
+    {
+      "node": "SoImage",
+      "source": "src/Gui/ViewProviderAnnotation.cpp",
+      "line": 349
+    },
+    {
+      "node": "SoImage",
+      "source": "src/Gui/ViewProviderAnnotation.cpp",
+      "line": 351
+    },
+    {
+      "node": "SoTexture3",
+      "source": "src/Gui/ViewProviderTextureExtension.cpp",
+      "line": 159
+    },
+    {
+      "node": "SoText2",
+      "source": "src/Mod/BIM/ArchSite.py",
+      "line": 264
+    },
+    {
+      "node": "SoText2",
+      "source": "src/Mod/BIM/ArchSite.py",
+      "line": 291
+    },
+    {
+      "node": "SoText2",
+      "source": "src/Mod/Draft/draftviewproviders/view_dimension.py",
+      "line": 244
+    },
+    {
+      "node": "SoText2",
+      "source": "src/Mod/Draft/draftviewproviders/view_dimension.py",
+      "line": 828
+    },
+    {
+      "node": "SoText2",
+      "source": "src/Mod/Draft/draftviewproviders/view_label.py",
+      "line": 125
+    },
+    {
+      "node": "SoText2",
+      "source": "src/Mod/Draft/draftviewproviders/view_text.py",
+      "line": 76
+    },
+    {
+      "node": "SoText2",
+      "source": "src/Mod/Fem/CreateLabels.py",
+      "line": 64
+    },
+    {
+      "node": "SoImage",
+      "source": "src/Mod/Fem/CreateLabels.py",
+      "line": 113
+    },
+    {
+      "node": "SoImage",
+      "source": "src/Mod/Measure/Gui/ViewProviderMassPropertiesResult.cpp",
+      "line": 161
+    },
+    {
+      "node": "SoText2",
+      "source": "src/Mod/PartDesign/Gui/ViewProviderDatumCS.cpp",
+      "line": 184
+    },
+    {
+      "node": "SoText2",
+      "source": "src/Mod/PartDesign/Gui/ViewProviderDatumCS.cpp",
+      "line": 189
+    },
+    {
+      "node": "SoText2",
+      "source": "src/Mod/PartDesign/Gui/ViewProviderDatumCS.cpp",
+      "line": 194
+    },
+    {
+      "node": "SoText2",
+      "source": "src/Mod/Sketcher/Gui/EditModeCoinManager.cpp",
+      "line": 1981
+    },
+    {
+      "node": "SoImage",
+      "source": "src/Mod/Sketcher/Gui/EditModeConstraintCoinManager.cpp",
+      "line": 1977
+    },
+    {
+      "node": "SoImage",
+      "source": "src/Mod/Sketcher/Gui/EditModeConstraintCoinManager.cpp",
+      "line": 1983
+    },
+    {
+      "node": "SoImage",
+      "source": "src/Mod/Sketcher/Gui/EditModeConstraintCoinManager.cpp",
+      "line": 2026
+    },
+    {
+      "node": "SoImage",
+      "source": "src/Mod/Sketcher/Gui/EditModeConstraintCoinManager.cpp",
+      "line": 2032
+    },
+    {
+      "node": "SoImage",
+      "source": "src/Mod/Sketcher/Gui/EditModeConstraintCoinManager.cpp",
+      "line": 2047
+    },
+    {
+      "node": "SoImage",
+      "source": "src/Mod/Sketcher/Gui/EditModeConstraintCoinManager.cpp",
+      "line": 2064
+    },
+    {
+      "node": "SoImage",
+      "source": "src/Mod/Sketcher/Gui/EditModeConstraintCoinManager.cpp",
+      "line": 2084
+    },
+    {
+      "node": "SoText2",
+      "source": "src/Mod/Sketcher/Gui/EditModeInformationOverlayCoinConverter.cpp",
+      "line": 461
+    }
+  ],
+  "external_gpu_candidates": [
+    {
+      "source": "src/Gui/Document.cpp",
+      "mechanisms": [
+        "QOpenGLWidget"
+      ],
+      "first_line": 37
+    },
+    {
+      "source": "src/Gui/GLPainter.cpp",
+      "mechanisms": [
+        "QOpenGLWidget"
+      ],
+      "first_line": 26
+    },
+    {
+      "source": "src/Gui/GLPainter.h",
+      "mechanisms": [
+        "QOpenGLWidget"
+      ],
+      "first_line": 42
+    },
+    {
+      "source": "src/Gui/MainWindow.cpp",
+      "mechanisms": [
+        "QOpenGLWidget"
+      ],
+      "first_line": 42
+    },
+    {
+      "source": "src/Gui/ProgramInformation.cpp",
+      "mechanisms": [
+        "QOpenGLWidget"
+      ],
+      "first_line": 28
+    },
+    {
+      "source": "src/Gui/ProgramInformation.h",
+      "mechanisms": [
+        "QOpenGLWidget"
+      ],
+      "first_line": 32
+    },
+    {
+      "source": "src/Gui/QtAll.h",
+      "mechanisms": [
+        "QOpenGLWidget"
+      ],
+      "first_line": 90
+    },
+    {
+      "source": "src/Gui/Quarter/QuarterWidget.cpp",
+      "mechanisms": [
+        "QOpenGLWidget"
+      ],
+      "first_line": 66
+    },
+    {
+      "source": "src/Gui/Quarter/QuarterWidget.h",
+      "mechanisms": [
+        "QOpenGLWidget"
+      ],
+      "first_line": 45
+    },
+    {
+      "source": "src/Gui/Quarter/QuarterWidgetP.cpp",
+      "mechanisms": [
+        "QOpenGLWidget"
+      ],
+      "first_line": 49
+    },
+    {
+      "source": "src/Gui/Quarter/QuarterWidgetP.h",
+      "mechanisms": [
+        "QOpenGLWidget"
+      ],
+      "first_line": 41
+    },
+    {
+      "source": "src/Gui/Quarter/SoQTQuarterAdaptor.cpp",
+      "mechanisms": [
+        "QOpenGLWidget"
+      ],
+      "first_line": 125
+    },
+    {
+      "source": "src/Gui/Quarter/SoQTQuarterAdaptor.h",
+      "mechanisms": [
+        "QOpenGLWidget"
+      ],
+      "first_line": 57
+    },
+    {
+      "source": "src/Gui/Selection/SoFCUnifiedSelection.cpp",
+      "mechanisms": [
+        "QOpenGLWidget"
+      ],
+      "first_line": 83
+    },
+    {
+      "source": "src/Gui/SoFCInteractiveElement.cpp",
+      "mechanisms": [
+        "QOpenGLWidget"
+      ],
+      "first_line": 86
+    },
+    {
+      "source": "src/Gui/SoFCInteractiveElement.h",
+      "mechanisms": [
+        "QOpenGLWidget"
+      ],
+      "first_line": 33
+    },
+    {
+      "source": "src/Gui/View3DInventor.cpp",
+      "mechanisms": [
+        "QOpenGLWidget"
+      ],
+      "first_line": 99
+    },
+    {
+      "source": "src/Gui/View3DInventor.h",
+      "mechanisms": [
+        "QOpenGLWidget"
+      ],
+      "first_line": 36
+    },
+    {
+      "source": "src/Gui/View3DInventorViewer.cpp",
+      "mechanisms": [
+        "QOpenGLWidget"
+      ],
+      "first_line": 109
+    },
+    {
+      "source": "src/Gui/View3DInventorViewer.h",
+      "mechanisms": [
+        "QOpenGLWidget"
+      ],
+      "first_line": 65
+    },
+    {
+      "source": "src/Mod/CAM/PathSimulator/AppGL/DlgCAMSimulator.cpp",
+      "mechanisms": [
+        "QOpenGLWidget"
+      ],
+      "first_line": 71
+    },
+    {
+      "source": "src/Mod/CAM/PathSimulator/AppGL/DlgCAMSimulator.h",
+      "mechanisms": [
+        "QOpenGLWidget"
+      ],
+      "first_line": 35
+    },
+    {
+      "source": "src/Mod/CAM/PathSimulator/AppGL/OpenGlWrapper.h",
+      "mechanisms": [
+        "glCreateShader",
+        "glUseProgram"
+      ],
+      "first_line": 69
+    },
+    {
+      "source": "src/Mod/CAM/PathSimulator/AppGL/Shader.cpp",
+      "mechanisms": [
+        "glCreateShader",
+        "glUseProgram"
+      ],
+      "first_line": 247
+    },
+    {
+      "source": "src/Mod/TechDraw/Gui/QGVPage.cpp",
+      "mechanisms": [
+        "QOpenGLWidget"
+      ],
+      "first_line": 30
+    }
+  ],
+  "unreviewed": [],
+  "obsolete_review": []
+}

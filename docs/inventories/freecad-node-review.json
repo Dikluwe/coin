@@ -1,0 +1,200 @@
+{
+  "SmSwitchboard": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring host + Core estado",
+    "next": "P16",
+    "reason": "Callback executa a mesma decisão doAction ou travessia do GL; qualificar paths, câmera, resize e overrides no host."
+  },
+  "So3DAnnotation": {
+    "status": "PARTIAL",
+    "owner": "Wiring host + Core camadas",
+    "next": "P16",
+    "reason": "Callback tem deferred paths sob FREECAD_COIN_WGPU_EXPERIMENTAL usando SoWgpuRenderAction. Nome legado não define executor: conferir flag e alias para CoinRender em cada build; qualificar ordem/depth/path no host."
+  },
+  "SoAutoZoomTranslation": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring host + Core estado",
+    "next": "P16",
+    "reason": "Callback executa a mesma decisão doAction ou travessia do GL; qualificar paths, câmera, resize e overrides no host."
+  },
+  "SoBrepEdgeSet": {
+    "status": "PARTIAL",
+    "owner": "Wiring contexto de seleção + Core composição",
+    "next": "P16",
+    "reason": "Callbacks locais já capturam seleção/material e geometria. Não certificam equivalência de delayed paths, clarificação, hover, depth e overlays GL; testar fonte com patches atuais."
+  },
+  "SoBrepFaceSet": {
+    "status": "PARTIAL",
+    "owner": "Wiring contexto de seleção + Core composição",
+    "next": "P16",
+    "reason": "Callbacks locais já capturam seleção/material e geometria. Não certificam equivalência de delayed paths, clarificação, hover, depth e overlays GL; testar fonte com patches atuais."
+  },
+  "SoBrepPointSet": {
+    "status": "PARTIAL",
+    "owner": "Wiring contexto de seleção + Core composição",
+    "next": "P16",
+    "reason": "Callbacks locais já capturam seleção/material e geometria. Não certificam equivalência de delayed paths, clarificação, hover, depth e overlays GL; testar fonte com patches atuais."
+  },
+  "SoDatumLabel": {
+    "status": "PARTIAL",
+    "owner": "Wiring preparação de rótulo + Core layout",
+    "next": "P03/F20 antes do P16 Sketcher/Measure",
+    "reason": "generatePrimitives depende de imgWidth/imgHeight preparados; GLRender prepara cena/raster e altera culling/transparência. Primitivas de picking não certificam rótulo completo em frame frio."
+  },
+  "SoDrawingGrid": {
+    "status": "PARTIAL",
+    "owner": "Wiring host + Core camadas",
+    "next": "P16",
+    "reason": "Callback tem deferred paths sob FREECAD_COIN_WGPU_EXPERIMENTAL usando SoWgpuRenderAction. Nome legado não define executor: conferir flag e alias para CoinRender em cada build; qualificar ordem/depth/path no host."
+  },
+  "SoFCBoundingBox": {
+    "status": "BLOCKED",
+    "owner": "Wiring host + Core geometria",
+    "next": "F19/P16",
+    "reason": "generatePrimitives vazio; GLRender produz caixa/polos/polígono ou atravessa raiz privada. Não assumir primitivas de picking ou ancestral como substituto visual."
+  },
+  "SoFCColorBar": {
+    "status": "PARTIAL",
+    "owner": "Wiring viewport + Core layout/texto",
+    "next": "P03/P16",
+    "reason": "Separator retido contém geometria e SoText2; prepareViewport roda em GLBelowPath. Qualificar atualização no callback e substituir texto ausente."
+  },
+  "SoFCControlPoints": {
+    "status": "BLOCKED",
+    "owner": "Wiring host + Core geometria",
+    "next": "F19/P16",
+    "reason": "generatePrimitives vazio; GLRender produz caixa/polos/polígono ou atravessa raiz privada. Não assumir primitivas de picking ou ancestral como substituto visual."
+  },
+  "SoFCIndexedFaceSet": {
+    "status": "PARTIAL",
+    "owner": "Wiring seleção Mesh + Core geometria",
+    "next": "P16",
+    "reason": "Faces herdadas são capturáveis; GLRender e doAction de ações especializadas têm seleção própria. Presença de doAction não prova sua execução no callback CoinRender."
+  },
+  "SoFCMeshGridNode": {
+    "status": "BLOCKED",
+    "owner": "Wiring host + Core linhas",
+    "next": "F19/P16 Mesh",
+    "reason": "SoNode desenha grid diretamente com glBegin(GL_LINES), sem callback equivalente ou primitivas; publicar geometria lógica antes da Infra."
+  },
+  "SoFCMeshObjectBoundary": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring elemento Mesh + Core primitivas",
+    "next": "P16",
+    "reason": "MeshObjectNode instala SoFCMeshObjectElement no callback; shapes emitem primitivas. Qualificar bindings, segmentos, fronteiras e aproximação renderTriangleLimit versus GL."
+  },
+  "SoFCMeshObjectNode": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring elemento Mesh + Core primitivas",
+    "next": "P16",
+    "reason": "MeshObjectNode instala SoFCMeshObjectElement no callback; shapes emitem primitivas. Qualificar bindings, segmentos, fronteiras e aproximação renderTriangleLimit versus GL."
+  },
+  "SoFCMeshObjectShape": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring elemento Mesh + Core primitivas",
+    "next": "P16",
+    "reason": "MeshObjectNode instala SoFCMeshObjectElement no callback; shapes emitem primitivas. Qualificar bindings, segmentos, fronteiras e aproximação renderTriangleLimit versus GL."
+  },
+  "SoFCMeshSegmentShape": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring elemento Mesh + Core primitivas",
+    "next": "P16",
+    "reason": "MeshObjectNode instala SoFCMeshObjectElement no callback; shapes emitem primitivas. Qualificar bindings, segmentos, fronteiras e aproximação renderTriangleLimit versus GL."
+  },
+  "SoFCPathAnnotation": {
+    "status": "PARTIAL",
+    "owner": "Wiring host + Core camadas",
+    "next": "P16",
+    "reason": "Callback tem deferred paths sob FREECAD_COIN_WGPU_EXPERIMENTAL usando SoWgpuRenderAction. Nome legado não define executor: conferir flag e alias para CoinRender em cada build; qualificar ordem/depth/path no host."
+  },
+  "SoFCScreenSpaceGroup": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring host + Core geometria/composição",
+    "next": "P16",
+    "reason": "Callback prepara estado e percorre geometria retida; generatePrimitives vazio no NaviCube não implica omissão, pois renderCoin atravessa callbackRoot."
+  },
+  "SoFCSelection": {
+    "status": "PARTIAL",
+    "owner": "Wiring contexto de seleção + Core composição",
+    "next": "P16",
+    "reason": "Callbacks locais já capturam seleção/material e geometria. Não certificam equivalência de delayed paths, clarificação, hover, depth e overlays GL; testar fonte com patches atuais."
+  },
+  "SoFCSelectionRoot": {
+    "status": "PARTIAL",
+    "owner": "Wiring contexto de seleção + Core composição",
+    "next": "P16",
+    "reason": "Callbacks locais já capturam seleção/material e geometria. Não certificam equivalência de delayed paths, clarificação, hover, depth e overlays GL; testar fonte com patches atuais."
+  },
+  "SoFCSeparator": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring travessia e cache",
+    "next": "P16",
+    "reason": "Override GLBelowPath trata modo de cache e chama SoSeparator. Descendentes podem atravessar via callback herdado; cache GL não precisa ser reproduzido na Infra nova."
+  },
+  "SoFCTransform": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring host + Core estado",
+    "next": "P16",
+    "reason": "Callback executa a mesma decisão doAction ou travessia do GL; qualificar paths, câmera, resize e overrides no host."
+  },
+  "SoFCUnifiedSelection": {
+    "status": "PARTIAL",
+    "owner": "Wiring seleção/host",
+    "next": "P16",
+    "reason": "Descendentes e contexto podem atravessar; GLBelowPath altera bounding-box global e cursor QOpenGLWidget. Side effects de GUI exigem adaptação do host, não shaders."
+  },
+  "SoFrameLabel": {
+    "status": "BLOCKED",
+    "owner": "Wiring captura + Core imagem/layout",
+    "next": "F20/P03",
+    "reason": "StringLabel é SoNode com GLRender percorrendo textRoot privado; não tem callback. FrameLabel herda SoImage mas prepara imagem só no GLRender, além da lacuna de textura do SoImage isolado."
+  },
+  "SoGLWidgetNode": {
+    "status": "HOST_ONLY",
+    "owner": "Wiring Qt/host",
+    "next": "P16",
+    "reason": "Instala SoGLWidgetElement associado ao QOpenGLWidget no GLRender. Não é geometria; adaptar contexto de host e consumidores, sem emular handles GL no Core."
+  },
+  "SoNaviCube": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring host + Core geometria/composição",
+    "next": "P16",
+    "reason": "Callback prepara estado e percorre geometria retida; generatePrimitives vazio no NaviCube não implica omissão, pois renderCoin atravessa callbackRoot."
+  },
+  "SoPolygon": {
+    "status": "BLOCKED",
+    "owner": "Wiring host + Core geometria",
+    "next": "F19/P16",
+    "reason": "generatePrimitives vazio; GLRender produz caixa/polos/polígono ou atravessa raiz privada. Não assumir primitivas de picking ou ancestral como substituto visual."
+  },
+  "SoScreenSpaceScale": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring host + Core estado",
+    "next": "P16",
+    "reason": "Callback executa a mesma decisão doAction ou travessia do GL; qualificar paths, câmera, resize e overrides no host."
+  },
+  "SoShapeScale": {
+    "status": "PARTIAL",
+    "owner": "Wiring câmera/manipulação + Core transformações",
+    "next": "P16",
+    "reason": "Geometria do kit/dragger é herdada, mas escala/cache é atualizado no GLRender; doAction existente no ShapeScale não garante callback invocando-o. Qualificar callback e interação sem aquecer GL antes."
+  },
+  "SoStringLabel": {
+    "status": "BLOCKED",
+    "owner": "Wiring captura + Core imagem/layout",
+    "next": "F20/P03",
+    "reason": "StringLabel é SoNode com GLRender percorrendo textRoot privado; não tem callback. FrameLabel herda SoImage mas prepara imagem só no GLRender, além da lacuna de textura do SoImage isolado."
+  },
+  "SoTransformDragger": {
+    "status": "PARTIAL",
+    "owner": "Wiring câmera/manipulação + Core transformações",
+    "next": "P16",
+    "reason": "Geometria do kit/dragger é herdada, mas escala/cache é atualizado no GLRender; doAction existente no ShapeScale não garante callback invocando-o. Qualificar callback e interação sem aquecer GL antes."
+  },
+  "SoZoomTranslation": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring host + Core estado",
+    "next": "P16",
+    "reason": "Callback executa a mesma decisão doAction ou travessia do GL; qualificar paths, câmera, resize e overrides no host."
+  }
+}

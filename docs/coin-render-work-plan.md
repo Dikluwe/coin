@@ -116,8 +116,11 @@ Esta frente pode avançar junto das entregas funcionais, reutilizando testes exi
 
 ## 5. Fechar integração real no FreeCAD
 
-- [ ] **P15 — Inventário de nós (F19/F20):** workbenches que dependem de GLRender,
-  SoImage e shaders próprios; suporte e bloqueios por caso.
+- [x] **P15 — Inventário de nós (F19/F20), checkout local Gui/Mod:** 33 classes,
+  47 overrides GL e 33 criações especiais revisadas, com dono/bloqueio por caso.
+  SoImage/Text2/shaders/GL-only caracterizados; candidatos a P16 e oito frentes de
+  fechamento registradas no [inventário e checklist P15](coin-render-node-inventory.md).
+  Addons externos e suporte funcional amplo F19/F20 permanecem fora desse fechamento.
 - [ ] **P16 — Qt/manager/FreeCAD (F18/F01):** mesmas cenas e ações em GL/BGFX/wgpu:
   expose, resize, seleção, overlays, links, arrays, documentos e montagens.
 
@@ -170,8 +173,9 @@ limites; documentação e commit de evidência. Registrar implementação, execu
 qualificação separadamente. Rejeição explícita fecha diagnóstico, não suporte
 funcional. Atualizar Pxx e Axx/Fxx associados somente no escopo comprovado.
 
-**Próxima entrega concreta: P15 — inventário de nós/workbenches.** Identificar
-nós que dependem de GLRender, SoImage e shaders próprios, com comportamento e
-bloqueio por caso. P14 fechado no [perfil atual](coin-render-multi-target-contract.md).
-Viewport parcialmente externo continua P04; formatos/estados RTT ampliados F14;
-profiling/memória e readback persistente continuam P18/P19.
+**Próxima entrega concreta: P16 — Qt/manager/FreeCAD.** Começar por Part/BRep,
+seleção e viewer com caminhos de captura já existentes; comparar cenas e ações
+reais nos três executores. O [P15](coin-render-node-inventory.md) declara bloqueios
+em texto, imagem, rótulos e geometria GL-only: resolver dependências exigidas por
+cada caso antes de certificá-lo. Viewport parcialmente externo continua P04;
+formatos/estados RTT ampliados F14; profiling/memória e persistência P18/P19.

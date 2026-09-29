@@ -781,6 +781,24 @@ if(COIN_BUILD_RENDER)
 		set_tests_properties(CoinRenderAnnotationTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77)
 	endif()
 
+	if(NOT CMAKE_VERSION VERSION_LESS "3.12")
+		find_package(Python3 3.7 COMPONENTS Interpreter QUIET)
+		if(Python3_Interpreter_FOUND)
+			add_test(NAME CoinRenderNodeInventoryDiscoveryTest
+				COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/testsuite/coinrender/test_node_inventory.py)
+			set_tests_properties(CoinRenderNodeInventoryDiscoveryTest PROPERTIES TIMEOUT 30)
+		endif()
+	endif()
+
+	add_executable(CoinRenderNodeInventoryTest coinrender/CoinRenderNodeInventoryTest.cpp)
+	set_target_properties(CoinRenderNodeInventoryTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinRenderNodeInventoryTest CoinRender Coin)
+	target_include_directories(CoinRenderNodeInventoryTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	add_test(NAME CoinRenderNodeInventoryTest COMMAND CoinRenderNodeInventoryTest)
+	set_tests_properties(CoinRenderNodeInventoryTest PROPERTIES TIMEOUT 30)
+
 	add_executable(CoinRenderMultiTargetTest coinrender/CoinRenderMultiTargetTest.cpp)
 	set_target_properties(CoinRenderMultiTargetTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 	target_link_libraries(CoinRenderMultiTargetTest CoinRender Coin)
