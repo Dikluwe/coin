@@ -287,6 +287,12 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame, uint32_t targetW
   std::vector<CoinRenderCompositionItem> order;
   if (!coin_render_composition_schedule(frame, order, outDiagnostic))
     return false;
+  for (const auto& item : order) {
+    if (item.transparencyStrategy == CoinRenderCompositionItem::WEIGHTED_OIT) {
+      outDiagnostic = coin_render_selection_diagnostic(COIN_RENDER_SELECTION_NOT_IMPLEMENTED);
+      return false;
+    }
+  }
   uint64_t requiredBytes = 0;
   const bool needsPeeling =
       std::any_of(order.begin(), order.end(), [](const CoinRenderCompositionItem& item) {

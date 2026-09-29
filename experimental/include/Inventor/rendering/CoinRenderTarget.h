@@ -42,6 +42,7 @@
 #include <Inventor/SbString.h>
 #include <Inventor/tools/SbPimplPtr.h>
 #include <Inventor/rendering/CoinRenderNativeSurface.h>
+#include <Inventor/rendering/CoinRenderOptions.h>
 
 class CoinRenderTargetP;
 class CoinRenderActionP;
@@ -118,6 +119,13 @@ public:
   static CoinRenderTarget * createWindow(
     const CoinRenderNativeSurfaceDescriptor & descriptor,
     const SbVec2i32 & framebufferSize);
+
+  /** Explicit options are independent of environment defaults. */
+  static CoinRenderTarget* createOffscreen(const SbVec2i32& size, const CoinRenderOptions& options);
+  static CoinRenderTarget* createWindow(const CoinRenderNativeSurfaceDescriptor& descriptor,
+                                        const SbVec2i32& framebufferSize,
+                                        const CoinRenderOptions& options);
+  const CoinRenderOptions& getOptions(void) const;
 
   ~CoinRenderTarget(void);
 

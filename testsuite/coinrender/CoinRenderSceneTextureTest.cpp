@@ -372,29 +372,34 @@ int main() {
     if (!check(action.getLastStatus() == CoinRenderAction::SUCCESS &&
                restoredAfterNested == resized,
                "restoring the parent after nested losses changed its frame", action)) return 1;
-    // The child is valid, but the parent viewport is not. Preflight must
+    // The child is valid, but the parent Coin modality is not. Preflight must
     // reject the complete graph before submitting even its first producer.
     CoinWgpuCacheStats beforeBadParent{};
     coin_wgpu_get_cache_stats(&beforeBadParent);
-    action.setViewportRegion(SbViewportRegion(64, 64));
+    SoSeparator* parentQuad =
+        static_cast<SoSeparator*>(parent->getChild(parent->getNumChildren() - 1));
+    SoTransparencyType* invalidParentMode = new SoTransparencyType;
+    invalidParentMode->value = -1;
+    parentQuad->insertChild(invalidParentMode, 1); // After the valid child producer.
     action.apply(parent);
     CoinWgpuCacheStats afterBadParent{};
     coin_wgpu_get_cache_stats(&afterBadParent);
     std::vector<uint8_t> afterBadParentPixels;
     target->readbackRGBA(afterBadParentPixels);
     if (!check(action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-               afterBadParent.submission_serial == beforeBadParent.submission_serial &&
-               afterBadParentPixels == resized,
-               "invalid parent was not rejected before child submit", action)) return 1;
-    action.setViewportRegion(SbViewportRegion(96, 96));
+                   afterBadParent.submission_serial == beforeBadParent.submission_serial &&
+                   afterBadParentPixels == resized,
+               "invalid parent was not rejected before child submit", action))
+      return 1;
+    parentQuad->removeChild(invalidParentMode);
     coin_wgpu_inject_fault(COIN_WGPU_DEVICE_LOST);
     action.apply(parent);
     coin_wgpu_inject_fault(COIN_WGPU_OK);
     std::vector<uint8_t> afterLoss;
     target->readbackRGBA(afterLoss);
-    if (!check(action.getLastStatus() == CoinRenderAction::DEVICE_LOST &&
-               afterLoss == resized,
-               "device loss published a partial parent frame", action)) return 1;
+    if (!check(action.getLastStatus() == CoinRenderAction::DEVICE_LOST && afterLoss == resized,
+               "device loss published a partial parent frame", action))
+      return 1;
     action.apply(parent);
     std::vector<uint8_t> recovered;
     target->readbackRGBA(recovered);

@@ -188,6 +188,22 @@ if(COIN_BUILD_RENDER)
 	add_test(NAME CoinRenderActionTest COMMAND CoinRenderActionTest)
 	set_tests_properties(CoinRenderActionTest PROPERTIES TIMEOUT 30)
 
+	add_executable(CoinRenderSelectionTest coinrender/CoinRenderSelectionTest.cpp)
+	set_target_properties(CoinRenderSelectionTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinRenderSelectionTest CoinRender Coin)
+	target_include_directories(CoinRenderSelectionTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	add_test(NAME CoinRenderSelectionTest COMMAND CoinRenderSelectionTest)
+	set_tests_properties(CoinRenderSelectionTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77)
+	if(COIN_RENDER_BACKEND STREQUAL "BGFX")
+		foreach(renderer vulkan opengl)
+			add_test(NAME CoinRenderSelection_${renderer} COMMAND CoinRenderSelectionTest)
+			set_tests_properties(CoinRenderSelection_${renderer} PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77
+				ENVIRONMENT "COIN_BGFX_RENDERER=${renderer};COIN_BGFX_TRANSPARENCY=auto")
+		endforeach()
+	endif()
+
 	add_executable(CoinRenderProductTest coinrender/CoinRenderProductTest.cpp)
 	set_target_properties(CoinRenderProductTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 	target_link_libraries(CoinRenderProductTest CoinRender Coin)

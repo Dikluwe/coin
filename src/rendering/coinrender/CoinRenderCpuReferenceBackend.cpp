@@ -406,6 +406,13 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, compositionError);
     }
 
+    for (const auto& item : order) {
+      if (item.transparencyStrategy == CoinRenderCompositionItem::WEIGHTED_OIT) {
+        return CoinRenderSubmitResult(
+            CoinRenderBackendStatus::UNSUPPORTED,
+            coin_render_selection_diagnostic(COIN_RENDER_SELECTION_NOT_IMPLEMENTED));
+      }
+    }
     const bool needsPeeling =
         std::any_of(order.begin(), order.end(), [](const CoinRenderCompositionItem& item) {
           return item.blend && item.deferred &&

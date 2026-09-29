@@ -7,6 +7,7 @@
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 
 #include <cstdlib>
+#include <cstring>
 #include <locale>
 #include <iomanip>
 #include <sstream>
@@ -136,6 +137,53 @@ CoinRenderDiagnosticShell::environmentOption(const char * name)
   if (option.compare(0, prefix.size(), prefix) != 0) return NULL;
   const std::string legacy = "COIN_WGPU_" + option.substr(prefix.size());
   return std::getenv(legacy.c_str());
+}
+
+CoinRenderRenderer CoinRenderDiagnosticShell::rendererOption(std::string& diagnostic) {
+  diagnostic.clear();
+  const char* value = std::getenv("COIN_BGFX_RENDERER");
+  if (!value)
+    return COIN_RENDER_RENDERER_UNKNOWN;
+  if (std::strcmp(value, "vulkan") == 0)
+    return COIN_RENDER_RENDERER_VULKAN;
+  if (std::strcmp(value, "opengl") == 0)
+    return COIN_RENDER_RENDERER_OPENGL;
+  diagnostic = "COIN_BGFX_RENDERER must be opengl or vulkan";
+  return COIN_RENDER_RENDERER_UNKNOWN;
+}
+
+CoinRenderOptions CoinRenderDiagnosticShell::renderOptions(std::string& diagnostic) {
+  CoinRenderOptions options;
+  diagnostic.clear();
+#if defined(HAVE_COIN_BGFX)
+  options.renderer = rendererOption(diagnostic);
+  const char* mode = std::getenv("COIN_BGFX_TRANSPARENCY");
+  if (mode) {
+    if (std::strcmp(mode, "auto") == 0)
+      options.transparency = COIN_RENDER_TRANSPARENCY_COIN;
+    else if (std::strcmp(mode, "object") == 0)
+      options.transparency = COIN_RENDER_TRANSPARENCY_OBJECT;
+    else if (std::strcmp(mode, "sorted_layers") == 0)
+      options.transparency = COIN_RENDER_TRANSPARENCY_PEELING;
+    else if (std::strcmp(mode, "weighted_oit") == 0)
+      options.transparency = COIN_RENDER_TRANSPARENCY_WEIGHTED_OIT;
+    else
+      diagnostic = "COIN_BGFX_TRANSPARENCY must be auto, object, weighted_oit, or sorted_layers";
+  }
+#endif
+  const char* direct = environmentOption("COIN_RENDER_RTT_GPU_DIRECT");
+  if (direct) {
+    if (std::strcmp(direct, "1") == 0)
+      options.sceneTexture = COIN_RENDER_SCENE_TEXTURE_DIRECT;
+    else if (std::strcmp(direct, "0") != 0)
+      diagnostic = "COIN_RENDER_RTT_GPU_DIRECT must be 0 or 1";
+  }
+  return options;
+}
+
+bool CoinRenderDiagnosticShell::diagnosticCpuDepthFill(void) {
+  const char* value = std::getenv("COIN_BGFX_DIAGNOSTIC_CPU_DEPTH_FILL");
+  return value && std::strcmp(value, "1") == 0;
 }
 
 bool

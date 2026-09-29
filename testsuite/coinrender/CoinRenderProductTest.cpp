@@ -77,17 +77,17 @@ int main() {
               (caps.max_framebuffer_attachments > 1)),
              "BGFX runtime capability probe is incomplete")) return 1;
 #else
-  if (!check(coin_render_query_capabilities(
-               COIN_RENDER_EXPERIMENTAL_OFFSCREEN, &caps, sizeof(caps)) == 0 &&
-             caps.struct_size == sizeof(caps) &&
-             caps.version == COIN_RENDER_CAPABILITIES_VERSION &&
-             caps.target == COIN_RENDER_EXPERIMENTAL_OFFSCREEN &&
-             (caps.features & COIN_RENDER_FEATURE_COLOR_DEPTH) != 0 &&
-             caps.max_lights_per_draw == 8 &&
-             caps.max_texture_units == 1 &&
-             caps.max_scene_texture_depth == 8 &&
-             caps.max_scene_texture_bytes_per_apply == UINT64_C(64) * 1024 * 1024,
-             "offscreen capability profile is incomplete")) return 1;
+  if (!check(coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN, &caps,
+                                            sizeof(caps)) == 0 &&
+                 caps.struct_size == sizeof(caps) &&
+                 caps.version == COIN_RENDER_CAPABILITIES_VERSION &&
+                 caps.target == COIN_RENDER_EXPERIMENTAL_OFFSCREEN &&
+                 (caps.features & COIN_RENDER_FEATURE_COLOR_DEPTH) != 0 &&
+                 caps.max_lights_per_draw == 8 && caps.max_texture_units == 8 &&
+                 caps.max_scene_texture_depth == 8 &&
+                 caps.max_scene_texture_bytes_per_apply == UINT64_C(64) * 1024 * 1024,
+             "offscreen capability profile is incomplete"))
+    return 1;
 #endif
 
   CoinRenderCapabilities windowCaps{};

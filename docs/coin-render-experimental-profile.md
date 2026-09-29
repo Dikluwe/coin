@@ -359,3 +359,13 @@ GL e as expectativas numéricas de alpha. O [contrato P10](coin-render-peeling-c
 amplia o peeling para 1..8 camadas, orçamento, precisão/alpha zero e depth;
 qualifica weighted OIT como extensão explícita BGFX e declara wgpu com peeling.
 FreeCAD, raster ampliado e native/Dawn continuam fora desses fechamentos.
+
+## P11 — seleção e capacidades
+
+Opções tipadas e imutáveis por alvo escolhem renderer, modalidade de mecanismo
+e RTT staged/direto. Shell interpreta os defaults na criação. Capacidades V3
+preservam V1/V2 e distinguem fatos conhecidos, implementação, disponibilidade
+e evidência de perfis qualificados; oito unidades também são anunciadas pelo wgpu.
+A consulta de janela verifica adaptador, sem certificar apresentação ou paridade.
+Seleção tem motivos estruturados e rejeita conflitos sem fallback silencioso.
+API, matrizes e limites no [contrato P11](coin-render-selection-contract.md).

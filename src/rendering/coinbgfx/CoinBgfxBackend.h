@@ -16,6 +16,13 @@ public:
   CoinBgfxBackend();
   ~CoinBgfxBackend() override;
   bool isGpuBackend() const override { return true; }
+  uint64_t getAvailableTransparencyMechanisms(bool window = false) const {
+    if (!(window ? this->windowSupported : this->offscreenSupported))
+      return 0;
+    return COIN_RENDER_MECHANISM_OBJECT |
+           (this->sortedLayersSupported ? uint64_t(COIN_RENDER_MECHANISM_PEELING) : 0) |
+           (this->weightedOitSupported ? uint64_t(COIN_RENDER_MECHANISM_WEIGHTED_OIT) : 0);
+  }
   CoinRenderBackendStatus getStatus() const override { return status; }
   CoinRenderBackendStatus prepare(CoinRenderTargetP & target) override;
   CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target) override;
@@ -100,6 +107,8 @@ private:
   uint64_t readbackSequence;
   CoinBgfxTransparencyMode transparencyMode;
   CoinBgfxTransparencyStrategy activeTransparencyStrategy;
+  bool windowSupported = false;
+  bool offscreenSupported = false;
   bool weightedOitSupported;
   bool sortedLayersSupported;
   uint32_t peelPassCount = 4;

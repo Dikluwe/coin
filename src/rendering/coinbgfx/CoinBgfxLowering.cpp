@@ -506,24 +506,37 @@ CoinBgfxLowering::selectTransparencyStrategy(
     }
   }
 
-  if (configuredMode == CoinBgfxTransparencyMode::OBJECT)
-    selected = CoinBgfxTransparencyStrategy::OBJECT;
-  else if (configuredMode == CoinBgfxTransparencyMode::WEIGHTED_OIT)
-    selected = CoinBgfxTransparencyStrategy::WEIGHTED_OIT;
-  else if (configuredMode == CoinBgfxTransparencyMode::SORTED_LAYERS)
-    selected = CoinBgfxTransparencyStrategy::SORTED_LAYERS;
-  else {
-    selected = required;
-    // AUTO preserves the selected Coin semantics; OIT is an explicit extension.
-  }
-
-  if (transparentCount == 0) selected = CoinBgfxTransparencyStrategy::OBJECT;
-  if (selected == CoinBgfxTransparencyStrategy::WEIGHTED_OIT && !weightedOitSupported) {
-    diagnostic = "weighted_oit was selected but MRT with independent blending and RGBA16F/R16F targets is unavailable; no fallback was applied";
+  const uint64_t requiredMechanism =
+      required == CoinBgfxTransparencyStrategy::SORTED_LAYERS  ? COIN_RENDER_MECHANISM_PEELING
+      : required == CoinBgfxTransparencyStrategy::WEIGHTED_OIT ? COIN_RENDER_MECHANISM_WEIGHTED_OIT
+                                                               : COIN_RENDER_MECHANISM_OBJECT;
+  const CoinRenderTransparencyMode mode =
+      configuredMode == CoinBgfxTransparencyMode::AUTO     ? COIN_RENDER_TRANSPARENCY_COIN
+      : configuredMode == CoinBgfxTransparencyMode::OBJECT ? COIN_RENDER_TRANSPARENCY_OBJECT
+      : configuredMode == CoinBgfxTransparencyMode::WEIGHTED_OIT
+          ? COIN_RENDER_TRANSPARENCY_WEIGHTED_OIT
+          : COIN_RENDER_TRANSPARENCY_PEELING;
+  const auto requested =
+      coin_render_requested_mechanism(mode, requiredMechanism, transparentCount != 0);
+  selected = requested.mechanism == COIN_RENDER_MECHANISM_PEELING
+                 ? CoinBgfxTransparencyStrategy::SORTED_LAYERS
+             : requested.mechanism == COIN_RENDER_MECHANISM_WEIGHTED_OIT
+                 ? CoinBgfxTransparencyStrategy::WEIGHTED_OIT
+                 : CoinBgfxTransparencyStrategy::OBJECT;
+  if (requested.reason != COIN_RENDER_SELECTION_SUPPORTED) {
+    diagnostic = coin_render_selection_diagnostic(requested.reason);
     return false;
   }
-  if (selected == CoinBgfxTransparencyStrategy::SORTED_LAYERS && !sortedLayersSupported) {
-    diagnostic = "sorted_layers was selected but sampleable D32F/RGBA8 targets are unavailable; no fallback was applied";
+  const uint64_t mechanism = requested.mechanism;
+  const uint64_t implemented = COIN_RENDER_MECHANISM_OBJECT | COIN_RENDER_MECHANISM_PEELING |
+                               COIN_RENDER_MECHANISM_WEIGHTED_OIT;
+  const uint64_t available =
+      COIN_RENDER_MECHANISM_OBJECT |
+      (sortedLayersSupported ? uint64_t(COIN_RENDER_MECHANISM_PEELING) : 0) |
+      (weightedOitSupported ? uint64_t(COIN_RENDER_MECHANISM_WEIGHTED_OIT) : 0);
+  const auto selection = coin_render_selection(mechanism, implemented, available, 0);
+  if (selection.reason != COIN_RENDER_SELECTION_SUPPORTED) {
+    diagnostic = coin_render_selection_diagnostic(selection.reason);
     return false;
   }
   diagnostic.clear();

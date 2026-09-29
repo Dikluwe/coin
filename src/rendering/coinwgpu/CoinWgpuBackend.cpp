@@ -105,6 +105,15 @@ CoinWgpuBackend::getAdapterInfo()
 CoinRenderBackendStatus
 CoinWgpuBackend::prepare(CoinRenderTargetP & target)
 {
+  if (target.options.renderer != COIN_RENDER_RENDERER_UNKNOWN) {
+    CoinWgpuRuntimeCapabilities caps{};
+    const auto status = coin_wgpu_query_runtime_capabilities(&caps, sizeof(caps));
+    if (status != COIN_WGPU_OK || caps.renderer != uint32_t(target.options.renderer)) {
+      this->lastError =
+          "Requested renderer does not match the active wgpu adapter; no fallback was applied";
+      return CoinRenderBackendStatus::UNSUPPORTED;
+    }
+  }
   if (target.kind == CoinRenderTargetP::KIND_WINDOW) {
     if (target.surfaceId == 0) {
       CoinWgpuSurfaceCreateInfo info{};

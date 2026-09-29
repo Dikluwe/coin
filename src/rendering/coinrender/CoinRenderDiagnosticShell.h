@@ -143,6 +143,9 @@ public:
 
   COIN_RENDER_DLL_API static const char * environmentOption(const char * name);
   COIN_RENDER_DLL_API static bool phaseTracingEnabled(void);
+  COIN_RENDER_DLL_API static CoinRenderOptions renderOptions(std::string& diagnostic);
+  COIN_RENDER_DLL_API static CoinRenderRenderer rendererOption(std::string& diagnostic);
+  COIN_RENDER_DLL_API static bool diagnosticCpuDepthFill(void);
   COIN_RENDER_DLL_API static std::string formatActionPhase(
     const CoinRenderActionPhaseSample & sample);
   COIN_RENDER_DLL_API static std::string formatBridgePhase(

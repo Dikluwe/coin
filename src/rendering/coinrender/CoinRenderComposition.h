@@ -4,6 +4,7 @@
 #include "rendering/coinrender/CoinRenderFramePlan.h"
 #include "rendering/coinrender/CoinRenderTextureCombineCore.h"
 #include <Inventor/actions/SoGLRenderAction.h>
+#include "rendering/coinrender/CoinRenderSelectionCore.h"
 #include <algorithm>
 #include <cmath>
 
@@ -241,6 +242,23 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
         diagnostic = "Unknown Coin transparency mode";
         return false;
       }
+    }
+    if (item.blend && item.deferred && !item.additive && draw.renderLayer == 0) {
+      const uint64_t required =
+          item.transparencyStrategy == CoinRenderCompositionItem::SORTED_LAYERS
+              ? COIN_RENDER_MECHANISM_PEELING
+              : COIN_RENDER_MECHANISM_OBJECT;
+      const auto selection =
+          coin_render_requested_mechanism(frame.transparency.mode, required, true);
+      if (selection.reason != COIN_RENDER_SELECTION_SUPPORTED) {
+        diagnostic = coin_render_selection_diagnostic(selection.reason);
+        return false;
+      }
+      item.transparencyStrategy = selection.mechanism == COIN_RENDER_MECHANISM_PEELING
+                                      ? CoinRenderCompositionItem::SORTED_LAYERS
+                                  : selection.mechanism == COIN_RENDER_MECHANISM_WEIGHTED_OIT
+                                      ? CoinRenderCompositionItem::WEIGHTED_OIT
+                                      : CoinRenderCompositionItem::OBJECT;
     }
     // Annotation paths execute immediately, including translucent depth writers.
     item.deferred = item.deferred && draw.renderLayer == 0;

@@ -261,6 +261,21 @@ impl Peeling {
     }
 }
 
+pub(super) fn device_supported(device: &Device) -> bool {
+    let features = device.features();
+    let uses = TextureUsages::RENDER_ATTACHMENT | TextureUsages::TEXTURE_BINDING;
+    let rgba = TextureFormat::Rgba16Float.guaranteed_format_features(features);
+    let depth = TextureFormat::Depth32Float.guaranteed_format_features(features);
+    let mask = TextureFormat::R8Unorm.guaranteed_format_features(features);
+    device.limits().max_color_attachments >= 2
+        && rgba.allowed_usages.contains(uses)
+        && rgba.flags.contains(TextureFormatFeatureFlags::BLENDABLE)
+        && depth
+            .allowed_usages
+            .contains(uses | TextureUsages::COPY_SRC | TextureUsages::COPY_DST)
+        && mask.allowed_usages.contains(uses)
+}
+
 // Validate concrete allocation size even for direct private ABI callers.
 pub(super) fn validate_request(
     layers: u32,

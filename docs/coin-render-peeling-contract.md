@@ -99,7 +99,7 @@ final wgpu Debug passou **23/23 CTest**, incluindo o orçamento no reuso após
 resize. Nenhuma das duas campanhas retornou skip. Rust offline passou
 **13 testes unitários e dois testes de shaders**.
 
-P11 continua responsável por capacidades e seleção tipadas. FreeCAD, drivers
+O [contrato P11](coin-render-selection-contract.md) oferece capacidades e seleção tipadas. FreeCAD, drivers
 adicionais, MSAA, polygon offset/clamp e viewports parcialmente externos exigem
 suas campanhas próprias. A rota direta BGFX de textura de cena ainda usa OBJECT;
 sua ampliação pertence a P12/P13. Este fechamento não qualifica peeling BGFX

@@ -9,6 +9,8 @@
 #include <Inventor/rendering/CoinRenderNativeSurface.h>
 #include "rendering/coinrender/CoinRenderFramePlan.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
+#include "rendering/coinrender/CoinRenderSelectionCore.h"
+#include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
 
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
@@ -44,10 +46,7 @@ prepareCpuDepthBuffer(const CoinRenderTargetP * target)
   // BGFX fills depth from the GPU; never synthesize a CPU depth result.
   // A target can still explicitly use the CPU reference backend in the same
   // binary, so decide from the prepared backend rather than the build alone.
-  static const bool diagnosticFill = [] {
-    const char * flag = std::getenv("COIN_BGFX_DIAGNOSTIC_CPU_DEPTH_FILL");
-    return flag != NULL && std::strcmp(flag, "1") == 0;
-  }();
+  static const bool diagnosticFill = CoinRenderDiagnosticShell::diagnosticCpuDepthFill();
   if (diagnosticFill) return true;
   return target != NULL && target->backend.get() != NULL &&
          dynamic_cast<CoinBgfxBackend *>(target->backend.get()) == NULL;
@@ -69,6 +68,7 @@ CoinRenderTargetP::CoinRenderTargetP(const SbVec2i32 & sz)
     needsReconfigure(false),
     lastError("")
 {
+  this->options = CoinRenderDiagnosticShell::renderOptions(this->optionsDiagnostic);
   this->resize(sz);
 }
 
@@ -417,6 +417,11 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
                                           CoinRenderReadbackTicket * outTicket,
                                           const CoinRenderFrameReuseDecision & reuse)
 {
+  if (!this->optionsDiagnostic.empty() ||
+      !coin_render_valid_options(this->options, this->lastError))
+    return CoinRenderFrameExecutionResult(
+        CoinRenderBackendStatus::UNSUPPORTED,
+        this->optionsDiagnostic.empty() ? this->lastError : this->optionsDiagnostic);
   this->borrowedReadbackValid = false;
   if (outTicket && this->kind != KIND_OFFSCREEN) {
     return CoinRenderFrameExecutionResult(CoinRenderBackendStatus::UNSUPPORTED,
@@ -571,10 +576,9 @@ CoinRenderTarget::createOffscreen(const SbVec2i32 & size)
   return target;
 }
 
-CoinRenderTarget *
-CoinRenderTargetP::createDirectOffscreen(const SbVec2i32 & size)
-{
-  CoinRenderTarget * target = new CoinRenderTarget();
+CoinRenderTarget* CoinRenderTargetP::createDirectOffscreen(const SbVec2i32& size,
+                                                           const CoinRenderOptions& options) {
+  CoinRenderTarget* target = CoinRenderTarget::createOffscreen(size, options);
   target->pimpl->directTextureOutput = true;
   target->pimpl->resize(size);
   return target;
@@ -588,6 +592,31 @@ CoinRenderTarget::createWindow(const CoinRenderNativeSurfaceDescriptor & descrip
   target->pimpl->initWindow(descriptor, framebufferSize);
   return target;
 }
+
+CoinRenderTarget* CoinRenderTarget::createOffscreen(const SbVec2i32& size,
+                                                    const CoinRenderOptions& options) {
+  CoinRenderTarget* target = new CoinRenderTarget();
+  target->pimpl->options = options;
+  target->pimpl->optionsDiagnostic.clear();
+  target->pimpl->resize(size);
+  return target;
+}
+
+CoinRenderTarget*
+CoinRenderTarget::createWindow(const CoinRenderNativeSurfaceDescriptor& descriptor,
+                               const SbVec2i32& size, const CoinRenderOptions& options) {
+  CoinRenderTarget* target = new CoinRenderTarget();
+  target->pimpl->options = options;
+  target->pimpl->optionsDiagnostic.clear();
+  if (!coin_render_valid_options(options, target->pimpl->lastError)) {
+    target->pimpl->status = TARGET_ERROR;
+    return target;
+  }
+  target->pimpl->initWindow(descriptor, size);
+  return target;
+}
+
+const CoinRenderOptions& CoinRenderTarget::getOptions(void) const { return this->pimpl->options; }
 
 CoinRenderTarget::Status
 CoinRenderTarget::getStatus(void) const

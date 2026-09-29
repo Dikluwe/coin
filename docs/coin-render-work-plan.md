@@ -75,13 +75,16 @@ escopos delimitados.
   é extensão explícita BGFX; wgpu oferece peeling. Overrides de depth fora do
   mecanismo BGFX são rejeitados com preservação. Outros drivers, MSAA e a rota
   direta BGFX de textura de cena seguem as campanhas próprias.
-- [ ] **P11 — Seleção/capacidades (A07/A08):** opções tipadas; distinguir hardware
-  disponível, mecanismo implementado e contrato Coin qualificado por alvo.
+- [x] **P11 — Seleção/capacidades (A07/A08):** opções tipadas por alvo para
+  renderer/transparência/RTT; capacidades V3 distinguem fatos conhecidos, mecanismo
+  implementado/disponível e evidência de perfil qualificado. Compatibilidade V1/V2,
+  conflitos sem fallback e limites no [contrato P11](coin-render-selection-contract.md).
+  A consulta de janela não substitui sua qualificação física ou de apresentação.
 
 Fechamento: preservar modalidades Coin; weighted OIT é extensão explícita.
 Unsupported preserva imagem/serial e permite próximo pedido válido. P09 reutiliza
-A03; P10 depende dos materiais/texturas. P11 acompanha cada capacidade e precede
-qualquer seleção automática entre mecanismos equivalentes.
+A03; P10 depende dos materiais/texturas. P11 acompanha cada capacidade; não introduz seleção automática
+entre mecanismos ou aproximações visuais.
 
 ## 4. Integrar recursos, RTT e ciclo de vida
 
@@ -153,7 +156,7 @@ limites; documentação e commit de evidência. Registrar implementação, execu
 qualificação separadamente. Rejeição explícita fecha diagnóstico, não suporte
 funcional. Atualizar Pxx e Axx/Fxx associados somente no escopo comprovado.
 
-**Próxima entrega concreta: P02 — SoDrawStyle / F04.** Mapear o comportamento
-Coin/GL nos limites restantes: raster diagonal e cantos fracionários, qualificação ampliada de units,
-multitextura/UV procedural e shapes fora do perfil convexo. A resolução comum de contornos
-e INVISIBLE já têm evidência no escopo documentado.
+**Próxima entrega concreta: P12 — plano/ownership de RTT.** Unificar identidade
+opaca, produtor, device e geração dos recursos, retenção/invalidação e dependências;
+retirar criação/liberação de tokens concretos da action. P13 qualificará execução
+e publicação staged/direta sobre esse contrato.

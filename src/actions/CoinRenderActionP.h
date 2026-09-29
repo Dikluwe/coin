@@ -84,6 +84,7 @@ public:
   SbColor4f backgroundColor;
   CoinRenderAction::TransparencyType transparencyType;
   CoinRenderTransparencyOptions transparencyOptions;
+  CoinRenderOptions executionOptions;
   CoinRenderAction::Status lastStatus;
   CoinRenderDiagnosticDomain lastDiagnosticDomain;
   SbString lastError;

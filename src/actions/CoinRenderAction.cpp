@@ -60,6 +60,7 @@
 #include "rendering/coinrender/CoinRenderFrameReuseCore.h"
 #include "rendering/coinrender/CoinRenderImageCore.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
+#include "rendering/coinrender/CoinRenderSelectionCore.h"
 #include "actions/SoSubActionP.h"
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
 #include "rendering/coinwgpu/CoinWgpuBackend.h"
@@ -497,11 +498,23 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
 {
   typedef std::chrono::steady_clock ProfileClock;
   const ProfileClock::time_point profileBegin = ProfileClock::now();
+  if (this->target)
+    this->executionOptions = this->target->pimpl->options;
+  std::string optionsDiagnostic;
+  if ((this->target && !this->target->pimpl->optionsDiagnostic.empty()) ||
+      !coin_render_valid_options(this->executionOptions, optionsDiagnostic)) {
+    this->setDiagnostic(CoinRenderDiagnosticShell::action(
+        CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::TARGET,
+        SbString(this->target && !this->target->pimpl->optionsDiagnostic.empty()
+                     ? this->target->pimpl->optionsDiagnostic.c_str()
+                     : optionsDiagnostic.c_str())));
+    return;
+  }
   const bool tracePhases = CoinRenderDiagnosticShell::phaseTracingEnabled();
   if (this->isApplying) {
     this->setDiagnostic(CoinRenderDiagnosticShell::action(
-      CoinRenderAction::INVALID_SCENE, CoinRenderDiagnosticDomain::ACTION,
-      SbString("Nested apply() calls are not permitted on CoinRenderAction")));
+        CoinRenderAction::INVALID_SCENE, CoinRenderDiagnosticDomain::ACTION,
+        SbString("Nested apply() calls are not permitted on CoinRenderAction")));
     this->hasReentrancyError = true;
     return;
   }
@@ -547,10 +560,10 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     }
   } directTextureScope{this, ownsDirectTokens};
 
-  const char * directMode = CoinRenderDiagnosticShell::environmentOption("COIN_RENDER_RTT_GPU_DIRECT");
-  const bool ownsDirectPasses = !this->directPasses && !this->planOnly &&
-    this->target && this->target->pimpl->kind == CoinRenderTargetP::KIND_OFFSCREEN &&
-    directMode && directMode[0] == '1' && directMode[1] == '\0';
+  const bool ownsDirectPasses =
+      !this->directPasses && !this->planOnly && this->target &&
+      this->target->pimpl->kind == CoinRenderTargetP::KIND_OFFSCREEN &&
+      this->executionOptions.sceneTexture == COIN_RENDER_SCENE_TEXTURE_DIRECT;
   if (ownsDirectPasses) {
     this->directPasses = std::make_shared<std::vector<DirectPass> >();
     planCacheAllowed = false;
@@ -645,6 +658,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   profilePlanned = ProfileClock::now();
   if (!traversalSkipped && !cameraOverlay) {
     plan.transparency = this->transparencyOptions;
+    plan.transparency.mode = this->executionOptions.transparency;
     if (planCacheAllowed && cacheRoot && this->hasLastValidPlan &&
         this->cachedRoot == cacheRoot) {
       reuseDecision = CoinRenderFrameReuseCore::classify(this->lastValidPlan, plan);
@@ -777,7 +791,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       resolveTextures(childFrame);
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
       std::unique_ptr<CoinRenderTarget> childTarget(
-        CoinRenderTargetP::createDirectOffscreen(pass.size));
+          CoinRenderTargetP::createDirectOffscreen(pass.size, this->target->pimpl->options));
       if (!childTarget || childTarget->getStatus() != CoinRenderTarget::TARGET_READY) {
         this->setDiagnostic(CoinRenderDiagnosticShell::action(
           CoinRenderAction::BACKEND_ERROR,
@@ -991,10 +1005,17 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
   }
 
   bool useDirect = false;
+#if !defined(HAVE_COIN_WGPU_RUST_BRIDGE) && !defined(HAVE_COIN_BGFX)
+  if (p->executionOptions.sceneTexture == COIN_RENDER_SCENE_TEXTURE_DIRECT) {
+    p->setDiagnostic(CoinRenderDiagnosticShell::action(
+        CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+        SbString("Direct scene texture is not implemented; no fallback was applied")));
+    return SoCallbackAction::ABORT;
+  }
+#endif
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_BGFX)
-  const char * directMode = CoinRenderDiagnosticShell::environmentOption("COIN_RENDER_RTT_GPU_DIRECT");
-  useDirect = p->directPasses &&
-              directMode && directMode[0] == '1' && directMode[1] == '\0';
+  useDirect =
+      p->directPasses && p->executionOptions.sceneTexture == COIN_RENDER_SCENE_TEXTURE_DIRECT;
 #endif
 
   const SbVec2s size = texture->size.getValue();
@@ -1046,7 +1067,8 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
 #endif
   std::unique_ptr<CoinRenderTarget> childTarget;
   if (!useDirect) {
-    childTarget.reset(CoinRenderTarget::createOffscreen(SbVec2i32(size[0], size[1])));
+    childTarget.reset(
+        CoinRenderTarget::createOffscreen(SbVec2i32(size[0], size[1]), p->executionOptions));
     if (!childTarget || childTarget->getStatus() != CoinRenderTarget::TARGET_READY) {
       p->setDiagnostic(CoinRenderDiagnosticShell::action(
         CoinRenderAction::BACKEND_ERROR, CoinRenderDiagnosticDomain::TARGET,
@@ -1067,6 +1089,7 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
   childAction.pimpl->sceneTextureDirectTokens = p->sceneTextureDirectTokens;
   childAction.pimpl->directPasses = p->directPasses;
   childAction.pimpl->planOnly = useDirect;
+  childAction.pimpl->executionOptions = p->executionOptions;
   childAction.setRenderTarget(childTarget.get());
   childAction.setTransparencyType(p->transparencyType);
   childAction.setSortedLayersNumPasses(static_cast<int>(p->transparencyOptions.layers));

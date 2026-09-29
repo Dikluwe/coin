@@ -2023,6 +2023,12 @@ fn encode_frame(
     peel_passes: u32,
 ) -> Result<wgpu::CommandBuffer, (CoinWgpuStatus, String)> {
     use wgpu::util::DeviceExt;
+    if draw_order.iter().any(|item| item.peel) && !peeling::device_supported(&ctx.device) {
+        return Err((
+            CoinWgpuStatus::Unsupported,
+            "Peeling lacks enabled device formats/attachments; no fallback was applied".into(),
+        ));
+    }
     // Composition was preflighted before surface acquisition or target allocation.
     // Preflight the entire lighting payload before cache mutation or command encoding.
     for (state_index, state) in states_slice.iter().enumerate() {
@@ -3172,6 +3178,166 @@ pub extern "C" fn coin_wgpu_get_adapter_info(buffer: *mut std::os::raw::c_char, 
         }
         set_error(buffer, buffer_len, "None");
     });
+}
+
+#[repr(C)]
+#[derive(Default)]
+pub struct CoinWgpuRuntimeCapabilities {
+    pub struct_size: u32,
+    pub renderer: u32,
+    pub vendor_id: u32,
+    pub device_id: u32,
+    pub max_framebuffer_attachments: u32,
+    pub format_rgba8: u32,
+    pub format_d24s8: u32,
+    pub format_d32f: u32,
+    pub format_rgba16f: u32,
+    pub format_r16f: u32,
+    pub runtime_features: u64,
+    pub available_mechanisms: u64,
+}
+
+const _: () = {
+    assert!(std::mem::size_of::<CoinWgpuRuntimeCapabilities>() == 56);
+    assert!(std::mem::offset_of!(CoinWgpuRuntimeCapabilities, runtime_features) == 40);
+};
+
+fn portable_format_features(features: wgpu::TextureFormatFeatures) -> u32 {
+    let mut result = 0;
+    if features
+        .allowed_usages
+        .contains(wgpu::TextureUsages::TEXTURE_BINDING)
+    {
+        result |= 1;
+    }
+    if features
+        .allowed_usages
+        .contains(wgpu::TextureUsages::RENDER_ATTACHMENT)
+    {
+        result |= 2;
+    }
+    if features
+        .flags
+        .contains(wgpu::TextureFormatFeatureFlags::MULTISAMPLE_X4)
+    {
+        result |= 4;
+    }
+    if features
+        .flags
+        .contains(wgpu::TextureFormatFeatureFlags::STORAGE_READ_ONLY)
+    {
+        result |= 8;
+    }
+    if features.flags.intersects(
+        wgpu::TextureFormatFeatureFlags::STORAGE_WRITE_ONLY
+            | wgpu::TextureFormatFeatureFlags::STORAGE_READ_WRITE,
+    ) {
+        result |= 16;
+    }
+    result
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_query_runtime_capabilities(
+    output: *mut CoinWgpuRuntimeCapabilities,
+    output_size: usize,
+) -> CoinWgpuStatus {
+    if output.is_null() || output_size != std::mem::size_of::<CoinWgpuRuntimeCapabilities>() {
+        return CoinWgpuStatus::InvalidArgument;
+    }
+    std::panic::catch_unwind(|| {
+        if FAULT_INJECTION.load(Ordering::SeqCst) == CoinWgpuStatus::NotReady as i32 {
+            return CoinWgpuStatus::NotReady;
+        }
+        if init_runtime_if_needed().is_err() {
+            return CoinWgpuStatus::BackendError;
+        }
+        let mut guard = match RUNTIME_CTX.lock() {
+            Ok(g) => g,
+            Err(_) => return CoinWgpuStatus::BackendError,
+        };
+        let runtime = match guard.as_mut() {
+            Some(r) => r,
+            None => return CoinWgpuStatus::NotReady,
+        };
+        let dev = match get_or_init_device(runtime, None) {
+            Ok(d) => d,
+            Err(_) => return CoinWgpuStatus::NotReady,
+        };
+        let info = dev.adapter.get_info();
+        let limits = dev.adapter.limits();
+        let format = |f| portable_format_features(dev.adapter.get_texture_format_features(f));
+        let mut result = CoinWgpuRuntimeCapabilities {
+            struct_size: output_size as u32,
+            renderer: match info.backend {
+                wgpu::Backend::Vulkan => 1,
+                wgpu::Backend::Gl => 2,
+                _ => 3,
+            },
+            vendor_id: info.vendor,
+            device_id: info.device,
+            max_framebuffer_attachments: limits.max_color_attachments,
+            format_rgba8: format(wgpu::TextureFormat::Rgba8Unorm),
+            // Depth24PlusStencil8 is an abstract format; it does not certify D24S8.
+            format_d24s8: 0,
+            format_d32f: format(wgpu::TextureFormat::Depth32Float),
+            format_rgba16f: format(wgpu::TextureFormat::Rgba16Float),
+            format_r16f: format(wgpu::TextureFormat::R16Float),
+            ..Default::default()
+        };
+        if limits.max_color_attachments > 1 {
+            result.runtime_features |= 1 | 2;
+        }
+        if limits.max_compute_workgroups_per_dimension > 0 {
+            result.runtime_features |= 4;
+        }
+        if dev
+            .adapter
+            .features()
+            .contains(wgpu::Features::TIMESTAMP_QUERY)
+        {
+            result.runtime_features |= 8;
+        }
+        result.available_mechanisms = 1;
+        // Executable formats use the enabled device feature set, not optional
+        // adapter capabilities which this device did not request.
+        if peeling::device_supported(&dev.device) {
+            result.available_mechanisms |= 2;
+        }
+        unsafe {
+            std::ptr::write(output, result);
+        }
+        CoinWgpuStatus::Ok
+    })
+    .unwrap_or(CoinWgpuStatus::BackendError)
+}
+
+#[cfg(test)]
+mod runtime_capabilities_tests {
+    use super::*;
+    #[test]
+    fn rejects_invalid_output_without_a_probe() {
+        assert_eq!(
+            coin_wgpu_query_runtime_capabilities(std::ptr::null_mut(), 56),
+            CoinWgpuStatus::InvalidArgument
+        );
+        let mut caps = CoinWgpuRuntimeCapabilities::default();
+        assert_eq!(
+            coin_wgpu_query_runtime_capabilities(&mut caps, 55),
+            CoinWgpuStatus::InvalidArgument
+        );
+        assert_eq!(caps.struct_size, 0);
+    }
+    #[test]
+    fn format_bits_keep_sampling_and_storage_access_separate() {
+        let features = wgpu::TextureFormatFeatures {
+            allowed_usages: wgpu::TextureUsages::RENDER_ATTACHMENT
+                | wgpu::TextureUsages::STORAGE_BINDING,
+            flags: wgpu::TextureFormatFeatureFlags::MULTISAMPLE_X4
+                | wgpu::TextureFormatFeatureFlags::STORAGE_READ_ONLY,
+        };
+        assert_eq!(portable_format_features(features), 2 | 4 | 8);
+    }
 }
 
 #[no_mangle]

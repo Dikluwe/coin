@@ -8,6 +8,7 @@
 #include "rendering/coinbgfx/CoinBgfxLowering.h"
 #include "rendering/coinrender/CoinRenderImageCore.h"
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
+#include "rendering/coinrender/CoinRenderSelectionCore.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
 
 #include "coin_bgfx_fs_depth_readback_glsl.h"
@@ -595,33 +596,30 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
     this->lastError = "BGFX window presentation requires a valid Xlib surface";
     return CoinRenderBackendStatus::UNSUPPORTED;
   }
-  const char * transparencyMode = std::getenv("COIN_BGFX_TRANSPARENCY");
-  if (transparencyMode == nullptr || std::strcmp(transparencyMode, "auto") == 0) {
+  if (!target.optionsDiagnostic.empty() ||
+      !coin_render_valid_options(target.options, this->lastError)) {
+    if (!target.optionsDiagnostic.empty())
+      this->lastError = target.optionsDiagnostic;
+    return CoinRenderBackendStatus::UNSUPPORTED;
+  }
+  switch (target.options.transparency) {
+  case COIN_RENDER_TRANSPARENCY_COIN:
     this->transparencyMode = CoinBgfxTransparencyMode::AUTO;
-  } else if (std::strcmp(transparencyMode, "object") == 0) {
+    break;
+  case COIN_RENDER_TRANSPARENCY_OBJECT:
     this->transparencyMode = CoinBgfxTransparencyMode::OBJECT;
-  } else if (std::strcmp(transparencyMode, "sorted_layers") == 0) {
+    break;
+  case COIN_RENDER_TRANSPARENCY_PEELING:
     this->transparencyMode = CoinBgfxTransparencyMode::SORTED_LAYERS;
-  } else if (std::strcmp(transparencyMode, "weighted_oit") == 0) {
+    break;
+  case COIN_RENDER_TRANSPARENCY_WEIGHTED_OIT:
     this->transparencyMode = CoinBgfxTransparencyMode::WEIGHTED_OIT;
-  } else {
-    this->lastError = "COIN_BGFX_TRANSPARENCY must be auto, object, weighted_oit, or sorted_layers";
-    return CoinRenderBackendStatus::UNSUPPORTED;
+    break;
   }
-  if (this->transparencyMode == CoinBgfxTransparencyMode::WEIGHTED_OIT)
-    this->activeTransparencyStrategy = CoinBgfxTransparencyStrategy::WEIGHTED_OIT;
-  else if (this->transparencyMode == CoinBgfxTransparencyMode::SORTED_LAYERS)
-    this->activeTransparencyStrategy = CoinBgfxTransparencyStrategy::SORTED_LAYERS;
-  else
-    this->activeTransparencyStrategy = CoinBgfxTransparencyStrategy::OBJECT;
-  const char * rendererFlag = std::getenv("COIN_BGFX_RENDERER");
-  const bool useOpenGl = rendererFlag != nullptr && std::strcmp(rendererFlag, "opengl") == 0;
-  if (rendererFlag != nullptr && !useOpenGl && std::strcmp(rendererFlag, "vulkan") != 0) {
-    this->lastError = "COIN_BGFX_RENDERER must be opengl or vulkan";
-    return CoinRenderBackendStatus::UNSUPPORTED;
-  }
+  this->activeTransparencyStrategy = CoinBgfxTransparencyStrategy::OBJECT;
+  const bool useOpenGl = target.options.renderer == COIN_RENDER_RENDERER_OPENGL;
   const bgfx::RendererType::Enum renderer =
-    useOpenGl ? bgfx::RendererType::OpenGL : bgfx::RendererType::Vulkan;
+      useOpenGl ? bgfx::RendererType::OpenGL : bgfx::RendererType::Vulkan;
   SharedBgfxRuntime & runtime = sharedRuntime();
   std::unique_lock<std::mutex> runtimeGuard(runtime.mutex);
   if (runtime.references != 0 && runtime.apiThread != std::this_thread::get_id()) {
@@ -695,7 +693,8 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
     return this->status;
   }
   const bgfx::Caps * caps = bgfx::getCaps();
-  if (caps->limits.maxTextureSamplers < COIN_RENDER_MAX_TEXTURE_UNITS + 2) {
+  if (!target.capabilityProbeOnly &&
+      caps->limits.maxTextureSamplers < COIN_RENDER_MAX_TEXTURE_UNITS + 2) {
     this->lastError = "BGFX renderer needs ten texture samplers for eight units and transparency";
     this->status = CoinRenderBackendStatus::UNSUPPORTED;
     return this->status;
@@ -715,19 +714,6 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
       bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA8,
         BGFX_TEXTURE_BLIT_DST | BGFX_TEXTURE_READ_BACK) ? 1 : 0);
   }
-  if (caps->rendererType != renderer ||
-      !(caps->supported & BGFX_CAPS_INDEX32) ||
-      (this->presentToWindow && !(caps->supported & BGFX_CAPS_SWAP_CHAIN)) ||
-      (!this->presentToWindow &&
-       (!(caps->formats[bgfx::TextureFormat::RGBA8] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
-        (!(caps->formats[bgfx::TextureFormat::D24S8] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) &&
-         !(caps->formats[bgfx::TextureFormat::D32F] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER)) ||
-        !bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA8,
-                              BGFX_TEXTURE_BLIT_DST | BGFX_TEXTURE_READ_BACK)))) {
-    this->lastError = "BGFX renderer lacks the required window/offscreen capabilities";
-    this->status = CoinRenderBackendStatus::UNSUPPORTED;
-    return this->status;
-  }
   this->sortedLayersSupported =
       caps->limits.maxFBAttachments >= 2 &&
       bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA16F, peelTextureFlags) &&
@@ -740,13 +726,29 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
     bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA16F, peelTextureFlags) &&
     bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::R16F, peelTextureFlags);
 
-  if (this->transparencyMode == CoinBgfxTransparencyMode::SORTED_LAYERS && !this->sortedLayersSupported) {
-    this->lastError = "BGFX sorted layers requires sampleable D32F and RGBA16F render targets";
-    this->status = CoinRenderBackendStatus::UNSUPPORTED;
-    return this->status;
+  const bool baseSupported =
+      (caps->supported & BGFX_CAPS_INDEX32) &&
+      caps->limits.maxTextureSamplers >= COIN_RENDER_MAX_TEXTURE_UNITS + 2 &&
+      (caps->formats[bgfx::TextureFormat::RGBA8] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) &&
+      ((caps->formats[bgfx::TextureFormat::D24S8] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
+       (caps->formats[bgfx::TextureFormat::D32F] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER));
+  this->windowSupported = baseSupported && (caps->supported & BGFX_CAPS_SWAP_CHAIN);
+  this->offscreenSupported =
+      baseSupported && bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA8,
+                                            BGFX_TEXTURE_BLIT_DST | BGFX_TEXTURE_READ_BACK);
+  if (target.capabilityProbeOnly) {
+    this->initialized = true;
+    return this->status = CoinRenderBackendStatus::SUCCESS;
   }
-  if (this->transparencyMode == CoinBgfxTransparencyMode::WEIGHTED_OIT && !this->weightedOitSupported) {
-    this->lastError = "BGFX weighted OIT requires independent blending and sampleable RGBA16F/R16F render targets";
+  if (caps->rendererType != renderer || !(caps->supported & BGFX_CAPS_INDEX32) ||
+      (this->presentToWindow && !(caps->supported & BGFX_CAPS_SWAP_CHAIN)) ||
+      (!this->presentToWindow &&
+       (!(caps->formats[bgfx::TextureFormat::RGBA8] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
+        (!(caps->formats[bgfx::TextureFormat::D24S8] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) &&
+         !(caps->formats[bgfx::TextureFormat::D32F] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER)) ||
+        !bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA8,
+                              BGFX_TEXTURE_BLIT_DST | BGFX_TEXTURE_READ_BACK)))) {
+    this->lastError = "BGFX renderer lacks the required window/offscreen capabilities";
     this->status = CoinRenderBackendStatus::UNSUPPORTED;
     return this->status;
   }

@@ -107,7 +107,10 @@ bool render(SoSeparator * root, bool cpu, std::vector<uint8_t> & pixels, bool fa
   action.setFastPathEnabled(fast); action.setRenderTarget(target.get());
   // Each sampled fixture has one contributing primitive at this pixel.
   // CPU source-over is its oracle; the GPU exercises its configured mechanism.
-  action.setTransparencyType(cpu ? CoinBgfxAction::BLEND : CoinBgfxAction::SORTED_LAYERS_BLEND);
+  action.setTransparencyType(cpu ? CoinBgfxAction::BLEND
+                             : target->getOptions().transparency == COIN_RENDER_TRANSPARENCY_OBJECT
+                                 ? CoinBgfxAction::SORTED_OBJECT_BLEND
+                                 : CoinBgfxAction::SORTED_LAYERS_BLEND);
   action.apply(root);
   if (action.getLastStatus() != CoinBgfxAction::SUCCESS) {
     std::cerr << action.getLastError().getString() << '\n'; return false;

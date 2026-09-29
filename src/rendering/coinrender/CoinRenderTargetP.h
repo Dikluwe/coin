@@ -23,6 +23,9 @@ public:
   CoinRenderTargetP(const SbVec2i32 & sz = SbVec2i32(0, 0));
   ~CoinRenderTargetP();
 
+  bool capabilityProbeOnly = false;
+  CoinRenderOptions options;
+  std::string optionsDiagnostic;
   TargetKind kind{KIND_OFFSCREEN};
   CoinRenderTarget::Status status{CoinRenderTarget::TARGET_READY};
   SbVec2i32 size{0, 0};
@@ -44,7 +47,8 @@ public:
 
   bool initWindow(const CoinRenderNativeSurfaceDescriptor & desc, const SbVec2i32 & fbSize);
   bool resize(const SbVec2i32 & newSize);
-  static CoinRenderTarget * createDirectOffscreen(const SbVec2i32 & size);
+  static CoinRenderTarget* createDirectOffscreen(const SbVec2i32& size,
+                                                 const CoinRenderOptions& options);
   void clear(float r, float g, float b, float a, float depthVal = 1.0f);
   void readbackRGBA(std::vector<uint8_t> & outRgba) const;
   void readbackDepth(std::vector<float> & outDepth) const;

@@ -259,6 +259,17 @@ void coin_wgpu_inject_device_fault(CoinWgpuDeviceId id, int32_t code);
 
 void coin_wgpu_get_adapter_info(char * buffer, size_t buffer_len);
 
+struct CoinWgpuRuntimeCapabilities {
+  uint32_t struct_size;
+  uint32_t renderer, vendor_id, device_id;
+  uint32_t max_framebuffer_attachments;
+  uint32_t format_rgba8, format_d24s8, format_d32f, format_rgba16f, format_r16f;
+  uint64_t runtime_features;
+  uint64_t available_mechanisms;
+};
+CoinWgpuStatus coin_wgpu_query_runtime_capabilities(CoinWgpuRuntimeCapabilities* output,
+                                                    size_t output_size);
+
 CoinWgpuStatus coin_wgpu_submit(
   CoinWgpuTarget * target,
   const CoinWgpuFrameView * frame,
