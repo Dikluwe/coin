@@ -156,6 +156,8 @@ Base de execução: [benchmark e mecanismos existentes](coin-render-window-bench
 
 - [ ] **P20 — Matriz física (A10/F21):** AMD/RADV/radeonsi, Intel e NVIDIA,
   OpenGL/Vulkan, fixtures comuns, skips e tolerâncias por célula.
+  [Primeira matriz física AMD/NVIDIA, células e lacunas](coin-render-p20-physical-matrix.md);
+  Intel, NVIDIA BGFX/OpenGL e oráculos visuais continuam abertos.
 - [ ] **P21 — Windows:** Win32, D3D11/D3D12 e APIs disponíveis, resize/DPI/multiwindow.
 - [ ] **P22 — macOS/Wayland:** Cocoa/Metal e Wayland nativo, superfícies,
   coordenadas, apresentação e ciclo de vida próprios.
@@ -182,10 +184,11 @@ limites; documentação e commit de evidência. Registrar implementação, execu
 qualificação separadamente. Rejeição explícita fecha diagnóstico, não suporte
 funcional. Atualizar Pxx e Axx/Fxx associados somente no escopo comprovado.
 
-**Próxima entrega concreta: P20 — matriz física.** As campanhas
+**Próxima entrega concreta: fechar P20 — matriz física.** As campanhas
 [P17](coin-render-p17-campaign.md), [P18](coin-render-p18-profiling.md) e
 [P19](coin-render-p19-reuse-readback.md) fixam cenas, métricas e A/B na Radeon.
-P20 amplia drivers/plataformas sem extrapolar esses números. O
+A [primeira execução P20](coin-render-p20-physical-matrix.md) amplia a evidência
+para NVIDIA Vulkan e explicita falhas/skips sem extrapolar esses números. O
 [perfil P16](coin-render-freecad-viewport.md) é a base de interação comprovada.
 Texto, imagem, rótulos e geometria GL-only seguem F19/F20/P15; viewport
 parcialmente externo continua P04; RTT ampliado F14; captura explícita de janela RGBA8 foi fechada em [F15](coin-render-window-readback.md).
