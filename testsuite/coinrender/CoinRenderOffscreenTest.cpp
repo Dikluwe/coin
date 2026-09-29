@@ -467,6 +467,9 @@ int main() {
   hintsRoot->unref();
 
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+  // Earlier pixel checks deliberately used the CPU reference backend. Restore
+  // the Rust backend before injecting faults into its state machine.
+  target->getPimpl()->backend.reset(new CoinWgpuBackend);
   char adapterName[256] = {0};
   coin_wgpu_get_adapter_info(adapterName, sizeof(adapterName));
   std::cout << "Detected WebGPU Adapter: " << adapterName << std::endl;

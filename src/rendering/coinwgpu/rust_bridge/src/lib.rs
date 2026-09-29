@@ -789,6 +789,46 @@ struct DeviceState {
     injected_fault: AtomicI32,
 }
 
+// Diagnostic sizes cover selected bridge-owned caches and primary attachments.
+// They are nominal payload bytes, not driver allocations or total GPU memory.
+fn trace_owned_resources(dev: &DeviceState, target: &str, width: u32, height: u32,
+                         staging_color_bytes: u64, staging_depth_bytes: u64) {
+    let geometry = dev.cache.lock().unwrap();
+    let retired_geometry_bytes: u64 = geometry.deferred_release.iter()
+        .map(|entry| entry.size_bytes).sum();
+    let vertex_buffers = geometry.active_entries.len() + geometry.deferred_release.len();
+    let index_buffers = geometry.active_entries.values()
+        .filter(|(_, entry)| entry.index_buffer.is_some()).count()
+        + geometry.deferred_release.iter()
+            .filter(|entry| entry.index_buffer.is_some()).count();
+    let geometry_active_bytes = geometry.total_active_geometry_bytes;
+    drop(geometry);
+    let textures = dev.texture_cache.lock().unwrap();
+    let texture_payload_bytes: u64 = textures.entries.values()
+        .map(|entry| entry.size_bytes as u64).sum();
+    let texture_count = textures.entries.len() + textures.retired.len();
+    drop(textures);
+    let rtt = dev.rtt_textures.lock().unwrap();
+    let rtt_count = rtt.active.len() + rtt.retired.len();
+    let rtt_nominal_bytes: u64 = rtt.active.values()
+        .map(|entry| u64::from(entry.width) * u64::from(entry.height) * 4).sum::<u64>()
+        + rtt.retired.iter().map(|entry| u64::from(entry.resource.width)
+            * u64::from(entry.resource.height) * 4).sum::<u64>();
+    drop(rtt);
+    let pool = dev.readback_pool.lock().unwrap();
+    let staging_pool_free_bytes = pool.free_bytes;
+    let staging_pool_free_buffers = pool.free_count;
+    drop(pool);
+    let pixels = u64::from(width) * u64::from(height);
+    let attachment_count = if target == "window" { 1 } else { 2 };
+    let attachment_nominal_bytes = pixels * 4 * attachment_count;
+    eprintln!("COIN_RENDER_PHASE rust_resources target={} geometry_active_bytes={} geometry_retired_bytes={} vertex_buffers={} index_buffers={} texture_cache_count={} texture_payload_bytes={} rtt_texture_count={} rtt_color_nominal_bytes={} attachment_textures={} attachment_nominal_bytes={} staging_frame_color_bytes={} staging_frame_depth_bytes={} staging_pool_free_bytes={} staging_pool_free_buffers={} gpu_memory_used_bytes=unavailable framebuffer_count=unavailable",
+        target, geometry_active_bytes, retired_geometry_bytes, vertex_buffers, index_buffers,
+        texture_count, texture_payload_bytes, rtt_count, rtt_nominal_bytes, attachment_count,
+        attachment_nominal_bytes, staging_color_bytes, staging_depth_bytes,
+        staging_pool_free_bytes, staging_pool_free_buffers);
+}
+
 struct SurfaceRecord {
     surface: wgpu::Surface<'static>,
     native_desc: CoinWgpuNativeSurfaceDescriptor,
@@ -3666,6 +3706,9 @@ pub extern "C" fn coin_wgpu_surface_submit(
     error_buf_len: usize,
 ) -> CoinWgpuStatus {
     let res = std::panic::catch_unwind(|| {
+        let trace_phases = std::env::var_os("COIN_RENDER_TRACE_PHASES")
+            .or_else(|| std::env::var_os("COIN_WGPU_TRACE_PHASES")).is_some();
+        let profile_start = trace_phases.then(std::time::Instant::now);
         // 1. Fault injection check
         let fault = FAULT_INJECTION.load(Ordering::SeqCst);
         if fault == CoinWgpuStatus::NotReady as i32 {
@@ -4020,6 +4063,7 @@ pub extern "C" fn coin_wgpu_surface_submit(
             }
         }
 
+        let profile_validated = trace_phases.then(std::time::Instant::now);
         // 8. Acquire texture with strictly 1 recovery attempt
         let mut acquire_result = if fault == FAULT_SURFACE_OUTDATED_ONCE
             && FAULT_SURFACE_OUTDATED_COUNT.fetch_add(1, Ordering::SeqCst) == 0
@@ -4132,6 +4176,7 @@ pub extern "C" fn coin_wgpu_surface_submit(
             }
         };
 
+        let profile_acquired = trace_phases.then(std::time::Instant::now);
         // 9. Encode frame into acquired texture view
         let color_view = surface_texture
             .texture
@@ -4173,6 +4218,7 @@ pub extern "C" fn coin_wgpu_surface_submit(
             }
         };
 
+        let profile_encoded = trace_phases.then(std::time::Instant::now);
         // 10. Submit and Present
         let sub_serial = GLOBAL_SUBMISSION_SERIAL.fetch_add(1, Ordering::SeqCst);
         LAST_SUBMITTED_SERIAL.store(sub_serial, Ordering::SeqCst);
@@ -4184,6 +4230,7 @@ pub extern "C" fn coin_wgpu_surface_submit(
             GLOBAL_COMPLETED_SERIAL.fetch_max(sub_serial, Ordering::SeqCst);
         });
         surface_texture.present();
+        let profile_presented = trace_phases.then(std::time::Instant::now);
 
         // Check if device lost or async errors occurred during submit/present
         if DEVICE_LOST_OCCURRED.swap(false, Ordering::SeqCst) {
@@ -4214,10 +4261,19 @@ pub extern "C" fn coin_wgpu_surface_submit(
             return CoinWgpuStatus::BackendError;
         }
 
-        if std::env::var_os("COIN_RENDER_TRACE_PHASES")
-            .or_else(|| std::env::var_os("COIN_WGPU_TRACE_PHASES"))
-            .is_some()
-        {
+        if trace_phases {
+            let duration_ms = |start: std::time::Instant, end: std::time::Instant| {
+                (end - start).as_secs_f64() * 1000.0
+            };
+            let (start, validated, acquired, encoded, presented) =
+                (profile_start.unwrap(), profile_validated.unwrap(),
+                 profile_acquired.unwrap(), profile_encoded.unwrap(),
+                 profile_presented.unwrap());
+            eprintln!("COIN_RENDER_PHASE rust_surface_cpu total_ms={:.6} validation_ms={:.6} acquire_ms={:.6} encode_ms={:.6} submit_present_ms={:.6} queue_submissions=1 command_buffers=1 gpu_timing=unavailable",
+                duration_ms(start, presented), duration_ms(start, validated),
+                duration_ms(validated, acquired), duration_ms(acquired, encoded),
+                duration_ms(encoded, presented));
+            trace_owned_resources(dev, "window", f.width, f.height, 0, 0);
             let info = dev.adapter.get_info();
             let renderer = match info.backend {
                 wgpu::Backend::Vulkan => "vulkan",
@@ -5256,6 +5312,8 @@ fn coin_wgpu_submit_internal(
                 }
                 if trace_phases {
                     let profile_done = std::time::Instant::now();
+                    trace_owned_resources(ctx, "offscreen", width, height, staging_size,
+                        if depth_requested { depth_staging_size } else { 0 });
                     eprintln!("COIN_RENDER_PHASE rust validation_ms={:.6} prepare_encode_ms={:.6} submit_ms={:.6} gpu_wait_ms={:.6} readback_publish_ms={:.6} staging_color_reused={} attachments_reused={} camera_bindings_created={} camera_bindings_reused={}",
                         (profile_validated - profile_start).as_secs_f64() * 1000.0,
                         (profile_encoded - profile_validated).as_secs_f64() * 1000.0,

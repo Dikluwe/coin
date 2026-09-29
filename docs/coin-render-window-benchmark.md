@@ -59,6 +59,9 @@ monitor devem ser marcados como inconclusivos.
 
 ## Timestamps por passagem e memória GPU
 
+O [perfil P18](coin-render-p18-profiling.md) apresenta a matriz medida de
+passagens/esperas e recursos BGFX/wgpu, com limites de disponibilidade por API.
+
 As sondas são opt-in e intrusivas. Ative-as apenas em uma campanha separada:
 
 ```sh

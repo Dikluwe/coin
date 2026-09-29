@@ -138,8 +138,10 @@ P16 fecha depois das capacidades exigidas pelas cenas escolhidas.
   intercalados e cenas transparentes; mediana/p95, throughput, warmup e vsync.
   [Protocolo, 112 execuções e limites P17](coin-render-p17-campaign.md);
   [amostras individuais](inventories/coin-render-p17-runs.csv).
-- [ ] **P18 — Instrumentação/memória (A09):** lacunas por passagem, GPU versus
+- [x] **P18 — Instrumentação/memória (A09):** lacunas por passagem, GPU versus
   espera CPU, submits/transições, picos de buffers/texturas/framebuffers/staging.
+  [Protocolo, 56 perfis e limites](coin-render-p18-profiling.md);
+  [matriz de amostras](inventories/coin-render-p18-profile.csv).
 - [ ] **P19 — Reuso/readback (F15):** câmera/material, persistência, agrupamento,
   pipeline 1/2/3, latência/backpressure/memória e ausência de readback desnecessário.
 
@@ -178,11 +180,11 @@ limites; documentação e commit de evidência. Registrar implementação, execu
 qualificação separadamente. Rejeição explícita fecha diagnóstico, não suporte
 funcional. Atualizar Pxx e Axx/Fxx associados somente no escopo comprovado.
 
-**Próxima entrega concreta: P18 — instrumentação/memória.** O
-[perfil P17](coin-render-p17-campaign.md) fornece a baseline de janela e
-offscreen em GPU física; P18 deve distinguir passagem GPU de espera CPU e
-registrar memória com as capacidades realmente oferecidas pelo driver.
+**Próxima entrega concreta: P19 — reuso/readback.** A
+[baseline P17](coin-render-p17-campaign.md) e os [perfis P18](coin-render-p18-profiling.md)
+separam janela/offscreen, passagens GPU, esperas CPU e recursos. P19 pode
+testar persistência e pipeline 1/2/3 sem atribuir ao GPU tempos CPU.
 O [perfil P16](coin-render-freecad-viewport.md) é a base de interação comprovada.
 Texto, imagem, rótulos e geometria GL-only seguem F19/F20/P15; viewport
 parcialmente externo continua P04; RTT ampliado F14; instrumentação/memória e
-persistência P18/P19.
+persistência P19.

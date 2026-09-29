@@ -161,7 +161,13 @@
   and emit <tt>rust_gpu render_ms</tt> and <tt>copy_ms</tt>; otherwise the
   status says unsupported. Timestamp probing is opt-in and perturbs timing.
   The CPU poll wait is not a GPU execution timestamp. GPU copy includes
-  both color and depth if depth readback was requested.
+  both color and depth if depth readback was requested. With phase tracing,
+  window frames also emit <tt>rust_surface_cpu</tt> validation, acquire,
+  encode and submit/present spans. Window GPU timestamps remain explicitly
+  unavailable. Both targets emit <tt>rust_resources</tt> for bridge-owned
+  geometry buffers, texture payloads, attachments and staging. Those bytes
+  are nominal resource sizes, not total driver GPU memory; unsupported
+  memory and framebuffer counters are printed as <tt>unavailable</tt>.
 
   \section coin_bgfx_execution BGFX evaluation connector
 
