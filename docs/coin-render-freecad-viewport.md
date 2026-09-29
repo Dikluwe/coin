@@ -161,6 +161,11 @@ env PATH=/home/linuxbrew/.linuxbrew/bin:/usr/bin:/bin \
   --timeout 120 --require-hardware
 ```
 
+A linha wgpu/weighted OIT da matriz acima exercita o perfil Part/BRep
+opaco escolhido em P16; ela não comprova weighted OIT com geometria translúcida.
+A [campanha P17](coin-render-p17-campaign.md) exclui essa combinação porque a
+ponte wgpu a rejeita explicitamente em cena translúcida.
+
 Para BGFX/Vulkan, troque `--renderer vulkan`. Para wgpu, troque o prefixo de
 bibliotecas e `--backend wgpu --renderer vulkan`. Weighted OIT usa
 `--mode weighted_oit`; DPR 2 usa `--scale 2`. A referência usa a mesma instalação

@@ -57,7 +57,16 @@ def main():
     parser.add_argument('--artifacts', required=True, type=Path)
     parser.add_argument('--private-dir', type=Path, help=argparse.SUPPRESS)
     parser.add_argument('--worker', action='store_true', help=argparse.SUPPRESS)
-    args, runner_args = parser.parse_known_args()
+    parser.add_argument('--exec', action='store_true', help='run a supplied command in the private session')
+    argv = sys.argv[1:]
+    if '--exec' in argv:
+        if '--' not in argv:
+            parser.error('--exec requires -- before the command')
+        separator = argv.index('--')
+        args = parser.parse_args(argv[:separator])
+        runner_args = argv[separator + 1:]
+    else:
+        args, runner_args = parser.parse_known_args(argv)
     if not args.worker:
         # Keep temporary runtime alive until the private D-Bus daemon and its
         # services have exited. GIO may mount its own FUSE directory there.
@@ -200,6 +209,10 @@ def main():
                 'compositor_backend': 'headless-gl' if args.server == 'xwayland' else None,
                 'hardware': 'must be proven by runner, never inferred from isolation',
             }, indent=2))
+            if args.exec:
+                if not runner_args:
+                    parser.error('--exec requires an executable and arguments')
+                return subprocess.call(runner_args, env=env)
             return subprocess.call([sys.executable, str(Path(__file__).with_name('run.py')),
                                     '--artifacts', str(artifacts), *runner_args], env=env)
         finally:

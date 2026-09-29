@@ -1,5 +1,10 @@
 # Benchmark direto em janela, sem readback
 
+A [campanha P17](coin-render-p17-campaign.md) acrescenta wgpu/Vulkan, cena
+opaca intercalada, offscreen separado, dois perfis de atualização e amostras
+individuais reproduzíveis no mesmo GPU físico. A baseline ao fim desta página
+é histórica e não deve ser misturada à campanha P17.
+
 `coin_render_window_benchmark` mede apresentação direta numa janela X11. Ao contrário
 de `coin_render_gl_benchmark`, ele não cria target offscreen, não chama
 `readbackRGBA()` e não transporta pixels para a CPU.

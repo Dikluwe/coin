@@ -133,9 +133,11 @@ P16 fecha depois das capacidades exigidas pelas cenas escolhidas.
 
 ## 6. Medir e otimizar com evidência
 
-- [ ] **P17 — Campanha comparável:** janela sem readback e offscreen separados;
+- [x] **P17 — Campanha comparável:** janela sem readback e offscreen separados;
   GL/BGFX OpenGL/BGFX Vulkan/wgpu nos modos suportados; cenas opacas com estados
   intercalados e cenas transparentes; mediana/p95, throughput, warmup e vsync.
+  [Protocolo, 112 execuções e limites P17](coin-render-p17-campaign.md);
+  [amostras individuais](inventories/coin-render-p17-runs.csv).
 - [ ] **P18 — Instrumentação/memória (A09):** lacunas por passagem, GPU versus
   espera CPU, submits/transições, picos de buffers/texturas/framebuffers/staging.
 - [ ] **P19 — Reuso/readback (F15):** câmera/material, persistência, agrupamento,
@@ -176,9 +178,10 @@ limites; documentação e commit de evidência. Registrar implementação, execu
 qualificação separadamente. Rejeição explícita fecha diagnóstico, não suporte
 funcional. Atualizar Pxx e Axx/Fxx associados somente no escopo comprovado.
 
-**Próxima entrega concreta: P17 — campanha comparável.** Separar janela sem
-readback de offscreen; declarar device/build/resolução, warmup/vsync e modalidades
-suportadas; medir mediana/p95 e throughput preservando o contrato do Coin.
+**Próxima entrega concreta: P18 — instrumentação/memória.** O
+[perfil P17](coin-render-p17-campaign.md) fornece a baseline de janela e
+offscreen em GPU física; P18 deve distinguir passagem GPU de espera CPU e
+registrar memória com as capacidades realmente oferecidas pelo driver.
 O [perfil P16](coin-render-freecad-viewport.md) é a base de interação comprovada.
 Texto, imagem, rótulos e geometria GL-only seguem F19/F20/P15; viewport
 parcialmente externo continua P04; RTT ampliado F14; instrumentação/memória e

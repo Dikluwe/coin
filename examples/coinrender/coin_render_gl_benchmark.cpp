@@ -3,6 +3,7 @@
 
 #include <Inventor/SoDB.h>
 #include <Inventor/SoInput.h>
+#include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/SoOffscreenRenderer.h>
 #include <Inventor/SbRotation.h>
 #include <Inventor/rendering/CoinRenderCapabilities.h>
@@ -21,6 +22,7 @@
 #include <cstring>
 #include <deque>
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <thread>
 #include <vector>
@@ -32,7 +34,7 @@ void report(const char * backend, const std::vector<double> & values) {
   std::vector<double> sorted = values;
   std::sort(sorted.begin(), sorted.end());
   const size_t median = sorted.size() / 2;
-  const size_t p95 = (sorted.size() - 1) * 95 / 100;
+  const size_t p95 = (sorted.size() * 95 + 99) / 100 - 1;
   std::cout << backend << " frames=" << sorted.size()
             << " median_ms=" << sorted[median]
             << " p95_ms=" << sorted[p95]
@@ -104,6 +106,7 @@ int main(int argc, char ** argv) {
   bool dynamic = false;
   std::string backend = "both";
   std::string readback = "color";
+  std::string transparency = "object";
   std::string rgbaOutput = "copy";
   std::string scenePath;
   for (int i = 1; i < argc; ++i) {
@@ -115,11 +118,12 @@ int main(int argc, char ** argv) {
     else if (std::strcmp(argv[i], "--dynamic") == 0) dynamic = true;
     else if (std::strcmp(argv[i], "--backend") == 0 && i + 1 < argc) backend = argv[++i];
     else if (std::strcmp(argv[i], "--readback") == 0 && i + 1 < argc) readback = argv[++i];
+    else if (std::strcmp(argv[i], "--transparency") == 0 && i + 1 < argc) transparency = argv[++i];
     else if (std::strcmp(argv[i], "--rgba-output") == 0 && i + 1 < argc) rgbaOutput = argv[++i];
     else {
       std::cerr << "Usage: coin_render_gl_benchmark [--frames 30] [--warmup 8]"
                    " [--size 256] [--scene normalized.iv] [--dynamic]"
-                   " [--backend both|wgpu|bgfx|gl] [--readback color|color-depth] [--rgba-output copy|borrow] [--async-depth 2|3]\n";
+                   " [--backend both|wgpu|bgfx|gl] [--transparency object|weighted_oit|sorted_layers] [--readback color|color-depth] [--rgba-output copy|borrow] [--async-depth 2|3]\n";
       return 2;
     }
   }
@@ -127,6 +131,10 @@ int main(int argc, char ** argv) {
       side < 1 || side > 2048 ||
       (backend != "both" && backend != "wgpu" && backend != "bgfx" && backend != "gl") ||
       (readback != "color" && readback != "color-depth") ||
+      (transparency != "object" && transparency != "weighted_oit" &&
+       transparency != "sorted_layers") ||
+      ((backend == "gl" || backend == "wgpu" || backend == "both") &&
+       transparency == "weighted_oit") ||
       (rgbaOutput != "copy" && rgbaOutput != "borrow") ||
       (asyncDepth != 0 && asyncDepth != 2 && asyncDepth != 3) ||
       (asyncDepth == 3 && backend != "bgfx") ||
@@ -140,6 +148,7 @@ int main(int argc, char ** argv) {
     return 2;
   }
 
+  setenv("COIN_RENDER_TRANSPARENCY", transparency.c_str(), 1);
   SoDB::init();
   CoinRenderAction::initClass();
   CoinRenderCapabilities caps{};
@@ -187,6 +196,9 @@ int main(int argc, char ** argv) {
     wgpu = new CoinRenderSceneManager(SbVec2i32(side, side));
     wgpu->setSceneGraph(root);
     wgpu->setBackgroundColor(SbColor4f(0.1f, 0.1f, blue, 1.0f));
+    wgpu->setTransparencyType(transparency == "sorted_layers" ?
+      CoinRenderAction::SORTED_LAYERS_BLEND :
+      CoinRenderAction::SORTED_OBJECT_BLEND);
     if (!wgpu->getRenderTarget()->setDepthReadbackEnabled(readback == "color-depth")) {
       std::cerr << "Cannot configure offscreen depth readback\n";
       root->unref();
@@ -198,6 +210,9 @@ int main(int argc, char ** argv) {
     gl = new SoOffscreenRenderer(SbViewportRegion(side, side));
     gl->setComponents(SoOffscreenRenderer::RGB_TRANSPARENCY);
     gl->setBackgroundColor(SbColor(0.1f, 0.1f, blue));
+    gl->getGLRenderAction()->setTransparencyType(transparency == "sorted_layers" ?
+      SoGLRenderAction::SORTED_LAYERS_BLEND :
+      SoGLRenderAction::SORTED_OBJECT_BLEND);
   }
 
   if (asyncDepth == 2 && !useBgfx) {
@@ -286,7 +301,7 @@ int main(int argc, char ** argv) {
     std::cout << "adapter=" << caps.adapter_name << " backend=wgpu_async"
               << " depth=2 size=" << side << 'x' << side << " warmup=" << warmup
               << " scene=" << (scenePath.empty() ? "36-cubes" : scenePath)
-              << " mode=" << readback
+              << " transparency=" << transparency << " mode=" << readback
               << " scene_update=" << (dynamic ? "camera-each-frame" : "static") << '\n';
     report("WebGPU_async_submit", submitMs);
     report("WebGPU_async_latency", latencyMs);
@@ -298,8 +313,9 @@ int main(int argc, char ** argv) {
     return 0;
   }
 
-  double wgpuMeasuredTotalMs = 0.0;
+  Clock::time_point wgpuMeasuredBegin, wgpuMeasuredEnd, glMeasuredBegin, glMeasuredEnd;
   std::vector<uint8_t> rgba;
+  std::vector<uint8_t> glRgba(size_t(side) * size_t(side) * 4u);
   std::vector<float> depth;
   std::vector<double> wgpuMs, wgpuRenderMs, wgpuCopyMs, glMs;
   const SbVec3f basePosition = camera->position.getValue();
@@ -309,6 +325,7 @@ int main(int argc, char ** argv) {
       camera->position.setValue(basePosition + SbVec3f(offset, 0.0f, 0.0f));
     }
     const Clock::time_point begin = Clock::now();
+    if (i == 0) wgpuMeasuredBegin = begin;
     if (wgpu->render() != CoinRenderAction::SUCCESS) {
       std::cerr << "WebGPU frame failed: " << wgpu->getLastError().getString() << '\n';
       root->unref();
@@ -341,7 +358,7 @@ int main(int argc, char ** argv) {
     }
     const Clock::time_point end = Clock::now();
     if (i >= 0) {
-      wgpuMeasuredTotalMs += std::chrono::duration<double, std::milli>(end - begin).count();
+      wgpuMeasuredEnd = end;
       wgpuMs.push_back(std::chrono::duration<double, std::milli>(end - begin).count());
       wgpuRenderMs.push_back(std::chrono::duration<double, std::milli>(rendered - begin).count());
       wgpuCopyMs.push_back(std::chrono::duration<double, std::milli>(end - rendered).count());
@@ -354,20 +371,34 @@ int main(int argc, char ** argv) {
       camera->position.setValue(basePosition + SbVec3f(offset, 0.0f, 0.0f));
     }
     const Clock::time_point begin = Clock::now();
-    if (!gl->render(root) || !gl->getBuffer()) {
+    if (i == 0) glMeasuredBegin = begin;
+    if (!gl->render(root)) {
       std::cerr << "Coin/GL offscreen context or readback unavailable\n";
       root->unref();
       return 2;
     }
+    const unsigned char * pixels = gl->getBuffer();
+    if (!pixels) {
+      std::cerr << "Coin/GL offscreen RGBA buffer unavailable\n";
+      root->unref();
+      return 2;
+    }
+    std::memcpy(glRgba.data(), pixels, glRgba.size());
     const Clock::time_point end = Clock::now();
-    if (i >= 0) glMs.push_back(std::chrono::duration<double, std::milli>(end - begin).count());
+    if (i >= 0) {
+      glMeasuredEnd = end;
+      glMs.push_back(std::chrono::duration<double, std::milli>(end - begin).count());
+    }
   }
   root->unref();
   std::cout << "adapter=" << (runWgpu ?
               caps.adapter_name : "not-queried")
+            << " vendor_id=0x" << std::hex << (runWgpu ? caps.vendor_id : 0)
+            << " device_id=0x" << (runWgpu ? caps.device_id : 0) << std::dec
             << " backend=" << backend << " size=" << side << 'x' << side
             << " warmup=" << warmup << " scene="
             << (scenePath.empty() ? "36-cubes" : scenePath)
+            << " transparency=" << transparency
             << " mode=" << (readback == "color" ? "render+rgba-readback" :
                              "render+rgba+depth-readback")
             << " pipeline_depth=" << (useBgfx ? (asyncDepth ? asyncDepth : 1) : 0)
@@ -380,10 +411,19 @@ int main(int argc, char ** argv) {
     report(caps.backend == COIN_RENDER_EXPERIMENTAL_BGFX_EVALUATION ?
            "BGFX_publication_copy" : "WebGPU_copy", wgpuCopyMs);
     std::cout << rendererLabel << "_throughput frames=" << frames
-              << " total_ms=" << wgpuMeasuredTotalMs
-              << " fps=" << double(frames) * 1000.0 / wgpuMeasuredTotalMs << '\n';
+              << " total_ms=" << std::chrono::duration<double, std::milli>(
+                   wgpuMeasuredEnd - wgpuMeasuredBegin).count()
+              << " fps=" << double(frames) * 1000.0 /
+                   std::chrono::duration<double, std::milli>(
+                     wgpuMeasuredEnd - wgpuMeasuredBegin).count() << '\n';
   }
-  if (runGl) report("CoinGL", glMs);
+  if (runGl) {
+    report("CoinGL", glMs);
+    const double elapsedMs = std::chrono::duration<double, std::milli>(
+      glMeasuredEnd - glMeasuredBegin).count();
+    std::cout << "CoinGL_throughput frames=" << frames << " total_ms=" << elapsedMs
+              << " fps=" << double(frames) * 1000.0 / elapsedMs << '\n';
+  }
   CoinRenderCacheTelemetry cache;
   if (runWgpu && wgpu->getRenderTarget()->getCacheTelemetry(cache)) {
     std::cout << "WebGPU_cache last_frame_uploads=" << cache.frameUploads

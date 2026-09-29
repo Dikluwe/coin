@@ -1597,8 +1597,16 @@ fn configure_surface_record(
         caps.formats[0]
     };
 
-    // Negotiate present mode: AutoVsync -> Fifo
-    let chosen_present = if caps.present_modes.contains(&wgpu::PresentMode::AutoVsync) {
+    // The opt-in benchmark needs a non-vsync surface to compare with GLX/BGFX.
+    // Refuse the campaign when the surface cannot provide one.
+    let benchmark_no_vsync = std::env::var_os("COIN_RENDER_BENCH_NO_VSYNC").is_some();
+    let chosen_present = if benchmark_no_vsync && caps.present_modes.contains(&wgpu::PresentMode::Immediate) {
+        wgpu::PresentMode::Immediate
+    } else if benchmark_no_vsync && caps.present_modes.contains(&wgpu::PresentMode::Mailbox) {
+        wgpu::PresentMode::Mailbox
+    } else if benchmark_no_vsync {
+        return Err("Benchmark requested no-vsync, but surface supports neither Immediate nor Mailbox".to_string());
+    } else if caps.present_modes.contains(&wgpu::PresentMode::AutoVsync) {
         wgpu::PresentMode::AutoVsync
     } else {
         wgpu::PresentMode::Fifo

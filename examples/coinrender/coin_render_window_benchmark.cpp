@@ -1,7 +1,8 @@
-// Direct-to-window benchmark for Coin/GL and the experimental BGFX backend.
+// Direct-to-window benchmark for Coin/GL, BGFX and wgpu.
 // This executable deliberately never reads pixels back to the CPU.
 
 #include <Inventor/SoDB.h>
+#include <Inventor/SoInput.h>
 #include <Inventor/SoSceneManager.h>
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/rendering/CoinRenderCapabilities.h>
@@ -15,7 +16,6 @@
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoTransform.h>
-#include <Inventor/nodes/SoTransparencyType.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -41,6 +41,7 @@ using Clock = std::chrono::steady_clock;
 struct Options {
   std::string backend;
   std::string transparency;
+  std::string scenePath;
   int width;
   int height;
   int warmup;
@@ -61,8 +62,9 @@ struct GlxWindow {
 void usage()
 {
   std::cerr << "Usage: coin_render_window_benchmark"
-               " --backend coin-gl|bgfx-opengl|bgfx-vulkan"
+               " --backend coin-gl|bgfx-opengl|bgfx-vulkan|wgpu-vulkan"
                " --transparency object|weighted_oit|sorted_layers"
+               " [--scene normalized.iv]"
                " [--width 960] [--height 540] [--warmup 60] [--frames 600]"
                " [--dynamic]\n";
 }
@@ -74,6 +76,8 @@ bool parseOptions(int argc, char ** argv, Options & options)
       options.backend = argv[++i];
     else if (std::strcmp(argv[i], "--transparency") == 0 && i + 1 < argc)
       options.transparency = argv[++i];
+    else if (std::strcmp(argv[i], "--scene") == 0 && i + 1 < argc)
+      options.scenePath = argv[++i];
     else if (std::strcmp(argv[i], "--width") == 0 && i + 1 < argc)
       options.width = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--height") == 0 && i + 1 < argc)
@@ -87,7 +91,8 @@ bool parseOptions(int argc, char ** argv, Options & options)
     else return false;
   }
   const bool backend = options.backend == "coin-gl" ||
-    options.backend == "bgfx-opengl" || options.backend == "bgfx-vulkan";
+    options.backend == "bgfx-opengl" || options.backend == "bgfx-vulkan" ||
+    options.backend == "wgpu-vulkan";
   const bool transparency = options.transparency == "object" ||
     options.transparency == "weighted_oit" ||
     options.transparency == "sorted_layers";
@@ -95,8 +100,9 @@ bool parseOptions(int argc, char ** argv, Options & options)
       options.height < 1 || options.height > 8192 || options.warmup < 0 ||
       options.warmup > 100000 || options.frames < 1 || options.frames > 1000000)
     return false;
-  // weighted_oit is an experimental BGFX policy with no Coin/GL equivalent.
-  return options.backend != "coin-gl" || options.transparency != "weighted_oit";
+  // The wgpu bridge explicitly rejects weighted OIT on translucent geometry.
+  return (options.backend != "coin-gl" && options.backend != "wgpu-vulkan") ||
+    options.transparency != "weighted_oit";
 }
 
 void addQuad(SoSeparator * root, const SbColor & color, float alpha,
@@ -133,17 +139,20 @@ SoSeparator * createScene(const Options & options, SoTransform ** animationOut)
   SoLightModel * baseColor = new SoLightModel;
   baseColor->model = SoLightModel::BASE_COLOR;
   root->addChild(baseColor);
-  // BGFX consumes the traversal state and selects its experiment through
-  // COIN_BGFX_TRANSPARENCY.  Coin/GL instead uses the action-level policy;
-  // adding this node there would incorrectly override SORTED_LAYERS_BLEND.
-  if (options.backend != "coin-gl") {
-    SoTransparencyType * type = new SoTransparencyType;
-    type->value = SoTransparencyType::SORTED_OBJECT_BLEND;
-    root->addChild(type);
-  }
   SoTransform * animation = new SoTransform;
   root->addChild(animation);
   *animationOut = animation;
+  if (!options.scenePath.empty()) {
+    SoInput input;
+    if (!input.openFile(options.scenePath.c_str())) { root->unref(); return NULL; }
+    SoSeparator * imported = SoDB::readAll(&input);
+    if (!imported || imported->getNumChildren() == 0) {
+      root->unref();
+      return NULL;
+    }
+    root->addChild(imported);
+    return root;
+  }
 
   // One opaque background plus 48 intersecting transparent objects. The
   // geometry and traversal order are identical for every backend/mode.
@@ -245,7 +254,7 @@ void disableGlxSwapInterval(Display * display, Window window)
 }
 
 void report(const Options & options, const std::vector<double> & frameMs,
-            double totalMs, const char * adapter)
+            double totalMs, const char * adapter, uint32_t vendor, uint32_t device)
 {
   std::vector<double> sorted = frameMs;
   std::sort(sorted.begin(), sorted.end());
@@ -257,7 +266,10 @@ void report(const Options & options, const std::vector<double> & frameMs,
     << " size=" << options.width << 'x' << options.height
     << " warmup=" << options.warmup << " frames=" << options.frames
     << " scene_update=" << (options.dynamic ? "transform-each-frame" : "static")
+    << " scene=" << (options.scenePath.empty() ? "builtin-overlap" : options.scenePath)
     << " readback=none adapter=\"" << adapter << "\""
+    << " vendor_id=0x" << std::hex << vendor << " device_id=0x" << device << std::dec
+    << " present_policy=off-requested"
     << " cpu_frame_median_ms=" << sorted[median]
     << " cpu_frame_p95_ms=" << sorted[p95]
     << " cpu_frame_min_ms=" << sorted.front()
@@ -305,7 +317,7 @@ int runCoinGl(const Options & options, SoSeparator * root,
   const double totalMs = std::chrono::duration<double, std::milli>(
     Clock::now() - measuredBegin).count();
   const char * renderer = reinterpret_cast<const char *>(glGetString(GL_RENDERER));
-  report(options, frameMs, totalMs, renderer ? renderer : "unknown OpenGL renderer");
+  report(options, frameMs, totalMs, renderer ? renderer : "unknown OpenGL renderer", 0, 0);
   glXMakeCurrent(glx.display, None, NULL);
   glXDestroyContext(glx.display, glx.context);
   XDestroyWindow(glx.display, glx.window);
@@ -314,27 +326,31 @@ int runCoinGl(const Options & options, SoSeparator * root,
   return 0;
 }
 
-int runBgfx(const Options & options, SoSeparator * root,
+int runNative(const Options & options, SoSeparator * root,
             SoTransform * animation)
 {
-  setenv("COIN_BGFX_RENDERER",
-    options.backend == "bgfx-opengl" ? "opengl" : "vulkan", 1);
-  setenv("COIN_BGFX_TRANSPARENCY", options.transparency.c_str(), 1);
+  const bool wgpu = options.backend == "wgpu-vulkan";
+  if (wgpu) setenv("COIN_RENDER_BENCH_NO_VSYNC", "1", 1);
+  if (!wgpu)
+    setenv("COIN_BGFX_RENDERER",
+      options.backend == "bgfx-opengl" ? "opengl" : "vulkan", 1);
+  setenv("COIN_RENDER_TRANSPARENCY", options.transparency.c_str(), 1);
   CoinRenderCapabilities caps;
   std::memset(&caps, 0, sizeof(caps));
   if (coin_render_query_capabilities(
         COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW, &caps, sizeof(caps)) != 0 ||
-      caps.backend != COIN_RENDER_EXPERIMENTAL_BGFX_EVALUATION ||
+      caps.backend != (wgpu ? COIN_RENDER_EXPERIMENTAL_RUST :
+                       COIN_RENDER_EXPERIMENTAL_BGFX_EVALUATION) ||
       !caps.gpu_available) {
-    std::cerr << "BGFX Xlib window backend unavailable: " << caps.diagnostic << '\n';
+    std::cerr << "Requested Xlib window backend unavailable: " << caps.diagnostic << '\n';
     return 2;
   }
   Display * display = XOpenDisplay(NULL);
   if (!display) { std::cerr << "Cannot open X11 display\n"; return 2; }
   Window window = createXlibWindow(display, options.width, options.height,
-    options.backend == "bgfx-opengl" ?
-      "Coin window benchmark: BGFX/OpenGL" :
-      "Coin window benchmark: BGFX/Vulkan");
+    options.backend == "bgfx-opengl" ? "Coin window benchmark: BGFX/OpenGL" :
+    wgpu ? "Coin window benchmark: wgpu/Vulkan" :
+           "Coin window benchmark: BGFX/Vulkan");
   CoinRenderNativeSurfaceDescriptor surface;
   std::memset(&surface, 0, sizeof(surface));
   surface.abiVersion = COIN_RENDER_NATIVE_SURFACE_ABI_VERSION;
@@ -346,12 +362,15 @@ int runBgfx(const Options & options, SoSeparator * root,
   {
     CoinRenderSceneManager manager(surface, SbVec2i32(options.width, options.height));
     if (manager.getRenderTarget()->getStatus() == CoinRenderTarget::TARGET_ERROR) {
-      std::cerr << "Cannot create BGFX target: "
+      std::cerr << "Cannot create native target: "
                 << manager.getLastError().getString() << '\n';
       exitCode = 1;
     } else {
       manager.setSceneGraph(root);
       manager.setBackgroundColor(SbColor4f(0.0f, 0.0f, 0.0f, 1.0f));
+      manager.setTransparencyType(options.transparency == "sorted_layers" ?
+        CoinRenderAction::SORTED_LAYERS_BLEND :
+        CoinRenderAction::SORTED_OBJECT_BLEND);
       std::vector<double> frameMs;
       frameMs.reserve(static_cast<size_t>(options.frames));
       Clock::time_point measuredBegin;
@@ -364,7 +383,7 @@ int runBgfx(const Options & options, SoSeparator * root,
         const CoinRenderAction::Status status = manager.render();
         const Clock::time_point end = Clock::now();
         if (status != CoinRenderAction::SUCCESS) {
-          std::cerr << "BGFX frame failed: " << manager.getLastError().getString() << '\n';
+          std::cerr << "Native frame failed: " << manager.getLastError().getString() << '\n';
           exitCode = 1;
           break;
         }
@@ -376,7 +395,7 @@ int runBgfx(const Options & options, SoSeparator * root,
         const double totalMs = std::chrono::duration<double, std::milli>(
           Clock::now() - measuredBegin).count();
         report(options, frameMs, totalMs,
-          caps.adapter_name[0] ? caps.adapter_name : "BGFX adapter");
+          caps.adapter_name[0] ? caps.adapter_name : "native adapter", caps.vendor_id, caps.device_id);
       }
     }
   }
@@ -402,8 +421,9 @@ int main(int argc, char ** argv)
   CoinRenderAction::initClass();
   SoTransform * animation = NULL;
   SoSeparator * root = createScene(options, &animation);
+  if (!root) { std::cerr << "Cannot read benchmark scene\n"; return 2; }
   const int result = options.backend == "coin-gl" ?
-    runCoinGl(options, root, animation) : runBgfx(options, root, animation);
+    runCoinGl(options, root, animation) : runNative(options, root, animation);
   root->unref();
   return result;
 }
