@@ -193,6 +193,27 @@ int main() {
     return 1;
   }
 
+  // The bounded async queue must reject admission before returning a ticket.
+  // Existing tickets remain independently consumable after backpressure.
+  std::vector<CoinRenderReadbackTicket> pending(16);
+  for (size_t i = 0; i < pending.size(); ++i) {
+    syncAction.applyAsync(root, pending[i]);
+    if (!check(syncAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+               pending[i].token != 0, "async queue rejected a ticket below its limit")) return 1;
+  }
+  CoinRenderReadbackTicket excess{};
+  syncAction.applyAsync(root, excess);
+  if (!check(syncAction.getLastStatus() == CoinRenderAction::NOT_READY &&
+             excess.token == 0, "async queue must apply backpressure without a ticket")) return 1;
+  for (const CoinRenderReadbackTicket & queued : pending) {
+    std::vector<uint8_t> queuedColor;
+    std::vector<float> queuedDepth;
+    if (!check(pollUntilReady(queued, queuedColor, queuedDepth, diagnostic) ==
+               CoinRenderTarget::READBACK_READY &&
+               queuedColor == expectedColor && queuedDepth == expectedDepth,
+               "backpressure must preserve accepted tickets")) return 1;
+  }
+
   SoSeparator * texturedParent = new SoSeparator;
   texturedParent->ref();
   SoPerspectiveCamera * texturedCamera = new SoPerspectiveCamera;

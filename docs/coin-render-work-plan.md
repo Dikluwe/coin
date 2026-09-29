@@ -142,8 +142,10 @@ P16 fecha depois das capacidades exigidas pelas cenas escolhidas.
   espera CPU, submits/transições, picos de buffers/texturas/framebuffers/staging.
   [Protocolo, 56 perfis e limites](coin-render-p18-profiling.md);
   [matriz de amostras](inventories/coin-render-p18-profile.csv).
-- [ ] **P19 — Reuso/readback (F15):** câmera/material, persistência, agrupamento,
+- [x] **P19 — Reuso/readback (F15):** câmera/material, persistência, agrupamento,
   pipeline 1/2/3, latência/backpressure/memória e ausência de readback desnecessário.
+  [Protocolo, 54 execuções e limites](coin-render-p19-reuse-readback.md);
+  [amostras individuais](inventories/coin-render-p19-runs.csv).
 
 Fechamento: resultados reproduzíveis, device/build/resolução identificados e A/B
 que preservem semântica. Não estimar timestamps indisponíveis nem usar RSS como
@@ -180,11 +182,10 @@ limites; documentação e commit de evidência. Registrar implementação, execu
 qualificação separadamente. Rejeição explícita fecha diagnóstico, não suporte
 funcional. Atualizar Pxx e Axx/Fxx associados somente no escopo comprovado.
 
-**Próxima entrega concreta: P19 — reuso/readback.** A
-[baseline P17](coin-render-p17-campaign.md) e os [perfis P18](coin-render-p18-profiling.md)
-separam janela/offscreen, passagens GPU, esperas CPU e recursos. P19 pode
-testar persistência e pipeline 1/2/3 sem atribuir ao GPU tempos CPU.
-O [perfil P16](coin-render-freecad-viewport.md) é a base de interação comprovada.
+**Próxima entrega concreta: P20 — matriz física.** As campanhas
+[P17](coin-render-p17-campaign.md), [P18](coin-render-p18-profiling.md) e
+[P19](coin-render-p19-reuse-readback.md) fixam cenas, métricas e A/B na Radeon.
+P20 amplia drivers/plataformas sem extrapolar esses números. O
+[perfil P16](coin-render-freecad-viewport.md) é a base de interação comprovada.
 Texto, imagem, rótulos e geometria GL-only seguem F19/F20/P15; viewport
-parcialmente externo continua P04; RTT ampliado F14; instrumentação/memória e
-persistência P19.
+parcialmente externo continua P04; RTT ampliado F14; leitura explícita de janela F15 permanece fora do perfil P19.

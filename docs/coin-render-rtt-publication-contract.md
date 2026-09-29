@@ -91,7 +91,8 @@ do chamador. Esse contrato e os metadados públicos continuam compatíveis com P
 - [x] Tickets completos, falha async, consumo/cancelamento e retenção testados.
 - [ ] Formatos/estados ampliados e ALPHA_TEST: F14 continua parcial.
 - [x] Múltiplos alvos, admissão e reconstrução no perfil experimental atual: [P14](coin-render-multi-target-contract.md). Matriz física e memória total permanecem P20/P18.
-- [ ] Profiling/memória completos, persistência e readback de janela: P18/P19.
+- [x] Profiling de passagens, recursos próprios e reuso/readback em pipeline: [P18](coin-render-p18-profiling.md) e [P19](coin-render-p19-reuse-readback.md).
+- [ ] Leitura explícita de pixels de janela e memória total do driver: F15/qualificação futura.
 - [ ] Matriz física de drivers/plataformas: P20.
 
 ## Evidência local

@@ -3,6 +3,8 @@
 
 #include <Inventor/SoDB.h>
 #include <Inventor/SoInput.h>
+#include <Inventor/SoPath.h>
+#include <Inventor/actions/SoSearchAction.h>
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/SoOffscreenRenderer.h>
 #include <Inventor/SbRotation.h>
@@ -18,6 +20,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <deque>
@@ -29,6 +32,15 @@
 
 namespace {
 using Clock = std::chrono::steady_clock;
+
+uint64_t rgbaChecksum(const uint8_t * pixels, size_t bytes) {
+  uint64_t hash = UINT64_C(14695981039346656037);
+  for (size_t i = 0; i < bytes; ++i) {
+    hash ^= pixels[i];
+    hash *= UINT64_C(1099511628211);
+  }
+  return hash;
+}
 
 void report(const char * backend, const std::vector<double> & values) {
   std::vector<double> sorted = values;
@@ -104,6 +116,7 @@ int main(int argc, char ** argv) {
   int side = 256;
   int asyncDepth = 0;
   bool dynamic = false;
+  bool materialDynamic = false;
   std::string backend = "both";
   std::string readback = "color";
   std::string transparency = "object";
@@ -116,19 +129,20 @@ int main(int argc, char ** argv) {
     else if (std::strcmp(argv[i], "--async-depth") == 0 && i + 1 < argc) asyncDepth = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--scene") == 0 && i + 1 < argc) scenePath = argv[++i];
     else if (std::strcmp(argv[i], "--dynamic") == 0) dynamic = true;
+    else if (std::strcmp(argv[i], "--material-dynamic") == 0) materialDynamic = true;
     else if (std::strcmp(argv[i], "--backend") == 0 && i + 1 < argc) backend = argv[++i];
     else if (std::strcmp(argv[i], "--readback") == 0 && i + 1 < argc) readback = argv[++i];
     else if (std::strcmp(argv[i], "--transparency") == 0 && i + 1 < argc) transparency = argv[++i];
     else if (std::strcmp(argv[i], "--rgba-output") == 0 && i + 1 < argc) rgbaOutput = argv[++i];
     else {
       std::cerr << "Usage: coin_render_gl_benchmark [--frames 30] [--warmup 8]"
-                   " [--size 256] [--scene normalized.iv] [--dynamic]"
+                   " [--size 256] [--scene normalized.iv] [--dynamic|--material-dynamic]"
                    " [--backend both|wgpu|bgfx|gl] [--transparency object|weighted_oit|sorted_layers] [--readback color|color-depth] [--rgba-output copy|borrow] [--async-depth 2|3]\n";
       return 2;
     }
   }
   if (frames < 1 || frames > 10000 || warmup < 0 || warmup > 10000 ||
-      side < 1 || side > 2048 ||
+      side < 1 || side > 2048 || (dynamic && materialDynamic) ||
       (backend != "both" && backend != "wgpu" && backend != "bgfx" && backend != "gl") ||
       (readback != "color" && readback != "color-depth") ||
       (transparency != "object" && transparency != "weighted_oit" &&
@@ -190,6 +204,19 @@ int main(int argc, char ** argv) {
     std::cerr << "Cannot read normalized Inventor scene\n";
     return 2;
   }
+  SoSearchAction searchMaterial;
+  searchMaterial.setType(SoMaterial::getClassTypeId());
+  searchMaterial.setInterest(SoSearchAction::FIRST);
+  searchMaterial.apply(root);
+  SoMaterial * animatedMaterial = searchMaterial.getPath() ?
+    static_cast<SoMaterial *>(searchMaterial.getPath()->getTail()) : NULL;
+  if (materialDynamic && !animatedMaterial) {
+    std::cerr << "Material animation requires a SoMaterial in the scene\n";
+    root->unref();
+    return 2;
+  }
+  const SbColor initialMaterial = animatedMaterial ?
+    animatedMaterial->diffuseColor[0] : SbColor(0.0f, 0.0f, 0.0f);
   const float blue = scenePath.empty() ? 0.15f : 0.1f;
   CoinRenderSceneManager * wgpu = NULL;
   if (runWgpu) {
@@ -227,13 +254,17 @@ int main(int argc, char ** argv) {
     std::vector<uint8_t> color;
     std::vector<float> depth;
     const SbVec3f basePosition = camera->position.getValue();
+    const auto updateScene = [&](int frameIndex) {
+      if (dynamic) camera->position.setValue(basePosition +
+        SbVec3f(float(frameIndex) * 0.0001f, 0.0f, 0.0f));
+      if (materialDynamic) animatedMaterial->diffuseColor.setValue(
+        0.55f + float(frameIndex % 7) * 0.035f,
+        0.12f + float(frameIndex % 5) * 0.025f, 0.18f);
+    };
     const size_t colorBytes = size_t(side) * size_t(side) * 4u;
     const size_t depthPixels = size_t(side) * size_t(side);
     for (int i = 0; i < warmup; ++i) {
-      if (dynamic) {
-        const float offset = float(i + 1) * 0.0001f;
-        camera->position.setValue(basePosition + SbVec3f(offset, 0.0f, 0.0f));
-      }
+      updateScene(i + 1);
       if (wgpu->render() != CoinRenderAction::SUCCESS) {
         std::cerr << "WebGPU async warmup failed: " << wgpu->getLastError().getString() << '\n';
         delete wgpu;
@@ -268,10 +299,7 @@ int main(int argc, char ** argv) {
     };
     const Clock::time_point runBegin = Clock::now();
     for (int i = 0; i < frames; ++i) {
-      if (dynamic) {
-        const float offset = float(i + warmup + 1) * 0.0001f;
-        camera->position.setValue(basePosition + SbVec3f(offset, 0.0f, 0.0f));
-      }
+      updateScene(i + warmup + 1);
       CoinRenderReadbackTicket ticket{};
       const Clock::time_point begin = Clock::now();
       if (wgpu->renderAsync(ticket) != CoinRenderAction::SUCCESS) {
@@ -302,9 +330,12 @@ int main(int argc, char ** argv) {
               << " depth=2 size=" << side << 'x' << side << " warmup=" << warmup
               << " scene=" << (scenePath.empty() ? "36-cubes" : scenePath)
               << " transparency=" << transparency << " mode=" << readback
-              << " scene_update=" << (dynamic ? "camera-each-frame" : "static") << '\n';
+              << " scene_update=" << (dynamic ? "camera-each-frame" :
+                materialDynamic ? "material-each-frame" : "static") << '\n';
     report("WebGPU_async_submit", submitMs);
     report("WebGPU_async_latency", latencyMs);
+    std::cout << "rgba_fnv64=0x" << std::hex
+              << rgbaChecksum(color.data(), color.size()) << std::dec << '\n';
     std::cout << "WebGPU_async_throughput frames=" << frames
               << " total_ms=" << elapsedMs
               << " fps=" << double(frames) * 1000.0 / elapsedMs << '\n';
@@ -319,11 +350,15 @@ int main(int argc, char ** argv) {
   std::vector<float> depth;
   std::vector<double> wgpuMs, wgpuRenderMs, wgpuCopyMs, glMs;
   const SbVec3f basePosition = camera->position.getValue();
+  const auto updateScene = [&](int frameIndex) {
+    if (dynamic) camera->position.setValue(basePosition +
+      SbVec3f(float(frameIndex) * 0.0001f, 0.0f, 0.0f));
+    if (materialDynamic) animatedMaterial->diffuseColor.setValue(
+      0.55f + float(frameIndex % 7) * 0.035f,
+      0.12f + float(frameIndex % 5) * 0.025f, 0.18f);
+  };
   for (int i = -warmup; runWgpu && i < frames; ++i) {
-    if (dynamic) {
-      const float offset = float(i + warmup + 1) * 0.0001f;
-      camera->position.setValue(basePosition + SbVec3f(offset, 0.0f, 0.0f));
-    }
+    updateScene(i + warmup + 1);
     const Clock::time_point begin = Clock::now();
     if (i == 0) wgpuMeasuredBegin = begin;
     if (wgpu->render() != CoinRenderAction::SUCCESS) {
@@ -365,11 +400,9 @@ int main(int argc, char ** argv) {
     }
   }
   camera->position.setValue(basePosition);
+  if (materialDynamic) animatedMaterial->diffuseColor.setValue(initialMaterial);
   for (int i = -warmup; runGl && i < frames; ++i) {
-    if (dynamic) {
-      const float offset = float(i + warmup + 1) * 0.0001f;
-      camera->position.setValue(basePosition + SbVec3f(offset, 0.0f, 0.0f));
-    }
+    updateScene(i + warmup + 1);
     const Clock::time_point begin = Clock::now();
     if (i == 0) glMeasuredBegin = begin;
     if (!gl->render(root)) {
@@ -390,6 +423,20 @@ int main(int argc, char ** argv) {
       glMs.push_back(std::chrono::duration<double, std::milli>(end - begin).count());
     }
   }
+  if (runWgpu) {
+    const size_t bytes = size_t(side) * size_t(side) * 4u;
+    const uint8_t * pixels = rgba.data();
+    if (rgbaOutput == "borrow") {
+      std::size_t borrowedBytes = 0;
+      pixels = wgpu->getRenderTarget()->borrowRGBA(borrowedBytes);
+      if (!pixels || borrowedBytes != bytes) return 1;
+    }
+    std::cout << "rgba_fnv64=0x" << std::hex
+              << rgbaChecksum(pixels, bytes) << std::dec << '\n';
+  }
+  if (runGl)
+    std::cout << "gl_rgba_fnv64=0x" << std::hex
+              << rgbaChecksum(glRgba.data(), glRgba.size()) << std::dec << '\n';
   root->unref();
   std::cout << "adapter=" << (runWgpu ?
               caps.adapter_name : "not-queried")
@@ -403,7 +450,8 @@ int main(int argc, char ** argv) {
                              "render+rgba+depth-readback")
             << " pipeline_depth=" << (useBgfx ? (asyncDepth ? asyncDepth : 1) : 0)
             << " rgba_output=" << rgbaOutput
-            << " scene_update=" << (dynamic ? "camera-each-frame" : "static") << '\n';
+            << " scene_update=" << (dynamic ? "camera-each-frame" :
+                materialDynamic ? "material-each-frame" : "static") << '\n';
   if (runWgpu) {
     report(rendererLabel, wgpuMs);
     report(caps.backend == COIN_RENDER_EXPERIMENTAL_BGFX_EVALUATION ?

@@ -3,6 +3,8 @@
 
 #include <Inventor/SoDB.h>
 #include <Inventor/SoInput.h>
+#include <Inventor/SoPath.h>
+#include <Inventor/actions/SoSearchAction.h>
 #include <Inventor/SoSceneManager.h>
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/rendering/CoinRenderCapabilities.h>
@@ -47,8 +49,9 @@ struct Options {
   int warmup;
   int frames;
   bool dynamic;
+  bool materialDynamic;
   Options() : backend("bgfx-vulkan"), transparency("object"),
-    width(960), height(540), warmup(60), frames(600), dynamic(false) {}
+    width(960), height(540), warmup(60), frames(600), dynamic(false), materialDynamic(false) {}
 };
 
 struct GlxWindow {
@@ -66,7 +69,7 @@ void usage()
                " --transparency object|weighted_oit|sorted_layers"
                " [--scene normalized.iv]"
                " [--width 960] [--height 540] [--warmup 60] [--frames 600]"
-               " [--dynamic]\n";
+               " [--dynamic|--material-dynamic]\n";
 }
 
 bool parseOptions(int argc, char ** argv, Options & options)
@@ -88,6 +91,8 @@ bool parseOptions(int argc, char ** argv, Options & options)
       options.frames = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--dynamic") == 0)
       options.dynamic = true;
+    else if (std::strcmp(argv[i], "--material-dynamic") == 0)
+      options.materialDynamic = true;
     else return false;
   }
   const bool backend = options.backend == "coin-gl" ||
@@ -96,7 +101,8 @@ bool parseOptions(int argc, char ** argv, Options & options)
   const bool transparency = options.transparency == "object" ||
     options.transparency == "weighted_oit" ||
     options.transparency == "sorted_layers";
-  if (!backend || !transparency || options.width < 1 || options.width > 8192 ||
+  if (!backend || !transparency || (options.dynamic && options.materialDynamic) ||
+      options.width < 1 || options.width > 8192 ||
       options.height < 1 || options.height > 8192 || options.warmup < 0 ||
       options.warmup > 100000 || options.frames < 1 || options.frames > 1000000)
     return false;
@@ -265,7 +271,8 @@ void report(const Options & options, const std::vector<double> & frameMs,
     << " transparency=" << options.transparency
     << " size=" << options.width << 'x' << options.height
     << " warmup=" << options.warmup << " frames=" << options.frames
-    << " scene_update=" << (options.dynamic ? "transform-each-frame" : "static")
+    << " scene_update=" << (options.dynamic ? "transform-each-frame" :
+      options.materialDynamic ? "material-each-frame" : "static")
     << " scene=" << (options.scenePath.empty() ? "builtin-overlap" : options.scenePath)
     << " readback=none adapter=\"" << adapter << "\""
     << " vendor_id=0x" << std::hex << vendor << " device_id=0x" << device << std::dec
@@ -279,7 +286,7 @@ void report(const Options & options, const std::vector<double> & frameMs,
 }
 
 int runCoinGl(const Options & options, SoSeparator * root,
-              SoTransform * animation)
+              SoTransform * animation, SoMaterial * animatedMaterial)
 {
   GlxWindow glx;
   if (!createGlxWindow(options.width, options.height, glx)) {
@@ -304,6 +311,10 @@ int runCoinGl(const Options & options, SoSeparator * root,
     if (options.dynamic)
       animation->rotation.setValue(SbVec3f(0.0f, 0.0f, 1.0f),
         float(frame + options.warmup + 1) * 0.0005f);
+    if (options.materialDynamic)
+      animatedMaterial->diffuseColor.setValue(
+        0.55f + float((frame + options.warmup) % 7) * 0.035f,
+        0.12f + float((frame + options.warmup) % 5) * 0.025f, 0.18f);
     consumeEvents(glx.display);
     const Clock::time_point begin = Clock::now();
     manager.render();
@@ -327,7 +338,7 @@ int runCoinGl(const Options & options, SoSeparator * root,
 }
 
 int runNative(const Options & options, SoSeparator * root,
-            SoTransform * animation)
+            SoTransform * animation, SoMaterial * animatedMaterial)
 {
   const bool wgpu = options.backend == "wgpu-vulkan";
   if (wgpu) setenv("COIN_RENDER_BENCH_NO_VSYNC", "1", 1);
@@ -378,6 +389,10 @@ int runNative(const Options & options, SoSeparator * root,
         if (options.dynamic)
           animation->rotation.setValue(SbVec3f(0.0f, 0.0f, 1.0f),
             float(frame + options.warmup + 1) * 0.0005f);
+        if (options.materialDynamic)
+          animatedMaterial->diffuseColor.setValue(
+            0.55f + float((frame + options.warmup) % 7) * 0.035f,
+            0.12f + float((frame + options.warmup) % 5) * 0.025f, 0.18f);
         consumeEvents(display);
         const Clock::time_point begin = Clock::now();
         const CoinRenderAction::Status status = manager.render();
@@ -422,8 +437,23 @@ int main(int argc, char ** argv)
   SoTransform * animation = NULL;
   SoSeparator * root = createScene(options, &animation);
   if (!root) { std::cerr << "Cannot read benchmark scene\n"; return 2; }
+  SoMaterial * animatedMaterial = NULL;
+  if (options.materialDynamic) {
+    SoSearchAction search;
+    search.setType(SoMaterial::getClassTypeId());
+    search.setInterest(SoSearchAction::FIRST);
+    search.apply(root);
+    if (search.getPath())
+      animatedMaterial = static_cast<SoMaterial *>(search.getPath()->getTail());
+    if (!animatedMaterial) {
+      std::cerr << "Material animation requires a SoMaterial in the scene\n";
+      root->unref();
+      return 2;
+    }
+  }
   const int result = options.backend == "coin-gl" ?
-    runCoinGl(options, root, animation) : runNative(options, root, animation);
+    runCoinGl(options, root, animation, animatedMaterial) :
+    runNative(options, root, animation, animatedMaterial);
   root->unref();
   return result;
 }

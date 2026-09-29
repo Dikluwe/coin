@@ -98,6 +98,6 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa \
 
 O runner guarda `results.json`, `glxinfo-B.log` e o trace bruto por célula no
 diretório de saída. O CSV versionado conserva os agregados e os campos
-indisponíveis. P19 pode usar estes perfis para A/B de reuso, staging de
-profundidade 1/2/3 e backpressure, preservando verificação visual e o mesmo
+indisponíveis. A campanha [P19](coin-render-p19-reuse-readback.md) usou estes perfis para A/B
+de reuso, staging de profundidade 1/2/3 e backpressure, preservando o
 contrato Coin.
