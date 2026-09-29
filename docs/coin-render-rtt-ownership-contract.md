@@ -189,3 +189,11 @@ Na última revisão, a verificação wgpu de RTT/async passou **11/11** (12,45 s
 A verificação BGFX de RTT, seleção, log staged, readback e múltiplas janelas
 passou **25/25** (61,43 s), antes da correção adicional de retenção, cujo gate e
 repetição estão detalhados acima. Nenhum desses resultados amplia P14/P20.
+
+## Continuação P14
+
+A recuperação e o orçamento entre alvos do perfil experimental atual foram
+qualificados no [contrato P14](coin-render-multi-target-contract.md). RTT staged
+BGFX agora mantém o consumidor preparado durante os filhos; perda compartilhada
+aposenta conectores e staging de tickets sem bloquear a próxima geração. As
+ressalvas acima descrevem o fechamento original P12 e sua campanha histórica.

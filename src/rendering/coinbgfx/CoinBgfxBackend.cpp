@@ -5,6 +5,7 @@
 #endif
 
 #include "rendering/coinbgfx/CoinBgfxBackend.h"
+#include "rendering/coinrender/CoinRenderResourceCore.h"
 #include "rendering/coinbgfx/CoinBgfxLowering.h"
 #include "rendering/coinrender/CoinRenderImageCore.h"
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
@@ -380,6 +381,11 @@ std::map<uint64_t, std::shared_ptr<CoinBgfxBackend::AsyncEntry>> & asyncEntries(
   static auto * entries = new std::map<uint64_t, std::shared_ptr<CoinBgfxBackend::AsyncEntry>>;
   return *entries;
 }
+struct LostReadback {
+  CoinRenderReadbackTicket ticket;
+  std::thread::id thread;
+};
+std::map<uint64_t, LostReadback> lostReadbacks;
 uint64_t nextTicketToken = 1;
 std::vector<std::shared_ptr<CoinBgfxBackend::AsyncEntry>> failedReadbacks;
 bool sameTicket(const CoinRenderReadbackTicket & a, const CoinRenderReadbackTicket & b)
@@ -1477,8 +1483,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     for (const auto & entry : asyncEntries())
       pendingBytes += entry.second->ticket.colorBytes + entry.second->ticket.depthBytes;
     const uint64_t requested = uint64_t(target.size[0]) * target.size[1] * (target.depthReadbackEnabled ? 8 : 4);
-    if (this->presentToWindow || asyncEntries().size() >= 16 ||
-        requested > UINT64_C(128)*1024*1024 || pendingBytes > UINT64_C(128)*1024*1024 - requested)
+    if (this->presentToWindow ||
+        !coin_render_readback_admitted(asyncEntries().size(), pendingBytes, requested))
       return CoinRenderSubmitResult(CoinRenderBackendStatus::NOT_READY,
         "BGFX async readback requires offscreen output, at most sixteen tickets and 128 MiB of pending payloads");
   }
@@ -2378,6 +2384,14 @@ CoinBgfxBackend::pollReadback(const CoinRenderReadbackTicket & ticket,
 {
   auto & runtime = sharedRuntime();
   std::lock_guard<std::mutex> guard(runtime.mutex);
+  auto lost = lostReadbacks.find(ticket.token);
+  if (lost != lostReadbacks.end() && sameTicket(lost->second.ticket, ticket)) {
+    if (lost->second.thread != std::this_thread::get_id())
+      return CoinRenderTarget::READBACK_ERROR;
+    if (diagnostic)
+      *diagnostic = "Readback belongs to a retired device generation";
+    return CoinRenderTarget::READBACK_DEVICE_LOST;
+  }
   auto found = asyncEntries().find(ticket.token);
   if (found == asyncEntries().end() || !sameTicket(found->second->ticket, ticket)) {
     if (diagnostic) *diagnostic = "Invalid or consumed BGFX readback ticket";
@@ -2413,6 +2427,13 @@ CoinBgfxBackend::cancelReadback(const CoinRenderReadbackTicket & ticket)
 {
   auto & runtime = sharedRuntime();
   std::lock_guard<std::mutex> guard(runtime.mutex);
+  auto lost = lostReadbacks.find(ticket.token);
+  if (lost != lostReadbacks.end() && sameTicket(lost->second.ticket, ticket)) {
+    if (lost->second.thread != std::this_thread::get_id())
+      return false;
+    lostReadbacks.erase(lost);
+    return true;
+  }
   auto found = asyncEntries().find(ticket.token);
   if (found == asyncEntries().end() || !sameTicket(found->second->ticket, ticket) ||
       runtime.apiThread != std::this_thread::get_id()) return false;
@@ -2430,6 +2451,24 @@ CoinBgfxBackend::cancelReadback(const CoinRenderReadbackTicket & ticket)
   return true;
 }
 
+bool CoinBgfxBackend::readbackLoad(uint64_t& jobs, uint64_t& bytes) const {
+  auto& runtime = sharedRuntime();
+  std::lock_guard<std::mutex> guard(runtime.mutex);
+  jobs = asyncEntries().size();
+  bytes = 0;
+  for (const auto& item : asyncEntries())
+    bytes += item.second->ticket.colorBytes + item.second->ticket.depthBytes;
+  return true;
+}
+void CoinBgfxBackend::retireLostReadbacks() {
+  auto& runtime = sharedRuntime();
+  std::lock_guard<std::mutex> guard(runtime.mutex);
+  while (!asyncEntries().empty()) {
+    const auto entry = asyncEntries().begin()->second;
+    lostReadbacks.emplace(entry->ticket.token, LostReadback{entry->ticket, runtime.apiThread});
+    releaseAsync(entry->ticket.token, true);
+  }
+}
 void
 CoinBgfxBackend::poll()
 {

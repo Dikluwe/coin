@@ -103,8 +103,12 @@ entre mecanismos ou aproximações visuais.
   em falha. [Contrato e checklist P13](coin-render-rtt-publication-contract.md).
   Formatos/estados ampliados, ALPHA_TEST e RTT direto de janela continuam em F14;
   recuperação geral e orçamento de múltiplos alvos pertencem a P14.
-- [ ] **P14 — Múltiplos alvos/recuperação (F17):** isolamento, agendamento, orçamento,
-  resize/destruição e perda/reconstrução do dispositivo em ambos os executores.
+- [x] **P14 — Múltiplos alvos/recuperação (F17), perfil experimental atual:**
+  isolamento e execução ordenada, filas 16/128 MiB, views BGFX, resize/destruição,
+  tickets pendentes e perda/reconstrução qualificados. RTT staged mantém o runtime
+  BGFX vivo; uma perda aposenta peers/tickets da geração compartilhada.
+  [Contrato e checklist P14](coin-render-multi-target-contract.md). Seleção pública
+  de dispositivos por alvo e matriz física/plataformas não são certificadas aqui.
 
 Fechamento: recursos de um alvo/geração não contaminam outro; resultados inválidos
 não são publicados. P12 precede P13; P14 usa esse contrato nos casos com RTT/readback.
@@ -166,9 +170,8 @@ limites; documentação e commit de evidência. Registrar implementação, execu
 qualificação separadamente. Rejeição explícita fecha diagnóstico, não suporte
 funcional. Atualizar Pxx e Axx/Fxx associados somente no escopo comprovado.
 
-**Próxima entrega concreta: P14 — múltiplos alvos e recuperação.** Qualificar
-isolamento, agendamento e orçamento por alvo/dispositivo usando ownership P12 e
-publicação P13; resize/destruição, tickets pendentes e perda/reconstrução em ambos
-os executores. Viewport parcialmente externo continua P04; formatos/estados RTT
-fora do perfil RGBA8 permanecem registrados em F14. Profiling/memória e reuso de
-readback continuam P18/P19.
+**Próxima entrega concreta: P15 — inventário de nós/workbenches.** Identificar
+nós que dependem de GLRender, SoImage e shaders próprios, com comportamento e
+bloqueio por caso. P14 fechado no [perfil atual](coin-render-multi-target-contract.md).
+Viewport parcialmente externo continua P04; formatos/estados RTT ampliados F14;
+profiling/memória e readback persistente continuam P18/P19.

@@ -40,6 +40,10 @@ public:
   uint64_t resourceGeneration{0};
   static std::unique_ptr<CoinRenderBackend> createBackend();
   CoinRenderBackendStatus prepareBackend();
+  CoinRenderSubmitResult preflightSubmission(bool asynchronous);
+  void deviceLost();
+  CoinRenderDeviceDomain preparedDomain;
+
   // Reusable candidate storage; never exposed while a submission is pending.
   std::vector<uint8_t> spareColorBuffer;
   std::vector<float> spareDepthBuffer;

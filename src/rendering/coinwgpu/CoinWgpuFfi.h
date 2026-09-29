@@ -359,6 +359,7 @@ CoinWgpuStatus coin_wgpu_surface_destroy(
 void coin_wgpu_get_cache_stats(CoinWgpuCacheStats * stats);
 void coin_wgpu_get_performance_stats(CoinWgpuPerformanceStats * stats);
 
+int coin_wgpu_readback_resource_load(uint64_t* jobs, uint64_t* bytes);
 void coin_wgpu_poll_device(void);
 
 void coin_wgpu_set_cache_budget(uint64_t max_bytes, uint64_t max_stale_serials);

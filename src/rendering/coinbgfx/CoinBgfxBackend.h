@@ -34,6 +34,9 @@ public:
                                    uint64_t & token);
   CoinRenderSubmitResult preflightRtt(const CoinRenderRttPlan&, const CoinRenderFramePlan&,
                                       const SbVec2i32&) const override;
+  bool requiresSharedRetirement() const override { return true; }
+  void retireLostReadbacks() override;
+  bool readbackLoad(uint64_t&, uint64_t&) const override;
   CoinRenderDeviceDomain resourceDomain() const override;
   CoinRenderSubmitResult submitRtt(const CoinRenderFramePlan& frame, const SbVec2i32& size,
                                    uint64_t producer, CoinRenderTargetP&,
@@ -41,7 +44,7 @@ public:
     return submitDirectTexture(frame, size, producer, token);
   }
   void finishRtt(const std::vector<uint64_t>& tokens) override { finishDirectTextures(tokens); }
-  bool stagedRttRequiresRelease() const override { return true; }
+  bool stagedRttRequiresPreparedParent() const override { return true; }
   void releaseDirectTexture(uint64_t token);
   void finishDirectTextures(const std::vector<uint64_t> & usedTokens);
   struct AsyncEntry;

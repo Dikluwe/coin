@@ -80,16 +80,25 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan& 
       return {CoinRenderBackendStatus::UNSUPPORTED,
               "Direct scene texture requires an offscreen GPU target"};
     auto prepared = target->prepareBackend();
-    if (prepared != CoinRenderBackendStatus::SUCCESS)
-      return {prepared, target->backend->getLastError()};
+    if (prepared != CoinRenderBackendStatus::SUCCESS) {
+      const auto error = target->backend->getLastError();
+      if (prepared == CoinRenderBackendStatus::DEVICE_LOST)
+        target->deviceLost();
+      return {prepared, error};
+    }
     directBackend = target->backend.get();
     if (!stamp().device || !stamp().deviceGeneration)
       return {CoinRenderBackendStatus::UNSUPPORTED,
               "Direct scene texture has no live device domain"};
-  } else if (target && target->backend && target->backend->stagedRttRequiresRelease()) {
-    // BGFX staged children and their parent cannot own independent live
-    // offscreen contexts in this profile. This is an Infra constraint.
-    target->backend.reset();
+  } else if (target && inspector->stagedRttRequiresPreparedParent()) {
+    // Keep the shared runtime alive while temporary staged producers retire.
+    const auto prepared = target->prepareBackend();
+    if (prepared != CoinRenderBackendStatus::SUCCESS) {
+      const auto error = target->backend->getLastError();
+      if (prepared == CoinRenderBackendStatus::DEVICE_LOST)
+        target->deviceLost();
+      return {prepared, error};
+    }
   }
   const CoinRenderResourceStamp capturedStamp = stamp();
   for (size_t i = 0; i < graph.producers.size(); ++i) {
@@ -107,8 +116,11 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan& 
       // Own any returned allocation even on failure; never leak partial outputs.
       if (token)
         tokens.push_back(token);
-      if (result.status != CoinRenderBackendStatus::SUCCESS)
+      if (result.status != CoinRenderBackendStatus::SUCCESS) {
+        if (result.status == CoinRenderBackendStatus::DEVICE_LOST)
+          target->deviceLost();
         return result;
+      }
       if (!token)
         return {CoinRenderBackendStatus::BACKEND_ERROR,
                 "Planned SoSceneTexture2 pass returned no GPU texture"};

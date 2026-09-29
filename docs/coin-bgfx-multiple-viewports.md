@@ -121,3 +121,11 @@ sem fallback e grava `/tmp/freecad-16-viewports.json` e
 até cinco segundos, sem solicitar frames artificiais nem relaxar o limiar
 de geometria. Uma espera fixa de 180 ms confundia submissão CPU com
 apresentação concluída durante a compilação inicial de shaders/MRT.
+
+## Recuperação compartilhada P14
+
+RTT staged mantém o consumidor preparado durante os passes filhos. Uma perda
+retira todos os conectores e readbacks da geração compartilhada; tickets antigos
+preservam um diagnóstico de perda sem reter staging/runtime. As mesmas janelas
+e alvos offscreen reconstroem recursos na próxima aplicação. Ver
+[contrato e checklist P14](coin-render-multi-target-contract.md).

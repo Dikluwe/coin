@@ -40,6 +40,7 @@ public:
                            const CoinRenderFrameReuseDecision & reuse);
   CoinRenderSubmitResult preflightRtt(const CoinRenderRttPlan&, const CoinRenderFramePlan&,
                                       const SbVec2i32&) const override;
+  bool readbackLoad(uint64_t&, uint64_t&) const override;
   CoinRenderDeviceDomain resourceDomain() const override;
   CoinRenderSubmitResult submitRtt(const CoinRenderFramePlan&, const SbVec2i32&, uint64_t,
                                    CoinRenderTargetP&, uint64_t&) override;

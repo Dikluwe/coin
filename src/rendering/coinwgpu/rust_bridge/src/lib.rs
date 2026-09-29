@@ -5393,6 +5393,38 @@ pub extern "C" fn coin_wgpu_release_texture(token: u64) {
     });
 }
 
+#[no_mangle]
+pub extern "C" fn coin_wgpu_readback_resource_load(jobs: *mut u64, bytes: *mut u64) -> i32 {
+    if jobs.is_null() || bytes.is_null() || (jobs as usize) % 8 != 0 || (bytes as usize) % 8 != 0 {
+        return 0;
+    }
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let mut guard = match RUNTIME_CTX.lock() {
+            Ok(value) => value,
+            Err(_) => return 0,
+        };
+        let (count, payload) = if let Some(runtime) = guard.as_mut() {
+            reap_cancelled_readbacks(runtime);
+            let count = runtime.pending_readbacks.len() + runtime.retired_readbacks.len();
+            let payload = runtime
+                .pending_readbacks
+                .values()
+                .chain(runtime.retired_readbacks.iter())
+                .map(|job| job.ticket.color_bytes + job.ticket.depth_bytes)
+                .sum::<u64>();
+            (count as u64, payload)
+        } else {
+            (0, 0)
+        };
+        unsafe {
+            *jobs = count;
+            *bytes = payload;
+        }
+        1
+    }))
+    .unwrap_or(0)
+}
+
 fn rtt_remaining_capacity(active: usize) -> u32 {
     64usize.saturating_sub(active) as u32
 }

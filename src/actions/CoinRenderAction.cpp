@@ -657,6 +657,14 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
         SbString("applyAsync() requires an offscreen render target")));
     return;
   }
+  if (this->target) {
+    const auto admission =
+        this->target->getPimpl().get().preflightSubmission(this->asyncTicket != nullptr);
+    if (admission.status != CoinRenderBackendStatus::SUCCESS) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::fromBackend(admission));
+      return;
+    }
+  }
   CoinRenderRttExecution rttExecution(this->target ? &this->target->getPimpl().get() : nullptr,
                                       this->executionOptions);
   CoinRenderFramePlan resolvedPlan;

@@ -197,6 +197,21 @@ int main() {
   CHECK(frames(), "replacement target with surviving second target");
   CHECK(!readWindow || (windowColor(display, first, 128, 72, 0) &&
                        windowColor(display, second, 80, 112, 1)), "replacement target independent pixels");
+  std::vector<uint8_t> published;
+  offscreen->readbackRGBA(published);
+  const auto publishedSerial = offscreen->getLastSubmissionSerial();
+  setenv("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE", "1", 1);
+  firstAction.apply(red.root);
+  CHECK(firstAction.getLastStatus() == CoinRenderAction::DEVICE_LOST,
+        "shared native device loss diagnostic");
+  std::vector<uint8_t> preserved;
+  offscreen->readbackRGBA(preserved);
+  CHECK(preserved == published && offscreen->getLastSubmissionSerial() == publishedSerial,
+        "shared device loss preserves offscreen publication");
+  CHECK(frames(), "same native targets reconstruct after shared device loss");
+  CHECK(!readWindow ||
+            (windowColor(display, first, 128, 72, 0) && windowColor(display, second, 80, 112, 1)),
+        "recovered native targets independent pixels");
   firstAction.setRenderTarget(nullptr);
   secondAction.setRenderTarget(nullptr);
   offscreenAction.setRenderTarget(nullptr);

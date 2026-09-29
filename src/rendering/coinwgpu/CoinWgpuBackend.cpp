@@ -415,3 +415,7 @@ CoinRenderSubmitResult CoinWgpuBackend::preflightRtt(const CoinRenderRttPlan& gr
   }
   return check(root, size);
 }
+
+bool CoinWgpuBackend::readbackLoad(uint64_t& jobs, uint64_t& bytes) const {
+  return coin_wgpu_readback_resource_load(&jobs, &bytes) != 0;
+}

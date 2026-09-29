@@ -38,6 +38,18 @@
 #include <new>
 #include <cstdlib>
 #include <atomic>
+#include <mutex>
+#include "rendering/coinrender/CoinRenderResourceCore.h"
+namespace {
+struct TargetRegistry {
+  std::mutex mutex;
+  std::vector<CoinRenderTargetP*> targets;
+};
+TargetRegistry& targetRegistry() {
+  static auto* value = new TargetRegistry;
+  return *value;
+}
+} // namespace
 
 static_assert(sizeof(CoinRenderNativeSurfaceDescriptor) >= 32, "CoinRenderNativeSurfaceDescriptor size check");
 
@@ -78,10 +90,19 @@ CoinRenderTargetP::CoinRenderTargetP(const SbVec2i32 & sz)
   this->resourceOwnerId = allocateResourceOwnerId();
   this->options = CoinRenderDiagnosticShell::renderOptions(this->optionsDiagnostic);
   this->resize(sz);
+  auto& registry = targetRegistry();
+  std::lock_guard<std::mutex> guard(registry.mutex);
+  registry.targets.push_back(this);
 }
 
 CoinRenderTargetP::~CoinRenderTargetP()
 {
+  {
+    auto& registry = targetRegistry();
+    std::lock_guard<std::mutex> guard(registry.mutex);
+    registry.targets.erase(std::remove(registry.targets.begin(), registry.targets.end(), this),
+                           registry.targets.end());
+  }
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   if (this->surfaceId != 0) {
     char errBuf[256] = {0};
@@ -418,7 +439,58 @@ std::unique_ptr<CoinRenderBackend> CoinRenderTargetP::createBackend() {
 CoinRenderBackendStatus CoinRenderTargetP::prepareBackend() {
   if (!this->backend)
     this->backend = createBackend();
-  return this->backend->prepare(*this);
+  const auto result = this->backend->prepare(*this);
+  if (result == CoinRenderBackendStatus::SUCCESS) {
+    const auto domain = this->backend->resourceDomain();
+    if (preparedDomain.device && (preparedDomain.device != domain.device ||
+                                  preparedDomain.generation != domain.generation)) {
+      ++resourceGeneration;
+    }
+    preparedDomain = domain;
+  }
+  return result;
+}
+
+CoinRenderSubmitResult CoinRenderTargetP::preflightSubmission(bool asynchronous) {
+  if (!asynchronous)
+    return {};
+  if (kind != KIND_OFFSCREEN)
+    return {CoinRenderBackendStatus::UNSUPPORTED, "Async readback requires an offscreen target"};
+  if (suspended || size[0] <= 0 || size[1] <= 0)
+    return {CoinRenderBackendStatus::NOT_READY, "Target is suspended or has zero size"};
+  auto temporary = backend ? std::unique_ptr<CoinRenderBackend>() : createBackend();
+  auto* selected = backend ? backend.get() : temporary.get();
+  uint64_t jobs = 0, bytes = 0;
+  if (!selected->readbackLoad(jobs, bytes))
+    return {CoinRenderBackendStatus::UNSUPPORTED,
+            "Backend cannot report asynchronous readback capacity"};
+  const uint64_t requested = uint64_t(size[0]) * size[1] * (depthReadbackEnabled ? 8 : 4);
+  if (!coin_render_readback_admitted(jobs, bytes, requested))
+    return {CoinRenderBackendStatus::NOT_READY,
+            "Readback budget exhausted: sixteen tickets or 128 MiB of pending output"};
+  return {};
+}
+
+void CoinRenderTargetP::deviceLost() {
+  if (backend && backend->requiresSharedRetirement()) {
+    backend->retireLostReadbacks();
+    auto& registry = targetRegistry();
+    std::lock_guard<std::mutex> guard(registry.mutex);
+    for (auto* peer : registry.targets) {
+      if (!peer->backend || !peer->backend->requiresSharedRetirement())
+        continue;
+      ++peer->generation;
+      ++peer->resourceGeneration;
+      peer->status = CoinRenderTarget::TARGET_LOST;
+      peer->lastError = "Shared rendering device lost; resources retired";
+      peer->backend.reset();
+    }
+  } else {
+    ++generation;
+    ++resourceGeneration;
+    backend.reset();
+    status = CoinRenderTarget::TARGET_LOST;
+  }
 }
 
 namespace {
@@ -526,6 +598,11 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
       return val;
     }
   }
+  const auto admission = preflightSubmission(outTicket != NULL);
+  if (admission.status != CoinRenderBackendStatus::SUCCESS) {
+    lastError = admission.diagnostic;
+    return admission;
+  }
   ReadbackPublication publication(*this);
   try {
     publication.prepare();
@@ -548,7 +625,11 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
       } else {
         this->status = CoinRenderTarget::TARGET_ERROR;
       }
-      this->backend.reset();
+      if (prep == CoinRenderBackendStatus::DEVICE_LOST)
+        deviceLost();
+      else
+        this->backend.reset();
+      this->lastError = lastErr;
       return CoinRenderFrameExecutionResult(prep, lastErr);
     }
     this->status = CoinRenderTarget::TARGET_READY;
@@ -604,12 +685,10 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     std::string lastErr = res.diagnostic.empty() ? (this->backend ? this->backend->getLastError() : std::string()) : res.diagnostic;
     this->lastError = lastErr;
     if (res.status == CoinRenderBackendStatus::DEVICE_LOST) {
-      if (lastErr.empty()) lastErr = "WebGPU device lost during frame submission";
+      if (lastErr.empty()) lastErr = "Rendering device lost during frame submission";
       this->lastError = lastErr;
-      this->generation++;
-      ++this->resourceGeneration;
-      this->backend.reset();
-      this->status = CoinRenderTarget::TARGET_LOST;
+      deviceLost();
+      this->lastError = lastErr;
       return CoinRenderSubmitResult(CoinRenderBackendStatus::DEVICE_LOST, lastErr, res.submissionSerial);
     } else if (res.status == CoinRenderBackendStatus::NOT_READY) {
       this->status = CoinRenderTarget::TARGET_NOT_READY;
@@ -631,6 +710,11 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     }
   }
 
+  const auto completedDomain = backend->resourceDomain();
+  if (preparedDomain.device && (preparedDomain.device != completedDomain.device ||
+                                preparedDomain.generation != completedDomain.generation))
+    ++resourceGeneration;
+  preparedDomain = completedDomain;
   publication.commit();
   if (outTicket)
     *outTicket = candidateTicket;

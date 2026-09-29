@@ -47,6 +47,11 @@ public:
                                               const SbVec2i32&) const {
     return {};
   }
+  // Facts only: count and nominal packed bytes; admission policy is Core.
+  virtual bool readbackLoad(uint64_t&, uint64_t&) const { return false; }
+  // Single-runtime Infra: all registered users must release a lost generation.
+  virtual bool requiresSharedRetirement() const { return false; }
+  virtual void retireLostReadbacks() {}
   virtual CoinRenderDeviceDomain resourceDomain() const { return {}; }
   virtual CoinRenderSubmitResult submitRtt(const CoinRenderFramePlan&, const SbVec2i32&, uint64_t,
                                            CoinRenderTargetP&, uint64_t&) {
@@ -54,7 +59,7 @@ public:
             "Direct scene texture is not implemented; no fallback was applied"};
   }
   virtual void finishRtt(const std::vector<uint64_t>&) {}
-  virtual bool stagedRttRequiresRelease() const { return false; }
+  virtual bool stagedRttRequiresPreparedParent() const { return false; }
   virtual void poll() = 0;
   virtual const std::string & getLastError() const = 0;
 };

@@ -2,7 +2,8 @@
 
 P13 qualifica o grafo de P12 no perfil RGBA8 existente, corrige a política de
 alpha do Coin e protege a publicação de resultados. O fechamento é deste perfil;
-F14/F15 completos, recuperação geral e outros formatos continuam no plano.
+F14/F15 completos e outros formatos continuam no plano. Recuperação entre alvos
+do perfil atual foi qualificada depois no [P14](coin-render-multi-target-contract.md).
 
 ## Contrato Coin e referência GL
 
@@ -63,7 +64,7 @@ Os buffers candidatos reutilizam armazenamento por alvo, sem copiar a imagem
 anterior para fazer rollback. Isso mantém até um par adicional de buffers CPU:
 quatro bytes/pixel de cor e, quando alocado, quatro de depth. Resize libera esse
 armazenamento adicional. Esse custo não é incluído no débito nominal de RTT;
-medição de pico e orçamento geral pertencem a P18/P14.
+medição de pico pertence a P18; a admissão compartilhada é definida no [P14](coin-render-multi-target-contract.md).
 
 A submissão async escreve primeiro em um ticket privado. O contrato comum confere
 token, serial, tamanho, formato RGBA8, pitches e bytes de cor/depth antes de
@@ -89,7 +90,7 @@ do chamador. Esse contrato e os metadados públicos continuam compatíveis com P
 - [x] Resultado incompleto é rejeitado mesmo com status SUCCESS do backend.
 - [x] Tickets completos, falha async, consumo/cancelamento e retenção testados.
 - [ ] Formatos/estados ampliados e ALPHA_TEST: F14 continua parcial.
-- [ ] Múltiplos alvos, orçamento geral e reconstrução ampla: P14.
+- [x] Múltiplos alvos, admissão e reconstrução no perfil experimental atual: [P14](coin-render-multi-target-contract.md). Matriz física e memória total permanecem P20/P18.
 - [ ] Profiling/memória completos, persistência e readback de janela: P18/P19.
 - [ ] Matriz física de drivers/plataformas: P20.
 
