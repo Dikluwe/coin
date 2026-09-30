@@ -71,7 +71,9 @@ Isso verifica diagnóstico/publicação e o oráculo; não verifica sombras em G
   Reusar ownership e publicação de P12–P14, inclusive múltiplos alvos.
 - [ ] **Infra BGFX/wgpu:** mapas de momentos e depth, VSM, bias, textura,
   passes, sincronização, resize e reconstrução após perda, com shader específico
-  por API. Mapas da Infra não entram no estado Coin.
+  por API. Mapas da Infra não entram no estado Coin. O shader wgpu que grava
+  momentos lineares, spot/directional, já valida em Naga, mas ainda não está
+  ligado ao encoder nem produz mapa.
 - [ ] **Shell/capacidades:** seleção explícita de perfil implementado e
   disponível; diagnósticos de limite/formato sem fallback visual implícito.
 - [ ] **Qualificação:** comparar spot/directional, todos os estilos, cenas
