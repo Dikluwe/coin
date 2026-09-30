@@ -1549,6 +1549,12 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     this->lastError = "BGFX supports Xlib presentation or offscreen readback";
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
   }
+  // A cached geometry plan or camera patch can bypass lowering. Reject active
+  // shadows here as well, before any frame state or published readback changes.
+  if (!frame.shadowGroups.empty()) {
+    this->lastError = "BGFX shadow maps are not implemented for active SoShadowGroup";
+    return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
+  }
   if (outTicket) {
     auto & runtime = sharedRuntime();
     std::lock_guard<std::mutex> guard(runtime.mutex);

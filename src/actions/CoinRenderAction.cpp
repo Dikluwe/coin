@@ -664,7 +664,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       this->lastRejectedShadowPlan = std::move(shadowPlan);
       this->setDiagnostic(CoinRenderDiagnosticShell::action(
         CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
-        SbString("Active SoShadowGroup needs a qualified opaque one/two-light profile on CoinWgpu offscreen")));
+        SbString("Active SoShadowGroup requires a qualified opaque shadow executor for this target")));
       return;
     }
     // Shadow maps depend on captured light/geometry state; reuse and camera

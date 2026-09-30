@@ -169,6 +169,10 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     diagnostic = "BGFX evaluation requires a nonzero target up to 16384 pixels per side";
     return false;
   }
+  if (!frame.shadowGroups.empty()) {
+    diagnostic = "BGFX shadow maps are not implemented for active SoShadowGroup";
+    return false;
+  }
   if (!frame.isValid(&diagnostic)) return false;
   std::vector<CoinRenderCompositionItem> order;
   if (!coin_render_composition_schedule(frame, order, diagnostic))

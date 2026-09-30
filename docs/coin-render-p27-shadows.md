@@ -71,6 +71,9 @@ opaca no wgpu e compara seu readback ao GL.
   rejeição de três luzes e recuperação também passaram.
 - [ ] **P27.3 — BGFX:** executar o mesmo plano comum e as mesmas fixtures
   opacas no BGFX, com shader e recursos próprios, sem reinterpretar o Coin.
+  O primeiro guarda-corpo impede que submissões diretas e planos em cache
+  publiquem um quadro sem sombras para `SoShadowGroup` ativo; ainda faltam
+  mapas, shaders e comparação visual com Coin/GL.
 - [ ] **P27.4 — contrato ampliado:** três ou mais luzes, cenas próprias por
   luz, transparência, clipping, qualidade, RTT, composição, grupos adicionais
   e alvos múltiplos nos dois executores.

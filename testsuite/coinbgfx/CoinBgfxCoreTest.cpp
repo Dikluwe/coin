@@ -48,6 +48,12 @@ int main()
   bool ok = true;
   std::string diagnostic;
   CoinBgfxPlan plan;
+  frame.shadowGroups.push_back(CoinRenderShadowGroupSnapshot());
+  ok &= check(!CoinBgfxLowering::lower(frame, 4, 4, false, plan, diagnostic) &&
+              diagnostic.find("BGFX shadow maps") != std::string::npos &&
+              plan.draws.empty(),
+              "active shadow group silently rendered without shadows");
+  frame.shadowGroups.clear();
   ok &= check(CoinBgfxLowering::lower(frame, 4, 4, false, plan, diagnostic),
               "valid BASE_COLOR triangle rejected");
   ok &= check(plan.draws[0].viewport[0] == 0 && plan.draws[0].viewport[1] == 0 &&
