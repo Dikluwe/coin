@@ -63,7 +63,8 @@ Isso verifica diagnóstico/publicação e o oráculo; não verifica sombras em G
   separar desenhos caster/receiver pelos bits de `SoShadowStyle`, dimensionar
   mapa por `precision`, calcular câmeras spot/directional a partir da geometria
   capturada, resolver os parâmetros de VSM/qualidade e o índice da luz em cada
-  estado de desenho, e limitar a memória planejada.
+  estado de desenho, resolver a contribuição dessa luz no espaço de vista
+  inclusive quando ela aparece após a geometria, e limitar a memória planejada.
 - [ ] **Core completo:** qualificar a interseção com o frustum principal e
   `maxShadowDistance`, qualidade, transparência, cenas próprias, múltiplas luzes
   e dependências RTT.

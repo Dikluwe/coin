@@ -19,6 +19,7 @@
 #include <Inventor/SbColor.h>
 
 #include <cstdlib>
+#include <cmath>
 #include <algorithm>
 #include <iostream>
 #include <vector>
@@ -141,7 +142,18 @@ int main()
     captureOk = captureOk && receiverOnly;
     for (uint32_t d : planned.passes[0].receiverDraws) {
       const uint32_t stateSlot = captured.draws[d].renderStateSlot;
-      captureOk = captureOk && planned.passes[0].lightingIndexByState[stateSlot] == 0;
+      const auto & source = planned.passes[0].resolvedLightByState[stateSlot];
+      captureOk = captureOk && planned.passes[0].lightingIndexByState[stateSlot] == 0 &&
+                  source.sourceRevision == captured.shadowLights[0].sourceRevision &&
+                  source.type == CoinRenderLightType::SPOT &&
+                  source.color == SbColor(1, 1, 1) &&
+                  source.intensity == 1.0f &&
+                  std::abs(source.position[0] - 2.0f) < 0.001f &&
+                  std::abs(source.position[1] - 2.0f) < 0.001f &&
+                  std::abs(source.position[2] + 4.0f) < 0.001f &&
+                  source.direction[0] < 0.0f &&
+                  source.direction[1] < 0.0f &&
+                  source.direction[2] < 0.0f;
     }
   }
   target->readbackRGBA(afterRejection);
@@ -160,7 +172,9 @@ int main()
     for (uint32_t d : lateLightPlan.passes[0].receiverDraws) {
       const uint32_t stateSlot = lateLightFrame.draws[d].renderStateSlot;
       lateLightResolved = lateLightResolved &&
-          lateLightPlan.passes[0].lightingIndexByState[stateSlot] == -1;
+          lateLightPlan.passes[0].lightingIndexByState[stateSlot] == -1 &&
+          lateLightPlan.passes[0].resolvedLightByState[stateSlot].sourceRevision ==
+            lateLightFrame.shadowLights[0].sourceRevision;
     }
   }
   light->ref();

@@ -26,6 +26,7 @@ struct CoinRenderShadowPass {
   // -1 means the shadow light is discovered after this shape and must be
   // added by Infra; otherwise it replaces that ordinary light contribution.
   std::vector<int32_t> lightingIndexByState;
+  std::vector<CoinRenderLightSourceSnapshot> resolvedLightByState;
   std::vector<uint32_t> casterDraws;
   std::vector<uint32_t> receiverDraws;
 };
@@ -253,10 +254,40 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
       pass.perFragmentLighting = group.quality >
         (light.type == CoinRenderLightType::SPOT ? 0.3f : 0.7f);
       pass.lightingIndexByState.assign(frame.renderStates.size(), -1);
+      pass.resolvedLightByState.resize(frame.renderStates.size());
       for (size_t s = 0; s < frame.renderStates.size(); ++s) {
         const auto & state = frame.renderStates[s];
-        if (state.shadowGroupSlot != pass.groupSlot ||
-            state.lightingSlot >= frame.lightingStates.size()) continue;
+        if (state.shadowGroupSlot != pass.groupSlot) continue;
+        CoinRenderLightSourceSnapshot source;
+        source.sourceRevision = light.sourceRevision;
+        source.sourceModel = light.modelViewAtLight;
+        source.type = light.type;
+        source.intensity = light.intensity;
+        source.cutOffAngle = light.cutOffAngle;
+        source.dropOffRate = light.dropOffRate;
+        for (int c = 0; c < 3; ++c) {
+          source.color[c] = light.color[c];
+          source.attenuation[c] = light.attenuation[c];
+        }
+        const SbMatrix modelView = light.model * state.view;
+        SbVec3f direction;
+        modelView.multDirMatrix(light.direction, direction);
+        if (!coin_render_shadow_finite(direction) || direction.normalize() == 0.0f) {
+          diagnostic = "Shadow light has an invalid view-space direction";
+          return false;
+        }
+        for (int c = 0; c < 3; ++c) source.direction[c] = direction[c];
+        if (light.type == CoinRenderLightType::SPOT) {
+          SbVec3f position;
+          modelView.multVecMatrix(light.position, position);
+          if (!coin_render_shadow_finite(position)) {
+            diagnostic = "Shadow light has an invalid view-space position";
+            return false;
+          }
+          for (int c = 0; c < 3; ++c) source.position[c] = position[c];
+        }
+        pass.resolvedLightByState[s] = source;
+        if (state.lightingSlot >= frame.lightingStates.size()) continue;
         const auto & sources = frame.lightingStates[state.lightingSlot].lights;
         for (size_t i = 0; i < sources.size(); ++i)
           if (sources[i].sourceRevision == light.sourceRevision &&
