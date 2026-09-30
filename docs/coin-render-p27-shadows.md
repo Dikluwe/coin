@@ -260,9 +260,14 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   lado de outro inativo retorna `UNSUPPORTED` antes da publicação, mantendo
   pixels e serial. A antiga sondagem com chão de 2,2 e um grupo inativo
   (18 no GL, 654 nos executores) continua fora deste perfil.
-- [ ] **RTT, composição e demais grupos:** ordenar passes com dependências de
-  textura e camadas; qualificar grupos aninhados, parâmetros VSM diferentes,
-  resize, falha e recuperação.
+- [ ] **RTT, composição e demais grupos:** o produtor `SoSceneTexture2`
+  em modo staged pode conter um grupo opaco do perfil qualificado. A Action
+  captura seu plano sem alvo e o executor RTT existente renderiza o produtor
+  num alvo offscreen antes do consumidor texturizado. A fixture 128×128,
+  alternando sombra no produtor, mediu delta máximo 306 no Coin/GL e 414 em
+  BGFX e wgpu (tolerância 180). O modo direct, sombras no consumidor,
+  camadas, grupos aninhados, parâmetros VSM diferentes, resize, falha e
+  recuperação desse arranjo ainda não estão qualificados.
 
 Cada caixa acima requer uma fixture renderizada nos dois executores e sua
 referência Coin/GL antes de marcar P27.4 concluído.

@@ -26,6 +26,11 @@
 #include <Inventor/nodes/SoPointLight.h>
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoClipPlane.h>
+#include <Inventor/nodes/SoSceneTexture2.h>
+#include <Inventor/nodes/SoLightModel.h>
+#include <Inventor/nodes/SoTextureCoordinate2.h>
+#include <Inventor/nodes/SoCoordinate3.h>
+#include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/SbColor.h>
 
 #include <cstdlib>
@@ -2232,6 +2237,102 @@ int main()
     customAction.setRenderTarget(nullptr);
     delete customTarget;
   }
+  bool stagedShadowRttQualified = true;
+  if (lowQualityGpuRequested) {
+    CoinRenderOptions stagedOptions{};
+    stagedOptions.sceneTexture = COIN_RENDER_SCENE_TEXTURE_STAGED;
+    stagedOptions.transparency = COIN_RENDER_TRANSPARENCY_OBJECT;
+    CoinRenderTarget * stagedTarget = CoinRenderTarget::createOffscreen(
+      SbVec2i32(side, side), stagedOptions);
+    CoinRenderAction stagedAction(SbViewportRegion(side, side));
+    stagedAction.setRenderTarget(stagedTarget);
+    auto * stagedRoot = new SoSeparator;
+    stagedRoot->ref();
+    auto * stagedCamera = new SoOrthographicCamera;
+    stagedCamera->position.setValue(0, 0, 8);
+    stagedCamera->height = 7;
+    stagedCamera->nearDistance = 1;
+    stagedCamera->farDistance = 20;
+    stagedRoot->addChild(stagedCamera);
+    auto * stagedLighting = new SoLightModel;
+    stagedLighting->model = SoLightModel::BASE_COLOR;
+    stagedRoot->addChild(stagedLighting);
+    auto * stagedTexture = new SoSceneTexture2;
+    stagedTexture->size.setValue(side, side);
+    stagedTexture->type = SoSceneTexture2::RGBA8;
+    stagedTexture->transparencyFunction = SoSceneTexture2::NONE;
+    stagedTexture->scene = customRoot;
+    stagedRoot->addChild(stagedTexture);
+    auto * displayUv = new SoTextureCoordinate2;
+    displayUv->point.set1Value(0, SbVec2f(0, 0));
+    displayUv->point.set1Value(1, SbVec2f(1, 0));
+    displayUv->point.set1Value(2, SbVec2f(1, 1));
+    displayUv->point.set1Value(3, SbVec2f(0, 1));
+    stagedRoot->addChild(displayUv);
+    auto * displayPoints = new SoCoordinate3;
+    displayPoints->point.set1Value(0, SbVec3f(-3, -3, 0));
+    displayPoints->point.set1Value(1, SbVec3f(3, -3, 0));
+    displayPoints->point.set1Value(2, SbVec3f(3, 3, 0));
+    displayPoints->point.set1Value(3, SbVec3f(-3, 3, 0));
+    stagedRoot->addChild(displayPoints);
+    auto * display = new SoIndexedFaceSet;
+    const int32_t displayIndices[] = {0, 1, 2, 3, -1};
+    display->coordIndex.setValues(0, 5, displayIndices);
+    display->textureCoordIndex.setValues(0, 5, displayIndices);
+    stagedRoot->addChild(display);
+    customGroup->isActive = TRUE;
+    stagedAction.apply(stagedRoot);
+    std::vector<unsigned char> stagedShadow, stagedClear;
+    const bool shadowOk = stagedAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (shadowOk) stagedTarget->readbackRGBA(stagedShadow);
+    customGroup->isActive = FALSE;
+    stagedAction.apply(stagedRoot);
+    const bool clearOk = stagedAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (clearOk) stagedTarget->readbackRGBA(stagedClear);
+    int rttDelta = 0;
+    if (shadowOk && clearOk && stagedShadow.size() == stagedClear.size())
+      for (int y = 20; y < 105; ++y)
+        for (int x = 20; x < 105; ++x)
+          rttDelta = std::max(rttDelta,
+            std::abs(luminanceRgba(stagedShadow, x, y) -
+                     luminanceRgba(stagedClear, x, y)));
+    stagedShadowRttQualified = shadowOk && clearOk && rttDelta > 40;
+    std::cout << "staged shadow RTT GPU delta=" << rttDelta << '\n';
+    if (stagedShadowRttQualified &&
+        std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") && SoShadowGroup::isSupported()) {
+      customGroup->isActive = TRUE;
+      auto * glShadowParent = static_cast<SoSeparator *>(stagedRoot->copy(TRUE));
+      glShadowParent->ref();
+      customGroup->isActive = FALSE;
+      auto * glClearParent = static_cast<SoSeparator *>(stagedRoot->copy(TRUE));
+      glClearParent->ref();
+      SoOffscreenRenderer stagedGl(SbViewportRegion(side, side));
+      stagedGl.setComponents(SoOffscreenRenderer::RGB);
+      std::vector<unsigned char> glShadow, glClear;
+      const bool rendered = render(stagedGl, glShadowParent, glShadow) &&
+        render(stagedGl, glClearParent, glClear);
+      int glDelta = 0;
+      if (rendered)
+        for (int y = 20; y < 105; ++y)
+          for (int x = 20; x < 105; ++x)
+            glDelta = std::max(glDelta,
+              std::abs(luminance(glShadow, x, y) -
+                       luminance(glClear, x, y)));
+      stagedShadowRttQualified = rendered && glDelta > 40 &&
+        std::abs(glDelta - rttDelta) <= 180;
+      std::cout << "staged shadow RTT Coin/GL/GPU delta="
+                << glDelta << '/' << rttDelta << '\n';
+      glClearParent->unref();
+      glShadowParent->unref();
+    }
+    if (!stagedShadowRttQualified)
+      std::cerr << "staged shadow RTT: "
+                << stagedAction.getLastError().getString() << '\n';
+    customGroup->isActive = TRUE;
+    stagedAction.setRenderTarget(nullptr);
+    delete stagedTarget;
+    stagedRoot->unref();
+  }
   customRoot->unref();
   action.setRenderTarget(nullptr);
   delete target;
@@ -2241,6 +2342,7 @@ int main()
       !lateLightResolved || !lateSpotProfile || !mixedOrderResolved ||
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||
       !lowQualityDirectionalQualified || !directCustomSceneQualified ||
+      !stagedShadowRttQualified ||
       !directionalProjectionCoversGroup || !multipleCameras || !perspectiveFrustum
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
       || !wgpuShadowSubmitted || !wgpuDirectionalSubmitted || !lateSpotSubmitted ||
