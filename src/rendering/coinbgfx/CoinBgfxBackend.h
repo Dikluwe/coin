@@ -136,6 +136,7 @@ private:
   bgfx::ProgramHandle shadowReceiverProgram;
   bgfx::ProgramHandle shadowReceiverProgram4;
   bgfx::UniformHandle shadowModelViewUniform;
+  bgfx::UniformHandle shadowClipModelViewUniform;
   bgfx::UniformHandle shadowDepthUniform;
   bgfx::UniformHandle shadowLightIndicesUniform;
   bgfx::UniformHandle shadowViewToClipUniform[4];

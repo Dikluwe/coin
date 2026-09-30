@@ -1,4 +1,4 @@
-use crate::{CoinWgpuShadowDraw, CoinWgpuVertex};
+use crate::{CoinWgpuRenderState, CoinWgpuShadowDraw, CoinWgpuVertex};
 use bytemuck::{Pod, Zeroable};
 use wgpu::util::DeviceExt;
 
@@ -8,6 +8,8 @@ struct ShadowUniforms {
     model_view_projection: [f32; 16],
     model_view: [f32; 16],
     near_far_kind: [f32; 4],
+    clip_model_view: [f32; 16],
+    clip_planes: [[f32; 4]; 8],
 }
 
 pub(crate) struct ShadowMap {
@@ -24,6 +26,7 @@ pub(crate) fn encode_moments(
     vertices: &[CoinWgpuVertex],
     indices: &[u32],
     casters: &[CoinWgpuShadowDraw],
+    states: &[CoinWgpuRenderState],
     map_size: u32,
     near: f32,
     far: f32,
@@ -48,6 +51,8 @@ pub(crate) fn encode_moments(
             .checked_add(draw.index_count as usize)
             .ok_or_else(|| format!("Shadow caster {slot} index range overflows"))?;
         if draw.index_count == 0
+            || draw.render_state_slot as usize >= states.len()
+            || states[draw.render_state_slot as usize].clip_plane_count > 8
             || draw.index_count % 3 != 0
             || end > indices.len()
             || indices[draw.first_index as usize..end]
@@ -170,10 +175,13 @@ pub(crate) fn encode_moments(
     });
     let mut bindings = Vec::with_capacity(casters.len());
     for draw in casters {
+        let state = &states[draw.render_state_slot as usize];
         let uniforms = ShadowUniforms {
             model_view_projection: draw.model_view_projection,
             model_view: draw.model_view,
-            near_far_kind: [near, far, kind as f32, 0.0],
+            near_far_kind: [near, far, kind as f32, state.clip_plane_count as f32],
+            clip_model_view: state.model_view,
+            clip_planes: state.clip_planes,
         };
         let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Coin shadow draw uniform"),
@@ -302,12 +310,17 @@ mod tests {
         let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("Coin shadow caster test"),
         });
+        let mut state: CoinWgpuRenderState = unsafe { std::mem::zeroed() };
+        state.model_view = identity;
+        state.clip_plane_count = 1;
+        state.clip_planes[0] = [1.0, 0.0, 0.0, 0.0];
         let map = encode_moments(
             &device,
             &mut encoder,
             &vertices,
             &[0, 1, 2, 3, 4, 5],
             &[caster],
+            &[state],
             64,
             0.1,
             1.1,
@@ -351,6 +364,12 @@ mod tests {
         let offset = (32 * 64 + 32) * 16;
         let mean = f32::from_ne_bytes(data[offset..offset + 4].try_into().unwrap());
         let square = f32::from_ne_bytes(data[offset + 4..offset + 8].try_into().unwrap());
+        let clipped_offset = (32 * 64 + 24) * 16;
+        let kept_offset = (32 * 64 + 40) * 16;
+        let clipped_mean = f32::from_ne_bytes(data[clipped_offset..clipped_offset + 4].try_into().unwrap());
+        let kept_mean = f32::from_ne_bytes(data[kept_offset..kept_offset + 4].try_into().unwrap());
+        assert!(clipped_mean > 0.99, "clipped moments were written: {clipped_mean}");
+        assert!(kept_mean < 0.99, "retained caster disappeared: {kept_mean}");
         let expected = (0.6f32 * 0.6 + 0.5 * 0.5).sqrt() - 0.1;
         assert!(
             (mean - expected).abs() < 0.02,

@@ -511,6 +511,7 @@ CoinBgfxBackend::CoinBgfxBackend()
     shadowReceiverProgram(BGFX_INVALID_HANDLE),
     shadowReceiverProgram4(BGFX_INVALID_HANDLE),
     shadowModelViewUniform(BGFX_INVALID_HANDLE),
+    shadowClipModelViewUniform(BGFX_INVALID_HANDLE),
     shadowDepthUniform(BGFX_INVALID_HANDLE),
     shadowLightIndicesUniform(BGFX_INVALID_HANDLE),
     depthReadProgram(BGFX_INVALID_HANDLE), readDepthSampler(BGFX_INVALID_HANDLE),
@@ -595,12 +596,14 @@ CoinBgfxBackend::prepareShadowPrograms(bool extended)
     gl ? sizeof(coin_bgfx_fs_shadow_receiver_glsl) : sizeof(coin_bgfx_fs_shadow_receiver_spirv));
   if (extended) this->shadowReceiverProgram4 = createExtended();
   this->shadowModelViewUniform = bgfx::createUniform("u_shadowModelView", bgfx::UniformType::Mat4);
+  this->shadowClipModelViewUniform = bgfx::createUniform("u_shadowClipModelView", bgfx::UniformType::Mat4);
   this->shadowDepthUniform = bgfx::createUniform("u_shadowDepth", bgfx::UniformType::Vec4);
   this->shadowLightIndicesUniform = bgfx::createUniform("u_shadowLightIndices", bgfx::UniformType::Vec4);
   bool valid = bgfx::isValid(this->shadowMomentsProgram) &&
     bgfx::isValid(this->shadowReceiverProgram) &&
     (!extended || bgfx::isValid(this->shadowReceiverProgram4)) &&
     bgfx::isValid(this->shadowModelViewUniform) &&
+    bgfx::isValid(this->shadowClipModelViewUniform) &&
     bgfx::isValid(this->shadowDepthUniform) &&
     bgfx::isValid(this->shadowLightIndicesUniform);
   for (int i = 0; i < 4; ++i) {
@@ -700,6 +703,7 @@ CoinBgfxBackend::destroyResources()
   if (bgfx::isValid(this->shadowReceiverProgram)) bgfx::destroy(this->shadowReceiverProgram);
   if (bgfx::isValid(this->shadowReceiverProgram4)) bgfx::destroy(this->shadowReceiverProgram4);
   if (bgfx::isValid(this->shadowModelViewUniform)) bgfx::destroy(this->shadowModelViewUniform);
+  if (bgfx::isValid(this->shadowClipModelViewUniform)) bgfx::destroy(this->shadowClipModelViewUniform);
   if (bgfx::isValid(this->shadowDepthUniform)) bgfx::destroy(this->shadowDepthUniform);
   if (bgfx::isValid(this->shadowLightIndicesUniform)) bgfx::destroy(this->shadowLightIndicesUniform);
   for (int i = 0; i < 4; ++i) {
@@ -1985,6 +1989,10 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
         bgfx::setVertexBuffer(0, vb);
         bgfx::setIndexBuffer(ib, draw.firstIndex, draw.indexCount);
         bgfx::setUniform(this->shadowModelViewUniform, modelView.getValue());
+        const SbMatrix clipModelView = state.model * state.view;
+        bgfx::setUniform(this->shadowClipModelViewUniform, clipModelView.getValue());
+        bgfx::setUniform(this->clipMetaUniform, draw.clipMeta);
+        bgfx::setUniform(this->clipPlanesUniform, draw.clipPlanes, COIN_RENDER_MAX_CLIP_PLANES);
         bgfx::setUniform(this->shadowDepthUniform, depthParams);
         bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A |
           BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS);

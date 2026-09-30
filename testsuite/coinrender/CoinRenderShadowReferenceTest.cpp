@@ -25,6 +25,7 @@
 #include <Inventor/nodes/SoLight.h>
 #include <Inventor/nodes/SoPointLight.h>
 #include <Inventor/nodes/SoMaterial.h>
+#include <Inventor/nodes/SoClipPlane.h>
 #include <Inventor/SbColor.h>
 
 #include <cstdlib>
@@ -469,6 +470,60 @@ int main()
                   source.direction[1] < 0.0f &&
                   source.direction[2] < 0.0f;
     }
+  }
+  bool clippedShadowQualified = true;
+  if (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
+      std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) {
+    auto * uncutRoot = static_cast<SoSeparator *>(root->copy(TRUE));
+    auto * cutRoot = static_cast<SoSeparator *>(root->copy(TRUE));
+    uncutRoot->ref();
+    cutRoot->ref();
+    auto * cutGroup = static_cast<SoShadowGroup *>(cutRoot->getChild(1));
+    auto * cutCaster = static_cast<SoSeparator *>(cutGroup->getChild(1));
+    auto * clip = new SoClipPlane;
+    clip->plane = SbPlane(SbVec3f(1, 0, 0), 0.1f);
+    cutCaster->insertChild(clip, 1);
+    CoinRenderTarget * clipTarget = CoinRenderTarget::createOffscreen(
+      SbVec2i32(side, side));
+    CoinRenderAction clipAction(SbViewportRegion(side, side));
+    clipAction.setRenderTarget(clipTarget);
+    clipAction.apply(uncutRoot);
+    std::vector<unsigned char> gpuUncut, gpuCut;
+    if (clipAction.getLastStatus() == CoinRenderAction::SUCCESS)
+      clipTarget->readbackRGBA(gpuUncut);
+    clipAction.apply(cutRoot);
+    if (clipAction.getLastStatus() == CoinRenderAction::SUCCESS)
+      clipTarget->readbackRGBA(gpuCut);
+    clippedShadowQualified = clipAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+      gpuUncut.size() == gpuCut.size() && !gpuCut.empty();
+    int gpuDelta = 0, glDelta = 0;
+    if (clippedShadowQualified)
+      for (int y = 20; y < 105; ++y)
+        for (int x = 20; x < 105; ++x)
+          gpuDelta = std::max(gpuDelta, std::abs(
+            luminanceRgba(gpuUncut, x, y) - luminanceRgba(gpuCut, x, y)));
+    clippedShadowQualified = clippedShadowQualified && gpuDelta > 0;
+    if (clippedShadowQualified && std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
+      SoOffscreenRenderer clipGl(SbViewportRegion(side, side));
+      clipGl.setComponents(SoOffscreenRenderer::RGB);
+      std::vector<unsigned char> glUncut, glCut;
+      clippedShadowQualified = render(clipGl, uncutRoot, glUncut) &&
+        render(clipGl, cutRoot, glCut);
+      if (clippedShadowQualified)
+        for (int y = 20; y < 105; ++y)
+          for (int x = 20; x < 105; ++x)
+            glDelta = std::max(glDelta, std::abs(
+              luminance(glUncut, x, y) - luminance(glCut, x, y)));
+      clippedShadowQualified = clippedShadowQualified && glDelta > 0 &&
+        std::abs(gpuDelta - glDelta) <= 200;
+    }
+    std::cout << "clipped caster Coin/GL/GPU delta=" << glDelta << '/' << gpuDelta << '\n';
+    if (!clippedShadowQualified)
+      std::cerr << "clipped shadow frame: " << clipAction.getLastError().getString() << '\n';
+    clipAction.setRenderTarget(nullptr);
+    delete clipTarget;
+    cutRoot->unref();
+    uncutRoot->unref();
   }
   // Qualify the common two-pass Coin contract and execute both maps on wgpu.
   auto * secondShadowLight = new SoShadowDirectionalLight;
@@ -1842,7 +1897,7 @@ int main()
   action.setRenderTarget(nullptr);
   delete target;
   if (!publishedOk || !rejected || !preserved || !recovered || !captureOk ||
-      !spotProfile || !transparentExcludedFromFirstProfile || !twoLightCaptured ||
+      !spotProfile || !transparentExcludedFromFirstProfile || !clippedShadowQualified || !twoLightCaptured ||
       !orderedTwoLight || !twoSpotsOk || !twoDirectionalsOk ||
       !lateLightResolved || !lateSpotProfile || !mixedOrderResolved ||
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||

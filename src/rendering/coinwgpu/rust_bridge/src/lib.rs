@@ -2931,23 +2931,23 @@ fn encode_frame(
                 "Injected shadow-map attachment allocation failure".into()));
         }
         Some(shadow::encode_moments(&ctx.device, &mut encoder, vertices_slice,
-            indices_slice, shadow.casters, shadow.map_size, shadow.near, shadow.far, shadow.kind)
+            indices_slice, shadow.casters, states_slice, shadow.map_size, shadow.near, shadow.far, shadow.kind)
             .map_err(|msg| (CoinWgpuStatus::InvalidArgument, msg))?)
     } else { None };
     let shadow_map_second = if let Some(second) = shadow_frame.and_then(|shadow| shadow.second.as_ref()) {
         Some(shadow::encode_moments(&ctx.device, &mut encoder, vertices_slice,
-            indices_slice, second.casters, second.map_size, second.near, second.far, second.kind)
+            indices_slice, second.casters, states_slice, second.map_size, second.near, second.far, second.kind)
             .map_err(|msg| (CoinWgpuStatus::InvalidArgument, msg))?)
     } else { None };
 
     let shadow_map_third = if let Some(pass) = shadow_frame.and_then(|shadow| shadow.third.as_ref()) {
         Some(shadow::encode_moments(&ctx.device, &mut encoder, vertices_slice,
-            indices_slice, pass.casters, pass.map_size, pass.near, pass.far, pass.kind)
+            indices_slice, pass.casters, states_slice, pass.map_size, pass.near, pass.far, pass.kind)
             .map_err(|msg| (CoinWgpuStatus::InvalidArgument, msg))?)
     } else { None };
     let shadow_map_fourth = if let Some(pass) = shadow_frame.and_then(|shadow| shadow.fourth.as_ref()) {
         Some(shadow::encode_moments(&ctx.device, &mut encoder, vertices_slice,
-            indices_slice, pass.casters, pass.map_size, pass.near, pass.far, pass.kind)
+            indices_slice, pass.casters, states_slice, pass.map_size, pass.near, pass.far, pass.kind)
             .map_err(|msg| (CoinWgpuStatus::InvalidArgument, msg))?)
     } else { None };
     {

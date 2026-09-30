@@ -222,8 +222,14 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   exceder as unidades de textura nem repetir semântica Coin no backend.
 - [ ] **Cenas próprias por luz:** capturar `shadowMapScene` como geometria de
   caster separada, respeitando a travessia e o bbox do grupo no Coin/GL.
-- [ ] **Transparência, clipping e qualidade:** qualificar por modo os casters,
-  receivers, recortes e o limiar de iluminação por fragmento.
+- [x] **Clipping de casters opacos:** os planos já capturados e resolvidos
+  pelo Core entram também no pass de momentos; BGFX e wgpu descartam o
+  fragmento no mapa antes da recepção. A fixture com `SoClipPlane` no caster
+  mediu diferença máxima 496/663 em Coin/GL e nos dois executores (tolerância
+  200 nesta cena). Um readback direto do mapa wgpu confirmou branco no lado
+  descartado e momentos no lado mantido.
+- [ ] **Transparência e qualidade:** qualificar por modo os casters,
+  receivers e o limiar de iluminação por fragmento.
 - [ ] **RTT, composição, grupos adicionais e múltiplos alvos:** ordenar os
   passes com as dependências de textura e camadas, sem fundir grupos ou
   estados Coin independentes; validar resize, falha e recuperação.
@@ -259,7 +265,7 @@ referência Coin/GL antes de marcar P27.4 concluído.
 - [ ] **Shell/capacidades:** seleção explícita de perfil implementado e
   disponível; diagnósticos de limite/formato sem fallback visual implícito.
 - [ ] **Qualificação:** comparar spot/directional, todos os estilos, cenas
-  próprias por luz, clipping, alpha/transparência, RTT, resize e falhas nas
+  próprias por luz, alpha/transparência, RTT, resize e falhas nas
   mesmas fixtures Coin/GL. Registrar GPU/API/driver e tolerâncias por célula.
 
 O preflight retorna `UNSUPPORTED` para grupos ativos fora dos perfis opacos

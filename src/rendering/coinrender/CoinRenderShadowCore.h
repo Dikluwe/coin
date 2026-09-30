@@ -2,6 +2,7 @@
 #define COIN_RENDER_SHADOW_CORE_H
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
+#include "rendering/coinrender/CoinRenderClipCore.h"
 #include <Inventor/SbBox3f.h>
 #include <Inventor/SbRotation.h>
 #include <Inventor/SbViewVolume.h>
@@ -445,7 +446,7 @@ coin_render_shadow_opaque_profile(
         draw.renderLayer != 0 || draw.clearDepthBefore ||
         state.lightModel != CoinRenderLightModel::PHONG ||
         state.screenDoorTransparency > 0.0f || state.hasTexture ||
-        !state.clipPlanesWorld.empty() || state.fogMode != CoinRenderFogMode::NONE ||
+        state.fogMode != CoinRenderFogMode::NONE ||
         state.materialSlot >= frame.materials.size() ||
         state.lightingSlot >= frame.lightingStates.size() ||
         std::any_of(std::begin(state.extraTextures), std::end(state.extraTextures),
@@ -455,6 +456,8 @@ coin_render_shadow_opaque_profile(
       diagnostic = "Opaque shadow profile supports only untextured PHONG triangles in one group";
       return false;
     }
+    float clipEquations[COIN_RENDER_MAX_CLIP_PLANES][4] = {};
+    if (!coin_render_clip_equations(state, clipEquations, diagnostic)) return false;
     const auto & material = frame.materials[state.materialSlot];
     if (material.transparency != 0.0f || material.diffuse[3] != 1.0f) {
       diagnostic = "Opaque shadow profile does not support transparency";
