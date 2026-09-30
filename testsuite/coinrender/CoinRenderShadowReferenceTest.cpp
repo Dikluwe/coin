@@ -112,7 +112,10 @@ int main()
                    captured.shadowLights[0].type == CoinRenderLightType::SPOT &&
                    planned.passes.size() == 1 &&
                    !planned.passes[0].casterDraws.empty() &&
-                   !planned.passes[0].receiverDraws.empty();
+                   !planned.passes[0].receiverDraws.empty() &&
+                   planned.passes[0].visible &&
+                   planned.passes[0].nearDistance > 0.0f &&
+                   planned.passes[0].farDistance > planned.passes[0].nearDistance;
   if (captureOk) {
     for (uint32_t d : planned.passes[0].casterDraws) {
       const auto & state = captured.renderStates[captured.draws[d].renderStateSlot];
@@ -129,6 +132,16 @@ int main()
   target->readbackRGBA(afterRejection);
   const bool preserved = target->getLastSubmissionSerial() == originalSerial &&
                          !published.empty() && published == afterRejection;
+  light->nearDistance = 2.0f;
+  light->farDistance = 12.0f;
+  action.apply(root);
+  const auto & overriddenPasses = action.getPimpl()->lastRejectedShadowPlan.passes;
+  const bool spotRangeCaptured = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+      overriddenPasses.size() == 1 &&
+      overriddenPasses[0].nearDistance == 2.0f &&
+      overriddenPasses[0].farDistance == 12.0f;
+  light->nearDistance = -1.0f;
+  light->farDistance = -1.0f;
   group->isActive = FALSE;
   action.apply(root);
   target->readbackRGBA(afterRecovery);
@@ -149,12 +162,33 @@ int main()
       !directionalFrame.shadowLights[0].enabled &&
       directionalFrame.shadowLights[1].type == CoinRenderLightType::DIRECTIONAL &&
       directionalPlan.passes.size() == 1 &&
-      directionalPlan.passes[0].lightSlot == 1;
+      directionalPlan.passes[0].lightSlot == 1 &&
+      directionalPlan.passes[0].visible;
+  bool directionalProjectionCoversGroup = directionalCaptured;
+  if (directionalProjectionCoversGroup) {
+    const auto & pass = directionalPlan.passes[0];
+    for (const auto & draw : directionalFrame.draws) {
+      const auto & state = directionalFrame.renderStates[draw.renderStateSlot];
+      if (state.shadowGroupSlot != pass.groupSlot) continue;
+      const SbMatrix mvp = state.model * pass.view * pass.projectionCoin;
+      for (uint32_t i = draw.geometry.firstVertex;
+           i < draw.geometry.firstVertex + draw.geometry.vertexCount; ++i) {
+        const auto & vertex = directionalFrame.vertices[i];
+        SbVec3f projected;
+        mvp.multVecMatrix(SbVec3f(vertex.position[0], vertex.position[1],
+                                    vertex.position[2]), projected);
+        for (int axis = 0; axis < 3; ++axis)
+          directionalProjectionCoversGroup = directionalProjectionCoversGroup &&
+              projected[axis] >= -1.02f && projected[axis] <= 1.02f;
+      }
+    }
+  }
   group->removeChild(directionalCapture);
   light->on = TRUE;
   action.setRenderTarget(nullptr);
   delete target;
-  if (!publishedOk || !rejected || !preserved || !recovered || !captureOk || !directionalCaptured) {
+  if (!publishedOk || !rejected || !preserved || !recovered || !captureOk || !spotRangeCaptured || !directionalCaptured ||
+      !directionalProjectionCoversGroup) {
     std::cerr << "CoinRender shadow rejection did not preserve publication or recovery\n";
     root->unref();
     return 1;
