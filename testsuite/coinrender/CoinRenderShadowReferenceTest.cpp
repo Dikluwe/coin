@@ -1622,7 +1622,98 @@ int main()
       directionalPlan.passes.size() == 1 &&
       directionalPlan.passes[0].lightSlot == 1 &&
       directionalPlan.passes[0].visible &&
-      !directionalPlan.passes[0].perFragmentLighting;
+      directionalPlan.passes[0].perFragmentLighting;
+  group->quality = 0.2f;
+  action.apply(root);
+  const auto & lowQualityFrame = action.getPimpl()->lastRejectedShadowFrame;
+  const auto & lowQualityPlan = action.getPimpl()->lastRejectedShadowPlan;
+  std::string lowQualityDiagnostic;
+  bool lowQualityDirectionalQualified = directionalCaptured &&
+    lowQualityPlan.passes.size() == 1 &&
+    !lowQualityPlan.passes[0].perFragmentLighting &&
+    coin_render_shadow_single_directional_opaque_profile(
+      lowQualityFrame, lowQualityPlan, lowQualityDiagnostic);
+  if (lowQualityDirectionalQualified && !lowQualityFrame.draws.empty()) {
+    CoinRenderFramePlan withSpecular = lowQualityFrame;
+    withSpecular.materials[withSpecular.renderStates[
+      withSpecular.draws[0].renderStateSlot].materialSlot].specular[0] = 0.1f;
+    std::string excludedDiagnostic;
+    lowQualityDirectionalQualified = !coin_render_shadow_single_directional_opaque_profile(
+      withSpecular, lowQualityPlan, excludedDiagnostic);
+    CoinRenderFramePlan withSmoothNormal = lowQualityFrame;
+    const auto & geometry = withSmoothNormal.draws[0].geometry;
+    if (geometry.indexCount >= 3) {
+      const uint32_t vertex = withSmoothNormal.indices[geometry.firstIndex + 1];
+      withSmoothNormal.vertices[vertex].normal[0] += 0.1f;
+      lowQualityDirectionalQualified = lowQualityDirectionalQualified &&
+        !coin_render_shadow_single_directional_opaque_profile(
+          withSmoothNormal, lowQualityPlan, excludedDiagnostic);
+    } else lowQualityDirectionalQualified = false;
+  }
+  const bool lowQualityGpuRequested =
+    std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
+    std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU");
+  int lowQualityGpuDelta = 0;
+  if (lowQualityDirectionalQualified && lowQualityGpuRequested) {
+    CoinRenderTarget * lowTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+    CoinRenderAction lowAction(SbViewportRegion(side, side));
+    lowAction.setRenderTarget(lowTarget);
+    lowAction.apply(root);
+    std::vector<unsigned char> gpuShadow, gpuNoReceive;
+    const bool shadowOk = lowAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (shadowOk) lowTarget->readbackRGBA(gpuShadow);
+    groundStyle->style = SoShadowStyle::NO_SHADOWING;
+    lowAction.apply(root);
+    const bool clearOk = lowAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (clearOk) lowTarget->readbackRGBA(gpuNoReceive);
+    groundStyle->style = SoShadowStyle::SHADOWED;
+    lowQualityDirectionalQualified = shadowOk && clearOk &&
+      gpuShadow.size() == gpuNoReceive.size() && !gpuShadow.empty();
+    if (lowQualityDirectionalQualified)
+      for (int y = 20; y < 105; ++y)
+        for (int x = 20; x < 105; ++x)
+          lowQualityGpuDelta = std::max(lowQualityGpuDelta,
+            std::abs(luminanceRgba(gpuNoReceive, x, y) -
+                     luminanceRgba(gpuShadow, x, y)));
+    lowQualityDirectionalQualified = lowQualityDirectionalQualified &&
+      lowQualityGpuDelta > 50;
+    if (!lowQualityDirectionalQualified)
+      std::cerr << "low-quality directional GPU: "
+                << lowAction.getLastError().getString() << " delta="
+                << lowQualityGpuDelta << '\n';
+    lowAction.setRenderTarget(nullptr);
+    delete lowTarget;
+  }
+  if (lowQualityDirectionalQualified && lowQualityGpuRequested &&
+      std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") && SoShadowGroup::isSupported()) {
+    auto * glShadowRoot = static_cast<SoSeparator *>(root->copy(TRUE));
+    glShadowRoot->ref();
+    auto * glLitRoot = static_cast<SoSeparator *>(root->copy(TRUE));
+    glLitRoot->ref();
+    auto * glGroup = static_cast<SoShadowGroup *>(glLitRoot->getChild(1));
+    auto * glGround = static_cast<SoSeparator *>(glGroup->getChild(2));
+    static_cast<SoShadowStyle *>(glGround->getChild(0))->style =
+      SoShadowStyle::NO_SHADOWING;
+    SoOffscreenRenderer lowGl(SbViewportRegion(side, side));
+    lowGl.setComponents(SoOffscreenRenderer::RGB);
+    std::vector<unsigned char> glShadow, glNoReceive;
+    const bool rendered = render(lowGl, glShadowRoot, glShadow) &&
+      render(lowGl, glLitRoot, glNoReceive);
+    int glDelta = 0;
+    if (rendered)
+      for (int y = 20; y < 105; ++y)
+        for (int x = 20; x < 105; ++x)
+          glDelta = std::max(glDelta,
+            std::abs(luminance(glNoReceive, x, y) -
+                     luminance(glShadow, x, y)));
+    lowQualityDirectionalQualified = rendered && glDelta > 50 &&
+      std::abs(glDelta - lowQualityGpuDelta) <= 120;
+    std::cout << "low-quality directional Coin/GL/GPU delta="
+              << glDelta << '/' << lowQualityGpuDelta << '\n';
+    glLitRoot->unref();
+    glShadowRoot->unref();
+  }
+  group->quality = 0.5f;
   bool directionalProjectionCoversGroup = directionalCaptured;
   if (directionalProjectionCoversGroup) {
     const auto & pass = directionalPlan.passes[0];
@@ -2026,6 +2117,7 @@ int main()
       !orderedTwoLight || !twoSpotsOk || !twoDirectionalsOk ||
       !lateLightResolved || !lateSpotProfile || !mixedOrderResolved ||
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||
+      !lowQualityDirectionalQualified ||
       !directionalProjectionCoversGroup || !multipleCameras || !perspectiveFrustum
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
       || !wgpuShadowSubmitted || !wgpuDirectionalSubmitted || !lateSpotSubmitted ||

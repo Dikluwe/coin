@@ -20,8 +20,9 @@ normalmente. O caminho com sombras consulta a viabilidade de mapas RGBA16F na GL
 casters antes da composição dos receivers. `SoShadowStyle` só implementa
 `GLRender`: `NO_SHADOWING`, `CASTS_SHADOW`, `SHADOWED` e ambos controlam
 participação por shape. `SoShadowSpotLight` e `SoShadowDirectionalLight` podem
-fornecer `shadowMapScene` próprio. A política de qualidade muda iluminação
-por fragmento acima de 0,3 para spots e acima de 0,7 para outras luzes.
+fornecer `shadowMapScene` próprio. A política de qualidade muda a iluminação das luzes de mapa (spot e
+shadow directional) para por fragmento acima de 0,3; o limiar 0,7 se aplica
+às demais luzes da cena.
 O lookup VSM usa momentos, `epsilon` e `threshold`; `precision`, raio de
 visibilidade e bounding box alteram resolução/câmera. Esses campos pertencem
 ao contrato Coin, não à interpretação isolada de cada backend.
@@ -228,8 +229,15 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   mediu diferença máxima 496/663 em Coin/GL e nos dois executores (tolerância
   200 nesta cena). Um readback direto do mapa wgpu confirmou branco no lado
   descartado e momentos no lado mantido.
-- [ ] **Transparência e qualidade:** qualificar por modo os casters,
-  receivers e o limiar de iluminação por fragmento.
+- [ ] **Transparência e qualidade:** qualificar por modo os casters e
+  receivers transparentes e os demais perfis de qualidade. O subperfil
+  direcional opaco difuso com normais planas em `quality=0,2` está qualificado
+  nos dois executores; o Core rejeita especular e normais interpoladas.
+  O Coin/GL precisou corrigir a geração do shader para esse perfil: a luz
+  direcional no caminho por vértice era tratada como spot, e a função
+  `DirectionalLight` não era registrada no fragmento para `quality=0,5`.
+  A fixture de qualidade baixa mediu delta máximo de recepção 735 no GL e
+  666 em BGFX e wgpu, com tolerância 120.
 - [x] **Múltiplos alvos offscreen:** dois alvos simultâneos de 128×128 e
   160×160 executam sombra ativa em BGFX e wgpu; intercalar submissões não
   altera os pixels do primeiro alvo e cada serial avança independentemente.

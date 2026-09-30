@@ -322,8 +322,8 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
       pass.epsilon = group.epsilon;
       pass.threshold = group.threshold;
       pass.maxShadowDistance = light.maxShadowDistance;
-      pass.perFragmentLighting = group.quality >
-        (light.type == CoinRenderLightType::SPOT ? 0.3f : 0.7f);
+      // Coin uses perpixelspot for every shadow-map light, including directional.
+      pass.perFragmentLighting = group.quality > 0.3f;
       pass.lightingIndexByState.assign(frame.renderStates.size(), -1);
       pass.resolvedLightByState.resize(frame.renderStates.size());
       for (size_t s = 0; s < frame.renderStates.size(); ++s) {
@@ -429,13 +429,18 @@ coin_render_shadow_opaque_profile(
         frame.shadowLights[pass.lightSlot].groupSlot != pass.groupSlot ||
         !frame.shadowLights[pass.lightSlot].shadowEligible ||
         !pass.visible || pass.casterDraws.empty() || pass.receiverDraws.empty() ||
-        !pass.perFragmentLighting || pass.epsilon < 0.0f ||
+        pass.epsilon < 0.0f ||
         pass.threshold < 0.0f || pass.threshold >= 1.0f ||
         std::any_of(shadows.passes.begin(), shadows.passes.begin() + p,
                     [&](const CoinRenderShadowPass & previous) {
                       return previous.lightSlot == pass.lightSlot;
                     })) {
       diagnostic = "Opaque shadow profile requires visible independent passes with casters and receivers";
+      return false;
+    }
+    if (!pass.perFragmentLighting &&
+        frame.shadowLights[pass.lightSlot].type != CoinRenderLightType::DIRECTIONAL) {
+      diagnostic = "Opaque low-quality shadow profile requires directional lights";
       return false;
     }
   }
@@ -467,6 +472,40 @@ coin_render_shadow_opaque_profile(
     if (material.transparency != 0.0f || material.diffuse[3] != 1.0f) {
       diagnostic = "Opaque shadow profile does not support transparency";
       return false;
+    }
+    // Coin moves shadow-map directional lighting to vertices at quality <= 0.3.
+    // Per-fragment execution is equivalent for flat diffuse triangles.
+    const bool lowQuality = std::any_of(shadows.passes.begin(), shadows.passes.end(),
+      [&](const CoinRenderShadowPass & pass) {
+        return pass.groupSlot == state.shadowGroupSlot && !pass.perFragmentLighting;
+      });
+    if (lowQuality) {
+      if (material.specular[0] != 0.0f || material.specular[1] != 0.0f ||
+          material.specular[2] != 0.0f || draw.geometry.indexCount % 3 != 0) {
+        diagnostic = "Low-quality directional shadows require flat diffuse triangles";
+        return false;
+      }
+      const uint64_t end = uint64_t(draw.geometry.firstIndex) + draw.geometry.indexCount;
+      if (end > frame.indices.size()) {
+        diagnostic = "Low-quality shadow draw has an invalid index range";
+        return false;
+      }
+      for (uint64_t i = draw.geometry.firstIndex; i < end; i += 3) {
+        const uint32_t a = frame.indices[static_cast<size_t>(i)];
+        const uint32_t b = frame.indices[static_cast<size_t>(i + 1)];
+        const uint32_t c = frame.indices[static_cast<size_t>(i + 2)];
+        if (a >= frame.vertices.size() || b >= frame.vertices.size() ||
+            c >= frame.vertices.size()) {
+          diagnostic = "Low-quality shadow draw has an invalid vertex index";
+          return false;
+        }
+        for (int axis = 0; axis < 3; ++axis)
+          if (std::abs(frame.vertices[a].normal[axis] - frame.vertices[b].normal[axis]) > 1e-5f ||
+              std::abs(frame.vertices[a].normal[axis] - frame.vertices[c].normal[axis]) > 1e-5f) {
+            diagnostic = "Low-quality directional shadows require flat normals";
+            return false;
+          }
+      }
     }
     const auto & lights = frame.lightingStates[state.lightingSlot].lights;
     const size_t groupLightCount = static_cast<size_t>(std::count_if(

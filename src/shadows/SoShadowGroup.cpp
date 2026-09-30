@@ -1514,8 +1514,14 @@ SoShadowGroupP::setVertexShader(SoState * state)
     gen.addMainStatement(str);
 
     if (!perpixelspot) {
-      spotlight = TRUE;
-      addSpotLight(gen, cache->lightid);
+      if (cache->light->isOfType(SoDirectionalLight::getClassTypeId())) {
+        dirlight = TRUE;
+        addDirectionalLight(gen, cache->lightid);
+      }
+      else {
+        spotlight = TRUE;
+        addSpotLight(gen, cache->lightid);
+      }
       str.sprintf("spotVertexColor%d = \n"
                   "  ambient.rgb * gl_FrontMaterial.ambient.rgb + "
                   "  diffuse.rgb * gl_Color.rgb + "
@@ -1525,6 +1531,7 @@ SoShadowGroupP::setVertexShader(SoState * state)
   }
 
   if (spotlight) gen.addNamedFunction(SbName("lights/SpotLight"), FALSE);
+  if (dirlight) gen.addNamedFunction(SbName("lights/DirectionalLight"), FALSE);
   int32_t fogType = this->getFog(state);
 
   switch (fogType) {
@@ -1787,9 +1794,11 @@ SoShadowGroupP::setFragmentShader(SoState * state)
         gen.addMainStatement("scolor += specular.rgb * gl_FrontMaterial.specular.rgb;\n");
       }
 
-      if (dirlight) gen.addNamedFunction(SbName("lights/DirectionalLight"), FALSE);
       if (pointlight) gen.addNamedFunction(SbName("lights/PointLight"), FALSE);
     }
+    // Shadow directional lights use this function even when ordinary lights
+    // stay vertex-lit (quality between 0.3 and 0.7).
+    if (dirlight) gen.addNamedFunction(SbName("lights/DirectionalLight"), FALSE);
     if (spotlight) gen.addNamedFunction(SbName("lights/SpotLight"), FALSE);
   }
 
@@ -1805,8 +1814,14 @@ SoShadowGroupP::setFragmentShader(SoState * state)
         }
       }
       SbString str;
-      str.sprintf("dist = length(vec3(gl_LightSource[%d].position) - ecPosition3);\n"
-                  "coord = 0.5 * (shadowCoord%d.xyz / shadowCoord%d.w + vec3(1.0));\n"
+      if (light->isOfType(SoDirectionalLight::getClassTypeId()))
+        str.sprintf("dist = dot(ecPosition3.xyz, lightplane%d.xyz) - lightplane%d.w;\n",
+                    i, i);
+      else
+        str.sprintf("dist = length(vec3(gl_LightSource[%d].position) - ecPosition3);\n",
+                    lights.getLength() + i);
+      gen.addMainStatement(str);
+      str.sprintf("coord = 0.5 * (shadowCoord%d.xyz / shadowCoord%d.w + vec3(1.0));\n"
                   "map = texture2D(shadowMap%d, coord.xy);\n"
 #ifdef USE_NEGATIVE
                   "map = (map + vec4(1.0)) * 0.5;\n"
@@ -1816,7 +1831,7 @@ SoShadowGroupP::setFragmentShader(SoState * state)
 #endif
                   "shadeFactor = (shadowCoord%d.z > -1.0%s ? VsmLookup(map, (dist - nearval%d)/(farval%d-nearval%d), EPSILON, THRESHOLD) : 1.0;\n"
                   "color += shadeFactor * spotVertexColor%d;\n",
-                  lights.getLength()+i, i , i, i, i,insidetest.getString(), i,i,i,i);
+                  i, i, i, i, insidetest.getString(), i, i, i, i);
       gen.addMainStatement(str);
     }
   }
