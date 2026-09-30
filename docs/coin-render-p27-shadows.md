@@ -238,8 +238,10 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   daquele grupo. BGFX e wgpu renderizaram dois grupos separados, com o estilo
   de recepção do segundo alternado: delta máximo 483 no Coin/GL e 588 em
   ambos os executores; os pixels do primeiro grupo permaneceram idênticos.
-  O perfil exige `epsilon` e `threshold` iguais nos grupos, pois a ABI wgpu
-  ainda transporta esses parâmetros uma vez por quadro. Um grupo ativo ao
+  O perfil exige `epsilon` e `threshold` iguais nos grupos. Uma sondagem
+  com `epsilon=0,00002` e `threshold=0,12` no segundo grupo marcou delta
+  396 no Coin/GL e 588 no BGFX; a ABI wgpu atual ainda transporta esses
+  parâmetros uma vez por quadro. Essa combinação segue sem qualificação. Um grupo ativo ao
   lado de outro inativo retorna `UNSUPPORTED` antes da publicação, mantendo
   pixels e serial. A antiga sondagem com chão de 2,2 e um grupo inativo
   (18 no GL, 654 nos executores) continua fora deste perfil.
