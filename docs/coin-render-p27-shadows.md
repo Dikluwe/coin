@@ -80,8 +80,11 @@ src/rendering/coinwgpu/rust_bridge/Cargo.toml --offline --test shadow_map_gpu`.
 O Core agora delimita esse primeiro perfil: um grupo, uma luz spot visível,
 triângulos PHONG opacos sem textura, clipping ou névoa, com a luz antes dos
 desenhos. A fixture opaca entra; transparência e luz posterior ficam fora.
-Faltam o transporte dos casters do plano Coin, o lookup VSM na composição dos
-receivers e a comparação do quadro final à fixture GL.
+O empacotador C++ wgpu já transporta os casters selecionados pelo plano
+comum, preserva seus índices de geometria e calcula as matrizes de clip wgpu;
+o teste de FFI confere projeção e rejeição de índices inválidos. Ainda falta
+expor esse pacote na ABI Rust, executar os casters capturados no encoder,
+aplicar o lookup VSM aos receivers e comparar o quadro final à fixture GL.
 
 ## Trabalho funcional para fechar
 

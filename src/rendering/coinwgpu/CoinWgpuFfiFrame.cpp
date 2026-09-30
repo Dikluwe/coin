@@ -80,6 +80,8 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     return true;
   }
   this->reused = false;
+  CoinWgpuShadowFrame candidateShadow;
+  if (!candidateShadow.prepare(frame, outDiagnostic)) return false;
 
   if (reuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH &&
       frame.revision != 0 && frame.revision != reuse.baseRevision &&
@@ -90,6 +92,7 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     const bool sameOrder = previousDraws.size() == this->draws.size() &&
       (previousDraws.empty() || std::memcmp(previousDraws.data(), this->draws.data(),
         previousDraws.size() * sizeof(CoinWgpuDraw)) == 0);
+    this->shadowFrame = std::move(candidateShadow);
     this->bindView(frame, width, height);
     this->view.camera_base_revision = sameOrder ? reuse.baseRevision : 0;
     this->packedRevision = frame.revision;
@@ -148,6 +151,7 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     this->samplers[i].filter = static_cast<uint32_t>(frame.samplers[i].filter);
   }
 
+  this->shadowFrame = std::move(candidateShadow);
   this->bindView(frame, width, height);
   this->packedRevision = frame.revision;
   this->prepareKind = reuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD
@@ -383,6 +387,12 @@ const CoinWgpuFrameView &
 CoinWgpuFfiFrame::getView() const
 {
   return this->view;
+}
+
+const CoinWgpuShadowFrame &
+CoinWgpuFfiFrame::getShadowFrame() const
+{
+  return this->shadowFrame;
 }
 
 bool

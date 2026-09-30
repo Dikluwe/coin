@@ -7,6 +7,7 @@
 #include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
 
 #include <cstdint>
+#include <cmath>
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <iostream>
 #include <string>
@@ -166,6 +167,64 @@ main()
              "reuse resize must recheck Core budget") ||
       !check(resolved.getView().width == oldWidth, "budget rejection must preserve packed view") ||
       !check(resolved.prepare(sorted, 64, 64, diagnostic), "reuse after rejected resize"))
+    return 1;
+  CoinRenderFramePlan shadow;
+  shadow.revision = 201;
+  shadow.vertices.resize(3);
+  shadow.vertices[0].position[0] = -0.5f;
+  shadow.vertices[0].position[1] = -0.5f;
+  shadow.vertices[1].position[0] = 0.5f;
+  shadow.vertices[1].position[1] = -0.5f;
+  shadow.vertices[2].position[1] = 0.5f;
+  for (auto & vertex : shadow.vertices) vertex.position[2] = -3.0f;
+  shadow.indices = {0, 1, 2};
+  shadow.materials.resize(1);
+  shadow.lightingStates.resize(1);
+  CoinRenderLightSourceSnapshot lit;
+  lit.sourceRevision = 7;
+  lit.type = CoinRenderLightType::SPOT;
+  shadow.lightingStates[0].lights.push_back(lit);
+  shadow.cameras.resize(1);
+  shadow.viewports.resize(1);
+  shadow.renderStates.resize(1);
+  shadow.renderStates[0].shadowGroupSlot = 1;
+  shadow.draws.resize(1);
+  shadow.draws[0].geometry.vertexCount = 3;
+  shadow.draws[0].geometry.indexCount = 3;
+  CoinRenderShadowGroupSnapshot group;
+  group.sourceRevision = 5;
+  shadow.shadowGroups.push_back(group);
+  CoinRenderShadowLightSnapshot spot;
+  spot.groupSlot = 1;
+  spot.sourceRevision = 7;
+  spot.type = CoinRenderLightType::SPOT;
+  spot.enabled = true;
+  spot.shadowEligible = true;
+  shadow.shadowLights.push_back(spot);
+  CoinWgpuFfiFrame shadowPacked;
+  if (!check(shadowPacked.prepare(shadow, 64, 64, diagnostic),
+             "spot caster transport failed") ||
+      !check(shadowPacked.getShadowFrame().mapSize == 1024 &&
+             shadowPacked.getShadowFrame().casters.size() == 1,
+             "spot caster map or count changed") ||
+      !check(shadowPacked.getShadowFrame().casters[0].firstIndex == 0 &&
+             shadowPacked.getShadowFrame().casters[0].indexCount == 3,
+             "spot caster index range changed"))
+    return 1;
+  const auto & caster = shadowPacked.getShadowFrame().casters[0];
+  SbMatrix shadowMvp;
+  shadowMvp.setValue(caster.modelViewProjection);
+  SbVec3f projected;
+  shadowMvp.multVecMatrix(SbVec3f(0, 0, -3), projected);
+  if (!check(std::abs(projected[0]) < 0.01f &&
+             std::abs(projected[1]) < 0.01f &&
+             projected[2] >= 0.0f && projected[2] <= 1.0f,
+             "spot caster did not use WebGPU clip depth"))
+    return 1;
+  shadow.indices[0] = 99;
+  shadow.revision = 202;
+  if (!check(!shadowPacked.prepare(shadow, 64, 64, diagnostic),
+             "out-of-range shadow caster index was accepted"))
     return 1;
   std::cout << "CoinWgpuFfiFrameTest passed\n";
   return 0;

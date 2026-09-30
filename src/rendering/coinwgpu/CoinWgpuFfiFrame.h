@@ -4,6 +4,7 @@
 #include "rendering/coinrender/CoinRenderFramePlan.h"
 #include "rendering/coinrender/CoinRenderFrameReuseCore.h"
 #include "rendering/coinwgpu/CoinWgpuFfi.h"
+#include "rendering/coinwgpu/CoinWgpuShadowFrame.h"
 
 #include <cstdint>
 #include <string>
@@ -19,6 +20,7 @@ public:
                const CoinRenderFrameReuseDecision & reuse,
                std::string & outDiagnostic);
   const CoinWgpuFrameView & getView() const;
+  const CoinWgpuShadowFrame & getShadowFrame() const;
   bool reusedLastPrepare() const;
   CoinRenderFrameReuseKind lastPrepareKind() const;
 
@@ -33,6 +35,7 @@ private:
   bool reused;
   CoinRenderFrameReuseKind prepareKind;
   CoinWgpuFrameView view;
+  CoinWgpuShadowFrame shadowFrame;
   std::vector<CoinWgpuVertex> vertices;
   std::vector<uint32_t> indices;
   std::vector<CoinWgpuDraw> draws;
