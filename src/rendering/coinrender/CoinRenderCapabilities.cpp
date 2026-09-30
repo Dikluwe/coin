@@ -186,7 +186,8 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
       target != COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW &&
       target != COIN_RENDER_EXPERIMENTAL_WAYLAND_WINDOW &&
       target != COIN_RENDER_EXPERIMENTAL_WIN32_WINDOW &&
-      target != COIN_RENDER_EXPERIMENTAL_APPKIT_LAYER) return 1;
+      target != COIN_RENDER_EXPERIMENTAL_APPKIT_LAYER &&
+      target != COIN_RENDER_EXPERIMENTAL_ANDROID_WINDOW) return 1;
 #if !defined(__linux__)
   if (target == COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW ||
       target == COIN_RENDER_EXPERIMENTAL_WAYLAND_WINDOW) return 1;
@@ -197,8 +198,12 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
 #if !defined(__APPLE__)
   if (target == COIN_RENDER_EXPERIMENTAL_APPKIT_LAYER) return 1;
 #endif
+#if !defined(__ANDROID__)
+  if (target == COIN_RENDER_EXPERIMENTAL_ANDROID_WINDOW) return 1;
+#endif
 #if !defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-  if (target == COIN_RENDER_EXPERIMENTAL_WAYLAND_WINDOW ||
+  if (target == COIN_RENDER_EXPERIMENTAL_ANDROID_WINDOW ||
+      target == COIN_RENDER_EXPERIMENTAL_WAYLAND_WINDOW ||
       target == COIN_RENDER_EXPERIMENTAL_WIN32_WINDOW ||
       target == COIN_RENDER_EXPERIMENTAL_APPKIT_LAYER) return 1;
 #endif

@@ -194,6 +194,17 @@ bool renderModes(bool cpu) {
     }
   }
 #endif
+#if !defined(__ANDROID__)
+  {
+    CoinRenderCapabilities androidCaps{};
+    if (!check(coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_ANDROID_WINDOW,
+                 &androidCaps, sizeof(androidCaps)) == 1,
+               "Android window capability target is unavailable on this OS")) {
+      root->unref();
+      return false;
+    }
+  }
+#endif
   for (int invalid = 0; invalid < 3; ++invalid) {
     CoinRenderOptions bad;
     if (invalid == 0)

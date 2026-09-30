@@ -190,6 +190,18 @@ CoinRenderTargetP::initWindow(const CoinRenderNativeSurfaceDescriptor & desc, co
     this->lastError = "AppKit layer requires the macOS Rust bridge";
     return false;
 #endif
+  } else if (desc.type == COIN_RENDER_SURFACE_ANDROID_NDK) {
+#if defined(__ANDROID__) && defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+    if (desc.native.android.nativeWindow == nullptr || desc.native.android.reserved != nullptr) {
+      this->status = CoinRenderTarget::TARGET_ERROR;
+      this->lastError = "Android requires a non-null ANativeWindow and null reserved pointer";
+      return false;
+    }
+#else
+    this->status = CoinRenderTarget::TARGET_ERROR;
+    this->lastError = "Android NDK surface requires the Android Rust bridge";
+    return false;
+#endif
   } else {
     this->status = CoinRenderTarget::TARGET_ERROR;
     this->lastError = "Unknown native surface type in CoinRenderNativeSurfaceDescriptor";

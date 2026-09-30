@@ -138,6 +138,10 @@ CoinWgpuBackend::prepare(CoinRenderTargetP & target)
       } else if (target.nativeDesc.type == COIN_RENDER_SURFACE_APPKIT_LAYER) {
         info.native.handle_a = reinterpret_cast<uintptr_t>(target.nativeDesc.native.appkit.metalLayer);
 #endif
+#if defined(__ANDROID__)
+      } else if (target.nativeDesc.type == COIN_RENDER_SURFACE_ANDROID_NDK) {
+        info.native.handle_a = reinterpret_cast<uintptr_t>(target.nativeDesc.native.android.nativeWindow);
+#endif
 #if defined(_WIN32)
       } else if (target.nativeDesc.type == COIN_RENDER_SURFACE_WIN32) {
         info.native.handle_a = reinterpret_cast<uintptr_t>(target.nativeDesc.native.win32.hinstance);

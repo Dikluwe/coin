@@ -165,6 +165,8 @@ Base de execução: [benchmark e mecanismos existentes](coin-render-window-bench
   coordenadas, apresentação e ciclo de vida próprios.
   [Wayland nativo executado; AppKit/Metal preparado](coin-render-p22-macos-wayland.md).
 - [ ] **P23 — Android:** após desktop, pause/resume e recriação de superfície/recursos.
+  [Rota NDK/wgpu e smoke NativeActivity preparados](coin-render-p23-android.md);
+  build/dispositivo Android ainda não validados.
 
 Fechamento por combinação backend/API/driver/plataforma/alvo. Xvfb ou um dispositivo
 Vulkan não encerram a matriz física nem qualificam outras plataformas.
@@ -190,10 +192,13 @@ limites; documentação e commit de evidência. Registrar implementação, execu
 qualificação separadamente. Rejeição explícita fecha diagnóstico, não suporte
 funcional. Atualizar Pxx e Axx/Fxx associados somente no escopo comprovado.
 
-**Entrega atual: P22 — macOS/Wayland.** Wayland/wgpu Vulkan passou em
-Weston headless, enquanto AppKit/Metal aguarda um host macOS. O
-[registro externo](coin-render-platform-validation-pending.md) concentra essas
-células. **P21 — Windows:** a [rota Win32/wgpu inicial](coin-render-p21-windows.md)
+**Entrega atual: P23 — Android.** A rota NDK/wgpu e o smoke de lifecycle estão
+preparados, mas faltam NDK e dispositivo para qualificação. O
+[registro externo](coin-render-platform-validation-pending.md) reúne essas
+células, junto da validação Windows/Intel que o usuário pode executar em outro
+computador e da célula macOS sem host disponível. **P22 — macOS/Wayland:**
+Wayland/wgpu Vulkan passou em Weston headless; AppKit/Metal aguarda macOS.
+**P21 — Windows:** a [rota Win32/wgpu inicial](coin-render-p21-windows.md)
 ainda precisa de build e execução nativos. P20 segue aberto para Intel, BGFX/OpenGL
 NVIDIA e oráculos visuais. As campanhas
 [P17](coin-render-p17-campaign.md), [P18](coin-render-p18-profiling.md) e

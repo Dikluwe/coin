@@ -1,5 +1,27 @@
 if(COIN_BUILD_RENDER_WINDOW_EXAMPLE)
-  if(WIN32)
+  if(ANDROID)
+    if(NOT COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
+      message(FATAL_ERROR "The P23 Android smoke requires COIN_RENDER_BACKEND=RUST_BRIDGE")
+    endif()
+    if(ANDROID_NDK)
+      set(_coin_android_ndk "${ANDROID_NDK}")
+    else()
+      set(_coin_android_ndk "${CMAKE_ANDROID_NDK}")
+    endif()
+    set(_coin_android_glue "${_coin_android_ndk}/sources/android/native_app_glue")
+    if(NOT EXISTS "${_coin_android_glue}/android_native_app_glue.c")
+      message(FATAL_ERROR "Android NDK native_app_glue is required for the P23 smoke")
+    endif()
+    add_library(coin_render_android_smoke SHARED
+      coin_render_android_smoke.cpp "${_coin_android_glue}/android_native_app_glue.c")
+    target_link_libraries(coin_render_android_smoke PRIVATE CoinRender Coin android log)
+    target_include_directories(coin_render_android_smoke PRIVATE
+      "${_coin_android_glue}"
+      ${PROJECT_SOURCE_DIR}/experimental/include
+      ${PROJECT_SOURCE_DIR}/include
+      ${PROJECT_BINARY_DIR}/include
+      ${COIN_TARGET_INCLUDE_DIRECTORIES})
+  elseif(WIN32)
     if(NOT COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
       message(FATAL_ERROR "The P21 Win32 smoke requires COIN_RENDER_BACKEND=RUST_BRIDGE")
     endif()
@@ -113,6 +135,10 @@ if(COIN_BUILD_LEGACY_GL_RENDERER)
 endif()
 
 if(COIN_INSTALL_RENDER_EXPERIMENTAL)
+    if(TARGET coin_render_android_smoke)
+        install(TARGETS coin_render_android_smoke
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT runtime)
+    endif()
     if(TARGET coin_render_appkit_smoke)
         set_target_properties(coin_render_appkit_smoke PROPERTIES
             INSTALL_RPATH "@loader_path/../${CMAKE_INSTALL_LIBDIR}")
@@ -145,7 +171,7 @@ if(COIN_INSTALL_RENDER_EXPERIMENTAL)
 		install(TARGETS coin_render_gl_benchmark coin_render_freecad_compare
 			RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime)
 	endif()
-	install(FILES coin_render_appkit_smoke.mm coin_render_wayland_smoke.cpp coin_render_win32_smoke.cpp coin_render_window_cone.cpp coin_render_viewer.cpp coin_render_window_benchmark.cpp coin_render_gl_benchmark.cpp
+	install(FILES AndroidManifest-p23.xml coin_render_android_smoke.cpp coin_render_appkit_smoke.mm coin_render_wayland_smoke.cpp coin_render_win32_smoke.cpp coin_render_window_cone.cpp coin_render_viewer.cpp coin_render_window_benchmark.cpp coin_render_gl_benchmark.cpp
 		coin_render_freecad_compare.cpp freecad_export_iv.py
 		DESTINATION ${CMAKE_INSTALL_DOCDIR}/examples/coinrender COMPONENT development)
 endif()

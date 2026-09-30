@@ -9,6 +9,8 @@ use pollster::block_on;
 use raw_window_handle::{RawDisplayHandle, RawWindowHandle, XlibDisplayHandle, XlibWindowHandle};
 #[cfg(target_os = "linux")]
 use raw_window_handle::{WaylandDisplayHandle, WaylandWindowHandle};
+#[cfg(target_os = "android")]
+use raw_window_handle::{AndroidDisplayHandle, AndroidNdkWindowHandle};
 #[cfg(target_os = "windows")]
 use raw_window_handle::{Win32WindowHandle, WindowsDisplayHandle};
 use std::collections::HashMap;
@@ -1248,6 +1250,22 @@ unsafe fn create_surface_from_descriptor(
         #[cfg(not(target_os = "macos"))]
         {
             Err("AppKit layer requires macOS".to_string())
+        }
+    } else if desc.r#type == 5 {
+        #[cfg(target_os = "android")]
+        {
+            let window = std::ptr::NonNull::new(desc.handle_a as *mut std::ffi::c_void)
+                .ok_or_else(|| "ANativeWindow must be non-null".to_string())?;
+            let target = wgpu::SurfaceTargetUnsafe::RawHandle {
+                raw_display_handle: RawDisplayHandle::Android(AndroidDisplayHandle::new()),
+                raw_window_handle: RawWindowHandle::AndroidNdk(AndroidNdkWindowHandle::new(window)),
+            };
+            instance.create_surface_unsafe(target)
+                .map_err(|e| format!("Failed to create Android NDK surface: {}", e))
+        }
+        #[cfg(not(target_os = "android"))]
+        {
+            Err("Android NDK surface requires Android".to_string())
         }
     } else {
         Err("Native surface platform not supported".to_string())

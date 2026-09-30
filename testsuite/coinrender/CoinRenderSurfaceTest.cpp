@@ -183,6 +183,12 @@ int main(int argc, char ** argv) {
     TEST_ASSERT(targetWin->getStatus() == CoinRenderTarget::TARGET_ERROR, "Win32 must be TARGET_ERROR in 1B");
     delete targetWin;
 
+    desc.type = COIN_RENDER_SURFACE_ANDROID_NDK;
+    CoinRenderTarget * targetAndroid = CoinRenderTarget::createWindow(desc, SbVec2i32(100, 100));
+    TEST_ASSERT(targetAndroid->getStatus() == CoinRenderTarget::TARGET_ERROR,
+                "Android must reject a null ANativeWindow");
+    delete targetAndroid;
+
     desc.type = COIN_RENDER_SURFACE_APPKIT_LAYER;
     CoinRenderTarget * targetAppKit = CoinRenderTarget::createWindow(desc, SbVec2i32(100, 100));
     TEST_ASSERT(targetAppKit->getStatus() == CoinRenderTarget::TARGET_ERROR, "AppKit must be TARGET_ERROR in 1B");

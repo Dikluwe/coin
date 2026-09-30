@@ -42,7 +42,8 @@ enum CoinRenderNativeSurfaceType {
   COIN_RENDER_SURFACE_XLIB = 1,
   COIN_RENDER_SURFACE_WAYLAND = 2,
   COIN_RENDER_SURFACE_WIN32 = 3,
-  COIN_RENDER_SURFACE_APPKIT_LAYER = 4
+  COIN_RENDER_SURFACE_APPKIT_LAYER = 4,
+  COIN_RENDER_SURFACE_ANDROID_NDK = 5
 };
 
 /**
@@ -57,6 +58,8 @@ enum CoinRenderNativeSurfaceType {
  * 6. For Win32, hwnd is required and hinstance may be null; the caller keeps HWND alive.
  * 7. For Wayland, display and surface are required; the caller dispatches events.
  * 8. For AppKit, metalLayer is a CAMetalLayer retained by the host on the UI thread.
+ * 9. For Android, nativeWindow is an ANativeWindow; release the target before
+ *    APP_CMD_TERM_WINDOW returns and create a new target for each new window.
  */
 struct CoinRenderNativeSurfaceDescriptor {
   uint32_t abiVersion;
@@ -84,6 +87,11 @@ struct CoinRenderNativeSurfaceDescriptor {
       void * metalLayer;
       void * reserved;
     } appkit;
+
+    struct {
+      void * nativeWindow;
+      void * reserved;
+    } android;
   } native;
 };
 
