@@ -20,6 +20,12 @@ struct CoinRenderShadowPass {
   SbMatrix projectionCoin = SbMatrix::identity();
   float nearDistance = 0.1f;
   float farDistance = 100.0f;
+  float epsilon = 0.00001f;
+  float threshold = 0.1f;
+  bool perFragmentLighting = false;
+  // -1 means the shadow light is discovered after this shape and must be
+  // added by Infra; otherwise it replaces that ordinary light contribution.
+  std::vector<int32_t> lightingIndexByState;
   std::vector<uint32_t> casterDraws;
   std::vector<uint32_t> receiverDraws;
 };
@@ -242,6 +248,23 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
       pass.groupSlot = static_cast<uint32_t>(g + 1);
       pass.lightSlot = static_cast<uint32_t>(l);
       pass.mapSize = mapSize;
+      pass.epsilon = group.epsilon;
+      pass.threshold = group.threshold;
+      pass.perFragmentLighting = group.quality >
+        (light.type == CoinRenderLightType::SPOT ? 0.3f : 0.7f);
+      pass.lightingIndexByState.assign(frame.renderStates.size(), -1);
+      for (size_t s = 0; s < frame.renderStates.size(); ++s) {
+        const auto & state = frame.renderStates[s];
+        if (state.shadowGroupSlot != pass.groupSlot ||
+            state.lightingSlot >= frame.lightingStates.size()) continue;
+        const auto & sources = frame.lightingStates[state.lightingSlot].lights;
+        for (size_t i = 0; i < sources.size(); ++i)
+          if (sources[i].sourceRevision == light.sourceRevision &&
+              sources[i].sourceModel == light.modelViewAtLight) {
+            pass.lightingIndexByState[s] = static_cast<int32_t>(i);
+            break;
+          }
+      }
       for (size_t d = 0; d < frame.draws.size(); ++d) {
         const auto & draw = frame.draws[d];
         if (draw.renderStateSlot >= frame.renderStates.size()) {

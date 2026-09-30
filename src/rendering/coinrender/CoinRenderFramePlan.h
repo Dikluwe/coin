@@ -79,6 +79,8 @@ static const size_t COIN_RENDER_MAX_CLIP_PLANES = 8;
 // Contract: Light direction and position are strictly in View Space (camera space).
 // Backends consume direction/position directly without applying camera viewMatrix again.
 struct CoinRenderLightSourceSnapshot {
+  uint64_t sourceRevision = 0; // Matches a Coin shadow light captured at traversal.
+  SbMatrix sourceModel = SbMatrix::identity(); // Distinguishes reused light nodes.
   CoinRenderLightType type = CoinRenderLightType::DIRECTIONAL;
   float color[3] = {1.0f, 1.0f, 1.0f};
   float intensity = 1.0f;
@@ -114,7 +116,11 @@ struct CoinRenderShadowLightSnapshot {
   bool enabled = false;
   bool shadowEligible = false; // Coin/GL: spot or SoShadowDirectionalLight.
   bool hasCustomScene = false;
+  SbColor color = SbColor(1, 1, 1);
+  float intensity = 1.0f;
+  SbVec3f attenuation = SbVec3f(0, 0, 1);
   SbMatrix model = SbMatrix::identity();
+  SbMatrix modelViewAtLight = SbMatrix::identity();
   SbVec3f position = SbVec3f(0, 0, 0);
   SbVec3f direction = SbVec3f(0, 0, -1);
   float cutOffAngle = 0.785398163f;

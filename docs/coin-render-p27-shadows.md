@@ -28,7 +28,8 @@ ao contrato Coin, não à interpretação isolada de cada backend.
 spot ou luz direcional e `SoShadowGroup`. Sob Mesa llvmpipe/GLX com suporte a
 sombras, testa grupo desligado/ligado, caster e receiver desligados, restauração
 de estilo, e diferença espacial da luz direcional. A amostra spot no plano foi
-`600` (grupo desligado), `126` (sombra), `600` (receiver desligado), `654`
+`600` (grupo desligado), `126` (sombra), `33` (luz após os objetos),
+`600` (receiver desligado), `654`
 (caster desligado), em soma RGB; a região central do cubo variou só `1`. Para
 directional, a maior diferença de estilo foi `666`. O teste usa relações e
 tolerâncias, sem gravar esses valores de um driver como golden universal.
@@ -44,7 +45,8 @@ Sem `COIN_RENDER_REQUIRE_GL_REFERENCE`, o teste exerce a captura e o contrato
 de falha do CoinRender em CPU: após um quadro válido, a mesma cena com grupo ativo retorna
 `UNSUPPORTED`, preserva pixels e serial e aceita um quadro seguinte válido.
 Ele confere grupos, luzes spot/directional, estilos efetivos, listas de
-casters/receivers, projeção direcional cobrindo a geometria e precedência de
+casters/receivers, vínculo da luz com o estado de iluminação (inclusive luz
+posterior aos objetos), projeção direcional cobrindo a geometria e precedência de
 `nearDistance`/`farDistance` para spot no plano comum.
 O teste passou nas builds RECORDING e wgpu; a referência GL passou em Xvfb.
 Isso verifica diagnóstico/publicação e o oráculo; não verifica sombras em GPU.
@@ -60,7 +62,8 @@ Isso verifica diagnóstico/publicação e o oráculo; não verifica sombras em G
 - [x] **Core inicial:** gerar um pass por luz spot/directional habilitada,
   separar desenhos caster/receiver pelos bits de `SoShadowStyle`, dimensionar
   mapa por `precision`, calcular câmeras spot/directional a partir da geometria
-  capturada e limitar a memória planejada.
+  capturada, resolver os parâmetros de VSM/qualidade e o índice da luz em cada
+  estado de desenho, e limitar a memória planejada.
 - [ ] **Core completo:** qualificar a interseção com o frustum principal e
   `maxShadowDistance`, qualidade, transparência, cenas próprias, múltiplas luzes
   e dependências RTT.

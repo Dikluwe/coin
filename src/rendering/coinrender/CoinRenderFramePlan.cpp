@@ -273,6 +273,25 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
       if (outDiagnostic) *outDiagnostic = "Shadow light references an invalid group";
       return false;
     }
+    if (!isFiniteF(light.intensity) || light.intensity < 0.0f ||
+        !isFiniteF(light.cutOffAngle) || !isFiniteF(light.dropOffRate)) {
+      if (outDiagnostic) *outDiagnostic = "Invalid captured shadow light intensity or cone";
+      return false;
+    }
+    bool anyAttenuation = false;
+    for (int c = 0; c < 3; ++c) {
+      if (!isFiniteF(light.color[c]) || !isFiniteF(light.attenuation[c]) ||
+          light.attenuation[c] < 0.0f) {
+        if (outDiagnostic) *outDiagnostic = "Invalid captured shadow light color or attenuation";
+        return false;
+      }
+      anyAttenuation = anyAttenuation || light.attenuation[c] > 0.0f;
+    }
+    if (light.type == CoinRenderLightType::SPOT && light.enabled &&
+        !anyAttenuation) {
+      if (outDiagnostic) *outDiagnostic = "Degenerate captured spot attenuation";
+      return false;
+    }
   }
   for (size_t i = 0; i < this->renderStates.size(); ++i) {
     const CoinRenderRenderStateSnapshot & state = this->renderStates[i];

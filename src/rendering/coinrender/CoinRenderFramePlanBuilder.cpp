@@ -597,6 +597,7 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
       SoLight * l = static_cast<SoLight *>(lights[i]);
       if (l && l->on.getValue()) {
         CoinRenderLightSourceSnapshot src;
+        src.sourceRevision = l->getNodeId();
         const SbVec3f & attenuation =
           static_cast<size_t>(i) < this->lightAttenuationByIndex.size()
             ? this->lightAttenuationByIndex[static_cast<size_t>(i)]
@@ -606,6 +607,7 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
         src.color[0] = c[0]; src.color[1] = c[1]; src.color[2] = c[2];
         src.intensity = l->intensity.getValue();
         SbMatrix lm = SoLightElement::getMatrix(state, i);
+        src.sourceModel = lm;
         if (l->isOfType(SoDirectionalLight::getClassTypeId())) {
           src.type = CoinRenderLightType::DIRECTIONAL;
           SoDirectionalLight * dl = static_cast<SoDirectionalLight *>(l);
@@ -659,7 +661,9 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
       for (size_t k = 0; k < ls.lights.size(); ++k) {
         const CoinRenderLightSourceSnapshot & a = ls.lights[k];
         const CoinRenderLightSourceSnapshot & b = lightSnap.lights[k];
-        if (a.type != b.type || a.intensity != b.intensity ||
+        if (a.sourceRevision != b.sourceRevision ||
+            a.sourceModel != b.sourceModel ||
+            a.type != b.type || a.intensity != b.intensity ||
             a.cutOffAngle != b.cutOffAngle || a.dropOffRate != b.dropOffRate ||
             std::memcmp(a.color, b.color, sizeof(a.color)) != 0 ||
             std::memcmp(a.direction, b.direction, sizeof(a.direction)) != 0 ||

@@ -112,10 +112,13 @@ int main()
   bool captureOk = captured.shadowGroups.size() == 1 &&
                    captured.shadowLights.size() == 1 &&
                    captured.shadowLights[0].type == CoinRenderLightType::SPOT &&
+                   captured.shadowLights[0].intensity == 1.0f &&
+                   captured.shadowLights[0].color == SbColor(1, 1, 1) &&
                    planned.passes.size() == 1 &&
                    !planned.passes[0].casterDraws.empty() &&
                    !planned.passes[0].receiverDraws.empty() &&
                    planned.passes[0].visible &&
+                   planned.passes[0].perFragmentLighting &&
                    planned.passes[0].nearDistance > 0.0f &&
                    planned.passes[0].farDistance > planned.passes[0].nearDistance;
   if (captureOk) {
@@ -136,10 +139,34 @@ int main()
       receiverOnly = receiverOnly || state.shadowStyle == SoShadowStyle::SHADOWED;
     }
     captureOk = captureOk && receiverOnly;
+    for (uint32_t d : planned.passes[0].receiverDraws) {
+      const uint32_t stateSlot = captured.draws[d].renderStateSlot;
+      captureOk = captureOk && planned.passes[0].lightingIndexByState[stateSlot] == 0;
+    }
   }
   target->readbackRGBA(afterRejection);
   const bool preserved = target->getLastSubmissionSerial() == originalSerial &&
                          !published.empty() && published == afterRejection;
+  light->ref();
+  group->removeChild(light);
+  group->addChild(light);
+  light->unref();
+  action.apply(root);
+  const auto & lateLightFrame = action.getPimpl()->lastRejectedShadowFrame;
+  const auto & lateLightPlan = action.getPimpl()->lastRejectedShadowPlan;
+  bool lateLightResolved = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+      lateLightFrame.shadowLights.size() == 1 && lateLightPlan.passes.size() == 1;
+  if (lateLightResolved) {
+    for (uint32_t d : lateLightPlan.passes[0].receiverDraws) {
+      const uint32_t stateSlot = lateLightFrame.draws[d].renderStateSlot;
+      lateLightResolved = lateLightResolved &&
+          lateLightPlan.passes[0].lightingIndexByState[stateSlot] == -1;
+    }
+  }
+  light->ref();
+  group->removeChild(light);
+  group->insertChild(light, 0);
+  light->unref();
   auto * ordinaryDirectional = new SoDirectionalLight;
   auto * ordinaryPoint = new SoPointLight;
   group->addChild(ordinaryDirectional);
@@ -186,7 +213,8 @@ int main()
       directionalFrame.shadowLights[1].type == CoinRenderLightType::DIRECTIONAL &&
       directionalPlan.passes.size() == 1 &&
       directionalPlan.passes[0].lightSlot == 1 &&
-      directionalPlan.passes[0].visible;
+      directionalPlan.passes[0].visible &&
+      !directionalPlan.passes[0].perFragmentLighting;
   bool directionalProjectionCoversGroup = directionalCaptured;
   if (directionalProjectionCoversGroup) {
     const auto & pass = directionalPlan.passes[0];
@@ -210,7 +238,7 @@ int main()
   light->on = TRUE;
   action.setRenderTarget(nullptr);
   delete target;
-  if (!publishedOk || !rejected || !preserved || !recovered || !captureOk || !lightEligibility || !spotRangeCaptured || !directionalCaptured ||
+  if (!publishedOk || !rejected || !preserved || !recovered || !captureOk || !lateLightResolved || !lightEligibility || !spotRangeCaptured || !directionalCaptured ||
       !directionalProjectionCoversGroup) {
     std::cerr << "CoinRender shadow rejection did not preserve publication or recovery\n";
     root->unref();
@@ -233,6 +261,16 @@ int main()
   bool ok = render(gl, root, inactive);
   group->isActive = TRUE;
   ok = ok && render(gl, root, active);
+  light->ref();
+  group->removeChild(light);
+  group->addChild(light);
+  light->unref();
+  std::vector<unsigned char> lateLightActive;
+  ok = ok && render(gl, root, lateLightActive);
+  light->ref();
+  group->removeChild(light);
+  group->insertChild(light, 0);
+  light->unref();
   groundStyle->style = SoShadowStyle::NO_SHADOWING;
   ok = ok && render(gl, root, unshadowed);
   groundStyle->style = SoShadowStyle::SHADOWED;
@@ -257,6 +295,7 @@ int main()
 
   const int clearShadow = luminance(inactive, 50, 50);
   const int castShadow = luminance(active, 50, 50);
+  const int lateLightShadow = luminance(lateLightActive, 50, 50);
   const int noReceive = luminance(unshadowed, 50, 50);
   const int restoredShadow = luminance(activeAgain, 50, 50);
   const int withoutCaster = luminance(noCaster, 50, 50);
@@ -264,6 +303,7 @@ int main()
                                         luminance(active, 64, 64));
   std::cout << "Coin/GL shadow sample inactive=" << clearShadow
             << " active=" << castShadow
+            << " late_light=" << lateLightShadow
             << " no_receive=" << noReceive
             << " restored=" << restoredShadow
             << " no_caster=" << withoutCaster
@@ -274,7 +314,8 @@ int main()
       directionalDifference = std::max(directionalDifference,
         luminance(directionalNoReceive, x, y) - luminance(directionalShadow, x, y));
   std::cout << " directional_style_delta=" << directionalDifference << '\n';
-  if (clearShadow - castShadow < 100 || noReceive - castShadow < 100 ||
+  if (clearShadow - castShadow < 100 || clearShadow - lateLightShadow < 100 ||
+      noReceive - castShadow < 100 ||
       withoutCaster - castShadow < 100 ||
       std::abs(restoredShadow - castShadow) > 30 || centerDifference > 45 ||
       directionalDifference < 100) {

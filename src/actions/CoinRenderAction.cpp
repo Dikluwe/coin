@@ -24,6 +24,7 @@
 #include <Inventor/annex/FXViz/nodes/SoShadowSpotLight.h>
 #include <Inventor/annex/FXViz/nodes/SoShadowDirectionalLight.h>
 #include <Inventor/annex/FXViz/elements/SoShadowStyleElement.h>
+#include <Inventor/elements/SoEnvironmentElement.h>
 #include <Inventor/nodes/SoSpotLight.h>
 #include <Inventor/nodes/SoPointLight.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
@@ -1131,7 +1132,11 @@ CoinRenderActionP::lightPreCB(void * userdata,
   snapshot.groupSlot = p->builder.activeShadowGroupSlot();
   snapshot.sourceRevision = node->getNodeId();
   snapshot.enabled = light->on.getValue() != FALSE;
+  snapshot.color = light->color.getValue();
+  snapshot.intensity = light->intensity.getValue();
+  snapshot.attenuation = SoEnvironmentElement::getLightAttenuation(action->getState());
   snapshot.model = action->getModelMatrix();
+  snapshot.modelViewAtLight = action->getModelMatrix() * action->getViewingMatrix();
   if (node->isOfType(SoSpotLight::getClassTypeId())) {
     const auto * spot = static_cast<const SoSpotLight *>(node);
     snapshot.type = CoinRenderLightType::SPOT;
