@@ -379,8 +379,11 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
         if (state.shadowGroupSlot != pass.groupSlot) continue;
         if (light.hasCustomScene && draw.sourceNodeId == light.customSceneNodeId) {
           ++customSceneDraws;
-          if (state.model != SbMatrix::identity() || (state.shadowStyle & 1u) == 0) {
-            diagnostic = "Direct shadowMapScene shape requires identity model and casting style";
+          if (state.model != SbMatrix::identity() || (state.shadowStyle & 1u) == 0 ||
+              !state.clipPlanesWorld.empty() ||
+              state.cullMode != CoinRenderCullMode::NONE ||
+              state.frontFace != CoinRenderFrontFace::CCW) {
+            diagnostic = "Direct shadowMapScene shape requires isolated default caster state";
             return false;
           }
         }
