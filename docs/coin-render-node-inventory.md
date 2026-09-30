@@ -55,9 +55,8 @@ uma adaptação explícita no host. Não deve ser reinterpretada em CoinBgfx e C
 - **SoText2:** `src/shapenodes/SoText2.cpp`, generatePrimitives, é vazio por projeto;
   texto GL é rasterizado por outro caminho. O ensaio confirma SUCCESS sem draws.
 - **SoShaderProgram/SoFragmentShader:** o GL instala/executa um programa próprio;
-  o plano CoinRender não captura esse programa. O ensaio confirma aceitação de
-  geometria com um shader ativo no grafo, sem contrato de shader. Isso é lacuna
-  de diagnóstico/suporte, não autorização de ignorá-lo em cenas reais.
+  o plano CoinRender não captura esse programa. P25 passou a rejeitar programas
+  ativos antes da publicação; o contrato de shader portátil segue aberto.
 - **Nós GL-only:** o ensaio sintético SoNode prova que a action pode aceitar um nó
   sem executar GLRender nem emitir draws. Não existe introspecção geral segura
   de overrides C++ para rejeitar automaticamente toda subclasse; declarar
@@ -206,8 +205,9 @@ sem certificar uma workbench inteira pela presença de triângulos básicos.
 - [ ] Qualificação visual/interativa FreeCAD de cada caso: P16.
 
 [CoinRenderNodeInventoryTest](../testsuite/coinrender/CoinRenderNodeInventoryTest.cpp)
-é caracterização dos bloqueios atuais; SUCCESS nos casos negativos não significa
-suporte. Usa um conector testemunha para observar o plano e não inicializa GPU.
+é caracterização dos bloqueios atuais; SUCCESS nos casos ainda omitidos não
+significa suporte. P25 acrescentou rejeição explícita para programa ativo,
+textura 3D, cube map e ShadowGroup ativo, sem submissão. Usa um conector testemunha para observar o plano e não inicializa GPU.
 [test_node_inventory.py](../testsuite/coinrender/test_node_inventory.py) testa o
 inventário em fontes sintéticas, sem depender de FreeCAD instalado no CI.
 Não houve alteração de renderização em produção nem edição das fontes FreeCAD.

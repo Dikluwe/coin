@@ -14,6 +14,9 @@
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoShaderProgram.h>
 #include <Inventor/nodes/SoFragmentShader.h>
+#include <Inventor/nodes/SoTexture3.h>
+#include <Inventor/nodes/SoTextureCubeMap.h>
+#include <Inventor/annex/FXViz/nodes/SoShadowGroup.h>
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include <iostream>
 #include <memory>
@@ -135,14 +138,48 @@ int main() {
   shader->sourceProgram = "void main() { gl_FragColor = vec4(1.0,0.0,0.0,1.0); }";
   program->shaderObject.set1Value(0, shader);
   root->addChild(program);
-  ok &= check(
-      capture(new SoCube) && !witness.frame.draws.empty(),
-      "shader node currently produces SUCCESS for ordinary geometry without a shader contract");
+  const unsigned beforeShader = witness.submits;
+  ok &= check(!capture(new SoCube) &&
+              action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+              witness.submits == beforeShader &&
+              action.getLastError().find("SoShaderProgram") >= 0,
+              "active shader must fail before publication");
+  root->removeChild(program);
+  const unsigned beforeEffects = witness.submits;
+  auto* volume = new SoTexture3;
+  const unsigned char whiteVolume[8] = {255,255,255,255,255,255,255,255};
+  volume->images.setValue(SbVec3s(2, 2, 2), 1, whiteVolume);
+  ok &= check(!capture(volume) &&
+              action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+              witness.submits == beforeEffects &&
+              action.getLastError().find("SoTexture3") >= 0,
+              "3D texture must fail before publication");
+  auto* cubeMap = new SoTextureCubeMap;
+  const unsigned char whiteFace[4] = {255,255,255,255};
+  cubeMap->imagePosX.setValue(SbVec2s(2, 2), 1, whiteFace);
+  ok &= check(!capture(cubeMap) &&
+              action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+              witness.submits == beforeEffects &&
+              action.getLastError().find("SoTextureCubeMap") >= 0,
+              "cube texture must fail before publication");
+  auto* shadows = new SoShadowGroup;
+  shadows->ref();
+  shadows->addChild(new SoCube);
+  ok &= check(!capture(shadows) &&
+              action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+              witness.submits == beforeEffects &&
+              action.getLastError().find("SoShadowGroup") >= 0,
+              "active shadow group must fail before publication");
+  shadows->isActive = FALSE;
+  ok &= check(capture(shadows) && witness.submits == beforeEffects + 1 &&
+              !witness.frame.draws.empty(),
+              "inactive shadow group must preserve ordinary child traversal");
+  shadows->unref();
   action.setRenderTarget(nullptr);
   root->unref();
   if (!ok)
     return 1;
-  std::cout << "P15: GL-only/Text2 omission, SoImage texture gap, shader gap and subclass "
+  std::cout << "P15/P25: GL-only/Text2 omission, SoImage texture gap, effect gates and subclass "
                "callbacks characterized\n";
   return 0;
 }

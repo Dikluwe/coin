@@ -65,6 +65,7 @@ public:
 
   static SoCallbackAction::Response textureUnitsPreCB(void *, SoCallbackAction *, const SoNode *);
   static SoCallbackAction::Response textureCombinePreCB(void *, SoCallbackAction *, const SoNode *);
+  static SoCallbackAction::Response unsupportedEffectPreCB(void *, SoCallbackAction *, const SoNode *);
 
   static SoCallbackAction::Response sceneTexturePreCB(void * userdata,
                                                       SoCallbackAction * action,

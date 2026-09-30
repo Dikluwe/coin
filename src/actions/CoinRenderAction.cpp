@@ -15,6 +15,10 @@
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include <Inventor/nodes/SoSceneTexture2.h>
 #include <Inventor/nodes/SoTextureCombine.h>
+#include <Inventor/nodes/SoTexture3.h>
+#include <Inventor/nodes/SoTextureCubeMap.h>
+#include <Inventor/nodes/SoShaderProgram.h>
+#include <Inventor/annex/FXViz/nodes/SoShadowGroup.h>
 #include <Inventor/elements/SoTextureCombineElement.h>
 #include <Inventor/nodes/SoVertexProperty.h>
 #include <Inventor/nodes/SoCamera.h>
@@ -790,6 +794,51 @@ CoinRenderActionP::textureCombinePreCB(void * userdata, SoCallbackAction* action
   return SoCallbackAction::CONTINUE;
 }
 
+SoCallbackAction::Response
+CoinRenderActionP::unsupportedEffectPreCB(void * userdata, SoCallbackAction *, const SoNode * node)
+{
+  const char * diagnostic = nullptr;
+  if (node->isOfType(SoTexture3::getClassTypeId())) {
+    const auto * texture = static_cast<const SoTexture3 *>(node);
+    SbVec3s size;
+    int components = 0;
+    texture->images.getValue(size, components);
+    if (size == SbVec3s(0, 0, 0) &&
+        (texture->filenames.getNum() == 0 || texture->filenames[0].getLength() == 0))
+      return SoCallbackAction::CONTINUE;
+    diagnostic = "SoTexture3 requires a 3D texture contract and executor";
+  } else if (node->isOfType(SoTextureCubeMap::getClassTypeId())) {
+    const auto * texture = static_cast<const SoTextureCubeMap *>(node);
+    const SoSFImage * faces[] = {&texture->imagePosX, &texture->imageNegX,
+      &texture->imagePosY, &texture->imageNegY, &texture->imagePosZ, &texture->imageNegZ};
+    bool hasFace = false;
+    for (const SoSFImage * face : faces) {
+      SbVec2s size;
+      int components = 0;
+      face->getValue(size, components);
+      hasFace = hasFace || size != SbVec2s(0, 0);
+    }
+    if (!hasFace && (texture->filenames.getNum() == 0 ||
+                     texture->filenames[0].getLength() == 0))
+      return SoCallbackAction::CONTINUE;
+    diagnostic = "SoTextureCubeMap requires a cube texture contract and executor";
+  } else if (node->isOfType(SoShadowGroup::getClassTypeId())) {
+    if (!static_cast<const SoShadowGroup *>(node)->isActive.getValue())
+      return SoCallbackAction::CONTINUE;
+    diagnostic = "Active SoShadowGroup requires shadow-map passes";
+  } else if (node->isOfType(SoShaderProgram::getClassTypeId())) {
+    if (static_cast<const SoShaderProgram *>(node)->shaderObject.getNum() == 0)
+      return SoCallbackAction::CONTINUE;
+    diagnostic = "SoShaderProgram has no portable shader contract";
+  }
+  if (!diagnostic) return SoCallbackAction::CONTINUE;
+  auto * p = static_cast<CoinRenderActionP *>(userdata);
+  p->setDiagnostic(CoinRenderDiagnosticShell::action(
+    CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+    SbString(diagnostic)));
+  return SoCallbackAction::ABORT;
+}
+
 void
 CoinRenderActionP::initCallbacks()
 {
@@ -800,6 +849,10 @@ CoinRenderActionP::initCallbacks()
   this->master->addPreCallback(SoShape::getClassTypeId(), textureUnitsPreCB, this);
   this->master->addPreCallback(SoLight::getClassTypeId(), lightPreCB, this);
   this->master->addPreCallback(SoTextureCombine::getClassTypeId(), textureCombinePreCB, this);
+  this->master->addPreCallback(SoTexture3::getClassTypeId(), unsupportedEffectPreCB, this);
+  this->master->addPreCallback(SoTextureCubeMap::getClassTypeId(), unsupportedEffectPreCB, this);
+  this->master->addPreCallback(SoShadowGroup::getClassTypeId(), unsupportedEffectPreCB, this);
+  this->master->addPreCallback(SoShaderProgram::getClassTypeId(), unsupportedEffectPreCB, this);
   this->master->addPreCallback(SoDepthBuffer::getClassTypeId(), depthBufferPreCB, this);
   this->master->addPreCallback(SoAnnotation::getClassTypeId(), annotationPreCB, this);
   this->master->addPostCallback(SoAnnotation::getClassTypeId(), annotationPostCB, this);

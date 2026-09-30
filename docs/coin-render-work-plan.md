@@ -175,9 +175,13 @@ Vulkan não encerram a matriz física nem qualificam outras plataformas.
 
 - [ ] **P24 — Qualidade (F21):** MSAA/multipass configurável e linear/sRGB/HDR.
 - [ ] **P25 — Efeitos (F20):** sombras, SSAO e texturas 3D/cube maps;
-  compatibilidade Coin separada das extensões novas.
+  compatibilidade Coin separada das extensões novas. A
+  [checagem de efeitos](coin-render-p25-effects.md) rejeita cenas ativas ainda
+  sem executor antes de publicar; os efeitos funcionais seguem abertos.
 - [ ] **P26 — Execução avançada:** compute/culling/preparação de geometria,
   indirect/instancing; ray tracing por último, como extensão explícita.
+  [Contrato e critérios](coin-render-p26-advanced-execution.md); nenhum
+  mecanismo novo qualificado.
 
 Dependem de capacidades, ownership e medições; não devem adiar os bloqueios básicos.
 
