@@ -62,8 +62,8 @@ opaca no wgpu e compara seu readback ao GL.
   fixture Coin/GL. Inclui resize, erro de recurso e preservação da publicação.
 - [ ] **P27.2 — wgpu direcional e múltiplas luzes:** câmera direcional com
   interseção do frustum e `maxShadowDistance` no perfil de câmera única já
-  executam; mapa por luz, soma de múltiplas contribuições e demais câmeras
-  ainda precisam de qualificação GL.
+  executam. O Core qualifica dois passes spot/direcional; dois mapas e soma
+  das contribuições no wgpu ainda não executam.
 - [ ] **P27.3 — BGFX:** executar o mesmo plano comum e as mesmas fixtures
   opacas no BGFX, com shader e recursos próprios, sem reinterpretar o Coin.
 - [ ] **P27.4 — contrato ampliado:** cenas próprias por luz, transparência,
@@ -135,6 +135,16 @@ Action só admite esses perfis opacos de uma luz em alvo wgpu offscreen síncron
 sem RTT; BGFX, janela, async, transparência e cenas próprias por luz seguem
 com `UNSUPPORTED` antes da submissão.
 
+O próximo perfil foi caracterizado sem abrir a submissão wgpu: uma spot e uma
+direcional antes dos desenhos, ambas com qualidade 1, geram dois passes
+independentes no Core, vinculados aos índices 0 e 1 da iluminação capturada.
+A mesma cena no Coin/GL mudou até `402` na soma RGB quando a direcional foi
+retirada. O Core rejeita um índice cujo `sourceRevision` não corresponde à
+luz do pass. A Action wgpu ainda retorna `UNSUPPORTED` antes da submissão e
+preserva pixels e serial do quadro anterior. Para executar esse perfil faltam
+dois mapas no mesmo quadro e a soma das duas contribuições sombreadas no shader;
+o perfil comum não autoriza aproximação com uma luz sem sombra.
+
 ## Trabalho funcional para fechar
 
 - [x] **Wiring inicial:** capturar grupo ativo, campos, `SoShadowStyle`, luzes
@@ -148,7 +158,8 @@ com `UNSUPPORTED` antes da submissão.
   mapa por `precision`, calcular câmeras spot/directional a partir da geometria
   capturada, resolver os parâmetros de VSM/qualidade e o índice da luz em cada
   estado de desenho, resolver a contribuição dessa luz no espaço de vista
-  inclusive quando ela aparece após a geometria, e limitar a memória planejada.
+  inclusive quando ela aparece após a geometria, validar dois passes opacos
+  spot/direcional e limitar a memória planejada.
 - [ ] **Core completo:** ampliar interseção com o frustum e
   `maxShadowDistance` além da câmera única qualificada, qualidade,
   transparência, cenas próprias, múltiplas luzes e dependências RTT.

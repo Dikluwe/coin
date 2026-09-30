@@ -293,6 +293,92 @@ int main()
                   source.direction[2] < 0.0f;
     }
   }
+  // Qualify the common two-pass Coin contract; wgpu remains fail-closed until
+  // it can publish both shadow maps in one frame.
+  auto * secondShadowLight = new SoShadowDirectionalLight;
+  secondShadowLight->direction.setValue(-0.4f, -0.4f, -1.0f);
+  secondShadowLight->intensity = 0.6f;
+  group->insertChild(secondShadowLight, 1);
+  const float previousQuality = group->quality.getValue();
+  group->quality = 1.0f;
+  action.apply(root);
+  const auto & twoLightFrame = action.getPimpl()->lastRejectedShadowFrame;
+  const auto & twoLightPlan = action.getPimpl()->lastRejectedShadowPlan;
+  std::string twoLightDiagnostic;
+  bool twoLightCaptured = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+    coin_render_shadow_spot_directional_opaque_profile(
+      twoLightFrame, twoLightPlan, twoLightDiagnostic) &&
+    !coin_render_shadow_single_spot_opaque_profile(
+      twoLightFrame, twoLightPlan, twoLightDiagnostic);
+  if (twoLightCaptured) {
+    for (const auto & draw : twoLightFrame.draws) {
+      const uint32_t slot = draw.renderStateSlot;
+      twoLightCaptured = twoLightCaptured &&
+        twoLightPlan.passes[0].lightingIndexByState[slot] == 0 &&
+        twoLightPlan.passes[1].lightingIndexByState[slot] == 1;
+    }
+    CoinRenderFramePlan mismatched = twoLightFrame;
+    const uint32_t lightingSlot = mismatched.renderStates[
+      mismatched.draws[0].renderStateSlot].lightingSlot;
+    if (lightingSlot < mismatched.lightingStates.size() &&
+        mismatched.lightingStates[lightingSlot].lights.size() == 2) {
+      mismatched.lightingStates[lightingSlot].lights[1].sourceRevision ^= 1;
+      std::string mismatchDiagnostic;
+      twoLightCaptured = twoLightCaptured &&
+        !coin_render_shadow_spot_directional_opaque_profile(
+          mismatched, twoLightPlan, mismatchDiagnostic);
+    } else twoLightCaptured = false;
+  }
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+  bool twoLightRejectedOnGpu = true;
+  if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) {
+    CoinRenderTarget * dualTarget = CoinRenderTarget::createOffscreen(
+      SbVec2i32(side, side));
+    CoinRenderAction dualAction(SbViewportRegion(side, side));
+    dualAction.setRenderTarget(dualTarget);
+    group->isActive = FALSE;
+    dualAction.apply(root);
+    std::vector<unsigned char> beforeDual, afterDual;
+    if (dualAction.getLastStatus() == CoinRenderAction::SUCCESS)
+      dualTarget->readbackRGBA(beforeDual);
+    const uint64_t dualSerial = dualTarget->getLastSubmissionSerial();
+    group->isActive = TRUE;
+    dualAction.apply(root);
+    dualTarget->readbackRGBA(afterDual);
+    twoLightRejectedOnGpu = !beforeDual.empty() &&
+      dualAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+      dualTarget->getLastSubmissionSerial() == dualSerial &&
+      beforeDual == afterDual;
+    dualAction.setRenderTarget(nullptr);
+    delete dualTarget;
+  }
+#endif
+  int twoLightGlDifference = 0;
+  if (std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") && SoShadowGroup::isSupported()) {
+    auto * dualRoot = static_cast<SoSeparator *>(root->copy(TRUE));
+    dualRoot->ref();
+    auto * singleRoot = static_cast<SoSeparator *>(dualRoot->copy(TRUE));
+    singleRoot->ref();
+    auto * singleGroup = static_cast<SoShadowGroup *>(singleRoot->getChild(1));
+    singleGroup->removeChild(1);
+    SoOffscreenRenderer dualGl(SbViewportRegion(side, side));
+    dualGl.setComponents(SoOffscreenRenderer::RGB);
+    std::vector<unsigned char> dualPixels, singlePixels;
+    const bool dualRendered = render(dualGl, dualRoot, dualPixels) &&
+                              render(dualGl, singleRoot, singlePixels);
+    if (dualRendered)
+      for (int y = 20; y < 105; ++y)
+        for (int x = 20; x < 105; ++x)
+          twoLightGlDifference = std::max(twoLightGlDifference,
+            std::abs(luminance(dualPixels, x, y) -
+                     luminance(singlePixels, x, y)));
+    singleRoot->unref();
+    dualRoot->unref();
+    twoLightCaptured = twoLightCaptured && dualRendered && twoLightGlDifference > 100;
+    std::cout << "Coin/GL two-light contribution delta=" << twoLightGlDifference << '\n';
+  }
+  group->removeChild(secondShadowLight);
+  group->quality = previousQuality;
   target->readbackRGBA(afterRejection);
   const bool preserved = target->getLastSubmissionSerial() == originalSerial &&
                          !published.empty() && published == afterRejection;
@@ -630,16 +716,18 @@ int main()
   action.setRenderTarget(nullptr);
   delete target;
   if (!publishedOk || !rejected || !preserved || !recovered || !captureOk ||
-      !spotProfile || !transparentExcludedFromFirstProfile ||
+      !spotProfile || !transparentExcludedFromFirstProfile || !twoLightCaptured ||
       !lateLightResolved || !lateSpotProfile || !mixedOrderResolved ||
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||
       !directionalProjectionCoversGroup
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
-      || !wgpuShadowSubmitted || !wgpuDirectionalSubmitted || !lateSpotSubmitted
+      || !wgpuShadowSubmitted || !wgpuDirectionalSubmitted || !lateSpotSubmitted ||
+      !twoLightRejectedOnGpu
 #endif
       ) {
     std::cerr << "CoinRender shadow rejection did not preserve publication or recovery"
               << " profile=" << spotProfile << " (" << spotProfileDiagnostic << ")"
+              << " two_light=" << twoLightCaptured << " (" << twoLightDiagnostic << ")"
               << " late_profile=" << lateSpotProfile
               << " (" << lateProfileDiagnostic << ")\n";
     root->unref();
