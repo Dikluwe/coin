@@ -21,7 +21,7 @@ mod composition;
 mod peeling;
 mod shadow;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 32;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 33;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
@@ -31,6 +31,7 @@ const _: () = {
     assert!(std::mem::offset_of!(CoinWgpuFrameView, shadow_receivers) == 216);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, shadow_casters) == 176);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, shadow_map_size) == 192);
+    assert!(std::mem::offset_of!(CoinWgpuFrameView, shadow_kind) == 212);
     assert!(std::mem::size_of::<CoinWgpuSurfaceCreateInfo>() == 56);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, sorted_layers_passes) == 160);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, transparency_reserved) == 164);
@@ -401,6 +402,7 @@ pub struct CoinWgpuFrameView {
     pub shadow_far_distance: f32,
     pub shadow_epsilon: f32,
     pub shadow_threshold: f32,
+    pub shadow_kind: u32,
     pub shadow_receivers: *const CoinWgpuShadowReceiver,
     pub shadow_receiver_count: u64,
 }
@@ -2216,6 +2218,7 @@ struct ShadowFrame<'a> {
     far: f32,
     epsilon: f32,
     threshold: f32,
+    kind: u32,
 }
 
 // Pure shared command encoder function strictly common to offscreen and window targets
@@ -2783,7 +2786,7 @@ fn encode_frame(
                 "Injected shadow-map attachment allocation failure".into()));
         }
         Some(shadow::encode_moments(&ctx.device, &mut encoder, vertices_slice,
-            indices_slice, shadow.casters, shadow.map_size, shadow.near, shadow.far)
+            indices_slice, shadow.casters, shadow.map_size, shadow.near, shadow.far, shadow.kind)
             .map_err(|msg| (CoinWgpuStatus::InvalidArgument, msg))?)
     } else { None };
 
@@ -3216,7 +3219,7 @@ fn encode_frame(
                         |(r, shadow)| [r.receives as f32, shadow.near,
                             shadow.far, shadow.epsilon]),
                     shadow_meta: receiver.map_or([0.0; 4], |(r, shadow)|
-                        [shadow.threshold, r.lighting_index as f32, 0.0, 0.0]),
+                        [shadow.threshold, r.lighting_index as f32, shadow.kind as f32, 0.0]),
                 };
 
                 if layers.iter().any(|t| t.enabled != 0)
@@ -4031,7 +4034,7 @@ fn coin_wgpu_surface_submit_internal(
                 "Shadow caster transport is present, but the wgpu VSM encoder is not connected");
             return CoinWgpuStatus::Unsupported;
         }
-        if !f.shadow_casters.is_null() || f.shadow_map_size != 0 ||
+        if !f.shadow_casters.is_null() || f.shadow_map_size != 0 || f.shadow_kind != 0 ||
             !f.shadow_receivers.is_null() || f.shadow_receiver_count != 0 {
             set_error(error_buf, error_buf_len,
                 "Shadow payload has data without casters");
@@ -4980,7 +4983,7 @@ fn coin_wgpu_submit_internal(
         // Shadow payload is optional, but a partial payload is never accepted.
         // Keep it out of the camera patch until state/geometry matching is qualified.
         let shadow_frame = if f.shadow_caster_count == 0 {
-            if !f.shadow_casters.is_null() || f.shadow_map_size != 0
+            if !f.shadow_casters.is_null() || f.shadow_map_size != 0 || f.shadow_kind != 0
                 || !f.shadow_receivers.is_null() || f.shadow_receiver_count != 0 {
                 set_error(error_buf, error_buf_len, "Shadow payload has data without casters");
                 return CoinWgpuStatus::InvalidArgument;
@@ -4989,6 +4992,7 @@ fn coin_wgpu_submit_internal(
         } else {
             if owned_patch.is_some() || f.camera_base_revision != 0
                 || f.shadow_receiver_count != states_slice.len() as u64
+                || f.shadow_kind > 1
                 || !f.shadow_map_size.is_power_of_two() || f.shadow_map_size > 2048
                 || !f.shadow_near_distance.is_finite()
                 || !f.shadow_far_distance.is_finite()
@@ -5010,7 +5014,7 @@ fn coin_wgpu_submit_internal(
             Some(ShadowFrame {
                 casters, receivers, map_size: f.shadow_map_size,
                 near: f.shadow_near_distance, far: f.shadow_far_distance,
-                epsilon: f.shadow_epsilon, threshold: f.shadow_threshold,
+                epsilon: f.shadow_epsilon, threshold: f.shadow_threshold, kind: f.shadow_kind,
             })
         };
 

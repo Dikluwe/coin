@@ -36,7 +36,7 @@ struct Uniforms {
     shadow_model_view_projection: mat4x4<f32>,
     shadow_model_view: mat4x4<f32>,
     shadow_params: vec4<f32>, // x=receives, y=near, z=far, w=epsilon
-    shadow_meta: vec4<f32>, // x=threshold, y=lighting index
+    shadow_meta: vec4<f32>, // x=threshold, y=lighting index, z=kind (0=directional)
 };
 
 struct GpuMaterial {
@@ -175,7 +175,9 @@ fn vsm_shadow_factor(input: VertexOutput) -> f32 {
                       vec2<i32>(0), vec2<i32>(size) - vec2<i32>(1));
     let map = textureLoad(t_shadow, pixel, 0).xy;
     if (map.x >= 0.9999) { return 1.0; }
-    let dist = (length(input.shadow_light_view) - u.shadow_params.y) /
+    let distance = select(-input.shadow_light_view.z,
+        length(input.shadow_light_view), u.shadow_meta.z > 0.5);
+    let dist = (distance - u.shadow_params.y) /
                (u.shadow_params.z - u.shadow_params.y);
     if (dist <= map.x) { return 1.0; }
     let variance = min(max(map.y - map.x * map.x, 0.0) + u.shadow_params.w, 1.0);

@@ -21,6 +21,8 @@ static_assert(offsetof(CoinWgpuFrameView, shadow_receivers) == 216,
               "Shadow receivers ABI offset changed");
 static_assert(offsetof(CoinWgpuFrameView, shadow_casters) == 176,
               "Shadow casters ABI offset changed");
+static_assert(offsetof(CoinWgpuFrameView, shadow_kind) == 212,
+              "Shadow kind ABI offset changed");
 static_assert(offsetof(CoinWgpuFrameView, shadow_map_size) == 192,
               "Shadow map ABI offset changed");
 static_assert(offsetof(CoinWgpuFrameView, sorted_layers_passes) == 160,
@@ -394,6 +396,7 @@ CoinWgpuFfiFrame::bindView(const CoinRenderFramePlan & frame, uint32_t width, ui
   this->view.shadow_caster_count =
     static_cast<uint64_t>(this->shadowFrame.casters.size());
   this->view.shadow_map_size = this->shadowFrame.mapSize;
+  this->view.shadow_kind = this->shadowFrame.kind;
   this->view.shadow_near_distance = this->shadowFrame.nearDistance;
   this->view.shadow_far_distance = this->shadowFrame.farDistance;
   if (!frame.shadowGroups.empty()) {

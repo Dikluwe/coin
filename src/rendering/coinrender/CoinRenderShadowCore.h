@@ -207,7 +207,7 @@ coin_render_shadow_camera(const CoinRenderShadowGroupSnapshot & group,
 }
 
 // Pure Core planning over immutable captures. Resources and GPU passes belong
-// to CoinBgfx/CoinWgpu. The current executors deliberately reject this plan.
+// to CoinBgfx/CoinWgpu; only explicitly qualified profiles execute.
 inline bool
 coin_render_plan_shadows(const CoinRenderFramePlan & frame,
                          CoinRenderShadowPlan & output, std::string & diagnostic)
@@ -332,26 +332,26 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
   return true;
 }
 
-// Narrow, explicit first execution profile. This is a Core decision over
-// captured Coin state; neither GPU backend may broaden it implicitly.
+// Narrow, explicit single-light execution profile. This is a Core decision
+// over captured Coin state; neither GPU backend may broaden it implicitly.
 inline bool
-coin_render_shadow_single_spot_opaque_profile(
+coin_render_shadow_single_opaque_profile(
   const CoinRenderFramePlan & frame, const CoinRenderShadowPlan & shadows,
-  std::string & diagnostic)
+  CoinRenderLightType lightType, std::string & diagnostic)
 {
   if (frame.shadowGroups.size() != 1 || shadows.passes.size() != 1) {
-    diagnostic = "First shadow profile requires exactly one active group and one light";
+    diagnostic = "Single-light shadow profile requires exactly one active group and one pass";
     return false;
   }
   const auto & pass = shadows.passes[0];
   if (pass.lightSlot >= frame.shadowLights.size() ||
-      frame.shadowLights[pass.lightSlot].type != CoinRenderLightType::SPOT ||
+      frame.shadowLights[pass.lightSlot].type != lightType ||
       !pass.visible || pass.casterDraws.empty() || pass.receiverDraws.empty() ||
       !pass.perFragmentLighting ||
       frame.shadowGroups[0].smoothBorder != 0.0f ||
       pass.epsilon < 0.0f || pass.threshold < 0.0f ||
       pass.threshold >= 1.0f) {
-    diagnostic = "First shadow profile requires one visible spot with opaque casters and receivers";
+    diagnostic = "Single-light shadow profile requires a visible light with opaque casters and receivers";
     return false;
   }
   for (const auto & draw : frame.draws) {
@@ -374,23 +374,41 @@ coin_render_shadow_single_spot_opaque_profile(
                     [](const CoinRenderTextureUnitSnapshot & unit) {
                       return unit.enabled;
                     })) {
-      diagnostic = "First shadow profile supports only untextured opaque PHONG triangles in one group";
+      diagnostic = "Single-light shadow profile supports only untextured opaque PHONG triangles in one group";
       return false;
     }
     const auto & material = frame.materials[state.materialSlot];
     if (material.transparency != 0.0f || material.diffuse[3] != 1.0f) {
-      diagnostic = "First shadow profile does not support transparency";
+      diagnostic = "Single-light shadow profile does not support transparency";
       return false;
     }
     const auto & lighting = frame.lightingStates[state.lightingSlot];
     if (lighting.lights.size() != 1 ||
         pass.lightingIndexByState[draw.renderStateSlot] != 0) {
-      diagnostic = "First shadow profile requires the spot before all draws and no other lights";
+      diagnostic = "Single-light shadow profile requires its light before all draws and no other lights";
       return false;
     }
   }
   diagnostic.clear();
   return true;
+}
+
+inline bool
+coin_render_shadow_single_spot_opaque_profile(
+  const CoinRenderFramePlan & frame, const CoinRenderShadowPlan & shadows,
+  std::string & diagnostic)
+{
+  return coin_render_shadow_single_opaque_profile(
+    frame, shadows, CoinRenderLightType::SPOT, diagnostic);
+}
+
+inline bool
+coin_render_shadow_single_directional_opaque_profile(
+  const CoinRenderFramePlan & frame, const CoinRenderShadowPlan & shadows,
+  std::string & diagnostic)
+{
+  return coin_render_shadow_single_opaque_profile(
+    frame, shadows, CoinRenderLightType::DIRECTIONAL, diagnostic);
 }
 
 #endif // COIN_RENDER_SHADOW_CORE_H

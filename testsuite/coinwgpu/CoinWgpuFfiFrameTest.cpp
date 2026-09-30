@@ -218,7 +218,8 @@ main()
       !check(shadowPacked.getView().shadow_casters ==
                shadowPacked.getShadowFrame().casters.data() &&
              shadowPacked.getView().shadow_caster_count == 1 &&
-             shadowPacked.getView().shadow_map_size == 1024,
+             shadowPacked.getView().shadow_map_size == 1024 &&
+             shadowPacked.getView().shadow_kind == 1,
              "spot caster ABI view was not bound") ||
       !check(shadowPacked.getView().shadow_receivers ==
                shadowPacked.getShadowFrame().receivers.data() &&

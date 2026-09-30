@@ -27,6 +27,7 @@ pub(crate) fn encode_moments(
     map_size: u32,
     near: f32,
     far: f32,
+    kind: u32,
 ) -> Result<ShadowMap, String> {
     if casters.is_empty()
         || !map_size.is_power_of_two()
@@ -35,6 +36,7 @@ pub(crate) fn encode_moments(
         || !far.is_finite()
         || near <= 0.0
         || far <= near
+        || kind > 1
     {
         return Err("Invalid wgpu shadow-map dimensions or depth range".into());
     }
@@ -171,7 +173,7 @@ pub(crate) fn encode_moments(
         let uniforms = ShadowUniforms {
             model_view_projection: draw.model_view_projection,
             model_view: draw.model_view,
-            near_far_kind: [near, far, 1.0, 0.0],
+            near_far_kind: [near, far, kind as f32, 0.0],
         };
         let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Coin shadow draw uniform"),
@@ -309,6 +311,7 @@ mod tests {
             64,
             0.1,
             1.1,
+            1,
         )
         .expect("encode captured casters");
         let readback = device.create_buffer(&wgpu::BufferDescriptor {

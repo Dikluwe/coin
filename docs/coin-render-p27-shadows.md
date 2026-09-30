@@ -1,8 +1,8 @@
 # P27 — sombras Coin: perfil spot wgpu implementado
 
 P27 exige executar `SoShadowGroup` ativo com a semântica Coin em BGFX e wgpu.
-A referência GL e a captura comum estão verificadas. O primeiro perfil spot
-opaco executa em wgpu offscreen; os demais perfis e BGFX permanecem bloqueados.
+A referência GL e a captura comum estão verificadas. Os perfis de uma luz spot ou direcional opaca antes dos desenhos executam
+em wgpu offscreen; os demais perfis e BGFX permanecem bloqueados.
 Portanto P27 permanece **aberto**.
 
 ## O que o Coin/GL faz
@@ -76,7 +76,8 @@ P27.1 foi exercitado na GPU AMD Radeon Graphics (RADV RENOIR), Vulkan/radv.
 O Core limita a execução a um grupo, uma luz spot visível, triângulos PHONG
 opacos sem textura, clipping ou névoa, com a luz antes dos desenhos. O
 empacotador C++ transporta casters e receivers escolhidos pelo Core e a ABI
-privada C++/Rust 32 carrega índices, matrizes e parâmetros VSM. O encoder
+privada C++/Rust 33 carrega índices, matrizes, tipo de distância e parâmetros
+VSM. O encoder
 wgpu grava momentos RGBA32F com depth e o shader principal multiplica somente
 a contribuição da luz selecionada pelo resultado do lookup. `SoShadowStyle`
 controla recepção e participação no mapa.
@@ -100,11 +101,19 @@ xvfb-run -a -s '-screen 0 1280x1024x24 +extension GLX' \
   ctest --test-dir <build-wgpu> -R '^CoinRenderShadowReferenceTest$' --output-on-failure
 ```
 
-A Action só admite esse perfil em alvo offscreen wgpu síncrono sem RTT;
-BGFX, janela, async, transparência, luz direcional, múltiplas luzes e cenas
-próprias por luz seguem com `UNSUPPORTED` antes da submissão. A tolerância
-visual é da fixture, não uma promessa de equivalência pixel a pixel em todas
-as GPUs.
+A tolerância visual é da fixture, não uma promessa de equivalência pixel a
+pixel em todas as GPUs.
+
+P27.2 está em andamento. O mesmo perfil opaco de uma luz agora admite luz
+direcional anterior aos desenhos, com distância axial no pass de momentos e no
+lookup VSM. Na fixture Coin capturada com qualidade 1, a diferença espacial
+máxima entre wgpu sem/com sombra foi `666`, igual à diferença de estilo da
+referência GL. A saída direta do backend e a da Action foram idênticas. A luz
+direcional posterior aos desenhos, `maxShadowDistance`, interseção precisa do
+frustum e múltiplas luzes ainda não executam. A Action só admite os dois perfis
+opacos de uma luz em alvo wgpu offscreen síncrono sem RTT; BGFX, janela, async,
+transparência e cenas próprias por luz seguem com `UNSUPPORTED` antes da
+submissão.
 
 ## Trabalho funcional para fechar
 
@@ -128,16 +137,17 @@ as GPUs.
   passes, sincronização, resize e reconstrução após perda, com shader específico
   por API. Mapas da Infra não entram no estado Coin. O shader wgpu que grava
   momentos lineares, spot/directional, e o lookup no shader principal validam
-  em Naga. O perfil spot opaco wgpu funciona no quadro completo; os demais
-  perfis e o executor BGFX continuam pendentes.
+  em Naga. Os perfis opacos de uma luz spot ou direcional anterior aos desenhos
+  funcionam no quadro completo; os demais perfis e o executor BGFX continuam
+  pendentes.
 - [ ] **Shell/capacidades:** seleção explícita de perfil implementado e
   disponível; diagnósticos de limite/formato sem fallback visual implícito.
 - [ ] **Qualificação:** comparar spot/directional, todos os estilos, cenas
   próprias por luz, clipping, alpha/transparência, RTT, resize e falhas nas
   mesmas fixtures Coin/GL. Registrar GPU/API/driver e tolerâncias por célula.
 
-O preflight retorna `UNSUPPORTED` para grupos ativos fora do primeiro perfil
-spot wgpu offscreen, antes de submeter o quadro. Assim os pixels e o serial
-publicados anteriormente continuam intactos. A próxima subetapa é P27.2:
-câmera direcional, distância máxima e múltiplas luzes wgpu, sempre comparadas
-à referência Coin/GL.
+O preflight retorna `UNSUPPORTED` para grupos ativos fora dos perfis opacos
+spot/direcional de uma luz no wgpu offscreen, antes de submeter o quadro. Assim
+os pixels e o serial publicados anteriormente continuam intactos. O restante
+de P27.2 exige luz posterior, distância máxima, interseção do frustum e
+múltiplas luzes wgpu, comparadas à referência Coin/GL.

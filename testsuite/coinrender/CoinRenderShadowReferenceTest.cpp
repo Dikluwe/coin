@@ -389,6 +389,92 @@ int main()
       }
     }
   }
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+  bool wgpuDirectionalSubmitted = true;
+  int wgpuDirectionalDifference = 0;
+  if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) {
+    group->quality = 1.0f; // Coin's directional per-fragment profile.
+    action.apply(root);
+    std::string lateDirectionalDiagnostic;
+    const bool lateDirectionalExcluded =
+      action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+      !coin_render_shadow_single_directional_opaque_profile(
+        action.getPimpl()->lastRejectedShadowFrame,
+        action.getPimpl()->lastRejectedShadowPlan, lateDirectionalDiagnostic);
+    wgpuDirectionalSubmitted = wgpuDirectionalSubmitted && lateDirectionalExcluded;
+    directionalCapture->ref();
+    group->removeChild(directionalCapture);
+    group->insertChild(directionalCapture, 1); // Light before both shapes.
+    directionalCapture->unref();
+    action.apply(root); // CPU target keeps the captured plan for direct comparison.
+    const CoinRenderFramePlan & directionalGpuFrame =
+      action.getPimpl()->lastRejectedShadowFrame;
+    const CoinRenderShadowPlan & directionalGpuPlan =
+      action.getPimpl()->lastRejectedShadowPlan;
+    std::string directionalProfileDiagnostic;
+    wgpuDirectionalSubmitted = wgpuDirectionalSubmitted &&
+      action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+      coin_render_shadow_single_directional_opaque_profile(
+        directionalGpuFrame, directionalGpuPlan, directionalProfileDiagnostic);
+    if (!wgpuDirectionalSubmitted)
+      std::cerr << "directional profile: " << directionalProfileDiagnostic << '\n';
+    if (wgpuDirectionalSubmitted) {
+      CoinRenderTarget * directionalTarget = CoinRenderTarget::createOffscreen(
+        SbVec2i32(side, side));
+      directionalTarget->getPimpl()->backend.reset(new CoinWgpuBackend);
+      CoinRenderFramePlan unshadowed = directionalGpuFrame;
+      unshadowed.revision = 0;
+      unshadowed.shadowGroups.clear();
+      unshadowed.shadowLights.clear();
+      for (auto & state : unshadowed.renderStates) state.shadowGroupSlot = 0;
+      const auto base = directionalTarget->getPimpl()->executeFrame(unshadowed);
+      std::vector<unsigned char> basePixels, shadowPixels;
+      if (base.status == CoinRenderBackendStatus::SUCCESS)
+        directionalTarget->readbackRGBA(basePixels);
+      const auto shadow = directionalTarget->getPimpl()->executeFrame(
+        directionalGpuFrame);
+      if (shadow.status == CoinRenderBackendStatus::SUCCESS)
+        directionalTarget->readbackRGBA(shadowPixels);
+      wgpuDirectionalSubmitted = base.status == CoinRenderBackendStatus::SUCCESS &&
+        shadow.status == CoinRenderBackendStatus::SUCCESS &&
+        basePixels.size() == shadowPixels.size() && !basePixels.empty();
+      if (!wgpuDirectionalSubmitted)
+        std::cerr << "wgpu directional submit: " << base.diagnostic << " / "
+                  << shadow.diagnostic << '\n';
+      if (wgpuDirectionalSubmitted) {
+        for (int y = 20; y < 105; ++y)
+          for (int x = 20; x < 105; ++x) {
+            const size_t pixel = static_cast<size_t>((y * side + x) * 4);
+            const int clear = basePixels[pixel] + basePixels[pixel + 1] +
+                              basePixels[pixel + 2];
+            const int dark = shadowPixels[pixel] + shadowPixels[pixel + 1] +
+                             shadowPixels[pixel + 2];
+            wgpuDirectionalDifference = std::max(wgpuDirectionalDifference,
+                                                 clear - dark);
+          }
+        wgpuDirectionalSubmitted = wgpuDirectionalDifference > 100;
+        std::cout << "wgpu directional max_delta=" << wgpuDirectionalDifference << '\n';
+        CoinRenderTarget * directionalActionTarget =
+          CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+        CoinRenderAction directionalAction(SbViewportRegion(side, side));
+        directionalAction.setRenderTarget(directionalActionTarget);
+        directionalAction.apply(root);
+        std::vector<unsigned char> actionPixels;
+        if (directionalAction.getLastStatus() == CoinRenderAction::SUCCESS)
+          directionalActionTarget->readbackRGBA(actionPixels);
+        wgpuDirectionalSubmitted = wgpuDirectionalSubmitted &&
+          directionalAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+          actionPixels == shadowPixels;
+        if (!wgpuDirectionalSubmitted)
+          std::cerr << "wgpu directional Action: "
+                    << directionalAction.getLastError().getString() << '\n';
+        directionalAction.setRenderTarget(nullptr);
+        delete directionalActionTarget;
+      }
+      delete directionalTarget;
+    }
+  }
+#endif
   group->removeChild(directionalCapture);
   light->on = TRUE;
   action.setRenderTarget(nullptr);
@@ -399,7 +485,7 @@ int main()
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||
       !directionalProjectionCoversGroup
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
-      || !wgpuShadowSubmitted
+      || !wgpuShadowSubmitted || !wgpuDirectionalSubmitted
 #endif
       ) {
     std::cerr << "CoinRender shadow rejection did not preserve publication or recovery"

@@ -12,6 +12,7 @@
 // original frame vertex/index arrays, before composition reorders main draws.
 struct CoinWgpuShadowFrame {
   uint32_t mapSize = 0;
+  uint32_t kind = 0; // 0=directional axial distance, 1=spot radial distance
   float nearDistance = 0.0f;
   float farDistance = 0.0f;
   std::vector<CoinWgpuShadowDraw> casters;
@@ -26,11 +27,17 @@ struct CoinWgpuShadowFrame {
       return true;
     }
     CoinRenderShadowPlan plan;
-    if (!coin_render_plan_shadows(frame, plan, diagnostic) ||
-        !coin_render_shadow_single_spot_opaque_profile(frame, plan, diagnostic))
+    if (!coin_render_plan_shadows(frame, plan, diagnostic)) return false;
+    std::string spotDiagnostic, directionalDiagnostic;
+    if (!coin_render_shadow_single_spot_opaque_profile(frame, plan, spotDiagnostic) &&
+        !coin_render_shadow_single_directional_opaque_profile(
+          frame, plan, directionalDiagnostic)) {
+      diagnostic = spotDiagnostic + "; " + directionalDiagnostic;
       return false;
+    }
     const auto & pass = plan.passes[0];
     candidate.mapSize = pass.mapSize;
+    candidate.kind = frame.shadowLights[pass.lightSlot].type == CoinRenderLightType::SPOT ? 1u : 0u;
     candidate.nearDistance = pass.nearDistance;
     candidate.farDistance = pass.farDistance;
     const SbMatrix clipConversion(

@@ -643,7 +643,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
         SbString(shadowDiagnostic.c_str())));
       return;
     }
-    bool executableSpot = false;
+    bool executableShadow = false;
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
     if (this->target && this->target->getPimpl()->kind == CoinRenderTargetP::KIND_OFFSCREEN &&
         !this->target->getPimpl()->directTextureOutput && !this->asyncTicket &&
@@ -651,16 +651,18 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
         (!this->target->getPimpl()->backend ||
          dynamic_cast<CoinWgpuBackend *>(this->target->getPimpl()->backend.get()))) {
       std::string profileDiagnostic;
-      executableSpot = coin_render_shadow_single_spot_opaque_profile(
-        plan, shadowPlan, profileDiagnostic);
+      executableShadow = coin_render_shadow_single_spot_opaque_profile(
+        plan, shadowPlan, profileDiagnostic) ||
+        coin_render_shadow_single_directional_opaque_profile(
+          plan, shadowPlan, profileDiagnostic);
     }
 #endif
-    if (!executableSpot) {
+    if (!executableShadow) {
       this->lastRejectedShadowFrame = std::move(plan);
       this->lastRejectedShadowPlan = std::move(shadowPlan);
       this->setDiagnostic(CoinRenderDiagnosticShell::action(
         CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
-        SbString("Active SoShadowGroup needs the first opaque spot profile on CoinWgpu offscreen")));
+        SbString("Active SoShadowGroup needs a qualified opaque single-light profile on CoinWgpu offscreen")));
       return;
     }
     // Shadow maps depend on captured light/geometry state; reuse and camera
