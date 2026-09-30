@@ -183,7 +183,8 @@ Vulkan não encerram a matriz física nem qualificam outras plataformas.
   [Contrato e critérios](coin-render-p26-advanced-execution.md); nenhum
   mecanismo novo qualificado.
 - [ ] **P27 — Sombras Coin:** captura, plano de passes e executores BGFX/wgpu;
-  `SoShadowGroup` ativo ainda é rejeitado. [Critérios](coin-render-p27-p30-tracker.md).
+  `SoShadowGroup` ativo ainda é rejeitado.
+  [Referência e trabalho pendente](coin-render-p27-shadows.md).
 - [ ] **P28 — Texturas espaciais e SSAO:** volume/cube maps seguem o contrato
   Coin; SSAO é extensão opt-in. [Critérios](coin-render-p27-p30-tracker.md).
 - [ ] **P29 — Compute/culling:** planejamento comum, execução opcional e A/B

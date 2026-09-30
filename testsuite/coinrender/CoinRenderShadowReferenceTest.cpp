@@ -1,0 +1,189 @@
+#include <Inventor/SoDB.h>
+#include <Inventor/SoOffscreenRenderer.h>
+#include <Inventor/actions/CoinRenderAction.h>
+#include <Inventor/rendering/CoinRenderTarget.h>
+#include "rendering/coinrender/CoinRenderTargetP.h"
+#include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
+#include <Inventor/annex/FXViz/nodes/SoShadowGroup.h>
+#include <Inventor/annex/FXViz/nodes/SoShadowSpotLight.h>
+#include <Inventor/annex/FXViz/nodes/SoShadowDirectionalLight.h>
+#include <Inventor/annex/FXViz/nodes/SoShadowStyle.h>
+#include <Inventor/nodes/SoSeparator.h>
+#include <Inventor/nodes/SoOrthographicCamera.h>
+#include <Inventor/nodes/SoCube.h>
+#include <Inventor/nodes/SoTranslation.h>
+#include <Inventor/nodes/SoMaterial.h>
+#include <Inventor/SbColor.h>
+
+#include <cstdlib>
+#include <algorithm>
+#include <iostream>
+#include <vector>
+
+namespace {
+static const int side = 128;
+
+int luminance(const std::vector<unsigned char> & rgb, int x, int y)
+{
+  const size_t i = static_cast<size_t>((y * side + x) * 3);
+  return static_cast<int>(rgb[i]) + rgb[i + 1] + rgb[i + 2];
+}
+
+bool render(SoOffscreenRenderer & gl, SoNode * root,
+            std::vector<unsigned char> & rgb)
+{
+  if (!gl.render(root) || !gl.getBuffer()) return false;
+  const unsigned char * data = gl.getBuffer();
+  rgb.assign(data, data + side * side * 3);
+  return true;
+}
+}
+
+int main()
+{
+  SoDB::init();
+  CoinRenderAction::initClass();
+
+  SoSeparator * root = new SoSeparator;
+  root->ref();
+  auto * camera = new SoOrthographicCamera;
+  camera->position.setValue(0, 0, 8);
+  camera->height = 7;
+  camera->nearDistance = 1;
+  camera->farDistance = 20;
+  root->addChild(camera);
+
+  auto * group = new SoShadowGroup;
+  root->addChild(group);
+  auto * light = new SoShadowSpotLight;
+  light->location.setValue(2, 2, 4);
+  light->direction.setValue(-2, -2, -5);
+  light->cutOffAngle = 0.9f;
+  light->intensity = 1.0f;
+  group->addChild(light);
+
+  auto * caster = new SoSeparator;
+  group->addChild(caster);
+  auto * castStyle = new SoShadowStyle;
+  castStyle->style = SoShadowStyle::CASTS_SHADOW_AND_SHADOWED;
+  caster->addChild(castStyle);
+  auto * red = new SoMaterial;
+  red->diffuseColor.setValue(1, 0, 0);
+  caster->addChild(red);
+  auto * cube = new SoCube;
+  cube->width = cube->height = cube->depth = 1.4f;
+  caster->addChild(cube);
+
+  auto * ground = new SoSeparator;
+  group->addChild(ground);
+  auto * groundStyle = new SoShadowStyle;
+  groundStyle->style = SoShadowStyle::SHADOWED;
+  ground->addChild(groundStyle);
+  auto * white = new SoMaterial;
+  white->diffuseColor.setValue(1, 1, 1);
+  ground->addChild(white);
+  auto * move = new SoTranslation;
+  move->translation.setValue(0, 0, -1.5f);
+  ground->addChild(move);
+  auto * floor = new SoCube;
+  floor->width = floor->height = 6;
+  floor->depth = 0.05f;
+  ground->addChild(floor);
+
+  CoinRenderTarget * target = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+  target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
+  CoinRenderAction action(SbViewportRegion(side, side));
+  action.setRenderTarget(target);
+  std::vector<unsigned char> published, afterRejection, afterRecovery;
+  group->isActive = FALSE;
+  action.apply(root);
+  bool publishedOk = action.getLastStatus() == CoinRenderAction::SUCCESS;
+  target->readbackRGBA(published);
+  const uint64_t originalSerial = target->getLastSubmissionSerial();
+  group->isActive = TRUE;
+  action.apply(root);
+  const bool rejected = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+                        action.getLastError().find("SoShadowGroup") >= 0;
+  target->readbackRGBA(afterRejection);
+  const bool preserved = target->getLastSubmissionSerial() == originalSerial &&
+                         !published.empty() && published == afterRejection;
+  group->isActive = FALSE;
+  action.apply(root);
+  target->readbackRGBA(afterRecovery);
+  const bool recovered = action.getLastStatus() == CoinRenderAction::SUCCESS &&
+                         target->getLastSubmissionSerial() > originalSerial &&
+                         afterRecovery == published;
+  action.setRenderTarget(nullptr);
+  delete target;
+  if (!publishedOk || !rejected || !preserved || !recovered) {
+    std::cerr << "CoinRender shadow rejection did not preserve publication or recovery\n";
+    root->unref();
+    return 1;
+  }
+  if (!std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
+    root->unref();
+    return 0;
+  }
+  if (!SoShadowGroup::isSupported()) {
+    std::cerr << "Coin/GL shadow reference requires shadow-map support\n";
+    root->unref();
+    return 1;
+  }
+
+  SoOffscreenRenderer gl(SbViewportRegion(side, side));
+  gl.setComponents(SoOffscreenRenderer::RGB);
+  std::vector<unsigned char> inactive, active, unshadowed, activeAgain;
+  group->isActive = FALSE;
+  bool ok = render(gl, root, inactive);
+  group->isActive = TRUE;
+  ok = ok && render(gl, root, active);
+  groundStyle->style = SoShadowStyle::NO_SHADOWING;
+  ok = ok && render(gl, root, unshadowed);
+  groundStyle->style = SoShadowStyle::SHADOWED;
+  ok = ok && render(gl, root, activeAgain);
+  castStyle->style = SoShadowStyle::NO_SHADOWING;
+  std::vector<unsigned char> noCaster;
+  ok = ok && render(gl, root, noCaster);
+  castStyle->style = SoShadowStyle::CASTS_SHADOW_AND_SHADOWED;
+  auto * directional = new SoShadowDirectionalLight;
+  directional->direction.setValue(-0.4f, -0.4f, -1.0f);
+  directional->intensity = 1.0f;
+  group->replaceChild(light, directional);
+  std::vector<unsigned char> directionalShadow, directionalNoReceive;
+  ok = ok && render(gl, root, directionalShadow);
+  groundStyle->style = SoShadowStyle::NO_SHADOWING;
+  ok = ok && render(gl, root, directionalNoReceive);
+  root->unref();
+  if (!ok) {
+    std::cerr << "Coin/GL could not render the shadow reference\n";
+    return 1;
+  }
+
+  const int clearShadow = luminance(inactive, 50, 50);
+  const int castShadow = luminance(active, 50, 50);
+  const int noReceive = luminance(unshadowed, 50, 50);
+  const int restoredShadow = luminance(activeAgain, 50, 50);
+  const int withoutCaster = luminance(noCaster, 50, 50);
+  const int centerDifference = std::abs(luminance(inactive, 64, 64) -
+                                        luminance(active, 64, 64));
+  std::cout << "Coin/GL shadow sample inactive=" << clearShadow
+            << " active=" << castShadow
+            << " no_receive=" << noReceive
+            << " restored=" << restoredShadow
+            << " no_caster=" << withoutCaster
+            << " center_delta=" << centerDifference << '\n';
+  int directionalDifference = 0;
+  for (int y = 20; y < 105; ++y)
+    for (int x = 20; x < 105; ++x)
+      directionalDifference = std::max(directionalDifference,
+        luminance(directionalNoReceive, x, y) - luminance(directionalShadow, x, y));
+  std::cout << " directional_style_delta=" << directionalDifference << '\n';
+  if (clearShadow - castShadow < 100 || noReceive - castShadow < 100 ||
+      withoutCaster - castShadow < 100 ||
+      std::abs(restoredShadow - castShadow) > 30 || centerDifference > 45 ||
+      directionalDifference < 100) {
+    std::cerr << "Coin/GL shadow, style or cache reference changed\n";
+    return 1;
+  }
+  return 0;
+}

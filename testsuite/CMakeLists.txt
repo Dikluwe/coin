@@ -798,6 +798,16 @@ if(COIN_BUILD_RENDER)
 		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
 	add_test(NAME CoinRenderNodeInventoryTest COMMAND CoinRenderNodeInventoryTest)
 	set_tests_properties(CoinRenderNodeInventoryTest PROPERTIES TIMEOUT 30)
+	if(COIN_BUILD_LEGACY_GL_RENDERER)
+		add_executable(CoinRenderShadowReferenceTest coinrender/CoinRenderShadowReferenceTest.cpp)
+		set_target_properties(CoinRenderShadowReferenceTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+		target_link_libraries(CoinRenderShadowReferenceTest CoinRender Coin)
+		target_include_directories(CoinRenderShadowReferenceTest PRIVATE
+			${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+			${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+		add_test(NAME CoinRenderShadowReferenceTest COMMAND CoinRenderShadowReferenceTest)
+		set_tests_properties(CoinRenderShadowReferenceTest PROPERTIES TIMEOUT 60)
+	endif()
 
 	add_executable(CoinRenderMultiTargetTest coinrender/CoinRenderMultiTargetTest.cpp)
 	set_target_properties(CoinRenderMultiTargetTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
