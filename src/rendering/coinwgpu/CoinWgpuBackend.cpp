@@ -70,7 +70,7 @@ static_assert(offsetof(CoinWgpuRenderState, fog_end) == 912, "CoinWgpuRenderStat
 static_assert(sizeof(CoinWgpuTarget) == 56, "CoinWgpuTarget size mismatch");
 static_assert(sizeof(CoinWgpuFrameView) == 176, "CoinWgpuFrameView size mismatch");
 static_assert(sizeof(CoinWgpuNativeSurfaceDescriptor) == 32, "CoinWgpuNativeSurfaceDescriptor size mismatch");
-static_assert(sizeof(CoinWgpuSurfaceCreateInfo) == 48, "CoinWgpuSurfaceCreateInfo size mismatch");
+static_assert(sizeof(CoinWgpuSurfaceCreateInfo) == 56, "CoinWgpuSurfaceCreateInfo size mismatch");
 
 CoinWgpuBackend::CoinWgpuBackend()
   : status(CoinRenderBackendStatus::SUCCESS),
@@ -106,7 +106,8 @@ CoinWgpuBackend::getAdapterInfo()
 CoinRenderBackendStatus
 CoinWgpuBackend::prepare(CoinRenderTargetP & target)
 {
-  if (target.options.renderer != COIN_RENDER_RENDERER_UNKNOWN) {
+  if (target.kind != CoinRenderTargetP::KIND_WINDOW &&
+      target.options.renderer != COIN_RENDER_RENDERER_UNKNOWN) {
     CoinWgpuRuntimeCapabilities caps{};
     const auto status = coin_wgpu_query_runtime_capabilities(&caps, sizeof(caps));
     if (status != COIN_WGPU_OK || caps.renderer != uint32_t(target.options.renderer)) {
@@ -140,6 +141,7 @@ CoinWgpuBackend::prepare(CoinRenderTargetP & target)
 
       info.width = target.size[0] > 0 ? static_cast<uint32_t>(target.size[0]) : 0;
       info.height = target.size[1] > 0 ? static_cast<uint32_t>(target.size[1]) : 0;
+      info.renderer = uint32_t(target.options.renderer);
 
       CoinWgpuSurfaceId sId = COIN_WGPU_INVALID_SURFACE_ID;
       char errBuf[512] = {0};

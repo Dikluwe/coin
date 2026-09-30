@@ -12,31 +12,43 @@ o host deve converter medidas lógicas de DPI antes de chamar criação/resize.
 
 `COIN_RENDER_RENDERER_D3D12` identifica o renderer sem confundi-lo com
 `OTHER`. O probe wgpu informa D3D12 quando esse é o backend do adaptador.
-Uma opção explícita deve coincidir com o adaptador ativo; a ponte não troca
-de device nem aplica fallback. No BGFX atual, a opção D3D12 responde
-`UNSUPPORTED`: seu conector e o build de shaders ainda são Linux/Xlib com
+Na primeira superfície, uma opção explícita seleciona apenas adaptadores da API
+pedida compatíveis com o `HWND`; depois que o device compartilhado existe, pedidos
+para outra API retornam `UNSUPPORTED`, sem trocar de device nem aplicar fallback.
+No BGFX atual, a opção D3D12 responde `UNSUPPORTED`: seu conector e o build de shaders ainda são Linux/Xlib com
 Vulkan/OpenGL. D3D11 não foi implementado. Nenhum perfil Windows é marcado
 como qualificado pela API de capacidades.
 
 O CMake da ponte Rust agora usa a extensão `.lib` do `staticlib` com MSVC,
 remove a biblioteca Unix `m` no Windows, acrescenta as bibliotecas de sistema
-e anuncia superfície nativa no build Win32/wgpu. Exemplos Xlib existentes
-continuam dependentes de X11; não constituem aplicativo de validação Win32.
+e anuncia superfície nativa no build Win32/wgpu. O alvo
+`coin_render_win32_smoke` cria duas janelas reais, solicita D3D12, apresenta
+e captura RGBA, compara a cor central, confirma ausência de readback normal,
+redimensiona e minimiza/restaura. Registra DPI e identidade do adaptador; ainda
+precisa ser compilado e executado em Windows. Os exemplos Xlib continuam
+dependentes de X11.
 
 | Combinação | Estado nesta entrega | Evidência ainda necessária |
 |---|---|---|
-| wgpu/D3D12 + `HWND` | Rota de handles e build preparados | Build Windows real, apresentação, captura RGBA, perda/recriação |
+| wgpu/D3D12 + `HWND` | Rota de handles e build preparados | Build e execução Windows reais, perda/recriação |
 | wgpu/Vulkan + `HWND` | Mesma rota de superfície, seleção tipada existente | Build e driver Windows reais |
 | BGFX/D3D11 | Pendente | Shaders, build, surface e matriz física |
 | BGFX/D3D12 | Rejeição explícita, sem fallback | Infra, shaders, build e matriz física |
-| Win32 resize/DPI/multiwindow | Contrato de pixel e lifecycle comum existente | Eventos reais `WM_SIZE`/DPI, minimização, duas janelas, destruição ordenada |
+| Win32 resize/DPI/multiwindow | Contrato de pixel e lifecycle comum existente | Smoke preparado; faltam execução física e mudança entre monitores DPI distintos |
 
 ## Critérios para fechar
 
-Em um host Windows com toolchain e GPU, compilar a ponte e um exemplo Win32
-com `COIN_BUILD_RENDER=ON`, `COIN_RENDER_BACKEND=RUST_BRIDGE` e
-`COIN_BUILD_RENDER_WINDOW_EXAMPLE=OFF`. Criar duas janelas independentes;
-registrar renderer, vendor/device, formato e driver. Comparar a mesma fixture
+Em um host Windows x64 com MSVC, Rust MSVC e GPU, configurar e executar:
+
+```powershell
+cmake -S . -B build-win -DCOIN_BUILD_RENDER=ON -DCOIN_RENDER_BACKEND=RUST_BRIDGE -DCOIN_BUILD_RENDER_WINDOW_EXAMPLE=ON -DCOIN_BUILD_LEGACY_GL_RENDERER=OFF
+cmake --build build-win --config Release --target coin_render_win32_smoke
+.\build-win\bin\Release\coin_render_win32_smoke.exe
+```
+
+O caminho do executável depende do gerador CMake. O smoke cria duas janelas
+independentes e registra renderer, vendor/device, DPI e checksum da captura.
+Para fechar P21, registrar também formato e driver. Comparar a mesma fixture
 opaca/transparente de P20 em janela e offscreen, com tolerância por pixel;
 confirmar captura RGBA solicitada e ausência de readback no render normal.
 Aplicar `WM_SIZE`, minimização/restauração e mudança de DPI usando o tamanho
@@ -47,7 +59,9 @@ BGFX/D3D12 exigem implementação antes de entrar na matriz funcional.
 
 Neste host Linux não existem toolchain/target Rust Windows nem Wine. Por isso
 os resultados desta entrega são de **compilação e regressão Linux**, não de
-apresentação Win32: CoinRender wgpu e BGFX compilaram; `CoinRenderSelectionTest`
-passou nos dois; `CoinRenderSurfaceTest` passou no wgpu. O teste novo verifica
-que pedir D3D12 no Linux retorna `UNSUPPORTED`, sem selecionar Vulkan/OpenGL.
+apresentação Win32: CoinRender wgpu compilou; `CoinRenderSelectionTest`,
+`CoinRenderLightingTest` e `CoinRenderSurfaceTest` passaram. O último também
+passou com `--require-vulkan` em Xwayland/RADV, verificando seleção explícita
+do adaptador Vulkan em superfície real. O teste anterior verifica que pedir
+D3D12 no Linux retorna `UNSUPPORTED`, sem selecionar Vulkan/OpenGL.
 A árvore Windows permanece por validar em um host Windows real.

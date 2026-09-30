@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 29
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 30
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -55,6 +55,7 @@ typedef struct CoinWgpuSurfaceCreateInfo {
   CoinWgpuNativeSurfaceDescriptor native;
   uint32_t width;
   uint32_t height;
+  uint32_t renderer; /* CoinRenderRenderer; 0 selects the runtime default */
 } CoinWgpuSurfaceCreateInfo;
 
 typedef struct CoinWgpuVertex {

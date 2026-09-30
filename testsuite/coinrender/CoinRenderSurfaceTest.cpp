@@ -47,9 +47,13 @@
 
 int main(int argc, char ** argv) {
   bool requireDisplay = false;
+  bool requireVulkan = false;
   for (int i = 1; i < argc; ++i) {
     if (std::strcmp(argv[i], "--require-display") == 0) {
       requireDisplay = true;
+    } else if (std::strcmp(argv[i], "--require-vulkan") == 0) {
+      requireDisplay = true;
+      requireVulkan = true;
     }
   }
   if (const char * envReq = std::getenv("COIN_TEST_REQUIRE_DISPLAY")) {
@@ -256,6 +260,20 @@ int main(int argc, char ** argv) {
 
     CoinWgpuStatus stUnknown = coin_wgpu_surface_destroy(9999999, errBuf, sizeof(errBuf));
     TEST_ASSERT(stUnknown == COIN_WGPU_OK, "Destroying unknown surface ID must be OK");
+
+    CoinWgpuSurfaceCreateInfo invalidRenderer{};
+    invalidRenderer.abi_version = COIN_WGPU_ABI_VERSION;
+    invalidRenderer.struct_size = sizeof(invalidRenderer);
+    invalidRenderer.native.abi_version = COIN_WGPU_ABI_VERSION;
+    invalidRenderer.native.struct_size = sizeof(invalidRenderer.native);
+    invalidRenderer.native.type = COIN_WGPU_NATIVE_XLIB;
+    invalidRenderer.width = 1;
+    invalidRenderer.height = 1;
+    invalidRenderer.renderer = COIN_RENDER_RENDERER_OTHER;
+    CoinWgpuSurfaceId unusedSurface = COIN_WGPU_INVALID_SURFACE_ID;
+    TEST_ASSERT(coin_wgpu_surface_create(&invalidRenderer, &unusedSurface, errBuf, sizeof(errBuf)) ==
+                COIN_WGPU_INVALID_ARGUMENT && unusedSurface == COIN_WGPU_INVALID_SURFACE_ID,
+                "Unknown explicit renderer must be rejected before native surface access");
   }
 #endif
 
@@ -295,7 +313,9 @@ int main(int argc, char ** argv) {
       nativeDesc.native.xlib.display = dpy;
       nativeDesc.native.xlib.window = win;
 
-      CoinRenderTarget * windowTarget = CoinRenderTarget::createWindow(nativeDesc, SbVec2i32(640, 480));
+      CoinRenderOptions windowOptions;
+      if (requireVulkan) windowOptions.renderer = COIN_RENDER_RENDERER_VULKAN;
+      CoinRenderTarget * windowTarget = CoinRenderTarget::createWindow(nativeDesc, SbVec2i32(640, 480), windowOptions);
       TEST_ASSERT(windowTarget->getStatus() == CoinRenderTarget::TARGET_READY, "Window target must be TARGET_READY");
       TEST_ASSERT(!windowTarget->isDepthReadbackEnabled() &&
                   !windowTarget->setDepthReadbackEnabled(FALSE) &&
@@ -310,6 +330,13 @@ int main(int argc, char ** argv) {
       for (int f = 0; f < 5; ++f) {
         action.apply(root);
         TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS, "Window render apply must succeed");
+      }
+
+      if (requireVulkan) {
+        CoinWgpuRuntimeCapabilities caps{};
+        TEST_ASSERT(coin_wgpu_query_runtime_capabilities(&caps, sizeof(caps)) == COIN_WGPU_OK &&
+                    caps.renderer == COIN_RENDER_RENDERER_VULKAN,
+                    "Explicit Vulkan window request must select a Vulkan adapter");
       }
 
       // Explicit window capture publishes only the requested frame.

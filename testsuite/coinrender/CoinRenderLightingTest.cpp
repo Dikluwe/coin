@@ -34,7 +34,7 @@
 #include <string>
 #include <vector>
 
-static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 29,
+static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 30,
               "Resolved composition and clipping bridge protocol");
 static_assert(sizeof(CoinWgpuLight) == 64, "3C light layout");
 

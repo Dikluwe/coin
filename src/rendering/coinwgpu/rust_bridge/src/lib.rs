@@ -16,11 +16,12 @@ use std::sync::{Arc, Mutex, OnceLock};
 mod composition;
 mod peeling;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 29;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 30;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
     assert!(std::mem::size_of::<CoinWgpuFrameView>() == 176);
+    assert!(std::mem::size_of::<CoinWgpuSurfaceCreateInfo>() == 56);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, sorted_layers_passes) == 160);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, transparency_reserved) == 164);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, transparency_budget_bytes) == 168);
@@ -62,6 +63,7 @@ pub struct CoinWgpuSurfaceCreateInfo {
     pub native: CoinWgpuNativeSurfaceDescriptor,
     pub width: u32,
     pub height: u32,
+    pub renderer: u32,
 }
 
 #[repr(C)]
@@ -1236,10 +1238,30 @@ fn init_runtime_if_needed() -> Result<(), String> {
     Ok(())
 }
 
+fn renderer_backend(renderer: u32) -> Result<Option<wgpu::Backends>, String> {
+    match renderer {
+        0 => Ok(None),
+        1 => Ok(Some(wgpu::Backends::VULKAN)),
+        2 => Ok(Some(wgpu::Backends::GL)),
+        4 => Ok(Some(wgpu::Backends::DX12)),
+        _ => Err("Invalid requested surface renderer".to_string()),
+    }
+}
+
+fn adapter_renderer(backend: wgpu::Backend) -> u32 {
+    match backend {
+        wgpu::Backend::Vulkan => 1,
+        wgpu::Backend::Gl => 2,
+        wgpu::Backend::Dx12 => 4,
+        _ => 3,
+    }
+}
+
 fn get_or_init_device_impl<'a>(
     runtime: &'a mut RuntimeContext,
     target_surface: Option<&wgpu::Surface>,
     isolated: bool,
+    requested_renderer: u32,
 ) -> Result<&'a mut DeviceState, String> {
     // Check if device loss occurred asynchronously
     if !isolated && DEVICE_LOST_OCCURRED.swap(false, Ordering::SeqCst) {
@@ -1251,20 +1273,30 @@ fn get_or_init_device_impl<'a>(
         }
     }
 
+    let backend = renderer_backend(requested_renderer)?;
     if runtime.device_state.is_some() {
+        if requested_renderer != 0 &&
+            adapter_renderer(runtime.device_state.as_ref().unwrap().adapter.get_info().backend) != requested_renderer {
+            return Err("Requested renderer does not match the active wgpu adapter; no fallback was applied".to_string());
+        }
         return Ok(runtime.device_state.as_mut().unwrap());
     }
 
-    let adapter = block_on(
-        runtime
-            .instance
-            .request_adapter(&wgpu::RequestAdapterOptions {
-                power_preference: wgpu::PowerPreference::HighPerformance,
-                compatible_surface: target_surface,
-                force_fallback_adapter: false,
-            }),
-    )
-    .ok_or_else(|| "No compatible GPU adapter found".to_string())?;
+    let adapter = if let Some(backends) = backend {
+        runtime.instance.enumerate_adapters(backends).into_iter().find(|candidate| {
+            if candidate.get_info().device_type == wgpu::DeviceType::Cpu { return false; }
+            target_surface.map_or(true, |surface| {
+                let caps = surface.get_capabilities(candidate);
+                !caps.formats.is_empty() && !caps.present_modes.is_empty()
+            })
+        }).ok_or_else(|| "No physical adapter for the requested renderer and surface".to_string())?
+    } else {
+        block_on(runtime.instance.request_adapter(&wgpu::RequestAdapterOptions {
+            power_preference: wgpu::PowerPreference::HighPerformance,
+            compatible_surface: target_surface,
+            force_fallback_adapter: false,
+        })).ok_or_else(|| "No compatible GPU adapter found".to_string())?
+    };
 
     let adapter_info = adapter.get_info();
     let adapter_name = format!("{} ({:?})", adapter_info.name, adapter_info.backend);
@@ -1496,7 +1528,7 @@ fn get_or_init_device<'a>(
     runtime: &'a mut RuntimeContext,
     target_surface: Option<&wgpu::Surface>,
 ) -> Result<&'a mut DeviceState, String> {
-    get_or_init_device_impl(runtime, target_surface, false)
+    get_or_init_device_impl(runtime, target_surface, false, 0)
 
 }
 fn make_extra_device(id: CoinWgpuDeviceId, generation: u64) -> Result<DeviceState, String> {
@@ -1513,7 +1545,7 @@ fn make_extra_device(id: CoinWgpuDeviceId, generation: u64) -> Result<DeviceStat
         extra_generations: HashMap::new(),
         dead_readbacks: HashMap::new(),
     };
-    get_or_init_device_impl(&mut isolated, None, true)?;
+    get_or_init_device_impl(&mut isolated, None, true, 0)?;
     let mut state = isolated.device_state.take().unwrap();
     state.device_id = id;
     state.generation = generation;
@@ -3358,12 +3390,7 @@ pub extern "C" fn coin_wgpu_query_runtime_capabilities(
         let format = |f| portable_format_features(dev.adapter.get_texture_format_features(f));
         let mut result = CoinWgpuRuntimeCapabilities {
             struct_size: output_size as u32,
-            renderer: match info.backend {
-                wgpu::Backend::Vulkan => 1,
-                wgpu::Backend::Gl => 2,
-                wgpu::Backend::Dx12 => 4,
-                _ => 3,
-            },
+            renderer: adapter_renderer(info.backend),
             vendor_id: info.vendor,
             device_id: info.device,
             max_framebuffer_attachments: limits.max_color_attachments,
@@ -3523,6 +3550,10 @@ pub extern "C" fn coin_wgpu_surface_create(
             );
             return CoinWgpuStatus::InvalidArgument;
         }
+        if renderer_backend(inf.renderer).is_err() {
+            set_error(error_buf, error_buf_len, "Invalid requested surface renderer");
+            return CoinWgpuStatus::InvalidArgument;
+        }
         if inf.native.reserved != 0 {
             set_error(
                 error_buf,
@@ -3556,13 +3587,14 @@ pub extern "C" fn coin_wgpu_surface_create(
                 }
             };
 
-        // Initialize device if not yet created, passing this surface as compatible
+        // Select the requested API with this surface before fixing the shared device.
         let dev_generation = runtime.device_generation;
-        let device_state = match get_or_init_device(runtime, Some(&surface)) {
+        let device_state = match get_or_init_device_impl(runtime, Some(&surface), false, inf.renderer) {
             Ok(d) => d,
             Err(e) => {
                 set_error(error_buf, error_buf_len, &e);
-                return CoinWgpuStatus::NotReady;
+                return if inf.renderer == 0 { CoinWgpuStatus::NotReady }
+                       else { CoinWgpuStatus::Unsupported };
             }
         };
 

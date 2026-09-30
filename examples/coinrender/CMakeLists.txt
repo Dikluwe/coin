@@ -1,4 +1,17 @@
 if(COIN_BUILD_RENDER_WINDOW_EXAMPLE)
+  if(WIN32)
+    if(NOT COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
+      message(FATAL_ERROR "The P21 Win32 smoke requires COIN_RENDER_BACKEND=RUST_BRIDGE")
+    endif()
+    add_executable(coin_render_win32_smoke coin_render_win32_smoke.cpp)
+    target_compile_definitions(coin_render_win32_smoke PRIVATE _WIN32_WINNT=0x0A00)
+    target_link_libraries(coin_render_win32_smoke PRIVATE CoinRender Coin user32)
+    target_include_directories(coin_render_win32_smoke PRIVATE
+      ${PROJECT_SOURCE_DIR}/experimental/include
+      ${PROJECT_SOURCE_DIR}/include
+      ${PROJECT_BINARY_DIR}/include
+      ${COIN_TARGET_INCLUDE_DIRECTORIES})
+  else()
 add_executable(coin_render_window_cone coin_render_window_cone.cpp)
 
 target_include_directories(coin_render_window_cone PRIVATE
@@ -50,6 +63,7 @@ if(COIN_BUILD_LEGACY_GL_RENDERER)
 		${X11_INCLUDE_DIR}
 		${COIN_TARGET_INCLUDE_DIRECTORIES})
 endif()
+  endif()
 endif()
 
 if(COIN_BUILD_LEGACY_GL_RENDERER)
@@ -70,6 +84,10 @@ if(COIN_BUILD_LEGACY_GL_RENDERER)
 endif()
 
 if(COIN_INSTALL_RENDER_EXPERIMENTAL)
+    if(TARGET coin_render_win32_smoke)
+        install(TARGETS coin_render_win32_smoke
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime)
+    endif()
 	if(TARGET coin_render_window_cone)
 	set(_coin_render_window_targets coin_render_window_cone coin_render_viewer)
 	if(TARGET coin_render_window_benchmark)
@@ -86,7 +104,7 @@ if(COIN_INSTALL_RENDER_EXPERIMENTAL)
 		install(TARGETS coin_render_gl_benchmark coin_render_freecad_compare
 			RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime)
 	endif()
-	install(FILES coin_render_window_cone.cpp coin_render_viewer.cpp coin_render_window_benchmark.cpp coin_render_gl_benchmark.cpp
+	install(FILES coin_render_win32_smoke.cpp coin_render_window_cone.cpp coin_render_viewer.cpp coin_render_window_benchmark.cpp coin_render_gl_benchmark.cpp
 		coin_render_freecad_compare.cpp freecad_export_iv.py
 		DESTINATION ${CMAKE_INSTALL_DOCDIR}/examples/coinrender COMPONENT development)
 endif()
