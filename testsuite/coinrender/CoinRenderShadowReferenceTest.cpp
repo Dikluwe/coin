@@ -525,6 +525,39 @@ int main()
     cutRoot->unref();
     uncutRoot->unref();
   }
+  bool shadowTargetsIndependent = true;
+  if (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
+      std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) {
+    CoinRenderTarget * first = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+    CoinRenderTarget * second = CoinRenderTarget::createOffscreen(SbVec2i32(160, 160));
+    CoinRenderAction firstAction(SbViewportRegion(side, side));
+    CoinRenderAction secondAction(SbViewportRegion(160, 160));
+    firstAction.setRenderTarget(first);
+    secondAction.setRenderTarget(second);
+    firstAction.apply(root);
+    std::vector<unsigned char> firstPixels, secondPixels, firstAgain;
+    if (firstAction.getLastStatus() == CoinRenderAction::SUCCESS)
+      first->readbackRGBA(firstPixels);
+    const uint64_t firstSerial = first->getLastSubmissionSerial();
+    secondAction.apply(root);
+    if (secondAction.getLastStatus() == CoinRenderAction::SUCCESS)
+      second->readbackRGBA(secondPixels);
+    firstAction.apply(root);
+    if (firstAction.getLastStatus() == CoinRenderAction::SUCCESS)
+      first->readbackRGBA(firstAgain);
+    shadowTargetsIndependent = firstAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+      secondAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+      firstPixels.size() == size_t(side * side * 4) &&
+      secondPixels.size() == size_t(160 * 160 * 4) &&
+      firstAgain == firstPixels && first->getLastSubmissionSerial() > firstSerial;
+    if (!shadowTargetsIndependent)
+      std::cerr << "parallel shadow targets: " << firstAction.getLastError().getString()
+                << " / " << secondAction.getLastError().getString() << '\n';
+    firstAction.setRenderTarget(nullptr);
+    secondAction.setRenderTarget(nullptr);
+    delete second;
+    delete first;
+  }
   // Qualify the common two-pass Coin contract and execute both maps on wgpu.
   auto * secondShadowLight = new SoShadowDirectionalLight;
   secondShadowLight->direction.setValue(-0.4f, -0.4f, -1.0f);
@@ -1897,7 +1930,7 @@ int main()
   action.setRenderTarget(nullptr);
   delete target;
   if (!publishedOk || !rejected || !preserved || !recovered || !captureOk ||
-      !spotProfile || !transparentExcludedFromFirstProfile || !clippedShadowQualified || !twoLightCaptured ||
+      !spotProfile || !transparentExcludedFromFirstProfile || !clippedShadowQualified || !shadowTargetsIndependent || !twoLightCaptured ||
       !orderedTwoLight || !twoSpotsOk || !twoDirectionalsOk ||
       !lateLightResolved || !lateSpotProfile || !mixedOrderResolved ||
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||

@@ -230,9 +230,12 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   descartado e momentos no lado mantido.
 - [ ] **Transparência e qualidade:** qualificar por modo os casters,
   receivers e o limiar de iluminação por fragmento.
-- [ ] **RTT, composição, grupos adicionais e múltiplos alvos:** ordenar os
-  passes com as dependências de textura e camadas, sem fundir grupos ou
-  estados Coin independentes; validar resize, falha e recuperação.
+- [x] **Múltiplos alvos offscreen:** dois alvos simultâneos de 128×128 e
+  160×160 executam sombra ativa em BGFX e wgpu; intercalar submissões não
+  altera os pixels do primeiro alvo e cada serial avança independentemente.
+- [ ] **RTT, composição e grupos adicionais:** ordenar os passes com as
+  dependências de textura e camadas, sem fundir grupos ou estados Coin
+  independentes; validar resize, falha e recuperação.
 
 Cada caixa acima requer uma fixture renderizada nos dois executores e sua
 referência Coin/GL antes de marcar P27.4 concluído.
