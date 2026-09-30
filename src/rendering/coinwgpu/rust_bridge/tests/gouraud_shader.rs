@@ -1,7 +1,7 @@
 use naga::valid::{Capabilities, ValidationFlags, Validator};
 
 #[test]
-fn standard_shader_validates_vertex_lighting() {
+fn standard_shader_preserves_vertex_lighting_outside_shadows() {
     let source = include_str!("../../shaders/coin_standard.wgsl");
     let module = naga::front::wgsl::parse_str(source).expect("parse standard WGSL");
     Validator::new(ValidationFlags::all(), Capabilities::all())
@@ -11,7 +11,9 @@ fn standard_shader_validates_vertex_lighting() {
     let fragment = source.split("fn fragment_color").nth(1).unwrap();
     assert!(vertex.contains("shade_vertex(materials[input.material_slot]"));
     assert!(fragment.contains("var primary=input.diffuse_color"));
-    assert!(!fragment.contains("shade_vertex") && !fragment.contains("materials["));
+    assert!(!fragment.contains("shade_vertex"));
+    assert!(fragment.contains("if (u.shadow_params.x > 0.5 && u.params.w > 0.5)"));
+    assert!(fragment.contains("materials[input.material_slot]"));
     assert!(source.contains("clamp(rgb, vec3<f32>(0.0), vec3<f32>(1.0))"));
 }
 

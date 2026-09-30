@@ -232,10 +232,10 @@ bool checkBridgeLimit() {
   const CoinWgpuStatus shadowStatus =
     coin_wgpu_submit(&target, &frame, error, sizeof(error));
   return lightLimit &&
-         check(shadowStatus == COIN_WGPU_UNSUPPORTED,
-               "FFI accepted shadow casters without a VSM encoder") &&
+         check(shadowStatus == COIN_WGPU_INVALID_ARGUMENT,
+               "FFI accepted incomplete shadow payload") &&
          check(target.submission_serial == 0,
-               "unsupported shadow frame was submitted");
+               "incomplete shadow frame was submitted");
 #else
   return true; // Bridge-specific contract is covered only by RUST_BRIDGE.
 #endif

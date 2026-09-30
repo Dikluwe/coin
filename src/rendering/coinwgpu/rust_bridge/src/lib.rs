@@ -211,6 +211,10 @@ pub struct CoinWgpuUniforms {
     pub texture_combines: [[[f32; 4]; 4]; 8],
     pub composition_meta: [f32; 4],
     pub peel_meta: [f32; 4],
+    pub shadow_model_view_projection: [[f32; 4]; 4],
+    pub shadow_model_view: [[f32; 4]; 4],
+    pub shadow_params: [f32; 4],
+    pub shadow_meta: [f32; 4],
 }
 
 #[repr(C)]
@@ -1039,6 +1043,7 @@ pub const FAULT_RTT_COLOR_ALLOC: i32 = 301;
 pub const FAULT_RTT_COLOR_VIEW: i32 = 302;
 pub const FAULT_RTT_DEPTH_ALLOC: i32 = 303;
 pub const FAULT_RTT_BIND_GROUP: i32 = 304;
+pub const FAULT_SHADOW_MAP_ALLOC: i32 = 305;
 
 static FAULT_SURFACE_OUTDATED_COUNT: AtomicI32 = AtomicI32::new(0);
 static FAULT_SURFACE_LOST_COUNT: AtomicI32 = AtomicI32::new(0);
@@ -1498,6 +1503,16 @@ fn get_or_init_device_impl<'a>(
             count: None,
         });
     }
+    layout_entries.push(wgpu::BindGroupLayoutEntry {
+        binding: 20,
+        visibility: wgpu::ShaderStages::FRAGMENT,
+        ty: wgpu::BindingType::Texture {
+            sample_type: wgpu::TextureSampleType::Float { filterable: false },
+            view_dimension: wgpu::TextureViewDimension::D2,
+            multisampled: false,
+        },
+        count: None,
+    });
     let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         label: Some("Coin eight-unit texture program"),
         entries: &layout_entries,
@@ -2191,6 +2206,18 @@ fn resolved_viewport(state: &CoinWgpuRenderState, width: u32, height: u32)
     Ok(viewport)
 }
 
+// The Coin/Core payload is immutable during one frame. Infra only validates
+// its bounds and turns the captured draws into a GPU map.
+struct ShadowFrame<'a> {
+    casters: &'a [CoinWgpuShadowDraw],
+    receivers: &'a [CoinWgpuShadowReceiver],
+    map_size: u32,
+    near: f32,
+    far: f32,
+    epsilon: f32,
+    threshold: f32,
+}
+
 // Pure shared command encoder function strictly common to offscreen and window targets
 fn encode_frame(
     ctx: &DeviceState,
@@ -2205,6 +2232,7 @@ fn encode_frame(
     states_slice: &[CoinWgpuRenderState],
     textures_slice: &[CoinWgpuTexture],
     samplers_slice: &[CoinWgpuSampler],
+    shadow_frame: Option<&ShadowFrame>,
     camera_geometry: Option<&Arc<ValidatedGeometry>>,
     timestamp_query: Option<&wgpu::QuerySet>,
     color_view: &wgpu::TextureView,
@@ -2221,6 +2249,32 @@ fn encode_frame(
         ));
     }
     // Composition was preflighted before surface acquisition or target allocation.
+    if let Some(shadow) = shadow_frame {
+        let features = ctx.adapter.get_texture_format_features(wgpu::TextureFormat::Rgba32Float);
+        if !features.allowed_usages.contains(
+            wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING)
+            || shadow.map_size > ctx.device.limits().max_texture_dimension_2d {
+            return Err((CoinWgpuStatus::Unsupported,
+                "Rgba32Float shadow maps are unavailable on this device".into()));
+        }
+        if shadow.receivers.len() != states_slice.len()
+            || !shadow.receivers.iter().any(|receiver| receiver.receives != 0)
+            || draw_order.iter().any(|item| item.peel)
+            || draws_slice.iter().any(|draw| draw.render_state_slot as usize >= shadow.receivers.len()) {
+            return Err((CoinWgpuStatus::InvalidArgument,
+                "Shadow receivers do not match render states or composition".into()));
+        }
+        for (slot, receiver) in shadow.receivers.iter().enumerate() {
+            if receiver.receives > 1
+                || !receiver.model_view.iter().chain(receiver.model_view_projection.iter())
+                    .all(|v| v.is_finite())
+                || (receiver.receives != 0 && (receiver.lighting_index < 0
+                    || receiver.lighting_index as u32 >= states_slice[slot].light_count)) {
+                return Err((CoinWgpuStatus::InvalidArgument,
+                    format!("Invalid shadow receiver {slot}")));
+            }
+        }
+    }
     // Preflight the entire lighting payload before cache mutation or command encoding.
     for (state_index, state) in states_slice.iter().enumerate() {
         resolved_viewport(state, target_width, target_height)?;
@@ -2521,7 +2575,7 @@ fn encode_frame(
     // benchmarked against its previous behavior. It is opt-in, bounded and
     // applies only to the already-validated, untextured camera patch.
     static CAMERA_GPU_CACHE_ENABLED: OnceLock<bool> = OnceLock::new();
-    let camera_geometry = camera_geometry.filter(|_| {
+    let camera_geometry = camera_geometry.filter(|_| shadow_frame.is_none()).filter(|_| {
         *CAMERA_GPU_CACHE_ENABLED.get_or_init(|| {
             std::env::var("COIN_WGPU_CAMERA_BINDINGS").as_deref() == Ok("1")
         })
@@ -2722,6 +2776,16 @@ fn encode_frame(
         .create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("Coin Frame Encoder"),
         });
+    let shadow_map = if let Some(shadow) = shadow_frame {
+        if FAULT_INJECTION.load(Ordering::SeqCst) == FAULT_SHADOW_MAP_ALLOC {
+            FAULT_INJECTION.store(0, Ordering::SeqCst);
+            return Err((CoinWgpuStatus::OutOfMemory,
+                "Injected shadow-map attachment allocation failure".into()));
+        }
+        Some(shadow::encode_moments(&ctx.device, &mut encoder, vertices_slice,
+            indices_slice, shadow.casters, shadow.map_size, shadow.near, shadow.far)
+            .map_err(|msg| (CoinWgpuStatus::InvalidArgument, msg))?)
+    } else { None };
 
     {
         let _clear = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -3067,6 +3131,12 @@ fn encode_frame(
                     }
                 }
 
+                let receiver = shadow_frame.map(|shadow| {
+                    (&shadow.receivers[draw.render_state_slot as usize], shadow)
+                });
+                let shadow_matrix = |flat: &[f32; 16]| -> [[f32; 4]; 4] {
+                    std::array::from_fn(|col| std::array::from_fn(|row| flat[col * 4 + row]))
+                };
                 let uniforms = CoinWgpuUniforms {
                     model_view_projection: mvp,
                     model_view: mv,
@@ -3134,6 +3204,19 @@ fn encode_frame(
                         st.fog_mode as f32,
                     ],
                     fog_range: [st.fog_start, st.fog_end, 0.0, 0.0],
+                    shadow_model_view_projection: receiver.map_or(
+                        [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0],
+                         [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
+                        |(r, _)| shadow_matrix(&r.model_view_projection)),
+                    shadow_model_view: receiver.map_or(
+                        [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0],
+                         [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
+                        |(r, _)| shadow_matrix(&r.model_view)),
+                    shadow_params: receiver.map_or([0.0, 0.0, 1.0, 0.0],
+                        |(r, shadow)| [r.receives as f32, shadow.near,
+                            shadow.far, shadow.epsilon]),
+                    shadow_meta: receiver.map_or([0.0; 4], |(r, shadow)|
+                        [shadow.threshold, r.lighting_index as f32, 0.0, 0.0]),
                 };
 
                 if layers.iter().any(|t| t.enabled != 0)
@@ -3193,6 +3276,11 @@ fn encode_frame(
                     entries.push(wgpu::BindGroupEntry {
                         binding: 19,
                         resource: wgpu::BindingResource::TextureView(opaque),
+                    });
+                    entries.push(wgpu::BindGroupEntry {
+                        binding: 20,
+                        resource: wgpu::BindingResource::TextureView(shadow_map.as_ref()
+                            .map_or(&ctx.default_texture_view, |map| &map.view)),
                     });
                     let bind_group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
                         label: Some("Draw eight-unit texture bindings"),
@@ -4380,6 +4468,7 @@ fn coin_wgpu_surface_submit_internal(
             states_slice,
             textures_slice,
             samplers_slice,
+            None, // window shadows remain preflight-rejected
             None,
             None,
             &color_view,
@@ -4737,17 +4826,6 @@ fn coin_wgpu_submit_internal(
             return CoinWgpuStatus::InvalidArgument;
         }
 
-        if f.shadow_caster_count != 0 {
-            set_error(error_buf, error_buf_len,
-                "Shadow caster transport is present, but the wgpu VSM encoder is not connected");
-            return CoinWgpuStatus::Unsupported;
-        }
-        if !f.shadow_casters.is_null() || f.shadow_map_size != 0 ||
-            !f.shadow_receivers.is_null() || f.shadow_receiver_count != 0 {
-            set_error(error_buf, error_buf_len,
-                "Shadow payload has data without casters");
-            return CoinWgpuStatus::InvalidArgument;
-        }
 
         // 4. Dimensions and buffer boundary validation
         if f.width == 0 || f.height == 0 || tgt.width == 0 || tgt.height == 0 {
@@ -4897,6 +4975,43 @@ fn coin_wgpu_submit_internal(
             }
         } else {
             &[]
+        };
+
+        // Shadow payload is optional, but a partial payload is never accepted.
+        // Keep it out of the camera patch until state/geometry matching is qualified.
+        let shadow_frame = if f.shadow_caster_count == 0 {
+            if !f.shadow_casters.is_null() || f.shadow_map_size != 0
+                || !f.shadow_receivers.is_null() || f.shadow_receiver_count != 0 {
+                set_error(error_buf, error_buf_len, "Shadow payload has data without casters");
+                return CoinWgpuStatus::InvalidArgument;
+            }
+            None
+        } else {
+            if owned_patch.is_some() || f.camera_base_revision != 0
+                || f.shadow_receiver_count != states_slice.len() as u64
+                || !f.shadow_map_size.is_power_of_two() || f.shadow_map_size > 2048
+                || !f.shadow_near_distance.is_finite()
+                || !f.shadow_far_distance.is_finite()
+                || f.shadow_near_distance <= 0.0
+                || f.shadow_far_distance <= f.shadow_near_distance
+                || !f.shadow_epsilon.is_finite() || f.shadow_epsilon < 0.0
+                || !f.shadow_threshold.is_finite() || !(0.0..1.0).contains(&f.shadow_threshold) {
+                set_error(error_buf, error_buf_len, "Invalid or unsupported shadow frame parameters");
+                return CoinWgpuStatus::InvalidArgument;
+            }
+            let casters = match validate_slice(f.shadow_casters, f.shadow_caster_count,
+                "shadow casters", error_buf, error_buf_len) {
+                Ok(s) => s, Err(st) => return st,
+            };
+            let receivers = match validate_slice(f.shadow_receivers, f.shadow_receiver_count,
+                "shadow receivers", error_buf, error_buf_len) {
+                Ok(s) => s, Err(st) => return st,
+            };
+            Some(ShadowFrame {
+                casters, receivers, map_size: f.shadow_map_size,
+                near: f.shadow_near_distance, far: f.shadow_far_distance,
+                epsilon: f.shadow_epsilon, threshold: f.shadow_threshold,
+            })
         };
 
         // 6. Strict validation and composition are immutable for one private CoinRenderFramePlan revision.
@@ -5189,6 +5304,7 @@ fn coin_wgpu_submit_internal(
             states_slice,
             textures_slice,
             samplers_slice,
+            shadow_frame.as_ref(),
             owned_patch.as_ref().map(|scene| &scene.geometry),
             gpu_probe.as_ref().map(|probe| &probe.queries),
             &color_view,

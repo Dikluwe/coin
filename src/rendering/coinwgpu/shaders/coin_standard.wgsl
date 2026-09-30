@@ -33,6 +33,10 @@ struct Uniforms {
     texture_combines: array<array<vec4<f32>, 4>, 8>,
     composition_meta: vec4<f32>,
     peel_meta: vec4<f32>,
+    shadow_model_view_projection: mat4x4<f32>,
+    shadow_model_view: mat4x4<f32>,
+    shadow_params: vec4<f32>, // x=receives, y=near, z=far, w=epsilon
+    shadow_meta: vec4<f32>, // x=threshold, y=lighting index
 };
 
 struct GpuMaterial {
@@ -68,6 +72,7 @@ var s_diffuse: sampler;
 @group(0) @binding(15) var s_texture6: sampler;
 @group(0) @binding(16) var t_texture7: texture_2d<f32>;
 @group(0) @binding(17) var s_texture7: sampler;
+@group(0) @binding(20) var t_shadow: texture_2d<f32>;
 
 
 struct VertexInput {
@@ -101,62 +106,83 @@ struct VertexOutput {
     @location(9) uv5: vec2<f32>,
     @location(10) uv6: vec2<f32>,
     @location(11) uv7: vec2<f32>,
-
+    @location(12) shadow_coord: vec4<f32>,
+    @location(13) shadow_light_view: vec3<f32>,
 };
 
-// Coin PHONG is reflectance, not a request for fragment-normal interpolation.
-fn shade_vertex(mat: GpuMaterial, position_view: vec3<f32>, normal_view: vec3<f32>) -> vec4<f32> {
-    var base_color: vec4<f32>;
-
-    // CoinRenderLightModel::BASE_COLOR (u.params.w < 0.5):
-    // Pure diffuse color without light influence and without emission
-    if (u.params.w < 0.5) {
-        base_color = vec4<f32>(mat.diffuse.rgb, mat.diffuse.a);
+// Coin's PHONG contribution for one captured light. The first shadow profile
+// uses the same formula in the fragment as the ordinary vertex path.
+fn light_contribution(light: GpuLight, mat: GpuMaterial,
+                      position_view: vec3<f32>, normal_view: vec3<f32>) -> vec3<f32> {
+    let n = normalize(normal_view);
+    let v = vec3<f32>(0.0, 0.0, 1.0);
+    var to_light = vec3<f32>(0.0, 0.0, 1.0);
+    var attenuation = 1.0;
+    if (light.position_type.w < 0.5) {
+        to_light = normalize(-light.direction_cutoff.xyz);
     } else {
-        // Coin's global ambient and emission apply even when no light is active.
-        let n = normalize(normal_view);
-        // Same infinite-viewer contract as Coin/GL, CPU and BGFX.
-        let v = vec3<f32>(0.0, 0.0, 1.0);
-        var rgb = mat.ambient.rgb * u.ambient_light.rgb + mat.emission.rgb;
-        for (var i: u32 = 0u; i < 8u; i = i + 1u) {
-            if (f32(i) >= u.light_meta.x) { break; }
-            let light = u.lights[i];
-            var to_light = vec3<f32>(0.0, 0.0, 1.0);
-            var attenuation = 1.0;
-            if (light.position_type.w < 0.5) {
-                to_light = normalize(-light.direction_cutoff.xyz);
-            } else {
-                let delta = light.position_type.xyz - position_view;
-                let distance = length(delta);
-                if (distance <= 0.000001) { continue; }
-                to_light = delta / distance;
-                let a = light.attenuation_exponent;
-                let denominator = a.z + a.y * distance + a.x * distance * distance;
-                if (denominator <= 0.000001) { continue; }
-                attenuation = 1.0 / denominator;
-                if (light.position_type.w > 1.5) {
-                    let cone_cos = dot(normalize(light.direction_cutoff.xyz), -to_light);
-                    if (cone_cos < light.direction_cutoff.w) { continue; }
-                    attenuation *= pow(max(cone_cos, 0.0), a.w);
-                }
-            }
-            let diffuse_factor = max(dot(n, to_light), 0.0);
-            if (diffuse_factor <= 0.0) { continue; }
-            let h = normalize(to_light + v);
-            let shininess_exp = mat.params.x * 128.0;
-            var specular_factor = 1.0;
-            if (shininess_exp > 0.0) {
-                specular_factor = pow(max(dot(n, h), 0.0), shininess_exp);
-            }
-            let light_rgb = light.color_intensity.rgb *
-                            light.color_intensity.w * attenuation;
-            rgb += (mat.diffuse.rgb * diffuse_factor +
-                    mat.specular.rgb * specular_factor) * light_rgb;
+        let delta = light.position_type.xyz - position_view;
+        let distance = length(delta);
+        if (distance <= 0.000001) { return vec3<f32>(0.0); }
+        to_light = delta / distance;
+        let a = light.attenuation_exponent;
+        let denominator = a.z + a.y * distance + a.x * distance * distance;
+        if (denominator <= 0.000001) { return vec3<f32>(0.0); }
+        attenuation = 1.0 / denominator;
+        if (light.position_type.w > 1.5) {
+            let cone_cos = dot(normalize(light.direction_cutoff.xyz), -to_light);
+            if (cone_cos < light.direction_cutoff.w) { return vec3<f32>(0.0); }
+            attenuation *= pow(max(cone_cos, 0.0), a.w);
         }
-        base_color = vec4<f32>(clamp(rgb, vec3<f32>(0.0), vec3<f32>(1.0)), mat.diffuse.a);
     }
+    let diffuse_factor = max(dot(n, to_light), 0.0);
+    if (diffuse_factor <= 0.0) { return vec3<f32>(0.0); }
+    let h = normalize(to_light + v);
+    let shininess_exp = mat.params.x * 128.0;
+    var specular_factor = 1.0;
+    if (shininess_exp > 0.0) {
+        specular_factor = pow(max(dot(n, h), 0.0), shininess_exp);
+    }
+    let light_rgb = light.color_intensity.rgb *
+                    light.color_intensity.w * attenuation;
+    return (mat.diffuse.rgb * diffuse_factor +
+            mat.specular.rgb * specular_factor) * light_rgb;
+}
 
-    return base_color;
+// Coin PHONG is reflectance, not a request for fragment-normal interpolation
+// unless the active shadow profile explicitly selects per-fragment lighting.
+fn shade_vertex(mat: GpuMaterial, position_view: vec3<f32>, normal_view: vec3<f32>) -> vec4<f32> {
+    if (u.params.w < 0.5) {
+        return vec4<f32>(mat.diffuse.rgb, mat.diffuse.a);
+    }
+    var rgb = mat.ambient.rgb * u.ambient_light.rgb + mat.emission.rgb;
+    for (var i: u32 = 0u; i < 8u; i = i + 1u) {
+        if (f32(i) >= u.light_meta.x) { break; }
+        if (u.shadow_params.x > 0.5 && i == u32(u.shadow_meta.y)) { continue; }
+        rgb += light_contribution(u.lights[i], mat, position_view, normal_view);
+    }
+    return vec4<f32>(clamp(rgb, vec3<f32>(0.0), vec3<f32>(1.0)), mat.diffuse.a);
+}
+
+fn vsm_shadow_factor(input: VertexOutput) -> f32 {
+    if (input.shadow_coord.w <= 0.0) { return 1.0; }
+    let clip = input.shadow_coord.xyz / input.shadow_coord.w;
+    let uv = vec2<f32>(clip.x * 0.5 + 0.5, 0.5 - clip.y * 0.5);
+    if (uv.x < 0.0 || uv.x >= 1.0 || uv.y < 0.0 || uv.y >= 1.0 ||
+        clip.z < 0.0 || clip.z > 1.0) { return 1.0; }
+    let size = textureDimensions(t_shadow);
+    let pixel = clamp(vec2<i32>(uv * vec2<f32>(size)),
+                      vec2<i32>(0), vec2<i32>(size) - vec2<i32>(1));
+    let map = textureLoad(t_shadow, pixel, 0).xy;
+    if (map.x >= 0.9999) { return 1.0; }
+    let dist = (length(input.shadow_light_view) - u.shadow_params.y) /
+               (u.shadow_params.z - u.shadow_params.y);
+    if (dist <= map.x) { return 1.0; }
+    let variance = min(max(map.y - map.x * map.x, 0.0) + u.shadow_params.w, 1.0);
+    let delta = map.x - dist;
+    var probability = variance / (variance + delta * delta);
+    probability *= smoothstep(u.shadow_meta.x, 1.0, probability);
+    return probability;
 }
 
 @vertex
@@ -175,6 +201,10 @@ fn vs_main(input: VertexInput) -> VertexOutput {
     output.diffuse_color = shade_vertex(materials[input.material_slot],
                                        output.position_view, output.normal_view);
     output.material_slot = input.material_slot;
+    output.shadow_coord = u.shadow_model_view_projection *
+        vec4<f32>(input.position, 1.0);
+    output.shadow_light_view = (u.shadow_model_view *
+        vec4<f32>(input.position, 1.0)).xyz;
 
     if (u.tex_params.x > 0.5) {
         output.texcoord = (u.texture_matrix * vec4<f32>(input.texcoord, 0.0, 1.0)).xy;
@@ -264,6 +294,15 @@ fn fragment_color(input: VertexOutput) -> vec4<f32> {
         if(rank<u32(u.composition_meta.x)*16u){discard;}
     }
     var primary=input.diffuse_color;
+    if (u.shadow_params.x > 0.5 && u.params.w > 0.5) {
+        let light = u.lights[u32(u.shadow_meta.y)];
+        let contribution = light_contribution(light,
+            materials[input.material_slot], input.position_view, input.normal_view);
+        primary = vec4<f32>(
+            clamp(primary.rgb + contribution * vsm_shadow_factor(input),
+                  vec3<f32>(0.0), vec3<f32>(1.0)),
+            primary.a);
+    }
     if(u.composition_meta.y>0.5){primary.a=1.0;}
     var base_color = primary;
 

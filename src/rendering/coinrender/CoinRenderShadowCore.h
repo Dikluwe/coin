@@ -348,7 +348,9 @@ coin_render_shadow_single_spot_opaque_profile(
       frame.shadowLights[pass.lightSlot].type != CoinRenderLightType::SPOT ||
       !pass.visible || pass.casterDraws.empty() || pass.receiverDraws.empty() ||
       !pass.perFragmentLighting ||
-      frame.shadowGroups[0].smoothBorder != 0.0f) {
+      frame.shadowGroups[0].smoothBorder != 0.0f ||
+      pass.epsilon < 0.0f || pass.threshold < 0.0f ||
+      pass.threshold >= 1.0f) {
     diagnostic = "First shadow profile requires one visible spot with opaque casters and receivers";
     return false;
   }

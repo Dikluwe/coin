@@ -1,3 +1,6 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 #include <Inventor/SoDB.h>
 #include <Inventor/SoOffscreenRenderer.h>
 #include <Inventor/actions/CoinRenderAction.h>
@@ -5,6 +8,10 @@
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+#include "rendering/coinwgpu/CoinWgpuBackend.h"
+#include "rendering/coinwgpu/CoinWgpuFfi.h"
+#endif
 #include <Inventor/annex/FXViz/nodes/SoShadowGroup.h>
 #include <Inventor/annex/FXViz/nodes/SoShadowSpotLight.h>
 #include <Inventor/annex/FXViz/nodes/SoShadowDirectionalLight.h>
@@ -125,6 +132,126 @@ int main()
   std::string spotProfileDiagnostic;
   const bool spotProfile = coin_render_shadow_single_spot_opaque_profile(
     captured, planned, spotProfileDiagnostic);
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+  std::vector<unsigned char> wgpuShadow, wgpuUnshadowed;
+  bool wgpuShadowSubmitted = true;
+  if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) {
+    CoinRenderTarget * shadowTarget = CoinRenderTarget::createOffscreen(
+      SbVec2i32(side, side));
+    shadowTarget->getPimpl()->backend.reset(new CoinWgpuBackend);
+    CoinRenderFramePlan withoutShadows = captured;
+    withoutShadows.revision = 0;
+    withoutShadows.shadowGroups.clear();
+    withoutShadows.shadowLights.clear();
+    for (auto & state : withoutShadows.renderStates) state.shadowGroupSlot = 0;
+    const auto baseline = shadowTarget->getPimpl()->executeFrame(withoutShadows);
+    wgpuShadowSubmitted = baseline.status == CoinRenderBackendStatus::SUCCESS;
+    if (wgpuShadowSubmitted) shadowTarget->readbackRGBA(wgpuUnshadowed);
+    else std::cerr << "wgpu unshadowed frame: " << baseline.diagnostic << '\n';
+    if (wgpuShadowSubmitted) {
+      const auto execution = shadowTarget->getPimpl()->executeFrame(captured);
+      wgpuShadowSubmitted = execution.status == CoinRenderBackendStatus::SUCCESS;
+      if (wgpuShadowSubmitted) shadowTarget->readbackRGBA(wgpuShadow);
+      else std::cerr << "wgpu shadow frame: " << execution.diagnostic << '\n';
+    }
+    delete shadowTarget;
+    // Exercise the public Action gate as well as the direct backend seam.
+    CoinRenderTarget * actionTarget = CoinRenderTarget::createOffscreen(
+      SbVec2i32(side, side));
+    CoinRenderAction gpuAction(SbViewportRegion(side, side));
+    gpuAction.setRenderTarget(actionTarget);
+    gpuAction.apply(root);
+    std::vector<unsigned char> viaAction;
+    if (gpuAction.getLastStatus() == CoinRenderAction::SUCCESS)
+      actionTarget->readbackRGBA(viaAction);
+    wgpuShadowSubmitted = wgpuShadowSubmitted &&
+      gpuAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+      viaAction == wgpuShadow;
+    if (!wgpuShadowSubmitted)
+      std::cerr << "wgpu Action shadow frame: " << gpuAction.getLastError().getString() << '\n';
+    if (wgpuShadowSubmitted) {
+      groundStyle->style = SoShadowStyle::NO_SHADOWING;
+      gpuAction.apply(root);
+      std::vector<unsigned char> noReceive;
+      if (gpuAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        actionTarget->readbackRGBA(noReceive);
+      groundStyle->style = SoShadowStyle::SHADOWED;
+      gpuAction.apply(root);
+      std::vector<unsigned char> receiveAgain;
+      if (gpuAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        actionTarget->readbackRGBA(receiveAgain);
+      const size_t sample = static_cast<size_t>(((side - 1 - 50) * side + 50) * 4);
+      const auto luma = [sample](const std::vector<unsigned char> & rgba) {
+        return int(rgba[sample]) + rgba[sample + 1] + rgba[sample + 2];
+      };
+      wgpuShadowSubmitted = noReceive.size() == wgpuShadow.size() &&
+        receiveAgain == wgpuShadow &&
+        luma(noReceive) - luma(wgpuShadow) > 100;
+      if (!wgpuShadowSubmitted)
+        std::cerr << "wgpu receiver style check failed: "
+                  << gpuAction.getLastError().getString() << '\n';
+    }
+    if (wgpuShadowSubmitted) {
+      const int resized = 160;
+      wgpuShadowSubmitted = actionTarget->resize(SbVec2i32(resized, resized));
+      gpuAction.setViewportRegion(SbViewportRegion(resized, resized));
+      group->isActive = FALSE;
+      gpuAction.apply(root);
+      std::vector<unsigned char> resizedClear, resizedShadow;
+      if (gpuAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        actionTarget->readbackRGBA(resizedClear);
+      group->isActive = TRUE;
+      gpuAction.apply(root);
+      if (gpuAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        actionTarget->readbackRGBA(resizedShadow);
+      const size_t pixel = static_cast<size_t>((96 * resized + 63) * 4);
+      const auto luma = [pixel](const std::vector<unsigned char> & rgba) {
+        return int(rgba[pixel]) + rgba[pixel + 1] + rgba[pixel + 2];
+      };
+      wgpuShadowSubmitted = wgpuShadowSubmitted &&
+        resizedClear.size() == size_t(resized * resized * 4) &&
+        resizedShadow.size() == resizedClear.size() &&
+        luma(resizedClear) - luma(resizedShadow) > 100;
+      if (wgpuShadowSubmitted) {
+        const uint64_t serial = actionTarget->getLastSubmissionSerial();
+        castStyle->style = SoShadowStyle::NO_SHADOWING;
+        gpuAction.apply(root);
+        std::vector<unsigned char> afterUnsupported;
+        actionTarget->readbackRGBA(afterUnsupported);
+        wgpuShadowSubmitted = gpuAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+          actionTarget->getLastSubmissionSerial() == serial &&
+          afterUnsupported == resizedShadow;
+        castStyle->style = SoShadowStyle::CASTS_SHADOW_AND_SHADOWED;
+        gpuAction.apply(root);
+        std::vector<unsigned char> afterRecovery;
+        if (gpuAction.getLastStatus() == CoinRenderAction::SUCCESS)
+          actionTarget->readbackRGBA(afterRecovery);
+        wgpuShadowSubmitted = wgpuShadowSubmitted &&
+          gpuAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+          actionTarget->getLastSubmissionSerial() > serial &&
+          afterRecovery == resizedShadow;
+      }
+      if (!wgpuShadowSubmitted)
+        std::cerr << "wgpu resize or publication check failed: "
+                  << gpuAction.getLastError().getString() << '\n';
+      if (wgpuShadowSubmitted) {
+        const uint64_t serial = actionTarget->getLastSubmissionSerial();
+        coin_wgpu_inject_fault(COIN_WGPU_FAULT_SHADOW_MAP_ALLOC);
+        gpuAction.apply(root);
+        coin_wgpu_inject_fault(0);
+        std::vector<unsigned char> afterMapFailure;
+        actionTarget->readbackRGBA(afterMapFailure);
+        wgpuShadowSubmitted = gpuAction.getLastStatus() == CoinRenderAction::OUT_OF_MEMORY &&
+          actionTarget->getLastSubmissionSerial() == serial &&
+          afterMapFailure == resizedShadow;
+        if (!wgpuShadowSubmitted)
+          std::cerr << "wgpu shadow-map failure did not preserve publication\n";
+      }
+    }
+    gpuAction.setRenderTarget(nullptr);
+    delete actionTarget;
+  }
+#endif
   CoinRenderFramePlan transparentFrame = captured;
   if (!transparentFrame.materials.empty())
     transparentFrame.materials[0].transparency = 0.25f;
@@ -270,7 +397,11 @@ int main()
       !spotProfile || !transparentExcludedFromFirstProfile ||
       !lateLightResolved || !lateLightExcludedFromFirstProfile ||
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||
-      !directionalProjectionCoversGroup) {
+      !directionalProjectionCoversGroup
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+      || !wgpuShadowSubmitted
+#endif
+      ) {
     std::cerr << "CoinRender shadow rejection did not preserve publication or recovery"
               << " profile=" << spotProfile << " (" << spotProfileDiagnostic << ")"
               << " late_excluded=" << lateLightExcludedFromFirstProfile
@@ -335,6 +466,23 @@ int main()
   const int withoutCaster = luminance(noCaster, 50, 50);
   const int centerDifference = std::abs(luminance(inactive, 64, 64) -
                                         luminance(active, 64, 64));
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+  if (!wgpuShadow.empty() && !wgpuUnshadowed.empty()) {
+    // SoOffscreenRenderer returns its GL rows bottom-up; wgpu readback is top-down.
+    const size_t sample = static_cast<size_t>(((side - 1 - 50) * side + 50) * 4);
+    const int wgpuShadowLuma = wgpuShadow[sample] + wgpuShadow[sample + 1] +
+                               wgpuShadow[sample + 2];
+    const int wgpuClearLuma = wgpuUnshadowed[sample] + wgpuUnshadowed[sample + 1] +
+                              wgpuUnshadowed[sample + 2];
+    std::cout << "wgpu spot sample unshadowed=" << wgpuClearLuma
+              << " shadowed=" << wgpuShadowLuma << '\n';
+    if (wgpuClearLuma - wgpuShadowLuma < 100 ||
+        std::abs(wgpuShadowLuma - castShadow) > 130) {
+      std::cerr << "wgpu spot did not match the Coin/GL shadow relation\n";
+      return 1;
+    }
+  }
+#endif
   std::cout << "Coin/GL shadow sample inactive=" << clearShadow
             << " active=" << castShadow
             << " late_light=" << lateLightShadow

@@ -1,8 +1,9 @@
-# P27 — sombras Coin: referência e implementação pendente
+# P27 — sombras Coin: perfil spot wgpu implementado
 
 P27 exige executar `SoShadowGroup` ativo com a semântica Coin em BGFX e wgpu.
-A referência GL, a captura comum e o bloqueio seguro estão verificados. Os
-executores de sombras ainda não existem. Portanto P27 permanece **aberto**.
+A referência GL e a captura comum estão verificadas. O primeiro perfil spot
+opaco executa em wgpu offscreen; os demais perfis e BGFX permanecem bloqueados.
+Portanto P27 permanece **aberto**.
 
 ## O que o Coin/GL faz
 
@@ -49,11 +50,12 @@ casters/receivers, vínculo da luz com o estado de iluminação (inclusive luz
 posterior aos objetos), projeção direcional cobrindo a geometria e precedência de
 `nearDistance`/`farDistance` para spot no plano comum.
 O teste passou nas builds RECORDING e wgpu; a referência GL passou em Xvfb.
-Isso verifica diagnóstico/publicação e o oráculo; não verifica sombras em GPU.
+Com `COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU=1`, também executa a fixture spot
+opaca no wgpu e compara seu readback ao GL.
 
 ## Fechamentos incrementais
 
-- [ ] **P27.1 — wgpu spot opaco:** uma luz spot, geometria opaca do grupo,
+- [x] **P27.1 — wgpu spot opaco:** uma luz spot, geometria opaca do grupo,
   `SoShadowStyle` nos casters/receivers, mapa de momentos com depth, lookup
   VSM aplicado somente à contribuição da luz e readback comparado à mesma
   fixture Coin/GL. Inclui resize, erro de recurso e preservação da publicação.
@@ -67,28 +69,42 @@ Isso verifica diagnóstico/publicação e o oráculo; não verifica sombras em G
 - [ ] **P27.5 — qualificação final:** matriz de GPU/API/driver, perdas, resize,
   falhas e tolerâncias visuais; fechar P27 somente com BGFX e wgpu exercitados.
 
-Cada subetapa exige um quadro renderizado e evidência de comportamento. A
-existência de shader, captura ou plano isolados não fecha P27.1.
+Cada subetapa exige um quadro renderizado e evidência de comportamento;
+shader, captura ou plano isolados não bastam para fechá-la.
 
-Dentro de P27.1, o pass de momentos spot foi exercitado isoladamente na GPU:
-dois triângulos opacos sobrepostos foram renderizados em RGBA32F com depth,
-lidos de volta e os momentos no pixel central conferidos com a distância
-linear do caster frontal, mesmo com o traseiro submetido por último. Passou
-em AMD Radeon Graphics (RADV RENOIR), Vulkan/radv, com
-`COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU=1 cargo test --manifest-path
-src/rendering/coinwgpu/rust_bridge/Cargo.toml --offline --lib
-captured_casters_write_front_moments`.
-O Core agora delimita esse primeiro perfil: um grupo, uma luz spot visível,
-triângulos PHONG opacos sem textura, clipping ou névoa, com a luz antes dos
-desenhos. A fixture opaca entra; transparência e luz posterior ficam fora.
-O empacotador C++ wgpu já transporta os casters selecionados pelo plano
-comum, preserva seus índices de geometria e calcula as matrizes de clip wgpu;
-o teste de FFI confere projeção e rejeição de índices inválidos. A ABI privada
-C++/Rust 31 transporta esses casters e os parâmetros do mapa; a ponte Rust
-retorna `UNSUPPORTED` antes da submissão enquanto o encoder não os usa, e o
-teste direto confirma que o serial não avança. O módulo Rust de momentos executa diretamente os casters ABI e passou no
-teste GPU com readback; ainda falta chamá-lo pelo encoder de quadro, aplicar o
-lookup VSM aos receivers e comparar o quadro final à fixture GL.
+P27.1 foi exercitado na GPU AMD Radeon Graphics (RADV RENOIR), Vulkan/radv.
+O Core limita a execução a um grupo, uma luz spot visível, triângulos PHONG
+opacos sem textura, clipping ou névoa, com a luz antes dos desenhos. O
+empacotador C++ transporta casters e receivers escolhidos pelo Core e a ABI
+privada C++/Rust 32 carrega índices, matrizes e parâmetros VSM. O encoder
+wgpu grava momentos RGBA32F com depth e o shader principal multiplica somente
+a contribuição da luz selecionada pelo resultado do lookup. `SoShadowStyle`
+controla recepção e participação no mapa.
+
+Na fixture 128×128, a amostra alinhada pela orientação vertical dos readbacks
+passou de `600` sem sombras para `30` com sombras no wgpu; o GL passou de
+`600` para `126`. O teste exige queda de pelo menos `100` e diferença máxima
+`130` entre os pixels sombreados, além de conferir o mesmo resultado pela
+Action e por submissão direta. Exercita desligar/restaurar a recepção,
+redimensionar para 160×160, rejeitar perfil sem caster preservando pixels e
+serial, recuperar a renderização e injetar falha na alocação do mapa antes da
+submissão, também preservando pixels e serial. O pass isolado de momentos
+continua validado por readback com dois triângulos sobrepostos. Reproduzir:
+
+```sh
+COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU=1 \
+COIN_RENDER_REQUIRE_GL_REFERENCE=1 \
+__GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
+COIN_GLX_PIXMAP_DIRECT_RENDERING=1 \
+xvfb-run -a -s '-screen 0 1280x1024x24 +extension GLX' \
+  ctest --test-dir <build-wgpu> -R '^CoinRenderShadowReferenceTest$' --output-on-failure
+```
+
+A Action só admite esse perfil em alvo offscreen wgpu síncrono sem RTT;
+BGFX, janela, async, transparência, luz direcional, múltiplas luzes e cenas
+próprias por luz seguem com `UNSUPPORTED` antes da submissão. A tolerância
+visual é da fixture, não uma promessa de equivalência pixel a pixel em todas
+as GPUs.
 
 ## Trabalho funcional para fechar
 
@@ -111,16 +127,17 @@ lookup VSM aos receivers e comparar o quadro final à fixture GL.
 - [ ] **Infra BGFX/wgpu:** mapas de momentos e depth, VSM, bias, textura,
   passes, sincronização, resize e reconstrução após perda, com shader específico
   por API. Mapas da Infra não entram no estado Coin. O shader wgpu que grava
-  momentos lineares, spot/directional, já valida em Naga, mas ainda não está
-  ligado ao encoder nem produz mapa.
+  momentos lineares, spot/directional, e o lookup no shader principal validam
+  em Naga. O perfil spot opaco wgpu funciona no quadro completo; os demais
+  perfis e o executor BGFX continuam pendentes.
 - [ ] **Shell/capacidades:** seleção explícita de perfil implementado e
   disponível; diagnósticos de limite/formato sem fallback visual implícito.
 - [ ] **Qualificação:** comparar spot/directional, todos os estilos, cenas
   próprias por luz, clipping, alpha/transparência, RTT, resize e falhas nas
   mesmas fixtures Coin/GL. Registrar GPU/API/driver e tolerâncias por célula.
 
-O preflight ainda retorna `UNSUPPORTED` para qualquer grupo ativo depois de
-construir e validar o plano comum, antes de submeter o quadro. Assim os pixels
-e o serial publicados anteriormente continuam intactos. A próxima entrega
-precisa materializar os passes e mapas em BGFX e wgpu; somente então o bloqueio
-poderá ser retirado após comparação visual com o oráculo GL.
+O preflight retorna `UNSUPPORTED` para grupos ativos fora do primeiro perfil
+spot wgpu offscreen, antes de submeter o quadro. Assim os pixels e o serial
+publicados anteriormente continuam intactos. A próxima subetapa é P27.2:
+câmera direcional, distância máxima e múltiplas luzes wgpu, sempre comparadas
+à referência Coin/GL.

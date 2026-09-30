@@ -32,6 +32,7 @@ typedef enum CoinWgpuStatus {
 #define COIN_WGPU_FAULT_RTT_COLOR_VIEW 302
 #define COIN_WGPU_FAULT_RTT_DEPTH_ALLOC 303
 #define COIN_WGPU_FAULT_RTT_BIND_GROUP 304
+#define COIN_WGPU_FAULT_SHADOW_MAP_ALLOC 305
 
 typedef enum CoinWgpuNativeSurfaceType {
   COIN_WGPU_NATIVE_XLIB = 1,
