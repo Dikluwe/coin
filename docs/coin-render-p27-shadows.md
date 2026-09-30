@@ -82,9 +82,12 @@ triângulos PHONG opacos sem textura, clipping ou névoa, com a luz antes dos
 desenhos. A fixture opaca entra; transparência e luz posterior ficam fora.
 O empacotador C++ wgpu já transporta os casters selecionados pelo plano
 comum, preserva seus índices de geometria e calcula as matrizes de clip wgpu;
-o teste de FFI confere projeção e rejeição de índices inválidos. Ainda falta
-expor esse pacote na ABI Rust, executar os casters capturados no encoder,
-aplicar o lookup VSM aos receivers e comparar o quadro final à fixture GL.
+o teste de FFI confere projeção e rejeição de índices inválidos. A ABI privada
+C++/Rust 31 transporta esses casters e os parâmetros do mapa; a ponte Rust
+retorna `UNSUPPORTED` antes da submissão enquanto o encoder não os usa, e o
+teste direto confirma que o serial não avança. Ainda falta executar os casters
+capturados no encoder, aplicar o lookup VSM aos receivers e comparar o quadro
+final à fixture GL.
 
 ## Trabalho funcional para fechar
 

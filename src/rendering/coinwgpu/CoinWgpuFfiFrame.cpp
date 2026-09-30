@@ -14,7 +14,12 @@
 #include <cstddef>
 #include <cstring>
 
-static_assert(sizeof(CoinWgpuFrameView) == 176, "Frame view ABI size changed");
+static_assert(sizeof(CoinWgpuFrameView) == 216, "Frame view ABI size changed");
+static_assert(sizeof(CoinWgpuShadowDraw) == 144, "Shadow draw ABI size changed");
+static_assert(offsetof(CoinWgpuFrameView, shadow_casters) == 176,
+              "Shadow casters ABI offset changed");
+static_assert(offsetof(CoinWgpuFrameView, shadow_map_size) == 192,
+              "Shadow map ABI offset changed");
 static_assert(offsetof(CoinWgpuFrameView, sorted_layers_passes) == 160,
               "Layer count ABI offset changed");
 static_assert(offsetof(CoinWgpuFrameView, transparency_reserved) == 164,
@@ -381,6 +386,17 @@ CoinWgpuFfiFrame::bindView(const CoinRenderFramePlan & frame, uint32_t width, ui
   this->view.height = height;
   this->view.sorted_layers_passes = frame.transparency.layers;
   this->view.transparency_budget_bytes = frame.transparency.bufferBudget;
+  this->view.shadow_casters = this->shadowFrame.casters.empty()
+    ? NULL : this->shadowFrame.casters.data();
+  this->view.shadow_caster_count =
+    static_cast<uint64_t>(this->shadowFrame.casters.size());
+  this->view.shadow_map_size = this->shadowFrame.mapSize;
+  this->view.shadow_near_distance = this->shadowFrame.nearDistance;
+  this->view.shadow_far_distance = this->shadowFrame.farDistance;
+  if (!frame.shadowGroups.empty()) {
+    this->view.shadow_epsilon = frame.shadowGroups[0].epsilon;
+    this->view.shadow_threshold = frame.shadowGroups[0].threshold;
+  }
 }
 
 const CoinWgpuFrameView &

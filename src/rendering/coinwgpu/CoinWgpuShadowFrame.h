@@ -2,6 +2,7 @@
 #define COIN_WGPU_SHADOW_FRAME_H
 
 #include "rendering/coinrender/CoinRenderShadowCore.h"
+#include "rendering/coinwgpu/CoinWgpuFfi.h"
 
 #include <cstring>
 #include <string>
@@ -9,14 +10,6 @@
 
 // Infra transport for the Core-selected casters. These draws refer to the
 // original frame vertex/index arrays, before composition reorders main draws.
-struct CoinWgpuShadowDraw {
-  uint32_t firstIndex = 0;
-  uint32_t indexCount = 0;
-  uint32_t renderStateSlot = 0;
-  float modelView[16] = {};
-  float modelViewProjection[16] = {};
-};
-
 struct CoinWgpuShadowFrame {
   uint32_t mapSize = 0;
   float nearDistance = 0.0f;
@@ -70,22 +63,22 @@ struct CoinWgpuShadowFrame {
           return false;
         }
       }
-      CoinWgpuShadowDraw packed;
-      packed.firstIndex = draw.geometry.firstIndex;
-      packed.indexCount = draw.geometry.indexCount;
-      packed.renderStateSlot = draw.renderStateSlot;
+      CoinWgpuShadowDraw packed{};
+      packed.first_index = draw.geometry.firstIndex;
+      packed.index_count = draw.geometry.indexCount;
+      packed.render_state_slot = draw.renderStateSlot;
       const SbMatrix modelView = frame.renderStates[draw.renderStateSlot].model *
                                  pass.view;
       const SbMatrix mvp = modelView * projectionWgpu;
-      std::memcpy(packed.modelView, modelView.getValue(), sizeof(packed.modelView));
-      std::memcpy(packed.modelViewProjection, mvp.getValue(),
-                  sizeof(packed.modelViewProjection));
-      for (const float value : packed.modelView)
+      std::memcpy(packed.model_view, modelView.getValue(), sizeof(packed.model_view));
+      std::memcpy(packed.model_view_projection, mvp.getValue(),
+                  sizeof(packed.model_view_projection));
+      for (const float value : packed.model_view)
         if (!std::isfinite(value)) {
           diagnostic = "Shadow caster has a non-finite model-view matrix";
           return false;
         }
-      for (const float value : packed.modelViewProjection)
+      for (const float value : packed.model_view_projection)
         if (!std::isfinite(value)) {
           diagnostic = "Shadow caster has a non-finite projection";
           return false;

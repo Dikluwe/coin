@@ -34,7 +34,7 @@
 #include <string>
 #include <vector>
 
-static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 30,
+static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 31,
               "Resolved composition and clipping bridge protocol");
 static_assert(sizeof(CoinWgpuLight) == 64, "3C light layout");
 
@@ -218,8 +218,24 @@ bool checkBridgeLimit() {
   target.depth_buffer_len = 16 * 16;
   char error[256] = {};
   const CoinWgpuStatus status = coin_wgpu_submit(&target, &frame, error, sizeof(error));
-  return check(status == COIN_WGPU_UNSUPPORTED, "FFI accepted light_count=9") &&
-         check(target.submission_serial == 0, "invalid FFI frame was submitted");
+  const bool lightLimit = check(status == COIN_WGPU_UNSUPPORTED,
+                                "FFI accepted light_count=9") &&
+                          check(target.submission_serial == 0,
+                                "invalid FFI frame was submitted");
+  state.light_count = 0;
+  CoinWgpuShadowDraw caster{};
+  frame.shadow_casters = &caster;
+  frame.shadow_caster_count = 1;
+  frame.shadow_map_size = 1024;
+  frame.shadow_near_distance = 1.0f;
+  frame.shadow_far_distance = 10.0f;
+  const CoinWgpuStatus shadowStatus =
+    coin_wgpu_submit(&target, &frame, error, sizeof(error));
+  return lightLimit &&
+         check(shadowStatus == COIN_WGPU_UNSUPPORTED,
+               "FFI accepted shadow casters without a VSM encoder") &&
+         check(target.submission_serial == 0,
+               "unsupported shadow frame was submitted");
 #else
   return true; // Bridge-specific contract is covered only by RUST_BRIDGE.
 #endif

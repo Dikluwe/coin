@@ -207,13 +207,18 @@ main()
       !check(shadowPacked.getShadowFrame().mapSize == 1024 &&
              shadowPacked.getShadowFrame().casters.size() == 1,
              "spot caster map or count changed") ||
-      !check(shadowPacked.getShadowFrame().casters[0].firstIndex == 0 &&
-             shadowPacked.getShadowFrame().casters[0].indexCount == 3,
-             "spot caster index range changed"))
+      !check(shadowPacked.getShadowFrame().casters[0].first_index == 0 &&
+             shadowPacked.getShadowFrame().casters[0].index_count == 3,
+             "spot caster index range changed") ||
+      !check(shadowPacked.getView().shadow_casters ==
+               shadowPacked.getShadowFrame().casters.data() &&
+             shadowPacked.getView().shadow_caster_count == 1 &&
+             shadowPacked.getView().shadow_map_size == 1024,
+             "spot caster ABI view was not bound"))
     return 1;
   const auto & caster = shadowPacked.getShadowFrame().casters[0];
   SbMatrix shadowMvp;
-  shadowMvp.setValue(caster.modelViewProjection);
+  shadowMvp.setValue(caster.model_view_projection);
   SbVec3f projected;
   shadowMvp.multVecMatrix(SbVec3f(0, 0, -3), projected);
   if (!check(std::abs(projected[0]) < 0.01f &&

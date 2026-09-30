@@ -20,11 +20,14 @@ use std::sync::{Arc, Mutex, OnceLock};
 mod composition;
 mod peeling;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 30;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 31;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
-    assert!(std::mem::size_of::<CoinWgpuFrameView>() == 176);
+    assert!(std::mem::size_of::<CoinWgpuFrameView>() == 216);
+    assert!(std::mem::size_of::<CoinWgpuShadowDraw>() == 144);
+    assert!(std::mem::offset_of!(CoinWgpuFrameView, shadow_casters) == 176);
+    assert!(std::mem::offset_of!(CoinWgpuFrameView, shadow_map_size) == 192);
     assert!(std::mem::size_of::<CoinWgpuSurfaceCreateInfo>() == 56);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, sorted_layers_passes) == 160);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, transparency_reserved) == 164);
@@ -334,6 +337,17 @@ pub struct GpuMaterial {
 }
 
 #[repr(C)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
+pub struct CoinWgpuShadowDraw {
+    pub first_index: u32,
+    pub index_count: u32,
+    pub render_state_slot: u32,
+    pub reserved: u32,
+    pub model_view: [f32; 16],
+    pub model_view_projection: [f32; 16],
+}
+
+#[repr(C)]
 pub struct CoinWgpuFrameView {
     pub abi_version: u32,
     pub struct_size: u32,
@@ -363,6 +377,13 @@ pub struct CoinWgpuFrameView {
     pub sorted_layers_passes: u32,
     pub transparency_reserved: u32,
     pub transparency_budget_bytes: u64,
+    pub shadow_casters: *const CoinWgpuShadowDraw,
+    pub shadow_caster_count: u64,
+    pub shadow_map_size: u32,
+    pub shadow_near_distance: f32,
+    pub shadow_far_distance: f32,
+    pub shadow_epsilon: f32,
+    pub shadow_threshold: f32,
 }
 
 #[repr(C)]
@@ -3902,6 +3923,17 @@ fn coin_wgpu_surface_submit_internal(
             return CoinWgpuStatus::InvalidArgument;
         }
 
+        if f.shadow_caster_count != 0 {
+            set_error(error_buf, error_buf_len,
+                "Shadow caster transport is present, but the wgpu VSM encoder is not connected");
+            return CoinWgpuStatus::Unsupported;
+        }
+        if !f.shadow_casters.is_null() || f.shadow_map_size != 0 {
+            set_error(error_buf, error_buf_len,
+                "Shadow payload has a pointer or map size without casters");
+            return CoinWgpuStatus::InvalidArgument;
+        }
+
         // 4. Dimensions validation: zero dimensions = suspended -> NOT_READY
         if f.width == 0 || f.height == 0 {
             return CoinWgpuStatus::NotReady;
@@ -4686,6 +4718,17 @@ fn coin_wgpu_submit_internal(
                     f.struct_size
                 ),
             );
+            return CoinWgpuStatus::InvalidArgument;
+        }
+
+        if f.shadow_caster_count != 0 {
+            set_error(error_buf, error_buf_len,
+                "Shadow caster transport is present, but the wgpu VSM encoder is not connected");
+            return CoinWgpuStatus::Unsupported;
+        }
+        if !f.shadow_casters.is_null() || f.shadow_map_size != 0 {
+            set_error(error_buf, error_buf_len,
+                "Shadow payload has a pointer or map size without casters");
             return CoinWgpuStatus::InvalidArgument;
         }
 
