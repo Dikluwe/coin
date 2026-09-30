@@ -6,7 +6,9 @@ executores de sombras ainda não existem. Portanto P27 permanece **aberto**.
 
 ## O que o Coin/GL faz
 
-`SoShadowGroup` usa um mapa por luz suportada e Variance Shadow Maps (VSM).
+`SoShadowGroup` usa um mapa por `SoSpotLight` ou `SoShadowDirectionalLight`
+habilitada e Variance Shadow Maps (VSM); `SoDirectionalLight` comum e
+`SoPointLight` não geram mapa.
 Quando GL 2.0, framebuffer object ou textura float faltam, ele atravessa o
 grupo sem sombras e emite aviso. Um grupo inativo também atravessa os filhos
 normalmente. O caminho com sombras consulta a viabilidade de mapas RGBA16F na GL
@@ -50,7 +52,8 @@ Isso verifica diagnóstico/publicação e o oráculo; não verifica sombras em G
 ## Trabalho funcional para fechar
 
 - [x] **Wiring inicial:** capturar grupo ativo, campos, `SoShadowStyle`, luzes
-  spot/directional, matrizes e indicação de `shadowMapScene`; respeitar o escopo
+  spot/directional, elegibilidade Coin, matrizes e indicação de
+  `shadowMapScene`; respeitar o escopo
   da travessia e os separadores sem chamar `GLRender`.
 - [ ] **Wiring completo:** qualificar overrides, caminhos parciais, cenas próprias
   por luz e todos os modos de composição com fixtures Coin/GL.

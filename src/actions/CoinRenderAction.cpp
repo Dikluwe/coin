@@ -1135,6 +1135,7 @@ CoinRenderActionP::lightPreCB(void * userdata,
   if (node->isOfType(SoSpotLight::getClassTypeId())) {
     const auto * spot = static_cast<const SoSpotLight *>(node);
     snapshot.type = CoinRenderLightType::SPOT;
+    snapshot.shadowEligible = true;
     snapshot.position = spot->location.getValue();
     snapshot.direction = spot->direction.getValue();
     snapshot.cutOffAngle = spot->cutOffAngle.getValue();
@@ -1151,6 +1152,7 @@ CoinRenderActionP::lightPreCB(void * userdata,
     snapshot.direction = directional->direction.getValue();
     if (node->isOfType(SoShadowDirectionalLight::getClassTypeId())) {
       const auto * shadow = static_cast<const SoShadowDirectionalLight *>(node);
+      snapshot.shadowEligible = true;
       snapshot.hasCustomScene = shadow->shadowMapScene.getValue() != nullptr;
       snapshot.maxShadowDistance = shadow->maxShadowDistance.getValue();
       snapshot.bboxCenter = shadow->bboxCenter.getValue();

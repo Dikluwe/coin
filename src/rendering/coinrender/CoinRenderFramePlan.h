@@ -112,6 +112,7 @@ struct CoinRenderShadowLightSnapshot {
   uint64_t sourceRevision = 0;
   CoinRenderLightType type = CoinRenderLightType::POINT;
   bool enabled = false;
+  bool shadowEligible = false; // Coin/GL: spot or SoShadowDirectionalLight.
   bool hasCustomScene = false;
   SbMatrix model = SbMatrix::identity();
   SbVec3f position = SbVec3f(0, 0, 0);

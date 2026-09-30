@@ -226,7 +226,7 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
     while (mapSize < requested) mapSize <<= 1;
     for (size_t l = 0; l < frame.shadowLights.size(); ++l) {
       const auto & light = frame.shadowLights[l];
-      if (light.groupSlot != g + 1 || !light.enabled) continue;
+      if (light.groupSlot != g + 1 || !light.enabled || !light.shadowEligible) continue;
       if (light.hasCustomScene ||
           (light.type != CoinRenderLightType::DIRECTIONAL &&
            light.type != CoinRenderLightType::SPOT)) {

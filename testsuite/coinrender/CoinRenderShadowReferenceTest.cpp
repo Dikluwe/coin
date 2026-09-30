@@ -13,6 +13,8 @@
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/nodes/SoTranslation.h>
+#include <Inventor/nodes/SoDirectionalLight.h>
+#include <Inventor/nodes/SoPointLight.h>
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/SbColor.h>
 
@@ -132,6 +134,21 @@ int main()
   target->readbackRGBA(afterRejection);
   const bool preserved = target->getLastSubmissionSerial() == originalSerial &&
                          !published.empty() && published == afterRejection;
+  auto * ordinaryDirectional = new SoDirectionalLight;
+  auto * ordinaryPoint = new SoPointLight;
+  group->addChild(ordinaryDirectional);
+  group->addChild(ordinaryPoint);
+  action.apply(root);
+  const auto & mixedFrame = action.getPimpl()->lastRejectedShadowFrame;
+  const auto & mixedPlan = action.getPimpl()->lastRejectedShadowPlan;
+  const bool lightEligibility = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+      mixedFrame.shadowLights.size() == 3 &&
+      mixedFrame.shadowLights[0].shadowEligible &&
+      !mixedFrame.shadowLights[1].shadowEligible &&
+      !mixedFrame.shadowLights[2].shadowEligible &&
+      mixedPlan.passes.size() == 1 && mixedPlan.passes[0].lightSlot == 0;
+  group->removeChild(ordinaryPoint);
+  group->removeChild(ordinaryDirectional);
   light->nearDistance = 2.0f;
   light->farDistance = 12.0f;
   action.apply(root);
@@ -187,7 +204,7 @@ int main()
   light->on = TRUE;
   action.setRenderTarget(nullptr);
   delete target;
-  if (!publishedOk || !rejected || !preserved || !recovered || !captureOk || !spotRangeCaptured || !directionalCaptured ||
+  if (!publishedOk || !rejected || !preserved || !recovered || !captureOk || !lightEligibility || !spotRangeCaptured || !directionalCaptured ||
       !directionalProjectionCoversGroup) {
     std::cerr << "CoinRender shadow rejection did not preserve publication or recovery\n";
     root->unref();
