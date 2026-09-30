@@ -14,7 +14,7 @@
 #include <cstddef>
 #include <cstring>
 
-static_assert(sizeof(CoinWgpuFrameView) == 280, "Frame view ABI size changed");
+static_assert(sizeof(CoinWgpuFrameView) == 376, "Frame view ABI size changed");
 static_assert(sizeof(CoinWgpuShadowDraw) == 144, "Shadow draw ABI size changed");
 static_assert(sizeof(CoinWgpuShadowReceiver) == 144, "Shadow receiver ABI size changed");
 static_assert(offsetof(CoinWgpuShadowReceiver, max_shadow_distance) == 8,
@@ -424,6 +424,28 @@ CoinWgpuFfiFrame::bindView(const CoinRenderFramePlan & frame, uint32_t width, ui
     this->view.shadow_kind_second = second.kind;
     this->view.shadow_receivers_second = second.receivers.data();
     this->view.shadow_receiver_count_second = static_cast<uint64_t>(second.receivers.size());
+  }
+  if (this->shadowFrame.hasThird) {
+    const auto & pass = this->shadowFrame.third;
+    this->view.shadow_casters_third = pass.casters.data();
+    this->view.shadow_caster_count_third = static_cast<uint64_t>(pass.casters.size());
+    this->view.shadow_map_size_third = pass.mapSize;
+    this->view.shadow_near_distance_third = pass.nearDistance;
+    this->view.shadow_far_distance_third = pass.farDistance;
+    this->view.shadow_kind_third = pass.kind;
+    this->view.shadow_receivers_third = pass.receivers.data();
+    this->view.shadow_receiver_count_third = static_cast<uint64_t>(pass.receivers.size());
+  }
+  if (this->shadowFrame.hasFourth) {
+    const auto & pass = this->shadowFrame.fourth;
+    this->view.shadow_casters_fourth = pass.casters.data();
+    this->view.shadow_caster_count_fourth = static_cast<uint64_t>(pass.casters.size());
+    this->view.shadow_map_size_fourth = pass.mapSize;
+    this->view.shadow_near_distance_fourth = pass.nearDistance;
+    this->view.shadow_far_distance_fourth = pass.farDistance;
+    this->view.shadow_kind_fourth = pass.kind;
+    this->view.shadow_receivers_fourth = pass.receivers.data();
+    this->view.shadow_receiver_count_fourth = static_cast<uint64_t>(pass.receivers.size());
   }
 }
 

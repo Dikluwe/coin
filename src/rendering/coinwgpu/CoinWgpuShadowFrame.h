@@ -48,7 +48,11 @@ struct CoinWgpuLateShadowLight {
 
 struct CoinWgpuShadowFrame : CoinWgpuShadowPass {
   CoinWgpuShadowPass second;
+  CoinWgpuShadowPass third;
+  CoinWgpuShadowPass fourth;
   bool hasSecond = false;
+  bool hasThird = false;
+  bool hasFourth = false;
   std::vector<CoinWgpuLateShadowLight> lateLights;
 
   bool prepare(const CoinRenderFramePlan & frame, std::string & diagnostic)
@@ -61,18 +65,11 @@ struct CoinWgpuShadowFrame : CoinWgpuShadowPass {
     }
     CoinRenderShadowPlan plan;
     if (!coin_render_plan_shadows(frame, plan, diagnostic)) return false;
-    std::string spotDiagnostic, directionalDiagnostic, dualDiagnostic;
-    const bool single = coin_render_shadow_single_spot_opaque_profile(
-      frame, plan, spotDiagnostic) ||
-      coin_render_shadow_single_directional_opaque_profile(
-        frame, plan, directionalDiagnostic);
-    const bool dual = !single && coin_render_shadow_two_opaque_profile(
-      frame, plan, dualDiagnostic);
-    if (!single && !dual) {
-      diagnostic = spotDiagnostic + "; " + directionalDiagnostic + "; " + dualDiagnostic;
-      return false;
-    }
-    candidate.hasSecond = dual;
+    if (!coin_render_shadow_opaque_profile(
+          frame, plan, plan.passes.size(), diagnostic)) return false;
+    candidate.hasSecond = plan.passes.size() > 1;
+    candidate.hasThird = plan.passes.size() > 2;
+    candidate.hasFourth = plan.passes.size() > 3;
     const SbMatrix clipConversion(
       1.0f, 0.0f, 0.0f, 0.0f,
       0.0f, 1.0f, 0.0f, 0.0f,
@@ -81,7 +78,9 @@ struct CoinWgpuShadowFrame : CoinWgpuShadowPass {
     for (size_t passSlot = 0; passSlot < plan.passes.size(); ++passSlot) {
       const auto & pass = plan.passes[passSlot];
       CoinWgpuShadowPass & packedPass = passSlot == 0
-        ? static_cast<CoinWgpuShadowPass &>(candidate) : candidate.second;
+        ? static_cast<CoinWgpuShadowPass &>(candidate) :
+          passSlot == 1 ? candidate.second :
+          passSlot == 2 ? candidate.third : candidate.fourth;
       packedPass.mapSize = pass.mapSize;
       packedPass.kind = frame.shadowLights[pass.lightSlot].type == CoinRenderLightType::SPOT ? 1u : 0u;
       packedPass.nearDistance = pass.nearDistance;
@@ -119,7 +118,8 @@ struct CoinWgpuShadowFrame : CoinWgpuShadowPass {
           candidate.lateLights.push_back(late);
           receiver.lighting_index = static_cast<int32_t>(lateIndex);
         }
-        const SbMatrix modelView = state.model * pass.view;
+        const SbMatrix modelView = passSlot < 2 ? state.model * pass.view :
+          state.view.inverse() * pass.view;
         const SbMatrix mvp = modelView * projectionWgpu;
         std::memcpy(receiver.model_view, modelView.getValue(),
                     sizeof(receiver.model_view));

@@ -43,6 +43,16 @@ struct Uniforms {
     shadow_params_second: vec4<f32>,
     shadow_meta_second: vec4<f32>,
     shadow_falloff_second: vec4<f32>,
+    shadow_model_view_projection_third: mat4x4<f32>,
+    shadow_model_view_third: mat4x4<f32>,
+    shadow_params_third: vec4<f32>,
+    shadow_meta_third: vec4<f32>,
+    shadow_falloff_third: vec4<f32>,
+    shadow_model_view_projection_fourth: mat4x4<f32>,
+    shadow_model_view_fourth: mat4x4<f32>,
+    shadow_params_fourth: vec4<f32>,
+    shadow_meta_fourth: vec4<f32>,
+    shadow_falloff_fourth: vec4<f32>,
 };
 
 struct GpuMaterial {
@@ -80,6 +90,8 @@ var s_diffuse: sampler;
 @group(0) @binding(17) var s_texture7: sampler;
 @group(0) @binding(20) var t_shadow: texture_2d<f32>;
 @group(0) @binding(21) var t_shadow_second: texture_2d<f32>;
+@group(0) @binding(22) var t_shadow_third: texture_2d<f32>;
+@group(0) @binding(23) var t_shadow_fourth: texture_2d<f32>;
 
 
 struct VertexInput {
@@ -168,7 +180,9 @@ fn shade_vertex(mat: GpuMaterial, position_view: vec3<f32>, normal_view: vec3<f3
     for (var i: u32 = 0u; i < 8u; i = i + 1u) {
         if (f32(i) >= u.light_meta.x) { break; }
         if ((u.shadow_params.x > 0.5 && i == u32(u.shadow_meta.y)) ||
-            (u.shadow_params_second.x > 0.5 && i == u32(u.shadow_meta_second.y))) { continue; }
+            (u.shadow_params_second.x > 0.5 && i == u32(u.shadow_meta_second.y)) ||
+            (u.shadow_params_third.x > 0.5 && i == u32(u.shadow_meta_third.y)) ||
+            (u.shadow_params_fourth.x > 0.5 && i == u32(u.shadow_meta_fourth.y))) { continue; }
         rgb += light_contribution(u.lights[i], mat, position_view, normal_view);
     }
     return vec4<f32>(clamp(rgb, vec3<f32>(0.0), vec3<f32>(1.0)), mat.diffuse.a);
@@ -337,6 +351,34 @@ fn fragment_color(input: VertexOutput) -> vec4<f32> {
             clamp(primary.rgb + contribution * vsm_shadow_factor(input.shadow_coord_second, input.shadow_light_view_second,
                 input.position_view, u.shadow_params_second, u.shadow_meta_second,
                 u.shadow_falloff_second, t_shadow_second),
+                  vec3<f32>(0.0), vec3<f32>(1.0)), primary.a);
+    }
+    if (u.shadow_params_third.x > 0.5 && u.params.w > 0.5) {
+        let light = u.lights[u32(u.shadow_meta_third.y)];
+        let contribution = light_contribution(light,
+            materials[input.material_slot], input.position_view, input.normal_view);
+        let coord = u.shadow_model_view_projection_third *
+            vec4<f32>(input.position_view, 1.0);
+        let light_view = (u.shadow_model_view_third *
+            vec4<f32>(input.position_view, 1.0)).xyz;
+        primary = vec4<f32>(
+            clamp(primary.rgb + contribution * vsm_shadow_factor(coord, light_view,
+                input.position_view, u.shadow_params_third, u.shadow_meta_third,
+                u.shadow_falloff_third, t_shadow_third),
+                  vec3<f32>(0.0), vec3<f32>(1.0)), primary.a);
+    }
+    if (u.shadow_params_fourth.x > 0.5 && u.params.w > 0.5) {
+        let light = u.lights[u32(u.shadow_meta_fourth.y)];
+        let contribution = light_contribution(light,
+            materials[input.material_slot], input.position_view, input.normal_view);
+        let coord = u.shadow_model_view_projection_fourth *
+            vec4<f32>(input.position_view, 1.0);
+        let light_view = (u.shadow_model_view_fourth *
+            vec4<f32>(input.position_view, 1.0)).xyz;
+        primary = vec4<f32>(
+            clamp(primary.rgb + contribution * vsm_shadow_factor(coord, light_view,
+                input.position_view, u.shadow_params_fourth, u.shadow_meta_fourth,
+                u.shadow_falloff_fourth, t_shadow_fourth),
                   vec3<f32>(0.0), vec3<f32>(1.0)), primary.a);
     }
     if(u.composition_meta.y>0.5){primary.a=1.0;}

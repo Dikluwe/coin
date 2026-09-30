@@ -653,12 +653,8 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
         (!this->target->getPimpl()->backend ||
          dynamic_cast<CoinWgpuBackend *>(this->target->getPimpl()->backend.get()))) {
       std::string profileDiagnostic;
-      executableShadow = coin_render_shadow_single_spot_opaque_profile(
-        plan, shadowPlan, profileDiagnostic) ||
-        coin_render_shadow_single_directional_opaque_profile(
-          plan, shadowPlan, profileDiagnostic) ||
-        coin_render_shadow_two_opaque_profile(
-          plan, shadowPlan, profileDiagnostic);
+      executableShadow = coin_render_shadow_opaque_profile(
+        plan, shadowPlan, shadowPlan.passes.size(), profileDiagnostic);
     }
 #endif
 #if defined(HAVE_COIN_BGFX)

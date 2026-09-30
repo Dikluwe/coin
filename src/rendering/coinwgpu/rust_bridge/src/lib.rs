@@ -21,11 +21,11 @@ mod composition;
 mod peeling;
 mod shadow;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 35;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 36;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
-    assert!(std::mem::size_of::<CoinWgpuFrameView>() == 280);
+    assert!(std::mem::size_of::<CoinWgpuFrameView>() == 376);
     assert!(std::mem::size_of::<CoinWgpuShadowDraw>() == 144);
     assert!(std::mem::size_of::<CoinWgpuShadowReceiver>() == 144);
     assert!(std::mem::offset_of!(CoinWgpuShadowReceiver, max_shadow_distance) == 8);
@@ -225,6 +225,16 @@ pub struct CoinWgpuUniforms {
     pub shadow_params_second: [f32; 4],
     pub shadow_meta_second: [f32; 4],
     pub shadow_falloff_second: [f32; 4],
+    pub shadow_model_view_projection_third: [[f32; 4]; 4],
+    pub shadow_model_view_third: [[f32; 4]; 4],
+    pub shadow_params_third: [f32; 4],
+    pub shadow_meta_third: [f32; 4],
+    pub shadow_falloff_third: [f32; 4],
+    pub shadow_model_view_projection_fourth: [[f32; 4]; 4],
+    pub shadow_model_view_fourth: [[f32; 4]; 4],
+    pub shadow_params_fourth: [f32; 4],
+    pub shadow_meta_fourth: [f32; 4],
+    pub shadow_falloff_fourth: [f32; 4],
 }
 
 #[repr(C)]
@@ -423,6 +433,22 @@ pub struct CoinWgpuFrameView {
     pub shadow_kind_second: u32,
     pub shadow_receivers_second: *const CoinWgpuShadowReceiver,
     pub shadow_receiver_count_second: u64,
+    pub shadow_casters_third: *const CoinWgpuShadowDraw,
+    pub shadow_caster_count_third: u64,
+    pub shadow_map_size_third: u32,
+    pub shadow_near_distance_third: f32,
+    pub shadow_far_distance_third: f32,
+    pub shadow_kind_third: u32,
+    pub shadow_receivers_third: *const CoinWgpuShadowReceiver,
+    pub shadow_receiver_count_third: u64,
+    pub shadow_casters_fourth: *const CoinWgpuShadowDraw,
+    pub shadow_caster_count_fourth: u64,
+    pub shadow_map_size_fourth: u32,
+    pub shadow_near_distance_fourth: f32,
+    pub shadow_far_distance_fourth: f32,
+    pub shadow_kind_fourth: u32,
+    pub shadow_receivers_fourth: *const CoinWgpuShadowReceiver,
+    pub shadow_receiver_count_fourth: u64,
 }
 
 #[repr(C)]
@@ -1543,6 +1569,20 @@ fn get_or_init_device_impl<'a>(
         },
         count: None,
     });
+    layout_entries.push(wgpu::BindGroupLayoutEntry {
+        binding: 22, visibility: wgpu::ShaderStages::FRAGMENT,
+        ty: wgpu::BindingType::Texture {
+            sample_type: wgpu::TextureSampleType::Float { filterable: false },
+            view_dimension: wgpu::TextureViewDimension::D2, multisampled: false,
+        }, count: None,
+    });
+    layout_entries.push(wgpu::BindGroupLayoutEntry {
+        binding: 23, visibility: wgpu::ShaderStages::FRAGMENT,
+        ty: wgpu::BindingType::Texture {
+            sample_type: wgpu::TextureSampleType::Float { filterable: false },
+            view_dimension: wgpu::TextureViewDimension::D2, multisampled: false,
+        }, count: None,
+    });
     let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         label: Some("Coin eight-unit texture program"),
         entries: &layout_entries,
@@ -2249,6 +2289,8 @@ struct ShadowPass<'a> {
 
 struct ShadowFrame<'a> {
     second: Option<ShadowPass<'a>>,
+    third: Option<ShadowPass<'a>>,
+    fourth: Option<ShadowPass<'a>>,
     casters: &'a [CoinWgpuShadowDraw],
     receivers: &'a [CoinWgpuShadowReceiver],
     map_size: u32,
@@ -2312,6 +2354,20 @@ fn encode_frame(
                     "Second shadow pass does not match render states or device limits".into()));
             }
         }
+        if let Some(pass) = &shadow.third {
+            if pass.map_size > ctx.device.limits().max_texture_dimension_2d ||
+                pass.receivers.len() != states_slice.len() || pass.casters.is_empty() {
+                return Err((CoinWgpuStatus::InvalidArgument,
+                    "third shadow pass does not match render states or device limits".into()));
+            }
+        }
+        if let Some(pass) = &shadow.fourth {
+            if pass.map_size > ctx.device.limits().max_texture_dimension_2d ||
+                pass.receivers.len() != states_slice.len() || pass.casters.is_empty() {
+                return Err((CoinWgpuStatus::InvalidArgument,
+                    "fourth shadow pass does not match render states or device limits".into()));
+            }
+        }
         for (slot, receiver) in shadow.receivers.iter().enumerate() {
             if receiver.receives > 1
                 || !receiver.max_shadow_distance.is_finite()
@@ -2335,6 +2391,34 @@ fn encode_frame(
                         .all(|v| v.is_finite()) {
                     return Err((CoinWgpuStatus::InvalidArgument,
                         format!("Invalid second shadow receiver {slot}")));
+                }
+            }
+        }
+        if let Some(pass) = &shadow.third {
+            for (slot, receiver) in pass.receivers.iter().enumerate() {
+                if receiver.receives > 1 ||
+                    (receiver.receives != 0 && (receiver.lighting_index < 0 ||
+                     receiver.lighting_index as u32 >= states_slice[slot].light_count)) ||
+                    !receiver.max_shadow_distance.is_finite() ||
+                    !receiver.distance_falloff_coefficient.is_finite() ||
+                    !receiver.model_view.iter().chain(receiver.model_view_projection.iter())
+                        .all(|v| v.is_finite()) {
+                    return Err((CoinWgpuStatus::InvalidArgument,
+                        format!("Invalid third shadow receiver {slot}")));
+                }
+            }
+        }
+        if let Some(pass) = &shadow.fourth {
+            for (slot, receiver) in pass.receivers.iter().enumerate() {
+                if receiver.receives > 1 ||
+                    (receiver.receives != 0 && (receiver.lighting_index < 0 ||
+                     receiver.lighting_index as u32 >= states_slice[slot].light_count)) ||
+                    !receiver.max_shadow_distance.is_finite() ||
+                    !receiver.distance_falloff_coefficient.is_finite() ||
+                    !receiver.model_view.iter().chain(receiver.model_view_projection.iter())
+                        .all(|v| v.is_finite()) {
+                    return Err((CoinWgpuStatus::InvalidArgument,
+                        format!("Invalid fourth shadow receiver {slot}")));
                 }
             }
         }
@@ -2856,6 +2940,16 @@ fn encode_frame(
             .map_err(|msg| (CoinWgpuStatus::InvalidArgument, msg))?)
     } else { None };
 
+    let shadow_map_third = if let Some(pass) = shadow_frame.and_then(|shadow| shadow.third.as_ref()) {
+        Some(shadow::encode_moments(&ctx.device, &mut encoder, vertices_slice,
+            indices_slice, pass.casters, pass.map_size, pass.near, pass.far, pass.kind)
+            .map_err(|msg| (CoinWgpuStatus::InvalidArgument, msg))?)
+    } else { None };
+    let shadow_map_fourth = if let Some(pass) = shadow_frame.and_then(|shadow| shadow.fourth.as_ref()) {
+        Some(shadow::encode_moments(&ctx.device, &mut encoder, vertices_slice,
+            indices_slice, pass.casters, pass.map_size, pass.near, pass.far, pass.kind)
+            .map_err(|msg| (CoinWgpuStatus::InvalidArgument, msg))?)
+    } else { None };
     {
         let _clear = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Coin initial attachments clear"),
@@ -3205,6 +3299,10 @@ fn encode_frame(
                 });
                 let receiver_second = shadow_frame.and_then(|shadow| shadow.second.as_ref())
                     .map(|second| (&second.receivers[draw.render_state_slot as usize], second));
+                let receiver_third = shadow_frame.and_then(|shadow| shadow.third.as_ref())
+                    .map(|pass| (&pass.receivers[draw.render_state_slot as usize], pass));
+                let receiver_fourth = shadow_frame.and_then(|shadow| shadow.fourth.as_ref())
+                    .map(|pass| (&pass.receivers[draw.render_state_slot as usize], pass));
                 let shadow_matrix = |flat: &[f32; 16]| -> [[f32; 4]; 4] {
                     std::array::from_fn(|col| std::array::from_fn(|row| flat[col * 4 + row]))
                 };
@@ -3307,6 +3405,38 @@ fn encode_frame(
                          second.kind as f32, r.max_shadow_distance]),
                     shadow_falloff_second: receiver_second.map_or([0.0; 4], |(r, _)|
                         [r.distance_falloff_coefficient, 0.0, 0.0, 0.0]),
+                    shadow_model_view_projection_third: receiver_third.map_or(
+                        [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0],
+                         [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
+                        |(r, _)| shadow_matrix(&r.model_view_projection)),
+                    shadow_model_view_third: receiver_third.map_or(
+                        [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0],
+                         [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
+                        |(r, _)| shadow_matrix(&r.model_view)),
+                    shadow_params_third: receiver_third.map_or([0.0, 0.0, 1.0, 0.0],
+                        |(r, pass)| [r.receives as f32, pass.near,
+                            pass.far, shadow_frame.unwrap().epsilon]),
+                    shadow_meta_third: receiver_third.map_or([0.0; 4], |(r, pass)|
+                        [shadow_frame.unwrap().threshold, r.lighting_index as f32,
+                         pass.kind as f32, r.max_shadow_distance]),
+                    shadow_falloff_third: receiver_third.map_or([0.0; 4], |(r, _)|
+                        [r.distance_falloff_coefficient, 0.0, 0.0, 0.0]),
+                    shadow_model_view_projection_fourth: receiver_fourth.map_or(
+                        [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0],
+                         [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
+                        |(r, _)| shadow_matrix(&r.model_view_projection)),
+                    shadow_model_view_fourth: receiver_fourth.map_or(
+                        [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0],
+                         [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
+                        |(r, _)| shadow_matrix(&r.model_view)),
+                    shadow_params_fourth: receiver_fourth.map_or([0.0, 0.0, 1.0, 0.0],
+                        |(r, pass)| [r.receives as f32, pass.near,
+                            pass.far, shadow_frame.unwrap().epsilon]),
+                    shadow_meta_fourth: receiver_fourth.map_or([0.0; 4], |(r, pass)|
+                        [shadow_frame.unwrap().threshold, r.lighting_index as f32,
+                         pass.kind as f32, r.max_shadow_distance]),
+                    shadow_falloff_fourth: receiver_fourth.map_or([0.0; 4], |(r, _)|
+                        [r.distance_falloff_coefficient, 0.0, 0.0, 0.0]),
                 };
 
                 if layers.iter().any(|t| t.enabled != 0)
@@ -3375,6 +3505,16 @@ fn encode_frame(
                     entries.push(wgpu::BindGroupEntry {
                         binding: 21,
                         resource: wgpu::BindingResource::TextureView(shadow_map_second.as_ref()
+                            .map_or(&ctx.default_texture_view, |map| &map.view)),
+                    });
+                    entries.push(wgpu::BindGroupEntry {
+                        binding: 22,
+                        resource: wgpu::BindingResource::TextureView(shadow_map_third.as_ref()
+                            .map_or(&ctx.default_texture_view, |map| &map.view)),
+                    });
+                    entries.push(wgpu::BindGroupEntry {
+                        binding: 23,
+                        resource: wgpu::BindingResource::TextureView(shadow_map_fourth.as_ref()
                             .map_or(&ctx.default_texture_view, |map| &map.view)),
                     });
                     let bind_group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -4129,7 +4269,11 @@ fn coin_wgpu_surface_submit_internal(
         if !f.shadow_casters.is_null() || f.shadow_map_size != 0 || f.shadow_kind != 0 ||
             !f.shadow_receivers.is_null() || f.shadow_receiver_count != 0 ||
             !f.shadow_casters_second.is_null() || f.shadow_caster_count_second != 0 ||
-            !f.shadow_receivers_second.is_null() || f.shadow_receiver_count_second != 0 {
+            !f.shadow_receivers_second.is_null() || f.shadow_receiver_count_second != 0 ||
+            !f.shadow_casters_third.is_null() || f.shadow_caster_count_third != 0 ||
+            !f.shadow_receivers_third.is_null() || f.shadow_receiver_count_third != 0 ||
+            !f.shadow_casters_fourth.is_null() || f.shadow_caster_count_fourth != 0 ||
+            !f.shadow_receivers_fourth.is_null() || f.shadow_receiver_count_fourth != 0 {
             set_error(error_buf, error_buf_len,
                 "Shadow payload has data without casters");
             return CoinWgpuStatus::InvalidArgument;
@@ -5080,7 +5224,11 @@ fn coin_wgpu_submit_internal(
             if !f.shadow_casters.is_null() || f.shadow_map_size != 0 || f.shadow_kind != 0
                 || !f.shadow_receivers.is_null() || f.shadow_receiver_count != 0
                 || !f.shadow_casters_second.is_null() || f.shadow_caster_count_second != 0
-                || !f.shadow_receivers_second.is_null() || f.shadow_receiver_count_second != 0 {
+                || !f.shadow_receivers_second.is_null() || f.shadow_receiver_count_second != 0 ||
+            !f.shadow_casters_third.is_null() || f.shadow_caster_count_third != 0 ||
+            !f.shadow_receivers_third.is_null() || f.shadow_receiver_count_third != 0 ||
+            !f.shadow_casters_fourth.is_null() || f.shadow_caster_count_fourth != 0 ||
+            !f.shadow_receivers_fourth.is_null() || f.shadow_receiver_count_fourth != 0 {
                 set_error(error_buf, error_buf_len, "Shadow payload has data without casters");
                 return CoinWgpuStatus::InvalidArgument;
             }
@@ -5140,8 +5288,76 @@ fn coin_wgpu_submit_internal(
                     far: f.shadow_far_distance_second, kind: f.shadow_kind_second,
                 })
             };
+            let third = if f.shadow_caster_count_third == 0 {
+                if !f.shadow_casters_third.is_null() || !f.shadow_receivers_third.is_null() ||
+                    f.shadow_receiver_count_third != 0 || f.shadow_map_size_third != 0 ||
+                    f.shadow_kind_third != 0 {
+                    set_error(error_buf, error_buf_len, "Partial third shadow pass");
+                    return CoinWgpuStatus::InvalidArgument;
+                }
+                None
+            } else {
+                if second.is_none() ||
+                    f.shadow_receiver_count_third != states_slice.len() as u64 ||
+                    f.shadow_kind_third > 1 ||
+                    !f.shadow_map_size_third.is_power_of_two() || f.shadow_map_size_third > 2048 ||
+                    !f.shadow_near_distance_third.is_finite() ||
+                    !f.shadow_far_distance_third.is_finite() ||
+                    f.shadow_near_distance_third <= 0.0 ||
+                    f.shadow_far_distance_third <= f.shadow_near_distance_third {
+                    set_error(error_buf, error_buf_len, "Invalid third shadow pass parameters");
+                    return CoinWgpuStatus::InvalidArgument;
+                }
+                let pass_casters = match validate_slice(f.shadow_casters_third,
+                    f.shadow_caster_count_third, "third shadow casters", error_buf, error_buf_len) {
+                    Ok(s) => s, Err(st) => return st,
+                };
+                let pass_receivers = match validate_slice(f.shadow_receivers_third,
+                    f.shadow_receiver_count_third, "third shadow receivers", error_buf, error_buf_len) {
+                    Ok(s) => s, Err(st) => return st,
+                };
+                Some(ShadowPass {
+                    casters: pass_casters, receivers: pass_receivers,
+                    map_size: f.shadow_map_size_third, near: f.shadow_near_distance_third,
+                    far: f.shadow_far_distance_third, kind: f.shadow_kind_third,
+                })
+            };
+            let fourth = if f.shadow_caster_count_fourth == 0 {
+                if !f.shadow_casters_fourth.is_null() || !f.shadow_receivers_fourth.is_null() ||
+                    f.shadow_receiver_count_fourth != 0 || f.shadow_map_size_fourth != 0 ||
+                    f.shadow_kind_fourth != 0 {
+                    set_error(error_buf, error_buf_len, "Partial fourth shadow pass");
+                    return CoinWgpuStatus::InvalidArgument;
+                }
+                None
+            } else {
+                if third.is_none() ||
+                    f.shadow_receiver_count_fourth != states_slice.len() as u64 ||
+                    f.shadow_kind_fourth > 1 ||
+                    !f.shadow_map_size_fourth.is_power_of_two() || f.shadow_map_size_fourth > 2048 ||
+                    !f.shadow_near_distance_fourth.is_finite() ||
+                    !f.shadow_far_distance_fourth.is_finite() ||
+                    f.shadow_near_distance_fourth <= 0.0 ||
+                    f.shadow_far_distance_fourth <= f.shadow_near_distance_fourth {
+                    set_error(error_buf, error_buf_len, "Invalid fourth shadow pass parameters");
+                    return CoinWgpuStatus::InvalidArgument;
+                }
+                let pass_casters = match validate_slice(f.shadow_casters_fourth,
+                    f.shadow_caster_count_fourth, "fourth shadow casters", error_buf, error_buf_len) {
+                    Ok(s) => s, Err(st) => return st,
+                };
+                let pass_receivers = match validate_slice(f.shadow_receivers_fourth,
+                    f.shadow_receiver_count_fourth, "fourth shadow receivers", error_buf, error_buf_len) {
+                    Ok(s) => s, Err(st) => return st,
+                };
+                Some(ShadowPass {
+                    casters: pass_casters, receivers: pass_receivers,
+                    map_size: f.shadow_map_size_fourth, near: f.shadow_near_distance_fourth,
+                    far: f.shadow_far_distance_fourth, kind: f.shadow_kind_fourth,
+                })
+            };
             Some(ShadowFrame {
-                second,
+                second, third, fourth,
                 casters, receivers, map_size: f.shadow_map_size,
                 near: f.shadow_near_distance, far: f.shadow_far_distance,
                 epsilon: f.shadow_epsilon, threshold: f.shadow_threshold, kind: f.shadow_kind,

@@ -698,19 +698,93 @@ int main()
       thirdShadowLight->cutOffAngle = 0.9f;
       group->insertChild(thirdShadowLight, 2);
       const uint64_t serial = dualTarget->getLastSubmissionSerial();
+      SoOffscreenRenderer multiGl(SbViewportRegion(side, side));
+      multiGl.setComponents(SoOffscreenRenderer::RGB);
+      const bool compareGl = std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") != nullptr;
+      std::vector<unsigned char> glDual, glThree, glFour;
+      if (compareGl) {
+        thirdShadowLight->on = FALSE;
+        auto * copy = static_cast<SoSeparator *>(root->copy(TRUE));
+        copy->ref();
+        twoLightSubmittedOnGpu = render(multiGl, copy, glDual);
+        copy->unref();
+        thirdShadowLight->on = TRUE;
+      }
       dualAction.apply(root);
       std::vector<unsigned char> afterThreeLights;
-      dualTarget->readbackRGBA(afterThreeLights);
-      const bool threeRejected =
+      if (dualAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        dualTarget->readbackRGBA(afterThreeLights);
+      const bool threeSubmitted =
+        dualAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+        dualTarget->getLastSubmissionSerial() > serial &&
+        afterThreeLights.size() == dualGpu.size() && afterThreeLights != dualGpu;
+      if (!threeSubmitted)
+        std::cerr << "wgpu three-light frame: " << dualAction.getLastError().getString() << '\n';
+      twoLightSubmittedOnGpu = twoLightSubmittedOnGpu && threeSubmitted;
+      if (threeSubmitted && compareGl) {
+        auto * copy = static_cast<SoSeparator *>(root->copy(TRUE));
+        copy->ref();
+        twoLightSubmittedOnGpu = render(multiGl, copy, glThree);
+        copy->unref();
+        int gpuDelta = 0, glDelta = 0;
+        if (twoLightSubmittedOnGpu)
+          for (int y = 20; y < 105; ++y)
+            for (int x = 20; x < 105; ++x) {
+              gpuDelta = std::max(gpuDelta, std::abs(
+                luminanceRgba(dualGpu, x, y) - luminanceRgba(afterThreeLights, x, y)));
+              glDelta = std::max(glDelta, std::abs(
+                luminance(glDual, x, y) - luminance(glThree, x, y)));
+            }
+        std::cout << "three lights Coin/GL/wgpu delta=" << glDelta << '/' << gpuDelta << '\n';
+        twoLightSubmittedOnGpu = twoLightSubmittedOnGpu && glDelta > 0 &&
+          gpuDelta > 0 && std::abs(glDelta - gpuDelta) <= 130;
+      }
+      auto * fourthShadowLight = new SoShadowDirectionalLight;
+      fourthShadowLight->direction.setValue(0.5f, -0.4f, -1.0f);
+      fourthShadowLight->intensity = 0.35f;
+      group->insertChild(fourthShadowLight, 3);
+      dualAction.apply(root);
+      std::vector<unsigned char> afterFourLights;
+      if (dualAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        dualTarget->readbackRGBA(afterFourLights);
+      const bool fourSubmitted = dualAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+        afterFourLights.size() == dualGpu.size();
+      if (!fourSubmitted)
+        std::cerr << "wgpu four-light frame: " << dualAction.getLastError().getString() << '\n';
+      twoLightSubmittedOnGpu = twoLightSubmittedOnGpu && fourSubmitted;
+      if (fourSubmitted && compareGl) {
+        auto * copy = static_cast<SoSeparator *>(root->copy(TRUE));
+        copy->ref();
+        twoLightSubmittedOnGpu = render(multiGl, copy, glFour);
+        copy->unref();
+        int gpuDelta = 0, glDelta = 0;
+        if (twoLightSubmittedOnGpu)
+          for (int y = 20; y < 105; ++y)
+            for (int x = 20; x < 105; ++x) {
+              gpuDelta = std::max(gpuDelta, std::abs(
+                luminanceRgba(afterThreeLights, x, y) - luminanceRgba(afterFourLights, x, y)));
+              glDelta = std::max(glDelta, std::abs(
+                luminance(glThree, x, y) - luminance(glFour, x, y)));
+            }
+        std::cout << "four lights Coin/GL/wgpu delta=" << glDelta << '/' << gpuDelta << '\n';
+        twoLightSubmittedOnGpu = twoLightSubmittedOnGpu && glDelta > 0 &&
+          gpuDelta > 0 && std::abs(glDelta - gpuDelta) <= 130;
+      }
+      auto * fifthShadowLight = new SoShadowSpotLight;
+      fifthShadowLight->location.setValue(0.0f, 4.0f, 4.0f);
+      fifthShadowLight->direction.setValue(0.0f, -3.0f, -5.0f);
+      fifthShadowLight->cutOffAngle = 0.9f;
+      group->insertChild(fifthShadowLight, 4);
+      const uint64_t fourSerial = dualTarget->getLastSubmissionSerial();
+      dualAction.apply(root);
+      std::vector<unsigned char> afterFiveLights;
+      dualTarget->readbackRGBA(afterFiveLights);
+      twoLightSubmittedOnGpu = twoLightSubmittedOnGpu &&
         dualAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-        dualTarget->getLastSubmissionSerial() == serial &&
-        afterThreeLights == dualGpu;
-      if (!threeRejected)
-        std::cerr << "three-light boundary: status=" << dualAction.getLastStatus()
-                  << " serial=" << dualTarget->getLastSubmissionSerial()
-                  << " expected=" << serial << " diagnostic="
-                  << dualAction.getLastError().getString() << '\n';
-      twoLightSubmittedOnGpu = twoLightSubmittedOnGpu && threeRejected;
+        dualTarget->getLastSubmissionSerial() == fourSerial &&
+        afterFiveLights == afterFourLights;
+      group->removeChild(fifthShadowLight);
+      group->removeChild(fourthShadowLight);
       group->removeChild(thirdShadowLight);
       CoinRenderAction recoveryAction(SbViewportRegion(side, side));
       recoveryAction.setRenderTarget(dualTarget);
@@ -718,16 +792,10 @@ int main()
       std::vector<unsigned char> recoveredDual;
       if (recoveryAction.getLastStatus() == CoinRenderAction::SUCCESS)
         dualTarget->readbackRGBA(recoveredDual);
-      const bool threeRecovered =
+      twoLightSubmittedOnGpu = twoLightSubmittedOnGpu &&
         recoveryAction.getLastStatus() == CoinRenderAction::SUCCESS &&
-        dualTarget->getLastSubmissionSerial() > serial &&
+        dualTarget->getLastSubmissionSerial() > fourSerial &&
         recoveredDual == dualGpu;
-      if (!threeRecovered)
-        std::cerr << "three-light recovery: status=" << recoveryAction.getLastStatus()
-                  << " serial=" << dualTarget->getLastSubmissionSerial()
-                  << " expected>" << serial << " diagnostic="
-                  << recoveryAction.getLastError().getString() << '\n';
-      twoLightSubmittedOnGpu = twoLightSubmittedOnGpu && threeRecovered;
       recoveryAction.setRenderTarget(nullptr);
     }
     if (twoLightSubmittedOnGpu) {
