@@ -428,7 +428,11 @@ else()
     list(APPEND COIN_TARGET_INCLUDE_DIRECTORIES ${X11_INCLUDE_DIR})
     list(APPEND COIN_TARGET_LINK_LIBRARIES ${X11_LIBRARIES})
   endif()
-  find_package(OpenGL REQUIRED)
+  # Android Vulkan/wgpu does not use a desktop OpenGL system library. Other
+  # Coin sources still include desktop GL headers; see the P23 build status.
+  if(NOT ANDROID OR COIN_BUILD_LEGACY_GL_RENDERER)
+    find_package(OpenGL REQUIRED)
+  endif()
   if(OPENGL_FOUND)
     set(HAVE_OPENGL 1)
     set(OPENGL_SYSTEM_LIBRARY_NAME "${OPENGL_gl_LIBRARY}${CMAKE_SHARED_LIBRARY_SUFFIX}")

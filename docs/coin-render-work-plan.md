@@ -165,8 +165,8 @@ Base de execução: [benchmark e mecanismos existentes](coin-render-window-bench
   coordenadas, apresentação e ciclo de vida próprios.
   [Wayland nativo executado; AppKit/Metal preparado](coin-render-p22-macos-wayland.md).
 - [ ] **P23 — Android:** após desktop, pause/resume e recriação de superfície/recursos.
-  [Rota NDK/wgpu e smoke NativeActivity preparados](coin-render-p23-android.md);
-  build/dispositivo Android ainda não validados.
+  [NDK r30 instalado; ponte wgpu e objetos Android compilados](coin-render-p23-android.md);
+  Coin base ainda exige GL desktop; link final e dispositivo pendentes.
 
 Fechamento por combinação backend/API/driver/plataforma/alvo. Xvfb ou um dispositivo
 Vulkan não encerram a matriz física nem qualificam outras plataformas.
@@ -193,7 +193,9 @@ qualificação separadamente. Rejeição explícita fecha diagnóstico, não sup
 funcional. Atualizar Pxx e Axx/Fxx associados somente no escopo comprovado.
 
 **Entrega atual: P23 — Android.** A rota NDK/wgpu e o smoke de lifecycle estão
-preparados, mas faltam NDK e dispositivo para qualificação. O
+preparados; NDK r30 e target Rust arm64 estão instalados, e a ponte e os objetos
+Android passaram na compilação cruzada. Coin base ainda depende de GL desktop,
+impedindo o link completo; falta dispositivo para qualificação. O
 [registro externo](coin-render-platform-validation-pending.md) reúne essas
 células, junto da validação Windows/Intel que o usuário pode executar em outro
 computador e da célula macOS sem host disponível. **P22 — macOS/Wayland:**

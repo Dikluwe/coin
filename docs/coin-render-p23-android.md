@@ -1,4 +1,4 @@
-# P23 — Android/NDK (rota preparada, sem qualificação nativa)
+# P23 — Android/NDK (toolchain e compilação cruzada parcial)
 
 P23 compõe o lifecycle do host Android com o `CoinRenderTarget` existente. O
 Wiring aceita um `ANativeWindow` emprestado em
@@ -27,24 +27,36 @@ a biblioteca nativa. A ponte Rust/CMake mapeia `arm64-v8a`, `armeabi-v7a`,
 Cargo. O app precisa empacotar `libCoinRender.so`, `libCoin.so` e suas
 dependências para a ABI escolhida.
 
-Para tentar o build em um host com Android NDK e Rust target instalados:
+Neste host, o NDK r30 (`30.0.16248370`) está instalado em
+`~/Android/Sdk/ndk/30.0.16248370`, e o target Rust
+`aarch64-linux-android` está instalado. O arquivo oficial Linux foi
+verificado pelo SHA-1 `5107f898313790e449e87eee2183d9a20602dee9` antes
+da extração. Para reproduzir a configuração:
 
 ```sh
-rustup target add aarch64-linux-android
-cmake -S . -B build-android \
+export ANDROID_NDK="$HOME/Android/Sdk/ndk/30.0.16248370"
+cmake -S . -B /tmp/coin-p23-android-arm64-sdk -G Ninja \
   -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake" \
+  -DANDROID_NDK="$ANDROID_NDK" \
   -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-26 \
+  -DCMAKE_BUILD_TYPE=Release \
   -DCOIN_BUILD_RENDER=ON -DCOIN_RENDER_BACKEND=RUST_BRIDGE \
   -DCOIN_BUILD_RENDER_WINDOW_EXAMPLE=ON \
   -DCOIN_BUILD_LEGACY_GL_RENDERER=OFF
-cmake --build build-android --target coin_render_android_smoke
+cmake --build /tmp/coin-p23-android-arm64-sdk \
+  --target coin_wgpu_rust_bridge_build -j4
 ```
 
-Neste host não há NDK, target Rust Android nem `adb`. A checagem sintática do
-smoke com headers NDK mínimos simulados passou; CoinRender wgpu e os testes de
-seleção/superfície passaram no Linux. Esses resultados **não** provam build
-Android nem execução GPU. O build cross-target, link final, empacotamento APK,
-instalação e execução ainda precisam ser verificados em host/dispositivo Android.
+A configuração, a ponte Rust arm64, os objetos C++ do smoke NativeActivity,
+`CoinRenderTarget` e `CoinWgpuBackend`, e o objeto C do `android_native_app_glue`
+compilaram com o NDK real. O build completo de `coin_render_android_smoke`
+**ainda falha**: a biblioteca Coin base compila `SoGLRenderAction.cpp` e outros
+fontes de GL desktop mesmo com `COIN_BUILD_LEGACY_GL_RENDERER=OFF`. O NDK não
+fornece `GL/gl.h`, e trocar apenas por `GLES/gl.h` não resolve chamadas como
+`glAccum`, `glColorMaterial` e geração de coordenadas de textura. O próximo
+passo local é isolar essas dependências na biblioteca Coin para uma variante
+Android, mantendo o contrato de renderização compartilhado. Não há `adb` neste
+host; link final, APK e execução em Android/ARM com GPU continuam pendentes.
 
 ## Fechamento por evidência
 

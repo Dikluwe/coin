@@ -164,7 +164,6 @@ void onCommand(android_app * app, int32_t command) {
 }
 
 extern "C" void android_main(android_app * app) {
-  app_dummy();
   SoDB::init();
   CoinRenderAction::initClass();
   Host host;
@@ -190,7 +189,7 @@ extern "C" void android_main(android_app * app) {
     int events = 0;
     android_poll_source * source = nullptr;
     const int timeout = host.resumed && host.target ? 50 : -1;
-    const int id = ALooper_pollAll(timeout, nullptr, &events,
+    const int id = ALooper_pollOnce(timeout, nullptr, &events,
                                    reinterpret_cast<void **>(&source));
     if (id >= 0 && source) source->process(app, source);
   }
