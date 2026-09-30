@@ -221,8 +221,15 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   por recuperação do quadro de duas luzes. Os 17 testes Rust passaram.
 - [ ] **Cinco a oito luzes:** compor contribuições em mais de um passo sem
   exceder as unidades de textura nem repetir semântica Coin no backend.
-- [ ] **Cenas próprias por luz:** capturar `shadowMapScene` como geometria de
-  caster separada, respeitando a travessia e o bbox do grupo no Coin/GL.
+- [ ] **Cenas próprias por luz:** o recorte em que `shadowMapScene` aponta
+  para um único `SoShape` filho direto do grupo, desenhado uma só vez com
+  modelo identidade e estilo caster, está qualificado. Wiring captura a
+  identidade do nó; Core escolhe somente esse draw como caster e mantém a
+  bbox do grupo para a câmera do mapa, como no Coin/GL. A fixture com outro
+  caster mediu a mudança máxima ao trocar cena própria por grupo inteiro:
+  420 no Coin/GL e 576 em BGFX e wgpu (tolerância 180). Uma subárvore própria
+  ainda retorna `UNSUPPORTED` sem publicar pixels ou serial; resta capturar
+  seus casters com transformações e estado isolados.
 - [x] **Clipping de casters opacos:** os planos já capturados e resolvidos
   pelo Core entram também no pass de momentos; BGFX e wgpu descartam o
   fragmento no mapa antes da recepção. A fixture com `SoClipPlane` no caster

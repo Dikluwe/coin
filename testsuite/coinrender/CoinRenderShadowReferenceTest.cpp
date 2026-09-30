@@ -2110,6 +2110,129 @@ int main()
   group->quality = previousDirectionalQuality;
   group->removeChild(directionalCapture);
   light->on = TRUE;
+  auto * customRoot = new SoSeparator;
+  customRoot->ref();
+  auto * customCamera = new SoOrthographicCamera;
+  customCamera->position.setValue(0, 0, 8);
+  customCamera->height = 7;
+  customCamera->nearDistance = 1;
+  customCamera->farDistance = 20;
+  customRoot->addChild(customCamera);
+  auto * customGroup = new SoShadowGroup;
+  customGroup->quality = 1.0f;
+  customRoot->addChild(customGroup);
+  auto * customLight = new SoShadowSpotLight;
+  customLight->location.setValue(2, 2, 4);
+  customLight->direction.setValue(-2, -2, -5);
+  customLight->cutOffAngle = 0.9f;
+  customGroup->addChild(customLight);
+  auto * selectedCaster = new SoCube;
+  selectedCaster->width = selectedCaster->height = selectedCaster->depth = 1.4f;
+  customGroup->addChild(selectedCaster); // Direct child, identity model.
+  auto * otherCaster = new SoSeparator;
+  auto * otherMove = new SoTranslation;
+  otherMove->translation.setValue(1.7f, 0.0f, 0.0f);
+  otherCaster->addChild(otherMove);
+  auto * otherCube = new SoCube;
+  otherCube->width = otherCube->height = otherCube->depth = 1.2f;
+  otherCaster->addChild(otherCube);
+  customGroup->addChild(otherCaster);
+  auto * customGround = new SoSeparator;
+  auto * customGroundStyle = new SoShadowStyle;
+  customGroundStyle->style = SoShadowStyle::SHADOWED;
+  customGround->addChild(customGroundStyle);
+  auto * customGroundMove = new SoTranslation;
+  customGroundMove->translation.setValue(0, 0, -1.5f);
+  customGround->addChild(customGroundMove);
+  auto * customFloor = new SoCube;
+  customFloor->width = customFloor->height = 6;
+  customFloor->depth = 0.05f;
+  customGround->addChild(customFloor);
+  customGroup->addChild(customGround);
+  customLight->shadowMapScene = selectedCaster;
+  action.apply(customRoot);
+  const CoinRenderFramePlan customFrame = action.getPimpl()->lastRejectedShadowFrame;
+  const CoinRenderShadowPlan customPlan = action.getPimpl()->lastRejectedShadowPlan;
+  std::string customDiagnostic;
+  bool directCustomSceneQualified =
+    action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+    customFrame.shadowLights.size() == 1 &&
+    customFrame.shadowLights[0].customSceneDirectShape &&
+    customPlan.passes.size() == 1 && customPlan.passes[0].casterDraws.size() == 1 &&
+    coin_render_shadow_single_spot_opaque_profile(
+      customFrame, customPlan, customDiagnostic);
+  customLight->shadowMapScene = nullptr;
+  action.apply(customRoot);
+  directCustomSceneQualified = directCustomSceneQualified &&
+    action.getPimpl()->lastRejectedShadowPlan.passes.size() == 1 &&
+    action.getPimpl()->lastRejectedShadowPlan.passes[0].casterDraws.size() == 2;
+  if (directCustomSceneQualified && lowQualityGpuRequested) {
+    CoinRenderTarget * customTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+    CoinRenderAction customAction(SbViewportRegion(side, side));
+    customAction.setRenderTarget(customTarget);
+    customLight->shadowMapScene = selectedCaster;
+    customAction.apply(customRoot);
+    std::vector<unsigned char> onlySelected, allCasters;
+    const bool selectedOk = customAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (selectedOk) customTarget->readbackRGBA(onlySelected);
+    customLight->shadowMapScene = nullptr;
+    customAction.apply(customRoot);
+    const bool allOk = customAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (allOk) customTarget->readbackRGBA(allCasters);
+    int gpuDelta = 0;
+    if (selectedOk && allOk && onlySelected.size() == allCasters.size())
+      for (int y = 20; y < 105; ++y)
+        for (int x = 20; x < 105; ++x)
+          gpuDelta = std::max(gpuDelta,
+            std::abs(luminanceRgba(onlySelected, x, y) -
+                     luminanceRgba(allCasters, x, y)));
+    directCustomSceneQualified = selectedOk && allOk && gpuDelta > 40;
+    if (directCustomSceneQualified) {
+      const uint64_t beforeUnsupported = customTarget->getLastSubmissionSerial();
+      customLight->shadowMapScene = otherCaster; // Subtree capture is not qualified.
+      customAction.apply(customRoot);
+      std::vector<unsigned char> afterUnsupported;
+      customTarget->readbackRGBA(afterUnsupported);
+      directCustomSceneQualified =
+        customAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+        customTarget->getLastSubmissionSerial() == beforeUnsupported &&
+        afterUnsupported == allCasters;
+      customLight->shadowMapScene = nullptr;
+    }
+    if (directCustomSceneQualified &&
+        std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") && SoShadowGroup::isSupported()) {
+      customLight->shadowMapScene = selectedCaster;
+      auto * glSelected = static_cast<SoSeparator *>(customRoot->copy(TRUE));
+      glSelected->ref();
+      customLight->shadowMapScene = nullptr;
+      auto * glAll = static_cast<SoSeparator *>(customRoot->copy(TRUE));
+      glAll->ref();
+      SoOffscreenRenderer customGl(SbViewportRegion(side, side));
+      customGl.setComponents(SoOffscreenRenderer::RGB);
+      std::vector<unsigned char> glOnly, glAllPixels;
+      const bool rendered = render(customGl, glSelected, glOnly) &&
+        render(customGl, glAll, glAllPixels);
+      int glDelta = 0;
+      if (rendered)
+        for (int y = 20; y < 105; ++y)
+          for (int x = 20; x < 105; ++x)
+            glDelta = std::max(glDelta,
+              std::abs(luminance(glOnly, x, y) - luminance(glAllPixels, x, y)));
+      directCustomSceneQualified = rendered && glDelta > 40 &&
+        std::abs(glDelta - gpuDelta) <= 180;
+      std::cout << "direct shadowMapScene Coin/GL/GPU delta="
+                << glDelta << '/' << gpuDelta << '\n';
+      glAll->unref();
+      glSelected->unref();
+    }
+    if (!directCustomSceneQualified)
+      std::cerr << "direct shadowMapScene: "
+                << customAction.getLastError().getString() << " delta="
+                << gpuDelta << '\n';
+    customAction.setRenderTarget(nullptr);
+    delete customTarget;
+  }
+  customRoot->unref();
   action.setRenderTarget(nullptr);
   delete target;
   if (!publishedOk || !rejected || !preserved || !recovered || !captureOk ||
@@ -2117,7 +2240,7 @@ int main()
       !orderedTwoLight || !twoSpotsOk || !twoDirectionalsOk ||
       !lateLightResolved || !lateSpotProfile || !mixedOrderResolved ||
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||
-      !lowQualityDirectionalQualified ||
+      !lowQualityDirectionalQualified || !directCustomSceneQualified ||
       !directionalProjectionCoversGroup || !multipleCameras || !perspectiveFrustum
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
       || !wgpuShadowSubmitted || !wgpuDirectionalSubmitted || !lateSpotSubmitted ||

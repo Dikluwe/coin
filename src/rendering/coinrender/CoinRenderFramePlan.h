@@ -128,6 +128,8 @@ struct CoinRenderShadowLightSnapshot {
   bool enabled = false;
   bool shadowEligible = false; // Coin/GL: spot or SoShadowDirectionalLight.
   bool hasCustomScene = false;
+  bool customSceneDirectShape = false;
+  SbUniqueId customSceneNodeId = 0; // Qualified direct-child shape only.
   SbColor color = SbColor(1, 1, 1);
   float intensity = 1.0f;
   SbVec3f attenuation = SbVec3f(0, 0, 1);

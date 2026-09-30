@@ -298,7 +298,8 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
     for (size_t l = 0; l < frame.shadowLights.size(); ++l) {
       const auto & light = frame.shadowLights[l];
       if (light.groupSlot != g + 1 || !light.enabled || !light.shadowEligible) continue;
-      if (!std::isfinite(light.maxShadowDistance) || light.hasCustomScene ||
+      if (!std::isfinite(light.maxShadowDistance) ||
+          (light.hasCustomScene && !light.customSceneDirectShape) ||
           (light.type != CoinRenderLightType::DIRECTIONAL &&
            light.type != CoinRenderLightType::SPOT)) {
         diagnostic = "Shadow light requires a supported spot/directional scene";
@@ -367,6 +368,7 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
             break;
           }
       }
+      uint32_t customSceneDraws = 0;
       for (size_t d = 0; d < frame.draws.size(); ++d) {
         const auto & draw = frame.draws[d];
         if (draw.renderStateSlot >= frame.renderStates.size()) {
@@ -375,10 +377,22 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
         }
         const auto & state = frame.renderStates[draw.renderStateSlot];
         if (state.shadowGroupSlot != pass.groupSlot) continue;
-        if ((state.shadowStyle & 1u) != 0)
+        if (light.hasCustomScene && draw.sourceNodeId == light.customSceneNodeId) {
+          ++customSceneDraws;
+          if (state.model != SbMatrix::identity() || (state.shadowStyle & 1u) == 0) {
+            diagnostic = "Direct shadowMapScene shape requires identity model and casting style";
+            return false;
+          }
+        }
+        if ((state.shadowStyle & 1u) != 0 &&
+            (!light.hasCustomScene || draw.sourceNodeId == light.customSceneNodeId))
           pass.casterDraws.push_back(static_cast<uint32_t>(d));
         if ((state.shadowStyle & 2u) != 0)
           pass.receiverDraws.push_back(static_cast<uint32_t>(d));
+      }
+      if (light.hasCustomScene && customSceneDraws != 1) {
+        diagnostic = "Direct shadowMapScene shape must occur exactly once in its group";
+        return false;
       }
       if (!coin_render_shadow_camera(group, light, groupBounds,
                                      mainViewPtr, pass, diagnostic)) return false;

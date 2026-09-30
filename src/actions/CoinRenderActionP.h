@@ -19,6 +19,7 @@
 #include <cstddef>
 
 class SoCamera;
+class SoShadowGroup;
 
 class COIN_RENDER_DLL_API CoinRenderActionP {
 public:
@@ -103,6 +104,7 @@ public:
   CoinRenderFramePlan lastRejectedShadowFrame;
   CoinRenderShadowPlan lastRejectedShadowPlan;
   std::vector<int> shadowStyleBeforeGroups;
+  std::vector<const SoShadowGroup *> activeShadowGroupNodes;
   // Owns staged scene-texture pixels for the entire parent traversal.
   std::deque<std::vector<uint8_t> > sceneTexturePixels;
   // Shared logical graph, containing no backend handles or resources.

@@ -564,6 +564,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     : CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::UNKNOWN, 0);
   this->sceneTexturePixels.clear();
   this->shadowStyleBeforeGroups.clear();
+  this->activeShadowGroupNodes.clear();
   this->lastRejectedShadowFrame = CoinRenderFramePlan();
   this->lastRejectedShadowPlan = CoinRenderShadowPlan();
   CoinRenderFramePlan plan;
@@ -1125,6 +1126,7 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, 
   p->shadowStyleBeforeGroups.push_back(SoShadowStyleElement::get(action->getState()));
   SoShadowStyleElement::set(action->getState(), 3);
   p->builder.beginShadowGroup(snapshot);
+  p->activeShadowGroupNodes.push_back(group);
   return SoCallbackAction::CONTINUE;
 }
 
@@ -1135,6 +1137,7 @@ CoinRenderActionP::shadowGroupPostCB(void * userdata, SoCallbackAction * action,
   if (!static_cast<const SoShadowGroup *>(node)->isActive.getValue())
     return SoCallbackAction::CONTINUE;
   p->builder.endShadowGroup();
+  if (!p->activeShadowGroupNodes.empty()) p->activeShadowGroupNodes.pop_back();
   if (!p->shadowStyleBeforeGroups.empty()) {
     SoShadowStyleElement::set(action->getState(), p->shadowStyleBeforeGroups.back());
     p->shadowStyleBeforeGroups.pop_back();
@@ -1198,6 +1201,22 @@ CoinRenderActionP::lightPreCB(void * userdata,
   } else if (node->isOfType(SoPointLight::getClassTypeId())) {
     snapshot.type = CoinRenderLightType::POINT;
     snapshot.position = static_cast<const SoPointLight *>(node)->location.getValue();
+  }
+  if (snapshot.hasCustomScene && !p->activeShadowGroupNodes.empty()) {
+    const SoNode * scene = nullptr;
+    if (node->isOfType(SoShadowSpotLight::getClassTypeId()))
+      scene = static_cast<const SoShadowSpotLight *>(node)->shadowMapScene.getValue();
+    else if (node->isOfType(SoShadowDirectionalLight::getClassTypeId()))
+      scene = static_cast<const SoShadowDirectionalLight *>(node)->shadowMapScene.getValue();
+    const SoShadowGroup * group = p->activeShadowGroupNodes.back();
+    if (scene) {
+      snapshot.customSceneNodeId = scene->getNodeId();
+      snapshot.customSceneDirectShape = scene->isOfType(SoShape::getClassTypeId());
+      bool directChild = false;
+      for (int i = 0; i < group->getNumChildren(); ++i)
+        directChild = directChild || group->getChild(i) == scene;
+      snapshot.customSceneDirectShape = snapshot.customSceneDirectShape && directChild;
+    }
   }
   p->builder.recordShadowLight(snapshot);
   return SoCallbackAction::CONTINUE;
