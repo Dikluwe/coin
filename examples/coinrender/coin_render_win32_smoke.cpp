@@ -158,7 +158,7 @@ int main() {
   CoinRenderCapabilities caps{};
   if (ok) {
     const int32_t query = coin_render_query_capabilities_for_renderer(
-      COIN_RENDER_EXPERIMENTAL_OFFSCREEN, COIN_RENDER_RENDERER_D3D12,
+      COIN_RENDER_EXPERIMENTAL_WIN32_WINDOW, COIN_RENDER_RENDERER_D3D12,
       &caps, sizeof(caps));
     ok = query == 0 && caps.gpu_available && caps.renderer == COIN_RENDER_RENDERER_D3D12;
     if (ok) {

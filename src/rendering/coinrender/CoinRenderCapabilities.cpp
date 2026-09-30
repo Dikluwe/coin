@@ -176,15 +176,31 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
   if (!output || (!legacyV1 && !legacyV2 && output_size < sizeof(CoinRenderCapabilities)))
     return 2;
   if (renderer != COIN_RENDER_RENDERER_UNKNOWN && renderer != COIN_RENDER_RENDERER_VULKAN &&
-      renderer != COIN_RENDER_RENDERER_OPENGL && renderer != COIN_RENDER_RENDERER_D3D12)
+      renderer != COIN_RENDER_RENDERER_OPENGL && renderer != COIN_RENDER_RENDERER_D3D12 &&
+      renderer != COIN_RENDER_RENDERER_METAL)
     return 2;
   const size_t copySize = legacyV1   ? capabilitiesV1Size
                           : legacyV2 ? capabilitiesV2Size
                                      : sizeof(CoinRenderCapabilities);
   if (target != COIN_RENDER_EXPERIMENTAL_OFFSCREEN &&
-      target != COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW) return 1;
+      target != COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW &&
+      target != COIN_RENDER_EXPERIMENTAL_WAYLAND_WINDOW &&
+      target != COIN_RENDER_EXPERIMENTAL_WIN32_WINDOW &&
+      target != COIN_RENDER_EXPERIMENTAL_APPKIT_LAYER) return 1;
 #if !defined(__linux__)
-  if (target == COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW) return 1;
+  if (target == COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW ||
+      target == COIN_RENDER_EXPERIMENTAL_WAYLAND_WINDOW) return 1;
+#endif
+#if !defined(_WIN32)
+  if (target == COIN_RENDER_EXPERIMENTAL_WIN32_WINDOW) return 1;
+#endif
+#if !defined(__APPLE__)
+  if (target == COIN_RENDER_EXPERIMENTAL_APPKIT_LAYER) return 1;
+#endif
+#if !defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+  if (target == COIN_RENDER_EXPERIMENTAL_WAYLAND_WINDOW ||
+      target == COIN_RENDER_EXPERIMENTAL_WIN32_WINDOW ||
+      target == COIN_RENDER_EXPERIMENTAL_APPKIT_LAYER) return 1;
 #endif
 
   CoinRenderCapabilities result{};

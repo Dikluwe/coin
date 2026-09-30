@@ -178,18 +178,17 @@ bool renderModes(bool cpu) {
     }
   }
 #if !defined(_WIN32) && (defined(HAVE_COIN_BGFX) || defined(HAVE_COIN_WGPU_RUST_BRIDGE))
-  // D3D12 is a valid typed request, but this Linux device cannot execute it.
-  // The backend must reject it without silently selecting Vulkan or OpenGL.
-  {
-    CoinRenderOptions d3d12;
-    d3d12.renderer = COIN_RENDER_RENDERER_D3D12;
+  // Typed Windows/macOS requests cannot silently select Vulkan or OpenGL on Linux.
+  for (CoinRenderRenderer renderer : {COIN_RENDER_RENDERER_D3D12, COIN_RENDER_RENDERER_METAL}) {
+    CoinRenderOptions options;
+    options.renderer = renderer;
     action.setRenderTarget(nullptr);
-    target.reset(CoinRenderTarget::createOffscreen(SbVec2i32(32, 32), d3d12));
+    target.reset(CoinRenderTarget::createOffscreen(SbVec2i32(32, 32), options));
     action.setRenderTarget(target.get());
     action.apply(root);
     if (!check(action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
                    target->getLastSubmissionSerial() == 0,
-               "D3D12 request cannot fall back on Linux")) {
+               "Unavailable renderer request cannot fall back on Linux")) {
       root->unref();
       return false;
     }

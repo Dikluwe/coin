@@ -109,7 +109,7 @@ Resultados e comandos reproduzíveis estão em
 | Composição | Onze modalidades resolvidas no Core, sorting de triângulos, screen door e peeling de 1..8 camadas por pixel e orçamento configurável; defaults/overrides de depth comuns | Peeling BGFX rejeita escrita transparente explícita e testes fora de LESS/LEQUAL/NEVER; weighted OIT é extensão explícita BGFX, não oferecida pelo wgpu |
 | Ambiente | Fog `NONE`, `HAZE`, `FOG` e `SMOKE` em distância de view space; fog depois de luz/textura e antes da composição, sem alterar alpha | Fórmulas ou estados de fog fora desses quatro modos |
 | Raster | Front face e backface culling de `SoShapeHints` em triângulos, inclusive reflexão | Culling de linhas/pontos (não aplicável ao pipeline dessas topologias) |
-| Alvos | Offscreen com cor/profundidade e janela X11 no backend Rust; readback síncrono atômico; `applyAsync` com ticket e query/poll/cancel; `SoSceneTexture2` RGBA8 staged por padrão e GPU→GPU direto opt-in em offscreen Rust | Outros formatos/estados de `SoSceneTexture2`, RTT direto de janela, readback assíncrono de janela e outros sistemas de janela |
+| Alvos | Offscreen com cor/profundidade; janelas X11 e Wayland nativo no backend Rust, com Wayland exercitado em Weston/RADV; Win32 e AppKit/Metal preparados para validação nativa; readback síncrono atômico; `applyAsync` com ticket e query/poll/cancel; `SoSceneTexture2` RGBA8 staged por padrão e GPU→GPU direto opt-in em offscreen Rust | Outros formatos/estados de `SoSceneTexture2`, RTT direto de janela, readback assíncrono de janela, qualificação física de Windows/macOS e matriz Wayland ampliada |
 
 Recursos não suportados devem produzir `UNSUPPORTED` e diagnóstico, não uma
 imagem aparentemente válida que ignore silenciosamente parte do estado. A

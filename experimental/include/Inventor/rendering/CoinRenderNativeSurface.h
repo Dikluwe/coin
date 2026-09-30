@@ -55,6 +55,8 @@ enum CoinRenderNativeSurfaceType {
  * 4. Creation, resize, apply and destruction must occur on the thread owning the window.
  * 5. Size passed to CoinRenderTarget must be in framebuffer pixels, not logical window points.
  * 6. For Win32, hwnd is required and hinstance may be null; the caller keeps HWND alive.
+ * 7. For Wayland, display and surface are required; the caller dispatches events.
+ * 8. For AppKit, metalLayer is a CAMetalLayer retained by the host on the UI thread.
  */
 struct CoinRenderNativeSurfaceDescriptor {
   uint32_t abiVersion;

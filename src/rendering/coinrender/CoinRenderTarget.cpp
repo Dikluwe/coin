@@ -155,9 +155,17 @@ CoinRenderTargetP::initWindow(const CoinRenderNativeSurfaceDescriptor & desc, co
       return false;
     }
   } else if (desc.type == COIN_RENDER_SURFACE_WAYLAND) {
+#if defined(__linux__) && defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+    if (desc.native.wayland.display == nullptr || desc.native.wayland.surface == nullptr) {
+      this->status = CoinRenderTarget::TARGET_ERROR;
+      this->lastError = "Null wl_display or wl_surface in Wayland surface descriptor";
+      return false;
+    }
+#else
     this->status = CoinRenderTarget::TARGET_ERROR;
-    this->lastError = "Wayland surface descriptor not supported in Onda 1B";
+    this->lastError = "Wayland surface requires the Linux Rust bridge";
     return false;
+#endif
   } else if (desc.type == COIN_RENDER_SURFACE_WIN32) {
 #if defined(_WIN32) && defined(HAVE_COIN_WGPU_RUST_BRIDGE)
     if (desc.native.win32.hwnd == nullptr) {
@@ -171,9 +179,17 @@ CoinRenderTargetP::initWindow(const CoinRenderNativeSurfaceDescriptor & desc, co
     return false;
 #endif
   } else if (desc.type == COIN_RENDER_SURFACE_APPKIT_LAYER) {
+#if defined(__APPLE__) && defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+    if (desc.native.appkit.metalLayer == nullptr || desc.native.appkit.reserved != nullptr) {
+      this->status = CoinRenderTarget::TARGET_ERROR;
+      this->lastError = "AppKit requires a non-null CAMetalLayer and null reserved pointer";
+      return false;
+    }
+#else
     this->status = CoinRenderTarget::TARGET_ERROR;
-    this->lastError = "AppKit layer surface descriptor not supported in Onda 1B";
+    this->lastError = "AppKit layer requires the macOS Rust bridge";
     return false;
+#endif
   } else {
     this->status = CoinRenderTarget::TARGET_ERROR;
     this->lastError = "Unknown native surface type in CoinRenderNativeSurfaceDescriptor";

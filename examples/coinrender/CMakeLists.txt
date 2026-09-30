@@ -11,7 +11,37 @@ if(COIN_BUILD_RENDER_WINDOW_EXAMPLE)
       ${PROJECT_SOURCE_DIR}/include
       ${PROJECT_BINARY_DIR}/include
       ${COIN_TARGET_INCLUDE_DIRECTORIES})
+  elseif(APPLE)
+    if(NOT COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
+      message(FATAL_ERROR "The P22 AppKit smoke requires COIN_RENDER_BACKEND=RUST_BRIDGE")
+    endif()
+    enable_language(OBJCXX)
+    add_executable(coin_render_appkit_smoke coin_render_appkit_smoke.mm)
+    target_compile_options(coin_render_appkit_smoke PRIVATE -fobjc-arc)
+    target_link_libraries(coin_render_appkit_smoke PRIVATE CoinRender Coin
+      "-framework Cocoa" "-framework QuartzCore" "-framework Metal")
+    target_include_directories(coin_render_appkit_smoke PRIVATE
+      ${PROJECT_SOURCE_DIR}/experimental/include
+      ${PROJECT_SOURCE_DIR}/include
+      ${PROJECT_BINARY_DIR}/include
+      ${COIN_TARGET_INCLUDE_DIRECTORIES})
   else()
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
+      find_package(PkgConfig QUIET)
+      if(PkgConfig_FOUND)
+        pkg_check_modules(COIN_RENDER_GTK3 QUIET IMPORTED_TARGET gtk+-3.0)
+      endif()
+      if(COIN_RENDER_GTK3_FOUND)
+        add_executable(coin_render_wayland_smoke coin_render_wayland_smoke.cpp)
+        target_link_libraries(coin_render_wayland_smoke PRIVATE CoinRender Coin PkgConfig::COIN_RENDER_GTK3)
+        target_include_directories(coin_render_wayland_smoke PRIVATE
+          ${PROJECT_SOURCE_DIR}/experimental/include
+          ${PROJECT_SOURCE_DIR}/include
+          ${PROJECT_BINARY_DIR}/include
+          ${COIN_TARGET_INCLUDE_DIRECTORIES})
+      endif()
+    endif()
+if(X11_FOUND)
 add_executable(coin_render_window_cone coin_render_window_cone.cpp)
 
 target_include_directories(coin_render_window_cone PRIVATE
@@ -25,15 +55,13 @@ if(COIN_RENDER_BACKEND STREQUAL "BGFX")
 endif()
 
 find_package(glfw3 3.3 QUIET)
-if(glfw3_FOUND AND X11_FOUND)
+if(glfw3_FOUND)
 	target_compile_definitions(coin_render_window_cone PRIVATE HAVE_GLFW=1)
 	target_link_libraries(coin_render_window_cone PRIVATE CoinRender glfw ${X11_LIBRARIES} Coin)
 	target_include_directories(coin_render_window_cone PRIVATE ${X11_INCLUDE_DIR})
-elseif(X11_FOUND)
+else()
 	target_link_libraries(coin_render_window_cone PRIVATE CoinRender ${X11_LIBRARIES} Coin)
 	target_include_directories(coin_render_window_cone PRIVATE ${X11_INCLUDE_DIR})
-else()
-	message(FATAL_ERROR "coin_render_window_cone on Linux requires X11.")
 endif()
 
 add_executable(coin_render_viewer coin_render_viewer.cpp)
@@ -63,6 +91,7 @@ if(COIN_BUILD_LEGACY_GL_RENDERER)
 		${X11_INCLUDE_DIR}
 		${COIN_TARGET_INCLUDE_DIRECTORIES})
 endif()
+endif()
   endif()
 endif()
 
@@ -84,6 +113,18 @@ if(COIN_BUILD_LEGACY_GL_RENDERER)
 endif()
 
 if(COIN_INSTALL_RENDER_EXPERIMENTAL)
+    if(TARGET coin_render_appkit_smoke)
+        set_target_properties(coin_render_appkit_smoke PROPERTIES
+            INSTALL_RPATH "@loader_path/../${CMAKE_INSTALL_LIBDIR}")
+        install(TARGETS coin_render_appkit_smoke
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime)
+    endif()
+    if(TARGET coin_render_wayland_smoke)
+        set_target_properties(coin_render_wayland_smoke PROPERTIES
+            INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
+        install(TARGETS coin_render_wayland_smoke
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime)
+    endif()
     if(TARGET coin_render_win32_smoke)
         install(TARGETS coin_render_win32_smoke
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime)
@@ -104,7 +145,7 @@ if(COIN_INSTALL_RENDER_EXPERIMENTAL)
 		install(TARGETS coin_render_gl_benchmark coin_render_freecad_compare
 			RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime)
 	endif()
-	install(FILES coin_render_win32_smoke.cpp coin_render_window_cone.cpp coin_render_viewer.cpp coin_render_window_benchmark.cpp coin_render_gl_benchmark.cpp
+	install(FILES coin_render_appkit_smoke.mm coin_render_wayland_smoke.cpp coin_render_win32_smoke.cpp coin_render_window_cone.cpp coin_render_viewer.cpp coin_render_window_benchmark.cpp coin_render_gl_benchmark.cpp
 		coin_render_freecad_compare.cpp freecad_export_iv.py
 		DESTINATION ${CMAKE_INSTALL_DOCDIR}/examples/coinrender COMPONENT development)
 endif()

@@ -129,6 +129,15 @@ CoinWgpuBackend::prepare(CoinRenderTargetP & target)
       if (target.nativeDesc.type == COIN_RENDER_SURFACE_XLIB) {
         info.native.handle_a = reinterpret_cast<uintptr_t>(target.nativeDesc.native.xlib.display);
         info.native.handle_b = target.nativeDesc.native.xlib.window;
+#if defined(__linux__)
+      } else if (target.nativeDesc.type == COIN_RENDER_SURFACE_WAYLAND) {
+        info.native.handle_a = reinterpret_cast<uintptr_t>(target.nativeDesc.native.wayland.display);
+        info.native.handle_b = reinterpret_cast<uintptr_t>(target.nativeDesc.native.wayland.surface);
+#endif
+#if defined(__APPLE__)
+      } else if (target.nativeDesc.type == COIN_RENDER_SURFACE_APPKIT_LAYER) {
+        info.native.handle_a = reinterpret_cast<uintptr_t>(target.nativeDesc.native.appkit.metalLayer);
+#endif
 #if defined(_WIN32)
       } else if (target.nativeDesc.type == COIN_RENDER_SURFACE_WIN32) {
         info.native.handle_a = reinterpret_cast<uintptr_t>(target.nativeDesc.native.win32.hinstance);

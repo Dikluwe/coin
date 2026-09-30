@@ -153,7 +153,7 @@ int main(int argc, char ** argv) {
     delete target;
   }
 
-  // 1.4 Unsupported tags (Wayland, Win32, AppKit)
+  // 1.4 Platform tags and descriptor validation
   {
     CoinRenderNativeSurfaceDescriptor desc{};
     desc.abiVersion = COIN_RENDER_NATIVE_SURFACE_ABI_VERSION;
@@ -162,9 +162,21 @@ int main(int argc, char ** argv) {
 
     desc.type = COIN_RENDER_SURFACE_WAYLAND;
     CoinRenderTarget * targetW = CoinRenderTarget::createWindow(desc, SbVec2i32(100, 100));
-    TEST_ASSERT(targetW->getStatus() == CoinRenderTarget::TARGET_ERROR, "Wayland must be TARGET_ERROR in 1B");
-    TEST_ASSERT(std::string(targetW->getLastError()).find("Wayland") != std::string::npos, "Must mention Wayland unsupported");
+    TEST_ASSERT(targetW->getStatus() == CoinRenderTarget::TARGET_ERROR,
+                "Wayland must reject null wl_display/wl_surface");
     delete targetW;
+#if defined(__linux__) && defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+    desc.native.wayland.display = reinterpret_cast<void *>(uintptr_t(1));
+    targetW = CoinRenderTarget::createWindow(desc, SbVec2i32(100, 100));
+    TEST_ASSERT(targetW->getStatus() == CoinRenderTarget::TARGET_ERROR,
+                "Wayland must reject null wl_surface");
+    delete targetW;
+    desc.native.wayland.surface = reinterpret_cast<void *>(uintptr_t(2));
+    targetW = CoinRenderTarget::createWindow(desc, SbVec2i32(100, 100));
+    TEST_ASSERT(targetW->getStatus() == CoinRenderTarget::TARGET_READY,
+                "Valid non-null Wayland descriptor must be accepted before GPU preparation");
+    delete targetW;
+#endif
 
     desc.type = COIN_RENDER_SURFACE_WIN32;
     CoinRenderTarget * targetWin = CoinRenderTarget::createWindow(desc, SbVec2i32(100, 100));

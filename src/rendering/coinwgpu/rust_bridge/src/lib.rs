@@ -7,6 +7,8 @@
 use bytemuck::{Pod, Zeroable};
 use pollster::block_on;
 use raw_window_handle::{RawDisplayHandle, RawWindowHandle, XlibDisplayHandle, XlibWindowHandle};
+#[cfg(target_os = "linux")]
+use raw_window_handle::{WaylandDisplayHandle, WaylandWindowHandle};
 #[cfg(target_os = "windows")]
 use raw_window_handle::{Win32WindowHandle, WindowsDisplayHandle};
 use std::collections::HashMap;
@@ -1197,6 +1199,24 @@ unsafe fn create_surface_from_descriptor(
         instance
             .create_surface_unsafe(target)
             .map_err(|e| format!("Failed to create X11 surface: {}", e))
+    } else if desc.r#type == 2 {
+        #[cfg(target_os = "linux")]
+        {
+            let display = std::ptr::NonNull::new(desc.handle_a as *mut std::ffi::c_void)
+                .ok_or_else(|| "wl_display must be non-null".to_string())?;
+            let surface = std::ptr::NonNull::new(desc.handle_b as *mut std::ffi::c_void)
+                .ok_or_else(|| "wl_surface must be non-null".to_string())?;
+            let target = wgpu::SurfaceTargetUnsafe::RawHandle {
+                raw_display_handle: RawDisplayHandle::Wayland(WaylandDisplayHandle::new(display)),
+                raw_window_handle: RawWindowHandle::Wayland(WaylandWindowHandle::new(surface)),
+            };
+            instance.create_surface_unsafe(target)
+                .map_err(|e| format!("Failed to create Wayland surface: {}", e))
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            Err("Wayland surface requires Linux".to_string())
+        }
     } else if desc.r#type == 3 {
         #[cfg(target_os = "windows")]
         {
@@ -1214,6 +1234,20 @@ unsafe fn create_surface_from_descriptor(
         #[cfg(not(target_os = "windows"))]
         {
             Err("Win32 surface requires Windows".to_string())
+        }
+    } else if desc.r#type == 4 {
+        #[cfg(target_os = "macos")]
+        {
+            if desc.handle_a == 0 {
+                return Err("CAMetalLayer must be non-null".to_string());
+            }
+            instance.create_surface_unsafe(wgpu::SurfaceTargetUnsafe::CoreAnimationLayer(
+                desc.handle_a as *mut std::ffi::c_void,
+            )).map_err(|e| format!("Failed to create CAMetalLayer surface: {}", e))
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            Err("AppKit layer requires macOS".to_string())
         }
     } else {
         Err("Native surface platform not supported".to_string())
@@ -1244,6 +1278,7 @@ fn renderer_backend(renderer: u32) -> Result<Option<wgpu::Backends>, String> {
         1 => Ok(Some(wgpu::Backends::VULKAN)),
         2 => Ok(Some(wgpu::Backends::GL)),
         4 => Ok(Some(wgpu::Backends::DX12)),
+        5 => Ok(Some(wgpu::Backends::METAL)),
         _ => Err("Invalid requested surface renderer".to_string()),
     }
 }
@@ -1253,6 +1288,7 @@ fn adapter_renderer(backend: wgpu::Backend) -> u32 {
         wgpu::Backend::Vulkan => 1,
         wgpu::Backend::Gl => 2,
         wgpu::Backend::Dx12 => 4,
+        wgpu::Backend::Metal => 5,
         _ => 3,
     }
 }

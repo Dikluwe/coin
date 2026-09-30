@@ -163,6 +163,7 @@ Base de execução: [benchmark e mecanismos existentes](coin-render-window-bench
   BGFX/D3D11/D3D12, eventos reais e matriz Windows seguem abertos.
 - [ ] **P22 — macOS/Wayland:** Cocoa/Metal e Wayland nativo, superfícies,
   coordenadas, apresentação e ciclo de vida próprios.
+  [Wayland nativo executado; AppKit/Metal preparado](coin-render-p22-macos-wayland.md).
 - [ ] **P23 — Android:** após desktop, pause/resume e recriação de superfície/recursos.
 
 Fechamento por combinação backend/API/driver/plataforma/alvo. Xvfb ou um dispositivo
@@ -180,13 +181,19 @@ Dependem de capacidades, ownership e medições; não devem adiar os bloqueios b
 
 ## Acompanhamento
 
+As evidências que exigem outro SO, processador ou GPU física ficam no
+[registro de validação externa](coin-render-platform-validation-pending.md).
+
 Cada Pxx usa o registro da checklist: contrato Coin e caminho GL; dono comum;
 captura; saída do Core; execução BGFX/wgpu; testes, device/formato/tolerâncias;
 limites; documentação e commit de evidência. Registrar implementação, execução e
 qualificação separadamente. Rejeição explícita fecha diagnóstico, não suporte
 funcional. Atualizar Pxx e Axx/Fxx associados somente no escopo comprovado.
 
-**Entrega atual: P21 — Windows.** A [rota Win32/wgpu inicial](coin-render-p21-windows.md)
+**Entrega atual: P22 — macOS/Wayland.** Wayland/wgpu Vulkan passou em
+Weston headless, enquanto AppKit/Metal aguarda um host macOS. O
+[registro externo](coin-render-platform-validation-pending.md) concentra essas
+células. **P21 — Windows:** a [rota Win32/wgpu inicial](coin-render-p21-windows.md)
 ainda precisa de build e execução nativos. P20 segue aberto para Intel, BGFX/OpenGL
 NVIDIA e oráculos visuais. As campanhas
 [P17](coin-render-p17-campaign.md), [P18](coin-render-p18-profiling.md) e

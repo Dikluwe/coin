@@ -54,6 +54,8 @@ def main():
     parser.add_argument('--server', choices=('xvfb', 'xephyr', 'xwayland'), default='xvfb')
     parser.add_argument('--weston-prefix', type=Path,
                         help='optional locally extracted Weston prefix (xwayland only)')
+    parser.add_argument('--weston-shell', choices=('kiosk-shell.so', 'desktop-shell.so'),
+                        default='kiosk-shell.so', help='Weston shell for xwayland sessions')
     parser.add_argument('--artifacts', required=True, type=Path)
     parser.add_argument('--private-dir', type=Path, help=argparse.SUPPRESS)
     parser.add_argument('--worker', action='store_true', help=argparse.SUPPRESS)
@@ -127,12 +129,17 @@ def main():
                 print('Weston is required for isolated accelerated Xwayland', file=sys.stderr)
                 return 78
             server_env['WAYLAND_DISPLAY'] = 'coin-isolated'
+            weston_config = ['--no-config']
+            if args.weston_shell == 'desktop-shell.so' and args.weston_prefix:
+                config = artifacts/'weston.ini'
+                config.write_text('[shell]\nclient='+str(prefix/'usr/libexec/weston-desktop-shell')+'\n')
+                weston_config = ['--config='+str(config)]
             with (artifacts/'weston-process.log').open('w') as log:
                 compositor = subprocess.Popen([
                     weston, '--backend=headless', '--renderer=gl',
-                    '--shell=kiosk-shell.so', '--socket=coin-isolated',
+                    '--shell='+args.weston_shell, '--socket=coin-isolated',
                     '--width=2400', '--height=1600', '--idle-time=0',
-                    '--no-config', '--log='+str(artifacts/'weston.log')],
+                    *weston_config, '--log='+str(artifacts/'weston.log')],
                     env=server_env, stdout=log, stderr=subprocess.STDOUT,
                     start_new_session=True)
             deadline = time.monotonic()+15
@@ -207,6 +214,7 @@ def main():
                 'window_manager': wm, 'screen': screen, 'requested_screen': '2400x1600',
                 'private_runtime': True,
                 'compositor_backend': 'headless-gl' if args.server == 'xwayland' else None,
+                'compositor_shell': args.weston_shell if args.server == 'xwayland' else None,
                 'hardware': 'must be proven by runner, never inferred from isolation',
             }, indent=2))
             if args.exec:

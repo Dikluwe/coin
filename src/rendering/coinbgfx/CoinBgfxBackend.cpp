@@ -694,8 +694,9 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
     break;
   }
   this->activeTransparencyStrategy = CoinBgfxTransparencyStrategy::OBJECT;
-  if (target.options.renderer == COIN_RENDER_RENDERER_D3D12) {
-    this->lastError = "BGFX D3D12 is not implemented in this connector";
+  if (target.options.renderer == COIN_RENDER_RENDERER_D3D12 ||
+      target.options.renderer == COIN_RENDER_RENDERER_METAL) {
+    this->lastError = "BGFX D3D12/Metal is not implemented in this connector";
     return CoinRenderBackendStatus::UNSUPPORTED;
   }
   const bool useOpenGl = target.options.renderer == COIN_RENDER_RENDERER_OPENGL;
