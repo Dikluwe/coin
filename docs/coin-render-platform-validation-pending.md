@@ -12,6 +12,8 @@ houver execução identificada por SO, arquitetura, GPU, API, driver e alvo.
 | P21 — BGFX/D3D11 e D3D12 | Outro computador do usuário com Windows, GPU e toolchain BGFX | Conectores ainda não implementados; D3D12 rejeitado explicitamente | Implementar mecanismo e validar por API/driver em máquina física |
 | P22 — macOS/Metal | Host macOS indisponível; requer toolchain Apple e GPU Metal, em Intel e/ou Apple Silicon conforme matriz | Rota AppKit/wgpu e smoke preparados; sem build/execução nativos | Compilar, apresentar, capturar, testar Retina, resize, múltiplas janelas e ciclo de vida do layer |
 | P23 — Android | Android/ARM com GPU | NDK r30 e target Rust arm64 instalados neste host; ponte wgpu e objetos Android compilados; Coin base ainda bloqueia link final por GL desktop; sem dispositivo | Isolar GL desktop no Coin base, compilar/empacotar, validar superfície, pause/resume, recriação de recursos e matriz por API/driver |
+| P27.5 — sombras Windows/Intel | Outro computador do usuário com Windows e GPU Intel física | P27.2 opaco de até duas luzes qualificado apenas neste host AMD/RADV, Vulkan; sem evidência Windows/Intel | Executar a mesma fixture Coin/GL versus wgpu para spot, direcional, pares, câmera/frustum, resize e falha; registrar API, driver, pixels e tolerâncias |
+| P27.5 — sombras macOS/Metal | Host macOS indisponível | Sem build ou readback Metal do perfil de sombras | Quando houver host, repetir as fixtures P27 de GPU/GL aplicáveis, resize e falhas; registrar arquitetura, GPU, versão do SO e driver |
 
 Pendências executáveis neste Linux, como Wayland nativo, falha BGFX/OpenGL na
 NVIDIA e oráculos visuais, permanecem nos documentos de suas fases. A separação

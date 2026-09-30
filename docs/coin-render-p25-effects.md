@@ -10,8 +10,9 @@ efeito novo e o comportamento Coin/GL.
 
 O GL de `SoShadowGroup` cria shadow maps com Variance Shadow Maps, renderiza
 casters e receivers, usa `SoShadowStyle` e pode usar iluminação Phong por
-fragmento dentro do grupo. O Wiring atual herda a travessia comum de filhos,
-mas não captura um plano de shadow maps. `SoTexture3::callback` publica imagem
+fragmento dentro do grupo. O Wiring já captura grupo, estilos e luzes e o
+Core produz passes para os perfis opacos P27.1–P27.2; o contrato ampliado
+continua em P27.4. `SoTexture3::callback` publica imagem
 volumétrica no elemento Coin; o FramePlan atual só captura textura 2D.
 `SoTextureCubeMap::callback` e `SoSceneTextureCubeMap::callback` chamam
 `doAction`, que está vazio neste Coin;
@@ -22,22 +23,24 @@ nós nos backends criaria duas decisões semânticas concorrentes.
 
 - [x] A Wiring comum identifica volume e cube map com imagem/arquivo,
   cube RTT com cena,
-  `SoShadowGroup` ativo e `SoShaderProgram` ativo; retorna `UNSUPPORTED` antes
-  da submissão. Shader Coin é a frente I07, não implementação de SSAO.
+  `SoShadowGroup` ativo e `SoShaderProgram` ativo. Perfis de sombras fora do
+  P27.1–P27.2 retornam `UNSUPPORTED` antes da submissão. Shader Coin é a
+  frente I07, não implementação de SSAO.
 - [x] `SoShadowGroup` inativo preserva travessia normal dos filhos. Teste de
   caracterização verifica status, diagnóstico, ausência de submit e recuperação.
-- [ ] Capturar estado Coin dos casters, receivers, luzes, textura e coordenadas
-  sem consultar GL no Core. O Core deve decidir passes, dependências e limites;
-  cada Infra aloca e submete seus próprios recursos.
+- [x] Capturar grupo, casters, receivers, estilos e luzes dos perfis opacos
+  P27.1–P27.2 sem consultar GL no Core; o Core decide passes e limites e o
+  wgpu aloca e submete seus recursos. Textura e o contrato amplo seguem abertos.
 - [ ] Implementar volume/cube map em BGFX e wgpu com mesmo plano, formatos,
   wrap/filtros, orientação das faces e expectativa de cor verificável.
-- [ ] Implementar sombras Coin: passes, mapas, estilos, transparência, bias,
-  recuperação, resize e publicação transacional. Comparar cenas com Coin/GL.
+- [ ] Completar sombras Coin em BGFX e wgpu: os perfis opacos de até duas
+  luzes passaram no wgpu (P27.1–P27.2), enquanto BGFX, três ou mais luzes,
+  transparência, cenas próprias, RTT e a matriz final seguem abertos.
 - [ ] Projetar SSAO como opção tipada, desativada por padrão, com depth/normal
   e composição explícitos. Testar disponibilidade e custo em cada backend.
 - [ ] Qualificar em GPU física, por renderer/driver/formato, sem marcar suporte
   funcional a partir de um probe de capacidade.
 
-O teste `CoinRenderNodeInventoryTest` passou nas builds CPU/RECORDING e wgpu
-após a mudança. Isso comprova diagnóstico e preservação do último frame,
-não o suporte dos efeitos.
+`CoinRenderNodeInventoryTest` comprova a identificação dos nós e o contrato
+de rejeição. `CoinRenderShadowReferenceTest` comprova os perfis opacos wgpu
+P27.1–P27.2 contra Coin/GL; os demais efeitos continuam sem executor.

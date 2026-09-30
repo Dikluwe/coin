@@ -217,25 +217,26 @@ coin_render_shadow_camera(const CoinRenderShadowGroupSnapshot & group,
       bounds.setBounds(light.bboxCenter - half, light.bboxCenter + half);
     }
     const SbBox3f fullBounds = bounds;
+    if (!mainView) {
+      diagnostic = "Directional shadow requires the group-entry view volume";
+      return false;
+    }
+    SbViewVolume visibleVolume = *mainView;
     if (light.maxShadowDistance > 0.0f) {
-      if (!mainView) {
-        diagnostic = "Directional maxShadowDistance requires one captured camera";
-        return false;
-      }
-      const float near = mainView->getNearDist();
-      const float depth = mainView->getDepth();
+      const float near = visibleVolume.getNearDist();
+      const float depth = visibleVolume.getDepth();
       if (light.maxShadowDistance <= near) {
         pass.visible = false;
         return true;
       }
       const float narrowedDepth = std::min(light.maxShadowDistance - near, depth);
-      const SbViewVolume narrowed = mainView->zNarrow(
+      visibleVolume = visibleVolume.zNarrow(
         1.0f, 1.0f - narrowedDepth / depth);
-      bounds = narrowed.intersectionBox(fullBounds);
-      if (bounds.isEmpty()) {
-        pass.visible = false;
-        return true;
-      }
+    }
+    bounds = visibleVolume.intersectionBox(fullBounds);
+    if (bounds.isEmpty()) {
+      pass.visible = false;
+      return true;
     }
     const SbVec3f size = bounds.getSize();
     const float extent = std::max(1.0f, std::max(size[0], std::max(size[1], size[2])));
@@ -304,20 +305,12 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
       }
       SbViewVolume mainView;
       const SbViewVolume * mainViewPtr = nullptr;
-      if (light.type == CoinRenderLightType::DIRECTIONAL &&
-          light.maxShadowDistance > 0.0f) {
-        uint32_t cameraSlot = UINT32_MAX;
-        for (const auto & draw : frame.draws) {
-          const auto & state = frame.renderStates[draw.renderStateSlot];
-          if (state.shadowGroupSlot != g + 1) continue;
-          if (cameraSlot == UINT32_MAX) cameraSlot = state.cameraSlot;
-          else if (cameraSlot != state.cameraSlot) {
-            diagnostic = "Directional maxShadowDistance requires one group camera";
-            return false;
-          }
+      if (light.type == CoinRenderLightType::DIRECTIONAL) {
+        if (!group.hasEntryCamera) {
+          diagnostic = "Directional shadow requires the group-entry camera";
+          return false;
         }
-        if (cameraSlot >= frame.cameras.size() ||
-            !coin_render_shadow_view_volume(frame.cameras[cameraSlot],
+        if (!coin_render_shadow_view_volume(group.entryCamera,
                                             mainView, diagnostic)) return false;
         mainViewPtr = &mainView;
       }
@@ -541,8 +534,17 @@ coin_render_shadow_single_directional_opaque_profile(
     frame, shadows, CoinRenderLightType::DIRECTIONAL, diagnostic);
 }
 
-// Captured contract for the first two-light execution profile. Backends may
-// execute it only when both independent maps and contributions are available.
+// The bounded two-pass opaque profile accepts any pair of eligible spot and/or
+// directional lights. Core already owns the Coin light identity and index match.
+inline bool
+coin_render_shadow_two_opaque_profile(
+  const CoinRenderFramePlan & frame, const CoinRenderShadowPlan & shadows,
+  std::string & diagnostic)
+{
+  return coin_render_shadow_opaque_profile(frame, shadows, 2, diagnostic);
+}
+
+// Stronger fixture predicate for scenes with one spot and one directional.
 inline bool
 coin_render_shadow_spot_directional_opaque_profile(
   const CoinRenderFramePlan & frame, const CoinRenderShadowPlan & shadows,

@@ -655,7 +655,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
         plan, shadowPlan, profileDiagnostic) ||
         coin_render_shadow_single_directional_opaque_profile(
           plan, shadowPlan, profileDiagnostic) ||
-        coin_render_shadow_spot_directional_opaque_profile(
+        coin_render_shadow_two_opaque_profile(
           plan, shadowPlan, profileDiagnostic);
     }
 #endif
@@ -1111,6 +1111,8 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, 
   snapshot.visibilityRadius = group->visibilityRadius.getValue();
   snapshot.visibilityFlag = group->visibilityFlag.getValue();
   snapshot.nested = p->builder.hasActiveShadowGroup();
+  snapshot.hasEntryCamera = true;
+  snapshot.entryCamera = CoinRenderFramePlanBuilder::captureCamera(action);
   p->shadowStyleBeforeGroups.push_back(SoShadowStyleElement::get(action->getState()));
   SoShadowStyleElement::set(action->getState(), 3);
   p->builder.beginShadowGroup(snapshot);

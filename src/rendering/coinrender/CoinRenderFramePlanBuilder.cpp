@@ -65,6 +65,28 @@
 #include <atomic>
 #include <cmath>
 
+CoinRenderCameraSnapshot
+CoinRenderFramePlanBuilder::captureCamera(SoCallbackAction * action)
+{
+  CoinRenderCameraSnapshot camSnap;
+  camSnap.viewMatrix = action->getViewingMatrix();
+  camSnap.projectionMatrixCoin = action->getProjectionMatrix();
+  const SbViewVolume & vv = action->getViewVolume();
+  camSnap.isPerspective = (vv.getProjectionType() == SbViewVolume::PERSPECTIVE);
+  camSnap.nearDistance = vv.getNearDist();
+  camSnap.farDistance = vv.getNearDist() + vv.getDepth();
+  if (camSnap.isPerspective && camSnap.nearDistance <= 0.0f) {
+    camSnap.nearDistance = 0.1f;
+  }
+  if (camSnap.farDistance <= camSnap.nearDistance) {
+    camSnap.farDistance = camSnap.nearDistance + 100.0f;
+  }
+  camSnap.focalDistance = action->getFocalDistance();
+  const SbViewportRegion & vp = action->getViewportRegion();
+  camSnap.aspectRatio = vp.getViewportAspectRatio();
+  return camSnap;
+}
+
 CoinRenderFramePlanBuilder::CoinRenderFramePlanBuilder()
   : currentDrawIndex(0),
     nodeCounter(0),
@@ -686,22 +708,7 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   }
 
   // 3. Camera
-  CoinRenderCameraSnapshot camSnap;
-  camSnap.viewMatrix = action->getViewingMatrix();
-  camSnap.projectionMatrixCoin = action->getProjectionMatrix();
-  const SbViewVolume & vv = action->getViewVolume();
-  camSnap.isPerspective = (vv.getProjectionType() == SbViewVolume::PERSPECTIVE);
-  camSnap.nearDistance = vv.getNearDist();
-  camSnap.farDistance = vv.getNearDist() + vv.getDepth();
-  if (camSnap.isPerspective && camSnap.nearDistance <= 0.0f) {
-    camSnap.nearDistance = 0.1f;
-  }
-  if (camSnap.farDistance <= camSnap.nearDistance) {
-    camSnap.farDistance = camSnap.nearDistance + 100.0f;
-  }
-  camSnap.focalDistance = action->getFocalDistance();
-  const SbViewportRegion & vp = action->getViewportRegion();
-  camSnap.aspectRatio = vp.getViewportAspectRatio();
+  const CoinRenderCameraSnapshot camSnap = captureCamera(action);
 
   uint32_t cameraSlot = 0;
   bool camFound = false;
@@ -723,6 +730,7 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   }
 
   // 4. Viewport
+  const SbViewportRegion & vp = action->getViewportRegion();
   CoinRenderViewportSnapshot vpSnap;
   const SbVec2s & origin = vp.getViewportOriginPixels();
   const SbVec2s & size = vp.getViewportSizePixels();

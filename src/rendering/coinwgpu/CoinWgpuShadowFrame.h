@@ -66,7 +66,7 @@ struct CoinWgpuShadowFrame : CoinWgpuShadowPass {
       frame, plan, spotDiagnostic) ||
       coin_render_shadow_single_directional_opaque_profile(
         frame, plan, directionalDiagnostic);
-    const bool dual = !single && coin_render_shadow_spot_directional_opaque_profile(
+    const bool dual = !single && coin_render_shadow_two_opaque_profile(
       frame, plan, dualDiagnostic);
     if (!single && !dual) {
       diagnostic = spotDiagnostic + "; " + directionalDiagnostic + "; " + dualDiagnostic;

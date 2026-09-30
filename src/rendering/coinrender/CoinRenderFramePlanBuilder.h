@@ -20,6 +20,7 @@ public:
   // Wiring reads the effective Coin state, including ignored fields and overrides.
   static bool isShapeInvisible(SoCallbackAction * action);
   static int polygonDrawStyle(SoCallbackAction * action);
+  static CoinRenderCameraSnapshot captureCamera(SoCallbackAction * action);
   void recordLightAttenuation(SoCallbackAction * action);
   void beginShadowGroup(const CoinRenderShadowGroupSnapshot & group);
   void endShadowGroup();

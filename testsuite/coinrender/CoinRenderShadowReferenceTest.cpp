@@ -18,9 +18,11 @@
 #include <Inventor/annex/FXViz/nodes/SoShadowStyle.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
+#include <Inventor/nodes/SoPerspectiveCamera.h>
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/nodes/SoTranslation.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
+#include <Inventor/nodes/SoLight.h>
 #include <Inventor/nodes/SoPointLight.h>
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/SbColor.h>
@@ -359,16 +361,43 @@ int main()
     twoLightSubmittedOnGpu = singleSubmitted && dualSubmitted &&
       twoLightWgpuDifference > 100;
     if (twoLightSubmittedOnGpu) {
+      auto * thirdShadowLight = new SoShadowSpotLight;
+      thirdShadowLight->location.setValue(-2.0f, 2.0f, 4.0f);
+      thirdShadowLight->direction.setValue(2.0f, -2.0f, -5.0f);
+      thirdShadowLight->cutOffAngle = 0.9f;
+      group->insertChild(thirdShadowLight, 2);
       const uint64_t serial = dualTarget->getLastSubmissionSerial();
-      coin_wgpu_inject_fault(COIN_WGPU_FAULT_SHADOW_MAP_ALLOC);
       dualAction.apply(root);
-      coin_wgpu_inject_fault(0);
-      std::vector<unsigned char> afterFailure;
-      dualTarget->readbackRGBA(afterFailure);
-      twoLightSubmittedOnGpu =
-        dualAction.getLastStatus() == CoinRenderAction::OUT_OF_MEMORY &&
+      std::vector<unsigned char> afterThreeLights;
+      dualTarget->readbackRGBA(afterThreeLights);
+      const bool threeRejected =
+        dualAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
         dualTarget->getLastSubmissionSerial() == serial &&
-        afterFailure == dualGpu;
+        afterThreeLights == dualGpu;
+      if (!threeRejected)
+        std::cerr << "three-light boundary: status=" << dualAction.getLastStatus()
+                  << " serial=" << dualTarget->getLastSubmissionSerial()
+                  << " expected=" << serial << " diagnostic="
+                  << dualAction.getLastError().getString() << '\n';
+      twoLightSubmittedOnGpu = twoLightSubmittedOnGpu && threeRejected;
+      group->removeChild(thirdShadowLight);
+      CoinRenderAction recoveryAction(SbViewportRegion(side, side));
+      recoveryAction.setRenderTarget(dualTarget);
+      recoveryAction.apply(root);
+      std::vector<unsigned char> recoveredDual;
+      if (recoveryAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        dualTarget->readbackRGBA(recoveredDual);
+      const bool threeRecovered =
+        recoveryAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+        dualTarget->getLastSubmissionSerial() > serial &&
+        recoveredDual == dualGpu;
+      if (!threeRecovered)
+        std::cerr << "three-light recovery: status=" << recoveryAction.getLastStatus()
+                  << " serial=" << dualTarget->getLastSubmissionSerial()
+                  << " expected>" << serial << " diagnostic="
+                  << recoveryAction.getLastError().getString() << '\n';
+      twoLightSubmittedOnGpu = twoLightSubmittedOnGpu && threeRecovered;
+      recoveryAction.setRenderTarget(nullptr);
     }
     if (twoLightSubmittedOnGpu) {
       const int resized = 160;
@@ -392,6 +421,18 @@ int main()
           dualAction.getLastStatus() == CoinRenderAction::SUCCESS &&
           restoredDual == dualGpu;
       }
+    }
+    if (twoLightSubmittedOnGpu) {
+      const uint64_t serial = dualTarget->getLastSubmissionSerial();
+      coin_wgpu_inject_fault(COIN_WGPU_FAULT_SHADOW_MAP_ALLOC);
+      dualAction.apply(root);
+      coin_wgpu_inject_fault(0);
+      std::vector<unsigned char> afterFailure;
+      dualTarget->readbackRGBA(afterFailure);
+      twoLightSubmittedOnGpu =
+        dualAction.getLastStatus() == CoinRenderAction::OUT_OF_MEMORY &&
+        dualTarget->getLastSubmissionSerial() == serial &&
+        afterFailure == dualGpu;
     }
     if (!twoLightSubmittedOnGpu)
       std::cerr << "wgpu two-light frame failed: "
@@ -618,8 +659,207 @@ int main()
   group->insertChild(secondShadowLight, 1);
   light->unref();
   secondShadowLight->unref();
+  light->ref();
+  secondShadowLight->ref();
+  group->removeChild(light);
+  group->removeChild(secondShadowLight);
+  group->insertChild(secondShadowLight, 0);
+  group->insertChild(light, 1);
+  light->unref();
+  secondShadowLight->unref();
+  for (int spotPosition : {1, 2, 3}) {
+    light->ref();
+    group->removeChild(light);
+    group->insertChild(light, spotPosition);
+    light->unref();
+    action.apply(root);
+    const auto & reversedFrame = action.getPimpl()->lastRejectedShadowFrame;
+    const auto & reversedPlan = action.getPimpl()->lastRejectedShadowPlan;
+    std::string reversedDiagnostic;
+    bool reversedOk = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+      coin_render_shadow_spot_directional_opaque_profile(
+        reversedFrame, reversedPlan, reversedDiagnostic) &&
+      reversedFrame.shadowLights[reversedPlan.passes[0].lightSlot].type ==
+        CoinRenderLightType::DIRECTIONAL &&
+      reversedFrame.shadowLights[reversedPlan.passes[1].lightSlot].type ==
+        CoinRenderLightType::SPOT;
+    if (reversedOk)
+      for (const auto & draw : reversedFrame.draws) {
+        const uint32_t slot = draw.renderStateSlot;
+        reversedOk = reversedOk &&
+          reversedPlan.passes[0].lightingIndexByState[slot] == 0 &&
+          (reversedPlan.passes[1].lightingIndexByState[slot] == 1 ||
+           reversedPlan.passes[1].lightingIndexByState[slot] == -1);
+      }
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+    int reversedWgpuDifference = 0;
+    if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU") && reversedOk) {
+      CoinRenderTarget * reversedTarget = CoinRenderTarget::createOffscreen(
+        SbVec2i32(side, side));
+      CoinRenderAction reversedAction(SbViewportRegion(side, side));
+      reversedAction.setRenderTarget(reversedTarget);
+      light->on = FALSE;
+      reversedAction.apply(root);
+      std::vector<unsigned char> singlePixels, dualPixels;
+      const bool singleOk = reversedAction.getLastStatus() == CoinRenderAction::SUCCESS;
+      if (singleOk) reversedTarget->readbackRGBA(singlePixels);
+      light->on = TRUE;
+      reversedAction.apply(root);
+      const bool dualOk = reversedAction.getLastStatus() == CoinRenderAction::SUCCESS;
+      if (dualOk) reversedTarget->readbackRGBA(dualPixels);
+      if (singleOk && dualOk && singlePixels.size() == dualPixels.size())
+        for (int y = 20; y < 105; ++y)
+          for (int x = 20; x < 105; ++x)
+            reversedWgpuDifference = std::max(reversedWgpuDifference,
+              std::abs(luminanceRgba(singlePixels, x, y) -
+                       luminanceRgba(dualPixels, x, y)));
+      reversedOk = reversedOk && singleOk && dualOk &&
+        reversedWgpuDifference > 100;
+      if (!reversedOk)
+        std::cerr << "wgpu reversed lights failed at " << spotPosition << ": "
+                  << reversedAction.getLastError().getString()
+                  << " delta=" << reversedWgpuDifference << '\n';
+      reversedAction.setRenderTarget(nullptr);
+      delete reversedTarget;
+    }
+#endif
+    if (std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") && SoShadowGroup::isSupported()) {
+      auto * dualRoot = static_cast<SoSeparator *>(root->copy(TRUE));
+      dualRoot->ref();
+      auto * singleRoot = static_cast<SoSeparator *>(dualRoot->copy(TRUE));
+      singleRoot->ref();
+      auto * singleGroup = static_cast<SoShadowGroup *>(singleRoot->getChild(1));
+      singleGroup->removeChild(spotPosition);
+      SoOffscreenRenderer reversedGl(SbViewportRegion(side, side));
+      reversedGl.setComponents(SoOffscreenRenderer::RGB);
+      std::vector<unsigned char> dualPixels, singlePixels;
+      const bool rendered = render(reversedGl, dualRoot, dualPixels) &&
+                            render(reversedGl, singleRoot, singlePixels);
+      int reversedGlDifference = 0;
+      if (rendered)
+        for (int y = 20; y < 105; ++y)
+          for (int x = 20; x < 105; ++x)
+            reversedGlDifference = std::max(reversedGlDifference,
+              std::abs(luminance(dualPixels, x, y) -
+                       luminance(singlePixels, x, y)));
+      reversedOk = reversedOk && rendered && reversedGlDifference > 100;
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+      if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))
+        reversedOk = reversedOk &&
+          std::abs(reversedGlDifference - reversedWgpuDifference) <= 100;
+      std::cout << "reversed lights " << spotPosition << " GL/wgpu delta="
+                << reversedGlDifference << '/' << reversedWgpuDifference << '\n';
+#endif
+      singleRoot->unref();
+      dualRoot->unref();
+    }
+    orderedTwoLight = orderedTwoLight && reversedOk;
+  }
+  light->ref();
+  secondShadowLight->ref();
+  group->removeChild(light);
+  group->removeChild(secondShadowLight);
+  group->insertChild(light, 0);
+  group->insertChild(secondShadowLight, 1);
+  light->unref();
+  secondShadowLight->unref();
   group->removeChild(secondShadowLight);
   group->quality = previousQuality;
+  auto verifySameTypePair = [&](SoSeparator * pairRoot, SoLight * second,
+                                const char * label) -> bool {
+    pairRoot->ref();
+    auto * pairGroup = static_cast<SoShadowGroup *>(pairRoot->getChild(1));
+    pairGroup->quality = 1.0f;
+    pairGroup->insertChild(second, 1);
+    action.apply(pairRoot);
+    const auto & pairFrame = action.getPimpl()->lastRejectedShadowFrame;
+    const auto & pairPlan = action.getPimpl()->lastRejectedShadowPlan;
+    std::string pairDiagnostic;
+    bool pairOk = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+      coin_render_shadow_two_opaque_profile(pairFrame, pairPlan, pairDiagnostic) &&
+      pairPlan.passes.size() == 2;
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+    int wgpuDifference = 0;
+    if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU") && pairOk) {
+      CoinRenderTarget * pairTarget = CoinRenderTarget::createOffscreen(
+        SbVec2i32(side, side));
+      CoinRenderAction pairAction(SbViewportRegion(side, side));
+      pairAction.setRenderTarget(pairTarget);
+      second->on = FALSE;
+      pairAction.apply(pairRoot);
+      std::vector<unsigned char> singlePixels, dualPixels;
+      const bool singleOk = pairAction.getLastStatus() == CoinRenderAction::SUCCESS;
+      if (singleOk) pairTarget->readbackRGBA(singlePixels);
+      second->on = TRUE;
+      pairAction.apply(pairRoot);
+      const bool dualOk = pairAction.getLastStatus() == CoinRenderAction::SUCCESS;
+      if (dualOk) pairTarget->readbackRGBA(dualPixels);
+      if (singleOk && dualOk && singlePixels.size() == dualPixels.size())
+        for (int y = 20; y < 105; ++y)
+          for (int x = 20; x < 105; ++x)
+            wgpuDifference = std::max(wgpuDifference,
+              std::abs(luminanceRgba(singlePixels, x, y) -
+                       luminanceRgba(dualPixels, x, y)));
+      pairOk = pairOk && singleOk && dualOk && wgpuDifference > 80;
+      if (!pairOk)
+        std::cerr << "wgpu " << label << " failed: "
+                  << pairAction.getLastError().getString()
+                  << " delta=" << wgpuDifference << '\n';
+      pairAction.setRenderTarget(nullptr);
+      delete pairTarget;
+    }
+#endif
+    if (std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") && SoShadowGroup::isSupported()) {
+      auto * singleRoot = static_cast<SoSeparator *>(pairRoot->copy(TRUE));
+      singleRoot->ref();
+      auto * singleGroup = static_cast<SoShadowGroup *>(singleRoot->getChild(1));
+      singleGroup->removeChild(1);
+      SoOffscreenRenderer pairGl(SbViewportRegion(side, side));
+      pairGl.setComponents(SoOffscreenRenderer::RGB);
+      std::vector<unsigned char> dualPixels, singlePixels;
+      const bool rendered = render(pairGl, pairRoot, dualPixels) &&
+                            render(pairGl, singleRoot, singlePixels);
+      int glDifference = 0;
+      if (rendered)
+        for (int y = 20; y < 105; ++y)
+          for (int x = 20; x < 105; ++x)
+            glDifference = std::max(glDifference,
+              std::abs(luminance(dualPixels, x, y) -
+                       luminance(singlePixels, x, y)));
+      pairOk = pairOk && rendered && glDifference > 80;
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+      if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))
+        pairOk = pairOk && std::abs(glDifference - wgpuDifference) <= 120;
+      std::cout << label << " GL/wgpu delta=" << glDifference << '/'
+                << wgpuDifference << '\n';
+#endif
+      singleRoot->unref();
+    }
+    if (!pairOk)
+      std::cerr << label << " profile: " << pairDiagnostic << '\n';
+    pairRoot->unref();
+    return pairOk;
+  };
+  auto * twoSpotsRoot = static_cast<SoSeparator *>(root->copy(TRUE));
+  auto * extraSpot = new SoShadowSpotLight;
+  extraSpot->location.setValue(-2.0f, 2.0f, 4.0f);
+  extraSpot->direction.setValue(2.0f, -2.0f, -5.0f);
+  extraSpot->cutOffAngle = 0.9f;
+  extraSpot->intensity = 0.6f;
+  const bool twoSpotsOk = verifySameTypePair(twoSpotsRoot, extraSpot, "two spots");
+  auto * twoDirectionalsRoot = static_cast<SoSeparator *>(root->copy(TRUE));
+  auto * twoDirectionalsGroup = static_cast<SoShadowGroup *>(
+    twoDirectionalsRoot->getChild(1));
+  auto * firstDirectional = new SoShadowDirectionalLight;
+  firstDirectional->direction.setValue(-0.4f, -0.4f, -1.0f);
+  firstDirectional->intensity = 1.0f;
+  twoDirectionalsGroup->replaceChild(0, firstDirectional);
+  auto * extraDirectional = new SoShadowDirectionalLight;
+  extraDirectional->direction.setValue(0.4f, -0.4f, -1.0f);
+  extraDirectional->intensity = 0.6f;
+  extraDirectional->maxShadowDistance = 10.0f;
+  const bool twoDirectionalsOk = verifySameTypePair(
+    twoDirectionalsRoot, extraDirectional, "two directionals");
   target->readbackRGBA(afterRejection);
   const bool preserved = target->getLastSubmissionSerial() == originalSerial &&
                          !published.empty() && published == afterRejection;
@@ -952,16 +1192,212 @@ int main()
     }
   }
 #endif
+  directionalCapture->ref();
+  group->removeChild(directionalCapture);
+  group->insertChild(directionalCapture, 1);
+  directionalCapture->unref();
+  const float previousDirectionalQuality = group->quality.getValue();
+  group->quality = 1.0f;
+  directionalCapture->maxShadowDistance = 10.0f;
+  action.apply(root);
+  const auto & entryFrame = action.getPimpl()->lastRejectedShadowFrame;
+  const auto & entryPlan = action.getPimpl()->lastRejectedShadowPlan;
+  bool multipleCameras = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+    entryPlan.passes.size() == 1 && entryFrame.shadowGroups.size() == 1 &&
+    entryFrame.shadowGroups[0].hasEntryCamera;
+  SbMatrix entryView = SbMatrix::identity();
+  SbMatrix entryProjection = SbMatrix::identity();
+  if (multipleCameras) {
+    entryView = entryPlan.passes[0].view;
+    entryProjection = entryPlan.passes[0].projectionCoin;
+  }
+  auto * innerCamera = new SoOrthographicCamera;
+  innerCamera->position.setValue(0.35f, 0.0f, 8.0f);
+  innerCamera->height = 7.0f;
+  innerCamera->nearDistance = 1.0f;
+  innerCamera->farDistance = 20.0f;
+  group->insertChild(innerCamera, 3); // After caster, before floor.
+  action.apply(root);
+  const auto & cameraFrame = action.getPimpl()->lastRejectedShadowFrame;
+  const auto & cameraPlan = action.getPimpl()->lastRejectedShadowPlan;
+  std::string cameraDiagnostic;
+  multipleCameras = multipleCameras &&
+    action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+    coin_render_shadow_single_directional_opaque_profile(
+      cameraFrame, cameraPlan, cameraDiagnostic) &&
+    cameraFrame.cameras.size() >= 2 &&
+    cameraPlan.passes[0].view == entryView &&
+    cameraPlan.passes[0].projectionCoin == entryProjection;
+  if (multipleCameras) {
+    bool sawDifferentDrawCameras = false;
+    const uint32_t firstCamera = cameraFrame.renderStates[
+      cameraFrame.draws.front().renderStateSlot].cameraSlot;
+    for (const auto & draw : cameraFrame.draws)
+      sawDifferentDrawCameras = sawDifferentDrawCameras ||
+        cameraFrame.renderStates[draw.renderStateSlot].cameraSlot != firstCamera;
+    multipleCameras = sawDifferentDrawCameras;
+  }
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+  int multiCameraWgpuDifference = 0;
+  if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU") && multipleCameras) {
+    CoinRenderTarget * cameraTarget = CoinRenderTarget::createOffscreen(
+      SbVec2i32(side, side));
+    CoinRenderAction cameraAction(SbViewportRegion(side, side));
+    cameraAction.setRenderTarget(cameraTarget);
+    cameraAction.apply(root);
+    std::vector<unsigned char> shadowedPixels, litPixels;
+    const bool shadowedOk = cameraAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (shadowedOk) cameraTarget->readbackRGBA(shadowedPixels);
+    groundStyle->style = SoShadowStyle::NO_SHADOWING;
+    cameraAction.apply(root);
+    const bool litOk = cameraAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (litOk) cameraTarget->readbackRGBA(litPixels);
+    groundStyle->style = SoShadowStyle::SHADOWED;
+    if (shadowedOk && litOk && shadowedPixels.size() == litPixels.size())
+      for (int y = 20; y < 105; ++y)
+        for (int x = 20; x < 105; ++x)
+          multiCameraWgpuDifference = std::max(multiCameraWgpuDifference,
+            std::abs(luminanceRgba(shadowedPixels, x, y) -
+                     luminanceRgba(litPixels, x, y)));
+    multipleCameras = multipleCameras && shadowedOk && litOk &&
+      multiCameraWgpuDifference > 50;
+    if (!multipleCameras)
+      std::cerr << "wgpu multi-camera directional shadow failed: "
+                << cameraAction.getLastError().getString()
+                << " delta=" << multiCameraWgpuDifference << '\n';
+    cameraAction.setRenderTarget(nullptr);
+    delete cameraTarget;
+  }
+#endif
+  if (std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") && SoShadowGroup::isSupported()) {
+    auto * shadowedRoot = static_cast<SoSeparator *>(root->copy(TRUE));
+    shadowedRoot->ref();
+    auto * litRoot = static_cast<SoSeparator *>(shadowedRoot->copy(TRUE));
+    litRoot->ref();
+    auto * litGroup = static_cast<SoShadowGroup *>(litRoot->getChild(1));
+    auto * litGround = static_cast<SoSeparator *>(litGroup->getChild(4));
+    static_cast<SoShadowStyle *>(litGround->getChild(0))->style =
+      SoShadowStyle::NO_SHADOWING;
+    SoOffscreenRenderer multiCameraGl(SbViewportRegion(side, side));
+    multiCameraGl.setComponents(SoOffscreenRenderer::RGB);
+    std::vector<unsigned char> shadowedPixels, litPixels;
+    const bool rendered = render(multiCameraGl, shadowedRoot, shadowedPixels) &&
+                          render(multiCameraGl, litRoot, litPixels);
+    int multiCameraGlDifference = 0;
+    if (rendered)
+      for (int y = 20; y < 105; ++y)
+        for (int x = 20; x < 105; ++x)
+          multiCameraGlDifference = std::max(multiCameraGlDifference,
+            std::abs(luminance(shadowedPixels, x, y) -
+                     luminance(litPixels, x, y)));
+    multipleCameras = multipleCameras && rendered && multiCameraGlDifference > 50;
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+    if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))
+      multipleCameras = multipleCameras &&
+        std::abs(multiCameraGlDifference - multiCameraWgpuDifference) <= 80;
+    std::cout << "multi-camera directional GL/wgpu delta=" <<
+      multiCameraGlDifference << '/' << multiCameraWgpuDifference << '\n';
+#endif
+    litRoot->unref();
+    shadowedRoot->unref();
+  }
+  group->removeChild(innerCamera);
+  auto * perspectiveRoot = static_cast<SoSeparator *>(root->copy(TRUE));
+  perspectiveRoot->ref();
+  auto * perspectiveCamera = new SoPerspectiveCamera;
+  perspectiveCamera->position.setValue(0.0f, 0.0f, 8.0f);
+  perspectiveCamera->heightAngle = 0.85f;
+  perspectiveCamera->nearDistance = 1.0f;
+  perspectiveCamera->farDistance = 20.0f;
+  perspectiveRoot->replaceChild(0, perspectiveCamera);
+  action.apply(perspectiveRoot);
+  const auto & perspectiveFrame = action.getPimpl()->lastRejectedShadowFrame;
+  const auto & perspectivePlan = action.getPimpl()->lastRejectedShadowPlan;
+  std::string perspectiveDiagnostic;
+  bool perspectiveFrustum = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+    perspectiveFrame.shadowGroups.size() == 1 &&
+    perspectiveFrame.shadowGroups[0].hasEntryCamera &&
+    perspectiveFrame.shadowGroups[0].entryCamera.isPerspective &&
+    coin_render_shadow_single_directional_opaque_profile(
+      perspectiveFrame, perspectivePlan, perspectiveDiagnostic) &&
+    perspectivePlan.passes[0].visible;
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+  int perspectiveWgpuDifference = 0;
+  if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU") && perspectiveFrustum) {
+    CoinRenderTarget * perspectiveTarget = CoinRenderTarget::createOffscreen(
+      SbVec2i32(side, side));
+    CoinRenderAction perspectiveAction(SbViewportRegion(side, side));
+    perspectiveAction.setRenderTarget(perspectiveTarget);
+    perspectiveAction.apply(perspectiveRoot);
+    std::vector<unsigned char> shadowedPixels, litPixels;
+    const bool shadowedOk = perspectiveAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (shadowedOk) perspectiveTarget->readbackRGBA(shadowedPixels);
+    auto * perspectiveGroup = static_cast<SoShadowGroup *>(perspectiveRoot->getChild(1));
+    auto * perspectiveGround = static_cast<SoSeparator *>(perspectiveGroup->getChild(3));
+    auto * perspectiveStyle = static_cast<SoShadowStyle *>(perspectiveGround->getChild(0));
+    perspectiveStyle->style = SoShadowStyle::NO_SHADOWING;
+    perspectiveAction.apply(perspectiveRoot);
+    const bool litOk = perspectiveAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (litOk) perspectiveTarget->readbackRGBA(litPixels);
+    perspectiveStyle->style = SoShadowStyle::SHADOWED;
+    if (shadowedOk && litOk && shadowedPixels.size() == litPixels.size())
+      for (int y = 20; y < 105; ++y)
+        for (int x = 20; x < 105; ++x)
+          perspectiveWgpuDifference = std::max(perspectiveWgpuDifference,
+            std::abs(luminanceRgba(shadowedPixels, x, y) -
+                     luminanceRgba(litPixels, x, y)));
+    perspectiveFrustum = perspectiveFrustum && shadowedOk && litOk &&
+      perspectiveWgpuDifference > 50;
+    if (!perspectiveFrustum)
+      std::cerr << "wgpu perspective directional shadow failed: "
+                << perspectiveAction.getLastError().getString()
+                << " delta=" << perspectiveWgpuDifference << '\n';
+    perspectiveAction.setRenderTarget(nullptr);
+    delete perspectiveTarget;
+  }
+#endif
+  if (std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") && SoShadowGroup::isSupported()) {
+    auto * litRoot = static_cast<SoSeparator *>(perspectiveRoot->copy(TRUE));
+    litRoot->ref();
+    auto * litGroup = static_cast<SoShadowGroup *>(litRoot->getChild(1));
+    auto * litGround = static_cast<SoSeparator *>(litGroup->getChild(3));
+    static_cast<SoShadowStyle *>(litGround->getChild(0))->style =
+      SoShadowStyle::NO_SHADOWING;
+    SoOffscreenRenderer perspectiveGl(SbViewportRegion(side, side));
+    perspectiveGl.setComponents(SoOffscreenRenderer::RGB);
+    std::vector<unsigned char> shadowedPixels, litPixels;
+    const bool rendered = render(perspectiveGl, perspectiveRoot, shadowedPixels) &&
+                          render(perspectiveGl, litRoot, litPixels);
+    int perspectiveGlDifference = 0;
+    if (rendered)
+      for (int y = 20; y < 105; ++y)
+        for (int x = 20; x < 105; ++x)
+          perspectiveGlDifference = std::max(perspectiveGlDifference,
+            std::abs(luminance(shadowedPixels, x, y) -
+                     luminance(litPixels, x, y)));
+    perspectiveFrustum = perspectiveFrustum && rendered && perspectiveGlDifference > 50;
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+    if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))
+      perspectiveFrustum = perspectiveFrustum &&
+        std::abs(perspectiveGlDifference - perspectiveWgpuDifference) <= 100;
+    std::cout << "perspective directional GL/wgpu delta=" <<
+      perspectiveGlDifference << '/' << perspectiveWgpuDifference << '\n';
+#endif
+    litRoot->unref();
+  }
+  perspectiveRoot->unref();
+  directionalCapture->maxShadowDistance = -1.0f;
+  group->quality = previousDirectionalQuality;
   group->removeChild(directionalCapture);
   light->on = TRUE;
   action.setRenderTarget(nullptr);
   delete target;
   if (!publishedOk || !rejected || !preserved || !recovered || !captureOk ||
       !spotProfile || !transparentExcludedFromFirstProfile || !twoLightCaptured ||
-      !orderedTwoLight ||
+      !orderedTwoLight || !twoSpotsOk || !twoDirectionalsOk ||
       !lateLightResolved || !lateSpotProfile || !mixedOrderResolved ||
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||
-      !directionalProjectionCoversGroup
+      !directionalProjectionCoversGroup || !multipleCameras || !perspectiveFrustum
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
       || !wgpuShadowSubmitted || !wgpuDirectionalSubmitted || !lateSpotSubmitted ||
       !twoLightSubmittedOnGpu
@@ -970,6 +1406,11 @@ int main()
     std::cerr << "CoinRender shadow rejection did not preserve publication or recovery"
               << " profile=" << spotProfile << " (" << spotProfileDiagnostic << ")"
               << " two_light=" << twoLightCaptured << " (" << twoLightDiagnostic << ")"
+              << " ordered=" << orderedTwoLight
+              << " two_spots=" << twoSpotsOk
+              << " two_directionals=" << twoDirectionalsOk
+              << " multi_camera=" << multipleCameras
+              << " perspective=" << perspectiveFrustum
               << " late_profile=" << lateSpotProfile
               << " (" << lateProfileDiagnostic << ")\n";
     root->unref();

@@ -94,6 +94,16 @@ struct CoinRenderLightSourceSnapshot {
 // Coin shadow semantics are captured once by Wiring. Zero group means no
 // active SoShadowGroup; style uses SoShadowStyleElement bit flags (cast=1,
 // receive=2). Infra must not traverse Coin nodes to recover this state.
+struct CoinRenderCameraSnapshot {
+  SbMatrix viewMatrix = SbMatrix::identity();
+  SbMatrix projectionMatrixCoin = SbMatrix::identity();
+  bool isPerspective = true;
+  float nearDistance = 0.1f;
+  float farDistance = 100.0f;
+  float focalDistance = 5.0f;
+  float aspectRatio = 1.0f;
+};
+
 struct CoinRenderShadowGroupSnapshot {
   uint64_t sourceRevision = 0;
   float intensity = 0.5f;
@@ -107,6 +117,8 @@ struct CoinRenderShadowGroupSnapshot {
   float visibilityRadius = -1.0f;
   int32_t visibilityFlag = 0;
   bool nested = false;
+  bool hasEntryCamera = false;
+  CoinRenderCameraSnapshot entryCamera;
 };
 
 struct CoinRenderShadowLightSnapshot {
@@ -138,15 +150,6 @@ struct CoinRenderLightingSnapshot {
   float ambientColor[3] = {1.0f, 1.0f, 1.0f};
 };
 
-struct CoinRenderCameraSnapshot {
-  SbMatrix viewMatrix = SbMatrix::identity();
-  SbMatrix projectionMatrixCoin = SbMatrix::identity();
-  bool isPerspective = true;
-  float nearDistance = 0.1f;
-  float farDistance = 100.0f;
-  float focalDistance = 5.0f;
-  float aspectRatio = 1.0f;
-};
 
 struct CoinRenderViewportSnapshot {
   int32_t x = 0;
