@@ -51,6 +51,34 @@ posterior aos objetos), projeção direcional cobrindo a geometria e precedênci
 O teste passou nas builds RECORDING e wgpu; a referência GL passou em Xvfb.
 Isso verifica diagnóstico/publicação e o oráculo; não verifica sombras em GPU.
 
+## Fechamentos incrementais
+
+- [ ] **P27.1 — wgpu spot opaco:** uma luz spot, geometria opaca do grupo,
+  `SoShadowStyle` nos casters/receivers, mapa de momentos com depth, lookup
+  VSM aplicado somente à contribuição da luz e readback comparado à mesma
+  fixture Coin/GL. Inclui resize, erro de recurso e preservação da publicação.
+- [ ] **P27.2 — wgpu direcional e múltiplas luzes:** câmera direcional com
+  interseção do frustum, `maxShadowDistance`, mapa por luz e soma correta das
+  contribuições; comparar spot/directional e luz posterior à geometria ao GL.
+- [ ] **P27.3 — BGFX:** executar o mesmo plano comum e as mesmas fixtures
+  opacas no BGFX, com shader e recursos próprios, sem reinterpretar o Coin.
+- [ ] **P27.4 — contrato ampliado:** cenas próprias por luz, transparência,
+  clipping, qualidade, RTT, composição e alvos múltiplos nos dois executores.
+- [ ] **P27.5 — qualificação final:** matriz de GPU/API/driver, perdas, resize,
+  falhas e tolerâncias visuais; fechar P27 somente com BGFX e wgpu exercitados.
+
+Cada subetapa exige um quadro renderizado e evidência de comportamento. A
+existência de shader, captura ou plano isolados não fecha P27.1.
+
+Dentro de P27.1, o pass de momentos spot foi exercitado isoladamente na GPU:
+um triângulo opaco foi renderizado em RGBA32F com depth, lido de volta e os
+momentos no pixel central conferidos com a distância linear esperada. Passou
+em AMD Radeon Graphics (RADV RENOIR), Vulkan/radv, com
+`COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU=1 cargo test --manifest-path
+src/rendering/coinwgpu/rust_bridge/Cargo.toml --offline --test shadow_map_gpu`.
+Faltam o transporte dos casters do plano Coin, o lookup VSM na composição dos
+receivers e a comparação do quadro final à fixture GL.
+
 ## Trabalho funcional para fechar
 
 - [x] **Wiring inicial:** capturar grupo ativo, campos, `SoShadowStyle`, luzes
