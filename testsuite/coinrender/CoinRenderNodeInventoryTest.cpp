@@ -145,6 +145,8 @@ int main() {
               action.getLastError().find("SoShaderProgram") >= 0,
               "active shader must fail before publication");
   root->removeChild(program);
+  ok &= check(capture(new SoTexture3) && capture(new SoTextureCubeMap),
+              "empty texture nodes must remain inert");
   const unsigned beforeEffects = witness.submits;
   auto* volume = new SoTexture3;
   const unsigned char whiteVolume[8] = {255,255,255,255,255,255,255,255};
