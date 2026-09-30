@@ -235,7 +235,11 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   altera os pixels do primeiro alvo e cada serial avança independentemente.
 - [ ] **RTT, composição e grupos adicionais:** ordenar os passes com as
   dependências de textura e camadas, sem fundir grupos ou estados Coin
-  independentes; validar resize, falha e recuperação.
+  independentes; validar resize, falha e recuperação. Uma sondagem de dois
+  grupos irmãos (segundo transladado 2,2 em X, planos de chão reduzidos a
+  2,2) mostrou diferença máxima de 18 no Coin/GL ao ativar o segundo grupo,
+  contra 654 em BGFX e wgpu. O perfil de grupos irmãos continua rejeitado;
+  investigar câmera/mapa e composição antes de habilitá-lo.
 
 Cada caixa acima requer uma fixture renderizada nos dois executores e sua
 referência Coin/GL antes de marcar P27.4 concluído.
