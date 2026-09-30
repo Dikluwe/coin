@@ -119,6 +119,12 @@ int main()
                    planned.passes[0].nearDistance > 0.0f &&
                    planned.passes[0].farDistance > planned.passes[0].nearDistance;
   if (captureOk) {
+    SbVec3f spotCenter;
+    (planned.passes[0].view * planned.passes[0].projectionCoin)
+      .multVecMatrix(SbVec3f(0, 0, 0), spotCenter);
+    captureOk = std::abs(spotCenter[0]) <= 1.0f &&
+                std::abs(spotCenter[1]) <= 1.0f &&
+                std::abs(spotCenter[2]) <= 1.0f;
     for (uint32_t d : planned.passes[0].casterDraws) {
       const auto & state = captured.renderStates[captured.draws[d].renderStateSlot];
       captureOk = captureOk && state.shadowGroupSlot == 1 &&
