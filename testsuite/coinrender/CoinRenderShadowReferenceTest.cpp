@@ -618,12 +618,49 @@ int main()
       const uint64_t serial = siblingTarget->getLastSubmissionSerial();
       secondGroup->isActive = FALSE;
       siblingAction.apply(siblings);
-      std::vector<unsigned char> afterMixed;
-      siblingTarget->readbackRGBA(afterMixed);
+      std::vector<unsigned char> gpuMixed;
+      if (siblingAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        siblingTarget->readbackRGBA(gpuMixed);
+      int mixedGpuDelta = 0;
       siblingShadowGroupsQualified =
-        siblingAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-        siblingTarget->getLastSubmissionSerial() == serial &&
-        afterMixed == gpuReceive;
+        siblingAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+        siblingTarget->getLastSubmissionSerial() > serial &&
+        gpuMixed.size() == gpuReceive.size();
+      if (siblingShadowGroupsQualified)
+        for (int y = 20; y < 105; ++y) {
+          for (int x = 65; x < 125; ++x)
+            mixedGpuDelta = std::max(mixedGpuDelta, std::abs(
+              luminanceRgba(gpuMixed, x, y) - luminanceRgba(gpuReceive, x, y)));
+          for (int x = 20; x < 50; ++x)
+            siblingShadowGroupsQualified = siblingShadowGroupsQualified &&
+              luminanceRgba(gpuMixed, x, y) == luminanceRgba(gpuReceive, x, y);
+        }
+      siblingShadowGroupsQualified = siblingShadowGroupsQualified && mixedGpuDelta > 30;
+      if (siblingShadowGroupsQualified &&
+          std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
+        auto * glMixed = static_cast<SoSeparator *>(siblings->copy(TRUE));
+        glMixed->ref();
+        secondGroup->isActive = TRUE;
+        auto * glBoth = static_cast<SoSeparator *>(siblings->copy(TRUE));
+        glBoth->ref();
+        SoOffscreenRenderer mixedGl(SbViewportRegion(side, side));
+        mixedGl.setComponents(SoOffscreenRenderer::RGB);
+        std::vector<unsigned char> glMixedPixels, glBothPixels;
+        const bool rendered = render(mixedGl, glMixed, glMixedPixels) &&
+          render(mixedGl, glBoth, glBothPixels);
+        int mixedGlDelta = 0;
+        if (rendered)
+          for (int y = 20; y < 105; ++y)
+            for (int x = 65; x < 125; ++x)
+              mixedGlDelta = std::max(mixedGlDelta, std::abs(
+                luminance(glMixedPixels, x, y) - luminance(glBothPixels, x, y)));
+        siblingShadowGroupsQualified = rendered && mixedGlDelta > 30 &&
+          std::abs(mixedGlDelta - mixedGpuDelta) <= 180;
+        std::cout << "active/inactive sibling Coin/GL/GPU delta="
+                  << mixedGlDelta << '/' << mixedGpuDelta << '\n';
+        glBoth->unref();
+        glMixed->unref();
+      }
       secondGroup->isActive = TRUE;
     }
     if (siblingShadowGroupsQualified && std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {

@@ -467,8 +467,7 @@ coin_render_shadow_opaque_profile(
       return false;
     }
     const auto & state = frame.renderStates[draw.renderStateSlot];
-    if (state.shadowGroupSlot == 0 ||
-        state.shadowGroupSlot > frame.shadowGroups.size() ||
+    if (state.shadowGroupSlot > frame.shadowGroups.size() ||
         draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST ||
         draw.renderLayer != 0 || draw.clearDepthBefore ||
         state.lightModel != CoinRenderLightModel::PHONG ||
@@ -525,6 +524,15 @@ coin_render_shadow_opaque_profile(
       }
     }
     const auto & lights = frame.lightingStates[state.lightingSlot].lights;
+    // An inactive sibling is ordinary Coin geometry: it receives no shadow
+    // pass, while its captured lights remain in the regular lighting state.
+    if (state.shadowGroupSlot == 0) {
+      if (lights.size() > COIN_RENDER_MAX_LIGHTS) {
+        diagnostic = "Unshadowed sibling exceeds the eight-light receiver limit";
+        return false;
+      }
+      continue;
+    }
     const size_t groupLightCount = static_cast<size_t>(std::count_if(
       shadows.passes.begin(), shadows.passes.end(),
       [&](const CoinRenderShadowPass & pass) {

@@ -256,10 +256,13 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   O perfil exige `epsilon` e `threshold` iguais nos grupos. Uma sondagem
   com `epsilon=0,00002` e `threshold=0,12` no segundo grupo marcou delta
   396 no Coin/GL e 588 no BGFX; a ABI wgpu atual ainda transporta esses
-  parâmetros uma vez por quadro. Essa combinação segue sem qualificação. Um grupo ativo ao
-  lado de outro inativo retorna `UNSUPPORTED` antes da publicação, mantendo
-  pixels e serial. A antiga sondagem com chão de 2,2 e um grupo inativo
-  (18 no GL, 654 nos executores) continua fora deste perfil.
+  parâmetros uma vez por quadro. Essa combinação segue sem qualificação.
+  Um grupo ativo ao lado de um inativo agora também executa como composição
+  opaca: o Core mantém os desenhos do irmão inativo na iluminação Coin comum,
+  sem atribuir-lhes pass de sombra. Alternar o segundo grupo para inativo
+  marcou delta máximo 483 no Coin/GL e 588 em BGFX e wgpu; os pixels do
+  primeiro grupo permaneceram idênticos. A antiga sondagem com chão de 2,2
+  (18 no GL, 654 nos executores) continua fora deste perfil visual.
 - [ ] **RTT, composição e demais grupos:** o produtor `SoSceneTexture2`
   em modo staged pode conter um grupo opaco do perfil qualificado. A Action
   captura seu plano sem alvo e o executor RTT existente renderiza o produtor
