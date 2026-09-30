@@ -7,6 +7,7 @@
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 #include "rendering/coinrender/CoinRenderFramePlanBuilder.h"
 #include "rendering/coinrender/CoinRenderFrameReuseCore.h"
+#include "rendering/coinrender/CoinRenderShadowCore.h"
 #include "rendering/coinrender/CoinRenderRecordingBackend.h"
 #include "rendering/coinrender/CoinRenderRttCore.h"
 #include <Inventor/sensors/SoNodeSensor.h>
@@ -47,6 +48,10 @@ public:
   static void pointCB(void * userdata,
                       SoCallbackAction * action,
                       const SoPrimitiveVertex * vertex);
+
+  static SoCallbackAction::Response shadowGroupPreCB(void *, SoCallbackAction *, const SoNode *);
+  static SoCallbackAction::Response shadowGroupPostCB(void *, SoCallbackAction *, const SoNode *);
+  static SoCallbackAction::Response shadowStylePreCB(void *, SoCallbackAction *, const SoNode *);
 
   static SoCallbackAction::Response lightPreCB(void * userdata,
                                                SoCallbackAction * action,
@@ -95,6 +100,9 @@ public:
   CoinRenderFramePlanBuilder builder;
   CoinRenderRecordingBackend recordingBackend;
   CoinRenderFramePlan lastValidPlan;
+  CoinRenderFramePlan lastRejectedShadowFrame;
+  CoinRenderShadowPlan lastRejectedShadowPlan;
+  std::vector<int> shadowStyleBeforeGroups;
   // Owns staged scene-texture pixels for the entire parent traversal.
   std::deque<std::vector<uint8_t> > sceneTexturePixels;
   // Shared logical graph, containing no backend handles or resources.

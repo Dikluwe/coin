@@ -35,6 +35,7 @@
 #include <Inventor/nodes/SoPointLight.h>
 #include <Inventor/nodes/SoSpotLight.h>
 #include <Inventor/elements/SoLightElement.h>
+#include <Inventor/annex/FXViz/elements/SoShadowStyleElement.h>
 #include <Inventor/elements/SoEnvironmentElement.h>
 #include <Inventor/SbViewVolume.h>
 #include <Inventor/SbMatrix.h>
@@ -102,6 +103,9 @@ CoinRenderFramePlanBuilder::reset()
   this->currentPlan.indices.clear();
   this->currentPlan.materials.clear();
   this->currentPlan.lightingStates.clear();
+  this->currentPlan.shadowGroups.clear();
+  this->currentPlan.shadowLights.clear();
+  this->shadowGroupStack.clear();
   this->currentPlan.cameras.clear();
   this->currentPlan.viewports.clear();
   this->currentPlan.renderStates.clear();
@@ -196,6 +200,27 @@ void CoinRenderFramePlanBuilder::registerSceneTexture(const unsigned char* image
                                                       int32_t transparencyFunction) {
   this->sceneTextures[image] =
       SceneTexture{producerId, width, height, opaque, transparencyFunction};
+}
+
+void
+CoinRenderFramePlanBuilder::beginShadowGroup(const CoinRenderShadowGroupSnapshot & group)
+{
+  this->currentPlan.shadowGroups.push_back(group);
+  this->shadowGroupStack.push_back(static_cast<uint32_t>(this->currentPlan.shadowGroups.size()));
+  this->hasActiveDraw = false;
+}
+
+void
+CoinRenderFramePlanBuilder::endShadowGroup()
+{
+  if (!this->shadowGroupStack.empty()) this->shadowGroupStack.pop_back();
+  this->hasActiveDraw = false;
+}
+
+void
+CoinRenderFramePlanBuilder::recordShadowLight(const CoinRenderShadowLightSnapshot & light)
+{
+  this->currentPlan.shadowLights.push_back(light);
 }
 
 void
@@ -734,6 +759,8 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   rs.view = camSnap.viewMatrix;
   rs.projectionCoin = camSnap.projectionMatrixCoin;
   rs.materialSlot = materialSlot;
+  rs.shadowGroupSlot = this->activeShadowGroupSlot();
+  if (rs.shadowGroupSlot) rs.shadowStyle = static_cast<uint32_t>(SoShadowStyleElement::get(state));
   rs.lightingSlot = lightingSlot;
   rs.cameraSlot = cameraSlot;
   rs.viewportSlot = viewportSlot;
@@ -799,6 +826,8 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
     const auto & existing = this->currentPlan.renderStates[i];
     if (existing.clipPlanesWorld == rs.clipPlanesWorld &&
         existing.materialSlot == materialSlot &&
+        existing.shadowGroupSlot == rs.shadowGroupSlot &&
+        existing.shadowStyle == rs.shadowStyle &&
         existing.lightingSlot == lightingSlot &&
         existing.lightModel == rs.lightModel &&
         existing.transparencyType == rs.transparencyType &&

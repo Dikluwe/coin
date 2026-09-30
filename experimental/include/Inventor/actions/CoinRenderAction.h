@@ -151,6 +151,10 @@ public:
   void apply(SoPath * path) override;
   void apply(const SoPathList & pathlist, SbBool obeysrules = FALSE) override;
 
+#ifdef COIN_INTERNAL
+  SbPimplPtr<CoinRenderActionP> & getPimpl() { return this->pimpl; }
+#endif
+
 protected:
   void beginTraversal(SoNode * root) override;
 

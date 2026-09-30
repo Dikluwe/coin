@@ -89,6 +89,42 @@ struct CoinRenderLightSourceSnapshot {
   float attenuation[3] = {0.0f, 0.0f, 1.0f}; // quadratic, linear, constant at light traversal
 };
 
+// Coin shadow semantics are captured once by Wiring. Zero group means no
+// active SoShadowGroup; style uses SoShadowStyleElement bit flags (cast=1,
+// receive=2). Infra must not traverse Coin nodes to recover this state.
+struct CoinRenderShadowGroupSnapshot {
+  uint64_t sourceRevision = 0;
+  float intensity = 0.5f;
+  float precision = 0.5f;
+  float quality = 0.5f;
+  float epsilon = 0.00001f;
+  float threshold = 0.1f;
+  float smoothBorder = 0.0f;
+  bool shadowCachingEnabled = true;
+  float visibilityNearRadius = -1.0f;
+  float visibilityRadius = -1.0f;
+  int32_t visibilityFlag = 0;
+  bool nested = false;
+};
+
+struct CoinRenderShadowLightSnapshot {
+  uint32_t groupSlot = 0; // One-based index into shadowGroups.
+  uint64_t sourceRevision = 0;
+  CoinRenderLightType type = CoinRenderLightType::POINT;
+  bool enabled = false;
+  bool hasCustomScene = false;
+  SbMatrix model = SbMatrix::identity();
+  SbVec3f position = SbVec3f(0, 0, 0);
+  SbVec3f direction = SbVec3f(0, 0, -1);
+  float cutOffAngle = 0.785398163f;
+  float dropOffRate = 0.0f;
+  float nearDistance = -1.0f;
+  float farDistance = -1.0f;
+  float maxShadowDistance = -1.0f;
+  SbVec3f bboxCenter = SbVec3f(0, 0, 0);
+  SbVec3f bboxSize = SbVec3f(-1, -1, -1);
+};
+
 struct CoinRenderLightingSnapshot {
   std::vector<CoinRenderLightSourceSnapshot> lights;
   float ambientIntensity = 0.2f;
@@ -216,6 +252,8 @@ struct CoinRenderRenderStateSnapshot {
   float polygonOffsetSlopeBias = 0.0f; // Resolved original-face bias in window depth.
   uint32_t polygonOffsetStyles = 1;
   uint32_t polygonOffsetPrimitiveStyle = 1; // Retained across line/point expansion.
+  uint32_t shadowGroupSlot = 0; // Zero outside active SoShadowGroup.
+  uint32_t shadowStyle = 3; // SoShadowStyleElement default: casts and receives.
   CoinRenderLightModel lightModel = CoinRenderLightModel::PHONG;
   float lineWidth = 1.0f;
   float pointSize = 1.0f;
@@ -264,6 +302,8 @@ struct CoinRenderFramePlan {
   std::vector<uint32_t> indices;
   std::vector<CoinRenderMaterialSnapshot> materials;
   std::vector<CoinRenderLightingSnapshot> lightingStates;
+  std::vector<CoinRenderShadowGroupSnapshot> shadowGroups;
+  std::vector<CoinRenderShadowLightSnapshot> shadowLights;
   std::vector<CoinRenderCameraSnapshot> cameras;
   std::vector<CoinRenderViewportSnapshot> viewports;
   std::vector<CoinRenderRenderStateSnapshot> renderStates;

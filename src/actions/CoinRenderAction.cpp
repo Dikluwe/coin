@@ -20,6 +20,13 @@
 #include <Inventor/nodes/SoSceneTextureCubeMap.h>
 #include <Inventor/nodes/SoShaderProgram.h>
 #include <Inventor/annex/FXViz/nodes/SoShadowGroup.h>
+#include <Inventor/annex/FXViz/nodes/SoShadowStyle.h>
+#include <Inventor/annex/FXViz/nodes/SoShadowSpotLight.h>
+#include <Inventor/annex/FXViz/nodes/SoShadowDirectionalLight.h>
+#include <Inventor/annex/FXViz/elements/SoShadowStyleElement.h>
+#include <Inventor/nodes/SoSpotLight.h>
+#include <Inventor/nodes/SoPointLight.h>
+#include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/elements/SoTextureCombineElement.h>
 #include <Inventor/nodes/SoVertexProperty.h>
 #include <Inventor/nodes/SoCamera.h>
@@ -81,6 +88,7 @@ CoinRenderAction::initClass(void)
   SO_ACTION_INTERNAL_INIT_CLASS(CoinRenderAction, SoCallbackAction);
   SO_ENABLE(CoinRenderAction, SoDepthBufferElement);
   SO_ENABLE(CoinRenderAction, SoTextureCombineElement);
+  SO_ENABLE(CoinRenderAction, SoShadowStyleElement);
   CoinRenderDepthPolicyElement::initClass();
   SO_ENABLE(CoinRenderAction, CoinRenderDepthPolicyElement);
 }
@@ -552,6 +560,9 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
                                this->lastValidPlan.revision)
     : CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::UNKNOWN, 0);
   this->sceneTexturePixels.clear();
+  this->shadowStyleBeforeGroups.clear();
+  this->lastRejectedShadowFrame = CoinRenderFramePlan();
+  this->lastRejectedShadowPlan = CoinRenderShadowPlan();
   CoinRenderFramePlan plan;
   CoinRenderCameraOverlayUndo overlayUndo;
   struct CameraOverlayScope {
@@ -619,6 +630,23 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       ? CoinRenderAction::UNSUPPORTED : CoinRenderAction::INVALID_SCENE;
     this->setDiagnostic(CoinRenderDiagnosticShell::action(
       status, CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(err.c_str())));
+    return;
+  }
+  if (!plan.shadowGroups.empty()) {
+    CoinRenderShadowPlan shadowPlan;
+    std::string shadowDiagnostic;
+    if (!coin_render_plan_shadows(plan, shadowPlan, shadowDiagnostic)) {
+      this->lastRejectedShadowFrame = std::move(plan);
+      this->setDiagnostic(CoinRenderDiagnosticShell::action(
+        CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+        SbString(shadowDiagnostic.c_str())));
+      return;
+    }
+    this->lastRejectedShadowFrame = std::move(plan);
+    this->lastRejectedShadowPlan = std::move(shadowPlan);
+    this->setDiagnostic(CoinRenderDiagnosticShell::action(
+      CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+      SbString("Active SoShadowGroup shadow passes are not implemented in CoinBgfx/CoinWgpu")));
     return;
   }
   profilePlanned = ProfileClock::now();
@@ -827,10 +855,6 @@ CoinRenderActionP::unsupportedEffectPreCB(void * userdata, SoCallbackAction *, c
     if (!static_cast<const SoSceneTextureCubeMap *>(node)->scene.getValue())
       return SoCallbackAction::CONTINUE;
     diagnostic = "SoSceneTextureCubeMap requires a cube RTT contract and executor";
-  } else if (node->isOfType(SoShadowGroup::getClassTypeId())) {
-    if (!static_cast<const SoShadowGroup *>(node)->isActive.getValue())
-      return SoCallbackAction::CONTINUE;
-    diagnostic = "Active SoShadowGroup requires shadow-map passes";
   } else if (node->isOfType(SoShaderProgram::getClassTypeId())) {
     if (static_cast<const SoShaderProgram *>(node)->shaderObject.getNum() == 0)
       return SoCallbackAction::CONTINUE;
@@ -857,7 +881,9 @@ CoinRenderActionP::initCallbacks()
   this->master->addPreCallback(SoTexture3::getClassTypeId(), unsupportedEffectPreCB, this);
   this->master->addPreCallback(SoTextureCubeMap::getClassTypeId(), unsupportedEffectPreCB, this);
   this->master->addPreCallback(SoSceneTextureCubeMap::getClassTypeId(), unsupportedEffectPreCB, this);
-  this->master->addPreCallback(SoShadowGroup::getClassTypeId(), unsupportedEffectPreCB, this);
+  this->master->addPreCallback(SoShadowGroup::getClassTypeId(), shadowGroupPreCB, this);
+  this->master->addPostCallback(SoShadowGroup::getClassTypeId(), shadowGroupPostCB, this);
+  this->master->addPreCallback(SoShadowStyle::getClassTypeId(), shadowStylePreCB, this);
   this->master->addPreCallback(SoShaderProgram::getClassTypeId(), unsupportedEffectPreCB, this);
   this->master->addPreCallback(SoDepthBuffer::getClassTypeId(), depthBufferPreCB, this);
   this->master->addPreCallback(SoAnnotation::getClassTypeId(), annotationPreCB, this);
@@ -1045,12 +1071,96 @@ CoinRenderActionP::annotationPostCB(void * userdata, SoCallbackAction *, const S
 }
 
 SoCallbackAction::Response
+CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, const SoNode * node)
+{
+  auto * p = static_cast<CoinRenderActionP *>(userdata);
+  const auto * group = static_cast<const SoShadowGroup *>(node);
+  if (!group->isActive.getValue()) return SoCallbackAction::CONTINUE;
+  CoinRenderShadowGroupSnapshot snapshot;
+  snapshot.sourceRevision = node->getNodeId();
+  snapshot.intensity = group->intensity.getValue();
+  snapshot.precision = group->precision.getValue();
+  snapshot.quality = group->quality.getValue();
+  snapshot.epsilon = group->epsilon.getValue();
+  snapshot.threshold = group->threshold.getValue();
+  snapshot.smoothBorder = group->smoothBorder.getValue();
+  snapshot.shadowCachingEnabled = group->shadowCachingEnabled.getValue() != FALSE;
+  snapshot.visibilityNearRadius = group->visibilityNearRadius.getValue();
+  snapshot.visibilityRadius = group->visibilityRadius.getValue();
+  snapshot.visibilityFlag = group->visibilityFlag.getValue();
+  snapshot.nested = p->builder.hasActiveShadowGroup();
+  p->shadowStyleBeforeGroups.push_back(SoShadowStyleElement::get(action->getState()));
+  SoShadowStyleElement::set(action->getState(), 3);
+  p->builder.beginShadowGroup(snapshot);
+  return SoCallbackAction::CONTINUE;
+}
+
+SoCallbackAction::Response
+CoinRenderActionP::shadowGroupPostCB(void * userdata, SoCallbackAction * action, const SoNode * node)
+{
+  auto * p = static_cast<CoinRenderActionP *>(userdata);
+  if (!static_cast<const SoShadowGroup *>(node)->isActive.getValue())
+    return SoCallbackAction::CONTINUE;
+  p->builder.endShadowGroup();
+  if (!p->shadowStyleBeforeGroups.empty()) {
+    SoShadowStyleElement::set(action->getState(), p->shadowStyleBeforeGroups.back());
+    p->shadowStyleBeforeGroups.pop_back();
+  }
+  return SoCallbackAction::CONTINUE;
+}
+
+SoCallbackAction::Response
+CoinRenderActionP::shadowStylePreCB(void *, SoCallbackAction * action, const SoNode * node)
+{
+  const auto * style = static_cast<const SoShadowStyle *>(node);
+  SoShadowStyleElement::set(action->getState(), const_cast<SoShadowStyle *>(style),
+                            style->style.getValue());
+  return SoCallbackAction::CONTINUE;
+}
+
+SoCallbackAction::Response
 CoinRenderActionP::lightPreCB(void * userdata,
                                SoCallbackAction * action,
-                               const SoNode * /*node*/)
+                               const SoNode * node)
 {
   CoinRenderActionP * p = static_cast<CoinRenderActionP *>(userdata);
   p->builder.recordLightAttenuation(action);
+  if (!p->builder.hasActiveShadowGroup()) return SoCallbackAction::CONTINUE;
+  const auto * light = static_cast<const SoLight *>(node);
+  CoinRenderShadowLightSnapshot snapshot;
+  snapshot.groupSlot = p->builder.activeShadowGroupSlot();
+  snapshot.sourceRevision = node->getNodeId();
+  snapshot.enabled = light->on.getValue() != FALSE;
+  snapshot.model = action->getModelMatrix();
+  if (node->isOfType(SoSpotLight::getClassTypeId())) {
+    const auto * spot = static_cast<const SoSpotLight *>(node);
+    snapshot.type = CoinRenderLightType::SPOT;
+    snapshot.position = spot->location.getValue();
+    snapshot.direction = spot->direction.getValue();
+    snapshot.cutOffAngle = spot->cutOffAngle.getValue();
+    snapshot.dropOffRate = spot->dropOffRate.getValue();
+    if (node->isOfType(SoShadowSpotLight::getClassTypeId())) {
+      const auto * shadow = static_cast<const SoShadowSpotLight *>(node);
+      snapshot.hasCustomScene = shadow->shadowMapScene.getValue() != nullptr;
+      snapshot.nearDistance = shadow->nearDistance.getValue();
+      snapshot.farDistance = shadow->farDistance.getValue();
+    }
+  } else if (node->isOfType(SoDirectionalLight::getClassTypeId())) {
+    const auto * directional = static_cast<const SoDirectionalLight *>(node);
+    snapshot.type = CoinRenderLightType::DIRECTIONAL;
+    snapshot.direction = directional->direction.getValue();
+    if (node->isOfType(SoShadowDirectionalLight::getClassTypeId())) {
+      const auto * shadow = static_cast<const SoShadowDirectionalLight *>(node);
+      snapshot.hasCustomScene = shadow->shadowMapScene.getValue() != nullptr;
+      snapshot.maxShadowDistance = shadow->maxShadowDistance.getValue();
+      snapshot.bboxCenter = shadow->bboxCenter.getValue();
+      snapshot.bboxSize = shadow->bboxSize.getValue();
+    }
+  } else if (node->isOfType(SoPointLight::getClassTypeId())) {
+    snapshot.type = CoinRenderLightType::POINT;
+    snapshot.position = static_cast<const SoPointLight *>(node)->location.getValue();
+  }
+  p->builder.recordShadowLight(snapshot);
   return SoCallbackAction::CONTINUE;
 }
 

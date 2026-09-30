@@ -1,6 +1,7 @@
 #include <Inventor/SoDB.h>
 #include <Inventor/SoOffscreenRenderer.h>
 #include <Inventor/actions/CoinRenderAction.h>
+#include "actions/CoinRenderActionP.h"
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
@@ -104,6 +105,27 @@ int main()
   action.apply(root);
   const bool rejected = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
                         action.getLastError().find("SoShadowGroup") >= 0;
+  const auto & captured = action.getPimpl()->lastRejectedShadowFrame;
+  const auto & planned = action.getPimpl()->lastRejectedShadowPlan;
+  bool captureOk = captured.shadowGroups.size() == 1 &&
+                   captured.shadowLights.size() == 1 &&
+                   captured.shadowLights[0].type == CoinRenderLightType::SPOT &&
+                   planned.passes.size() == 1 &&
+                   !planned.passes[0].casterDraws.empty() &&
+                   !planned.passes[0].receiverDraws.empty();
+  if (captureOk) {
+    for (uint32_t d : planned.passes[0].casterDraws) {
+      const auto & state = captured.renderStates[captured.draws[d].renderStateSlot];
+      captureOk = captureOk && state.shadowGroupSlot == 1 &&
+                  state.shadowStyle == SoShadowStyle::CASTS_SHADOW_AND_SHADOWED;
+    }
+    bool receiverOnly = false;
+    for (uint32_t d : planned.passes[0].receiverDraws) {
+      const auto & state = captured.renderStates[captured.draws[d].renderStateSlot];
+      receiverOnly = receiverOnly || state.shadowStyle == SoShadowStyle::SHADOWED;
+    }
+    captureOk = captureOk && receiverOnly;
+  }
   target->readbackRGBA(afterRejection);
   const bool preserved = target->getLastSubmissionSerial() == originalSerial &&
                          !published.empty() && published == afterRejection;
@@ -113,9 +135,26 @@ int main()
   const bool recovered = action.getLastStatus() == CoinRenderAction::SUCCESS &&
                          target->getLastSubmissionSerial() > originalSerial &&
                          afterRecovery == published;
+  auto * directionalCapture = new SoShadowDirectionalLight;
+  directionalCapture->direction.setValue(-0.4f, -0.4f, -1.0f);
+  light->on = FALSE;
+  group->addChild(directionalCapture);
+  group->isActive = TRUE;
+  action.apply(root);
+  const auto & directionalFrame = action.getPimpl()->lastRejectedShadowFrame;
+  const auto & directionalPlan = action.getPimpl()->lastRejectedShadowPlan;
+  const bool directionalCaptured = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+      directionalFrame.shadowLights.size() == 2 &&
+      directionalFrame.shadowLights[0].type == CoinRenderLightType::SPOT &&
+      !directionalFrame.shadowLights[0].enabled &&
+      directionalFrame.shadowLights[1].type == CoinRenderLightType::DIRECTIONAL &&
+      directionalPlan.passes.size() == 1 &&
+      directionalPlan.passes[0].lightSlot == 1;
+  group->removeChild(directionalCapture);
+  light->on = TRUE;
   action.setRenderTarget(nullptr);
   delete target;
-  if (!publishedOk || !rejected || !preserved || !recovered) {
+  if (!publishedOk || !rejected || !preserved || !recovered || !captureOk || !directionalCaptured) {
     std::cerr << "CoinRender shadow rejection did not preserve publication or recovery\n";
     root->unref();
     return 1;

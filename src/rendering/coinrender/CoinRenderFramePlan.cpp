@@ -53,6 +53,8 @@ CoinRenderFramePlan::hasSamePayload(const CoinRenderFramePlan & other) const
   if (!samePlainSnapshots(this->vertices, other.vertices) ||
       this->indices != other.indices ||
       !samePlainSnapshots(this->materials, other.materials) ||
+      !samePlainSnapshots(this->shadowGroups, other.shadowGroups) ||
+      !samePlainSnapshots(this->shadowLights, other.shadowLights) ||
       !sameCameras(this->cameras, other.cameras) ||
       !samePlainSnapshots(this->viewports, other.viewports) ||
       this->renderStates.size() != other.renderStates.size() ||
@@ -266,8 +268,18 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
     }
   }
 
+  for (const auto & light : this->shadowLights) {
+    if (light.groupSlot == 0 || light.groupSlot > this->shadowGroups.size()) {
+      if (outDiagnostic) *outDiagnostic = "Shadow light references an invalid group";
+      return false;
+    }
+  }
   for (size_t i = 0; i < this->renderStates.size(); ++i) {
     const CoinRenderRenderStateSnapshot & state = this->renderStates[i];
+    if (state.shadowGroupSlot > this->shadowGroups.size() || state.shadowStyle > 3u) {
+      if (outDiagnostic) *outDiagnostic = "RenderState has invalid shadow group or style";
+      return false;
+    }
     float clipEquations[COIN_RENDER_MAX_CLIP_PLANES][4] = {};
     std::string clipDiagnostic;
     if (!coin_render_clip_equations(state, clipEquations, clipDiagnostic)) {

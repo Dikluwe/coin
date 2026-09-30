@@ -21,6 +21,11 @@ public:
   static bool isShapeInvisible(SoCallbackAction * action);
   static int polygonDrawStyle(SoCallbackAction * action);
   void recordLightAttenuation(SoCallbackAction * action);
+  void beginShadowGroup(const CoinRenderShadowGroupSnapshot & group);
+  void endShadowGroup();
+  bool hasActiveShadowGroup() const { return !this->shadowGroupStack.empty(); }
+  uint32_t activeShadowGroupSlot() const { return this->shadowGroupStack.empty() ? 0 : this->shadowGroupStack.back(); }
+  void recordShadowLight(const CoinRenderShadowLightSnapshot & light);
   void beginAnnotation();
   void reserveDelayedLayers(uint32_t count);
   void beginDelayedAnnotations(uint32_t layer = 1, bool clearDepth = true);
@@ -101,6 +106,7 @@ private:
   std::string builderError;
   std::unordered_map<uint64_t, uint32_t> nodeOccurrenceCount;
   std::vector<SbVec3f> lightAttenuationByIndex;
+  std::vector<uint32_t> shadowGroupStack;
   struct SceneTexture {
     uint64_t producerId;
     uint32_t width;

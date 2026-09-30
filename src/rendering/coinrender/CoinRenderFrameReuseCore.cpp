@@ -88,6 +88,8 @@ sameCameraIndependentPayload(const CoinRenderFramePlan & previous,
       !samePlainSnapshots(previous.vertices, current.vertices) ||
       previous.indices != current.indices ||
       !samePlainSnapshots(previous.materials, current.materials) ||
+      !samePlainSnapshots(previous.shadowGroups, current.shadowGroups) ||
+      !samePlainSnapshots(previous.shadowLights, current.shadowLights) ||
       !sameLighting(previous.lightingStates, current.lightingStates) ||
       !samePlainSnapshots(previous.viewports, current.viewports) ||
       !sameTextures(previous.textures, current.textures) ||
@@ -139,6 +141,8 @@ sameExecutionStructure(const CoinRenderFramePlan & previous, const CoinRenderFra
   if (previous.vertices.size() != current.vertices.size() ||
       previous.indices.size() != current.indices.size() ||
       previous.materials.size() != current.materials.size() ||
+      !samePlainSnapshots(previous.shadowGroups, current.shadowGroups) ||
+      !samePlainSnapshots(previous.shadowLights, current.shadowLights) ||
       previous.lightingStates.size() != current.lightingStates.size() ||
       previous.cameras.size() != current.cameras.size() ||
       previous.viewports.size() != current.viewports.size() ||
