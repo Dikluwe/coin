@@ -75,6 +75,8 @@ struct CoinWgpuShadowFrame {
       CoinWgpuShadowReceiver & receiver = candidate.receivers[stateSlot];
       receiver.receives = (state.shadowStyle & 2u) != 0 ? 1u : 0u;
       receiver.lighting_index = pass.lightingIndexByState[stateSlot];
+      receiver.max_shadow_distance = pass.maxShadowDistance;
+      receiver.distance_falloff_coefficient = pass.distanceFalloffCoefficient;
       if (receiver.receives && receiver.lighting_index == -1) {
         candidate.lateStates.push_back(static_cast<uint32_t>(stateSlot));
         candidate.lateLights.push_back(

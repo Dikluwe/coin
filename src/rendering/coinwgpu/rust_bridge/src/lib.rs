@@ -21,13 +21,14 @@ mod composition;
 mod peeling;
 mod shadow;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 33;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 34;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
     assert!(std::mem::size_of::<CoinWgpuFrameView>() == 232);
     assert!(std::mem::size_of::<CoinWgpuShadowDraw>() == 144);
     assert!(std::mem::size_of::<CoinWgpuShadowReceiver>() == 144);
+    assert!(std::mem::offset_of!(CoinWgpuShadowReceiver, max_shadow_distance) == 8);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, shadow_receivers) == 216);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, shadow_casters) == 176);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, shadow_map_size) == 192);
@@ -216,6 +217,7 @@ pub struct CoinWgpuUniforms {
     pub shadow_model_view: [[f32; 4]; 4],
     pub shadow_params: [f32; 4],
     pub shadow_meta: [f32; 4],
+    pub shadow_falloff: [f32; 4],
 }
 
 #[repr(C)]
@@ -360,7 +362,8 @@ pub struct CoinWgpuShadowDraw {
 pub struct CoinWgpuShadowReceiver {
     pub receives: u32,
     pub lighting_index: i32,
-    pub reserved: [u32; 2],
+    pub max_shadow_distance: f32,
+    pub distance_falloff_coefficient: f32,
     pub model_view: [f32; 16],
     pub model_view_projection: [f32; 16],
 }
@@ -2269,6 +2272,10 @@ fn encode_frame(
         }
         for (slot, receiver) in shadow.receivers.iter().enumerate() {
             if receiver.receives > 1
+                || !receiver.max_shadow_distance.is_finite()
+                || !receiver.distance_falloff_coefficient.is_finite()
+                || (receiver.max_shadow_distance > 0.0 &&
+                    receiver.distance_falloff_coefficient <= 0.0)
                 || !receiver.model_view.iter().chain(receiver.model_view_projection.iter())
                     .all(|v| v.is_finite())
                 || (receiver.receives != 0 && (receiver.lighting_index < 0
@@ -3219,7 +3226,10 @@ fn encode_frame(
                         |(r, shadow)| [r.receives as f32, shadow.near,
                             shadow.far, shadow.epsilon]),
                     shadow_meta: receiver.map_or([0.0; 4], |(r, shadow)|
-                        [shadow.threshold, r.lighting_index as f32, shadow.kind as f32, 0.0]),
+                        [shadow.threshold, r.lighting_index as f32, shadow.kind as f32,
+                         r.max_shadow_distance]),
+                    shadow_falloff: receiver.map_or([0.0; 4], |(r, _)|
+                        [r.distance_falloff_coefficient, 0.0, 0.0, 0.0]),
                 };
 
                 if layers.iter().any(|t| t.enabled != 0)

@@ -61,8 +61,9 @@ opaca no wgpu e compara seu readback ao GL.
   VSM aplicado somente à contribuição da luz e readback comparado à mesma
   fixture Coin/GL. Inclui resize, erro de recurso e preservação da publicação.
 - [ ] **P27.2 — wgpu direcional e múltiplas luzes:** câmera direcional com
-  interseção do frustum, `maxShadowDistance`, mapa por luz e soma correta das
-  contribuições; comparar os casos restantes ao GL.
+  interseção do frustum e `maxShadowDistance` no perfil de câmera única já
+  executam; mapa por luz, soma de múltiplas contribuições e demais câmeras
+  ainda precisam de qualificação GL.
 - [ ] **P27.3 — BGFX:** executar o mesmo plano comum e as mesmas fixtures
   opacas no BGFX, com shader e recursos próprios, sem reinterpretar o Coin.
 - [ ] **P27.4 — contrato ampliado:** cenas próprias por luz, transparência,
@@ -77,7 +78,7 @@ P27.1 foi exercitado na GPU AMD Radeon Graphics (RADV RENOIR), Vulkan/radv.
 O Core limita a execução a um grupo, uma luz spot visível, triângulos PHONG
 opacos sem textura, clipping ou névoa, com a luz antes dos desenhos. O
 empacotador C++ transporta casters e receivers escolhidos pelo Core e a ABI
-privada C++/Rust 33 carrega índices, matrizes, tipo de distância e parâmetros
+privada C++/Rust, agora 34, carrega índices, matrizes, tipo de distância e parâmetros
 VSM. O encoder
 wgpu grava momentos RGBA32F com depth e o shader principal multiplica somente
 a contribuição da luz selecionada pelo resultado do lookup. `SoShadowStyle`
@@ -120,10 +121,19 @@ plano depois da luz; os máximos de diferença de estilo foram `474`/`588`
 (spot GL/wgpu) e `666`/`666` (direcional GL/wgpu). A comparação tardia
 inclui o pixel de maior diferença da spot: soma RGB `765` no GL e `603`
 no wgpu, com tolerância de `180` nesta fixture. Essa diferença mantém a
-equivalência visual estreita como trabalho aberto. `maxShadowDistance`,
-interseção precisa do frustum e múltiplas luzes ainda não executam. A Action
-só admite esses perfis opacos de uma luz em alvo wgpu offscreen síncrono sem RTT; BGFX, janela, async, transparência e cenas próprias
-por luz seguem com `UNSUPPORTED` antes da submissão.
+equivalência visual estreita como trabalho aberto. Para uma câmera comum aos
+desenhos, o Core reconstrói o frustum capturado, usa a interseção Coin com a
+bbox do grupo para ajustar o mapa direcional e leva `maxShadowDistance` ao
+shader wgpu, que atenua a sombra pela distância em espaço de vista. Com limite
+10 na fixture, o maior clareamento foi `666` no GL e `585` no wgpu. A
+referência GL usa um grupo novo porque o shader do grupo já renderizado não
+regenerou o ramo do limite quando o campo mudou de negativo para positivo.
+Limite anterior ao plano próximo retorna `UNSUPPORTED` no perfil atual e
+preserva pixels e serial. A ABI privada C++/Rust passou a 34. Múltiplas luzes
+e câmeras diferentes dentro do grupo com limite ativo ainda não executam. A
+Action só admite esses perfis opacos de uma luz em alvo wgpu offscreen síncrono
+sem RTT; BGFX, janela, async, transparência e cenas próprias por luz seguem
+com `UNSUPPORTED` antes da submissão.
 
 ## Trabalho funcional para fechar
 
@@ -139,9 +149,9 @@ por luz seguem com `UNSUPPORTED` antes da submissão.
   capturada, resolver os parâmetros de VSM/qualidade e o índice da luz em cada
   estado de desenho, resolver a contribuição dessa luz no espaço de vista
   inclusive quando ela aparece após a geometria, e limitar a memória planejada.
-- [ ] **Core completo:** qualificar a interseção com o frustum principal e
-  `maxShadowDistance`, qualidade, transparência, cenas próprias, múltiplas luzes
-  e dependências RTT.
+- [ ] **Core completo:** ampliar interseção com o frustum e
+  `maxShadowDistance` além da câmera única qualificada, qualidade,
+  transparência, cenas próprias, múltiplas luzes e dependências RTT.
   Reusar ownership e publicação de P12–P14, inclusive múltiplos alvos.
 - [ ] **Infra BGFX/wgpu:** mapas de momentos e depth, VSM, bias, textura,
   passes, sincronização, resize e reconstrução após perda, com shader específico
@@ -158,6 +168,7 @@ por luz seguem com `UNSUPPORTED` antes da submissão.
 
 O preflight retorna `UNSUPPORTED` para grupos ativos fora dos perfis opacos
 spot/direcional de uma luz antes, entre ou depois dos desenhos no wgpu
-offscreen, antes de submeter o quadro. Assim os pixels e o serial publicados anteriormente continuam intactos. O restante
-de P27.2 exige distância máxima, interseção do frustum e múltiplas luzes
+offscreen, antes de submeter o quadro. Assim os pixels e o serial publicados
+anteriormente continuam intactos. O restante
+de P27.2 exige ampliar os casos de câmera/frustum e executar múltiplas luzes
 wgpu, comparadas à referência Coin/GL.

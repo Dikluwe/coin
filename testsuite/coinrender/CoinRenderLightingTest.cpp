@@ -34,8 +34,8 @@
 #include <string>
 #include <vector>
 
-static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 33,
-              "Shadow distance-kind bridge protocol");
+static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 34,
+              "Shadow distance-fade bridge protocol");
 static_assert(sizeof(CoinWgpuLight) == 64, "3C light layout");
 
 namespace {

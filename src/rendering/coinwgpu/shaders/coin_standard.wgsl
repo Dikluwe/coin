@@ -36,7 +36,8 @@ struct Uniforms {
     shadow_model_view_projection: mat4x4<f32>,
     shadow_model_view: mat4x4<f32>,
     shadow_params: vec4<f32>, // x=receives, y=near, z=far, w=epsilon
-    shadow_meta: vec4<f32>, // x=threshold, y=lighting index, z=kind (0=directional)
+    shadow_meta: vec4<f32>, // threshold, lighting index, kind, max shadow distance
+    shadow_falloff: vec4<f32>, // Core-resolved exponential curve coefficient
 };
 
 struct GpuMaterial {
@@ -184,6 +185,12 @@ fn vsm_shadow_factor(input: VertexOutput) -> f32 {
     let delta = map.x - dist;
     var probability = variance / (variance + delta * delta);
     probability *= smoothstep(u.shadow_meta.x, 1.0, probability);
+    if (u.shadow_meta.z < 0.5 && u.shadow_meta.w > 0.0) {
+        let eye_z = input.position_view.z;
+        let fade = min(1.0, exp(u.shadow_falloff.x * eye_z * abs(eye_z) /
+                                (u.shadow_meta.w * u.shadow_meta.w)));
+        return 1.0 - (1.0 - probability) * fade;
+    }
     return probability;
 }
 

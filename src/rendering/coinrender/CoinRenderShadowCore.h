@@ -23,6 +23,8 @@ struct CoinRenderShadowPass {
   float farDistance = 100.0f;
   float epsilon = 0.00001f;
   float threshold = 0.1f;
+  float maxShadowDistance = -1.0f;
+  float distanceFalloffCoefficient = 2.35f; // Coin directional exp(z*abs(z)/d^2).
   bool perFragmentLighting = false;
   // -1 means the shadow light is discovered after this shape and must be
   // added by Infra; otherwise it replaces that ordinary light contribution.
@@ -101,10 +103,46 @@ coin_render_shadow_camera_bounds(const SbBox3f & worldBounds,
   return result;
 }
 
+// Rebuild the Coin view volume from the captured camera, for directional
+// shadow-frustum intersection. No scene traversal is needed by a backend.
+inline bool
+coin_render_shadow_view_volume(const CoinRenderCameraSnapshot & camera,
+                               SbViewVolume & volume, std::string & diagnostic)
+{
+  if (camera.nearDistance <= 0.0f ||
+      camera.farDistance <= camera.nearDistance ||
+      std::abs(camera.projectionMatrixCoin.det4()) < 1.0e-12f ||
+      std::abs(camera.viewMatrix.det4()) < 1.0e-12f) {
+    diagnostic = "Directional shadow camera has invalid clip planes or matrices";
+    return false;
+  }
+  const SbMatrix inverseProjection = camera.projectionMatrixCoin.inverse();
+  SbVec3f lowerLeft, lowerRight, upperLeft;
+  inverseProjection.multVecMatrix(SbVec3f(-1, -1, -1), lowerLeft);
+  inverseProjection.multVecMatrix(SbVec3f(1, -1, -1), lowerRight);
+  inverseProjection.multVecMatrix(SbVec3f(-1, 1, -1), upperLeft);
+  if (!coin_render_shadow_finite(lowerLeft) ||
+      !coin_render_shadow_finite(lowerRight) ||
+      !coin_render_shadow_finite(upperLeft) ||
+      lowerRight[0] <= lowerLeft[0] || upperLeft[1] <= lowerLeft[1]) {
+    diagnostic = "Directional shadow camera has an invalid near plane";
+    return false;
+  }
+  if (camera.isPerspective)
+    volume.frustum(lowerLeft[0], lowerRight[0], lowerLeft[1], upperLeft[1],
+                   camera.nearDistance, camera.farDistance);
+  else
+    volume.ortho(lowerLeft[0], lowerRight[0], lowerLeft[1], upperLeft[1],
+                 camera.nearDistance, camera.farDistance);
+  volume.transform(camera.viewMatrix.inverse());
+  return true;
+}
+
 inline bool
 coin_render_shadow_camera(const CoinRenderShadowGroupSnapshot & group,
                           const CoinRenderShadowLightSnapshot & light,
                           const SbBox3f & groupBounds,
+                          const SbViewVolume * mainView,
                           CoinRenderShadowPass & pass,
                           std::string & diagnostic)
 {
@@ -178,19 +216,42 @@ coin_render_shadow_camera(const CoinRenderShadowGroupSnapshot & group,
       const SbVec3f half = light.bboxSize * 0.5f;
       bounds.setBounds(light.bboxCenter - half, light.bboxCenter + half);
     }
+    const SbBox3f fullBounds = bounds;
+    if (light.maxShadowDistance > 0.0f) {
+      if (!mainView) {
+        diagnostic = "Directional maxShadowDistance requires one captured camera";
+        return false;
+      }
+      const float near = mainView->getNearDist();
+      const float depth = mainView->getDepth();
+      if (light.maxShadowDistance <= near) {
+        pass.visible = false;
+        return true;
+      }
+      const float narrowedDepth = std::min(light.maxShadowDistance - near, depth);
+      const SbViewVolume narrowed = mainView->zNarrow(
+        1.0f, 1.0f - narrowedDepth / depth);
+      bounds = narrowed.intersectionBox(fullBounds);
+      if (bounds.isEmpty()) {
+        pass.visible = false;
+        return true;
+      }
+    }
     const SbVec3f size = bounds.getSize();
     const float extent = std::max(1.0f, std::max(size[0], std::max(size[1], size[2])));
     const SbVec3f position = bounds.getCenter() - direction * (extent * 2.0f);
-    const SbBox3f cameraBounds = coin_render_shadow_camera_bounds(
+    const SbBox3f fitCameraBounds = coin_render_shadow_camera_bounds(
       bounds, position, orientation);
-    const SbVec3f & lo = cameraBounds.getMin();
-    const SbVec3f & hi = cameraBounds.getMax();
+    const SbBox3f depthCameraBounds = coin_render_shadow_camera_bounds(
+      fullBounds, position, orientation);
+    const SbVec3f & lo = fitCameraBounds.getMin();
+    const SbVec3f & hi = fitCameraBounds.getMax();
     const float halfWidth = std::max(0.01f, (hi[0] - lo[0]) * 0.505f);
     const float halfHeight = std::max(0.01f, (hi[1] - lo[1]) * 0.505f);
     const float centerX = (lo[0] + hi[0]) * 0.5f;
     const float centerY = (lo[1] + hi[1]) * 0.5f;
-    pass.nearDistance = std::max(0.001f, -hi[2] * 0.99f);
-    pass.farDistance = -lo[2] * 1.01f;
+    pass.nearDistance = std::max(0.001f, -depthCameraBounds.getMax()[2] * 0.99f);
+    pass.farDistance = -depthCameraBounds.getMin()[2] * 1.01f;
     if (!std::isfinite(pass.farDistance) ||
         pass.farDistance <= pass.nearDistance) {
       diagnostic = "Shadow directional light has an invalid volume";
@@ -235,16 +296,30 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
     for (size_t l = 0; l < frame.shadowLights.size(); ++l) {
       const auto & light = frame.shadowLights[l];
       if (light.groupSlot != g + 1 || !light.enabled || !light.shadowEligible) continue;
-      if (light.hasCustomScene ||
+      if (!std::isfinite(light.maxShadowDistance) || light.hasCustomScene ||
           (light.type != CoinRenderLightType::DIRECTIONAL &&
            light.type != CoinRenderLightType::SPOT)) {
         diagnostic = "Shadow light requires a supported spot/directional scene";
         return false;
       }
+      SbViewVolume mainView;
+      const SbViewVolume * mainViewPtr = nullptr;
       if (light.type == CoinRenderLightType::DIRECTIONAL &&
           light.maxShadowDistance > 0.0f) {
-        diagnostic = "Directional maxShadowDistance requires view-frustum intersection";
-        return false;
+        uint32_t cameraSlot = UINT32_MAX;
+        for (const auto & draw : frame.draws) {
+          const auto & state = frame.renderStates[draw.renderStateSlot];
+          if (state.shadowGroupSlot != g + 1) continue;
+          if (cameraSlot == UINT32_MAX) cameraSlot = state.cameraSlot;
+          else if (cameraSlot != state.cameraSlot) {
+            diagnostic = "Directional maxShadowDistance requires one group camera";
+            return false;
+          }
+        }
+        if (cameraSlot >= frame.cameras.size() ||
+            !coin_render_shadow_view_volume(frame.cameras[cameraSlot],
+                                            mainView, diagnostic)) return false;
+        mainViewPtr = &mainView;
       }
       CoinRenderShadowPass pass;
       pass.groupSlot = static_cast<uint32_t>(g + 1);
@@ -252,6 +327,7 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
       pass.mapSize = mapSize;
       pass.epsilon = group.epsilon;
       pass.threshold = group.threshold;
+      pass.maxShadowDistance = light.maxShadowDistance;
       pass.perFragmentLighting = group.quality >
         (light.type == CoinRenderLightType::SPOT ? 0.3f : 0.7f);
       pass.lightingIndexByState.assign(frame.renderStates.size(), -1);
@@ -311,7 +387,7 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
           pass.receiverDraws.push_back(static_cast<uint32_t>(d));
       }
       if (!coin_render_shadow_camera(group, light, groupBounds,
-                                      pass, diagnostic)) return false;
+                                     mainViewPtr, pass, diagnostic)) return false;
       const uint64_t bytes = uint64_t(mapSize) * mapSize * 16u; // RGBA32F moments.
       const uint64_t budget = uint64_t(128) * 1024 * 1024;
       if (bytes > budget || candidate.attachmentBytes > budget - bytes) {

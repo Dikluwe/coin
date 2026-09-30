@@ -451,6 +451,7 @@ int main()
   int wgpuDirectionalDifference = 0;
   int wgpuLateDirectionalDifference = 0;
   int wgpuMixedDirectionalDifference = 0;
+  std::vector<unsigned char> wgpuDistancePixels, wgpuDirectionalFullPixels;
   if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) {
     group->quality = 1.0f; // Coin's directional per-fragment profile.
     action.apply(root);
@@ -587,9 +588,36 @@ int main()
         wgpuDirectionalSubmitted = wgpuDirectionalSubmitted &&
           directionalAction.getLastStatus() == CoinRenderAction::SUCCESS &&
           actionPixels == shadowPixels;
+        wgpuDirectionalFullPixels = actionPixels;
         if (!wgpuDirectionalSubmitted)
           std::cerr << "wgpu directional Action: "
                     << directionalAction.getLastError().getString() << '\n';
+        directionalCapture->maxShadowDistance = 10.0f;
+        action.apply(root);
+        const auto & distancePlan = action.getPimpl()->lastRejectedShadowPlan;
+        wgpuDirectionalSubmitted = wgpuDirectionalSubmitted &&
+          action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+          distancePlan.passes.size() == 1 && distancePlan.passes[0].visible &&
+          distancePlan.passes[0].maxShadowDistance == 10.0f &&
+          distancePlan.passes[0].distanceFalloffCoefficient == 2.35f;
+        directionalAction.apply(root);
+        wgpuDirectionalSubmitted = wgpuDirectionalSubmitted &&
+          directionalAction.getLastStatus() == CoinRenderAction::SUCCESS;
+        if (wgpuDirectionalSubmitted)
+          directionalActionTarget->readbackRGBA(wgpuDistancePixels);
+        else
+          std::cerr << "wgpu directional max distance: "
+                    << directionalAction.getLastError().getString() << '\n';
+        const uint64_t distanceSerial = directionalActionTarget->getLastSubmissionSerial();
+        directionalCapture->maxShadowDistance = 0.5f; // Before the camera near plane.
+        directionalAction.apply(root);
+        std::vector<unsigned char> afterInvisibleDistance;
+        directionalActionTarget->readbackRGBA(afterInvisibleDistance);
+        wgpuDirectionalSubmitted = wgpuDirectionalSubmitted &&
+          directionalAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+          directionalActionTarget->getLastSubmissionSerial() == distanceSerial &&
+          afterInvisibleDistance == wgpuDistancePixels;
+        directionalCapture->maxShadowDistance = -1.0f;
         directionalAction.setRenderTarget(nullptr);
         delete directionalActionTarget;
       }
@@ -668,8 +696,18 @@ int main()
   directional->direction.setValue(-0.4f, -0.4f, -1.0f);
   directional->intensity = 1.0f;
   group->replaceChild(light, directional);
-  std::vector<unsigned char> directionalShadow, directionalNoReceive;
+  std::vector<unsigned char> directionalShadow, directionalNoReceive, directionalDistance;
   ok = ok && render(gl, root, directionalShadow);
+  auto * distanceRoot = static_cast<SoSeparator *>(root->copy(TRUE));
+  distanceRoot->ref();
+  auto * distanceGroup = static_cast<SoShadowGroup *>(distanceRoot->getChild(1));
+  auto * distanceDirectional = static_cast<SoShadowDirectionalLight *>(
+    distanceGroup->getChild(0));
+  distanceDirectional->maxShadowDistance = 10.0f;
+  SoOffscreenRenderer distanceGl(SbViewportRegion(side, side));
+  distanceGl.setComponents(SoOffscreenRenderer::RGB);
+  ok = ok && render(distanceGl, distanceRoot, directionalDistance);
+  distanceRoot->unref();
   groundStyle->style = SoShadowStyle::NO_SHADOWING;
   ok = ok && render(gl, root, directionalNoReceive);
   groundStyle->style = SoShadowStyle::SHADOWED;
@@ -740,6 +778,31 @@ int main()
             << " restored=" << restoredShadow
             << " no_caster=" << withoutCaster
             << " center_delta=" << centerDifference << '\n';
+  int directionalDistanceDifference = 0;
+  for (int y = 20; y < 105; ++y)
+    for (int x = 20; x < 105; ++x)
+      directionalDistanceDifference = std::max(directionalDistanceDifference,
+        luminance(directionalDistance, x, y) -
+        luminance(directionalShadow, x, y));
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+  int wgpuDistanceDifference = 0;
+  if (!wgpuDistancePixels.empty())
+    for (int y = 20; y < 105; ++y)
+      for (int x = 20; x < 105; ++x) {
+        const size_t pixel = static_cast<size_t>((y * side + x) * 4);
+        const int limited = wgpuDistancePixels[pixel] + wgpuDistancePixels[pixel + 1] + wgpuDistancePixels[pixel + 2];
+        const int full = wgpuDirectionalFullPixels[pixel] + wgpuDirectionalFullPixels[pixel + 1] + wgpuDirectionalFullPixels[pixel + 2];
+        wgpuDistanceDifference = std::max(wgpuDistanceDifference, limited - full);
+      }
+  std::cout << " directional_distance_delta=" << directionalDistanceDifference
+            << "/" << wgpuDistanceDifference << '\n';
+  if (!wgpuDistancePixels.empty() &&
+      (wgpuDistanceDifference < 100 ||
+       std::abs(wgpuDistanceDifference - directionalDistanceDifference) > 130)) {
+    std::cerr << "wgpu distance fade differs from Coin/GL reference\n";
+    return 1;
+  }
+#endif
   int directionalDifference = 0;
   for (int y = 20; y < 105; ++y)
     for (int x = 20; x < 105; ++x)
@@ -830,7 +893,8 @@ int main()
       noReceive - castShadow < 100 ||
       withoutCaster - castShadow < 100 ||
       std::abs(restoredShadow - castShadow) > 30 || centerDifference > 45 ||
-      directionalDifference < 100 || lateDirectionalDifference < 100 ||
+      directionalDifference < 100 || directionalDistanceDifference < 100 ||
+      lateDirectionalDifference < 100 ||
       mixedDirectionalDifference < 100 ||
       spotLateDifference < 100 || spotMixedDifference < 100) {
     std::cerr << "Coin/GL shadow, style or cache reference changed\n";

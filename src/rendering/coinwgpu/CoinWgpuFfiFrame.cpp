@@ -17,6 +17,8 @@
 static_assert(sizeof(CoinWgpuFrameView) == 232, "Frame view ABI size changed");
 static_assert(sizeof(CoinWgpuShadowDraw) == 144, "Shadow draw ABI size changed");
 static_assert(sizeof(CoinWgpuShadowReceiver) == 144, "Shadow receiver ABI size changed");
+static_assert(offsetof(CoinWgpuShadowReceiver, max_shadow_distance) == 8,
+              "Shadow distance ABI offset changed");
 static_assert(offsetof(CoinWgpuFrameView, shadow_receivers) == 216,
               "Shadow receivers ABI offset changed");
 static_assert(offsetof(CoinWgpuFrameView, shadow_casters) == 176,
