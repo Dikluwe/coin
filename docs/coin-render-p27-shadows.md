@@ -2,8 +2,9 @@
 
 P27 exige executar `SoShadowGroup` ativo com a semântica Coin em BGFX e wgpu.
 A referência GL e a captura comum estão verificadas. Os perfis opacos de
-uma luz spot ou direcional antes, entre ou depois dos desenhos executam em
-wgpu offscreen; os demais perfis e BGFX permanecem bloqueados.
+uma luz spot ou direcional antes, entre ou depois dos desenhos e o perfil
+de duas luzes spot + direcional antes dos desenhos executam em wgpu offscreen;
+os demais perfis e BGFX permanecem bloqueados.
 Portanto P27 permanece **aberto**.
 
 ## O que o Coin/GL faz
@@ -62,8 +63,9 @@ opaca no wgpu e compara seu readback ao GL.
   fixture Coin/GL. Inclui resize, erro de recurso e preservação da publicação.
 - [ ] **P27.2 — wgpu direcional e múltiplas luzes:** câmera direcional com
   interseção do frustum e `maxShadowDistance` no perfil de câmera única já
-  executam. O Core qualifica dois passes spot/direcional; dois mapas e soma
-  das contribuições no wgpu ainda não executam.
+  executam. Dois passes spot/direcional antes dos desenhos agora geram dois
+  mapas e somam suas contribuições no wgpu. Restam outras ordens de luz,
+  câmeras/frusta e combinações de múltiplas luzes.
 - [ ] **P27.3 — BGFX:** executar o mesmo plano comum e as mesmas fixtures
   opacas no BGFX, com shader e recursos próprios, sem reinterpretar o Coin.
 - [ ] **P27.4 — contrato ampliado:** cenas próprias por luz, transparência,
@@ -75,7 +77,7 @@ Cada subetapa exige um quadro renderizado e evidência de comportamento;
 shader, captura ou plano isolados não bastam para fechá-la.
 
 P27.1 foi exercitado na GPU AMD Radeon Graphics (RADV RENOIR), Vulkan/radv.
-O Core limita a execução a um grupo, uma luz spot visível, triângulos PHONG
+No fechamento P27.1, o Core limitava a execução a um grupo, uma luz spot visível, triângulos PHONG
 opacos sem textura, clipping ou névoa, com a luz antes dos desenhos. O
 empacotador C++ transporta casters e receivers escolhidos pelo Core e a ABI
 privada C++/Rust, agora 34, carrega índices, matrizes, tipo de distância e parâmetros
@@ -129,21 +131,24 @@ shader wgpu, que atenua a sombra pela distância em espaço de vista. Com limite
 referência GL usa um grupo novo porque o shader do grupo já renderizado não
 regenerou o ramo do limite quando o campo mudou de negativo para positivo.
 Limite anterior ao plano próximo retorna `UNSUPPORTED` no perfil atual e
-preserva pixels e serial. A ABI privada C++/Rust passou a 34. Múltiplas luzes
-e câmeras diferentes dentro do grupo com limite ativo ainda não executam. A
-Action só admite esses perfis opacos de uma luz em alvo wgpu offscreen síncrono
-sem RTT; BGFX, janela, async, transparência e cenas próprias por luz seguem
-com `UNSUPPORTED` antes da submissão.
+preserva pixels e serial. Nessa etapa, a ABI privada C++/Rust passou a 34.
+Câmeras diferentes dentro do grupo com limite ativo ainda não executam. A
+Action admite esses perfis opacos de uma luz e o perfil spot + direcional
+anterior aos desenhos em alvo wgpu offscreen síncrono sem RTT; BGFX, janela,
+async, transparência e cenas próprias por luz seguem com `UNSUPPORTED` antes
+da submissão.
 
-O próximo perfil foi caracterizado sem abrir a submissão wgpu: uma spot e uma
-direcional antes dos desenhos, ambas com qualidade 1, geram dois passes
-independentes no Core, vinculados aos índices 0 e 1 da iluminação capturada.
-A mesma cena no Coin/GL mudou até `402` na soma RGB quando a direcional foi
-retirada. O Core rejeita um índice cujo `sourceRevision` não corresponde à
-luz do pass. A Action wgpu ainda retorna `UNSUPPORTED` antes da submissão e
-preserva pixels e serial do quadro anterior. Para executar esse perfil faltam
-dois mapas no mesmo quadro e a soma das duas contribuições sombreadas no shader;
-o perfil comum não autoriza aproximação com uma luz sem sombra.
+O perfil com uma spot e uma direcional antes dos desenhos, ambas com qualidade
+1, gera dois passes independentes no Core vinculados aos índices 0 e 1 da
+iluminação capturada. O wgpu codifica dois mapas de momentos e depth no mesmo
+command buffer, liga ambos ao shader e soma as contribuições VSM das duas
+luzes. Na fixture 128×128, retirar a direcional mudou a soma RGB máxima em
+`402` no Coin/GL e `399` no wgpu (tolerância da fixture: `80`). O teste também
+confere injeção de falha na alocação, preservação de pixels e serial, resize
+para 160×160 e recuperação do quadro original. A ABI privada C++/Rust passou
+a 35. O Core rejeita um índice cujo `sourceRevision` não corresponde à luz do
+pass. O executor ainda exige ambas as luzes antes dos receivers; outras ordens
+permanecem fora do perfil wgpu.
 
 ## Trabalho funcional para fechar
 
@@ -169,8 +174,8 @@ o perfil comum não autoriza aproximação com uma luz sem sombra.
   por API. Mapas da Infra não entram no estado Coin. O shader wgpu que grava
   momentos lineares, spot/directional, e o lookup no shader principal validam
   em Naga. Os perfis opacos de uma luz spot ou direcional anterior, mista ou
-  posterior aos desenhos funcionam no quadro completo; os demais perfis e o
-  executor BGFX continuam pendentes.
+  posterior aos desenhos, e duas luzes spot + direcional anteriores, funcionam
+  no quadro completo; os demais perfis e o executor BGFX continuam pendentes.
 - [ ] **Shell/capacidades:** seleção explícita de perfil implementado e
   disponível; diagnósticos de limite/formato sem fallback visual implícito.
 - [ ] **Qualificação:** comparar spot/directional, todos os estilos, cenas
@@ -178,8 +183,9 @@ o perfil comum não autoriza aproximação com uma luz sem sombra.
   mesmas fixtures Coin/GL. Registrar GPU/API/driver e tolerâncias por célula.
 
 O preflight retorna `UNSUPPORTED` para grupos ativos fora dos perfis opacos
-spot/direcional de uma luz antes, entre ou depois dos desenhos no wgpu
-offscreen, antes de submeter o quadro. Assim os pixels e o serial publicados
+spot/direcional de uma luz antes, entre ou depois dos desenhos, ou duas luzes
+spot + direcional antes dos desenhos, no wgpu offscreen, antes de submeter o
+quadro. Assim os pixels e o serial publicados
 anteriormente continuam intactos. O restante
-de P27.2 exige ampliar os casos de câmera/frustum e executar múltiplas luzes
-wgpu, comparadas à referência Coin/GL.
+de P27.2 exige ampliar os casos de câmera/frustum e a ordem/combinação de
+múltiplas luzes wgpu, comparadas à referência Coin/GL.

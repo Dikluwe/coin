@@ -21,15 +21,17 @@ mod composition;
 mod peeling;
 mod shadow;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 34;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 35;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
-    assert!(std::mem::size_of::<CoinWgpuFrameView>() == 232);
+    assert!(std::mem::size_of::<CoinWgpuFrameView>() == 280);
     assert!(std::mem::size_of::<CoinWgpuShadowDraw>() == 144);
     assert!(std::mem::size_of::<CoinWgpuShadowReceiver>() == 144);
     assert!(std::mem::offset_of!(CoinWgpuShadowReceiver, max_shadow_distance) == 8);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, shadow_receivers) == 216);
+    assert!(std::mem::offset_of!(CoinWgpuFrameView, shadow_casters_second) == 232);
+    assert!(std::mem::offset_of!(CoinWgpuFrameView, shadow_receivers_second) == 264);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, shadow_casters) == 176);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, shadow_map_size) == 192);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, shadow_kind) == 212);
@@ -218,6 +220,11 @@ pub struct CoinWgpuUniforms {
     pub shadow_params: [f32; 4],
     pub shadow_meta: [f32; 4],
     pub shadow_falloff: [f32; 4],
+    pub shadow_model_view_projection_second: [[f32; 4]; 4],
+    pub shadow_model_view_second: [[f32; 4]; 4],
+    pub shadow_params_second: [f32; 4],
+    pub shadow_meta_second: [f32; 4],
+    pub shadow_falloff_second: [f32; 4],
 }
 
 #[repr(C)]
@@ -408,6 +415,14 @@ pub struct CoinWgpuFrameView {
     pub shadow_kind: u32,
     pub shadow_receivers: *const CoinWgpuShadowReceiver,
     pub shadow_receiver_count: u64,
+    pub shadow_casters_second: *const CoinWgpuShadowDraw,
+    pub shadow_caster_count_second: u64,
+    pub shadow_map_size_second: u32,
+    pub shadow_near_distance_second: f32,
+    pub shadow_far_distance_second: f32,
+    pub shadow_kind_second: u32,
+    pub shadow_receivers_second: *const CoinWgpuShadowReceiver,
+    pub shadow_receiver_count_second: u64,
 }
 
 #[repr(C)]
@@ -1518,6 +1533,16 @@ fn get_or_init_device_impl<'a>(
         },
         count: None,
     });
+    layout_entries.push(wgpu::BindGroupLayoutEntry {
+        binding: 21,
+        visibility: wgpu::ShaderStages::FRAGMENT,
+        ty: wgpu::BindingType::Texture {
+            sample_type: wgpu::TextureSampleType::Float { filterable: false },
+            view_dimension: wgpu::TextureViewDimension::D2,
+            multisampled: false,
+        },
+        count: None,
+    });
     let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         label: Some("Coin eight-unit texture program"),
         entries: &layout_entries,
@@ -2213,7 +2238,17 @@ fn resolved_viewport(state: &CoinWgpuRenderState, width: u32, height: u32)
 
 // The Coin/Core payload is immutable during one frame. Infra only validates
 // its bounds and turns the captured draws into a GPU map.
+struct ShadowPass<'a> {
+    casters: &'a [CoinWgpuShadowDraw],
+    receivers: &'a [CoinWgpuShadowReceiver],
+    map_size: u32,
+    near: f32,
+    far: f32,
+    kind: u32,
+}
+
 struct ShadowFrame<'a> {
+    second: Option<ShadowPass<'a>>,
     casters: &'a [CoinWgpuShadowDraw],
     receivers: &'a [CoinWgpuShadowReceiver],
     map_size: u32,
@@ -2270,6 +2305,13 @@ fn encode_frame(
             return Err((CoinWgpuStatus::InvalidArgument,
                 "Shadow receivers do not match render states or composition".into()));
         }
+        if let Some(second) = &shadow.second {
+            if second.map_size > ctx.device.limits().max_texture_dimension_2d ||
+                second.receivers.len() != states_slice.len() || second.casters.is_empty() {
+                return Err((CoinWgpuStatus::InvalidArgument,
+                    "Second shadow pass does not match render states or device limits".into()));
+            }
+        }
         for (slot, receiver) in shadow.receivers.iter().enumerate() {
             if receiver.receives > 1
                 || !receiver.max_shadow_distance.is_finite()
@@ -2282,6 +2324,18 @@ fn encode_frame(
                     || receiver.lighting_index as u32 >= states_slice[slot].light_count)) {
                 return Err((CoinWgpuStatus::InvalidArgument,
                     format!("Invalid shadow receiver {slot}")));
+            }
+        }
+        if let Some(second) = &shadow.second {
+            for (slot, receiver) in second.receivers.iter().enumerate() {
+                if receiver.receives > 1 || receiver.lighting_index < 0 ||
+                    (receiver.receives != 0 &&
+                     receiver.lighting_index as u32 >= states_slice[slot].light_count) ||
+                    !receiver.model_view.iter().chain(receiver.model_view_projection.iter())
+                        .all(|v| v.is_finite()) {
+                    return Err((CoinWgpuStatus::InvalidArgument,
+                        format!("Invalid second shadow receiver {slot}")));
+                }
             }
         }
     }
@@ -2796,6 +2850,11 @@ fn encode_frame(
             indices_slice, shadow.casters, shadow.map_size, shadow.near, shadow.far, shadow.kind)
             .map_err(|msg| (CoinWgpuStatus::InvalidArgument, msg))?)
     } else { None };
+    let shadow_map_second = if let Some(second) = shadow_frame.and_then(|shadow| shadow.second.as_ref()) {
+        Some(shadow::encode_moments(&ctx.device, &mut encoder, vertices_slice,
+            indices_slice, second.casters, second.map_size, second.near, second.far, second.kind)
+            .map_err(|msg| (CoinWgpuStatus::InvalidArgument, msg))?)
+    } else { None };
 
     {
         let _clear = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -3144,6 +3203,8 @@ fn encode_frame(
                 let receiver = shadow_frame.map(|shadow| {
                     (&shadow.receivers[draw.render_state_slot as usize], shadow)
                 });
+                let receiver_second = shadow_frame.and_then(|shadow| shadow.second.as_ref())
+                    .map(|second| (&second.receivers[draw.render_state_slot as usize], second));
                 let shadow_matrix = |flat: &[f32; 16]| -> [[f32; 4]; 4] {
                     std::array::from_fn(|col| std::array::from_fn(|row| flat[col * 4 + row]))
                 };
@@ -3230,6 +3291,22 @@ fn encode_frame(
                          r.max_shadow_distance]),
                     shadow_falloff: receiver.map_or([0.0; 4], |(r, _)|
                         [r.distance_falloff_coefficient, 0.0, 0.0, 0.0]),
+                    shadow_model_view_projection_second: receiver_second.map_or(
+                        [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0],
+                         [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
+                        |(r, _)| shadow_matrix(&r.model_view_projection)),
+                    shadow_model_view_second: receiver_second.map_or(
+                        [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0],
+                         [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
+                        |(r, _)| shadow_matrix(&r.model_view)),
+                    shadow_params_second: receiver_second.map_or([0.0, 0.0, 1.0, 0.0],
+                        |(r, second)| [r.receives as f32, second.near,
+                            second.far, shadow_frame.unwrap().epsilon]),
+                    shadow_meta_second: receiver_second.map_or([0.0; 4], |(r, second)|
+                        [shadow_frame.unwrap().threshold, r.lighting_index as f32,
+                         second.kind as f32, r.max_shadow_distance]),
+                    shadow_falloff_second: receiver_second.map_or([0.0; 4], |(r, _)|
+                        [r.distance_falloff_coefficient, 0.0, 0.0, 0.0]),
                 };
 
                 if layers.iter().any(|t| t.enabled != 0)
@@ -3293,6 +3370,11 @@ fn encode_frame(
                     entries.push(wgpu::BindGroupEntry {
                         binding: 20,
                         resource: wgpu::BindingResource::TextureView(shadow_map.as_ref()
+                            .map_or(&ctx.default_texture_view, |map| &map.view)),
+                    });
+                    entries.push(wgpu::BindGroupEntry {
+                        binding: 21,
+                        resource: wgpu::BindingResource::TextureView(shadow_map_second.as_ref()
                             .map_or(&ctx.default_texture_view, |map| &map.view)),
                     });
                     let bind_group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -4045,7 +4127,9 @@ fn coin_wgpu_surface_submit_internal(
             return CoinWgpuStatus::Unsupported;
         }
         if !f.shadow_casters.is_null() || f.shadow_map_size != 0 || f.shadow_kind != 0 ||
-            !f.shadow_receivers.is_null() || f.shadow_receiver_count != 0 {
+            !f.shadow_receivers.is_null() || f.shadow_receiver_count != 0 ||
+            !f.shadow_casters_second.is_null() || f.shadow_caster_count_second != 0 ||
+            !f.shadow_receivers_second.is_null() || f.shadow_receiver_count_second != 0 {
             set_error(error_buf, error_buf_len,
                 "Shadow payload has data without casters");
             return CoinWgpuStatus::InvalidArgument;
@@ -4994,7 +5078,9 @@ fn coin_wgpu_submit_internal(
         // Keep it out of the camera patch until state/geometry matching is qualified.
         let shadow_frame = if f.shadow_caster_count == 0 {
             if !f.shadow_casters.is_null() || f.shadow_map_size != 0 || f.shadow_kind != 0
-                || !f.shadow_receivers.is_null() || f.shadow_receiver_count != 0 {
+                || !f.shadow_receivers.is_null() || f.shadow_receiver_count != 0
+                || !f.shadow_casters_second.is_null() || f.shadow_caster_count_second != 0
+                || !f.shadow_receivers_second.is_null() || f.shadow_receiver_count_second != 0 {
                 set_error(error_buf, error_buf_len, "Shadow payload has data without casters");
                 return CoinWgpuStatus::InvalidArgument;
             }
@@ -5021,7 +5107,41 @@ fn coin_wgpu_submit_internal(
                 "shadow receivers", error_buf, error_buf_len) {
                 Ok(s) => s, Err(st) => return st,
             };
+            let second = if f.shadow_caster_count_second == 0 {
+                if !f.shadow_casters_second.is_null() || !f.shadow_receivers_second.is_null() ||
+                    f.shadow_receiver_count_second != 0 || f.shadow_map_size_second != 0 ||
+                    f.shadow_kind_second != 0 {
+                    set_error(error_buf, error_buf_len, "Partial second shadow pass");
+                    return CoinWgpuStatus::InvalidArgument;
+                }
+                None
+            } else {
+                if f.shadow_receiver_count_second != states_slice.len() as u64 ||
+                    f.shadow_kind_second > 1 ||
+                    !f.shadow_map_size_second.is_power_of_two() || f.shadow_map_size_second > 2048 ||
+                    !f.shadow_near_distance_second.is_finite() ||
+                    !f.shadow_far_distance_second.is_finite() ||
+                    f.shadow_near_distance_second <= 0.0 ||
+                    f.shadow_far_distance_second <= f.shadow_near_distance_second {
+                    set_error(error_buf, error_buf_len, "Invalid second shadow pass parameters");
+                    return CoinWgpuStatus::InvalidArgument;
+                }
+                let second_casters = match validate_slice(f.shadow_casters_second,
+                    f.shadow_caster_count_second, "second shadow casters", error_buf, error_buf_len) {
+                    Ok(s) => s, Err(st) => return st,
+                };
+                let second_receivers = match validate_slice(f.shadow_receivers_second,
+                    f.shadow_receiver_count_second, "second shadow receivers", error_buf, error_buf_len) {
+                    Ok(s) => s, Err(st) => return st,
+                };
+                Some(ShadowPass {
+                    casters: second_casters, receivers: second_receivers,
+                    map_size: f.shadow_map_size_second, near: f.shadow_near_distance_second,
+                    far: f.shadow_far_distance_second, kind: f.shadow_kind_second,
+                })
+            };
             Some(ShadowFrame {
+                second,
                 casters, receivers, map_size: f.shadow_map_size,
                 near: f.shadow_near_distance, far: f.shadow_far_distance,
                 epsilon: f.shadow_epsilon, threshold: f.shadow_threshold, kind: f.shadow_kind,

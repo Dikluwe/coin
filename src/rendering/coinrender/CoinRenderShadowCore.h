@@ -541,8 +541,8 @@ coin_render_shadow_single_directional_opaque_profile(
     frame, shadows, CoinRenderLightType::DIRECTIONAL, diagnostic);
 }
 
-// Captured contract for the first two-light execution candidate. The present
-// wgpu transport still rejects it until both maps can be composed atomically.
+// Captured contract for the first two-light execution profile. Backends may
+// execute it only when both independent maps and contributions are available.
 inline bool
 coin_render_shadow_spot_directional_opaque_profile(
   const CoinRenderFramePlan & frame, const CoinRenderShadowPlan & shadows,

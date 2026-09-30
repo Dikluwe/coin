@@ -38,6 +38,11 @@ struct Uniforms {
     shadow_params: vec4<f32>, // x=receives, y=near, z=far, w=epsilon
     shadow_meta: vec4<f32>, // threshold, lighting index, kind, max shadow distance
     shadow_falloff: vec4<f32>, // Core-resolved exponential curve coefficient
+    shadow_model_view_projection_second: mat4x4<f32>,
+    shadow_model_view_second: mat4x4<f32>,
+    shadow_params_second: vec4<f32>,
+    shadow_meta_second: vec4<f32>,
+    shadow_falloff_second: vec4<f32>,
 };
 
 struct GpuMaterial {
@@ -74,6 +79,7 @@ var s_diffuse: sampler;
 @group(0) @binding(16) var t_texture7: texture_2d<f32>;
 @group(0) @binding(17) var s_texture7: sampler;
 @group(0) @binding(20) var t_shadow: texture_2d<f32>;
+@group(0) @binding(21) var t_shadow_second: texture_2d<f32>;
 
 
 struct VertexInput {
@@ -109,6 +115,8 @@ struct VertexOutput {
     @location(11) uv7: vec2<f32>,
     @location(12) shadow_coord: vec4<f32>,
     @location(13) shadow_light_view: vec3<f32>,
+    @location(14) shadow_coord_second: vec4<f32>,
+    @location(15) shadow_light_view_second: vec3<f32>,
 };
 
 // Coin's PHONG contribution for one captured light. The first shadow profile
@@ -159,41 +167,44 @@ fn shade_vertex(mat: GpuMaterial, position_view: vec3<f32>, normal_view: vec3<f3
     var rgb = mat.ambient.rgb * u.ambient_light.rgb + mat.emission.rgb;
     for (var i: u32 = 0u; i < 8u; i = i + 1u) {
         if (f32(i) >= u.light_meta.x) { break; }
-        if (u.shadow_params.x > 0.5 && i == u32(u.shadow_meta.y)) { continue; }
+        if ((u.shadow_params.x > 0.5 && i == u32(u.shadow_meta.y)) ||
+            (u.shadow_params_second.x > 0.5 && i == u32(u.shadow_meta_second.y))) { continue; }
         rgb += light_contribution(u.lights[i], mat, position_view, normal_view);
     }
     return vec4<f32>(clamp(rgb, vec3<f32>(0.0), vec3<f32>(1.0)), mat.diffuse.a);
 }
 
-fn vsm_shadow_factor(input: VertexOutput) -> f32 {
-    if (input.shadow_coord.w <= 0.0) { return 1.0; }
-    let clip = input.shadow_coord.xyz / input.shadow_coord.w;
+fn vsm_shadow_factor(coord: vec4<f32>, light_view: vec3<f32>,
+                     position_view: vec3<f32>, params: vec4<f32>,
+                     shadow_info: vec4<f32>, falloff: vec4<f32>,
+                     shadow_map: texture_2d<f32>) -> f32 {
+    if (coord.w <= 0.0) { return 1.0; }
+    let clip = coord.xyz / coord.w;
     let uv = vec2<f32>(clip.x * 0.5 + 0.5, 0.5 - clip.y * 0.5);
     if (uv.x < 0.0 || uv.x >= 1.0 || uv.y < 0.0 || uv.y >= 1.0 ||
         clip.z < 0.0 || clip.z > 1.0) { return 1.0; }
-    let size = textureDimensions(t_shadow);
+    let size = textureDimensions(shadow_map);
     let pixel = clamp(vec2<i32>(uv * vec2<f32>(size)),
                       vec2<i32>(0), vec2<i32>(size) - vec2<i32>(1));
-    let map = textureLoad(t_shadow, pixel, 0).xy;
+    let map = textureLoad(shadow_map, pixel, 0).xy;
     if (map.x >= 0.9999) { return 1.0; }
-    let distance = select(-input.shadow_light_view.z,
-        length(input.shadow_light_view), u.shadow_meta.z > 0.5);
-    let dist = (distance - u.shadow_params.y) /
-               (u.shadow_params.z - u.shadow_params.y);
+    let distance = select(-light_view.z,
+        length(light_view), shadow_info.z > 0.5);
+    let dist = (distance - params.y) /
+               (params.z - params.y);
     if (dist <= map.x) { return 1.0; }
-    let variance = min(max(map.y - map.x * map.x, 0.0) + u.shadow_params.w, 1.0);
+    let variance = min(max(map.y - map.x * map.x, 0.0) + params.w, 1.0);
     let delta = map.x - dist;
     var probability = variance / (variance + delta * delta);
-    probability *= smoothstep(u.shadow_meta.x, 1.0, probability);
-    if (u.shadow_meta.z < 0.5 && u.shadow_meta.w > 0.0) {
-        let eye_z = input.position_view.z;
-        let fade = min(1.0, exp(u.shadow_falloff.x * eye_z * abs(eye_z) /
-                                (u.shadow_meta.w * u.shadow_meta.w)));
+    probability *= smoothstep(shadow_info.x, 1.0, probability);
+    if (shadow_info.z < 0.5 && shadow_info.w > 0.0) {
+        let eye_z = position_view.z;
+        let fade = min(1.0, exp(falloff.x * eye_z * abs(eye_z) /
+                                (shadow_info.w * shadow_info.w)));
         return 1.0 - (1.0 - probability) * fade;
     }
     return probability;
 }
-
 @vertex
 fn vs_main(input: VertexInput) -> VertexOutput {
     var output: VertexOutput;
@@ -213,6 +224,10 @@ fn vs_main(input: VertexInput) -> VertexOutput {
     output.shadow_coord = u.shadow_model_view_projection *
         vec4<f32>(input.position, 1.0);
     output.shadow_light_view = (u.shadow_model_view *
+        vec4<f32>(input.position, 1.0)).xyz;
+    output.shadow_coord_second = u.shadow_model_view_projection_second *
+        vec4<f32>(input.position, 1.0);
+    output.shadow_light_view_second = (u.shadow_model_view_second *
         vec4<f32>(input.position, 1.0)).xyz;
 
     if (u.tex_params.x > 0.5) {
@@ -308,9 +323,21 @@ fn fragment_color(input: VertexOutput) -> vec4<f32> {
         let contribution = light_contribution(light,
             materials[input.material_slot], input.position_view, input.normal_view);
         primary = vec4<f32>(
-            clamp(primary.rgb + contribution * vsm_shadow_factor(input),
+            clamp(primary.rgb + contribution * vsm_shadow_factor(input.shadow_coord, input.shadow_light_view,
+                input.position_view, u.shadow_params, u.shadow_meta,
+                u.shadow_falloff, t_shadow),
                   vec3<f32>(0.0), vec3<f32>(1.0)),
             primary.a);
+    }
+    if (u.shadow_params_second.x > 0.5 && u.params.w > 0.5) {
+        let light = u.lights[u32(u.shadow_meta_second.y)];
+        let contribution = light_contribution(light,
+            materials[input.material_slot], input.position_view, input.normal_view);
+        primary = vec4<f32>(
+            clamp(primary.rgb + contribution * vsm_shadow_factor(input.shadow_coord_second, input.shadow_light_view_second,
+                input.position_view, u.shadow_params_second, u.shadow_meta_second,
+                u.shadow_falloff_second, t_shadow_second),
+                  vec3<f32>(0.0), vec3<f32>(1.0)), primary.a);
     }
     if(u.composition_meta.y>0.5){primary.a=1.0;}
     var base_color = primary;

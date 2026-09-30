@@ -14,13 +14,17 @@
 #include <cstddef>
 #include <cstring>
 
-static_assert(sizeof(CoinWgpuFrameView) == 232, "Frame view ABI size changed");
+static_assert(sizeof(CoinWgpuFrameView) == 280, "Frame view ABI size changed");
 static_assert(sizeof(CoinWgpuShadowDraw) == 144, "Shadow draw ABI size changed");
 static_assert(sizeof(CoinWgpuShadowReceiver) == 144, "Shadow receiver ABI size changed");
 static_assert(offsetof(CoinWgpuShadowReceiver, max_shadow_distance) == 8,
               "Shadow distance ABI offset changed");
 static_assert(offsetof(CoinWgpuFrameView, shadow_receivers) == 216,
               "Shadow receivers ABI offset changed");
+static_assert(offsetof(CoinWgpuFrameView, shadow_casters_second) == 232,
+              "Second shadow casters ABI offset changed");
+static_assert(offsetof(CoinWgpuFrameView, shadow_receivers_second) == 264,
+              "Second shadow receivers ABI offset changed");
 static_assert(offsetof(CoinWgpuFrameView, shadow_casters) == 176,
               "Shadow casters ABI offset changed");
 static_assert(offsetof(CoinWgpuFrameView, shadow_kind) == 212,
@@ -410,6 +414,17 @@ CoinWgpuFfiFrame::bindView(const CoinRenderFramePlan & frame, uint32_t width, ui
     ? NULL : this->shadowFrame.receivers.data();
   this->view.shadow_receiver_count =
     static_cast<uint64_t>(this->shadowFrame.receivers.size());
+  if (this->shadowFrame.hasSecond) {
+    const auto & second = this->shadowFrame.second;
+    this->view.shadow_casters_second = second.casters.data();
+    this->view.shadow_caster_count_second = static_cast<uint64_t>(second.casters.size());
+    this->view.shadow_map_size_second = second.mapSize;
+    this->view.shadow_near_distance_second = second.nearDistance;
+    this->view.shadow_far_distance_second = second.farDistance;
+    this->view.shadow_kind_second = second.kind;
+    this->view.shadow_receivers_second = second.receivers.data();
+    this->view.shadow_receiver_count_second = static_cast<uint64_t>(second.receivers.size());
+  }
 }
 
 const CoinWgpuFrameView &

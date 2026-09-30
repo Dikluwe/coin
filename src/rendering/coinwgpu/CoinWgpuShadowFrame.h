@@ -30,13 +30,18 @@ coin_wgpu_pack_light(const CoinRenderLightSourceSnapshot & light)
 
 // Infra transport for the Core-selected casters. These draws refer to the
 // original frame vertex/index arrays, before composition reorders main draws.
-struct CoinWgpuShadowFrame {
+struct CoinWgpuShadowPass {
   uint32_t mapSize = 0;
   uint32_t kind = 0; // 0=directional axial distance, 1=spot radial distance
   float nearDistance = 0.0f;
   float farDistance = 0.0f;
   std::vector<CoinWgpuShadowDraw> casters;
   std::vector<CoinWgpuShadowReceiver> receivers;
+};
+
+struct CoinWgpuShadowFrame : CoinWgpuShadowPass {
+  CoinWgpuShadowPass second;
+  bool hasSecond = false;
   std::vector<uint32_t> lateStates;
   std::vector<CoinWgpuLight> lateLights;
 
@@ -50,102 +55,115 @@ struct CoinWgpuShadowFrame {
     }
     CoinRenderShadowPlan plan;
     if (!coin_render_plan_shadows(frame, plan, diagnostic)) return false;
-    std::string spotDiagnostic, directionalDiagnostic;
-    if (!coin_render_shadow_single_spot_opaque_profile(frame, plan, spotDiagnostic) &&
-        !coin_render_shadow_single_directional_opaque_profile(
-          frame, plan, directionalDiagnostic)) {
-      diagnostic = spotDiagnostic + "; " + directionalDiagnostic;
+    std::string spotDiagnostic, directionalDiagnostic, dualDiagnostic;
+    const bool single = coin_render_shadow_single_spot_opaque_profile(
+      frame, plan, spotDiagnostic) ||
+      coin_render_shadow_single_directional_opaque_profile(
+        frame, plan, directionalDiagnostic);
+    const bool dual = !single && coin_render_shadow_spot_directional_opaque_profile(
+      frame, plan, dualDiagnostic);
+    if (!single && !dual) {
+      diagnostic = spotDiagnostic + "; " + directionalDiagnostic + "; " + dualDiagnostic;
       return false;
     }
-    const auto & pass = plan.passes[0];
-    candidate.mapSize = pass.mapSize;
-    candidate.kind = frame.shadowLights[pass.lightSlot].type == CoinRenderLightType::SPOT ? 1u : 0u;
-    candidate.nearDistance = pass.nearDistance;
-    candidate.farDistance = pass.farDistance;
+    candidate.hasSecond = dual;
     const SbMatrix clipConversion(
       1.0f, 0.0f, 0.0f, 0.0f,
       0.0f, 1.0f, 0.0f, 0.0f,
       0.0f, 0.0f, 0.5f, 0.0f,
       0.0f, 0.0f, 0.5f, 1.0f);
-    const SbMatrix projectionWgpu = pass.projectionCoin * clipConversion;
-    candidate.receivers.resize(frame.renderStates.size());
-    for (size_t stateSlot = 0; stateSlot < frame.renderStates.size(); ++stateSlot) {
-      const auto & state = frame.renderStates[stateSlot];
-      if (state.shadowGroupSlot != pass.groupSlot) continue;
-      CoinWgpuShadowReceiver & receiver = candidate.receivers[stateSlot];
-      receiver.receives = (state.shadowStyle & 2u) != 0 ? 1u : 0u;
-      receiver.lighting_index = pass.lightingIndexByState[stateSlot];
-      receiver.max_shadow_distance = pass.maxShadowDistance;
-      receiver.distance_falloff_coefficient = pass.distanceFalloffCoefficient;
-      if (receiver.receives && receiver.lighting_index == -1) {
-        candidate.lateStates.push_back(static_cast<uint32_t>(stateSlot));
-        candidate.lateLights.push_back(
-          coin_wgpu_pack_light(pass.resolvedLightByState[stateSlot]));
-        receiver.lighting_index = 0; // Resolved single light, absent at this draw.
+    for (size_t passSlot = 0; passSlot < plan.passes.size(); ++passSlot) {
+      const auto & pass = plan.passes[passSlot];
+      CoinWgpuShadowPass & packedPass = passSlot == 0
+        ? static_cast<CoinWgpuShadowPass &>(candidate) : candidate.second;
+      packedPass.mapSize = pass.mapSize;
+      packedPass.kind = frame.shadowLights[pass.lightSlot].type == CoinRenderLightType::SPOT ? 1u : 0u;
+      packedPass.nearDistance = pass.nearDistance;
+      packedPass.farDistance = pass.farDistance;
+      const SbMatrix projectionWgpu = pass.projectionCoin * clipConversion;
+      packedPass.receivers.resize(frame.renderStates.size());
+      for (size_t stateSlot = 0; stateSlot < frame.renderStates.size(); ++stateSlot) {
+        const auto & state = frame.renderStates[stateSlot];
+        if (state.shadowGroupSlot != pass.groupSlot) continue;
+        CoinWgpuShadowReceiver & receiver = packedPass.receivers[stateSlot];
+        receiver.receives = (state.shadowStyle & 2u) != 0 ? 1u : 0u;
+        receiver.lighting_index = pass.lightingIndexByState[stateSlot];
+        receiver.max_shadow_distance = pass.maxShadowDistance;
+        receiver.distance_falloff_coefficient = pass.distanceFalloffCoefficient;
+        if (receiver.receives && receiver.lighting_index == -1) {
+          if (dual) {
+            diagnostic = "Two-light wgpu profile requires both lights before receivers";
+            return false;
+          }
+          candidate.lateStates.push_back(static_cast<uint32_t>(stateSlot));
+          candidate.lateLights.push_back(
+            coin_wgpu_pack_light(pass.resolvedLightByState[stateSlot]));
+          receiver.lighting_index = 0; // Resolved single light, absent at this draw.
+        }
+        const SbMatrix modelView = state.model * pass.view;
+        const SbMatrix mvp = modelView * projectionWgpu;
+        std::memcpy(receiver.model_view, modelView.getValue(),
+                    sizeof(receiver.model_view));
+        std::memcpy(receiver.model_view_projection, mvp.getValue(),
+                    sizeof(receiver.model_view_projection));
+        for (const float value : receiver.model_view)
+          if (!std::isfinite(value)) {
+            diagnostic = "Shadow receiver has a non-finite model-view matrix";
+            return false;
+          }
+        for (const float value : receiver.model_view_projection)
+          if (!std::isfinite(value)) {
+            diagnostic = "Shadow receiver has a non-finite projection";
+            return false;
+          }
       }
-      const SbMatrix modelView = state.model * pass.view;
-      const SbMatrix mvp = modelView * projectionWgpu;
-      std::memcpy(receiver.model_view, modelView.getValue(),
-                  sizeof(receiver.model_view));
-      std::memcpy(receiver.model_view_projection, mvp.getValue(),
-                  sizeof(receiver.model_view_projection));
-      for (const float value : receiver.model_view)
-        if (!std::isfinite(value)) {
-          diagnostic = "Shadow receiver has a non-finite model-view matrix";
+      for (const uint32_t drawSlot : pass.casterDraws) {
+        if (drawSlot >= frame.draws.size()) {
+          diagnostic = "Shadow caster references an invalid draw";
           return false;
         }
-      for (const float value : receiver.model_view_projection)
-        if (!std::isfinite(value)) {
-          diagnostic = "Shadow receiver has a non-finite projection";
+        const auto & draw = frame.draws[drawSlot];
+        const uint64_t indexEnd =
+          uint64_t(draw.geometry.firstIndex) + draw.geometry.indexCount;
+        const uint64_t vertexEnd =
+          uint64_t(draw.geometry.firstVertex) + draw.geometry.vertexCount;
+        if (draw.renderStateSlot >= frame.renderStates.size() ||
+            draw.geometry.indexCount == 0 ||
+            draw.geometry.indexCount % 3 != 0 ||
+            indexEnd > frame.indices.size() ||
+            vertexEnd > frame.vertices.size()) {
+          diagnostic = "Shadow caster has an invalid triangle range";
           return false;
         }
-    }
-    for (const uint32_t drawSlot : pass.casterDraws) {
-      if (drawSlot >= frame.draws.size()) {
-        diagnostic = "Shadow caster references an invalid draw";
-        return false;
+        for (uint64_t i = draw.geometry.firstIndex; i < indexEnd; ++i) {
+          const uint32_t index = frame.indices[static_cast<size_t>(i)];
+          if (index < draw.geometry.firstVertex || index >= vertexEnd) {
+            diagnostic = "Shadow caster index is outside its vertex range";
+            return false;
+          }
+        }
+        CoinWgpuShadowDraw packed{};
+        packed.first_index = draw.geometry.firstIndex;
+        packed.index_count = draw.geometry.indexCount;
+        packed.render_state_slot = draw.renderStateSlot;
+        const SbMatrix modelView = frame.renderStates[draw.renderStateSlot].model *
+                                   pass.view;
+        const SbMatrix mvp = modelView * projectionWgpu;
+        std::memcpy(packed.model_view, modelView.getValue(), sizeof(packed.model_view));
+        std::memcpy(packed.model_view_projection, mvp.getValue(),
+                    sizeof(packed.model_view_projection));
+        for (const float value : packed.model_view)
+          if (!std::isfinite(value)) {
+            diagnostic = "Shadow caster has a non-finite model-view matrix";
+            return false;
+          }
+        for (const float value : packed.model_view_projection)
+          if (!std::isfinite(value)) {
+            diagnostic = "Shadow caster has a non-finite projection";
+            return false;
+          }
+        packedPass.casters.push_back(packed);
       }
-      const auto & draw = frame.draws[drawSlot];
-      const uint64_t indexEnd =
-        uint64_t(draw.geometry.firstIndex) + draw.geometry.indexCount;
-      const uint64_t vertexEnd =
-        uint64_t(draw.geometry.firstVertex) + draw.geometry.vertexCount;
-      if (draw.renderStateSlot >= frame.renderStates.size() ||
-          draw.geometry.indexCount == 0 ||
-          draw.geometry.indexCount % 3 != 0 ||
-          indexEnd > frame.indices.size() ||
-          vertexEnd > frame.vertices.size()) {
-        diagnostic = "Shadow caster has an invalid triangle range";
-        return false;
-      }
-      for (uint64_t i = draw.geometry.firstIndex; i < indexEnd; ++i) {
-        const uint32_t index = frame.indices[static_cast<size_t>(i)];
-        if (index < draw.geometry.firstVertex || index >= vertexEnd) {
-          diagnostic = "Shadow caster index is outside its vertex range";
-          return false;
-        }
-      }
-      CoinWgpuShadowDraw packed{};
-      packed.first_index = draw.geometry.firstIndex;
-      packed.index_count = draw.geometry.indexCount;
-      packed.render_state_slot = draw.renderStateSlot;
-      const SbMatrix modelView = frame.renderStates[draw.renderStateSlot].model *
-                                 pass.view;
-      const SbMatrix mvp = modelView * projectionWgpu;
-      std::memcpy(packed.model_view, modelView.getValue(), sizeof(packed.model_view));
-      std::memcpy(packed.model_view_projection, mvp.getValue(),
-                  sizeof(packed.model_view_projection));
-      for (const float value : packed.model_view)
-        if (!std::isfinite(value)) {
-          diagnostic = "Shadow caster has a non-finite model-view matrix";
-          return false;
-        }
-      for (const float value : packed.model_view_projection)
-        if (!std::isfinite(value)) {
-          diagnostic = "Shadow caster has a non-finite projection";
-          return false;
-        }
-      candidate.casters.push_back(packed);
     }
     *this = std::move(candidate);
     diagnostic.clear();
