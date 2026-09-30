@@ -207,7 +207,7 @@ sem certificar uma workbench inteira pela presença de triângulos básicos.
 [CoinRenderNodeInventoryTest](../testsuite/coinrender/CoinRenderNodeInventoryTest.cpp)
 é caracterização dos bloqueios atuais; SUCCESS nos casos ainda omitidos não
 significa suporte. P25 acrescentou rejeição explícita para programa ativo,
-textura 3D, cube map e ShadowGroup ativo, sem submissão. Usa um conector testemunha para observar o plano e não inicializa GPU.
+textura 3D, cube map, cube RTT e ShadowGroup ativo, sem submissão. Usa um conector testemunha para observar o plano e não inicializa GPU.
 [test_node_inventory.py](../testsuite/coinrender/test_node_inventory.py) testa o
 inventário em fontes sintéticas, sem depender de FreeCAD instalado no CI.
 Não houve alteração de renderização em produção nem edição das fontes FreeCAD.

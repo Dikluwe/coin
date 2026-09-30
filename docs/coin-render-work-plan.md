@@ -182,8 +182,18 @@ Vulkan não encerram a matriz física nem qualificam outras plataformas.
   indirect/instancing; ray tracing por último, como extensão explícita.
   [Contrato e critérios](coin-render-p26-advanced-execution.md); nenhum
   mecanismo novo qualificado.
+- [ ] **P27 — Sombras Coin:** captura, plano de passes e executores BGFX/wgpu;
+  `SoShadowGroup` ativo ainda é rejeitado. [Critérios](coin-render-p27-p30-tracker.md).
+- [ ] **P28 — Texturas espaciais e SSAO:** volume/cube maps seguem o contrato
+  Coin; SSAO é extensão opt-in. [Critérios](coin-render-p27-p30-tracker.md).
+- [ ] **P29 — Compute/culling:** planejamento comum, execução opcional e A/B
+  equivalente. [Critérios](coin-render-p27-p30-tracker.md).
+- [ ] **P30 — Instancing/indirect:** lotes e fallback convencional equivalente,
+  com ganho medido. [Critérios](coin-render-p27-p30-tracker.md).
 
-Dependem de capacidades, ownership e medições; não devem adiar os bloqueios básicos.
+P25/P26 são frentes gerais; P27–P30 são entregas funcionais que as desdobram,
+sem duplicar interpretação do Coin. Dependem de capacidades, ownership e medições;
+não devem adiar os bloqueios básicos.
 
 ## Acompanhamento
 

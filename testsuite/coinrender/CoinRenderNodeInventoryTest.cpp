@@ -16,6 +16,7 @@
 #include <Inventor/nodes/SoFragmentShader.h>
 #include <Inventor/nodes/SoTexture3.h>
 #include <Inventor/nodes/SoTextureCubeMap.h>
+#include <Inventor/nodes/SoSceneTextureCubeMap.h>
 #include <Inventor/annex/FXViz/nodes/SoShadowGroup.h>
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include <iostream>
@@ -164,6 +165,13 @@ int main() {
               witness.submits == beforeEffects &&
               action.getLastError().find("SoTextureCubeMap") >= 0,
               "cube texture must fail before publication");
+  auto* cubeRtt = new SoSceneTextureCubeMap;
+  cubeRtt->scene = new SoCube;
+  ok &= check(!capture(cubeRtt) &&
+              action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+              witness.submits == beforeEffects &&
+              action.getLastError().find("SoSceneTextureCubeMap") >= 0,
+              "cube scene texture must fail before publication");
   auto* shadows = new SoShadowGroup;
   shadows->ref();
   shadows->addChild(new SoCube);

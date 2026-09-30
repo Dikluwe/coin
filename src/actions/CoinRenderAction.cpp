@@ -17,6 +17,7 @@
 #include <Inventor/nodes/SoTextureCombine.h>
 #include <Inventor/nodes/SoTexture3.h>
 #include <Inventor/nodes/SoTextureCubeMap.h>
+#include <Inventor/nodes/SoSceneTextureCubeMap.h>
 #include <Inventor/nodes/SoShaderProgram.h>
 #include <Inventor/annex/FXViz/nodes/SoShadowGroup.h>
 #include <Inventor/elements/SoTextureCombineElement.h>
@@ -822,6 +823,10 @@ CoinRenderActionP::unsupportedEffectPreCB(void * userdata, SoCallbackAction *, c
                      texture->filenames[0].getLength() == 0))
       return SoCallbackAction::CONTINUE;
     diagnostic = "SoTextureCubeMap requires a cube texture contract and executor";
+  } else if (node->isOfType(SoSceneTextureCubeMap::getClassTypeId())) {
+    if (!static_cast<const SoSceneTextureCubeMap *>(node)->scene.getValue())
+      return SoCallbackAction::CONTINUE;
+    diagnostic = "SoSceneTextureCubeMap requires a cube RTT contract and executor";
   } else if (node->isOfType(SoShadowGroup::getClassTypeId())) {
     if (!static_cast<const SoShadowGroup *>(node)->isActive.getValue())
       return SoCallbackAction::CONTINUE;
@@ -851,6 +856,7 @@ CoinRenderActionP::initCallbacks()
   this->master->addPreCallback(SoTextureCombine::getClassTypeId(), textureCombinePreCB, this);
   this->master->addPreCallback(SoTexture3::getClassTypeId(), unsupportedEffectPreCB, this);
   this->master->addPreCallback(SoTextureCubeMap::getClassTypeId(), unsupportedEffectPreCB, this);
+  this->master->addPreCallback(SoSceneTextureCubeMap::getClassTypeId(), unsupportedEffectPreCB, this);
   this->master->addPreCallback(SoShadowGroup::getClassTypeId(), unsupportedEffectPreCB, this);
   this->master->addPreCallback(SoShaderProgram::getClassTypeId(), unsupportedEffectPreCB, this);
   this->master->addPreCallback(SoDepthBuffer::getClassTypeId(), depthBufferPreCB, this);

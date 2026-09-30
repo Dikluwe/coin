@@ -2,7 +2,7 @@
 
 P25 cobre duas famílias distintas. `SoShadowGroup`, `SoShadowStyle`,
 `SoShadowSpotLight` e `SoShadowDirectionalLight`, `SoTexture3` e
-`SoTextureCubeMap` são semântica Coin. SSAO não é nó Coin e só pode entrar
+`SoTextureCubeMap` e `SoSceneTextureCubeMap` são semântica Coin. SSAO não é nó Coin e só pode entrar
 como extensão opt-in. Não inferir equivalência entre a qualidade visual de um
 efeito novo e o comportamento Coin/GL.
 
@@ -13,13 +13,15 @@ casters e receivers, usa `SoShadowStyle` e pode usar iluminação Phong por
 fragmento dentro do grupo. O Wiring atual herda a travessia comum de filhos,
 mas não captura um plano de shadow maps. `SoTexture3::callback` publica imagem
 volumétrica no elemento Coin; o FramePlan atual só captura textura 2D.
-`SoTextureCubeMap::callback` chama `doAction`, que está vazio neste Coin;
+`SoTextureCubeMap::callback` e `SoSceneTextureCubeMap::callback` chamam
+`doAction`, que está vazio neste Coin;
 o caminho GL configura seis faces e a amostragem de cubo. Reinterpretar esses
 nós nos backends criaria duas decisões semânticas concorrentes.
 
 ## Estado verificável
 
 - [x] A Wiring comum identifica volume e cube map com imagem/arquivo,
+  cube RTT com cena,
   `SoShadowGroup` ativo e `SoShaderProgram` ativo; retorna `UNSUPPORTED` antes
   da submissão. Shader Coin é a frente I07, não implementação de SSAO.
 - [x] `SoShadowGroup` inativo preserva travessia normal dos filhos. Teste de
