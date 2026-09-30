@@ -76,11 +76,11 @@ opaca no wgpu e compara seu readback ao GL.
   estilos, pares e ordens de travessia foram comparadas por readback com
   Coin/GL. Resize, falha de mapa, rejeição de terceira luz e publicação
   atômica passaram. A semântica Coin permanece no Core.
-- [ ] **P27.4 — contrato ampliado:** três ou mais luzes, cenas próprias por
-  luz, transparência, clipping, qualidade, RTT, composição, grupos adicionais
-  e alvos múltiplos nos dois executores. Os perfis de três/quatro luzes
-  opacas estão qualificados nos dois; cinco ou mais e os demais casos
-  continuam abertos.
+- [ ] **P27.4 — contrato ampliado:** cinco a oito luzes, cenas próprias
+  complexas por luz, transparência, demais níveis de qualidade, RTT direct,
+  composição e grupos aninhados. Três/quatro luzes opacas, clipping, alvos
+  múltiplos, dois grupos irmãos, cena própria como shape direto, qualidade
+  direcional plana e RTT staged já têm perfis qualificados nos dois executores.
 - [ ] **P27.5 — qualificação final:** matriz de GPU/API/driver, perdas, resize,
   falhas e tolerâncias visuais; fechar P27 somente com BGFX e wgpu exercitados.
 
@@ -287,8 +287,8 @@ referência Coin/GL antes de marcar P27.4 concluído.
   estado de desenho, resolver a contribuição dessa luz no espaço de vista
   inclusive quando ela aparece após a geometria, validar dois passes opacos
   spot/direcional e limitar a memória planejada.
-- [ ] **Core completo:** ampliar qualidade, transparência, cenas próprias,
-  três ou mais luzes, grupos adicionais e dependências RTT.
+- [ ] **Core completo:** ampliar qualidade, transparência, cenas próprias
+  complexas, cinco a oito luzes, grupos aninhados e dependências RTT direct.
   Reusar ownership e publicação de P12–P14, inclusive múltiplos alvos.
 - [ ] **Infra BGFX/wgpu:** mapas de momentos e depth, VSM, bias, textura,
   passes, sincronização, resize e reconstrução após perda, com shader específico
