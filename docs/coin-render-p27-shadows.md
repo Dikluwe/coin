@@ -71,8 +71,9 @@ Cada subetapa exige um quadro renderizado e evidência de comportamento. A
 existência de shader, captura ou plano isolados não fecha P27.1.
 
 Dentro de P27.1, o pass de momentos spot foi exercitado isoladamente na GPU:
-um triângulo opaco foi renderizado em RGBA32F com depth, lido de volta e os
-momentos no pixel central conferidos com a distância linear esperada. Passou
+dois triângulos opacos sobrepostos foram renderizados em RGBA32F com depth,
+lidos de volta e os momentos no pixel central conferidos com a distância
+linear do caster frontal, mesmo com o traseiro submetido por último. Passou
 em AMD Radeon Graphics (RADV RENOIR), Vulkan/radv, com
 `COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU=1 cargo test --manifest-path
 src/rendering/coinwgpu/rust_bridge/Cargo.toml --offline --test shadow_map_gpu`.

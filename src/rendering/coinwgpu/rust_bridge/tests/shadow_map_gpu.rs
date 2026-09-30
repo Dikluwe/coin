@@ -129,7 +129,11 @@ fn spot_moment_pass_writes_linear_distance() {
             resource: uniform.as_entire_binding(),
         }],
     });
-    let vertices: [f32; 9] = [-0.8, -0.8, 0.5, 0.8, -0.8, 0.5, 0.0, 0.8, 0.5];
+    // The rear triangle is submitted last; depth must preserve the front caster.
+    let vertices: [f32; 18] = [
+        -0.8, -0.8, 0.5, 0.8, -0.8, 0.5, 0.0, 0.8, 0.5, -0.8, -0.8, 0.8, 0.8, -0.8, 0.8, 0.0, 0.8,
+        0.8,
+    ];
     let vertex = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("Coin shadow test triangle"),
         contents: bytemuck::cast_slice(&vertices),
@@ -196,7 +200,7 @@ fn spot_moment_pass_writes_linear_distance() {
         pass.set_pipeline(&pipeline);
         pass.set_bind_group(0, &bind_group, &[]);
         pass.set_vertex_buffer(0, vertex.slice(..));
-        pass.draw(0..3, 0..1);
+        pass.draw(0..6, 0..1);
     }
     encoder.copy_texture_to_buffer(
         wgpu::TexelCopyTextureInfo {
