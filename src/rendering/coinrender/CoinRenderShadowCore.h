@@ -410,19 +410,23 @@ coin_render_shadow_opaque_profile(
   const CoinRenderFramePlan & frame, const CoinRenderShadowPlan & shadows,
   size_t lightCount, std::string & diagnostic)
 {
-  if (frame.shadowGroups.size() != 1 || shadows.passes.size() != lightCount ||
+  if (frame.shadowGroups.empty() || shadows.passes.size() != lightCount ||
       (lightCount < 1 || lightCount > 4)) {
-    diagnostic = "Opaque shadow profile requires one group and one to four passes";
+    diagnostic = "Opaque shadow profile requires groups with one to four passes";
     return false;
   }
-  if (frame.shadowGroups[0].smoothBorder != 0.0f) {
-    diagnostic = "Opaque shadow profile does not support smooth borders";
-    return false;
-  }
+  for (const auto & group : frame.shadowGroups)
+    if (group.smoothBorder != 0.0f ||
+        group.epsilon != frame.shadowGroups[0].epsilon ||
+        group.threshold != frame.shadowGroups[0].threshold) {
+      diagnostic = "Opaque shadow profile requires shared VSM parameters and no smooth borders";
+      return false;
+    }
   for (size_t p = 0; p < lightCount; ++p) {
     const auto & pass = shadows.passes[p];
-    if (pass.groupSlot != 1 || pass.lightSlot >= frame.shadowLights.size() ||
-        frame.shadowLights[pass.lightSlot].groupSlot != 1 ||
+    if (pass.groupSlot == 0 || pass.groupSlot > frame.shadowGroups.size() ||
+        pass.lightSlot >= frame.shadowLights.size() ||
+        frame.shadowLights[pass.lightSlot].groupSlot != pass.groupSlot ||
         !frame.shadowLights[pass.lightSlot].shadowEligible ||
         !pass.visible || pass.casterDraws.empty() || pass.receiverDraws.empty() ||
         !pass.perFragmentLighting || pass.epsilon < 0.0f ||
@@ -441,7 +445,8 @@ coin_render_shadow_opaque_profile(
       return false;
     }
     const auto & state = frame.renderStates[draw.renderStateSlot];
-    if (state.shadowGroupSlot != 1 ||
+    if (state.shadowGroupSlot == 0 ||
+        state.shadowGroupSlot > frame.shadowGroups.size() ||
         draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST ||
         draw.renderLayer != 0 || draw.clearDepthBefore ||
         state.lightModel != CoinRenderLightModel::PHONG ||
@@ -453,7 +458,7 @@ coin_render_shadow_opaque_profile(
                     [](const CoinRenderTextureUnitSnapshot & unit) {
                       return unit.enabled;
                     })) {
-      diagnostic = "Opaque shadow profile supports only untextured PHONG triangles in one group";
+      diagnostic = "Opaque shadow profile supports only untextured PHONG triangles in shadow groups";
       return false;
     }
     float clipEquations[COIN_RENDER_MAX_CLIP_PLANES][4] = {};
@@ -464,13 +469,19 @@ coin_render_shadow_opaque_profile(
       return false;
     }
     const auto & lights = frame.lightingStates[state.lightingSlot].lights;
-    if (lights.size() > lightCount || lights.size() > COIN_RENDER_MAX_LIGHTS) {
+    const size_t groupLightCount = static_cast<size_t>(std::count_if(
+      shadows.passes.begin(), shadows.passes.end(),
+      [&](const CoinRenderShadowPass & pass) {
+        return pass.groupSlot == state.shadowGroupSlot;
+      }));
+    if (lights.size() > groupLightCount || lights.size() > COIN_RENDER_MAX_LIGHTS) {
       diagnostic = "Opaque shadow profile has more ordinary lights than shadow passes";
       return false;
     }
     std::vector<bool> claimed(lights.size(), false);
     size_t lateLightCount = 0;
     for (const auto & pass : shadows.passes) {
+      if (pass.groupSlot != state.shadowGroupSlot) continue;
       if (draw.renderStateSlot >= pass.lightingIndexByState.size()) {
         diagnostic = "Shadow pass lacks a draw lighting index";
         return false;

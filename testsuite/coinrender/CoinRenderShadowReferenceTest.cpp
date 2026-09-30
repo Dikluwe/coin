@@ -558,6 +558,98 @@ int main()
     delete second;
     delete first;
   }
+  bool siblingShadowGroupsQualified = true;
+  if (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
+      std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) {
+    auto * siblings = new SoSeparator;
+    siblings->ref();
+    auto * siblingCamera = static_cast<SoOrthographicCamera *>(camera->copy(TRUE));
+    siblingCamera->height = 12.0f;
+    siblings->addChild(siblingCamera);
+    SoShadowStyle * secondGroundStyle = nullptr;
+    SoShadowGroup * secondGroup = nullptr;
+    for (int sideIndex = 0; sideIndex < 2; ++sideIndex) {
+      auto * branch = new SoSeparator;
+      auto * translation = new SoTranslation;
+      translation->translation.setValue(sideIndex == 0 ? -3.0f : 3.0f, 0.0f, 0.0f);
+      branch->addChild(translation);
+      auto * childGroup = static_cast<SoShadowGroup *>(group->copy(TRUE));
+      branch->addChild(childGroup);
+      siblings->addChild(branch);
+      if (sideIndex == 1) {
+        secondGroup = childGroup;
+        auto * groundBranch = static_cast<SoSeparator *>(childGroup->getChild(2));
+        secondGroundStyle = static_cast<SoShadowStyle *>(groundBranch->getChild(0));
+      }
+    }
+    CoinRenderTarget * siblingTarget = CoinRenderTarget::createOffscreen(
+      SbVec2i32(side, side));
+    CoinRenderAction siblingAction(SbViewportRegion(side, side));
+    siblingAction.setRenderTarget(siblingTarget);
+    secondGroundStyle->style = SoShadowStyle::NO_SHADOWING;
+    siblingAction.apply(siblings);
+    std::vector<unsigned char> gpuNoReceive, gpuReceive;
+    const bool firstOk = siblingAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (firstOk) siblingTarget->readbackRGBA(gpuNoReceive);
+    secondGroundStyle->style = SoShadowStyle::SHADOWED;
+    siblingAction.apply(siblings);
+    const bool secondOk = siblingAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (secondOk) siblingTarget->readbackRGBA(gpuReceive);
+    int gpuDelta = 0, glDelta = 0;
+    siblingShadowGroupsQualified = firstOk && secondOk &&
+      gpuNoReceive.size() == gpuReceive.size() && !gpuNoReceive.empty();
+    if (siblingShadowGroupsQualified)
+      for (int y = 20; y < 105; ++y)
+        for (int x = 65; x < 125; ++x)
+          gpuDelta = std::max(gpuDelta, std::abs(
+            luminanceRgba(gpuNoReceive, x, y) - luminanceRgba(gpuReceive, x, y)));
+    siblingShadowGroupsQualified = siblingShadowGroupsQualified && gpuDelta > 0;
+    if (siblingShadowGroupsQualified)
+      for (int y = 20; y < 105; ++y)
+        for (int x = 20; x < 50; ++x)
+          siblingShadowGroupsQualified = siblingShadowGroupsQualified &&
+            luminanceRgba(gpuNoReceive, x, y) == luminanceRgba(gpuReceive, x, y);
+    if (siblingShadowGroupsQualified) {
+      const uint64_t serial = siblingTarget->getLastSubmissionSerial();
+      secondGroup->isActive = FALSE;
+      siblingAction.apply(siblings);
+      std::vector<unsigned char> afterMixed;
+      siblingTarget->readbackRGBA(afterMixed);
+      siblingShadowGroupsQualified =
+        siblingAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+        siblingTarget->getLastSubmissionSerial() == serial &&
+        afterMixed == gpuReceive;
+      secondGroup->isActive = TRUE;
+    }
+    if (siblingShadowGroupsQualified && std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
+      secondGroundStyle->style = SoShadowStyle::NO_SHADOWING;
+      auto * glNoReceiveRoot = static_cast<SoSeparator *>(siblings->copy(TRUE));
+      glNoReceiveRoot->ref();
+      secondGroundStyle->style = SoShadowStyle::SHADOWED;
+      auto * glReceiveRoot = static_cast<SoSeparator *>(siblings->copy(TRUE));
+      glReceiveRoot->ref();
+      SoOffscreenRenderer groupGl(SbViewportRegion(side, side));
+      groupGl.setComponents(SoOffscreenRenderer::RGB);
+      std::vector<unsigned char> glNoReceive, glReceive;
+      siblingShadowGroupsQualified = render(groupGl, glNoReceiveRoot, glNoReceive) &&
+        render(groupGl, glReceiveRoot, glReceive);
+      if (siblingShadowGroupsQualified)
+        for (int y = 20; y < 105; ++y)
+          for (int x = 65; x < 125; ++x)
+            glDelta = std::max(glDelta, std::abs(
+              luminance(glNoReceive, x, y) - luminance(glReceive, x, y)));
+      siblingShadowGroupsQualified = siblingShadowGroupsQualified && glDelta > 0 &&
+        std::abs(glDelta - gpuDelta) <= 180;
+      glReceiveRoot->unref();
+      glNoReceiveRoot->unref();
+    }
+    std::cout << "sibling groups Coin/GL/GPU delta=" << glDelta << '/' << gpuDelta << '\n';
+    if (!siblingShadowGroupsQualified)
+      std::cerr << "sibling shadow groups: " << siblingAction.getLastError().getString() << '\n';
+    siblingAction.setRenderTarget(nullptr);
+    delete siblingTarget;
+    siblings->unref();
+  }
   // Qualify the common two-pass Coin contract and execute both maps on wgpu.
   auto * secondShadowLight = new SoShadowDirectionalLight;
   secondShadowLight->direction.setValue(-0.4f, -0.4f, -1.0f);
@@ -1930,7 +2022,7 @@ int main()
   action.setRenderTarget(nullptr);
   delete target;
   if (!publishedOk || !rejected || !preserved || !recovered || !captureOk ||
-      !spotProfile || !transparentExcludedFromFirstProfile || !clippedShadowQualified || !shadowTargetsIndependent || !twoLightCaptured ||
+      !spotProfile || !transparentExcludedFromFirstProfile || !clippedShadowQualified || !shadowTargetsIndependent || !siblingShadowGroupsQualified || !twoLightCaptured ||
       !orderedTwoLight || !twoSpotsOk || !twoDirectionalsOk ||
       !lateLightResolved || !lateSpotProfile || !mixedOrderResolved ||
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||

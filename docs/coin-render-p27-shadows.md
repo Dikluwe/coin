@@ -233,13 +233,19 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
 - [x] **Múltiplos alvos offscreen:** dois alvos simultâneos de 128×128 e
   160×160 executam sombra ativa em BGFX e wgpu; intercalar submissões não
   altera os pixels do primeiro alvo e cada serial avança independentemente.
-- [ ] **RTT, composição e grupos adicionais:** ordenar os passes com as
-  dependências de textura e camadas, sem fundir grupos ou estados Coin
-  independentes; validar resize, falha e recuperação. Uma sondagem de dois
-  grupos irmãos (segundo transladado 2,2 em X, planos de chão reduzidos a
-  2,2) mostrou diferença máxima de 18 no Coin/GL ao ativar o segundo grupo,
-  contra 654 em BGFX e wgpu. O perfil de grupos irmãos continua rejeitado;
-  investigar câmera/mapa e composição antes de habilitá-lo.
+- [x] **Dois grupos irmãos ativos e opacos:** o Core associa cada pass ao
+  `SoShadowGroup` capturado e só atribui a contribuição da luz aos draws
+  daquele grupo. BGFX e wgpu renderizaram dois grupos separados, com o estilo
+  de recepção do segundo alternado: delta máximo 483 no Coin/GL e 588 em
+  ambos os executores; os pixels do primeiro grupo permaneceram idênticos.
+  O perfil exige `epsilon` e `threshold` iguais nos grupos, pois a ABI wgpu
+  ainda transporta esses parâmetros uma vez por quadro. Um grupo ativo ao
+  lado de outro inativo retorna `UNSUPPORTED` antes da publicação, mantendo
+  pixels e serial. A antiga sondagem com chão de 2,2 e um grupo inativo
+  (18 no GL, 654 nos executores) continua fora deste perfil.
+- [ ] **RTT, composição e demais grupos:** ordenar passes com dependências de
+  textura e camadas; qualificar grupos aninhados, parâmetros VSM diferentes,
+  resize, falha e recuperação.
 
 Cada caixa acima requer uma fixture renderizada nos dois executores e sua
 referência Coin/GL antes de marcar P27.4 concluído.

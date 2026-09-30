@@ -2032,7 +2032,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       0.0f, 0.0f, 0.5f, 1.0f);
     for (size_t slot = 0; slot < shadowPlan.passes.size(); ++slot) {
       const auto & pass = shadowPlan.passes[slot];
-      if ((state.shadowStyle & 2u) == 0) continue;
+      if (state.shadowGroupSlot != pass.groupSlot ||
+          (state.shadowStyle & 2u) == 0) continue;
       int32_t index = pass.lightingIndexByState[original.renderStateSlot];
       if (index == -1) {
         index = static_cast<int32_t>(shaded.lightCount[0]++);
