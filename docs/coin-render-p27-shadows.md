@@ -77,6 +77,9 @@ linear do caster frontal, mesmo com o traseiro submetido por último. Passou
 em AMD Radeon Graphics (RADV RENOIR), Vulkan/radv, com
 `COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU=1 cargo test --manifest-path
 src/rendering/coinwgpu/rust_bridge/Cargo.toml --offline --test shadow_map_gpu`.
+O Core agora delimita esse primeiro perfil: um grupo, uma luz spot visível,
+triângulos PHONG opacos sem textura, clipping ou névoa, com a luz antes dos
+desenhos. A fixture opaca entra; transparência e luz posterior ficam fora.
 Faltam o transporte dos casters do plano Coin, o lookup VSM na composição dos
 receivers e a comparação do quadro final à fixture GL.
 

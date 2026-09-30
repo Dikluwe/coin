@@ -7,6 +7,7 @@
 #include <Inventor/SbViewVolume.h>
 #include <algorithm>
 #include <cmath>
+#include <iterator>
 #include <string>
 #include <utility>
 #include <vector>
@@ -327,6 +328,65 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
       return false;
     }
   output = std::move(candidate);
+  diagnostic.clear();
+  return true;
+}
+
+// Narrow, explicit first execution profile. This is a Core decision over
+// captured Coin state; neither GPU backend may broaden it implicitly.
+inline bool
+coin_render_shadow_single_spot_opaque_profile(
+  const CoinRenderFramePlan & frame, const CoinRenderShadowPlan & shadows,
+  std::string & diagnostic)
+{
+  if (frame.shadowGroups.size() != 1 || shadows.passes.size() != 1) {
+    diagnostic = "First shadow profile requires exactly one active group and one light";
+    return false;
+  }
+  const auto & pass = shadows.passes[0];
+  if (pass.lightSlot >= frame.shadowLights.size() ||
+      frame.shadowLights[pass.lightSlot].type != CoinRenderLightType::SPOT ||
+      !pass.visible || pass.casterDraws.empty() || pass.receiverDraws.empty() ||
+      !pass.perFragmentLighting ||
+      frame.shadowGroups[0].smoothBorder != 0.0f) {
+    diagnostic = "First shadow profile requires one visible spot with opaque casters and receivers";
+    return false;
+  }
+  for (const auto & draw : frame.draws) {
+    if (draw.renderStateSlot >= frame.renderStates.size()) {
+      diagnostic = "Shadow profile draw references an invalid state";
+      return false;
+    }
+    const auto & state = frame.renderStates[draw.renderStateSlot];
+    if (state.shadowGroupSlot != pass.groupSlot ||
+        draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST ||
+        draw.renderLayer != 0 || draw.clearDepthBefore ||
+        state.lightModel != CoinRenderLightModel::PHONG ||
+        state.screenDoorTransparency > 0.0f ||
+        state.hasTexture || !state.clipPlanesWorld.empty() ||
+        state.fogMode != CoinRenderFogMode::NONE ||
+        state.materialSlot >= frame.materials.size() ||
+        state.lightingSlot >= frame.lightingStates.size() ||
+        draw.renderStateSlot >= pass.lightingIndexByState.size() ||
+        std::any_of(std::begin(state.extraTextures), std::end(state.extraTextures),
+                    [](const CoinRenderTextureUnitSnapshot & unit) {
+                      return unit.enabled;
+                    })) {
+      diagnostic = "First shadow profile supports only untextured opaque PHONG triangles in one group";
+      return false;
+    }
+    const auto & material = frame.materials[state.materialSlot];
+    if (material.transparency != 0.0f || material.diffuse[3] != 1.0f) {
+      diagnostic = "First shadow profile does not support transparency";
+      return false;
+    }
+    const auto & lighting = frame.lightingStates[state.lightingSlot];
+    if (lighting.lights.size() != 1 ||
+        pass.lightingIndexByState[draw.renderStateSlot] != 0) {
+      diagnostic = "First shadow profile requires the spot before all draws and no other lights";
+      return false;
+    }
+  }
   diagnostic.clear();
   return true;
 }

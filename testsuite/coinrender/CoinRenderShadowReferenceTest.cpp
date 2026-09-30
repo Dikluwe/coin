@@ -122,6 +122,16 @@ int main()
                    planned.passes[0].perFragmentLighting &&
                    planned.passes[0].nearDistance > 0.0f &&
                    planned.passes[0].farDistance > planned.passes[0].nearDistance;
+  std::string spotProfileDiagnostic;
+  const bool spotProfile = coin_render_shadow_single_spot_opaque_profile(
+    captured, planned, spotProfileDiagnostic);
+  CoinRenderFramePlan transparentFrame = captured;
+  if (!transparentFrame.materials.empty())
+    transparentFrame.materials[0].transparency = 0.25f;
+  std::string transparentProfileDiagnostic;
+  const bool transparentExcludedFromFirstProfile =
+      !coin_render_shadow_single_spot_opaque_profile(
+        transparentFrame, planned, transparentProfileDiagnostic);
   if (captureOk) {
     SbVec3f spotCenter;
     (planned.passes[0].view * planned.passes[0].projectionCoin)
@@ -168,6 +178,10 @@ int main()
   const auto & lateLightPlan = action.getPimpl()->lastRejectedShadowPlan;
   bool lateLightResolved = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
       lateLightFrame.shadowLights.size() == 1 && lateLightPlan.passes.size() == 1;
+  std::string lateProfileDiagnostic;
+  const bool lateLightExcludedFromFirstProfile =
+      !coin_render_shadow_single_spot_opaque_profile(
+        lateLightFrame, lateLightPlan, lateProfileDiagnostic);
   if (lateLightResolved) {
     for (uint32_t d : lateLightPlan.passes[0].receiverDraws) {
       const uint32_t stateSlot = lateLightFrame.draws[d].renderStateSlot;
@@ -252,9 +266,15 @@ int main()
   light->on = TRUE;
   action.setRenderTarget(nullptr);
   delete target;
-  if (!publishedOk || !rejected || !preserved || !recovered || !captureOk || !lateLightResolved || !lightEligibility || !spotRangeCaptured || !directionalCaptured ||
+  if (!publishedOk || !rejected || !preserved || !recovered || !captureOk ||
+      !spotProfile || !transparentExcludedFromFirstProfile ||
+      !lateLightResolved || !lateLightExcludedFromFirstProfile ||
+      !lightEligibility || !spotRangeCaptured || !directionalCaptured ||
       !directionalProjectionCoversGroup) {
-    std::cerr << "CoinRender shadow rejection did not preserve publication or recovery\n";
+    std::cerr << "CoinRender shadow rejection did not preserve publication or recovery"
+              << " profile=" << spotProfile << " (" << spotProfileDiagnostic << ")"
+              << " late_excluded=" << lateLightExcludedFromFirstProfile
+              << " (" << lateProfileDiagnostic << ")\n";
     root->unref();
     return 1;
   }
