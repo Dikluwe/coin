@@ -8,6 +8,26 @@
 #include <string>
 #include <vector>
 
+// Mechanical conversion of Core-resolved view-space lighting to the wgpu ABI.
+inline CoinWgpuLight
+coin_wgpu_pack_light(const CoinRenderLightSourceSnapshot & light)
+{
+  CoinWgpuLight packed{};
+  for (int c = 0; c < 3; ++c) {
+    packed.position_type[c] = light.position[c];
+    packed.direction_cutoff[c] = light.direction[c];
+    packed.color_intensity[c] = light.color[c];
+  }
+  packed.position_type[3] = static_cast<float>(light.type);
+  packed.direction_cutoff[3] = std::cos(light.cutOffAngle);
+  packed.color_intensity[3] = light.intensity;
+  packed.attenuation_exponent[0] = light.attenuation[0];
+  packed.attenuation_exponent[1] = light.attenuation[1];
+  packed.attenuation_exponent[2] = light.attenuation[2];
+  packed.attenuation_exponent[3] = light.dropOffRate * 128.0f;
+  return packed;
+}
+
 // Infra transport for the Core-selected casters. These draws refer to the
 // original frame vertex/index arrays, before composition reorders main draws.
 struct CoinWgpuShadowFrame {
@@ -17,6 +37,8 @@ struct CoinWgpuShadowFrame {
   float farDistance = 0.0f;
   std::vector<CoinWgpuShadowDraw> casters;
   std::vector<CoinWgpuShadowReceiver> receivers;
+  std::vector<uint32_t> lateStates;
+  std::vector<CoinWgpuLight> lateLights;
 
   bool prepare(const CoinRenderFramePlan & frame, std::string & diagnostic)
   {
@@ -28,11 +50,13 @@ struct CoinWgpuShadowFrame {
     }
     CoinRenderShadowPlan plan;
     if (!coin_render_plan_shadows(frame, plan, diagnostic)) return false;
-    std::string spotDiagnostic, directionalDiagnostic;
+    std::string spotDiagnostic, directionalDiagnostic, lateDiagnostic;
     if (!coin_render_shadow_single_spot_opaque_profile(frame, plan, spotDiagnostic) &&
         !coin_render_shadow_single_directional_opaque_profile(
-          frame, plan, directionalDiagnostic)) {
-      diagnostic = spotDiagnostic + "; " + directionalDiagnostic;
+          frame, plan, directionalDiagnostic) &&
+        !coin_render_shadow_late_only_opaque_profile(
+          frame, plan, lateDiagnostic)) {
+      diagnostic = spotDiagnostic + "; " + directionalDiagnostic + "; " + lateDiagnostic;
       return false;
     }
     const auto & pass = plan.passes[0];
@@ -53,6 +77,12 @@ struct CoinWgpuShadowFrame {
       CoinWgpuShadowReceiver & receiver = candidate.receivers[stateSlot];
       receiver.receives = (state.shadowStyle & 2u) != 0 ? 1u : 0u;
       receiver.lighting_index = pass.lightingIndexByState[stateSlot];
+      if (receiver.receives && receiver.lighting_index == -1) {
+        candidate.lateStates.push_back(static_cast<uint32_t>(stateSlot));
+        candidate.lateLights.push_back(
+          coin_wgpu_pack_light(pass.resolvedLightByState[stateSlot]));
+        receiver.lighting_index = 0; // Only light in the late-only Core profile.
+      }
       const SbMatrix modelView = state.model * pass.view;
       const SbMatrix mvp = modelView * projectionWgpu;
       std::memcpy(receiver.model_view, modelView.getValue(),

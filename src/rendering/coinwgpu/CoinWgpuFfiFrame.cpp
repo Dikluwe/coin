@@ -98,7 +98,7 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
       reuse.baseRevision != 0 && reuse.baseRevision == this->packedRevision) {
     const auto previousDraws = this->draws;
     this->packedRevision = 0;
-    if (!this->packStates(frame, width, height, outDiagnostic)) return false;
+    if (!this->packStates(frame, candidateShadow, width, height, outDiagnostic)) return false;
     const bool sameOrder = previousDraws.size() == this->draws.size() &&
       (previousDraws.empty() || std::memcmp(previousDraws.data(), this->draws.data(),
         previousDraws.size() * sizeof(CoinWgpuDraw)) == 0);
@@ -137,7 +137,7 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     dst.transparency = src.transparency;
   }
 
-  if (!this->packStates(frame, width, height, outDiagnostic)) return false;
+  if (!this->packStates(frame, candidateShadow, width, height, outDiagnostic)) return false;
 
   this->texturePixels.resize(frame.textures.size());
   this->textures.assign(frame.textures.size(), CoinWgpuTexture{});
@@ -171,8 +171,10 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
 }
 
 bool
-CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame, uint32_t targetWidth, uint32_t targetHeight,
-                           std::string & outDiagnostic)
+CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame,
+                             const CoinWgpuShadowFrame & shadow,
+                             uint32_t targetWidth, uint32_t targetHeight,
+                             std::string & outDiagnostic)
 {
   this->states.assign(frame.renderStates.size(), CoinWgpuRenderState{});
   for (size_t i = 0; i < frame.renderStates.size(); ++i) {
@@ -287,22 +289,21 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame, uint32_t targetW
         dst.light_count = static_cast<uint32_t>(lighting.lights.size());
         for (size_t j = 0; j < lighting.lights.size(); ++j) {
           const CoinRenderLightSourceSnapshot & light = lighting.lights[j];
-          CoinWgpuLight & packedLight = dst.lights[j];
-          for (int c = 0; c < 3; ++c) {
-            packedLight.position_type[c] = light.position[c];
-            packedLight.direction_cutoff[c] = light.direction[c];
-            packedLight.color_intensity[c] = light.color[c];
-          }
-          packedLight.position_type[3] = static_cast<float>(light.type);
-          packedLight.direction_cutoff[3] = std::cos(light.cutOffAngle);
-          packedLight.color_intensity[3] = light.intensity;
-          packedLight.attenuation_exponent[0] = light.attenuation[0];
-          packedLight.attenuation_exponent[1] = light.attenuation[1];
-          packedLight.attenuation_exponent[2] = light.attenuation[2];
-          packedLight.attenuation_exponent[3] = light.dropOffRate * 128.0f;
+          dst.lights[j] = coin_wgpu_pack_light(light);
         }
       }
     }
+  }
+  for (size_t i = 0; i < shadow.lateStates.size(); ++i) {
+    if (shadow.lateStates[i] >= this->states.size() ||
+        shadow.lateLights.size() != shadow.lateStates.size() ||
+        this->states[shadow.lateStates[i]].light_count != 0) {
+      outDiagnostic = "Late shadow light does not match its captured render state";
+      return false;
+    }
+    CoinWgpuRenderState & state = this->states[shadow.lateStates[i]];
+    state.lights[0] = shadow.lateLights[i];
+    state.light_count = 1;
   }
   std::vector<CoinRenderCompositionItem> order;
   if (!coin_render_composition_schedule(frame, order, outDiagnostic))

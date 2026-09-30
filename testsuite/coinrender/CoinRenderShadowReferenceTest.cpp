@@ -306,9 +306,47 @@ int main()
   bool lateLightResolved = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
       lateLightFrame.shadowLights.size() == 1 && lateLightPlan.passes.size() == 1;
   std::string lateProfileDiagnostic;
-  const bool lateLightExcludedFromFirstProfile =
-      !coin_render_shadow_single_spot_opaque_profile(
+  const bool lateSpotProfile =
+      coin_render_shadow_late_only_opaque_profile(
         lateLightFrame, lateLightPlan, lateProfileDiagnostic);
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+  std::vector<unsigned char> lateSpotPixels, lateSpotNoReceivePixels;
+  bool lateSpotSubmitted = true;
+  if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU") && lateSpotProfile) {
+    CoinRenderTarget * lateTarget = CoinRenderTarget::createOffscreen(
+      SbVec2i32(side, side));
+    CoinRenderAction lateAction(SbViewportRegion(side, side));
+    lateAction.setRenderTarget(lateTarget);
+    lateAction.apply(root);
+    lateSpotSubmitted = lateAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (lateSpotSubmitted) lateTarget->readbackRGBA(lateSpotPixels);
+    else std::cerr << "wgpu late spot: " << lateAction.getLastError().getString() << '\n';
+    groundStyle->style = SoShadowStyle::NO_SHADOWING;
+    lateAction.apply(root);
+    lateSpotSubmitted = lateSpotSubmitted &&
+      lateAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (lateSpotSubmitted) lateTarget->readbackRGBA(lateSpotNoReceivePixels);
+    groundStyle->style = SoShadowStyle::SHADOWED;
+    const uint64_t lateSerial = lateTarget->getLastSubmissionSerial();
+    light->ref();
+    group->removeChild(light);
+    group->insertChild(light, 1); // Mixed traversal order remains outside this profile.
+    light->unref();
+    lateAction.apply(root);
+    std::vector<unsigned char> afterMixedOrder;
+    lateTarget->readbackRGBA(afterMixedOrder);
+    lateSpotSubmitted = lateSpotSubmitted &&
+      lateAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+      lateTarget->getLastSubmissionSerial() == lateSerial &&
+      afterMixedOrder == lateSpotNoReceivePixels;
+    light->ref();
+    group->removeChild(light);
+    group->addChild(light);
+    light->unref();
+    lateAction.setRenderTarget(nullptr);
+    delete lateTarget;
+  }
+#endif
   if (lateLightResolved) {
     for (uint32_t d : lateLightPlan.passes[0].receiverDraws) {
       const uint32_t stateSlot = lateLightFrame.draws[d].renderStateSlot;
@@ -392,16 +430,51 @@ int main()
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
   bool wgpuDirectionalSubmitted = true;
   int wgpuDirectionalDifference = 0;
+  int wgpuLateDirectionalDifference = 0;
   if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) {
     group->quality = 1.0f; // Coin's directional per-fragment profile.
     action.apply(root);
     std::string lateDirectionalDiagnostic;
-    const bool lateDirectionalExcluded =
+    const bool lateDirectionalProfile =
       action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-      !coin_render_shadow_single_directional_opaque_profile(
+      coin_render_shadow_late_only_opaque_profile(
         action.getPimpl()->lastRejectedShadowFrame,
         action.getPimpl()->lastRejectedShadowPlan, lateDirectionalDiagnostic);
-    wgpuDirectionalSubmitted = wgpuDirectionalSubmitted && lateDirectionalExcluded;
+    wgpuDirectionalSubmitted = wgpuDirectionalSubmitted && lateDirectionalProfile;
+    if (wgpuDirectionalSubmitted) {
+      CoinRenderTarget * lateTarget = CoinRenderTarget::createOffscreen(
+        SbVec2i32(side, side));
+      CoinRenderAction lateAction(SbViewportRegion(side, side));
+      lateAction.setRenderTarget(lateTarget);
+      lateAction.apply(root);
+      std::vector<unsigned char> lateShadow, lateNoReceive;
+      if (lateAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        lateTarget->readbackRGBA(lateShadow);
+      groundStyle->style = SoShadowStyle::NO_SHADOWING;
+      lateAction.apply(root);
+      if (lateAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        lateTarget->readbackRGBA(lateNoReceive);
+      groundStyle->style = SoShadowStyle::SHADOWED;
+      wgpuDirectionalSubmitted = lateAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+        !lateShadow.empty() && lateShadow.size() == lateNoReceive.size();
+      int lateDirectionalDelta = 0;
+      if (wgpuDirectionalSubmitted)
+        for (int y = 20; y < 105; ++y)
+          for (int x = 20; x < 105; ++x) {
+            const size_t pixel = static_cast<size_t>((y * side + x) * 4);
+            const int lit = lateShadow[pixel] + lateShadow[pixel + 1] + lateShadow[pixel + 2];
+            const int dark = lateNoReceive[pixel] + lateNoReceive[pixel + 1] + lateNoReceive[pixel + 2];
+            lateDirectionalDelta = std::max(lateDirectionalDelta, lit - dark);
+          }
+      std::cout << "wgpu late directional style delta=" << lateDirectionalDelta << '\n';
+      wgpuLateDirectionalDifference = lateDirectionalDelta;
+      wgpuDirectionalSubmitted = wgpuDirectionalSubmitted && lateDirectionalDelta > 100;
+      if (!wgpuDirectionalSubmitted)
+        std::cerr << "wgpu late directional style check: "
+                  << lateAction.getLastError().getString() << '\n';
+      lateAction.setRenderTarget(nullptr);
+      delete lateTarget;
+    }
     directionalCapture->ref();
     group->removeChild(directionalCapture);
     group->insertChild(directionalCapture, 1); // Light before both shapes.
@@ -481,16 +554,16 @@ int main()
   delete target;
   if (!publishedOk || !rejected || !preserved || !recovered || !captureOk ||
       !spotProfile || !transparentExcludedFromFirstProfile ||
-      !lateLightResolved || !lateLightExcludedFromFirstProfile ||
+      !lateLightResolved || !lateSpotProfile ||
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||
       !directionalProjectionCoversGroup
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
-      || !wgpuShadowSubmitted || !wgpuDirectionalSubmitted
+      || !wgpuShadowSubmitted || !wgpuDirectionalSubmitted || !lateSpotSubmitted
 #endif
       ) {
     std::cerr << "CoinRender shadow rejection did not preserve publication or recovery"
               << " profile=" << spotProfile << " (" << spotProfileDiagnostic << ")"
-              << " late_excluded=" << lateLightExcludedFromFirstProfile
+              << " late_profile=" << lateSpotProfile
               << " (" << lateProfileDiagnostic << ")\n";
     root->unref();
     return 1;
@@ -516,8 +589,11 @@ int main()
   group->removeChild(light);
   group->addChild(light);
   light->unref();
-  std::vector<unsigned char> lateLightActive;
+  std::vector<unsigned char> lateLightActive, lateLightNoReceive;
   ok = ok && render(gl, root, lateLightActive);
+  groundStyle->style = SoShadowStyle::NO_SHADOWING;
+  ok = ok && render(gl, root, lateLightNoReceive);
+  groundStyle->style = SoShadowStyle::SHADOWED;
   light->ref();
   group->removeChild(light);
   group->insertChild(light, 0);
@@ -538,6 +614,15 @@ int main()
   ok = ok && render(gl, root, directionalShadow);
   groundStyle->style = SoShadowStyle::NO_SHADOWING;
   ok = ok && render(gl, root, directionalNoReceive);
+  groundStyle->style = SoShadowStyle::SHADOWED;
+  directional->ref();
+  group->removeChild(directional);
+  group->addChild(directional);
+  directional->unref();
+  std::vector<unsigned char> lateDirectionalShadow, lateDirectionalNoReceive;
+  ok = ok && render(gl, root, lateDirectionalShadow);
+  groundStyle->style = SoShadowStyle::NO_SHADOWING;
+  ok = ok && render(gl, root, lateDirectionalNoReceive);
   root->unref();
   if (!ok) {
     std::cerr << "Coin/GL could not render the shadow reference\n";
@@ -547,6 +632,18 @@ int main()
   const int clearShadow = luminance(inactive, 50, 50);
   const int castShadow = luminance(active, 50, 50);
   const int lateLightShadow = luminance(lateLightActive, 50, 50);
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+  if (!lateSpotPixels.empty()) {
+    const size_t pixel = static_cast<size_t>(((side - 1 - 50) * side + 50) * 4);
+    const int lateWgpu = lateSpotPixels[pixel] + lateSpotPixels[pixel + 1] +
+                         lateSpotPixels[pixel + 2];
+    std::cout << "wgpu late spot sample=" << lateWgpu << '\n';
+    if (std::abs(lateWgpu - lateLightShadow) > 45) {
+      std::cerr << "wgpu late spot differs from Coin/GL reference\n";
+      return 1;
+    }
+  }
+#endif
   const int noReceive = luminance(unshadowed, 50, 50);
   const int restoredShadow = luminance(activeAgain, 50, 50);
   const int withoutCaster = luminance(noCaster, 50, 50);
@@ -581,12 +678,64 @@ int main()
     for (int x = 20; x < 105; ++x)
       directionalDifference = std::max(directionalDifference,
         luminance(directionalNoReceive, x, y) - luminance(directionalShadow, x, y));
-  std::cout << " directional_style_delta=" << directionalDifference << '\n';
+  int lateDirectionalDifference = 0;
+  for (int y = 20; y < 105; ++y)
+    for (int x = 20; x < 105; ++x)
+      lateDirectionalDifference = std::max(lateDirectionalDifference,
+        luminance(lateDirectionalShadow, x, y) -
+        luminance(lateDirectionalNoReceive, x, y));
+  int spotLateDifference = 0;
+  int spotLateX = 0, spotLateY = 0;
+  for (int y = 20; y < 105; ++y)
+    for (int x = 20; x < 105; ++x) {
+      const int delta = std::abs(luminance(lateLightNoReceive, x, y) -
+                                 luminance(lateLightActive, x, y));
+      if (delta > spotLateDifference) {
+        spotLateDifference = delta;
+        spotLateX = x;
+        spotLateY = y;
+      }
+    }
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+  int wgpuLateSpotDelta = 0;
+  if (!lateSpotPixels.empty() && lateSpotPixels.size() == lateSpotNoReceivePixels.size())
+    for (int y = 20; y < 105; ++y)
+      for (int x = 20; x < 105; ++x) {
+        const size_t pixel = static_cast<size_t>((y * side + x) * 4);
+        const int lit = lateSpotPixels[pixel] + lateSpotPixels[pixel + 1] + lateSpotPixels[pixel + 2];
+        const int dark = lateSpotNoReceivePixels[pixel] + lateSpotNoReceivePixels[pixel + 1] + lateSpotNoReceivePixels[pixel + 2];
+        wgpuLateSpotDelta = std::max(wgpuLateSpotDelta, lit - dark);
+      }
+  std::cout << " wgpu_late_spot_style_delta=" << wgpuLateSpotDelta;
+  const size_t wgpuSpotPixel = static_cast<size_t>(
+    ((side - 1 - spotLateY) * side + spotLateX) * 4);
+  const int wgpuSpotAtMax = lateSpotPixels.empty() ? 0 :
+    lateSpotPixels[wgpuSpotPixel] + lateSpotPixels[wgpuSpotPixel + 1] +
+    lateSpotPixels[wgpuSpotPixel + 2];
+  std::cout << " late_spot_at_gl_max=" << wgpuSpotAtMax
+            << "/" << luminance(lateLightActive, spotLateX, spotLateY) << '\n';
+  if (!lateSpotPixels.empty() &&
+      (std::abs(wgpuLateSpotDelta - spotLateDifference) > 130 ||
+       std::abs(wgpuLateDirectionalDifference - lateDirectionalDifference) > 130 ||
+       std::abs(wgpuSpotAtMax - luminance(lateLightActive,
+                                         spotLateX, spotLateY)) > 180)) {
+    std::cerr << "wgpu late-light style relation differs from Coin/GL reference\n";
+    return 1;
+  }
+#endif
+  std::cout << " directional_style_delta=" << directionalDifference
+            << " late_directional_style_delta=" << lateDirectionalDifference
+            << " spot_late_style_delta=" << spotLateDifference
+            << " at=" << spotLateX << ',' << spotLateY
+            << " values=" << luminance(lateLightActive, spotLateX, spotLateY)
+            << ',' << luminance(lateLightNoReceive, spotLateX, spotLateY)
+            << ',' << luminance(inactive, spotLateX, spotLateY) << '\n';
   if (clearShadow - castShadow < 100 || clearShadow - lateLightShadow < 100 ||
       noReceive - castShadow < 100 ||
       withoutCaster - castShadow < 100 ||
       std::abs(restoredShadow - castShadow) > 30 || centerDifference > 45 ||
-      directionalDifference < 100) {
+      directionalDifference < 100 || lateDirectionalDifference < 100 ||
+      spotLateDifference < 100) {
     std::cerr << "Coin/GL shadow, style or cache reference changed\n";
     return 1;
   }
