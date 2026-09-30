@@ -2362,6 +2362,67 @@ int main()
       glClearParent->unref();
       glShadowParent->unref();
     }
+    if (stagedShadowRttQualified) {
+      const uint64_t beforeFailure = stagedTarget->getLastSubmissionSerial();
+      customGroup->isActive = TRUE;
+#ifdef HAVE_COIN_BGFX
+      setenv("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE", "1", 1);
+#endif
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+      coin_wgpu_inject_fault(COIN_WGPU_FAULT_SHADOW_MAP_ALLOC);
+#endif
+      stagedAction.apply(stagedRoot);
+#ifdef HAVE_COIN_BGFX
+      unsetenv("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE");
+#endif
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+      coin_wgpu_inject_fault(0);
+#endif
+      std::vector<unsigned char> afterFailure;
+      stagedTarget->readbackRGBA(afterFailure);
+      stagedShadowRttQualified =
+        stagedAction.getLastStatus() == CoinRenderAction::OUT_OF_MEMORY &&
+        stagedTarget->getLastSubmissionSerial() == beforeFailure &&
+        afterFailure == stagedClear;
+      if (stagedShadowRttQualified) {
+        stagedAction.apply(stagedRoot);
+        std::vector<unsigned char> recovered;
+        if (stagedAction.getLastStatus() == CoinRenderAction::SUCCESS)
+          stagedTarget->readbackRGBA(recovered);
+        stagedShadowRttQualified =
+          stagedAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+          recovered == stagedShadow;
+      }
+      if (stagedShadowRttQualified) {
+        const int resized = 160;
+        stagedShadowRttQualified = stagedTarget->resize(SbVec2i32(resized, resized));
+        stagedAction.setViewportRegion(SbViewportRegion(resized, resized));
+        stagedAction.apply(stagedRoot);
+        std::vector<unsigned char> resizedShadow, resizedClear;
+        if (stagedAction.getLastStatus() == CoinRenderAction::SUCCESS)
+          stagedTarget->readbackRGBA(resizedShadow);
+        customGroup->isActive = FALSE;
+        stagedAction.apply(stagedRoot);
+        if (stagedAction.getLastStatus() == CoinRenderAction::SUCCESS)
+          stagedTarget->readbackRGBA(resizedClear);
+        int resizedDelta = 0;
+        if (resizedShadow.size() == size_t(resized * resized * 4) &&
+            resizedClear.size() == resizedShadow.size())
+          for (int y = 25; y < 130; ++y)
+            for (int x = 25; x < 130; ++x) {
+              const size_t pixel = size_t((y * resized + x) * 4);
+              const int shadowValue = resizedShadow[pixel] +
+                resizedShadow[pixel + 1] + resizedShadow[pixel + 2];
+              const int clearValue = resizedClear[pixel] +
+                resizedClear[pixel + 1] + resizedClear[pixel + 2];
+              resizedDelta = std::max(resizedDelta,
+                std::abs(clearValue - shadowValue));
+            }
+        stagedShadowRttQualified = stagedAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+          resizedDelta > 40;
+        std::cout << "staged shadow RTT resized GPU delta=" << resizedDelta << '\n';
+      }
+    }
     if (!stagedShadowRttQualified)
       std::cerr << "staged shadow RTT: "
                 << stagedAction.getLastError().getString() << '\n';

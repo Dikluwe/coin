@@ -268,9 +268,11 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   captura seu plano sem alvo e o executor RTT existente renderiza o produtor
   num alvo offscreen antes do consumidor texturizado. A fixture 128×128,
   alternando sombra no produtor, mediu delta máximo 306 no Coin/GL e 414 em
-  BGFX e wgpu (tolerância 180). O modo direct, sombras no consumidor,
-  camadas, grupos aninhados, parâmetros VSM diferentes, resize, falha e
-  recuperação desse arranjo ainda não estão qualificados.
+  BGFX e wgpu (tolerância 180). Falha injetada na alocação do mapa do
+  produtor preservou pixels e serial do consumidor; a recuperação reproduziu
+  o quadro, e o resize do consumidor para 160×160 manteve a diferença de
+  sombra. O modo direct, sombras no consumidor, camadas, grupos aninhados
+  e parâmetros VSM diferentes ainda não estão qualificados.
 
 Cada caixa acima requer uma fixture renderizada nos dois executores e sua
 referência Coin/GL antes de marcar P27.4 concluído.
