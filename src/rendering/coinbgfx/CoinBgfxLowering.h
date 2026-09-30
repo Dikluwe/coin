@@ -36,6 +36,8 @@ struct CoinBgfxVertex {
 
 struct CoinBgfxDraw {
   float mvp[16];
+  uint32_t sourceDrawSlot = 0;
+  uint32_t renderStateSlot = 0;
   uint32_t firstVertex;
   uint32_t vertexCount;
   uint32_t firstIndex;
@@ -120,7 +122,7 @@ public:
                            int32_t clipped[4]);
   static bool lower(const CoinRenderFramePlan & frame, int width, int height,
                     bool homogeneousDepth, CoinBgfxPlan & output,
-                    std::string & diagnostic);
+                    std::string & diagnostic, bool allowQualifiedShadows = false);
   static bool selectTransparencyStrategy(
     const std::vector<CoinBgfxDraw> & draws,
     CoinBgfxTransparencyMode configuredMode,

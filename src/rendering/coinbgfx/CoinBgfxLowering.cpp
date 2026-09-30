@@ -161,7 +161,7 @@ CoinBgfxLowering::clipViewport(const int32_t viewport[4], int width, int height,
 bool
 CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height,
                       bool homogeneousDepth, CoinBgfxPlan & output,
-                      std::string & diagnostic)
+                      std::string & diagnostic, bool allowQualifiedShadows)
 {
   diagnostic.clear();
   CoinBgfxPlan candidate;
@@ -169,8 +169,8 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     diagnostic = "BGFX evaluation requires a nonzero target up to 16384 pixels per side";
     return false;
   }
-  if (!frame.shadowGroups.empty()) {
-    diagnostic = "BGFX shadow maps are not implemented for active SoShadowGroup";
+  if (!allowQualifiedShadows && !frame.shadowGroups.empty()) {
+    diagnostic = "BGFX shadow maps require a qualified shadow executor";
     return false;
   }
   if (!frame.isValid(&diagnostic)) return false;
@@ -252,6 +252,8 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       tx, ty, 0.0f, 1.0f);
     const SbMatrix mvp = modelView * projection * viewportTransform;
     CoinBgfxDraw lowered{};
+    lowered.sourceDrawSlot = item.drawIndex;
+    lowered.renderStateSlot = draw.renderStateSlot;
     std::memcpy(lowered.mvp, mvp.getValue(), sizeof(lowered.mvp));
     lowered.firstVertex = static_cast<uint32_t>(candidate.vertices.size());
     lowered.vertexCount = draw.geometry.indexCount;

@@ -83,6 +83,36 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 			list(APPEND COIN_RENDER_SOURCES ${_shader_output})
 		endforeach()
 	endforeach()
+	foreach(_shadow_shader vs_shadow_moments fs_shadow_moments vs_shadow_receiver fs_shadow_receiver)
+		if(_shadow_shader MATCHES "^vs_")
+			set(_shadow_type vertex)
+		else()
+			set(_shadow_type fragment)
+		endif()
+		foreach(_renderer spirv glsl)
+			if(_renderer STREQUAL "spirv")
+				set(_shader_profile spirv)
+			else()
+				set(_shader_profile 330)
+			endif()
+			set(_shader_output ${_coin_bgfx_generated_dir}/coin_bgfx_${_shadow_shader}_${_renderer}.h)
+			add_custom_command(OUTPUT ${_shader_output}
+				COMMAND ${COIN_BGFX_SHADERC_EXECUTABLE}
+					-f ${_coin_bgfx_shader_dir}/${_shadow_shader}.sc
+					-o ${_shader_output}
+					--type ${_shadow_type} --platform linux --profile ${_shader_profile}
+					--varyingdef ${_coin_bgfx_shader_dir}/varying.def.sc
+					--bin2c coin_bgfx_${_shadow_shader}_${_renderer}
+					-i ${COIN_BGFX_SHADER_INCLUDE_DIR}
+				DEPENDS ${_coin_bgfx_shader_dir}/${_shadow_shader}.sc
+					${_coin_bgfx_shader_dir}/coin_depth.sh
+					${_coin_bgfx_shader_dir}/coin_lighting.sh
+					${_coin_bgfx_shader_dir}/coin_surface.sh
+					${_coin_bgfx_shader_dir}/varying.def.sc
+				VERBATIM)
+			list(APPEND COIN_RENDER_SOURCES ${_shader_output})
+		endforeach()
+	endforeach()
 	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxBackend.cpp)
 endif()
 

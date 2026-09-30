@@ -1,12 +1,12 @@
-# P27 — sombras Coin: perfis opacos wgpu em andamento
+# P27 — sombras Coin: perfis opacos BGFX e wgpu executáveis
 
 P27 exige executar `SoShadowGroup` ativo com a semântica Coin em BGFX e wgpu.
 A referência GL e a captura comum estão verificadas. Os perfis opacos de
-uma luz spot ou direcional e de até duas luzes spot/direcionais executam em
-wgpu offscreen. O perfil de duas luzes cobre ordem de travessia anterior,
-mista e posterior; o Core usa a câmera na entrada do grupo para os mapas
-direcionais. Os demais perfis e BGFX permanecem bloqueados.
-Portanto P27 permanece **aberto**.
+uma ou duas luzes spot/direcionais executam em BGFX e wgpu offscreen síncrono.
+O perfil de duas luzes cobre ordem de travessia anterior, mista e posterior;
+o Core usa a câmera na entrada do grupo para os mapas direcionais. Os
+perfis ampliados e a matriz final de plataformas permanecem abertos em
+P27.4–P27.5; P27 permanece **aberto**.
 
 ## O que o Coin/GL faz
 
@@ -69,11 +69,12 @@ opaca no wgpu e compara seu readback ao GL.
   misto foram exercitadas antes, entre e após os desenhos, com readback
   comparado à referência Coin/GL. Resize, falha de mapa, publicação atômica,
   rejeição de três luzes e recuperação também passaram.
-- [ ] **P27.3 — BGFX:** executar o mesmo plano comum e as mesmas fixtures
-  opacas no BGFX, com shader e recursos próprios, sem reinterpretar o Coin.
-  O primeiro guarda-corpo impede que submissões diretas e planos em cache
-  publiquem um quadro sem sombras para `SoShadowGroup` ativo; ainda faltam
-  mapas, shaders e comparação visual com Coin/GL.
+- [x] **P27.3 — BGFX:** o plano comum executa uma ou duas luzes spot/direcionais
+  em BGFX offscreen síncrono, com mapas RGBA32F/D32F, shaders de momentos e
+  receiver próprios, VSM e soma por contribuição de luz. As fixtures de
+  estilos, pares e ordens de travessia foram comparadas por readback com
+  Coin/GL. Resize, falha de mapa, rejeição de terceira luz e publicação
+  atômica passaram. A semântica Coin permanece no Core.
 - [ ] **P27.4 — contrato ampliado:** três ou mais luzes, cenas próprias por
   luz, transparência, clipping, qualidade, RTT, composição, grupos adicionais
   e alvos múltiplos nos dois executores.
@@ -169,6 +170,36 @@ O mapa usa o frustum da entrada do `SoShadowGroup`, preservando as câmeras
 distintas dos desenhos. O teste rejeita uma terceira luz sem alterar pixels
 ou serial, recupera o quadro de duas luzes e testa falha de alocação e resize.
 
+
+P27.3 foi exercitado no BGFX/Vulkan sobre NVIDIA GeForce RTX 3060 Laptop GPU
+(`vendor_id=0x10de`, `device_id=0x2560`, driver NVIDIA 610.57.04); o oráculo
+Coin/GL usou Mesa GLX em Xvfb. O executor reserva dois views para os mapas
+antes do quadro principal, codifica apenas os casters indicados pelo Core e
+combina cada contribuição PHONG com o resultado VSM de seu próprio mapa.
+A direção vertical do lookup foi conferida com o readback, para não espelhar
+a sombra no plano. Na amostra spot alinhada, BGFX marcou `30` e Coin/GL
+`126` em soma RGB (tolerância `130`). A contribuição máxima da segunda luz
+no par spot→direcional foi `402` em ambos. Na ordem direcional→spot, as
+relações ficaram `426`/`336` (GL/BGFX) para spot anterior ou mista e
+`336`/`336` para spot posterior (tolerância `100`); dois spots marcaram
+`435`/`438` e duas direcionais `402`/`402` (tolerância `120`). As variações
+remanescentes de pixels e outras GPUs/APIs pertencem à matriz P27.5.
+A Action e a submissão direta produziram o mesmo quadro. A falha injetada
+antes da alocação preservou pixels e serial; o alvo entra em estado de erro
+por `OUT_OF_MEMORY`, enquanto outro alvo BGFX continua executando. O teste
+BGFX offscreen também verifica que perda do runtime compartilhado aposenta
+os handles dos alvos pares antes da recuperação.
+
+Reproduzir no build BGFX com GPU e referência GL:
+
+```sh
+env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
+  COIN_GLX_PIXMAP_DIRECT_RENDERING=1 COIN_RENDER_REQUIRE_GL_REFERENCE=1 \
+  COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU=1 \
+  xvfb-run -a -s '-screen 0 1280x1024x24 +extension GLX' \
+  ctest --test-dir <build-bgfx> -R '^CoinRenderShadowReferenceTest$' --output-on-failure
+```
+
 ## Trabalho funcional para fechar
 
 - [x] **Wiring inicial:** capturar grupo ativo, campos, `SoShadowStyle`, luzes
@@ -191,10 +222,9 @@ ou serial, recupera o quadro de duas luzes e testa falha de alocação e resize.
   passes, sincronização, resize e reconstrução após perda, com shader específico
   por API. Mapas da Infra não entram no estado Coin. O shader wgpu que grava
   momentos lineares, spot/directional, e o lookup no shader principal validam
-  em Naga. Os perfis opacos de uma luz spot ou direcional anterior, mista ou
-  posterior aos desenhos, e dois passes spot/direcionais no perfil opaco
-  qualificado funcionam no quadro completo; os demais perfis e o executor
-  BGFX continuam pendentes.
+  em Naga. BGFX usa shaders BGFX separados e recursos próprios, mas os dois
+  executores recebem os mesmos passes opacos qualificados do Core. Mapas e
+  lookup de perfis ampliados continuam em P27.4.
 - [ ] **Shell/capacidades:** seleção explícita de perfil implementado e
   disponível; diagnósticos de limite/formato sem fallback visual implícito.
 - [ ] **Qualificação:** comparar spot/directional, todos os estilos, cenas
@@ -202,7 +232,7 @@ ou serial, recupera o quadro de duas luzes e testa falha de alocação e resize.
   mesmas fixtures Coin/GL. Registrar GPU/API/driver e tolerâncias por célula.
 
 O preflight retorna `UNSUPPORTED` para grupos ativos fora dos perfis opacos
-de uma ou duas luzes spot/direcionais no wgpu offscreen síncrono, antes de
-submeter o quadro. Assim os pixels e o serial publicados anteriormente
-continuam intactos. Três ou mais luzes e os demais perfis pertencem à
-ampliação P27.4; P27.3 ainda exige execução BGFX do plano comum.
+de uma ou duas luzes spot/direcionais em BGFX ou wgpu offscreen síncrono,
+antes de submeter o quadro. Assim os pixels e o serial publicados
+anteriormente continuam intactos. Três ou mais luzes e os demais perfis
+pertencem à ampliação P27.4.

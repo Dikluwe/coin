@@ -79,6 +79,8 @@
 #include "rendering/coinwgpu/CoinWgpuBackend.h"
 #elif defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
 #include "rendering/coinwgpu/CoinWgpuNativeBackend.h"
+#elif defined(HAVE_COIN_BGFX)
+#include "rendering/coinbgfx/CoinBgfxBackend.h"
 #endif
 
 SO_ACTION_SOURCE(CoinRenderAction);
@@ -657,6 +659,17 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
           plan, shadowPlan, profileDiagnostic) ||
         coin_render_shadow_two_opaque_profile(
           plan, shadowPlan, profileDiagnostic);
+    }
+#endif
+#if defined(HAVE_COIN_BGFX)
+    if (this->target && this->target->getPimpl()->kind == CoinRenderTargetP::KIND_OFFSCREEN &&
+        !this->target->getPimpl()->directTextureOutput && !this->asyncTicket &&
+        this->sceneTexturePlan->producers.empty() &&
+        (!this->target->getPimpl()->backend ||
+         dynamic_cast<CoinBgfxBackend *>(this->target->getPimpl()->backend.get()))) {
+      std::string profileDiagnostic;
+      executableShadow = coin_render_shadow_opaque_profile(
+        plan, shadowPlan, shadowPlan.passes.size(), profileDiagnostic);
     }
 #endif
     if (!executableShadow) {

@@ -78,6 +78,7 @@ private:
   CoinRenderSubmitResult submitInternal(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
                               const CoinRenderFrameReuseDecision & reuse, CoinRenderReadbackTicket * ticket);
   bool resize(int width, int height);
+  bool prepareShadowPrograms();
   CoinRenderBackendStatus checkRuntimeFailure(const char * operation);
   void destroyResources();
   void shutdownRuntime();
@@ -131,6 +132,16 @@ private:
   int height;
   bgfx::VertexLayout layout;
   bgfx::ProgramHandle program;
+  bgfx::ProgramHandle shadowMomentsProgram;
+  bgfx::ProgramHandle shadowReceiverProgram;
+  bgfx::UniformHandle shadowModelViewUniform;
+  bgfx::UniformHandle shadowDepthUniform;
+  bgfx::UniformHandle shadowLightIndicesUniform;
+  bgfx::UniformHandle shadowViewToClipUniform[2];
+  bgfx::UniformHandle shadowViewToLightUniform[2];
+  bgfx::UniformHandle shadowParamsUniform[2];
+  bgfx::UniformHandle shadowMetaUniform[2];
+  bgfx::UniformHandle shadowSampler[2];
   bgfx::ProgramHandle depthReadProgram;
   bgfx::UniformHandle readDepthSampler;
   bgfx::FrameBufferHandle depthReadFrameBuffer;

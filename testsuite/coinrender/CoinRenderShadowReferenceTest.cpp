@@ -56,6 +56,35 @@ bool render(SoOffscreenRenderer & gl, SoNode * root,
   rgb.assign(data, data + side * side * 3);
   return true;
 }
+#ifdef HAVE_COIN_BGFX
+bool bgfxLightDelta(SoNode * root, SoLight * switched, int & difference)
+{
+  difference = 0;
+  CoinRenderTarget * target = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+  CoinRenderAction action(SbViewportRegion(side, side));
+  action.setRenderTarget(target);
+  switched->on = FALSE;
+  action.apply(root);
+  const bool singleOk = action.getLastStatus() == CoinRenderAction::SUCCESS;
+  std::vector<unsigned char> single, dual;
+  if (singleOk) target->readbackRGBA(single);
+  switched->on = TRUE;
+  action.apply(root);
+  const bool dualOk = action.getLastStatus() == CoinRenderAction::SUCCESS;
+  if (dualOk) target->readbackRGBA(dual);
+  const bool comparable = singleOk && dualOk && single.size() == dual.size();
+  if (comparable)
+    for (int y = 20; y < 105; ++y)
+      for (int x = 20; x < 105; ++x)
+        difference = std::max(difference,
+          std::abs(luminanceRgba(single, x, y) - luminanceRgba(dual, x, y)));
+  if (!comparable)
+    std::cerr << "BGFX light pair failed: " << action.getLastError().getString() << '\n';
+  action.setRenderTarget(nullptr);
+  delete target;
+  return comparable;
+}
+#endif
 }
 
 int main()
@@ -140,6 +169,146 @@ int main()
   std::string spotProfileDiagnostic;
   const bool spotProfile = coin_render_shadow_single_spot_opaque_profile(
     captured, planned, spotProfileDiagnostic);
+#ifdef HAVE_COIN_BGFX
+  std::vector<unsigned char> bgfxShadowImage;
+  bool bgfxShadowSubmitted = true;
+  if (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU")) {
+    CoinRenderTarget * bgfxTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+    CoinRenderFramePlan withoutShadows = captured;
+    withoutShadows.revision = 0;
+    withoutShadows.shadowGroups.clear();
+    withoutShadows.shadowLights.clear();
+    for (auto & state : withoutShadows.renderStates) state.shadowGroupSlot = 0;
+    const auto baseline = bgfxTarget->getPimpl()->executeFrame(withoutShadows);
+    std::vector<unsigned char> unshadowed, shadowed;
+    if (baseline.status == CoinRenderBackendStatus::SUCCESS)
+      bgfxTarget->readbackRGBA(unshadowed);
+    const auto result = bgfxTarget->getPimpl()->executeFrame(captured);
+    if (result.status == CoinRenderBackendStatus::SUCCESS) {
+      bgfxTarget->readbackRGBA(shadowed);
+      bgfxShadowImage = shadowed;
+    }
+    bgfxShadowSubmitted = baseline.status == CoinRenderBackendStatus::SUCCESS &&
+      result.status == CoinRenderBackendStatus::SUCCESS &&
+      shadowed.size() == unshadowed.size();
+    if (!bgfxShadowSubmitted)
+      std::cerr << "BGFX shadow frame failed: baseline=" << baseline.diagnostic
+                << " shadow=" << result.diagnostic << '\n';
+    else {
+      const int clear = luminanceRgba(unshadowed, 50, side - 1 - 50);
+      const int shadow = luminanceRgba(shadowed, 50, side - 1 - 50);
+      bgfxShadowSubmitted = clear - shadow > 100;
+      if (!bgfxShadowSubmitted)
+        std::cerr << "BGFX spot shadow did not darken the Coin/GL sample: "
+                  << clear << " -> " << shadow << '\n';
+    }
+    if (bgfxShadowSubmitted) {
+      CoinRenderTarget * actionTarget = CoinRenderTarget::createOffscreen(
+        SbVec2i32(side, side));
+      CoinRenderAction bgfxAction(SbViewportRegion(side, side));
+      bgfxAction.setRenderTarget(actionTarget);
+      bgfxAction.apply(root);
+      std::vector<unsigned char> viaAction;
+      if (bgfxAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        actionTarget->readbackRGBA(viaAction);
+      bgfxShadowSubmitted = bgfxAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+        viaAction == shadowed;
+      if (!bgfxShadowSubmitted)
+        std::cerr << "BGFX public Action shadow frame: "
+                  << bgfxAction.getLastError().getString() << '\n';
+      if (bgfxShadowSubmitted) {
+        groundStyle->style = SoShadowStyle::NO_SHADOWING;
+        bgfxAction.apply(root);
+        std::vector<unsigned char> noReceive;
+        if (bgfxAction.getLastStatus() == CoinRenderAction::SUCCESS)
+          actionTarget->readbackRGBA(noReceive);
+        groundStyle->style = SoShadowStyle::SHADOWED;
+        bgfxAction.apply(root);
+        std::vector<unsigned char> receiveAgain;
+        if (bgfxAction.getLastStatus() == CoinRenderAction::SUCCESS)
+          actionTarget->readbackRGBA(receiveAgain);
+        bgfxShadowSubmitted = bgfxAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+          receiveAgain == shadowed && noReceive.size() == shadowed.size() &&
+          luminanceRgba(noReceive, 50, side - 1 - 50) - luminanceRgba(shadowed, 50, side - 1 - 50) > 100;
+        if (!bgfxShadowSubmitted)
+          std::cerr << "BGFX receiver style or recovery failed: "
+                    << bgfxAction.getLastError().getString() << '\n';
+      }
+      if (bgfxShadowSubmitted) {
+        const uint64_t serial = actionTarget->getLastSubmissionSerial();
+        castStyle->style = SoShadowStyle::NO_SHADOWING;
+        bgfxAction.apply(root);
+        std::vector<unsigned char> afterRejection;
+        actionTarget->readbackRGBA(afterRejection);
+        bgfxShadowSubmitted = bgfxAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+          actionTarget->getLastSubmissionSerial() == serial &&
+          afterRejection == shadowed;
+        castStyle->style = SoShadowStyle::CASTS_SHADOW_AND_SHADOWED;
+        bgfxAction.apply(root);
+        std::vector<unsigned char> recovered;
+        if (bgfxAction.getLastStatus() == CoinRenderAction::SUCCESS)
+          actionTarget->readbackRGBA(recovered);
+        bgfxShadowSubmitted = bgfxShadowSubmitted &&
+          bgfxAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+          recovered == shadowed && actionTarget->getLastSubmissionSerial() > serial;
+        if (!bgfxShadowSubmitted)
+          std::cerr << "BGFX caster rejection/recovery failed: "
+                    << bgfxAction.getLastError().getString() << '\n';
+      }
+      if (bgfxShadowSubmitted) {
+        const int resized = 160;
+        bgfxShadowSubmitted = actionTarget->resize(SbVec2i32(resized, resized));
+        bgfxAction.setViewportRegion(SbViewportRegion(resized, resized));
+        bgfxAction.apply(root);
+        std::vector<unsigned char> resizedPixels;
+        if (bgfxAction.getLastStatus() == CoinRenderAction::SUCCESS)
+          actionTarget->readbackRGBA(resizedPixels);
+        bgfxShadowSubmitted = bgfxShadowSubmitted &&
+          bgfxAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+          resizedPixels.size() == size_t(resized * resized * 4);
+        if (bgfxShadowSubmitted) {
+          bgfxShadowSubmitted = actionTarget->resize(SbVec2i32(side, side));
+          bgfxAction.setViewportRegion(SbViewportRegion(side, side));
+          bgfxAction.apply(root);
+          std::vector<unsigned char> restored;
+          if (bgfxAction.getLastStatus() == CoinRenderAction::SUCCESS)
+            actionTarget->readbackRGBA(restored);
+          bgfxShadowSubmitted = bgfxShadowSubmitted &&
+            bgfxAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+            restored == shadowed;
+        }
+        if (!bgfxShadowSubmitted)
+          std::cerr << "BGFX shadow resize/recovery failed: "
+                    << bgfxAction.getLastError().getString() << '\n';
+      }
+      if (bgfxShadowSubmitted) {
+        const uint64_t serial = actionTarget->getLastSubmissionSerial();
+        setenv("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE", "1", 1);
+        bgfxAction.apply(root);
+        std::vector<unsigned char> afterFailure;
+        actionTarget->readbackRGBA(afterFailure);
+        bgfxShadowSubmitted = bgfxAction.getLastStatus() == CoinRenderAction::OUT_OF_MEMORY &&
+          actionTarget->getLastSubmissionSerial() == serial &&
+          afterFailure == shadowed;
+        const auto otherTargetResult = bgfxTarget->getPimpl()->executeFrame(captured);
+        std::vector<unsigned char> otherTargetPixels;
+        if (otherTargetResult.status == CoinRenderBackendStatus::SUCCESS)
+          bgfxTarget->readbackRGBA(otherTargetPixels);
+        bgfxShadowSubmitted = bgfxShadowSubmitted &&
+          otherTargetResult.status == CoinRenderBackendStatus::SUCCESS &&
+          otherTargetPixels == shadowed;
+        if (!bgfxShadowSubmitted)
+          std::cerr << "BGFX shadow-map failure or peer recovery failed: "
+                    << bgfxAction.getLastError().getString() << " / "
+                    << otherTargetResult.diagnostic << '\n';
+      }
+      bgfxAction.setRenderTarget(nullptr);
+      delete actionTarget;
+    }
+    delete bgfxTarget;
+  }
+  if (!bgfxShadowSubmitted) { std::cerr << "BGFX spot qualification failed\n"; return 1; }
+#endif
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
   std::vector<unsigned char> wgpuShadow, wgpuUnshadowed;
   bool wgpuShadowSubmitted = true;
@@ -336,6 +505,89 @@ int main()
           mismatched, twoLightPlan, mismatchDiagnostic);
     } else twoLightCaptured = false;
   }
+#ifdef HAVE_COIN_BGFX
+  bool twoLightBgfxSubmitted = true;
+  int twoLightBgfxDifference = 0;
+  if (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU")) {
+    CoinRenderTarget * dualTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+    CoinRenderAction dualAction(SbViewportRegion(side, side));
+    dualAction.setRenderTarget(dualTarget);
+    secondShadowLight->on = FALSE;
+    dualAction.apply(root);
+    std::vector<unsigned char> singlePixels, dualPixels;
+    const bool singleOk = dualAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (singleOk) dualTarget->readbackRGBA(singlePixels);
+    secondShadowLight->on = TRUE;
+    dualAction.apply(root);
+    const bool dualOk = dualAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (dualOk) dualTarget->readbackRGBA(dualPixels);
+    if (singleOk && dualOk && singlePixels.size() == dualPixels.size())
+      for (int y = 20; y < 105; ++y)
+        for (int x = 20; x < 105; ++x)
+          twoLightBgfxDifference = std::max(twoLightBgfxDifference,
+            std::abs(luminanceRgba(singlePixels, x, y) -
+                     luminanceRgba(dualPixels, x, y)));
+    twoLightBgfxSubmitted = singleOk && dualOk && twoLightBgfxDifference > 100;
+    if (twoLightBgfxSubmitted) {
+      auto * third = new SoShadowSpotLight;
+      third->location.setValue(-2.0f, 2.0f, 4.0f);
+      third->direction.setValue(2.0f, -2.0f, -5.0f);
+      third->cutOffAngle = 0.9f;
+      group->insertChild(third, 2);
+      const uint64_t serial = dualTarget->getLastSubmissionSerial();
+      dualAction.apply(root);
+      std::vector<unsigned char> afterThree;
+      dualTarget->readbackRGBA(afterThree);
+      twoLightBgfxSubmitted = dualAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+        dualTarget->getLastSubmissionSerial() == serial && afterThree == dualPixels;
+      group->removeChild(third);
+      dualAction.apply(root);
+      std::vector<unsigned char> recovered;
+      if (dualAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        dualTarget->readbackRGBA(recovered);
+      twoLightBgfxSubmitted = twoLightBgfxSubmitted &&
+        dualAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+        dualTarget->getLastSubmissionSerial() > serial && recovered == dualPixels;
+    }
+    if (twoLightBgfxSubmitted) {
+      const int resized = 160;
+      twoLightBgfxSubmitted = dualTarget->resize(SbVec2i32(resized, resized));
+      dualAction.setViewportRegion(SbViewportRegion(resized, resized));
+      dualAction.apply(root);
+      std::vector<unsigned char> resizedPixels;
+      if (dualAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        dualTarget->readbackRGBA(resizedPixels);
+      twoLightBgfxSubmitted = twoLightBgfxSubmitted &&
+        dualAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+        resizedPixels.size() == size_t(resized * resized * 4);
+      if (twoLightBgfxSubmitted) {
+        twoLightBgfxSubmitted = dualTarget->resize(SbVec2i32(side, side));
+        dualAction.setViewportRegion(SbViewportRegion(side, side));
+        dualAction.apply(root);
+        std::vector<unsigned char> restored;
+        if (dualAction.getLastStatus() == CoinRenderAction::SUCCESS)
+          dualTarget->readbackRGBA(restored);
+        twoLightBgfxSubmitted = twoLightBgfxSubmitted &&
+          dualAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+          restored == dualPixels;
+      }
+    }
+    if (twoLightBgfxSubmitted) {
+      const uint64_t serial = dualTarget->getLastSubmissionSerial();
+      setenv("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE", "1", 1);
+      dualAction.apply(root);
+      std::vector<unsigned char> afterFault;
+      dualTarget->readbackRGBA(afterFault);
+      twoLightBgfxSubmitted = dualAction.getLastStatus() == CoinRenderAction::OUT_OF_MEMORY &&
+        dualTarget->getLastSubmissionSerial() == serial && afterFault == dualPixels;
+    }
+    if (!twoLightBgfxSubmitted)
+      std::cerr << "BGFX two-light frame: " << dualAction.getLastError().getString()
+                << " delta=" << twoLightBgfxDifference << '\n';
+    dualAction.setRenderTarget(nullptr);
+    delete dualTarget;
+  }
+#endif
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
   bool twoLightSubmittedOnGpu = true;
   int twoLightWgpuDifference = 0;
@@ -442,6 +694,9 @@ int main()
     delete dualTarget;
   }
 #endif
+#ifdef HAVE_COIN_BGFX
+  if (!twoLightBgfxSubmitted) return 1;
+#endif
   int twoLightGlDifference = 0;
   if (std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") && SoShadowGroup::isSupported()) {
     auto * dualRoot = static_cast<SoSeparator *>(root->copy(TRUE));
@@ -503,6 +758,17 @@ int main()
     if (!capturedOrder)
       std::cerr << "two-light traversal capture failed at " << position
                 << ": " << orderedDiagnostic << '\n';
+#ifdef HAVE_COIN_BGFX
+    int orderedBgfxDifference = 0;
+    if (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") && capturedOrder) {
+      const bool gpuOk = bgfxLightDelta(root, secondShadowLight, orderedBgfxDifference) &&
+        orderedBgfxDifference > 100;
+      orderedTwoLight = orderedTwoLight && gpuOk;
+      if (!gpuOk)
+        std::cerr << "BGFX two-light traversal failed at " << position
+                  << " delta=" << orderedBgfxDifference << '\n';
+    }
+#endif
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
     int orderedWgpuDifference = 0;
     if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU") && capturedOrder) {
@@ -555,6 +821,11 @@ int main()
               std::abs(luminance(dualPixels, x, y) -
                        luminance(singlePixels, x, y)));
       orderedTwoLight = orderedTwoLight && rendered && orderedGlDifference > 100;
+#ifdef HAVE_COIN_BGFX
+      if (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU"))
+        orderedTwoLight = orderedTwoLight &&
+          std::abs(orderedGlDifference - orderedBgfxDifference) <= 100;
+#endif
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
       if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))
         orderedTwoLight = orderedTwoLight &&
@@ -588,6 +859,12 @@ int main()
         bothLatePlan.passes[0].lightingIndexByState[slot] == -1 &&
         bothLatePlan.passes[1].lightingIndexByState[slot] == -1;
     }
+#ifdef HAVE_COIN_BGFX
+  int bothLateBgfxDifference = 0;
+  if (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") && bothLateOk)
+    bothLateOk = bgfxLightDelta(root, secondShadowLight, bothLateBgfxDifference) &&
+      bothLateBgfxDifference > 100;
+#endif
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
   int bothLateWgpuDifference = 0;
   if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU") && bothLateOk) {
@@ -640,6 +917,11 @@ int main()
             std::abs(luminance(dualPixels, x, y) -
                      luminance(singlePixels, x, y)));
     bothLateOk = bothLateOk && rendered && bothLateGlDifference > 100;
+#ifdef HAVE_COIN_BGFX
+    if (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU"))
+      bothLateOk = bothLateOk &&
+        std::abs(bothLateGlDifference - bothLateBgfxDifference) <= 100;
+#endif
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
     if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))
       bothLateOk = bothLateOk &&
@@ -691,6 +973,12 @@ int main()
           (reversedPlan.passes[1].lightingIndexByState[slot] == 1 ||
            reversedPlan.passes[1].lightingIndexByState[slot] == -1);
       }
+#ifdef HAVE_COIN_BGFX
+    int reversedBgfxDifference = 0;
+    if (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") && reversedOk)
+      reversedOk = bgfxLightDelta(root, light, reversedBgfxDifference) &&
+        reversedBgfxDifference > 100;
+#endif
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
     int reversedWgpuDifference = 0;
     if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU") && reversedOk) {
@@ -743,6 +1031,11 @@ int main()
               std::abs(luminance(dualPixels, x, y) -
                        luminance(singlePixels, x, y)));
       reversedOk = reversedOk && rendered && reversedGlDifference > 100;
+#ifdef HAVE_COIN_BGFX
+      if (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU"))
+        reversedOk = reversedOk &&
+          std::abs(reversedGlDifference - reversedBgfxDifference) <= 100;
+#endif
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
       if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))
         reversedOk = reversedOk &&
@@ -778,6 +1071,11 @@ int main()
     bool pairOk = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
       coin_render_shadow_two_opaque_profile(pairFrame, pairPlan, pairDiagnostic) &&
       pairPlan.passes.size() == 2;
+#ifdef HAVE_COIN_BGFX
+    int bgfxDifference = 0;
+    if (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") && pairOk)
+      pairOk = bgfxLightDelta(pairRoot, second, bgfxDifference) && bgfxDifference > 80;
+#endif
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
     int wgpuDifference = 0;
     if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU") && pairOk) {
@@ -827,6 +1125,10 @@ int main()
               std::abs(luminance(dualPixels, x, y) -
                        luminance(singlePixels, x, y)));
       pairOk = pairOk && rendered && glDifference > 80;
+#ifdef HAVE_COIN_BGFX
+      if (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU"))
+        pairOk = pairOk && std::abs(glDifference - bgfxDifference) <= 120;
+#endif
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
       if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))
         pairOk = pairOk && std::abs(glDifference - wgpuDifference) <= 120;
@@ -1433,6 +1735,16 @@ int main()
   bool ok = render(gl, root, inactive);
   group->isActive = TRUE;
   ok = ok && render(gl, root, active);
+#ifdef HAVE_COIN_BGFX
+  if (ok && std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU")) {
+    const int bgfxSpot = luminanceRgba(bgfxShadowImage, 50, side - 1 - 50);
+    const int glSpot = luminance(active, 50, 50);
+    ok = ok && std::abs(bgfxSpot - glSpot) <= 130;
+    if (!ok)
+      std::cerr << "BGFX spot sample differs from Coin/GL: " << bgfxSpot
+                << '/' << glSpot << '\n';
+  }
+#endif
   light->ref();
   group->removeChild(light);
   group->addChild(light);

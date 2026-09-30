@@ -352,8 +352,9 @@ int main()
     std::cerr << "BGFX shared runtime did not report injected device loss\n";
     return 1;
   }
-  const CoinRenderFrameExecutionResult survivorLoss = contender.executeFrame(frame);
-  if (survivorLoss.status != CoinRenderBackendStatus::DEVICE_LOST || contender.backend) {
+  // Shared retirement marks every peer lost and discards its handles at once.
+  // The next executeFrame may therefore prepare a fresh shared runtime.
+  if (contender.status != CoinRenderTarget::TARGET_LOST || contender.backend) {
     std::cerr << "BGFX survivor did not discard lost runtime resources\n";
     return 1;
   }
