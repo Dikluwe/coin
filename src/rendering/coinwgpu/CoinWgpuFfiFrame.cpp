@@ -300,16 +300,16 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame,
       }
     }
   }
-  for (size_t i = 0; i < shadow.lateStates.size(); ++i) {
-    if (shadow.lateStates[i] >= this->states.size() ||
-        shadow.lateLights.size() != shadow.lateStates.size() ||
-        this->states[shadow.lateStates[i]].light_count != 0) {
+  for (const auto & late : shadow.lateLights) {
+    if (late.stateSlot >= this->states.size() ||
+        late.lightingIndex >= COIN_WGPU_FFI_MAX_LIGHTS ||
+        this->states[late.stateSlot].light_count != late.lightingIndex) {
       outDiagnostic = "Late shadow light does not match its captured render state";
       return false;
     }
-    CoinWgpuRenderState & state = this->states[shadow.lateStates[i]];
-    state.lights[0] = shadow.lateLights[i];
-    state.light_count = 1;
+    CoinWgpuRenderState & state = this->states[late.stateSlot];
+    state.lights[late.lightingIndex] = late.light;
+    ++state.light_count;
   }
   std::vector<CoinRenderCompositionItem> order;
   if (!coin_render_composition_schedule(frame, order, outDiagnostic))

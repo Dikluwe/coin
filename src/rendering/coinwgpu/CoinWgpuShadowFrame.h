@@ -4,6 +4,7 @@
 #include "rendering/coinrender/CoinRenderShadowCore.h"
 #include "rendering/coinwgpu/CoinWgpuFfi.h"
 
+#include <algorithm>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -39,11 +40,16 @@ struct CoinWgpuShadowPass {
   std::vector<CoinWgpuShadowReceiver> receivers;
 };
 
+struct CoinWgpuLateShadowLight {
+  uint32_t stateSlot = 0;
+  uint32_t lightingIndex = 0;
+  CoinWgpuLight light{};
+};
+
 struct CoinWgpuShadowFrame : CoinWgpuShadowPass {
   CoinWgpuShadowPass second;
   bool hasSecond = false;
-  std::vector<uint32_t> lateStates;
-  std::vector<CoinWgpuLight> lateLights;
+  std::vector<CoinWgpuLateShadowLight> lateLights;
 
   bool prepare(const CoinRenderFramePlan & frame, std::string & diagnostic)
   {
@@ -91,14 +97,27 @@ struct CoinWgpuShadowFrame : CoinWgpuShadowPass {
         receiver.max_shadow_distance = pass.maxShadowDistance;
         receiver.distance_falloff_coefficient = pass.distanceFalloffCoefficient;
         if (receiver.receives && receiver.lighting_index == -1) {
-          if (dual) {
-            diagnostic = "Two-light wgpu profile requires both lights before receivers";
+          if (state.lightingSlot >= frame.lightingStates.size()) {
+            diagnostic = "Shadow receiver references an invalid lighting state";
             return false;
           }
-          candidate.lateStates.push_back(static_cast<uint32_t>(stateSlot));
-          candidate.lateLights.push_back(
-            coin_wgpu_pack_light(pass.resolvedLightByState[stateSlot]));
-          receiver.lighting_index = 0; // Resolved single light, absent at this draw.
+          const auto & capturedLights =
+            frame.lightingStates[state.lightingSlot].lights;
+          const uint32_t lateIndex = static_cast<uint32_t>(capturedLights.size() +
+            std::count_if(candidate.lateLights.begin(), candidate.lateLights.end(),
+              [stateSlot](const CoinWgpuLateShadowLight & late) {
+                return late.stateSlot == stateSlot;
+              }));
+          if (lateIndex >= COIN_WGPU_FFI_MAX_LIGHTS) {
+            diagnostic = "Shadow receiver exceeds the wgpu light limit";
+            return false;
+          }
+          CoinWgpuLateShadowLight late;
+          late.stateSlot = static_cast<uint32_t>(stateSlot);
+          late.lightingIndex = lateIndex;
+          late.light = coin_wgpu_pack_light(pass.resolvedLightByState[stateSlot]);
+          candidate.lateLights.push_back(late);
+          receiver.lighting_index = static_cast<int32_t>(lateIndex);
         }
         const SbMatrix modelView = state.model * pass.view;
         const SbMatrix mvp = modelView * projectionWgpu;

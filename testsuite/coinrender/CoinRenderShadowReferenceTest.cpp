@@ -40,6 +40,12 @@ int luminance(const std::vector<unsigned char> & rgb, int x, int y)
   return static_cast<int>(rgb[i]) + rgb[i + 1] + rgb[i + 2];
 }
 
+int luminanceRgba(const std::vector<unsigned char> & rgba, int x, int y)
+{
+  const size_t i = static_cast<size_t>((y * side + x) * 4);
+  return static_cast<int>(rgba[i]) + rgba[i + 1] + rgba[i + 2];
+}
+
 bool render(SoOffscreenRenderer & gl, SoNode * root,
             std::vector<unsigned char> & rgb)
 {
@@ -293,8 +299,7 @@ int main()
                   source.direction[2] < 0.0f;
     }
   }
-  // Qualify the common two-pass Coin contract; wgpu remains fail-closed until
-  // it can publish both shadow maps in one frame.
+  // Qualify the common two-pass Coin contract and execute both maps on wgpu.
   auto * secondShadowLight = new SoShadowDirectionalLight;
   secondShadowLight->direction.setValue(-0.4f, -0.4f, -1.0f);
   secondShadowLight->intensity = 0.6f;
@@ -350,7 +355,7 @@ int main()
       for (int y = 20; y < 105; ++y)
         for (int x = 20; x < 105; ++x)
           twoLightWgpuDifference = std::max(twoLightWgpuDifference,
-            std::abs(luminance(singleGpu, x, y) - luminance(dualGpu, x, y)));
+            std::abs(luminanceRgba(singleGpu, x, y) - luminanceRgba(dualGpu, x, y)));
     twoLightSubmittedOnGpu = singleSubmitted && dualSubmitted &&
       twoLightWgpuDifference > 100;
     if (twoLightSubmittedOnGpu) {
@@ -429,6 +434,190 @@ int main()
 #endif
               << '\n';
   }
+  bool orderedTwoLight = true;
+  for (int position = 2; position <= 3; ++position) {
+    secondShadowLight->ref();
+    group->removeChild(secondShadowLight);
+    group->insertChild(secondShadowLight, position);
+    secondShadowLight->unref();
+    action.apply(root);
+    const auto & orderedFrame = action.getPimpl()->lastRejectedShadowFrame;
+    const auto & orderedPlan = action.getPimpl()->lastRejectedShadowPlan;
+    std::string orderedDiagnostic;
+    bool capturedOrder = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+      coin_render_shadow_spot_directional_opaque_profile(
+        orderedFrame, orderedPlan, orderedDiagnostic);
+    bool sawLate = false, sawEarly = false;
+    if (capturedOrder) {
+      for (const auto & draw : orderedFrame.draws) {
+        const uint32_t stateSlot = draw.renderStateSlot;
+        const int32_t index = orderedPlan.passes[1].lightingIndexByState[stateSlot];
+        sawLate = sawLate || index == -1;
+        sawEarly = sawEarly || index == 1;
+        capturedOrder = capturedOrder && (index == -1 || index == 1);
+      }
+    }
+    capturedOrder = capturedOrder && sawLate && (position == 3 || sawEarly);
+    orderedTwoLight = orderedTwoLight && capturedOrder;
+    if (!capturedOrder)
+      std::cerr << "two-light traversal capture failed at " << position
+                << ": " << orderedDiagnostic << '\n';
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+    int orderedWgpuDifference = 0;
+    if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU") && capturedOrder) {
+      CoinRenderTarget * orderedTarget = CoinRenderTarget::createOffscreen(
+        SbVec2i32(side, side));
+      CoinRenderAction orderedAction(SbViewportRegion(side, side));
+      orderedAction.setRenderTarget(orderedTarget);
+      secondShadowLight->on = FALSE;
+      orderedAction.apply(root);
+      std::vector<unsigned char> singlePixels, dualPixels;
+      const bool singleOk = orderedAction.getLastStatus() == CoinRenderAction::SUCCESS;
+      if (singleOk) orderedTarget->readbackRGBA(singlePixels);
+      secondShadowLight->on = TRUE;
+      orderedAction.apply(root);
+      const bool dualOk = orderedAction.getLastStatus() == CoinRenderAction::SUCCESS;
+      if (dualOk) orderedTarget->readbackRGBA(dualPixels);
+      if (singleOk && dualOk && singlePixels.size() == dualPixels.size())
+        for (int y = 20; y < 105; ++y)
+          for (int x = 20; x < 105; ++x)
+            orderedWgpuDifference = std::max(orderedWgpuDifference,
+              std::abs(luminanceRgba(singlePixels, x, y) -
+                       luminanceRgba(dualPixels, x, y)));
+      const bool orderedGpuOk = singleOk && dualOk && orderedWgpuDifference > 100;
+      orderedTwoLight = orderedTwoLight && orderedGpuOk;
+      if (!orderedGpuOk)
+        std::cerr << "wgpu two-light traversal failed at " << position << ": "
+                  << orderedAction.getLastError().getString()
+                  << " delta=" << orderedWgpuDifference << '\n';
+      orderedAction.setRenderTarget(nullptr);
+      delete orderedTarget;
+    }
+#endif
+    if (std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") && SoShadowGroup::isSupported()) {
+      auto * dualRoot = static_cast<SoSeparator *>(root->copy(TRUE));
+      dualRoot->ref();
+      auto * singleRoot = static_cast<SoSeparator *>(dualRoot->copy(TRUE));
+      singleRoot->ref();
+      auto * singleGroup = static_cast<SoShadowGroup *>(singleRoot->getChild(1));
+      singleGroup->removeChild(position);
+      SoOffscreenRenderer orderGl(SbViewportRegion(side, side));
+      orderGl.setComponents(SoOffscreenRenderer::RGB);
+      std::vector<unsigned char> dualPixels, singlePixels;
+      const bool rendered = render(orderGl, dualRoot, dualPixels) &&
+                            render(orderGl, singleRoot, singlePixels);
+      int orderedGlDifference = 0;
+      if (rendered)
+        for (int y = 20; y < 105; ++y)
+          for (int x = 20; x < 105; ++x)
+            orderedGlDifference = std::max(orderedGlDifference,
+              std::abs(luminance(dualPixels, x, y) -
+                       luminance(singlePixels, x, y)));
+      orderedTwoLight = orderedTwoLight && rendered && orderedGlDifference > 100;
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+      if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))
+        orderedTwoLight = orderedTwoLight &&
+          std::abs(orderedGlDifference - orderedWgpuDifference) <= 100;
+      std::cout << "two-light order " << position << " GL/wgpu delta="
+                << orderedGlDifference << '/' << orderedWgpuDifference << '\n';
+#endif
+      singleRoot->unref();
+      dualRoot->unref();
+    }
+  }
+  light->ref();
+  secondShadowLight->ref();
+  group->removeChild(light);
+  group->removeChild(secondShadowLight);
+  group->addChild(light);
+  group->addChild(secondShadowLight);
+  light->unref();
+  secondShadowLight->unref();
+  action.apply(root);
+  const auto & bothLateFrame = action.getPimpl()->lastRejectedShadowFrame;
+  const auto & bothLatePlan = action.getPimpl()->lastRejectedShadowPlan;
+  std::string bothLateDiagnostic;
+  bool bothLateOk = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+    coin_render_shadow_spot_directional_opaque_profile(
+      bothLateFrame, bothLatePlan, bothLateDiagnostic);
+  if (bothLateOk)
+    for (const auto & draw : bothLateFrame.draws) {
+      const uint32_t slot = draw.renderStateSlot;
+      bothLateOk = bothLateOk &&
+        bothLatePlan.passes[0].lightingIndexByState[slot] == -1 &&
+        bothLatePlan.passes[1].lightingIndexByState[slot] == -1;
+    }
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+  int bothLateWgpuDifference = 0;
+  if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU") && bothLateOk) {
+    CoinRenderTarget * lateTarget = CoinRenderTarget::createOffscreen(
+      SbVec2i32(side, side));
+    CoinRenderAction lateAction(SbViewportRegion(side, side));
+    lateAction.setRenderTarget(lateTarget);
+    secondShadowLight->on = FALSE;
+    lateAction.apply(root);
+    std::vector<unsigned char> singlePixels, dualPixels;
+    const bool singleOk = lateAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (singleOk) lateTarget->readbackRGBA(singlePixels);
+    secondShadowLight->on = TRUE;
+    lateAction.apply(root);
+    const bool dualOk = lateAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (dualOk) lateTarget->readbackRGBA(dualPixels);
+    if (singleOk && dualOk && singlePixels.size() == dualPixels.size())
+      for (int y = 20; y < 105; ++y)
+        for (int x = 20; x < 105; ++x)
+          bothLateWgpuDifference = std::max(bothLateWgpuDifference,
+            std::abs(luminanceRgba(singlePixels, x, y) -
+                     luminanceRgba(dualPixels, x, y)));
+    bothLateOk = bothLateOk && singleOk && dualOk &&
+      bothLateWgpuDifference > 100;
+    if (!bothLateOk)
+      std::cerr << "wgpu two late lights failed: "
+                << lateAction.getLastError().getString()
+                << " delta=" << bothLateWgpuDifference << '\n';
+    lateAction.setRenderTarget(nullptr);
+    delete lateTarget;
+  }
+#endif
+  if (std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") && SoShadowGroup::isSupported()) {
+    auto * dualRoot = static_cast<SoSeparator *>(root->copy(TRUE));
+    dualRoot->ref();
+    auto * singleRoot = static_cast<SoSeparator *>(dualRoot->copy(TRUE));
+    singleRoot->ref();
+    auto * singleGroup = static_cast<SoShadowGroup *>(singleRoot->getChild(1));
+    singleGroup->removeChild(3);
+    SoOffscreenRenderer bothLateGl(SbViewportRegion(side, side));
+    bothLateGl.setComponents(SoOffscreenRenderer::RGB);
+    std::vector<unsigned char> dualPixels, singlePixels;
+    const bool rendered = render(bothLateGl, dualRoot, dualPixels) &&
+                          render(bothLateGl, singleRoot, singlePixels);
+    int bothLateGlDifference = 0;
+    if (rendered)
+      for (int y = 20; y < 105; ++y)
+        for (int x = 20; x < 105; ++x)
+          bothLateGlDifference = std::max(bothLateGlDifference,
+            std::abs(luminance(dualPixels, x, y) -
+                     luminance(singlePixels, x, y)));
+    bothLateOk = bothLateOk && rendered && bothLateGlDifference > 100;
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+    if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))
+      bothLateOk = bothLateOk &&
+        std::abs(bothLateGlDifference - bothLateWgpuDifference) <= 100;
+    std::cout << "two late lights GL/wgpu delta=" <<
+      bothLateGlDifference << '/' << bothLateWgpuDifference << '\n';
+#endif
+    singleRoot->unref();
+    dualRoot->unref();
+  }
+  orderedTwoLight = orderedTwoLight && bothLateOk;
+  light->ref();
+  secondShadowLight->ref();
+  group->removeChild(light);
+  group->removeChild(secondShadowLight);
+  group->insertChild(light, 0);
+  group->insertChild(secondShadowLight, 1);
+  light->unref();
+  secondShadowLight->unref();
   group->removeChild(secondShadowLight);
   group->quality = previousQuality;
   target->readbackRGBA(afterRejection);
@@ -769,6 +958,7 @@ int main()
   delete target;
   if (!publishedOk || !rejected || !preserved || !recovered || !captureOk ||
       !spotProfile || !transparentExcludedFromFirstProfile || !twoLightCaptured ||
+      !orderedTwoLight ||
       !lateLightResolved || !lateSpotProfile || !mixedOrderResolved ||
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||
       !directionalProjectionCoversGroup
