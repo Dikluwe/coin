@@ -307,10 +307,11 @@ int main()
       lateLightFrame.shadowLights.size() == 1 && lateLightPlan.passes.size() == 1;
   std::string lateProfileDiagnostic;
   const bool lateSpotProfile =
-      coin_render_shadow_late_only_opaque_profile(
+      coin_render_shadow_single_spot_opaque_profile(
         lateLightFrame, lateLightPlan, lateProfileDiagnostic);
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
   std::vector<unsigned char> lateSpotPixels, lateSpotNoReceivePixels;
+  std::vector<unsigned char> mixedSpotPixels, mixedSpotNoReceivePixels;
   bool lateSpotSubmitted = true;
   if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU") && lateSpotProfile) {
     CoinRenderTarget * lateTarget = CoinRenderTarget::createOffscreen(
@@ -327,18 +328,20 @@ int main()
       lateAction.getLastStatus() == CoinRenderAction::SUCCESS;
     if (lateSpotSubmitted) lateTarget->readbackRGBA(lateSpotNoReceivePixels);
     groundStyle->style = SoShadowStyle::SHADOWED;
-    const uint64_t lateSerial = lateTarget->getLastSubmissionSerial();
     light->ref();
     group->removeChild(light);
-    group->insertChild(light, 1); // Mixed traversal order remains outside this profile.
+    group->insertChild(light, 1); // Light follows the caster but precedes the floor.
     light->unref();
     lateAction.apply(root);
-    std::vector<unsigned char> afterMixedOrder;
-    lateTarget->readbackRGBA(afterMixedOrder);
     lateSpotSubmitted = lateSpotSubmitted &&
-      lateAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-      lateTarget->getLastSubmissionSerial() == lateSerial &&
-      afterMixedOrder == lateSpotNoReceivePixels;
+      lateAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (lateSpotSubmitted) lateTarget->readbackRGBA(mixedSpotPixels);
+    groundStyle->style = SoShadowStyle::NO_SHADOWING;
+    lateAction.apply(root);
+    lateSpotSubmitted = lateSpotSubmitted &&
+      lateAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (lateSpotSubmitted) lateTarget->readbackRGBA(mixedSpotNoReceivePixels);
+    groundStyle->style = SoShadowStyle::SHADOWED;
     light->ref();
     group->removeChild(light);
     group->addChild(light);
@@ -355,6 +358,22 @@ int main()
           lateLightPlan.passes[0].resolvedLightByState[stateSlot].sourceRevision ==
             lateLightFrame.shadowLights[0].sourceRevision;
     }
+  }
+  light->ref();
+  group->removeChild(light);
+  group->insertChild(light, 1);
+  light->unref();
+  action.apply(root);
+  const auto & mixedOrderFrame = action.getPimpl()->lastRejectedShadowFrame;
+  const auto & mixedOrderPlan = action.getPimpl()->lastRejectedShadowPlan;
+  bool mixedOrderResolved = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+    mixedOrderPlan.passes.size() == 1 && mixedOrderFrame.draws.size() >= 2;
+  if (mixedOrderResolved) {
+    const auto & indices = mixedOrderPlan.passes[0].lightingIndexByState;
+    const uint32_t casterState = mixedOrderFrame.draws[0].renderStateSlot;
+    const uint32_t floorState = mixedOrderFrame.draws[1].renderStateSlot;
+    mixedOrderResolved = casterState < indices.size() && floorState < indices.size() &&
+      indices[casterState] == -1 && indices[floorState] == 0;
   }
   light->ref();
   group->removeChild(light);
@@ -431,13 +450,14 @@ int main()
   bool wgpuDirectionalSubmitted = true;
   int wgpuDirectionalDifference = 0;
   int wgpuLateDirectionalDifference = 0;
+  int wgpuMixedDirectionalDifference = 0;
   if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) {
     group->quality = 1.0f; // Coin's directional per-fragment profile.
     action.apply(root);
     std::string lateDirectionalDiagnostic;
     const bool lateDirectionalProfile =
       action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-      coin_render_shadow_late_only_opaque_profile(
+      coin_render_shadow_single_directional_opaque_profile(
         action.getPimpl()->lastRejectedShadowFrame,
         action.getPimpl()->lastRejectedShadowPlan, lateDirectionalDiagnostic);
     wgpuDirectionalSubmitted = wgpuDirectionalSubmitted && lateDirectionalProfile;
@@ -472,6 +492,35 @@ int main()
       if (!wgpuDirectionalSubmitted)
         std::cerr << "wgpu late directional style check: "
                   << lateAction.getLastError().getString() << '\n';
+      directionalCapture->ref();
+      group->removeChild(directionalCapture);
+      group->insertChild(directionalCapture, 2); // Between caster and floor.
+      directionalCapture->unref();
+      lateAction.apply(root);
+      std::vector<unsigned char> mixedShadow, mixedNoReceive;
+      if (lateAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        lateTarget->readbackRGBA(mixedShadow);
+      groundStyle->style = SoShadowStyle::NO_SHADOWING;
+      lateAction.apply(root);
+      if (lateAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        lateTarget->readbackRGBA(mixedNoReceive);
+      groundStyle->style = SoShadowStyle::SHADOWED;
+      wgpuDirectionalSubmitted = wgpuDirectionalSubmitted &&
+        lateAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+        !mixedShadow.empty() && mixedShadow.size() == mixedNoReceive.size();
+      if (wgpuDirectionalSubmitted)
+        for (int y = 20; y < 105; ++y)
+          for (int x = 20; x < 105; ++x) {
+            const size_t pixel = static_cast<size_t>((y * side + x) * 4);
+            const int lit = mixedShadow[pixel] + mixedShadow[pixel + 1] + mixedShadow[pixel + 2];
+            const int dark = mixedNoReceive[pixel] + mixedNoReceive[pixel + 1] + mixedNoReceive[pixel + 2];
+            wgpuMixedDirectionalDifference = std::max(wgpuMixedDirectionalDifference,
+                                                      std::abs(lit - dark));
+          }
+      directionalCapture->ref();
+      group->removeChild(directionalCapture);
+      group->addChild(directionalCapture);
+      directionalCapture->unref();
       lateAction.setRenderTarget(nullptr);
       delete lateTarget;
     }
@@ -554,7 +603,7 @@ int main()
   delete target;
   if (!publishedOk || !rejected || !preserved || !recovered || !captureOk ||
       !spotProfile || !transparentExcludedFromFirstProfile ||
-      !lateLightResolved || !lateSpotProfile ||
+      !lateLightResolved || !lateSpotProfile || !mixedOrderResolved ||
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||
       !directionalProjectionCoversGroup
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
@@ -596,6 +645,15 @@ int main()
   groundStyle->style = SoShadowStyle::SHADOWED;
   light->ref();
   group->removeChild(light);
+  group->insertChild(light, 1);
+  light->unref();
+  std::vector<unsigned char> mixedLightActive, mixedLightNoReceive;
+  ok = ok && render(gl, root, mixedLightActive);
+  groundStyle->style = SoShadowStyle::NO_SHADOWING;
+  ok = ok && render(gl, root, mixedLightNoReceive);
+  groundStyle->style = SoShadowStyle::SHADOWED;
+  light->ref();
+  group->removeChild(light);
   group->insertChild(light, 0);
   light->unref();
   groundStyle->style = SoShadowStyle::NO_SHADOWING;
@@ -614,6 +672,15 @@ int main()
   ok = ok && render(gl, root, directionalShadow);
   groundStyle->style = SoShadowStyle::NO_SHADOWING;
   ok = ok && render(gl, root, directionalNoReceive);
+  groundStyle->style = SoShadowStyle::SHADOWED;
+  directional->ref();
+  group->removeChild(directional);
+  group->insertChild(directional, 1);
+  directional->unref();
+  std::vector<unsigned char> mixedDirectionalShadow, mixedDirectionalNoReceive;
+  ok = ok && render(gl, root, mixedDirectionalShadow);
+  groundStyle->style = SoShadowStyle::NO_SHADOWING;
+  ok = ok && render(gl, root, mixedDirectionalNoReceive);
   groundStyle->style = SoShadowStyle::SHADOWED;
   directional->ref();
   group->removeChild(directional);
@@ -678,12 +745,24 @@ int main()
     for (int x = 20; x < 105; ++x)
       directionalDifference = std::max(directionalDifference,
         luminance(directionalNoReceive, x, y) - luminance(directionalShadow, x, y));
+  int mixedDirectionalDifference = 0;
+  for (int y = 20; y < 105; ++y)
+    for (int x = 20; x < 105; ++x)
+      mixedDirectionalDifference = std::max(mixedDirectionalDifference,
+        std::abs(luminance(mixedDirectionalShadow, x, y) -
+                 luminance(mixedDirectionalNoReceive, x, y)));
   int lateDirectionalDifference = 0;
   for (int y = 20; y < 105; ++y)
     for (int x = 20; x < 105; ++x)
       lateDirectionalDifference = std::max(lateDirectionalDifference,
         luminance(lateDirectionalShadow, x, y) -
         luminance(lateDirectionalNoReceive, x, y));
+  int spotMixedDifference = 0;
+  for (int y = 20; y < 105; ++y)
+    for (int x = 20; x < 105; ++x)
+      spotMixedDifference = std::max(spotMixedDifference,
+        std::abs(luminance(mixedLightNoReceive, x, y) -
+                 luminance(mixedLightActive, x, y)));
   int spotLateDifference = 0;
   int spotLateX = 0, spotLateY = 0;
   for (int y = 20; y < 105; ++y)
@@ -706,6 +785,16 @@ int main()
         const int dark = lateSpotNoReceivePixels[pixel] + lateSpotNoReceivePixels[pixel + 1] + lateSpotNoReceivePixels[pixel + 2];
         wgpuLateSpotDelta = std::max(wgpuLateSpotDelta, lit - dark);
       }
+  int wgpuMixedSpotDelta = 0;
+  if (!mixedSpotPixels.empty() && mixedSpotPixels.size() == mixedSpotNoReceivePixels.size())
+    for (int y = 20; y < 105; ++y)
+      for (int x = 20; x < 105; ++x) {
+        const size_t pixel = static_cast<size_t>((y * side + x) * 4);
+        const int lit = mixedSpotPixels[pixel] + mixedSpotPixels[pixel + 1] + mixedSpotPixels[pixel + 2];
+        const int dark = mixedSpotNoReceivePixels[pixel] + mixedSpotNoReceivePixels[pixel + 1] + mixedSpotNoReceivePixels[pixel + 2];
+        wgpuMixedSpotDelta = std::max(wgpuMixedSpotDelta, std::abs(lit - dark));
+      }
+  std::cout << " wgpu_mixed_spot_style_delta=" << wgpuMixedSpotDelta;
   std::cout << " wgpu_late_spot_style_delta=" << wgpuLateSpotDelta;
   const size_t wgpuSpotPixel = static_cast<size_t>(
     ((side - 1 - spotLateY) * side + spotLateX) * 4);
@@ -717,6 +806,8 @@ int main()
   if (!lateSpotPixels.empty() &&
       (std::abs(wgpuLateSpotDelta - spotLateDifference) > 130 ||
        std::abs(wgpuLateDirectionalDifference - lateDirectionalDifference) > 130 ||
+       std::abs(wgpuMixedSpotDelta - spotMixedDifference) > 130 ||
+       std::abs(wgpuMixedDirectionalDifference - mixedDirectionalDifference) > 130 ||
        std::abs(wgpuSpotAtMax - luminance(lateLightActive,
                                          spotLateX, spotLateY)) > 180)) {
     std::cerr << "wgpu late-light style relation differs from Coin/GL reference\n";
@@ -725,7 +816,12 @@ int main()
 #endif
   std::cout << " directional_style_delta=" << directionalDifference
             << " late_directional_style_delta=" << lateDirectionalDifference
+            << " mixed_directional_style_delta=" << mixedDirectionalDifference
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+            << "/" << wgpuMixedDirectionalDifference
+#endif
             << " spot_late_style_delta=" << spotLateDifference
+            << " spot_mixed_style_delta=" << spotMixedDifference
             << " at=" << spotLateX << ',' << spotLateY
             << " values=" << luminance(lateLightActive, spotLateX, spotLateY)
             << ',' << luminance(lateLightNoReceive, spotLateX, spotLateY)
@@ -735,7 +831,8 @@ int main()
       withoutCaster - castShadow < 100 ||
       std::abs(restoredShadow - castShadow) > 30 || centerDifference > 45 ||
       directionalDifference < 100 || lateDirectionalDifference < 100 ||
-      spotLateDifference < 100) {
+      mixedDirectionalDifference < 100 ||
+      spotLateDifference < 100 || spotMixedDifference < 100) {
     std::cerr << "Coin/GL shadow, style or cache reference changed\n";
     return 1;
   }

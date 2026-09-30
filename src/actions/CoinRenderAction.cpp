@@ -654,8 +654,6 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       executableShadow = coin_render_shadow_single_spot_opaque_profile(
         plan, shadowPlan, profileDiagnostic) ||
         coin_render_shadow_single_directional_opaque_profile(
-          plan, shadowPlan, profileDiagnostic) ||
-        coin_render_shadow_late_only_opaque_profile(
           plan, shadowPlan, profileDiagnostic);
     }
 #endif

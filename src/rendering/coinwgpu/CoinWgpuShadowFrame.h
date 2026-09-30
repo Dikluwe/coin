@@ -50,13 +50,11 @@ struct CoinWgpuShadowFrame {
     }
     CoinRenderShadowPlan plan;
     if (!coin_render_plan_shadows(frame, plan, diagnostic)) return false;
-    std::string spotDiagnostic, directionalDiagnostic, lateDiagnostic;
+    std::string spotDiagnostic, directionalDiagnostic;
     if (!coin_render_shadow_single_spot_opaque_profile(frame, plan, spotDiagnostic) &&
         !coin_render_shadow_single_directional_opaque_profile(
-          frame, plan, directionalDiagnostic) &&
-        !coin_render_shadow_late_only_opaque_profile(
-          frame, plan, lateDiagnostic)) {
-      diagnostic = spotDiagnostic + "; " + directionalDiagnostic + "; " + lateDiagnostic;
+          frame, plan, directionalDiagnostic)) {
+      diagnostic = spotDiagnostic + "; " + directionalDiagnostic;
       return false;
     }
     const auto & pass = plan.passes[0];
@@ -81,7 +79,7 @@ struct CoinWgpuShadowFrame {
         candidate.lateStates.push_back(static_cast<uint32_t>(stateSlot));
         candidate.lateLights.push_back(
           coin_wgpu_pack_light(pass.resolvedLightByState[stateSlot]));
-        receiver.lighting_index = 0; // Only light in the late-only Core profile.
+        receiver.lighting_index = 0; // Resolved single light, absent at this draw.
       }
       const SbMatrix modelView = state.model * pass.view;
       const SbMatrix mvp = modelView * projectionWgpu;

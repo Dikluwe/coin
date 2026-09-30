@@ -2,7 +2,7 @@
 
 P27 exige executar `SoShadowGroup` ativo com a semântica Coin em BGFX e wgpu.
 A referência GL e a captura comum estão verificadas. Os perfis opacos de
-uma luz spot ou direcional antes ou depois de todos os desenhos executam em
+uma luz spot ou direcional antes, entre ou depois dos desenhos executam em
 wgpu offscreen; os demais perfis e BGFX permanecem bloqueados.
 Portanto P27 permanece **aberto**.
 
@@ -106,8 +106,8 @@ A tolerância visual é da fixture, não uma promessa de equivalência pixel a
 pixel em todas as GPUs.
 
 P27.2 está em andamento. O perfil opaco de uma luz admite spot ou direcional
-antes de todos os desenhos, ou depois de todos eles, com distância axial no
-pass direcional e lookup VSM. Na fixture direcional anterior, a diferença
+antes, entre ou depois dos desenhos, com distância axial no pass direcional
+e lookup VSM. Na fixture direcional anterior, a diferença
 espacial máxima entre wgpu sem/com sombra foi `666`, igual à diferença de estilo
 Coin/GL. A saída direta do backend e a da Action foram idênticas. Para luzes
 posteriores, o Core resolve a fonte em cada estado: ela não consta da iluminação
@@ -115,12 +115,14 @@ comum capturada antes da sua travessia, mas o shader de `SoShadowGroup` a aplica
 nos receivers. O empacotador wgpu adiciona essa fonte somente à contribuição
 sombreada. Na fixture, a diferença espacial de estilo da spot tardia foi `735`
 no wgpu e no GL; a direcional tardia marcou `666` e `735`, respectivamente.
-A comparação inclui o pixel de maior diferença da spot: soma RGB `765` no
-GL e `603` no wgpu, com tolerância de `180` nesta fixture. Essa diferença
-mantém a equivalência visual estreita como trabalho aberto. Misturas de ordem
-de luz entre desenhos, `maxShadowDistance`, interseção precisa do frustum e múltiplas luzes ainda não
-executam. A Action só admite esses perfis opacos de uma luz em alvo wgpu
-offscreen síncrono sem RTT; BGFX, janela, async, transparência e cenas próprias
+Na ordem mista (luz entre cubo e plano), o Core marca o cubo antes e o
+plano depois da luz; os máximos de diferença de estilo foram `474`/`588`
+(spot GL/wgpu) e `666`/`666` (direcional GL/wgpu). A comparação tardia
+inclui o pixel de maior diferença da spot: soma RGB `765` no GL e `603`
+no wgpu, com tolerância de `180` nesta fixture. Essa diferença mantém a
+equivalência visual estreita como trabalho aberto. `maxShadowDistance`,
+interseção precisa do frustum e múltiplas luzes ainda não executam. A Action
+só admite esses perfis opacos de uma luz em alvo wgpu offscreen síncrono sem RTT; BGFX, janela, async, transparência e cenas próprias
 por luz seguem com `UNSUPPORTED` antes da submissão.
 
 ## Trabalho funcional para fechar
@@ -145,9 +147,9 @@ por luz seguem com `UNSUPPORTED` antes da submissão.
   passes, sincronização, resize e reconstrução após perda, com shader específico
   por API. Mapas da Infra não entram no estado Coin. O shader wgpu que grava
   momentos lineares, spot/directional, e o lookup no shader principal validam
-  em Naga. Os perfis opacos de uma luz spot ou direcional anterior a todos os
-  desenhos, ou posterior a todos eles, funcionam no quadro completo; os demais
-  perfis e o executor BGFX continuam pendentes.
+  em Naga. Os perfis opacos de uma luz spot ou direcional anterior, mista ou
+  posterior aos desenhos funcionam no quadro completo; os demais perfis e o
+  executor BGFX continuam pendentes.
 - [ ] **Shell/capacidades:** seleção explícita de perfil implementado e
   disponível; diagnósticos de limite/formato sem fallback visual implícito.
 - [ ] **Qualificação:** comparar spot/directional, todos os estilos, cenas
@@ -155,8 +157,7 @@ por luz seguem com `UNSUPPORTED` antes da submissão.
   mesmas fixtures Coin/GL. Registrar GPU/API/driver e tolerâncias por célula.
 
 O preflight retorna `UNSUPPORTED` para grupos ativos fora dos perfis opacos
-spot/direcional de uma luz antes ou depois de todos os desenhos no wgpu
-offscreen, antes de submeter o quadro. Assim
-os pixels e o serial publicados anteriormente continuam intactos. O restante
-de P27.2 exige ordem mista entre desenhos, distância máxima, interseção do
-frustum e múltiplas luzes wgpu, comparadas à referência Coin/GL.
+spot/direcional de uma luz antes, entre ou depois dos desenhos no wgpu
+offscreen, antes de submeter o quadro. Assim os pixels e o serial publicados anteriormente continuam intactos. O restante
+de P27.2 exige distância máxima, interseção do frustum e múltiplas luzes
+wgpu, comparadas à referência Coin/GL.

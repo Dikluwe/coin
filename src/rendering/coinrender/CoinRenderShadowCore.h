@@ -337,7 +337,7 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
 inline bool
 coin_render_shadow_single_opaque_profile(
   const CoinRenderFramePlan & frame, const CoinRenderShadowPlan & shadows,
-  CoinRenderLightType lightType, bool lateOnly, std::string & diagnostic)
+  CoinRenderLightType lightType, std::string & diagnostic)
 {
   if (frame.shadowGroups.size() != 1 || shadows.passes.size() != 1) {
     diagnostic = "Single-light shadow profile requires exactly one active group and one pass";
@@ -384,9 +384,9 @@ coin_render_shadow_single_opaque_profile(
     }
     const auto & lighting = frame.lightingStates[state.lightingSlot];
     const int32_t index = pass.lightingIndexByState[draw.renderStateSlot];
-    if ((lateOnly && (!lighting.lights.empty() || index != -1)) ||
-        (!lateOnly && (lighting.lights.size() != 1 || index != 0))) {
-      diagnostic = "Single-light shadow profile requires one traversal-consistent light order";
+    if (!((lighting.lights.empty() && index == -1) ||
+          (lighting.lights.size() == 1 && index == 0))) {
+      diagnostic = "Single-light shadow profile requires its light to be the only light at each draw";
       return false;
     }
   }
@@ -400,7 +400,7 @@ coin_render_shadow_single_spot_opaque_profile(
   std::string & diagnostic)
 {
   return coin_render_shadow_single_opaque_profile(
-    frame, shadows, CoinRenderLightType::SPOT, false, diagnostic);
+    frame, shadows, CoinRenderLightType::SPOT, diagnostic);
 }
 
 inline bool
@@ -409,29 +409,7 @@ coin_render_shadow_single_directional_opaque_profile(
   std::string & diagnostic)
 {
   return coin_render_shadow_single_opaque_profile(
-    frame, shadows, CoinRenderLightType::DIRECTIONAL, false, diagnostic);
-}
-
-// Coin/GL resolves a light discovered after the draws in its shadow shader.
-// Core identifies the narrow case; Infra supplies the resolved light to the
-// shadowed contribution without changing the captured ordinary lighting.
-inline bool
-coin_render_shadow_late_only_opaque_profile(
-  const CoinRenderFramePlan & frame, const CoinRenderShadowPlan & shadows,
-  std::string & diagnostic)
-{
-  if (shadows.passes.size() != 1 ||
-      shadows.passes[0].lightSlot >= frame.shadowLights.size()) {
-    diagnostic = "Late-light profile requires one shadow pass";
-    return false;
-  }
-  const auto type = frame.shadowLights[shadows.passes[0].lightSlot].type;
-  if (type != CoinRenderLightType::SPOT && type != CoinRenderLightType::DIRECTIONAL) {
-    diagnostic = "Late-light profile requires spot or directional light";
-    return false;
-  }
-  return coin_render_shadow_single_opaque_profile(
-    frame, shadows, type, true, diagnostic);
+    frame, shadows, CoinRenderLightType::DIRECTIONAL, diagnostic);
 }
 
 #endif // COIN_RENDER_SHADOW_CORE_H
