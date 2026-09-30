@@ -77,7 +77,8 @@ opaca no wgpu e compara seu readback ao GL.
   atômica passaram. A semântica Coin permanece no Core.
 - [ ] **P27.4 — contrato ampliado:** três ou mais luzes, cenas próprias por
   luz, transparência, clipping, qualidade, RTT, composição, grupos adicionais
-  e alvos múltiplos nos dois executores.
+  e alvos múltiplos nos dois executores. O perfil BGFX de três/quatro luzes
+  opacas está qualificado; os demais casos continuam abertos.
 - [ ] **P27.5 — qualificação final:** matriz de GPU/API/driver, perdas, resize,
   falhas e tolerâncias visuais; fechar P27 somente com BGFX e wgpu exercitados.
 
@@ -200,6 +201,30 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   ctest --test-dir <build-bgfx> -R '^CoinRenderShadowReferenceTest$' --output-on-failure
 ```
 
+## P27.4 — acompanhamento do contrato ampliado
+
+- [x] **BGFX, três/quatro luzes opacas:** o Core aceita até quatro passes
+  independentes para um grupo. O BGFX usa uma variante do shader de receiver
+  para quatro mapas; a variante anterior continua disponível para uma/duas
+  luzes e dispositivos com doze unidades de textura. A fixture submeteu três
+  e quatro luzes com readback e comparou a contribuição incremental com
+  Coin/GL: deltas máximos 666/735 (terceira) e 228/195 (quarta), GL/BGFX.
+  A quinta luz foi rejeitada antes da publicação e o quadro de duas luzes
+  recuperado. A qualificação desta célula usa Vulkan/NVIDIA e GL/Mesa.
+- [ ] **wgpu, três/quatro luzes opacas:** ampliar ABI privada, transporte,
+  mapas e lookup sem duplicar a seleção de luz do Core; comparar readback com
+  a mesma fixture GL e preservar o limite de publicação.
+- [ ] **Cenas próprias por luz:** capturar `shadowMapScene` como geometria de
+  caster separada, respeitando a travessia e o bbox do grupo no Coin/GL.
+- [ ] **Transparência, clipping e qualidade:** qualificar por modo os casters,
+  receivers, recortes e o limiar de iluminação por fragmento.
+- [ ] **RTT, composição, grupos adicionais e múltiplos alvos:** ordenar os
+  passes com as dependências de textura e camadas, sem fundir grupos ou
+  estados Coin independentes; validar resize, falha e recuperação.
+
+Cada caixa acima requer uma fixture renderizada nos dois executores e sua
+referência Coin/GL antes de marcar P27.4 concluído.
+
 ## Trabalho funcional para fechar
 
 - [x] **Wiring inicial:** capturar grupo ativo, campos, `SoShadowStyle`, luzes
@@ -232,7 +257,7 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   mesmas fixtures Coin/GL. Registrar GPU/API/driver e tolerâncias por célula.
 
 O preflight retorna `UNSUPPORTED` para grupos ativos fora dos perfis opacos
-de uma ou duas luzes spot/direcionais em BGFX ou wgpu offscreen síncrono,
+de uma a quatro luzes spot/direcionais em BGFX ou de uma ou duas em wgpu offscreen síncrono,
 antes de submeter o quadro. Assim os pixels e o serial publicados
-anteriormente continuam intactos. Três ou mais luzes e os demais perfis
+anteriormente continuam intactos. Três ou mais luzes no wgpu e os demais perfis
 pertencem à ampliação P27.4.

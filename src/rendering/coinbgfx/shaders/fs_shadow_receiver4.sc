@@ -1,0 +1,95 @@
+$input v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition, v_viewNormal, v_material, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7
+#include <bgfx_shader.sh>
+#include "coin_depth.sh"
+#include "coin_lighting.sh"
+#include "coin_surface.sh"
+SAMPLER2D(s_shadow0, 10);
+SAMPLER2D(s_shadow1, 11);
+SAMPLER2D(s_shadow3, 13);
+SAMPLER2D(s_shadow2, 12);
+uniform mat4 u_shadowViewToClip0;
+uniform mat4 u_shadowViewToClip1;
+uniform mat4 u_shadowViewToClip3;
+uniform mat4 u_shadowViewToClip2;
+uniform mat4 u_shadowViewToLight0;
+uniform mat4 u_shadowViewToLight1;
+uniform mat4 u_shadowViewToLight3;
+uniform mat4 u_shadowViewToLight2;
+uniform vec4 u_shadowParams0;
+uniform vec4 u_shadowParams1;
+uniform vec4 u_shadowParams3;
+uniform vec4 u_shadowParams2;
+uniform vec4 u_shadowMeta0;
+uniform vec4 u_shadowMeta1;
+uniform vec4 u_shadowMeta3;
+uniform vec4 u_shadowMeta2;
+uniform vec4 u_shadowLightIndices;
+float coinShadowVisibility(vec3 positionView, mat4 viewToClip, mat4 viewToLight,
+                           vec4 params, vec4 meta, sampler2D mapTexture)
+{
+  vec4 coord = mul(viewToClip, vec4(positionView, 1.0));
+  if (coord.w <= 0.0) return 1.0;
+  vec3 clip = coord.xyz / coord.w;
+  vec2 uv = vec2(clip.x * 0.5 + 0.5,
+    meta.w > 0.5 ? clip.y * 0.5 + 0.5 : 0.5 - clip.y * 0.5);
+  if (uv.x < 0.0 || uv.x >= 1.0 || uv.y < 0.0 || uv.y >= 1.0 ||
+      clip.z < 0.0 || clip.z > 1.0) return 1.0;
+  vec2 moments = texture2D(mapTexture, uv).xy;
+  if (moments.x >= 0.9999) return 1.0;
+  vec3 lightView = mul(viewToLight, vec4(positionView, 1.0)).xyz;
+  float distance = meta.x > 0.5 ? length(lightView) : -lightView.z;
+  float normalized = (distance - params.x) / (params.y - params.x);
+  if (normalized <= moments.x) return 1.0;
+  float variance = min(max(moments.y - moments.x * moments.x, 0.0) + params.z, 1.0);
+  float delta = moments.x - normalized;
+  float probability = variance / (variance + delta * delta);
+  probability *= smoothstep(params.w, 1.0, probability);
+  if (meta.x < 0.5 && meta.y > 0.0) {
+    float eyeZ = positionView.z;
+    float fade = min(1.0, exp(meta.z * eyeZ * abs(eyeZ) / (meta.y * meta.y)));
+    return 1.0 - (1.0 - probability) * fade;
+  }
+  return probability;
+}
+void main()
+{
+  vec4 color = v_color0;
+  if (v_material.y > 0.5) {
+    if (u_shadowLightIndices.x >= 0.0) {
+      int index = int(u_shadowLightIndices.x);
+      vec3 contribution = coinLightContribution(index, v_texcoords4, v_specular,
+        v_viewPosition, v_viewNormal, v_material.x);
+      color.rgb += contribution * coinShadowVisibility(v_viewPosition,
+        u_shadowViewToClip0, u_shadowViewToLight0, u_shadowParams0,
+        u_shadowMeta0, s_shadow0);
+    }
+    if (u_shadowLightIndices.y >= 0.0) {
+      int index = int(u_shadowLightIndices.y);
+      vec3 contribution = coinLightContribution(index, v_texcoords4, v_specular,
+        v_viewPosition, v_viewNormal, v_material.x);
+      color.rgb += contribution * coinShadowVisibility(v_viewPosition,
+        u_shadowViewToClip1, u_shadowViewToLight1, u_shadowParams1,
+        u_shadowMeta1, s_shadow1);
+    }
+    if (u_shadowLightIndices.z >= 0.0) {
+      int index = int(u_shadowLightIndices.z);
+      vec3 contribution = coinLightContribution(index, v_texcoords4, v_specular,
+        v_viewPosition, v_viewNormal, v_material.x);
+      color.rgb += contribution * coinShadowVisibility(v_viewPosition,
+        u_shadowViewToClip2, u_shadowViewToLight2, u_shadowParams2,
+        u_shadowMeta2, s_shadow2);
+    }
+    if (u_shadowLightIndices.w >= 0.0) {
+      int index = int(u_shadowLightIndices.w);
+      vec3 contribution = coinLightContribution(index, v_texcoords4, v_specular,
+        v_viewPosition, v_viewNormal, v_material.x);
+      color.rgb += contribution * coinShadowVisibility(v_viewPosition,
+        u_shadowViewToClip3, u_shadowViewToLight3, u_shadowParams3,
+        u_shadowMeta3, s_shadow3);
+    }
+  }
+  color.rgb = clamp(color.rgb, 0.0, 1.0);
+  gl_FragDepth = coinWindowDepth(gl_FragCoord.z);
+  gl_FragColor = coinSurfaceColor(gl_FragCoord.xy, color, v_texcoord0,
+    v_viewPosition, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7);
+}

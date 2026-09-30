@@ -410,8 +410,8 @@ coin_render_shadow_opaque_profile(
   size_t lightCount, std::string & diagnostic)
 {
   if (frame.shadowGroups.size() != 1 || shadows.passes.size() != lightCount ||
-      (lightCount != 1 && lightCount != 2)) {
-    diagnostic = "Opaque shadow profile requires one group and one or two passes";
+      (lightCount < 1 || lightCount > 4)) {
+    diagnostic = "Opaque shadow profile requires one group and one to four passes";
     return false;
   }
   if (frame.shadowGroups[0].smoothBorder != 0.0f) {
@@ -426,7 +426,10 @@ coin_render_shadow_opaque_profile(
         !pass.visible || pass.casterDraws.empty() || pass.receiverDraws.empty() ||
         !pass.perFragmentLighting || pass.epsilon < 0.0f ||
         pass.threshold < 0.0f || pass.threshold >= 1.0f ||
-        (p != 0 && pass.lightSlot == shadows.passes[0].lightSlot)) {
+        std::any_of(shadows.passes.begin(), shadows.passes.begin() + p,
+                    [&](const CoinRenderShadowPass & previous) {
+                      return previous.lightSlot == pass.lightSlot;
+                    })) {
       diagnostic = "Opaque shadow profile requires visible independent passes with casters and receivers";
       return false;
     }
@@ -458,11 +461,12 @@ coin_render_shadow_opaque_profile(
       return false;
     }
     const auto & lights = frame.lightingStates[state.lightingSlot].lights;
-    if (lights.size() > lightCount) {
+    if (lights.size() > lightCount || lights.size() > COIN_RENDER_MAX_LIGHTS) {
       diagnostic = "Opaque shadow profile has more ordinary lights than shadow passes";
       return false;
     }
     std::vector<bool> claimed(lights.size(), false);
+    size_t lateLightCount = 0;
     for (const auto & pass : shadows.passes) {
       if (draw.renderStateSlot >= pass.lightingIndexByState.size()) {
         diagnostic = "Shadow pass lacks a draw lighting index";
@@ -471,6 +475,10 @@ coin_render_shadow_opaque_profile(
       const int32_t index = pass.lightingIndexByState[draw.renderStateSlot];
       const auto & shadowLight = frame.shadowLights[pass.lightSlot];
       if (index == -1) {
+        if (lights.size() + ++lateLightCount > COIN_RENDER_MAX_LIGHTS) {
+          diagnostic = "Opaque shadow profile exceeds the eight-light receiver limit";
+          return false;
+        }
         // A later light cannot already be present in this draw's Coin state.
         for (const auto & source : lights)
           if (source.sourceRevision == shadowLight.sourceRevision &&

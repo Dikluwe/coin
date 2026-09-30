@@ -528,6 +528,16 @@ int main()
             std::abs(luminanceRgba(singlePixels, x, y) -
                      luminanceRgba(dualPixels, x, y)));
     twoLightBgfxSubmitted = singleOk && dualOk && twoLightBgfxDifference > 100;
+    SoOffscreenRenderer multiGl(SbViewportRegion(side, side));
+    multiGl.setComponents(SoOffscreenRenderer::RGB);
+    std::vector<unsigned char> glDual, glThree, glFour;
+    const bool compareGl = std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") != nullptr;
+    if (twoLightBgfxSubmitted && compareGl) {
+      auto * copy = static_cast<SoSeparator *>(root->copy(TRUE));
+      copy->ref();
+      twoLightBgfxSubmitted = render(multiGl, copy, glDual);
+      copy->unref();
+    }
     if (twoLightBgfxSubmitted) {
       auto * third = new SoShadowSpotLight;
       third->location.setValue(-2.0f, 2.0f, 4.0f);
@@ -537,9 +547,78 @@ int main()
       const uint64_t serial = dualTarget->getLastSubmissionSerial();
       dualAction.apply(root);
       std::vector<unsigned char> afterThree;
-      dualTarget->readbackRGBA(afterThree);
-      twoLightBgfxSubmitted = dualAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-        dualTarget->getLastSubmissionSerial() == serial && afterThree == dualPixels;
+      if (dualAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        dualTarget->readbackRGBA(afterThree);
+      const bool threeSubmitted = dualAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+        dualTarget->getLastSubmissionSerial() > serial &&
+        afterThree.size() == dualPixels.size() && afterThree != dualPixels;
+      if (!threeSubmitted)
+        std::cerr << "BGFX three-light frame: " << dualAction.getLastError().getString()
+                  << " changed=" << (afterThree != dualPixels) << '\n';
+      twoLightBgfxSubmitted = twoLightBgfxSubmitted && threeSubmitted;
+      if (threeSubmitted && compareGl) {
+        auto * copy = static_cast<SoSeparator *>(root->copy(TRUE));
+        copy->ref();
+        twoLightBgfxSubmitted = render(multiGl, copy, glThree);
+        copy->unref();
+        int bgfxDelta = 0, glDelta = 0;
+        if (twoLightBgfxSubmitted)
+          for (int y = 20; y < 105; ++y)
+            for (int x = 20; x < 105; ++x) {
+              bgfxDelta = std::max(bgfxDelta, std::abs(
+                luminanceRgba(dualPixels, x, y) - luminanceRgba(afterThree, x, y)));
+              glDelta = std::max(glDelta, std::abs(
+                luminance(glDual, x, y) - luminance(glThree, x, y)));
+            }
+        std::cout << "three lights Coin/GL/BGFX delta=" << glDelta << '/' << bgfxDelta << '\n';
+        twoLightBgfxSubmitted = twoLightBgfxSubmitted && glDelta > 0 &&
+          bgfxDelta > 0 && std::abs(glDelta - bgfxDelta) <= 130;
+      }
+      auto * fourth = new SoShadowDirectionalLight;
+      fourth->direction.setValue(0.5f, -0.4f, -1.0f);
+      fourth->intensity = 0.35f;
+      group->insertChild(fourth, 3);
+      dualAction.apply(root);
+      std::vector<unsigned char> afterFour;
+      if (dualAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        dualTarget->readbackRGBA(afterFour);
+      const bool fourSubmitted = dualAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+        afterFour.size() == dualPixels.size();
+      if (!fourSubmitted)
+        std::cerr << "BGFX four-light frame: " << dualAction.getLastError().getString() << '\n';
+      twoLightBgfxSubmitted = twoLightBgfxSubmitted && fourSubmitted;
+      if (fourSubmitted && compareGl) {
+        auto * copy = static_cast<SoSeparator *>(root->copy(TRUE));
+        copy->ref();
+        twoLightBgfxSubmitted = render(multiGl, copy, glFour);
+        copy->unref();
+        int bgfxDelta = 0, glDelta = 0;
+        if (twoLightBgfxSubmitted)
+          for (int y = 20; y < 105; ++y)
+            for (int x = 20; x < 105; ++x) {
+              bgfxDelta = std::max(bgfxDelta, std::abs(
+                luminanceRgba(afterThree, x, y) - luminanceRgba(afterFour, x, y)));
+              glDelta = std::max(glDelta, std::abs(
+                luminance(glThree, x, y) - luminance(glFour, x, y)));
+            }
+        std::cout << "four lights Coin/GL/BGFX delta=" << glDelta << '/' << bgfxDelta << '\n';
+        twoLightBgfxSubmitted = twoLightBgfxSubmitted && glDelta > 0 &&
+          bgfxDelta > 0 && std::abs(glDelta - bgfxDelta) <= 130;
+      }
+      auto * fifth = new SoShadowSpotLight;
+      fifth->location.setValue(0.0f, 4.0f, 4.0f);
+      fifth->direction.setValue(0.0f, -3.0f, -5.0f);
+      fifth->cutOffAngle = 0.9f;
+      group->insertChild(fifth, 4);
+      const uint64_t fourSerial = dualTarget->getLastSubmissionSerial();
+      dualAction.apply(root);
+      std::vector<unsigned char> afterFive;
+      dualTarget->readbackRGBA(afterFive);
+      twoLightBgfxSubmitted = twoLightBgfxSubmitted &&
+        dualAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+        dualTarget->getLastSubmissionSerial() == fourSerial && afterFive == afterFour;
+      group->removeChild(fifth);
+      group->removeChild(fourth);
       group->removeChild(third);
       dualAction.apply(root);
       std::vector<unsigned char> recovered;
@@ -547,7 +626,7 @@ int main()
         dualTarget->readbackRGBA(recovered);
       twoLightBgfxSubmitted = twoLightBgfxSubmitted &&
         dualAction.getLastStatus() == CoinRenderAction::SUCCESS &&
-        dualTarget->getLastSubmissionSerial() > serial && recovered == dualPixels;
+        dualTarget->getLastSubmissionSerial() > fourSerial && recovered == dualPixels;
     }
     if (twoLightBgfxSubmitted) {
       const int resized = 160;
