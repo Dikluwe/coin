@@ -14,8 +14,11 @@
 #include <cstddef>
 #include <cstring>
 
-static_assert(sizeof(CoinWgpuFrameView) == 216, "Frame view ABI size changed");
+static_assert(sizeof(CoinWgpuFrameView) == 232, "Frame view ABI size changed");
 static_assert(sizeof(CoinWgpuShadowDraw) == 144, "Shadow draw ABI size changed");
+static_assert(sizeof(CoinWgpuShadowReceiver) == 144, "Shadow receiver ABI size changed");
+static_assert(offsetof(CoinWgpuFrameView, shadow_receivers) == 216,
+              "Shadow receivers ABI offset changed");
 static_assert(offsetof(CoinWgpuFrameView, shadow_casters) == 176,
               "Shadow casters ABI offset changed");
 static_assert(offsetof(CoinWgpuFrameView, shadow_map_size) == 192,
@@ -397,6 +400,10 @@ CoinWgpuFfiFrame::bindView(const CoinRenderFramePlan & frame, uint32_t width, ui
     this->view.shadow_epsilon = frame.shadowGroups[0].epsilon;
     this->view.shadow_threshold = frame.shadowGroups[0].threshold;
   }
+  this->view.shadow_receivers = this->shadowFrame.receivers.empty()
+    ? NULL : this->shadowFrame.receivers.data();
+  this->view.shadow_receiver_count =
+    static_cast<uint64_t>(this->shadowFrame.receivers.size());
 }
 
 const CoinWgpuFrameView &

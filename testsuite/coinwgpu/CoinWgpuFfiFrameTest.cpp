@@ -186,11 +186,16 @@ main()
   shadow.lightingStates[0].lights.push_back(lit);
   shadow.cameras.resize(1);
   shadow.viewports.resize(1);
-  shadow.renderStates.resize(1);
+  shadow.renderStates.resize(2);
   shadow.renderStates[0].shadowGroupSlot = 1;
-  shadow.draws.resize(1);
+  shadow.renderStates[0].shadowStyle = 1; // caster only
+  shadow.renderStates[1] = shadow.renderStates[0];
+  shadow.renderStates[1].shadowStyle = 2; // receiver only
+  shadow.draws.resize(2);
   shadow.draws[0].geometry.vertexCount = 3;
   shadow.draws[0].geometry.indexCount = 3;
+  shadow.draws[1] = shadow.draws[0];
+  shadow.draws[1].renderStateSlot = 1;
   CoinRenderShadowGroupSnapshot group;
   group.sourceRevision = 5;
   shadow.shadowGroups.push_back(group);
@@ -214,7 +219,14 @@ main()
                shadowPacked.getShadowFrame().casters.data() &&
              shadowPacked.getView().shadow_caster_count == 1 &&
              shadowPacked.getView().shadow_map_size == 1024,
-             "spot caster ABI view was not bound"))
+             "spot caster ABI view was not bound") ||
+      !check(shadowPacked.getView().shadow_receivers ==
+               shadowPacked.getShadowFrame().receivers.data() &&
+             shadowPacked.getView().shadow_receiver_count == 2 &&
+             shadowPacked.getView().shadow_receivers[0].receives == 0 &&
+             shadowPacked.getView().shadow_receivers[1].receives == 1 &&
+             shadowPacked.getView().shadow_receivers[1].lighting_index == 0,
+             "spot receiver state was not transported"))
     return 1;
   const auto & caster = shadowPacked.getShadowFrame().casters[0];
   SbMatrix shadowMvp;

@@ -76,7 +76,8 @@ lidos de volta e os momentos no pixel central conferidos com a distância
 linear do caster frontal, mesmo com o traseiro submetido por último. Passou
 em AMD Radeon Graphics (RADV RENOIR), Vulkan/radv, com
 `COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU=1 cargo test --manifest-path
-src/rendering/coinwgpu/rust_bridge/Cargo.toml --offline --test shadow_map_gpu`.
+src/rendering/coinwgpu/rust_bridge/Cargo.toml --offline --lib
+captured_casters_write_front_moments`.
 O Core agora delimita esse primeiro perfil: um grupo, uma luz spot visível,
 triângulos PHONG opacos sem textura, clipping ou névoa, com a luz antes dos
 desenhos. A fixture opaca entra; transparência e luz posterior ficam fora.
@@ -85,9 +86,9 @@ comum, preserva seus índices de geometria e calcula as matrizes de clip wgpu;
 o teste de FFI confere projeção e rejeição de índices inválidos. A ABI privada
 C++/Rust 31 transporta esses casters e os parâmetros do mapa; a ponte Rust
 retorna `UNSUPPORTED` antes da submissão enquanto o encoder não os usa, e o
-teste direto confirma que o serial não avança. Ainda falta executar os casters
-capturados no encoder, aplicar o lookup VSM aos receivers e comparar o quadro
-final à fixture GL.
+teste direto confirma que o serial não avança. O módulo Rust de momentos executa diretamente os casters ABI e passou no
+teste GPU com readback; ainda falta chamá-lo pelo encoder de quadro, aplicar o
+lookup VSM aos receivers e comparar o quadro final à fixture GL.
 
 ## Trabalho funcional para fechar
 

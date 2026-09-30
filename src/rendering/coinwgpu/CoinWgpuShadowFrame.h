@@ -15,6 +15,7 @@ struct CoinWgpuShadowFrame {
   float nearDistance = 0.0f;
   float farDistance = 0.0f;
   std::vector<CoinWgpuShadowDraw> casters;
+  std::vector<CoinWgpuShadowReceiver> receivers;
 
   bool prepare(const CoinRenderFramePlan & frame, std::string & diagnostic)
   {
@@ -38,6 +39,30 @@ struct CoinWgpuShadowFrame {
       0.0f, 0.0f, 0.5f, 0.0f,
       0.0f, 0.0f, 0.5f, 1.0f);
     const SbMatrix projectionWgpu = pass.projectionCoin * clipConversion;
+    candidate.receivers.resize(frame.renderStates.size());
+    for (size_t stateSlot = 0; stateSlot < frame.renderStates.size(); ++stateSlot) {
+      const auto & state = frame.renderStates[stateSlot];
+      if (state.shadowGroupSlot != pass.groupSlot) continue;
+      CoinWgpuShadowReceiver & receiver = candidate.receivers[stateSlot];
+      receiver.receives = (state.shadowStyle & 2u) != 0 ? 1u : 0u;
+      receiver.lighting_index = pass.lightingIndexByState[stateSlot];
+      const SbMatrix modelView = state.model * pass.view;
+      const SbMatrix mvp = modelView * projectionWgpu;
+      std::memcpy(receiver.model_view, modelView.getValue(),
+                  sizeof(receiver.model_view));
+      std::memcpy(receiver.model_view_projection, mvp.getValue(),
+                  sizeof(receiver.model_view_projection));
+      for (const float value : receiver.model_view)
+        if (!std::isfinite(value)) {
+          diagnostic = "Shadow receiver has a non-finite model-view matrix";
+          return false;
+        }
+      for (const float value : receiver.model_view_projection)
+        if (!std::isfinite(value)) {
+          diagnostic = "Shadow receiver has a non-finite projection";
+          return false;
+        }
+    }
     for (const uint32_t drawSlot : pass.casterDraws) {
       if (drawSlot >= frame.draws.size()) {
         diagnostic = "Shadow caster references an invalid draw";
