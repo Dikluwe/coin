@@ -23,6 +23,8 @@ struct CoinRenderShadowPass {
   SbMatrix projectionCoin = SbMatrix::identity();
   float nearDistance = 0.1f;
   float farDistance = 100.0f;
+  // Coin/GL normalizes VSM moments with a farther range than the camera clips.
+  float vsmFarDistance = 100.0f;
   float epsilon = 0.00001f;
   float threshold = 0.1f;
   float maxShadowDistance = -1.0f;
@@ -208,6 +210,7 @@ coin_render_shadow_camera(const CoinRenderShadowGroupSnapshot & group,
     }
     pass.nearDistance = nearDistance;
     pass.farDistance = farDistance;
+    pass.vsmFarDistance = farDistance / std::cos(halfAngle * 2.0f);
     volume.perspective(halfAngle * 2.0f, 1.0f, nearDistance, farDistance);
     volume.rotateCamera(orientation);
     volume.translateCamera(position);
@@ -260,11 +263,17 @@ coin_render_shadow_camera(const CoinRenderShadowGroupSnapshot & group,
       diagnostic = "Shadow directional light has an invalid volume";
       return false;
     }
+    pass.vsmFarDistance = pass.farDistance * 1.1f;
     volume.ortho(centerX - halfWidth, centerX + halfWidth,
                  centerY - halfHeight, centerY + halfHeight,
                  pass.nearDistance, pass.farDistance);
     volume.rotateCamera(orientation);
     volume.translateCamera(position);
+  }
+  if (!std::isfinite(pass.vsmFarDistance) ||
+      pass.vsmFarDistance <= pass.nearDistance) {
+    diagnostic = "Shadow VSM far distance is invalid";
+    return false;
   }
   volume.getMatrices(pass.view, pass.projectionCoin);
   return true;

@@ -281,8 +281,20 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   após gerar os mapas, e o teste rejeita um receiver GL inteiramente preto.
   Com isso o delta RTT atual é 225/291 nos dois backends; uma repetição
   diagnóstica do far VSM corrigido em wgpu mediu 225/213, dentro da
-  tolerância. A correção VSM experimental continua retirada até qualificar
-  também os spots tardios. A rejeição atômica permanece ativa. O Coin/GL
+  tolerância. O Core agora guarda `vsmFarDistance` separado do `farDistance`
+  da câmera: spot usa `farDistance / cos(2 * min(cutOffAngle, 0,78))` e
+  direcional usa `farDistance * 1,1`. As fixtures verificam o valor spot,
+  o override explícito e o direcional; a Infra ainda usa o far anterior.
+  Ao experimentar o novo valor global no wgpu, um spot cuja luz vem após
+  o receiver passou de 30 para 126 no pixel de controle, contra 33 no
+  Coin/GL. No shader GL, a sonda mostrou o mesmo primeiro momento do mapa
+  para as duas ordens (~3/765), mas o fator VSM caiu de ~117/765 para
+  ~3/765 porque a distância calculada via `gl_LightSource` mudou de ~6,75
+  para ~9,57 quando a luz foi movida após o desenho. Um renderer GL novo
+  reproduziu o resultado. A coincidência visual anterior nesse pixel não
+  qualifica o novo far para luzes tardias; a ordem precisa de contrato
+  próprio antes de ativar o transporte VSM nos backends e liberar spots
+  no segundo lote. A rejeição atômica permanece ativa. O Coin/GL
   seleciona a quantidade de mapas pelas unidades de textura disponíveis
   menos as usadas pela cena (`SoShadowGroupP::updateShadowLights`); seu
   limite não é fixo em quatro. Uma falha de alocação de oito mapas no wgpu

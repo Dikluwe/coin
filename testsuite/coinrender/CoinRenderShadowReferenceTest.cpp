@@ -284,7 +284,8 @@ int main()
                    planned.passes[0].visible &&
                    planned.passes[0].perFragmentLighting &&
                    planned.passes[0].nearDistance > 0.0f &&
-                   planned.passes[0].farDistance > planned.passes[0].nearDistance;
+                   planned.passes[0].farDistance > planned.passes[0].nearDistance &&
+                   std::abs(planned.passes[0].vsmFarDistance - 768.674f) < 0.1f;
   std::string spotProfileDiagnostic;
   const bool spotProfile = coin_render_shadow_single_spot_opaque_profile(
     captured, planned, spotProfileDiagnostic);
@@ -2459,7 +2460,9 @@ int main()
   const bool spotRangeCaptured = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
       overriddenPasses.size() == 1 &&
       overriddenPasses[0].nearDistance == 2.0f &&
-      overriddenPasses[0].farDistance == 12.0f;
+      overriddenPasses[0].farDistance == 12.0f &&
+      std::abs(overriddenPasses[0].vsmFarDistance -
+               12.0f / std::cos(1.56f)) < 0.01f;
   light->nearDistance = -1.0f;
   light->farDistance = -1.0f;
   group->isActive = FALSE;
@@ -2484,7 +2487,9 @@ int main()
       directionalPlan.passes.size() == 1 &&
       directionalPlan.passes[0].lightSlot == 1 &&
       directionalPlan.passes[0].visible &&
-      directionalPlan.passes[0].perFragmentLighting;
+      directionalPlan.passes[0].perFragmentLighting &&
+      std::abs(directionalPlan.passes[0].vsmFarDistance -
+               directionalPlan.passes[0].farDistance * 1.1f) < 0.001f;
   group->quality = 0.2f;
   action.apply(root);
   const auto & lowQualityFrame = action.getPimpl()->lastRejectedShadowFrame;
