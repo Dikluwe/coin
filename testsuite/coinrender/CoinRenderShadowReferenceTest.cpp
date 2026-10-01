@@ -837,6 +837,20 @@ int main()
       std::string::npos;
   ordinaryLightQualified = ordinaryLightQualified && internalOrdinaryRejected;
   ordinaryRoot->unref();
+  auto * pointRoot = static_cast<SoSeparator *>(root->copy(TRUE));
+  pointRoot->ref();
+  auto * inheritedPoint = new SoPointLight;
+  inheritedPoint->location.setValue(0.0f, 2.0f, 4.0f);
+  pointRoot->insertChild(inheritedPoint, 1);
+  action.apply(pointRoot);
+  std::string pointDiagnostic;
+  const bool inheritedPointRejected =
+    !coin_render_shadow_single_spot_opaque_profile(
+      action.getPimpl()->lastRejectedShadowFrame,
+      action.getPimpl()->lastRejectedShadowPlan, pointDiagnostic) &&
+    pointDiagnostic.find("unmatched Coin light") != std::string::npos;
+  ordinaryLightQualified = ordinaryLightQualified && inheritedPointRejected;
+  pointRoot->unref();
   // Qualify the common two-pass Coin contract and execute both maps on wgpu.
   auto * secondShadowLight = new SoShadowDirectionalLight;
   secondShadowLight->direction.setValue(-0.4f, -0.4f, -1.0f);

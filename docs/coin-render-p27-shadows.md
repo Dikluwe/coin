@@ -260,7 +260,9 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   planas. Ligar essa luz mudou a cena em 152 no Coin/GL, BGFX e wgpu. A luz
   comum inserida dentro do grupo continua `UNSUPPORTED`: nessa fixture o
   Coin/GL não alterou pixels, enquanto o caminho de iluminação comum dos
-  executores a somaria. Outras luzes herdadas e combinações permanecem abertas.
+  executores a somaria. A luz pontual herdada também permanece fora do perfil;
+  sua atenuação espacial precisa de comparação própria. Outras combinações
+  permanecem abertas.
 - [x] **Múltiplos alvos offscreen:** dois alvos simultâneos de 128×128 e
   160×160 executam sombra ativa em BGFX e wgpu; intercalar submissões não
   altera os pixels do primeiro alvo e cada serial avança independentemente.

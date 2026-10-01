@@ -518,8 +518,7 @@ coin_render_shadow_opaque_profile(
     const bool externalOrdinary = state.shadowGroupSlot != 0 &&
       std::any_of(lights.begin(), lights.end(),
       [&](const CoinRenderLightSourceSnapshot & source) {
-        if (source.type != CoinRenderLightType::DIRECTIONAL &&
-            source.type != CoinRenderLightType::POINT) return false;
+        if (source.type != CoinRenderLightType::DIRECTIONAL) return false;
         return std::none_of(frame.shadowLights.begin(), frame.shadowLights.end(),
           [&](const CoinRenderShadowLightSnapshot & light) {
             return light.groupSlot == state.shadowGroupSlot &&
@@ -618,8 +617,7 @@ coin_render_shadow_opaque_profile(
       if (claimed[i]) continue;
       const auto & source = lights[i];
       const bool ordinary =
-        (source.type == CoinRenderLightType::DIRECTIONAL ||
-         source.type == CoinRenderLightType::POINT) &&
+        source.type == CoinRenderLightType::DIRECTIONAL &&
         std::none_of(frame.shadowLights.begin(), frame.shadowLights.end(),
           [&](const CoinRenderShadowLightSnapshot & light) {
             return light.groupSlot == state.shadowGroupSlot &&
