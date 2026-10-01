@@ -213,7 +213,7 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   Coin/GL: deltas máximos 666/735 (terceira) e 228/195 (quarta), GL/BGFX.
   A quinta luz foi rejeitada antes da publicação e o quadro de duas luzes
   recuperado. A qualificação desta célula usa Vulkan/NVIDIA e GL/Mesa.
-- [x] **wgpu, três/quatro luzes opacas:** a ABI privada 36 carrega até
+- [x] **wgpu, três/quatro luzes opacas:** a ABI privada 37 carrega até
   quatro passes, o encoder escreve mapas independentes e o shader aplica
   VSM por contribuição da luz resolvida no Core. A fixture submeteu três e
   quatro luzes com readback: deltas máximos 666/723 e 228/228, Coin/GL e
@@ -231,8 +231,7 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   A fixture da subárvore conta duas formas em separadores aninhados e
   verifica a seleção de ambas. Ao trocar cena própria por grupo inteiro,
   mediu diferenças máximas 420/576 para a forma direta e 426/531 para a
-  subárvore traduzida, em
-  Coin/GL e BGFX ou wgpu (tolerância 180). Uma subárvore com `SoShadowStyle`
+  subárvore traduzida, em Coin/GL e BGFX ou wgpu (tolerância 180). Uma subárvore com `SoShadowStyle`
   interno continua `UNSUPPORTED` sem publicar pixels nem serial. Faltam os
   demais nós e estados de cena própria, transformações herdadas e subárvores
   que precisem de travessia separada.
@@ -259,10 +258,12 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   daquele grupo. BGFX e wgpu renderizaram dois grupos separados, com o estilo
   de recepção do segundo alternado: delta máximo 483 no Coin/GL e 588 em
   ambos os executores; os pixels do primeiro grupo permaneceram idênticos.
-  O perfil exige `epsilon` e `threshold` iguais nos grupos. Uma sondagem
-  com `epsilon=0,00002` e `threshold=0,12` no segundo grupo marcou delta
-  396 no Coin/GL e 588 no BGFX; a ABI wgpu atual ainda transporta esses
-  parâmetros uma vez por quadro. Essa combinação segue sem qualificação.
+  `epsilon` e `threshold` agora são resolvidos por pass no Core e
+  transportados separadamente em BGFX e na ABI wgpu 37. Alternar apenas o
+  segundo grupo para `epsilon=0,00002` e `threshold=0,12` mudou a região
+  desse grupo em 138 no Coin/GL, 6 no BGFX e 12 no wgpu (tolerância 150);
+  a região do primeiro grupo manteve pixels idênticos. Essa diferença de
+  magnitude permanece registrada para uma calibração visual posterior.
   Um grupo ativo ao lado de um inativo agora também executa como composição
   opaca: o Core mantém os desenhos do irmão inativo na iluminação Coin comum,
   sem atribuir-lhes pass de sombra. Alternar o segundo grupo para inativo

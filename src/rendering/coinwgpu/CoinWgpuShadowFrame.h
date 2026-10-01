@@ -36,6 +36,8 @@ struct CoinWgpuShadowPass {
   uint32_t kind = 0; // 0=directional axial distance, 1=spot radial distance
   float nearDistance = 0.0f;
   float farDistance = 0.0f;
+  float epsilon = 0.0f;
+  float threshold = 0.0f;
   std::vector<CoinWgpuShadowDraw> casters;
   std::vector<CoinWgpuShadowReceiver> receivers;
 };
@@ -85,6 +87,8 @@ struct CoinWgpuShadowFrame : CoinWgpuShadowPass {
       packedPass.kind = frame.shadowLights[pass.lightSlot].type == CoinRenderLightType::SPOT ? 1u : 0u;
       packedPass.nearDistance = pass.nearDistance;
       packedPass.farDistance = pass.farDistance;
+      packedPass.epsilon = pass.epsilon;
+      packedPass.threshold = pass.threshold;
       const SbMatrix projectionWgpu = pass.projectionCoin * clipConversion;
       packedPass.receivers.resize(frame.renderStates.size());
       for (size_t stateSlot = 0; stateSlot < frame.renderStates.size(); ++stateSlot) {

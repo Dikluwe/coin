@@ -14,7 +14,9 @@
 #include <cstddef>
 #include <cstring>
 
-static_assert(sizeof(CoinWgpuFrameView) == 376, "Frame view ABI size changed");
+static_assert(sizeof(CoinWgpuFrameView) == 400, "Frame view ABI size changed");
+static_assert(offsetof(CoinWgpuFrameView, shadow_epsilon_second) == 376,
+              "Frame view per-pass VSM ABI offset changed");
 static_assert(sizeof(CoinWgpuShadowDraw) == 144, "Shadow draw ABI size changed");
 static_assert(sizeof(CoinWgpuShadowReceiver) == 144, "Shadow receiver ABI size changed");
 static_assert(offsetof(CoinWgpuShadowReceiver, max_shadow_distance) == 8,
@@ -406,10 +408,8 @@ CoinWgpuFfiFrame::bindView(const CoinRenderFramePlan & frame, uint32_t width, ui
   this->view.shadow_kind = this->shadowFrame.kind;
   this->view.shadow_near_distance = this->shadowFrame.nearDistance;
   this->view.shadow_far_distance = this->shadowFrame.farDistance;
-  if (!frame.shadowGroups.empty()) {
-    this->view.shadow_epsilon = frame.shadowGroups[0].epsilon;
-    this->view.shadow_threshold = frame.shadowGroups[0].threshold;
-  }
+  this->view.shadow_epsilon = this->shadowFrame.epsilon;
+  this->view.shadow_threshold = this->shadowFrame.threshold;
   this->view.shadow_receivers = this->shadowFrame.receivers.empty()
     ? NULL : this->shadowFrame.receivers.data();
   this->view.shadow_receiver_count =
@@ -422,6 +422,8 @@ CoinWgpuFfiFrame::bindView(const CoinRenderFramePlan & frame, uint32_t width, ui
     this->view.shadow_near_distance_second = second.nearDistance;
     this->view.shadow_far_distance_second = second.farDistance;
     this->view.shadow_kind_second = second.kind;
+    this->view.shadow_epsilon_second = second.epsilon;
+    this->view.shadow_threshold_second = second.threshold;
     this->view.shadow_receivers_second = second.receivers.data();
     this->view.shadow_receiver_count_second = static_cast<uint64_t>(second.receivers.size());
   }
@@ -433,6 +435,8 @@ CoinWgpuFfiFrame::bindView(const CoinRenderFramePlan & frame, uint32_t width, ui
     this->view.shadow_near_distance_third = pass.nearDistance;
     this->view.shadow_far_distance_third = pass.farDistance;
     this->view.shadow_kind_third = pass.kind;
+    this->view.shadow_epsilon_third = pass.epsilon;
+    this->view.shadow_threshold_third = pass.threshold;
     this->view.shadow_receivers_third = pass.receivers.data();
     this->view.shadow_receiver_count_third = static_cast<uint64_t>(pass.receivers.size());
   }
@@ -444,6 +448,8 @@ CoinWgpuFfiFrame::bindView(const CoinRenderFramePlan & frame, uint32_t width, ui
     this->view.shadow_near_distance_fourth = pass.nearDistance;
     this->view.shadow_far_distance_fourth = pass.farDistance;
     this->view.shadow_kind_fourth = pass.kind;
+    this->view.shadow_epsilon_fourth = pass.epsilon;
+    this->view.shadow_threshold_fourth = pass.threshold;
     this->view.shadow_receivers_fourth = pass.receivers.data();
     this->view.shadow_receiver_count_fourth = static_cast<uint64_t>(pass.receivers.size());
   }

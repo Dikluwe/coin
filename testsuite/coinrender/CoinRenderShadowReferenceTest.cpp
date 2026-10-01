@@ -686,6 +686,62 @@ int main()
       glNoReceiveRoot->unref();
     }
     std::cout << "sibling groups Coin/GL/GPU delta=" << glDelta << '/' << gpuDelta << '\n';
+    if (siblingShadowGroupsQualified) {
+      const float baseEpsilon = secondGroup->epsilon.getValue();
+      const float baseThreshold = secondGroup->threshold.getValue();
+      secondGroup->epsilon = 0.00002f;
+      secondGroup->threshold = 0.12f;
+      siblingAction.apply(siblings);
+      std::vector<unsigned char> gpuDistinct, gpuShared;
+      const bool distinctOk = siblingAction.getLastStatus() == CoinRenderAction::SUCCESS;
+      if (distinctOk) siblingTarget->readbackRGBA(gpuDistinct);
+      secondGroup->epsilon = baseEpsilon;
+      secondGroup->threshold = baseThreshold;
+      siblingAction.apply(siblings);
+      const bool sharedOk = siblingAction.getLastStatus() == CoinRenderAction::SUCCESS;
+      if (sharedOk) siblingTarget->readbackRGBA(gpuShared);
+      int distinctGpuDelta = 0, distinctGlDelta = 0;
+      bool distinctQualified = distinctOk && sharedOk &&
+        gpuDistinct.size() == gpuShared.size();
+      if (distinctQualified)
+        for (int y = 20; y < 105; ++y) {
+          for (int x = 65; x < 125; ++x)
+            distinctGpuDelta = std::max(distinctGpuDelta, std::abs(
+              luminanceRgba(gpuDistinct, x, y) - luminanceRgba(gpuShared, x, y)));
+          for (int x = 20; x < 50; ++x)
+            distinctQualified = distinctQualified &&
+              luminanceRgba(gpuDistinct, x, y) == luminanceRgba(gpuShared, x, y);
+        }
+      if (distinctQualified && std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
+        auto * glShared = static_cast<SoSeparator *>(siblings->copy(TRUE));
+        glShared->ref();
+        secondGroup->epsilon = 0.00002f;
+        secondGroup->threshold = 0.12f;
+        auto * glDistinct = static_cast<SoSeparator *>(siblings->copy(TRUE));
+        glDistinct->ref();
+        secondGroup->epsilon = baseEpsilon;
+        secondGroup->threshold = baseThreshold;
+        SoOffscreenRenderer distinctGl(SbViewportRegion(side, side));
+        distinctGl.setComponents(SoOffscreenRenderer::RGB);
+        std::vector<unsigned char> glSharedPixels, glDistinctPixels;
+        distinctQualified = render(distinctGl, glShared, glSharedPixels) &&
+          render(distinctGl, glDistinct, glDistinctPixels);
+        if (distinctQualified)
+          for (int y = 20; y < 105; ++y)
+            for (int x = 65; x < 125; ++x)
+              distinctGlDelta = std::max(distinctGlDelta, std::abs(
+                luminance(glSharedPixels, x, y) -
+                luminance(glDistinctPixels, x, y)));
+        glDistinct->unref();
+        glShared->unref();
+      }
+      std::cout << "distinct sibling VSM Coin/GL/GPU delta=" <<
+        distinctGlDelta << '/' << distinctGpuDelta << '\n';
+      siblingShadowGroupsQualified = distinctQualified && distinctGpuDelta > 0 &&
+        (!std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") ||
+         (distinctGlDelta > 0 &&
+          std::abs(distinctGlDelta - distinctGpuDelta) <= 150));
+    }
     if (!siblingShadowGroupsQualified)
       std::cerr << "sibling shadow groups: " << siblingAction.getLastError().getString() << '\n';
     siblingAction.setRenderTarget(nullptr);

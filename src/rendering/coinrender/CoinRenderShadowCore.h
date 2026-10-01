@@ -454,10 +454,8 @@ coin_render_shadow_opaque_profile(
     return false;
   }
   for (const auto & group : frame.shadowGroups)
-    if (group.smoothBorder != 0.0f ||
-        group.epsilon != frame.shadowGroups[0].epsilon ||
-        group.threshold != frame.shadowGroups[0].threshold) {
-      diagnostic = "Opaque shadow profile requires shared VSM parameters and no smooth borders";
+    if (group.smoothBorder != 0.0f) {
+      diagnostic = "Opaque shadow profile requires no smooth borders";
       return false;
     }
   for (size_t p = 0; p < lightCount; ++p) {
