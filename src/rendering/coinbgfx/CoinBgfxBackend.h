@@ -10,6 +10,8 @@
 #include <memory>
 #include <thread>
 
+struct CoinRenderShadowPlan;
+
 /** Experimental BGFX renderer. Targets share an API-thread-owned device. */
 class CoinBgfxBackend : public CoinRenderBackend {
 public:
@@ -102,6 +104,10 @@ private:
   void bindDrawTexture(const CoinBgfxDraw & draw,
                        const std::vector<bgfx::TextureHandle> & textures);
   void bindDrawLighting(const CoinBgfxDraw & draw, int targetHeight = 0);
+  void bindShadowReceiver(const CoinRenderFramePlan & frame,
+                          const CoinRenderShadowPlan & shadowPlan,
+                          const std::vector<bgfx::FrameBufferHandle> & shadowMaps,
+                          const CoinBgfxDraw & draw, int targetHeight);
   bool onApiThread() const;
   CoinRenderBackendStatus status;
 

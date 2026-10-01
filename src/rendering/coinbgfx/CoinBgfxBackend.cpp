@@ -1637,6 +1637,61 @@ CoinBgfxBackend::submitAsync(const CoinRenderFramePlan & frame, CoinRenderTarget
   return this->submitInternal(frame, target, reuse, &ticket);
 }
 
+void
+CoinBgfxBackend::bindShadowReceiver(
+  const CoinRenderFramePlan & frame, const CoinRenderShadowPlan & shadowPlan,
+  const std::vector<bgfx::FrameBufferHandle> & shadowMaps,
+  const CoinBgfxDraw & original, int targetHeight)
+{
+  CoinBgfxDraw shaded = original;
+  float indices[4] = {-1.0f, -1.0f, -1.0f, -1.0f};
+  const auto & state = frame.renderStates[original.renderStateSlot];
+  const SbMatrix clipConversion(
+    1.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 0.5f, 0.0f,
+    0.0f, 0.0f, 0.5f, 1.0f);
+  for (size_t slot = 0; slot < shadowPlan.passes.size(); ++slot) {
+    const auto & pass = shadowPlan.passes[slot];
+    if (state.shadowGroupSlot != pass.groupSlot ||
+        (state.shadowStyle & 2u) == 0) continue;
+    int32_t index = pass.lightingIndexByState[original.renderStateSlot];
+    if (index == -1) {
+      index = static_cast<int32_t>(shaded.lightCount[0]++);
+      const auto & light = pass.resolvedLightByState[original.renderStateSlot];
+      for (int c = 0; c < 3; ++c) {
+        shaded.lightPositionType[index][c] = light.position[c];
+        shaded.lightDirectionCutoff[index][c] = light.direction[c];
+        shaded.lightColorIntensity[index][c] = light.color[c];
+        shaded.lightAttenuationDrop[index][c] = light.attenuation[c];
+      }
+      shaded.lightPositionType[index][3] = static_cast<float>(light.type);
+      shaded.lightDirectionCutoff[index][3] = std::cos(light.cutOffAngle);
+      shaded.lightColorIntensity[index][3] = light.intensity;
+      shaded.lightAttenuationDrop[index][3] = light.dropOffRate;
+    }
+    indices[slot] = static_cast<float>(index);
+    const SbMatrix viewToLight = state.view.inverse() * pass.view;
+    const SbMatrix projection = bgfx::getCaps()->homogeneousDepth ? pass.projectionCoin :
+      pass.projectionCoin * clipConversion;
+    const SbMatrix viewToClip = viewToLight * projection;
+    const float params[4] = {pass.nearDistance, pass.farDistance,
+                             pass.epsilon, pass.threshold};
+    const float meta[4] = {
+      frame.shadowLights[pass.lightSlot].type == CoinRenderLightType::SPOT ? 1.0f : 0.0f,
+      pass.maxShadowDistance, pass.distanceFalloffCoefficient,
+      bgfx::getCaps()->originBottomLeft ? 1.0f : 0.0f};
+    bgfx::setUniform(this->shadowViewToLightUniform[slot], viewToLight.getValue());
+    bgfx::setUniform(this->shadowViewToClipUniform[slot], viewToClip.getValue());
+    bgfx::setUniform(this->shadowParamsUniform[slot], params);
+    bgfx::setUniform(this->shadowMetaUniform[slot], meta);
+    bgfx::setTexture(static_cast<uint8_t>(10 + slot), this->shadowSampler[slot],
+      bgfx::getTexture(shadowMaps[slot], 0));
+  }
+  bgfx::setUniform(this->shadowLightIndicesUniform, indices);
+  this->bindDrawLighting(shaded, targetHeight);
+}
+
 CoinRenderSubmitResult
 CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
   const CoinRenderFrameReuseDecision & reuse, CoinRenderReadbackTicket * outTicket)
@@ -2021,55 +2076,6 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   const std::vector<CoinBgfxDraw> & draws =
     (this->drawGroupingEnabled && !hasShadows) ? groupedDraws : sourceDraws;
   const LogicalDrawStats drawStats = logicalDrawStats(sourceDraws, draws);
-  const auto bindShadowReceiver = [&](const CoinBgfxDraw & original) {
-    CoinBgfxDraw shaded = original;
-    float indices[4] = {-1.0f, -1.0f, -1.0f, -1.0f};
-    const auto & state = frame.renderStates[original.renderStateSlot];
-    const SbMatrix clipConversion(
-      1.0f, 0.0f, 0.0f, 0.0f,
-      0.0f, 1.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 0.5f, 0.0f,
-      0.0f, 0.0f, 0.5f, 1.0f);
-    for (size_t slot = 0; slot < shadowPlan.passes.size(); ++slot) {
-      const auto & pass = shadowPlan.passes[slot];
-      if (state.shadowGroupSlot != pass.groupSlot ||
-          (state.shadowStyle & 2u) == 0) continue;
-      int32_t index = pass.lightingIndexByState[original.renderStateSlot];
-      if (index == -1) {
-        index = static_cast<int32_t>(shaded.lightCount[0]++);
-        const auto & light = pass.resolvedLightByState[original.renderStateSlot];
-        for (int c = 0; c < 3; ++c) {
-          shaded.lightPositionType[index][c] = light.position[c];
-          shaded.lightDirectionCutoff[index][c] = light.direction[c];
-          shaded.lightColorIntensity[index][c] = light.color[c];
-          shaded.lightAttenuationDrop[index][c] = light.attenuation[c];
-        }
-        shaded.lightPositionType[index][3] = static_cast<float>(light.type);
-        shaded.lightDirectionCutoff[index][3] = std::cos(light.cutOffAngle);
-        shaded.lightColorIntensity[index][3] = light.intensity;
-        shaded.lightAttenuationDrop[index][3] = light.dropOffRate;
-      }
-      indices[slot] = static_cast<float>(index);
-      const SbMatrix viewToLight = state.view.inverse() * pass.view;
-      const SbMatrix projection = homogeneousDepth ? pass.projectionCoin :
-        pass.projectionCoin * clipConversion;
-      const SbMatrix viewToClip = viewToLight * projection;
-      const float params[4] = {pass.nearDistance, pass.farDistance,
-                               pass.epsilon, pass.threshold};
-      const float meta[4] = {
-        frame.shadowLights[pass.lightSlot].type == CoinRenderLightType::SPOT ? 1.0f : 0.0f,
-        pass.maxShadowDistance, pass.distanceFalloffCoefficient,
-        bgfx::getCaps()->originBottomLeft ? 1.0f : 0.0f};
-      bgfx::setUniform(this->shadowViewToLightUniform[slot], viewToLight.getValue());
-      bgfx::setUniform(this->shadowViewToClipUniform[slot], viewToClip.getValue());
-      bgfx::setUniform(this->shadowParamsUniform[slot], params);
-      bgfx::setUniform(this->shadowMetaUniform[slot], meta);
-      bgfx::setTexture(static_cast<uint8_t>(10 + slot), this->shadowSampler[slot],
-        bgfx::getTexture(shadowMaps.buffers[slot], 0));
-    }
-    bgfx::setUniform(this->shadowLightIndicesUniform, indices);
-    this->bindDrawLighting(shaded);
-  };
   const bool useSortedLayers =
     selectedStrategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS;
   const bool useWeightedOit =
@@ -2083,7 +2089,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     bgfx::setState(drawState(draw));
     if (!setDrawScissor(draw, this->width, this->height)) continue;
     this->bindDrawTexture(draw, textures);
-    if (hasShadows) bindShadowReceiver(draw);
+    if (hasShadows) this->bindShadowReceiver(frame, shadowPlan, shadowMaps.buffers, draw, this->height);
     else this->bindDrawLighting(draw);
     bgfx::submit(opaqueView, hasShadows ? (shadowPlan.passes.size() > 2 ?
       this->shadowReceiverProgram4 : this->shadowReceiverProgram) : this->program);
@@ -2744,55 +2750,6 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     }
   }
   const bgfx::ViewId opaqueView = this->viewBase + static_cast<bgfx::ViewId>(shadowPlan.passes.size());
-  const auto bindShadowReceiver = [&](const CoinBgfxDraw & original) {
-    CoinBgfxDraw shaded = original;
-    float indices[4] = {-1.0f, -1.0f, -1.0f, -1.0f};
-    const auto & state = frame.renderStates[original.renderStateSlot];
-    const SbMatrix clipConversion(
-      1.0f, 0.0f, 0.0f, 0.0f,
-      0.0f, 1.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 0.5f, 0.0f,
-      0.0f, 0.0f, 0.5f, 1.0f);
-    for (size_t slot = 0; slot < shadowPlan.passes.size(); ++slot) {
-      const auto & pass = shadowPlan.passes[slot];
-      if (state.shadowGroupSlot != pass.groupSlot ||
-          (state.shadowStyle & 2u) == 0) continue;
-      int32_t index = pass.lightingIndexByState[original.renderStateSlot];
-      if (index == -1) {
-        index = static_cast<int32_t>(shaded.lightCount[0]++);
-        const auto & light = pass.resolvedLightByState[original.renderStateSlot];
-        for (int c = 0; c < 3; ++c) {
-          shaded.lightPositionType[index][c] = light.position[c];
-          shaded.lightDirectionCutoff[index][c] = light.direction[c];
-          shaded.lightColorIntensity[index][c] = light.color[c];
-          shaded.lightAttenuationDrop[index][c] = light.attenuation[c];
-        }
-        shaded.lightPositionType[index][3] = static_cast<float>(light.type);
-        shaded.lightDirectionCutoff[index][3] = std::cos(light.cutOffAngle);
-        shaded.lightColorIntensity[index][3] = light.intensity;
-        shaded.lightAttenuationDrop[index][3] = light.dropOffRate;
-      }
-      indices[slot] = static_cast<float>(index);
-      const SbMatrix viewToLight = state.view.inverse() * pass.view;
-      const SbMatrix projection = bgfx::getCaps()->homogeneousDepth ? pass.projectionCoin :
-        pass.projectionCoin * clipConversion;
-      const SbMatrix viewToClip = viewToLight * projection;
-      const float params[4] = {pass.nearDistance, pass.farDistance,
-                               pass.epsilon, pass.threshold};
-      const float meta[4] = {
-        frame.shadowLights[pass.lightSlot].type == CoinRenderLightType::SPOT ? 1.0f : 0.0f,
-        pass.maxShadowDistance, pass.distanceFalloffCoefficient,
-        bgfx::getCaps()->originBottomLeft ? 1.0f : 0.0f};
-      bgfx::setUniform(this->shadowViewToLightUniform[slot], viewToLight.getValue());
-      bgfx::setUniform(this->shadowViewToClipUniform[slot], viewToClip.getValue());
-      bgfx::setUniform(this->shadowParamsUniform[slot], params);
-      bgfx::setUniform(this->shadowMetaUniform[slot], meta);
-      bgfx::setTexture(static_cast<uint8_t>(10 + slot), this->shadowSampler[slot],
-        bgfx::getTexture(shadowMaps.buffers[slot], 0));
-    }
-    bgfx::setUniform(this->shadowLightIndicesUniform, indices);
-    this->bindDrawLighting(shaded, size[1]);
-  };
   bgfx::setPaletteColor(0, plan.clearColor);
   bgfx::setViewName(opaqueView, "rtt_opaque");
   bgfx::setViewMode(opaqueView, bgfx::ViewMode::Sequential);
@@ -2809,7 +2766,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     bgfx::setState(drawState(draw));
     if (!setDrawScissor(draw, size[0], size[1])) continue;
     this->bindDrawTexture(draw, textures);
-    if (hasShadows) bindShadowReceiver(draw);
+    if (hasShadows) this->bindShadowReceiver(frame, shadowPlan, shadowMaps.buffers, draw, size[1]);
     else this->bindDrawLighting(draw, size[1]);
     bgfx::submit(opaqueView, hasShadows ? (shadowPlan.passes.size() > 2 ?
       this->shadowReceiverProgram4 : this->shadowReceiverProgram) : this->program);
