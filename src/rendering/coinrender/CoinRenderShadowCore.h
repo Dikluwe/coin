@@ -299,7 +299,10 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
       const auto & light = frame.shadowLights[l];
       if (light.groupSlot != g + 1 || !light.enabled || !light.shadowEligible) continue;
       if (!std::isfinite(light.maxShadowDistance) ||
-          (light.hasCustomScene && !light.customSceneDirectShape) ||
+          (light.hasCustomScene && !light.customSceneDirectShape &&
+           !light.customSceneDirectSubtree) ||
+          (light.customSceneDirectSubtree &&
+           group.entryModel != SbMatrix::identity()) ||
           (light.type != CoinRenderLightType::DIRECTIONAL &&
            light.type != CoinRenderLightType::SPOT)) {
         diagnostic = "Shadow light requires a supported spot/directional scene";
@@ -369,6 +372,7 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
           }
       }
       uint32_t customSceneDraws = 0;
+      std::vector<uint32_t> customShapeDraws(light.customSceneShapeNodeIds.size(), 0);
       for (size_t d = 0; d < frame.draws.size(); ++d) {
         const auto & draw = frame.draws[d];
         if (draw.renderStateSlot >= frame.renderStates.size()) {
@@ -377,24 +381,41 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
         }
         const auto & state = frame.renderStates[draw.renderStateSlot];
         if (state.shadowGroupSlot != pass.groupSlot) continue;
-        if (light.hasCustomScene && draw.sourceNodeId == light.customSceneNodeId) {
+        const bool selectedShape = light.customSceneDirectShape &&
+          draw.sourceNodeId == light.customSceneNodeId;
+        const auto shapeIt = std::find(light.customSceneShapeNodeIds.begin(),
+                                       light.customSceneShapeNodeIds.end(),
+                                       draw.sourceNodeId);
+        const bool selectedSubtree = light.customSceneDirectSubtree &&
+          shapeIt != light.customSceneShapeNodeIds.end();
+        if (selectedShape || selectedSubtree) {
+          if (selectedSubtree)
+            ++customShapeDraws[static_cast<size_t>(
+              shapeIt - light.customSceneShapeNodeIds.begin())];
           ++customSceneDraws;
-          if (state.model != SbMatrix::identity() || (state.shadowStyle & 1u) == 0 ||
-              !state.clipPlanesWorld.empty() ||
-              state.cullMode != CoinRenderCullMode::NONE ||
-              state.frontFace != CoinRenderFrontFace::CCW) {
-            diagnostic = "Direct shadowMapScene shape requires isolated default caster state";
+          if ((state.shadowStyle & 1u) == 0 ||
+              (selectedShape &&
+               (state.model != SbMatrix::identity() ||
+                !state.clipPlanesWorld.empty() ||
+                state.cullMode != CoinRenderCullMode::NONE ||
+                state.frontFace != CoinRenderFrontFace::CCW))) {
+            diagnostic = "shadowMapScene requires isolated casting geometry";
             return false;
           }
         }
         if ((state.shadowStyle & 1u) != 0 &&
-            (!light.hasCustomScene || draw.sourceNodeId == light.customSceneNodeId))
+            (!light.hasCustomScene || selectedShape || selectedSubtree))
           pass.casterDraws.push_back(static_cast<uint32_t>(d));
         if ((state.shadowStyle & 2u) != 0)
           pass.receiverDraws.push_back(static_cast<uint32_t>(d));
       }
-      if (light.hasCustomScene && customSceneDraws != 1) {
-        diagnostic = "Direct shadowMapScene shape must occur exactly once in its group";
+      if (light.hasCustomScene &&
+          (customSceneDraws != (light.customSceneDirectShape ? 1u :
+            static_cast<uint32_t>(light.customSceneShapeNodeIds.size())) ||
+           (light.customSceneDirectSubtree &&
+            std::any_of(customShapeDraws.begin(), customShapeDraws.end(),
+                        [](uint32_t count) { return count != 1; })))) {
+        diagnostic = "shadowMapScene shapes must each occur exactly once in their group";
         return false;
       }
       if (!coin_render_shadow_camera(group, light, groupBounds,

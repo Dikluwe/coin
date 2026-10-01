@@ -2179,6 +2179,10 @@ int main()
   otherCube->width = otherCube->height = otherCube->depth = 1.2f;
   otherCaster->addChild(otherCube);
   customGroup->addChild(otherCaster);
+  otherCaster->ref();
+  customGroup->removeChild(otherCaster);
+  customGroup->insertChild(otherCaster, 1); // Isolated subtree follows only the light.
+  otherCaster->unref();
   auto * customGround = new SoSeparator;
   auto * customGroundStyle = new SoShadowStyle;
   customGroundStyle->style = SoShadowStyle::SHADOWED;
@@ -2208,6 +2212,20 @@ int main()
   directCustomSceneQualified = directCustomSceneQualified &&
     action.getPimpl()->lastRejectedShadowPlan.passes.size() == 1 &&
     action.getPimpl()->lastRejectedShadowPlan.passes[0].casterDraws.size() == 2;
+  customLight->shadowMapScene = otherCaster;
+  action.apply(customRoot);
+  const CoinRenderFramePlan subtreeFrame = action.getPimpl()->lastRejectedShadowFrame;
+  const CoinRenderShadowPlan subtreePlan = action.getPimpl()->lastRejectedShadowPlan;
+  std::string subtreeDiagnostic;
+  bool subtreeCustomSceneQualified =
+    action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+    subtreeFrame.shadowLights.size() == 1 &&
+    subtreeFrame.shadowLights[0].customSceneDirectSubtree &&
+    subtreeFrame.shadowLights[0].customSceneShapeNodeIds.size() == 1 &&
+    subtreePlan.passes.size() == 1 && subtreePlan.passes[0].casterDraws.size() == 1 &&
+    coin_render_shadow_single_spot_opaque_profile(
+      subtreeFrame, subtreePlan, subtreeDiagnostic);
+  customLight->shadowMapScene = nullptr;
   if (directCustomSceneQualified && lowQualityGpuRequested) {
     CoinRenderTarget * customTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
     CoinRenderAction customAction(SbViewportRegion(side, side));
@@ -2231,7 +2249,7 @@ int main()
     directCustomSceneQualified = selectedOk && allOk && gpuDelta > 40;
     if (directCustomSceneQualified) {
       const uint64_t beforeUnsupported = customTarget->getLastSubmissionSerial();
-      customLight->shadowMapScene = otherCaster; // Subtree capture is not qualified.
+      customLight->shadowMapScene = customGround; // Styled subtree remains unqualified.
       customAction.apply(customRoot);
       std::vector<unsigned char> afterUnsupported;
       customTarget->readbackRGBA(afterUnsupported);
@@ -2273,6 +2291,59 @@ int main()
                 << gpuDelta << '\n';
     customAction.setRenderTarget(nullptr);
     delete customTarget;
+  }
+  if (subtreeCustomSceneQualified && lowQualityGpuRequested) {
+    CoinRenderTarget * subtreeTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+    CoinRenderAction subtreeAction(SbViewportRegion(side, side));
+    subtreeAction.setRenderTarget(subtreeTarget);
+    customLight->shadowMapScene = otherCaster;
+    subtreeAction.apply(customRoot);
+    std::vector<unsigned char> gpuOnly, gpuAll;
+    const bool onlyOk = subtreeAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (onlyOk) subtreeTarget->readbackRGBA(gpuOnly);
+    customLight->shadowMapScene = nullptr;
+    subtreeAction.apply(customRoot);
+    const bool allOk = subtreeAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (allOk) subtreeTarget->readbackRGBA(gpuAll);
+    int gpuDelta = 0;
+    if (onlyOk && allOk && gpuOnly.size() == gpuAll.size())
+      for (int y = 20; y < 105; ++y)
+        for (int x = 20; x < 105; ++x)
+          gpuDelta = std::max(gpuDelta, std::abs(
+            luminanceRgba(gpuOnly, x, y) - luminanceRgba(gpuAll, x, y)));
+    subtreeCustomSceneQualified = onlyOk && allOk && gpuDelta > 40;
+    if (subtreeCustomSceneQualified &&
+        std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") && SoShadowGroup::isSupported()) {
+      customLight->shadowMapScene = otherCaster;
+      auto * glOnlyRoot = static_cast<SoSeparator *>(customRoot->copy(TRUE));
+      glOnlyRoot->ref();
+      customLight->shadowMapScene = nullptr;
+      auto * glAllRoot = static_cast<SoSeparator *>(customRoot->copy(TRUE));
+      glAllRoot->ref();
+      SoOffscreenRenderer subtreeGl(SbViewportRegion(side, side));
+      subtreeGl.setComponents(SoOffscreenRenderer::RGB);
+      std::vector<unsigned char> glOnly, glAll;
+      const bool rendered = render(subtreeGl, glOnlyRoot, glOnly) &&
+        render(subtreeGl, glAllRoot, glAll);
+      int glDelta = 0;
+      if (rendered)
+        for (int y = 20; y < 105; ++y)
+          for (int x = 20; x < 105; ++x)
+            glDelta = std::max(glDelta, std::abs(
+              luminance(glOnly, x, y) - luminance(glAll, x, y)));
+      subtreeCustomSceneQualified = rendered && glDelta > 40 &&
+        std::abs(glDelta - gpuDelta) <= 180;
+      std::cout << "subtree shadowMapScene Coin/GL/GPU delta="
+                << glDelta << '/' << gpuDelta << '\n';
+      glAllRoot->unref();
+      glOnlyRoot->unref();
+    }
+    if (!subtreeCustomSceneQualified)
+      std::cerr << "subtree shadowMapScene: "
+                << subtreeAction.getLastError().getString() << " delta="
+                << gpuDelta << '\n';
+    subtreeAction.setRenderTarget(nullptr);
+    delete subtreeTarget;
   }
   bool stagedShadowRttQualified = true;
   if (lowQualityGpuRequested) {
@@ -2440,6 +2511,7 @@ int main()
       !lateLightResolved || !lateSpotProfile || !mixedOrderResolved ||
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||
       !lowQualityDirectionalQualified || !directCustomSceneQualified ||
+      !subtreeCustomSceneQualified ||
       !stagedShadowRttQualified ||
       !directionalProjectionCoversGroup || !multipleCameras || !perspectiveFrustum
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE

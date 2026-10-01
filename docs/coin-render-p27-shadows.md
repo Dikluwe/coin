@@ -221,15 +221,19 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   por recuperação do quadro de duas luzes. Os 17 testes Rust passaram.
 - [ ] **Cinco a oito luzes:** compor contribuições em mais de um passo sem
   exceder as unidades de textura nem repetir semântica Coin no backend.
-- [ ] **Cenas próprias por luz:** o recorte em que `shadowMapScene` aponta
-  para um único `SoShape` filho direto do grupo, desenhado uma só vez com
-  modelo identidade e estilo caster, está qualificado. Wiring captura a
-  identidade do nó; Core escolhe somente esse draw como caster e mantém a
-  bbox do grupo para a câmera do mapa, como no Coin/GL. A fixture com outro
-  caster mediu a mudança máxima ao trocar cena própria por grupo inteiro:
-  420 no Coin/GL e 576 em BGFX e wgpu (tolerância 180). Uma subárvore própria
-  ainda retorna `UNSUPPORTED` sem publicar pixels ou serial; resta capturar
-  seus casters com transformações e estado isolados.
+- [ ] **Cenas próprias por luz:** estão qualificados dois recortes de
+  `shadowMapScene`: um `SoShape` filho direto do grupo, desenhado uma só vez
+  com modelo identidade e estilo caster; e um `SoSeparator` filho direto,
+  após apenas luzes no grupo, com modelo de entrada identidade e descendentes
+  formados só por separadores, translações e formas caster. Wiring identifica
+  as formas da subárvore; Core exige um draw por forma e escolhe somente esses
+  casters, mantendo a bbox do grupo para a câmera do mapa, como no Coin/GL.
+  Ao trocar cena própria por grupo inteiro, a fixture mediu diferenças máximas
+  420/576 para a forma direta e 426/531 para a subárvore traduzida, em
+  Coin/GL e BGFX ou wgpu (tolerância 180). Uma subárvore com `SoShadowStyle`
+  interno continua `UNSUPPORTED` sem publicar pixels nem serial. Faltam os
+  demais nós e estados de cena própria, transformações herdadas e subárvores
+  que precisem de travessia separada.
 - [x] **Clipping de casters opacos:** os planos já capturados e resolvidos
   pelo Core entram também no pass de momentos; BGFX e wgpu descartam o
   fragmento no mapa antes da recepção. A fixture com `SoClipPlane` no caster

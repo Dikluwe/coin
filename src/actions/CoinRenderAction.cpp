@@ -1130,6 +1130,7 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, 
   snapshot.nested = p->builder.hasActiveShadowGroup();
   snapshot.hasEntryCamera = true;
   snapshot.entryCamera = CoinRenderFramePlanBuilder::captureCamera(action);
+  snapshot.entryModel = action->getModelMatrix();
   p->shadowStyleBeforeGroups.push_back(SoShadowStyleElement::get(action->getState()));
   SoShadowStyleElement::set(action->getState(), 3);
   p->builder.beginShadowGroup(snapshot);
@@ -1159,6 +1160,30 @@ CoinRenderActionP::shadowStylePreCB(void *, SoCallbackAction * action, const SoN
   SoShadowStyleElement::set(action->getState(), const_cast<SoShadowStyle *>(style),
                             style->style.getValue());
   return SoCallbackAction::CONTINUE;
+}
+
+// Only a direct separator whose descendants are shapes, translations or
+// separators can reuse geometry from the ordinary traversal. Other Coin
+// subscenes need a separate captured frame and remain unsupported.
+static bool
+coin_render_shadow_scene_shapes(const SoNode * node,
+                                std::vector<SbUniqueId> & ids)
+{
+  if (!node || node->getTypeId() != SoSeparator::getClassTypeId()) return false;
+  const auto * separator = static_cast<const SoSeparator *>(node);
+  for (int i = 0; i < separator->getNumChildren(); ++i) {
+    const SoNode * child = separator->getChild(i);
+    if (child->isOfType(SoShape::getClassTypeId())) {
+      const SbUniqueId id = child->getNodeId();
+      if (std::find(ids.begin(), ids.end(), id) != ids.end()) return false;
+      ids.push_back(id);
+    }
+    else if (child->getTypeId() == SoSeparator::getClassTypeId()) {
+      if (!coin_render_shadow_scene_shapes(child, ids)) return false;
+    }
+    else if (child->getTypeId() != SoTranslation::getClassTypeId()) return false;
+  }
+  return !ids.empty();
 }
 
 SoCallbackAction::Response
@@ -1223,6 +1248,17 @@ CoinRenderActionP::lightPreCB(void * userdata,
       for (int i = 0; i < group->getNumChildren(); ++i)
         directChild = directChild || group->getChild(i) == scene;
       snapshot.customSceneDirectShape = snapshot.customSceneDirectShape && directChild;
+      if (directChild && !snapshot.customSceneDirectShape) {
+        bool onlyLightsBefore = true;
+        for (int i = 0; i < group->getNumChildren(); ++i) {
+          const SoNode * child = group->getChild(i);
+          if (child == scene) break;
+          onlyLightsBefore = onlyLightsBefore &&
+            child->isOfType(SoLight::getClassTypeId());
+        }
+        snapshot.customSceneDirectSubtree = onlyLightsBefore &&
+          coin_render_shadow_scene_shapes(scene, snapshot.customSceneShapeNodeIds);
+      }
     }
   }
   p->builder.recordShadowLight(snapshot);
