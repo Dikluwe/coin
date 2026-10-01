@@ -271,9 +271,18 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   Ao incluir os nós de coordenadas no grupo, a câmera GL passou a usar
   exatamente 0,95647/6,97007, mas o delta visual permaneceu 474/291.
   Logo essa divergência de bbox é real, porém não explica sozinha a
-  regressão da correção VSM. Portanto a correção experimental foi retirada;
-  é preciso reconciliar esse receiver antes de liberar a quinta spot. A
-  rejeição atômica permanece ativa. O Coin/GL
+  regressão da correção VSM. A causa decisiva estava na referência GL:
+  `updateShadowLights()` chamava o render do mapa e desligava o binding da
+  `SoSceneTexture2` herdada na unidade 0 (binding 1 antes, 0 depois), embora
+  a imagem ainda constasse no `SoState`. Assim, com o grupo ativo, os 7.225
+  pixels examinados no receiver ficavam pretos, mesmo sem caster; uma textura
+  branca local ou religar a própria RTT no grupo recuperava a imagem. O
+  `SoShadowGroupP::GLRender` agora restaura as imagens das unidades da cena
+  após gerar os mapas, e o teste rejeita um receiver GL inteiramente preto.
+  Com isso o delta RTT atual é 225/291 nos dois backends; uma repetição
+  diagnóstica do far VSM corrigido em wgpu mediu 225/213, dentro da
+  tolerância. A correção VSM experimental continua retirada até qualificar
+  também os spots tardios. A rejeição atômica permanece ativa. O Coin/GL
   seleciona a quantidade de mapas pelas unidades de textura disponíveis
   menos as usadas pela cena (`SoShadowGroupP::updateShadowLights`); seu
   limite não é fixo em quatro. Uma falha de alocação de oito mapas no wgpu

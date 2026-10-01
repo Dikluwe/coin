@@ -326,6 +326,7 @@
 #include <Inventor/elements/SoShapeStyleElement.h>
 #include <Inventor/elements/SoTextureUnitElement.h>
 #include <Inventor/elements/SoGLMultiTextureEnabledElement.h>
+#include <Inventor/elements/SoGLMultiTextureImageElement.h>
 #include <Inventor/elements/SoCacheElement.h>
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/actions/SoGetMatrixAction.h>
@@ -2184,6 +2185,12 @@ SoShadowGroupP::GLRender(SoGLRenderAction * action, const SbBool inpath)
   SoShadowStyleElement::set(state, PUBLIC(this), SoShadowStyleElement::CASTS_SHADOW_AND_SHADOWED);
   SoShapeStyleElement::setShadowMapRendering(state, TRUE);
   this->updateShadowLights(action);
+  // Rendering the shadow map may overwrite bindings inherited from the parent.
+  const int scenetexunits = SbMin(this->numtexunitsinscene,
+                                 cc_glglue_max_texture_units(glue));
+  for (int unit = 0; unit < scenetexunits; ++unit) {
+    SoGLMultiTextureImageElement::restore(state, unit);
+  }
   SoShapeStyleElement::setShadowMapRendering(state, FALSE);
 
   if (!this->vertexshadercache || !this->vertexshadercache->isValid(state)) {

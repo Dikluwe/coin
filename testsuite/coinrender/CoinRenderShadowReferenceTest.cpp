@@ -3492,6 +3492,7 @@ int main()
       display->unref();
       stagedRoot->addChild(receiverGroup);
       int receiverGlDelta = 0;
+      bool receiverGlHasLitPixel = false;
       if (std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") && SoShadowGroup::isSupported()) {
         receiverGroup->isActive = TRUE;
         auto * glActive = static_cast<SoSeparator *>(stagedRoot->copy(TRUE));
@@ -3507,10 +3508,15 @@ int main()
         shadowedRttReceiverQualified = rendered;
         if (rendered)
           for (int y = 20; y < 105; ++y)
-            for (int x = 20; x < 105; ++x)
+            for (int x = 20; x < 105; ++x) {
+              receiverGlHasLitPixel = receiverGlHasLitPixel ||
+                luminance(activePixels, x, y) > 0;
               receiverGlDelta = std::max(receiverGlDelta, std::abs(
                 luminance(activePixels, x, y) -
                 luminance(inactivePixels, x, y)));
+            }
+        shadowedRttReceiverQualified = shadowedRttReceiverQualified &&
+          receiverGlHasLitPixel;
         glInactive->unref();
         glActive->unref();
       }
