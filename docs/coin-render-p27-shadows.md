@@ -232,7 +232,12 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   a imagem. wgpu também compõe os passes cinco a oito num segundo draw,
   reutilizando quatro bindings de mapa via ABI 38. As comparações Coin/GL e
   wgpu mediram 291/291 (quinta) e 117/174 (oitava); staged e direct RTT de
-  oito luzes mediram 228/369, como no BGFX. A quinta luz spot divergiu também
+  oito luzes mediram 228/369, como no BGFX. A textura opaca MODULATE no
+  receiver também passou com a quinta luz: a contribuição isolada ao
+  comparar quatro contra cinco luzes foi 81/79 em Coin/GL e em cada
+  executor. Modos de textura não lineares e `SoTextureCombine` permanecem
+  fora do segundo lote; o Core os rejeita antes da submissão, preservando
+  pixels e serial. A quinta luz spot divergiu também
   no wgpu (162/0 após corrigir a matriz de recepção do lote) e ambos os
   executores a rejeitam antes de publicar pixels ou serial. O Coin/GL
   seleciona a quantidade de mapas pelas unidades de textura disponíveis

@@ -1217,6 +1217,74 @@ int main()
         afterRejected == gpuTextured;
       opaqueTexture->image.setValue(SbVec2s(1, 1), 3, greenPixel);
     }
+    if (texturedShadowQualified) {
+      std::vector<SoShadowDirectionalLight *> addedLights;
+      for (int i = 0; i < 3; ++i) {
+        auto * extra = new SoShadowDirectionalLight;
+        extra->direction.setValue(0.2f * float(i - 2), -0.3f, -1.0f);
+        extra->intensity = 0.12f;
+        texturedGroup->insertChild(extra, 1 + i);
+        addedLights.push_back(extra);
+      }
+      auto * glFourRoot = static_cast<SoSeparator *>(texturedRoot->copy(TRUE));
+      glFourRoot->ref();
+      texturedAction.apply(texturedRoot);
+      std::vector<unsigned char> gpuFour;
+      const bool fourOk = texturedAction.getLastStatus() == CoinRenderAction::SUCCESS;
+      if (fourOk) texturedTarget->readbackRGBA(gpuFour);
+      auto * fifth = new SoShadowDirectionalLight;
+      fifth->direction.setValue(0.2f, -0.3f, -1.0f);
+      fifth->intensity = 0.3f;
+      texturedGroup->insertChild(fifth, 4);
+      addedLights.push_back(fifth);
+      texturedAction.apply(texturedRoot);
+      std::vector<unsigned char> gpuFive;
+      const bool fiveOk = texturedAction.getLastStatus() == CoinRenderAction::SUCCESS;
+      if (fiveOk) texturedTarget->readbackRGBA(gpuFive);
+      int gpuFiveDelta = 0, glFiveDelta = 0;
+      if (fourOk && fiveOk && gpuFive.size() == gpuFour.size())
+        for (int y = 20; y < 105; ++y)
+          for (int x = 20; x < 105; ++x)
+            gpuFiveDelta = std::max(gpuFiveDelta, std::abs(
+              luminanceRgba(gpuFour, x, y) - luminanceRgba(gpuFive, x, y)));
+      bool glFiveOk = true;
+      if (std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
+        auto * glFiveRoot = static_cast<SoSeparator *>(texturedRoot->copy(TRUE));
+        glFiveRoot->ref();
+        SoOffscreenRenderer multiGl(SbViewportRegion(side, side));
+        multiGl.setComponents(SoOffscreenRenderer::RGB);
+        std::vector<unsigned char> glFour, glFive;
+        glFiveOk = render(multiGl, glFourRoot, glFour) &&
+          render(multiGl, glFiveRoot, glFive);
+        if (glFiveOk)
+          for (int y = 20; y < 105; ++y)
+            for (int x = 20; x < 105; ++x)
+              glFiveDelta = std::max(glFiveDelta, std::abs(
+                luminance(glFour, x, y) - luminance(glFive, x, y)));
+        glFiveRoot->unref();
+      }
+      std::cout << "five lights textured receiver Coin/GL/GPU delta=" <<
+        glFiveDelta << '/' << gpuFiveDelta << '\n';
+      texturedShadowQualified = texturedShadowQualified && fourOk && fiveOk &&
+        gpuFiveDelta > 0 && (!std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") ||
+          (glFiveOk && glFiveDelta > 0 &&
+           std::abs(glFiveDelta - gpuFiveDelta) <= 180));
+      if (fiveOk) {
+        const uint64_t serial = texturedTarget->getLastSubmissionSerial();
+        opaqueTexture->model = SoTexture2::REPLACE;
+        texturedAction.apply(texturedRoot);
+        std::vector<unsigned char> afterRejected;
+        texturedTarget->readbackRGBA(afterRejected);
+        texturedShadowQualified = texturedShadowQualified &&
+          texturedAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+          texturedTarget->getLastSubmissionSerial() == serial &&
+          afterRejected == gpuFive;
+        opaqueTexture->model = SoTexture2::MODULATE;
+      }
+      for (auto it = addedLights.rbegin(); it != addedLights.rend(); ++it)
+        texturedGroup->removeChild(*it);
+      glFourRoot->unref();
+    }
     if (!texturedShadowQualified)
       std::cerr << "opaque textured shadow receiver: "
                 << texturedAction.getLastError().getString() << " profile="

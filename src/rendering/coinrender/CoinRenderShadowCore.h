@@ -501,6 +501,12 @@ coin_render_shadow_opaque_profile(
       return false;
     }
     if (state.hasTexture) {
+      if (shadows.passes.size() > 4 &&
+          (state.textureModel != CoinRenderTextureModel::MODULATE ||
+           state.textureCombines[0].instructions[0][0] != 0.0f)) {
+        diagnostic = "Extra shadow batch requires linear MODULATE texture";
+        return false;
+      }
       if (state.textureImageSlot >= frame.textures.size() ||
           state.samplerSlot >= frame.samplers.size()) {
         diagnostic = "Opaque shadow receiver references an invalid texture";
