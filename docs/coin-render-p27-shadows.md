@@ -264,9 +264,16 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   A aplicação global dessa correção alterou um perfil já qualificado:
   no receiver texturizado por RTT o delta Coin/GL/GPU passou de 474/291
   para 474/213 em wgpu (216 em BGFX), excedendo a tolerância atual.
-  Portanto a correção experimental foi retirada; é preciso reconciliar
-  esse receiver antes de liberar a quinta spot. A rejeição atômica
-  permanece ativa. O Coin/GL
+  Uma sonda no receiver RTT isolou outra diferença: o Core capturou
+  near/far 0,95647/6,97007, enquanto a câmera GL do grupo usou
+  2,55638/5,36695. O `bboxnode` do GL reaplica somente os filhos do
+  `SoShadowGroup`; nessa fixture, as coordenadas do plano estavam no pai.
+  Ao incluir os nós de coordenadas no grupo, a câmera GL passou a usar
+  exatamente 0,95647/6,97007, mas o delta visual permaneceu 474/291.
+  Logo essa divergência de bbox é real, porém não explica sozinha a
+  regressão da correção VSM. Portanto a correção experimental foi retirada;
+  é preciso reconciliar esse receiver antes de liberar a quinta spot. A
+  rejeição atômica permanece ativa. O Coin/GL
   seleciona a quantidade de mapas pelas unidades de textura disponíveis
   menos as usadas pela cena (`SoShadowGroupP::updateShadowLights`); seu
   limite não é fixo em quatro. Uma falha de alocação de oito mapas no wgpu
