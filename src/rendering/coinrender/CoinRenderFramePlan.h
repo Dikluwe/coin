@@ -45,6 +45,7 @@ struct CoinRenderDrawPacket {
   CoinRenderPrimitiveTopology topology = CoinRenderPrimitiveTopology::TRIANGLE_LIST;
   CoinRenderGeometryRange geometry = {};
   uint32_t renderStateSlot = 0;
+  uint32_t shadowLightSlot = 0; // One-based owner; nonzero draws belong only to its shadow map.
   uint32_t frameNodeOrdinal = 0; // estável apenas dentro do frame/log
   SbUniqueId sourceNodeId = 0;   // cache/invalidação; não entra no golden log
   uint64_t stableNodeId = 0;
@@ -129,10 +130,9 @@ struct CoinRenderShadowLightSnapshot {
   bool enabled = false;
   bool shadowEligible = false; // Coin/GL: spot or SoShadowDirectionalLight.
   bool hasCustomScene = false;
-  bool customSceneDirectShape = false;
-  bool customSceneDirectSubtree = false;
+  bool customSceneCaptured = false;
+
   SbUniqueId customSceneNodeId = 0;
-  std::vector<SbUniqueId> customSceneShapeNodeIds;
   SbColor color = SbColor(1, 1, 1);
   float intensity = 1.0f;
   SbVec3f attenuation = SbVec3f(0, 0, 1);

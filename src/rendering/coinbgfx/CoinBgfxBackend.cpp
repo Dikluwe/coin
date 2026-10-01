@@ -2059,7 +2059,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
         pass.projectionCoin * clipConversion;
       const float depthParams[4] = {pass.nearDistance, pass.vsmFarDistance,
         frame.shadowLights[pass.lightSlot].type == CoinRenderLightType::SPOT ? 1.0f : 0.0f, 0.0f};
-      for (const CoinBgfxDraw & draw : plan->draws) {
+      for (const CoinBgfxDraw & draw : plan->shadowDraws) {
         if (std::find(pass.casterDraws.begin(), pass.casterDraws.end(),
                       draw.sourceDrawSlot) == pass.casterDraws.end()) continue;
         const auto & state = frame.renderStates[draw.renderStateSlot];
@@ -2786,7 +2786,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
         pass.projectionCoin * clipConversion;
       const float depthParams[4] = {pass.nearDistance, pass.vsmFarDistance,
         frame.shadowLights[pass.lightSlot].type == CoinRenderLightType::SPOT ? 1.0f : 0.0f, 0.0f};
-      for (const CoinBgfxDraw & draw : plan.draws) {
+      for (const CoinBgfxDraw & draw : plan.shadowDraws) {
         if (std::find(pass.casterDraws.begin(), pass.casterDraws.end(),
                       draw.sourceDrawSlot) == pass.casterDraws.end()) continue;
         const auto & state = frame.renderStates[draw.renderStateSlot];

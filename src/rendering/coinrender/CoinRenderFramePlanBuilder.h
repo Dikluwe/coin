@@ -14,6 +14,9 @@ class CoinRenderFramePlanBuilder {
 public:
   CoinRenderFramePlanBuilder();
   ~CoinRenderFramePlanBuilder();
+  // Suspend a main capture while Wiring traverses a light-owned scene.
+  CoinRenderFramePlanBuilder(CoinRenderFramePlanBuilder &&) = default;
+  CoinRenderFramePlanBuilder & operator=(CoinRenderFramePlanBuilder &&) = default;
 
   void beginFrame(const SbColor4f & clearColor, const SbViewportRegion & viewport);
   void reset();

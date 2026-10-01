@@ -80,6 +80,7 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
   std::vector<int8_t> textureHasAlpha(frame.textures.size(), -1);
   for (size_t i = 0; i < frame.draws.size(); ++i) {
     const CoinRenderDrawPacket& draw = frame.draws[i];
+    if (draw.shadowLightSlot) continue;
     if (draw.renderStateSlot >= frame.renderStates.size()) {
       diagnostic = "Invalid render state in composition order";
       return false;

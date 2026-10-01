@@ -103,6 +103,14 @@ public:
   CoinRenderFramePlan lastValidPlan;
   CoinRenderFramePlan lastRejectedShadowFrame;
   CoinRenderShadowPlan lastRejectedShadowPlan;
+  struct ShadowSceneCapture {
+    uint32_t groupSlot;
+    uint64_t lightRevision;
+    uint32_t inheritedClipPlaneCount;
+    CoinRenderFramePlan frame;
+  };
+  std::vector<ShadowSceneCapture> shadowSceneCaptures;
+  bool capturingShadowScene = false;
   std::vector<int> shadowStyleBeforeGroups;
   std::vector<const SoShadowGroup *> activeShadowGroupNodes;
   // Owns staged scene-texture pixels for the entire parent traversal.

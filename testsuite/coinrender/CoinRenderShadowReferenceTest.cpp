@@ -227,6 +227,157 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
   return qualified;
 }
 
+bool qualifyIndependentShadowScenes(SoSeparator * source)
+{
+  if (!std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") &&
+      !std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) return true;
+  bool qualified = true;
+  for (int directional = 0; directional < 2 && qualified; ++directional) {
+    auto * root = static_cast<SoSeparator *>(source->copy(TRUE));
+    root->ref();
+    auto * group = static_cast<SoShadowGroup *>(root->getChild(1));
+    auto * entryMove = new SoTranslation;
+    entryMove->translation.setValue(0.4f, 0.2f, 0);
+    root->insertChild(entryMove, 1);
+    auto * inheritedClip = new SoClipPlane;
+    inheritedClip->plane.setValue(SbPlane(SbVec3f(1, 0, 0), -100));
+    root->insertChild(inheritedClip, 1);
+    auto * mainCaster = static_cast<SoSeparator *>(group->getChild(1));
+    static_cast<SoShadowStyle *>(mainCaster->getChild(0))->style = SoShadowStyle::SHADOWED;
+    auto * external = static_cast<SoSeparator *>(mainCaster->copy(TRUE));
+    external->ref();
+    auto * style = static_cast<SoShadowStyle *>(external->getChild(0));
+    style->style = SoShadowStyle::CASTS_SHADOW;
+    auto * material = static_cast<SoMaterial *>(external->getChild(1));
+    auto * translation = new SoTranslation;
+    translation->translation.setValue(0.6f, -0.2f, 0);
+    external->insertChild(translation, 2);
+    // The same node occurs twice with distinct accumulated transforms.
+    auto * sharedCube = external->getChild(3);
+    auto * nextMove = new SoTranslation;
+    nextMove->translation.setValue(-1.6f, 0.4f, 0);
+    external->addChild(nextMove);
+    external->addChild(sharedCube);
+    auto * clip = new SoClipPlane;
+    clip->plane.setValue(SbPlane(SbVec3f(1, 0, 0), 0));
+    clip->on = FALSE;
+    external->insertChild(clip, 3);
+    auto * empty = new SoSeparator;
+    empty->ref();
+    auto * first = directional ? static_cast<SoLight *>(new SoShadowDirectionalLight) :
+      static_cast<SoLight *>(group->getChild(0));
+    if (directional) {
+      static_cast<SoShadowDirectionalLight *>(first)->direction.setValue(-2, -2, -5);
+      group->replaceChild(0, first);
+    }
+    first->intensity = 0.5f;
+    auto * second = static_cast<SoLight *>(first->copy(TRUE));
+    group->insertChild(second, 1);
+    auto setScene = [&](SoLight * light, SoNode * scene) {
+      if (directional) static_cast<SoShadowDirectionalLight *>(light)->shadowMapScene = scene;
+      else static_cast<SoShadowSpotLight *>(light)->shadowMapScene = scene;
+    };
+    setScene(first, external);
+    setScene(second, empty);
+    CoinRenderTarget * target = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+    CoinRenderAction action(SbViewportRegion(side, side));
+    action.setRenderTarget(target);
+    CoinRenderAction capture(SbViewportRegion(side, side));
+    std::vector<unsigned char> gpuBefore, glBefore;
+    for (int variant = 0; variant < 7 && qualified; ++variant) {
+      // Empty and transparent custom scenes produce clear maps. Changing
+      // only the second light must never steal the first light's casters.
+      clip->on = variant == 5;
+      material->transparency = variant == 2 ? 0.5f : 0.0f;
+      style->style = variant == 3 ? SoShadowStyle::NO_SHADOWING : SoShadowStyle::CASTS_SHADOW;
+      setScene(first, variant == 1 ? empty : external);
+      setScene(second, variant == 4 ? external : empty);
+      capture.apply(root);
+      const auto & frame = capture.getPimpl()->lastRejectedShadowFrame;
+      const auto & plan = capture.getPimpl()->lastRejectedShadowPlan;
+      const size_t expectedFirst = variant == 0 || variant >= 4 ? 2 : 0;
+      qualified = plan.passes.size() == 2 &&
+        plan.passes[0].casterDraws.size() == expectedFirst &&
+        plan.passes[1].casterDraws.size() == (variant == 4 ? 2u : 0u);
+      for (size_t pass = 0; pass < plan.passes.size() && qualified; ++pass)
+        for (auto draw : plan.passes[pass].casterDraws)
+          qualified = qualified && frame.draws[draw].shadowLightSlot == pass + 1;
+      if (qualified && variant == 5) {
+        const auto & state = frame.renderStates[frame.draws[plan.passes[0].casterDraws[0]].renderStateSlot];
+        qualified = state.clipPlanesWorld.size() == 2 &&
+          std::abs(state.clipPlanesWorld[0].getDistanceFromOrigin() + 100.0f) < 1e-5f &&
+          std::abs(state.clipPlanesWorld[1].getDistanceFromOrigin() - 1.0f) < 1e-5f;
+      }
+      const uint64_t serial = target->getLastSubmissionSerial();
+      action.apply(root);
+      std::vector<unsigned char> gpu, glPixels;
+      qualified = qualified && action.getLastStatus() == CoinRenderAction::SUCCESS &&
+        target->getLastSubmissionSerial() > serial;
+      if (qualified) target->readbackRGBA(gpu);
+      qualified = qualified && gpu.size() == size_t(side * side * 4);
+      int glDelta = 0, gpuDelta = 0;
+      if (qualified && std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
+        auto * glScene = static_cast<SoSeparator *>(root->copy(TRUE));
+        glScene->ref();
+        SoOffscreenRenderer renderer(SbViewportRegion(side, side));
+        renderer.setComponents(SoOffscreenRenderer::RGB);
+        qualified = render(renderer, glScene, glPixels);
+        glScene->unref();
+        if (qualified && variant > 0) {
+          for (int y = 20; y < 105; ++y) for (int x = 20; x < 105; ++x) {
+            glDelta = std::max(glDelta, std::abs(luminance(glPixels, x, y) - luminance(glBefore, x, y)));
+            gpuDelta = std::max(gpuDelta, std::abs(luminanceRgba(gpu, x, y) - luminanceRgba(gpuBefore, x, y)));
+          }
+          qualified = std::abs(glDelta - gpuDelta) <= 180 &&
+            ((variant == 1 || variant >= 4) ? glDelta > 30 && gpuDelta > 30 : gpuDelta == 0 && glDelta == 0);
+        }
+      }
+      std::cout << "independent shadow scenes directional=" << directional <<
+        " variant=" << variant << " GL/GPU delta=" << glDelta << '/' << gpuDelta <<
+        " qualified=" << qualified << '\n';
+      if (!qualified) std::cerr << action.getLastError().getString() << '\n';
+      gpuBefore = std::move(gpu); glBefore = std::move(glPixels);
+    }
+    if (qualified) {
+      std::vector<unsigned char> before, after;
+      target->readbackRGBA(before);
+      const uint64_t serial = target->getLastSubmissionSerial();
+      auto * ownCamera = new SoOrthographicCamera;
+      external->insertChild(ownCamera, 0);
+      action.apply(root);
+      target->readbackRGBA(after);
+      qualified = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+        target->getLastSubmissionSerial() == serial && before == after;
+      external->removeChild(ownCamera);
+      action.apply(root);
+      qualified = qualified && action.getLastStatus() == CoinRenderAction::SUCCESS;
+      auto * wrapper = new SoShadowGroup;
+      wrapper->ref();
+      wrapper->addChild(external);
+      setScene(first, wrapper);
+      action.apply(root);
+      target->readbackRGBA(after);
+      qualified = qualified && action.getLastStatus() == CoinRenderAction::SUCCESS && before == after;
+      auto * nested = new SoShadowGroup;
+      wrapper->addChild(nested);
+      const uint64_t nestedSerial = target->getLastSubmissionSerial();
+      action.apply(root);
+      target->readbackRGBA(after);
+      qualified = qualified && action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+        target->getLastSubmissionSerial() == nestedSerial && before == after;
+      wrapper->removeChild(nested);
+      action.apply(root);
+      qualified = qualified && action.getLastStatus() == CoinRenderAction::SUCCESS;
+      setScene(first, external);
+      wrapper->unref();
+    }
+    action.setRenderTarget(nullptr);
+    delete target;
+    root->unref(); external->unref(); empty->unref();
+  }
+  return qualified;
+}
+
 bool qualifyEmptyShadowMaps(SoSeparator * source)
 {
   if (!std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") &&
@@ -3699,7 +3850,7 @@ int main()
   bool directCustomSceneQualified =
     action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
     customFrame.shadowLights.size() == 1 &&
-    customFrame.shadowLights[0].customSceneDirectShape &&
+    customFrame.shadowLights[0].customSceneCaptured &&
     customPlan.passes.size() == 1 && customPlan.passes[0].casterDraws.size() == 1 &&
     coin_render_shadow_single_spot_object_profile(
       customFrame, customPlan, customDiagnostic);
@@ -3716,8 +3867,7 @@ int main()
   bool subtreeCustomSceneQualified =
     action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
     subtreeFrame.shadowLights.size() == 1 &&
-    subtreeFrame.shadowLights[0].customSceneDirectSubtree &&
-    subtreeFrame.shadowLights[0].customSceneShapeNodeIds.size() == 2 &&
+    subtreeFrame.shadowLights[0].customSceneCaptured &&
     subtreePlan.passes.size() == 1 && subtreePlan.passes[0].casterDraws.size() == 2 &&
     std::abs(subtreeFrame.renderStates[subtreeFrame.draws[
       subtreePlan.passes[0].casterDraws[0]].renderStateSlot].model[0][1]) > 0.1f &&
@@ -3746,15 +3896,12 @@ int main()
                      luminanceRgba(allCasters, x, y)));
     directCustomSceneQualified = selectedOk && allOk && gpuDelta > 40;
     if (directCustomSceneQualified) {
-      const uint64_t beforeUnsupported = customTarget->getLastSubmissionSerial();
-      customLight->shadowMapScene = customGround; // Geometry before this subtree requires an independent capture.
+      const uint64_t beforeEmptyScene = customTarget->getLastSubmissionSerial();
+      customLight->shadowMapScene = customGround;
       customAction.apply(customRoot);
-      std::vector<unsigned char> afterUnsupported;
-      customTarget->readbackRGBA(afterUnsupported);
       directCustomSceneQualified =
-        customAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-        customTarget->getLastSubmissionSerial() == beforeUnsupported &&
-        afterUnsupported == allCasters;
+        customAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+        customTarget->getLastSubmissionSerial() > beforeEmptyScene;
       customLight->shadowMapScene = nullptr;
     }
     if (directCustomSceneQualified &&
@@ -3852,7 +3999,7 @@ int main()
   bool styledCustomSceneQualified = styledPlan.passes.size() == 1 &&
     styledPlan.passes[0].casterDraws.size() == 1 &&
     action.getPimpl()->lastRejectedShadowFrame.shadowLights.size() == 1 &&
-    action.getPimpl()->lastRejectedShadowFrame.shadowLights[0].customSceneDirectSubtree;
+    action.getPimpl()->lastRejectedShadowFrame.shadowLights[0].customSceneCaptured;
   if (styledCustomSceneQualified && lowQualityGpuRequested) {
     CoinRenderTarget * styledTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
     CoinRenderAction styledAction(SbViewportRegion(side, side));
@@ -3911,7 +4058,7 @@ int main()
   bool clippedSubtreeQualified = clippedSubtreePlan.passes.size() == 1 &&
     clippedSubtreePlan.passes[0].casterDraws.size() == 2 &&
     action.getPimpl()->lastRejectedShadowFrame.shadowLights.size() == 1 &&
-    action.getPimpl()->lastRejectedShadowFrame.shadowLights[0].customSceneDirectSubtree;
+    action.getPimpl()->lastRejectedShadowFrame.shadowLights[0].customSceneCaptured;
   if (clippedSubtreeQualified && lowQualityGpuRequested) {
     CoinRenderTarget * clippedTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
     CoinRenderAction clippedAction(SbViewportRegion(side, side));
@@ -4374,7 +4521,7 @@ int main()
       inheritedFrame.shadowGroups.size() == 1 &&
       inheritedFrame.shadowGroups[0].entryModel != SbMatrix::identity() &&
       inheritedFrame.shadowLights.size() == 1 &&
-      inheritedFrame.shadowLights[0].customSceneDirectSubtree &&
+      inheritedFrame.shadowLights[0].customSceneCaptured &&
       coin_render_shadow_object_profile(inheritedFrame, inheritedPlan, 1,
                                        inheritedDiagnostic);
     CoinRenderTarget * inheritedTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
@@ -4434,11 +4581,12 @@ int main()
     qualifyShadowTransparency(root, false, 4) &&
     qualifyShadowTransparency(root, true, 4);
   const bool emptyShadowMapsQualified = qualifyEmptyShadowMaps(root);
+  const bool independentShadowScenesQualified = qualifyIndependentShadowScenes(root);
   customRoot->unref();
   action.setRenderTarget(nullptr);
   delete target;
   if (!publishedOk || !rejected || !preserved || !recovered || !captureOk ||
-      !emptyShadowMapsQualified || !shadowTransparencyQualified || !spotProfile || !smoothBorderQualified || !lowQualitySpotQualified || !inconsistentAlphaRejected || !clippedShadowQualified || !shadowTargetsIndependent || !siblingShadowGroupsQualified || !ordinaryLightQualified || !texturedShadowQualified || !twoLightCaptured ||
+      !independentShadowScenesQualified || !emptyShadowMapsQualified || !shadowTransparencyQualified || !spotProfile || !smoothBorderQualified || !lowQualitySpotQualified || !inconsistentAlphaRejected || !clippedShadowQualified || !shadowTargetsIndependent || !siblingShadowGroupsQualified || !ordinaryLightQualified || !texturedShadowQualified || !twoLightCaptured ||
       !orderedTwoLight || !twoSpotsOk || !twoDirectionalsOk ||
       !lateLightResolved || !lateSpotProfile || !mixedOrderResolved ||
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||

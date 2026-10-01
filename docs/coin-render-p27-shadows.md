@@ -258,37 +258,45 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   RTT com uma spot permanece dentro da tolerância: Coin/GL 225, wgpu 213 e
   BGFX 216. Modos de textura não lineares e `SoTextureCombine` ainda são
   rejeitados antes da submissão.
-- [ ] **Cenas próprias por luz:** estão qualificados dois recortes de
-  `shadowMapScene`: um `SoShape` filho direto do grupo, desenhado uma só vez
-  com modelo identidade e estilo caster; e um `SoSeparator` filho direto,
-  após apenas luzes no grupo, com modelo de entrada capturado e descendentes
-  formados só por separadores, translações, rotações, escalas,
-  `SoTransform` e formas caster. Wiring identifica
-  as formas da subárvore; Core exige um draw por forma e escolhe somente esses
-  casters, mantendo a bbox do grupo para a câmera do mapa, como no Coin/GL.
-  A fixture da subárvore conta duas formas em separadores aninhados, verifica
-  a seleção de ambas e a matriz capturada com rotação e escala. Um
-  `SoShadowStyle` dentro da subárvore também pode excluir somente uma forma
-  do mapa: Wiring reutiliza o estilo capturado, Core mantém a forma na cena
-  própria mas retira seu draw da lista de casters. Alternar esse estilo
-  marcou delta 72 no Coin/GL, 108 no BGFX e 147 no wgpu (tolerância 180).
-  `SoClipPlane` interno à cena própria também passou: um plano atravessando
-  as formas transformadas marcou delta 588 no Coin/GL, BGFX e wgpu. Wiring
-  reutiliza as equações capturadas e a Infra aplica o clipping no pass de
-  momentos. Ao trocar cena própria por grupo inteiro, mediu diferenças
-  máximas 420/576 para a
-  forma direta e 426/531 para a subárvore transformada, em Coin/GL e BGFX
-  ou wgpu (tolerância 180). A seleção do chão depois de outras formas
-  continua `UNSUPPORTED`: essa subárvore exige captura independente, pois
-  seu estado de entrada inclui geometria anterior. Pixels e serial ficam
-  preservados. A subárvore qualificada com
-  `SoTranslation` herdada antes do grupo passou em ambos os executores:
-  deltas 441/531, Coin/GL e GPU (tolerância 180). Faltam os demais nós e
-  estados de cena própria e subárvores que precisem de travessia separada.
+- [x] **Cenas próprias por luz — captura independente:** `shadowMapScene`
+  agora é percorrido pelo Wiring no estado de entrada do `SoShadowGroup`,
+  sem exigir que seja filho do grupo ou que cada forma apareça uma só vez.
+  Como em `SoSceneTexture2` e no callback SHADOWMAP do Coin/GL, a captura
+  reinicia material, texturas e modelo; fixa BASE_COLOR, qualidade de textura
+  zero e binding de material OVERALL. O restante do estado Coin é preservado.
+  Uma cena própria que seja `SoShadowGroup` é percorrida pelos filhos, como
+  faz a referência, sem criar outro grupo de sombras nessa captura.
+  Core agrega os snapshots, converte modelo e clipping local ao espaço global,
+  preserva planos herdados já globais e atribui cada draw ao mapa de uma luz.
+  Geometria exclusiva do mapa não entra na composição principal nem na bbox
+  do grupo usada para ajustar a câmera. BGFX baixa esses draws em uma lista
+  própria de momentos; wgpu consome as mesmas listas de casters do Core.
+  Foram qualificados shape direto, subárvore interna após outras geometrias,
+  cena externa, instâncias repetidas de uma mesma forma com transformações
+  distintas, materiais, `SoShadowStyle`, clipping e transformação herdada.
+  Dois mapas spot e dois direcionais verificam seleção independente: alternar
+  uma cena para vazia ou compartilhar a cena entre as duas luzes produz os
+  deltas Coin/GL/GPU registrados pela fixture `independent shadow scenes`.
+  Cenas vazias, transparentes ou `NO_SHADOWING` mantêm mapa limpo; mudanças
+  de cena atualizam o próximo quadro. As fixtures anteriores de rotação,
+  escala e clipping também continuam passando nos dois executores.
+  O perfil usa a câmera calculada pela luz: uma câmera dentro da cena própria
+  retorna `UNSUPPORTED`, preservando pixels e serial e permitindo recuperação
+  após removê-la. Annotations e efeitos sem contrato portátil também exigem
+  outro perfil; não são aceitos implicitamente pelo passe de momentos.
+  O grupo usado como raiz da cena própria é achatado e preserva os pixels;
+  um grupo ativo aninhado dentro dela é rejeitado até a qualificação de
+  grupos aninhados, também preservando a publicação e permitindo recuperação.
+  A fixture ampliada revelou uma omissão da referência GL: o vertex shader
+  VSM não escrevia `gl_ClipVertex`. A referência agora escreve a posição no
+  espaço de olho, sem modificar a tolerância. Clipping da cena externa com
+  modelo de entrada e plano herdado marcou delta 543/531/534 para spot
+  (Coin/GL, wgpu, BGFX) e 666/666 para direcional nos dois executores; a equação do plano herdado permanece global
+  e a equação adicionada à cena própria recebe a transformação de entrada.
 - [x] **Clipping de casters opacos:** os planos já capturados e resolvidos
   pelo Core entram também no pass de momentos; BGFX e wgpu descartam o
   fragmento no mapa antes da recepção. A fixture com `SoClipPlane` no caster
-  mediu diferença máxima 496/663 em Coin/GL e nos dois executores (tolerância
+  mediu diferença máxima 531/531 em Coin/GL e nos dois executores (tolerância
   200 nesta cena). Um readback direto do mapa wgpu confirmou branco no lado
   descartado e momentos no lado mantido.
 - [x] **Transparência de material no mecanismo de objetos:** Wiring captura
@@ -437,8 +445,8 @@ referência Coin/GL antes de marcar P27.4 concluído.
   spot/directional, elegibilidade Coin, matrizes e indicação de
   `shadowMapScene`; respeitar o escopo
   da travessia e os separadores sem chamar `GLRender`.
-- [ ] **Wiring completo:** qualificar overrides, caminhos parciais, cenas próprias
-  por luz e todos os modos de composição com fixtures Coin/GL.
+- [ ] **Wiring completo:** qualificar overrides, caminhos parciais
+  e todos os modos de composição com fixtures Coin/GL.
 - [x] **Core inicial:** gerar um pass por luz spot/directional habilitada,
   separar desenhos caster/receiver pelos bits de `SoShadowStyle`, dimensionar
   mapa por `precision`, calcular câmeras spot/directional a partir da geometria
@@ -447,8 +455,8 @@ referência Coin/GL antes de marcar P27.4 concluído.
   inclusive quando ela aparece após a geometria sem inseri-la nos estados
   anteriores, validar dois passes opacos
   spot/direcional e limitar a memória planejada.
-- [ ] **Core completo:** ampliar qualidade, transparência, cenas próprias
-  complexas, cinco a oito luzes, grupos aninhados e dependências RTT direct.
+- [ ] **Core completo:** ampliar qualidade, transparência, composição com cinco a oito
+  luzes, grupos aninhados e dependências RTT direct.
   Reusar ownership e publicação de P12–P14, inclusive múltiplos alvos.
 - [ ] **Infra BGFX/wgpu:** mapas de momentos e depth, VSM, bias, textura,
   passes, sincronização, resize e reconstrução após perda, com shader específico

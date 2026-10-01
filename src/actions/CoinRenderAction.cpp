@@ -61,6 +61,9 @@
 #include <Inventor/elements/SoTextureOverrideElement.h>
 #include <Inventor/elements/SoShapeStyleElement.h>
 #include <Inventor/elements/SoLazyElement.h>
+#include <Inventor/elements/SoModelMatrixElement.h>
+#include <Inventor/elements/SoClipPlaneElement.h>
+#include <Inventor/actions/SoSearchAction.h>
 #include <Inventor/elements/SoOverrideElement.h>
 #include <Inventor/elements/SoDepthBufferElement.h>
 #include <Inventor/rendering/CoinRenderCapabilities.h>
@@ -567,6 +570,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
                                this->lastValidPlan.revision)
     : CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::UNKNOWN, 0);
   this->sceneTexturePixels.clear();
+  this->shadowSceneCaptures.clear();
   this->shadowStyleBeforeGroups.clear();
   this->activeShadowGroupNodes.clear();
   this->lastRejectedShadowFrame = CoinRenderFramePlan();
@@ -638,6 +642,20 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       ? CoinRenderAction::UNSUPPORTED : CoinRenderAction::INVALID_SCENE;
     this->setDiagnostic(CoinRenderDiagnosticShell::action(
       status, CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(err.c_str())));
+    return;
+  }
+  for (const auto & capture : this->shadowSceneCaptures) {
+    for (size_t l = 0; l < plan.shadowLights.size(); ++l) {
+      auto & light = plan.shadowLights[l];
+      if (light.groupSlot != capture.groupSlot || light.sourceRevision != capture.lightRevision) continue;
+      coin_render_append_shadow_scene(plan, capture.frame, static_cast<uint32_t>(l + 1),
+                                      capture.inheritedClipPlaneCount);
+      light.customSceneCaptured = true;
+    }
+  }
+  if (!this->shadowSceneCaptures.empty() && !plan.isValid(&err)) {
+    this->setDiagnostic(CoinRenderDiagnosticShell::action(
+      CoinRenderAction::INVALID_SCENE, CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(err.c_str())));
     return;
   }
   if (!plan.shadowGroups.empty()) {
@@ -869,6 +887,15 @@ CoinRenderActionP::textureCombinePreCB(void * userdata, SoCallbackAction* action
 SoCallbackAction::Response
 CoinRenderActionP::unsupportedEffectPreCB(void * userdata, SoCallbackAction *, const SoNode * node)
 {
+  if (node->isOfType(SoCamera::getClassTypeId())) {
+    auto * p = static_cast<CoinRenderActionP *>(userdata);
+    if (!p->capturingShadowScene) return SoCallbackAction::CONTINUE;
+    p->setDiagnostic(CoinRenderDiagnosticShell::action(
+      CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+      SbString("shadowMapScene cannot replace the light-owned camera in this profile")));
+    return SoCallbackAction::ABORT;
+  }
+
   const char * diagnostic = nullptr;
   if (node->isOfType(SoTexture3::getClassTypeId())) {
     const auto * texture = static_cast<const SoTexture3 *>(node);
@@ -918,6 +945,7 @@ CoinRenderActionP::initCallbacks()
   this->master->addLineSegmentCallback(SoShape::getClassTypeId(), lineCB, this);
   this->master->addPointCallback(SoShape::getClassTypeId(), pointCB, this);
 
+  this->master->addPreCallback(SoCamera::getClassTypeId(), unsupportedEffectPreCB, this);
   this->master->addPreCallback(SoShape::getClassTypeId(), textureUnitsPreCB, this);
   this->master->addPreCallback(SoLight::getClassTypeId(), lightPreCB, this);
   this->master->addPreCallback(SoTextureCombine::getClassTypeId(), textureCombinePreCB, this);
@@ -1102,7 +1130,14 @@ CoinRenderActionP::depthBufferPreCB(void *, SoCallbackAction * action, const SoN
 SoCallbackAction::Response
 CoinRenderActionP::annotationPreCB(void * userdata, SoCallbackAction *, const SoNode *)
 {
-  static_cast<CoinRenderActionP *>(userdata)->builder.beginAnnotation();
+  auto * p = static_cast<CoinRenderActionP *>(userdata);
+  if (p->capturingShadowScene) {
+    p->setDiagnostic(CoinRenderDiagnosticShell::action(
+      CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+      SbString("shadowMapScene annotations require a separate composition profile")));
+    return SoCallbackAction::ABORT;
+  }
+  p->builder.beginAnnotation();
   return SoCallbackAction::CONTINUE;
 }
 
@@ -1119,6 +1154,12 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, 
   auto * p = static_cast<CoinRenderActionP *>(userdata);
   const auto * group = static_cast<const SoShadowGroup *>(node);
   if (!group->isActive.getValue()) return SoCallbackAction::CONTINUE;
+  if (p->capturingShadowScene) {
+    p->setDiagnostic(CoinRenderDiagnosticShell::action(
+      CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+      SbString("Nested active SoShadowGroup inside shadowMapScene requires a separate composition profile")));
+    return SoCallbackAction::ABORT;
+  }
   CoinRenderShadowGroupSnapshot snapshot;
   snapshot.sourceRevision = node->getNodeId();
   snapshot.intensity = group->intensity.getValue();
@@ -1139,6 +1180,66 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, 
   SoShadowStyleElement::set(action->getState(), 3);
   p->builder.beginShadowGroup(snapshot);
   p->activeShadowGroupNodes.push_back(group);
+  // Coin/GL renders light-owned scenes from the group-entry state, resetting
+  // lazy material, enabled textures and model matrix in SoSceneTexture2.
+  SoSearchAction search;
+  search.setType(SoLight::getClassTypeId());
+  search.setInterest(SoSearchAction::ALL);
+  search.apply(const_cast<SoShadowGroup *>(group));
+  for (int i = 0; i < search.getPaths().getLength(); ++i) {
+    const SoNode * light = search.getPaths()[i]->getTail();
+    SoNode * scene = nullptr;
+    if (light->isOfType(SoShadowSpotLight::getClassTypeId()))
+      scene = static_cast<const SoShadowSpotLight *>(light)->shadowMapScene.getValue();
+    else if (light->isOfType(SoShadowDirectionalLight::getClassTypeId()))
+      scene = static_cast<const SoShadowDirectionalLight *>(light)->shadowMapScene.getValue();
+    if (!scene || !static_cast<const SoLight *>(light)->on.getValue()) continue;
+    if (std::any_of(p->shadowSceneCaptures.begin(), p->shadowSceneCaptures.end(),
+        [&](const ShadowSceneCapture & capture) {
+          return capture.groupSlot == p->builder.activeShadowGroupSlot() &&
+            capture.lightRevision == light->getNodeId();
+        })) continue;
+    CoinRenderFramePlanBuilder savedBuilder;
+    std::swap(savedBuilder, p->builder);
+    p->builder.beginFrame(p->backgroundColor, p->viewport);
+    p->builder.beginShadowGroup(snapshot);
+    SoState * state = action->getState();
+    const uint32_t inheritedPlanes = SoClipPlaneElement::getInstance(state)->getNum();
+    state->push();
+    SoLazyElement::setToDefault(state);
+    SoMultiTextureEnabledElement::disableAll(state);
+    SoLazyElement::setLightModel(state, SoLazyElement::BASE_COLOR);
+    SoTextureQualityElement::set(state, 0.0f);
+    SoMaterialBindingElement::set(state, nullptr, SoMaterialBindingElement::OVERALL);
+    SoOverrideElement::setMaterialBindingOverride(state, nullptr, TRUE);
+    SoOverrideElement::setLightModelOverride(state, nullptr, TRUE);
+    SoTextureOverrideElement::setQualityOverride(state, TRUE);
+    SoModelMatrixElement::set(state, const_cast<SoShadowGroup *>(group), SbMatrix::identity());
+    p->capturingShadowScene = true;
+    // GL flattens a ShadowGroup used as the custom scene.
+    if (scene->isOfType(SoShadowGroup::getClassTypeId())) {
+      const auto * sub = static_cast<const SoShadowGroup *>(scene);
+      for (int child = 0; child < sub->getNumChildren(); ++child)
+        action->switchToNodeTraversal(sub->getChild(child));
+    } else action->switchToNodeTraversal(scene);
+    p->capturingShadowScene = false;
+    state->pop();
+    action->setCurrentNode(const_cast<SoNode *>(node));
+    ShadowSceneCapture capture;
+    capture.groupSlot = savedBuilder.activeShadowGroupSlot();
+    capture.lightRevision = light->getNodeId();
+    capture.inheritedClipPlaneCount = inheritedPlanes;
+    std::string error;
+    p->builder.endShadowGroup();
+    const bool ok = p->builder.build(capture.frame, &error);
+    std::swap(savedBuilder, p->builder);
+    if (!ok || action->hasTerminated()) {
+      if (!action->hasTerminated()) p->setDiagnostic(CoinRenderDiagnosticShell::action(
+        CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(error.c_str())));
+      return SoCallbackAction::ABORT;
+    }
+    p->shadowSceneCaptures.push_back(std::move(capture));
+  }
   return SoCallbackAction::CONTINUE;
 }
 
@@ -1146,7 +1247,7 @@ SoCallbackAction::Response
 CoinRenderActionP::shadowGroupPostCB(void * userdata, SoCallbackAction * action, const SoNode * node)
 {
   auto * p = static_cast<CoinRenderActionP *>(userdata);
-  if (!static_cast<const SoShadowGroup *>(node)->isActive.getValue())
+  if (p->capturingShadowScene || !static_cast<const SoShadowGroup *>(node)->isActive.getValue())
     return SoCallbackAction::CONTINUE;
   p->builder.endShadowGroup();
   if (!p->activeShadowGroupNodes.empty()) p->activeShadowGroupNodes.pop_back();
@@ -1166,40 +1267,13 @@ CoinRenderActionP::shadowStylePreCB(void *, SoCallbackAction * action, const SoN
   return SoCallbackAction::CONTINUE;
 }
 
-// A direct separator can reuse its ordinary captured geometry and shadow
-// style. Other Coin subscenes need a separate captured frame.
-static bool
-coin_render_shadow_scene_shapes(const SoNode * node,
-                                std::vector<SbUniqueId> & ids)
-{
-  if (!node || node->getTypeId() != SoSeparator::getClassTypeId()) return false;
-  const auto * separator = static_cast<const SoSeparator *>(node);
-  for (int i = 0; i < separator->getNumChildren(); ++i) {
-    const SoNode * child = separator->getChild(i);
-    if (child->isOfType(SoShape::getClassTypeId())) {
-      const SbUniqueId id = child->getNodeId();
-      if (std::find(ids.begin(), ids.end(), id) != ids.end()) return false;
-      ids.push_back(id);
-    }
-    else if (child->getTypeId() == SoSeparator::getClassTypeId()) {
-      if (!coin_render_shadow_scene_shapes(child, ids)) return false;
-    }
-    else if (child->getTypeId() != SoTranslation::getClassTypeId() &&
-             child->getTypeId() != SoRotation::getClassTypeId() &&
-             child->getTypeId() != SoScale::getClassTypeId() &&
-             child->getTypeId() != SoTransform::getClassTypeId() &&
-             child->getTypeId() != SoShadowStyle::getClassTypeId() &&
-             child->getTypeId() != SoClipPlane::getClassTypeId()) return false;
-  }
-  return !ids.empty();
-}
-
 SoCallbackAction::Response
 CoinRenderActionP::lightPreCB(void * userdata,
                                SoCallbackAction * action,
                                const SoNode * node)
 {
   CoinRenderActionP * p = static_cast<CoinRenderActionP *>(userdata);
+  if (p->capturingShadowScene) return SoCallbackAction::CONTINUE;
   p->builder.recordLightAttenuation(action);
   if (!p->builder.hasActiveShadowGroup()) return SoCallbackAction::CONTINUE;
   const auto * light = static_cast<const SoLight *>(node);
@@ -1248,26 +1322,7 @@ CoinRenderActionP::lightPreCB(void * userdata,
       scene = static_cast<const SoShadowSpotLight *>(node)->shadowMapScene.getValue();
     else if (node->isOfType(SoShadowDirectionalLight::getClassTypeId()))
       scene = static_cast<const SoShadowDirectionalLight *>(node)->shadowMapScene.getValue();
-    const SoShadowGroup * group = p->activeShadowGroupNodes.back();
-    if (scene) {
-      snapshot.customSceneNodeId = scene->getNodeId();
-      snapshot.customSceneDirectShape = scene->isOfType(SoShape::getClassTypeId());
-      bool directChild = false;
-      for (int i = 0; i < group->getNumChildren(); ++i)
-        directChild = directChild || group->getChild(i) == scene;
-      snapshot.customSceneDirectShape = snapshot.customSceneDirectShape && directChild;
-      if (directChild && !snapshot.customSceneDirectShape) {
-        bool onlyLightsBefore = true;
-        for (int i = 0; i < group->getNumChildren(); ++i) {
-          const SoNode * child = group->getChild(i);
-          if (child == scene) break;
-          onlyLightsBefore = onlyLightsBefore &&
-            child->isOfType(SoLight::getClassTypeId());
-        }
-        snapshot.customSceneDirectSubtree = onlyLightsBefore &&
-          coin_render_shadow_scene_shapes(scene, snapshot.customSceneShapeNodeIds);
-      }
-    }
+    if (scene) snapshot.customSceneNodeId = scene->getNodeId();
   }
   p->builder.recordShadowLight(snapshot);
   return SoCallbackAction::CONTINUE;

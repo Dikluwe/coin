@@ -105,6 +105,7 @@ struct CoinBgfxPlan {
   std::vector<CoinBgfxVertex> vertices;
   std::vector<uint32_t> indices;
   std::vector<CoinBgfxDraw> draws;
+  std::vector<CoinBgfxDraw> shadowDraws;
   float clearColor[4];
   std::vector<CoinBgfxTexture> textures;
 };

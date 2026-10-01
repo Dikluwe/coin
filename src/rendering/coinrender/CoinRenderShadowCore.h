@@ -64,7 +64,7 @@ coin_render_shadow_group_bounds(const CoinRenderFramePlan & frame,
       return false;
     }
     const auto & state = frame.renderStates[draw.renderStateSlot];
-    if (state.shadowGroupSlot != groupSlot) continue;
+    if (draw.shadowLightSlot || state.shadowGroupSlot != groupSlot) continue;
     const uint64_t end = uint64_t(draw.geometry.firstVertex) + draw.geometry.vertexCount;
     if (end > frame.vertices.size()) {
       diagnostic = "Shadow draw references an invalid vertex range";
@@ -297,6 +297,48 @@ coin_render_shadow_transparent_shape(const CoinRenderFramePlan & frame,
   return false;
 }
 
+// Append separately traversed geometry without exposing it to object composition.
+inline void
+coin_render_append_shadow_scene(CoinRenderFramePlan & frame,
+                                const CoinRenderFramePlan & scene, uint32_t lightSlot,
+                                uint32_t inheritedClipPlaneCount)
+{
+  const uint32_t vertices = frame.vertices.size(), indices = frame.indices.size();
+  const uint32_t materials = frame.materials.size(), states = frame.renderStates.size();
+  const uint32_t lighting = frame.lightingStates.size(), cameras = frame.cameras.size();
+  const uint32_t viewports = frame.viewports.size(), textures = frame.textures.size();
+  const uint32_t samplers = frame.samplers.size();
+  frame.materials.insert(frame.materials.end(), scene.materials.begin(), scene.materials.end());
+  frame.lightingStates.insert(frame.lightingStates.end(), scene.lightingStates.begin(), scene.lightingStates.end());
+  frame.cameras.insert(frame.cameras.end(), scene.cameras.begin(), scene.cameras.end());
+  frame.viewports.insert(frame.viewports.end(), scene.viewports.begin(), scene.viewports.end());
+  frame.textures.insert(frame.textures.end(), scene.textures.begin(), scene.textures.end());
+  frame.samplers.insert(frame.samplers.end(), scene.samplers.begin(), scene.samplers.end());
+  for (auto vertex : scene.vertices) { vertex.materialSlot += materials; frame.vertices.push_back(vertex); }
+  for (auto index : scene.indices) frame.indices.push_back(index + vertices);
+  for (auto state : scene.renderStates) {
+    state.materialSlot += materials; state.lightingSlot += lighting;
+    state.cameraSlot += cameras; state.viewportSlot += viewports;
+    if (state.hasTexture) { state.textureImageSlot += textures; state.samplerSlot += samplers; }
+    for (auto & unit : state.extraTextures) if (unit.enabled) { unit.imageSlot += textures; unit.samplerSlot += samplers; }
+    state.shadowGroupSlot = frame.shadowLights[lightSlot - 1].groupSlot;
+    // Map geometry is captured in group-local coordinates after GL resets
+    // the model matrix. The common pass uses world coordinates.
+    const auto & entryModel = frame.shadowGroups[state.shadowGroupSlot - 1].entryModel;
+    state.model = state.model * entryModel;
+    // Entry planes are already world-space; only planes added by the
+    // independent traversal need the group-local to world conversion.
+    for (size_t i = inheritedClipPlaneCount; i < state.clipPlanesWorld.size(); ++i)
+      state.clipPlanesWorld[i].transform(entryModel);
+    frame.renderStates.push_back(std::move(state));
+  }
+  for (auto draw : scene.draws) {
+    draw.geometry.firstVertex += vertices; draw.geometry.firstIndex += indices;
+    draw.renderStateSlot += states; draw.shadowLightSlot = lightSlot;
+    frame.draws.push_back(std::move(draw));
+  }
+}
+
 // Pure Core planning over immutable captures. Resources and GPU passes belong
 // to CoinBgfx/CoinWgpu; only explicitly qualified profiles execute.
 inline bool
@@ -328,8 +370,7 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
       const auto & light = frame.shadowLights[l];
       if (light.groupSlot != g + 1 || !light.enabled || !light.shadowEligible) continue;
       if (!std::isfinite(light.maxShadowDistance) ||
-          (light.hasCustomScene && !light.customSceneDirectShape &&
-           !light.customSceneDirectSubtree) ||
+          (light.hasCustomScene && !light.customSceneCaptured) ||
           (light.type != CoinRenderLightType::DIRECTIONAL &&
            light.type != CoinRenderLightType::SPOT)) {
         diagnostic = "Shadow light requires a supported spot/directional scene";
@@ -398,8 +439,6 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
             break;
           }
       }
-      uint32_t customSceneDraws = 0;
-      std::vector<uint32_t> customShapeDraws(light.customSceneShapeNodeIds.size(), 0);
       for (size_t d = 0; d < frame.draws.size(); ++d) {
         const auto & draw = frame.draws[d];
         if (draw.renderStateSlot >= frame.renderStates.size()) {
@@ -408,43 +447,12 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
         }
         const auto & state = frame.renderStates[draw.renderStateSlot];
         if (state.shadowGroupSlot != pass.groupSlot) continue;
-        const bool selectedShape = light.customSceneDirectShape &&
-          draw.sourceNodeId == light.customSceneNodeId;
-        const auto shapeIt = std::find(light.customSceneShapeNodeIds.begin(),
-                                       light.customSceneShapeNodeIds.end(),
-                                       draw.sourceNodeId);
-        const bool selectedSubtree = light.customSceneDirectSubtree &&
-          shapeIt != light.customSceneShapeNodeIds.end();
-        if (selectedShape || selectedSubtree) {
-          if (selectedSubtree)
-            ++customShapeDraws[static_cast<size_t>(
-              shapeIt - light.customSceneShapeNodeIds.begin())];
-          ++customSceneDraws;
-          if ((selectedShape && (state.shadowStyle & 1u) == 0) ||
-              (selectedShape &&
-               (state.model != SbMatrix::identity() ||
-                !state.clipPlanesWorld.empty() ||
-                state.cullMode != CoinRenderCullMode::NONE ||
-                state.frontFace != CoinRenderFrontFace::CCW))) {
-            diagnostic = "shadowMapScene requires isolated casting geometry";
-            return false;
-          }
-        }
-        if ((state.shadowStyle & 1u) != 0 &&
-            !coin_render_shadow_transparent_shape(frame, state) &&
-            (!light.hasCustomScene || selectedShape || selectedSubtree))
+        const bool casterScene = light.hasCustomScene ? draw.shadowLightSlot == l + 1 : draw.shadowLightSlot == 0;
+        if (casterScene && (state.shadowStyle & 1u) != 0 &&
+            !coin_render_shadow_transparent_shape(frame, state))
           pass.casterDraws.push_back(static_cast<uint32_t>(d));
-        if ((state.shadowStyle & 2u) != 0)
+        if (!draw.shadowLightSlot && (state.shadowStyle & 2u) != 0)
           pass.receiverDraws.push_back(static_cast<uint32_t>(d));
-      }
-      if (light.hasCustomScene &&
-          (customSceneDraws != (light.customSceneDirectShape ? 1u :
-            static_cast<uint32_t>(light.customSceneShapeNodeIds.size())) ||
-           (light.customSceneDirectSubtree &&
-            std::any_of(customShapeDraws.begin(), customShapeDraws.end(),
-                        [](uint32_t count) { return count != 1; })))) {
-        diagnostic = "shadowMapScene shapes must each occur exactly once in their group";
-        return false;
       }
       if (!coin_render_shadow_camera(group, light, groupBounds,
                                      mainViewPtr, pass, diagnostic)) return false;
@@ -507,7 +515,7 @@ coin_render_shadow_object_profile(
     if (state.shadowGroupSlot > frame.shadowGroups.size() ||
         draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST ||
         draw.renderLayer != 0 || draw.clearDepthBefore ||
-        state.lightModel != CoinRenderLightModel::PHONG ||
+        (!draw.shadowLightSlot && state.lightModel != CoinRenderLightModel::PHONG) ||
         state.fogMode != CoinRenderFogMode::NONE ||
         state.materialSlot >= frame.materials.size() ||
         state.lightingSlot >= frame.lightingStates.size() ||
@@ -569,6 +577,7 @@ coin_render_shadow_object_profile(
       diagnostic = "Transparent shadow receivers require the object mechanism and at most four maps";
       return false;
     }
+    if (draw.shadowLightSlot) continue;
     // Coin moves shadow-map lighting to vertices at quality <= 0.3.
     // The bounded flat/diffuse profile has GL/GPU visual fixtures for both
     // directional and spot lights; specular and interpolated normals differ.

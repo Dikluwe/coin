@@ -178,6 +178,12 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
   if (!coin_render_composition_schedule(frame, order, diagnostic))
     return false;
 
+  for (size_t d = 0; d < frame.draws.size(); ++d) if (frame.draws[d].shadowLightSlot) {
+    CoinRenderCompositionItem item;
+    item.drawIndex = d; item.firstIndex = frame.draws[d].geometry.firstIndex;
+    item.indexCount = frame.draws[d].geometry.indexCount;
+    order.push_back(item);
+  }
   for (const CoinRenderCompositionItem& item : order) {
     CoinRenderDrawPacket draw = frame.draws[item.drawIndex];
     draw.geometry.firstIndex = item.firstIndex;
@@ -407,7 +413,8 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
         static_cast<uint32_t>(candidate.vertices.size()));
       candidate.vertices.push_back(vertex);
     }
-    candidate.draws.push_back(lowered);
+    if (!frame.shadowGroups.empty()) candidate.shadowDraws.push_back(lowered);
+    if (!draw.shadowLightSlot) candidate.draws.push_back(lowered);
   }
 
   candidate.textures.reserve(frame.textures.size());

@@ -416,6 +416,14 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
       if (outDiagnostic) *outDiagnostic = "Draw references invalid renderStateSlot";
       return false;
     }
+    if (draw.shadowLightSlot &&
+        (draw.shadowLightSlot > this->shadowLights.size() ||
+         !this->shadowLights[draw.shadowLightSlot - 1].hasCustomScene ||
+         this->renderStates[draw.renderStateSlot].shadowGroupSlot !=
+           this->shadowLights[draw.shadowLightSlot - 1].groupSlot)) {
+      if (outDiagnostic) *outDiagnostic = "Shadow-only draw references an invalid light owner";
+      return false;
+    }
     const CoinRenderGeometryRange & geometry = draw.geometry;
     if (geometry.firstVertex > numVertices ||
         geometry.vertexCount > (numVertices - geometry.firstVertex)) {
