@@ -315,8 +315,11 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   o quadro. Redimensionar o consumidor direto para 160×160 manteve o efeito
   (delta GPU 405 em BGFX; ambos executores passaram). O consumidor com
   sombra opaca e textura RTT também passou em staged e direct, como descrito
-  acima. Camadas, grupos aninhados e parâmetros VSM
-  diferentes dentro de RTT ainda não estão qualificados.
+  acima. Dois grupos irmãos dentro do produtor RTT mantiveram `epsilon`
+  e `threshold` distintos nos modos staged e direct: alterar apenas o segundo
+  deixou o primeiro inalterado; deltas máximos 102/3 no Coin/GL e BGFX
+  (tolerância 150; wgpu também passou). A diferença de magnitude exige
+  calibração visual. Camadas e grupos aninhados ainda não estão qualificados.
 
 Cada caixa acima requer uma fixture renderizada nos dois executores e sua
 referência Coin/GL antes de marcar P27.4 concluído.

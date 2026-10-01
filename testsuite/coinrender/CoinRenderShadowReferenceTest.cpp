@@ -746,6 +746,117 @@ int main()
          (distinctGlDelta > 0 &&
           std::abs(distinctGlDelta - distinctGpuDelta) <= 150));
     }
+    if (siblingShadowGroupsQualified) {
+      auto * rttSiblings = new SoSeparator;
+      rttSiblings->ref();
+      auto * rttCamera = new SoOrthographicCamera;
+      rttCamera->position.setValue(0, 0, 8);
+      rttCamera->height = 7;
+      rttCamera->nearDistance = 1;
+      rttCamera->farDistance = 20;
+      rttSiblings->addChild(rttCamera);
+      auto * rttLighting = new SoLightModel;
+      rttLighting->model = SoLightModel::BASE_COLOR;
+      rttSiblings->addChild(rttLighting);
+      auto * rttTexture = new SoSceneTexture2;
+      rttTexture->size.setValue(side, side);
+      rttTexture->type = SoSceneTexture2::RGBA8;
+      rttTexture->transparencyFunction = SoSceneTexture2::NONE;
+      rttTexture->scene = siblings;
+      rttSiblings->addChild(rttTexture);
+      auto * rttUv = new SoTextureCoordinate2;
+      rttUv->point.set1Value(0, SbVec2f(0, 0));
+      rttUv->point.set1Value(1, SbVec2f(1, 0));
+      rttUv->point.set1Value(2, SbVec2f(1, 1));
+      rttUv->point.set1Value(3, SbVec2f(0, 1));
+      rttSiblings->addChild(rttUv);
+      auto * rttPoints = new SoCoordinate3;
+      rttPoints->point.set1Value(0, SbVec3f(-3, -3, 0));
+      rttPoints->point.set1Value(1, SbVec3f(3, -3, 0));
+      rttPoints->point.set1Value(2, SbVec3f(3, 3, 0));
+      rttPoints->point.set1Value(3, SbVec3f(-3, 3, 0));
+      rttSiblings->addChild(rttPoints);
+      auto * rttDisplay = new SoIndexedFaceSet;
+      const int32_t rttIndices[] = {0, 1, 2, 3, -1};
+      rttDisplay->coordIndex.setValues(0, 5, rttIndices);
+      rttDisplay->textureCoordIndex.setValues(0, 5, rttIndices);
+      rttSiblings->addChild(rttDisplay);
+      const float baseEpsilon = secondGroup->epsilon.getValue();
+      const float baseThreshold = secondGroup->threshold.getValue();
+      int rttGlDelta = 0;
+      if (std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
+        auto * glShared = static_cast<SoSeparator *>(rttSiblings->copy(TRUE));
+        glShared->ref();
+        secondGroup->epsilon = 0.00002f;
+        secondGroup->threshold = 0.12f;
+        auto * glDistinct = static_cast<SoSeparator *>(rttSiblings->copy(TRUE));
+        glDistinct->ref();
+        SoOffscreenRenderer rttGl(SbViewportRegion(side, side));
+        rttGl.setComponents(SoOffscreenRenderer::RGB);
+        std::vector<unsigned char> glSharedPixels, glDistinctPixels;
+        siblingShadowGroupsQualified =
+          render(rttGl, glShared, glSharedPixels) &&
+          render(rttGl, glDistinct, glDistinctPixels);
+        if (siblingShadowGroupsQualified)
+          for (int y = 20; y < 105; ++y)
+            for (int x = 65; x < 125; ++x)
+              rttGlDelta = std::max(rttGlDelta, std::abs(
+                luminance(glSharedPixels, x, y) -
+                luminance(glDistinctPixels, x, y)));
+        glDistinct->unref();
+        glShared->unref();
+      }
+      for (int mode = 0; mode < 2 && siblingShadowGroupsQualified; ++mode) {
+        CoinRenderOptions options{};
+        options.sceneTexture = mode == 0 ?
+          COIN_RENDER_SCENE_TEXTURE_STAGED : COIN_RENDER_SCENE_TEXTURE_DIRECT;
+        options.transparency = COIN_RENDER_TRANSPARENCY_OBJECT;
+        CoinRenderTarget * rttTarget = CoinRenderTarget::createOffscreen(
+          SbVec2i32(side, side), options);
+        CoinRenderAction rttAction(SbViewportRegion(side, side));
+        rttAction.setRenderTarget(rttTarget);
+        secondGroup->epsilon = 0.00002f;
+        secondGroup->threshold = 0.12f;
+        rttAction.apply(rttSiblings);
+        std::vector<unsigned char> gpuDistinct, gpuShared;
+        const bool distinctOk = rttAction.getLastStatus() == CoinRenderAction::SUCCESS;
+        if (distinctOk) rttTarget->readbackRGBA(gpuDistinct);
+        secondGroup->epsilon = baseEpsilon;
+        secondGroup->threshold = baseThreshold;
+        rttAction.apply(rttSiblings);
+        const bool sharedOk = rttAction.getLastStatus() == CoinRenderAction::SUCCESS;
+        if (sharedOk) rttTarget->readbackRGBA(gpuShared);
+        int rttGpuDelta = 0;
+        siblingShadowGroupsQualified = distinctOk && sharedOk &&
+          gpuDistinct.size() == gpuShared.size();
+        if (siblingShadowGroupsQualified)
+          for (int y = 20; y < 105; ++y) {
+            for (int x = 65; x < 125; ++x)
+              rttGpuDelta = std::max(rttGpuDelta, std::abs(
+                luminanceRgba(gpuDistinct, x, y) -
+                luminanceRgba(gpuShared, x, y)));
+            for (int x = 20; x < 50; ++x)
+              siblingShadowGroupsQualified = siblingShadowGroupsQualified &&
+                luminanceRgba(gpuDistinct, x, y) ==
+                luminanceRgba(gpuShared, x, y);
+          }
+        siblingShadowGroupsQualified = siblingShadowGroupsQualified &&
+          rttGpuDelta > 0 &&
+          (!std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") ||
+           (rttGlDelta > 0 && std::abs(rttGlDelta - rttGpuDelta) <= 150));
+        std::cout << (mode == 0 ? "staged" : "direct") <<
+          " RTT distinct VSM Coin/GL/GPU delta=" <<
+          rttGlDelta << '/' << rttGpuDelta << '\n';
+        if (!siblingShadowGroupsQualified)
+          std::cerr << "RTT distinct VSM: " <<
+            rttAction.getLastError().getString() << '\n';
+        rttAction.setRenderTarget(nullptr);
+        delete rttTarget;
+      }
+      secondGroup->epsilon = baseEpsilon;
+      secondGroup->threshold = baseThreshold;
+      rttSiblings->unref();
+    }
     if (!siblingShadowGroupsQualified)
       std::cerr << "sibling shadow groups: " << siblingAction.getLastError().getString() << '\n';
     siblingAction.setRenderTarget(nullptr);
