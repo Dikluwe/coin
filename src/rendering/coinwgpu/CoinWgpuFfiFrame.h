@@ -37,6 +37,7 @@ private:
   CoinRenderFrameReuseKind prepareKind;
   CoinWgpuFrameView view;
   CoinWgpuShadowFrame shadowFrame;
+  std::vector<CoinWgpuShadowPassView> extraShadowPassViews;
   std::vector<CoinWgpuVertex> vertices;
   std::vector<uint32_t> indices;
   std::vector<CoinWgpuDraw> draws;

@@ -14,7 +14,10 @@
 #include <cstddef>
 #include <cstring>
 
-static_assert(sizeof(CoinWgpuFrameView) == 400, "Frame view ABI size changed");
+static_assert(sizeof(CoinWgpuFrameView) == 416, "Frame view ABI size changed");
+static_assert(sizeof(CoinWgpuShadowPassView) == 56, "Extra shadow pass ABI size changed");
+static_assert(offsetof(CoinWgpuFrameView, extra_shadow_passes) == 400,
+              "Extra shadow pass ABI offset changed");
 static_assert(offsetof(CoinWgpuFrameView, shadow_epsilon_second) == 376,
               "Frame view per-pass VSM ABI offset changed");
 static_assert(sizeof(CoinWgpuShadowDraw) == 144, "Shadow draw ABI size changed");
@@ -453,6 +456,25 @@ CoinWgpuFfiFrame::bindView(const CoinRenderFramePlan & frame, uint32_t width, ui
     this->view.shadow_receivers_fourth = pass.receivers.data();
     this->view.shadow_receiver_count_fourth = static_cast<uint64_t>(pass.receivers.size());
   }
+  this->extraShadowPassViews.clear();
+  this->extraShadowPassViews.reserve(this->shadowFrame.extra.size());
+  for (const auto & pass : this->shadowFrame.extra) {
+    CoinWgpuShadowPassView packed{};
+    packed.casters = pass.casters.data();
+    packed.caster_count = static_cast<uint64_t>(pass.casters.size());
+    packed.receivers = pass.receivers.data();
+    packed.receiver_count = static_cast<uint64_t>(pass.receivers.size());
+    packed.map_size = pass.mapSize;
+    packed.kind = pass.kind;
+    packed.near_distance = pass.nearDistance;
+    packed.far_distance = pass.farDistance;
+    packed.epsilon = pass.epsilon;
+    packed.threshold = pass.threshold;
+    this->extraShadowPassViews.push_back(packed);
+  }
+  this->view.extra_shadow_passes = this->extraShadowPassViews.empty() ? NULL :
+    this->extraShadowPassViews.data();
+  this->view.extra_shadow_pass_count = static_cast<uint64_t>(this->extraShadowPassViews.size());
 }
 
 const CoinWgpuFrameView &

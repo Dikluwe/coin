@@ -216,12 +216,11 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   deixaram de ser contadas duas vezes.
   O perfil anterior de até quatro passes permanece qualificado em
   Vulkan/NVIDIA e GL/Mesa; o lote adicional direcional está descrito abaixo.
-- [x] **wgpu, três/quatro luzes opacas:** a ABI privada 37 carrega até
-  quatro passes, o encoder escreve mapas independentes e o shader aplica
-  VSM por contribuição da luz resolvida no Core. A fixture submeteu três e
-  quatro luzes com readback: deltas máximos 666/723 e 228/228, Coin/GL e
-  wgpu. A quinta luz foi rejeitada antes de alterar pixels/serial, seguida
-  por recuperação do quadro de duas luzes. Os 17 testes Rust passaram.
+- [x] **wgpu, três/quatro luzes opacas:** a ABI privada 38 conserva os
+  quatro passes iniciais, o encoder escreve mapas independentes e o shader
+  aplica VSM por contribuição da luz resolvida no Core. A fixture submeteu
+  três e quatro luzes com readback: deltas máximos 666/723 e 228/228,
+  Coin/GL e wgpu. O segundo lote direcional está descrito abaixo.
 - [ ] **Cinco a oito luzes:** o Core produz e valida planos de cinco e
   oito passes no contrato de iluminação capturada. BGFX compõe os passes
   cinco a oito em um segundo draw opaco, reutilizando quatro samplers e o
@@ -229,11 +228,14 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   staged. Com as luzes adicionais direcionais, a fixture comparou os deltas
   de cinco luzes (291/291) e oito (117/174), Coin/GL/BGFX. O produtor RTT
   com oito luzes marcou 228/369 nos modos staged e direct. Uma quinta luz
-  spot revelou divergência VSM: a
-  referência muda 162, mas o BGFX não muda a imagem. O BGFX a rejeita antes
-  da publicação, preservando pixels e serial. wgpu ainda rejeita mais de
-  quatro mapas de modo atômico. Faltam spots tardios, composição wgpu e
-  outros perfis de luzes.
+  spot revelou divergência VSM: a referência muda 162, mas o BGFX não muda
+  a imagem. wgpu também compõe os passes cinco a oito num segundo draw,
+  reutilizando quatro bindings de mapa via ABI 38. As comparações Coin/GL e
+  wgpu mediram 291/291 (quinta) e 117/171 (oitava); staged e direct RTT de
+  oito luzes mediram 228/369, como no BGFX. A quinta luz spot divergiu também
+  no wgpu (162/579) e ambos os executores a rejeitam antes de publicar pixels
+  ou serial. Uma falha de alocação de oito mapas no wgpu preservou a imagem e
+  o serial do alvo. Faltam spots tardios e outros perfis de luzes.
 - [ ] **Cenas próprias por luz:** estão qualificados dois recortes de
   `shadowMapScene`: um `SoShape` filho direto do grupo, desenhado uma só vez
   com modelo identidade e estilo caster; e um `SoSeparator` filho direto,
@@ -299,7 +301,7 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   de recepção do segundo alternado: delta máximo 483 no Coin/GL e 588 em
   ambos os executores; os pixels do primeiro grupo permaneceram idênticos.
   `epsilon` e `threshold` agora são resolvidos por pass no Core e
-  transportados separadamente em BGFX e na ABI wgpu 37. Alternar apenas o
+  transportados separadamente em BGFX e na ABI wgpu 38. Alternar apenas o
   segundo grupo para `epsilon=0,00002` e `threshold=0,12` mudou a região
   desse grupo em 138 no Coin/GL, 6 no BGFX e 12 no wgpu (tolerância 150);
   a região do primeiro grupo manteve pixels idênticos. Essa diferença de

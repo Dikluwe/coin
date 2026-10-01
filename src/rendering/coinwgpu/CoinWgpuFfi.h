@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 37
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 38
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -185,6 +185,19 @@ typedef struct CoinWgpuShadowReceiver {
   float model_view_projection[16];
 } CoinWgpuShadowReceiver;
 
+typedef struct CoinWgpuShadowPassView {
+  const CoinWgpuShadowDraw * casters;
+  uint64_t caster_count;
+  const CoinWgpuShadowReceiver * receivers;
+  uint64_t receiver_count;
+  uint32_t map_size;
+  uint32_t kind;
+  float near_distance;
+  float far_distance;
+  float epsilon;
+  float threshold;
+} CoinWgpuShadowPassView;
+
 typedef struct CoinWgpuFrameView {
   uint32_t abi_version;
   uint32_t struct_size;
@@ -255,6 +268,8 @@ typedef struct CoinWgpuFrameView {
   float shadow_threshold_third;
   float shadow_epsilon_fourth;
   float shadow_threshold_fourth;
+  const CoinWgpuShadowPassView * extra_shadow_passes;
+  uint64_t extra_shadow_pass_count;
 } CoinWgpuFrameView;
 
 typedef struct CoinWgpuTarget {

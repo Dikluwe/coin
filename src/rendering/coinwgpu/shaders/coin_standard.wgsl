@@ -173,6 +173,9 @@ fn light_contribution(light: GpuLight, mat: GpuMaterial,
 // Coin PHONG is reflectance, not a request for fragment-normal interpolation
 // unless the active shadow profile explicitly selects per-fragment lighting.
 fn shade_vertex(mat: GpuMaterial, position_view: vec3<f32>, normal_view: vec3<f32>) -> vec4<f32> {
+    if (u.light_meta.y > 0.5) {
+        return vec4<f32>(0.0, 0.0, 0.0, mat.diffuse.a);
+    }
     if (u.params.w < 0.5) {
         return vec4<f32>(mat.diffuse.rgb, mat.diffuse.a);
     }

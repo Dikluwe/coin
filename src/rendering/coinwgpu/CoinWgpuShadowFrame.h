@@ -52,6 +52,7 @@ struct CoinWgpuShadowFrame : CoinWgpuShadowPass {
   CoinWgpuShadowPass second;
   CoinWgpuShadowPass third;
   CoinWgpuShadowPass fourth;
+  std::vector<CoinWgpuShadowPass> extra;
   bool hasSecond = false;
   bool hasThird = false;
   bool hasFourth = false;
@@ -69,13 +70,19 @@ struct CoinWgpuShadowFrame : CoinWgpuShadowPass {
     if (!coin_render_plan_shadows(frame, plan, diagnostic)) return false;
     if (!coin_render_shadow_opaque_profile(
           frame, plan, plan.passes.size(), diagnostic)) return false;
-    if (plan.passes.size() > 4) {
-      diagnostic = "wgpu shadow encoder currently supports at most four maps";
+    if (plan.passes.size() > 8) {
+      diagnostic = "wgpu shadow encoder supports at most eight maps";
       return false;
     }
+    for (size_t i = 4; i < plan.passes.size(); ++i)
+      if (frame.shadowLights[plan.passes[i].lightSlot].type != CoinRenderLightType::DIRECTIONAL) {
+        diagnostic = "wgpu shadow passes five to eight currently require directional lights";
+        return false;
+      }
     candidate.hasSecond = plan.passes.size() > 1;
     candidate.hasThird = plan.passes.size() > 2;
     candidate.hasFourth = plan.passes.size() > 3;
+    candidate.extra.resize(plan.passes.size() > 4 ? plan.passes.size() - 4 : 0);
     const SbMatrix clipConversion(
       1.0f, 0.0f, 0.0f, 0.0f,
       0.0f, 1.0f, 0.0f, 0.0f,
@@ -86,7 +93,8 @@ struct CoinWgpuShadowFrame : CoinWgpuShadowPass {
       CoinWgpuShadowPass & packedPass = passSlot == 0
         ? static_cast<CoinWgpuShadowPass &>(candidate) :
           passSlot == 1 ? candidate.second :
-          passSlot == 2 ? candidate.third : candidate.fourth;
+          passSlot == 2 ? candidate.third :
+          passSlot == 3 ? candidate.fourth : candidate.extra[passSlot - 4];
       packedPass.mapSize = pass.mapSize;
       packedPass.kind = frame.shadowLights[pass.lightSlot].type == CoinRenderLightType::SPOT ? 1u : 0u;
       packedPass.nearDistance = pass.nearDistance;

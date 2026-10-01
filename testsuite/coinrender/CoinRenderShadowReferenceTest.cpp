@@ -66,6 +66,115 @@ bool render(SoOffscreenRenderer & gl, SoNode * root,
   rgb.assign(data, data + side * side * 3);
   return true;
 }
+bool qualifyEightLightRtt(
+  SoSeparator * scene, SoShadowDirectionalLight * fifth,
+  const std::vector<SoShadowDirectionalLight *> & extraLights,
+  bool compareGl, const char * backendName)
+{
+  bool qualified = true;
+  auto * rttRoot = new SoSeparator;
+  rttRoot->ref();
+  auto * camera = new SoOrthographicCamera;
+  camera->position.setValue(0, 0, 8);
+  camera->height = 7;
+  camera->nearDistance = 1;
+  camera->farDistance = 20;
+  rttRoot->addChild(camera);
+  auto * baseColor = new SoLightModel;
+  baseColor->model = SoLightModel::BASE_COLOR;
+  rttRoot->addChild(baseColor);
+  auto * texture = new SoSceneTexture2;
+  texture->size.setValue(side, side);
+  texture->type = SoSceneTexture2::RGBA8;
+  texture->transparencyFunction = SoSceneTexture2::NONE;
+  texture->scene = scene;
+  rttRoot->addChild(texture);
+  auto * uv = new SoTextureCoordinate2;
+  uv->point.set1Value(0, SbVec2f(0, 0));
+  uv->point.set1Value(1, SbVec2f(1, 0));
+  uv->point.set1Value(2, SbVec2f(1, 1));
+  uv->point.set1Value(3, SbVec2f(0, 1));
+  rttRoot->addChild(uv);
+  auto * coords = new SoCoordinate3;
+  coords->point.set1Value(0, SbVec3f(-3, -3, 0));
+  coords->point.set1Value(1, SbVec3f(3, -3, 0));
+  coords->point.set1Value(2, SbVec3f(3, 3, 0));
+  coords->point.set1Value(3, SbVec3f(-3, 3, 0));
+  rttRoot->addChild(coords);
+  auto * face = new SoIndexedFaceSet;
+  const int32_t indices[] = {0, 1, 2, 3, -1};
+  face->coordIndex.setValues(0, 5, indices);
+  face->textureCoordIndex.setValues(0, 5, indices);
+  rttRoot->addChild(face);
+  for (int mode = 0; mode < 2; ++mode) {
+    CoinRenderOptions options{};
+    options.sceneTexture = mode == 0 ?
+      COIN_RENDER_SCENE_TEXTURE_STAGED : COIN_RENDER_SCENE_TEXTURE_DIRECT;
+    options.transparency = COIN_RENDER_TRANSPARENCY_OBJECT;
+    CoinRenderTarget * rttTarget = CoinRenderTarget::createOffscreen(
+      SbVec2i32(side, side), options);
+    CoinRenderAction rttAction(SbViewportRegion(side, side));
+    rttAction.setRenderTarget(rttTarget);
+    rttAction.apply(rttRoot);
+    std::vector<unsigned char> rttEight, rttFour;
+    const bool eightOk = rttAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (eightOk) rttTarget->readbackRGBA(rttEight);
+    fifth->on = FALSE;
+    for (auto * light : extraLights) light->on = FALSE;
+    rttAction.apply(rttRoot);
+    const bool fourOk = rttAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (fourOk) rttTarget->readbackRGBA(rttFour);
+    fifth->on = TRUE;
+    for (auto * light : extraLights) light->on = TRUE;
+    int rttDelta = 0;
+    if (eightOk && fourOk && rttEight.size() == rttFour.size())
+      for (int y = 20; y < 105; ++y)
+        for (int x = 20; x < 105; ++x)
+          rttDelta = std::max(rttDelta, std::abs(
+            luminanceRgba(rttEight, x, y) - luminanceRgba(rttFour, x, y)));
+    int glRttDelta = 0;
+    bool glRttOk = true;
+    if (compareGl) {
+      auto * glEightRoot = static_cast<SoSeparator *>(rttRoot->copy(TRUE));
+      glEightRoot->ref();
+      fifth->on = FALSE;
+      for (auto * light : extraLights) light->on = FALSE;
+      auto * glFourRoot = static_cast<SoSeparator *>(rttRoot->copy(TRUE));
+      glFourRoot->ref();
+      fifth->on = TRUE;
+      for (auto * light : extraLights) light->on = TRUE;
+      SoOffscreenRenderer rttGl(SbViewportRegion(side, side));
+      rttGl.setComponents(SoOffscreenRenderer::RGB);
+      std::vector<unsigned char> glEightPixels, glFourPixels;
+      glRttOk = render(rttGl, glEightRoot, glEightPixels) &&
+        render(rttGl, glFourRoot, glFourPixels);
+      if (glRttOk)
+        for (int y = 20; y < 105; ++y)
+          for (int x = 20; x < 105; ++x)
+            glRttDelta = std::max(glRttDelta, std::abs(
+              luminance(glEightPixels, x, y) -
+              luminance(glFourPixels, x, y)));
+      glFourRoot->unref();
+      glEightRoot->unref();
+    }
+    std::cout << "eight lights " << (mode == 0 ? "staged" : "direct") <<
+      " RTT Coin/GL/" << backendName << " delta=" <<
+      glRttDelta << '/' << rttDelta << '\n';
+    qualified = qualified &&
+      eightOk && fourOk && rttDelta > 0 &&
+      (!compareGl || (glRttOk && glRttDelta > 0 &&
+        std::abs(glRttDelta - rttDelta) <= 180));
+    if (!qualified)
+      std::cerr << backendName << " eight-light " << (mode == 0 ? "staged" : "direct") <<
+        " RTT: " <<
+        rttAction.getLastError().getString() << " delta=" << rttDelta << '\n';
+    rttAction.setRenderTarget(nullptr);
+    delete rttTarget;
+  }
+  rttRoot->unref();
+  return qualified;
+}
+
 #ifdef HAVE_COIN_BGFX
 bool bgfxLightDelta(SoNode * root, SoLight * switched, int & difference)
 {
@@ -1340,108 +1449,9 @@ int main()
         twoLightBgfxSubmitted = twoLightBgfxSubmitted && glDelta > 0 &&
           bgfxDelta > 0 && std::abs(glDelta - bgfxDelta) <= 130;
       }
-      if (twoLightBgfxSubmitted) {
-        auto * rttRoot = new SoSeparator;
-        rttRoot->ref();
-        auto * camera = new SoOrthographicCamera;
-        camera->position.setValue(0, 0, 8);
-        camera->height = 7;
-        camera->nearDistance = 1;
-        camera->farDistance = 20;
-        rttRoot->addChild(camera);
-        auto * baseColor = new SoLightModel;
-        baseColor->model = SoLightModel::BASE_COLOR;
-        rttRoot->addChild(baseColor);
-        auto * texture = new SoSceneTexture2;
-        texture->size.setValue(side, side);
-        texture->type = SoSceneTexture2::RGBA8;
-        texture->transparencyFunction = SoSceneTexture2::NONE;
-        texture->scene = root;
-        rttRoot->addChild(texture);
-        auto * uv = new SoTextureCoordinate2;
-        uv->point.set1Value(0, SbVec2f(0, 0));
-        uv->point.set1Value(1, SbVec2f(1, 0));
-        uv->point.set1Value(2, SbVec2f(1, 1));
-        uv->point.set1Value(3, SbVec2f(0, 1));
-        rttRoot->addChild(uv);
-        auto * coords = new SoCoordinate3;
-        coords->point.set1Value(0, SbVec3f(-3, -3, 0));
-        coords->point.set1Value(1, SbVec3f(3, -3, 0));
-        coords->point.set1Value(2, SbVec3f(3, 3, 0));
-        coords->point.set1Value(3, SbVec3f(-3, 3, 0));
-        rttRoot->addChild(coords);
-        auto * face = new SoIndexedFaceSet;
-        const int32_t indices[] = {0, 1, 2, 3, -1};
-        face->coordIndex.setValues(0, 5, indices);
-        face->textureCoordIndex.setValues(0, 5, indices);
-        rttRoot->addChild(face);
-        for (int mode = 0; mode < 2; ++mode) {
-          CoinRenderOptions options{};
-          options.sceneTexture = mode == 0 ?
-            COIN_RENDER_SCENE_TEXTURE_STAGED : COIN_RENDER_SCENE_TEXTURE_DIRECT;
-          options.transparency = COIN_RENDER_TRANSPARENCY_OBJECT;
-          CoinRenderTarget * rttTarget = CoinRenderTarget::createOffscreen(
-            SbVec2i32(side, side), options);
-          CoinRenderAction rttAction(SbViewportRegion(side, side));
-          rttAction.setRenderTarget(rttTarget);
-          rttAction.apply(rttRoot);
-          std::vector<unsigned char> rttEight, rttFour;
-          const bool eightOk = rttAction.getLastStatus() == CoinRenderAction::SUCCESS;
-          if (eightOk) rttTarget->readbackRGBA(rttEight);
-          fifth->on = FALSE;
-          for (auto * light : extraLights) light->on = FALSE;
-          rttAction.apply(rttRoot);
-          const bool fourOk = rttAction.getLastStatus() == CoinRenderAction::SUCCESS;
-          if (fourOk) rttTarget->readbackRGBA(rttFour);
-          fifth->on = TRUE;
-          for (auto * light : extraLights) light->on = TRUE;
-          int rttDelta = 0;
-          if (eightOk && fourOk && rttEight.size() == rttFour.size())
-            for (int y = 20; y < 105; ++y)
-              for (int x = 20; x < 105; ++x)
-                rttDelta = std::max(rttDelta, std::abs(
-                  luminanceRgba(rttEight, x, y) - luminanceRgba(rttFour, x, y)));
-          int glRttDelta = 0;
-          bool glRttOk = true;
-          if (compareGl) {
-            auto * glEightRoot = static_cast<SoSeparator *>(rttRoot->copy(TRUE));
-            glEightRoot->ref();
-            fifth->on = FALSE;
-            for (auto * light : extraLights) light->on = FALSE;
-            auto * glFourRoot = static_cast<SoSeparator *>(rttRoot->copy(TRUE));
-            glFourRoot->ref();
-            fifth->on = TRUE;
-            for (auto * light : extraLights) light->on = TRUE;
-            SoOffscreenRenderer rttGl(SbViewportRegion(side, side));
-            rttGl.setComponents(SoOffscreenRenderer::RGB);
-            std::vector<unsigned char> glEightPixels, glFourPixels;
-            glRttOk = render(rttGl, glEightRoot, glEightPixels) &&
-              render(rttGl, glFourRoot, glFourPixels);
-            if (glRttOk)
-              for (int y = 20; y < 105; ++y)
-                for (int x = 20; x < 105; ++x)
-                  glRttDelta = std::max(glRttDelta, std::abs(
-                    luminance(glEightPixels, x, y) -
-                    luminance(glFourPixels, x, y)));
-            glFourRoot->unref();
-            glEightRoot->unref();
-          }
-          std::cout << "eight lights " << (mode == 0 ? "staged" : "direct") <<
-            " RTT Coin/GL/BGFX delta=" <<
-            glRttDelta << '/' << rttDelta << '\n';
-          twoLightBgfxSubmitted = twoLightBgfxSubmitted &&
-            eightOk && fourOk && rttDelta > 0 &&
-            (!compareGl || (glRttOk && glRttDelta > 0 &&
-              std::abs(glRttDelta - rttDelta) <= 180));
-          if (!twoLightBgfxSubmitted)
-            std::cerr << "BGFX eight-light " << (mode == 0 ? "staged" : "direct") <<
-              " RTT: " <<
-              rttAction.getLastError().getString() << " delta=" << rttDelta << '\n';
-          rttAction.setRenderTarget(nullptr);
-          delete rttTarget;
-        }
-        rttRoot->unref();
-      }
+      if (twoLightBgfxSubmitted)
+        twoLightBgfxSubmitted = qualifyEightLightRtt(
+          root, fifth, extraLights, compareGl, "BGFX");
       for (auto it = extraLights.rbegin(); it != extraLights.rend(); ++it)
         group->removeChild(*it);
       group->removeChild(fifth);
@@ -1611,10 +1621,9 @@ int main()
         twoLightSubmittedOnGpu = twoLightSubmittedOnGpu && glDelta > 0 &&
           gpuDelta > 0 && std::abs(glDelta - gpuDelta) <= 130;
       }
-      auto * fifthShadowLight = new SoShadowSpotLight;
-      fifthShadowLight->location.setValue(0.0f, 4.0f, 4.0f);
-      fifthShadowLight->direction.setValue(0.0f, -3.0f, -5.0f);
-      fifthShadowLight->cutOffAngle = 0.9f;
+      auto * fifthShadowLight = new SoShadowDirectionalLight;
+      fifthShadowLight->direction.setValue(-0.5f, -0.4f, -1.0f);
+      fifthShadowLight->intensity = 0.45f;
       group->insertChild(fifthShadowLight, 4);
       CoinRenderAction fiveCapture(SbViewportRegion(side, side));
       fiveCapture.apply(root);
@@ -1627,17 +1636,38 @@ int main()
       const uint64_t fourSerial = dualTarget->getLastSubmissionSerial();
       dualAction.apply(root);
       std::vector<unsigned char> afterFiveLights;
-      dualTarget->readbackRGBA(afterFiveLights);
+      if (dualAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        dualTarget->readbackRGBA(afterFiveLights);
+      if (dualAction.getLastStatus() != CoinRenderAction::SUCCESS)
+        std::cerr << "wgpu five-light frame: " << dualAction.getLastError().getString() << '\n';
       twoLightSubmittedOnGpu = twoLightSubmittedOnGpu && fiveCoreQualified &&
-        dualAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-        dualTarget->getLastSubmissionSerial() == fourSerial &&
-        afterFiveLights == afterFourLights;
-      std::vector<SoShadowSpotLight *> extraLights;
+        dualAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+        dualTarget->getLastSubmissionSerial() > fourSerial &&
+        afterFiveLights.size() == afterFourLights.size();
+      std::vector<unsigned char> glFive;
+      if (twoLightSubmittedOnGpu && compareGl) {
+        auto * copy = static_cast<SoSeparator *>(root->copy(TRUE));
+        copy->ref();
+        twoLightSubmittedOnGpu = render(multiGl, copy, glFive);
+        copy->unref();
+        int gpuDelta = 0, glDelta = 0;
+        if (twoLightSubmittedOnGpu)
+          for (int y = 20; y < 105; ++y)
+            for (int x = 20; x < 105; ++x) {
+              gpuDelta = std::max(gpuDelta, std::abs(
+                luminanceRgba(afterFourLights, x, y) - luminanceRgba(afterFiveLights, x, y)));
+              glDelta = std::max(glDelta, std::abs(
+                luminance(glFour, x, y) - luminance(glFive, x, y)));
+            }
+        std::cout << "five lights Coin/GL/wgpu delta=" << glDelta << '/' << gpuDelta << '\n';
+        twoLightSubmittedOnGpu = twoLightSubmittedOnGpu && glDelta > 0 &&
+          gpuDelta > 0 && std::abs(glDelta - gpuDelta) <= 130;
+      }
+      std::vector<SoShadowDirectionalLight *> extraLights;
       for (int i = 0; i < 3; ++i) {
-        auto * extra = new SoShadowSpotLight;
-        extra->location.setValue(float(i - 1), 4.0f, 4.0f);
-        extra->direction.setValue(float(1 - i), -3.0f, -5.0f);
-        extra->cutOffAngle = 0.9f;
+        auto * extra = new SoShadowDirectionalLight;
+        extra->direction.setValue(0.25f * float(i - 1), -0.3f, -1.0f);
+        extra->intensity = 0.08f;
         group->insertChild(extra, 5 + i);
         extraLights.push_back(extra);
       }
@@ -1649,10 +1679,85 @@ int main()
         coin_render_shadow_opaque_profile(
           eightCapture.getPimpl()->lastRejectedShadowFrame,
           eightCapture.getPimpl()->lastRejectedShadowPlan, 8, eightDiagnostic);
-      twoLightSubmittedOnGpu = twoLightSubmittedOnGpu && eightCoreQualified;
+      const uint64_t fiveSerial = dualTarget->getLastSubmissionSerial();
+      dualAction.apply(root);
+      std::vector<unsigned char> afterEightLights;
+      if (dualAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        dualTarget->readbackRGBA(afterEightLights);
+      if (dualAction.getLastStatus() != CoinRenderAction::SUCCESS)
+        std::cerr << "wgpu eight-light frame: " << dualAction.getLastError().getString() << '\n';
+      twoLightSubmittedOnGpu = twoLightSubmittedOnGpu && eightCoreQualified &&
+        dualAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+        dualTarget->getLastSubmissionSerial() > fiveSerial &&
+        afterEightLights.size() == afterFiveLights.size();
+      if (twoLightSubmittedOnGpu && compareGl) {
+        auto * copy = static_cast<SoSeparator *>(root->copy(TRUE));
+        copy->ref();
+        std::vector<unsigned char> glEight;
+        twoLightSubmittedOnGpu = render(multiGl, copy, glEight);
+        copy->unref();
+        int gpuDelta = 0, glDelta = 0;
+        if (twoLightSubmittedOnGpu)
+          for (int y = 20; y < 105; ++y)
+            for (int x = 20; x < 105; ++x) {
+              gpuDelta = std::max(gpuDelta, std::abs(
+                luminanceRgba(afterFiveLights, x, y) - luminanceRgba(afterEightLights, x, y)));
+              glDelta = std::max(glDelta, std::abs(
+                luminance(glFive, x, y) - luminance(glEight, x, y)));
+            }
+        std::cout << "eight lights Coin/GL/wgpu delta=" << glDelta << '/' << gpuDelta << '\n';
+        twoLightSubmittedOnGpu = twoLightSubmittedOnGpu && glDelta > 0 &&
+          gpuDelta > 0 && std::abs(glDelta - gpuDelta) <= 130;
+      }
+      if (twoLightSubmittedOnGpu) {
+        CoinRenderTarget * faultTarget = CoinRenderTarget::createOffscreen(
+          SbVec2i32(side, side));
+        CoinRenderAction faultAction(SbViewportRegion(side, side));
+        faultAction.setRenderTarget(faultTarget);
+        faultAction.apply(root);
+        std::vector<unsigned char> beforeFault, afterFault;
+        const bool baselineOk = faultAction.getLastStatus() == CoinRenderAction::SUCCESS;
+        if (baselineOk) faultTarget->readbackRGBA(beforeFault);
+        const uint64_t serial = faultTarget->getLastSubmissionSerial();
+        coin_wgpu_inject_fault(COIN_WGPU_FAULT_SHADOW_MAP_ALLOC);
+        faultAction.apply(root);
+        coin_wgpu_inject_fault(0);
+        faultTarget->readbackRGBA(afterFault);
+        twoLightSubmittedOnGpu = twoLightSubmittedOnGpu && baselineOk &&
+          faultAction.getLastStatus() == CoinRenderAction::OUT_OF_MEMORY &&
+          faultTarget->getLastSubmissionSerial() == serial &&
+          afterFault == beforeFault && beforeFault == afterEightLights;
+        faultAction.setRenderTarget(nullptr);
+        delete faultTarget;
+      }
+      if (twoLightSubmittedOnGpu)
+        twoLightSubmittedOnGpu = qualifyEightLightRtt(
+          root, fifthShadowLight, extraLights, compareGl, "wgpu");
       for (auto it = extraLights.rbegin(); it != extraLights.rend(); ++it)
         group->removeChild(*it);
       group->removeChild(fifthShadowLight);
+      auto * lateSpot = new SoShadowSpotLight;
+      lateSpot->location.setValue(0.0f, 4.0f, 4.0f);
+      lateSpot->direction.setValue(0.0f, -3.0f, -5.0f);
+      lateSpot->cutOffAngle = 0.9f;
+      group->insertChild(lateSpot, 4);
+      CoinRenderAction spotCapture(SbViewportRegion(side, side));
+      spotCapture.apply(root);
+      std::string spotDiagnostic;
+      const bool spotCoreQualified =
+        spotCapture.getPimpl()->lastRejectedShadowPlan.passes.size() == 5 &&
+        coin_render_shadow_opaque_profile(
+          spotCapture.getPimpl()->lastRejectedShadowFrame,
+          spotCapture.getPimpl()->lastRejectedShadowPlan, 5, spotDiagnostic);
+      const uint64_t eightSerial = dualTarget->getLastSubmissionSerial();
+      dualAction.apply(root);
+      std::vector<unsigned char> afterRejectedSpot;
+      dualTarget->readbackRGBA(afterRejectedSpot);
+      twoLightSubmittedOnGpu = twoLightSubmittedOnGpu && spotCoreQualified &&
+        dualAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+        dualTarget->getLastSubmissionSerial() == eightSerial &&
+        afterRejectedSpot == afterEightLights;
+      group->removeChild(lateSpot);
       group->removeChild(fourthShadowLight);
       group->removeChild(thirdShadowLight);
       CoinRenderAction recoveryAction(SbViewportRegion(side, side));
