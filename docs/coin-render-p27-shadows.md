@@ -228,8 +228,10 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   formados só por separadores, translações e formas caster. Wiring identifica
   as formas da subárvore; Core exige um draw por forma e escolhe somente esses
   casters, mantendo a bbox do grupo para a câmera do mapa, como no Coin/GL.
-  Ao trocar cena própria por grupo inteiro, a fixture mediu diferenças máximas
-  420/576 para a forma direta e 426/531 para a subárvore traduzida, em
+  A fixture da subárvore conta duas formas em separadores aninhados e
+  verifica a seleção de ambas. Ao trocar cena própria por grupo inteiro,
+  mediu diferenças máximas 420/576 para a forma direta e 426/531 para a
+  subárvore traduzida, em
   Coin/GL e BGFX ou wgpu (tolerância 180). Uma subárvore com `SoShadowStyle`
   interno continua `UNSUPPORTED` sem publicar pixels nem serial. Faltam os
   demais nós e estados de cena própria, transformações herdadas e subárvores

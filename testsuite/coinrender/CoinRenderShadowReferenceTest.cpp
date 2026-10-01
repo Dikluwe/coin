@@ -2178,6 +2178,14 @@ int main()
   auto * otherCube = new SoCube;
   otherCube->width = otherCube->height = otherCube->depth = 1.2f;
   otherCaster->addChild(otherCube);
+  auto * nestedCaster = new SoSeparator;
+  auto * nestedMove = new SoTranslation;
+  nestedMove->translation.setValue(0.0f, 0.4f, 0.0f);
+  nestedCaster->addChild(nestedMove);
+  auto * nestedCube = new SoCube;
+  nestedCube->width = nestedCube->height = nestedCube->depth = 0.7f;
+  nestedCaster->addChild(nestedCube);
+  otherCaster->addChild(nestedCaster);
   customGroup->addChild(otherCaster);
   otherCaster->ref();
   customGroup->removeChild(otherCaster);
@@ -2211,7 +2219,7 @@ int main()
   action.apply(customRoot);
   directCustomSceneQualified = directCustomSceneQualified &&
     action.getPimpl()->lastRejectedShadowPlan.passes.size() == 1 &&
-    action.getPimpl()->lastRejectedShadowPlan.passes[0].casterDraws.size() == 2;
+    action.getPimpl()->lastRejectedShadowPlan.passes[0].casterDraws.size() == 3;
   customLight->shadowMapScene = otherCaster;
   action.apply(customRoot);
   const CoinRenderFramePlan subtreeFrame = action.getPimpl()->lastRejectedShadowFrame;
@@ -2221,8 +2229,8 @@ int main()
     action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
     subtreeFrame.shadowLights.size() == 1 &&
     subtreeFrame.shadowLights[0].customSceneDirectSubtree &&
-    subtreeFrame.shadowLights[0].customSceneShapeNodeIds.size() == 1 &&
-    subtreePlan.passes.size() == 1 && subtreePlan.passes[0].casterDraws.size() == 1 &&
+    subtreeFrame.shadowLights[0].customSceneShapeNodeIds.size() == 2 &&
+    subtreePlan.passes.size() == 1 && subtreePlan.passes[0].casterDraws.size() == 2 &&
     coin_render_shadow_single_spot_opaque_profile(
       subtreeFrame, subtreePlan, subtreeDiagnostic);
   customLight->shadowMapScene = nullptr;
