@@ -959,12 +959,66 @@ int main()
   pointRoot->insertChild(inheritedPoint, 1);
   action.apply(pointRoot);
   std::string pointDiagnostic;
-  const bool inheritedPointRejected =
-    !coin_render_shadow_single_spot_opaque_profile(
+  bool inheritedPointQualified =
+    coin_render_shadow_single_spot_opaque_profile(
       action.getPimpl()->lastRejectedShadowFrame,
-      action.getPimpl()->lastRejectedShadowPlan, pointDiagnostic) &&
-    pointDiagnostic.find("unmatched Coin light") != std::string::npos;
-  ordinaryLightQualified = ordinaryLightQualified && inheritedPointRejected;
+      action.getPimpl()->lastRejectedShadowPlan, pointDiagnostic);
+  if (inheritedPointQualified &&
+      (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
+       std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))) {
+    CoinRenderTarget * pointTarget = CoinRenderTarget::createOffscreen(
+      SbVec2i32(side, side));
+    CoinRenderAction pointAction(SbViewportRegion(side, side));
+    pointAction.setRenderTarget(pointTarget);
+    inheritedPoint->on = FALSE;
+    pointAction.apply(pointRoot);
+    std::vector<unsigned char> gpuOff, gpuOn;
+    const bool offOk = pointAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (offOk) pointTarget->readbackRGBA(gpuOff);
+    inheritedPoint->on = TRUE;
+    pointAction.apply(pointRoot);
+    const bool onOk = pointAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (onOk) pointTarget->readbackRGBA(gpuOn);
+    int gpuDelta = 0, glDelta = 0;
+    inheritedPointQualified = offOk && onOk && gpuOff.size() == gpuOn.size();
+    if (inheritedPointQualified)
+      for (int y = 20; y < 105; ++y)
+        for (int x = 20; x < 105; ++x)
+          gpuDelta = std::max(gpuDelta, std::abs(
+            luminanceRgba(gpuOff, x, y) - luminanceRgba(gpuOn, x, y)));
+    if (inheritedPointQualified && std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
+      inheritedPoint->on = FALSE;
+      auto * glOffRoot = static_cast<SoSeparator *>(pointRoot->copy(TRUE));
+      glOffRoot->ref();
+      inheritedPoint->on = TRUE;
+      auto * glOnRoot = static_cast<SoSeparator *>(pointRoot->copy(TRUE));
+      glOnRoot->ref();
+      SoOffscreenRenderer pointGl(SbViewportRegion(side, side));
+      pointGl.setComponents(SoOffscreenRenderer::RGB);
+      std::vector<unsigned char> glOff, glOn;
+      inheritedPointQualified = render(pointGl, glOffRoot, glOff) &&
+        render(pointGl, glOnRoot, glOn);
+      if (inheritedPointQualified)
+        for (int y = 20; y < 105; ++y)
+          for (int x = 20; x < 105; ++x)
+            glDelta = std::max(glDelta, std::abs(
+              luminance(glOff, x, y) - luminance(glOn, x, y)));
+      glOnRoot->unref();
+      glOffRoot->unref();
+    }
+    std::cout << "inherited point with shadow group Coin/GL/GPU delta=" <<
+      glDelta << '/' << gpuDelta << '\n';
+    inheritedPointQualified = inheritedPointQualified && gpuDelta > 20 &&
+      (!std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") ||
+       (glDelta > 20 && std::abs(glDelta - gpuDelta) <= 180));
+    if (!inheritedPointQualified)
+      std::cerr << "inherited point with shadow group: " <<
+        pointAction.getLastError().getString() << " profile=" <<
+        pointDiagnostic << '\n';
+    pointAction.setRenderTarget(nullptr);
+    delete pointTarget;
+  }
+  ordinaryLightQualified = ordinaryLightQualified && inheritedPointQualified;
   pointRoot->unref();
   auto * texturedRoot = static_cast<SoSeparator *>(root->copy(TRUE));
   texturedRoot->ref();

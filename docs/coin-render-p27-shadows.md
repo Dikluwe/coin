@@ -227,7 +227,7 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
 - [ ] **Cenas próprias por luz:** estão qualificados dois recortes de
   `shadowMapScene`: um `SoShape` filho direto do grupo, desenhado uma só vez
   com modelo identidade e estilo caster; e um `SoSeparator` filho direto,
-  após apenas luzes no grupo, com modelo de entrada identidade e descendentes
+  após apenas luzes no grupo, com modelo de entrada capturado e descendentes
   formados só por separadores, translações, rotações, escalas,
   `SoTransform` e formas caster. Wiring identifica
   as formas da subárvore; Core exige um draw por forma e escolhe somente esses
@@ -257,8 +257,8 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   A fixture de qualidade baixa mediu delta máximo de recepção 735 no GL e
   666 em BGFX e wgpu, com tolerância 120.
 - [x] **Receiver com textura estática opaca:** a textura primária é aceita
-  quando seus texels RGBA capturados têm alfa 255 e não há produtor RTT ou
-  unidades adicionais. O mesmo draw recebe sombra e modulação de textura nos
+  quando seus texels RGBA capturados têm alfa 255 e não há unidades
+  adicionais. O mesmo draw recebe sombra e modulação de textura nos
   dois executores; alternar a textura verde da fixture mudou a imagem em 485
   no Coin/GL, BGFX e wgpu. Uma imagem com alfa 128 retorna `UNSUPPORTED`
   preservando pixels e serial. Um `SoSceneTexture2` também pode modular o
@@ -276,8 +276,9 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   planas. Ligar essa luz mudou a cena em 152 no Coin/GL, BGFX e wgpu. A luz
   comum inserida dentro do grupo continua `UNSUPPORTED`: nessa fixture o
   Coin/GL não alterou pixels, enquanto o caminho de iluminação comum dos
-  executores a somaria. A luz pontual herdada também permanece fora do perfil;
-  sua atenuação espacial precisa de comparação própria. Outras combinações
+  executores a somaria. Uma `SoPointLight` herdada com localização (0,2,4)
+  também compôs com o mapa spot: ligá-la mudou a cena em 594 no Coin/GL e
+  603 em BGFX e wgpu (tolerância 180). Outras atenuações e combinações
   permanecem abertas.
 - [x] **Múltiplos alvos offscreen:** dois alvos simultâneos de 128×128 e
   160×160 executam sombra ativa em BGFX e wgpu; intercalar submissões não
@@ -304,13 +305,13 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   captura seu plano sem alvo e o executor RTT existente renderiza o produtor
   num alvo offscreen antes do consumidor texturizado. A fixture 128×128,
   alternando sombra no produtor, mediu delta máximo 306 no Coin/GL e 414 em
-  BGFX e wgpu (tolerância 180). Falha injetada na alocação do mapa do
+  BGFX e wgpu (tolerância 180; a execução atual mede 405). Falha injetada na alocação do mapa do
   produtor preservou pixels e serial do consumidor; a recuperação reproduziu
   o quadro, e o resize do consumidor para 160×160 manteve a diferença de
   sombra. O mesmo produtor opaco também foi qualificado em modo direct:
   a Action captura o plano, BGFX e wgpu executam o mapa antes do framebuffer
   de textura e o consumidor recebe o token GPU. Alternar a sombra produziu
-  delta máximo 306 no Coin/GL e 402 em BGFX e wgpu (tolerância 180);
+  delta máximo 306 no Coin/GL e 405 em BGFX e wgpu (tolerância 180);
   falha injetada no mapa preservou pixels e serial, e a recuperação reproduziu
   o quadro. Redimensionar o consumidor direto para 160×160 manteve o efeito
   (delta GPU 405 em BGFX; ambos executores passaram). O consumidor com
