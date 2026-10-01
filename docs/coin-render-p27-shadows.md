@@ -293,7 +293,12 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   somente os valores 0 e 1. O subperfil
   direcional opaco difuso com normais planas em `quality=0,2` está qualificado
   nos dois executores; o Core rejeita especular e normais interpoladas.
-  O Coin/GL precisou corrigir a geração do shader para esse perfil: a luz
+  O subperfil spot opaco difuso com normais planas em `quality=0,2` também
+  passou na fixture: delta máximo 486 no Coin/GL e 474 em BGFX e wgpu
+  (tolerância 180). O executor calcula essa iluminação por fragmento;
+  a qualificação não se estende a especular, normais interpoladas ou
+  gradientes de atenuação ainda não medidos. O Coin/GL precisou corrigir a
+  geração do shader para o perfil direcional: a luz
   direcional no caminho por vértice era tratada como spot, e a função
   `DirectionalLight` não era registrada no fragmento para `quality=0,5`.
   A fixture de qualidade baixa mediu delta máximo de recepção 735 no GL e

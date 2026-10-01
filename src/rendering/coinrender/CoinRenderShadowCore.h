@@ -478,11 +478,6 @@ coin_render_shadow_opaque_profile(
       diagnostic = "Opaque shadow profile requires visible independent passes with casters and receivers";
       return false;
     }
-    if (!pass.perFragmentLighting &&
-        frame.shadowLights[pass.lightSlot].type != CoinRenderLightType::DIRECTIONAL) {
-      diagnostic = "Opaque low-quality shadow profile requires directional lights";
-      return false;
-    }
   }
   for (const auto & draw : frame.draws) {
     if (draw.renderStateSlot >= frame.renderStates.size()) {
@@ -543,8 +538,9 @@ coin_render_shadow_opaque_profile(
       diagnostic = "Opaque shadow profile does not support transparency";
       return false;
     }
-    // Coin moves shadow-map directional lighting to vertices at quality <= 0.3.
-    // Per-fragment execution is equivalent for flat diffuse triangles.
+    // Coin moves shadow-map lighting to vertices at quality <= 0.3.
+    // The bounded flat/diffuse profile has GL/GPU visual fixtures for both
+    // directional and spot lights; specular and interpolated normals differ.
     const bool lowQuality = std::any_of(shadows.passes.begin(), shadows.passes.end(),
       [&](const CoinRenderShadowPass & pass) {
         return pass.groupSlot == state.shadowGroupSlot && !pass.perFragmentLighting;

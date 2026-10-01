@@ -334,6 +334,60 @@ int main()
     borderAction.setRenderTarget(nullptr);
     delete borderTarget;
   }
+  const float normalQuality = group->quality.getValue();
+  group->quality = 0.2f;
+  action.apply(root);
+  std::string lowQualitySpotDiagnostic;
+  bool lowQualitySpotQualified = coin_render_shadow_single_spot_opaque_profile(
+    action.getPimpl()->lastRejectedShadowFrame,
+    action.getPimpl()->lastRejectedShadowPlan, lowQualitySpotDiagnostic);
+  if (lowQualitySpotQualified &&
+      (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
+       std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))) {
+    CoinRenderTarget * lowSpotTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+    CoinRenderAction lowSpotAction(SbViewportRegion(side, side));
+    lowSpotAction.setRenderTarget(lowSpotTarget);
+    lowSpotAction.apply(root);
+    std::vector<unsigned char> gpuShadow, gpuNoReceive;
+    const bool shadowOk = lowSpotAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (shadowOk) lowSpotTarget->readbackRGBA(gpuShadow);
+    groundStyle->style = SoShadowStyle::NO_SHADOWING;
+    lowSpotAction.apply(root);
+    const bool noReceiveOk = lowSpotAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (noReceiveOk) lowSpotTarget->readbackRGBA(gpuNoReceive);
+    int gpuDelta = 0, glDelta = 0;
+    if (shadowOk && noReceiveOk && gpuShadow.size() == gpuNoReceive.size())
+      for (int y = 20; y < 105; ++y) for (int x = 20; x < 105; ++x)
+        gpuDelta = std::max(gpuDelta, std::abs(
+          luminanceRgba(gpuShadow, x, y) - luminanceRgba(gpuNoReceive, x, y)));
+    lowQualitySpotQualified = shadowOk && noReceiveOk && gpuDelta > 40;
+    if (lowQualitySpotQualified && std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
+      groundStyle->style = SoShadowStyle::SHADOWED;
+      auto * glShadowRoot = static_cast<SoSeparator *>(root->copy(TRUE));
+      glShadowRoot->ref();
+      groundStyle->style = SoShadowStyle::NO_SHADOWING;
+      auto * glNoReceiveRoot = static_cast<SoSeparator *>(root->copy(TRUE));
+      glNoReceiveRoot->ref();
+      SoOffscreenRenderer lowSpotGl(SbViewportRegion(side, side));
+      lowSpotGl.setComponents(SoOffscreenRenderer::RGB);
+      std::vector<unsigned char> glShadow, glNoReceive;
+      const bool rendered = render(lowSpotGl, glShadowRoot, glShadow) &&
+        render(lowSpotGl, glNoReceiveRoot, glNoReceive);
+      if (rendered)
+        for (int y = 20; y < 105; ++y) for (int x = 20; x < 105; ++x)
+          glDelta = std::max(glDelta, std::abs(
+            luminance(glShadow, x, y) - luminance(glNoReceive, x, y)));
+      lowQualitySpotQualified = rendered && glDelta > 40 &&
+        std::abs(glDelta - gpuDelta) <= 180;
+      glNoReceiveRoot->unref();
+      glShadowRoot->unref();
+    }
+    groundStyle->style = SoShadowStyle::SHADOWED;
+    std::cout << "low-quality spot Coin/GL/GPU delta=" << glDelta << '/' << gpuDelta << '\n';
+    lowSpotAction.setRenderTarget(nullptr);
+    delete lowSpotTarget;
+  }
+  group->quality = normalQuality;
 #ifdef HAVE_COIN_BGFX
   std::vector<unsigned char> bgfxShadowImage;
   bool bgfxShadowSubmitted = true;
@@ -4040,7 +4094,7 @@ int main()
   action.setRenderTarget(nullptr);
   delete target;
   if (!publishedOk || !rejected || !preserved || !recovered || !captureOk ||
-      !spotProfile || !smoothBorderQualified || !transparentExcludedFromFirstProfile || !clippedShadowQualified || !shadowTargetsIndependent || !siblingShadowGroupsQualified || !ordinaryLightQualified || !texturedShadowQualified || !twoLightCaptured ||
+      !spotProfile || !smoothBorderQualified || !lowQualitySpotQualified || !transparentExcludedFromFirstProfile || !clippedShadowQualified || !shadowTargetsIndependent || !siblingShadowGroupsQualified || !ordinaryLightQualified || !texturedShadowQualified || !twoLightCaptured ||
       !orderedTwoLight || !twoSpotsOk || !twoDirectionalsOk ||
       !lateLightResolved || !lateSpotProfile || !mixedOrderResolved ||
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||
