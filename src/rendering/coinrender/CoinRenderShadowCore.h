@@ -293,6 +293,7 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
         group.precision > 1.0f || !std::isfinite(group.quality) ||
         !std::isfinite(group.intensity) || !std::isfinite(group.epsilon) ||
         !std::isfinite(group.threshold) || !std::isfinite(group.smoothBorder) ||
+        group.smoothBorder < 0.0f || group.smoothBorder > 1.0f ||
         !std::isfinite(group.visibilityNearRadius) ||
         !std::isfinite(group.visibilityRadius) ||
         group.visibilityFlag < 0 || group.visibilityFlag > 2) {
@@ -461,11 +462,6 @@ coin_render_shadow_opaque_profile(
     diagnostic = "Opaque shadow profile requires groups with one to eight passes";
     return false;
   }
-  for (const auto & group : frame.shadowGroups)
-    if (group.smoothBorder != 0.0f) {
-      diagnostic = "Opaque shadow profile requires no smooth borders";
-      return false;
-    }
   for (size_t p = 0; p < lightCount; ++p) {
     const auto & pass = shadows.passes[p];
     if (pass.groupSlot == 0 || pass.groupSlot > frame.shadowGroups.size() ||

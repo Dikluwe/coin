@@ -287,7 +287,10 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   200 nesta cena). Um readback direto do mapa wgpu confirmou branco no lado
   descartado e momentos no lado mantido.
 - [ ] **Transparência e qualidade:** qualificar por modo os casters e
-  receivers transparentes e os demais perfis de qualidade. O subperfil
+  receivers transparentes e os demais perfis de qualidade. `smoothBorder=1`
+  passou em Coin/GL, BGFX e wgpu com pixels idênticos a `0`: a suavização
+  gaussiana está desativada na implementação Coin/GL atual. O Core aceita
+  somente os valores 0 e 1. O subperfil
   direcional opaco difuso com normais planas em `quality=0,2` está qualificado
   nos dois executores; o Core rejeita especular e normais interpoladas.
   O Coin/GL precisou corrigir a geração do shader para esse perfil: a luz

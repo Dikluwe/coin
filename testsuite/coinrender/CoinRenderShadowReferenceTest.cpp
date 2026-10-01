@@ -289,6 +289,51 @@ int main()
   std::string spotProfileDiagnostic;
   const bool spotProfile = coin_render_shadow_single_spot_opaque_profile(
     captured, planned, spotProfileDiagnostic);
+  group->smoothBorder = 1;
+  action.apply(root);
+  std::string smoothBorderDiagnostic;
+  bool smoothBorderQualified =
+    action.getPimpl()->lastRejectedShadowFrame.shadowGroups.size() == 1 &&
+    action.getPimpl()->lastRejectedShadowFrame.shadowGroups[0].smoothBorder == 1.0f &&
+    coin_render_shadow_single_spot_opaque_profile(
+      action.getPimpl()->lastRejectedShadowFrame,
+      action.getPimpl()->lastRejectedShadowPlan, smoothBorderDiagnostic);
+  group->smoothBorder = 0;
+  if (smoothBorderQualified &&
+      (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
+       std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))) {
+    CoinRenderTarget * borderTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+    CoinRenderAction borderAction(SbViewportRegion(side, side));
+    borderAction.setRenderTarget(borderTarget);
+    borderAction.apply(root);
+    std::vector<unsigned char> gpuZero, gpuOne;
+    const bool zeroOk = borderAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (zeroOk) borderTarget->readbackRGBA(gpuZero);
+    group->smoothBorder = 1;
+    borderAction.apply(root);
+    const bool oneOk = borderAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (oneOk) borderTarget->readbackRGBA(gpuOne);
+    smoothBorderQualified = zeroOk && oneOk && gpuZero == gpuOne;
+    if (smoothBorderQualified && std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
+      group->smoothBorder = 0;
+      auto * glZeroRoot = static_cast<SoSeparator *>(root->copy(TRUE));
+      glZeroRoot->ref();
+      group->smoothBorder = 1;
+      auto * glOneRoot = static_cast<SoSeparator *>(root->copy(TRUE));
+      glOneRoot->ref();
+      SoOffscreenRenderer borderGl(SbViewportRegion(side, side));
+      borderGl.setComponents(SoOffscreenRenderer::RGB);
+      std::vector<unsigned char> glZero, glOne;
+      smoothBorderQualified = render(borderGl, glZeroRoot, glZero) &&
+        render(borderGl, glOneRoot, glOne) && glZero == glOne;
+      glOneRoot->unref();
+      glZeroRoot->unref();
+    }
+    group->smoothBorder = 0;
+    std::cout << "smoothBorder Coin/GL/GPU unchanged=" << smoothBorderQualified << '\n';
+    borderAction.setRenderTarget(nullptr);
+    delete borderTarget;
+  }
 #ifdef HAVE_COIN_BGFX
   std::vector<unsigned char> bgfxShadowImage;
   bool bgfxShadowSubmitted = true;
@@ -3995,7 +4040,7 @@ int main()
   action.setRenderTarget(nullptr);
   delete target;
   if (!publishedOk || !rejected || !preserved || !recovered || !captureOk ||
-      !spotProfile || !transparentExcludedFromFirstProfile || !clippedShadowQualified || !shadowTargetsIndependent || !siblingShadowGroupsQualified || !ordinaryLightQualified || !texturedShadowQualified || !twoLightCaptured ||
+      !spotProfile || !smoothBorderQualified || !transparentExcludedFromFirstProfile || !clippedShadowQualified || !shadowTargetsIndependent || !siblingShadowGroupsQualified || !ordinaryLightQualified || !texturedShadowQualified || !twoLightCaptured ||
       !orderedTwoLight || !twoSpotsOk || !twoDirectionalsOk ||
       !lateLightResolved || !lateSpotProfile || !mixedOrderResolved ||
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||
