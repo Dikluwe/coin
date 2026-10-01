@@ -329,8 +329,9 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   receiver se a captura registrar fundo opaco e `transparencyFunction=NONE`;
   a Action valida o perfil no plano lógico antes de executar o produtor.
   A fixture com luz spot, `quality=0,5` e sombra no grupo consumidor
-  passou em staged e direct: deltas máximos 474/291 no Coin/GL e em BGFX
-  ou wgpu (tolerância 200).
+  passou em staged e direct: após restaurar o binding RTT no Coin/GL,
+  os deltas máximos são 225/291 no Coin/GL e em BGFX ou wgpu
+  (tolerância 200).
   `ALPHA_BLEND` e fundo não opaco foram rejeitados antes de mudar pixels
   ou serial. Alfa variável continua aberto.
 - [x] **Luz direcional comum herdada:** uma `SoDirectionalLight` anterior ao
@@ -420,8 +421,8 @@ referência Coin/GL antes de marcar P27.4 concluído.
   próprias por luz, alpha/transparência, RTT, resize e falhas nas
   mesmas fixtures Coin/GL. Registrar GPU/API/driver e tolerâncias por célula.
 
-O preflight retorna `UNSUPPORTED` para grupos ativos fora dos perfis opacos
-de uma a quatro luzes spot/direcionais em BGFX ou wgpu offscreen síncrono,
-antes de submeter o quadro. Assim os pixels e o serial publicados
-anteriormente continuam intactos. Cinco ou mais luzes e os demais perfis
-pertencem à ampliação P27.4.
+O preflight retorna `UNSUPPORTED` antes de submeter o quadro para grupos
+ativos fora dos perfis opacos qualificados: até quatro passes spot/direcionais
+e, no segundo lote de até oito passes, luzes adicionais direcionais. Assim
+os pixels e o serial publicados anteriormente continuam intactos. Spots
+tardios e os demais perfis permanecem na ampliação P27.4.
