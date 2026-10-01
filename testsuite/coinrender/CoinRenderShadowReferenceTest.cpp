@@ -2616,6 +2616,7 @@ int main()
     delete subtreeTarget;
   }
   bool stagedShadowRttQualified = true;
+  bool directShadowRttQualified = true;
   if (lowQualityGpuRequested) {
     CoinRenderOptions stagedOptions{};
     stagedOptions.sceneTexture = COIN_RENDER_SCENE_TEXTURE_STAGED;
@@ -2768,6 +2769,102 @@ int main()
       std::cerr << "staged shadow RTT: "
                 << stagedAction.getLastError().getString() << '\n';
     customGroup->isActive = TRUE;
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_BGFX)
+    CoinRenderOptions directOptions = stagedOptions;
+    directOptions.sceneTexture = COIN_RENDER_SCENE_TEXTURE_DIRECT;
+    CoinRenderTarget * directTarget = CoinRenderTarget::createOffscreen(
+      SbVec2i32(side, side), directOptions);
+    CoinRenderAction directAction(SbViewportRegion(side, side));
+    directAction.setRenderTarget(directTarget);
+    directAction.apply(stagedRoot);
+    std::vector<unsigned char> directShadow, directClear;
+    const bool directShadowOk = directAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (!directShadowOk)
+      std::cerr << "direct shadow RTT producer: status=" << directAction.getLastStatus()
+                << " error=" << directAction.getLastError().getString() << '\n';
+    if (directShadowOk) directTarget->readbackRGBA(directShadow);
+    customGroup->isActive = FALSE;
+    directAction.apply(stagedRoot);
+    const bool directClearOk = directAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (!directClearOk)
+      std::cerr << "direct shadow RTT clear: status=" << directAction.getLastStatus()
+                << " error=" << directAction.getLastError().getString() << '\n';
+    if (directClearOk) directTarget->readbackRGBA(directClear);
+    int directGpuDelta = 0, directGlDelta = 0;
+    directShadowRttQualified = directShadowOk && directClearOk &&
+      directShadow.size() == directClear.size();
+    if (directShadowRttQualified)
+      for (int y = 20; y < 105; ++y)
+        for (int x = 20; x < 105; ++x)
+          directGpuDelta = std::max(directGpuDelta, std::abs(
+            luminanceRgba(directShadow, x, y) -
+            luminanceRgba(directClear, x, y)));
+    if (directShadowRttQualified &&
+        std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
+      customGroup->isActive = TRUE;
+      auto * glDirectShadow = static_cast<SoSeparator *>(stagedRoot->copy(TRUE));
+      glDirectShadow->ref();
+      customGroup->isActive = FALSE;
+      auto * glDirectClear = static_cast<SoSeparator *>(stagedRoot->copy(TRUE));
+      glDirectClear->ref();
+      SoOffscreenRenderer directGl(SbViewportRegion(side, side));
+      directGl.setComponents(SoOffscreenRenderer::RGB);
+      std::vector<unsigned char> glShadowPixels, glClearPixels;
+      directShadowRttQualified = render(directGl, glDirectShadow, glShadowPixels) &&
+        render(directGl, glDirectClear, glClearPixels);
+      if (directShadowRttQualified)
+        for (int y = 20; y < 105; ++y)
+          for (int x = 20; x < 105; ++x)
+            directGlDelta = std::max(directGlDelta, std::abs(
+              luminance(glShadowPixels, x, y) -
+              luminance(glClearPixels, x, y)));
+      glDirectClear->unref();
+      glDirectShadow->unref();
+    }
+    std::cout << "direct shadow RTT Coin/GL/GPU delta=" <<
+      directGlDelta << '/' << directGpuDelta << '\n';
+    directShadowRttQualified = directShadowRttQualified && directGpuDelta > 40 &&
+      (!std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") ||
+       (directGlDelta > 40 && std::abs(directGlDelta - directGpuDelta) <= 180));
+    if (directShadowRttQualified) {
+      const uint64_t serial = directTarget->getLastSubmissionSerial();
+      customGroup->isActive = TRUE;
+#ifdef HAVE_COIN_BGFX
+      setenv("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE", "1", 1);
+#endif
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+      coin_wgpu_inject_fault(COIN_WGPU_FAULT_SHADOW_MAP_ALLOC);
+#endif
+      directAction.apply(stagedRoot);
+#ifdef HAVE_COIN_BGFX
+      unsetenv("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE");
+#endif
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+      coin_wgpu_inject_fault(0);
+#endif
+      std::vector<unsigned char> afterFault;
+      directTarget->readbackRGBA(afterFault);
+      directShadowRttQualified =
+        directAction.getLastStatus() == CoinRenderAction::OUT_OF_MEMORY &&
+        directTarget->getLastSubmissionSerial() == serial &&
+        afterFault == directClear;
+      if (directShadowRttQualified) {
+        directAction.apply(stagedRoot);
+        std::vector<unsigned char> recovered;
+        if (directAction.getLastStatus() == CoinRenderAction::SUCCESS)
+          directTarget->readbackRGBA(recovered);
+        directShadowRttQualified =
+          directAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+          recovered == directShadow;
+      }
+    }
+    if (!directShadowRttQualified)
+      std::cerr << "direct shadow RTT: "
+                << directAction.getLastError().getString() << '\n';
+    directAction.setRenderTarget(nullptr);
+    delete directTarget;
+#endif
+    customGroup->isActive = TRUE;
     stagedAction.setRenderTarget(nullptr);
     delete stagedTarget;
     stagedRoot->unref();
@@ -2782,7 +2879,7 @@ int main()
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||
       !lowQualityDirectionalQualified || !directCustomSceneQualified ||
       !subtreeCustomSceneQualified ||
-      !stagedShadowRttQualified ||
+      !stagedShadowRttQualified || !directShadowRttQualified ||
       !directionalProjectionCoversGroup || !multipleCameras || !perspectiveFrustum
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
       || !wgpuShadowSubmitted || !wgpuDirectionalSubmitted || !lateSpotSubmitted ||

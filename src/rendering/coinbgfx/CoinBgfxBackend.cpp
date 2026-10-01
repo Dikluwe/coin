@@ -2539,12 +2539,30 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
   const CoinRenderBackendStatus initialRuntimeStatus = this->checkRuntimeFailure("BGFX shared renderer failed before direct RTT");
   if (initialRuntimeStatus != CoinRenderBackendStatus::SUCCESS)
     return CoinRenderSubmitResult(initialRuntimeStatus, this->lastError);
-  if (!frame.shadowGroups.empty())
-    return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED,
-      "BGFX direct RTT does not support active SoShadowGroup");
+  const bool hasShadows = !frame.shadowGroups.empty();
+  CoinRenderShadowPlan shadowPlan;
+  if (hasShadows) {
+    if (!coin_render_plan_shadows(frame, shadowPlan, this->lastError) ||
+        !coin_render_shadow_opaque_profile(frame, shadowPlan,
+          shadowPlan.passes.size(), this->lastError))
+      return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
+    const bgfx::Caps * caps = bgfx::getCaps();
+    if (caps->limits.maxTextureSamplers < (shadowPlan.passes.size() > 2 ? 14 : 12))
+      return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED,
+        "BGFX direct RTT shadow receiver has insufficient texture stages");
+    for (const auto & pass : shadowPlan.passes)
+      if (pass.mapSize > caps->limits.maxTextureSize ||
+          !(caps->formats[bgfx::TextureFormat::RGBA32F] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
+          !(caps->formats[bgfx::TextureFormat::D32F] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
+          !bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA32F, shadowTextureFlags))
+        return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED,
+          "BGFX direct RTT cannot render the planned shadow maps");
+    if (!this->prepareShadowPrograms(shadowPlan.passes.size() > 2))
+      return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
+  }
   CoinBgfxPlan plan;
   if (!CoinBgfxLowering::lower(frame, size[0], size[1],
-        bgfx::getCaps()->homogeneousDepth, plan, this->lastError)) {
+        bgfx::getCaps()->homogeneousDepth, plan, this->lastError, hasShadows)) {
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
   }
   CoinBgfxTransparencyStrategy strategy;
@@ -2641,14 +2659,148 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     }
   }
 
+  const auto cleanupDirect = [&]() {
+    for (size_t i = 0; i < textures.size(); ++i)
+      if (owned[i] && bgfx::isValid(textures[i])) bgfx::destroy(textures[i]);
+    if (bgfx::isValid(vb)) bgfx::destroy(vb);
+    if (bgfx::isValid(ib)) bgfx::destroy(ib);
+    if (newOutput) bgfx::destroy(output);
+  };
+  struct ShadowMapOwner {
+    CoinBgfxCallback * callback;
+    std::vector<bgfx::FrameBufferHandle> buffers;
+    ~ShadowMapOwner() {
+      if (callback && callback->failed()) return;
+      for (auto handle : buffers)
+        if (bgfx::isValid(handle)) bgfx::destroy(handle);
+    }
+  } shadowMaps{static_cast<CoinBgfxCallback *>(this->callback.get()), {}};
+  if (hasShadows) {
+    if (consumeTestFault("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE")) {
+      cleanupDirect();
+      this->lastError = "Injected BGFX shadow-map allocation failure";
+      return CoinRenderSubmitResult(CoinRenderBackendStatus::OUT_OF_MEMORY, this->lastError);
+    }
+    for (const auto & pass : shadowPlan.passes) {
+      const uint16_t size = static_cast<uint16_t>(pass.mapSize);
+      bgfx::TextureHandle moments = bgfx::createTexture2D(size, size, false, 1,
+        bgfx::TextureFormat::RGBA32F, shadowTextureFlags);
+      bgfx::TextureHandle depth = bgfx::createTexture2D(size, size, false, 1,
+        bgfx::TextureFormat::D32F, BGFX_TEXTURE_RT_WRITE_ONLY);
+      const bgfx::TextureHandle attachments[2] = {moments, depth};
+      bgfx::FrameBufferHandle output = BGFX_INVALID_HANDLE;
+      if (bgfx::isValid(moments) && bgfx::isValid(depth))
+        output = bgfx::createFrameBuffer(2, attachments, true);
+      if (!bgfx::isValid(output)) {
+        if (bgfx::isValid(moments)) bgfx::destroy(moments);
+        if (bgfx::isValid(depth)) bgfx::destroy(depth);
+        cleanupDirect();
+        this->lastError = "BGFX shadow-map attachment allocation failed";
+        return CoinRenderSubmitResult(CoinRenderBackendStatus::OUT_OF_MEMORY, this->lastError);
+      }
+      shadowMaps.buffers.push_back(output);
+    }
+    const SbMatrix clipConversion(
+      1.0f, 0.0f, 0.0f, 0.0f,
+      0.0f, 1.0f, 0.0f, 0.0f,
+      0.0f, 0.0f, 0.5f, 0.0f,
+      0.0f, 0.0f, 0.5f, 1.0f);
+    const float white[4] = {1, 1, 1, 1};
+    bgfx::setPaletteColor(1, white);
+    for (size_t slot = 0; slot < shadowPlan.passes.size(); ++slot) {
+      const auto & pass = shadowPlan.passes[slot];
+      const bgfx::ViewId mapView = this->viewBase + static_cast<bgfx::ViewId>(slot);
+      bgfx::setViewName(mapView, "shadow_moments");
+      bgfx::setViewMode(mapView, bgfx::ViewMode::Sequential);
+      bgfx::setViewRect(mapView, 0, 0, static_cast<uint16_t>(pass.mapSize),
+                        static_cast<uint16_t>(pass.mapSize));
+      bgfx::setViewFrameBuffer(mapView, shadowMaps.buffers[slot]);
+      bgfx::setViewClear(mapView, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 1.0f, 0, 1);
+      bgfx::setViewTransform(mapView, nullptr, nullptr);
+      bgfx::touch(mapView);
+      const SbMatrix projection = bgfx::getCaps()->homogeneousDepth ? pass.projectionCoin :
+        pass.projectionCoin * clipConversion;
+      const float depthParams[4] = {pass.nearDistance, pass.farDistance,
+        frame.shadowLights[pass.lightSlot].type == CoinRenderLightType::SPOT ? 1.0f : 0.0f, 0.0f};
+      for (const CoinBgfxDraw & draw : plan.draws) {
+        if (std::find(pass.casterDraws.begin(), pass.casterDraws.end(),
+                      draw.sourceDrawSlot) == pass.casterDraws.end()) continue;
+        const auto & state = frame.renderStates[draw.renderStateSlot];
+        const SbMatrix modelView = state.model * pass.view;
+        const SbMatrix mvp = modelView * projection;
+        bgfx::setTransform(mvp.getValue());
+        bgfx::setVertexBuffer(0, vb);
+        bgfx::setIndexBuffer(ib, draw.firstIndex, draw.indexCount);
+        bgfx::setUniform(this->shadowModelViewUniform, modelView.getValue());
+        const SbMatrix clipModelView = state.model * state.view;
+        bgfx::setUniform(this->shadowClipModelViewUniform, clipModelView.getValue());
+        bgfx::setUniform(this->clipMetaUniform, draw.clipMeta);
+        bgfx::setUniform(this->clipPlanesUniform, draw.clipPlanes, COIN_RENDER_MAX_CLIP_PLANES);
+        bgfx::setUniform(this->shadowDepthUniform, depthParams);
+        bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A |
+          BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS);
+        bgfx::submit(mapView, this->shadowMomentsProgram);
+      }
+    }
+  }
+  const bgfx::ViewId opaqueView = this->viewBase + static_cast<bgfx::ViewId>(shadowPlan.passes.size());
+  const auto bindShadowReceiver = [&](const CoinBgfxDraw & original) {
+    CoinBgfxDraw shaded = original;
+    float indices[4] = {-1.0f, -1.0f, -1.0f, -1.0f};
+    const auto & state = frame.renderStates[original.renderStateSlot];
+    const SbMatrix clipConversion(
+      1.0f, 0.0f, 0.0f, 0.0f,
+      0.0f, 1.0f, 0.0f, 0.0f,
+      0.0f, 0.0f, 0.5f, 0.0f,
+      0.0f, 0.0f, 0.5f, 1.0f);
+    for (size_t slot = 0; slot < shadowPlan.passes.size(); ++slot) {
+      const auto & pass = shadowPlan.passes[slot];
+      if (state.shadowGroupSlot != pass.groupSlot ||
+          (state.shadowStyle & 2u) == 0) continue;
+      int32_t index = pass.lightingIndexByState[original.renderStateSlot];
+      if (index == -1) {
+        index = static_cast<int32_t>(shaded.lightCount[0]++);
+        const auto & light = pass.resolvedLightByState[original.renderStateSlot];
+        for (int c = 0; c < 3; ++c) {
+          shaded.lightPositionType[index][c] = light.position[c];
+          shaded.lightDirectionCutoff[index][c] = light.direction[c];
+          shaded.lightColorIntensity[index][c] = light.color[c];
+          shaded.lightAttenuationDrop[index][c] = light.attenuation[c];
+        }
+        shaded.lightPositionType[index][3] = static_cast<float>(light.type);
+        shaded.lightDirectionCutoff[index][3] = std::cos(light.cutOffAngle);
+        shaded.lightColorIntensity[index][3] = light.intensity;
+        shaded.lightAttenuationDrop[index][3] = light.dropOffRate;
+      }
+      indices[slot] = static_cast<float>(index);
+      const SbMatrix viewToLight = state.view.inverse() * pass.view;
+      const SbMatrix projection = bgfx::getCaps()->homogeneousDepth ? pass.projectionCoin :
+        pass.projectionCoin * clipConversion;
+      const SbMatrix viewToClip = viewToLight * projection;
+      const float params[4] = {pass.nearDistance, pass.farDistance,
+                               pass.epsilon, pass.threshold};
+      const float meta[4] = {
+        frame.shadowLights[pass.lightSlot].type == CoinRenderLightType::SPOT ? 1.0f : 0.0f,
+        pass.maxShadowDistance, pass.distanceFalloffCoefficient,
+        bgfx::getCaps()->originBottomLeft ? 1.0f : 0.0f};
+      bgfx::setUniform(this->shadowViewToLightUniform[slot], viewToLight.getValue());
+      bgfx::setUniform(this->shadowViewToClipUniform[slot], viewToClip.getValue());
+      bgfx::setUniform(this->shadowParamsUniform[slot], params);
+      bgfx::setUniform(this->shadowMetaUniform[slot], meta);
+      bgfx::setTexture(static_cast<uint8_t>(10 + slot), this->shadowSampler[slot],
+        bgfx::getTexture(shadowMaps.buffers[slot], 0));
+    }
+    bgfx::setUniform(this->shadowLightIndicesUniform, indices);
+    this->bindDrawLighting(shaded, size[1]);
+  };
   bgfx::setPaletteColor(0, plan.clearColor);
-  bgfx::setViewName(this->viewBase, "rtt_opaque");
-  bgfx::setViewMode(this->viewBase, bgfx::ViewMode::Sequential);
-  bgfx::setViewRect(this->viewBase, 0, 0, static_cast<uint16_t>(size[0]),
+  bgfx::setViewName(opaqueView, "rtt_opaque");
+  bgfx::setViewMode(opaqueView, bgfx::ViewMode::Sequential);
+  bgfx::setViewRect(opaqueView, 0, 0, static_cast<uint16_t>(size[0]),
                     static_cast<uint16_t>(size[1]));
-  bgfx::setViewFrameBuffer(this->viewBase, output);
-  bgfx::setViewClear(this->viewBase, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 1.0f, 0, 0);
-  bgfx::touch(this->viewBase);
+  bgfx::setViewFrameBuffer(opaqueView, output);
+  bgfx::setViewClear(opaqueView, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 1.0f, 0, 0);
+  bgfx::touch(opaqueView);
   for (const CoinBgfxDraw & draw : plan.draws) {
     if (draw.blend && draw.deferred) continue;
     bgfx::setTransform(draw.mvp);
@@ -2657,15 +2809,17 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     bgfx::setState(drawState(draw));
     if (!setDrawScissor(draw, size[0], size[1])) continue;
     this->bindDrawTexture(draw, textures);
-    this->bindDrawLighting(draw, size[1]);
-    bgfx::submit(this->viewBase, this->program);
+    if (hasShadows) bindShadowReceiver(draw);
+    else this->bindDrawLighting(draw, size[1]);
+    bgfx::submit(opaqueView, hasShadows ? (shadowPlan.passes.size() > 2 ?
+      this->shadowReceiverProgram4 : this->shadowReceiverProgram) : this->program);
   }
-  bgfx::setViewName(this->viewBase + 1, "rtt_transparent");
-  bgfx::setViewMode(this->viewBase + 1, bgfx::ViewMode::Sequential);
-  bgfx::setViewRect(this->viewBase + 1, 0, 0, static_cast<uint16_t>(size[0]),
+  bgfx::setViewName(opaqueView + 1, "rtt_transparent");
+  bgfx::setViewMode(opaqueView + 1, bgfx::ViewMode::Sequential);
+  bgfx::setViewRect(opaqueView + 1, 0, 0, static_cast<uint16_t>(size[0]),
                     static_cast<uint16_t>(size[1]));
-  bgfx::setViewFrameBuffer(this->viewBase + 1, output);
-  bgfx::setViewClear(this->viewBase + 1, BGFX_CLEAR_NONE);
+  bgfx::setViewFrameBuffer(opaqueView + 1, output);
+  bgfx::setViewClear(opaqueView + 1, BGFX_CLEAR_NONE);
   for (const CoinBgfxDraw & draw : plan.draws) {
     if (!draw.blend || !draw.deferred) continue;
     bgfx::setTransform(draw.mvp);
@@ -2675,7 +2829,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     if (!setDrawScissor(draw, size[0], size[1])) continue;
     this->bindDrawTexture(draw, textures);
     this->bindDrawLighting(draw, size[1]);
-    bgfx::submit(this->viewBase + 1, this->program);
+    bgfx::submit(opaqueView + 1, this->program);
   }
   bgfx::frame();
   for (size_t i = 0; i < textures.size(); ++i)
@@ -2834,6 +2988,25 @@ CoinRenderSubmitResult CoinBgfxBackend::preflightRtt(const CoinRenderRttPlan& gr
   if (graph.mode != COIN_RENDER_SCENE_TEXTURE_DIRECT)
     return {};
   for (const auto& producer : graph.producers) {
+    if (!producer.plan.shadowGroups.empty()) {
+      CoinRenderShadowPlan shadowPlan;
+      std::string diagnostic;
+      if (!coin_render_plan_shadows(producer.plan, shadowPlan, diagnostic) ||
+          !coin_render_shadow_opaque_profile(producer.plan, shadowPlan,
+            shadowPlan.passes.size(), diagnostic))
+        return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};
+      const bgfx::Caps * caps = bgfx::getCaps();
+      if (caps->limits.maxTextureSamplers < (shadowPlan.passes.size() > 2 ? 14 : 12))
+        return {CoinRenderBackendStatus::UNSUPPORTED,
+                "BGFX direct RTT shadow receiver has insufficient texture stages"};
+      for (const auto & pass : shadowPlan.passes)
+        if (pass.mapSize > caps->limits.maxTextureSize ||
+            !(caps->formats[bgfx::TextureFormat::RGBA32F] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
+            !(caps->formats[bgfx::TextureFormat::D32F] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
+            !bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA32F, shadowTextureFlags))
+          return {CoinRenderBackendStatus::UNSUPPORTED,
+                  "BGFX direct RTT cannot render the planned shadow maps"};
+    }
     std::vector<CoinRenderCompositionItem> order;
     std::string diagnostic;
     if (!coin_render_composition_order(producer.plan, order, diagnostic))

@@ -648,9 +648,11 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       return;
     }
     bool executableShadow = false;
-    // Staged SoSceneTexture2 producers are captured without a target. Their
-    // immutable frame is later executed in an ordinary offscreen child target.
-    if (this->planOnly && this->sceneTexturePlan->mode == COIN_RENDER_SCENE_TEXTURE_STAGED) {
+    // SoSceneTexture2 producers are captured without a target. The resolved
+    // frame is later submitted by the selected staged or direct executor.
+    if (this->planOnly &&
+        (this->sceneTexturePlan->mode == COIN_RENDER_SCENE_TEXTURE_STAGED ||
+         this->sceneTexturePlan->mode == COIN_RENDER_SCENE_TEXTURE_DIRECT)) {
       std::string profileDiagnostic;
       executableShadow = coin_render_shadow_opaque_profile(
         plan, shadowPlan, shadowPlan.passes.size(), profileDiagnostic);
