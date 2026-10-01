@@ -490,7 +490,7 @@ coin_render_shadow_opaque_profile(
         draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST ||
         draw.renderLayer != 0 || draw.clearDepthBefore ||
         state.lightModel != CoinRenderLightModel::PHONG ||
-        state.screenDoorTransparency > 0.0f || state.hasTexture ||
+        state.screenDoorTransparency > 0.0f ||
         state.fogMode != CoinRenderFogMode::NONE ||
         state.materialSlot >= frame.materials.size() ||
         state.lightingSlot >= frame.lightingStates.size() ||
@@ -498,8 +498,28 @@ coin_render_shadow_opaque_profile(
                     [](const CoinRenderTextureUnitSnapshot & unit) {
                       return unit.enabled;
                     })) {
-      diagnostic = "Opaque shadow profile supports only untextured PHONG triangles in shadow groups";
+      diagnostic = "Opaque shadow profile supports PHONG triangles without extra texture units";
       return false;
+    }
+    if (state.hasTexture) {
+      if (state.textureImageSlot >= frame.textures.size() ||
+          state.samplerSlot >= frame.samplers.size()) {
+        diagnostic = "Opaque shadow receiver references an invalid texture";
+        return false;
+      }
+      const auto & image = frame.textures[state.textureImageSlot];
+      const uint64_t pixelCount = uint64_t(image.width) * image.height;
+      if (image.producerId || image.gpuToken || !pixelCount ||
+          pixelCount > SIZE_MAX / 4 ||
+          image.pixelsRgba.size() != static_cast<size_t>(pixelCount * 4)) {
+        diagnostic = "Opaque shadow profile requires a static opaque texture";
+        return false;
+      }
+      for (size_t alpha = 3; alpha < image.pixelsRgba.size(); alpha += 4)
+        if (image.pixelsRgba[alpha] != 255) {
+          diagnostic = "Opaque shadow profile requires alpha-one texels";
+          return false;
+        }
     }
     float clipEquations[COIN_RENDER_MAX_CLIP_PLANES][4] = {};
     if (!coin_render_clip_equations(state, clipEquations, diagnostic)) return false;

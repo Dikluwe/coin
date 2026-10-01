@@ -28,6 +28,7 @@
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoClipPlane.h>
 #include <Inventor/nodes/SoSceneTexture2.h>
+#include <Inventor/nodes/SoTexture2.h>
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoTextureCoordinate2.h>
 #include <Inventor/nodes/SoCoordinate3.h>
@@ -852,6 +853,102 @@ int main()
     pointDiagnostic.find("unmatched Coin light") != std::string::npos;
   ordinaryLightQualified = ordinaryLightQualified && inheritedPointRejected;
   pointRoot->unref();
+  auto * texturedRoot = static_cast<SoSeparator *>(root->copy(TRUE));
+  texturedRoot->ref();
+  auto * texturedGroup = static_cast<SoShadowGroup *>(texturedRoot->getChild(1));
+  auto * texturedGround = static_cast<SoSeparator *>(texturedGroup->getChild(2));
+  auto * opaqueTexture = new SoTexture2;
+  const unsigned char greenPixel[] = {20, 220, 40};
+  opaqueTexture->image.setValue(SbVec2s(1, 1), 3, greenPixel);
+  texturedGround->insertChild(opaqueTexture, 2);
+  auto * floorUv = new SoTextureCoordinate2;
+  floorUv->point.set1Value(0, SbVec2f(0, 0));
+  floorUv->point.set1Value(1, SbVec2f(1, 0));
+  floorUv->point.set1Value(2, SbVec2f(1, 1));
+  floorUv->point.set1Value(3, SbVec2f(0, 1));
+  texturedGround->insertChild(floorUv, 3);
+  action.apply(texturedRoot);
+  std::string texturedDiagnostic;
+  bool texturedShadowQualified =
+    action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+    coin_render_shadow_single_spot_opaque_profile(
+      action.getPimpl()->lastRejectedShadowFrame,
+      action.getPimpl()->lastRejectedShadowPlan, texturedDiagnostic);
+  if (!texturedShadowQualified)
+    std::cerr << "textured shadow CPU: status=" << action.getLastStatus()
+              << " error=" << action.getLastError().getString()
+              << " diagnostic=" << texturedDiagnostic
+              << " textures=" << action.getPimpl()->lastRejectedShadowFrame.textures.size()
+              << " draws=" << action.getPimpl()->lastRejectedShadowFrame.draws.size()
+              << '\n';
+  if (texturedShadowQualified &&
+      (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
+       std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))) {
+    CoinRenderTarget * texturedTarget = CoinRenderTarget::createOffscreen(
+      SbVec2i32(side, side));
+    CoinRenderAction texturedAction(SbViewportRegion(side, side));
+    texturedAction.setRenderTarget(texturedTarget);
+    texturedAction.apply(root);
+    std::vector<unsigned char> gpuPlain, gpuTextured;
+    const bool plainOk = texturedAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (plainOk) texturedTarget->readbackRGBA(gpuPlain);
+    texturedAction.apply(texturedRoot);
+    const bool texturedOk = texturedAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (texturedOk) texturedTarget->readbackRGBA(gpuTextured);
+    int gpuDelta = 0, glDelta = 0;
+    texturedShadowQualified = plainOk && texturedOk &&
+      gpuPlain.size() == gpuTextured.size();
+    if (texturedShadowQualified)
+      for (int y = 20; y < 105; ++y)
+        for (int x = 20; x < 105; ++x)
+          gpuDelta = std::max(gpuDelta, std::abs(
+            luminanceRgba(gpuPlain, x, y) - luminanceRgba(gpuTextured, x, y)));
+    if (texturedShadowQualified &&
+        std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
+      auto * glPlain = static_cast<SoSeparator *>(root->copy(TRUE));
+      glPlain->ref();
+      auto * glTextured = static_cast<SoSeparator *>(texturedRoot->copy(TRUE));
+      glTextured->ref();
+      SoOffscreenRenderer texturedGl(SbViewportRegion(side, side));
+      texturedGl.setComponents(SoOffscreenRenderer::RGB);
+      std::vector<unsigned char> glPlainPixels, glTexturedPixels;
+      texturedShadowQualified = render(texturedGl, glPlain, glPlainPixels) &&
+        render(texturedGl, glTextured, glTexturedPixels);
+      if (texturedShadowQualified)
+        for (int y = 20; y < 105; ++y)
+          for (int x = 20; x < 105; ++x)
+            glDelta = std::max(glDelta, std::abs(
+              luminance(glPlainPixels, x, y) -
+              luminance(glTexturedPixels, x, y)));
+      glTextured->unref();
+      glPlain->unref();
+    }
+    std::cout << "opaque textured shadow receiver Coin/GL/GPU delta="
+              << glDelta << '/' << gpuDelta << '\n';
+    texturedShadowQualified = texturedShadowQualified && gpuDelta > 40 &&
+      (!std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") ||
+       (glDelta > 40 && std::abs(glDelta - gpuDelta) <= 180));
+    if (texturedShadowQualified) {
+      const uint64_t serial = texturedTarget->getLastSubmissionSerial();
+      const unsigned char translucentPixel[] = {20, 220, 40, 128};
+      opaqueTexture->image.setValue(SbVec2s(1, 1), 4, translucentPixel);
+      texturedAction.apply(texturedRoot);
+      std::vector<unsigned char> afterRejected;
+      texturedTarget->readbackRGBA(afterRejected);
+      texturedShadowQualified =
+        texturedAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+        texturedTarget->getLastSubmissionSerial() == serial &&
+        afterRejected == gpuTextured;
+      opaqueTexture->image.setValue(SbVec2s(1, 1), 3, greenPixel);
+    }
+    if (!texturedShadowQualified)
+      std::cerr << "opaque textured shadow receiver: "
+                << texturedAction.getLastError().getString() << " profile="
+                << texturedDiagnostic << '\n';
+    texturedAction.setRenderTarget(nullptr);
+    delete texturedTarget;
+  }
+  texturedRoot->unref();
   // Qualify the common two-pass Coin contract and execute both maps on wgpu.
   auto * secondShadowLight = new SoShadowDirectionalLight;
   secondShadowLight->direction.setValue(-0.4f, -0.4f, -1.0f);
@@ -2679,7 +2776,7 @@ int main()
   action.setRenderTarget(nullptr);
   delete target;
   if (!publishedOk || !rejected || !preserved || !recovered || !captureOk ||
-      !spotProfile || !transparentExcludedFromFirstProfile || !clippedShadowQualified || !shadowTargetsIndependent || !siblingShadowGroupsQualified || !ordinaryLightQualified || !twoLightCaptured ||
+      !spotProfile || !transparentExcludedFromFirstProfile || !clippedShadowQualified || !shadowTargetsIndependent || !siblingShadowGroupsQualified || !ordinaryLightQualified || !texturedShadowQualified || !twoLightCaptured ||
       !orderedTwoLight || !twoSpotsOk || !twoDirectionalsOk ||
       !lateLightResolved || !lateSpotProfile || !mixedOrderResolved ||
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||

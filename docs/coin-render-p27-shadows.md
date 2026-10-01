@@ -253,6 +253,13 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   `DirectionalLight` não era registrada no fragmento para `quality=0,5`.
   A fixture de qualidade baixa mediu delta máximo de recepção 735 no GL e
   666 em BGFX e wgpu, com tolerância 120.
+- [x] **Receiver com textura estática opaca:** a textura primária é aceita
+  quando seus texels RGBA capturados têm alfa 255 e não há produtor RTT ou
+  unidades adicionais. O mesmo draw recebe sombra e modulação de textura nos
+  dois executores; alternar a textura verde da fixture mudou a imagem em 485
+  no Coin/GL, BGFX e wgpu. Uma imagem com alfa 128 retorna `UNSUPPORTED`
+  preservando pixels e serial. Texturas RTT no receiver e alfa variável
+  continuam abertos.
 - [x] **Luz direcional comum herdada:** uma `SoDirectionalLight` anterior ao
   `SoShadowGroup` compõe sua contribuição opaca com um mapa spot; Core mantém
   a identidade da luz sem criar pass de sombra para ela. O recorte exige luz
