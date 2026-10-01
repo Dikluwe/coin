@@ -331,8 +331,10 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   somente sua intensidade; ligá-la ou desligá-la preservou pixels idênticos
   em Coin/GL, BGFX e wgpu. Uma `SoPointLight` herdada com localização (0,2,4)
   também compôs com o mapa spot: ligá-la mudou a cena em 594 no Coin/GL e
-  603 em BGFX e wgpu (tolerância 180). Outras atenuações e combinações
-  permanecem abertas.
+  603 em BGFX e wgpu (tolerância 180). A `SoPointLight` inserida dentro
+  do grupo ativo também foi comparada ligada/desligada: os três renderizadores
+  produziram pixels idênticos, pois o shader Coin/GL é montado na entrada
+  do grupo. Outras atenuações e combinações permanecem abertas.
 - [x] **Múltiplos alvos offscreen:** dois alvos simultâneos de 128×128 e
   160×160 executam sombra ativa em BGFX e wgpu; intercalar submissões não
   altera os pixels do primeiro alvo e cada serial avança independentemente.

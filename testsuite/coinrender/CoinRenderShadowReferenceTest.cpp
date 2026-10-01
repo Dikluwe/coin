@@ -1263,6 +1263,56 @@ int main()
     delete pointTarget;
   }
   ordinaryLightQualified = ordinaryLightQualified && inheritedPointQualified;
+  inheritedPoint->ref();
+  pointRoot->removeChild(inheritedPoint);
+  auto * pointGroup = static_cast<SoShadowGroup *>(pointRoot->getChild(1));
+  pointGroup->insertChild(inheritedPoint, 1);
+  inheritedPoint->unref();
+  action.apply(pointRoot);
+  std::string internalPointDiagnostic;
+  bool internalPointQualified =
+    action.getPimpl()->lastRejectedShadowFrame.shadowLights.size() == 2 &&
+    coin_render_shadow_single_spot_opaque_profile(
+      action.getPimpl()->lastRejectedShadowFrame,
+      action.getPimpl()->lastRejectedShadowPlan, internalPointDiagnostic);
+  if (internalPointQualified &&
+      (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
+       std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))) {
+    CoinRenderTarget * pointTarget = CoinRenderTarget::createOffscreen(
+      SbVec2i32(side, side));
+    CoinRenderAction pointAction(SbViewportRegion(side, side));
+    pointAction.setRenderTarget(pointTarget);
+    inheritedPoint->on = FALSE;
+    pointAction.apply(pointRoot);
+    std::vector<unsigned char> gpuOff, gpuOn;
+    const bool offOk = pointAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (offOk) pointTarget->readbackRGBA(gpuOff);
+    inheritedPoint->on = TRUE;
+    pointAction.apply(pointRoot);
+    const bool onOk = pointAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (onOk) pointTarget->readbackRGBA(gpuOn);
+    internalPointQualified = offOk && onOk && gpuOff == gpuOn;
+    if (internalPointQualified && std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
+      inheritedPoint->on = FALSE;
+      auto * glOffRoot = static_cast<SoSeparator *>(pointRoot->copy(TRUE));
+      glOffRoot->ref();
+      inheritedPoint->on = TRUE;
+      auto * glOnRoot = static_cast<SoSeparator *>(pointRoot->copy(TRUE));
+      glOnRoot->ref();
+      SoOffscreenRenderer pointGl(SbViewportRegion(side, side));
+      pointGl.setComponents(SoOffscreenRenderer::RGB);
+      std::vector<unsigned char> glOff, glOn;
+      internalPointQualified = render(pointGl, glOffRoot, glOff) &&
+        render(pointGl, glOnRoot, glOn) && glOff == glOn;
+      glOnRoot->unref();
+      glOffRoot->unref();
+    }
+    std::cout << "ordinary point inside active group GL/GPU unchanged="
+              << internalPointQualified << '\n';
+    pointAction.setRenderTarget(nullptr);
+    delete pointTarget;
+  }
+  ordinaryLightQualified = ordinaryLightQualified && internalPointQualified;
   pointRoot->unref();
   auto * texturedRoot = static_cast<SoSeparator *>(root->copy(TRUE));
   texturedRoot->ref();
