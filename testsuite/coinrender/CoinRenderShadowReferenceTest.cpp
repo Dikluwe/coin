@@ -3621,6 +3621,64 @@ int main()
   }
   nestedCaster->removeChild(nestedShadowStyle);
   customLight->shadowMapScene = nullptr;
+  auto * subtreeClip = new SoClipPlane;
+  subtreeClip->plane = SbPlane(SbVec3f(1, 0, 0), 1.7f);
+  otherCaster->insertChild(subtreeClip, 0);
+  customLight->shadowMapScene = otherCaster;
+  action.apply(customRoot);
+  const auto & clippedSubtreePlan = action.getPimpl()->lastRejectedShadowPlan;
+  bool clippedSubtreeQualified = clippedSubtreePlan.passes.size() == 1 &&
+    clippedSubtreePlan.passes[0].casterDraws.size() == 2 &&
+    action.getPimpl()->lastRejectedShadowFrame.shadowLights.size() == 1 &&
+    action.getPimpl()->lastRejectedShadowFrame.shadowLights[0].customSceneDirectSubtree;
+  if (clippedSubtreeQualified && lowQualityGpuRequested) {
+    CoinRenderTarget * clippedTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+    CoinRenderAction clippedAction(SbViewportRegion(side, side));
+    clippedAction.setRenderTarget(clippedTarget);
+    subtreeClip->on = FALSE;
+    clippedAction.apply(customRoot);
+    std::vector<unsigned char> gpuUnclipped, gpuClipped;
+    const bool uncutOk = clippedAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (uncutOk) clippedTarget->readbackRGBA(gpuUnclipped);
+    subtreeClip->on = TRUE;
+    clippedAction.apply(customRoot);
+    const bool cutOk = clippedAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (cutOk) clippedTarget->readbackRGBA(gpuClipped);
+    int gpuDelta = 0, glDelta = 0;
+    if (uncutOk && cutOk && gpuUnclipped.size() == gpuClipped.size())
+      for (int y = 20; y < 105; ++y) for (int x = 20; x < 105; ++x)
+        gpuDelta = std::max(gpuDelta, std::abs(
+          luminanceRgba(gpuUnclipped, x, y) - luminanceRgba(gpuClipped, x, y)));
+    clippedSubtreeQualified = uncutOk && cutOk && gpuDelta > 10;
+    if (clippedSubtreeQualified &&
+        std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") && SoShadowGroup::isSupported()) {
+      subtreeClip->on = FALSE;
+      auto * glUncutRoot = static_cast<SoSeparator *>(customRoot->copy(TRUE));
+      glUncutRoot->ref();
+      subtreeClip->on = TRUE;
+      auto * glCutRoot = static_cast<SoSeparator *>(customRoot->copy(TRUE));
+      glCutRoot->ref();
+      SoOffscreenRenderer clipGl(SbViewportRegion(side, side));
+      clipGl.setComponents(SoOffscreenRenderer::RGB);
+      std::vector<unsigned char> glUncut, glCut;
+      const bool rendered = render(clipGl, glUncutRoot, glUncut) &&
+        render(clipGl, glCutRoot, glCut);
+      if (rendered)
+        for (int y = 20; y < 105; ++y) for (int x = 20; x < 105; ++x)
+          glDelta = std::max(glDelta, std::abs(
+            luminance(glUncut, x, y) - luminance(glCut, x, y)));
+      clippedSubtreeQualified = rendered && glDelta > 10 &&
+        std::abs(glDelta - gpuDelta) <= 180;
+      glCutRoot->unref();
+      glUncutRoot->unref();
+    }
+    std::cout << "clipped subtree shadowMapScene Coin/GL/GPU delta=" <<
+      glDelta << '/' << gpuDelta << '\n';
+    clippedAction.setRenderTarget(nullptr);
+    delete clippedTarget;
+  }
+  otherCaster->removeChild(subtreeClip);
+  customLight->shadowMapScene = nullptr;
   bool stagedShadowRttQualified = true;
   bool directShadowRttQualified = true;
   bool shadowedRttReceiverQualified = true;
@@ -4100,6 +4158,7 @@ int main()
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||
       !lowQualityDirectionalQualified || !directCustomSceneQualified ||
       !subtreeCustomSceneQualified || !styledCustomSceneQualified ||
+      !clippedSubtreeQualified ||
       !inheritedCustomSceneQualified ||
       !stagedShadowRttQualified || !directShadowRttQualified ||
       !shadowedRttReceiverQualified ||

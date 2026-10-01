@@ -272,8 +272,11 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   do mapa: Wiring reutiliza o estilo capturado, Core mantém a forma na cena
   própria mas retira seu draw da lista de casters. Alternar esse estilo
   marcou delta 72 no Coin/GL, 108 no BGFX e 147 no wgpu (tolerância 180).
-  Ao trocar
-  cena própria por grupo inteiro, mediu diferenças máximas 420/576 para a
+  `SoClipPlane` interno à cena própria também passou: um plano atravessando
+  as formas transformadas marcou delta 588 no Coin/GL, BGFX e wgpu. Wiring
+  reutiliza as equações capturadas e a Infra aplica o clipping no pass de
+  momentos. Ao trocar cena própria por grupo inteiro, mediu diferenças
+  máximas 420/576 para a
   forma direta e 426/531 para a subárvore transformada, em Coin/GL e BGFX
   ou wgpu (tolerância 180). Uma subárvore com `SoShadowStyle` interno continua
   `UNSUPPORTED` sem publicar pixels nem serial. A mesma subárvore com

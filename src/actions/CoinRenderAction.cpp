@@ -46,6 +46,7 @@
 #include <Inventor/nodes/SoRotation.h>
 #include <Inventor/nodes/SoScale.h>
 #include <Inventor/nodes/SoTransform.h>
+#include <Inventor/nodes/SoClipPlane.h>
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/SbViewVolume.h>
 #include <Inventor/bundles/SoTextureCoordinateBundle.h>
@@ -1187,7 +1188,8 @@ coin_render_shadow_scene_shapes(const SoNode * node,
              child->getTypeId() != SoRotation::getClassTypeId() &&
              child->getTypeId() != SoScale::getClassTypeId() &&
              child->getTypeId() != SoTransform::getClassTypeId() &&
-             child->getTypeId() != SoShadowStyle::getClassTypeId()) return false;
+             child->getTypeId() != SoShadowStyle::getClassTypeId() &&
+             child->getTypeId() != SoClipPlane::getClassTypeId()) return false;
   }
   return !ids.empty();
 }
