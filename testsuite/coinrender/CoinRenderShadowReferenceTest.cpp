@@ -2913,7 +2913,7 @@ int main()
       display->ref();
       stagedRoot->removeChild(display);
       auto * receiverGroup = new SoShadowGroup;
-      receiverGroup->quality = 1.0f;
+      receiverGroup->quality = 0.5f;
       auto * receiverLight = new SoShadowSpotLight;
       receiverLight->location.setValue(2, 2, 4);
       receiverLight->direction.setValue(-2, -2, -5);

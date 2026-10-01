@@ -263,8 +263,9 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   preservando pixels e serial. Um `SoSceneTexture2` também pode modular o
   receiver se a captura registrar fundo opaco e `transparencyFunction=NONE`;
   a Action valida o perfil no plano lógico antes de executar o produtor.
-  A fixture com sombra no grupo consumidor passou em staged e direct:
-  deltas máximos 474/291 no Coin/GL e em BGFX ou wgpu (tolerância 200).
+  A fixture com luz spot, `quality=0,5` e sombra no grupo consumidor
+  passou em staged e direct: deltas máximos 474/291 no Coin/GL e em BGFX
+  ou wgpu (tolerância 200).
   `ALPHA_BLEND` e fundo não opaco foram rejeitados antes de mudar pixels
   ou serial. Alfa variável continua aberto.
 - [x] **Luz direcional comum herdada:** uma `SoDirectionalLight` anterior ao
