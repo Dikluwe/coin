@@ -487,14 +487,14 @@ coin_render_shadow_object_profile(
         pass.lightSlot >= frame.shadowLights.size() ||
         frame.shadowLights[pass.lightSlot].groupSlot != pass.groupSlot ||
         !frame.shadowLights[pass.lightSlot].shadowEligible ||
-        !pass.visible || pass.casterDraws.empty() || pass.receiverDraws.empty() ||
+        !pass.visible || pass.receiverDraws.empty() ||
         pass.epsilon < 0.0f ||
         pass.threshold < 0.0f || pass.threshold >= 1.0f ||
         std::any_of(shadows.passes.begin(), shadows.passes.begin() + p,
                     [&](const CoinRenderShadowPass & previous) {
                       return previous.lightSlot == pass.lightSlot;
                     })) {
-      diagnostic = "Shadow object profile requires visible independent passes with casters and receivers";
+      diagnostic = "Shadow object profile requires visible independent passes with receivers";
       return false;
     }
   }

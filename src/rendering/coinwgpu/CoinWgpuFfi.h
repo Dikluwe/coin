@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 38
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 39
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -230,7 +230,7 @@ typedef struct CoinWgpuFrameView {
   uint64_t transparency_budget_bytes;
   const CoinWgpuShadowDraw * shadow_casters;
   uint64_t shadow_caster_count;
-  uint32_t shadow_map_size;
+  uint32_t shadow_map_size; // 0=absent; nonzero map may have zero casters (protocol 39).
   float shadow_near_distance;
   float shadow_far_distance;
   float shadow_epsilon;

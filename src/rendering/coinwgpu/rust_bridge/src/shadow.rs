@@ -32,8 +32,7 @@ pub(crate) fn encode_moments(
     far: f32,
     kind: u32,
 ) -> Result<ShadowMap, String> {
-    if casters.is_empty()
-        || !map_size.is_power_of_two()
+    if !map_size.is_power_of_two()
         || map_size > 2048
         || !near.is_finite()
         || !far.is_finite()

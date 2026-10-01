@@ -140,37 +140,111 @@ bool qualifyShadowTransparency(SoSeparator * source)
   translation->translation.setValue(-1.7f, 0.0f, 0.0f);
   transparentCaster->insertChild(translation, 0);
   shadowGroup->addChild(transparentCaster);
-  for (int type = 0; type <= 9 && qualified; ++type) {
-    mode->value = type;
-    casterStyle->style = SoShadowStyle::CASTS_SHADOW;
-    action.apply(scene);
-    std::vector<unsigned char> gpuCast, gpuNoCast;
-    const bool castOk = action.getLastStatus() == CoinRenderAction::SUCCESS;
-    if (castOk) target->readbackRGBA(gpuCast);
-    casterStyle->style = SoShadowStyle::NO_SHADOWING;
-    action.apply(scene);
-    const bool noCastOk = action.getLastStatus() == CoinRenderAction::SUCCESS;
-    if (noCastOk) target->readbackRGBA(gpuNoCast);
-    qualified = castOk && noCastOk && gpuCast == gpuNoCast;
-    if (qualified && std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
+  auto * originalCaster = static_cast<SoSeparator *>(shadowGroup->getChild(1));
+  auto * originalMaterial = static_cast<SoMaterial *>(originalCaster->getChild(1));
+  for (int emptyMaps = 0; emptyMaps < 2 && qualified; ++emptyMaps) {
+    originalMaterial->transparency = emptyMaps ? 0.5f : 0.0f;
+    for (int type = 0; type <= 9 && qualified; ++type) {
+      mode->value = type;
       casterStyle->style = SoShadowStyle::CASTS_SHADOW;
-      auto * glCast = static_cast<SoSeparator *>(scene->copy(TRUE));
-      glCast->ref();
+      action.apply(scene);
+      std::vector<unsigned char> gpuCast, gpuNoCast;
+      const bool castOk = action.getLastStatus() == CoinRenderAction::SUCCESS;
+      if (castOk) target->readbackRGBA(gpuCast);
       casterStyle->style = SoShadowStyle::NO_SHADOWING;
-      auto * glNoCast = static_cast<SoSeparator *>(scene->copy(TRUE));
-      glNoCast->ref();
+      action.apply(scene);
+      const bool noCastOk = action.getLastStatus() == CoinRenderAction::SUCCESS;
+      if (noCastOk) target->readbackRGBA(gpuNoCast);
+      qualified = castOk && noCastOk && gpuCast == gpuNoCast;
+      if (qualified && std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
+        casterStyle->style = SoShadowStyle::CASTS_SHADOW;
+        auto * glCast = static_cast<SoSeparator *>(scene->copy(TRUE));
+        glCast->ref();
+        casterStyle->style = SoShadowStyle::NO_SHADOWING;
+        auto * glNoCast = static_cast<SoSeparator *>(scene->copy(TRUE));
+        glNoCast->ref();
+        SoOffscreenRenderer gl(SbViewportRegion(side, side));
+        gl.setComponents(SoOffscreenRenderer::RGB);
+        std::vector<unsigned char> castPixels, noCastPixels;
+        qualified = render(gl, glCast, castPixels) && render(gl, glNoCast, noCastPixels) &&
+          castPixels == noCastPixels;
+        glNoCast->unref();
+        glCast->unref();
+      }
+      std::cout << "transparent shadow caster empty_maps=" << emptyMaps
+                << " mode=" << type << " GL/GPU unchanged="
+                << qualified << '\n';
+      if (!qualified) std::cerr << action.getLastError().getString() << '\n';
+    }
+  }
+  action.setRenderTarget(nullptr);
+  delete target;
+  scene->unref();
+  return qualified;
+}
+
+bool qualifyEmptyShadowMaps(SoSeparator * source)
+{
+  if (!std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") &&
+      !std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) return true;
+  auto * scene = static_cast<SoSeparator *>(source->copy(TRUE));
+  scene->ref();
+  auto * group = static_cast<SoShadowGroup *>(scene->getChild(1));
+  auto * spot = static_cast<SoShadowSpotLight *>(group->getChild(0));
+  spot->intensity = 0.08f;
+  auto * caster = static_cast<SoSeparator *>(group->getChild(1));
+  static_cast<SoShadowStyle *>(caster->getChild(0))->style = SoShadowStyle::SHADOWED;
+  CoinRenderTarget * target = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+  CoinRenderAction action(SbViewportRegion(side, side));
+  action.setRenderTarget(target);
+  CoinRenderTarget * captureTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+  captureTarget->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
+  CoinRenderAction captureAction(SbViewportRegion(side, side));
+  captureAction.setRenderTarget(captureTarget);
+  std::vector<unsigned char> previousGpu, previousGl;
+  bool qualified = true;
+  for (int count = 1; count <= 8 && qualified; ++count) {
+    if (count > 1) group->insertChild(spot->copy(TRUE), count - 1);
+    captureAction.apply(scene);
+    const auto & plan = captureAction.getPimpl()->lastRejectedShadowPlan;
+    qualified = plan.passes.size() == static_cast<size_t>(count) &&
+      std::all_of(plan.passes.begin(), plan.passes.end(),
+        [](const CoinRenderShadowPass & pass) { return pass.casterDraws.empty(); });
+    const uint64_t serial = target->getLastSubmissionSerial();
+    action.apply(scene);
+    std::vector<unsigned char> gpuPixels, glPixels;
+    qualified = qualified && action.getLastStatus() == CoinRenderAction::SUCCESS &&
+      target->getLastSubmissionSerial() > serial;
+    if (qualified) target->readbackRGBA(gpuPixels);
+    qualified = qualified && gpuPixels.size() == size_t(side * side * 4);
+    int gpuDelta = 0, glDelta = 0;
+    if (qualified && count > 1)
+      for (int y = 20; y < 105; ++y) for (int x = 20; x < 105; ++x)
+        gpuDelta = std::max(gpuDelta, std::abs(
+          luminanceRgba(gpuPixels, x, y) - luminanceRgba(previousGpu, x, y)));
+    if (qualified && count <= 7 && std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
+      auto * glScene = static_cast<SoSeparator *>(scene->copy(TRUE));
+      glScene->ref();
       SoOffscreenRenderer gl(SbViewportRegion(side, side));
       gl.setComponents(SoOffscreenRenderer::RGB);
-      std::vector<unsigned char> castPixels, noCastPixels;
-      qualified = render(gl, glCast, castPixels) && render(gl, glNoCast, noCastPixels) &&
-        castPixels == noCastPixels;
-      glNoCast->unref();
-      glCast->unref();
+      qualified = render(gl, glScene, glPixels);
+      if (qualified && count > 1)
+        for (int y = 20; y < 105; ++y) for (int x = 20; x < 105; ++x)
+          glDelta = std::max(glDelta, std::abs(
+            luminance(glPixels, x, y) - luminance(previousGl, x, y)));
+      qualified = qualified && (count == 1 ||
+        (glDelta > 0 && std::abs(glDelta - gpuDelta) <= 30));
+      previousGl = glPixels;
+      glScene->unref();
     }
-    std::cout << "transparent shadow caster mode=" << type << " GL/GPU unchanged="
-              << qualified << '\n';
+    qualified = qualified && (count == 1 || gpuDelta > 0);
+    std::cout << "empty shadow maps=" << count << " Coin/GL/GPU incremental delta="
+              << glDelta << '/' << gpuDelta << " qualified=" << qualified << '\n';
     if (!qualified) std::cerr << action.getLastError().getString() << '\n';
+    previousGpu = gpuPixels;
   }
+  captureAction.setRenderTarget(nullptr);
+  delete captureTarget;
   action.setRenderTarget(nullptr);
   delete target;
   scene->unref();
@@ -566,14 +640,14 @@ int main()
       }
       if (bgfxShadowSubmitted) {
         const uint64_t serial = actionTarget->getLastSubmissionSerial();
-        castStyle->style = SoShadowStyle::NO_SHADOWING;
+        group->smoothBorder = -1.0f;
         bgfxAction.apply(root);
         std::vector<unsigned char> afterRejection;
         actionTarget->readbackRGBA(afterRejection);
         bgfxShadowSubmitted = bgfxAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
           actionTarget->getLastSubmissionSerial() == serial &&
           afterRejection == shadowed;
-        castStyle->style = SoShadowStyle::CASTS_SHADOW_AND_SHADOWED;
+        group->smoothBorder = 0.0f;
         bgfxAction.apply(root);
         std::vector<unsigned char> recovered;
         if (bgfxAction.getLastStatus() == CoinRenderAction::SUCCESS)
@@ -721,14 +795,14 @@ int main()
         luma(resizedClear) - luma(resizedShadow) > 100;
       if (wgpuShadowSubmitted) {
         const uint64_t serial = actionTarget->getLastSubmissionSerial();
-        castStyle->style = SoShadowStyle::NO_SHADOWING;
+        group->smoothBorder = -1.0f;
         gpuAction.apply(root);
         std::vector<unsigned char> afterUnsupported;
         actionTarget->readbackRGBA(afterUnsupported);
         wgpuShadowSubmitted = gpuAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
           actionTarget->getLastSubmissionSerial() == serial &&
           afterUnsupported == resizedShadow;
-        castStyle->style = SoShadowStyle::CASTS_SHADOW_AND_SHADOWED;
+        group->smoothBorder = 0.0f;
         gpuAction.apply(root);
         std::vector<unsigned char> afterRecovery;
         if (gpuAction.getLastStatus() == CoinRenderAction::SUCCESS)
@@ -3627,7 +3701,7 @@ int main()
     directCustomSceneQualified = selectedOk && allOk && gpuDelta > 40;
     if (directCustomSceneQualified) {
       const uint64_t beforeUnsupported = customTarget->getLastSubmissionSerial();
-      customLight->shadowMapScene = customGround; // Receiver-only subtree has no casters.
+      customLight->shadowMapScene = customGround; // Geometry before this subtree requires an independent capture.
       customAction.apply(customRoot);
       std::vector<unsigned char> afterUnsupported;
       customTarget->readbackRGBA(afterUnsupported);
@@ -4310,11 +4384,12 @@ int main()
     customRoot->removeChild(entryMove);
   }
   const bool shadowTransparencyQualified = qualifyShadowTransparency(root);
+  const bool emptyShadowMapsQualified = qualifyEmptyShadowMaps(root);
   customRoot->unref();
   action.setRenderTarget(nullptr);
   delete target;
   if (!publishedOk || !rejected || !preserved || !recovered || !captureOk ||
-      !shadowTransparencyQualified || !spotProfile || !smoothBorderQualified || !lowQualitySpotQualified || !inconsistentAlphaRejected || !clippedShadowQualified || !shadowTargetsIndependent || !siblingShadowGroupsQualified || !ordinaryLightQualified || !texturedShadowQualified || !twoLightCaptured ||
+      !emptyShadowMapsQualified || !shadowTransparencyQualified || !spotProfile || !smoothBorderQualified || !lowQualitySpotQualified || !inconsistentAlphaRejected || !clippedShadowQualified || !shadowTargetsIndependent || !siblingShadowGroupsQualified || !ordinaryLightQualified || !texturedShadowQualified || !twoLightCaptured ||
       !orderedTwoLight || !twoSpotsOk || !twoDirectionalsOk ||
       !lateLightResolved || !lateSpotProfile || !mixedOrderResolved ||
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||

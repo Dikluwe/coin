@@ -262,7 +262,7 @@ if(COIN_BUILD_RENDER)
       OUTPUT "${RUST_LIB_PATH}"
       COMMAND ${CMAKE_COMMAND} -E env CARGO_TARGET_DIR=${RUST_TARGET_DIR} ${COIN_RENDER_CARGO_ENV} ${CARGO_EXECUTABLE} build ${CARGO_BUILD_FLAGS} --manifest-path "${RUST_BRIDGE_DIR}/Cargo.toml"
       WORKING_DIRECTORY "${RUST_BRIDGE_DIR}"
-      DEPENDS "${RUST_BRIDGE_DIR}/src/lib.rs" "${RUST_BRIDGE_DIR}/src/composition.rs" "${RUST_BRIDGE_DIR}/src/peeling.rs" "${RUST_BRIDGE_DIR}/Cargo.toml" "${RUST_BRIDGE_DIR}/Cargo.lock" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_standard.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_line.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_point.wgsl"
+      DEPENDS "${RUST_BRIDGE_DIR}/src/lib.rs" "${RUST_BRIDGE_DIR}/src/composition.rs" "${RUST_BRIDGE_DIR}/src/peeling.rs" "${RUST_BRIDGE_DIR}/src/shadow.rs" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_shadow.wgsl" "${RUST_BRIDGE_DIR}/Cargo.toml" "${RUST_BRIDGE_DIR}/Cargo.lock" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_standard.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_line.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_point.wgsl"
       COMMENT "Building Rust WebGPU bridge library (${RUST_PROFILE_DIR})..."
       VERBATIM
     )

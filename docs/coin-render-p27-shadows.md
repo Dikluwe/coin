@@ -278,9 +278,10 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   momentos. Ao trocar cena própria por grupo inteiro, mediu diferenças
   máximas 420/576 para a
   forma direta e 426/531 para a subárvore transformada, em Coin/GL e BGFX
-  ou wgpu (tolerância 180). Uma cena própria que seleciona apenas o chão
-  marcado `SHADOWED` continua `UNSUPPORTED`, pois não tem caster, sem
-  publicar pixels nem serial. A subárvore qualificada com
+  ou wgpu (tolerância 180). A seleção do chão depois de outras formas
+  continua `UNSUPPORTED`: essa subárvore exige captura independente, pois
+  seu estado de entrada inclui geometria anterior. Pixels e serial ficam
+  preservados. A subárvore qualificada com
   `SoTranslation` herdada antes do grupo passou em ambos os executores:
   deltas 441/531, Coin/GL e GPU (tolerância 180). Faltam os demais nós e
   estados de cena própria e subárvores que precisem de travessia separada.
@@ -305,8 +306,20 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   executores. Alternar CASTS_SHADOW/NO_SHADOWING numa segunda forma
   transparente preservou pixels idênticos nos três renderizadores, nos dez
   modos. O perfil admite o mecanismo de objetos e até quatro mapas;
-  peeling/OIT, alfa de textura e um mapa sem nenhum caster opaco ainda
-  exigem qualificação.
+  peeling/OIT e alfa de textura ainda exigem qualificação. A fixture também
+  repetiu os dez modos sem nenhum caster opaco; a exclusão manteve pixels
+  idênticos em Coin/GL e nos dois backends.
+- [x] **Mapas sem casters:** Core conserva o pass e a recepção quando a
+  lista de casters está vazia; BGFX e wgpu limpam o mapa de momentos e
+  continuam iluminando. O protocolo privado wgpu 39 usa `mapSize` como
+  marcador de presença, aceitando contagem de casters zero em qualquer um
+  dos oito passes. A fixture verifica que o Core escolheu listas vazias,
+  submete um a oito mapas e exige avanço do serial. A segunda, terceira,
+  quarta, sexta e sétima luzes marcaram delta incremental máximo 63/63;
+  a quinta marcou 63/60, Coin/GL e GPU, nos dois executores. A oitava marcou
+  63 em BGFX e wgpu; sua comparação Coin/GL continua dependente do contexto
+  externo descrito na pendência de oito mapas. O build da ponte acompanha
+  também `shadow.rs` e `coin_shadow.wgsl` como dependências explícitas.
 - [ ] **Transparência e qualidade:** qualificar por modo os casters e
   receivers com alfa de textura, peeling/OIT e os demais perfis de qualidade. `smoothBorder=1`
   passou em Coin/GL, BGFX e wgpu com pixels idênticos a `0`: a suavização

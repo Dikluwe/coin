@@ -21,7 +21,7 @@ mod composition;
 mod peeling;
 mod shadow;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 38;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 39;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
@@ -2425,28 +2425,28 @@ fn encode_frame(
         }
         if let Some(second) = &shadow.second {
             if second.map_size > ctx.device.limits().max_texture_dimension_2d ||
-                second.receivers.len() != states_slice.len() || second.casters.is_empty() {
+                second.receivers.len() != states_slice.len() {
                 return Err((CoinWgpuStatus::InvalidArgument,
                     "Second shadow pass does not match render states or device limits".into()));
             }
         }
         if let Some(pass) = &shadow.third {
             if pass.map_size > ctx.device.limits().max_texture_dimension_2d ||
-                pass.receivers.len() != states_slice.len() || pass.casters.is_empty() {
+                pass.receivers.len() != states_slice.len() {
                 return Err((CoinWgpuStatus::InvalidArgument,
                     "third shadow pass does not match render states or device limits".into()));
             }
         }
         if let Some(pass) = &shadow.fourth {
             if pass.map_size > ctx.device.limits().max_texture_dimension_2d ||
-                pass.receivers.len() != states_slice.len() || pass.casters.is_empty() {
+                pass.receivers.len() != states_slice.len() {
                 return Err((CoinWgpuStatus::InvalidArgument,
                     "fourth shadow pass does not match render states or device limits".into()));
             }
         }
         for (slot, pass) in shadow.extra.iter().enumerate() {
             if pass.map_size > ctx.device.limits().max_texture_dimension_2d ||
-                pass.receivers.len() != states_slice.len() || pass.casters.is_empty() {
+                pass.receivers.len() != states_slice.len() {
                 return Err((CoinWgpuStatus::InvalidArgument,
                     format!("extra shadow pass {slot} does not match render states or device limits")));
             }
@@ -4437,7 +4437,7 @@ fn coin_wgpu_surface_submit_internal(
             return CoinWgpuStatus::InvalidArgument;
         }
 
-        if f.shadow_caster_count != 0 {
+        if f.shadow_map_size != 0 || f.shadow_caster_count != 0 {
             set_error(error_buf, error_buf_len,
                 "Shadow caster transport is present, but the wgpu VSM encoder is not connected");
             return CoinWgpuStatus::Unsupported;
@@ -4452,7 +4452,7 @@ fn coin_wgpu_surface_submit_internal(
             !f.shadow_receivers_fourth.is_null() || f.shadow_receiver_count_fourth != 0 ||
             !f.extra_shadow_passes.is_null() || f.extra_shadow_pass_count != 0 {
             set_error(error_buf, error_buf_len,
-                "Shadow payload has data without casters");
+                "Shadow payload has data without a map");
             return CoinWgpuStatus::InvalidArgument;
         }
 
@@ -5397,8 +5397,12 @@ fn coin_wgpu_submit_internal(
 
         // Shadow payload is optional, but a partial payload is never accepted.
         // Keep it out of the camera patch until state/geometry matching is qualified.
-        let shadow_frame = if f.shadow_caster_count == 0 {
-            if !f.shadow_casters.is_null() || f.shadow_map_size != 0 || f.shadow_kind != 0
+        // A nonzero map size identifies a pass even when Core selected no
+        // casters. Such a pass still clears its moments and lights receivers.
+        let shadow_frame = if f.shadow_map_size == 0 {
+            if f.shadow_map_size_second != 0 || f.shadow_map_size_third != 0 ||
+                f.shadow_map_size_fourth != 0 || f.extra_shadow_pass_count != 0 ||
+                !f.extra_shadow_passes.is_null() || !f.shadow_casters.is_null() || f.shadow_caster_count != 0 || f.shadow_kind != 0
                 || !f.shadow_receivers.is_null() || f.shadow_receiver_count != 0
                 || !f.shadow_casters_second.is_null() || f.shadow_caster_count_second != 0
                 || !f.shadow_receivers_second.is_null() || f.shadow_receiver_count_second != 0 ||
@@ -5406,7 +5410,7 @@ fn coin_wgpu_submit_internal(
             !f.shadow_receivers_third.is_null() || f.shadow_receiver_count_third != 0 ||
             !f.shadow_casters_fourth.is_null() || f.shadow_caster_count_fourth != 0 ||
             !f.shadow_receivers_fourth.is_null() || f.shadow_receiver_count_fourth != 0 {
-                set_error(error_buf, error_buf_len, "Shadow payload has data without casters");
+                set_error(error_buf, error_buf_len, "Shadow payload has data without a map");
                 return CoinWgpuStatus::InvalidArgument;
             }
             None
@@ -5432,8 +5436,9 @@ fn coin_wgpu_submit_internal(
                 "shadow receivers", error_buf, error_buf_len) {
                 Ok(s) => s, Err(st) => return st,
             };
-            let second = if f.shadow_caster_count_second == 0 {
-                if !f.shadow_casters_second.is_null() || !f.shadow_receivers_second.is_null() ||
+            let second = if f.shadow_map_size_second == 0 {
+                if !f.shadow_casters_second.is_null() || f.shadow_caster_count_second != 0 ||
+                    !f.shadow_receivers_second.is_null() ||
                     f.shadow_receiver_count_second != 0 || f.shadow_map_size_second != 0 ||
                     f.shadow_kind_second != 0 || f.shadow_epsilon_second != 0.0 ||
                     f.shadow_threshold_second != 0.0 {
@@ -5471,8 +5476,9 @@ fn coin_wgpu_submit_internal(
                     kind: f.shadow_kind_second,
                 })
             };
-            let third = if f.shadow_caster_count_third == 0 {
-                if !f.shadow_casters_third.is_null() || !f.shadow_receivers_third.is_null() ||
+            let third = if f.shadow_map_size_third == 0 {
+                if !f.shadow_casters_third.is_null() || f.shadow_caster_count_third != 0 ||
+                    !f.shadow_receivers_third.is_null() ||
                     f.shadow_receiver_count_third != 0 || f.shadow_map_size_third != 0 ||
                     f.shadow_kind_third != 0 || f.shadow_epsilon_third != 0.0 ||
                     f.shadow_threshold_third != 0.0 {
@@ -5511,8 +5517,9 @@ fn coin_wgpu_submit_internal(
                     kind: f.shadow_kind_third,
                 })
             };
-            let fourth = if f.shadow_caster_count_fourth == 0 {
-                if !f.shadow_casters_fourth.is_null() || !f.shadow_receivers_fourth.is_null() ||
+            let fourth = if f.shadow_map_size_fourth == 0 {
+                if !f.shadow_casters_fourth.is_null() || f.shadow_caster_count_fourth != 0 ||
+                    !f.shadow_receivers_fourth.is_null() ||
                     f.shadow_receiver_count_fourth != 0 || f.shadow_map_size_fourth != 0 ||
                     f.shadow_kind_fourth != 0 || f.shadow_epsilon_fourth != 0.0 ||
                     f.shadow_threshold_fourth != 0.0 {
@@ -5587,7 +5594,7 @@ fn coin_wgpu_submit_internal(
                     "extra shadow receivers", error_buf, error_buf_len) {
                     Ok(s) => s, Err(st) => return st,
                 };
-                if casters.is_empty() || receivers.iter().any(|r| !r.model_view.iter()
+                if receivers.iter().any(|r| !r.model_view.iter()
                     .chain(r.model_view_projection.iter()).all(|v| v.is_finite())) {
                     set_error(error_buf, error_buf_len, "Invalid extra shadow casters or receiver matrices");
                     return CoinWgpuStatus::InvalidArgument;
