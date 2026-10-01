@@ -22,6 +22,8 @@
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/nodes/SoTranslation.h>
 #include <Inventor/nodes/SoRotation.h>
+#include <Inventor/nodes/SoScale.h>
+#include <Inventor/nodes/SoTransform.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/nodes/SoLight.h>
 #include <Inventor/nodes/SoPointLight.h>
@@ -2435,6 +2437,9 @@ int main()
   auto * otherRotation = new SoRotation;
   otherRotation->rotation.setValue(SbVec3f(0, 0, 1), 0.35f);
   otherCaster->addChild(otherRotation);
+  auto * otherScale = new SoScale;
+  otherScale->scaleFactor.setValue(1.2f, 0.8f, 1.0f);
+  otherCaster->addChild(otherScale);
   auto * otherCube = new SoCube;
   otherCube->width = otherCube->height = otherCube->depth = 1.2f;
   otherCaster->addChild(otherCube);
@@ -2442,6 +2447,11 @@ int main()
   auto * nestedMove = new SoTranslation;
   nestedMove->translation.setValue(0.0f, 0.4f, 0.0f);
   nestedCaster->addChild(nestedMove);
+  auto * nestedTransform = new SoTransform;
+  nestedTransform->translation.setValue(0.1f, 0.0f, 0.0f);
+  nestedTransform->rotation.setValue(SbVec3f(0, 1, 0), 0.25f);
+  nestedTransform->scaleFactor.setValue(0.9f, 1.1f, 1.0f);
+  nestedCaster->addChild(nestedTransform);
   auto * nestedCube = new SoCube;
   nestedCube->width = nestedCube->height = nestedCube->depth = 0.7f;
   nestedCaster->addChild(nestedCube);

@@ -44,6 +44,8 @@
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoTranslation.h>
 #include <Inventor/nodes/SoRotation.h>
+#include <Inventor/nodes/SoScale.h>
+#include <Inventor/nodes/SoTransform.h>
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/SbViewVolume.h>
 #include <Inventor/bundles/SoTextureCoordinateBundle.h>
@@ -1166,7 +1168,7 @@ CoinRenderActionP::shadowStylePreCB(void *, SoCallbackAction * action, const SoN
 }
 
 // Only a direct separator whose descendants are shapes, translations,
-// rotations or separators can reuse geometry from the ordinary traversal. Other Coin
+// rotations, scales, transforms or separators can reuse geometry from the ordinary traversal. Other Coin
 // subscenes need a separate captured frame and remain unsupported.
 static bool
 coin_render_shadow_scene_shapes(const SoNode * node,
@@ -1185,7 +1187,9 @@ coin_render_shadow_scene_shapes(const SoNode * node,
       if (!coin_render_shadow_scene_shapes(child, ids)) return false;
     }
     else if (child->getTypeId() != SoTranslation::getClassTypeId() &&
-             child->getTypeId() != SoRotation::getClassTypeId()) return false;
+             child->getTypeId() != SoRotation::getClassTypeId() &&
+             child->getTypeId() != SoScale::getClassTypeId() &&
+             child->getTypeId() != SoTransform::getClassTypeId()) return false;
   }
   return !ids.empty();
 }
