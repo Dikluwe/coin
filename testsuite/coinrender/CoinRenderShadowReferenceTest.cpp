@@ -3018,6 +3018,76 @@ int main()
     delete stagedTarget;
     stagedRoot->unref();
   }
+  bool inheritedCustomSceneQualified = true;
+  if (subtreeCustomSceneQualified && lowQualityGpuRequested) {
+    auto * entryMove = new SoTranslation;
+    entryMove->translation.setValue(0.4f, 0.2f, 0.0f);
+    customRoot->insertChild(entryMove, 1);
+    customLight->shadowMapScene = otherCaster;
+    CoinRenderAction inheritedCapture(SbViewportRegion(side, side));
+    inheritedCapture.apply(customRoot);
+    const auto & inheritedFrame = inheritedCapture.getPimpl()->lastRejectedShadowFrame;
+    const auto & inheritedPlan = inheritedCapture.getPimpl()->lastRejectedShadowPlan;
+    std::string inheritedDiagnostic;
+    inheritedCustomSceneQualified =
+      inheritedFrame.shadowGroups.size() == 1 &&
+      inheritedFrame.shadowGroups[0].entryModel != SbMatrix::identity() &&
+      inheritedFrame.shadowLights.size() == 1 &&
+      inheritedFrame.shadowLights[0].customSceneDirectSubtree &&
+      coin_render_shadow_opaque_profile(inheritedFrame, inheritedPlan, 1,
+                                       inheritedDiagnostic);
+    CoinRenderTarget * inheritedTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+    CoinRenderAction inheritedAction(SbViewportRegion(side, side));
+    inheritedAction.setRenderTarget(inheritedTarget);
+    inheritedAction.apply(customRoot);
+    std::vector<unsigned char> gpuSelected, gpuAll;
+    const bool selectedOk = inheritedAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (selectedOk) inheritedTarget->readbackRGBA(gpuSelected);
+    customLight->shadowMapScene = nullptr;
+    inheritedAction.apply(customRoot);
+    const bool allOk = inheritedAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (allOk) inheritedTarget->readbackRGBA(gpuAll);
+    int gpuDelta = 0, glDelta = 0;
+    if (selectedOk && allOk && gpuSelected.size() == gpuAll.size())
+      for (int y = 20; y < 105; ++y)
+        for (int x = 20; x < 105; ++x)
+          gpuDelta = std::max(gpuDelta, std::abs(
+            luminanceRgba(gpuSelected, x, y) - luminanceRgba(gpuAll, x, y)));
+    inheritedCustomSceneQualified = inheritedCustomSceneQualified &&
+      selectedOk && allOk && gpuDelta > 40;
+    if (inheritedCustomSceneQualified &&
+        std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") && SoShadowGroup::isSupported()) {
+      customLight->shadowMapScene = otherCaster;
+      auto * glSelectedRoot = static_cast<SoSeparator *>(customRoot->copy(TRUE));
+      glSelectedRoot->ref();
+      customLight->shadowMapScene = nullptr;
+      auto * glAllRoot = static_cast<SoSeparator *>(customRoot->copy(TRUE));
+      glAllRoot->ref();
+      SoOffscreenRenderer inheritedGl(SbViewportRegion(side, side));
+      inheritedGl.setComponents(SoOffscreenRenderer::RGB);
+      std::vector<unsigned char> glSelected, glAll;
+      const bool rendered = render(inheritedGl, glSelectedRoot, glSelected) &&
+        render(inheritedGl, glAllRoot, glAll);
+      if (rendered)
+        for (int y = 20; y < 105; ++y)
+          for (int x = 20; x < 105; ++x)
+            glDelta = std::max(glDelta, std::abs(
+              luminance(glSelected, x, y) - luminance(glAll, x, y)));
+      inheritedCustomSceneQualified = rendered && glDelta > 40 &&
+        std::abs(glDelta - gpuDelta) <= 180;
+      glAllRoot->unref();
+      glSelectedRoot->unref();
+    }
+    std::cout << "inherited shadowMapScene Coin/GL/GPU delta=" <<
+      glDelta << '/' << gpuDelta << '\n';
+    if (!inheritedCustomSceneQualified)
+      std::cerr << "inherited shadowMapScene: " <<
+        inheritedAction.getLastError().getString() << " profile=" <<
+        inheritedDiagnostic << '\n';
+    inheritedAction.setRenderTarget(nullptr);
+    delete inheritedTarget;
+    customRoot->removeChild(entryMove);
+  }
   customRoot->unref();
   action.setRenderTarget(nullptr);
   delete target;
@@ -3027,7 +3097,7 @@ int main()
       !lateLightResolved || !lateSpotProfile || !mixedOrderResolved ||
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||
       !lowQualityDirectionalQualified || !directCustomSceneQualified ||
-      !subtreeCustomSceneQualified ||
+      !subtreeCustomSceneQualified || !inheritedCustomSceneQualified ||
       !stagedShadowRttQualified || !directShadowRttQualified ||
       !shadowedRttReceiverQualified ||
       !directionalProjectionCoversGroup || !multipleCameras || !perspectiveFrustum

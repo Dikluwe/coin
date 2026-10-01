@@ -302,8 +302,6 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
       if (!std::isfinite(light.maxShadowDistance) ||
           (light.hasCustomScene && !light.customSceneDirectShape &&
            !light.customSceneDirectSubtree) ||
-          (light.customSceneDirectSubtree &&
-           group.entryModel != SbMatrix::identity()) ||
           (light.type != CoinRenderLightType::DIRECTIONAL &&
            light.type != CoinRenderLightType::SPOT)) {
         diagnostic = "Shadow light requires a supported spot/directional scene";
