@@ -225,14 +225,15 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
 - [ ] **Cinco a oito luzes:** o Core produz e valida planos de cinco e
   oito passes no contrato de iluminação capturada. BGFX compõe os passes
   cinco a oito em um segundo draw opaco, reutilizando quatro samplers e o
-  depth buffer; o mesmo mecanismo funciona no produtor RTT direto. Com as
-  luzes adicionais direcionais, a fixture comparou os deltas de cinco luzes
-  (291/291) e oito (117/174), Coin/GL/BGFX. O produtor RTT direto com oito
-  luzes marcou 228/369. Uma quinta luz spot revelou divergência VSM: a
+  depth buffer; o mesmo mecanismo funciona no produtor RTT direto e no
+  staged. Com as luzes adicionais direcionais, a fixture comparou os deltas
+  de cinco luzes (291/291) e oito (117/174), Coin/GL/BGFX. O produtor RTT
+  com oito luzes marcou 228/369 nos modos staged e direct. Uma quinta luz
+  spot revelou divergência VSM: a
   referência muda 162, mas o BGFX não muda a imagem. O BGFX a rejeita antes
   da publicação, preservando pixels e serial. wgpu ainda rejeita mais de
-  quatro mapas de modo atômico. Faltam spots tardios, cobertura staged de
-  cinco a oito, composição wgpu e outros perfis de luzes.
+  quatro mapas de modo atômico. Faltam spots tardios, composição wgpu e
+  outros perfis de luzes.
 - [ ] **Cenas próprias por luz:** estão qualificados dois recortes de
   `shadowMapScene`: um `SoShape` filho direto do grupo, desenhado uma só vez
   com modelo identidade e estilo caster; e um `SoSeparator` filho direto,

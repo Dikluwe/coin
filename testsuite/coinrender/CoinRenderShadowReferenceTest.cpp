@@ -1375,65 +1375,71 @@ int main()
         face->coordIndex.setValues(0, 5, indices);
         face->textureCoordIndex.setValues(0, 5, indices);
         rttRoot->addChild(face);
-        CoinRenderOptions options{};
-        options.sceneTexture = COIN_RENDER_SCENE_TEXTURE_DIRECT;
-        options.transparency = COIN_RENDER_TRANSPARENCY_OBJECT;
-        CoinRenderTarget * rttTarget = CoinRenderTarget::createOffscreen(
-          SbVec2i32(side, side), options);
-        CoinRenderAction rttAction(SbViewportRegion(side, side));
-        rttAction.setRenderTarget(rttTarget);
-        rttAction.apply(rttRoot);
-        std::vector<unsigned char> rttEight, rttFour;
-        const bool eightOk = rttAction.getLastStatus() == CoinRenderAction::SUCCESS;
-        if (eightOk) rttTarget->readbackRGBA(rttEight);
-        fifth->on = FALSE;
-        for (auto * light : extraLights) light->on = FALSE;
-        rttAction.apply(rttRoot);
-        const bool fourOk = rttAction.getLastStatus() == CoinRenderAction::SUCCESS;
-        if (fourOk) rttTarget->readbackRGBA(rttFour);
-        fifth->on = TRUE;
-        for (auto * light : extraLights) light->on = TRUE;
-        int rttDelta = 0;
-        if (eightOk && fourOk && rttEight.size() == rttFour.size())
-          for (int y = 20; y < 105; ++y)
-            for (int x = 20; x < 105; ++x)
-              rttDelta = std::max(rttDelta, std::abs(
-                luminanceRgba(rttEight, x, y) - luminanceRgba(rttFour, x, y)));
-        int glRttDelta = 0;
-        bool glRttOk = true;
-        if (compareGl) {
-          auto * glEightRoot = static_cast<SoSeparator *>(rttRoot->copy(TRUE));
-          glEightRoot->ref();
+        for (int mode = 0; mode < 2; ++mode) {
+          CoinRenderOptions options{};
+          options.sceneTexture = mode == 0 ?
+            COIN_RENDER_SCENE_TEXTURE_STAGED : COIN_RENDER_SCENE_TEXTURE_DIRECT;
+          options.transparency = COIN_RENDER_TRANSPARENCY_OBJECT;
+          CoinRenderTarget * rttTarget = CoinRenderTarget::createOffscreen(
+            SbVec2i32(side, side), options);
+          CoinRenderAction rttAction(SbViewportRegion(side, side));
+          rttAction.setRenderTarget(rttTarget);
+          rttAction.apply(rttRoot);
+          std::vector<unsigned char> rttEight, rttFour;
+          const bool eightOk = rttAction.getLastStatus() == CoinRenderAction::SUCCESS;
+          if (eightOk) rttTarget->readbackRGBA(rttEight);
           fifth->on = FALSE;
           for (auto * light : extraLights) light->on = FALSE;
-          auto * glFourRoot = static_cast<SoSeparator *>(rttRoot->copy(TRUE));
-          glFourRoot->ref();
+          rttAction.apply(rttRoot);
+          const bool fourOk = rttAction.getLastStatus() == CoinRenderAction::SUCCESS;
+          if (fourOk) rttTarget->readbackRGBA(rttFour);
           fifth->on = TRUE;
           for (auto * light : extraLights) light->on = TRUE;
-          SoOffscreenRenderer rttGl(SbViewportRegion(side, side));
-          rttGl.setComponents(SoOffscreenRenderer::RGB);
-          std::vector<unsigned char> glEightPixels, glFourPixels;
-          glRttOk = render(rttGl, glEightRoot, glEightPixels) &&
-            render(rttGl, glFourRoot, glFourPixels);
-          if (glRttOk)
+          int rttDelta = 0;
+          if (eightOk && fourOk && rttEight.size() == rttFour.size())
             for (int y = 20; y < 105; ++y)
               for (int x = 20; x < 105; ++x)
-                glRttDelta = std::max(glRttDelta, std::abs(
-                  luminance(glEightPixels, x, y) -
-                  luminance(glFourPixels, x, y)));
-          glFourRoot->unref();
-          glEightRoot->unref();
+                rttDelta = std::max(rttDelta, std::abs(
+                  luminanceRgba(rttEight, x, y) - luminanceRgba(rttFour, x, y)));
+          int glRttDelta = 0;
+          bool glRttOk = true;
+          if (compareGl) {
+            auto * glEightRoot = static_cast<SoSeparator *>(rttRoot->copy(TRUE));
+            glEightRoot->ref();
+            fifth->on = FALSE;
+            for (auto * light : extraLights) light->on = FALSE;
+            auto * glFourRoot = static_cast<SoSeparator *>(rttRoot->copy(TRUE));
+            glFourRoot->ref();
+            fifth->on = TRUE;
+            for (auto * light : extraLights) light->on = TRUE;
+            SoOffscreenRenderer rttGl(SbViewportRegion(side, side));
+            rttGl.setComponents(SoOffscreenRenderer::RGB);
+            std::vector<unsigned char> glEightPixels, glFourPixels;
+            glRttOk = render(rttGl, glEightRoot, glEightPixels) &&
+              render(rttGl, glFourRoot, glFourPixels);
+            if (glRttOk)
+              for (int y = 20; y < 105; ++y)
+                for (int x = 20; x < 105; ++x)
+                  glRttDelta = std::max(glRttDelta, std::abs(
+                    luminance(glEightPixels, x, y) -
+                    luminance(glFourPixels, x, y)));
+            glFourRoot->unref();
+            glEightRoot->unref();
+          }
+          std::cout << "eight lights " << (mode == 0 ? "staged" : "direct") <<
+            " RTT Coin/GL/BGFX delta=" <<
+            glRttDelta << '/' << rttDelta << '\n';
+          twoLightBgfxSubmitted = twoLightBgfxSubmitted &&
+            eightOk && fourOk && rttDelta > 0 &&
+            (!compareGl || (glRttOk && glRttDelta > 0 &&
+              std::abs(glRttDelta - rttDelta) <= 180));
+          if (!twoLightBgfxSubmitted)
+            std::cerr << "BGFX eight-light " << (mode == 0 ? "staged" : "direct") <<
+              " RTT: " <<
+              rttAction.getLastError().getString() << " delta=" << rttDelta << '\n';
+          rttAction.setRenderTarget(nullptr);
+          delete rttTarget;
         }
-        std::cout << "eight lights direct RTT Coin/GL/BGFX delta=" <<
-          glRttDelta << '/' << rttDelta << '\n';
-        twoLightBgfxSubmitted = eightOk && fourOk && rttDelta > 0 &&
-          (!compareGl || (glRttOk && glRttDelta > 0 &&
-            std::abs(glRttDelta - rttDelta) <= 180));
-        if (!twoLightBgfxSubmitted)
-          std::cerr << "BGFX eight-light direct RTT: " <<
-            rttAction.getLastError().getString() << " delta=" << rttDelta << '\n';
-        rttAction.setRenderTarget(nullptr);
-        delete rttTarget;
         rttRoot->unref();
       }
       for (auto it = extraLights.rbegin(); it != extraLights.rend(); ++it)
