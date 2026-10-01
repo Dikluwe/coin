@@ -21,6 +21,7 @@
 #include <Inventor/nodes/SoPerspectiveCamera.h>
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/nodes/SoTranslation.h>
+#include <Inventor/nodes/SoRotation.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/nodes/SoLight.h>
 #include <Inventor/nodes/SoPointLight.h>
@@ -2334,6 +2335,9 @@ int main()
   auto * otherMove = new SoTranslation;
   otherMove->translation.setValue(1.7f, 0.0f, 0.0f);
   otherCaster->addChild(otherMove);
+  auto * otherRotation = new SoRotation;
+  otherRotation->rotation.setValue(SbVec3f(0, 0, 1), 0.35f);
+  otherCaster->addChild(otherRotation);
   auto * otherCube = new SoCube;
   otherCube->width = otherCube->height = otherCube->depth = 1.2f;
   otherCaster->addChild(otherCube);
@@ -2390,6 +2394,8 @@ int main()
     subtreeFrame.shadowLights[0].customSceneDirectSubtree &&
     subtreeFrame.shadowLights[0].customSceneShapeNodeIds.size() == 2 &&
     subtreePlan.passes.size() == 1 && subtreePlan.passes[0].casterDraws.size() == 2 &&
+    std::abs(subtreeFrame.renderStates[subtreeFrame.draws[
+      subtreePlan.passes[0].casterDraws[0]].renderStateSlot].model[0][1]) > 0.1f &&
     coin_render_shadow_single_spot_opaque_profile(
       subtreeFrame, subtreePlan, subtreeDiagnostic);
   customLight->shadowMapScene = nullptr;
