@@ -539,15 +539,19 @@ coin_render_shadow_object_profile(
                image.sceneTransparencyFunction != SoSceneTexture2::NONE ||
                (image.gpuToken && !image.pixelsRgba.empty()))
             : image.pixelsRgba.size() != static_cast<size_t>(pixelCount * 4))) {
-        diagnostic = "Shadow object profile requires alpha-one static pixels or an opaque SceneTexture2";
+        diagnostic = "Shadow object profile requires complete static pixels or an opaque SceneTexture2";
         return false;
       }
-      if (!image.producerId && !image.gpuToken)
+      if (!image.producerId && !image.gpuToken) {
+        bool hasAlpha = false;
         for (size_t alpha = 3; alpha < image.pixelsRgba.size(); alpha += 4)
-          if (image.pixelsRgba[alpha] != 255) {
-            diagnostic = "Shadow object profile requires alpha-one texels";
-            return false;
-          }
+          hasAlpha = hasAlpha || image.pixelsRgba[alpha] != 255;
+        if (hasAlpha && (state.textureModel != CoinRenderTextureModel::MODULATE ||
+            state.textureCombines[0].instructions[0][0] != 0.0f)) {
+          diagnostic = "Alpha shadow texture requires linear MODULATE composition";
+          return false;
+        }
+      }
     }
     float clipEquations[COIN_RENDER_MAX_CLIP_PLANES][4] = {};
     if (!coin_render_clip_equations(state, clipEquations, diagnostic)) return false;

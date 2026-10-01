@@ -306,7 +306,7 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   executores. Alternar CASTS_SHADOW/NO_SHADOWING numa segunda forma
   transparente preservou pixels idênticos nos três renderizadores, nos dez
   modos. O perfil admite o mecanismo de objetos e até quatro mapas;
-  peeling/OIT e alfa de textura ainda exigem qualificação. A fixture também
+  peeling/OIT ainda exige qualificação. A fixture também
   repetiu os dez modos sem nenhum caster opaco; a exclusão manteve pixels
   idênticos em Coin/GL e nos dois backends.
 - [x] **Mapas sem casters:** Core conserva o pass e a recepção quando a
@@ -320,8 +320,19 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   63 em BGFX e wgpu; sua comparação Coin/GL continua dependente do contexto
   externo descrito na pendência de oito mapas. O build da ponte acompanha
   também `shadow.rs` e `coin_shadow.wgsl` como dependências explícitas.
+- [x] **Alfa de textura estática MODULATE:** o Core aceita texels RGBA com
+  alfa variável no mecanismo de objetos, até quatro mapas, sem unidades
+  extras nem `SoTextureCombine`. A mesma evidência exclui a forma texturizada
+  dos casters, como `TRANSP_TEXTURE` no Coin/GL. Uma imagem 2×2 com alfa
+  0/128/255 e UVs explícitas passou nos dez modos Coin nos dois executores:
+  SCREEN_DOOR e NONE marcaram 474/474, ADD/BLEND imediato e ADD adiado
+  174/174, BLEND adiado 102/102 no wgpu e 102/99 no BGFX, e triângulos
+  ordenados em BLEND 174/171. Alternar o estilo de casting da forma com
+  textura alfa manteve pixels idênticos nos três renderizadores, inclusive
+  sem nenhum caster opaco. Alfa com DECAL é rejeitado antes da submissão,
+  preservando pixels e serial. Alfa RTT ainda não está qualificado.
 - [ ] **Transparência e qualidade:** qualificar por modo os casters e
-  receivers com alfa de textura, peeling/OIT e os demais perfis de qualidade. `smoothBorder=1`
+  receivers com alfa RTT, mais de quatro mapas, peeling/OIT e os demais perfis de qualidade. `smoothBorder=1`
   passou em Coin/GL, BGFX e wgpu com pixels idênticos a `0`: a suavização
   gaussiana está desativada na implementação Coin/GL atual. O Core aceita
   somente os valores 0 e 1. O subperfil
@@ -341,8 +352,9 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   quando seus texels RGBA capturados têm alfa 255 e não há unidades
   adicionais. O mesmo draw recebe sombra e modulação de textura nos
   dois executores; alternar a textura verde da fixture mudou a imagem em 485
-  no Coin/GL, BGFX e wgpu. Uma imagem com alfa 128 retorna `UNSUPPORTED`
-  preservando pixels e serial. Um `SoSceneTexture2` também pode modular o
+  no Coin/GL, BGFX e wgpu. Alfa estático MODULATE foi qualificado depois,
+  como descrito acima; alfa DECAL retorna `UNSUPPORTED`, preservando pixels
+  e serial. Um `SoSceneTexture2` também pode modular o
   receiver se a captura registrar fundo opaco e `transparencyFunction=NONE`;
   a Action valida o perfil no plano lógico antes de executar o produtor.
   A fixture com luz spot, `quality=0,5` e sombra no grupo consumidor
@@ -350,7 +362,7 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   os deltas máximos são 225/213 (GL/wgpu) e 225/216 (GL/BGFX)
   (tolerância 200).
   `ALPHA_BLEND` e fundo não opaco foram rejeitados antes de mudar pixels
-  ou serial. Alfa variável continua aberto.
+  ou serial. Alfa variável no produtor RTT continua aberto.
 - [x] **Luz direcional comum herdada:** uma `SoDirectionalLight` anterior ao
   `SoShadowGroup` compõe sua contribuição opaca com um mapa spot; Core mantém
   a identidade da luz sem criar pass de sombra para ela. O recorte exige luz
@@ -447,6 +459,6 @@ O preflight retorna `UNSUPPORTED` antes de submeter o quadro para grupos
 ativos fora dos perfis qualificados de composição por objetos. O perfil atual aceita até oito
 passes spot/direcionais. A quinta, sexta e sétima spots têm comparação
 Coin/GL; a oitava tem readback e publicação verificados nos dois backends,
-mas ainda requer referência GL com oito mapas. Alfa de textura, peeling/OIT e
+mas ainda requer referência GL com oito mapas. Alfa RTT, peeling/OIT e
 composição mais ampla continuam na matriz
 P27.4. Nos casos rejeitados, pixels e serial publicados ficam intactos.

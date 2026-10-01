@@ -69,7 +69,7 @@ bool render(SoOffscreenRenderer & gl, SoNode * root,
 }
 // Exercise the public path with a fresh Action, so capture references held by
 // the main opaque fixtures cannot be invalidated by these additional scenes.
-bool qualifyShadowTransparency(SoSeparator * source)
+bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false)
 {
   const bool gpuRequired = std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
     std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU");
@@ -80,7 +80,19 @@ bool qualifyShadowTransparency(SoSeparator * source)
   auto * ground = static_cast<SoSeparator *>(shadowGroup->getChild(2));
   auto * groundStyle = static_cast<SoShadowStyle *>(ground->getChild(0));
   auto * groundMaterial = static_cast<SoMaterial *>(ground->getChild(1));
-  groundMaterial->transparency = 0.5f;
+  groundMaterial->transparency = alphaTexture ? 0.0f : 0.5f;
+  auto * texture = alphaTexture ? new SoTexture2 : nullptr;
+  auto * uv = alphaTexture ? new SoTextureCoordinate2 : nullptr;
+  const unsigned char alphaPixels[] = {
+    255, 255, 255, 0, 255, 255, 255, 128,
+    255, 255, 255, 128, 255, 255, 255, 255};
+  if (alphaTexture) {
+    texture->image.setValue(SbVec2s(2, 2), 4, alphaPixels);
+    ground->insertChild(texture, 2);
+    const SbVec2f corners[] = {SbVec2f(0, 0), SbVec2f(1, 0), SbVec2f(1, 1), SbVec2f(0, 1)};
+    for (int i = 0; i < 24; ++i) uv->point.set1Value(i, corners[i % 4]);
+    ground->insertChild(uv, 3);
+  }
   auto * mode = new SoTransparencyType;
   scene->insertChild(mode, 1);
   CoinRenderTarget * target = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
@@ -124,7 +136,7 @@ bool qualifyShadowTransparency(SoSeparator * source)
       glShadow->unref();
     }
     qualified = qualified && gpuDelta > 20;
-    std::cout << "transparent shadow receiver mode=" << type << " Coin/GL/GPU delta="
+    std::cout << "transparent shadow receiver alpha_texture=" << alphaTexture << " mode=" << type << " Coin/GL/GPU delta="
               << glDelta << '/' << gpuDelta << " qualified=" << qualified << '\n';
     if (!qualified) std::cerr << action.getLastError().getString() << '\n';
   }
@@ -135,7 +147,11 @@ bool qualifyShadowTransparency(SoSeparator * source)
   auto * transparentCaster = static_cast<SoSeparator *>(shadowGroup->getChild(1)->copy(TRUE));
   auto * casterStyle = static_cast<SoShadowStyle *>(transparentCaster->getChild(0));
   auto * casterMaterial = static_cast<SoMaterial *>(transparentCaster->getChild(1));
-  casterMaterial->transparency = 0.5f;
+  casterMaterial->transparency = alphaTexture ? 0.0f : 0.5f;
+  if (alphaTexture) {
+    transparentCaster->insertChild(texture->copy(TRUE), 2);
+    transparentCaster->insertChild(uv->copy(TRUE), 3);
+  }
   auto * translation = new SoTranslation;
   translation->translation.setValue(-1.7f, 0.0f, 0.0f);
   transparentCaster->insertChild(translation, 0);
@@ -143,7 +159,11 @@ bool qualifyShadowTransparency(SoSeparator * source)
   auto * originalCaster = static_cast<SoSeparator *>(shadowGroup->getChild(1));
   auto * originalMaterial = static_cast<SoMaterial *>(originalCaster->getChild(1));
   for (int emptyMaps = 0; emptyMaps < 2 && qualified; ++emptyMaps) {
-    originalMaterial->transparency = emptyMaps ? 0.5f : 0.0f;
+    originalMaterial->transparency = emptyMaps && !alphaTexture ? 0.5f : 0.0f;
+    if (emptyMaps && alphaTexture) {
+      originalCaster->insertChild(texture->copy(TRUE), 2);
+      originalCaster->insertChild(uv->copy(TRUE), 3);
+    }
     for (int type = 0; type <= 9 && qualified; ++type) {
       mode->value = type;
       casterStyle->style = SoShadowStyle::CASTS_SHADOW;
@@ -171,7 +191,8 @@ bool qualifyShadowTransparency(SoSeparator * source)
         glNoCast->unref();
         glCast->unref();
       }
-      std::cout << "transparent shadow caster empty_maps=" << emptyMaps
+      std::cout << "transparent shadow caster alpha_texture=" << alphaTexture
+                << " empty_maps=" << emptyMaps
                 << " mode=" << type << " GL/GPU unchanged="
                 << qualified << '\n';
       if (!qualified) std::cerr << action.getLastError().getString() << '\n';
@@ -1578,6 +1599,7 @@ int main()
       const uint64_t serial = texturedTarget->getLastSubmissionSerial();
       const unsigned char translucentPixel[] = {20, 220, 40, 128};
       opaqueTexture->image.setValue(SbVec2s(1, 1), 4, translucentPixel);
+      opaqueTexture->model = SoTexture2::DECAL; // Alpha profile is linear MODULATE.
       texturedAction.apply(texturedRoot);
       std::vector<unsigned char> afterRejected;
       texturedTarget->readbackRGBA(afterRejected);
@@ -1586,6 +1608,7 @@ int main()
         texturedTarget->getLastSubmissionSerial() == serial &&
         afterRejected == gpuTextured;
       opaqueTexture->image.setValue(SbVec2s(1, 1), 3, greenPixel);
+      opaqueTexture->model = SoTexture2::MODULATE;
     }
     if (texturedShadowQualified) {
       std::vector<SoShadowDirectionalLight *> addedLights;
@@ -4383,7 +4406,8 @@ int main()
     delete inheritedTarget;
     customRoot->removeChild(entryMove);
   }
-  const bool shadowTransparencyQualified = qualifyShadowTransparency(root);
+  const bool shadowTransparencyQualified = qualifyShadowTransparency(root) &&
+    qualifyShadowTransparency(root, true);
   const bool emptyShadowMapsQualified = qualifyEmptyShadowMaps(root);
   customRoot->unref();
   action.setRenderTarget(nullptr);
