@@ -253,10 +253,20 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   posições. Em wgpu, forçar visibilidade 1 no lookup do lote adicional
   produziu delta 579; usar o primeiro momento do mapa produziu 198,
   usar `1 - distância normalizada` produziu 129, e a probabilidade VSM
-  antes do limiar ainda produziu delta zero. Isso localiza a perda na
-  avaliação de visibilidade do segundo lote ou nos dados que chegam a ela,
-  sem demonstrar ainda qual coordenada/momento diverge. As sondas foram
-  retiradas; a rejeição atômica da spot tardia permanece ativa. O Coin/GL
+  antes do limiar ainda produziu delta zero. A causa foi encontrada em
+  `SoShadowGroupP::updateSpotCamera`: o Coin/GL projeta com o far da câmera,
+  mas normaliza os momentos e a recepção VSM com
+  `realfarval = farval / cos(2 * min(cutOffAngle, 0,78))`. O plano CoinRender
+  usava o far da câmera nas duas funções. Uma separação experimental entre
+  far de projeção e far VSM fez a quinta spot medir 159 em BGFX e wgpu,
+  contra 162 no Coin/GL. O caminho direcional do GL também usa um far VSM
+  distinto (`farval * 1,1`).
+  A aplicação global dessa correção alterou um perfil já qualificado:
+  no receiver texturizado por RTT o delta Coin/GL/GPU passou de 474/291
+  para 474/213 em wgpu (216 em BGFX), excedendo a tolerância atual.
+  Portanto a correção experimental foi retirada; é preciso reconciliar
+  esse receiver antes de liberar a quinta spot. A rejeição atômica
+  permanece ativa. O Coin/GL
   seleciona a quantidade de mapas pelas unidades de textura disponíveis
   menos as usadas pela cena (`SoShadowGroupP::updateShadowLights`); seu
   limite não é fixo em quatro. Uma falha de alocação de oito mapas no wgpu
