@@ -134,7 +134,7 @@ struct CoinWgpuShadowFrame : CoinWgpuShadowPass {
           candidate.lateLights.push_back(late);
           receiver.lighting_index = static_cast<int32_t>(lateIndex);
         }
-        const SbMatrix modelView = passSlot < 2 ? state.model * pass.view :
+        const SbMatrix modelView = passSlot % 4 < 2 ? state.model * pass.view :
           state.view.inverse() * pass.view;
         const SbMatrix mvp = modelView * projectionWgpu;
         std::memcpy(receiver.model_view, modelView.getValue(),
