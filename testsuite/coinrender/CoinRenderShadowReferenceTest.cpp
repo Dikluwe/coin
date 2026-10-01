@@ -3428,6 +3428,65 @@ int main()
     subtreeAction.setRenderTarget(nullptr);
     delete subtreeTarget;
   }
+  auto * nestedShadowStyle = new SoShadowStyle;
+  nestedShadowStyle->style = SoShadowStyle::NO_SHADOWING;
+  nestedCaster->insertChild(nestedShadowStyle, 0);
+  customLight->shadowMapScene = otherCaster;
+  action.apply(customRoot);
+  const auto & styledPlan = action.getPimpl()->lastRejectedShadowPlan;
+  bool styledCustomSceneQualified = styledPlan.passes.size() == 1 &&
+    styledPlan.passes[0].casterDraws.size() == 1 &&
+    action.getPimpl()->lastRejectedShadowFrame.shadowLights.size() == 1 &&
+    action.getPimpl()->lastRejectedShadowFrame.shadowLights[0].customSceneDirectSubtree;
+  if (styledCustomSceneQualified && lowQualityGpuRequested) {
+    CoinRenderTarget * styledTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+    CoinRenderAction styledAction(SbViewportRegion(side, side));
+    styledAction.setRenderTarget(styledTarget);
+    nestedShadowStyle->style = SoShadowStyle::CASTS_SHADOW_AND_SHADOWED;
+    styledAction.apply(customRoot);
+    std::vector<unsigned char> gpuBoth, gpuNoNestedCaster;
+    const bool bothOk = styledAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (bothOk) styledTarget->readbackRGBA(gpuBoth);
+    nestedShadowStyle->style = SoShadowStyle::NO_SHADOWING;
+    styledAction.apply(customRoot);
+    const bool noNestedOk = styledAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (noNestedOk) styledTarget->readbackRGBA(gpuNoNestedCaster);
+    int gpuDelta = 0;
+    if (bothOk && noNestedOk && gpuBoth.size() == gpuNoNestedCaster.size())
+      for (int y = 20; y < 105; ++y) for (int x = 20; x < 105; ++x)
+        gpuDelta = std::max(gpuDelta, std::abs(
+          luminanceRgba(gpuBoth, x, y) - luminanceRgba(gpuNoNestedCaster, x, y)));
+    styledCustomSceneQualified = bothOk && noNestedOk && gpuDelta > 10;
+    int glDelta = 0;
+    if (styledCustomSceneQualified &&
+        std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") && SoShadowGroup::isSupported()) {
+      nestedShadowStyle->style = SoShadowStyle::CASTS_SHADOW_AND_SHADOWED;
+      auto * glBothRoot = static_cast<SoSeparator *>(customRoot->copy(TRUE));
+      glBothRoot->ref();
+      nestedShadowStyle->style = SoShadowStyle::NO_SHADOWING;
+      auto * glNoNestedRoot = static_cast<SoSeparator *>(customRoot->copy(TRUE));
+      glNoNestedRoot->ref();
+      SoOffscreenRenderer styledGl(SbViewportRegion(side, side));
+      styledGl.setComponents(SoOffscreenRenderer::RGB);
+      std::vector<unsigned char> glBoth, glNoNestedCaster;
+      const bool rendered = render(styledGl, glBothRoot, glBoth) &&
+        render(styledGl, glNoNestedRoot, glNoNestedCaster);
+      if (rendered)
+        for (int y = 20; y < 105; ++y) for (int x = 20; x < 105; ++x)
+          glDelta = std::max(glDelta, std::abs(
+            luminance(glBoth, x, y) - luminance(glNoNestedCaster, x, y)));
+      styledCustomSceneQualified = rendered && glDelta > 10 &&
+        std::abs(glDelta - gpuDelta) <= 180;
+      glNoNestedRoot->unref();
+      glBothRoot->unref();
+    }
+    std::cout << "styled subtree shadowMapScene Coin/GL/GPU delta=" <<
+      glDelta << '/' << gpuDelta << '\n';
+    styledAction.setRenderTarget(nullptr);
+    delete styledTarget;
+  }
+  nestedCaster->removeChild(nestedShadowStyle);
+  customLight->shadowMapScene = nullptr;
   bool stagedShadowRttQualified = true;
   bool directShadowRttQualified = true;
   bool shadowedRttReceiverQualified = true;
@@ -3906,7 +3965,8 @@ int main()
       !lateLightResolved || !lateSpotProfile || !mixedOrderResolved ||
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||
       !lowQualityDirectionalQualified || !directCustomSceneQualified ||
-      !subtreeCustomSceneQualified || !inheritedCustomSceneQualified ||
+      !subtreeCustomSceneQualified || !styledCustomSceneQualified ||
+      !inheritedCustomSceneQualified ||
       !stagedShadowRttQualified || !directShadowRttQualified ||
       !shadowedRttReceiverQualified ||
       !directionalProjectionCoversGroup || !multipleCameras || !perspectiveFrustum

@@ -401,7 +401,7 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
             ++customShapeDraws[static_cast<size_t>(
               shapeIt - light.customSceneShapeNodeIds.begin())];
           ++customSceneDraws;
-          if ((state.shadowStyle & 1u) == 0 ||
+          if ((selectedShape && (state.shadowStyle & 1u) == 0) ||
               (selectedShape &&
                (state.model != SbMatrix::identity() ||
                 !state.clipPlanesWorld.empty() ||
