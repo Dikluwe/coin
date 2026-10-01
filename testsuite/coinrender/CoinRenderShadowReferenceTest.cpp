@@ -3516,7 +3516,7 @@ int main()
     directCustomSceneQualified = selectedOk && allOk && gpuDelta > 40;
     if (directCustomSceneQualified) {
       const uint64_t beforeUnsupported = customTarget->getLastSubmissionSerial();
-      customLight->shadowMapScene = customGround; // Styled subtree remains unqualified.
+      customLight->shadowMapScene = customGround; // Receiver-only subtree has no casters.
       customAction.apply(customRoot);
       std::vector<unsigned char> afterUnsupported;
       customTarget->readbackRGBA(afterUnsupported);

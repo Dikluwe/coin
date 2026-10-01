@@ -278,8 +278,9 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   momentos. Ao trocar cena própria por grupo inteiro, mediu diferenças
   máximas 420/576 para a
   forma direta e 426/531 para a subárvore transformada, em Coin/GL e BGFX
-  ou wgpu (tolerância 180). Uma subárvore com `SoShadowStyle` interno continua
-  `UNSUPPORTED` sem publicar pixels nem serial. A mesma subárvore com
+  ou wgpu (tolerância 180). Uma cena própria que seleciona apenas o chão
+  marcado `SHADOWED` continua `UNSUPPORTED`, pois não tem caster, sem
+  publicar pixels nem serial. A subárvore qualificada com
   `SoTranslation` herdada antes do grupo passou em ambos os executores:
   deltas 441/531, Coin/GL e GPU (tolerância 180). Faltam os demais nós e
   estados de cena própria e subárvores que precisem de travessia separada.
