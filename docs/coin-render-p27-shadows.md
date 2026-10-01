@@ -307,8 +307,11 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   transparente preservou pixels idênticos nos três renderizadores, nos dez
   modos. A mesma fixture foi repetida com quatro spots de intensidade
   0,25: todos os modos passaram com as mesmas métricas, exercitando os
-  quatro receivers e seus estados de profundidade derivados. O perfil
-  admite o mecanismo de objetos e até quatro mapas;
+  quatro receivers e seus estados de profundidade derivados. Inserir uma
+  quinta spot retorna `UNSUPPORTED` sem alterar pixels nem serial, tanto
+  com material transparente como com textura alfa, nos dois executores;
+  retirar a luz permite continuar a renderização. O perfil admite o
+  mecanismo de objetos e até quatro mapas;
   peeling/OIT ainda exige qualificação. A fixture também
   repetiu os dez modos sem nenhum caster opaco; a exclusão manteve pixels
   idênticos em Coin/GL e nos dois backends.

@@ -147,6 +147,22 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
               << glDelta << '/' << gpuDelta << " qualified=" << qualified << '\n';
     if (!qualified) std::cerr << action.getLastError().getString() << '\n';
   }
+  if (qualified && shadowLightCount == 4) {
+    std::vector<unsigned char> before, after;
+    target->readbackRGBA(before);
+    const uint64_t serial = target->getLastSubmissionSerial();
+    SoNode * fifth = spot->copy(TRUE);
+    fifth->ref();
+    shadowGroup->insertChild(fifth, 4);
+    action.apply(scene);
+    target->readbackRGBA(after);
+    qualified = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+      target->getLastSubmissionSerial() == serial && before == after;
+    shadowGroup->removeChild(fifth);
+    fifth->unref();
+    std::cout << "transparent five-map rejection alpha_texture=" << alphaTexture
+              << " preserves publication=" << qualified << '\n';
+  }
   // A second, transparent caster must never enter the moment map. Keep the
   // original opaque caster as a positive map/receiver control.
   groundMaterial->transparency = 0.0f;
