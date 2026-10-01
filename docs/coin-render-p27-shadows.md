@@ -305,7 +305,9 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   de textura e o consumidor recebe o token GPU. Alternar a sombra produziu
   delta máximo 306 no Coin/GL e 402 em BGFX e wgpu (tolerância 180);
   falha injetada no mapa preservou pixels e serial, e a recuperação reproduziu
-  o quadro. Sombras no consumidor, camadas, grupos aninhados e parâmetros VSM
+  o quadro. Redimensionar o consumidor direto para 160×160 manteve o efeito
+  (delta GPU 405 em BGFX; ambos executores passaram). Sombras no consumidor,
+  camadas, grupos aninhados e parâmetros VSM
   diferentes dentro de RTT ainda não estão qualificados.
 
 Cada caixa acima requer uma fixture renderizada nos dois executores e sua

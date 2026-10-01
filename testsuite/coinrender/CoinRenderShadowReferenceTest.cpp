@@ -2868,6 +2868,37 @@ int main()
           recovered == directShadow;
       }
     }
+    if (directShadowRttQualified) {
+      const int resized = 160;
+      directShadowRttQualified = directTarget->resize(SbVec2i32(resized, resized));
+      directAction.setViewportRegion(SbViewportRegion(resized, resized));
+      directAction.apply(stagedRoot);
+      std::vector<unsigned char> resizedShadow, resizedClear;
+      if (directAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        directTarget->readbackRGBA(resizedShadow);
+      customGroup->isActive = FALSE;
+      directAction.apply(stagedRoot);
+      if (directAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        directTarget->readbackRGBA(resizedClear);
+      int resizedDelta = 0;
+      if (resizedShadow.size() == size_t(resized * resized * 4) &&
+          resizedClear.size() == resizedShadow.size())
+        for (int y = 25; y < 130; ++y)
+          for (int x = 25; x < 130; ++x)
+            {
+              const size_t pixel = size_t((y * resized + x) * 4);
+              const int shadowValue = resizedShadow[pixel] +
+                resizedShadow[pixel + 1] + resizedShadow[pixel + 2];
+              const int clearValue = resizedClear[pixel] +
+                resizedClear[pixel + 1] + resizedClear[pixel + 2];
+              resizedDelta = std::max(resizedDelta,
+                std::abs(clearValue - shadowValue));
+            }
+      directShadowRttQualified = directShadowRttQualified &&
+        directAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+        resizedDelta > 40;
+      std::cout << "direct shadow RTT resized GPU delta=" << resizedDelta << '\n';
+    }
     if (!directShadowRttQualified)
       std::cerr << "direct shadow RTT: "
                 << directAction.getLastError().getString() << '\n';
