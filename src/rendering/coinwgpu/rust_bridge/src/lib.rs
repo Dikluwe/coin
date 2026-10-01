@@ -2418,7 +2418,6 @@ fn encode_frame(
                 "Rgba32Float shadow maps are unavailable on this device".into()));
         }
         if shadow.receivers.len() != states_slice.len()
-            || !shadow.receivers.iter().any(|receiver| receiver.receives != 0)
             || draw_order.iter().any(|item| item.peel)
             || draws_slice.iter().any(|draw| draw.render_state_slot as usize >= shadow.receivers.len()) {
             return Err((CoinWgpuStatus::InvalidArgument,
@@ -2480,9 +2479,9 @@ fn encode_frame(
         }
         if let Some(second) = &shadow.second {
             for (slot, receiver) in second.receivers.iter().enumerate() {
-                if receiver.receives > 1 || receiver.lighting_index < 0 ||
-                    (receiver.receives != 0 &&
-                     receiver.lighting_index as u32 >= states_slice[slot].light_count) ||
+                if receiver.receives > 1 ||
+                    (receiver.receives != 0 && (receiver.lighting_index < 0 ||
+                     receiver.lighting_index as u32 >= states_slice[slot].light_count)) ||
                     !receiver.model_view.iter().chain(receiver.model_view_projection.iter())
                         .all(|v| v.is_finite()) {
                     return Err((CoinWgpuStatus::InvalidArgument,

@@ -1531,12 +1531,33 @@ int main()
       group->insertChild(lateSpot, 4);
       const uint64_t eightSerial = dualTarget->getLastSubmissionSerial();
       dualAction.apply(root);
-      std::vector<unsigned char> afterRejectedSpot;
-      dualTarget->readbackRGBA(afterRejectedSpot);
+      std::vector<unsigned char> afterSpot;
+      dualTarget->readbackRGBA(afterSpot);
+      int fifthSpotDelta = 0;
+      if (afterSpot.size() == afterFour.size())
+        for (int y = 20; y < 105; ++y) for (int x = 20; x < 105; ++x)
+          fifthSpotDelta = std::max(fifthSpotDelta, std::abs(
+            luminanceRgba(afterSpot, x, y) - luminanceRgba(afterFour, x, y)));
+      int fifthSpotGlDelta = 0;
+      if (compareGl) {
+        auto * copy = static_cast<SoSeparator *>(root->copy(TRUE));
+        copy->ref();
+        std::vector<unsigned char> glSpot;
+        twoLightBgfxSubmitted = render(multiGl, copy, glSpot);
+        copy->unref();
+        if (glSpot.size() == glFour.size())
+          for (int y = 20; y < 105; ++y) for (int x = 20; x < 105; ++x)
+            fifthSpotGlDelta = std::max(fifthSpotGlDelta, std::abs(
+              luminance(glSpot, x, y) - luminance(glFour, x, y)));
+      }
+      std::cout << "fifth spot Coin/GL/BGFX delta=" << fifthSpotGlDelta
+                << '/' << fifthSpotDelta << '\n';
       twoLightBgfxSubmitted = twoLightBgfxSubmitted &&
-        dualAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-        dualTarget->getLastSubmissionSerial() == eightSerial &&
-        afterRejectedSpot == afterEight;
+        dualAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+        dualTarget->getLastSubmissionSerial() > eightSerial &&
+        afterSpot.size() == afterFour.size() && fifthSpotDelta > 40 &&
+        (!compareGl || (fifthSpotGlDelta > 40 &&
+          std::abs(fifthSpotGlDelta - fifthSpotDelta) <= 130));
       group->removeChild(lateSpot);
       group->removeChild(fourth);
       group->removeChild(third);
@@ -1820,12 +1841,33 @@ int main()
           spotCapture.getPimpl()->lastRejectedShadowPlan, 5, spotDiagnostic);
       const uint64_t eightSerial = dualTarget->getLastSubmissionSerial();
       dualAction.apply(root);
-      std::vector<unsigned char> afterRejectedSpot;
-      dualTarget->readbackRGBA(afterRejectedSpot);
+      std::vector<unsigned char> afterSpot;
+      dualTarget->readbackRGBA(afterSpot);
+      int fifthSpotDelta = 0;
+      if (afterSpot.size() == afterFourLights.size())
+        for (int y = 20; y < 105; ++y) for (int x = 20; x < 105; ++x)
+          fifthSpotDelta = std::max(fifthSpotDelta, std::abs(
+            luminanceRgba(afterSpot, x, y) - luminanceRgba(afterFourLights, x, y)));
+      int fifthSpotGlDelta = 0;
+      if (compareGl) {
+        auto * copy = static_cast<SoSeparator *>(root->copy(TRUE));
+        copy->ref();
+        std::vector<unsigned char> glSpot;
+        twoLightSubmittedOnGpu = render(multiGl, copy, glSpot);
+        copy->unref();
+        if (glSpot.size() == glFour.size())
+          for (int y = 20; y < 105; ++y) for (int x = 20; x < 105; ++x)
+            fifthSpotGlDelta = std::max(fifthSpotGlDelta, std::abs(
+              luminance(glSpot, x, y) - luminance(glFour, x, y)));
+      }
+      std::cout << "fifth spot Coin/GL/wgpu delta=" << fifthSpotGlDelta
+                << '/' << fifthSpotDelta << '\n';
       twoLightSubmittedOnGpu = twoLightSubmittedOnGpu && spotCoreQualified &&
-        dualAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-        dualTarget->getLastSubmissionSerial() == eightSerial &&
-        afterRejectedSpot == afterEightLights;
+        dualAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+        dualTarget->getLastSubmissionSerial() > eightSerial &&
+        afterSpot.size() == afterFourLights.size() && fifthSpotDelta > 40 &&
+        (!compareGl || (fifthSpotGlDelta > 40 &&
+          std::abs(fifthSpotGlDelta - fifthSpotDelta) <= 130));
       group->removeChild(lateSpot);
       group->removeChild(fourthShadowLight);
       group->removeChild(thirdShadowLight);
@@ -1952,7 +1994,7 @@ int main()
     int orderedBgfxDifference = 0;
     if (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") && capturedOrder) {
       const bool gpuOk = bgfxLightDelta(root, secondShadowLight, orderedBgfxDifference) &&
-        orderedBgfxDifference > 100;
+        (position == 3 ? orderedBgfxDifference == 0 : orderedBgfxDifference > 100);
       orderedTwoLight = orderedTwoLight && gpuOk;
       if (!gpuOk)
         std::cerr << "BGFX two-light traversal failed at " << position
@@ -1981,7 +2023,8 @@ int main()
             orderedWgpuDifference = std::max(orderedWgpuDifference,
               std::abs(luminanceRgba(singlePixels, x, y) -
                        luminanceRgba(dualPixels, x, y)));
-      const bool orderedGpuOk = singleOk && dualOk && orderedWgpuDifference > 100;
+      const bool orderedGpuOk = singleOk && dualOk &&
+        (position == 3 ? orderedWgpuDifference == 0 : orderedWgpuDifference > 100);
       orderedTwoLight = orderedTwoLight && orderedGpuOk;
       if (!orderedGpuOk)
         std::cerr << "wgpu two-light traversal failed at " << position << ": "
@@ -2010,7 +2053,8 @@ int main()
             orderedGlDifference = std::max(orderedGlDifference,
               std::abs(luminance(dualPixels, x, y) -
                        luminance(singlePixels, x, y)));
-      orderedTwoLight = orderedTwoLight && rendered && orderedGlDifference > 100;
+      orderedTwoLight = orderedTwoLight && rendered &&
+        (position == 3 ? orderedGlDifference == 0 : orderedGlDifference > 100);
 #ifdef HAVE_COIN_BGFX
       if (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU"))
         orderedTwoLight = orderedTwoLight &&
@@ -2053,7 +2097,7 @@ int main()
   int bothLateBgfxDifference = 0;
   if (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") && bothLateOk)
     bothLateOk = bgfxLightDelta(root, secondShadowLight, bothLateBgfxDifference) &&
-      bothLateBgfxDifference > 100;
+      bothLateBgfxDifference == 0;
 #endif
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
   int bothLateWgpuDifference = 0;
@@ -2078,7 +2122,7 @@ int main()
             std::abs(luminanceRgba(singlePixels, x, y) -
                      luminanceRgba(dualPixels, x, y)));
     bothLateOk = bothLateOk && singleOk && dualOk &&
-      bothLateWgpuDifference > 100;
+      bothLateWgpuDifference == 0;
     if (!bothLateOk)
       std::cerr << "wgpu two late lights failed: "
                 << lateAction.getLastError().getString()
@@ -2106,7 +2150,7 @@ int main()
           bothLateGlDifference = std::max(bothLateGlDifference,
             std::abs(luminance(dualPixels, x, y) -
                      luminance(singlePixels, x, y)));
-    bothLateOk = bothLateOk && rendered && bothLateGlDifference > 100;
+    bothLateOk = bothLateOk && rendered && bothLateGlDifference == 0;
 #ifdef HAVE_COIN_BGFX
     if (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU"))
       bothLateOk = bothLateOk &&
@@ -2167,7 +2211,7 @@ int main()
     int reversedBgfxDifference = 0;
     if (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") && reversedOk)
       reversedOk = bgfxLightDelta(root, light, reversedBgfxDifference) &&
-        reversedBgfxDifference > 100;
+        (spotPosition == 3 ? reversedBgfxDifference == 0 : reversedBgfxDifference > 100);
 #endif
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
     int reversedWgpuDifference = 0;
@@ -2192,7 +2236,7 @@ int main()
               std::abs(luminanceRgba(singlePixels, x, y) -
                        luminanceRgba(dualPixels, x, y)));
       reversedOk = reversedOk && singleOk && dualOk &&
-        reversedWgpuDifference > 100;
+        (spotPosition == 3 ? reversedWgpuDifference == 0 : reversedWgpuDifference > 100);
       if (!reversedOk)
         std::cerr << "wgpu reversed lights failed at " << spotPosition << ": "
                   << reversedAction.getLastError().getString()
@@ -2220,7 +2264,8 @@ int main()
             reversedGlDifference = std::max(reversedGlDifference,
               std::abs(luminance(dualPixels, x, y) -
                        luminance(singlePixels, x, y)));
-      reversedOk = reversedOk && rendered && reversedGlDifference > 100;
+      reversedOk = reversedOk && rendered &&
+        (spotPosition == 3 ? reversedGlDifference == 0 : reversedGlDifference > 100);
 #ifdef HAVE_COIN_BGFX
       if (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU"))
         reversedOk = reversedOk &&
@@ -2474,7 +2519,7 @@ int main()
   auto * directionalCapture = new SoShadowDirectionalLight;
   directionalCapture->direction.setValue(-0.4f, -0.4f, -1.0f);
   light->on = FALSE;
-  group->addChild(directionalCapture);
+  group->insertChild(directionalCapture, 1);
   group->isActive = TRUE;
   action.apply(root);
   const auto & directionalFrame = action.getPimpl()->lastRejectedShadowFrame;
@@ -2580,6 +2625,10 @@ int main()
     glLitRoot->unref();
     glShadowRoot->unref();
   }
+  directionalCapture->ref();
+  group->removeChild(directionalCapture);
+  group->addChild(directionalCapture); // Exercise the no-prior-draw profile next.
+  directionalCapture->unref();
   group->quality = 0.5f;
   bool directionalProjectionCoversGroup = directionalCaptured;
   if (directionalProjectionCoversGroup) {
@@ -2643,7 +2692,7 @@ int main()
           }
       std::cout << "wgpu late directional style delta=" << lateDirectionalDelta << '\n';
       wgpuLateDirectionalDifference = lateDirectionalDelta;
-      wgpuDirectionalSubmitted = wgpuDirectionalSubmitted && lateDirectionalDelta > 100;
+      wgpuDirectionalSubmitted = wgpuDirectionalSubmitted && lateDirectionalDelta == 0;
       if (!wgpuDirectionalSubmitted)
         std::cerr << "wgpu late directional style check: "
                   << lateAction.getLastError().getString() << '\n';
@@ -3950,9 +3999,9 @@ int main()
       withoutCaster - castShadow < 100 ||
       std::abs(restoredShadow - castShadow) > 30 || centerDifference > 45 ||
       directionalDifference < 100 || directionalDistanceDifference < 100 ||
-      lateDirectionalDifference < 100 ||
+      lateDirectionalDifference > 45 ||
       mixedDirectionalDifference < 100 ||
-      spotLateDifference < 100 || spotMixedDifference < 100) {
+      spotLateDifference > 45 || spotMixedDifference < 100) {
     std::cerr << "Coin/GL shadow, style or cache reference changed\n";
     return 1;
   }

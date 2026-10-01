@@ -1,9 +1,10 @@
 # P27 — sombras Coin: perfis opacos BGFX e wgpu executáveis
 
 P27 exige executar `SoShadowGroup` ativo com a semântica Coin em BGFX e wgpu.
-A referência GL e a captura comum estão verificadas. Os perfis opacos de
-uma ou duas luzes spot/direcionais executam em BGFX e wgpu offscreen síncrono.
-O perfil de duas luzes cobre ordem de travessia anterior, mista e posterior;
+A referência GL e a captura comum estão verificadas. BGFX e wgpu executam
+perfis opacos de até oito luzes spot/direcionais em offscreen síncrono, com
+fixtures para os pares, o lote direcional e a quinta spot. O perfil de duas
+luzes cobre ordem de travessia anterior, mista e posterior;
 o Core usa a câmera na entrada do grupo para os mapas direcionais. Os
 perfis ampliados e a matriz final de plataformas permanecem abertos em
 P27.4–P27.5; P27 permanece **aberto**.
@@ -33,7 +34,7 @@ ao contrato Coin, não à interpretação isolada de cada backend.
 spot ou luz direcional e `SoShadowGroup`. Sob Mesa llvmpipe/GLX com suporte a
 sombras, testa grupo desligado/ligado, caster e receiver desligados, restauração
 de estilo, e diferença espacial da luz direcional. A amostra spot no plano foi
-`600` (grupo desligado), `126` (sombra), `33` (luz após os objetos),
+`600` (grupo desligado), `126` (sombra), `30` (luz após os objetos),
 `600` (receiver desligado), `654`
 (caster desligado), em soma RGB; a região central do cubo variou só `1`. Para
 directional, a maior diferença de estilo foi `666`. O teste usa relações e
@@ -123,18 +124,14 @@ P27.2 está fechado no perfil opaco de até dois passes. Uma luz admite spot ou 
 antes, entre ou depois dos desenhos, com distância axial no pass direcional
 e lookup VSM. Na fixture direcional anterior, a diferença
 espacial máxima entre wgpu sem/com sombra foi `666`, igual à diferença de estilo
-Coin/GL. A saída direta do backend e a da Action foram idênticas. Para luzes
-posteriores, o Core resolve a fonte em cada estado: ela não consta da iluminação
-comum capturada antes da sua travessia, mas o shader de `SoShadowGroup` a aplica
-nos receivers. O empacotador wgpu adiciona essa fonte somente à contribuição
-sombreada. Na fixture, a diferença espacial de estilo da spot tardia foi `735`
-no wgpu e no GL; a direcional tardia marcou `666` e `735`, respectivamente.
-Na ordem mista (luz entre cubo e plano), o Core marca o cubo antes e o
-plano depois da luz; os máximos de diferença de estilo foram `474`/`588`
-(spot GL/wgpu) e `666`/`666` (direcional GL/wgpu). A comparação tardia
-inclui o pixel de maior diferença da spot: soma RGB `765` no GL e `603`
-no wgpu, com tolerância de `180` nesta fixture. Essa diferença mantém a
-equivalência visual estreita como trabalho aberto. Para uma câmera comum aos
+Coin/GL. A saída direta do backend e a da Action foram idênticas. Para
+luzes posteriores, o Core mantém a fonte ausente do estado de cada
+desenho anterior à travessia da luz. O Coin/GL agora limpa o slot GL da luz
+de sombra até que seu nó seja atravessado; isso evita contribuição de estado
+GL residual de quadros anteriores. Com a luz após todos os desenhos, a
+diferença ao retirá-la é zero em GL, BGFX e wgpu. Na ordem mista, a luz
+participa somente dos desenhos posteriores.
+Para uma câmera comum aos
 desenhos, o Core reconstrói o frustum capturado, usa a interseção Coin com a
 bbox do grupo para ajustar o mapa direcional e leva `maxShadowDistance` ao
 shader wgpu, que atenua a sombra pela distância em espaço de vista. Com limite
@@ -144,10 +141,9 @@ regenerou o ramo do limite quando o campo mudou de negativo para positivo.
 Limite anterior ao plano próximo retorna `UNSUPPORTED` no perfil atual e
 preserva pixels e serial. Nessa etapa, a ABI privada C++/Rust passou a 34.
 A câmera do mapa direcional é capturada na entrada do grupo, como no GL;
-câmeras posteriores continuam próprias de cada desenho. A Action admite uma
-ou duas luzes spot/direcionais em alvo wgpu offscreen síncrono sem RTT. BGFX,
-janela, async, transparência e cenas próprias por luz seguem com
-`UNSUPPORTED` antes da submissão.
+câmeras posteriores continuam próprias de cada desenho. Na etapa P27.2, a Action admitia uma ou duas luzes spot/direcionais em alvo
+wgpu offscreen síncrono sem RTT; os perfis posteriores estão registrados
+abaixo.
 
 O perfil com uma spot e uma direcional antes dos desenhos, ambas com qualidade
 1, gera dois passes independentes no Core vinculados aos índices 0 e 1 da
@@ -158,20 +154,19 @@ luzes. Na fixture 128×128, retirar a direcional mudou a soma RGB máxima em
 confere injeção de falha na alocação, preservação de pixels e serial, resize
 para 160×160 e recuperação do quadro original. A ABI privada C++/Rust passou
 a 35. O Core rejeita um índice cujo `sourceRevision` não corresponde à luz do
-pass. O empacotador reserva índices por estado para luzes vistas depois dos
-receivers. Com a direcional entre cubo e plano, as diferenças máximas ao
-retirá-la foram `402` no GL e `399` no wgpu; com a direcional após ambos,
-`459` e `399`; com ambas as luzes após os desenhos, `456` e `399`.
-A tolerância de `100` nesta fixture cobre esses máximos e não é uma
-qualificação pixel a pixel. Na ordem direcional→spot, as diferenças GL/wgpu
-foram `426`/`336` com a spot antes ou entre os desenhos e `336`/`336`
-com a spot posterior. Dois spots marcaram `435`/`438`; duas direcionais,
-com `maxShadowDistance` na segunda, `402`/`399`. Com duas câmeras dentro do
+pass. O índice de iluminação vem do estado capturado de cada desenho: com a
+direcional entre cubo e plano, a diferença máxima ao retirá-la foi `402`
+em GL e wgpu; com ela após ambos, `0` em ambos. A ordem inversa
+(direcional→spot) marcou `426`/`429` para a spot anterior ou mista e `0`/`0`
+para a spot posterior. Dois spots marcaram `435`/`435`; duas direcionais,
+com `maxShadowDistance` na segunda, `402`/`399`.
+Com duas câmeras dentro do
 grupo e limite direcional ativo, a diferença de estilo foi `81` em ambos os
 renderizadores; a câmera perspectiva na entrada também marcou `81`/`81`.
 O mapa usa o frustum da entrada do `SoShadowGroup`, preservando as câmeras
-distintas dos desenhos. O teste rejeita uma terceira luz sem alterar pixels
-ou serial, recupera o quadro de duas luzes e testa falha de alocação e resize.
+distintas dos desenhos. Na etapa P27.2, o teste rejeitava uma terceira luz sem alterar pixels
+ou serial, recuperava o quadro de duas luzes e testava falha de alocação e
+resize; a terceira luz foi qualificada depois, em P27.4.
 
 
 P27.3 foi exercitado no BGFX/Vulkan sobre NVIDIA GeForce RTX 3060 Laptop GPU
@@ -184,7 +179,7 @@ a sombra no plano. Na amostra spot alinhada, BGFX marcou `30` e Coin/GL
 `126` em soma RGB (tolerância `130`). A contribuição máxima da segunda luz
 no par spot→direcional foi `402` em ambos. Na ordem direcional→spot, as
 relações ficaram `426`/`336` (GL/BGFX) para spot anterior ou mista e
-`336`/`336` para spot posterior (tolerância `100`); dois spots marcaram
+`0`/`0` para spot posterior (tolerância `100`); dois spots marcaram
 `435`/`438` e duas direcionais `402`/`402` (tolerância `120`). As variações
 remanescentes de pixels e outras GPUs/APIs pertencem à matriz P27.5.
 A Action e a submissão direta produziram o mesmo quadro. A falha injetada
@@ -221,85 +216,34 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   aplica VSM por contribuição da luz resolvida no Core. A fixture submeteu
   três e quatro luzes com readback: deltas máximos 666/723 e 228/228,
   Coin/GL e wgpu. O segundo lote direcional está descrito abaixo.
-- [ ] **Cinco a oito luzes:** o Core produz e valida planos de cinco e
-  oito passes no contrato de iluminação capturada. BGFX compõe os passes
-  cinco a oito em um segundo draw opaco, reutilizando quatro samplers e o
-  depth buffer; o mesmo mecanismo funciona no produtor RTT direto e no
-  staged. Com as luzes adicionais direcionais, a fixture comparou os deltas
-  de cinco luzes (291/291) e oito (117/174), Coin/GL/BGFX. O produtor RTT
-  com oito luzes marcou 228/369 nos modos staged e direct. Uma quinta luz
-  spot revelou divergência VSM: a referência muda 162, mas o BGFX não muda
-  a imagem. wgpu também compõe os passes cinco a oito num segundo draw,
-  reutilizando quatro bindings de mapa via ABI 38. As comparações Coin/GL e
-  wgpu mediram 291/291 (quinta) e 117/174 (oitava); staged e direct RTT de
-  oito luzes mediram 228/369, como no BGFX. A textura opaca MODULATE no
-  receiver também passou com a quinta luz: a contribuição isolada ao
-  comparar quatro contra cinco luzes foi 81/79 em Coin/GL e em cada
-  executor. Modos de textura não lineares e `SoTextureCombine` permanecem
-  fora do segundo lote; o Core os rejeita antes da submissão, preservando
-  pixels e serial. A quinta luz spot divergiu também
-  no wgpu (162/0 após corrigir a matriz de recepção do lote) e ambos os
-  executores a rejeitam antes de publicar pixels ou serial. A referência
-  Coin/GL foi reavaliada em cópias novas da cena: a quinta spot mudou 162
-  com sombra ativa; fixar sua intensidade em zero anulou esse delta; retirar
-  os casters do mapa mudou a imagem em 369. Sem sombra, as quatro luzes
-  anteriores saturavam os pixels (765/765), explicando o delta zero da
-  quinta; ao baixar suas intensidades, a spot mudou a imagem em 471. Isso
-  afasta um falso positivo simples da referência.
-  Uma sonda temporária liberou a quinta spot apenas para diagnóstico:
-  BGFX e wgpu mediram delta 0 como quinta luz e 99 quando a mesma spot
-  ocupou o quarto passe. O Core manteve câmera, projeção, near/far
-  (3,34088/8,34746), mapa 1024² e o mesmo caster selecionado nas duas
-  posições. Em wgpu, forçar visibilidade 1 no lookup do lote adicional
-  produziu delta 579; usar o primeiro momento do mapa produziu 198,
-  usar `1 - distância normalizada` produziu 129, e a probabilidade VSM
-  antes do limiar ainda produziu delta zero. A causa foi encontrada em
-  `SoShadowGroupP::updateSpotCamera`: o Coin/GL projeta com o far da câmera,
-  mas normaliza os momentos e a recepção VSM com
-  `realfarval = farval / cos(2 * min(cutOffAngle, 0,78))`. O plano CoinRender
-  usava o far da câmera nas duas funções. Uma separação experimental entre
-  far de projeção e far VSM fez a quinta spot medir 159 em BGFX e wgpu,
-  contra 162 no Coin/GL. O caminho direcional do GL também usa um far VSM
-  distinto (`farval * 1,1`).
-  A aplicação global dessa correção alterou um perfil já qualificado:
-  no receiver texturizado por RTT o delta Coin/GL/GPU passou de 474/291
-  para 474/213 em wgpu (216 em BGFX), excedendo a tolerância atual.
-  Uma sonda no receiver RTT isolou outra diferença: o Core capturou
-  near/far 0,95647/6,97007, enquanto a câmera GL do grupo usou
-  2,55638/5,36695. O `bboxnode` do GL reaplica somente os filhos do
-  `SoShadowGroup`; nessa fixture, as coordenadas do plano estavam no pai.
-  Ao incluir os nós de coordenadas no grupo, a câmera GL passou a usar
-  exatamente 0,95647/6,97007, mas o delta visual permaneceu 474/291.
-  Logo essa divergência de bbox é real, porém não explica sozinha a
-  regressão da correção VSM. A causa decisiva estava na referência GL:
-  `updateShadowLights()` chamava o render do mapa e desligava o binding da
-  `SoSceneTexture2` herdada na unidade 0 (binding 1 antes, 0 depois), embora
-  a imagem ainda constasse no `SoState`. Assim, com o grupo ativo, os 7.225
-  pixels examinados no receiver ficavam pretos, mesmo sem caster; uma textura
-  branca local ou religar a própria RTT no grupo recuperava a imagem. O
-  `SoShadowGroupP::GLRender` agora restaura as imagens das unidades da cena
-  após gerar os mapas, e o teste rejeita um receiver GL inteiramente preto.
-  Com isso o delta RTT atual é 225/291 nos dois backends; uma repetição
-  diagnóstica do far VSM corrigido em wgpu mediu 225/213, dentro da
-  tolerância. O Core agora guarda `vsmFarDistance` separado do `farDistance`
-  da câmera: spot usa `farDistance / cos(2 * min(cutOffAngle, 0,78))` e
-  direcional usa `farDistance * 1,1`. As fixtures verificam o valor spot,
-  o override explícito e o direcional; a Infra ainda usa o far anterior.
-  Ao experimentar o novo valor global no wgpu, um spot cuja luz vem após
-  o receiver passou de 30 para 126 no pixel de controle, contra 33 no
-  Coin/GL. No shader GL, a sonda mostrou o mesmo primeiro momento do mapa
-  para as duas ordens (~3/765), mas o fator VSM caiu de ~117/765 para
-  ~3/765 porque a distância calculada via `gl_LightSource` mudou de ~6,75
-  para ~9,57 quando a luz foi movida após o desenho. Um renderer GL novo
-  reproduziu o resultado. A coincidência visual anterior nesse pixel não
-  qualifica o novo far para luzes tardias; a ordem precisa de contrato
-  próprio antes de ativar o transporte VSM nos backends e liberar spots
-  no segundo lote. A rejeição atômica permanece ativa. O Coin/GL
-  seleciona a quantidade de mapas pelas unidades de textura disponíveis
-  menos as usadas pela cena (`SoShadowGroupP::updateShadowLights`); seu
-  limite não é fixo em quatro. Uma falha de alocação de oito mapas no wgpu
-  preservou a imagem e o serial do alvo. Faltam spots tardios e outros
-  perfis de luzes.
+- [ ] **Cinco a oito luzes:** Core, BGFX e wgpu aceitam até oito passes
+  opacos. Os passes cinco a oito usam um segundo draw do receiver com os
+  mesmos quatro bindings de mapa e o mesmo depth; staged e direct RTT foram
+  exercitados. As fixtures mediram, em Coin/GL e nos dois backends, deltas
+  máximos de 291/291 para a quinta luz direcional, 117/174 para a oitava e
+  162/159 para a quinta spot. Um receiver com textura MODULATE opaca marcou
+  81/79 com a quinta luz. Com oito luzes em RTT, staged e direct marcaram
+  228/225. O teste verifica submissão e serial da quinta spot e, no wgpu,
+  falha de alocação de oito mapas sem alterar pixels nem serial. Ainda faltam
+  combinações de spots nos passes seis a oito e qualificações de composição
+  mais ampla; por isso a caixa continua aberta.
+
+  A divergência inicial da quinta spot veio da normalização VSM: Coin/GL
+  usa far de projeção para a câmera e um far distinto para os momentos e
+  a recepção. O Core mantém `vsmFarDistance` separado de `farDistance`:
+  spot usa `farDistance / cos(2 * min(cutOffAngle, 0,78))`, direcional usa
+  `farDistance * 1,1`; BGFX e wgpu transportam esse valor aos shaders de
+  mapa e receiver. A regressão RTT durante a correção revelou que
+  `updateShadowLights()` desligava o binding da `SoSceneTexture2` herdada
+  na unidade 0, embora a textura continuasse no `SoState`. O GL restaura
+  as imagens das unidades após gerar os mapas, e a fixture rejeita um
+  receiver inteiramente preto. Outra diferença da referência era o slot GL
+  de luzes que só aparecem depois dos receivers: o shader podia ler estado
+  residual. O GL agora zera esses slots antes de percorrer o grupo; Core
+  e Infra respeitam a ausência da luz no estado capturado de cada desenho.
+  RTT com uma spot permanece dentro da tolerância: Coin/GL 225, wgpu 213 e
+  BGFX 216. Modos de textura não lineares e `SoTextureCombine` ainda são
+  rejeitados antes da submissão.
 - [ ] **Cenas próprias por luz:** estão qualificados dois recortes de
   `shadowMapScene`: um `SoShape` filho direto do grupo, desenhado uma só vez
   com modelo identidade e estilo caster; e um `SoSeparator` filho direto,
@@ -342,7 +286,7 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   a Action valida o perfil no plano lógico antes de executar o produtor.
   A fixture com luz spot, `quality=0,5` e sombra no grupo consumidor
   passou em staged e direct: após restaurar o binding RTT no Coin/GL,
-  os deltas máximos são 225/291 no Coin/GL e em BGFX ou wgpu
+  os deltas máximos são 225/213 (GL/wgpu) e 225/216 (GL/BGFX)
   (tolerância 200).
   `ALPHA_BLEND` e fundo não opaco foram rejeitados antes de mudar pixels
   ou serial. Alfa variável continua aberto.
@@ -415,7 +359,8 @@ referência Coin/GL antes de marcar P27.4 concluído.
   mapa por `precision`, calcular câmeras spot/directional a partir da geometria
   capturada, resolver os parâmetros de VSM/qualidade e o índice da luz em cada
   estado de desenho, resolver a contribuição dessa luz no espaço de vista
-  inclusive quando ela aparece após a geometria, validar dois passes opacos
+  inclusive quando ela aparece após a geometria sem inseri-la nos estados
+  anteriores, validar dois passes opacos
   spot/direcional e limitar a memória planejada.
 - [ ] **Core completo:** ampliar qualidade, transparência, cenas próprias
   complexas, cinco a oito luzes, grupos aninhados e dependências RTT direct.
@@ -434,7 +379,7 @@ referência Coin/GL antes de marcar P27.4 concluído.
   mesmas fixtures Coin/GL. Registrar GPU/API/driver e tolerâncias por célula.
 
 O preflight retorna `UNSUPPORTED` antes de submeter o quadro para grupos
-ativos fora dos perfis opacos qualificados: até quatro passes spot/direcionais
-e, no segundo lote de até oito passes, luzes adicionais direcionais. Assim
-os pixels e o serial publicados anteriormente continuam intactos. Spots
-tardios e os demais perfis permanecem na ampliação P27.4.
+ativos fora dos perfis opacos qualificados. O perfil atual aceita até oito
+passes spot/direcionais, com a quinta spot e o lote direcional exercitados;
+combinações restantes de spots e perfis de transparência continuam na matriz
+P27.4. Nos casos rejeitados, pixels e serial publicados ficam intactos.

@@ -30,8 +30,8 @@ struct CoinRenderShadowPass {
   float maxShadowDistance = -1.0f;
   float distanceFalloffCoefficient = 2.35f; // Coin directional exp(z*abs(z)/d^2).
   bool perFragmentLighting = false;
-  // -1 means the shadow light is discovered after this shape and must be
-  // added by Infra; otherwise it replaces that ordinary light contribution.
+  // -1 means the light is absent from this draw's captured Coin state.
+  // It cannot illuminate this draw before traversal reaches its node.
   std::vector<int32_t> lightingIndexByState;
   std::vector<CoinRenderLightSourceSnapshot> resolvedLightByState;
   std::vector<uint32_t> casterDraws;
@@ -617,7 +617,6 @@ coin_render_shadow_opaque_profile(
       return false;
     }
     std::vector<bool> claimed(lights.size(), false);
-    size_t lateLightCount = 0;
     for (const auto & pass : shadows.passes) {
       if (pass.groupSlot != state.shadowGroupSlot) continue;
       if (draw.renderStateSlot >= pass.lightingIndexByState.size()) {
@@ -627,10 +626,6 @@ coin_render_shadow_opaque_profile(
       const int32_t index = pass.lightingIndexByState[draw.renderStateSlot];
       const auto & shadowLight = frame.shadowLights[pass.lightSlot];
       if (index == -1) {
-        if (lights.size() + ++lateLightCount > COIN_RENDER_MAX_LIGHTS) {
-          diagnostic = "Opaque shadow profile exceeds the eight-light receiver limit";
-          return false;
-        }
         // A later light cannot already be present in this draw's Coin state.
         for (const auto & source : lights)
           if (source.sourceRevision == shadowLight.sourceRevision &&

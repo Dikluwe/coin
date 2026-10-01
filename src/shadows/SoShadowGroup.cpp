@@ -2192,6 +2192,15 @@ SoShadowGroupP::GLRender(SoGLRenderAction * action, const SbBool inpath)
     SoGLMultiTextureImageElement::restore(state, unit);
   }
   SoShapeStyleElement::setShadowMapRendering(state, FALSE);
+  // A shadow shader references every group light, including nodes after a
+  // shape. Clear their GL slots until traversal reaches each light node.
+  const GLfloat black[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  for (int i = 0; i < this->shadowlights.getLength(); ++i) {
+    const GLenum slot = GLenum(GL_LIGHT0 + this->shadowlights[i]->lightid);
+    glLightfv(slot, GL_AMBIENT, black);
+    glLightfv(slot, GL_DIFFUSE, black);
+    glLightfv(slot, GL_SPECULAR, black);
+  }
 
   if (!this->vertexshadercache || !this->vertexshadercache->isValid(state)) {
     this->setVertexShader(state);

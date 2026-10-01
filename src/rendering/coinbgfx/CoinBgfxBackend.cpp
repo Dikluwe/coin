@@ -68,13 +68,6 @@ bool bgfxShadowBatchSupported(const CoinRenderFramePlan & frame,
     diagnostic = "BGFX shadow receiver supports at most eight maps";
     return false;
   }
-  // The second batch is qualified for directional lights. A later spot can
-  // produce a fully occluded VSM lookup despite a visible Coin/GL contribution.
-  for (size_t i = 4; i < plan.passes.size(); ++i)
-    if (frame.shadowLights[plan.passes[i].lightSlot].type != CoinRenderLightType::DIRECTIONAL) {
-      diagnostic = "BGFX shadow passes five to eight currently require directional lights";
-      return false;
-    }
   return true;
 }
 
@@ -1689,21 +1682,8 @@ CoinBgfxBackend::bindShadowReceiver(
     const auto & pass = shadowPlan.passes[passSlot];
     if (state.shadowGroupSlot != pass.groupSlot ||
         (state.shadowStyle & 2u) == 0) continue;
-    int32_t index = pass.lightingIndexByState[original.renderStateSlot];
-    if (index == -1) {
-      index = static_cast<int32_t>(shaded.lightCount[0]++);
-      const auto & light = pass.resolvedLightByState[original.renderStateSlot];
-      for (int c = 0; c < 3; ++c) {
-        shaded.lightPositionType[index][c] = light.position[c];
-        shaded.lightDirectionCutoff[index][c] = light.direction[c];
-        shaded.lightColorIntensity[index][c] = light.color[c];
-        shaded.lightAttenuationDrop[index][c] = light.attenuation[c];
-      }
-      shaded.lightPositionType[index][3] = static_cast<float>(light.type);
-      shaded.lightDirectionCutoff[index][3] = std::cos(light.cutOffAngle);
-      shaded.lightColorIntensity[index][3] = light.intensity;
-      shaded.lightAttenuationDrop[index][3] = light.dropOffRate;
-    }
+    const int32_t index = pass.lightingIndexByState[original.renderStateSlot];
+    if (index < 0) continue;
     if (additive && index >= 0)
       shaded.lightColorIntensity[index][3] =
         pass.resolvedLightByState[original.renderStateSlot].intensity;
@@ -1712,7 +1692,7 @@ CoinBgfxBackend::bindShadowReceiver(
     const SbMatrix projection = bgfx::getCaps()->homogeneousDepth ? pass.projectionCoin :
       pass.projectionCoin * clipConversion;
     const SbMatrix viewToClip = viewToLight * projection;
-    const float params[4] = {pass.nearDistance, pass.farDistance,
+    const float params[4] = {pass.nearDistance, pass.vsmFarDistance,
                              pass.epsilon, pass.threshold};
     const float meta[4] = {
       frame.shadowLights[pass.lightSlot].type == CoinRenderLightType::SPOT ? 1.0f : 0.0f,
@@ -2071,7 +2051,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       bgfx::touch(mapView);
       const SbMatrix projection = homogeneousDepth ? pass.projectionCoin :
         pass.projectionCoin * clipConversion;
-      const float depthParams[4] = {pass.nearDistance, pass.farDistance,
+      const float depthParams[4] = {pass.nearDistance, pass.vsmFarDistance,
         frame.shadowLights[pass.lightSlot].type == CoinRenderLightType::SPOT ? 1.0f : 0.0f, 0.0f};
       for (const CoinBgfxDraw & draw : plan->draws) {
         if (std::find(pass.casterDraws.begin(), pass.casterDraws.end(),
@@ -2796,7 +2776,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
       bgfx::touch(mapView);
       const SbMatrix projection = bgfx::getCaps()->homogeneousDepth ? pass.projectionCoin :
         pass.projectionCoin * clipConversion;
-      const float depthParams[4] = {pass.nearDistance, pass.farDistance,
+      const float depthParams[4] = {pass.nearDistance, pass.vsmFarDistance,
         frame.shadowLights[pass.lightSlot].type == CoinRenderLightType::SPOT ? 1.0f : 0.0f, 0.0f};
       for (const CoinBgfxDraw & draw : plan.draws) {
         if (std::find(pass.casterDraws.begin(), pass.casterDraws.end(),

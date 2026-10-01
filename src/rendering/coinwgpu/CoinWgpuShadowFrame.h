@@ -42,12 +42,6 @@ struct CoinWgpuShadowPass {
   std::vector<CoinWgpuShadowReceiver> receivers;
 };
 
-struct CoinWgpuLateShadowLight {
-  uint32_t stateSlot = 0;
-  uint32_t lightingIndex = 0;
-  CoinWgpuLight light{};
-};
-
 struct CoinWgpuShadowFrame : CoinWgpuShadowPass {
   CoinWgpuShadowPass second;
   CoinWgpuShadowPass third;
@@ -56,7 +50,6 @@ struct CoinWgpuShadowFrame : CoinWgpuShadowPass {
   bool hasSecond = false;
   bool hasThird = false;
   bool hasFourth = false;
-  std::vector<CoinWgpuLateShadowLight> lateLights;
 
   bool prepare(const CoinRenderFramePlan & frame, std::string & diagnostic)
   {
@@ -74,11 +67,6 @@ struct CoinWgpuShadowFrame : CoinWgpuShadowPass {
       diagnostic = "wgpu shadow encoder supports at most eight maps";
       return false;
     }
-    for (size_t i = 4; i < plan.passes.size(); ++i)
-      if (frame.shadowLights[plan.passes[i].lightSlot].type != CoinRenderLightType::DIRECTIONAL) {
-        diagnostic = "wgpu shadow passes five to eight currently require directional lights";
-        return false;
-      }
     candidate.hasSecond = plan.passes.size() > 1;
     candidate.hasThird = plan.passes.size() > 2;
     candidate.hasFourth = plan.passes.size() > 3;
@@ -98,7 +86,7 @@ struct CoinWgpuShadowFrame : CoinWgpuShadowPass {
       packedPass.mapSize = pass.mapSize;
       packedPass.kind = frame.shadowLights[pass.lightSlot].type == CoinRenderLightType::SPOT ? 1u : 0u;
       packedPass.nearDistance = pass.nearDistance;
-      packedPass.farDistance = pass.farDistance;
+      packedPass.farDistance = pass.vsmFarDistance;
       packedPass.epsilon = pass.epsilon;
       packedPass.threshold = pass.threshold;
       const SbMatrix projectionWgpu = pass.projectionCoin * clipConversion;
@@ -107,33 +95,11 @@ struct CoinWgpuShadowFrame : CoinWgpuShadowPass {
         const auto & state = frame.renderStates[stateSlot];
         if (state.shadowGroupSlot != pass.groupSlot) continue;
         CoinWgpuShadowReceiver & receiver = packedPass.receivers[stateSlot];
-        receiver.receives = (state.shadowStyle & 2u) != 0 ? 1u : 0u;
+        receiver.receives = (state.shadowStyle & 2u) != 0 &&
+          pass.lightingIndexByState[stateSlot] >= 0 ? 1u : 0u;
         receiver.lighting_index = pass.lightingIndexByState[stateSlot];
         receiver.max_shadow_distance = pass.maxShadowDistance;
         receiver.distance_falloff_coefficient = pass.distanceFalloffCoefficient;
-        if (receiver.receives && receiver.lighting_index == -1) {
-          if (state.lightingSlot >= frame.lightingStates.size()) {
-            diagnostic = "Shadow receiver references an invalid lighting state";
-            return false;
-          }
-          const auto & capturedLights =
-            frame.lightingStates[state.lightingSlot].lights;
-          const uint32_t lateIndex = static_cast<uint32_t>(capturedLights.size() +
-            std::count_if(candidate.lateLights.begin(), candidate.lateLights.end(),
-              [stateSlot](const CoinWgpuLateShadowLight & late) {
-                return late.stateSlot == stateSlot;
-              }));
-          if (lateIndex >= COIN_WGPU_FFI_MAX_LIGHTS) {
-            diagnostic = "Shadow receiver exceeds the wgpu light limit";
-            return false;
-          }
-          CoinWgpuLateShadowLight late;
-          late.stateSlot = static_cast<uint32_t>(stateSlot);
-          late.lightingIndex = lateIndex;
-          late.light = coin_wgpu_pack_light(pass.resolvedLightByState[stateSlot]);
-          candidate.lateLights.push_back(late);
-          receiver.lighting_index = static_cast<int32_t>(lateIndex);
-        }
         const SbMatrix modelView = passSlot % 4 < 2 ? state.model * pass.view :
           state.view.inverse() * pass.view;
         const SbMatrix mvp = modelView * projectionWgpu;
