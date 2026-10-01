@@ -214,20 +214,25 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   O shader de vértice exclui as quatro luzes de mapa da iluminação base antes
   de o fragmento somar cada contribuição com VSM; a terceira e a quarta
   deixaram de ser contadas duas vezes.
-  A quinta luz foi rejeitada antes da publicação e o quadro de duas luzes
-  recuperado. A qualificação desta célula usa Vulkan/NVIDIA e GL/Mesa.
+  O perfil anterior de até quatro passes permanece qualificado em
+  Vulkan/NVIDIA e GL/Mesa; o lote adicional direcional está descrito abaixo.
 - [x] **wgpu, três/quatro luzes opacas:** a ABI privada 37 carrega até
   quatro passes, o encoder escreve mapas independentes e o shader aplica
   VSM por contribuição da luz resolvida no Core. A fixture submeteu três e
   quatro luzes com readback: deltas máximos 666/723 e 228/228, Coin/GL e
   wgpu. A quinta luz foi rejeitada antes de alterar pixels/serial, seguida
   por recuperação do quadro de duas luzes. Os 17 testes Rust passaram.
-- [ ] **Cinco a oito luzes:** o Core agora produz e valida os planos de
-  cinco e oito passes no mesmo contrato de iluminação capturada. BGFX e wgpu
-  ainda rejeitam explicitamente mais de quatro mapas antes de publicar pixels
-  ou serial; a fixture confirmou plano comum, rejeição e recuperação em ambos.
-  Falta compor as contribuições na GPU em lotes sem exceder as unidades de
-  textura nem repetir semântica Coin no backend.
+- [ ] **Cinco a oito luzes:** o Core produz e valida planos de cinco e
+  oito passes no contrato de iluminação capturada. BGFX compõe os passes
+  cinco a oito em um segundo draw opaco, reutilizando quatro samplers e o
+  depth buffer; o mesmo mecanismo funciona no produtor RTT direto. Com as
+  luzes adicionais direcionais, a fixture comparou os deltas de cinco luzes
+  (291/291) e oito (117/174), Coin/GL/BGFX. O produtor RTT direto com oito
+  luzes marcou 228/369. Uma quinta luz spot revelou divergência VSM: a
+  referência muda 162, mas o BGFX não muda a imagem. O BGFX a rejeita antes
+  da publicação, preservando pixels e serial. wgpu ainda rejeita mais de
+  quatro mapas de modo atômico. Faltam spots tardios, cobertura staged de
+  cinco a oito, composição wgpu e outros perfis de luzes.
 - [ ] **Cenas próprias por luz:** estão qualificados dois recortes de
   `shadowMapScene`: um `SoShape` filho direto do grupo, desenhado uma só vez
   com modelo identidade e estilo caster; e um `SoSeparator` filho direto,

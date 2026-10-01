@@ -107,7 +107,8 @@ private:
   void bindShadowReceiver(const CoinRenderFramePlan & frame,
                           const CoinRenderShadowPlan & shadowPlan,
                           const std::vector<bgfx::FrameBufferHandle> & shadowMaps,
-                          const CoinBgfxDraw & draw, int targetHeight);
+                          const CoinBgfxDraw & draw, int targetHeight,
+                          size_t firstPass = 0, bool additive = false);
   bool onApiThread() const;
   CoinRenderBackendStatus status;
 
