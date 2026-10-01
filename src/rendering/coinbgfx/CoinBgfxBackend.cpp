@@ -1671,6 +1671,12 @@ CoinBgfxBackend::bindShadowReceiver(
       shaded.lightColorIntensity[i][3] = 0.0f;
   float indices[4] = {-1.0f, -1.0f, -1.0f, -1.0f};
   const auto & state = frame.renderStates[original.renderStateSlot];
+  if (state.lightingSlot < frame.lightingStates.size()) {
+    const auto & lights = frame.lightingStates[state.lightingSlot].lights;
+    for (size_t i = 0; i < lights.size() && i < COIN_RENDER_MAX_LIGHTS; ++i)
+      if (coin_render_shadow_suppresses_ordinary_light(frame, state, lights[i]))
+        shaded.lightColorIntensity[i][3] = 0.0f;
+  }
   const SbMatrix clipConversion(
     1.0f, 0.0f, 0.0f, 0.0f,
     0.0f, 1.0f, 0.0f, 0.0f,

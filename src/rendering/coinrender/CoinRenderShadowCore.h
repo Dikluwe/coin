@@ -608,14 +608,6 @@ coin_render_shadow_opaque_profile(
       diagnostic = "Opaque shadow profile exceeds the qualified light combination";
       return false;
     }
-    if (std::any_of(frame.shadowLights.begin(), frame.shadowLights.end(),
-      [&](const CoinRenderShadowLightSnapshot & light) {
-        return light.groupSlot == state.shadowGroupSlot && light.enabled &&
-          !light.shadowEligible;
-      })) {
-      diagnostic = "Ordinary lights inside an active shadow group are not qualified";
-      return false;
-    }
     std::vector<bool> claimed(lights.size(), false);
     for (const auto & pass : shadows.passes) {
       if (pass.groupSlot != state.shadowGroupSlot) continue;
@@ -657,6 +649,7 @@ coin_render_shadow_opaque_profile(
         std::none_of(frame.shadowLights.begin(), frame.shadowLights.end(),
           [&](const CoinRenderShadowLightSnapshot & light) {
             return light.groupSlot == state.shadowGroupSlot &&
+              light.shadowEligible &&
               light.sourceRevision == source.sourceRevision &&
               light.modelViewAtLight == source.sourceModel;
           });
@@ -668,6 +661,23 @@ coin_render_shadow_opaque_profile(
   }
   diagnostic.clear();
   return true;
+}
+
+// Coin's shadow shader is assembled from lights present at group entry.
+// An ordinary light encountered inside that active group is captured by the
+// normal traversal, but cannot contribute to the already assembled shader.
+inline bool
+coin_render_shadow_suppresses_ordinary_light(
+  const CoinRenderFramePlan & frame, const CoinRenderRenderStateSnapshot & state,
+  const CoinRenderLightSourceSnapshot & source)
+{
+  if (state.shadowGroupSlot == 0) return false;
+  return std::any_of(frame.shadowLights.begin(), frame.shadowLights.end(),
+    [&](const CoinRenderShadowLightSnapshot & light) {
+      return light.groupSlot == state.shadowGroupSlot && light.enabled &&
+        !light.shadowEligible && light.sourceRevision == source.sourceRevision &&
+        light.modelViewAtLight == source.sourceModel;
+    });
 }
 
 inline bool

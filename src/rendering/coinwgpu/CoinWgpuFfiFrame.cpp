@@ -301,6 +301,8 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame,
         for (size_t j = 0; j < lighting.lights.size(); ++j) {
           const CoinRenderLightSourceSnapshot & light = lighting.lights[j];
           dst.lights[j] = coin_wgpu_pack_light(light);
+          if (coin_render_shadow_suppresses_ordinary_light(frame, src, light))
+            dst.lights[j].color_intensity[3] = 0.0f;
         }
       }
     }

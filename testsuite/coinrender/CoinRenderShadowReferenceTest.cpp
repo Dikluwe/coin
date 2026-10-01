@@ -1053,14 +1053,49 @@ int main()
   plainDirectional->unref();
   action.apply(ordinaryRoot);
   std::string internalOrdinaryDiagnostic;
-  const bool internalOrdinaryRejected =
+  bool internalOrdinaryQualified =
     action.getPimpl()->lastRejectedShadowFrame.shadowLights.size() == 2 &&
-    !coin_render_shadow_single_spot_opaque_profile(
+    coin_render_shadow_single_spot_opaque_profile(
       action.getPimpl()->lastRejectedShadowFrame,
-      action.getPimpl()->lastRejectedShadowPlan, internalOrdinaryDiagnostic) &&
-    internalOrdinaryDiagnostic.find("inside an active shadow group") !=
-      std::string::npos;
-  ordinaryLightQualified = ordinaryLightQualified && internalOrdinaryRejected;
+      action.getPimpl()->lastRejectedShadowPlan, internalOrdinaryDiagnostic);
+  if (internalOrdinaryQualified &&
+      (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
+       std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))) {
+    CoinRenderTarget * internalTarget = CoinRenderTarget::createOffscreen(
+      SbVec2i32(side, side));
+    CoinRenderAction internalAction(SbViewportRegion(side, side));
+    internalAction.setRenderTarget(internalTarget);
+    plainDirectional->on = FALSE;
+    internalAction.apply(ordinaryRoot);
+    std::vector<unsigned char> gpuOff, gpuOn;
+    const bool offOk = internalAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (offOk) internalTarget->readbackRGBA(gpuOff);
+    plainDirectional->on = TRUE;
+    internalAction.apply(ordinaryRoot);
+    const bool onOk = internalAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (onOk) internalTarget->readbackRGBA(gpuOn);
+    internalOrdinaryQualified = offOk && onOk && gpuOff == gpuOn;
+    if (internalOrdinaryQualified && std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
+      plainDirectional->on = FALSE;
+      auto * glOffRoot = static_cast<SoSeparator *>(ordinaryRoot->copy(TRUE));
+      glOffRoot->ref();
+      plainDirectional->on = TRUE;
+      auto * glOnRoot = static_cast<SoSeparator *>(ordinaryRoot->copy(TRUE));
+      glOnRoot->ref();
+      SoOffscreenRenderer internalGl(SbViewportRegion(side, side));
+      internalGl.setComponents(SoOffscreenRenderer::RGB);
+      std::vector<unsigned char> glOff, glOn;
+      internalOrdinaryQualified = render(internalGl, glOffRoot, glOff) &&
+        render(internalGl, glOnRoot, glOn) && glOff == glOn;
+      glOnRoot->unref();
+      glOffRoot->unref();
+    }
+    std::cout << "ordinary light inside active group GL/GPU unchanged="
+              << internalOrdinaryQualified << '\n';
+    internalAction.setRenderTarget(nullptr);
+    delete internalTarget;
+  }
+  ordinaryLightQualified = ordinaryLightQualified && internalOrdinaryQualified;
   ordinaryRoot->unref();
   auto * pointRoot = static_cast<SoSeparator *>(root->copy(TRUE));
   pointRoot->ref();

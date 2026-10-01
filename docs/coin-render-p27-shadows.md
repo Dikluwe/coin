@@ -314,9 +314,11 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   a identidade da luz sem criar pass de sombra para ela. O recorte exige luz
   presente antes de todos os desenhos, material difuso sem especular e normais
   planas. Ligar essa luz mudou a cena em 152 no Coin/GL, BGFX e wgpu. A luz
-  comum inserida dentro do grupo continua `UNSUPPORTED`: nessa fixture o
-  Coin/GL não alterou pixels, enquanto o caminho de iluminação comum dos
-  executores a somaria. Uma `SoPointLight` herdada com localização (0,2,4)
+  comum inserida dentro do grupo ativo também executa: o shader Coin/GL
+  é montado com as luzes presentes na entrada do grupo e ignora essa luz
+  interna. O Core identifica o índice capturado e ambos os backends zeram
+  somente sua intensidade; ligá-la ou desligá-la preservou pixels idênticos
+  em Coin/GL, BGFX e wgpu. Uma `SoPointLight` herdada com localização (0,2,4)
   também compôs com o mapa spot: ligá-la mudou a cena em 594 no Coin/GL e
   603 em BGFX e wgpu (tolerância 180). Outras atenuações e combinações
   permanecem abertas.
