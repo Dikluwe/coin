@@ -1627,6 +1627,29 @@ int main()
         dualTarget->getLastSubmissionSerial() > priorSerial &&
         currentGpu.size() == afterSixthSpot.size() && gpuDelta > 40 &&
         (!compareGl || (glDelta > 40 && std::abs(glDelta - gpuDelta) <= 130));
+      // Coin/GL on this context has seven shadow samplers; the eighth light
+      // is therefore checked for backend submission and visible contribution.
+      auto * eighthSpot = new SoShadowSpotLight;
+      eighthSpot->location.setValue(1.0f, 4.0f, 3.5f);
+      eighthSpot->direction.setValue(-1.0f, -3.0f, -4.5f);
+      eighthSpot->cutOffAngle = 0.9f;
+      group->insertChild(eighthSpot, 7);
+      const uint64_t seventhSerial = dualTarget->getLastSubmissionSerial();
+      dualAction.apply(root);
+      std::vector<unsigned char> afterEighthSpot;
+      if (dualAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        dualTarget->readbackRGBA(afterEighthSpot);
+      int eighthSpotDelta = 0;
+      if (afterEighthSpot.size() == currentGpu.size())
+        for (int y = 20; y < 105; ++y) for (int x = 20; x < 105; ++x)
+          eighthSpotDelta = std::max(eighthSpotDelta, std::abs(
+            luminanceRgba(afterEighthSpot, x, y) - luminanceRgba(currentGpu, x, y)));
+      std::cout << "eighth spot BGFX delta=" << eighthSpotDelta << '\n';
+      twoLightBgfxSubmitted = twoLightBgfxSubmitted &&
+        dualAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+        dualTarget->getLastSubmissionSerial() > seventhSerial &&
+        afterEighthSpot.size() == currentGpu.size() && eighthSpotDelta > 40;
+      group->removeChild(eighthSpot);
       group->removeChild(seventhSpot);
       group->removeChild(sixthSpot);
       group->removeChild(lateSpot);
@@ -2008,6 +2031,29 @@ int main()
         dualTarget->getLastSubmissionSerial() > priorSerial &&
         currentGpu.size() == afterSixthSpot.size() && gpuDelta > 40 &&
         (!compareGl || (glDelta > 40 && std::abs(glDelta - gpuDelta) <= 130));
+      // Coin/GL on this context has seven shadow samplers; the eighth light
+      // is therefore checked for backend submission and visible contribution.
+      auto * eighthSpot = new SoShadowSpotLight;
+      eighthSpot->location.setValue(1.0f, 4.0f, 3.5f);
+      eighthSpot->direction.setValue(-1.0f, -3.0f, -4.5f);
+      eighthSpot->cutOffAngle = 0.9f;
+      group->insertChild(eighthSpot, 7);
+      const uint64_t seventhSerial = dualTarget->getLastSubmissionSerial();
+      dualAction.apply(root);
+      std::vector<unsigned char> afterEighthSpot;
+      if (dualAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        dualTarget->readbackRGBA(afterEighthSpot);
+      int eighthSpotDelta = 0;
+      if (afterEighthSpot.size() == currentGpu.size())
+        for (int y = 20; y < 105; ++y) for (int x = 20; x < 105; ++x)
+          eighthSpotDelta = std::max(eighthSpotDelta, std::abs(
+            luminanceRgba(afterEighthSpot, x, y) - luminanceRgba(currentGpu, x, y)));
+      std::cout << "eighth spot wgpu delta=" << eighthSpotDelta << '\n';
+      twoLightSubmittedOnGpu = twoLightSubmittedOnGpu &&
+        dualAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+        dualTarget->getLastSubmissionSerial() > seventhSerial &&
+        afterEighthSpot.size() == currentGpu.size() && eighthSpotDelta > 40;
+      group->removeChild(eighthSpot);
       group->removeChild(seventhSpot);
       group->removeChild(sixthSpot);
       group->removeChild(lateSpot);

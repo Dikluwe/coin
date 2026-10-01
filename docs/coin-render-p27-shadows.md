@@ -226,11 +226,21 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   81/79 com a quinta luz. Com oito luzes em RTT, staged e direct marcaram
   228/225. O teste verifica submissão e serial da quinta spot e, no wgpu,
   falha de alocação de oito mapas sem alterar pixels nem serial. Ainda faltam
-  a oitava spot e qualificações de composição mais ampla; por isso a caixa
-  continua aberta. Uma sonda com oitava spot encontrou delta incremental
-  0 no Coin/GL e 117 nos dois backends na região da fixture. É preciso
-  distinguir saturação/limite da referência de erro de composição antes
-  de qualificá-la.
+  a comparação GL da oitava spot em um contexto com capacidade maior e
+  qualificações de composição mais ampla; por isso a caixa continua aberta.
+  A oitava spot submeteu e alterou o readback em 117 nos dois backends, mas
+  seu delta incremental no Coin/GL desta máquina foi zero. Isso decorre do
+  limite de unidades de textura da referência: `updateShadowLights()` usa
+  `max_texture_units - numtexunitsinscene` como número máximo de mapas.
+  Mesa/GLX reportou 8 unidades, das quais 1 é reservada à cena; o grupo
+  portanto criou 7 mapas para 8 caminhos de luz. A oitava spot recebeu o
+  índice GL 7 de 8, e sem sombras acrescentou 129 numa cena de intensidades
+  baixas, mas seu mapa não entrou no shader do grupo. Com as mesmas
+  intensidades, BGFX acrescentou 147 com sombra e GL zero. Forçar
+  `shadeFactor=1` no oitavo ramo do shader GL não mudou a imagem, confirmando
+  que o ramo nem foi gerado. BGFX e wgpu usam passes em dois lotes e
+  conseguem executar o oitavo mapa neste ambiente; a falta de delta GL não
+  evidencia erro nos dois backends.
 
   A divergência inicial da quinta spot veio da normalização VSM: Coin/GL
   usa far de projeção para a câmera e um far distinto para os momentos e
@@ -384,7 +394,8 @@ referência Coin/GL antes de marcar P27.4 concluído.
 
 O preflight retorna `UNSUPPORTED` antes de submeter o quadro para grupos
 ativos fora dos perfis opacos qualificados. O perfil atual aceita até oito
-passes spot/direcionais, com a quinta, sexta e sétima spots e o lote direcional
-exercitados;
-combinações restantes de spots e perfis de transparência continuam na matriz
+passes spot/direcionais. A quinta, sexta e sétima spots têm comparação
+Coin/GL; a oitava tem readback e publicação verificados nos dois backends,
+mas ainda requer referência GL com oito mapas. Perfis de transparência e
+composição mais ampla continuam na matriz
 P27.4. Nos casos rejeitados, pixels e serial publicados ficam intactos.
