@@ -748,6 +748,95 @@ int main()
     delete siblingTarget;
     siblings->unref();
   }
+  // A regular Coin directional light contributes alongside one shadow-map light.
+  auto * ordinaryRoot = static_cast<SoSeparator *>(root->copy(TRUE));
+  ordinaryRoot->ref();
+  auto * ordinaryGroup = static_cast<SoShadowGroup *>(ordinaryRoot->getChild(1));
+  ordinaryGroup->quality = 1.0f;
+  auto * plainDirectional = new SoDirectionalLight;
+  plainDirectional->direction.setValue(-0.4f, -0.3f, -1.0f);
+  plainDirectional->color.setValue(0.1f, 0.8f, 0.2f);
+  plainDirectional->intensity = 0.6f;
+  ordinaryRoot->insertChild(plainDirectional, 1); // Inherited at group entry.
+  action.apply(ordinaryRoot);
+  const CoinRenderFramePlan ordinaryFrame = action.getPimpl()->lastRejectedShadowFrame;
+  const CoinRenderShadowPlan ordinaryPlan = action.getPimpl()->lastRejectedShadowPlan;
+  std::string ordinaryDiagnostic;
+  bool ordinaryLightQualified =
+    action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+    ordinaryFrame.shadowLights.size() == 1 &&
+    coin_render_shadow_single_spot_opaque_profile(
+      ordinaryFrame, ordinaryPlan, ordinaryDiagnostic);
+  if (ordinaryLightQualified &&
+      (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
+       std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))) {
+    CoinRenderTarget * ordinaryTarget = CoinRenderTarget::createOffscreen(
+      SbVec2i32(side, side));
+    CoinRenderAction ordinaryAction(SbViewportRegion(side, side));
+    ordinaryAction.setRenderTarget(ordinaryTarget);
+    plainDirectional->on = FALSE;
+    ordinaryAction.apply(ordinaryRoot);
+    std::vector<unsigned char> gpuOff, gpuOn;
+    const bool offOk = ordinaryAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (offOk) ordinaryTarget->readbackRGBA(gpuOff);
+    plainDirectional->on = TRUE;
+    ordinaryAction.apply(ordinaryRoot);
+    const bool onOk = ordinaryAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (onOk) ordinaryTarget->readbackRGBA(gpuOn);
+    int gpuDelta = 0, glDelta = 0;
+    ordinaryLightQualified = offOk && onOk && gpuOff.size() == gpuOn.size();
+    if (ordinaryLightQualified)
+      for (int y = 20; y < 105; ++y)
+        for (int x = 20; x < 105; ++x)
+          gpuDelta = std::max(gpuDelta, std::abs(
+            luminanceRgba(gpuOff, x, y) - luminanceRgba(gpuOn, x, y)));
+    if (ordinaryLightQualified && std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
+      plainDirectional->on = FALSE;
+      auto * glOffRoot = static_cast<SoSeparator *>(ordinaryRoot->copy(TRUE));
+      glOffRoot->ref();
+      plainDirectional->on = TRUE;
+      auto * glOnRoot = static_cast<SoSeparator *>(ordinaryRoot->copy(TRUE));
+      glOnRoot->ref();
+      SoOffscreenRenderer ordinaryGl(SbViewportRegion(side, side));
+      ordinaryGl.setComponents(SoOffscreenRenderer::RGB);
+      std::vector<unsigned char> glOff, glOn;
+      ordinaryLightQualified = render(ordinaryGl, glOffRoot, glOff) &&
+        render(ordinaryGl, glOnRoot, glOn);
+      if (ordinaryLightQualified)
+        for (int y = 20; y < 105; ++y)
+          for (int x = 20; x < 105; ++x)
+            glDelta = std::max(glDelta, std::abs(
+              luminance(glOff, x, y) - luminance(glOn, x, y)));
+      glOnRoot->unref();
+      glOffRoot->unref();
+    }
+    std::cout << "inherited directional with shadow group Coin/GL/GPU delta="
+              << glDelta << '/' << gpuDelta << '\n';
+    ordinaryLightQualified = ordinaryLightQualified && gpuDelta > 20 &&
+      (!std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") ||
+       (glDelta > 20 && std::abs(glDelta - gpuDelta) <= 180));
+    if (!ordinaryLightQualified)
+      std::cerr << "inherited directional with shadow group: "
+                << ordinaryAction.getLastError().getString() << " profile="
+                << ordinaryDiagnostic << '\n';
+    ordinaryAction.setRenderTarget(nullptr);
+    delete ordinaryTarget;
+  }
+  plainDirectional->ref();
+  ordinaryRoot->removeChild(plainDirectional);
+  ordinaryGroup->insertChild(plainDirectional, 1);
+  plainDirectional->unref();
+  action.apply(ordinaryRoot);
+  std::string internalOrdinaryDiagnostic;
+  const bool internalOrdinaryRejected =
+    action.getPimpl()->lastRejectedShadowFrame.shadowLights.size() == 2 &&
+    !coin_render_shadow_single_spot_opaque_profile(
+      action.getPimpl()->lastRejectedShadowFrame,
+      action.getPimpl()->lastRejectedShadowPlan, internalOrdinaryDiagnostic) &&
+    internalOrdinaryDiagnostic.find("inside an active shadow group") !=
+      std::string::npos;
+  ordinaryLightQualified = ordinaryLightQualified && internalOrdinaryRejected;
+  ordinaryRoot->unref();
   // Qualify the common two-pass Coin contract and execute both maps on wgpu.
   auto * secondShadowLight = new SoShadowDirectionalLight;
   secondShadowLight->direction.setValue(-0.4f, -0.4f, -1.0f);
@@ -2570,7 +2659,7 @@ int main()
   action.setRenderTarget(nullptr);
   delete target;
   if (!publishedOk || !rejected || !preserved || !recovered || !captureOk ||
-      !spotProfile || !transparentExcludedFromFirstProfile || !clippedShadowQualified || !shadowTargetsIndependent || !siblingShadowGroupsQualified || !twoLightCaptured ||
+      !spotProfile || !transparentExcludedFromFirstProfile || !clippedShadowQualified || !shadowTargetsIndependent || !siblingShadowGroupsQualified || !ordinaryLightQualified || !twoLightCaptured ||
       !orderedTwoLight || !twoSpotsOk || !twoDirectionalsOk ||
       !lateLightResolved || !lateSpotProfile || !mixedOrderResolved ||
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||

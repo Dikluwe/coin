@@ -514,15 +514,28 @@ coin_render_shadow_opaque_profile(
       [&](const CoinRenderShadowPass & pass) {
         return pass.groupSlot == state.shadowGroupSlot && !pass.perFragmentLighting;
       });
-    if (lowQuality) {
+    const auto & lights = frame.lightingStates[state.lightingSlot].lights;
+    const bool externalOrdinary = state.shadowGroupSlot != 0 &&
+      std::any_of(lights.begin(), lights.end(),
+      [&](const CoinRenderLightSourceSnapshot & source) {
+        if (source.type != CoinRenderLightType::DIRECTIONAL &&
+            source.type != CoinRenderLightType::POINT) return false;
+        return std::none_of(frame.shadowLights.begin(), frame.shadowLights.end(),
+          [&](const CoinRenderShadowLightSnapshot & light) {
+            return light.groupSlot == state.shadowGroupSlot &&
+              light.sourceRevision == source.sourceRevision &&
+              light.modelViewAtLight == source.sourceModel;
+          });
+      });
+    if (lowQuality || externalOrdinary) {
       if (material.specular[0] != 0.0f || material.specular[1] != 0.0f ||
           material.specular[2] != 0.0f || draw.geometry.indexCount % 3 != 0) {
-        diagnostic = "Low-quality directional shadows require flat diffuse triangles";
+        diagnostic = "Vertex-lit shadow profile requires flat diffuse triangles";
         return false;
       }
       const uint64_t end = uint64_t(draw.geometry.firstIndex) + draw.geometry.indexCount;
       if (end > frame.indices.size()) {
-        diagnostic = "Low-quality shadow draw has an invalid index range";
+        diagnostic = "Vertex-lit shadow draw has an invalid index range";
         return false;
       }
       for (uint64_t i = draw.geometry.firstIndex; i < end; i += 3) {
@@ -531,18 +544,17 @@ coin_render_shadow_opaque_profile(
         const uint32_t c = frame.indices[static_cast<size_t>(i + 2)];
         if (a >= frame.vertices.size() || b >= frame.vertices.size() ||
             c >= frame.vertices.size()) {
-          diagnostic = "Low-quality shadow draw has an invalid vertex index";
+          diagnostic = "Vertex-lit shadow draw has an invalid vertex index";
           return false;
         }
         for (int axis = 0; axis < 3; ++axis)
           if (std::abs(frame.vertices[a].normal[axis] - frame.vertices[b].normal[axis]) > 1e-5f ||
               std::abs(frame.vertices[a].normal[axis] - frame.vertices[c].normal[axis]) > 1e-5f) {
-            diagnostic = "Low-quality directional shadows require flat normals";
+            diagnostic = "Vertex-lit shadow profile requires flat normals";
             return false;
           }
       }
     }
-    const auto & lights = frame.lightingStates[state.lightingSlot].lights;
     // An inactive sibling is ordinary Coin geometry: it receives no shadow
     // pass, while its captured lights remain in the regular lighting state.
     if (state.shadowGroupSlot == 0) {
@@ -552,13 +564,17 @@ coin_render_shadow_opaque_profile(
       }
       continue;
     }
-    const size_t groupLightCount = static_cast<size_t>(std::count_if(
-      shadows.passes.begin(), shadows.passes.end(),
-      [&](const CoinRenderShadowPass & pass) {
-        return pass.groupSlot == state.shadowGroupSlot;
-      }));
-    if (lights.size() > groupLightCount || lights.size() > COIN_RENDER_MAX_LIGHTS) {
-      diagnostic = "Opaque shadow profile has more ordinary lights than shadow passes";
+    if (lights.size() > COIN_RENDER_MAX_LIGHTS ||
+        (externalOrdinary && shadows.passes.size() > 2)) {
+      diagnostic = "Opaque shadow profile exceeds the qualified light combination";
+      return false;
+    }
+    if (std::any_of(frame.shadowLights.begin(), frame.shadowLights.end(),
+      [&](const CoinRenderShadowLightSnapshot & light) {
+        return light.groupSlot == state.shadowGroupSlot && light.enabled &&
+          !light.shadowEligible;
+      })) {
+      diagnostic = "Ordinary lights inside an active shadow group are not qualified";
       return false;
     }
     std::vector<bool> claimed(lights.size(), false);
@@ -598,9 +614,22 @@ coin_render_shadow_opaque_profile(
       }
       claimed[static_cast<size_t>(index)] = true;
     }
-    if (std::any_of(claimed.begin(), claimed.end(), [](bool value) { return !value; })) {
-      diagnostic = "Opaque shadow profile has an ordinary light without a shadow pass";
-      return false;
+    for (size_t i = 0; i < claimed.size(); ++i) {
+      if (claimed[i]) continue;
+      const auto & source = lights[i];
+      const bool ordinary =
+        (source.type == CoinRenderLightType::DIRECTIONAL ||
+         source.type == CoinRenderLightType::POINT) &&
+        std::none_of(frame.shadowLights.begin(), frame.shadowLights.end(),
+          [&](const CoinRenderShadowLightSnapshot & light) {
+            return light.groupSlot == state.shadowGroupSlot &&
+              light.sourceRevision == source.sourceRevision &&
+              light.modelViewAtLight == source.sourceModel;
+          });
+      if (!ordinary) {
+        diagnostic = "Opaque shadow profile has an unmatched Coin light";
+        return false;
+      }
     }
   }
   diagnostic.clear();

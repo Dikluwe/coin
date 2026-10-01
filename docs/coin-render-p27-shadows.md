@@ -250,6 +250,14 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   `DirectionalLight` não era registrada no fragmento para `quality=0,5`.
   A fixture de qualidade baixa mediu delta máximo de recepção 735 no GL e
   666 em BGFX e wgpu, com tolerância 120.
+- [x] **Luz direcional comum herdada:** uma `SoDirectionalLight` anterior ao
+  `SoShadowGroup` compõe sua contribuição opaca com um mapa spot; Core mantém
+  a identidade da luz sem criar pass de sombra para ela. O recorte exige luz
+  presente antes de todos os desenhos, material difuso sem especular e normais
+  planas. Ligar essa luz mudou a cena em 152 no Coin/GL, BGFX e wgpu. A luz
+  comum inserida dentro do grupo continua `UNSUPPORTED`: nessa fixture o
+  Coin/GL não alterou pixels, enquanto o caminho de iluminação comum dos
+  executores a somaria. Outras luzes herdadas e combinações permanecem abertas.
 - [x] **Múltiplos alvos offscreen:** dois alvos simultâneos de 128×128 e
   160×160 executam sombra ativa em BGFX e wgpu; intercalar submissões não
   altera os pixels do primeiro alvo e cada serial avança independentemente.
@@ -279,7 +287,7 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   produtor preservou pixels e serial do consumidor; a recuperação reproduziu
   o quadro, e o resize do consumidor para 160×160 manteve a diferença de
   sombra. O modo direct, sombras no consumidor, camadas, grupos aninhados
-  e parâmetros VSM diferentes ainda não estão qualificados.
+  e parâmetros VSM diferentes dentro de RTT ainda não estão qualificados.
 
 Cada caixa acima requer uma fixture renderizada nos dois executores e sua
 referência Coin/GL antes de marcar P27.4 concluído.
