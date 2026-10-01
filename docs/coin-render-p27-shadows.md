@@ -245,8 +245,18 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   os casters do mapa mudou a imagem em 369. Sem sombra, as quatro luzes
   anteriores saturavam os pixels (765/765), explicando o delta zero da
   quinta; ao baixar suas intensidades, a spot mudou a imagem em 471. Isso
-  afasta um falso positivo simples da referência, mas ainda não distingue
-  falha do plano CoinRender de falha do lookup VSM nos dois executores. O Coin/GL
+  afasta um falso positivo simples da referência.
+  Uma sonda temporária liberou a quinta spot apenas para diagnóstico:
+  BGFX e wgpu mediram delta 0 como quinta luz e 99 quando a mesma spot
+  ocupou o quarto passe. O Core manteve câmera, projeção, near/far
+  (3,34088/8,34746), mapa 1024² e o mesmo caster selecionado nas duas
+  posições. Em wgpu, forçar visibilidade 1 no lookup do lote adicional
+  produziu delta 579; usar o primeiro momento do mapa produziu 198,
+  usar `1 - distância normalizada` produziu 129, e a probabilidade VSM
+  antes do limiar ainda produziu delta zero. Isso localiza a perda na
+  avaliação de visibilidade do segundo lote ou nos dados que chegam a ela,
+  sem demonstrar ainda qual coordenada/momento diverge. As sondas foram
+  retiradas; a rejeição atômica da spot tardia permanece ativa. O Coin/GL
   seleciona a quantidade de mapas pelas unidades de textura disponíveis
   menos as usadas pela cena (`SoShadowGroupP::updateShadowLights`); seu
   limite não é fixo em quatro. Uma falha de alocação de oito mapas no wgpu
