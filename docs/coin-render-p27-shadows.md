@@ -239,7 +239,14 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   fora do segundo lote; o Core os rejeita antes da submissão, preservando
   pixels e serial. A quinta luz spot divergiu também
   no wgpu (162/0 após corrigir a matriz de recepção do lote) e ambos os
-  executores a rejeitam antes de publicar pixels ou serial. O Coin/GL
+  executores a rejeitam antes de publicar pixels ou serial. A referência
+  Coin/GL foi reavaliada em cópias novas da cena: a quinta spot mudou 162
+  com sombra ativa; fixar sua intensidade em zero anulou esse delta; retirar
+  os casters do mapa mudou a imagem em 369. Sem sombra, as quatro luzes
+  anteriores saturavam os pixels (765/765), explicando o delta zero da
+  quinta; ao baixar suas intensidades, a spot mudou a imagem em 471. Isso
+  afasta um falso positivo simples da referência, mas ainda não distingue
+  falha do plano CoinRender de falha do lookup VSM nos dois executores. O Coin/GL
   seleciona a quantidade de mapas pelas unidades de textura disponíveis
   menos as usadas pela cena (`SoShadowGroupP::updateShadowLights`); seu
   limite não é fixo em quatro. Uma falha de alocação de oito mapas no wgpu
