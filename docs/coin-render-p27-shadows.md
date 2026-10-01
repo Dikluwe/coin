@@ -210,7 +210,10 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   para quatro mapas; a variante anterior continua disponível para uma/duas
   luzes e dispositivos com doze unidades de textura. A fixture submeteu três
   e quatro luzes com readback e comparou a contribuição incremental com
-  Coin/GL: deltas máximos 666/735 (terceira) e 228/195 (quarta), GL/BGFX.
+  Coin/GL: deltas máximos 666/723 (terceira) e 228/228 (quarta), GL/BGFX.
+  O shader de vértice exclui as quatro luzes de mapa da iluminação base antes
+  de o fragmento somar cada contribuição com VSM; a terceira e a quarta
+  deixaram de ser contadas duas vezes.
   A quinta luz foi rejeitada antes da publicação e o quadro de duas luzes
   recuperado. A qualificação desta célula usa Vulkan/NVIDIA e GL/Mesa.
 - [x] **wgpu, três/quatro luzes opacas:** a ABI privada 37 carrega até

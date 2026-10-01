@@ -11,7 +11,9 @@ void main()
   else for (int i = 0; i < 8; ++i) {
     if (float(i) >= u_lightCount.x) break;
     if (abs(float(i) - u_shadowLightIndices.x) < 0.5 ||
-        abs(float(i) - u_shadowLightIndices.y) < 0.5) continue;
+        abs(float(i) - u_shadowLightIndices.y) < 0.5 ||
+        abs(float(i) - u_shadowLightIndices.z) < 0.5 ||
+        abs(float(i) - u_shadowLightIndices.w) < 0.5) continue;
     color += coinLightContribution(i, a_color0, a_color2, a_texcoord1,
                                    a_texcoord2, a_texcoord3.x);
   }
