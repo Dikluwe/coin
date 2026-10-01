@@ -1719,6 +1719,10 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
         !coin_render_shadow_opaque_profile(frame, shadowPlan,
           shadowPlan.passes.size(), this->lastError))
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
+    if (shadowPlan.passes.size() > 4) {
+      this->lastError = "BGFX shadow receiver currently supports at most four maps";
+      return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
+    }
     const bgfx::Caps * caps = bgfx::getCaps();
     if (caps->limits.maxTextureSamplers < (shadowPlan.passes.size() > 2 ? 14 : 12)) {
       this->lastError = "BGFX shadow receiver needs one texture stage per shadow pass";
@@ -2552,6 +2556,10 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
         !coin_render_shadow_opaque_profile(frame, shadowPlan,
           shadowPlan.passes.size(), this->lastError))
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
+    if (shadowPlan.passes.size() > 4) {
+      this->lastError = "BGFX shadow receiver currently supports at most four maps";
+      return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
+    }
     const bgfx::Caps * caps = bgfx::getCaps();
     if (caps->limits.maxTextureSamplers < (shadowPlan.passes.size() > 2 ? 14 : 12))
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED,
@@ -2952,6 +2960,9 @@ CoinRenderSubmitResult CoinBgfxBackend::preflightRtt(const CoinRenderRttPlan& gr
           !coin_render_shadow_opaque_profile(producer.plan, shadowPlan,
             shadowPlan.passes.size(), diagnostic))
         return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};
+      if (shadowPlan.passes.size() > 4)
+        return {CoinRenderBackendStatus::UNSUPPORTED,
+                "BGFX shadow receiver currently supports at most four maps"};
       const bgfx::Caps * caps = bgfx::getCaps();
       if (caps->limits.maxTextureSamplers < (shadowPlan.passes.size() > 2 ? 14 : 12))
         return {CoinRenderBackendStatus::UNSUPPORTED,

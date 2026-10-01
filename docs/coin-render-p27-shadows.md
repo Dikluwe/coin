@@ -222,8 +222,12 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   quatro luzes com readback: deltas máximos 666/723 e 228/228, Coin/GL e
   wgpu. A quinta luz foi rejeitada antes de alterar pixels/serial, seguida
   por recuperação do quadro de duas luzes. Os 17 testes Rust passaram.
-- [ ] **Cinco a oito luzes:** compor contribuições em mais de um passo sem
-  exceder as unidades de textura nem repetir semântica Coin no backend.
+- [ ] **Cinco a oito luzes:** o Core agora produz e valida os planos de
+  cinco e oito passes no mesmo contrato de iluminação capturada. BGFX e wgpu
+  ainda rejeitam explicitamente mais de quatro mapas antes de publicar pixels
+  ou serial; a fixture confirmou plano comum, rejeição e recuperação em ambos.
+  Falta compor as contribuições na GPU em lotes sem exceder as unidades de
+  textura nem repetir semântica Coin no backend.
 - [ ] **Cenas próprias por luz:** estão qualificados dois recortes de
   `shadowMapScene`: um `SoShape` filho direto do grupo, desenhado uma só vez
   com modelo identidade e estilo caster; e um `SoSeparator` filho direto,

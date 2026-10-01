@@ -448,8 +448,8 @@ coin_render_shadow_opaque_profile(
   size_t lightCount, std::string & diagnostic)
 {
   if (frame.shadowGroups.empty() || shadows.passes.size() != lightCount ||
-      (lightCount < 1 || lightCount > 4)) {
-    diagnostic = "Opaque shadow profile requires groups with one to four passes";
+      (lightCount < 1 || lightCount > 8)) {
+    diagnostic = "Opaque shadow profile requires groups with one to eight passes";
     return false;
   }
   for (const auto & group : frame.shadowGroups)

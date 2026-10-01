@@ -69,6 +69,10 @@ struct CoinWgpuShadowFrame : CoinWgpuShadowPass {
     if (!coin_render_plan_shadows(frame, plan, diagnostic)) return false;
     if (!coin_render_shadow_opaque_profile(
           frame, plan, plan.passes.size(), diagnostic)) return false;
+    if (plan.passes.size() > 4) {
+      diagnostic = "wgpu shadow encoder currently supports at most four maps";
+      return false;
+    }
     candidate.hasSecond = plan.passes.size() > 1;
     candidate.hasThird = plan.passes.size() > 2;
     candidate.hasFourth = plan.passes.size() > 3;

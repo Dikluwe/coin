@@ -1256,13 +1256,41 @@ int main()
       fifth->direction.setValue(0.0f, -3.0f, -5.0f);
       fifth->cutOffAngle = 0.9f;
       group->insertChild(fifth, 4);
+      CoinRenderAction fiveCapture(SbViewportRegion(side, side));
+      fiveCapture.apply(root);
+      std::string fiveDiagnostic;
+      const bool fiveCoreQualified =
+        fiveCapture.getPimpl()->lastRejectedShadowPlan.passes.size() == 5 &&
+        coin_render_shadow_opaque_profile(
+          fiveCapture.getPimpl()->lastRejectedShadowFrame,
+          fiveCapture.getPimpl()->lastRejectedShadowPlan, 5, fiveDiagnostic);
       const uint64_t fourSerial = dualTarget->getLastSubmissionSerial();
       dualAction.apply(root);
       std::vector<unsigned char> afterFive;
       dualTarget->readbackRGBA(afterFive);
-      twoLightBgfxSubmitted = twoLightBgfxSubmitted &&
+      twoLightBgfxSubmitted = twoLightBgfxSubmitted && fiveCoreQualified &&
         dualAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
         dualTarget->getLastSubmissionSerial() == fourSerial && afterFive == afterFour;
+      std::vector<SoShadowSpotLight *> extraLights;
+      for (int i = 0; i < 3; ++i) {
+        auto * extra = new SoShadowSpotLight;
+        extra->location.setValue(float(i - 1), 4.0f, 4.0f);
+        extra->direction.setValue(float(1 - i), -3.0f, -5.0f);
+        extra->cutOffAngle = 0.9f;
+        group->insertChild(extra, 5 + i);
+        extraLights.push_back(extra);
+      }
+      CoinRenderAction eightCapture(SbViewportRegion(side, side));
+      eightCapture.apply(root);
+      std::string eightDiagnostic;
+      const bool eightCoreQualified =
+        eightCapture.getPimpl()->lastRejectedShadowPlan.passes.size() == 8 &&
+        coin_render_shadow_opaque_profile(
+          eightCapture.getPimpl()->lastRejectedShadowFrame,
+          eightCapture.getPimpl()->lastRejectedShadowPlan, 8, eightDiagnostic);
+      twoLightBgfxSubmitted = twoLightBgfxSubmitted && eightCoreQualified;
+      for (auto it = extraLights.rbegin(); it != extraLights.rend(); ++it)
+        group->removeChild(*it);
       group->removeChild(fifth);
       group->removeChild(fourth);
       group->removeChild(third);
@@ -1421,14 +1449,42 @@ int main()
       fifthShadowLight->direction.setValue(0.0f, -3.0f, -5.0f);
       fifthShadowLight->cutOffAngle = 0.9f;
       group->insertChild(fifthShadowLight, 4);
+      CoinRenderAction fiveCapture(SbViewportRegion(side, side));
+      fiveCapture.apply(root);
+      std::string fiveDiagnostic;
+      const bool fiveCoreQualified =
+        fiveCapture.getPimpl()->lastRejectedShadowPlan.passes.size() == 5 &&
+        coin_render_shadow_opaque_profile(
+          fiveCapture.getPimpl()->lastRejectedShadowFrame,
+          fiveCapture.getPimpl()->lastRejectedShadowPlan, 5, fiveDiagnostic);
       const uint64_t fourSerial = dualTarget->getLastSubmissionSerial();
       dualAction.apply(root);
       std::vector<unsigned char> afterFiveLights;
       dualTarget->readbackRGBA(afterFiveLights);
-      twoLightSubmittedOnGpu = twoLightSubmittedOnGpu &&
+      twoLightSubmittedOnGpu = twoLightSubmittedOnGpu && fiveCoreQualified &&
         dualAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
         dualTarget->getLastSubmissionSerial() == fourSerial &&
         afterFiveLights == afterFourLights;
+      std::vector<SoShadowSpotLight *> extraLights;
+      for (int i = 0; i < 3; ++i) {
+        auto * extra = new SoShadowSpotLight;
+        extra->location.setValue(float(i - 1), 4.0f, 4.0f);
+        extra->direction.setValue(float(1 - i), -3.0f, -5.0f);
+        extra->cutOffAngle = 0.9f;
+        group->insertChild(extra, 5 + i);
+        extraLights.push_back(extra);
+      }
+      CoinRenderAction eightCapture(SbViewportRegion(side, side));
+      eightCapture.apply(root);
+      std::string eightDiagnostic;
+      const bool eightCoreQualified =
+        eightCapture.getPimpl()->lastRejectedShadowPlan.passes.size() == 8 &&
+        coin_render_shadow_opaque_profile(
+          eightCapture.getPimpl()->lastRejectedShadowFrame,
+          eightCapture.getPimpl()->lastRejectedShadowPlan, 8, eightDiagnostic);
+      twoLightSubmittedOnGpu = twoLightSubmittedOnGpu && eightCoreQualified;
+      for (auto it = extraLights.rbegin(); it != extraLights.rend(); ++it)
+        group->removeChild(*it);
       group->removeChild(fifthShadowLight);
       group->removeChild(fourthShadowLight);
       group->removeChild(thirdShadowLight);
