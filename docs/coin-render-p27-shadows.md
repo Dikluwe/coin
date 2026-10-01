@@ -3,7 +3,7 @@
 P27 exige executar `SoShadowGroup` ativo com a semântica Coin em BGFX e wgpu.
 A referência GL e a captura comum estão verificadas. BGFX e wgpu executam
 perfis opacos de até oito luzes spot/direcionais em offscreen síncrono, com
-fixtures para os pares, o lote direcional e a quinta e sexta spots. O perfil de duas
+fixtures para os pares, o lote direcional e a quinta, sexta e sétima spots. O perfil de duas
 luzes cobre ordem de travessia anterior, mista e posterior;
 o Core usa a câmera na entrada do grupo para os mapas direcionais. Os
 perfis ampliados e a matriz final de plataformas permanecem abertos em
@@ -222,12 +222,15 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   exercitados. As fixtures mediram, em Coin/GL e nos dois backends, deltas
   máximos de 291/291 para a quinta luz direcional, 117/174 para a oitava e
   162/159 para a quinta spot e 177/177 (wgpu), 177/174 (BGFX) para a
-  sexta spot. Um receiver com textura MODULATE opaca marcou
+  sexta spot e 138/138 para a sétima em ambos os backends. Um receiver com textura MODULATE opaca marcou
   81/79 com a quinta luz. Com oito luzes em RTT, staged e direct marcaram
   228/225. O teste verifica submissão e serial da quinta spot e, no wgpu,
   falha de alocação de oito mapas sem alterar pixels nem serial. Ainda faltam
-  spots nos passes sete e oito e qualificações de composição mais ampla;
-  por isso a caixa continua aberta.
+  a oitava spot e qualificações de composição mais ampla; por isso a caixa
+  continua aberta. Uma sonda com oitava spot encontrou delta incremental
+  0 no Coin/GL e 117 nos dois backends na região da fixture. É preciso
+  distinguir saturação/limite da referência de erro de composição antes
+  de qualificá-la.
 
   A divergência inicial da quinta spot veio da normalização VSM: Coin/GL
   usa far de projeção para a câmera e um far distinto para os momentos e
@@ -381,7 +384,7 @@ referência Coin/GL antes de marcar P27.4 concluído.
 
 O preflight retorna `UNSUPPORTED` antes de submeter o quadro para grupos
 ativos fora dos perfis opacos qualificados. O perfil atual aceita até oito
-passes spot/direcionais, com a quinta e sexta spots e o lote direcional
+passes spot/direcionais, com a quinta, sexta e sétima spots e o lote direcional
 exercitados;
 combinações restantes de spots e perfis de transparência continuam na matriz
 P27.4. Nos casos rejeitados, pixels e serial publicados ficam intactos.

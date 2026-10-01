@@ -1574,10 +1574,10 @@ int main()
           sixthSpotDelta = std::max(sixthSpotDelta, std::abs(
             luminanceRgba(afterSixthSpot, x, y) - luminanceRgba(afterSpot, x, y)));
       int sixthSpotGlDelta = 0;
+      std::vector<unsigned char> glSixthSpot;
       if (compareGl) {
         auto * copy = static_cast<SoSeparator *>(root->copy(TRUE));
         copy->ref();
-        std::vector<unsigned char> glSixthSpot;
         twoLightBgfxSubmitted = render(multiGl, copy, glSixthSpot);
         copy->unref();
         if (glSixthSpot.size() == glSpot.size())
@@ -1593,6 +1593,41 @@ int main()
         afterSixthSpot.size() == afterSpot.size() && sixthSpotDelta > 40 &&
         (!compareGl || (sixthSpotGlDelta > 40 &&
           std::abs(sixthSpotGlDelta - sixthSpotDelta) <= 130));
+      auto * seventhSpot = new SoShadowSpotLight;
+      seventhSpot->location.setValue(0.5f, 4.0f, 3.5f);
+      seventhSpot->direction.setValue(-0.5f, -3.0f, -4.5f);
+      seventhSpot->cutOffAngle = 0.9f;
+      group->insertChild(seventhSpot, 6);
+      const uint64_t priorSerial = dualTarget->getLastSubmissionSerial();
+      dualAction.apply(root);
+      std::vector<unsigned char> currentGpu;
+      if (dualAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        dualTarget->readbackRGBA(currentGpu);
+      int gpuDelta = 0;
+      if (currentGpu.size() == afterSixthSpot.size())
+        for (int y = 20; y < 105; ++y) for (int x = 20; x < 105; ++x)
+          gpuDelta = std::max(gpuDelta, std::abs(
+            luminanceRgba(currentGpu, x, y) - luminanceRgba(afterSixthSpot, x, y)));
+      int glDelta = 0;
+      std::vector<unsigned char> currentGl;
+      if (compareGl) {
+        auto * copy = static_cast<SoSeparator *>(root->copy(TRUE));
+        copy->ref();
+        twoLightBgfxSubmitted = render(multiGl, copy, currentGl);
+        copy->unref();
+        if (currentGl.size() == glSixthSpot.size())
+          for (int y = 20; y < 105; ++y) for (int x = 20; x < 105; ++x)
+            glDelta = std::max(glDelta, std::abs(
+              luminance(currentGl, x, y) - luminance(glSixthSpot, x, y)));
+      }
+      std::cout << "seventh spot Coin/GL/BGFX delta=" << glDelta
+                << '/' << gpuDelta << '\n';
+      twoLightBgfxSubmitted = twoLightBgfxSubmitted &&
+        dualAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+        dualTarget->getLastSubmissionSerial() > priorSerial &&
+        currentGpu.size() == afterSixthSpot.size() && gpuDelta > 40 &&
+        (!compareGl || (glDelta > 40 && std::abs(glDelta - gpuDelta) <= 130));
+      group->removeChild(seventhSpot);
       group->removeChild(sixthSpot);
       group->removeChild(lateSpot);
       group->removeChild(fourth);
@@ -1920,10 +1955,10 @@ int main()
           sixthSpotDelta = std::max(sixthSpotDelta, std::abs(
             luminanceRgba(afterSixthSpot, x, y) - luminanceRgba(afterSpot, x, y)));
       int sixthSpotGlDelta = 0;
+      std::vector<unsigned char> glSixthSpot;
       if (compareGl) {
         auto * copy = static_cast<SoSeparator *>(root->copy(TRUE));
         copy->ref();
-        std::vector<unsigned char> glSixthSpot;
         twoLightSubmittedOnGpu = render(multiGl, copy, glSixthSpot);
         copy->unref();
         if (glSixthSpot.size() == glSpot.size())
@@ -1939,6 +1974,41 @@ int main()
         afterSixthSpot.size() == afterSpot.size() && sixthSpotDelta > 40 &&
         (!compareGl || (sixthSpotGlDelta > 40 &&
           std::abs(sixthSpotGlDelta - sixthSpotDelta) <= 130));
+      auto * seventhSpot = new SoShadowSpotLight;
+      seventhSpot->location.setValue(0.5f, 4.0f, 3.5f);
+      seventhSpot->direction.setValue(-0.5f, -3.0f, -4.5f);
+      seventhSpot->cutOffAngle = 0.9f;
+      group->insertChild(seventhSpot, 6);
+      const uint64_t priorSerial = dualTarget->getLastSubmissionSerial();
+      dualAction.apply(root);
+      std::vector<unsigned char> currentGpu;
+      if (dualAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        dualTarget->readbackRGBA(currentGpu);
+      int gpuDelta = 0;
+      if (currentGpu.size() == afterSixthSpot.size())
+        for (int y = 20; y < 105; ++y) for (int x = 20; x < 105; ++x)
+          gpuDelta = std::max(gpuDelta, std::abs(
+            luminanceRgba(currentGpu, x, y) - luminanceRgba(afterSixthSpot, x, y)));
+      int glDelta = 0;
+      std::vector<unsigned char> currentGl;
+      if (compareGl) {
+        auto * copy = static_cast<SoSeparator *>(root->copy(TRUE));
+        copy->ref();
+        twoLightSubmittedOnGpu = render(multiGl, copy, currentGl);
+        copy->unref();
+        if (currentGl.size() == glSixthSpot.size())
+          for (int y = 20; y < 105; ++y) for (int x = 20; x < 105; ++x)
+            glDelta = std::max(glDelta, std::abs(
+              luminance(currentGl, x, y) - luminance(glSixthSpot, x, y)));
+      }
+      std::cout << "seventh spot Coin/GL/wgpu delta=" << glDelta
+                << '/' << gpuDelta << '\n';
+      twoLightSubmittedOnGpu = twoLightSubmittedOnGpu &&
+        dualAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+        dualTarget->getLastSubmissionSerial() > priorSerial &&
+        currentGpu.size() == afterSixthSpot.size() && gpuDelta > 40 &&
+        (!compareGl || (glDelta > 40 && std::abs(glDelta - gpuDelta) <= 130));
+      group->removeChild(seventhSpot);
       group->removeChild(sixthSpot);
       group->removeChild(lateSpot);
       group->removeChild(fourthShadowLight);
