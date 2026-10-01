@@ -69,7 +69,8 @@ bool render(SoOffscreenRenderer & gl, SoNode * root,
 }
 // Exercise the public path with a fresh Action, so capture references held by
 // the main opaque fixtures cannot be invalidated by these additional scenes.
-bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false)
+bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
+                               int shadowLightCount = 1)
 {
   const bool gpuRequired = std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
     std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU");
@@ -77,7 +78,12 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false)
   auto * scene = static_cast<SoSeparator *>(source->copy(TRUE));
   scene->ref();
   auto * shadowGroup = static_cast<SoShadowGroup *>(scene->getChild(1));
+  auto * originalCaster = static_cast<SoSeparator *>(shadowGroup->getChild(1));
   auto * ground = static_cast<SoSeparator *>(shadowGroup->getChild(2));
+  auto * spot = static_cast<SoShadowSpotLight *>(shadowGroup->getChild(0));
+  spot->intensity = 1.0f / float(shadowLightCount);
+  for (int i = 1; i < shadowLightCount; ++i)
+    shadowGroup->insertChild(spot->copy(TRUE), i);
   auto * groundStyle = static_cast<SoShadowStyle *>(ground->getChild(0));
   auto * groundMaterial = static_cast<SoMaterial *>(ground->getChild(1));
   groundMaterial->transparency = alphaTexture ? 0.0f : 0.5f;
@@ -136,7 +142,8 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false)
       glShadow->unref();
     }
     qualified = qualified && gpuDelta > 20;
-    std::cout << "transparent shadow receiver alpha_texture=" << alphaTexture << " mode=" << type << " Coin/GL/GPU delta="
+    std::cout << "transparent shadow receiver maps=" << shadowLightCount
+              << " alpha_texture=" << alphaTexture << " mode=" << type << " Coin/GL/GPU delta="
               << glDelta << '/' << gpuDelta << " qualified=" << qualified << '\n';
     if (!qualified) std::cerr << action.getLastError().getString() << '\n';
   }
@@ -144,7 +151,7 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false)
   // original opaque caster as a positive map/receiver control.
   groundMaterial->transparency = 0.0f;
   groundStyle->style = SoShadowStyle::SHADOWED;
-  auto * transparentCaster = static_cast<SoSeparator *>(shadowGroup->getChild(1)->copy(TRUE));
+  auto * transparentCaster = static_cast<SoSeparator *>(originalCaster->copy(TRUE));
   auto * casterStyle = static_cast<SoShadowStyle *>(transparentCaster->getChild(0));
   auto * casterMaterial = static_cast<SoMaterial *>(transparentCaster->getChild(1));
   casterMaterial->transparency = alphaTexture ? 0.0f : 0.5f;
@@ -156,7 +163,6 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false)
   translation->translation.setValue(-1.7f, 0.0f, 0.0f);
   transparentCaster->insertChild(translation, 0);
   shadowGroup->addChild(transparentCaster);
-  auto * originalCaster = static_cast<SoSeparator *>(shadowGroup->getChild(1));
   auto * originalMaterial = static_cast<SoMaterial *>(originalCaster->getChild(1));
   for (int emptyMaps = 0; emptyMaps < 2 && qualified; ++emptyMaps) {
     originalMaterial->transparency = emptyMaps && !alphaTexture ? 0.5f : 0.0f;
@@ -191,7 +197,8 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false)
         glNoCast->unref();
         glCast->unref();
       }
-      std::cout << "transparent shadow caster alpha_texture=" << alphaTexture
+      std::cout << "transparent shadow caster maps=" << shadowLightCount
+                << " alpha_texture=" << alphaTexture
                 << " empty_maps=" << emptyMaps
                 << " mode=" << type << " GL/GPU unchanged="
                 << qualified << '\n';
@@ -4407,7 +4414,9 @@ int main()
     customRoot->removeChild(entryMove);
   }
   const bool shadowTransparencyQualified = qualifyShadowTransparency(root) &&
-    qualifyShadowTransparency(root, true);
+    qualifyShadowTransparency(root, true) &&
+    qualifyShadowTransparency(root, false, 4) &&
+    qualifyShadowTransparency(root, true, 4);
   const bool emptyShadowMapsQualified = qualifyEmptyShadowMaps(root);
   customRoot->unref();
   action.setRenderTarget(nullptr);

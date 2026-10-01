@@ -305,7 +305,10 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   nos modos ADD adiados, 120/120 em BLEND adiado e 474/474 em NONE, nos dois
   executores. Alternar CASTS_SHADOW/NO_SHADOWING numa segunda forma
   transparente preservou pixels idênticos nos três renderizadores, nos dez
-  modos. O perfil admite o mecanismo de objetos e até quatro mapas;
+  modos. A mesma fixture foi repetida com quatro spots de intensidade
+  0,25: todos os modos passaram com as mesmas métricas, exercitando os
+  quatro receivers e seus estados de profundidade derivados. O perfil
+  admite o mecanismo de objetos e até quatro mapas;
   peeling/OIT ainda exige qualificação. A fixture também
   repetiu os dez modos sem nenhum caster opaco; a exclusão manteve pixels
   idênticos em Coin/GL e nos dois backends.
@@ -327,7 +330,9 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   0/128/255 e UVs explícitas passou nos dez modos Coin nos dois executores:
   SCREEN_DOOR e NONE marcaram 474/474, ADD/BLEND imediato e ADD adiado
   174/174, BLEND adiado 102/102 no wgpu e 102/99 no BGFX, e triângulos
-  ordenados em BLEND 174/171. Alternar o estilo de casting da forma com
+  ordenados em BLEND 174/171. O mesmo teste com quatro spots passou nos
+  dez modos, com as mesmas métricas e bindings dos quatro mapas. Alternar
+  o estilo de casting da forma com
   textura alfa manteve pixels idênticos nos três renderizadores, inclusive
   sem nenhum caster opaco. Alfa com DECAL é rejeitado antes da submissão,
   preservando pixels e serial. Alfa RTT ainda não está qualificado.
