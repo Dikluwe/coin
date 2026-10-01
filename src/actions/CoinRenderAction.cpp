@@ -662,7 +662,6 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
     if (this->target && this->target->getPimpl()->kind == CoinRenderTargetP::KIND_OFFSCREEN &&
         !this->target->getPimpl()->directTextureOutput && !this->asyncTicket &&
-        this->sceneTexturePlan->producers.empty() &&
         (!this->target->getPimpl()->backend ||
          dynamic_cast<CoinWgpuBackend *>(this->target->getPimpl()->backend.get()))) {
       std::string profileDiagnostic;
@@ -673,7 +672,6 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
 #if defined(HAVE_COIN_BGFX)
     if (this->target && this->target->getPimpl()->kind == CoinRenderTargetP::KIND_OFFSCREEN &&
         !this->target->getPimpl()->directTextureOutput && !this->asyncTicket &&
-        this->sceneTexturePlan->producers.empty() &&
         (!this->target->getPimpl()->backend ||
          dynamic_cast<CoinBgfxBackend *>(this->target->getPimpl()->backend.get()))) {
       std::string profileDiagnostic;

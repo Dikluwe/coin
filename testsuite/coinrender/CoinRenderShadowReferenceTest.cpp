@@ -2627,6 +2627,7 @@ int main()
   }
   bool stagedShadowRttQualified = true;
   bool directShadowRttQualified = true;
+  bool shadowedRttReceiverQualified = true;
   if (lowQualityGpuRequested) {
     CoinRenderOptions stagedOptions{};
     stagedOptions.sceneTexture = COIN_RENDER_SCENE_TEXTURE_STAGED;
@@ -2906,6 +2907,113 @@ int main()
     delete directTarget;
 #endif
     customGroup->isActive = TRUE;
+    if (stagedShadowRttQualified && directShadowRttQualified) {
+      stagedLighting->model = SoLightModel::PHONG;
+      stagedTexture->backgroundColor.setValue(0.15f, 0.15f, 0.15f, 1.0f);
+      display->ref();
+      stagedRoot->removeChild(display);
+      auto * receiverGroup = new SoShadowGroup;
+      receiverGroup->quality = 1.0f;
+      auto * receiverLight = new SoShadowSpotLight;
+      receiverLight->location.setValue(2, 2, 4);
+      receiverLight->direction.setValue(-2, -2, -5);
+      receiverLight->cutOffAngle = 0.9f;
+      receiverGroup->addChild(receiverLight);
+      auto * receiverCaster = new SoSeparator;
+      auto * casterMove = new SoTranslation;
+      casterMove->translation.setValue(0, 0, 1.4f);
+      receiverCaster->addChild(casterMove);
+      auto * casterCube = new SoCube;
+      casterCube->width = casterCube->height = casterCube->depth = 1.4f;
+      receiverCaster->addChild(casterCube);
+      receiverGroup->addChild(receiverCaster);
+      receiverGroup->addChild(display);
+      display->unref();
+      stagedRoot->addChild(receiverGroup);
+      int receiverGlDelta = 0;
+      if (std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") && SoShadowGroup::isSupported()) {
+        receiverGroup->isActive = TRUE;
+        auto * glActive = static_cast<SoSeparator *>(stagedRoot->copy(TRUE));
+        glActive->ref();
+        receiverGroup->isActive = FALSE;
+        auto * glInactive = static_cast<SoSeparator *>(stagedRoot->copy(TRUE));
+        glInactive->ref();
+        SoOffscreenRenderer receiverGl(SbViewportRegion(side, side));
+        receiverGl.setComponents(SoOffscreenRenderer::RGB);
+        std::vector<unsigned char> activePixels, inactivePixels;
+        const bool rendered = render(receiverGl, glActive, activePixels) &&
+          render(receiverGl, glInactive, inactivePixels);
+        shadowedRttReceiverQualified = rendered;
+        if (rendered)
+          for (int y = 20; y < 105; ++y)
+            for (int x = 20; x < 105; ++x)
+              receiverGlDelta = std::max(receiverGlDelta, std::abs(
+                luminance(activePixels, x, y) -
+                luminance(inactivePixels, x, y)));
+        glInactive->unref();
+        glActive->unref();
+      }
+      for (int mode = 0; mode < 2 && shadowedRttReceiverQualified; ++mode) {
+        CoinRenderOptions receiverOptions = stagedOptions;
+        receiverOptions.sceneTexture = mode == 0 ?
+          COIN_RENDER_SCENE_TEXTURE_STAGED : COIN_RENDER_SCENE_TEXTURE_DIRECT;
+        CoinRenderTarget * receiverTarget = CoinRenderTarget::createOffscreen(
+          SbVec2i32(side, side), receiverOptions);
+        CoinRenderAction receiverAction(SbViewportRegion(side, side));
+        receiverAction.setRenderTarget(receiverTarget);
+        receiverGroup->isActive = TRUE;
+        receiverAction.apply(stagedRoot);
+        std::vector<unsigned char> activePixels, inactivePixels;
+        const bool activeOk = receiverAction.getLastStatus() == CoinRenderAction::SUCCESS;
+        if (activeOk) receiverTarget->readbackRGBA(activePixels);
+        receiverGroup->isActive = FALSE;
+        receiverAction.apply(stagedRoot);
+        const bool inactiveOk = receiverAction.getLastStatus() == CoinRenderAction::SUCCESS;
+        if (inactiveOk) receiverTarget->readbackRGBA(inactivePixels);
+        int gpuDelta = 0;
+        if (activeOk && inactiveOk && activePixels.size() == inactivePixels.size())
+          for (int y = 20; y < 105; ++y)
+            for (int x = 20; x < 105; ++x)
+              gpuDelta = std::max(gpuDelta, std::abs(
+                luminanceRgba(activePixels, x, y) -
+                luminanceRgba(inactivePixels, x, y)));
+        std::cout << (mode == 0 ? "staged" : "direct") <<
+          " RTT shadow receiver Coin/GL/GPU delta=" <<
+          receiverGlDelta << '/' << gpuDelta << '\n';
+        shadowedRttReceiverQualified = activeOk && inactiveOk && gpuDelta > 40 &&
+          (!std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") ||
+           (receiverGlDelta > 40 && std::abs(receiverGlDelta - gpuDelta) <= 200));
+        if (shadowedRttReceiverQualified) {
+          const uint64_t serial = receiverTarget->getLastSubmissionSerial();
+          stagedTexture->transparencyFunction = SoSceneTexture2::ALPHA_BLEND;
+          receiverGroup->isActive = TRUE;
+          receiverAction.apply(stagedRoot);
+          std::vector<unsigned char> afterRejected;
+          receiverTarget->readbackRGBA(afterRejected);
+          shadowedRttReceiverQualified =
+            receiverAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+            receiverTarget->getLastSubmissionSerial() == serial &&
+            afterRejected == inactivePixels;
+          stagedTexture->transparencyFunction = SoSceneTexture2::NONE;
+          if (shadowedRttReceiverQualified) {
+            stagedTexture->backgroundColor.setValue(0.15f, 0.15f, 0.15f, 0.0f);
+            receiverAction.apply(stagedRoot);
+            receiverTarget->readbackRGBA(afterRejected);
+            shadowedRttReceiverQualified =
+              receiverAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+              receiverTarget->getLastSubmissionSerial() == serial &&
+              afterRejected == inactivePixels;
+            stagedTexture->backgroundColor.setValue(0.15f, 0.15f, 0.15f, 1.0f);
+          }
+        }
+        if (!shadowedRttReceiverQualified)
+          std::cerr << "RTT shadow receiver: " <<
+            receiverAction.getLastError().getString() << '\n';
+        receiverAction.setRenderTarget(nullptr);
+        delete receiverTarget;
+      }
+      receiverGroup->isActive = TRUE;
+    }
     stagedAction.setRenderTarget(nullptr);
     delete stagedTarget;
     stagedRoot->unref();
@@ -2921,6 +3029,7 @@ int main()
       !lowQualityDirectionalQualified || !directCustomSceneQualified ||
       !subtreeCustomSceneQualified ||
       !stagedShadowRttQualified || !directShadowRttQualified ||
+      !shadowedRttReceiverQualified ||
       !directionalProjectionCoversGroup || !multipleCameras || !perspectiveFrustum
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
       || !wgpuShadowSubmitted || !wgpuDirectionalSubmitted || !lateSpotSubmitted ||

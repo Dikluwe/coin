@@ -6,6 +6,7 @@
 #include <Inventor/SbBox3f.h>
 #include <Inventor/SbRotation.h>
 #include <Inventor/SbViewVolume.h>
+#include <Inventor/nodes/SoSceneTexture2.h>
 #include <algorithm>
 #include <cmath>
 #include <iterator>
@@ -509,17 +510,22 @@ coin_render_shadow_opaque_profile(
       }
       const auto & image = frame.textures[state.textureImageSlot];
       const uint64_t pixelCount = uint64_t(image.width) * image.height;
-      if (image.producerId || image.gpuToken || !pixelCount ||
-          pixelCount > SIZE_MAX / 4 ||
-          image.pixelsRgba.size() != static_cast<size_t>(pixelCount * 4)) {
-        diagnostic = "Opaque shadow profile requires a static opaque texture";
+      const bool sceneTexture = image.producerId || image.gpuToken;
+      if (!pixelCount || pixelCount > SIZE_MAX / 4 ||
+          (sceneTexture
+            ? (!image.gpuOpaque ||
+               image.sceneTransparencyFunction != SoSceneTexture2::NONE ||
+               (image.gpuToken && !image.pixelsRgba.empty()))
+            : image.pixelsRgba.size() != static_cast<size_t>(pixelCount * 4))) {
+        diagnostic = "Opaque shadow profile requires alpha-one static pixels or an opaque SceneTexture2";
         return false;
       }
-      for (size_t alpha = 3; alpha < image.pixelsRgba.size(); alpha += 4)
-        if (image.pixelsRgba[alpha] != 255) {
-          diagnostic = "Opaque shadow profile requires alpha-one texels";
-          return false;
-        }
+      if (!image.producerId && !image.gpuToken)
+        for (size_t alpha = 3; alpha < image.pixelsRgba.size(); alpha += 4)
+          if (image.pixelsRgba[alpha] != 255) {
+            diagnostic = "Opaque shadow profile requires alpha-one texels";
+            return false;
+          }
     }
     float clipEquations[COIN_RENDER_MAX_CLIP_PLANES][4] = {};
     if (!coin_render_clip_equations(state, clipEquations, diagnostic)) return false;

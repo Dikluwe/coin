@@ -260,8 +260,13 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   unidades adicionais. O mesmo draw recebe sombra e modulação de textura nos
   dois executores; alternar a textura verde da fixture mudou a imagem em 485
   no Coin/GL, BGFX e wgpu. Uma imagem com alfa 128 retorna `UNSUPPORTED`
-  preservando pixels e serial. Texturas RTT no receiver e alfa variável
-  continuam abertos.
+  preservando pixels e serial. Um `SoSceneTexture2` também pode modular o
+  receiver se a captura registrar fundo opaco e `transparencyFunction=NONE`;
+  a Action valida o perfil no plano lógico antes de executar o produtor.
+  A fixture com sombra no grupo consumidor passou em staged e direct:
+  deltas máximos 474/291 no Coin/GL e em BGFX ou wgpu (tolerância 200).
+  `ALPHA_BLEND` e fundo não opaco foram rejeitados antes de mudar pixels
+  ou serial. Alfa variável continua aberto.
 - [x] **Luz direcional comum herdada:** uma `SoDirectionalLight` anterior ao
   `SoShadowGroup` compõe sua contribuição opaca com um mapa spot; Core mantém
   a identidade da luz sem criar pass de sombra para ela. O recorte exige luz
@@ -306,8 +311,9 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   delta máximo 306 no Coin/GL e 402 em BGFX e wgpu (tolerância 180);
   falha injetada no mapa preservou pixels e serial, e a recuperação reproduziu
   o quadro. Redimensionar o consumidor direto para 160×160 manteve o efeito
-  (delta GPU 405 em BGFX; ambos executores passaram). Sombras no consumidor,
-  camadas, grupos aninhados e parâmetros VSM
+  (delta GPU 405 em BGFX; ambos executores passaram). O consumidor com
+  sombra opaca e textura RTT também passou em staged e direct, como descrito
+  acima. Camadas, grupos aninhados e parâmetros VSM
   diferentes dentro de RTT ainda não estão qualificados.
 
 Cada caixa acima requer uma fixture renderizada nos dois executores e sua
