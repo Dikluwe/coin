@@ -279,6 +279,24 @@ coin_render_shadow_camera(const CoinRenderShadowGroupSnapshot & group,
   return true;
 }
 
+// Coin SoShape::shouldGLRender excludes transparent shapes from SHADOWMAP,
+// independently of transparency mode and SoShadowStyle. Wiring captures the
+// material-array flag; Core combines it with the immutable texture evidence.
+inline bool
+coin_render_shadow_transparent_shape(const CoinRenderFramePlan & frame,
+                                    const CoinRenderRenderStateSnapshot & state)
+{
+  if (state.transparentMaterial || state.screenDoorTransparency > 0.0f ||
+      (state.materialSlot < frame.materials.size() &&
+       frame.materials[state.materialSlot].transparency > 0.0f)) return true;
+  if (!state.hasTexture || state.textureImageSlot >= frame.textures.size()) return false;
+  const auto & image = frame.textures[state.textureImageSlot];
+  if (image.producerId || image.gpuToken) return !image.gpuOpaque;
+  for (size_t i = 3; i < image.pixelsRgba.size(); i += 4)
+    if (image.pixelsRgba[i] != 255) return true;
+  return false;
+}
+
 // Pure Core planning over immutable captures. Resources and GPU passes belong
 // to CoinBgfx/CoinWgpu; only explicitly qualified profiles execute.
 inline bool
@@ -413,6 +431,7 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
           }
         }
         if ((state.shadowStyle & 1u) != 0 &&
+            !coin_render_shadow_transparent_shape(frame, state) &&
             (!light.hasCustomScene || selectedShape || selectedSubtree))
           pass.casterDraws.push_back(static_cast<uint32_t>(d));
         if ((state.shadowStyle & 2u) != 0)
@@ -449,17 +468,17 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
   return true;
 }
 
-// Narrow opaque profile over captured Coin state. It checks the scene once,
+// Qualified object-composition profile over captured Coin state. It checks the scene once,
 // then matches each ordinary light contribution to exactly one shadow pass.
 // Backends consume the resolved pass order without rediscovering Coin nodes.
 inline bool
-coin_render_shadow_opaque_profile(
+coin_render_shadow_object_profile(
   const CoinRenderFramePlan & frame, const CoinRenderShadowPlan & shadows,
   size_t lightCount, std::string & diagnostic)
 {
   if (frame.shadowGroups.empty() || shadows.passes.size() != lightCount ||
       (lightCount < 1 || lightCount > 8)) {
-    diagnostic = "Opaque shadow profile requires groups with one to eight passes";
+    diagnostic = "Shadow object profile requires groups with one to eight passes";
     return false;
   }
   for (size_t p = 0; p < lightCount; ++p) {
@@ -475,7 +494,7 @@ coin_render_shadow_opaque_profile(
                     [&](const CoinRenderShadowPass & previous) {
                       return previous.lightSlot == pass.lightSlot;
                     })) {
-      diagnostic = "Opaque shadow profile requires visible independent passes with casters and receivers";
+      diagnostic = "Shadow object profile requires visible independent passes with casters and receivers";
       return false;
     }
   }
@@ -489,7 +508,6 @@ coin_render_shadow_opaque_profile(
         draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST ||
         draw.renderLayer != 0 || draw.clearDepthBefore ||
         state.lightModel != CoinRenderLightModel::PHONG ||
-        state.screenDoorTransparency > 0.0f ||
         state.fogMode != CoinRenderFogMode::NONE ||
         state.materialSlot >= frame.materials.size() ||
         state.lightingSlot >= frame.lightingStates.size() ||
@@ -497,7 +515,7 @@ coin_render_shadow_opaque_profile(
                     [](const CoinRenderTextureUnitSnapshot & unit) {
                       return unit.enabled;
                     })) {
-      diagnostic = "Opaque shadow profile supports PHONG triangles without extra texture units";
+      diagnostic = "Shadow object profile supports PHONG triangles without extra texture units";
       return false;
     }
     if (state.hasTexture) {
@@ -509,7 +527,7 @@ coin_render_shadow_opaque_profile(
       }
       if (state.textureImageSlot >= frame.textures.size() ||
           state.samplerSlot >= frame.samplers.size()) {
-        diagnostic = "Opaque shadow receiver references an invalid texture";
+        diagnostic = "Shadow receiver references an invalid texture";
         return false;
       }
       const auto & image = frame.textures[state.textureImageSlot];
@@ -521,21 +539,30 @@ coin_render_shadow_opaque_profile(
                image.sceneTransparencyFunction != SoSceneTexture2::NONE ||
                (image.gpuToken && !image.pixelsRgba.empty()))
             : image.pixelsRgba.size() != static_cast<size_t>(pixelCount * 4))) {
-        diagnostic = "Opaque shadow profile requires alpha-one static pixels or an opaque SceneTexture2";
+        diagnostic = "Shadow object profile requires alpha-one static pixels or an opaque SceneTexture2";
         return false;
       }
       if (!image.producerId && !image.gpuToken)
         for (size_t alpha = 3; alpha < image.pixelsRgba.size(); alpha += 4)
           if (image.pixelsRgba[alpha] != 255) {
-            diagnostic = "Opaque shadow profile requires alpha-one texels";
+            diagnostic = "Shadow object profile requires alpha-one texels";
             return false;
           }
     }
     float clipEquations[COIN_RENDER_MAX_CLIP_PLANES][4] = {};
     if (!coin_render_clip_equations(state, clipEquations, diagnostic)) return false;
     const auto & material = frame.materials[state.materialSlot];
-    if (material.transparency != 0.0f || material.diffuse[3] != 1.0f) {
-      diagnostic = "Opaque shadow profile does not support transparency";
+    if (!std::isfinite(material.transparency) || material.transparency < 0.0f ||
+        material.transparency > 1.0f ||
+        std::abs(material.diffuse[3] - (1.0f - material.transparency)) > 1e-6f) {
+      diagnostic = "Shadow material requires consistent captured alpha/transparency";
+      return false;
+    }
+    if (coin_render_shadow_transparent_shape(frame, state) &&
+        (lightCount > 4 || state.transparencyType < 0 || state.transparencyType > 9 ||
+         (frame.transparency.mode != COIN_RENDER_TRANSPARENCY_COIN &&
+          frame.transparency.mode != COIN_RENDER_TRANSPARENCY_OBJECT))) {
+      diagnostic = "Transparent shadow receivers require the object mechanism and at most four maps";
       return false;
     }
     // Coin moves shadow-map lighting to vertices at quality <= 0.3.
@@ -597,7 +624,7 @@ coin_render_shadow_opaque_profile(
     }
     if (lights.size() > COIN_RENDER_MAX_LIGHTS ||
         (externalOrdinary && shadows.passes.size() > 2)) {
-      diagnostic = "Opaque shadow profile exceeds the qualified light combination";
+      diagnostic = "Shadow object profile exceeds the qualified light combination";
       return false;
     }
     std::vector<bool> claimed(lights.size(), false);
@@ -646,7 +673,7 @@ coin_render_shadow_opaque_profile(
               light.modelViewAtLight == source.sourceModel;
           });
       if (!ordinary) {
-        diagnostic = "Opaque shadow profile has an unmatched Coin light";
+        diagnostic = "Shadow object profile has an unmatched Coin light";
         return false;
       }
     }
@@ -673,7 +700,7 @@ coin_render_shadow_suppresses_ordinary_light(
 }
 
 inline bool
-coin_render_shadow_single_opaque_profile(
+coin_render_shadow_single_object_profile(
   const CoinRenderFramePlan & frame, const CoinRenderShadowPlan & shadows,
   CoinRenderLightType lightType, std::string & diagnostic)
 {
@@ -683,40 +710,40 @@ coin_render_shadow_single_opaque_profile(
     diagnostic = "Single-light shadow profile requires the requested light type";
     return false;
   }
-  return coin_render_shadow_opaque_profile(frame, shadows, 1, diagnostic);
+  return coin_render_shadow_object_profile(frame, shadows, 1, diagnostic);
 }
 
 inline bool
-coin_render_shadow_single_spot_opaque_profile(
+coin_render_shadow_single_spot_object_profile(
   const CoinRenderFramePlan & frame, const CoinRenderShadowPlan & shadows,
   std::string & diagnostic)
 {
-  return coin_render_shadow_single_opaque_profile(
+  return coin_render_shadow_single_object_profile(
     frame, shadows, CoinRenderLightType::SPOT, diagnostic);
 }
 
 inline bool
-coin_render_shadow_single_directional_opaque_profile(
+coin_render_shadow_single_directional_object_profile(
   const CoinRenderFramePlan & frame, const CoinRenderShadowPlan & shadows,
   std::string & diagnostic)
 {
-  return coin_render_shadow_single_opaque_profile(
+  return coin_render_shadow_single_object_profile(
     frame, shadows, CoinRenderLightType::DIRECTIONAL, diagnostic);
 }
 
 // The bounded two-pass opaque profile accepts any pair of eligible spot and/or
 // directional lights. Core already owns the Coin light identity and index match.
 inline bool
-coin_render_shadow_two_opaque_profile(
+coin_render_shadow_two_object_profile(
   const CoinRenderFramePlan & frame, const CoinRenderShadowPlan & shadows,
   std::string & diagnostic)
 {
-  return coin_render_shadow_opaque_profile(frame, shadows, 2, diagnostic);
+  return coin_render_shadow_object_profile(frame, shadows, 2, diagnostic);
 }
 
 // Stronger fixture predicate for scenes with one spot and one directional.
 inline bool
-coin_render_shadow_spot_directional_opaque_profile(
+coin_render_shadow_spot_directional_object_profile(
   const CoinRenderFramePlan & frame, const CoinRenderShadowPlan & shadows,
   std::string & diagnostic)
 {
@@ -735,7 +762,7 @@ coin_render_shadow_spot_directional_opaque_profile(
     diagnostic = "Two-light shadow profile requires one spot and one directional light";
     return false;
   }
-  return coin_render_shadow_opaque_profile(frame, shadows, 2, diagnostic);
+  return coin_render_shadow_object_profile(frame, shadows, 2, diagnostic);
 }
 
 #endif // COIN_RENDER_SHADOW_CORE_H

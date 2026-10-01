@@ -269,6 +269,7 @@ struct CoinRenderRenderStateSnapshot {
   uint32_t polygonOffsetPrimitiveStyle = 1; // Retained across line/point expansion.
   uint32_t shadowGroupSlot = 0; // Zero outside active SoShadowGroup.
   uint32_t shadowStyle = 3; // SoShadowStyleElement default: casts and receives.
+  bool transparentMaterial = false; // Coin lazy material flag over the entire bound array.
   CoinRenderLightModel lightModel = CoinRenderLightModel::PHONG;
   float lineWidth = 1.0f;
   float pointSize = 1.0f;

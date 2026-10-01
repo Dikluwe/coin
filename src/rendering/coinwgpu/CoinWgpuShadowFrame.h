@@ -51,6 +51,22 @@ struct CoinWgpuShadowFrame : CoinWgpuShadowPass {
   bool hasThird = false;
   bool hasFourth = false;
 
+  // Composition may clone a packed state to change depth policy. Its shadow
+  // receiver stays identical; transport the same slot in every concrete pass.
+  void appendReceiverState(uint32_t sourceSlot)
+  {
+    const auto append = [sourceSlot](CoinWgpuShadowPass & pass) {
+      if (pass.receivers.empty()) return;
+      const CoinWgpuShadowReceiver receiver = pass.receivers[sourceSlot];
+      pass.receivers.push_back(receiver);
+    };
+    append(*this);
+    if (this->hasSecond) append(this->second);
+    if (this->hasThird) append(this->third);
+    if (this->hasFourth) append(this->fourth);
+    for (auto & pass : this->extra) append(pass);
+  }
+
   bool prepare(const CoinRenderFramePlan & frame, std::string & diagnostic)
   {
     CoinWgpuShadowFrame candidate;
@@ -61,7 +77,7 @@ struct CoinWgpuShadowFrame : CoinWgpuShadowPass {
     }
     CoinRenderShadowPlan plan;
     if (!coin_render_plan_shadows(frame, plan, diagnostic)) return false;
-    if (!coin_render_shadow_opaque_profile(
+    if (!coin_render_shadow_object_profile(
           frame, plan, plan.passes.size(), diagnostic)) return false;
     if (plan.passes.size() > 8) {
       diagnostic = "wgpu shadow encoder supports at most eight maps";

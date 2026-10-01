@@ -28,6 +28,7 @@
 #include <Inventor/nodes/SoLight.h>
 #include <Inventor/nodes/SoPointLight.h>
 #include <Inventor/nodes/SoMaterial.h>
+#include <Inventor/nodes/SoTransparencyType.h>
 #include <Inventor/nodes/SoClipPlane.h>
 #include <Inventor/nodes/SoSceneTexture2.h>
 #include <Inventor/nodes/SoTexture2.h>
@@ -66,6 +67,116 @@ bool render(SoOffscreenRenderer & gl, SoNode * root,
   rgb.assign(data, data + side * side * 3);
   return true;
 }
+// Exercise the public path with a fresh Action, so capture references held by
+// the main opaque fixtures cannot be invalidated by these additional scenes.
+bool qualifyShadowTransparency(SoSeparator * source)
+{
+  const bool gpuRequired = std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
+    std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU");
+  if (!gpuRequired) return true;
+  auto * scene = static_cast<SoSeparator *>(source->copy(TRUE));
+  scene->ref();
+  auto * shadowGroup = static_cast<SoShadowGroup *>(scene->getChild(1));
+  auto * ground = static_cast<SoSeparator *>(shadowGroup->getChild(2));
+  auto * groundStyle = static_cast<SoShadowStyle *>(ground->getChild(0));
+  auto * groundMaterial = static_cast<SoMaterial *>(ground->getChild(1));
+  groundMaterial->transparency = 0.5f;
+  auto * mode = new SoTransparencyType;
+  scene->insertChild(mode, 1);
+  CoinRenderTarget * target = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+  CoinRenderAction action(SbViewportRegion(side, side));
+  action.setRenderTarget(target);
+  bool qualified = true;
+  for (int type = 0; type <= 9 && qualified; ++type) {
+    mode->value = type;
+    groundStyle->style = SoShadowStyle::SHADOWED;
+    action.apply(scene);
+    std::vector<unsigned char> gpuShadow, gpuClear;
+    const bool shadowOk = action.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (shadowOk) target->readbackRGBA(gpuShadow);
+    groundStyle->style = SoShadowStyle::NO_SHADOWING;
+    action.apply(scene);
+    const bool clearOk = action.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (clearOk) target->readbackRGBA(gpuClear);
+    int gpuDelta = 0, glDelta = 0;
+    qualified = shadowOk && clearOk && gpuShadow.size() == gpuClear.size();
+    if (qualified)
+      for (int y = 20; y < 105; ++y) for (int x = 20; x < 105; ++x)
+        gpuDelta = std::max(gpuDelta, std::abs(
+          luminanceRgba(gpuShadow, x, y) - luminanceRgba(gpuClear, x, y)));
+    if (qualified && std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
+      groundStyle->style = SoShadowStyle::SHADOWED;
+      auto * glShadow = static_cast<SoSeparator *>(scene->copy(TRUE));
+      glShadow->ref();
+      groundStyle->style = SoShadowStyle::NO_SHADOWING;
+      auto * glClear = static_cast<SoSeparator *>(scene->copy(TRUE));
+      glClear->ref();
+      SoOffscreenRenderer gl(SbViewportRegion(side, side));
+      gl.setComponents(SoOffscreenRenderer::RGB);
+      std::vector<unsigned char> shadowPixels, clearPixels;
+      qualified = render(gl, glShadow, shadowPixels) && render(gl, glClear, clearPixels);
+      if (qualified)
+        for (int y = 20; y < 105; ++y) for (int x = 20; x < 105; ++x)
+          glDelta = std::max(glDelta, std::abs(
+            luminance(shadowPixels, x, y) - luminance(clearPixels, x, y)));
+      qualified = qualified && glDelta > 20 && std::abs(glDelta - gpuDelta) <= 180;
+      glClear->unref();
+      glShadow->unref();
+    }
+    qualified = qualified && gpuDelta > 20;
+    std::cout << "transparent shadow receiver mode=" << type << " Coin/GL/GPU delta="
+              << glDelta << '/' << gpuDelta << " qualified=" << qualified << '\n';
+    if (!qualified) std::cerr << action.getLastError().getString() << '\n';
+  }
+  // A second, transparent caster must never enter the moment map. Keep the
+  // original opaque caster as a positive map/receiver control.
+  groundMaterial->transparency = 0.0f;
+  groundStyle->style = SoShadowStyle::SHADOWED;
+  auto * transparentCaster = static_cast<SoSeparator *>(shadowGroup->getChild(1)->copy(TRUE));
+  auto * casterStyle = static_cast<SoShadowStyle *>(transparentCaster->getChild(0));
+  auto * casterMaterial = static_cast<SoMaterial *>(transparentCaster->getChild(1));
+  casterMaterial->transparency = 0.5f;
+  auto * translation = new SoTranslation;
+  translation->translation.setValue(-1.7f, 0.0f, 0.0f);
+  transparentCaster->insertChild(translation, 0);
+  shadowGroup->addChild(transparentCaster);
+  for (int type = 0; type <= 9 && qualified; ++type) {
+    mode->value = type;
+    casterStyle->style = SoShadowStyle::CASTS_SHADOW;
+    action.apply(scene);
+    std::vector<unsigned char> gpuCast, gpuNoCast;
+    const bool castOk = action.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (castOk) target->readbackRGBA(gpuCast);
+    casterStyle->style = SoShadowStyle::NO_SHADOWING;
+    action.apply(scene);
+    const bool noCastOk = action.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (noCastOk) target->readbackRGBA(gpuNoCast);
+    qualified = castOk && noCastOk && gpuCast == gpuNoCast;
+    if (qualified && std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
+      casterStyle->style = SoShadowStyle::CASTS_SHADOW;
+      auto * glCast = static_cast<SoSeparator *>(scene->copy(TRUE));
+      glCast->ref();
+      casterStyle->style = SoShadowStyle::NO_SHADOWING;
+      auto * glNoCast = static_cast<SoSeparator *>(scene->copy(TRUE));
+      glNoCast->ref();
+      SoOffscreenRenderer gl(SbViewportRegion(side, side));
+      gl.setComponents(SoOffscreenRenderer::RGB);
+      std::vector<unsigned char> castPixels, noCastPixels;
+      qualified = render(gl, glCast, castPixels) && render(gl, glNoCast, noCastPixels) &&
+        castPixels == noCastPixels;
+      glNoCast->unref();
+      glCast->unref();
+    }
+    std::cout << "transparent shadow caster mode=" << type << " GL/GPU unchanged="
+              << qualified << '\n';
+    if (!qualified) std::cerr << action.getLastError().getString() << '\n';
+  }
+  action.setRenderTarget(nullptr);
+  delete target;
+  scene->unref();
+  return qualified;
+}
+
 bool qualifyEightLightRtt(
   SoSeparator * scene, SoShadowDirectionalLight * fifth,
   const std::vector<SoShadowDirectionalLight *> & extraLights,
@@ -287,7 +398,7 @@ int main()
                    planned.passes[0].farDistance > planned.passes[0].nearDistance &&
                    std::abs(planned.passes[0].vsmFarDistance - 768.674f) < 0.1f;
   std::string spotProfileDiagnostic;
-  const bool spotProfile = coin_render_shadow_single_spot_opaque_profile(
+  const bool spotProfile = coin_render_shadow_single_spot_object_profile(
     captured, planned, spotProfileDiagnostic);
   group->smoothBorder = 1;
   action.apply(root);
@@ -295,7 +406,7 @@ int main()
   bool smoothBorderQualified =
     action.getPimpl()->lastRejectedShadowFrame.shadowGroups.size() == 1 &&
     action.getPimpl()->lastRejectedShadowFrame.shadowGroups[0].smoothBorder == 1.0f &&
-    coin_render_shadow_single_spot_opaque_profile(
+    coin_render_shadow_single_spot_object_profile(
       action.getPimpl()->lastRejectedShadowFrame,
       action.getPimpl()->lastRejectedShadowPlan, smoothBorderDiagnostic);
   group->smoothBorder = 0;
@@ -338,7 +449,7 @@ int main()
   group->quality = 0.2f;
   action.apply(root);
   std::string lowQualitySpotDiagnostic;
-  bool lowQualitySpotQualified = coin_render_shadow_single_spot_opaque_profile(
+  bool lowQualitySpotQualified = coin_render_shadow_single_spot_object_profile(
     action.getPimpl()->lastRejectedShadowFrame,
     action.getPimpl()->lastRejectedShadowPlan, lowQualitySpotDiagnostic);
   if (lowQualitySpotQualified &&
@@ -652,8 +763,8 @@ int main()
   if (!transparentFrame.materials.empty())
     transparentFrame.materials[0].transparency = 0.25f;
   std::string transparentProfileDiagnostic;
-  const bool transparentExcludedFromFirstProfile =
-      !coin_render_shadow_single_spot_opaque_profile(
+  const bool inconsistentAlphaRejected =
+      !coin_render_shadow_single_spot_object_profile(
         transparentFrame, planned, transparentProfileDiagnostic);
   if (captureOk) {
     SbVec3f spotCenter;
@@ -1089,7 +1200,7 @@ int main()
   bool ordinaryLightQualified =
     action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
     ordinaryFrame.shadowLights.size() == 1 &&
-    coin_render_shadow_single_spot_opaque_profile(
+    coin_render_shadow_single_spot_object_profile(
       ordinaryFrame, ordinaryPlan, ordinaryDiagnostic);
   if (ordinaryLightQualified &&
       (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
@@ -1154,7 +1265,7 @@ int main()
   std::string internalOrdinaryDiagnostic;
   bool internalOrdinaryQualified =
     action.getPimpl()->lastRejectedShadowFrame.shadowLights.size() == 2 &&
-    coin_render_shadow_single_spot_opaque_profile(
+    coin_render_shadow_single_spot_object_profile(
       action.getPimpl()->lastRejectedShadowFrame,
       action.getPimpl()->lastRejectedShadowPlan, internalOrdinaryDiagnostic);
   if (internalOrdinaryQualified &&
@@ -1204,7 +1315,7 @@ int main()
   action.apply(pointRoot);
   std::string pointDiagnostic;
   bool inheritedPointQualified =
-    coin_render_shadow_single_spot_opaque_profile(
+    coin_render_shadow_single_spot_object_profile(
       action.getPimpl()->lastRejectedShadowFrame,
       action.getPimpl()->lastRejectedShadowPlan, pointDiagnostic);
   if (inheritedPointQualified &&
@@ -1272,7 +1383,7 @@ int main()
   std::string internalPointDiagnostic;
   bool internalPointQualified =
     action.getPimpl()->lastRejectedShadowFrame.shadowLights.size() == 2 &&
-    coin_render_shadow_single_spot_opaque_profile(
+    coin_render_shadow_single_spot_object_profile(
       action.getPimpl()->lastRejectedShadowFrame,
       action.getPimpl()->lastRejectedShadowPlan, internalPointDiagnostic);
   if (internalPointQualified &&
@@ -1332,7 +1443,7 @@ int main()
   std::string texturedDiagnostic;
   bool texturedShadowQualified =
     action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-    coin_render_shadow_single_spot_opaque_profile(
+    coin_render_shadow_single_spot_object_profile(
       action.getPimpl()->lastRejectedShadowFrame,
       action.getPimpl()->lastRejectedShadowPlan, texturedDiagnostic);
   if (!texturedShadowQualified)
@@ -1490,9 +1601,9 @@ int main()
   const auto & twoLightPlan = action.getPimpl()->lastRejectedShadowPlan;
   std::string twoLightDiagnostic;
   bool twoLightCaptured = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-    coin_render_shadow_spot_directional_opaque_profile(
+    coin_render_shadow_spot_directional_object_profile(
       twoLightFrame, twoLightPlan, twoLightDiagnostic) &&
-    !coin_render_shadow_single_spot_opaque_profile(
+    !coin_render_shadow_single_spot_object_profile(
       twoLightFrame, twoLightPlan, twoLightDiagnostic);
   if (twoLightCaptured) {
     for (const auto & draw : twoLightFrame.draws) {
@@ -1509,7 +1620,7 @@ int main()
       mismatched.lightingStates[lightingSlot].lights[1].sourceRevision ^= 1;
       std::string mismatchDiagnostic;
       twoLightCaptured = twoLightCaptured &&
-        !coin_render_shadow_spot_directional_opaque_profile(
+        !coin_render_shadow_spot_directional_object_profile(
           mismatched, twoLightPlan, mismatchDiagnostic);
     } else twoLightCaptured = false;
   }
@@ -1622,7 +1733,7 @@ int main()
       std::string fiveDiagnostic;
       const bool fiveCoreQualified =
         fiveCapture.getPimpl()->lastRejectedShadowPlan.passes.size() == 5 &&
-        coin_render_shadow_opaque_profile(
+        coin_render_shadow_object_profile(
           fiveCapture.getPimpl()->lastRejectedShadowFrame,
           fiveCapture.getPimpl()->lastRejectedShadowPlan, 5, fiveDiagnostic);
       const uint64_t fourSerial = dualTarget->getLastSubmissionSerial();
@@ -1668,7 +1779,7 @@ int main()
       std::string eightDiagnostic;
       const bool eightCoreQualified =
         eightCapture.getPimpl()->lastRejectedShadowPlan.passes.size() == 8 &&
-        coin_render_shadow_opaque_profile(
+        coin_render_shadow_object_profile(
           eightCapture.getPimpl()->lastRejectedShadowFrame,
           eightCapture.getPimpl()->lastRejectedShadowPlan, 8, eightDiagnostic);
       twoLightBgfxSubmitted = twoLightBgfxSubmitted && eightCoreQualified;
@@ -1998,7 +2109,7 @@ int main()
       std::string fiveDiagnostic;
       const bool fiveCoreQualified =
         fiveCapture.getPimpl()->lastRejectedShadowPlan.passes.size() == 5 &&
-        coin_render_shadow_opaque_profile(
+        coin_render_shadow_object_profile(
           fiveCapture.getPimpl()->lastRejectedShadowFrame,
           fiveCapture.getPimpl()->lastRejectedShadowPlan, 5, fiveDiagnostic);
       const uint64_t fourSerial = dualTarget->getLastSubmissionSerial();
@@ -2044,7 +2155,7 @@ int main()
       std::string eightDiagnostic;
       const bool eightCoreQualified =
         eightCapture.getPimpl()->lastRejectedShadowPlan.passes.size() == 8 &&
-        coin_render_shadow_opaque_profile(
+        coin_render_shadow_object_profile(
           eightCapture.getPimpl()->lastRejectedShadowFrame,
           eightCapture.getPimpl()->lastRejectedShadowPlan, 8, eightDiagnostic);
       const uint64_t fiveSerial = dualTarget->getLastSubmissionSerial();
@@ -2114,7 +2225,7 @@ int main()
       std::string spotDiagnostic;
       const bool spotCoreQualified =
         spotCapture.getPimpl()->lastRejectedShadowPlan.passes.size() == 5 &&
-        coin_render_shadow_opaque_profile(
+        coin_render_shadow_object_profile(
           spotCapture.getPimpl()->lastRejectedShadowFrame,
           spotCapture.getPimpl()->lastRejectedShadowPlan, 5, spotDiagnostic);
       const uint64_t eightSerial = dualTarget->getLastSubmissionSerial();
@@ -2345,7 +2456,7 @@ int main()
     const auto & orderedPlan = action.getPimpl()->lastRejectedShadowPlan;
     std::string orderedDiagnostic;
     bool capturedOrder = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-      coin_render_shadow_spot_directional_opaque_profile(
+      coin_render_shadow_spot_directional_object_profile(
         orderedFrame, orderedPlan, orderedDiagnostic);
     bool sawLate = false, sawEarly = false;
     if (capturedOrder) {
@@ -2456,7 +2567,7 @@ int main()
   const auto & bothLatePlan = action.getPimpl()->lastRejectedShadowPlan;
   std::string bothLateDiagnostic;
   bool bothLateOk = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-    coin_render_shadow_spot_directional_opaque_profile(
+    coin_render_shadow_spot_directional_object_profile(
       bothLateFrame, bothLatePlan, bothLateDiagnostic);
   if (bothLateOk)
     for (const auto & draw : bothLateFrame.draws) {
@@ -2565,7 +2676,7 @@ int main()
     const auto & reversedPlan = action.getPimpl()->lastRejectedShadowPlan;
     std::string reversedDiagnostic;
     bool reversedOk = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-      coin_render_shadow_spot_directional_opaque_profile(
+      coin_render_shadow_spot_directional_object_profile(
         reversedFrame, reversedPlan, reversedDiagnostic) &&
       reversedFrame.shadowLights[reversedPlan.passes[0].lightSlot].type ==
         CoinRenderLightType::DIRECTIONAL &&
@@ -2676,7 +2787,7 @@ int main()
     const auto & pairPlan = action.getPimpl()->lastRejectedShadowPlan;
     std::string pairDiagnostic;
     bool pairOk = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-      coin_render_shadow_two_opaque_profile(pairFrame, pairPlan, pairDiagnostic) &&
+      coin_render_shadow_two_object_profile(pairFrame, pairPlan, pairDiagnostic) &&
       pairPlan.passes.size() == 2;
 #ifdef HAVE_COIN_BGFX
     int bgfxDifference = 0;
@@ -2783,7 +2894,7 @@ int main()
       lateLightFrame.shadowLights.size() == 1 && lateLightPlan.passes.size() == 1;
   std::string lateProfileDiagnostic;
   const bool lateSpotProfile =
-      coin_render_shadow_single_spot_opaque_profile(
+      coin_render_shadow_single_spot_object_profile(
         lateLightFrame, lateLightPlan, lateProfileDiagnostic);
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
   std::vector<unsigned char> lateSpotPixels, lateSpotNoReceivePixels;
@@ -2915,14 +3026,14 @@ int main()
   bool lowQualityDirectionalQualified = directionalCaptured &&
     lowQualityPlan.passes.size() == 1 &&
     !lowQualityPlan.passes[0].perFragmentLighting &&
-    coin_render_shadow_single_directional_opaque_profile(
+    coin_render_shadow_single_directional_object_profile(
       lowQualityFrame, lowQualityPlan, lowQualityDiagnostic);
   if (lowQualityDirectionalQualified && !lowQualityFrame.draws.empty()) {
     CoinRenderFramePlan withSpecular = lowQualityFrame;
     withSpecular.materials[withSpecular.renderStates[
       withSpecular.draws[0].renderStateSlot].materialSlot].specular[0] = 0.1f;
     std::string excludedDiagnostic;
-    lowQualityDirectionalQualified = !coin_render_shadow_single_directional_opaque_profile(
+    lowQualityDirectionalQualified = !coin_render_shadow_single_directional_object_profile(
       withSpecular, lowQualityPlan, excludedDiagnostic);
     CoinRenderFramePlan withSmoothNormal = lowQualityFrame;
     const auto & geometry = withSmoothNormal.draws[0].geometry;
@@ -2930,7 +3041,7 @@ int main()
       const uint32_t vertex = withSmoothNormal.indices[geometry.firstIndex + 1];
       withSmoothNormal.vertices[vertex].normal[0] += 0.1f;
       lowQualityDirectionalQualified = lowQualityDirectionalQualified &&
-        !coin_render_shadow_single_directional_opaque_profile(
+        !coin_render_shadow_single_directional_object_profile(
           withSmoothNormal, lowQualityPlan, excludedDiagnostic);
     } else lowQualityDirectionalQualified = false;
   }
@@ -3033,7 +3144,7 @@ int main()
     std::string lateDirectionalDiagnostic;
     const bool lateDirectionalProfile =
       action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-      coin_render_shadow_single_directional_opaque_profile(
+      coin_render_shadow_single_directional_object_profile(
         action.getPimpl()->lastRejectedShadowFrame,
         action.getPimpl()->lastRejectedShadowPlan, lateDirectionalDiagnostic);
     wgpuDirectionalSubmitted = wgpuDirectionalSubmitted && lateDirectionalProfile;
@@ -3112,7 +3223,7 @@ int main()
     std::string directionalProfileDiagnostic;
     wgpuDirectionalSubmitted = wgpuDirectionalSubmitted &&
       action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-      coin_render_shadow_single_directional_opaque_profile(
+      coin_render_shadow_single_directional_object_profile(
         directionalGpuFrame, directionalGpuPlan, directionalProfileDiagnostic);
     if (!wgpuDirectionalSubmitted)
       std::cerr << "directional profile: " << directionalProfileDiagnostic << '\n';
@@ -3231,7 +3342,7 @@ int main()
   std::string cameraDiagnostic;
   multipleCameras = multipleCameras &&
     action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-    coin_render_shadow_single_directional_opaque_profile(
+    coin_render_shadow_single_directional_object_profile(
       cameraFrame, cameraPlan, cameraDiagnostic) &&
     cameraFrame.cameras.size() >= 2 &&
     cameraPlan.passes[0].view == entryView &&
@@ -3326,7 +3437,7 @@ int main()
     perspectiveFrame.shadowGroups.size() == 1 &&
     perspectiveFrame.shadowGroups[0].hasEntryCamera &&
     perspectiveFrame.shadowGroups[0].entryCamera.isPerspective &&
-    coin_render_shadow_single_directional_opaque_profile(
+    coin_render_shadow_single_directional_object_profile(
       perspectiveFrame, perspectivePlan, perspectiveDiagnostic) &&
     perspectivePlan.passes[0].visible;
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
@@ -3470,7 +3581,7 @@ int main()
     customFrame.shadowLights.size() == 1 &&
     customFrame.shadowLights[0].customSceneDirectShape &&
     customPlan.passes.size() == 1 && customPlan.passes[0].casterDraws.size() == 1 &&
-    coin_render_shadow_single_spot_opaque_profile(
+    coin_render_shadow_single_spot_object_profile(
       customFrame, customPlan, customDiagnostic);
   customLight->shadowMapScene = nullptr;
   action.apply(customRoot);
@@ -3490,7 +3601,7 @@ int main()
     subtreePlan.passes.size() == 1 && subtreePlan.passes[0].casterDraws.size() == 2 &&
     std::abs(subtreeFrame.renderStates[subtreeFrame.draws[
       subtreePlan.passes[0].casterDraws[0]].renderStateSlot].model[0][1]) > 0.1f &&
-    coin_render_shadow_single_spot_opaque_profile(
+    coin_render_shadow_single_spot_object_profile(
       subtreeFrame, subtreePlan, subtreeDiagnostic);
   customLight->shadowMapScene = nullptr;
   if (directCustomSceneQualified && lowQualityGpuRequested) {
@@ -4144,7 +4255,7 @@ int main()
       inheritedFrame.shadowGroups[0].entryModel != SbMatrix::identity() &&
       inheritedFrame.shadowLights.size() == 1 &&
       inheritedFrame.shadowLights[0].customSceneDirectSubtree &&
-      coin_render_shadow_opaque_profile(inheritedFrame, inheritedPlan, 1,
+      coin_render_shadow_object_profile(inheritedFrame, inheritedPlan, 1,
                                        inheritedDiagnostic);
     CoinRenderTarget * inheritedTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
     CoinRenderAction inheritedAction(SbViewportRegion(side, side));
@@ -4198,11 +4309,12 @@ int main()
     delete inheritedTarget;
     customRoot->removeChild(entryMove);
   }
+  const bool shadowTransparencyQualified = qualifyShadowTransparency(root);
   customRoot->unref();
   action.setRenderTarget(nullptr);
   delete target;
   if (!publishedOk || !rejected || !preserved || !recovered || !captureOk ||
-      !spotProfile || !smoothBorderQualified || !lowQualitySpotQualified || !transparentExcludedFromFirstProfile || !clippedShadowQualified || !shadowTargetsIndependent || !siblingShadowGroupsQualified || !ordinaryLightQualified || !texturedShadowQualified || !twoLightCaptured ||
+      !shadowTransparencyQualified || !spotProfile || !smoothBorderQualified || !lowQualitySpotQualified || !inconsistentAlphaRejected || !clippedShadowQualified || !shadowTargetsIndependent || !siblingShadowGroupsQualified || !ordinaryLightQualified || !texturedShadowQualified || !twoLightCaptured ||
       !orderedTwoLight || !twoSpotsOk || !twoDirectionalsOk ||
       !lateLightResolved || !lateSpotProfile || !mixedOrderResolved ||
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||

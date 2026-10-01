@@ -290,8 +290,25 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   mediu diferença máxima 496/663 em Coin/GL e nos dois executores (tolerância
   200 nesta cena). Um readback direto do mapa wgpu confirmou branco no lado
   descartado e momentos no lado mantido.
+- [x] **Transparência de material no mecanismo de objetos:** Wiring captura
+  `SoLazyElement::isTransparent()` para todo o array de materiais; Core exclui
+  a forma transparente dos casters, reproduzindo `SoShape::shouldGLRender()`
+  no modo SHADOWMAP. A exclusão independe de `SoShadowStyle` e do modo de
+  transparência. BGFX compõe o shader de receiver com seu pass transparente
+  existente; wgpu duplica mecanicamente os receivers quando a composição
+  deriva um estado para alterar a política de profundidade. A fixture
+  renderizada validou SCREEN_DOOR, ADD, DELAYED_ADD, SORTED_OBJECT_ADD, BLEND,
+  DELAYED_BLEND, SORTED_OBJECT_BLEND, os dois modos de triângulos ordenados e
+  NONE. Para o receiver com transparência 0,5 e uma spot, os deltas máximos
+  Coin/GL/GPU foram 456/474 em SCREEN_DOOR, 237/237 em ADD/BLEND imediato e
+  nos modos ADD adiados, 120/120 em BLEND adiado e 474/474 em NONE, nos dois
+  executores. Alternar CASTS_SHADOW/NO_SHADOWING numa segunda forma
+  transparente preservou pixels idênticos nos três renderizadores, nos dez
+  modos. O perfil admite o mecanismo de objetos e até quatro mapas;
+  peeling/OIT, alfa de textura e um mapa sem nenhum caster opaco ainda
+  exigem qualificação.
 - [ ] **Transparência e qualidade:** qualificar por modo os casters e
-  receivers transparentes e os demais perfis de qualidade. `smoothBorder=1`
+  receivers com alfa de textura, peeling/OIT e os demais perfis de qualidade. `smoothBorder=1`
   passou em Coin/GL, BGFX e wgpu com pixels idênticos a `0`: a suavização
   gaussiana está desativada na implementação Coin/GL atual. O Core aceita
   somente os valores 0 e 1. O subperfil
@@ -414,9 +431,9 @@ referência Coin/GL antes de marcar P27.4 concluído.
   mesmas fixtures Coin/GL. Registrar GPU/API/driver e tolerâncias por célula.
 
 O preflight retorna `UNSUPPORTED` antes de submeter o quadro para grupos
-ativos fora dos perfis opacos qualificados. O perfil atual aceita até oito
+ativos fora dos perfis qualificados de composição por objetos. O perfil atual aceita até oito
 passes spot/direcionais. A quinta, sexta e sétima spots têm comparação
 Coin/GL; a oitava tem readback e publicação verificados nos dois backends,
-mas ainda requer referência GL com oito mapas. Perfis de transparência e
+mas ainda requer referência GL com oito mapas. Alfa de textura, peeling/OIT e
 composição mais ampla continuam na matriz
 P27.4. Nos casos rejeitados, pixels e serial publicados ficam intactos.

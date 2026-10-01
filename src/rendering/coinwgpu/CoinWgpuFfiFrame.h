@@ -27,7 +27,7 @@ public:
 private:
   CoinWgpuFfiFrame(const CoinWgpuFfiFrame &);
   CoinWgpuFfiFrame & operator=(const CoinWgpuFfiFrame &);
-  bool packStates(const CoinRenderFramePlan & frame, const CoinWgpuShadowFrame & shadow,
+  bool packStates(const CoinRenderFramePlan & frame, CoinWgpuShadowFrame & shadow,
                   uint32_t targetWidth, uint32_t targetHeight,
                   std::string & outDiagnostic);
   void bindView(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height);

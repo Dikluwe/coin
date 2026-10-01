@@ -1739,7 +1739,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
     }
     if (!coin_render_plan_shadows(frame, shadowPlan, this->lastError) ||
-        !coin_render_shadow_opaque_profile(frame, shadowPlan,
+        !coin_render_shadow_object_profile(frame, shadowPlan,
           shadowPlan.passes.size(), this->lastError))
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
     if (!bgfxShadowBatchSupported(frame, shadowPlan, this->lastError))
@@ -2168,8 +2168,10 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       bgfx::setState(drawState(draw));
       if (!setDrawScissor(draw, this->width, this->height)) continue;
       this->bindDrawTexture(draw, textures);
-      this->bindDrawLighting(draw);
-      bgfx::submit(transparentView, this->program);
+      if (hasShadows) this->bindShadowReceiver(frame, shadowPlan, shadowMaps.buffers, draw, this->height);
+      else this->bindDrawLighting(draw);
+      bgfx::submit(transparentView, hasShadows ? (shadowPlan.passes.size() > 2 ?
+        this->shadowReceiverProgram4 : this->shadowReceiverProgram) : this->program);
     }
   } else if (useSortedLayers) {
     nextView = opaqueView + this->peelPassCount + 2;
@@ -2603,7 +2605,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
   CoinRenderShadowPlan shadowPlan;
   if (hasShadows) {
     if (!coin_render_plan_shadows(frame, shadowPlan, this->lastError) ||
-        !coin_render_shadow_opaque_profile(frame, shadowPlan,
+        !coin_render_shadow_object_profile(frame, shadowPlan,
           shadowPlan.passes.size(), this->lastError))
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
     if (!bgfxShadowBatchSupported(frame, shadowPlan, this->lastError))
@@ -2870,8 +2872,10 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     bgfx::setState(drawState(draw));
     if (!setDrawScissor(draw, size[0], size[1])) continue;
     this->bindDrawTexture(draw, textures);
-    this->bindDrawLighting(draw, size[1]);
-    bgfx::submit(transparentView, this->program);
+    if (hasShadows) this->bindShadowReceiver(frame, shadowPlan, shadowMaps.buffers, draw, size[1]);
+    else this->bindDrawLighting(draw, size[1]);
+    bgfx::submit(transparentView, hasShadows ? (shadowPlan.passes.size() > 2 ?
+      this->shadowReceiverProgram4 : this->shadowReceiverProgram) : this->program);
   }
   bgfx::frame();
   for (size_t i = 0; i < textures.size(); ++i)
@@ -3034,7 +3038,7 @@ CoinRenderSubmitResult CoinBgfxBackend::preflightRtt(const CoinRenderRttPlan& gr
       CoinRenderShadowPlan shadowPlan;
       std::string diagnostic;
       if (!coin_render_plan_shadows(producer.plan, shadowPlan, diagnostic) ||
-          !coin_render_shadow_opaque_profile(producer.plan, shadowPlan,
+          !coin_render_shadow_object_profile(producer.plan, shadowPlan,
             shadowPlan.passes.size(), diagnostic))
         return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};
       if (!bgfxShadowBatchSupported(producer.plan, shadowPlan, diagnostic))

@@ -104,7 +104,10 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
   CoinWgpuShadowFrame candidateShadow;
   if (!candidateShadow.prepare(frame, outDiagnostic)) return false;
 
-  if (reuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH &&
+  // The Rust camera patch owns only the standard immutable payload; shadow
+  // casters/receivers must be transported through the full validated path.
+  if (frame.shadowGroups.empty() &&
+      reuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH &&
       frame.revision != 0 && frame.revision != reuse.baseRevision &&
       reuse.baseRevision != 0 && reuse.baseRevision == this->packedRevision) {
     const auto previousDraws = this->draws;
@@ -183,7 +186,7 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
 
 bool
 CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame,
-                             const CoinWgpuShadowFrame & shadow,
+                             CoinWgpuShadowFrame & shadow,
                              uint32_t targetWidth, uint32_t targetHeight,
                              std::string & outDiagnostic)
 {
@@ -361,6 +364,7 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame,
       resolved.depth_range[1] = item.depthRange[1];
       dst.render_state_slot = static_cast<uint32_t>(this->states.size());
       this->states.push_back(resolved);
+      shadow.appendReceiverState(src.renderStateSlot);
     }
     resolvedDraws.push_back(dst);
   }

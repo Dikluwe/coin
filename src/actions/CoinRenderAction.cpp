@@ -657,7 +657,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
         (this->sceneTexturePlan->mode == COIN_RENDER_SCENE_TEXTURE_STAGED ||
          this->sceneTexturePlan->mode == COIN_RENDER_SCENE_TEXTURE_DIRECT)) {
       std::string profileDiagnostic;
-      executableShadow = coin_render_shadow_opaque_profile(
+      executableShadow = coin_render_shadow_object_profile(
         plan, shadowPlan, shadowPlan.passes.size(), profileDiagnostic);
     }
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
@@ -666,7 +666,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
         (!this->target->getPimpl()->backend ||
          dynamic_cast<CoinWgpuBackend *>(this->target->getPimpl()->backend.get()))) {
       std::string profileDiagnostic;
-      executableShadow = coin_render_shadow_opaque_profile(
+      executableShadow = coin_render_shadow_object_profile(
         plan, shadowPlan, shadowPlan.passes.size(), profileDiagnostic);
     }
 #endif
@@ -676,7 +676,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
         (!this->target->getPimpl()->backend ||
          dynamic_cast<CoinBgfxBackend *>(this->target->getPimpl()->backend.get()))) {
       std::string profileDiagnostic;
-      executableShadow = coin_render_shadow_opaque_profile(
+      executableShadow = coin_render_shadow_object_profile(
         plan, shadowPlan, shadowPlan.passes.size(), profileDiagnostic);
     }
 #endif

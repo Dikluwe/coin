@@ -771,6 +771,7 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   rs.view = camSnap.viewMatrix;
   rs.projectionCoin = camSnap.projectionMatrixCoin;
   rs.materialSlot = materialSlot;
+  rs.transparentMaterial = SoLazyElement::getInstance(state)->isTransparent() != FALSE;
   rs.shadowGroupSlot = this->activeShadowGroupSlot();
   if (rs.shadowGroupSlot) rs.shadowStyle = static_cast<uint32_t>(SoShadowStyleElement::get(state));
   rs.lightingSlot = lightingSlot;
@@ -840,6 +841,7 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
         existing.materialSlot == materialSlot &&
         existing.shadowGroupSlot == rs.shadowGroupSlot &&
         existing.shadowStyle == rs.shadowStyle &&
+        existing.transparentMaterial == rs.transparentMaterial &&
         existing.lightingSlot == lightingSlot &&
         existing.lightModel == rs.lightModel &&
         existing.transparencyType == rs.transparencyType &&
