@@ -3,10 +3,14 @@ SAMPLER2D(s_texColor, 2);
 SAMPLER2D(s_texColor1, 3);
 SAMPLER2D(s_texColor2, 4);
 SAMPLER2D(s_texColor3, 5);
+// The eight-map shadow profile forbids extra scene texture units. Removing
+// unused declarations keeps reflection within BGFX's sixteen-sampler limit.
+#ifndef COIN_SHADOW_EIGHT
 SAMPLER2D(s_texColor4, 6);
 SAMPLER2D(s_texColor5, 7);
 SAMPLER2D(s_texColor6, 8);
 SAMPLER2D(s_texColor7, 9);
+#endif
 uniform vec4 u_texParams[8];
 uniform vec4 u_texBlend[8];
 uniform vec4 u_texCombine[32];
@@ -93,6 +97,7 @@ vec4 coinSurfaceColor(vec2 pixelCoord, vec4 v_color0, vec2 v_texcoord0, vec3 v_v
     color = coinTextureProgram(primary, color, texture2D(s_texColor2, coinSurfaceUv(v_texcoords4.zw, u_texParams[2])), u_texParams[2], u_texBlend[2], 2);
   if (u_texParams[3].x > 0.5)
     color = coinTextureProgram(primary, color, texture2D(s_texColor3, coinSurfaceUv(v_texcoords5.xy, u_texParams[3])), u_texParams[3], u_texBlend[3], 3);
+#ifndef COIN_SHADOW_EIGHT
   if (u_texParams[4].x > 0.5)
     color = coinTextureProgram(primary, color, texture2D(s_texColor4, coinSurfaceUv(v_texcoords5.zw, u_texParams[4])), u_texParams[4], u_texBlend[4], 4);
   if (u_texParams[5].x > 0.5)
@@ -101,6 +106,7 @@ vec4 coinSurfaceColor(vec2 pixelCoord, vec4 v_color0, vec2 v_texcoord0, vec3 v_v
     color = coinTextureProgram(primary, color, texture2D(s_texColor6, coinSurfaceUv(v_texcoords6.zw, u_texParams[6])), u_texParams[6], u_texBlend[6], 6);
   if (u_texParams[7].x > 0.5)
     color = coinTextureProgram(primary, color, texture2D(s_texColor7, coinSurfaceUv(v_texcoords7.xy, u_texParams[7])), u_texParams[7], u_texBlend[7], 7);
+#endif
   float mode = u_fogColorMode.w;
   if (mode < 0.5) return color;
   float distanceToEye = max(-v_viewPosition.z, 0.0);

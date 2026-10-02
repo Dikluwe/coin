@@ -141,6 +141,8 @@ protected:
   void endTraversal(SoNode * node) override;
 
 private:
+  friend class SoShadowGroupP;
+  unsigned int getShadowPeelDepthTexture(void) const;
   SbPimplPtr<SoGLRenderActionP> pimpl;
 
   SoGLRenderAction(const SoGLRenderAction & rhs);

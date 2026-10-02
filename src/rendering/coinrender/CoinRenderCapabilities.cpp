@@ -282,7 +282,7 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
 #endif
 
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-  result.implemented_mechanisms = COIN_RENDER_MECHANISM_OBJECT | COIN_RENDER_MECHANISM_PEELING;
+  result.implemented_mechanisms = COIN_RENDER_MECHANISM_OBJECT | COIN_RENDER_MECHANISM_PEELING | COIN_RENDER_MECHANISM_WEIGHTED_OIT;
   if (result.gpu_available) {
     CoinWgpuRuntimeCapabilities runtime{};
     const auto status = coin_wgpu_query_runtime_capabilities(&runtime, sizeof(runtime));

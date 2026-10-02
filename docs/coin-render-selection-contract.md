@@ -38,14 +38,14 @@ troca esse runtime compartilhado nem aplica fallback para outro renderer.
 | COIN | Preserva a modalidade Coin capturada; não escolhe OIT pelo número de draws. |
 | OBJECT | Executa as modalidades de objetos; rejeita SORTED_LAYERS_BLEND. |
 | PEELING | Extensão explícita que usa camadas para source-over adiado da camada base. |
-| WEIGHTED_OIT | Aproximação explícita BGFX para esse subconjunto de draws; CPU/wgpu rejeitam quando exigida. |
+| WEIGHTED_OIT | Aproximação explícita BGFX/wgpu para esse subconjunto de draws; CPU rejeita quando exigida. |
 
 Passagens imediatas, aditivas e anotações conservam o contrato P09. Sem draws
 elegíveis, o caminho de objetos é suficiente; escolher uma extensão não exige
 alocar seus attachments para um frame opaco. Peeling conserva o orçamento e
 os limites P10. O modo integra a igualdade/invalidação do plano. Os alvos filhos
-staged e diretos herdam as opções do pai. Isso não amplia o suporte da rota
-direta BGFX a peeling, delimitada em P12/P13.
+staged e diretos herdam as opções do pai. A rota direta BGFX reutiliza peeling/OIT com attachments privados, qualificados
+com sombras em P27.4.
 
 ## Capacidades versão 3
 
@@ -57,7 +57,7 @@ prefixo correspondente, sem escrever além dele. V3 acrescenta:
   nativo. D24S8 não é conhecido no wgpu; Depth24PlusStencil8 não certifica esse
   formato físico. Zero só significa ausência quando o bit de conhecimento está presente.
 - `implemented_mechanisms`: o que o conector implementa, independentemente do
-  adaptador. CPU/wgpu oferecem objetos e peeling; BGFX acrescenta weighted OIT.
+  adaptador. CPU oferece objetos e peeling; BGFX/wgpu acrescentam weighted OIT.
 - `available_mechanisms`: mecanismos executáveis após o probe. No wgpu, formatos
   usados na execução consideram as features habilitadas no device, separadas
   das possibilidades físicas do adaptador.

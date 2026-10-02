@@ -2,8 +2,8 @@
 
 CoinRender oferece peeling configurável de **1 a 8 camadas**, com padrão de
 quatro. CPU, CoinBgfx e CoinWgpu compartilham a política sobre o frame capturado;
-cada Infra executa seu mecanismo. Weighted OIT é uma extensão explícita do
-BGFX. O perfil wgpu oferece peeling; não há seleção automática de weighted OIT.
+cada Infra executa seu mecanismo. Weighted OIT é uma extensão explícita de
+CoinBgfx e CoinWgpu; não há seleção automática de weighted OIT.
 
 ## Donos e configuração
 
@@ -23,7 +23,7 @@ Esse orçamento não mede toda a memória do dispositivo: geometria, texturas,
 alvos principais, tickets, overhead do driver e alocadores CPU estão fora dele.
 Não é um limite agregado de todos os alvos ou de todas as texturas de cena.
 A CPU mantém no máximo N fragmentos por pixel, mas o armazenamento dos vetores
-tem overhead próprio. Na extensão BGFX weighted OIT, a estimativa comum é
+tem overhead próprio. Na extensão weighted OIT, a estimativa comum é
 `width * height * 24`, independente da contagem configurada de peeling.
 
 ## Contrato das camadas
@@ -49,14 +49,15 @@ teste desativado e GREATER. BGFX limita a camada base a test=true, write=false,
 LESS/LEQUAL/NEVER: outros estados são rejeitados antes da submissão, preservando
 o resultado anterior. Os overrides dos outros modos e anotações seguem P09.
 
-A revisão privada wgpu é **28**. `CoinWgpuFrameView` passa de 160 para 176 bytes:
+A revisão privada wgpu atual é **41**; o layout de orçamento introduzido na
+revisão 28 permanece. `CoinWgpuFrameView` passa de 160 para 176 bytes:
 contagem em 160, reservado zero em 164 e orçamento uint64 em 168. Vértice de
 100 bytes, estado de 2280 e draw de 56 permanecem. C++ e Rust devem ser
 reconstruídos juntos; a ABI pública de libCoin não muda. O bridge verifica sua
 alocação física `width * height * (13 * layers + 4)` também para chamadas diretas
 da ABI privada. Esse controle concreto não reinterpreta o estado Coin.
 
-## Extensão weighted OIT BGFX
+## Extensão weighted OIT
 
 `COIN_BGFX_TRANSPARENCY=auto` preserva a modalidade Coin. A seleção explícita
 `weighted_oit` acumula apenas source-over adiado da camada base; draws imediatos
@@ -68,8 +69,9 @@ Para alpha A e depth normalizado d, o peso é
 `min(8, 8*A + .01) * min(16, 16*(1-d)^3 + .1)`. Acumulam-se RGB*A*peso e
 A*peso; a revelação é o produto de `(1-A)`. A cor média ponderada usa opacity
 `1-revelação` e source-over sobre a passagem opaca. É uma aproximação declarada,
-não um substituto silencioso de SORTED_LAYERS_BLEND. O orçamento fixo e o teste
-numérico da extensão não transformam weighted OIT em capacidade do wgpu.
+não um substituto silencioso de SORTED_LAYERS_BLEND. CoinWgpu executa o mesmo cálculo com dois attachments e resolve separado.
+A seleção tipada `CoinRenderOptions::transparency=COIN_RENDER_TRANSPARENCY_WEIGHTED_OIT` vale nos dois
+executores; CPU continua rejeitando essa extensão.
 
 ## Qualificação local — 2026-09-28
 
@@ -101,6 +103,25 @@ resize. Nenhuma das duas campanhas retornou skip. Rust offline passou
 
 O [contrato P11](coin-render-selection-contract.md) oferece capacidades e seleção tipadas. FreeCAD, drivers
 adicionais, MSAA, polygon offset/clamp e viewports parcialmente externos exigem
-suas campanhas próprias. A rota direta BGFX de textura de cena ainda usa OBJECT;
-sua ampliação pertence a P12/P13. Este fechamento não qualifica peeling BGFX
-nessa rota direta, nem encerra o contrato integral de todas as luzes de P02.
+suas campanhas próprias. A rota direta BGFX reutiliza os compositores com anexos próprios;
+peeling/OIT staged e direct agora estão qualificados com sombras no perfil
+[P27.4](coin-render-p27-shadows.md). Isso não encerra todos os perfis de P02.
+
+## Qualificação com sombras — 2026-10-02
+
+Peeling e weighted OIT executam com 1–8 mapas no perfil PHONG de P27.4,
+com material, textura alfa e RTT ALPHA_BLEND staged/direct.
+`CoinRenderShadowReferenceTest --shadow-oit N M` usa M=1 para peeling e M=2
+para weighted OIT, com referência GL obrigatória para a recepção de sombras.
+`CoinRenderPeelingTest --shadow N M` mede independentemente a composição
+de seis superfícies, ordem invertida, materiais por face, truncamento 2/8,
+oclusão e rejeição/recuperação do orçamento. Weighted OIT permanece aproximação
+explícita; seu oráculo numérico não é SORTED_LAYERS_BLEND do GL.
+
+BGFX usa entradas distintas da paleta para limpar VSM e os anexos de
+transparência. Sua variante de oito mapas retira samplers de unidades da cena
+proibidas pelo perfil, preservando o limite de dezesseis samplers de reflexão.
+O shader de sombras Coin/GL agora executa o descarte pela profundidade da
+camada anterior quando substitui o programa ARB de peeling; a fixture seleciona
+SORTED_LAYERS_BLEND na action GL e rejeita fallback. Oito mapas GL nativos
+continuam pendentes em outro contexto, conforme o tracker de plataformas.

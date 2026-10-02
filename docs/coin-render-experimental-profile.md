@@ -106,7 +106,7 @@ Resultados e comandos reproduzíveis estão em
 | Materiais | `BASE_COLOR`, iluminação e alpha uniforme por draw; onze modalidades Coin no perfil P09, inclusive strokes; camadas e orçamento no perfil P10 | Matriz geral de alpha heterogêneo por vértice e bindings P05 |
 | Luzes | Direcional, pontual e spot, até oito ativas por draw | Excesso de oito luzes deve retornar `UNSUPPORTED` |
 | Textura | `SoTexture2` nas unidades 0–7, UV explícita, SoTextureCombine (P08), 1–4 componentes no perfil legado incluindo alpha de imagem, `MODULATE`/`REPLACE`/`DECAL`/`BLEND`, `REPEAT`/`CLAMP`, qualidade 0 ou 0,5 | UV procedural/default; formatos/qualidade ampliados em P07 |
-| Composição | Onze modalidades resolvidas no Core, sorting de triângulos, screen door e peeling de 1..8 camadas por pixel e orçamento configurável; defaults/overrides de depth comuns | Peeling BGFX rejeita escrita transparente explícita e testes fora de LESS/LEQUAL/NEVER; weighted OIT é extensão explícita BGFX, não oferecida pelo wgpu |
+| Composição | Onze modalidades resolvidas no Core, sorting de triângulos, screen door e peeling de 1..8 camadas por pixel e orçamento configurável; defaults/overrides de depth comuns | Peeling BGFX rejeita escrita transparente explícita e testes fora de LESS/LEQUAL/NEVER; weighted OIT é extensão explícita BGFX/wgpu |
 | Ambiente | Fog `NONE`, `HAZE`, `FOG` e `SMOKE` em distância de view space; fog depois de luz/textura e antes da composição, sem alterar alpha | Fórmulas ou estados de fog fora desses quatro modos |
 | Raster | Front face e backface culling de `SoShapeHints` em triângulos, inclusive reflexão | Culling de linhas/pontos (não aplicável ao pipeline dessas topologias) |
 | Alvos | Offscreen com cor/profundidade; janelas X11 e Wayland nativo no backend Rust, com Wayland exercitado em Weston/RADV; Win32, AppKit/Metal e Android/NDK preparados para validação nativa; readback síncrono atômico; `applyAsync` com ticket e query/poll/cancel; `SoSceneTexture2` RGBA8 staged por padrão e GPU→GPU direto opt-in em offscreen Rust | Outros formatos/estados de `SoSceneTexture2`, RTT direto de janela, readback assíncrono de janela, qualificação física de Windows/macOS e matriz Wayland ampliada |
@@ -358,7 +358,7 @@ tamanhos de vértice/estado/draw da revisão 26 registrada em P08.
 O [contrato P09](coin-render-transparency-contract.md) declara as comparações
 GL e as expectativas numéricas de alpha. O [contrato P10](coin-render-peeling-contract.md)
 amplia o peeling para 1..8 camadas, orçamento, precisão/alpha zero e depth;
-qualifica weighted OIT como extensão explícita BGFX e declara wgpu com peeling.
+qualifica weighted OIT como extensão explícita BGFX/wgpu; sombras com peeling/OIT estão delimitadas em P27.4.
 FreeCAD, raster ampliado e native/Dawn continuam fora desses fechamentos.
 
 ## P11 — seleção e capacidades

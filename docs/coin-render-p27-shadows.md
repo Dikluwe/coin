@@ -318,7 +318,7 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   quatro receivers e seus estados de profundidade derivados. A extensão de
   cinco a oito mapas está qualificada na caixa abaixo; uma nona luz é rejeitada
   antes de publicar o quadro. O perfil admite o mecanismo de objetos e até oito mapas;
-  peeling/OIT ainda exige qualificação. A fixture também
+  peeling/OIT está qualificado no perfil descrito abaixo. A fixture também
   repetiu os dez modos sem nenhum caster opaco; a exclusão manteve pixels
   idênticos em Coin/GL e nos dois backends.
 - [x] **Mapas sem casters:** Core conserva o pass e a recepção quando a
@@ -403,7 +403,38 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   e `COIN_RENDER_REQUIRE_GL_REFERENCE=1`; sem executor explícito, os testes
   retornam skip 77. No contexto externo capaz de criar oito mapas Coin/GL,
   `COIN_RENDER_REQUIRE_GL_EIGHT_MAP_REFERENCE=1` desativa o oráculo equivalente.
-- [ ] **Transparência e qualidade:** qualificar `ALPHA_TEST`, peeling/OIT e os demais perfis de qualidade. `smoothBorder=1`
+- [x] **Peeling/OIT com sombras:** BGFX/Vulkan, BGFX/OpenGL e wgpu executam
+  os dois mecanismos com até oito mapas. A matriz registrada cobre 1, 4 e 8
+  mapas, alfa de material/textura estática/RTT e produtores RTT staged/direct.
+  Peeling conserva o contrato limitado de camadas; weighted OIT é extensão
+  explícita nos dois executores e usa o mesmo peso numérico, acumulação e
+  revelação. O Core mantém classificação, exclusão dos casters transparentes,
+  ordenação e orçamento; a Infra soma toda a iluminação antes da superfície
+  e executa o compositor. BGFX reutiliza esses compositores no RTT direto com
+  anexos locais, dimensões e IDs de view explícitos. A revisão privada wgpu 41
+  acrescenta o flag de execução weighted; os limites também são validados na
+  ABI Rust e o profiling encerra o intervalo no resolve.
+  Foram corrigidos dois mecanismos da referência/execução: o shader GLSL de
+  sombras Coin/GL precisa descartar as profundidades anteriores porque substitui
+  o programa ARB de peeling; no BGFX, a paleta de limpeza dos mapas VSM não
+  pode ser sobrescrita pelos anexos de transparência. Oito mapas com peeling
+  retiram samplers de texturas extras que o perfil proíbe, evitando ultrapassar
+  os dezesseis samplers da reflexão BGFX.
+  `CoinRenderShadowOitN_MTest` verifica recepção, particionamento das luzes,
+  casters, aditivos após o compositor, mutação, falha e recuperação; M=1 peeling, M=2 weighted.
+  `CoinRenderShadowLayersN_MTest` usa expectativas numéricas independentes
+  para seis superfícies, ordem invertida, materiais por face, limite de 2/8
+  camadas, oclusão e orçamento insuficiente sem alteração de pixels/serial.
+  O peeling de material/textura estática mede deltas GL/GPU 231/237 e 168/171
+  com tolerância 30; RTT usa tolerância 120 (222/138). Weighted tem sua matriz
+  numérica própria, incluindo alfa extremo e draws aditivos; não exige igualdade
+  com o algoritmo de peeling GL. A referência nativa GL de oito mapas continua
+  pendente: este host usa sete luzes coincidentes de mesma intensidade total.
+  Validação local: 12/12 casos da matriz final em cada rota BGFX/Vulkan,
+  BGFX/OpenGL e wgpu; regressões relacionadas 40/40 BGFX e 28/28 wgpu,
+  sem skips, mais 18 testes unitários Rust. A matriz final inclui o teste
+  aditivo acrescentado depois da campanha de regressão.
+- [ ] **Transparência e qualidade:** qualificar `ALPHA_TEST` e os demais perfis de qualidade. `smoothBorder=1`
   passou em Coin/GL, BGFX e wgpu com pixels idênticos a `0`: a suavização
   gaussiana está desativada na implementação Coin/GL atual. O Core aceita
   somente os valores 0 e 1. O subperfil
@@ -533,7 +564,7 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   o protocolo existente de `TARGET_ERROR` até sua reconfiguração.
   A execução focada está em `CoinRenderShadowReferenceTest --composition`;
   é necessário exigir a referência GL e o executor GPU pelos mesmos flags
-  da suíte completa. Alfa RTT fora do perfil acima, peeling/OIT, a referência GL com oito mapas e
+  da suíte completa. Alfa RTT fora do perfil acima, a referência GL com oito mapas e
   combinações além deste perfil permanecem nas caixas correspondentes.
 
 Cada caixa acima requer uma fixture renderizada nos dois executores e sua
@@ -577,5 +608,5 @@ passes spot/direcionais. A quinta, sexta e sétima spots têm comparação
 Coin/GL; a oitava tem readback e publicação verificados nos dois backends,
 mas ainda requer referência GL com oito mapas. Alfa RTT NONE/ALPHA_BLEND
 está qualificado até oito mapas, incluindo alfa de material e textura estática;
-ALPHA_TEST, peeling/OIT e combinações além dos perfis descritos continuam na matriz
+ALPHA_TEST e combinações além dos perfis descritos continuam na matriz
 P27.4. Nos casos rejeitados, pixels e serial publicados ficam intactos.

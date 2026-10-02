@@ -15,6 +15,8 @@
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/nodes/SoEnvironment.h>
+#include <Inventor/annex/FXViz/nodes/SoShadowGroup.h>
+#include <Inventor/annex/FXViz/nodes/SoShadowDirectionalLight.h>
 #include <Inventor/nodes/SoTexture2.h>
 #include <Inventor/nodes/SoTextureCombine.h>
 #include <Inventor/nodes/SoTextureCoordinate2.h>
@@ -54,7 +56,7 @@ struct Scene {
   Color background = {{.12f, .2f, .3f, 1}};
   Scene(const std::vector<float>& alphas, bool reverse = false, bool singleShape = false,
         float spacing = .25f, bool lighting = false, bool combine = false, float opaqueZ = -3,
-        bool opaqueWrite = true, bool withOpaque = true) {
+        bool opaqueWrite = true, bool withOpaque = true, unsigned shadowMaps = 0) {
     root->ref();
     auto* camera = new SoOrthographicCamera;
     camera->height = 2;
@@ -69,11 +71,12 @@ struct Scene {
     environment->ambientIntensity = 0;
     root->addChild(environment);
     if (lighting) {
-      auto* light = new SoDirectionalLight;
+      SoDirectionalLight* light = shadowMaps ? new SoShadowDirectionalLight : new SoDirectionalLight;
       light->direction = SbVec3f(0, 0, -1);
       light->color = SbColor(.5f, .75f, 1);
-      light->intensity = .5f;
+      light->intensity = .5f / std::max(1u, shadowMaps);
       root->addChild(light);
+      for (unsigned i = 1; i < shadowMaps; ++i) root->addChild(light->copy(TRUE));
     }
     for (size_t i = 0; i < alphas.size(); ++i) {
       Color color = {
@@ -159,11 +162,16 @@ struct Scene {
     auto* opaque = new SoSeparator;
     root->addChild(opaque);
     auto* base = new SoLightModel;
-    base->model = SoLightModel::BASE_COLOR;
+    base->model = shadowMaps ? SoLightModel::PHONG : SoLightModel::BASE_COLOR;
     opaque->addChild(base);
     auto* material = new SoMaterial;
     material->diffuseColor = SbColor(background[0], background[1], background[2]);
+    material->ambientColor = SbColor(0, 0, 0);
+    material->specularColor = SbColor(0, 0, 0);
     opaque->addChild(material);
+    if (shadowMaps) {
+      background[0] *= .25f; background[1] *= .375f; background[2] *= .5f;
+    }
     if (!opaqueWrite) {
       auto* depth = new SoDepthBuffer;
       depth->write = FALSE;
@@ -172,6 +180,15 @@ struct Scene {
     const SbVec3f triangle[] = {SbVec3f(-.9f, -.9f, opaqueZ), SbVec3f(.9f, -.9f, opaqueZ),
                                 SbVec3f(0, .9f, opaqueZ)};
     geometry(opaque, triangle, 3, {0, 1, 2, -1});
+    if (shadowMaps) {
+      auto* shadows = new SoShadowGroup;
+      shadows->quality = 1;
+      while (root->getNumChildren() > 1) {
+        shadows->addChild(root->getChild(1));
+        root->removeChild(1);
+      }
+      root->addChild(shadows);
+    }
   }
   ~Scene() { root->unref(); }
   static void geometry(SoGroup* group, const SbVec3f* points, int count,
@@ -202,7 +219,8 @@ struct Runner {
   std::unique_ptr<CoinRenderTarget> target{CoinRenderTarget::createOffscreen(SbVec2i32(64, 64))};
   CoinRenderAction action{SbViewportRegion(64, 64)};
   bool cpu;
-  Runner(bool cpu) : cpu(cpu) {
+  Runner(bool cpu, CoinRenderOptions options = {}) : cpu(cpu) {
+    target.reset(CoinRenderTarget::createOffscreen(SbVec2i32(64, 64), options));
     if (cpu)
       target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
     action.setRenderTarget(target.get());
@@ -406,7 +424,7 @@ bool matrix(bool cpu) {
   runner.action.setTransparencyBufferBudget(required);
   return runner.render(valid, 4, valid.expected(4));
 }
-#ifdef HAVE_COIN_BGFX
+#if defined(HAVE_COIN_BGFX) || defined(HAVE_COIN_WGPU_RUST_BRIDGE)
 Color weightedExpected(const Scene& scene, int visible = -1) {
   if (visible < 0)
     visible = int(scene.colors.size());
@@ -429,8 +447,40 @@ Color weightedExpected(const Scene& scene, int visible = -1) {
   accum[3] = opacity;
   return over(accum, scene.background);
 }
+bool shadowMatrix(bool weighted, unsigned maps) {
+  CoinRenderOptions options;
+  options.transparency = weighted ? COIN_RENDER_TRANSPARENCY_WEIGHTED_OIT : COIN_RENDER_TRANSPARENCY_PEELING;
+  Runner runner(false, options);
+  runner.action.setTransparencyType(weighted ? CoinRenderAction::SORTED_OBJECT_BLEND : CoinRenderAction::SORTED_LAYERS_BLEND);
+  for (bool reverse : {false, true}) for (bool single : {false, true}) {
+    Scene layers({.15f, .3f, .5f, .75f, .2f, .4f}, reverse, single, .25f, true, false, -3, true, true, maps);
+    if (!runner.render(layers, 8, weighted ? weightedExpected(layers) : layers.expected(8))) return false;
+    Scene occluded({.25f, .25f, .25f, .25f, .25f, .25f}, reverse, single, .25f, true, false, 1.875f, true, true, maps);
+    if (!runner.render(occluded, 8, weighted ? weightedExpected(occluded, 5) : occluded.expected(8, 5))) return false;
+    Scene bounded({.15f, .3f, .5f, .75f, .2f, .4f}, reverse, single, .25f, true, false, -3, true, true, maps);
+    if (!runner.render(bounded, 2, weighted ? weightedExpected(bounded) : bounded.expected(2))) return false;
+  }
+  Scene valid({.25f, .5f, .75f}, false, false, .25f, true, false, -3, true, true, maps);
+  if (!runner.render(valid, 4, weighted ? weightedExpected(valid) : valid.expected(4))) return false;
+  std::vector<uint8_t> before, after;
+  runner.target->readbackRGBA(before);
+  const uint64_t serial = runner.target->getLastSubmissionSerial();
+  const uint64_t budget = runner.action.getTransparencyBufferBudget();
+  runner.action.setTransparencyBufferBudget(1);
+  runner.action.apply(valid.root);
+  runner.target->readbackRGBA(after);
+  if (!check(runner.action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+      runner.target->getLastSubmissionSerial() == serial && before == after,
+      "shadow transparency budget preserves published result")) return false;
+  runner.action.setTransparencyBufferBudget(budget);
+  if (!runner.render(valid, 4, weighted ? weightedExpected(valid) : valid.expected(4))) return false;
+  std::cout << "shadow numeric layers/occlusion/order maps=" << maps << " weighted=" << weighted << " passed\n";
+  return true;
+}
 bool weightedMatrix() {
-  Runner runner(false);
+  CoinRenderOptions options;
+  options.transparency = COIN_RENDER_TRANSPARENCY_WEIGHTED_OIT;
+  Runner runner(false, options);
   runner.action.setTransparencyType(CoinRenderAction::SORTED_OBJECT_BLEND);
   for (int fast : {0, 1}) {
     runner.action.setFastPathEnabled(fast ? TRUE : FALSE);
@@ -496,13 +546,23 @@ bool budgetCore() {
 int main(int argc, char** argv) {
   SoDB::init();
   CoinRenderAction::initClass();
+  if (argc == 4 && std::string(argv[1]) == "--shadow") {
+#if defined(HAVE_COIN_BGFX) || defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+    if (!CoinRenderAction::isGpuBackendAvailable()) return 77;
+    const unsigned maps = std::atoi(argv[2]);
+    if (maps < 1 || maps > 8) return 1;
+    return shadowMatrix(std::atoi(argv[3]) == 2, maps) ? 0 : 1;
+#else
+    return 77;
+#endif
+  }
   if (argc == 2 && std::string(argv[1]) == "--weighted") {
-#ifdef HAVE_COIN_BGFX
+#if defined(HAVE_COIN_BGFX) || defined(HAVE_COIN_WGPU_RUST_BRIDGE)
     if (!CoinRenderAction::isGpuBackendAvailable())
       return 77;
     if (!weightedMatrix())
       return 1;
-    std::cout << "P10 BGFX weighted-OIT numeric matrix passed\n";
+    std::cout << "weighted-OIT numeric matrix passed\n";
     return 0;
 #else
     return 77;

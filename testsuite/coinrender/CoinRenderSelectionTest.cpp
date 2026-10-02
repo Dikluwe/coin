@@ -166,7 +166,7 @@ bool renderModes(bool cpu) {
                                    : CoinRenderAction::SORTED_OBJECT_BLEND);
     action.apply(root);
     bool implemented = mode != COIN_RENDER_TRANSPARENCY_WEIGHTED_OIT;
-#ifdef HAVE_COIN_BGFX
+#if defined(HAVE_COIN_BGFX) || defined(HAVE_COIN_WGPU_RUST_BRIDGE)
     if (!cpu)
       implemented = true;
 #endif

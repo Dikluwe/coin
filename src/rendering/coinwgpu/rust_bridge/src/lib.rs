@@ -21,8 +21,9 @@ mod composition;
 mod peeling;
 mod shadow;
 mod shadow_receiver;
+mod weighted;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 40;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 41;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
@@ -638,6 +639,7 @@ static WGSL_POINT_SHADER: &str = include_str!("../../shaders/coin_point.wgsl");
 #[derive(Hash, PartialEq, Eq, Clone, Debug)]
 struct PipelineKey {
     eight_shadows: bool,
+    weighted: bool,
     topology: u32,
     color_format: wgpu::TextureFormat,
     depth_format: wgpu::TextureFormat,
@@ -1525,21 +1527,21 @@ fn get_or_init_device_impl<'a>(
 
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("coin_standard.wgsl"),
-        source: wgpu::ShaderSource::Wgsl(WGSL_SHADER.into()),
+        source: wgpu::ShaderSource::Wgsl(format!("{}{}",WGSL_SHADER,weighted::FRAGMENT).into()),
     });
 
     let shadow_eight_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("Coin eight shadow receivers"),
-        source: wgpu::ShaderSource::Wgsl(shadow_receiver::eight_map_source().into()),
+        source: wgpu::ShaderSource::Wgsl(format!("{}{}",shadow_receiver::eight_map_source(),weighted::FRAGMENT).into()),
     });
     let line_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("coin_line.wgsl"),
-        source: wgpu::ShaderSource::Wgsl(WGSL_LINE_SHADER.into()),
+        source: wgpu::ShaderSource::Wgsl(format!("{}{}",WGSL_LINE_SHADER,weighted::FRAGMENT).into()),
     });
 
     let point_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("coin_point.wgsl"),
-        source: wgpu::ShaderSource::Wgsl(WGSL_POINT_SHADER.into()),
+        source: wgpu::ShaderSource::Wgsl(format!("{}{}",WGSL_POINT_SHADER,weighted::FRAGMENT).into()),
     });
 
     let storage_visibility = if device.limits().max_storage_buffers_per_shader_stage >= 1 {
@@ -2157,6 +2159,7 @@ fn get_or_create_pipeline<'a>(
     depth_bias: wgpu::DepthBiasState,
     resolved_depth_bias: bool,
     eight_shadows: bool,
+    weighted: bool,
 ) -> Result<wgpu::RenderPipeline, String> {
     let mut map = ctx.pipelines.lock().map_err(|e| e.to_string())?;
 
@@ -2169,7 +2172,7 @@ fn get_or_create_pipeline<'a>(
     };
 
     let key = PipelineKey {
-        eight_shadows, topology,
+        eight_shadows, weighted, topology,
         color_format,
         depth_format,
         sample_count: 1,
@@ -2271,6 +2274,15 @@ fn get_or_create_pipeline<'a>(
         }),
         write_mask: wgpu::ColorWrites::ALL,
     })];
+    if weighted {
+        let additive=wgpu::BlendComponent { src_factor:wgpu::BlendFactor::One,
+            dst_factor:wgpu::BlendFactor::One,operation:wgpu::BlendOperation::Add };
+        color_targets[0].as_mut().unwrap().blend=Some(wgpu::BlendState{color:additive,alpha:additive});
+        let reveal=wgpu::BlendComponent { src_factor:wgpu::BlendFactor::Zero,
+            dst_factor:wgpu::BlendFactor::OneMinusSrc,operation:wgpu::BlendOperation::Add };
+        color_targets.push(Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::R16Float,
+            blend:Some(wgpu::BlendState{color:reveal,alpha:reveal}),write_mask:wgpu::ColorWrites::ALL}));
+    }
     if peel {
         color_targets.push(Some(wgpu::ColorTargetState {
             format: wgpu::TextureFormat::R8Unorm,
@@ -2291,7 +2303,7 @@ fn get_or_create_pipeline<'a>(
             },
             fragment: Some(wgpu::FragmentState {
                 module: selected_shader,
-                entry_point: Some(if peel {
+                entry_point: Some(if weighted { "fs_weighted" } else if peel {
                     "fs_peel"
                 } else if resolved_depth_bias {
                     "fs_depth_bias"
@@ -2400,6 +2412,9 @@ fn encode_frame(
             "Peeling lacks enabled device formats/attachments; no fallback was applied".into(),
         ));
     }
+    if draw_order.iter().any(|item| item.weighted) && !weighted::device_supported(&ctx.device) {
+        return Err((CoinWgpuStatus::Unsupported,"Weighted OIT lacks enabled formats/attachments; no fallback was applied".into()));
+    }
     // Composition was preflighted before surface acquisition or target allocation.
     if let Some(shadow) = shadow_frame {
         let features = ctx.adapter.get_texture_format_features(wgpu::TextureFormat::Rgba32Float);
@@ -2410,7 +2425,6 @@ fn encode_frame(
                 "Rgba32Float shadow maps are unavailable on this device".into()));
         }
         if shadow.receivers.len() != states_slice.len()
-            || draw_order.iter().any(|item| item.peel)
             || draws_slice.iter().any(|draw| draw.render_state_slot as usize >= shadow.receivers.len()) {
             return Err((CoinWgpuStatus::InvalidArgument,
                 "Shadow receivers do not match render states or composition".into()));
@@ -3087,6 +3101,8 @@ fn encode_frame(
             peel_passes as usize,
         )
     });
+    let weighted=draw_order.iter().any(|item|item.weighted).then(||
+        weighted::Weighted::new(&ctx.device,target_width,target_height,color_format));
     let passes = composition::passes(draw_order, draws_slice);
     let depth_clear_pipeline = if draws_slice.iter().any(|draw| draw.clear_depth_before != 0) {
         let mut cached = ctx.annotation_depth_pipeline.lock().unwrap();
@@ -3132,6 +3148,7 @@ fn encode_frame(
             }
         }
         let is_peel = draw_order.get(range.start).is_some_and(|item| item.peel);
+        let is_weighted = draw_order.get(range.start).is_some_and(|item|item.weighted);
         if is_peel {
             encoder.copy_texture_to_texture(
                 wgpu::TexelCopyTextureInfo {
@@ -3154,7 +3171,7 @@ fn encode_frame(
             );
         }
         for peel_step in 0..if is_peel { peel_passes as usize } else { 1 } {
-            let selected_color = if is_peel {
+            let selected_color = if is_weighted { &weighted.as_ref().unwrap().accumulation } else if is_peel {
                 &peeling.as_ref().unwrap().colors[peel_step]
             } else {
                 color_view
@@ -3168,7 +3185,7 @@ fn encode_frame(
                 view: selected_color,
                 resolve_target: None,
                 ops: wgpu::Operations {
-                    load: if is_peel {
+                    load: if is_peel || is_weighted {
                         wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT)
                     } else {
                         wgpu::LoadOp::Load
@@ -3186,6 +3203,12 @@ fn encode_frame(
                     },
                 }));
             }
+            if is_weighted {
+                color_attachments.push(Some(wgpu::RenderPassColorAttachment {
+                    view:&weighted.as_ref().unwrap().revealage,resolve_target:None,
+                    ops:wgpu::Operations{load:wgpu::LoadOp::Clear(wgpu::Color::WHITE),store:wgpu::StoreOp::Store},
+                }));
+            }
             let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("Coin Composition Pass"),
                 color_attachments: &color_attachments,
@@ -3201,7 +3224,7 @@ fn encode_frame(
                     }),
                     stencil_ops: None,
                 }),
-                timestamp_writes: if !is_peel && pass_index + 1 == passes.len() {
+                timestamp_writes: if !is_peel && !is_weighted && pass_index + 1 == passes.len() {
                     timestamp_query.map(|query_set| wgpu::RenderPassTimestampWrites {
                         query_set,
                         beginning_of_pass_write_index: None,
@@ -3275,7 +3298,7 @@ fn encode_frame(
                 let pipeline = match get_or_create_pipeline(
                     ctx,
                     draw.topology,
-                    if is_peel {
+                    if is_peel || is_weighted {
                         wgpu::TextureFormat::Rgba16Float
                     } else {
                         color_format
@@ -3283,7 +3306,7 @@ fn encode_frame(
                     wgpu::TextureFormat::Depth32Float,
                     cull_face,
                     front_face,
-                    item.blend && !is_peel,
+                    item.blend && !is_peel && !is_weighted,
                     item.additive,
                     is_peel,
                     is_peel || st.depth_write != 0,
@@ -3295,6 +3318,7 @@ fn encode_frame(
                     depth_bias,
                     resolved_depth_bias,
                     eight_shadows,
+                    is_weighted,
                 ) {
                     Ok(p) => p,
                     Err(e) => return Err((CoinWgpuStatus::BackendError, e)),
@@ -3710,12 +3734,12 @@ fn encode_frame(
                     viewport[1] as f32,
                     viewport[2] as f32,
                     viewport[3] as f32,
-                    if resolved_depth_bias || is_peel {
+                    if resolved_depth_bias || is_peel || is_weighted {
                         0.0
                     } else {
                         st.depth_range[0]
                     },
-                    if resolved_depth_bias || is_peel {
+                    if resolved_depth_bias || is_peel || is_weighted {
                         1.0
                     } else {
                         st.depth_range[1]
@@ -3761,6 +3785,7 @@ fn encode_frame(
 
             }
         }
+        if is_weighted { weighted.as_ref().unwrap().composite(&mut encoder,color_view,if pass_index + 1 == passes.len() { timestamp_query } else { None }); }
         if is_peel {
             peeling.as_ref().unwrap().composite(
                 &mut encoder,
@@ -3975,6 +4000,7 @@ pub extern "C" fn coin_wgpu_query_runtime_capabilities(
         if peeling::device_supported(&dev.device) {
             result.available_mechanisms |= 2;
         }
+        if weighted::device_supported(&dev.device) { result.available_mechanisms |= 4; }
         unsafe {
             std::ptr::write(output, result);
         }
@@ -4611,12 +4637,12 @@ fn coin_wgpu_surface_submit_internal(
         };
 
         if let Err((status, message)) = peeling::validate_request(
-            f.sorted_layers_passes,
+            if draw_order.iter().any(|item| item.peel) { f.sorted_layers_passes } else { 1 },
             f.transparency_reserved,
             f.transparency_budget_bytes,
             f.width,
             f.height,
-            draw_order.iter().any(|item| item.peel),
+            draw_order.iter().any(|item| item.peel || item.weighted),
         ) {
             set_error(error_buf, error_buf_len, &message);
             return status;
@@ -5726,12 +5752,12 @@ fn coin_wgpu_submit_internal(
         };
 
         if let Err((status, message)) = peeling::validate_request(
-            f.sorted_layers_passes,
+            if draw_order.iter().any(|item| item.peel) { f.sorted_layers_passes } else { 1 },
             f.transparency_reserved,
             f.transparency_budget_bytes,
             f.width,
             f.height,
-            draw_order.iter().any(|item| item.peel),
+            draw_order.iter().any(|item| item.peel || item.weighted),
         ) {
             set_error(error_buf, error_buf_len, &message);
             return status;

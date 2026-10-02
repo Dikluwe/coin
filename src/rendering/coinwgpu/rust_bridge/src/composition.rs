@@ -11,6 +11,7 @@ pub(super) struct CompositionItem {
     pub screen_door: bool,
     pub screen_door_level: u32,
     pub peel: bool,
+    pub weighted: bool,
 }
 
 // CoinRender has already resolved ordering, alpha classification and depth.
@@ -43,7 +44,7 @@ pub(super) fn order(
     }
     let mut ordered = Vec::with_capacity(draws.len());
     for (draw_index, draw) in draws.iter().enumerate() {
-        if draw.composition_flags & !0x7f0f != 0
+        if draw.composition_flags & !0x7f1f != 0
             || (draw.composition_flags >> 8) > 64
             || (draw.composition_flags & 2 != 0 && draw.composition_flags & 1 == 0)
             || (draw.composition_flags >> 8 != 0 && draw.composition_flags & 4 == 0)
@@ -51,6 +52,8 @@ pub(super) fn order(
                 && (draw.composition_flags & 1 == 0 || draw.render_layer != 0))
             || (draw.composition_flags & 4 != 0 && draw.composition_flags & 1 != 0)
             || (draw.composition_flags & 8 != 0 && draw.composition_flags & 2 != 0)
+            || (draw.composition_flags & 16 != 0 &&
+                (draw.composition_flags & 1 == 0 || draw.composition_flags & 14 != 0 || draw.render_layer != 0))
             || draw.clear_depth_before > 1
             || (draw.render_layer == 0 && draw.clear_depth_before != 0)
             || (draw_index > 0 && draw.render_layer < draws[draw_index - 1].render_layer)
@@ -122,6 +125,7 @@ pub(super) fn order(
             screen_door: draw.composition_flags & 4 != 0,
             screen_door_level: draw.composition_flags >> 8,
             peel: draw.composition_flags & 8 != 0,
+            weighted: draw.composition_flags & 16 != 0,
         });
     }
     Ok(ordered)
@@ -141,6 +145,7 @@ pub(super) fn passes(
         if previous.render_layer != current.render_layer
             || current.clear_depth_before != 0
             || order[i - 1].peel != order[i].peel
+            || order[i - 1].weighted != order[i].weighted
             || (current.render_layer == 0 && order[i - 1].blend != order[i].blend)
         {
             passes.push(start..i);
@@ -223,16 +228,18 @@ mod tests {
     }
     #[test]
     fn validates_new_resolved_mechanisms_without_coin_interpretation() {
-        let (mut draws, materials, states) = fixture(&[0, 0, 0], &[0.5, 0.5, 0.5]);
+        let (mut draws, materials, states) = fixture(&[0, 0, 0, 0], &[0.5, 0.5, 0.5, 0.5]);
         draws[0].composition_flags = 3;
         draws[1].composition_flags = 9;
         draws[2].composition_flags = 0x4004;
+        draws[3].composition_flags = 17;
         let resolved = order(&[], &[], &draws, &materials, &states, &[]).unwrap();
         assert!(resolved[0].additive);
         assert!(resolved[1].peel);
         assert_eq!(resolved[2].screen_door_level, 64);
-        assert_eq!(passes(&resolved, &draws), vec![0..1, 1..2, 2..3]);
-        for flags in [2, 8, 5, 11, 0x4104, 0x100, 0x80, 0x8000] {
+        assert!(resolved[3].weighted);
+        assert_eq!(passes(&resolved, &draws), vec![0..1, 1..2, 2..3, 3..4]);
+        for flags in [2, 8, 5, 11, 16, 19, 21, 25, 0x4104, 0x100, 0x80, 0x8000] {
             draws[0].composition_flags = flags;
             assert!(
                 order(&[], &[], &draws, &materials, &states, &[]).is_err(),

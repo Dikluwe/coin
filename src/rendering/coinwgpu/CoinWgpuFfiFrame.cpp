@@ -313,19 +313,18 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame,
   std::vector<CoinRenderCompositionItem> order;
   if (!coin_render_composition_schedule(frame, order, outDiagnostic))
     return false;
-  for (const auto& item : order) {
-    if (item.transparencyStrategy == CoinRenderCompositionItem::WEIGHTED_OIT) {
-      outDiagnostic = coin_render_selection_diagnostic(COIN_RENDER_SELECTION_NOT_IMPLEMENTED);
-      return false;
-    }
-  }
   uint64_t requiredBytes = 0;
   const bool needsPeeling =
       std::any_of(order.begin(), order.end(), [](const CoinRenderCompositionItem& item) {
         return item.blend && item.deferred &&
                item.transparencyStrategy == CoinRenderCompositionItem::SORTED_LAYERS;
       });
-  if (!coin_render_transparency_budget(targetWidth, targetHeight, frame.transparency, needsPeeling,
+  const bool needsWeighted = std::any_of(order.begin(),order.end(),[](const CoinRenderCompositionItem & item) {
+    return item.blend && item.deferred && item.transparencyStrategy == CoinRenderCompositionItem::WEIGHTED_OIT;
+  });
+  auto allocationOptions = frame.transparency;
+  if (needsWeighted && !needsPeeling) allocationOptions.layers = 1;
+  if (!coin_render_transparency_budget(targetWidth, targetHeight, allocationOptions, needsPeeling || needsWeighted,
                                        requiredBytes, outDiagnostic))
     return false;
   std::vector<CoinWgpuDraw> resolvedDraws;
@@ -349,6 +348,7 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame,
                  item.transparencyStrategy == CoinRenderCompositionItem::SORTED_LAYERS
              ? 8u
              : 0u) |
+        (item.blend && item.deferred && item.transparencyStrategy == CoinRenderCompositionItem::WEIGHTED_OIT ? 16u : 0u) |
         (item.screenDoorLevel << 8);
     dst.source_revision = src.sourceRevision;
     dst.render_layer = src.renderLayer;

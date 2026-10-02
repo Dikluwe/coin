@@ -578,10 +578,10 @@ coin_render_shadow_object_profile(
       return false;
     }
     if (!draw.shadowLightSlot && coin_render_shadow_transparent_shape(frame, state) &&
-        (state.transparencyType < 0 || state.transparencyType > 9 ||
-         (frame.transparency.mode != COIN_RENDER_TRANSPARENCY_COIN &&
-          frame.transparency.mode != COIN_RENDER_TRANSPARENCY_OBJECT))) {
-      diagnostic = "Transparent shadow receivers require the object mechanism and at most eight maps";
+        (state.transparencyType < 0 || state.transparencyType > 10 ||
+         (frame.transparency.mode < COIN_RENDER_TRANSPARENCY_COIN ||
+          frame.transparency.mode > COIN_RENDER_TRANSPARENCY_WEIGHTED_OIT))) {
+      diagnostic = "Transparent shadow receivers require a known Coin mode and at most eight maps";
       return false;
     }
     if (draw.shadowLightSlot) continue;

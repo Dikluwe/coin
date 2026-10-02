@@ -53,6 +53,7 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 					${_coin_bgfx_shader_dir}/coin_depth.sh
 					${_coin_bgfx_shader_dir}/coin_lighting.sh
 					${_coin_bgfx_shader_dir}/coin_surface.sh
+					${_coin_bgfx_shader_dir}/coin_weighted.sh
 					${_coin_bgfx_shader_dir}/varying.def.sc
 				VERBATIM)
 			list(APPEND COIN_RENDER_SOURCES ${_shader_output})
@@ -78,12 +79,13 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 					${_coin_bgfx_shader_dir}/coin_depth.sh
 					${_coin_bgfx_shader_dir}/coin_lighting.sh
 					${_coin_bgfx_shader_dir}/coin_surface.sh
+					${_coin_bgfx_shader_dir}/coin_weighted.sh
 					${_coin_bgfx_shader_dir}/varying.def.sc
 				VERBATIM)
 			list(APPEND COIN_RENDER_SOURCES ${_shader_output})
 		endforeach()
 	endforeach()
-	foreach(_shadow_shader vs_shadow_moments fs_shadow_moments vs_shadow_receiver fs_shadow_receiver fs_shadow_receiver4 fs_shadow_receiver8)
+	foreach(_shadow_shader vs_shadow_moments fs_shadow_moments vs_shadow_receiver fs_shadow_receiver fs_shadow_receiver4 fs_shadow_receiver8 fs_shadow_peel fs_shadow_oit)
 		if(_shadow_shader MATCHES "^vs_")
 			set(_shadow_type vertex)
 		else()
@@ -109,6 +111,7 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 					${_coin_bgfx_shader_dir}/coin_depth.sh
 					${_coin_bgfx_shader_dir}/coin_lighting.sh
 					${_coin_bgfx_shader_dir}/coin_surface.sh
+					${_coin_bgfx_shader_dir}/coin_weighted.sh
 					${_coin_bgfx_shader_dir}/varying.def.sc
 				VERBATIM)
 			list(APPEND COIN_RENDER_SOURCES ${_shader_output})

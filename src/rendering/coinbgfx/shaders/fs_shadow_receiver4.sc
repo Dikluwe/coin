@@ -3,6 +3,13 @@ $input v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition,
 #include "coin_depth.sh"
 #include "coin_lighting.sh"
 #include "coin_surface.sh"
+#ifdef COIN_SHADOW_PEEL
+SAMPLER2D(s_prevDepth, 0);
+uniform vec4 u_depthInfo;
+#endif
+#ifdef COIN_SHADOW_OIT
+#include "coin_weighted.sh"
+#endif
 SAMPLER2D(s_shadow0, 8);
 SAMPLER2D(s_shadow1, 9);
 SAMPLER2D(s_shadow3, 11);
@@ -148,7 +155,18 @@ void main()
 #endif
   }
   color.rgb = clamp(color.rgb, 0.0, 1.0);
-  gl_FragDepth = coinWindowDepth(gl_FragCoord.z);
-  gl_FragColor = coinSurfaceColor(gl_FragCoord.xy, color, v_texcoord0,
+  float depth = coinWindowDepth(gl_FragCoord.z);
+  gl_FragDepth = depth;
+#ifdef COIN_SHADOW_PEEL
+  if (depth <= texture2D(s_prevDepth, gl_FragCoord.xy * u_depthInfo.xy).x) discard;
+#endif
+  vec4 surface = coinSurfaceColor(gl_FragCoord.xy, color, v_texcoord0,
     v_viewPosition, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7);
+#ifdef COIN_SHADOW_OIT
+  if (surface.a <= 0.0) discard;
+  gl_FragData[0] = coinWeightedAccumulation(surface, depth);
+  gl_FragData[1] = vec4(clamp(surface.a, 0.0, 1.0));
+#else
+  gl_FragColor = surface;
+#endif
 }

@@ -73,8 +73,10 @@ SoSeparator * shadowCompositionConsumer(SoSeparator * scene);
 // Exercise the public path with a fresh Action, so capture references held by
 // the main opaque fixtures cannot be invalidated by these additional scenes.
 bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
-                               int shadowLightCount = 1, int rttMode = -1)
+                               int shadowLightCount = 1, int rttMode = -1, int mechanism = -1)
 {
+  const int firstType = mechanism == 1 ? 10 : mechanism == 2 ? 6 : 0;
+  const int lastType = mechanism < 0 ? 9 : firstType;
   const bool gpuRequired = std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
     std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU");
   if (!gpuRequired) return true;
@@ -139,12 +141,14 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
   auto * mode = new SoTransparencyType;
   scene->insertChild(mode, 1);
   CoinRenderOptions options{};
+  if (mechanism >= 0) options.transparency = mechanism == 1 ?
+    COIN_RENDER_TRANSPARENCY_PEELING : COIN_RENDER_TRANSPARENCY_WEIGHTED_OIT;
   options.sceneTexture = rttMode == 1 ? COIN_RENDER_SCENE_TEXTURE_DIRECT : COIN_RENDER_SCENE_TEXTURE_STAGED;
   CoinRenderTarget * target = CoinRenderTarget::createOffscreen(SbVec2i32(side, side), options);
   CoinRenderAction action(SbViewportRegion(side, side));
   action.setRenderTarget(target);
   bool qualified = true;
-  for (int type = 0; type <= 9 && qualified; ++type) {
+  for (int type = firstType; type <= lastType && qualified; ++type) {
     mode->value = type;
     groundStyle->style = SoShadowStyle::SHADOWED;
     action.apply(scene);
@@ -178,13 +182,19 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
       }
       SoOffscreenRenderer gl(SbViewportRegion(side, side));
       gl.setComponents(SoOffscreenRenderer::RGB);
+      if (mechanism == 1) {
+        gl.getGLRenderAction()->setTransparencyType(SoGLRenderAction::SORTED_LAYERS_BLEND);
+        gl.getGLRenderAction()->setSortedLayersNumPasses(4);
+      }
       std::vector<unsigned char> shadowPixels, clearPixels;
       qualified = render(gl, glShadow, shadowPixels) && render(gl, glClear, clearPixels);
+      if (mechanism == 1) qualified = qualified &&
+        gl.getGLRenderAction()->getTransparencyType() == SoGLRenderAction::SORTED_LAYERS_BLEND;
       if (qualified)
         for (int y = 20; y < 105; ++y) for (int x = 20; x < 105; ++x)
           glDelta = std::max(glDelta, std::abs(
             luminance(shadowPixels, x, y) - luminance(clearPixels, x, y)));
-      qualified = qualified && glDelta > 20 && std::abs(glDelta - gpuDelta) <= 180;
+      qualified = qualified && glDelta > 20 && std::abs(glDelta - gpuDelta) <= (mechanism == 1 ? (rttMode < 0 ? 30 : 120) : 180);
       glClear->unref();
       glShadow->unref();
     }
@@ -198,7 +208,7 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
     // Coin blending must see all lighting at once. Splitting the same total
     // intensity over four or eight coincident lights must not darken the
     // destination, lose a batch, or change sampled alpha.
-    for (int type = 0; type <= 9 && qualified; ++type) {
+    for (int type = firstType; type <= lastType && qualified; ++type) {
       mode->value = type;
       groundStyle->style = SoShadowStyle::SHADOWED;
       action.apply(scene);
@@ -246,10 +256,10 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
     shadowGroup->removeChild(ninth);
     ninth->unref();
   }
-  if (qualified && shadowLightCount > 4) {
+  if (qualified && (shadowLightCount > 4 || mechanism >= 0)) {
     auto * consumer = shadowCompositionConsumer(scene);
     consumer->ref();
-    for (int type = 0; type <= 9 && qualified; ++type) {
+    for (int type = firstType; type <= lastType && qualified; ++type) {
       mode->value = type;
       groundStyle->style = SoShadowStyle::SHADOWED;
       action.apply(consumer);
@@ -269,6 +279,33 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
         << " qualified=" << qualified << '\n';
     }
     consumer->unref();
+  }
+  if (qualified && mechanism >= 0 && !alphaTexture) {
+    // An additive receiver beside the source-over draws keeps its own Coin
+    // passage after the compositor, but must still receive the same shadows.
+    groundStyle->style = SoShadowStyle::NO_SHADOWING;
+    auto * additive = static_cast<SoSeparator *>(ground->copy(TRUE));
+    auto * additiveStyle = static_cast<SoShadowStyle *>(additive->getChild(0));
+    auto * additiveMode = new SoTransparencyType;
+    additiveMode->value = SoGLRenderAction::DELAYED_ADD;
+    additive->insertChild(additiveMode, 0);
+    shadowGroup->addChild(additive);
+    additiveStyle->style = SoShadowStyle::SHADOWED;
+    action.apply(scene);
+    std::vector<unsigned char> shadowed, clear;
+    target->readbackRGBA(shadowed);
+    qualified = action.getLastStatus() == CoinRenderAction::SUCCESS;
+    additiveStyle->style = SoShadowStyle::NO_SHADOWING;
+    action.apply(scene);
+    target->readbackRGBA(clear);
+    int delta = 0;
+    qualified = qualified && action.getLastStatus() == CoinRenderAction::SUCCESS && shadowed.size() == clear.size();
+    if (qualified) for (size_t pixel = 0; pixel < clear.size(); ++pixel)
+      delta = std::max(delta, std::abs(int(shadowed[pixel]) - int(clear[pixel])));
+    qualified = qualified && delta > 20;
+    std::cout << "shadow additive after compositor maps=" << shadowLightCount << " mechanism=" << mechanism
+      << " delta=" << delta << " qualified=" << qualified << '\n';
+    shadowGroup->removeChild(additive);
   }
   // A second, transparent caster must never enter the moment map. Keep the
   // original opaque caster as a positive map/receiver control.
@@ -301,7 +338,7 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
       originalCaster->insertChild(textureNode->copy(TRUE), 2);
       originalCaster->insertChild(uv->copy(TRUE), 3);
     }
-    for (int type = 0; type <= 9 && qualified; ++type) {
+    for (int type = firstType; type <= lastType && qualified; ++type) {
       mode->value = type;
       casterStyle->style = SoShadowStyle::CASTS_SHADOW;
       action.apply(scene);
@@ -337,7 +374,7 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
     }
   }
   if (qualified && rttMode >= 0) {
-    mode->value = SoGLRenderAction::SCREEN_DOOR;
+    mode->value = firstType;
     auto * casterRtt = static_cast<SoSceneTexture2 *>(originalCaster->getChild(2));
     spot->shadowMapScene = originalCaster;
     casterRtt->transparencyFunction = SoSceneTexture2::NONE;
@@ -1034,6 +1071,19 @@ int main(int argc, char ** argv)
   floor->width = floor->height = 6;
   floor->depth = 0.05f;
   ground->addChild(floor);
+
+  if (argc == 4 && std::string(argv[1]) == "--shadow-oit") {
+    if (!std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") && !std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) { root->unref(); return 77; }
+    const int maps = std::atoi(argv[2]);
+    const int mechanism = std::atoi(argv[3]);
+    const bool ok = maps >= 1 && maps <= 8 && (mechanism == 1 || mechanism == 2) &&
+      qualifyShadowTransparency(root, false, maps, -1, mechanism) &&
+      qualifyShadowTransparency(root, true, maps, -1, mechanism) &&
+      qualifyShadowTransparency(root, true, maps, 0, mechanism) &&
+      qualifyShadowTransparency(root, true, maps, 1, mechanism);
+    root->unref();
+    return ok ? 0 : 1;
+  }
 
   if (argc == 3 && std::string(argv[1]) == "--transparent-maps") {
     if (!std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") &&

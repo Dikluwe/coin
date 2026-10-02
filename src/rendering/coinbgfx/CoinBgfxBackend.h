@@ -81,6 +81,7 @@ private:
                               const CoinRenderFrameReuseDecision & reuse, CoinRenderReadbackTicket * ticket);
   bool resize(int width, int height);
   bool prepareShadowPrograms(size_t mapCount);
+  bool prepareShadowTransparencyPrograms();
   CoinRenderBackendStatus checkRuntimeFailure(const char * operation);
   void destroyResources();
   void shutdownRuntime();
@@ -89,7 +90,12 @@ private:
                           bgfx::DynamicVertexBufferHandle vertices,
                           bgfx::DynamicIndexBufferHandle indices,
                           bgfx::FrameBufferHandle output,
-                          const std::vector<bgfx::TextureHandle> & textures);
+                          const std::vector<bgfx::TextureHandle> & textures, bgfx::ViewId firstView, int width, int height,
+                          const CoinRenderFramePlan & frame,
+                          const CoinRenderShadowPlan & shadows,
+                          const std::vector<bgfx::FrameBufferHandle> & shadowMaps,
+                          const std::vector<bgfx::FrameBufferHandle> & layers,
+                          bgfx::FrameBufferHandle oitBuffer);
   bool encodeOverlayLayers(const std::vector<CoinBgfxDraw> & draws,
                            bgfx::DynamicVertexBufferHandle vertices,
                            bgfx::DynamicIndexBufferHandle indices,
@@ -103,7 +109,12 @@ private:
                          bgfx::DynamicVertexBufferHandle vertices,
                          bgfx::DynamicIndexBufferHandle indices,
                          bgfx::FrameBufferHandle output,
-                         const std::vector<bgfx::TextureHandle> & textures);
+                         const std::vector<bgfx::TextureHandle> & textures, bgfx::ViewId firstView, int width, int height,
+                          const CoinRenderFramePlan & frame,
+                          const CoinRenderShadowPlan & shadows,
+                          const std::vector<bgfx::FrameBufferHandle> & shadowMaps,
+                          const std::vector<bgfx::FrameBufferHandle> & layers,
+                          bgfx::FrameBufferHandle oitBuffer);
   void bindDrawTexture(const CoinBgfxDraw & draw,
                        const std::vector<bgfx::TextureHandle> & textures);
   void bindDrawLighting(const CoinBgfxDraw & draw, int targetHeight = 0);
@@ -145,6 +156,8 @@ private:
   bgfx::ProgramHandle shadowReceiverProgram;
   bgfx::ProgramHandle shadowReceiverProgram4;
   bgfx::ProgramHandle shadowReceiverProgram8;
+  bgfx::ProgramHandle shadowPeelProgram;
+  bgfx::ProgramHandle shadowOitProgram;
   bgfx::UniformHandle shadowModelViewUniform;
   bgfx::UniformHandle shadowClipModelViewUniform;
   bgfx::UniformHandle shadowDepthUniform;

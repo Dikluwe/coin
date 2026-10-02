@@ -746,6 +746,11 @@ if(COIN_BUILD_RENDER)
 		endforeach()
 	endif()
 
+	if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
+		add_test(NAME CoinRenderWeightedOitTest COMMAND CoinRenderPeelingTest --weighted)
+		set_tests_properties(CoinRenderWeightedOitTest PROPERTIES TIMEOUT 90 SKIP_RETURN_CODE 77)
+	endif()
+
 	add_executable(CoinRenderTransparencyTest coinrender/CoinRenderTransparencyTest.cpp)
 	set_target_properties(CoinRenderTransparencyTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 	target_link_libraries(CoinRenderTransparencyTest CoinRender Coin)
@@ -811,6 +816,16 @@ if(COIN_BUILD_RENDER)
 			add_test(NAME CoinRenderShadowTransparency${_shadow_maps}Test
 				COMMAND CoinRenderShadowReferenceTest --transparent-maps ${_shadow_maps})
 			set_tests_properties(CoinRenderShadowTransparency${_shadow_maps}Test PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77)
+		endforeach()
+		foreach(_shadow_maps 1 4 8)
+			foreach(_mechanism 1 2)
+				add_test(NAME CoinRenderShadowOit${_shadow_maps}_${_mechanism}Test
+					COMMAND CoinRenderShadowReferenceTest --shadow-oit ${_shadow_maps} ${_mechanism})
+				set_tests_properties(CoinRenderShadowOit${_shadow_maps}_${_mechanism}Test PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77)
+				add_test(NAME CoinRenderShadowLayers${_shadow_maps}_${_mechanism}Test
+					COMMAND CoinRenderPeelingTest --shadow ${_shadow_maps} ${_mechanism})
+				set_tests_properties(CoinRenderShadowLayers${_shadow_maps}_${_mechanism}Test PROPERTIES TIMEOUT 90 SKIP_RETURN_CODE 77)
+			endforeach()
 		endforeach()
 	endif()
 
