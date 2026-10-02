@@ -3,6 +3,7 @@
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
 #include "rendering/coinrender/CoinRenderClipCore.h"
+#include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
 #include <Inventor/SbBox3f.h>
 #include <Inventor/SbRotation.h>
 #include <Inventor/SbViewVolume.h>
@@ -303,11 +304,7 @@ coin_render_shadow_transparent_shape(const CoinRenderFramePlan & frame,
       (state.materialSlot < frame.materials.size() &&
        frame.materials[state.materialSlot].transparency > 0.0f)) return true;
   if (!state.hasTexture || state.textureImageSlot >= frame.textures.size()) return false;
-  const auto & image = frame.textures[state.textureImageSlot];
-  if (image.producerId || image.gpuToken) return !image.gpuOpaque;
-  for (size_t i = 3; i < image.pixelsRgba.size(); i += 4)
-    if (image.pixelsRgba[i] != 255) return true;
-  return false;
+  return coin_render_texture_has_transparency(frame.textures[state.textureImageSlot]);
 }
 
 // Append separately traversed geometry without exposing it to object composition.
@@ -555,17 +552,15 @@ coin_render_shadow_object_profile(
       const bool sceneTexture = image.producerId || image.gpuToken;
       if (!pixelCount || pixelCount > SIZE_MAX / 4 ||
           (sceneTexture
-            ? (!image.gpuOpaque ||
-               image.sceneTransparencyFunction != SoSceneTexture2::NONE ||
+            ? ((image.sceneTransparencyFunction != SoSceneTexture2::NONE &&
+                image.sceneTransparencyFunction != SoSceneTexture2::ALPHA_BLEND) ||
                (image.gpuToken && !image.pixelsRgba.empty()))
             : image.pixelsRgba.size() != static_cast<size_t>(pixelCount * 4))) {
-        diagnostic = "Shadow object profile requires complete static pixels or an opaque SceneTexture2";
+        diagnostic = "Shadow object profile requires complete static pixels or a NONE/ALPHA_BLEND SceneTexture2";
         return false;
       }
-      if (!image.producerId && !image.gpuToken) {
-        bool hasAlpha = false;
-        for (size_t alpha = 3; alpha < image.pixelsRgba.size(); alpha += 4)
-          hasAlpha = hasAlpha || image.pixelsRgba[alpha] != 255;
+      {
+        const bool hasAlpha = coin_render_texture_has_transparency(image);
         if (hasAlpha && (state.textureModel != CoinRenderTextureModel::MODULATE ||
             state.textureCombines[0].instructions[0][0] != 0.0f)) {
           diagnostic = "Alpha shadow texture requires linear MODULATE composition";

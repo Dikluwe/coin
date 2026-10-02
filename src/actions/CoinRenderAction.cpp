@@ -1028,7 +1028,16 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
   }
 
   if (SoTextureQualityElement::get(state) <= 0.0f) {
-    SoMultiTextureImageElement::setDefault(state, const_cast<SoSceneTexture2 *>(texture), 0);
+    p->sceneTexturePixels.emplace_back(4, 0);
+    SoMultiTextureImageElement::set(state, const_cast<SoSceneTexture2 *>(texture), 0,
+      SbVec2s(1, 1), 4, p->sceneTexturePixels.back().data(),
+      SoMultiTextureImageElement::REPEAT, SoMultiTextureImageElement::REPEAT,
+      SoMultiTextureImageElement::MODULATE, texture->blendColor.getValue());
+    SbVec2s markerSize;
+    int components;
+    const auto * marker = SoMultiTextureImageElement::getImage(state, 0, markerSize, components);
+    p->builder.registerSceneTexture(marker, 0, 1, 1, false,
+                                    texture->transparencyFunction.getValue());
     SoMultiTextureEnabledElement::set(state, const_cast<SoSceneTexture2 *>(texture), 0, FALSE);
     return SoCallbackAction::CONTINUE;
   }

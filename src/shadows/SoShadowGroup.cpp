@@ -2358,6 +2358,7 @@ SoShadowLightCache::shadowmap_glcallback(void * COIN_UNUSED_ARG(closure), SoActi
 {
   if (action->isOfType(SoGLRenderAction::getClassTypeId())) {
     SoState * state = action->getState();
+    SoShapeStyleElement::setShadowMapRendering(state, TRUE);
     SoLazyElement::setLightModel(state, SoLazyElement::BASE_COLOR);
     SoTextureQualityElement::set(state, 0.0f);
     SoMaterialBindingElement::set(state, NULL, SoMaterialBindingElement::OVERALL);

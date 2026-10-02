@@ -281,6 +281,7 @@
 #include <Inventor/elements/SoTextureQualityElement.h>
 #include <Inventor/elements/SoGLShaderProgramElement.h>
 #include <Inventor/elements/SoTextureOverrideElement.h>
+#include <Inventor/elements/SoOverrideElement.h>
 #include <Inventor/elements/SoGLLazyElement.h>
 #include <Inventor/elements/SoCacheElement.h>
 #include <Inventor/elements/SoViewportRegionElement.h>
@@ -820,6 +821,16 @@ SoSceneTexture2P::updateFrameBuffer(SoState * state, const float COIN_UNUSED_ARG
 
   state->push();
 
+  // A producer is a separate scene, even when first visited by a consumer's
+  // shadow-map traversal. Internal VSM scenes establish their own map flag
+  // and overrides in the shadow callback below their camera.
+  SoShapeStyleElement::setShadowMapRendering(state, FALSE);
+  SoShapeStyleElement::setShadowsRendering(state, FALSE);
+  SoOverrideElement::setNormalVectorOverride(state, NULL, FALSE);
+  SoOverrideElement::setMaterialBindingOverride(state, NULL, FALSE);
+  SoOverrideElement::setLightModelOverride(state, NULL, FALSE);
+  SoTextureOverrideElement::setQualityOverride(state, FALSE);
+  SoTextureQualityElement::set(state, 0.5f);
   // reset OpenGL/Coin state
   SoGLShaderProgramElement::enable(state, FALSE);
   SoLazyElement::setToDefault(state);

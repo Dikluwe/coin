@@ -71,7 +71,7 @@ bool render(SoOffscreenRenderer & gl, SoNode * root,
 // Exercise the public path with a fresh Action, so capture references held by
 // the main opaque fixtures cannot be invalidated by these additional scenes.
 bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
-                               int shadowLightCount = 1)
+                               int shadowLightCount = 1, int rttMode = -1)
 {
   const bool gpuRequired = std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
     std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU");
@@ -93,16 +93,52 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
   const unsigned char alphaPixels[] = {
     255, 255, 255, 0, 255, 255, 255, 128,
     255, 255, 255, 128, 255, 255, 255, 255};
+  SoNode * textureNode = texture;
   if (alphaTexture) {
     texture->image.setValue(SbVec2s(2, 2), 4, alphaPixels);
-    ground->insertChild(texture, 2);
+    if (rttMode >= 0) {
+      auto * producer = new SoSeparator;
+      auto * camera = new SoOrthographicCamera;
+      camera->position.setValue(0, 0, 2); camera->height = 2;
+      camera->nearDistance = 1; camera->farDistance = 4;
+      producer->addChild(camera);
+      auto * model = new SoLightModel;
+      model->model = SoLightModel::BASE_COLOR;
+      producer->addChild(model);
+      auto * noBlend = new SoTransparencyType;
+      noBlend->value = SoGLRenderAction::NONE;
+      producer->addChild(noBlend);
+      producer->addChild(texture);
+      auto * coordinates = new SoCoordinate3;
+      const SbVec3f points[] = {{-1,-1,0}, {1,-1,0}, {1,1,0}, {-1,1,0}};
+      coordinates->point.setValues(0, 4, points);
+      producer->addChild(coordinates);
+      auto * texcoords = new SoTextureCoordinate2;
+      const SbVec2f pointsUv[] = {{0,0}, {1,0}, {1,1}, {0,1}};
+      texcoords->point.setValues(0, 4, pointsUv);
+      producer->addChild(texcoords);
+      auto * face = new SoIndexedFaceSet;
+      const int32_t indices[] = {0,1,2,3,-1};
+      face->coordIndex.setValues(0, 5, indices);
+      face->textureCoordIndex.setValues(0, 5, indices);
+      producer->addChild(face);
+      auto * rtt = new SoSceneTexture2;
+      rtt->size.setValue(32, 32);
+      rtt->backgroundColor.setValue(0, 0, 0, 0);
+      rtt->transparencyFunction = SoSceneTexture2::ALPHA_BLEND;
+      rtt->scene = producer;
+      textureNode = rtt;
+    }
+    ground->insertChild(textureNode, 2);
     const SbVec2f corners[] = {SbVec2f(0, 0), SbVec2f(1, 0), SbVec2f(1, 1), SbVec2f(0, 1)};
     for (int i = 0; i < 24; ++i) uv->point.set1Value(i, corners[i % 4]);
     ground->insertChild(uv, 3);
   }
   auto * mode = new SoTransparencyType;
   scene->insertChild(mode, 1);
-  CoinRenderTarget * target = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+  CoinRenderOptions options{};
+  options.sceneTexture = rttMode == 1 ? COIN_RENDER_SCENE_TEXTURE_DIRECT : COIN_RENDER_SCENE_TEXTURE_STAGED;
+  CoinRenderTarget * target = CoinRenderTarget::createOffscreen(SbVec2i32(side, side), options);
   CoinRenderAction action(SbViewportRegion(side, side));
   action.setRenderTarget(target);
   bool qualified = true;
@@ -144,7 +180,7 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
     }
     qualified = qualified && gpuDelta > 20;
     std::cout << "transparent shadow receiver maps=" << shadowLightCount
-              << " alpha_texture=" << alphaTexture << " mode=" << type << " Coin/GL/GPU delta="
+              << " rtt=" << rttMode << " alpha_texture=" << alphaTexture << " mode=" << type << " Coin/GL/GPU delta="
               << glDelta << '/' << gpuDelta << " qualified=" << qualified << '\n';
     if (!qualified) std::cerr << action.getLastError().getString() << '\n';
   }
@@ -173,7 +209,15 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
   auto * casterMaterial = static_cast<SoMaterial *>(transparentCaster->getChild(1));
   casterMaterial->transparency = alphaTexture ? 0.0f : 0.5f;
   if (alphaTexture) {
-    transparentCaster->insertChild(texture->copy(TRUE), 2);
+    SoNode * casterTexture = textureNode->copy(TRUE);
+    if (rttMode >= 0) {
+      auto * producer = static_cast<SoSeparator *>(static_cast<SoSceneTexture2 *>(casterTexture)->scene.getValue());
+      auto * image = static_cast<SoTexture2 *>(producer->getChild(3));
+      const unsigned char opaque[] = {255,255,255,255,255,255,255,255,
+                                     255,255,255,255,255,255,255,255};
+      image->image.setValue(SbVec2s(2, 2), 4, opaque);
+    }
+    transparentCaster->insertChild(casterTexture, 2);
     transparentCaster->insertChild(uv->copy(TRUE), 3);
   }
   auto * translation = new SoTranslation;
@@ -184,7 +228,7 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
   for (int emptyMaps = 0; emptyMaps < 2 && qualified; ++emptyMaps) {
     originalMaterial->transparency = emptyMaps && !alphaTexture ? 0.5f : 0.0f;
     if (emptyMaps && alphaTexture) {
-      originalCaster->insertChild(texture->copy(TRUE), 2);
+      originalCaster->insertChild(textureNode->copy(TRUE), 2);
       originalCaster->insertChild(uv->copy(TRUE), 3);
     }
     for (int type = 0; type <= 9 && qualified; ++type) {
@@ -215,12 +259,69 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
         glCast->unref();
       }
       std::cout << "transparent shadow caster maps=" << shadowLightCount
-                << " alpha_texture=" << alphaTexture
+                << " rtt=" << rttMode << " alpha_texture=" << alphaTexture
                 << " empty_maps=" << emptyMaps
                 << " mode=" << type << " GL/GPU unchanged="
                 << qualified << '\n';
       if (!qualified) std::cerr << action.getLastError().getString() << '\n';
     }
+  }
+  if (qualified && rttMode >= 0) {
+    mode->value = SoGLRenderAction::SCREEN_DOOR;
+    auto * casterRtt = static_cast<SoSceneTexture2 *>(originalCaster->getChild(2));
+    spot->shadowMapScene = originalCaster;
+    casterRtt->transparencyFunction = SoSceneTexture2::NONE;
+    CoinRenderAction capture(SbViewportRegion(side, side));
+    capture.apply(scene);
+    qualified = capture.getPimpl()->lastRejectedShadowPlan.passes[0].casterDraws.size() == 1;
+    casterRtt->transparencyFunction = SoSceneTexture2::ALPHA_BLEND;
+    capture.apply(scene);
+    const auto & captured = capture.getPimpl()->lastRejectedShadowFrame;
+    const auto & passes = capture.getPimpl()->lastRejectedShadowPlan.passes;
+    bool policyCaptured = false;
+    for (const auto & draw : captured.draws) if (draw.shadowLightSlot == 1)
+      policyCaptured = policyCaptured || captured.renderStates[draw.renderStateSlot].transparentTexture;
+    qualified = qualified && passes[0].casterDraws.empty() && policyCaptured;
+    spot->shadowMapScene = nullptr;
+    action.apply(scene);
+    std::vector<unsigned char> before, after;
+    target->readbackRGBA(before);
+    const uint64_t serial = target->getLastSubmissionSerial();
+    // Mutating the producer's texel alpha refreshes its consumers.
+    const unsigned char opaque[] = {255,255,255,255,255,255,255,255,
+                                   255,255,255,255,255,255,255,255};
+    texture->image.setValue(SbVec2s(2, 2), 4, opaque);
+    action.apply(scene);
+    target->readbackRGBA(after);
+    qualified = qualified && action.getLastStatus() == CoinRenderAction::SUCCESS &&
+      target->getLastSubmissionSerial() > serial && before != after;
+    texture->image.setValue(SbVec2s(2, 2), 4, alphaPixels);
+    action.apply(scene);
+    target->readbackRGBA(after);
+    qualified = qualified && action.getLastStatus() == CoinRenderAction::SUCCESS && before == after;
+    const uint64_t beforeFailure = target->getLastSubmissionSerial();
+#ifdef HAVE_COIN_BGFX
+    setenv("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE", "1", 1);
+#endif
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+    coin_wgpu_inject_fault(COIN_WGPU_FAULT_SHADOW_MAP_ALLOC);
+#endif
+    action.apply(scene);
+#ifdef HAVE_COIN_BGFX
+    unsetenv("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE");
+#endif
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+    coin_wgpu_inject_fault(0);
+#endif
+    target->readbackRGBA(after);
+    qualified = qualified && action.getLastStatus() == CoinRenderAction::OUT_OF_MEMORY &&
+      target->getLastSubmissionSerial() == beforeFailure && before == after;
+    qualified = qualified && target->resize(SbVec2i32(side, side));
+    action.apply(scene);
+    target->readbackRGBA(after);
+    qualified = qualified && action.getLastStatus() == CoinRenderAction::SUCCESS && before == after;
+    std::cout << "alpha RTT policy/mutation/failure/recovery maps=" << shadowLightCount <<
+      " rtt=" << rttMode << " qualified=" << qualified << '\n';
   }
   action.setRenderTarget(nullptr);
   delete target;
@@ -863,6 +964,15 @@ int main(int argc, char ** argv)
   floor->width = floor->height = 6;
   floor->depth = 0.05f;
   ground->addChild(floor);
+
+  if (argc == 2 && std::string(argv[1]) == "--alpha-rtt") {
+    bool ok = true;
+    for (int mode = 0; mode < 2 && ok; ++mode)
+      ok = qualifyShadowTransparency(root, true, 1, mode) &&
+           qualifyShadowTransparency(root, true, 4, mode);
+    root->unref();
+    return ok ? 0 : 1;
+  }
 
   if (argc == 2 && std::string(argv[1]) == "--composition") {
     const bool ok = qualifyShadowComposition(root, false) &&
@@ -4724,18 +4834,18 @@ int main(int argc, char ** argv)
           std::vector<unsigned char> afterRejected;
           receiverTarget->readbackRGBA(afterRejected);
           shadowedRttReceiverQualified =
-            receiverAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-            receiverTarget->getLastSubmissionSerial() == serial &&
-            afterRejected == inactivePixels;
+            receiverAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+            receiverTarget->getLastSubmissionSerial() > serial &&
+            !afterRejected.empty();
           stagedTexture->transparencyFunction = SoSceneTexture2::NONE;
           if (shadowedRttReceiverQualified) {
             stagedTexture->backgroundColor.setValue(0.15f, 0.15f, 0.15f, 0.0f);
             receiverAction.apply(stagedRoot);
             receiverTarget->readbackRGBA(afterRejected);
             shadowedRttReceiverQualified =
-              receiverAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-              receiverTarget->getLastSubmissionSerial() == serial &&
-              afterRejected == inactivePixels;
+              receiverAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+              receiverTarget->getLastSubmissionSerial() > serial &&
+              !afterRejected.empty();
             stagedTexture->backgroundColor.setValue(0.15f, 0.15f, 0.15f, 1.0f);
           }
         }
@@ -4825,6 +4935,9 @@ int main(int argc, char ** argv)
     qualifyShadowTransparency(root, true) &&
     qualifyShadowTransparency(root, false, 4) &&
     qualifyShadowTransparency(root, true, 4);
+  const bool alphaRttQualified = qualifyShadowTransparency(root, true, 1, 0) &&
+    qualifyShadowTransparency(root, true, 4, 0) &&
+    qualifyShadowTransparency(root, true, 1, 1) && qualifyShadowTransparency(root, true, 4, 1);
   const bool emptyShadowMapsQualified = qualifyEmptyShadowMaps(root);
   const bool independentShadowScenesQualified = qualifyIndependentShadowScenes(root);
   const bool shadowCompositionQualified = qualifyShadowComposition(root, false) && qualifyShadowComposition(root, true) &&
@@ -4833,7 +4946,7 @@ int main(int argc, char ** argv)
   action.setRenderTarget(nullptr);
   delete target;
   if (!publishedOk || !rejected || !preserved || !recovered || !captureOk ||
-      !shadowCompositionQualified || !independentShadowScenesQualified || !emptyShadowMapsQualified || !shadowTransparencyQualified || !spotProfile || !smoothBorderQualified || !lowQualitySpotQualified || !inconsistentAlphaRejected || !clippedShadowQualified || !shadowTargetsIndependent || !siblingShadowGroupsQualified || !ordinaryLightQualified || !texturedShadowQualified || !twoLightCaptured ||
+      !shadowCompositionQualified || !independentShadowScenesQualified || !emptyShadowMapsQualified || !alphaRttQualified || !shadowTransparencyQualified || !spotProfile || !smoothBorderQualified || !lowQualitySpotQualified || !inconsistentAlphaRejected || !clippedShadowQualified || !shadowTargetsIndependent || !siblingShadowGroupsQualified || !ordinaryLightQualified || !texturedShadowQualified || !twoLightCaptured ||
       !orderedTwoLight || !twoSpotsOk || !twoDirectionalsOk ||
       !lateLightResolved || !lateSpotProfile || !mixedOrderResolved ||
       !lightEligibility || !spotRangeCaptured || !directionalCaptured ||

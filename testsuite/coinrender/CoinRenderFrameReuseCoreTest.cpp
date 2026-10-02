@@ -5,6 +5,7 @@
 #endif
 
 #include "rendering/coinrender/CoinRenderFrameReuseCore.h"
+#include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
 
 #include <Inventor/SoDB.h>
@@ -52,6 +53,22 @@ main()
 {
   SoDB::init();
   bool ok = true;
+  CoinRenderTextureImageSnapshot alphaImage;
+  alphaImage.width = alphaImage.height = 1;
+  alphaImage.producerId = 1;
+  alphaImage.sceneTransparencyFunction = SoSceneTexture2::NONE;
+  ok &= check(!coin_render_texture_has_transparency(alphaImage),
+              "Coin NONE forces opaque classification despite unknown producer alpha");
+  alphaImage.producerId = 0;
+  alphaImage.pixelsRgba = {255,255,255,255};
+  alphaImage.sceneTransparencyFunction = SoSceneTexture2::ALPHA_BLEND;
+  ok &= check(coin_render_texture_has_transparency(alphaImage),
+              "Coin ALPHA_BLEND stays transparent after staged resolution of opaque pixels");
+  alphaImage.gpuToken = 1;
+  alphaImage.pixelsRgba.clear();
+  alphaImage.gpuOpaque = true;
+  ok &= check(coin_render_texture_has_transparency(alphaImage),
+              "direct RTT follows the same forced classification regardless of opacity hint");
   const CoinRenderFramePlan previous = makePlan(41);
   std::string diagnostic;
   ok &= check(previous.isValid(&diagnostic), "test fixture must be valid");

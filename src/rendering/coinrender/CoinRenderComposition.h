@@ -3,6 +3,7 @@
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
 #include "rendering/coinrender/CoinRenderTextureCombineCore.h"
+#include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/nodes/SoSceneTexture2.h>
 #include "rendering/coinrender/CoinRenderSelectionCore.h"
@@ -154,22 +155,8 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
                               !frame.textures[tex.imageSlot].gpuOpaque &&
                               frame.textures[tex.imageSlot].sceneTransparencyFunction == -1);
       int8_t& cached = textureHasAlpha[tex.imageSlot];
-      if (cached < 0) {
-        const CoinRenderTextureImageSnapshot& texture = frame.textures[tex.imageSlot];
-        // Coin's SoGLImage flags separate scheduling from sampled pixel alpha.
-        if (texture.sceneTransparencyFunction == SoSceneTexture2::NONE)
-          cached = 0;
-        else if (texture.sceneTransparencyFunction == SoSceneTexture2::ALPHA_BLEND)
-          cached = 1;
-        else {
-          cached = (texture.producerId != 0 || texture.gpuToken != 0) && !texture.gpuOpaque ? 1 : 0;
-          for (size_t byte = 3; byte < texture.pixelsRgba.size(); byte += 4)
-            if (texture.pixelsRgba[byte] != 255) {
-              cached = 1;
-              break;
-            }
-        }
-      }
+      if (cached < 0)
+        cached = coin_render_texture_has_transparency(frame.textures[tex.imageSlot]) ? 1 : 0;
       if (rs.textureCombines[unit].instructions[0][0] > .5f)
         materialAlpha = coin_render_combine_may_have_alpha(rs.textureCombines[unit], primaryAlpha,
                                                            cached != 0, materialAlpha);

@@ -184,8 +184,10 @@ Vulkan não encerram a matriz física nem qualificam outras plataformas.
   mecanismo novo qualificado.
 - [ ] **P27 — Sombras Coin:** BGFX e wgpu executam os perfis qualificados de
   até oito mapas; cenas próprias, grupos irmãos/aninhados e anotações opacas
-  compõem offscreen e RTT staged/direct. P27.4 permanece aberto para alfa RTT,
-  peeling/OIT, demais qualidades e referência GL com oito mapas; P27.5 mantém
+  compõem offscreen e RTT staged/direct. Alfa RTT NONE/ALPHA_BLEND está
+  qualificado até quatro mapas. P27.4 permanece aberto para ALPHA_TEST,
+  transparência com mais de quatro mapas, peeling/OIT, demais qualidades e
+  referência GL com oito mapas; P27.5 mantém
   a matriz física final.
   [Referência e trabalho pendente](coin-render-p27-shadows.md).
 - [ ] **P28 — Texturas espaciais e SSAO:** volume/cube maps seguem o contrato

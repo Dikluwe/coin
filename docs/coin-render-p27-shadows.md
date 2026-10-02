@@ -346,9 +346,31 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   o estilo de casting da forma com
   textura alfa manteve pixels idênticos nos três renderizadores, inclusive
   sem nenhum caster opaco. Alfa com DECAL é rejeitado antes da submissão,
-  preservando pixels e serial. Alfa RTT ainda não está qualificado.
-- [ ] **Transparência e qualidade:** qualificar por modo os casters e
-  receivers com alfa RTT, mais de quatro mapas, peeling/OIT e os demais perfis de qualidade. `smoothBorder=1`
+  preservando pixels e serial.
+- [x] **Alfa RTT NONE/ALPHA_BLEND:** qualificado no perfil de objetos, RGBA8
+  MODULATE, sem unidades extras nem `SoTextureCombine`, com um e quatro mapas,
+  nos dez modos Coin e nas rotas staged/direct. Composição e sombras consultam
+  a mesma decisão Core: `NONE` força classificação opaca; `ALPHA_BLEND` força
+  transparência, inclusive quando o produtor entrega somente texels alfa 255.
+  Casters transparentes são excluídos como no Coin/GL, inclusive em mapas sem
+  casters opacos. A captura de cenas próprias por luz preserva a política RTT
+  com qualidade de textura zero sem executar o produtor durante essa travessia.
+  A referência Coin/GL foi corrigida: o produtor FBO limpa o estado de sombras
+  e overrides herdados do consumidor; a cena interna VSM estabelece seu próprio
+  papel no callback do mapa. A fixture `--alpha-rtt` passou com referência GL
+  obrigatória em BGFX/Vulkan, BGFX/OpenGL e wgpu. SCREEN_DOOR/NONE mediram
+  deltas GL/GPU 381/381; ADD/BLEND imediato, ADD adiado e triângulos ordenados
+  228/138; BLEND adiado 126/81 no BGFX e 126/78 no wgpu, dentro da tolerância
+  existente de 180 para o delta de recepção. Isso não exige igualdade de pixels
+  entre renderizadores. Alternar casting manteve pixels idênticos em cada
+  renderizador; alterar o alfa do produtor atualizou o quadro e restaurá-lo
+  reproduziu os pixels anteriores. Falha de alocação do mapa preservou pixels
+  e serial; após reconfigurar o alvo, a recuperação reproduziu o quadro anterior.
+  A regressão de sombras, composição, transparência, RTT e reúso de plano
+  passou nos dois backends; a rota RTT direct também passou.
+  `ALPHA_TEST` e alfa com mais de quatro mapas continuam fora deste perfil.
+- [ ] **Transparência e qualidade:** qualificar `ALPHA_TEST`, casters e
+  receivers transparentes com mais de quatro mapas, peeling/OIT e os demais perfis de qualidade. `smoothBorder=1`
   passou em Coin/GL, BGFX e wgpu com pixels idênticos a `0`: a suavização
   gaussiana está desativada na implementação Coin/GL atual. O Core aceita
   somente os valores 0 e 1. O subperfil
@@ -477,7 +499,7 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   o protocolo existente de `TARGET_ERROR` até sua reconfiguração.
   A execução focada está em `CoinRenderShadowReferenceTest --composition`;
   é necessário exigir a referência GL e o executor GPU pelos mesmos flags
-  da suíte completa. Alfa RTT, peeling/OIT, a referência GL com oito mapas e
+  da suíte completa. Alfa RTT fora do perfil acima, peeling/OIT, a referência GL com oito mapas e
   combinações além deste perfil permanecem nas caixas correspondentes.
 
 Cada caixa acima requer uma fixture renderizada nos dois executores e sua
@@ -519,6 +541,7 @@ O preflight retorna `UNSUPPORTED` antes de submeter o quadro para grupos
 ativos fora dos perfis qualificados de composição por objetos. O perfil atual aceita até oito
 passes spot/direcionais. A quinta, sexta e sétima spots têm comparação
 Coin/GL; a oitava tem readback e publicação verificados nos dois backends,
-mas ainda requer referência GL com oito mapas. Alfa RTT, peeling/OIT e
-combinações além dos perfis opacos descritos continuam na matriz
+mas ainda requer referência GL com oito mapas. Alfa RTT NONE/ALPHA_BLEND
+está qualificado até quatro mapas; ALPHA_TEST, transparência com mais de quatro
+mapas, peeling/OIT e combinações além dos perfis descritos continuam na matriz
 P27.4. Nos casos rejeitados, pixels e serial publicados ficam intactos.

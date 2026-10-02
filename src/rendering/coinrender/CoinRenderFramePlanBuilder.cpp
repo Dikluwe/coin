@@ -354,6 +354,12 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
 
   if (!SoMultiTextureEnabledElement::get(state, unit)) {
     rs.hasTexture = false;
+    SbVec2s size;
+    int components;
+    const auto * bytes = SoMultiTextureImageElement::getImage(state, unit, size, components);
+    const auto policy = this->sceneTextures.find(bytes);
+    if (policy != this->sceneTextures.end())
+      rs.transparentTexture = policy->second.transparencyFunction == SoSceneTexture2::ALPHA_BLEND;
     return true;
   }
 
