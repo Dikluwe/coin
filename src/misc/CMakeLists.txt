@@ -36,6 +36,7 @@ set(COIN_MISC_FILES
 	CoinResources.cpp
 	SoDBP.cpp
 	SoEventManager.cpp
+	SbMapStats.cpp
 )
 
 # Files excluded from public API documentation, included in complete documentation.
@@ -45,6 +46,7 @@ set(COIN_MISC_INTERNAL_FILES
 	CoinStaticObjectInDLL.h
 	CoinStaticObjectInDLL.cpp
 	SbHash.h
+	SbMapStats.h
 	SbSmallMap.h
 	SoBaseP.h
 	SoBaseP.cpp

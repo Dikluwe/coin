@@ -126,12 +126,20 @@
 
 #include "nodes/SoSubNodeP.h"
 #include "misc/SbSmallMap.h"
+#include "misc/SbMapStats.h"
 #include "shaders/SoGLARBShaderObject.h"
 #include "shaders/SoGLCgShaderObject.h"
 #include "shaders/SoGLSLShaderObject.h"
 #include "shaders/SoGLShaderProgram.h"
 
 // *************************************************************************
+
+static int
+glshaderobjects_statslot(void)
+{
+  static const int slot = SBMAPSTATS_SLOT("SoShaderObjectP::glshaderobjects");
+  return slot;
+}
 
 class SoShaderObjectP
 {
@@ -144,19 +152,25 @@ public:
 
   SoGLShaderObject * getGLShaderObject(const uint32_t cachecontext) {
     SoGLShaderObject * obj = NULL;
-    if (this->glshaderobjects.get(cachecontext, obj)) return obj;
+    SBMAPSTATS_CONTEXT(glshaderobjects_statslot(), cachecontext);
+    const bool found = this->glshaderobjects.get(cachecontext, obj);
+    SBMAPSTATS_GET(glshaderobjects_statslot(), this->glshaderobjects.getNumElements());
+    if (found) return obj;
     return NULL;
   }
   void setGLShaderObject(SoGLShaderObject * obj, const uint32_t cachecontext) {
     SoGLShaderObject * oldshader;
+    SBMAPSTATS_CONTEXT(glshaderobjects_statslot(), cachecontext);
     if (this->glshaderobjects.get(cachecontext, oldshader)) {
       SoGLCacheContextElement::scheduleDeleteCallback(oldshader->getCacheContext(),
                                                       really_delete_object, oldshader);
     }
     (void) this->glshaderobjects.put(cachecontext, obj);
+    SBMAPSTATS_PUT(glshaderobjects_statslot(), this->glshaderobjects.getNumElements());
   }
   void deleteGLShaderObjects(void) {
     SbList <uint32_t> keylist;
+    SBMAPSTATS_ITERATE(glshaderobjects_statslot(), this->glshaderobjects.getNumElements());
     this->glshaderobjects.makeKeyList(keylist);
     for (int i = 0; i < keylist.getLength(); i++) {
       SoGLShaderObject * glshader = NULL;
@@ -164,6 +178,7 @@ public:
       SoGLCacheContextElement::scheduleDeleteCallback(glshader->getCacheContext(),
                                                       really_delete_object, glshader);
     }
+    SBMAPSTATS_CLEAR(glshaderobjects_statslot(), this->glshaderobjects.getNumElements());
     this->glshaderobjects.clear();
   }
   //
@@ -180,10 +195,12 @@ public:
     SoShaderObjectP * thisp = (SoShaderObjectP*) userdata;
 
     SoGLShaderObject * oldshader;
+    SBMAPSTATS_CONTEXT(glshaderobjects_statslot(), cachecontext);
     if (thisp->glshaderobjects.get(cachecontext, oldshader)) {
       // just delete immediately. The context is current
       delete oldshader;
       thisp->glshaderobjects.erase(cachecontext);
+      SBMAPSTATS_ERASE(glshaderobjects_statslot(), thisp->glshaderobjects.getNumElements());
     }
   }
 
@@ -378,10 +395,12 @@ SoShaderObjectP::SoShaderObjectP(SoShaderObject * ownerptr)
   this->shouldload = TRUE;
 
   SoContextHandler::addContextDestructionCallback(context_destruction_cb, this);
+  SBMAPSTATS_OWNER_CREATED(glshaderobjects_statslot());
 }
 
 SoShaderObjectP::~SoShaderObjectP()
 {
+  SBMAPSTATS_OWNER_DESTROYED(glshaderobjects_statslot());
   SoContextHandler::removeContextDestructionCallback(context_destruction_cb, this);
 
   this->deleteGLShaderObjects();

@@ -42,6 +42,7 @@
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
+#include "misc/SbMapStats.h"
 #endif // HAVE_CONFIG_H
 
 #include <Inventor/C/glue/gl.h>
@@ -350,6 +351,13 @@ soshape_bumprender_load_program(const cc_glglue * glue,
 // to shared resource state, so a copied callback remains safe after removal.
 // After the shape dies, this state owns its GL objects until a current-context
 // cleanup or context destruction drains them. All cache access is serialized.
+static int
+bumpcontext_statslot(void)
+{
+  static const int slot = SBMAPSTATS_SLOT("soshape_bumprender::ProgramCache::contexts");
+  return slot;
+}
+
 struct soshape_bumprender::ProgramCache {
   enum InitStatus { EMPTY, PENDING, READY, FAILED };
   struct Context {
@@ -389,7 +397,10 @@ struct soshape_bumprender::ProgramCache {
   };
   typedef std::shared_ptr<RedrawSensor> RedrawPtr;
   typedef std::map<SoNode *, RedrawPtr> Redraws;
-  ProgramCache() : token(0), alive(true), contextallocationfailed(false) { }
+  ProgramCache() : token(0), alive(true), contextallocationfailed(false) {
+    SBMAPSTATS_OWNER_CREATED(bumpcontext_statslot());
+  }
+  ~ProgramCache() { SBMAPSTATS_OWNER_DESTROYED(bumpcontext_statslot()); }
   std::mutex mutex;
   uintptr_t token;
   bool alive;
@@ -562,11 +573,14 @@ struct soshape_bumprender::ProgramCache {
     soshape_bump_program_error failure;
     std::unique_lock<std::mutex> lock(this->mutex);
     if (!this->alive) return FALSE;
+    SBMAPSTATS_CONTEXT(bumpcontext_statslot(), contextid);
     Contexts::iterator context = this->contexts.find(contextid);
+    SBMAPSTATS_GET(bumpcontext_statslot(), this->contexts.size());
     if (context == this->contexts.end()) {
       if (this->contextallocationfailed) return FALSE;
       try {
         context = this->contexts.insert(std::make_pair(contextid, Context())).first;
+        SBMAPSTATS_PUT(bumpcontext_statslot(), this->contexts.size());
       }
       catch (const std::bad_alloc &) {
         // No GL operation has started. Keep existing contexts usable, but
@@ -671,11 +685,15 @@ soshape_bumprender::~soshape_bumprender()
   {
     std::lock_guard<std::mutex> lock(cache->mutex);
     cache->alive = false;
+    SBMAPSTATS_ITERATE(bumpcontext_statslot(), cache->contexts.size());
     for (ProgramCache::Contexts::iterator it = cache->contexts.begin();
          it != cache->contexts.end();) {
       if (it->second.specstatus == ProgramCache::READY ||
           it->second.diffusestatus == ProgramCache::READY) ++it;
-      else cache->contexts.erase(it++);
+      else {
+        cache->contexts.erase(it++);
+        SBMAPSTATS_ERASE(bumpcontext_statslot(), cache->contexts.size());
+      }
     }
   }
   // Sensor queue changes can invoke application callbacks; never cancel under
@@ -747,6 +765,7 @@ soshape_bumprender::context_destruction_cb(uint32_t contextid, void * userdata)
     if (it == cache->contexts.end()) return;
     ctx = it->second;
     cache->contexts.erase(it);
+    SBMAPSTATS_ERASE(bumpcontext_statslot(), cache->contexts.size());
   }
   // No renderer access, and no cache lock across GL/glue callbacks.
   if (ctx.specstatus == ProgramCache::READY || ctx.diffusestatus == ProgramCache::READY) {

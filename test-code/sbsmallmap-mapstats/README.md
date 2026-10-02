@@ -9,8 +9,7 @@ session does not necessarily activate:
 
 - `shader_multicontext.cpp`: GLSL program, shader-object and uniform-parameter
   maps in two real GLX contexts;
-- `bump_multicontext.cpp`: the diffuse and specular legacy bump-program maps in
-  two real GLX contexts;
+- `bump_multicontext.cpp`: the bump program cache in two real GLX contexts;
 - `profiler_textures.cpp`: all six static profiler texture categories, twice;
 - `profiler_textures_benchmark.cpp`: compares the six-entry cache lifecycle
   and steady lookup cost against the current `std::map` representation;
@@ -18,6 +17,11 @@ session does not necessarily activate:
   scene does not engage the VBO path on this machine.
 
 ## Results recorded on 2026-09-18
+
+These results describe the earlier cache implementations. The current lab
+instruments `ProgramCache::contexts` in place of the removed
+`diffuseprogramdict` and `specularprogramdict` maps. Re-run the drivers
+before using the historical counts to make a new migration decision.
 
 An instrumented FreeCAD workload exercised 3,933 `SoVBO` owners and recorded
 561,402 lookups. Every observed `vbohash` had at most one entry and only one

@@ -48,6 +48,7 @@
 #include <Inventor/annex/Profiler/nodekits/SoNodeVisualize.h>
 
 #include "misc/SbSmallMap.h"
+#include "misc/SbMapStats.h"
 
 #include <Inventor/SoDB.h>
 #include <Inventor/SoInput.h>
@@ -116,6 +117,12 @@ static TextureImageData top_transform = {
 // *************************************************************************
 
 namespace {
+  static int texturedict_statslot(void)
+  {
+    static const int slot = SBMAPSTATS_SLOT("SoNodeVisualize::TextureDict::nodemap");
+    return slot;
+  }
+
   class TextureDict {
   public:
     TextureDict()
@@ -141,20 +148,25 @@ namespace {
     }
 
     void clear() {
+      SBMAPSTATS_ITERATE(texturedict_statslot(), this->nodemap.getNumElements());
       for (TextureMap::const_iterator it = this->nodemap.const_begin();
            it != this->nodemap.const_end(); ++it) {
         it->obj->unref();
       }
+      SBMAPSTATS_CLEAR(texturedict_statslot(), this->nodemap.getNumElements());
       this->nodemap.clear();
     }
 
     SoTexture2 * operator[](const TextureImageData & data)
     {
       SoTexture2 * node = NULL;
-      if (!this->nodemap.get(&data, node)) {
+      const bool found = this->nodemap.get(&data, node);
+      SBMAPSTATS_GET(texturedict_statslot(), this->nodemap.getNumElements());
+      if (!found) {
         SoRefPtr<SoTexture2> created = this->createTexture(&data);
         node = created.get();
         this->nodemap.put(&data, node);
+        SBMAPSTATS_PUT(texturedict_statslot(), this->nodemap.getNumElements());
         node->ref(); // The cache owns one reference after insertion succeeds.
       }
       return node;
