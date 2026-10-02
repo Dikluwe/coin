@@ -20,6 +20,9 @@ public:
 
   void beginFrame(const SbColor4f & clearColor, const SbViewportRegion & viewport);
   void reset();
+  // A traversal-local scope, never a cache across shape occurrences/frames.
+  void beginShape(SoCallbackAction * action, const SoNode * node);
+  void endShape();
   // Wiring reads the effective Coin state, including ignored fields and overrides.
   static bool isShapeInvisible(SoCallbackAction * action);
   static int polygonDrawStyle(SoCallbackAction * action);
@@ -113,6 +116,8 @@ private:
   std::string builderError;
   std::unordered_map<uint64_t, uint32_t> nodeOccurrenceCount;
   std::unordered_map<uint64_t, std::vector<uint32_t>> renderStatesByModel;
+  const SoNode * stableShape = nullptr;
+  std::vector<std::pair<int, uint32_t>> shapeRenderStates;
   std::vector<SbVec3f> lightAttenuationByIndex;
   std::vector<uint32_t> shadowGroupStack;
   struct SceneTexture {

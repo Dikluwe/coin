@@ -135,6 +135,7 @@ CoinRenderFramePlanBuilder::beginFrame(const SbColor4f & clearColor, const SbVie
 void
 CoinRenderFramePlanBuilder::reset()
 {
+  this->endShape();
   this->polygonNode = nullptr;
   this->polygonVertices.clear();
   this->polygonPositions.clear();
@@ -174,6 +175,34 @@ CoinRenderFramePlanBuilder::reset()
   this->sceneTextures.clear();
   this->nodeOccurrenceCount.clear();
   this->lightAttenuationByIndex.clear();
+}
+
+void
+CoinRenderFramePlanBuilder::beginShape(SoCallbackAction * action, const SoNode * node)
+{
+  this->endShape();
+  if (!action || !node || polygonDrawStyle(action) != SoDrawStyleElement::FILLED) return;
+  // These exact built-in generators do not modify render state between
+  // triangles. Subclasses can override generation and must keep full capture.
+  const SoType type = node->getTypeId();
+  if (type != SoCube::getClassTypeId() && type != SoCone::getClassTypeId() &&
+      type != SoCylinder::getClassTypeId() && type != SoSphere::getClassTypeId()) return;
+  SoState * state = action->getState();
+  int last = -1;
+  const SbBool * enabled = SoMultiTextureEnabledElement::getEnabledUnits(state, last);
+  for (int unit = 0; unit <= last; ++unit)
+    if (enabled[unit]) return;
+  // User coordinate functions can have arbitrary state side effects.
+  if (SoMultiTextureCoordinateElement::getType(state, 0) ==
+      SoMultiTextureCoordinateElement::FUNCTION) return;
+  this->stableShape = node;
+}
+
+void
+CoinRenderFramePlanBuilder::endShape()
+{
+  this->stableShape = nullptr;
+  this->shapeRenderStates.clear();
 }
 
 void
@@ -627,6 +656,10 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
 uint32_t
 CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materialIndex)
 {
+  const bool stable = this->stableShape && action->getCurPathTail() == this->stableShape;
+  if (stable)
+    for (const auto & cached : this->shapeRenderStates)
+      if (cached.first == materialIndex) return cached.second;
   // 1. Material
   uint32_t materialSlot = this->captureMaterial(action, materialIndex);
 
@@ -933,6 +966,7 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
     this->currentPlan.renderStates.push_back(rs);
     modelCandidates.push_back(rsSlot);
   }
+  if (stable) this->shapeRenderStates.emplace_back(materialIndex, rsSlot);
   return rsSlot;
 }
 

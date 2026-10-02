@@ -183,6 +183,9 @@ public:
   SbBool isCallbackAll(void) const;
 
 protected:
+  // Derived capture actions can reuse state only without arbitrary callbacks
+  // between primitive emissions. The query includes inherited registrations.
+  SbBool hasSingleShapeCallbacks(const SoType type) const;
   void beginTraversal(SoNode * node) override;
 
 private:

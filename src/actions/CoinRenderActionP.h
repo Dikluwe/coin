@@ -70,6 +70,7 @@ public:
                                                      const SoNode * node);
 
   static SoCallbackAction::Response textureUnitsPreCB(void *, SoCallbackAction *, const SoNode *);
+  static SoCallbackAction::Response shapePostCB(void *, SoCallbackAction *, const SoNode *);
   static SoCallbackAction::Response textureCombinePreCB(void *, SoCallbackAction *, const SoNode *);
   static SoCallbackAction::Response unsupportedEffectPreCB(void *, SoCallbackAction *, const SoNode *);
 

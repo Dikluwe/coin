@@ -276,6 +276,100 @@ Não houve alteração no código de renderização nem repetição da suíte co
 Para reproduzir, use `--backend gl` no benchmark para Coin/OpenGL, ou o build
 `RUST_BRIDGE` com `--backend wgpu` e `WGPU_BACKEND=vulkan`, `dx12` ou `gl`.
 
+## Correção comum da captura do primeiro quadro
+
+A captura montava material, iluminação, câmera, viewport e estado de desenho
+novamente para cada triângulo. Os 40 mil edifícios usam um material por cubo:
+o estado era montado 12 vezes durante a emissão de seus 12 triângulos.
+O capturador comum agora reutiliza esse estado por índice de material durante
+uma ocorrência de `SoCube`, `SoCone`, `SoCylinder` ou `SoSphere` preenchidos,
+sem imagens de textura habilitadas nem função de coordenadas primária.
+A geometria e as validações continuam completas; não houve agrupamento ou
+instancing novo nesta correção.
+
+A reutilização termina no post-callback da forma e no reset do quadro.
+Portanto, reutilizar o mesmo nó sob outra transformação ou material exige
+nova captura. Subclasses continuam no caminho completo, pois podem alterar
+estado em `generatePrimitives`. O Core oferece uma consulta protegida às
+listas reais de callbacks, incluindo registros herdados e callbacks tail;
+callbacks adicionais da aplicação também desativam a reutilização, mesmo
+quando registrados através de `SoCallbackAction *`. A mudança não altera
+layout nem métodos virtuais de `SoCallbackAction`.
+
+Esta lógica fica em `CoinRenderAction`/`CoinRenderFramePlanBuilder`, antes da
+seleção de BGFX ou wgpu. Os backends e shaders não foram alterados. O OpenGL
+tradicional usa `SoGLRenderAction`, fora desse capturador: seu controle de
+40 mil continuou funcionando, com 723,62 ms no primeiro quadro e 35,90 ms de
+mediana aquecida, preservando a imagem anterior. Não se atribui a ele um ganho
+por esta mudança.
+
+Comparação com as DLLs preservadas de `25cc463e27`, três pares alternados em
+processos novos, 40.000 edifícios, 1024 × 1024, incluindo readback RGBA:
+
+| Caminho | Primeiro antes, mediana | Primeiro depois, mediana | Redução observada |
+|---|---:|---:|---:|
+| BGFX/D3D12 | 3.777,38 ms | **2.777,61 ms** | **26,47%** |
+| BGFX/Vulkan | 3.169,95 ms | **2.499,80 ms** | **21,14%** |
+| BGFX/OpenGL | 3.258,08 ms | **2.364,33 ms** | **27,43%** |
+| wgpu/Vulkan | 3.275,47 ms | **2.703,64 ms** | **17,46%** |
+
+Nenhuma amostra foi removida. O par inicial D3D12 levou 9.941,26 / 7.444,62 ms,
+mostrando variação de inicialização maior que nos pares seguintes. Os tempos
+excluem carga do arquivo e consulta inicial de capacidades, mantêm caches do
+sistema/driver e não representam inicialização após reboot. Os logs individuais
+permitem avaliar a variação, sem comparar diretamente essas medianas com as
+de outra rodada.
+
+Em um par separado com tracing, a captura BGFX/Vulkan de 40 mil caiu de
+**1.029,89 para 473,80 ms**, redução de aproximadamente **54%**. A montagem e
+validação do plano continuaram em 231,82 / 267,03 ms, e o trecho de backend em
+1.632,43 / 1.719,08 ms. Esses últimos valores não indicam otimização dessas
+fases. O primeiro quadro ainda captura 1.440.036 vértices expandidos e precisa
+de validação, preparação do alvo, conversão, upload e espera de readback.
+
+Em wgpu/OpenGL, o controle diagnóstico de **10 mil** reduziu a captura de
+263,42 para 125,21 ms. A submissão permaneceu dominante, em 9.136,27 /
+9.399,48 ms; o primeiro quadro total foi 9.622,93 / 9.655,81 ms. Assim, esse
+controle confirma melhora na captura comum, sem afirmar ganho no tempo total
+ou substituir a medição anterior de 40 mil. wgpu/D3D12 ainda falha no primeiro
+quadro grande com o mesmo bind group inválido.
+
+Os controles aquecidos finais de 40 mil mediram 12,57 ms em BGFX/D3D12,
+10,68 ms em BGFX/Vulkan, 12,94 ms em BGFX/OpenGL e 1.426,26 ms em wgpu/Vulkan.
+O primeiro controle D3D12 corrigido oscilou (mediana 38,91 ms / P95 118,70 ms).
+Uma repetição antes/depois mediu 12,38 / 12,57 ms, com P95 13,02 / 13,17 ms;
+o ensaio oscilante permanece registrado. Todos os controles de imagem
+antes/depois são idênticos na mesma API, inclusive wgpu/OpenGL em 10 mil.
+
+As regressões comparam a captura otimizada com a captura completa para as
+quatro formas, índices de material por parte, nós compartilhados e alterações
+entre quadros. Elas verificam ainda mudanças de profundidade entre callbacks
+de triângulo e dentro de uma subclasse de `SoCube`.
+
+A qualificação reúne os **163 casos do build BGFX** e **8 fixtures wgpu/Vulkan**.
+A execução BGFX inicial teve 129 aprovados, 32 sombras puladas por falta do
+opt-in GPU e dois `SEGFAULT` nos testes de transparência. A captura CPU desses
+testes passou com as DLLs anteriores e atuais, usando o mesmo executável
+diagnóstico, inclusive com a referência OpenGL obrigatória. Os dois testes
+completos passaram em uma repetição. A causa das falhas iniciais não foi isolada.
+
+Depois de remover toda a instrumentação temporária e reconstruir o teste
+original, uma execução de **49 casos** exigiu GPU de sombras e referências
+OpenGL (`COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU=1`,
+`COIN_RENDER_REQUIRE_GL_REFERENCE=1` e `COIN_WGPU_REQUIRE_GL_REFERENCE=1`).
+Ela aprovou todos os casos, incluindo transparência nos três renderizadores.
+Os resultados finais por nome consolidam 163 aprovados, sem casos pulados;
+isso combina a suíte inicial com a repetição obrigatória, e não representa
+uma única execução integral sem falhas. Os resultados iniciais estão preservados.
+
+Os prefixos locais `build/coin-render-bgfx-install` e `build/coin-render-install`
+receberam as duas DLLs e o header do Core atualizado. Os hashes instalados são
+iguais aos dos binários testados; `Coin4.dll` e `CoinRender4.dll` devem ser
+atualizados juntos por causa da nova consulta protegida no Core.
+
+Logs, hashes, amostras, diferenças de imagem e resultados de testes estão em
+[common-capture-summary.json](validation/bgfx-windows/first-frame/common-capture/common-capture-summary.json).
+
 ## Reproduzir
 
 ```powershell

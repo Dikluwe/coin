@@ -1,0 +1,3123 @@
+{
+  "date": "2026-10-02",
+  "baseline_commit": "25cc463e27",
+  "branch": "codex/coin-render-large-scenes",
+  "hardware": "Windows 10 Pro, i5-4670K, 16 GiB RAM, GTX 1060 6 GB, driver 581.08",
+  "change": "Common CoinRenderAction/FramePlanBuilder traversal-local render-state reuse for exact filled native Cube/Cone/Cylinder/Sphere without textures/functions or additional action callbacks. Material-index aware; reset per occurrence and frame; validation retained.",
+  "method": {
+    "first_frame": "Three alternating before/after processes per backend/API, 40,000 buildings, 1024x1024, warmup=1, frames=1, synchronous RGBA readback. Existing OS/driver caches, tracing disabled; file load and capability probe excluded.",
+    "warm": "warmup=4, frames=8, separate processes. D3D12 warm control repeated after a variable initial run; both retained.",
+    "phase": "One diagnostic before/after pair per BGFX/Vulkan 40,000 and wgpu/OpenGL 10,000; separate from medians. Intermediate API executions are listed in chronological run order.",
+    "variability": "Initial D3D12 first-frame pair 9,941/7,445 ms and initial after warm median 38.91 ms/p95 118.70 ms. Later before/after warm medians 12.38/12.57 ms. No sample discarded from first-frame medians; no driver reset or cache flush.",
+    "scope": "Initial full BGFX-build CTest suite followed by 49 original-fixture reruns with required GPU/reference flags; statuses consolidated by test name, with initial failures preserved. Eight selected wgpu/Vulkan fixtures. wgpu/OpenGL phase/image control is 10,000, not a repeated 40,000 benchmark. Known wgpu/D3D12 large-scene bind-group failure remains. Traditional Coin/OpenGL control uses its separate SoGLRenderAction path.",
+    "log_normalization": "Trailing whitespace removed; one final newline; originals preserved under build."
+  },
+  "results": {
+    "bgfx/d3d12": {
+      "before_median_ms": 3777.38,
+      "after_median_ms": 2777.61,
+      "reduction_percent": 26.46728684961534,
+      "warm_median_ms": 12.5734,
+      "warm_p95_ms": 13.1683
+    },
+    "bgfx/vulkan": {
+      "before_median_ms": 3169.95,
+      "after_median_ms": 2499.8,
+      "reduction_percent": 21.14071199861196,
+      "warm_median_ms": 10.6786,
+      "warm_p95_ms": 11.1998
+    },
+    "bgfx/opengl": {
+      "before_median_ms": 3258.08,
+      "after_median_ms": 2364.33,
+      "reduction_percent": 27.431800324117273,
+      "warm_median_ms": 12.937,
+      "warm_p95_ms": 19.0787
+    },
+    "wgpu/vulkan": {
+      "before_median_ms": 3275.47,
+      "after_median_ms": 2703.64,
+      "reduction_percent": 17.457952599168973,
+      "warm_median_ms": 1426.26,
+      "warm_p95_ms": 1495.29
+    }
+  },
+  "phase_results": {
+    "bgfx/vulkan": {
+      "buildings": 40000,
+      "before": {
+        "traversal_ms": 1029.89,
+        "frame_plan_ms": 231.818,
+        "backend_ms": 1632.43
+      },
+      "after": {
+        "traversal_ms": 473.799,
+        "frame_plan_ms": 267.034,
+        "backend_ms": 1719.08
+      },
+      "traversal_reduction_percent": 53.99518395168417
+    },
+    "wgpu/gl": {
+      "buildings": 10000,
+      "before": {
+        "traversal_ms": 263.416,
+        "frame_plan_ms": 127.751,
+        "backend_ms": 9230.23
+      },
+      "after": {
+        "traversal_ms": 125.206,
+        "frame_plan_ms": 59.6066,
+        "backend_ms": 9469.68
+      },
+      "traversal_reduction_percent": 52.46833905305675
+    }
+  },
+  "tests": {
+    "bgfx": {
+      "qualification": "Combined initial full suite and required original-fixture GPU rerun, not a single clean full-suite run.",
+      "initial_full_suite": {
+        "passed": 129,
+        "failed": 2,
+        "skipped": 32,
+        "cases": [
+          {
+            "name": "CoinRenderWin32D3D12Smoke",
+            "status": "passed",
+            "seconds": 0.923878
+          },
+          {
+            "name": "CoinRenderWin32VulkanSmoke",
+            "status": "passed",
+            "seconds": 0.859094
+          },
+          {
+            "name": "CoinTests",
+            "status": "passed",
+            "seconds": 2.48448
+          },
+          {
+            "name": "CoinConfigCompatibility",
+            "status": "passed",
+            "seconds": 1.91736
+          },
+          {
+            "name": "ProfilerInit_unset",
+            "status": "passed",
+            "seconds": 0.144786
+          },
+          {
+            "name": "ProfilerInit_off",
+            "status": "passed",
+            "seconds": 0.105328
+          },
+          {
+            "name": "ProfilerInit_0",
+            "status": "passed",
+            "seconds": 0.107487
+          },
+          {
+            "name": "ProfilerInit_on",
+            "status": "passed",
+            "seconds": 0.109562
+          },
+          {
+            "name": "ProfilerInit_1",
+            "status": "passed",
+            "seconds": 0.110396
+          },
+          {
+            "name": "ProfilerInit_syncgl",
+            "status": "passed",
+            "seconds": 0.108197
+          },
+          {
+            "name": "ProfilerInit_invalid",
+            "status": "passed",
+            "seconds": 0.106796
+          },
+          {
+            "name": "RenderManagerFramePreparationTest",
+            "status": "passed",
+            "seconds": 0.15118
+          },
+          {
+            "name": "CoinRenderActionTest",
+            "status": "passed",
+            "seconds": 0.820401
+          },
+          {
+            "name": "CoinRenderSelectionTest",
+            "status": "passed",
+            "seconds": 4.17183
+          },
+          {
+            "name": "CoinRenderSelection_vulkan",
+            "status": "passed",
+            "seconds": 4.12693
+          },
+          {
+            "name": "CoinRenderSelection_opengl",
+            "status": "passed",
+            "seconds": 3.1095
+          },
+          {
+            "name": "CoinRenderSelection_d3d12",
+            "status": "passed",
+            "seconds": 3.8239
+          },
+          {
+            "name": "CoinRenderProductTest",
+            "status": "passed",
+            "seconds": 1.79765
+          },
+          {
+            "name": "CoinRenderBackendContractTest",
+            "status": "passed",
+            "seconds": 1.24635
+          },
+          {
+            "name": "CoinRenderOffscreenTest",
+            "status": "passed",
+            "seconds": 0.288672
+          },
+          {
+            "name": "CoinRenderGateG0Test",
+            "status": "passed",
+            "seconds": 0.273158
+          },
+          {
+            "name": "CoinRenderFrameCoreTest",
+            "status": "passed",
+            "seconds": 0.122955
+          },
+          {
+            "name": "CoinBgfxReadbackModes_vulkan",
+            "status": "passed",
+            "seconds": 2.97464
+          },
+          {
+            "name": "CoinBgfxReadbackModes_opengl",
+            "status": "passed",
+            "seconds": 1.54491
+          },
+          {
+            "name": "CoinBgfxReadbackModes_d3d12",
+            "status": "passed",
+            "seconds": 2.49499
+          },
+          {
+            "name": "CoinBgfxSurface_vulkan_object",
+            "status": "passed",
+            "seconds": 17.0532
+          },
+          {
+            "name": "CoinBgfxSurface_vulkan_weighted_oit",
+            "status": "passed",
+            "seconds": 17.0393
+          },
+          {
+            "name": "CoinBgfxSurface_vulkan_sorted_layers",
+            "status": "passed",
+            "seconds": 17.7647
+          },
+          {
+            "name": "CoinBgfxSurface_opengl_object",
+            "status": "passed",
+            "seconds": 12.2551
+          },
+          {
+            "name": "CoinBgfxSurface_opengl_weighted_oit",
+            "status": "passed",
+            "seconds": 12.6741
+          },
+          {
+            "name": "CoinBgfxSurface_opengl_sorted_layers",
+            "status": "passed",
+            "seconds": 9.78073
+          },
+          {
+            "name": "CoinBgfxSurface_d3d12_object",
+            "status": "passed",
+            "seconds": 18.2971
+          },
+          {
+            "name": "CoinBgfxSurface_d3d12_weighted_oit",
+            "status": "passed",
+            "seconds": 19.8861
+          },
+          {
+            "name": "CoinBgfxSurface_d3d12_sorted_layers",
+            "status": "passed",
+            "seconds": 14.5387
+          },
+          {
+            "name": "CoinBgfxCoreTest",
+            "status": "passed",
+            "seconds": 0.14644
+          },
+          {
+            "name": "CoinRenderDepthContractTest",
+            "status": "passed",
+            "seconds": 0.278083
+          },
+          {
+            "name": "CoinRenderDepthContractVulkanTest",
+            "status": "passed",
+            "seconds": 0.622023
+          },
+          {
+            "name": "CoinRenderDepthContractOpenGLTest",
+            "status": "passed",
+            "seconds": 0.591606
+          },
+          {
+            "name": "CoinRenderProductOpenGLTest",
+            "status": "passed",
+            "seconds": 1.07977
+          },
+          {
+            "name": "CoinBgfxOffscreenTest",
+            "status": "passed",
+            "seconds": 2.7284
+          },
+          {
+            "name": "CoinBgfxOpenGLTest",
+            "status": "passed",
+            "seconds": 1.60262
+          },
+          {
+            "name": "CoinRenderBackendContractOpenGLTest",
+            "status": "passed",
+            "seconds": 0.69002
+          },
+          {
+            "name": "CoinBgfxTransparencyTest",
+            "status": "passed",
+            "seconds": 3.90552
+          },
+          {
+            "name": "CoinBgfxTransparencyOpenGLTest",
+            "status": "passed",
+            "seconds": 1.88236
+          },
+          {
+            "name": "CoinBgfxSortedLayersTest",
+            "status": "passed",
+            "seconds": 2.50249
+          },
+          {
+            "name": "CoinBgfxSortedLayersOpenGLTest",
+            "status": "passed",
+            "seconds": 1.41134
+          },
+          {
+            "name": "CoinBgfxWeightedOitTest",
+            "status": "passed",
+            "seconds": 5.4618
+          },
+          {
+            "name": "CoinBgfxWeightedOitOpenGLTest",
+            "status": "passed",
+            "seconds": 3.2049
+          },
+          {
+            "name": "CoinRenderFrameReuseCoreTest",
+            "status": "passed",
+            "seconds": 0.906216
+          },
+          {
+            "name": "CoinRenderDiagnosticShellTest",
+            "status": "passed",
+            "seconds": 0.109849
+          },
+          {
+            "name": "CoinRenderIndexedGeometryCoreTest",
+            "status": "passed",
+            "seconds": 0.123653
+          },
+          {
+            "name": "CoinRenderGateG1Test",
+            "status": "passed",
+            "seconds": 2.01199
+          },
+          {
+            "name": "CoinRenderGateG2Test",
+            "status": "passed",
+            "seconds": 2.06451
+          },
+          {
+            "name": "CoinRenderIndexedFastPathTest",
+            "status": "passed",
+            "seconds": 2.73769
+          },
+          {
+            "name": "CoinWgpuCacheTest",
+            "status": "passed",
+            "seconds": 0.116502
+          },
+          {
+            "name": "CoinRenderStabilizationTest",
+            "status": "passed",
+            "seconds": 0.228832
+          },
+          {
+            "name": "CoinRenderTextureTest",
+            "status": "passed",
+            "seconds": 7.47422
+          },
+          {
+            "name": "CoinRenderLightingTest",
+            "status": "passed",
+            "seconds": 21.3497
+          },
+          {
+            "name": "CoinRenderGouraudInterpolationTest",
+            "status": "passed",
+            "seconds": 1.37574
+          },
+          {
+            "name": "CoinRenderGouraud_vulkan_object",
+            "status": "passed",
+            "seconds": 1.27049
+          },
+          {
+            "name": "CoinRenderGouraud_vulkan_weighted_oit",
+            "status": "passed",
+            "seconds": 1.31209
+          },
+          {
+            "name": "CoinRenderGouraud_vulkan_sorted_layers",
+            "status": "passed",
+            "seconds": 1.48526
+          },
+          {
+            "name": "CoinRenderGouraud_opengl_object",
+            "status": "passed",
+            "seconds": 0.919408
+          },
+          {
+            "name": "CoinRenderGouraud_opengl_weighted_oit",
+            "status": "passed",
+            "seconds": 1.02816
+          },
+          {
+            "name": "CoinRenderGouraud_opengl_sorted_layers",
+            "status": "passed",
+            "seconds": 1.6309
+          },
+          {
+            "name": "CoinRenderGouraud_d3d12_object",
+            "status": "passed",
+            "seconds": 4.5646
+          },
+          {
+            "name": "CoinRenderGouraud_d3d12_weighted_oit",
+            "status": "passed",
+            "seconds": 1.75609
+          },
+          {
+            "name": "CoinRenderGouraud_d3d12_sorted_layers",
+            "status": "passed",
+            "seconds": 1.47427
+          },
+          {
+            "name": "CoinRenderFogTest",
+            "status": "passed",
+            "seconds": 15.6825
+          },
+          {
+            "name": "CoinRenderClipPlaneTest",
+            "status": "passed",
+            "seconds": 1.66981
+          },
+          {
+            "name": "CoinRenderClipPlane_vulkan_object",
+            "status": "passed",
+            "seconds": 1.57475
+          },
+          {
+            "name": "CoinRenderClipPlane_vulkan_weighted_oit",
+            "status": "passed",
+            "seconds": 1.64887
+          },
+          {
+            "name": "CoinRenderClipPlane_vulkan_sorted_layers",
+            "status": "passed",
+            "seconds": 1.78954
+          },
+          {
+            "name": "CoinRenderClipPlane_opengl_object",
+            "status": "passed",
+            "seconds": 1.04196
+          },
+          {
+            "name": "CoinRenderClipPlane_opengl_weighted_oit",
+            "status": "passed",
+            "seconds": 1.09722
+          },
+          {
+            "name": "CoinRenderClipPlane_opengl_sorted_layers",
+            "status": "passed",
+            "seconds": 1.07064
+          },
+          {
+            "name": "CoinRenderClipPlane_d3d12_object",
+            "status": "passed",
+            "seconds": 2.9426
+          },
+          {
+            "name": "CoinRenderClipPlane_d3d12_weighted_oit",
+            "status": "passed",
+            "seconds": 1.64875
+          },
+          {
+            "name": "CoinRenderClipPlane_d3d12_sorted_layers",
+            "status": "passed",
+            "seconds": 1.66293
+          },
+          {
+            "name": "CoinRenderDrawStyleTest",
+            "status": "passed",
+            "seconds": 11.6601
+          },
+          {
+            "name": "CoinRenderDrawStyle_vulkan",
+            "status": "passed",
+            "seconds": 9.29418
+          },
+          {
+            "name": "CoinRenderDrawStyle_opengl",
+            "status": "passed",
+            "seconds": 11.911
+          },
+          {
+            "name": "CoinRenderDrawStyle_d3d12",
+            "status": "passed",
+            "seconds": 24.8119
+          },
+          {
+            "name": "CoinRenderMultitextureTest",
+            "status": "passed",
+            "seconds": 2.00646
+          },
+          {
+            "name": "CoinRenderMultitexture_vulkan",
+            "status": "passed",
+            "seconds": 1.86052
+          },
+          {
+            "name": "CoinRenderMultitexture_opengl",
+            "status": "passed",
+            "seconds": 1.69693
+          },
+          {
+            "name": "CoinRenderMultitexture_d3d12",
+            "status": "passed",
+            "seconds": 4.67747
+          },
+          {
+            "name": "CoinRenderPeelingTest",
+            "status": "passed",
+            "seconds": 2.38845
+          },
+          {
+            "name": "CoinRenderPeeling_vulkan",
+            "status": "passed",
+            "seconds": 2.35592
+          },
+          {
+            "name": "CoinRenderOit_vulkan",
+            "status": "passed",
+            "seconds": 1.22481
+          },
+          {
+            "name": "CoinRenderPeeling_opengl",
+            "status": "passed",
+            "seconds": 3.58958
+          },
+          {
+            "name": "CoinRenderOit_opengl",
+            "status": "passed",
+            "seconds": 1.26575
+          },
+          {
+            "name": "CoinRenderPeeling_d3d12",
+            "status": "passed",
+            "seconds": 2.31483
+          },
+          {
+            "name": "CoinRenderOit_d3d12",
+            "status": "passed",
+            "seconds": 1.19854
+          },
+          {
+            "name": "CoinRenderTransparencyTest",
+            "status": "failed",
+            "seconds": 23.1403
+          },
+          {
+            "name": "CoinRenderTransparency_vulkan",
+            "status": "failed",
+            "seconds": 38.0316
+          },
+          {
+            "name": "CoinRenderTransparency_opengl",
+            "status": "passed",
+            "seconds": 15.7783
+          },
+          {
+            "name": "CoinRenderTransparency_d3d12",
+            "status": "passed",
+            "seconds": 5.65109
+          },
+          {
+            "name": "CoinRenderCompositionTest",
+            "status": "passed",
+            "seconds": 15.3276
+          },
+          {
+            "name": "CoinRenderNodeInventoryDiscoveryTest",
+            "status": "passed",
+            "seconds": 0.48839
+          },
+          {
+            "name": "CoinRenderNodeInventoryTest",
+            "status": "passed",
+            "seconds": 0.144925
+          },
+          {
+            "name": "CoinRenderShadowReferenceTest",
+            "status": "passed",
+            "seconds": 0.185201
+          },
+          {
+            "name": "CoinRenderShadowWiringTest",
+            "status": "skipped",
+            "seconds": 0.0928334
+          },
+          {
+            "name": "CoinRenderShadowTransparency5Test",
+            "status": "skipped",
+            "seconds": 0.0760088
+          },
+          {
+            "name": "CoinRenderShadowTransparency6Test",
+            "status": "skipped",
+            "seconds": 0.0824135
+          },
+          {
+            "name": "CoinRenderShadowTransparency7Test",
+            "status": "skipped",
+            "seconds": 0.097904
+          },
+          {
+            "name": "CoinRenderShadowTransparency8Test",
+            "status": "skipped",
+            "seconds": 0.0826496
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest1_0Test",
+            "status": "skipped",
+            "seconds": 0.0787435
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest1_1Test",
+            "status": "skipped",
+            "seconds": 0.077198
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest1_2Test",
+            "status": "skipped",
+            "seconds": 0.0763846
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest4_0Test",
+            "status": "skipped",
+            "seconds": 0.0774963
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest4_1Test",
+            "status": "skipped",
+            "seconds": 0.0750982
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest4_2Test",
+            "status": "skipped",
+            "seconds": 0.0749832
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest5_0Test",
+            "status": "skipped",
+            "seconds": 0.0816912
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest5_1Test",
+            "status": "skipped",
+            "seconds": 0.073832
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest5_2Test",
+            "status": "skipped",
+            "seconds": 0.187319
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest6_0Test",
+            "status": "skipped",
+            "seconds": 0.087643
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest6_1Test",
+            "status": "skipped",
+            "seconds": 0.0768773
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest6_2Test",
+            "status": "skipped",
+            "seconds": 0.0783798
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest7_0Test",
+            "status": "skipped",
+            "seconds": 0.0923399
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest7_1Test",
+            "status": "skipped",
+            "seconds": 0.0759496
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest7_2Test",
+            "status": "skipped",
+            "seconds": 0.078854
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest8_0Test",
+            "status": "skipped",
+            "seconds": 0.184131
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest8_1Test",
+            "status": "skipped",
+            "seconds": 0.098901
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest8_2Test",
+            "status": "skipped",
+            "seconds": 0.0747814
+          },
+          {
+            "name": "CoinRenderShadowQuality1Test",
+            "status": "skipped",
+            "seconds": 0.205851
+          },
+          {
+            "name": "CoinRenderShadowOit1_1Test",
+            "status": "skipped",
+            "seconds": 0.0753597
+          },
+          {
+            "name": "CoinRenderShadowLayers1_1Test",
+            "status": "passed",
+            "seconds": 1.51369
+          },
+          {
+            "name": "CoinRenderShadowOit1_2Test",
+            "status": "skipped",
+            "seconds": 0.0763045
+          },
+          {
+            "name": "CoinRenderShadowLayers1_2Test",
+            "status": "passed",
+            "seconds": 1.50692
+          },
+          {
+            "name": "CoinRenderShadowQuality4Test",
+            "status": "skipped",
+            "seconds": 0.0832003
+          },
+          {
+            "name": "CoinRenderShadowOit4_1Test",
+            "status": "skipped",
+            "seconds": 0.0939045
+          },
+          {
+            "name": "CoinRenderShadowLayers4_1Test",
+            "status": "passed",
+            "seconds": 1.95358
+          },
+          {
+            "name": "CoinRenderShadowOit4_2Test",
+            "status": "skipped",
+            "seconds": 0.0799383
+          },
+          {
+            "name": "CoinRenderShadowLayers4_2Test",
+            "status": "passed",
+            "seconds": 1.46447
+          },
+          {
+            "name": "CoinRenderShadowQuality8Test",
+            "status": "skipped",
+            "seconds": 0.0812109
+          },
+          {
+            "name": "CoinRenderShadowOit8_1Test",
+            "status": "skipped",
+            "seconds": 0.0741695
+          },
+          {
+            "name": "CoinRenderShadowLayers8_1Test",
+            "status": "passed",
+            "seconds": 1.72753
+          },
+          {
+            "name": "CoinRenderShadowOit8_2Test",
+            "status": "skipped",
+            "seconds": 0.087768
+          },
+          {
+            "name": "CoinRenderShadowLayers8_2Test",
+            "status": "passed",
+            "seconds": 2.24387
+          },
+          {
+            "name": "CoinRenderMultiTargetTest",
+            "status": "passed",
+            "seconds": 1.65469
+          },
+          {
+            "name": "CoinRenderMultiTargetDirectTest",
+            "status": "passed",
+            "seconds": 1.32556
+          },
+          {
+            "name": "CoinRenderMultiTargetStagedOpenGLTest",
+            "status": "passed",
+            "seconds": 0.999844
+          },
+          {
+            "name": "CoinRenderMultiTargetOpenGLTest",
+            "status": "passed",
+            "seconds": 1.00226
+          },
+          {
+            "name": "CoinRenderPublicationTest",
+            "status": "passed",
+            "seconds": 0.117509
+          },
+          {
+            "name": "CoinRenderRttOwnershipTest",
+            "status": "passed",
+            "seconds": 0.787252
+          },
+          {
+            "name": "CoinRenderRttOwnership_vulkan",
+            "status": "passed",
+            "seconds": 0.60943
+          },
+          {
+            "name": "CoinRenderRttOwnership_opengl",
+            "status": "passed",
+            "seconds": 4.14451
+          },
+          {
+            "name": "CoinRenderRttOwnership_d3d12",
+            "status": "passed",
+            "seconds": 0.789846
+          },
+          {
+            "name": "CoinRenderSceneTextureTest",
+            "status": "passed",
+            "seconds": 3.28085
+          },
+          {
+            "name": "CoinRenderSceneTextureBudgetTest",
+            "status": "passed",
+            "seconds": 1.93809
+          },
+          {
+            "name": "CoinRenderSceneTexture_vulkan_staged",
+            "status": "passed",
+            "seconds": 2.65953
+          },
+          {
+            "name": "CoinRenderSceneTextureBudget_vulkan_staged",
+            "status": "passed",
+            "seconds": 1.82125
+          },
+          {
+            "name": "CoinRenderSceneTexture_vulkan_direct",
+            "status": "passed",
+            "seconds": 3.68424
+          },
+          {
+            "name": "CoinRenderSceneTextureBudget_vulkan_direct",
+            "status": "passed",
+            "seconds": 0.670825
+          },
+          {
+            "name": "CoinRenderSceneTexture_opengl_staged",
+            "status": "passed",
+            "seconds": 1.81154
+          },
+          {
+            "name": "CoinRenderSceneTextureBudget_opengl_staged",
+            "status": "passed",
+            "seconds": 1.5437
+          },
+          {
+            "name": "CoinRenderSceneTexture_opengl_direct",
+            "status": "passed",
+            "seconds": 1.52777
+          },
+          {
+            "name": "CoinRenderSceneTextureBudget_opengl_direct",
+            "status": "passed",
+            "seconds": 0.551427
+          },
+          {
+            "name": "CoinRenderSceneTexture_d3d12_staged",
+            "status": "passed",
+            "seconds": 2.73916
+          },
+          {
+            "name": "CoinRenderSceneTextureBudget_d3d12_staged",
+            "status": "passed",
+            "seconds": 1.48709
+          },
+          {
+            "name": "CoinRenderSceneTexture_d3d12_direct",
+            "status": "passed",
+            "seconds": 2.46175
+          },
+          {
+            "name": "CoinRenderSceneTextureBudget_d3d12_direct",
+            "status": "passed",
+            "seconds": 0.60343
+          }
+        ]
+      },
+      "required_gpu_rerun": {
+        "passed": 49,
+        "failed": 0,
+        "skipped": 0,
+        "cases": [
+          {
+            "name": "CoinRenderActionTest",
+            "status": "passed",
+            "seconds": 0.854035
+          },
+          {
+            "name": "CoinRenderLightingTest",
+            "status": "passed",
+            "seconds": 19.8003
+          },
+          {
+            "name": "CoinRenderDrawStyleTest",
+            "status": "passed",
+            "seconds": 25.2401
+          },
+          {
+            "name": "CoinRenderDrawStyle_vulkan",
+            "status": "passed",
+            "seconds": 20.9073
+          },
+          {
+            "name": "CoinRenderDrawStyle_opengl",
+            "status": "passed",
+            "seconds": 24.6329
+          },
+          {
+            "name": "CoinRenderDrawStyle_d3d12",
+            "status": "passed",
+            "seconds": 37.1634
+          },
+          {
+            "name": "CoinRenderTransparencyTest",
+            "status": "passed",
+            "seconds": 6.73205
+          },
+          {
+            "name": "CoinRenderTransparency_vulkan",
+            "status": "passed",
+            "seconds": 6.25091
+          },
+          {
+            "name": "CoinRenderTransparency_opengl",
+            "status": "passed",
+            "seconds": 4.47268
+          },
+          {
+            "name": "CoinRenderTransparency_d3d12",
+            "status": "passed",
+            "seconds": 6.74693
+          },
+          {
+            "name": "CoinRenderShadowReferenceTest",
+            "status": "passed",
+            "seconds": 61.8574
+          },
+          {
+            "name": "CoinRenderShadowWiringTest",
+            "status": "passed",
+            "seconds": 1.07854
+          },
+          {
+            "name": "CoinRenderShadowTransparency5Test",
+            "status": "passed",
+            "seconds": 27.1542
+          },
+          {
+            "name": "CoinRenderShadowTransparency6Test",
+            "status": "passed",
+            "seconds": 28.5763
+          },
+          {
+            "name": "CoinRenderShadowTransparency7Test",
+            "status": "passed",
+            "seconds": 37.4403
+          },
+          {
+            "name": "CoinRenderShadowTransparency8Test",
+            "status": "passed",
+            "seconds": 34.2939
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest1_0Test",
+            "status": "passed",
+            "seconds": 15.4064
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest1_1Test",
+            "status": "passed",
+            "seconds": 3.39648
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest1_2Test",
+            "status": "passed",
+            "seconds": 3.08134
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest4_0Test",
+            "status": "passed",
+            "seconds": 13.4495
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest4_1Test",
+            "status": "passed",
+            "seconds": 3.11535
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest4_2Test",
+            "status": "passed",
+            "seconds": 3.06764
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest5_0Test",
+            "status": "passed",
+            "seconds": 19.5846
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest5_1Test",
+            "status": "passed",
+            "seconds": 3.64758
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest5_2Test",
+            "status": "passed",
+            "seconds": 4.04635
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest6_0Test",
+            "status": "passed",
+            "seconds": 19.5243
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest6_1Test",
+            "status": "passed",
+            "seconds": 3.48212
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest6_2Test",
+            "status": "passed",
+            "seconds": 3.33143
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest7_0Test",
+            "status": "passed",
+            "seconds": 20.8213
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest7_1Test",
+            "status": "passed",
+            "seconds": 4.92996
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest7_2Test",
+            "status": "passed",
+            "seconds": 5.9279
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest8_0Test",
+            "status": "passed",
+            "seconds": 22.6732
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest8_1Test",
+            "status": "passed",
+            "seconds": 4.0979
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest8_2Test",
+            "status": "passed",
+            "seconds": 4.09279
+          },
+          {
+            "name": "CoinRenderShadowQuality1Test",
+            "status": "passed",
+            "seconds": 3.1375
+          },
+          {
+            "name": "CoinRenderShadowOit1_1Test",
+            "status": "passed",
+            "seconds": 4.19321
+          },
+          {
+            "name": "CoinRenderShadowLayers1_1Test",
+            "status": "passed",
+            "seconds": 1.33407
+          },
+          {
+            "name": "CoinRenderShadowOit1_2Test",
+            "status": "passed",
+            "seconds": 4.81785
+          },
+          {
+            "name": "CoinRenderShadowLayers1_2Test",
+            "status": "passed",
+            "seconds": 1.08093
+          },
+          {
+            "name": "CoinRenderShadowQuality4Test",
+            "status": "passed",
+            "seconds": 4.0272
+          },
+          {
+            "name": "CoinRenderShadowOit4_1Test",
+            "status": "passed",
+            "seconds": 5.09427
+          },
+          {
+            "name": "CoinRenderShadowLayers4_1Test",
+            "status": "passed",
+            "seconds": 1.39701
+          },
+          {
+            "name": "CoinRenderShadowOit4_2Test",
+            "status": "passed",
+            "seconds": 4.81626
+          },
+          {
+            "name": "CoinRenderShadowLayers4_2Test",
+            "status": "passed",
+            "seconds": 1.25223
+          },
+          {
+            "name": "CoinRenderShadowQuality8Test",
+            "status": "passed",
+            "seconds": 4.55502
+          },
+          {
+            "name": "CoinRenderShadowOit8_1Test",
+            "status": "passed",
+            "seconds": 6.24184
+          },
+          {
+            "name": "CoinRenderShadowLayers8_1Test",
+            "status": "passed",
+            "seconds": 1.54462
+          },
+          {
+            "name": "CoinRenderShadowOit8_2Test",
+            "status": "passed",
+            "seconds": 6.36861
+          },
+          {
+            "name": "CoinRenderShadowLayers8_2Test",
+            "status": "passed",
+            "seconds": 1.46197
+          }
+        ]
+      },
+      "consolidated": {
+        "passed": 163,
+        "failed": 0,
+        "skipped": 0,
+        "cases": [
+          {
+            "name": "CoinRenderWin32D3D12Smoke",
+            "status": "passed",
+            "seconds": 0.923878
+          },
+          {
+            "name": "CoinRenderWin32VulkanSmoke",
+            "status": "passed",
+            "seconds": 0.859094
+          },
+          {
+            "name": "CoinTests",
+            "status": "passed",
+            "seconds": 2.48448
+          },
+          {
+            "name": "CoinConfigCompatibility",
+            "status": "passed",
+            "seconds": 1.91736
+          },
+          {
+            "name": "ProfilerInit_unset",
+            "status": "passed",
+            "seconds": 0.144786
+          },
+          {
+            "name": "ProfilerInit_off",
+            "status": "passed",
+            "seconds": 0.105328
+          },
+          {
+            "name": "ProfilerInit_0",
+            "status": "passed",
+            "seconds": 0.107487
+          },
+          {
+            "name": "ProfilerInit_on",
+            "status": "passed",
+            "seconds": 0.109562
+          },
+          {
+            "name": "ProfilerInit_1",
+            "status": "passed",
+            "seconds": 0.110396
+          },
+          {
+            "name": "ProfilerInit_syncgl",
+            "status": "passed",
+            "seconds": 0.108197
+          },
+          {
+            "name": "ProfilerInit_invalid",
+            "status": "passed",
+            "seconds": 0.106796
+          },
+          {
+            "name": "RenderManagerFramePreparationTest",
+            "status": "passed",
+            "seconds": 0.15118
+          },
+          {
+            "name": "CoinRenderActionTest",
+            "status": "passed",
+            "seconds": 0.854035
+          },
+          {
+            "name": "CoinRenderSelectionTest",
+            "status": "passed",
+            "seconds": 4.17183
+          },
+          {
+            "name": "CoinRenderSelection_vulkan",
+            "status": "passed",
+            "seconds": 4.12693
+          },
+          {
+            "name": "CoinRenderSelection_opengl",
+            "status": "passed",
+            "seconds": 3.1095
+          },
+          {
+            "name": "CoinRenderSelection_d3d12",
+            "status": "passed",
+            "seconds": 3.8239
+          },
+          {
+            "name": "CoinRenderProductTest",
+            "status": "passed",
+            "seconds": 1.79765
+          },
+          {
+            "name": "CoinRenderBackendContractTest",
+            "status": "passed",
+            "seconds": 1.24635
+          },
+          {
+            "name": "CoinRenderOffscreenTest",
+            "status": "passed",
+            "seconds": 0.288672
+          },
+          {
+            "name": "CoinRenderGateG0Test",
+            "status": "passed",
+            "seconds": 0.273158
+          },
+          {
+            "name": "CoinRenderFrameCoreTest",
+            "status": "passed",
+            "seconds": 0.122955
+          },
+          {
+            "name": "CoinBgfxReadbackModes_vulkan",
+            "status": "passed",
+            "seconds": 2.97464
+          },
+          {
+            "name": "CoinBgfxReadbackModes_opengl",
+            "status": "passed",
+            "seconds": 1.54491
+          },
+          {
+            "name": "CoinBgfxReadbackModes_d3d12",
+            "status": "passed",
+            "seconds": 2.49499
+          },
+          {
+            "name": "CoinBgfxSurface_vulkan_object",
+            "status": "passed",
+            "seconds": 17.0532
+          },
+          {
+            "name": "CoinBgfxSurface_vulkan_weighted_oit",
+            "status": "passed",
+            "seconds": 17.0393
+          },
+          {
+            "name": "CoinBgfxSurface_vulkan_sorted_layers",
+            "status": "passed",
+            "seconds": 17.7647
+          },
+          {
+            "name": "CoinBgfxSurface_opengl_object",
+            "status": "passed",
+            "seconds": 12.2551
+          },
+          {
+            "name": "CoinBgfxSurface_opengl_weighted_oit",
+            "status": "passed",
+            "seconds": 12.6741
+          },
+          {
+            "name": "CoinBgfxSurface_opengl_sorted_layers",
+            "status": "passed",
+            "seconds": 9.78073
+          },
+          {
+            "name": "CoinBgfxSurface_d3d12_object",
+            "status": "passed",
+            "seconds": 18.2971
+          },
+          {
+            "name": "CoinBgfxSurface_d3d12_weighted_oit",
+            "status": "passed",
+            "seconds": 19.8861
+          },
+          {
+            "name": "CoinBgfxSurface_d3d12_sorted_layers",
+            "status": "passed",
+            "seconds": 14.5387
+          },
+          {
+            "name": "CoinBgfxCoreTest",
+            "status": "passed",
+            "seconds": 0.14644
+          },
+          {
+            "name": "CoinRenderDepthContractTest",
+            "status": "passed",
+            "seconds": 0.278083
+          },
+          {
+            "name": "CoinRenderDepthContractVulkanTest",
+            "status": "passed",
+            "seconds": 0.622023
+          },
+          {
+            "name": "CoinRenderDepthContractOpenGLTest",
+            "status": "passed",
+            "seconds": 0.591606
+          },
+          {
+            "name": "CoinRenderProductOpenGLTest",
+            "status": "passed",
+            "seconds": 1.07977
+          },
+          {
+            "name": "CoinBgfxOffscreenTest",
+            "status": "passed",
+            "seconds": 2.7284
+          },
+          {
+            "name": "CoinBgfxOpenGLTest",
+            "status": "passed",
+            "seconds": 1.60262
+          },
+          {
+            "name": "CoinRenderBackendContractOpenGLTest",
+            "status": "passed",
+            "seconds": 0.69002
+          },
+          {
+            "name": "CoinBgfxTransparencyTest",
+            "status": "passed",
+            "seconds": 3.90552
+          },
+          {
+            "name": "CoinBgfxTransparencyOpenGLTest",
+            "status": "passed",
+            "seconds": 1.88236
+          },
+          {
+            "name": "CoinBgfxSortedLayersTest",
+            "status": "passed",
+            "seconds": 2.50249
+          },
+          {
+            "name": "CoinBgfxSortedLayersOpenGLTest",
+            "status": "passed",
+            "seconds": 1.41134
+          },
+          {
+            "name": "CoinBgfxWeightedOitTest",
+            "status": "passed",
+            "seconds": 5.4618
+          },
+          {
+            "name": "CoinBgfxWeightedOitOpenGLTest",
+            "status": "passed",
+            "seconds": 3.2049
+          },
+          {
+            "name": "CoinRenderFrameReuseCoreTest",
+            "status": "passed",
+            "seconds": 0.906216
+          },
+          {
+            "name": "CoinRenderDiagnosticShellTest",
+            "status": "passed",
+            "seconds": 0.109849
+          },
+          {
+            "name": "CoinRenderIndexedGeometryCoreTest",
+            "status": "passed",
+            "seconds": 0.123653
+          },
+          {
+            "name": "CoinRenderGateG1Test",
+            "status": "passed",
+            "seconds": 2.01199
+          },
+          {
+            "name": "CoinRenderGateG2Test",
+            "status": "passed",
+            "seconds": 2.06451
+          },
+          {
+            "name": "CoinRenderIndexedFastPathTest",
+            "status": "passed",
+            "seconds": 2.73769
+          },
+          {
+            "name": "CoinWgpuCacheTest",
+            "status": "passed",
+            "seconds": 0.116502
+          },
+          {
+            "name": "CoinRenderStabilizationTest",
+            "status": "passed",
+            "seconds": 0.228832
+          },
+          {
+            "name": "CoinRenderTextureTest",
+            "status": "passed",
+            "seconds": 7.47422
+          },
+          {
+            "name": "CoinRenderLightingTest",
+            "status": "passed",
+            "seconds": 19.8003
+          },
+          {
+            "name": "CoinRenderGouraudInterpolationTest",
+            "status": "passed",
+            "seconds": 1.37574
+          },
+          {
+            "name": "CoinRenderGouraud_vulkan_object",
+            "status": "passed",
+            "seconds": 1.27049
+          },
+          {
+            "name": "CoinRenderGouraud_vulkan_weighted_oit",
+            "status": "passed",
+            "seconds": 1.31209
+          },
+          {
+            "name": "CoinRenderGouraud_vulkan_sorted_layers",
+            "status": "passed",
+            "seconds": 1.48526
+          },
+          {
+            "name": "CoinRenderGouraud_opengl_object",
+            "status": "passed",
+            "seconds": 0.919408
+          },
+          {
+            "name": "CoinRenderGouraud_opengl_weighted_oit",
+            "status": "passed",
+            "seconds": 1.02816
+          },
+          {
+            "name": "CoinRenderGouraud_opengl_sorted_layers",
+            "status": "passed",
+            "seconds": 1.6309
+          },
+          {
+            "name": "CoinRenderGouraud_d3d12_object",
+            "status": "passed",
+            "seconds": 4.5646
+          },
+          {
+            "name": "CoinRenderGouraud_d3d12_weighted_oit",
+            "status": "passed",
+            "seconds": 1.75609
+          },
+          {
+            "name": "CoinRenderGouraud_d3d12_sorted_layers",
+            "status": "passed",
+            "seconds": 1.47427
+          },
+          {
+            "name": "CoinRenderFogTest",
+            "status": "passed",
+            "seconds": 15.6825
+          },
+          {
+            "name": "CoinRenderClipPlaneTest",
+            "status": "passed",
+            "seconds": 1.66981
+          },
+          {
+            "name": "CoinRenderClipPlane_vulkan_object",
+            "status": "passed",
+            "seconds": 1.57475
+          },
+          {
+            "name": "CoinRenderClipPlane_vulkan_weighted_oit",
+            "status": "passed",
+            "seconds": 1.64887
+          },
+          {
+            "name": "CoinRenderClipPlane_vulkan_sorted_layers",
+            "status": "passed",
+            "seconds": 1.78954
+          },
+          {
+            "name": "CoinRenderClipPlane_opengl_object",
+            "status": "passed",
+            "seconds": 1.04196
+          },
+          {
+            "name": "CoinRenderClipPlane_opengl_weighted_oit",
+            "status": "passed",
+            "seconds": 1.09722
+          },
+          {
+            "name": "CoinRenderClipPlane_opengl_sorted_layers",
+            "status": "passed",
+            "seconds": 1.07064
+          },
+          {
+            "name": "CoinRenderClipPlane_d3d12_object",
+            "status": "passed",
+            "seconds": 2.9426
+          },
+          {
+            "name": "CoinRenderClipPlane_d3d12_weighted_oit",
+            "status": "passed",
+            "seconds": 1.64875
+          },
+          {
+            "name": "CoinRenderClipPlane_d3d12_sorted_layers",
+            "status": "passed",
+            "seconds": 1.66293
+          },
+          {
+            "name": "CoinRenderDrawStyleTest",
+            "status": "passed",
+            "seconds": 25.2401
+          },
+          {
+            "name": "CoinRenderDrawStyle_vulkan",
+            "status": "passed",
+            "seconds": 20.9073
+          },
+          {
+            "name": "CoinRenderDrawStyle_opengl",
+            "status": "passed",
+            "seconds": 24.6329
+          },
+          {
+            "name": "CoinRenderDrawStyle_d3d12",
+            "status": "passed",
+            "seconds": 37.1634
+          },
+          {
+            "name": "CoinRenderMultitextureTest",
+            "status": "passed",
+            "seconds": 2.00646
+          },
+          {
+            "name": "CoinRenderMultitexture_vulkan",
+            "status": "passed",
+            "seconds": 1.86052
+          },
+          {
+            "name": "CoinRenderMultitexture_opengl",
+            "status": "passed",
+            "seconds": 1.69693
+          },
+          {
+            "name": "CoinRenderMultitexture_d3d12",
+            "status": "passed",
+            "seconds": 4.67747
+          },
+          {
+            "name": "CoinRenderPeelingTest",
+            "status": "passed",
+            "seconds": 2.38845
+          },
+          {
+            "name": "CoinRenderPeeling_vulkan",
+            "status": "passed",
+            "seconds": 2.35592
+          },
+          {
+            "name": "CoinRenderOit_vulkan",
+            "status": "passed",
+            "seconds": 1.22481
+          },
+          {
+            "name": "CoinRenderPeeling_opengl",
+            "status": "passed",
+            "seconds": 3.58958
+          },
+          {
+            "name": "CoinRenderOit_opengl",
+            "status": "passed",
+            "seconds": 1.26575
+          },
+          {
+            "name": "CoinRenderPeeling_d3d12",
+            "status": "passed",
+            "seconds": 2.31483
+          },
+          {
+            "name": "CoinRenderOit_d3d12",
+            "status": "passed",
+            "seconds": 1.19854
+          },
+          {
+            "name": "CoinRenderTransparencyTest",
+            "status": "passed",
+            "seconds": 6.73205
+          },
+          {
+            "name": "CoinRenderTransparency_vulkan",
+            "status": "passed",
+            "seconds": 6.25091
+          },
+          {
+            "name": "CoinRenderTransparency_opengl",
+            "status": "passed",
+            "seconds": 4.47268
+          },
+          {
+            "name": "CoinRenderTransparency_d3d12",
+            "status": "passed",
+            "seconds": 6.74693
+          },
+          {
+            "name": "CoinRenderCompositionTest",
+            "status": "passed",
+            "seconds": 15.3276
+          },
+          {
+            "name": "CoinRenderNodeInventoryDiscoveryTest",
+            "status": "passed",
+            "seconds": 0.48839
+          },
+          {
+            "name": "CoinRenderNodeInventoryTest",
+            "status": "passed",
+            "seconds": 0.144925
+          },
+          {
+            "name": "CoinRenderShadowReferenceTest",
+            "status": "passed",
+            "seconds": 61.8574
+          },
+          {
+            "name": "CoinRenderShadowWiringTest",
+            "status": "passed",
+            "seconds": 1.07854
+          },
+          {
+            "name": "CoinRenderShadowTransparency5Test",
+            "status": "passed",
+            "seconds": 27.1542
+          },
+          {
+            "name": "CoinRenderShadowTransparency6Test",
+            "status": "passed",
+            "seconds": 28.5763
+          },
+          {
+            "name": "CoinRenderShadowTransparency7Test",
+            "status": "passed",
+            "seconds": 37.4403
+          },
+          {
+            "name": "CoinRenderShadowTransparency8Test",
+            "status": "passed",
+            "seconds": 34.2939
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest1_0Test",
+            "status": "passed",
+            "seconds": 15.4064
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest1_1Test",
+            "status": "passed",
+            "seconds": 3.39648
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest1_2Test",
+            "status": "passed",
+            "seconds": 3.08134
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest4_0Test",
+            "status": "passed",
+            "seconds": 13.4495
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest4_1Test",
+            "status": "passed",
+            "seconds": 3.11535
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest4_2Test",
+            "status": "passed",
+            "seconds": 3.06764
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest5_0Test",
+            "status": "passed",
+            "seconds": 19.5846
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest5_1Test",
+            "status": "passed",
+            "seconds": 3.64758
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest5_2Test",
+            "status": "passed",
+            "seconds": 4.04635
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest6_0Test",
+            "status": "passed",
+            "seconds": 19.5243
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest6_1Test",
+            "status": "passed",
+            "seconds": 3.48212
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest6_2Test",
+            "status": "passed",
+            "seconds": 3.33143
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest7_0Test",
+            "status": "passed",
+            "seconds": 20.8213
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest7_1Test",
+            "status": "passed",
+            "seconds": 4.92996
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest7_2Test",
+            "status": "passed",
+            "seconds": 5.9279
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest8_0Test",
+            "status": "passed",
+            "seconds": 22.6732
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest8_1Test",
+            "status": "passed",
+            "seconds": 4.0979
+          },
+          {
+            "name": "CoinRenderShadowAlphaTest8_2Test",
+            "status": "passed",
+            "seconds": 4.09279
+          },
+          {
+            "name": "CoinRenderShadowQuality1Test",
+            "status": "passed",
+            "seconds": 3.1375
+          },
+          {
+            "name": "CoinRenderShadowOit1_1Test",
+            "status": "passed",
+            "seconds": 4.19321
+          },
+          {
+            "name": "CoinRenderShadowLayers1_1Test",
+            "status": "passed",
+            "seconds": 1.33407
+          },
+          {
+            "name": "CoinRenderShadowOit1_2Test",
+            "status": "passed",
+            "seconds": 4.81785
+          },
+          {
+            "name": "CoinRenderShadowLayers1_2Test",
+            "status": "passed",
+            "seconds": 1.08093
+          },
+          {
+            "name": "CoinRenderShadowQuality4Test",
+            "status": "passed",
+            "seconds": 4.0272
+          },
+          {
+            "name": "CoinRenderShadowOit4_1Test",
+            "status": "passed",
+            "seconds": 5.09427
+          },
+          {
+            "name": "CoinRenderShadowLayers4_1Test",
+            "status": "passed",
+            "seconds": 1.39701
+          },
+          {
+            "name": "CoinRenderShadowOit4_2Test",
+            "status": "passed",
+            "seconds": 4.81626
+          },
+          {
+            "name": "CoinRenderShadowLayers4_2Test",
+            "status": "passed",
+            "seconds": 1.25223
+          },
+          {
+            "name": "CoinRenderShadowQuality8Test",
+            "status": "passed",
+            "seconds": 4.55502
+          },
+          {
+            "name": "CoinRenderShadowOit8_1Test",
+            "status": "passed",
+            "seconds": 6.24184
+          },
+          {
+            "name": "CoinRenderShadowLayers8_1Test",
+            "status": "passed",
+            "seconds": 1.54462
+          },
+          {
+            "name": "CoinRenderShadowOit8_2Test",
+            "status": "passed",
+            "seconds": 6.36861
+          },
+          {
+            "name": "CoinRenderShadowLayers8_2Test",
+            "status": "passed",
+            "seconds": 1.46197
+          },
+          {
+            "name": "CoinRenderMultiTargetTest",
+            "status": "passed",
+            "seconds": 1.65469
+          },
+          {
+            "name": "CoinRenderMultiTargetDirectTest",
+            "status": "passed",
+            "seconds": 1.32556
+          },
+          {
+            "name": "CoinRenderMultiTargetStagedOpenGLTest",
+            "status": "passed",
+            "seconds": 0.999844
+          },
+          {
+            "name": "CoinRenderMultiTargetOpenGLTest",
+            "status": "passed",
+            "seconds": 1.00226
+          },
+          {
+            "name": "CoinRenderPublicationTest",
+            "status": "passed",
+            "seconds": 0.117509
+          },
+          {
+            "name": "CoinRenderRttOwnershipTest",
+            "status": "passed",
+            "seconds": 0.787252
+          },
+          {
+            "name": "CoinRenderRttOwnership_vulkan",
+            "status": "passed",
+            "seconds": 0.60943
+          },
+          {
+            "name": "CoinRenderRttOwnership_opengl",
+            "status": "passed",
+            "seconds": 4.14451
+          },
+          {
+            "name": "CoinRenderRttOwnership_d3d12",
+            "status": "passed",
+            "seconds": 0.789846
+          },
+          {
+            "name": "CoinRenderSceneTextureTest",
+            "status": "passed",
+            "seconds": 3.28085
+          },
+          {
+            "name": "CoinRenderSceneTextureBudgetTest",
+            "status": "passed",
+            "seconds": 1.93809
+          },
+          {
+            "name": "CoinRenderSceneTexture_vulkan_staged",
+            "status": "passed",
+            "seconds": 2.65953
+          },
+          {
+            "name": "CoinRenderSceneTextureBudget_vulkan_staged",
+            "status": "passed",
+            "seconds": 1.82125
+          },
+          {
+            "name": "CoinRenderSceneTexture_vulkan_direct",
+            "status": "passed",
+            "seconds": 3.68424
+          },
+          {
+            "name": "CoinRenderSceneTextureBudget_vulkan_direct",
+            "status": "passed",
+            "seconds": 0.670825
+          },
+          {
+            "name": "CoinRenderSceneTexture_opengl_staged",
+            "status": "passed",
+            "seconds": 1.81154
+          },
+          {
+            "name": "CoinRenderSceneTextureBudget_opengl_staged",
+            "status": "passed",
+            "seconds": 1.5437
+          },
+          {
+            "name": "CoinRenderSceneTexture_opengl_direct",
+            "status": "passed",
+            "seconds": 1.52777
+          },
+          {
+            "name": "CoinRenderSceneTextureBudget_opengl_direct",
+            "status": "passed",
+            "seconds": 0.551427
+          },
+          {
+            "name": "CoinRenderSceneTexture_d3d12_staged",
+            "status": "passed",
+            "seconds": 2.73916
+          },
+          {
+            "name": "CoinRenderSceneTextureBudget_d3d12_staged",
+            "status": "passed",
+            "seconds": 1.48709
+          },
+          {
+            "name": "CoinRenderSceneTexture_d3d12_direct",
+            "status": "passed",
+            "seconds": 2.46175
+          },
+          {
+            "name": "CoinRenderSceneTextureBudget_d3d12_direct",
+            "status": "passed",
+            "seconds": 0.60343
+          }
+        ]
+      },
+      "required_environment": {
+        "COIN_BGFX_RENDERER": "d3d12",
+        "COIN_BGFX_TRANSPARENCY": "auto",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+        "COIN_WGPU_REQUIRE_GL_REFERENCE": "1",
+        "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1"
+      }
+    },
+    "wgpu": {
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "name": "CoinRenderActionTest",
+          "status": "passed",
+          "seconds": 0.717951
+        },
+        {
+          "name": "CoinRenderFrameCoreTest",
+          "status": "passed",
+          "seconds": 0.10395
+        },
+        {
+          "name": "CoinRenderLightingTest",
+          "status": "passed",
+          "seconds": 2.46164
+        },
+        {
+          "name": "CoinRenderClipPlaneTest",
+          "status": "passed",
+          "seconds": 0.750948
+        },
+        {
+          "name": "CoinRenderDrawStyleTest",
+          "status": "passed",
+          "seconds": 15.4371
+        },
+        {
+          "name": "CoinRenderCompositionTest",
+          "status": "passed",
+          "seconds": 0.52213
+        },
+        {
+          "name": "CoinRenderShadowReferenceTest",
+          "status": "passed",
+          "seconds": 0.222682
+        },
+        {
+          "name": "CoinRenderSceneTextureTest",
+          "status": "passed",
+          "seconds": 0.508584
+        }
+      ]
+    },
+    "transparency_investigation": {
+      "initial_failure": "Two full-suite segmentation faults; cause not isolated. Initial output did not localize the failure to CPU or GPU.",
+      "controls": {
+        "cpu_only": {
+          "current_exit_code": 0,
+          "baseline_exit_code": 0
+        },
+        "required_gl_reference": {
+          "baseline_exit_code": 0,
+          "current_exit_code": 0
+        }
+      },
+      "full_fixture_recheck": {
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0,
+        "cases": [
+          {
+            "name": "CoinRenderTransparencyTest",
+            "status": "passed",
+            "seconds": 6.1997
+          },
+          {
+            "name": "CoinRenderTransparency_vulkan",
+            "status": "passed",
+            "seconds": 5.42044
+          }
+        ]
+      },
+      "diagnostic": "Temporary per-case tracing and --cpu-only mode in the test executable; identical diagnostic executable run against old and current DLLs. All fixture source edits reverted and original fixture rebuilt before required GPU rerun.",
+      "diagnostic_executable_sha256": "58f1306ebb2bfcdf5f40a2dc504007db53e3df131b9fe4c465a2503e748d6aef"
+    }
+  },
+  "binary_sha256": {
+    "bgfx/before/Coin4.dll": "0fdb8c867dd0793e81c2ea1f0c8bdd4e580c5003b173ec10be41810311d58bbc",
+    "bgfx/before/CoinRender4.dll": "cad1afd5f69e49995e8642209cec2c589e17ba2f23a8058f67c1df0c00ca95ee",
+    "bgfx/before/coin_render_gl_benchmark.exe": "bed3f18b2ef9409832bf8b652ac0a4675cbd5d08bb7d5e327830361d8bf37228",
+    "bgfx/after/Coin4.dll": "5ed9a37fc5ff02829087dd76b7680454a0fc49d1ded8d71f4d35cadac285b9f6",
+    "bgfx/after/CoinRender4.dll": "6214ba7adc2a0eeea704dd25f71ddd8c0951c5c20778c903458b3c8f6a4e6f0a",
+    "bgfx/after/coin_render_gl_benchmark.exe": "259aa1ebb1de3081062c194ce02ad436c407c8d371eeb910ca1a923a4f81cac6",
+    "wgpu/before/Coin4.dll": "c1254cf72e4dffc9e8ba7bbed6dd4019d75ee664626a0a24d473da06e058cc15",
+    "wgpu/before/CoinRender4.dll": "9ac92bc966faf0877871c63ea7c24c4001a10c28d1e987662d924d6bda544db0",
+    "wgpu/before/coin_render_gl_benchmark.exe": "7597b4dfe8f34486b2d1f89981461cc29a340a3139e53524e2a408d833c4c6cf",
+    "wgpu/after/Coin4.dll": "ff72becc14c61e14fb99e69e57aadcb7dfa74d4104fb306757e66a56158ce6b1",
+    "wgpu/after/CoinRender4.dll": "2dd1d4698bbc9051a5129758c9d84f6e9f3dd8ceb16b9e6b6efe0f6c5f89b903",
+    "wgpu/after/coin_render_gl_benchmark.exe": "663db2dba439de8dcbe85831686c4ebcd7d3c4ce7e52a42c10e1adbb382ac017"
+  },
+  "local_installs": {
+    "bgfx": {
+      "prefix": "H:\\Git\\coin\\build\\coin-render-bgfx-install",
+      "binary_sha256": {
+        "Coin4.dll": "5ed9a37fc5ff02829087dd76b7680454a0fc49d1ded8d71f4d35cadac285b9f6",
+        "CoinRender4.dll": "6214ba7adc2a0eeea704dd25f71ddd8c0951c5c20778c903458b3c8f6a4e6f0a"
+      },
+      "header_sha256": "4cdebfb683f7a8503951a34978e4f5c0cc0157cbcef4e4bce9c77b2cc892025b"
+    },
+    "wgpu": {
+      "prefix": "H:\\Git\\coin\\build\\coin-render-install",
+      "binary_sha256": {
+        "Coin4.dll": "ff72becc14c61e14fb99e69e57aadcb7dfa74d4104fb306757e66a56158ce6b1",
+        "CoinRender4.dll": "2dd1d4698bbc9051a5129758c9d84f6e9f3dd8ceb16b9e6b6efe0f6c5f89b903"
+      },
+      "header_sha256": "4cdebfb683f7a8503951a34978e4f5c0cc0157cbcef4e4bce9c77b2cc892025b"
+    }
+  },
+  "runs": [
+    {
+      "backend": "bgfx",
+      "api": "d3d12",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 1,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 19200.7681,
+      "log": "build/common-bgfx-d3d12-40000-before-1.log",
+      "image": "build/large-scenes/common-bgfx-d3d12-40000-before-1.ppm",
+      "status": "passed",
+      "scene_load_ms": 789.54,
+      "backend_cleanup_ms": 1265.91,
+      "first_frame_ms": 9941.26,
+      "adapter": "BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03)",
+      "median_ms": 11.9736,
+      "p95_ms": 11.9736,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "backend": "bgfx",
+      "api": "d3d12",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 1,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 17730.2195,
+      "log": "build/common-bgfx-d3d12-40000-after-1.log",
+      "image": "build/large-scenes/common-bgfx-d3d12-40000-after-1.ppm",
+      "status": "passed",
+      "scene_load_ms": 895.564,
+      "backend_cleanup_ms": 871.993,
+      "first_frame_ms": 7444.62,
+      "adapter": "BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03)",
+      "median_ms": 60.2524,
+      "p95_ms": 60.2524,
+      "rgba_fnv64": "0x6714299260985122",
+      "image_vs_before": {
+        "rgb_pixel_exact": true,
+        "different_pixels": 0,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "png_sha256": "130672f04a599e6b399064f5c8b502fb6a8d7a18cf7162d7a3e0f54bc487ceb0"
+    },
+    {
+      "backend": "bgfx",
+      "api": "d3d12",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 2,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 5259.5611,
+      "log": "build/common-bgfx-d3d12-40000-before-2.log",
+      "image": "build/large-scenes/common-bgfx-d3d12-40000-before-2.ppm",
+      "status": "passed",
+      "scene_load_ms": 566.29,
+      "backend_cleanup_ms": 103.345,
+      "first_frame_ms": 3777.38,
+      "adapter": "BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03)",
+      "median_ms": 12.2483,
+      "p95_ms": 12.2483,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "backend": "bgfx",
+      "api": "d3d12",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 2,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 4359.4573,
+      "log": "build/common-bgfx-d3d12-40000-after-2.log",
+      "image": "build/large-scenes/common-bgfx-d3d12-40000-after-2.ppm",
+      "status": "passed",
+      "scene_load_ms": 686.831,
+      "backend_cleanup_ms": 84.9739,
+      "first_frame_ms": 2757.24,
+      "adapter": "BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03)",
+      "median_ms": 12.3626,
+      "p95_ms": 12.3626,
+      "rgba_fnv64": "0x6714299260985122",
+      "image_vs_before": {
+        "rgb_pixel_exact": true,
+        "different_pixels": 0,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "png_sha256": "130672f04a599e6b399064f5c8b502fb6a8d7a18cf7162d7a3e0f54bc487ceb0"
+    },
+    {
+      "backend": "bgfx",
+      "api": "d3d12",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 3,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 4596.7032,
+      "log": "build/common-bgfx-d3d12-40000-before-3.log",
+      "image": "build/large-scenes/common-bgfx-d3d12-40000-before-3.ppm",
+      "status": "passed",
+      "scene_load_ms": 582.2,
+      "backend_cleanup_ms": 79.5867,
+      "first_frame_ms": 3159.89,
+      "adapter": "BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03)",
+      "median_ms": 13.3069,
+      "p95_ms": 13.3069,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "backend": "bgfx",
+      "api": "d3d12",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 3,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 4243.2529,
+      "log": "build/common-bgfx-d3d12-40000-after-3.log",
+      "image": "build/large-scenes/common-bgfx-d3d12-40000-after-3.ppm",
+      "status": "passed",
+      "scene_load_ms": 584.204,
+      "backend_cleanup_ms": 83.9632,
+      "first_frame_ms": 2777.61,
+      "adapter": "BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03)",
+      "median_ms": 12.1459,
+      "p95_ms": 12.1459,
+      "rgba_fnv64": "0x6714299260985122",
+      "image_vs_before": {
+        "rgb_pixel_exact": true,
+        "different_pixels": 0,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "png_sha256": "130672f04a599e6b399064f5c8b502fb6a8d7a18cf7162d7a3e0f54bc487ceb0"
+    },
+    {
+      "backend": "bgfx",
+      "api": "d3d12",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": "warm",
+      "tracing": false,
+      "warmup": 4,
+      "frames": 8,
+      "exit_code": 0,
+      "wall_ms": 25202.9847,
+      "log": "build/common-bgfx-d3d12-40000-after-warm.log",
+      "image": "build/large-scenes/common-bgfx-d3d12-40000-after-warm.ppm",
+      "status": "passed",
+      "scene_load_ms": 1147.78,
+      "backend_cleanup_ms": 8321.09,
+      "first_frame_ms": 4702.21,
+      "adapter": "BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03)",
+      "median_ms": 38.9142,
+      "p95_ms": 118.696,
+      "rgba_fnv64": "0x6714299260985122",
+      "image_vs_before": {
+        "rgb_pixel_exact": true,
+        "different_pixels": 0,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "png_sha256": "130672f04a599e6b399064f5c8b502fb6a8d7a18cf7162d7a3e0f54bc487ceb0"
+    },
+    {
+      "backend": "bgfx",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 1,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 23503.5978,
+      "log": "build/common-bgfx-vulkan-40000-before-1.log",
+      "image": "build/large-scenes/common-bgfx-vulkan-40000-before-1.ppm",
+      "status": "passed",
+      "scene_load_ms": 952.868,
+      "backend_cleanup_ms": 1936.45,
+      "first_frame_ms": 5121.01,
+      "adapter": "BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03)",
+      "median_ms": 10.662,
+      "p95_ms": 10.662,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "backend": "bgfx",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 1,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 4556.7775,
+      "log": "build/common-bgfx-vulkan-40000-after-1.log",
+      "image": "build/large-scenes/common-bgfx-vulkan-40000-after-1.ppm",
+      "status": "passed",
+      "scene_load_ms": 750.313,
+      "backend_cleanup_ms": 78.4662,
+      "first_frame_ms": 2789.65,
+      "adapter": "BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03)",
+      "median_ms": 11.0821,
+      "p95_ms": 11.0821,
+      "rgba_fnv64": "0x6714299260985122",
+      "image_vs_before": {
+        "rgb_pixel_exact": true,
+        "different_pixels": 0,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "png_sha256": "130672f04a599e6b399064f5c8b502fb6a8d7a18cf7162d7a3e0f54bc487ceb0"
+    },
+    {
+      "backend": "bgfx",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 2,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 4735.6638,
+      "log": "build/common-bgfx-vulkan-40000-before-2.log",
+      "image": "build/large-scenes/common-bgfx-vulkan-40000-before-2.ppm",
+      "status": "passed",
+      "scene_load_ms": 561.41,
+      "backend_cleanup_ms": 155.757,
+      "first_frame_ms": 3169.95,
+      "adapter": "BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03)",
+      "median_ms": 11.834,
+      "p95_ms": 11.834,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "backend": "bgfx",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 2,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 4128.087,
+      "log": "build/common-bgfx-vulkan-40000-after-2.log",
+      "image": "build/large-scenes/common-bgfx-vulkan-40000-after-2.ppm",
+      "status": "passed",
+      "scene_load_ms": 640.902,
+      "backend_cleanup_ms": 82.8517,
+      "first_frame_ms": 2499.8,
+      "adapter": "BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03)",
+      "median_ms": 10.9898,
+      "p95_ms": 10.9898,
+      "rgba_fnv64": "0x6714299260985122",
+      "image_vs_before": {
+        "rgb_pixel_exact": true,
+        "different_pixels": 0,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "png_sha256": "130672f04a599e6b399064f5c8b502fb6a8d7a18cf7162d7a3e0f54bc487ceb0"
+    },
+    {
+      "backend": "bgfx",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 3,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 4566.5228,
+      "log": "build/common-bgfx-vulkan-40000-before-3.log",
+      "image": "build/large-scenes/common-bgfx-vulkan-40000-before-3.ppm",
+      "status": "passed",
+      "scene_load_ms": 559.55,
+      "backend_cleanup_ms": 83.4592,
+      "first_frame_ms": 3117.17,
+      "adapter": "BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03)",
+      "median_ms": 12.2996,
+      "p95_ms": 12.2996,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "backend": "bgfx",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 3,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 3991.011,
+      "log": "build/common-bgfx-vulkan-40000-after-3.log",
+      "image": "build/large-scenes/common-bgfx-vulkan-40000-after-3.ppm",
+      "status": "passed",
+      "scene_load_ms": 504.139,
+      "backend_cleanup_ms": 72.5969,
+      "first_frame_ms": 2473.06,
+      "adapter": "BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03)",
+      "median_ms": 10.9873,
+      "p95_ms": 10.9873,
+      "rgba_fnv64": "0x6714299260985122",
+      "image_vs_before": {
+        "rgb_pixel_exact": true,
+        "different_pixels": 0,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "png_sha256": "130672f04a599e6b399064f5c8b502fb6a8d7a18cf7162d7a3e0f54bc487ceb0"
+    },
+    {
+      "backend": "bgfx",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": "warm",
+      "tracing": false,
+      "warmup": 4,
+      "frames": 8,
+      "exit_code": 0,
+      "wall_ms": 3979.942,
+      "log": "build/common-bgfx-vulkan-40000-after-warm.log",
+      "image": "build/large-scenes/common-bgfx-vulkan-40000-after-warm.ppm",
+      "status": "passed",
+      "scene_load_ms": 522.956,
+      "backend_cleanup_ms": 72.5754,
+      "first_frame_ms": 2476.46,
+      "adapter": "BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03)",
+      "median_ms": 10.6786,
+      "p95_ms": 11.1998,
+      "rgba_fnv64": "0x6714299260985122",
+      "image_vs_before": {
+        "rgb_pixel_exact": true,
+        "different_pixels": 0,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "png_sha256": "130672f04a599e6b399064f5c8b502fb6a8d7a18cf7162d7a3e0f54bc487ceb0"
+    },
+    {
+      "backend": "bgfx",
+      "api": "opengl",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 1,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 4603.7865,
+      "log": "build/common-bgfx-opengl-40000-before-1.log",
+      "image": "build/large-scenes/common-bgfx-opengl-40000-before-1.ppm",
+      "status": "passed",
+      "scene_load_ms": 522.237,
+      "backend_cleanup_ms": 74.6493,
+      "first_frame_ms": 3126.68,
+      "adapter": "BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000)",
+      "median_ms": 12.7262,
+      "p95_ms": 12.7262,
+      "rgba_fnv64": "0x156847cec1d97864"
+    },
+    {
+      "backend": "bgfx",
+      "api": "opengl",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 1,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 3989.7156,
+      "log": "build/common-bgfx-opengl-40000-after-1.log",
+      "image": "build/large-scenes/common-bgfx-opengl-40000-after-1.ppm",
+      "status": "passed",
+      "scene_load_ms": 536.489,
+      "backend_cleanup_ms": 82.6966,
+      "first_frame_ms": 2566.39,
+      "adapter": "BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000)",
+      "median_ms": 12.9497,
+      "p95_ms": 12.9497,
+      "rgba_fnv64": "0x156847cec1d97864",
+      "image_vs_before": {
+        "rgb_pixel_exact": true,
+        "different_pixels": 0,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "png_sha256": "f7d333796e05274fddb336e58fa68b3c26e46589113bccf1a383a7cb20b2dccb"
+    },
+    {
+      "backend": "bgfx",
+      "api": "opengl",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 2,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 4610.3714,
+      "log": "build/common-bgfx-opengl-40000-before-2.log",
+      "image": "build/large-scenes/common-bgfx-opengl-40000-before-2.ppm",
+      "status": "passed",
+      "scene_load_ms": 536.153,
+      "backend_cleanup_ms": 69.8754,
+      "first_frame_ms": 3258.08,
+      "adapter": "BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000)",
+      "median_ms": 13.3205,
+      "p95_ms": 13.3205,
+      "rgba_fnv64": "0x156847cec1d97864"
+    },
+    {
+      "backend": "bgfx",
+      "api": "opengl",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 2,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 3698.8617,
+      "log": "build/common-bgfx-opengl-40000-after-2.log",
+      "image": "build/large-scenes/common-bgfx-opengl-40000-after-2.ppm",
+      "status": "passed",
+      "scene_load_ms": 563.635,
+      "backend_cleanup_ms": 68.46,
+      "first_frame_ms": 2349.88,
+      "adapter": "BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000)",
+      "median_ms": 13.2614,
+      "p95_ms": 13.2614,
+      "rgba_fnv64": "0x156847cec1d97864",
+      "image_vs_before": {
+        "rgb_pixel_exact": true,
+        "different_pixels": 0,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "png_sha256": "f7d333796e05274fddb336e58fa68b3c26e46589113bccf1a383a7cb20b2dccb"
+    },
+    {
+      "backend": "bgfx",
+      "api": "opengl",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 3,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 4681.0247,
+      "log": "build/common-bgfx-opengl-40000-before-3.log",
+      "image": "build/large-scenes/common-bgfx-opengl-40000-before-3.ppm",
+      "status": "passed",
+      "scene_load_ms": 522.036,
+      "backend_cleanup_ms": 65.3104,
+      "first_frame_ms": 3415.17,
+      "adapter": "BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000)",
+      "median_ms": 12.534,
+      "p95_ms": 12.534,
+      "rgba_fnv64": "0x156847cec1d97864"
+    },
+    {
+      "backend": "bgfx",
+      "api": "opengl",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 3,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 3675.7044,
+      "log": "build/common-bgfx-opengl-40000-after-3.log",
+      "image": "build/large-scenes/common-bgfx-opengl-40000-after-3.ppm",
+      "status": "passed",
+      "scene_load_ms": 570.031,
+      "backend_cleanup_ms": 75.8921,
+      "first_frame_ms": 2364.33,
+      "adapter": "BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000)",
+      "median_ms": 12.5728,
+      "p95_ms": 12.5728,
+      "rgba_fnv64": "0x156847cec1d97864",
+      "image_vs_before": {
+        "rgb_pixel_exact": true,
+        "different_pixels": 0,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "png_sha256": "f7d333796e05274fddb336e58fa68b3c26e46589113bccf1a383a7cb20b2dccb"
+    },
+    {
+      "backend": "bgfx",
+      "api": "opengl",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": "warm",
+      "tracing": false,
+      "warmup": 4,
+      "frames": 8,
+      "exit_code": 0,
+      "wall_ms": 4162.0127,
+      "log": "build/common-bgfx-opengl-40000-after-warm.log",
+      "image": "build/large-scenes/common-bgfx-opengl-40000-after-warm.ppm",
+      "status": "passed",
+      "scene_load_ms": 598.135,
+      "backend_cleanup_ms": 75.3849,
+      "first_frame_ms": 2418.0,
+      "adapter": "BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000)",
+      "median_ms": 12.937,
+      "p95_ms": 19.0787,
+      "rgba_fnv64": "0x156847cec1d97864",
+      "image_vs_before": {
+        "rgb_pixel_exact": true,
+        "different_pixels": 0,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "png_sha256": "f7d333796e05274fddb336e58fa68b3c26e46589113bccf1a383a7cb20b2dccb"
+    },
+    {
+      "backend": "wgpu",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 1,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 6519.5669,
+      "log": "build/common-wgpu-vulkan-40000-before-1.log",
+      "image": "build/large-scenes/common-wgpu-vulkan-40000-before-1.ppm",
+      "status": "passed",
+      "scene_load_ms": 521.128,
+      "backend_cleanup_ms": 55.3096,
+      "first_frame_ms": 3293.89,
+      "adapter": "NVIDIA GeForce GTX 1060 6GB (Vulkan)",
+      "median_ms": 1511.22,
+      "p95_ms": 1511.22,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "backend": "wgpu",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 1,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 6538.3298,
+      "log": "build/common-wgpu-vulkan-40000-after-1.log",
+      "image": "build/large-scenes/common-wgpu-vulkan-40000-after-1.ppm",
+      "status": "passed",
+      "scene_load_ms": 835.688,
+      "backend_cleanup_ms": 41.1326,
+      "first_frame_ms": 2721.86,
+      "adapter": "NVIDIA GeForce GTX 1060 6GB (Vulkan)",
+      "median_ms": 1702.2,
+      "p95_ms": 1702.2,
+      "rgba_fnv64": "0x6714299260985122",
+      "image_vs_before": {
+        "rgb_pixel_exact": true,
+        "different_pixels": 0,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "png_sha256": "130672f04a599e6b399064f5c8b502fb6a8d7a18cf7162d7a3e0f54bc487ceb0"
+    },
+    {
+      "backend": "wgpu",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 2,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 5880.5354,
+      "log": "build/common-wgpu-vulkan-40000-before-2.log",
+      "image": "build/large-scenes/common-wgpu-vulkan-40000-before-2.ppm",
+      "status": "passed",
+      "scene_load_ms": 519.057,
+      "backend_cleanup_ms": 45.9756,
+      "first_frame_ms": 3275.47,
+      "adapter": "NVIDIA GeForce GTX 1060 6GB (Vulkan)",
+      "median_ms": 1412.35,
+      "p95_ms": 1412.35,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "backend": "wgpu",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 2,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 5555.042,
+      "log": "build/common-wgpu-vulkan-40000-after-2.log",
+      "image": "build/large-scenes/common-wgpu-vulkan-40000-after-2.ppm",
+      "status": "passed",
+      "scene_load_ms": 551.169,
+      "backend_cleanup_ms": 46.3011,
+      "first_frame_ms": 2703.64,
+      "adapter": "NVIDIA GeForce GTX 1060 6GB (Vulkan)",
+      "median_ms": 1638.23,
+      "p95_ms": 1638.23,
+      "rgba_fnv64": "0x6714299260985122",
+      "image_vs_before": {
+        "rgb_pixel_exact": true,
+        "different_pixels": 0,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "png_sha256": "130672f04a599e6b399064f5c8b502fb6a8d7a18cf7162d7a3e0f54bc487ceb0"
+    },
+    {
+      "backend": "wgpu",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 3,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 5769.0948,
+      "log": "build/common-wgpu-vulkan-40000-before-3.log",
+      "image": "build/large-scenes/common-wgpu-vulkan-40000-before-3.ppm",
+      "status": "passed",
+      "scene_load_ms": 519.423,
+      "backend_cleanup_ms": 45.9382,
+      "first_frame_ms": 3196.04,
+      "adapter": "NVIDIA GeForce GTX 1060 6GB (Vulkan)",
+      "median_ms": 1457.95,
+      "p95_ms": 1457.95,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "backend": "wgpu",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 3,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 5298.5069,
+      "log": "build/common-wgpu-vulkan-40000-after-3.log",
+      "image": "build/large-scenes/common-wgpu-vulkan-40000-after-3.ppm",
+      "status": "passed",
+      "scene_load_ms": 532.366,
+      "backend_cleanup_ms": 45.1746,
+      "first_frame_ms": 2673.28,
+      "adapter": "NVIDIA GeForce GTX 1060 6GB (Vulkan)",
+      "median_ms": 1442.79,
+      "p95_ms": 1442.79,
+      "rgba_fnv64": "0x6714299260985122",
+      "image_vs_before": {
+        "rgb_pixel_exact": true,
+        "different_pixels": 0,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "png_sha256": "130672f04a599e6b399064f5c8b502fb6a8d7a18cf7162d7a3e0f54bc487ceb0"
+    },
+    {
+      "backend": "wgpu",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": "warm",
+      "tracing": false,
+      "warmup": 4,
+      "frames": 8,
+      "exit_code": 0,
+      "wall_ms": 19900.0482,
+      "log": "build/common-wgpu-vulkan-40000-after-warm.log",
+      "image": "build/large-scenes/common-wgpu-vulkan-40000-after-warm.ppm",
+      "status": "passed",
+      "scene_load_ms": 509.089,
+      "backend_cleanup_ms": 39.9559,
+      "first_frame_ms": 2603.66,
+      "adapter": "NVIDIA GeForce GTX 1060 6GB (Vulkan)",
+      "median_ms": 1426.26,
+      "p95_ms": 1495.29,
+      "rgba_fnv64": "0x6714299260985122",
+      "image_vs_before": {
+        "rgb_pixel_exact": true,
+        "different_pixels": 0,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "png_sha256": "130672f04a599e6b399064f5c8b502fb6a8d7a18cf7162d7a3e0f54bc487ceb0"
+    },
+    {
+      "backend": "bgfx",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": "phase",
+      "tracing": true,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 4272.9431,
+      "log": "build/common-bgfx-vulkan-40000-before-phase.log",
+      "image": "build/large-scenes/common-bgfx-vulkan-40000-before-phase.ppm",
+      "status": "passed",
+      "scene_load_ms": 529.265,
+      "backend_cleanup_ms": 77.4042,
+      "first_frame_ms": 2895.94,
+      "adapter": "BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03)",
+      "median_ms": 10.6066,
+      "p95_ms": 10.6066,
+      "rgba_fnv64": "0x6714299260985122",
+      "phases": {
+        "traversal_ms": 1029.89,
+        "frame_plan_ms": 231.818,
+        "backend_ms": 1632.43
+      }
+    },
+    {
+      "backend": "wgpu",
+      "api": "gl",
+      "buildings": 10000,
+      "variant": "before",
+      "sample": "phase",
+      "tracing": true,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 19692.9477,
+      "log": "build/common-wgpu-gl-10000-before-phase.log",
+      "image": "build/large-scenes/common-wgpu-gl-10000-before-phase.ppm",
+      "status": "passed",
+      "scene_load_ms": 150.475,
+      "backend_cleanup_ms": 12.0923,
+      "first_frame_ms": 9622.93,
+      "adapter": "NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl)",
+      "median_ms": 9407.6,
+      "p95_ms": 9407.6,
+      "rgba_fnv64": "0xff02ebcc71d93719",
+      "phases": {
+        "traversal_ms": 263.416,
+        "frame_plan_ms": 127.751,
+        "backend_ms": 9230.23
+      }
+    },
+    {
+      "backend": "bgfx",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": "phase",
+      "tracing": true,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 4034.8087,
+      "log": "build/common-bgfx-vulkan-40000-after-phase.log",
+      "image": "build/large-scenes/common-bgfx-vulkan-40000-after-phase.ppm",
+      "status": "passed",
+      "scene_load_ms": 573.136,
+      "backend_cleanup_ms": 79.7815,
+      "first_frame_ms": 2461.92,
+      "adapter": "BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03)",
+      "median_ms": 11.2129,
+      "p95_ms": 11.2129,
+      "rgba_fnv64": "0x6714299260985122",
+      "phases": {
+        "traversal_ms": 473.799,
+        "frame_plan_ms": 267.034,
+        "backend_ms": 1719.08
+      },
+      "image_vs_before": {
+        "rgb_pixel_exact": true,
+        "different_pixels": 0,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "png_sha256": "130672f04a599e6b399064f5c8b502fb6a8d7a18cf7162d7a3e0f54bc487ceb0"
+    },
+    {
+      "backend": "wgpu",
+      "api": "gl",
+      "buildings": 10000,
+      "variant": "after",
+      "sample": "phase",
+      "tracing": true,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 0,
+      "wall_ms": 21104.9756,
+      "log": "build/common-wgpu-gl-10000-after-phase.log",
+      "image": "build/large-scenes/common-wgpu-gl-10000-after-phase.ppm",
+      "status": "passed",
+      "scene_load_ms": 129.709,
+      "backend_cleanup_ms": 11.3467,
+      "first_frame_ms": 9655.81,
+      "adapter": "NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl)",
+      "median_ms": 10776.4,
+      "p95_ms": 10776.4,
+      "rgba_fnv64": "0xff02ebcc71d93719",
+      "phases": {
+        "traversal_ms": 125.206,
+        "frame_plan_ms": 59.6066,
+        "backend_ms": 9469.68
+      },
+      "image_vs_before": {
+        "rgb_pixel_exact": true,
+        "different_pixels": 0,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "png_sha256": "4224e9a6d7d62f2878572a98b196eea483697cc93422e3f0db13c4250a310e91"
+    },
+    {
+      "backend": "wgpu",
+      "api": "dx12",
+      "buildings": 10000,
+      "variant": "after",
+      "sample": "known-failure",
+      "tracing": false,
+      "warmup": 1,
+      "frames": 1,
+      "exit_code": 1,
+      "wall_ms": 5375.2409,
+      "log": "build/common-wgpu-dx12-10000-after-known-failure.log",
+      "image": "build/large-scenes/common-wgpu-dx12-10000-after-known-failure.ppm",
+      "status": "known_first_frame_failure",
+      "scene_load_ms": 126.422,
+      "error": "WebGPU frame failed: WebGPU uncaptured error: Validation Error\n\nCaused by:\n  In RenderPass::set_bind_group, label = 'Coin Composition Pass'\n    In a set_bind_group command\n      BindGroup with 'Draw eight-unit texture bindings' label is invalid"
+    },
+    {
+      "backend": "bgfx",
+      "api": "d3d12",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": "warm-control",
+      "tracing": false,
+      "warmup": 4,
+      "frames": 8,
+      "exit_code": 0,
+      "wall_ms": 4492.209,
+      "log": "build/common-bgfx-d3d12-40000-before-warm-control.log",
+      "image": "build/large-scenes/common-bgfx-d3d12-40000-before-warm-control.ppm",
+      "status": "passed",
+      "scene_load_ms": 509.848,
+      "backend_cleanup_ms": 71.845,
+      "first_frame_ms": 3018.69,
+      "adapter": "BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03)",
+      "median_ms": 12.3841,
+      "p95_ms": 13.0171,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "backend": "bgfx",
+      "api": "d3d12",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": "warm-control",
+      "tracing": false,
+      "warmup": 4,
+      "frames": 8,
+      "exit_code": 0,
+      "wall_ms": 3969.1251,
+      "log": "build/common-bgfx-d3d12-40000-after-warm-control.log",
+      "image": "build/large-scenes/common-bgfx-d3d12-40000-after-warm-control.ppm",
+      "status": "passed",
+      "scene_load_ms": 573.444,
+      "backend_cleanup_ms": 72.5397,
+      "first_frame_ms": 2498.37,
+      "adapter": "BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03)",
+      "median_ms": 12.5734,
+      "p95_ms": 13.1683,
+      "rgba_fnv64": "0x6714299260985122",
+      "image_vs_before": {
+        "rgb_pixel_exact": true,
+        "different_pixels": 0,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "png_sha256": "130672f04a599e6b399064f5c8b502fb6a8d7a18cf7162d7a3e0f54bc487ceb0"
+    },
+    {
+      "backend": "legacy",
+      "api": "opengl",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": "control",
+      "tracing": false,
+      "warmup": 4,
+      "frames": 8,
+      "exit_code": 0,
+      "wall_ms": 2527.9423,
+      "log": "build/common-legacy-opengl-40000-after-control.log",
+      "image": "build/large-scenes/common-legacy-opengl-40000-after-control.ppm",
+      "status": "passed",
+      "scene_load_ms": 501.276,
+      "backend_cleanup_ms": 30.1792,
+      "first_frame_ms": 723.616,
+      "adapter": "not-queried",
+      "median_ms": 35.8983,
+      "p95_ms": 39.4647,
+      "rgba_fnv64": "0x4df2a9ab75b7504",
+      "image_vs_before": {
+        "rgb_pixel_exact": true,
+        "different_pixels": 0,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "png_sha256": "9a307e501a8a922319dff8256656955f7e97a3f47da28c16ee8b84cbf8970c31"
+    }
+  ]
+}

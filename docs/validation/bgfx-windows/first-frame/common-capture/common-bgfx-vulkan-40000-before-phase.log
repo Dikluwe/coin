@@ -1,0 +1,21 @@
+COIN_RENDER_PHASE bgfx_device renderer=Vulkan vendor_id=0x10de device_id=0x1c03 homogeneous_depth=0
+COIN_RENDER_PHASE bgfx_formats rgba8=0x1fedb d24s8=0xf249 d32f=0xfe49 readback=1
+scene_load_ms=529.265
+COIN_RENDER_PHASE bgfx_device renderer=Vulkan vendor_id=0x10de device_id=0x1c03 homogeneous_depth=0
+COIN_RENDER_PHASE bgfx_formats rgba8=0x1fedb d24s8=0xf249 d32f=0xfe49 readback=1
+COIN_RENDER_PHASE bgfx lower_ms=415.496800 upload_ms=83.586900 encode_ms=0.047000 draw_encode_ms=0.033800 blit_encode_ms=0.013200 submit_frame_ms=0.009000 read_request_ms=0.000300 read_wait_ms=550.818900 frame_wait_ms=550.818900 row_flip_ms=2.669900 vertices=1440036 draws=1 read_wait_frames=3 readback_pipeline_depth=1 readback_latency_frames=0 readback_pipeline_bytes=8388608 readback_gpu_staging_bytes=4194304 readback_cpu_staging_bytes=4194304 readback_published_bytes=4194304 readback_bootstrap=1 resource_cache_hit=0 texture_cache_hit=0 geometry_buffer_reused=0 vertex_buffer_capacity=1441792 index_buffer_capacity=1441792 camera_patch=0 material_patch=0 material_patch_ranges=0 material_patch_vertices=0 gpu_query_drain_ms=0.000100 gpu_query_frames=0 gpu_pass_frame=0 gpu_frame_ms=not_requested gpu_opaque_ms=unavailable gpu_transparent_ms=unavailable gpu_composite_ms=unavailable gpu_blit_readback_ms=unavailable gpu_wait_ms=unavailable gpu_resource_stats=0 gpu_draw_submits=0 opaque_draws=1 transparent_draws=0 opaque_grouping=1 opaque_reordered=0 logical_pipeline_changes=1 logical_material_changes=1 logical_texture_changes=1 logical_lighting_changes=1 gpu_memory_used_bytes=-1 texture_memory_used_bytes=-1 render_target_memory_used_bytes=-1 gpu_vertex_buffers=0 gpu_index_buffers=0 gpu_textures=0 gpu_framebuffers=0 gpu_programs=0
+COIN_RENDER_PHASE target validation_ms=228.039300 prepare_ms=351.602200 submit_ms=1052.765100
+COIN_RENDER_PHASE action traversal_ms=1029.89 frame_plan_ms=231.818 backend_ms=1632.43 vertices=1440036 indices=1440036 draws=40001 plan_cache_hit=0 plan_reuse=full_rebuild
+BGFX-Vulkan_first_frame_ms=2895.94
+COIN_RENDER_PHASE bgfx lower_ms=0.008500 upload_ms=0.001200 encode_ms=0.026100 draw_encode_ms=0.017400 blit_encode_ms=0.008700 submit_frame_ms=0.011000 read_request_ms=0.000500 read_wait_ms=8.338900 frame_wait_ms=8.338900 row_flip_ms=1.417900 vertices=1440036 draws=1 read_wait_frames=3 readback_pipeline_depth=1 readback_latency_frames=0 readback_pipeline_bytes=8388608 readback_gpu_staging_bytes=4194304 readback_cpu_staging_bytes=4194304 readback_published_bytes=4194304 readback_bootstrap=1 resource_cache_hit=1 texture_cache_hit=1 geometry_buffer_reused=1 vertex_buffer_capacity=1441792 index_buffer_capacity=1441792 camera_patch=0 material_patch=0 material_patch_ranges=0 material_patch_vertices=0 gpu_query_drain_ms=0.000100 gpu_query_frames=0 gpu_pass_frame=0 gpu_frame_ms=not_requested gpu_opaque_ms=unavailable gpu_transparent_ms=unavailable gpu_composite_ms=unavailable gpu_blit_readback_ms=unavailable gpu_wait_ms=unavailable gpu_resource_stats=0 gpu_draw_submits=0 opaque_draws=1 transparent_draws=0 opaque_grouping=1 opaque_reordered=0 logical_pipeline_changes=1 logical_material_changes=1 logical_texture_changes=1 logical_lighting_changes=1 gpu_memory_used_bytes=-1 texture_memory_used_bytes=-1 render_target_memory_used_bytes=-1 gpu_vertex_buffers=0 gpu_index_buffers=0 gpu_textures=0 gpu_framebuffers=0 gpu_programs=0
+COIN_RENDER_PHASE target validation_ms=0.000500 prepare_ms=0.001500 submit_ms=9.895500
+COIN_RENDER_PHASE action traversal_ms=0.0082 frame_plan_ms=0.0007 backend_ms=9.9047 vertices=1440036 indices=1440036 draws=40001 plan_cache_hit=1 plan_reuse=reuse
+rgba_fnv64=0x6714299260985122
+image=build/large-scenes/common-bgfx-vulkan-40000-before-phase.ppm
+adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) vendor_id=0x10de device_id=0x1c03 backend=bgfx size=1024x1024 warmup=1 scene=build/large-scenes/city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=static
+BGFX-Vulkan frames=1 median_ms=10.6066 p95_ms=10.6066 min_ms=10.6066 max_ms=10.6066
+BGFX_render_and_readback frames=1 median_ms=9.9349 p95_ms=9.9349 min_ms=9.9349 max_ms=9.9349
+BGFX_publication_copy frames=1 median_ms=0.6717 p95_ms=0.6717 min_ms=0.6717 max_ms=0.6717
+BGFX-Vulkan_throughput frames=1 total_ms=10.6066 fps=94.2809
+backend_cleanup_begin
+backend_cleanup_ms=77.4042

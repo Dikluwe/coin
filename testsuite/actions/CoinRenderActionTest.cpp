@@ -15,6 +15,9 @@
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/nodes/SoCone.h>
+#include <Inventor/nodes/SoCylinder.h>
+#include <Inventor/nodes/SoSphere.h>
+#include <Inventor/elements/SoDepthBufferElement.h>
 #include <Inventor/nodes/SoCallback.h>
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/nodes/SoPointSet.h>
@@ -779,13 +782,114 @@ int testDepthStateCapture() {
   return 0;
 }
 
+namespace {
+void noOpTriangle(void *, SoCallbackAction *, const SoPrimitiveVertex *,
+                  const SoPrimitiveVertex *, const SoPrimitiveVertex *) {}
+void alternateDepth(void * data, SoCallbackAction * action, const SoPrimitiveVertex *,
+                    const SoPrimitiveVertex *, const SoPrimitiveVertex *) {
+  int & count = *static_cast<int *>(data);
+  SoDepthBufferElement::set(action->getState(), TRUE, (++count % 2) ? FALSE : TRUE,
+                           SoDepthBufferElement::LEQUAL, SbVec2f(0, 1));
+}
+class MutatingCaptureCube : public SoCube {
+  SO_NODE_HEADER(MutatingCaptureCube);
+public:
+  MutatingCaptureCube() { SO_NODE_CONSTRUCTOR(MutatingCaptureCube); }
+  static void initClass() { SO_NODE_INIT_CLASS(MutatingCaptureCube, SoCube, "Cube"); }
+protected:
+  void generatePrimitives(SoAction * action) override {
+    SoCube::generatePrimitives(action);
+    SoDepthBufferElement::set(action->getState(), TRUE, FALSE,
+                             SoDepthBufferElement::LEQUAL, SbVec2f(0, 1));
+    SoCube::generatePrimitives(action);
+  }
+};
+SO_NODE_SOURCE(MutatingCaptureCube);
+}
+
+int testPrimitiveStateReuse() {
+  SoSeparator * root = new SoSeparator;
+  root->ref();
+  root->addChild(new SoDirectionalLight);
+  auto * binding = new SoMaterialBinding;
+  binding->value = SoMaterialBinding::PER_PART;
+  root->addChild(binding);
+  const SbColor colors[] = {SbColor(1,0,0), SbColor(0,1,0), SbColor(0,0,1),
+                            SbColor(1,1,0), SbColor(0,1,1), SbColor(1,0,1)};
+  SoNode * shapes[] = {new SoCube, new SoCone, new SoCylinder, new SoSphere};
+  SoMaterial * changed = nullptr;
+  for (int occurrence = 0; occurrence < 2; ++occurrence) {
+    auto * branch = new SoSeparator;
+    auto * translation = new SoTranslation;
+    translation->translation.setValue(float(occurrence * 5), 0, 0);
+    branch->addChild(translation);
+    auto * material = new SoMaterial;
+    material->diffuseColor.setValues(0, 6, colors);
+    material->transparency = occurrence ? .25f : 0.0f;
+    branch->addChild(material);
+    changed = material;
+    for (SoNode * shape : shapes) branch->addChild(shape);
+    root->addChild(branch);
+  }
+  CoinRenderAction optimized, reference;
+  // An observer callback conservatively selects the full-capture reference.
+  static_cast<SoCallbackAction &>(reference).addTriangleCallback(
+    SoShape::getClassTypeId(), noOpTriangle, nullptr);
+  for (int frame = 0; frame < 2; ++frame) {
+    if (frame) {
+      changed->diffuseColor.set1Value(0, SbColor(.3f,.7f,.9f));
+      static_cast<SoCube *>(shapes[0])->width = 3.0f;
+    }
+    optimized.apply(root);
+    reference.apply(root);
+    TEST_ASSERT(optimized.getLastStatus() == CoinRenderAction::SUCCESS &&
+                reference.getLastStatus() == CoinRenderAction::SUCCESS,
+                "native shapes with shared occurrences and per-part materials must capture");
+    TEST_ASSERT(optimized.getRecordingLog() == reference.getRecordingLog(),
+                "reuse must preserve geometry, material bindings, transforms and changed frames");
+  }
+  root->unref();
+
+  root = new SoSeparator;
+  root->ref();
+  root->addChild(new SoCube);
+  CoinRenderAction callbacks;
+  int count = 0;
+  // Register through the base API to cover callbacks the derived action cannot intercept.
+  static_cast<SoCallbackAction &>(callbacks).addTriangleCallback(
+    SoShape::getClassTypeId(), alternateDepth, &count);
+  callbacks.apply(root);
+  const std::string log = callbacks.getRecordingLog().getString();
+  TEST_ASSERT(callbacks.getLastStatus() == CoinRenderAction::SUCCESS && count == 12,
+              "additional callback must still receive every cube triangle");
+  TEST_ASSERT(log.find("depthWrite=0") != std::string::npos &&
+              log.find("depthWrite=1") != std::string::npos,
+              "state changes between triangle callbacks must not be cached away");
+  root->unref();
+
+  root = new SoSeparator;
+  root->ref();
+  root->addChild(new MutatingCaptureCube);
+  CoinRenderAction subclass;
+  subclass.apply(root);
+  const std::string subclassLog = subclass.getRecordingLog().getString();
+  TEST_ASSERT(subclass.getLastStatus() == CoinRenderAction::SUCCESS &&
+              subclassLog.find("depthWrite=0") != std::string::npos &&
+              subclassLog.find("depthWrite=1") != std::string::npos,
+              "overridden primitive generation must retain state changes inside the shape");
+  root->unref();
+  return 0;
+}
+
 int main() {
 
   SoDB::init();
   CoinRenderAction::initClass();
+  MutatingCaptureCube::initClass();
   std::cout << "Running CoinRenderActionTest..." << std::endl;
 
   int failed = 0;
+  if (testPrimitiveStateReuse()) { std::cerr << "testPrimitiveStateReuse failed" << std::endl; failed++; }
   if (testDepthStateCapture()) { std::cerr << "testDepthStateCapture failed" << std::endl; failed++; }
   if (testAnnotationLayers()) { std::cerr << "testAnnotationLayers failed" << std::endl; failed++; }
   if (testCameraOverlayAndFallback()) { std::cerr << "testCameraOverlayAndFallback failed" << std::endl; failed++; }

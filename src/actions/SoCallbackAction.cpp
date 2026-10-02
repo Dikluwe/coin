@@ -1204,6 +1204,21 @@ SoCallbackAction::invokeTriangleCallbacks(const SoShape * const shape,
     PRIVATE(this)->trianglecallback[idx]->doTriangleCallbacks(this, v1, v2, v3);
 }
 
+SbBool
+SoCallbackAction::hasSingleShapeCallbacks(const SoType type) const
+{
+  const int idx = static_cast<int>(type.getData());
+  const auto single = [idx](const SbList<SoCallbackData *> & callbacks) {
+    if (idx < 0 || idx >= callbacks.getLength()) return false;
+    const SoCallbackData * data = callbacks[idx];
+    return data && data->next == NULL;
+  };
+  return !PRIVATE(this)->pretailcallback && !PRIVATE(this)->posttailcallback &&
+    single(PRIVATE(this)->precallback) && single(PRIVATE(this)->postcallback) &&
+    single(PRIVATE(this)->trianglecallback) && single(PRIVATE(this)->linecallback) &&
+    single(PRIVATE(this)->pointcallback);
+}
+
 /*!
   \COININTERNAL
 

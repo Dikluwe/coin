@@ -840,7 +840,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
 }
 
 SoCallbackAction::Response
-CoinRenderActionP::textureUnitsPreCB(void * userdata, SoCallbackAction * action, const SoNode *)
+CoinRenderActionP::textureUnitsPreCB(void * userdata, SoCallbackAction * action, const SoNode * node)
 {
   // PRUNE skips this shape only; subsequent state nodes still traverse.
   if (CoinRenderFramePlanBuilder::isShapeInvisible(action)) return SoCallbackAction::PRUNE;
@@ -865,9 +865,18 @@ CoinRenderActionP::textureUnitsPreCB(void * userdata, SoCallbackAction * action,
       return SoCallbackAction::ABORT;
     }
   }
+  p->builder.endShape();
+  if (p->master->hasSingleShapeCallbacks(node->getTypeId()))
+    p->builder.beginShape(action, node);
   return SoCallbackAction::CONTINUE;
 }
 
+SoCallbackAction::Response
+CoinRenderActionP::shapePostCB(void * userdata, SoCallbackAction *, const SoNode *)
+{
+  static_cast<CoinRenderActionP *>(userdata)->builder.endShape();
+  return SoCallbackAction::CONTINUE;
+}
 
 SoCallbackAction::Response
 CoinRenderActionP::textureCombinePreCB(void * userdata, SoCallbackAction* action, const SoNode* node)
@@ -948,6 +957,7 @@ CoinRenderActionP::initCallbacks()
 
   this->master->addPreCallback(SoCamera::getClassTypeId(), unsupportedEffectPreCB, this);
   this->master->addPreCallback(SoShape::getClassTypeId(), textureUnitsPreCB, this);
+  this->master->addPostCallback(SoShape::getClassTypeId(), shapePostCB, this);
   this->master->addPreCallback(SoLight::getClassTypeId(), lightPreCB, this);
   this->master->addPreCallback(SoTextureCombine::getClassTypeId(), textureCombinePreCB, this);
   this->master->addPreCallback(SoTexture3::getClassTypeId(), unsupportedEffectPreCB, this);
