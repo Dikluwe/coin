@@ -126,13 +126,7 @@ public:
       }
 
       if (newitembuffer != this->itembuffer) {
-        try {
-          for (int i = 0; i < items; i++) newitembuffer[i] = this->itembuffer[i];
-        }
-        catch (...) {
-          if (newitembuffer != this->builtinbuffer) delete[] newitembuffer;
-          throw;
-        }
+        for (int i = 0; i < items; i++) newitembuffer[i] = this->itembuffer[i];
       }
 
       if (this->itembuffer != this->builtinbuffer) delete[] this->itembuffer;
