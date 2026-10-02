@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="29"
+	failures="21"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="36"
+	timestamp="2026-10-02T18:23:50"
+	>
+	<testcase name="CoinRenderActionTest" classname="CoinRenderActionTest" time="0.676145" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Running CoinRenderActionTest...
+FAILED: Initial GPU frame must succeed (cachedGpu.getLastStatus() == CoinRenderAction::SUCCESS) at H:\Git\coin\build\coin-render-source\testsuite\actions\CoinRenderActionTest.cpp:702
+testCameraOverlayAndFallback failed
+1 test(s) FAILED!
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderIndexedFastPathTest" classname="CoinRenderIndexedFastPathTest" time="0.510329" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Running CoinRenderIndexedFastPathTest (Onda 2D Indexed Fast Path)...
+-&gt; Test 1: Sentinel parser, triangles and convex quads...
+   [PASS] Test 1: Sentinel parser and convex quads
+-&gt; Test 2: Degenerate faces and consecutive sentinels...
+   [PASS] Test 2: Degenerate faces handled cleanly
+-&gt; Test 3: Atomic validation and rollback on invalid indices...
+   [PASS] Test 3: Atomic validation and rollback
+-&gt; Test 4: Concave quads diversion to fallback...
+   [PASS] Test 4: Concave quad fallback verified
+-&gt; Test 5: Canonical vertex deduplication...
+   [PASS] Test 5: Canonical vertex deduplication verified
+-&gt; Test 6: Indexed line sets (SoIndexedLineSet)...
+   [PASS] Test 6: IndexedLineSet fast path verified
+-&gt; Test 7: Strict pixel and depth equivalence (Fast Path vs Fallback)...
+FAILED: Fast path render must succeed (action.getLastStatus() == CoinRenderAction::SUCCESS) at H:\Git\coin\build\coin-render-source\testsuite\coinrender\CoinRenderIndexedFastPathTest.cpp:407
+</system-out>
+	</testcase>
+	<testcase name="CoinWgpuCacheTest" classname="CoinWgpuCacheTest" time="0.503506" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Running CoinWgpuCacheTest (Onda 2E GPU Resource Cache &amp; Safe Retirement)...
+-&gt; Test 1: Warm-up and zero new uploads on static scene...
+FAILED: Frame 1 apply must succeed (action.getLastStatus() == CoinRenderAction::SUCCESS) at H:\Git\coin\build\coin-render-source\testsuite\coinwgpu\CoinWgpuCacheTest.cpp:100
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderStabilizationTest" classname="CoinRenderStabilizationTest" time="0.648629" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Running CoinRenderStabilizationTest (Onda 2F Concurrency, Packet Separation, Exact Hash &amp; Budget)...
+-&gt; Test 1: Strict completion serial order with pending GPU work...
+FAILED: Frame 1 apply must succeed (action.getLastStatus() == CoinRenderAction::SUCCESS) at H:\Git\coin\build\coin-render-source\testsuite\coinrender\CoinRenderStabilizationTest.cpp:74
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMaterialTest" classname="CoinRenderMaterialTest" time="0.524346" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Running CoinRenderMaterialTest...
+[PASS] testAbiVersionCheck
+[PASS] testMaterialBindingsFaceVsLineNoGpu
+[PASS] testInvalidMaterialIndexHandling
+[PASS] testStorageBufferLimitsAndSlotValidation
+ASSERTION FAILED: Submit for BASE_COLOR failed: WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In CommandEncoder::copy_texture_to_buffer
+    Copy error
+      Cannot encode this copy because of a missing downelevel flag
+        Downlevel flags DownlevelFlags(DEPTH_TEXTURE_AND_BUFFER_COPIES) are at line 436
+testBaseColorVsPhongLitAndUnlitGpu FAILED
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderTextureTest" classname="CoinRenderTextureTest" time="0.990339" status="run">
+		<properties/>
+		<system-out>========================================================
+Running CoinRenderTextureTest (Subwave 3B: 2D Texture Pipeline)
+========================================================
+-&gt; Test 1: Texture formats (1, 2, 3, 4 components) with MODULATE...
+-&gt; Test 2: MODULATE model color verification...
+-&gt; Test 3: Strict UNSUPPORTED rejections outside the texture profile...
+Coin error in SbImage::readFile(): couldn't find 'non_existent_file_dummy_test_123.png'.
+Coin warning in SoTexture2::filenameSensorCB(): Image file 'non_existent_file_dummy_test_123.png' could not be read
+-&gt; Test 4: UV coordinates (explicit vs procedural vs out-of-bounds)...
+-&gt; Test 5: Texture transformation and wrap modes...
+-&gt; Test 6: Multiple draws with different textures in same frame...
+-&gt; Test 7: Texture image deduplication with different samplers...
+-&gt; Test 8: Texture quality 0.0 disables texture smoothly...
+
+ALL CoinRenderTextureTest checks PASSED successfully!
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderLightingTest" classname="CoinRenderLightingTest" time="0.646155" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Render error: WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In CommandEncoder::copy_texture_to_buffer
+    Copy error
+      Cannot encode this copy because of a missing downelevel flag
+        Downlevel flags DownlevelFlags(DEPTH_TEXTURE_AND_BUFFER_COPIES) are required but not supported on the device.
+This is not an invalid use of WebGPU: the underlying API or device does not support enough features to be a fully compliant implementation. A subset of the features can still be used. If you are running this progr
+renderCenter cpu=0 pixels=0 depth=0
+CoinRenderLightingTest: color/depth readback failed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGouraudInterpolationTest" classname="CoinRenderGouraudInterpolationTest" time="0.519671" status="run">
+		<properties/>
+		<system-out>CoinRenderGouraudInterpolationTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderFogTest" classname="CoinRenderFogTest" time="1.1348" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>CoinRenderFogTest: CPU/GPU fog color mismatch
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderClipPlaneTest" classname="CoinRenderClipPlaneTest" time="0.634876" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Coin/GL reference passed
+WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In CommandEncoder::copy_texture_to_buffer
+    Copy error
+      Cannot encode this copy because of a missing downelevel flag
+        Downlevel flags DownlevelFlags(DEPTH_TEXTURE_AND_BUFFER_COPIES) are required but not supported on the device.
+This is not an invalid use of WebGPU: the underlying API or device does not support enough features to be a fully compliant implementation. A subset of the features can still be used. If you are running this progr
+CoinRenderClipPlaneTest: opaque half-plane color/depth
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderDrawStyleTest" classname="CoinRenderDrawStyleTest" time="8.78531" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Coin/GL native stipple reference passed
+Coin/GL clip 0 edge 0 phase displacement -25
+Coin/GL clip 0 edge 1 phase displacement -25
+Coin/GL clip 0 edge 2 phase displacement -57
+Coin/GL clip 0 edge 3 phase displacement -25
+Coin/GL clip 1 edge 0 phase displacement -25
+Coin/GL clip 1 edge 1 phase displacement -19
+Coin/GL clip 1 edge 3 phase displacement -25
+Coin/GL clip 2 edge 0 phase displacement -25
+Coin/GL clip 2 edge 1 phase displacement -31
+Coin/GL clip 2 edge 2 phase displacement -83
+Coin/GL clip 3 edge 1 phase displacement -29
+Coin/GL clip 3 edge 2 phase displacement -77
+Coin/GL clip 3 edge 3 phase displacement -29
+Coin/GL clip 4 edge 0 phase displacement -57
+Coin/GL clip 4 edge 2 phase displacement -103
+Coin/GL clip 4 edge 3 phase displacement -57
+Coin/GL clip 5 edge 1 phase displacement -19
+Coin/GL clip 5 edge 3 phase displacement -19
+Coin/GL clip 6 edge 0 phase displacement -25
+Coin/GL clip 6 edge 1 phase displacement 0
+Coin/GL clip 6 edge 3 phase displacement -25
+Coin/GL clip 7 edge 0 phase displacement -12
+Coin/GL clip 7 edge 1 phase displacement -37
+Coin/GL clip 7 edge 2 phase displacement 65
+Coin/GL clipped geometry and retained-edge stipple reference passed
+Coin/GL polygon stipple reference passed
+Coin/GL polygon attributes reference passed
+CoinRenderDrawStyleTest: native patterned strips render
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMultitextureTest" classname="CoinRenderMultitextureTest" time="1.27817" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>P08 Coin GL reference passed (CPU=1)
+CoinRenderMultitextureTest: fractional/diagonal stroke raster
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderPeelingTest" classname="CoinRenderPeelingTest" time="0.995524" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>CoinRenderPeelingTest: WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In Device::create_render_pipeline, label = 'Coin peel composite pipeline'
+    Internal error in ShaderStages(FRAGMENT) shader: WGSL `textureLoad` from depth textures is not supported in GLSL
+
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderWeightedOitTest" classname="CoinRenderWeightedOitTest" time="0.472889" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>CoinRenderPeelingTest: WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In CommandEncoder::copy_texture_to_buffer
+    Copy error
+      Cannot encode this copy because of a missing downelevel flag
+        Downlevel flags DownlevelFlags(DEPTH_TEXTURE_AND_BUFFER_COPIES) are required but not supported on the device.
+This is not an invalid use of WebGPU: the underlying API or device does not support enough features to be a fully compliant implementation. A subset of the features can still be used. If you are running this progr
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderTransparencyTest" classname="CoinRenderTransparencyTest" time="1.51611" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>CPU transparency matrices
+CoinRenderTransparencyTest: mode renders
+CPU=0 mode=9 error=WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In CommandEncoder::copy_texture_to_buffer
+    Copy error
+      Cannot encode this copy because of a missing downelevel flag
+        Downlevel flags DownlevelFlags(DEPTH_TEXTURE_AND_BUFFER_COPIES) are required but not supported on the device.
+This is not an invalid use of WebGPU: the underlying API or device does not support enough features to be a fully compliant implementation. A subset of the features can still be used. If you are running this progr
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderCompositionTest" classname="CoinRenderCompositionTest" time="0.496308" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Render failed: WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In CommandEncoder::copy_texture_to_buffer
+    Copy error
+      Cannot encode this copy because of a missing downelevel flag
+        Downlevel flags DownlevelFlags(DEPTH_TEXTURE_AND_BUFFER_COPIES) are required but not supported on the device.
+This is not an invalid use of WebGPU: the underlying API or device does not support enough features to be a fully compliant implementation. A subset of the features can still be used. If you are running this progr
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderAnnotationTest" classname="CoinRenderAnnotationTest" time="0.411557" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>CoinRenderCompositionTest: annotation viewport frame/readback failed
+WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In CommandEncoder::copy_texture_to_buffer
+    Copy error
+      Cannot encode this copy because of a missing downelevel flag
+        Downlevel flags DownlevelFlags(DEPTH_TEXTURE_AND_BUFFER_COPIES) are required but not supported on the device.
+This is not an invalid use of WebGPU: the underlying API or device does not support enough features to be a fully compliant implementation. A subset of the features can still be used. If you are running this progr
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMultiTargetDirectTest" classname="CoinRenderMultiTargetDirectTest" time="1.07017" status="run">
+		<properties/>
+		<system-out>multi-target RTT, queues, resize, destruction and shared recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttOwnershipTest" classname="CoinRenderRttOwnershipTest" time="0.415481" status="run">
+		<properties/>
+		<system-out>CoinRenderRttOwnershipTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureDirectTest" classname="CoinRenderSceneTextureDirectTest" time="0.527412" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>CoinRenderSceneTextureTest: scene texture has incorrect colors or vertical orientation:
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureBudgetDirectTest" classname="CoinRenderSceneTextureBudgetDirectTest" time="0.435461" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureBudgetTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinWgpuLargeBindingsTest" classname="CoinWgpuLargeBindingsTest" time="2.20502" status="run">
+		<properties/>
+		<system-out>25,600 draw uniforms, static reuse, material and camera updates passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderPerformanceTest" classname="CoinRenderPerformanceTest" time="0.743377" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>CoinRenderPerformanceTest: WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In CommandEncoder::copy_texture_to_buffer
+    Copy error
+      Cannot encode this copy because of a missing downelevel flag
+        Downlevel flags DownlevelFlags(DEPTH_TEXTURE_AND_BUFFER_COPIES) are required but not supported on the device.
+This is not an invalid use of WebGPU: the underlying API or device does not support enough features to be a fully compliant implementation. A subset of the features can still be used. If you are running this progr
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderAsyncReadbackTest" classname="CoinRenderAsyncReadbackTest" time="0.402664" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>CoinRenderAsyncReadbackTest: second request completed first Readback output buffers overlap or overflow
+</system-out>
+	</testcase>
+	<testcase name="CoinWgpuMultiDeviceTest" classname="CoinWgpuMultiDeviceTest" time="2.03163" status="run">
+		<properties/>
+		<system-out>CoinWgpuMultiDeviceTest passed
+</system-out>
+	</testcase>
+	<testcase name="WgpuMultiDeviceStressTest" classname="WgpuMultiDeviceStressTest" time="6.55405" status="run">
+		<properties/>
+		<system-out>CoinWgpuMultiDeviceTest passed (stress)
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderAsyncActionTest" classname="CoinRenderAsyncActionTest" time="0.718094" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>CoinRenderAsyncActionTest: async action pixels and depth must match synchronous action
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderAsyncActionDirectTest" classname="CoinRenderAsyncActionDirectTest" time="0.377159" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>CoinRenderAsyncActionTest: async action pixels and depth must match synchronous action
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderAsyncActionDirectStressTest" classname="CoinRenderAsyncActionDirectStressTest" time="0.466577" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>CoinRenderAsyncActionTest: async action pixels and depth must match synchronous action
+</system-out>
+	</testcase>
+</testsuite>

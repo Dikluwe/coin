@@ -18,11 +18,81 @@ bool check(bool condition, const char * message)
   if (!condition) std::cerr << "CoinWgpuFfiFrameTest: " << message << '\n';
   return condition;
 }
+
+bool opaqueBatching()
+{
+  CoinRenderFramePlan frame;
+  frame.revision = 501;
+  frame.materials.resize(2);
+  frame.materials[1].diffuse[0] = 0.25f;
+  frame.vertices.resize(256 * 3);
+  frame.renderStates.resize(256);
+  frame.draws.resize(256);
+  for (uint32_t i = 0; i < 256; ++i) {
+    frame.renderStates[i].model = SbMatrix(
+      2,0,0,0, 0,3,0,0, 0,0,1,0, float(i),0,0,1);
+    frame.renderStates[i].materialSlot = i % 2;
+    frame.renderStates[i].transparencyType = SoGLRenderAction::NONE;
+    auto & draw = frame.draws[i];
+    draw.geometry.firstVertex = draw.geometry.firstIndex = i * 3;
+    draw.geometry.vertexCount = draw.geometry.indexCount = 3;
+    draw.renderStateSlot = i;
+    for (uint32_t j = 0; j < 3; ++j) {
+      auto & vertex = frame.vertices[i * 3 + j];
+      vertex.position[0] = j == 0 ? 1.0f : 0.0f;
+      vertex.position[1] = j == 1 ? 1.0f : 0.0f;
+      vertex.position[2] = -2;
+      vertex.normal[0] = 1;
+      vertex.materialSlot = i % 2;
+      vertex.screenSpaceW = 1;
+      vertex.fogEyeDepth = -1;
+      frame.indices.push_back(i * 3 + j);
+    }
+  }
+  CoinWgpuFfiFrame packed;
+  std::string error;
+  if (!check(packed.prepare(frame,64,64,error), "large opaque packing") ||
+      !check(packed.getView().draw_count == 1 && packed.getView().state_count == 1,
+        "compatible native ranges must form one batch") ||
+      !check(packed.getView().draws[0].index_count == 768 &&
+             packed.getView().vertices[0].position[0] == 2.0f &&
+             packed.getView().vertices[0].normal[0] == 0.5f &&
+             packed.getView().vertices[3].material_slot == 1,
+        "batch must retain every index, transformed position/normal and per-vertex material") ||
+      !check(frame.vertices[0].position[0] == 1.0f,
+        "baking must not modify the Coin-owned frame")) return false;
+  ++frame.revision;
+  for (auto & state : frame.renderStates) state.view.setTranslate(SbVec3f(.25f,0,0));
+  if (!check(packed.prepare(frame,64,64,
+        CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::CAMERA_PATCH,501),error),
+        "batched camera fallback") ||
+      !check(packed.lastPrepareKind() == CoinRenderFrameReuseKind::FULL_REBUILD &&
+        packed.getView().camera_base_revision == 0 &&
+        packed.getView().vertices[0].position[0] == 2.25f,
+        "moving the camera must rebake geometry instead of patching old view positions")) return false;
+  frame.vertices[0].position[0] = 10;
+  if (!check(packed.prepare(frame,64,64,error) &&
+        packed.getView().vertices[0].position[0] == 2.25f,
+        "an immutable packed revision must retain its baked storage")) return false;
+  frame.vertices[0].position[0] = 1;
+  ++frame.revision;
+  frame.renderStates.back().depthWrite = false;
+  if (!check(packed.prepare(frame,64,64,error) && packed.getView().draw_count == 256 &&
+        packed.getView().vertices[0].position[0] == 1,
+        "a late incompatible depth state must leave all geometry unbaked")) return false;
+  ++frame.revision;
+  frame.renderStates.back().depthWrite = true;
+  frame.renderStates.back().model[0][3] = .01f;
+  if (!check(packed.prepare(frame,64,64,error) && packed.getView().draw_count == 256,
+        "projective model transforms must retain ordinary draws")) return false;
+  return true;
+}
 }
 
 int
 main()
 {
+  if (!opaqueBatching()) return 1;
   CoinRenderFramePlan frame;
   frame.revision = 41;
   frame.vertices.resize(1);

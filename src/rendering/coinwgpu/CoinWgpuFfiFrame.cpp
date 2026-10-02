@@ -13,6 +13,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstring>
+#include <cstdlib>
 
 static_assert(sizeof(CoinWgpuFrameView) == 416, "Frame view ABI size changed");
 static_assert(sizeof(CoinWgpuShadowPassView) == 56, "Extra shadow pass ABI size changed");
@@ -56,7 +57,7 @@ static_assert(offsetof(CoinWgpuRenderState, depth_function) == 924, "depth_funct
 static_assert(offsetof(CoinWgpuRenderState, depth_range) == 928, "depth_range ABI offset changed");
 
 CoinWgpuFfiFrame::CoinWgpuFfiFrame()
-  : packedRevision(0), reused(false),
+  : packedRevision(0), reused(false), opaqueBatched(false),
     prepareKind(CoinRenderFrameReuseKind::UNKNOWN), view{}
 {
 }
@@ -106,7 +107,7 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
 
   // The Rust camera patch owns only the standard immutable payload; shadow
   // casters/receivers must be transported through the full validated path.
-  if (frame.shadowGroups.empty() &&
+  if (!this->opaqueBatched && frame.shadowGroups.empty() &&
       reuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH &&
       frame.revision != 0 && frame.revision != reuse.baseRevision &&
       reuse.baseRevision != 0 && reuse.baseRevision == this->packedRevision) {
@@ -125,6 +126,7 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
   }
 
   this->packedRevision = 0;
+  this->opaqueBatched = false;
   this->vertices.resize(frame.vertices.size());
   for (size_t i = 0; i < frame.vertices.size(); ++i) {
     const CoinRenderVertexSnapshot & src = frame.vertices[i];
@@ -175,6 +177,8 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     this->samplers[i].filter = static_cast<uint32_t>(frame.samplers[i].filter);
   }
 
+  this->batchOpaqueTriangles(frame);
+
   this->shadowFrame = std::move(candidateShadow);
   this->bindView(frame, width, height);
   this->packedRevision = frame.revision;
@@ -182,6 +186,77 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     ? CoinRenderFrameReuseKind::RESOURCE_REBUILD
     : CoinRenderFrameReuseKind::FULL_REBUILD;
   return true;
+}
+
+void
+CoinWgpuFfiFrame::batchOpaqueTriangles(const CoinRenderFramePlan & frame)
+{
+  // Preserve composition order. Only a complete sequence of disjoint native
+  // triangle ranges with one effective state can become a single draw.
+  // Materials stay indexed per vertex; strokes, shadows, alpha and offsets
+  // retain the regular encoder. The switch is for same-binary qualification.
+  const char * disabled = std::getenv("COIN_WGPU_DISABLE_OPAQUE_BATCHING");
+  if ((disabled && std::strcmp(disabled, "1") == 0) || this->draws.size() < 256 ||
+      !frame.shadowGroups.empty() || !this->textures.empty() || !this->samplers.empty()) return;
+  CoinWgpuRenderState common{};
+  uint64_t nextVertex = 0, nextIndex = 0;
+  for (size_t i = 0; i < this->draws.size(); ++i) {
+    const auto & draw = this->draws[i];
+    if (draw.topology != 0 || draw.stable_node_id || draw.composition_flags ||
+        draw.render_layer || draw.clear_depth_before || !draw.vertex_count ||
+        !draw.index_count || draw.index_count % 3 ||
+        draw.first_vertex != nextVertex || draw.first_index != nextIndex ||
+        draw.render_state_slot >= this->states.size() ||
+        draw.render_state_slot >= frame.renderStates.size()) return;
+    nextVertex += draw.vertex_count;
+    nextIndex += draw.index_count;
+    if (nextVertex > this->vertices.size() || nextIndex > this->indices.size()) return;
+    const auto & state = this->states[draw.render_state_slot];
+    if (state.has_texture || state.fog_mode || state.clip_plane_count ||
+        state.polygon_offset_enabled ||
+        state.model_view[3] != 0 || state.model_view[7] != 0 ||
+        state.model_view[11] != 0 || state.model_view[15] != 1) return;
+    for (uint64_t v = draw.first_vertex; v < nextVertex; ++v)
+      if (this->vertices[v].screen_space_w != 1.0f ||
+          this->vertices[v].fog_eye_depth_plus_one != 0.0f) return;
+    for (uint64_t j = draw.first_index; j < nextIndex; ++j)
+      if (this->indices[j] < draw.first_vertex || this->indices[j] >= nextVertex) return;
+    CoinWgpuRenderState key = state;
+    // All three shaders fetch every material value from the vertex slot.
+    key.material_slot = 0;
+    const SbMatrix identity = SbMatrix::identity();
+    std::memcpy(key.model_view, identity.getValue(), sizeof(key.model_view));
+    std::memcpy(key.normal_matrix, identity.getValue(), sizeof(key.normal_matrix));
+    const SbMatrix clipConversion(
+      1,0,0,0, 0,1,0,0, 0,0,.5f,0, 0,0,.5f,1);
+    const SbMatrix projection = frame.renderStates[draw.render_state_slot].projectionCoin * clipConversion;
+    std::memcpy(key.model_view_projection, projection.getValue(), sizeof(key.model_view_projection));
+    if (i == 0) common = key;
+    else if (std::memcmp(&common, &key, sizeof(key)) != 0) return;
+  }
+  if (nextVertex != this->vertices.size() || nextIndex != this->indices.size() ||
+      nextVertex > UINT32_MAX || nextIndex > UINT32_MAX) return;
+  for (const auto & draw : this->draws) {
+    const auto & state = this->states[draw.render_state_slot];
+    SbMatrix modelView, normalMatrix;
+    modelView.setValue(state.model_view);
+    normalMatrix.setValue(state.normal_matrix);
+    for (uint64_t i = draw.first_vertex; i < uint64_t(draw.first_vertex) + draw.vertex_count; ++i) {
+      auto & vertex = this->vertices[i];
+      SbVec3f position, normal;
+      modelView.multVecMatrix(SbVec3f(vertex.position), position);
+      normalMatrix.multDirMatrix(SbVec3f(vertex.normal), normal);
+      std::memcpy(vertex.position, position.getValue(), sizeof(vertex.position));
+      std::memcpy(vertex.normal, normal.getValue(), sizeof(vertex.normal));
+    }
+  }
+  CoinWgpuDraw merged = this->draws.front();
+  merged.vertex_count = static_cast<uint32_t>(nextVertex);
+  merged.index_count = static_cast<uint32_t>(nextIndex);
+  merged.render_state_slot = 0;
+  this->draws.assign(1, merged);
+  this->states.assign(1, common);
+  this->opaqueBatched = true;
 }
 
 bool

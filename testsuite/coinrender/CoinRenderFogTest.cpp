@@ -193,6 +193,9 @@ bool compare(SoSeparator * scene, int x, int y, Sample & cpu,
   if (hasGpu) {
     if (!renderAt(scene, false, x, y, gpu)) return false;
     for (int c = 0; c < 4; ++c) {
+      if (std::abs(cpu.rgba[c] - gpu.rgba[c]) > tolerance)
+        std::cerr << "Fog mismatch sample " << x << ',' << y << " channel " << c
+                  << ": CPU=" << cpu.rgba[c] << " GPU=" << gpu.rgba[c] << '\n';
       if (!check(std::abs(cpu.rgba[c] - gpu.rgba[c]) <= tolerance,
                  "CPU/GPU fog color mismatch")) return false;
     }

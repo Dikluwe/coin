@@ -997,6 +997,18 @@ if(COIN_BUILD_RENDER)
 		add_test(NAME CoinWgpuFfiFrameTest COMMAND CoinWgpuFfiFrameTest)
 		set_tests_properties(CoinWgpuFfiFrameTest PROPERTIES TIMEOUT 30)
 
+		add_executable(CoinWgpuLargeBindingsTest
+			coinwgpu/CoinWgpuLargeBindingsTest.cpp
+			${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp)
+		set_target_properties(CoinWgpuLargeBindingsTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+		target_link_libraries(CoinWgpuLargeBindingsTest CoinRender Coin)
+		target_include_directories(CoinWgpuLargeBindingsTest PRIVATE
+			${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include
+			${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/include
+			${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+		add_test(NAME CoinWgpuLargeBindingsTest COMMAND CoinWgpuLargeBindingsTest)
+		set_tests_properties(CoinWgpuLargeBindingsTest PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77)
+
 		# Measurement utility only: no timing threshold is stable enough for CTest.
 		add_executable(CoinRenderFrameReuseBenchmark
 			coinrender/CoinRenderFrameReuseBenchmark.cpp

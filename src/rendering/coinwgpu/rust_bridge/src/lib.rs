@@ -24,6 +24,8 @@ mod peeling;
 mod shadow;
 mod shadow_receiver;
 mod weighted;
+mod uniform_arena;
+mod shader_profile;
 
 pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 42;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
@@ -640,6 +642,7 @@ static WGSL_POINT_SHADER: &str = include_str!("../../shaders/coin_point.wgsl");
 
 #[derive(Hash, PartialEq, Eq, Clone, Debug)]
 struct PipelineKey {
+    textured: bool,
     eight_shadows: bool,
     shadow_profile: bool,
     weighted: bool,
@@ -748,16 +751,26 @@ struct ValidatedScene {
     draw_order: Vec<composition::CompositionItem>,
 }
 
-// Device-local bindings for one validated camera scene. Only uniforms change.
-struct CameraDrawBinding {
-    uniform_buffer: wgpu::Buffer,
-    bind_group: wgpu::BindGroup,
-}
-
+// The camera experiment retains materials; draw uniforms always use the
+// shared arena so it cannot recreate one sampler descriptor table per draw.
 struct CameraGpuBindings {
     geometry: Arc<ValidatedGeometry>,
     materials_buffer: wgpu::Buffer,
-    draws: Vec<Option<CameraDrawBinding>>,
+}
+
+// One immutable packed frame per device generation. The private transport's
+// nonzero revision names CoinWgpuFfiFrame-owned storage, as in its validation
+// cache. This retains GPU buffers only; incoming slices still pass validation.
+// Zero revisions and stable per-node draws keep their existing paths.
+struct FrameGpuBuffers {
+    revision: u64,
+    vertex_count: usize,
+    index_count: usize,
+    material_bytes: usize,
+    vertex_buffer: wgpu::Buffer,
+    index_buffer: wgpu::Buffer,
+    materials_buffer: wgpu::Buffer,
+    geometry_bytes: u64,
 }
 
 // Four timestamps bracket the render pass(es) and the offscreen copy. The
@@ -892,6 +905,7 @@ struct DeviceState {
     shadow_eight_pipeline_layout: wgpu::PipelineLayout,
     line_shader_module: wgpu::ShaderModule,
     point_shader_module: wgpu::ShaderModule,
+    untextured_shaders: Mutex<HashMap<(u32, bool, bool), wgpu::ShaderModule>>,
     bind_group_layout: wgpu::BindGroupLayout,
     pipeline_layout: wgpu::PipelineLayout,
     pipelines: Mutex<HashMap<PipelineKey, wgpu::RenderPipeline>>,
@@ -906,8 +920,11 @@ struct DeviceState {
     texture_cache: Mutex<TextureCache>,
     sampler_cache: Mutex<SamplerCache>,
     camera_bindings: Mutex<Option<CameraGpuBindings>>,
+    frame_buffers: Mutex<Option<FrameGpuBuffers>>,
     camera_bindings_reused: AtomicU32,
     camera_bindings_created: AtomicU32,
+    draw_bind_groups: AtomicU32,
+    uniform_chunks: AtomicU32,
     validated_scene: Option<Arc<ValidatedScene>>,
     readback_pool: Arc<Mutex<ReadbackPool>>,
     cached_offscreen_attachments: Option<CachedOffscreenAttachments>,
@@ -928,13 +945,19 @@ fn trace_owned_resources(dev: &DeviceState, target: &str, width: u32, height: u3
     let geometry = dev.cache.lock().unwrap();
     let retired_geometry_bytes: u64 = geometry.deferred_release.iter()
         .map(|entry| entry.size_bytes).sum();
-    let vertex_buffers = geometry.active_entries.len() + geometry.deferred_release.len();
-    let index_buffers = geometry.active_entries.values()
+    let mut vertex_buffers = geometry.active_entries.len() + geometry.deferred_release.len();
+    let mut index_buffers = geometry.active_entries.values()
         .filter(|(_, entry)| entry.index_buffer.is_some()).count()
         + geometry.deferred_release.iter()
             .filter(|entry| entry.index_buffer.is_some()).count();
-    let geometry_active_bytes = geometry.total_active_geometry_bytes;
+    let mut geometry_active_bytes = geometry.total_active_geometry_bytes;
     drop(geometry);
+    let frame = dev.frame_buffers.lock().unwrap();
+    let frame_geometry_bytes = frame.as_ref().map_or(0, |entry| entry.geometry_bytes);
+    geometry_active_bytes += frame_geometry_bytes;
+    vertex_buffers += usize::from(frame.is_some());
+    index_buffers += usize::from(frame.is_some());
+    drop(frame);
     let textures = dev.texture_cache.lock().unwrap();
     let texture_payload_bytes: u64 = textures.entries.values()
         .map(|entry| entry.size_bytes as u64).sum();
@@ -959,6 +982,9 @@ fn trace_owned_resources(dev: &DeviceState, target: &str, width: u32, height: u3
         texture_count, texture_payload_bytes, rtt_count, rtt_nominal_bytes, attachment_count,
         attachment_nominal_bytes, staging_color_bytes, staging_depth_bytes,
         staging_pool_free_bytes, staging_pool_free_buffers);
+    eprintln!("COIN_RENDER_PHASE rust_draw_resources frame_geometry_bytes={} uniform_chunks={} draw_bind_groups={}",
+        frame_geometry_bytes, dev.uniform_chunks.load(Ordering::Relaxed),
+        dev.draw_bind_groups.load(Ordering::Relaxed));
 }
 
 struct SurfaceRecord {
@@ -1517,8 +1543,9 @@ fn get_or_init_device_impl<'a>(
         });
         let error_kind = error_signal.clone();
         device.on_uncaptured_error(Box::new(move |error: wgpu::Error| {
-            error_kind.store(if matches!(error, wgpu::Error::OutOfMemory { .. }) { 1 } else { 2 },
-                Ordering::SeqCst);
+            let _ = error_kind.compare_exchange(0,
+                if matches!(error, wgpu::Error::OutOfMemory { .. }) { 1 } else { 2 },
+                Ordering::SeqCst, Ordering::SeqCst);
         }));
     } else {
         device.set_device_lost_callback(|reason, message| {
@@ -1528,36 +1555,42 @@ fn get_or_init_device_impl<'a>(
             }
         });
         device.on_uncaptured_error(Box::new(|error: wgpu::Error| {
-            LAST_ASYNC_ERROR_KIND.store(
-                if matches!(error, wgpu::Error::OutOfMemory { .. }) { 1 } else { 2 },
-                Ordering::SeqCst);
             if let Ok(mut lock) = LAST_ASYNC_ERROR_MSG.lock() {
-                *lock = format!("WebGPU uncaptured error: {}", error);
+                if LAST_ASYNC_ERROR_KIND.compare_exchange(0,
+                    if matches!(error, wgpu::Error::OutOfMemory { .. }) { 1 } else { 2 },
+                    Ordering::SeqCst, Ordering::SeqCst).is_ok() {
+                    *lock = format!("WebGPU uncaptured error: {}", error);
+                }
             }
         }));
     }
 
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("coin_standard.wgsl"),
-        source: wgpu::ShaderSource::Wgsl(format!("{}{}",WGSL_SHADER,weighted::FRAGMENT).into()),
+        source: wgpu::ShaderSource::Wgsl(shader_profile::texture_specialization(
+            &format!("{}{}",shader_profile::without_shadows(WGSL_SHADER),weighted::FRAGMENT)).into()),
     });
 
     let shadow_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("Coin quality shadow receivers"),
-        source: wgpu::ShaderSource::Wgsl(format!("{}{}",shadow_receiver::four_map_source(),weighted::FRAGMENT).into()),
+        source: wgpu::ShaderSource::Wgsl(shader_profile::texture_specialization(
+            &format!("{}{}",shadow_receiver::four_map_source(),weighted::FRAGMENT)).into()),
     });
     let shadow_eight_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("Coin eight shadow receivers"),
-        source: wgpu::ShaderSource::Wgsl(format!("{}{}",shadow_receiver::eight_map_source(),weighted::FRAGMENT).into()),
+        source: wgpu::ShaderSource::Wgsl(shader_profile::texture_specialization(
+            &format!("{}{}",shadow_receiver::eight_map_source(),weighted::FRAGMENT)).into()),
     });
     let line_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("coin_line.wgsl"),
-        source: wgpu::ShaderSource::Wgsl(format!("{}{}",WGSL_LINE_SHADER,weighted::FRAGMENT).into()),
+        source: wgpu::ShaderSource::Wgsl(shader_profile::texture_specialization(
+            &format!("{}{}",WGSL_LINE_SHADER,weighted::FRAGMENT)).into()),
     });
 
     let point_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("coin_point.wgsl"),
-        source: wgpu::ShaderSource::Wgsl(format!("{}{}",WGSL_POINT_SHADER,weighted::FRAGMENT).into()),
+        source: wgpu::ShaderSource::Wgsl(shader_profile::texture_specialization(
+            &format!("{}{}",WGSL_POINT_SHADER,weighted::FRAGMENT)).into()),
     });
 
     let storage_visibility = if device.limits().max_storage_buffers_per_shader_stage >= 1 {
@@ -1569,7 +1602,8 @@ fn get_or_init_device_impl<'a>(
     let mut layout_entries = vec![
         wgpu::BindGroupLayoutEntry { binding: 0, visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
             ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform,
-                has_dynamic_offset: false, min_binding_size: None }, count: None },
+                has_dynamic_offset: true,
+                min_binding_size: std::num::NonZeroU64::new(std::mem::size_of::<CoinWgpuUniforms>() as u64) }, count: None },
         wgpu::BindGroupLayoutEntry { binding: 1, visibility: storage_visibility,
             ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Storage { read_only: true },
                 has_dynamic_offset: false, min_binding_size: None }, count: None },
@@ -1753,6 +1787,7 @@ fn get_or_init_device_impl<'a>(
         bind_group_layout,
         pipeline_layout,
         pipelines: Mutex::new(HashMap::new()),
+        untextured_shaders: Mutex::new(HashMap::new()),
         annotation_depth_pipeline: Mutex::new(None),
         pipeline_compilations: AtomicU64::new(0),
         pipeline_hits: AtomicU64::new(0),
@@ -1764,8 +1799,11 @@ fn get_or_init_device_impl<'a>(
         texture_cache: Mutex::new(TextureCache::default()),
         sampler_cache: Mutex::new(SamplerCache::default()),
         camera_bindings: Mutex::new(None),
+        frame_buffers: Mutex::new(None),
         camera_bindings_reused: AtomicU32::new(0),
         camera_bindings_created: AtomicU32::new(0),
+        draw_bind_groups: AtomicU32::new(0),
+        uniform_chunks: AtomicU32::new(0),
         validated_scene: None,
         readback_pool: Arc::new(Mutex::new(ReadbackPool::default())),
         cached_offscreen_attachments: None,
@@ -2177,6 +2215,7 @@ fn get_or_create_pipeline<'a>(
     eight_shadows: bool,
     shadow_profile: bool,
     weighted: bool,
+    textured: bool,
 ) -> Result<wgpu::RenderPipeline, String> {
     let mut map = ctx.pipelines.lock().map_err(|e| e.to_string())?;
 
@@ -2189,7 +2228,7 @@ fn get_or_create_pipeline<'a>(
     };
 
     let key = PipelineKey {
-        eight_shadows, shadow_profile, weighted, topology,
+        eight_shadows, shadow_profile, weighted, topology, textured,
         color_format,
         depth_format,
         sample_count: 1,
@@ -2307,19 +2346,40 @@ fn get_or_create_pipeline<'a>(
             write_mask: wgpu::ColorWrites::ALL,
         }));
     }
+    // wgpu-hal 24's GL program cache keys module IDs/entry points but omits
+    // override constants. Give textured/untextured variants distinct modules
+    // so switching profiles cannot reuse the first profile's GL program.
+    let selected_shader = if !textured && ctx.adapter.get_info().backend == wgpu::Backend::Gl {
+        let mut profiles = ctx.untextured_shaders.lock().map_err(|e| e.to_string())?;
+        profiles.entry((topology, shadow_profile, eight_shadows)).or_insert_with(|| {
+            let source = match topology {
+                1 => WGSL_LINE_SHADER.to_owned(),
+                2 => WGSL_POINT_SHADER.to_owned(),
+                _ if eight_shadows => shadow_receiver::eight_map_source(),
+                _ if shadow_profile => shadow_receiver::four_map_source(),
+                _ => shader_profile::without_shadows(WGSL_SHADER),
+            };
+            ctx.device.create_shader_module(wgpu::ShaderModuleDescriptor {
+                label: Some("Coin untextured shader profile"),
+                source: wgpu::ShaderSource::Wgsl(shader_profile::texture_specialization(
+                    &format!("{}{}", source, weighted::FRAGMENT)).into()),
+            })
+        }).clone()
+    } else { selected_shader.clone() };
+    let constants = HashMap::from([("coin_textures_enabled".to_owned(), if textured { 1.0 } else { 0.0 })]);
     let pipeline = ctx
         .device
         .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some(pipeline_label),
             layout: Some(if eight_shadows { &ctx.shadow_eight_pipeline_layout } else { &ctx.pipeline_layout }),
             vertex: wgpu::VertexState {
-                module: selected_shader,
+                module: &selected_shader,
                 entry_point: Some("vs_main"),
                 buffers: &[vertex_buffer_layout],
-                compilation_options: wgpu::PipelineCompilationOptions::default(),
+                compilation_options: wgpu::PipelineCompilationOptions { constants: &constants, ..Default::default() },
             },
             fragment: Some(wgpu::FragmentState {
-                module: selected_shader,
+                module: &selected_shader,
                 entry_point: Some(if weighted { "fs_weighted" } else if peel {
                     "fs_peel"
                 } else if resolved_depth_bias {
@@ -2328,7 +2388,7 @@ fn get_or_create_pipeline<'a>(
                     "fs_main"
                 }),
                 targets: &color_targets,
-                compilation_options: wgpu::PipelineCompilationOptions::default(),
+                compilation_options: wgpu::PipelineCompilationOptions { constants: &constants, ..Default::default() },
             }),
             primitive: wgpu::PrimitiveState {
                 topology: primitive_topology,
@@ -2402,6 +2462,7 @@ struct ShadowFrame<'a> {
 // Pure shared command encoder function strictly common to offscreen and window targets
 fn encode_frame(
     ctx: &DeviceState,
+    frame_revision: u64,
     clear_color: [f32; 4],
     target_width: u32,
     target_height: u32,
@@ -2837,6 +2898,20 @@ fn encode_frame(
         bytemuck::cast_slice(&gpu_materials)
     };
 
+    let geometry_bytes = (std::mem::size_of_val(vertices_slice) as u64)
+        .saturating_add(std::mem::size_of_val(indices_slice) as u64);
+    let retain_frame = frame_revision != 0 && !vertices_slice.is_empty()
+        && !indices_slice.is_empty() && !draws_slice.is_empty()
+        && draws_slice.iter().all(|draw| draw.stable_node_id == 0)
+        && geometry_bytes.saturating_add(material_bytes.len() as u64) <= 256 * 1024 * 1024;
+    let mut frame_buffers = ctx.frame_buffers.lock().unwrap();
+    if !retain_frame || !frame_buffers.as_ref().is_some_and(|entry|
+        entry.revision == frame_revision && entry.vertex_count == vertices_slice.len()
+            && entry.index_count == indices_slice.len() && entry.material_bytes == material_bytes.len()) {
+        *frame_buffers = None;
+    }
+    let frame_buffer_hit = frame_buffers.is_some();
+
     // Keep the experiment switch process-local so the same binary can be
     // benchmarked against its previous behavior. It is opt-in, bounded and
     // applies only to the already-validated, untextured camera patch.
@@ -2856,7 +2931,10 @@ fn encode_frame(
         .is_some_and(|entry| Arc::ptr_eq(&entry.geometry, geometry))) {
         *camera_bindings = None;
     }
-    let materials_buffer = if let Some(entry) = camera_bindings.as_ref() {
+    let materials_buffer = if let Some(entry) = frame_buffers.as_ref() {
+        entry.materials_buffer.clone()
+    } else if let Some(entry) = camera_bindings.as_ref() {
+        ctx.camera_bindings_reused.fetch_add(1, Ordering::Relaxed);
         entry.materials_buffer.clone()
     } else {
         let buffer = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -2868,8 +2946,8 @@ fn encode_frame(
             *camera_bindings = Some(CameraGpuBindings {
                 geometry: geometry.clone(),
                 materials_buffer: buffer.clone(),
-                draws: (0..draws_slice.len()).map(|_| None).collect(),
             });
+            ctx.camera_bindings_created.fetch_add(1, Ordering::Relaxed);
         }
         buffer
     };
@@ -2883,7 +2961,9 @@ fn encode_frame(
     }
 
     // 2. Prepare uncached fallback buffers if there are any legacy/uncached draws
-    let uncached_v_buffer = if draws_slice.iter().any(|d| d.stable_node_id == 0) && !vertices_slice.is_empty() {
+    let uncached_v_buffer = if let Some(entry) = frame_buffers.as_ref() {
+        Some(entry.vertex_buffer.clone())
+    } else if draws_slice.iter().any(|d| d.stable_node_id == 0) && !vertices_slice.is_empty() {
         Some(
             ctx.device
                 .create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -2896,7 +2976,9 @@ fn encode_frame(
         None
     };
 
-    let uncached_i_buffer = if draws_slice.iter().any(|d| d.stable_node_id == 0 && d.index_count > 0)
+    let uncached_i_buffer = if let Some(entry) = frame_buffers.as_ref() {
+        Some(entry.index_buffer.clone())
+    } else if draws_slice.iter().any(|d| d.stable_node_id == 0 && d.index_count > 0)
         && !indices_slice.is_empty()
     {
         Some(
@@ -2910,6 +2992,23 @@ fn encode_frame(
     } else {
         None
     };
+
+    if frame_buffer_hit {
+        cache.cumulative_hits += 1;
+        cache.frame_hits += 1;
+    } else if retain_frame {
+        *frame_buffers = Some(FrameGpuBuffers {
+            revision: frame_revision, vertex_count: vertices_slice.len(),
+            index_count: indices_slice.len(), material_bytes: material_bytes.len(),
+            vertex_buffer: uncached_v_buffer.as_ref().unwrap().clone(),
+            index_buffer: uncached_i_buffer.as_ref().unwrap().clone(),
+            materials_buffer: materials_buffer.clone(), geometry_bytes,
+        });
+        cache.cumulative_uploads += 1;
+        cache.frame_uploads += 1;
+        cache.cumulative_uploaded_bytes += geometry_bytes;
+        cache.frame_uploaded_bytes += geometry_bytes;
+    }
 
     // Temporary storage for oversized draws exceeding cache budget
     let mut oversized_entries: HashMap<(u64, u32), CachedGeometryEntry> = HashMap::new();
@@ -3121,6 +3220,13 @@ fn encode_frame(
     let weighted=draw_order.iter().any(|item|item.weighted).then(||
         weighted::Weighted::new(&ctx.device,target_width,target_height,color_format));
     let passes = composition::passes(draw_order, draws_slice);
+    let uniform_records = draw_order.iter().try_fold(0usize, |count, item| {
+        count.checked_add(if item.peel { peel_passes as usize } else { 1 })
+    }).ok_or_else(|| (CoinWgpuStatus::InvalidArgument, "Draw uniform count overflow".into()))?;
+    let mut uniform_arena = uniform_arena::UniformArena::new(&ctx.device, uniform_records);
+    // Resources are stable while the texture/RTT caches are locked. A disabled
+    // unit always binds the same defaults; unused eight-shadow units are omitted.
+    let mut draw_bindings: HashMap<(usize, [(u32, u32); 8], usize), wgpu::BindGroup> = HashMap::new();
     let depth_clear_pipeline = if draws_slice.iter().any(|draw| draw.clear_depth_before != 0) {
         let mut cached = ctx.annotation_depth_pipeline.lock().unwrap();
         Some(
@@ -3337,6 +3443,7 @@ fn encode_frame(
                     eight_shadows,
                     shadow_frame.is_some(),
                     is_weighted,
+                    st.has_texture != 0 || st.extra_textures.iter().any(|unit| unit.enabled != 0),
                 ) {
                     Ok(p) => p,
                     Err(e) => return Err((CoinWgpuStatus::BackendError, e)),
@@ -3608,24 +3715,15 @@ fn encode_frame(
                 let extra_shadow_views: [&wgpu::TextureView; 4] = std::array::from_fn(|slot|
                     extra_shadow_maps.get(slot).map_or(&ctx.default_texture_view,
                         |map| &map.view));
-                let create_binding = |persistent: bool,
-                    draw_uniforms: &CoinWgpuUniforms,
+                let create_binding = |u_buffer: &wgpu::Buffer,
                     shadow_views: [&wgpu::TextureView; 4]| {
-                    let u_buffer =
-                        ctx.device
-                            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                                label: Some("Draw Uniform Buffer"),
-                                contents: bytemuck::bytes_of(draw_uniforms),
-                                usage: if persistent {
-                                    wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST
-                                } else {
-                                    wgpu::BufferUsages::UNIFORM
-                                },
-                            });
                     let mut entries = vec![
                         wgpu::BindGroupEntry {
                             binding: 0,
-                            resource: u_buffer.as_entire_binding(),
+                            resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
+                                buffer: u_buffer, offset: 0,
+                                size: std::num::NonZeroU64::new(std::mem::size_of::<CoinWgpuUniforms>() as u64),
+                            }),
                         },
                         wgpu::BindGroupEntry {
                             binding: 1,
@@ -3677,15 +3775,11 @@ fn encode_frame(
                         binding: 23,
                         resource: wgpu::BindingResource::TextureView(shadow_views[3]),
                     });
-                    let bind_group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                        label: Some("Draw eight-unit texture bindings"),
+                    ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                        label: Some("Coin shared draw texture bindings"),
                         layout: if eight_shadows { &ctx.shadow_eight_layout } else { &ctx.bind_group_layout },
                         entries: &entries,
-                    });
-                    CameraDrawBinding {
-                        uniform_buffer: u_buffer,
-                        bind_group,
-                    }
+                    })
                 };
                 if eight_shadows {
                     #[repr(C)]
@@ -3721,26 +3815,18 @@ fn encode_frame(
                 // Queue writes are submitted before this frame's command buffer.
                 // They cannot alter a preceding submission; wgpu keeps the
                 // underlying resources alive while that submission is in flight.
-                let transient_binding;
-                let binding = if let Some(entry) = camera_bindings.as_mut() {
-                    let slot = &mut entry.draws[item.draw_index];
-                    if slot.is_none() {
-                        *slot = Some(create_binding(true, &uniforms, base_shadow_views));
-                        ctx.camera_bindings_created.fetch_add(1, Ordering::Relaxed);
-                    } else {
-                        ctx.queue.write_buffer(
-                            &slot.as_ref().unwrap().uniform_buffer,
-                            0,
-                            bytemuck::bytes_of(&uniforms),
-                        );
-                        ctx.camera_bindings_reused.fetch_add(1, Ordering::Relaxed);
-                    }
-                    slot.as_ref().unwrap()
-                } else {
-                    transient_binding = create_binding(false, &uniforms, base_shadow_views);
-                    &transient_binding
-                };
-                pass.set_bind_group(0, &binding.bind_group, &[]);
+                let (chunk, uniform_offset) = uniform_arena.push(&ctx.device, &uniforms);
+                let units = std::array::from_fn(|unit| {
+                    let layer = &layers[unit];
+                    if layer.enabled == 0 || (eight_shadows && unit >= 4) {
+                        (u32::MAX, u32::MAX)
+                    } else { (layer.texture_slot, layer.sampler_slot) }
+                });
+                let key = (chunk, units, if is_peel { peel_step } else { usize::MAX });
+                let binding = draw_bindings.entry(key).or_insert_with(|| {
+                    create_binding(uniform_arena.buffer(chunk), base_shadow_views)
+                });
+                pass.set_bind_group(0, &*binding, &[uniform_offset]);
                 let viewport = resolved_viewport(st, target_width, target_height)?;
                 if !st.depth_range[0].is_finite()
                     || !st.depth_range[1].is_finite()
@@ -3837,6 +3923,9 @@ fn encode_frame(
         });
     }
 
+    uniform_arena.upload(&ctx.queue);
+    ctx.draw_bind_groups.store(draw_bindings.len() as u32, Ordering::Relaxed);
+    ctx.uniform_chunks.store(uniform_arena.chunk_count() as u32, Ordering::Relaxed);
     Ok(encoder.finish())
 }
 
@@ -4893,6 +4982,7 @@ fn coin_wgpu_surface_submit_internal(
 
         let cmd_buffer = match encode_frame(
             dev,
+            f.frame_revision,
             f.clear_color,
             f.width,
             f.height,
@@ -5909,6 +5999,7 @@ fn coin_wgpu_submit_internal(
         // 9. Encode draw calls with the exact same shared encode_frame
         let cmd_buffer = match encode_frame(
             ctx,
+            f.frame_revision,
             f.clear_color,
             f.width,
             f.height,

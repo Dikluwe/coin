@@ -159,8 +159,8 @@ int main() {
   if (!check(removed.texture_active_entries == 0 &&
              removed.texture_retired_entries <= 1,
              "textures remained cached after removal from the scene") ||
-      !check(removed.pipeline_compilations == warm.pipeline_compilations,
-             "untextured draw recompiled the same pipeline")) return 1;
+      !check(removed.pipeline_compilations == warm.pipeline_compilations + 1,
+             "untextured specialization must compile once and then reuse its pipeline")) return 1;
 
   const double elapsedMs = std::chrono::duration<double, std::milli>(
       Clock::now() - start).count();

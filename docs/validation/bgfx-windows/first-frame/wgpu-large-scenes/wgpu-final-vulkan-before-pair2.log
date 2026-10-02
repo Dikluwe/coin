@@ -1,0 +1,12 @@
+scene_load_ms=508.798
+WebGPU_first_frame_ms=2474.13
+rgba_fnv64=0x6714299260985122
+image=build/large-scenes/wgpu-final-vulkan-before-pair2.ppm
+adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) vendor_id=0x10de device_id=0x1c03 backend=wgpu size=1024x1024 warmup=1 scene=build/large-scenes/city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static
+WebGPU frames=1 median_ms=1365.88 p95_ms=1365.88 min_ms=1365.88 max_ms=1365.88
+WebGPU_render frames=1 median_ms=1365.3 p95_ms=1365.3 min_ms=1365.3 max_ms=1365.3
+WebGPU_copy frames=1 median_ms=0.578 p95_ms=0.578 min_ms=0.578 max_ms=0.578
+WebGPU_throughput frames=1 total_ms=1365.88 fps=0.732129
+WebGPU_cache last_frame_uploads=0 last_frame_uploaded_bytes=0 last_frame_hits=0 cumulative_uploads=0 cumulative_uploaded_bytes=0 cumulative_hits=0
+backend_cleanup_begin
+backend_cleanup_ms=50.4675

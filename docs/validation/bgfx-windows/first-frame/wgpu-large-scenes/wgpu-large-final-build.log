@@ -1,0 +1,106 @@
+Versão do MSBuild 17.14.60+43b635718 para .NET Framework
+
+  1>Building Rust WebGPU bridge library (release)...
+     Compiling coin_wgpu_rust_bridge v0.1.0 (H:\Git\coin\build\coin-render-source\src\rendering\coinwgpu\rust_bridge)
+CUSTOMBUILD : warning : use of deprecated type alias `wgpu::ImageCopyTexture`: This has been renamed to `TexelCopyTextureInfo`, and will be removed in 25.0.0. [H:\Git\coin\build\coin-render-wgpu-msvc\coin_wgpu_rust_bridge_build.vcxproj]
+      --> src\lib.rs:1732:15
+       |
+  1732 |         wgpu::ImageCopyTexture {
+       |               ^^^^^^^^^^^^^^^^
+       |
+       = note: `#[warn(deprecated)]` on by default
+
+CUSTOMBUILD : warning : use of deprecated type alias `wgpu::ImageDataLayout`: This has been renamed to `TexelCopyBufferLayout`, and will be removed in 25.0.0. [H:\Git\coin\build\coin-render-wgpu-msvc\coin_wgpu_rust_bridge_build.vcxproj]
+      --> src\lib.rs:1739:15
+       |
+  1739 |         wgpu::ImageDataLayout {
+       |               ^^^^^^^^^^^^^^^
+
+CUSTOMBUILD : warning : use of deprecated type alias `wgpu::ImageCopyTexture`: This has been renamed to `TexelCopyTextureInfo`, and will be removed in 25.0.0. [H:\Git\coin\build\coin-render-wgpu-msvc\coin_wgpu_rust_bridge_build.vcxproj]
+      --> src\lib.rs:2743:19
+       |
+  2743 |             wgpu::ImageCopyTexture {
+       |                   ^^^^^^^^^^^^^^^^
+
+CUSTOMBUILD : warning : use of deprecated type alias `wgpu::ImageDataLayout`: This has been renamed to `TexelCopyBufferLayout`, and will be removed in 25.0.0. [H:\Git\coin\build\coin-render-wgpu-msvc\coin_wgpu_rust_bridge_build.vcxproj]
+      --> src\lib.rs:2750:19
+       |
+  2750 |             wgpu::ImageDataLayout {
+       |                   ^^^^^^^^^^^^^^^
+
+CUSTOMBUILD : warning : use of deprecated method `std::sync::atomic::Atomic::<i32>::fetch_update`: renamed to `try_update` for consistency [H:\Git\coin\build\coin-render-wgpu-msvc\coin_wgpu_rust_bridge_build.vcxproj]
+      --> src\lib.rs:5212:68
+       |
+  5212 |         let delayed = requested_device == 0 && FAULT_AFTER_SUBMITS.fetch_update(
+       |                                                                    ^^^^^^^^^^^^
+       |
+  help: replace the use of the deprecated method
+       |
+  5212 -         let delayed = requested_device == 0 && FAULT_AFTER_SUBMITS.fetch_update(
+  5212 +         let delayed = requested_device == 0 && FAULT_AFTER_SUBMITS.try_update(
+       |
+
+CUSTOMBUILD : warning : field `default_texture` is never read [H:\Git\coin\build\coin-render-wgpu-msvc\coin_wgpu_rust_bridge_build.vcxproj]
+     --> src\lib.rs:916:5
+      |
+  895 | struct DeviceState {
+      |        ----------- field in this struct
+  ...
+  916 |     default_texture: wgpu::Texture,
+      |     ^^^^^^^^^^^^^^^
+      |
+      = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+CUSTOMBUILD : warning : `coin_wgpu_rust_bridge` (lib) generated 6 warnings (run `cargo fix --lib -p coin_wgpu_rust_bridge` to apply 1 suggestion) [H:\Git\coin\build\coin-render-wgpu-msvc\coin_wgpu_rust_bridge_build.vcxproj]
+      Finished `release` profile [optimized] target(s) in 8.55s
+  Coin.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\Coin4.dll
+  CoinWgpuFfiFrameTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinWgpuFfiFrameTest.exe
+  CoinTests.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinTests.exe
+  RenderManagerFramePreparationTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\RenderManagerFramePreparationTest.exe
+  CoinRenderFrameReuseBenchmark.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderFrameReuseBenchmark.exe
+  CoinProfilerInitTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinProfilerInitTest.exe
+     Criando biblioteca H:/Git/coin/build/coin-render-wgpu-msvc/lib/CoinRender4.lib e objeto H:/Git/coin/build/coin-render-wgpu-msvc/lib/CoinRender4.exp
+  CoinRender.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRender4.dll
+  CoinBgfxCoreTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinBgfxCoreTest.exe
+  coin_render_win32_smoke.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\coin_render_win32_smoke.exe
+  coin_render_gl_benchmark.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\coin_render_gl_benchmark.exe
+  coin_render_freecad_compare.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\coin_render_freecad_compare.exe
+  CoinWgpuMultiDeviceTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinWgpuMultiDeviceTest.exe
+  CoinWgpuLargeBindingsTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinWgpuLargeBindingsTest.exe
+  CoinWgpuCacheTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinWgpuCacheTest.exe
+  CoinRenderTransparencyTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderTransparencyTest.exe
+  CoinRenderTextureTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderTextureTest.exe
+  CoinRenderStabilizationTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderStabilizationTest.exe
+  CoinRenderShadowReferenceTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderShadowReferenceTest.exe
+  CoinRenderSelectionTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderSelectionTest.exe
+  CoinRenderSceneTextureTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderSceneTextureTest.exe
+  CoinRenderSceneTextureBudgetTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderSceneTextureBudgetTest.exe
+  CoinRenderRttOwnershipTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderRttOwnershipTest.exe
+  CoinRenderPublicationTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderPublicationTest.exe
+  CoinRenderProductTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderProductTest.exe
+  CoinRenderPerformanceTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderPerformanceTest.exe
+  CoinRenderPeelingTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderPeelingTest.exe
+  CoinRenderOffscreenTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderOffscreenTest.exe
+  CoinRenderNodeInventoryTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderNodeInventoryTest.exe
+  CoinRenderMultitextureTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderMultitextureTest.exe
+  CoinRenderMultiTargetTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderMultiTargetTest.exe
+  CoinRenderMaterialTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderMaterialTest.exe
+  CoinRenderLightingTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderLightingTest.exe
+  CoinRenderIndexedGeometryCoreTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderIndexedGeometryCoreTest.exe
+  CoinRenderIndexedFastPathTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderIndexedFastPathTest.exe
+  CoinRenderGouraudInterpolationTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderGouraudInterpolationTest.exe
+  CoinRenderGateG2Test.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderGateG2Test.exe
+  CoinRenderGateG1Test.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderGateG1Test.exe
+  CoinRenderGateG0Test.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderGateG0Test.exe
+  CoinRenderFrameReuseCoreTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderFrameReuseCoreTest.exe
+  CoinRenderFrameCoreTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderFrameCoreTest.exe
+  CoinRenderFogTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderFogTest.exe
+  CoinRenderDrawStyleTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderDrawStyleTest.exe
+  CoinRenderDiagnosticShellTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderDiagnosticShellTest.exe
+  CoinRenderDepthContractTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderDepthContractTest.exe
+  CoinRenderCompositionTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderCompositionTest.exe
+  CoinRenderClipPlaneTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderClipPlaneTest.exe
+  CoinRenderBackendContractTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderBackendContractTest.exe
+  CoinRenderAsyncReadbackTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderAsyncReadbackTest.exe
+  CoinRenderAsyncActionTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderAsyncActionTest.exe
+  CoinRenderActionTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderActionTest.exe

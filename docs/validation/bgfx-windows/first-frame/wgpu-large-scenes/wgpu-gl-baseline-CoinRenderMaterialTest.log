@@ -1,0 +1,12 @@
+Running CoinRenderMaterialTest...
+[PASS] testAbiVersionCheck
+[PASS] testMaterialBindingsFaceVsLineNoGpu
+[PASS] testInvalidMaterialIndexHandling
+[PASS] testStorageBufferLimitsAndSlotValidation
+ASSERTION FAILED: Submit for BASE_COLOR failed: WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In Queue::submit
+    CommandBuffer with 'Offscreen Copy Encoder' label is invalid
+ at line 436
+testBaseColorVsPhongLitAndUnlitGpu FAILED

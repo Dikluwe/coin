@@ -31,9 +31,11 @@ private:
                   uint32_t targetWidth, uint32_t targetHeight,
                   std::string & outDiagnostic);
   void bindView(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height);
+  void batchOpaqueTriangles(const CoinRenderFramePlan & frame);
 
   uint64_t packedRevision;
   bool reused;
+  bool opaqueBatched;
   CoinRenderFrameReuseKind prepareKind;
   CoinWgpuFrameView view;
   CoinWgpuShadowFrame shadowFrame;

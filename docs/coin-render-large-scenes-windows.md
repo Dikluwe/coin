@@ -370,12 +370,151 @@ atualizados juntos por causa da nova consulta protegida no Core.
 Logs, hashes, amostras, diferenças de imagem e resultados de testes estão em
 [common-capture-summary.json](validation/bgfx-windows/first-frame/common-capture/common-capture-summary.json).
 
+## Correção dos caminhos wgpu para cenas grandes
+
+Esta rodada parte de `2ff5166496`, depois da correção comum de captura.
+Ela resolve a falha D3D12 e o custo elevado de submissão wgpu observado nas
+rodadas anteriores, sem mudanças no backend BGFX nem no OpenGL tradicional.
+
+Preservar o primeiro erro assíncrono revelou `Not enough memory left` em
+`Device::create_bind_group`. O erro posterior de bind group inválido escondia
+a causa. O encoder criava um buffer de uniforms e uma tabela de oito samplers
+por desenho, inclusive quando todos usavam os mesmos recursos padrão.
+O heap de samplers do wgpu-hal/D3D12 tem 2.048 descritores; esse padrão esgotava
+o heap antes de terminar a cena grande.
+
+O encoder compartilhado por alvos de janela e offscreen agora coloca os
+uniforms em buffers com offsets dinâmicos alinhados. Cada binding cobre um
+registro, e o buffer é dividido conforme os limites do dispositivo e um teto
+de 64 MiB por bloco. Uma tabela de bindings serve aos desenhos que usam os
+mesmos recursos naquele bloco/passe. O caminho experimental
+`COIN_WGPU_CAMERA_BINDINGS=1` também usa essa arena; ele retém o buffer de
+materiais, sem voltar à alocação de uma tabela por desenho.
+
+O dispositivo retém vértices, índices e materiais de um quadro privado
+imutável com revisão não nula, até 256 MiB. Uma nova revisão invalida os
+buffers; o cache não substitui a validação dos dados recebidos. Os caminhos
+com revisão zero e cache por nó continuam funcionando como antes.
+Na cidade estática de 40 mil, a geometria retida soma 149.763.744 bytes;
+os quadros seguintes registram zero uploads de geometria e um cache hit.
+
+O transporte privado C++ agrupa a sequência completa de triângulos opacos
+compatíveis em um desenho. Ele exige pelo menos 256 desenhos, sem texturas,
+sombras, flags de composição, camadas especiais, fog, clipping ou polygon
+offset; os intervalos devem ser contíguos, disjuntos e cobrir os arrays.
+A ordem dos índices e os materiais por vértice são preservados. Posições e
+normais são transformadas para o espaço da câmera, sem normalizar as normais
+na CPU. Qualquer diferença no estado efetivo mantém a sequência original.
+O plano do Core permanece intacto. Alterar a câmera exige reconstruir os
+vértices transformados, em vez de aplicar o patch a vértices já transformados.
+`COIN_WGPU_DISABLE_OPAQUE_BATCHING=1` permite um controle no mesmo binário.
+
+Os pipelines sem sombras removem o trabalho de shadow receiver inativo.
+A presença de textura é uma constante de compilação, com variantes separadas
+no cache de pipelines; mudar apenas a textura continua reutilizando a variante.
+O cache de programas OpenGL do wgpu-hal 24 omite as constantes de especialização
+na chave. O módulo usa IDs de shader distintos para variantes com/sem textura
+nesse backend, evitando reutilizar um programa compilado com o valor anterior.
+Os perfis reais de quatro/oito sombras permanecem completos. O protocolo
+privado continua na revisão 42 e a ABI pública não muda. A elegibilidade do
+snapshot CPU de câmera continua restrita a BASE_COLOR/32 MiB; a cidade PHONG
+grande não depende dessa elegibilidade.
+
+Medição final, 40.000 edifícios, 1024 × 1024, renderização e readback RGBA:
+
+| Caminho | Primeiro antes | Primeiro depois | Mediana aquecida depois |
+|---|---:|---:|---:|
+| wgpu/D3D12 | Falha no quadro grande | **1.700,99 ms** | **32,95 ms** |
+| wgpu/Vulkan | 2.479,27 ms | **1.486,41 ms** | **31,64 ms** |
+| wgpu/OpenGL | 31.908,80 ms | **1.721,43 ms** | **35,47 ms** |
+
+Vulkan e OpenGL usam três pares antes/depois alternados, cada amostra em um
+processo novo, com um aquecimento e um quadro medido; o primeiro quadro é
+informado separadamente. D3D12 tem um controle anterior que falha e três
+processos novos corrigidos. As colunas de primeiro quadro são medianas de
+três amostras, sem remoção de resultados. O controle aquecido corrigido usa
+quatro aquecimentos e oito quadros medidos por API.
+
+Os três controles anteriores de um quadro aquecido tiveram medianas de
+1.393,37 ms em Vulkan e 24.892,90 ms em OpenGL.
+Essas amostragens aquecidas têm contagens diferentes das corrigidas; os logs
+preservam cada valor, sem tratá-las como uma série de oito quadros antes/depois.
+As medições excluem carga do arquivo e consulta inicial de capacidades,
+mantêm caches do driver/sistema e não representam inicialização após reboot.
+O primeiro quadro ainda precisa capturar, validar, transformar e carregar
+a geometria, além de compilar o pipeline e esperar pelo readback.
+
+Todos os seis pares de imagens estáticas antes/depois são idênticos por pixel.
+As imagens corrigidas são também idênticas entre D3D12, Vulkan e OpenGL:
+checksum RGBA `0x6714299260985122`. Um controle separado com câmera em movimento
+confirma imagens idênticas entre as três APIs corrigidas. Na comparação Vulkan
+antes/depois, dois dos 1.048.576 pixels diferem (máximo de 140 por canal,
+diferença absoluta média de 0,000143 por canal). Portanto, o controle com câmera
+em movimento não é uma equivalência estrita por pixel com o caminho anterior;
+a geometria é reconstruída e a pequena diferença está registrada.
+Um controle no mesmo binário com `COIN_WGPU_DISABLE_OPAQUE_BATCHING=1`
+reproduz a imagem anterior exatamente, isolando os dois pixels no caminho
+de agrupamento/transformação dos vértices.
+
+Os tempos aquecidos da tabela correspondem à cena estática. Com mudança de
+câmera a cada quadro, as medianas de três quadros foram 1.467,71 ms
+em D3D12, 1.500,81 ms em Vulkan e 1.655,48 ms em OpenGL.
+Cada alteração exige nova captura/reconstrução e upload de geometria nesse
+caso PHONG grande; não se atribui a esses controles o ganho estático de 32–35 ms.
+
+A qualificação final aprovou **100/100 CTests em Vulkan**, em uma execução
+integral, com testes GPU de sombras e referências OpenGL obrigatórios,
+sem falhas nem casos pulados. Outros **29/29 casos em D3D12** passaram com o
+experimento de câmera habilitado. Eles incluem materiais,
+iluminação Gouraud, texturas/multitexturas, fog/clipping, estilos de desenho,
+peeling/OIT, transparência, composição, RTT, múltiplos dispositivos e execução
+assíncrona. Os **24 testes Rust** também passaram, incluindo validação Naga
+dos cinco perfis de shader e seus entry points.
+
+Em OpenGL, **10/29 casos passaram**, incluindo a nova regressão de bindings,
+fog, texturas, Gouraud, RTT direto e múltiplos dispositivos. Os **19 casos
+restantes falham também com as DLLs anteriores**: o controle usa os mesmos
+executáveis e argumentos, sem a nova regressão, e aprova 9/28 casos.
+O conjunto de nomes que falham é idêntico antes/depois. Eles expõem limitações
+já existentes de cópia de profundidade, `textureLoad` de depth em GLSL/peeling,
+strokes e readback assíncrono. Essa rodada qualifica a cidade opaca com readback
+de cor em OpenGL, sem afirmar paridade funcional completa desse backend.
+O contorno do cache de programas corrigiu duas regressões de especialização
+(fog após textura e cor/orientação de RTT), que passaram no controle final.
+
+A nova regressão GPU mantém 25.600 desenhos sem agrupamento, atravessa o
+limite de um bloco de uniforms e verifica a cor de cada célula após reuse,
+mudança de material e mudança de câmera. A regressão CPU cobre agrupamento,
+transformação não uniforme, materiais por vértice, reconstrução de câmera,
+imutabilidade do plano original e fallback para estados diferentes ou matrizes
+projetivas. O teste existente de desempenho passa a exigir uma variante nova
+ao remover textura, em vez de exigir a reutilização de um pipeline incompatível.
+
+A execução inicial tinha 65 aprovados, 32 sombras puladas e três falhas.
+Dois fixtures novos usavam defaults inadequados (screen-door e BACK culling);
+o terceiro tinha a expectativa anterior à especialização por textura.
+As correções e a execução final integral estão registradas separadamente.
+A primeira execução OpenGL teve 21 falhas, antes do contorno do cache de
+programas. Ela, os controles anteriores e as 19 falhas preexistentes finais
+estão preservados separadamente.
+
+`build/coin-render-install` recebeu as DLLs qualificadas; os hashes instalados
+coincidem com os do build. `Coin4.dll` permaneceu idêntica à baseline desta
+rodada e `CoinRender4.dll` contém as correções. A reutilização de bindings reduz
+a pressão de descritores para recursos iguais; cenas com milhares de tabelas
+de texturas distintas continuam sujeitas aos limites do dispositivo.
+
+Logs, amostras, hashes, testes e diferenças de imagem estão em
+[wgpu-large-scenes-summary.json](validation/bgfx-windows/first-frame/wgpu-large-scenes/wgpu-large-scenes-summary.json).
+Os controles intermediários de arena, agrupamento e shader são diagnósticos
+de binários anteriores ao build final e estão identificados como tais.
+
 ## Reproduzir
 
 ```powershell
 python examples/coinrender/generate_large_scene.py city-40000.iv --grid 200
 cmake --build build-win --config Release --target coin_render_gl_benchmark
-$env:WGPU_BACKEND = 'vulkan' # trocar por dx12 para D3D12
+$env:WGPU_BACKEND = 'vulkan' # trocar por dx12 (D3D12) ou gl (OpenGL)
 & ./build-win/bin/coin_render_gl_benchmark.exe --scene city-40000.iv `
   --backend wgpu --size 1024 --warmup 2 --frames 8 `
   --image-output city-40000-vulkan.ppm

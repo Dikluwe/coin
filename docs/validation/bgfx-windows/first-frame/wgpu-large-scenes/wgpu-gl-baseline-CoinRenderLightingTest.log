@@ -1,0 +1,8 @@
+Render error: WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In Queue::submit
+    CommandBuffer with 'Offscreen Copy Encoder' label is invalid
+
+renderCenter cpu=0 pixels=0 depth=0
+CoinRenderLightingTest: color/depth readback failed
