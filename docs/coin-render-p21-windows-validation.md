@@ -148,3 +148,20 @@ O runner verifica a API/adaptador, exige GPU e Coin/GL e falha se houver falha o
 skip. A configuração de ambiente de cada smoke escolhe sua API explicitamente;
 por isso uma rodada completa inclui ambos os smokes, independentemente do
 backend offscreen escolhido para os demais testes.
+
+## Integração na branch comum
+
+Os quatro commits Windows, de `dec024f8dd` até `4e72bfa2ba`, foram integrados
+por fast-forward em `codex/coin-render`, sem conflitos. O plano comum registra
+Windows/NVIDIA qualificado e conserva GPU Intel, macOS, DPI entre monitores,
+perda real de superfície e os conectores BGFX Windows como pendências próprias.
+
+Após a integração, Coin e os alvos afetados foram recompilados no Linux.
+As regressões passaram na RTX 3060 Laptop, driver 610.57.04, com referência
+Coin/GL na própria NVIDIA: BGFX/OpenGL 9/9 e wgpu/Vulkan 9/9, sem skips.
+As fixtures incluem FrameCore (padding), Selection, Lighting, Stabilization,
+DrawStyle, Multitexture, Transparency, ShadowReference e ShadowWiring.
+Rust passou 23 testes; Coin passou 370 testes e 85.374 verificações.
+Os [logs da integração](validation/p21-windows/linux-integration/) preservam
+os resultados. A execução Linux verifica regressões das mudanças comuns;
+a evidência Windows continua sendo a campanha nativa descrita acima.

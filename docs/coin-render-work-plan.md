@@ -157,10 +157,12 @@ Base de execução: [benchmark e mecanismos existentes](coin-render-window-bench
 - [ ] **P20 — Matriz física (A10/F21):** AMD/RADV/radeonsi, Intel e NVIDIA,
   OpenGL/Vulkan, fixtures comuns, skips e tolerâncias por célula.
   [Primeira matriz física AMD/NVIDIA, células e lacunas](coin-render-p20-physical-matrix.md);
-  Intel, NVIDIA BGFX/OpenGL e oráculos visuais continuam abertos.
+  Intel e oráculos fora das fixtures qualificadas continuam abertos;
+  NVIDIA BGFX/OpenGL e seu oráculo foram fechados na campanha P27 Linux.
 - [ ] **P21 — Windows:** Win32, D3D11/D3D12 e APIs disponíveis, resize/DPI/multiwindow.
-  [Rota Win32/wgpu preparada, sem qualificação nativa](coin-render-p21-windows.md);
-  BGFX/D3D11/D3D12, eventos reais e matriz Windows seguem abertos.
+  [Windows/NVIDIA GTX 1060 qualificado em wgpu D3D12 e Vulkan](coin-render-p21-windows-validation.md),
+  99/99 testes por API. BGFX/D3D11/D3D12, mudança de DPI entre monitores e
+  perda/recriação real de superfície/device em janela seguem abertos.
 - [ ] **P22 — macOS/Wayland:** Cocoa/Metal e Wayland nativo, superfícies,
   coordenadas, apresentação e ciclo de vida próprios.
   [Wayland nativo executado; AppKit/Metal preparado](coin-render-p22-macos-wayland.md).
@@ -189,7 +191,8 @@ Vulkan não encerram a matriz física nem qualificam outras plataformas.
   ALPHA_TEST acompanha o comportamento atual Coin/GL (composição transparente,
   sem descarte automático). Peeling/OIT e qualidade ampliada estão qualificados.
   P27.4 mantém a referência GL nativa com oito mapas pendente; P27.5 mantém
-  Windows/Intel e macOS/Metal. NVIDIA/OpenGL PRIME e seu oráculo estão fechados.
+  GPU Intel e macOS/Metal. Windows/NVIDIA D3D12 e Vulkan, assim como
+  NVIDIA/OpenGL PRIME e seu oráculo, estão qualificados.
   [Seis células físicas Linux e Wiring fechados](coin-render-p27-linux-validation.md).
   [Referência e trabalho pendente](coin-render-p27-shadows.md).
 - [ ] **P28 — Texturas espaciais e SSAO:** volume/cube maps seguem o contrato
@@ -219,12 +222,13 @@ preparados; NDK r30 e target Rust arm64 estão instalados, e a ponte e os objeto
 Android passaram na compilação cruzada. Coin base ainda depende de GL desktop,
 impedindo o link completo; falta dispositivo para qualificação. O
 [registro externo](coin-render-platform-validation-pending.md) reúne essas
-células, junto da validação Windows/Intel que o usuário pode executar em outro
+células, junto da validação Intel que o usuário pode executar em outro
 computador e da célula macOS sem host disponível. **P22 — macOS/Wayland:**
 Wayland/wgpu Vulkan passou em Weston headless; AppKit/Metal aguarda macOS.
-**P21 — Windows:** a [rota Win32/wgpu inicial](coin-render-p21-windows.md)
-ainda precisa de build e execução nativos. P20 segue aberto para Intel, BGFX/OpenGL
-NVIDIA e oráculos visuais. As campanhas
+**P21 — Windows:** a [campanha nativa GTX 1060](coin-render-p21-windows-validation.md)
+qualificou wgpu D3D12 e Vulkan, com 99/99 testes por API. Os limites de DPI e
+perda real de superfície permanecem explícitos. P20 segue aberto para GPU Intel
+e oráculos fora das fixtures qualificadas. As campanhas
 [P17](coin-render-p17-campaign.md), [P18](coin-render-p18-profiling.md) e
 [P19](coin-render-p19-reuse-readback.md) fixam cenas, métricas e A/B na Radeon.
 A [primeira execução P20](coin-render-p20-physical-matrix.md) amplia a evidência

@@ -86,7 +86,10 @@ opaca no wgpu e compara seu readback ao GL.
 - [x] **P27.5 — células Linux disponíveis:** AMD/NVIDIA BGFX Vulkan e OpenGL,
   AMD/wgpu Vulkan e NVIDIA/wgpu Vulkan; readback,
   resize, falhas injetadas e tolerâncias passam nas mesmas fixtures.
-- [ ] **P27.5 — células restantes:** Windows/Intel e macOS/Metal.
+- [x] **P27.5 — Windows/NVIDIA:** GTX 1060, wgpu D3D12 e Vulkan,
+  39/39 fixtures de sombras por API com Coin/WGL obrigatório;
+  [campanha Windows e seus limites](coin-render-p21-windows-validation.md).
+- [ ] **P27.5 — células restantes:** GPU Intel e macOS/Metal.
   NVIDIA/OpenGL PRIME, inclusive o oráculo Coin/GL offscreen, está fechado. Ver arquivo de plataformas pendentes.
 
 Cada subetapa exige um quadro renderizado e evidência de comportamento;
@@ -645,7 +648,7 @@ referência Coin/GL antes de marcar P27.4 concluído.
   próprias por luz, alpha/transparência, RTT, resize e falhas nas
   mesmas fixtures Coin/GL. GPU/API/driver e resultados estão preservados na
   campanha de seis células físicas, com as tolerâncias declaradas nas fixtures.
-- [ ] **Qualificação restante:** oito mapas GL nativos, Windows/Intel
+- [ ] **Qualificação restante:** oito mapas GL nativos, GPU Intel
   e macOS/Metal, conforme o arquivo de pendências.
 
 O preflight retorna `UNSUPPORTED` antes de submeter o quadro para grupos
