@@ -53,6 +53,21 @@ static cc_memalloc * injected_allocator_construct(unsigned int size,
   return 1; \
 } } while (0)
 
+static cc_hash_key collision_hash(cc_hash_key)
+{
+  return 1;
+}
+
+static cc_hash_entry * find_entry(cc_hash * hash, cc_hash_key key)
+{
+  const unsigned int index = hash_get_index(hash, key);
+  for (cc_hash_entry * entry = hash->buckets[index]; entry != NULL;
+       entry = entry->next) {
+    if (entry->key == key) return entry;
+  }
+  return NULL;
+}
+
 int main()
 {
   struct rlimit no_core = { 0, 0 };
@@ -86,6 +101,34 @@ int main()
   CHECK(cc_hash_put(hash, 8, hash));
   CHECK(hash->size > oldsize);
   CHECK(cc_hash_get(hash, 7, &found) && found == hash);
+  cc_hash_destruct(hash);
+
+  hash = cc_hash_construct(17, 0.75f);
+  CHECK(hash != NULL);
+  int values[4] = { 10, 20, 30, 40 };
+  cc_hash_entry * entries[4];
+  for (unsigned int i = 0; i < 4; ++i) {
+    CHECK(cc_hash_put(hash, i, &values[i]));
+    entries[i] = find_entry(hash, i);
+    CHECK(entries[i] != NULL);
+  }
+  cc_hash_entry ** previousbuckets = hash->buckets;
+  cc_hash_func * previoushashfunc = hash->hashfunc;
+  fail_calloc = true;
+  cc_hash_set_hash_func(hash, collision_hash);
+  CHECK(!fail_calloc);
+  CHECK(hash->buckets == previousbuckets);
+  CHECK(hash->hashfunc == previoushashfunc);
+  for (unsigned int i = 0; i < 4; ++i) {
+    CHECK(find_entry(hash, i) == entries[i]);
+    CHECK(cc_hash_get(hash, i, &found) && found == &values[i]);
+  }
+  cc_hash_set_hash_func(hash, collision_hash);
+  CHECK(hash->hashfunc == collision_hash);
+  for (unsigned int i = 0; i < 4; ++i) {
+    CHECK(find_entry(hash, i) == entries[i]);
+    CHECK(cc_hash_get(hash, i, &found) && found == &values[i]);
+  }
   cc_hash_destruct(hash);
   return 0;
 }

@@ -135,6 +135,7 @@ copyval(SbDictKeyType key, void * value, void * data)
 SbDict &
 SbDict::operator=(const SbDict & from)
 {
+  if (this == &from) return *this;
   if (this->hashtable) {
     // clear old values
     this->clear();
@@ -254,7 +255,11 @@ SbDict::makePList(SbPList & keys, SbPList & values)
 
 /*!
   Sets a new hashing function for this dictionary. Default
-  hashing function just returns the key.
+  hashing function just returns the key. Passing NULL restores it.
+
+  Existing entries remain accessible after changing the hash function.
+  If allocating replacement buckets fails, the previous function and
+  entries remain unchanged.
 
   If you find that items entered into the dictionary seems to make
   clusters in only a few buckets, you should try setting a hashing
@@ -269,3 +274,92 @@ SbDict::setHashingFunction(SbDictHashingFunc * func)
 {
   cc_hash_set_hash_func(this->hashtable, static_cast<cc_hash_func *>(func));
 }
+
+#ifdef COIN_TEST_SUITE
+
+static SbDict::Key
+sbdict_test_collision_hash(const SbDict::Key)
+{
+  return 1;
+}
+
+static SbDict::Key
+sbdict_test_mixed_hash(const SbDict::Key key)
+{
+  return (key + 7) * static_cast<SbDict::Key>(2654435761u);
+}
+
+BOOST_AUTO_TEST_CASE(sbdict_hash_function_change_preserves_mappings)
+{
+  SbDict dictionary(17);
+  int values[64];
+  for (unsigned int i = 0; i < 64; ++i) {
+    values[i] = static_cast<int>(i);
+    BOOST_CHECK(dictionary.enter(i, &values[i]));
+  }
+
+  SbDictHashingFunc * functions[] = {
+    sbdict_test_collision_hash, sbdict_test_mixed_hash,
+    NULL, sbdict_test_collision_hash
+  };
+  for (unsigned int pass = 0; pass < 4; ++pass) {
+    dictionary.setHashingFunction(functions[pass]);
+    for (unsigned int i = 0; i < 64; ++i) {
+      void * value = NULL;
+      BOOST_CHECK(dictionary.find(i, value));
+      BOOST_CHECK(value == &values[i]);
+    }
+  }
+}
+
+BOOST_AUTO_TEST_CASE(sbdict_self_assignment_preserves_mappings)
+{
+  SbDict dictionary(17);
+  dictionary.setHashingFunction(sbdict_test_collision_hash);
+  int values[3] = { 1, 2, 3 };
+  for (unsigned int i = 0; i < 3; ++i)
+    BOOST_CHECK(dictionary.enter(i, &values[i]));
+
+  dictionary = dictionary;
+  for (unsigned int i = 0; i < 3; ++i) {
+    void * value = NULL;
+    BOOST_CHECK(dictionary.find(i, value));
+    BOOST_CHECK(value == &values[i]);
+  }
+}
+
+struct SbDictApplyMutationData {
+  SbDict * dictionary;
+  bool saw_zero;
+  unsigned int calls;
+};
+
+static void
+sbdict_test_apply_mutation(SbDict::Key key, void *, void * closure)
+{
+  SbDictApplyMutationData * data =
+    static_cast<SbDictApplyMutationData *>(closure);
+  ++data->calls;
+  if (key == 0) data->saw_zero = true;
+  if (key == 17) {
+    data->dictionary->remove(17);
+    data->dictionary->enter(1, NULL);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(sbdict_apply_can_remove_current_entry)
+{
+  SbDict dictionary(17);
+  BOOST_CHECK(dictionary.enter(0, NULL));
+  BOOST_CHECK(dictionary.enter(17, NULL));
+  SbDictApplyMutationData data = { &dictionary, false, 0 };
+  dictionary.applyToAll(sbdict_test_apply_mutation, &data);
+  BOOST_CHECK(data.saw_zero);
+  BOOST_CHECK_EQUAL(data.calls, 3u);
+  void * value = NULL;
+  BOOST_CHECK(dictionary.find(0, value));
+  BOOST_CHECK(dictionary.find(1, value));
+  BOOST_CHECK(!dictionary.find(17, value));
+}
+
+#endif // COIN_TEST_SUITE

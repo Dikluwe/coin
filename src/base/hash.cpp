@@ -368,16 +368,46 @@ cc_hash_get_num_elements(cc_hash * ht)
 
 /*!
   Set the hash func that is used to map key values into
-  a bucket index.
+  a bucket index. Passing NULL restores the default hash function.
+
+  Existing entries are reindexed when the function changes. If allocating
+  replacement buckets fails, the current function and entries are unchanged.
 */
 void
 cc_hash_set_hash_func(cc_hash * ht, cc_hash_func * func)
 {
+  assert(ht != NULL);
+  if (func == NULL) func = hash_default_hashfunc;
+  if (ht->hashfunc == func) return;
+  if (ht->elements == 0) {
+    ht->hashfunc = func;
+    return;
+  }
+
+  cc_hash_entry ** buckets = (cc_hash_entry **)
+    calloc(ht->size, sizeof(cc_hash_entry *));
+  if (buckets == NULL) return;
+
+  for (unsigned int i = 0; i < ht->size; ++i) {
+    cc_hash_entry * entry = ht->buckets[i];
+    while (entry != NULL) {
+      cc_hash_entry * next = entry->next;
+      const unsigned int index = func(entry->key) % ht->size;
+      entry->next = buckets[index];
+      buckets[index] = entry;
+      entry = next;
+    }
+  }
+
+  free(ht->buckets);
+  ht->buckets = buckets;
   ht->hashfunc = func;
 }
 
 /*!
-  Call \a func for for each element in the hash table.
+  Call \a func for each element in the hash table. The callback may remove
+  the current element. Removing an element that has not yet been visited is
+  not supported.
 */
 void
 cc_hash_apply(cc_hash * ht, cc_hash_apply_func * func, void * closure)
@@ -387,8 +417,9 @@ cc_hash_apply(cc_hash * ht, cc_hash_apply_func * func, void * closure)
   for (i = 0; i < ht->size; i++) {
     elem = ht->buckets[i];
     while (elem) {
+      cc_hash_entry * next = elem->next;
       func(elem->key, elem->val, closure);
-      elem = elem->next;
+      elem = next;
     }
   }
 }
@@ -417,5 +448,38 @@ cc_hash_print_stat(cc_hash * ht)
                          "Used buckets %u of %u (%u elements), "
                          "avg chain length: %.2f, max chain length: %u\n",
                          used_buckets, ht->size, ht->elements,
-                         (float)ht->elements / used_buckets, max_chain_l);
+                         used_buckets > 0 ?
+                           (float)ht->elements / used_buckets : 0.0f,
+                         max_chain_l);
 }
+
+#ifdef COIN_TEST_SUITE
+#include <string>
+#include <Inventor/C/base/string.h>
+#include <Inventor/C/errors/debugerror.h>
+
+static void
+cchash_test_debugerror_cb(const cc_debugerror * error, void * closure)
+{
+  std::string * message = static_cast<std::string *>(closure);
+  const cc_string * debugstring = cc_error_get_debug_string(&error->super);
+  *message = cc_string_get_text(debugstring);
+}
+
+BOOST_AUTO_TEST_CASE(cchash_print_stat_handles_empty_hash)
+{
+  cc_hash * hash = cc_hash_construct(2, 0.75f);
+  BOOST_REQUIRE(hash != NULL);
+  std::string message;
+  cc_debugerror_cb * previouscallback = cc_debugerror_get_handler_callback();
+  void * previousdata = cc_debugerror_get_handler_data();
+  cc_debugerror_set_handler_callback(cchash_test_debugerror_cb, &message);
+  cc_hash_print_stat(hash);
+  cc_debugerror_set_handler_callback(previouscallback, previousdata);
+
+  BOOST_CHECK_MESSAGE(message.find("avg chain length: 0.00") !=
+                        std::string::npos,
+    "statistics for an empty hash did not report a zero average");
+  cc_hash_destruct(hash);
+}
+#endif // COIN_TEST_SUITE
