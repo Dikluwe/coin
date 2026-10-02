@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 41
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 42
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -177,7 +177,7 @@ typedef struct CoinWgpuShadowDraw {
 } CoinWgpuShadowDraw;
 
 typedef struct CoinWgpuShadowReceiver {
-  uint32_t receives;
+  uint32_t receives; /* Resolved flags: receiver=1, vertex lighting=2, ordinary fragment=4, group=8. */
   int32_t lighting_index;
   float max_shadow_distance; /* negative: no directional fade */
   float distance_falloff_coefficient; /* Core-resolved Coin curve */

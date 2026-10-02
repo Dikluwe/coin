@@ -161,6 +161,7 @@ private:
   bgfx::UniformHandle shadowModelViewUniform;
   bgfx::UniformHandle shadowClipModelViewUniform;
   bgfx::UniformHandle shadowDepthUniform;
+  bgfx::UniformHandle shadowQualityUniform;
   bgfx::UniformHandle shadowLightIndicesUniform;
   bgfx::UniformHandle shadowLightIndicesExtraUniform;
   bgfx::UniformHandle shadowViewToClipUniform[8];

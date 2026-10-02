@@ -111,8 +111,8 @@ struct CoinWgpuShadowFrame : CoinWgpuShadowPass {
         const auto & state = frame.renderStates[stateSlot];
         if (state.shadowGroupSlot != pass.groupSlot) continue;
         CoinWgpuShadowReceiver & receiver = packedPass.receivers[stateSlot];
-        receiver.receives = (state.shadowStyle & 2u) != 0 &&
-          pass.lightingIndexByState[stateSlot] >= 0 ? 1u : 0u;
+        receiver.receives = coin_render_shadow_shading_flags(frame, state) |
+          ((state.shadowStyle & 2u) != 0 && pass.lightingIndexByState[stateSlot] >= 0 ? 1u : 0u);
         receiver.lighting_index = pass.lightingIndexByState[stateSlot];
         receiver.max_shadow_distance = pass.maxShadowDistance;
         receiver.distance_falloff_coefficient = pass.distanceFalloffCoefficient;

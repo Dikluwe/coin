@@ -818,6 +818,9 @@ if(COIN_BUILD_RENDER)
 			set_tests_properties(CoinRenderShadowTransparency${_shadow_maps}Test PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77)
 		endforeach()
 		foreach(_shadow_maps 1 4 8)
+			add_test(NAME CoinRenderShadowQuality${_shadow_maps}Test
+				COMMAND CoinRenderShadowReferenceTest --quality ${_shadow_maps})
+			set_tests_properties(CoinRenderShadowQuality${_shadow_maps}Test PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77)
 			foreach(_mechanism 1 2)
 				add_test(NAME CoinRenderShadowOit${_shadow_maps}_${_mechanism}Test
 					COMMAND CoinRenderShadowReferenceTest --shadow-oit ${_shadow_maps} ${_mechanism})

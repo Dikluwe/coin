@@ -434,22 +434,37 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   BGFX/OpenGL e wgpu; regressões relacionadas 40/40 BGFX e 28/28 wgpu,
   sem skips, mais 18 testes unitários Rust. A matriz final inclui o teste
   aditivo acrescentado depois da campanha de regressão.
-- [ ] **Transparência e qualidade:** qualificar `ALPHA_TEST` e os demais perfis de qualidade. `smoothBorder=1`
+- [ ] **Transparência restante:** qualificar `ALPHA_TEST`.
+- [x] **Qualidade ampliada:** Core resolve a iluminação por vértice ou por
+  fragmento; BGFX e wgpu executam essas decisões para spot e direcional,
+  com especular, normais interpoladas e atenuação posicional. As contribuições
+  das luzes por vértice são interpoladas separadamente da visibilidade VSM,
+  calculada por fragmento. Luzes comuns herdadas mudam de estágio acima de
+  `0,7`; luzes de mapa mudam acima de `0,3`. Os limites preservam as comparações
+  em precisão dupla do Coin/GL: o campo `float` com valor textual `0,3` já
+  seleciona fragmento. Shapes sem SHADOWED mantêm iluminação comum por vértice.
+  Especular por fragmento é somado depois da modulação da textura primária,
+  preservando o contrato GL. O protocolo privado wgpu 42 transporta os flags
+  resolvidos no campo existente, sem alterar o tamanho das estruturas.
+  `CoinRenderShadowQuality{1,4,8}Test` compara sete valores de qualidade,
+  superfícies com normais suaves e especular, com/sem textura colorida e
+  ambos os tipos de luz. O limite continua sendo oito luzes ativas: uma e
+  quatro sombras incluem uma luz comum; oito sombras ocupam todo esse limite.
+  O oráculo de oito mapas usa sete luzes coincidentes com intensidade total
+  equivalente neste host; referência GL nativa com oito continua pendente.
+  Validação em 2026-10-02: 84 combinações de qualidade por rota GPU
+  (252 em BGFX/Vulkan, BGFX/OpenGL e wgpu), com erro médio RGB limitado a
+  2 níveis em 255. As regressões cobriram 41 testes BGFX, 30 wgpu e
+  9 BGFX/OpenGL; 18 testes Rust e três validadores Naga passaram.
+  `smoothBorder=1`
   passou em Coin/GL, BGFX e wgpu com pixels idênticos a `0`: a suavização
   gaussiana está desativada na implementação Coin/GL atual. O Core aceita
-  somente os valores 0 e 1. O subperfil
-  direcional opaco difuso com normais planas em `quality=0,2` está qualificado
-  nos dois executores; o Core rejeita especular e normais interpoladas.
-  O subperfil spot opaco difuso com normais planas em `quality=0,2` também
-  passou na fixture: delta máximo 486 no Coin/GL e 474 em BGFX e wgpu
-  (tolerância 180). O executor calcula essa iluminação por fragmento;
-  a qualificação não se estende a especular, normais interpoladas ou
-  gradientes de atenuação ainda não medidos. O Coin/GL precisou corrigir a
+  somente os valores 0 e 1. O Coin/GL precisou corrigir a
   geração do shader para o perfil direcional: a luz
   direcional no caminho por vértice era tratada como spot, e a função
   `DirectionalLight` não era registrada no fragmento para `quality=0,5`.
-  A fixture de qualidade baixa mediu delta máximo de recepção 735 no GL e
-  666 em BGFX e wgpu, com tolerância 120.
+  A matriz ampliada mantém as verificações de recepção de baixa qualidade e
+  as regressões de transparência, peeling/OIT e RTT staged/direct.
 - [x] **Receiver com textura estática opaca:** a textura primária é aceita
   quando seus texels RGBA capturados têm alfa 255 e não há unidades
   adicionais. O mesmo draw recebe sombra e modulação de textura nos
@@ -586,7 +601,7 @@ referência Coin/GL antes de marcar P27.4 concluído.
   inclusive quando ela aparece após a geometria sem inseri-la nos estados
   anteriores, validar dois passes opacos
   spot/direcional e limitar a memória planejada.
-- [ ] **Core completo:** ampliar qualidade, transparência e combinações além dos
+- [ ] **Core completo:** ampliar ALPHA_TEST e combinações além dos
   perfis já qualificados de até oito mapas, grupos aninhados e RTT direct.
   Reusar ownership e publicação de P12–P14, inclusive múltiplos alvos.
 - [ ] **Infra BGFX/wgpu:** mapas de momentos e depth, VSM, bias, textura,

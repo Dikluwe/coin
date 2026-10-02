@@ -22,3 +22,11 @@ fn eight_map_receiver_shader_validates() {
     Validator::new(ValidationFlags::all(), Capabilities::all())
         .validate(&module).expect("validate eight-map receiver WGSL");
 }
+
+#[test]
+fn four_map_quality_shader_validates() {
+    let source = shadow_receiver::four_map_source();
+    let module = naga::front::wgsl::parse_str(&source).expect("parse quality receiver WGSL");
+    Validator::new(ValidationFlags::all(), Capabilities::all())
+        .validate(&module).expect("validate quality receiver WGSL");
+}

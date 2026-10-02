@@ -36,6 +36,9 @@
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoTextureCoordinate2.h>
 #include <Inventor/nodes/SoCoordinate3.h>
+#include <Inventor/nodes/SoNormal.h>
+#include <Inventor/nodes/SoNormalBinding.h>
+#include <Inventor/nodes/SoEnvironment.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/SbColor.h>
 
@@ -44,6 +47,7 @@
 #include <algorithm>
 #include <iostream>
 #include <vector>
+#include <memory>
 
 namespace {
 static const int side = 128;
@@ -69,6 +73,119 @@ bool render(SoOffscreenRenderer & gl, SoNode * root,
   return true;
 }
 SoSeparator * shadowCompositionConsumer(SoSeparator * scene);
+
+bool qualifyShadowQuality(SoSeparator * source, int maps, bool directional)
+{
+  auto * scene = static_cast<SoSeparator *>(source->copy(TRUE));
+  scene->ref();
+  auto * group = static_cast<SoShadowGroup *>(scene->getChild(1));
+  auto * ground = static_cast<SoSeparator *>(group->getChild(2));
+  auto * style = static_cast<SoShadowStyle *>(ground->getChild(0));
+  auto * material = static_cast<SoMaterial *>(ground->getChild(1));
+  material->diffuseColor.setValue(.3f,.4f,.5f);
+  material->specularColor.setValue(.6f,.6f,.6f);
+  material->ambientColor.setValue(0,0,0);
+  material->shininess = .35f;
+  auto * surface = new SoSeparator;
+  auto * normal = new SoNormal;
+  auto * positions = new SoCoordinate3;
+  for (int y=0;y<3;++y) for(int x=0;x<3;++x) {
+    const int index=y*3+x;
+    positions->point.set1Value(index,SbVec3f((x-1)*3.f,(y-1)*3.f,0));
+    SbVec3f n((x-1)*.55f,(y-1)*.45f,1); n.normalize();
+    normal->vector.set1Value(index,n);
+  }
+  surface->addChild(normal);
+  auto * binding = new SoNormalBinding;
+  binding->value=SoNormalBinding::PER_VERTEX_INDEXED;
+  surface->addChild(binding);
+  surface->addChild(positions);
+  auto * coordinates = new SoTextureCoordinate2;
+  for (int y=0;y<3;++y) for (int x=0;x<3;++x)
+    coordinates->point.set1Value(y*3+x,SbVec2f(x*.5f,y*.5f));
+  surface->addChild(coordinates);
+  auto * faces = new SoIndexedFaceSet;
+  std::vector<int32_t> indices;
+  for(int y=0;y<2;++y) for(int x=0;x<2;++x) {
+    const int a=y*3+x;
+    for(int i : {a,a+1,a+4,-1,a,a+4,a+3,-1}) indices.push_back(i);
+  }
+  faces->coordIndex.setValues(0,indices.size(),indices.data());
+  faces->normalIndex.setValues(0,indices.size(),indices.data());
+  surface->addChild(faces);
+  ground->replaceChild(3,surface);
+  SoLight * light = static_cast<SoLight *>(group->getChild(0));
+  if(directional) {
+    auto * sun=new SoShadowDirectionalLight;
+    sun->direction.setValue(-.2f,-.3f,-1);
+    group->replaceChild(0,sun); light=sun;
+  } else {
+    auto * spot=static_cast<SoShadowSpotLight *>(light);
+    spot->location.setValue(1,1,5);
+    spot->direction.setValue(-.12f,-.12f,-1);
+    spot->cutOffAngle=1.1f; spot->dropOffRate=.015f;
+  }
+  light->intensity=.65f/maps;
+  for(int i=1;i<maps;++i) group->insertChild(light->copy(TRUE),i);
+  auto * environment=new SoEnvironment;
+  environment->ambientIntensity=0;
+  environment->attenuation.setValue(.005f,.025f,1);
+  scene->insertChild(environment,1);
+  auto * ordinary=new SoPointLight;
+  ordinary->location.setValue(-1.5f,-1,4); ordinary->intensity=.35f;
+  ordinary->on = maps < 8;
+  scene->insertChild(ordinary,2);
+  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(side,side)));
+  CoinRenderAction action(SbViewportRegion(side,side)); action.setRenderTarget(target.get());
+  bool qualified=true;
+  std::vector<unsigned char> previous;
+  for (bool textured : {false,true}) {
+  previous.clear();
+  if (textured) {
+    auto * texture=new SoTexture2;
+    const unsigned char pixel[]={51,166,89,255};
+    texture->image.setValue(SbVec2s(1,1),4,pixel);
+    ground->insertChild(texture,2);
+  }
+  for(float quality : {0.f,.2999f,.3f,.3001f,.7f,.7001f,1.f}) {
+    if(!qualified) break;
+    group->quality=quality; style->style=SoShadowStyle::SHADOWED;
+    action.apply(scene);
+    std::vector<unsigned char> gpu, glPixels;
+    qualified=action.getLastStatus()==CoinRenderAction::SUCCESS;
+    if(qualified) target->readbackRGBA(gpu);
+    if(!qualified) { std::cerr<<action.getLastError().getString()<<'\n'; break; }
+    int change=0;
+    if(!previous.empty()) for(size_t i=0;i<gpu.size();++i) change=std::max(change,std::abs(int(gpu[i])-int(previous[i])));
+    double meanError=0;
+    int maxError=0;
+    if(std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
+      auto * reference=static_cast<SoSeparator *>(scene->copy(TRUE)); reference->ref();
+      if(maps==8 && !std::getenv("COIN_RENDER_REQUIRE_GL_EIGHT_MAP_REFERENCE")) {
+        auto * g=static_cast<SoShadowGroup *>(reference->getChild(3));
+        g->removeChild(7);
+        for(int i=0;i<7;++i) static_cast<SoLight *>(g->getChild(i))->intensity=.65f/7;
+      }
+      SoOffscreenRenderer renderer(SbViewportRegion(side,side)); renderer.setComponents(SoOffscreenRenderer::RGB);
+      qualified=render(renderer,reference,glPixels); reference->unref();
+      if(qualified) for(int y=22;y<106;++y) for(int x=22;x<106;++x) for(int c=0;c<3;++c) {
+        const int error=std::abs(int(glPixels[(y*side+x)*3+c])-int(gpu[((side-1-y)*side+x)*4+c]));
+        meanError+=error; maxError=std::max(maxError,error);
+      }
+      meanError/=84*84*3;
+      qualified=qualified && meanError<=2;
+    }
+    if(quality==.3f || (quality==.7001f && maps<8)) qualified=qualified && change>3;
+    if(quality==.7001f && maps==8) qualified=qualified && change==0;
+    if(quality==.2999f || quality==.3001f || quality==.7f || quality==1.f) qualified=qualified && change==0;
+    std::cout<<"shadow quality maps="<<maps<<" directional="<<directional<<" q="<<quality
+      <<" textured="<<textured<<" GL/GPU mean/max="<<meanError<<'/'<<maxError<<" transition="<<change<<" qualified="<<qualified<<'\n';
+    previous=std::move(gpu);
+  }
+  }
+  action.setRenderTarget(nullptr); scene->unref();
+  return qualified;
+}
 
 // Exercise the public path with a fresh Action, so capture references held by
 // the main opaque fixtures cannot be invalidated by these additional scenes.
@@ -1072,6 +1189,12 @@ int main(int argc, char ** argv)
   floor->depth = 0.05f;
   ground->addChild(floor);
 
+  if (argc == 3 && std::string(argv[1]) == "--quality") {
+    if (!std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") && !std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) { root->unref(); return 77; }
+    const int maps=std::atoi(argv[2]);
+    const bool ok=maps>=1 && maps<=8 && qualifyShadowQuality(root,maps,false) && qualifyShadowQuality(root,maps,true);
+    root->unref(); return ok ? 0 : 1;
+  }
   if (argc == 4 && std::string(argv[1]) == "--shadow-oit") {
     if (!std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") && !std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) { root->unref(); return 77; }
     const int maps = std::atoi(argv[2]);
@@ -1132,8 +1255,8 @@ int main(int argc, char ** argv)
   action.apply(root);
   const bool rejected = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
                         action.getLastError().find("SoShadowGroup") >= 0;
-  const auto & captured = action.getPimpl()->lastRejectedShadowFrame;
-  const auto & planned = action.getPimpl()->lastRejectedShadowPlan;
+  const auto captured = action.getPimpl()->lastRejectedShadowFrame;
+  const auto planned = action.getPimpl()->lastRejectedShadowPlan;
   bool captureOk = captured.shadowGroups.size() == 1 &&
                    captured.shadowLights.size() == 1 &&
                    captured.shadowLights[0].type == CoinRenderLightType::SPOT &&
@@ -3793,7 +3916,7 @@ int main(int argc, char ** argv)
     withSpecular.materials[withSpecular.renderStates[
       withSpecular.draws[0].renderStateSlot].materialSlot].specular[0] = 0.1f;
     std::string excludedDiagnostic;
-    lowQualityDirectionalQualified = !coin_render_shadow_single_directional_object_profile(
+    lowQualityDirectionalQualified = coin_render_shadow_single_directional_object_profile(
       withSpecular, lowQualityPlan, excludedDiagnostic);
     CoinRenderFramePlan withSmoothNormal = lowQualityFrame;
     const auto & geometry = withSmoothNormal.draws[0].geometry;
@@ -3801,7 +3924,7 @@ int main(int argc, char ** argv)
       const uint32_t vertex = withSmoothNormal.indices[geometry.firstIndex + 1];
       withSmoothNormal.vertices[vertex].normal[0] += 0.1f;
       lowQualityDirectionalQualified = lowQualityDirectionalQualified &&
-        !coin_render_shadow_single_directional_object_profile(
+        coin_render_shadow_single_directional_object_profile(
           withSmoothNormal, lowQualityPlan, excludedDiagnostic);
     } else lowQualityDirectionalQualified = false;
   }

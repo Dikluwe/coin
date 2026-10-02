@@ -51,6 +51,25 @@ coin_render_shadow_finite(const SbVec3f & value)
          std::isfinite(value[2]);
 }
 
+// Only Core interprets Coin quality; Infra executes these resolved flags.
+enum CoinRenderShadowShadingFlags {
+  COIN_RENDER_SHADOW_RECEIVES = 1u,
+  COIN_RENDER_SHADOW_VERTEX_LIGHTING = 2u,
+  COIN_RENDER_SHADOW_ORDINARY_FRAGMENT = 4u,
+  COIN_RENDER_SHADOW_GROUP_LIGHTING = 8u
+};
+inline uint32_t coin_render_shadow_shading_flags(
+  const CoinRenderFramePlan & frame, const CoinRenderRenderStateSnapshot & state)
+{
+  if (!state.shadowGroupSlot || state.shadowGroupSlot > frame.shadowGroups.size() ||
+      !(state.shadowStyle & 2u)) return 0;
+  const float quality = frame.shadowGroups[state.shadowGroupSlot - 1].quality;
+  // Match Coin's double literals: float(0.3) is already above double(0.3).
+  return COIN_RENDER_SHADOW_GROUP_LIGHTING |
+    (quality <= 0.3 ? COIN_RENDER_SHADOW_VERTEX_LIGHTING : 0u) |
+    (quality > 0.7 ? COIN_RENDER_SHADOW_ORDINARY_FRAGMENT : 0u);
+}
+
 // Groups form a captured tree. No backend walks Coin nodes or interprets nesting.
 inline bool coin_render_shadow_descends_from(const CoinRenderFramePlan & frame,
                                              uint32_t group, uint32_t ancestor)
@@ -405,7 +424,7 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
       pass.threshold = group.threshold;
       pass.maxShadowDistance = light.maxShadowDistance;
       // Coin uses perpixelspot for every shadow-map light, including directional.
-      pass.perFragmentLighting = group.quality > 0.3f;
+      pass.perFragmentLighting = group.quality > 0.3;
       pass.lightingIndexByState.assign(frame.renderStates.size(), -1);
       pass.resolvedLightByState.resize(frame.renderStates.size());
       for (size_t s = 0; s < frame.renderStates.size(); ++s) {
@@ -586,8 +605,8 @@ coin_render_shadow_object_profile(
     }
     if (draw.shadowLightSlot) continue;
     // Coin moves shadow-map lighting to vertices at quality <= 0.3.
-    // The bounded flat/diffuse profile has GL/GPU visual fixtures for both
-    // directional and spot lights; specular and interpolated normals differ.
+    // Both stages now execute the captured contribution, including specular
+    // and smooth normals. Keep the geometry validation independent of quality.
     const bool lowQuality = std::any_of(shadows.passes.begin(), shadows.passes.end(),
       [&](const CoinRenderShadowPass & pass) {
         return pass.groupSlot == state.shadowGroupSlot && !pass.perFragmentLighting;
@@ -607,9 +626,8 @@ coin_render_shadow_object_profile(
           });
       });
     if (lowQuality || externalOrdinary) {
-      if (material.specular[0] != 0.0f || material.specular[1] != 0.0f ||
-          material.specular[2] != 0.0f || draw.geometry.indexCount % 3 != 0) {
-        diagnostic = "Vertex-lit shadow profile requires flat diffuse triangles";
+      if (draw.geometry.indexCount % 3 != 0) {
+        diagnostic = "Vertex-lit shadow profile requires triangles";
         return false;
       }
       const uint64_t end = uint64_t(draw.geometry.firstIndex) + draw.geometry.indexCount;
@@ -626,12 +644,6 @@ coin_render_shadow_object_profile(
           diagnostic = "Vertex-lit shadow draw has an invalid vertex index";
           return false;
         }
-        for (int axis = 0; axis < 3; ++axis)
-          if (std::abs(frame.vertices[a].normal[axis] - frame.vertices[b].normal[axis]) > 1e-5f ||
-              std::abs(frame.vertices[a].normal[axis] - frame.vertices[c].normal[axis]) > 1e-5f) {
-            diagnostic = "Vertex-lit shadow profile requires flat normals";
-            return false;
-          }
       }
     }
     // An inactive sibling is ordinary Coin geometry: it receives no shadow

@@ -54,6 +54,7 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 					${_coin_bgfx_shader_dir}/coin_lighting.sh
 					${_coin_bgfx_shader_dir}/coin_surface.sh
 					${_coin_bgfx_shader_dir}/coin_weighted.sh
+					${_coin_bgfx_shader_dir}/coin_shadow_quality.sh
 					${_coin_bgfx_shader_dir}/varying.def.sc
 				VERBATIM)
 			list(APPEND COIN_RENDER_SOURCES ${_shader_output})

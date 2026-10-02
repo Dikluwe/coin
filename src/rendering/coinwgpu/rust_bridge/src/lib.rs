@@ -23,7 +23,7 @@ mod shadow;
 mod shadow_receiver;
 mod weighted;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 41;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 42;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
@@ -639,6 +639,7 @@ static WGSL_POINT_SHADER: &str = include_str!("../../shaders/coin_point.wgsl");
 #[derive(Hash, PartialEq, Eq, Clone, Debug)]
 struct PipelineKey {
     eight_shadows: bool,
+    shadow_profile: bool,
     weighted: bool,
     topology: u32,
     color_format: wgpu::TextureFormat,
@@ -883,6 +884,7 @@ struct DeviceState {
     queue: wgpu::Queue,
     shader_module: wgpu::ShaderModule,
     shadow_eight_shader: wgpu::ShaderModule,
+    shadow_shader: wgpu::ShaderModule,
     shadow_eight_layout: wgpu::BindGroupLayout,
     shadow_extra_layout: wgpu::BindGroupLayout,
     shadow_eight_pipeline_layout: wgpu::PipelineLayout,
@@ -1530,6 +1532,10 @@ fn get_or_init_device_impl<'a>(
         source: wgpu::ShaderSource::Wgsl(format!("{}{}",WGSL_SHADER,weighted::FRAGMENT).into()),
     });
 
+    let shadow_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some("Coin quality shadow receivers"),
+        source: wgpu::ShaderSource::Wgsl(format!("{}{}",shadow_receiver::four_map_source(),weighted::FRAGMENT).into()),
+    });
     let shadow_eight_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("Coin eight shadow receivers"),
         source: wgpu::ShaderSource::Wgsl(format!("{}{}",shadow_receiver::eight_map_source(),weighted::FRAGMENT).into()),
@@ -1731,7 +1737,7 @@ fn get_or_init_device_impl<'a>(
         device,
         queue,
         shader_module: shader,
-        shadow_eight_shader, shadow_eight_layout, shadow_extra_layout, shadow_eight_pipeline_layout,
+        shadow_shader, shadow_eight_shader, shadow_eight_layout, shadow_extra_layout, shadow_eight_pipeline_layout,
         line_shader_module: line_shader,
         point_shader_module: point_shader,
         bind_group_layout,
@@ -2159,6 +2165,7 @@ fn get_or_create_pipeline<'a>(
     depth_bias: wgpu::DepthBiasState,
     resolved_depth_bias: bool,
     eight_shadows: bool,
+    shadow_profile: bool,
     weighted: bool,
 ) -> Result<wgpu::RenderPipeline, String> {
     let mut map = ctx.pipelines.lock().map_err(|e| e.to_string())?;
@@ -2168,11 +2175,11 @@ fn get_or_create_pipeline<'a>(
         1 => (wgpu::PrimitiveTopology::LineList, &ctx.line_shader_module, None),
         2 => (wgpu::PrimitiveTopology::PointList, &ctx.point_shader_module, None),
         _ => (wgpu::PrimitiveTopology::TriangleList,
-            if eight_shadows { &ctx.shadow_eight_shader } else { &ctx.shader_module }, cull_face),
+            if eight_shadows { &ctx.shadow_eight_shader } else if shadow_profile { &ctx.shadow_shader } else { &ctx.shader_module }, cull_face),
     };
 
     let key = PipelineKey {
-        eight_shadows, weighted, topology,
+        eight_shadows, shadow_profile, weighted, topology,
         color_format,
         depth_format,
         sample_count: 1,
@@ -2457,8 +2464,8 @@ fn encode_frame(
                     format!("extra shadow pass {slot} does not match render states or device limits")));
             }
             for (state_slot, receiver) in pass.receivers.iter().enumerate() {
-                if receiver.receives > 1 ||
-                    (receiver.receives != 0 && (receiver.lighting_index < 0 ||
+                if receiver.receives & !15 != 0 ||
+                    (receiver.receives & 1 != 0 && (receiver.lighting_index < 0 ||
                      receiver.lighting_index as u32 >= states_slice[state_slot].light_count)) ||
                     !receiver.max_shadow_distance.is_finite() ||
                     !receiver.distance_falloff_coefficient.is_finite() ||
@@ -2470,14 +2477,14 @@ fn encode_frame(
             }
         }
         for (slot, receiver) in shadow.receivers.iter().enumerate() {
-            if receiver.receives > 1
+            if receiver.receives & !15 != 0
                 || !receiver.max_shadow_distance.is_finite()
                 || !receiver.distance_falloff_coefficient.is_finite()
                 || (receiver.max_shadow_distance > 0.0 &&
                     receiver.distance_falloff_coefficient <= 0.0)
                 || !receiver.model_view.iter().chain(receiver.model_view_projection.iter())
                     .all(|v| v.is_finite())
-                || (receiver.receives != 0 && (receiver.lighting_index < 0
+                || (receiver.receives & 1 != 0 && (receiver.lighting_index < 0
                     || receiver.lighting_index as u32 >= states_slice[slot].light_count)) {
                 return Err((CoinWgpuStatus::InvalidArgument,
                     format!("Invalid shadow receiver {slot}")));
@@ -2485,8 +2492,8 @@ fn encode_frame(
         }
         if let Some(second) = &shadow.second {
             for (slot, receiver) in second.receivers.iter().enumerate() {
-                if receiver.receives > 1 ||
-                    (receiver.receives != 0 && (receiver.lighting_index < 0 ||
+                if receiver.receives & !15 != 0 ||
+                    (receiver.receives & 1 != 0 && (receiver.lighting_index < 0 ||
                      receiver.lighting_index as u32 >= states_slice[slot].light_count)) ||
                     !receiver.model_view.iter().chain(receiver.model_view_projection.iter())
                         .all(|v| v.is_finite()) {
@@ -2497,8 +2504,8 @@ fn encode_frame(
         }
         if let Some(pass) = &shadow.third {
             for (slot, receiver) in pass.receivers.iter().enumerate() {
-                if receiver.receives > 1 ||
-                    (receiver.receives != 0 && (receiver.lighting_index < 0 ||
+                if receiver.receives & !15 != 0 ||
+                    (receiver.receives & 1 != 0 && (receiver.lighting_index < 0 ||
                      receiver.lighting_index as u32 >= states_slice[slot].light_count)) ||
                     !receiver.max_shadow_distance.is_finite() ||
                     !receiver.distance_falloff_coefficient.is_finite() ||
@@ -2511,8 +2518,8 @@ fn encode_frame(
         }
         if let Some(pass) = &shadow.fourth {
             for (slot, receiver) in pass.receivers.iter().enumerate() {
-                if receiver.receives > 1 ||
-                    (receiver.receives != 0 && (receiver.lighting_index < 0 ||
+                if receiver.receives & !15 != 0 ||
+                    (receiver.receives & 1 != 0 && (receiver.lighting_index < 0 ||
                      receiver.lighting_index as u32 >= states_slice[slot].light_count)) ||
                     !receiver.max_shadow_distance.is_finite() ||
                     !receiver.distance_falloff_coefficient.is_finite() ||
@@ -3318,6 +3325,7 @@ fn encode_frame(
                     depth_bias,
                     resolved_depth_bias,
                     eight_shadows,
+                    shadow_frame.is_some(),
                     is_weighted,
                 ) {
                     Ok(p) => p,
@@ -3428,6 +3436,14 @@ fn encode_frame(
                 let shadow_matrix = |flat: &[f32; 16]| -> [[f32; 4]; 4] {
                     std::array::from_fn(|col| std::array::from_fn(|row| flat[col * 4 + row]))
                 };
+                let quality_flags = shadow_frame.map_or(0, |shadow| {
+                    let slot = draw.render_state_slot as usize;
+                    let mut flags = shadow.receivers[slot].receives;
+                    for pass in shadow.second.iter().chain(shadow.third.iter()).chain(shadow.fourth.iter()).chain(shadow.extra.iter()) {
+                        flags |= pass.receivers[slot].receives;
+                    }
+                    flags
+                });
                 let uniforms = CoinWgpuUniforms {
                     model_view_projection: mvp,
                     model_view: mv,
@@ -3478,7 +3494,8 @@ fn encode_frame(
                         0.0,
                     ],
                     ambient_light: st.ambient_light,
-                    light_meta: [st.light_count as f32, 0.0, 0.0, 0.0],
+                    light_meta: [st.light_count as f32, 0.0,
+                        ((quality_flags & 4) != 0) as u32 as f32, ((quality_flags & 8) != 0) as u32 as f32],
                     texture_blend_color: st.texture_blend_color,
                     lights: st.lights,
                     clip_meta: [
@@ -3504,13 +3521,13 @@ fn encode_frame(
                          [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
                         |(r, _)| shadow_matrix(&r.model_view)),
                     shadow_params: receiver.map_or([0.0, 0.0, 1.0, 0.0],
-                        |(r, shadow)| [r.receives as f32, shadow.near,
+                        |(r, shadow)| [(r.receives & 1) as f32, shadow.near,
                             shadow.far, shadow.epsilon]),
                     shadow_meta: receiver.map_or([0.0; 4], |(r, shadow)|
                         [shadow.threshold, r.lighting_index as f32, shadow.kind as f32,
                          r.max_shadow_distance]),
                     shadow_falloff: receiver.map_or([0.0; 4], |(r, _)|
-                        [r.distance_falloff_coefficient, 0.0, 0.0, 0.0]),
+                        [r.distance_falloff_coefficient, ((r.receives & 2) != 0) as u32 as f32, 0.0, 0.0]),
                     shadow_model_view_projection_second: receiver_second.map_or(
                         [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0],
                          [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
@@ -3520,13 +3537,13 @@ fn encode_frame(
                          [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
                         |(r, _)| shadow_matrix(&r.model_view)),
                     shadow_params_second: receiver_second.map_or([0.0, 0.0, 1.0, 0.0],
-                        |(r, second)| [r.receives as f32, second.near,
+                        |(r, second)| [(r.receives & 1) as f32, second.near,
                             second.far, second.epsilon]),
                     shadow_meta_second: receiver_second.map_or([0.0; 4], |(r, second)|
                         [second.threshold, r.lighting_index as f32,
                          second.kind as f32, r.max_shadow_distance]),
                     shadow_falloff_second: receiver_second.map_or([0.0; 4], |(r, _)|
-                        [r.distance_falloff_coefficient, 0.0, 0.0, 0.0]),
+                        [r.distance_falloff_coefficient, ((r.receives & 2) != 0) as u32 as f32, 0.0, 0.0]),
                     shadow_model_view_projection_third: receiver_third.map_or(
                         [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0],
                          [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
@@ -3536,13 +3553,13 @@ fn encode_frame(
                          [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
                         |(r, _)| shadow_matrix(&r.model_view)),
                     shadow_params_third: receiver_third.map_or([0.0, 0.0, 1.0, 0.0],
-                        |(r, pass)| [r.receives as f32, pass.near,
+                        |(r, pass)| [(r.receives & 1) as f32, pass.near,
                             pass.far, pass.epsilon]),
                     shadow_meta_third: receiver_third.map_or([0.0; 4], |(r, pass)|
                         [pass.threshold, r.lighting_index as f32,
                          pass.kind as f32, r.max_shadow_distance]),
                     shadow_falloff_third: receiver_third.map_or([0.0; 4], |(r, _)|
-                        [r.distance_falloff_coefficient, 0.0, 0.0, 0.0]),
+                        [r.distance_falloff_coefficient, ((r.receives & 2) != 0) as u32 as f32, 0.0, 0.0]),
                     shadow_model_view_projection_fourth: receiver_fourth.map_or(
                         [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0],
                          [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
@@ -3552,13 +3569,13 @@ fn encode_frame(
                          [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
                         |(r, _)| shadow_matrix(&r.model_view)),
                     shadow_params_fourth: receiver_fourth.map_or([0.0, 0.0, 1.0, 0.0],
-                        |(r, pass)| [r.receives as f32, pass.near,
+                        |(r, pass)| [(r.receives & 1) as f32, pass.near,
                             pass.far, pass.epsilon]),
                     shadow_meta_fourth: receiver_fourth.map_or([0.0; 4], |(r, pass)|
                         [pass.threshold, r.lighting_index as f32,
                          pass.kind as f32, r.max_shadow_distance]),
                     shadow_falloff_fourth: receiver_fourth.map_or([0.0; 4], |(r, _)|
-                        [r.distance_falloff_coefficient, 0.0, 0.0, 0.0]),
+                        [r.distance_falloff_coefficient, ((r.receives & 2) != 0) as u32 as f32, 0.0, 0.0]),
                 };
 
                 let extra_passes = shadow_frame.map_or(&[][..], |shadow| shadow.extra.as_slice());
@@ -3672,9 +3689,9 @@ fn encode_frame(
                         receivers[slot] = ExtraReceiver {
                             view_to_clip: shadow_matrix(&r.model_view_projection),
                             view_to_light: shadow_matrix(&r.model_view),
-                            params: [r.receives as f32, p.near, p.far, p.epsilon],
+                            params: [(r.receives & 1) as f32, p.near, p.far, p.epsilon],
                             meta: [p.threshold, r.lighting_index as f32, p.kind as f32, r.max_shadow_distance],
-                            falloff: [r.distance_falloff_coefficient, 0.0, 0.0, 0.0],
+                            falloff: [r.distance_falloff_coefficient, ((r.receives & 2) != 0) as u32 as f32, 0.0, 0.0],
                         };
                     }
                     let buffer = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {

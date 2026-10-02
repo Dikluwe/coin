@@ -7,11 +7,10 @@ uniform vec4 u_lightDirectionCutoff[8];
 uniform vec4 u_lightColorIntensity[8];
 uniform vec4 u_lightAttenuationDrop[8];
 
-vec3 coinLightContribution(int i, vec4 diffuse, vec4 specular,
-                           vec3 viewPosition, vec3 viewNormal, float shininess)
+vec3 coinLightContributionWithEye(int i, vec4 diffuse, vec4 specular,
+                           vec3 viewPosition, vec3 viewNormal, float shininess, vec3 viewDirection)
 {
   vec3 normal = normalize(viewNormal);
-  vec3 viewDirection = vec3(0.0, 0.0, 1.0);
   vec4 positionType = u_lightPositionType[i];
   vec4 directionCutoff = u_lightDirectionCutoff[i];
   vec4 lightColorIntensity = u_lightColorIntensity[i];
@@ -44,6 +43,19 @@ vec3 coinLightContribution(int i, vec4 diffuse, vec4 specular,
   float strength = lightColorIntensity.a * attenuation;
   return (diffuse.rgb * diffuseFactor + specular.rgb * specularFactor) *
     lightColorIntensity.rgb * strength;
+}
+
+vec3 coinLightContribution(int i, vec4 diffuse, vec4 specular,
+                           vec3 viewPosition, vec3 viewNormal, float shininess)
+{
+  return coinLightContributionWithEye(i, diffuse, specular, viewPosition,
+    viewNormal, shininess, vec3(0.0, 0.0, 1.0));
+}
+vec3 coinGroupLightContribution(int i, vec4 diffuse, vec4 specular,
+                           vec3 viewPosition, vec3 viewNormal, float shininess)
+{
+  vec3 eye = u_lightPositionType[i].w < 0.5 ? vec3(0.0, 0.0, 1.0) : normalize(-viewPosition);
+  return coinLightContributionWithEye(i, diffuse, specular, viewPosition, viewNormal, shininess, eye);
 }
 
 vec4 coinMaterialColor(vec4 diffuse, vec4 ambient, vec4 specular, vec4 emission,

@@ -361,6 +361,14 @@ amplia o peeling para 1..8 camadas, orçamento, precisão/alpha zero e depth;
 qualifica weighted OIT como extensão explícita BGFX/wgpu; sombras com peeling/OIT estão delimitadas em P27.4.
 FreeCAD, raster ampliado e native/Dawn continuam fora desses fechamentos.
 
+O perfil de sombras P27.4 executa os estágios de `SoShadowGroup::quality`
+resolvidos pelo Core, incluindo especular, normais suaves e atenuação.
+As fixtures de um, quatro e oito mapas comparam sete valores de qualidade,
+com/sem textura primária colorida, em BGFX Vulkan/OpenGL e wgpu. O protocolo
+privado atual é 42; os flags de estágio ocupam o campo de receiver existente.
+Oito mapas continuam usando oráculo GL equivalente de sete neste host;
+ALPHA_TEST e a referência GL nativa de oito mapas permanecem pendentes.
+
 ## P11 — seleção e capacidades
 
 Opções tipadas e imutáveis por alvo escolhem renderer, modalidade de mecanismo

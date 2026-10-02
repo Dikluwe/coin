@@ -23,3 +23,4 @@ vec4 a_texcoord6 : TEXCOORD6;
 vec4 v_texcoords6 : TEXCOORD6;
 vec4 a_texcoord7 : TEXCOORD7;
 vec4 v_texcoords7 : TEXCOORD7;
+vec4 v_shadowVertex : TEXCOORD8;

@@ -225,10 +225,24 @@ main()
                shadowPacked.getShadowFrame().receivers.data() &&
              shadowPacked.getView().shadow_receiver_count == 2 &&
              shadowPacked.getView().shadow_receivers[0].receives == 0 &&
-             shadowPacked.getView().shadow_receivers[1].receives == 1 &&
+             shadowPacked.getView().shadow_receivers[1].receives == 9u &&
              shadowPacked.getView().shadow_receivers[1].lighting_index == 0,
              "spot receiver state was not transported"))
     return 1;
+  // Coin's float field is compared with double literals at these boundaries.
+  for (const auto & sample : {std::pair<float,uint32_t>{0.2999f,11u},
+                              {0.3f,9u}, {0.7f,9u}, {0.7001f,13u}}) {
+    shadow.shadowGroups[0].quality = sample.first;
+    ++shadow.revision;
+    if (!check(shadowPacked.prepare(shadow,64,64,diagnostic) &&
+               shadowPacked.getView().shadow_receivers[0].receives == 0u &&
+               shadowPacked.getView().shadow_receivers[1].receives == sample.second,
+               "Coin quality stages were not transported at the boundary"))
+      return 1;
+  }
+  shadow.shadowGroups[0].quality = group.quality;
+  ++shadow.revision;
+  if (!shadowPacked.prepare(shadow,64,64,diagnostic)) return 1;
   const auto & caster = shadowPacked.getShadowFrame().casters[0];
   SbMatrix shadowMvp;
   shadowMvp.setValue(caster.model_view_projection);

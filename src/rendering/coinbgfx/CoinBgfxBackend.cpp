@@ -532,7 +532,7 @@ CoinBgfxBackend::CoinBgfxBackend()
     shadowModelViewUniform(BGFX_INVALID_HANDLE),
     shadowClipModelViewUniform(BGFX_INVALID_HANDLE),
     shadowDepthUniform(BGFX_INVALID_HANDLE),
-    shadowLightIndicesUniform(BGFX_INVALID_HANDLE),
+    shadowQualityUniform(BGFX_INVALID_HANDLE), shadowLightIndicesUniform(BGFX_INVALID_HANDLE),
     shadowLightIndicesExtraUniform(BGFX_INVALID_HANDLE),
     depthReadProgram(BGFX_INVALID_HANDLE), readDepthSampler(BGFX_INVALID_HANDLE),
     depthReadFrameBuffer(BGFX_INVALID_HANDLE),
@@ -632,6 +632,7 @@ CoinBgfxBackend::prepareShadowPrograms(size_t mapCount)
   this->shadowModelViewUniform = bgfx::createUniform("u_shadowModelView", bgfx::UniformType::Mat4);
   this->shadowClipModelViewUniform = bgfx::createUniform("u_shadowClipModelView", bgfx::UniformType::Mat4);
   this->shadowDepthUniform = bgfx::createUniform("u_shadowDepth", bgfx::UniformType::Vec4);
+  this->shadowQualityUniform = bgfx::createUniform("u_shadowQuality", bgfx::UniformType::Vec4);
   this->shadowLightIndicesUniform = bgfx::createUniform("u_shadowLightIndices", bgfx::UniformType::Vec4);
   this->shadowLightIndicesExtraUniform = bgfx::createUniform("u_shadowLightIndicesExtra", bgfx::UniformType::Vec4);
   bool valid = bgfx::isValid(this->shadowLightIndicesExtraUniform) && bgfx::isValid(this->shadowMomentsProgram) &&
@@ -640,7 +641,7 @@ CoinBgfxBackend::prepareShadowPrograms(size_t mapCount)
     bgfx::isValid(this->shadowModelViewUniform) &&
     bgfx::isValid(this->shadowClipModelViewUniform) &&
     bgfx::isValid(this->shadowDepthUniform) &&
-    bgfx::isValid(this->shadowLightIndicesUniform);
+    bgfx::isValid(this->shadowLightIndicesUniform) && bgfx::isValid(this->shadowQualityUniform);
   for (int i = 0; i < 8; ++i) {
     const std::string suffix = std::to_string(i);
     this->shadowViewToClipUniform[i] = bgfx::createUniform(
@@ -769,6 +770,7 @@ CoinBgfxBackend::destroyResources()
   if (bgfx::isValid(this->shadowModelViewUniform)) bgfx::destroy(this->shadowModelViewUniform);
   if (bgfx::isValid(this->shadowClipModelViewUniform)) bgfx::destroy(this->shadowClipModelViewUniform);
   if (bgfx::isValid(this->shadowDepthUniform)) bgfx::destroy(this->shadowDepthUniform);
+  if (bgfx::isValid(this->shadowQualityUniform)) bgfx::destroy(this->shadowQualityUniform);
   if (bgfx::isValid(this->shadowLightIndicesUniform)) bgfx::destroy(this->shadowLightIndicesUniform);
   for (int i = 0; i < 8; ++i) {
     if (bgfx::isValid(this->shadowViewToClipUniform[i])) bgfx::destroy(this->shadowViewToClipUniform[i]);
@@ -1726,6 +1728,11 @@ CoinBgfxBackend::bindShadowReceiver(
   shaded.lightCount[1] = 0.0f;
   float indices[8] = {-1, -1, -1, -1, -1, -1, -1, -1};
   const auto & state = frame.renderStates[original.renderStateSlot];
+  const uint32_t flags = coin_render_shadow_shading_flags(frame, state);
+  const float quality[4] = {float((flags & COIN_RENDER_SHADOW_VERTEX_LIGHTING) != 0),
+    float((flags & COIN_RENDER_SHADOW_ORDINARY_FRAGMENT) != 0),
+    float((flags & COIN_RENDER_SHADOW_GROUP_LIGHTING) != 0), 0};
+  bgfx::setUniform(this->shadowQualityUniform, quality);
   if (state.lightingSlot < frame.lightingStates.size()) {
     const auto & lights = frame.lightingStates[state.lightingSlot].lights;
     for (size_t i = 0; i < lights.size() && i < COIN_RENDER_MAX_LIGHTS; ++i)
