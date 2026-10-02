@@ -3,10 +3,10 @@ $input v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition,
 #include "coin_depth.sh"
 #include "coin_lighting.sh"
 #include "coin_surface.sh"
-SAMPLER2D(s_shadow0, 10);
-SAMPLER2D(s_shadow1, 11);
-SAMPLER2D(s_shadow3, 13);
-SAMPLER2D(s_shadow2, 12);
+SAMPLER2D(s_shadow0, 8);
+SAMPLER2D(s_shadow1, 9);
+SAMPLER2D(s_shadow3, 11);
+SAMPLER2D(s_shadow2, 10);
 uniform mat4 u_shadowViewToClip0;
 uniform mat4 u_shadowViewToClip1;
 uniform mat4 u_shadowViewToClip3;
@@ -24,6 +24,30 @@ uniform vec4 u_shadowMeta1;
 uniform vec4 u_shadowMeta3;
 uniform vec4 u_shadowMeta2;
 uniform vec4 u_shadowLightIndices;
+
+#ifdef COIN_SHADOW_EIGHT
+uniform vec4 u_shadowLightIndicesExtra;
+SAMPLER2D(s_shadow4, 12);
+uniform mat4 u_shadowViewToClip4;
+uniform mat4 u_shadowViewToLight4;
+uniform vec4 u_shadowParams4;
+uniform vec4 u_shadowMeta4;
+SAMPLER2D(s_shadow5, 13);
+uniform mat4 u_shadowViewToClip5;
+uniform mat4 u_shadowViewToLight5;
+uniform vec4 u_shadowParams5;
+uniform vec4 u_shadowMeta5;
+SAMPLER2D(s_shadow6, 14);
+uniform mat4 u_shadowViewToClip6;
+uniform mat4 u_shadowViewToLight6;
+uniform vec4 u_shadowParams6;
+uniform vec4 u_shadowMeta6;
+SAMPLER2D(s_shadow7, 15);
+uniform mat4 u_shadowViewToClip7;
+uniform mat4 u_shadowViewToLight7;
+uniform vec4 u_shadowParams7;
+uniform vec4 u_shadowMeta7;
+#endif
 float coinShadowVisibility(vec3 positionView, mat4 viewToClip, mat4 viewToLight,
                            vec4 params, vec4 meta, sampler2D mapTexture)
 {
@@ -87,6 +111,41 @@ void main()
         u_shadowViewToClip3, u_shadowViewToLight3, u_shadowParams3,
         u_shadowMeta3, s_shadow3);
     }
+
+#ifdef COIN_SHADOW_EIGHT
+    if (u_shadowLightIndicesExtra.x >= 0.0) {
+      int index = int(u_shadowLightIndicesExtra.x);
+      vec3 contribution = coinLightContribution(index, v_texcoords4, v_specular,
+        v_viewPosition, v_viewNormal, v_material.x);
+      color.rgb += contribution * coinShadowVisibility(v_viewPosition,
+        u_shadowViewToClip4, u_shadowViewToLight4, u_shadowParams4,
+        u_shadowMeta4, s_shadow4);
+    }
+    if (u_shadowLightIndicesExtra.y >= 0.0) {
+      int index = int(u_shadowLightIndicesExtra.y);
+      vec3 contribution = coinLightContribution(index, v_texcoords4, v_specular,
+        v_viewPosition, v_viewNormal, v_material.x);
+      color.rgb += contribution * coinShadowVisibility(v_viewPosition,
+        u_shadowViewToClip5, u_shadowViewToLight5, u_shadowParams5,
+        u_shadowMeta5, s_shadow5);
+    }
+    if (u_shadowLightIndicesExtra.z >= 0.0) {
+      int index = int(u_shadowLightIndicesExtra.z);
+      vec3 contribution = coinLightContribution(index, v_texcoords4, v_specular,
+        v_viewPosition, v_viewNormal, v_material.x);
+      color.rgb += contribution * coinShadowVisibility(v_viewPosition,
+        u_shadowViewToClip6, u_shadowViewToLight6, u_shadowParams6,
+        u_shadowMeta6, s_shadow6);
+    }
+    if (u_shadowLightIndicesExtra.w >= 0.0) {
+      int index = int(u_shadowLightIndicesExtra.w);
+      vec3 contribution = coinLightContribution(index, v_texcoords4, v_specular,
+        v_viewPosition, v_viewNormal, v_material.x);
+      color.rgb += contribution * coinShadowVisibility(v_viewPosition,
+        u_shadowViewToClip7, u_shadowViewToLight7, u_shadowParams7,
+        u_shadowMeta7, s_shadow7);
+    }
+#endif
   }
   color.rgb = clamp(color.rgb, 0.0, 1.0);
   gl_FragDepth = coinWindowDepth(gl_FragCoord.z);

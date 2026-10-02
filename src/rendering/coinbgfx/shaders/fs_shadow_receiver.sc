@@ -3,8 +3,8 @@ $input v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition,
 #include "coin_depth.sh"
 #include "coin_lighting.sh"
 #include "coin_surface.sh"
-SAMPLER2D(s_shadow0, 10);
-SAMPLER2D(s_shadow1, 11);
+SAMPLER2D(s_shadow0, 8);
+SAMPLER2D(s_shadow1, 9);
 uniform mat4 u_shadowViewToClip0;
 uniform mat4 u_shadowViewToClip1;
 uniform mat4 u_shadowViewToLight0;

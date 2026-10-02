@@ -83,7 +83,7 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 			list(APPEND COIN_RENDER_SOURCES ${_shader_output})
 		endforeach()
 	endforeach()
-	foreach(_shadow_shader vs_shadow_moments fs_shadow_moments vs_shadow_receiver fs_shadow_receiver fs_shadow_receiver4)
+	foreach(_shadow_shader vs_shadow_moments fs_shadow_moments vs_shadow_receiver fs_shadow_receiver fs_shadow_receiver4 fs_shadow_receiver8)
 		if(_shadow_shader MATCHES "^vs_")
 			set(_shadow_type vertex)
 		else()
@@ -105,6 +105,7 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 					--bin2c coin_bgfx_${_shadow_shader}_${_renderer}
 					-i ${COIN_BGFX_SHADER_INCLUDE_DIR}
 				DEPENDS ${_coin_bgfx_shader_dir}/${_shadow_shader}.sc
+					${_coin_bgfx_shader_dir}/fs_shadow_receiver4.sc
 					${_coin_bgfx_shader_dir}/coin_depth.sh
 					${_coin_bgfx_shader_dir}/coin_lighting.sh
 					${_coin_bgfx_shader_dir}/coin_surface.sh

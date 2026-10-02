@@ -238,8 +238,8 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   baixas, mas seu mapa não entrou no shader do grupo. Com as mesmas
   intensidades, BGFX acrescentou 147 com sombra e GL zero. Forçar
   `shadeFactor=1` no oitavo ramo do shader GL não mudou a imagem, confirmando
-  que o ramo nem foi gerado. BGFX e wgpu usam passes em dois lotes e
-  conseguem executar o oitavo mapa neste ambiente; a falta de delta GL não
+  que o ramo nem foi gerado. BGFX e wgpu somam as oito contribuições antes da superfície e do blending
+  (o mecanismo inicial usava dois lotes) e conseguem executar o oitavo mapa neste ambiente; a falta de delta GL não
   evidencia erro nos dois backends.
 
   A divergência inicial da quinta spot veio da normalização VSM: Coin/GL
@@ -315,11 +315,9 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   transparente preservou pixels idênticos nos três renderizadores, nos dez
   modos. A mesma fixture foi repetida com quatro spots de intensidade
   0,25: todos os modos passaram com as mesmas métricas, exercitando os
-  quatro receivers e seus estados de profundidade derivados. Inserir uma
-  quinta spot retorna `UNSUPPORTED` sem alterar pixels nem serial, tanto
-  com material transparente como com textura alfa, nos dois executores;
-  retirar a luz permite continuar a renderização. O perfil admite o
-  mecanismo de objetos e até quatro mapas;
+  quatro receivers e seus estados de profundidade derivados. A extensão de
+  cinco a oito mapas está qualificada na caixa abaixo; uma nona luz é rejeitada
+  antes de publicar o quadro. O perfil admite o mecanismo de objetos e até oito mapas;
   peeling/OIT ainda exige qualificação. A fixture também
   repetiu os dez modos sem nenhum caster opaco; a exclusão manteve pixels
   idênticos em Coin/GL e nos dois backends.
@@ -335,7 +333,7 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   externo descrito na pendência de oito mapas. O build da ponte acompanha
   também `shadow.rs` e `coin_shadow.wgsl` como dependências explícitas.
 - [x] **Alfa de textura estática MODULATE:** o Core aceita texels RGBA com
-  alfa variável no mecanismo de objetos, até quatro mapas, sem unidades
+  alfa variável no mecanismo de objetos, até oito mapas, sem unidades
   extras nem `SoTextureCombine`. A mesma evidência exclui a forma texturizada
   dos casters, como `TRANSP_TEXTURE` no Coin/GL. Uma imagem 2×2 com alfa
   0/128/255 e UVs explícitas passou nos dez modos Coin nos dois executores:
@@ -348,7 +346,7 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   sem nenhum caster opaco. Alfa com DECAL é rejeitado antes da submissão,
   preservando pixels e serial.
 - [x] **Alfa RTT NONE/ALPHA_BLEND:** qualificado no perfil de objetos, RGBA8
-  MODULATE, sem unidades extras nem `SoTextureCombine`, com um e quatro mapas,
+  MODULATE, sem unidades extras nem `SoTextureCombine`, com um, quatro e cinco a oito mapas,
   nos dez modos Coin e nas rotas staged/direct. Composição e sombras consultam
   a mesma decisão Core: `NONE` força classificação opaca; `ALPHA_BLEND` força
   transparência, inclusive quando o produtor entrega somente texels alfa 255.
@@ -368,9 +366,44 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   e serial; após reconfigurar o alvo, a recuperação reproduziu o quadro anterior.
   A regressão de sombras, composição, transparência, RTT e reúso de plano
   passou nos dois backends; a rota RTT direct também passou.
-  `ALPHA_TEST` e alfa com mais de quatro mapas continuam fora deste perfil.
-- [ ] **Transparência e qualidade:** qualificar `ALPHA_TEST`, casters e
-  receivers transparentes com mais de quatro mapas, peeling/OIT e os demais perfis de qualidade. `smoothBorder=1`
+  A extensão de cinco a oito mapas está descrita abaixo. `ALPHA_TEST`
+  continua fora deste perfil.
+- [x] **Transparência com cinco a oito mapas:** os dez modos Coin (0–9)
+  passaram em BGFX/Vulkan, BGFX/OpenGL e wgpu, com alfa de material, textura
+  estática e RTT `ALPHA_BLEND` staged/direct. O Core conserva a decisão única
+  de transparência e exclusão de casters, ampliando o perfil de objetos até oito
+  mapas; MODULATE sem unidades extras nem `SoTextureCombine` continua sendo
+  o contrato qualificado. Os executores somam todas as contribuições antes da
+  modulação da superfície e do blending, em uma submissão por desenho; o fundo
+  é atenuado apenas uma vez. BGFX compõe a variante de oito mapas a partir do
+  shader de quatro e usa stages 8–15. wgpu compõe o shader padrão com os quatro
+  receivers adicionais, retirando quatro bindings de unidades de textura da
+  cena que este perfil não usa; o pipeline permanece dentro do limite padrão
+  de 16 texturas. A revisão privada wgpu 40 registra a nova convenção: somente
+  os dois primeiros receivers usam matrizes de objeto, e os demais usam espaço
+  de vista, incluindo os mapas cinco e seis.
+  A fixture compara quatro e cinco/seis/sete/oito luzes coincidentes com a
+  mesma intensidade total, exigindo erro máximo de três níveis RGBA; os 160
+  casos mediram erro zero em cada uma das três rotas. Desligar a última luz
+  deve alterar os pixels. Isso detecta perda de contribuição,
+  aplicação repetida do alfa e mudanças de ordem. Casters transparentes
+  continuam excluídos, inclusive sem casters opacos; a nona luz preserva pixels
+  e serial ao ser rejeitada. Os casos RTT também verificam mutação/restauração
+  do alfa, falha e recuperação; receivers transparentes dentro de produtores
+  RTT staged/direct continuam recebendo sombra nos dez modos (160 casos por
+  rota). A regressão de sombras, composição, transparência, RTT, anotações
+  e reúso de plano passou nos executores; Naga validou o shader composto e
+  o teste FFI confirmou a revisão privada 40.
+  Cinco, seis e sete mapas têm referência Coin/GL nativa. Para oito, este host
+  compara com sete mapas coincidentes de intensidade total equivalente e
+  verifica a execução de oito mapas na GPU; isso não fecha a comparação com
+  oito mapas Coin/GL nativos, registrada no arquivo de plataformas pendentes.
+  A matriz está em `CoinRenderShadowTransparency5Test` a `8Test`, ou
+  `CoinRenderShadowReferenceTest --transparent-maps N`. Exigir o executor GPU
+  e `COIN_RENDER_REQUIRE_GL_REFERENCE=1`; sem executor explícito, os testes
+  retornam skip 77. No contexto externo capaz de criar oito mapas Coin/GL,
+  `COIN_RENDER_REQUIRE_GL_EIGHT_MAP_REFERENCE=1` desativa o oráculo equivalente.
+- [ ] **Transparência e qualidade:** qualificar `ALPHA_TEST`, peeling/OIT e os demais perfis de qualidade. `smoothBorder=1`
   passou em Coin/GL, BGFX e wgpu com pixels idênticos a `0`: a suavização
   gaussiana está desativada na implementação Coin/GL atual. O Core aceita
   somente os valores 0 e 1. O subperfil
@@ -471,7 +504,8 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   o depth da cena; não viram casters, mesmo com `CASTS_SHADOW`. BGFX reutiliza
   o executor de camadas no produtor direct; a acumulação adicional preserva
   o depth efetivo e a iluminação das shapes sem recepção de sombras.
-  O wgpu aplica a mesma política de depth ao lote adicional. No BGFX, tanto
+  Com a extensão a oito mapas, a soma de iluminação precede o blending
+  na própria submissão do desenho. No BGFX, tanto
   os uniforms quanto o vertex shader mantêm a contribuição da luz adicional
   quando o lookup VSM está desligado.
   A comparação por pixel normaliza GL de baixo para cima e o readback GPU de
@@ -542,6 +576,6 @@ ativos fora dos perfis qualificados de composição por objetos. O perfil atual 
 passes spot/direcionais. A quinta, sexta e sétima spots têm comparação
 Coin/GL; a oitava tem readback e publicação verificados nos dois backends,
 mas ainda requer referência GL com oito mapas. Alfa RTT NONE/ALPHA_BLEND
-está qualificado até quatro mapas; ALPHA_TEST, transparência com mais de quatro
-mapas, peeling/OIT e combinações além dos perfis descritos continuam na matriz
+está qualificado até oito mapas, incluindo alfa de material e textura estática;
+ALPHA_TEST, peeling/OIT e combinações além dos perfis descritos continuam na matriz
 P27.4. Nos casos rejeitados, pixels e serial publicados ficam intactos.

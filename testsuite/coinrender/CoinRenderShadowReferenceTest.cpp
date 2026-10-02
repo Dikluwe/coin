@@ -68,6 +68,8 @@ bool render(SoOffscreenRenderer & gl, SoNode * root,
   rgb.assign(data, data + side * side * 3);
   return true;
 }
+SoSeparator * shadowCompositionConsumer(SoSeparator * scene);
+
 // Exercise the public path with a fresh Action, so capture references held by
 // the main opaque fixtures cannot be invalidated by these additional scenes.
 bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
@@ -166,6 +168,14 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
       groundStyle->style = SoShadowStyle::NO_SHADOWING;
       auto * glClear = static_cast<SoSeparator *>(scene->copy(TRUE));
       glClear->ref();
+      if (shadowLightCount == 8 && !std::getenv("COIN_RENDER_REQUIRE_GL_EIGHT_MAP_REFERENCE")) {
+        for (auto * reference : {glShadow, glClear}) {
+          auto * group = static_cast<SoShadowGroup *>(reference->getChild(2));
+          group->removeChild(7);
+          for (int light = 0; light < 7; ++light)
+            static_cast<SoShadowSpotLight *>(group->getChild(light))->intensity = 1.0f / 7.0f;
+        }
+      }
       SoOffscreenRenderer gl(SbViewportRegion(side, side));
       gl.setComponents(SoOffscreenRenderer::RGB);
       std::vector<unsigned char> shadowPixels, clearPixels;
@@ -184,21 +194,81 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
               << glDelta << '/' << gpuDelta << " qualified=" << qualified << '\n';
     if (!qualified) std::cerr << action.getLastError().getString() << '\n';
   }
-  if (qualified && shadowLightCount == 4) {
+  if (qualified && shadowLightCount > 4) {
+    // Coin blending must see all lighting at once. Splitting the same total
+    // intensity over four or eight coincident lights must not darken the
+    // destination, lose a batch, or change sampled alpha.
+    for (int type = 0; type <= 9 && qualified; ++type) {
+      mode->value = type;
+      groundStyle->style = SoShadowStyle::SHADOWED;
+      action.apply(scene);
+      std::vector<unsigned char> all, four, reduced;
+      target->readbackRGBA(all);
+      auto * last = static_cast<SoShadowSpotLight *>(shadowGroup->getChild(shadowLightCount - 1));
+      last->intensity = 0;
+      action.apply(scene);
+      target->readbackRGBA(reduced);
+      qualified = action.getLastStatus() == CoinRenderAction::SUCCESS && all != reduced;
+      last->intensity = 1.0f / float(shadowLightCount);
+      auto * fourScene = static_cast<SoSeparator *>(scene->copy(TRUE));
+      fourScene->ref();
+      auto * fourGroup = static_cast<SoShadowGroup *>(fourScene->getChild(2));
+      for (int i = shadowLightCount - 1; i >= 4; --i) fourGroup->removeChild(i);
+      for (int i = 0; i < 4; ++i)
+        static_cast<SoShadowSpotLight *>(fourGroup->getChild(i))->intensity = 0.25f;
+      action.apply(fourScene);
+      target->readbackRGBA(four);
+      int maxError = 0;
+      qualified = qualified && action.getLastStatus() == CoinRenderAction::SUCCESS && all.size() == four.size();
+      if (qualified) for (size_t pixel = 0; pixel < all.size(); ++pixel)
+        maxError = std::max(maxError, std::abs(int(all[pixel]) - int(four[pixel])));
+      qualified = qualified && maxError <= 3;
+      fourScene->unref();
+      std::cout << "transparent lighting partition maps=" << shadowLightCount << " rtt=" << rttMode
+        << " alpha_texture=" << alphaTexture << " mode=" << type << " max_error=" << maxError
+        << " last_light_contributes=" << (all != reduced) << " qualified=" << qualified << '\n';
+    }
+    if (shadowLightCount == 8 && !std::getenv("COIN_RENDER_REQUIRE_GL_EIGHT_MAP_REFERENCE"))
+      std::cout << "eight-map GL oracle uses seven coincident maps at equal total intensity; native eight-map GL qualification remains external\n";
+    action.apply(scene);
     std::vector<unsigned char> before, after;
     target->readbackRGBA(before);
     const uint64_t serial = target->getLastSubmissionSerial();
-    SoNode * fifth = spot->copy(TRUE);
-    fifth->ref();
-    shadowGroup->insertChild(fifth, 4);
-    action.apply(scene);
-    target->readbackRGBA(after);
-    qualified = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-      target->getLastSubmissionSerial() == serial && before == after;
-    shadowGroup->removeChild(fifth);
-    fifth->unref();
-    std::cout << "transparent five-map rejection alpha_texture=" << alphaTexture
-              << " preserves publication=" << qualified << '\n';
+    SoNode * ninth = spot->copy(TRUE);
+    ninth->ref();
+    shadowGroup->insertChild(ninth, shadowLightCount);
+    if (shadowLightCount == 8) {
+      action.apply(scene);
+      target->readbackRGBA(after);
+      qualified = qualified && action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+        target->getLastSubmissionSerial() == serial && before == after;
+    }
+    shadowGroup->removeChild(ninth);
+    ninth->unref();
+  }
+  if (qualified && shadowLightCount > 4) {
+    auto * consumer = shadowCompositionConsumer(scene);
+    consumer->ref();
+    for (int type = 0; type <= 9 && qualified; ++type) {
+      mode->value = type;
+      groundStyle->style = SoShadowStyle::SHADOWED;
+      action.apply(consumer);
+      std::vector<unsigned char> shadowed, clear;
+      target->readbackRGBA(shadowed);
+      qualified = action.getLastStatus() == CoinRenderAction::SUCCESS;
+      groundStyle->style = SoShadowStyle::NO_SHADOWING;
+      action.apply(consumer);
+      target->readbackRGBA(clear);
+      int delta = 0;
+      qualified = qualified && action.getLastStatus() == CoinRenderAction::SUCCESS && shadowed.size() == clear.size();
+      if (qualified) for (size_t pixel = 0; pixel < clear.size(); ++pixel)
+        delta = std::max(delta, std::abs(int(shadowed[pixel]) - int(clear[pixel])));
+      qualified = qualified && delta > 10;
+      std::cout << "transparent shadow RTT producer maps=" << shadowLightCount << " rtt=" << rttMode
+        << " alpha_texture=" << alphaTexture << " mode=" << type << " delta=" << delta
+        << " qualified=" << qualified << '\n';
+    }
+    consumer->unref();
   }
   // A second, transparent caster must never enter the moment map. Keep the
   // original opaque caster as a positive map/receiver control.
@@ -964,6 +1034,23 @@ int main(int argc, char ** argv)
   floor->width = floor->height = 6;
   floor->depth = 0.05f;
   ground->addChild(floor);
+
+  if (argc == 3 && std::string(argv[1]) == "--transparent-maps") {
+    if (!std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") &&
+        !std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) {
+      std::cout << "extended shadow transparency requires an explicit GPU qualification run\n";
+      root->unref();
+      return 77;
+    }
+    const int maps = std::atoi(argv[2]);
+    const bool ok = maps >= 5 && maps <= 8 &&
+      qualifyShadowTransparency(root, false, maps) &&
+      qualifyShadowTransparency(root, true, maps) &&
+      qualifyShadowTransparency(root, true, maps, 0) &&
+      qualifyShadowTransparency(root, true, maps, 1);
+    root->unref();
+    return ok ? 0 : 1;
+  }
 
   if (argc == 2 && std::string(argv[1]) == "--alpha-rtt") {
     bool ok = true;

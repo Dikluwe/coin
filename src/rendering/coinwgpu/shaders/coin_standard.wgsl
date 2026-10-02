@@ -185,12 +185,14 @@ fn shade_vertex(mat: GpuMaterial, position_view: vec3<f32>, normal_view: vec3<f3
         if ((u.shadow_params.x > 0.5 && i == u32(u.shadow_meta.y)) ||
             (u.shadow_params_second.x > 0.5 && i == u32(u.shadow_meta_second.y)) ||
             (u.shadow_params_third.x > 0.5 && i == u32(u.shadow_meta_third.y)) ||
-            (u.shadow_params_fourth.x > 0.5 && i == u32(u.shadow_meta_fourth.y))) { continue; }
+            (u.shadow_params_fourth.x > 0.5 && i == u32(u.shadow_meta_fourth.y))
+            /* COIN_EXTRA_SHADOW_OWNS_LIGHT */) { continue; }
         rgb += light_contribution(u.lights[i], mat, position_view, normal_view);
     }
     return vec4<f32>(clamp(rgb, vec3<f32>(0.0), vec3<f32>(1.0)), mat.diffuse.a);
 }
 
+// COIN_EXTRA_SHADOW_DECLARATIONS
 fn vsm_shadow_factor(coord: vec4<f32>, light_view: vec3<f32>,
                      position_view: vec3<f32>, params: vec4<f32>,
                      shadow_info: vec4<f32>, falloff: vec4<f32>,
@@ -384,6 +386,7 @@ fn fragment_color(input: VertexOutput) -> vec4<f32> {
                 u.shadow_falloff_fourth, t_shadow_fourth),
                   vec3<f32>(0.0), vec3<f32>(1.0)), primary.a);
     }
+    // COIN_EXTRA_SHADOW_SURFACE
     if(u.composition_meta.y>0.5){primary.a=1.0;}
     var base_color = primary;
 
@@ -410,6 +413,7 @@ fn fragment_color(input: VertexOutput) -> vec4<f32> {
         let tex = textureSample(t_texture3, s_texture3, uv);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[2], 3u);
     }
+    // COIN_UPPER_TEXTURE_UNITS_BEGIN
     if (u.extra_tex_params[3].x > 0.5) {
         let params = u.extra_tex_params[3];
         let uv = select(input.uv4, vec2<f32>(input.uv4.x, 1.0 - input.uv4.y), params.z > 0.5);
@@ -434,6 +438,7 @@ fn fragment_color(input: VertexOutput) -> vec4<f32> {
         let tex = textureSample(t_texture7, s_texture7, uv);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[6], 7u);
     }
+    // COIN_UPPER_TEXTURE_UNITS_END
     return apply_fog(base_color, -input.position_view.z);
 }
 

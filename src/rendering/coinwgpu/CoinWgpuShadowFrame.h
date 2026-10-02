@@ -116,7 +116,7 @@ struct CoinWgpuShadowFrame : CoinWgpuShadowPass {
         receiver.lighting_index = pass.lightingIndexByState[stateSlot];
         receiver.max_shadow_distance = pass.maxShadowDistance;
         receiver.distance_falloff_coefficient = pass.distanceFalloffCoefficient;
-        const SbMatrix modelView = passSlot % 4 < 2 ? state.model * pass.view :
+        const SbMatrix modelView = passSlot < 2 ? state.model * pass.view :
           state.view.inverse() * pass.view;
         const SbMatrix mvp = modelView * projectionWgpu;
         std::memcpy(receiver.model_view, modelView.getValue(),

@@ -3,6 +3,7 @@ $output v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition
 #include <bgfx_shader.sh>
 #include "coin_lighting.sh"
 uniform vec4 u_shadowLightIndices;
+uniform vec4 u_shadowLightIndicesExtra;
 void main()
 {
   gl_Position = mul(u_modelViewProj, vec4(a_position, 1.0)) * (a_texcoord3.z > 0.0 ? a_texcoord3.z : 1.0);
@@ -16,7 +17,11 @@ void main()
     if (abs(float(i) - u_shadowLightIndices.x) < 0.5 ||
         abs(float(i) - u_shadowLightIndices.y) < 0.5 ||
         abs(float(i) - u_shadowLightIndices.z) < 0.5 ||
-        abs(float(i) - u_shadowLightIndices.w) < 0.5) continue;
+        abs(float(i) - u_shadowLightIndices.w) < 0.5 ||
+        abs(float(i) - u_shadowLightIndicesExtra.x) < 0.5 ||
+        abs(float(i) - u_shadowLightIndicesExtra.y) < 0.5 ||
+        abs(float(i) - u_shadowLightIndicesExtra.z) < 0.5 ||
+        abs(float(i) - u_shadowLightIndicesExtra.w) < 0.5) continue;
     color += coinLightContribution(i, a_color0, a_color2, a_texcoord1,
                                    a_texcoord2, a_texcoord3.x);
   }

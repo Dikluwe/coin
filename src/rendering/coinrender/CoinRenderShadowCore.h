@@ -539,7 +539,7 @@ coin_render_shadow_object_profile(
       if (shadows.passes.size() > 4 &&
           (state.textureModel != CoinRenderTextureModel::MODULATE ||
            state.textureCombines[0].instructions[0][0] != 0.0f)) {
-        diagnostic = "Extra shadow batch requires linear MODULATE texture";
+        diagnostic = "Five to eight shadow maps require linear MODULATE texture";
         return false;
       }
       if (state.textureImageSlot >= frame.textures.size() ||
@@ -578,10 +578,10 @@ coin_render_shadow_object_profile(
       return false;
     }
     if (!draw.shadowLightSlot && coin_render_shadow_transparent_shape(frame, state) &&
-        (lightCount > 4 || state.transparencyType < 0 || state.transparencyType > 9 ||
+        (state.transparencyType < 0 || state.transparencyType > 9 ||
          (frame.transparency.mode != COIN_RENDER_TRANSPARENCY_COIN &&
           frame.transparency.mode != COIN_RENDER_TRANSPARENCY_OBJECT))) {
-      diagnostic = "Transparent shadow receivers require the object mechanism and at most four maps";
+      diagnostic = "Transparent shadow receivers require the object mechanism and at most eight maps";
       return false;
     }
     if (draw.shadowLightSlot) continue;

@@ -80,7 +80,7 @@ private:
   CoinRenderSubmitResult submitInternal(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
                               const CoinRenderFrameReuseDecision & reuse, CoinRenderReadbackTicket * ticket);
   bool resize(int width, int height);
-  bool prepareShadowPrograms(bool extended);
+  bool prepareShadowPrograms(size_t mapCount);
   CoinRenderBackendStatus checkRuntimeFailure(const char * operation);
   void destroyResources();
   void shutdownRuntime();
@@ -110,8 +110,7 @@ private:
   void bindShadowReceiver(const CoinRenderFramePlan & frame,
                           const CoinRenderShadowPlan & shadowPlan,
                           const std::vector<bgfx::FrameBufferHandle> & shadowMaps,
-                          const CoinBgfxDraw & draw, int targetHeight,
-                          size_t firstPass = 0, bool additive = false);
+                          const CoinBgfxDraw & draw, int targetHeight);
   bool onApiThread() const;
   CoinRenderBackendStatus status;
 
@@ -145,15 +144,17 @@ private:
   bgfx::ProgramHandle shadowMomentsProgram;
   bgfx::ProgramHandle shadowReceiverProgram;
   bgfx::ProgramHandle shadowReceiverProgram4;
+  bgfx::ProgramHandle shadowReceiverProgram8;
   bgfx::UniformHandle shadowModelViewUniform;
   bgfx::UniformHandle shadowClipModelViewUniform;
   bgfx::UniformHandle shadowDepthUniform;
   bgfx::UniformHandle shadowLightIndicesUniform;
-  bgfx::UniformHandle shadowViewToClipUniform[4];
-  bgfx::UniformHandle shadowViewToLightUniform[4];
-  bgfx::UniformHandle shadowParamsUniform[4];
-  bgfx::UniformHandle shadowMetaUniform[4];
-  bgfx::UniformHandle shadowSampler[4];
+  bgfx::UniformHandle shadowLightIndicesExtraUniform;
+  bgfx::UniformHandle shadowViewToClipUniform[8];
+  bgfx::UniformHandle shadowViewToLightUniform[8];
+  bgfx::UniformHandle shadowParamsUniform[8];
+  bgfx::UniformHandle shadowMetaUniform[8];
+  bgfx::UniformHandle shadowSampler[8];
   bgfx::ProgramHandle depthReadProgram;
   bgfx::UniformHandle readDepthSampler;
   bgfx::FrameBufferHandle depthReadFrameBuffer;
