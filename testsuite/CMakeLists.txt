@@ -158,6 +158,22 @@ target_include_directories(SoPathRangeTest PRIVATE
   ${PROJECT_BINARY_DIR}/include
   ${COIN_TARGET_INCLUDE_DIRECTORIES})
 add_test(NAME SoPathRange COMMAND SoPathRangeTest)
+# Keep this regression test in a fresh process: the unfixed implementation corrupts
+# SoTempPath's internal empty-list storage before ordinary assertions can
+# observe the violation.
+add_executable(SoTempPathReplaceTailTest
+  reproducers/sotemppath-empty-replace-tail/repro.cpp)
+target_link_libraries(SoTempPathReplaceTailTest
+  Coin ${COIN_TARGET_LINK_LIBRARIES})
+target_include_directories(SoTempPathReplaceTailTest PRIVATE
+  ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+  ${COIN_TARGET_INCLUDE_DIRECTORIES})
+add_test(NAME SoTempPathReplaceTail_valid_sentinel
+  COMMAND SoTempPathReplaceTailTest valid-sentinel)
+add_test(NAME SoTempPathReplaceTail_valid_replacement
+  COMMAND SoTempPathReplaceTailTest valid-replacement)
+add_test(NAME SoTempPathReplaceTail_empty_noop
+  COMMAND SoTempPathReplaceTailTest empty-noop)
 # Process-isolated public behavior checks. Keeping each invalid access in its
 # own CTest process prevents one unsafe access from masking the remaining
 # boundary classes.
