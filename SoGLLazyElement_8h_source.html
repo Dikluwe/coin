@@ -325,7 +325,7 @@ $(function(){initNavTree('SoGLLazyElement_8h_source.html',''); initResizable(); 
 <div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>  <span class="keyword">mutable</span> <span class="keyword">const</span> uint32_t * packedpointer;</div>
 <div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>  uint32_t transpmask;</div>
 <div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>  <a class="code hl_class" href="classSoState.html">SoState</a> * state;</div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>  SoGLLazyElementP * pimpl; <span class="comment">// for future use</span></div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>  SoGLLazyElementP * pimpl; <span class="comment">// holds a stack of saved caching scopes, see beginCaching()/endCaching()</span></div>
 <div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>};</div>
 </div>
 <div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span> </div>
@@ -337,9 +337,9 @@ $(function(){initNavTree('SoGLLazyElement_8h_source.html',''); initResizable(); 
 <div class="ttc" id="aclassSoGLLazyElement_html"><div class="ttname"><a href="classSoGLLazyElement.html">SoGLLazyElement</a></div><div class="ttdoc">The SoGLLazyElement class is meant to optimize GL rendering.</div><div class="ttdef"><b>Definition</b> SoGLLazyElement.h:43</div></div>
 <div class="ttc" id="aclassSoGLRenderCache_html"><div class="ttname"><a href="classSoGLRenderCache.html">SoGLRenderCache</a></div><div class="ttdoc">The SoGLRenderCache class is used to cache OpenGL calls.</div><div class="ttdef"><b>Definition</b> SoGLRenderCache.h:43</div></div>
 <div class="ttc" id="aclassSoLazyElement_html"><div class="ttname"><a href="classSoLazyElement.html">SoLazyElement</a></div><div class="ttdoc">The SoLazyElement class is used to handle material and shape properties.</div><div class="ttdef"><b>Definition</b> SoLazyElement.h:48</div></div>
-<div class="ttc" id="aclassSoLazyElement_html_a5ccd6bd19bd80c8608f030bdf8ec0747"><div class="ttname"><a href="classSoLazyElement.html#a5ccd6bd19bd80c8608f030bdf8ec0747">SoLazyElement::push</a></div><div class="ttdeci">void push(SoState *state) override</div><div class="ttdef"><b>Definition</b> SoLazyElement.cpp:198</div></div>
-<div class="ttc" id="aclassSoLazyElement_html_a6b69b39892b8124477d9ff3998f9b208"><div class="ttname"><a href="classSoLazyElement.html#a6b69b39892b8124477d9ff3998f9b208">SoLazyElement::init</a></div><div class="ttdeci">void init(SoState *state) override</div><div class="ttdef"><b>Definition</b> SoLazyElement.cpp:163</div></div>
-<div class="ttc" id="aclassSoLazyElement_html_a8a9cb64b2a702f8bd9910c39718015b0"><div class="ttname"><a href="classSoLazyElement.html#a8a9cb64b2a702f8bd9910c39718015b0">SoLazyElement::initClass</a></div><div class="ttdeci">static void initClass()</div><div class="ttdef"><b>Definition</b> SoLazyElement.cpp:132</div></div>
+<div class="ttc" id="aclassSoLazyElement_html_a5ccd6bd19bd80c8608f030bdf8ec0747"><div class="ttname"><a href="classSoLazyElement.html#a5ccd6bd19bd80c8608f030bdf8ec0747">SoLazyElement::push</a></div><div class="ttdeci">void push(SoState *state) override</div><div class="ttdef"><b>Definition</b> SoLazyElement.cpp:205</div></div>
+<div class="ttc" id="aclassSoLazyElement_html_a6b69b39892b8124477d9ff3998f9b208"><div class="ttname"><a href="classSoLazyElement.html#a6b69b39892b8124477d9ff3998f9b208">SoLazyElement::init</a></div><div class="ttdeci">void init(SoState *state) override</div><div class="ttdef"><b>Definition</b> SoLazyElement.cpp:170</div></div>
+<div class="ttc" id="aclassSoLazyElement_html_a8a9cb64b2a702f8bd9910c39718015b0"><div class="ttname"><a href="classSoLazyElement.html#a8a9cb64b2a702f8bd9910c39718015b0">SoLazyElement::initClass</a></div><div class="ttdeci">static void initClass()</div><div class="ttdef"><b>Definition</b> SoLazyElement.cpp:139</div></div>
 <div class="ttc" id="aclassSoNode_html"><div class="ttname"><a href="classSoNode.html">SoNode</a></div><div class="ttdoc">The SoNode class is the base class for nodes used in scene graphs.</div><div class="ttdef"><b>Definition</b> SoNode.h:56</div></div>
 <div class="ttc" id="aclassSoState_html"><div class="ttname"><a href="classSoState.html">SoState</a></div><div class="ttdoc">The SoState class manages the Coin scene graph traversal state data.</div><div class="ttdef"><b>Definition</b> SoState.h:44</div></div>
 <div class="ttc" id="astructSoGLLazyElement_1_1GLState_html"><div class="ttname"><a href="structSoGLLazyElement_1_1GLState.html">SoGLLazyElement::GLState</a></div><div class="ttdef"><b>Definition</b> SoGLLazyElement.h:77</div></div>
@@ -349,7 +349,7 @@ $(function(){initNavTree('SoGLLazyElement_8h_source.html',''); initResizable(); 
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_469ed70aca823fd8322768ad54869f94.html">Inventor</a></li><li class="navelem"><a class="el" href="dir_4be52554de5475a620e8b38d2057de84.html">elements</a></li><li class="navelem"><b>SoGLLazyElement.h</b></li>
-    <li class="footer">Generated on Wed Sep 2 2026 19:18:19 for Coin by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
+    <li class="footer">Generated on Fri Oct 2 2026 19:45:17 for Coin by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
   </ul>
 </div>
 </body>

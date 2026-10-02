@@ -4066,6 +4066,13 @@
       <type></type>
       <name>SbHeap</name>
       <anchorfile>classSbHeap.html</anchorfile>
+      <anchor>aa077fc3f331e01331f25a6f4af92e5f9</anchor>
+      <arglist>(const SbHeap &amp;heap)</arglist>
+    </member>
+    <member kind="function">
+      <type></type>
+      <name>SbHeap</name>
+      <anchorfile>classSbHeap.html</anchorfile>
       <anchor>ac2992274d2b95a4fc4c9e596a43fa810</anchor>
       <arglist>(const SbHeapFuncs &amp;SbHeapFuncs, const int initsize=1024)</arglist>
     </member>
@@ -4117,6 +4124,13 @@
       <anchorfile>classSbHeap.html</anchorfile>
       <anchor>a48c0b4f7e527bb6dbe4139ab88c9e6ba</anchor>
       <arglist>(void *obj, int hpos=-1)</arglist>
+    </member>
+    <member kind="function">
+      <type>SbHeap &amp;</type>
+      <name>operator=</name>
+      <anchorfile>classSbHeap.html</anchorfile>
+      <anchor>a3b9ce3191dfa800ec6af420c1d7f7453</anchor>
+      <arglist>(const SbHeap &amp;heap)</arglist>
     </member>
     <member kind="function">
       <type>void *</type>
@@ -30440,6 +30454,38 @@
     </member>
   </compound>
   <compound kind="class">
+    <name>SoFullPathView</name>
+    <filename>classSoFullPathView.html</filename>
+    <member kind="function">
+      <type>int</type>
+      <name>getIndexFromTail</name>
+      <anchorfile>classSoFullPathView.html</anchorfile>
+      <anchor>a7fbec968328ae22adcb8293a31c7e1a5</anchor>
+      <arglist>(const int index) const</arglist>
+    </member>
+    <member kind="function">
+      <type>int</type>
+      <name>getLength</name>
+      <anchorfile>classSoFullPathView.html</anchorfile>
+      <anchor>a4c0fe03781d2f35a888fc0a1baf5cbff</anchor>
+      <arglist>(void) const</arglist>
+    </member>
+    <member kind="function">
+      <type>SoNode *</type>
+      <name>getNodeFromTail</name>
+      <anchorfile>classSoFullPathView.html</anchorfile>
+      <anchor>a5a040f299601881f9e4086b5b0b14607</anchor>
+      <arglist>(const int index) const</arglist>
+    </member>
+    <member kind="function">
+      <type>SoNode *</type>
+      <name>getTail</name>
+      <anchorfile>classSoFullPathView.html</anchorfile>
+      <anchor>ae5ec5be8248034f5ec9553ebb3b9abfd</anchor>
+      <arglist>(void) const</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
     <name>SoGate</name>
     <filename>classSoGate.html</filename>
     <base>SoEngine</base>
@@ -34436,6 +34482,12 @@
       <anchor>ab318debd5fb749f9fcc16487522b860ca10f40549a0473dbc8692c998b41feef5</anchor>
       <arglist></arglist>
     </member>
+    <member kind="enumvalue">
+      <name>WEIGHTED_BLEND</name>
+      <anchorfile>classSoGLRenderAction.html</anchorfile>
+      <anchor>ab318debd5fb749f9fcc16487522b860ca2bc1a4feb3a04a4f55784b45bfb2c4fe</anchor>
+      <arglist></arglist>
+    </member>
     <member kind="enumeration">
       <type></type>
       <name>TransparentDelayedObjectRenderType</name>
@@ -34453,6 +34505,12 @@
       <name>NONSOLID_SEPARATE_BACKFACE_PASS</name>
       <anchorfile>classSoGLRenderAction.html</anchorfile>
       <anchor>aca1a078631b10e969ddcb4a156b93863aee00f0cc1104f13934bc9fc793ea63cd</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>WEIGHTED_BLEND</name>
+      <anchorfile>classSoGLRenderAction.html</anchorfile>
+      <anchor>ab318debd5fb749f9fcc16487522b860ca2bc1a4feb3a04a4f55784b45bfb2c4fe</anchor>
       <arglist></arglist>
     </member>
     <member kind="function">
@@ -52882,6 +52940,13 @@
       <anchorfile>classSoPath.html</anchorfile>
       <anchor>ae0f4de2f26dffbecda41eb4ef4faa6c8</anchor>
       <arglist>(const SoNode *const node) const</arglist>
+    </member>
+    <member kind="function">
+      <type>SoFullPathView</type>
+      <name>fullPath</name>
+      <anchorfile>classSoPath.html</anchorfile>
+      <anchor>a4ecf9b16bb5ee9f843e6b961e2352208</anchor>
+      <arglist>(void) const</arglist>
     </member>
     <member kind="function">
       <type>SoNode *</type>
@@ -89929,6 +89994,7 @@
     <class kind="class">SoDB</class>
     <class kind="class">SoFieldContainer</class>
     <class kind="class">SoFullPath</class>
+    <class kind="class">SoFullPathView</class>
     <class kind="class">SoInput</class>
     <class kind="class">SoInteraction</class>
     <class kind="class">SoJavaScriptEngine</class>
@@ -90436,8 +90502,8 @@
       <type>void</type>
       <name>cc_xml_doc::cc_xml_doc_get_filter_cb</name>
       <anchorfile>group__coin__XML.html</anchorfile>
-      <anchor>gaf233557263433cc126ab09e3d1f214da</anchor>
-      <arglist>(const cc_xml_doc *doc, cc_xml_filter_cb *&amp;cb, void *&amp;userdata)</arglist>
+      <anchor>ga9832dc0e3d3a8ca5893d08f4878277bd</anchor>
+      <arglist>(const cc_xml_doc *doc, cc_xml_filter_cb **cb, void **userdata)</arglist>
     </member>
     <member kind="function">
       <type>cc_xml_doc *</type>
