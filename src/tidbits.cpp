@@ -121,7 +121,7 @@
       - http://www.apache.org
 
 
-   6) Caolán McNamara's (GNU GPL?):
+   6) Caolan McNamara's (GNU GPL?):
 
       - http://www.csn.ul.ie/~caolan/publink/snprintf-1.1.tar.gz
 
@@ -1386,8 +1386,6 @@ coin_get_stderr(void)
 SbBool
 coin_locale_set_portable(cc_string * storeold)
 {
-  const char * loc;
-
   const char * deflocale = setlocale(LC_NUMERIC, NULL);
   if (strcmp(deflocale, "C") == 0) { return FALSE; }
 
@@ -1396,16 +1394,16 @@ coin_locale_set_portable(cc_string * storeold)
   cc_string_construct(storeold);
   cc_string_set_text(storeold, deflocale);
 
-  loc = setlocale(LC_NUMERIC, "C");
-  assert(loc != NULL && "could not set locale to supposed portable C locale");
+  if (setlocale(LC_NUMERIC, "C") == NULL) {
+    assert(!"could not set locale to supposed portable C locale");
+  }
   return TRUE;
 }
 
 void
 coin_locale_reset(cc_string * storedold)
 {
-  const char * l = setlocale(LC_NUMERIC, cc_string_get_text(storedold));
-  assert(l != NULL && "could not reset locale");
+  if (!setlocale(LC_NUMERIC, cc_string_get_text(storedold))) assert(!"could not reset locale");
   cc_string_clean(storedold);
 }
 

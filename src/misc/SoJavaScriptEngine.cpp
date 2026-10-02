@@ -162,13 +162,11 @@ static void printJSException(JSContext *cx)
     return;
   }
 
-  SbBool ok;
   /* Todo: we loose unicode information here */
   cstr = spidermonkey()->JS_GetStringBytes(s);
   if (!cstr) {
     SoDebugError::postWarning("printJSException", "could not get string bytes");
-    ok = spidermonkey()->JS_RemoveRoot(cx, &s);
-    assert(ok && "JS_RemoveRoot failed");
+    if (!spidermonkey()->JS_RemoveRoot(cx, &s)) assert(!"JS_RemoveRoot failed");
     return;
   }
   len = spidermonkey()->JS_GetStringLength(s);
@@ -179,11 +177,9 @@ static void printJSException(JSContext *cx)
   */
   // FIXME: this looks ugly. 20050719 erikgors.
   // FIXME: indeed it does. we shouldn't use stderr directly anywhere, for starters.  -mortene.
-  const size_t wrote = fwrite(cstr, 1, len, stderr);
-  assert(wrote == len);
+  if (fwrite(cstr, 1, len, stderr) != len) assert(false);
   (void)fprintf(stderr, "\n");
-  ok = spidermonkey()->JS_RemoveRoot(cx, &s);
-  assert(ok && "JS_RemoveRoot failed");
+  if (!spidermonkey()->JS_RemoveRoot(cx, &s)) assert(!"JS_RemoveRoot failed");
 }
 
 /*!

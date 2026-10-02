@@ -55,6 +55,7 @@
 #include "tidbitsp.h"
 #include "engines/SoSubEngineP.h"
 #include "misc/SbHash.h"
+#include "coindefs.h"
 
 // *************************************************************************
 
@@ -663,8 +664,7 @@ register_convertfunc(convert_func * f, SoType from, SoType to)
 {
   SoDB::addConverter(from, to, SoConvertAll::getClassTypeId());
   uint32_t val = (static_cast<uint32_t>(from.getKey()) << 16) + to.getKey();
-  SbBool nonexist = convertfunc_dict->put(val, f);
-  assert(nonexist);
+  if (!convertfunc_dict->put(val, f)) assert(false);
 }
 
 extern "C" {
@@ -1159,7 +1159,7 @@ SoConvertAll::~SoConvertAll()
 }
 
 SoField *
-SoConvertAll::getInput(SoType type)
+SoConvertAll::getInput(SoType COIN_UNUSED_ARG(type))
 {
 #if COIN_DEBUG
   SoType inputtype = this->input->getTypeId();
@@ -1177,7 +1177,7 @@ SoConvertAll::getInput(SoType type)
 }
 
 SoEngineOutput *
-SoConvertAll::getOutput(SoType type)
+SoConvertAll::getOutput(SoType COIN_UNUSED_ARG(type))
 {
 #if COIN_DEBUG
   SoType outputtype = this->output.getConnectionType();
