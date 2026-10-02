@@ -265,6 +265,18 @@ uint64_t drawState(const CoinBgfxDraw & draw)
   return state;
 }
 
+uint64_t shadowAdditiveState(const CoinBgfxDraw & draw)
+{
+  uint64_t state = drawState(draw);
+  const uint64_t depth = draw.depthTest && draw.depthWrite ?
+    BGFX_STATE_DEPTH_TEST_EQUAL : (state & BGFX_STATE_DEPTH_TEST_MASK);
+  state &= ~(BGFX_STATE_WRITE_Z | BGFX_STATE_WRITE_A |
+             BGFX_STATE_DEPTH_TEST_MASK | BGFX_STATE_BLEND_MASK);
+  return state | BGFX_STATE_WRITE_RGB | depth |
+    BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_ONE, BGFX_STATE_BLEND_ONE);
+}
+
+
 struct LogicalDrawStats {
   uint32_t opaqueDraws = 0;
   uint32_t transparentDraws = 0;
@@ -1567,8 +1579,11 @@ CoinBgfxBackend::encodeOverlayLayers(
   bgfx::DynamicIndexBufferHandle indices,
   bgfx::FrameBufferHandle output,
   const std::vector<bgfx::TextureHandle> & textures,
-  bgfx::ViewId & nextView)
+  bgfx::ViewId & nextView, int width, int height,
+  const CoinRenderFramePlan & frame, const CoinRenderShadowPlan & shadowPlan,
+  const std::vector<bgfx::FrameBufferHandle> & shadowMaps)
 {
+  const bool hasShadows = !shadowPlan.passes.empty();
   uint32_t encodedLayer = 0;
   for (const CoinBgfxDraw & layerDraw : draws) {
     if (layerDraw.renderLayer == 0 || layerDraw.renderLayer == encodedLayer) continue;
@@ -1585,10 +1600,10 @@ CoinBgfxBackend::encodeOverlayLayers(
       }
     }
     int32_t clipped[4];
-    if (barrier && CoinBgfxLowering::clipViewport(barrier->viewport, this->width,
-                                               this->height, clipped)) {
+    if (barrier && CoinBgfxLowering::clipViewport(barrier->viewport, width,
+                                               height, clipped)) {
       const bgfx::ViewId clearView = nextView++;
-      const int32_t top = this->height - clipped[1] - clipped[3];
+      const int32_t top = height - clipped[1] - clipped[3];
       bgfx::setViewName(clearView, "overlay_depth_clear");
       bgfx::setViewMode(clearView, bgfx::ViewMode::Sequential);
       bgfx::setViewRect(clearView, static_cast<uint16_t>(clipped[0]),
@@ -1606,22 +1621,34 @@ CoinBgfxBackend::encodeOverlayLayers(
     const bgfx::ViewId overlayView = nextView++;
     bgfx::setViewName(overlayView, "overlay_immediate");
     bgfx::setViewMode(overlayView, bgfx::ViewMode::Sequential);
-    bgfx::setViewRect(overlayView, 0, 0, static_cast<uint16_t>(this->width),
-                      static_cast<uint16_t>(this->height));
+    bgfx::setViewRect(overlayView, 0, 0, static_cast<uint16_t>(width),
+                      static_cast<uint16_t>(height));
     bgfx::setViewFrameBuffer(overlayView, output);
     bgfx::setViewClear(overlayView, BGFX_CLEAR_NONE);
     bgfx::setViewTransform(overlayView, nullptr, nullptr);
     bgfx::touch(overlayView);
     for (const CoinBgfxDraw & draw : draws) {
-      if (draw.renderLayer != encodedLayer || false) continue;
+      if (draw.renderLayer != encodedLayer) continue;
       bgfx::setTransform(draw.mvp);
       bgfx::setVertexBuffer(0, vertices);
       bgfx::setIndexBuffer(indices, draw.firstIndex, draw.indexCount);
       bgfx::setState(drawState(draw));
-      if (!setDrawScissor(draw, this->width, this->height)) continue;
+      if (!setDrawScissor(draw, width, height)) continue;
       this->bindDrawTexture(draw, textures);
-      this->bindDrawLighting(draw);
-      bgfx::submit(overlayView, this->program);
+      if (hasShadows) this->bindShadowReceiver(frame, shadowPlan, shadowMaps, draw, height);
+      else this->bindDrawLighting(draw, height);
+      bgfx::submit(overlayView, hasShadows ? (shadowPlan.passes.size() > 2 ?
+        this->shadowReceiverProgram4 : this->shadowReceiverProgram) : this->program);
+      if (shadowPlan.passes.size() > 4) {
+        bgfx::setTransform(draw.mvp);
+        bgfx::setVertexBuffer(0, vertices);
+        bgfx::setIndexBuffer(indices, draw.firstIndex, draw.indexCount);
+        bgfx::setState(shadowAdditiveState(draw));
+        if (!setDrawScissor(draw, width, height)) continue;
+        this->bindDrawTexture(draw, textures);
+        this->bindShadowReceiver(frame, shadowPlan, shadowMaps, draw, height, 4, true);
+        bgfx::submit(overlayView, this->shadowReceiverProgram4);
+      }
     }
   }
   return true;
@@ -1686,13 +1713,15 @@ CoinBgfxBackend::bindShadowReceiver(
        passSlot < std::min(firstPass + 4, shadowPlan.passes.size()); ++passSlot) {
     const size_t slot = passSlot - firstPass;
     const auto & pass = shadowPlan.passes[passSlot];
-    if (state.shadowGroupSlot != pass.groupSlot ||
-        (state.shadowStyle & 2u) == 0) continue;
+    if (state.shadowGroupSlot != pass.groupSlot) continue;
     const int32_t index = pass.lightingIndexByState[original.renderStateSlot];
     if (index < 0) continue;
-    if (additive && index >= 0)
+    // Every batch contributes its light, even when the shape does not receive
+    // shadows. Only the VSM lookup is controlled by the SHADOWED bit.
+    if (additive)
       shaded.lightColorIntensity[index][3] =
         pass.resolvedLightByState[original.renderStateSlot].intensity;
+    if ((state.shadowStyle & 2u) == 0) continue;
     indices[slot] = static_cast<float>(index);
     const SbMatrix viewToLight = state.view.inverse() * pass.view;
     const SbMatrix projection = bgfx::getCaps()->homogeneousDepth ? pass.projectionCoin :
@@ -2136,12 +2165,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       bgfx::setTransform(draw.mvp);
       bgfx::setVertexBuffer(0, vb);
       bgfx::setIndexBuffer(ib, draw.firstIndex, draw.indexCount);
-      uint64_t state = drawState(draw);
-      state &= ~(BGFX_STATE_WRITE_Z | BGFX_STATE_WRITE_A |
-                 BGFX_STATE_DEPTH_TEST_MASK | BGFX_STATE_BLEND_MASK);
-      state |= BGFX_STATE_WRITE_RGB | BGFX_STATE_DEPTH_TEST_EQUAL |
-               BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_ONE, BGFX_STATE_BLEND_ONE);
-      bgfx::setState(state);
+      bgfx::setState(shadowAdditiveState(draw));
       if (!setDrawScissor(draw, this->width, this->height)) continue;
       this->bindDrawTexture(draw, textures);
       this->bindShadowReceiver(frame, shadowPlan, shadowMaps.buffers,
@@ -2209,7 +2233,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   }
   if (!this->encodeOverlayLayers(draws, vb, ib,
         this->presentToWindow ? windowFrameBuffer : this->frameBuffer,
-        textures, nextView)) {
+        textures, nextView, this->width, this->height, frame, shadowPlan, shadowMaps.buffers)) {
     destroyTextures();
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
   }
@@ -2678,13 +2702,13 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     }
   }
 
-  bgfx::VertexBufferHandle vb = BGFX_INVALID_HANDLE;
-  bgfx::IndexBufferHandle ib = BGFX_INVALID_HANDLE;
+  bgfx::DynamicVertexBufferHandle vb = BGFX_INVALID_HANDLE;
+  bgfx::DynamicIndexBufferHandle ib = BGFX_INVALID_HANDLE;
   if (!plan.draws.empty()) {
-    vb = bgfx::createVertexBuffer(bgfx::copy(plan.vertices.data(),
+    vb = bgfx::createDynamicVertexBuffer(bgfx::copy(plan.vertices.data(),
       static_cast<uint32_t>(plan.vertices.size() * sizeof(CoinBgfxVertex))),
       this->layout);
-    ib = bgfx::createIndexBuffer(bgfx::copy(plan.indices.data(),
+    ib = bgfx::createDynamicIndexBuffer(bgfx::copy(plan.indices.data(),
       static_cast<uint32_t>(plan.indices.size() * sizeof(uint32_t))),
       BGFX_BUFFER_INDEX32);
   }
@@ -2817,7 +2841,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
   bgfx::setViewClear(opaqueView, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 1.0f, 0, 0);
   bgfx::touch(opaqueView);
   for (const CoinBgfxDraw & draw : plan.draws) {
-    if (draw.blend && draw.deferred) continue;
+    if (draw.renderLayer != 0 || (draw.blend && draw.deferred)) continue;
     bgfx::setTransform(draw.mvp);
     bgfx::setVertexBuffer(0, vb);
     bgfx::setIndexBuffer(ib, draw.firstIndex, draw.indexCount);
@@ -2840,16 +2864,11 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     bgfx::setViewClear(additiveView, BGFX_CLEAR_NONE);
     bgfx::setViewTransform(additiveView, nullptr, nullptr);
     for (const CoinBgfxDraw & draw : plan.draws) {
-      if (draw.blend && draw.deferred) continue;
+      if (draw.renderLayer != 0 || (draw.blend && draw.deferred)) continue;
       bgfx::setTransform(draw.mvp);
       bgfx::setVertexBuffer(0, vb);
       bgfx::setIndexBuffer(ib, draw.firstIndex, draw.indexCount);
-      uint64_t state = drawState(draw);
-      state &= ~(BGFX_STATE_WRITE_Z | BGFX_STATE_WRITE_A |
-                 BGFX_STATE_DEPTH_TEST_MASK | BGFX_STATE_BLEND_MASK);
-      state |= BGFX_STATE_WRITE_RGB | BGFX_STATE_DEPTH_TEST_EQUAL |
-               BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_ONE, BGFX_STATE_BLEND_ONE);
-      bgfx::setState(state);
+      bgfx::setState(shadowAdditiveState(draw));
       if (!setDrawScissor(draw, size[0], size[1])) continue;
       this->bindDrawTexture(draw, textures);
       this->bindShadowReceiver(frame, shadowPlan, shadowMaps.buffers,
@@ -2865,7 +2884,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
   bgfx::setViewFrameBuffer(transparentView, output);
   bgfx::setViewClear(transparentView, BGFX_CLEAR_NONE);
   for (const CoinBgfxDraw & draw : plan.draws) {
-    if (!draw.blend || !draw.deferred) continue;
+    if (draw.renderLayer != 0 || !draw.blend || !draw.deferred) continue;
     bgfx::setTransform(draw.mvp);
     bgfx::setVertexBuffer(0, vb);
     bgfx::setIndexBuffer(ib, draw.firstIndex, draw.indexCount);
@@ -2876,6 +2895,12 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     else this->bindDrawLighting(draw, size[1]);
     bgfx::submit(transparentView, hasShadows ? (shadowPlan.passes.size() > 2 ?
       this->shadowReceiverProgram4 : this->shadowReceiverProgram) : this->program);
+  }
+  bgfx::ViewId nextView = transparentView + 1;
+  if (!this->encodeOverlayLayers(plan.draws, vb, ib, output, textures, nextView,
+                                size[0], size[1], frame, shadowPlan, shadowMaps.buffers)) {
+    cleanupDirect();
+    return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
   }
   bgfx::frame();
   for (size_t i = 0; i < textures.size(); ++i)

@@ -157,13 +157,13 @@ CoinRenderFramePlanBuilder::reset()
 }
 
 void
-CoinRenderFramePlanBuilder::beginAnnotation()
+CoinRenderFramePlanBuilder::beginAnnotation(bool clearDepth)
 {
   if (this->annotationDepth++ == 0) {
     this->savedAnnotationLayer = this->currentAnnotationLayer;
     this->savedAnnotationClear = this->annotationDepthClearPending;
     this->currentAnnotationLayer = this->nextAnnotationLayer++;
-    this->annotationDepthClearPending = true;
+    this->annotationDepthClearPending = clearDepth;
     this->hasActiveDraw = false;
   }
 }
@@ -242,7 +242,12 @@ CoinRenderFramePlanBuilder::endShadowGroup()
 void
 CoinRenderFramePlanBuilder::recordShadowLight(const CoinRenderShadowLightSnapshot & light)
 {
-  this->currentPlan.shadowLights.push_back(light);
+  // GL searches every descendant light for each active ancestor group.
+  for (uint32_t groupSlot : this->shadowGroupStack) {
+    auto scoped = light;
+    scoped.groupSlot = groupSlot;
+    this->currentPlan.shadowLights.push_back(std::move(scoped));
+  }
 }
 
 void
@@ -318,6 +323,7 @@ CoinRenderFramePlanBuilder::captureTexture(SoCallbackAction * action, CoinRender
     CoinRenderRenderStateSnapshot captured;
     if (!captureTextureUnit(action, unit, captured, outError)) return false;
     rs.extraTextures[unit - 1] = coin_render_texture_unit(captured, 0);
+    rs.transparentTexture = rs.transparentTexture || captured.transparentTexture;
 
   }
   for (int unit = 0; unit <= lastEnabled; ++unit) {
@@ -382,6 +388,10 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
   // 3. Texture quality
   float quality = SoTextureQualityElement::get(state);
   if (quality <= 0.0f) {
+    // The moments shader ignores textures, but Coin still classifies an
+    // image's alpha for shouldGLRender(SHADOWMAP).
+    rs.transparentTexture = coin_render_image_has_transparency(
+      rawBytes, size_t(imgSize[0]) * size_t(imgSize[1]), numComponents);
     // Texture disabled by quality
     rs.hasTexture = false;
     rs.textureImageSlot = 0;
@@ -842,6 +852,7 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
         existing.shadowGroupSlot == rs.shadowGroupSlot &&
         existing.shadowStyle == rs.shadowStyle &&
         existing.transparentMaterial == rs.transparentMaterial &&
+        existing.transparentTexture == rs.transparentTexture &&
         existing.lightingSlot == lightingSlot &&
         existing.lightModel == rs.lightModel &&
         existing.transparencyType == rs.transparencyType &&

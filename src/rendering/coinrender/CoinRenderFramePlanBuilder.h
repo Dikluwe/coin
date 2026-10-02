@@ -30,7 +30,7 @@ public:
   bool hasActiveShadowGroup() const { return !this->shadowGroupStack.empty(); }
   uint32_t activeShadowGroupSlot() const { return this->shadowGroupStack.empty() ? 0 : this->shadowGroupStack.back(); }
   void recordShadowLight(const CoinRenderShadowLightSnapshot & light);
-  void beginAnnotation();
+  void beginAnnotation(bool clearDepth = true);
   void reserveDelayedLayers(uint32_t count);
   void beginDelayedAnnotations(uint32_t layer = 1, bool clearDepth = true);
   void beginForeground();

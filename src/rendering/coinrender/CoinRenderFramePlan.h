@@ -18,6 +18,16 @@
 
 static const size_t COIN_RENDER_MAX_TEXTURE_UNITS = 8;
 
+// Mechanical alpha classification over a captured Coin image payload.
+inline bool coin_render_image_has_transparency(const unsigned char * pixels,
+                                              size_t count, int components)
+{
+  if (!pixels || (components != 2 && components != 4)) return false;
+  for (size_t i = 0; i < count; ++i)
+    if (pixels[i * components + components - 1] != 255) return true;
+  return false;
+}
+
 struct CoinRenderVertexSnapshot {
   float position[3] = {0.0f, 0.0f, 0.0f};
   float normal[3] = {0.0f, 0.0f, 1.0f};
@@ -117,7 +127,7 @@ struct CoinRenderShadowGroupSnapshot {
   float visibilityNearRadius = -1.0f;
   float visibilityRadius = -1.0f;
   int32_t visibilityFlag = 0;
-  bool nested = false;
+  uint32_t parentGroupSlot = 0; // Immediate active ancestor; zero at the root.
   bool hasEntryCamera = false;
   CoinRenderCameraSnapshot entryCamera;
   SbMatrix entryModel = SbMatrix::identity();
@@ -130,7 +140,7 @@ struct CoinRenderShadowLightSnapshot {
   bool enabled = false;
   bool shadowEligible = false; // Coin/GL: spot or SoShadowDirectionalLight.
   bool hasCustomScene = false;
-  bool customSceneCaptured = false;
+  bool mapSceneCaptured = false;
 
   SbUniqueId customSceneNodeId = 0;
   SbColor color = SbColor(1, 1, 1);
@@ -269,7 +279,8 @@ struct CoinRenderRenderStateSnapshot {
   uint32_t polygonOffsetPrimitiveStyle = 1; // Retained across line/point expansion.
   uint32_t shadowGroupSlot = 0; // Zero outside active SoShadowGroup.
   uint32_t shadowStyle = 3; // SoShadowStyleElement default: casts and receives.
-  bool transparentMaterial = false; // Coin lazy material flag over the entire bound array.
+  bool transparentMaterial = false; // Coin lazy material flag over the bound array.
+  bool transparentTexture = false; // Image alpha affects casting even at texture quality zero.
   CoinRenderLightModel lightModel = CoinRenderLightModel::PHONG;
   float lineWidth = 1.0f;
   float pointSize = 1.0f;

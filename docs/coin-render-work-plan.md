@@ -182,9 +182,11 @@ Vulkan não encerram a matriz física nem qualificam outras plataformas.
   indirect/instancing; ray tracing por último, como extensão explícita.
   [Contrato e critérios](coin-render-p26-advanced-execution.md); nenhum
   mecanismo novo qualificado.
-- [ ] **P27 — Sombras Coin:** captura e plano comuns; perfis opacos de até
-  duas luzes spot/direcionais executam no wgpu offscreen (P27.1–P27.2).
-  BGFX e contrato ampliado seguem abertos.
+- [ ] **P27 — Sombras Coin:** BGFX e wgpu executam os perfis qualificados de
+  até oito mapas; cenas próprias, grupos irmãos/aninhados e anotações opacas
+  compõem offscreen e RTT staged/direct. P27.4 permanece aberto para alfa RTT,
+  peeling/OIT, demais qualidades e referência GL com oito mapas; P27.5 mantém
+  a matriz física final.
   [Referência e trabalho pendente](coin-render-p27-shadows.md).
 - [ ] **P28 — Texturas espaciais e SSAO:** volume/cube maps seguem o contrato
   Coin; SSAO é extensão opt-in. [Critérios](coin-render-p27-p30-tracker.md).

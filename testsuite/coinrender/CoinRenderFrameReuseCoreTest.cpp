@@ -64,6 +64,13 @@ main()
               decision.baseRevision == 41,
               "equal payload must reuse its prior revision");
 
+  current.renderStates[0].transparentTexture = true;
+  decision = CoinRenderFrameReuseCore::classify(previous, current);
+  ok &= check(decision.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD,
+              "image alpha evidence must invalidate frame reuse even without texture sampling");
+  current = previous;
+  current.revision = 42;
+
   SbMatrix moved = SbMatrix::identity();
   moved.setTranslate(SbVec3f(0.25f, 0.0f, -1.0f));
   current.cameras[0].viewMatrix = moved;

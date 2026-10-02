@@ -650,7 +650,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       if (light.groupSlot != capture.groupSlot || light.sourceRevision != capture.lightRevision) continue;
       coin_render_append_shadow_scene(plan, capture.frame, static_cast<uint32_t>(l + 1),
                                       capture.inheritedClipPlaneCount);
-      light.customSceneCaptured = true;
+      light.mapSceneCaptured = true;
     }
   }
   if (!this->shadowSceneCaptures.empty() && !plan.isValid(&err)) {
@@ -1128,23 +1128,28 @@ CoinRenderActionP::depthBufferPreCB(void *, SoCallbackAction * action, const SoN
 }
 
 SoCallbackAction::Response
-CoinRenderActionP::annotationPreCB(void * userdata, SoCallbackAction *, const SoNode *)
+CoinRenderActionP::annotationPreCB(void * userdata, SoCallbackAction * action, const SoNode *)
 {
   auto * p = static_cast<CoinRenderActionP *>(userdata);
-  if (p->capturingShadowScene) {
-    p->setDiagnostic(CoinRenderDiagnosticShell::action(
-      CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
-      SbString("shadowMapScene annotations require a separate composition profile")));
-    return SoCallbackAction::ABORT;
-  }
-  p->builder.beginAnnotation();
+  if (p->capturingShadowScene) return SoCallbackAction::PRUNE;
+  action->getState()->push();
+  // Coin/GL annotations render last with depth testing disabled. They do not
+  // clear or write the scene depth; an explicit child DepthBuffer can override.
+  SoDepthBufferElement::set(action->getState(), FALSE, FALSE,
+    SoDepthBufferElement::getFunction(action->getState()),
+    SoDepthBufferElement::getRange(action->getState()));
+  p->builder.beginAnnotation(false);
   return SoCallbackAction::CONTINUE;
 }
 
 SoCallbackAction::Response
-CoinRenderActionP::annotationPostCB(void * userdata, SoCallbackAction *, const SoNode *)
+CoinRenderActionP::annotationPostCB(void * userdata, SoCallbackAction * action, const SoNode *)
 {
-  static_cast<CoinRenderActionP *>(userdata)->builder.endAnnotation();
+  auto * p = static_cast<CoinRenderActionP *>(userdata);
+  if (!p->capturingShadowScene) {
+    p->builder.endAnnotation();
+    action->getState()->pop();
+  }
   return SoCallbackAction::CONTINUE;
 }
 
@@ -1153,13 +1158,7 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, 
 {
   auto * p = static_cast<CoinRenderActionP *>(userdata);
   const auto * group = static_cast<const SoShadowGroup *>(node);
-  if (!group->isActive.getValue()) return SoCallbackAction::CONTINUE;
-  if (p->capturingShadowScene) {
-    p->setDiagnostic(CoinRenderDiagnosticShell::action(
-      CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
-      SbString("Nested active SoShadowGroup inside shadowMapScene requires a separate composition profile")));
-    return SoCallbackAction::ABORT;
-  }
+  if (p->capturingShadowScene || !group->isActive.getValue()) return SoCallbackAction::CONTINUE;
   CoinRenderShadowGroupSnapshot snapshot;
   snapshot.sourceRevision = node->getNodeId();
   snapshot.intensity = group->intensity.getValue();
@@ -1172,7 +1171,7 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, 
   snapshot.visibilityNearRadius = group->visibilityNearRadius.getValue();
   snapshot.visibilityRadius = group->visibilityRadius.getValue();
   snapshot.visibilityFlag = group->visibilityFlag.getValue();
-  snapshot.nested = p->builder.hasActiveShadowGroup();
+  snapshot.parentGroupSlot = p->builder.activeShadowGroupSlot();
   snapshot.hasEntryCamera = true;
   snapshot.entryCamera = CoinRenderFramePlanBuilder::captureCamera(action);
   snapshot.entryModel = action->getModelMatrix();
@@ -1182,6 +1181,23 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, 
   p->activeShadowGroupNodes.push_back(group);
   // Coin/GL renders light-owned scenes from the group-entry state, resetting
   // lazy material, enabled textures and model matrix in SoSceneTexture2.
+  // Reuse ordinary captured casters for simple groups. Composition requires
+  // its own map traversal because nested group resets and annotations affect
+  // the main pass differently from SHADOWMAP.
+  bool separateMap = snapshot.parentGroupSlot != 0;
+  SoSearchAction structure;
+  structure.setType(SoAnnotation::getClassTypeId());
+  structure.setInterest(SoSearchAction::FIRST);
+  structure.apply(const_cast<SoShadowGroup *>(group));
+  separateMap = separateMap || structure.getPath() != nullptr;
+  structure.reset();
+  structure.setType(SoShadowGroup::getClassTypeId());
+  structure.setInterest(SoSearchAction::ALL);
+  structure.apply(const_cast<SoShadowGroup *>(group));
+  for (int i = 0; i < structure.getPaths().getLength(); ++i) {
+    const auto * child = static_cast<const SoShadowGroup *>(structure.getPaths()[i]->getTail());
+    separateMap = separateMap || (child != group && child->isActive.getValue());
+  }
   SoSearchAction search;
   search.setType(SoLight::getClassTypeId());
   search.setInterest(SoSearchAction::ALL);
@@ -1193,7 +1209,11 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, 
       scene = static_cast<const SoShadowSpotLight *>(light)->shadowMapScene.getValue();
     else if (light->isOfType(SoShadowDirectionalLight::getClassTypeId()))
       scene = static_cast<const SoShadowDirectionalLight *>(light)->shadowMapScene.getValue();
-    if (!scene || !static_cast<const SoLight *>(light)->on.getValue()) continue;
+    if (!static_cast<const SoLight *>(light)->on.getValue()) continue;
+    if (!scene && separateMap && (light->isOfType(SoSpotLight::getClassTypeId()) ||
+                   light->isOfType(SoShadowDirectionalLight::getClassTypeId())))
+      scene = const_cast<SoShadowGroup *>(group);
+    if (!scene) continue;
     if (std::any_of(p->shadowSceneCaptures.begin(), p->shadowSceneCaptures.end(),
         [&](const ShadowSceneCapture & capture) {
           return capture.groupSlot == p->builder.activeShadowGroupSlot() &&
@@ -1202,7 +1222,9 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, 
     CoinRenderFramePlanBuilder savedBuilder;
     std::swap(savedBuilder, p->builder);
     p->builder.beginFrame(p->backgroundColor, p->viewport);
-    p->builder.beginShadowGroup(snapshot);
+    auto captureGroup = snapshot;
+    captureGroup.parentGroupSlot = 0;
+    p->builder.beginShadowGroup(captureGroup);
     SoState * state = action->getState();
     const uint32_t inheritedPlanes = SoClipPlaneElement::getInstance(state)->getNum();
     state->push();

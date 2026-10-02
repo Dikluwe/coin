@@ -8,7 +8,9 @@ void main()
   gl_Position = mul(u_modelViewProj, vec4(a_position, 1.0)) * (a_texcoord3.z > 0.0 ? a_texcoord3.z : 1.0);
   vec3 color = a_color1.rgb * u_ambientLight.rgb * u_ambientLight.a + a_color3.rgb;
   if (u_lightCount.y > 0.5) color = vec3(0.0);
-  else if (a_texcoord3.y < 0.5) color = a_color0.rgb;
+  if (a_texcoord3.y < 0.5) {
+    if (u_lightCount.y < 0.5) color = a_color0.rgb;
+  }
   else for (int i = 0; i < 8; ++i) {
     if (float(i) >= u_lightCount.x) break;
     if (abs(float(i) - u_shadowLightIndices.x) < 0.5 ||

@@ -57,6 +57,7 @@
 
 // FIXME: consider adding a lazy GL depth buffer element. 200YMMDD pederb.
 
+#include <Inventor/elements/SoShapeStyleElement.h>
 #include <Inventor/nodes/SoAnnotation.h>
 
 #include <Inventor/elements/SoCacheElement.h>
@@ -119,6 +120,8 @@ SoAnnotation::GLRender(SoGLRenderAction * action)
 void
 SoAnnotation::GLRenderBelowPath(SoGLRenderAction * action)
 {
+  if (SoShapeStyleElement::get(action->getState())->getFlags() & SoShapeStyleElement::SHADOWMAP)
+    return;
   if (action->isRenderingDelayedPaths()) {
     SbBool zbenabled = glIsEnabled(GL_DEPTH_TEST);
     if (zbenabled) glDisable(GL_DEPTH_TEST);
@@ -135,6 +138,8 @@ SoAnnotation::GLRenderBelowPath(SoGLRenderAction * action)
 void
 SoAnnotation::GLRenderInPath(SoGLRenderAction * action)
 {
+  if (SoShapeStyleElement::get(action->getState())->getFlags() & SoShapeStyleElement::SHADOWMAP)
+    return;
   if (action->isRenderingDelayedPaths()) {
     SbBool zbenabled = glIsEnabled(GL_DEPTH_TEST);
     if (zbenabled) glDisable(GL_DEPTH_TEST);

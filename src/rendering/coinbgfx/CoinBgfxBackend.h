@@ -95,7 +95,10 @@ private:
                            bgfx::DynamicIndexBufferHandle indices,
                            bgfx::FrameBufferHandle output,
                            const std::vector<bgfx::TextureHandle> & textures,
-                           bgfx::ViewId & nextView);
+                           bgfx::ViewId & nextView, int width, int height,
+                           const CoinRenderFramePlan & frame,
+                           const CoinRenderShadowPlan & shadowPlan,
+                           const std::vector<bgfx::FrameBufferHandle> & shadowMaps);
   void encodeWeightedOit(const std::vector<CoinBgfxDraw> & draws,
                          bgfx::DynamicVertexBufferHandle vertices,
                          bgfx::DynamicIndexBufferHandle indices,

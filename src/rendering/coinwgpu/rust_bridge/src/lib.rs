@@ -3759,7 +3759,9 @@ fn encode_frame(
                     let extra_pipeline = get_or_create_pipeline(
                         ctx, draw.topology, color_format, wgpu::TextureFormat::Depth32Float,
                         cull_face, front_face, true, true, false, false,
-                        wgpu::CompareFunction::Equal, depth_bias, resolved_depth_bias,
+                        if st.depth_test != 0 && st.depth_write != 0 {
+                            wgpu::CompareFunction::Equal
+                        } else { depth_compare }, depth_bias, resolved_depth_bias,
                     ).map_err(|e| (CoinWgpuStatus::BackendError, e))?;
                     let extra_binding = create_binding(false, &extra_uniforms, extra_shadow_views);
                     pass.set_pipeline(&extra_pipeline);

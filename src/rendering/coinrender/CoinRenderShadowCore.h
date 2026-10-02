@@ -50,6 +50,19 @@ coin_render_shadow_finite(const SbVec3f & value)
          std::isfinite(value[2]);
 }
 
+// Groups form a captured tree. No backend walks Coin nodes or interprets nesting.
+inline bool coin_render_shadow_descends_from(const CoinRenderFramePlan & frame,
+                                             uint32_t group, uint32_t ancestor)
+{
+  while (group && group <= frame.shadowGroups.size()) {
+    if (group == ancestor) return true;
+    const uint32_t parent = frame.shadowGroups[group - 1].parentGroupSlot;
+    if (parent >= group) return false;
+    group = parent;
+  }
+  return false;
+}
+
 // Build the world-space bounds of the group's captured shapes once. This is
 // Coin geometry/state, not a backend-specific reinterpretation of the scene.
 inline bool
@@ -64,7 +77,7 @@ coin_render_shadow_group_bounds(const CoinRenderFramePlan & frame,
       return false;
     }
     const auto & state = frame.renderStates[draw.renderStateSlot];
-    if (draw.shadowLightSlot || state.shadowGroupSlot != groupSlot) continue;
+    if (draw.shadowLightSlot || !coin_render_shadow_descends_from(frame, state.shadowGroupSlot, groupSlot)) continue;
     const uint64_t end = uint64_t(draw.geometry.firstVertex) + draw.geometry.vertexCount;
     if (end > frame.vertices.size()) {
       diagnostic = "Shadow draw references an invalid vertex range";
@@ -286,7 +299,7 @@ inline bool
 coin_render_shadow_transparent_shape(const CoinRenderFramePlan & frame,
                                     const CoinRenderRenderStateSnapshot & state)
 {
-  if (state.transparentMaterial || state.screenDoorTransparency > 0.0f ||
+  if (state.transparentMaterial || state.transparentTexture || state.screenDoorTransparency > 0.0f ||
       (state.materialSlot < frame.materials.size() &&
        frame.materials[state.materialSlot].transparency > 0.0f)) return true;
   if (!state.hasTexture || state.textureImageSlot >= frame.textures.size()) return false;
@@ -348,7 +361,7 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
   CoinRenderShadowPlan candidate;
   for (size_t g = 0; g < frame.shadowGroups.size(); ++g) {
     const auto & group = frame.shadowGroups[g];
-    if (!group.sourceRevision || group.nested ||
+    if (!group.sourceRevision || group.parentGroupSlot > g ||
         !std::isfinite(group.precision) || group.precision <= 0.0f ||
         group.precision > 1.0f || !std::isfinite(group.quality) ||
         !std::isfinite(group.intensity) || !std::isfinite(group.epsilon) ||
@@ -357,7 +370,7 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
         !std::isfinite(group.visibilityNearRadius) ||
         !std::isfinite(group.visibilityRadius) ||
         group.visibilityFlag < 0 || group.visibilityFlag > 2) {
-      diagnostic = "Unsupported or invalid SoShadowGroup parameters/nesting";
+      diagnostic = "Unsupported or invalid SoShadowGroup parameters/ancestry";
       return false;
     }
     SbBox3f groupBounds;
@@ -370,7 +383,7 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
       const auto & light = frame.shadowLights[l];
       if (light.groupSlot != g + 1 || !light.enabled || !light.shadowEligible) continue;
       if (!std::isfinite(light.maxShadowDistance) ||
-          (light.hasCustomScene && !light.customSceneCaptured) ||
+          (light.hasCustomScene && !light.mapSceneCaptured) ||
           (light.type != CoinRenderLightType::DIRECTIONAL &&
            light.type != CoinRenderLightType::SPOT)) {
         diagnostic = "Shadow light requires a supported spot/directional scene";
@@ -447,7 +460,7 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
         }
         const auto & state = frame.renderStates[draw.renderStateSlot];
         if (state.shadowGroupSlot != pass.groupSlot) continue;
-        const bool casterScene = light.hasCustomScene ? draw.shadowLightSlot == l + 1 : draw.shadowLightSlot == 0;
+        const bool casterScene = light.mapSceneCaptured ? draw.shadowLightSlot == l + 1 : draw.shadowLightSlot == 0;
         if (casterScene && (state.shadowStyle & 1u) != 0 &&
             !coin_render_shadow_transparent_shape(frame, state))
           pass.casterDraws.push_back(static_cast<uint32_t>(d));
@@ -495,7 +508,7 @@ coin_render_shadow_object_profile(
         pass.lightSlot >= frame.shadowLights.size() ||
         frame.shadowLights[pass.lightSlot].groupSlot != pass.groupSlot ||
         !frame.shadowLights[pass.lightSlot].shadowEligible ||
-        !pass.visible || pass.receiverDraws.empty() ||
+        !pass.visible ||
         pass.epsilon < 0.0f ||
         pass.threshold < 0.0f || pass.threshold >= 1.0f ||
         std::any_of(shadows.passes.begin(), shadows.passes.begin() + p,
@@ -514,7 +527,6 @@ coin_render_shadow_object_profile(
     const auto & state = frame.renderStates[draw.renderStateSlot];
     if (state.shadowGroupSlot > frame.shadowGroups.size() ||
         draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST ||
-        draw.renderLayer != 0 || draw.clearDepthBefore ||
         (!draw.shadowLightSlot && state.lightModel != CoinRenderLightModel::PHONG) ||
         state.fogMode != CoinRenderFogMode::NONE ||
         state.materialSlot >= frame.materials.size() ||
@@ -570,7 +582,7 @@ coin_render_shadow_object_profile(
       diagnostic = "Shadow material requires consistent captured alpha/transparency";
       return false;
     }
-    if (coin_render_shadow_transparent_shape(frame, state) &&
+    if (!draw.shadowLightSlot && coin_render_shadow_transparent_shape(frame, state) &&
         (lightCount > 4 || state.transparencyType < 0 || state.transparencyType > 9 ||
          (frame.transparency.mode != COIN_RENDER_TRANSPARENCY_COIN &&
           frame.transparency.mode != COIN_RENDER_TRANSPARENCY_OBJECT))) {
@@ -590,7 +602,8 @@ coin_render_shadow_object_profile(
       std::any_of(lights.begin(), lights.end(),
       [&](const CoinRenderLightSourceSnapshot & source) {
         if (source.type != CoinRenderLightType::DIRECTIONAL &&
-            source.type != CoinRenderLightType::POINT) return false;
+            source.type != CoinRenderLightType::POINT &&
+            source.type != CoinRenderLightType::SPOT) return false;
         return std::none_of(frame.shadowLights.begin(), frame.shadowLights.end(),
           [&](const CoinRenderShadowLightSnapshot & light) {
             return light.groupSlot == state.shadowGroupSlot &&
@@ -635,8 +648,7 @@ coin_render_shadow_object_profile(
       }
       continue;
     }
-    if (lights.size() > COIN_RENDER_MAX_LIGHTS ||
-        (externalOrdinary && shadows.passes.size() > 2)) {
+    if (lights.size() > COIN_RENDER_MAX_LIGHTS) {
       diagnostic = "Shadow object profile exceeds the qualified light combination";
       return false;
     }
@@ -677,7 +689,8 @@ coin_render_shadow_object_profile(
       const auto & source = lights[i];
       const bool ordinary =
         (source.type == CoinRenderLightType::DIRECTIONAL ||
-         source.type == CoinRenderLightType::POINT) &&
+         source.type == CoinRenderLightType::POINT ||
+         source.type == CoinRenderLightType::SPOT) &&
         std::none_of(frame.shadowLights.begin(), frame.shadowLights.end(),
           [&](const CoinRenderShadowLightSnapshot & light) {
             return light.groupSlot == state.shadowGroupSlot &&

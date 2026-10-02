@@ -268,6 +268,13 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
     }
   }
 
+  for (size_t g = 0; g < this->shadowGroups.size(); ++g) {
+    if (this->shadowGroups[g].parentGroupSlot > g) {
+      if (outDiagnostic) *outDiagnostic = "Shadow group parent must precede its child";
+      return false;
+    }
+  }
+
   for (const auto & light : this->shadowLights) {
     if (light.groupSlot == 0 || light.groupSlot > this->shadowGroups.size()) {
       if (outDiagnostic) *outDiagnostic = "Shadow light references an invalid group";
@@ -418,7 +425,7 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
     }
     if (draw.shadowLightSlot &&
         (draw.shadowLightSlot > this->shadowLights.size() ||
-         !this->shadowLights[draw.shadowLightSlot - 1].hasCustomScene ||
+         !this->shadowLights[draw.shadowLightSlot - 1].mapSceneCaptured ||
          this->renderStates[draw.renderStateSlot].shadowGroupSlot !=
            this->shadowLights[draw.shadowLightSlot - 1].groupSlot)) {
       if (outDiagnostic) *outDiagnostic = "Shadow-only draw references an invalid light owner";

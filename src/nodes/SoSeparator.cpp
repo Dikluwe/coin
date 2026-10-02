@@ -78,6 +78,7 @@
 #include <Inventor/caches/SoBoundingBoxCache.h>
 #include <Inventor/caches/SoGLCacheList.h>
 #include <Inventor/elements/SoCacheElement.h>
+#include <Inventor/elements/SoShapeStyleElement.h>
 #include <Inventor/elements/SoCullElement.h>
 #include <Inventor/elements/SoLocalBBoxMatrixElement.h>
 #include <Inventor/elements/SoSoundElement.h>
@@ -307,12 +308,17 @@ public:
                     soseparator_storage_construct,
                     soseparator_storage_destruct);
     this->pub = NULL;
+    this->shadowRevision = 0;
+    this->hasShadowChild = FALSE;
   }
   ~SoSeparatorP() {
     delete this->glcachestorage;
   }
 
   SoSeparator * pub;
+  SbUniqueId shadowRevision;
+  SbBool hasShadowChild;
+  SbBool containsShadowGroup(void);
 
   SoBoundingBoxCache * bboxcache;
   uint32_t bboxcache_usecount;
@@ -361,6 +367,31 @@ public:
 #define PUBLIC(obj) ((obj)->pub)
 
 // *************************************************************************
+
+// Framebuffer updates and shader transitions cannot be compiled into an
+// ancestor display list. Remember the structural search until Coin notifies
+// a scene change, including inactive groups which may become active later.
+SbBool
+SoSeparatorP::containsShadowGroup(void)
+{
+  this->lock();
+  if (this->shadowRevision != this->pub->getNodeId()) {
+    const SoType shadowtype = SoType::fromName("ShadowGroup");
+    this->hasShadowChild = FALSE;
+    if (!shadowtype.isBad()) {
+      SoSearchAction search;
+      search.setType(shadowtype);
+      search.setInterest(SoSearchAction::FIRST);
+      search.setSearchingAll(TRUE);
+      search.apply(this->pub);
+      this->hasShadowChild = search.getPath() != NULL;
+    }
+    this->shadowRevision = this->pub->getNodeId();
+  }
+  const SbBool result = this->hasShadowChild;
+  this->unlock();
+  return result;
+}
 
 SoGLCacheList *
 SoSeparatorP::getGLCacheList(SbBool createifnull)
@@ -658,7 +689,10 @@ SoSeparator::GLRenderBelowPath(SoGLRenderAction * action)
 
   SoGLCacheList * createcache = NULL;
   if ((this->renderCaching.getValue() != OFF) &&
-      (SoSeparator::getNumRenderCaches() > 0)) {
+      !(SoShapeStyleElement::get(state)->getFlags() &
+        (SoShapeStyleElement::SHADOWMAP | SoShapeStyleElement::SHADOWS)) &&
+      (SoSeparator::getNumRenderCaches() > 0) &&
+      !PRIVATE(this)->containsShadowGroup()) {
 
     // test if bbox is outside view-volume
     if (!state->isCacheOpen()) {

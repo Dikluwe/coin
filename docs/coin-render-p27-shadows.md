@@ -78,10 +78,10 @@ opaca no wgpu e compara seu readback ao GL.
   Coin/GL. Resize, falha de mapa, rejeição de terceira luz e publicação
   atômica passaram. A semântica Coin permanece no Core.
 - [ ] **P27.4 — contrato ampliado:** cinco a oito luzes, cenas próprias
-  complexas por luz, transparência, demais níveis de qualidade, RTT direct,
-  composição e grupos aninhados. Três/quatro luzes opacas, clipping, alvos
-  múltiplos, dois grupos irmãos, cena própria como shape direto, qualidade
-  direcional plana e RTT staged já têm perfis qualificados nos dois executores.
+  complexas por luz, transparência, demais níveis de qualidade e combinações
+  além dos perfis qualificados. Três/quatro luzes opacas, clipping, alvos
+  múltiplos, grupos irmãos e aninhados, cenas próprias, anotações opacas,
+  qualidade direcional plana e RTT staged/direct têm perfis qualificados nos dois executores.
 - [ ] **P27.5 — qualificação final:** matriz de GPU/API/driver, perdas, resize,
   falhas e tolerâncias visuais; fechar P27 somente com BGFX e wgpu exercitados.
 
@@ -282,11 +282,11 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   escala e clipping também continuam passando nos dois executores.
   O perfil usa a câmera calculada pela luz: uma câmera dentro da cena própria
   retorna `UNSUPPORTED`, preservando pixels e serial e permitindo recuperação
-  após removê-la. Annotations e efeitos sem contrato portátil também exigem
-  outro perfil; não são aceitos implicitamente pelo passe de momentos.
-  O grupo usado como raiz da cena própria é achatado e preserva os pixels;
-  um grupo ativo aninhado dentro dela é rejeitado até a qualificação de
-  grupos aninhados, também preservando a publicação e permitindo recuperação.
+  após removê-la. Anotações são excluídas da travessia do mapa, assim como
+  overlays excluídos dos casters no perfil de composição abaixo. Efeitos sem
+  contrato portátil continuam fora do perfil. Grupos ativos dentro da cena
+  do mapa são atravessados como geometria caster, sem substituir o VSM por
+  outro programa de iluminação; a raiz e o filho ativo vazio preservam os pixels.
   A fixture ampliada revelou uma omissão da referência GL: o vertex shader
   VSM não escrevia `gl_ClipVertex`. A referência agora escreve a posição no
   espaço de olho, sem modificar a tolerância. Clipping da cena externa com
@@ -414,7 +414,7 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   marcou delta máximo 483 no Coin/GL e 588 em BGFX e wgpu; os pixels do
   primeiro grupo permaneceram idênticos. A antiga sondagem com chão de 2,2
   (18 no GL, 654 nos executores) continua fora deste perfil visual.
-- [ ] **RTT, composição e demais grupos:** o produtor `SoSceneTexture2`
+- [x] **Composição opaca: RTT, grupos e camadas no perfil qualificado:** o produtor `SoSceneTexture2`
   em modo staged pode conter um grupo opaco do perfil qualificado. A Action
   captura seu plano sem alvo e o executor RTT existente renderiza o produtor
   num alvo offscreen antes do consumidor texturizado. A fixture 128×128,
@@ -434,7 +434,51 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   e `threshold` distintos nos modos staged e direct: alterar apenas o segundo
   deixou o primeiro inalterado; deltas máximos 102/3 no Coin/GL e BGFX
   (tolerância 150; wgpu também passou). A diferença de magnitude exige
-  calibração visual. Camadas e grupos aninhados ainda não estão qualificados.
+  calibração visual.
+  A ampliação atual qualifica dois níveis de grupos aninhados, qualidade 1,
+  três mapas, transforms de entrada e parâmetros distintos. O Core possui a
+  árvore de ancestrais; cada grupo procura as luzes descendentes e recebe os
+  próprios passes. A captura de mapa é independente da captura principal:
+  grupos internos são geometria caster no mapa ancestral e mantêm o contrato
+  próprio como receivers na cena. Desativar o grupo interno ou externo,
+  alterar somente a recepção interna e restaurar o estado passaram nos três
+  modos: offscreen, RTT staged e RTT direct. A alteração interna preserva os
+  pixels do grupo externo. Ancestralidade cíclica é rejeitada no plano.
+  Anotações opacas foram qualificadas com um e cinco mapas nas mesmas rotas.
+  São receivers desenhados por último, sem testar/escrever depth e sem limpar
+  o depth da cena; não viram casters, mesmo com `CASTS_SHADOW`. BGFX reutiliza
+  o executor de camadas no produtor direct; a acumulação adicional preserva
+  o depth efetivo e a iluminação das shapes sem recepção de sombras.
+  O wgpu aplica a mesma política de depth ao lote adicional. No BGFX, tanto
+  os uniforms quanto o vertex shader mantêm a contribuição da luz adicional
+  quando o lookup VSM está desligado.
+  A comparação por pixel normaliza GL de baixo para cima e o readback GPU de
+  cima para baixo. A fixture mede a diferença entre alterações sucessivas na
+  região 88×88, com erro médio por canal limitado a 20 níveis RGB, além de
+  exigir efeito de sombra e isolamento. Anotações usam uma superfície aberta,
+  para que faces traseiras de uma caixa não escondam a iluminação sem depth.
+  Quatro renderizações GL por estado conferem estabilidade do cache, com até
+  três níveis RGB de arredondamento em display lists comuns. A referência GL
+  foi corrigida: mapas não reiniciam grupos internos, `SoShadowStyle` não
+  troca o programa VSM, anotações não geram delayed paths nos mapas e caches
+  GL não encapsulam grupos nem passes SHADOWMAP/SHADOWS. A busca estrutural
+  para proteger o cache ancestral é guardada pela revisão Coin do separator.
+  A matriz focada passou em BGFX/Vulkan, BGFX/OpenGL e wgpu. A anotação com
+  cinco mapas mediu deltas GL/GPU de 477/480 no BGFX e 477/477 no wgpu;
+  no RTT, 384/384 nos dois executores. O erro médio da alteração ficou em
+  1,17 no BGFX e 0,67 no wgpu, abaixo do limite declarado.
+  A classificação alfa dos casters usa bytes capturados no Core: o elemento
+  genérico Coin marca qualquer imagem de 2/4 componentes como transparente,
+  enquanto o elemento GL consulta os texels efetivos. A evidência permanece
+  no estado mesmo com qualidade de textura zero e invalida o reúso do plano.
+  Falha injetada no mapa preservou pixels e serial em todas as rotas.
+  Após resize explícito do alvo para suas dimensões atuais, a recuperação
+  reproduziu exatamente o quadro GPU anterior. OOM do alvo offscreen mantém
+  o protocolo existente de `TARGET_ERROR` até sua reconfiguração.
+  A execução focada está em `CoinRenderShadowReferenceTest --composition`;
+  é necessário exigir a referência GL e o executor GPU pelos mesmos flags
+  da suíte completa. Alfa RTT, peeling/OIT, a referência GL com oito mapas e
+  combinações além deste perfil permanecem nas caixas correspondentes.
 
 Cada caixa acima requer uma fixture renderizada nos dois executores e sua
 referência Coin/GL antes de marcar P27.4 concluído.
@@ -455,8 +499,8 @@ referência Coin/GL antes de marcar P27.4 concluído.
   inclusive quando ela aparece após a geometria sem inseri-la nos estados
   anteriores, validar dois passes opacos
   spot/direcional e limitar a memória planejada.
-- [ ] **Core completo:** ampliar qualidade, transparência, composição com cinco a oito
-  luzes, grupos aninhados e dependências RTT direct.
+- [ ] **Core completo:** ampliar qualidade, transparência e combinações além dos
+  perfis já qualificados de até oito mapas, grupos aninhados e RTT direct.
   Reusar ownership e publicação de P12–P14, inclusive múltiplos alvos.
 - [ ] **Infra BGFX/wgpu:** mapas de momentos e depth, VSM, bias, textura,
   passes, sincronização, resize e reconstrução após perda, com shader específico
@@ -476,5 +520,5 @@ ativos fora dos perfis qualificados de composição por objetos. O perfil atual 
 passes spot/direcionais. A quinta, sexta e sétima spots têm comparação
 Coin/GL; a oitava tem readback e publicação verificados nos dois backends,
 mas ainda requer referência GL com oito mapas. Alfa RTT, peeling/OIT e
-composição mais ampla continuam na matriz
+combinações além dos perfis opacos descritos continuam na matriz
 P27.4. Nos casos rejeitados, pixels e serial publicados ficam intactos.

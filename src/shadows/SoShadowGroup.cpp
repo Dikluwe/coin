@@ -2167,7 +2167,10 @@ SoShadowGroupP::GLRender(SoGLRenderAction * action, const SbBool inpath)
     }
   }
 
-  if (!supported || !PUBLIC(this)->isActive.getValue()) {
+  // Nested groups contribute ordinary casting geometry to an ancestor map.
+  // Re-entering their shader here would replace VSM moments with lit colors.
+  if ((SoShapeStyleElement::get(state)->getFlags() & SoShapeStyleElement::SHADOWMAP) ||
+      !supported || !PUBLIC(this)->isActive.getValue()) {
     if (inpath) PUBLIC(this)->SoSeparator::GLRenderInPath(action);
     else PUBLIC(this)->SoSeparator::GLRenderBelowPath(action);
     return;
@@ -2186,6 +2189,8 @@ SoShadowGroupP::GLRender(SoGLRenderAction * action, const SbBool inpath)
   }
 
   SoShadowStyleElement::set(state, PUBLIC(this), SoShadowStyleElement::CASTS_SHADOW_AND_SHADOWED);
+  // Framebuffer work must execute immediately, outside ancestor render caches.
+  SoCacheElement::invalidate(state);
   SoShapeStyleElement::setShadowMapRendering(state, TRUE);
   this->updateShadowLights(action);
   // Rendering the shadow map may overwrite bindings inherited from the parent.
