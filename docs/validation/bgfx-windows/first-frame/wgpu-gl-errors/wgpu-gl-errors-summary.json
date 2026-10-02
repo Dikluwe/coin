@@ -1,0 +1,189 @@
+{
+  "source_baseline": "827603713e",
+  "scope": "Local wgpu/OpenGL depth readback, depth snapshots and peeling fixes; private protocol 42 unchanged.",
+  "platform": {
+    "os": "Windows 10 Pro 19045",
+    "cpu": "Intel Core i5-4670K",
+    "ram_gib": 16,
+    "gpu": "NVIDIA GeForce GTX 1060 6GB",
+    "driver": "581.08",
+    "wgpu": "24",
+    "configuration": "MSVC Release RUST_BRIDGE"
+  },
+  "baseline_gl": {
+    "tests": 29,
+    "failed": [
+      "CoinRenderActionTest",
+      "CoinRenderIndexedFastPathTest",
+      "CoinWgpuCacheTest",
+      "CoinRenderStabilizationTest",
+      "CoinRenderMaterialTest",
+      "CoinRenderLightingTest",
+      "CoinRenderClipPlaneTest",
+      "CoinRenderDrawStyleTest",
+      "CoinRenderMultitextureTest",
+      "CoinRenderPeelingTest",
+      "CoinRenderWeightedOitTest",
+      "CoinRenderTransparencyTest",
+      "CoinRenderCompositionTest",
+      "CoinRenderAnnotationTest",
+      "CoinRenderPerformanceTest",
+      "CoinRenderAsyncReadbackTest",
+      "CoinRenderAsyncActionTest",
+      "CoinRenderAsyncActionDirectTest",
+      "CoinRenderAsyncActionDirectStressTest"
+    ],
+    "skipped": [],
+    "seconds": 33.0,
+    "timestamp": "2026-10-02T18:29:29"
+  },
+  "qualified": {
+    "gl": {
+      "tests": 100,
+      "failed": [],
+      "skipped": [],
+      "seconds": 611.0,
+      "timestamp": "2026-10-02T19:09:17"
+    },
+    "vulkan": {
+      "tests": 29,
+      "failed": [],
+      "skipped": [],
+      "seconds": 59.0,
+      "timestamp": "2026-10-02T19:19:28"
+    },
+    "dx12": {
+      "tests": 29,
+      "failed": [],
+      "skipped": [],
+      "seconds": 163.0,
+      "timestamp": "2026-10-02T19:20:29"
+    }
+  },
+  "resolved_baseline_failures": [
+    "CoinRenderActionTest",
+    "CoinRenderIndexedFastPathTest",
+    "CoinWgpuCacheTest",
+    "CoinRenderStabilizationTest",
+    "CoinRenderMaterialTest",
+    "CoinRenderLightingTest",
+    "CoinRenderClipPlaneTest",
+    "CoinRenderDrawStyleTest",
+    "CoinRenderMultitextureTest",
+    "CoinRenderPeelingTest",
+    "CoinRenderWeightedOitTest",
+    "CoinRenderTransparencyTest",
+    "CoinRenderCompositionTest",
+    "CoinRenderAnnotationTest",
+    "CoinRenderPerformanceTest",
+    "CoinRenderAsyncReadbackTest",
+    "CoinRenderAsyncActionTest",
+    "CoinRenderAsyncActionDirectTest",
+    "CoinRenderAsyncActionDirectStressTest"
+  ],
+  "rust_tests_passed": 27,
+  "depth_bits_gpu_apis": [
+    "gl",
+    "vulkan",
+    "dx12"
+  ],
+  "binaries": {
+    "before": {
+      "Coin4.dll": {
+        "path": "build\\wgpu-gl-errors-baseline\\Coin4.dll",
+        "bytes": 6338560,
+        "sha256": "ff72becc14c61e14fb99e69e57aadcb7dfa74d4104fb306757e66a56158ce6b1"
+      },
+      "CoinRender4.dll": {
+        "path": "build\\wgpu-gl-errors-baseline\\CoinRender4.dll",
+        "bytes": 6625280,
+        "sha256": "20db2e4de5ff7f08db82a204aa20fc4b72fd1c44b8f35adc77737c3cb8426836"
+      }
+    },
+    "after": {
+      "Coin4.dll": {
+        "path": "build\\coin-render-wgpu-msvc\\bin\\Coin4.dll",
+        "bytes": 6338560,
+        "sha256": "ff72becc14c61e14fb99e69e57aadcb7dfa74d4104fb306757e66a56158ce6b1"
+      },
+      "CoinRender4.dll": {
+        "path": "build\\coin-render-wgpu-msvc\\bin\\CoinRender4.dll",
+        "bytes": 6639104,
+        "sha256": "ccf6137d5462acee8b72f38943633007e8dd420aa796e4543c0a4bea70615575"
+      }
+    },
+    "installed": {
+      "Coin4.dll": {
+        "path": "build\\coin-render-install\\bin\\Coin4.dll",
+        "bytes": 6338560,
+        "sha256": "ff72becc14c61e14fb99e69e57aadcb7dfa74d4104fb306757e66a56158ce6b1"
+      },
+      "CoinRender4.dll": {
+        "path": "build\\coin-render-install\\bin\\CoinRender4.dll",
+        "bytes": 6639104,
+        "sha256": "ccf6137d5462acee8b72f38943633007e8dd420aa796e4543c0a4bea70615575"
+      }
+    }
+  },
+  "city": {
+    "gl": {
+      "first_frame_ms": 1654.02,
+      "warm_median_ms": 34.637,
+      "rgba_fnv64": "0x6714299260985122",
+      "changed_pixels_vs_baseline_827603713e": 0,
+      "image": {
+        "path": "build\\large-scenes\\wgpu-gl-errors-gl-city.ppm",
+        "bytes": 3145745,
+        "sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e"
+      },
+      "reference_image": {
+        "path": "build\\large-scenes\\wgpu-final-gl-after-warm.ppm",
+        "bytes": 3145745,
+        "sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e"
+      }
+    },
+    "vulkan": {
+      "first_frame_ms": 1479.55,
+      "warm_median_ms": 30.7946,
+      "rgba_fnv64": "0x6714299260985122",
+      "changed_pixels_vs_baseline_827603713e": 0,
+      "image": {
+        "path": "build\\large-scenes\\wgpu-gl-errors-vulkan-city.ppm",
+        "bytes": 3145745,
+        "sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e"
+      },
+      "reference_image": {
+        "path": "build\\large-scenes\\wgpu-final-vulkan-after-warm.ppm",
+        "bytes": 3145745,
+        "sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e"
+      }
+    },
+    "dx12": {
+      "first_frame_ms": 1685.98,
+      "warm_median_ms": 33.7643,
+      "rgba_fnv64": "0x6714299260985122",
+      "changed_pixels_vs_baseline_827603713e": 0,
+      "image": {
+        "path": "build\\large-scenes\\wgpu-gl-errors-dx12-city.ppm",
+        "bytes": 3145745,
+        "sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e"
+      },
+      "reference_image": {
+        "path": "build\\large-scenes\\wgpu-final-dx12-after-warm.ppm",
+        "bytes": 3145745,
+        "sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e"
+      }
+    }
+  },
+  "method": {
+    "gpu_runs_serial": true,
+    "mandatory_flags": [
+      "COIN_RENDER_REQUIRE_GL_REFERENCE=1",
+      "COIN_WGPU_REQUIRE_GL_REFERENCE=1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU=1"
+    ],
+    "cross_api_extra_flag": "COIN_WGPU_CAMERA_BINDINGS=1",
+    "city": "One process per API, 40,000 buildings at 1024x1024, 4 warmup frames and 8 measured frames, color readback. Driver/system caches retained; no reboot.",
+    "diagnostic_run": "Initial depth/shader fix passed focused tests, but peeling colors remained wrong because GLES depth texture copy attaches COLOR_ATTACHMENT0. The partial 100-test diagnostic run was stopped after isolating this cause; it is not a complete qualification."
+  }
+}

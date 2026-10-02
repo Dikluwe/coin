@@ -1,0 +1,247 @@
+Internal ctest changing into directory: H:/Git/coin/build/coin-render-wgpu-msvc
+Test project H:/Git/coin/build/coin-render-wgpu-msvc
+      Start  13: CoinRenderActionTest
+ 1/29 Test  #13: CoinRenderActionTest .....................***Failed    0.66 sec
+Running CoinRenderActionTest...
+FAILED: Initial GPU frame must succeed (cachedGpu.getLastStatus() == CoinRenderAction::SUCCESS) at H:\Git\coin\build\coin-render-source\testsuite\actions\CoinRenderActionTest.cpp:702
+testCameraOverlayAndFallback failed
+1 test(s) FAILED!
+
+      Start  27: CoinRenderIndexedFastPathTest
+ 2/29 Test  #27: CoinRenderIndexedFastPathTest ............***Failed    0.43 sec
+Running CoinRenderIndexedFastPathTest (Onda 2D Indexed Fast Path)...
+-> Test 1: Sentinel parser, triangles and convex quads...
+   [PASS] Test 1: Sentinel parser and convex quads
+-> Test 2: Degenerate faces and consecutive sentinels...
+   [PASS] Test 2: Degenerate faces handled cleanly
+-> Test 3: Atomic validation and rollback on invalid indices...
+   [PASS] Test 3: Atomic validation and rollback
+-> Test 4: Concave quads diversion to fallback...
+   [PASS] Test 4: Concave quad fallback verified
+-> Test 5: Canonical vertex deduplication...
+   [PASS] Test 5: Canonical vertex deduplication verified
+-> Test 6: Indexed line sets (SoIndexedLineSet)...
+   [PASS] Test 6: IndexedLineSet fast path verified
+-> Test 7: Strict pixel and depth equivalence (Fast Path vs Fallback)...
+FAILED: Fast path render must succeed (action.getLastStatus() == CoinRenderAction::SUCCESS) at H:\Git\coin\build\coin-render-source\testsuite\coinrender\CoinRenderIndexedFastPathTest.cpp:407
+
+      Start  28: CoinWgpuCacheTest
+ 3/29 Test  #28: CoinWgpuCacheTest ........................***Failed    0.37 sec
+Running CoinWgpuCacheTest (Onda 2E GPU Resource Cache & Safe Retirement)...
+-> Test 1: Warm-up and zero new uploads on static scene...
+FAILED: Frame 1 apply must succeed (action.getLastStatus() == CoinRenderAction::SUCCESS) at H:\Git\coin\build\coin-render-source\testsuite\coinwgpu\CoinWgpuCacheTest.cpp:100
+
+      Start  29: CoinRenderStabilizationTest
+ 4/29 Test  #29: CoinRenderStabilizationTest ..............***Failed    0.37 sec
+Running CoinRenderStabilizationTest (Onda 2F Concurrency, Packet Separation, Exact Hash & Budget)...
+-> Test 1: Strict completion serial order with pending GPU work...
+FAILED: Frame 1 apply must succeed (action.getLastStatus() == CoinRenderAction::SUCCESS) at H:\Git\coin\build\coin-render-source\testsuite\coinrender\CoinRenderStabilizationTest.cpp:74
+
+      Start  30: CoinRenderMaterialTest
+ 5/29 Test  #30: CoinRenderMaterialTest ...................***Failed    0.37 sec
+Running CoinRenderMaterialTest...
+[PASS] testAbiVersionCheck
+[PASS] testMaterialBindingsFaceVsLineNoGpu
+[PASS] testInvalidMaterialIndexHandling
+[PASS] testStorageBufferLimitsAndSlotValidation
+ASSERTION FAILED: Submit for BASE_COLOR failed: WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In CommandEncoder::copy_texture_to_buffer
+    Copy error
+      Cannot encode this copy because of a missing downelevel flag
+        Downlevel flags DownlevelFlags(DEPTH_TEXTURE_AND_BUFFER_COPIES) are at line 436
+testBaseColorVsPhongLitAndUnlitGpu FAILED
+
+      Start  31: CoinRenderTextureTest
+ 6/29 Test  #31: CoinRenderTextureTest ....................   Passed    0.72 sec
+      Start  32: CoinRenderLightingTest
+ 7/29 Test  #32: CoinRenderLightingTest ...................***Failed    0.49 sec
+Render error: WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In CommandEncoder::copy_texture_to_buffer
+    Copy error
+      Cannot encode this copy because of a missing downelevel flag
+        Downlevel flags DownlevelFlags(DEPTH_TEXTURE_AND_BUFFER_COPIES) are required but not supported on the device.
+This is not an invalid use of WebGPU: the underlying API or device does not support enough features to be a fully compliant implementation. A subset of the features can still be used. If you are running this progr
+renderCenter cpu=0 pixels=0 depth=0
+CoinRenderLightingTest: color/depth readback failed
+
+      Start  33: CoinRenderGouraudInterpolationTest
+ 8/29 Test  #33: CoinRenderGouraudInterpolationTest .......   Passed    0.52 sec
+      Start  34: CoinRenderFogTest
+ 9/29 Test  #34: CoinRenderFogTest ........................   Passed    1.46 sec
+      Start  35: CoinRenderClipPlaneTest
+10/29 Test  #35: CoinRenderClipPlaneTest ..................***Failed    0.73 sec
+Coin/GL reference passed
+WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In CommandEncoder::copy_texture_to_buffer
+    Copy error
+      Cannot encode this copy because of a missing downelevel flag
+        Downlevel flags DownlevelFlags(DEPTH_TEXTURE_AND_BUFFER_COPIES) are required but not supported on the device.
+This is not an invalid use of WebGPU: the underlying API or device does not support enough features to be a fully compliant implementation. A subset of the features can still be used. If you are running this progr
+CoinRenderClipPlaneTest: opaque half-plane color/depth
+
+      Start  36: CoinRenderDrawStyleTest
+11/29 Test  #36: CoinRenderDrawStyleTest ..................***Failed    7.64 sec
+Coin/GL native stipple reference passed
+Coin/GL clip 0 edge 0 phase displacement -25
+Coin/GL clip 0 edge 1 phase displacement -25
+Coin/GL clip 0 edge 2 phase displacement -57
+Coin/GL clip 0 edge 3 phase displacement -25
+Coin/GL clip 1 edge 0 phase displacement -25
+Coin/GL clip 1 edge 1 phase displacement -19
+Coin/GL clip 1 edge 3 phase displacement -25
+Coin/GL clip 2 edge 0 phase displacement -25
+Coin/GL clip 2 edge 1 phase displacement -31
+Coin/GL clip 2 edge 2 phase displacement -83
+Coin/GL clip 3 edge 1 phase displacement -29
+Coin/GL clip 3 edge 2 phase displacement -77
+Coin/GL clip 3 edge 3 phase displacement -29
+Coin/GL clip 4 edge 0 phase displacement -57
+Coin/GL clip 4 edge 2 phase displacement -103
+Coin/GL clip 4 edge 3 phase displacement -57
+Coin/GL clip 5 edge 1 phase displacement -19
+Coin/GL clip 5 edge 3 phase displacement -19
+Coin/GL clip 6 edge 0 phase displacement -25
+Coin/GL clip 6 edge 1 phase displacement 0
+Coin/GL clip 6 edge 3 phase displacement -25
+Coin/GL clip 7 edge 0 phase displacement -12
+Coin/GL clip 7 edge 1 phase displacement -37
+Coin/GL clip 7 edge 2 phase displacement 65
+Coin/GL clipped geometry and retained-edge stipple reference passed
+Coin/GL polygon stipple reference passed
+Coin/GL polygon attributes reference passed
+CoinRenderDrawStyleTest: native patterned strips render
+
+      Start  37: CoinRenderMultitextureTest
+12/29 Test  #37: CoinRenderMultitextureTest ...............***Failed    1.20 sec
+P08 Coin GL reference passed (CPU=1)
+CoinRenderMultitextureTest: fractional/diagonal stroke raster
+
+      Start  38: CoinRenderPeelingTest
+13/29 Test  #38: CoinRenderPeelingTest ....................***Failed    1.07 sec
+CoinRenderPeelingTest: WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In Device::create_render_pipeline, label = 'Coin peel composite pipeline'
+    Internal error in ShaderStages(FRAGMENT) shader: WGSL `textureLoad` from depth textures is not supported in GLSL
+
+
+      Start  39: CoinRenderWeightedOitTest
+14/29 Test  #39: CoinRenderWeightedOitTest ................***Failed    0.38 sec
+CoinRenderPeelingTest: WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In CommandEncoder::copy_texture_to_buffer
+    Copy error
+      Cannot encode this copy because of a missing downelevel flag
+        Downlevel flags DownlevelFlags(DEPTH_TEXTURE_AND_BUFFER_COPIES) are required but not supported on the device.
+This is not an invalid use of WebGPU: the underlying API or device does not support enough features to be a fully compliant implementation. A subset of the features can still be used. If you are running this progr
+
+      Start  40: CoinRenderTransparencyTest
+15/29 Test  #40: CoinRenderTransparencyTest ...............***Failed    1.37 sec
+CPU transparency matrices
+CoinRenderTransparencyTest: mode renders
+CPU=0 mode=9 error=WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In CommandEncoder::copy_texture_to_buffer
+    Copy error
+      Cannot encode this copy because of a missing downelevel flag
+        Downlevel flags DownlevelFlags(DEPTH_TEXTURE_AND_BUFFER_COPIES) are required but not supported on the device.
+This is not an invalid use of WebGPU: the underlying API or device does not support enough features to be a fully compliant implementation. A subset of the features can still be used. If you are running this progr
+
+      Start  41: CoinRenderCompositionTest
+16/29 Test  #41: CoinRenderCompositionTest ................***Failed    0.47 sec
+Render failed: WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In CommandEncoder::copy_texture_to_buffer
+    Copy error
+      Cannot encode this copy because of a missing downelevel flag
+        Downlevel flags DownlevelFlags(DEPTH_TEXTURE_AND_BUFFER_COPIES) are required but not supported on the device.
+This is not an invalid use of WebGPU: the underlying API or device does not support enough features to be a fully compliant implementation. A subset of the features can still be used. If you are running this progr
+
+      Start  42: CoinRenderAnnotationTest
+17/29 Test  #42: CoinRenderAnnotationTest .................***Failed    0.46 sec
+CoinRenderCompositionTest: annotation viewport frame/readback failed
+WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In CommandEncoder::copy_texture_to_buffer
+    Copy error
+      Cannot encode this copy because of a missing downelevel flag
+        Downlevel flags DownlevelFlags(DEPTH_TEXTURE_AND_BUFFER_COPIES) are required but not supported on the device.
+This is not an invalid use of WebGPU: the underlying API or device does not support enough features to be a fully compliant implementation. A subset of the features can still be used. If you are running this progr
+
+      Start  85: CoinRenderMultiTargetDirectTest
+18/29 Test  #85: CoinRenderMultiTargetDirectTest ..........   Passed    0.77 sec
+      Start  87: CoinRenderRttOwnershipTest
+19/29 Test  #87: CoinRenderRttOwnershipTest ...............   Passed    0.37 sec
+      Start  90: CoinRenderSceneTextureDirectTest
+20/29 Test  #90: CoinRenderSceneTextureDirectTest .........   Passed    1.37 sec
+      Start  91: CoinRenderSceneTextureBudgetDirectTest
+21/29 Test  #91: CoinRenderSceneTextureBudgetDirectTest ...   Passed    0.40 sec
+      Start  93: CoinWgpuLargeBindingsTest
+22/29 Test  #93: CoinWgpuLargeBindingsTest ................   Passed    2.18 sec
+      Start  94: CoinRenderPerformanceTest
+23/29 Test  #94: CoinRenderPerformanceTest ................***Failed    0.37 sec
+CoinRenderPerformanceTest: WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In CommandEncoder::copy_texture_to_buffer
+    Copy error
+      Cannot encode this copy because of a missing downelevel flag
+        Downlevel flags DownlevelFlags(DEPTH_TEXTURE_AND_BUFFER_COPIES) are required but not supported on the device.
+This is not an invalid use of WebGPU: the underlying API or device does not support enough features to be a fully compliant implementation. A subset of the features can still be used. If you are running this progr
+
+      Start  95: CoinRenderAsyncReadbackTest
+24/29 Test  #95: CoinRenderAsyncReadbackTest ..............***Failed    0.37 sec
+CoinRenderAsyncReadbackTest: second request completed first Readback output buffers overlap or overflow
+
+      Start  96: CoinWgpuMultiDeviceTest
+25/29 Test  #96: CoinWgpuMultiDeviceTest ..................   Passed    1.54 sec
+      Start  97: WgpuMultiDeviceStressTest
+26/29 Test  #97: WgpuMultiDeviceStressTest ................   Passed    6.05 sec
+      Start  98: CoinRenderAsyncActionTest
+27/29 Test  #98: CoinRenderAsyncActionTest ................***Failed    0.38 sec
+CoinRenderAsyncActionTest: async action pixels and depth must match synchronous action
+
+      Start  99: CoinRenderAsyncActionDirectTest
+28/29 Test  #99: CoinRenderAsyncActionDirectTest ..........***Failed    0.48 sec
+CoinRenderAsyncActionTest: async action pixels and depth must match synchronous action
+
+      Start 100: CoinRenderAsyncActionDirectStressTest
+29/29 Test #100: CoinRenderAsyncActionDirectStressTest ....***Failed    0.36 sec
+CoinRenderAsyncActionTest: async action pixels and depth must match synchronous action
+
+
+34% tests passed, 19 tests failed out of 29
+
+Total Test time (real) =  33.41 sec
+
+The following tests FAILED:
+	 13 - CoinRenderActionTest (Failed)
+	 27 - CoinRenderIndexedFastPathTest (Failed)
+	 28 - CoinWgpuCacheTest (Failed)
+	 29 - CoinRenderStabilizationTest (Failed)
+	 30 - CoinRenderMaterialTest (Failed)
+	 32 - CoinRenderLightingTest (Failed)
+	 35 - CoinRenderClipPlaneTest (Failed)
+	 36 - CoinRenderDrawStyleTest (Failed)
+	 37 - CoinRenderMultitextureTest (Failed)
+	 38 - CoinRenderPeelingTest (Failed)
+	 39 - CoinRenderWeightedOitTest (Failed)
+	 40 - CoinRenderTransparencyTest (Failed)
+	 41 - CoinRenderCompositionTest (Failed)
+	 42 - CoinRenderAnnotationTest (Failed)
+	 94 - CoinRenderPerformanceTest (Failed)
+	 95 - CoinRenderAsyncReadbackTest (Failed)
+	 98 - CoinRenderAsyncActionTest (Failed)
+	 99 - CoinRenderAsyncActionDirectTest (Failed)
+	100 - CoinRenderAsyncActionDirectStressTest (Failed)
+Errors while running CTest

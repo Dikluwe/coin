@@ -509,6 +509,92 @@ Logs, amostras, hashes, testes e diferenças de imagem estão em
 Os controles intermediários de arena, agrupamento e shader são diagnósticos
 de binários anteriores ao build final e estão identificados como tais.
 
+## Profundidade e transparência wgpu/OpenGL (02/10/2026)
+
+A investigação seguinte parte de `827603713e`, com as 19 falhas OpenGL
+preservadas na rodada anterior. As falhas de linhas, multitextura, materiais,
+composição e leitura assíncrona compartilhavam uma causa: a cópia de
+`Depth32Float` para buffer exige `DEPTH_TEXTURE_AND_BUFFER_COPIES`, que o
+adaptador wgpu/OpenGL não oferece. A validação invalidava o encoder de cópia,
+afetando também a publicação da cor daquele quadro.
+
+O módulo agora usa um passe fullscreen para transportar a profundidade para
+uma textura de cor `R32Float` antes da leitura quando aquela capability falta.
+O passe faz `textureLoad` por coordenada inteira, sem sampler, filtragem ou
+quantização. O staging, seu padding e os tickets síncronos/assíncronos mantêm
+o mesmo formato de floats de 32 bits. A textura intermediária custa quatro
+bytes por pixel e só existe quando há pedido de profundidade nesse fallback;
+o pipeline fica retido por dispositivo. A cópia direta permanece nos
+adaptadores que oferecem a capability.
+
+O peeling tinha duas causas adicionais. O Naga 24 rejeita `textureLoad` de
+`texture_depth_2d` ao gerar GLSL. Nesse backend, os bindings de profundidade
+passam a floats não filtráveis, um tipo que o wgpu aceita para views de depth.
+O shader lê o canal `r`, preservando o valor. Isso cobre os perfis padrão,
+linhas, pontos, quatro/oito sombras e o compositor de camadas.
+
+Além disso, o caminho `copy_texture_to_texture` do wgpu-hal/GLES 24 prende a
+origem em `COLOR_ATTACHMENT0`, inclusive para o snapshot de profundidade.
+Mesmo após o shader compilar, o snapshot opaco não chegava corretamente às
+camadas. O OpenGL agora copia esse snapshot com outro passe fullscreen,
+gravando `frag_depth` em uma textura `Depth32Float`. Ele usa a mesma alocação
+de snapshot prevista no orçamento de peeling; os limites de camadas e bytes
+continuam iguais. As texturas de profundidade dos alvos offscreen e de janela
+recebem uso de sampling para permitir esses passes.
+
+A nova regressão GPU desenha um padrão assimétrico de seis valores, incluindo
+floats adjacentes, em 67 × 5 pixels. Ela faz o snapshot e a conversão para
+`R32Float`, lê linhas de 512 bytes e compara todos os bits com o padrão
+esperado. As regressões de shader geram GLSL de fato, além de validar WGSL,
+para os cinco perfis de peeling e os passes de transferência/composição.
+Nenhuma tolerância dos testes funcionais existentes foi aumentada. A ABI
+pública e o protocolo privado 42 permanecem iguais.
+
+Validação final nesta máquina, MSVC Release, wgpu 24 e GTX 1060/driver 581.08:
+
+| Execução | Resultado |
+|---|---:|
+| wgpu/OpenGL, bateria integral | **100/100**, zero falhas e zero skips no JUnit |
+| wgpu/Vulkan, regressões entre APIs | **29/29** |
+| wgpu/D3D12, regressões entre APIs | **29/29** |
+| Rust Release/offline, testes em série | **27/27** |
+
+Os **19 nomes que falhavam na baseline agora passam**. As execuções CTest
+exigem `COIN_RENDER_REQUIRE_GL_REFERENCE=1`,
+`COIN_WGPU_REQUIRE_GL_REFERENCE=1` e
+`COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU=1`. Vulkan e D3D12 também habilitam
+`COIN_WGPU_CAMERA_BINDINGS=1`. A regressão de preservação dos bits de
+profundidade foi executada explicitamente nas três APIs.
+O OpenGL original do Coin participa como referência; a implementação desse
+backend não foi alterada.
+
+O controle da cidade estática de 40 mil edifícios manteve **zero pixels
+diferentes** em relação às imagens de `827603713e`, nas três APIs.
+Todas as imagens têm checksum RGBA `0x6714299260985122` e SHA-256 PPM
+`77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e`.
+Este controle usa um processo por API, 1024 × 1024, quatro aquecimentos e
+oito quadros medidos, com leitura de cor habilitada e de profundidade desabilitada:
+
+| API | Primeiro quadro | Mediana aquecida |
+|---|---:|---:|
+| OpenGL | 1.654,02 ms | 34,64 ms |
+| Vulkan | 1.479,55 ms | 30,79 ms |
+| D3D12 | 1.685,98 ms | 33,76 ms |
+
+Os caches do sistema/driver permanecem habilitados. Esses valores são um
+controle de preservação do caminho opaco, não uma medição do custo adicional
+do novo readback de profundidade.
+
+As DLLs qualificadas foram instaladas em `build/coin-render-install`, com
+hashes iguais aos do build. `Coin4.dll` continua idêntica à baseline;
+`CoinRender4.dll` tem SHA-256
+`ccf6137d5462acee8b72f38943633007e8dd420aa796e4543c0a4bea70615575`.
+Logs, lista das 19 falhas resolvidas, hashes e controles de imagem estão em
+[wgpu-gl-errors-summary.json](validation/bgfx-windows/first-frame/wgpu-gl-errors/wgpu-gl-errors-summary.json).
+A rodada parcial de diagnóstico, que isolou a falha do snapshot depois da
+correção inicial de readback/shader, está identificada separadamente; a
+qualificação integral é a execução final de 100 testes.
+
 ## Reproduzir
 
 ```powershell

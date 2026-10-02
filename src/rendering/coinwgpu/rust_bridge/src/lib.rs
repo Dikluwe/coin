@@ -26,6 +26,7 @@ mod shadow_receiver;
 mod weighted;
 mod uniform_arena;
 mod shader_profile;
+mod depth_transfer;
 
 pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 42;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
@@ -910,6 +911,8 @@ struct DeviceState {
     pipeline_layout: wgpu::PipelineLayout,
     pipelines: Mutex<HashMap<PipelineKey, wgpu::RenderPipeline>>,
     annotation_depth_pipeline: Mutex<Option<wgpu::RenderPipeline>>,
+    depth_readback: Mutex<Option<depth_transfer::DepthTransfer>>,
+    depth_snapshot: Mutex<Option<depth_transfer::DepthTransfer>>,
     pipeline_compilations: AtomicU64,
     pipeline_hits: AtomicU64,
     cache: Mutex<GeometryCache>,
@@ -1565,31 +1568,34 @@ fn get_or_init_device_impl<'a>(
         }));
     }
 
+    let gl_depth_loads = adapter.get_info().backend == wgpu::Backend::Gl;
+    let shader_source = |source: &str| shader_profile::depth_load_profile(
+        &shader_profile::texture_specialization(source), gl_depth_loads);
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("coin_standard.wgsl"),
-        source: wgpu::ShaderSource::Wgsl(shader_profile::texture_specialization(
+        source: wgpu::ShaderSource::Wgsl(shader_source(
             &format!("{}{}",shader_profile::without_shadows(WGSL_SHADER),weighted::FRAGMENT)).into()),
     });
 
     let shadow_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("Coin quality shadow receivers"),
-        source: wgpu::ShaderSource::Wgsl(shader_profile::texture_specialization(
+        source: wgpu::ShaderSource::Wgsl(shader_source(
             &format!("{}{}",shadow_receiver::four_map_source(),weighted::FRAGMENT)).into()),
     });
     let shadow_eight_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("Coin eight shadow receivers"),
-        source: wgpu::ShaderSource::Wgsl(shader_profile::texture_specialization(
+        source: wgpu::ShaderSource::Wgsl(shader_source(
             &format!("{}{}",shadow_receiver::eight_map_source(),weighted::FRAGMENT)).into()),
     });
     let line_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("coin_line.wgsl"),
-        source: wgpu::ShaderSource::Wgsl(shader_profile::texture_specialization(
+        source: wgpu::ShaderSource::Wgsl(shader_source(
             &format!("{}{}",WGSL_LINE_SHADER,weighted::FRAGMENT)).into()),
     });
 
     let point_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("coin_point.wgsl"),
-        source: wgpu::ShaderSource::Wgsl(shader_profile::texture_specialization(
+        source: wgpu::ShaderSource::Wgsl(shader_source(
             &format!("{}{}",WGSL_POINT_SHADER,weighted::FRAGMENT)).into()),
     });
 
@@ -1630,7 +1636,8 @@ fn get_or_init_device_impl<'a>(
             binding,
             visibility: wgpu::ShaderStages::FRAGMENT,
             ty: wgpu::BindingType::Texture {
-                sample_type: wgpu::TextureSampleType::Depth,
+                sample_type: if gl_depth_loads { wgpu::TextureSampleType::Float { filterable: false } }
+                    else { wgpu::TextureSampleType::Depth },
                 view_dimension: wgpu::TextureViewDimension::D2,
                 multisampled: false,
             },
@@ -1789,6 +1796,8 @@ fn get_or_init_device_impl<'a>(
         pipelines: Mutex::new(HashMap::new()),
         untextured_shaders: Mutex::new(HashMap::new()),
         annotation_depth_pipeline: Mutex::new(None),
+        depth_readback: Mutex::new(None),
+        depth_snapshot: Mutex::new(None),
         pipeline_compilations: AtomicU64::new(0),
         pipeline_hits: AtomicU64::new(0),
         cache: Mutex::new(GeometryCache::default()),
@@ -2032,7 +2041,7 @@ fn configure_surface_record(
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
         format: wgpu::TextureFormat::Depth32Float,
-        usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::TEXTURE_BINDING,
         view_formats: &[],
     };
     let depth_texture = device_state.device.create_texture(&depth_desc);
@@ -2361,8 +2370,9 @@ fn get_or_create_pipeline<'a>(
             };
             ctx.device.create_shader_module(wgpu::ShaderModuleDescriptor {
                 label: Some("Coin untextured shader profile"),
-                source: wgpu::ShaderSource::Wgsl(shader_profile::texture_specialization(
-                    &format!("{}{}", source, weighted::FRAGMENT)).into()),
+                source: wgpu::ShaderSource::Wgsl(shader_profile::depth_load_profile(
+                    &shader_profile::texture_specialization(
+                        &format!("{}{}", source, weighted::FRAGMENT)), true).into()),
             })
         }).clone()
     } else { selected_shader.clone() };
@@ -3215,6 +3225,7 @@ fn encode_frame(
             target_height,
             color_format,
             peel_passes as usize,
+            ctx.adapter.get_info().backend == wgpu::Backend::Gl,
         )
     });
     let weighted=draw_order.iter().any(|item|item.weighted).then(||
@@ -3273,25 +3284,31 @@ fn encode_frame(
         let is_peel = draw_order.get(range.start).is_some_and(|item| item.peel);
         let is_weighted = draw_order.get(range.start).is_some_and(|item|item.weighted);
         if is_peel {
-            encoder.copy_texture_to_texture(
-                wgpu::TexelCopyTextureInfo {
-                    texture: depth_texture,
-                    mip_level: 0,
-                    origin: wgpu::Origin3d::ZERO,
-                    aspect: wgpu::TextureAspect::DepthOnly,
-                },
-                wgpu::TexelCopyTextureInfo {
-                    texture: &peeling.as_ref().unwrap().opaque,
-                    mip_level: 0,
-                    origin: wgpu::Origin3d::ZERO,
-                    aspect: wgpu::TextureAspect::DepthOnly,
-                },
-                wgpu::Extent3d {
-                    width: target_width,
-                    height: target_height,
-                    depth_or_array_layers: 1,
-                },
-            );
+            if ctx.adapter.get_info().backend == wgpu::Backend::Gl {
+                let mut converter = ctx.depth_snapshot.lock().unwrap();
+                let converter = converter.get_or_insert_with(|| depth_transfer::DepthTransfer::new(&ctx.device, true));
+                converter.copy_depth(&ctx.device, &mut encoder, depth_view, &peeling.as_ref().unwrap().opaque_view);
+            } else {
+                encoder.copy_texture_to_texture(
+                    wgpu::TexelCopyTextureInfo {
+                        texture: depth_texture,
+                        mip_level: 0,
+                        origin: wgpu::Origin3d::ZERO,
+                        aspect: wgpu::TextureAspect::DepthOnly,
+                    },
+                    wgpu::TexelCopyTextureInfo {
+                        texture: &peeling.as_ref().unwrap().opaque,
+                        mip_level: 0,
+                        origin: wgpu::Origin3d::ZERO,
+                        aspect: wgpu::TextureAspect::DepthOnly,
+                    },
+                    wgpu::Extent3d {
+                        width: target_width,
+                        height: target_height,
+                        depth_or_array_layers: 1,
+                    },
+                );
+            }
         }
         for peel_step in 0..if is_peel { peel_passes as usize } else { 1 } {
             let selected_color = if is_weighted { &weighted.as_ref().unwrap().accumulation } else if is_peel {
@@ -5983,7 +6000,7 @@ fn coin_wgpu_submit_internal(
                 sample_count: 1,
                 dimension: wgpu::TextureDimension::D2,
                 format: wgpu::TextureFormat::Depth32Float,
-                usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
+                usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::TEXTURE_BINDING,
                 view_formats: &[],
             };
             let depth_texture = ctx.device.create_texture(&depth_desc);
@@ -6143,12 +6160,19 @@ fn coin_wgpu_submit_internal(
         {
             let (dbuf, _) = ctx.readback_pool
                 .lock().unwrap().acquire(&ctx.device, depth_staging_size);
+            let converted = if !ctx.adapter.get_downlevel_capabilities().flags
+                .contains(wgpu::DownlevelFlags::DEPTH_TEXTURE_AND_BUFFER_COPIES) {
+                let mut converter = ctx.depth_readback.lock().unwrap();
+                let converter = converter.get_or_insert_with(|| depth_transfer::DepthTransfer::new(&ctx.device, false));
+                Some(converter.encode(&ctx.device, &mut copy_encoder, &depth_view, width, height))
+            } else { None };
             copy_encoder.copy_texture_to_buffer(
                 wgpu::TexelCopyTextureInfo {
-                    texture: &depth_texture,
+                    texture: converted.as_ref().unwrap_or(&depth_texture),
                     mip_level: 0,
                     origin: wgpu::Origin3d::ZERO,
-                    aspect: wgpu::TextureAspect::DepthOnly,
+                    aspect: if converted.is_some() { wgpu::TextureAspect::All }
+                        else { wgpu::TextureAspect::DepthOnly },
                 },
                 wgpu::TexelCopyBufferInfo {
                     buffer: &dbuf,

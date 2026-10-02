@@ -8,6 +8,22 @@ pub(super) fn texture_specialization(source: &str) -> String {
             "if (coin_textures_enabled && u.extra_tex_params["))
 }
 
+// wgpu permits non-filterable float bindings for depth views. Naga 24's GLSL
+// writer supports texelFetch through this type, but rejects depth textureLoad.
+pub(super) fn depth_load_profile(source: &str, gl: bool) -> String {
+    if !gl { return source.to_owned(); }
+    let mut source = source.to_owned();
+    for name in ["previous_depth", "opaque_depth", "layer_depth"] {
+        for space in ["", " "] {
+            source = source.replace(&format!("var {name}:{space}texture_depth_2d;"),
+                &format!("var {name}: texture_2d<f32>;"));
+        }
+        source = source.replace(&format!("textureLoad({name},xy,0)"),
+            &format!("textureLoad({name},xy,0).r"));
+    }
+    source
+}
+
 pub(super) fn without_shadows(source: &str) -> String {
     let mut source = source.to_owned();
     let output_start = source.find("struct VertexOutput {").unwrap();
@@ -28,9 +44,34 @@ pub(super) fn without_shadows(source: &str) -> String {
 }
 
 #[cfg(test)]
-mod tests {
+pub(super) mod tests {
     use super::*;
     use naga::valid::{Capabilities, ValidationFlags, Validator};
+
+    pub(crate) fn assert_glsl(source: &str, entry: &str) {
+        let module = naga::front::wgsl::parse_str(source).expect("parse GLSL profile");
+        let info = Validator::new(ValidationFlags::all(), Capabilities::all())
+            .validate(&module).expect("validate GLSL profile");
+        let mut output = String::new();
+        let options = naga::back::glsl::Options::default();
+        let pipeline = naga::back::glsl::PipelineOptions {
+            shader_stage: naga::ShaderStage::Fragment, entry_point: entry.into(), multiview: None,
+        };
+        naga::back::glsl::Writer::new(&mut output, &module, &info, &options, &pipeline,
+            naga::proc::BoundsCheckPolicies::default()).expect("GLSL writer")
+            .write().expect("translate GLSL profile");
+    }
+
+    #[test]
+    fn gl_peeling_profiles_translate_to_glsl() {
+        for source in [without_shadows(include_str!("../../shaders/coin_standard.wgsl")),
+            super::super::shadow_receiver::four_map_source(),
+            super::super::shadow_receiver::eight_map_source(),
+            include_str!("../../shaders/coin_line.wgsl").to_owned(),
+            include_str!("../../shaders/coin_point.wgsl").to_owned()] {
+            assert_glsl(&depth_load_profile(&source, true), "fs_peel");
+        }
+    }
 
     #[test]
     fn all_specialized_profiles_preserve_valid_entry_points() {

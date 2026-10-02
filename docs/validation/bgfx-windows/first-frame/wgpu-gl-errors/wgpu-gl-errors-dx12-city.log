@@ -1,0 +1,12 @@
+scene_load_ms=501.779
+WebGPU_first_frame_ms=1685.98
+rgba_fnv64=0x6714299260985122
+image=build/large-scenes/wgpu-gl-errors-dx12-city.ppm
+adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) vendor_id=0x10de device_id=0x1c03 backend=wgpu size=1024x1024 warmup=4 scene=build/large-scenes/city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static
+WebGPU frames=8 median_ms=33.7643 p95_ms=34.6334 min_ms=32.9185 max_ms=34.6334
+WebGPU_render frames=8 median_ms=33.2755 p95_ms=34.1778 min_ms=32.4545 max_ms=34.1778
+WebGPU_copy frames=8 median_ms=0.4849 p95_ms=0.702 min_ms=0.4549 max_ms=0.702
+WebGPU_throughput frames=8 total_ms=270.502 fps=29.5747
+WebGPU_cache last_frame_uploads=0 last_frame_uploaded_bytes=0 last_frame_hits=1 cumulative_uploads=1 cumulative_uploaded_bytes=149763744 cumulative_hits=11
+backend_cleanup_begin
+backend_cleanup_ms=39.9455
