@@ -68,6 +68,11 @@ static cc_hash_entry * find_entry(cc_hash * hash, cc_hash_key key)
   return NULL;
 }
 
+static void insert_during_apply(cc_hash_key key, void *, void * closure)
+{
+  if (key == 2) cc_hash_put(static_cast<cc_hash *>(closure), 4, NULL);
+}
+
 int main()
 {
   struct rlimit no_core = { 0, 0 };
@@ -129,6 +134,27 @@ int main()
     CHECK(find_entry(hash, i) == entries[i]);
     CHECK(cc_hash_get(hash, i, &found) && found == &values[i]);
   }
+  cc_hash_destruct(hash);
+
+  hash = cc_hash_construct(2, 1.0f);
+  CHECK(hash != NULL);
+  CHECK(cc_hash_put(hash, 0, NULL));
+  CHECK(cc_hash_put(hash, 2, NULL));
+  const unsigned int size_before_apply = hash->size;
+  fail_calloc = true;
+  cc_hash_apply(hash, insert_during_apply, hash);
+  CHECK(!fail_calloc);
+  CHECK(hash->size == size_before_apply);
+  CHECK(cc_hash_get_num_elements(hash) == 3);
+  CHECK(cc_hash_get(hash, 0, &found));
+  CHECK(cc_hash_get(hash, 2, &found));
+  CHECK(cc_hash_get(hash, 4, &found));
+  CHECK(cc_hash_put(hash, 6, NULL));
+  CHECK(hash->size > size_before_apply);
+  CHECK(cc_hash_get(hash, 0, &found));
+  CHECK(cc_hash_get(hash, 2, &found));
+  CHECK(cc_hash_get(hash, 4, &found));
+  CHECK(cc_hash_get(hash, 6, &found));
   cc_hash_destruct(hash);
   return 0;
 }

@@ -330,8 +330,8 @@ BOOST_AUTO_TEST_CASE(sbdict_self_assignment_preserves_mappings)
 
 struct SbDictApplyMutationData {
   SbDict * dictionary;
-  bool saw_zero;
-  unsigned int calls;
+  unsigned int visits_zero;
+  unsigned int visits_seventeen;
 };
 
 static void
@@ -339,9 +339,9 @@ sbdict_test_apply_mutation(SbDict::Key key, void *, void * closure)
 {
   SbDictApplyMutationData * data =
     static_cast<SbDictApplyMutationData *>(closure);
-  ++data->calls;
-  if (key == 0) data->saw_zero = true;
+  if (key == 0) ++data->visits_zero;
   if (key == 17) {
+    ++data->visits_seventeen;
     data->dictionary->remove(17);
     data->dictionary->enter(1, NULL);
   }
@@ -352,10 +352,10 @@ BOOST_AUTO_TEST_CASE(sbdict_apply_can_remove_current_entry)
   SbDict dictionary(17);
   BOOST_CHECK(dictionary.enter(0, NULL));
   BOOST_CHECK(dictionary.enter(17, NULL));
-  SbDictApplyMutationData data = { &dictionary, false, 0 };
+  SbDictApplyMutationData data = { &dictionary, 0, 0 };
   dictionary.applyToAll(sbdict_test_apply_mutation, &data);
-  BOOST_CHECK(data.saw_zero);
-  BOOST_CHECK_EQUAL(data.calls, 3u);
+  BOOST_CHECK_EQUAL(data.visits_zero, 1u);
+  BOOST_CHECK_EQUAL(data.visits_seventeen, 1u);
   void * value = NULL;
   BOOST_CHECK(dictionary.find(0, value));
   BOOST_CHECK(dictionary.find(1, value));
