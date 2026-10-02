@@ -35,7 +35,7 @@ if rg -iq 'llvmpipe|softpipe|lavapipe|swiftshader' "${evidence_dir}/capabilities
   echo 'A software adapter cannot qualify this cell' >&2
   exit 1
 fi
-export COIN_GLXGLUE_NO_PBUFFERS=1
+export COIN_GLXGLUE_NO_PBUFFERS="${COIN_GLXGLUE_NO_PBUFFERS:-1}"
 export COIN_GLX_PIXMAP_DIRECT_RENDERING=1
 "${build_dir}/bin/CoinRenderShadowReferenceTest" --gl-capacity > "${evidence_dir}/gl-capacity.txt" 2>&1
 export COIN_RENDER_REQUIRE_GL_REFERENCE=1

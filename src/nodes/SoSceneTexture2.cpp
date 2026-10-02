@@ -839,6 +839,10 @@ SoSceneTexture2P::updateFrameBuffer(SoState * state, const float COIN_UNUSED_ARG
 
   // disable all active textures
   SoMultiTextureEnabledElement::disableAll(state);
+  // The producer starts on unit zero even when visited while a shadow map
+  // is being bound on another unit. Inheriting that unit breaks ordinary
+  // fixed-function textures on drivers with fewer fixed than shader units.
+  SoTextureUnitElement::set(state, PUBLIC(this), 0);
 
   // just disable all active light source
   int numlights = SoLightElement::getLights(state).getLength();

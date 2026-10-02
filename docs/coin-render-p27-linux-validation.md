@@ -1,10 +1,10 @@
 # P27 — fechamento local Linux (2026-10-02)
 
 O perfil funcional descrito em [P27](coin-render-p27-shadows.md) foi exercitado
-em cinco células físicas, com executor GPU e referência Coin/GL obrigatórios,
-sem skips. A referência offscreen Coin/GL usa AMD/Mesa neste host, inclusive
-quando o executor Vulkan é NVIDIA. Isso permite comparar os mesmos dados e
-pixels entre implementações; não qualifica o contexto offscreen NVIDIA/GLX.
+em seis células físicas, com executor GPU e referência Coin/GL obrigatórios,
+sem skips. A campanha inicial usou AMD/Mesa como referência Coin/GL. Após corrigir
+GLX/PRIME, BGFX/OpenGL e wgpu/Vulkan também foram comparados com Coin/GL
+na própria NVIDIA física. As duas rotas offscreen, pixmap e pbuffer, passaram.
 
 | Executor | GPU física / driver | Resultado |
 | --- | --- | --- |
@@ -13,9 +13,11 @@ pixels entre implementações; não qualifica o contexto offscreen NVIDIA/GLX.
 | BGFX Vulkan | NVIDIA RTX 3060 Laptop, 610.57.04, `10de:2560` | 49/49 |
 | wgpu Vulkan | AMD Radeon Graphics, RADV RENOIR, Mesa 25.2.8, `1002:1638` | 46/46 |
 | wgpu Vulkan | NVIDIA RTX 3060 Laptop, 610.57.04, `10de:2560` | 46/46 |
-| BGFX OpenGL, qualificação limitada | NVIDIA RTX 3060 Laptop, 610.57.04, PRIME | 10/10 de recursos, RTT, readback e qualidade; comparação completa Coin/GL aberta |
+| BGFX OpenGL | NVIDIA RTX 3060 Laptop, 610.57.04, PRIME | 49/49 com referência Coin/GL na NVIDIA |
 
-As cinco células completas somam 239 testes. A suíte Coin também passou:
+As seis células completas somam 288 testes. A correção NVIDIA foi seguida
+por 49 testes de regressão AMD/OpenGL, 46 testes wgpu/Vulkan com oráculo
+NVIDIA/GL e oito testes focados de pbuffer NVIDIA, todos sem skips. A suíte Coin também passou:
 370 testes, 85.374 verificações. Os [logs preservados](validation/p27-linux/)
 registram inventário, capacidades, limite GL e resultados por célula.
 
@@ -55,13 +57,40 @@ env VK_DRIVER_FILES=/usr/share/vulkan/icd.d/radeon_icd.json \
 
 Para NVIDIA/Vulkan, trocar o ICD por `nvidia_icd.json` e o padrão por `NVIDIA`.
 Manter GLX Mesa para o oráculo. Para AMD/OpenGL, selecionar
-`COIN_BGFX_RENDERER=opengl`. Para wgpu, usar seu build e o argumento `wgpu`.
+`COIN_BGFX_RENDERER=opengl`. Para NVIDIA/OpenGL, usar
+`__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia` e o padrão
+`NVIDIA`. O runner prefere pixmap; `COIN_GLXGLUE_NO_PBUFFERS=0` seleciona
+a tentativa de pbuffer. Para wgpu, usar seu build e o argumento `wgpu`.
 O runner registra seleção física, rejeita adapters de software, exige GPU e
 GL, e falha se houver skips. Ele cobre sombras, composição, alfa RTT,
 transparência, peeling/OIT, qualidade, Wiring, ownership, seleção, depth,
 SceneTexture staged/direct, orçamento e readback por API onde disponível.
 Resize e recuperação referem-se às fixtures e falhas injetadas; não foi
 provocada uma perda física real do dispositivo.
+
+## NVIDIA/GLX PRIME resolvido
+
+A falha era no Coin/GL, com três causas distintas:
+
+1. `glXChooseVisual` solicitava implicitamente buffer simples. A NVIDIA
+   PRIME só oferecia os visuais RGBA necessários com buffer duplo. A seleção
+   agora tenta esses formatos depois das opções de buffer simples.
+2. A resolução de símbolos consultava EGL antes de GLX, mesmo para um
+   contexto GLX. A sonda confirmou zero configurações via resolvedor EGL e
+   15 via GLX para a mesma solicitação NVIDIA. A resolução agora usa a API
+   selecionada pelo Coin; o pbuffer também admite buffer duplo como fallback.
+3. O produtor `SoSceneTexture2` herdava a unidade usada pelo mapa de sombra.
+   Na NVIDIA, a textura ficava fora das quatro unidades de pipeline fixo,
+   desabilitando sua contribuição e tornando o alfa opaco. O produtor agora
+   começa na unidade zero, dentro do push/pop existente. O mesmo contrato
+   já era aplicado pelo Wiring dos executores novos.
+
+O FBO NVIDIA passou de alfa 255 incorreto para alfa variável esperado; os
+casos existentes de transparência, ALPHA_TEST, peeling/OIT e RTT capturam a
+regressão. A instrumentação temporária foi removida. EGL também passou em
+um contexto EGL 1.5 ativo na AMD, com RTT e readback, `GL_error=0`. As sondas,
+logs e evidências estão em `validation/p27-linux/glx-offscreen-fix/`.
+O log antigo `nvidia-gl-reference-unavailable.txt` registra a falha anterior.
 
 ## O que permanece aberto
 
@@ -73,11 +102,6 @@ provocada uma perda física real do dispositivo.
   local usa sete luzes coincidentes com intensidade total equivalente.
   Com `COIN_RENDER_REQUIRE_GL_EIGHT_MAP_REFERENCE=1`, o controle negativo
   recusa a referência: exige nove unidades e informa as oito disponíveis.
-- **NVIDIA/OpenGL com oráculo:** BGFX funciona com
-  `__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia`.
-  Coin `SoOffscreenRenderer` falha ao encontrar visual RGBA X11 compatível,
-  inclusive nos caminhos pbuffer e pixmap testados. Os dez testes GPU passam,
-  mas não encerram essa célula de comparação.
 - **Windows/Intel e macOS/Metal:** dependem de outro computador. A execução
   necessária e os critérios permanecem no
   [arquivo de plataformas pendentes](coin-render-platform-validation-pending.md).

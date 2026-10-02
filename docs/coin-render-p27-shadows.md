@@ -83,11 +83,11 @@ opaca no wgpu e compara seu readback ao GL.
 - [ ] **P27.4 — referência nativa da oitava sombra:** exige Coin/GL com nove
   unidades utilizáveis; este host oferece oito. O teste recusa qualificação
   nativa quando essa capacidade falta.
-- [x] **P27.5 — células Linux disponíveis:** AMD/BGFX Vulkan e OpenGL,
-  NVIDIA/BGFX Vulkan, AMD/wgpu Vulkan e NVIDIA/wgpu Vulkan; readback,
+- [x] **P27.5 — células Linux disponíveis:** AMD/NVIDIA BGFX Vulkan e OpenGL,
+  AMD/wgpu Vulkan e NVIDIA/wgpu Vulkan; readback,
   resize, falhas injetadas e tolerâncias passam nas mesmas fixtures.
-- [ ] **P27.5 — células restantes:** Windows/Intel, macOS/Metal e comparação
-  Coin/GL offscreen no NVIDIA/OpenGL PRIME. Ver arquivo de plataformas pendentes.
+- [ ] **P27.5 — células restantes:** Windows/Intel e macOS/Metal.
+  NVIDIA/OpenGL PRIME, inclusive o oráculo Coin/GL offscreen, está fechado. Ver arquivo de plataformas pendentes.
 
 Cada subetapa exige um quadro renderizado e evidência de comportamento;
 shader, captura ou plano isolados não bastam para fechá-la.
@@ -644,9 +644,9 @@ referência Coin/GL antes de marcar P27.4 concluído.
 - [x] **Qualificação Linux do perfil:** comparar spot/directional, todos os estilos, cenas
   próprias por luz, alpha/transparência, RTT, resize e falhas nas
   mesmas fixtures Coin/GL. GPU/API/driver e resultados estão preservados na
-  campanha de cinco células físicas, com as tolerâncias declaradas nas fixtures.
-- [ ] **Qualificação restante:** oito mapas GL nativos, oráculo NVIDIA/GLX
-  PRIME, Windows/Intel e macOS/Metal, conforme o arquivo de pendências.
+  campanha de seis células físicas, com as tolerâncias declaradas nas fixtures.
+- [ ] **Qualificação restante:** oito mapas GL nativos, Windows/Intel
+  e macOS/Metal, conforme o arquivo de pendências.
 
 O preflight retorna `UNSUPPORTED` antes de submeter o quadro para grupos
 ativos fora dos perfis qualificados de composição por objetos. O perfil atual aceita até oito
