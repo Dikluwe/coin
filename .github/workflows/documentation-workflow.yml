@@ -9,6 +9,8 @@ jobs:
   ubuntu-build:
     name: Ubuntu Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
