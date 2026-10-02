@@ -389,6 +389,11 @@ void copyLogicalDrawStats(const LogicalDrawStats & source,
 
 uint32_t pooledCapacity(size_t required)
 {
+  // Bound slack for large uploads instead of reserving the next power of two.
+  if (required > 65536) {
+    const uint64_t aligned = (uint64_t(required) + 65535u) & ~UINT64_C(65535);
+    return aligned <= UINT32_MAX ? static_cast<uint32_t>(aligned) : static_cast<uint32_t>(required);
+  }
   uint32_t capacity = 256;
   while (capacity < required && capacity <= UINT32_MAX / 2u)
     capacity *= 2u;
@@ -1175,18 +1180,31 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
       return this->status = CoinRenderBackendStatus::BACKEND_ERROR;
     }
   }
-  if (buildSortedLayers) {
+  if (!this->resize(target.size[0], target.size[1])) {
+    if (this->status != CoinRenderBackendStatus::DEVICE_LOST)
+      this->status = CoinRenderBackendStatus::BACKEND_ERROR;
+    return this->status;
+  }
+  this->status = CoinRenderBackendStatus::SUCCESS;
+  this->lastError.clear();
+  return this->status;
+}
+
+bool
+CoinBgfxBackend::prepareTransparencyPrograms(CoinBgfxTransparencyStrategy strategy)
+{
+  if (strategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS) {
     const uint8_t * vertexShader = COIN_BGFX_SHADER_DATA(coin_bgfx_vs);
     const uint32_t vertexBytes = COIN_BGFX_SHADER_SIZE(coin_bgfx_vs);
-    this->peelNextProgram = createLayerProgram(vertexShader, vertexBytes,
+    if (!bgfx::isValid(this->peelNextProgram)) this->peelNextProgram = createLayerProgram(vertexShader, vertexBytes,
       COIN_BGFX_SHADER_DATA(coin_bgfx_fs_peel_next),
       COIN_BGFX_SHADER_SIZE(coin_bgfx_fs_peel_next));
-    this->compositeProgram = createLayerProgram(vertexShader, vertexBytes,
+    if (!bgfx::isValid(this->compositeProgram)) this->compositeProgram = createLayerProgram(vertexShader, vertexBytes,
       COIN_BGFX_SHADER_DATA(coin_bgfx_fs_composite),
       COIN_BGFX_SHADER_SIZE(coin_bgfx_fs_composite));
-    this->previousDepthSampler = bgfx::createUniform("s_prevDepth", bgfx::UniformType::Sampler);
-    this->previousColorSampler = bgfx::createUniform("s_prevColor", bgfx::UniformType::Sampler);
-    this->layerSampler = bgfx::createUniform("s_layer", bgfx::UniformType::Sampler);
+    if (!bgfx::isValid(this->previousDepthSampler)) this->previousDepthSampler = bgfx::createUniform("s_prevDepth", bgfx::UniformType::Sampler);
+    if (!bgfx::isValid(this->previousColorSampler)) this->previousColorSampler = bgfx::createUniform("s_prevColor", bgfx::UniformType::Sampler);
+    if (!bgfx::isValid(this->layerSampler)) this->layerSampler = bgfx::createUniform("s_layer", bgfx::UniformType::Sampler);
     if (!bgfx::isValid(this->peelNextProgram) ||
         !bgfx::isValid(this->compositeProgram) ||
         !bgfx::isValid(this->previousDepthSampler) ||
@@ -1197,20 +1215,20 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
         !bgfx::isValid(this->fullscreenIndexBuffer)) {
       this->lastError = "BGFX could not allocate sorted-layers programs and uniforms";
       this->status = CoinRenderBackendStatus::BACKEND_ERROR;
-      return this->status;
+      return false;
     }
   }
-  if (buildWeightedOit) {
+  if (strategy == CoinBgfxTransparencyStrategy::WEIGHTED_OIT) {
     const uint8_t * vertexShader = COIN_BGFX_SHADER_DATA(coin_bgfx_vs);
     const uint32_t vertexBytes = COIN_BGFX_SHADER_SIZE(coin_bgfx_vs);
-    this->weightedOitProgram = createLayerProgram(vertexShader, vertexBytes,
+    if (!bgfx::isValid(this->weightedOitProgram)) this->weightedOitProgram = createLayerProgram(vertexShader, vertexBytes,
       COIN_BGFX_SHADER_DATA(coin_bgfx_fs_weighted_oit),
       COIN_BGFX_SHADER_SIZE(coin_bgfx_fs_weighted_oit));
-    this->weightedCompositeProgram = createLayerProgram(vertexShader, vertexBytes,
+    if (!bgfx::isValid(this->weightedCompositeProgram)) this->weightedCompositeProgram = createLayerProgram(vertexShader, vertexBytes,
       COIN_BGFX_SHADER_DATA(coin_bgfx_fs_weighted_composite),
       COIN_BGFX_SHADER_SIZE(coin_bgfx_fs_weighted_composite));
-    this->oitAccumSampler = bgfx::createUniform("s_oitAccum", bgfx::UniformType::Sampler);
-    this->oitRevealSampler = bgfx::createUniform("s_oitReveal", bgfx::UniformType::Sampler);
+    if (!bgfx::isValid(this->oitAccumSampler)) this->oitAccumSampler = bgfx::createUniform("s_oitAccum", bgfx::UniformType::Sampler);
+    if (!bgfx::isValid(this->oitRevealSampler)) this->oitRevealSampler = bgfx::createUniform("s_oitReveal", bgfx::UniformType::Sampler);
     if (!bgfx::isValid(this->weightedOitProgram) ||
         !bgfx::isValid(this->weightedCompositeProgram) ||
         !bgfx::isValid(this->oitAccumSampler) ||
@@ -1230,17 +1248,10 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
         bgfx::isValid(this->fullscreenIndexBuffer) ? 1 : 0);
       this->lastError = detail;
       this->status = CoinRenderBackendStatus::BACKEND_ERROR;
-      return this->status;
+      return false;
     }
   }
-  if (!this->resize(target.size[0], target.size[1])) {
-    if (this->status != CoinRenderBackendStatus::DEVICE_LOST)
-      this->status = CoinRenderBackendStatus::BACKEND_ERROR;
-    return this->status;
-  }
-  this->status = CoinRenderBackendStatus::SUCCESS;
-  this->lastError.clear();
-  return this->status;
+  return true;
 }
 
 void
@@ -1960,6 +1971,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
         this->sortedLayersSupported, selectedStrategy, this->lastError)) {
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
   }
+  if (!this->prepareTransparencyPrograms(selectedStrategy))
+    return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
   if (hasShadows && selectedStrategy != CoinBgfxTransparencyStrategy::OBJECT &&
       !this->prepareShadowTransparencyPrograms())
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
@@ -2732,6 +2745,8 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
         CoinBgfxTransparencyMode::AUTO, this->weightedOitSupported,
         this->sortedLayersSupported, strategy, this->lastError))
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
+  if (!this->prepareTransparencyPrograms(strategy))
+    return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
   if (hasShadows && strategy != CoinBgfxTransparencyStrategy::OBJECT &&
       !this->prepareShadowTransparencyPrograms())
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);

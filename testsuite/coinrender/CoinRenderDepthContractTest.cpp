@@ -72,6 +72,16 @@ bool stateInterning() {
     ok &= check(builder.build(captured, &diagnostic), "transformed instance capture failed");
     ok &= check(captured.renderStates.size() == 129,
       "state reuse must preserve distinct transforms and materials across frames");
+    CoinRenderFramePlan repeated, transferred;
+    ok &= check(builder.build(repeated, &diagnostic) &&
+      repeated.hasSamePayload(captured) && repeated.revision != captured.revision,
+      "default build must retain a repeatable independent snapshot");
+    ok &= check(builder.build(transferred, &diagnostic, true) &&
+      transferred.hasSamePayload(captured) && transferred.isValid(&diagnostic),
+      "ownership transfer must retain the complete valid captured payload");
+    builder.beginFrame(SbColor4f(1, 0, 0, 1), SbViewportRegion(16, 16));
+    ok &= check(transferred.hasSamePayload(captured),
+      "next capture must not mutate the transferred snapshot");
   }
   root->unref();
   return ok;

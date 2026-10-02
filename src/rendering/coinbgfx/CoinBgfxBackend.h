@@ -81,6 +81,7 @@ private:
                               const CoinRenderFrameReuseDecision & reuse, CoinRenderReadbackTicket * ticket);
   bool resize(int width, int height);
   bool prepareShadowPrograms(size_t mapCount);
+  bool prepareTransparencyPrograms(CoinBgfxTransparencyStrategy strategy);
   bool prepareShadowTransparencyPrograms();
   CoinRenderBackendStatus checkRuntimeFailure(const char * operation);
   void destroyResources();

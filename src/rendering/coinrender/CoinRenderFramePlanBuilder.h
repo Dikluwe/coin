@@ -61,7 +61,10 @@ public:
                                        SoNode * node,
                                        std::string * outError = nullptr);
 
-  bool build(CoinRenderFramePlan & outPlan, std::string * outError = nullptr);
+  // Transfer is used by Wiring once capture has finished. The default keeps
+  // repeatable snapshot semantics for callers that inspect the builder.
+  bool build(CoinRenderFramePlan & outPlan, std::string * outError = nullptr,
+             bool transferOwnership = false);
   bool isUnsupportedBuild() const { return this->isUnsupported; }
   static uint64_t nextRevision();
 

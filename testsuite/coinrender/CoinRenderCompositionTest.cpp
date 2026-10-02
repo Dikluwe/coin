@@ -716,6 +716,44 @@ bool testCommonTransparencyPolicy() {
   return true;
 }
 
+bool testProjectiveDepth() {
+  auto plan = makePlan();
+  const SbMatrix transforms[] = {
+    SbMatrix::identity(),
+    SbMatrix(1, 0, 0.2f, 0.1f, 0, 1, -0.3f, 0.05f,
+             0, 0, 2, 0.02f, 0, 0, -3, 1)
+  };
+  for (const auto & transform : transforms) {
+    for (auto & state : plan.renderStates) state.model = transform;
+    std::vector<CoinRenderCompositionItem> order;
+    std::string diagnostic;
+    if (!check(coin_render_composition_order(plan, order, diagnostic),
+               "finite projective depth must compose")) return false;
+    for (const auto & item : order) {
+      const auto & draw = plan.draws[item.drawIndex];
+      float minDepth = 0, maxDepth = 0;
+      for (uint32_t i = 0; i < draw.geometry.indexCount; ++i) {
+        const auto & vertex = plan.vertices[plan.indices[draw.geometry.firstIndex + i]];
+        SbVec3f eye;
+        transform.multVecMatrix(SbVec3f(vertex.position), eye);
+        if (i == 0) minDepth = maxDepth = -eye[2];
+        else { minDepth = std::min(minDepth, -eye[2]); maxDepth = std::max(maxDepth, -eye[2]); }
+      }
+      if (!check(item.eyeDepth == (minDepth + maxDepth) * 0.5f,
+                 "composition depth must match Coin homogeneous transformation")) return false;
+    }
+  }
+  plan.renderStates[0].model[3][3] = 0;
+  plan.renderStates[0].model[0][3] = 0;
+  plan.renderStates[0].model[1][3] = 0;
+  plan.renderStates[0].model[2][3] = 0;
+  std::vector<CoinRenderCompositionItem> order;
+  std::string diagnostic;
+  return check(!coin_render_composition_order(plan, order, diagnostic) &&
+               diagnostic.find("non-finite eye depth") != std::string::npos,
+               "zero homogeneous W must still be rejected");
+}
+
 bool testRejections() {
   CoinRenderFramePlan plan = makePlan();
   std::vector<CoinRenderCompositionItem> order;
@@ -845,7 +883,7 @@ int main(int argc, char ** argv) {
     std::cout << "Wgpu annotation GPU regressions passed\n";
     return 0;
   }
-  if (!testMaterialBlend() || !testStableDepthTie() ||
+  if (!testProjectiveDepth() || !testMaterialBlend() || !testStableDepthTie() ||
       !testOverlayPreservesTraversalOrder() ||
       !testMixedOverlayRendersInTraversalOrder() || !testTextureAlpha() ||
       !testTextureMutationAndSharing() ||

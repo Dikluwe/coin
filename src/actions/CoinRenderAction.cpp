@@ -638,7 +638,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   }
 
   std::string err;
-  if (!traversalSkipped && !cameraOverlay && !this->builder.build(plan, &err)) {
+  if (!traversalSkipped && !cameraOverlay && !this->builder.build(plan, &err, true)) {
     const CoinRenderAction::Status status = this->builder.isUnsupportedBuild()
       ? CoinRenderAction::UNSUPPORTED : CoinRenderAction::INVALID_SCENE;
     this->setDiagnostic(CoinRenderDiagnosticShell::action(
@@ -1267,7 +1267,7 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, 
     capture.inheritedClipPlaneCount = inheritedPlanes;
     std::string error;
     p->builder.endShadowGroup();
-    const bool ok = p->builder.build(capture.frame, &error);
+    const bool ok = p->builder.build(capture.frame, &error, true);
     std::swap(savedBuilder, p->builder);
     if (!ok || action->hasTerminated()) {
       if (!action->hasTerminated()) p->setDiagnostic(CoinRenderDiagnosticShell::action(

@@ -957,6 +957,10 @@ CoinRenderFramePlanBuilder::captureVertex(SoCallbackAction * action, const SoPri
   v.texcoord[1] = tc[1];
   v.materialSlot = materialSlot;
 
+  bool hasExtraCoordinates = false;
+  for (const auto & texture : rs.extraTextures)
+    if (texture.enabled) hasExtraCoordinates = true;
+  if (!hasExtraCoordinates) return v;
 
   SoState * state = action->getState();
   const auto * coords = SoMultiTextureCoordinateElement::getInstance(state);
@@ -1101,9 +1105,12 @@ CoinRenderFramePlanBuilder::addTriangle(SoCallbackAction * action,
   this->ensureDrawPacket(CoinRenderPrimitiveTopology::TRIANGLE_LIST, rsSlot, action->getCurPathTail());
   this->captureSortingCenter(action);
 
-  uint32_t m0 = this->captureMaterial(action, v0->getMaterialIndex());
-  uint32_t m1 = this->captureMaterial(action, v1->getMaterialIndex());
-  uint32_t m2 = this->captureMaterial(action, v2->getMaterialIndex());
+  uint32_t m0 = this->currentPlan.renderStates[rsSlot].materialSlot;
+  uint32_t m1 = v1->getMaterialIndex() == v0->getMaterialIndex() ? m0 :
+    this->captureMaterial(action, v1->getMaterialIndex());
+  uint32_t m2 = v2->getMaterialIndex() == v0->getMaterialIndex() ? m0 :
+    (v2->getMaterialIndex() == v1->getMaterialIndex() ? m1 :
+     this->captureMaterial(action, v2->getMaterialIndex()));
 
   uint32_t i0 = this->addVertex(action, v0, m0);
   uint32_t i1 = this->addVertex(action, v1, m1);
@@ -1416,7 +1423,8 @@ CoinRenderFramePlanBuilder::expandStyledPrimitives(std::string * outError)
 
 
 bool
-CoinRenderFramePlanBuilder::build(CoinRenderFramePlan & outPlan, std::string * outError)
+CoinRenderFramePlanBuilder::build(CoinRenderFramePlan & outPlan, std::string * outError,
+                                bool transferOwnership)
 {
   if (this->polygonNode && !this->isUnsupported && !this->hasError) {
     this->isUnsupported = true;
@@ -1440,7 +1448,10 @@ CoinRenderFramePlanBuilder::build(CoinRenderFramePlan & outPlan, std::string * o
     if (outError) *outError = compositionError;
     return false;
   }
-  outPlan = this->currentPlan;
+  if (transferOwnership) {
+    outPlan = std::move(this->currentPlan);
+    this->reset();
+  } else outPlan = this->currentPlan;
   outPlan.revision = CoinRenderFramePlanBuilder::nextRevision();
   return true;
 }

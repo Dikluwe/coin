@@ -719,15 +719,22 @@ if(COIN_BUILD_RENDER)
 		${COIN_TARGET_INCLUDE_DIRECTORIES}
 	)
 	add_test(NAME CoinRenderDrawStyleTest COMMAND CoinRenderDrawStyleTest)
-	set_tests_properties(CoinRenderDrawStyleTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77)
+	set(_coin_draw_style_timeout 60)
+	if(WIN32)
+		# The full CPU/GPU stipple matrix performs over 15,000 captures.
+		# Windows driver startup and scheduling can exceed a one-minute budget.
+		set(_coin_draw_style_timeout 120)
+	endif()
+	set_tests_properties(CoinRenderDrawStyleTest PROPERTIES TIMEOUT ${_coin_draw_style_timeout} SKIP_RETURN_CODE 77)
 	if(COIN_RENDER_BACKEND STREQUAL "BGFX")
 		set_tests_properties(CoinRenderDrawStyleTest PROPERTIES ENVIRONMENT "COIN_BGFX_RENDERER=vulkan;COIN_BGFX_TRANSPARENCY=object")
 		foreach(renderer ${_coin_bgfx_test_renderers})
 			add_test(NAME CoinRenderDrawStyle_${renderer} COMMAND CoinRenderDrawStyleTest)
-			set_tests_properties(CoinRenderDrawStyle_${renderer} PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77
+			set_tests_properties(CoinRenderDrawStyle_${renderer} PROPERTIES TIMEOUT ${_coin_draw_style_timeout} SKIP_RETURN_CODE 77
 				ENVIRONMENT "COIN_BGFX_RENDERER=${renderer};COIN_BGFX_TRANSPARENCY=object")
 		endforeach()
 	endif()
+	unset(_coin_draw_style_timeout)
 
 
 	add_executable(CoinRenderMultitextureTest coinrender/CoinRenderMultitextureTest.cpp)

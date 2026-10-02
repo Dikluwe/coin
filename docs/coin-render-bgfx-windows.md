@@ -159,7 +159,7 @@ Nos ensaios com tracing e timestamps habilitados, 10.000 edifícios caíram
 para 12,34 ms e 40.000 para 14,19 ms por frame. As capturas completas são
 pixel a pixel idênticas às imagens BGFX/D3D12 anteriores. Os logs mostram
 um draw opaco, cache de recursos ativo e nenhuma repetição do upload.
-O primeiro quadro de 40.000 ainda leva aproximadamente quatro segundos:
+Nessa etapa, o primeiro quadro de 40.000 levou aproximadamente quatro segundos:
 a captura inicial, conversão e upload continuam necessários. Esses ganhos
 medem uma cena estática aquecida; não certificam animação ou movimento de
 câmera PHONG, que podem exigir uma reconstrução.
@@ -191,3 +191,24 @@ Os logs de fases, controles, benchmarks finais, XMLs e resultados por
 teste estão em [validation/bgfx-windows/performance](validation/bgfx-windows/performance/).
 O [performance-summary.json](validation/bgfx-windows/performance/performance-summary.json)
 registra as medianas, hashes das imagens e resultados consolidados.
+
+## Primeiro quadro
+
+A correção seguinte reduziu cópias na captura, trabalho repetido de materiais,
+crescimento dos vetores e a reserva dos buffers grandes. Também adia os
+programas de transparência até seu uso. Na cidade de 40.000, três pares
+alternados de processos mediram mediana inicial de **3.544,37 ms antes e
+2.884,36 ms depois**, redução de **18,62%**. O carregamento do arquivo ficou
+fora do intervalo, e os caches de sistema/driver foram preservados.
+
+A memória GPU reportada caiu em **120 MiB**. As imagens de 10.000 e 40.000
+permanecem pixel a pixel idênticas. O controle aquecido de 40.000 mediu
+12,08 ms de mediana. A validação combinada do código atual aprovou 152
+testes de renderização distintos, incluindo sombras GPU obrigatórias.
+Os timeouts da primeira tentativa foram preservados e reexecutados; a
+fixture extensa de estilos recebeu um prazo de 120 s no Windows.
+
+Captura e inicialização continuam sendo custos relevantes. A decomposição,
+o método e os limites da medição estão no
+[relatório de cenas grandes](coin-render-large-scenes-windows.md#primeiro-quadro-diagnóstico-e-correção)
+e em [first-frame-summary.json](validation/bgfx-windows/first-frame/first-frame-summary.json).

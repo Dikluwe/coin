@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cstring>
 #include <utility>
+#include <unordered_map>
 
 namespace {
 bool finiteMatrix(const SbMatrix & matrix)
@@ -203,6 +204,16 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     item.indexCount = frame.draws[d].geometry.indexCount;
     order.push_back(item);
   }
+  uint64_t vertexBudget = 0;
+  for (const auto & item : order) vertexBudget += item.indexCount;
+  if (vertexBudget <= UINT32_MAX / sizeof(CoinBgfxVertex)) {
+    candidate.vertices.reserve(static_cast<size_t>(vertexBudget));
+    candidate.indices.reserve(static_cast<size_t>(vertexBudget));
+  }
+  candidate.draws.reserve(batchOpaque ? std::min<size_t>(order.size(), 256) : order.size());
+  // Preserve the exact legacy FNV sequence for uniform-material geometry.
+  // Repeated shapes otherwise hash the same material once per vertex.
+  std::unordered_map<uint64_t, uint64_t> uniformMaterialSignatures;
   bool previousBatchable = false;
   for (const CoinRenderCompositionItem& item : order) {
     CoinRenderDrawPacket draw = frame.draws[item.drawIndex];
@@ -243,6 +254,8 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       !item.blend && !item.screenDoor && draw.renderLayer == 0 && !draw.clearDepthBefore &&
       state.lightModel == CoinRenderLightModel::PHONG;
     float maxAlpha = 0.0f;
+    const uint32_t uniformMaterialSlot = frame.vertices[frame.indices[draw.geometry.firstIndex]].materialSlot;
+    bool uniformMaterial = true;
     for (uint32_t j = 0; j < draw.geometry.indexCount; ++j) {
       const uint32_t index = frame.indices[draw.geometry.firstIndex + j];
       if (index < draw.geometry.firstVertex ||
@@ -252,6 +265,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       }
       const CoinRenderMaterialSnapshot & material = frame.materials[frame.vertices[index].materialSlot];
       const auto & vertex = frame.vertices[index];
+      if (vertex.materialSlot != uniformMaterialSlot) uniformMaterial = false;
       if (vertex.screenSpaceW != 1.0f || vertex.fogEyeDepth >= 0.0f) batchable = false;
       if (!std::isfinite(material.diffuse[0]) || !std::isfinite(material.diffuse[1]) ||
           !std::isfinite(material.diffuse[2]) ||
@@ -390,22 +404,40 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       lowered.lightAttenuationDrop[lightIndex][3] = light.dropOffRate;
     }
     lowered.materialSignature = UINT64_C(1469598103934665603);
+    if (uniformMaterial) {
+      const uint64_t key = (uint64_t(uniformMaterialSlot) << 32) | draw.geometry.indexCount;
+      const auto cached = uniformMaterialSignatures.find(key);
+      if (cached != uniformMaterialSignatures.end()) lowered.materialSignature = cached->second;
+      else {
+        const auto & material = frame.materials[uniformMaterialSlot];
+        for (uint32_t j = 0; j < draw.geometry.indexCount; ++j) {
+          lowered.materialSignature = hashBytes(lowered.materialSignature, material.diffuse, sizeof(material.diffuse));
+          lowered.materialSignature = hashBytes(lowered.materialSignature, material.ambient, sizeof(material.ambient));
+          lowered.materialSignature = hashBytes(lowered.materialSignature, material.specular, sizeof(material.specular));
+          lowered.materialSignature = hashBytes(lowered.materialSignature, material.emission, sizeof(material.emission));
+          lowered.materialSignature = hashBytes(lowered.materialSignature, &material.shininess, sizeof(material.shininess));
+        }
+        uniformMaterialSignatures.emplace(key, lowered.materialSignature);
+      }
+    }
     for (uint32_t j = 0; j < draw.geometry.indexCount; ++j) {
       const uint32_t sourceIndex = frame.indices[draw.geometry.firstIndex + j];
       const CoinRenderVertexSnapshot & source = frame.vertices[sourceIndex];
       CoinBgfxVertex vertex{};
       std::memcpy(vertex.position, source.position, sizeof(vertex.position));
       const CoinRenderMaterialSnapshot & material = frame.materials[source.materialSlot];
-      lowered.materialSignature = hashBytes(lowered.materialSignature,
-        material.diffuse, sizeof(material.diffuse));
-      lowered.materialSignature = hashBytes(lowered.materialSignature,
-        material.ambient, sizeof(material.ambient));
-      lowered.materialSignature = hashBytes(lowered.materialSignature,
-        material.specular, sizeof(material.specular));
-      lowered.materialSignature = hashBytes(lowered.materialSignature,
-        material.emission, sizeof(material.emission));
-      lowered.materialSignature = hashBytes(lowered.materialSignature,
-        &material.shininess, sizeof(material.shininess));
+      if (!uniformMaterial) {
+        lowered.materialSignature = hashBytes(lowered.materialSignature,
+          material.diffuse, sizeof(material.diffuse));
+        lowered.materialSignature = hashBytes(lowered.materialSignature,
+          material.ambient, sizeof(material.ambient));
+        lowered.materialSignature = hashBytes(lowered.materialSignature,
+          material.specular, sizeof(material.specular));
+        lowered.materialSignature = hashBytes(lowered.materialSignature,
+          material.emission, sizeof(material.emission));
+        lowered.materialSignature = hashBytes(lowered.materialSignature,
+          &material.shininess, sizeof(material.shininess));
+      }
       std::memcpy(vertex.color, material.diffuse, sizeof(vertex.color));
       std::memcpy(vertex.ambient, material.ambient, sizeof(vertex.ambient));
       std::memcpy(vertex.specular, material.specular, sizeof(vertex.specular));

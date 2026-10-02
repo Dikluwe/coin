@@ -112,6 +112,74 @@ testes distintos, contando a reexecução das fixtures finais.
 O build, os testes Win32 e a qualificação dirigida estão documentados em
 [CoinRender BGFX no Windows](coin-render-bgfx-windows.md).
 
+## Primeiro quadro: diagnóstico e correção
+
+Em 2026-10-02, a investigação do primeiro quadro encontrou custo de captura
+e cópias de geometria na CPU, hashing repetido de materiais, crescimento dos
+vetores de conversão e reserva excessiva dos buffers GPU. A correção transfere
+o plano capturado sem copiar seus vetores, reaproveita a captura de materiais
+iguais no triângulo, evita procurar coordenadas de unidades de textura
+desativadas, reserva a conversão de uma vez e memoiza a assinatura de materiais
+uniformes preservando a sequência FNV anterior. A composição calcula apenas
+a profundidade necessária, mantendo a divisão homogênea e suas validações.
+Programas de peeling/OIT passam a ser criados quando a estratégia os exige.
+
+Três pares alternados de processos, com a versão anterior `5f30dee635` e a
+corrigida, mediram a cidade de 40.000 edifícios em BGFX/D3D12, 1024 × 1024:
+
+| Execução | Primeiro quadro anterior | Primeiro quadro corrigido |
+|---|---:|---:|
+| 1 | 3.572,06 ms | 2.920,06 ms |
+| 2 | 3.544,37 ms | 2.884,36 ms |
+| 3 | 3.485,52 ms | 2.877,66 ms |
+| Mediana | **3.544,37 ms** | **2.884,36 ms** |
+
+A redução foi de **18,62%**, com o mesmo checksum RGBA em todas as execuções.
+Esse ensaio mede o primeiro `apply`, incluindo captura e readback síncrono.
+Carregamento do arquivo e a consulta inicial de disponibilidade do backend
+ficam fora desse intervalo. Cada processo usou um quadro de aquecimento e um
+medido depois do primeiro; os contadores de diagnóstico estavam desativados.
+Caches do sistema operacional e do driver foram preservados, portanto o
+ensaio representa processos novos na máquina em uso, sem simular um reboot.
+
+Uma execução separada com diagnóstico levou 3.050,86 ms e decompôs o custo:
+
+| Fase | Tempo |
+|---|---:|
+| Captura da cena | 1.077,57 ms |
+| Montagem/validação do plano | 230,52 ms |
+| Validação no alvo | 239,48 ms |
+| Preparação do alvo/backend | 292,72 ms |
+| Conversão para BGFX | 437,97 ms |
+| Upload | 99,76 ms |
+| Espera até o readback | 667,19 ms |
+
+Conversão, upload e espera são partes da submissão; os totais de backend nos
+logs já incluem essas fases. O contador BGFX reportou 19,45 ms de GPU no primeiro
+quadro. A espera inclui processamento de recursos, trabalho da thread de
+render/driver, sincronização e leitura; a compilação de pipelines não foi
+medida isoladamente. Captura e inicialização continuam sendo alvos de trabalho.
+A geometria ainda está expandida em 1.440.036 vértices, sem instâncias GPU.
+
+A capacidade dos buffers caiu de 2.097.152 para 1.441.792 elementos. A memória
+GPU reportada caiu de 455.135.232 para 329.306.112 bytes, economizando **120 MiB**.
+No controle estático final, com 4/8 quadros, 40 mil teve mediana **12,08 ms** e
+P95 12,32 ms; 10 mil teve mediana 11,04 ms e P95 11,76 ms. As duas capturas RGB
+são pixel a pixel idênticas às anteriores.
+
+Os resultados finais combinam **152 testes distintos aprovados**, incluindo
+sombras GPU obrigatórias, D3D12/Vulkan/OpenGL, transparência e RTT. A execução
+inicial foi interrompida após timeouts; os casos foram reexecutados e os logs
+originais preservados. A fixture de estilos percorreu mais de 15 mil capturas
+e seu prazo no Windows passou de 60 para 120 segundos, mantendo as verificações.
+Um controle com as DLLs anteriores também mostrou atraso de inicialização:
+a fixture de iluminação passou em 90,11 s, contra 20,24 s na repetição corrigida.
+Esses dois tempos registram a variação do ambiente e não são uma comparação
+de desempenho entre versões.
+
+Logs, XMLs, resultados por teste, hashes e o método estão em
+[first-frame-summary.json](validation/bgfx-windows/first-frame/first-frame-summary.json).
+
 ## Reproduzir
 
 ```powershell
@@ -127,3 +195,15 @@ $env:WGPU_BACKEND = 'vulkan' # trocar por dx12 para D3D12
 `--image-output` salva PPM fora do intervalo medido, corrigindo a origem vertical
 do readback GL. Só é aceito no modo síncrono com cópia RGBA. O benchmark também
 registra carregamento, primeiro quadro e cleanup, separadamente da mediana aquecida.
+
+Para repetir o primeiro quadro no build BGFX desta máquina, a partir de
+`H:/Git/coin`, execute um processo novo por amostra:
+
+```powershell
+$env:COIN_BGFX_RENDERER = 'd3d12'
+& ./build/coin-render-bgfx-msvc/bin/coin_render_gl_benchmark.exe `
+  --scene ./build/large-scenes/city-40000.iv --backend bgfx `
+  --size 1024 --warmup 1 --frames 1
+# Para investigar as fases CPU, habilite antes de uma execução separada:
+$env:COIN_RENDER_TRACE_PHASES = '1'
+```

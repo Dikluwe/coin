@@ -1,0 +1,1314 @@
+Start testing: Oct 02 15:49 Hora oficial do Brasil
+----------------------------------------------------------
+1/163 Testing: CoinRenderWin32D3D12Smoke
+1/163 Test: CoinRenderWin32D3D12Smoke
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/coin_render_win32_smoke.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/examples/coinrender
+"CoinRenderWin32D3D12Smoke" start time: Oct 02 15:49 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+window_offscreen fixture=opaque max_channel_delta=0 tolerance=3
+window_rgba_fnv64=0x5dbd5ccf10be2a4d size=504x351 dpi=96
+window_offscreen fixture=transparent max_channel_delta=0 tolerance=3
+renderer=4 vendor_id=0x10de device_id=0x1c03 adapter="BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03)"
+<end of output>
+Test time =   0.90 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderWin32D3D12Smoke" end time: Oct 02 15:49 Hora oficial do Brasil
+"CoinRenderWin32D3D12Smoke" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/163 Testing: CoinRenderWin32VulkanSmoke
+2/163 Test: CoinRenderWin32VulkanSmoke
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/coin_render_win32_smoke.exe" "--vulkan"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/examples/coinrender
+"CoinRenderWin32VulkanSmoke" start time: Oct 02 15:49 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+window_offscreen fixture=opaque max_channel_delta=0 tolerance=3
+window_rgba_fnv64=0x5dbd5ccf10be2a4d size=504x351 dpi=96
+window_offscreen fixture=transparent max_channel_delta=0 tolerance=3
+renderer=1 vendor_id=0x10de device_id=0x1c03 adapter="BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03)"
+<end of output>
+Test time =   0.98 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderWin32VulkanSmoke" end time: Oct 02 15:49 Hora oficial do Brasil
+"CoinRenderWin32VulkanSmoke" time elapsed: 00:00:00
+----------------------------------------------------------
+
+13/163 Testing: CoinRenderActionTest
+13/163 Test: CoinRenderActionTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderActionTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderActionTest" start time: Oct 02 15:49 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Running CoinRenderActionTest...
+All CoinRenderRenderAction tests PASSED!
+<end of output>
+Test time =   0.71 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderActionTest" end time: Oct 02 15:49 Hora oficial do Brasil
+"CoinRenderActionTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+14/163 Testing: CoinRenderSelectionTest
+14/163 Test: CoinRenderSelectionTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderSelectionTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderSelectionTest" start time: Oct 02 15:49 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+P11 typed selection and capability matrix passed
+<end of output>
+Test time =   4.28 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderSelectionTest" end time: Oct 02 15:49 Hora oficial do Brasil
+"CoinRenderSelectionTest" time elapsed: 00:00:04
+----------------------------------------------------------
+
+15/163 Testing: CoinRenderSelection_vulkan
+15/163 Test: CoinRenderSelection_vulkan
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderSelectionTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderSelection_vulkan" start time: Oct 02 15:49 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   4.13 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderSelection_vulkan" end time: Oct 02 15:49 Hora oficial do Brasil
+"CoinRenderSelection_vulkan" time elapsed: 00:00:04
+----------------------------------------------------------
+
+16/163 Testing: CoinRenderSelection_opengl
+16/163 Test: CoinRenderSelection_opengl
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderSelectionTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderSelection_opengl" start time: Oct 02 15:49 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+P11 typed selection and capability matrix passed
+<end of output>
+Test time =   3.35 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderSelection_opengl" end time: Oct 02 15:49 Hora oficial do Brasil
+"CoinRenderSelection_opengl" time elapsed: 00:00:03
+----------------------------------------------------------
+
+17/163 Testing: CoinRenderSelection_d3d12
+17/163 Test: CoinRenderSelection_d3d12
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderSelectionTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderSelection_d3d12" start time: Oct 02 15:49 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+P11 typed selection and capability matrix passed
+<end of output>
+Test time =   4.76 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderSelection_d3d12" end time: Oct 02 15:49 Hora oficial do Brasil
+"CoinRenderSelection_d3d12" time elapsed: 00:00:04
+----------------------------------------------------------
+
+18/163 Testing: CoinRenderProductTest
+18/163 Test: CoinRenderProductTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderProductTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderProductTest" start time: Oct 02 15:49 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+COIN_WGPU_CAPABILITIES backend=3 probe_status=1 renderer=4 vendor_id=0x10de device_id=0x1c03 max_framebuffer_attachments=8 runtime_features=0xf rgba8=0x1f d24s8=0x7 d32f=0x7 rgba16f=0x1f r16f=0x1f adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) diagnostic=BGFX Direct3D 12 probe succeeded; MRT=1 (max attachments=8), independent blend=1, compute=1, timestamps=1; framebuffer formats RGBA8=0x1f D24S8=0x7 D32F=0x7 RGBA16F=0x1f R16F=0x1f
+CoinRenderProductTest passed
+<end of output>
+Test time =   1.58 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderProductTest" end time: Oct 02 15:49 Hora oficial do Brasil
+"CoinRenderProductTest" time elapsed: 00:00:01
+----------------------------------------------------------
+
+19/163 Testing: CoinRenderBackendContractTest
+19/163 Test: CoinRenderBackendContractTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderBackendContractTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderBackendContractTest" start time: Oct 02 15:49 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Shared offscreen rendering contract passed for backend 3
+<end of output>
+Test time =   0.88 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderBackendContractTest" end time: Oct 02 15:49 Hora oficial do Brasil
+"CoinRenderBackendContractTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+20/163 Testing: CoinRenderOffscreenTest
+20/163 Test: CoinRenderOffscreenTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderOffscreenTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderOffscreenTest" start time: Oct 02 15:49 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Running CoinRenderOffscreenTest...
+Testing zero-size target behavior...
+Testing culling and winding via SoShapeHints...
+All CoinRenderOffscreen tests PASSED!
+<end of output>
+Test time =   0.11 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderOffscreenTest" end time: Oct 02 15:49 Hora oficial do Brasil
+"CoinRenderOffscreenTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+21/163 Testing: CoinRenderGateG0Test
+21/163 Test: CoinRenderGateG0Test
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderGateG0Test.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderGateG0Test" start time: Oct 02 15:49 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Running CoinRenderGateG0Test (Onda 2A Saneamento)...
+-> Test G0.1: Multi-root SoPathList accumulation (B02)...
+   [PASS] G0.1 Multi-root accumulation
+-> Test G0.2: PER_VERTEX material binding preservation (B03)...
+   [PASS] G0.2 PER_VERTEX material binding
+-> Test G0.3: Directional light view space transform (B04)...
+   [PASS] G0.3 Directional light in view space
+-> Test G0.4: 32-bit arithmetic overflow protection (B05)...
+   [PASS] G0.4 32-bit overflow protection
+-> Test G0.5: Target dimension overflow & OOM protection (B06)...
+   [PASS] G0.5 Target overflow protection
+-> Test G0.6: Backend GPU availability isolation (B07)...
+   [PASS] G0.6 GPU availability query
+-> Test G0.7: Reentrancy protection and terminal error preservation (B08)...
+   [PASS] G0.7 Reentrancy error preservation
+-> Test G0.8: Near plane frustum clipping robustness (B09)...
+   [PASS] G0.8 Near plane clipping robustness
+
+=======================================================
+All CoinRenderGateG0Test test suites PASSED successfully!
+=======================================================
+<end of output>
+Test time =   0.12 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderGateG0Test" end time: Oct 02 15:49 Hora oficial do Brasil
+"CoinRenderGateG0Test" time elapsed: 00:00:00
+----------------------------------------------------------
+
+22/163 Testing: CoinRenderFrameCoreTest
+22/163 Test: CoinRenderFrameCoreTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderFrameCoreTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderFrameCoreTest" start time: Oct 02 15:49 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinRenderFrameCoreTest passed
+<end of output>
+Test time =   0.10 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderFrameCoreTest" end time: Oct 02 15:49 Hora oficial do Brasil
+"CoinRenderFrameCoreTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+23/163 Testing: CoinBgfxReadbackModes_vulkan
+23/163 Test: CoinBgfxReadbackModes_vulkan
+Command: "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe" "-E" "env" "COIN_BGFX_RENDERER=vulkan" "COIN_BGFX_TRANSPARENCY=auto" "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinBgfxReadbackModesTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinBgfxReadbackModes_vulkan" start time: Oct 02 15:49 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   2.88 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxReadbackModes_vulkan" end time: Oct 02 15:49 Hora oficial do Brasil
+"CoinBgfxReadbackModes_vulkan" time elapsed: 00:00:02
+----------------------------------------------------------
+
+24/163 Testing: CoinBgfxReadbackModes_opengl
+24/163 Test: CoinBgfxReadbackModes_opengl
+Command: "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe" "-E" "env" "COIN_BGFX_RENDERER=opengl" "COIN_BGFX_TRANSPARENCY=auto" "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinBgfxReadbackModesTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinBgfxReadbackModes_opengl" start time: Oct 02 15:49 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Coin transparency modes, GPU depth, async lifetime and public action passed
+<end of output>
+Test time =   1.70 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxReadbackModes_opengl" end time: Oct 02 15:49 Hora oficial do Brasil
+"CoinBgfxReadbackModes_opengl" time elapsed: 00:00:01
+----------------------------------------------------------
+
+25/163 Testing: CoinBgfxReadbackModes_d3d12
+25/163 Test: CoinBgfxReadbackModes_d3d12
+Command: "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe" "-E" "env" "COIN_BGFX_RENDERER=d3d12" "COIN_BGFX_TRANSPARENCY=auto" "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinBgfxReadbackModesTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinBgfxReadbackModes_d3d12" start time: Oct 02 15:49 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Coin transparency modes, GPU depth, async lifetime and public action passed
+<end of output>
+Test time =   2.79 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxReadbackModes_d3d12" end time: Oct 02 15:50 Hora oficial do Brasil
+"CoinBgfxReadbackModes_d3d12" time elapsed: 00:00:02
+----------------------------------------------------------
+
+26/163 Testing: CoinBgfxSurface_vulkan_object
+26/163 Test: CoinBgfxSurface_vulkan_object
+Command: "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe" "-E" "env" "COIN_BGFX_RENDERER=vulkan" "COIN_BGFX_TRANSPARENCY=object" "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinBgfxSurfaceFeaturesTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinBgfxSurface_vulkan_object" start time: Oct 02 15:50 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =  20.94 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxSurface_vulkan_object" end time: Oct 02 15:50 Hora oficial do Brasil
+"CoinBgfxSurface_vulkan_object" time elapsed: 00:00:20
+----------------------------------------------------------
+
+27/163 Testing: CoinBgfxSurface_vulkan_weighted_oit
+27/163 Test: CoinBgfxSurface_vulkan_weighted_oit
+Command: "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe" "-E" "env" "COIN_BGFX_RENDERER=vulkan" "COIN_BGFX_TRANSPARENCY=weighted_oit" "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinBgfxSurfaceFeaturesTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinBgfxSurface_vulkan_weighted_oit" start time: Oct 02 15:50 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =  19.63 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxSurface_vulkan_weighted_oit" end time: Oct 02 15:50 Hora oficial do Brasil
+"CoinBgfxSurface_vulkan_weighted_oit" time elapsed: 00:00:19
+----------------------------------------------------------
+
+28/163 Testing: CoinBgfxSurface_vulkan_sorted_layers
+28/163 Test: CoinBgfxSurface_vulkan_sorted_layers
+Command: "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe" "-E" "env" "COIN_BGFX_RENDERER=vulkan" "COIN_BGFX_TRANSPARENCY=sorted_layers" "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinBgfxSurfaceFeaturesTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinBgfxSurface_vulkan_sorted_layers" start time: Oct 02 15:50 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =  21.01 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxSurface_vulkan_sorted_layers" end time: Oct 02 15:51 Hora oficial do Brasil
+"CoinBgfxSurface_vulkan_sorted_layers" time elapsed: 00:00:21
+----------------------------------------------------------
+
+29/163 Testing: CoinBgfxSurface_opengl_object
+29/163 Test: CoinBgfxSurface_opengl_object
+Command: "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe" "-E" "env" "COIN_BGFX_RENDERER=opengl" "COIN_BGFX_TRANSPARENCY=object" "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinBgfxSurfaceFeaturesTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinBgfxSurface_opengl_object" start time: Oct 02 15:51 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinBgfxSurfaceFeaturesTest passed
+<end of output>
+Test time =  13.77 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxSurface_opengl_object" end time: Oct 02 15:51 Hora oficial do Brasil
+"CoinBgfxSurface_opengl_object" time elapsed: 00:00:13
+----------------------------------------------------------
+
+30/163 Testing: CoinBgfxSurface_opengl_weighted_oit
+30/163 Test: CoinBgfxSurface_opengl_weighted_oit
+Command: "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe" "-E" "env" "COIN_BGFX_RENDERER=opengl" "COIN_BGFX_TRANSPARENCY=weighted_oit" "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinBgfxSurfaceFeaturesTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinBgfxSurface_opengl_weighted_oit" start time: Oct 02 15:51 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinBgfxSurfaceFeaturesTest passed
+<end of output>
+Test time =  11.92 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxSurface_opengl_weighted_oit" end time: Oct 02 15:51 Hora oficial do Brasil
+"CoinBgfxSurface_opengl_weighted_oit" time elapsed: 00:00:11
+----------------------------------------------------------
+
+31/163 Testing: CoinBgfxSurface_opengl_sorted_layers
+31/163 Test: CoinBgfxSurface_opengl_sorted_layers
+Command: "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe" "-E" "env" "COIN_BGFX_RENDERER=opengl" "COIN_BGFX_TRANSPARENCY=sorted_layers" "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinBgfxSurfaceFeaturesTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinBgfxSurface_opengl_sorted_layers" start time: Oct 02 15:51 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinBgfxSurfaceFeaturesTest passed
+<end of output>
+Test time =  11.81 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxSurface_opengl_sorted_layers" end time: Oct 02 15:51 Hora oficial do Brasil
+"CoinBgfxSurface_opengl_sorted_layers" time elapsed: 00:00:11
+----------------------------------------------------------
+
+32/163 Testing: CoinBgfxSurface_d3d12_object
+32/163 Test: CoinBgfxSurface_d3d12_object
+Command: "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe" "-E" "env" "COIN_BGFX_RENDERER=d3d12" "COIN_BGFX_TRANSPARENCY=object" "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinBgfxSurfaceFeaturesTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinBgfxSurface_d3d12_object" start time: Oct 02 15:51 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinBgfxSurfaceFeaturesTest passed
+<end of output>
+Test time =  21.35 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxSurface_d3d12_object" end time: Oct 02 15:52 Hora oficial do Brasil
+"CoinBgfxSurface_d3d12_object" time elapsed: 00:00:21
+----------------------------------------------------------
+
+33/163 Testing: CoinBgfxSurface_d3d12_weighted_oit
+33/163 Test: CoinBgfxSurface_d3d12_weighted_oit
+Command: "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe" "-E" "env" "COIN_BGFX_RENDERER=d3d12" "COIN_BGFX_TRANSPARENCY=weighted_oit" "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinBgfxSurfaceFeaturesTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinBgfxSurface_d3d12_weighted_oit" start time: Oct 02 15:52 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinBgfxSurfaceFeaturesTest passed
+<end of output>
+Test time =  18.01 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxSurface_d3d12_weighted_oit" end time: Oct 02 15:52 Hora oficial do Brasil
+"CoinBgfxSurface_d3d12_weighted_oit" time elapsed: 00:00:18
+----------------------------------------------------------
+
+34/163 Testing: CoinBgfxSurface_d3d12_sorted_layers
+34/163 Test: CoinBgfxSurface_d3d12_sorted_layers
+Command: "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe" "-E" "env" "COIN_BGFX_RENDERER=d3d12" "COIN_BGFX_TRANSPARENCY=sorted_layers" "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinBgfxSurfaceFeaturesTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinBgfxSurface_d3d12_sorted_layers" start time: Oct 02 15:52 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinBgfxSurfaceFeaturesTest passed
+<end of output>
+Test time =  23.27 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxSurface_d3d12_sorted_layers" end time: Oct 02 15:52 Hora oficial do Brasil
+"CoinBgfxSurface_d3d12_sorted_layers" time elapsed: 00:00:23
+----------------------------------------------------------
+
+35/163 Testing: CoinBgfxCoreTest
+35/163 Test: CoinBgfxCoreTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinBgfxCoreTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinBgfxCoreTest" start time: Oct 02 15:52 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinBgfxCoreTest passed
+<end of output>
+Test time =   0.15 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxCoreTest" end time: Oct 02 15:52 Hora oficial do Brasil
+"CoinBgfxCoreTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+36/163 Testing: CoinRenderDepthContractTest
+36/163 Test: CoinRenderDepthContractTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderDepthContractTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderDepthContractTest" start time: Oct 02 15:52 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.38 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderDepthContractTest" end time: Oct 02 15:52 Hora oficial do Brasil
+"CoinRenderDepthContractTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+37/163 Testing: CoinRenderDepthContractVulkanTest
+37/163 Test: CoinRenderDepthContractVulkanTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderDepthContractTest.exe" "--gpu"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderDepthContractVulkanTest" start time: Oct 02 15:52 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.66 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderDepthContractVulkanTest" end time: Oct 02 15:52 Hora oficial do Brasil
+"CoinRenderDepthContractVulkanTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+38/163 Testing: CoinRenderDepthContractOpenGLTest
+38/163 Test: CoinRenderDepthContractOpenGLTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderDepthContractTest.exe" "--gpu"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderDepthContractOpenGLTest" start time: Oct 02 15:52 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.63 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderDepthContractOpenGLTest" end time: Oct 02 15:52 Hora oficial do Brasil
+"CoinRenderDepthContractOpenGLTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+39/163 Testing: CoinRenderProductOpenGLTest
+39/163 Test: CoinRenderProductOpenGLTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderProductTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderProductOpenGLTest" start time: Oct 02 15:52 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+COIN_WGPU_CAPABILITIES backend=3 probe_status=1 renderer=2 vendor_id=0x10de device_id=0x0000 max_framebuffer_attachments=8 runtime_features=0xf rgba8=0x1f d24s8=0x7 d32f=0x7 rgba16f=0x1f r16f=0x1f adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) diagnostic=BGFX OpenGL probe succeeded; MRT=1 (max attachments=8), independent blend=1, compute=1, timestamps=1; framebuffer formats RGBA8=0x1f D24S8=0x7 D32F=0x7 RGBA16F=0x1f R16F=0x1f
+CoinRenderProductTest passed
+<end of output>
+Test time =   1.21 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderProductOpenGLTest" end time: Oct 02 15:52 Hora oficial do Brasil
+"CoinRenderProductOpenGLTest" time elapsed: 00:00:01
+----------------------------------------------------------
+
+40/163 Testing: CoinBgfxOffscreenTest
+40/163 Test: CoinBgfxOffscreenTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinBgfxOffscreenTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinBgfxOffscreenTest" start time: Oct 02 15:52 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinBgfxOffscreenTest passed
+<end of output>
+Test time =   3.51 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxOffscreenTest" end time: Oct 02 15:52 Hora oficial do Brasil
+"CoinBgfxOffscreenTest" time elapsed: 00:00:03
+----------------------------------------------------------
+
+41/163 Testing: CoinBgfxOpenGLTest
+41/163 Test: CoinBgfxOpenGLTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinBgfxOffscreenTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinBgfxOpenGLTest" start time: Oct 02 15:52 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinBgfxOffscreenTest passed
+<end of output>
+Test time =   2.67 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxOpenGLTest" end time: Oct 02 15:52 Hora oficial do Brasil
+"CoinBgfxOpenGLTest" time elapsed: 00:00:02
+----------------------------------------------------------
+
+42/163 Testing: CoinRenderBackendContractOpenGLTest
+42/163 Test: CoinRenderBackendContractOpenGLTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderBackendContractTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderBackendContractOpenGLTest" start time: Oct 02 15:52 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Shared offscreen rendering contract passed for backend 3
+<end of output>
+Test time =   0.80 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderBackendContractOpenGLTest" end time: Oct 02 15:52 Hora oficial do Brasil
+"CoinRenderBackendContractOpenGLTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+43/163 Testing: CoinBgfxTransparencyTest
+43/163 Test: CoinBgfxTransparencyTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinBgfxTransparencyTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinBgfxTransparencyTest" start time: Oct 02 15:52 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+layered: BGFX left=(127,64,64) right=(127,64,64) Coin/GL left=(128,64,63) right=(128,64,63) different_pixels=0
+crossing: BGFX left=(64,127,64) right=(64,127,64) Coin/GL left=(64,128,63) right=(64,128,63) different_pixels=0 Coin/GL layers-or-fallback left=(128,64,63) right=(64,128,63) different_pixels=5508
+occluded: BGFX left=(0,0,255) right=(0,0,255) Coin/GL left=(0,0,255) right=(0,0,255) different_pixels=0
+weighted stress: 32 crossing lit layers, max order delta=0, outside max=0
+<end of output>
+Test time =   4.36 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxTransparencyTest" end time: Oct 02 15:52 Hora oficial do Brasil
+"CoinBgfxTransparencyTest" time elapsed: 00:00:04
+----------------------------------------------------------
+
+44/163 Testing: CoinBgfxTransparencyOpenGLTest
+44/163 Test: CoinBgfxTransparencyOpenGLTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinBgfxTransparencyTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinBgfxTransparencyOpenGLTest" start time: Oct 02 15:52 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+layered: BGFX left=(127,64,64) right=(127,64,64) Coin/GL left=(128,64,63) right=(128,64,63) different_pixels=0
+crossing: BGFX left=(64,127,64) right=(64,127,64) Coin/GL left=(64,128,63) right=(64,128,63) different_pixels=0 Coin/GL layers-or-fallback left=(128,64,63) right=(64,128,63) different_pixels=5508
+occluded: BGFX left=(0,0,255) right=(0,0,255) Coin/GL left=(0,0,255) right=(0,0,255) different_pixels=0
+weighted stress: 32 crossing lit layers, max order delta=0, outside max=0
+<end of output>
+Test time =   2.38 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxTransparencyOpenGLTest" end time: Oct 02 15:53 Hora oficial do Brasil
+"CoinBgfxTransparencyOpenGLTest" time elapsed: 00:00:02
+----------------------------------------------------------
+
+45/163 Testing: CoinBgfxSortedLayersTest
+45/163 Test: CoinBgfxSortedLayersTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinBgfxTransparencyTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinBgfxSortedLayersTest" start time: Oct 02 15:53 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+layered: BGFX left=(127,64,64) right=(127,64,64) Coin/GL left=(128,64,63) right=(128,64,63) different_pixels=0
+crossing: BGFX left=(127,64,64) right=(64,127,64) Coin/GL left=(64,128,63) right=(64,128,63) different_pixels=5202 Coin/GL layers-or-fallback left=(128,64,63) right=(64,128,63) different_pixels=612
+occluded: BGFX left=(0,0,255) right=(0,0,255) Coin/GL left=(0,0,255) right=(0,0,255) different_pixels=0
+<end of output>
+Test time =   2.38 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxSortedLayersTest" end time: Oct 02 15:53 Hora oficial do Brasil
+"CoinBgfxSortedLayersTest" time elapsed: 00:00:02
+----------------------------------------------------------
+
+46/163 Testing: CoinBgfxSortedLayersOpenGLTest
+46/163 Test: CoinBgfxSortedLayersOpenGLTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinBgfxTransparencyTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinBgfxSortedLayersOpenGLTest" start time: Oct 02 15:53 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+layered: BGFX left=(127,64,64) right=(127,64,64) Coin/GL left=(128,64,63) right=(128,64,63) different_pixels=0
+crossing: BGFX left=(127,64,64) right=(64,127,64) Coin/GL left=(64,128,63) right=(64,128,63) different_pixels=5202 Coin/GL layers-or-fallback left=(128,64,63) right=(64,128,63) different_pixels=612
+occluded: BGFX left=(0,0,255) right=(0,0,255) Coin/GL left=(0,0,255) right=(0,0,255) different_pixels=0
+<end of output>
+Test time =   1.52 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxSortedLayersOpenGLTest" end time: Oct 02 15:53 Hora oficial do Brasil
+"CoinBgfxSortedLayersOpenGLTest" time elapsed: 00:00:01
+----------------------------------------------------------
+
+47/163 Testing: CoinBgfxWeightedOitTest
+47/163 Test: CoinBgfxWeightedOitTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinBgfxTransparencyTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinBgfxWeightedOitTest" start time: Oct 02 15:53 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+layered: BGFX left=(109,82,64) right=(109,82,64) Coin/GL left=(128,64,63) right=(128,64,63) different_pixels=10404
+crossing: BGFX left=(109,82,64) right=(82,109,64) Coin/GL left=(64,128,63) right=(64,128,63) different_pixels=10404 Coin/GL layers-or-fallback left=(128,64,63) right=(64,128,63) different_pixels=10404
+occluded: BGFX left=(0,0,255) right=(0,0,255) Coin/GL left=(0,0,255) right=(0,0,255) different_pixels=0
+weighted stress: 32 crossing lit layers, max order delta=0, outside max=0
+<end of output>
+Test time =   6.13 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxWeightedOitTest" end time: Oct 02 15:53 Hora oficial do Brasil
+"CoinBgfxWeightedOitTest" time elapsed: 00:00:06
+----------------------------------------------------------
+
+48/163 Testing: CoinBgfxWeightedOitOpenGLTest
+48/163 Test: CoinBgfxWeightedOitOpenGLTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinBgfxTransparencyTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinBgfxWeightedOitOpenGLTest" start time: Oct 02 15:53 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+layered: BGFX left=(109,82,64) right=(109,82,64) Coin/GL left=(128,64,63) right=(128,64,63) different_pixels=10404
+crossing: BGFX left=(109,82,64) right=(82,109,64) Coin/GL left=(64,128,63) right=(64,128,63) different_pixels=10404 Coin/GL layers-or-fallback left=(128,64,63) right=(64,128,63) different_pixels=10404
+occluded: BGFX left=(0,0,255) right=(0,0,255) Coin/GL left=(0,0,255) right=(0,0,255) different_pixels=0
+weighted stress: 32 crossing lit layers, max order delta=0, outside max=0
+<end of output>
+Test time =   7.92 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxWeightedOitOpenGLTest" end time: Oct 02 15:53 Hora oficial do Brasil
+"CoinBgfxWeightedOitOpenGLTest" time elapsed: 00:00:07
+----------------------------------------------------------
+
+49/163 Testing: CoinRenderFrameReuseCoreTest
+49/163 Test: CoinRenderFrameReuseCoreTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderFrameReuseCoreTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderFrameReuseCoreTest" start time: Oct 02 15:53 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinRenderFrameReuseCoreTest passed
+<end of output>
+Test time =   0.72 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderFrameReuseCoreTest" end time: Oct 02 15:53 Hora oficial do Brasil
+"CoinRenderFrameReuseCoreTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+50/163 Testing: CoinRenderDiagnosticShellTest
+50/163 Test: CoinRenderDiagnosticShellTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderDiagnosticShellTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderDiagnosticShellTest" start time: Oct 02 15:53 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinRenderDiagnosticShellTest passed
+<end of output>
+Test time =   0.11 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderDiagnosticShellTest" end time: Oct 02 15:53 Hora oficial do Brasil
+"CoinRenderDiagnosticShellTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+51/163 Testing: CoinRenderIndexedGeometryCoreTest
+51/163 Test: CoinRenderIndexedGeometryCoreTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderIndexedGeometryCoreTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderIndexedGeometryCoreTest" start time: Oct 02 15:53 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinRenderIndexedGeometryCoreTest passed
+<end of output>
+Test time =   0.09 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderIndexedGeometryCoreTest" end time: Oct 02 15:53 Hora oficial do Brasil
+"CoinRenderIndexedGeometryCoreTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+52/163 Testing: CoinRenderGateG1Test
+52/163 Test: CoinRenderGateG1Test
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderGateG1Test.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderGateG1Test" start time: Oct 02 15:53 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Running CoinRenderGateG1Test (Onda 2B Backend WebGPU Real)...
+-> Test G1.1: WebGPU backend availability query...
+   [PASS] G1.1 WebGPU backend availability
+-> Test G1.2: Triangle offscreen color and depth readback...
+   [PASS] G1.2 Triangle offscreen color and depth readback
+-> Test G1.3: Depth buffer occlusion ordering...
+   [PASS] G1.3 Depth buffer occlusion ordering
+-> Test G1.4: Monotonic submission serials...
+   [PASS] G1.4 Monotonic submission serials
+-> Test G1.5: Status distinction and DEVICE_LOST recovery...
+   [PASS] G1.5 Status distinction and recovery
+
+=======================================================
+All CoinRenderGateG1Test test suites PASSED successfully!
+=======================================================
+<end of output>
+Test time =   2.56 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderGateG1Test" end time: Oct 02 15:53 Hora oficial do Brasil
+"CoinRenderGateG1Test" time elapsed: 00:00:02
+----------------------------------------------------------
+
+53/163 Testing: CoinRenderGateG2Test
+53/163 Test: CoinRenderGateG2Test
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderGateG2Test.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderGateG2Test" start time: Oct 02 15:53 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Running CoinRenderGateG2Test (Onda 2C Native Topologies: Lines and Points)...
+-> Test G2.1: Native unit line rendering and readback (SoLineSet)...
+   [PASS] G2.1 Native unit line rendering and readback
+-> Test G2.2: Native unit point rendering and readback (SoPointSet)...
+   [PASS] G2.2 Native unit point rendering and readback
+-> Test G2.3: Cross-topology depth occlusion (Line vs Triangle)...
+   [PASS] G2.3 Cross-topology depth occlusion
+-> Test G2.4: Wide/patterned lines and sized points...
+   [PASS] G2.4 Wide/patterned lines and sized points
+
+=======================================================
+All CoinRenderGateG2Test test suites PASSED successfully!
+=======================================================
+<end of output>
+Test time =   2.02 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderGateG2Test" end time: Oct 02 15:53 Hora oficial do Brasil
+"CoinRenderGateG2Test" time elapsed: 00:00:02
+----------------------------------------------------------
+
+54/163 Testing: CoinRenderIndexedFastPathTest
+54/163 Test: CoinRenderIndexedFastPathTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderIndexedFastPathTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderIndexedFastPathTest" start time: Oct 02 15:53 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Running CoinRenderIndexedFastPathTest (Onda 2D Indexed Fast Path)...
+-> Test 1: Sentinel parser, triangles and convex quads...
+   [PASS] Test 1: Sentinel parser and convex quads
+-> Test 2: Degenerate faces and consecutive sentinels...
+   [PASS] Test 2: Degenerate faces handled cleanly
+-> Test 3: Atomic validation and rollback on invalid indices...
+   [PASS] Test 3: Atomic validation and rollback
+-> Test 4: Concave quads diversion to fallback...
+   [PASS] Test 4: Concave quad fallback verified
+-> Test 5: Canonical vertex deduplication...
+   [PASS] Test 5: Canonical vertex deduplication verified
+-> Test 6: Indexed line sets (SoIndexedLineSet)...
+   [PASS] Test 6: IndexedLineSet fast path verified
+-> Test 7: Strict pixel and depth equivalence (Fast Path vs Fallback)...
+   [PASS] Test 7: Strict pixel and depth equivalence verified
+-> Test 8: Generated normals at hard and smooth edges...
+   [PASS] Test 8: Hard and smooth generated normals verified
+
+ALL 8 TESTS IN CoinRenderIndexedFastPathTest PASSED!
+<end of output>
+Test time =   2.69 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderIndexedFastPathTest" end time: Oct 02 15:53 Hora oficial do Brasil
+"CoinRenderIndexedFastPathTest" time elapsed: 00:00:02
+----------------------------------------------------------
+
+56/163 Testing: CoinRenderStabilizationTest
+56/163 Test: CoinRenderStabilizationTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderStabilizationTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderStabilizationTest" start time: Oct 02 15:53 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Running CoinRenderStabilizationTest (Onda 2F Concurrency, Packet Separation, Exact Hash & Budget)...
+WGPU Rust bridge not enabled, skipping test.
+<end of output>
+Test time =   0.10 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderStabilizationTest" end time: Oct 02 15:53 Hora oficial do Brasil
+"CoinRenderStabilizationTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+57/163 Testing: CoinRenderTextureTest
+57/163 Test: CoinRenderTextureTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderTextureTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderTextureTest" start time: Oct 02 15:53 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+========================================================
+Running CoinRenderTextureTest (Subwave 3B: 2D Texture Pipeline)
+========================================================
+-> Test 1: Texture formats (1, 2, 3, 4 components) with MODULATE...
+-> Test 2: MODULATE model color verification...
+-> Test 3: Strict UNSUPPORTED rejections outside the texture profile...
+Coin error in SbImage::readFile(): couldn't find 'non_existent_file_dummy_test_123.png'.
+Coin warning in SoTexture2::filenameSensorCB(): Image file 'non_existent_file_dummy_test_123.png' could not be read
+-> Test 4: UV coordinates (explicit vs procedural vs out-of-bounds)...
+-> Test 5: Texture transformation and wrap modes...
+-> Test 6: Multiple draws with different textures in same frame...
+-> Test 7: Texture image deduplication with different samplers...
+-> Test 8: Texture quality 0.0 disables texture smoothly...
+
+ALL CoinRenderTextureTest checks PASSED successfully!
+<end of output>
+Test time =   8.05 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderTextureTest" end time: Oct 02 15:53 Hora oficial do Brasil
+"CoinRenderTextureTest" time elapsed: 00:00:08
+----------------------------------------------------------
+
+58/163 Testing: CoinRenderLightingTest
+58/163 Test: CoinRenderLightingTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderLightingTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderLightingTest" start time: Oct 02 15:53 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =  30.23 sec
+----------------------------------------------------------
+Test Failed.
+"CoinRenderLightingTest" end time: Oct 02 15:54 Hora oficial do Brasil
+"CoinRenderLightingTest" time elapsed: 00:00:30
+----------------------------------------------------------
+
+59/163 Testing: CoinRenderGouraudInterpolationTest
+59/163 Test: CoinRenderGouraudInterpolationTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderGouraudInterpolationTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderGouraudInterpolationTest" start time: Oct 02 15:54 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinRenderGouraudInterpolationTest passed
+<end of output>
+Test time =  10.17 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderGouraudInterpolationTest" end time: Oct 02 15:54 Hora oficial do Brasil
+"CoinRenderGouraudInterpolationTest" time elapsed: 00:00:10
+----------------------------------------------------------
+
+60/163 Testing: CoinRenderGouraud_vulkan_object
+60/163 Test: CoinRenderGouraud_vulkan_object
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderGouraudInterpolationTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderGouraud_vulkan_object" start time: Oct 02 15:54 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   2.81 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderGouraud_vulkan_object" end time: Oct 02 15:54 Hora oficial do Brasil
+"CoinRenderGouraud_vulkan_object" time elapsed: 00:00:02
+----------------------------------------------------------
+
+61/163 Testing: CoinRenderGouraud_vulkan_weighted_oit
+61/163 Test: CoinRenderGouraud_vulkan_weighted_oit
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderGouraudInterpolationTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderGouraud_vulkan_weighted_oit" start time: Oct 02 15:54 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   3.18 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderGouraud_vulkan_weighted_oit" end time: Oct 02 15:54 Hora oficial do Brasil
+"CoinRenderGouraud_vulkan_weighted_oit" time elapsed: 00:00:03
+----------------------------------------------------------
+
+62/163 Testing: CoinRenderGouraud_vulkan_sorted_layers
+62/163 Test: CoinRenderGouraud_vulkan_sorted_layers
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderGouraudInterpolationTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderGouraud_vulkan_sorted_layers" start time: Oct 02 15:54 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   3.68 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderGouraud_vulkan_sorted_layers" end time: Oct 02 15:54 Hora oficial do Brasil
+"CoinRenderGouraud_vulkan_sorted_layers" time elapsed: 00:00:03
+----------------------------------------------------------
+
+63/163 Testing: CoinRenderGouraud_opengl_object
+63/163 Test: CoinRenderGouraud_opengl_object
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderGouraudInterpolationTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderGouraud_opengl_object" start time: Oct 02 15:54 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinRenderGouraudInterpolationTest passed
+<end of output>
+Test time =   2.62 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderGouraud_opengl_object" end time: Oct 02 15:54 Hora oficial do Brasil
+"CoinRenderGouraud_opengl_object" time elapsed: 00:00:02
+----------------------------------------------------------
+
+64/163 Testing: CoinRenderGouraud_opengl_weighted_oit
+64/163 Test: CoinRenderGouraud_opengl_weighted_oit
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderGouraudInterpolationTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderGouraud_opengl_weighted_oit" start time: Oct 02 15:54 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinRenderGouraudInterpolationTest passed
+<end of output>
+Test time =   3.39 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderGouraud_opengl_weighted_oit" end time: Oct 02 15:54 Hora oficial do Brasil
+"CoinRenderGouraud_opengl_weighted_oit" time elapsed: 00:00:03
+----------------------------------------------------------
+
+65/163 Testing: CoinRenderGouraud_opengl_sorted_layers
+65/163 Test: CoinRenderGouraud_opengl_sorted_layers
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderGouraudInterpolationTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderGouraud_opengl_sorted_layers" start time: Oct 02 15:54 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinRenderGouraudInterpolationTest passed
+<end of output>
+Test time =   2.34 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderGouraud_opengl_sorted_layers" end time: Oct 02 15:54 Hora oficial do Brasil
+"CoinRenderGouraud_opengl_sorted_layers" time elapsed: 00:00:02
+----------------------------------------------------------
+
+66/163 Testing: CoinRenderGouraud_d3d12_object
+66/163 Test: CoinRenderGouraud_d3d12_object
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderGouraudInterpolationTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderGouraud_d3d12_object" start time: Oct 02 15:54 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinRenderGouraudInterpolationTest passed
+<end of output>
+Test time =   3.50 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderGouraud_d3d12_object" end time: Oct 02 15:54 Hora oficial do Brasil
+"CoinRenderGouraud_d3d12_object" time elapsed: 00:00:03
+----------------------------------------------------------
+
+67/163 Testing: CoinRenderGouraud_d3d12_weighted_oit
+67/163 Test: CoinRenderGouraud_d3d12_weighted_oit
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderGouraudInterpolationTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderGouraud_d3d12_weighted_oit" start time: Oct 02 15:54 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinRenderGouraudInterpolationTest passed
+<end of output>
+Test time =   1.95 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderGouraud_d3d12_weighted_oit" end time: Oct 02 15:54 Hora oficial do Brasil
+"CoinRenderGouraud_d3d12_weighted_oit" time elapsed: 00:00:01
+----------------------------------------------------------
+
+68/163 Testing: CoinRenderGouraud_d3d12_sorted_layers
+68/163 Test: CoinRenderGouraud_d3d12_sorted_layers
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderGouraudInterpolationTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderGouraud_d3d12_sorted_layers" start time: Oct 02 15:54 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinRenderGouraudInterpolationTest passed
+<end of output>
+Test time =   1.53 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderGouraud_d3d12_sorted_layers" end time: Oct 02 15:54 Hora oficial do Brasil
+"CoinRenderGouraud_d3d12_sorted_layers" time elapsed: 00:00:01
+----------------------------------------------------------
+
+69/163 Testing: CoinRenderFogTest
+69/163 Test: CoinRenderFogTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderFogTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderFogTest" start time: Oct 02 15:54 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinRenderFogTest passed
+<end of output>
+Test time =  20.52 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderFogTest" end time: Oct 02 15:55 Hora oficial do Brasil
+"CoinRenderFogTest" time elapsed: 00:00:20
+----------------------------------------------------------
+
+70/163 Testing: CoinRenderClipPlaneTest
+70/163 Test: CoinRenderClipPlaneTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderClipPlaneTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderClipPlaneTest" start time: Oct 02 15:55 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+<end of output>
+Test time =   2.74 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderClipPlaneTest" end time: Oct 02 15:55 Hora oficial do Brasil
+"CoinRenderClipPlaneTest" time elapsed: 00:00:02
+----------------------------------------------------------
+
+71/163 Testing: CoinRenderClipPlane_vulkan_object
+71/163 Test: CoinRenderClipPlane_vulkan_object
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderClipPlaneTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderClipPlane_vulkan_object" start time: Oct 02 15:55 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+<end of output>
+Test time =   1.71 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderClipPlane_vulkan_object" end time: Oct 02 15:55 Hora oficial do Brasil
+"CoinRenderClipPlane_vulkan_object" time elapsed: 00:00:01
+----------------------------------------------------------
+
+72/163 Testing: CoinRenderClipPlane_vulkan_weighted_oit
+72/163 Test: CoinRenderClipPlane_vulkan_weighted_oit
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderClipPlaneTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderClipPlane_vulkan_weighted_oit" start time: Oct 02 15:55 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+<end of output>
+Test time =   1.71 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderClipPlane_vulkan_weighted_oit" end time: Oct 02 15:55 Hora oficial do Brasil
+"CoinRenderClipPlane_vulkan_weighted_oit" time elapsed: 00:00:01
+----------------------------------------------------------
+
+73/163 Testing: CoinRenderClipPlane_vulkan_sorted_layers
+73/163 Test: CoinRenderClipPlane_vulkan_sorted_layers
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderClipPlaneTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderClipPlane_vulkan_sorted_layers" start time: Oct 02 15:55 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+<end of output>
+Test time =   1.68 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderClipPlane_vulkan_sorted_layers" end time: Oct 02 15:55 Hora oficial do Brasil
+"CoinRenderClipPlane_vulkan_sorted_layers" time elapsed: 00:00:01
+----------------------------------------------------------
+
+74/163 Testing: CoinRenderClipPlane_opengl_object
+74/163 Test: CoinRenderClipPlane_opengl_object
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderClipPlaneTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderClipPlane_opengl_object" start time: Oct 02 15:55 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+<end of output>
+Test time =   1.00 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderClipPlane_opengl_object" end time: Oct 02 15:55 Hora oficial do Brasil
+"CoinRenderClipPlane_opengl_object" time elapsed: 00:00:01
+----------------------------------------------------------
+
+75/163 Testing: CoinRenderClipPlane_opengl_weighted_oit
+75/163 Test: CoinRenderClipPlane_opengl_weighted_oit
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderClipPlaneTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderClipPlane_opengl_weighted_oit" start time: Oct 02 15:55 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+<end of output>
+Test time =   1.08 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderClipPlane_opengl_weighted_oit" end time: Oct 02 15:55 Hora oficial do Brasil
+"CoinRenderClipPlane_opengl_weighted_oit" time elapsed: 00:00:01
+----------------------------------------------------------
+
+76/163 Testing: CoinRenderClipPlane_opengl_sorted_layers
+76/163 Test: CoinRenderClipPlane_opengl_sorted_layers
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderClipPlaneTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderClipPlane_opengl_sorted_layers" start time: Oct 02 15:55 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+<end of output>
+Test time =   1.13 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderClipPlane_opengl_sorted_layers" end time: Oct 02 15:55 Hora oficial do Brasil
+"CoinRenderClipPlane_opengl_sorted_layers" time elapsed: 00:00:01
+----------------------------------------------------------
+
+77/163 Testing: CoinRenderClipPlane_d3d12_object
+77/163 Test: CoinRenderClipPlane_d3d12_object
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderClipPlaneTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderClipPlane_d3d12_object" start time: Oct 02 15:55 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+<end of output>
+Test time =   1.59 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderClipPlane_d3d12_object" end time: Oct 02 15:55 Hora oficial do Brasil
+"CoinRenderClipPlane_d3d12_object" time elapsed: 00:00:01
+----------------------------------------------------------
+
+78/163 Testing: CoinRenderClipPlane_d3d12_weighted_oit
+78/163 Test: CoinRenderClipPlane_d3d12_weighted_oit
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderClipPlaneTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderClipPlane_d3d12_weighted_oit" start time: Oct 02 15:55 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+<end of output>
+Test time =  16.97 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderClipPlane_d3d12_weighted_oit" end time: Oct 02 15:55 Hora oficial do Brasil
+"CoinRenderClipPlane_d3d12_weighted_oit" time elapsed: 00:00:16
+----------------------------------------------------------
+
+79/163 Testing: CoinRenderClipPlane_d3d12_sorted_layers
+79/163 Test: CoinRenderClipPlane_d3d12_sorted_layers
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderClipPlaneTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderClipPlane_d3d12_sorted_layers" start time: Oct 02 15:55 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+<end of output>
+Test time =  23.50 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderClipPlane_d3d12_sorted_layers" end time: Oct 02 15:55 Hora oficial do Brasil
+"CoinRenderClipPlane_d3d12_sorted_layers" time elapsed: 00:00:23
+----------------------------------------------------------
+
+80/163 Testing: CoinRenderDrawStyleTest
+80/163 Test: CoinRenderDrawStyleTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderDrawStyleTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderDrawStyleTest" start time: Oct 02 15:55 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =  60.60 sec
+----------------------------------------------------------
+Test Failed.
+"CoinRenderDrawStyleTest" end time: Oct 02 15:56 Hora oficial do Brasil
+"CoinRenderDrawStyleTest" time elapsed: 00:01:00
+----------------------------------------------------------
+
+81/163 Testing: CoinRenderDrawStyle_vulkan
+81/163 Test: CoinRenderDrawStyle_vulkan
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderDrawStyleTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderDrawStyle_vulkan" start time: Oct 02 15:56 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =  63.19 sec
+----------------------------------------------------------
+Test Failed.
+"CoinRenderDrawStyle_vulkan" end time: Oct 02 15:57 Hora oficial do Brasil
+"CoinRenderDrawStyle_vulkan" time elapsed: 00:01:03
+----------------------------------------------------------
+
+82/163 Testing: CoinRenderDrawStyle_opengl
+82/163 Test: CoinRenderDrawStyle_opengl
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderDrawStyleTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderDrawStyle_opengl" start time: Oct 02 15:57 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =  62.46 sec
+----------------------------------------------------------
+Test Failed.
+"CoinRenderDrawStyle_opengl" end time: Oct 02 15:58 Hora oficial do Brasil
+"CoinRenderDrawStyle_opengl" time elapsed: 00:01:02
+----------------------------------------------------------
+
+83/163 Testing: CoinRenderDrawStyle_d3d12
+83/163 Test: CoinRenderDrawStyle_d3d12
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderDrawStyleTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderDrawStyle_d3d12" start time: Oct 02 15:58 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =  62.57 sec
+----------------------------------------------------------
+Test Failed.
+"CoinRenderDrawStyle_d3d12" end time: Oct 02 16:00 Hora oficial do Brasil
+"CoinRenderDrawStyle_d3d12" time elapsed: 00:01:02
+----------------------------------------------------------
+
+84/163 Testing: CoinRenderMultitextureTest
+84/163 Test: CoinRenderMultitextureTest
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderMultitextureTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderMultitextureTest" start time: Oct 02 16:00 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =  61.62 sec
+----------------------------------------------------------
+Test Failed.
+"CoinRenderMultitextureTest" end time: Oct 02 16:01 Hora oficial do Brasil
+"CoinRenderMultitextureTest" time elapsed: 00:01:01
+----------------------------------------------------------
+
+85/163 Testing: CoinRenderMultitexture_vulkan
+85/163 Test: CoinRenderMultitexture_vulkan
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderMultitextureTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderMultitexture_vulkan" start time: Oct 02 16:01 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =  62.63 sec
+----------------------------------------------------------
+Test Failed.
+"CoinRenderMultitexture_vulkan" end time: Oct 02 16:02 Hora oficial do Brasil
+"CoinRenderMultitexture_vulkan" time elapsed: 00:01:02
+----------------------------------------------------------
+
+86/163 Testing: CoinRenderMultitexture_opengl
+86/163 Test: CoinRenderMultitexture_opengl
+Command: "H:/Git/coin/build/coin-render-bgfx-msvc/bin/CoinRenderMultitextureTest.exe"
+Directory: H:/Git/coin/build/coin-render-bgfx-msvc/testsuite
+"CoinRenderMultitexture_opengl" start time: Oct 02 16:02 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+P08 Coin GL reference passed (CPU=1)
+P08 Coin GL reference passed (CPU=0)
+P08 multitexture/combine and textured strokes passed
+<end of output>
+Test time =  26.93 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderMultitexture_opengl" end time: Oct 02 16:02 Hora oficial do Brasil
+"CoinRenderMultitexture_opengl" time elapsed: 00:00:26
+----------------------------------------------------------

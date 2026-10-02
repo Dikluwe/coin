@@ -1,0 +1,21 @@
+Internal ctest changing into directory: H:/Git/coin/build/coin-render-bgfx-msvc
+Test project H:/Git/coin/build/coin-render-bgfx-msvc
+    Start 36: CoinRenderDepthContractTest
+1/5 Test #36: CoinRenderDepthContractTest ......   Passed    0.26 sec
+    Start 58: CoinRenderLightingTest
+2/5 Test #58: CoinRenderLightingTest ...........   Passed   20.24 sec
+    Start 80: CoinRenderDrawStyleTest
+3/5 Test #80: CoinRenderDrawStyleTest ..........***Timeout  62.54 sec
+
+    Start 84: CoinRenderMultitextureTest
+4/5 Test #84: CoinRenderMultitextureTest .......   Passed   11.28 sec
+    Start 99: CoinRenderCompositionTest
+5/5 Test #99: CoinRenderCompositionTest ........   Passed    7.87 sec
+
+80% tests passed, 1 tests failed out of 5
+
+Total Test time (real) = 102.23 sec
+
+The following tests FAILED:
+	 80 - CoinRenderDrawStyleTest (Timeout)
+Errors while running CTest

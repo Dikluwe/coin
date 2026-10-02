@@ -39,6 +39,8 @@
 #include <cstdlib>
 #include <atomic>
 #include <mutex>
+#include <chrono>
+#include <cstdio>
 #include "rendering/coinrender/CoinRenderResourceCore.h"
 namespace {
 struct TargetRegistry {
@@ -602,6 +604,8 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
                                           CoinRenderReadbackTicket * outTicket,
                                           const CoinRenderFrameReuseDecision & reuse)
 {
+  using PhaseClock = std::chrono::steady_clock;
+  const auto phaseBegin = PhaseClock::now();
   const bool captureWindow = this->kind == KIND_WINDOW && this->windowReadbackRequested;
   struct RequestReset {
     bool & request;
@@ -650,6 +654,7 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     lastError = admission.diagnostic;
     return admission;
   }
+  const auto phaseValidated = PhaseClock::now();
   ReadbackPublication publication(*this);
   try {
     publication.prepare();
@@ -691,6 +696,7 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
   }
 
   CoinRenderSubmitResult res;
+  const auto phasePrepared = PhaseClock::now();
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   if (outTicket) {
     CoinWgpuBackend * rust = dynamic_cast<CoinWgpuBackend *>(this->backend.get());
@@ -768,6 +774,14 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     this->depthBuffer.clear();
   }
   publication.commit();
+  if (CoinRenderDiagnosticShell::phaseTracingEnabled()) {
+    const auto now = PhaseClock::now();
+    const auto ms = [](PhaseClock::time_point a, PhaseClock::time_point b) {
+      return std::chrono::duration<double, std::milli>(b - a).count();
+    };
+    std::fprintf(stderr, "COIN_RENDER_PHASE target validation_ms=%.6f prepare_ms=%.6f submit_ms=%.6f\n",
+      ms(phaseBegin, phaseValidated), ms(phaseValidated, phasePrepared), ms(phasePrepared, now));
+  }
   if (outTicket)
     *outTicket = candidateTicket;
   this->lastValidatedPlanRevision = frame.revision;

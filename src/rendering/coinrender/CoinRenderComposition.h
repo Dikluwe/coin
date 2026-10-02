@@ -100,6 +100,8 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
       return false;
     }
     SbMatrix modelView = rs.model * rs.view;
+    const bool identityView = modelView == SbMatrix::identity();
+    const auto & matrix = modelView.getValue();
     float minDepth = 0, maxDepth = 0;
     for (size_t j = first; j < first + count; ++j) {
       const uint32_t vertexIndex = frame.indices[j];
@@ -113,14 +115,17 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
         return false;
       }
       materialAlpha = materialAlpha || frame.materials[vertex.materialSlot].diffuse[3] < 1.0f;
-      SbVec3f viewPosition;
-      modelView.multVecMatrix(SbVec3f(vertex.position[0], vertex.position[1], vertex.position[2]),
-                              viewPosition);
-      if (!std::isfinite(viewPosition[2])) {
+      // Composition needs only Z. Keep the same homogeneous divide and
+      // finite-depth checks without computing X/Y or calling into Core DLL.
+      const float * position = vertex.position;
+      const float viewZ = identityView ? position[2] :
+        (position[0] * matrix[0][2] + position[1] * matrix[1][2] + position[2] * matrix[2][2] + matrix[3][2]) /
+        (position[0] * matrix[0][3] + position[1] * matrix[1][3] + position[2] * matrix[2][3] + matrix[3][3]);
+      if (!std::isfinite(viewZ)) {
         diagnostic = "Invalid non-finite eye depth in composition order";
         return false;
       }
-      float eyeDepth = -viewPosition[2];
+      float eyeDepth = -viewZ;
       if (rs.polygonOffsetPrimitiveStyle != 1) {
         // Expanded strokes are in NDC. Recover their original eye-space depth
         // from the source camera rather than sorting on normalized depth.
