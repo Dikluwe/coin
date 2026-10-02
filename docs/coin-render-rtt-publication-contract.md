@@ -30,14 +30,14 @@ Nenhum layout FFI ou número de protocolo foi alterado.
 
 | Item | Contrato qualificado |
 | --- | --- |
-| Captura | Unidade 0, RGBA8, MODULATE, REPEAT/CLAMP, NONE ou ALPHA_BLEND; cena não nula, sem sceneTransparencyType |
+| Captura | Unidade 0, RGBA8, MODULATE, REPEAT/CLAMP, NONE, ALPHA_BLEND ou ALPHA_TEST; cena não nula, sem sceneTransparencyType |
 | Dimensões/grafo | 1..2048 por eixo, oito níveis, ciclos e referências futuras/ausentes rejeitados |
 | Orçamento declarado | 64 MiB por apply; staged: quatro bytes/pixel por ocorrência; direto: oito por produtor distinto |
 | Staged | Readback RGBA8 com origem superior, uma inversão para imagem Coin com origem inferior, upload pelo backend consumidor |
 | Direto | Textura GPU retida até submeter o consumidor; orientação é responsabilidade do conector; requer alvo GPU offscreen |
-| BGFX direto | Produtor com mecanismo OBJECT; necessidade de peeling/OIT é rejeitada no preflight |
+| BGFX direto | OBJECT e perfis qualificados de peeling/OIT após preparação das capacidades; preflight não exige peeling para desenho opaco só pelo modo declarado |
 | wgpu direto | Até 64 texturas retidas por dispositivo; preflight consulta a capacidade restante do dispositivo default, sem inicializá-lo e sem somar dispositivos extras |
-| Fora do perfil | ALPHA_TEST, formatos RGB/float/depth, outros modelos/estados e direto de janela têm rejeição explícita; isso não equivale a suporte |
+| Fora do perfil | Formatos RGB/float/depth, outros modelos/estados e direto de janela têm rejeição explícita; isso não equivale a suporte |
 
 Infra pode inspecionar o grafo imutável antes de criar o dispositivo ou submeter
 produtores. O preflight comum verifica planos/dependências/orçamento; o hook de
@@ -89,7 +89,8 @@ do chamador. Esse contrato e os metadados públicos continuam compatíveis com P
 - [x] Falhas tardias preservam cor, depth, serial, revisão e ponteiros publicados.
 - [x] Resultado incompleto é rejeitado mesmo com status SUCCESS do backend.
 - [x] Tickets completos, falha async, consumo/cancelamento e retenção testados.
-- [ ] Formatos/estados ampliados e ALPHA_TEST: F14 continua parcial.
+- [x] ALPHA_TEST conforme comportamento atual Coin/GL: classificação transparente, composição e exclusão de casters como ALPHA_BLEND, sem descarte automático; [qualificação P27.4](coin-render-p27-shadows.md).
+- [ ] Formatos/estados ampliados: F14 continua parcial.
 - [x] Múltiplos alvos, admissão e reconstrução no perfil experimental atual: [P14](coin-render-multi-target-contract.md). Matriz física e memória total permanecem P20/P18.
 - [x] Profiling de passagens, recursos próprios e reuso/readback em pipeline: [P18](coin-render-p18-profiling.md) e [P19](coin-render-p19-reuse-readback.md).
 - [x] Captura explícita RGBA8 de janela Xlib: [F15](coin-render-window-readback.md).

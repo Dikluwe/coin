@@ -571,11 +571,10 @@ coin_render_shadow_object_profile(
       const bool sceneTexture = image.producerId || image.gpuToken;
       if (!pixelCount || pixelCount > SIZE_MAX / 4 ||
           (sceneTexture
-            ? ((image.sceneTransparencyFunction != SoSceneTexture2::NONE &&
-                image.sceneTransparencyFunction != SoSceneTexture2::ALPHA_BLEND) ||
+            ? (!coin_render_scene_texture_policy_supported(image.sceneTransparencyFunction) ||
                (image.gpuToken && !image.pixelsRgba.empty()))
             : image.pixelsRgba.size() != static_cast<size_t>(pixelCount * 4))) {
-        diagnostic = "Shadow object profile requires complete static pixels or a NONE/ALPHA_BLEND SceneTexture2";
+        diagnostic = "Shadow object profile requires complete static pixels or a supported SceneTexture2 alpha policy";
         return false;
       }
       {

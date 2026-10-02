@@ -367,7 +367,9 @@ As fixtures de um, quatro e oito mapas comparam sete valores de qualidade,
 com/sem textura primária colorida, em BGFX Vulkan/OpenGL e wgpu. O protocolo
 privado atual é 42; os flags de estágio ocupam o campo de receiver existente.
 Oito mapas continuam usando oráculo GL equivalente de sete neste host;
-ALPHA_TEST e a referência GL nativa de oito mapas permanecem pendentes.
+ALPHA_TEST de SceneTexture2 segue a composição transparente do Coin/GL atual,
+sem descarte automático, nos caminhos staged/direct. A referência GL nativa
+de oito mapas permanece pendente.
 
 ## P11 — seleção e capacidades
 

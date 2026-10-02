@@ -14,6 +14,7 @@
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include <Inventor/nodes/SoSceneTexture2.h>
+#include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
 #include <Inventor/nodes/SoTextureCombine.h>
 #include <Inventor/nodes/SoTexture3.h>
 #include <Inventor/nodes/SoTextureCubeMap.h>
@@ -1017,13 +1018,12 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
        texture->wrapS.getValue() != SoSceneTexture2::CLAMP) ||
       (texture->wrapT.getValue() != SoSceneTexture2::REPEAT &&
        texture->wrapT.getValue() != SoSceneTexture2::CLAMP) ||
-      (texture->transparencyFunction.getValue() != SoSceneTexture2::NONE &&
-       texture->transparencyFunction.getValue() != SoSceneTexture2::ALPHA_BLEND) ||
+      !coin_render_scene_texture_policy_supported(texture->transparencyFunction.getValue()) ||
       texture->sceneTransparencyType.getValue() != NULL) {
     p->setDiagnostic(CoinRenderDiagnosticShell::action(
         CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
         SbString("SoSceneTexture2 supports only unit 0, RGBA8, MODULATE, REPEAT/CLAMP, "
-                 "NONE/ALPHA_BLEND transparency function and no sceneTransparencyType")));
+                 "NONE/ALPHA_BLEND/ALPHA_TEST transparency function and no sceneTransparencyType")));
     return SoCallbackAction::ABORT;
   }
 

@@ -101,7 +101,7 @@ entre mecanismos ou aproximações visuais.
   tickets e publicação transacional qualificados. Política Coin NONE corrigida
   e ALPHA_BLEND suportado no Core; cor/depth/serial/revisão/borrow preservados
   em falha. [Contrato e checklist P13](coin-render-rtt-publication-contract.md).
-  Formatos/estados ampliados, ALPHA_TEST e RTT direto de janela continuam em F14;
+  Formatos/estados ampliados e RTT direto de janela continuam em F14;
   recuperação geral e orçamento de múltiplos alvos pertencem a P14.
 - [x] **P14 — Múltiplos alvos/recuperação (F17), perfil experimental atual:**
   isolamento e execução ordenada, filas 16/128 MiB, views BGFX, resize/destruição,
@@ -186,8 +186,9 @@ Vulkan não encerram a matriz física nem qualificam outras plataformas.
   até oito mapas; cenas próprias, grupos irmãos/aninhados e anotações opacas
   compõem offscreen e RTT staged/direct. Alfa RTT NONE/ALPHA_BLEND está
   qualificado até oito mapas, assim como alfa de material e textura estática.
-  P27.4 permanece aberto para ALPHA_TEST, peeling/OIT, demais qualidades e
-  referência GL com oito mapas; P27.5 mantém
+  ALPHA_TEST acompanha o comportamento atual Coin/GL (composição transparente,
+  sem descarte automático). Peeling/OIT e qualidade ampliada estão qualificados.
+  P27.4 mantém a referência GL nativa com oito mapas pendente; P27.5 mantém
   a matriz física final.
   [Referência e trabalho pendente](coin-render-p27-shadows.md).
 - [ ] **P28 — Texturas espaciais e SSAO:** volume/cube maps seguem o contrato

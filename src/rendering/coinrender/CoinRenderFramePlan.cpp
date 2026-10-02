@@ -5,6 +5,7 @@
 #endif
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
+#include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
 #include <Inventor/nodes/SoSceneTexture2.h>
 #include "rendering/coinrender/CoinRenderTextureCombineCore.h"
 #include "rendering/coinrender/CoinRenderClipCore.h"
@@ -177,8 +178,7 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
   for (size_t i = 0; i < this->textures.size(); ++i) {
     const CoinRenderTextureImageSnapshot & tex = this->textures[i];
     if (tex.sceneTransparencyFunction != -1 &&
-        tex.sceneTransparencyFunction != SoSceneTexture2::NONE &&
-        tex.sceneTransparencyFunction != SoSceneTexture2::ALPHA_BLEND) {
+        !coin_render_scene_texture_policy_supported(tex.sceneTransparencyFunction)) {
       if (outDiagnostic)
         *outDiagnostic = "Unsupported scene texture transparency function";
       return false;

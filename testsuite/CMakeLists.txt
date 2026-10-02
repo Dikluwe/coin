@@ -817,6 +817,13 @@ if(COIN_BUILD_RENDER)
 				COMMAND CoinRenderShadowReferenceTest --transparent-maps ${_shadow_maps})
 			set_tests_properties(CoinRenderShadowTransparency${_shadow_maps}Test PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77)
 		endforeach()
+		foreach(_shadow_maps 1 4 5 6 7 8)
+			foreach(_alpha_mechanism 0 1 2)
+				add_test(NAME CoinRenderShadowAlphaTest${_shadow_maps}_${_alpha_mechanism}Test
+					COMMAND CoinRenderShadowReferenceTest --alpha-test ${_shadow_maps} ${_alpha_mechanism})
+				set_tests_properties(CoinRenderShadowAlphaTest${_shadow_maps}_${_alpha_mechanism}Test PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77)
+			endforeach()
+		endforeach()
 		foreach(_shadow_maps 1 4 8)
 			add_test(NAME CoinRenderShadowQuality${_shadow_maps}Test
 				COMMAND CoinRenderShadowReferenceTest --quality ${_shadow_maps})

@@ -190,7 +190,8 @@ bool qualifyShadowQuality(SoSeparator * source, int maps, bool directional)
 // Exercise the public path with a fresh Action, so capture references held by
 // the main opaque fixtures cannot be invalidated by these additional scenes.
 bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
-                               int shadowLightCount = 1, int rttMode = -1, int mechanism = -1)
+                               int shadowLightCount = 1, int rttMode = -1, int mechanism = -1,
+                               int rttPolicy = SoSceneTexture2::ALPHA_BLEND)
 {
   const int firstType = mechanism == 1 ? 10 : mechanism == 2 ? 6 : 0;
   const int lastType = mechanism < 0 ? 9 : firstType;
@@ -246,7 +247,7 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
       auto * rtt = new SoSceneTexture2;
       rtt->size.setValue(32, 32);
       rtt->backgroundColor.setValue(0, 0, 0, 0);
-      rtt->transparencyFunction = SoSceneTexture2::ALPHA_BLEND;
+      rtt->transparencyFunction = rttPolicy;
       rtt->scene = producer;
       textureNode = rtt;
     }
@@ -305,6 +306,14 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
       }
       std::vector<unsigned char> shadowPixels, clearPixels;
       qualified = render(gl, glShadow, shadowPixels) && render(gl, glClear, clearPixels);
+      if (qualified && rttPolicy == SoSceneTexture2::ALPHA_TEST) {
+        auto * referenceGroup = static_cast<SoShadowGroup *>(glShadow->getChild(2));
+        auto * referenceGround = static_cast<SoSeparator *>(referenceGroup->getChild(referenceGroup->getNumChildren()-1));
+        auto * referenceRtt = static_cast<SoSceneTexture2 *>(referenceGround->getChild(2));
+        referenceRtt->transparencyFunction = SoSceneTexture2::ALPHA_BLEND;
+        std::vector<unsigned char> blendPixels;
+        qualified = render(gl,glShadow,blendPixels) && blendPixels == shadowPixels;
+      }
       if (mechanism == 1) qualified = qualified &&
         gl.getGLRenderAction()->getTransparencyType() == SoGLRenderAction::SORTED_LAYERS_BLEND;
       if (qualified)
@@ -316,8 +325,21 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
       glShadow->unref();
     }
     qualified = qualified && gpuDelta > 20;
+    if (qualified && rttPolicy == SoSceneTexture2::ALPHA_TEST) {
+      auto * rtt = static_cast<SoSceneTexture2 *>(textureNode);
+      groundStyle->style = SoShadowStyle::SHADOWED;
+      rtt->transparencyFunction = SoSceneTexture2::ALPHA_BLEND;
+      action.apply(scene);
+      std::vector<unsigned char> blendPixels, restored;
+      target->readbackRGBA(blendPixels);
+      qualified = action.getLastStatus() == CoinRenderAction::SUCCESS && blendPixels == gpuShadow;
+      rtt->transparencyFunction = rttPolicy;
+      action.apply(scene);
+      target->readbackRGBA(restored);
+      qualified = qualified && action.getLastStatus() == CoinRenderAction::SUCCESS && restored == gpuShadow;
+    }
     std::cout << "transparent shadow receiver maps=" << shadowLightCount
-              << " rtt=" << rttMode << " alpha_texture=" << alphaTexture << " mode=" << type << " Coin/GL/GPU delta="
+              << " rtt=" << rttMode << " policy=" << rttPolicy << " alpha_texture=" << alphaTexture << " mode=" << type << " Coin/GL/GPU delta="
               << glDelta << '/' << gpuDelta << " qualified=" << qualified << '\n';
     if (!qualified) std::cerr << action.getLastError().getString() << '\n';
   }
@@ -498,7 +520,7 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
     CoinRenderAction capture(SbViewportRegion(side, side));
     capture.apply(scene);
     qualified = capture.getPimpl()->lastRejectedShadowPlan.passes[0].casterDraws.size() == 1;
-    casterRtt->transparencyFunction = SoSceneTexture2::ALPHA_BLEND;
+    casterRtt->transparencyFunction = rttPolicy;
     capture.apply(scene);
     const auto & captured = capture.getPimpl()->lastRejectedShadowFrame;
     const auto & passes = capture.getPimpl()->lastRejectedShadowPlan.passes;
@@ -523,7 +545,24 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
     action.apply(scene);
     target->readbackRGBA(after);
     qualified = qualified && action.getLastStatus() == CoinRenderAction::SUCCESS && before == after;
-    const uint64_t beforeFailure = target->getLastSubmissionSerial();
+    uint64_t beforeFailure = target->getLastSubmissionSerial();
+    if (rttPolicy == SoSceneTexture2::ALPHA_TEST) {
+      auto * rtt = static_cast<SoSceneTexture2 *>(textureNode);
+      rtt->transparencyFunction = 999;
+      action.apply(scene);
+      target->readbackRGBA(after);
+      std::cout << "alpha policy rejection status=" << action.getLastStatus()
+        << " serial=" << (target->getLastSubmissionSerial() == beforeFailure)
+        << " pixels=" << (before == after) << '\n';
+      qualified = qualified && action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+        target->getLastSubmissionSerial() == beforeFailure && before == after;
+      rtt->transparencyFunction = rttPolicy;
+      action.apply(scene);
+      target->readbackRGBA(after);
+      qualified = qualified && action.getLastStatus() == CoinRenderAction::SUCCESS && before == after;
+      beforeFailure = target->getLastSubmissionSerial();
+      std::cout << "alpha policy recovery qualified=" << qualified << '\n';
+    }
 #ifdef HAVE_COIN_BGFX
     setenv("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE", "1", 1);
 #endif
@@ -538,6 +577,10 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
     coin_wgpu_inject_fault(0);
 #endif
     target->readbackRGBA(after);
+    if (rttPolicy == SoSceneTexture2::ALPHA_TEST)
+      std::cout << "alpha policy fault status=" << action.getLastStatus()
+        << " serial=" << (target->getLastSubmissionSerial() == beforeFailure)
+        << " pixels=" << (before == after) << '\n';
     qualified = qualified && action.getLastStatus() == CoinRenderAction::OUT_OF_MEMORY &&
       target->getLastSubmissionSerial() == beforeFailure && before == after;
     qualified = qualified && target->resize(SbVec2i32(side, side));
@@ -1225,6 +1268,21 @@ int main(int argc, char ** argv)
     return ok ? 0 : 1;
   }
 
+  if (argc == 4 && std::string(argv[1]) == "--alpha-test") {
+    if (!std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") &&
+        !std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) {
+      root->unref();
+      return 77;
+    }
+    const int maps = std::atoi(argv[2]);
+    const int mechanism = std::atoi(argv[3]);
+    bool ok = maps >= 1 && maps <= 8 && mechanism >= 0 && mechanism <= 2;
+    for (int mode=0;mode<2 && ok;++mode)
+      ok = qualifyShadowTransparency(root,true,maps,mode,mechanism ? mechanism : -1,
+                                     SoSceneTexture2::ALPHA_TEST);
+    root->unref();
+    return ok ? 0 : 1;
+  }
   if (argc == 2 && std::string(argv[1]) == "--alpha-rtt") {
     bool ok = true;
     for (int mode = 0; mode < 2 && ok; ++mode)

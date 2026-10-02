@@ -366,8 +366,8 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   e serial; após reconfigurar o alvo, a recuperação reproduziu o quadro anterior.
   A regressão de sombras, composição, transparência, RTT e reúso de plano
   passou nos dois backends; a rota RTT direct também passou.
-  A extensão de cinco a oito mapas está descrita abaixo. `ALPHA_TEST`
-  continua fora deste perfil.
+  A extensão de cinco a oito mapas e a política `ALPHA_TEST`
+  estão descritas abaixo.
 - [x] **Transparência com cinco a oito mapas:** os dez modos Coin (0–9)
   passaram em BGFX/Vulkan, BGFX/OpenGL e wgpu, com alfa de material, textura
   estática e RTT `ALPHA_BLEND` staged/direct. O Core conserva a decisão única
@@ -434,7 +434,24 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   BGFX/OpenGL e wgpu; regressões relacionadas 40/40 BGFX e 28/28 wgpu,
   sem skips, mais 18 testes unitários Rust. A matriz final inclui o teste
   aditivo acrescentado depois da campanha de regressão.
-- [ ] **Transparência restante:** qualificar `ALPHA_TEST`.
+- [x] **ALPHA_TEST de SceneTexture2:** Wiring captura a política em RTT
+  staged/direct; Core resolve classificação transparente, composição e
+  exclusão de casters, inclusive em `shadowMapScene`. Coin/GL define
+  `FORCE_TRANSPARENCY_TRUE|FORCE_ALPHA_TEST_TRUE`, mas nenhum renderizador
+  consome `SoGLImage::useAlphaTest()` nesta versão. O comportamento real
+  acompanha ALPHA_BLEND: não há descarte alfa automático. BGFX e wgpu
+  preservam esse contrato sem criar limiar próprio ou alterar o GL.
+  As fixtures `--alpha-test N M` cobrem N=1,4,5,6,7,8 e M=0 (dez modos
+  Coin), 1 (peeling), 2 (weighted OIT), nos dois caminhos RTT. Comparam
+  pixels ALPHA_TEST/ALPHA_BLEND em GL e GPU, recepção de sombras, exclusão
+  de casters, mapas vazios, partição de intensidade, contribuição da última
+  luz, composição RTT, atualização do produtor e recuperação de falhas.
+  Política desconhecida preserva pixels/serial e retorna UNSUPPORTED.
+  Teste alfa explícito por `SoAlphaTest` não integra este fechamento.
+  Validação em 2026-10-02: 18 testes ALPHA_TEST por rota, 54 no total em
+  BGFX/Vulkan, BGFX/OpenGL e wgpu. Regressões de SceneTexture2,
+  ownership e sombras passaram. O preflight BGFX foi corrigido para não
+  exigir peeling/OIT de desenho opaco só pelo modo Coin declarado.
 - [x] **Qualidade ampliada:** Core resolve a iluminação por vértice ou por
   fragmento; BGFX e wgpu executam essas decisões para spot e direcional,
   com especular, normais interpoladas e atenuação posicional. As contribuições
@@ -601,7 +618,7 @@ referência Coin/GL antes de marcar P27.4 concluído.
   inclusive quando ela aparece após a geometria sem inseri-la nos estados
   anteriores, validar dois passes opacos
   spot/direcional e limitar a memória planejada.
-- [ ] **Core completo:** ampliar ALPHA_TEST e combinações além dos
+- [ ] **Core completo:** ampliar combinações além dos
   perfis já qualificados de até oito mapas, grupos aninhados e RTT direct.
   Reusar ownership e publicação de P12–P14, inclusive múltiplos alvos.
 - [ ] **Infra BGFX/wgpu:** mapas de momentos e depth, VSM, bias, textura,
@@ -623,5 +640,5 @@ passes spot/direcionais. A quinta, sexta e sétima spots têm comparação
 Coin/GL; a oitava tem readback e publicação verificados nos dois backends,
 mas ainda requer referência GL com oito mapas. Alfa RTT NONE/ALPHA_BLEND
 está qualificado até oito mapas, incluindo alfa de material e textura estática;
-ALPHA_TEST e combinações além dos perfis descritos continuam na matriz
+Combinações além dos perfis descritos continuam na matriz
 P27.4. Nos casos rejeitados, pixels e serial publicados ficam intactos.

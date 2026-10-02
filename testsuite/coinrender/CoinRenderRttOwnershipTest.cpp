@@ -186,7 +186,15 @@ int main() {
     ok &= check(coin_render_composition_order(policy, order, diagnostic) && order[0].blend,
                 "Coin NONE preserves material transparency");
     policy.textures[0].sceneTransparencyFunction = SoSceneTexture2::ALPHA_TEST;
-    ok &= check(!policy.isValid(&diagnostic), "unimplemented alpha test is explicit");
+    ok &= check(policy.isValid(&diagnostic) &&
+                coin_render_composition_order(policy, order, diagnostic) && order[0].blend,
+                "Coin ALPHA_TEST follows the GL transparent scheduling contract");
+    policy.materials[0].diffuse[3] = 1.0f;
+    policy.materials[0].transparency = 0.0f;
+    ok &= check(coin_render_composition_order(policy, order, diagnostic) && order[0].blend,
+                "Coin ALPHA_TEST forces transparency for an opaque producer and material");
+    policy.textures[0].sceneTransparencyFunction = 999;
+    ok &= check(!policy.isValid(&diagnostic), "unknown alpha policy remains unsupported");
   }
 
   CoinRenderRttResources resources;
@@ -362,12 +370,18 @@ int main() {
     CoinRenderRttExecution execution(&noWork, options);
     CoinRenderFramePlan resolved;
     const auto result = execution.prepare(limited, consumer(2, 4), resolved);
+    if (result.status != CoinRenderBackendStatus::UNSUPPORTED ||
+        result.diagnostic.find("transparency") == std::string::npos)
+      std::cerr << "BGFX direct preflight: " << result.diagnostic << '\n';
     ok &= check(result.status == CoinRenderBackendStatus::UNSUPPORTED && !noWork.backend &&
-                    result.diagnostic.find("object transparency") != std::string::npos,
-                "second direct producer peeling rejected before BGFX initializes");
+                    result.diagnostic.find("transparency") != std::string::npos,
+                "unavailable second producer peeling rejected before BGFX initializes");
     auto inspector = CoinRenderTargetP::createBackend();
     limited.producers[1].plan = triangle(false);
-    ok &= check(inspector->preflightRtt(limited, consumer(2, 4), SbVec2i32(4, 4)).status ==
+    const auto opaquePreflight = inspector->preflightRtt(limited, consumer(2, 4), SbVec2i32(4, 4));
+    if (opaquePreflight.status != CoinRenderBackendStatus::SUCCESS)
+      std::cerr << "BGFX opaque preflight: " << opaquePreflight.diagnostic << '\n';
+    ok &= check(opaquePreflight.status ==
                     CoinRenderBackendStatus::SUCCESS,
                 "opaque producer using Coin sorted layers does not require peeling");
   }

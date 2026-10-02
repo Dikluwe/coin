@@ -3131,6 +3131,9 @@ CoinRenderSubmitResult CoinBgfxBackend::preflightRtt(const CoinRenderRttPlan& gr
       return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};
     bool peeling = false, weighted = false;
     for (const auto& item : order) {
+      // The Coin mode can name peeling on an opaque draw; Core only defers
+      // effective transparency. Match the execution strategy's admission.
+      if (!item.blend || !item.deferred) continue;
       peeling = peeling || item.transparencyStrategy == CoinRenderCompositionItem::SORTED_LAYERS;
       weighted = weighted || item.transparencyStrategy == CoinRenderCompositionItem::WEIGHTED_OIT;
     }

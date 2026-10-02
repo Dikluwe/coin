@@ -104,7 +104,8 @@ SoSceneTexture2, async, superfície e composição continuam parte da campanha.
 
 Execução Linux/Xvfb/Mesa. Esta evidência fecha P14 no perfil experimental atual;
 matriz física de drivers/plataformas/FreeCAD continua P16/P17/P20. Formatos RTT
-ampliados e ALPHA_TEST seguem F14; profiling físico P18; persistência/pools e
+ampliados seguem F14; ALPHA_TEST foi qualificado em P27.4 conforme Coin/GL;
+profiling físico P18; persistência/pools e
 readback de janela P19. Inventário de nós/workbenches é a próxima entrega P15.
 
 ### Campanhas de validação

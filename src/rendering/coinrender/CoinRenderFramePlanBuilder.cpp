@@ -6,6 +6,7 @@
 #include <iostream>
 #include "rendering/coinrender/CoinRenderFramePlanBuilder.h"
 #include "rendering/coinrender/CoinRenderImageCore.h"
+#include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
 #include <Inventor/nodes/SoShape.h>
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/nodes/SoCone.h>
@@ -359,7 +360,7 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     const auto * bytes = SoMultiTextureImageElement::getImage(state, unit, size, components);
     const auto policy = this->sceneTextures.find(bytes);
     if (policy != this->sceneTextures.end())
-      rs.transparentTexture = policy->second.transparencyFunction == SoSceneTexture2::ALPHA_BLEND;
+      rs.transparentTexture = coin_render_scene_texture_forces_transparency(policy->second.transparencyFunction);
     return true;
   }
 
