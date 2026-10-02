@@ -9,7 +9,7 @@ void main()
 {
   gl_Position = mul(u_modelViewProj, vec4(a_position, 1.0)) * (a_texcoord3.z > 0.0 ? a_texcoord3.z : 1.0);
   vec3 color = a_color1.rgb * u_ambientLight.rgb * u_ambientLight.a + a_color3.rgb;
-  if (u_lightCount.y > 0.5) color = vec3(0.0);
+  if (u_lightCount.y > 0.5) color = vec3_splat(0.0);
   if (a_texcoord3.y < 0.5) {
     if (u_lightCount.y < 0.5) color = a_color0.rgb;
   }
@@ -38,8 +38,9 @@ void main()
   // This profile forbids extra scene texture units.
   vec3 c[8];
   for (int slot = 0; slot < 8; ++slot) {
-    c[slot] = vec3(0.0);
-    float index = slot < 4 ? u_shadowLightIndices[slot] : u_shadowLightIndicesExtra[slot - 4];
+    c[slot] = vec3_splat(0.0);
+    int component = slot % 4;
+    float index = slot < 4 ? u_shadowLightIndices[component] : u_shadowLightIndicesExtra[component];
     if (u_shadowQuality.x > 0.5 && index >= 0.0)
       c[slot] = coinGroupLightContribution(int(index), a_color0, a_color2,
         a_texcoord1, a_texcoord2, a_texcoord3.x);

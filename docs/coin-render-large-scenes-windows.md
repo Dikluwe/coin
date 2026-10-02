@@ -61,7 +61,34 @@ a exportação PPM foram verificadas em um controle D3D12/OpenGL de 100 objetos
 a 256 × 256, no binário final; esse controle não substitui a medição grande.
 
 A suíte anterior 99/99 usa outras fixtures e não certifica essa carga de cenas
-grandes. BGFX não foi executado: seu conector Windows ainda não está implementado.
+grandes. Esses ensaios iniciais foram feitos com wgpu. O conector BGFX/Windows
+foi implementado em seguida, com resultados próprios registrados abaixo.
+
+## BGFX/Direct3D12 no Windows
+
+As três cargas grandes passaram em 1024 × 1024, com quatro quadros de
+aquecimento e oito medidos, incluindo readback síncrono:
+
+| Edifícios | Mediana | P95 |
+|---|---:|---:|
+| 2.500 | 20,75 ms | 22,59 ms |
+| 10.000 | 423,81 ms | 451,76 ms |
+| 40.000 | 1.630,15 ms | 1.672,61 ms |
+
+O novo backend renderizou a cidade de 40.000 edifícios em 1024 × 1024, com
+quatro quadros de aquecimento e oito medidos: mediana 1.630,15 ms, P95
+1.672,61 ms. O primeiro quadro levou 4.023,4 ms e o cleanup, 132,71 ms.
+A imagem é pixel a pixel idêntica à captura wgpu/Vulkan da mesma cidade.
+
+Essa execução já usa um índice por matriz para a preparação dos estados de
+desenho. A implementação anterior fazia uma busca quadrática e o primeiro
+teste BGFX de 40 mil foi interrompido ainda durante essa preparação.
+O orçamento da biblioteca BGFX foi compilado para 131.072 chamadas de desenho.
+Esse resultado confirma funcionamento de D3D12 nessa carga; o tempo por
+quadro ainda é alto e não estabelece vantagem de desempenho sobre OpenGL.
+
+O build, os testes Win32 e a qualificação dirigida estão documentados em
+[CoinRender BGFX no Windows](coin-render-bgfx-windows.md).
 
 ## Reproduzir
 

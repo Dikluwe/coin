@@ -1,6 +1,6 @@
 # Avaliação BGFX sobre o `CoinRenderFramePlan` experimental
 
-Esta branch adiciona um conector **BGFX (Vulkan ou OpenGL)** a
+Esta branch adiciona um conector **BGFX (Vulkan, OpenGL ou Direct3D12 no Windows)** a
 `CoinRender`. A ação BGFX é `CoinBgfxAction`, um tipo Coin próprio.
 `CoinRenderAction` permanece como base compartilhada e API de compatibilidade;
 BGFX não é wgpu-native,
@@ -22,6 +22,9 @@ comparação isola a troca do executor, sem duplicar um segundo scene graph.
 - Linux, BGFX com renderer Vulkan por padrão ou OpenGL com
   `COIN_BGFX_RENDERER=opengl`; alvos offscreen e janelas Xlib simultâneos
   compartilham o runtime na thread da API.
+- Windows, BGFX com Direct3D12 por padrão, seleção explícita de Vulkan/OpenGL
+  e superfícies Win32. Build e resultados locais estão em
+  [CoinRender BGFX no Windows](coin-render-bgfx-windows.md).
 - Triângulos indexados com `BASE_COLOR` ou termos PHONG completos
   (ambiente, difusa, especular, emissão, `shininess`; luz direcional, pontual
   e spot). Materiais e alpha por vértice/face são preservados. Linhas,

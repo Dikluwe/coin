@@ -1,0 +1,697 @@
+{
+  "combined_latest_results": {
+    "unique_tests": 163,
+    "passed": 163,
+    "failed": 0,
+    "skipped": 0
+  },
+  "runs": [
+    {
+      "name": "bgfx-windows-tests",
+      "tests": 163,
+      "passed": 112,
+      "failed": 19,
+      "skipped": 32
+    },
+    {
+      "name": "bgfx-windows-corrected-tests",
+      "tests": 58,
+      "passed": 58,
+      "failed": 0,
+      "skipped": 0
+    }
+  ],
+  "note": "Initial full run plus directed rerun of all failures and skips. The rerun requires BGFX shadow GPU and GL reference tests.",
+  "renderer": "BGFX Direct3D 12 NVIDIA GTX 1060 6 GB",
+  "images": [
+    {
+      "buildings": 2500,
+      "pixel_equal_to_previous_wgpu_vulkan": null,
+      "png_sha256": "8426077efae77803efb9e6d0307e48e22194a6077fbb6e49104c53bc037ebb12"
+    },
+    {
+      "buildings": 10000,
+      "pixel_equal_to_previous_wgpu_vulkan": true,
+      "png_sha256": "4224e9a6d7d62f2878572a98b196eea483697cc93422e3f0db13c4250a310e91"
+    },
+    {
+      "buildings": 40000,
+      "pixel_equal_to_previous_wgpu_vulkan": true,
+      "png_sha256": "130672f04a599e6b399064f5c8b502fb6a8d7a18cf7162d7a3e0f54bc487ceb0"
+    }
+  ],
+  "tests": {
+    "CoinRenderWin32D3D12Smoke": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderWin32VulkanSmoke": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinTests": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinConfigCompatibility": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "ProfilerInit_unset": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "ProfilerInit_off": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "ProfilerInit_0": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "ProfilerInit_on": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "ProfilerInit_1": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "ProfilerInit_syncgl": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "ProfilerInit_invalid": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "RenderManagerFramePreparationTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderActionTest": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderSelectionTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderSelection_vulkan": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderSelection_opengl": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderSelection_d3d12": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderProductTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderBackendContractTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderOffscreenTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderGateG0Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderFrameCoreTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinBgfxReadbackModes_vulkan": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinBgfxReadbackModes_opengl": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinBgfxReadbackModes_d3d12": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinBgfxSurface_vulkan_object": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinBgfxSurface_vulkan_weighted_oit": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinBgfxSurface_vulkan_sorted_layers": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinBgfxSurface_opengl_object": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinBgfxSurface_opengl_weighted_oit": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinBgfxSurface_opengl_sorted_layers": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinBgfxSurface_d3d12_object": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinBgfxSurface_d3d12_weighted_oit": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinBgfxSurface_d3d12_sorted_layers": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinBgfxCoreTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderDepthContractTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderDepthContractVulkanTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderDepthContractOpenGLTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderProductOpenGLTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinBgfxOffscreenTest": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinBgfxOpenGLTest": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderBackendContractOpenGLTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinBgfxTransparencyTest": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinBgfxTransparencyOpenGLTest": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinBgfxSortedLayersTest": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinBgfxSortedLayersOpenGLTest": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinBgfxWeightedOitTest": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinBgfxWeightedOitOpenGLTest": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderFrameReuseCoreTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderDiagnosticShellTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderIndexedGeometryCoreTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderGateG1Test": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderGateG2Test": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderIndexedFastPathTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinWgpuCacheTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderStabilizationTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderTextureTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderLightingTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderGouraudInterpolationTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderGouraud_vulkan_object": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderGouraud_vulkan_weighted_oit": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderGouraud_vulkan_sorted_layers": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderGouraud_opengl_object": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderGouraud_opengl_weighted_oit": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderGouraud_opengl_sorted_layers": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderGouraud_d3d12_object": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderGouraud_d3d12_weighted_oit": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderGouraud_d3d12_sorted_layers": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderFogTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderClipPlaneTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderClipPlane_vulkan_object": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderClipPlane_vulkan_weighted_oit": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderClipPlane_vulkan_sorted_layers": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderClipPlane_opengl_object": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderClipPlane_opengl_weighted_oit": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderClipPlane_opengl_sorted_layers": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderClipPlane_d3d12_object": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderClipPlane_d3d12_weighted_oit": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderClipPlane_d3d12_sorted_layers": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderDrawStyleTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderDrawStyle_vulkan": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderDrawStyle_opengl": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderDrawStyle_d3d12": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderMultitextureTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderMultitexture_vulkan": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderMultitexture_opengl": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderMultitexture_d3d12": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderPeelingTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderPeeling_vulkan": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderOit_vulkan": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderPeeling_opengl": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderOit_opengl": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderPeeling_d3d12": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderOit_d3d12": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderTransparencyTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderTransparency_vulkan": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderTransparency_opengl": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderTransparency_d3d12": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderCompositionTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderNodeInventoryDiscoveryTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderNodeInventoryTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderShadowReferenceTest": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowWiringTest": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowTransparency5Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowTransparency6Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowTransparency7Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowTransparency8Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowAlphaTest1_0Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowAlphaTest1_1Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowAlphaTest1_2Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowAlphaTest4_0Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowAlphaTest4_1Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowAlphaTest4_2Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowAlphaTest5_0Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowAlphaTest5_1Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowAlphaTest5_2Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowAlphaTest6_0Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowAlphaTest6_1Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowAlphaTest6_2Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowAlphaTest7_0Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowAlphaTest7_1Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowAlphaTest7_2Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowAlphaTest8_0Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowAlphaTest8_1Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowAlphaTest8_2Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowQuality1Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowOit1_1Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowLayers1_1Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowOit1_2Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowLayers1_2Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowQuality4Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowOit4_1Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowLayers4_1Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowOit4_2Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowLayers4_2Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowQuality8Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowOit8_1Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowLayers8_1Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowOit8_2Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderShadowLayers8_2Test": {
+      "status": "passed",
+      "run": "bgfx-windows-corrected-tests"
+    },
+    "CoinRenderMultiTargetTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderMultiTargetDirectTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderMultiTargetStagedOpenGLTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderMultiTargetOpenGLTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderPublicationTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderRttOwnershipTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderRttOwnership_vulkan": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderRttOwnership_opengl": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderRttOwnership_d3d12": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderSceneTextureTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderSceneTextureBudgetTest": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderSceneTexture_vulkan_staged": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderSceneTextureBudget_vulkan_staged": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderSceneTexture_vulkan_direct": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderSceneTextureBudget_vulkan_direct": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderSceneTexture_opengl_staged": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderSceneTextureBudget_opengl_staged": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderSceneTexture_opengl_direct": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderSceneTextureBudget_opengl_direct": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderSceneTexture_d3d12_staged": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderSceneTextureBudget_d3d12_staged": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderSceneTexture_d3d12_direct": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    },
+    "CoinRenderSceneTextureBudget_d3d12_direct": {
+      "status": "passed",
+      "run": "bgfx-windows-tests"
+    }
+  }
+}

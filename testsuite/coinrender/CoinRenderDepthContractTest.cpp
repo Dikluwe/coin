@@ -15,6 +15,8 @@
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/nodes/SoPointSet.h>
 #include <Inventor/nodes/SoShape.h>
+#include <Inventor/nodes/SoTranslation.h>
+#include <Inventor/nodes/SoMaterial.h>
 #include "rendering/coinrender/CoinRenderFramePlanBuilder.h"
 #include "rendering/coinrender/CoinRenderFrameReuseCore.h"
 #include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
@@ -39,6 +41,40 @@ void line(void * data, SoCallbackAction * a, const SoPrimitiveVertex * x,
 }
 void point(void * data, SoCallbackAction * a, const SoPrimitiveVertex * x) {
   static_cast<CoinRenderFramePlanBuilder *>(data)->addPoint(a, x);
+}
+bool stateInterning() {
+  SoSeparator * root = new SoSeparator;
+  root->ref();
+  SoCube * cube = new SoCube;
+  const auto append = [&](int position, bool blue) {
+    SoSeparator * group = new SoSeparator;
+    SoTranslation * translation = new SoTranslation;
+    translation->translation.setValue(float(position), 0, 0);
+    SoMaterial * material = new SoMaterial;
+    material->diffuseColor.setValue(blue ? SbColor(0, 0, 1) : SbColor(1, 0, 0));
+    group->addChild(translation);
+    group->addChild(material);
+    group->addChild(cube);
+    root->addChild(group);
+  };
+  for (int i = 0; i < 128; ++i) append(i, false);
+  append(3, false);
+  append(3, true);
+  CoinRenderFramePlanBuilder builder;
+  bool ok = true;
+  for (int frame = 0; frame < 2; ++frame) {
+    builder.beginFrame(SbColor4f(0, 0, 0, 1), SbViewportRegion(32, 32));
+    CoinRenderAction action(SbViewportRegion(32, 32));
+    action.addTriangleCallback(SoShape::getClassTypeId(), triangle, &builder);
+    action.apply(root);
+    CoinRenderFramePlan captured;
+    std::string diagnostic;
+    ok &= check(builder.build(captured, &diagnostic), "transformed instance capture failed");
+    ok &= check(captured.renderStates.size() == 129,
+      "state reuse must preserve distinct transforms and materials across frames");
+  }
+  root->unref();
+  return ok;
 }
 bool capture() {
   SoSeparator * root = new SoSeparator;
@@ -316,5 +352,5 @@ int main(int argc, char ** argv) {
   SoDB::init();
   CoinRenderAction::initClass();
   if (argc == 2 && std::string(argv[1]) == "--gpu") return gpu();
-  return capture() && lowerAndCache() && annotationTransport() ? 0 : 1;
+  return stateInterning() && capture() && lowerAndCache() && annotationTransport() ? 0 : 1;
 }

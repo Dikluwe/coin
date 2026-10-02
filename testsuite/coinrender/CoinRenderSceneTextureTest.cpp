@@ -1,3 +1,4 @@
+#include "../coinrender/CoinRenderTestEnvironment.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #else
@@ -575,7 +576,7 @@ int main() {
   const uint64_t beforeAsyncSerial = target->getLastSubmissionSerial();
   std::size_t beforeAsyncBytes = 0;
   const uint8_t* beforeAsyncPointer = target->borrowRGBA(beforeAsyncBytes);
-  setenv("COIN_BGFX_TEST_DEVICE_LOST_AFTER_ASYNC_ONCE", "1", 1);
+  coinRenderTestSetEnvironment("COIN_BGFX_TEST_DEVICE_LOST_AFTER_ASYNC_ONCE", "1");
   CoinRenderReadbackTicket failedAsync{};
   failedAsync.token = 999;
   action.applyAsync(parent, failedAsync);

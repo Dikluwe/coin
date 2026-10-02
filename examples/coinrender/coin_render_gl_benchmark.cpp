@@ -177,8 +177,6 @@ int main(int argc, char ** argv) {
   const bool runWgpu = backend != "gl";
   const bool runGl = backend == "both" || backend == "gl";
   const char * rendererLabel = "WebGPU";
-  const char * bgfxRendererFlag = std::getenv("COIN_BGFX_RENDERER");
-  const bool bgfxOpenGl = bgfxRendererFlag && std::strcmp(bgfxRendererFlag, "opengl") == 0;
   bool useBgfx = false;
   if (runWgpu) {
     if (coin_render_query_capabilities(
@@ -194,7 +192,14 @@ int main(int argc, char ** argv) {
       std::cerr << "Requested GPU backend unavailable\n";
       return 2;
     }
-    rendererLabel = bgfx ? (bgfxOpenGl ? "BGFX-OpenGL" : "BGFX-Vulkan") : "WebGPU";
+    if (bgfx) {
+      switch (caps.renderer) {
+      case COIN_RENDER_RENDERER_D3D12: rendererLabel = "BGFX-D3D12"; break;
+      case COIN_RENDER_RENDERER_OPENGL: rendererLabel = "BGFX-OpenGL"; break;
+      case COIN_RENDER_RENDERER_VULKAN: rendererLabel = "BGFX-Vulkan"; break;
+      default: rendererLabel = "BGFX"; break;
+      }
+    }
     if (bgfx && readback != "color") {
       std::cerr << "BGFX evaluation supports RGBA readback only\n";
       return 2;
@@ -408,7 +413,7 @@ int main(int argc, char ** argv) {
     }
     const Clock::time_point end = Clock::now();
     if (i == -warmup)
-      std::cout << "WebGPU_first_frame_ms="
+      std::cout << rendererLabel << "_first_frame_ms="
                 << std::chrono::duration<double, std::milli>(end - begin).count()
                 << std::endl;
     if (i >= 0) {

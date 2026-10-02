@@ -1,3 +1,4 @@
+#include "../coinrender/CoinRenderTestEnvironment.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -170,14 +171,14 @@ int main() {
   coin_wgpu_get_cache_stats(&before);
 #endif
 #if defined(HAVE_COIN_BGFX)
-  setenv("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE", "1", 1);
+  coinRenderTestSetEnvironment("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE", "1");
 #endif
   CoinRenderReadbackTicket rejected{};
   aa.applyAsync(root, rejected);
 #if defined(HAVE_COIN_BGFX)
   const bool producerNotSubmitted =
       std::getenv("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE") != nullptr;
-  unsetenv("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE");
+  coinRenderTestSetEnvironment("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE", nullptr);
   if (!check(producerNotSubmitted, "queue rejection precedes BGFX RTT submission"))
     return 1;
 #endif
@@ -211,7 +212,7 @@ int main() {
   b->readbackRGBA(cb);
   const auto publishedPeer = b->getLastSubmissionSerial();
 #if defined(HAVE_COIN_BGFX)
-  setenv("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE", "1", 1);
+  coinRenderTestSetEnvironment("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE", "1");
 #else
   coin_wgpu_inject_fault(COIN_WGPU_DEVICE_LOST);
 #endif

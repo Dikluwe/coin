@@ -1,3 +1,4 @@
+#include "../coinrender/CoinRenderTestEnvironment.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #else
@@ -8,7 +9,6 @@
 
 #include <Inventor/SoDB.h>
 
-#include <bgfx/bgfx.h>
 #include <cstdlib>
 #include <iostream>
 #include <memory>
@@ -234,7 +234,7 @@ int main()
   frame.viewports[0].width = 48;
   frame.viewports[0].height = 48;
   frame.revision = 79;
-  setenv("COIN_BGFX_TEST_DEVICE_LOST_ON_RESIZE_ONCE", "1", 1);
+  coinRenderTestSetEnvironment("COIN_BGFX_TEST_DEVICE_LOST_ON_RESIZE_ONCE", "1");
   const uint32_t resizeGeneration = target.generation;
   const CoinRenderFrameExecutionResult lostOnResize = target.executeFrame(frame);
   if (lostOnResize.status != CoinRenderBackendStatus::DEVICE_LOST ||
@@ -252,7 +252,7 @@ int main()
   // A loss after encoding exercises the same teardown from the submission
   // path. A partial prepare failure immediately afterwards proves that neither
   // failure leaves the global singleton reservation stuck.
-  setenv("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE", "1", 1);
+  coinRenderTestSetEnvironment("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE", "1");
   const uint32_t submitGeneration = target.generation;
   const CoinRenderFrameExecutionResult lostOnSubmit = target.executeFrame(frame);
   if (lostOnSubmit.status != CoinRenderBackendStatus::DEVICE_LOST ||
@@ -260,7 +260,7 @@ int main()
     std::cerr << "BGFX did not release its runtime after submission loss\n";
     return 1;
   }
-  setenv("COIN_BGFX_TEST_FAIL_PREPARE_ONCE", "1", 1);
+  coinRenderTestSetEnvironment("COIN_BGFX_TEST_FAIL_PREPARE_ONCE", "1");
   if (target.executeFrame(frame).status != CoinRenderBackendStatus::BACKEND_ERROR ||
       target.backend) {
     std::cerr << "BGFX partial prepare failure did not tear down the runtime\n";
@@ -314,40 +314,44 @@ int main()
     return 1;
   }
 
-  // Follow the linked BGFX build's view budget, including larger demo builds.
-  const unsigned int targetCapacity = bgfx::getCaps()->limits.maxViews / 16;
+  // Exercise the runtime owned by CoinRender. A statically linked BGFX in a
+  // Windows test executable has separate globals from the copy in the DLL.
+  // Discover the budget through preparation, up to the 16-bit view-ID bound.
   std::vector<std::unique_ptr<CoinRenderTargetP>> extraTargets;
-  for (unsigned int i = 2; i < targetCapacity; ++i) {
+  std::unique_ptr<CoinRenderTargetP> overflow;
+  for (unsigned int i = 2; i < 4096; ++i) {
     std::unique_ptr<CoinRenderTargetP> extra(new CoinRenderTargetP(SbVec2i32(48, 48)));
     extra->depthReadbackEnabled = false;
-    if (extra->executeFrame(frame).status != CoinRenderBackendStatus::SUCCESS ||
+    const CoinRenderFrameExecutionResult prepared = extra->executeFrame(frame);
+    if (prepared.status == CoinRenderBackendStatus::UNSUPPORTED && !extra->backend &&
+        prepared.diagnostic.find("view budget") != std::string::npos) {
+      overflow = std::move(extra);
+      break;
+    }
+    if (prepared.status != CoinRenderBackendStatus::SUCCESS ||
         !hasBlueTexturePixel(extra->colorBuffer)) {
       std::cerr << "BGFX failed before reaching target view budget\n";
       return 1;
     }
     extraTargets.push_back(std::move(extra));
   }
-  CoinRenderTargetP overflow(SbVec2i32(48, 48));
-  overflow.depthReadbackEnabled = false;
-  const CoinRenderFrameExecutionResult exhausted = overflow.executeFrame(frame);
-  if (exhausted.status != CoinRenderBackendStatus::UNSUPPORTED || overflow.backend ||
-      exhausted.diagnostic.find("view budget") == std::string::npos) {
+  if (!overflow || extraTargets.empty()) {
     std::cerr << "BGFX exhausted view budget was not diagnosed\n";
     return 1;
   }
   extraTargets.pop_back();
-  if (overflow.executeFrame(frame).status != CoinRenderBackendStatus::SUCCESS ||
-      !hasBlueTexturePixel(overflow.colorBuffer) ||
+  if (overflow->executeFrame(frame).status != CoinRenderBackendStatus::SUCCESS ||
+      !hasBlueTexturePixel(overflow->colorBuffer) ||
       contender.executeFrame(frame).status != CoinRenderBackendStatus::SUCCESS) {
     std::cerr << "BGFX failed to reuse released target view slot\n";
     return 1;
   }
-  overflow.backend.reset();
+  overflow->backend.reset();
   extraTargets.clear();
 
   // Device loss belongs to the shared runtime. Every survivor must observe
   // it before using stale GPU handles; after the last owner drops, retry works.
-  setenv("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE", "1", 1);
+  coinRenderTestSetEnvironment("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE", "1");
   if (target.executeFrame(frame).status != CoinRenderBackendStatus::DEVICE_LOST || target.backend) {
     std::cerr << "BGFX shared runtime did not report injected device loss\n";
     return 1;

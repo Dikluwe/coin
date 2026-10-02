@@ -247,7 +247,9 @@ bool writePpm(const std::string & path, const std::vector<uint8_t> & image,
 bool renderGl(SoSeparator * scene, std::vector<uint8_t> & pixels,
               SoGLRenderAction::TransparencyType mode)
 {
+#ifndef _WIN32
   if (!std::getenv("DISPLAY")) return false;
+#endif
   SoOffscreenRenderer gl(SbViewportRegion(side, side));
   gl.setComponents(SoOffscreenRenderer::RGB);
   gl.setBackgroundColor(SbColor(0.0f, 0.0f, 0.0f));

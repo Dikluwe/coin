@@ -28,14 +28,22 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 	set(_coin_bgfx_shader_dir ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/shaders)
 	set(_coin_bgfx_generated_dir ${CMAKE_CURRENT_BINARY_DIR}/bgfx-generated)
 	file(MAKE_DIRECTORY ${_coin_bgfx_generated_dir})
+	set(_coin_bgfx_renderers spirv glsl)
+	if(WIN32)
+		list(APPEND _coin_bgfx_renderers dx11)
+	endif()
 	foreach(_stage vs fs)
 		if(_stage STREQUAL "vs")
 			set(_shader_type vertex)
 		else()
 			set(_shader_type fragment)
 		endif()
-		foreach(_renderer spirv glsl)
-			if(_renderer STREQUAL "spirv")
+		foreach(_renderer ${_coin_bgfx_renderers})
+			set(_shader_platform linux)
+			if(_renderer STREQUAL "dx11")
+				set(_shader_profile s_5_0)
+				set(_shader_platform windows)
+			elseif(_renderer STREQUAL "spirv")
 				set(_shader_profile spirv)
 			else()
 				set(_shader_profile 330)
@@ -45,7 +53,7 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 				COMMAND ${COIN_BGFX_SHADERC_EXECUTABLE}
 					-f ${_coin_bgfx_shader_dir}/${_stage}_base_color.sc
 					-o ${_shader_output}
-					--type ${_shader_type} --platform linux --profile ${_shader_profile}
+					--type ${_shader_type} --platform ${_shader_platform} --profile ${_shader_profile}
 					--varyingdef ${_coin_bgfx_shader_dir}/varying.def.sc
 					--bin2c coin_bgfx_${_stage}_${_renderer}
 					-i ${COIN_BGFX_SHADER_INCLUDE_DIR}
@@ -61,8 +69,12 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 		endforeach()
 	endforeach()
 	foreach(_shader peel_next composite weighted_oit weighted_composite depth_readback)
-		foreach(_renderer spirv glsl)
-			if(_renderer STREQUAL "spirv")
+		foreach(_renderer ${_coin_bgfx_renderers})
+			set(_shader_platform linux)
+			if(_renderer STREQUAL "dx11")
+				set(_shader_profile s_5_0)
+				set(_shader_platform windows)
+			elseif(_renderer STREQUAL "spirv")
 				set(_shader_profile spirv)
 			else()
 				set(_shader_profile 330)
@@ -72,7 +84,7 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 				COMMAND ${COIN_BGFX_SHADERC_EXECUTABLE}
 					-f ${_coin_bgfx_shader_dir}/fs_${_shader}.sc
 					-o ${_shader_output}
-					--type fragment --platform linux --profile ${_shader_profile}
+					--type fragment --platform ${_shader_platform} --profile ${_shader_profile}
 					--varyingdef ${_coin_bgfx_shader_dir}/varying.def.sc
 					--bin2c coin_bgfx_fs_${_shader}_${_renderer}
 					-i ${COIN_BGFX_SHADER_INCLUDE_DIR}
@@ -92,8 +104,12 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 		else()
 			set(_shadow_type fragment)
 		endif()
-		foreach(_renderer spirv glsl)
-			if(_renderer STREQUAL "spirv")
+		foreach(_renderer ${_coin_bgfx_renderers})
+			set(_shader_platform linux)
+			if(_renderer STREQUAL "dx11")
+				set(_shader_profile s_5_0)
+				set(_shader_platform windows)
+			elseif(_renderer STREQUAL "spirv")
 				set(_shader_profile spirv)
 			else()
 				set(_shader_profile 330)
@@ -103,7 +119,7 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 				COMMAND ${COIN_BGFX_SHADERC_EXECUTABLE}
 					-f ${_coin_bgfx_shader_dir}/${_shadow_shader}.sc
 					-o ${_shader_output}
-					--type ${_shadow_type} --platform linux --profile ${_shader_profile}
+					--type ${_shadow_type} --platform ${_shader_platform} --profile ${_shader_profile}
 					--varyingdef ${_coin_bgfx_shader_dir}/varying.def.sc
 					--bin2c coin_bgfx_${_shadow_shader}_${_renderer}
 					-i ${COIN_BGFX_SHADER_INCLUDE_DIR}

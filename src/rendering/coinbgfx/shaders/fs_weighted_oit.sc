@@ -13,5 +13,5 @@ void main()
   float alpha = clamp(color.a, 0.0, 1.0);
   if (alpha <= 0.0) discard;
   gl_FragData[0] = coinWeightedAccumulation(color, windowDepth);
-  gl_FragData[1] = vec4(alpha);
+  gl_FragData[1] = vec4_splat(alpha);
 }

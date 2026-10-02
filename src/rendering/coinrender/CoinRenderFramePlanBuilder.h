@@ -109,6 +109,7 @@ private:
   bool annotationDepthClearPending;
   std::string builderError;
   std::unordered_map<uint64_t, uint32_t> nodeOccurrenceCount;
+  std::unordered_map<uint64_t, std::vector<uint32_t>> renderStatesByModel;
   std::vector<SbVec3f> lightAttenuationByIndex;
   std::vector<uint32_t> shadowGroupStack;
   struct SceneTexture {

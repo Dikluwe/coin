@@ -123,9 +123,14 @@ int main() {
   }
 #elif defined(HAVE_COIN_BGFX)
   const char * rendererEnv = std::getenv("COIN_BGFX_RENDERER");
-  const uint32_t expectedRenderer = rendererEnv != nullptr &&
+  uint32_t expectedRenderer = rendererEnv != nullptr &&
     std::strcmp(rendererEnv, "opengl") == 0 ?
       COIN_RENDER_RENDERER_OPENGL : COIN_RENDER_RENDERER_VULKAN;
+  if (rendererEnv && std::strcmp(rendererEnv, "d3d12") == 0)
+    expectedRenderer = COIN_RENDER_RENDERER_D3D12;
+#ifdef _WIN32
+  if (!rendererEnv) expectedRenderer = COIN_RENDER_RENDERER_D3D12;
+#endif
   if (!check(caps.backend == COIN_RENDER_EXPERIMENTAL_BGFX_EVALUATION &&
              caps.gpu_available == 1 && caps.renderer == expectedRenderer &&
              (caps.features & COIN_RENDER_FEATURE_ASYNC_READBACK) != 0 &&

@@ -167,7 +167,7 @@ CoinRenderTargetP::initWindow(const CoinRenderNativeSurfaceDescriptor & desc, co
     return false;
 #endif
   } else if (desc.type == COIN_RENDER_SURFACE_WIN32) {
-#if defined(_WIN32) && defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+#if defined(_WIN32) && (defined(HAVE_COIN_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_BGFX))
     if (desc.native.win32.hwnd == nullptr) {
       this->status = CoinRenderTarget::TARGET_ERROR;
       this->lastError = "Null HWND in Win32 surface descriptor";
@@ -175,7 +175,7 @@ CoinRenderTargetP::initWindow(const CoinRenderNativeSurfaceDescriptor & desc, co
     }
 #else
     this->status = CoinRenderTarget::TARGET_ERROR;
-    this->lastError = "Win32 surface requires the Windows Rust bridge";
+    this->lastError = "Win32 surface requires a Windows render backend";
     return false;
 #endif
   } else if (desc.type == COIN_RENDER_SURFACE_APPKIT_LAYER) {

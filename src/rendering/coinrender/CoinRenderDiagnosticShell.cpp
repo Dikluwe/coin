@@ -148,7 +148,9 @@ CoinRenderRenderer CoinRenderDiagnosticShell::rendererOption(std::string& diagno
     return COIN_RENDER_RENDERER_VULKAN;
   if (std::strcmp(value, "opengl") == 0)
     return COIN_RENDER_RENDERER_OPENGL;
-  diagnostic = "COIN_BGFX_RENDERER must be opengl or vulkan";
+  if (std::strcmp(value, "d3d12") == 0)
+    return COIN_RENDER_RENDERER_D3D12;
+  diagnostic = "COIN_BGFX_RENDERER must be opengl, vulkan or d3d12";
   return COIN_RENDER_RENDERER_UNKNOWN;
 }
 

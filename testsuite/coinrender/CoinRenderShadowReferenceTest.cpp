@@ -1,3 +1,4 @@
+#include "../coinrender/CoinRenderTestEnvironment.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -688,14 +689,14 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
       std::cout << "alpha policy recovery qualified=" << qualified << '\n';
     }
 #ifdef HAVE_COIN_BGFX
-    setenv("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE", "1", 1);
+    coinRenderTestSetEnvironment("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE", "1");
 #endif
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
     coin_wgpu_inject_fault(COIN_WGPU_FAULT_SHADOW_MAP_ALLOC);
 #endif
     action.apply(scene);
 #ifdef HAVE_COIN_BGFX
-    unsetenv("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE");
+    coinRenderTestSetEnvironment("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE", nullptr);
 #endif
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
     coin_wgpu_inject_fault(0);
@@ -1133,14 +1134,14 @@ bool qualifyShadowComposition(SoSeparator * source, bool annotation, unsigned ma
     if (qualified) {
       const uint64_t serial = target->getLastSubmissionSerial();
 #ifdef HAVE_COIN_BGFX
-      setenv("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE", "1", 1);
+      coinRenderTestSetEnvironment("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE", "1");
 #endif
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
       coin_wgpu_inject_fault(COIN_WGPU_FAULT_SHADOW_MAP_ALLOC);
 #endif
       action.apply(root);
 #ifdef HAVE_COIN_BGFX
-      unsetenv("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE");
+      coinRenderTestSetEnvironment("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE", nullptr);
 #endif
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
       coin_wgpu_inject_fault(0);
@@ -1688,7 +1689,7 @@ int main(int argc, char ** argv)
       }
       if (bgfxShadowSubmitted) {
         const uint64_t serial = actionTarget->getLastSubmissionSerial();
-        setenv("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE", "1", 1);
+        coinRenderTestSetEnvironment("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE", "1");
         bgfxAction.apply(root);
         std::vector<unsigned char> afterFailure;
         actionTarget->readbackRGBA(afterFailure);
@@ -3064,7 +3065,7 @@ int main(int argc, char ** argv)
     }
     if (twoLightBgfxSubmitted) {
       const uint64_t serial = dualTarget->getLastSubmissionSerial();
-      setenv("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE", "1", 1);
+      coinRenderTestSetEnvironment("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE", "1");
       dualAction.apply(root);
       std::vector<unsigned char> afterFault;
       dualTarget->readbackRGBA(afterFault);
@@ -5017,14 +5018,14 @@ int main(int argc, char ** argv)
       const uint64_t beforeFailure = stagedTarget->getLastSubmissionSerial();
       customGroup->isActive = TRUE;
 #ifdef HAVE_COIN_BGFX
-      setenv("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE", "1", 1);
+      coinRenderTestSetEnvironment("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE", "1");
 #endif
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
       coin_wgpu_inject_fault(COIN_WGPU_FAULT_SHADOW_MAP_ALLOC);
 #endif
       stagedAction.apply(stagedRoot);
 #ifdef HAVE_COIN_BGFX
-      unsetenv("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE");
+      coinRenderTestSetEnvironment("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE", nullptr);
 #endif
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
       coin_wgpu_inject_fault(0);
@@ -5139,14 +5140,14 @@ int main(int argc, char ** argv)
       const uint64_t serial = directTarget->getLastSubmissionSerial();
       customGroup->isActive = TRUE;
 #ifdef HAVE_COIN_BGFX
-      setenv("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE", "1", 1);
+      coinRenderTestSetEnvironment("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE", "1");
 #endif
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
       coin_wgpu_inject_fault(COIN_WGPU_FAULT_SHADOW_MAP_ALLOC);
 #endif
       directAction.apply(stagedRoot);
 #ifdef HAVE_COIN_BGFX
-      unsetenv("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE");
+      coinRenderTestSetEnvironment("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE", nullptr);
 #endif
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
       coin_wgpu_inject_fault(0);

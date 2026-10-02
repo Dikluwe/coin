@@ -67,6 +67,23 @@
 #include <atomic>
 #include <cmath>
 
+namespace {
+uint64_t modelMatrixKey(const SbMatrix & matrix)
+{
+  uint64_t key = UINT64_C(14695981039346656037);
+  for (int row = 0; row < 4; ++row) {
+    for (int column = 0; column < 4; ++column) {
+      const float value = matrix[row][column];
+      uint32_t bits = 0;
+      // SbMatrix equality treats positive and negative zero as equal.
+      if (value != 0.0f) std::memcpy(&bits, &value, sizeof(bits));
+      key = (key ^ bits) * UINT64_C(1099511628211);
+    }
+  }
+  return key;
+}
+}
+
 CoinRenderCameraSnapshot
 CoinRenderFramePlanBuilder::captureCamera(SoCallbackAction * action)
 {
@@ -133,6 +150,7 @@ CoinRenderFramePlanBuilder::reset()
   this->currentPlan.cameras.clear();
   this->currentPlan.viewports.clear();
   this->currentPlan.renderStates.clear();
+  this->renderStatesByModel.clear();
   this->currentPlan.textures.clear();
   this->currentPlan.samplers.clear();
   this->currentPlan.draws.clear();
@@ -853,7 +871,8 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
 
   uint32_t rsSlot = 0;
   bool rsFound = false;
-  for (size_t i = 0; i < this->currentPlan.renderStates.size(); ++i) {
+  auto & modelCandidates = this->renderStatesByModel[modelMatrixKey(rs.model)];
+  for (const uint32_t i : modelCandidates) {
     const auto & existing = this->currentPlan.renderStates[i];
     if (existing.clipPlanesWorld == rs.clipPlanesWorld &&
         existing.materialSlot == materialSlot &&
@@ -912,6 +931,7 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   if (!rsFound) {
     rsSlot = static_cast<uint32_t>(this->currentPlan.renderStates.size());
     this->currentPlan.renderStates.push_back(rs);
+    modelCandidates.push_back(rsSlot);
   }
   return rsSlot;
 }

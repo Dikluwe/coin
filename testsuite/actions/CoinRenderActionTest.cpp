@@ -340,9 +340,9 @@ int testForbiddenUsage() {
 }
 
 int testBackendAvailability() {
-  // When built without Dawn / wgpu-native, isGpuBackendAvailable must be FALSE
+  // This reports whether a hardware backend was compiled.
   SbBool avail = CoinRenderAction::isGpuBackendAvailable();
-#if defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE) || defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+#if defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE) || defined(HAVE_COIN_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_BGFX)
   TEST_ASSERT(avail == TRUE, "isGpuBackendAvailable must be TRUE when hardware backend is compiled");
 #else
   TEST_ASSERT(avail == FALSE, "isGpuBackendAvailable must be FALSE in software/recording mode");

@@ -1,3 +1,4 @@
+#include "../coinrender/CoinRenderTestEnvironment.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include <Inventor/SoDB.h>
 #include <Inventor/actions/SoGLRenderAction.h>
@@ -254,7 +255,7 @@ int main()
     target.reset(new CoinRenderTargetP(SbVec2i32(32,32)));
     check(target->executeFrameAsync(f,a).status==CoinRenderBackendStatus::SUCCESS &&
       target->executeFrameAsync(f,b).status==CoinRenderBackendStatus::SUCCESS,"Device-loss setup failed");
-    setenv("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE","1",1);
+    coinRenderTestSetEnvironment("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE", "1");
     check(target->executeFrame(f).status==CoinRenderBackendStatus::DEVICE_LOST,"Injected device loss was not propagated");
     color={7}; depth={7};
     check(CoinRenderTarget::pollReadback(a,color,depth)==CoinRenderTarget::READBACK_DEVICE_LOST &&
