@@ -910,6 +910,8 @@ bool polygonStippleActionContract(bool cpu) {
       SoFaceSet* shape=new SoFaceSet;const int32_t sizes[]={count,count};shape->numVertices.setValues(0,2,sizes);
       geometry->addChild(shape);
     }
+  struct GlPatternSample { int counter, repeat, edge; uint32_t pattern; bool visible; };
+  std::vector<GlPatternSample> glSamples;
   for(int fast:{0,1})for(int width:{1,3,6})for(int repeat:{1,2,256})
     for(uint32_t pattern:{0u,0xffffu,0x000fu,0xaaaau,0x9249u}) {
       action.setFastPathEnabled(fast ? TRUE : FALSE);drawStyle->lineWidth=width;
@@ -924,29 +926,47 @@ bool polygonStippleActionContract(bool cpu) {
         }
         reference=gl.getBuffer();
       }
-      auto pixel=[&](int x,int y,int counter) {
+      auto pixel=[&](int x,int y,int counter,int edge) {
         const bool expected=(pattern & (1u<<((counter/repeat)&15)))!=0;
         const bool actual=image[((63-y)*64+x)*4]>127;
         if(actual!=expected)std::cerr<<"stipple "<<cpu<<','<<width<<','<<repeat<<','<<pattern
           <<" at "<<x<<','<<y<<" counter "<<counter<<" got "<<actual<<'\n';
         ok=check(actual==expected,"pattern phase and reset agree with independent fragment counts") && ok;
         if(reference) {
-          const bool same=(reference[(y*64+x)*3]>127)==actual;
-          if(!same)std::cerr<<"GL stipple "<<count<<','<<indexed<<','<<width<<','<<repeat<<','<<pattern<<" at "<<x<<','<<y
-            <<" GL "<<int(reference[(y*64+x)*3])<<" Core "<<int(image[((63-y)*64+x)*4])<<'\n';
-          ok=check(same,"Coin/GL polygon stipple matches shared Core away from corner raster ties") && ok;
+          const bool visible=reference[(y*64+x)*3]>127;
+          if(pattern==0 || pattern==0xffffu)
+            ok=check(visible==actual,"Coin/GL solid and empty polygon contours agree") && ok;
+          glSamples.push_back({counter,repeat,edge,pattern,visible});
         }
       };
       // Interior samples avoid the GL implementation's permitted endpoint raster variation.
       for(int shift:{0,32}) {
-        for(int x=10;x<=(count==3 ? 17 : 21);++x)pixel(x+shift,6,(count==5 ? 0 : 14)+x-6);
-        if(count==4)for(int x=10;x<=21;++x)pixel(x+shift,20,47+25-x);
-        if(count==5)for(int x=10;x<=12;++x)pixel(x+shift,20,35+16-x);
-        for(int y=10;y<=(count==3 ? 14 : 16);++y)pixel(6+shift,y,(count==5 ? 45 : 0)+20-y);
-        if(count==4)for(int y=10;y<=16;++y)pixel(25+shift,y,33+y-6);
+        for(int x=10;x<=(count==3 ? 17 : 21);++x)pixel(x+shift,6,(count==5 ? 0 : 14)+x-6,0);
+        if(count==4)for(int x=10;x<=21;++x)pixel(x+shift,20,47+25-x,2);
+        if(count==5)for(int x=10;x<=12;++x)pixel(x+shift,20,35+16-x,2);
+        for(int y=10;y<=(count==3 ? 14 : 16);++y)pixel(6+shift,y,(count==5 ? 45 : 0)+20-y,1);
+        if(count==4)for(int y=10;y<=16;++y)pixel(25+shift,y,33+y-6,3);
       }
       if(!ok) {root->unref();return false;}
     }
+    // Polygon mode permits the driver to choose the first rasterized edge.
+    // Require one consistent phase on each edge across all masks, repeats,
+    // widths, paths and both polygon copies; Core's counter stays exact above.
+    if(compareGl) for(int edge=0;edge<4;++edge) {
+      bool matched=false;
+      for(int offset=-256;offset<=256 && !matched;++offset) {
+        matched=true;
+        for(const auto& item:glSamples) if(item.edge==edge) {
+          const int period=16*item.repeat;
+          const int phase=((item.counter+offset)%period+period)%period;
+          if(((item.pattern & (1u<<(phase/item.repeat)))!=0)!=item.visible) {
+            matched=false;break;
+          }
+        }
+      }
+      ok=check(matched,"Coin/GL polygon edge retains one consistent stipple phase") && ok;
+    }
+    if(!ok) {root->unref();return false;}
   }
   if(compareGl)std::cout<<"Coin/GL polygon stipple reference passed\n";
   root->unref();return ok;
@@ -1067,7 +1087,7 @@ bool polygonClippedStippleActionContract(bool cpu) {
                              "coverage") &&
                        ok;
                   if (reference) {
-                    if (pattern == 0 || pattern == 0xffffu || clip == 0) {
+                    if (pattern == 0 || pattern == 0xffffu) {
                       const bool same = (reference[(y * 64 + x) * 3] > 40) == actual;
                       const bool frustumCut = (clip == 6 && edge == 2) || (clip == 7 && edge == 3);
                       // The local Mesa reference can omit a newly created depth-plane
@@ -1147,8 +1167,6 @@ bool polygonClippedStippleActionContract(bool cpu) {
         const int perimeter = 2 * (width + height);
         for (int displacement = -perimeter; displacement <= perimeter && !periodic;
              ++displacement) {
-          if (clip == 0 && displacement != 0)
-            continue;
           bool matches = true;
           for (const auto& item : glSamples)
             if (item.edge == edge) {

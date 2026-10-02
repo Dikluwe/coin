@@ -395,8 +395,60 @@ bool contract(bool cpu) {
     if (!check(image[at + 3] == 255, "source-over alpha preserves opaque clear"))
       return false;
     if (referenceRequired) {
-      if (!check(gl.render(scene.root) && gl.getBuffer(),
-                 "mandatory Coin GL multitexture reference"))
+      // DOT3_RGBA has independent RGB/alpha scales in GL 1.3 section 3.8.9.
+      // Some fixed-function drivers instead apply RGB_SCALE to its alpha.
+      // For unequal scales, use the algebraically equivalent DOT3_RGB plus
+      // an explicit constant alpha, retaining a live GL blend comparison.
+      const bool separateDotAlpha =
+          scene.combine->rgbOperation.getValue() == SoTextureCombine::DOT3_RGBA &&
+          scene.combine->rgbScale.getValue() != scene.combine->alphaScale.getValue();
+      const int savedAlphaOperation = scene.combine->alphaOperation.getValue();
+      const int savedAlphaSourceCount = scene.combine->alphaSource.getNum();
+      const int savedAlphaSource = savedAlphaSourceCount ? scene.combine->alphaSource[0] : 0;
+      const int savedAlphaOperandCount = scene.combine->alphaOperand.getNum();
+      const int savedAlphaOperand = savedAlphaOperandCount ? scene.combine->alphaOperand[0] : 0;
+      const SbColor4f savedConstant = scene.combine->constantColor.getValue();
+      if (separateDotAlpha) {
+        scene.combine->rgbOperation = SoTextureCombine::DOT3_RGB;
+        scene.combine->alphaOperation = SoTextureCombine::REPLACE;
+        scene.combine->alphaSource.set1Value(0, SoTextureCombine::CONSTANT);
+        scene.combine->alphaOperand.set1Value(0, SoTextureCombine::SRC_ALPHA);
+        scene.combine->constantColor = SbColor4f(savedConstant[0], savedConstant[1],
+                                                savedConstant[2], .16f);
+      }
+      int lastUnit = -1;
+      int savedSwitches[8];
+      for (int i = 0; i < 8; ++i) {
+        savedSwitches[i] = scene.units[i]->whichChild.getValue();
+        if (savedSwitches[i] == SO_SWITCH_ALL) lastUnit = i;
+      }
+      // A final REPLACE ignores every previous stage. Project that stage to
+      // unit zero in the GL oracle, retaining its image, UVs, transform and
+      // sampler while the original eight/sparse-unit frame is tested above.
+      SoTextureUnit* remapped = nullptr;
+      if (lastUnit >= 4) {
+        if (!check(scene.textures[lastUnit]->model.getValue() == SoTexture2::REPLACE,
+                   "high-unit GL projection requires a final REPLACE stage")) return false;
+        for (int i = 0; i < 8; ++i)
+          scene.units[i]->whichChild = i == lastUnit ? SO_SWITCH_ALL : SO_SWITCH_NONE;
+        remapped = static_cast<SoTextureUnit*>(scene.units[lastUnit]->getChild(0));
+        remapped->unit = 0;
+      }
+      const bool rendered = gl.render(scene.root) && gl.getBuffer();
+      if (remapped) {
+        remapped->unit = lastUnit;
+        for (int i = 0; i < 8; ++i) scene.units[i]->whichChild = savedSwitches[i];
+      }
+      if (separateDotAlpha) {
+        scene.combine->rgbOperation = SoTextureCombine::DOT3_RGBA;
+        scene.combine->alphaOperation = savedAlphaOperation;
+        scene.combine->alphaSource.set1Value(0, savedAlphaSource);
+        scene.combine->alphaSource.setNum(savedAlphaSourceCount);
+        scene.combine->alphaOperand.set1Value(0, savedAlphaOperand);
+        scene.combine->alphaOperand.setNum(savedAlphaOperandCount);
+        scene.combine->constantColor = savedConstant;
+      }
+      if (!check(rendered, "mandatory Coin GL multitexture reference"))
         return false;
       const unsigned char* ref = gl.getBuffer();
       for (int c = 0; c < 3; ++c)

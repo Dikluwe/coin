@@ -126,7 +126,7 @@ struct Runner {
     gl.setComponents(SoOffscreenRenderer::RGB_TRANSPARENCY);
     gl.getGLRenderAction()->setSortedLayersNumPasses(4);
   }
-  bool render(SoNode* root, int mode, std::vector<uint8_t>& pixels) {
+  bool render(SoNode* root, int mode, std::vector<uint8_t>& pixels, SoNode* glRoot = nullptr) {
     action.setTransparencyType(static_cast<A::TransparencyType>(mode));
     action.apply(root);
     target->readbackRGBA(pixels);
@@ -139,7 +139,7 @@ struct Runner {
     if (reference) {
       gl.getGLRenderAction()->setTransparencyType(
           static_cast<SoGLRenderAction::TransparencyType>(mode));
-      if (!check(gl.render(root) && gl.getBuffer(), "mandatory Coin GL reference"))
+      if (!check(gl.render(glRoot ? glRoot : root) && gl.getBuffer(), "mandatory Coin GL reference"))
         return false;
       if (!check(gl.getGLRenderAction()->getTransparencyType() ==
                      static_cast<SoGLRenderAction::TransparencyType>(mode),
@@ -271,44 +271,52 @@ bool triangleRuns(bool cpu) {
 bool textureAlphaModes(bool cpu) {
   Runner runner(cpu);
   Scene scene;
-  scene.nearMaterial->transparency = .25f;
-  scene.farMaterial->transparency = .25f;
-  for (int groupIndex : {2, 3}) {
-    auto* group = static_cast<SoGroup*>(scene.root->getChild(groupIndex));
-    auto* unit = new SoTextureUnit;
-    unit->unit = 7;
-    group->insertChild(unit, 2);
-    auto* texture = new SoTexture2;
-    const unsigned char pixel[] = {255, 255, 255, 128};
-    texture->image.setValue(SbVec2s(1, 1), 4, pixel);
-    group->insertChild(texture, 3);
-    auto* uv = new SoTextureCoordinate2;
-    const SbVec2f coords[] = {SbVec2f(0, 0), SbVec2f(1, 0), SbVec2f(1, 1), SbVec2f(0, 1)};
-    uv->point.setValues(0, 4, coords);
-    group->insertChild(uv, 4);
-    auto* combine = new SoTextureCombine;
-    combine->rgbOperation = SoTextureCombine::REPLACE;
-    combine->rgbSource.set1Value(0, SoTextureCombine::PREVIOUS);
-    combine->alphaOperation = SoTextureCombine::REPLACE;
-    combine->alphaSource.set1Value(0, SoTextureCombine::TEXTURE);
-    group->insertChild(combine, 3);
-    // Coin GL asks for coordinates across the highest active unit, including holes.
-    for (int i = 0; i < 7; ++i) {
-      auto* lowerUnit = new SoTextureUnit;
-      lowerUnit->unit = i;
-      group->insertChild(lowerUnit, 2);
-      auto* lowerUv = new SoTextureCoordinate2;
-      lowerUv->point.setValues(0, 4, coords);
-      group->insertChild(lowerUv, 3);
+  Scene glScene;
+  // The high-unit contract remains on unit 7 for CPU and GPU. The equivalent
+  // GL fixture uses unit 0: legacy fixed-function hardware can expose fewer
+  // units than its shader texture-coordinate limit (four vs eight on NVIDIA).
+  auto configure = [](Scene& fixture, int activeUnit) {
+    fixture.nearMaterial->transparency = .25f;
+    fixture.farMaterial->transparency = .25f;
+    for (int groupIndex : {2, 3}) {
+      auto* group = static_cast<SoGroup*>(fixture.root->getChild(groupIndex));
+      auto* unit = new SoTextureUnit;
+      unit->unit = activeUnit;
+      group->insertChild(unit, 2);
+      auto* texture = new SoTexture2;
+      const unsigned char pixel[] = {255, 255, 255, 128};
+      texture->image.setValue(SbVec2s(1, 1), 4, pixel);
+      group->insertChild(texture, 3);
+      auto* uv = new SoTextureCoordinate2;
+      const SbVec2f coords[] = {SbVec2f(0, 0), SbVec2f(1, 0), SbVec2f(1, 1), SbVec2f(0, 1)};
+      uv->point.setValues(0, 4, coords);
+      group->insertChild(uv, 4);
+      auto* combine = new SoTextureCombine;
+      combine->rgbOperation = SoTextureCombine::REPLACE;
+      combine->rgbSource.set1Value(0, SoTextureCombine::PREVIOUS);
+      combine->alphaOperation = SoTextureCombine::REPLACE;
+      combine->alphaSource.set1Value(0, SoTextureCombine::TEXTURE);
+      group->insertChild(combine, 3);
+      // Coin GL asks for coordinates across the highest active unit, including holes.
+      for (int i = 0; i < activeUnit; ++i) {
+        auto* lowerUnit = new SoTextureUnit;
+        lowerUnit->unit = i;
+        group->insertChild(lowerUnit, 2);
+        auto* lowerUv = new SoTextureCoordinate2;
+        lowerUv->point.setValues(0, 4, coords);
+        group->insertChild(lowerUv, 3);
+      }
     }
-  }
+  };
+  configure(scene, 7);
+  configure(glScene, 0);
   const float alpha = 128.f / 255;
   for (int mode : modes) {
     // Coin's ARB peel program handles texture[0] only and replaces combine.
     // Keep GL execution mandatory, but qualify this extension against numeric RGBA.
     runner.compareRGB = mode != A::SORTED_LAYERS_BLEND;
     std::vector<uint8_t> pixels;
-    if (!runner.render(scene.root, mode, pixels))
+    if (!runner.render(scene.root, mode, pixels, glScene.root))
       return false;
     std::array<float, 3> expected;
     if (mode == A::NONE)

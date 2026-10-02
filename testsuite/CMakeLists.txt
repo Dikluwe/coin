@@ -772,6 +772,11 @@ if(COIN_BUILD_RENDER)
 		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
 	add_test(NAME CoinRenderTransparencyTest COMMAND CoinRenderTransparencyTest)
 	set_tests_properties(CoinRenderTransparencyTest PROPERTIES TIMEOUT 90 SKIP_RETURN_CODE 77)
+	if(WIN32)
+		# Mandatory GL plus the eleven-mode GPU matrix measured 79.6 s on
+		# NVIDIA/D3D12; FXC compilation can exceed 90 s with concurrent tests.
+		set_tests_properties(CoinRenderTransparencyTest PROPERTIES TIMEOUT 180)
+	endif()
 	if(COIN_RENDER_BACKEND STREQUAL "BGFX")
 		foreach(renderer vulkan opengl)
 			add_test(NAME CoinRenderTransparency_${renderer} COMMAND CoinRenderTransparencyTest)
