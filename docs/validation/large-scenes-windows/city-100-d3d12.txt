@@ -1,0 +1,8 @@
+rgba_fnv64=0x5339038fccb0b6c4
+image=H:/Git/coin/build/large-scenes/city-100-d3d12.ppm
+adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) vendor_id=0x10de device_id=0x1c03 backend=wgpu size=1024x1024 warmup=2 scene=H:/Git/coin/build/large-scenes/city-100.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static
+WebGPU frames=8 median_ms=17.0788 p95_ms=17.9428 min_ms=16.0763 max_ms=17.9428
+WebGPU_render frames=8 median_ms=16.2862 p95_ms=17.2432 min_ms=15.4045 max_ms=17.2432
+WebGPU_copy frames=8 median_ms=0.6843 p95_ms=0.9816 min_ms=0.5852 max_ms=0.9816
+WebGPU_throughput frames=8 total_ms=135.879 fps=58.876
+WebGPU_cache last_frame_uploads=0 last_frame_uploaded_bytes=0 last_frame_hits=0 cumulative_uploads=0 cumulative_uploaded_bytes=0 cumulative_hits=0

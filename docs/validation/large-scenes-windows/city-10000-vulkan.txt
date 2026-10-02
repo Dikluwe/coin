@@ -1,0 +1,8 @@
+rgba_fnv64=0xff02ebcc71d93719
+image=H:/Git/coin/build/large-scenes/city-10000-vulkan.ppm
+adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) vendor_id=0x10de device_id=0x1c03 backend=wgpu size=1024x1024 warmup=3 scene=H:/Git/coin/build/large-scenes/city-10000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static
+WebGPU frames=12 median_ms=387.579 p95_ms=467.666 min_ms=365.605 max_ms=467.666
+WebGPU_render frames=12 median_ms=386.959 p95_ms=466.966 min_ms=365.12 max_ms=466.966
+WebGPU_copy frames=12 median_ms=0.6196 p95_ms=0.8099 min_ms=0.4631 max_ms=0.8099
+WebGPU_throughput frames=12 total_ms=4662.79 fps=2.57357
+WebGPU_cache last_frame_uploads=0 last_frame_uploaded_bytes=0 last_frame_hits=0 cumulative_uploads=0 cumulative_uploaded_bytes=0 cumulative_hits=0

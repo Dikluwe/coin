@@ -26,6 +26,7 @@
 #include <deque>
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 #include <string>
 #include <thread>
 #include <vector>
@@ -122,11 +123,13 @@ int main(int argc, char ** argv) {
   std::string transparency = "object";
   std::string rgbaOutput = "copy";
   std::string scenePath;
+  std::string imageOutput;
   for (int i = 1; i < argc; ++i) {
     if (std::strcmp(argv[i], "--frames") == 0 && i + 1 < argc) frames = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--warmup") == 0 && i + 1 < argc) warmup = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--size") == 0 && i + 1 < argc) side = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--async-depth") == 0 && i + 1 < argc) asyncDepth = std::atoi(argv[++i]);
+    else if (std::strcmp(argv[i], "--image-output") == 0 && i + 1 < argc) imageOutput = argv[++i];
     else if (std::strcmp(argv[i], "--scene") == 0 && i + 1 < argc) scenePath = argv[++i];
     else if (std::strcmp(argv[i], "--dynamic") == 0) dynamic = true;
     else if (std::strcmp(argv[i], "--material-dynamic") == 0) materialDynamic = true;
@@ -135,7 +138,7 @@ int main(int argc, char ** argv) {
     else if (std::strcmp(argv[i], "--transparency") == 0 && i + 1 < argc) transparency = argv[++i];
     else if (std::strcmp(argv[i], "--rgba-output") == 0 && i + 1 < argc) rgbaOutput = argv[++i];
     else {
-      std::cerr << "Usage: coin_render_gl_benchmark [--frames 30] [--warmup 8]"
+      std::cerr << "Usage: coin_render_gl_benchmark [--frames 30] [--warmup 8] [--image-output frame.ppm]"
                    " [--size 256] [--scene normalized.iv] [--dynamic|--material-dynamic]"
                    " [--backend both|wgpu|bgfx|gl] [--transparency object|weighted_oit|sorted_layers] [--readback color|color-depth] [--rgba-output copy|borrow] [--async-depth 2|3]\n";
       return 2;
@@ -153,7 +156,8 @@ int main(int argc, char ** argv) {
       (asyncDepth != 0 && asyncDepth != 2 && asyncDepth != 3) ||
       (asyncDepth == 3 && backend != "bgfx") ||
       (asyncDepth != 0 && (backend != "wgpu" && backend != "bgfx")) ||
-      (asyncDepth != 0 && rgbaOutput != "copy")) {
+      (asyncDepth != 0 && rgbaOutput != "copy") ||
+      (!imageOutput.empty() && (asyncDepth != 0 || rgbaOutput != "copy"))) {
     std::cerr << "Invalid benchmark dimensions or sample count\n";
     return 2;
   }
@@ -206,12 +210,15 @@ int main(int argc, char ** argv) {
   }
 
   SoPerspectiveCamera * camera = NULL;
+  const Clock::time_point loadBegin = Clock::now();
   SoSeparator * root = scenePath.empty() ? createScene(&camera) :
     loadScene(scenePath, side, &camera);
   if (!root) {
     std::cerr << "Cannot read normalized Inventor scene\n";
     return 2;
   }
+  std::cout << "scene_load_ms=" << std::chrono::duration<double, std::milli>(
+    Clock::now() - loadBegin).count() << std::endl;
   SoSearchAction searchMaterial;
   searchMaterial.setType(SoMaterial::getClassTypeId());
   searchMaterial.setInterest(SoSearchAction::FIRST);
@@ -400,6 +407,10 @@ int main(int argc, char ** argv) {
       }
     }
     const Clock::time_point end = Clock::now();
+    if (i == -warmup)
+      std::cout << "WebGPU_first_frame_ms="
+                << std::chrono::duration<double, std::milli>(end - begin).count()
+                << std::endl;
     if (i >= 0) {
       wgpuMeasuredEnd = end;
       wgpuMs.push_back(std::chrono::duration<double, std::milli>(end - begin).count());
@@ -426,6 +437,10 @@ int main(int argc, char ** argv) {
     }
     std::memcpy(glRgba.data(), pixels, glRgba.size());
     const Clock::time_point end = Clock::now();
+    if (i == -warmup)
+      std::cout << "CoinGL_first_frame_ms="
+                << std::chrono::duration<double, std::milli>(end - begin).count()
+                << std::endl;
     if (i >= 0) {
       glMeasuredEnd = end;
       glMs.push_back(std::chrono::duration<double, std::milli>(end - begin).count());
@@ -445,6 +460,23 @@ int main(int argc, char ** argv) {
   if (runGl)
     std::cout << "gl_rgba_fnv64=0x" << std::hex
               << rgbaChecksum(glRgba.data(), glRgba.size()) << std::dec << '\n';
+  if (!imageOutput.empty()) {
+    // PPM rows are top-down; the legacy GL readback is bottom-up.
+    std::ofstream image(imageOutput.c_str(), std::ios::binary);
+    image << "P6\n" << side << ' ' << side << "\n255\n";
+    const auto& pixels = runWgpu ? rgba : glRgba;
+    for (int y = 0; y < side; ++y) {
+      const int row = runWgpu ? y : side - 1 - y;
+      for (int x = 0; x < side; ++x)
+        image.write(reinterpret_cast<const char*>(&pixels[(size_t(row) * side + x) * 4]), 3);
+    }
+    image.close();
+    if (!image) {
+      std::cerr << "Cannot write image: " << imageOutput << '\n';
+      root->unref(); delete gl; delete wgpu; return 1;
+    }
+    std::cout << "image=" << imageOutput << '\n';
+  }
   root->unref();
   std::cout << "adapter=" << (runWgpu ?
               caps.adapter_name : "not-queried")
@@ -489,7 +521,11 @@ int main(int argc, char ** argv) {
               << " cumulative_uploaded_bytes=" << cache.cumulativeUploadedBytes
               << " cumulative_hits=" << cache.cumulativeHits << '\n';
   }
+  std::cout << "backend_cleanup_begin" << std::endl;
+  const Clock::time_point cleanupBegin = Clock::now();
   delete gl;
   delete wgpu;
+  std::cout << "backend_cleanup_ms=" << std::chrono::duration<double, std::milli>(
+    Clock::now() - cleanupBegin).count() << std::endl;
   return 0;
 }
