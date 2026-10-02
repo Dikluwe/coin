@@ -211,6 +211,71 @@ amostras individuais, hashes e diferenças de imagem estão em
 Para reproduzir com o comando abaixo, altere `COIN_BGFX_RENDERER` para
 `vulkan` ou `opengl`.
 
+## OpenGL tradicional e wgpu após a otimização BGFX
+
+O build wgpu foi recompilado com o código comum atual (`cad421ab74`, fonte
+`fc8bad6a21`). Esta rodada separa o OpenGL tradicional do Coin, o OpenGL do
+wgpu e o OpenGL do BGFX. Os ensaios são sequenciais, sem tracing, em
+1024 × 1024, com readback RGBA síncrono. As medianas aquecidas usam quatro
+quadros de aquecimento e oito medidos. Carregamento do arquivo e consulta de
+capacidade continuam fora do tempo do primeiro quadro.
+
+| Caminho | Edifícios | Primeiro quadro | Aquecido, mediana | Aquecido, P95 | Resultado |
+|---|---:|---:|---:|---:|---|
+| Coin/OpenGL tradicional | 10.000 | 470,28 ms | 15,32 ms | 16,54 ms | Passou |
+| Coin/OpenGL tradicional | 40.000 | **663,67 ms** | **35,36 ms** | 39,01 ms | Passou |
+| wgpu/Vulkan | 10.000 | 967,62 ms | 409,53 ms | 595,75 ms | Passou |
+| wgpu/Vulkan | 40.000 | **3.346,18 ms** | 1.445,01 ms | 2.085,81 ms | Passou |
+| wgpu/OpenGL | 10.000 | 13.603,30 ms | 6.561,96 ms | 16.583,90 ms | Passou |
+| wgpu/OpenGL | 40.000 | 43.231,70 ms | 24.935,40 ms | 26.403,40 ms | Passou |
+| wgpu/D3D12 | 10.000 e 40.000 | Falhou | — | — | Bind group inválido |
+
+O primeiro quadro do Coin/OpenGL em 40 mil é a mediana de três processos
+novos: 663,671 / 664,414 / 655,850 ms. wgpu/Vulkan também teve três processos
+novos, com 3.346,18 / 3.410,24 / 3.339,64 ms. Na execução aquecida separada,
+seu primeiro quadro levou 4.659,89 ms. Os demais primeiros quadros desta tabela
+são amostras individuais. As medianas BGFX da rodada anterior foram 2.884,36 ms
+em D3D12, 2.902,66 ms em Vulkan e 2.753,89 ms em OpenGL; os quadros aquecidos
+foram 12,08 / 10,87 / 13,32 ms, respectivamente. O Coin/OpenGL começa mais
+rápido nesta cena; o BGFX otimizado apresenta menor tempo por quadro estático.
+Os ensaios não medem câmera em movimento nem uma janela interativa.
+
+O controle de 100 edifícios passou nos três backends wgpu, com adaptadores
+NVIDIA identificados como `Dx12`, `Gl` e `Vulkan`, sem fallback para outra API.
+D3D12 continua falhando no primeiro quadro das duas cidades grandes com
+`BindGroup with 'Draw eight-unit texture bindings' label is invalid` em
+`RenderPass::set_bind_group`. Nenhum resultado de desempenho ou imagem grande
+foi atribuído a esse backend.
+
+O encerramento wgpu/Vulkan levou 14,25 ms em 10 mil e 49,13 ms em 40 mil.
+O processo completo de 40 mil terminou em 24,52 s; a demora de mais de nove
+minutos do ensaio inicial não se repetiu. Isso registra esta execução, sem
+atribuir uma causa ou declarar corrigida aquela demora. wgpu/OpenGL em 40 mil
+levou 324,05 s para o processo completo (5 min 24 s), com cleanup de 48,03 ms.
+Nesse caminho, o tempo foi consumido antes do cleanup: somente os oito
+quadros medidos totalizaram 201,42 s.
+
+As imagens atuais do Coin/OpenGL e do wgpu/Vulkan são pixel a pixel idênticas
+às imagens anteriores do mesmo caminho, em ambas as cidades. wgpu/Vulkan é
+idêntico ao BGFX/D3D12. wgpu/OpenGL também é idêntico ao BGFX/D3D12 em ambas
+as cidades. Coin/OpenGL difere em valores RGB pequenos já observados antes:
+em 40 mil, a diferença média absoluta por canal é 0,0145 / 0,0304 / 0,0229
+na escala 0–255, com 63.723 pixels distintos e maior delta de canal 31.
+As métricas registram diferenças entre renderizadores, sem definir tolerância.
+
+O código Rust mantém `camera_scene_eligible` limitado a 32 MiB de payload
+CPU e cria bindings/uniforms por draw quando essa retenção não se aplica.
+As otimizações de retenção dos buffers GPU e agrupamento de draws implementadas
+em `CoinBgfxBackend`/`CoinBgfxLowering` não foram portadas para esse caminho
+wgpu. Isso identifica trabalho ainda necessário no backend; esta rodada não
+isola quanto cada fase responde pelos tempos altos nem corrige o erro D3D12.
+
+Logs, hashes dos binários, amostras e comparações de imagem estão em
+[legacy-wgpu-summary.json](validation/bgfx-windows/first-frame/legacy-wgpu/legacy-wgpu-summary.json).
+Não houve alteração no código de renderização nem repetição da suíte completa.
+Para reproduzir, use `--backend gl` no benchmark para Coin/OpenGL, ou o build
+`RUST_BRIDGE` com `--backend wgpu` e `WGPU_BACKEND=vulkan`, `dx12` ou `gl`.
+
 ## Reproduzir
 
 ```powershell

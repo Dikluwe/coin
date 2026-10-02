@@ -1,0 +1,12 @@
+scene_load_ms=138.751
+WebGPU_first_frame_ms=13603.3
+rgba_fnv64=0xff02ebcc71d93719
+image=build/large-scenes/wgpu-gl-10000-warm.ppm
+adapter=NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl) vendor_id=0x10de device_id=0x0 backend=wgpu size=1024x1024 warmup=4 scene=build/large-scenes/city-10000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static
+WebGPU frames=8 median_ms=6561.96 p95_ms=16583.9 min_ms=6357.5 max_ms=16583.9
+WebGPU_render frames=8 median_ms=6561.28 p95_ms=16583.1 min_ms=6356.84 max_ms=16583.1
+WebGPU_copy frames=8 median_ms=0.6586 p95_ms=0.7735 min_ms=0.4636 max_ms=0.7735
+WebGPU_throughput frames=8 total_ms=62632.1 fps=0.12773
+WebGPU_cache last_frame_uploads=0 last_frame_uploaded_bytes=0 last_frame_hits=0 cumulative_uploads=0 cumulative_uploaded_bytes=0 cumulative_hits=0
+backend_cleanup_begin
+backend_cleanup_ms=14.303

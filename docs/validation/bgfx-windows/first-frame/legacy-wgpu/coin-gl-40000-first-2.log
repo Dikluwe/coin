@@ -1,0 +1,9 @@
+scene_load_ms=511.501
+CoinGL_first_frame_ms=664.414
+gl_rgba_fnv64=0x4df2a9ab75b7504
+image=build/large-scenes/coin-gl-40000-first-2.ppm
+adapter=not-queried vendor_id=0x0 device_id=0x0 backend=gl size=1024x1024 warmup=1 scene=build/large-scenes/city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static
+CoinGL frames=1 median_ms=153.05 p95_ms=153.05 min_ms=153.05 max_ms=153.05
+CoinGL_throughput frames=1 total_ms=153.05 fps=6.5338
+backend_cleanup_begin
+backend_cleanup_ms=11.0783
