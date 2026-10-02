@@ -33,6 +33,9 @@
 
 namespace {
 using Clock = std::chrono::steady_clock;
+double elapsedMs(Clock::time_point begin, Clock::time_point end) {
+  return std::chrono::duration<double, std::milli>(end - begin).count();
+}
 
 uint64_t rgbaChecksum(const uint8_t * pixels, size_t bytes) {
   uint64_t hash = UINT64_C(14695981039346656037);
@@ -91,9 +94,11 @@ SoSeparator * createScene(SoPerspectiveCamera ** cameraOut) {
 SoSeparator * loadScene(const std::string & path, int side,
                         SoPerspectiveCamera ** cameraOut) {
   SoInput input;
+  const auto parseBegin = Clock::now();
   if (!input.openFile(path.c_str())) return NULL;
   SoSeparator * imported = SoDB::readAll(&input);
   if (!imported || imported->getNumChildren() == 0) return NULL;
+  const auto parsed = Clock::now();
 
   SoSeparator * root = new SoSeparator;
   root->ref();
@@ -106,12 +111,18 @@ SoSeparator * loadScene(const std::string & path, int side,
   model->model = SoLightModel::BASE_COLOR;
   root->addChild(model);
   root->addChild(imported);
+  const auto fitBegin = Clock::now();
   camera->viewAll(root, SbViewportRegion(side, side), 1.15f);
+  const auto fitted = Clock::now();
+  std::cout << "scene_detail parse_ms=" << elapsedMs(parseBegin, parsed)
+            << " wrapper_ms=" << elapsedMs(parsed, fitBegin)
+            << " camera_fit_ms=" << elapsedMs(fitBegin, fitted) << '\n';
   return root;
 }
 }
 
 int main(int argc, char ** argv) {
+  const auto mainBegin = Clock::now();
   int frames = 30;
   int warmup = 8;
   int side = 256;
@@ -171,8 +182,10 @@ int main(int argc, char ** argv) {
 #else
   setenv("COIN_RENDER_TRANSPARENCY", transparency.c_str(), 1);
 #endif
+  const auto initBegin = Clock::now();
   SoDB::init();
   CoinRenderAction::initClass();
+  const auto initialized = Clock::now();
   CoinRenderCapabilities caps{};
   const bool runWgpu = backend != "gl";
   const bool runGl = backend == "both" || backend == "gl";
@@ -214,6 +227,10 @@ int main(int argc, char ** argv) {
     }
   }
 
+  const auto probed = Clock::now();
+  std::cout << "startup_detail arguments_ms=" << elapsedMs(mainBegin, initBegin)
+            << " coin_init_ms=" << elapsedMs(initBegin, initialized)
+            << " capability_probe_ms=" << elapsedMs(initialized, probed) << '\n';
   SoPerspectiveCamera * camera = NULL;
   const Clock::time_point loadBegin = Clock::now();
   SoSeparator * root = scenePath.empty() ? createScene(&camera) :
@@ -224,6 +241,7 @@ int main(int argc, char ** argv) {
   }
   std::cout << "scene_load_ms=" << std::chrono::duration<double, std::milli>(
     Clock::now() - loadBegin).count() << std::endl;
+  const auto searchBegin = Clock::now();
   SoSearchAction searchMaterial;
   searchMaterial.setType(SoMaterial::getClassTypeId());
   searchMaterial.setInterest(SoSearchAction::FIRST);
@@ -238,6 +256,7 @@ int main(int argc, char ** argv) {
   const SbColor initialMaterial = animatedMaterial ?
     animatedMaterial->diffuseColor[0] : SbColor(0.0f, 0.0f, 0.0f);
   const float blue = scenePath.empty() ? 0.15f : 0.1f;
+  const auto setupBegin = Clock::now();
   CoinRenderSceneManager * wgpu = NULL;
   if (runWgpu) {
     wgpu = new CoinRenderSceneManager(SbVec2i32(side, side));
@@ -262,6 +281,9 @@ int main(int argc, char ** argv) {
       SoGLRenderAction::SORTED_OBJECT_BLEND);
   }
 
+  const auto setupEnd = Clock::now();
+  std::cout << "startup_detail material_search_ms=" << elapsedMs(searchBegin, setupBegin)
+            << " target_setup_ms=" << elapsedMs(setupBegin, setupEnd) << '\n';
   if (asyncDepth == 2 && !useBgfx) {
     // Two distinct tickets are allowed in flight. Drain in submission order
     // so the benchmark never substitutes frame N-1 for frame N.
@@ -412,10 +434,15 @@ int main(int argc, char ** argv) {
       }
     }
     const Clock::time_point end = Clock::now();
-    if (i == -warmup)
+    if (i == -warmup) {
+      std::cout << rendererLabel << "_first_detail render_ms=" << elapsedMs(begin, rendered)
+                << " publication_copy_ms=" << elapsedMs(rendered, end)
+                << " before_frame_since_main_ms=" << elapsedMs(mainBegin, begin)
+                << " result_since_main_ms=" << elapsedMs(mainBegin, end) << '\n';
       std::cout << rendererLabel << "_first_frame_ms="
                 << std::chrono::duration<double, std::milli>(end - begin).count()
                 << std::endl;
+    }
     if (i >= 0) {
       wgpuMeasuredEnd = end;
       wgpuMs.push_back(std::chrono::duration<double, std::milli>(end - begin).count());
@@ -434,7 +461,9 @@ int main(int argc, char ** argv) {
       root->unref();
       return 2;
     }
+    const auto rendered = Clock::now();
     const unsigned char * pixels = gl->getBuffer();
+    const auto fetched = Clock::now();
     if (!pixels) {
       std::cerr << "Coin/GL offscreen RGBA buffer unavailable\n";
       root->unref();
@@ -442,10 +471,16 @@ int main(int argc, char ** argv) {
     }
     std::memcpy(glRgba.data(), pixels, glRgba.size());
     const Clock::time_point end = Clock::now();
-    if (i == -warmup)
+    if (i == -warmup) {
+      std::cout << "CoinGL_first_detail render_ms=" << elapsedMs(begin, rendered)
+                << " lazy_readback_ms=" << elapsedMs(rendered, fetched)
+                << " publication_copy_ms=" << elapsedMs(fetched, end)
+                << " before_frame_since_main_ms=" << elapsedMs(mainBegin, begin)
+                << " result_since_main_ms=" << elapsedMs(mainBegin, end) << '\n';
       std::cout << "CoinGL_first_frame_ms="
                 << std::chrono::duration<double, std::milli>(end - begin).count()
                 << std::endl;
+    }
     if (i >= 0) {
       glMeasuredEnd = end;
       glMs.push_back(std::chrono::duration<double, std::milli>(end - begin).count());

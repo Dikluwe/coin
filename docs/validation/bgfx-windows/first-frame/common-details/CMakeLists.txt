@@ -1,0 +1,4 @@
+cmake_minimum_required(VERSION 3.20)
+project(CoinRenderFiniteCheckProbe LANGUAGES CXX)
+add_executable(finite_check_probe finite_check_probe.cpp)
+target_compile_features(finite_check_probe PRIVATE cxx_std_17)

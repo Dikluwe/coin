@@ -595,6 +595,124 @@ A rodada parcial de diagnóstico, que isolou a falha do snapshot depois da
 correção inicial de readback/shader, está identificada separadamente; a
 qualificação integral é a execução final de 100 testes.
 
+## Detalhes da camada comum do CoinRender — 2026-10-02
+
+Esta investigação concentra-se em `CoinRenderAction`, `CoinRenderFramePlanBuilder`,
+`CoinRenderFramePlan::isValid` e `coin_render_composition_order`, compartilhados
+pelos caminhos wgpu e BGFX. A instrumentação separa custos CPU aninhados nos
+registros existentes; não altera geometria, política de validação ou API pública.
+
+Foram executados 48 processos: três amostras sem tracing por variante e API,
+uma execução separada com tracing nas seis combinações, e controles com 100 e
+10.000 prédios e resolução 256×256 no Vulkan de cada backend. A cidade de
+40.000 prédios usa 1.440.036 vértices/índices e 40.001 desenhos. A tabela traz
+intervalos CPU de uma execução com tracing por API, em milissegundos. Somente
+as colunas de primeiro quadro usam a mediana das três amostras sem tracing.
+
+| Caminho | Captura/travessia | Validações completas | Total das validações | Três classificações/composições | Primeiro quadro baseline / instrumentado |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| wgpu D3D12 | 448,98 | 2 | 392,75 | 90,16 | 1.662,28 / 1.683,94 |
+| wgpu Vulkan | 438,26 | 2 | 387,78 | 88,10 | 1.478,52 / 1.456,46 |
+| wgpu OpenGL | 450,20 | 2 | 402,53 | 91,20 | 1.669,65 / 1.627,16 |
+| BGFX D3D12 | 451,54 | 3 | 608,30 | 94,94 | 2.342,79 / 2.379,34 |
+| BGFX Vulkan | 469,37 | 3 | 589,38 | 84,64 | 2.407,47 / 2.483,60 |
+| BGFX OpenGL | 461,47 | 3 | 590,84 | 86,87 | 2.181,46 / 2.195,17 |
+
+As variações entre baseline e instrumentado são controles da medição, não
+ganhos de uma otimização. Caches de sistema/driver foram mantidos; não houve
+reinicialização ou limpeza de cache de shaders. Os números dependem desta
+máquina, driver e cena. Tempos filhos já pertencem aos tempos de seus pais:
+por exemplo, não se deve somar `builder_detail.validation_ms` com sua respectiva
+linha `validation_detail`, nem somar ambos novamente a `action.frame_plan_ms`.
+
+Os gargalos comuns encontrados são:
+
+1. **Validação repetida do mesmo plano.** O builder valida antes de entregar;
+   o target valida antes de preparar/submeter; o lowering BGFX valida uma
+   terceira vez. Os registros `validation_detail` aparecem nessa ordem.
+   A conferência de vértices custa aproximadamente 154–162 ms por passagem,
+   estados aproximadamente 29–31 ms e desenhos aproximadamente 10–13 ms.
+   Otimizar a função beneficia os dois backends. Reduzir passagens exige uma
+   garantia privada de que o conteúdo validado permanece imutável; somente
+   confiar em `revision` não protege contra alterações de um plano mutável.
+2. **Classificação repetida da geometria.** Builder, target e empacotamento/
+   lowering chamam a mesma classificação. São cerca de 85–95 ms no total.
+   A maior parte está em `classify_ms`; `sort_ms` custa cerca de 3 ms por
+   passagem. Mesmo com materiais opacos, a função percorre os índices,
+   confere materiais dos vértices e calcula profundidades. Há oportunidade
+   de reaproveitar a classificação vinculada ao conteúdo validado, preservando
+   a política de transparência, profundidade e dados não finitos.
+3. **Expansão e armazenamento na captura.** O plano contém 144.003.600 bytes
+   de vértices de 100 bytes cada, 5.760.144 bytes de índices e 65.601.640 bytes
+   em 40.001 estados de 1.640 bytes. Só esses três payloads somam 205,39 MiB;
+   não representam toda a RAM ou memória GPU. A capacidade reservada para
+   vértices é 157.480.300 bytes. O mesmo cubo compartilhado na cena acaba
+   expandido por ocorrência. Os sete pares de coordenadas adicionais ocupam
+   56 bytes por vértice, ou 80.642.016 bytes neste plano sem texturas.
+   Uma representação mais compacta ou geometria compartilhada pode beneficiar
+   captura e transporte, mas exige tratar os demais tipos de primitivas e
+   multitextura, além desta cidade.
+
+A expansão de estilos custa cerca de 1,5–1,8 ms e a publicação por transferência
+de propriedade, incluindo o reset do builder, cerca de 4–5 ms. Esses trechos
+não são os maiores alvos deste caso. Com plano estático reutilizado, os registros
+de validação e composição desaparecem nos quadros seguintes e captura/construção
+ficam abaixo de 0,02 ms nos controles; a solução atual já reaproveita esse trabalho.
+
+Os controles de tamanho confirmam a relação com o payload: no wgpu Vulkan,
+10.000 prédios custaram 115,07 ms de captura e 98,33 ms nas duas validações;
+40.000 custaram 438,26 e 387,78 ms. No BGFX Vulkan, foram 118,50/148,78 ms
+e 469,37/589,38 ms, respectivamente. Reduzir a resolução de 1024×1024 para
+256×256 manteve as validações em 390,70 ms no wgpu e 593,15 ms no BGFX.
+Assim, baixar resolução não resolve estas varreduras CPU. Custos de leitura
+da cena e enquadramento da câmera são registrados separadamente pelo benchmark;
+não pertencem ao intervalo atual de primeiro quadro do `CoinRenderAction`.
+
+### Diagnóstico isolado da classificação de floats
+
+O objeto MSVC Release de `CoinRenderFramePlan.cpp` referencia `_fdclass` na
+classificação de floats. Para separar esse custo do restante do renderer,
+um executável de diagnóstico reproduziu a conferência dos 24 floats por
+vértice, o passo de 100 bytes e a conferência do material em 1.440.036 vértices.
+Em dez amostras alternadas, a mediana foi **150,213 ms com `std::isfinite`**
+e **31,6114 ms com a classificação do expoente IEEE binary32**. As duas
+classificações concordaram em 65.552 padrões, incluindo zeros com sinal,
+subnormais, extremos finitos, infinitos e NaNs. Código, configuração e log
+estão junto às evidências.
+
+Esse resultado torna a conferência de floats o primeiro candidato para uma
+otimização comum. Ele não é uma melhoria já aplicada à DLL, uma prova de ganho
+do quadro inteiro ou uma proposta de retirar validações. A implementação
+precisará preservar todas as rejeições, os diagnósticos e portabilidade para
+representações de float suportadas, com testes dos campos afetados.
+
+### Verificação e novos registros
+
+As imagens instrumentadas ficaram byte a byte iguais às respectivas baselines
+nas seis APIs. Foram aprovados 5/5 testes com tracing ligado: `FrameCore`,
+`FrameReuseCore`, `DiagnosticShell`, `IndexedFastPath` e `Composition`, sem skips.
+Não houve alteração do shader ou protocolo Rust/BGFX nesta rodada.
+
+`COIN_RENDER_TRACE_PHASES=1` agora emite também:
+
+- `validation_detail`: materiais, vértices, índices, estado da cena,
+  estados de renderização e desenhos; falhas mostram os intervalos percorridos.
+- `composition_detail`: classificação e ordenação.
+- `builder_detail`: expansão de estilos, validação, composição e publicação.
+- `plan_storage`: quantidades, tamanhos e capacidades dos vetores do plano.
+
+O benchmark também informa `startup_detail`, `scene_detail` e `*_first_detail`
+para distinguir preparação anterior ao quadro e entrega da imagem. Os tempos
+`since_main` começam em `main`, excluindo carregamento do processo; não são
+medidas do lançamento do programa. `--backend both` ainda executa os caminhos
+sequencialmente, portanto seu segundo resultado não representa uma execução
+independente desde o início do processo.
+
+Logs, hashes, controles e método estão em
+[common-details-summary.json](validation/bgfx-windows/first-frame/common-details/common-details-summary.json).
+A prioridade indicada pela medição é otimizar a conferência de floats, depois
+examinar reaproveitamento de validação/composição e expansão da geometria.
+
 ## Reproduzir
 
 ```powershell

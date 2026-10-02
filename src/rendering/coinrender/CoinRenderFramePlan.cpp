@@ -10,6 +10,7 @@
 #include "rendering/coinrender/CoinRenderTextureCombineCore.h"
 #include "rendering/coinrender/CoinRenderClipCore.h"
 #include "rendering/coinrender/CoinRenderStateCore.h"
+#include "rendering/coinrender/CoinRenderPhaseTimer.h"
 
 #include <cmath>
 #include <cstring>
@@ -91,6 +92,7 @@ CoinRenderFramePlan::hasSamePayload(const CoinRenderFramePlan & other) const
 bool
 CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
 {
+  CoinRenderPhaseTimer timer("validation_detail");
   auto isFiniteF = [](float v) { return std::isfinite(v); };
 
   auto isMatrixFinite = [&](const SbMatrix & m) {
@@ -124,6 +126,7 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
   }
 
   const size_t numVertices = this->vertices.size();
+  timer.mark("materials");
   for (size_t i = 0; i < numVertices; ++i) {
     const CoinRenderVertexSnapshot & v = this->vertices[i];
     for (int k = 0; k < 3; ++k) {
@@ -156,6 +159,7 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
   }
 
   const size_t numIndices = this->indices.size();
+  timer.mark("vertices");
   for (size_t i = 0; i < numIndices; ++i) {
     if (this->indices[i] >= numVertices) {
       if (outDiagnostic) *outDiagnostic = "Index out of range of vertex buffer";
@@ -164,6 +168,7 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
   }
 
   for (size_t i = 0; i < this->cameras.size(); ++i) {
+    if (i == 0) timer.mark("indices");
     const CoinRenderCameraSnapshot & c = this->cameras[i];
     if (!isMatrixFinite(c.viewMatrix) || !isMatrixFinite(c.projectionMatrixCoin)) {
       if (outDiagnostic) *outDiagnostic = "Camera matrix contains non-finite values";
@@ -301,6 +306,7 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
     }
   }
   for (size_t i = 0; i < this->renderStates.size(); ++i) {
+    if (i == 0) timer.mark("scene_state");
     const CoinRenderRenderStateSnapshot & state = this->renderStates[i];
     if (state.shadowGroupSlot > this->shadowGroups.size() || state.shadowStyle > 3u) {
       if (outDiagnostic) *outDiagnostic = "RenderState has invalid shadow group or style";
@@ -409,6 +415,7 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
   }
 
   for (size_t i = 0; i < this->draws.size(); ++i) {
+    if (i == 0) timer.mark("render_states");
     const CoinRenderDrawPacket & draw = this->draws[i];
     if (draw.hasSortingCenter &&
         (!isFiniteF(draw.sortingCenterWorld[0]) || !isFiniteF(draw.sortingCenterWorld[1]) || !isFiniteF(draw.sortingCenterWorld[2]))) {
@@ -477,5 +484,6 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
     }
   }
 
+  timer.mark("draws");
   return true;
 }

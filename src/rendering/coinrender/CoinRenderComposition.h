@@ -7,6 +7,7 @@
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/nodes/SoSceneTexture2.h>
 #include "rendering/coinrender/CoinRenderSelectionCore.h"
+#include "rendering/coinrender/CoinRenderPhaseTimer.h"
 #include <algorithm>
 #include <cmath>
 
@@ -65,6 +66,7 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
                                           std::vector<CoinRenderCompositionItem>& order,
                                           std::string& diagnostic,
                                           bool deferUnresolvedAlpha = false) {
+  CoinRenderPhaseTimer timer("composition_detail");
   order.clear();
   uint64_t unusedBudget = 0;
   if (!coin_render_transparency_budget(1, 1, frame.transparency, false, unusedBudget, diagnostic))
@@ -293,6 +295,7 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
     }
     order.push_back(item);
   }
+  timer.mark("classify");
   std::stable_sort(
       order.begin(), order.end(),
       [&frame](const CoinRenderCompositionItem& a, const CoinRenderCompositionItem& b) {
@@ -313,6 +316,7 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
           return a.sortObject;
         return a.sortObject && a.eyeDepth > b.eyeDepth;
       });
+  timer.mark("sort");
   diagnostic.clear();
   return true;
 }

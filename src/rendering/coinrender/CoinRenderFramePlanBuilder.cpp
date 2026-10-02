@@ -28,6 +28,7 @@
 #include "rendering/coinrender/CoinRenderClipCore.h"
 #include <Inventor/elements/SoClipPlaneElement.h>
 #include "rendering/coinrender/CoinRenderIndexedGeometryCore.h"
+#include "rendering/coinrender/CoinRenderPhaseTimer.h"
 
 #include <Inventor/actions/SoCallbackAction.h>
 #include <Inventor/SoPrimitiveVertex.h>
@@ -1460,6 +1461,7 @@ bool
 CoinRenderFramePlanBuilder::build(CoinRenderFramePlan & outPlan, std::string * outError,
                                 bool transferOwnership)
 {
+  CoinRenderPhaseTimer timer("builder_detail");
   if (this->polygonNode && !this->isUnsupported && !this->hasError) {
     this->isUnsupported = true;
     this->builderError = "Incomplete original polygon contour in primitive callbacks";
@@ -1471,9 +1473,11 @@ CoinRenderFramePlanBuilder::build(CoinRenderFramePlan & outPlan, std::string * o
   if (!this->expandStyledPrimitives(outError)) {
     return false;
   }
+  timer.mark("expand_styles");
   if (!this->currentPlan.isValid(outError)) {
     return false;
   }
+  timer.mark("validation");
   std::vector<CoinRenderCompositionItem> order;
   std::string compositionError;
   if (!coin_render_composition_order(this->currentPlan, order, compositionError)) {
@@ -1482,11 +1486,23 @@ CoinRenderFramePlanBuilder::build(CoinRenderFramePlan & outPlan, std::string * o
     if (outError) *outError = compositionError;
     return false;
   }
+  timer.mark("composition");
+  if (CoinRenderDiagnosticShell::phaseTracingEnabled()) {
+    const auto & plan = this->currentPlan;
+    std::fprintf(stderr, "COIN_RENDER_PHASE plan_storage vertices=%zu indices=%zu render_states=%zu draws=%zu vertex_stride=%zu vertex_bytes=%zu vertex_capacity_bytes=%zu index_bytes=%zu index_capacity_bytes=%zu render_state_bytes=%zu transfer_ownership=%d\n",
+      plan.vertices.size(), plan.indices.size(), plan.renderStates.size(), plan.draws.size(),
+      sizeof(CoinRenderVertexSnapshot), plan.vertices.size() * sizeof(CoinRenderVertexSnapshot),
+      plan.vertices.capacity() * sizeof(CoinRenderVertexSnapshot), plan.indices.size() * sizeof(uint32_t),
+      plan.indices.capacity() * sizeof(uint32_t), plan.renderStates.size() * sizeof(CoinRenderRenderStateSnapshot),
+      transferOwnership ? 1 : 0);
+  }
+  timer.mark("storage_report");
   if (transferOwnership) {
     outPlan = std::move(this->currentPlan);
     this->reset();
   } else outPlan = this->currentPlan;
   outPlan.revision = CoinRenderFramePlanBuilder::nextRevision();
+  timer.mark("publish_plan");
   return true;
 }
 

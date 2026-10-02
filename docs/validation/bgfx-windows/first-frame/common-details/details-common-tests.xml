@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="5"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="1"
+	timestamp="2026-10-02T19:52:01"
+	>
+	<testcase name="CoinRenderFrameCoreTest" classname="CoinRenderFrameCoreTest" time="0.0716965" status="run">
+		<properties/>
+		<system-out>COIN_RENDER_PHASE validation_detail finish_ms=0.003600
+CoinRenderFrameCoreTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderFrameReuseCoreTest" classname="CoinRenderFrameReuseCoreTest" time="0.45371" status="run">
+		<properties/>
+		<system-out>COIN_RENDER_PHASE validation_detail materials_ms=0.004500 vertices_ms=0.000500 indices_ms=0.000100 scene_state_ms=0.002100 render_states_ms=0.002500 draws_ms=0.000700 finish_ms=0.000000
+COIN_RENDER_PHASE validation_detail materials_ms=0.000100 vertices_ms=0.000500 indices_ms=0.000000 scene_state_ms=0.000400 render_states_ms=0.000900 draws_ms=0.000500 finish_ms=0.000100
+COIN_RENDER_PHASE validation_detail materials_ms=0.000100 vertices_ms=0.000400 indices_ms=0.000000 scene_state_ms=0.000400 render_states_ms=0.000800 draws_ms=0.000400 finish_ms=0.000100
+COIN_RENDER_PHASE composition_detail classify_ms=0.007800 sort_ms=0.001600 finish_ms=0.000100
+COIN_RENDER_PHASE composition_detail classify_ms=0.001900 sort_ms=0.000200 finish_ms=0.000100
+COIN_RENDER_PHASE rust_resources target=offscreen geometry_active_bytes=312 geometry_retired_bytes=0 vertex_buffers=1 index_buffers=1 texture_cache_count=0 texture_payload_bytes=0 rtt_texture_count=0 rtt_color_nominal_bytes=0 attachment_textures=2 attachment_nominal_bytes=32768...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderDiagnosticShellTest" classname="CoinRenderDiagnosticShellTest" time="0.187565" status="run">
+		<properties/>
+		<system-out>CoinRenderDiagnosticShellTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderIndexedFastPathTest" classname="CoinRenderIndexedFastPathTest" time="0.466728" status="run">
+		<properties/>
+		<system-out>Running CoinRenderIndexedFastPathTest (Onda 2D Indexed Fast Path)...
+-&gt; Test 1: Sentinel parser, triangles and convex quads...
+COIN_RENDER_PHASE validation_detail materials_ms=0.000300 vertices_ms=0.001100 indices_ms=0.000100 scene_state_ms=0.002600 render_states_ms=0.001500 draws_ms=0.000800 finish_ms=0.000100
+COIN_RENDER_PHASE composition_detail classify_ms=0.003900 sort_ms=0.001900 finish_ms=0.000100
+COIN_RENDER_PHASE plan_storage vertices=6 indices=9 render_states=1 draws=1 vertex_stride=100 vertex_bytes=600 vertex_capacity_bytes=600 index_bytes=36 index_capacity_bytes=36 render_state_bytes=1640 transfer_ownership=1
+COIN_RENDER_PHASE builder_detail expand_styles_ms=0.008000 validation_ms=0.073900 composition_ms=0.032200 storage_report_ms=0.012500 publish_plan_ms=0.001400 finish_ms=0.000200
+COIN_RENDER_PHASE composition_detail classify_ms=0.001500 sort_ms=0.000100 finish_ms=0.000100
+   [PASS] Test 1: Sentinel parser and convex quads
+-&gt; Test 2: Degenerate faces and consecutive sentinels...
+COIN_RENDER_PHASE...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderCompositionTest" classname="CoinRenderCompositionTest" time="0.481655" status="run">
+		<properties/>
+		<system-out>COIN_RENDER_PHASE composition_detail classify_ms=0.005400 sort_ms=0.000300 finish_ms=0.000000
+COIN_RENDER_PHASE composition_detail classify_ms=0.001000 sort_ms=0.000100 finish_ms=0.000000
+COIN_RENDER_PHASE composition_detail finish_ms=0.000600
+COIN_RENDER_PHASE validation_detail materials_ms=0.003500 vertices_ms=0.001500 indices_ms=0.000100 scene_state_ms=0.001900 render_states_ms=0.002600 draws_ms=0.001500 finish_ms=0.000000
+COIN_RENDER_PHASE composition_detail classify_ms=0.000900 sort_ms=0.000100 finish_ms=0.000000
+COIN_RENDER_PHASE validation_detail materials_ms=0.000300 vertices_ms=0.001300 indices_ms=0.000000 scene_state_ms=0.000600 render_states_ms=0.002300 draws_ms=0.001000 finish_ms=0.000000
+COIN_RENDER_PHASE composition_detail classify_ms=0.007300 sort_ms=0.001600 finish_ms=0.000100
+COIN_RENDER_PHASE composition_detail classify_ms=0.001000 sort_ms=0.000200 finish_ms=0.000000
+COIN_RENDER_PHASE target validation_ms=0.077500 prepare_ms=0.014900 submit_ms=0.913200
+COIN_RENDER_PHASE validation_detail mat...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+</testsuite>
