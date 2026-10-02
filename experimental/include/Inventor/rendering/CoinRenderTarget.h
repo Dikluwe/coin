@@ -128,6 +128,8 @@ public:
   const CoinRenderOptions& getOptions(void) const;
 
   ~CoinRenderTarget(void);
+  CoinRenderTarget(const CoinRenderTarget&) = delete;
+  CoinRenderTarget& operator=(const CoinRenderTarget&) = delete;
 
   Status getStatus(void) const;
   const char * getLastError(void) const;

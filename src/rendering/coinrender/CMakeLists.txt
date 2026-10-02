@@ -122,6 +122,12 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 endif()
 
 add_library(CoinRender SHARED ${COIN_RENDER_SOURCES})
+if(WIN32)
+	target_compile_definitions(CoinRender PUBLIC NOMINMAX)
+	if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
+		target_sources(CoinRender PRIVATE ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuFfi.def)
+	endif()
+endif()
 add_library(CoinWgpuExperimental ALIAS CoinRender)
 
 set_target_properties(CoinRender PROPERTIES

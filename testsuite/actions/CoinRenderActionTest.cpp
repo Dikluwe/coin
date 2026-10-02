@@ -588,7 +588,7 @@ int testProfileMultiLightAndPerVertexTransparency() {
 
 int testBaseApplyNotHidden() {
   // Test Finding 4: SoAction::apply(SoAction*) is not hidden
-  void (SoAction::*applyActionFn)(SoAction*) = &CoinRenderAction::apply;
+  void (CoinRenderAction::*applyActionFn)(SoAction*) = &CoinRenderAction::apply;
   TEST_ASSERT(applyActionFn != nullptr, "apply(SoAction*) must be accessible via CoinRenderAction");
 
   SoSeparator * root = new SoSeparator;
@@ -734,10 +734,12 @@ int testAnnotationLayers() {
               "SoAnnotation capture should succeed");
   TEST_ASSERT(log.find("layer=0 clearDepthBefore=0") != std::string::npos,
               "regular geometry should remain in the base layer");
-  TEST_ASSERT(log.find("layer=1 clearDepthBefore=1") != std::string::npos,
-              "first annotation should start layer one with a depth barrier");
-  TEST_ASSERT(log.find("layer=2 clearDepthBefore=1") != std::string::npos,
-              "second annotation should start a distinct layer with a depth barrier");
+  TEST_ASSERT(log.find("layer=1 clearDepthBefore=0") != std::string::npos,
+              "first annotation should start layer one without clearing base depth");
+  TEST_ASSERT(log.find("layer=2 clearDepthBefore=0") != std::string::npos,
+              "second annotation should start a distinct foreground layer");
+  TEST_ASSERT(log.find("depthTest=0 depthWrite=0") != std::string::npos,
+              "foreground annotation should disable depth testing and writes");
   root->unref();
   return 0;
 }

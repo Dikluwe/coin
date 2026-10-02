@@ -348,11 +348,12 @@ int main() {
     TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS, "Apply on fresh target must succeed");
 
     // Test Cache Geometry Budget LRU:
-    // A single 3-vertex face requires 3 * 36 = 108 bytes + 4 * 4 = 16 index bytes = 124 bytes.
-    // Configure cache budget to 200 bytes (only enough room for 1 shape at a time)
-    coin_wgpu_set_cache_budget(200, 10);
+    // Size follows the current bridge vertex layout, including extra UV sets.
+    const uint64_t shapeBytes = 3 * sizeof(CoinWgpuVertex) + 3 * sizeof(uint32_t);
+    // Keep enough room for one triangle, but not for both shapes together.
+    coin_wgpu_set_cache_budget(shapeBytes + shapeBytes / 2, 10);
 
-    // Create a new separate shape that exceeds the 200 byte budget when combined with the existing shape
+    // Create a separate shape that exceeds the budget together with the first.
     SoSeparator * rootShape2 = new SoSeparator;
     rootShape2->ref();
     SoCoordinate3 * coords2 = new SoCoordinate3;
@@ -365,7 +366,7 @@ int main() {
     ifs2->coordIndex.setValues(0, 4, idx2);
     rootShape2->addChild(ifs2);
 
-    // Apply rootShape2: cache must evict root (shape 1) via LRU before uploading shape 2 to respect the 200B budget
+    // The cache must evict shape 1 before retaining shape 2 within the budget.
     action.apply(rootShape2);
     TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS, "Apply shape 2 must succeed");
 

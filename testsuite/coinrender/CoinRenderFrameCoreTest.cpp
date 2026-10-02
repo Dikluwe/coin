@@ -6,10 +6,12 @@
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
 #include "rendering/coinrender/CoinRenderImageCore.h"
+#include "rendering/coinrender/CoinRenderStateCore.h"
 
 #include <Inventor/SoDB.h>
 
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <limits>
@@ -30,6 +32,17 @@ main()
 {
   SoDB::init();
   bool ok = true;
+
+  CoinRenderTextureUnitSnapshot unitsA[1], unitsB[1];
+  for (size_t i = sizeof(bool); i < offsetof(CoinRenderTextureUnitSnapshot, imageSlot); ++i) {
+    reinterpret_cast<unsigned char*>(&unitsA[0])[i] = 0x55;
+    reinterpret_cast<unsigned char*>(&unitsB[0])[i] = 0xaa;
+  }
+  ok &= check(coin_render_same_texture_units(unitsA, unitsB),
+              "texture unit padding must not split equal render states");
+  unitsB[0].enabled = true;
+  ok &= check(!coin_render_same_texture_units(unitsA, unitsB),
+              "texture unit values must still invalidate equality");
 
   CoinRenderFramePlan first;
   CoinRenderFramePlan second;

@@ -27,6 +27,12 @@ if(COIN_BUILD_RENDER_WINDOW_EXAMPLE)
     endif()
     add_executable(coin_render_win32_smoke coin_render_win32_smoke.cpp)
     target_compile_definitions(coin_render_win32_smoke PRIVATE _WIN32_WINNT=0x0A00)
+    if(COIN_BUILD_TESTS)
+      add_test(NAME CoinRenderWin32D3D12Smoke COMMAND coin_render_win32_smoke)
+      set_tests_properties(CoinRenderWin32D3D12Smoke PROPERTIES TIMEOUT 60 ENVIRONMENT "WGPU_BACKEND=dx12")
+      add_test(NAME CoinRenderWin32VulkanSmoke COMMAND coin_render_win32_smoke --vulkan)
+      set_tests_properties(CoinRenderWin32VulkanSmoke PROPERTIES TIMEOUT 60 ENVIRONMENT "WGPU_BACKEND=vulkan")
+    endif()
     target_link_libraries(coin_render_win32_smoke PRIVATE CoinRender Coin user32)
     target_include_directories(coin_render_win32_smoke PRIVATE
       ${PROJECT_SOURCE_DIR}/experimental/include

@@ -1,0 +1,33 @@
+; Private Rust bridge entry points used by CoinRender integration tests.
+EXPORTS
+    coin_wgpu_device_create
+    coin_wgpu_device_destroy
+    coin_wgpu_inject_device_fault
+    coin_wgpu_is_available
+    coin_wgpu_get_adapter_info
+    coin_wgpu_default_device_generation
+    coin_wgpu_query_runtime_capabilities
+    coin_wgpu_inject_fault
+    coin_wgpu_inject_fault_after_submits
+    coin_wgpu_inject_async_fault
+    coin_wgpu_reset_context
+    coin_wgpu_surface_create
+    coin_wgpu_surface_resize
+    coin_wgpu_surface_destroy
+    coin_wgpu_surface_submit
+    coin_wgpu_surface_submit_readback
+    coin_wgpu_submit
+    coin_wgpu_submit_texture
+    coin_wgpu_release_texture
+    coin_wgpu_readback_resource_load
+    coin_wgpu_default_rtt_capacity
+    coin_wgpu_rtt_resource_counts
+    coin_wgpu_submit_async
+    coin_wgpu_readback_query
+    coin_wgpu_readback_poll
+    coin_wgpu_readback_cancel
+    coin_wgpu_get_cache_stats
+    coin_wgpu_get_performance_stats
+    coin_wgpu_poll_device
+    coin_wgpu_set_cache_budget
+    coin_wgpu_trim_cache

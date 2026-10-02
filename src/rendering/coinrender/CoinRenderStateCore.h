@@ -3,6 +3,20 @@
 #include "rendering/coinrender/CoinRenderFramePlan.h"
 #include <cstring>
 
+template <size_t N>
+inline bool coin_render_same_texture_units(const CoinRenderTextureUnitSnapshot (&a)[N],
+                                           const CoinRenderTextureUnitSnapshot (&b)[N])
+{
+  // Compare values, never the padding following the enabled flag.
+  for (size_t i = 0; i < N; ++i) {
+    if (a[i].enabled != b[i].enabled || a[i].imageSlot != b[i].imageSlot ||
+        a[i].samplerSlot != b[i].samplerSlot || a[i].model != b[i].model ||
+        std::memcmp(a[i].blendColor, b[i].blendColor, sizeof(a[i].blendColor)) != 0 ||
+        a[i].matrix != b[i].matrix) return false;
+  }
+  return true;
+}
+
 inline bool
 coin_render_same_state_except_camera(const CoinRenderRenderStateSnapshot & a,
                             const CoinRenderRenderStateSnapshot & b)
@@ -31,7 +45,7 @@ coin_render_same_state_except_camera(const CoinRenderRenderStateSnapshot & a,
     a.linePatternScaleFactor == b.linePatternScaleFactor &&
     a.polygonLinePattern == b.polygonLinePattern &&
     a.textureMatrix == b.textureMatrix &&
-    std::memcmp(a.extraTextures, b.extraTextures, sizeof(a.extraTextures)) == 0 &&
+    coin_render_same_texture_units(a.extraTextures, b.extraTextures) &&
     std::memcmp(a.textureCombines, b.textureCombines, sizeof(a.textureCombines)) == 0 &&
     a.hasTexture == b.hasTexture && a.textureImageSlot == b.textureImageSlot &&
     a.samplerSlot == b.samplerSlot && a.textureModel == b.textureModel &&

@@ -6,7 +6,9 @@
 #![allow(clippy::needless_lifetimes)]
 use bytemuck::{Pod, Zeroable};
 use pollster::block_on;
-use raw_window_handle::{RawDisplayHandle, RawWindowHandle, XlibDisplayHandle, XlibWindowHandle};
+use raw_window_handle::{RawDisplayHandle, RawWindowHandle};
+#[cfg(all(unix, not(target_os = "android")))]
+use raw_window_handle::{XlibDisplayHandle, XlibWindowHandle};
 #[cfg(target_os = "linux")]
 use raw_window_handle::{WaylandDisplayHandle, WaylandWindowHandle};
 #[cfg(target_os = "android")]
@@ -1306,24 +1308,32 @@ unsafe fn create_surface_from_descriptor(
     desc: &CoinWgpuNativeSurfaceDescriptor,
 ) -> Result<wgpu::Surface<'static>, String> {
     if desc.r#type == 1 {
-        // Xlib
-        let display_ptr = desc.handle_a as *mut std::ffi::c_void;
-        let window_xid = desc.handle_b;
-        let nn_display = std::ptr::NonNull::new(display_ptr)
-            .ok_or_else(|| "Display pointer must be non-null".to_string())?;
-        let display_handle = XlibDisplayHandle::new(Some(nn_display), 0);
-        let window_handle = XlibWindowHandle::new(window_xid);
+        #[cfg(all(unix, not(target_os = "android")))]
+        {
+            // Xlib
+            let display_ptr = desc.handle_a as *mut std::ffi::c_void;
+            let window_xid = desc.handle_b.try_into()
+                .map_err(|_| "Xlib window ID exceeds the platform handle size".to_string())?;
+            let nn_display = std::ptr::NonNull::new(display_ptr)
+                .ok_or_else(|| "Display pointer must be non-null".to_string())?;
+            let display_handle = XlibDisplayHandle::new(Some(nn_display), 0);
+            let window_handle = XlibWindowHandle::new(window_xid);
 
-        let raw_display = RawDisplayHandle::Xlib(display_handle);
-        let raw_window = RawWindowHandle::Xlib(window_handle);
+            let raw_display = RawDisplayHandle::Xlib(display_handle);
+            let raw_window = RawWindowHandle::Xlib(window_handle);
 
-        let target = wgpu::SurfaceTargetUnsafe::RawHandle {
-            raw_display_handle: raw_display,
-            raw_window_handle: raw_window,
-        };
-        instance
-            .create_surface_unsafe(target)
-            .map_err(|e| format!("Failed to create X11 surface: {}", e))
+            let target = wgpu::SurfaceTargetUnsafe::RawHandle {
+                raw_display_handle: raw_display,
+                raw_window_handle: raw_window,
+            };
+            instance
+                .create_surface_unsafe(target)
+                .map_err(|e| format!("Failed to create X11 surface: {}", e))
+        }
+        #[cfg(not(all(unix, not(target_os = "android"))))]
+        {
+            Err("Xlib surface requires a Unix platform with X11".to_string())
+        }
     } else if desc.r#type == 2 {
         #[cfg(target_os = "linux")]
         {
@@ -1399,7 +1409,7 @@ fn init_runtime_if_needed() -> Result<(), String> {
     let mut guard = RUNTIME_CTX.lock().map_err(|e| e.to_string())?;
     if guard.is_none() {
         *guard = Some(RuntimeContext {
-            instance: wgpu::Instance::default(),
+            instance: wgpu::Instance::new(&wgpu::InstanceDescriptor::from_env_or_default()),
             surfaces: HashMap::new(),
             device_state: None,
             device_generation: 0,
@@ -1782,7 +1792,7 @@ fn make_extra_device(id: CoinWgpuDeviceId, generation: u64) -> Result<DeviceStat
     // Only the default context owns surfaces. Every extra context requests its
     // own logical Device/Queue; the physical adapter may be shared.
     let mut isolated = RuntimeContext {
-        instance: wgpu::Instance::default(),
+        instance: wgpu::Instance::new(&wgpu::InstanceDescriptor::from_env_or_default()),
         surfaces: HashMap::new(),
         device_state: None,
         device_generation: 0,

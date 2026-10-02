@@ -6,6 +6,7 @@
 #include <iostream>
 #include "rendering/coinrender/CoinRenderFramePlanBuilder.h"
 #include "rendering/coinrender/CoinRenderImageCore.h"
+#include "rendering/coinrender/CoinRenderStateCore.h"
 #include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
 #include <Inventor/nodes/SoShape.h>
 #include <Inventor/nodes/SoCube.h>
@@ -887,7 +888,7 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
         std::memcmp(existing.fogColor, rs.fogColor, sizeof(rs.fogColor)) == 0 &&
         existing.lineWidth == rs.lineWidth &&
         existing.pointSize == rs.pointSize &&
-        std::memcmp(existing.extraTextures, rs.extraTextures, sizeof(rs.extraTextures)) == 0 &&
+        coin_render_same_texture_units(existing.extraTextures, rs.extraTextures) &&
         std::memcmp(existing.textureCombines, rs.textureCombines, sizeof(rs.textureCombines)) == 0 &&
         existing.hasTexture == rs.hasTexture &&
         existing.linePattern == rs.linePattern &&

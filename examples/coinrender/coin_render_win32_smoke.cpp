@@ -15,6 +15,8 @@
 #include <Inventor/nodes/SoSeparator.h>
 
 #include <cstdint>
+#include <cstring>
+#include <cstdlib>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -60,7 +62,7 @@ struct WindowRun {
   std::unique_ptr<CoinRenderAction> action;
 };
 
-bool createTarget(WindowRun & run, HINSTANCE instance) {
+bool createTarget(WindowRun & run, HINSTANCE instance, CoinRenderRenderer renderer) {
   const SbVec2i32 size = framebufferSize(run.hwnd);
   CoinRenderNativeSurfaceDescriptor native{};
   native.abiVersion = COIN_RENDER_NATIVE_SURFACE_ABI_VERSION;
@@ -69,7 +71,7 @@ bool createTarget(WindowRun & run, HINSTANCE instance) {
   native.native.win32.hinstance = instance;
   native.native.win32.hwnd = run.hwnd;
   CoinRenderOptions options;
-  options.renderer = COIN_RENDER_RENDERER_D3D12;
+  options.renderer = renderer;
   run.target.reset(CoinRenderTarget::createWindow(native, size, options));
   if (!run.target || run.target->getStatus() != CoinRenderTarget::TARGET_READY) {
     std::cerr << "Win32 target creation failed: " << (run.target ? run.target->getLastError() : "null target") << '\n';
@@ -104,9 +106,45 @@ bool render(WindowRun & run, SoSeparator * scene, bool capture) {
             << " dpi=" << GetDpiForWindow(run.hwnd) << '\n';
   return true;
 }
+
+bool compareOffscreen(WindowRun& run, SoSeparator* scene, const char* fixture) {
+  run.action->setTransparencyType(CoinRenderAction::SORTED_OBJECT_BLEND);
+  if (!render(run, scene, true)) return false;
+  const SbVec2i32 size = run.target->getSize();
+  std::unique_ptr<CoinRenderTarget> offscreen(
+    CoinRenderTarget::createOffscreen(size, run.target->getOptions()));
+  if (!offscreen || offscreen->getStatus() != CoinRenderTarget::TARGET_READY) {
+    std::cerr << "Offscreen comparison target creation failed\n";
+    return false;
+  }
+  CoinRenderAction action(SbViewportRegion(size[0], size[1]));
+  action.setTransparencyType(CoinRenderAction::SORTED_OBJECT_BLEND);
+  action.setRenderTarget(offscreen.get());
+  action.apply(scene);
+  std::vector<uint8_t> windowPixels, offscreenPixels;
+  run.target->readbackRGBA(windowPixels);
+  offscreen->readbackRGBA(offscreenPixels);
+  if (action.getLastStatus() != CoinRenderAction::SUCCESS ||
+      windowPixels.empty() || windowPixels.size() != offscreenPixels.size()) return false;
+  int maximumDifference = 0;
+  for (size_t i = 0; i < windowPixels.size(); ++i) {
+    const int difference = std::abs(int(windowPixels[i]) - int(offscreenPixels[i]));
+    if (difference > maximumDifference) maximumDifference = difference;
+  }
+  std::cout << "window_offscreen fixture=" << fixture
+            << " max_channel_delta=" << maximumDifference << " tolerance=3\n";
+  return maximumDifference <= 3;
+}
 }
 
-int main() {
+int main(int argc, char** argv) {
+  CoinRenderRenderer renderer = COIN_RENDER_RENDERER_D3D12;
+  if (argc == 2 && std::strcmp(argv[1], "--vulkan") == 0)
+    renderer = COIN_RENDER_RENDERER_VULKAN;
+  else if (argc != 1) {
+    std::cerr << "Usage: coin_render_win32_smoke [--vulkan]\n";
+    return 2;
+  }
   SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
   HINSTANCE instance = GetModuleHandleW(NULL);
   WNDCLASSW type{};
@@ -138,7 +176,7 @@ int main() {
   scene->addChild(material);
   scene->addChild(new SoCube);
 
-  bool ok = createTarget(windows[0], instance) && createTarget(windows[1], instance);
+  bool ok = createTarget(windows[0], instance, renderer) && createTarget(windows[1], instance, renderer);
   if (ok) {
     ok = render(windows[0], scene, true) && render(windows[1], scene, true) &&
          render(windows[0], scene, false) && render(windows[1], scene, false);
@@ -155,18 +193,23 @@ int main() {
     ShowWindow(windows[0].hwnd, SW_RESTORE);
     ok = ok && render(windows[0], scene, true) && render(windows[1], scene, false);
   }
+  if (ok) {
+    ok = compareOffscreen(windows[0], scene, "opaque");
+    material->transparency = 0.5f;
+    ok = ok && compareOffscreen(windows[0], scene, "transparent");
+  }
   CoinRenderCapabilities caps{};
   if (ok) {
     const int32_t query = coin_render_query_capabilities_for_renderer(
-      COIN_RENDER_EXPERIMENTAL_WIN32_WINDOW, COIN_RENDER_RENDERER_D3D12,
+      COIN_RENDER_EXPERIMENTAL_WIN32_WINDOW, renderer,
       &caps, sizeof(caps));
-    ok = query == 0 && caps.gpu_available && caps.renderer == COIN_RENDER_RENDERER_D3D12;
+    ok = query == 0 && caps.gpu_available && caps.renderer == renderer;
     if (ok) {
       std::cout << "renderer=" << caps.renderer << " vendor_id=0x" << std::hex
                 << caps.vendor_id << " device_id=0x" << caps.device_id << std::dec
                 << " adapter=\"" << caps.adapter_name << "\"\n";
     } else {
-      std::cerr << "D3D12 adapter capability query failed: " << query << '\n';
+      std::cerr << "Requested adapter capability query failed: " << query << '\n';
     }
   }
   for (auto & window : windows) {

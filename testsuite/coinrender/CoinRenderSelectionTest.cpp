@@ -22,6 +22,14 @@
 #include <memory>
 
 namespace {
+void setEnvironment(const char* name, const char* value) {
+#ifdef _WIN32
+  _putenv_s(name, value ? value : "");
+#else
+  if (value) setenv(name, value, 1);
+  else unsetenv(name);
+#endif
+}
 bool check(bool value, const char* message) {
   if (!value)
     std::cerr << "CoinRenderSelectionTest: " << message << '\n';
@@ -37,9 +45,9 @@ struct Environment {
   }
   ~Environment() {
     if (present)
-      setenv(name, previous.c_str(), 1);
+      setEnvironment(name, previous.c_str());
     else
-      unsetenv(name);
+      setEnvironment(name, nullptr);
   }
 };
 bool selectionCore() {
@@ -292,7 +300,7 @@ int main() {
   if (!probe() || !renderModes(false))
     return 1;
   Environment direct("COIN_RENDER_RTT_GPU_DIRECT");
-  setenv(direct.name, "1", 1);
+  setEnvironment(direct.name, "1");
   std::string diagnostic;
   auto defaults = CoinRenderDiagnosticShell::renderOptions(diagnostic);
   if (!check(diagnostic.empty() && defaults.sceneTexture == COIN_RENDER_SCENE_TEXTURE_DIRECT,
@@ -306,7 +314,7 @@ int main() {
     return 1;
 #ifdef HAVE_COIN_BGFX
   Environment mode("COIN_BGFX_TRANSPARENCY");
-  setenv(mode.name, "invalid", 1);
+  setEnvironment(mode.name, "invalid");
   CoinRenderCapabilities caps{};
   if (!check(coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN, &caps,
                                             sizeof(caps)) == 0 &&

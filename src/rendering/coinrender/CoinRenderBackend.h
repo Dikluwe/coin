@@ -5,7 +5,7 @@
 #include <string>
 
 class CoinRenderTargetP;
-struct CoinRenderRttPlan;
+class CoinRenderRttPlan;
 
 struct CoinRenderDeviceDomain {
   uint64_t device = 0;

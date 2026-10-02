@@ -53,7 +53,7 @@
 #endif /* MSVC <8 */
 
 template <typename T>
-class COIN_DLL_API SbLazyPimplPtr {
+class SbLazyPimplPtr {
 public:
   SbLazyPimplPtr(void);
   SbLazyPimplPtr(T * initial);

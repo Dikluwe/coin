@@ -281,7 +281,8 @@ if(COIN_BUILD_RENDER)
       ${CMAKE_DL_LIBS}
     )
     if(WIN32)
-      list(APPEND COIN_RENDER_LINK_LIBRARIES bcrypt crypt32 ntdll ole32 user32 userenv ws2_32)
+      list(APPEND COIN_RENDER_LINK_LIBRARIES bcrypt crypt32 ntdll ole32 oleaut32
+        opengl32 d3dcompiler propsys runtimeobject user32 userenv ws2_32)
     elseif(ANDROID)
       list(APPEND COIN_RENDER_LINK_LIBRARIES android log m)
     else()
@@ -1110,12 +1111,15 @@ if(COIN_BUILD_RENDER)
   add_subdirectory(src/rendering/coinrender)
 endif()
 
+if(COIN_BUILD_TESTS)
+  enable_testing()
+endif()
+
 if (COIN_BUILD_EXAMPLES OR COIN_BUILD_RENDER_WINDOW_EXAMPLE OR COIN_BUILD_RENDER_BENCHMARKS)
   add_subdirectory(examples)
 endif()
 
 if(COIN_BUILD_TESTS)
-  enable_testing()
   add_subdirectory(testsuite)
 endif()
 

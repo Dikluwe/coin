@@ -267,13 +267,13 @@ coin_render_shadow_camera(const CoinRenderShadowGroupSnapshot & group,
     }
     SbViewVolume visibleVolume = *mainView;
     if (light.maxShadowDistance > 0.0f) {
-      const float near = visibleVolume.getNearDist();
+      const float nearDistance = visibleVolume.getNearDist();
       const float depth = visibleVolume.getDepth();
-      if (light.maxShadowDistance <= near) {
+      if (light.maxShadowDistance <= nearDistance) {
         pass.visible = false;
         return true;
       }
-      const float narrowedDepth = std::min(light.maxShadowDistance - near, depth);
+      const float narrowedDepth = std::min(light.maxShadowDistance - nearDistance, depth);
       visibleVolume = visibleVolume.zNarrow(
         1.0f, 1.0f - narrowedDepth / depth);
     }

@@ -85,6 +85,19 @@ set_source_files_properties(InternalMacroTest.cpp PROPERTIES
 	COMPILE_DEFINITIONS COIN_INTERNAL)
 set_target_properties(CoinTests PROPERTIES DEBUG_POSTFIX "${CMAKE_DEBUG_POSTFIX}")
 target_link_libraries(CoinTests Coin ${COIN_TARGET_LINK_LIBRARIES})
+if(WIN32 AND COIN_BUILD_SHARED_LIBS)
+	# These private functions are intentionally absent from the Coin DLL API.
+	target_sources(CoinTests PRIVATE
+		${PROJECT_SOURCE_DIR}/src/base/dict.cpp
+		${PROJECT_SOURCE_DIR}/src/base/dynarray.cpp
+		CoinGeqPrimeNumberWin32TestSupport.cpp)
+	set_source_files_properties(
+		${PROJECT_SOURCE_DIR}/src/base/dict.cpp
+		${PROJECT_SOURCE_DIR}/src/base/dynarray.cpp
+		CoinGeqPrimeNumberWin32TestSupport.cpp PROPERTIES
+		COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_include_directories(CoinTests PRIVATE ${PROJECT_BINARY_DIR}/src)
+endif()
 target_include_directories(CoinTests PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${PROJECT_SOURCE_DIR}/experimental/include
@@ -812,12 +825,19 @@ if(COIN_BUILD_RENDER)
 			${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
 		add_test(NAME CoinRenderShadowReferenceTest COMMAND CoinRenderShadowReferenceTest)
 		set_tests_properties(CoinRenderShadowReferenceTest PROPERTIES TIMEOUT 60)
+		if(WIN32)
+			# Native D3D12/FXC compiles the many fixture pipelines in each process.
+			set_tests_properties(CoinRenderShadowReferenceTest PROPERTIES TIMEOUT 600)
+		endif()
 		add_test(NAME CoinRenderShadowWiringTest COMMAND CoinRenderShadowReferenceTest --wiring)
 		set_tests_properties(CoinRenderShadowWiringTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77)
 		foreach(_shadow_maps RANGE 5 8)
 			add_test(NAME CoinRenderShadowTransparency${_shadow_maps}Test
 				COMMAND CoinRenderShadowReferenceTest --transparent-maps ${_shadow_maps})
 			set_tests_properties(CoinRenderShadowTransparency${_shadow_maps}Test PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77)
+			if(WIN32)
+				set_tests_properties(CoinRenderShadowTransparency${_shadow_maps}Test PROPERTIES TIMEOUT 600)
+			endif()
 		endforeach()
 		foreach(_shadow_maps 1 4 5 6 7 8)
 			foreach(_alpha_mechanism 0 1 2)
@@ -935,6 +955,9 @@ if(COIN_BUILD_RENDER)
 		add_test(NAME CoinRenderSceneTextureDirectTest COMMAND CoinRenderSceneTextureTest)
 		set_tests_properties(CoinRenderSceneTextureDirectTest PROPERTIES
 			TIMEOUT 30 ENVIRONMENT "COIN_RENDER_RTT_GPU_DIRECT=1")
+		if(WIN32)
+			set_tests_properties(CoinRenderSceneTextureDirectTest PROPERTIES TIMEOUT 180)
+		endif()
 		add_test(NAME CoinRenderSceneTextureBudgetDirectTest COMMAND CoinRenderSceneTextureBudgetTest)
 		set_tests_properties(CoinRenderSceneTextureBudgetDirectTest PROPERTIES
 			TIMEOUT 240 ENVIRONMENT "COIN_RENDER_RTT_GPU_DIRECT=1")

@@ -162,7 +162,11 @@ int main(int argc, char ** argv) {
     return 2;
   }
 
+#ifdef _WIN32
+  _putenv_s("COIN_RENDER_TRANSPARENCY", transparency.c_str());
+#else
   setenv("COIN_RENDER_TRANSPARENCY", transparency.c_str(), 1);
+#endif
   SoDB::init();
   CoinRenderAction::initClass();
   CoinRenderCapabilities caps{};
@@ -193,7 +197,11 @@ int main(int argc, char ** argv) {
     }
     if (bgfx && asyncDepth != 0) {
       char depthText[2] = {static_cast<char>('0' + asyncDepth), '\0'};
+#ifdef _WIN32
+      _putenv_s("COIN_BGFX_READBACK_PIPELINE_DEPTH", depthText);
+#else
       setenv("COIN_BGFX_READBACK_PIPELINE_DEPTH", depthText, 1);
+#endif
     }
   }
 
