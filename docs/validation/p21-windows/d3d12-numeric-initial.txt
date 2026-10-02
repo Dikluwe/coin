@@ -1,0 +1,48 @@
+Internal ctest changing into directory: H:/Git/coin/build/coin-render-wgpu-msvc
+Test project H:/Git/coin/build/coin-render-wgpu-msvc
+      Start  1: CoinRenderWin32D3D12Smoke
+ 1/10 Test  #1: CoinRenderWin32D3D12Smoke ........   Passed    3.78 sec
+      Start  2: CoinRenderWin32VulkanSmoke
+ 2/10 Test  #2: CoinRenderWin32VulkanSmoke .......   Passed    1.24 sec
+      Start 13: CoinRenderActionTest
+ 3/10 Test #13: CoinRenderActionTest .............***Failed    3.59 sec
+Running CoinRenderActionTest...
+FAILED: first annotation should start layer one with a depth barrier (log.find("layer=1 clearDepthBefore=1") != std::string::npos) at H:\Git\coin\build\coin-render-source\testsuite\actions\CoinRenderActionTest.cpp:740
+testAnnotationLayers failed
+1 test(s) FAILED!
+
+      Start 19: CoinRenderFrameCoreTest
+ 4/10 Test #19: CoinRenderFrameCoreTest ..........   Passed    0.11 sec
+      Start 27: CoinRenderIndexedFastPathTest
+ 5/10 Test #27: CoinRenderIndexedFastPathTest ....   Passed    4.23 sec
+      Start 29: CoinRenderStabilizationTest
+ 6/10 Test #29: CoinRenderStabilizationTest ......***Failed    7.63 sec
+Running CoinRenderStabilizationTest (Onda 2F Concurrency, Packet Separation, Exact Hash & Budget)...
+-> Test 1: Strict completion serial order with pending GPU work...
+   [PASS] Test 1: Strict completion serial order verified
+-> Test 2: Separation of multiple occurrences with identical state in frame...
+   [PASS] Test 2: Separation of multiple occurrences verified
+-> Test 3: Canonical vertex serialization hash fidelity...
+   [PASS] Test 3: Canonical hash fidelity verified
+-> Test 4: Eviction of removed shapes with active key protection...
+   [PASS] Test 4: Eviction of removed shapes verified
+-> Test 5: Cache geometry budget (LRU) and transactional rollback...
+FAILED: LRU eviction must keep active entries at 1 within budget (telemBudget.activeEntries == 1) at H:\Git\coin\build\coin-render-source\testsuite\coinrender\CoinRenderStabilizationTest.cpp:374
+
+      Start 35: CoinRenderClipPlaneTest
+ 7/10 Test #35: CoinRenderClipPlaneTest ..........   Passed   10.35 sec
+      Start 36: CoinRenderDrawStyleTest
+ 8/10 Test #36: CoinRenderDrawStyleTest ..........   Passed   24.94 sec
+      Start 37: CoinRenderMultitextureTest
+ 9/10 Test #37: CoinRenderMultitextureTest .......   Passed    8.69 sec
+      Start 40: CoinRenderTransparencyTest
+10/10 Test #40: CoinRenderTransparencyTest .......   Passed   51.32 sec
+
+80% tests passed, 2 tests failed out of 10
+
+Total Test time (real) = 115.93 sec
+
+The following tests FAILED:
+	 13 - CoinRenderActionTest (Failed)
+	 29 - CoinRenderStabilizationTest (Failed)
+Errors while running CTest

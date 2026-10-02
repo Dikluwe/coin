@@ -1,0 +1,56 @@
+Internal ctest changing into directory: H:/Git/coin/build/coin-render-wgpu-msvc
+UpdateCTestConfiguration  from :H:/Git/coin/build/coin-render-wgpu-msvc/DartConfiguration.tcl
+UpdateCTestConfiguration  from :H:/Git/coin/build/coin-render-wgpu-msvc/DartConfiguration.tcl
+Test project H:/Git/coin/build/coin-render-wgpu-msvc
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: CoinRenderWin32D3D12Smoke
+
+1: Test command: H:\Git\coin\build\coin-render-wgpu-msvc\bin\coin_render_win32_smoke.exe
+1: Working Directory: H:/Git/coin/build/coin-render-wgpu-msvc/examples/coinrender
+1: Environment variables:
+1:  WGPU_BACKEND=dx12
+1: Test timeout computed to be: 60
+1: window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+1: window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+1: window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+1: window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+1: window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+1: window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+1: window_offscreen fixture=opaque max_channel_delta=0 tolerance=3
+1: window_rgba_fnv64=0x5dbd5ccf10be2a4d size=504x351 dpi=96
+1: window_offscreen fixture=transparent max_channel_delta=0 tolerance=3
+1: renderer=4 vendor_id=0x10de device_id=0x1c03 adapter="NVIDIA GeForce GTX 1060 6GB (Dx12)"
+1/2 Test #1: CoinRenderWin32D3D12Smoke ........   Passed   19.65 sec
+test 2
+    Start 2: CoinRenderWin32VulkanSmoke
+
+2: Test command: H:\Git\coin\build\coin-render-wgpu-msvc\bin\coin_render_win32_smoke.exe "--vulkan"
+2: Working Directory: H:/Git/coin/build/coin-render-wgpu-msvc/examples/coinrender
+2: Environment variables:
+2:  WGPU_BACKEND=vulkan
+2: Test timeout computed to be: 60
+2: window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+2: window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+2: window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+2: window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+2: window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+2: window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+2: window_offscreen fixture=opaque max_channel_delta=0 tolerance=3
+2: window_rgba_fnv64=0x5dbd5ccf10be2a4d size=504x351 dpi=96
+2: window_offscreen fixture=transparent max_channel_delta=0 tolerance=3
+2: renderer=1 vendor_id=0x10de device_id=0x1c03 adapter="NVIDIA GeForce GTX 1060 6GB (Vulkan)"
+2/2 Test #2: CoinRenderWin32VulkanSmoke .......   Passed    1.43 sec
+
+The following tests passed:
+	CoinRenderWin32D3D12Smoke
+	CoinRenderWin32VulkanSmoke
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =  21.10 sec

@@ -1,4 +1,11 @@
-# P21 — preparação da rota Win32 (ainda não qualificada)
+# P21 — rota Win32 e validação parcial
+
+A [campanha Windows x64 de 2026-10-02](coin-render-p21-windows-validation.md)
+compilou e executou os smokes em D3D12 e Vulkan numa GTX 1060 física. Duas
+janelas, captura RGBA, ausência de readback normal, resize e minimizar/restaurar
+passaram. As fixtures opaca e transparente tiveram delta zero entre janela e
+offscreen em ambas as APIs. DPI entre monitores e perda/recriação em janela
+continuam pendentes; a campanha documenta também divergências com o Coin/WGL.
 
 P21 começa pela apresentação wgpu/D3D12 em uma janela Win32. O descriptor
 público já continha `HINSTANCE` e `HWND`, mas o alvo comum rejeitava o tag
@@ -24,17 +31,17 @@ remove a biblioteca Unix `m` no Windows, acrescenta as bibliotecas de sistema
 e anuncia superfície nativa no build Win32/wgpu. O alvo
 `coin_render_win32_smoke` cria duas janelas reais, solicita D3D12, apresenta
 e captura RGBA, compara a cor central, confirma ausência de readback normal,
-redimensiona e minimiza/restaura. Registra DPI e identidade do adaptador; ainda
-precisa ser compilado e executado em Windows. Os exemplos Xlib continuam
+redimensiona e minimiza/restaura. Registra DPI e identidade do adaptador e
+passou no Windows físico descrito na campanha. Os exemplos Xlib continuam
 dependentes de X11.
 
 | Combinação | Estado nesta entrega | Evidência ainda necessária |
 |---|---|---|
-| wgpu/D3D12 + `HWND` | Rota de handles e build preparados | Build e execução Windows reais, perda/recriação |
-| wgpu/Vulkan + `HWND` | Mesma rota de superfície, seleção tipada existente | Build e driver Windows reais |
+| wgpu/D3D12 + `HWND` | Build e smoke passaram em Windows/NVIDIA 581.08 | Perda/recriação e demais pendências da campanha |
+| wgpu/Vulkan + `HWND` | Build e smoke passaram em Windows/NVIDIA 581.08 | Perda/recriação e demais pendências da campanha |
 | BGFX/D3D11 | Pendente | Shaders, build, surface e matriz física |
 | BGFX/D3D12 | Rejeição explícita, sem fallback | Infra, shaders, build e matriz física |
-| Win32 resize/DPI/multiwindow | Contrato de pixel e lifecycle comum existente | Smoke preparado; faltam execução física e mudança entre monitores DPI distintos |
+| Win32 resize/DPI/multiwindow | Duas janelas, resize e minimizar/restaurar passaram a 96 DPI | Mudança entre monitores DPI distintos |
 
 ## Critérios para fechar
 
@@ -64,4 +71,4 @@ apresentação Win32: CoinRender wgpu compilou; `CoinRenderSelectionTest`,
 passou com `--require-vulkan` em Xwayland/RADV, verificando seleção explícita
 do adaptador Vulkan em superfície real. O teste anterior verifica que pedir
 D3D12 no Linux retorna `UNSUPPORTED`, sem selecionar Vulkan/OpenGL.
-A árvore Windows permanece por validar em um host Windows real.
+A execução Windows posterior está registrada na campanha vinculada acima.
