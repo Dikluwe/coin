@@ -143,6 +143,25 @@ bool sameVertexExceptMaterial(const CoinBgfxVertex & lhs,
 }
 
 bool
+CoinBgfxLowering::retainForReuse(CoinBgfxPlan & plan,
+                               uint64_t geometryBudget, uint64_t metadataBudget)
+{
+  uint64_t metadataBytes = uint64_t(plan.draws.capacity() + plan.shadowDraws.capacity()) * sizeof(CoinBgfxDraw) +
+    uint64_t(plan.textures.capacity()) * sizeof(CoinBgfxTexture);
+  for (const auto & texture : plan.textures) metadataBytes += texture.pixelsRgba.capacity();
+  if (metadataBytes > metadataBudget) return false;
+  plan.uploadedVertexCount = plan.vertices.size();
+  plan.uploadedIndexCount = plan.indices.size();
+  const uint64_t geometryBytes = uint64_t(plan.vertices.capacity()) * sizeof(CoinBgfxVertex) +
+    uint64_t(plan.indices.capacity()) * sizeof(uint32_t);
+  if (geometryBytes + metadataBytes > geometryBudget) {
+    std::vector<CoinBgfxVertex>().swap(plan.vertices);
+    std::vector<uint32_t>().swap(plan.indices);
+  }
+  return true;
+}
+
+bool
 CoinBgfxLowering::clipViewport(const int32_t viewport[4], int width, int height,
                             int32_t clipped[4])
 {
@@ -161,7 +180,7 @@ CoinBgfxLowering::clipViewport(const int32_t viewport[4], int width, int height,
 bool
 CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height,
                       bool homogeneousDepth, CoinBgfxPlan & output,
-                      std::string & diagnostic, bool allowQualifiedShadows)
+                      std::string & diagnostic, bool allowQualifiedShadows, bool batchOpaque)
 {
   diagnostic.clear();
   CoinBgfxPlan candidate;
@@ -184,6 +203,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     item.indexCount = frame.draws[d].geometry.indexCount;
     order.push_back(item);
   }
+  bool previousBatchable = false;
   for (const CoinRenderCompositionItem& item : order) {
     CoinRenderDrawPacket draw = frame.draws[item.drawIndex];
     draw.geometry.firstIndex = item.firstIndex;
@@ -219,6 +239,9 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       diagnostic = "BGFX evaluation requires nonempty indexed triangles";
       return false;
     }
+    bool batchable = batchOpaque && frame.draws.size() >= 256 && frame.shadowGroups.empty() &&
+      !item.blend && !item.screenDoor && draw.renderLayer == 0 && !draw.clearDepthBefore &&
+      state.lightModel == CoinRenderLightModel::PHONG;
     float maxAlpha = 0.0f;
     for (uint32_t j = 0; j < draw.geometry.indexCount; ++j) {
       const uint32_t index = frame.indices[draw.geometry.firstIndex + j];
@@ -228,6 +251,8 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
         return false;
       }
       const CoinRenderMaterialSnapshot & material = frame.materials[frame.vertices[index].materialSlot];
+      const auto & vertex = frame.vertices[index];
+      if (vertex.screenSpaceW != 1.0f || vertex.fogEyeDepth >= 0.0f) batchable = false;
       if (!std::isfinite(material.diffuse[0]) || !std::isfinite(material.diffuse[1]) ||
           !std::isfinite(material.diffuse[2]) ||
           !std::isfinite(material.diffuse[3])) {
@@ -242,6 +267,11 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       0.0f, 0.0f, 0.5f, 0.0f,
       0.0f, 0.0f, 0.5f, 1.0f);
     const SbMatrix modelView = state.model * state.view;
+    // Baking view-space positions preserves perspective interpolation only
+    // for affine transforms. Strokes and shadow passes keep their own path.
+    for (int axis = 0; axis < 3; ++axis)
+      if (modelView[axis][3] != 0.0f) batchable = false;
+    if (modelView[3][3] != 1.0f) batchable = false;
     const float normalDeterminant = modelView.det4();
     const SbMatrix normalMatrix = std::abs(normalDeterminant) > 1.0e-12f
       ? modelView.inverse().transpose() : SbMatrix::identity();
@@ -256,7 +286,8 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       0.0f, sy, 0.0f, 0.0f,
       0.0f, 0.0f, 1.0f, 0.0f,
       tx, ty, 0.0f, 1.0f);
-    const SbMatrix mvp = modelView * projection * viewportTransform;
+    const SbMatrix mvp = batchable ? projection * viewportTransform :
+      modelView * projection * viewportTransform;
     CoinBgfxDraw lowered{};
     lowered.sourceDrawSlot = item.drawIndex;
     lowered.renderStateSlot = draw.renderStateSlot;
@@ -387,6 +418,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       if (source.fogEyeDepth >= 0) viewPosition[2] = -source.fogEyeDepth;
       viewPosition.getValue(vertex.viewPosition[0], vertex.viewPosition[1],
                             vertex.viewPosition[2]);
+      if (batchable) std::memcpy(vertex.position, vertex.viewPosition, sizeof(vertex.position));
       SbVec3f viewNormal;
       normalMatrix.multDirMatrix(SbVec3f(source.normal), viewNormal);
       if (viewNormal.normalize() == 0.0f) viewNormal.setValue(0.0f, 0.0f, 1.0f);
@@ -414,7 +446,25 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       candidate.vertices.push_back(vertex);
     }
     if (!frame.shadowGroups.empty()) candidate.shadowDraws.push_back(lowered);
-    if (!draw.shadowLightSlot) candidate.draws.push_back(lowered);
+    if (!draw.shadowLightSlot) {
+      bool merged = false;
+      if (batchable && previousBatchable && !candidate.draws.empty()) {
+        auto & previous = candidate.draws.back();
+        CoinBgfxDraw key = lowered;
+        // Material values are already per-vertex attributes, not uniforms.
+        key.materialSignature = previous.materialSignature;
+        if (compareDrawGroupingKey(previous, key) == 0 &&
+            std::memcmp(previous.mvp, lowered.mvp, sizeof(lowered.mvp)) == 0 &&
+            previous.firstIndex + previous.indexCount == lowered.firstIndex &&
+            previous.firstVertex + previous.vertexCount == lowered.firstVertex) {
+          previous.indexCount += lowered.indexCount;
+          previous.vertexCount += lowered.vertexCount;
+          merged = true;
+        }
+      }
+      if (!merged) candidate.draws.push_back(lowered);
+      previousBatchable = batchable;
+    }
   }
 
   candidate.textures.reserve(frame.textures.size());

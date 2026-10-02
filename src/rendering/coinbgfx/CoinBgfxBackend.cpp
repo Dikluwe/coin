@@ -554,7 +554,7 @@ void releaseAsync(uint64_t token, bool failed = false)
 CoinBgfxBackend::CoinBgfxBackend()
   : status(CoinRenderBackendStatus::NOT_READY), viewBase(0), nativeDisplay(nullptr),
     nativeWindow(nullptr), initialized(false), presentToWindow(false),
-    cameraPatchEnabled(true), drawGroupingEnabled(true), readbackPipelineDepth(1),
+    cameraPatchEnabled(true), drawGroupingEnabled(true), drawBatchingEnabled(true), readbackPipelineDepth(1),
     readbackCursor(0), readbackSequence(0),
     transparencyMode(CoinBgfxTransparencyMode::AUTO),
     activeTransparencyStrategy(CoinBgfxTransparencyStrategy::OBJECT),
@@ -615,6 +615,9 @@ CoinBgfxBackend::CoinBgfxBackend()
   const char * groupingDisabled = std::getenv("COIN_BGFX_DISABLE_DRAW_GROUPING");
   this->drawGroupingEnabled = groupingDisabled == nullptr ||
     std::strcmp(groupingDisabled, "1") != 0;
+  const char * batchingDisabled = std::getenv("COIN_BGFX_DISABLE_DRAW_BATCHING");
+  this->drawBatchingEnabled = batchingDisabled == nullptr ||
+    std::strcmp(batchingDisabled, "1") != 0;
   const char * readbackDepth = std::getenv("COIN_BGFX_READBACK_PIPELINE_DEPTH");
   if (readbackDepth && std::strcmp(readbackDepth, "2") == 0)
     this->readbackPipelineDepth = 2;
@@ -1934,7 +1937,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   const CoinBgfxPlan * plan = &this->cachedPlan;
   if (!cacheHit && !cameraPatchUsed) {
     if (!CoinBgfxLowering::lower(frame, target.size[0], target.size[1],
-                              homogeneousDepth, freshPlan, this->lastError, hasShadows)) {
+                              homogeneousDepth, freshPlan, this->lastError, hasShadows,
+                              this->drawBatchingEnabled)) {
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
     }
     plan = &freshPlan;
@@ -1992,9 +1996,6 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     this->lastError = "BGFX geometry exceeds buffer size limits";
     return CoinRenderSubmitResult(CoinRenderBackendStatus::OUT_OF_MEMORY, this->lastError);
   }
-  const size_t geometryBytes = plan->vertices.size() * sizeof(CoinBgfxVertex) +
-                               plan->indices.size() * sizeof(uint32_t) +
-                               plan->draws.size() * sizeof(CoinBgfxDraw);
   bgfx::DynamicVertexBufferHandle vb = this->cachedVertexBuffer;
   bgfx::DynamicIndexBufferHandle ib = this->cachedIndexBuffer;
   bool retained = cacheHit || cameraPatchUsed || materialPatchUsed;
@@ -2048,7 +2049,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       if (bgfx::isValid(texture)) bgfx::destroy(texture);
     this->cachedTextures.clear();
     this->cachedRevision = 0;
-    if (frame.revision != 0 && geometryBytes <= 32u * 1024u * 1024u) {
+    if (frame.revision != 0 && CoinBgfxLowering::retainForReuse(freshPlan)) {
       this->cachedPlan = std::move(freshPlan);
       this->cachedRevision = frame.revision;
       this->cachedWidth = target.size[0];
@@ -2371,7 +2372,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       sample.submitFrameMs = ms(drawsEncoded, submitted);
       sample.gpuQueryDrainMs = ms(gpuDrainBegin, gpuDrainComplete);
       sample.gpuQueryFrames = gpuQueryFrames;
-      sample.vertices = plan->vertices.size();
+      sample.vertices = plan->vertexCount();
       sample.draws = plan->draws.size();
       sample.resourceCacheHit = cacheHit || cameraPatchUsed;
       sample.textureCacheHit = textureCacheHit;
@@ -2644,7 +2645,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     sample.readWaitMs = ms(submitted, readComplete);
     sample.frameWaitMs = ms(submitted, framesCompleted);
     sample.rowFlipMs = ms(gpuDrainComplete, readbackNormalized);
-    sample.vertices = plan->vertices.size();
+    sample.vertices = plan->vertexCount();
     sample.draws = plan->draws.size();
     sample.readWaitFrames = readWaitFrames;
     sample.readbackPipelineDepth = this->readbackPipelineDepth;

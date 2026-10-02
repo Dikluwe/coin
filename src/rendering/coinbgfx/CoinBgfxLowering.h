@@ -108,6 +108,10 @@ struct CoinBgfxPlan {
   std::vector<CoinBgfxDraw> shadowDraws;
   float clearColor[4];
   std::vector<CoinBgfxTexture> textures;
+  // Counts survive releasing CPU geometry after its GPU upload.
+  size_t uploadedVertexCount = 0;
+  size_t uploadedIndexCount = 0;
+  size_t vertexCount() const { return vertices.empty() ? uploadedVertexCount : vertices.size(); }
 };
 
 struct CoinBgfxVertexRange {
@@ -117,13 +121,19 @@ struct CoinBgfxVertexRange {
 
 class CoinBgfxLowering {
 public:
+  // Keep draw metadata for static GPU reuse even when CPU geometry is large.
+  // Oversized metadata is rejected; small plans retain material patch inputs.
+  static bool retainForReuse(CoinBgfxPlan & plan,
+                            uint64_t geometryBudget = 32u * 1024u * 1024u,
+                            uint64_t metadataBudget = 128u * 1024u * 1024u);
   // Clip the scissor only; preserve the original viewport for projection and camera reuse.
   // False means the viewport does not intersect the target.
   static bool clipViewport(const int32_t viewport[4], int width, int height,
                            int32_t clipped[4]);
   static bool lower(const CoinRenderFramePlan & frame, int width, int height,
                     bool homogeneousDepth, CoinBgfxPlan & output,
-                    std::string & diagnostic, bool allowQualifiedShadows = false);
+                    std::string & diagnostic, bool allowQualifiedShadows = false,
+                    bool batchOpaque = false);
   static bool selectTransparencyStrategy(
     const std::vector<CoinBgfxDraw> & draws,
     CoinBgfxTransparencyMode configuredMode,

@@ -6,6 +6,7 @@
 #endif
 
 #include "rendering/coinrender/CoinRenderTargetP.h"
+#include "rendering/coinbgfx/CoinBgfxLowering.h"
 
 #include <Inventor/SoDB.h>
 
@@ -203,6 +204,42 @@ int main()
   if (target.executeFrame(frame).status != CoinRenderBackendStatus::SUCCESS ||
       patchedPixels != target.colorBuffer) {
     std::cerr << "BGFX camera patch differs from complete frame lowering\n";
+    return 1;
+  }
+  // Cross the old 32 MiB lowering cache cutoff without a large framebuffer.
+  // Repeated indices preserve the reference image while exercising a real
+  // GPU-only cache and its material invalidation after CPU geometry is freed.
+  CoinRenderFramePlan largeFrame = frame;
+  const size_t triangles = 32u * 1024u * 1024u / (3u * sizeof(CoinBgfxVertex)) + 1;
+  largeFrame.indices.clear();
+  largeFrame.indices.reserve(triangles * 3);
+  for (size_t i = 0; i < triangles; ++i)
+    largeFrame.indices.insert(largeFrame.indices.end(), frame.indices.begin(), frame.indices.end());
+  largeFrame.draws[0].geometry.indexCount = static_cast<uint32_t>(largeFrame.indices.size());
+  largeFrame.revision = 9001;
+  if (target.executeFrame(largeFrame).status != CoinRenderBackendStatus::SUCCESS ||
+      target.colorBuffer != patchedPixels ||
+      target.executeFrame(largeFrame).status != CoinRenderBackendStatus::SUCCESS ||
+      target.colorBuffer != patchedPixels) {
+    std::cerr << "BGFX large GPU-only cache changed the reference image\n";
+    return 1;
+  }
+  const CoinRenderFramePlan largeBase = largeFrame;
+  largeFrame.revision = 9002;
+  largeFrame.materials[0].diffuse[1] = 0.0f;
+  largeFrame.materials[0].diffuse[2] = 1.0f;
+  const auto largeMaterialReuse = CoinRenderFrameReuseCore::classify(largeBase, largeFrame);
+  if (target.executeFrame(largeFrame, largeMaterialReuse).status != CoinRenderBackendStatus::SUCCESS) {
+    std::cerr << "BGFX large GPU-only cache could not rebuild a material change\n";
+    return 1;
+  }
+  const auto largeBlue = target.colorBuffer;
+  CoinRenderFramePlan smallBlue = frame;
+  smallBlue.revision = 9003;
+  smallBlue.materials = largeFrame.materials;
+  if (target.executeFrame(smallBlue).status != CoinRenderBackendStatus::SUCCESS ||
+      target.colorBuffer != largeBlue || largeBlue == patchedPixels) {
+    std::cerr << "BGFX large GPU-only cache retained stale material data\n";
     return 1;
   }
   CoinRenderTextureImageSnapshot recoveryTexture;

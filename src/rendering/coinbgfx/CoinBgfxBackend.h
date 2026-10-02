@@ -135,6 +135,7 @@ private:
   bool presentToWindow;
   bool cameraPatchEnabled;
   bool drawGroupingEnabled;
+  bool drawBatchingEnabled;
   bool readbackDepthEnabled = false;
   uint32_t readbackPipelineDepth;
   uint32_t readbackCursor;

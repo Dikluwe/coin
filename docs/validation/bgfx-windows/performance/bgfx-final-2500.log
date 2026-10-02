@@ -1,0 +1,11 @@
+scene_load_ms=42.3146
+BGFX-D3D12_first_frame_ms=606.964
+rgba_fnv64=0xf25f9b97fa2a5bca
+image=build/large-scenes/city-2500-bgfx-final.ppm
+adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) vendor_id=0x10de device_id=0x1c03 backend=bgfx size=1024x1024 warmup=4 scene=build/large-scenes/city-2500.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=static
+BGFX-D3D12 frames=8 median_ms=11.8568 p95_ms=17.6422 min_ms=10.3462 max_ms=17.6422
+BGFX_render_and_readback frames=8 median_ms=11.3762 p95_ms=17.1559 min_ms=9.889 max_ms=17.1559
+BGFX_publication_copy frames=8 median_ms=0.5151 p95_ms=0.9197 min_ms=0.4458 max_ms=0.9197
+BGFX-D3D12_throughput frames=8 total_ms=97.9312 fps=81.69
+backend_cleanup_begin
+backend_cleanup_ms=55.4554

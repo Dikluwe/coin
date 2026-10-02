@@ -85,7 +85,29 @@ desenho. A implementação anterior fazia uma busca quadrática e o primeiro
 teste BGFX de 40 mil foi interrompido ainda durante essa preparação.
 O orçamento da biblioteca BGFX foi compilado para 131.072 chamadas de desenho.
 Esse resultado confirma funcionamento de D3D12 nessa carga; o tempo por
-quadro ainda é alto e não estabelece vantagem de desempenho sobre OpenGL.
+quadro dessa implementação motivou a correção descrita a seguir.
+
+O diagnóstico encontrou duas causas no nosso backend: o limite de cache
+de 32 MiB fazia repetir lowering/upload, e cada edifício gerava um draw.
+A correção mantém os buffers GPU mesmo quando libera a cópia CPU grande
+e junta geometria opaca PHONG compatível. Com tracing de fases/timestamps,
+as medianas caíram para 12,34 ms em 10 mil e 14,19 ms em 40 mil. As duas
+capturas continuam pixel a pixel idênticas às anteriores. O primeiro
+quadro ainda precisa de captura, conversão e upload; os ganhos representam
+quadros estáticos aquecidos.
+
+Na repetição final sem diagnóstico, usando 4/8 quadros em 1024 × 1024:
+
+| Edifícios | BGFX/D3D12 antes | BGFX/D3D12 corrigido | Ganho |
+|---|---:|---:|---:|
+| 2.500 | 20,75 ms | 11,86 ms | 1,75× |
+| 10.000 | 423,81 ms | 12,20 ms | 34,73× |
+| 40.000 | 1.630,15 ms | 14,36 ms | 113,51× |
+
+As três capturas são idênticas às anteriores. O primeiro quadro de 40 mil
+ainda levou 4.184,59 ms. O ganho não inclui esse custo inicial nem certifica
+mudanças de câmera ou geometria. A nova validação dirigida passou em 47
+testes distintos, contando a reexecução das fixtures finais.
 
 O build, os testes Win32 e a qualificação dirigida estão documentados em
 [CoinRender BGFX no Windows](coin-render-bgfx-windows.md).

@@ -43,9 +43,10 @@ cmake --build build/coin-render-bgfx-msvc --config Release --parallel 2
 cmake --install build/coin-render-bgfx-msvc --config Release
 ```
 
-O orçamento de 131.072 chamadas evita truncar a cidade de 40.000 edifícios
-com o limite padrão do BGFX. Ele deve ser definido ao compilar a biblioteca
-BGFX, e não apenas o Coin.
+O orçamento de 131.072 chamadas permite também executar a cidade sem
+agrupamento. Ele deve ser definido ao compilar a biblioteca BGFX, e não
+apenas o Coin. Com o agrupamento opaco, essa cidade usa um único draw de
+geometria; o readback acrescenta uma operação de blit.
 
 ## Validação local
 
@@ -73,7 +74,7 @@ em 256×256. O teste Win32 passou com dois HWNDs, resize e minimizar/restaurar;
 as capturas opaca e transparente tiveram diferença máxima zero em relação
 ao offscreen. Vulkan também passou no smoke Win32.
 
-As três cidades grandes passaram em 1024×1024, com quatro frames de
+Na primeira implementação, as três cidades grandes passaram em 1024×1024, com quatro frames de
 aquecimento e oito medidos. Os tempos incluem readback RGBA síncrono.
 
 | Edifícios | Triângulos | Primeiro frame | Mediana | P95 |
@@ -124,3 +125,69 @@ disponibilidade do dispositivo e os formatos concretos são consultados no
 runtime; qualificação exige evidência dos testes do perfil correspondente.
 Essa validação local não encerra a issue 136 nem todos os requisitos P21,
 como DPI entre monitores físicos e recuperação completa do dispositivo.
+
+## Correção do custo por frame
+
+O diagnóstico da cidade de 10.000 edifícios confirmou `plan_cache_hit=1`
+no CoinRenderAction, mas `resource_cache_hit=0` no BGFX. A geometria
+expandida excedia o limite privado de 32 MiB; o backend repetia o lowering
+e o upload em cada quadro estático. O log de fases mostra cerca de 225 ms
+de lowering, 23 ms de upload e 20 ms de encoding, enquanto o desenho
+opaco medido na GPU leva cerca de 15 ms.
+
+A retenção agora separa metadados de desenho da cópia CPU de geometria.
+Depois do upload, planos grandes liberam os vetores de vértices e índices
+e mantêm as referências aos buffers GPU. Os metadados e pixels de textura
+têm limite de 128 MiB por alvo, considerando as capacidades alocadas;
+planos pequenos mantêm a geometria para updates parciais de material.
+Mudanças de revisão e tamanho continuam invalidando o cache; um material
+alterado em um plano sem cópia CPU exige reconstrução.
+
+O lowering também junta intervalos contíguos de geometria opaca PHONG
+compatível em cenas com pelo menos 256 draws. Ele incorpora transformações
+afins às posições em espaço de câmera, preserva os atributos por vértice
+de material, normal, UV e iluminação, e compartilha a projeção. O lote
+não atravessa mudanças de pipeline, viewport, textura, fog, luzes, clip
+planes ou uma limpeza de profundidade. Transparência, sombras, overlays,
+strokes e matrizes projetivas seguem o caminho separado.
+
+`COIN_BGFX_DISABLE_DRAW_BATCHING=1` desativa apenas esse agrupamento para
+comparação. Isso não desativa a nova reutilização de buffers. Não se trata
+de instancing: todos os triângulos da cidade continuam no buffer GPU.
+
+Nos ensaios com tracing e timestamps habilitados, 10.000 edifícios caíram
+para 12,34 ms e 40.000 para 14,19 ms por frame. As capturas completas são
+pixel a pixel idênticas às imagens BGFX/D3D12 anteriores. Os logs mostram
+um draw opaco, cache de recursos ativo e nenhuma repetição do upload.
+O primeiro quadro de 40.000 ainda leva aproximadamente quatro segundos:
+a captura inicial, conversão e upload continuam necessários. Esses ganhos
+medem uma cena estática aquecida; não certificam animação ou movimento de
+câmera PHONG, que podem exigir uma reconstrução.
+
+A repetição final, sem tracing/timestamps e sem trabalho GPU concorrente,
+usou novamente 1024×1024, quatro quadros de aquecimento e oito medidos:
+
+| Edifícios | BGFX/D3D12 antes | Após a correção | P95 após | Ganho |
+|---|---:|---:|---:|---:|
+| 2.500 | 20,7516 ms | 11,8568 ms | 17,6422 ms | 1,75× |
+| 10.000 | 423,806 ms | 12,2035 ms | 12,8697 ms | 34,73× |
+| 40.000 | 1.630,15 ms | 14,3619 ms | 19,392 ms | 113,51× |
+
+Todas as três capturas D3D12 são idênticas às capturas anteriores. O
+controle de 10.000 em BGFX/Vulkan mediu 11,2782 ms e produziu a mesma
+imagem D3D12. BGFX/OpenGL mediu 12,5325 ms; com o agrupamento desligado,
+37,8184 ms, mantendo a mesma imagem em ambos os modos.
+
+A validação dirigida cobre 47 testes distintos aprovados, sem skips
+pendentes. A execução inicial de 47 passou em 46, com falha na nova
+fixture Core: ela usava implicitamente SCREEN_DOOR e uma limpeza de
+profundidade inválida na camada base. A fixture final usa BLEND explícito
+e uma camada de overlay válida. A reexecução final passou em 3/3 (Core,
+offscreen D3D12 e offscreen OpenGL), incluindo o teste GPU acima de 32 MiB
+com reutilização estática e invalidação de material. Isso combina as duas
+execuções, sem repetir o total histórico de 163 para o código novo.
+
+Os logs de fases, controles, benchmarks finais, XMLs e resultados por
+teste estão em [validation/bgfx-windows/performance](validation/bgfx-windows/performance/).
+O [performance-summary.json](validation/bgfx-windows/performance/performance-summary.json)
+registra as medianas, hashes das imagens e resultados consolidados.

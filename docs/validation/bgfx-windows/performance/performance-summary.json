@@ -1,0 +1,271 @@
+{
+  "measurements": [
+    {
+      "buildings": 2500,
+      "size": [
+        1024,
+        1024
+      ],
+      "warmup": 4,
+      "measured_frames": 8,
+      "mode": "render+rgba-readback",
+      "median_ms": 11.8568,
+      "p95_ms": 17.6422,
+      "previous_median_ms": 20.7516,
+      "speedup_ratio": 1.7501855475339045,
+      "pixel_exact_to_previous_bgfx_d3d12": true,
+      "png_sha256": "8426077efae77803efb9e6d0307e48e22194a6077fbb6e49104c53bc037ebb12"
+    },
+    {
+      "buildings": 10000,
+      "size": [
+        1024,
+        1024
+      ],
+      "warmup": 4,
+      "measured_frames": 8,
+      "mode": "render+rgba-readback",
+      "median_ms": 12.2035,
+      "p95_ms": 12.8697,
+      "previous_median_ms": 423.806,
+      "speedup_ratio": 34.72823370344573,
+      "pixel_exact_to_previous_bgfx_d3d12": true,
+      "png_sha256": "4224e9a6d7d62f2878572a98b196eea483697cc93422e3f0db13c4250a310e91"
+    },
+    {
+      "buildings": 40000,
+      "size": [
+        1024,
+        1024
+      ],
+      "warmup": 4,
+      "measured_frames": 8,
+      "mode": "render+rgba-readback",
+      "median_ms": 14.3619,
+      "p95_ms": 19.392,
+      "previous_median_ms": 1630.15,
+      "speedup_ratio": 113.5051768916369,
+      "pixel_exact_to_previous_bgfx_d3d12": true,
+      "png_sha256": "130672f04a599e6b399064f5c8b502fb6a8d7a18cf7162d7a3e0f54bc487ceb0"
+    }
+  ],
+  "diagnostic_runs_have_phase_tracing_and_gpu_timestamps": true,
+  "final_runs_have_tracing_disabled": true,
+  "tests": {
+    "unique_passed": 47,
+    "failed": 0,
+    "skipped": 0,
+    "runs": [
+      {
+        "name": "bgfx-performance-tests",
+        "tests": 47,
+        "passed": 46,
+        "failed": 1,
+        "skipped": 0
+      },
+      {
+        "name": "bgfx-performance-regressions",
+        "tests": 3,
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0
+      }
+    ],
+    "note": "Directed integration run plus final Core and oversized-cache regressions. Initial Core fixture failures were corrected to use explicit BLEND and a valid overlay depth-clear barrier.",
+    "latest_by_name": {
+      "CoinRenderWin32D3D12Smoke": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderWin32VulkanSmoke": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinBgfxReadbackModes_vulkan": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinBgfxReadbackModes_opengl": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinBgfxReadbackModes_d3d12": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinBgfxSurface_vulkan_object": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinBgfxSurface_vulkan_weighted_oit": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinBgfxSurface_vulkan_sorted_layers": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinBgfxSurface_opengl_object": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinBgfxSurface_opengl_weighted_oit": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinBgfxSurface_opengl_sorted_layers": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinBgfxSurface_d3d12_object": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinBgfxSurface_d3d12_weighted_oit": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinBgfxSurface_d3d12_sorted_layers": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinBgfxCoreTest": {
+        "status": "passed",
+        "run": "bgfx-performance-regressions"
+      },
+      "CoinRenderDepthContractTest": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderDepthContractVulkanTest": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderDepthContractOpenGLTest": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinBgfxOffscreenTest": {
+        "status": "passed",
+        "run": "bgfx-performance-regressions"
+      },
+      "CoinBgfxOpenGLTest": {
+        "status": "passed",
+        "run": "bgfx-performance-regressions"
+      },
+      "CoinBgfxTransparencyTest": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinBgfxTransparencyOpenGLTest": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinBgfxSortedLayersTest": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinBgfxSortedLayersOpenGLTest": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinBgfxWeightedOitTest": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinBgfxWeightedOitOpenGLTest": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderFrameReuseCoreTest": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderShadowReferenceTest": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderShadowAlphaTest8_0Test": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderMultiTargetTest": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderMultiTargetDirectTest": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderMultiTargetStagedOpenGLTest": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderMultiTargetOpenGLTest": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderSceneTextureTest": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderSceneTextureBudgetTest": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderSceneTexture_vulkan_staged": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderSceneTextureBudget_vulkan_staged": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderSceneTexture_vulkan_direct": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderSceneTextureBudget_vulkan_direct": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderSceneTexture_opengl_staged": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderSceneTextureBudget_opengl_staged": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderSceneTexture_opengl_direct": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderSceneTextureBudget_opengl_direct": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderSceneTexture_d3d12_staged": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderSceneTextureBudget_d3d12_staged": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderSceneTexture_d3d12_direct": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      },
+      "CoinRenderSceneTextureBudget_d3d12_direct": {
+        "status": "passed",
+        "run": "bgfx-performance-tests"
+      }
+    }
+  },
+  "image_checks": {
+    "bgfx_opengl_batch_vs_separate_pixel_exact": true,
+    "bgfx_vulkan_vs_d3d12_pixel_exact": true
+  },
+  "scope": "Warm static scenes. PHONG camera or geometry changes may rebuild; first 40000-building frame remains about four seconds."
+}

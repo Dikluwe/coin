@@ -61,12 +61,96 @@ int main()
               "full viewport was not preserved during lowering");
   ok &= check(plan.vertices.size() == 3 && plan.indices.size() == 3 &&
               plan.draws.size() == 1, "geometry structure changed");
+  CoinBgfxPlan retained = plan;
+  ok &= check(CoinBgfxLowering::retainForReuse(retained) &&
+              retained.vertices.size() == 3 && retained.indices.size() == 3,
+              "small cached plans must retain material patch inputs");
+  retained = plan;
+  ok &= check(!CoinBgfxLowering::retainForReuse(retained, 0, 0) &&
+              retained.vertices.size() == 3 && retained.draws.size() == 1,
+              "metadata budget rejection must not modify the candidate");
+  retained = plan;
+  ok &= check(CoinBgfxLowering::retainForReuse(retained, 0) &&
+              retained.vertices.capacity() == 0 && retained.indices.capacity() == 0 &&
+              retained.vertexCount() == 3 && retained.uploadedIndexCount == 3 &&
+              retained.draws[0].indexCount == 3 &&
+              std::memcmp(retained.draws[0].mvp, plan.draws[0].mvp, sizeof(plan.draws[0].mvp)) == 0,
+              "large GPU cache must release CPU geometry and preserve draw metadata");
   ok &= check(std::abs(plan.vertices[0].color[0] - 0.8f) < 1e-6f &&
               std::abs(plan.vertices[0].color[3] - 1.0f) < 1e-6f,
               "Coin diffuse color lost floating-point precision");
   ok &= check(plan.clearColor[0] == frame.clearColor[0] &&
               plan.clearColor[1] == frame.clearColor[1],
               "Coin clear color was quantized before GPU submission");
+  CoinRenderFramePlan city = frame;
+  city.draws.resize(300, frame.draws[0]);
+  city.renderStates.resize(300, frame.renderStates[0]);
+  city.vertices[0].position[0] = -0.1f; city.vertices[0].position[1] = -0.1f;
+  city.vertices[1].position[0] = 0.1f; city.vertices[1].position[1] = -0.1f;
+  city.vertices[2].position[1] = 0.1f; city.vertices[2].position[2] = -0.3f;
+  city.materials.push_back(city.materials[0]);
+  city.materials[1].diffuse[0] = 0.25f;
+  city.vertices[1].materialSlot = 1;
+  for (size_t i = 0; i < city.draws.size(); ++i) {
+    city.draws[i].renderStateSlot = static_cast<uint32_t>(i);
+    city.renderStates[i].lightModel = CoinRenderLightModel::PHONG;
+    city.renderStates[i].transparencyType = SoGLRenderAction::BLEND;
+    city.renderStates[i].model.setTranslate(SbVec3f(float(i) * 0.001f, 0, 0));
+  }
+  CoinBgfxPlan individual, batched;
+  ok &= check(CoinBgfxLowering::lower(city, 4, 4, false, individual, diagnostic) &&
+              CoinBgfxLowering::lower(city, 4, 4, false, batched, diagnostic, false, true) &&
+              individual.draws.size() == 300 && batched.draws.size() == 1 &&
+              batched.draws[0].indexCount == 900 && batched.vertices.size() == 900 &&
+              batched.indices == individual.indices,
+              "compatible PHONG geometry did not form a contiguous opaque batch");
+  for (size_t i = 0; i < individual.draws.size() && batched.draws.size() == 1; ++i) {
+    const auto & original = individual.vertices[i * 3 + 1];
+    const auto & baked = batched.vertices[i * 3 + 1];
+    SbMat originalArray, batchArray;
+    std::memcpy(originalArray, individual.draws[i].mvp, sizeof(originalArray));
+    std::memcpy(batchArray, batched.draws[0].mvp, sizeof(batchArray));
+    SbMatrix originalMvp(originalArray), batchMvp(batchArray);
+    SbVec4f before, after;
+    originalMvp.multVecMatrix(SbVec4f(original.position[0], original.position[1], original.position[2], 1), before);
+    batchMvp.multVecMatrix(SbVec4f(baked.position[0], baked.position[1], baked.position[2], 1), after);
+    for (int channel = 0; channel < 4; ++channel)
+      ok &= check(std::abs(before[channel] - after[channel]) < 1e-6f,
+                  "opaque batching changed homogeneous clip coordinates");
+    ok &= check(std::memcmp(original.viewNormal, baked.viewNormal, sizeof(baked.viewNormal)) == 0 &&
+                std::memcmp(original.color, baked.color, sizeof(baked.color)) == 0,
+                "opaque batching changed lighting or material attributes");
+  }
+  city.draws[150].clearDepthBefore = true;
+  city.draws[150].renderLayer = 1;
+  ok &= check(CoinBgfxLowering::lower(city, 4, 4, false, batched, diagnostic, false, true) &&
+              batched.draws.size() == 2 && batched.draws[1].clearDepthBefore &&
+              batched.draws[1].renderLayer == 1,
+              "opaque batching crossed a depth clear barrier");
+  city.draws[150].clearDepthBefore = false;
+  city.draws[150].renderLayer = 0;
+  city.renderStates[150].fogMode = CoinRenderFogMode::HAZE;
+  ok &= check(CoinBgfxLowering::lower(city, 4, 4, false, batched, diagnostic, false, true) &&
+              batched.draws.size() == 3,
+              "opaque batching crossed an incompatible fog uniform");
+  city.renderStates[150].fogMode = CoinRenderFogMode::NONE;
+  city.renderStates[150].model[0][3] = 0.25f;
+  ok &= check(CoinBgfxLowering::lower(city, 4, 4, false, batched, diagnostic, false, true) &&
+              batched.draws.size() == 3,
+              "opaque batching accepted a projective model transform");
+  city.renderStates[150].model[0][3] = 0.0f;
+  city.vertices[0].screenSpaceW = 1.5f;
+  ok &= check(CoinBgfxLowering::lower(city, 4, 4, false, batched, diagnostic, false, true) &&
+              batched.draws.size() == 300,
+              "opaque batching changed stroke perspective interpolation");
+  city.vertices[0].screenSpaceW = 1.0f;
+  city.materials[0].diffuse[3] = 0.5f;
+  city.materials[0].transparency = 0.5f;
+  city.materials[1].diffuse[3] = 0.5f;
+  city.materials[1].transparency = 0.5f;
+  ok &= check(CoinBgfxLowering::lower(city, 4, 4, false, batched, diagnostic, false, true) &&
+              batched.draws.size() == 300,
+              "opaque batching merged transparent geometry");
   ok &= check(std::abs(plan.draws[0].mvp[10] - 0.5f) < 1e-6f &&
               std::abs(plan.draws[0].mvp[14] - 0.5f) < 1e-6f,
               "Coin clip depth was not converted to Vulkan range");
