@@ -73,6 +73,14 @@ static void insert_during_apply(cc_hash_key key, void *, void * closure)
   if (key == 2) cc_hash_put(static_cast<cc_hash *>(closure), 4, NULL);
 }
 
+static void insert_many_during_apply(cc_hash_key key, void *, void * closure)
+{
+  if (key != 2) return;
+  cc_hash * hash = static_cast<cc_hash *>(closure);
+  for (cc_hash_key next = 100; next < 200; ++next)
+    cc_hash_put(hash, next, NULL);
+}
+
 int main()
 {
   struct rlimit no_core = { 0, 0 };
@@ -155,6 +163,23 @@ int main()
   CHECK(cc_hash_get(hash, 2, &found));
   CHECK(cc_hash_get(hash, 4, &found));
   CHECK(cc_hash_get(hash, 6, &found));
+  cc_hash_destruct(hash);
+
+  hash = cc_hash_construct(2, 1.0f);
+  CHECK(hash != NULL);
+  CHECK(cc_hash_put(hash, 0, NULL));
+  CHECK(cc_hash_put(hash, 2, NULL));
+  cc_hash_entry * initial_zero = find_entry(hash, 0);
+  cc_hash_entry * initial_two = find_entry(hash, 2);
+  cc_hash_apply(hash, insert_many_during_apply, hash);
+  CHECK(cc_hash_get_num_elements(hash) == 102);
+  CHECK(hash->threshold >= hash->elements);
+  CHECK(find_entry(hash, 0) == initial_zero);
+  CHECK(find_entry(hash, 2) == initial_two);
+  CHECK(cc_hash_get(hash, 0, &found));
+  CHECK(cc_hash_get(hash, 2, &found));
+  for (cc_hash_key key = 100; key < 200; ++key)
+    CHECK(cc_hash_get(hash, key, &found));
   cc_hash_destruct(hash);
   return 0;
 }

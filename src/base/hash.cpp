@@ -445,7 +445,17 @@ cc_hash_apply(cc_hash * ht, cc_hash_apply_func * func, void * closure)
       cc_hash_set_hash_func(ht, pendinghashfunc);
     if (ht->deferredresize) {
       ht->deferredresize = 0;
-      hash_resize(ht, (unsigned int) coin_geq_prime_number(ht->size + 1));
+      if (ht->size < UINT_MAX) {
+        // Several inserts may have occurred during apply; size for all of them.
+        const double required = std::ceil(
+          static_cast<double>(ht->elements) / ht->loadfactor);
+        unsigned int target = ht->size + 1;
+        if (required >= static_cast<double>(UINT_MAX))
+          target = UINT_MAX;
+        else if (required > static_cast<double>(target))
+          target = static_cast<unsigned int>(required);
+        hash_resize(ht, (unsigned int) coin_geq_prime_number(target));
+      }
     }
   }
 }
