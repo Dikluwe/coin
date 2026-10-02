@@ -1193,7 +1193,12 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, 
   // Reuse ordinary captured casters for simple groups. Composition requires
   // its own map traversal because nested group resets and annotations affect
   // the main pass differently from SHADOWMAP.
-  bool separateMap = snapshot.parentGroupSlot != 0;
+  // Coin/GL renders the whole caster scene even when apply(path) selects
+  // only a receiver. Reuse the independent map capture for this traversal.
+  int pathIndexCount=0;
+  const int * pathIndices=nullptr;
+  bool separateMap = snapshot.parentGroupSlot != 0 ||
+    action->getPathCode(pathIndexCount,pathIndices) == SoAction::IN_PATH;
   SoSearchAction structure;
   structure.setType(SoAnnotation::getClassTypeId());
   structure.setInterest(SoSearchAction::FIRST);

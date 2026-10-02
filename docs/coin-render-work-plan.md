@@ -189,7 +189,8 @@ Vulkan não encerram a matriz física nem qualificam outras plataformas.
   ALPHA_TEST acompanha o comportamento atual Coin/GL (composição transparente,
   sem descarte automático). Peeling/OIT e qualidade ampliada estão qualificados.
   P27.4 mantém a referência GL nativa com oito mapas pendente; P27.5 mantém
-  a matriz física final.
+  Windows/Intel, macOS/Metal e o oráculo NVIDIA/OpenGL PRIME.
+  [Cinco células físicas Linux e Wiring fechados](coin-render-p27-linux-validation.md).
   [Referência e trabalho pendente](coin-render-p27-shadows.md).
 - [ ] **P28 — Texturas espaciais e SSAO:** volume/cube maps seguem o contrato
   Coin; SSAO é extensão opt-in. [Critérios](coin-render-p27-p30-tracker.md).

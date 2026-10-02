@@ -1,13 +1,13 @@
-# P27 — sombras Coin: perfis opacos BGFX e wgpu executáveis
+# P27 — sombras Coin: perfis BGFX e wgpu qualificados
 
 P27 exige executar `SoShadowGroup` ativo com a semântica Coin em BGFX e wgpu.
-A referência GL e a captura comum estão verificadas. BGFX e wgpu executam
-perfis opacos de até oito luzes spot/direcionais em offscreen síncrono, com
-fixtures para os pares, o lote direcional e a quinta, sexta e sétima spots. O perfil de duas
-luzes cobre ordem de travessia anterior, mista e posterior;
-o Core usa a câmera na entrada do grupo para os mapas direcionais. Os
-perfis ampliados e a matriz final de plataformas permanecem abertos em
-P27.4–P27.5; P27 permanece **aberto**.
+A referência GL e a captura comum estão verificadas nos perfis descritos abaixo:
+até oito mapas, composição, cenas próprias, transparência, alfa RTT,
+peeling/OIT, qualidade ampliada, overrides e caminhos parciais.
+A [qualificação Linux](coin-render-p27-linux-validation.md) registra GPUs,
+APIs, comandos e resultados. A oitava sombra usa um oráculo equivalente de
+sete mapas; a referência GL nativa com oito e as células externas de P27.5
+permanecem abertas. P27 permanece **aberto** por esses critérios explícitos.
 
 ## O que o Coin/GL faz
 
@@ -77,13 +77,17 @@ opaca no wgpu e compara seu readback ao GL.
   estilos, pares e ordens de travessia foram comparadas por readback com
   Coin/GL. Resize, falha de mapa, rejeição de terceira luz e publicação
   atômica passaram. A semântica Coin permanece no Core.
-- [ ] **P27.4 — contrato ampliado:** cinco a oito luzes, cenas próprias
-  complexas por luz, transparência, demais níveis de qualidade e combinações
-  além dos perfis qualificados. Três/quatro luzes opacas, clipping, alvos
-  múltiplos, grupos irmãos e aninhados, cenas próprias, anotações opacas,
-  qualidade direcional plana e RTT staged/direct têm perfis qualificados nos dois executores.
-- [ ] **P27.5 — qualificação final:** matriz de GPU/API/driver, perdas, resize,
-  falhas e tolerâncias visuais; fechar P27 somente com BGFX e wgpu exercitados.
+- [x] **P27.4 — perfil funcional local:** cenas próprias por luz, composição,
+  transparência, alfa RTT, peeling/OIT, qualidade, overrides e caminhos parciais
+  qualificados em BGFX/wgpu dentro dos limites de cada fixture.
+- [ ] **P27.4 — referência nativa da oitava sombra:** exige Coin/GL com nove
+  unidades utilizáveis; este host oferece oito. O teste recusa qualificação
+  nativa quando essa capacidade falta.
+- [x] **P27.5 — células Linux disponíveis:** AMD/BGFX Vulkan e OpenGL,
+  NVIDIA/BGFX Vulkan, AMD/wgpu Vulkan e NVIDIA/wgpu Vulkan; readback,
+  resize, falhas injetadas e tolerâncias passam nas mesmas fixtures.
+- [ ] **P27.5 — células restantes:** Windows/Intel, macOS/Metal e comparação
+  Coin/GL offscreen no NVIDIA/OpenGL PRIME. Ver arquivo de plataformas pendentes.
 
 Cada subetapa exige um quadro renderizado e evidência de comportamento;
 shader, captura ou plano isolados não bastam para fechá-la.
@@ -216,7 +220,7 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   aplica VSM por contribuição da luz resolvida no Core. A fixture submeteu
   três e quatro luzes com readback: deltas máximos 666/723 e 228/228,
   Coin/GL e wgpu. O segundo lote direcional está descrito abaixo.
-- [ ] **Cinco a oito luzes:** Core, BGFX e wgpu aceitam até oito passes
+- [x] **Cinco a oito luzes nos backends:** Core, BGFX e wgpu aceitam até oito passes
   opacos. Os passes cinco a oito usam um segundo draw do receiver com os
   mesmos quatro bindings de mapa e o mesmo depth; staged e direct RTT foram
   exercitados. As fixtures mediram, em Coin/GL e nos dois backends, deltas
@@ -226,8 +230,8 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
   81/79 com a quinta luz. Com oito luzes em RTT, staged e direct marcaram
   228/225. O teste verifica submissão e serial da quinta spot e, no wgpu,
   falha de alocação de oito mapas sem alterar pixels nem serial. Ainda faltam
-  a comparação GL da oitava spot em um contexto com capacidade maior e
-  qualificações de composição mais ampla; por isso a caixa continua aberta.
+  a comparação GL nativa da oitava spot em um contexto com capacidade maior,
+  acompanhada separadamente; o perfil backend e sua composição estão qualificados.
   A oitava spot submeteu e alterou o readback em 117 nos dois backends, mas
   seu delta incremental no Coin/GL desta máquina foi zero. Isso decorre do
   limite de unidades de textura da referência: `updateShadowLights()` usa
@@ -602,14 +606,19 @@ env __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 \
 Cada caixa acima requer uma fixture renderizada nos dois executores e sua
 referência Coin/GL antes de marcar P27.4 concluído.
 
-## Trabalho funcional para fechar
+## Responsabilidades e estado
 
 - [x] **Wiring inicial:** capturar grupo ativo, campos, `SoShadowStyle`, luzes
   spot/directional, elegibilidade Coin, matrizes e indicação de
   `shadowMapScene`; respeitar o escopo
   da travessia e os separadores sem chamar `GLRender`.
-- [ ] **Wiring completo:** qualificar overrides, caminhos parciais
-  e todos os modos de composição com fixtures Coin/GL.
+- [x] **Wiring do perfil:** overrides de material e qualidade de textura,
+  caminho até o grupo e caminho até um receiver. `--wiring` verifica que o
+  caster fora do caminho ainda contribui para a sombra e para os bounds.
+  O callback de `SoComplexity` respeita o mesmo override de qualidade do GL.
+  Para qualidade zero, o oráculo do nó usa GL sem sombras: o shader GL de
+  `SoShadowGroup` continua amostrando a imagem instalada. Isso não é usado
+  como referência de desativação de textura no perfil sombreado.
 - [x] **Core inicial:** gerar um pass por luz spot/directional habilitada,
   separar desenhos caster/receiver pelos bits de `SoShadowStyle`, dimensionar
   mapa por `precision`, calcular câmeras spot/directional a partir da geometria
@@ -618,21 +627,26 @@ referência Coin/GL antes de marcar P27.4 concluído.
   inclusive quando ela aparece após a geometria sem inseri-la nos estados
   anteriores, validar dois passes opacos
   spot/direcional e limitar a memória planejada.
-- [ ] **Core completo:** ampliar combinações além dos
-  perfis já qualificados de até oito mapas, grupos aninhados e RTT direct.
-  Reusar ownership e publicação de P12–P14, inclusive múltiplos alvos.
-- [ ] **Infra BGFX/wgpu:** mapas de momentos e depth, VSM, bias, textura,
+- [x] **Core do perfil:** até oito mapas, grupos aninhados, RTT direct,
+  composição e bounds de casters omitidos na travessia principal. Ownership
+  e publicação reutilizam P12–P14, inclusive múltiplos alvos. Extensões fora
+  das fixtures descritas não fazem parte deste fechamento.
+- [x] **Infra BGFX/wgpu do perfil Linux:** mapas de momentos e depth, VSM, bias, textura,
   passes, sincronização, resize e reconstrução após perda, com shader específico
   por API. Mapas da Infra não entram no estado Coin. O shader wgpu que grava
   momentos lineares, spot/directional, e o lookup no shader principal validam
   em Naga. BGFX usa shaders BGFX separados e recursos próprios, mas os dois
-  executores recebem os mesmos passes opacos qualificados do Core. Mapas e
-  lookup de perfis ampliados continuam em P27.4.
-- [ ] **Shell/capacidades:** seleção explícita de perfil implementado e
+  executores recebem os mesmos passes qualificados do Core. A campanha Linux
+  cobre os perfis ampliados, resize e recuperação de falhas injetadas; perda
+  física real do dispositivo não foi provocada.
+- [x] **Shell/capacidades do perfil:** seleção explícita de perfil implementado e
   disponível; diagnósticos de limite/formato sem fallback visual implícito.
-- [ ] **Qualificação:** comparar spot/directional, todos os estilos, cenas
+- [x] **Qualificação Linux do perfil:** comparar spot/directional, todos os estilos, cenas
   próprias por luz, alpha/transparência, RTT, resize e falhas nas
-  mesmas fixtures Coin/GL. Registrar GPU/API/driver e tolerâncias por célula.
+  mesmas fixtures Coin/GL. GPU/API/driver e resultados estão preservados na
+  campanha de cinco células físicas, com as tolerâncias declaradas nas fixtures.
+- [ ] **Qualificação restante:** oito mapas GL nativos, oráculo NVIDIA/GLX
+  PRIME, Windows/Intel e macOS/Metal, conforme o arquivo de pendências.
 
 O preflight retorna `UNSUPPORTED` antes de submeter o quadro para grupos
 ativos fora dos perfis qualificados de composição por objetos. O perfil atual aceita até oito
@@ -640,5 +654,5 @@ passes spot/direcionais. A quinta, sexta e sétima spots têm comparação
 Coin/GL; a oitava tem readback e publicação verificados nos dois backends,
 mas ainda requer referência GL com oito mapas. Alfa RTT NONE/ALPHA_BLEND
 está qualificado até oito mapas, incluindo alfa de material e textura estática;
-Combinações além dos perfis descritos continuam na matriz
-P27.4. Nos casos rejeitados, pixels e serial publicados ficam intactos.
+Combinações além dos perfis descritos são extensões não qualificadas.
+Nos casos rejeitados, pixels e serial publicados ficam intactos.

@@ -57,8 +57,8 @@
 
 // FIXME: consider adding a lazy GL depth buffer element. 200YMMDD pederb.
 
-#include <Inventor/elements/SoShapeStyleElement.h>
 #include <Inventor/nodes/SoAnnotation.h>
+#include <Inventor/elements/SoShapeStyleElement.h>
 
 #include <Inventor/elements/SoCacheElement.h>
 #include <Inventor/actions/SoGLRenderAction.h>

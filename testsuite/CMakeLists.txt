@@ -812,6 +812,8 @@ if(COIN_BUILD_RENDER)
 			${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
 		add_test(NAME CoinRenderShadowReferenceTest COMMAND CoinRenderShadowReferenceTest)
 		set_tests_properties(CoinRenderShadowReferenceTest PROPERTIES TIMEOUT 60)
+		add_test(NAME CoinRenderShadowWiringTest COMMAND CoinRenderShadowReferenceTest --wiring)
+		set_tests_properties(CoinRenderShadowWiringTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77)
 		foreach(_shadow_maps RANGE 5 8)
 			add_test(NAME CoinRenderShadowTransparency${_shadow_maps}Test
 				COMMAND CoinRenderShadowReferenceTest --transparent-maps ${_shadow_maps})

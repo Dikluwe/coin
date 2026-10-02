@@ -25,14 +25,14 @@ Separator {
       Cone { height 4 }
    }
 
-   # (ROW 1) With different CoinRenderLightModel settings.
+   # (ROW 1) With different LightModel settings.
    Translation { translation 0 +4 0 }
    Separator {
-      CoinRenderLightModel { model BASE_COLOR }
+      LightModel { model BASE_COLOR }
       Cone { }
 
       Translation { translation +2 0 0 }
-      CoinRenderLightModel { model PHONG }
+      LightModel { model PHONG }
       Cone { }
    }
 

@@ -97,3 +97,11 @@ expansão será feita quando existirem, respectivamente, targets Win32 e Cocoa
 com seleção explícita de Direct3D 11/12 e Metal. Esses jobs deverão reutilizar
 o mesmo contrato de produto e produzir inventário/capacidades equivalentes,
 sem marcar como coberta uma API que apenas compilou.
+
+## Sombras P27 no Linux
+
+A [campanha física P27](coin-render-p27-linux-validation.md) fecha os perfis
+BGFX em AMD Vulkan/OpenGL e NVIDIA Vulkan, com referência Coin/GL, RTT,
+readback, resize e falhas injetadas. NVIDIA/OpenGL passa a qualificação GPU
+limitada; o visual offscreen Coin/GL PRIME ainda bloqueia a comparação
+completa. Isso não encerra as outras células da matriz geral de produto.

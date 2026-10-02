@@ -1,0 +1,11 @@
+shadow path sample GPU=126/126 GL=126/126
+shadow path ground_only=0 qualified=1
+partial shadow capture draws=3 passes=1 casters=1
+shadow path sample GPU=126/126 GL=126/126
+shadow path ground_only=1 qualified=1
+override stable texture=0 GPU=1 GL=1 qualified=1
+override removed texture=0 GPU=1 GL=1 status=0
+shadow override texture=0 qualified=1
+override stable texture=1 GPU=1 GL=1 qualified=1
+override removed texture=1 GPU=1 GL=1 status=0
+shadow override texture=1 qualified=1

@@ -22,14 +22,14 @@ Separator {
       Cube { depth 1 }
    }
 
-   # (ROW 1) With different CoinRenderLightModel settings.
+   # (ROW 1) With different LightModel settings.
    Translation { translation 0 +4 0 }
    Separator {
-      CoinRenderLightModel { model BASE_COLOR }
+      LightModel { model BASE_COLOR }
       Cube { }
 
       Translation { translation +3 0 0 }
-      CoinRenderLightModel { model PHONG }
+      LightModel { model PHONG }
       Cube { }
    }
 

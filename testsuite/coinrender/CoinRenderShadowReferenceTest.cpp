@@ -2,8 +2,11 @@
 #include "config.h"
 #endif
 #include <Inventor/SoDB.h>
+#include <Inventor/SoPath.h>
 #include <Inventor/SoOffscreenRenderer.h>
 #include <Inventor/actions/CoinRenderAction.h>
+#include <Inventor/actions/SoGLRenderAction.h>
+#include <Inventor/C/glue/gl.h>
 #include "actions/CoinRenderActionP.h"
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include "rendering/coinrender/CoinRenderTargetP.h"
@@ -33,6 +36,7 @@
 #include <Inventor/nodes/SoSceneTexture2.h>
 #include <Inventor/nodes/SoAnnotation.h>
 #include <Inventor/nodes/SoTexture2.h>
+#include <Inventor/nodes/SoComplexity.h>
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoTextureCoordinate2.h>
 #include <Inventor/nodes/SoCoordinate3.h>
@@ -64,15 +68,135 @@ int luminanceRgba(const std::vector<unsigned char> & rgba, int x, int y)
   return static_cast<int>(rgba[i]) + rgba[i + 1] + rgba[i + 2];
 }
 
+void captureGlTextureUnits(void * data, SoGLRenderAction * action)
+{
+  *static_cast<int *>(data) = cc_glglue_max_texture_units(
+    cc_glglue_instance(action->getCacheContext()));
+}
+
 bool render(SoOffscreenRenderer & gl, SoNode * root,
             std::vector<unsigned char> & rgb)
 {
-  if (!gl.render(root) || !gl.getBuffer()) return false;
+  int units = 0;
+  const bool requireEight = std::getenv("COIN_RENDER_REQUIRE_GL_EIGHT_MAP_REFERENCE");
+  if (requireEight) gl.getGLRenderAction()->addPreRenderCallback(captureGlTextureUnits,&units);
+  const bool rendered = gl.render(root) && gl.getBuffer();
+  if (requireEight) gl.getGLRenderAction()->removePreRenderCallback(captureGlTextureUnits,&units);
+  if (!rendered) return false;
+  if (requireEight && units < 9) {
+    std::cerr << "Native eight-map Coin/GL reference requires nine texture units; context provides " << units << '\n';
+    return false;
+  }
   const unsigned char * data = gl.getBuffer();
   rgb.assign(data, data + side * side * 3);
   return true;
 }
 SoSeparator * shadowCompositionConsumer(SoSeparator * scene);
+
+bool qualifyShadowWiring(SoSeparator * source)
+{
+  auto * scene=static_cast<SoSeparator *>(source->copy(TRUE));
+  scene->ref();
+  auto * group=static_cast<SoShadowGroup *>(scene->getChild(1));
+  auto * ground=static_cast<SoSeparator *>(group->getChild(2));
+  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(side,side)));
+  CoinRenderAction action(SbViewportRegion(side,side));
+  action.setRenderTarget(target.get());
+  SoOffscreenRenderer gl(SbViewportRegion(side,side));
+  gl.setComponents(SoOffscreenRenderer::RGB);
+  bool qualified=true;
+  std::vector<unsigned char> fullGpu,fullGl;
+  action.apply(scene);
+  qualified=action.getLastStatus()==CoinRenderAction::SUCCESS;
+  if (qualified) target->readbackRGBA(fullGpu);
+  qualified=qualified && fullGpu.size()==size_t(side*side*4);
+  if (qualified) qualified=render(gl,scene,fullGl);
+  for (int tail=0;tail<2 && qualified;++tail) {
+    auto * path=new SoPath(scene);
+    path->ref(); path->append(1);
+    if (tail) path->append(2);
+    if (tail) {
+      CoinRenderAction capture(SbViewportRegion(side,side));
+      capture.apply(path);
+      const auto & frame=capture.getPimpl()->lastRejectedShadowFrame;
+      const auto & plan=capture.getPimpl()->lastRejectedShadowPlan;
+      std::cout << "partial shadow capture draws=" << frame.draws.size()
+        << " passes=" << plan.passes.size() << " casters="
+        << (plan.passes.empty() ? 0 : plan.passes[0].casterDraws.size()) << '\n';
+    }
+    action.apply(path);
+    std::vector<unsigned char> gpu,reference;
+    qualified=action.getLastStatus()==CoinRenderAction::SUCCESS;
+    if (qualified) target->readbackRGBA(gpu);
+    qualified=qualified && gl.render(path) && gl.getBuffer();
+    if (qualified) {
+      reference.assign(gl.getBuffer(),gl.getBuffer()+side*side*3);
+      std::cout << "shadow path sample GPU=" << luminanceRgba(fullGpu,50,side-1-50)
+        << '/' << luminanceRgba(gpu,50,side-1-50) << " GL=" << luminance(fullGl,50,50)
+        << '/' << luminance(reference,50,50) << '\n';
+      if (!tail) qualified=gpu==fullGpu && reference==fullGl;
+      else qualified=std::abs(luminanceRgba(gpu,50,side-1-50)-luminanceRgba(fullGpu,50,side-1-50))<=3 &&
+        std::abs(luminance(reference,50,50)-luminance(fullGl,50,50))<=30;
+    }
+    std::cout << "shadow path ground_only=" << tail << " qualified=" << qualified << '\n';
+    if (!qualified) std::cerr << action.getLastError().getString() << '\n';
+    path->unref();
+  }
+  auto * material=static_cast<SoMaterial *>(ground->getChild(1));
+  auto * inherited=new SoMaterial;
+  inherited->diffuseColor.setValue(.2f,.6f,.3f);
+  inherited->setOverride(TRUE);
+  ground->insertChild(inherited,1);
+  for (int textureCase=0;textureCase<2 && qualified;++textureCase) {
+    SoComplexity * first=nullptr,* last=nullptr;
+    if (textureCase) {
+      auto * texture=new SoTexture2;
+      const unsigned char green[]={40,220,60,255};
+      texture->image.setValue(SbVec2s(1,1),4,green);
+      first=new SoComplexity; last=new SoComplexity;
+      first->textureQuality=.5f; last->textureQuality=1.f;
+      first->setOverride(TRUE);
+      ground->insertChild(first,3); ground->insertChild(last,4);
+      ground->insertChild(texture,5);
+      auto * uv=new SoTextureCoordinate2;
+      const SbVec2f corners[]={{0,0},{1,0},{1,1},{0,1}};
+      for (int i=0;i<24;++i) uv->point.set1Value(i,corners[i%4]);
+      ground->insertChild(uv,6);
+    }
+    std::vector<unsigned char> before,after,changed,glBefore,glAfter,glChanged;
+    // ShadowGroup's GL shader samples an installed image even when textureQuality
+    // disables it. Check the node override contract with ordinary Coin/GL here;
+    // the GPU action still exercises the active shadow group.
+    auto renderOverrideReference = [&](std::vector<unsigned char> & pixels) {
+      const SbBool active=group->isActive.getValue();
+      if (textureCase) group->isActive=FALSE;
+      const bool ok=render(gl,scene,pixels);
+      group->isActive=active;
+      return ok;
+    };
+    action.apply(scene); target->readbackRGBA(before);
+    qualified=action.getLastStatus()==CoinRenderAction::SUCCESS && renderOverrideReference(glBefore);
+    if (!qualified) std::cerr << "override initial: " << action.getLastError().getString() << '\n';
+    if (textureCase) {
+      last->textureQuality=0.f;
+    } else material->diffuseColor.setValue(.8f,.1f,.1f);
+    action.apply(scene); target->readbackRGBA(after);
+    qualified=qualified && action.getLastStatus()==CoinRenderAction::SUCCESS && before==after &&
+      renderOverrideReference(glAfter) && glBefore==glAfter;
+    std::cout << "override stable texture=" << textureCase << " GPU=" << (before==after)
+      << " GL=" << (glBefore==glAfter) << " qualified=" << qualified << '\n';
+    if (textureCase) first->setOverride(FALSE); else inherited->setOverride(FALSE);
+    action.apply(scene); target->readbackRGBA(changed);
+    qualified=qualified && action.getLastStatus()==CoinRenderAction::SUCCESS && changed!=before &&
+      renderOverrideReference(glChanged) && glChanged!=glBefore;
+    std::cout << "override removed texture=" << textureCase << " GPU=" << (changed!=before)
+      << " GL=" << (glChanged!=glBefore) << " status=" << action.getLastStatus() << '\n';
+    std::cout << "shadow override texture=" << textureCase << " qualified=" << qualified << '\n';
+  }
+  action.setRenderTarget(nullptr);
+  scene->unref();
+  return qualified;
+}
 
 bool qualifyShadowQuality(SoSeparator * source, int maps, bool directional)
 {
@@ -1268,6 +1392,24 @@ int main(int argc, char ** argv)
     return ok ? 0 : 1;
   }
 
+  if (argc == 2 && std::string(argv[1]) == "--wiring") {
+    if (!std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") &&
+        !std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) { root->unref(); return 77; }
+    const bool ok=qualifyShadowWiring(root);
+    root->unref();
+    return ok ? 0 : 1;
+  }
+  if (argc == 2 && std::string(argv[1]) == "--gl-capacity") {
+    SoOffscreenRenderer gl(SbViewportRegion(side,side));
+    gl.setComponents(SoOffscreenRenderer::RGB);
+    int units=0;
+    gl.getGLRenderAction()->addPreRenderCallback(captureGlTextureUnits,&units);
+    const bool ok=gl.render(root) && gl.getBuffer();
+    gl.getGLRenderAction()->removePreRenderCallback(captureGlTextureUnits,&units);
+    std::cout << "CoinGL max_texture_units=" << units << " native_eight_maps=" << (units>=9) << '\n';
+    root->unref();
+    return ok ? 0 : 1;
+  }
   if (argc == 4 && std::string(argv[1]) == "--alpha-test") {
     if (!std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") &&
         !std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) {
@@ -2063,6 +2205,7 @@ int main(int argc, char ** argv)
       }
       for (int mode = 0; mode < 2 && siblingShadowGroupsQualified; ++mode) {
         CoinRenderOptions options{};
+        options.renderer = siblingTarget->getOptions().renderer;
         options.sceneTexture = mode == 0 ?
           COIN_RENDER_SCENE_TEXTURE_STAGED : COIN_RENDER_SCENE_TEXTURE_DIRECT;
         options.transparency = COIN_RENDER_TRANSPARENCY_OBJECT;
@@ -5289,7 +5432,19 @@ int main(int argc, char ** argv)
               << " multi_camera=" << multipleCameras
               << " perspective=" << perspectiveFrustum
               << " late_profile=" << lateSpotProfile
-              << " (" << lateProfileDiagnostic << ")\n";
+              << " (" << lateProfileDiagnostic << ")"
+              << " publication=" << publishedOk << '/' << rejected << '/' << preserved << '/' << recovered
+              << " capture=" << captureOk << " light_eligibility=" << lightEligibility
+              << " clipping=" << clippedShadowQualified << '/' << clippedSubtreeQualified
+              << " targets=" << shadowTargetsIndependent << " siblings=" << siblingShadowGroupsQualified
+              << " ordinary=" << ordinaryLightQualified << " textured=" << texturedShadowQualified
+              << " low_quality=" << lowQualitySpotQualified << '/' << lowQualityDirectionalQualified
+              << " custom=" << directCustomSceneQualified << '/' << subtreeCustomSceneQualified
+              << '/' << styledCustomSceneQualified << '/' << inheritedCustomSceneQualified
+              << " rtt=" << stagedShadowRttQualified << '/' << directShadowRttQualified << '/' << shadowedRttReceiverQualified
+              << " expanded=" << shadowCompositionQualified << '/' << independentShadowScenesQualified
+              << '/' << emptyShadowMapsQualified << '/' << alphaRttQualified << '/' << shadowTransparencyQualified
+              << " alpha_validation=" << inconsistentAlphaRejected << '\n';
     root->unref();
     return 1;
   }

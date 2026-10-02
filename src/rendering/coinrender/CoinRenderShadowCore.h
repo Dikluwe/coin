@@ -97,7 +97,13 @@ coin_render_shadow_group_bounds(const CoinRenderFramePlan & frame,
       return false;
     }
     const auto & state = frame.renderStates[draw.renderStateSlot];
-    if (draw.shadowLightSlot || !coin_render_shadow_descends_from(frame, state.shadowGroupSlot, groupSlot)) continue;
+    if (!coin_render_shadow_descends_from(frame, state.shadowGroupSlot, groupSlot)) continue;
+    // A partial main traversal still uses the whole group's bounds for maps.
+    // An implicit group capture supplies the omitted shapes; external custom
+    // scenes keep Coin's camera bounds tied to the original group.
+    if (draw.shadowLightSlot &&
+        (draw.shadowLightSlot > frame.shadowLights.size() ||
+         frame.shadowLights[draw.shadowLightSlot-1].hasCustomScene)) continue;
     const uint64_t end = uint64_t(draw.geometry.firstVertex) + draw.geometry.vertexCount;
     if (end > frame.vertices.size()) {
       diagnostic = "Shadow draw references an invalid vertex range";
