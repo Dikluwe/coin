@@ -180,6 +180,37 @@ de desempenho entre versões.
 Logs, XMLs, resultados por teste, hashes e o método estão em
 [first-frame-summary.json](validation/bgfx-windows/first-frame/first-frame-summary.json).
 
+### Validação do primeiro quadro em Vulkan e OpenGL
+
+O mesmo código `cad421ab74` foi testado em BGFX/Vulkan e BGFX/OpenGL no
+Windows, na GPU NVIDIA. Cada API teve três pares alternados com as DLLs
+anteriores `5f30dee635`, em processos novos, sem tracing nem testes GPU
+concorrentes. O método e a exclusão do carregamento do arquivo são os mesmos
+do ensaio D3D12. Para 40.000 edifícios em 1024 × 1024:
+
+| API | Primeiro anterior, mediana | Primeiro corrigido, mediana | Redução | Aquecido, mediana | Aquecido, P95 |
+|---|---:|---:|---:|---:|---:|
+| BGFX/Vulkan | 3.624,71 ms | **2.902,66 ms** | **19,92%** | **10,87 ms** | 11,11 ms |
+| BGFX/OpenGL | 3.406,56 ms | **2.753,89 ms** | **19,16%** | **13,32 ms** | 20,59 ms |
+
+Os controles aquecidos de 10.000 edifícios mediram 8,87 ms de mediana / 13,12 ms
+de P95 em Vulkan e 13,91 ms / 16,68 ms em OpenGL. Os controles aquecidos usam
+quatro quadros de aquecimento e oito medidos, incluindo readback RGBA síncrono.
+
+Nas duas APIs e nas duas cidades, a captura corrigida é pixel a pixel idêntica
+à captura anterior da mesma API. Os checksums RGBA também se mantiveram iguais.
+Vulkan é idêntico a D3D12 nas duas cidades. OpenGL difere de D3D12 em apenas
+dois pixels de 1.048.576 (0,00019%) em cada cidade; essas diferenças também
+estão presentes na versão anterior. O maior delta de canal foi 119 em 10.000
+e 88 em 40.000. A causa desses dois pixels entre APIs não foi isolada.
+
+Esta rodada acrescenta benchmarks e controles de imagem, sem alterar o código
+de renderização ou repetir a qualificação anterior de 152 testes. Os logs,
+amostras individuais, hashes e diferenças de imagem estão em
+[cross-api-summary.json](validation/bgfx-windows/first-frame/cross-api/cross-api-summary.json).
+Para reproduzir com o comando abaixo, altere `COIN_BGFX_RENDERER` para
+`vulkan` ou `opengl`.
+
 ## Reproduzir
 
 ```powershell

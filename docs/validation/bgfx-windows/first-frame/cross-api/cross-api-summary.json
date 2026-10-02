@@ -1,0 +1,267 @@
+{
+  "date": "2026-10-02",
+  "tested_commit": "cad421ab74",
+  "baseline_commit": "5f30dee635",
+  "hardware": "Windows 10 Pro, i5-4670K, 16 GiB RAM, NVIDIA GTX 1060 6 GB",
+  "scene": {
+    "buildings": 40000,
+    "triangles": 480012,
+    "expanded_vertices": 1440036,
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "render+rgba-readback"
+  },
+  "method": "Three alternating baseline/final pairs per renderer, separate processes, warmup=1 frames=1. File loading and initial capability probe are outside the first-frame timer. Phase tracing and GPU timestamps are disabled. OS/driver caches are preserved. GPU runs are sequential. Warm controls use four warmup frames and eight measured frames. Baseline and final images are compared within each API, with additional comparisons against current D3D12.",
+  "binaries_sha256": {
+    "baseline_coinrender": "fe6753493279c05187386705c58f8f423bbd6eac769c8d244283dfd1d415ac92",
+    "final_coinrender": "cad1afd5f69e49995e8642209cec2c589e17ba2f23a8058f67c1df0c00ca95ee"
+  },
+  "renderers": {
+    "vulkan": {
+      "trials": [
+        {
+          "sample": 1,
+          "variant": "baseline",
+          "adapter": "BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03)",
+          "first_frame_ms": 3633.24,
+          "scene_load_ms": 479.595,
+          "rgba_fnv64": "0x6714299260985122"
+        },
+        {
+          "sample": 1,
+          "variant": "final",
+          "adapter": "BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03)",
+          "first_frame_ms": 2884.11,
+          "scene_load_ms": 465.686,
+          "rgba_fnv64": "0x6714299260985122"
+        },
+        {
+          "sample": 2,
+          "variant": "baseline",
+          "adapter": "BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03)",
+          "first_frame_ms": 3624.71,
+          "scene_load_ms": 490.46,
+          "rgba_fnv64": "0x6714299260985122"
+        },
+        {
+          "sample": 2,
+          "variant": "final",
+          "adapter": "BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03)",
+          "first_frame_ms": 2902.66,
+          "scene_load_ms": 498.811,
+          "rgba_fnv64": "0x6714299260985122"
+        },
+        {
+          "sample": 3,
+          "variant": "baseline",
+          "adapter": "BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03)",
+          "first_frame_ms": 3551.22,
+          "scene_load_ms": 472.864,
+          "rgba_fnv64": "0x6714299260985122"
+        },
+        {
+          "sample": 3,
+          "variant": "final",
+          "adapter": "BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03)",
+          "first_frame_ms": 3064.19,
+          "scene_load_ms": 499.702,
+          "rgba_fnv64": "0x6714299260985122"
+        }
+      ],
+      "baseline_first_frame_median_ms": 3624.71,
+      "final_first_frame_median_ms": 2902.66,
+      "reduction_percent": 19.92021430679972,
+      "warm": {
+        "10000": {
+          "median_ms": 8.8698,
+          "p95_ms": 13.121,
+          "warmup": 4,
+          "measured_frames": 8
+        },
+        "40000": {
+          "median_ms": 10.8693,
+          "p95_ms": 11.1125,
+          "warmup": 4,
+          "measured_frames": 8
+        }
+      },
+      "images": {
+        "10000": {
+          "versus_same_api_baseline": {
+            "rgb_pixel_exact": true,
+            "different_pixels": 0,
+            "different_pixel_percent": 0.0,
+            "maximum_channel_difference": 0,
+            "mean_absolute_channel_difference": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "versus_current_d3d12": {
+            "rgb_pixel_exact": true,
+            "different_pixels": 0,
+            "different_pixel_percent": 0.0,
+            "maximum_channel_difference": 0,
+            "mean_absolute_channel_difference": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "png_sha256": "4224e9a6d7d62f2878572a98b196eea483697cc93422e3f0db13c4250a310e91"
+        },
+        "40000": {
+          "versus_same_api_baseline": {
+            "rgb_pixel_exact": true,
+            "different_pixels": 0,
+            "different_pixel_percent": 0.0,
+            "maximum_channel_difference": 0,
+            "mean_absolute_channel_difference": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "versus_current_d3d12": {
+            "rgb_pixel_exact": true,
+            "different_pixels": 0,
+            "different_pixel_percent": 0.0,
+            "maximum_channel_difference": 0,
+            "mean_absolute_channel_difference": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "png_sha256": "130672f04a599e6b399064f5c8b502fb6a8d7a18cf7162d7a3e0f54bc487ceb0"
+        }
+      }
+    },
+    "opengl": {
+      "trials": [
+        {
+          "sample": 1,
+          "variant": "baseline",
+          "adapter": "BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000)",
+          "first_frame_ms": 3406.56,
+          "scene_load_ms": 479.039,
+          "rgba_fnv64": "0x156847cec1d97864"
+        },
+        {
+          "sample": 1,
+          "variant": "final",
+          "adapter": "BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000)",
+          "first_frame_ms": 2783.37,
+          "scene_load_ms": 474.645,
+          "rgba_fnv64": "0x156847cec1d97864"
+        },
+        {
+          "sample": 2,
+          "variant": "baseline",
+          "adapter": "BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000)",
+          "first_frame_ms": 3491.51,
+          "scene_load_ms": 492.981,
+          "rgba_fnv64": "0x156847cec1d97864"
+        },
+        {
+          "sample": 2,
+          "variant": "final",
+          "adapter": "BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000)",
+          "first_frame_ms": 2753.89,
+          "scene_load_ms": 475.236,
+          "rgba_fnv64": "0x156847cec1d97864"
+        },
+        {
+          "sample": 3,
+          "variant": "baseline",
+          "adapter": "BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000)",
+          "first_frame_ms": 3388.72,
+          "scene_load_ms": 491.549,
+          "rgba_fnv64": "0x156847cec1d97864"
+        },
+        {
+          "sample": 3,
+          "variant": "final",
+          "adapter": "BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000)",
+          "first_frame_ms": 2739.84,
+          "scene_load_ms": 479.179,
+          "rgba_fnv64": "0x156847cec1d97864"
+        }
+      ],
+      "baseline_first_frame_median_ms": 3406.56,
+      "final_first_frame_median_ms": 2753.89,
+      "reduction_percent": 19.159210464515525,
+      "warm": {
+        "10000": {
+          "median_ms": 13.9145,
+          "p95_ms": 16.6781,
+          "warmup": 4,
+          "measured_frames": 8
+        },
+        "40000": {
+          "median_ms": 13.3173,
+          "p95_ms": 20.5854,
+          "warmup": 4,
+          "measured_frames": 8
+        }
+      },
+      "images": {
+        "10000": {
+          "versus_same_api_baseline": {
+            "rgb_pixel_exact": true,
+            "different_pixels": 0,
+            "different_pixel_percent": 0.0,
+            "maximum_channel_difference": 0,
+            "mean_absolute_channel_difference": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "versus_current_d3d12": {
+            "rgb_pixel_exact": false,
+            "different_pixels": 2,
+            "different_pixel_percent": 0.00019073486328125,
+            "maximum_channel_difference": 119,
+            "mean_absolute_channel_difference": [
+              0.00015354156494140625,
+              0.00012969970703125,
+              0.0001354217529296875
+            ]
+          },
+          "png_sha256": "bc40721c31780f665d6e19bb86a558d9263aaceba8e0b2ba7da371253f2ec5ea"
+        },
+        "40000": {
+          "versus_same_api_baseline": {
+            "rgb_pixel_exact": true,
+            "different_pixels": 0,
+            "different_pixel_percent": 0.0,
+            "maximum_channel_difference": 0,
+            "mean_absolute_channel_difference": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "versus_current_d3d12": {
+            "rgb_pixel_exact": false,
+            "different_pixels": 2,
+            "different_pixel_percent": 0.00019073486328125,
+            "maximum_channel_difference": 88,
+            "mean_absolute_channel_difference": [
+              0.000110626220703125,
+              0.00012493133544921875,
+              0.00016498565673828125
+            ]
+          },
+          "png_sha256": "f7d333796e05274fddb336e58fa68b3c26e46589113bccf1a383a7cb20b2dccb"
+        }
+      }
+    }
+  },
+  "scope": "Large-scene benchmark and image controls only; the preceding 152-test qualification was not rerun. No rendering source code changed during this validation.",
+  "evidence_log_whitespace": "Committed log copies normalize trailing whitespace and EOF; originals remain in build."
+}

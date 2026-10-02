@@ -212,3 +212,12 @@ Captura e inicialização continuam sendo custos relevantes. A decomposição,
 o método e os limites da medição estão no
 [relatório de cenas grandes](coin-render-large-scenes-windows.md#primeiro-quadro-diagnóstico-e-correção)
 e em [first-frame-summary.json](validation/bgfx-windows/first-frame/first-frame-summary.json).
+
+A validação seguinte, com o mesmo código, confirmou o ganho em Vulkan e
+OpenGL: primeiro quadro de 40.000 com mediana **2.902,66 ms em Vulkan**
+(19,92% menor) e **2.753,89 ms em OpenGL** (19,16% menor). As medianas
+aquecidas foram 10,87 ms e 13,32 ms, respectivamente. As imagens de 10.000
+e 40.000 preservam exatamente a imagem anterior de cada API; Vulkan coincide
+com D3D12, e OpenGL mantém uma diferença anterior de dois pixels por cidade.
+Essa rodada executou benchmarks e comparações de imagem; os resultados estão em
+[cross-api-summary.json](validation/bgfx-windows/first-frame/cross-api/cross-api-summary.json).
