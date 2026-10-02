@@ -3,7 +3,8 @@
 Base publicada: `origin/codex/coin-render`, commit `19225706d52d22324413dec47652216004adb04e`.
 A execução exigiu as correções de portabilidade desta entrega. Os resultados
 não descrevem a árvore original sem essas correções.
-O commit de código validado é `dec024f8dd224287e8b1ee5a35309a452c2fd06f`.
+A portabilidade inicial foi validada em `dec024f8dd224287e8b1ee5a35309a452c2fd06f`.
+As fixtures GL corrigidas estão em `f345a08ea1a9ba22e7150d91990eaa69cefa0bb0`.
 
 ## Máquina e toolchain
 
@@ -30,21 +31,24 @@ D3D12 (`renderer=4`). Nenhum desses probes usou o Microsoft Basic Render Driver.
 | Win32/Vulkan: mesma fixture e lifecycle | Passou |
 | Janela versus offscreen, opaco e transparente, em ambas as APIs | Delta máximo de canal 0; tolerância 3 |
 | Instalação e consumidor CMake externo usando as DLLs instaladas | Passou em D3D12 |
-| Suíte CTest D3D12 com GPU e oráculo Coin/GL obrigatórios | 96/99 consolidados; três divergências GL, sem skips |
-| Suíte CTest Vulkan com GPU e oráculo Coin/GL obrigatórios | 96/99; mesmas três divergências GL, sem skips |
+| Suíte CTest D3D12 com GPU e oráculo Coin/GL obrigatórios | 99/99 após corrigir as fixtures GL, sem skips |
+| Suíte CTest Vulkan com GPU e oráculo Coin/GL obrigatórios | 99/99 após corrigir as fixtures GL, sem skips |
 | Fixtures de sombras, ALPHA_TEST, qualidade ampliada, peeling/OIT/layers | 39/39 por API, GPU e Coin/GL obrigatórios |
 | Multi-device, readback assíncrono e RTT direto com estresse | Passaram em ambas as APIs |
-| DrawStyle, Multitexture e Transparency sem comparação GL obrigatória | Verificações numéricas CPU/GPU passaram nas duas APIs |
+| DrawStyle, Multitexture e Transparency com GL obrigatório | CPU/GPU e referências equivalentes passaram nas duas APIs |
 
-A rodada D3D12 completa teve inicialmente 95/99 em 991,71 s, incluindo timeout
-de RTT direto aos 30 s. O teste passou isoladamente em 66,2 s e, após ajustar
-seu limite Windows, passou pelo CTest em 74,75 s. O reteste também repetiu os
-dois smokes finais (3/3). A consolidação de 96/99 não apaga o timeout original.
-A rodada Vulkan completa levou 241,63 s. As três falhas GL permanecem falhas:
-o runner encerra com erro e a matriz completa não é declarada qualificada.
-O reteste numérico Vulkan foi 3/3. No D3D12, os mesmos três testes passaram na
-rodada diagnóstica anterior; esse log preserva também duas expectativas antigas
-de outros testes, posteriormente corrigidas e aprovadas na rodada completa.
+As rodadas corrigidas passaram pelo runner estrito, com GPU física e Coin/GL
+obrigatórios: D3D12 99/99 em 1.021,28 s; Vulkan 99/99 em 261,75 s, sem skips.
+Os XMLs e probes estão em [D3D12](validation/p21-windows/corrected-d3d12/) e
+[Vulkan](validation/p21-windows/corrected-vulkan/). Na campanha final D3D12,
+DrawStyle levou 41,70 s, Multitexture 11,63 s e Transparency 58,89 s.
+
+A rodada D3D12 original teve 95/99 em 991,71 s, incluindo timeout de RTT direto
+aos 30 s. Após o ajuste desse limite Windows e o reteste 3/3, consolidou 96/99;
+Vulkan originalmente teve 96/99 em 241,63 s. As três falhas de referência GL e
+os logs originais continuam preservados. O reteste numérico Vulkan foi 3/3;
+o diagnóstico D3D12 também aprovou esses três contratos e registra expectativas
+antigas de outros testes, corrigidas antes da rodada completa original.
 
 Os [logs](validation/p21-windows/) preservam os resultados. O smoke registra
 96 DPI; o mesmo checksum aparece nas duas APIs e nas duas janelas para o mesmo
@@ -74,31 +78,50 @@ compatível por meio do conector. O teste não expõe o formato DXGI/Vulkan conc
   O RTT direto passou isoladamente em 66,2 s; seu limite Windows passa de 30
   para 180 s. A rodada completa original e a repetição são preservadas.
 
-## Divergências do oráculo Coin/GL
+## Correção das referências Coin/GL
 
-A referência GL é obrigatória na campanha completa; divergências não são
-convertidas em aprovação nem escondidas por aumento de tolerância.
+Os logs originais preservam as três falhas. A correção mantém os valores
+numéricos, a unidade sete e os oito slots nas verificações CPU/GPU, assim como
+as tolerâncias de canais e a exigência de renderização Coin/GL. A referência
+GL usa fixtures equivalentes nos casos descritos abaixo; isso não certifica
+recursos fixos que este contexto WGL não oferece.
 
-- `CoinRenderTransparencyTest`: a fixture usa a unidade sete, além das quatro
-  unidades fixas disponíveis no WGL. No primeiro caso aditivo, Core=128 e
-  GL=191. A variante diagnóstica usa a unidade três e três conjuntos inferiores
-  de coordenadas; passou na matriz de onze modos, CPU e GPU, com Coin/GL
-  obrigatório. Ela não
-  substitui o teste original da unidade sete.
-- `CoinRenderMultitextureTest`: DOT3_RGBA (`0x86af`), RGB scale=2 e alpha scale=1
-  produziu GL=26 versus Core=13. O contrato numérico mantém escalas independentes,
-  como a [especificação ARB](https://registry.khronos.org/OpenGL/extensions/ARB/ARB_texture_env_dot3.txt).
-  A equivalência desse caso com o Coin/WGL deste driver permanece aberta.
-- `CoinRenderDrawStyleTest`: a referência de stipple nativo passou, mas a
-  comparação de contorno com clipping encontrou pixels distintos. O log
-  registra as coordenadas e os valores; a variante sem oráculo GL obrigatório
-  passou nas verificações numéricas CPU/GPU.
+- `CoinRenderTransparencyTest`: a cena CPU/GPU continua na unidade sete.
+  Uma segunda cena GL, com o mesmo material, textura, combine e geometria,
+  usa a unidade zero. A comparação continua nos onze modos, com a exceção
+  preexistente de combine no peeling GL documentada no próprio teste.
+- `CoinRenderMultitextureTest`: DOT3_RGBA com escalas distintas é comparado
+  contra DOT3_RGB com alpha constante igual ao produto escalar independente
+  (`.16` nesta fixture), escalado por ALPHA_SCALE. A referência continua
+  executando textura, combine e blend em GL; escalas iguais usam DOT3_RGBA
+  nativo. Isso preserva as escalas independentes exigidas pelo
+  [OpenGL 1.3, seção 3.8.12](https://registry.khronos.org/OpenGL/specs/gl/glspec13.pdf),
+  apesar do resultado observado no caminho fixo NVIDIA. Nos casos acima da
+  unidade três, a última etapa REPLACE é projetada para a unidade zero GL,
+  preservando imagem, UV, matriz e sampler; o teste rejeita essa projeção se a
+  etapa final não for REPLACE. O estado original é restaurado após o GL.
+- `CoinRenderDrawStyleTest`: o contador Core continua sendo verificado
+  exatamente, incluindo continuidade, reset, cantos e alpha sem dupla cobertura.
+  O Coin/GL é comparado pela geometria sólida/vazia e por uma fase consistente
+  por aresta, comum a todas as máscaras, repetições, espessuras e caminhos.
+  A referência nativa de line strips continua com comparação direta de pixels.
+  O GL pode iniciar a borda poligonal em outra aresta, alterando a fase; a
+  [especificação de rasterização poligonal](https://registry.khronos.org/OpenGL/specs/gl/glspec11.pdf)
+  define o reset na primeira aresta rasterizada. As exceções preexistentes de
+  cortes no frustum permanecem explicitamente registradas.
+
+Na primeira repetição D3D12, a matriz completa de transparência alcançou o
+limite de 90 s durante execução concorrente. A execução direta terminou com
+sucesso em 79,57 s. O limite Windows passa para 180 s para acomodar compilação
+FXC e carga concorrente, sem alterar pixels ou tolerâncias. O timeout inicial
+e a medição bem-sucedida estão preservados nos logs.
 
 ## Limites desta evidência
 
 P21 avançou de preparação para execução nativa real. Continuam pendentes mudança
 entre monitores com DPI distintos, registro do formato concreto da superfície,
-perda/recriação de superfície/device em janela e as comparações GL acima.
+perda/recriação de superfície/device em janela. As comparações GL corrigidas
+usam as equivalências descritas acima, sem qualificar oito unidades fixas nativas.
 Os testes de falha offscreen da suíte não substituem a perda de uma superfície
 Win32 real. Não se altera a máscara de perfis qualificados da API só por estes
 smokes. BGFX/D3D11 e BGFX/D3D12 continuam sem conector Windows; o CMake BGFX

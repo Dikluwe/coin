@@ -395,7 +395,7 @@ bool contract(bool cpu) {
     if (!check(image[at + 3] == 255, "source-over alpha preserves opaque clear"))
       return false;
     if (referenceRequired) {
-      // DOT3_RGBA has independent RGB/alpha scales in GL 1.3 section 3.8.9.
+      // DOT3_RGBA has independent RGB/alpha scales in GL 1.3 section 3.8.12.
       // Some fixed-function drivers instead apply RGB_SCALE to its alpha.
       // For unequal scales, use the algebraically equivalent DOT3_RGB plus
       // an explicit constant alpha, retaining a live GL blend comparison.

@@ -1,11 +1,13 @@
 # P21 — rota Win32 e validação parcial
 
 A [campanha Windows x64 de 2026-10-02](coin-render-p21-windows-validation.md)
-compilou e executou os smokes em D3D12 e Vulkan numa GTX 1060 física. Duas
+compilou e executou os smokes e os 99 testes em D3D12 e Vulkan numa GTX 1060
+física, sem falhas ou skips após corrigir as referências GL. Duas
 janelas, captura RGBA, ausência de readback normal, resize e minimizar/restaurar
 passaram. As fixtures opaca e transparente tiveram delta zero entre janela e
 offscreen em ambas as APIs. DPI entre monitores e perda/recriação em janela
-continuam pendentes; a campanha documenta também divergências com o Coin/WGL.
+continuam pendentes; a campanha documenta as correções das referências Coin/WGL
+e seus limites de equivalência.
 
 P21 começa pela apresentação wgpu/D3D12 em uma janela Win32. O descriptor
 público já continha `HINSTANCE` e `HWND`, mas o alvo comum rejeitava o tag
