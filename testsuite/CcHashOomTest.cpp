@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <csignal>
+#include <stdexcept>
 #include <sys/resource.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -58,6 +59,15 @@ static cc_hash_key collision_hash(cc_hash_key)
   return 1;
 }
 
+static unsigned int hash_calls_before_throw = 0;
+
+static cc_hash_key throwing_hash(cc_hash_key key)
+{
+  if (hash_calls_before_throw-- == 0)
+    throw std::runtime_error("hash failed");
+  return key;
+}
+
 static cc_hash_entry * find_entry(cc_hash * hash, cc_hash_key key)
 {
   const unsigned int index = hash_get_index(hash, key);
@@ -79,6 +89,23 @@ static void insert_many_during_apply(cc_hash_key key, void *, void * closure)
   cc_hash * hash = static_cast<cc_hash *>(closure);
   for (cc_hash_key next = 100; next < 200; ++next)
     cc_hash_put(hash, next, NULL);
+}
+
+static void insert_then_remove_during_apply(cc_hash_key key, void *,
+                                            void * closure)
+{
+  if (key != 2) return;
+  cc_hash * hash = static_cast<cc_hash *>(closure);
+  cc_hash_put(hash, 4, NULL);
+  cc_hash_remove(hash, 4);
+}
+
+static void insert_then_throw_during_apply(cc_hash_key key, void *,
+                                           void * closure)
+{
+  if (key != 2) return;
+  cc_hash_put(static_cast<cc_hash *>(closure), 4, NULL);
+  throw std::runtime_error("callback failed");
 }
 
 int main()
@@ -180,6 +207,77 @@ int main()
   CHECK(cc_hash_get(hash, 2, &found));
   for (cc_hash_key key = 100; key < 200; ++key)
     CHECK(cc_hash_get(hash, key, &found));
+  cc_hash_destruct(hash);
+
+  hash = cc_hash_construct(2, 1.0f);
+  CHECK(cc_hash_put(hash, 0, NULL));
+  CHECK(cc_hash_put(hash, 2, NULL));
+  const unsigned int size_before_churn = hash->size;
+  cc_hash_apply(hash, insert_then_remove_during_apply, hash);
+  CHECK(hash->size == size_before_churn);
+  CHECK(cc_hash_get_num_elements(hash) == 2);
+  CHECK(cc_hash_get(hash, 0, &found));
+  CHECK(cc_hash_get(hash, 2, &found));
+  cc_hash_destruct(hash);
+
+  hash = cc_hash_construct(2, 1.0f);
+  CHECK(cc_hash_put(hash, 0, NULL));
+  CHECK(cc_hash_put(hash, 2, NULL));
+  try {
+    cc_hash_apply(hash, insert_then_throw_during_apply, hash);
+    CHECK(false);
+  }
+  catch (const std::runtime_error &) { }
+  CHECK(hash->applydepth == 0);
+  CHECK(hash->deferredresize == 0);
+  CHECK(hash->pendinghashfunc == NULL);
+  CHECK(cc_hash_get_num_elements(hash) == 3);
+  CHECK(cc_hash_get(hash, 4, &found));
+  CHECK(cc_hash_put(hash, 6, NULL));
+  CHECK(hash->threshold >= hash->elements);
+  cc_hash_destruct(hash);
+
+  hash = cc_hash_construct(17, 1.0f);
+  CHECK(cc_hash_put(hash, 0, NULL));
+  CHECK(cc_hash_put(hash, 17, NULL));
+  hash_calls_before_throw = 1;
+  try {
+    cc_hash_set_hash_func(hash, throwing_hash);
+    CHECK(false);
+  }
+  catch (const std::runtime_error &) { }
+  CHECK(hash->hashfunc != throwing_hash);
+  CHECK(cc_hash_get(hash, 0, &found));
+  CHECK(cc_hash_get(hash, 17, &found));
+  cc_hash_destruct(hash);
+
+  hash = cc_hash_construct(2, 1.0f);
+  cc_hash_set_hash_func(hash, throwing_hash);
+  hash_calls_before_throw = 10;
+  CHECK(cc_hash_put(hash, 0, NULL));
+  CHECK(cc_hash_put(hash, 2, NULL));
+  hash_calls_before_throw = 2; // One lookup and one rehash, then throw.
+  try {
+    cc_hash_put(hash, 4, NULL);
+    CHECK(false);
+  }
+  catch (const std::runtime_error &) { }
+  CHECK(cc_hash_get_num_elements(hash) == 3);
+  hash_calls_before_throw = 10;
+  CHECK(cc_hash_get(hash, 0, &found));
+  CHECK(cc_hash_get(hash, 2, &found));
+  CHECK(cc_hash_get(hash, 4, &found));
+  cc_hash_destruct(hash);
+
+  hash = cc_hash_construct(17, 1.0f);
+  CHECK(cc_hash_put(hash, 0, NULL));
+  CHECK(cc_hash_put(hash, 17, NULL));
+  fail_malloc = true;
+  cc_hash_set_hash_func(hash, collision_hash);
+  CHECK(!fail_malloc);
+  CHECK(hash->hashfunc != collision_hash);
+  CHECK(cc_hash_get(hash, 0, &found));
+  CHECK(cc_hash_get(hash, 17, &found));
   cc_hash_destruct(hash);
   return 0;
 }

@@ -139,6 +139,65 @@ hash_threshold(unsigned int size, float loadfactor)
     static_cast<unsigned int>(scaled);
 }
 
+struct hash_rebuild_entry {
+  cc_hash_entry * entry;
+  unsigned int index;
+};
+
+static void
+hash_rebuild(cc_hash * ht, unsigned int newsize, cc_hash_func * func)
+{
+  if (static_cast<size_t>(newsize) > SIZE_MAX / sizeof(cc_hash_entry *) ||
+      static_cast<size_t>(ht->elements) > SIZE_MAX / sizeof(hash_rebuild_entry))
+    return;
+
+  cc_hash_entry ** buckets = (cc_hash_entry **)
+    calloc(newsize, sizeof(cc_hash_entry *));
+  if (buckets == NULL) return;
+
+  hash_rebuild_entry * plan = NULL;
+  if (ht->elements != 0) {
+    plan = (hash_rebuild_entry *)
+      malloc(static_cast<size_t>(ht->elements) * sizeof(hash_rebuild_entry));
+    if (plan == NULL) {
+      free(buckets);
+      return;
+    }
+  }
+
+  size_t count = 0;
+  try {
+    for (unsigned int i = 0; i < ht->size; ++i) {
+      for (cc_hash_entry * entry = ht->buckets[i]; entry != NULL;
+           entry = entry->next) {
+        plan[count].entry = entry;
+        plan[count].index = func(entry->key) % newsize;
+        ++count;
+      }
+    }
+  }
+  catch (...) {
+    free(plan);
+    free(buckets);
+    throw;
+  }
+
+  for (size_t i = 0; i < count; ++i) {
+    cc_hash_entry * entry = plan[i].entry;
+    const unsigned int index = plan[i].index;
+    entry->next = buckets[index];
+    buckets[index] = entry;
+  }
+  free(plan);
+
+  cc_hash_entry ** oldbuckets = ht->buckets;
+  ht->buckets = buckets;
+  ht->size = newsize;
+  ht->threshold = hash_threshold(newsize, ht->loadfactor);
+  ht->hashfunc = func;
+  free(oldbuckets);
+}
+
 static void
 hash_resize(cc_hash * ht, unsigned int newsize)
 {
@@ -149,28 +208,7 @@ hash_resize(cc_hash * ht, unsigned int newsize)
     ht->deferredresize = 1;
     return;
   }
-  if (static_cast<size_t>(newsize) > SIZE_MAX / sizeof(cc_hash_entry *))
-    return;
-
-  cc_hash_entry ** buckets = (cc_hash_entry **)
-    calloc(newsize, sizeof(cc_hash_entry *));
-  if (buckets == NULL) return;
-
-  cc_hash_entry ** oldbuckets = ht->buckets;
-  for (unsigned int i = 0; i < ht->size; ++i) {
-    cc_hash_entry * he = oldbuckets[i];
-    while (he) {
-      cc_hash_entry * next = he->next;
-      const unsigned int index = ht->hashfunc(he->key) % newsize;
-      he->next = buckets[index];
-      buckets[index] = he;
-      he = next;
-    }
-  }
-  ht->buckets = buckets;
-  ht->size = newsize;
-  ht->threshold = hash_threshold(newsize, ht->loadfactor);
-  free(oldbuckets);
+  hash_rebuild(ht, newsize, ht->hashfunc);
 }
 
 /* ********************************************************************** */
@@ -378,7 +416,7 @@ cc_hash_get_num_elements(cc_hash * ht)
   a bucket index. Passing NULL restores the default hash function.
 
   Existing entries are reindexed when the function changes. If allocating
-  replacement buckets fails, the current function and entries are unchanged.
+  replacement storage fails, the current function and entries are unchanged.
   A change requested from cc_hash_apply() takes effect after its outermost
   traversal finishes.
 */
@@ -397,24 +435,7 @@ cc_hash_set_hash_func(cc_hash * ht, cc_hash_func * func)
     return;
   }
 
-  cc_hash_entry ** buckets = (cc_hash_entry **)
-    calloc(ht->size, sizeof(cc_hash_entry *));
-  if (buckets == NULL) return;
-
-  for (unsigned int i = 0; i < ht->size; ++i) {
-    cc_hash_entry * entry = ht->buckets[i];
-    while (entry != NULL) {
-      cc_hash_entry * next = entry->next;
-      const unsigned int index = func(entry->key) % ht->size;
-      entry->next = buckets[index];
-      buckets[index] = entry;
-      entry = next;
-    }
-  }
-
-  free(ht->buckets);
-  ht->buckets = buckets;
-  ht->hashfunc = func;
+  hash_rebuild(ht, ht->size, func);
 }
 
 /*!
@@ -422,7 +443,9 @@ cc_hash_set_hash_func(cc_hash * ht, cc_hash_func * func)
   the current element or insert another. Bucket growth and hash function
   changes requested by the callback take effect after the outermost traversal
   finishes. Newly inserted elements may or may not be visited. Removing an
-  element that has not yet been visited is not supported.
+  element that has not yet been visited is not supported. If the callback
+  throws, pending hash function and growth requests are discarded; entries
+  already inserted remain in the table.
 */
 void
 cc_hash_apply(cc_hash * ht, cc_hash_apply_func * func, void * closure)
@@ -430,22 +453,34 @@ cc_hash_apply(cc_hash * ht, cc_hash_apply_func * func, void * closure)
   unsigned int i;
   cc_hash_entry * elem;
   ++ht->applydepth;
-  for (i = 0; i < ht->size; i++) {
-    elem = ht->buckets[i];
-    while (elem) {
-      cc_hash_entry * next = elem->next;
-      func(elem->key, elem->val, closure);
-      elem = next;
+  try {
+    for (i = 0; i < ht->size; i++) {
+      elem = ht->buckets[i];
+      while (elem) {
+        cc_hash_entry * next = elem->next;
+        func(elem->key, elem->val, closure);
+        elem = next;
+      }
     }
+  }
+  catch (...) {
+    // The traversal did not finish. Keep the current hash function and let a
+    // later insertion retry any growth needed for entries already inserted.
+    if (--ht->applydepth == 0) {
+      ht->pendinghashfunc = NULL;
+      ht->deferredresize = 0;
+    }
+    throw;
   }
   if (--ht->applydepth == 0) {
     cc_hash_func * pendinghashfunc = ht->pendinghashfunc;
+    const unsigned int deferredresize = ht->deferredresize;
     ht->pendinghashfunc = NULL;
+    ht->deferredresize = 0;
     if (pendinghashfunc != NULL)
       cc_hash_set_hash_func(ht, pendinghashfunc);
-    if (ht->deferredresize) {
-      ht->deferredresize = 0;
-      if (ht->size < UINT_MAX) {
+    if (deferredresize) {
+      if (ht->elements > ht->threshold && ht->size < UINT_MAX) {
         // Several inserts may have occurred during apply; size for all of them.
         const double required = std::ceil(
           static_cast<double>(ht->elements) / ht->loadfactor);
