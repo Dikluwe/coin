@@ -471,7 +471,7 @@ public:
     this->buckets[i] = entry;
 
     if (this->elements++ >= this->threshold) {
-      const unsigned long nextsize = coin_geq_prime_number((unsigned long)this->size + 1);
+      const unsigned long nextsize = coin_geq_growth_prime_number((unsigned long)this->size + 1);
       if (nextsize != 0) this->resize(static_cast<unsigned int>(nextsize));
     }
     return TRUE;
