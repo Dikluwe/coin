@@ -151,10 +151,14 @@ CoinBgfxLowering::retainForReuse(CoinBgfxPlan & plan,
     uint64_t(plan.textures.capacity()) * sizeof(CoinBgfxTexture);
   for (const auto & texture : plan.textures) metadataBytes += texture.pixelsRgba.capacity();
   if (metadataBytes > metadataBudget) return false;
-  plan.uploadedVertexCount = plan.vertices.size();
-  plan.uploadedIndexCount = plan.indices.size();
-  const uint64_t geometryBytes = uint64_t(plan.vertices.capacity()) * sizeof(CoinBgfxVertex) +
-    uint64_t(plan.indices.capacity()) * sizeof(uint32_t);
+  // Large uploads can transfer the vertex allocation to BGFX before caching.
+  // Keep their count, and also make retaining an already released plan safe.
+  plan.uploadedVertexCount = plan.vertexCount();
+  if (!plan.indices.empty()) plan.uploadedIndexCount = plan.indices.size();
+  // Account for transferred vertices as well, so their remaining indices do
+  // not accidentally become eligible for the small-plan material cache.
+  const uint64_t geometryBytes = uint64_t(std::max(plan.vertices.capacity(), plan.uploadedVertexCount)) * sizeof(CoinBgfxVertex) +
+    uint64_t(std::max(plan.indices.capacity(), plan.uploadedIndexCount)) * sizeof(uint32_t);
   if (geometryBytes + metadataBytes > geometryBudget) {
     std::vector<CoinBgfxVertex>().swap(plan.vertices);
     std::vector<uint32_t>().swap(plan.indices);

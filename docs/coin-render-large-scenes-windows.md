@@ -1018,6 +1018,98 @@ A instalação local BGFX foi atualizada e os hashes de `Coin4.dll`,
 Logs, scripts, resultados JUnit, hashes e medição consolidada:
 [`bgfx-gl-indexed-summary.json`](validation/bgfx-windows/first-frame/bgfx-gl-indexed/bgfx-gl-indexed-summary.json).
 
+## Upload por referência no BGFX/OpenGL — 2026-10-03
+
+O upload completo de vértices acima de 32 MiB agora transfere a alocação do
+`std::vector` ao BGFX por `makeRef`, com callback de liberação. O dono desse
+bloco é independente do target e do plano em cache. O BGFX pode liberá-lo na
+thread de renderização ou durante shutdown, depois de consumir os comandos.
+Não há espera extra nem uma referência a memória temporária da stack.
+Se a alocação do pequeno objeto dono falhar, o caminho anterior com `copy`
+continua disponível. Uploads pequenos, patches de material e o caminho direto
+de RTT mantêm a cópia anterior. Os índices ainda são enviados com `copy`.
+
+Na cidade de 40.000 prédios, elimina-se uma cópia CPU de 172,12 MiB por upload
+completo. O payload GPU, o layout de 188 bytes, os 960.024 vértices e os
+1.440.036 índices permanecem iguais. Não é uma medição de redução do pico RSS:
+o número se refere ao bloco cuja cópia deixa de existir.
+
+Os contadores do plano sobrevivem à transferência e à retenção repetida.
+O cálculo do orçamento inclui os vértices transferidos, para também descartar
+os índices CPU dos planos grandes. Planos pequenos continuam com os dados
+necessários aos patches de material. Nenhum shader ou código wgpu mudou.
+
+### Medição da versão final
+
+Baseline `b70db88d49`, três processos novos antes/depois por API, alternados,
+cidade de 40.000 prédios em 1024×1024, `--warmup 1 --frames 3`. Primeiro quadro
+inclui renderização e cópia RGBA síncrona, sem parsing/capability probe.
+Sem tracing nas medianas; caches do driver/sistema mantidos. Build, testes e
+processos GPU foram serializados. O controle aquecido separado usa quatro
+quadros de aquecimento e oito medidos. Todas as medianas aquecidas dos processos
+cronometrados estáticos ficaram abaixo de 30 ms. Faixas e amostras estão no JSON.
+
+| Caminho | Primeiro antes (ms) | Primeiro depois (ms) | Redução | Aquecido antes (ms) | Aquecido depois (ms) |
+|---|---:|---:|---:|---:|---:|
+| BGFX OpenGL | 1273.72 | 1212.01 | 4.8% | 11.89 | 12.76 |
+| BGFX Vulkan | 1532.60 | 1412.41 | 7.8% | 10.15 | 10.28 |
+| BGFX D3D12 | 1401.40 | 1359.77 | 3.0% | 11.73 | 12.26 |
+
+Não foi observado ganho no quadro estático aquecido. Esse controle variou
+menos de 1 ms entre versões; o trabalho GPU e o reuse dos buffers não mudam.
+
+Uma execução separada com tracing no OpenGL:
+
+| Intervalo | Antes (ms) | Depois (ms) |
+|---|---:|---:|
+| Lowering | 152.22 | 151.44 |
+| Upload | 60.65 | 1.88 |
+| Espera pelo readback | 431.06 | 407.89 |
+
+O tempo de upload mede o intervalo CPU do backend. O driver ainda precisa
+receber a geometria e renderizar; esse trabalho aparece também na espera pelo
+readback. Não se trata de upload GPU de custo zero. Na execução com tracing
+depois, preparar o target custou 194.42 ms,
+e a espera pelo readback custou 407.89 ms.
+Essas parcelas e o lowering permanecem como oportunidades de melhoria.
+
+Os controles de atualização OpenGL usam 10.000 prédios, warmup 1 e três quadros:
+
+| Atualização | Processos por versão | Aquecido antes (ms) | Aquecido depois (ms) |
+|---|---:|---:|---:|
+| camera | 1 | 288.13 | 267.18 |
+| material | 3 | 287.48 | 276.17 |
+
+O controle de câmera tem somente um processo por versão. Esses controles
+verificam principalmente a correção dos caminhos de reuse/rebuild; não
+estabelecem uma distribuição de desempenho para câmera.
+
+### Qualificação
+
+A suíte de 50 casos passou sem falhas nem skips, incluindo OpenGL,
+profundidade, transparência, clipping, texturas, janelas, sombras GPU,
+múltiplos targets e RTT. Os testes GPU de referência/sombras foram obrigatórios.
+O Core verifica contadores e dados depois da transferência, retenção repetida
+e descarte dos índices restantes. O teste offscreen excede 32 MiB, verifica
+cache estático e rebuild de material, injeta perda de dispositivo depois de
+enfileirar um novo upload grande e confirma recuperação com a mesma imagem.
+Esse teste de ciclo de vida também passou em Vulkan e D3D12, em processos separados.
+
+Os 38 processos finais geraram 19 pares de imagens
+idênticos à baseline pelo SHA-256 do PPM e pelo hash RGBA, incluindo as três
+APIs, tracing, controle aquecido, câmera e material. A instalação local BGFX
+foi atualizada; hashes do build e da instalação conferem. `Coin4.dll` e o
+benchmark permanecem idênticos à baseline.
+
+A rodada parcial inicial foi interrompida pelo tratamento de stderr de diagnóstico
+do PowerShell 5. A rodada completa da primeira implementação também foi
+preservada; ela precede a correção que descarta os índices CPU restantes.
+Os resultados acima pertencem a uma nova rodada completa com a versão final,
+sem excluir amostras individuais. Os pilotos estão em `pilots/`.
+
+Evidências, scripts e logs:
+[`bgfx-gl-upload-summary.json`](validation/bgfx-windows/first-frame/bgfx-gl-upload/bgfx-gl-upload-summary.json).
+
 ## Reproduzir
 
 ```powershell

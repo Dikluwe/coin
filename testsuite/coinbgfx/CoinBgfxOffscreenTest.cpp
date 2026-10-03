@@ -242,6 +242,22 @@ int main()
     std::cerr << "BGFX large GPU-only cache retained stale material data\n";
     return 1;
   }
+  // Fail after a large upload is queued but before frame submission. Runtime
+  // teardown must release the transferred allocation, and recreation must
+  // upload independent data rather than reuse a dangling reference.
+  largeFrame.revision = 9004;
+  const uint32_t largeUploadGeneration = target.generation;
+  coinRenderTestSetEnvironment("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE", "1");
+  if (target.executeFrame(largeFrame).status != CoinRenderBackendStatus::DEVICE_LOST ||
+      target.generation != largeUploadGeneration + 1 || target.backend) {
+    std::cerr << "BGFX queued large upload did not tear down after submission loss\n";
+    return 1;
+  }
+  if (target.executeFrame(largeFrame).status != CoinRenderBackendStatus::SUCCESS ||
+      target.colorBuffer != largeBlue) {
+    std::cerr << "BGFX large upload failed to recover its owned memory\n";
+    return 1;
+  }
   CoinRenderTextureImageSnapshot recoveryTexture;
   recoveryTexture.width = 1;
   recoveryTexture.height = 1;

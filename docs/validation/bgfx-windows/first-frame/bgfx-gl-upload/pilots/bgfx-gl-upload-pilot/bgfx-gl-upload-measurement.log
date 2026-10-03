@@ -1,0 +1,26 @@
+bgfx-gl-upload-opengl-before-1-static exit=0
+
+build\bgfx-gl-upload-opengl-before-1-static.log:6:BGFX-OpenGL_first_frame_ms=1460.74
+build\bgfx-gl-upload-opengl-before-1-static.log:7:rgba_fnv64=0x156847cec1d97864
+bgfx-gl-upload-opengl-after-1-static exit=0
+build\bgfx-gl-upload-opengl-after-1-static.log:6:BGFX-OpenGL_first_frame_ms=1211.24
+build\bgfx-gl-upload-opengl-after-1-static.log:7:rgba_fnv64=0x156847cec1d97864
+bgfx-gl-upload-opengl-before-2-static exit=0
+build\bgfx-gl-upload-opengl-before-2-static.log:6:BGFX-OpenGL_first_frame_ms=1286.29
+build\bgfx-gl-upload-opengl-before-2-static.log:7:rgba_fnv64=0x156847cec1d97864
+bgfx-gl-upload-opengl-after-2-static exit=0
+build\bgfx-gl-upload-opengl-after-2-static.log:6:BGFX-OpenGL_first_frame_ms=1199.99
+build\bgfx-gl-upload-opengl-after-2-static.log:7:rgba_fnv64=0x156847cec1d97864
+bgfx-gl-upload-opengl-before-3-static exit=0
+build\bgfx-gl-upload-opengl-before-3-static.log:6:BGFX-OpenGL_first_frame_ms=1258.7
+build\bgfx-gl-upload-opengl-before-3-static.log:7:rgba_fnv64=0x156847cec1d97864
+bgfx-gl-upload-opengl-after-3-static exit=0
+build\bgfx-gl-upload-opengl-after-3-static.log:6:BGFX-OpenGL_first_frame_ms=1229.7
+build\bgfx-gl-upload-opengl-after-3-static.log:7:rgba_fnv64=0x156847cec1d97864
+coin_render_gl_benchmark.exe : COIN_RENDER_PHASE bgfx_device renderer=OpenGL 4.3 vendor_id=0x10de device_id=0x0000
+homogeneous_depth=1
+No H:\Git\coin\build\measure_bgfx_gl_upload.ps1:23 caractere:3
++   & $exe @arguments *> "build/$tag.log"
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (COIN_RENDER_PHA...geneous_depth=1:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError

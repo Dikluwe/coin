@@ -56,6 +56,7 @@
 #include <limits>
 #include <mutex>
 #include <map>
+#include <new>
 #ifndef _WIN32
 #include <X11/Xlib.h>
 #endif
@@ -85,6 +86,30 @@ namespace {
 constexpr bgfx::ViewId targetViewCount = 16;
 struct SharedBgfxRuntime;
 SharedBgfxRuntime & sharedRuntime();
+
+void releaseUploadVertices(void *, void * owner)
+{
+  // BGFX may invoke this on its render worker, including during shutdown.
+  // The owner is independent of the target and its reusable plan.
+  delete static_cast<std::vector<CoinBgfxVertex> *>(owner);
+}
+
+const bgfx::Memory * uploadVertices(CoinBgfxPlan & plan)
+{
+  const uint32_t bytes = static_cast<uint32_t>(
+    plan.vertices.size() * sizeof(CoinBgfxVertex));
+  // These vertices already exceed the CPU geometry retention budget. Transfer
+  // their allocation instead of copying it only to discard the original.
+  if (bytes > 32u * 1024u * 1024u) {
+    auto * owner = new (std::nothrow) std::vector<CoinBgfxVertex>;
+    if (owner) {
+      plan.uploadedVertexCount = plan.vertices.size();
+      owner->swap(plan.vertices);
+      return bgfx::makeRef(owner->data(), bytes, releaseUploadVertices, owner);
+    }
+  }
+  return bgfx::copy(plan.vertices.data(), bytes);
+}
 
 bool bgfxShadowBatchSupported(const CoinRenderFramePlan & frame,
                               const CoinRenderShadowPlan & plan,
@@ -2053,8 +2078,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
         this->lastError = "BGFX geometry upload failed";
         return CoinRenderSubmitResult(CoinRenderBackendStatus::OUT_OF_MEMORY, this->lastError);
       }
-      bgfx::update(vb, 0, bgfx::copy(plan->vertices.data(),
-        static_cast<uint32_t>(plan->vertices.size() * sizeof(CoinBgfxVertex))));
+      bgfx::update(vb, 0, uploadVertices(freshPlan));
       bgfx::update(ib, 0, bgfx::copy(plan->indices.data(),
         static_cast<uint32_t>(plan->indices.size() * sizeof(uint32_t))));
     }

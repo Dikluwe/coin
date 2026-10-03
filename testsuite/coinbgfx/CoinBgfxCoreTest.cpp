@@ -76,6 +76,25 @@ int main()
               retained.draws[0].indexCount == 3 &&
               std::memcmp(retained.draws[0].mvp, plan.draws[0].mvp, sizeof(plan.draws[0].mvp)) == 0,
               "large GPU cache must release CPU geometry and preserve draw metadata");
+  ok &= check(CoinBgfxLowering::retainForReuse(retained, 0) &&
+              retained.vertexCount() == 3 && retained.uploadedIndexCount == 3,
+              "retaining released geometry lost the uploaded counts");
+  retained = plan;
+  retained.uploadedVertexCount = retained.vertices.size();
+  std::vector<CoinBgfxVertex> uploadOwner;
+  const CoinBgfxVertex * uploadData = retained.vertices.data();
+  uploadOwner.swap(retained.vertices);
+  ok &= check(CoinBgfxLowering::retainForReuse(retained) &&
+              retained.vertexCount() == 3 && retained.uploadedIndexCount == 3 &&
+              retained.draws[0].indexCount == 3 &&
+              uploadOwner.data() == uploadData &&
+              std::memcmp(uploadOwner.data(), plan.vertices.data(),
+                          uploadOwner.size() * sizeof(CoinBgfxVertex)) == 0,
+              "transferred upload must preserve ownership, data and cache counts");
+  retained.uploadedVertexCount = 32u * 1024u * 1024u / sizeof(CoinBgfxVertex) + 1u;
+  ok &= check(CoinBgfxLowering::retainForReuse(retained) &&
+              retained.indices.capacity() == 0 && retained.uploadedIndexCount == 3,
+              "transferred large geometry must also release unused CPU indices");
   ok &= check(std::abs(plan.vertices[0].color[0] - 0.8f) < 1e-6f &&
               std::abs(plan.vertices[0].color[3] - 1.0f) < 1e-6f,
               "Coin diffuse color lost floating-point precision");
