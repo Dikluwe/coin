@@ -139,56 +139,56 @@ hash_threshold(unsigned int size, float loadfactor)
     static_cast<unsigned int>(scaled);
 }
 
-struct hash_rebuild_entry {
-  cc_hash_entry * entry;
-  unsigned int index;
-};
-
 static void
 hash_rebuild(cc_hash * ht, unsigned int newsize, cc_hash_func * func)
 {
   if (static_cast<size_t>(newsize) > SIZE_MAX / sizeof(cc_hash_entry *) ||
-      static_cast<size_t>(ht->elements) > SIZE_MAX / sizeof(hash_rebuild_entry))
+      static_cast<size_t>(ht->elements) > SIZE_MAX / sizeof(unsigned int))
     return;
 
   cc_hash_entry ** buckets = (cc_hash_entry **)
     calloc(newsize, sizeof(cc_hash_entry *));
   if (buckets == NULL) return;
 
-  hash_rebuild_entry * plan = NULL;
-  if (ht->elements != 0) {
-    plan = (hash_rebuild_entry *)
-      malloc(static_cast<size_t>(ht->elements) * sizeof(hash_rebuild_entry));
-    if (plan == NULL) {
+  // The default hash cannot throw. Custom hashes need a plan so a callback
+  // exception cannot leave the old bucket chains partly rewritten.
+  unsigned int * indices = NULL;
+  if (func != hash_default_hashfunc && ht->elements != 0) {
+    indices = (unsigned int *)
+      malloc(static_cast<size_t>(ht->elements) * sizeof(unsigned int));
+    if (indices == NULL) {
       free(buckets);
       return;
+    }
+    size_t count = 0;
+    try {
+      for (unsigned int i = 0; i < ht->size; ++i) {
+        for (cc_hash_entry * entry = ht->buckets[i]; entry != NULL;
+             entry = entry->next) {
+          indices[count++] = func(entry->key) % newsize;
+        }
+      }
+    }
+    catch (...) {
+      free(indices);
+      free(buckets);
+      throw;
     }
   }
 
   size_t count = 0;
-  try {
-    for (unsigned int i = 0; i < ht->size; ++i) {
-      for (cc_hash_entry * entry = ht->buckets[i]; entry != NULL;
-           entry = entry->next) {
-        plan[count].entry = entry;
-        plan[count].index = func(entry->key) % newsize;
-        ++count;
-      }
+  for (unsigned int i = 0; i < ht->size; ++i) {
+    cc_hash_entry * entry = ht->buckets[i];
+    while (entry != NULL) {
+      cc_hash_entry * next = entry->next;
+      const unsigned int index = indices != NULL ?
+        indices[count++] : entry->key % newsize;
+      entry->next = buckets[index];
+      buckets[index] = entry;
+      entry = next;
     }
   }
-  catch (...) {
-    free(plan);
-    free(buckets);
-    throw;
-  }
-
-  for (size_t i = 0; i < count; ++i) {
-    cc_hash_entry * entry = plan[i].entry;
-    const unsigned int index = plan[i].index;
-    entry->next = buckets[index];
-    buckets[index] = entry;
-  }
-  free(plan);
+  free(indices);
 
   cc_hash_entry ** oldbuckets = ht->buckets;
   ht->buckets = buckets;
@@ -205,7 +205,7 @@ hash_resize(cc_hash * ht, unsigned int newsize)
   if (ht->size >= newsize)
     return;
   if (ht->applydepth != 0) {
-    ht->deferredresize = 1;
+    if (ht->deferredresize != UINT_MAX) ++ht->deferredresize;
     return;
   }
   hash_rebuild(ht, newsize, ht->hashfunc);
@@ -481,15 +481,17 @@ cc_hash_apply(cc_hash * ht, cc_hash_apply_func * func, void * closure)
       cc_hash_set_hash_func(ht, pendinghashfunc);
     if (deferredresize) {
       if (ht->elements > ht->threshold && ht->size < UINT_MAX) {
-        // Several inserts may have occurred during apply; size for all of them.
+        // Size for all deferred inserts without growing more than the same
+        // number of ordinary insertions could have grown the table.
         const double required = std::ceil(
           static_cast<double>(ht->elements) / ht->loadfactor);
-        unsigned int target = ht->size + 1;
-        if (required >= static_cast<double>(UINT_MAX))
-          target = UINT_MAX;
-        else if (required > static_cast<double>(target))
-          target = static_cast<unsigned int>(required);
-        hash_resize(ht, (unsigned int) coin_geq_prime_number(target));
+        unsigned int target = ht->size;
+        for (unsigned int step = 0;
+             step < deferredresize && target < required && target < UINT_MAX;
+             ++step) {
+          target = (unsigned int) coin_geq_prime_number(target + 1);
+        }
+        hash_resize(ht, target);
       }
     }
   }

@@ -258,7 +258,7 @@ SbDict::makePList(SbPList & keys, SbPList & values)
   hashing function just returns the key. Passing NULL restores it.
 
   Existing entries remain accessible after changing the hash function.
-  If allocating replacement buckets fails, the previous function and
+  If allocating replacement storage fails, the previous function and
   entries remain unchanged.
 
   If you find that items entered into the dictionary seems to make

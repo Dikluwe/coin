@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <csignal>
 #include <stdexcept>
+#include <limits>
 #include <sys/resource.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -13,9 +14,11 @@ static bool fail_calloc = false;
 static bool fail_malloc = false;
 static bool fail_entry = false;
 static bool fail_allocator = false;
+static size_t last_calloc_count = 0;
 
 static void * injected_calloc(size_t count, size_t size)
 {
+  last_calloc_count = count;
   if (fail_calloc) { fail_calloc = false; return NULL; }
   return std::calloc(count, size);
 }
@@ -278,6 +281,31 @@ int main()
   CHECK(hash->hashfunc != collision_hash);
   CHECK(cc_hash_get(hash, 0, &found));
   CHECK(cc_hash_get(hash, 17, &found));
+  cc_hash_destruct(hash);
+
+  hash = cc_hash_construct(2, 1.0f);
+  CHECK(cc_hash_put(hash, 0, NULL));
+  CHECK(cc_hash_put(hash, 2, NULL));
+  fail_malloc = true;
+  CHECK(cc_hash_put(hash, 4, NULL));
+  CHECK(fail_malloc); // Default hashing needs no temporary rehash plan.
+  fail_malloc = false;
+  CHECK(hash->size > 2);
+  CHECK(cc_hash_get(hash, 0, &found));
+  CHECK(cc_hash_get(hash, 2, &found));
+  CHECK(cc_hash_get(hash, 4, &found));
+  cc_hash_destruct(hash);
+
+  hash = cc_hash_construct(2, std::numeric_limits<float>::min());
+  CHECK(cc_hash_put(hash, 0, NULL));
+  CHECK(cc_hash_put(hash, 2, NULL));
+  const unsigned int size_before_tiny_factor_apply = hash->size;
+  fail_calloc = true;
+  cc_hash_apply(hash, insert_during_apply, hash);
+  CHECK(!fail_calloc);
+  CHECK(last_calloc_count == coin_geq_prime_number(
+    size_before_tiny_factor_apply + 1));
+  CHECK(cc_hash_get(hash, 4, &found));
   cc_hash_destruct(hash);
   return 0;
 }
