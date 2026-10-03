@@ -301,7 +301,8 @@ cc_hash_put(cc_hash * ht, cc_hash_key key, void * val)
   ht->buckets[i] = he;
 
   if (ht->elements++ >= ht->threshold && ht->size < UINT_MAX) {
-    const unsigned long nextsize = coin_geq_prime_number((unsigned long)ht->size + 1);
+    const unsigned long nextsize =
+      coin_geq_growth_prime_number((unsigned long)ht->size + 1);
     if (nextsize > ht->size && nextsize <= UINT_MAX)
       hash_resize(ht, (unsigned int) nextsize);
   }

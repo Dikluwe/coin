@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <csignal>
+#include <climits>
 #include <sys/resource.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -31,9 +32,13 @@ int main()
 {
   struct rlimit no_core = { 0, 0 };
   setrlimit(RLIMIT_CORE, &no_core);
-  for (int stage = 0; stage < 2; ++stage) {
+  for (int stage = 0; stage < 3; ++stage) {
     const pid_t child = fork();
     if (child == 0) {
+      if (stage == 2) {
+        SbHash<unsigned int, int> too_large(UINT_MAX);
+        _exit(1);
+      }
       fail_constructor = stage == 0;
       SbHash<unsigned int, int> hash(2);
       fail_entry = stage == 1;

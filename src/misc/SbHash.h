@@ -49,6 +49,7 @@
 // *************************************************************************
 
 #include <assert.h>
+#include <new> // std::bad_alloc
 #include <stddef.h> // NULL
 #include <string.h> // memset()
 #include <climits>
@@ -483,7 +484,7 @@ public:
 
     if (this->elements++ >= this->threshold && this->size < UINT_MAX) {
       const unsigned long nextsize =
-        coin_geq_prime_number((unsigned long)this->size + 1);
+        coin_geq_growth_prime_number((unsigned long)this->size + 1);
       if (nextsize > this->size && nextsize <= UINT_MAX)
         this->resize(static_cast<unsigned int>(nextsize));
     }

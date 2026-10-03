@@ -111,6 +111,7 @@ add_executable(CoinTests
 	TestSuiteUtils.cpp
 	TestSuiteMisc.cpp
 	InternalMacroTest.cpp
+	CoinPrimeBoundaryTest.cpp
 	${COIN_TEST_SOURCES}
 )
 
@@ -129,6 +130,8 @@ if(WIN32 AND COIN_BUILD_SHARED_LIBS)
 endif()
 
 set_source_files_properties(InternalMacroTest.cpp PROPERTIES
+	COMPILE_DEFINITIONS COIN_INTERNAL)
+set_source_files_properties(CoinPrimeBoundaryTest.cpp PROPERTIES
 	COMPILE_DEFINITIONS COIN_INTERNAL)
 set_target_properties(CoinTests PROPERTIES DEBUG_POSTFIX "${CMAKE_DEBUG_POSTFIX}")
 target_link_libraries(CoinTests Coin ${COIN_TARGET_LINK_LIBRARIES})

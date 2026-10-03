@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <csignal>
+#include <climits>
 #include <sys/resource.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -57,9 +58,13 @@ int main()
 {
   struct rlimit no_core = { 0, 0 };
   setrlimit(RLIMIT_CORE, &no_core);
-  for (int stage = 0; stage < 4; ++stage) {
+  for (int stage = 0; stage < 5; ++stage) {
     const pid_t child = fork();
     if (child == 0) {
+      if (stage == 4) {
+        (void) cc_hash_construct(UINT_MAX, 0.75f);
+        _exit(1);
+      }
       if (stage == 0) fail_malloc = true;
       if (stage == 1) fail_calloc = true;
       if (stage == 2) fail_allocator = true;

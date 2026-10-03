@@ -245,7 +245,10 @@ int coin_finite(double value);
 
 /* ********************************************************************** */
 
+/* Returns the smallest prime >= num, or 0 when no unsigned-int prime fits. */
 unsigned long coin_geq_prime_number(unsigned long num);
+/* Uses precomputed bucket capacities for geometric table growth. */
+unsigned long coin_geq_growth_prime_number(unsigned long num);
 
 /* ********************************************************************** */
 
