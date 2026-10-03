@@ -832,6 +832,87 @@ Logs, scripts de reprodução, resultados JUnit e hashes estão em
 As instalações locais `build/coin-render-install` e
 `build/coin-render-bgfx-install` foram atualizadas e conferidas contra os builds.
 
+## Reaproveitamento de cubos e comparação com Coin/OpenGL — 2026-10-03
+
+O maior custo comum que restou após `113ee2b4f8` foi a captura, com cerca de
+430 ms no Vulkan. Esta rodada acrescenta um template limitado à geometria de
+um cubo, aprendido da própria sequência nativa de callbacks. Ele permite
+reaproveitar posições, normais, coordenadas e índices em ocorrências seguintes
+com dimensões bit a bit iguais e o mesmo binding de normais.
+
+O caminho exige o tipo exato `SoCube`, preenchido, sem unidades de textura
+habilitadas, sem função de coordenadas e com material `OVERALL`. Também exige
+que não existam callbacks externos de shape/primitivas. Subclasses, materiais
+por face/parte, linhas, pontos e observadores continuam no caminho anterior.
+O cache é um único template de aproximadamente 2,5 KiB, invalidado a cada
+quadro; não retém o nó nem detalhes de primitivas. Mudanças de dimensões ou
+binding provocam nova captura nativa. `fastPathEnabled=false` impede o replay.
+
+Material, iluminação, transformações, clipping, câmera, viewport, profundidade,
+sombras, camadas e demais estados continuam capturados em cada ocorrência.
+Os vértices são copiados para o intervalo próprio do desenho e recebem o slot
+atual de material. Não há instancing GPU nem aliasing de geometria entre
+ocorrências. A quantidade de vértices, índices e bytes permanece igual à da
+rodada anterior; a melhoria elimina geração e processamento repetidos na CPU.
+
+### Resultados pareados
+
+40.000 prédios em 1024×1024, três processos novos antes/depois por API,
+alternando as versões, sem tracing. A baseline é o build `113ee2b4f8`
+preservado antes desta alteração. Primeiro quadro inclui renderização e cópia
+RGBA síncrona; carregamento da cena e consulta de capacidade ficam fora.
+O Coin/OpenGL foi medido em três processos novos nesta rodada. O controle
+aquecido usa quatro quadros de aquecimento e oito medidos. Caches do driver
+e do sistema foram mantidos e os processos GPU foram executados em sequência.
+
+| Caminho | Primeiro antes (ms) | Primeiro depois (ms) | Redução adicional | Aquecido depois (ms) |
+|---|---:|---:|---:|---:|
+| Coin/OpenGL nativo | — | 630.14 | — | 34.85 |
+| wgpu D3D12 | 1191.00 | 1087.34 | 8.7% | 26.01 |
+| wgpu Vulkan | 942.06 | 819.15 | 13.0% | 24.56 |
+| wgpu OpenGL | 1101.83 | 996.48 | 9.6% | 27.92 |
+| bgfx D3D12 | 1784.46 | 1680.07 | 5.8% | 12.27 |
+| bgfx Vulkan | 1830.92 | 1745.58 | 4.7% | 10.67 |
+| bgfx OpenGL | 1661.26 | 1531.86 | 7.8% | 12.48 |
+
+Os controles separados com tracing mostram a captura e o número de replays:
+
+| Caminho Vulkan | Captura antes → depois (ms) | Cubos reaproveitados |
+|---|---:|---:|
+| wgpu | 429.27 → 300.75 | 39999 |
+| bgfx | 440.18 → 322.74 | 39999 |
+
+O replay reduz o custo comum, mas não torna os primeiros quadros equivalentes
+ao Coin/OpenGL. Os intervalos de preparação, empacotamento, pipelines e espera
+por readback continuam separados nos logs. No BGFX, a expansão da geometria
+e o bootstrap do readback ainda custam mais no primeiro quadro. Nos quadros
+estáticos aquecidos, os caminhos otimizados já ficam abaixo do Coin/OpenGL
+nesta cena. Estes resultados valem para o adaptador e driver desta máquina;
+as faixas das três amostras estão no JSON.
+
+### Verificação
+
+Os builds completos wgpu e BGFX passaram. Seis testes iniciais de Core,
+Action, composição, reutilização e packing passaram. 84 casos adicionais
+passaram nas seis APIs, sem skips, cobrindo captura, materiais, profundidade,
+texturas, iluminação, clipping, estilos, transparência, sombras e RTT.
+As referências OpenGL e a execução GPU de sombras foram obrigatórias.
+
+As comparações novas cobrem materiais diferentes em ocorrências transformadas,
+profundidade alternada, dimensões alteradas entre ocorrências e quadros,
+desenhos que se juntam no mesmo intervalo e observadores que devem receber
+todos os 24 triângulos de dois cubos. A expansão da captura continua igual à
+referência nativa, incluindo atributos bit a bit e materiais por face.
+
+As seis imagens estáticas e quatro controles de câmera/material em movimento
+ficaram byte a byte iguais às respectivas baselines. O Coin/OpenGL manteve
+o checksum entre suas três execuções; os hashes de `Coin4.dll` também
+permaneceram iguais. As instalações locais dos dois backends foram atualizadas
+e verificadas por SHA-256 contra os builds.
+
+Logs, scripts, JUnit, hashes e medições estão em
+[cube-replay-summary.json](validation/bgfx-windows/first-frame/cube-replay/cube-replay-summary.json).
+
 ## Reproduzir
 
 ```powershell

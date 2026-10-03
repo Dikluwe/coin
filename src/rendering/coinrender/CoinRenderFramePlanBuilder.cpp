@@ -139,6 +139,8 @@ void
 CoinRenderFramePlanBuilder::reset()
 {
   this->endShape();
+  this->cubeTemplateReady = false;
+  this->cubeReplayHits = 0;
   this->polygonNode = nullptr;
   this->polygonVertices.clear();
   this->polygonPositions.clear();
@@ -202,14 +204,73 @@ CoinRenderFramePlanBuilder::beginShape(SoCallbackAction * action, const SoNode *
   this->reuseCubeVertices = type == SoCube::getClassTypeId();
   if (this->reuseCubeVertices)
     std::fill(this->cubeVertexSlots, this->cubeVertexSlots + 48, UINT32_MAX);
+  this->captureCubeTemplate = this->reuseCubeVertices &&
+    SoMaterialBindingElement::get(state) == SoMaterialBindingElement::OVERALL;
+  if (this->captureCubeTemplate) {
+    const auto * cube = static_cast<const SoCube *>(node);
+    this->cubeCaptureDimensions[0] = cube->width.getValue();
+    this->cubeCaptureDimensions[1] = cube->height.getValue();
+    this->cubeCaptureDimensions[2] = cube->depth.getValue();
+    this->cubeCaptureNormalBinding = SoNormalBindingElement::get(state);
+    this->cubeCaptureFirstVertex = this->currentPlan.vertices.size();
+    this->cubeCaptureFirstIndex = this->currentPlan.indices.size();
+    this->cubeCaptureFirstDraw = this->currentPlan.draws.size();
+  }
 }
 
 void
 CoinRenderFramePlanBuilder::endShape()
 {
+  if (this->captureCubeTemplate &&
+      this->currentPlan.vertices.size() == this->cubeCaptureFirstVertex + 24 &&
+      this->currentPlan.indices.size() == this->cubeCaptureFirstIndex + 36 &&
+      this->currentPlan.draws.size() == this->cubeCaptureFirstDraw + 1) {
+    bool local = true;
+    for (size_t i = 0; i < 36; ++i) {
+      const size_t index = this->currentPlan.indices[this->cubeCaptureFirstIndex + i];
+      if (index < this->cubeCaptureFirstVertex || index >= this->cubeCaptureFirstVertex + 24) local = false;
+    }
+    if (local) {
+      std::copy_n(this->currentPlan.vertices.begin() + this->cubeCaptureFirstVertex, 24,
+                  this->cubeTemplateVertices);
+      for (size_t i = 0; i < 36; ++i)
+        this->cubeTemplateIndices[i] = this->currentPlan.indices[this->cubeCaptureFirstIndex + i] -
+          static_cast<uint32_t>(this->cubeCaptureFirstVertex);
+      std::copy_n(this->cubeCaptureDimensions, 3, this->cubeTemplateDimensions);
+      this->cubeTemplateNormalBinding = this->cubeCaptureNormalBinding;
+      this->cubeTemplateReady = true;
+    }
+  }
+  this->captureCubeTemplate = false;
   this->stableShape = nullptr;
   this->reuseCubeVertices = false;
   this->shapeRenderStates.clear();
+}
+
+bool
+CoinRenderFramePlanBuilder::replayNativeCube(SoCallbackAction * action, SoNode * node)
+{
+  if (!this->captureCubeTemplate || this->stableShape != node || !this->cubeTemplateReady ||
+      this->cubeCaptureNormalBinding != this->cubeTemplateNormalBinding ||
+      std::memcmp(this->cubeCaptureDimensions, this->cubeTemplateDimensions, sizeof(this->cubeTemplateDimensions)) != 0)
+    return false;
+  const uint32_t stateSlot = this->captureRenderState(action, 0);
+  this->ensureDrawPacket(CoinRenderPrimitiveTopology::TRIANGLE_LIST, stateSlot, node);
+  this->captureSortingCenter(action);
+  const uint32_t materialSlot = this->currentPlan.renderStates[stateSlot].materialSlot;
+  const uint32_t base = static_cast<uint32_t>(this->currentPlan.vertices.size());
+  this->currentPlan.vertices.insert(this->currentPlan.vertices.end(),
+      this->cubeTemplateVertices, this->cubeTemplateVertices + 24);
+  for (size_t i = base; i < this->currentPlan.vertices.size(); ++i)
+    this->currentPlan.vertices[i].materialSlot = materialSlot;
+  for (const uint32_t index : this->cubeTemplateIndices)
+    this->currentPlan.indices.push_back(base + index);
+  auto & draw = this->currentPlan.draws[this->currentDrawIndex];
+  draw.geometry.vertexCount = static_cast<uint32_t>(this->currentPlan.vertices.size()) - draw.geometry.firstVertex;
+  draw.geometry.indexCount += 36;
+  this->captureCubeTemplate = false;
+  ++this->cubeReplayHits;
+  return true;
 }
 
 void
@@ -1512,12 +1573,12 @@ CoinRenderFramePlanBuilder::build(CoinRenderFramePlan & outPlan, std::string * o
   timer.mark("composition");
   if (CoinRenderDiagnosticShell::phaseTracingEnabled()) {
     const auto & plan = this->currentPlan;
-    std::fprintf(stderr, "COIN_RENDER_PHASE plan_storage vertices=%zu indices=%zu render_states=%zu draws=%zu vertex_stride=%zu vertex_bytes=%zu vertex_capacity_bytes=%zu index_bytes=%zu index_capacity_bytes=%zu render_state_bytes=%zu transfer_ownership=%d\n",
+    std::fprintf(stderr, "COIN_RENDER_PHASE plan_storage vertices=%zu indices=%zu render_states=%zu draws=%zu vertex_stride=%zu vertex_bytes=%zu vertex_capacity_bytes=%zu index_bytes=%zu index_capacity_bytes=%zu render_state_bytes=%zu transfer_ownership=%d cube_replay_hits=%llu\n",
       plan.vertices.size(), plan.indices.size(), plan.renderStates.size(), plan.draws.size(),
       sizeof(CoinRenderVertexSnapshot), plan.vertices.size() * sizeof(CoinRenderVertexSnapshot),
       plan.vertices.capacity() * sizeof(CoinRenderVertexSnapshot), plan.indices.size() * sizeof(uint32_t),
       plan.indices.capacity() * sizeof(uint32_t), plan.renderStates.size() * sizeof(CoinRenderRenderStateSnapshot),
-      transferOwnership ? 1 : 0);
+      transferOwnership ? 1 : 0, static_cast<unsigned long long>(this->cubeReplayHits));
   }
   timer.mark("storage_report");
   if (transferOwnership) {

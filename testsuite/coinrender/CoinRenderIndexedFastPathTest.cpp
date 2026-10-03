@@ -94,6 +94,11 @@ static int testNativeCubeVertexReuse() {
         transform->translation.setValue(float(i * 5), 0, 0);
         transform->scaleFactor.setValue(1, .5f, 2);
         instance->addChild(transform);
+        if (!perFace) {
+          auto * occurrenceMaterial = new SoMaterial;
+          occurrenceMaterial->diffuseColor.setValue(.2f + i * .3f, .4f, .8f);
+          instance->addChild(occurrenceMaterial);
+        }
         instance->addChild(sharedCube);
         root->addChild(instance);
       }

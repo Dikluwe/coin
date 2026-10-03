@@ -1,0 +1,13 @@
+startup_detail arguments_ms=0.0733 coin_init_ms=2.9042 capability_probe_ms=0.0003
+scene_detail parse_ms=404.336 wrapper_ms=0.0157 camera_fit_ms=92.6871
+scene_load_ms=497.152
+startup_detail material_search_ms=0.1264 target_setup_ms=0.011
+CoinGL_first_detail render_ms=644.617 lazy_readback_ms=8.2469 publication_copy_ms=0.5934 before_frame_since_main_ms=501.074 result_since_main_ms=1154.53
+CoinGL_first_frame_ms=653.457
+gl_rgba_fnv64=0x4df2a9ab75b7504
+image=build/large-scenes/cube-replay-coin-opengl-40000-current-1-static.ppm
+adapter=not-queried vendor_id=0x0 device_id=0x0 backend=gl size=1024x1024 warmup=4 scene=build/large-scenes/city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static
+CoinGL frames=8 median_ms=35.4742 p95_ms=36.7995 min_ms=33.8601 max_ms=36.7995
+CoinGL_throughput frames=8 total_ms=282.826 fps=28.2859
+backend_cleanup_begin
+backend_cleanup_ms=30.0291

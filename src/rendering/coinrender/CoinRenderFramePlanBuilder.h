@@ -20,9 +20,10 @@ public:
 
   void beginFrame(const SbColor4f & clearColor, const SbViewportRegion & viewport);
   void reset();
-  // A traversal-local scope, never a cache across shape occurrences/frames.
+  // Render-state reuse is scoped to one occurrence; geometry replay is frame-local.
   void beginShape(SoCallbackAction * action, const SoNode * node);
   void endShape();
+  bool replayNativeCube(SoCallbackAction * action, SoNode * node);
   // Wiring reads the effective Coin state, including ignored fields and overrides.
   static bool isShapeInvisible(SoCallbackAction * action);
   static int polygonDrawStyle(SoCallbackAction * action);
@@ -119,6 +120,20 @@ private:
   const SoNode * stableShape = nullptr;
   bool reuseCubeVertices = false;
   uint32_t cubeVertexSlots[48];
+  // One bounded, frame-local template learned from the native callback stream.
+  // State and material slots are captured again for every occurrence.
+  CoinRenderVertexSnapshot cubeTemplateVertices[24];
+  uint32_t cubeTemplateIndices[36];
+  float cubeTemplateDimensions[3] = {};
+  float cubeCaptureDimensions[3] = {};
+  int cubeTemplateNormalBinding = 0;
+  int cubeCaptureNormalBinding = 0;
+  bool cubeTemplateReady = false;
+  bool captureCubeTemplate = false;
+  size_t cubeCaptureFirstVertex = 0;
+  size_t cubeCaptureFirstIndex = 0;
+  size_t cubeCaptureFirstDraw = 0;
+  uint64_t cubeReplayHits = 0;
   std::vector<std::pair<int, uint32_t>> shapeRenderStates;
   std::vector<SbVec3f> lightAttenuationByIndex;
   std::vector<uint32_t> shadowGroupStack;

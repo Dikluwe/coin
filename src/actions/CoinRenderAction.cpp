@@ -866,8 +866,13 @@ CoinRenderActionP::textureUnitsPreCB(void * userdata, SoCallbackAction * action,
     }
   }
   p->builder.endShape();
-  if (p->master->hasSingleShapeCallbacks(node->getTypeId()))
+  if (p->master->hasSingleShapeCallbacks(node->getTypeId())) {
     p->builder.beginShape(action, node);
+    if (p->fastPathEnabled && p->builder.replayNativeCube(action, const_cast<SoNode *>(node))) {
+      p->builder.endShape();
+      return SoCallbackAction::PRUNE;
+    }
+  }
   return SoCallbackAction::CONTINUE;
 }
 

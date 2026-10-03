@@ -872,9 +872,54 @@ int testPrimitiveStateReuse() {
   }
   root->unref();
 
+  // Repeated OVERALL cubes may replay geometry, but never occurrence state.
   root = new SoSeparator;
   root->ref();
-  root->addChild(new SoCube);
+  root->addChild(new SoPerspectiveCamera);
+  auto * repeatedCube = new SoCube;
+  auto * otherDimensions = new SoCube;
+  otherDimensions->width = 3.0f;
+  SoMaterial * replayMaterial = nullptr;
+  for (int i = 0; i < 8; ++i) {
+    auto * occurrence = new SoSeparator;
+    auto * transform = new SoTransform;
+    transform->translation.setValue(float(i * 3), 0, 0);
+    occurrence->addChild(transform);
+    auto * material = new SoMaterial;
+    material->diffuseColor.setValue(.1f + i * .1f, .2f, .7f);
+    material->transparency = i % 2 ? .25f : 0.0f;
+    replayMaterial = material;
+    occurrence->addChild(material);
+    auto * depth = new SoDepthBuffer;
+    depth->write = i % 2 ? FALSE : TRUE;
+    occurrence->addChild(depth);
+    occurrence->addChild(i == 4 ? otherDimensions : repeatedCube);
+    if (i == 0) occurrence->addChild(repeatedCube); // One merged draw range.
+    root->addChild(occurrence);
+  }
+  CoinRenderAction replay, fullCapture;
+  replay.getPimpl()->planOnly = fullCapture.getPimpl()->planOnly = true;
+  static_cast<SoCallbackAction &>(fullCapture).addTriangleCallback(
+    SoShape::getClassTypeId(), noOpTriangle, nullptr);
+  for (int frame = 0; frame < 2; ++frame) {
+    if (frame) {
+      repeatedCube->width = 4.0f;
+      replayMaterial->diffuseColor.setValue(.8f, .3f, .1f);
+    }
+    replay.apply(root);
+    fullCapture.apply(root);
+    TEST_ASSERT(replay.getLastStatus() == CoinRenderAction::SUCCESS &&
+                fullCapture.getLastStatus() == CoinRenderAction::SUCCESS &&
+                expandedRecording(replay) == expandedRecording(fullCapture),
+                "cube replay must preserve occurrence materials, depth, transforms, dimensions and merged draws");
+  }
+  root->unref();
+
+  root = new SoSeparator;
+  root->ref();
+  auto * observedCube = new SoCube;
+  root->addChild(observedCube);
+  root->addChild(observedCube);
   CoinRenderAction callbacks;
   int count = 0;
   // Register through the base API to cover callbacks the derived action cannot intercept.
@@ -882,7 +927,7 @@ int testPrimitiveStateReuse() {
     SoShape::getClassTypeId(), alternateDepth, &count);
   callbacks.apply(root);
   const std::string log = callbacks.getRecordingLog().getString();
-  TEST_ASSERT(callbacks.getLastStatus() == CoinRenderAction::SUCCESS && count == 12,
+  TEST_ASSERT(callbacks.getLastStatus() == CoinRenderAction::SUCCESS && count == 24,
               "additional callback must still receive every cube triangle");
   TEST_ASSERT(log.find("depthWrite=0") != std::string::npos &&
               log.find("depthWrite=1") != std::string::npos,
