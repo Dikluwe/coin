@@ -59,6 +59,5 @@ coin_geq_prime_number(unsigned long num)
       return coin_prime_table[i];
     }
   }
-  /* just return num if we can't find a bigger prime number */
-  return num;
+  return 0;
 }

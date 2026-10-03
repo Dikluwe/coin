@@ -1739,8 +1739,9 @@ coin_geq_prime_number(unsigned long num)
       return coin_prime_table[i];
     }
   }
-  /* just return num if we can't find a bigger prime number */
-  return num;
+  /* Hash table bucket counts are unsigned int. There is no larger prime
+     representable in that type; never return a composite as a bucket size. */
+  return 0;
 }
 
 /**************************************************************************/

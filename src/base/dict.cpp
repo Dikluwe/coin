@@ -124,6 +124,10 @@ cc_dict_construct(unsigned int size, float loadfactor)
   cc_dict * ht = (cc_dict *) malloc(sizeof(cc_dict));
   
   s = (unsigned int) coin_geq_prime_number(size);
+  if (s == 0) {
+    free(ht);
+    return NULL;
+  }
   if (loadfactor <= 0.0f) loadfactor = 0.75f;
   
   ht->size = s;
@@ -216,7 +220,8 @@ cc_dict_put(cc_dict * ht, uintptr_t key, void * val)
   ht->buckets[i] = he;
   
   if (ht->elements++ >= ht->threshold) {
-    dict_resize(ht, (unsigned int) coin_geq_prime_number(ht->size + 1));
+    const unsigned long nextsize = coin_geq_prime_number((unsigned long)ht->size + 1);
+    if (nextsize != 0) dict_resize(ht, (unsigned int) nextsize);
   }
   return TRUE;
 }

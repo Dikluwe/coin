@@ -245,6 +245,7 @@ int coin_finite(double value);
 
 /* ********************************************************************** */
 
+/* Returns 0 when no unsigned-int prime is >= num. */
 unsigned long coin_geq_prime_number(unsigned long num);
 
 /* ********************************************************************** */

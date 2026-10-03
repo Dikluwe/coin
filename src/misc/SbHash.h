@@ -49,6 +49,7 @@
 // *************************************************************************
 
 #include <assert.h>
+#include <new> // std::bad_alloc
 #include <stddef.h> // NULL
 #include <string.h> // memset()
 
@@ -470,7 +471,8 @@ public:
     this->buckets[i] = entry;
 
     if (this->elements++ >= this->threshold) {
-      this->resize(static_cast<unsigned int>( coin_geq_prime_number(this->size + 1)));
+      const unsigned long nextsize = coin_geq_prime_number((unsigned long)this->size + 1);
+      if (nextsize != 0) this->resize(static_cast<unsigned int>(nextsize));
     }
     return TRUE;
   }
@@ -511,6 +513,7 @@ public:
   {
     if (loadfactorarg <= 0.0f) { loadfactorarg = 0.75f; }
     unsigned int s = coin_geq_prime_number(sizearg);
+    if (s == 0) throw std::bad_alloc();
     this->memhandler = cc_memalloc_construct(sizeof(SbHashEntry));
     this->size = s;
     this->elements = 0;

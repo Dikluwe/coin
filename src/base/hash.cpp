@@ -180,6 +180,10 @@ cc_hash_construct(unsigned int size, float loadfactor)
 
   /* size should be a prime number */
   s = (unsigned int) coin_geq_prime_number(size);
+  if (s == 0) {
+    free(ht);
+    return NULL;
+  }
   if (loadfactor <= 0.0f) loadfactor = 0.75f;
   
   ht->size = s;
@@ -272,7 +276,8 @@ cc_hash_put(cc_hash * ht, cc_hash_key key, void * val)
   ht->buckets[i] = he;
 
   if (ht->elements++ >= ht->threshold) {
-    hash_resize(ht, (unsigned int) coin_geq_prime_number(ht->size + 1));
+    const unsigned long nextsize = coin_geq_prime_number((unsigned long)ht->size + 1);
+    if (nextsize != 0) hash_resize(ht, (unsigned int) nextsize);
   }
   return TRUE;
 }
