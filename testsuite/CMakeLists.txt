@@ -178,6 +178,13 @@ add_test(NAME CcDictNumericLoadfactor COMMAND CcDictResizeTest numeric)
 add_test(NAME CcDictAllocationFailures COMMAND CcDictResizeTest oom)
 add_test(NAME CcDictApplyRemoveCurrent COMMAND CcDictResizeTest apply)
 
+add_executable(CcHashApiTest CcHashApiTest.cpp)
+target_link_libraries(CcHashApiTest Coin ${COIN_TARGET_LINK_LIBRARIES})
+target_include_directories(CcHashApiTest PRIVATE
+  ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+  ${COIN_TARGET_INCLUDE_DIRECTORIES})
+add_test(NAME CcHashApi COMMAND CcHashApiTest)
+
 add_executable(CcListOomTest CcListOomTest.cpp)
 target_compile_definitions(CcListOomTest PRIVATE
   COIN_INTERNAL HAVE_CONFIG_H COIN_BUILDING_COIN)

@@ -52,17 +52,24 @@ extern "C" {
   typedef cc_hash_key cc_hash_func(const cc_hash_key key);
   typedef void cc_hash_apply_func(cc_hash_key key, void * val, void * closure);
 
+  /* Allocation failure aborts with an out-of-memory diagnostic. */
   COIN_DLL_API cc_hash * cc_hash_construct(unsigned int size, float loadfactor);
   COIN_DLL_API void cc_hash_destruct(cc_hash * ht);
   COIN_DLL_API void cc_hash_clear(cc_hash * ht);
 
+  /* TRUE means inserted; FALSE means an existing value was replaced.
+     Entry allocation failure aborts rather than returning FALSE. */
   COIN_DLL_API SbBool cc_hash_put(cc_hash * ht, cc_hash_key key, void * val);
   COIN_DLL_API SbBool cc_hash_get(cc_hash * ht, cc_hash_key key, void ** val);
   COIN_DLL_API SbBool cc_hash_remove(cc_hash * ht, cc_hash_key key);
+  /* The callback may remove the entry currently being visited. It must not
+     otherwise mutate or destroy the table during this traversal. */
   COIN_DLL_API void cc_hash_apply(cc_hash * ht, cc_hash_apply_func * func, void * closure);
 
   COIN_DLL_API unsigned int cc_hash_get_num_elements(cc_hash * ht);
 
+  /* Reindexes existing entries. NULL restores the default hash function.
+     Allocation failure leaves the previous function and entries intact. */
   COIN_DLL_API void cc_hash_set_hash_func(cc_hash * ht, cc_hash_func * func);
   COIN_DLL_API void cc_hash_print_stat(cc_hash * ht);
 
