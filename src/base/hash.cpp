@@ -193,11 +193,14 @@ cc_hash *
 cc_hash_construct(unsigned int size, float loadfactor)
 {
   unsigned int s;
+  const unsigned long prime = coin_geq_prime_number(size);
+  if (prime == 0 || prime > UINT_MAX)
+    coin_oom_abort("cc_hash_construct bucket size");
   cc_hash * ht = (cc_hash *) malloc(sizeof(cc_hash));
   if (ht == NULL) coin_oom_abort("cc_hash_construct");
 
   /* size should be a prime number */
-  s = (unsigned int) coin_geq_prime_number(size);
+  s = (unsigned int) prime;
   if (!std::isfinite(loadfactor) || loadfactor <= 0.0f)
     loadfactor = 0.75f;
   if (static_cast<size_t>(s) > SIZE_MAX / sizeof(cc_hash_entry *))
@@ -298,7 +301,9 @@ cc_hash_put(cc_hash * ht, cc_hash_key key, void * val)
   ht->buckets[i] = he;
 
   if (ht->elements++ >= ht->threshold && ht->size < UINT_MAX) {
-    hash_resize(ht, (unsigned int) coin_geq_prime_number(ht->size + 1));
+    const unsigned long nextsize = coin_geq_prime_number((unsigned long)ht->size + 1);
+    if (nextsize > ht->size && nextsize <= UINT_MAX)
+      hash_resize(ht, (unsigned int) nextsize);
   }
   return TRUE;
 }

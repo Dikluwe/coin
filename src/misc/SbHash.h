@@ -482,7 +482,10 @@ public:
     this->buckets[i] = entry;
 
     if (this->elements++ >= this->threshold && this->size < UINT_MAX) {
-      this->resize(static_cast<unsigned int>( coin_geq_prime_number(this->size + 1)));
+      const unsigned long nextsize =
+        coin_geq_prime_number((unsigned long)this->size + 1);
+      if (nextsize > this->size && nextsize <= UINT_MAX)
+        this->resize(static_cast<unsigned int>(nextsize));
     }
     return TRUE;
   }
@@ -523,7 +526,10 @@ public:
   {
     if (!std::isfinite(loadfactorarg) || loadfactorarg <= 0.0f)
       loadfactorarg = 0.75f;
-    unsigned int s = coin_geq_prime_number(sizearg);
+    const unsigned long prime = coin_geq_prime_number(sizearg);
+    if (prime == 0 || prime > UINT_MAX)
+      coin_oom_abort("SbHash bucket size");
+    unsigned int s = (unsigned int) prime;
     this->memhandler = cc_memalloc_construct_aligned(
       sizeof(SbHashEntry), alignof(SbHashEntry));
     if (this->memhandler == NULL) coin_oom_abort("SbHash allocator");
