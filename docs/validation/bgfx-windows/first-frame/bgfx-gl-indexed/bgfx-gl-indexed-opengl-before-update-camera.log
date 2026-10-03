@@ -1,0 +1,15 @@
+startup_detail arguments_ms=0.0547 coin_init_ms=2.1515 capability_probe_ms=415.513
+scene_detail parse_ms=99.879 wrapper_ms=0.0166 camera_fit_ms=24.0693
+scene_load_ms=124.062
+startup_detail material_search_ms=0.1552 target_setup_ms=0.9125
+BGFX-OpenGL_first_detail render_ms=577.782 publication_copy_ms=0.9295 before_frame_since_main_ms=543.487 result_since_main_ms=1122.2
+BGFX-OpenGL_first_frame_ms=578.712
+rgba_fnv64=0xda6820048a6a0057
+image=build/large-scenes/bgfx-gl-indexed-opengl-before-update-camera.ppm
+adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) vendor_id=0x10de device_id=0x0 backend=bgfx size=1024x1024 warmup=1 scene=build/large-scenes/city-10000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=camera-each-frame
+BGFX-OpenGL frames=3 median_ms=348.278 p95_ms=358.391 min_ms=347.026 max_ms=358.391
+BGFX_render_and_readback frames=3 median_ms=347.387 p95_ms=357.698 min_ms=346.303 max_ms=357.698
+BGFX_publication_copy frames=3 median_ms=0.7223 p95_ms=0.8917 min_ms=0.6923 max_ms=0.8917
+BGFX-OpenGL_throughput frames=3 total_ms=1053.72 fps=2.84707
+backend_cleanup_begin
+backend_cleanup_ms=37.4702

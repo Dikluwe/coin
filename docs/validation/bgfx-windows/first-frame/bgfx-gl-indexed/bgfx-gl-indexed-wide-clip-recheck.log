@@ -1,0 +1,19 @@
+Internal ctest changing into directory: H:/Git/coin/build/coin-render-bgfx-msvc
+Test project H:/Git/coin/build/coin-render-bgfx-msvc
+    Start 73: CoinRenderClipPlane_vulkan_sorted_layers
+1/3 Test #73: CoinRenderClipPlane_vulkan_sorted_layers ...   Passed   42.74 sec
+    Start 75: CoinRenderClipPlane_opengl_weighted_oit
+2/3 Test #75: CoinRenderClipPlane_opengl_weighted_oit ....***Timeout  68.64 sec
+
+    Start 76: CoinRenderClipPlane_opengl_sorted_layers
+Errors while running CTest
+3/3 Test #76: CoinRenderClipPlane_opengl_sorted_layers ...***Timeout  67.12 sec
+
+
+33% tests passed, 2 tests failed out of 3
+
+Total Test time (real) = 178.57 sec
+
+The following tests FAILED:
+	 75 - CoinRenderClipPlane_opengl_weighted_oit (Timeout)
+	 76 - CoinRenderClipPlane_opengl_sorted_layers (Timeout)

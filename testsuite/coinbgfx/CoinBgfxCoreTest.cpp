@@ -83,6 +83,66 @@ int main()
               plan.clearColor[1] == frame.clearColor[1],
               "Coin clear color was quantized before GPU submission");
   CoinRenderFramePlan city = frame;
+  // Compare the complete attribute stream against explicitly expanded input,
+  // including nonuniform materials and reuse under different model matrices.
+  CoinRenderFramePlan indexed = frame;
+  indexed.vertices.resize(5); // Slot zero is outside the draw's range.
+  indexed.indices = {1, 2, 3, 1, 3, 4};
+  indexed.draws[0].geometry.firstVertex = 1;
+  indexed.draws[0].geometry.vertexCount = 4;
+  indexed.draws[0].geometry.indexCount = 6;
+  indexed.materials.push_back(indexed.materials[0]);
+  indexed.materials[1].diffuse[1] = 0.35f;
+  for (size_t i = 1; i < indexed.vertices.size(); ++i) {
+    indexed.vertices[i].position[0] = float(i % 2) * 0.1f;
+    indexed.vertices[i].position[1] = float(i / 2) * 0.1f;
+    indexed.vertices[i].normal[2] = 1.0f;
+    indexed.vertices[i].materialSlot = static_cast<uint32_t>(i % 2);
+  }
+  for (bool transparent : {false, true}) {
+    indexed.materials[0].transparency = indexed.materials[1].transparency = transparent ? 0.5f : 0.0f;
+    indexed.materials[0].diffuse[3] = indexed.materials[1].diffuse[3] = transparent ? 0.5f : 1.0f;
+    indexed.draws.resize(300, indexed.draws[0]);
+    indexed.renderStates.resize(300, indexed.renderStates[0]);
+    for (size_t i = 0; i < indexed.draws.size(); ++i) {
+      indexed.draws[i].renderStateSlot = static_cast<uint32_t>(i);
+      indexed.renderStates[i].lightModel = CoinRenderLightModel::PHONG;
+      indexed.renderStates[i].transparencyType = SoGLRenderAction::BLEND;
+      indexed.renderStates[i].model.setTranslate(SbVec3f(float(i) * 0.001f, 0, 0));
+    }
+    CoinRenderFramePlan expanded = indexed;
+    expanded.vertices.clear();
+    for (uint32_t index : indexed.indices) expanded.vertices.push_back(indexed.vertices[index]);
+    expanded.indices = {0, 1, 2, 3, 4, 5};
+    for (auto & packet : expanded.draws) {
+      packet.geometry.firstVertex = 0;
+      packet.geometry.vertexCount = 6;
+    }
+    CoinBgfxPlan compact, reference;
+    const bool lowered = CoinBgfxLowering::lower(indexed, 4, 4, true, compact, diagnostic, false, true) &&
+      CoinBgfxLowering::lower(expanded, 4, 4, true, reference, diagnostic, false, true);
+    const size_t expectedVertices = transparent ? 1800 : 1200;
+    ok &= check(lowered && compact.vertices.size() == expectedVertices && reference.vertices.size() == 1800 &&
+                compact.indices.size() == reference.indices.size() && compact.draws.size() == reference.draws.size(),
+                "indexed lowering failed to preserve draw structure or compact repeated vertices");
+    if (lowered) {
+      for (size_t i = 0; i < compact.indices.size(); ++i)
+        ok &= check(std::memcmp(&compact.vertices[compact.indices[i]],
+                    &reference.vertices[reference.indices[i]], sizeof(CoinBgfxVertex)) == 0,
+                    "indexed lowering changed a triangle attribute or transform");
+      for (size_t i = 0; i < compact.draws.size(); ++i)
+        ok &= check(compact.draws[i].materialSignature == reference.draws[i].materialSignature &&
+                    compact.draws[i].indexCount == reference.draws[i].indexCount,
+                    "indexed lowering changed material hashing or triangle order");
+    }
+  }
+  indexed.draws.resize(1);
+  indexed.vertices.resize(4098);
+  indexed.draws[0].geometry.vertexCount = 4097;
+  CoinBgfxPlan bounded;
+  ok &= check(CoinBgfxLowering::lower(indexed, 4, 4, true, bounded, diagnostic) &&
+              bounded.vertices.size() == 6,
+              "large vertex ranges must retain the bounded-scratch expanded path");
   city.draws.resize(300, frame.draws[0]);
   city.renderStates.resize(300, frame.renderStates[0]);
   city.vertices[0].position[0] = -0.1f; city.vertices[0].position[1] = -0.1f;

@@ -205,12 +205,27 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     item.indexCount = frame.draws[d].geometry.indexCount;
     order.push_back(item);
   }
-  uint64_t vertexBudget = 0;
-  for (const auto & item : order) vertexBudget += item.indexCount;
+  // Bound the scratch remap independently of scene size. Larger ranges retain
+  // the expanded path; a remap is local to one composition item, never a draw
+  // with another transform/material or a differently ordered transparent item.
+  constexpr uint32_t indexedRangeLimit = 4096;
+  std::vector<uint32_t> vertexRemap;
+  uint64_t vertexBudget = 0, indexBudget = 0;
+  for (const auto & item : order) {
+    const auto & packet = frame.draws[item.drawIndex];
+    const auto & geometry = packet.geometry;
+    const bool opaqueCandidate = batchOpaque && frame.draws.size() >= 256 && frame.shadowGroups.empty() &&
+      !item.blend && !item.screenDoor && packet.renderLayer == 0 && !packet.clearDepthBefore &&
+      frame.renderStates[packet.renderStateSlot].lightModel == CoinRenderLightModel::PHONG;
+    vertexBudget += opaqueCandidate && geometry.vertexCount <= indexedRangeLimit
+      ? std::min(geometry.vertexCount, item.indexCount) : item.indexCount;
+    indexBudget += item.indexCount;
+  }
   if (vertexBudget <= UINT32_MAX / sizeof(CoinBgfxVertex)) {
     candidate.vertices.reserve(static_cast<size_t>(vertexBudget));
-    candidate.indices.reserve(static_cast<size_t>(vertexBudget));
   }
+  if (indexBudget <= UINT32_MAX / sizeof(uint32_t))
+    candidate.indices.reserve(static_cast<size_t>(indexBudget));
   candidate.draws.reserve(batchOpaque ? std::min<size_t>(order.size(), 256) : order.size());
   // Preserve the exact legacy FNV sequence for uniform-material geometry.
   // Repeated shapes otherwise hash the same material once per vertex.
@@ -308,7 +323,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     lowered.renderStateSlot = draw.renderStateSlot;
     std::memcpy(lowered.mvp, mvp.getValue(), sizeof(lowered.mvp));
     lowered.firstVertex = static_cast<uint32_t>(candidate.vertices.size());
-    lowered.vertexCount = draw.geometry.indexCount;
+    lowered.vertexCount = 0;
     lowered.firstIndex = static_cast<uint32_t>(candidate.indices.size());
     lowered.indexCount = draw.geometry.indexCount;
     lowered.cullMode = state.cullMode;
@@ -421,11 +436,14 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
         uniformMaterialSignatures.emplace(key, lowered.materialSignature);
       }
     }
+    // Qualify indexed conversion with the existing opaque batching guard.
+    // Small/unbatched, transparent, shadow and stroke paths keep their legacy
+    // expansion, including the established driver behavior of those profiles.
+    const bool indexed = batchable && draw.geometry.vertexCount <= indexedRangeLimit;
+    if (indexed) vertexRemap.assign(draw.geometry.vertexCount, UINT32_MAX);
     for (uint32_t j = 0; j < draw.geometry.indexCount; ++j) {
       const uint32_t sourceIndex = frame.indices[draw.geometry.firstIndex + j];
       const CoinRenderVertexSnapshot & source = frame.vertices[sourceIndex];
-      CoinBgfxVertex vertex{};
-      std::memcpy(vertex.position, source.position, sizeof(vertex.position));
       const CoinRenderMaterialSnapshot & material = frame.materials[source.materialSlot];
       if (!uniformMaterial) {
         lowered.materialSignature = hashBytes(lowered.materialSignature,
@@ -439,6 +457,18 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
         lowered.materialSignature = hashBytes(lowered.materialSignature,
           &material.shininess, sizeof(material.shininess));
       }
+      // Hash every material occurrence in the original index order even when
+      // its vertex was already converted, preserving the grouping signature.
+      if (indexed) {
+        uint32_t & slot = vertexRemap[sourceIndex - draw.geometry.firstVertex];
+        if (slot != UINT32_MAX) {
+          candidate.indices.push_back(slot);
+          continue;
+        }
+        slot = static_cast<uint32_t>(candidate.vertices.size());
+      }
+      CoinBgfxVertex vertex{};
+      std::memcpy(vertex.position, source.position, sizeof(vertex.position));
       std::memcpy(vertex.color, material.diffuse, sizeof(vertex.color));
       std::memcpy(vertex.ambient, material.ambient, sizeof(vertex.ambient));
       std::memcpy(vertex.specular, material.specular, sizeof(vertex.specular));
@@ -478,6 +508,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
         static_cast<uint32_t>(candidate.vertices.size()));
       candidate.vertices.push_back(vertex);
     }
+    lowered.vertexCount = static_cast<uint32_t>(candidate.vertices.size()) - lowered.firstVertex;
     if (!frame.shadowGroups.empty()) candidate.shadowDraws.push_back(lowered);
     if (!draw.shadowLightSlot) {
       bool merged = false;
