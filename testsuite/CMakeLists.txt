@@ -177,6 +177,7 @@ add_test(NAME CcDictResizeAllocationFailure COMMAND CcDictResizeTest failure)
 add_test(NAME CcDictNumericLoadfactor COMMAND CcDictResizeTest numeric)
 add_test(NAME CcDictAllocationFailures COMMAND CcDictResizeTest oom)
 add_test(NAME CcDictApplyRemoveCurrent COMMAND CcDictResizeTest apply)
+add_test(NAME CcDictHashException COMMAND CcDictResizeTest exception)
 
 add_executable(CcHashApiTest CcHashApiTest.cpp)
 target_link_libraries(CcHashApiTest Coin ${COIN_TARGET_LINK_LIBRARIES})

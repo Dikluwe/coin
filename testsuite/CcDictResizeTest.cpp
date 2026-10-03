@@ -6,6 +6,7 @@
 #include <cstring>
 #include <climits>
 #include <limits>
+#include <stdexcept>
 #include "base/dict.h"
 #include "base/dictp.h"
 #include "tidbitsp.h"
@@ -83,6 +84,15 @@ static uintptr_t collision_hash(uintptr_t)
 {
   ++hashes;
   return 1;
+}
+
+static unsigned int hash_calls_before_throw = 0;
+
+static uintptr_t throwing_hash(uintptr_t key)
+{
+  if (hash_calls_before_throw-- == 0)
+    throw std::runtime_error("hash failed");
+  return key;
 }
 
 static cc_dict_entry * find_entry(cc_dict * dict, uintptr_t key)
@@ -233,6 +243,11 @@ static bool allocation_failures()
   CHECK(!failnext);
   CHECK(dict->hashfunc == original);
   CHECK(find_entry(dict, 1) != NULL);
+  failmalloc = true;
+  cc_dict_set_hash_func(dict, mixed_hash);
+  CHECK(!failmalloc);
+  CHECK(dict->hashfunc == original);
+  CHECK(find_entry(dict, 1) != NULL);
   cc_dict_destruct(dict);
   return true;
 }
@@ -269,6 +284,49 @@ static bool apply_removes_current()
   return true;
 }
 
+static bool throwing_hash_preserves_state()
+{
+  cc_dict * dict = cc_dict_construct(17, 1.0f);
+  CHECK(dict != NULL);
+  CHECK(cc_dict_put(dict, 0, NULL));
+  CHECK(cc_dict_put(dict, 17, NULL));
+  hash_calls_before_throw = 1;
+  try {
+    cc_dict_set_hash_func(dict, throwing_hash);
+    CHECK(false);
+  }
+  catch (const std::runtime_error &) { }
+  CHECK(dict->hashfunc != throwing_hash);
+  void * found = NULL;
+  CHECK(cc_dict_get(dict, 0, &found));
+  CHECK(cc_dict_get(dict, 17, &found));
+  cc_dict_set_hash_func(dict, collision_hash);
+  cc_dict_set_hash_func(dict, NULL);
+  CHECK(cc_dict_get(dict, 0, &found));
+  CHECK(cc_dict_get(dict, 17, &found));
+  cc_dict_destruct(dict);
+
+  dict = cc_dict_construct(2, 1.0f);
+  CHECK(dict != NULL);
+  cc_dict_set_hash_func(dict, throwing_hash);
+  hash_calls_before_throw = 10;
+  CHECK(cc_dict_put(dict, 0, NULL));
+  CHECK(cc_dict_put(dict, 2, NULL));
+  hash_calls_before_throw = 2;
+  try {
+    cc_dict_put(dict, 4, NULL);
+    CHECK(false);
+  }
+  catch (const std::runtime_error &) { }
+  CHECK(cc_dict_get_num_elements(dict) == 3);
+  hash_calls_before_throw = 10;
+  CHECK(cc_dict_get(dict, 0, &found));
+  CHECK(cc_dict_get(dict, 2, &found));
+  CHECK(cc_dict_get(dict, 4, &found));
+  cc_dict_destruct(dict);
+  return true;
+}
+
 int main(int argc, char ** argv)
 {
   if (argc != 2) return 2;
@@ -282,5 +340,7 @@ int main(int argc, char ** argv)
     return allocation_failures() ? 0 : 1;
   if (std::strcmp(argv[1], "apply") == 0)
     return apply_removes_current() ? 0 : 1;
+  if (std::strcmp(argv[1], "exception") == 0)
+    return throwing_hash_preserves_state() ? 0 : 1;
   return 2;
 }

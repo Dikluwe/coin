@@ -73,12 +73,9 @@
 
 #include <cassert>
 
-#define COIN_ALLOW_CC_HASH /* Hack to get around include protection
-                              for obsoleted ADT. */
-#include <Inventor/C/base/hash.h>
-#undef COIN_ALLOW_CC_HASH
+#include "base/dict.h"
+#include "base/oomp.h"
 #include <Inventor/lists/SbPList.h>
-#include <Inventor/C/base/memalloc.h>
 
 #include "SbBasicP.h"
 
@@ -93,7 +90,8 @@
 SbDict::SbDict(const int entries)
 {
   assert(entries > 0);
-  this->hashtable = cc_hash_construct(entries, 0.75f);
+  this->hashtable = cc_dict_construct(entries, 0.75f);
+  if (this->hashtable == NULL) coin_oom_abort("SbDict constructor");
 }
 
 /*!
@@ -110,7 +108,7 @@ SbDict::SbDict(const SbDict & from)
 */
 SbDict::~SbDict()
 {
-  cc_hash_destruct(this->hashtable);
+  cc_dict_destruct(this->hashtable);
 }
 
 extern "C" {
@@ -139,9 +137,11 @@ SbDict::operator=(const SbDict & from)
   if (this->hashtable) {
     // clear old values
     this->clear();
-    cc_hash_destruct(this->hashtable);
+    cc_dict_destruct(this->hashtable);
   }
-  this->hashtable = cc_hash_construct(cc_hash_get_num_elements(from.hashtable), 0.75f);
+  this->hashtable = cc_dict_construct(
+    cc_dict_get_num_elements(from.hashtable), 0.75f);
+  if (this->hashtable == NULL) coin_oom_abort("SbDict assignment");
   from.applyToAll(copyval, this);
   return *this;
 }
@@ -152,7 +152,7 @@ SbDict::operator=(const SbDict & from)
 void
 SbDict::clear(void)
 {
-  cc_hash_clear(this->hashtable);
+  cc_dict_clear(this->hashtable);
 }
 
 /*!
@@ -166,7 +166,10 @@ SbDict::clear(void)
 SbBool
 SbDict::enter(const Key key, void * const value)
 {
-  return cc_hash_put(this->hashtable, key, value);
+  const cc_dict_put_result result =
+    cc_dict_try_put(this->hashtable, key, value);
+  if (result == CC_DICT_PUT_FAILED) coin_oom_abort("SbDict::enter");
+  return result == CC_DICT_PUT_INSERTED;
 }
 
 /*!
@@ -177,7 +180,7 @@ SbDict::enter(const Key key, void * const value)
 SbBool
 SbDict::find(const Key key, void *& value) const
 {
-  return cc_hash_get(this->hashtable, key, &value);
+  return cc_dict_get(this->hashtable, key, &value);
 }
 
 /*!
@@ -187,14 +190,14 @@ SbDict::find(const Key key, void *& value) const
 SbBool
 SbDict::remove(const Key key)
 {
-  return cc_hash_remove(this->hashtable, key);
+  return cc_dict_remove(this->hashtable, key);
 }
 
 
 // needed to support the extra applyToAll function. The actual
 // function pointer is supplied as the closure pointer, and we just
 // call that function from our dummy callback. This is needed since
-// cc_hash only supports one apply function type.
+// cc_dict only supports one apply function type.
 extern "C" {
 typedef void sbdict_dummy_apply_func(SbDict::Key, void *);
 
@@ -211,7 +214,7 @@ sbdict_dummy_apply(SbDict::Key key, void * value, void * closure)
 void
 SbDict::applyToAll(SbDictApplyFunc * rtn) const
 {
-  cc_hash_apply(this->hashtable, sbdict_dummy_apply, function_to_object_cast<void *>(rtn));
+  cc_dict_apply(this->hashtable, sbdict_dummy_apply, function_to_object_cast<void *>(rtn));
 }
 
 /*!
@@ -220,7 +223,7 @@ SbDict::applyToAll(SbDictApplyFunc * rtn) const
 void
 SbDict::applyToAll(SbDictApplyDataFunc * rtn, void * data) const
 {
-  cc_hash_apply(this->hashtable, static_cast<cc_hash_apply_func *>(rtn), data);
+  cc_dict_apply(this->hashtable, static_cast<cc_dict_apply_func *>(rtn), data);
 }
 
 typedef struct {
@@ -250,7 +253,7 @@ SbDict::makePList(SbPList & keys, SbPList & values)
   applydata.keys = &keys;
   applydata.values = &values;
 
-  cc_hash_apply(this->hashtable, static_cast<cc_hash_apply_func *>(sbdict_makeplist_cb), &applydata);
+  cc_dict_apply(this->hashtable, static_cast<cc_dict_apply_func *>(sbdict_makeplist_cb), &applydata);
 }
 
 /*!
@@ -272,7 +275,7 @@ SbDict::makePList(SbPList & keys, SbPList & values)
 void
 SbDict::setHashingFunction(SbDictHashingFunc * func)
 {
-  cc_hash_set_hash_func(this->hashtable, static_cast<cc_hash_func *>(func));
+  cc_dict_set_hash_func(this->hashtable, static_cast<cc_dict_hash_func *>(func));
 }
 
 #ifdef COIN_TEST_SUITE
