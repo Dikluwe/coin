@@ -1,0 +1,15 @@
+startup_detail arguments_ms=0.0681 coin_init_ms=2.4841 capability_probe_ms=500.644
+scene_detail parse_ms=420.51 wrapper_ms=0.0157 camera_fit_ms=94.9458
+scene_load_ms=515.552
+startup_detail material_search_ms=0.1547 target_setup_ms=1.0903
+BGFX-OpenGL_first_detail render_ms=1251.77 publication_copy_ms=1.2155 before_frame_since_main_ms=1020.74 result_since_main_ms=2273.72
+BGFX-OpenGL_first_frame_ms=1252.98
+rgba_fnv64=0x156847cec1d97864
+image=build/large-scenes/bgfx-gl-stages-ablation-full-layout-1.ppm
+adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) vendor_id=0x10de device_id=0x0 backend=bgfx size=1024x1024 warmup=1 scene=build/large-scenes/city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=static
+BGFX-OpenGL frames=3 median_ms=10.5078 p95_ms=12.7926 min_ms=10.3025 max_ms=12.7926
+BGFX_render_and_readback frames=3 median_ms=9.9965 p95_ms=12.2553 min_ms=9.6943 max_ms=12.2553
+BGFX_publication_copy frames=3 median_ms=0.5373 p95_ms=0.6082 min_ms=0.5113 max_ms=0.6082
+BGFX-OpenGL_throughput frames=3 total_ms=33.6073 fps=89.2663
+backend_cleanup_begin
+backend_cleanup_ms=61.6225

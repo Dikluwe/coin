@@ -157,10 +157,13 @@ CoinBgfxLowering::retainForReuse(CoinBgfxPlan & plan,
   if (!plan.indices.empty()) plan.uploadedIndexCount = plan.indices.size();
   // Account for transferred vertices as well, so their remaining indices do
   // not accidentally become eligible for the small-plan material cache.
-  const uint64_t geometryBytes = uint64_t(std::max(plan.vertices.capacity(), plan.uploadedVertexCount)) * sizeof(CoinBgfxVertex) +
+  const uint64_t geometryBytes = (plan.usesCompactVertices
+    ? uint64_t(std::max(plan.packedVertices.capacity(), plan.uploadedVertexCount)) * sizeof(CoinBgfxVertexPrefix)
+    : uint64_t(std::max(plan.vertices.capacity(), plan.uploadedVertexCount)) * sizeof(CoinBgfxVertex)) +
     uint64_t(std::max(plan.indices.capacity(), plan.uploadedIndexCount)) * sizeof(uint32_t);
-  if (geometryBytes + metadataBytes > geometryBudget) {
+  if (plan.usesCompactVertices || geometryBytes + metadataBytes > geometryBudget) {
     std::vector<CoinBgfxVertex>().swap(plan.vertices);
+    std::vector<CoinBgfxVertexPrefix>().swap(plan.packedVertices);
     std::vector<uint32_t>().swap(plan.indices);
   }
   return true;
@@ -186,7 +189,8 @@ bool
 CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height,
                       bool homogeneousDepth, CoinBgfxPlan & output,
                       std::string & diagnostic, bool allowQualifiedShadows, bool batchOpaque,
-                      const CoinRenderFramePreflight * preflight)
+                      const CoinRenderFramePreflight * preflight,
+                      bool compactOpaqueVertices)
 {
   diagnostic.clear();
   CoinBgfxPlan candidate;
@@ -215,6 +219,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
   constexpr uint32_t indexedRangeLimit = 4096;
   std::vector<uint32_t> vertexRemap;
   uint64_t vertexBudget = 0, indexBudget = 0;
+  bool compact = compactOpaqueVertices;
   for (const auto & item : order) {
     const auto & packet = frame.draws[item.drawIndex];
     const auto & geometry = packet.geometry;
@@ -224,9 +229,23 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     vertexBudget += opaqueCandidate && geometry.vertexCount <= indexedRangeLimit
       ? std::min(geometry.vertexCount, item.indexCount) : item.indexCount;
     indexBudget += item.indexCount;
+    if (compact) {
+      const auto & state = frame.renderStates[packet.renderStateSlot];
+      if (!opaqueCandidate || geometry.vertexCount > indexedRangeLimit || state.hasTexture)
+        compact = false;
+      for (const auto & layer : state.extraTextures) if (layer.enabled) compact = false;
+      for (int axis = 0; axis < 3; ++axis)
+        if (state.model[axis][3] != 0.0f || state.view[axis][3] != 0.0f) compact = false;
+      if (state.model[3][3] != 1.0f || state.view[3][3] != 1.0f) compact = false;
+    }
   }
+  compact = compact && vertexBudget * sizeof(CoinBgfxVertex) > 32u * 1024u * 1024u;
+  if (compact) for (const auto & vertex : frame.vertices)
+    if (vertex.screenSpaceW != 1.0f || vertex.fogEyeDepth >= 0.0f) { compact = false; break; }
+  candidate.usesCompactVertices = compact;
   if (vertexBudget <= UINT32_MAX / sizeof(CoinBgfxVertex)) {
-    candidate.vertices.reserve(static_cast<size_t>(vertexBudget));
+    if (compact) candidate.packedVertices.reserve(static_cast<size_t>(vertexBudget));
+    else candidate.vertices.reserve(static_cast<size_t>(vertexBudget));
   }
   if (indexBudget <= UINT32_MAX / sizeof(uint32_t))
     candidate.indices.reserve(static_cast<size_t>(indexBudget));
@@ -234,6 +253,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
   // Preserve the exact legacy FNV sequence for uniform-material geometry.
   // Repeated shapes otherwise hash the same material once per vertex.
   std::unordered_map<uint64_t, uint64_t> uniformMaterialSignatures;
+  std::vector<uint8_t> validatedMaterialColors(frame.materials.size(), 0);
   bool previousBatchable = false;
   for (const CoinRenderCompositionItem& item : order) {
     CoinRenderDrawPacket draw = frame.draws[item.drawIndex];
@@ -287,11 +307,13 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       const auto & vertex = frame.vertices[index];
       if (vertex.materialSlot != uniformMaterialSlot) uniformMaterial = false;
       if (vertex.screenSpaceW != 1.0f || vertex.fogEyeDepth >= 0.0f) batchable = false;
-      if (!std::isfinite(material.diffuse[0]) || !std::isfinite(material.diffuse[1]) ||
-          !std::isfinite(material.diffuse[2]) ||
-          !std::isfinite(material.diffuse[3])) {
-        diagnostic = "BGFX evaluation received non-finite material color";
-        return false;
+      if (!validatedMaterialColors[vertex.materialSlot]) {
+        if (!coin_render_is_finite(material.diffuse[0]) || !coin_render_is_finite(material.diffuse[1]) ||
+            !coin_render_is_finite(material.diffuse[2]) || !coin_render_is_finite(material.diffuse[3])) {
+          diagnostic = "BGFX evaluation received non-finite material color";
+          return false;
+        }
+        validatedMaterialColors[vertex.materialSlot] = 1;
       }
       if (material.diffuse[3] > maxAlpha) maxAlpha = material.diffuse[3];
     }
@@ -326,7 +348,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     lowered.sourceDrawSlot = item.drawIndex;
     lowered.renderStateSlot = draw.renderStateSlot;
     std::memcpy(lowered.mvp, mvp.getValue(), sizeof(lowered.mvp));
-    lowered.firstVertex = static_cast<uint32_t>(candidate.vertices.size());
+    lowered.firstVertex = static_cast<uint32_t>(candidate.vertexCount());
     lowered.vertexCount = 0;
     lowered.firstIndex = static_cast<uint32_t>(candidate.indices.size());
     lowered.indexCount = draw.geometry.indexCount;
@@ -445,6 +467,19 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     // expansion, including the established driver behavior of those profiles.
     const bool indexed = batchable && draw.geometry.vertexCount <= indexedRangeLimit;
     if (indexed) vertexRemap.assign(draw.geometry.vertexCount, UINT32_MAX);
+    CoinBgfxVertex materialVertex{};
+    const auto setMaterial = [&](CoinBgfxVertex & vertex,
+                                 const CoinRenderMaterialSnapshot & material) {
+      std::memcpy(vertex.color, material.diffuse, sizeof(vertex.color));
+      std::memcpy(vertex.ambient, material.ambient, sizeof(vertex.ambient));
+      std::memcpy(vertex.specular, material.specular, sizeof(vertex.specular));
+      std::memcpy(vertex.emission, material.emission, sizeof(vertex.emission));
+      vertex.material[0] = material.shininess;
+      vertex.material[1] = state.lightModel == CoinRenderLightModel::PHONG ? 1.0f : 0.0f;
+    };
+    if (uniformMaterial) setMaterial(materialVertex, frame.materials[uniformMaterialSlot]);
+    bool normalCached = false;
+    float previousNormal[3], previousViewNormal[3];
     for (uint32_t j = 0; j < draw.geometry.indexCount; ++j) {
       const uint32_t sourceIndex = frame.indices[draw.geometry.firstIndex + j];
       const CoinRenderVertexSnapshot & source = frame.vertices[sourceIndex];
@@ -469,28 +504,33 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
           candidate.indices.push_back(slot);
           continue;
         }
-        slot = static_cast<uint32_t>(candidate.vertices.size());
+        slot = static_cast<uint32_t>(candidate.vertexCount());
       }
-      CoinBgfxVertex vertex{};
+      const uint32_t emittedIndex = static_cast<uint32_t>(candidate.vertexCount());
+      // Write into the output allocation, avoiding a complete temporary vertex
+      // copy. Uniform material attributes and unused UVs are prepared once.
+      CoinBgfxVertex temporaryVertex;
+      if (compact) temporaryVertex = materialVertex;
+      else candidate.vertices.push_back(materialVertex);
+      CoinBgfxVertex & vertex = compact ? temporaryVertex : candidate.vertices.back();
       std::memcpy(vertex.position, source.position, sizeof(vertex.position));
-      std::memcpy(vertex.color, material.diffuse, sizeof(vertex.color));
-      std::memcpy(vertex.ambient, material.ambient, sizeof(vertex.ambient));
-      std::memcpy(vertex.specular, material.specular, sizeof(vertex.specular));
-      std::memcpy(vertex.emission, material.emission, sizeof(vertex.emission));
+      if (!uniformMaterial) setMaterial(vertex, material);
       vertex.material[2] = source.screenSpaceW;
-      vertex.material[0] = material.shininess;
-      vertex.material[1] = state.lightModel == CoinRenderLightModel::PHONG ? 1.0f : 0.0f;
       SbVec3f viewPosition;
       modelView.multVecMatrix(SbVec3f(source.position), viewPosition);
       if (source.fogEyeDepth >= 0) viewPosition[2] = -source.fogEyeDepth;
       viewPosition.getValue(vertex.viewPosition[0], vertex.viewPosition[1],
                             vertex.viewPosition[2]);
       if (batchable) std::memcpy(vertex.position, vertex.viewPosition, sizeof(vertex.position));
-      SbVec3f viewNormal;
-      normalMatrix.multDirMatrix(SbVec3f(source.normal), viewNormal);
-      if (viewNormal.normalize() == 0.0f) viewNormal.setValue(0.0f, 0.0f, 1.0f);
-      viewNormal.getValue(vertex.viewNormal[0], vertex.viewNormal[1],
-                          vertex.viewNormal[2]);
+      if (!normalCached || std::memcmp(previousNormal, source.normal, sizeof(previousNormal)) != 0) {
+        SbVec3f viewNormal;
+        normalMatrix.multDirMatrix(SbVec3f(source.normal), viewNormal);
+        if (viewNormal.normalize() == 0.0f) viewNormal.setValue(0.0f, 0.0f, 1.0f);
+        viewNormal.getValue(previousViewNormal[0], previousViewNormal[1], previousViewNormal[2]);
+        std::memcpy(previousNormal, source.normal, sizeof(previousNormal));
+        normalCached = true;
+      }
+      std::memcpy(vertex.viewNormal, previousViewNormal, sizeof(vertex.viewNormal));
       if (state.hasTexture) {
         SbVec4f transformed;
         state.textureMatrix.multVecMatrix(
@@ -508,11 +548,14 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
         float * packed = &vertex.extraTexcoords[(unit - 1) / 2][((unit - 1) % 2) * 2];
         packed[0] = uv[0]; packed[1] = uv[1];
       }
-      candidate.indices.push_back(
-        static_cast<uint32_t>(candidate.vertices.size()));
-      candidate.vertices.push_back(vertex);
+      candidate.indices.push_back(emittedIndex);
+      if (compact) {
+        CoinBgfxVertexPrefix packed;
+        std::memcpy(packed.data(), &vertex, sizeof(packed));
+        candidate.packedVertices.push_back(packed);
+      }
     }
-    lowered.vertexCount = static_cast<uint32_t>(candidate.vertices.size()) - lowered.firstVertex;
+    lowered.vertexCount = static_cast<uint32_t>(candidate.vertexCount()) - lowered.firstVertex;
     if (!frame.shadowGroups.empty()) candidate.shadowDraws.push_back(lowered);
     if (!draw.shadowLightSlot) {
       bool merged = false;
@@ -586,6 +629,7 @@ CoinBgfxLowering::materialPatchRanges(
   std::vector<CoinBgfxVertexRange> & ranges)
 {
   std::vector<CoinBgfxVertexRange> candidate;
+  if (base.usesCompactVertices || updated.usesCompactVertices) return false;
   if (base.vertices.size() != updated.vertices.size() ||
       base.indices != updated.indices || base.draws.size() != updated.draws.size() ||
       base.textures.size() != updated.textures.size() ||

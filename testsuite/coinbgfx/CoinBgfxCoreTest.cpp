@@ -5,6 +5,7 @@
 #endif
 
 #include "rendering/coinbgfx/CoinBgfxLowering.h"
+#include "rendering/coinbgfx/CoinBgfxProgramCache.h"
 
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/SoDB.h>
@@ -46,6 +47,23 @@ int main()
   frame.draws.push_back(draw);
 
   bool ok = true;
+  CoinBgfxProgramCache programCache(16, 12, 2);
+  const uint8_t binary[8] = {0, 1, 2, 3, 4, 5, 6, 7};
+  const uint8_t replacement[8] = {7, 6, 5, 4, 3, 2, 1, 0};
+  uint8_t cachedBinary[8] = {};
+  ok &= check(programCache.size(11) == 0 && programCache.write(11, binary, sizeof(binary)) &&
+              programCache.size(11) == sizeof(binary) &&
+              !programCache.write(11, replacement, sizeof(replacement)) &&
+              programCache.read(11, cachedBinary, sizeof(cachedBinary)) &&
+              std::memcmp(binary, cachedBinary, sizeof(binary)) == 0 &&
+              !programCache.read(11, cachedBinary, 7) && !programCache.read(12, cachedBinary, 8),
+              "program cache must preserve immutable size/read snapshots");
+  ok &= check(!programCache.write(12, binary, 4) &&
+              !programCache.write(12, binary, 13) &&
+              programCache.write(12, binary, sizeof(binary)) &&
+              !programCache.write(13, binary, sizeof(binary)) &&
+              programCache.size(13) == 0,
+              "program cache exceeded its binary size or total retention bounds");
   std::string diagnostic;
   CoinBgfxPlan plan;
   frame.shadowGroups.push_back(CoinRenderShadowGroupSnapshot());
@@ -102,6 +120,60 @@ int main()
               plan.clearColor[1] == frame.clearColor[1],
               "Coin clear color was quantized before GPU submission");
   CoinRenderFramePlan city = frame;
+  {
+    CoinRenderFramePlan materialFrame = frame;
+    materialFrame.materials.push_back(materialFrame.materials[0]);
+    materialFrame.materials[1].diffuse[0] = std::numeric_limits<float>::quiet_NaN();
+    CoinBgfxPlan materialPlan;
+    ok &= check(CoinBgfxLowering::lower(materialFrame, 4, 4, true, materialPlan, diagnostic),
+                "unused RGB material must not change the existing validation contract");
+    materialFrame.vertices[0].materialSlot = 1;
+    ok &= check(!CoinBgfxLowering::lower(materialFrame, 4, 4, true, materialPlan, diagnostic) &&
+                diagnostic.find("non-finite material color") != std::string::npos,
+                "material color memoization accepted a referenced NaN");
+    materialFrame.materials[1].diffuse[0] = 0.25f;
+    ok &= check(CoinBgfxLowering::lower(materialFrame, 4, 4, true, materialPlan, diagnostic),
+                "material validation memoization leaked between frames");
+  }
+  {
+    CoinRenderFramePlan largeOpaque = frame;
+    largeOpaque.renderStates[0].lightModel = CoinRenderLightModel::PHONG;
+    largeOpaque.renderStates[0].transparencyType = SoGLRenderAction::BLEND;
+    largeOpaque.renderStates[0].model.setScale(SbVec3f(2, 3, 4));
+    largeOpaque.vertices[0].normal[1] = largeOpaque.vertices[1].normal[1] = 2;
+    largeOpaque.vertices[1].normal[0] = -0.0f;
+    largeOpaque.draws.resize(65000, largeOpaque.draws[0]);
+    CoinBgfxPlan full, compact;
+    const bool fullOk = CoinBgfxLowering::lower(largeOpaque, 4, 4, true, full, diagnostic, false, true);
+    if (!fullOk) std::cerr << "Full large plan: " << diagnostic << '\n';
+    const bool compactOk = CoinBgfxLowering::lower(largeOpaque, 4, 4, true, compact, diagnostic, false, true, nullptr, true);
+    if (!compactOk) std::cerr << "Compact large plan: " << diagnostic << '\n';
+    if (full.vertexCount() != compact.vertexCount() || !compact.usesCompactVertices || full.indices != compact.indices)
+      std::cerr << "Compact structure: " << full.vertexCount() << '/' << compact.vertexCount()
+                << " packed=" << compact.usesCompactVertices << " fullVertices=" << compact.vertices.size()
+                << " indices=" << full.indices.size() << '/' << compact.indices.size()
+                << " draws=" << full.draws.size() << '/' << compact.draws.size() << '\n';
+    ok &= check(fullOk && compactOk &&
+                compact.usesCompactVertices && compact.vertices.empty() &&
+                full.vertexCount() == compact.vertexCount() && full.indices == compact.indices &&
+                full.draws.size() == compact.draws.size(),
+                "compact opaque lowering changed geometry structure");
+    for (size_t i = 0; i < compact.packedVertices.size(); ++i)
+      ok &= check(std::memcmp(compact.packedVertices[i].data(), &full.vertices[i],
+                             sizeof(CoinBgfxVertexPrefix)) == 0,
+                  "compact opaque lowering changed a retained attribute bit");
+    std::vector<CoinBgfxVertexRange> ranges;
+    ok &= check(!CoinBgfxLowering::materialPatchRanges(compact, compact, ranges) &&
+                CoinBgfxLowering::retainForReuse(compact) &&
+                compact.packedVertices.capacity() == 0 && compact.indices.capacity() == 0 &&
+                compact.vertexCount() == full.vertexCount(),
+                "compact GPU cache must release CPU data and preserve counts");
+    largeOpaque.draws[1].clearDepthBefore = true;
+    largeOpaque.draws[1].renderLayer = 1;
+    ok &= check(CoinBgfxLowering::lower(largeOpaque, 4, 4, true, compact, diagnostic, false, true, nullptr, true) &&
+                !compact.usesCompactVertices && compact.packedVertices.empty(),
+                "compact lowering crossed an opaque profile barrier");
+  }
   // Compare the complete attribute stream against explicitly expanded input,
   // including nonuniform materials and reuse under different model matrices.
   CoinRenderFramePlan indexed = frame;

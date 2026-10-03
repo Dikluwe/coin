@@ -80,6 +80,8 @@ private:
   CoinRenderSubmitResult submitInternal(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
                               const CoinRenderFrameReuseDecision & reuse, CoinRenderReadbackTicket * ticket);
   bool resize(int width, int height);
+  bool prepareFullscreenResources();
+  bool prepareDepthReadbackResources();
   bool prepareShadowPrograms(size_t mapCount);
   bool prepareTransparencyPrograms(CoinBgfxTransparencyStrategy strategy);
   bool prepareShadowTransparencyPrograms();
@@ -153,6 +155,7 @@ private:
   int width;
   int height;
   bgfx::VertexLayout layout;
+  bgfx::VertexLayout compactLayout;
   bgfx::ProgramHandle program;
   bgfx::ProgramHandle shadowMomentsProgram;
   bgfx::ProgramHandle shadowReceiverProgram;
@@ -222,6 +225,7 @@ private:
   bgfx::DynamicVertexBufferHandle cachedVertexBuffer;
   bgfx::DynamicIndexBufferHandle cachedIndexBuffer;
   uint32_t cachedVertexCapacity;
+  bool cachedCompactVertices = false;
   uint32_t cachedIndexCapacity;
 };
 

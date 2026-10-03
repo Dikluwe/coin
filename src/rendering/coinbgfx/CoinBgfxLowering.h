@@ -4,6 +4,8 @@
 #include "rendering/coinrender/CoinRenderFramePlan.h"
 
 #include <cstdint>
+#include <array>
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -33,6 +35,9 @@ struct CoinBgfxVertex {
   float material[4]; // shininess, PHONG enabled, homogeneous W, reserved
   float extraTexcoords[4][4]; // pairs of UVs for units 1..7
 };
+typedef std::array<float, 31> CoinBgfxVertexPrefix;
+static_assert(sizeof(CoinBgfxVertexPrefix) == offsetof(CoinBgfxVertex, extraTexcoords),
+              "BGFX compact layout must match the full vertex attribute prefix");
 
 struct CoinBgfxDraw {
   float mvp[16];
@@ -103,6 +108,8 @@ struct CoinBgfxTexture {
 
 struct CoinBgfxPlan {
   std::vector<CoinBgfxVertex> vertices;
+  std::vector<CoinBgfxVertexPrefix> packedVertices;
+  bool usesCompactVertices = false;
   std::vector<uint32_t> indices;
   std::vector<CoinBgfxDraw> draws;
   std::vector<CoinBgfxDraw> shadowDraws;
@@ -111,7 +118,10 @@ struct CoinBgfxPlan {
   // Counts survive releasing CPU geometry after its GPU upload.
   size_t uploadedVertexCount = 0;
   size_t uploadedIndexCount = 0;
-  size_t vertexCount() const { return vertices.empty() ? uploadedVertexCount : vertices.size(); }
+  size_t vertexCount() const {
+    if (usesCompactVertices) return packedVertices.empty() ? uploadedVertexCount : packedVertices.size();
+    return vertices.empty() ? uploadedVertexCount : vertices.size();
+  }
 };
 
 struct CoinBgfxVertexRange {
@@ -136,7 +146,8 @@ public:
                     bool homogeneousDepth, CoinBgfxPlan & output,
                     std::string & diagnostic, bool allowQualifiedShadows = false,
                     bool batchOpaque = false,
-                    const CoinRenderFramePreflight * preflight = nullptr);
+                    const CoinRenderFramePreflight * preflight = nullptr,
+                    bool compactOpaqueVertices = false);
   static bool selectTransparencyStrategy(
     const std::vector<CoinBgfxDraw> & draws,
     CoinBgfxTransparencyMode configuredMode,

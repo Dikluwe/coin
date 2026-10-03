@@ -1110,6 +1110,139 @@ sem excluir amostras individuais. Os pilotos estão em `pilots/`.
 Evidências, scripts e logs:
 [`bgfx-gl-upload-summary.json`](validation/bgfx-windows/first-frame/bgfx-gl-upload/bgfx-gl-upload-summary.json).
 
+## Lowering, preparação e readback do BGFX — 2026-10-03
+
+As alterações são do backend BGFX no `coin-render`; não alteram a biblioteca
+BGFX, o OpenGL original do Coin, os shaders nem o backend wgpu.
+
+No lowering, cores finitas são verificadas uma vez por material usado em cada
+frame. Materiais uniformes fornecem um template por draw; a transformação e
+normalização da última normal são reutilizadas somente quando os bits da
+normal de entrada são idênticos, dentro do mesmo draw. Materiais não usados
+com RGB não finito continuam permitidos; um RGB não finito usado é rejeitado.
+O caminho completo escreve na alocação de saída sem copiar outro vértice inteiro.
+
+No OpenGL, cenas grandes elegíveis usam um prefixo de 124 bytes do vértice de
+188 bytes. Ele mantém todos os atributos usados com os mesmos bits e omite
+somente os UVs extras não usados. Na cidade, são os mesmos 960.024 vértices e
+1.440.036 índices, com 113,53 MiB de vértices em vez de 172,12 MiB: 34,0% menos
+bytes de vértices. O upload continua transferindo sua alocação por `makeRef`.
+O buffer em cache distingue os dois layouts; compactos descartam os dados CPU
+após upload e não participam de patches de material.
+
+O formato compacto exige mais de 32 MiB no formato completo, batching opaco
+PHONG já qualificado, ao menos 256 draws, nenhum grupo de sombra, textura
+primária/extra ou barreira de overlay/profundidade, matrizes model/view afins,
+W igual a 1 e ausência de override de fog-eye-depth. Toda a composição deve
+ser elegível e cada range indexado deve ter até 4.096 vértices. Se não for,
+o frame inteiro conserva o formato completo. Vulkan e D3D12 usam 188 bytes.
+
+A preparação cria recursos fullscreen e programas de conversão de profundidade
+quando necessários para profundidade ou transparência. Targets somente cor
+não alocam de início o framebuffer R32F, a textura de staging e o vetor CPU
+de profundidade. Ativar profundidade depois, resize e RTT continuam cobertos.
+
+Os callbacks de cache do BGFX/OpenGL usam agora um cache de binários de programas
+em memória do processo: até 32 MiB, 128 entradas e 8 MiB por entrada, imutáveis
+e protegidas por mutex. As chaves do BGFX incluem shaders, plataforma, GPU e
+versão do driver. O cache não mantém handles ou targets e não grava em disco.
+Ele permite reutilização após destruir/recriar o runtime no mesmo processo.
+O capability probe do benchmark faz essa inicialização antes do primeiro frame;
+uma aplicação que renderiza diretamente em um processo novo ainda precisa
+compilar os programas na primeira inicialização. Os traces registram hits/writes.
+
+No readback síncrono padrão (pipeline depth 1), a publicação troca os vetores
+com o target e recicla a alocação anterior, eliminando a cópia de publicação e
+o vetor CPU duplicado do último resultado. Em 1024×1024 somente cor, esse vetor
+duplicado tinha 4 MiB; não é uma medição de pico RSS. A inversão de linhas,
+blit GPU e staging continuam. Tickets assíncronos mantêm armazenamento próprio;
+pipelines 2/3 conservam a publicação anterior. O caminho síncrono só retorna
+sucesso após o readback atual completar, sem publicar uma imagem anterior.
+
+### Medição da versão final
+
+Baseline `9fd10a080b`, seis processos novos por versão em OpenGL e três em
+Vulkan/D3D12, alternados e seriais,
+cidade de 40.000 prédios, 1024×1024, `--warmup 1 --frames 3`.
+Primeiro quadro inclui renderização e cópia RGBA síncrona; parsing e capability
+probe ficam fora. Sem tracing nas medianas; caches de sistema/driver mantidos.
+Controle aquecido separado: quatro quadros de aquecimento e oito medidos.
+Todas as medianas aquecidas estáticas dos processos cronometrados ficaram
+abaixo de 30 ms. As faixas e amostras individuais estão no JSON.
+Três pares OpenGL foram acrescentados depois da variação inicial; todos os
+seis pares são incluídos na mediana, sem excluir os processos iniciais.
+
+| API | Primeiro antes (ms) | Primeiro depois (ms) | Redução | Aquecido antes (ms) | Aquecido depois (ms) |
+|---|---:|---:|---:|---:|---:|
+| BGFX OpenGL | 1284.16 | 1091.03 | 15.0% | 11.79 | 9.64 |
+| BGFX Vulkan | 1416.18 | 1403.99 | 0.9% | 9.98 | 8.21 |
+| BGFX D3D12 | 1331.71 | 1323.83 | 0.6% | 11.86 | 10.07 |
+
+Uma execução separada com tracing no OpenGL:
+
+| Intervalo | Antes (ms) | Depois (ms) |
+|---|---:|---:|
+| Preparação do target | 207.13 | 184.70 |
+| Lowering | 151.01 | 120.50 |
+| Upload CPU | 2.11 | 1.77 |
+| Espera pelo readback | 420.50 | 278.26 |
+| Inversão de linhas/publicação | 2.72 | 0.42 |
+
+O intervalo de espera agrega comandos pendentes, upload do driver, execução
+e cópia/leitura da GPU. Sua queda não mede isoladamente a cópia GPU→CPU.
+O intervalo CPU de preparação não prova redução isolada da compilação: parte
+dos recursos é consumida mais tarde pela thread de renderização. Os ganhos
+do pacote devem ser avaliados pela mediana completa e pelos controles abaixo.
+
+Três processos adicionais por opção usam o novo binário, sem tracing, com
+as mesmas condições estáticas. São controles separados, sem significância
+estatística estabelecida; não atribuir todo o ganho a uma opção por subtração.
+`compact-cache-off` desliga somente o cache de programas; `full-layout`
+desliga somente os vértices compactos. Lowering, recursos lazy e troca de
+buffers permanecem ativos em ambos.
+
+| Controle OpenGL | Primeiro mediano (ms) |
+|---|---:|
+| compact-cache-off | 1068.74 |
+| full-layout | 1174.63 |
+
+Controles de atualização em 10.000 prédios, warmup 1 e três quadros:
+
+| Atualização | Processos por versão | Aquecido antes (ms) | Aquecido depois (ms) |
+|---|---:|---:|---:|
+| camera | 1 | 273.81 | 231.21 |
+| material | 3 | 268.22 | 229.06 |
+
+Câmera tem apenas um processo por versão. Esses controles verificam os caminhos
+de reuse/rebuild, sem estabelecer uma distribuição de desempenho para câmera.
+
+### Qualificação
+
+A suíte de 50 casos passou sem falhas nem skips: profundidade, transparência,
+texturas, clipping, janelas, sombras GPU, múltiplos targets e RTT. As referências
+GPU e sombras eram obrigatórias. Mais quatro execuções verificaram offscreen
+e readback/tickets em Vulkan e D3D12. O Core compara todos os atributos mantidos
+bit a bit, índices, draws, retenção/descarte de geometria, fallback de overlay,
+rejeição de patches compactos e limites/imutabilidade do cache de programas.
+O teste GPU compara geometria visível pequena/grande, cache estático e mudanças
+compacto→completo→compacto, além dos testes existentes de perda de dispositivo.
+
+Os 44 processos principais produziram 22 pares de imagens idênticos pelo SHA-256
+do PPM e hash RGBA. Mais oito processos compararam câmera/material nos pipelines
+OpenGL 2/3: os quatro pares também são exatos. O teste `CoinBgfxReadbackModes`
+exige pixels imediatos e falha no screen-door com pipeline 2 tanto na baseline
+quanto depois; portanto ele não qualifica o contrato atrasado. Os controles
+dinâmicos acima verificam sua preservação, sem afirmar entrega imediata.
+As seis imagens dos controles de opções também são exatas.
+A instalação BGFX local corresponde por hash ao build qualificado; `Coin4.dll`
+e o benchmark permanecem idênticos à baseline. Os pilotos iniciais também estão
+preservados: não substituem as medianas finais nem foram usados para excluir
+amostras. A primeira tentativa de teste Core tinha uma fixture SCREEN_DOOR e
+uma barreira inválida em layer zero; ambas foram corrigidas antes da qualificação.
+
+Evidências e scripts:
+[`bgfx-gl-stages-summary.json`](validation/bgfx-windows/first-frame/bgfx-gl-stages/bgfx-gl-stages-summary.json).
+
 ## Reproduzir
 
 ```powershell

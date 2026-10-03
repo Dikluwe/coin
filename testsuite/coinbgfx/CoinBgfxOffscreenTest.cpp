@@ -9,6 +9,7 @@
 #include "rendering/coinbgfx/CoinBgfxLowering.h"
 
 #include <Inventor/SoDB.h>
+#include <Inventor/actions/SoGLRenderAction.h>
 
 #include <cstdlib>
 #include <iostream>
@@ -257,6 +258,46 @@ int main()
       target.colorBuffer != largeBlue) {
     std::cerr << "BGFX large upload failed to recover its owned memory\n";
     return 1;
+  }
+  {
+    CoinRenderTargetP compactTarget(SbVec2i32(32, 32));
+    compactTarget.depthReadbackEnabled = false;
+    CoinRenderFramePlan opaque = smallBlue;
+    opaque.revision = 9100;
+    opaque.renderStates[0].lightModel = CoinRenderLightModel::PHONG;
+    opaque.renderStates[0].transparencyType = SoGLRenderAction::BLEND;
+    opaque.materials[0].emission[2] = 1.0f;
+    if (compactTarget.executeFrame(opaque).status != CoinRenderBackendStatus::SUCCESS) return 1;
+    const auto opaqueReference = compactTarget.colorBuffer;
+    if (opaqueReference[upper + 2] < 200) {
+      std::cerr << "BGFX compact reference did not contain visible emissive geometry\n";
+      return 1;
+    }
+    opaque.draws.resize(65000, opaque.draws[0]);
+    opaque.revision++;
+    if (compactTarget.executeFrame(opaque).status != CoinRenderBackendStatus::SUCCESS ||
+        compactTarget.colorBuffer != opaqueReference ||
+        compactTarget.executeFrame(opaque).status != CoinRenderBackendStatus::SUCCESS ||
+        compactTarget.colorBuffer != opaqueReference) {
+      std::cerr << "BGFX compact large frame or its GPU reuse changed the reference image\n";
+      return 1;
+    }
+    opaque.draws[1].renderLayer = 1;
+    opaque.draws[1].clearDepthBefore = true;
+    opaque.revision++;
+    if (compactTarget.executeFrame(opaque).status != CoinRenderBackendStatus::SUCCESS ||
+        compactTarget.colorBuffer != opaqueReference) {
+      std::cerr << "BGFX compact-to-full layout transition changed the image\n";
+      return 1;
+    }
+    opaque.draws[1].renderLayer = 0;
+    opaque.draws[1].clearDepthBefore = false;
+    opaque.revision++;
+    if (compactTarget.executeFrame(opaque).status != CoinRenderBackendStatus::SUCCESS ||
+        compactTarget.colorBuffer != opaqueReference) {
+      std::cerr << "BGFX full-to-compact layout transition changed the image\n";
+      return 1;
+    }
   }
   CoinRenderTextureImageSnapshot recoveryTexture;
   recoveryTexture.width = 1;
