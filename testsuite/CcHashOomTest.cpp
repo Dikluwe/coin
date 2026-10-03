@@ -2,23 +2,19 @@
 #include <cstdlib>
 #include <csignal>
 #include <stdexcept>
-#include <limits>
 #include <sys/resource.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
 #include "base/hashp.h"
-#include "tidbitsp.h"
 
 static bool fail_calloc = false;
 static bool fail_malloc = false;
 static bool fail_entry = false;
 static bool fail_allocator = false;
-static size_t last_calloc_count = 0;
 
 static void * injected_calloc(size_t count, size_t size)
 {
-  last_calloc_count = count;
   if (fail_calloc) { fail_calloc = false; return NULL; }
   return std::calloc(count, size);
 }
@@ -79,36 +75,6 @@ static cc_hash_entry * find_entry(cc_hash * hash, cc_hash_key key)
     if (entry->key == key) return entry;
   }
   return NULL;
-}
-
-static void insert_during_apply(cc_hash_key key, void *, void * closure)
-{
-  if (key == 2) cc_hash_put(static_cast<cc_hash *>(closure), 4, NULL);
-}
-
-static void insert_many_during_apply(cc_hash_key key, void *, void * closure)
-{
-  if (key != 2) return;
-  cc_hash * hash = static_cast<cc_hash *>(closure);
-  for (cc_hash_key next = 100; next < 200; ++next)
-    cc_hash_put(hash, next, NULL);
-}
-
-static void insert_then_remove_during_apply(cc_hash_key key, void *,
-                                            void * closure)
-{
-  if (key != 2) return;
-  cc_hash * hash = static_cast<cc_hash *>(closure);
-  cc_hash_put(hash, 4, NULL);
-  cc_hash_remove(hash, 4);
-}
-
-static void insert_then_throw_during_apply(cc_hash_key key, void *,
-                                           void * closure)
-{
-  if (key != 2) return;
-  cc_hash_put(static_cast<cc_hash *>(closure), 4, NULL);
-  throw std::runtime_error("callback failed");
 }
 
 int main()
@@ -174,72 +140,6 @@ int main()
   }
   cc_hash_destruct(hash);
 
-  hash = cc_hash_construct(2, 1.0f);
-  CHECK(hash != NULL);
-  CHECK(cc_hash_put(hash, 0, NULL));
-  CHECK(cc_hash_put(hash, 2, NULL));
-  const unsigned int size_before_apply = hash->size;
-  fail_calloc = true;
-  cc_hash_apply(hash, insert_during_apply, hash);
-  CHECK(!fail_calloc);
-  CHECK(hash->size == size_before_apply);
-  CHECK(cc_hash_get_num_elements(hash) == 3);
-  CHECK(cc_hash_get(hash, 0, &found));
-  CHECK(cc_hash_get(hash, 2, &found));
-  CHECK(cc_hash_get(hash, 4, &found));
-  CHECK(cc_hash_put(hash, 6, NULL));
-  CHECK(hash->size > size_before_apply);
-  CHECK(cc_hash_get(hash, 0, &found));
-  CHECK(cc_hash_get(hash, 2, &found));
-  CHECK(cc_hash_get(hash, 4, &found));
-  CHECK(cc_hash_get(hash, 6, &found));
-  cc_hash_destruct(hash);
-
-  hash = cc_hash_construct(2, 1.0f);
-  CHECK(hash != NULL);
-  CHECK(cc_hash_put(hash, 0, NULL));
-  CHECK(cc_hash_put(hash, 2, NULL));
-  cc_hash_entry * initial_zero = find_entry(hash, 0);
-  cc_hash_entry * initial_two = find_entry(hash, 2);
-  cc_hash_apply(hash, insert_many_during_apply, hash);
-  CHECK(cc_hash_get_num_elements(hash) == 102);
-  CHECK(hash->threshold >= hash->elements);
-  CHECK(find_entry(hash, 0) == initial_zero);
-  CHECK(find_entry(hash, 2) == initial_two);
-  CHECK(cc_hash_get(hash, 0, &found));
-  CHECK(cc_hash_get(hash, 2, &found));
-  for (cc_hash_key key = 100; key < 200; ++key)
-    CHECK(cc_hash_get(hash, key, &found));
-  cc_hash_destruct(hash);
-
-  hash = cc_hash_construct(2, 1.0f);
-  CHECK(cc_hash_put(hash, 0, NULL));
-  CHECK(cc_hash_put(hash, 2, NULL));
-  const unsigned int size_before_churn = hash->size;
-  cc_hash_apply(hash, insert_then_remove_during_apply, hash);
-  CHECK(hash->size == size_before_churn);
-  CHECK(cc_hash_get_num_elements(hash) == 2);
-  CHECK(cc_hash_get(hash, 0, &found));
-  CHECK(cc_hash_get(hash, 2, &found));
-  cc_hash_destruct(hash);
-
-  hash = cc_hash_construct(2, 1.0f);
-  CHECK(cc_hash_put(hash, 0, NULL));
-  CHECK(cc_hash_put(hash, 2, NULL));
-  try {
-    cc_hash_apply(hash, insert_then_throw_during_apply, hash);
-    CHECK(false);
-  }
-  catch (const std::runtime_error &) { }
-  CHECK(hash->applydepth == 0);
-  CHECK(hash->deferredresize == 0);
-  CHECK(hash->pendinghashfunc == NULL);
-  CHECK(cc_hash_get_num_elements(hash) == 3);
-  CHECK(cc_hash_get(hash, 4, &found));
-  CHECK(cc_hash_put(hash, 6, NULL));
-  CHECK(hash->threshold >= hash->elements);
-  cc_hash_destruct(hash);
-
   hash = cc_hash_construct(17, 1.0f);
   CHECK(cc_hash_put(hash, 0, NULL));
   CHECK(cc_hash_put(hash, 17, NULL));
@@ -296,16 +196,5 @@ int main()
   CHECK(cc_hash_get(hash, 4, &found));
   cc_hash_destruct(hash);
 
-  hash = cc_hash_construct(2, std::numeric_limits<float>::min());
-  CHECK(cc_hash_put(hash, 0, NULL));
-  CHECK(cc_hash_put(hash, 2, NULL));
-  const unsigned int size_before_tiny_factor_apply = hash->size;
-  fail_calloc = true;
-  cc_hash_apply(hash, insert_during_apply, hash);
-  CHECK(!fail_calloc);
-  CHECK(last_calloc_count == coin_geq_prime_number(
-    size_before_tiny_factor_apply + 1));
-  CHECK(cc_hash_get(hash, 4, &found));
-  cc_hash_destruct(hash);
   return 0;
 }

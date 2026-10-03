@@ -60,9 +60,6 @@ extern "C" {
     cc_hash_entry ** buckets;
     cc_hash_func * hashfunc;
     cc_memalloc * memalloc;
-    unsigned int applydepth;
-    unsigned int deferredresize;
-    cc_hash_func * pendinghashfunc;
   };
 
 #ifdef __cplusplus

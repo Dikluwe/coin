@@ -343,7 +343,6 @@ sbdict_test_apply_mutation(SbDict::Key key, void *, void * closure)
   if (key == 17) {
     ++data->visits_seventeen;
     data->dictionary->remove(17);
-    data->dictionary->enter(1, NULL);
   }
 }
 
@@ -358,7 +357,6 @@ BOOST_AUTO_TEST_CASE(sbdict_apply_can_remove_current_entry)
   BOOST_CHECK_EQUAL(data.visits_seventeen, 1u);
   void * value = NULL;
   BOOST_CHECK(dictionary.find(0, value));
-  BOOST_CHECK(dictionary.find(1, value));
   BOOST_CHECK(!dictionary.find(17, value));
 }
 

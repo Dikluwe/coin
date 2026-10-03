@@ -204,10 +204,6 @@ hash_resize(cc_hash * ht, unsigned int newsize)
   /* Never shrink the table */
   if (ht->size >= newsize)
     return;
-  if (ht->applydepth != 0) {
-    if (ht->deferredresize != UINT_MAX) ++ht->deferredresize;
-    return;
-  }
   hash_rebuild(ht, newsize, ht->hashfunc);
 }
 
@@ -252,9 +248,6 @@ cc_hash_construct(unsigned int size, float loadfactor)
   ht->buckets = (cc_hash_entry **) calloc(s, sizeof(cc_hash_entry*));
   if (ht->buckets == NULL) coin_oom_abort("cc_hash_construct buckets");
   ht->hashfunc = hash_default_hashfunc;
-  ht->applydepth = 0;
-  ht->deferredresize = 0;
-  ht->pendinghashfunc = NULL;
   /* we use a memory allocator to avoid an operating system malloc
      every time a new entry is needed */
   ht->memalloc = cc_memalloc_construct_aligned(
@@ -417,18 +410,12 @@ cc_hash_get_num_elements(cc_hash * ht)
 
   Existing entries are reindexed when the function changes. If allocating
   replacement storage fails, the current function and entries are unchanged.
-  A change requested from cc_hash_apply() takes effect after its outermost
-  traversal finishes.
 */
 void
 cc_hash_set_hash_func(cc_hash * ht, cc_hash_func * func)
 {
   assert(ht != NULL);
   if (func == NULL) func = hash_default_hashfunc;
-  if (ht->applydepth != 0) {
-    ht->pendinghashfunc = func;
-    return;
-  }
   if (ht->hashfunc == func) return;
   if (ht->elements == 0) {
     ht->hashfunc = func;
@@ -440,59 +427,19 @@ cc_hash_set_hash_func(cc_hash * ht, cc_hash_func * func)
 
 /*!
   Call \a func for each element in the hash table. The callback may remove
-  the current element or insert another. Bucket growth and hash function
-  changes requested by the callback take effect after the outermost traversal
-  finishes. Newly inserted elements may or may not be visited. Removing an
-  element that has not yet been visited is not supported. If the callback
-  throws, pending hash function and growth requests are discarded; entries
-  already inserted remain in the table.
+  its current entry, but must not otherwise mutate or destroy the table.
 */
 void
 cc_hash_apply(cc_hash * ht, cc_hash_apply_func * func, void * closure)
 {
   unsigned int i;
   cc_hash_entry * elem;
-  ++ht->applydepth;
-  try {
-    for (i = 0; i < ht->size; i++) {
-      elem = ht->buckets[i];
-      while (elem) {
-        cc_hash_entry * next = elem->next;
-        func(elem->key, elem->val, closure);
-        elem = next;
-      }
-    }
-  }
-  catch (...) {
-    // The traversal did not finish. Keep the current hash function and let a
-    // later insertion retry any growth needed for entries already inserted.
-    if (--ht->applydepth == 0) {
-      ht->pendinghashfunc = NULL;
-      ht->deferredresize = 0;
-    }
-    throw;
-  }
-  if (--ht->applydepth == 0) {
-    cc_hash_func * pendinghashfunc = ht->pendinghashfunc;
-    const unsigned int deferredresize = ht->deferredresize;
-    ht->pendinghashfunc = NULL;
-    ht->deferredresize = 0;
-    if (pendinghashfunc != NULL)
-      cc_hash_set_hash_func(ht, pendinghashfunc);
-    if (deferredresize) {
-      if (ht->elements > ht->threshold && ht->size < UINT_MAX) {
-        // Size for all deferred inserts without growing more than the same
-        // number of ordinary insertions could have grown the table.
-        const double required = std::ceil(
-          static_cast<double>(ht->elements) / ht->loadfactor);
-        unsigned int target = ht->size;
-        for (unsigned int step = 0;
-             step < deferredresize && target < required && target < UINT_MAX;
-             ++step) {
-          target = (unsigned int) coin_geq_prime_number(target + 1);
-        }
-        hash_resize(ht, target);
-      }
+  for (i = 0; i < ht->size; i++) {
+    elem = ht->buckets[i];
+    while (elem) {
+      cc_hash_entry * next = elem->next;
+      func(elem->key, elem->val, closure);
+      elem = next;
     }
   }
 }
@@ -558,7 +505,7 @@ BOOST_AUTO_TEST_CASE(cchash_print_stat_handles_empty_hash)
 
 struct CcHashApplyMutationData {
   cc_hash * hash;
-  unsigned int visits[5];
+  unsigned int visits;
 };
 
 static cc_hash_key
@@ -568,89 +515,25 @@ cchash_test_collision_hash(cc_hash_key)
 }
 
 static void
-cchash_test_insert_during_apply(cc_hash_key key, void *, void * closure)
+cchash_test_remove_current_during_apply(cc_hash_key key, void *, void * closure)
 {
   CcHashApplyMutationData * data =
     static_cast<CcHashApplyMutationData *>(closure);
-  if (key < 5) ++data->visits[key];
-  if (key == 2 && data->visits[key] == 1)
-    cc_hash_put(data->hash, 4, NULL);
+  ++data->visits;
+  cc_hash_remove(data->hash, key);
 }
 
-BOOST_AUTO_TEST_CASE(cchash_apply_insert_can_trigger_resize)
+BOOST_AUTO_TEST_CASE(cchash_apply_can_remove_current_entry)
 {
   cc_hash * hash = cc_hash_construct(2, 1.0f);
-  BOOST_REQUIRE(hash != NULL);
-  BOOST_CHECK(cc_hash_put(hash, 0, NULL));
-  BOOST_CHECK(cc_hash_put(hash, 2, NULL));
-  CcHashApplyMutationData data = { hash, { 0, 0, 0, 0, 0 } };
-  cc_hash_apply(hash, cchash_test_insert_during_apply, &data);
-  BOOST_CHECK_EQUAL(data.visits[0], 1u);
-  BOOST_CHECK_EQUAL(data.visits[2], 1u);
-  BOOST_CHECK_EQUAL(cc_hash_get_num_elements(hash), 3u);
-  void * value = NULL;
-  BOOST_CHECK(cc_hash_get(hash, 0, &value));
-  BOOST_CHECK(cc_hash_get(hash, 2, &value));
-  BOOST_CHECK(cc_hash_get(hash, 4, &value));
-  cc_hash_destruct(hash);
-}
-
-static void
-cchash_test_remove_and_insert_during_apply(cc_hash_key key, void *,
-                                           void * closure)
-{
-  CcHashApplyMutationData * data =
-    static_cast<CcHashApplyMutationData *>(closure);
-  if (key == 0) ++data->visits[0];
-  if (key == 2) {
-    ++data->visits[2];
-    cc_hash_remove(data->hash, 2);
-    cc_hash_put(data->hash, 4, NULL);
-  }
-}
-
-BOOST_AUTO_TEST_CASE(cchash_apply_remove_insert_and_resize)
-{
-  cc_hash * hash = cc_hash_construct(2, 0.25f);
   BOOST_REQUIRE(hash != NULL);
   cc_hash_set_hash_func(hash, cchash_test_collision_hash);
   BOOST_CHECK(cc_hash_put(hash, 0, NULL));
   BOOST_CHECK(cc_hash_put(hash, 2, NULL));
-  CcHashApplyMutationData data = { hash, { 0, 0, 0, 0, 0 } };
-  cc_hash_apply(hash, cchash_test_remove_and_insert_during_apply, &data);
-  BOOST_CHECK_EQUAL(data.visits[0], 1u);
-  BOOST_CHECK_EQUAL(data.visits[2], 1u);
-  void * value = NULL;
-  BOOST_CHECK(cc_hash_get(hash, 0, &value));
-  BOOST_CHECK(!cc_hash_get(hash, 2, &value));
-  BOOST_CHECK(cc_hash_get(hash, 4, &value));
-  cc_hash_destruct(hash);
-}
-
-static void
-cchash_test_change_hash_during_apply(cc_hash_key key, void *, void * closure)
-{
-  CcHashApplyMutationData * data =
-    static_cast<CcHashApplyMutationData *>(closure);
-  if (key == 0) ++data->visits[0];
-  if (key == 17) ++data->visits[2];
-  if (key == 17 && data->visits[2] == 1)
-    cc_hash_set_hash_func(data->hash, cchash_test_collision_hash);
-}
-
-BOOST_AUTO_TEST_CASE(cchash_apply_change_hash_func_visits_once)
-{
-  cc_hash * hash = cc_hash_construct(17, 1.0f);
-  BOOST_REQUIRE(hash != NULL);
-  BOOST_CHECK(cc_hash_put(hash, 0, NULL));
-  BOOST_CHECK(cc_hash_put(hash, 17, NULL));
-  CcHashApplyMutationData data = { hash, { 0, 0, 0, 0, 0 } };
-  cc_hash_apply(hash, cchash_test_change_hash_during_apply, &data);
-  BOOST_CHECK_EQUAL(data.visits[0], 1u);
-  BOOST_CHECK_EQUAL(data.visits[2], 1u);
-  void * value = NULL;
-  BOOST_CHECK(cc_hash_get(hash, 0, &value));
-  BOOST_CHECK(cc_hash_get(hash, 17, &value));
+  CcHashApplyMutationData data = { hash, 0 };
+  cc_hash_apply(hash, cchash_test_remove_current_during_apply, &data);
+  BOOST_CHECK_EQUAL(data.visits, 2u);
+  BOOST_CHECK_EQUAL(cc_hash_get_num_elements(hash), 0u);
   cc_hash_destruct(hash);
 }
 #endif // COIN_TEST_SUITE
