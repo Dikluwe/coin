@@ -1949,7 +1949,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   if (!cacheHit && !cameraPatchUsed) {
     if (!CoinBgfxLowering::lower(frame, target.size[0], target.size[1],
                               homogeneousDepth, freshPlan, this->lastError, hasShadows,
-                              this->drawBatchingEnabled)) {
+                              this->drawBatchingEnabled, target.submissionPreflight(frame))) {
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
     }
     plan = &freshPlan;

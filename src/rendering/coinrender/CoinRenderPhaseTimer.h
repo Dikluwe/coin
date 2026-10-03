@@ -1,9 +1,9 @@
 #ifndef COIN_RENDER_PHASE_TIMER_H
 #define COIN_RENDER_PHASE_TIMER_H
 
-#include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 #include <chrono>
 #include <cstdio>
+#include <cstdlib>
 
 // Collect CPU intervals without printing inside a measured section. Disabled
 // tracing neither reads the clock nor allocates. These intervals are nested
@@ -11,7 +11,7 @@
 class CoinRenderPhaseTimer {
 public:
   explicit CoinRenderPhaseTimer(const char * scope)
-    : enabled(CoinRenderDiagnosticShell::phaseTracingEnabled()), scope(scope) {
+    : enabled(tracingEnabled()), scope(scope) {
     if (enabled) previous = Clock::now();
   }
   void mark(const char * name) {
@@ -30,6 +30,13 @@ public:
     std::fprintf(stderr, "\n");
   }
 private:
+  // Keep this header usable by standalone Core tests/packers that do not link
+  // CoinRenderDiagnosticShell. Matches environmentOption, including its alias.
+  static bool tracingEnabled() {
+    const char * value = std::getenv("COIN_RENDER_TRACE_PHASES");
+    if (!value) value = std::getenv("COIN_WGPU_TRACE_PHASES");
+    return value != nullptr;
+  }
   using Clock = std::chrono::steady_clock;
   struct Sample { const char * name; double ms; };
   bool enabled;

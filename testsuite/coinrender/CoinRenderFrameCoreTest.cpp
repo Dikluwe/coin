@@ -7,12 +7,16 @@
 #include "rendering/coinrender/CoinRenderFramePlan.h"
 #include "rendering/coinrender/CoinRenderImageCore.h"
 #include "rendering/coinrender/CoinRenderStateCore.h"
+#include "rendering/coinrender/CoinRenderFloatCore.h"
+#include "rendering/coinrender/CoinRenderComposition.h"
+#include "rendering/coinrender/CoinRenderTargetP.h"
 
 #include <Inventor/SoDB.h>
 
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <iostream>
 #include <limits>
 #include <string>
@@ -25,6 +29,122 @@ check(bool condition, const char * message)
   if (!condition) std::cerr << "CoinRenderFrameCoreTest: " << message << '\n';
   return condition;
 }
+
+CoinRenderFramePlan validPlan() {
+  CoinRenderFramePlan plan;
+  plan.vertices.resize(3);
+  plan.indices = {0, 1, 2};
+  plan.materials.emplace_back();
+  plan.lightingStates.emplace_back();
+  plan.cameras.emplace_back();
+  plan.viewports.emplace_back();
+  plan.viewports[0].width = plan.viewports[0].height = 1;
+  plan.renderStates.emplace_back();
+  plan.draws.emplace_back();
+  plan.draws[0].geometry.vertexCount = plan.draws[0].geometry.indexCount = 3;
+  return plan;
+}
+
+bool testFiniteValidation() {
+  bool ok = true;
+  if (sizeof(float) == sizeof(uint32_t) && std::numeric_limits<float>::is_iec559 &&
+      std::numeric_limits<float>::digits == 24) {
+    const uint32_t mantissas[] = {0, 1, 0x3fffff, 0x7fffff};
+    for (uint32_t sign = 0; sign < 2; ++sign)
+      for (uint32_t exponent = 0; exponent < 256; ++exponent)
+        for (const uint32_t mantissa : mantissas) {
+          const uint32_t bits = (sign << 31) | (exponent << 23) | mantissa;
+          float value;
+          std::memcpy(&value, &bits, sizeof(value));
+          ok &= check(coin_render_is_finite(value) == std::isfinite(value),
+                      "finite classification must cover every exponent, both signs and NaN payloads");
+        }
+  }
+  const float invalid[] = {std::numeric_limits<float>::infinity(),
+    -std::numeric_limits<float>::infinity(), std::numeric_limits<float>::quiet_NaN()};
+  for (float value : invalid) {
+    for (unsigned field = 0; field < 24; ++field) {
+      auto plan = validPlan();
+      auto & v = plan.vertices[0];
+      const char * expected;
+      if (field < 3) { v.position[field] = value; expected = "Vertex contains non-finite position or normal"; }
+      else if (field < 6) { v.normal[field - 3] = value; expected = "Vertex contains non-finite position or normal"; }
+      else if (field < 8) { v.texcoord[field - 6] = value; expected = "Vertex contains non-finite texcoord"; }
+      else if (field == 8) { v.screenSpaceW = value; expected = "Invalid expanded primitive attributes"; }
+      else if (field == 9) { v.fogEyeDepth = value; expected = "Invalid expanded primitive attributes"; }
+      else { v.extraTexcoords[(field - 10) / 2][(field - 10) % 2] = value; expected = "Non-finite multitexture coordinate"; }
+      std::string diagnostic;
+      ok &= check(!plan.isValid(&diagnostic) && diagnostic == expected,
+                  "every captured vertex float must reject invalid data with the same diagnostic");
+    }
+    for (unsigned unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+      auto plan = validPlan();
+      plan.renderStates[0].textureCombines[unit].instructions[3][2] = value;
+      std::string diagnostic;
+      ok &= check(!plan.isValid(&diagnostic) && diagnostic == "Invalid texture combine program",
+                  "disabled texture units must still validate their combine floats");
+    }
+    auto plan = validPlan();
+    plan.renderStates[0].model[1][2] = value;
+    std::string diagnostic;
+    ok &= check(!plan.isValid(&diagnostic) && diagnostic == "RenderState matrix contains non-finite values",
+                "matrix finiteness must remain enforced");
+  }
+  auto finite = validPlan();
+  finite.vertices[0].position[0] = std::numeric_limits<float>::max();
+  finite.vertices[0].normal[0] = -std::numeric_limits<float>::max();
+  finite.vertices[0].texcoord[0] = std::numeric_limits<float>::denorm_min();
+  finite.vertices[0].extraTexcoords[6][1] = -0.0f;
+  ok &= check(finite.isValid(), "finite extremes, subnormals and signed zeros remain accepted");
+  return ok;
+}
+
+class PreflightBackend : public CoinRenderBackend {
+public:
+  bool ok = true;
+  bool fail = false;
+  bool isGpuBackend() const override { return false; }
+  CoinRenderBackendStatus getStatus() const override { return CoinRenderBackendStatus::SUCCESS; }
+  CoinRenderBackendStatus prepare(CoinRenderTargetP &) override { return CoinRenderBackendStatus::SUCCESS; }
+  void poll() override {}
+  const std::string & getLastError() const override { return error; }
+  CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target) override {
+    const auto * receipt = target.submissionPreflight(frame);
+    ok &= check(receipt && receipt->compositionFor(frame), "fresh validation supplies a submission-local receipt");
+    auto foreign = frame;
+    foreign.vertices[0].position[2] = std::numeric_limits<float>::quiet_NaN();
+    ok &= check(!target.submissionPreflight(foreign), "a different plan with the same revision cannot use the receipt");
+    std::vector<CoinRenderCompositionItem> order;
+    std::string diagnostic;
+    ok &= check(!coin_render_composition_schedule(foreign, order, diagnostic, receipt),
+                "a foreign mutated plan must take the validating composition path");
+    return {fail ? CoinRenderBackendStatus::BACKEND_ERROR : CoinRenderBackendStatus::SUCCESS};
+  }
+private:
+  std::string error;
+};
+
+bool testSubmissionPreflight() {
+  CoinRenderTargetP target(SbVec2i32(1, 1));
+  target.depthReadbackEnabled = false;
+  auto * backend = new PreflightBackend;
+  target.backend.reset(backend);
+  auto plan = validPlan();
+  plan.revision = 1;
+  bool ok = check(target.executeFrame(plan).status == CoinRenderBackendStatus::SUCCESS && backend->ok,
+                  "validated submission must succeed");
+  ok &= check(!target.submissionPreflight(plan), "receipt must be cleared after successful submission");
+  backend->fail = true;
+  ++plan.revision;
+  ok &= check(target.executeFrame(plan).status == CoinRenderBackendStatus::BACKEND_ERROR && backend->ok,
+              "failure path must exercise the receipt");
+  ok &= check(!target.submissionPreflight(plan), "receipt must be cleared after failed submission");
+  plan.vertices[0].position[0] = std::numeric_limits<float>::infinity();
+  ++plan.revision;
+  ok &= check(target.executeFrame(plan).status != CoinRenderBackendStatus::SUCCESS &&
+              !target.submissionPreflight(plan), "invalid subsequent data cannot inherit a receipt");
+  return ok;
+}
 }
 
 int
@@ -32,6 +152,8 @@ main()
 {
   SoDB::init();
   bool ok = true;
+  ok &= testFiniteValidation();
+  ok &= testSubmissionPreflight();
 
   CoinRenderTextureUnitSnapshot unitsA[1], unitsB[1];
   for (size_t i = sizeof(bool); i < offsetof(CoinRenderTextureUnitSnapshot, imageSlot); ++i) {

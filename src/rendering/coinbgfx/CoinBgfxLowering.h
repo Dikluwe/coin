@@ -119,6 +119,8 @@ struct CoinBgfxVertexRange {
   uint32_t count = 0;
 };
 
+class CoinRenderFramePreflight;
+
 class CoinBgfxLowering {
 public:
   // Keep draw metadata for static GPU reuse even when CPU geometry is large.
@@ -133,7 +135,8 @@ public:
   static bool lower(const CoinRenderFramePlan & frame, int width, int height,
                     bool homogeneousDepth, CoinBgfxPlan & output,
                     std::string & diagnostic, bool allowQualifiedShadows = false,
-                    bool batchOpaque = false);
+                    bool batchOpaque = false,
+                    const CoinRenderFramePreflight * preflight = nullptr);
   static bool selectTransparencyStrategy(
     const std::vector<CoinBgfxDraw> & draws,
     CoinBgfxTransparencyMode configuredMode,

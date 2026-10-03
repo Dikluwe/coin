@@ -1,5 +1,6 @@
 #ifndef COIN_RENDER_TEXTURE_COMBINE_CORE_H
 #define COIN_RENDER_TEXTURE_COMBINE_CORE_H
+#include "rendering/coinrender/CoinRenderFloatCore.h"
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
 #include <Inventor/elements/SoTextureCombineElement.h>
@@ -88,7 +89,7 @@ inline bool coin_render_compile_combine(const SoTextureCombineElement::UnitData&
     result.instructions[2][i] = float(as + 4 * ao);
   }
   for (int c = 0; c < 4; ++c) {
-    if (!std::isfinite(raw.constantcolor[c])) {
+    if (!coin_render_is_finite(raw.constantcolor[c])) {
       diagnostic = "Non-finite TextureCombine constant";
       return false;
     }
@@ -102,7 +103,7 @@ inline bool coin_render_validate_combine(const CoinRenderTextureCombineSnapshot&
   const auto& p = program.instructions;
   for (int row = 0; row < 4; ++row)
     for (int c = 0; c < 4; ++c)
-      if (!std::isfinite(p[row][c]))
+      if (!coin_render_is_finite(p[row][c]))
         return false;
   if (p[0][0] == 0)
     return true;

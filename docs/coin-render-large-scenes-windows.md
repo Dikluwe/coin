@@ -713,6 +713,125 @@ Logs, hashes, controles e método estão em
 A prioridade indicada pela medição é otimizar a conferência de floats, depois
 examinar reaproveitamento de validação/composição e expansão da geometria.
 
+## Otimizações da camada comum do CoinRender — 2026-10-03
+
+As melhorias indicadas pela investigação anterior foram aplicadas à DLL
+`CoinRender4`, compartilhada pelos caminhos wgpu e BGFX. O `Coin4.dll` e seu
+OpenGL tradicional permanecem com os mesmos hashes da baseline `3633e6a5eb`.
+
+### Implementação e preservação do contrato
+
+- A classificação dos floats usa o expoente IEEE binary32 quando o tipo tem
+  essa representação, com `memcpy` para respeitar aliasing. Outras representações
+  usam `std::isfinite`. Todos os campos continuam validados, com os mesmos
+  diagnósticos. Infinitos e NaNs continuam rejeitados; zeros com sinal,
+  subnormais e extremos finitos continuam aceitos.
+- Unidades de textura desabilitadas deixam de construir snapshots e matrizes
+  temporárias na validação e composição. Seus programas de combinação continuam
+  sendo verificados, inclusive os floats das unidades desabilitadas.
+- A composição deixa de ordenar vetores que já estão ordenados. A comparação
+  e a ordenação estável para transparência, camadas e empates são preservadas.
+- O target entrega aos executores a ordem que acabou de validar, por meio de
+  um objeto privado que existe apenas durante a submissão síncrona e corresponde
+  ao endereço exato do plano. A revisão não serve como prova e o objeto não é
+  armazenado entre quadros. Chamadas independentes e planos diferentes seguem
+  o caminho anterior sem esse reaproveitamento. Isso elimina a terceira
+  classificação nos dois executores e a terceira validação de plano no BGFX.
+  Builder e target ainda validam
+  separadamente: a action pode ajustar o plano entre essas etapas.
+- Cubos nativos, preenchidos e sem textura reutilizam vértices idênticos dentro
+  de cada desenho e ocorrência: 36 passam a 24. Uma tabela fixa de face/canto
+  encontra candidatos e a comparação integral dos atributos decide a igualdade.
+  Normais de face, coordenadas, materiais, ordem dos triângulos e limites dos
+  desenhos são preservados. Subclasses, callbacks observadores, funções de
+  textura, linhas e pontos mantêm a captura anterior. Não há compartilhamento
+  entre ocorrências transformadas.
+
+O tracing também deixou de depender de um símbolo da DiagnosticShell no header
+do timer; os executáveis de teste que compilam o packer isoladamente voltaram
+a linkar no build completo. As variáveis de tracing e seu alias mantêm o mesmo
+comportamento. Não houve alteração de shaders, protocolo Rust/BGFX ou API pública.
+
+### Primeiro quadro e armazenamento
+
+Cena com 40.000 prédios, 40.001 desenhos e imagem 1024×1024. Cada resultado de
+primeiro quadro é a mediana de três processos novos por variante, alternando
+antes/depois, sem tracing, com renderização e cópia RGBA síncrona. O controle
+aquecido usa um processo adicional, quatro quadros de aquecimento e oito
+medidos. A baseline é a DLL anterior preservada, executada nesta mesma rodada.
+Os tempos são CPU wall time e incluem espera/readback; não são tempos GPU
+isolados. Caches do sistema e do driver foram mantidos, sem reiniciar a máquina.
+
+| Caminho | Primeiro antes (ms) | Primeiro depois (ms) | Redução | Aquecido antes → depois (ms) |
+|---|---:|---:|---:|---:|
+| wgpu D3D12 | 1725.82 | 1189.00 | 31.1% | 34.71 → 26.57 |
+| wgpu Vulkan | 1550.41 | 952.16 | 38.6% | 32.66 → 24.86 |
+| wgpu OpenGL | 1692.86 | 1117.85 | 34.0% | 35.59 → 27.66 |
+| bgfx D3D12 | 2427.60 | 1807.07 | 25.6% | 12.66 → 12.50 |
+| bgfx Vulkan | 2496.31 | 1832.21 | 26.6% | 10.64 → 10.84 |
+| bgfx OpenGL | 2264.97 | 1639.10 | 27.6% | 13.34 → 12.74 |
+
+No plano comum, os vértices capturados passaram de **1.440.036 para 960.024**,
+mantendo **1.440.036 índices**. O payload de vértices caiu de 144.003.600 para
+96.002.400 bytes. Somados aos índices e estados de renderização, esses payloads
+passaram de **205,39 para 159,61 MiB**, uma redução de 45,78 MiB (22,3%).
+Esses números não incluem toda a RAM do processo ou memória da GPU.
+
+No wgpu, o payload de geometria empacotada caiu de 149.763.744 para 101.762.544
+bytes. O lowering BGFX ainda expande os vértices pelos índices e mantém
+1.440.036 vértices de saída; não há redução equivalente de upload GPU no BGFX.
+A captura e a validação comuns ficam menores nos dois caminhos.
+
+Os processos separados com tracing mostram o trabalho removido no Vulkan:
+
+| Caminho | Captura (ms) | Passagens de validação / soma (ms) | Passagens de composição / soma (ms) |
+|---|---:|---:|---:|
+| wgpu antes | 475.79 | 2 / 429.49 | 3 / 99.21 |
+| wgpu depois | 430.51 | 2 / 81.81 | 2 / 42.76 |
+| bgfx antes | 456.00 | 3 / 613.33 | 3 / 91.45 |
+| bgfx depois | 444.42 | 2 / 83.25 | 2 / 45.44 |
+
+Essas somas consideram apenas os intervalos internos de cada passagem;
+não devem ser adicionadas aos timers pais do builder ou target. As faixas das
+três amostras e os controles aquecidos estão no JSON. Os custos que restam na
+preparação, pipelines e execução de cada backend continuam medidos separadamente.
+
+### Qualificação e equivalência
+
+As seis imagens estáticas ficaram byte a byte iguais às respectivas baselines,
+incluindo SHA-256 do PPM e checksum da saída RGBA. Quatro controles adicionais
+com 10.000 prédios, câmera e material alterados a cada quadro, também produziram
+imagens iguais no Vulkan de wgpu e BGFX. São controles de equivalência; uma
+amostra por variante nesses modos não estabelece uma distribuição de desempenho.
+
+Os testes novos comparam a geometria expandida dos cubos, bit a bit, com a
+referência nativa de callbacks, incluindo materiais por face, ocorrências
+transformadas e dimensões zero/negativas. Conferem ainda 2.048 padrões de float,
+NaN/infinito em todos os 24 campos do vértice, matrizes e combinação de textura,
+além da restrição e limpeza do objeto de validação após sucesso e falha.
+
+O build completo passou nos dois backends. A qualificação wgpu terminou com
+**100 casos Vulkan**, **32 OpenGL** e **32 D3D12**, sem skips. A execução inicial
+do Vulkan teve 99 casos aprovados e uma comparação de logs que pressupunha
+36 vértices por cubo. Esse teste passou a comparar a sequência expandida de
+primitivas, mantendo a referência com observador sem otimização; a repetição
+de `ActionTest` e cinco casos de regressão passou (6/6). O log original da
+falha está preservado para tornar essa correção rastreável.
+
+A suíte completa BGFX terminou com **163/163 casos aprovados**, 0 skips,
+incluindo parametrizações D3D12/Vulkan/OpenGL, superfícies, transparência,
+profundidade, sombras e renderização em textura. As referências OpenGL nativas
+foram obrigatórias nesta rodada. A execução inicial BGFX aprovou 131 casos
+e pulou 32 casos de sombras GPU que exigem uma flag explícita; esses 32 foram
+executados novamente com `COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU=1`, sem skips.
+O log inicial também está preservado. No wgpu, as sombras GPU foram
+obrigatórias desde a primeira execução Vulkan.
+
+Logs, scripts de reprodução, resultados JUnit e hashes estão em
+[common-optimizations-summary.json](validation/bgfx-windows/first-frame/common-optimizations/common-optimizations-summary.json).
+As instalações locais `build/coin-render-install` e
+`build/coin-render-bgfx-install` foram atualizadas e conferidas contra os builds.
+
 ## Reproduzir
 
 ```powershell

@@ -1,0 +1,16 @@
+startup_detail arguments_ms=0.0874 coin_init_ms=1.9826 capability_probe_ms=463.338
+scene_detail parse_ms=407.632 wrapper_ms=0.0162 camera_fit_ms=95.2908
+scene_load_ms=503.137
+startup_detail material_search_ms=0.1563 target_setup_ms=1.9492
+WebGPU_first_detail render_ms=1187.74 publication_copy_ms=0.964 before_frame_since_main_ms=971.468 result_since_main_ms=2160.18
+WebGPU_first_frame_ms=1188.71
+rgba_fnv64=0x6714299260985122
+image=build/large-scenes/common-opt-wgpu-dx12-40000-after-1-static.ppm
+adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) vendor_id=0x10de device_id=0x1c03 backend=wgpu size=1024x1024 warmup=1 scene=build/large-scenes/city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static
+WebGPU frames=3 median_ms=26.4679 p95_ms=27.4199 min_ms=25.8199 max_ms=27.4199
+WebGPU_render frames=3 median_ms=26.0063 p95_ms=26.9 min_ms=25.2732 max_ms=26.9
+WebGPU_copy frames=3 median_ms=0.5199 p95_ms=0.5467 min_ms=0.4616 max_ms=0.5467
+WebGPU_throughput frames=3 total_ms=79.7116 fps=37.6357
+WebGPU_cache last_frame_uploads=0 last_frame_uploaded_bytes=0 last_frame_hits=1 cumulative_uploads=1 cumulative_uploaded_bytes=101762544 cumulative_hits=3
+backend_cleanup_begin
+backend_cleanup_ms=34.0388

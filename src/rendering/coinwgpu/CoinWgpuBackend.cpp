@@ -259,7 +259,7 @@ CoinWgpuBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
                                static_cast<uint32_t>(target.size[0]),
                                static_cast<uint32_t>(target.size[1]),
                                reuse,
-                               packDiagnostic)) {
+                               packDiagnostic, target.submissionPreflight(frame))) {
     this->lastError = packDiagnostic;
     this->status = CoinRenderBackendStatus::UNSUPPORTED;
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);

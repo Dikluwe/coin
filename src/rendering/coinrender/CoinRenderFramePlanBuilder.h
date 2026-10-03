@@ -117,6 +117,8 @@ private:
   std::unordered_map<uint64_t, uint32_t> nodeOccurrenceCount;
   std::unordered_map<uint64_t, std::vector<uint32_t>> renderStatesByModel;
   const SoNode * stableShape = nullptr;
+  bool reuseCubeVertices = false;
+  uint32_t cubeVertexSlots[48];
   std::vector<std::pair<int, uint32_t>> shapeRenderStates;
   std::vector<SbVec3f> lightAttenuationByIndex;
   std::vector<uint32_t> shadowGroupStack;

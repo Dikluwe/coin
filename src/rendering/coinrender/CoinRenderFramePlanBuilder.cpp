@@ -29,6 +29,7 @@
 #include <Inventor/elements/SoClipPlaneElement.h>
 #include "rendering/coinrender/CoinRenderIndexedGeometryCore.h"
 #include "rendering/coinrender/CoinRenderPhaseTimer.h"
+#include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 
 #include <Inventor/actions/SoCallbackAction.h>
 #include <Inventor/SoPrimitiveVertex.h>
@@ -65,6 +66,7 @@
 #include <Inventor/elements/SoTextureCoordinateBindingElement.h>
 
 #include <cassert>
+#include <algorithm>
 #include <atomic>
 #include <cmath>
 
@@ -197,12 +199,16 @@ CoinRenderFramePlanBuilder::beginShape(SoCallbackAction * action, const SoNode *
   if (SoMultiTextureCoordinateElement::getType(state, 0) ==
       SoMultiTextureCoordinateElement::FUNCTION) return;
   this->stableShape = node;
+  this->reuseCubeVertices = type == SoCube::getClassTypeId();
+  if (this->reuseCubeVertices)
+    std::fill(this->cubeVertexSlots, this->cubeVertexSlots + 48, UINT32_MAX);
 }
 
 void
 CoinRenderFramePlanBuilder::endShape()
 {
   this->stableShape = nullptr;
+  this->reuseCubeVertices = false;
   this->shapeRenderStates.clear();
 }
 
@@ -1055,8 +1061,25 @@ CoinRenderFramePlanBuilder::addVertex(SoCallbackAction * action, const SoPrimiti
   const auto & rs = this->currentPlan.renderStates[
     this->currentPlan.draws[this->currentDrawIndex].renderStateSlot];
   const CoinRenderVertexSnapshot vertex = this->captureVertex(action, pv, materialSlot, rs);
+  uint32_t * cubeSlot = nullptr;
+  if (this->reuseCubeVertices && action->getCurPathTail() == this->stableShape) {
+    // A face/corner key finds candidates without per-vertex heap allocation.
+    // The full captured bytes decide equality: material, normal, coordinates
+    // and expanded attributes must all match. Collisions only miss reuse.
+    const int axis = vertex.normal[0] != 0 ? 0 : vertex.normal[1] != 0 ? 1 : 2;
+    const unsigned face = unsigned(axis * 2 + (vertex.normal[axis] < 0 ? 1 : 0));
+    const unsigned corner = (vertex.position[0] < 0 ? 1u : 0u) |
+      (vertex.position[1] < 0 ? 2u : 0u) | (vertex.position[2] < 0 ? 4u : 0u);
+    cubeSlot = &this->cubeVertexSlots[face * 8 + corner];
+    const auto & draw = this->currentPlan.draws[this->currentDrawIndex];
+    // Reuse is restricted to this occurrence and this contiguous draw range.
+    if (*cubeSlot >= draw.geometry.firstVertex && *cubeSlot < this->currentPlan.vertices.size() &&
+        std::memcmp(&this->currentPlan.vertices[*cubeSlot], &vertex, sizeof(vertex)) == 0)
+      return *cubeSlot;
+  }
   const uint32_t index = static_cast<uint32_t>(this->currentPlan.vertices.size());
   this->currentPlan.vertices.push_back(vertex);
+  if (cubeSlot) *cubeSlot = index;
   return index;
 }
 
@@ -1156,7 +1179,7 @@ CoinRenderFramePlanBuilder::addTriangle(SoCallbackAction * action,
   this->currentPlan.indices.push_back(i2);
 
   CoinRenderDrawPacket & dp = this->currentPlan.draws[this->currentDrawIndex];
-  dp.geometry.vertexCount += 3;
+  dp.geometry.vertexCount = static_cast<uint32_t>(this->currentPlan.vertices.size()) - dp.geometry.firstVertex;
   dp.geometry.indexCount += 3;
 }
 

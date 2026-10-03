@@ -303,6 +303,10 @@ struct CoinRenderRenderStateSnapshot {
   CoinRenderTextureCombineSnapshot textureCombines[COIN_RENDER_MAX_TEXTURE_UNITS];
 };
 
+inline bool coin_render_texture_unit_enabled(const CoinRenderRenderStateSnapshot & state, size_t unit) {
+  return unit == 0 ? state.hasTexture : state.extraTextures[unit - 1].enabled;
+}
+
 inline CoinRenderTextureUnitSnapshot coin_render_texture_unit(const CoinRenderRenderStateSnapshot & state, size_t unit) {
   if (unit != 0) return state.extraTextures[unit - 1];
   CoinRenderTextureUnitSnapshot result;

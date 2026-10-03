@@ -11,6 +11,7 @@
 #include "rendering/coinrender/CoinRenderClipCore.h"
 #include "rendering/coinrender/CoinRenderStateCore.h"
 #include "rendering/coinrender/CoinRenderPhaseTimer.h"
+#include "rendering/coinrender/CoinRenderFloatCore.h"
 
 #include <cmath>
 #include <cstring>
@@ -93,7 +94,7 @@ bool
 CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
 {
   CoinRenderPhaseTimer timer("validation_detail");
-  auto isFiniteF = [](float v) { return std::isfinite(v); };
+  auto isFiniteF = [](float v) { return coin_render_is_finite(v); };
 
   auto isMatrixFinite = [&](const SbMatrix & m) {
     const float (*mat)[4] = m.getValue();
@@ -379,12 +380,12 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
       }
     }
     for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
-      const CoinRenderTextureUnitSnapshot tex = coin_render_texture_unit(state, unit);
       if (!coin_render_validate_combine(state.textureCombines[unit])) {
         if (outDiagnostic) *outDiagnostic = "Invalid texture combine program";
         return false;
       }
-      if (!tex.enabled) continue;
+      if (!coin_render_texture_unit_enabled(state, unit)) continue;
+      const CoinRenderTextureUnitSnapshot tex = coin_render_texture_unit(state, unit);
       if (tex.model != CoinRenderTextureModel::MODULATE &&
           tex.model != CoinRenderTextureModel::REPLACE &&
           tex.model != CoinRenderTextureModel::DECAL &&

@@ -1,0 +1,50 @@
+[
+  {
+    "flavor": "wgpu",
+    "file": "Coin4.dll",
+    "build": "build/coin-render-wgpu-msvc",
+    "prefix": "build/coin-render-install",
+    "sha256": "ff72becc14c61e14fb99e69e57aadcb7dfa74d4104fb306757e66a56158ce6b1",
+    "matches": true
+  },
+  {
+    "flavor": "wgpu",
+    "file": "CoinRender4.dll",
+    "build": "build/coin-render-wgpu-msvc",
+    "prefix": "build/coin-render-install",
+    "sha256": "bdf7086344ac54791573cab354f4f228b903a47a7722735953b8836eff193498",
+    "matches": true
+  },
+  {
+    "flavor": "wgpu",
+    "file": "coin_render_gl_benchmark.exe",
+    "build": "build/coin-render-wgpu-msvc",
+    "prefix": "build/coin-render-install",
+    "sha256": "1da6cf6cde375226538ef0e18c2b0ee5a4ee3f77623723d45d31e5704ea2619e",
+    "matches": true
+  },
+  {
+    "flavor": "bgfx",
+    "file": "Coin4.dll",
+    "build": "build/coin-render-bgfx-msvc",
+    "prefix": "build/coin-render-bgfx-install",
+    "sha256": "5ed9a37fc5ff02829087dd76b7680454a0fc49d1ded8d71f4d35cadac285b9f6",
+    "matches": true
+  },
+  {
+    "flavor": "bgfx",
+    "file": "CoinRender4.dll",
+    "build": "build/coin-render-bgfx-msvc",
+    "prefix": "build/coin-render-bgfx-install",
+    "sha256": "04197741b6843543459966cb55218d79f873a693bac089858c17e45000056306",
+    "matches": true
+  },
+  {
+    "flavor": "bgfx",
+    "file": "coin_render_gl_benchmark.exe",
+    "build": "build/coin-render-bgfx-msvc",
+    "prefix": "build/coin-render-bgfx-install",
+    "sha256": "b6bf4a99db41ec24cccb119567128ca25070bdecf2a700ececce147ba734e64b",
+    "matches": true
+  }
+]

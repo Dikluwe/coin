@@ -1,5 +1,6 @@
 #ifndef COIN_RENDER_CLIP_CORE_H
 #define COIN_RENDER_CLIP_CORE_H
+#include "rendering/coinrender/CoinRenderFloatCore.h"
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
 #include <algorithm>
@@ -15,7 +16,7 @@ inline bool coin_render_clip_equations(const CoinRenderRenderStateSnapshot & sta
     return false;
   }
   if (!state.clipPlanesWorld.empty() &&
-      (!std::isfinite(state.view.det4()) || std::abs(state.view.det4()) <= 1e-12f)) {
+      (!coin_render_is_finite(state.view.det4()) || std::abs(state.view.det4()) <= 1e-12f)) {
     diagnostic = "Invalid view matrix for Coin clipping planes";
     return false;
   }
@@ -25,7 +26,7 @@ inline bool coin_render_clip_equations(const CoinRenderRenderStateSnapshot & sta
     const SbVec3f & normal = plane.getNormal();
     for (int c = 0; c < 3; ++c) equations[i][c] = normal[c];
     equations[i][3] = -plane.getDistanceFromOrigin();
-    for (int c = 0; c < 4; ++c) if (!std::isfinite(equations[i][c])) {
+    for (int c = 0; c < 4; ++c) if (!coin_render_is_finite(equations[i][c])) {
       diagnostic = "Invalid Coin clipping plane equation";
       return false;
     }

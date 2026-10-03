@@ -8,6 +8,7 @@
 #include <Inventor/nodes/SoSceneTexture2.h>
 #include "rendering/coinrender/CoinRenderSelectionCore.h"
 #include "rendering/coinrender/CoinRenderPhaseTimer.h"
+#include "rendering/coinrender/CoinRenderFloatCore.h"
 #include <algorithm>
 #include <cmath>
 
@@ -27,6 +28,24 @@ struct CoinRenderCompositionItem {
   CoinRenderDepthFunction depthFunction = CoinRenderDepthFunction::LESS;
   float depthRange[2] = {0.0f, 1.0f};
   enum TransparencyStrategy { OBJECT, WEIGHTED_OIT, SORTED_LAYERS } transparencyStrategy = OBJECT;
+};
+
+// A borrowed proof for one synchronous C++ submission. Only the target can
+// construct it, after full validation. It never survives executeFrameInternal,
+// is not keyed by revision, and cannot be reused for a different plan object.
+class CoinRenderFramePreflight {
+  friend class CoinRenderTargetP;
+public:
+  const std::vector<CoinRenderCompositionItem> * compositionFor(
+      const CoinRenderFramePlan & candidate) const {
+    return frame == &candidate ? &order : nullptr;
+  }
+private:
+  CoinRenderFramePreflight() = default;
+  CoinRenderFramePreflight(const CoinRenderFramePreflight &) = delete;
+  CoinRenderFramePreflight & operator=(const CoinRenderFramePreflight &) = delete;
+  const CoinRenderFramePlan * frame = nullptr;
+  std::vector<CoinRenderCompositionItem> order;
 };
 
 // Names describe the Coin operation; GPU algorithms are selected by Infra.
@@ -74,7 +93,7 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
   order.reserve(frame.draws.size());
   for (const auto& material : frame.materials) {
     const float alpha = material.diffuse[3], transparency = material.transparency;
-    if (!std::isfinite(alpha) || !std::isfinite(transparency) || alpha < 0 || alpha > 1 ||
+    if (!coin_render_is_finite(alpha) || !coin_render_is_finite(transparency) || alpha < 0 || alpha > 1 ||
         transparency < 0 || transparency > 1 || std::abs(alpha + transparency - 1.0f) > 1.0e-5f) {
       diagnostic = "Invalid or inconsistent material alpha/transparency";
       return false;
@@ -123,7 +142,7 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
       const float viewZ = identityView ? position[2] :
         (position[0] * matrix[0][2] + position[1] * matrix[1][2] + position[2] * matrix[2][2] + matrix[3][2]) /
         (position[0] * matrix[0][3] + position[1] * matrix[1][3] + position[2] * matrix[2][3] + matrix[3][3]);
-      if (!std::isfinite(viewZ)) {
+      if (!coin_render_is_finite(viewZ)) {
         diagnostic = "Invalid non-finite eye depth in composition order";
         return false;
       }
@@ -150,9 +169,9 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
     const bool primaryAlpha = materialAlpha;
     bool unresolvedAlpha = false;
     for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
-      const CoinRenderTextureUnitSnapshot tex = coin_render_texture_unit(rs, unit);
-      if (!tex.enabled)
+      if (!coin_render_texture_unit_enabled(rs, unit))
         continue;
+      const CoinRenderTextureUnitSnapshot tex = coin_render_texture_unit(rs, unit);
       if (tex.imageSlot >= frame.textures.size()) {
         diagnostic = "Invalid texture in composition order";
         return false;
@@ -189,7 +208,7 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
                                                             center);
       item.eyeDepth = -center[2];
     }
-    if (!std::isfinite(item.eyeDepth)) {
+    if (!coin_render_is_finite(item.eyeDepth)) {
       diagnostic = "Invalid non-finite average eye depth in composition order";
       return false;
     }
@@ -296,9 +315,7 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
     order.push_back(item);
   }
   timer.mark("classify");
-  std::stable_sort(
-      order.begin(), order.end(),
-      [&frame](const CoinRenderCompositionItem& a, const CoinRenderCompositionItem& b) {
+  const auto precedes = [&frame](const CoinRenderCompositionItem& a, const CoinRenderCompositionItem& b) {
         const uint32_t layerA = frame.draws[a.drawIndex].renderLayer;
         const uint32_t layerB = frame.draws[b.drawIndex].renderLayer;
         if (layerA != layerB)
@@ -315,7 +332,11 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
         if (a.sortObject != b.sortObject)
           return a.sortObject;
         return a.sortObject && a.eyeDepth > b.eyeDepth;
-      });
+      };
+  // Preserve traversal order without sorting/allocating for already ordered
+  // captures, including the common all-opaque base layer.
+  if (!std::is_sorted(order.begin(), order.end(), precedes))
+    std::stable_sort(order.begin(), order.end(), precedes);
   timer.mark("sort");
   diagnostic.clear();
   return true;
@@ -338,10 +359,13 @@ inline uint32_t coin_render_screen_door_rank(uint32_t x, uint32_t y) {
 // shape. Executors consume this sequence; no backend sorts Coin triangles.
 inline bool coin_render_composition_schedule(const CoinRenderFramePlan& frame,
                                              std::vector<CoinRenderCompositionItem>& schedule,
-                                             std::string& diagnostic) {
-  std::vector<CoinRenderCompositionItem> order;
-  if (!coin_render_composition_order(frame, order, diagnostic))
+                                             std::string& diagnostic,
+                                             const CoinRenderFramePreflight * preflight = nullptr) {
+  std::vector<CoinRenderCompositionItem> computedOrder;
+  const auto * cachedOrder = preflight ? preflight->compositionFor(frame) : nullptr;
+  if (!cachedOrder && !coin_render_composition_order(frame, computedOrder, diagnostic))
     return false;
+  const auto & order = cachedOrder ? *cachedOrder : computedOrder;
   schedule.clear();
   for (size_t begin = 0; begin < order.size();) {
     const auto& first = order[begin];
@@ -384,7 +408,7 @@ inline bool coin_render_composition_schedule(const CoinRenderFramePlan& frame,
           mv.multVecMatrix(SbVec3f(frame.vertices[frame.indices[index + v]].position), eye);
           triangle.eyeDepth -= eye[2] / 3;
         }
-        if (!std::isfinite(triangle.eyeDepth)) {
+        if (!coin_render_is_finite(triangle.eyeDepth)) {
           diagnostic = "Non-finite triangle sorting depth";
           return false;
         }

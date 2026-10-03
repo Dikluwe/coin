@@ -359,6 +359,17 @@ CoinRenderTargetP::readbackDepth(std::vector<float> & outDepth) const
 CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfile(const CoinRenderFramePlan& frame,
                                                                   const SbVec2i32& targetSize,
                                                                   bool deferUnresolvedAlpha) {
+  return validateProfileInternal(frame, targetSize, deferUnresolvedAlpha, nullptr);
+}
+
+const CoinRenderFramePreflight *
+CoinRenderTargetP::submissionPreflight(const CoinRenderFramePlan & frame) const {
+  return activePreflight && activePreflight->compositionFor(frame) ? activePreflight : nullptr;
+}
+
+CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfileInternal(
+    const CoinRenderFramePlan & frame, const SbVec2i32 & targetSize,
+    bool deferUnresolvedAlpha, CoinRenderFramePreflight * preflight) {
   std::string planDiag;
   if (!frame.isValid(&planDiag)) {
     return CoinRenderFrameExecutionResult{CoinRenderBackendStatus::BACKEND_ERROR, "Invalid CoinRenderFramePlan: " + planDiag};
@@ -435,6 +446,10 @@ CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfile(const CoinRend
 
   }
 
+  if (preflight) {
+    preflight->order = std::move(compositionOrder);
+    preflight->frame = &frame;
+  }
   return CoinRenderFrameExecutionResult(CoinRenderBackendStatus::SUCCESS, "");
 }
 
@@ -641,9 +656,10 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     reuse.baseRevision == this->lastValidatedPlanRevision &&
     frame.revision != 0 &&
     frame.revision != reuse.baseRevision;
+  CoinRenderFramePreflight preflight;
   if (!validatedCameraPatch &&
       (frame.revision == 0 || frame.revision != this->lastValidatedPlanRevision)) {
-    CoinRenderFrameExecutionResult val = this->validateProfile(frame, this->size);
+    CoinRenderFrameExecutionResult val = validateProfileInternal(frame, this->size, false, &preflight);
     if (val.status != CoinRenderBackendStatus::SUCCESS) {
       this->lastError = val.diagnostic;
       return val;
@@ -654,6 +670,12 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     lastError = admission.diagnostic;
     return admission;
   }
+  struct PreflightScope {
+    const CoinRenderFramePreflight * & active;
+    const CoinRenderFramePreflight * previous;
+    ~PreflightScope() { active = previous; }
+  } preflightScope{this->activePreflight, this->activePreflight};
+  this->activePreflight = preflight.compositionFor(frame) ? &preflight : nullptr;
   const auto phaseValidated = PhaseClock::now();
   ReadbackPublication publication(*this);
   try {

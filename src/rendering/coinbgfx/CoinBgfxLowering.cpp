@@ -181,7 +181,8 @@ CoinBgfxLowering::clipViewport(const int32_t viewport[4], int width, int height,
 bool
 CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height,
                       bool homogeneousDepth, CoinBgfxPlan & output,
-                      std::string & diagnostic, bool allowQualifiedShadows, bool batchOpaque)
+                      std::string & diagnostic, bool allowQualifiedShadows, bool batchOpaque,
+                      const CoinRenderFramePreflight * preflight)
 {
   diagnostic.clear();
   CoinBgfxPlan candidate;
@@ -193,9 +194,9 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     diagnostic = "BGFX shadow maps require a qualified shadow executor";
     return false;
   }
-  if (!frame.isValid(&diagnostic)) return false;
+  if ((!preflight || !preflight->compositionFor(frame)) && !frame.isValid(&diagnostic)) return false;
   std::vector<CoinRenderCompositionItem> order;
-  if (!coin_render_composition_schedule(frame, order, diagnostic))
+  if (!coin_render_composition_schedule(frame, order, diagnostic, preflight))
     return false;
 
   for (size_t d = 0; d < frame.draws.size(); ++d) if (frame.draws[d].shadowLightSlot) {

@@ -1,6 +1,7 @@
 #include <setup.h>
 #include "rendering/coinrender/CoinRenderFramePlan.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
+#include "actions/CoinRenderActionP.h"
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include <Inventor/rendering/CoinRenderNativeSurface.h>
 #include <Inventor/nodes/SoMaterialBinding.h>
@@ -785,6 +786,27 @@ int testDepthStateCapture() {
 namespace {
 void noOpTriangle(void *, SoCallbackAction *, const SoPrimitiveVertex *,
                   const SoPrimitiveVertex *, const SoPrimitiveVertex *) {}
+std::string expandedRecording(CoinRenderAction & action) {
+  // Compare the primitive stream, not its storage representation. The
+  // observer reference deliberately bypasses native vertex/state reuse.
+  const auto & source = action.getPimpl()->lastValidPlan;
+  auto expanded = source;
+  expanded.vertices.clear();
+  expanded.indices.clear();
+  for (size_t d = 0; d < source.draws.size(); ++d) {
+    const auto & geometry = source.draws[d].geometry;
+    auto & output = expanded.draws[d].geometry;
+    output.firstVertex = static_cast<uint32_t>(expanded.vertices.size());
+    output.firstIndex = static_cast<uint32_t>(expanded.indices.size());
+    output.vertexCount = output.indexCount = geometry.indexCount;
+    for (size_t i = geometry.firstIndex; i < geometry.firstIndex + geometry.indexCount; ++i) {
+      expanded.indices.push_back(static_cast<uint32_t>(expanded.vertices.size()));
+      expanded.vertices.push_back(source.vertices[source.indices[i]]);
+    }
+  }
+  CoinRenderRecordingBackend recording;
+  return recording.recordToString(expanded);
+}
 void alternateDepth(void * data, SoCallbackAction * action, const SoPrimitiveVertex *,
                     const SoPrimitiveVertex *, const SoPrimitiveVertex *) {
   int & count = *static_cast<int *>(data);
@@ -845,7 +867,7 @@ int testPrimitiveStateReuse() {
     TEST_ASSERT(optimized.getLastStatus() == CoinRenderAction::SUCCESS &&
                 reference.getLastStatus() == CoinRenderAction::SUCCESS,
                 "native shapes with shared occurrences and per-part materials must capture");
-    TEST_ASSERT(optimized.getRecordingLog() == reference.getRecordingLog(),
+    TEST_ASSERT(expandedRecording(optimized) == expandedRecording(reference),
                 "reuse must preserve geometry, material bindings, transforms and changed frames");
   }
   root->unref();

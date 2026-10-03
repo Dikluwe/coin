@@ -13,6 +13,8 @@
 #include <string>
 #include <memory>
 
+class CoinRenderFramePreflight;
+
 class COIN_RENDER_DLL_API CoinRenderTargetP {
 public:
   enum TargetKind {
@@ -84,8 +86,14 @@ public:
                                          const CoinRenderFrameReuseDecision & reuse);
 
   std::unique_ptr<CoinRenderBackend> backend;
+  // Available only while a freshly validated frame is being submitted.
+  const CoinRenderFramePreflight * submissionPreflight(const CoinRenderFramePlan & frame) const;
 
 private:
+  const CoinRenderFramePreflight * activePreflight = nullptr;
+  static CoinRenderFrameExecutionResult validateProfileInternal(const CoinRenderFramePlan & frame,
+      const SbVec2i32 & targetSize, bool deferUnresolvedAlpha,
+      CoinRenderFramePreflight * preflight);
   CoinRenderFrameExecutionResult executeFrameInternal(const CoinRenderFramePlan & frame,
                                              CoinRenderReadbackTicket * outTicket,
                                              const CoinRenderFrameReuseDecision & reuse);

@@ -74,7 +74,8 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
 bool
 CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height,
                         const CoinRenderFrameReuseDecision & reuse,
-                        std::string & outDiagnostic)
+                        std::string & outDiagnostic,
+                        const CoinRenderFramePreflight * preflight)
 {
   outDiagnostic.clear();
   for (const auto& texture : frame.textures) {
@@ -113,7 +114,7 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
       reuse.baseRevision != 0 && reuse.baseRevision == this->packedRevision) {
     const auto previousDraws = this->draws;
     this->packedRevision = 0;
-    if (!this->packStates(frame, candidateShadow, width, height, outDiagnostic)) return false;
+    if (!this->packStates(frame, candidateShadow, width, height, outDiagnostic, preflight)) return false;
     const bool sameOrder = previousDraws.size() == this->draws.size() &&
       (previousDraws.empty() || std::memcmp(previousDraws.data(), this->draws.data(),
         previousDraws.size() * sizeof(CoinWgpuDraw)) == 0);
@@ -153,7 +154,7 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     dst.transparency = src.transparency;
   }
 
-  if (!this->packStates(frame, candidateShadow, width, height, outDiagnostic)) return false;
+  if (!this->packStates(frame, candidateShadow, width, height, outDiagnostic, preflight)) return false;
 
   this->texturePixels.resize(frame.textures.size());
   this->textures.assign(frame.textures.size(), CoinWgpuTexture{});
@@ -263,7 +264,8 @@ bool
 CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame,
                              CoinWgpuShadowFrame & shadow,
                              uint32_t targetWidth, uint32_t targetHeight,
-                             std::string & outDiagnostic)
+                             std::string & outDiagnostic,
+                             const CoinRenderFramePreflight * preflight)
 {
   this->states.assign(frame.renderStates.size(), CoinWgpuRenderState{});
   for (size_t i = 0; i < frame.renderStates.size(); ++i) {
@@ -386,7 +388,7 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame,
     }
   }
   std::vector<CoinRenderCompositionItem> order;
-  if (!coin_render_composition_schedule(frame, order, outDiagnostic))
+  if (!coin_render_composition_schedule(frame, order, outDiagnostic, preflight))
     return false;
   uint64_t requiredBytes = 0;
   const bool needsPeeling =

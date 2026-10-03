@@ -11,6 +11,8 @@
 #include <vector>
 
 // Private Infra owner for the storage referenced by CoinWgpuFrameView.
+class CoinRenderFramePreflight;
+
 class CoinWgpuFfiFrame {
 public:
   CoinWgpuFfiFrame();
@@ -18,7 +20,8 @@ public:
                std::string & outDiagnostic);
   bool prepare(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height,
                const CoinRenderFrameReuseDecision & reuse,
-               std::string & outDiagnostic);
+               std::string & outDiagnostic,
+               const CoinRenderFramePreflight * preflight = nullptr);
   const CoinWgpuFrameView & getView() const;
   const CoinWgpuShadowFrame & getShadowFrame() const;
   bool reusedLastPrepare() const;
@@ -29,7 +32,8 @@ private:
   CoinWgpuFfiFrame & operator=(const CoinWgpuFfiFrame &);
   bool packStates(const CoinRenderFramePlan & frame, CoinWgpuShadowFrame & shadow,
                   uint32_t targetWidth, uint32_t targetHeight,
-                  std::string & outDiagnostic);
+                  std::string & outDiagnostic,
+                  const CoinRenderFramePreflight * preflight);
   void bindView(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height);
   void batchOpaqueTriangles(const CoinRenderFramePlan & frame);
 
