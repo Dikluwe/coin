@@ -1,0 +1,174 @@
+[
+  {
+    "variant": "bgfx-vulkan",
+    "image_unchanged": true,
+    "first_ms": {
+      "before": 690.102,
+      "after": 683.178,
+      "delta_percent": -1.003329942530229,
+      "before_range": [
+        672.539,
+        693.625
+      ],
+      "after_range": [
+        681.468,
+        690.617
+      ]
+    },
+    "median_ms": {
+      "before": 3.17796,
+      "after": 3.14587,
+      "delta_percent": -1.0097672720865036,
+      "before_range": [
+        3.06779,
+        3.32804
+      ],
+      "after_range": [
+        3.06924,
+        3.23825
+      ]
+    },
+    "peak_rss_kib": {
+      "before": 634348,
+      "after": 634336,
+      "delta_percent": -0.0018917061297529791,
+      "before_range": [
+        634288,
+        634504
+      ],
+      "after_range": [
+        633992,
+        634464
+      ]
+    }
+  },
+  {
+    "variant": "bgfx-opengl",
+    "image_unchanged": true,
+    "first_ms": {
+      "before": 649.56,
+      "after": 654.19,
+      "delta_percent": 0.7127901964406824,
+      "before_range": [
+        649.236,
+        652.018
+      ],
+      "after_range": [
+        653.633,
+        657.369
+      ]
+    },
+    "median_ms": {
+      "before": 3.2175,
+      "after": 3.17279,
+      "delta_percent": -1.3895881895881868,
+      "before_range": [
+        3.18382,
+        3.24994
+      ],
+      "after_range": [
+        3.05748,
+        3.26312
+      ]
+    },
+    "peak_rss_kib": {
+      "before": 557044,
+      "after": 557224,
+      "delta_percent": 0.032313425869401335,
+      "before_range": [
+        556964,
+        557252
+      ],
+      "after_range": [
+        556864,
+        557244
+      ]
+    }
+  },
+  {
+    "variant": "wgpu-vulkan",
+    "image_unchanged": true,
+    "first_ms": {
+      "before": 459.77,
+      "after": 418.876,
+      "delta_percent": -8.894447223611813,
+      "before_range": [
+        456.986,
+        461.852
+      ],
+      "after_range": [
+        413.515,
+        423.298
+      ]
+    },
+    "median_ms": {
+      "before": 8.3169,
+      "after": 8.25516,
+      "delta_percent": -0.742343902175091,
+      "before_range": [
+        8.25162,
+        8.3724
+      ],
+      "after_range": [
+        8.23942,
+        8.5532
+      ]
+    },
+    "peak_rss_kib": {
+      "before": 592044,
+      "after": 506500,
+      "delta_percent": -14.448926093330904,
+      "before_range": [
+        592044,
+        592320
+      ],
+      "after_range": [
+        506376,
+        506572
+      ]
+    }
+  },
+  {
+    "variant": "wgpu-opengl",
+    "image_unchanged": true,
+    "first_ms": {
+      "before": 468.708,
+      "after": 434.972,
+      "delta_percent": -7.197658243511961,
+      "before_range": [
+        463.735,
+        485.354
+      ],
+      "after_range": [
+        425.939,
+        439.668
+      ]
+    },
+    "median_ms": {
+      "before": 11.4355,
+      "after": 11.524,
+      "delta_percent": 0.7739058195968651,
+      "before_range": [
+        11.3032,
+        11.4474
+      ],
+      "after_range": [
+        11.4652,
+        11.6439
+      ]
+    },
+    "peak_rss_kib": {
+      "before": 514976,
+      "after": 429772,
+      "delta_percent": -16.545237059591123,
+      "before_range": [
+        514892,
+        515092
+      ],
+      "after_range": [
+        429632,
+        429944
+      ]
+    }
+  }
+]

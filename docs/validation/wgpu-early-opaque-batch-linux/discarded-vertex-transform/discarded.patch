@@ -1,0 +1,161 @@
+diff --git a/src/rendering/coinbgfx/CoinBgfxLowering.cpp b/src/rendering/coinbgfx/CoinBgfxLowering.cpp
+index cd33568373..c2ff40c063 100644
+--- a/src/rendering/coinbgfx/CoinBgfxLowering.cpp
++++ b/src/rendering/coinbgfx/CoinBgfxLowering.cpp
+@@ -305,6 +305,8 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
+       if (modelView[axis][3] != 0.0f) batchable = false;
+     if (modelView[3][3] != 1.0f) batchable = false;
+     const SbMatrix normalMatrix = CoinRenderTransformCore::normalMatrix(modelView);
++    const CoinRenderVertexTransformCore positionTransform(modelView);
++    const CoinRenderVertexTransformCore normalTransform(normalMatrix);
+     const SbMatrix projection = CoinRenderTransformCore::projection(state.projectionCoin, homogeneousDepth);
+     const SbMatrix viewportTransform = CoinRenderTransformCore::viewportTransform(viewport, width, height);
+     const SbMatrix mvp = batchable ? projection * viewportTransform :
+@@ -482,14 +484,14 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
+       if (!uniformMaterial) setMaterial(vertex, material);
+       vertex.material[2] = source.screenSpaceW;
+       SbVec3f viewPosition;
+-      modelView.multVecMatrix(SbVec3f(source.position), viewPosition);
++      positionTransform.point(SbVec3f(source.position), viewPosition);
+       if (source.fogEyeDepth >= 0) viewPosition[2] = -source.fogEyeDepth;
+       viewPosition.getValue(vertex.viewPosition[0], vertex.viewPosition[1],
+                             vertex.viewPosition[2]);
+       if (batchable) std::memcpy(vertex.position, vertex.viewPosition, sizeof(vertex.position));
+       if (!normalCached || std::memcmp(previousNormal, source.normal, sizeof(previousNormal)) != 0) {
+         SbVec3f viewNormal;
+-        normalMatrix.multDirMatrix(SbVec3f(source.normal), viewNormal);
++        normalTransform.direction(SbVec3f(source.normal), viewNormal);
+         if (viewNormal.normalize() == 0.0f) viewNormal.setValue(0.0f, 0.0f, 1.0f);
+         viewNormal.getValue(previousViewNormal[0], previousViewNormal[1], previousViewNormal[2]);
+         std::memcpy(previousNormal, source.normal, sizeof(previousNormal));
+diff --git a/src/rendering/coinrender/CoinRenderTransformCore.h b/src/rendering/coinrender/CoinRenderTransformCore.h
+index 42b9c15e94..58a62695bb 100644
+--- a/src/rendering/coinrender/CoinRenderTransformCore.h
++++ b/src/rendering/coinrender/CoinRenderTransformCore.h
+@@ -3,6 +3,7 @@
+ #include "rendering/coinrender/CoinRenderFramePlan.h"
+ #include <algorithm>
+ #include <cmath>
++#include <cstring>
+ 
+ // Coin-native transforms over captured values. GPU packing and API conventions
+ // select parameters; this Core does not know BGFX, wgpu, actions or devices.
+@@ -49,4 +50,38 @@ public:
+     return true;
+   }
+ };
++
++// Prepared once per geometry range, then reused for every vertex. Keep Coin's
++// exact arithmetic (including projective division) and identity byte test.
++// This owns its captured matrix and has no frame, cache or device lifetime.
++class CoinRenderVertexTransformCore {
++public:
++  explicit CoinRenderVertexTransformCore(const SbMatrix & matrix) {
++    std::memcpy(this->matrix, matrix.getValue(), sizeof(this->matrix));
++    const SbMatrix identity = SbMatrix::identity();
++    const float * values = this->matrix[0];
++    this->identity = values[0] == 1.0f &&
++      std::memcmp(values + 1, identity[0] + 1, 15 * sizeof(float)) == 0;
++  }
++  void point(const SbVec3f & source, SbVec3f & destination) const {
++    if (this->identity) { destination = source; return; }
++    const float x = source[0], y = source[1], z = source[2];
++    const auto & m = this->matrix;
++    const float w = x*m[0][3] + y*m[1][3] + z*m[2][3] + m[3][3];
++    destination[0] = (x*m[0][0] + y*m[1][0] + z*m[2][0] + m[3][0])/w;
++    destination[1] = (x*m[0][1] + y*m[1][1] + z*m[2][1] + m[3][1])/w;
++    destination[2] = (x*m[0][2] + y*m[1][2] + z*m[2][2] + m[3][2])/w;
++  }
++  void direction(const SbVec3f & source, SbVec3f & destination) const {
++    if (this->identity) { destination = source; return; }
++    const float x = source[0], y = source[1], z = source[2];
++    const auto & m = this->matrix;
++    destination[0] = x*m[0][0] + y*m[1][0] + z*m[2][0];
++    destination[1] = x*m[0][1] + y*m[1][1] + z*m[2][1];
++    destination[2] = x*m[0][2] + y*m[1][2] + z*m[2][2];
++  }
++private:
++  float matrix[4][4];
++  bool identity;
++};
+ #endif
+diff --git a/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp b/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp
+index 883f577ebe..07fc38b577 100644
+--- a/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp
++++ b/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp
+@@ -253,12 +253,14 @@ CoinWgpuFfiFrame::batchOpaqueTriangles(const CoinRenderFramePlan & frame)
+     SbMatrix modelView, normalMatrix;
+     modelView.setValue(state.model_view);
+     normalMatrix.setValue(state.normal_matrix);
++    const CoinRenderVertexTransformCore positionTransform(modelView);
++    const CoinRenderVertexTransformCore normalTransform(normalMatrix);
+     for (uint64_t i = draw.first_vertex; i < uint64_t(draw.first_vertex) + draw.vertex_count; ++i) {
+       if (!contiguous) expandedVertices.push_back(this->vertices[i]);
+       auto & vertex = contiguous ? this->vertices[i] : expandedVertices.back();
+       SbVec3f position, normal;
+-      modelView.multVecMatrix(SbVec3f(vertex.position), position);
+-      normalMatrix.multDirMatrix(SbVec3f(vertex.normal), normal);
++      positionTransform.point(SbVec3f(vertex.position), position);
++      normalTransform.direction(SbVec3f(vertex.normal), normal);
+       std::memcpy(vertex.position, position.getValue(), sizeof(vertex.position));
+       std::memcpy(vertex.normal, normal.getValue(), sizeof(vertex.normal));
+     }
+diff --git a/testsuite/coinrender/CoinRenderTransformCoreTest.cpp b/testsuite/coinrender/CoinRenderTransformCoreTest.cpp
+index 87a489e485..2131c6290d 100644
+--- a/testsuite/coinrender/CoinRenderTransformCoreTest.cpp
++++ b/testsuite/coinrender/CoinRenderTransformCoreTest.cpp
+@@ -1,8 +1,54 @@
+ #include "rendering/coinrender/CoinRenderTransformCore.h"
+ #include <iostream>
+ #include <limits>
++#include <vector>
+ #define CHECK(c) do { if (!(c)) { std::cerr << "Failed: " << #c << " at " << __LINE__ << '\n'; return 1; } } while (0)
++namespace {
++bool sameVector(const SbVec3f & a, const SbVec3f & b) {
++  for (int c = 0; c < 3; ++c)
++    if (!(std::isnan(a[c]) && std::isnan(b[c])) &&
++        std::memcmp(&a[c], &b[c], sizeof(float)) != 0) return false;
++  return true;
++}
++bool preparedVertexTransforms() {
++  std::vector<SbMatrix> matrices{SbMatrix::identity()};
++  auto signedZero = SbMatrix::identity(); signedZero[1][0] = -0.0f;
++  matrices.push_back(signedZero);
++  for (int i = 0; i < 32; ++i) {
++    const float f = float(i) / 7.0f;
++    SbMatrix affine(1+f,.2f,-.3f,0, -.1f,2-f,.7f,0,
++                    .3f,-.2f,.5f+f,0, 13-f,-9+f,2*f,1);
++    matrices.push_back(affine);
++    affine[0][3] = .031f; affine[1][3] = -.023f; affine[3][3] = .8f;
++    matrices.push_back(affine);
++    affine.setScale(SbVec3f(0,1+f,-2-f)); matrices.push_back(affine);
++  }
++  std::vector<SbVec3f> points{SbVec3f(-0.0f,0,-0.0f), SbVec3f(1,-2,3),
++    SbVec3f(std::numeric_limits<float>::infinity(),1,-1),
++    SbVec3f(std::numeric_limits<float>::quiet_NaN(),0,0)};
++  for (int i = -10; i <= 10; ++i) points.emplace_back(i*.37f,i*-.91f,i*1.13f);
++  for (const auto & matrix : matrices) {
++    CoinRenderVertexTransformCore prepared(matrix);
++    for (const auto & point : points) {
++      SbVec3f expected, actual;
++      matrix.multVecMatrix(point,expected); prepared.point(point,actual);
++      if (!sameVector(expected,actual)) return false;
++      actual = point; prepared.point(actual,actual);
++      if (!sameVector(expected,actual)) return false;
++      matrix.multDirMatrix(point,expected); prepared.direction(point,actual);
++      if (!sameVector(expected,actual)) return false;
++      actual = point; prepared.direction(actual,actual);
++      if (!sameVector(expected,actual)) return false;
++    }
++  }
++  SbMatrix source; source.setTranslate(SbVec3f(2,3,4));
++  const CoinRenderVertexTransformCore owned(source); source.makeIdentity();
++  SbVec3f output; owned.point(SbVec3f(1,2,3),output);
++  return output == SbVec3f(3,5,7);
++}
++}
+ int main() {
++  CHECK(preparedVertexTransforms());
+   const auto identity = SbMatrix::identity();
+   CHECK(CoinRenderTransformCore::projection(identity, true) == identity);
+   const auto zeroToOne = CoinRenderTransformCore::projection(identity, false);

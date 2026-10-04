@@ -1,0 +1,94 @@
+[
+  {
+    "backend": "wgpu",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "CoinRenderTextureTest",
+    "args": [],
+    "code": 0
+  },
+  {
+    "backend": "wgpu",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "CoinRenderDrawStyleTest",
+    "args": [],
+    "code": 0
+  },
+  {
+    "backend": "wgpu",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "CoinRenderCompositionTest",
+    "args": [],
+    "code": 0
+  },
+  {
+    "backend": "wgpu",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "CoinRenderShadowReferenceTest",
+    "args": [],
+    "code": 0
+  },
+  {
+    "backend": "wgpu",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "CoinRenderDepthContractTest",
+    "args": [],
+    "code": 0
+  },
+  {
+    "backend": "wgpu",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "CoinRenderClipPlaneTest",
+    "args": [],
+    "code": 0
+  },
+  {
+    "backend": "wgpu",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "CoinRenderLightingTest",
+    "args": [],
+    "code": 0
+  },
+  {
+    "backend": "wgpu",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "CoinRenderMultitextureTest",
+    "args": [],
+    "code": 0
+  },
+  {
+    "backend": "wgpu",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "CoinRenderTransparencyTest",
+    "args": [],
+    "code": 0
+  },
+  {
+    "backend": "wgpu",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "CoinRenderDepthContractTest",
+    "args": [
+      "--gpu"
+    ],
+    "code": 0
+  },
+  {
+    "backend": "wgpu",
+    "api": "gl",
+    "gpu": "amd",
+    "test": "CoinRenderDepthContractTest",
+    "args": [
+      "--gpu"
+    ],
+    "code": 0
+  }
+]
