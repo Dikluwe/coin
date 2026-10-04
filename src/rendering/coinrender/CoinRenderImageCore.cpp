@@ -39,3 +39,18 @@ uint64_t CoinRenderImageCore::rgba8Digest(const std::vector<uint8_t>& pixels) {
   }
   return hash;
 }
+
+bool CoinRenderImageCore::convertToRgba8(const uint8_t * source, size_t count,
+                                        int components, std::vector<uint8_t> & output) {
+  if (!source || !count || components < 1 || components > 4 ||
+      count > std::numeric_limits<size_t>::max() / 4) return false;
+  output.resize(count * 4);
+  for (size_t i = 0; i < count; ++i) {
+    const auto * pixel = source + i * components;
+    output[i * 4] = pixel[0];
+    output[i * 4 + 1] = components < 3 ? pixel[0] : pixel[1];
+    output[i * 4 + 2] = components < 3 ? pixel[0] : pixel[2];
+    output[i * 4 + 3] = components == 2 ? pixel[1] : components == 4 ? pixel[3] : 255;
+  }
+  return true;
+}

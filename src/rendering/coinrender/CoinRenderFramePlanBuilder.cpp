@@ -6,7 +6,7 @@
 #include <iostream>
 #include "rendering/coinrender/CoinRenderFramePlanBuilder.h"
 #include "rendering/coinrender/CoinRenderImageCore.h"
-#include "rendering/coinrender/CoinRenderStateCore.h"
+#include "rendering/coinrender/CoinRenderPlanAssemblyCore.h"
 #include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
 #include <Inventor/nodes/SoShape.h>
 #include <Inventor/nodes/SoCube.h>
@@ -70,22 +70,6 @@
 #include <atomic>
 #include <cmath>
 
-namespace {
-uint64_t modelMatrixKey(const SbMatrix & matrix)
-{
-  uint64_t key = UINT64_C(14695981039346656037);
-  for (int row = 0; row < 4; ++row) {
-    for (int column = 0; column < 4; ++column) {
-      const float value = matrix[row][column];
-      uint32_t bits = 0;
-      // SbMatrix equality treats positive and negative zero as equal.
-      if (value != 0.0f) std::memcpy(&bits, &value, sizeof(bits));
-      key = (key ^ bits) * UINT64_C(1099511628211);
-    }
-  }
-  return key;
-}
-}
 
 CoinRenderCameraSnapshot
 CoinRenderFramePlanBuilder::captureCamera(SoCallbackAction * action)
@@ -97,12 +81,7 @@ CoinRenderFramePlanBuilder::captureCamera(SoCallbackAction * action)
   camSnap.isPerspective = (vv.getProjectionType() == SbViewVolume::PERSPECTIVE);
   camSnap.nearDistance = vv.getNearDist();
   camSnap.farDistance = vv.getNearDist() + vv.getDepth();
-  if (camSnap.isPerspective && camSnap.nearDistance <= 0.0f) {
-    camSnap.nearDistance = 0.1f;
-  }
-  if (camSnap.farDistance <= camSnap.nearDistance) {
-    camSnap.farDistance = camSnap.nearDistance + 100.0f;
-  }
+  CoinRenderPlanAssemblyCore::normalizeCamera(camSnap);
   camSnap.focalDistance = action->getFocalDistance();
   const SbViewportRegion & vp = action->getViewportRegion();
   camSnap.aspectRatio = vp.getViewportAspectRatio();
@@ -139,8 +118,7 @@ void
 CoinRenderFramePlanBuilder::reset()
 {
   this->endShape();
-  this->cubeTemplateReady = false;
-  this->cubeGeometry.clear();
+  this->cubeGeometryCore.reset();
   this->cubeReplayHits = 0;
   this->polygonNode = nullptr;
   this->polygonVertices.clear();
@@ -222,30 +200,10 @@ CoinRenderFramePlanBuilder::beginShape(SoCallbackAction * action, const SoNode *
 void
 CoinRenderFramePlanBuilder::endShape()
 {
-  if (this->captureCubeTemplate &&
-      this->currentPlan.vertices.size() == this->cubeCaptureFirstVertex + 24 &&
-      this->currentPlan.indices.size() == this->cubeCaptureFirstIndex + 36 &&
-      this->currentPlan.draws.size() == this->cubeCaptureFirstDraw + 1) {
-    bool local = true;
-    for (size_t i = 0; i < 36; ++i) {
-      const size_t index = this->currentPlan.indices[this->cubeCaptureFirstIndex + i];
-      if (index < this->cubeCaptureFirstVertex || index >= this->cubeCaptureFirstVertex + 24) local = false;
-    }
-    if (local) {
-      std::copy_n(this->currentPlan.vertices.begin() + this->cubeCaptureFirstVertex, 24,
-                  this->cubeTemplateVertices);
-      for (size_t i = 0; i < 36; ++i)
-        this->cubeTemplateIndices[i] = this->currentPlan.indices[this->cubeCaptureFirstIndex + i] -
-          static_cast<uint32_t>(this->cubeCaptureFirstVertex);
-      std::copy_n(this->cubeCaptureDimensions, 3, this->cubeTemplateDimensions);
-      this->cubeTemplateNormalBinding = this->cubeCaptureNormalBinding;
-      this->cubeTemplateReady = true;
-      this->cubeGeometry.clear();
-      this->cubeGeometry.push_back({this->cubeTemplateVertices[0].materialSlot,
-        static_cast<uint32_t>(this->cubeCaptureFirstVertex),
-        static_cast<uint32_t>(this->cubeCaptureFirstIndex)});
-    }
-  }
+  if (this->captureCubeTemplate)
+    this->cubeGeometryCore.learn(this->currentPlan, this->cubeCaptureFirstVertex,
+      this->cubeCaptureFirstIndex, this->cubeCaptureFirstDraw,
+      this->cubeCaptureDimensions, this->cubeCaptureNormalBinding);
   this->captureCubeTemplate = false;
   this->stableShape = nullptr;
   this->reuseCubeVertices = false;
@@ -255,53 +213,15 @@ CoinRenderFramePlanBuilder::endShape()
 bool
 CoinRenderFramePlanBuilder::replayNativeCube(SoCallbackAction * action, SoNode * node)
 {
-  if (!this->captureCubeTemplate || this->stableShape != node || !this->cubeTemplateReady ||
-      this->cubeCaptureNormalBinding != this->cubeTemplateNormalBinding ||
-      std::memcmp(this->cubeCaptureDimensions, this->cubeTemplateDimensions, sizeof(this->cubeTemplateDimensions)) != 0)
+  if (!this->captureCubeTemplate || this->stableShape != node ||
+      !this->cubeGeometryCore.matches(this->cubeCaptureDimensions, this->cubeCaptureNormalBinding))
     return false;
   const uint32_t stateSlot = this->captureRenderState(action, 0);
   this->ensureDrawPacket(CoinRenderPrimitiveTopology::TRIANGLE_LIST, stateSlot, node);
   this->captureSortingCenter(action);
   const uint32_t materialSlot = this->currentPlan.renderStates[stateSlot].materialSlot;
   auto & draw = this->currentPlan.draws[this->currentDrawIndex];
-  if (draw.geometry.indexCount == 0) {
-    for (const auto & geometry : this->cubeGeometry) {
-      if (geometry.materialSlot != materialSlot) continue;
-      draw.geometry.firstVertex = geometry.firstVertex;
-      draw.geometry.vertexCount = 24;
-      draw.geometry.firstIndex = geometry.firstIndex;
-      draw.geometry.indexCount = 36;
-      this->captureCubeTemplate = false;
-      ++this->cubeReplayHits;
-      return true;
-    }
-  }
-  // Consecutive identical cubes still form one draw. Repeat its indices,
-  // rather than widening the vertex range through unrelated shared meshes.
-  if (draw.geometry.vertexCount == 24) {
-    for (const auto & geometry : this->cubeGeometry) {
-      if (geometry.materialSlot != materialSlot || geometry.firstVertex != draw.geometry.firstVertex) continue;
-      for (const uint32_t index : this->cubeTemplateIndices)
-        this->currentPlan.indices.push_back(geometry.firstVertex + index);
-      draw.geometry.indexCount += 36;
-      this->captureCubeTemplate = false;
-      ++this->cubeReplayHits;
-      return true;
-    }
-  }
-  const bool newDraw = draw.geometry.indexCount == 0;
-  const uint32_t base = static_cast<uint32_t>(this->currentPlan.vertices.size());
-  const uint32_t firstIndex = static_cast<uint32_t>(this->currentPlan.indices.size());
-  this->currentPlan.vertices.insert(this->currentPlan.vertices.end(),
-      this->cubeTemplateVertices, this->cubeTemplateVertices + 24);
-  for (size_t i = base; i < this->currentPlan.vertices.size(); ++i)
-    this->currentPlan.vertices[i].materialSlot = materialSlot;
-  for (const uint32_t index : this->cubeTemplateIndices)
-    this->currentPlan.indices.push_back(base + index);
-  draw.geometry.vertexCount = static_cast<uint32_t>(this->currentPlan.vertices.size()) - draw.geometry.firstVertex;
-  draw.geometry.indexCount += 36;
-  if (newDraw && this->cubeGeometry.size() < 32)
-    this->cubeGeometry.push_back({materialSlot, base, firstIndex});
+  this->cubeGeometryCore.replay(this->currentPlan, draw, materialSlot);
   this->captureCubeTemplate = false;
   ++this->cubeReplayHits;
   return true;
@@ -444,15 +364,7 @@ CoinRenderFramePlanBuilder::captureMaterial(SoCallbackAction * action, int mater
   matSnap.shininess = shin;
   matSnap.transparency = transp;
 
-  for (size_t i = 0; i < this->currentPlan.materials.size(); ++i) {
-    const auto & m = this->currentPlan.materials[i];
-    if (std::memcmp(&m, &matSnap, sizeof(CoinRenderMaterialSnapshot)) == 0) {
-      return static_cast<uint32_t>(i);
-    }
-  }
-  uint32_t materialSlot = static_cast<uint32_t>(this->currentPlan.materials.size());
-  this->currentPlan.materials.push_back(matSnap);
-  return materialSlot;
+  return CoinRenderPlanAssemblyCore::material(this->currentPlan, matSnap);
 }
 
 bool
@@ -650,47 +562,10 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
 
   std::vector<uint8_t> rgba;
   if (!isSceneTexture) {
-    size_t pixelCount = static_cast<size_t>(w) * static_cast<size_t>(h);
-    rgba.resize(pixelCount * 4);
-
-    if (numComponents == 1) {
-      for (size_t i = 0; i < pixelCount; ++i) {
-        uint8_t val = rawBytes[i];
-        rgba[i * 4 + 0] = val;
-        rgba[i * 4 + 1] = val;
-        rgba[i * 4 + 2] = val;
-        rgba[i * 4 + 3] = 255;
-      }
-    } else if (numComponents == 2) {
-      for (size_t i = 0; i < pixelCount; ++i) {
-        uint8_t val = rawBytes[i * 2 + 0];
-        uint8_t alpha = rawBytes[i * 2 + 1];
-        rgba[i * 4 + 0] = val;
-        rgba[i * 4 + 1] = val;
-        rgba[i * 4 + 2] = val;
-        rgba[i * 4 + 3] = alpha;
-      }
-    } else if (numComponents == 3) {
-      for (size_t i = 0; i < pixelCount; ++i) {
-        rgba[i * 4 + 0] = rawBytes[i * 3 + 0];
-        rgba[i * 4 + 1] = rawBytes[i * 3 + 1];
-        rgba[i * 4 + 2] = rawBytes[i * 3 + 2];
-        rgba[i * 4 + 3] = 255;
-      }
-    } else if (numComponents == 4) {
-      for (size_t i = 0; i < pixelCount; ++i) {
-        uint8_t alpha = rawBytes[i * 4 + 3];
-        rgba[i * 4 + 0] = rawBytes[i * 4 + 0];
-        rgba[i * 4 + 1] = rawBytes[i * 4 + 1];
-        rgba[i * 4 + 2] = rawBytes[i * 4 + 2];
-        rgba[i * 4 + 3] = alpha;
-      }
-    } else {
-      if (outError)
-        *outError = "Unsupported number of texture components";
+    if (!CoinRenderImageCore::convertToRgba8(rawBytes, size_t(w) * h, numComponents, rgba)) {
+      if (outError) *outError = "Unsupported number of texture components";
       this->isUnsupported = true;
-      this->builderError =
-          (outError ? *outError : "Unsupported number of texture components");
+      this->builderError = "Unsupported number of texture components";
       return false;
     }
   }
@@ -698,32 +573,14 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
   // 8. Content digest & Image deduplication
   uint64_t digest =
       isSceneTexture ? sceneTexture->second.producerId : CoinRenderImageCore::rgba8Digest(rgba);
-  uint32_t texSlot = UINT32_MAX;
-  for (size_t i = 0; i < this->currentPlan.textures.size(); ++i) {
-    const auto & t = this->currentPlan.textures[i];
-    if (t.width == w && t.height == h && t.contentDigest == digest &&
-        t.producerId == (isSceneTexture ? sceneTexture->second.producerId : 0) &&
-        t.sceneTransparencyFunction ==
-            (isSceneTexture ? sceneTexture->second.transparencyFunction : -1) &&
-        t.pixelsRgba == rgba) {
-      texSlot = static_cast<uint32_t>(i);
-      break;
-    }
-  }
-  if (texSlot == UINT32_MAX) {
-    texSlot = static_cast<uint32_t>(this->currentPlan.textures.size());
-    CoinRenderTextureImageSnapshot tSnap;
-    tSnap.width = w;
-    tSnap.height = h;
-    tSnap.components = 4;
-    tSnap.sceneTransparencyFunction =
-        isSceneTexture ? sceneTexture->second.transparencyFunction : -1;
-    tSnap.gpuOpaque = isSceneTexture && sceneTexture->second.opaque;
-    tSnap.contentDigest = digest;
-    tSnap.producerId = isSceneTexture ? sceneTexture->second.producerId : 0;
-    tSnap.pixelsRgba = std::move(rgba);
-    this->currentPlan.textures.push_back(std::move(tSnap));
-  }
+  CoinRenderTextureImageSnapshot tSnap;
+  tSnap.width = w; tSnap.height = h; tSnap.components = 4;
+  tSnap.sceneTransparencyFunction = isSceneTexture ? sceneTexture->second.transparencyFunction : -1;
+  tSnap.gpuOpaque = isSceneTexture && sceneTexture->second.opaque;
+  tSnap.contentDigest = digest;
+  tSnap.producerId = isSceneTexture ? sceneTexture->second.producerId : 0;
+  tSnap.pixelsRgba = std::move(rgba);
+  const uint32_t texSlot = CoinRenderPlanAssemblyCore::texture(this->currentPlan, std::move(tSnap));
 
   // 9. Sampler deduplication
   CoinRenderSamplerSnapshot sampSnap;
@@ -731,20 +588,7 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
   sampSnap.wrapT = snapWrapT;
   sampSnap.filter = CoinRenderTextureFilter::LINEAR;
 
-  uint32_t sampSlot = UINT32_MAX;
-  for (size_t i = 0; i < this->currentPlan.samplers.size(); ++i) {
-    const auto & s = this->currentPlan.samplers[i];
-    if (s.wrapS == sampSnap.wrapS &&
-        s.wrapT == sampSnap.wrapT &&
-        s.filter == sampSnap.filter) {
-      sampSlot = static_cast<uint32_t>(i);
-      break;
-    }
-  }
-  if (sampSlot == UINT32_MAX) {
-    sampSlot = static_cast<uint32_t>(this->currentPlan.samplers.size());
-    this->currentPlan.samplers.push_back(sampSnap);
-  }
+  const uint32_t sampSlot = CoinRenderPlanAssemblyCore::sampler(this->currentPlan, sampSnap);
 
   // 10. Texture matrix
   rs.textureMatrix = SoMultiTextureMatrixElement::get(state, unit);
@@ -804,36 +648,26 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
         if (l->isOfType(SoDirectionalLight::getClassTypeId())) {
           src.type = CoinRenderLightType::DIRECTIONAL;
           SoDirectionalLight * dl = static_cast<SoDirectionalLight *>(l);
-          SbVec3f dir;
-          lm.multDirMatrix(dl->direction.getValue(), dir);
-          dir.normalize();
-          src.direction[0] = dir[0]; src.direction[1] = dir[1]; src.direction[2] = dir[2];
+          dl->direction.getValue().getValue(src.direction[0], src.direction[1], src.direction[2]);
           src.position[0] = src.position[1] = src.position[2] = 0.0f;
         } else if (l->isOfType(SoPointLight::getClassTypeId())) {
           src.type = CoinRenderLightType::POINT;
           SoPointLight * pl = static_cast<SoPointLight *>(l);
-          SbVec3f pos;
-          lm.multVecMatrix(pl->location.getValue(), pos);
-          src.position[0] = pos[0]; src.position[1] = pos[1]; src.position[2] = pos[2];
+          pl->location.getValue().getValue(src.position[0], src.position[1], src.position[2]);
           src.direction[0] = src.direction[1] = src.direction[2] = 0.0f;
         } else if (l->isOfType(SoSpotLight::getClassTypeId())) {
           src.type = CoinRenderLightType::SPOT;
           SoSpotLight * sl = static_cast<SoSpotLight *>(l);
-          SbVec3f pos, dir;
-          lm.multVecMatrix(sl->location.getValue(), pos);
-          lm.multDirMatrix(sl->direction.getValue(), dir);
-          dir.normalize();
-          src.position[0] = pos[0]; src.position[1] = pos[1]; src.position[2] = pos[2];
-          src.direction[0] = dir[0]; src.direction[1] = dir[1]; src.direction[2] = dir[2];
-          const float cutoff = sl->cutOffAngle.getValue();
-          const float dropoff = sl->dropOffRate.getValue();
-          src.cutOffAngle = std::isfinite(cutoff) ? std::max(0.0f, std::min(1.570796327f, cutoff)) : cutoff;
-          src.dropOffRate = std::isfinite(dropoff) ? std::max(0.0f, std::min(1.0f, dropoff)) : dropoff;
+          sl->location.getValue().getValue(src.position[0], src.position[1], src.position[2]);
+          sl->direction.getValue().getValue(src.direction[0], src.direction[1], src.direction[2]);
+          src.cutOffAngle = sl->cutOffAngle.getValue();
+          src.dropOffRate = sl->dropOffRate.getValue();
         } else {
           this->isUnsupported = true;
           this->builderError = "Unsupported SoLight subtype";
           break;
         }
+        CoinRenderPlanAssemblyCore::transformLight(src);
         lightSnap.lights.push_back(src);
         if (lightSnap.lights.size() > COIN_RENDER_MAX_LIGHTS) {
           this->isUnsupported = true;
@@ -843,62 +677,12 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
       }
     }
   }
-  uint32_t lightingSlot = 0;
-  bool lightFound = false;
-  for (size_t i = 0; i < this->currentPlan.lightingStates.size(); ++i) {
-    const auto & ls = this->currentPlan.lightingStates[i];
-    if (ls.lights.size() == lightSnap.lights.size()) {
-      if (ls.ambientIntensity != lightSnap.ambientIntensity ||
-          std::memcmp(ls.ambientColor, lightSnap.ambientColor, sizeof(ls.ambientColor)) != 0) continue;
-      bool allMatch = true;
-      for (size_t k = 0; k < ls.lights.size(); ++k) {
-        const CoinRenderLightSourceSnapshot & a = ls.lights[k];
-        const CoinRenderLightSourceSnapshot & b = lightSnap.lights[k];
-        if (a.sourceRevision != b.sourceRevision ||
-            a.sourceModel != b.sourceModel ||
-            a.type != b.type || a.intensity != b.intensity ||
-            a.cutOffAngle != b.cutOffAngle || a.dropOffRate != b.dropOffRate ||
-            std::memcmp(a.color, b.color, sizeof(a.color)) != 0 ||
-            std::memcmp(a.direction, b.direction, sizeof(a.direction)) != 0 ||
-            std::memcmp(a.position, b.position, sizeof(a.position)) != 0 ||
-            std::memcmp(a.attenuation, b.attenuation, sizeof(a.attenuation)) != 0) {
-          allMatch = false;
-          break;
-        }
-      }
-      if (allMatch) {
-        lightingSlot = static_cast<uint32_t>(i);
-        lightFound = true;
-        break;
-      }
-    }
-  }
-  if (!lightFound) {
-    lightingSlot = static_cast<uint32_t>(this->currentPlan.lightingStates.size());
-    this->currentPlan.lightingStates.push_back(lightSnap);
-  }
+  const uint32_t lightingSlot = CoinRenderPlanAssemblyCore::lighting(this->currentPlan, lightSnap);
 
   // 3. Camera
   const CoinRenderCameraSnapshot camSnap = captureCamera(action);
 
-  uint32_t cameraSlot = 0;
-  bool camFound = false;
-  for (size_t i = 0; i < this->currentPlan.cameras.size(); ++i) {
-    const auto & c = this->currentPlan.cameras[i];
-    if (c.viewMatrix == camSnap.viewMatrix &&
-        c.projectionMatrixCoin == camSnap.projectionMatrixCoin &&
-        c.isPerspective == camSnap.isPerspective &&
-        std::abs(c.nearDistance - camSnap.nearDistance) < 1e-5f &&
-        std::abs(c.farDistance - camSnap.farDistance) < 1e-5f) {
-      cameraSlot = static_cast<uint32_t>(i);
-      camFound = true;
-      break;
-    }
-  }
-  if (!camFound) {
-    cameraSlot = static_cast<uint32_t>(this->currentPlan.cameras.size());
-    this->currentPlan.cameras.push_back(camSnap);
-  }
+  const uint32_t cameraSlot = CoinRenderPlanAssemblyCore::camera(this->currentPlan, camSnap);
 
   // 4. Viewport
   const SbViewportRegion & vp = action->getViewportRegion();
@@ -910,20 +694,7 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   vpSnap.width = size[0];
   vpSnap.height = size[1];
 
-  uint32_t viewportSlot = 0;
-  bool vpFound = false;
-  for (size_t i = 0; i < this->currentPlan.viewports.size(); ++i) {
-    const auto & v = this->currentPlan.viewports[i];
-    if (v.x == vpSnap.x && v.y == vpSnap.y && v.width == vpSnap.width && v.height == vpSnap.height) {
-      viewportSlot = static_cast<uint32_t>(i);
-      vpFound = true;
-      break;
-    }
-  }
-  if (!vpFound) {
-    viewportSlot = static_cast<uint32_t>(this->currentPlan.viewports.size());
-    this->currentPlan.viewports.push_back(vpSnap);
-  }
+  const uint32_t viewportSlot = CoinRenderPlanAssemblyCore::viewport(this->currentPlan, vpSnap);
 
   // 5. RenderState
   SoShapeHintsElement::VertexOrdering vo;
@@ -958,7 +729,7 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   rs.depthTest = depthTest != FALSE;
   rs.depthWrite = depthWrite != FALSE;
   rs.depthFunction = static_cast<CoinRenderDepthFunction>(depthFunction);
-  rs.screenDoorTransparency = std::max(0.0f, std::min(1.0f, SoLazyElement::getTransparency(state, 0)));
+  rs.screenDoorTransparency = SoLazyElement::getTransparency(state, 0);
   if (state->isElementEnabled(CoinRenderDepthPolicyElement::getClassStackIndex()))
     rs.explicitDepthMask = CoinRenderDepthPolicyElement::get(state);
   rs.depthRange[0] = depthRange[0];
@@ -983,15 +754,17 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   rs.fogMode = static_cast<CoinRenderFogMode>(fogType);
   for (int c = 0; c < 3; ++c) rs.fogColor[c] = fogColor[c];
   rs.fogStart = fogStart;
-  rs.fogEnd = fogVisibility > 0.0f ? fogVisibility : camSnap.farDistance;
+  rs.fogEnd = fogVisibility;
   float curLw = action->getLineWidth();
   float curPs = action->getPointSize();
-  rs.lineWidth = (curLw <= 0.0f) ? 1.0f : curLw;
-  rs.pointSize = (curPs <= 0.0f) ? 1.0f : curPs;
+  rs.lineWidth = curLw;
+  rs.pointSize = curPs;
   rs.linePattern = state
-    ? static_cast<uint32_t>(SoLinePatternElement::get(state)) & 0xffffu : 0xffffu;
+    ? static_cast<uint32_t>(SoLinePatternElement::get(state)) : 0xffffu;
   rs.linePatternScaleFactor = state
-    ? std::max(1, SoLinePatternElement::getScaleFactor(state)) : 1;
+    ? SoLinePatternElement::getScaleFactor(state) : 1;
+
+  CoinRenderPlanAssemblyCore::normalizeState(rs, camSnap);
 
   if (state) {
     const SoClipPlaneElement * planes = SoClipPlaneElement::getInstance(state);
@@ -1004,70 +777,8 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   }
   this->captureTexture(action, rs, &this->builderError);
 
-  uint32_t rsSlot = 0;
-  bool rsFound = false;
-  auto & modelCandidates = this->renderStatesByModel[modelMatrixKey(rs.model)];
-  for (const uint32_t i : modelCandidates) {
-    const auto & existing = this->currentPlan.renderStates[i];
-    if (existing.clipPlanesWorld == rs.clipPlanesWorld &&
-        existing.materialSlot == materialSlot &&
-        existing.shadowGroupSlot == rs.shadowGroupSlot &&
-        existing.shadowStyle == rs.shadowStyle &&
-        existing.transparentMaterial == rs.transparentMaterial &&
-        existing.transparentTexture == rs.transparentTexture &&
-        existing.lightingSlot == lightingSlot &&
-        existing.lightModel == rs.lightModel &&
-        existing.transparencyType == rs.transparencyType &&
-        existing.cameraSlot == cameraSlot &&
-        existing.viewportSlot == viewportSlot &&
-        existing.cullMode == cullMode &&
-        existing.frontFace == frontFace &&
-        existing.depthTest == rs.depthTest &&
-        existing.depthWrite == rs.depthWrite &&
-        existing.depthFunction == rs.depthFunction &&
-        existing.explicitDepthMask == rs.explicitDepthMask &&
-        existing.screenDoorTransparency == rs.screenDoorTransparency &&
-        existing.depthRange[0] == rs.depthRange[0] &&
-        existing.depthRange[1] == rs.depthRange[1] &&
-        existing.polygonOffsetEnabled == rs.polygonOffsetEnabled &&
-        existing.polygonOffsetFactor == rs.polygonOffsetFactor &&
-        existing.polygonOffsetUnits == rs.polygonOffsetUnits &&
-        existing.polygonOffsetSlopeBias == rs.polygonOffsetSlopeBias &&
-        existing.polygonOffsetMaxDepth == rs.polygonOffsetMaxDepth &&
-        existing.polygonOffsetPrimitiveStyle == rs.polygonOffsetPrimitiveStyle &&
-        existing.polygonOffsetStyles == rs.polygonOffsetStyles &&
-        existing.fogMode == rs.fogMode &&
-        existing.fogStart == rs.fogStart &&
-        existing.fogEnd == rs.fogEnd &&
-        std::memcmp(existing.fogColor, rs.fogColor, sizeof(rs.fogColor)) == 0 &&
-        existing.lineWidth == rs.lineWidth &&
-        existing.pointSize == rs.pointSize &&
-        coin_render_same_texture_units(existing.extraTextures, rs.extraTextures) &&
-        std::memcmp(existing.textureCombines, rs.textureCombines, sizeof(rs.textureCombines)) == 0 &&
-        existing.hasTexture == rs.hasTexture &&
-        existing.linePattern == rs.linePattern &&
-        existing.linePatternScaleFactor == rs.linePatternScaleFactor &&
-        existing.polygonLinePattern == rs.polygonLinePattern &&
-        (!rs.hasTexture || (
-          existing.textureImageSlot == rs.textureImageSlot &&
-          existing.samplerSlot == rs.samplerSlot &&
-          existing.textureModel == rs.textureModel &&
-          std::memcmp(existing.textureBlendColor, rs.textureBlendColor,
-                      sizeof(rs.textureBlendColor)) == 0 &&
-          existing.textureMatrix == rs.textureMatrix)) &&
-        existing.model == rs.model &&
-        existing.view == rs.view &&
-        existing.projectionCoin == rs.projectionCoin) {
-      rsSlot = static_cast<uint32_t>(i);
-      rsFound = true;
-      break;
-    }
-  }
-  if (!rsFound) {
-    rsSlot = static_cast<uint32_t>(this->currentPlan.renderStates.size());
-    this->currentPlan.renderStates.push_back(rs);
-    modelCandidates.push_back(rsSlot);
-  }
+  const uint32_t rsSlot = CoinRenderPlanAssemblyCore::state(
+    this->currentPlan, this->renderStatesByModel, rs);
   if (stable) this->shapeRenderStates.emplace_back(materialIndex, rsSlot);
   return rsSlot;
 }
@@ -1138,11 +849,8 @@ CoinRenderFramePlanBuilder::captureVertex(SoCallbackAction * action, const SoPri
       v.extraTexcoords[unit - 1][0] = uv[0]; v.extraTexcoords[unit - 1][1] = uv[1];
     } else {
       const SbVec4f & uv = coords->get4(unit, texIndex);
-      if (std::abs(uv[3]) <= 1.0e-8f) {
+      if (!CoinRenderPlanAssemblyCore::projectTexcoord(uv, v.extraTexcoords[unit - 1])) {
         this->isUnsupported = true; this->builderError = "Invalid homogeneous texture coordinate";
-      } else {
-        v.extraTexcoords[unit - 1][0] = uv[0] / uv[3];
-        v.extraTexcoords[unit - 1][1] = uv[1] / uv[3];
       }
     }
   }
@@ -1192,14 +900,7 @@ CoinRenderFramePlanBuilder::ensureDrawPacket(CoinRenderPrimitiveTopology topolog
       // stream appendable before extending this occurrence, without changing
       // any earlier occurrence that references the same geometry.
       auto & range = active.geometry;
-      if (size_t(range.firstIndex) + range.indexCount != this->currentPlan.indices.size()) {
-        const size_t first = range.firstIndex, count = range.indexCount;
-        const size_t tail = this->currentPlan.indices.size();
-        this->currentPlan.indices.resize(tail + count);
-        std::copy_n(this->currentPlan.indices.begin() + first, count,
-                    this->currentPlan.indices.begin() + tail);
-        range.firstIndex = static_cast<uint32_t>(tail);
-      }
+      CoinRenderPlanAssemblyCore::makeIndicesAppendable(this->currentPlan, range);
       return; // Continue active packet
     }
   }
@@ -1237,9 +938,7 @@ CoinRenderFramePlanBuilder::captureSortingCenter(SoCallbackAction * action)
   SbBox3f box; SbVec3f center;
   static_cast<SoShape *>(node)->computeBBox(action, box, center);
   if (box.isEmpty()) return;
-  action->getModelMatrix().multVecMatrix(center, center);
-  center.getValue(draw.sortingCenterWorld[0], draw.sortingCenterWorld[1], draw.sortingCenterWorld[2]);
-  draw.hasSortingCenter = true;
+  CoinRenderPlanAssemblyCore::sortingCenter(draw, action->getModelMatrix(), center);
 }
 
 bool
@@ -1554,25 +1253,8 @@ void CoinRenderFramePlanBuilder::emitStyledPolygon(SoCallbackAction* action) {
   this->currentPlan.renderStates.push_back(resolved.state);
   this->ensureDrawPacket(resolved.topology, stateSlot, this->polygonNode, true);
   this->captureSortingCenter(action);
-  const uint32_t first = static_cast<uint32_t>(this->currentPlan.vertices.size());
-  for (auto& item : resolved.vertices) {
-    uint32_t material = static_cast<uint32_t>(this->currentPlan.materials.size());
-    for (size_t i = 0; i < this->currentPlan.materials.size(); ++i)
-      if (std::memcmp(&item.material, &this->currentPlan.materials[i], sizeof(item.material)) ==
-          0) {
-        material = static_cast<uint32_t>(i);
-        break;
-      }
-    if (material == this->currentPlan.materials.size())
-      this->currentPlan.materials.push_back(item.material);
-    item.vertex.materialSlot = material;
-    this->currentPlan.vertices.push_back(item.vertex);
-  }
-  for (uint32_t index : resolved.indices)
-    this->currentPlan.indices.push_back(first + index);
-  auto& draw = this->currentPlan.draws[this->currentDrawIndex];
-  draw.geometry.vertexCount = static_cast<uint32_t>(resolved.vertices.size());
-  draw.geometry.indexCount = static_cast<uint32_t>(resolved.indices.size());
+  CoinRenderPlanAssemblyCore::appendPolygon(this->currentPlan,
+    this->currentPlan.draws[this->currentDrawIndex], resolved);
 }
 bool
 CoinRenderFramePlanBuilder::expandStyledPrimitives(std::string * outError)
@@ -1759,21 +1441,8 @@ CoinRenderFramePlanBuilder::processIndexedFaceSet(
     CoinRenderPrimitiveTopology::TRIANGLE_LIST, renderStateSlot, node, true);
   this->captureSortingCenter(action);
 
-  const uint32_t vertexOffset =
-    static_cast<uint32_t>(this->currentPlan.vertices.size());
-  for (size_t i = 0; i < transformed.vertices.size(); ++i) {
-    this->currentPlan.vertices.push_back(transformed.vertices[i].vertex);
-  }
-  for (size_t i = 0; i < transformed.indices.size(); ++i) {
-    this->currentPlan.indices.push_back(
-      vertexOffset + transformed.indices[i]);
-  }
-
   CoinRenderDrawPacket & packet = this->currentPlan.draws[this->currentDrawIndex];
-  packet.geometry.vertexCount =
-    static_cast<uint32_t>(transformed.vertices.size());
-  packet.geometry.indexCount =
-    static_cast<uint32_t>(transformed.indices.size());
+  CoinRenderPlanAssemblyCore::appendIndexed(this->currentPlan, packet, transformed);
   const uint64_t stableId = reinterpret_cast<uint64_t>(node);
   packet.stableNodeId = stableId;
   packet.drawOrdinal = this->nodeOccurrenceCount[stableId]++;
@@ -1840,21 +1509,8 @@ CoinRenderFramePlanBuilder::processIndexedLineSet(
     CoinRenderPrimitiveTopology::LINE_LIST, renderStateSlot, node, true);
   this->captureSortingCenter(action);
 
-  const uint32_t vertexOffset =
-    static_cast<uint32_t>(this->currentPlan.vertices.size());
-  for (size_t i = 0; i < transformed.vertices.size(); ++i) {
-    this->currentPlan.vertices.push_back(transformed.vertices[i].vertex);
-  }
-  for (size_t i = 0; i < transformed.indices.size(); ++i) {
-    this->currentPlan.indices.push_back(
-      vertexOffset + transformed.indices[i]);
-  }
-
   CoinRenderDrawPacket & packet = this->currentPlan.draws[this->currentDrawIndex];
-  packet.geometry.vertexCount =
-    static_cast<uint32_t>(transformed.vertices.size());
-  packet.geometry.indexCount =
-    static_cast<uint32_t>(transformed.indices.size());
+  CoinRenderPlanAssemblyCore::appendIndexed(this->currentPlan, packet, transformed);
   const uint64_t stableId = reinterpret_cast<uint64_t>(node);
   packet.stableNodeId = stableId;
   packet.drawOrdinal = this->nodeOccurrenceCount[stableId]++;

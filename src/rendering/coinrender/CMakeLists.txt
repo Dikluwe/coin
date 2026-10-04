@@ -9,6 +9,7 @@ set(COIN_RENDER_SOURCES
 	CoinRenderFrameReuseCore.cpp
 	${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxLowering.cpp
 	CoinRenderImageCore.cpp
+	CoinRenderPlanAssemblyCore.cpp
 	CoinRenderIndexedGeometryCore.cpp
 	CoinRenderManagerAdapter.cpp
 	CoinRenderRecordingBackend.cpp

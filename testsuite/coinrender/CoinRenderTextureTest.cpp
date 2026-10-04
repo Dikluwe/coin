@@ -309,13 +309,8 @@ static bool testUnsupportedRejections() {
     action.setRenderTarget(target);
     action.apply(root);
 
-#if defined(HAVE_COIN_BGFX) || defined(HAVE_COIN_WGPU_RUST_BRIDGE)
     ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::SUCCESS,
-                "The qualified GPU executor implements SCREEN_DOOR for material alpha");
-#else
-    ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::UNSUPPORTED,
-                "Default SCREEN_DOOR must be rejected when stipple is required");
-#endif
+                "The CPU reference and qualified GPU executors implement SCREEN_DOOR for material alpha");
     SoTransparencyType * mode = new SoTransparencyType;
     mode->value = SoTransparencyType::SORTED_OBJECT_BLEND;
     root->insertChild(mode, 0);

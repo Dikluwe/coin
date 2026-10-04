@@ -225,6 +225,15 @@ if(COIN_BUILD_RENDER)
 	add_test(NAME CoinRenderRuntimeBoundaryTest COMMAND CoinRenderRuntimeBoundaryTest)
 	set_tests_properties(CoinRenderRuntimeBoundaryTest PROPERTIES TIMEOUT 30)
 
+	add_executable(CoinRenderPlanAssemblyCoreTest coinrender/CoinRenderPlanAssemblyCoreTest.cpp)
+	set_target_properties(CoinRenderPlanAssemblyCoreTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinRenderPlanAssemblyCoreTest CoinRender Coin)
+	target_include_directories(CoinRenderPlanAssemblyCoreTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	add_test(NAME CoinRenderPlanAssemblyCoreTest COMMAND CoinRenderPlanAssemblyCoreTest)
+	set_tests_properties(CoinRenderPlanAssemblyCoreTest PROPERTIES TIMEOUT 30)
+
 	add_executable(CoinRenderSelectionTest coinrender/CoinRenderSelectionTest.cpp)
 	set_target_properties(CoinRenderSelectionTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 	target_link_libraries(CoinRenderSelectionTest CoinRender Coin)

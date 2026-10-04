@@ -37,7 +37,7 @@ do pedido, enquanto Infra cria, retém e libera os recursos concretos.
 | Componente atual | Responsabilidade real | Compartilhamento e pendência |
 |---|---|---|
 | `CoinRenderAction`, callbacks e replay de paths | Wiring | Captura comum sem referências a executores concretos; submissão/reuse e fatos de sombras passam pelo contrato do target. Ver [isolamento da entrada](coin-render-isolation.md). |
-| `CoinRenderFramePlanBuilder` | Wiring + Core | Lê `SoCallbackAction`/`SoState` e também transforma geometria e monta o plano. Separar funções de captura e funções mecânicas, sem exigir separar o arquivo inteiro. |
+| `CoinRenderFramePlanBuilder` | Wiring + Core | Captura Coin e continuidade dos callbacks em Wiring; montagem/deduplicação e geometrias em Core sobre snapshots/arrays. [Terceira etapa](coin-render-builder-isolation.md). |
 | `CoinRenderFramePlan` e snapshots em `CoinRenderFramePlan.h` | Contrato comum | Compartilháveis; `gpuToken`, limites e convenções precisam de significado independente do executor. |
 | `CoinRenderIndexedGeometryCore` | Core comum | Bons limites explícitos: arrays e fatos capturados, sem travessia nem recursos GPU. |
 | `CoinRenderFrameReuseCore` | Core comum | Classificação e atualização de câmera compartilháveis; Infra decide se seus buffers podem materializar o reuso. |
@@ -119,7 +119,7 @@ Essas checkboxes são o modelo por item, não oito trabalhos globais já conclu�
 ## Checklist de arquitetura
 
 - [x] **A01 — Nome neutro para o contrato comum.** API, tipos, módulo, exemplos e testes migrados para `CoinRender`; componentes específicos usam `CoinBgfx`/`CoinWgpu`. Headers/pacote antigos encaminham a fonte; consumidores precisam ser recompilados. Evidência: [migração de nomes](coin-render-naming-migration.md).
-- [ ] **A02 — Limite Wiring/Core no builder.** Funções de transformação recebem snapshots/arrays Coin, sem acessar actions, paths ou `SoState`.
+- [x] **A02 — Limite Wiring/Core no builder.** Transformações e montagem extraídas recebem snapshots/arrays Coin, sem acessar actions, paths ou `SoState`. Elegibilidade, continuidade dos detalhes de callbacks e publicação permanecem Wiring. [Escopo e validação](coin-render-builder-isolation.md).
 - [x] **A03 — Composição com dono único.** Classificação de alpha, modalidade Coin, ordenação, screen door e estados efetivos estão no Core comum; interpretação paralela de C++/Rust removida. Fechado nesse escopo; suporte GPU e qualificação GL continuam em F01/F02. [Evidência](coin-render-composition-contract.md).
 - [x] **A04 — Plano de execução comum, perfis P09/P12/P13.** Sequência, camadas, barreiras, blend/depth efetivos e grafo RTT staged/direto compartilham o Core. Wiring captura; Infra resolve e executa. Preflight e publicação qualificados no [P13](coin-render-rtt-publication-contract.md); ampliação de formatos/estados RTT continua F14.
 - [ ] **A05 — Extrair o comum de `CoinBgfxLowering`.** Manter layout/agrupamento BGFX específicos; mover decisões Coin e cálculos reutilizáveis para Core comum. **Parcial:** transparência, screen door e depth efetivo extraídos nesta etapa.

@@ -3,6 +3,7 @@
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
 #include "rendering/coinrender/CoinRenderDirectGeometry.h"
+#include "rendering/coinrender/CoinRenderPlanAssemblyCore.h"
 #include <Inventor/SbViewportRegion.h>
 #include <unordered_map>
 
@@ -116,31 +117,19 @@ private:
   bool annotationDepthClearPending;
   std::string builderError;
   std::unordered_map<uint64_t, uint32_t> nodeOccurrenceCount;
-  std::unordered_map<uint64_t, std::vector<uint32_t>> renderStatesByModel;
+  CoinRenderPlanAssemblyCore::StateIndex renderStatesByModel;
   const SoNode * stableShape = nullptr;
   bool reuseCubeVertices = false;
   uint32_t cubeVertexSlots[48];
   // One bounded, frame-local template learned from the native callback stream.
   // State and material slots are captured again for every occurrence.
-  CoinRenderVertexSnapshot cubeTemplateVertices[24];
-  uint32_t cubeTemplateIndices[36];
-  float cubeTemplateDimensions[3] = {};
+  CoinRenderCubeGeometryCore cubeGeometryCore;
   float cubeCaptureDimensions[3] = {};
-  int cubeTemplateNormalBinding = 0;
   int cubeCaptureNormalBinding = 0;
-  bool cubeTemplateReady = false;
   bool captureCubeTemplate = false;
   size_t cubeCaptureFirstVertex = 0;
   size_t cubeCaptureFirstIndex = 0;
   size_t cubeCaptureFirstDraw = 0;
-  struct CubeGeometry {
-    uint32_t materialSlot;
-    uint32_t firstVertex;
-    uint32_t firstIndex;
-  };
-  // Geometry is immutable and shared across occurrences with the same material.
-  // Bound the cache even when every occurrence has a different material.
-  std::vector<CubeGeometry> cubeGeometry;
   uint64_t cubeReplayHits = 0;
   std::vector<std::pair<int, uint32_t>> shapeRenderStates;
   std::vector<SbVec3f> lightAttenuationByIndex;
