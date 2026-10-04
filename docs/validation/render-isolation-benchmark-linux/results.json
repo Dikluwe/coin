@@ -1,0 +1,126 @@
+[
+  {
+    "variant": "bgfx-vulkan",
+    "gpu": "nvidia",
+    "version": "isolated",
+    "pair": 1,
+    "first_ms": 688.258,
+    "median_ms": 3.18955,
+    "p95_ms": 3.48064,
+    "checksum": "0x6714299260985122",
+    "image_sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e"
+  },
+  {
+    "variant": "bgfx-vulkan",
+    "gpu": "nvidia",
+    "version": "isolated",
+    "pair": 2,
+    "first_ms": 681.349,
+    "median_ms": 3.13725,
+    "p95_ms": 3.71054,
+    "checksum": "0x6714299260985122"
+  },
+  {
+    "variant": "bgfx-vulkan",
+    "gpu": "nvidia",
+    "version": "isolated",
+    "pair": 3,
+    "first_ms": 678.606,
+    "median_ms": 2.96756,
+    "p95_ms": 3.60295,
+    "checksum": "0x6714299260985122"
+  },
+  {
+    "variant": "bgfx-opengl",
+    "gpu": "nvidia",
+    "version": "isolated",
+    "pair": 1,
+    "first_ms": 639.632,
+    "median_ms": 3.13151,
+    "p95_ms": 3.15281,
+    "checksum": "0x156847cec1d97864",
+    "image_sha256": "b5e7005ac8325b7499b71d87e8e0a42f292a477420107865433fa53d2254614e"
+  },
+  {
+    "variant": "bgfx-opengl",
+    "gpu": "nvidia",
+    "version": "isolated",
+    "pair": 2,
+    "first_ms": 643.768,
+    "median_ms": 3.1066,
+    "p95_ms": 3.24917,
+    "checksum": "0x156847cec1d97864"
+  },
+  {
+    "variant": "bgfx-opengl",
+    "gpu": "nvidia",
+    "version": "isolated",
+    "pair": 3,
+    "first_ms": 638.606,
+    "median_ms": 3.26043,
+    "p95_ms": 3.46295,
+    "checksum": "0x156847cec1d97864"
+  },
+  {
+    "variant": "wgpu-vulkan",
+    "gpu": "nvidia",
+    "version": "isolated",
+    "pair": 1,
+    "first_ms": 444.645,
+    "median_ms": 8.19681,
+    "p95_ms": 8.55669,
+    "checksum": "0x6714299260985122",
+    "image_sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e"
+  },
+  {
+    "variant": "wgpu-vulkan",
+    "gpu": "nvidia",
+    "version": "isolated",
+    "pair": 2,
+    "first_ms": 448.625,
+    "median_ms": 8.00032,
+    "p95_ms": 8.31249,
+    "checksum": "0x6714299260985122"
+  },
+  {
+    "variant": "wgpu-vulkan",
+    "gpu": "nvidia",
+    "version": "isolated",
+    "pair": 3,
+    "first_ms": 450.772,
+    "median_ms": 8.61928,
+    "p95_ms": 8.72103,
+    "checksum": "0x6714299260985122"
+  },
+  {
+    "variant": "wgpu-opengl",
+    "gpu": "amd",
+    "version": "isolated",
+    "pair": 1,
+    "first_ms": 449.058,
+    "median_ms": 11.178,
+    "p95_ms": 11.8639,
+    "checksum": "0x3a998bbb78caa846",
+    "image_sha256": "39f91eb75931044fda01b2092af4b2ff2c0f7e4723a3703715bb2c87d1ad8703"
+  },
+  {
+    "variant": "wgpu-opengl",
+    "gpu": "amd",
+    "version": "isolated",
+    "pair": 2,
+    "first_ms": 454.084,
+    "median_ms": 11.3458,
+    "p95_ms": 11.9578,
+    "checksum": "0x3a998bbb78caa846"
+  },
+  {
+    "variant": "wgpu-opengl",
+    "gpu": "amd",
+    "version": "isolated",
+    "pair": 3,
+    "first_ms": 456.215,
+    "median_ms": 11.4579,
+    "p95_ms": 12.5892,
+    "checksum": "0x3a998bbb78caa846"
+  }
+]
