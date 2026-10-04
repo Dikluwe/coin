@@ -9,9 +9,10 @@ namespace {
 uint64_t modelMatrixKey(const SbMatrix & matrix)
 {
   uint64_t key = UINT64_C(14695981039346656037);
+  const auto & values = matrix.getValue();
   for (int row = 0; row < 4; ++row) {
     for (int column = 0; column < 4; ++column) {
-      const float value = matrix[row][column];
+      const float value = values[row][column];
       uint32_t bits = 0;
       // SbMatrix equality treats positive and negative zero as equal.
       if (value != 0.0f) std::memcpy(&bits, &value, sizeof(bits));
@@ -162,8 +163,11 @@ uint32_t CoinRenderPlanAssemblyCore::viewport(CoinRenderFramePlan & plan, const 
 uint32_t CoinRenderPlanAssemblyCore::state(CoinRenderFramePlan & plan, StateIndex & byModel, const CoinRenderRenderStateSnapshot & rs) {
   uint32_t rsSlot = 0;
   bool rsFound = false;
-  auto & modelCandidates = byModel[modelMatrixKey(rs.model)];
-  for (const uint32_t i : modelCandidates) {
+  const uint64_t modelKey = modelMatrixKey(rs.model);
+  const auto candidates = byModel.find(modelKey);
+  const size_t count = candidates == byModel.end() ? 0 : 1 + candidates->second.additional.size();
+  for (size_t candidate = 0; candidate < count; ++candidate) {
+    const uint32_t i = candidate == 0 ? candidates->second.first : candidates->second.additional[candidate - 1];
     const auto & existing = plan.renderStates[i];
     if (existing.clipPlanesWorld == rs.clipPlanesWorld &&
         existing.materialSlot == rs.materialSlot &&
@@ -222,7 +226,8 @@ uint32_t CoinRenderPlanAssemblyCore::state(CoinRenderFramePlan & plan, StateInde
   if (!rsFound) {
     rsSlot = static_cast<uint32_t>(plan.renderStates.size());
     plan.renderStates.push_back(rs);
-    modelCandidates.push_back(rsSlot);
+    if (candidates == byModel.end()) byModel.emplace(modelKey, StateCandidates(rsSlot));
+    else candidates->second.additional.push_back(rsSlot);
   }
   return rsSlot;
 }

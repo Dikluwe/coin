@@ -27,6 +27,7 @@
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
+#include <Inventor/nodes/SoEnvironment.h>
 #include <Inventor/nodes/SoDepthBuffer.h>
 #include <Inventor/SoPath.h>
 #include <Inventor/lists/SoPathList.h>
@@ -137,6 +138,62 @@ int testScopedLight() {
   TEST_ASSERT(log.find("lights=1") != std::string::npos, "Branch 1 should see light");
   TEST_ASSERT(log.find("lights=0") != std::string::npos, "Branch 2 should not see scoped light from sibling");
 
+  root->unref();
+  return 0;
+}
+
+int testLightingCaptureAcrossShapesAndFrames() {
+  auto * root = new SoSeparator;
+  root->ref();
+  auto * model = new SoLightModel;
+  model->model = SoLightModel::PHONG;
+  root->addChild(model);
+  auto * ambientA = new SoEnvironment;
+  ambientA->ambientColor.setValue(.1f,.2f,.8f);
+  ambientA->ambientIntensity = .4f;
+  root->addChild(ambientA);
+  auto * lightA = new SoDirectionalLight;
+  lightA->color.setValue(1,.2f,.1f);
+  root->addChild(lightA);
+  root->addChild(new SoCube);
+  auto * branch = new SoSeparator;
+  auto * ambientB = new SoEnvironment;
+  ambientB->ambientColor.setValue(.8f,.3f,.1f);
+  ambientB->ambientIntensity = .6f;
+  branch->addChild(ambientB);
+  auto * lightB = new SoDirectionalLight;
+  lightB->color.setValue(.1f,1,.2f);
+  branch->addChild(lightB);
+  branch->addChild(new SoCube);
+  root->addChild(branch);
+  root->addChild(new SoCube);
+  CoinRenderAction action;
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS, "scoped lighting capture succeeds");
+  const auto first = action.getPimpl()->lastValidPlan;
+  TEST_ASSERT(first.draws.size() == 3, "capture three independent shapes");
+  const auto & a = first.lightingStates[first.renderStates[first.draws[0].renderStateSlot].lightingSlot];
+  const auto & b = first.lightingStates[first.renderStates[first.draws[1].renderStateSlot].lightingSlot];
+  const auto & c = first.lightingStates[first.renderStates[first.draws[2].renderStateSlot].lightingSlot];
+  TEST_ASSERT(a.lights.size() == 1 && b.lights.size() == 2 && c.lights.size() == 1,
+              "light lists follow separator scope");
+  TEST_ASSERT(a.lights[0].color[0] == 1 && b.lights[1].color[1] == 1 && c.lights[0].color[0] == 1,
+              "captured lights remain independent of later shapes");
+  TEST_ASSERT(a.ambientIntensity == .4f && b.ambientIntensity == .6f && c.ambientIntensity == .4f &&
+              a.ambientColor[2] == .8f && b.ambientColor[0] == .8f && c.ambientColor[2] == .8f,
+              "ambient values follow separator scope");
+  lightA->on = FALSE;
+  ambientA->ambientIntensity = .7f;
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS, "recapture changed lighting succeeds");
+  const auto & second = action.getPimpl()->lastValidPlan;
+  for (size_t i = 0; i < 3; ++i) {
+    const auto & lighting = second.lightingStates[second.renderStates[second.draws[i].renderStateSlot].lightingSlot];
+    TEST_ASSERT(lighting.lights.size() == (i == 1 ? 1u : 0u), "no light values leak from a previous frame");
+    TEST_ASSERT(lighting.ambientIntensity == (i == 1 ? .6f : .7f), "changed ambient values are recaptured");
+  }
+  TEST_ASSERT(a.lights.size() == 1 && b.lights.size() == 2 && a.ambientIntensity == .4f,
+              "previous captured plan retains its own light payload");
   root->unref();
   return 0;
 }
@@ -1003,6 +1060,7 @@ int main() {
   if (testSeparatorAndState()) { std::cerr << "testSeparatorAndState failed" << std::endl; failed++; }
   if (testCameraPerDraw()) { std::cerr << "testCameraPerDraw failed" << std::endl; failed++; }
   if (testScopedLight()) { std::cerr << "testScopedLight failed" << std::endl; failed++; }
+  if (testLightingCaptureAcrossShapesAndFrames()) { std::cerr << "testLightingCaptureAcrossShapesAndFrames failed" << std::endl; failed++; }
   if (testPrimitives()) { std::cerr << "testPrimitives failed" << std::endl; failed++; }
   if (testMaterialBinding()) { std::cerr << "testMaterialBinding failed" << std::endl; failed++; }
   if (testProjectionConversion()) { std::cerr << "testProjectionConversion failed" << std::endl; failed++; }

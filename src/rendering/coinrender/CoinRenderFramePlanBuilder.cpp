@@ -159,6 +159,7 @@ CoinRenderFramePlanBuilder::reset()
   this->sceneTextures.clear();
   this->nodeOccurrenceCount.clear();
   this->lightAttenuationByIndex.clear();
+  this->lightCaptureScratch.clear();
 }
 
 void
@@ -612,6 +613,8 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   // 2. Lighting & CoinRenderLightModel
   CoinRenderLightModel lm = CoinRenderLightModel::PHONG;
   CoinRenderLightingSnapshot lightSnap;
+  lightSnap.lights.swap(this->lightCaptureScratch);
+  lightSnap.lights.clear();
   if (action && action->getState()) {
     SoState * envState = action->getState();
     const SbColor & ambient = SoEnvironmentElement::getAmbientColor(envState);
@@ -678,6 +681,7 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
     }
   }
   const uint32_t lightingSlot = CoinRenderPlanAssemblyCore::lighting(this->currentPlan, lightSnap);
+  lightSnap.lights.swap(this->lightCaptureScratch);
 
   // 3. Camera
   const CoinRenderCameraSnapshot camSnap = captureCamera(action);

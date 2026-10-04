@@ -17,6 +17,34 @@ int main() {
   state.shadowStyle = 3;
   state.extraTextures[2].enabled = true;
   CHECK(CoinRenderPlanAssemblyCore::state(plan, lookup, state) != slot);
+  {
+    CoinRenderFramePlan repeated;
+    CoinRenderPlanAssemblyCore::StateIndex index;
+    // Many transforms, each with multiple appearances, exercise both common
+    // unique-model capture and repeated lookups of every prior variant.
+    for (uint32_t model = 0; model < 2048; ++model) {
+      CoinRenderRenderStateSnapshot captured;
+      captured.model.setTranslate(SbVec3f(float(model),float(model % 13),0));
+      for (uint32_t appearance = 0; appearance < 4; ++appearance) {
+        captured.materialSlot = appearance;
+        captured.depthWrite = appearance != 3;
+        CHECK(CoinRenderPlanAssemblyCore::state(repeated,index,captured) == model*4+appearance);
+      }
+    }
+    for (uint32_t model = 2048; model-- > 0;) {
+      CoinRenderRenderStateSnapshot captured;
+      captured.model.setTranslate(SbVec3f(float(model),float(model % 13),-0.0f));
+      for (uint32_t appearance = 4; appearance-- > 0;) {
+        captured.materialSlot = appearance;
+        captured.depthWrite = appearance != 3;
+        CHECK(CoinRenderPlanAssemblyCore::state(repeated,index,captured) == model*4+appearance);
+      }
+    }
+    CHECK(repeated.renderStates.size() == 8192);
+    // A new frame cannot inherit slots from the previous plan.
+    repeated.renderStates.clear(); index.clear();
+    CHECK(CoinRenderPlanAssemblyCore::state(repeated,index,CoinRenderRenderStateSnapshot{}) == 0);
+  }
   CoinRenderMaterialSnapshot material;
   CHECK(CoinRenderPlanAssemblyCore::material(plan, material) == 0);
   CHECK(CoinRenderPlanAssemblyCore::material(plan, material) == 0);

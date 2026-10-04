@@ -9,7 +9,14 @@ struct CoinRenderPolygonStyleResult;
 // Mechanical assembly over captured values; never reads an action, node or state.
 class COIN_RENDER_DLL_API CoinRenderPlanAssemblyCore {
 public:
-  using StateIndex = std::unordered_map<uint64_t, std::vector<uint32_t>>;
+  // Unique model transforms need one candidate without a second allocation.
+  // Shared transforms retain the contiguous scan of additional candidates.
+  struct StateCandidates {
+    explicit StateCandidates(uint32_t slot) : first(slot) {}
+    uint32_t first;
+    std::vector<uint32_t> additional;
+  };
+  using StateIndex = std::unordered_map<uint64_t, StateCandidates>;
   static void normalizeCamera(CoinRenderCameraSnapshot &);
   static void transformLight(CoinRenderLightSourceSnapshot &);
   static void normalizeState(CoinRenderRenderStateSnapshot &, const CoinRenderCameraSnapshot &);

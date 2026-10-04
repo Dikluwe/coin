@@ -133,6 +133,8 @@ private:
   uint64_t cubeReplayHits = 0;
   std::vector<std::pair<int, uint32_t>> shapeRenderStates;
   std::vector<SbVec3f> lightAttenuationByIndex;
+  // Reuse only storage; effective light values are recaptured for each shape.
+  std::vector<CoinRenderLightSourceSnapshot> lightCaptureScratch;
   std::vector<uint32_t> shadowGroupStack;
   struct SceneTexture {
     uint64_t producerId;
