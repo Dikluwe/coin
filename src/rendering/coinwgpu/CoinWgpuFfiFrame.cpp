@@ -155,6 +155,18 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     dst.transparency = src.transparency;
   }
 
+  if (this->tryEarlyOpaqueBatch(frame, width, height, preflight)) {
+    this->textures.clear();
+    this->texturePixels.clear();
+    this->samplers.clear();
+    this->shadowFrame = std::move(candidateShadow);
+    this->bindView(frame, width, height);
+    this->packedRevision = frame.revision;
+    this->prepareKind = reuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD
+      ? CoinRenderFrameReuseKind::RESOURCE_REBUILD
+      : CoinRenderFrameReuseKind::FULL_REBUILD;
+    return true;
+  }
   if (!this->packStates(frame, candidateShadow, width, height, outDiagnostic, preflight)) return false;
 
   this->texturePixels.resize(frame.textures.size());
@@ -187,6 +199,135 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
   this->prepareKind = reuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD
     ? CoinRenderFrameReuseKind::RESOURCE_REBUILD
     : CoinRenderFrameReuseKind::FULL_REBUILD;
+  return true;
+}
+
+// Qualify without allocating one 2280-byte GPU state per occurrence. Every
+// captured state still passes the ordinary packer; only its two bake matrices
+// survive the scan. Publication happens after all draws and states qualify.
+// Unsupported profiles keep the full pack-then-batch mechanism below.
+bool
+CoinWgpuFfiFrame::tryEarlyOpaqueBatch(const CoinRenderFramePlan & frame,
+                                    uint32_t width, uint32_t height,
+                                    const CoinRenderFramePreflight * preflight)
+{
+  for (const char * option : {"COIN_WGPU_DISABLE_OPAQUE_BATCHING", "COIN_WGPU_DISABLE_EARLY_OPAQUE_BATCHING"}) {
+    const char * value = std::getenv(option);
+    if (value && std::strcmp(value, "1") == 0) return false;
+  }
+  if (frame.draws.size() < 256 || !frame.shadowGroups.empty() ||
+      !frame.textures.empty() || !frame.samplers.empty() || frame.renderStates.empty()) return false;
+  // Reject common heterogeneous profiles before scheduling or packing twice.
+  // These captured-value checks are deliberately conservative; the packed
+  // byte comparison below remains the authority for a successful batch.
+  const auto & firstState = frame.renderStates.front();
+  for (const auto & state : frame.renderStates) {
+    if (state.hasTexture || state.fogMode != CoinRenderFogMode::NONE ||
+        !state.clipPlanesWorld.empty() || state.polygonOffsetEnabled ||
+        state.cullMode != firstState.cullMode || state.frontFace != firstState.frontFace ||
+        state.lightModel != firstState.lightModel || state.lightingSlot != firstState.lightingSlot ||
+        state.viewportSlot != firstState.viewportSlot || state.depthTest != firstState.depthTest ||
+        state.depthWrite != firstState.depthWrite || state.depthFunction != firstState.depthFunction ||
+        state.depthRange[0] != firstState.depthRange[0] || state.depthRange[1] != firstState.depthRange[1]) return false;
+    for (const SbMatrix * matrix : {&state.model, &state.view}) {
+      const auto & values = matrix->getValue();
+      if (values[0][3] != 0 || values[1][3] != 0 || values[2][3] != 0 || values[3][3] != 1) return false;
+    }
+  }
+  std::vector<CoinRenderCompositionItem> order;
+  std::string diagnostic;
+  if (!coin_render_composition_schedule(frame, order, diagnostic, preflight) ||
+      order.size() != frame.draws.size() || order.size() < 256) return false;
+  uint64_t nextVertex = 0, nextIndex = 0;
+  bool contiguous = true;
+  for (const auto & item : order) {
+    const auto & draw = frame.draws[item.drawIndex];
+    const auto & range = draw.geometry;
+    if (draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST ||
+        draw.stableNodeId || item.blend || item.screenDoor || item.screenDoorLevel ||
+        draw.renderLayer || draw.clearDepthBefore || !range.vertexCount ||
+        !range.indexCount || range.indexCount % 3 ||
+        draw.renderStateSlot >= frame.renderStates.size() ||
+        item.firstIndex != range.firstIndex || item.indexCount != range.indexCount) return false;
+    const auto & state = frame.renderStates[draw.renderStateSlot];
+    if (item.depthTest != state.depthTest || item.depthWrite != state.depthWrite ||
+        item.depthFunction != state.depthFunction ||
+        item.depthRange[0] != state.depthRange[0] || item.depthRange[1] != state.depthRange[1]) return false;
+    contiguous = contiguous && range.firstVertex == nextVertex && range.firstIndex == nextIndex;
+    nextVertex += range.vertexCount; nextIndex += range.indexCount;
+    const uint64_t vertexEnd = uint64_t(range.firstVertex) + range.vertexCount;
+    const uint64_t indexEnd = uint64_t(range.firstIndex) + range.indexCount;
+    if (vertexEnd > this->vertices.size() || indexEnd > this->indices.size() ||
+        nextVertex > UINT32_MAX || nextIndex > UINT32_MAX) return false;
+    for (uint64_t v = range.firstVertex; v < vertexEnd; ++v)
+      if (this->vertices[v].screen_space_w != 1.0f ||
+          this->vertices[v].fog_eye_depth_plus_one != 0.0f) return false;
+    for (uint64_t j = range.firstIndex; j < indexEnd; ++j)
+      if (this->indices[j] < range.firstVertex || this->indices[j] >= vertexEnd) return false;
+  }
+  struct BakeMatrices { float modelView[16], normal[16]; };
+  std::vector<BakeMatrices> matrices(frame.renderStates.size());
+  CoinWgpuRenderState common{};
+  const SbMatrix identity = SbMatrix::identity();
+  // Including unreferenced states is conservative: their validation and errors
+  // remain observable; different unused states simply select the fallback.
+  for (size_t i = 0; i < frame.renderStates.size(); ++i) {
+    CoinWgpuRenderState key{};
+    if (!this->packState(frame, frame.renderStates[i], width, height, key, diagnostic)) return false;
+    if (key.has_texture || key.fog_mode || key.clip_plane_count || key.polygon_offset_enabled ||
+        key.model_view[3] != 0 || key.model_view[7] != 0 ||
+        key.model_view[11] != 0 || key.model_view[15] != 1) return false;
+    std::memcpy(matrices[i].modelView, key.model_view, sizeof(key.model_view));
+    std::memcpy(matrices[i].normal, key.normal_matrix, sizeof(key.normal_matrix));
+    key.material_slot = 0;
+    std::memcpy(key.model_view, identity.getValue(), sizeof(key.model_view));
+    std::memcpy(key.normal_matrix, identity.getValue(), sizeof(key.normal_matrix));
+    const SbMatrix projection = CoinRenderTransformCore::projection(frame.renderStates[i].projectionCoin, false);
+    std::memcpy(key.model_view_projection, projection.getValue(), sizeof(key.model_view_projection));
+    if (i == 0) common = key;
+    else if (std::memcmp(&common, &key, sizeof(key)) != 0) return false;
+  }
+  uint64_t requiredBytes = 0;
+  if (!coin_render_transparency_budget(width, height, frame.transparency, false,
+                                       requiredBytes, diagnostic)) return false;
+  contiguous = contiguous && nextVertex == this->vertices.size() && nextIndex == this->indices.size();
+  std::vector<CoinWgpuVertex> expandedVertices;
+  std::vector<uint32_t> expandedIndices;
+  if (!contiguous) {
+    expandedVertices.reserve(static_cast<size_t>(nextVertex));
+    expandedIndices.reserve(static_cast<size_t>(nextIndex));
+  }
+  for (const auto & item : order) {
+    const auto & draw = frame.draws[item.drawIndex];
+    const auto & range = draw.geometry;
+    SbMatrix modelView, normal;
+    modelView.setValue(matrices[draw.renderStateSlot].modelView);
+    normal.setValue(matrices[draw.renderStateSlot].normal);
+    for (uint64_t v = range.firstVertex; v < uint64_t(range.firstVertex) + range.vertexCount; ++v) {
+      if (!contiguous) expandedVertices.push_back(this->vertices[v]);
+      auto & vertex = contiguous ? this->vertices[v] : expandedVertices.back();
+      SbVec3f position, direction;
+      modelView.multVecMatrix(SbVec3f(vertex.position), position);
+      normal.multDirMatrix(SbVec3f(vertex.normal), direction);
+      std::memcpy(vertex.position, position.getValue(), sizeof(vertex.position));
+      std::memcpy(vertex.normal, direction.getValue(), sizeof(vertex.normal));
+    }
+    if (!contiguous) {
+      const uint32_t base = static_cast<uint32_t>(expandedVertices.size()) - range.vertexCount;
+      for (uint64_t j = range.firstIndex; j < uint64_t(range.firstIndex) + range.indexCount; ++j)
+        expandedIndices.push_back(base + this->indices[j] - range.firstVertex);
+    }
+  }
+  if (!contiguous) { this->vertices.swap(expandedVertices); this->indices.swap(expandedIndices); }
+  const auto & source = frame.draws[order.front().drawIndex];
+  CoinWgpuDraw merged{};
+  merged.vertex_count = static_cast<uint32_t>(nextVertex);
+  merged.index_count = static_cast<uint32_t>(nextIndex);
+  merged.draw_ordinal = source.drawOrdinal;
+  merged.source_revision = source.sourceRevision;
+  this->draws.assign(1, merged);
+  this->states.assign(1, common);
+  this->opaqueBatched = true;
   return true;
 }
 
@@ -283,6 +424,123 @@ CoinWgpuFfiFrame::batchOpaqueTriangles(const CoinRenderFramePlan & frame)
 }
 
 bool
+CoinWgpuFfiFrame::packState(const CoinRenderFramePlan & frame,
+                           const CoinRenderRenderStateSnapshot & src,
+                           uint32_t targetWidth, uint32_t targetHeight,
+                           CoinWgpuRenderState & dst, std::string & outDiagnostic)
+{
+  dst.clip_plane_count = static_cast<uint32_t>(src.clipPlanesWorld.size());
+  if (!coin_render_clip_equations(src, dst.clip_planes, outDiagnostic)) return false;
+  const SbMatrix modelView = src.model * src.view;
+  const SbMatrix normalMatrix = CoinRenderTransformCore::normalMatrix(modelView);
+  const SbMatrix projectionWgpu = CoinRenderTransformCore::projection(src.projectionCoin, false);
+  const SbMatrix mvpWgpu = modelView * projectionWgpu;
+
+  std::memcpy(dst.model_view, modelView.getValue(), sizeof(float) * 16);
+  std::memcpy(dst.model_view_projection, mvpWgpu.getValue(), sizeof(float) * 16);
+  std::memcpy(dst.normal_matrix, normalMatrix.getValue(), sizeof(float) * 16);
+
+  bool hasLight = false;
+  if (src.lightModel == CoinRenderLightModel::PHONG &&
+      src.lightingSlot < frame.lightingStates.size() &&
+      !frame.lightingStates[src.lightingSlot].lights.empty()) {
+    const CoinRenderLightSourceSnapshot & light = frame.lightingStates[src.lightingSlot].lights[0];
+    hasLight = true;
+    for (int c = 0; c < 3; ++c) {
+      dst.light_direction[c] = light.direction[c];
+      dst.light_color[c] = light.color[c];
+    }
+    dst.light_direction[3] = 0.0f;
+    dst.light_color[3] = 1.0f;
+    dst.light_intensity = light.intensity;
+  } else {
+    dst.light_direction[2] = 1.0f;
+    dst.light_color[0] = 1.0f;
+    dst.light_color[1] = 1.0f;
+    dst.light_color[2] = 1.0f;
+    dst.light_color[3] = 1.0f;
+    dst.light_intensity = 1.0f;
+  }
+  dst.has_light = hasLight ? 1 : 0;
+  dst.material_slot = src.materialSlot;
+  dst.cull_mode = static_cast<uint32_t>(src.cullMode);
+  dst.front_face = static_cast<uint32_t>(src.frontFace);
+  dst.light_model = static_cast<uint32_t>(src.lightModel);
+  std::memcpy(dst.texture_matrix, src.textureMatrix.getValue(), sizeof(float) * 16);
+  std::memcpy(dst.texture_combines, src.textureCombines, sizeof(dst.texture_combines));
+  for (size_t unit = 1; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+    const auto layer = coin_render_texture_unit(src, unit);
+    auto& target = dst.extra_textures[unit - 1];
+    std::memcpy(target.matrix, layer.matrix.getValue(), sizeof(target.matrix));
+    target.enabled = layer.enabled ? 1 : 0;
+    target.texture_slot = layer.imageSlot; target.sampler_slot = layer.samplerSlot;
+    target.model = static_cast<uint32_t>(layer.model);
+    std::memcpy(target.blend_color, layer.blendColor, sizeof(target.blend_color));
+  }
+  dst.has_texture = src.hasTexture ? 1 : 0;
+  dst.texture_slot = src.textureImageSlot;
+  dst.sampler_slot = src.samplerSlot;
+  dst.texture_model = static_cast<uint32_t>(src.textureModel);
+  std::memcpy(dst.texture_blend_color, src.textureBlendColor,
+              sizeof(src.textureBlendColor));
+  if (src.viewportSlot < frame.viewports.size()) {
+    const CoinRenderViewportSnapshot & viewport = frame.viewports[src.viewportSlot];
+    dst.viewport[0] = viewport.x;
+    dst.viewport[1] = static_cast<int32_t>(targetHeight) - viewport.y - viewport.height;
+    dst.viewport[2] = viewport.width;
+    dst.viewport[3] = viewport.height;
+  } else {
+    dst.viewport[0] = dst.viewport[1] = 0;
+    dst.viewport[2] = static_cast<int32_t>(targetWidth);
+    dst.viewport[3] = static_cast<int32_t>(targetHeight);
+  }
+  dst.fog_mode = static_cast<uint32_t>(src.fogMode);
+  std::memcpy(dst.fog_color, src.fogColor, sizeof(src.fogColor));
+  dst.fog_start = src.fogStart;
+  dst.fog_end = src.fogEnd;
+  dst.depth_test = src.depthTest ? 1u : 0u;
+  dst.depth_write = src.depthWrite ? 1u : 0u;
+  dst.depth_function = static_cast<uint32_t>(src.depthFunction);
+  dst.depth_range[0] = src.depthRange[0];
+  dst.depth_range[1] = src.depthRange[1];
+  dst.polygon_offset_enabled = src.polygonOffsetEnabled ? 1u : 0u;
+  dst.polygon_offset_factor = src.polygonOffsetFactor;
+  dst.polygon_offset_units = src.polygonOffsetUnits;
+  dst.polygon_offset_slope_bias = src.polygonOffsetSlopeBias;
+  dst.polygon_offset_max_depth_bits = 0;
+  if (src.polygonOffsetMaxDepth >= 0) {
+    std::memcpy(&dst.polygon_offset_max_depth_bits, &src.polygonOffsetMaxDepth, sizeof(float));
+    ++dst.polygon_offset_max_depth_bits;
+  }
+  dst.polygon_offset_styles = src.polygonOffsetStyles;
+  dst.polygon_offset_primitive_style = src.polygonOffsetPrimitiveStyle;
+  dst.ambient_light[3] = 1.0f;
+
+  if (src.lightingSlot < frame.lightingStates.size()) {
+    const CoinRenderLightingSnapshot & lighting = frame.lightingStates[src.lightingSlot];
+    for (int c = 0; c < 3; ++c) {
+      dst.ambient_light[c] = lighting.ambientColor[c] * lighting.ambientIntensity;
+    }
+    if (src.lightModel == CoinRenderLightModel::PHONG) {
+      if (lighting.lights.size() > COIN_WGPU_FFI_MAX_LIGHTS) {
+        outDiagnostic = "More than eight active lights in CoinRenderFramePlan";
+        this->packedRevision = 0;
+        this->prepareKind = CoinRenderFrameReuseKind::UNKNOWN;
+        return false;
+      }
+      dst.light_count = static_cast<uint32_t>(lighting.lights.size());
+      for (size_t j = 0; j < lighting.lights.size(); ++j) {
+        const CoinRenderLightSourceSnapshot & light = lighting.lights[j];
+        dst.lights[j] = coin_wgpu_pack_light(light);
+        if (coin_render_shadow_suppresses_ordinary_light(frame, src, light))
+          dst.lights[j].color_intensity[3] = 0.0f;
+      }
+    }
+  }
+  return true;
+}
+
+bool
 CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame,
                              CoinWgpuShadowFrame & shadow,
                              uint32_t targetWidth, uint32_t targetHeight,
@@ -293,114 +551,7 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame,
   for (size_t i = 0; i < frame.renderStates.size(); ++i) {
     const CoinRenderRenderStateSnapshot & src = frame.renderStates[i];
     CoinWgpuRenderState & dst = this->states[i];
-    dst.clip_plane_count = static_cast<uint32_t>(src.clipPlanesWorld.size());
-    if (!coin_render_clip_equations(src, dst.clip_planes, outDiagnostic)) return false;
-    const SbMatrix modelView = src.model * src.view;
-    const SbMatrix normalMatrix = CoinRenderTransformCore::normalMatrix(modelView);
-    const SbMatrix projectionWgpu = CoinRenderTransformCore::projection(src.projectionCoin, false);
-    const SbMatrix mvpWgpu = modelView * projectionWgpu;
-
-    std::memcpy(dst.model_view, modelView.getValue(), sizeof(float) * 16);
-    std::memcpy(dst.model_view_projection, mvpWgpu.getValue(), sizeof(float) * 16);
-    std::memcpy(dst.normal_matrix, normalMatrix.getValue(), sizeof(float) * 16);
-
-    bool hasLight = false;
-    if (src.lightModel == CoinRenderLightModel::PHONG &&
-        src.lightingSlot < frame.lightingStates.size() &&
-        !frame.lightingStates[src.lightingSlot].lights.empty()) {
-      const CoinRenderLightSourceSnapshot & light = frame.lightingStates[src.lightingSlot].lights[0];
-      hasLight = true;
-      for (int c = 0; c < 3; ++c) {
-        dst.light_direction[c] = light.direction[c];
-        dst.light_color[c] = light.color[c];
-      }
-      dst.light_direction[3] = 0.0f;
-      dst.light_color[3] = 1.0f;
-      dst.light_intensity = light.intensity;
-    } else {
-      dst.light_direction[2] = 1.0f;
-      dst.light_color[0] = 1.0f;
-      dst.light_color[1] = 1.0f;
-      dst.light_color[2] = 1.0f;
-      dst.light_color[3] = 1.0f;
-      dst.light_intensity = 1.0f;
-    }
-    dst.has_light = hasLight ? 1 : 0;
-    dst.material_slot = src.materialSlot;
-    dst.cull_mode = static_cast<uint32_t>(src.cullMode);
-    dst.front_face = static_cast<uint32_t>(src.frontFace);
-    dst.light_model = static_cast<uint32_t>(src.lightModel);
-    std::memcpy(dst.texture_matrix, src.textureMatrix.getValue(), sizeof(float) * 16);
-    std::memcpy(dst.texture_combines, src.textureCombines, sizeof(dst.texture_combines));
-    for (size_t unit = 1; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
-      const auto layer = coin_render_texture_unit(src, unit);
-      auto& target = dst.extra_textures[unit - 1];
-      std::memcpy(target.matrix, layer.matrix.getValue(), sizeof(target.matrix));
-      target.enabled = layer.enabled ? 1 : 0;
-      target.texture_slot = layer.imageSlot; target.sampler_slot = layer.samplerSlot;
-      target.model = static_cast<uint32_t>(layer.model);
-      std::memcpy(target.blend_color, layer.blendColor, sizeof(target.blend_color));
-    }
-    dst.has_texture = src.hasTexture ? 1 : 0;
-    dst.texture_slot = src.textureImageSlot;
-    dst.sampler_slot = src.samplerSlot;
-    dst.texture_model = static_cast<uint32_t>(src.textureModel);
-    std::memcpy(dst.texture_blend_color, src.textureBlendColor,
-                sizeof(src.textureBlendColor));
-    if (src.viewportSlot < frame.viewports.size()) {
-      const CoinRenderViewportSnapshot & viewport = frame.viewports[src.viewportSlot];
-      dst.viewport[0] = viewport.x;
-      dst.viewport[1] = static_cast<int32_t>(targetHeight) - viewport.y - viewport.height;
-      dst.viewport[2] = viewport.width;
-      dst.viewport[3] = viewport.height;
-    } else {
-      dst.viewport[0] = dst.viewport[1] = 0;
-      dst.viewport[2] = static_cast<int32_t>(targetWidth);
-      dst.viewport[3] = static_cast<int32_t>(targetHeight);
-    }
-    dst.fog_mode = static_cast<uint32_t>(src.fogMode);
-    std::memcpy(dst.fog_color, src.fogColor, sizeof(src.fogColor));
-    dst.fog_start = src.fogStart;
-    dst.fog_end = src.fogEnd;
-    dst.depth_test = src.depthTest ? 1u : 0u;
-    dst.depth_write = src.depthWrite ? 1u : 0u;
-    dst.depth_function = static_cast<uint32_t>(src.depthFunction);
-    dst.depth_range[0] = src.depthRange[0];
-    dst.depth_range[1] = src.depthRange[1];
-    dst.polygon_offset_enabled = src.polygonOffsetEnabled ? 1u : 0u;
-    dst.polygon_offset_factor = src.polygonOffsetFactor;
-    dst.polygon_offset_units = src.polygonOffsetUnits;
-    dst.polygon_offset_slope_bias = src.polygonOffsetSlopeBias;
-    dst.polygon_offset_max_depth_bits = 0;
-    if (src.polygonOffsetMaxDepth >= 0) {
-      std::memcpy(&dst.polygon_offset_max_depth_bits, &src.polygonOffsetMaxDepth, sizeof(float));
-      ++dst.polygon_offset_max_depth_bits;
-    }
-    dst.polygon_offset_styles = src.polygonOffsetStyles;
-    dst.polygon_offset_primitive_style = src.polygonOffsetPrimitiveStyle;
-    dst.ambient_light[3] = 1.0f;
-
-    if (src.lightingSlot < frame.lightingStates.size()) {
-      const CoinRenderLightingSnapshot & lighting = frame.lightingStates[src.lightingSlot];
-      for (int c = 0; c < 3; ++c) {
-        dst.ambient_light[c] = lighting.ambientColor[c] * lighting.ambientIntensity;
-      }
-      if (src.lightModel == CoinRenderLightModel::PHONG) {
-        if (lighting.lights.size() > COIN_WGPU_FFI_MAX_LIGHTS) {
-          outDiagnostic = "More than eight active lights in CoinRenderFramePlan";
-          this->packedRevision = 0;
-          this->prepareKind = CoinRenderFrameReuseKind::UNKNOWN;
-          return false;
-        }
-        dst.light_count = static_cast<uint32_t>(lighting.lights.size());
-        for (size_t j = 0; j < lighting.lights.size(); ++j) {
-          const CoinRenderLightSourceSnapshot & light = lighting.lights[j];
-          dst.lights[j] = coin_wgpu_pack_light(light);
-          if (coin_render_shadow_suppresses_ordinary_light(frame, src, light))
-            dst.lights[j].color_intensity[3] = 0.0f;
-        }
-      }
-    }
+    if (!this->packState(frame, src, targetWidth, targetHeight, dst, outDiagnostic)) return false;
   }
   std::vector<CoinRenderCompositionItem> order;
   if (!coin_render_composition_schedule(frame, order, outDiagnostic, preflight))

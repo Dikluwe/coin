@@ -34,6 +34,13 @@ private:
                   uint32_t targetWidth, uint32_t targetHeight,
                   std::string & outDiagnostic,
                   const CoinRenderFramePreflight * preflight);
+  bool packState(const CoinRenderFramePlan & frame,
+                 const CoinRenderRenderStateSnapshot & source,
+                 uint32_t targetWidth, uint32_t targetHeight,
+                 CoinWgpuRenderState & destination, std::string & outDiagnostic);
+  bool tryEarlyOpaqueBatch(const CoinRenderFramePlan & frame,
+                          uint32_t width, uint32_t height,
+                          const CoinRenderFramePreflight * preflight);
   void bindView(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height);
   void batchOpaqueTriangles(const CoinRenderFramePlan & frame);
 

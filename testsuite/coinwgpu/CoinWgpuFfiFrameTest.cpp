@@ -8,6 +8,9 @@
 
 #include <cstdint>
 #include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include <Inventor/SbRotation.h>
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <iostream>
 #include <string>
@@ -19,7 +22,7 @@ bool check(bool condition, const char * message)
   return condition;
 }
 
-bool opaqueBatching(bool shared)
+CoinRenderFramePlan opaqueFrame(bool shared)
 {
   CoinRenderFramePlan frame;
   frame.revision = 501;
@@ -50,6 +53,12 @@ bool opaqueBatching(bool shared)
       if (!shared || i < 2) frame.indices.push_back(base + j);
     }
   }
+  return frame;
+}
+
+bool opaqueBatching(bool shared)
+{
+  auto frame = opaqueFrame(shared);
   CoinWgpuFfiFrame packed;
   std::string error;
   if (!check(packed.prepare(frame,64,64,error), "large opaque packing") ||
@@ -101,12 +110,106 @@ bool opaqueBatching(bool shared)
         "projective model transforms must retain ordinary draws")) return false;
   return true;
 }
+
+class EarlyBatchSwitch {
+public:
+  EarlyBatchSwitch() {
+    const char * value = std::getenv(name());
+    wasSet = value != nullptr;
+    if (value) previous = value;
+  }
+  ~EarlyBatchSwitch() { set(wasSet ? previous.c_str() : nullptr); }
+  void disable(bool disabled) { set(disabled ? "1" : nullptr); }
+private:
+  static const char * name() { return "COIN_WGPU_DISABLE_EARLY_OPAQUE_BATCHING"; }
+  static void set(const char * value) {
+#ifdef _WIN32
+    _putenv_s(name(), value ? value : "");
+#else
+    if (value) setenv(name(),value,1); else unsetenv(name());
+#endif
+  }
+  bool wasSet;
+  std::string previous;
+};
+
+bool samePacked(const CoinWgpuFrameView & a, const CoinWgpuFrameView & b) {
+  if (a.vertex_count != b.vertex_count || a.index_count != b.index_count ||
+      a.state_count != b.state_count || a.draw_count != b.draw_count ||
+      a.material_count != b.material_count || a.texture_count != b.texture_count ||
+      a.sampler_count != b.sampler_count || a.frame_revision != b.frame_revision ||
+      a.camera_base_revision != b.camera_base_revision || a.width != b.width || a.height != b.height)
+    return false;
+  return std::memcmp(a.vertices,b.vertices,a.vertex_count*sizeof(CoinWgpuVertex)) == 0 &&
+    std::memcmp(a.indices,b.indices,a.index_count*sizeof(uint32_t)) == 0 &&
+    std::memcmp(a.states,b.states,a.state_count*sizeof(CoinWgpuRenderState)) == 0 &&
+    std::memcmp(a.draws,b.draws,a.draw_count*sizeof(CoinWgpuDraw)) == 0 &&
+    std::memcmp(a.materials,b.materials,a.material_count*sizeof(CoinWgpuMaterial)) == 0;
+}
+
+bool earlyBatchEquivalence(bool shared) {
+  auto frame = opaqueFrame(shared);
+  frame.revision = 700;
+  frame.viewports.resize(1);
+  frame.viewports[0].x = 5; frame.viewports[0].y = 9;
+  frame.viewports[0].width = 37; frame.viewports[0].height = 41;
+  frame.lightingStates.resize(1);
+  frame.lightingStates[0].ambientIntensity = .3f;
+  CoinRenderLightSourceSnapshot light;
+  light.direction[2] = -1; light.intensity = .75f; light.sourceRevision = 1;
+  frame.lightingStates[0].lights.push_back(light);
+  SbMatrix view;
+  view.setRotate(SbRotation(SbVec3f(0,1,0),.37f));
+  view[3][0] = 2.5f; view[3][2] = -7.3f;
+  for (auto & state : frame.renderStates) state.view = view;
+  CoinWgpuFfiFrame early, original;
+  EarlyBatchSwitch option;
+  // Reuse an owner that previously transported textures/samplers. The empty
+  // resource tables of an early opaque batch must replace that old payload.
+  auto primer = frame; primer.revision = 699; primer.draws.resize(1);
+  primer.textures.resize(1); primer.textures[0].width = primer.textures[0].height = 1;
+  primer.textures[0].pixelsRgba = {1,2,3,255}; primer.samplers.resize(1);
+  std::string a, b;
+  if (!check(early.prepare(primer,64,64,a) && original.prepare(primer,64,64,b),
+             "texture/sampler primer packing")) return false;
+  const auto compare = [&](uint64_t expectedDraws) {
+    option.disable(false); const bool okA = early.prepare(frame,64,64,a);
+    option.disable(true); const bool okB = original.prepare(frame,64,64,b);
+    return check(okA && okB && samePacked(early.getView(),original.getView()),
+                 "early and original packing must be byte-identical") &&
+      check(early.getView().draw_count == expectedDraws &&
+            !early.getView().texture_count && !early.getView().sampler_count,
+            "qualified grouping, fallback and cleared resource tables");
+  };
+  if (!compare(1)) return false;
+  ++frame.revision; frame.renderStates.back().fogMode = CoinRenderFogMode::HAZE;
+  if (!compare(256)) return false;
+  ++frame.revision; frame.renderStates.back().fogMode = CoinRenderFogMode::NONE;
+  frame.renderStates.back().depthWrite = false;
+  if (!compare(256)) return false;
+  ++frame.revision; frame.renderStates.back().depthWrite = true;
+  frame.renderStates.back().model[0][3] = .01f;
+  if (!compare(256)) return false;
+  ++frame.revision; frame.renderStates.back().model[0][3] = 0;
+  frame.renderStates.push_back(frame.renderStates.back());
+  frame.renderStates.back().fogMode = CoinRenderFogMode::HAZE;
+  if (!compare(1)) return false; // Different unused state selects the original path.
+  ++frame.revision;
+  frame.lightingStates.push_back(frame.lightingStates[0]);
+  frame.lightingStates.back().lights.resize(COIN_WGPU_FFI_MAX_LIGHTS+1);
+  frame.renderStates.back().lightingSlot = 1;
+  option.disable(false); const bool okA = early.prepare(frame,64,64,a);
+  option.disable(true); const bool okB = original.prepare(frame,64,64,b);
+  return check(!okA && !okB && a == b && a.find("More than eight active lights") != std::string::npos,
+               "invalid unused state must preserve rejection and diagnostic");
+}
 }
 
 int
 main()
 {
-  if (!opaqueBatching(false) || !opaqueBatching(true)) return 1;
+  if (!opaqueBatching(false) || !opaqueBatching(true) ||
+      !earlyBatchEquivalence(false) || !earlyBatchEquivalence(true)) return 1;
   CoinRenderFramePlan frame;
   frame.revision = 41;
   frame.vertices.resize(1);
