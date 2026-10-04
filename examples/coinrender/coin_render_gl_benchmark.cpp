@@ -18,15 +18,20 @@
 #include <Inventor/nodes/SoTranslation.h>
 #include <Inventor/nodes/SoCube.h>
 
+#include "CoinRenderBenchmarkAnimation.h"
+
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <deque>
+#include <cerrno>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <limits>
+#include <sstream>
 #include <string>
 #include <thread>
 #include <vector>
@@ -56,6 +61,77 @@ void report(const char * backend, const std::vector<double> & values) {
             << " p95_ms=" << sorted[p95]
             << " min_ms=" << sorted.front()
             << " max_ms=" << sorted.back() << '\n';
+}
+
+struct FrameSample {
+  std::string backend;
+  int index;
+  int64_t logicalFrame;
+  bool warmup;
+  double updateMs, renderMs, publicationMs, totalMs;
+};
+
+void reportTiming(const std::string & label, const std::vector<double> & values) {
+  std::vector<double> sorted = values;
+  std::sort(sorted.begin(), sorted.end());
+  const auto percentile = [&](size_t percent) {
+    return sorted[(sorted.size() * percent + 99) / 100 - 1];
+  };
+  const std::streamsize precision = std::cout.precision();
+  std::cout << std::setprecision(9) << label << " frames=" << sorted.size()
+            << " median_ms=" << (sorted[(sorted.size() - 1) / 2] + sorted[sorted.size() / 2]) * 0.5
+            << " p95_ms=" << percentile(95)
+            << " p99_ms=" << percentile(99)
+            << " max_ms=" << sorted.back()
+            << " over_16_67=" << std::count_if(values.begin(), values.end(),
+                 [](double value) { return value > 1000.0 / 60.0; })
+            << " over_33_33=" << std::count_if(values.begin(), values.end(),
+                 [](double value) { return value > 1000.0 / 30.0; }) << '\n';
+  std::cout.precision(precision);
+}
+
+bool parseInteger(const std::string & text, long & value) {
+  if (text.empty()) return false;
+  char * end = NULL;
+  errno = 0;
+  value = std::strtol(text.c_str(), &end, 10);
+  return errno == 0 && end == text.c_str() + text.size();
+}
+
+bool parseCaptureFrames(const std::string & text, std::vector<int> & indices) {
+  if (text.empty() || text.back() == ',') return false;
+  std::istringstream input(text);
+  std::string field;
+  while (std::getline(input, field, ',')) {
+    long index = 0;
+    if (!parseInteger(field, index) || index < 0 || index > 9999) return false;
+    indices.push_back(static_cast<int>(index));
+  }
+  std::sort(indices.begin(), indices.end());
+  return !indices.empty() &&
+    std::adjacent_find(indices.begin(), indices.end()) == indices.end();
+}
+
+bool writeRgbImage(const std::string & path, const uint8_t * rgba,
+                   int side, bool bottomUp, uint64_t * rgbHash = NULL) {
+  std::ofstream image(path.c_str(), std::ios::binary);
+  image << "P6\n" << side << ' ' << side << "\n255\n";
+  std::vector<uint8_t> row(size_t(side) * 3u);
+  uint64_t hash = UINT64_C(14695981039346656037);
+  for (int y = 0; y < side; ++y) {
+    const int sourceRow = bottomUp ? side - 1 - y : y;
+    for (int x = 0; x < side; ++x)
+      std::memcpy(row.data() + size_t(x) * 3u,
+                  rgba + (size_t(sourceRow) * side + x) * 4u, 3u);
+    image.write(reinterpret_cast<const char *>(row.data()), row.size());
+    if (rgbHash) for (uint8_t channel : row) {
+      hash ^= channel;
+      hash *= UINT64_C(1099511628211);
+    }
+  }
+  image.close();
+  if (rgbHash) *rgbHash = hash;
+  return bool(image);
 }
 
 SoSeparator * createScene(SoPerspectiveCamera ** cameraOut) {
@@ -135,12 +211,43 @@ int main(int argc, char ** argv) {
   std::string rgbaOutput = "copy";
   std::string scenePath;
   std::string imageOutput;
+  std::string animationName = "static";
+  CoinRenderBenchmarkAnimation::Mode animationMode = CoinRenderBenchmarkAnimation::Mode::STATIC;
+  bool animationSpecified = false, percentSpecified = false, stepSpecified = false;
+  int animatedPercent = 100;
+  int animationStep = 1;
+  std::string samplesOutput, captureFrameText, capturePrefix;
+  bool samplesSpecified = false, captureFramesSpecified = false, capturePrefixSpecified = false;
+  std::vector<int> captureFrames;
   for (int i = 1; i < argc; ++i) {
     if (std::strcmp(argv[i], "--frames") == 0 && i + 1 < argc) frames = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--warmup") == 0 && i + 1 < argc) warmup = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--size") == 0 && i + 1 < argc) side = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--async-depth") == 0 && i + 1 < argc) asyncDepth = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--image-output") == 0 && i + 1 < argc) imageOutput = argv[++i];
+    else if (std::strcmp(argv[i], "--animation") == 0 && i + 1 < argc) {
+      animationName = argv[++i]; animationSpecified = true;
+    }
+    else if ((std::strcmp(argv[i], "--animated-percent") == 0 ||
+              std::strcmp(argv[i], "--animation-step") == 0) && i + 1 < argc) {
+      const bool percent = std::strcmp(argv[i], "--animated-percent") == 0;
+      long value = 0;
+      if (!parseInteger(argv[++i], value) || value < 1 ||
+          value > (percent ? 100 : std::numeric_limits<int>::max())) {
+        std::cerr << "Invalid animation percentage or step\n"; return 2;
+      }
+      if (percent) { animatedPercent = static_cast<int>(value); percentSpecified = true; }
+      else { animationStep = static_cast<int>(value); stepSpecified = true; }
+    }
+    else if (std::strcmp(argv[i], "--samples-output") == 0 && i + 1 < argc) {
+      samplesOutput = argv[++i]; samplesSpecified = true;
+    }
+    else if (std::strcmp(argv[i], "--capture-frames") == 0 && i + 1 < argc) {
+      captureFrameText = argv[++i]; captureFramesSpecified = true;
+    }
+    else if (std::strcmp(argv[i], "--capture-prefix") == 0 && i + 1 < argc) {
+      capturePrefix = argv[++i]; capturePrefixSpecified = true;
+    }
     else if (std::strcmp(argv[i], "--scene") == 0 && i + 1 < argc) scenePath = argv[++i];
     else if (std::strcmp(argv[i], "--dynamic") == 0) dynamic = true;
     else if (std::strcmp(argv[i], "--material-dynamic") == 0) materialDynamic = true;
@@ -151,9 +258,27 @@ int main(int argc, char ** argv) {
     else {
       std::cerr << "Usage: coin_render_gl_benchmark [--frames 30] [--warmup 8] [--image-output frame.ppm]"
                    " [--size 256] [--scene normalized.iv] [--dynamic|--material-dynamic]"
+                   " [--animation static|camera|transforms|materials|geometry] [--animated-percent 1..100]"
+                   " [--animation-step 1] [--samples-output samples.csv]"
+                   " [--capture-frames 0,60,120] [--capture-prefix path]"
                    " [--backend both|wgpu|bgfx|gl] [--transparency object|weighted_oit|sorted_layers] [--readback color|color-depth] [--rgba-output copy|borrow] [--async-depth 2|3]\n";
       return 2;
     }
+  }
+  const bool animationEnabled = animationSpecified || percentSpecified || stepSpecified ||
+    samplesSpecified || captureFramesSpecified;
+  if (!CoinRenderBenchmarkAnimation::parseMode(animationName, animationMode) ||
+      (captureFramesSpecified && !parseCaptureFrames(captureFrameText, captureFrames)) ||
+      (samplesSpecified && samplesOutput.empty()) ||
+      (capturePrefixSpecified && capturePrefix.empty()) ||
+      ((!captureFrames.empty()) != (!capturePrefix.empty())) ||
+      (!captureFrames.empty() && captureFrames.back() >= frames) ||
+      (animationEnabled && (dynamic || materialDynamic)) ||
+      (asyncDepth != 0 && (animationSpecified || percentSpecified || stepSpecified ||
+                          samplesSpecified || captureFramesSpecified || capturePrefixSpecified)) ||
+      (!captureFrames.empty() && rgbaOutput != "copy")) {
+    std::cerr << "Invalid animation/capture options or incompatible legacy/async mode\n";
+    return 2;
   }
   if (frames < 1 || frames > 10000 || warmup < 0 || warmup > 10000 ||
       side < 1 || side > 2048 || (dynamic && materialDynamic) ||
@@ -241,6 +366,25 @@ int main(int argc, char ** argv) {
   }
   std::cout << "scene_load_ms=" << std::chrono::duration<double, std::milli>(
     Clock::now() - loadBegin).count() << std::endl;
+  CoinRenderBenchmarkAnimation animation;
+  if (animationEnabled) {
+    const auto animationBegin = Clock::now();
+    std::string diagnostic;
+    if (!animation.initialize(root, camera, animationMode, animatedPercent, diagnostic)) {
+      std::cerr << "Cannot prepare animation: " << diagnostic << '\n';
+      root->unref(); return 2;
+    }
+    std::cout << "animation_detail mode=" << animationName
+              << " animated_percent=" << animatedPercent
+              << " eligible=" << animation.eligibleCount()
+              << " selected=" << animation.selectedCount()
+              << " prepared_clones=" << animation.preparedCloneCount()
+              << " prepare_ms=" << elapsedMs(animationBegin, Clock::now())
+              << " frame_step=" << animationStep
+              << " time_step_seconds=" << double(animationStep) / 60.0
+              << " selection_fnv64=0x" << std::hex << animation.selectionDigest()
+              << std::dec << '\n';
+  }
   const auto searchBegin = Clock::now();
   SoSearchAction searchMaterial;
   searchMaterial.setType(SoMaterial::getClassTypeId());
@@ -391,6 +535,9 @@ int main(int argc, char ** argv) {
   std::vector<uint8_t> glRgba(size_t(side) * size_t(side) * 4u);
   std::vector<float> depth;
   std::vector<double> wgpuMs, wgpuRenderMs, wgpuCopyMs, glMs;
+  std::vector<double> wgpuUpdateMs, wgpuTotalMs, glUpdateMs, glRenderMs, glCopyMs, glTotalMs;
+  std::vector<FrameSample> samples;
+  if (!samplesOutput.empty()) samples.reserve(size_t(frames + warmup) * (runWgpu && runGl ? 2u : 1u));
   const SbVec3f basePosition = camera->position.getValue();
   const auto updateScene = [&](int frameIndex) {
     if (dynamic) camera->position.setValue(basePosition +
@@ -399,10 +546,32 @@ int main(int argc, char ** argv) {
       0.55f + float(frameIndex % 7) * 0.035f,
       0.12f + float(frameIndex % 5) * 0.025f, 0.18f);
   };
+  const auto capture = [&](const char * label, int frameIndex,
+                           const uint8_t * pixels, bool bottomUp) {
+    if (!std::binary_search(captureFrames.begin(), captureFrames.end(), frameIndex)) return true;
+    std::ostringstream path;
+    path << capturePrefix << '-' << label << '-' << std::setw(6) << std::setfill('0')
+         << frameIndex << ".ppm";
+    uint64_t rgbHash = 0;
+    if (!writeRgbImage(path.str(), pixels, side, bottomUp, &rgbHash)) {
+      std::cerr << "Cannot write captured image: " << path.str() << '\n';
+      return false;
+    }
+    std::cout << "capture backend=" << label << " frame_index=" << frameIndex
+              << " logical_frame=" << int64_t(frameIndex) * animationStep
+              << " rgba_fnv64=0x" << std::hex
+              << rgbaChecksum(pixels, size_t(side) * side * 4u)
+              << " rgb_fnv64=0x" << rgbHash
+              << " state_fnv64=0x" << animation.stateDigest() << std::dec
+              << " image=" << path.str() << '\n';
+    return true;
+  };
   for (int i = -warmup; runWgpu && i < frames; ++i) {
-    updateScene(i + warmup + 1);
+    const Clock::time_point updateBegin = Clock::now();
+    if (animationEnabled) animation.update(int64_t(i) * animationStep);
+    else updateScene(i + warmup + 1);
     const Clock::time_point begin = Clock::now();
-    if (i == 0) wgpuMeasuredBegin = begin;
+    if (i == 0) wgpuMeasuredBegin = animationEnabled ? updateBegin : begin;
     if (wgpu->render() != CoinRenderAction::SUCCESS) {
       std::cerr << "WebGPU frame failed: " << wgpu->getLastError().getString() << '\n';
       root->unref();
@@ -437,6 +606,8 @@ int main(int argc, char ** argv) {
     if (i == -warmup) {
       std::cout << rendererLabel << "_first_detail render_ms=" << elapsedMs(begin, rendered)
                 << " publication_copy_ms=" << elapsedMs(rendered, end)
+                << " update_ms=" << elapsedMs(updateBegin, begin)
+                << " total_with_update_ms=" << elapsedMs(updateBegin, end)
                 << " before_frame_since_main_ms=" << elapsedMs(mainBegin, begin)
                 << " result_since_main_ms=" << elapsedMs(mainBegin, end) << '\n';
       std::cout << rendererLabel << "_first_frame_ms="
@@ -448,14 +619,28 @@ int main(int argc, char ** argv) {
       wgpuMs.push_back(std::chrono::duration<double, std::milli>(end - begin).count());
       wgpuRenderMs.push_back(std::chrono::duration<double, std::milli>(rendered - begin).count());
       wgpuCopyMs.push_back(std::chrono::duration<double, std::milli>(end - rendered).count());
+      wgpuUpdateMs.push_back(elapsedMs(updateBegin, begin));
+      wgpuTotalMs.push_back(elapsedMs(updateBegin, end));
+    }
+    if (!samplesOutput.empty()) samples.push_back(FrameSample{rendererLabel, i,
+      int64_t(i) * animationStep, i < 0, elapsedMs(updateBegin, begin),
+      elapsedMs(begin, rendered), elapsedMs(rendered, end), elapsedMs(updateBegin, end)});
+    if (i >= 0 && !capture(rendererLabel, i, rgba.data(), false)) {
+      root->unref(); delete gl; delete wgpu; return 1;
     }
   }
+  if (runWgpu && animationEnabled)
+    std::cout << rendererLabel << "_animation_final logical_frame=" << int64_t(frames - 1) * animationStep
+              << " state_fnv64=0x" << std::hex << animation.stateDigest() << std::dec << '\n';
+  if (runWgpu && runGl && animationEnabled) animation.restore();
   camera->position.setValue(basePosition);
   if (materialDynamic) animatedMaterial->diffuseColor.setValue(initialMaterial);
   for (int i = -warmup; runGl && i < frames; ++i) {
-    updateScene(i + warmup + 1);
+    const Clock::time_point updateBegin = Clock::now();
+    if (animationEnabled) animation.update(int64_t(i) * animationStep);
+    else updateScene(i + warmup + 1);
     const Clock::time_point begin = Clock::now();
-    if (i == 0) glMeasuredBegin = begin;
+    if (i == 0) glMeasuredBegin = animationEnabled ? updateBegin : begin;
     if (!gl->render(root)) {
       std::cerr << "Coin/GL offscreen context or readback unavailable\n";
       root->unref();
@@ -475,6 +660,8 @@ int main(int argc, char ** argv) {
       std::cout << "CoinGL_first_detail render_ms=" << elapsedMs(begin, rendered)
                 << " lazy_readback_ms=" << elapsedMs(rendered, fetched)
                 << " publication_copy_ms=" << elapsedMs(fetched, end)
+                << " update_ms=" << elapsedMs(updateBegin, begin)
+                << " total_with_update_ms=" << elapsedMs(updateBegin, end)
                 << " before_frame_since_main_ms=" << elapsedMs(mainBegin, begin)
                 << " result_since_main_ms=" << elapsedMs(mainBegin, end) << '\n';
       std::cout << "CoinGL_first_frame_ms="
@@ -484,7 +671,35 @@ int main(int argc, char ** argv) {
     if (i >= 0) {
       glMeasuredEnd = end;
       glMs.push_back(std::chrono::duration<double, std::milli>(end - begin).count());
+      glUpdateMs.push_back(elapsedMs(updateBegin, begin));
+      glRenderMs.push_back(elapsedMs(begin, fetched));
+      glCopyMs.push_back(elapsedMs(fetched, end));
+      glTotalMs.push_back(elapsedMs(updateBegin, end));
     }
+    if (!samplesOutput.empty()) samples.push_back(FrameSample{"CoinGL", i,
+      int64_t(i) * animationStep, i < 0, elapsedMs(updateBegin, begin),
+      elapsedMs(begin, fetched), elapsedMs(fetched, end), elapsedMs(updateBegin, end)});
+    if (i >= 0 && !capture("CoinGL", i, glRgba.data(), true)) {
+      root->unref(); delete gl; delete wgpu; return 1;
+    }
+  }
+  if (runGl && animationEnabled)
+    std::cout << "CoinGL_animation_final logical_frame=" << int64_t(frames - 1) * animationStep
+              << " state_fnv64=0x" << std::hex << animation.stateDigest() << std::dec << '\n';
+  if (!samplesOutput.empty()) {
+    std::ofstream output(samplesOutput.c_str());
+    output << "backend,frame_index,logical_frame,warmup,update_ms,render_ms,publication_ms,total_ms\n"
+           << std::setprecision(17);
+    for (const auto & sample : samples)
+      output << sample.backend << ',' << sample.index << ',' << sample.logicalFrame << ','
+             << (sample.warmup ? 1 : 0) << ',' << sample.updateMs << ',' << sample.renderMs
+             << ',' << sample.publicationMs << ',' << sample.totalMs << '\n';
+    output.close();
+    if (!output) {
+      std::cerr << "Cannot write samples: " << samplesOutput << '\n';
+      root->unref(); delete gl; delete wgpu; return 1;
+    }
+    std::cout << "samples_output=" << samplesOutput << " rows=" << samples.size() << '\n';
   }
   if (runWgpu) {
     const size_t bytes = size_t(side) * size_t(side) * 4u;
@@ -502,16 +717,8 @@ int main(int argc, char ** argv) {
               << rgbaChecksum(glRgba.data(), glRgba.size()) << std::dec << '\n';
   if (!imageOutput.empty()) {
     // PPM rows are top-down; the legacy GL readback is bottom-up.
-    std::ofstream image(imageOutput.c_str(), std::ios::binary);
-    image << "P6\n" << side << ' ' << side << "\n255\n";
     const auto& pixels = runWgpu ? rgba : glRgba;
-    for (int y = 0; y < side; ++y) {
-      const int row = runWgpu ? y : side - 1 - y;
-      for (int x = 0; x < side; ++x)
-        image.write(reinterpret_cast<const char*>(&pixels[(size_t(row) * side + x) * 4]), 3);
-    }
-    image.close();
-    if (!image) {
+    if (!writeRgbImage(imageOutput, pixels.data(), side, !runWgpu)) {
       std::cerr << "Cannot write image: " << imageOutput << '\n';
       root->unref(); delete gl; delete wgpu; return 1;
     }
@@ -530,14 +737,32 @@ int main(int argc, char ** argv) {
                              "render+rgba+depth-readback")
             << " pipeline_depth=" << (useBgfx ? (asyncDepth ? asyncDepth : 1) : 0)
             << " rgba_output=" << rgbaOutput
-            << " scene_update=" << (dynamic ? "camera-each-frame" :
+            << " scene_update=" << (animationEnabled ? animationName.c_str() : dynamic ? "camera-each-frame" :
                 materialDynamic ? "material-each-frame" : "static") << '\n';
+  std::cout << "timing_detail legacy_frame_scope=render+readback+publication"
+            << " total_scope=update+render+readback+publication"
+            << " render_scope=render+readback experimental_publication=" << rgbaOutput
+            << " coingl_publication=copy"
+            << " measured_indices=0.." << frames - 1
+            << " warmup_indices=-" << warmup << "..-1"
+            << " frame_step=" << animationStep
+            << " captures=" << captureFrames.size()
+            << " capture_io=outside_frame_timers"
+            << " wall_throughput_includes_capture=" << (!captureFrames.empty() ? 1 : 0)
+            << " wall_throughput_scope=" << (animationEnabled ? "update+frame" : "legacy-frame")
+            << " new_stats_percentile=nearest_rank new_stats_median=average_middle"
+            << " legacy_stats_median=upper_middle"
+            << " budget_60hz_ms=" << 1000.0 / 60.0
+            << " budget_30hz_ms=" << 1000.0 / 30.0 << '\n';
   if (runWgpu) {
     report(rendererLabel, wgpuMs);
     report(caps.backend == COIN_RENDER_EXPERIMENTAL_BGFX_EVALUATION ?
            "BGFX_render_and_readback" : "WebGPU_render", wgpuRenderMs);
     report(caps.backend == COIN_RENDER_EXPERIMENTAL_BGFX_EVALUATION ?
            "BGFX_publication_copy" : "WebGPU_copy", wgpuCopyMs);
+    reportTiming(std::string(rendererLabel) + "_timing_total", wgpuTotalMs);
+    reportTiming(std::string(rendererLabel) + "_timing_update", wgpuUpdateMs);
+    reportTiming(std::string(rendererLabel) + "_timing_render", wgpuRenderMs);
     std::cout << rendererLabel << "_throughput frames=" << frames
               << " total_ms=" << std::chrono::duration<double, std::milli>(
                    wgpuMeasuredEnd - wgpuMeasuredBegin).count()
@@ -547,6 +772,10 @@ int main(int argc, char ** argv) {
   }
   if (runGl) {
     report("CoinGL", glMs);
+    reportTiming("CoinGL_timing_total", glTotalMs);
+    reportTiming("CoinGL_timing_update", glUpdateMs);
+    reportTiming("CoinGL_timing_render", glRenderMs);
+    report("CoinGL_publication_copy", glCopyMs);
     const double elapsedMs = std::chrono::duration<double, std::milli>(
       glMeasuredEnd - glMeasuredBegin).count();
     std::cout << "CoinGL_throughput frames=" << frames << " total_ms=" << elapsedMs

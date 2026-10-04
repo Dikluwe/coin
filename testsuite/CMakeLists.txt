@@ -638,6 +638,18 @@ if(COIN_BUILD_RENDER)
 	add_test(NAME CoinRenderStabilizationTest COMMAND CoinRenderStabilizationTest)
 	set_tests_properties(CoinRenderStabilizationTest PROPERTIES TIMEOUT 30)
 
+	# Deterministic benchmark workloads, including isolation of shared scene nodes.
+	add_executable(CoinRenderBenchmarkAnimationTest
+		coinrender/CoinRenderBenchmarkAnimationTest.cpp)
+	target_link_libraries(CoinRenderBenchmarkAnimationTest Coin)
+	target_include_directories(CoinRenderBenchmarkAnimationTest PRIVATE
+		${PROJECT_SOURCE_DIR}/examples/coinrender
+		${PROJECT_SOURCE_DIR}/include
+		${PROJECT_BINARY_DIR}/include
+		${COIN_TARGET_INCLUDE_DIRECTORIES})
+	add_test(NAME CoinRenderBenchmarkAnimationTest COMMAND CoinRenderBenchmarkAnimationTest)
+	set_tests_properties(CoinRenderBenchmarkAnimationTest PROPERTIES TIMEOUT 30)
+
 	if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
 	add_executable(CoinRenderMaterialTest
 		coinrender/CoinRenderMaterialTest.cpp

@@ -2,6 +2,7 @@
 // This executable deliberately never reads pixels back to the CPU.
 
 #include <Inventor/SoDB.h>
+#include <Inventor/SbRotation.h>
 #include <Inventor/SoInput.h>
 #include <Inventor/SoPath.h>
 #include <Inventor/actions/SoSearchAction.h>
@@ -16,10 +17,14 @@
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
+#include <Inventor/nodes/SoPerspectiveCamera.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoTransform.h>
 
+#include "CoinRenderBenchmarkAnimation.h"
+
 #include <X11/Xlib.h>
+#include <X11/Xatom.h>
 #include <X11/Xutil.h>
 #include <GL/gl.h>
 #include <GL/glx.h>
@@ -29,11 +34,14 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cerrno>
+#include <climits>
 #include <cstdint>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <iomanip>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -45,6 +53,8 @@ struct Options {
   std::string backend;
   std::string transparency;
   std::string scenePath;
+  std::string animation;
+  std::string samplesOutput;
   int width;
   int height;
   int warmup;
@@ -52,9 +62,29 @@ struct Options {
   bool dynamic;
   bool materialDynamic;
   bool captureWindow;
+  bool animationSpecified;
+  int animatedPercent;
+  int animationStep;
   Options() : backend("bgfx-vulkan"), transparency("object"),
-    width(960), height(540), warmup(60), frames(600), dynamic(false), materialDynamic(false), captureWindow(false) {}
+    animation("static"), width(960), height(540), warmup(60), frames(600),
+    dynamic(false), materialDynamic(false), captureWindow(false), animationSpecified(false),
+    animatedPercent(100), animationStep(1) {}
 };
+
+struct FrameSample {
+  int frameIndex;
+  int64_t logicalFrame;
+  bool warmup;
+  double updateMs;
+  double renderPresentMs;
+  double totalMs;
+  double eventMs;
+};
+
+double elapsedMs(Clock::time_point begin, Clock::time_point end)
+{
+  return std::chrono::duration<double, std::milli>(end - begin).count();
+}
 
 struct GlxWindow {
   Display * display;
@@ -71,7 +101,20 @@ void usage()
                " --transparency object|weighted_oit|sorted_layers"
                " [--scene normalized.iv]"
                " [--width 960] [--height 540] [--warmup 60] [--frames 600]"
+               " [--animation static|camera|transforms|materials|geometry]"
+               " [--animated-percent 1..100] [--animation-step 1] [--samples-output frames.csv]"
                " [--dynamic|--material-dynamic] [--capture-window]\n";
+}
+
+bool parseInteger(const char * text, int & value)
+{
+  if (!text || !*text) return false;
+  char * end = NULL;
+  errno = 0;
+  const long parsed = std::strtol(text, &end, 10);
+  if (errno || !end || *end || parsed < INT_MIN || parsed > INT_MAX) return false;
+  value = static_cast<int>(parsed);
+  return true;
 }
 
 bool parseOptions(int argc, char ** argv, Options & options)
@@ -84,13 +127,25 @@ bool parseOptions(int argc, char ** argv, Options & options)
     else if (std::strcmp(argv[i], "--scene") == 0 && i + 1 < argc)
       options.scenePath = argv[++i];
     else if (std::strcmp(argv[i], "--width") == 0 && i + 1 < argc)
-      options.width = std::atoi(argv[++i]);
+      { if (!parseInteger(argv[++i], options.width)) return false; }
     else if (std::strcmp(argv[i], "--height") == 0 && i + 1 < argc)
-      options.height = std::atoi(argv[++i]);
+      { if (!parseInteger(argv[++i], options.height)) return false; }
     else if (std::strcmp(argv[i], "--warmup") == 0 && i + 1 < argc)
-      options.warmup = std::atoi(argv[++i]);
+      { if (!parseInteger(argv[++i], options.warmup)) return false; }
     else if (std::strcmp(argv[i], "--frames") == 0 && i + 1 < argc)
-      options.frames = std::atoi(argv[++i]);
+      { if (!parseInteger(argv[++i], options.frames)) return false; }
+    else if (std::strcmp(argv[i], "--animation") == 0 && i + 1 < argc) {
+      options.animation = argv[++i];
+      options.animationSpecified = true;
+    }
+    else if (std::strcmp(argv[i], "--animated-percent") == 0 && i + 1 < argc)
+      { if (!parseInteger(argv[++i], options.animatedPercent)) return false; }
+    else if (std::strcmp(argv[i], "--animation-step") == 0 && i + 1 < argc)
+      { if (!parseInteger(argv[++i], options.animationStep)) return false; }
+    else if (std::strcmp(argv[i], "--samples-output") == 0 && i + 1 < argc) {
+      options.samplesOutput = argv[++i];
+      if (options.samplesOutput.empty()) return false;
+    }
     else if (std::strcmp(argv[i], "--dynamic") == 0)
       options.dynamic = true;
     else if (std::strcmp(argv[i], "--material-dynamic") == 0)
@@ -105,9 +160,13 @@ bool parseOptions(int argc, char ** argv, Options & options)
   const bool transparency = options.transparency == "object" ||
     options.transparency == "weighted_oit" ||
     options.transparency == "sorted_layers";
+  CoinRenderBenchmarkAnimation::Mode animationMode;
   if (!backend || !transparency ||
+      !CoinRenderBenchmarkAnimation::parseMode(options.animation, animationMode) ||
+      options.animatedPercent < 1 || options.animatedPercent > 100 || options.animationStep < 1 ||
       (options.captureWindow && options.backend == "coin-gl") ||
       (options.dynamic && options.materialDynamic) ||
+      (options.animationSpecified && (options.dynamic || options.materialDynamic)) ||
       options.width < 1 || options.width > 8192 ||
       options.height < 1 || options.height > 8192 || options.warmup < 0 ||
       options.warmup > 100000 || options.frames < 1 || options.frames > 1000000)
@@ -138,21 +197,32 @@ void addQuad(SoSeparator * root, const SbColor & color, float alpha,
   root->addChild(object);
 }
 
-SoSeparator * createScene(const Options & options, SoTransform ** animationOut)
+SoSeparator * createScene(const Options & options, SoTransform ** animationOut,
+                          SoCamera ** cameraOut)
 {
   SoSeparator * root = new SoSeparator;
   root->ref();
-  SoOrthographicCamera * camera = new SoOrthographicCamera;
-  camera->position.setValue(0.0f, 0.0f, 8.0f);
-  camera->height = 5.5f;
-  camera->nearDistance = 0.1f;
-  camera->farDistance = 20.0f;
+  SoCamera * camera;
+  const bool fittedImportedCamera = options.animationSpecified && !options.scenePath.empty();
+  if (!fittedImportedCamera) {
+    SoOrthographicCamera * orthographic = new SoOrthographicCamera;
+    orthographic->position.setValue(0.0f, 0.0f, 8.0f);
+    orthographic->height = 5.5f;
+    orthographic->nearDistance = 0.1f;
+    orthographic->farDistance = 20.0f;
+    camera = orthographic;
+  } else {
+    camera = new SoPerspectiveCamera;
+    camera->orientation.setValue(SbRotation(SbVec3f(0.0f, 0.0f, -1.0f),
+                                            SbVec3f(-0.5f, -0.35f, -1.0f)));
+  }
+  *cameraOut = camera;
   root->addChild(camera);
   SoLightModel * baseColor = new SoLightModel;
   baseColor->model = SoLightModel::BASE_COLOR;
   root->addChild(baseColor);
-  SoTransform * animation = new SoTransform;
-  root->addChild(animation);
+  SoTransform * animation = options.animationSpecified ? NULL : new SoTransform;
+  if (animation) root->addChild(animation);
   *animationOut = animation;
   if (!options.scenePath.empty()) {
     SoInput input;
@@ -163,6 +233,8 @@ SoSeparator * createScene(const Options & options, SoTransform ** animationOut)
       return NULL;
     }
     root->addChild(imported);
+    if (fittedImportedCamera)
+      camera->viewAll(root, SbViewportRegion(options.width, options.height), 1.15f);
     return root;
   }
 
@@ -187,12 +259,85 @@ SoSeparator * createScene(const Options & options, SoTransform ** animationOut)
   return root;
 }
 
-void consumeEvents(Display * display)
+bool consumeEvents(Display * display, Window window, int width, int height)
 {
+  bool sizeUnchanged = true;
   while (XPending(display) > 0) {
     XEvent event;
     XNextEvent(display, &event);
+    if (event.type == ConfigureNotify && event.xconfigure.window == window &&
+        (event.xconfigure.width != width || event.xconfigure.height != height)) {
+      std::cerr << "Window drawable changed size during benchmark: requested="
+        << width << 'x' << height << " actual=" << event.xconfigure.width
+        << 'x' << event.xconfigure.height << '\n';
+      sizeUnchanged = false;
+    }
   }
+  return sizeUnchanged;
+}
+
+void requestFixedWindowSize(Display * display, Window window, int width, int height)
+{
+  XSizeHints hints{};
+  hints.flags = PMinSize | PMaxSize;
+  hints.min_width = hints.max_width = width;
+  hints.min_height = hints.max_height = height;
+  XSetWMNormalHints(display, window, &hints);
+}
+
+bool validateWindowGeometry(Display * display, Window window, int width, int height)
+{
+  XSync(display, False);
+  XWindowAttributes attributes{};
+  if (!XGetWindowAttributes(display, window, &attributes)) {
+    std::cerr << "Cannot query benchmark window drawable geometry\n";
+    return false;
+  }
+  const int screen = DefaultScreen(display);
+  const Window root = RootWindow(display, screen);
+  int x = 0, y = 0;
+  Window child = 0;
+  const bool hasOrigin = XTranslateCoordinates(display, window, root, 0, 0, &x, &y, &child);
+  long desktop = 0;
+  Atom actualType = None;
+  int format = 0;
+  unsigned long items = 0, remaining = 0;
+  unsigned char * property = NULL;
+  const Atom desktopAtom = XInternAtom(display, "_NET_CURRENT_DESKTOP", True);
+  if (desktopAtom != None && XGetWindowProperty(display, root, desktopAtom,
+      0, 1, False, XA_CARDINAL, &actualType, &format, &items, &remaining, &property) == Success &&
+      actualType == XA_CARDINAL && format == 32 && items == 1)
+    desktop = static_cast<long>(*reinterpret_cast<unsigned long *>(property));
+  if (property) XFree(property);
+  property = NULL;
+  long workarea[4] = {};
+  const Atom workareaAtom = XInternAtom(display, "_NET_WORKAREA", True);
+  const bool hasWorkarea = desktop >= 0 && desktop <= LONG_MAX / 4 && workareaAtom != None &&
+    XGetWindowProperty(display, root, workareaAtom, desktop * 4, 4, False, XA_CARDINAL,
+      &actualType, &format, &items, &remaining, &property) == Success &&
+    actualType == XA_CARDINAL && format == 32 && items == 4;
+  if (hasWorkarea) for (int i = 0; i < 4; ++i)
+    workarea[i] = static_cast<long>(reinterpret_cast<unsigned long *>(property)[i]);
+  if (property) XFree(property);
+  const int outsideWorkarea = hasOrigin && hasWorkarea ?
+    (int64_t(x) < workarea[0] || int64_t(y) < workarea[1] ||
+     int64_t(x) + attributes.width > int64_t(workarea[0]) + workarea[2] ||
+     int64_t(y) + attributes.height > int64_t(workarea[1]) + workarea[3] ? 1 : 0) : -1;
+  std::cout << "window_geometry_detail requested=" << width << 'x' << height
+    << " actual=" << attributes.width << 'x' << attributes.height
+    << " size_policy=wm-fixed-request origin=" << x << ',' << y
+    << " origin_available=" << (hasOrigin ? 1 : 0)
+    << " screen=" << DisplayWidth(display, screen) << 'x' << DisplayHeight(display, screen)
+    << " workarea=";
+  if (hasWorkarea)
+    std::cout << workarea[2] << 'x' << workarea[3] << '+' << workarea[0] << '+' << workarea[1];
+  else std::cout << "unavailable";
+  std::cout << " partially_outside_workarea=" << outsideWorkarea << '\n';
+  if (attributes.width != width || attributes.height != height) {
+    std::cerr << "Window manager did not honor the requested drawable size; benchmark aborted\n";
+    return false;
+  }
+  return true;
 }
 
 void waitUntilMapped(Display * display, Window window)
@@ -213,6 +358,7 @@ Window createXlibWindow(Display * display, int width, int height,
     0, BlackPixel(display, screen), BlackPixel(display, screen));
   XStoreName(display, window, title);
   XSelectInput(display, window, StructureNotifyMask);
+  requestFixedWindowSize(display, window, width, height);
   XMapWindow(display, window);
   XFlush(display);
   waitUntilMapped(display, window);
@@ -243,10 +389,23 @@ bool createGlxWindow(int width, int height, GlxWindow & result)
   result.context = glXCreateContext(result.display, visual, NULL, True);
   XFree(visual);
   if (!result.context) return false;
+  requestFixedWindowSize(result.display, result.window, width, height);
   XMapWindow(result.display, result.window);
   XFlush(result.display);
   waitUntilMapped(result.display, result.window);
   return glXMakeCurrent(result.display, result.window, result.context) == True;
+}
+
+void destroyGlxWindow(GlxWindow & window)
+{
+  if (!window.display) return;
+  if (window.context) {
+    glXMakeCurrent(window.display, None, NULL);
+    glXDestroyContext(window.display, window.context);
+  }
+  if (window.window) XDestroyWindow(window.display, window.window);
+  if (window.colormap) XFreeColormap(window.display, window.colormap);
+  XCloseDisplay(window.display);
 }
 
 void disableGlxSwapInterval(Display * display, Window window)
@@ -265,42 +424,155 @@ void disableGlxSwapInterval(Display * display, Window window)
   if (sgi) (void)sgi(0);
 }
 
-void report(const Options & options, const std::vector<double> & frameMs,
-            double totalMs, const char * adapter, uint32_t vendor, uint32_t device)
+struct TimingStats {
+  double median;
+  double p95;
+  double p99;
+  double minimum;
+  double maximum;
+  uint64_t over60Hz;
+  uint64_t over30Hz;
+};
+
+TimingStats timingStats(std::vector<double> times)
 {
-  std::vector<double> sorted = frameMs;
-  std::sort(sorted.begin(), sorted.end());
-  const size_t median = sorted.size() / 2;
-  const size_t p95 = (sorted.size() * 95 + 99) / 100 - 1;
+  TimingStats result{};
+  if (times.empty()) return result;
+  for (double time : times) {
+    result.over60Hz += time > 1000.0 / 60.0;
+    result.over30Hz += time > 1000.0 / 30.0;
+  }
+  std::sort(times.begin(), times.end());
+  const size_t middle = times.size() / 2;
+  result.median = times.size() % 2 ? times[middle] : (times[middle - 1] + times[middle]) * .5;
+  result.p95 = times[(times.size() * 95 + 99) / 100 - 1];
+  result.p99 = times[(times.size() * 99 + 99) / 100 - 1];
+  result.minimum = times.front(); result.maximum = times.back();
+  return result;
+}
+
+void reportStats(const char * prefix, const TimingStats & stats)
+{
+  std::cout << ' ' << prefix << "_median_ms=" << stats.median
+    << ' ' << prefix << "_p95_ms=" << stats.p95
+    << ' ' << prefix << "_p99_ms=" << stats.p99
+    << ' ' << prefix << "_min_ms=" << stats.minimum
+    << ' ' << prefix << "_max_ms=" << stats.maximum
+    << ' ' << prefix << "_over_16_666667_ms=" << stats.over60Hz
+    << ' ' << prefix << "_over_33_333333_ms=" << stats.over30Hz;
+}
+
+void writeSamples(std::ostream * output, const std::vector<FrameSample> & samples)
+{
+  if (!output) return;
+  *output << "frame_index,logical_frame,warmup,t_seconds,update_ms,render_present_ms,total_ms,event_ms\n"
+          << std::fixed << std::setprecision(9);
+  for (const FrameSample & sample : samples)
+    *output << sample.frameIndex << ',' << sample.logicalFrame << ',' << (sample.warmup ? 1 : 0)
+      << ',' << double(sample.logicalFrame) / 60.0 << ',' << sample.updateMs
+      << ',' << sample.renderPresentMs << ',' << sample.totalMs << ',' << sample.eventMs << '\n';
+}
+
+void updateScene(const Options & options, int frame, CoinRenderBenchmarkAnimation & animator,
+                 SoTransform * legacyAnimation, SoMaterial * animatedMaterial)
+{
+  if (options.animationSpecified)
+    animator.update(static_cast<int64_t>(frame) * options.animationStep);
+  if (options.dynamic)
+    legacyAnimation->rotation.setValue(SbVec3f(0.0f, 0.0f, 1.0f),
+      float(frame + options.warmup + 1) * 0.0005f);
+  if (options.materialDynamic)
+    animatedMaterial->diffuseColor.setValue(
+      0.55f + float((frame + options.warmup) % 7) * 0.035f,
+      0.12f + float((frame + options.warmup) % 5) * 0.025f, 0.18f);
+}
+
+void reportFirstFrame(const Options & options, const FrameSample & sample,
+                      Clock::time_point mainBegin, Clock::time_point begin,
+                      Clock::time_point end)
+{
+  std::cout << std::fixed << std::setprecision(6)
+    << "window_first_frame_detail backend=" << options.backend
+    << " frame_index=" << sample.frameIndex << " logical_frame=" << sample.logicalFrame
+    << " warmup=" << (sample.warmup ? 1 : 0)
+    << " update_ms=" << sample.updateMs << " render_present_ms=" << sample.renderPresentMs
+    << " total_ms=" << sample.totalMs << " event_ms=" << sample.eventMs
+    << " before_frame_since_main_ms=" << elapsedMs(mainBegin, begin)
+    << " result_since_main_ms=" << elapsedMs(mainBegin, end)
+    << " includes_lazy_gpu_prepare=1 gpu_prepare_breakdown=COIN_RENDER_TRACE_PHASES\n";
+}
+
+void report(const Options & options, const std::vector<FrameSample> & samples,
+            double totalMs, double finalDrainMs, CoinRenderBenchmarkAnimation & animator,
+            const char * adapter, uint32_t vendor, uint32_t device)
+{
+  std::vector<double> updateMs, renderMs, frameMs;
+  updateMs.reserve(options.frames); renderMs.reserve(options.frames); frameMs.reserve(options.frames);
+  double sampleTotalMs = 0.0, eventTotalMs = 0.0;
+  for (const FrameSample & sample : samples) if (!sample.warmup) {
+    updateMs.push_back(sample.updateMs); renderMs.push_back(sample.renderPresentMs);
+    frameMs.push_back(sample.totalMs);
+    sampleTotalMs += sample.totalMs; eventTotalMs += sample.eventMs;
+  }
+  const TimingStats renderStats = timingStats(renderMs);
+  const bool coinGl = options.backend == "coin-gl";
   std::cout << std::fixed << std::setprecision(6)
     << "window_benchmark backend=" << options.backend
     << " transparency=" << options.transparency
     << " size=" << options.width << 'x' << options.height
     << " warmup=" << options.warmup << " frames=" << options.frames
     << " scene_update=" << (options.dynamic ? "transform-each-frame" :
-      options.materialDynamic ? "material-each-frame" : "static")
+      options.materialDynamic ? "material-each-frame" : options.animation)
+    << " animation=" << (options.dynamic ? "legacy-transform" :
+      options.materialDynamic ? "legacy-material" : options.animation)
+    << " animated_percent=" << options.animatedPercent
+    << " animation_step=" << options.animationStep
+    << " eligible=" << animator.eligibleCount() << " selected=" << animator.selectedCount()
+    << " prepared_clones=" << animator.preparedCloneCount()
+    << " selection_digest=0x" << std::hex << animator.selectionDigest()
+    << " final_state_digest=0x" << animator.stateDigest() << std::dec
     << " scene=" << (options.scenePath.empty() ? "builtin-overlap" : options.scenePath)
+    << " framing=" << (options.animationSpecified && !options.scenePath.empty() ?
+      "perspective-viewAll-1.15" : "legacy-orthographic")
     << " readback=" << (options.captureWindow ? "rgba-on-request" : "none")
     << " adapter=\"" << adapter << "\""
     << " vendor_id=0x" << std::hex << vendor << " device_id=0x" << device << std::dec
     << " present_policy=off-requested"
-    << " cpu_frame_median_ms=" << sorted[median]
-    << " cpu_frame_p95_ms=" << sorted[p95]
-    << " cpu_frame_min_ms=" << sorted.front()
-    << " cpu_frame_max_ms=" << sorted.back()
+    << " timing_scope=cpu-update-and-render-present-call"
+    << " display_latency_measured=0 gpu_duration_measured=0"
+    << " final_sync=" << (coinGl ? "glFinish" : "none-public-api")
+    << " throughput_scope=" << (coinGl ? "cpu-loop-plus-final-GL-queue-drain" : "cpu-loop-native-queue-may-remain-pending")
+    << " final_gpu_drain_ms=" << finalDrainMs
+    << " cpu_frame_median_ms=" << renderStats.median
+    << " cpu_frame_p95_ms=" << renderStats.p95
+    << " cpu_frame_min_ms=" << renderStats.minimum
+    << " cpu_frame_max_ms=" << renderStats.maximum;
+  reportStats("update", timingStats(updateMs));
+  reportStats("render_present", renderStats);
+  reportStats("frame_total", timingStats(frameMs));
+  std::cout << " sample_total_ms=" << sampleTotalMs << " event_ms=" << eventTotalMs
     << " total_ms=" << totalMs
     << " throughput_fps=" << double(options.frames) * 1000.0 / totalMs << '\n';
 }
 
 int runCoinGl(const Options & options, SoSeparator * root,
-              SoTransform * animation, SoMaterial * animatedMaterial)
+              SoTransform * animation, SoMaterial * animatedMaterial,
+              CoinRenderBenchmarkAnimation & animator, Clock::time_point mainBegin,
+              std::ostream * samplesOutput)
 {
+  const Clock::time_point windowBegin = Clock::now();
   GlxWindow glx;
   if (!createGlxWindow(options.width, options.height, glx)) {
     std::cerr << "Cannot create a direct-rendering GLX window/context\n";
+    destroyGlxWindow(glx);
+    return 2;
+  }
+  if (!validateWindowGeometry(glx.display, glx.window, options.width, options.height)) {
+    destroyGlxWindow(glx);
     return 2;
   }
   disableGlxSwapInterval(glx.display, glx.window);
+  const Clock::time_point windowPrepared = Clock::now();
   SoSceneManager manager;
   manager.setSceneGraph(root);
   manager.setWindowSize(SbVec2s(options.width, options.height));
@@ -311,41 +583,53 @@ int runCoinGl(const Options & options, SoSeparator * root,
     options.transparency == "sorted_layers" ?
       SoGLRenderAction::SORTED_LAYERS_BLEND :
       SoGLRenderAction::SORTED_OBJECT_BLEND);
-  std::vector<double> frameMs;
-  frameMs.reserve(static_cast<size_t>(options.frames));
-  Clock::time_point measuredBegin;
+  const Clock::time_point targetPrepared = Clock::now();
+  std::cout << "window_prepare_detail backend=" << options.backend
+    << " capability_probe_ms=0 native_surface_context_ms=" << elapsedMs(windowBegin, windowPrepared)
+    << " manager_target_setup_ms=" << elapsedMs(windowPrepared, targetPrepared)
+    << " before_loop_since_main_ms=" << elapsedMs(mainBegin, targetPrepared)
+    << " lazy_gpu_prepare=in_first_render_present\n";
+  std::vector<FrameSample> samples;
+  samples.reserve(static_cast<size_t>(options.warmup) + options.frames);
+  Clock::time_point measuredBegin, firstBegin, firstEnd;
+  int exitCode = 0;
   for (int frame = -options.warmup; frame < options.frames; ++frame) {
-    if (options.dynamic)
-      animation->rotation.setValue(SbVec3f(0.0f, 0.0f, 1.0f),
-        float(frame + options.warmup + 1) * 0.0005f);
-    if (options.materialDynamic)
-      animatedMaterial->diffuseColor.setValue(
-        0.55f + float((frame + options.warmup) % 7) * 0.035f,
-        0.12f + float((frame + options.warmup) % 5) * 0.025f, 0.18f);
-    consumeEvents(glx.display);
+    const Clock::time_point eventBegin = Clock::now();
+    if (!consumeEvents(glx.display, glx.window, options.width, options.height)) {
+      exitCode = 1;
+      break;
+    }
     const Clock::time_point begin = Clock::now();
+    updateScene(options, frame, animator, animation, animatedMaterial);
+    const Clock::time_point updated = Clock::now();
     manager.render();
     glXSwapBuffers(glx.display, glx.window);
     const Clock::time_point end = Clock::now();
+    FrameSample sample{frame, static_cast<int64_t>(frame) * options.animationStep, frame < 0,
+      elapsedMs(begin, updated), elapsedMs(updated, end), elapsedMs(begin, end), elapsedMs(eventBegin, begin)};
+    samples.push_back(sample);
+    if (frame == -options.warmup) { firstBegin = begin; firstEnd = end; }
     if (frame == 0) measuredBegin = begin;
-    if (frame >= 0)
-      frameMs.push_back(std::chrono::duration<double, std::milli>(end - begin).count());
   }
-  glFinish();
-  const double totalMs = std::chrono::duration<double, std::milli>(
-    Clock::now() - measuredBegin).count();
-  const char * renderer = reinterpret_cast<const char *>(glGetString(GL_RENDERER));
-  report(options, frameMs, totalMs, renderer ? renderer : "unknown OpenGL renderer", 0, 0);
-  glXMakeCurrent(glx.display, None, NULL);
-  glXDestroyContext(glx.display, glx.context);
-  XDestroyWindow(glx.display, glx.window);
-  XFreeColormap(glx.display, glx.colormap);
-  XCloseDisplay(glx.display);
-  return 0;
+  if (!exitCode) {
+    const Clock::time_point drainBegin = Clock::now();
+    glFinish();
+    const Clock::time_point drained = Clock::now();
+    const double totalMs = elapsedMs(measuredBegin, drained);
+    const char * renderer = reinterpret_cast<const char *>(glGetString(GL_RENDERER));
+    reportFirstFrame(options, samples.front(), mainBegin, firstBegin, firstEnd);
+    report(options, samples, totalMs, elapsedMs(drainBegin, drained), animator,
+           renderer ? renderer : "unknown OpenGL renderer", 0, 0);
+    writeSamples(samplesOutput, samples);
+  }
+  destroyGlxWindow(glx);
+  return exitCode;
 }
 
 int runNative(const Options & options, SoSeparator * root,
-            SoTransform * animation, SoMaterial * animatedMaterial)
+            SoTransform * animation, SoMaterial * animatedMaterial,
+            CoinRenderBenchmarkAnimation & animator, Clock::time_point mainBegin,
+            std::ostream * samplesOutput)
 {
   const bool wgpu = options.backend == "wgpu-vulkan";
   if (wgpu) setenv("COIN_RENDER_BENCH_NO_VSYNC", "1", 1);
@@ -353,6 +637,7 @@ int runNative(const Options & options, SoSeparator * root,
     setenv("COIN_BGFX_RENDERER",
       options.backend == "bgfx-opengl" ? "opengl" : "vulkan", 1);
   setenv("COIN_RENDER_TRANSPARENCY", options.transparency.c_str(), 1);
+  const Clock::time_point probeBegin = Clock::now();
   CoinRenderCapabilities caps;
   std::memset(&caps, 0, sizeof(caps));
   if (coin_render_query_capabilities(
@@ -363,12 +648,18 @@ int runNative(const Options & options, SoSeparator * root,
     std::cerr << "Requested Xlib window backend unavailable: " << caps.diagnostic << '\n';
     return 2;
   }
+  const Clock::time_point probed = Clock::now();
   Display * display = XOpenDisplay(NULL);
   if (!display) { std::cerr << "Cannot open X11 display\n"; return 2; }
   Window window = createXlibWindow(display, options.width, options.height,
     options.backend == "bgfx-opengl" ? "Coin window benchmark: BGFX/OpenGL" :
     wgpu ? "Coin window benchmark: wgpu/Vulkan" :
            "Coin window benchmark: BGFX/Vulkan");
+  if (!validateWindowGeometry(display, window, options.width, options.height)) {
+    XDestroyWindow(display, window);
+    XFlush(display);
+    return 2;
+  }
   CoinRenderNativeSurfaceDescriptor surface;
   std::memset(&surface, 0, sizeof(surface));
   surface.abiVersion = COIN_RENDER_NATIVE_SURFACE_ABI_VERSION;
@@ -376,6 +667,7 @@ int runNative(const Options & options, SoSeparator * root,
   surface.type = COIN_RENDER_SURFACE_XLIB;
   surface.native.xlib.display = display;
   surface.native.xlib.window = window;
+  const Clock::time_point windowPrepared = Clock::now();
   int exitCode = 0;
   {
     CoinRenderSceneManager manager(surface, SbVec2i32(options.width, options.height));
@@ -389,20 +681,26 @@ int runNative(const Options & options, SoSeparator * root,
       manager.setTransparencyType(options.transparency == "sorted_layers" ?
         CoinRenderAction::SORTED_LAYERS_BLEND :
         CoinRenderAction::SORTED_OBJECT_BLEND);
-      std::vector<double> frameMs;
-      frameMs.reserve(static_cast<size_t>(options.frames));
-      Clock::time_point measuredBegin;
+      const Clock::time_point targetPrepared = Clock::now();
+      std::cout << "window_prepare_detail backend=" << options.backend
+        << " capability_probe_ms=" << elapsedMs(probeBegin, probed)
+        << " native_surface_context_ms=" << elapsedMs(probed, windowPrepared)
+        << " manager_target_setup_ms=" << elapsedMs(windowPrepared, targetPrepared)
+        << " before_loop_since_main_ms=" << elapsedMs(mainBegin, targetPrepared)
+        << " lazy_gpu_prepare=in_first_render_present\n";
+      std::vector<FrameSample> samples;
+      samples.reserve(static_cast<size_t>(options.warmup) + options.frames);
+      Clock::time_point measuredBegin, firstBegin, firstEnd;
       std::vector<uint8_t> captured;
       for (int frame = -options.warmup; frame < options.frames; ++frame) {
-        if (options.dynamic)
-          animation->rotation.setValue(SbVec3f(0.0f, 0.0f, 1.0f),
-            float(frame + options.warmup + 1) * 0.0005f);
-        if (options.materialDynamic)
-          animatedMaterial->diffuseColor.setValue(
-            0.55f + float((frame + options.warmup) % 7) * 0.035f,
-            0.12f + float((frame + options.warmup) % 5) * 0.025f, 0.18f);
-        consumeEvents(display);
+        const Clock::time_point eventBegin = Clock::now();
+        if (!consumeEvents(display, window, options.width, options.height)) {
+          exitCode = 1;
+          break;
+        }
         const Clock::time_point begin = Clock::now();
+        updateScene(options, frame, animator, animation, animatedMaterial);
+        const Clock::time_point updated = Clock::now();
         if (options.captureWindow &&
             !manager.getRenderTarget()->requestWindowReadbackRGBA()) {
           std::cerr << "Window capture request failed: "
@@ -425,15 +723,17 @@ int runNative(const Options & options, SoSeparator * root,
           exitCode = 1;
           break;
         }
+        samples.push_back(FrameSample{frame, static_cast<int64_t>(frame) * options.animationStep, frame < 0,
+          elapsedMs(begin, updated), elapsedMs(updated, end), elapsedMs(begin, end), elapsedMs(eventBegin, begin)});
+        if (frame == -options.warmup) { firstBegin = begin; firstEnd = end; }
         if (frame == 0) measuredBegin = begin;
-        if (frame >= 0)
-          frameMs.push_back(std::chrono::duration<double, std::milli>(end - begin).count());
       }
       if (!exitCode) {
-        const double totalMs = std::chrono::duration<double, std::milli>(
-          Clock::now() - measuredBegin).count();
-        report(options, frameMs, totalMs,
+        const double totalMs = elapsedMs(measuredBegin, Clock::now());
+        reportFirstFrame(options, samples.front(), mainBegin, firstBegin, firstEnd);
+        report(options, samples, totalMs, -1.0, animator,
           caps.adapter_name[0] ? caps.adapter_name : "native adapter", caps.vendor_id, caps.device_id);
+        writeSamples(samplesOutput, samples);
         if (options.captureWindow) {
           uint64_t hash = UINT64_C(14695981039346656037);
           for (uint8_t byte : captured) {
@@ -461,13 +761,23 @@ int runNative(const Options & options, SoSeparator * root,
 
 int main(int argc, char ** argv)
 {
+  const Clock::time_point mainBegin = Clock::now();
   Options options;
   if (!parseOptions(argc, argv, options)) { usage(); return 2; }
+  std::ofstream samples;
+  if (!options.samplesOutput.empty()) {
+    samples.open(options.samplesOutput.c_str(), std::ios::out | std::ios::trunc);
+    if (!samples) { std::cerr << "Cannot open samples output: " << options.samplesOutput << '\n'; return 2; }
+  }
+  const Clock::time_point initBegin = Clock::now();
   SoDB::init();
   CoinRenderAction::initClass();
+  const Clock::time_point initialized = Clock::now();
   SoTransform * animation = NULL;
-  SoSeparator * root = createScene(options, &animation);
+  SoCamera * camera = NULL;
+  SoSeparator * root = createScene(options, &animation, &camera);
   if (!root) { std::cerr << "Cannot read benchmark scene\n"; return 2; }
+  const Clock::time_point loaded = Clock::now();
   SoMaterial * animatedMaterial = NULL;
   if (options.materialDynamic) {
     SoSearchAction search;
@@ -482,9 +792,33 @@ int main(int argc, char ** argv)
       return 2;
     }
   }
-  const int result = options.backend == "coin-gl" ?
-    runCoinGl(options, root, animation, animatedMaterial) :
-    runNative(options, root, animation, animatedMaterial);
+  const Clock::time_point animationBegin = Clock::now();
+  CoinRenderBenchmarkAnimation animator;
+  CoinRenderBenchmarkAnimation::Mode mode = CoinRenderBenchmarkAnimation::Mode::STATIC;
+  CoinRenderBenchmarkAnimation::parseMode(options.animation, mode);
+  std::string diagnostic;
+  if (!animator.initialize(root, camera, mode,
+                           static_cast<unsigned>(options.animatedPercent), diagnostic)) {
+    std::cerr << "Cannot prepare benchmark animation: " << diagnostic << '\n';
+    root->unref();
+    return 2;
+  }
+  const Clock::time_point animationPrepared = Clock::now();
+  std::cout << std::fixed << std::setprecision(6)
+    << "window_startup_detail arguments_output_ms=" << elapsedMs(mainBegin, initBegin)
+    << " coin_init_ms=" << elapsedMs(initBegin, initialized)
+    << " scene_load_fit_ms=" << elapsedMs(initialized, loaded)
+    << " legacy_material_search_ms=" << elapsedMs(loaded, animationBegin)
+    << " animation_prepare_ms=" << elapsedMs(animationBegin, animationPrepared)
+    << " prepared_since_main_ms=" << elapsedMs(mainBegin, animationPrepared) << '\n';
+  std::ostream * samplesOutput = options.samplesOutput.empty() ? NULL : &samples;
+  int result = options.backend == "coin-gl" ?
+    runCoinGl(options, root, animation, animatedMaterial, animator, mainBegin, samplesOutput) :
+    runNative(options, root, animation, animatedMaterial, animator, mainBegin, samplesOutput);
+  if (samplesOutput) {
+    samples.flush();
+    if (!samples) { std::cerr << "Cannot write samples output: " << options.samplesOutput << '\n'; result = 1; }
+  }
   root->unref();
   return result;
 }

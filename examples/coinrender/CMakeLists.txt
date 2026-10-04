@@ -178,6 +178,6 @@ if(COIN_INSTALL_RENDER_EXPERIMENTAL)
 			RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime)
 	endif()
 	install(FILES AndroidManifest-p23.xml coin_render_android_smoke.cpp coin_render_appkit_smoke.mm coin_render_wayland_smoke.cpp coin_render_win32_smoke.cpp coin_render_window_cone.cpp coin_render_viewer.cpp coin_render_window_benchmark.cpp coin_render_gl_benchmark.cpp
-		coin_render_freecad_compare.cpp freecad_export_iv.py generate_large_scene.py
+		coin_render_freecad_compare.cpp CoinRenderBenchmarkAnimation.h freecad_export_iv.py generate_large_scene.py
 		DESTINATION ${CMAKE_INSTALL_DOCDIR}/examples/coinrender COMPONENT development)
 endif()
