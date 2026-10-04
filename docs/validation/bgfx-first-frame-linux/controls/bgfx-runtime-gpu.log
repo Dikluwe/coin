@@ -1,0 +1,243 @@
+Internal ctest changing into directory: /tmp/coin-render-first-frame-bgfx
+UpdateCTestConfiguration  from :/tmp/coin-render-first-frame-bgfx/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/tmp/coin-render-first-frame-bgfx/DartConfiguration.tcl
+Test project /tmp/coin-render-first-frame-bgfx
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 24
+      Start 24: CoinBgfxReadbackModes_vulkan
+
+24: Test command: /usr/bin/cmake "-E" "env" "COIN_BGFX_RENDERER=vulkan" "COIN_BGFX_TRANSPARENCY=auto" "/tmp/coin-render-first-frame-bgfx/bin/CoinBgfxReadbackModesTest"
+24: Working Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+24: Test timeout computed to be: 90
+24: Coin transparency modes, GPU depth, async lifetime and public action passed
+ 1/18 Test #24: CoinBgfxReadbackModes_vulkan ..................   Passed    1.23 sec
+test 25
+      Start 25: CoinBgfxReadbackModes_opengl
+
+25: Test command: /usr/bin/cmake "-E" "env" "COIN_BGFX_RENDERER=opengl" "COIN_BGFX_TRANSPARENCY=auto" "/tmp/coin-render-first-frame-bgfx/bin/CoinBgfxReadbackModesTest"
+25: Working Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+25: Test timeout computed to be: 90
+25: Coin transparency modes, GPU depth, async lifetime and public action passed
+ 2/18 Test #25: CoinBgfxReadbackModes_opengl ..................   Passed    0.71 sec
+test 26
+      Start 26: CoinBgfxSurface_vulkan_object
+
+26: Test command: /usr/bin/cmake "-E" "env" "COIN_BGFX_RENDERER=vulkan" "COIN_BGFX_TRANSPARENCY=object" "/tmp/coin-render-first-frame-bgfx/bin/CoinBgfxSurfaceFeaturesTest"
+26: Working Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+26: Test timeout computed to be: 90
+26: CoinBgfxSurfaceFeaturesTest passed
+ 3/18 Test #26: CoinBgfxSurface_vulkan_object .................   Passed    6.35 sec
+test 27
+      Start 27: CoinBgfxSurface_vulkan_weighted_oit
+
+27: Test command: /usr/bin/cmake "-E" "env" "COIN_BGFX_RENDERER=vulkan" "COIN_BGFX_TRANSPARENCY=weighted_oit" "/tmp/coin-render-first-frame-bgfx/bin/CoinBgfxSurfaceFeaturesTest"
+27: Working Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+27: Test timeout computed to be: 90
+27: CoinBgfxSurfaceFeaturesTest passed
+ 4/18 Test #27: CoinBgfxSurface_vulkan_weighted_oit ...........   Passed    6.50 sec
+test 28
+      Start 28: CoinBgfxSurface_vulkan_sorted_layers
+
+28: Test command: /usr/bin/cmake "-E" "env" "COIN_BGFX_RENDERER=vulkan" "COIN_BGFX_TRANSPARENCY=sorted_layers" "/tmp/coin-render-first-frame-bgfx/bin/CoinBgfxSurfaceFeaturesTest"
+28: Working Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+28: Test timeout computed to be: 90
+28: CoinBgfxSurfaceFeaturesTest passed
+ 5/18 Test #28: CoinBgfxSurface_vulkan_sorted_layers ..........   Passed    6.57 sec
+test 29
+      Start 29: CoinBgfxSurface_opengl_object
+
+29: Test command: /usr/bin/cmake "-E" "env" "COIN_BGFX_RENDERER=opengl" "COIN_BGFX_TRANSPARENCY=object" "/tmp/coin-render-first-frame-bgfx/bin/CoinBgfxSurfaceFeaturesTest"
+29: Working Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+29: Test timeout computed to be: 90
+29: CoinBgfxSurfaceFeaturesTest passed
+ 6/18 Test #29: CoinBgfxSurface_opengl_object .................   Passed    4.55 sec
+test 30
+      Start 30: CoinBgfxSurface_opengl_weighted_oit
+
+30: Test command: /usr/bin/cmake "-E" "env" "COIN_BGFX_RENDERER=opengl" "COIN_BGFX_TRANSPARENCY=weighted_oit" "/tmp/coin-render-first-frame-bgfx/bin/CoinBgfxSurfaceFeaturesTest"
+30: Working Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+30: Test timeout computed to be: 90
+30: CoinBgfxSurfaceFeaturesTest passed
+ 7/18 Test #30: CoinBgfxSurface_opengl_weighted_oit ...........   Passed    4.56 sec
+test 31
+      Start 31: CoinBgfxSurface_opengl_sorted_layers
+
+31: Test command: /usr/bin/cmake "-E" "env" "COIN_BGFX_RENDERER=opengl" "COIN_BGFX_TRANSPARENCY=sorted_layers" "/tmp/coin-render-first-frame-bgfx/bin/CoinBgfxSurfaceFeaturesTest"
+31: Working Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+31: Test timeout computed to be: 90
+31: CoinBgfxSurfaceFeaturesTest passed
+ 8/18 Test #31: CoinBgfxSurface_opengl_sorted_layers ..........   Passed    4.62 sec
+test 38
+      Start 38: CoinBgfxOffscreenTest
+
+38: Test command: /tmp/coin-render-first-frame-bgfx/bin/CoinBgfxOffscreenTest
+38: Working Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+38: Test timeout computed to be: 30
+38: CoinBgfxOffscreenTest passed
+ 9/18 Test #38: CoinBgfxOffscreenTest .........................   Passed    1.84 sec
+test 39
+      Start 39: CoinBgfxOpenGLTest
+
+39: Test command: /tmp/coin-render-first-frame-bgfx/bin/CoinBgfxOffscreenTest
+39: Working Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+39: Environment variables: 
+39:  COIN_BGFX_RENDERER=opengl
+39: Test timeout computed to be: 30
+39: CoinBgfxOffscreenTest passed
+10/18 Test #39: CoinBgfxOpenGLTest ............................   Passed    1.61 sec
+test 40
+      Start 40: CoinBgfxInstancingTest
+
+40: Test command: /tmp/coin-render-first-frame-bgfx/bin/CoinBgfxInstancingTest
+40: Working Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+40: Environment variables: 
+40:  COIN_BGFX_RENDERER=vulkan
+40: Test timeout computed to be: 60
+40: affine PHONG directional+point max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+40: classified camera update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+40: classified material update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+40: resized target max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+40: fog fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+40: return from fog max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+40: clip fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+40: return from clip max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+40: uniform LEQUAL PHONG max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+40: LEQUAL coplanar materials max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+40: coplanar last occurrence must win max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+40: coplanar first-vs-last reference pixels_over_20=48
+40: CoinBgfxInstancingTest passed
+11/18 Test #40: CoinBgfxInstancingTest ........................   Passed    0.28 sec
+test 41
+      Start 41: CoinBgfxInstancingOpenGLTest
+
+41: Test command: /tmp/coin-render-first-frame-bgfx/bin/CoinBgfxInstancingTest
+41: Working Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+41: Environment variables: 
+41:  COIN_BGFX_RENDERER=opengl
+41: Test timeout computed to be: 60
+41: affine PHONG directional+point max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+41: classified camera update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+41: classified material update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+41: resized target max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+41: fog fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+41: return from fog max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+41: clip fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+41: return from clip max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+41: uniform LEQUAL PHONG max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+41: LEQUAL coplanar materials max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+41: coplanar last occurrence must win max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+41: coplanar first-vs-last reference pixels_over_20=48
+41: CoinBgfxInstancingTest passed
+12/18 Test #41: CoinBgfxInstancingOpenGLTest ..................   Passed    0.22 sec
+test 49
+      Start 49: CoinBgfxWindowTest
+
+49: Test command: /tmp/coin-render-first-frame-bgfx/bin/CoinBgfxWindowTest
+49: Working Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+49: Test timeout computed to be: 30
+49: BGFX Xlib window presentation passed
+13/18 Test #49: CoinBgfxWindowTest ............................   Passed    1.14 sec
+test 50
+      Start 50: CoinBgfxWindowOpenGLTest
+
+50: Test command: /tmp/coin-render-first-frame-bgfx/bin/CoinBgfxWindowTest
+50: Working Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+50: Environment variables: 
+50:  COIN_BGFX_RENDERER=opengl
+50: Test timeout computed to be: 30
+50: BGFX Xlib window presentation passed
+14/18 Test #50: CoinBgfxWindowOpenGLTest ......................   Passed    1.28 sec
+test 53
+      Start 53: CoinBgfxMultiWindowTest
+
+53: Test command: /tmp/coin-render-first-frame-bgfx/bin/CoinBgfxMultiWindowTest
+53: Working Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+53: Test timeout computed to be: 60
+53: window=123731969 center=229,0,0 expected=0
+53: window=123731970 center=0,229,0 expected=1
+53: window=123731969 center=0,0,0 expected=-1
+53: window=123731970 center=0,229,0 expected=1
+53: window=123731969 center=171,0,0 expected=0
+53: window=123731970 center=0,229,0 expected=1
+53: window=123731969 center=171,0,0 expected=0
+53: window=123731970 center=0,229,0 expected=1
+53: window=123731970 center=0,229,0 expected=1
+53: window=123731971 center=229,0,0 expected=0
+53: window=123731970 center=0,229,0 expected=1
+53: window=123731971 center=229,0,0 expected=0
+53: window=123731970 center=0,229,0 expected=1
+53: BGFX simultaneous native targets and offscreen lifecycle passed
+15/18 Test #53: CoinBgfxMultiWindowTest .......................   Passed    1.69 sec
+test 54
+      Start 54: CoinBgfxMultiWindowOpenGLTest
+
+54: Test command: /tmp/coin-render-first-frame-bgfx/bin/CoinBgfxMultiWindowTest
+54: Working Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+54: Environment variables: 
+54:  COIN_BGFX_RENDERER=opengl
+54: Test timeout computed to be: 60
+54: BGFX simultaneous native targets and offscreen lifecycle passed
+16/18 Test #54: CoinBgfxMultiWindowOpenGLTest .................   Passed    1.74 sec
+test 55
+      Start 55: CoinBgfxMultiWindowOffscreenFirstTest
+
+55: Test command: /tmp/coin-render-first-frame-bgfx/bin/CoinBgfxMultiWindowTest
+55: Working Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+55: Environment variables: 
+55:  COIN_BGFX_TEST_OFFSCREEN_FIRST=1
+55: Test timeout computed to be: 60
+55: window=123731969 center=229,0,0 expected=0
+55: window=123731970 center=0,229,0 expected=1
+55: window=123731969 center=0,0,0 expected=-1
+55: window=123731970 center=0,229,0 expected=1
+55: window=123731969 center=171,0,0 expected=0
+55: window=123731970 center=0,229,0 expected=1
+55: window=123731969 center=171,0,0 expected=0
+55: window=123731970 center=0,229,0 expected=1
+55: window=123731970 center=0,229,0 expected=1
+55: window=123731971 center=229,0,0 expected=0
+55: window=123731970 center=0,229,0 expected=1
+55: window=123731971 center=229,0,0 expected=0
+55: window=123731970 center=0,229,0 expected=1
+55: BGFX simultaneous native targets and offscreen lifecycle passed
+17/18 Test #55: CoinBgfxMultiWindowOffscreenFirstTest .........   Passed    1.52 sec
+test 56
+      Start 56: CoinBgfxMultiWindowOffscreenFirstOpenGLTest
+
+56: Test command: /tmp/coin-render-first-frame-bgfx/bin/CoinBgfxMultiWindowTest
+56: Working Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+56: Environment variables: 
+56:  COIN_BGFX_TEST_OFFSCREEN_FIRST=1
+56:  COIN_BGFX_RENDERER=opengl
+56: Test timeout computed to be: 60
+56: BGFX simultaneous native targets and offscreen lifecycle passed
+18/18 Test #56: CoinBgfxMultiWindowOffscreenFirstOpenGLTest ...   Passed    1.13 sec
+
+The following tests passed:
+	CoinBgfxReadbackModes_vulkan
+	CoinBgfxReadbackModes_opengl
+	CoinBgfxSurface_vulkan_object
+	CoinBgfxSurface_vulkan_weighted_oit
+	CoinBgfxSurface_vulkan_sorted_layers
+	CoinBgfxSurface_opengl_object
+	CoinBgfxSurface_opengl_weighted_oit
+	CoinBgfxSurface_opengl_sorted_layers
+	CoinBgfxOffscreenTest
+	CoinBgfxOpenGLTest
+	CoinBgfxInstancingTest
+	CoinBgfxInstancingOpenGLTest
+	CoinBgfxWindowTest
+	CoinBgfxWindowOpenGLTest
+	CoinBgfxMultiWindowTest
+	CoinBgfxMultiWindowOpenGLTest
+	CoinBgfxMultiWindowOffscreenFirstTest
+	CoinBgfxMultiWindowOffscreenFirstOpenGLTest
+
+100% tests passed, 0 tests failed out of 18
+
+Total Test time (real) =  47.56 sec
