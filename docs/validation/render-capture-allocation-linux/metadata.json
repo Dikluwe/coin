@@ -1,0 +1,32 @@
+{
+  "timestamp_utc": "2026-10-04T14:11:15.654209+00:00",
+  "baseline_commit": "4725913e4b02357471dad39c1dcbab1ea37513a6",
+  "measured_commit": "52e1a9475c023ebf5dd4fb45d2cdbc30e305cc86",
+  "build": "Release/Ninja, GCC 13.3.0, -O3 -DNDEBUG",
+  "gpu_variants": {
+    "bgfx-vulkan": "NVIDIA RTX 3060 Laptop",
+    "bgfx-opengl": "NVIDIA RTX 3060 Laptop",
+    "wgpu-vulkan": "NVIDIA RTX 3060 Laptop",
+    "wgpu-opengl": "AMD Renoir"
+  },
+  "nvidia_driver": "610.57.04",
+  "scene_generation": "python3 examples/coinrender/generate_large_scene.py /tmp/coin-render-city-40000.iv --grid 200 --seed 136",
+  "scene_sha256": "bb9ccc612cd38ffb749ee599d9350a80974649eab5bf477d2f344538a42b2576",
+  "dynamic_scene_sha256": "7e85279e3062ccfde9990e87a991511d688fcaffb66b2594a7401353822f54c7",
+  "size": 1024,
+  "warmup": 4,
+  "frames": 8,
+  "pairs_per_variant": 3,
+  "gpu_runs_serial": true,
+  "baseline_loading": "LD_LIBRARY_PATH=/tmp/coin-render-capture-baseline-{backend}/lib",
+  "measured_binaries": {
+    "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark": "543780f7d2d8b1e6f95037d2f4d4bc1f0ea83152ebe63427e9fec6d534131eba",
+    "/tmp/coin-render-first-frame-bgfx/lib/libCoinRender.so": "1c169b3303ab7ae28e8db88f2e041f399ed7cd8a2d3643f7417041154c87af76",
+    "/tmp/coin-render-first-frame-bgfx/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f",
+    "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark": "be99e658003826df62efff2e232483dd35aabaa8b7f2a471c003ec9078878c8a",
+    "/tmp/coin-render-first-frame-wgpu/lib/libCoinRender.so": "8bffe47625336594dd856f23ebced4cf8091498d4b27eaa9e22c87fb36d8d736",
+    "/tmp/coin-render-first-frame-wgpu/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f"
+  },
+  "cpu_instrumentation": "One executable, public API only, global C++ new/new[] counted during apply; same executable loads before/after libraries. No GPU target; fresh action each sample. Two warmup captures, eight measured captures/process; four pairs, reversing process order on even pairs. malloc and aligned allocation entry points are not counted.",
+  "cpu_executable_sha256": "d6620ed8890ec1e747fe330cb7d3b11a8d093b5b6607bf52409ce792a1ef99cc"
+}

@@ -1,0 +1,90 @@
+[
+  {
+    "variant": "bgfx-vulkan",
+    "medians": {
+      "first_ms": {
+        "before": 680.361,
+        "after": 670.82
+      },
+      "median_ms": {
+        "before": 3.09757,
+        "after": 3.01481
+      },
+      "p95_ms": {
+        "before": 3.65474,
+        "after": 3.37352
+      },
+      "peak_rss_kib": {
+        "before": 634504,
+        "after": 634228
+      }
+    },
+    "first_change_percent": -1.4023437557414309
+  },
+  {
+    "variant": "bgfx-opengl",
+    "medians": {
+      "first_ms": {
+        "before": 638.329,
+        "after": 636.197
+      },
+      "median_ms": {
+        "before": 3.16787,
+        "after": 3.2532
+      },
+      "p95_ms": {
+        "before": 3.48268,
+        "after": 3.39446
+      },
+      "peak_rss_kib": {
+        "before": 556984,
+        "after": 556688
+      }
+    },
+    "first_change_percent": -0.3339970454107388
+  },
+  {
+    "variant": "wgpu-vulkan",
+    "medians": {
+      "first_ms": {
+        "before": 411.613,
+        "after": 400.132
+      },
+      "median_ms": {
+        "before": 8.16432,
+        "after": 8.28922
+      },
+      "p95_ms": {
+        "before": 8.5065,
+        "after": 8.86467
+      },
+      "peak_rss_kib": {
+        "before": 506696,
+        "after": 505920
+      }
+    },
+    "first_change_percent": -2.7892705040900023
+  },
+  {
+    "variant": "wgpu-opengl",
+    "medians": {
+      "first_ms": {
+        "before": 416.914,
+        "after": 403.19
+      },
+      "median_ms": {
+        "before": 11.422,
+        "after": 11.2346
+      },
+      "p95_ms": {
+        "before": 11.6783,
+        "after": 11.6914
+      },
+      "peak_rss_kib": {
+        "before": 429404,
+        "after": 428764
+      }
+    },
+    "first_change_percent": -3.2918059839679104
+  }
+]
