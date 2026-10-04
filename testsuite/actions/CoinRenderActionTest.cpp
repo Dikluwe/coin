@@ -1,7 +1,9 @@
 #include <setup.h>
 #include "rendering/coinrender/CoinRenderFramePlan.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
+#include "rendering/coinrender/CoinRenderComposition.h"
 #include "actions/CoinRenderActionP.h"
+#include "../coinrender/CoinRenderTestEnvironment.h"
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include <Inventor/rendering/CoinRenderNativeSurface.h>
 #include <Inventor/nodes/SoMaterialBinding.h>
@@ -51,6 +53,61 @@ int testTypeAndInit() {
   SbViewportRegion vp(800, 600);
   CoinRenderAction action2(vp);
   TEST_ASSERT(action2.getViewportRegion().getViewportSizePixels() == SbVec2s(800, 600), "Viewport constructor should store viewport");
+  return 0;
+}
+
+class CapturedPolicyBackend : public CoinRenderBackend {
+public:
+  CoinRenderCompositionItem::TransparencyStrategy expected = CoinRenderCompositionItem::WEIGHTED_OIT;
+  bool matched = false;
+  bool isGpuBackend() const override { return false; }
+  CoinRenderBackendStatus getStatus() const override { return CoinRenderBackendStatus::SUCCESS; }
+  CoinRenderBackendStatus prepare(CoinRenderTargetP &) override { return CoinRenderBackendStatus::SUCCESS; }
+  void poll() override {}
+  const std::string & getLastError() const override { return error; }
+  CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target) override {
+    const auto * preflight = target.submissionPreflight(frame);
+    const auto * order = preflight ? preflight->compositionFor(frame) : nullptr;
+    matched = order && !order->empty();
+    if (order) for (const auto & item : *order)
+      matched = matched && item.blend && item.transparencyStrategy == expected;
+    return {};
+  }
+private:
+  std::string error;
+};
+
+int testCapturedCompositionPolicy() {
+  auto * root = new SoSeparator;
+  root->ref();
+  auto * material = new SoMaterial;
+  material->transparency = .5f;
+  root->addChild(material);
+  root->addChild(new SoCube);
+  auto * target = CoinRenderTarget::createOffscreen(SbVec2i32(1, 1));
+  TEST_ASSERT(target != nullptr, "CPU policy test requires an offscreen target shell");
+  auto * backend = new CapturedPolicyBackend;
+  target->getPimpl()->backend.reset(backend);
+  target->getPimpl()->depthReadbackEnabled = false;
+  target->getPimpl()->options.transparency = COIN_RENDER_TRANSPARENCY_WEIGHTED_OIT;
+  CoinRenderAction action(SbViewportRegion(1, 1));
+  action.setTransparencyType(CoinRenderAction::DELAYED_BLEND);
+  action.setRenderTarget(target);
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && backend->matched,
+              "captured composition must use the selected policy before it reaches the target");
+  TEST_ASSERT(!target->getPimpl()->submissionPreflight(action.getPimpl()->lastValidPlan),
+              "capture preflight must not survive apply or move into the cached plan");
+  backend->matched = false;
+  backend->expected = CoinRenderCompositionItem::OBJECT;
+  target->getPimpl()->options.transparency = COIN_RENDER_TRANSPARENCY_OBJECT;
+  action.setRenderTarget(target);
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && backend->matched,
+              "a new capture must recompute composition after the selected policy changes");
+  action.setRenderTarget(nullptr);
+  root->unref();
+  delete target;
   return 0;
 }
 
@@ -1036,6 +1093,103 @@ int testPrimitiveStateReuse() {
   return 0;
 }
 
+int testCaptureStorageReserve() {
+  struct RestoreReserveOption {
+    std::string previous;
+    bool existed = false;
+    RestoreReserveOption() {
+      const char * value = std::getenv("COIN_RENDER_DISABLE_CAPTURE_RESERVE");
+      existed = value != nullptr;
+      if (value) previous = value;
+    }
+    ~RestoreReserveOption() {
+      coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_CAPTURE_RESERVE",
+                                  existed ? previous.c_str() : nullptr);
+    }
+  } restore;
+
+  // Match imported-scene wrappers: the broad group is two child levels down.
+  auto * root = new SoSeparator;
+  root->ref();
+  root->addChild(new SoPerspectiveCamera);
+  root->addChild(new SoDirectionalLight);
+  auto * imported = new SoSeparator;
+  auto * scene = new SoSeparator;
+  root->addChild(imported);
+  imported->addChild(scene);
+  auto * cube = new SoCube;
+  SoMaterial * changedMaterial = nullptr;
+  for (int i = 0; i < 320; ++i) {
+    auto * branch = new SoSeparator;
+    auto * transform = new SoTransform;
+    transform->translation.setValue(float(i % 20), float(i / 20), float(i % 3));
+    transform->scaleFactor.setValue(1, .5f + float(i % 3) * .25f, .75f);
+    auto * material = new SoMaterial;
+    material->diffuseColor.setValue(i % 2 ? .8f : .1f, .3f, i % 2 ? .2f : .7f);
+    material->transparency = i % 7 ? 0.0f : .25f;
+    changedMaterial = material;
+    auto * depth = new SoDepthBuffer;
+    depth->write = i % 2 ? FALSE : TRUE;
+    depth->function = SoDepthBuffer::LEQUAL;
+    branch->addChild(transform);
+    branch->addChild(material);
+    branch->addChild(depth);
+    branch->addChild(cube);
+    scene->addChild(branch);
+  }
+  CoinRenderAction reserved, growing;
+  reserved.getPimpl()->planOnly = growing.getPimpl()->planOnly = true;
+  for (int frame = 0; frame < 2; ++frame) {
+    if (frame) {
+      cube->width = 3.0f;
+      changedMaterial->diffuseColor.setValue(.3f, .6f, .9f);
+    }
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_CAPTURE_RESERVE", "0");
+    reserved.apply(root);
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_CAPTURE_RESERVE", "1");
+    growing.apply(root);
+    const auto & a = reserved.getPimpl()->lastValidPlan;
+    const auto & b = growing.getPimpl()->lastValidPlan;
+    TEST_ASSERT(reserved.getLastStatus() == CoinRenderAction::SUCCESS &&
+                growing.getLastStatus() == CoinRenderAction::SUCCESS,
+                "both allocation routes must capture changing imported scenes");
+    TEST_ASSERT(a.renderStates.size() == 320 && a.draws.size() == 320 &&
+                a.renderStates.capacity() == 320 && a.draws.capacity() == 320 &&
+                b.renderStates.capacity() > a.renderStates.capacity(),
+                "shallow fanout must reserve storage before capture and optout must grow normally");
+    TEST_ASSERT(a.indices == b.indices && expandedRecording(reserved) == expandedRecording(growing),
+                "reserve must preserve geometry, lighting, camera, transform, material and depth capture");
+  }
+  root->unref();
+
+  // Many non-drawing children must only affect the bounded allocation hint.
+  for (int children : {255, 65538}) {
+    root = new SoSeparator;
+    root->ref();
+    auto * empty = new SoCallback;
+    for (int i = 0; i < children - 1; ++i) root->addChild(empty);
+    root->addChild(new SoCube);
+    CoinRenderAction bounded, reference;
+    bounded.getPimpl()->planOnly = reference.getPimpl()->planOnly = true;
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_CAPTURE_RESERVE", "0");
+    bounded.apply(root);
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_CAPTURE_RESERVE", "1");
+    reference.apply(root);
+    const auto & captured = bounded.getPimpl()->lastValidPlan;
+    const size_t expectedCapacity = children < 256 ? 1 : 65536;
+    TEST_ASSERT(bounded.getLastStatus() == CoinRenderAction::SUCCESS &&
+                reference.getLastStatus() == CoinRenderAction::SUCCESS &&
+                captured.renderStates.capacity() == expectedCapacity,
+                "small scenes must stay unreserved and large estimates must cap at 65536");
+    // Stroke expansion publishes a new draw vector, even for triangles, so
+    // its final capacity describes expansion rather than the capture hint.
+    TEST_ASSERT(expandedRecording(bounded) == expandedRecording(reference),
+                "non-drawing fanout must not change captured payload");
+    root->unref();
+  }
+  return 0;
+}
+
 int main() {
 
   SoDB::init();
@@ -1044,6 +1198,8 @@ int main() {
   std::cout << "Running CoinRenderActionTest..." << std::endl;
 
   int failed = 0;
+  if (testCaptureStorageReserve()) { std::cerr << "testCaptureStorageReserve failed" << std::endl; failed++; }
+  if (testCapturedCompositionPolicy()) { std::cerr << "testCapturedCompositionPolicy failed" << std::endl; failed++; }
   if (testPrimitiveStateReuse()) { std::cerr << "testPrimitiveStateReuse failed" << std::endl; failed++; }
   if (testDepthStateCapture()) { std::cerr << "testDepthStateCapture failed" << std::endl; failed++; }
   if (testAnnotationLayers()) { std::cerr << "testAnnotationLayers failed" << std::endl; failed++; }

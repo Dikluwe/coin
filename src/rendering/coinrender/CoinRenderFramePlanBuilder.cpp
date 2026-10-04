@@ -69,6 +69,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cmath>
+#include <cstdlib>
 
 
 CoinRenderCameraSnapshot
@@ -115,6 +116,22 @@ CoinRenderFramePlanBuilder::beginFrame(const SbColor4f & clearColor, const SbVie
 }
 
 void
+CoinRenderFramePlanBuilder::reserveCaptureStorage(size_t estimate)
+{
+  this->captureReserveEstimate = estimate;
+  const char * disabled = std::getenv("COIN_RENDER_DISABLE_CAPTURE_RESERVE");
+  if (!this->inFrame || estimate < 256 ||
+      (disabled && disabled[0] == '1' && disabled[1] == '\0')) return;
+  // A shallow structural hint may overestimate shapes. Bound its allocation
+  // and never use it to skip traversal or retain effective Coin state.
+  estimate = std::min(estimate, size_t(65536));
+  this->currentPlan.renderStates.reserve(estimate);
+  this->currentPlan.draws.reserve(estimate);
+  this->renderStatesByModel.reserve(estimate);
+  this->nodeOccurrenceCount.reserve(estimate);
+}
+
+void
 CoinRenderFramePlanBuilder::reset()
 {
   this->endShape();
@@ -144,6 +161,7 @@ CoinRenderFramePlanBuilder::reset()
   this->lineIndex = -1;
   this->lineStripId = this->nextLineStripId = 0;
   this->nodeCounter = 0;
+  this->captureReserveEstimate = 0;
   this->inFrame = false;
   this->hasActiveDraw = false;
   this->hasError = false;
@@ -614,6 +632,7 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   CoinRenderLightModel lm = CoinRenderLightModel::PHONG;
   CoinRenderLightingSnapshot lightSnap;
   lightSnap.lights.swap(this->lightCaptureScratch);
+
   lightSnap.lights.clear();
   if (action && action->getState()) {
     SoState * envState = action->getState();
@@ -712,7 +731,10 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   }
   CoinRenderFrontFace frontFace = (vo == SoShapeHintsElement::CLOCKWISE) ? CoinRenderFrontFace::CW : CoinRenderFrontFace::CCW;
 
-  CoinRenderRenderStateSnapshot rs;
+  // Copy immutable defaults instead of reconstructing all identity matrices
+  // for every occurrence. Live Coin state is still captured below each time.
+  static const CoinRenderRenderStateSnapshot defaultRenderState;
+  CoinRenderRenderStateSnapshot rs = defaultRenderState;
   rs.model = action->getModelMatrix();
   rs.view = camSnap.viewMatrix;
   rs.projectionCoin = camSnap.projectionMatrixCoin;
@@ -1275,9 +1297,13 @@ CoinRenderFramePlanBuilder::expandStyledPrimitives(std::string * outError)
 
 bool
 CoinRenderFramePlanBuilder::build(CoinRenderFramePlan & outPlan, std::string * outError,
-                                bool transferOwnership)
+                                bool transferOwnership,
+                                const CoinRenderTransparencyOptions * transparency,
+                                CoinRenderFramePreflight * preflight)
 {
   CoinRenderPhaseTimer timer("builder_detail");
+  if (preflight) preflight->invalidate();
+  if (transparency) this->currentPlan.transparency = *transparency;
   if (this->polygonNode && !this->isUnsupported && !this->hasError) {
     this->isUnsupported = true;
     this->builderError = "Incomplete original polygon contour in primitive callbacks";
@@ -1305,11 +1331,13 @@ CoinRenderFramePlanBuilder::build(CoinRenderFramePlan & outPlan, std::string * o
   timer.mark("composition");
   if (CoinRenderDiagnosticShell::phaseTracingEnabled()) {
     const auto & plan = this->currentPlan;
-    std::fprintf(stderr, "COIN_RENDER_PHASE plan_storage vertices=%zu indices=%zu render_states=%zu draws=%zu vertex_stride=%zu vertex_bytes=%zu vertex_capacity_bytes=%zu index_bytes=%zu index_capacity_bytes=%zu render_state_bytes=%zu transfer_ownership=%d cube_replay_hits=%llu\n",
+    std::fprintf(stderr, "COIN_RENDER_PHASE plan_storage vertices=%zu indices=%zu render_states=%zu draws=%zu vertex_stride=%zu vertex_bytes=%zu vertex_capacity_bytes=%zu index_bytes=%zu index_capacity_bytes=%zu render_state_bytes=%zu render_state_capacity_bytes=%zu draw_capacity_bytes=%zu capture_reserve_estimate=%zu transfer_ownership=%d cube_replay_hits=%llu\n",
       plan.vertices.size(), plan.indices.size(), plan.renderStates.size(), plan.draws.size(),
       sizeof(CoinRenderVertexSnapshot), plan.vertices.size() * sizeof(CoinRenderVertexSnapshot),
       plan.vertices.capacity() * sizeof(CoinRenderVertexSnapshot), plan.indices.size() * sizeof(uint32_t),
       plan.indices.capacity() * sizeof(uint32_t), plan.renderStates.size() * sizeof(CoinRenderRenderStateSnapshot),
+      plan.renderStates.capacity() * sizeof(CoinRenderRenderStateSnapshot),
+      plan.draws.capacity() * sizeof(CoinRenderDrawPacket), this->captureReserveEstimate,
       transferOwnership ? 1 : 0, static_cast<unsigned long long>(this->cubeReplayHits));
   }
   timer.mark("storage_report");
@@ -1318,6 +1346,12 @@ CoinRenderFramePlanBuilder::build(CoinRenderFramePlan & outPlan, std::string * o
     this->reset();
   } else outPlan = this->currentPlan;
   outPlan.revision = CoinRenderFramePlanBuilder::nextRevision();
+  if (preflight && transferOwnership && coin_render_capture_preflight_eligible(outPlan)) {
+    preflight->order = std::move(order);
+    preflight->frame = &outPlan;
+    preflight->revision = outPlan.revision;
+    preflight->transparency = outPlan.transparency;
+  }
   timer.mark("publish_plan");
   return true;
 }

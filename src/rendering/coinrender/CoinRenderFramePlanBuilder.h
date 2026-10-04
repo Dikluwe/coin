@@ -10,6 +10,7 @@
 class SoCallbackAction;
 class SoPrimitiveVertex;
 class SoNode;
+class CoinRenderFramePreflight;
 
 class CoinRenderFramePlanBuilder {
 public:
@@ -20,6 +21,8 @@ public:
   CoinRenderFramePlanBuilder & operator=(CoinRenderFramePlanBuilder &&) = default;
 
   void beginFrame(const SbColor4f & clearColor, const SbViewportRegion & viewport);
+  // Allocation hint only. Captured values and deduplication stay unchanged.
+  void reserveCaptureStorage(size_t estimate);
   void reset();
   // Render-state reuse is scoped to one occurrence; geometry replay is frame-local.
   void beginShape(SoCallbackAction * action, const SoNode * node);
@@ -69,7 +72,9 @@ public:
   // Transfer is used by Wiring once capture has finished. The default keeps
   // repeatable snapshot semantics for callers that inspect the builder.
   bool build(CoinRenderFramePlan & outPlan, std::string * outError = nullptr,
-             bool transferOwnership = false);
+             bool transferOwnership = false,
+             const CoinRenderTransparencyOptions * transparency = nullptr,
+             CoinRenderFramePreflight * preflight = nullptr);
   bool isUnsupportedBuild() const { return this->isUnsupported; }
   static uint64_t nextRevision();
 
@@ -102,6 +107,7 @@ private:
   int polygonFaceIndex = -1;
   int polygonPartIndex = -1;
   CoinRenderFramePlan currentPlan;
+  size_t captureReserveEstimate = 0;
   uint32_t currentDrawIndex;
   uint32_t nodeCounter;
   bool inFrame;

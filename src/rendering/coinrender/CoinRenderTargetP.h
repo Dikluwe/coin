@@ -86,11 +86,18 @@ public:
   CoinRenderFrameExecutionResult executeFrame(const CoinRenderFramePlan & frame);
   CoinRenderFrameExecutionResult executeFrame(const CoinRenderFramePlan & frame,
                                     const CoinRenderFrameReuseDecision & reuse);
+  CoinRenderFrameExecutionResult executeFrame(const CoinRenderFramePlan & frame,
+                                    const CoinRenderFrameReuseDecision & reuse,
+                                    const CoinRenderFramePreflight * capturedPreflight);
   CoinRenderFrameExecutionResult executeFrameAsync(const CoinRenderFramePlan & frame,
                                          CoinRenderReadbackTicket & outTicket);
   CoinRenderFrameExecutionResult executeFrameAsync(const CoinRenderFramePlan & frame,
                                          CoinRenderReadbackTicket & outTicket,
                                          const CoinRenderFrameReuseDecision & reuse);
+  CoinRenderFrameExecutionResult executeFrameAsync(const CoinRenderFramePlan & frame,
+                                         CoinRenderReadbackTicket & outTicket,
+                                         const CoinRenderFrameReuseDecision & reuse,
+                                         const CoinRenderFramePreflight * capturedPreflight);
 
   std::unique_ptr<CoinRenderBackend> backend;
   // Available only while a freshly validated frame is being submitted.
@@ -100,10 +107,12 @@ private:
   const CoinRenderFramePreflight * activePreflight = nullptr;
   static CoinRenderFrameExecutionResult validateProfileInternal(const CoinRenderFramePlan & frame,
       const SbVec2i32 & targetSize, bool deferUnresolvedAlpha,
-      CoinRenderFramePreflight * preflight);
+      CoinRenderFramePreflight * preflight,
+      const CoinRenderFramePreflight * capturedPreflight = nullptr);
   CoinRenderFrameExecutionResult executeFrameInternal(const CoinRenderFramePlan & frame,
                                              CoinRenderReadbackTicket * outTicket,
-                                             const CoinRenderFrameReuseDecision & reuse);
+                                             const CoinRenderFrameReuseDecision & reuse,
+                                             const CoinRenderFramePreflight * capturedPreflight = nullptr);
 };
 
 #endif // !SOWGPURENDERTARGETP_H

@@ -278,13 +278,17 @@ CoinRenderTargetP::submissionPreflight(const CoinRenderFramePlan & frame) const 
 
 CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfileInternal(
     const CoinRenderFramePlan & frame, const SbVec2i32 & targetSize,
-    bool deferUnresolvedAlpha, CoinRenderFramePreflight * preflight) {
+    bool deferUnresolvedAlpha, CoinRenderFramePreflight * preflight,
+    const CoinRenderFramePreflight * capturedPreflight) {
   std::string planDiag;
-  if (!frame.isValid(&planDiag)) {
+  const auto * capturedOrder = !deferUnresolvedAlpha && capturedPreflight
+    ? capturedPreflight->compositionFor(frame) : nullptr;
+  if (!capturedOrder && !frame.isValid(&planDiag)) {
     return CoinRenderFrameExecutionResult{CoinRenderBackendStatus::BACKEND_ERROR, "Invalid CoinRenderFramePlan: " + planDiag};
   }
   std::vector<CoinRenderCompositionItem> compositionOrder;
-  if (!coin_render_composition_order(frame, compositionOrder, planDiag, deferUnresolvedAlpha)) {
+  if (!capturedOrder &&
+      !coin_render_composition_order(frame, compositionOrder, planDiag, deferUnresolvedAlpha)) {
     return CoinRenderFrameExecutionResult{CoinRenderBackendStatus::UNSUPPORTED, planDiag};
   }
 
@@ -356,8 +360,11 @@ CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfileInternal(
   }
 
   if (preflight) {
-    preflight->order = std::move(compositionOrder);
+    if (capturedOrder) preflight->order = *capturedOrder;
+    else preflight->order = std::move(compositionOrder);
     preflight->frame = &frame;
+    preflight->revision = frame.revision;
+    preflight->transparency = frame.transparency;
   }
   return CoinRenderFrameExecutionResult(CoinRenderBackendStatus::SUCCESS, "");
 }
@@ -503,6 +510,14 @@ CoinRenderTargetP::executeFrame(const CoinRenderFramePlan & frame,
 }
 
 CoinRenderFrameExecutionResult
+CoinRenderTargetP::executeFrame(const CoinRenderFramePlan & frame,
+                                  const CoinRenderFrameReuseDecision & reuse,
+                                  const CoinRenderFramePreflight * capturedPreflight)
+{
+  return this->executeFrameInternal(frame, NULL, reuse, capturedPreflight);
+}
+
+CoinRenderFrameExecutionResult
 CoinRenderTargetP::executeFrameAsync(const CoinRenderFramePlan & frame,
                                        CoinRenderReadbackTicket & outTicket)
 {
@@ -521,9 +536,20 @@ CoinRenderTargetP::executeFrameAsync(const CoinRenderFramePlan & frame,
 }
 
 CoinRenderFrameExecutionResult
+CoinRenderTargetP::executeFrameAsync(const CoinRenderFramePlan & frame,
+                                       CoinRenderReadbackTicket & outTicket,
+                                       const CoinRenderFrameReuseDecision & reuse,
+                                       const CoinRenderFramePreflight * capturedPreflight)
+{
+  outTicket = CoinRenderReadbackTicket{};
+  return this->executeFrameInternal(frame, &outTicket, reuse, capturedPreflight);
+}
+
+CoinRenderFrameExecutionResult
 CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
                                           CoinRenderReadbackTicket * outTicket,
-                                          const CoinRenderFrameReuseDecision & reuse)
+                                          const CoinRenderFrameReuseDecision & reuse,
+                                          const CoinRenderFramePreflight * capturedPreflight)
 {
   using PhaseClock = std::chrono::steady_clock;
   const auto phaseBegin = PhaseClock::now();
@@ -557,9 +583,12 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     frame.revision != 0 &&
     frame.revision != reuse.baseRevision;
   CoinRenderFramePreflight preflight;
-  if (!validatedCameraPatch &&
-      (frame.revision == 0 || frame.revision != this->lastValidatedPlanRevision)) {
-    CoinRenderFrameExecutionResult val = validateProfileInternal(frame, this->size, false, &preflight);
+  // A capture receipt skips only the two common passes. Target profile and
+  // submission checks still run, and a mismatched receipt validates in full.
+  if (capturedPreflight || (!validatedCameraPatch &&
+      (frame.revision == 0 || frame.revision != this->lastValidatedPlanRevision))) {
+    CoinRenderFrameExecutionResult val =
+      validateProfileInternal(frame, this->size, false, &preflight, capturedPreflight);
     if (val.status != CoinRenderBackendStatus::SUCCESS) {
       this->lastError = val.diagnostic;
       return val;

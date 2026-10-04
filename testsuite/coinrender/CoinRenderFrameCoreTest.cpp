@@ -99,6 +99,22 @@ bool testFiniteValidation() {
   return ok;
 }
 
+class CountingBackend : public CoinRenderBackend {
+public:
+  unsigned submissions = 0;
+  bool isGpuBackend() const override { return false; }
+  CoinRenderBackendStatus getStatus() const override { return CoinRenderBackendStatus::SUCCESS; }
+  CoinRenderBackendStatus prepare(CoinRenderTargetP &) override { return CoinRenderBackendStatus::SUCCESS; }
+  void poll() override {}
+  const std::string & getLastError() const override { return error; }
+  CoinRenderSubmitResult submit(const CoinRenderFramePlan &, CoinRenderTargetP &) override {
+    ++submissions;
+    return {};
+  }
+private:
+  std::string error;
+};
+
 class PreflightBackend : public CoinRenderBackend {
 public:
   bool ok = true;
@@ -118,6 +134,37 @@ public:
     std::string diagnostic;
     ok &= check(!coin_render_composition_schedule(foreign, order, diagnostic, receipt),
                 "a foreign mutated plan must take the validating composition path");
+    auto & mutableFrame = const_cast<CoinRenderFramePlan &>(frame);
+    const uint64_t revision = mutableFrame.revision;
+    ++mutableFrame.revision;
+    ok &= check(!receipt->compositionFor(frame), "a changed revision invalidates the borrowed receipt");
+    mutableFrame.revision = revision;
+    const auto transparency = mutableFrame.transparency;
+    ++mutableFrame.transparency.layers;
+    ok &= check(!receipt->compositionFor(frame), "changed composition policy invalidates the receipt");
+    mutableFrame.transparency = transparency;
+
+    CoinRenderTargetP other(SbVec2i32(1, 1));
+    other.depthReadbackEnabled = false;
+    auto * counter = new CountingBackend;
+    other.backend.reset(counter);
+    const CoinRenderFrameReuseDecision rebuild(CoinRenderFrameReuseKind::FULL_REBUILD, 0);
+    // Even a revision previously accepted by this target cannot make a
+    // foreign invalid payload inherit another plan's borrowed proof.
+    other.lastValidatedPlanRevision = foreign.revision;
+    ok &= check(other.executeFrame(foreign, rebuild, receipt).status == CoinRenderBackendStatus::BACKEND_ERROR &&
+                counter->submissions == 0, "foreign proof must trigger complete validation before submission");
+    other.options.transparency = static_cast<CoinRenderTransparencyMode>(99);
+    ok &= check(other.executeFrame(frame, rebuild, receipt).status == CoinRenderBackendStatus::UNSUPPORTED &&
+                counter->submissions == 0, "a valid proof cannot bypass invalid target options");
+    other.options.transparency = COIN_RENDER_TRANSPARENCY_COIN;
+    other.suspended = true;
+    ok &= check(other.executeFrame(frame, rebuild, receipt).status == CoinRenderBackendStatus::NOT_READY &&
+                counter->submissions == 0, "a valid proof cannot bypass a suspended target");
+    other.suspended = false;
+    ok &= check(other.resize(SbVec2i32(2, 2)) &&
+                other.executeFrame(frame, rebuild, receipt).status == CoinRenderBackendStatus::SUCCESS &&
+                counter->submissions == 1, "resized target must retain its own checks with a borrowed capture proof");
     return {fail ? CoinRenderBackendStatus::BACKEND_ERROR : CoinRenderBackendStatus::SUCCESS};
   }
 private:
@@ -145,6 +192,35 @@ bool testSubmissionPreflight() {
               !target.submissionPreflight(plan), "invalid subsequent data cannot inherit a receipt");
   return ok;
 }
+
+bool testCapturePreflightFallbacks() {
+  auto plan = validPlan();
+  bool ok = check(coin_render_capture_preflight_eligible(plan),
+                  "ordinary captured frame is eligible for submission-local proof reuse");
+  plan.shadowGroups.emplace_back();
+  ok &= check(!coin_render_capture_preflight_eligible(plan),
+              "shadow group capture must retain complete submission validation");
+  plan.shadowGroups.clear();
+  plan.shadowLights.emplace_back();
+  ok &= check(!coin_render_capture_preflight_eligible(plan),
+              "shadow-owned scene data cannot use an ordinary capture receipt");
+  plan.shadowLights.clear();
+  plan.textures.emplace_back();
+  auto & texture = plan.textures.back();
+  texture.width = texture.height = 1;
+  texture.producerId = 7;
+  ok &= check(!coin_render_capture_preflight_eligible(plan),
+              "unresolved RTT producer must take complete submission validation");
+  texture.producerId = 0;
+  texture.gpuToken = 9;
+  ok &= check(!coin_render_capture_preflight_eligible(plan),
+              "resolved RTT resource must also retain complete submission validation");
+  texture.gpuToken = 0;
+  texture.pixelsRgba = {255, 255, 255, 255};
+  ok &= check(plan.isValid() && coin_render_capture_preflight_eligible(plan),
+              "ordinary captured image pixels remain eligible after full common validation");
+  return ok;
+}
 }
 
 int
@@ -154,6 +230,7 @@ main()
   bool ok = true;
   ok &= testFiniteValidation();
   ok &= testSubmissionPreflight();
+  ok &= testCapturePreflightFallbacks();
 
   CoinRenderTextureUnitSnapshot unitsA[1], unitsB[1];
   for (size_t i = sizeof(bool); i < offsetof(CoinRenderTextureUnitSnapshot, imageSlot); ++i) {

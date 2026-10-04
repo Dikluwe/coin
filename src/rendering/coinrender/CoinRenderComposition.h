@@ -30,21 +30,41 @@ struct CoinRenderCompositionItem {
   enum TransparencyStrategy { OBJECT, WEIGHTED_OIT, SORTED_LAYERS } transparencyStrategy = OBJECT;
 };
 
-// A borrowed proof for one synchronous C++ submission. Only the target can
-// construct it, after full validation. It never survives executeFrameInternal,
-// is not keyed by revision, and cannot be reused for a different plan object.
+// Only a final ordinary capture can carry its common validation into Target.
+// Shadow scene assembly and RTT resource resolution can change the payload
+// after Builder publication and must take the complete submission path.
+inline bool coin_render_capture_preflight_eligible(const CoinRenderFramePlan & frame) {
+  if (!frame.shadowGroups.empty() || !frame.shadowLights.empty()) return false;
+  for (const auto & texture : frame.textures)
+    if (texture.producerId || texture.gpuToken) return false;
+  return true;
+}
+
+// A borrowed proof for one C++ capture/submission scope. Builder and Target
+// alone can bind it after validation. Wiring must invalidate it before changing
+// the captured payload; address/revision/policy checks also reject other plans.
+// It carries no target, Coin traversal state, or GPU resource.
 class CoinRenderFramePreflight {
   friend class CoinRenderTargetP;
+  friend class CoinRenderFramePlanBuilder;
 public:
+  CoinRenderFramePreflight() = default;
+  void invalidate() {
+    frame = nullptr;
+    revision = 0;
+    order.clear();
+  }
   const std::vector<CoinRenderCompositionItem> * compositionFor(
       const CoinRenderFramePlan & candidate) const {
-    return frame == &candidate ? &order : nullptr;
+    return frame == &candidate && revision == candidate.revision &&
+      coin_render_same_transparency_options(transparency, candidate.transparency) ? &order : nullptr;
   }
 private:
-  CoinRenderFramePreflight() = default;
   CoinRenderFramePreflight(const CoinRenderFramePreflight &) = delete;
   CoinRenderFramePreflight & operator=(const CoinRenderFramePreflight &) = delete;
   const CoinRenderFramePlan * frame = nullptr;
+  uint64_t revision = 0;
+  CoinRenderTransparencyOptions transparency;
   std::vector<CoinRenderCompositionItem> order;
 };
 

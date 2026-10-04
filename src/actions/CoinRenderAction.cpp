@@ -75,12 +75,14 @@
 #include <cstdlib>
 #include <iostream>
 #include <Inventor/misc/SoState.h>
+#include <Inventor/misc/SoChildList.h>
 
 #include "actions/CoinRenderActionP.h"
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 #include "rendering/coinrender/CoinRenderFrameReuseCore.h"
 #include "rendering/coinrender/CoinRenderRttExecution.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
+#include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderSelectionCore.h"
 #include "actions/SoSubActionP.h"
 
@@ -380,6 +382,28 @@ CoinRenderActionP::setDiagnostic(const CoinRenderActionDiagnostic & diagnostic)
 }
 
 namespace {
+size_t
+captureStorageEstimate(SoNode * root)
+{
+  if (!root) return 0;
+  // Inspect at most 64 nodes through two child levels. Broad groups already
+  // supply a useful hint; their descendants are never scanned here.
+  struct Pending { SoNode * node; unsigned depth; };
+  Pending pending[64] = {{root, 0}};
+  size_t next = 0, end = 1, estimate = 0;
+  while (next < end) {
+    const Pending current = pending[next++];
+    const SoChildList * children = current.node->getChildren();
+    if (!children) continue;
+    const int count = children->getLength();
+    estimate = std::max(estimate, std::min(size_t(count), size_t(65536)));
+    if (current.depth == 2 || count >= 256) continue;
+    for (int i = 0; i < count && end < 64; ++i)
+      pending[end++] = {(*children)[i], current.depth + 1};
+  }
+  return estimate;
+}
+
 // Exact types only: custom subclasses and view-dependent traversal fall back.
 bool
 cameraStableScene(SoNode * root, SoCamera * camera)
@@ -559,6 +583,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   this->lastRejectedShadowFrame = CoinRenderFramePlan();
   this->lastRejectedShadowPlan = CoinRenderShadowPlan();
   CoinRenderFramePlan plan;
+  CoinRenderFramePreflight capturedPreflight;
   CoinRenderCameraOverlayUndo overlayUndo;
   struct CameraOverlayScope {
     CoinRenderFramePlan & frame;
@@ -579,6 +604,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   }
   if (!traversalSkipped && !cameraOverlay) {
     this->builder.beginFrame(this->backgroundColor, this->master->getViewportRegion());
+    this->builder.reserveCaptureStorage(captureStorageEstimate(cacheRoot));
     traversalFn();
     const uint32_t delayedLayers = (this->delayedOverlays.empty() ? 0 : 1) +
                                   (this->delayedAnnotations.empty() ? 0 : 1);
@@ -620,13 +646,18 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   }
 
   std::string err;
-  if (!traversalSkipped && !cameraOverlay && !this->builder.build(plan, &err, true)) {
+  CoinRenderTransparencyOptions capturedTransparency = this->transparencyOptions;
+  capturedTransparency.mode = this->executionOptions.transparency;
+  if (!traversalSkipped && !cameraOverlay &&
+      !this->builder.build(plan, &err, true, &capturedTransparency,
+                           this->target && !this->planOnly ? &capturedPreflight : nullptr)) {
     const CoinRenderAction::Status status = this->builder.isUnsupportedBuild()
       ? CoinRenderAction::UNSUPPORTED : CoinRenderAction::INVALID_SCENE;
     this->setDiagnostic(CoinRenderDiagnosticShell::action(
       status, CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(err.c_str())));
     return;
   }
+  if (!this->shadowSceneCaptures.empty()) capturedPreflight.invalidate();
   for (const auto & capture : this->shadowSceneCaptures) {
     for (size_t l = 0; l < plan.shadowLights.size(); ++l) {
       auto & light = plan.shadowLights[l];
@@ -683,8 +714,6 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   if (!this->sceneTexturePlan->producers.empty())
     planCacheAllowed = false;
   if (!traversalSkipped && !cameraOverlay) {
-    plan.transparency = this->transparencyOptions;
-    plan.transparency.mode = this->executionOptions.transparency;
     if (planCacheAllowed && cacheRoot && this->hasLastValidPlan &&
         this->cachedRoot == cacheRoot) {
       reuseDecision = CoinRenderFrameReuseCore::classify(this->lastValidPlan, plan);
@@ -697,6 +726,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     reuseDecision.kind == CoinRenderFrameReuseKind::REUSE &&
     this->hasLastValidPlan;
   const bool useCachedPlan = reusePreviousPlan || cameraOverlay;
+  if (useCachedPlan) capturedPreflight.invalidate();
   const CoinRenderFramePlan& capturedPlan = useCachedPlan ? this->lastValidPlan : plan;
   const CoinRenderFramePlan& framePlan = capturedPlan;
 
@@ -733,6 +763,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   CoinRenderFramePlan resolvedPlan;
   const bool hasSceneTextures = !this->sceneTexturePlan->producers.empty();
   if (hasSceneTextures) {
+    capturedPreflight.invalidate();
     const auto prepared = rttExecution.prepare(*this->sceneTexturePlan, capturedPlan, resolvedPlan);
     if (prepared.status != CoinRenderBackendStatus::SUCCESS) {
       this->setDiagnostic(CoinRenderDiagnosticShell::fromBackend(prepared));
@@ -764,10 +795,13 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   }
 
   // Execute frame on target
+  const auto * submissionPreflight = capturedPreflight.compositionFor(executionPlan)
+    ? &capturedPreflight : nullptr;
   CoinRenderFrameExecutionResult execRes =
       this->asyncTicket
-          ? this->target->pimpl->executeFrameAsync(executionPlan, *this->asyncTicket, reuseDecision)
-          : this->target->pimpl->executeFrame(executionPlan, reuseDecision);
+          ? this->target->pimpl->executeFrameAsync(executionPlan, *this->asyncTicket, reuseDecision,
+                                                  submissionPreflight)
+          : this->target->pimpl->executeFrame(executionPlan, reuseDecision, submissionPreflight);
   if (execRes.status != CoinRenderBackendStatus::SUCCESS) {
     this->setDiagnostic(CoinRenderDiagnosticShell::fromBackend(execRes));
     return;
@@ -790,6 +824,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     std::cerr << CoinRenderDiagnosticShell::formatActionPhase(sample) << '\n';
   }
   if (!useCachedPlan) {
+    capturedPreflight.invalidate();
     this->lastValidPlan = retainStagedPixels ? std::move(resolvedPlan) : std::move(plan);
     this->hasLastValidPlan = true;
     this->recordingLogValid = false;
