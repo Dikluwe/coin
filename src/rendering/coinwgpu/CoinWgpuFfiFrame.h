@@ -26,8 +26,18 @@ public:
   const CoinWgpuShadowFrame & getShadowFrame() const;
   bool reusedLastPrepare() const;
   CoinRenderFrameReuseKind lastPrepareKind() const;
+  // Private Infra diagnostics; these do not change the C/Rust frame ABI.
+  bool incrementalOpaqueLastPrepare() const;
+  size_t opaqueRangesRebakedLastPrepare() const;
+  size_t opaqueVerticesRebakedLastPrepare() const;
 
 private:
+  struct BakeMatrices { float modelView[16], normal[16]; };
+  struct OpaqueRange {
+    size_t drawIndex;
+    CoinRenderGeometryRange geometry;
+    uint32_t stateSlot, drawOrdinal;
+  };
   CoinWgpuFfiFrame(const CoinWgpuFfiFrame &);
   CoinWgpuFfiFrame & operator=(const CoinWgpuFfiFrame &);
   bool packStates(const CoinRenderFramePlan & frame, CoinWgpuShadowFrame & shadow,
@@ -69,6 +79,21 @@ private:
   std::vector<CoinWgpuTexture> textures;
   std::vector<CoinWgpuSampler> samplers;
   std::vector<std::vector<uint8_t> > texturePixels;
+  // A bounded exact-content cache over captured values, never Coin node IDs.
+  // The large expanded output remains in vertices/indices across full packs.
+  bool opaqueIncrementalValid = false;
+  bool opaqueIncrementalCandidate = false;
+  bool opaqueIncrementalUsed = false;
+  size_t opaqueRebakedRanges = 0, opaqueRebakedVertices = 0;
+  uint32_t opaqueIncrementalWidth = 0, opaqueIncrementalHeight = 0;
+  SbMatrix opaqueIncrementalView, opaqueIncrementalProjection;
+  CoinWgpuRenderState opaqueIncrementalState{};
+  std::vector<BakeMatrices> bakeMatrices, opaquePreviousMatrices;
+  std::vector<OpaqueRange> opaqueRanges;
+  std::vector<uint32_t> opaqueStateMaterialSlots;
+  std::vector<CoinRenderVertexSnapshot> opaqueInputVertices;
+  std::vector<uint32_t> opaqueInputIndices;
+  std::vector<CoinRenderMaterialSnapshot> opaqueInputMaterials;
 };
 
 #endif // !COIN_WGPU_FFI_FRAME_H

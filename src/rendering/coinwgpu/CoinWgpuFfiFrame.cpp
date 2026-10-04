@@ -15,6 +15,7 @@
 #include <cstddef>
 #include <cstring>
 #include <cstdlib>
+#include <cstdio>
 
 static_assert(sizeof(CoinWgpuFrameView) == 416, "Frame view ABI size changed");
 static_assert(sizeof(CoinWgpuShadowPassView) == 56, "Extra shadow pass ABI size changed");
@@ -85,6 +86,24 @@ bool patchableBakedVertex(const SbVec3f & position, const SbVec3f & normal)
   }
   return true;
 }
+
+void packVertex(const CoinRenderVertexSnapshot & src, CoinWgpuVertex & dst)
+{
+  std::memcpy(dst.position, src.position, sizeof(src.position));
+  std::memcpy(dst.normal, src.normal, sizeof(src.normal));
+  std::memcpy(dst.texcoord, src.texcoord, sizeof(src.texcoord));
+  dst.material_slot = src.materialSlot;
+  std::memcpy(dst.extra_texcoords, src.extraTexcoords, sizeof(dst.extra_texcoords));
+  dst.screen_space_w = src.screenSpaceW;
+  dst.fog_eye_depth_plus_one = src.fogEyeDepth >= 0 ? src.fogEyeDepth + 1.0f : 0.0f;
+}
+
+template <typename T>
+bool sameOpaqueInput(const std::vector<T> & previous, const std::vector<T> & current)
+{
+  return previous.size() == current.size() && (current.empty() ||
+    std::memcmp(previous.data(), current.data(), current.size() * sizeof(T)) == 0);
+}
 }
 
 CoinWgpuFfiFrame::CoinWgpuFfiFrame()
@@ -112,6 +131,26 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
                         const CoinRenderFramePreflight * preflight)
 {
   outDiagnostic.clear();
+  this->opaqueIncrementalUsed = false;
+  this->opaqueRebakedRanges = this->opaqueRebakedVertices = 0;
+  this->opaqueIncrementalCandidate = false;
+  // Failed qualification/packing must never leave an old revision or geometry
+  // proof available to a retry. Successful exact reuse retains the proof.
+  struct PrepareGuard {
+    bool & valid;
+    uint64_t & revision;
+    CoinRenderFrameReuseKind & kind;
+    bool committed;
+    PrepareGuard(bool & v, uint64_t & r, CoinRenderFrameReuseKind & k)
+      : valid(v), revision(r), kind(k), committed(false) {}
+    ~PrepareGuard() {
+      if (!committed) {
+        valid = false;
+        revision = 0;
+        kind = CoinRenderFrameReuseKind::UNKNOWN;
+      }
+    }
+  } guard(this->opaqueIncrementalValid, this->packedRevision, this->prepareKind);
   for (const auto& texture : frame.textures) {
     if (texture.producerId) {
       outDiagnostic = "Unresolved scene texture producer at wgpu execution boundary";
@@ -134,6 +173,7 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     this->view.height = height;
     this->view.sorted_layers_passes = frame.transparency.layers;
     this->view.transparency_budget_bytes = frame.transparency.bufferBudget;
+    guard.committed = true;
     return true;
   }
   this->reused = false;
@@ -141,11 +181,15 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
   if (!candidateShadow.prepare(frame, outDiagnostic)) return false;
 
   if (this->patchOpaqueCamera(frame, width, height, reuse)) {
+    // The output still belongs to the camera anchor, while the captured states
+    // now contain a different view. Do not mix it with a later object rebake.
+    this->opaqueIncrementalValid = false;
     this->shadowFrame = std::move(candidateShadow);
     this->bindView(frame, width, height);
     this->view.camera_base_revision = reuse.baseRevision;
     this->packedRevision = frame.revision;
     this->prepareKind = CoinRenderFrameReuseKind::CAMERA_PATCH;
+    guard.committed = true;
     return true;
   }
 
@@ -166,6 +210,8 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     this->view.camera_base_revision = sameOrder ? reuse.baseRevision : 0;
     this->packedRevision = frame.revision;
     this->prepareKind = CoinRenderFrameReuseKind::CAMERA_PATCH;
+    this->opaqueIncrementalValid = false;
+    guard.committed = true;
     return true;
   }
 
@@ -173,20 +219,6 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
   this->opaqueBatched = false;
   this->opaqueCameraPatchable = false;
   this->opaqueGeometryPatchable = false;
-  this->vertices.resize(frame.vertices.size());
-  for (size_t i = 0; i < frame.vertices.size(); ++i) {
-    const CoinRenderVertexSnapshot & src = frame.vertices[i];
-    CoinWgpuVertex & dst = this->vertices[i];
-    std::memcpy(dst.position, src.position, sizeof(src.position));
-    std::memcpy(dst.normal, src.normal, sizeof(src.normal));
-    std::memcpy(dst.texcoord, src.texcoord, sizeof(src.texcoord));
-    dst.material_slot = src.materialSlot;
-    std::memcpy(dst.extra_texcoords, src.extraTexcoords, sizeof(dst.extra_texcoords));
-    dst.screen_space_w = src.screenSpaceW;
-    dst.fog_eye_depth_plus_one = src.fogEyeDepth >= 0 ? src.fogEyeDepth + 1.0f : 0.0f;
-  }
-
-  this->indices = frame.indices;
   this->materials.resize(frame.materials.size());
   for (size_t i = 0; i < frame.materials.size(); ++i) {
     const CoinRenderMaterialSnapshot & src = frame.materials[i];
@@ -210,8 +242,15 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     this->prepareKind = reuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD
       ? CoinRenderFrameReuseKind::RESOURCE_REBUILD
       : CoinRenderFrameReuseKind::FULL_REBUILD;
+    this->opaqueIncrementalValid = this->opaqueIncrementalCandidate;
+    guard.committed = true;
     return true;
   }
+  this->opaqueIncrementalValid = false;
+  this->vertices.resize(frame.vertices.size());
+  for (size_t i = 0; i < frame.vertices.size(); ++i)
+    packVertex(frame.vertices[i], this->vertices[i]);
+  this->indices = frame.indices;
   if (!this->packStates(frame, candidateShadow, width, height, outDiagnostic, preflight)) return false;
 
   this->texturePixels.resize(frame.textures.size());
@@ -245,6 +284,7 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
   this->prepareKind = reuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD
     ? CoinRenderFrameReuseKind::RESOURCE_REBUILD
     : CoinRenderFrameReuseKind::FULL_REBUILD;
+  guard.committed = true;
   return true;
 }
 
@@ -371,7 +411,6 @@ CoinWgpuFfiFrame::tryEarlyOpaqueBatch(const CoinRenderFramePlan & frame,
   if (!coin_render_composition_schedule(frame, order, diagnostic, preflight) ||
       order.size() != frame.draws.size() || order.size() < 256) return false;
   uint64_t nextVertex = 0, nextIndex = 0;
-  bool contiguous = true;
   for (const auto & item : order) {
     const auto & draw = frame.draws[item.drawIndex];
     const auto & range = draw.geometry;
@@ -385,20 +424,19 @@ CoinWgpuFfiFrame::tryEarlyOpaqueBatch(const CoinRenderFramePlan & frame,
     if (item.depthTest != state.depthTest || item.depthWrite != state.depthWrite ||
         item.depthFunction != state.depthFunction ||
         item.depthRange[0] != state.depthRange[0] || item.depthRange[1] != state.depthRange[1]) return false;
-    contiguous = contiguous && range.firstVertex == nextVertex && range.firstIndex == nextIndex;
     nextVertex += range.vertexCount; nextIndex += range.indexCount;
     const uint64_t vertexEnd = uint64_t(range.firstVertex) + range.vertexCount;
     const uint64_t indexEnd = uint64_t(range.firstIndex) + range.indexCount;
-    if (vertexEnd > this->vertices.size() || indexEnd > this->indices.size() ||
+    if (vertexEnd > frame.vertices.size() || indexEnd > frame.indices.size() ||
         nextVertex > UINT32_MAX || nextIndex > UINT32_MAX) return false;
     for (uint64_t v = range.firstVertex; v < vertexEnd; ++v)
-      if (this->vertices[v].screen_space_w != 1.0f ||
-          this->vertices[v].fog_eye_depth_plus_one != 0.0f) return false;
+      if (frame.vertices[v].screenSpaceW != 1.0f ||
+          frame.vertices[v].fogEyeDepth >= 0.0f) return false;
     for (uint64_t j = range.firstIndex; j < indexEnd; ++j)
-      if (this->indices[j] < range.firstVertex || this->indices[j] >= vertexEnd) return false;
+      if (frame.indices[j] < range.firstVertex || frame.indices[j] >= vertexEnd) return false;
   }
-  struct BakeMatrices { float modelView[16], normal[16]; };
-  std::vector<BakeMatrices> matrices(frame.renderStates.size());
+  this->bakeMatrices.resize(frame.renderStates.size());
+  auto & matrices = this->bakeMatrices;
   CoinWgpuRenderState common{};
   const SbMatrix identity = SbMatrix::identity();
   // Including unreferenced states is conservative: their validation and errors
@@ -422,37 +460,93 @@ CoinWgpuFfiFrame::tryEarlyOpaqueBatch(const CoinRenderFramePlan & frame,
   uint64_t requiredBytes = 0;
   if (!coin_render_transparency_budget(width, height, frame.transparency, false,
                                        requiredBytes, diagnostic)) return false;
-  contiguous = contiguous && nextVertex == this->vertices.size() && nextIndex == this->indices.size();
-  std::vector<CoinWgpuVertex> expandedVertices;
-  std::vector<uint32_t> expandedIndices;
-  if (!contiguous) {
-    expandedVertices.reserve(static_cast<size_t>(nextVertex));
-    expandedIndices.reserve(static_cast<size_t>(nextIndex));
+  // Admission is based on the exact source contents and layout, not revision
+  // IDs or RESOURCE_REBUILD (which guarantees only an execution structure).
+  // Bound the source proof plus occurrence/matrix tables to 16 MiB. A large
+  // unique mesh keeps the persistent full-bake arena without retaining a copy.
+  size_t remaining = 16u * 1024u * 1024u;
+  const auto fits = [&remaining](size_t count, size_t stride) {
+    if (count > remaining / stride) return false;
+    remaining -= count * stride;
+    return true;
+  };
+  const char * disabled = std::getenv("COIN_WGPU_DISABLE_INCREMENTAL_OPAQUE_BATCH");
+  bool eligible = !(disabled && std::strcmp(disabled, "1") == 0) && frame.revision != 0 &&
+    fits(frame.vertices.size(), sizeof(CoinRenderVertexSnapshot)) &&
+    fits(frame.indices.size(), sizeof(uint32_t)) &&
+    fits(frame.materials.size(), sizeof(CoinRenderMaterialSnapshot)) &&
+    fits(frame.renderStates.size(), sizeof(BakeMatrices) + sizeof(uint32_t)) &&
+    fits(order.size(), sizeof(OpaqueRange));
+  // A unique common view/projection makes the baked coordinate space explicit.
+  // Mixed-view batches remain valid, but take the ordinary full bake.
+  for (const auto & state : frame.renderStates) {
+    if (std::memcmp(state.view.getValue(), firstState.view.getValue(), sizeof(float) * 16) ||
+        std::memcmp(state.projectionCoin.getValue(), firstState.projectionCoin.getValue(), sizeof(float) * 16)) {
+      eligible = false;
+      break;
+    }
   }
+  bool incremental = eligible && this->opaqueIncrementalValid &&
+    this->opaquePreviousMatrices.size() == matrices.size() &&
+    this->opaqueRanges.size() == order.size() &&
+    this->opaqueStateMaterialSlots.size() == frame.renderStates.size() &&
+    this->vertices.size() == nextVertex && this->indices.size() == nextIndex &&
+    this->opaqueIncrementalWidth == width && this->opaqueIncrementalHeight == height &&
+    std::memcmp(&this->opaqueIncrementalState, &common, sizeof(common)) == 0 &&
+    std::memcmp(this->opaqueIncrementalView.getValue(), firstState.view.getValue(), sizeof(float) * 16) == 0 &&
+    std::memcmp(this->opaqueIncrementalProjection.getValue(), firstState.projectionCoin.getValue(), sizeof(float) * 16) == 0 &&
+    sameOpaqueInput(this->opaqueInputVertices, frame.vertices) &&
+    sameOpaqueInput(this->opaqueInputIndices, frame.indices) &&
+    sameOpaqueInput(this->opaqueInputMaterials, frame.materials);
+  for (size_t i = 0; incremental && i < order.size(); ++i) {
+    const auto & item = order[i];
+    const auto & draw = frame.draws[item.drawIndex];
+    const auto & previous = this->opaqueRanges[i];
+    incremental = previous.drawIndex == item.drawIndex &&
+      previous.stateSlot == draw.renderStateSlot && previous.drawOrdinal == draw.drawOrdinal &&
+      std::memcmp(&previous.geometry, &draw.geometry, sizeof(draw.geometry)) == 0;
+  }
+  for (size_t i = 0; incremental && i < frame.renderStates.size(); ++i)
+    incremental = this->opaqueStateMaterialSlots[i] == frame.renderStates[i].materialSlot;
+
+  // All qualifications completed before touching output or cache contents.
+  this->opaqueIncrementalValid = false;
+  this->vertices.resize(static_cast<size_t>(nextVertex));
+  this->indices.resize(static_cast<size_t>(nextIndex));
   bool geometryPatchable = true;
+  size_t outputVertex = 0, outputIndex = 0;
   for (const auto & item : order) {
     const auto & draw = frame.draws[item.drawIndex];
     const auto & range = draw.geometry;
+    const bool rebake = !incremental || std::memcmp(
+      &matrices[draw.renderStateSlot], &this->opaquePreviousMatrices[draw.renderStateSlot],
+      sizeof(BakeMatrices)) != 0;
     SbMatrix modelView, normal;
-    modelView.setValue(matrices[draw.renderStateSlot].modelView);
-    normal.setValue(matrices[draw.renderStateSlot].normal);
-    for (uint64_t v = range.firstVertex; v < uint64_t(range.firstVertex) + range.vertexCount; ++v) {
-      if (!contiguous) expandedVertices.push_back(this->vertices[v]);
-      auto & vertex = contiguous ? this->vertices[v] : expandedVertices.back();
-      SbVec3f position, direction;
-      modelView.multVecMatrix(SbVec3f(vertex.position), position);
-      normal.multDirMatrix(SbVec3f(vertex.normal), direction);
-      geometryPatchable = geometryPatchable && patchableBakedVertex(position, direction);
-      std::memcpy(vertex.position, position.getValue(), sizeof(vertex.position));
-      std::memcpy(vertex.normal, direction.getValue(), sizeof(vertex.normal));
+    if (rebake) {
+      modelView.setValue(matrices[draw.renderStateSlot].modelView);
+      normal.setValue(matrices[draw.renderStateSlot].normal);
+      ++this->opaqueRebakedRanges;
+      this->opaqueRebakedVertices += range.vertexCount;
+      for (uint32_t v = 0; v < range.vertexCount; ++v) {
+        const auto & sourceVertex = frame.vertices[range.firstVertex + v];
+        auto & vertex = this->vertices[outputVertex + v];
+        packVertex(sourceVertex, vertex);
+        SbVec3f position, direction;
+        modelView.multVecMatrix(SbVec3f(sourceVertex.position), position);
+        normal.multDirMatrix(SbVec3f(sourceVertex.normal), direction);
+        geometryPatchable = geometryPatchable && patchableBakedVertex(position, direction);
+        std::memcpy(vertex.position, position.getValue(), sizeof(vertex.position));
+        std::memcpy(vertex.normal, direction.getValue(), sizeof(vertex.normal));
+      }
     }
-    if (!contiguous) {
-      const uint32_t base = static_cast<uint32_t>(expandedVertices.size()) - range.vertexCount;
-      for (uint64_t j = range.firstIndex; j < uint64_t(range.firstIndex) + range.indexCount; ++j)
-        expandedIndices.push_back(base + this->indices[j] - range.firstVertex);
+    if (!incremental) {
+      for (uint32_t j = 0; j < range.indexCount; ++j)
+        this->indices[outputIndex + j] = static_cast<uint32_t>(outputVertex) +
+          frame.indices[range.firstIndex + j] - range.firstVertex;
     }
+    outputVertex += range.vertexCount;
+    outputIndex += range.indexCount;
   }
-  if (!contiguous) { this->vertices.swap(expandedVertices); this->indices.swap(expandedIndices); }
   const auto & source = frame.draws[order.front().drawIndex];
   CoinWgpuDraw merged{};
   merged.vertex_count = static_cast<uint32_t>(nextVertex);
@@ -463,6 +557,61 @@ CoinWgpuFfiFrame::tryEarlyOpaqueBatch(const CoinRenderFramePlan & frame,
   this->states.assign(1, common);
   this->opaqueBatched = true;
   this->opaqueGeometryPatchable = geometryPatchable;
+  this->opaqueIncrementalUsed = incremental;
+  this->opaqueIncrementalCandidate = eligible && geometryPatchable;
+  const auto releaseCache = [this]() {
+    std::vector<BakeMatrices>().swap(this->opaquePreviousMatrices);
+    std::vector<OpaqueRange>().swap(this->opaqueRanges);
+    std::vector<uint32_t>().swap(this->opaqueStateMaterialSlots);
+    std::vector<CoinRenderVertexSnapshot>().swap(this->opaqueInputVertices);
+    std::vector<uint32_t>().swap(this->opaqueInputIndices);
+    std::vector<CoinRenderMaterialSnapshot>().swap(this->opaqueInputMaterials);
+  };
+  if (this->opaqueIncrementalCandidate) {
+    if (!incremental) {
+      // Different scene shapes must not accumulate the largest capacity of
+      // every source table. Reserve exact growth before resize/assignment.
+      size_t capacityBudget = 16u * 1024u * 1024u;
+      const auto capacityFits = [&capacityBudget](size_t capacity, size_t size, size_t stride) {
+        const size_t count = std::max(capacity, size);
+        if (count > capacityBudget / stride) return false;
+        capacityBudget -= count * stride;
+        return true;
+      };
+      if (!capacityFits(this->opaquePreviousMatrices.capacity(), matrices.size(), sizeof(BakeMatrices)) ||
+          !capacityFits(this->opaqueRanges.capacity(), order.size(), sizeof(OpaqueRange)) ||
+          !capacityFits(this->opaqueStateMaterialSlots.capacity(), frame.renderStates.size(), sizeof(uint32_t)) ||
+          !capacityFits(this->opaqueInputVertices.capacity(), frame.vertices.size(), sizeof(CoinRenderVertexSnapshot)) ||
+          !capacityFits(this->opaqueInputIndices.capacity(), frame.indices.size(), sizeof(uint32_t)) ||
+          !capacityFits(this->opaqueInputMaterials.capacity(), frame.materials.size(), sizeof(CoinRenderMaterialSnapshot)))
+        releaseCache();
+      this->opaqueInputVertices = frame.vertices;
+      this->opaqueInputIndices = frame.indices;
+      this->opaqueInputMaterials = frame.materials;
+      this->opaqueRanges.reserve(order.size());
+      this->opaqueStateMaterialSlots.reserve(frame.renderStates.size());
+      this->opaqueRanges.resize(order.size());
+      this->opaqueStateMaterialSlots.resize(frame.renderStates.size());
+      for (size_t i = 0; i < order.size(); ++i) {
+        const auto & draw = frame.draws[order[i].drawIndex];
+        this->opaqueRanges[i] = {order[i].drawIndex, draw.geometry, draw.renderStateSlot, draw.drawOrdinal};
+      }
+      for (size_t i = 0; i < frame.renderStates.size(); ++i)
+        this->opaqueStateMaterialSlots[i] = frame.renderStates[i].materialSlot;
+      this->opaqueIncrementalWidth = width; this->opaqueIncrementalHeight = height;
+      this->opaqueIncrementalView = firstState.view;
+      this->opaqueIncrementalProjection = firstState.projectionCoin;
+      this->opaqueIncrementalState = common;
+    }
+    this->opaquePreviousMatrices = matrices;
+  }
+  else releaseCache();
+  if (std::getenv("COIN_RENDER_TRACE_PHASES")) {
+    std::fprintf(stderr, "COIN_RENDER_PHASE wgpu_opaque_batch incremental=%u ranges=%zu rebaked_ranges=%zu rebaked_vertices=%zu rebaked_vertex_bytes=%llu index_bytes_written=%llu\n",
+      incremental ? 1u : 0u, order.size(), this->opaqueRebakedRanges, this->opaqueRebakedVertices,
+      static_cast<unsigned long long>(this->opaqueRebakedVertices) * sizeof(CoinWgpuVertex),
+      incremental ? 0ull : static_cast<unsigned long long>(nextIndex) * sizeof(uint32_t));
+  }
   return true;
 }
 
@@ -875,4 +1024,22 @@ CoinRenderFrameReuseKind
 CoinWgpuFfiFrame::lastPrepareKind() const
 {
   return this->prepareKind;
+}
+
+bool
+CoinWgpuFfiFrame::incrementalOpaqueLastPrepare() const
+{
+  return this->opaqueIncrementalUsed;
+}
+
+size_t
+CoinWgpuFfiFrame::opaqueRangesRebakedLastPrepare() const
+{
+  return this->opaqueRebakedRanges;
+}
+
+size_t
+CoinWgpuFfiFrame::opaqueVerticesRebakedLastPrepare() const
+{
+  return this->opaqueRebakedVertices;
 }

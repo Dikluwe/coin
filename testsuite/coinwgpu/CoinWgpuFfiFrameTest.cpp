@@ -158,6 +158,29 @@ private:
   std::string previous;
 };
 
+class IncrementalBatchSwitch {
+public:
+  IncrementalBatchSwitch() {
+    const char * value = std::getenv(name());
+    wasSet = value != nullptr;
+    if (value) previous = value;
+    disable(false);
+  }
+  ~IncrementalBatchSwitch() { set(wasSet ? previous.c_str() : nullptr); }
+  void disable(bool disabled) { set(disabled ? "1" : nullptr); }
+private:
+  static const char * name() { return "COIN_WGPU_DISABLE_INCREMENTAL_OPAQUE_BATCH"; }
+  static void set(const char * value) {
+#ifdef _WIN32
+    _putenv_s(name(), value ? value : "");
+#else
+    if (value) setenv(name(), value, 1); else unsetenv(name());
+#endif
+  }
+  bool wasSet;
+  std::string previous;
+};
+
 bool anchoredPhongCamera()
 {
   CameraPatchSwitch option;
@@ -320,13 +343,181 @@ bool earlyBatchEquivalence(bool shared) {
   return check(!okA && !okB && a == b && a.find("More than eight active lights") != std::string::npos,
                "invalid unused state must preserve rejection and diagnostic");
 }
+
+bool incrementalBatchEquivalence(bool shared)
+{
+  auto frame = opaqueFrame(shared);
+  frame.revision = 900;
+  frame.viewports.resize(1);
+  frame.viewports[0].width = frame.viewports[0].height = 64;
+  frame.lightingStates.resize(1);
+  CoinRenderLightSourceSnapshot light;
+  light.direction[2] = -1; light.intensity = .75f;
+  frame.lightingStates[0].lights.push_back(light);
+  SbMatrix view;
+  view.setRotate(SbRotation(SbVec3f(0,1,0), .3f));
+  view[3][0] = 2.5f; view[3][2] = -7.0f;
+  for (auto & state : frame.renderStates) state.view = view;
+  CoinWgpuFfiFrame fast, original;
+  EarlyBatchSwitch early;
+  IncrementalBatchSwitch incremental;
+  CameraPatchSwitch camera;
+  std::string a, b;
+  uint32_t width = 64, height = 64;
+  CoinRenderFrameReuseDecision reuse(CoinRenderFrameReuseKind::FULL_REBUILD, 0);
+  const auto compare = [&](bool expectedIncremental, size_t expectedRanges, size_t expectedVertices) {
+    early.disable(false); incremental.disable(false);
+    const bool okA = fast.prepare(frame,width,height,reuse,a);
+    // The oracle retains the original pack-all-states-then-bake mechanism.
+    early.disable(true); incremental.disable(true);
+    const bool okB = original.prepare(frame,width,height,reuse,b);
+    early.disable(false); incremental.disable(false);
+    return check(okA && okB && samePacked(fast.getView(),original.getView()),
+                 "incremental and original packing must be byte-identical") &&
+      check(fast.incrementalOpaqueLastPrepare() == expectedIncremental &&
+            fast.opaqueRangesRebakedLastPrepare() == expectedRanges &&
+            fast.opaqueVerticesRebakedLastPrepare() == expectedVertices,
+            "only changed opaque occurrences may be rebaked after exact qualification");
+  };
+  if (!compare(false,256,768)) return false;
+  const auto * vertices = fast.getView().vertices;
+  const auto * indices = fast.getView().indices;
+  // About 10% move, followed by 100%. Both preserve all unrelated bytes.
+  ++frame.revision;
+  for (size_t i = 0; i < 26; ++i) frame.renderStates[i].model[3][0] += .5f;
+  if (!compare(true,26,78) || !check(fast.getView().vertices == vertices &&
+      fast.getView().indices == indices, "moving objects must preserve the expanded storage arena")) return false;
+  ++frame.revision;
+  for (auto & state : frame.renderStates) state.model[3][1] += .25f;
+  if (!compare(true,256,768)) return false;
+  ++frame.revision;
+  if (!compare(true,0,0)) return false;
+  // The optout must execute a complete bake in the same owner.
+  ++frame.revision;
+  incremental.disable(true);
+  if (!check(fast.prepare(frame,width,height,a) && !fast.incrementalOpaqueLastPrepare() &&
+             fast.opaqueRangesRebakedLastPrepare() == 256, "incremental optout must force a full bake")) return false;
+  incremental.disable(false);
+  ++frame.revision;
+  if (!compare(false,256,768)) return false;
+  // Shared geometry, index content, material tables and material-state slots
+  // are all content proofs, independent of any source/revision identifiers.
+  ++frame.revision; frame.vertices[0].position[1] += .2f;
+  if (!compare(false,256,768)) return false;
+  ++frame.revision; std::swap(frame.indices[0],frame.indices[1]);
+  if (!compare(false,256,768)) return false;
+  ++frame.revision; frame.materials[0].diffuse[1] = .4f;
+  if (!compare(false,256,768)) return false;
+  ++frame.revision; frame.renderStates.back().materialSlot = 1 - frame.renderStates.back().materialSlot;
+  if (!compare(false,256,768)) return false;
+  ++frame.revision; std::swap(frame.draws[0],frame.draws[255]);
+  if (!compare(false,256,768)) return false;
+  ++frame.revision; frame.lightingStates[0].lights[0].intensity = .55f;
+  if (!compare(false,256,768)) return false;
+  ++frame.revision;
+  for (auto & state : frame.renderStates) state.depthFunction = CoinRenderDepthFunction::LEQUAL;
+  if (!compare(false,256,768)) return false;
+  ++frame.revision; frame.renderStates.back().depthWrite = false;
+  if (!compare(false,0,0)) return false;
+  ++frame.revision; frame.renderStates.back().depthWrite = true;
+  if (!compare(false,256,768)) return false;
+  ++frame.revision; frame.viewports[0].x = 3;
+  if (!compare(false,256,768)) return false;
+  ++frame.revision; width = 128;
+  if (!compare(false,256,768)) return false;
+  ++frame.revision;
+  for (auto & state : frame.renderStates) state.projectionCoin[0][0] = .8f;
+  if (!compare(false,256,768)) return false;
+  // Direct camera changes take a full bake; the next object frame can qualify
+  // the new coordinate space and use its matrices without cumulative drift.
+  ++frame.revision;
+  for (auto & state : frame.renderStates) state.view[3][0] += .25f;
+  if (!compare(false,256,768)) return false;
+  ++frame.revision; frame.renderStates[2].model[3][0] += .1f;
+  if (!compare(true,1,3)) return false;
+  // Camera patch after an incremental object frame keeps anchored vertices.
+  // The following object mutation must invalidate that anchor-space cache.
+  const uint64_t cameraBase = frame.revision++;
+  for (auto & state : frame.renderStates) state.view[3][0] += .25f;
+  if (!check(fast.prepare(frame,width,height,
+          CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::CAMERA_PATCH,cameraBase),a) &&
+        fast.getView().camera_base_revision == cameraBase &&
+        !fast.incrementalOpaqueLastPrepare(), "camera after objects must retain its qualified camera patch")) return false;
+  early.disable(true); incremental.disable(true);
+  if (!check(original.prepare(frame,width,height,b), "full camera oracle")) return false;
+  early.disable(false); incremental.disable(false);
+  SbMatrix delta, normal;
+  delta.setValue(fast.getView().states[0].model_view);
+  normal.setValue(fast.getView().states[0].normal_matrix);
+  for (size_t v = 0; v < fast.getView().vertex_count; ++v) {
+    SbVec3f position, direction;
+    delta.multVecMatrix(SbVec3f(fast.getView().vertices[v].position),position);
+    normal.multDirMatrix(SbVec3f(fast.getView().vertices[v].normal),direction);
+    for (int c = 0; c < 3; ++c)
+      if (!check(std::abs(position[c]-original.getView().vertices[v].position[c]) <= 1.0e-4f &&
+          std::abs(direction[c]-original.getView().vertices[v].normal[c]) <= 1.0e-5f,
+          "camera after partial object bake must match the ordinary geometry reference")) return false;
+  }
+  ++frame.revision; frame.renderStates[3].model[3][0] += .5f;
+  if (!compare(false,256,768)) return false;
+  ++frame.revision; frame.renderStates[4].model[3][0] += .5f;
+  if (!compare(true,1,3)) return false;
+  // Singular models retain Core's identity-normal fallback; a subsequent
+  // camera hint cannot incorrectly rotate those normals from an old anchor.
+  ++frame.revision; frame.renderStates[5].model[0][0] = 0;
+  if (!compare(true,1,3)) return false;
+  const uint64_t singularBase = frame.revision++;
+  for (auto & state : frame.renderStates) state.view[3][1] += .25f;
+  reuse = CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::CAMERA_PATCH,singularBase);
+  if (!compare(false,256,768) || !check(!fast.getView().camera_base_revision,
+       "singular normal fallback must reject an anchored camera patch")) return false;
+  reuse = CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::FULL_REBUILD,0);
+  // Invalid unused states preserve the diagnostic and poison every old cache
+  // proof. Retry the same failed revision after repairing the payload.
+  ++frame.revision;
+  frame.lightingStates.push_back(frame.lightingStates[0]);
+  frame.lightingStates.back().lights.resize(COIN_WGPU_FFI_MAX_LIGHTS+1);
+  frame.renderStates.push_back(frame.renderStates.front());
+  frame.renderStates.back().lightingSlot = 1;
+  early.disable(false); incremental.disable(false);
+  const bool okA = fast.prepare(frame,width,height,a);
+  early.disable(true); incremental.disable(true);
+  const bool okB = original.prepare(frame,width,height,b);
+  early.disable(false); incremental.disable(false);
+  if (!check(!okA && !okB && a == b && a.find("More than eight active lights") != std::string::npos,
+             "late invalid state must preserve rejection and diagnostic")) return false;
+  frame.renderStates.pop_back(); frame.lightingStates.pop_back();
+  if (!compare(false,256,768)) return false;
+  ++frame.revision; frame.renderStates[6].model[3][0] += .5f;
+  if (!compare(true,1,3)) return false;
+  return true;
+}
+
+bool boundedIncrementalBatch()
+{
+  auto frame = opaqueFrame(true);
+  // Unreferenced geometry still belongs to the source-content proof. An input
+  // larger than the 16 MiB cache budget must always take the full bake.
+  frame.vertices.resize(17u * 1024u * 1024u / sizeof(CoinRenderVertexSnapshot));
+  CoinWgpuFfiFrame packed;
+  IncrementalBatchSwitch incremental;
+  EarlyBatchSwitch early; early.disable(false);
+  std::string diagnostic;
+  if (!check(packed.prepare(frame,64,64,diagnostic), "large cache input base")) return false;
+  ++frame.revision; frame.renderStates[0].model[3][0] += .5f;
+  return check(packed.prepare(frame,64,64,diagnostic) && !packed.incrementalOpaqueLastPrepare() &&
+               packed.opaqueRangesRebakedLastPrepare() == 256,
+               "a source beyond the cache budget must retain the full-bake fallback");
+}
 }
 
 int
 main()
 {
   if (!opaqueBatching(false) || !opaqueBatching(true) || !anchoredPhongCamera() ||
-      !earlyBatchEquivalence(false) || !earlyBatchEquivalence(true)) return 1;
+      !earlyBatchEquivalence(false) || !earlyBatchEquivalence(true) ||
+      !incrementalBatchEquivalence(false) || !incrementalBatchEquivalence(true) ||
+      !boundedIncrementalBatch()) return 1;
   CoinRenderFramePlan frame;
   frame.revision = 41;
   frame.vertices.resize(1);
