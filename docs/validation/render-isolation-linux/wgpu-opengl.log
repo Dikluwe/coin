@@ -1,0 +1,15 @@
+startup_detail arguments_ms=0.01581 coin_init_ms=1.63574 capability_probe_ms=84.4905
+scene_detail parse_ms=299.293 wrapper_ms=0.017763 camera_fit_ms=67.6415
+scene_load_ms=367.012
+startup_detail material_search_ms=0.077734 target_setup_ms=4.27956
+WebGPU_first_detail render_ms=419.841 publication_copy_ms=1.88014 before_frame_since_main_ms=460.193 result_since_main_ms=881.914
+WebGPU_first_frame_ms=421.721
+rgba_fnv64=0x3a998bbb78caa846
+adapter=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) (Gl) vendor_id=0x1002 device_id=0x0 backend=wgpu size=1024x1024 warmup=2 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static
+WebGPU frames=3 median_ms=10.9137 p95_ms=11.584 min_ms=10.8562 max_ms=11.584
+WebGPU_render frames=3 median_ms=10.4715 p95_ms=11.1393 min_ms=10.3834 max_ms=11.1393
+WebGPU_copy frames=3 median_ms=0.444749 p95_ms=0.472811 min_ms=0.442214 max_ms=0.472811
+WebGPU_throughput frames=3 total_ms=33.3554 fps=89.9405
+WebGPU_cache last_frame_uploads=0 last_frame_uploaded_bytes=0 last_frame_hits=1 cumulative_uploads=1 cumulative_uploaded_bytes=101762544 cumulative_hits=4
+backend_cleanup_begin
+backend_cleanup_ms=15.4009

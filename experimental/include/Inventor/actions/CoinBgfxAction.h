@@ -3,10 +3,9 @@
 
 #include <Inventor/actions/CoinRenderAction.h>
 
-/** Experimental BGFX action (Vulkan/OpenGL).
- * Uses the shared Coin frame capture implementation. The distinct registered
- * action type identifies BGFX correctly; CoinRenderAction remains available
- * to the Rust/wgpu backend and to existing experimental clients.
+/** Compatibility action retaining the registered CoinBgfxAction type.
+ * New integrations use CoinRenderAction with the selected target backend.
+ * Capture, GPU availability and execution are inherited from the common action.
  */
 class COIN_RENDER_DLL_API CoinBgfxAction : public CoinRenderAction {
   typedef CoinRenderAction inherited;

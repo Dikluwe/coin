@@ -83,13 +83,6 @@
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include "rendering/coinrender/CoinRenderSelectionCore.h"
 #include "actions/SoSubActionP.h"
-#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-#include "rendering/coinwgpu/CoinWgpuBackend.h"
-#elif defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
-#include "rendering/coinwgpu/CoinWgpuNativeBackend.h"
-#elif defined(HAVE_COIN_BGFX)
-#include "rendering/coinbgfx/CoinBgfxBackend.h"
-#endif
 
 SO_ACTION_SOURCE(CoinRenderAction);
 
@@ -107,18 +100,7 @@ CoinRenderAction::initClass(void)
 SbBool
 CoinRenderAction::isGpuBackendAvailable(void)
 {
-#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-  return CoinWgpuBackend::isAvailable() ? TRUE : FALSE;
-#elif defined(HAVE_COIN_BGFX)
-  CoinRenderCapabilities caps{};
-  caps.struct_size = sizeof(caps);
-  return coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN,
-    &caps, sizeof(caps)) == 0 && caps.gpu_available ? TRUE : FALSE;
-#elif defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
-  return CoinWgpuNativeBackend::isAvailable() ? TRUE : FALSE;
-#else
-  return FALSE;
-#endif
+  return CoinRenderTargetP::isGpuBackendAvailable() ? TRUE : FALSE;
 }
 
 CoinRenderAction::CoinRenderAction(void)
@@ -679,26 +661,12 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       executableShadow = coin_render_shadow_object_profile(
         plan, shadowPlan, shadowPlan.passes.size(), profileDiagnostic);
     }
-#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-    if (this->target && this->target->getPimpl()->kind == CoinRenderTargetP::KIND_OFFSCREEN &&
-        !this->target->getPimpl()->directTextureOutput && !this->asyncTicket &&
-        (!this->target->getPimpl()->backend ||
-         dynamic_cast<CoinWgpuBackend *>(this->target->getPimpl()->backend.get()))) {
+    if (this->target &&
+        this->target->getPimpl()->supportsOffscreenShadows(this->asyncTicket != nullptr)) {
       std::string profileDiagnostic;
       executableShadow = coin_render_shadow_object_profile(
         plan, shadowPlan, shadowPlan.passes.size(), profileDiagnostic);
     }
-#endif
-#if defined(HAVE_COIN_BGFX)
-    if (this->target && this->target->getPimpl()->kind == CoinRenderTargetP::KIND_OFFSCREEN &&
-        !this->target->getPimpl()->directTextureOutput && !this->asyncTicket &&
-        (!this->target->getPimpl()->backend ||
-         dynamic_cast<CoinBgfxBackend *>(this->target->getPimpl()->backend.get()))) {
-      std::string profileDiagnostic;
-      executableShadow = coin_render_shadow_object_profile(
-        plan, shadowPlan, shadowPlan.passes.size(), profileDiagnostic);
-    }
-#endif
     if (!executableShadow) {
       this->lastRejectedShadowFrame = std::move(plan);
       this->lastRejectedShadowPlan = std::move(shadowPlan);

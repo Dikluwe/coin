@@ -41,6 +41,9 @@ public:
   uint64_t resourceOwnerId{0};
   uint64_t resourceGeneration{0};
   static std::unique_ptr<CoinRenderBackend> createBackend();
+  static bool isGpuBackendAvailable();
+  // Admission uses implementation facts without preparing a GPU/device.
+  bool supportsOffscreenShadows(bool asynchronous) const;
   CoinRenderBackendStatus prepareBackend();
   CoinRenderSubmitResult preflightSubmission(bool asynchronous);
   void deviceLost();

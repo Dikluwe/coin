@@ -6,6 +6,8 @@
 
 class CoinRenderTargetP;
 class CoinRenderRttPlan;
+struct CoinRenderFrameReuseDecision;
+struct CoinRenderReadbackTicket;
 
 struct CoinRenderDeviceDomain {
   uint64_t device = 0;
@@ -38,10 +40,26 @@ class CoinRenderBackend {
 public:
   virtual ~CoinRenderBackend() {}
   virtual bool isGpuBackend() const = 0;
+  // Implementation fact, independent of runtime GPU availability. Core still
+  // validates the captured shadow profile; Target checks the output policy.
+  virtual bool supportsOffscreenShadows() const { return false; }
   virtual CoinRenderBackendStatus getStatus() const = 0;
   virtual CoinRenderBackendStatus prepare(CoinRenderTargetP & target) = 0;
   virtual CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame,
                              CoinRenderTargetP & target) = 0;
+  // Core decides reuse; each executor consumes the same decision or submits afresh.
+  virtual CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame,
+                                        CoinRenderTargetP & target,
+                                        const CoinRenderFrameReuseDecision &) {
+    return this->submit(frame, target);
+  }
+  virtual CoinRenderSubmitResult submitAsync(const CoinRenderFramePlan &,
+                                             CoinRenderTargetP &,
+                                             CoinRenderReadbackTicket &,
+                                             const CoinRenderFrameReuseDecision &) {
+    return {CoinRenderBackendStatus::UNSUPPORTED,
+            "The selected backend does not support asynchronous readback"};
+  }
   // Inspect immutable captures without initializing a device or submitting work.
   virtual CoinRenderSubmitResult preflightRtt(const CoinRenderRttPlan&, const CoinRenderFramePlan&,
                                               const SbVec2i32&) const {

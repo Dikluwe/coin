@@ -18,6 +18,7 @@ public:
   CoinBgfxBackend();
   ~CoinBgfxBackend() override;
   bool isGpuBackend() const override { return true; }
+  bool supportsOffscreenShadows() const override { return true; }
   uint64_t getAvailableTransparencyMechanisms(bool window = false) const {
     if (!(window ? this->windowSupported : this->offscreenSupported))
       return 0;
@@ -29,7 +30,7 @@ public:
   CoinRenderBackendStatus prepare(CoinRenderTargetP & target) override;
   CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target) override;
   CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
-                      const CoinRenderFrameReuseDecision & reuse);
+                      const CoinRenderFrameReuseDecision & reuse) override;
   CoinRenderSubmitResult submitDirectTexture(const CoinRenderFramePlan & frame,
                                    const SbVec2i32 & size,
                                    uint64_t producerKey,
@@ -51,7 +52,7 @@ public:
   void finishDirectTextures(const std::vector<uint64_t> & usedTokens);
   struct AsyncEntry;
   CoinRenderSubmitResult submitAsync(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
-                           CoinRenderReadbackTicket & ticket, const CoinRenderFrameReuseDecision & reuse);
+                           CoinRenderReadbackTicket & ticket, const CoinRenderFrameReuseDecision & reuse) override;
   static CoinRenderTarget::ReadbackStatus pollReadback(const CoinRenderReadbackTicket & ticket,
     std::vector<uint8_t> & color, std::vector<float> & depth, SbString * diagnostic);
   static bool cancelReadback(const CoinRenderReadbackTicket & ticket);

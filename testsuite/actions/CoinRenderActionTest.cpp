@@ -618,7 +618,7 @@ int testWindowTargetRecordingBackend() {
   CoinRenderTarget * target = CoinRenderTarget::createWindow(desc, SbVec2i32(100, 100));
   TEST_ASSERT(target != nullptr, "Target pointer must not be null");
   TEST_ASSERT(target->getStatus() == CoinRenderTarget::TARGET_ERROR, "Status must be TARGET_ERROR in RECORDING mode");
-  TEST_ASSERT(std::string(target->getLastError()).find("RECORDING") != std::string::npos, "Diagnostic must mention RECORDING backend");
+  TEST_ASSERT(std::string(target->getLastError()).find("RUST_BRIDGE or BGFX") != std::string::npos, "Diagnostic must identify the supported window executors");
 
   SoSeparator * root = new SoSeparator;
   root->ref();

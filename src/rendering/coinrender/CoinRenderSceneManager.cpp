@@ -10,12 +10,6 @@
 #include <Inventor/nodes/SoNode.h>
 #include <Inventor/SbViewportRegion.h>
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
-#if defined(HAVE_COIN_BGFX)
-#include <Inventor/actions/CoinBgfxAction.h>
-using SceneRenderAction = CoinBgfxAction;
-#else
-using SceneRenderAction = CoinRenderAction;
-#endif
 
 struct CoinRenderSceneManager::P {
   CoinRenderTarget * target = nullptr;
@@ -28,9 +22,9 @@ struct CoinRenderSceneManager::P {
 CoinRenderSceneManager::CoinRenderSceneManager(const SbVec2i32 & offscreenSize)
   : pimpl(new P)
 {
-  if (SceneRenderAction::getClassTypeId().isBad()) SceneRenderAction::initClass();
+  if (CoinRenderAction::getClassTypeId().isBad()) CoinRenderAction::initClass();
   this->pimpl->target = CoinRenderTarget::createOffscreen(offscreenSize);
-  this->pimpl->action = new SceneRenderAction(SbViewportRegion(offscreenSize[0], offscreenSize[1]));
+  this->pimpl->action = new CoinRenderAction(SbViewportRegion(offscreenSize[0], offscreenSize[1]));
   this->pimpl->action->setRenderTarget(this->pimpl->target);
   if (this->pimpl->target->getStatus() != CoinRenderTarget::TARGET_READY) {
     const CoinRenderActionDiagnostic diagnostic = CoinRenderDiagnosticShell::fromTarget(
@@ -44,9 +38,9 @@ CoinRenderSceneManager::CoinRenderSceneManager(const CoinRenderNativeSurfaceDesc
                                        const SbVec2i32 & framebufferSize)
   : pimpl(new P)
 {
-  if (SceneRenderAction::getClassTypeId().isBad()) SceneRenderAction::initClass();
+  if (CoinRenderAction::getClassTypeId().isBad()) CoinRenderAction::initClass();
   this->pimpl->target = CoinRenderTarget::createWindow(nativeWindow, framebufferSize);
-  this->pimpl->action = new SceneRenderAction(SbViewportRegion(framebufferSize[0], framebufferSize[1]));
+  this->pimpl->action = new CoinRenderAction(SbViewportRegion(framebufferSize[0], framebufferSize[1]));
   this->pimpl->action->setRenderTarget(this->pimpl->target);
   if (this->pimpl->target->getStatus() != CoinRenderTarget::TARGET_READY) {
     const CoinRenderActionDiagnostic diagnostic = CoinRenderDiagnosticShell::fromTarget(

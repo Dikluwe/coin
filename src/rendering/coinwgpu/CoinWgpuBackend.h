@@ -27,17 +27,18 @@ public:
   virtual ~CoinWgpuBackend();
 
   bool isGpuBackend() const override { return true; }
+  bool supportsOffscreenShadows() const override { return true; }
   CoinRenderBackendStatus getStatus() const override;
   virtual CoinRenderBackendStatus prepare(CoinRenderTargetP & target) override;
   virtual CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame,
                               CoinRenderTargetP & target) override;
   CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
-                      const CoinRenderFrameReuseDecision & reuse);
+                      const CoinRenderFrameReuseDecision & reuse) override;
   CoinRenderSubmitResult submitAsync(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
                            CoinRenderReadbackTicket & outTicket);
   CoinRenderSubmitResult submitAsync(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
                            CoinRenderReadbackTicket & outTicket,
-                           const CoinRenderFrameReuseDecision & reuse);
+                           const CoinRenderFrameReuseDecision & reuse) override;
   CoinRenderSubmitResult preflightRtt(const CoinRenderRttPlan&, const CoinRenderFramePlan&,
                                       const SbVec2i32&) const override;
   bool readbackLoad(uint64_t&, uint64_t&) const override;

@@ -1,6 +1,5 @@
 #include "config.h"
 #include <Inventor/actions/CoinBgfxAction.h>
-#include <Inventor/rendering/CoinRenderCapabilities.h>
 #include "actions/SoSubActionP.h"
 
 SO_ACTION_SOURCE(CoinBgfxAction);
@@ -20,8 +19,5 @@ CoinBgfxAction::CoinBgfxAction(const SbViewportRegion & viewport)
 CoinBgfxAction::~CoinBgfxAction() = default;
 
 SbBool CoinBgfxAction::isGpuBackendAvailable() {
-  CoinRenderCapabilities caps{};
-  caps.struct_size = sizeof(caps);
-  return coin_render_query_capabilities(
-    COIN_RENDER_EXPERIMENTAL_OFFSCREEN, &caps, sizeof(caps)) == 0 && caps.gpu_available;
+  return inherited::isGpuBackendAvailable();
 }

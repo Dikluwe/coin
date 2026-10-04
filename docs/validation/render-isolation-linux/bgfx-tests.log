@@ -1,0 +1,18 @@
+Internal ctest changing into directory: /tmp/coin-render-first-frame-bgfx
+Test project /tmp/coin-render-first-frame-bgfx
+    Start 16: CoinRenderProductTest
+1/6 Test #16: CoinRenderProductTest ............   Passed    0.89 sec
+    Start 20: CoinRenderFrameCoreTest
+2/6 Test #20: CoinRenderFrameCoreTest ..........   Passed    0.02 sec
+    Start 21: CoinBgfxReadbackModes_vulkan
+3/6 Test #21: CoinBgfxReadbackModes_vulkan .....   Passed    1.87 sec
+    Start 23: CoinBgfxSurface_vulkan_object
+4/6 Test #23: CoinBgfxSurface_vulkan_object ....   Passed    9.33 sec
+    Start 55: CoinRenderFrameReuseCoreTest
+5/6 Test #55: CoinRenderFrameReuseCoreTest .....   Passed    0.43 sec
+    Start 97: CoinRenderShadowReferenceTest
+6/6 Test #97: CoinRenderShadowReferenceTest ....   Passed    9.61 sec
+
+100% tests passed, 0 tests failed out of 6
+
+Total Test time (real) =  22.16 sec

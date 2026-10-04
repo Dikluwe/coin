@@ -36,7 +36,7 @@ do pedido, enquanto Infra cria, retém e libera os recursos concretos.
 
 | Componente atual | Responsabilidade real | Compartilhamento e pendência |
 |---|---|---|
-| `CoinRenderAction`, callbacks e replay de paths | Wiring | Captura comum; a action ainda conhece BGFX/Rust, libera tokens concretos e lê configuração textual de RTT. |
+| `CoinRenderAction`, callbacks e replay de paths | Wiring | Captura comum sem referências a executores concretos; submissão/reuse e fatos de sombras passam pelo contrato do target. Ver [isolamento da entrada](coin-render-isolation.md). |
 | `CoinRenderFramePlanBuilder` | Wiring + Core | Lê `SoCallbackAction`/`SoState` e também transforma geometria e monta o plano. Separar funções de captura e funções mecânicas, sem exigir separar o arquivo inteiro. |
 | `CoinRenderFramePlan` e snapshots em `CoinRenderFramePlan.h` | Contrato comum | Compartilháveis; `gpuToken`, limites e convenções precisam de significado independente do executor. |
 | `CoinRenderIndexedGeometryCore` | Core comum | Bons limites explícitos: arrays e fatos capturados, sem travessia nem recursos GPU. |

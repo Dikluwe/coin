@@ -480,16 +480,16 @@ CoinRenderTargetP::detachedFromAction()
 #endif
 }
 
-std::unique_ptr<CoinRenderBackend> CoinRenderTargetP::createBackend() {
-#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-  return std::unique_ptr<CoinRenderBackend>(new CoinWgpuBackend());
-#elif defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
-  return std::unique_ptr<CoinRenderBackend>(new CoinWgpuNativeBackend());
-#elif defined(HAVE_COIN_BGFX)
-  return std::unique_ptr<CoinRenderBackend>(new CoinBgfxBackend());
-#else
-  return std::unique_ptr<CoinRenderBackend>(new CoinRenderCpuReferenceBackend());
-#endif
+bool
+CoinRenderTargetP::supportsOffscreenShadows(bool asynchronous) const
+{
+  if (this->kind != KIND_OFFSCREEN || this->directTextureOutput || asynchronous)
+    return false;
+  if (this->backend) return this->backend->supportsOffscreenShadows();
+  // An unprepared target uses the compiled connector's implementation facts.
+  // Constructing a connector does not create GPU resources or probe hardware.
+  const auto candidate = createBackend();
+  return candidate->supportsOffscreenShadows();
 }
 
 CoinRenderBackendStatus CoinRenderTargetP::prepareBackend() {
@@ -635,12 +635,6 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     return CoinRenderFrameExecutionResult(CoinRenderBackendStatus::UNSUPPORTED,
                                 "applyAsync() requires an offscreen target");
   }
-#if !defined(HAVE_COIN_WGPU_RUST_BRIDGE) && !defined(HAVE_COIN_BGFX)
-  if (outTicket) {
-    return CoinRenderFrameExecutionResult(CoinRenderBackendStatus::UNSUPPORTED,
-                                "Asynchronous readback requires the Rust bridge backend");
-  }
-#endif
   if (this->suspended || this->size[0] <= 0 || this->size[1] <= 0) {
     this->status = CoinRenderTarget::TARGET_NOT_READY;
     this->lastError = "Target is suspended or has zero size";
@@ -717,30 +711,10 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     }
   }
 
-  CoinRenderSubmitResult res;
   const auto phasePrepared = PhaseClock::now();
-#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-  if (outTicket) {
-    CoinWgpuBackend * rust = dynamic_cast<CoinWgpuBackend *>(this->backend.get());
-    res = rust ? rust->submitAsync(frame, *this, *submitTicket, reuse)
-               : CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED,
-                                        "Asynchronous readback requires the Rust bridge backend");
-  } else if (CoinWgpuBackend * rust =
-               dynamic_cast<CoinWgpuBackend *>(this->backend.get())) {
-    res = rust->submit(frame, *this, reuse);
-  } else
-#endif
-  {
-#if defined(HAVE_COIN_BGFX)
-    if (CoinBgfxBackend * bgfx =
-          dynamic_cast<CoinBgfxBackend *>(this->backend.get())) {
-      res = outTicket ? bgfx->submitAsync(frame, *this, *submitTicket, reuse)
-                      : bgfx->submit(frame, *this, reuse);
-    } else
-#endif
-      res = outTicket ? CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, "The selected backend does not support asynchronous readback")
-                      : this->backend->submit(frame, *this);
-  }
+  CoinRenderSubmitResult res = outTicket
+    ? this->backend->submitAsync(frame, *this, *submitTicket, reuse)
+    : this->backend->submit(frame, *this, reuse);
   if (res.status == CoinRenderBackendStatus::SUCCESS &&
       (this->kind == KIND_OFFSCREEN || captureWindow) && !this->directTextureOutput) {
     const uint64_t pixels = uint64_t(this->size[0]) * this->size[1];
