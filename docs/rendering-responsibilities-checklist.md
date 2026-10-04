@@ -48,7 +48,8 @@ do pedido, enquanto Infra cria, retém e libera os recursos concretos.
 | `rust_bridge/src/composition.rs` | Adaptação Infra | Valida flags, referências e sequência recebida; não reclassifica alpha nem reordena draws. |
 | `CoinBgfxBackend`, recursos e shaders BGFX | Infra BGFX | Devem permanecer específicos; recebem o plano resolvido e executam mecanismos compatíveis. |
 | `rust_bridge/src/lib.rs`, recursos e shaders WGSL | Infra wgpu, com lógica mecânica misturada | Execução específica; separar validação/adaptação de decisões semânticas. |
-| `CoinRenderTarget`, scene manager e adapter | Fachada comum + Wiring + Infra | Separar ciclo/publicação de operações nativas por método/colaborador. A API comum não precisa expor a classe concreta. |
+| `CoinRenderTarget`, scene manager e adapter | Fachada comum + Wiring | Ciclo, admissão e publicação comuns; operações nativas delegadas ao contrato privado de runtime, sem classes concretas no target. [Segunda etapa](coin-render-runtime-isolation.md). |
+| `CoinRenderBackendRuntime`, `CoinBgfxRuntime`, `CoinWgpuRuntime` | Contrato de Infra + materialização específica | Serviços com vida independente dos targets: superfícies, polling/cancelamento, telemetria e polling do dispositivo. |
 | `CoinRenderCapabilities` | Infra + Core + Shell | Probe nativo é Infra; seleção mecânica tem dono comum; V3 separa fatos, execução e evidência de perfil; defaults textuais são Shell. [P11](coin-render-selection-contract.md). |
 | `CoinRenderDiagnosticShell` | Shell comum e extensões específicas | Mensagens/status/tempos comuns compartilháveis; contadores BGFX ou da ponte Rust devem conservar identificação específica. |
 

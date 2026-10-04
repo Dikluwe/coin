@@ -67,14 +67,13 @@ As quatro variantes preservaram os checksums do benchmark anterior:
 resultados. Esta execução verifica preservação da saída; não estabelece novo ganho
 de desempenho. Windows e os protótipos DAWN/WGPU_NATIVE não foram executados.
 
-## Separação ainda pendente
+## Continuação
 
-O target ainda contém integração concreta de superfícies, polling/cancelamento de
-readbacks, aposentadoria do runtime BGFX e política de buffers CPU. Essa Infra
-precisa de uma etapa própria de extração. O builder ainda mistura leitura de estado
-Coin com transformação mecânica; partes do lowering reutilizável também continuam
-em `CoinBgfxLowering`. Esses limites seguem na
-[checklist de responsabilidades](rendering-responsibilities-checklist.md).
+Na conclusão desta primeira etapa, o target ainda continha integração concreta de
+superfícies, polling/cancelamento de readbacks e políticas de depth/detach. Esses
+acoplamentos foram extraídos na [segunda etapa, infraestrutura do target](coin-render-runtime-isolation.md).
 
-Esta etapa fecha o acoplamento da entrada comum à identidade dos executores;
-não declara concluído o isolamento completo de Core, Shell, Infra e Wiring.
+O builder ainda mistura leitura de estado Coin com transformação mecânica; partes
+do lowering reutilizável também continuam em `CoinBgfxLowering`. Esses limites
+seguem na [checklist de responsabilidades](rendering-responsibilities-checklist.md).
+O isolamento completo de Core, Shell, Infra e Wiring permanece em andamento.

@@ -1,6 +1,7 @@
 // Composition point: this file connects the common target to a compiled executor.
 #include "config.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
+#include "rendering/coinrender/CoinRenderBackendRuntime.h"
 #include <Inventor/rendering/CoinRenderCapabilities.h>
 
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
@@ -42,4 +43,22 @@ CoinRenderTargetP::isGpuBackendAvailable()
 #else
   return false;
 #endif
+}
+
+CoinRenderBackendRuntime & CoinRenderTargetP::backendRuntime() {
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+  return CoinWgpuBackend::runtime();
+#elif defined(HAVE_COIN_BGFX)
+  return CoinBgfxBackend::runtime();
+#else
+  // Process lifetime: targets may be destroyed during application shutdown.
+  static auto * instance = new CoinRenderBackendRuntime;
+  return *instance;
+#endif
+}
+
+bool CoinRenderTargetP::compiledBackendInitializesCpuDepthBuffer() {
+  // Implementation fact only; constructing an unprepared executor creates no device.
+  static const bool value = createBackend()->initializesCpuDepthBuffer();
+  return value;
 }

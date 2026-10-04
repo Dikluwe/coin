@@ -25,6 +25,10 @@ public:
   CoinRenderTargetP(const SbVec2i32 & sz = SbVec2i32(0, 0));
   ~CoinRenderTargetP();
 
+  static CoinRenderBackendRuntime & backendRuntime();
+  static bool compiledBackendInitializesCpuDepthBuffer();
+  // Non-owning, process-lifetime Infra service, independent of executor ownership.
+  CoinRenderBackendRuntime * runtime;
   bool capabilityProbeOnly = false;
   CoinRenderOptions options;
   std::string optionsDiagnostic;

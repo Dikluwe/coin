@@ -6,6 +6,7 @@
 
 class CoinRenderTargetP;
 class CoinRenderRttPlan;
+class CoinRenderBackendRuntime;
 struct CoinRenderFrameReuseDecision;
 struct CoinRenderReadbackTicket;
 
@@ -40,6 +41,8 @@ class CoinRenderBackend {
 public:
   virtual ~CoinRenderBackend() {}
   virtual bool isGpuBackend() const = 0;
+  virtual bool initializesCpuDepthBuffer() const { return true; }
+  virtual bool resetOnActionDetach() const { return false; }
   // Implementation fact, independent of runtime GPU availability. Core still
   // validates the captured shadow profile; Target checks the output policy.
   virtual bool supportsOffscreenShadows() const { return false; }

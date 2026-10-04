@@ -1,0 +1,220 @@
+[
+  {
+    "backend": "bgfx",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "depth",
+    "args": [
+      "CoinRenderDepthContractTest",
+      "--gpu"
+    ],
+    "code": 0,
+    "seconds": 0.306
+  },
+  {
+    "backend": "bgfx",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "readback",
+    "args": [
+      "CoinBgfxReadbackModesTest"
+    ],
+    "code": 0,
+    "seconds": 1.245
+  },
+  {
+    "backend": "bgfx",
+    "api": "opengl",
+    "gpu": "nvidia",
+    "test": "depth",
+    "args": [
+      "CoinRenderDepthContractTest",
+      "--gpu"
+    ],
+    "code": 0,
+    "seconds": 0.189
+  },
+  {
+    "backend": "bgfx",
+    "api": "opengl",
+    "gpu": "nvidia",
+    "test": "readback",
+    "args": [
+      "CoinBgfxReadbackModesTest"
+    ],
+    "code": 0,
+    "seconds": 1.275
+  },
+  {
+    "backend": "bgfx",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "shadow",
+    "args": [
+      "CoinRenderShadowReferenceTest"
+    ],
+    "code": 0,
+    "seconds": 9.695
+  },
+  {
+    "backend": "bgfx",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "multi",
+    "args": [
+      "CoinRenderMultiTargetTest"
+    ],
+    "code": 0,
+    "seconds": 0.795
+  },
+  {
+    "backend": "bgfx",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "multi-direct",
+    "args": [
+      "CoinRenderMultiTargetTest"
+    ],
+    "code": 0,
+    "seconds": 0.621
+  },
+  {
+    "backend": "wgpu",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "depth",
+    "args": [
+      "CoinRenderDepthContractTest",
+      "--gpu"
+    ],
+    "code": 0,
+    "seconds": 0.277
+  },
+  {
+    "backend": "wgpu",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "readback",
+    "args": [
+      "CoinRenderAsyncActionTest"
+    ],
+    "code": 0,
+    "seconds": 0.277
+  },
+  {
+    "backend": "wgpu",
+    "api": "gl",
+    "gpu": "amd",
+    "test": "depth",
+    "args": [
+      "CoinRenderDepthContractTest",
+      "--gpu"
+    ],
+    "code": 0,
+    "seconds": 0.181
+  },
+  {
+    "backend": "wgpu",
+    "api": "gl",
+    "gpu": "amd",
+    "test": "readback",
+    "args": [
+      "CoinRenderAsyncActionTest"
+    ],
+    "code": 0,
+    "seconds": 0.225
+  },
+  {
+    "backend": "wgpu",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "shadow",
+    "args": [
+      "CoinRenderShadowReferenceTest"
+    ],
+    "code": 0,
+    "seconds": 3.293
+  },
+  {
+    "backend": "wgpu",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "multi",
+    "args": [
+      "CoinRenderMultiTargetTest"
+    ],
+    "code": 0,
+    "seconds": 0.668
+  },
+  {
+    "backend": "wgpu",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "multi-direct",
+    "args": [
+      "CoinRenderMultiTargetTest"
+    ],
+    "code": 0,
+    "seconds": 0.474
+  },
+  {
+    "backend": "wgpu",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "cache",
+    "args": [
+      "CoinWgpuCacheTest"
+    ],
+    "code": 0,
+    "seconds": 0.581
+  },
+  {
+    "backend": "wgpu",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "async-low-level",
+    "args": [
+      "CoinRenderAsyncReadbackTest"
+    ],
+    "code": 0,
+    "seconds": 0.455
+  },
+  {
+    "backend": "wgpu",
+    "api": "vulkan",
+    "gpu": "amd",
+    "test": "surface",
+    "args": [
+      "CoinRenderSurfaceTest",
+      "--require-display"
+    ],
+    "code": 0,
+    "seconds": 0.235
+  },
+  {
+    "backend": "bgfx",
+    "api": "vulkan",
+    "gpu": "amd",
+    "test": "window",
+    "args": [
+      "coin_render_window_cone",
+      "--frames",
+      "3"
+    ],
+    "code": 0,
+    "seconds": 0.195
+  },
+  {
+    "backend": "wgpu",
+    "api": "vulkan",
+    "gpu": "amd",
+    "test": "window",
+    "args": [
+      "coin_render_window_cone",
+      "--frames",
+      "3"
+    ],
+    "code": 0,
+    "seconds": 0.116
+  }
+]

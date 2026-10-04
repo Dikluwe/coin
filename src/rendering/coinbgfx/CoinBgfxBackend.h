@@ -15,8 +15,11 @@ struct CoinRenderShadowPlan;
 /** Experimental BGFX renderer. Targets share an API-thread-owned device. */
 class CoinBgfxBackend : public CoinRenderBackend {
 public:
+  static CoinRenderBackendRuntime & runtime();
   CoinBgfxBackend();
   ~CoinBgfxBackend() override;
+  bool initializesCpuDepthBuffer() const override { return false; }
+  bool resetOnActionDetach() const override { return true; }
   bool isGpuBackend() const override { return true; }
   bool supportsOffscreenShadows() const override { return true; }
   uint64_t getAvailableTransparencyMechanisms(bool window = false) const {

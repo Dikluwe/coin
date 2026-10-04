@@ -23,6 +23,7 @@ class CoinWgpuFfiFrame;
  */
 class COIN_RENDER_DLL_API CoinWgpuBackend : public CoinRenderBackend {
 public:
+  static CoinRenderBackendRuntime & runtime();
   CoinWgpuBackend();
   virtual ~CoinWgpuBackend();
 
