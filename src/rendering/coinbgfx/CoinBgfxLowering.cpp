@@ -6,6 +6,7 @@
 
 #include "rendering/coinbgfx/CoinBgfxLowering.h"
 #include "rendering/coinrender/CoinRenderClipCore.h"
+#include "rendering/coinrender/CoinRenderTransformCore.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
 
 #include <cmath>
@@ -15,17 +16,6 @@
 #include <unordered_map>
 
 namespace {
-bool finiteMatrix(const SbMatrix & matrix)
-{
-  const float (*value)[4] = matrix.getValue();
-  for (int row = 0; row < 4; ++row) {
-    for (int col = 0; col < 4; ++col) {
-      if (!std::isfinite(value[row][col])) return false;
-    }
-  }
-  return true;
-}
-
 uint64_t hashBytes(uint64_t hash, const void * data, size_t bytes)
 {
   const unsigned char * value = static_cast<const unsigned char *>(data);
@@ -173,16 +163,7 @@ bool
 CoinBgfxLowering::clipViewport(const int32_t viewport[4], int width, int height,
                             int32_t clipped[4])
 {
-  const int64_t left = std::max<int64_t>(0, viewport[0]);
-  const int64_t bottom = std::max<int64_t>(0, viewport[1]);
-  const int64_t right = std::min<int64_t>(width, int64_t(viewport[0]) + viewport[2]);
-  const int64_t top = std::min<int64_t>(height, int64_t(viewport[1]) + viewport[3]);
-  if (right <= left || top <= bottom) return false;
-  clipped[0] = static_cast<int32_t>(left);
-  clipped[1] = static_cast<int32_t>(bottom);
-  clipped[2] = static_cast<int32_t>(right - left);
-  clipped[3] = static_cast<int32_t>(top - bottom);
-  return true;
+  return CoinRenderTransformCore::clipViewport(viewport, width, height, clipped);
 }
 
 bool
@@ -317,31 +298,15 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       }
       if (material.diffuse[3] > maxAlpha) maxAlpha = material.diffuse[3];
     }
-    const SbMatrix clipConversion(
-      1.0f, 0.0f, 0.0f, 0.0f,
-      0.0f, 1.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 0.5f, 0.0f,
-      0.0f, 0.0f, 0.5f, 1.0f);
     const SbMatrix modelView = state.model * state.view;
     // Baking view-space positions preserves perspective interpolation only
     // for affine transforms. Strokes and shadow passes keep their own path.
     for (int axis = 0; axis < 3; ++axis)
       if (modelView[axis][3] != 0.0f) batchable = false;
     if (modelView[3][3] != 1.0f) batchable = false;
-    const float normalDeterminant = modelView.det4();
-    const SbMatrix normalMatrix = std::abs(normalDeterminant) > 1.0e-12f
-      ? modelView.inverse().transpose() : SbMatrix::identity();
-    const SbMatrix projection = homogeneousDepth
-      ? state.projectionCoin : state.projectionCoin * clipConversion;
-    const float sx = static_cast<float>(viewport.width) / static_cast<float>(width);
-    const float sy = static_cast<float>(viewport.height) / static_cast<float>(height);
-    const float tx = (2.0f * viewport.x + viewport.width) / static_cast<float>(width) - 1.0f;
-    const float ty = (2.0f * viewport.y + viewport.height) / static_cast<float>(height) - 1.0f;
-    const SbMatrix viewportTransform(
-      sx, 0.0f, 0.0f, 0.0f,
-      0.0f, sy, 0.0f, 0.0f,
-      0.0f, 0.0f, 1.0f, 0.0f,
-      tx, ty, 0.0f, 1.0f);
+    const SbMatrix normalMatrix = CoinRenderTransformCore::normalMatrix(modelView);
+    const SbMatrix projection = CoinRenderTransformCore::projection(state.projectionCoin, homogeneousDepth);
+    const SbMatrix viewportTransform = CoinRenderTransformCore::viewportTransform(viewport, width, height);
     const SbMatrix mvp = batchable ? projection * viewportTransform :
       modelView * projection * viewportTransform;
     CoinBgfxDraw lowered{};
@@ -752,11 +717,6 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
     }
   }
   std::vector<CoinBgfxDraw> candidate = base.draws;
-  const SbMatrix clipConversion(
-    1.0f, 0.0f, 0.0f, 0.0f,
-    0.0f, 1.0f, 0.0f, 0.0f,
-    0.0f, 0.0f, 0.5f, 0.0f,
-    0.0f, 0.0f, 0.5f, 1.0f);
   for (size_t i = 0; i < frame.draws.size(); ++i) {
     const CoinRenderDrawPacket & draw = frame.draws[i];
     const CoinBgfxDraw & previous = base.draws[i];
@@ -803,23 +763,14 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
       diagnostic = "BGFX camera patch changed non-camera draw state";
       return false;
     }
-    if (!finiteMatrix(state.model) || !finiteMatrix(state.view) ||
-        !finiteMatrix(state.projectionCoin)) {
+    if (!CoinRenderTransformCore::finiteMatrix(state.model) || !CoinRenderTransformCore::finiteMatrix(state.view) ||
+        !CoinRenderTransformCore::finiteMatrix(state.projectionCoin)) {
       diagnostic = "BGFX camera patch has a non-finite matrix";
       return false;
     }
 
-    const SbMatrix projection = homogeneousDepth
-      ? state.projectionCoin : state.projectionCoin * clipConversion;
-    const float sx = static_cast<float>(viewport.width) / static_cast<float>(width);
-    const float sy = static_cast<float>(viewport.height) / static_cast<float>(height);
-    const float tx = (2.0f * viewport.x + viewport.width) / static_cast<float>(width) - 1.0f;
-    const float ty = (2.0f * viewport.y + viewport.height) / static_cast<float>(height) - 1.0f;
-    const SbMatrix viewportTransform(
-      sx, 0.0f, 0.0f, 0.0f,
-      0.0f, sy, 0.0f, 0.0f,
-      0.0f, 0.0f, 1.0f, 0.0f,
-      tx, ty, 0.0f, 1.0f);
+    const SbMatrix projection = CoinRenderTransformCore::projection(state.projectionCoin, homogeneousDepth);
+    const SbMatrix viewportTransform = CoinRenderTransformCore::viewportTransform(viewport, width, height);
     const SbMatrix mvp = state.model * state.view * projection * viewportTransform;
     std::memcpy(candidate[i].mvp, mvp.getValue(), sizeof(candidate[i].mvp));
   }

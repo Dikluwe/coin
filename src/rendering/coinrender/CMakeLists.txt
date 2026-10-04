@@ -7,7 +7,6 @@ set(COIN_RENDER_SOURCES
 	CoinRenderFramePlan.cpp
 	CoinRenderFramePlanBuilder.cpp
 	CoinRenderFrameReuseCore.cpp
-	${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxLowering.cpp
 	CoinRenderImageCore.cpp
 	CoinRenderPlanAssemblyCore.cpp
 	CoinRenderIndexedGeometryCore.cpp
@@ -26,7 +25,7 @@ if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
 elseif(COIN_RENDER_BACKEND STREQUAL "DAWN" OR COIN_RENDER_BACKEND STREQUAL "WGPU_NATIVE")
 	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuNativeBackend.cpp)
 elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
-	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxAction.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxRuntime.cpp)
+	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxLowering.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxAction.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxRuntime.cpp)
 	set(_coin_bgfx_shader_dir ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/shaders)
 	set(_coin_bgfx_generated_dir ${CMAKE_CURRENT_BINARY_DIR}/bgfx-generated)
 	file(MAKE_DIRECTORY ${_coin_bgfx_generated_dir})

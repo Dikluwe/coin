@@ -73,7 +73,4 @@ Na conclusão desta primeira etapa, o target ainda continha integração concret
 superfícies, polling/cancelamento de readbacks e políticas de depth/detach. Esses
 acoplamentos foram extraídos na [segunda etapa, infraestrutura do target](coin-render-runtime-isolation.md).
 
-O builder ainda mistura leitura de estado Coin com transformação mecânica; partes
-do lowering reutilizável também continuam em `CoinBgfxLowering`. Esses limites
-seguem na [checklist de responsabilidades](rendering-responsibilities-checklist.md).
-O isolamento completo de Core, Shell, Infra e Wiring permanece em andamento.
+A leitura de estado e montagem mecânica foram separadas na [terceira etapa](coin-render-builder-isolation.md); as transformações compartilhadas do lowering, na [quarta](coin-render-lowering-isolation.md). Ver [resumo das quatro fases](coin-render-isolation-roadmap.md). A checklist geral continua acompanhando os demais escopos de render.

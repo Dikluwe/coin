@@ -5,6 +5,7 @@
 #endif
 
 #include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
+#include "rendering/coinrender/CoinRenderTransformCore.h"
 #include "rendering/coinrender/CoinRenderClipCore.h"
 
 #include <Inventor/SbMatrix.h>
@@ -232,9 +233,8 @@ CoinWgpuFfiFrame::batchOpaqueTriangles(const CoinRenderFramePlan & frame)
     const SbMatrix identity = SbMatrix::identity();
     std::memcpy(key.model_view, identity.getValue(), sizeof(key.model_view));
     std::memcpy(key.normal_matrix, identity.getValue(), sizeof(key.normal_matrix));
-    const SbMatrix clipConversion(
-      1,0,0,0, 0,1,0,0, 0,0,.5f,0, 0,0,.5f,1);
-    const SbMatrix projection = frame.renderStates[draw.render_state_slot].projectionCoin * clipConversion;
+    const SbMatrix projection = CoinRenderTransformCore::projection(
+      frame.renderStates[draw.render_state_slot].projectionCoin, false);
     std::memcpy(key.model_view_projection, projection.getValue(), sizeof(key.model_view_projection));
     if (i == 0) common = key;
     else if (std::memcmp(&common, &key, sizeof(key)) != 0) return;
@@ -296,15 +296,8 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame,
     dst.clip_plane_count = static_cast<uint32_t>(src.clipPlanesWorld.size());
     if (!coin_render_clip_equations(src, dst.clip_planes, outDiagnostic)) return false;
     const SbMatrix modelView = src.model * src.view;
-    const float determinant = modelView.det4();
-    const SbMatrix normalMatrix = std::abs(determinant) > 1.0e-12f
-      ? modelView.inverse().transpose() : SbMatrix::identity();
-    const SbMatrix clipConversion(
-      1.0f, 0.0f, 0.0f, 0.0f,
-      0.0f, 1.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 0.5f, 0.0f,
-      0.0f, 0.0f, 0.5f, 1.0f);
-    const SbMatrix projectionWgpu = src.projectionCoin * clipConversion;
+    const SbMatrix normalMatrix = CoinRenderTransformCore::normalMatrix(modelView);
+    const SbMatrix projectionWgpu = CoinRenderTransformCore::projection(src.projectionCoin, false);
     const SbMatrix mvpWgpu = modelView * projectionWgpu;
 
     std::memcpy(dst.model_view, modelView.getValue(), sizeof(float) * 16);

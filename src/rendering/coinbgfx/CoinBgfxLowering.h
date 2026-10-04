@@ -21,8 +21,8 @@ enum class CoinBgfxTransparencyStrategy {
   WEIGHTED_OIT,
   SORTED_LAYERS
 };
-// Backend-neutral lowering for the deliberately narrow BGFX evaluation profile.
-// No BGFX headers or GPU state leak into Core or Open Inventor traversal.
+// BGFX-specific packed vertex layout and grouping for the evaluation profile.
+// Shared Coin semantics/transforms live in CoinRender Core; no GPU handles here.
 struct CoinBgfxVertex {
   float position[3];
   float color[4];

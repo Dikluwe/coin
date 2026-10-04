@@ -83,9 +83,10 @@ nesta refatoração.
 
 [Comandos, scripts e logs](validation/render-runtime-linux/) registram a execução.
 
-## Próxima fronteira
+## Continuação
 
-Separar no `CoinRenderFramePlanBuilder` a leitura de action/estado Coin das funções
-mecânicas sobre snapshots e arrays. Depois, extrair as operações reutilizáveis que
-continuam no `CoinBgfxLowering`. A coordenação compartilhada de targets permanece
-comum; os mecanismos concretos de perda de dispositivo continuam na Infra.
+A separação da leitura de estado e montagem mecânica foi concluída na
+[terceira etapa](coin-render-builder-isolation.md). As transformações reutilizáveis
+do lowering foram extraídas na [quarta etapa](coin-render-lowering-isolation.md).
+A coordenação compartilhada de targets permanece comum; os mecanismos concretos
+de perda de dispositivo continuam na Infra.
