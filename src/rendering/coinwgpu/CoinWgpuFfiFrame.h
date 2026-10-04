@@ -43,10 +43,20 @@ private:
                           const CoinRenderFramePreflight * preflight);
   void bindView(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height);
   void batchOpaqueTriangles(const CoinRenderFramePlan & frame);
+  void rememberOpaqueCamera(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height);
+  bool patchOpaqueCamera(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height,
+                         const CoinRenderFrameReuseDecision & reuse);
 
   uint64_t packedRevision;
   bool reused;
   bool opaqueBatched;
+  bool opaqueCameraPatchable;
+  bool opaqueGeometryPatchable;
+  SbMatrix opaqueCameraAnchor;
+  CoinWgpuRenderState opaqueCameraState;
+  size_t opaqueSourceVertices, opaqueSourceIndices, opaqueSourceDraws, opaqueSourceStates;
+  uint32_t opaqueTargetWidth, opaqueTargetHeight;
+  float opaqueClearColor[4];
   CoinRenderFrameReuseKind prepareKind;
   CoinWgpuFrameView view;
   CoinWgpuShadowFrame shadowFrame;

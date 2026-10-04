@@ -729,7 +729,7 @@ struct SamplerCache {
     entries: HashMap<SamplerKey, wgpu::Sampler>,
 }
 
-// The offscreen camera fast path reads geometry only from this Rust-owned
+// The camera fast path reads geometry only from this Rust-owned
 // snapshot. A revision hint alone never licenses dereferencing caller-owned
 // geometry without full validation. One snapshot belongs to one device
 // generation and is discarded with that device on loss/destruction.
@@ -739,6 +739,7 @@ struct ValidatedGeometry {
     draws: Vec<CoinWgpuDraw>,
     materials: Vec<CoinWgpuMaterial>,
     max_abs_position: f64,
+    opaque_batch: bool,
 }
 
 struct ValidatedScene {
@@ -750,6 +751,27 @@ struct ValidatedScene {
     geometry: Arc<ValidatedGeometry>,
     states: Vec<CoinWgpuRenderState>,
     draw_order: Vec<composition::CompositionItem>,
+}
+
+// Object animation changes baked geometry on each full revision. Retain one
+// initial snapshot, then stop cloning until an actual camera hint asks for it.
+// The decision is speculative; only a successful submission commits policy.
+#[derive(Default)]
+struct CameraSnapshotPolicy {
+    suspended: bool,
+}
+
+impl CameraSnapshotPolicy {
+    fn capture(&self, previous_revision: Option<u64>, revision: u64,
+               camera_hint: u64, owned_base: bool) -> bool {
+        owned_base || camera_hint != 0 || (!self.suspended &&
+            !previous_revision.is_some_and(|previous| previous != revision))
+    }
+
+    fn commit(&mut self, capture: bool, snapshot: bool) {
+        if snapshot { self.suspended = false; }
+        else if !capture { self.suspended = true; }
+    }
 }
 
 // The camera experiment retains materials; draw uniforms always use the
@@ -765,6 +787,7 @@ struct CameraGpuBindings {
 // Zero revisions and stable per-node draws keep their existing paths.
 struct FrameGpuBuffers {
     revision: u64,
+    geometry: Option<Arc<ValidatedGeometry>>,
     vertex_count: usize,
     index_count: usize,
     material_bytes: usize,
@@ -855,8 +878,24 @@ fn same_camera_independent_state(a: &CoinWgpuRenderState, b: &CoinWgpuRenderStat
 
 fn camera_states_match(scene: &ValidatedScene, states: &[CoinWgpuRenderState]) -> bool {
     scene.states.len() == states.len() && scene.states.iter().zip(states).all(|(old, next)| {
-        if old.light_model != 0 || old.fog_mode != 0 || (old.has_texture != 0 || old.extra_textures.iter().any(|t| t.enabled != 0))
-            || !same_camera_independent_state(old, next)
+        let immutable_state_matches = if scene.geometry.opaque_batch && old.light_model == 1 {
+            let mut a = *old;
+            let mut b = *next;
+            // Camera overlays resolve these coordinates from immutable world
+            // light values. Keep all light types/colors/attenuation in the key.
+            for state in [&mut a, &mut b] {
+                state.light_direction[..3].fill(0.0);
+                for light in &mut state.lights {
+                    light.position_type[..3].fill(0.0);
+                    light.direction_cutoff[..3].fill(0.0);
+                }
+            }
+            same_camera_independent_state(&a, &b)
+        } else {
+            old.light_model == 0 && same_camera_independent_state(old, next)
+        };
+        if old.fog_mode != 0 || (old.has_texture != 0 || old.extra_textures.iter().any(|t| t.enabled != 0))
+            || !immutable_state_matches
             || !next.model_view.iter().chain(next.model_view_projection.iter())
                 .chain(next.normal_matrix.iter()).all(|x| x.is_finite())
             || !next.fog_end.is_finite() {
@@ -872,25 +911,217 @@ fn camera_states_match(scene: &ValidatedScene, states: &[CoinWgpuRenderState]) -
     })
 }
 
+fn opaque_camera_batch(states: &[CoinWgpuRenderState], draws: &[CoinWgpuDraw],
+                       order: &[composition::CompositionItem]) -> bool {
+    states.len() == 1 && draws.len() == 1 && order.len() == 1
+        && matches!(states[0].light_model, 0 | 1)
+        && states[0].fog_mode == 0 && states[0].clip_plane_count == 0
+        && states[0].polygon_offset_enabled == 0 && states[0].has_texture == 0
+        && states[0].extra_textures.iter().all(|t| t.enabled == 0)
+        && draws[0].topology == 0 && draws[0].stable_node_id == 0
+        && draws[0].composition_flags == 0 && draws[0].render_layer == 0
+        && draws[0].clear_depth_before == 0 && draws[0].first_vertex == 0
+        && draws[0].first_index == 0 && draws[0].vertex_count != 0
+        && draws[0].index_count != 0 && draws[0].index_count % 3 == 0
+        && !order[0].blend && !order[0].peel && !order[0].weighted
+}
+
 fn camera_scene_eligible(
     vertices: &[CoinWgpuVertex], indices: &[u32], draws: &[CoinWgpuDraw],
     materials: &[CoinWgpuMaterial],
     states: &[CoinWgpuRenderState], order: &[composition::CompositionItem],
     textures: &[CoinWgpuTexture], samplers: &[CoinWgpuSampler],
 ) -> bool {
-    const MAX_OWNED_SCENE_BYTES: usize = 32 * 1024 * 1024;
+    let max_owned_scene_bytes = if opaque_camera_batch(states, draws, order) {
+        256 * 1024 * 1024
+    } else { 32 * 1024 * 1024 };
     let owned_bytes = std::mem::size_of_val(vertices)
         .saturating_add(std::mem::size_of_val(indices))
         .saturating_add(std::mem::size_of_val(draws))
         .saturating_add(std::mem::size_of_val(materials))
         .saturating_add(std::mem::size_of_val(states))
         .saturating_add(std::mem::size_of_val(order));
-    owned_bytes <= MAX_OWNED_SCENE_BYTES
+    owned_bytes <= max_owned_scene_bytes
         && textures.is_empty() && samplers.is_empty()
-        && states.iter().all(|s| s.light_model == 0 && s.fog_mode == 0 && s.has_texture == 0 && s.extra_textures.iter().all(|t| t.enabled == 0))
+        && states.iter().all(|s| (s.light_model == 0 || opaque_camera_batch(states, draws, order))
+            && s.fog_mode == 0 && s.has_texture == 0 && s.extra_textures.iter().all(|t| t.enabled == 0))
         && materials.iter().all(|m| m.diffuse[3] == 1.0 && m.transparency == 0.0)
         && order.iter().all(|item| !item.blend)
-        && vertices.iter().all(|v| v.position.iter().all(|x| x.is_finite()))
+        && vertices.iter().all(|v| v.position.iter().chain(v.normal.iter()).all(|x| x.is_finite())
+            && v.extra_texcoords.iter().flatten().all(|x| x.is_finite())
+            && v.screen_space_w.is_finite() && v.screen_space_w >= 0.0
+            && v.fog_eye_depth_plus_one.is_finite() && v.fog_eye_depth_plus_one >= 0.0
+            && (v.material_slot as usize) < materials.len()
+            && (!opaque_camera_batch(states, draws, order) ||
+                (v.screen_space_w == 1.0 && v.fog_eye_depth_plus_one == 0.0
+                    && v.normal.iter().all(|x| x.abs() <= 1.0e18))))
+}
+
+fn camera_base(device: &DeviceState, f: &CoinWgpuFrameView,
+               states: &[CoinWgpuRenderState]) -> Option<Arc<ValidatedScene>> {
+    owned_camera_base(device.validated_scene.as_ref()?, device.generation, f, states)
+}
+
+fn owned_camera_base(scene: &Arc<ValidatedScene>, generation: u64, f: &CoinWgpuFrameView,
+                     states: &[CoinWgpuRenderState]) -> Option<Arc<ValidatedScene>> {
+    if f.frame_revision == 0 || f.texture_count != 0
+        || f.sampler_count != 0 { return None; }
+    let geometry = &scene.geometry;
+    let exact = f.camera_base_revision == 0 && scene.revision == f.frame_revision
+        && scene.states.len() == states.len() && scene.states.iter().zip(states).all(|(a, b)|
+            same_camera_independent_state(a, b) && a.fog_end == b.fog_end
+                && a.model_view == b.model_view && a.model_view_projection == b.model_view_projection
+                && a.normal_matrix == b.normal_matrix);
+    let patch = f.camera_base_revision != 0 && f.frame_revision != f.camera_base_revision
+        && scene.revision == f.camera_base_revision && camera_states_match(scene, states);
+    ((exact || patch) && scene.generation == generation
+        && scene.width == f.width && scene.height == f.height && scene.clear_color == f.clear_color
+        && geometry.vertices.len() as u64 == f.vertex_count
+        && geometry.indices.len() as u64 == f.index_count
+        && geometry.draws.len() as u64 == f.draw_count
+        && geometry.materials.len() as u64 == f.material_count).then(|| scene.clone())
+}
+
+// Build only after ordinary draw/index/composition preflight. Allocation is
+// bounded and fallible: an unavailable snapshot simply keeps the full path.
+fn camera_scene(generation: u64, f: &CoinWgpuFrameView,
+    vertices: &[CoinWgpuVertex], indices: &[u32], draws: &[CoinWgpuDraw],
+    materials: &[CoinWgpuMaterial], states: &[CoinWgpuRenderState],
+    order: &[composition::CompositionItem], textures: &[CoinWgpuTexture], samplers: &[CoinWgpuSampler],
+    base: Option<&Arc<ValidatedScene>>) -> Option<Arc<ValidatedScene>> {
+    if f.frame_revision == 0 { return None; }
+    fn copy<T: Clone>(source: &[T]) -> Option<Vec<T>> {
+        let mut target = Vec::new();
+        target.try_reserve_exact(source.len()).ok()?;
+        target.extend_from_slice(source);
+        Some(target)
+    }
+    let geometry = if let Some(base) = base {
+        base.geometry.clone()
+    } else {
+        if !camera_scene_eligible(vertices, indices, draws, materials, states, order, textures, samplers) {
+            return None;
+        }
+        Arc::new(ValidatedGeometry {
+            vertices: copy(vertices)?, indices: copy(indices)?, draws: copy(draws)?, materials: copy(materials)?,
+            max_abs_position: vertices.iter().flat_map(|v| v.position)
+                .map(|x| f64::from(x).abs()).fold(0.0_f64, f64::max),
+            opaque_batch: opaque_camera_batch(states, draws, order),
+        })
+    };
+    Some(Arc::new(ValidatedScene {
+        revision: f.frame_revision, generation, width: f.width, height: f.height,
+        clear_color: f.clear_color, geometry, states: copy(states)?, draw_order: copy(order)?,
+    }))
+}
+
+fn commit_camera_scene(device: &mut DeviceState, scene: Option<Arc<ValidatedScene>>,
+                       update: bool, revision: u64, owned_base: bool, capture: bool) {
+    if !update { return; }
+    device.camera_snapshot_policy.commit(capture, scene.is_some());
+    device.validated_scene = scene;
+    if owned_base {
+        if let Ok(mut cache) = VALIDATED_FRAME_CACHE.lock() {
+            if let Some(scene) = device.validated_scene.as_ref() {
+                *cache = Some((revision, scene.draw_order.clone()));
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod camera_scene_tests {
+    use super::*;
+
+    #[test]
+    fn snapshot_policy_suspends_objects_and_readmits_a_camera_transactionally() {
+        let mut policy = CameraSnapshotPolicy::default();
+        assert!(policy.capture(None, 1, 0, false));
+        policy.commit(true, true); // initial eligible frame
+        assert!(policy.capture(Some(1), 1, 0, true)); // static reuse
+        assert!(!policy.capture(Some(1), 2, 0, false)); // object rebuild candidate
+        // A failed candidate does not commit; the old owned base still works.
+        assert!(!policy.suspended);
+        assert!(policy.capture(Some(1), 3, 1, true));
+        policy.commit(false, false); // successful object rebuild, old base cleared
+        assert!(policy.suspended);
+        assert!(!policy.capture(None, 3, 0, false));
+        assert!(policy.capture(None, 4, 3, false)); // camera hint needs full validation
+        assert!(policy.suspended); // failed validation leaves it suspended
+        policy.commit(true, true);
+        assert!(!policy.suspended);
+        assert!(policy.capture(Some(4), 5, 4, true));
+        assert!(!policy.capture(Some(5), 6, 0, false));
+    }
+
+    fn phong_state() -> CoinWgpuRenderState {
+        let mut state: CoinWgpuRenderState = unsafe { std::mem::zeroed() };
+        state.light_model = 1;
+        state.light_count = 1;
+        state.lights[0].position_type = [0.0, 0.0, 3.0, 1.0];
+        state.lights[0].color_intensity = [1.0, 0.5, 0.25, 1.0];
+        state.lights[0].attenuation_exponent = [0.0, 0.0, 1.0, 0.0];
+        for i in 0..4 {
+            state.model_view[i*5] = 1.0;
+            state.model_view_projection[i*5] = 1.0;
+            state.normal_matrix[i*5] = 1.0;
+        }
+        state
+    }
+
+    #[test]
+    fn phong_camera_scene_owns_and_preserves_geometry_arc() {
+        let mut frame: CoinWgpuFrameView = unsafe { std::mem::zeroed() };
+        frame.frame_revision = 1; frame.width = 64; frame.height = 64;
+        frame.vertex_count = 3; frame.index_count = 3; frame.draw_count = 1;
+        frame.material_count = 1; frame.state_count = 1;
+        let mut vertices = [CoinWgpuVertex::zeroed(); 3];
+        for vertex in &mut vertices { vertex.screen_space_w = 1.0; vertex.normal[2] = 1.0; }
+        let mut draw: CoinWgpuDraw = unsafe { std::mem::zeroed() };
+        draw.vertex_count = 3; draw.index_count = 3;
+        let mut material: CoinWgpuMaterial = unsafe { std::mem::zeroed() };
+        material.diffuse[3] = 1.0;
+        let order = [composition::CompositionItem { draw_index: 0, blend: false,
+            additive: false, screen_door: false, screen_door_level: 0, peel: false, weighted: false }];
+        let mut state = phong_state();
+        let base = camera_scene(7, &frame, &vertices, &[0,1,2], &[draw], &[material],
+            &[state], &order, &[], &[], None).expect("validated opaque PHONG snapshot");
+        assert!(base.geometry.opaque_batch);
+        vertices[0].position[0] = 100.0;
+        assert_eq!(base.geometry.vertices[0].position[0], 0.0, "must own caller payload");
+
+        // The same resolver/builder is used by both native surface and
+        // offscreen submission. Incoming immutable pointers intentionally stay
+        // null: only a matching device generation/base may license the Arc.
+        let mut current = base.clone();
+        for revision in 2..5 {
+            frame.camera_base_revision = revision - 1;
+            frame.frame_revision = revision;
+            state.model_view[12] = revision as f32 * 0.1;
+            state.model_view_projection[12] = state.model_view[12];
+            state.lights[0].position_type[0] = revision as f32;
+            let owned = owned_camera_base(&current, 7, &frame, &[state])
+                .expect("PHONG camera with resolved light coordinates");
+            let next = camera_scene(7, &frame, &owned.geometry.vertices, &owned.geometry.indices,
+                &owned.geometry.draws, &owned.geometry.materials, &[state], &order,
+                &[], &[], Some(&owned)).unwrap();
+            assert!(Arc::ptr_eq(&base.geometry, &next.geometry));
+            assert_eq!(next.states[0].lights[0].position_type[0], revision as f32);
+            current = next;
+        }
+        frame.camera_base_revision = current.revision; frame.frame_revision = current.revision + 1;
+        assert!(owned_camera_base(&current, 7, &frame, &[state]).is_some());
+        assert!(owned_camera_base(&current, 8, &frame, &[state]).is_none(), "device generation cannot alias");
+        frame.camera_base_revision = 1; frame.frame_revision = 5;
+        state.lights[0].color_intensity[0] = 0.25;
+        assert!(owned_camera_base(&base, 7, &frame, &[state]).is_none(), "light color is immutable");
+        state = phong_state(); state.normal_matrix[0] = f32::NAN;
+        assert!(owned_camera_base(&base, 7, &frame, &[state]).is_none());
+        state = phong_state(); state.fog_mode = 1;
+        assert!(owned_camera_base(&base, 7, &frame, &[state]).is_none());
+        state = phong_state(); frame.vertex_count = 4;
+        assert!(owned_camera_base(&base, 7, &frame, &[state]).is_none());
+    }
 }
 
 struct DeviceState {
@@ -929,6 +1160,7 @@ struct DeviceState {
     draw_bind_groups: AtomicU32,
     uniform_chunks: AtomicU32,
     validated_scene: Option<Arc<ValidatedScene>>,
+    camera_snapshot_policy: CameraSnapshotPolicy,
     readback_pool: Arc<Mutex<ReadbackPool>>,
     cached_offscreen_attachments: Option<CachedOffscreenAttachments>,
     rtt_textures: Mutex<RttRegistry>,
@@ -1814,6 +2046,7 @@ fn get_or_init_device_impl<'a>(
         draw_bind_groups: AtomicU32::new(0),
         uniform_chunks: AtomicU32::new(0),
         validated_scene: None,
+        camera_snapshot_policy: CameraSnapshotPolicy::default(),
         readback_pool: Arc::new(Mutex::new(ReadbackPool::default())),
         cached_offscreen_attachments: None,
         rtt_textures: Mutex::new(RttRegistry::default()),
@@ -2871,7 +3104,10 @@ fn encode_frame(
         return Err((CoinWgpuStatus::Unsupported, "Material buffer exceeds max_storage_buffer_binding_size".to_string()));
     }
 
-    for (v_idx, v) in vertices_slice.iter().enumerate() {
+    // An owned scene already validated this immutable vertex payload. Camera
+    // frames update only states; scanning a million vertices would defeat reuse.
+    let unchecked_vertices = if camera_geometry.is_none() { vertices_slice } else { &[] };
+    for (v_idx, v) in unchecked_vertices.iter().enumerate() {
         if !v.extra_texcoords.iter().flatten().all(|x| x.is_finite())
             || !v.screen_space_w.is_finite() || v.screen_space_w < 0.0
             || !v.fog_eye_depth_plus_one.is_finite() || v.fog_eye_depth_plus_one < 0.0 {
@@ -2916,7 +3152,9 @@ fn encode_frame(
         && geometry_bytes.saturating_add(material_bytes.len() as u64) <= 256 * 1024 * 1024;
     let mut frame_buffers = ctx.frame_buffers.lock().unwrap();
     if !retain_frame || !frame_buffers.as_ref().is_some_and(|entry|
-        entry.revision == frame_revision && entry.vertex_count == vertices_slice.len()
+        (entry.revision == frame_revision || camera_geometry.is_some_and(|geometry|
+            entry.geometry.as_ref().is_some_and(|cached| Arc::ptr_eq(cached, geometry))))
+            && entry.vertex_count == vertices_slice.len()
             && entry.index_count == indices_slice.len() && entry.material_bytes == material_bytes.len()) {
         *frame_buffers = None;
     }
@@ -2926,7 +3164,7 @@ fn encode_frame(
     // benchmarked against its previous behavior. It is opt-in, bounded and
     // applies only to the already-validated, untextured camera patch.
     static CAMERA_GPU_CACHE_ENABLED: OnceLock<bool> = OnceLock::new();
-    let camera_geometry = camera_geometry.filter(|_| shadow_frame.is_none()).filter(|_| {
+    let camera_binding_geometry = camera_geometry.filter(|_| shadow_frame.is_none()).filter(|_| {
         *CAMERA_GPU_CACHE_ENABLED.get_or_init(|| {
             std::env::var("COIN_WGPU_CAMERA_BINDINGS").as_deref() == Ok("1")
         })
@@ -2937,7 +3175,7 @@ fn encode_frame(
             .saturating_mul(std::mem::size_of::<CoinWgpuUniforms>())) <= 4 * 1024 * 1024
     });
     let mut camera_bindings = ctx.camera_bindings.lock().unwrap();
-    if !camera_geometry.is_some_and(|geometry| camera_bindings.as_ref()
+    if !camera_binding_geometry.is_some_and(|geometry| camera_bindings.as_ref()
         .is_some_and(|entry| Arc::ptr_eq(&entry.geometry, geometry))) {
         *camera_bindings = None;
     }
@@ -2952,7 +3190,7 @@ fn encode_frame(
             contents: material_bytes,
             usage: wgpu::BufferUsages::STORAGE,
         });
-        if let Some(geometry) = camera_geometry {
+        if let Some(geometry) = camera_binding_geometry {
             *camera_bindings = Some(CameraGpuBindings {
                 geometry: geometry.clone(),
                 materials_buffer: buffer.clone(),
@@ -3008,7 +3246,7 @@ fn encode_frame(
         cache.frame_hits += 1;
     } else if retain_frame {
         *frame_buffers = Some(FrameGpuBuffers {
-            revision: frame_revision, vertex_count: vertices_slice.len(),
+            revision: frame_revision, geometry: camera_geometry.cloned(), vertex_count: vertices_slice.len(),
             index_count: indices_slice.len(), material_bytes: material_bytes.len(),
             vertex_buffer: uncached_v_buffer.as_ref().unwrap().clone(),
             index_buffer: uncached_i_buffer.as_ref().unwrap().clone(),
@@ -4585,8 +4823,21 @@ fn coin_wgpu_surface_submit_internal(
             return CoinWgpuStatus::NotReady;
         }
 
+        let states_slice =
+            match validate_slice(f.states, f.state_count, "states", error_buf, error_buf_len) {
+                Ok(s) => s,
+                Err(st) => return st,
+            };
+        let owned_patch = RUNTIME_CTX.lock().ok().and_then(|guard| {
+            let runtime = guard.as_ref()?;
+            if !runtime.surfaces.contains_key(&surface_id) { return None; }
+            camera_base(runtime.device_state.as_ref()?, f, states_slice)
+        });
+
         // 5. Preflight slice bounds and alignment validation BEFORE acquire
-        let vertices_slice = match validate_slice(
+        let vertices_slice = if let Some(scene) = owned_patch.as_ref() {
+            scene.geometry.vertices.as_slice()
+        } else { match validate_slice(
             f.vertices,
             f.vertex_count,
             "vertices",
@@ -4595,8 +4846,10 @@ fn coin_wgpu_surface_submit_internal(
         ) {
             Ok(s) => s,
             Err(st) => return st,
-        };
-        let indices_slice = match validate_slice(
+        } };
+        let indices_slice = if let Some(scene) = owned_patch.as_ref() {
+            scene.geometry.indices.as_slice()
+        } else { match validate_slice(
             f.indices,
             f.index_count,
             "indices",
@@ -4605,13 +4858,16 @@ fn coin_wgpu_surface_submit_internal(
         ) {
             Ok(s) => s,
             Err(st) => return st,
-        };
-        let draws_slice =
-            match validate_slice(f.draws, f.draw_count, "draws", error_buf, error_buf_len) {
+        } };
+        let draws_slice = if let Some(scene) = owned_patch.as_ref() {
+            scene.geometry.draws.as_slice()
+        } else { match validate_slice(f.draws, f.draw_count, "draws", error_buf, error_buf_len) {
                 Ok(s) => s,
                 Err(st) => return st,
-            };
-        let materials_slice = match validate_slice(
+            } };
+        let materials_slice = if let Some(scene) = owned_patch.as_ref() {
+            scene.geometry.materials.as_slice()
+        } else { match validate_slice(
             f.materials,
             f.material_count,
             "materials",
@@ -4620,12 +4876,7 @@ fn coin_wgpu_surface_submit_internal(
         ) {
             Ok(s) => s,
             Err(st) => return st,
-        };
-        let states_slice =
-            match validate_slice(f.states, f.state_count, "states", error_buf, error_buf_len) {
-                Ok(s) => s,
-                Err(st) => return st,
-            };
+        } };
 
         let textures_slice = if f.texture_count > 0 {
             match validate_slice(f.textures, f.texture_count, "textures", error_buf, error_buf_len) {
@@ -4645,7 +4896,8 @@ fn coin_wgpu_surface_submit_internal(
             &[]
         };
 
-        for (i, draw) in draws_slice.iter().enumerate() {
+        let unchecked_draws = if owned_patch.is_some() { &[] } else { draws_slice };
+        for (i, draw) in unchecked_draws.iter().enumerate() {
             let idx_end = match draw.first_index.checked_add(draw.index_count) {
                 Some(end) => end as usize,
                 None => {
@@ -4760,14 +5012,16 @@ fn coin_wgpu_surface_submit_internal(
         }
 
         // Reject unsupported composition before acquiring a swapchain texture.
-        let draw_order = match composition::order(
+        let draw_order = if let Some(scene) = owned_patch.as_ref() {
+            scene.draw_order.clone()
+        } else { match composition::order(
             vertices_slice, indices_slice, draws_slice, materials_slice, states_slice, textures_slice) {
             Ok(order) => order,
             Err((status, message)) => {
                 set_error(error_buf, error_buf_len, &message);
                 return status;
             }
-        };
+        } };
 
         if let Err((status, message)) = peeling::validate_request(
             if draw_order.iter().any(|item| item.peel) { f.sorted_layers_passes } else { 1 },
@@ -4818,6 +5072,25 @@ fn coin_wgpu_surface_submit_internal(
             }
         };
         let dev = unsafe { &mut *device_state };
+
+        if let Some(scene) = owned_patch.as_ref() {
+            if scene.generation != dev.generation {
+                set_error(error_buf, error_buf_len, "Camera base belongs to a lost device generation");
+                return CoinWgpuStatus::DeviceLost;
+            }
+            if !dev.validated_scene.as_ref().is_some_and(|current| Arc::ptr_eq(current, scene)) {
+                set_error(error_buf, error_buf_len, "Camera base is no longer current on this device");
+                return CoinWgpuStatus::NotReady;
+            }
+        }
+        let capture_scene = dev.camera_snapshot_policy.capture(
+            dev.validated_scene.as_ref().map(|scene| scene.revision), f.frame_revision,
+            f.camera_base_revision, owned_patch.is_some());
+        let next_scene = if capture_scene {
+            camera_scene(dev.generation, f, vertices_slice, indices_slice, draws_slice,
+                materials_slice, states_slice, &draw_order, textures_slice, samplers_slice,
+                owned_patch.as_ref())
+        } else { None };
 
         let record = runtime.surfaces.get_mut(&surface_id).unwrap();
 
@@ -5012,7 +5285,7 @@ fn coin_wgpu_surface_submit_internal(
             textures_slice,
             samplers_slice,
             None, // window shadows remain preflight-rejected
-            None,
+            next_scene.as_ref().map(|scene| &scene.geometry),
             None,
             &color_view,
             record.color_format,
@@ -5134,6 +5407,8 @@ fn coin_wgpu_surface_submit_internal(
             set_error(error_buf, error_buf_len, &msg);
             return CoinWgpuStatus::BackendError;
         }
+
+        commit_camera_scene(dev, next_scene, true, f.frame_revision, owned_patch.is_some(), capture_scene);
 
         if let Some(pixels) = captured_rgba {
             unsafe { std::ptr::copy_nonoverlapping(pixels.as_ptr(), readback_rgba, pixels.len()); }
@@ -5448,8 +5723,7 @@ fn coin_wgpu_submit_internal(
                 Err(st) => return st,
             };
 
-        let owned_patch = if out_texture.is_null() && f.camera_base_revision != 0
-            && f.frame_revision != 0 && f.frame_revision != f.camera_base_revision
+        let owned_patch = if out_texture.is_null() && f.frame_revision != 0
             && f.texture_count == 0 && f.sampler_count == 0 {
             RUNTIME_CTX.lock().ok().and_then(|guard| {
                 let runtime = guard.as_ref()?;
@@ -5458,18 +5732,7 @@ fn coin_wgpu_submit_internal(
                 } else {
                     runtime.extra_devices.get(&tgt.device_id)
                 }?;
-                let scene = device.validated_scene.as_ref()?;
-                let geometry = &scene.geometry;
-                (scene.revision == f.camera_base_revision
-                    && scene.generation == device.generation
-                    && scene.width == width && scene.height == height
-                    && scene.clear_color == f.clear_color
-                    && geometry.vertices.len() as u64 == f.vertex_count
-                    && geometry.indices.len() as u64 == f.index_count
-                    && geometry.draws.len() as u64 == f.draw_count
-                    && geometry.materials.len() as u64 == f.material_count
-                    && camera_states_match(scene, states_slice))
-                    .then(|| scene.clone())
+                camera_base(device, f, states_slice)
             })
         } else { None };
 
@@ -5738,7 +6001,11 @@ fn coin_wgpu_submit_internal(
         };
 
         // 6. Strict validation and composition are immutable for one private CoinRenderFramePlan revision.
-        let cached_draw_order = if owned_patch.is_none() && f.frame_revision != 0 {
+        // A camera hint without an owned base readmits a new snapshot only
+        // after this submission validates the full geometry, even if another
+        // device previously validated the same private frame revision.
+        let cached_draw_order = if owned_patch.is_none() && f.camera_base_revision == 0
+            && f.frame_revision != 0 {
             VALIDATED_FRAME_CACHE.lock().ok().and_then(|cache| {
                 cache.as_ref().and_then(|(revision, order)| {
                     if *revision == f.frame_revision { Some(order.clone()) } else { None }
@@ -6013,6 +6280,15 @@ fn coin_wgpu_submit_internal(
         };
         let profile_attachments_created = trace_phases.then(std::time::Instant::now);
 
+        let capture_scene = ctx.camera_snapshot_policy.capture(
+            ctx.validated_scene.as_ref().map(|scene| scene.revision), f.frame_revision,
+            f.camera_base_revision, owned_patch.is_some());
+        let next_scene = if capture_scene && out_texture.is_null() && shadow_frame.is_none()
+            && (owned_patch.is_some() || fully_validated) {
+            camera_scene(ctx.generation, f, vertices_slice, indices_slice, draws_slice, materials_slice,
+                states_slice, &draw_order, textures_slice, samplers_slice, owned_patch.as_ref())
+        } else { None };
+
         // 9. Encode draw calls with the exact same shared encode_frame
         let cmd_buffer = match encode_frame(
             ctx,
@@ -6029,7 +6305,7 @@ fn coin_wgpu_submit_internal(
             textures_slice,
             samplers_slice,
             shadow_frame.as_ref(),
-            owned_patch.as_ref().map(|scene| &scene.geometry),
+            next_scene.as_ref().map(|scene| &scene.geometry),
             gpu_probe.as_ref().map(|probe| &probe.queries),
             &color_view,
             wgpu::TextureFormat::Rgba8Unorm,
@@ -6044,48 +6320,9 @@ fn coin_wgpu_submit_internal(
             }
         };
         let profile_draw_encoded = trace_phases.then(std::time::Instant::now);
-        if f.frame_revision != 0 && (owned_patch.is_some() || fully_validated) {
-            let next_scene = if let Some(scene) = owned_patch.as_ref() {
-                Some(Arc::new(ValidatedScene {
-                    revision: f.frame_revision,
-                    generation: ctx.generation,
-                    width,
-                    height,
-                    clear_color: f.clear_color,
-                    geometry: scene.geometry.clone(),
-                    states: states_slice.to_vec(),
-                    draw_order: draw_order.clone(),
-                }))
-            } else if camera_scene_eligible(vertices_slice, indices_slice, draws_slice,
-                materials_slice,
-                states_slice, &draw_order, textures_slice, samplers_slice) {
-                let max_abs_position = vertices_slice.iter()
-                    .flat_map(|v| v.position).map(|x| f64::from(x).abs())
-                    .fold(0.0_f64, f64::max);
-                Some(Arc::new(ValidatedScene {
-                    revision: f.frame_revision,
-                    generation: ctx.generation,
-                    width,
-                    height,
-                    clear_color: f.clear_color,
-                    geometry: Arc::new(ValidatedGeometry {
-                        vertices: vertices_slice.to_vec(),
-                        indices: indices_slice.to_vec(),
-                        draws: draws_slice.to_vec(),
-                        materials: materials_slice.to_vec(),
-                        max_abs_position,
-                    }),
-                    states: states_slice.to_vec(),
-                    draw_order: draw_order.clone(),
-                }))
-            } else { None };
-            ctx.validated_scene = next_scene;
-            if owned_patch.is_some() {
-                if let Ok(mut cache) = VALIDATED_FRAME_CACHE.lock() {
-                    *cache = Some((f.frame_revision, draw_order.clone()));
-                }
-            }
-        }
+        // Any successful full frame replaces the device's current scene even
+        // when its revision is zero or snapshot admission is suspended.
+        let commit_scene = true;
         let profile_encoded = std::time::Instant::now();
 
         if !out_texture.is_null() {
@@ -6112,6 +6349,7 @@ fn coin_wgpu_submit_internal(
             });
             tgt.submission_serial = serial;
             unsafe { *out_texture = token; }
+            commit_camera_scene(ctx, next_scene, commit_scene, f.frame_revision, owned_patch.is_some(), capture_scene);
             return CoinWgpuStatus::Ok;
         }
 
@@ -6267,6 +6505,7 @@ fn coin_wgpu_submit_internal(
             });
             unsafe { *out_ticket = ticket; }
             tgt.submission_serial = sub_serial;
+            commit_camera_scene(ctx, next_scene, commit_scene, f.frame_revision, owned_patch.is_some(), capture_scene);
             return CoinWgpuStatus::Ok;
         }
 
@@ -6442,6 +6681,7 @@ fn coin_wgpu_submit_internal(
                     }
                 }
                 tgt.submission_serial = sub_serial;
+                commit_camera_scene(ctx, next_scene, commit_scene, f.frame_revision, owned_patch.is_some(), capture_scene);
                 if attachment_cache_enabled {
                     ctx.cached_offscreen_attachments = Some(CachedOffscreenAttachments {
                         width, height, color_texture, color_view, depth_texture, depth_view,

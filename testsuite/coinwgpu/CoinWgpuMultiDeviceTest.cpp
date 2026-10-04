@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <thread>
 #include <vector>
@@ -586,6 +587,145 @@ bool validatedCameraSceneOwnership() {
   return lostBaseRejected;
 }
 
+bool ownedPhongCameraBuffers() {
+  CoinWgpuDeviceId reference = 0;
+  if (!createDevice(reference)) return false;
+  CoinWgpuVertex vertices[3] = {};
+  vertices[0].position[0] = -.75f; vertices[0].position[1] = -.75f;
+  vertices[1].position[0] = .75f; vertices[1].position[1] = -.75f;
+  vertices[2].position[1] = .75f;
+  for (auto & vertex : vertices) { vertex.normal[2] = 1; vertex.screen_space_w = 1; }
+  const uint32_t indices[3] = {0,1,2};
+  CoinWgpuDraw draw{}; draw.vertex_count = draw.index_count = 3;
+  CoinWgpuMaterial material{};
+  material.diffuse[0] = .8f; material.diffuse[1] = .25f; material.diffuse[3] = 1;
+  material.specular[0] = .2f; material.shininess = .25f;
+  CoinWgpuRenderState state{};
+  state.light_model = 1; state.light_count = 1; state.polygon_offset_primitive_style = 1;
+  state.lights[0].position_type[2] = 3; state.lights[0].position_type[3] = 1;
+  state.lights[0].color_intensity[0] = state.lights[0].color_intensity[1] = 1;
+  state.lights[0].color_intensity[2] = state.lights[0].color_intensity[3] = 1;
+  state.lights[0].attenuation_exponent[2] = 1;
+  for (unsigned i = 0; i < 4; ++i) {
+    state.model_view[i*5] = state.model_view_projection[i*5] = state.normal_matrix[i*5] = 1;
+  }
+  CoinWgpuFrameView frame = clearFrame(0,0,0);
+  frame.frame_revision = 42001;
+  frame.vertices = vertices; frame.vertex_count = 3;
+  frame.indices = indices; frame.index_count = 3;
+  frame.draws = &draw; frame.draw_count = 1;
+  frame.materials = &material; frame.material_count = 1;
+  frame.states = &state; frame.state_count = 1;
+  std::vector<uint8_t> base(kSide*kSide*4u,kSentinel);
+  CoinWgpuTarget target = targetFor(0,&base);
+  char error[512] = {};
+  if (!check(coin_wgpu_submit(&target,&frame,error,sizeof(error)) == COIN_WGPU_OK,
+             "owned PHONG base",error)) return false;
+  for (unsigned iteration = 0; iteration < 3; ++iteration) {
+    frame.camera_base_revision = frame.frame_revision++;
+    state.model_view[12] = .1f + .1f*iteration;
+    state.model_view_projection[12] = state.model_view[12];
+    state.lights[0].position_type[0] = .25f + iteration;
+    CoinWgpuFrameView full = frame; full.camera_base_revision = 0;
+    std::vector<uint8_t> expected(kSide*kSide*4u,kSentinel), actual(expected);
+    target = targetFor(reference,&expected);
+    if (!check(coin_wgpu_submit(&target,&full,error,sizeof(error)) == COIN_WGPU_OK,
+               "full PHONG camera reference",error)) return false;
+    CoinWgpuFrameView patch = frame;
+    patch.vertices = nullptr; patch.indices = nullptr; patch.draws = nullptr; patch.materials = nullptr;
+    target = targetFor(0,&actual);
+    if (!check(coin_wgpu_submit(&target,&patch,error,sizeof(error)) == COIN_WGPU_OK &&
+               actual == expected && actual != base,
+               "owned PHONG camera must match full frame with new view-space light",error)) return false;
+    CoinWgpuCacheStats stats{}; coin_wgpu_get_cache_stats(&stats);
+    if (!check(stats.frame_uploads == 0 && stats.frame_uploaded_bytes == 0 && stats.frame_hits >= 1,
+               "PHONG camera must retain GPU vertex/index/material payload")) return false;
+  }
+  const uint64_t oldCameraBase = frame.frame_revision;
+  // Consecutive object revisions must keep the ordinary full path and retire
+  // the former owned snapshot. A subsequent camera hint may readmit exactly
+  // the current object payload after complete validation, then reuse its Arc.
+  for (unsigned iteration = 0; iteration < 2; ++iteration) {
+    frame.camera_base_revision = 0; ++frame.frame_revision;
+    vertices[0].position[0] = -.6f + .1f*iteration;
+    material.diffuse[1] = .4f + .1f*iteration;
+    std::vector<uint8_t> actual(kSide*kSide*4u,kSentinel), expected(actual);
+    target = targetFor(0,&actual);
+    if (!check(coin_wgpu_submit(&target,&frame,error,sizeof(error)) == COIN_WGPU_OK,
+               "PHONG full object revision",error)) return false;
+    target = targetFor(reference,&expected);
+    if (!check(coin_wgpu_submit(&target,&frame,error,sizeof(error)) == COIN_WGPU_OK && actual == expected,
+               "object full revisions must match an independent device",error)) return false;
+  }
+  CoinWgpuFrameView stale = frame;
+  stale.frame_revision += 100; stale.camera_base_revision = oldCameraBase;
+  stale.vertices = nullptr; stale.indices = nullptr; stale.draws = nullptr; stale.materials = nullptr;
+  std::vector<uint8_t> staleOutput(kSide*kSide*4u,kSentinel);
+  target = targetFor(0,&staleOutput);
+  if (!check(coin_wgpu_submit(&target,&stale,error,sizeof(error)) == COIN_WGPU_INVALID_ARGUMENT &&
+             unchanged(staleOutput), "object rebuild must clear the old camera-owned base",error)) return false;
+  for (unsigned iteration = 0; iteration < 3; ++iteration) {
+    frame.camera_base_revision = frame.frame_revision++;
+    state.model_view[12] = .4f + .1f*iteration;
+    state.model_view_projection[12] = state.model_view[12];
+    state.lights[0].position_type[0] = 2 + .25f*iteration;
+    CoinWgpuFrameView full = frame; full.camera_base_revision = 0;
+    std::vector<uint8_t> actual(kSide*kSide*4u,kSentinel), expected(actual);
+    target = targetFor(reference,&expected);
+    if (!check(coin_wgpu_submit(&target,&full,error,sizeof(error)) == COIN_WGPU_OK,
+               "readmitted PHONG camera reference",error)) return false;
+    CoinWgpuFrameView patch = frame;
+    if (iteration) {
+      patch.vertices = nullptr; patch.indices = nullptr; patch.draws = nullptr; patch.materials = nullptr;
+    }
+    target = targetFor(0,&actual);
+    if (iteration == 0) {
+      // This field is checked by encode_frame, after the full composition
+      // preflight and speculative snapshot admission. Rejecting it must leave
+      // this device's suspension/base unchanged, without publishing pixels.
+      const float validNormal = state.normal_matrix[0];
+      state.normal_matrix[0] = std::numeric_limits<float>::quiet_NaN();
+      const CoinWgpuStatus invalidNormal = coin_wgpu_submit(&target,&patch,error,sizeof(error));
+      state.normal_matrix[0] = validNormal;
+      if (!check(invalidNormal == COIN_WGPU_INVALID_ARGUMENT && unchanged(actual) &&
+                 std::string(error).find("normal matrix") != std::string::npos,
+                 "failed encoder readmission must preserve the sentinel and uncommitted base",error)) return false;
+      CoinWgpuFrameView withoutPayload = patch;
+      withoutPayload.vertices = nullptr; withoutPayload.indices = nullptr;
+      withoutPayload.draws = nullptr; withoutPayload.materials = nullptr;
+      if (!check(coin_wgpu_submit(&target,&withoutPayload,error,sizeof(error)) == COIN_WGPU_INVALID_ARGUMENT &&
+                 unchanged(actual), "failed encoder must not admit owned camera geometry",error)) return false;
+
+      // Existing synchronous late fault: consumed after queue submission,
+      // map requests and GPU wait, before snapshot/output publication. Device
+      // loss also changes generation; the retry must validate every payload.
+      coin_wgpu_inject_async_fault(COIN_WGPU_DEVICE_LOST);
+      const CoinWgpuStatus lateFailure = coin_wgpu_submit(&target,&patch,error,sizeof(error));
+      coin_wgpu_inject_async_fault(COIN_WGPU_OK);
+      if (!check(lateFailure == COIN_WGPU_DEVICE_LOST && unchanged(actual) &&
+                 std::string(error).find("Injected async DEVICE_LOST") != std::string::npos,
+                 "late failed camera readmission must preserve the output sentinel",error)) return false;
+      if (!check(coin_wgpu_submit(&target,&withoutPayload,error,sizeof(error)) == COIN_WGPU_INVALID_ARGUMENT &&
+                 unchanged(actual), "late failure must not leave an owned base for a payload-free hint",error)) return false;
+    }
+    if (!check(coin_wgpu_submit(&target,&patch,error,sizeof(error)) == COIN_WGPU_OK && actual == expected,
+               "validated hint must readmit the current object geometry and subsequent patches",error)) return false;
+    CoinWgpuCacheStats stats{}; coin_wgpu_get_cache_stats(&stats);
+    if (!check(iteration == 0 ? stats.frame_uploads == 1 :
+                 (stats.frame_uploads == 0 && stats.frame_uploaded_bytes == 0 && stats.frame_hits >= 1),
+               "hint must upload once, followed by owned geometry cache hits")) return false;
+  }
+  frame.camera_base_revision = frame.frame_revision++;
+  frame.vertices = nullptr; frame.indices = nullptr; frame.draws = nullptr; frame.materials = nullptr;
+  state.lights[0].color_intensity[0] = .25f;
+  std::vector<uint8_t> rejected(kSide*kSide*4u,kSentinel);
+  target = targetFor(0,&rejected);
+  const bool guard = check(coin_wgpu_submit(&target,&frame,error,sizeof(error)) == COIN_WGPU_INVALID_ARGUMENT &&
+               unchanged(rejected), "changed PHONG light color must decline immutable camera hint",error);
+  coin_wgpu_device_destroy(reference);
+  return guard;
+}
+
 bool concurrentSubmissions() {
   CoinWgpuDeviceId first = 0, second = 0;
   if (!createDevice(first) || !createDevice(second)) return false;
@@ -659,7 +799,7 @@ int main(int argc, char ** argv) {
   const bool runStress = argc > 1 && std::string(argv[1]) == "--stress";
   const bool passed = runStress ? stress() :
                       (invalidHandles() && lifecycleAndIsolation() && rttOwnership() &&
-                       cacheIsolation() && validatedCameraSceneOwnership() &&
+                       cacheIsolation() && validatedCameraSceneOwnership() && ownedPhongCameraBuffers() &&
                        concurrentSubmissions());
   if (passed) std::cout << "CoinWgpuMultiDeviceTest passed"
                         << (runStress ? " (stress)" : "") << '\n';

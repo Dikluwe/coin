@@ -218,6 +218,7 @@ private:
   bgfx::UniformHandle lightPositionTypeUniform;
   bgfx::UniformHandle lightDirectionCutoffUniform;
   bgfx::UniformHandle lightColorIntensityUniform;
+  bgfx::UniformHandle instancedCameraUniform;
   bgfx::UniformHandle lightAttenuationDropUniform;
   bgfx::FrameBufferHandle frameBuffer;
   bgfx::FrameBufferHandle oitFrameBuffer;

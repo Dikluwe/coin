@@ -5,6 +5,7 @@
 #endif
 
 #include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
+#include "rendering/coinrender/CoinRenderTransformCore.h"
 
 #include <cstdint>
 #include <cmath>
@@ -88,14 +89,15 @@ bool opaqueBatching(bool shared)
   for (auto & state : frame.renderStates) state.view.setTranslate(SbVec3f(.25f,0,0));
   if (!check(packed.prepare(frame,64,64,
         CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::CAMERA_PATCH,501),error),
-        "batched camera fallback") ||
-      !check(packed.lastPrepareKind() == CoinRenderFrameReuseKind::FULL_REBUILD &&
-        packed.getView().camera_base_revision == 0 &&
-        packed.getView().vertices[0].position[0] == 2.25f,
-        "moving the camera must rebake geometry instead of patching old view positions")) return false;
+        "batched camera patch") ||
+      !check(packed.lastPrepareKind() == CoinRenderFrameReuseKind::CAMERA_PATCH &&
+        packed.getView().camera_base_revision == 501 &&
+        packed.getView().vertices[0].position[0] == 2.0f &&
+        packed.getView().states[0].model_view[12] == .25f,
+        "moving the camera must preserve baked geometry and transform it from its anchor")) return false;
   frame.vertices[0].position[0] = 10;
   if (!check(packed.prepare(frame,64,64,error) &&
-        packed.getView().vertices[0].position[0] == 2.25f,
+        packed.getView().vertices[0].position[0] == 2.0f,
         "an immutable packed revision must retain its baked storage")) return false;
   frame.vertices[0].position[0] = 1;
   ++frame.revision;
@@ -132,6 +134,121 @@ private:
   bool wasSet;
   std::string previous;
 };
+
+class CameraPatchSwitch {
+public:
+  CameraPatchSwitch() {
+    const char * value = std::getenv(name());
+    wasSet = value != nullptr;
+    if (value) previous = value;
+    disable(false);
+  }
+  ~CameraPatchSwitch() { set(wasSet ? previous.c_str() : nullptr); }
+  void disable(bool disabled) { set(disabled ? "1" : nullptr); }
+private:
+  static const char * name() { return "COIN_WGPU_DISABLE_OPAQUE_CAMERA_PATCH"; }
+  static void set(const char * value) {
+#ifdef _WIN32
+    _putenv_s(name(), value ? value : "");
+#else
+    if (value) setenv(name(), value, 1); else unsetenv(name());
+#endif
+  }
+  bool wasSet;
+  std::string previous;
+};
+
+bool anchoredPhongCamera()
+{
+  CameraPatchSwitch option;
+  auto frame = opaqueFrame(true);
+  frame.lightingStates.resize(1);
+  CoinRenderLightSourceSnapshot light;
+  light.type = CoinRenderLightType::POINT;
+  light.position[0] = 4; light.position[2] = 7;
+  frame.lightingStates[0].lights.push_back(light);
+  SbMatrix anchor;
+  anchor.setRotate(SbRotation(SbVec3f(0, 1, 0), .31f));
+  anchor[3][0] = 3; anchor[3][2] = -4;
+  for (auto & state : frame.renderStates) {
+    state.lightModel = CoinRenderLightModel::PHONG;
+    state.view = anchor;
+  }
+  CoinWgpuFfiFrame fast;
+  std::string error;
+  if (!check(fast.prepare(frame,64,64,error), "PHONG camera base")) return false;
+  const auto * vertices = fast.getView().vertices;
+  const auto * indices = fast.getView().indices;
+  const auto * materials = fast.getView().materials;
+  const std::vector<CoinWgpuVertex> immutable(vertices, vertices + fast.getView().vertex_count);
+  for (unsigned step = 0; step < 3; ++step) {
+    const uint64_t base = frame.revision++;
+    SbMatrix next;
+    next.setRotate(SbRotation(SbVec3f(0,1,0), .43f - .19f * step));
+    next[3][0] = -1.25f + step; next[3][2] = -3;
+    for (auto & state : frame.renderStates) state.view = next;
+    frame.lightingStates[0].lights[0].position[0] = 5 + step;
+    CoinWgpuFfiFrame full;
+    option.disable(true);
+    if (!check(full.prepare(frame,64,64,error), "full PHONG rebake reference")) return false;
+    option.disable(false);
+    if (!check(fast.prepare(frame,64,64,
+          CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::CAMERA_PATCH,base),error),
+          "PHONG anchored patch") ||
+        !check(fast.lastPrepareKind() == CoinRenderFrameReuseKind::CAMERA_PATCH &&
+          fast.getView().camera_base_revision == base && fast.getView().vertices == vertices &&
+          fast.getView().indices == indices && fast.getView().materials == materials &&
+          std::memcmp(vertices,immutable.data(),immutable.size()*sizeof(CoinWgpuVertex)) == 0,
+          "each camera must preserve reference geometry and material storage") ||
+        !check(fast.getView().states[0].lights[0].position_type[0] == 5 + step,
+          "PHONG patch must publish the newly captured view-space light")) return false;
+    SbMatrix delta, normal;
+    delta.setValue(fast.getView().states[0].model_view);
+    normal.setValue(fast.getView().states[0].normal_matrix);
+    for (size_t v = 0; v < immutable.size(); ++v) {
+      SbVec3f position, direction;
+      delta.multVecMatrix(SbVec3f(vertices[v].position),position);
+      normal.multDirMatrix(SbVec3f(vertices[v].normal),direction);
+      for (int c = 0; c < 3; ++c) {
+        if (!check(std::abs(position[c]-full.getView().vertices[v].position[c]) <= 1.0e-4f &&
+                   std::abs(direction[c]-full.getView().vertices[v].normal[c]) <= 1.0e-5f,
+                   "anchor-relative position/normal must match full rebake without cumulative drift")) return false;
+      }
+    }
+  }
+  const uint64_t base = frame.revision++;
+  option.disable(true);
+  if (!check(fast.prepare(frame,64,64,
+        CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::CAMERA_PATCH,base),error) &&
+        fast.lastPrepareKind() == CoinRenderFrameReuseKind::FULL_REBUILD &&
+        fast.getView().camera_base_revision == 0, "camera optout must rebake the batch")) return false;
+  option.disable(false);
+  auto singular = opaqueFrame(true);
+  for (auto & state : singular.renderStates) state.model[0][0] = 0;
+  CoinWgpuFfiFrame guarded;
+  if (!check(guarded.prepare(singular,64,64,error), "singular normal baseline")) return false;
+  const uint64_t singularBase = singular.revision++;
+  for (auto & state : singular.renderStates) state.view.setRotate(SbRotation(SbVec3f(0,1,0), .3f));
+  if (!check(guarded.prepare(singular,64,64,
+        CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::CAMERA_PATCH,singularBase),error) &&
+        guarded.lastPrepareKind() == CoinRenderFrameReuseKind::FULL_REBUILD &&
+        guarded.getView().camera_base_revision == 0,
+        "singular normal identity fallback must remain on full rebake")) return false;
+
+  auto distant = opaqueFrame(true);
+  for (auto & state : distant.renderStates) state.view.setTranslate(SbVec3f(1.0e8f,0,0));
+  CoinWgpuFfiFrame distanceGuard;
+  if (!check(distanceGuard.prepare(distant,64,64,error), "distant camera baseline")) return false;
+  const uint64_t distantBase = distant.revision++;
+  for (auto & state : distant.renderStates) state.view = SbMatrix::identity();
+  if (!check(distanceGuard.prepare(distant,64,64,
+        CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::CAMERA_PATCH,distantBase),error) &&
+        distanceGuard.lastPrepareKind() == CoinRenderFrameReuseKind::FULL_REBUILD &&
+        distanceGuard.getView().camera_base_revision == 0 &&
+        distanceGuard.getView().vertices[0].position[0] == 2.0f,
+        "a distant anchor must rebake near geometry instead of preserving lost float detail")) return false;
+  return true;
+}
 
 bool samePacked(const CoinWgpuFrameView & a, const CoinWgpuFrameView & b) {
   if (a.vertex_count != b.vertex_count || a.index_count != b.index_count ||
@@ -208,7 +325,7 @@ bool earlyBatchEquivalence(bool shared) {
 int
 main()
 {
-  if (!opaqueBatching(false) || !opaqueBatching(true) ||
+  if (!opaqueBatching(false) || !opaqueBatching(true) || !anchoredPhongCamera() ||
       !earlyBatchEquivalence(false) || !earlyBatchEquivalence(true)) return 1;
   CoinRenderFramePlan frame;
   frame.revision = 41;

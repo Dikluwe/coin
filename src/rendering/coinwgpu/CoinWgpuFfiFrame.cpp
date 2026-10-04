@@ -57,8 +57,41 @@ static_assert(offsetof(CoinWgpuRenderState, depth_write) == 920, "depth_write AB
 static_assert(offsetof(CoinWgpuRenderState, depth_function) == 924, "depth_function ABI offset changed");
 static_assert(offsetof(CoinWgpuRenderState, depth_range) == 928, "depth_range ABI offset changed");
 
+namespace {
+// Only the view-space coordinates of captured lights may change with a camera.
+// Type, color, intensity, cutoff and attenuation remain part of the immutable key.
+CoinWgpuRenderState opaqueCameraKey(CoinWgpuRenderState key)
+{
+  std::memset(key.model_view, 0, sizeof(key.model_view));
+  std::memset(key.model_view_projection, 0, sizeof(key.model_view_projection));
+  std::memset(key.normal_matrix, 0, sizeof(key.normal_matrix));
+  key.material_slot = 0;
+  key.fog_end = 0;
+  for (int c = 0; c < 3; ++c) key.light_direction[c] = 0;
+  for (auto & light : key.lights) {
+    for (int c = 0; c < 3; ++c) {
+      light.position_type[c] = 0;
+      light.direction_cutoff[c] = 0;
+    }
+  }
+  return key;
+}
+
+bool patchableBakedVertex(const SbVec3f & position, const SbVec3f & normal)
+{
+  for (int c = 0; c < 3; ++c) {
+    if (!std::isfinite(position[c]) || !std::isfinite(normal[c]) ||
+        std::abs(normal[c]) > 1.0e18f) return false;
+  }
+  return true;
+}
+}
+
 CoinWgpuFfiFrame::CoinWgpuFfiFrame()
   : packedRevision(0), reused(false), opaqueBatched(false),
+    opaqueCameraPatchable(false), opaqueGeometryPatchable(false), opaqueCameraState{}, opaqueSourceVertices(0),
+    opaqueSourceIndices(0), opaqueSourceDraws(0), opaqueSourceStates(0),
+    opaqueTargetWidth(0), opaqueTargetHeight(0), opaqueClearColor{},
     prepareKind(CoinRenderFrameReuseKind::UNKNOWN), view{}
 {
 }
@@ -107,6 +140,15 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
   CoinWgpuShadowFrame candidateShadow;
   if (!candidateShadow.prepare(frame, outDiagnostic)) return false;
 
+  if (this->patchOpaqueCamera(frame, width, height, reuse)) {
+    this->shadowFrame = std::move(candidateShadow);
+    this->bindView(frame, width, height);
+    this->view.camera_base_revision = reuse.baseRevision;
+    this->packedRevision = frame.revision;
+    this->prepareKind = CoinRenderFrameReuseKind::CAMERA_PATCH;
+    return true;
+  }
+
   // The Rust camera patch owns only the standard immutable payload; shadow
   // casters/receivers must be transported through the full validated path.
   if (!this->opaqueBatched && frame.shadowGroups.empty() &&
@@ -129,6 +171,8 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
 
   this->packedRevision = 0;
   this->opaqueBatched = false;
+  this->opaqueCameraPatchable = false;
+  this->opaqueGeometryPatchable = false;
   this->vertices.resize(frame.vertices.size());
   for (size_t i = 0; i < frame.vertices.size(); ++i) {
     const CoinRenderVertexSnapshot & src = frame.vertices[i];
@@ -156,6 +200,7 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
   }
 
   if (this->tryEarlyOpaqueBatch(frame, width, height, preflight)) {
+    this->rememberOpaqueCamera(frame, width, height);
     this->textures.clear();
     this->texturePixels.clear();
     this->samplers.clear();
@@ -192,6 +237,7 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
   }
 
   this->batchOpaqueTriangles(frame);
+  this->rememberOpaqueCamera(frame, width, height);
 
   this->shadowFrame = std::move(candidateShadow);
   this->bindView(frame, width, height);
@@ -199,6 +245,92 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
   this->prepareKind = reuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD
     ? CoinRenderFrameReuseKind::RESOURCE_REBUILD
     : CoinRenderFrameReuseKind::FULL_REBUILD;
+  return true;
+}
+
+void
+CoinWgpuFfiFrame::rememberOpaqueCamera(const CoinRenderFramePlan & frame,
+                                      uint32_t width, uint32_t height)
+{
+  this->opaqueCameraPatchable = false;
+  if (!this->opaqueBatched || !this->opaqueGeometryPatchable || this->states.size() != 1 || frame.renderStates.empty() ||
+      frame.revision == 0 || !frame.shadowGroups.empty()) return;
+  const auto & first = frame.renderStates.front();
+  if (!CoinRenderTransformCore::cameraReuseView(first.view)) return;
+  for (const auto & state : frame.renderStates) {
+    // Near-singular normals use Core's identity fallback and cannot be rotated
+    // from a baked reference. Keep those valid frames on the existing rebake path.
+    const SbMatrix modelView = state.model * state.view;
+    const float det = modelView.det4();
+    if (!CoinRenderTransformCore::finiteMatrix(state.model) || !std::isfinite(det) ||
+        state.model[0][3] != 0 || state.model[1][3] != 0 ||
+        state.model[2][3] != 0 || state.model[3][3] != 1 ||
+        std::abs(det) <= 1.0e-9f ||
+        std::memcmp(state.view.getValue(), first.view.getValue(), sizeof(float) * 16) != 0 ||
+        std::memcmp(state.projectionCoin.getValue(), first.projectionCoin.getValue(), sizeof(float) * 16) != 0 ||
+        state.lightModel != first.lightModel || state.lightingSlot != first.lightingSlot ||
+        state.fogMode != CoinRenderFogMode::NONE || state.hasTexture ||
+        !state.clipPlanesWorld.empty() || state.polygonOffsetEnabled) return;
+    const SbMatrix inverse = modelView.inverse();
+    const SbMatrix residual = modelView * inverse;
+    if (!CoinRenderTransformCore::finiteMatrix(inverse) ||
+        !CoinRenderTransformCore::finiteMatrix(residual)) return;
+    for (int row = 0; row < 3; ++row) {
+      for (int col = 0; col < 3; ++col) {
+        if (std::abs(residual[row][col] - (row == col ? 1.0f : 0.0f)) > 1.0e-4f) return;
+      }
+    }
+  }
+  if (first.lightModel != CoinRenderLightModel::PHONG &&
+      first.lightModel != CoinRenderLightModel::BASE_COLOR) return;
+  this->opaqueCameraAnchor = first.view;
+  this->opaqueCameraState = opaqueCameraKey(this->states.front());
+  this->opaqueSourceVertices = frame.vertices.size();
+  this->opaqueSourceIndices = frame.indices.size();
+  this->opaqueSourceDraws = frame.draws.size();
+  this->opaqueSourceStates = frame.renderStates.size();
+  this->opaqueTargetWidth = width; this->opaqueTargetHeight = height;
+  std::memcpy(this->opaqueClearColor, frame.clearColor.getValue(), sizeof(this->opaqueClearColor));
+  this->opaqueCameraPatchable = true;
+}
+
+bool
+CoinWgpuFfiFrame::patchOpaqueCamera(const CoinRenderFramePlan & frame, uint32_t width,
+                                   uint32_t height, const CoinRenderFrameReuseDecision & reuse)
+{
+  const char * disabled = std::getenv("COIN_WGPU_DISABLE_OPAQUE_CAMERA_PATCH");
+  if ((disabled && std::strcmp(disabled, "1") == 0) || !this->opaqueCameraPatchable ||
+      !this->opaqueBatched || reuse.kind != CoinRenderFrameReuseKind::CAMERA_PATCH ||
+      !reuse.baseRevision || reuse.baseRevision != this->packedRevision ||
+      !frame.revision || frame.revision == reuse.baseRevision || !frame.shadowGroups.empty() ||
+      frame.vertices.size() != this->opaqueSourceVertices || frame.indices.size() != this->opaqueSourceIndices ||
+      frame.draws.size() != this->opaqueSourceDraws || frame.renderStates.size() != this->opaqueSourceStates ||
+      frame.materials.size() != this->materials.size() || !frame.textures.empty() || !frame.samplers.empty() ||
+      width != this->opaqueTargetWidth || height != this->opaqueTargetHeight ||
+      std::memcmp(this->opaqueClearColor, frame.clearColor.getValue(), sizeof(this->opaqueClearColor)) != 0)
+    return false;
+  const auto & first = frame.renderStates.front();
+  if (!CoinRenderTransformCore::cameraReuseView(first.view) || !CoinRenderTransformCore::finiteMatrix(first.projectionCoin)) return false;
+  for (const auto & state : frame.renderStates) {
+    if (std::memcmp(state.view.getValue(), first.view.getValue(), sizeof(float) * 16) != 0 ||
+        std::memcmp(state.projectionCoin.getValue(), first.projectionCoin.getValue(), sizeof(float) * 16) != 0)
+      return false;
+  }
+  CoinWgpuRenderState updated{};
+  std::string diagnostic;
+  if (!this->packState(frame, first, width, height, updated, diagnostic)) return false;
+  const auto key = opaqueCameraKey(updated);
+  if (std::memcmp(&key, &this->opaqueCameraState, sizeof(key)) != 0) return false;
+  SbMatrix delta, normal;
+  if (!CoinRenderTransformCore::cameraDelta(this->opaqueCameraAnchor, first.view, delta, normal)) return false;
+  const SbMatrix mvp = delta * CoinRenderTransformCore::projection(first.projectionCoin, false);
+  if (!CoinRenderTransformCore::finiteMatrix(delta) || !CoinRenderTransformCore::finiteMatrix(normal) ||
+      !CoinRenderTransformCore::finiteMatrix(mvp)) return false;
+  std::memcpy(updated.model_view, delta.getValue(), sizeof(updated.model_view));
+  std::memcpy(updated.normal_matrix, normal.getValue(), sizeof(updated.normal_matrix));
+  std::memcpy(updated.model_view_projection, mvp.getValue(), sizeof(updated.model_view_projection));
+  updated.material_slot = 0;
+  this->states.front() = updated;
   return true;
 }
 
@@ -297,6 +429,7 @@ CoinWgpuFfiFrame::tryEarlyOpaqueBatch(const CoinRenderFramePlan & frame,
     expandedVertices.reserve(static_cast<size_t>(nextVertex));
     expandedIndices.reserve(static_cast<size_t>(nextIndex));
   }
+  bool geometryPatchable = true;
   for (const auto & item : order) {
     const auto & draw = frame.draws[item.drawIndex];
     const auto & range = draw.geometry;
@@ -309,6 +442,7 @@ CoinWgpuFfiFrame::tryEarlyOpaqueBatch(const CoinRenderFramePlan & frame,
       SbVec3f position, direction;
       modelView.multVecMatrix(SbVec3f(vertex.position), position);
       normal.multDirMatrix(SbVec3f(vertex.normal), direction);
+      geometryPatchable = geometryPatchable && patchableBakedVertex(position, direction);
       std::memcpy(vertex.position, position.getValue(), sizeof(vertex.position));
       std::memcpy(vertex.normal, direction.getValue(), sizeof(vertex.normal));
     }
@@ -328,6 +462,7 @@ CoinWgpuFfiFrame::tryEarlyOpaqueBatch(const CoinRenderFramePlan & frame,
   this->draws.assign(1, merged);
   this->states.assign(1, common);
   this->opaqueBatched = true;
+  this->opaqueGeometryPatchable = geometryPatchable;
   return true;
 }
 
@@ -389,6 +524,7 @@ CoinWgpuFfiFrame::batchOpaqueTriangles(const CoinRenderFramePlan & frame)
     expandedVertices.reserve(static_cast<size_t>(nextVertex));
     expandedIndices.reserve(static_cast<size_t>(nextIndex));
   }
+  bool geometryPatchable = true;
   for (const auto & draw : this->draws) {
     const auto & state = this->states[draw.render_state_slot];
     SbMatrix modelView, normalMatrix;
@@ -400,6 +536,7 @@ CoinWgpuFfiFrame::batchOpaqueTriangles(const CoinRenderFramePlan & frame)
       SbVec3f position, normal;
       modelView.multVecMatrix(SbVec3f(vertex.position), position);
       normalMatrix.multDirMatrix(SbVec3f(vertex.normal), normal);
+      geometryPatchable = geometryPatchable && patchableBakedVertex(position, normal);
       std::memcpy(vertex.position, position.getValue(), sizeof(vertex.position));
       std::memcpy(vertex.normal, normal.getValue(), sizeof(vertex.normal));
     }
@@ -421,6 +558,7 @@ CoinWgpuFfiFrame::batchOpaqueTriangles(const CoinRenderFramePlan & frame)
   this->draws.assign(1, merged);
   this->states.assign(1, common);
   this->opaqueBatched = true;
+  this->opaqueGeometryPatchable = geometryPatchable;
 }
 
 bool

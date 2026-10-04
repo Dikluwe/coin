@@ -52,6 +52,9 @@ static_assert(sizeof(CoinBgfxVertexPrefix) == offsetof(CoinBgfxVertex, extraTexc
 
 struct CoinBgfxDraw {
   float mvp[16];
+  // Eye-space instance payload is anchored in the first camera. Columns 0..2
+  // apply its camera delta; columns 3..5 transform normals. 3.w enables it.
+  float instanceCamera[6][4] = {};
   uint32_t sourceDrawSlot = 0;
   uint32_t renderStateSlot = 0;
   uint32_t firstVertex;
@@ -124,6 +127,8 @@ struct CoinBgfxPlan {
   std::vector<CoinBgfxVertexPrefix> packedVertices;
   bool usesCompactVertices = false;
   bool usesInstancing = false;
+  bool instancedCameraPatchable = false;
+  SbMatrix instanceCameraAnchorView = SbMatrix::identity();
   std::vector<CoinBgfxInstancedVertex> instancedVertices;
   std::vector<CoinBgfxInstance> instances;
   std::vector<uint32_t> indices;
@@ -188,7 +193,9 @@ public:
                                   const CoinBgfxPlan & updated,
                                   std::vector<CoinBgfxVertexRange> & ranges);
   // Requires a validated CAMERA_PATCH relationship with the cached base.
-  // Recomputes only draw transforms; geometry, material and clear remain owned
+  // Recomputes only draw transforms/lighting; instanced geometry remains in
+  // the immutable anchor camera, including across consecutive camera patches.
+  // Geometry, material and clear remain owned
   // by the base plan until the caller commits a successful frame.
   static bool patchCamera(const CoinRenderFramePlan & frame, int width, int height,
                           bool homogeneousDepth, const CoinBgfxPlan & base,

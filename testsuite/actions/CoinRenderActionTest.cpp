@@ -29,6 +29,8 @@
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
+#include <Inventor/nodes/SoPointLight.h>
+#include <Inventor/nodes/SoSpotLight.h>
 #include <Inventor/nodes/SoEnvironment.h>
 #include <Inventor/nodes/SoDepthBuffer.h>
 #include <Inventor/SoPath.h>
@@ -36,7 +38,9 @@
 
 #include <cassert>
 #include <cmath>
+#include <cstring>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -833,6 +837,305 @@ int testCameraOverlayAndFallback() {
   return 0;
 }
 
+class CameraOverlayTestBackend : public CoinRenderBackend {
+public:
+  bool failNext = false;
+  CoinRenderFrameReuseDecision lastReuse;
+  unsigned submissions = 0;
+  bool isGpuBackend() const override { return false; }
+  CoinRenderBackendStatus getStatus() const override { return CoinRenderBackendStatus::SUCCESS; }
+  CoinRenderBackendStatus prepare(CoinRenderTargetP &) override { return CoinRenderBackendStatus::SUCCESS; }
+  void poll() override {}
+  const std::string & getLastError() const override { return error; }
+  CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target) override {
+    return submit(frame, target, CoinRenderFrameReuseDecision{});
+  }
+  CoinRenderSubmitResult submit(const CoinRenderFramePlan &, CoinRenderTargetP & target,
+                               const CoinRenderFrameReuseDecision & reuse) override {
+    lastReuse = reuse;
+    ++submissions;
+    if (failNext) {
+      failNext = false;
+      return {CoinRenderBackendStatus::UNSUPPORTED, "injected camera-overlay submission rejection"};
+    }
+    target.colorBuffer = {17, 29, 43, 255};
+    return {};
+  }
+private:
+  std::string error;
+};
+
+bool cameraLightingNear(const CoinRenderFramePlan & a, const CoinRenderFramePlan & b) {
+  if (a.lightingStates.size() != b.lightingStates.size()) return false;
+  const auto near = [](float x, float y) {
+    return std::abs(x - y) <= 2.0e-5f * (1.0f + std::abs(y));
+  };
+  for (size_t slot = 0; slot < a.lightingStates.size(); ++slot) {
+    const auto & x = a.lightingStates[slot]; const auto & y = b.lightingStates[slot];
+    if (x.lights.size() != y.lights.size() || x.ambientIntensity != y.ambientIntensity ||
+        std::memcmp(x.ambientColor, y.ambientColor, sizeof(x.ambientColor)) != 0) return false;
+    for (size_t index = 0; index < x.lights.size(); ++index) {
+      const auto & l = x.lights[index]; const auto & r = y.lights[index];
+      if (l.type != r.type || l.sourceRevision != r.sourceRevision || l.intensity != r.intensity ||
+          l.cutOffAngle != r.cutOffAngle || l.dropOffRate != r.dropOffRate) return false;
+      for (int k = 0; k < 3; ++k)
+        if (!near(l.position[k], r.position[k]) || !near(l.direction[k], r.direction[k]) ||
+            l.color[k] != r.color[k] || l.attenuation[k] != r.attenuation[k]) return false;
+      for (int row = 0; row < 4; ++row) for (int col = 0; col < 4; ++col)
+        if (!near(l.sourceModel[row][col], r.sourceModel[row][col])) return false;
+    }
+  }
+  return true;
+}
+
+int testPhongCameraOverlayNotificationsAndRollback() {
+  const char * previous = std::getenv("COIN_RENDER_DISABLE_CAMERA_OVERLAY");
+  struct RestoreEnvironment {
+    std::string value;
+    bool present;
+    ~RestoreEnvironment() {
+      coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_CAMERA_OVERLAY", present ? value.c_str() : nullptr);
+    }
+  } restoreEnvironment{previous ? previous : "", previous != nullptr};
+  coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_CAMERA_OVERLAY", "0");
+  struct Scene {
+    SoSeparator * root = new SoSeparator;
+    Scene() { root->ref(); }
+    ~Scene() { root->unref(); }
+  } scene;
+  auto * camera = new SoPerspectiveCamera;
+  camera->position.setValue(0, 0, 10);
+  camera->nearDistance = .2f; camera->farDistance = 40;
+  scene.root->addChild(camera);
+  auto * lightTransform = new SoTransform;
+  lightTransform->translation.setValue(1, -.5f, 2);
+  lightTransform->rotation.setValue(SbVec3f(1, 2, 3), .25f);
+  lightTransform->scaleFactor.setValue(1.3f, .8f, 1.5f);
+  scene.root->addChild(lightTransform);
+  auto * directional = new SoDirectionalLight;
+  directional->direction.setValue(.4f, -.6f, -1);
+  auto * point = new SoPointLight;
+  point->location.setValue(-3, 2, 4);
+  auto * spot = new SoSpotLight;
+  spot->location.setValue(2, 1, 5); spot->direction.setValue(-.2f, -.3f, -1);
+  scene.root->addChild(directional); scene.root->addChild(point); scene.root->addChild(spot);
+  auto * material = new SoMaterial;
+  material->diffuseColor.setValue(.5f, .3f, .2f);
+  scene.root->addChild(material);
+  auto * objectTransform = new SoTransform;
+  objectTransform->translation.setValue(.2f, .1f, -.3f);
+  objectTransform->scaleFactor.setValue(.7f, 1.2f, .9f);
+  scene.root->addChild(objectTransform);
+  auto * cube = new SoCube;
+  scene.root->addChild(cube);
+  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(1, 1)));
+  TEST_ASSERT(target, "CPU camera proof test requires a target shell");
+  auto * backend = new CameraOverlayTestBackend;
+  target->getPimpl()->backend.reset(backend);
+  target->getPimpl()->depthReadbackEnabled = false;
+  CoinRenderAction action(SbViewportRegion(1, 1)), full(SbViewportRegion(1, 1));
+  action.setRenderTarget(target.get());
+  action.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS &&
+              action.getPimpl()->cachedCamera == camera,
+              "PHONG scene with exact transform/light types must qualify the common overlay");
+  const auto * originalGeometry = action.getPimpl()->lastValidPlan.vertices.data();
+  for (int frame = 0; frame < 4; ++frame) {
+    camera->position.setValue(.25f * frame, -.1f, 10 - .3f * frame);
+    camera->orientation.setValue(SbVec3f(0, 1, 0), .08f * frame);
+    camera->heightAngle = .7f + .03f * frame;
+    camera->farDistance = 40 + frame;
+    TEST_ASSERT(action.getPimpl()->cameraOnlyDirty && !action.getPimpl()->cameraPatchInvalidated,
+                "camera fields alone must produce the notification proof");
+    action.apply(scene.root);
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_CAMERA_OVERLAY", "1");
+    full.apply(scene.root);
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_CAMERA_OVERLAY", "0");
+    auto comparison = action.getPimpl()->lastValidPlan;
+    const auto & captured = full.getPimpl()->lastValidPlan;
+    TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && full.getLastStatus() == CoinRenderAction::SUCCESS &&
+                backend->lastReuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH &&
+                action.getPimpl()->lastValidPlan.vertices.data() == originalGeometry &&
+                cameraLightingNear(comparison, captured),
+                "translation/rotation/projection must reuse geometry and match freshly captured PHONG lights");
+    comparison.lightingStates = captured.lightingStates;
+    TEST_ASSERT(comparison.hasSamePayload(captured),
+                "all non-lighting fields of the camera overlay must match a full capture exactly");
+  }
+  const auto beforeFailure = action.getPimpl()->lastValidPlan;
+  camera->position.setValue(.7f, -.2f, 8);
+  backend->failNext = true;
+  action.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+              backend->lastReuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH &&
+              action.getPimpl()->lastValidPlan.revision == beforeFailure.revision &&
+              action.getPimpl()->lastValidPlan.hasSamePayload(beforeFailure) &&
+              action.getPimpl()->cameraOnlyDirty,
+              "submission failure must roll back all camera/light values and preserve the pending proof");
+  action.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS &&
+              backend->lastReuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH &&
+              backend->lastReuse.baseRevision == beforeFailure.revision,
+              "retry after submission failure must patch the last successfully submitted revision");
+  // Each non-camera notification must independently reject the proof. A new
+  // successful capture may then establish a fresh anchor for camera updates.
+  for (int mutation = 0; mutation < 5; ++mutation) {
+    if (mutation == 0) objectTransform->translation.setValue(.3f, .4f, .2f);
+    if (mutation == 1) material->diffuseColor.setValue(.2f, .6f, .4f);
+    if (mutation == 2) point->location.setValue(-1, 3, 2);
+    if (mutation == 3) cube->width = 2.5f;
+    if (mutation == 4) scene.root->addChild(new SoCube);
+    camera->position.setValue(.1f * mutation, .1f, 9);
+    TEST_ASSERT(action.getPimpl()->cameraPatchInvalidated,
+                "transform/material/light/geometry/structure mutation must invalidate the overlay");
+    action.apply(scene.root);
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_CAMERA_OVERLAY", "1"); full.apply(scene.root);
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_CAMERA_OVERLAY", "0");
+    TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS &&
+                backend->lastReuse.kind != CoinRenderFrameReuseKind::CAMERA_PATCH &&
+                !action.getPimpl()->cachedCamera && action.getPimpl()->candidateCamera == camera &&
+                !action.getPimpl()->cameraOverlayBasis.owner &&
+                action.getPimpl()->lastValidPlan.hasSamePayload(full.getPimpl()->lastValidPlan),
+                "object mutations must capture equivalently and defer scene-wide camera qualification");
+  }
+  const auto * mutatedGeometry = action.getPimpl()->lastValidPlan.vertices.data();
+  const auto latestObjectCapture = action.getPimpl()->lastValidPlan;
+  camera->position.setValue(-.2f, .3f, 9);
+  TEST_ASSERT(action.getPimpl()->cameraOnlyDirty && !action.getPimpl()->cameraPatchInvalidated,
+              "the unqualified candidate sensor must still identify a camera-only change");
+  backend->failNext = true;
+  action.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+              action.getPimpl()->lastValidPlan.hasSamePayload(latestObjectCapture) &&
+              action.getPimpl()->lastValidPlan.revision == latestObjectCapture.revision &&
+              action.getPimpl()->cameraOnlyDirty,
+              "failed first lazy overlay must roll back to the latest object capture and remain retryable");
+  action.apply(scene.root);
+  coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_CAMERA_OVERLAY", "1"); full.apply(scene.root);
+  coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_CAMERA_OVERLAY", "0");
+  auto lazyComparison = action.getPimpl()->lastValidPlan;
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS &&
+              backend->lastReuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH &&
+              action.getPimpl()->cachedCamera == camera &&
+              action.getPimpl()->lastValidPlan.vertices.data() == mutatedGeometry &&
+              cameraLightingNear(lazyComparison, full.getPimpl()->lastValidPlan),
+              "camera after consecutive object captures must qualify the latest anchor and preserve its geometry");
+  lazyComparison.lightingStates = full.getPimpl()->lastValidPlan.lightingStates;
+  TEST_ASSERT(lazyComparison.hasSamePayload(full.getPimpl()->lastValidPlan),
+              "lazy camera qualification must match the latest full capture after transform/material/light/geometry/structure changes");
+  objectTransform->translation.connectFrom(&camera->position);
+  action.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && !action.getPimpl()->cachedCamera,
+              "camera-connected scene fields must disqualify the notification proof");
+  camera->position.setValue(1, 2, 10);
+  action.apply(scene.root);
+  TEST_ASSERT(backend->lastReuse.kind != CoinRenderFrameReuseKind::CAMERA_PATCH && !action.getPimpl()->cachedCamera,
+              "camera-driven transform changes must never be treated as an immutable scene");
+  objectTransform->translation.disconnect();
+  objectTransform->translation.touch();
+  action.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && !action.getPimpl()->cachedCamera,
+              "a notification after disconnect must capture before the next lazy camera qualification");
+  camera->position.setValue(.8f, 1.8f, 10);
+  action.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && action.getPimpl()->cachedCamera == camera &&
+              backend->lastReuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH,
+              "camera motion after a disconnected transform is captured must restore the qualified overlay");
+  return 0;
+}
+
+int testSharedCameraQualification() {
+  struct Scene {
+    SoSeparator * root = new SoSeparator;
+    Scene() { root->ref(); }
+    ~Scene() { root->unref(); }
+  } scene;
+  auto * camera = new SoPerspectiveCamera;
+  camera->position.setValue(0, 0, 10);
+  scene.root->addChild(camera);
+  auto * sharedMaterial = new SoMaterial;
+  auto * sharedCube = new SoCube;
+  for (int i = 0; i < 64; ++i) {
+    auto * occurrence = new SoSeparator;
+    occurrence->addChild(sharedMaterial);
+    occurrence->addChild(sharedCube);
+    scene.root->addChild(occurrence);
+  }
+  CoinRenderAction action;
+  action.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && action.getPimpl()->cachedCamera == camera,
+              "shared exact leaves must qualify without changing occurrence capture");
+  sharedCube->width.connectFrom(&camera->focalDistance);
+  action.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && !action.getPimpl()->cachedCamera,
+              "a connected field on a shared leaf must disqualify every occurrence");
+  sharedCube->width.disconnect();
+  // Disconnect preserves the evaluated value and removes auditor links; it
+  // does not itself notify. Explicitly request capture before requalifying.
+  sharedCube->width.touch();
+  action.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && !action.getPimpl()->cachedCamera &&
+              action.getPimpl()->candidateCamera == camera && !action.getPimpl()->cameraOverlayBasis.owner,
+              "an explicit notification after disconnect must capture and defer qualification");
+  camera->position.setValue(.2f, 0, 10);
+  action.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && action.getPimpl()->cachedCamera == camera,
+              "camera motion after disconnected shared-leaf capture must qualify its safe anchor lazily");
+  auto * reusedGroup = new SoSeparator;
+  reusedGroup->addChild(camera);
+  reusedGroup->addChild(sharedCube);
+  scene.root->addChild(reusedGroup);
+  scene.root->addChild(reusedGroup);
+  action.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && !action.getPimpl()->cachedCamera,
+              "shared groups must retain the count of all repeated camera occurrences");
+  camera->position.setValue(.4f, 0, 10);
+  action.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && !action.getPimpl()->cachedCamera,
+              "lazy qualification must also refuse a camera reused through shared groups");
+  return 0;
+}
+
+int testDistantLightCameraFallback() {
+  struct Scene {
+    SoSeparator * root = new SoSeparator;
+    Scene() { root->ref(); }
+    ~Scene() { root->unref(); }
+  } scene;
+  auto * camera = new SoPerspectiveCamera;
+  camera->position.setValue(0, 0, 1.0e8f);
+  scene.root->addChild(camera);
+  auto * light = new SoPointLight;
+  light->location.setValue(0, 0, 1);
+  scene.root->addChild(light);
+  scene.root->addChild(new SoCube);
+  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(1, 1)));
+  TEST_ASSERT(target, "CPU precision fallback test requires a target shell");
+  auto * backend = new CameraOverlayTestBackend;
+  target->getPimpl()->backend.reset(backend);
+  target->getPimpl()->depthReadbackEnabled = false;
+  CoinRenderAction action(SbViewportRegion(1, 1));
+  action.setRenderTarget(target.get());
+  action.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && !action.getPimpl()->cachedCamera &&
+              action.getPimpl()->lastValidPlan.lightingStates[0].lights[0].position[2] == -1.0e8f,
+              "distant capture must succeed through the ordinary path without qualifying a lossy basis");
+  camera->position.setValue(0, 0, 0);
+  action.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS &&
+              backend->lastReuse.kind != CoinRenderFrameReuseKind::CAMERA_PATCH &&
+              action.getPimpl()->lastValidPlan.lightingStates[0].lights[0].position[2] == 1 &&
+              !action.getPimpl()->cachedCamera && action.getPimpl()->candidateCamera == camera,
+              "moving near must recapture the original unit-sized light and defer qualification of that safe anchor");
+  camera->position.setValue(.2f, 0, 0);
+  action.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && action.getPimpl()->cachedCamera == camera &&
+              backend->lastReuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH &&
+              action.getPimpl()->lastValidPlan.lightingStates[0].lights[0].position[2] == 1,
+              "a camera-only change after distant fallback must qualify the freshly recaptured safe anchor");
+  return 0;
+}
+
 int testAnnotationLayers() {
   SoSeparator * root = new SoSeparator;
   root->ref();
@@ -1204,6 +1507,9 @@ int main() {
   if (testDepthStateCapture()) { std::cerr << "testDepthStateCapture failed" << std::endl; failed++; }
   if (testAnnotationLayers()) { std::cerr << "testAnnotationLayers failed" << std::endl; failed++; }
   if (testCameraOverlayAndFallback()) { std::cerr << "testCameraOverlayAndFallback failed" << std::endl; failed++; }
+  if (testPhongCameraOverlayNotificationsAndRollback()) { std::cerr << "testPhongCameraOverlayNotificationsAndRollback failed" << std::endl; failed++; }
+  if (testSharedCameraQualification()) { std::cerr << "testSharedCameraQualification failed" << std::endl; failed++; }
+  if (testDistantLightCameraFallback()) { std::cerr << "testDistantLightCameraFallback failed" << std::endl; failed++; }
       if (testWindowTargetRecordingBackend()) { std::cerr << "testWindowTargetRecordingBackend failed" << std::endl; failed++; }
   if (testProfileMultiLightAndPerVertexTransparency()) { std::cerr << "testProfileMultiLightAndPerVertexTransparency failed" << std::endl; failed++; }
   if (testBaseApplyNotHidden()) { std::cerr << "testBaseApplyNotHidden failed" << std::endl; failed++; }

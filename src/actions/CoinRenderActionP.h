@@ -29,7 +29,7 @@ public:
   void initCallbacks();
   void setDiagnostic(const CoinRenderActionDiagnostic & diagnostic);
   static void cameraSensorCB(void * data, SoSensor * sensor);
-  void rememberFrameRoot(SoNode * root);
+  void rememberFrameRoot(SoNode * root, bool qualifyCamera);
   bool prepareCameraOverlay(SoNode * root, CoinRenderCameraOverlayUndo & undo);
 
   template <typename F>
@@ -134,7 +134,9 @@ public:
   SoNode * cachedRoot = NULL;
   SbUniqueId cachedRootId = 0;
   SoNodeSensor cameraSensor;
+  SoCamera * candidateCamera = NULL;
   SoCamera * cachedCamera = NULL;
+  CoinRenderCameraOverlayBasis cameraOverlayBasis;
   bool cameraOnlyDirty = false;
   bool cameraPatchInvalidated = false;
 };

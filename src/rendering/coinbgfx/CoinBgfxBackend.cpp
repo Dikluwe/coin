@@ -671,6 +671,7 @@ CoinBgfxBackend::CoinBgfxBackend()
     lightPositionTypeUniform(BGFX_INVALID_HANDLE),
     lightDirectionCutoffUniform(BGFX_INVALID_HANDLE),
     lightColorIntensityUniform(BGFX_INVALID_HANDLE),
+    instancedCameraUniform(BGFX_INVALID_HANDLE),
     lightAttenuationDropUniform(BGFX_INVALID_HANDLE),
     fullscreenVertexBuffer(BGFX_INVALID_HANDLE),
     fullscreenIndexBuffer(BGFX_INVALID_HANDLE),
@@ -869,6 +870,7 @@ CoinBgfxBackend::destroyResources()
   if (bgfx::isValid(this->lightPositionTypeUniform)) bgfx::destroy(this->lightPositionTypeUniform);
   if (bgfx::isValid(this->lightDirectionCutoffUniform)) bgfx::destroy(this->lightDirectionCutoffUniform);
   if (bgfx::isValid(this->lightColorIntensityUniform)) bgfx::destroy(this->lightColorIntensityUniform);
+  if (bgfx::isValid(this->instancedCameraUniform)) bgfx::destroy(this->instancedCameraUniform);
   if (bgfx::isValid(this->lightAttenuationDropUniform)) bgfx::destroy(this->lightAttenuationDropUniform);
   if (bgfx::isValid(this->defaultTexture)) bgfx::destroy(this->defaultTexture);
   for (bgfx::TextureHandle texture : this->cachedTextures)
@@ -1210,6 +1212,7 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
   this->lightPositionTypeUniform = bgfx::createUniform("u_lightPositionType", bgfx::UniformType::Vec4, COIN_RENDER_MAX_LIGHTS);
   this->lightDirectionCutoffUniform = bgfx::createUniform("u_lightDirectionCutoff", bgfx::UniformType::Vec4, COIN_RENDER_MAX_LIGHTS);
   this->lightColorIntensityUniform = bgfx::createUniform("u_lightColorIntensity", bgfx::UniformType::Vec4, COIN_RENDER_MAX_LIGHTS);
+  this->instancedCameraUniform = bgfx::createUniform("u_instancedCamera", bgfx::UniformType::Vec4, 6);
   this->lightAttenuationDropUniform = bgfx::createUniform("u_lightAttenuationDrop", bgfx::UniformType::Vec4, COIN_RENDER_MAX_LIGHTS);
   const uint32_t whitePixel = UINT32_C(0xffffffff);
   this->defaultTexture = bgfx::createTexture2D(1, 1, false, 1,
@@ -1229,6 +1232,7 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
       !bgfx::isValid(this->lightPositionTypeUniform) ||
       !bgfx::isValid(this->lightDirectionCutoffUniform) ||
       !bgfx::isValid(this->lightColorIntensityUniform) ||
+      !bgfx::isValid(this->instancedCameraUniform) ||
       !bgfx::isValid(this->lightAttenuationDropUniform) ||
       !bgfx::isValid(this->defaultTexture)) {
     this->lastError = "BGFX could not allocate texture uniforms or default texture";
@@ -1648,6 +1652,8 @@ CoinBgfxBackend::bindDrawLighting(const CoinBgfxDraw & draw, int targetHeight)
   bgfx::setUniform(this->lightDirectionCutoffUniform, draw.lightDirectionCutoff, COIN_RENDER_MAX_LIGHTS);
   bgfx::setUniform(this->lightColorIntensityUniform, draw.lightColorIntensity, COIN_RENDER_MAX_LIGHTS);
   bgfx::setUniform(this->lightAttenuationDropUniform, draw.lightAttenuationDrop, COIN_RENDER_MAX_LIGHTS);
+  if (draw.instanceCount)
+    bgfx::setUniform(this->instancedCameraUniform, draw.instanceCamera, 6);
 }
 
 void
@@ -2086,8 +2092,13 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   const bool cacheHit = !hasShadows && frame.revision != 0 &&
     frame.revision == this->cachedRevision && cacheDimensionsMatch &&
     (!this->cachedPlan.usesInstancing || instancingEnabled);
+  const char * disableInstancedCameraPatch = std::getenv("COIN_BGFX_DISABLE_INSTANCED_CAMERA_PATCH");
+  const bool instancedCameraPatchEnabled = instancingEnabled &&
+    !(disableInstancedCameraPatch && std::strcmp(disableInstancedCameraPatch, "1") == 0) &&
+    bgfx::isValid(this->cachedInstanceBuffer);
   const bool cameraPatchEligible =
-    !hasShadows && this->cameraPatchEnabled && !this->cachedPlan.usesInstancing &&
+    !hasShadows && this->cameraPatchEnabled &&
+    (!this->cachedPlan.usesInstancing || instancedCameraPatchEnabled) &&
     reuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH &&
     reuse.baseRevision != 0 && reuse.baseRevision == this->cachedRevision &&
     frame.revision != 0 && frame.revision != this->cachedRevision &&
@@ -2100,6 +2111,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     CoinBgfxLowering::patchCamera(frame, target.size[0], target.size[1],
                                 homogeneousDepth, this->cachedPlan,
                                 cameraDraws, this->lastError);
+  if (tracePhases && cameraPatchEligible && this->cachedPlan.usesInstancing && !cameraPatchUsed)
+    std::fprintf(stderr, "COIN_RENDER_PHASE bgfx_instanced_camera_patch_declined reason=%s\n", this->lastError.c_str());
   CoinBgfxPlan freshPlan;
   const CoinBgfxPlan * plan = &this->cachedPlan;
   if (!cacheHit && !cameraPatchUsed) {

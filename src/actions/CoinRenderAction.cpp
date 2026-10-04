@@ -47,6 +47,9 @@
 #include <Inventor/nodes/SoRotation.h>
 #include <Inventor/nodes/SoScale.h>
 #include <Inventor/nodes/SoTransform.h>
+#include <Inventor/nodes/SoEnvironment.h>
+#include <Inventor/fields/SoField.h>
+#include <Inventor/fields/SoFieldData.h>
 #include <Inventor/nodes/SoClipPlane.h>
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/SbViewVolume.h>
@@ -72,6 +75,7 @@
 #include <algorithm>
 #include <chrono>
 #include <memory>
+#include <unordered_set>
 #include <cstdlib>
 #include <iostream>
 #include <Inventor/misc/SoState.h>
@@ -409,32 +413,51 @@ bool
 cameraStableScene(SoNode * root, SoCamera * camera)
 {
   std::vector<SoNode *> pending(1, root);
+  // Node types are fixed for this qualification. Shared leaves need their
+  // fields checked once; groups still expand on every occurrence so a reused
+  // camera cannot disappear behind a cached ancestor.
+  const SoType separatorType = SoSeparator::getClassTypeId();
+  const SoType groupType = SoGroup::getClassTypeId();
+  const SoType leafTypes[] = {
+    SoCube::getClassTypeId(), SoTransform::getClassTypeId(), SoMaterial::getClassTypeId(),
+    SoTranslation::getClassTypeId(), SoLightModel::getClassTypeId(),
+    SoDirectionalLight::getClassTypeId(), SoEnvironment::getClassTypeId(),
+    SoCoordinate3::getClassTypeId(), SoNormal::getClassTypeId(),
+    SoNormalBinding::getClassTypeId(), SoMaterialBinding::getClassTypeId(),
+    SoShapeHints::getClassTypeId(), SoPointLight::getClassTypeId(), SoSpotLight::getClassTypeId(),
+    SoIndexedFaceSet::getClassTypeId(), SoIndexedLineSet::getClassTypeId()
+  };
+  const SoType * leafEnd = leafTypes + sizeof(leafTypes) / sizeof(leafTypes[0]);
+  std::unordered_set<SoNode *> qualifiedSharedLeaves;
+  unsigned cameraOccurrences = 0;
   while (!pending.empty()) {
     SoNode * node = pending.back();
     pending.pop_back();
+    if (node == camera) {
+      if (++cameraOccurrences != 1) return false;
+      continue;
+    }
+    const bool shared = node->getRefCount() > 1;
+    if (shared && qualifiedSharedLeaves.find(node) != qualifiedSharedLeaves.end()) continue;
     const SoType type = node->getTypeId();
-    if (node == camera) continue;
-    if (type == SoSeparator::getClassTypeId() ||
-        type == SoGroup::getClassTypeId()) {
+    const bool isGroup = type == separatorType || type == groupType;
+    if (!isGroup && std::find(leafTypes, leafEnd, type) == leafEnd) return false;
+    // Connected scene fields may change as a consequence of camera fields.
+    // Qualify their absence once, outside all subsequent overlay updates.
+    const SoFieldData * fields = node->getFieldData();
+    if (fields) {
+      const int fieldCount = fields->getNumFields();
+      for (int i = 0; i < fieldCount; ++i)
+        if (fields->getField(node, i)->isConnected()) return false;
+    }
+    if (isGroup) {
       SoGroup * group = static_cast<SoGroup *>(node);
       for (int i = 0; i < group->getNumChildren(); ++i) {
         pending.push_back(group->getChild(i));
       }
-    } else if (type != SoCoordinate3::getClassTypeId() &&
-               type != SoNormal::getClassTypeId() &&
-               type != SoNormalBinding::getClassTypeId() &&
-               type != SoMaterial::getClassTypeId() &&
-               type != SoMaterialBinding::getClassTypeId() &&
-               type != SoShapeHints::getClassTypeId() &&
-               type != SoLightModel::getClassTypeId() &&
-               type != SoTranslation::getClassTypeId() &&
-               type != SoIndexedFaceSet::getClassTypeId() &&
-               type != SoIndexedLineSet::getClassTypeId() &&
-               type != SoCube::getClassTypeId()) {
-      return false;
-    }
+    } else if (shared) qualifiedSharedLeaves.insert(node);
   }
-  return true;
+  return cameraOccurrences == 1;
 }
 }
 
@@ -443,9 +466,10 @@ CoinRenderActionP::cameraSensorCB(void * data, SoSensor * sensor)
 {
   CoinRenderActionP * self = static_cast<CoinRenderActionP *>(data);
   SoNodeSensor * nodeSensor = static_cast<SoNodeSensor *>(sensor);
-  if (self->cachedCamera &&
-      nodeSensor->getTriggerNode() == self->cachedCamera &&
+  if (self->candidateCamera &&
+      nodeSensor->getTriggerNode() == self->candidateCamera &&
       nodeSensor->getTriggerField() &&
+      nodeSensor->getTriggerField()->getContainer() == self->candidateCamera &&
       nodeSensor->getTriggerOperationType() == SoNotRec::FIELD_UPDATE) {
     self->cameraOnlyDirty = true;
   } else {
@@ -454,10 +478,12 @@ CoinRenderActionP::cameraSensorCB(void * data, SoSensor * sensor)
 }
 
 void
-CoinRenderActionP::rememberFrameRoot(SoNode * root)
+CoinRenderActionP::rememberFrameRoot(SoNode * root, bool qualifyCamera)
 {
   this->cameraSensor.detach();
+  this->candidateCamera = NULL;
   this->cachedCamera = NULL;
+  this->cameraOverlayBasis = CoinRenderCameraOverlayBasis();
   this->cameraOnlyDirty = false;
   this->cameraPatchInvalidated = false;
   if (!root || root->getTypeId() != SoSeparator::getClassTypeId()) return;
@@ -470,22 +496,28 @@ CoinRenderActionP::rememberFrameRoot(SoNode * root)
   SoCamera * camera = static_cast<SoCamera *>(first);
   if (camera->viewportMapping.getValue() != SoCamera::ADJUST_CAMERA &&
       camera->viewportMapping.getValue() != SoCamera::LEAVE_ALONE) return;
-  if (!cameraStableScene(root, camera)) return;
-  this->cachedCamera = camera;
+  // Object animation must not pay for a scene-wide camera qualification after
+  // every capture. Keep only this cheap candidate/sensor until the camera moves.
+  this->candidateCamera = camera;
   this->cameraSensor.attach(root);
+  if (qualifyCamera && cameraStableScene(root, camera) &&
+      CoinRenderFrameReuseCore::prepareCameraOverlayBasis(
+        this->lastValidPlan, this->cameraOverlayBasis)) this->cachedCamera = camera;
 }
 
 bool
 CoinRenderActionP::prepareCameraOverlay(SoNode * root,
                                          CoinRenderCameraOverlayUndo & undo)
 {
-  if (!root || root != this->cachedRoot || !this->cachedCamera ||
+  const char * disabled = std::getenv("COIN_RENDER_DISABLE_CAMERA_OVERLAY");
+  if ((disabled && std::strcmp(disabled, "1") == 0) ||
+      !root || root != this->cachedRoot || !this->candidateCamera ||
       this->cameraSensor.getAttachedNode() != root ||
       !this->cameraOnlyDirty || this->cameraPatchInvalidated ||
-      static_cast<SoGroup *>(root)->getChild(0) != this->cachedCamera) return false;
+      static_cast<SoGroup *>(root)->getChild(0) != this->candidateCamera) return false;
 
   SbViewportRegion adjusted;
-  const SbViewVolume vv = this->cachedCamera->getViewVolume(
+  const SbViewVolume vv = this->candidateCamera->getViewVolume(
     this->master->getViewportRegion(), adjusted, SbMatrix::identity());
   if (adjusted != this->master->getViewportRegion()) return false;
   CoinRenderCameraSnapshot snapshot;
@@ -503,13 +535,21 @@ CoinRenderActionP::prepareCameraOverlay(SoNode * root,
     snapshot.nearDistance = 0.1f;
   if (snapshot.farDistance <= snapshot.nearDistance)
     snapshot.farDistance = snapshot.nearDistance + 100.0f;
-  snapshot.focalDistance = this->cachedCamera->focalDistance.getValue();
+  snapshot.focalDistance = this->candidateCamera->focalDistance.getValue();
   snapshot.aspectRatio = adjusted.getViewportAspectRatio();
   if (this->cameraPatchInvalidated ||
       this->cameraSensor.getAttachedNode() != root) return false;
+  if (!this->cachedCamera) {
+    CoinRenderCameraOverlayBasis basis;
+    if (!CoinRenderFrameReuseCore::prepareCameraOverlayBasis(this->lastValidPlan, basis) ||
+        !cameraStableScene(root, this->candidateCamera) || this->cameraPatchInvalidated ||
+        this->cameraSensor.getAttachedNode() != root) return false;
+    this->cameraOverlayBasis = std::move(basis);
+    this->cachedCamera = this->candidateCamera;
+  }
   return CoinRenderFrameReuseCore::beginCameraOverlay(
     this->lastValidPlan, snapshot,
-    CoinRenderFramePlanBuilder::nextRevision(), undo);
+    CoinRenderFramePlanBuilder::nextRevision(), undo, this->cameraOverlayBasis);
 }
 
 template <typename F>
@@ -569,6 +609,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   for (const auto& texture : this->lastValidPlan.textures)
     if (texture.producerId)
       planCacheAllowed = false;
+  const bool qualifyCapturedCamera = !this->hasLastValidPlan || this->cachedRoot != cacheRoot;
   const bool traversalSkipped = planCacheAllowed && cacheRoot && this->hasLastValidPlan &&
     this->cachedRoot == cacheRoot && this->cachedRootId == cacheRoot->getNodeId() &&
     !this->cameraOnlyDirty && !this->cameraPatchInvalidated;
@@ -787,7 +828,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       this->cachedRootId = cacheRoot->getNodeId();
       if (cameraOverlay) this->cameraOnlyDirty = false;
       else if (!traversalSkipped)
-        this->rememberFrameRoot(planCacheAllowed ? cacheRoot : NULL);
+        this->rememberFrameRoot(planCacheAllowed ? cacheRoot : NULL, qualifyCapturedCamera);
     }
     overlayScope.committed = true;
     this->setDiagnostic(CoinRenderDiagnosticShell::success());
@@ -836,7 +877,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     this->cachedRootId = cacheRoot->getNodeId();
     if (cameraOverlay) this->cameraOnlyDirty = false;
     else if (!traversalSkipped)
-      this->rememberFrameRoot(planCacheAllowed ? cacheRoot : NULL);
+      this->rememberFrameRoot(planCacheAllowed ? cacheRoot : NULL, qualifyCapturedCamera);
   }
   overlayScope.committed = true;
   this->setDiagnostic(CoinRenderDiagnosticShell::success());

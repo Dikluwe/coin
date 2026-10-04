@@ -10,6 +10,7 @@
 
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/SoDB.h>
+#include <Inventor/SbRotation.h>
 
 #include <algorithm>
 #include <cmath>
@@ -79,6 +80,146 @@ bool sharedRangeMatchesGeneral(const CoinRenderFramePlan & frame,
     "shared ranges must preserve all geometry/draw bytes, validity and diagnostic");
 }
 
+bool instancedCamera(const CoinRenderFramePlan & frame, const CoinBgfxPlan & anchor)
+{
+  bool ok = check(anchor.instancedCameraPatchable, "rigid nonsingular instances must admit camera reuse");
+  CoinBgfxPlan working = anchor;
+  std::string diagnostic;
+  SbMatrix translated;
+  translated.setTranslate(SbVec3f(0.4f,-0.3f,-1.2f));
+  SbMatrix rotated;
+  rotated.setRotate(SbRotation(SbVec3f(0,0,1), 0.4f));
+  rotated[3][0] = 0.2f; rotated[3][1] = -0.6f; rotated[3][2] = 0.3f;
+  SbMatrix other;
+  other.setRotate(SbRotation(SbVec3f(1,2,-0.5f), -0.65f));
+  other[3][0] = -0.5f; other[3][1] = 0.8f; other[3][2] = -0.4f;
+  const SbMatrix cameras[] = {anchor.instanceCameraAnchorView, translated, rotated,
+                              other, anchor.instanceCameraAnchorView};
+  const auto near = [](const SbVec3f & actual, const SbVec3f & expected) {
+    for (int channel = 0; channel < 3; ++channel)
+      if (std::abs(actual[channel] - expected[channel]) >
+          2.0e-5f * std::max(1.0f, std::abs(expected[channel]))) return false;
+    return true;
+  };
+  for (const auto & camera : cameras) {
+    CoinRenderFramePlan updated = frame;
+    for (auto & state : updated.renderStates) {
+      state.view = camera;
+      state.projectionCoin.setScale(SbVec3f(1.1f,0.9f,1.0f));
+    }
+    // Reproject immutable anchor lights through world space, like Common's
+    // camera overlay; a patch must publish these fresh eye-space uniforms.
+    for (auto & light : updated.lightingStates[0].lights) {
+      SbVec3f world, current;
+      anchor.instanceCameraAnchorView.inverse().multVecMatrix(SbVec3f(light.position), world);
+      camera.multVecMatrix(world, current);
+      for (int channel = 0; channel < 3; ++channel) light.position[channel] = current[channel];
+      anchor.instanceCameraAnchorView.inverse().multDirMatrix(SbVec3f(light.direction), world);
+      camera.multDirMatrix(world, current);
+      for (int channel = 0; channel < 3; ++channel) light.direction[channel] = current[channel];
+    }
+    std::vector<CoinBgfxDraw> patched;
+    CoinBgfxPlan rebuilt;
+    if (!check(CoinBgfxLowering::patchCamera(updated, 4, 4, false, working, patched, diagnostic) &&
+               CoinBgfxLowering::lowerInstanced(updated, 4, 4, false, rebuilt, diagnostic),
+               "instanced camera patch or rebake rejected a qualified rigid camera")) return false;
+    ok &= check(sameBytes(anchor.instances, working.instances) &&
+                sameBytes(anchor.instancedVertices, working.instancedVertices) &&
+                sameBytes(anchor.indices, working.indices) && patched.size() == anchor.draws.size(),
+                "camera patches must preserve instance/mesh payload and batch counts");
+    SbMatrix delta, normalDelta;
+    ok &= check(CoinRenderTransformCore::cameraDelta(anchor.instanceCameraAnchorView, camera, delta, normalDelta),
+                "camera delta rejected a rigid numerical fixture");
+    const bool changed = std::memcmp(camera.getValue(), anchor.instanceCameraAnchorView.getValue(), sizeof(SbMat)) != 0;
+    for (size_t batch = 0; batch < patched.size(); ++batch) {
+      const auto & draw = patched[batch];
+      const auto & fresh = rebuilt.draws[batch];
+      ok &= check(std::memcmp(draw.mvp, fresh.mvp, sizeof(draw.mvp)) == 0 &&
+                  std::memcmp(draw.ambientLight, fresh.ambientLight, sizeof(draw.ambientLight)) == 0 &&
+                  std::memcmp(draw.lightCount, fresh.lightCount, sizeof(draw.lightCount)) == 0 &&
+                  std::memcmp(draw.lightPositionType, fresh.lightPositionType, sizeof(draw.lightPositionType)) == 0 &&
+                  std::memcmp(draw.lightDirectionCutoff, fresh.lightDirectionCutoff, sizeof(draw.lightDirectionCutoff)) == 0 &&
+                  draw.firstInstance == anchor.draws[batch].firstInstance &&
+                  draw.instanceCount == anchor.draws[batch].instanceCount &&
+                  draw.instanceCamera[3][3] == (changed ? 1.0f : 0.0f),
+                  "camera patch changed traversal or stale projection/PHONG lighting uniforms");
+      if (changed) for (int column = 0; column < 3; ++column) {
+        for (int row = 0; row < 3; ++row)
+          ok &= check(draw.instanceCamera[column][row] == delta[row][column] &&
+                      draw.instanceCamera[column + 3][row] == normalDelta[row][column],
+                      "camera uniform columns changed Coin delta or normal delta");
+        ok &= check(draw.instanceCamera[column][3] == delta[3][column], "camera uniform translation changed");
+      }
+    }
+    for (size_t i = 0; i < frame.draws.size(); ++i) {
+      const auto & state = frame.renderStates[frame.draws[i].renderStateSlot];
+      const SbMatrix originalMv = state.model * anchor.instanceCameraAnchorView;
+      const SbMatrix currentMv = state.model * camera;
+      for (uint32_t j = 0; j < frame.draws[i].geometry.indexCount; ++j) {
+        const auto & vertex = frame.vertices[frame.indices[frame.draws[i].geometry.firstIndex + j]];
+        SbVec3f anchoredPoint, actualPoint, expectedPoint, anchoredNormal, actualNormal, expectedNormal;
+        originalMv.multVecMatrix(SbVec3f(vertex.position), anchoredPoint);
+        delta.multVecMatrix(anchoredPoint, actualPoint);
+        currentMv.multVecMatrix(SbVec3f(vertex.position), expectedPoint);
+        CoinRenderTransformCore::normalMatrix(originalMv).multDirMatrix(SbVec3f(vertex.normal), anchoredNormal);
+        normalDelta.multDirMatrix(anchoredNormal, actualNormal);
+        CoinRenderTransformCore::normalMatrix(currentMv).multDirMatrix(SbVec3f(vertex.normal), expectedNormal);
+        if (actualNormal.normalize() == 0.0f) actualNormal.setValue(0,0,1);
+        if (expectedNormal.normalize() == 0.0f) expectedNormal.setValue(0,0,1);
+        ok &= check(near(actualPoint, expectedPoint) && near(actualNormal, expectedNormal),
+                    "anchored camera transform differs from a fresh model-view/normal rebake");
+      }
+    }
+    working.draws.swap(patched); // Simulate successful commits without moving V0.
+    ok &= check(std::memcmp(working.instanceCameraAnchorView.getValue(), anchor.instanceCameraAnchorView.getValue(), sizeof(SbMat)) == 0,
+                "consecutive camera patches must not drift the anchor");
+  }
+  const auto reject = [&](const CoinRenderFramePlan & invalid, const CoinBgfxPlan & base) {
+    std::vector<CoinBgfxDraw> preserved = working.draws;
+    return check(!CoinBgfxLowering::patchCamera(invalid, 4, 4, false, base, preserved, diagnostic) &&
+                 sameBytes(preserved, working.draws), "camera decline must preserve output for the full rebake fallback");
+  };
+  CoinRenderFramePlan invalid = frame;
+  for (auto & state : invalid.renderStates) state.view.setScale(SbVec3f(1.1f,1,1));
+  ok &= reject(invalid, anchor);
+  invalid = frame; invalid.renderStates[0].projectionCoin[0][0] = std::numeric_limits<float>::quiet_NaN(); ok &= reject(invalid, anchor);
+  invalid = frame; invalid.renderStates[0].fogMode = CoinRenderFogMode::HAZE; ok &= reject(invalid, anchor);
+  invalid = frame; invalid.viewports[0].x = 1; ok &= reject(invalid, anchor);
+  invalid = frame; invalid.clearColor[0] = 0.9f; ok &= reject(invalid, anchor);
+  invalid = frame; invalid.draws.pop_back(); ok &= reject(invalid, anchor);
+  for (float scale : {0.0f, 1.0e-4f, 5.0e-4f}) {
+    CoinRenderFramePlan unsafe = frame;
+    unsafe.renderStates[0].model.setScale(SbVec3f(scale,scale,scale));
+    CoinBgfxPlan unsafeAnchor;
+    ok &= check(CoinBgfxLowering::lowerInstanced(unsafe, 4, 4, false, unsafeAnchor, diagnostic) &&
+                !unsafeAnchor.instancedCameraPatchable,
+                "singular/near-threshold models must retain lowering but decline camera reuse");
+    for (auto & state : unsafe.renderStates) state.view = rotated;
+    ok &= reject(unsafe, unsafeAnchor);
+    CoinBgfxPlan rebaked;
+    ok &= check(CoinBgfxLowering::lowerInstanced(unsafe, 4, 4, false, rebaked, diagnostic),
+                "an unsafe normal camera patch must retain the full lowering fallback");
+  }
+  // Finite rigid views can still lose local features in float eye space. An
+  // anchor at 1e8 must render normally, but cannot later recover those features
+  // by applying a camera delta to its already rounded instance coordinates.
+  CoinRenderFramePlan distant = frame;
+  for (auto & state : distant.renderStates) state.view.setTranslate(SbVec3f(0,0,-1.0e8f));
+  CoinBgfxPlan distantAnchor, distantGeneral;
+  ok &= check(CoinBgfxLowering::lowerInstanced(distant, 4, 4, false, distantAnchor, diagnostic) &&
+              !distantAnchor.instancedCameraPatchable &&
+              CoinBgfxLowering::lower(distant, 4, 4, false, distantGeneral, diagnostic, false, true),
+              "a distant camera must retain original lowering but disable anchored camera reuse");
+  ok &= reject(distant, anchor);
+  for (auto & state : distant.renderStates) state.view = anchor.instanceCameraAnchorView;
+  ok &= reject(distant, distantAnchor);
+  CoinBgfxPlan returnedAnchor;
+  ok &= check(CoinBgfxLowering::lowerInstanced(distant, 4, 4, false, returnedAnchor, diagnostic) &&
+              returnedAnchor.instancedCameraPatchable,
+              "returning from a distant camera must qualify a freshly lowered safe anchor");
+  return ok;
+}
+
 bool instancedOpaque(const CoinRenderFramePlan & base)
 {
   CoinRenderFramePlan frame = base;
@@ -97,6 +238,10 @@ bool instancedOpaque(const CoinRenderFramePlan & base)
     vertex.materialSlot = group;
   }
   frame.renderStates.resize(300, frame.renderStates[0]);
+  frame.lightingStates[0].lights.resize(2);
+  frame.lightingStates[0].lights[0].direction[0] = 0.3f;
+  frame.lightingStates[0].lights[1].type = CoinRenderLightType::POINT;
+  frame.lightingStates[0].lights[1].position[0] = 2.0f;
   frame.draws.resize(300, frame.draws[0]);
   for (uint32_t i = 0; i < 300; ++i) {
     auto & state = frame.renderStates[i];
@@ -153,6 +298,7 @@ bool instancedOpaque(const CoinRenderFramePlan & base)
                   "instance mesh/matrix reconstruction changed triangle position or normal bytes");
     }
   }
+  ok &= instancedCamera(frame, instanced);
   // All instances share an identical plane/transform. Keeping the alternating
   // material sequence is essential for the traversal winner under LEQUAL.
   CoinRenderFramePlan coplanar = frame;
@@ -184,8 +330,8 @@ bool instancedOpaque(const CoinRenderFramePlan & base)
   std::vector<CoinBgfxVertexRange> patches;
   std::vector<CoinBgfxDraw> cameraDraws;
   ok &= check(!CoinBgfxLowering::materialPatchRanges(instanced, instanced, patches) &&
-              !CoinBgfxLowering::patchCamera(frame, 4, 4, false, instanced, cameraDraws, diagnostic),
-              "instanced material/camera changes must rebuild their instance data");
+              CoinBgfxLowering::patchCamera(frame, 4, 4, false, instanced, cameraDraws, diagnostic),
+              "instanced material changes rebuild data while qualified camera changes retain it");
   const auto decline = [&](const CoinRenderFramePlan & unsupported) {
     CoinBgfxPlan preserved = instanced;
     return check(!CoinBgfxLowering::lowerInstanced(unsupported, 4, 4, false, preserved, diagnostic) &&

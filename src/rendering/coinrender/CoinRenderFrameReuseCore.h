@@ -44,7 +44,18 @@ struct CoinRenderCameraOverlayUndo {
   uint64_t revision = 0;
   CoinRenderCameraSnapshot camera;
   std::vector<CoinRenderCameraStateUndo> states;
+  std::vector<CoinRenderLightingSnapshot> lighting;
   bool active = false;
+};
+
+/** Captured values only; the owner is the stable, private plan object. */
+struct CoinRenderCameraOverlayBasis {
+  const CoinRenderFramePlan * owner = nullptr;
+  uint64_t revision = 0;
+  size_t stateCount = 0;
+  CoinRenderCameraSnapshot camera;
+  std::vector<CoinRenderLightingSnapshot> referenceLighting;
+  std::vector<CoinRenderLightingSnapshot> worldLighting;
 };
 
 /** Traversal-free classification of the relationship between two plans. */
@@ -60,6 +71,13 @@ public:
   COIN_RENDER_DLL_API static bool beginCameraOverlay(
     CoinRenderFramePlan & plan, const CoinRenderCameraSnapshot & camera, uint64_t revision,
     CoinRenderCameraOverlayUndo & undo);
+  /** Qualify once after a full capture, under Wiring's notification proof. */
+  COIN_RENDER_DLL_API static bool prepareCameraOverlayBasis(
+    const CoinRenderFramePlan & plan, CoinRenderCameraOverlayBasis & basis);
+  /** Apply from the original world basis, avoiding accumulated light drift. */
+  COIN_RENDER_DLL_API static bool beginCameraOverlay(
+    CoinRenderFramePlan & plan, const CoinRenderCameraSnapshot & camera, uint64_t revision,
+    CoinRenderCameraOverlayUndo & undo, const CoinRenderCameraOverlayBasis & basis);
   /** Restore an uncommitted overlay after a failed frame execution. */
   COIN_RENDER_DLL_API static void rollbackCameraOverlay(
     CoinRenderFramePlan & plan, CoinRenderCameraOverlayUndo & undo);

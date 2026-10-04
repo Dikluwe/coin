@@ -3,6 +3,7 @@
 #include "rendering/coinrender/CoinRenderFramePlan.h"
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 
 // Coin-native transforms over captured values. GPU packing and API conventions
 // select parameters; this Core does not know BGFX, wgpu, actions or devices.
@@ -25,6 +26,60 @@ public:
     const float determinant = modelView.det4();
     return std::abs(determinant) > 1.0e-12f
       ? modelView.inverse().transpose() : SbMatrix::identity();
+  }
+  // A camera view may rotate/translate, but scale, shear and reflections need
+  // the ordinary capture/packing path. This is a qualification tolerance, not
+  // an approximate comparison of scene changes.
+  static bool rigidViewMatrix(const SbMatrix & matrix) {
+    if (!finiteMatrix(matrix) || matrix[0][3] != 0.0f ||
+        matrix[1][3] != 0.0f || matrix[2][3] != 0.0f ||
+        matrix[3][3] != 1.0f) return false;
+    const double tolerance = 2.0e-5;
+    for (int row = 0; row < 3; ++row) {
+      for (int other = row; other < 3; ++other) {
+        double dot = 0.0;
+        for (int column = 0; column < 3; ++column)
+          dot += double(matrix[row][column]) * matrix[other][column];
+        if (std::abs(dot - (row == other ? 1.0 : 0.0)) > tolerance)
+          return false;
+      }
+    }
+    const float determinant = matrix.det4();
+    return std::isfinite(determinant) &&
+      std::abs(double(determinant) - 1.0) <= 4.0e-5;
+  }
+  // Reusing float eye-space values is unsafe at very large coordinates: an
+  // anchor at 1e8 can erase a unit-sized feature before a delta brings it near
+  // the eye. Keep this optional path within a conservative precision domain.
+  static bool cameraReuseView(const SbMatrix & matrix) {
+    if (!rigidViewMatrix(matrix)) return false;
+    for (int column = 0; column < 3; ++column)
+      if (std::abs(matrix[3][column]) > 32768.0f) return false;
+    return true;
+  }
+  // Geometry baked in anchorView stays immutable. Derive every camera update
+  // from that anchor, rather than accumulating deltas between successive views.
+  // Coin uses row vectors: p * anchorView * delta == p * currentView.
+  static bool cameraDelta(const SbMatrix & anchorView, const SbMatrix & currentView,
+                          SbMatrix & delta, SbMatrix & normalDelta) {
+    if (!cameraReuseView(anchorView) || !cameraReuseView(currentView)) return false;
+    SbMatrix candidate;
+    if (std::memcmp(anchorView.getValue(), currentView.getValue(),
+                    sizeof(float) * 12) == 0) {
+      // With unchanged orientation the exact delta is a translation. Avoid
+      // introducing a residual rotation through inverse/multiply roundoff.
+      candidate = SbMatrix::identity();
+      for (int column = 0; column < 3; ++column)
+        candidate[3][column] = currentView[3][column] - anchorView[3][column];
+    } else {
+      candidate = anchorView.inverse() * currentView;
+    }
+    if (!finiteMatrix(candidate)) return false;
+    const SbMatrix candidateNormal = normalMatrix(candidate);
+    if (!finiteMatrix(candidateNormal)) return false;
+    delta = candidate;
+    normalDelta = candidateNormal;
+    return true;
   }
   // Already validated positive target dimensions. Preserve viewport projection;
   // clipping changes only scissor bounds, never this transform.

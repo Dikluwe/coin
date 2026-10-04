@@ -72,6 +72,47 @@ bool instancedMatrixMagnitude(const SbMatrix & matrix)
   return true;
 }
 
+bool composableInstanceNormal(const SbMatrix & modelView, const SbMatrix & normal)
+{
+  const float determinant = modelView.det4();
+  if (!std::isfinite(determinant) || std::abs(determinant) <= 1.0e-9f) return false;
+  // Verify the inverse actually used by Coin. An ill-conditioned inverse (or
+  // its own identity fallback) cannot safely compose with a new camera.
+  for (int row = 0; row < 3; ++row)
+    for (int column = 0; column < 3; ++column) {
+      double value = 0.0;
+      for (int k = 0; k < 3; ++k) value += double(modelView[row][k]) * normal[column][k];
+      if (!std::isfinite(value) || std::abs(value - (row == column ? 1.0 : 0.0)) > 1.0e-4)
+        return false;
+    }
+  return true;
+}
+
+void copyLighting(const CoinRenderLightingSnapshot & lighting, CoinBgfxDraw & draw)
+{
+  std::memcpy(draw.ambientLight, lighting.ambientColor, sizeof(lighting.ambientColor));
+  draw.ambientLight[3] = lighting.ambientIntensity;
+  std::memset(draw.lightCount, 0, sizeof(draw.lightCount));
+  std::memset(draw.lightPositionType, 0, sizeof(draw.lightPositionType));
+  std::memset(draw.lightDirectionCutoff, 0, sizeof(draw.lightDirectionCutoff));
+  std::memset(draw.lightColorIntensity, 0, sizeof(draw.lightColorIntensity));
+  std::memset(draw.lightAttenuationDrop, 0, sizeof(draw.lightAttenuationDrop));
+  draw.lightCount[0] = static_cast<float>(lighting.lights.size());
+  for (size_t i = 0; i < lighting.lights.size(); ++i) {
+    const auto & light = lighting.lights[i];
+    for (int channel = 0; channel < 3; ++channel) {
+      draw.lightPositionType[i][channel] = light.position[channel];
+      draw.lightDirectionCutoff[i][channel] = light.direction[channel];
+      draw.lightColorIntensity[i][channel] = light.color[channel];
+      draw.lightAttenuationDrop[i][channel] = light.attenuation[channel];
+    }
+    draw.lightPositionType[i][3] = static_cast<float>(light.type);
+    draw.lightDirectionCutoff[i][3] = std::cos(light.cutOffAngle);
+    draw.lightColorIntensity[i][3] = light.intensity;
+    draw.lightAttenuationDrop[i][3] = light.dropOffRate;
+  }
+}
+
 template <typename T>
 int compareValue(const T & lhs, const T & rhs)
 {
@@ -252,22 +293,7 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
   drawTemplate.viewport[0] = viewport.x; drawTemplate.viewport[1] = viewport.y;
   drawTemplate.viewport[2] = viewport.width; drawTemplate.viewport[3] = viewport.height;
   const auto & lighting = frame.lightingStates[firstState.lightingSlot];
-  std::memcpy(drawTemplate.ambientLight, lighting.ambientColor, sizeof(lighting.ambientColor));
-  drawTemplate.ambientLight[3] = lighting.ambientIntensity;
-  drawTemplate.lightCount[0] = static_cast<float>(lighting.lights.size());
-  for (size_t i = 0; i < lighting.lights.size(); ++i) {
-    const auto & light = lighting.lights[i];
-    for (int channel = 0; channel < 3; ++channel) {
-      drawTemplate.lightPositionType[i][channel] = light.position[channel];
-      drawTemplate.lightDirectionCutoff[i][channel] = light.direction[channel];
-      drawTemplate.lightColorIntensity[i][channel] = light.color[channel];
-      drawTemplate.lightAttenuationDrop[i][channel] = light.attenuation[channel];
-    }
-    drawTemplate.lightPositionType[i][3] = static_cast<float>(light.type);
-    drawTemplate.lightDirectionCutoff[i][3] = std::cos(light.cutOffAngle);
-    drawTemplate.lightColorIntensity[i][3] = light.intensity;
-    drawTemplate.lightAttenuationDrop[i][3] = light.dropOffRate;
-  }
+  copyLighting(lighting, drawTemplate);
 
   struct Mesh { uint32_t firstVertex, vertexCount, firstIndex, indexCount; };
   struct Range { uint32_t meshSlot, materialSlot; };
@@ -277,6 +303,9 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
   std::vector<uint32_t> remap;
   CoinBgfxPlan candidate;
   candidate.usesInstancing = true;
+  candidate.instanceCameraAnchorView = firstState.view;
+  candidate.instancedCameraPatchable = instancedMatrixMagnitude(firstState.view) &&
+    CoinRenderTransformCore::cameraReuseView(firstState.view);
   candidate.instances.reserve(frame.draws.size());
   candidate.draws.reserve(std::min<size_t>(frame.draws.size(), 256));
   uint32_t previousMesh = UINT32_MAX;
@@ -337,11 +366,16 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
     const auto model = state.model.getValue();
     if (model[0][3] != 0.0f || model[1][3] != 0.0f || model[2][3] != 0.0f || model[3][3] != 1.0f) return declineDraw("projective model");
     const SbMatrix modelView = state.model * state.view;
+    // normalMatrix uses an identity fallback at |det| <= 1e-12. A camera
+    // rotation cannot compose that fallback, so only cache a patchable anchor
+    // well away from the boundary. Full lowering still supports these models.
     const auto mv = modelView.getValue();
     if (!instancedMatrixMagnitude(modelView) || mv[0][3] != 0.0f ||
         mv[1][3] != 0.0f || mv[2][3] != 0.0f || mv[3][3] != 1.0f) return declineDraw("model-view coefficients/affinity");
     const SbMatrix normalMatrix = CoinRenderTransformCore::normalMatrix(modelView);
     if (!instancedMatrixMagnitude(normalMatrix)) return declineDraw("normal matrix coefficient magnitude");
+    candidate.instancedCameraPatchable = candidate.instancedCameraPatchable &&
+      composableInstanceNormal(modelView, normalMatrix);
 
     const SharedRangeKey key = {geometry.firstVertex, geometry.vertexCount,
                                geometry.firstIndex, geometry.indexCount};
@@ -1034,8 +1068,85 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
 {
   diagnostic.clear();
   if (base.usesInstancing) {
-    diagnostic = "BGFX instanced camera changes require fresh instance transforms";
-    return false;
+    const auto decline = [&](const char * reason) {
+      diagnostic = std::string("BGFX instanced camera patch declined: ") + reason;
+      return false;
+    };
+    if (!base.instancedCameraPatchable) return decline("unsafe anchor/model normal matrix");
+    if (width <= 0 || height <= 0 || width > 16384 || height > 16384 ||
+        frame.draws.empty() || frame.draws.size() != base.instances.size() || base.draws.empty()) return decline("size/source count");
+    if (!frame.shadowGroups.empty() || !frame.textures.empty()) return decline("shadow/texture resources");
+    for (int channel = 0; channel < 4; ++channel)
+      if (!std::isfinite(frame.clearColor[channel]) || frame.clearColor[channel] != base.clearColor[channel])
+        return decline("changed/non-finite clear color");
+    const auto & firstSource = frame.draws.front();
+    if (firstSource.renderStateSlot >= frame.renderStates.size()) return decline("render-state slot");
+    const auto & firstState = frame.renderStates[firstSource.renderStateSlot];
+    if (!instancedMatrixMagnitude(firstState.view)) return decline("view coefficient magnitude");
+    SbMatrix delta, normalDelta;
+    if (!CoinRenderTransformCore::cameraDelta(base.instanceCameraAnchorView, firstState.view,
+                                             delta, normalDelta) ||
+        !instancedMatrixMagnitude(delta) || !instancedMatrixMagnitude(normalDelta))
+      return decline("non-rigid/unsafe camera delta");
+    const bool cameraChanged = std::memcmp(firstState.view.getValue(),
+      base.instanceCameraAnchorView.getValue(), sizeof(SbMat)) != 0;
+    const auto deltaValues = delta.getValue();
+    const auto normalValues = normalDelta.getValue();
+    std::vector<CoinBgfxDraw> candidate = base.draws;
+    size_t nextInstance = 0;
+    // CAMERA_PATCH is a validated relationship: geometry, models, materials
+    // and non-camera state remain identical to the cached source frame. Only
+    // representative batch uniforms need refreshing, not every occurrence.
+    for (auto & draw : candidate) {
+      if (draw.firstInstance != nextInstance || draw.sourceDrawSlot != nextInstance ||
+          !draw.instanceCount || draw.instanceCount > base.instances.size() - nextInstance)
+        return decline("instance batch order/count");
+      nextInstance += draw.instanceCount;
+      const auto & source = frame.draws[draw.sourceDrawSlot];
+      if (source.renderStateSlot >= frame.renderStates.size()) return decline("batch render-state slot");
+      const auto & state = frame.renderStates[source.renderStateSlot];
+      if (state.viewportSlot >= frame.viewports.size() || state.lightingSlot >= frame.lightingStates.size())
+        return decline("viewport/lighting slot");
+      const auto & viewport = frame.viewports[state.viewportSlot];
+      if (viewport.x != draw.viewport[0] || viewport.y != draw.viewport[1] ||
+          viewport.width != draw.viewport[2] || viewport.height != draw.viewport[3]) return decline("changed viewport");
+      if (source.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST || source.renderLayer != 0 ||
+          source.clearDepthBefore || source.shadowLightSlot || source.lineStripId ||
+          source.geometry.indexCount != draw.indexCount || state.lightModel != CoinRenderLightModel::PHONG ||
+          state.hasTexture || state.transparentMaterial || state.transparentTexture ||
+          !state.clipPlanesWorld.empty() || state.fogMode != CoinRenderFogMode::NONE || state.shadowGroupSlot ||
+          state.polygonOffsetEnabled || state.polygonLinePattern || state.linePattern != 0xffffu ||
+          state.explicitDepthMask || state.cullMode != draw.cullMode || state.frontFace != draw.frontFace ||
+          !state.depthTest || !state.depthWrite || state.depthFunction != draw.depthFunction ||
+          state.depthRange[0] != draw.depthRange[0] || state.depthRange[1] != draw.depthRange[1])
+        return decline("changed/unqualified non-camera state");
+      for (const auto & texture : state.extraTextures) if (texture.enabled) return decline("extra texture unit");
+      if (state.lightingSlot != firstState.lightingSlot ||
+          std::memcmp(state.view.getValue(), firstState.view.getValue(), sizeof(SbMat)) != 0 ||
+          std::memcmp(state.projectionCoin.getValue(), firstState.projectionCoin.getValue(), sizeof(SbMat)) != 0)
+        return decline("different batch camera/lighting");
+      const SbMatrix projection = CoinRenderTransformCore::projection(state.projectionCoin, homogeneousDepth);
+      const SbMatrix mvp = projection * CoinRenderTransformCore::viewportTransform(viewport, width, height);
+      if (!instancedMatrixMagnitude(mvp)) return decline("projection coefficient magnitude");
+      std::memcpy(draw.mvp, mvp.getValue(), sizeof(draw.mvp));
+      std::memset(draw.instanceCamera, 0, sizeof(draw.instanceCamera));
+      if (cameraChanged) {
+        for (int column = 0; column < 3; ++column) {
+          for (int row = 0; row < 3; ++row) {
+            draw.instanceCamera[column][row] = deltaValues[row][column];
+            draw.instanceCamera[column + 3][row] = normalValues[row][column];
+          }
+          draw.instanceCamera[column][3] = deltaValues[3][column];
+        }
+        draw.instanceCamera[3][3] = 1.0f;
+      }
+      const auto & lighting = frame.lightingStates[state.lightingSlot];
+      if (lighting.lights.size() > COIN_RENDER_MAX_LIGHTS) return decline("light count");
+      copyLighting(lighting, draw);
+    }
+    if (nextInstance != base.instances.size()) return decline("incomplete instance batches");
+    output.swap(candidate);
+    return true;
   }
   if (frame.draws.size() != base.draws.size()) {
     diagnostic = "BGFX camera patch changed the draw count";
