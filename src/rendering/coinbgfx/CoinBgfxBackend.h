@@ -84,6 +84,10 @@ private:
   CoinRenderSubmitResult submitInternal(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
                               const CoinRenderFrameReuseDecision & reuse, CoinRenderReadbackTicket * ticket);
   bool resize(int width, int height);
+  bool prepareBaseProgram(const std::vector<CoinBgfxDraw> & draws,
+                          bool hasShadows,
+                          CoinBgfxTransparencyStrategy strategy,
+                          bool instanced = false);
   bool prepareFullscreenResources();
   bool prepareDepthReadbackResources();
   bool prepareShadowPrograms(size_t mapCount);
@@ -160,7 +164,12 @@ private:
   int height;
   bgfx::VertexLayout layout;
   bgfx::VertexLayout compactLayout;
+  bgfx::VertexLayout instancedLayout;
+  bgfx::VertexLayout instanceLayout;
   bgfx::ProgramHandle program;
+  bgfx::ProgramHandle solidProgram;
+  bgfx::ProgramHandle instancedProgram;
+  bgfx::ProgramHandle activeProgram; // Alias selected for the current submission.
   bgfx::ProgramHandle shadowMomentsProgram;
   bgfx::ProgramHandle shadowReceiverProgram;
   bgfx::ProgramHandle shadowReceiverProgram4;
@@ -228,8 +237,11 @@ private:
   std::vector<bgfx::TextureHandle> cachedTextures;
   bgfx::DynamicVertexBufferHandle cachedVertexBuffer;
   bgfx::DynamicIndexBufferHandle cachedIndexBuffer;
+  bgfx::DynamicVertexBufferHandle cachedInstanceBuffer = BGFX_INVALID_HANDLE;
+  uint32_t cachedInstanceCapacity = 0;
   uint32_t cachedVertexCapacity;
   bool cachedCompactVertices = false;
+  bool cachedInstancedVertices = false;
   uint32_t cachedIndexCapacity;
 };
 

@@ -12,10 +12,39 @@
 #include <cmath>
 #include <algorithm>
 #include <cstring>
+#include <cstdlib>
 #include <utility>
 #include <unordered_map>
 
 namespace {
+struct SharedRangeKey {
+  uint32_t firstVertex, vertexCount, firstIndex, indexCount;
+  bool operator==(const SharedRangeKey & other) const {
+    return firstVertex == other.firstVertex && vertexCount == other.vertexCount &&
+      firstIndex == other.firstIndex && indexCount == other.indexCount;
+  }
+};
+
+struct SharedRangeHash {
+  size_t operator()(const SharedRangeKey & key) const {
+    size_t hash = key.firstVertex;
+    hash = hash * 31 + key.vertexCount;
+    hash = hash * 31 + key.firstIndex;
+    return hash * 31 + key.indexCount;
+  }
+};
+
+struct SharedRange {
+  uint32_t uniformMaterialSlot = 0;
+  bool uniformMaterial = true;
+  float maxAlpha = 0.0f;
+  uint64_t materialSignature = 0;
+  // First occurrence order is the existing indexed lowering order. Entries
+  // belong to this invocation; Coin transforms and uniforms remain per draw.
+  std::vector<uint32_t> sourceVertices;
+  std::vector<uint32_t> relativeIndices;
+};
+
 uint64_t hashBytes(uint64_t hash, const void * data, size_t bytes)
 {
   const unsigned char * value = static_cast<const unsigned char *>(data);
@@ -24,6 +53,23 @@ uint64_t hashBytes(uint64_t hash, const void * data, size_t bytes)
     hash *= UINT64_C(1099511628211);
   }
   return hash;
+}
+
+// This optional GPU transform profile keeps wide headroom below float overflow
+// in point dot products, normal length squares and projection products. Plans
+// outside these broad bounds retain the existing CPU lowering path.
+bool instancedMagnitude(float value)
+{
+  return std::isfinite(value) && std::abs(value) <= 1.0e8f;
+}
+
+bool instancedMatrixMagnitude(const SbMatrix & matrix)
+{
+  const auto values = matrix.getValue();
+  for (int row = 0; row < 4; ++row)
+    for (int column = 0; column < 4; ++column)
+      if (!instancedMagnitude(values[row][column])) return false;
+  return true;
 }
 
 template <typename T>
@@ -138,7 +184,8 @@ CoinBgfxLowering::retainForReuse(CoinBgfxPlan & plan,
                                uint64_t geometryBudget, uint64_t metadataBudget)
 {
   uint64_t metadataBytes = uint64_t(plan.draws.capacity() + plan.shadowDraws.capacity()) * sizeof(CoinBgfxDraw) +
-    uint64_t(plan.textures.capacity()) * sizeof(CoinBgfxTexture);
+    uint64_t(plan.textures.capacity()) * sizeof(CoinBgfxTexture) +
+    uint64_t(plan.instances.capacity()) * sizeof(CoinBgfxInstance);
   for (const auto & texture : plan.textures) metadataBytes += texture.pixelsRgba.capacity();
   if (metadataBytes > metadataBudget) return false;
   // Large uploads can transfer the vertex allocation to BGFX before caching.
@@ -147,13 +194,16 @@ CoinBgfxLowering::retainForReuse(CoinBgfxPlan & plan,
   if (!plan.indices.empty()) plan.uploadedIndexCount = plan.indices.size();
   // Account for transferred vertices as well, so their remaining indices do
   // not accidentally become eligible for the small-plan material cache.
-  const uint64_t geometryBytes = (plan.usesCompactVertices
+  const uint64_t geometryBytes = (plan.usesInstancing
+    ? uint64_t(std::max(plan.instancedVertices.capacity(), plan.uploadedVertexCount)) * sizeof(CoinBgfxInstancedVertex)
+    : plan.usesCompactVertices
     ? uint64_t(std::max(plan.packedVertices.capacity(), plan.uploadedVertexCount)) * sizeof(CoinBgfxVertexPrefix)
     : uint64_t(std::max(plan.vertices.capacity(), plan.uploadedVertexCount)) * sizeof(CoinBgfxVertex)) +
     uint64_t(std::max(plan.indices.capacity(), plan.uploadedIndexCount)) * sizeof(uint32_t);
   if (plan.usesCompactVertices || geometryBytes + metadataBytes > geometryBudget) {
     std::vector<CoinBgfxVertex>().swap(plan.vertices);
     std::vector<CoinBgfxVertexPrefix>().swap(plan.packedVertices);
+    std::vector<CoinBgfxInstancedVertex>().swap(plan.instancedVertices);
     std::vector<uint32_t>().swap(plan.indices);
   }
   return true;
@@ -164,6 +214,240 @@ CoinBgfxLowering::clipViewport(const int32_t viewport[4], int width, int height,
                             int32_t clipped[4])
 {
   return CoinRenderTransformCore::clipViewport(viewport, width, height, clipped);
+}
+
+bool
+CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, int height,
+                               bool homogeneousDepth, CoinBgfxPlan & output,
+                               std::string & diagnostic,
+                               const CoinRenderFramePreflight * preflight)
+{
+  diagnostic.clear();
+  const auto decline = [&](const std::string & reason) {
+    diagnostic = "BGFX instancing declined: " + reason;
+    return false;
+  };
+  if (width <= 0 || height <= 0 || width > 16384 || height > 16384) return decline("target size");
+  if (frame.draws.size() < 256 || frame.draws.size() > UINT32_MAX) return decline("draw count");
+  if (!frame.shadowGroups.empty()) return decline("shadow groups");
+  if (!frame.textures.empty()) return decline("texture images");
+  if ((!preflight || !preflight->compositionFor(frame)) && !frame.isValid(&diagnostic)) return false;
+  std::vector<CoinRenderCompositionItem> order;
+  if (!coin_render_composition_schedule(frame, order, diagnostic, preflight)) return false;
+  if (order.size() != frame.draws.size()) return decline("composition count");
+  const auto & firstState = frame.renderStates[frame.draws[0].renderStateSlot];
+  const auto view = firstState.view.getValue();
+  if (view[0][3] != 0.0f || view[1][3] != 0.0f || view[2][3] != 0.0f || view[3][3] != 1.0f) return decline("projective view");
+  const auto & viewport = frame.viewports[firstState.viewportSlot];
+  const SbMatrix projection = CoinRenderTransformCore::projection(firstState.projectionCoin, homogeneousDepth);
+  const SbMatrix mvp = projection * CoinRenderTransformCore::viewportTransform(viewport, width, height);
+  if (!instancedMatrixMagnitude(mvp)) return decline("projection coefficient magnitude");
+
+  CoinBgfxDraw drawTemplate{};
+  std::memcpy(drawTemplate.mvp, mvp.getValue(), sizeof(drawTemplate.mvp));
+  drawTemplate.cullMode = firstState.cullMode;
+  drawTemplate.frontFace = firstState.frontFace;
+  drawTemplate.depthFunction = firstState.depthFunction;
+  drawTemplate.alpha = 1.0f;
+  drawTemplate.viewport[0] = viewport.x; drawTemplate.viewport[1] = viewport.y;
+  drawTemplate.viewport[2] = viewport.width; drawTemplate.viewport[3] = viewport.height;
+  const auto & lighting = frame.lightingStates[firstState.lightingSlot];
+  std::memcpy(drawTemplate.ambientLight, lighting.ambientColor, sizeof(lighting.ambientColor));
+  drawTemplate.ambientLight[3] = lighting.ambientIntensity;
+  drawTemplate.lightCount[0] = static_cast<float>(lighting.lights.size());
+  for (size_t i = 0; i < lighting.lights.size(); ++i) {
+    const auto & light = lighting.lights[i];
+    for (int channel = 0; channel < 3; ++channel) {
+      drawTemplate.lightPositionType[i][channel] = light.position[channel];
+      drawTemplate.lightDirectionCutoff[i][channel] = light.direction[channel];
+      drawTemplate.lightColorIntensity[i][channel] = light.color[channel];
+      drawTemplate.lightAttenuationDrop[i][channel] = light.attenuation[channel];
+    }
+    drawTemplate.lightPositionType[i][3] = static_cast<float>(light.type);
+    drawTemplate.lightDirectionCutoff[i][3] = std::cos(light.cutOffAngle);
+    drawTemplate.lightColorIntensity[i][3] = light.intensity;
+    drawTemplate.lightAttenuationDrop[i][3] = light.dropOffRate;
+  }
+
+  struct Mesh { uint32_t firstVertex, vertexCount, firstIndex, indexCount; };
+  struct Range { uint32_t meshSlot, materialSlot; };
+  std::vector<Mesh> meshes;
+  std::unordered_map<uint64_t, std::vector<uint32_t>> meshByHash;
+  std::unordered_map<SharedRangeKey, Range, SharedRangeHash> ranges;
+  std::vector<uint32_t> remap;
+  CoinBgfxPlan candidate;
+  candidate.usesInstancing = true;
+  candidate.instances.reserve(frame.draws.size());
+  candidate.draws.reserve(std::min<size_t>(frame.draws.size(), 256));
+  uint32_t previousMesh = UINT32_MAX;
+  for (size_t ordinal = 0; ordinal < order.size(); ++ordinal) {
+    const auto & item = order[ordinal];
+    const auto & sourceDraw = frame.draws[item.drawIndex];
+    const auto & state = frame.renderStates[sourceDraw.renderStateSlot];
+    const auto & geometry = sourceDraw.geometry;
+    const auto declineDraw = [&](const std::string & reason) {
+      return decline("draw " + std::to_string(item.drawIndex) + ": " + reason);
+    };
+    if (item.drawIndex != ordinal || item.firstIndex != geometry.firstIndex ||
+        item.indexCount != geometry.indexCount) return declineDraw("composition order/range");
+    if (item.blend || (item.screenDoor && item.screenDoorLevel != 0) || item.sortTriangles || item.additive)
+      return declineDraw("composition blend=" + std::to_string(item.blend) +
+                         " screenDoor=" + std::to_string(item.screenDoorLevel) +
+                         " sortTriangles=" + std::to_string(item.sortTriangles) +
+                         " additive=" + std::to_string(item.additive));
+    if (sourceDraw.shadowLightSlot || sourceDraw.renderLayer != 0 || sourceDraw.clearDepthBefore ||
+        sourceDraw.lineStripId || sourceDraw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST)
+      return declineDraw("special draw/topology");
+    if (state.lightModel != CoinRenderLightModel::PHONG || state.hasTexture ||
+        state.transparentMaterial || state.transparentTexture)
+      return declineDraw("lightModel=" + std::to_string(static_cast<uint32_t>(state.lightModel)) +
+                         " hasTexture=" + std::to_string(state.hasTexture) +
+                         " transparentMaterial=" + std::to_string(state.transparentMaterial) +
+                         " transparentTexture=" + std::to_string(state.transparentTexture));
+    if (!state.clipPlanesWorld.empty() || state.fogMode != CoinRenderFogMode::NONE ||
+        state.shadowGroupSlot || state.polygonOffsetEnabled || state.polygonLinePattern || state.linePattern != 0xffffu)
+      return declineDraw("surface clip=" + std::to_string(state.clipPlanesWorld.size()) +
+                         " fog=" + std::to_string(static_cast<uint32_t>(state.fogMode)) +
+                         " shadow=" + std::to_string(state.shadowGroupSlot) +
+                         " offset=" + std::to_string(state.polygonOffsetEnabled) +
+                         " polygonPattern=" + std::to_string(state.polygonLinePattern) +
+                         " linePattern=" + std::to_string(state.linePattern));
+    if (state.explicitDepthMask || !item.depthTest || !item.depthWrite ||
+        (item.depthFunction != CoinRenderDepthFunction::LESS && item.depthFunction != CoinRenderDepthFunction::LEQUAL) ||
+        item.depthFunction != drawTemplate.depthFunction ||
+        item.depthRange[0] != 0.0f || item.depthRange[1] != 1.0f)
+      return declineDraw("depth mask=" + std::to_string(state.explicitDepthMask) +
+                         " test=" + std::to_string(item.depthTest) + " write=" + std::to_string(item.depthWrite) +
+                         " function=" + std::to_string(static_cast<uint32_t>(item.depthFunction)) +
+                         " range=" + std::to_string(item.depthRange[0]) + "," + std::to_string(item.depthRange[1]));
+    if (state.cullMode != firstState.cullMode || state.frontFace != firstState.frontFace)
+      return declineDraw("different face/cull state");
+    if (state.viewportSlot != firstState.viewportSlot) return declineDraw("different viewport slot");
+    if (state.lightingSlot != firstState.lightingSlot) return declineDraw("different lighting slot");
+    if (std::memcmp(state.view.getValue(), firstState.view.getValue(), sizeof(SbMat)) != 0)
+      return declineDraw("different view");
+    if (std::memcmp(state.projectionCoin.getValue(), firstState.projectionCoin.getValue(), sizeof(SbMat)) != 0)
+      return declineDraw("different projection");
+    if (!geometry.vertexCount || geometry.vertexCount > 4096 ||
+        !geometry.indexCount || geometry.indexCount > 65536) return declineDraw("mesh range size");
+    if ((state.cullMode != CoinRenderCullMode::NONE && state.cullMode != CoinRenderCullMode::BACK &&
+         state.cullMode != CoinRenderCullMode::FRONT) ||
+        (state.frontFace != CoinRenderFrontFace::CCW && state.frontFace != CoinRenderFrontFace::CW)) return declineDraw("unknown face/cull");
+    for (const auto & texture : state.extraTextures) if (texture.enabled) return declineDraw("extra texture unit");
+    const auto model = state.model.getValue();
+    if (model[0][3] != 0.0f || model[1][3] != 0.0f || model[2][3] != 0.0f || model[3][3] != 1.0f) return declineDraw("projective model");
+    const SbMatrix modelView = state.model * state.view;
+    const auto mv = modelView.getValue();
+    if (!instancedMatrixMagnitude(modelView) || mv[0][3] != 0.0f ||
+        mv[1][3] != 0.0f || mv[2][3] != 0.0f || mv[3][3] != 1.0f) return declineDraw("model-view coefficients/affinity");
+    const SbMatrix normalMatrix = CoinRenderTransformCore::normalMatrix(modelView);
+    if (!instancedMatrixMagnitude(normalMatrix)) return declineDraw("normal matrix coefficient magnitude");
+
+    const SharedRangeKey key = {geometry.firstVertex, geometry.vertexCount,
+                               geometry.firstIndex, geometry.indexCount};
+    auto range = ranges.find(key);
+    if (range == ranges.end()) {
+      if (ranges.size() >= 1024) return declineDraw("source span budget");
+      std::vector<CoinBgfxInstancedVertex> vertices;
+      std::vector<uint32_t> indices;
+      vertices.reserve(std::min(geometry.vertexCount, geometry.indexCount));
+      indices.reserve(geometry.indexCount);
+      remap.assign(geometry.vertexCount, UINT32_MAX);
+      const uint32_t materialSlot = frame.vertices[frame.indices[geometry.firstIndex]].materialSlot;
+      const auto & material = frame.materials[materialSlot];
+      if (material.diffuse[3] != 1.0f || material.transparency != 0.0f || !std::isfinite(material.shininess)) return declineDraw("material alpha/shininess");
+      for (int channel = 0; channel < 4; ++channel)
+        if (!std::isfinite(material.diffuse[channel]) || !std::isfinite(material.ambient[channel]) ||
+            !std::isfinite(material.specular[channel]) || !std::isfinite(material.emission[channel])) return declineDraw("non-finite material");
+      for (uint32_t j = 0; j < geometry.indexCount; ++j) {
+        const uint32_t sourceIndex = frame.indices[geometry.firstIndex + j];
+        if (sourceIndex < geometry.firstVertex || sourceIndex >= geometry.firstVertex + geometry.vertexCount) return declineDraw("index escapes vertex range");
+        const auto & source = frame.vertices[sourceIndex];
+        if (source.materialSlot != materialSlot) return declineDraw("nonuniform vertex material");
+        if (source.screenSpaceW != 1.0f || source.fogEyeDepth >= 0.0f) return declineDraw("stroke interpolation/fog depth");
+        for (int channel = 0; channel < 3; ++channel)
+          if (!instancedMagnitude(source.position[channel]) || !instancedMagnitude(source.normal[channel])) return declineDraw("source position/normal magnitude");
+        uint32_t & slot = remap[sourceIndex - geometry.firstVertex];
+        if (slot == UINT32_MAX) {
+          CoinBgfxInstancedVertex vertex;
+          std::memcpy(vertex.position, source.position, sizeof(vertex.position));
+          std::memcpy(vertex.normal, source.normal, sizeof(vertex.normal));
+          slot = static_cast<uint32_t>(vertices.size());
+          vertices.push_back(vertex);
+        }
+        indices.push_back(slot);
+      }
+      uint64_t hash = hashBytes(UINT64_C(1469598103934665603), vertices.data(), vertices.size() * sizeof(CoinBgfxInstancedVertex));
+      hash = hashBytes(hash, indices.data(), indices.size() * sizeof(uint32_t));
+      uint32_t meshSlot = UINT32_MAX;
+      auto & matches = meshByHash[hash];
+      for (uint32_t slot : matches) {
+        const auto & mesh = meshes[slot];
+        if (mesh.vertexCount != vertices.size() || mesh.indexCount != indices.size() ||
+            std::memcmp(candidate.instancedVertices.data() + mesh.firstVertex, vertices.data(),
+                        vertices.size() * sizeof(CoinBgfxInstancedVertex)) != 0) continue;
+        bool sameIndices = true;
+        for (size_t j = 0; j < indices.size(); ++j)
+          if (candidate.indices[mesh.firstIndex + j] != mesh.firstVertex + indices[j]) { sameIndices = false; break; }
+        if (sameIndices) { meshSlot = slot; break; }
+      }
+      if (meshSlot == UINT32_MAX) {
+        if (meshes.size() >= 256) return declineDraw("distinct mesh budget");
+        meshSlot = static_cast<uint32_t>(meshes.size());
+        Mesh mesh = {static_cast<uint32_t>(candidate.instancedVertices.size()), static_cast<uint32_t>(vertices.size()),
+                     static_cast<uint32_t>(candidate.indices.size()), static_cast<uint32_t>(indices.size())};
+        candidate.instancedVertices.insert(candidate.instancedVertices.end(), vertices.begin(), vertices.end());
+        for (uint32_t index : indices) candidate.indices.push_back(mesh.firstVertex + index);
+        meshes.push_back(mesh);
+        matches.push_back(meshSlot);
+      }
+      range = ranges.emplace(key, Range{meshSlot, materialSlot}).first;
+    }
+    const auto & mesh = meshes[range->second.meshSlot];
+    const auto & material = frame.materials[range->second.materialSlot];
+    CoinBgfxInstance instance{};
+    const auto normal = normalMatrix.getValue();
+    for (int column = 0; column < 3; ++column) {
+      for (int row = 0; row < 3; ++row) {
+        instance.data[column][row] = mv[row][column];
+        instance.data[column + 3][row] = normal[row][column];
+      }
+      instance.data[column][3] = mv[3][column];
+    }
+    instance.data[3][3] = material.shininess;
+    instance.data[4][3] = 1.0f;
+    std::memcpy(instance.data[6], material.diffuse, sizeof(material.diffuse));
+    std::memcpy(instance.data[7], material.ambient, sizeof(material.ambient));
+    std::memcpy(instance.data[8], material.specular, sizeof(material.specular));
+    std::memcpy(instance.data[9], material.emission, sizeof(material.emission));
+    const uint32_t instanceSlot = static_cast<uint32_t>(candidate.instances.size());
+    candidate.instances.push_back(instance);
+    if (previousMesh == range->second.meshSlot && !candidate.draws.empty()) {
+      ++candidate.draws.back().instanceCount;
+    }
+    else {
+      CoinBgfxDraw draw = drawTemplate;
+      draw.sourceDrawSlot = static_cast<uint32_t>(item.drawIndex);
+      draw.renderStateSlot = sourceDraw.renderStateSlot;
+      draw.sourceNodeId = sourceDraw.sourceNodeId;
+      draw.firstVertex = mesh.firstVertex; draw.vertexCount = mesh.vertexCount;
+      draw.firstIndex = mesh.firstIndex; draw.indexCount = mesh.indexCount;
+      draw.firstInstance = instanceSlot; draw.instanceCount = 1;
+      draw.materialSignature = UINT64_C(1469598103934665603);
+      for (uint32_t j = 0; j < geometry.indexCount; ++j) {
+        draw.materialSignature = hashBytes(draw.materialSignature, material.diffuse, sizeof(material.diffuse));
+        draw.materialSignature = hashBytes(draw.materialSignature, material.ambient, sizeof(material.ambient));
+        draw.materialSignature = hashBytes(draw.materialSignature, material.specular, sizeof(material.specular));
+        draw.materialSignature = hashBytes(draw.materialSignature, material.emission, sizeof(material.emission));
+        draw.materialSignature = hashBytes(draw.materialSignature, &material.shininess, sizeof(material.shininess));
+      }
+      candidate.draws.push_back(draw);
+    }
+    previousMesh = range->second.meshSlot;
+  }
+  for (int channel = 0; channel < 4; ++channel) candidate.clearColor[channel] = frame.clearColor[channel];
+  output = std::move(candidate);
+  return true;
 }
 
 bool
@@ -234,6 +518,12 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
   // Preserve the exact legacy FNV sequence for uniform-material geometry.
   // Repeated shapes otherwise hash the same material once per vertex.
   std::unordered_map<uint64_t, uint64_t> uniformMaterialSignatures;
+  std::unordered_map<SharedRangeKey, SharedRange, SharedRangeHash> sharedRanges;
+  constexpr size_t sharedRangeLimit = 256;
+  constexpr size_t sharedIndexBudget = 1024u * 1024u;
+  size_t sharedIndexCount = 0;
+  const char * disableSharedRanges = std::getenv("COIN_BGFX_DISABLE_SHARED_RANGE_LOWERING");
+  const bool useSharedRanges = !disableSharedRanges || std::strcmp(disableSharedRanges, "1") != 0;
   std::vector<uint8_t> validatedMaterialColors(frame.materials.size(), 0);
   bool previousBatchable = false;
   for (const CoinRenderCompositionItem& item : order) {
@@ -275,9 +565,21 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       !item.blend && !item.screenDoor && draw.renderLayer == 0 && !draw.clearDepthBefore &&
       state.lightModel == CoinRenderLightModel::PHONG;
     float maxAlpha = 0.0f;
-    const uint32_t uniformMaterialSlot = frame.vertices[frame.indices[draw.geometry.firstIndex]].materialSlot;
+    uint32_t uniformMaterialSlot = frame.vertices[frame.indices[draw.geometry.firstIndex]].materialSlot;
     bool uniformMaterial = true;
-    for (uint32_t j = 0; j < draw.geometry.indexCount; ++j) {
+    const SharedRangeKey rangeKey = {draw.geometry.firstVertex, draw.geometry.vertexCount,
+                                    draw.geometry.firstIndex, draw.geometry.indexCount};
+    const SharedRange * sharedRange = nullptr;
+    if (useSharedRanges && batchable && draw.geometry.vertexCount <= indexedRangeLimit) {
+      const auto cached = sharedRanges.find(rangeKey);
+      if (cached != sharedRanges.end()) sharedRange = &cached->second;
+    }
+    if (sharedRange) {
+      uniformMaterialSlot = sharedRange->uniformMaterialSlot;
+      uniformMaterial = sharedRange->uniformMaterial;
+      maxAlpha = sharedRange->maxAlpha;
+    }
+    else for (uint32_t j = 0; j < draw.geometry.indexCount; ++j) {
       const uint32_t index = frame.indices[draw.geometry.firstIndex + j];
       if (index < draw.geometry.firstVertex ||
           index >= draw.geometry.firstVertex + draw.geometry.vertexCount) {
@@ -431,7 +733,39 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     // Small/unbatched, transparent, shadow and stroke paths keep their legacy
     // expansion, including the established driver behavior of those profiles.
     const bool indexed = batchable && draw.geometry.vertexCount <= indexedRangeLimit;
-    if (indexed) vertexRemap.assign(draw.geometry.vertexCount, UINT32_MAX);
+    if (useSharedRanges && indexed && !sharedRange && sharedRanges.size() < sharedRangeLimit &&
+        draw.geometry.indexCount <= sharedIndexBudget - sharedIndexCount) {
+      SharedRange range;
+      range.uniformMaterialSlot = uniformMaterialSlot;
+      range.uniformMaterial = uniformMaterial;
+      range.maxAlpha = maxAlpha;
+      range.materialSignature = lowered.materialSignature;
+      range.sourceVertices.reserve(std::min(draw.geometry.vertexCount, draw.geometry.indexCount));
+      range.relativeIndices.reserve(draw.geometry.indexCount);
+      vertexRemap.assign(draw.geometry.vertexCount, UINT32_MAX);
+      for (uint32_t j = 0; j < draw.geometry.indexCount; ++j) {
+        const uint32_t sourceIndex = frame.indices[draw.geometry.firstIndex + j];
+        uint32_t & slot = vertexRemap[sourceIndex - draw.geometry.firstVertex];
+        if (slot == UINT32_MAX) {
+          slot = static_cast<uint32_t>(range.sourceVertices.size());
+          range.sourceVertices.push_back(sourceIndex);
+        }
+        range.relativeIndices.push_back(slot);
+        if (!uniformMaterial) {
+          const auto & material = frame.materials[frame.vertices[sourceIndex].materialSlot];
+          range.materialSignature = hashBytes(range.materialSignature, material.diffuse, sizeof(material.diffuse));
+          range.materialSignature = hashBytes(range.materialSignature, material.ambient, sizeof(material.ambient));
+          range.materialSignature = hashBytes(range.materialSignature, material.specular, sizeof(material.specular));
+          range.materialSignature = hashBytes(range.materialSignature, material.emission, sizeof(material.emission));
+          range.materialSignature = hashBytes(range.materialSignature, &material.shininess, sizeof(material.shininess));
+        }
+      }
+      sharedIndexCount += range.relativeIndices.size();
+      sharedRange = &sharedRanges.emplace(rangeKey, std::move(range)).first->second;
+    }
+    const bool replayRange = indexed && sharedRange;
+    if (replayRange) lowered.materialSignature = sharedRange->materialSignature;
+    else if (indexed) vertexRemap.assign(draw.geometry.vertexCount, UINT32_MAX);
     CoinBgfxVertex materialVertex{};
     const auto setMaterial = [&](CoinBgfxVertex & vertex,
                                  const CoinRenderMaterialSnapshot & material) {
@@ -445,11 +779,14 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     if (uniformMaterial) setMaterial(materialVertex, frame.materials[uniformMaterialSlot]);
     bool normalCached = false;
     float previousNormal[3], previousViewNormal[3];
-    for (uint32_t j = 0; j < draw.geometry.indexCount; ++j) {
-      const uint32_t sourceIndex = frame.indices[draw.geometry.firstIndex + j];
+    const uint32_t sourceCount = replayRange
+      ? static_cast<uint32_t>(sharedRange->sourceVertices.size()) : draw.geometry.indexCount;
+    for (uint32_t j = 0; j < sourceCount; ++j) {
+      const uint32_t sourceIndex = replayRange ? sharedRange->sourceVertices[j]
+        : frame.indices[draw.geometry.firstIndex + j];
       const CoinRenderVertexSnapshot & source = frame.vertices[sourceIndex];
       const CoinRenderMaterialSnapshot & material = frame.materials[source.materialSlot];
-      if (!uniformMaterial) {
+      if (!uniformMaterial && !replayRange) {
         lowered.materialSignature = hashBytes(lowered.materialSignature,
           material.diffuse, sizeof(material.diffuse));
         lowered.materialSignature = hashBytes(lowered.materialSignature,
@@ -463,7 +800,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       }
       // Hash every material occurrence in the original index order even when
       // its vertex was already converted, preserving the grouping signature.
-      if (indexed) {
+      if (indexed && !replayRange) {
         uint32_t & slot = vertexRemap[sourceIndex - draw.geometry.firstVertex];
         if (slot != UINT32_MAX) {
           candidate.indices.push_back(slot);
@@ -513,13 +850,15 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
         float * packed = &vertex.extraTexcoords[(unit - 1) / 2][((unit - 1) % 2) * 2];
         packed[0] = uv[0]; packed[1] = uv[1];
       }
-      candidate.indices.push_back(emittedIndex);
+      if (!replayRange) candidate.indices.push_back(emittedIndex);
       if (compact) {
         CoinBgfxVertexPrefix packed;
         std::memcpy(packed.data(), &vertex, sizeof(packed));
         candidate.packedVertices.push_back(packed);
       }
     }
+    if (replayRange) for (uint32_t index : sharedRange->relativeIndices)
+      candidate.indices.push_back(lowered.firstVertex + index);
     lowered.vertexCount = static_cast<uint32_t>(candidate.vertexCount()) - lowered.firstVertex;
     if (!frame.shadowGroups.empty()) candidate.shadowDraws.push_back(lowered);
     if (!draw.shadowLightSlot) {
@@ -594,7 +933,7 @@ CoinBgfxLowering::materialPatchRanges(
   std::vector<CoinBgfxVertexRange> & ranges)
 {
   std::vector<CoinBgfxVertexRange> candidate;
-  if (base.usesCompactVertices || updated.usesCompactVertices) return false;
+  if (base.usesCompactVertices || updated.usesCompactVertices || base.usesInstancing || updated.usesInstancing) return false;
   if (base.vertices.size() != updated.vertices.size() ||
       base.indices != updated.indices || base.draws.size() != updated.draws.size() ||
       base.textures.size() != updated.textures.size() ||
@@ -694,6 +1033,10 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
                             std::string & diagnostic)
 {
   diagnostic.clear();
+  if (base.usesInstancing) {
+    diagnostic = "BGFX instanced camera changes require fresh instance transforms";
+    return false;
+  }
   if (frame.draws.size() != base.draws.size()) {
     diagnostic = "BGFX camera patch changed the draw count";
     return false;

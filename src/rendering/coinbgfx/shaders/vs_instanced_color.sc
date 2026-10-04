@@ -1,0 +1,17 @@
+$input a_position, a_normal, i_data0, i_data1, i_data2, i_data3, i_data4, i_data5, i_data6, i_data7, i_data8, i_data9
+$output v_color0
+
+#include <bgfx_shader.sh>
+#include "coin_lighting.sh"
+
+void main()
+{
+  vec4 position = vec4(a_position, 1.0);
+  vec3 viewPosition = vec3(dot(position, i_data0), dot(position, i_data1), dot(position, i_data2));
+  vec3 viewNormal = vec3(dot(a_normal, i_data3.xyz), dot(a_normal, i_data4.xyz), dot(a_normal, i_data5.xyz));
+  float normalLength = length(viewNormal);
+  viewNormal = normalLength > 0.0 ? viewNormal / normalLength : vec3(0.0, 0.0, 1.0);
+  gl_Position = mul(u_modelViewProj, vec4(viewPosition, 1.0));
+  v_color0 = coinMaterialColor(i_data6, i_data7, i_data8, i_data9,
+                              viewPosition, viewNormal, vec2(i_data3.w, i_data4.w));
+}

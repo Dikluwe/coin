@@ -76,6 +76,35 @@ int main()
     std::cerr << "BGFX populated an unpublished CPU depth buffer\n";
     return 1;
   }
+  // Switch programs on an already prepared target. A plan captured as solid
+  // must produce the same publication when the full surface stage is forced,
+  // and returning to the solid stage must not retain the previous selection.
+  const std::vector<uint8_t> firstSolidPixels = target.colorBuffer;
+  const char * previousSolidOptout = std::getenv("COIN_BGFX_DISABLE_SOLID_PROGRAM");
+  const bool hadSolidOptout = previousSolidOptout != nullptr;
+  const std::string savedSolidOptout = previousSolidOptout ? previousSolidOptout : "";
+  const char * previousInstanceOptout = std::getenv("COIN_BGFX_DISABLE_INSTANCING");
+  const bool hadInstanceOptout = previousInstanceOptout != nullptr;
+  const std::string savedInstanceOptout = previousInstanceOptout ? previousInstanceOptout : "";
+  coinRenderTestSetEnvironment("COIN_BGFX_DISABLE_INSTANCING", "1");
+  coinRenderTestSetEnvironment("COIN_BGFX_DISABLE_SOLID_PROGRAM", "1");
+  const bool fullMatched = target.executeFrame(frame).status == CoinRenderBackendStatus::SUCCESS &&
+    target.colorBuffer == firstSolidPixels;
+  coinRenderTestSetEnvironment("COIN_BGFX_DISABLE_SOLID_PROGRAM", "0");
+  const bool solidMatched = target.executeFrame(frame).status == CoinRenderBackendStatus::SUCCESS &&
+    target.colorBuffer == firstSolidPixels;
+  if (hadSolidOptout)
+    coinRenderTestSetEnvironment("COIN_BGFX_DISABLE_SOLID_PROGRAM", savedSolidOptout.c_str());
+  else coinRenderTestSetEnvironment("COIN_BGFX_DISABLE_SOLID_PROGRAM", nullptr);
+  if (hadInstanceOptout)
+    coinRenderTestSetEnvironment("COIN_BGFX_DISABLE_INSTANCING", savedInstanceOptout.c_str());
+  else coinRenderTestSetEnvironment("COIN_BGFX_DISABLE_INSTANCING", nullptr);
+  const bool restoredMatched = target.executeFrame(frame).status == CoinRenderBackendStatus::SUCCESS &&
+    target.colorBuffer == firstSolidPixels;
+  if (!fullMatched || !solidMatched || !restoredMatched) {
+    std::cerr << "BGFX solid/full program switch changed the published image\n";
+    return 1;
+  }
   // A shifted viewport must crop rather than reposition the triangle.
   const int origins[][2] = {{-16, 0}, {16, 0}, {0, -16}, {0, 16}, {64, 0}};
   const int samples[][2] = {{4, 16}, {28, 16}, {16, 4}, {16, 28}, {16, 16}};

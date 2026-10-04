@@ -8,6 +8,7 @@
 #include "rendering/coinrender/CoinRenderResourceCore.h"
 #include "rendering/coinbgfx/CoinBgfxLowering.h"
 #include "rendering/coinbgfx/CoinBgfxProgramCache.h"
+#include "rendering/coinbgfx/CoinBgfxProgramSelection.h"
 #include "rendering/coinrender/CoinRenderImageCore.h"
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 #include "rendering/coinrender/CoinRenderSelectionCore.h"
@@ -21,6 +22,12 @@
 #include "coin_bgfx_fs_glsl.h"
 #include "coin_bgfx_vs_spirv.h"
 #include "coin_bgfx_fs_spirv.h"
+#include "coin_bgfx_fs_solid_color_glsl.h"
+#include "coin_bgfx_fs_solid_color_spirv.h"
+#include "coin_bgfx_vs_instanced_color_glsl.h"
+#include "coin_bgfx_vs_instanced_color_spirv.h"
+#include "coin_bgfx_fs_instanced_color_glsl.h"
+#include "coin_bgfx_fs_instanced_color_spirv.h"
 #include "coin_bgfx_fs_peel_next_glsl.h"
 #include "coin_bgfx_fs_peel_next_spirv.h"
 #include "coin_bgfx_fs_composite_glsl.h"
@@ -65,6 +72,9 @@
 #include "coin_bgfx_fs_depth_readback_dx11.h"
 #include "coin_bgfx_vs_dx11.h"
 #include "coin_bgfx_fs_dx11.h"
+#include "coin_bgfx_fs_solid_color_dx11.h"
+#include "coin_bgfx_vs_instanced_color_dx11.h"
+#include "coin_bgfx_fs_instanced_color_dx11.h"
 #include "coin_bgfx_fs_peel_next_dx11.h"
 #include "coin_bgfx_fs_composite_dx11.h"
 #include "coin_bgfx_fs_weighted_oit_dx11.h"
@@ -117,6 +127,8 @@ const bgfx::Memory * uploadVertexVector(std::vector<Vertex> & vertices,
 
 const bgfx::Memory * uploadVertices(CoinBgfxPlan & plan)
 {
+  if (plan.usesInstancing)
+    return uploadVertexVector(plan.instancedVertices, plan.uploadedVertexCount, false);
   if (plan.usesCompactVertices)
     return uploadVertexVector(plan.packedVertices, plan.uploadedVertexCount, true);
   return uploadVertexVector(plan.vertices, plan.uploadedVertexCount, false);
@@ -629,6 +641,8 @@ CoinBgfxBackend::CoinBgfxBackend()
     weightedOitSupported(false), sortedLayersSupported(false), serial(0),
     directTextureSerial(0),
     width(0), height(0), program(BGFX_INVALID_HANDLE),
+    solidProgram(BGFX_INVALID_HANDLE), instancedProgram(BGFX_INVALID_HANDLE),
+    activeProgram(BGFX_INVALID_HANDLE),
     shadowMomentsProgram(BGFX_INVALID_HANDLE),
     shadowReceiverProgram(BGFX_INVALID_HANDLE),
     shadowReceiverProgram4(BGFX_INVALID_HANDLE),
@@ -861,11 +875,14 @@ CoinBgfxBackend::destroyResources()
     if (bgfx::isValid(texture)) bgfx::destroy(texture);
   if (bgfx::isValid(this->cachedVertexBuffer)) bgfx::destroy(this->cachedVertexBuffer);
   if (bgfx::isValid(this->cachedIndexBuffer)) bgfx::destroy(this->cachedIndexBuffer);
+  if (bgfx::isValid(this->cachedInstanceBuffer)) bgfx::destroy(this->cachedInstanceBuffer);
   if (bgfx::isValid(this->peelNextProgram)) bgfx::destroy(this->peelNextProgram);
   if (bgfx::isValid(this->compositeProgram)) bgfx::destroy(this->compositeProgram);
   if (bgfx::isValid(this->depthReadProgram)) bgfx::destroy(this->depthReadProgram);
   if (bgfx::isValid(this->readDepthSampler)) bgfx::destroy(this->readDepthSampler);
   if (bgfx::isValid(this->program)) bgfx::destroy(this->program);
+  if (bgfx::isValid(this->solidProgram)) bgfx::destroy(this->solidProgram);
+  if (bgfx::isValid(this->instancedProgram)) bgfx::destroy(this->instancedProgram);
   if (bgfx::isValid(this->shadowMomentsProgram)) bgfx::destroy(this->shadowMomentsProgram);
   if (bgfx::isValid(this->shadowReceiverProgram)) bgfx::destroy(this->shadowReceiverProgram);
   if (bgfx::isValid(this->shadowReceiverProgram4)) bgfx::destroy(this->shadowReceiverProgram4);
@@ -1039,6 +1056,17 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
     init.swapChain.nwh = nullptr;
     init.swapChain.width = 0;
     init.swapChain.height = 0;
+    // Coin submits on one API thread and uses persistent buffers for geometry,
+    // instances and fullscreen passes. BGFX's debug text owns separate pools.
+    // Keep small, nonzero transient pools for BGFX's internal frame lifecycle;
+    // the private opt-out restores its original reservations for comparisons.
+    const char * disableSmallReservations =
+      std::getenv("COIN_BGFX_DISABLE_SMALL_RUNTIME_RESERVATIONS");
+    if (!(disableSmallReservations && std::strcmp(disableSmallReservations, "1") == 0)) {
+      init.limits.maxEncoders = 1;
+      init.limits.maxTransientVbSize = 64u * 1024u;
+      init.limits.maxTransientIbSize = 64u * 1024u;
+    }
     if (!bgfx::init(init)) {
       runtime.callback.reset();
       this->lastError = std::string("BGFX could not initialize its headless renderer: ") + bgfx::getRendererName(renderer);
@@ -1154,21 +1182,15 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
     .add(bgfx::Attrib::TexCoord6, 4, bgfx::AttribType::Float)
     .add(bgfx::Attrib::TexCoord7, 4, bgfx::AttribType::Float)
     .end();
-  bgfx::ShaderHandle vs = bgfx::createShader(bgfx::copy(COIN_BGFX_SHADER_DATA(coin_bgfx_vs), COIN_BGFX_SHADER_SIZE(coin_bgfx_vs)));
-  bgfx::ShaderHandle fs = bgfx::createShader(bgfx::copy(COIN_BGFX_SHADER_DATA(coin_bgfx_fs), COIN_BGFX_SHADER_SIZE(coin_bgfx_fs)));
-  if (!bgfx::isValid(vs) || !bgfx::isValid(fs)) {
-    if (bgfx::isValid(vs)) bgfx::destroy(vs);
-    if (bgfx::isValid(fs)) bgfx::destroy(fs);
-    this->lastError = "BGFX failed to create its renderer-specific shaders";
-    this->status = CoinRenderBackendStatus::BACKEND_ERROR;
-    return this->status;
-  }
-  this->program = bgfx::createProgram(vs, fs, true);
-  if (!bgfx::isValid(this->program)) {
-    this->lastError = "BGFX failed to link its base-color shader program";
-    this->status = CoinRenderBackendStatus::BACKEND_ERROR;
-    return this->status;
-  }
+  this->instancedLayout.begin()
+    .add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
+    .add(bgfx::Attrib::Normal, 3, bgfx::AttribType::Float)
+    .end();
+  // BGFX's persistent instance-buffer API consumes the stride, not these
+  // regular attributes. Skip the payload to avoid requiring unused bindings.
+  this->instanceLayout.begin().skip(static_cast<uint8_t>(sizeof(CoinBgfxInstance))).end();
+  // Select the required base fragment stage after lowering the first plan.
+  // Preparing a target alone does not compile an unused general surface stage.
   this->textureSampler = bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler);
   for (size_t unit = 1; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
     const std::string name = "s_texColor" + std::to_string(unit);
@@ -1223,6 +1245,42 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
   this->status = CoinRenderBackendStatus::SUCCESS;
   this->lastError.clear();
   return this->status;
+}
+
+bool
+CoinBgfxBackend::prepareBaseProgram(const std::vector<CoinBgfxDraw> & draws,
+                                    bool hasShadows,
+                                    CoinBgfxTransparencyStrategy strategy,
+                                    bool instanced)
+{
+  this->activeProgram = BGFX_INVALID_HANDLE;
+  if (draws.empty()) return true;
+  const char * disableSolid = std::getenv("COIN_BGFX_DISABLE_SOLID_PROGRAM");
+  const bool solid = !(disableSolid && std::strcmp(disableSolid, "1") == 0) &&
+    coin_bgfx_solid_program(draws, hasShadows, strategy);
+  bgfx::ProgramHandle & selected = instanced ? this->instancedProgram :
+    solid ? this->solidProgram : this->program;
+  if (!bgfx::isValid(selected)) {
+    selected = createLayerProgram(
+      instanced ? COIN_BGFX_SHADER_DATA(coin_bgfx_vs_instanced_color) : COIN_BGFX_SHADER_DATA(coin_bgfx_vs),
+      instanced ? COIN_BGFX_SHADER_SIZE(coin_bgfx_vs_instanced_color) : COIN_BGFX_SHADER_SIZE(coin_bgfx_vs),
+      instanced ? COIN_BGFX_SHADER_DATA(coin_bgfx_fs_instanced_color) :
+        solid ? COIN_BGFX_SHADER_DATA(coin_bgfx_fs_solid_color) : COIN_BGFX_SHADER_DATA(coin_bgfx_fs),
+      instanced ? COIN_BGFX_SHADER_SIZE(coin_bgfx_fs_instanced_color) :
+        solid ? COIN_BGFX_SHADER_SIZE(coin_bgfx_fs_solid_color) : COIN_BGFX_SHADER_SIZE(coin_bgfx_fs));
+    if (!bgfx::isValid(selected)) {
+      this->lastError = instanced ? "BGFX failed to create its instanced shader program" :
+        solid ? "BGFX failed to create its solid-color shader program" :
+                                "BGFX failed to create its general surface shader program";
+      this->status = CoinRenderBackendStatus::BACKEND_ERROR;
+      return false;
+    }
+  }
+  this->activeProgram = selected;
+  if (CoinRenderDiagnosticShell::phaseTracingEnabled())
+    std::fprintf(stderr, "COIN_RENDER_PHASE bgfx_base_program solid=%d instancing=%d\n",
+      solid ? 1 : 0, instanced ? 1 : 0);
+  return true;
 }
 
 bool
@@ -1628,7 +1686,7 @@ CoinBgfxBackend::encodeSortedLayers(const std::vector<CoinBgfxDraw> & draws,
       if (!setDrawScissor(draw, width, height)) continue;
       this->bindDrawTexture(draw, textures);
       this->bindDrawLighting(draw);
-      bgfx::submit(view, this->program);
+      bgfx::submit(view, this->activeProgram);
 
     }
     for (const CoinBgfxDraw & draw : draws) {
@@ -1651,7 +1709,7 @@ CoinBgfxBackend::encodeSortedLayers(const std::vector<CoinBgfxDraw> & draws,
       const auto receiver = shadows.passes.size() > 4 ? this->shadowReceiverProgram8 :
         shadows.passes.size() > 2 ? this->shadowReceiverProgram4 : this->shadowReceiverProgram;
       bgfx::submit(view, hasShadows ? (pass == 0 ? receiver : this->shadowPeelProgram) :
-        (pass == 0 ? this->program : this->peelNextProgram));
+        (pass == 0 ? this->activeProgram : this->peelNextProgram));
     }
   }
 
@@ -1724,7 +1782,7 @@ CoinBgfxBackend::encodeWeightedOit(const std::vector<CoinBgfxDraw> & draws,
     if (!setDrawScissor(draw, width, height)) continue;
     this->bindDrawTexture(draw, textures);
     this->bindDrawLighting(draw);
-    bgfx::submit(oitView, this->program);
+    bgfx::submit(oitView, this->activeProgram);
 
   }
 
@@ -1845,7 +1903,7 @@ CoinBgfxBackend::encodeOverlayLayers(
       if (hasShadows) this->bindShadowReceiver(frame, shadowPlan, shadowMaps, draw, height);
       else this->bindDrawLighting(draw, height);
       bgfx::submit(overlayView, hasShadows ? (shadowPlan.passes.size() > 4 ? this->shadowReceiverProgram8 : shadowPlan.passes.size() > 2 ?
-        this->shadowReceiverProgram4 : this->shadowReceiverProgram) : this->program);
+        this->shadowReceiverProgram4 : this->shadowReceiverProgram) : this->activeProgram);
 
     }
   }
@@ -2008,14 +2066,28 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
                         std::strcmp(gpuTimestampFlag, "1") == 0;
   if (traceGpu) bgfx::setDebug(BGFX_DEBUG_PROFILER);
   const bool homogeneousDepth = bgfx::getCaps()->homogeneousDepth;
+  const bgfx::Caps * caps = bgfx::getCaps();
+  const char * disableInstancing = std::getenv("COIN_BGFX_DISABLE_INSTANCING");
+  // Recent BGFX versions expose this through maxInstanceData; older versions
+  // additionally require the explicit capability bit.
+#ifdef BGFX_CAPS_INSTANCING
+  const bool instanceCaps = (caps->supported & BGFX_CAPS_INSTANCING) != 0;
+#else
+  const bool instanceCaps = true;
+#endif
+  const bool instancingEnabled = !hasShadows && this->drawBatchingEnabled &&
+    !(disableInstancing && std::strcmp(disableInstancing, "1") == 0) &&
+    instanceCaps &&
+    caps->limits.maxInstanceData >= 10 && caps->limits.maxVertexAttributes >= 12;
   const bool cacheDimensionsMatch =
     target.size[0] == this->cachedWidth &&
     target.size[1] == this->cachedHeight &&
     homogeneousDepth == this->cachedHomogeneousDepth;
   const bool cacheHit = !hasShadows && frame.revision != 0 &&
-    frame.revision == this->cachedRevision && cacheDimensionsMatch;
+    frame.revision == this->cachedRevision && cacheDimensionsMatch &&
+    (!this->cachedPlan.usesInstancing || instancingEnabled);
   const bool cameraPatchEligible =
-    !hasShadows && this->cameraPatchEnabled &&
+    !hasShadows && this->cameraPatchEnabled && !this->cachedPlan.usesInstancing &&
     reuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH &&
     reuse.baseRevision != 0 && reuse.baseRevision == this->cachedRevision &&
     frame.revision != 0 && frame.revision != this->cachedRevision &&
@@ -2034,7 +2106,14 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     const char * disableCompact = std::getenv("COIN_BGFX_DISABLE_COMPACT_VERTICES");
     const bool compact = bgfx::getCaps()->rendererType == bgfx::RendererType::OpenGL &&
       !(disableCompact && std::strcmp(disableCompact, "1") == 0);
-    if (!CoinBgfxLowering::lower(frame, target.size[0], target.size[1],
+    const bool instanced = instancingEnabled && CoinBgfxLowering::lowerInstanced(
+      frame, target.size[0], target.size[1], homogeneousDepth, freshPlan,
+      this->lastError, target.submissionPreflight(frame));
+    if (!instanced && CoinRenderDiagnosticShell::phaseTracingEnabled())
+      std::fprintf(stderr, "COIN_RENDER_PHASE bgfx_instancing_declined enabled=%d max_instance_data=%u max_vertex_attributes=%u reason=%s\n",
+        instancingEnabled ? 1 : 0, static_cast<unsigned int>(caps->limits.maxInstanceData),
+        static_cast<unsigned int>(caps->limits.maxVertexAttributes), this->lastError.c_str());
+    if (!instanced && !CoinBgfxLowering::lower(frame, target.size[0], target.size[1],
                               homogeneousDepth, freshPlan, this->lastError, hasShadows,
                               this->drawBatchingEnabled, target.submissionPreflight(frame), compact)) {
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
@@ -2043,6 +2122,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   }
   std::vector<CoinBgfxVertexRange> materialRanges;
   const bool materialPatchEligible = !cacheHit && !cameraPatchUsed &&
+    !this->cachedPlan.usesInstancing && !freshPlan.usesInstancing &&
     reuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD &&
     reuse.baseRevision != 0 && reuse.baseRevision == this->cachedRevision &&
     cacheDimensionsMatch && bgfx::isValid(this->cachedVertexBuffer) &&
@@ -2059,6 +2139,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
   }
   if (!this->prepareTransparencyPrograms(selectedStrategy))
+    return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
+  if (!this->prepareBaseProgram(strategyDraws, hasShadows, selectedStrategy, plan->usesInstancing))
     return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
   if (hasShadows && selectedStrategy != CoinBgfxTransparencyStrategy::OBJECT &&
       !this->prepareShadowTransparencyPrograms())
@@ -2095,12 +2177,15 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     return CoinRenderSubmitResult(this->status, this->lastError);
   if (plan->vertices.size() > std::numeric_limits<uint32_t>::max() / sizeof(CoinBgfxVertex) ||
       plan->packedVertices.size() > std::numeric_limits<uint32_t>::max() / sizeof(CoinBgfxVertexPrefix) ||
+      plan->instancedVertices.size() > std::numeric_limits<uint32_t>::max() / sizeof(CoinBgfxInstancedVertex) ||
+      plan->instances.size() > std::numeric_limits<uint32_t>::max() / sizeof(CoinBgfxInstance) ||
       plan->indices.size() > std::numeric_limits<uint32_t>::max() / sizeof(uint32_t)) {
     this->lastError = "BGFX geometry exceeds buffer size limits";
     return CoinRenderSubmitResult(CoinRenderBackendStatus::OUT_OF_MEMORY, this->lastError);
   }
   bgfx::DynamicVertexBufferHandle vb = this->cachedVertexBuffer;
   bgfx::DynamicIndexBufferHandle ib = this->cachedIndexBuffer;
+  bgfx::DynamicVertexBufferHandle instanceBuffer = this->cachedInstanceBuffer;
   bool retained = cacheHit || cameraPatchUsed || materialPatchUsed;
   bool geometryBufferReused = retained;
   uint32_t materialPatchVertices = 0;
@@ -2122,17 +2207,22 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     if (!plan->draws.empty()) {
       const bool vertexPoolHit = bgfx::isValid(vb) &&
         this->cachedCompactVertices == plan->usesCompactVertices &&
+        this->cachedInstancedVertices == plan->usesInstancing &&
         this->cachedVertexCapacity >= plan->vertexCount();
       const bool indexPoolHit = bgfx::isValid(ib) &&
         this->cachedIndexCapacity >= plan->indices.size();
-      geometryBufferReused = vertexPoolHit && indexPoolHit;
+      const bool instancePoolHit = !plan->usesInstancing ||
+        (bgfx::isValid(instanceBuffer) && this->cachedInstanceCapacity >= plan->instances.size());
+      geometryBufferReused = vertexPoolHit && indexPoolHit && instancePoolHit;
       if (!vertexPoolHit) {
         if (bgfx::isValid(vb)) bgfx::destroy(vb);
         this->cachedVertexCapacity = pooledCapacity(plan->vertexCount());
         vb = bgfx::createDynamicVertexBuffer(this->cachedVertexCapacity,
-          plan->usesCompactVertices ? this->compactLayout : this->layout);
+          plan->usesInstancing ? this->instancedLayout :
+            plan->usesCompactVertices ? this->compactLayout : this->layout);
         this->cachedVertexBuffer = vb;
         this->cachedCompactVertices = plan->usesCompactVertices;
+        this->cachedInstancedVertices = plan->usesInstancing;
       }
       if (!indexPoolHit) {
         if (bgfx::isValid(ib)) bgfx::destroy(ib);
@@ -2141,13 +2231,23 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
                                              BGFX_BUFFER_INDEX32);
         this->cachedIndexBuffer = ib;
       }
-      if (!bgfx::isValid(vb) || !bgfx::isValid(ib)) {
+      if (!instancePoolHit) {
+        if (bgfx::isValid(instanceBuffer)) bgfx::destroy(instanceBuffer);
+        this->cachedInstanceCapacity = pooledCapacity(plan->instances.size());
+        instanceBuffer = bgfx::createDynamicVertexBuffer(this->cachedInstanceCapacity, this->instanceLayout);
+        this->cachedInstanceBuffer = instanceBuffer;
+      }
+      if (!bgfx::isValid(vb) || !bgfx::isValid(ib) ||
+          (plan->usesInstancing && !bgfx::isValid(instanceBuffer))) {
         this->lastError = "BGFX geometry upload failed";
         return CoinRenderSubmitResult(CoinRenderBackendStatus::OUT_OF_MEMORY, this->lastError);
       }
       bgfx::update(vb, 0, uploadVertices(freshPlan));
       bgfx::update(ib, 0, bgfx::copy(plan->indices.data(),
         static_cast<uint32_t>(plan->indices.size() * sizeof(uint32_t))));
+      if (plan->usesInstancing)
+        bgfx::update(instanceBuffer, 0, bgfx::copy(plan->instances.data(),
+          static_cast<uint32_t>(plan->instances.size() * sizeof(CoinBgfxInstance))));
     }
     for (bgfx::TextureHandle texture : this->cachedTextures)
       if (bgfx::isValid(texture)) bgfx::destroy(texture);
@@ -2321,10 +2421,11 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   const std::vector<CoinBgfxDraw> & sourceDraws =
     cameraPatchUsed ? cameraDraws : plan->draws;
   std::vector<CoinBgfxDraw> groupedDraws;
-  if (this->drawGroupingEnabled && !hasShadows)
+  const bool groupDraws = this->drawGroupingEnabled && !hasShadows && !plan->usesInstancing;
+  if (groupDraws)
     CoinBgfxLowering::groupOpaqueDraws(sourceDraws, groupedDraws);
   const std::vector<CoinBgfxDraw> & draws =
-    (this->drawGroupingEnabled && !hasShadows) ? groupedDraws : sourceDraws;
+    groupDraws ? groupedDraws : sourceDraws;
   const LogicalDrawStats drawStats = logicalDrawStats(sourceDraws, draws);
   const bool useSortedLayers =
     selectedStrategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS;
@@ -2333,16 +2434,20 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   bgfx::ViewId nextView = opaqueView + 2;
   for (const CoinBgfxDraw & draw : draws) {
     if (draw.renderLayer != 0 || (draw.blend && draw.deferred)) continue;
+    // A skipped draw has no submit to discard its instance binding. Cull it
+    // before encoding any geometry so later fullscreen passes stay ordinary.
+    if (!setDrawScissor(draw, this->width, this->height)) continue;
     bgfx::setTransform(draw.mvp);
     bgfx::setVertexBuffer(0, vb);
     bgfx::setIndexBuffer(ib, draw.firstIndex, draw.indexCount);
+    if (plan->usesInstancing)
+      bgfx::setInstanceDataBuffer(instanceBuffer, draw.firstInstance, draw.instanceCount);
     bgfx::setState(drawState(draw));
-    if (!setDrawScissor(draw, this->width, this->height)) continue;
     this->bindDrawTexture(draw, textures);
     if (hasShadows) this->bindShadowReceiver(frame, shadowPlan, shadowMaps.buffers, draw, this->height);
     else this->bindDrawLighting(draw);
     bgfx::submit(opaqueView, hasShadows ? (shadowPlan.passes.size() > 4 ? this->shadowReceiverProgram8 : shadowPlan.passes.size() > 2 ?
-      this->shadowReceiverProgram4 : this->shadowReceiverProgram) : this->program);
+      this->shadowReceiverProgram4 : this->shadowReceiverProgram) : this->activeProgram);
 
   }
 
@@ -2368,7 +2473,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       if (hasShadows) this->bindShadowReceiver(frame, shadowPlan, shadowMaps.buffers, draw, this->height);
       else this->bindDrawLighting(draw);
       bgfx::submit(transparentView, hasShadows ? (shadowPlan.passes.size() > 4 ? this->shadowReceiverProgram8 : shadowPlan.passes.size() > 2 ?
-        this->shadowReceiverProgram4 : this->shadowReceiverProgram) : this->program);
+        this->shadowReceiverProgram4 : this->shadowReceiverProgram) : this->activeProgram);
     }
   } else if (useSortedLayers) {
     nextView = opaqueView + this->peelPassCount + 2;
@@ -2404,7 +2509,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
         if (hasShadows) this->bindShadowReceiver(frame, shadowPlan, shadowMaps.buffers, draw, this->height);
         else this->bindDrawLighting(draw);
         bgfx::submit(nextView, hasShadows ? (shadowPlan.passes.size() > 4 ? this->shadowReceiverProgram8 :
-          shadowPlan.passes.size() > 2 ? this->shadowReceiverProgram4 : this->shadowReceiverProgram) : this->program);
+          shadowPlan.passes.size() > 2 ? this->shadowReceiverProgram4 : this->shadowReceiverProgram) : this->activeProgram);
       }
       ++nextView;
     }
@@ -2783,9 +2888,12 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     sample.materialPatchVertices = materialPatchVertices;
     copyLogicalDrawStats(drawStats, this->drawGroupingEnabled, sample);
     static_cast<CoinBgfxCallback *>(this->callback.get())->traceProgramCache();
-    std::fprintf(stderr, "COIN_RENDER_PHASE bgfx_geometry compact_vertices=%d vertex_stride=%u\n",
+    std::fprintf(stderr, "COIN_RENDER_PHASE bgfx_geometry compact_vertices=%d vertex_stride=%u instancing=%d instances=%zu instance_stride=%u instance_buffer_capacity=%u\n",
       plan->usesCompactVertices ? 1 : 0,
-      static_cast<unsigned int>(plan->usesCompactVertices ? sizeof(CoinBgfxVertexPrefix) : sizeof(CoinBgfxVertex)));
+      static_cast<unsigned int>(plan->usesInstancing ? sizeof(CoinBgfxInstancedVertex) :
+        plan->usesCompactVertices ? sizeof(CoinBgfxVertexPrefix) : sizeof(CoinBgfxVertex)),
+      plan->usesInstancing ? 1 : 0, plan->instances.size(),
+      static_cast<unsigned int>(sizeof(CoinBgfxInstance)), this->cachedInstanceCapacity);
     std::fprintf(stderr, "%s\n", CoinRenderDiagnosticShell::formatBgfxPhase(sample).c_str());
   }
   this->lastError.clear();
@@ -2852,6 +2960,8 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
         this->sortedLayersSupported, strategy, this->lastError))
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
   if (!this->prepareTransparencyPrograms(strategy))
+    return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
+  if (!this->prepareBaseProgram(plan.draws, hasShadows, strategy))
     return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
   if (hasShadows && strategy != CoinBgfxTransparencyStrategy::OBJECT &&
       !this->prepareShadowTransparencyPrograms())
@@ -3086,7 +3196,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     if (hasShadows) this->bindShadowReceiver(frame, shadowPlan, shadowMaps.buffers, draw, size[1]);
     else this->bindDrawLighting(draw, size[1]);
     bgfx::submit(opaqueView, hasShadows ? (shadowPlan.passes.size() > 4 ? this->shadowReceiverProgram8 : shadowPlan.passes.size() > 2 ?
-      this->shadowReceiverProgram4 : this->shadowReceiverProgram) : this->program);
+      this->shadowReceiverProgram4 : this->shadowReceiverProgram) : this->activeProgram);
   }
 
   bgfx::ViewId nextView = opaqueView + 1;
@@ -3118,7 +3228,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     if (hasShadows) this->bindShadowReceiver(frame, shadowPlan, shadowMaps.buffers, draw, size[1]);
     else this->bindDrawLighting(draw, size[1]);
     bgfx::submit(transparentView, hasShadows ? (shadowPlan.passes.size() > 4 ? this->shadowReceiverProgram8 : shadowPlan.passes.size() > 2 ?
-      this->shadowReceiverProgram4 : this->shadowReceiverProgram) : this->program);
+      this->shadowReceiverProgram4 : this->shadowReceiverProgram) : this->activeProgram);
   }
 
   if (!this->encodeOverlayLayers(plan.draws, vb, ib, output, textures, nextView,

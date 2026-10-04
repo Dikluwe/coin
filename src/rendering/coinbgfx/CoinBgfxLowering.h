@@ -35,6 +35,17 @@ struct CoinBgfxVertex {
   float material[4]; // shininess, PHONG enabled, homogeneous W, reserved
   float extraTexcoords[4][4]; // pairs of UVs for units 1..7
 };
+struct CoinBgfxInstancedVertex {
+  float position[3];
+  float normal[3];
+};
+struct CoinBgfxInstance {
+  // View-position columns 0..2, normal columns 3..5, material D/A/S/E 6..9.
+  // Column 3.w is shininess; column 4.w is the PHONG flag.
+  float data[10][4];
+};
+static_assert(sizeof(CoinBgfxInstancedVertex) == 24, "BGFX instanced mesh stride");
+static_assert(sizeof(CoinBgfxInstance) == 160, "BGFX instance stride");
 typedef std::array<float, 31> CoinBgfxVertexPrefix;
 static_assert(sizeof(CoinBgfxVertexPrefix) == offsetof(CoinBgfxVertex, extraTexcoords),
               "BGFX compact layout must match the full vertex attribute prefix");
@@ -47,6 +58,8 @@ struct CoinBgfxDraw {
   uint32_t vertexCount;
   uint32_t firstIndex;
   uint32_t indexCount;
+  uint32_t firstInstance = 0;
+  uint32_t instanceCount = 0;
   CoinRenderCullMode cullMode;
   CoinRenderFrontFace frontFace;
   bool depthTest = true;
@@ -110,6 +123,9 @@ struct CoinBgfxPlan {
   std::vector<CoinBgfxVertex> vertices;
   std::vector<CoinBgfxVertexPrefix> packedVertices;
   bool usesCompactVertices = false;
+  bool usesInstancing = false;
+  std::vector<CoinBgfxInstancedVertex> instancedVertices;
+  std::vector<CoinBgfxInstance> instances;
   std::vector<uint32_t> indices;
   std::vector<CoinBgfxDraw> draws;
   std::vector<CoinBgfxDraw> shadowDraws;
@@ -119,6 +135,7 @@ struct CoinBgfxPlan {
   size_t uploadedVertexCount = 0;
   size_t uploadedIndexCount = 0;
   size_t vertexCount() const {
+    if (usesInstancing) return instancedVertices.empty() ? uploadedVertexCount : instancedVertices.size();
     if (usesCompactVertices) return packedVertices.empty() ? uploadedVertexCount : packedVertices.size();
     return vertices.empty() ? uploadedVertexCount : vertices.size();
   }
@@ -148,6 +165,12 @@ public:
                     bool batchOpaque = false,
                     const CoinRenderFramePreflight * preflight = nullptr,
                     bool compactOpaqueVertices = false);
+  // Conservative, value-only opaque profile. False declines without publishing
+  // any output; the executor must retain the general lowering fallback.
+  static bool lowerInstanced(const CoinRenderFramePlan & frame, int width, int height,
+                            bool homogeneousDepth, CoinBgfxPlan & output,
+                            std::string & diagnostic,
+                            const CoinRenderFramePreflight * preflight = nullptr);
   static bool selectTransparencyStrategy(
     const std::vector<CoinBgfxDraw> & draws,
     CoinBgfxTransparencyMode configuredMode,

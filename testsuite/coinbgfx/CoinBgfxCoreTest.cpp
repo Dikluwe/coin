@@ -6,12 +6,14 @@
 
 #include "rendering/coinbgfx/CoinBgfxLowering.h"
 #include "rendering/coinbgfx/CoinBgfxProgramCache.h"
+#include "rendering/coinrender/CoinRenderTransformCore.h"
 
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/SoDB.h>
 
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <limits>
@@ -21,6 +23,201 @@ bool check(bool condition, const char * message)
 {
   if (!condition) std::cerr << "CoinBgfxCoreTest: " << message << '\n';
   return condition;
+}
+
+class SharedRangeSwitch {
+public:
+  SharedRangeSwitch() {
+    const char * value = std::getenv(name());
+    wasSet = value != nullptr;
+    if (value) previous = value;
+  }
+  ~SharedRangeSwitch() { set(wasSet ? previous.c_str() : nullptr); }
+  void disable(bool disabled) { set(disabled ? "1" : nullptr); }
+private:
+  static const char * name() { return "COIN_BGFX_DISABLE_SHARED_RANGE_LOWERING"; }
+  static void set(const char * value) {
+#ifdef _WIN32
+    _putenv_s(name(), value ? value : "");
+#else
+    if (value) setenv(name(), value, 1); else unsetenv(name());
+#endif
+  }
+  bool wasSet;
+  std::string previous;
+};
+
+template <typename T>
+bool sameBytes(const std::vector<T> & lhs, const std::vector<T> & rhs)
+{
+  return lhs.size() == rhs.size() && (lhs.empty() ||
+    std::memcmp(lhs.data(), rhs.data(), lhs.size() * sizeof(T)) == 0);
+}
+
+bool sharedRangeMatchesGeneral(const CoinRenderFramePlan & frame,
+                              bool compact = false, bool expectedValid = true)
+{
+  SharedRangeSwitch rangeSwitch;
+  CoinBgfxPlan optimized, general;
+  std::string optimizedDiagnostic, generalDiagnostic;
+  rangeSwitch.disable(false);
+  const bool optimizedOk = CoinBgfxLowering::lower(frame, 4, 4, false,
+    optimized, optimizedDiagnostic, false, true, nullptr, compact);
+  rangeSwitch.disable(true);
+  const bool generalOk = CoinBgfxLowering::lower(frame, 4, 4, false,
+    general, generalDiagnostic, false, true, nullptr, compact);
+  return check(optimizedOk == expectedValid && optimizedOk == generalOk &&
+    optimizedDiagnostic == generalDiagnostic &&
+    optimized.usesCompactVertices == general.usesCompactVertices &&
+    sameBytes(optimized.vertices, general.vertices) &&
+    sameBytes(optimized.packedVertices, general.packedVertices) &&
+    sameBytes(optimized.indices, general.indices) &&
+    sameBytes(optimized.draws, general.draws) &&
+    sameBytes(optimized.shadowDraws, general.shadowDraws) &&
+    (optimizedOk ? std::memcmp(optimized.clearColor, general.clearColor,
+                              sizeof(optimized.clearColor)) == 0 : true),
+    "shared ranges must preserve all geometry/draw bytes, validity and diagnostic");
+}
+
+bool instancedOpaque(const CoinRenderFramePlan & base)
+{
+  CoinRenderFramePlan frame = base;
+  frame.materials.push_back(frame.materials[0]);
+  frame.materials[1].diffuse[0] = 0.25f;
+  frame.materials[1].shininess = 0.7f;
+  frame.vertices.resize(9); // Slot zero is not part of either source range.
+  frame.indices = {1, 2, 3, 1, 3, 4, 5, 6, 7, 5, 7, 8};
+  for (uint32_t group = 0; group < 2; ++group) for (uint32_t j = 0; j < 4; ++j) {
+    auto & vertex = frame.vertices[1 + group * 4 + j];
+    vertex.position[0] = float(j % 2); vertex.position[1] = float(j / 2);
+    vertex.position[2] = -0.25f;
+    vertex.normal[0] = j == 0 ? 1.0f : 0.0f;
+    vertex.normal[1] = j == 1 ? 2.0f : 0.0f;
+    vertex.normal[2] = j == 2 ? 0.0f : 1.0f;
+    vertex.materialSlot = group;
+  }
+  frame.renderStates.resize(300, frame.renderStates[0]);
+  frame.draws.resize(300, frame.draws[0]);
+  for (uint32_t i = 0; i < 300; ++i) {
+    auto & state = frame.renderStates[i];
+    state.lightModel = CoinRenderLightModel::PHONG;
+    state.materialSlot = i % 2;
+    state.model = SbMatrix(1.0f + i * 0.003f,0.125f,0,0, 0,2,0.25f,0, 0,0,3,0,
+                           i * 0.01f,0.25f,-0.5f,1);
+    state.view.setTranslate(SbVec3f(-0.1f,0.2f,-0.3f));
+    auto & draw = frame.draws[i];
+    draw.renderStateSlot = i;
+    draw.geometry.firstVertex = 1 + (i % 2) * 4;
+    draw.geometry.vertexCount = 4;
+    draw.geometry.firstIndex = (i % 2) * 6;
+    draw.geometry.indexCount = 6;
+  }
+  CoinBgfxPlan instanced, general;
+  std::string diagnostic;
+  bool ok = check(CoinBgfxLowering::lowerInstanced(frame, 4, 4, false, instanced, diagnostic) &&
+    CoinBgfxLowering::lower(frame, 4, 4, false, general, diagnostic, false, true) &&
+    instanced.usesInstancing && instanced.vertices.empty() && instanced.instancedVertices.size() == 4 &&
+    instanced.instances.size() == 300 && instanced.indices == std::vector<uint32_t>({0,1,2,0,2,3}) &&
+    instanced.draws.size() == 1 && instanced.draws[0].firstInstance == 0 &&
+    instanced.draws[0].instanceCount == 300,
+    "shared meshes with different uniform materials must preserve traversal in one instance batch");
+  if (!ok) return false;
+  for (uint32_t i = 0; i < 300; ++i) {
+    const auto & instance = instanced.instances[i];
+    const SbMatrix mv = frame.renderStates[i].model * frame.renderStates[i].view;
+    const SbMatrix normal = CoinRenderTransformCore::normalMatrix(mv);
+    const auto values = mv.getValue(); const auto normalValues = normal.getValue();
+    for (int column = 0; column < 3; ++column) {
+      for (int row = 0; row < 3; ++row)
+        ok &= check(instance.data[column][row] == values[row][column] &&
+                    instance.data[column + 3][row] == normalValues[row][column],
+                    "instance matrix columns changed Coin model-view or inverse-transpose values");
+      ok &= check(instance.data[column][3] == values[3][column], "instance translation column changed");
+    }
+    const auto & material = frame.materials[i % 2];
+    ok &= check(std::memcmp(instance.data[6], material.diffuse, sizeof(material.diffuse)) == 0 &&
+                std::memcmp(instance.data[7], material.ambient, sizeof(material.ambient)) == 0 &&
+                std::memcmp(instance.data[8], material.specular, sizeof(material.specular)) == 0 &&
+                std::memcmp(instance.data[9], material.emission, sizeof(material.emission)) == 0 &&
+                instance.data[3][3] == material.shininess && instance.data[4][3] == 1.0f,
+                "per-instance material values or PHONG flag changed");
+    for (uint32_t j = 0; j < 6; ++j) {
+      const auto & meshVertex = instanced.instancedVertices[instanced.indices[j]];
+      const auto & reference = general.vertices[general.indices[i * 6 + j]];
+      SbVec3f position, viewNormal;
+      mv.multVecMatrix(SbVec3f(meshVertex.position), position);
+      normal.multDirMatrix(SbVec3f(meshVertex.normal), viewNormal);
+      if (viewNormal.normalize() == 0.0f) viewNormal.setValue(0,0,1);
+      ok &= check(std::memcmp(position.getValue(), reference.viewPosition, sizeof(reference.viewPosition)) == 0 &&
+                  std::memcmp(viewNormal.getValue(), reference.viewNormal, sizeof(reference.viewNormal)) == 0,
+                  "instance mesh/matrix reconstruction changed triangle position or normal bytes");
+    }
+  }
+  // All instances share an identical plane/transform. Keeping the alternating
+  // material sequence is essential for the traversal winner under LEQUAL.
+  CoinRenderFramePlan coplanar = frame;
+  for (auto & state : coplanar.renderStates) {
+    state.depthFunction = CoinRenderDepthFunction::LEQUAL;
+    state.model = coplanar.renderStates[0].model;
+  }
+  CoinBgfxPlan coplanarInstances;
+  ok &= check(CoinBgfxLowering::lowerInstanced(coplanar, 4, 4, false, coplanarInstances, diagnostic) &&
+              coplanarInstances.draws.size() == 1 && coplanarInstances.instances.size() == 300 &&
+              coplanarInstances.draws[0].depthFunction == CoinRenderDepthFunction::LEQUAL &&
+              coplanarInstances.draws[0].firstInstance == 0 && coplanarInstances.draws[0].instanceCount == 300,
+              "uniform LEQUAL depth must preserve its comparison and ordered coplanar instance batch");
+  for (uint32_t i = 0; i < coplanarInstances.instances.size(); ++i)
+    ok &= check(std::memcmp(coplanarInstances.instances[i].data[6], frame.materials[i % 2].diffuse,
+                            sizeof(frame.materials[i % 2].diffuse)) == 0,
+                "coplanar alternating materials must retain traversal order");
+  frame.vertices[5].position[0] += 0.25f;
+  ok &= check(CoinBgfxLowering::lowerInstanced(frame, 4, 4, false, instanced, diagnostic) &&
+              instanced.instancedVertices.size() == 8 && instanced.draws.size() == 300,
+              "nonconsecutive different meshes must retain separate ordered batches");
+  for (uint32_t i = 0; i < instanced.draws.size(); ++i)
+    ok &= check(instanced.draws[i].firstInstance == i && instanced.draws[i].instanceCount == 1 &&
+                instanced.draws[i].firstVertex == (i % 2) * 4,
+                "instance grouping reordered source mesh occurrences");
+  CoinBgfxPlan retained = instanced;
+  ok &= check(CoinBgfxLowering::retainForReuse(retained) && retained.instances.size() == 300,
+              "instanced static reuse must retain instance counts and payload ownership");
+  std::vector<CoinBgfxVertexRange> patches;
+  std::vector<CoinBgfxDraw> cameraDraws;
+  ok &= check(!CoinBgfxLowering::materialPatchRanges(instanced, instanced, patches) &&
+              !CoinBgfxLowering::patchCamera(frame, 4, 4, false, instanced, cameraDraws, diagnostic),
+              "instanced material/camera changes must rebuild their instance data");
+  const auto decline = [&](const CoinRenderFramePlan & unsupported) {
+    CoinBgfxPlan preserved = instanced;
+    return check(!CoinBgfxLowering::lowerInstanced(unsupported, 4, 4, false, preserved, diagnostic) &&
+                 preserved.usesInstancing && sameBytes(preserved.instances, instanced.instances) &&
+                 sameBytes(preserved.instancedVertices, instanced.instancedVertices) &&
+                 sameBytes(preserved.indices, instanced.indices) && sameBytes(preserved.draws, instanced.draws),
+                 "an unqualified instance profile must leave fallback output untouched");
+  };
+  CoinRenderFramePlan unsupported = frame;
+  unsupported.vertices[1].materialSlot = 1; ok &= decline(unsupported);
+  unsupported = frame; unsupported.renderStates[1].model[0][3] = 0.1f; ok &= decline(unsupported);
+  unsupported = frame; unsupported.renderStates[1].fogMode = CoinRenderFogMode::HAZE; ok &= decline(unsupported);
+  unsupported = frame; unsupported.renderStates[1].clipPlanesWorld.emplace_back(SbVec3f(1,0,0),0); ok &= decline(unsupported);
+  unsupported = frame; unsupported.renderStates[1].depthFunction = CoinRenderDepthFunction::GEQUAL; ok &= decline(unsupported);
+  unsupported = frame; unsupported.renderStates[1].depthFunction = CoinRenderDepthFunction::LEQUAL; ok &= decline(unsupported);
+  unsupported = frame; unsupported.renderStates[1].polygonOffsetEnabled = true; ok &= decline(unsupported);
+  unsupported = frame; unsupported.vertices[1].screenSpaceW = 0.5f; ok &= decline(unsupported);
+  unsupported = frame; unsupported.vertices[1].fogEyeDepth = 1.0f; ok &= decline(unsupported);
+  unsupported = frame; unsupported.renderStates[1].hasTexture = true; ok &= decline(unsupported);
+  unsupported = frame; unsupported.shadowGroups.emplace_back(); ok &= decline(unsupported);
+  unsupported = frame; unsupported.materials[0].diffuse[3] = 0.5f;
+  unsupported.materials[0].transparency = 0.5f; ok &= decline(unsupported);
+  unsupported = frame; unsupported.materials[0].diffuse[0] = std::numeric_limits<float>::quiet_NaN(); ok &= decline(unsupported);
+  unsupported = frame; unsupported.vertices[1].normal[0] = std::numeric_limits<float>::max() / 2.0f; ok &= decline(unsupported);
+  unsupported = frame; unsupported.vertices[1].position[0] = std::numeric_limits<float>::max() / 2.0f; ok &= decline(unsupported);
+  unsupported = frame; unsupported.renderStates[1].model.setScale(SbVec3f(1.0e9f,1,1)); ok &= decline(unsupported);
+  unsupported = frame; unsupported.renderStates[1].model.setScale(SbVec3f(1.0e-9f,1,1)); ok &= decline(unsupported);
+  unsupported = frame; unsupported.renderStates[1].transparencyType = SoGLRenderAction::SCREEN_DOOR;
+  unsupported.renderStates[1].screenDoorTransparency = 0.25f; ok &= decline(unsupported);
+  unsupported = frame; unsupported.draws.back().geometry.firstVertex = 2;
+  unsupported.draws.back().geometry.vertexCount = 3; ok &= decline(unsupported);
+  return ok;
 }
 }
 
@@ -120,6 +317,7 @@ int main()
               plan.clearColor[1] == frame.clearColor[1],
               "Coin clear color was quantized before GPU submission");
   CoinRenderFramePlan city = frame;
+  ok &= instancedOpaque(frame);
   {
     CoinRenderFramePlan materialFrame = frame;
     materialFrame.materials.push_back(materialFrame.materials[0]);
@@ -144,6 +342,7 @@ int main()
     largeOpaque.vertices[1].normal[0] = -0.0f;
     largeOpaque.draws.resize(65000, largeOpaque.draws[0]);
     CoinBgfxPlan full, compact;
+    ok &= sharedRangeMatchesGeneral(largeOpaque, true);
     const bool fullOk = CoinBgfxLowering::lower(largeOpaque, 4, 4, true, full, diagnostic, false, true);
     if (!fullOk) std::cerr << "Full large plan: " << diagnostic << '\n';
     const bool compactOk = CoinBgfxLowering::lower(largeOpaque, 4, 4, true, compact, diagnostic, false, true, nullptr, true);
@@ -210,6 +409,7 @@ int main()
       packet.geometry.vertexCount = 6;
     }
     CoinBgfxPlan compact, reference;
+    ok &= sharedRangeMatchesGeneral(indexed);
     const bool lowered = CoinBgfxLowering::lower(indexed, 4, 4, true, compact, diagnostic, false, true) &&
       CoinBgfxLowering::lower(expanded, 4, 4, true, reference, diagnostic, false, true);
     const size_t expectedVertices = transparent ? 1800 : 1200;
@@ -225,6 +425,38 @@ int main()
         ok &= check(compact.draws[i].materialSignature == reference.draws[i].materialSignature &&
                     compact.draws[i].indexCount == reference.draws[i].indexCount,
                     "indexed lowering changed material hashing or triangle order");
+    }
+    if (!transparent) {
+      CoinRenderFramePlan partial = indexed;
+      for (size_t i = 1; i < partial.draws.size(); i += 2) {
+        partial.draws[i].geometry.firstIndex = 3;
+        partial.draws[i].geometry.indexCount = 3;
+      }
+      partial.renderStates[3].model[0][3] = 0.125f;
+      partial.renderStates[5].fogMode = CoinRenderFogMode::HAZE;
+      partial.renderStates[5].fogEnd = 10.0f;
+      partial.renderStates[7].clipPlanesWorld.emplace_back(SbVec3f(1, 0, 0), 0.25f);
+      partial.renderStates[9].depthWrite = false;
+      partial.renderStates[11].polygonOffsetEnabled = true;
+      partial.renderStates[11].polygonOffsetUnits = -1.0f;
+      ok &= sharedRangeMatchesGeneral(partial);
+      partial.vertices[2].screenSpaceW = 0.5f;
+      partial.vertices[3].fogEyeDepth = 2.0f;
+      ok &= sharedRangeMatchesGeneral(partial);
+
+      CoinRenderFramePlan invalid = indexed;
+      invalid.draws.back().geometry.firstVertex = 2;
+      invalid.draws.back().geometry.vertexCount = 3;
+      ok &= sharedRangeMatchesGeneral(invalid, false, false);
+      invalid = indexed;
+      invalid.materials[1].diffuse[0] = std::numeric_limits<float>::quiet_NaN();
+      ok &= sharedRangeMatchesGeneral(invalid, false, false);
+    }
+    else {
+      CoinRenderFramePlan sorted = indexed;
+      for (auto & sortedState : sorted.renderStates)
+        sortedState.transparencyType = SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND;
+      ok &= sharedRangeMatchesGeneral(sorted);
     }
   }
   indexed.draws.resize(1);

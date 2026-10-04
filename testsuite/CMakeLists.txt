@@ -370,6 +370,14 @@ if(COIN_BUILD_RENDER)
 		${COIN_TARGET_INCLUDE_DIRECTORIES}
 	)
 	add_test(NAME CoinBgfxCoreTest COMMAND CoinBgfxCoreTest)
+	add_executable(CoinBgfxProgramSelectionTest coinbgfx/CoinBgfxProgramSelectionTest.cpp)
+	set_target_properties(CoinBgfxProgramSelectionTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinBgfxProgramSelectionTest CoinRender Coin)
+	target_include_directories(CoinBgfxProgramSelectionTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include
+		${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src)
+	add_test(NAME CoinBgfxProgramSelectionTest COMMAND CoinBgfxProgramSelectionTest)
+	set_tests_properties(CoinBgfxProgramSelectionTest PROPERTIES TIMEOUT 30)
 	add_executable(CoinRenderDepthContractTest coinrender/CoinRenderDepthContractTest.cpp
 		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxLowering.cpp
 		${PROJECT_SOURCE_DIR}/src/rendering/coinrender/CoinRenderFramePlanBuilder.cpp)
@@ -406,6 +414,20 @@ if(COIN_BUILD_RENDER)
 		set_tests_properties(CoinBgfxOffscreenTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77)
 		add_test(NAME CoinBgfxOpenGLTest COMMAND CoinBgfxOffscreenTest)
 		set_tests_properties(CoinBgfxOpenGLTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77
+			ENVIRONMENT "COIN_BGFX_RENDERER=opengl")
+		add_executable(CoinBgfxInstancingTest coinbgfx/CoinBgfxInstancingTest.cpp
+			${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxLowering.cpp)
+		set_target_properties(CoinBgfxInstancingTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+		target_link_libraries(CoinBgfxInstancingTest CoinRender Coin)
+		target_include_directories(CoinBgfxInstancingTest PRIVATE
+			${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include
+			${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src
+			${COIN_TARGET_INCLUDE_DIRECTORIES})
+		add_test(NAME CoinBgfxInstancingTest COMMAND CoinBgfxInstancingTest)
+		set_tests_properties(CoinBgfxInstancingTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77
+			ENVIRONMENT "COIN_BGFX_RENDERER=vulkan")
+		add_test(NAME CoinBgfxInstancingOpenGLTest COMMAND CoinBgfxInstancingTest)
+		set_tests_properties(CoinBgfxInstancingOpenGLTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77
 			ENVIRONMENT "COIN_BGFX_RENDERER=opengl")
 		add_test(NAME CoinRenderBackendContractOpenGLTest COMMAND CoinRenderBackendContractTest)
 		set_tests_properties(CoinRenderBackendContractOpenGLTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77
