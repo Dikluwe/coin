@@ -915,6 +915,37 @@ int testPrimitiveStateReuse() {
   }
   root->unref();
 
+  // Alternating materials share two immutable meshes; a merged occurrence
+  // must append indices without corrupting any preceding shared draw.
+  root = new SoSeparator;
+  root->ref();
+  repeatedCube = new SoCube;
+  for (int i = 0; i < 32; ++i) {
+    auto * occurrence = new SoSeparator;
+    auto * transform = new SoTransform;
+    transform->translation.setValue(float(i * 3), 0, 0);
+    occurrence->addChild(transform);
+    auto * material = new SoMaterial;
+    material->diffuseColor.setValue(i % 2 ? .8f : .2f, .3f, .7f);
+    occurrence->addChild(material);
+    occurrence->addChild(repeatedCube);
+    if (i == 7) occurrence->addChild(repeatedCube);
+    root->addChild(occurrence);
+  }
+  for (int frame = 0; frame < 2; ++frame) {
+    if (frame) repeatedCube->width = 3.0f;
+    replay.apply(root);
+    fullCapture.apply(root);
+    TEST_ASSERT(replay.getLastStatus() == CoinRenderAction::SUCCESS &&
+                fullCapture.getLastStatus() == CoinRenderAction::SUCCESS &&
+                expandedRecording(replay) == expandedRecording(fullCapture),
+                "shared cube ranges must preserve merged draws and every occurrence across frames");
+    const auto & plan = replay.getPimpl()->lastValidPlan;
+    TEST_ASSERT(plan.vertices.size() == 48 && plan.indices.size() <= 144,
+                "repeated cubes must store only two material meshes, including merged occurrences");
+  }
+  root->unref();
+
   root = new SoSeparator;
   root->ref();
   auto * observedCube = new SoCube;

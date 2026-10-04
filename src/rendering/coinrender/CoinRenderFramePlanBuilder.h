@@ -133,6 +133,14 @@ private:
   size_t cubeCaptureFirstVertex = 0;
   size_t cubeCaptureFirstIndex = 0;
   size_t cubeCaptureFirstDraw = 0;
+  struct CubeGeometry {
+    uint32_t materialSlot;
+    uint32_t firstVertex;
+    uint32_t firstIndex;
+  };
+  // Geometry is immutable and shared across occurrences with the same material.
+  // Bound the cache even when every occurrence has a different material.
+  std::vector<CubeGeometry> cubeGeometry;
   uint64_t cubeReplayHits = 0;
   std::vector<std::pair<int, uint32_t>> shapeRenderStates;
   std::vector<SbVec3f> lightAttenuationByIndex;

@@ -19,13 +19,13 @@ bool check(bool condition, const char * message)
   return condition;
 }
 
-bool opaqueBatching()
+bool opaqueBatching(bool shared)
 {
   CoinRenderFramePlan frame;
   frame.revision = 501;
   frame.materials.resize(2);
   frame.materials[1].diffuse[0] = 0.25f;
-  frame.vertices.resize(256 * 3);
+  frame.vertices.resize((shared ? 2 : 256) * 3);
   frame.renderStates.resize(256);
   frame.draws.resize(256);
   for (uint32_t i = 0; i < 256; ++i) {
@@ -34,11 +34,12 @@ bool opaqueBatching()
     frame.renderStates[i].materialSlot = i % 2;
     frame.renderStates[i].transparencyType = SoGLRenderAction::NONE;
     auto & draw = frame.draws[i];
-    draw.geometry.firstVertex = draw.geometry.firstIndex = i * 3;
+    const uint32_t base = (shared ? i % 2 : i) * 3;
+    draw.geometry.firstVertex = draw.geometry.firstIndex = base;
     draw.geometry.vertexCount = draw.geometry.indexCount = 3;
     draw.renderStateSlot = i;
     for (uint32_t j = 0; j < 3; ++j) {
-      auto & vertex = frame.vertices[i * 3 + j];
+      auto & vertex = frame.vertices[base + j];
       vertex.position[0] = j == 0 ? 1.0f : 0.0f;
       vertex.position[1] = j == 1 ? 1.0f : 0.0f;
       vertex.position[2] = -2;
@@ -46,7 +47,7 @@ bool opaqueBatching()
       vertex.materialSlot = i % 2;
       vertex.screenSpaceW = 1;
       vertex.fogEyeDepth = -1;
-      frame.indices.push_back(i * 3 + j);
+      if (!shared || i < 2) frame.indices.push_back(base + j);
     }
   }
   CoinWgpuFfiFrame packed;
@@ -61,6 +62,19 @@ bool opaqueBatching()
         "batch must retain every index, transformed position/normal and per-vertex material") ||
       !check(frame.vertices[0].position[0] == 1.0f,
         "baking must not modify the Coin-owned frame")) return false;
+  const auto & batch = packed.getView();
+  if (!check(batch.vertex_count == 768 && batch.index_count == 768,
+             "shared source ranges must expand to distinct transformed occurrences")) return false;
+  for (uint32_t i = 0; i < 256; ++i) {
+    for (uint32_t j = 0; j < 3; ++j) {
+      const auto & vertex = batch.vertices[i * 3 + j];
+      if (!check(vertex.position[0] == float(i) + (j == 0 ? 2.0f : 0.0f) &&
+                 vertex.position[1] == (j == 1 ? 3.0f : 0.0f) &&
+                 vertex.position[2] == -2.0f && vertex.normal[0] == .5f &&
+                 vertex.material_slot == i % 2 && batch.indices[i * 3 + j] == i * 3 + j,
+                 "every occurrence must retain its transform, normal, material and remapped indices")) return false;
+    }
+  }
   ++frame.revision;
   for (auto & state : frame.renderStates) state.view.setTranslate(SbVec3f(.25f,0,0));
   if (!check(packed.prepare(frame,64,64,
@@ -92,7 +106,7 @@ bool opaqueBatching()
 int
 main()
 {
-  if (!opaqueBatching()) return 1;
+  if (!opaqueBatching(false) || !opaqueBatching(true)) return 1;
   CoinRenderFramePlan frame;
   frame.revision = 41;
   frame.vertices.resize(1);

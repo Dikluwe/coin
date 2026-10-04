@@ -1,0 +1,4 @@
+layered: BGFX left=(127,64,64) right=(127,64,64) Coin/GL left=(128,64,63) right=(128,64,63) different_pixels=0
+crossing: BGFX left=(64,127,64) right=(64,127,64) Coin/GL left=(64,128,63) right=(64,128,63) different_pixels=0 Coin/GL layers-or-fallback left=(128,64,63) right=(64,128,63) different_pixels=5508
+occluded: BGFX left=(0,0,255) right=(0,0,255) Coin/GL left=(0,0,255) right=(0,0,255) different_pixels=0
+weighted stress: 32 crossing lit layers, max order delta=0, outside max=0

@@ -140,6 +140,7 @@ CoinRenderFramePlanBuilder::reset()
 {
   this->endShape();
   this->cubeTemplateReady = false;
+  this->cubeGeometry.clear();
   this->cubeReplayHits = 0;
   this->polygonNode = nullptr;
   this->polygonVertices.clear();
@@ -239,6 +240,10 @@ CoinRenderFramePlanBuilder::endShape()
       std::copy_n(this->cubeCaptureDimensions, 3, this->cubeTemplateDimensions);
       this->cubeTemplateNormalBinding = this->cubeCaptureNormalBinding;
       this->cubeTemplateReady = true;
+      this->cubeGeometry.clear();
+      this->cubeGeometry.push_back({this->cubeTemplateVertices[0].materialSlot,
+        static_cast<uint32_t>(this->cubeCaptureFirstVertex),
+        static_cast<uint32_t>(this->cubeCaptureFirstIndex)});
     }
   }
   this->captureCubeTemplate = false;
@@ -258,16 +263,45 @@ CoinRenderFramePlanBuilder::replayNativeCube(SoCallbackAction * action, SoNode *
   this->ensureDrawPacket(CoinRenderPrimitiveTopology::TRIANGLE_LIST, stateSlot, node);
   this->captureSortingCenter(action);
   const uint32_t materialSlot = this->currentPlan.renderStates[stateSlot].materialSlot;
+  auto & draw = this->currentPlan.draws[this->currentDrawIndex];
+  if (draw.geometry.indexCount == 0) {
+    for (const auto & geometry : this->cubeGeometry) {
+      if (geometry.materialSlot != materialSlot) continue;
+      draw.geometry.firstVertex = geometry.firstVertex;
+      draw.geometry.vertexCount = 24;
+      draw.geometry.firstIndex = geometry.firstIndex;
+      draw.geometry.indexCount = 36;
+      this->captureCubeTemplate = false;
+      ++this->cubeReplayHits;
+      return true;
+    }
+  }
+  // Consecutive identical cubes still form one draw. Repeat its indices,
+  // rather than widening the vertex range through unrelated shared meshes.
+  if (draw.geometry.vertexCount == 24) {
+    for (const auto & geometry : this->cubeGeometry) {
+      if (geometry.materialSlot != materialSlot || geometry.firstVertex != draw.geometry.firstVertex) continue;
+      for (const uint32_t index : this->cubeTemplateIndices)
+        this->currentPlan.indices.push_back(geometry.firstVertex + index);
+      draw.geometry.indexCount += 36;
+      this->captureCubeTemplate = false;
+      ++this->cubeReplayHits;
+      return true;
+    }
+  }
+  const bool newDraw = draw.geometry.indexCount == 0;
   const uint32_t base = static_cast<uint32_t>(this->currentPlan.vertices.size());
+  const uint32_t firstIndex = static_cast<uint32_t>(this->currentPlan.indices.size());
   this->currentPlan.vertices.insert(this->currentPlan.vertices.end(),
       this->cubeTemplateVertices, this->cubeTemplateVertices + 24);
   for (size_t i = base; i < this->currentPlan.vertices.size(); ++i)
     this->currentPlan.vertices[i].materialSlot = materialSlot;
   for (const uint32_t index : this->cubeTemplateIndices)
     this->currentPlan.indices.push_back(base + index);
-  auto & draw = this->currentPlan.draws[this->currentDrawIndex];
   draw.geometry.vertexCount = static_cast<uint32_t>(this->currentPlan.vertices.size()) - draw.geometry.firstVertex;
   draw.geometry.indexCount += 36;
+  if (newDraw && this->cubeGeometry.size() < 32)
+    this->cubeGeometry.push_back({materialSlot, base, firstIndex});
   this->captureCubeTemplate = false;
   ++this->cubeReplayHits;
   return true;
@@ -1149,11 +1183,23 @@ CoinRenderFramePlanBuilder::ensureDrawPacket(CoinRenderPrimitiveTopology topolog
 {
   SbUniqueId nodeId = node ? node->getNodeId() : 0;
   if (!forceNewPacket && this->hasActiveDraw) {
-    const CoinRenderDrawPacket & active = this->currentPlan.draws[this->currentDrawIndex];
+    CoinRenderDrawPacket & active = this->currentPlan.draws[this->currentDrawIndex];
     if (active.topology == topology &&
         active.renderStateSlot == renderStateSlot &&
         active.renderLayer == this->currentAnnotationLayer &&
         active.sourceNodeId == nodeId) {
+      // A shared range can live before another draw's indices. Make its index
+      // stream appendable before extending this occurrence, without changing
+      // any earlier occurrence that references the same geometry.
+      auto & range = active.geometry;
+      if (size_t(range.firstIndex) + range.indexCount != this->currentPlan.indices.size()) {
+        const size_t first = range.firstIndex, count = range.indexCount;
+        const size_t tail = this->currentPlan.indices.size();
+        this->currentPlan.indices.resize(tail + count);
+        std::copy_n(this->currentPlan.indices.begin() + first, count,
+                    this->currentPlan.indices.begin() + tail);
+        range.firstIndex = static_cast<uint32_t>(tail);
+      }
       return; // Continue active packet
     }
   }

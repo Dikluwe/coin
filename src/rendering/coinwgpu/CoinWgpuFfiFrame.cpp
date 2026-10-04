@@ -192,8 +192,8 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
 void
 CoinWgpuFfiFrame::batchOpaqueTriangles(const CoinRenderFramePlan & frame)
 {
-  // Preserve composition order. Only a complete sequence of disjoint native
-  // triangle ranges with one effective state can become a single draw.
+  // Preserve composition order. Native triangle ranges with one effective
+  // state can become a single draw, including shared capture geometry.
   // Materials stay indexed per vertex; strokes, shadows, alpha and offsets
   // retain the regular encoder. The switch is for same-binary qualification.
   const char * disabled = std::getenv("COIN_WGPU_DISABLE_OPAQUE_BATCHING");
@@ -201,27 +201,31 @@ CoinWgpuFfiFrame::batchOpaqueTriangles(const CoinRenderFramePlan & frame)
       !frame.shadowGroups.empty() || !this->textures.empty() || !this->samplers.empty()) return;
   CoinWgpuRenderState common{};
   uint64_t nextVertex = 0, nextIndex = 0;
+  bool contiguous = true;
   for (size_t i = 0; i < this->draws.size(); ++i) {
     const auto & draw = this->draws[i];
     if (draw.topology != 0 || draw.stable_node_id || draw.composition_flags ||
         draw.render_layer || draw.clear_depth_before || !draw.vertex_count ||
         !draw.index_count || draw.index_count % 3 ||
-        draw.first_vertex != nextVertex || draw.first_index != nextIndex ||
         draw.render_state_slot >= this->states.size() ||
         draw.render_state_slot >= frame.renderStates.size()) return;
+    contiguous = contiguous && draw.first_vertex == nextVertex && draw.first_index == nextIndex;
     nextVertex += draw.vertex_count;
     nextIndex += draw.index_count;
-    if (nextVertex > this->vertices.size() || nextIndex > this->indices.size()) return;
+    const uint64_t vertexEnd = uint64_t(draw.first_vertex) + draw.vertex_count;
+    const uint64_t indexEnd = uint64_t(draw.first_index) + draw.index_count;
+    if (vertexEnd > this->vertices.size() || indexEnd > this->indices.size() ||
+        nextVertex > UINT32_MAX || nextIndex > UINT32_MAX) return;
     const auto & state = this->states[draw.render_state_slot];
     if (state.has_texture || state.fog_mode || state.clip_plane_count ||
         state.polygon_offset_enabled ||
         state.model_view[3] != 0 || state.model_view[7] != 0 ||
         state.model_view[11] != 0 || state.model_view[15] != 1) return;
-    for (uint64_t v = draw.first_vertex; v < nextVertex; ++v)
+    for (uint64_t v = draw.first_vertex; v < vertexEnd; ++v)
       if (this->vertices[v].screen_space_w != 1.0f ||
           this->vertices[v].fog_eye_depth_plus_one != 0.0f) return;
-    for (uint64_t j = draw.first_index; j < nextIndex; ++j)
-      if (this->indices[j] < draw.first_vertex || this->indices[j] >= nextVertex) return;
+    for (uint64_t j = draw.first_index; j < indexEnd; ++j)
+      if (this->indices[j] < draw.first_vertex || this->indices[j] >= vertexEnd) return;
     CoinWgpuRenderState key = state;
     // All three shaders fetch every material value from the vertex slot.
     key.material_slot = 0;
@@ -235,23 +239,41 @@ CoinWgpuFfiFrame::batchOpaqueTriangles(const CoinRenderFramePlan & frame)
     if (i == 0) common = key;
     else if (std::memcmp(&common, &key, sizeof(key)) != 0) return;
   }
-  if (nextVertex != this->vertices.size() || nextIndex != this->indices.size() ||
-      nextVertex > UINT32_MAX || nextIndex > UINT32_MAX) return;
+  contiguous = contiguous && nextVertex == this->vertices.size() && nextIndex == this->indices.size();
+  // Qualify the whole sequence before baking. Shared vertices need a separate
+  // destination because each occurrence has its own model/view transform.
+  std::vector<CoinWgpuVertex> expandedVertices;
+  std::vector<uint32_t> expandedIndices;
+  if (!contiguous) {
+    expandedVertices.reserve(static_cast<size_t>(nextVertex));
+    expandedIndices.reserve(static_cast<size_t>(nextIndex));
+  }
   for (const auto & draw : this->draws) {
     const auto & state = this->states[draw.render_state_slot];
     SbMatrix modelView, normalMatrix;
     modelView.setValue(state.model_view);
     normalMatrix.setValue(state.normal_matrix);
     for (uint64_t i = draw.first_vertex; i < uint64_t(draw.first_vertex) + draw.vertex_count; ++i) {
-      auto & vertex = this->vertices[i];
+      if (!contiguous) expandedVertices.push_back(this->vertices[i]);
+      auto & vertex = contiguous ? this->vertices[i] : expandedVertices.back();
       SbVec3f position, normal;
       modelView.multVecMatrix(SbVec3f(vertex.position), position);
       normalMatrix.multDirMatrix(SbVec3f(vertex.normal), normal);
       std::memcpy(vertex.position, position.getValue(), sizeof(vertex.position));
       std::memcpy(vertex.normal, normal.getValue(), sizeof(vertex.normal));
     }
+    if (!contiguous) {
+      const uint32_t base = static_cast<uint32_t>(expandedVertices.size()) - draw.vertex_count;
+      for (uint64_t j = draw.first_index; j < uint64_t(draw.first_index) + draw.index_count; ++j)
+        expandedIndices.push_back(base + this->indices[j] - draw.first_vertex);
+    }
+  }
+  if (!contiguous) {
+    this->vertices.swap(expandedVertices);
+    this->indices.swap(expandedIndices);
   }
   CoinWgpuDraw merged = this->draws.front();
+  merged.first_vertex = merged.first_index = 0;
   merged.vertex_count = static_cast<uint32_t>(nextVertex);
   merged.index_count = static_cast<uint32_t>(nextIndex);
   merged.render_state_slot = 0;
