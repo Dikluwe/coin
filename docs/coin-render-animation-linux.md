@@ -4,6 +4,9 @@ Implementação: `0cc3caffa7`, branch `codex/coin-render-transform-performance`.
 O protocolo e os comandos estão em
 [coin-render-animation-benchmark.md](coin-render-animation-benchmark.md).
 
+A melhoria subsequente de reutilização da câmera e seus resultados estão em
+[coin-render-camera-reuse-linux.md](coin-render-camera-reuse-linux.md).
+
 ## O que foi implementado
 
 Os exemplos offscreen e janela compartilham uma sequência determinística de

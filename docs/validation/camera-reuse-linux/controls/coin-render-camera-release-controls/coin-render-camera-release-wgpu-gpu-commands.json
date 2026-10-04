@@ -1,0 +1,51 @@
+[
+  {
+    "name": "multidevice",
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/CoinWgpuMultiDeviceTest"
+    ],
+    "log": "/tmp/coin-render-camera-release-multidevice.log",
+    "environment": {
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "WGPU_BACKEND": "vulkan"
+    },
+    "returncode": 0
+  },
+  {
+    "name": "surface-camera",
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderSurfaceTest",
+      "--camera-only",
+      "--require-vulkan"
+    ],
+    "log": "/tmp/coin-render-camera-release-surface-camera.log",
+    "environment": {
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "WGPU_BACKEND": "vulkan"
+    },
+    "returncode": 0
+  },
+  {
+    "name": "surface",
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderSurfaceTest",
+      "--require-display",
+      "--require-vulkan"
+    ],
+    "log": "/tmp/coin-render-camera-release-surface.log",
+    "environment": {
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "WGPU_BACKEND": "vulkan"
+    },
+    "returncode": 0
+  }
+]

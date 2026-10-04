@@ -135,3 +135,18 @@ corrigir imagens para eliminar diferenças. Registre MAE, erro máximo e pixels
 diferentes/acima de 3 por canal. Alpha bruto não é critério entre APIs.
 Capturas, hashes e I/O ficam fora dos timers de quadro, mas afetam o tempo de
 parede da execução verify; suas métricas não pertencem à campanha de desempenho.
+
+## Reutilização da câmera
+
+A campanha [camera-reuse-linux](coin-render-camera-reuse-linux.md) mede o caminho
+opaco de câmera, seus custos iniciais, RGB e fallback após mudanças de objetos.
+`CoinRenderCameraReuseReferenceTest`, com `COIN_RENDER_REQUIRE_CAMERA_REFERENCE=1`
+e `COIN_RENDER_REQUIRE_GL_REFERENCE=1`, compara patches com reconstrução completa
+e CoinGL, em perspectiva/ortográfica, luzes e rotação/projeção. O modo wgpu
+`CoinRenderSurfaceTest --camera-only --require-vulkan` valida propriedade dos
+buffers e reuso GPU em processo novo com uma janela X11 acessível.
+
+Para ablação, os controles registram comandos explícitos usando
+`COIN_RENDER_DISABLE_CAMERA_OVERLAY=1`,
+`COIN_BGFX_DISABLE_INSTANCED_CAMERA_PATCH=1` ou
+`COIN_WGPU_DISABLE_OPAQUE_CAMERA_PATCH=1`. O runner normal limpa essas flags.

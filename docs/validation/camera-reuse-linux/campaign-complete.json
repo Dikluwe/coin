@@ -1,0 +1,25 @@
+{
+  "completed_at_utc": "2026-10-04T23:16:20.226469+00:00",
+  "code_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+  "branch": "codex/coin-render-transform-performance",
+  "master_revision": "674e74267df863dbaf50416c477bc7f918a826d8",
+  "timing_processes": 60,
+  "measured_timing_frames": 16560,
+  "warmup_timing_frames": 1740,
+  "verify_processes": 12,
+  "verify_frames": 84,
+  "separate_ablation_processes": 9,
+  "separate_ablation_frames": 72,
+  "separate_ablation_warmup": 27,
+  "validation_passed": true,
+  "gpu_checks": {
+    "cpu_bgfx": 4,
+    "cpu_wgpu": 4,
+    "rust_camera_scene_tests": 2,
+    "camera_gpu_variants": 3,
+    "wgpu_multidevice": 1,
+    "wgpu_surface_modes": 2
+  },
+  "gpu_rendering_serialized": true,
+  "master_updated": false
+}

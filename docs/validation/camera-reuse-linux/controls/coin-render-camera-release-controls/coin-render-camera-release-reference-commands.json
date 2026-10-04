@@ -1,0 +1,59 @@
+[
+  {
+    "variant": "bgfx-vulkan",
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderCameraReuseReferenceTest"
+    ],
+    "environment": {
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_TRACE_PHASES": "1",
+      "COIN_BGFX_RENDERER": "vulkan"
+    },
+    "log": "/tmp/coin-render-camera-release-reference-bgfx-vulkan.log",
+    "returncode": 0
+  },
+  {
+    "variant": "bgfx-opengl",
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderCameraReuseReferenceTest"
+    ],
+    "environment": {
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_TRACE_PHASES": "1",
+      "COIN_BGFX_RENDERER": "opengl"
+    },
+    "log": "/tmp/coin-render-camera-release-reference-bgfx-opengl.log",
+    "returncode": 0
+  },
+  {
+    "variant": "wgpu-vulkan",
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderCameraReuseReferenceTest"
+    ],
+    "environment": {
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_TRACE_PHASES": "1",
+      "WGPU_BACKEND": "vulkan"
+    },
+    "log": "/tmp/coin-render-camera-release-reference-wgpu-vulkan.log",
+    "returncode": 0
+  }
+]

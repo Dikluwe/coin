@@ -1,0 +1,68 @@
+[
+  {
+    "stem": "before-wgpu-vulkan",
+    "command": [
+      "/tmp/coin-render-animation-camera-baseline/wgpu/bin/coin_render_gl_benchmark",
+      "--backend",
+      "wgpu",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "transforms",
+      "--animated-percent",
+      "10",
+      "--transparency",
+      "object",
+      "--warmup",
+      "2",
+      "--frames",
+      "5",
+      "--size",
+      "1024",
+      "--samples-output",
+      "/tmp/coin-render-camera-transform-final-diagnostics/before-wgpu-vulkan.csv"
+    ],
+    "environment": {
+      "LD_LIBRARY_PATH": "/tmp/coin-render-animation-camera-baseline/wgpu/lib",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_RENDER_TRACE_PHASES": "1"
+    },
+    "returncode": 0
+  },
+  {
+    "stem": "after-wgpu-vulkan",
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+      "--backend",
+      "wgpu",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "transforms",
+      "--animated-percent",
+      "10",
+      "--transparency",
+      "object",
+      "--warmup",
+      "2",
+      "--frames",
+      "5",
+      "--size",
+      "1024",
+      "--samples-output",
+      "/tmp/coin-render-camera-transform-final-diagnostics/after-wgpu-vulkan.csv"
+    ],
+    "environment": {
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_RENDER_TRACE_PHASES": "1"
+    },
+    "returncode": 0
+  }
+]
