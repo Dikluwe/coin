@@ -1,0 +1,13 @@
+startup_detail arguments_ms=0.011101 coin_init_ms=1.98357 capability_probe_ms=0.000291
+scene_detail parse_ms=334.646 wrapper_ms=0.017452 camera_fit_ms=73.3648
+scene_load_ms=408.076
+startup_detail material_search_ms=0.072856 target_setup_ms=0.007103
+CoinGL_first_detail render_ms=352.88 lazy_readback_ms=4.16524 publication_copy_ms=0.473069 before_frame_since_main_ms=412.463 result_since_main_ms=769.981
+CoinGL_first_frame_ms=357.518
+gl_rgba_fnv64=0x4df2a9ab75b7504
+adapter=not-queried vendor_id=0x0 device_id=0x0 backend=gl size=1024x1024 warmup=30 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static
+CoinGL frames=120 median_ms=11.9991 p95_ms=14.0163 min_ms=11.7025 max_ms=14.556
+CoinGL_throughput frames=120 total_ms=1479.64 fps=81.101
+backend_cleanup_begin
+backend_cleanup_ms=14.4375
+benchmark_peak_rss_kib=339464

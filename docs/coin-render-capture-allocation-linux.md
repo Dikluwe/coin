@@ -1,5 +1,7 @@
 # Alocações na captura comum — Linux, 2026-10-04
 
+Referência principal: [CoinGL do Coin3D](coin-render-coingl-reference-linux.md), conforme o [padrão de comparação](coin-render-benchmark-standard.md). Este relatório antes/depois mede a alteração dentro de cada backend e complementa essa referência.
+
 Branch: `codex/coin-render-transform-performance`. Código: `52e1a9475c`.
 Referência: `4725913e4b`, que já inclui o agrupamento opaco antecipado wgpu.
 

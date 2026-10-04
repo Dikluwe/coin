@@ -1,0 +1,16 @@
+startup_detail arguments_ms=0.011101 coin_init_ms=1.85113 capability_probe_ms=133.396
+scene_detail parse_ms=312.543 wrapper_ms=0.019917 camera_fit_ms=70.5536
+scene_load_ms=383.182
+startup_detail material_search_ms=0.069359 target_setup_ms=2.2534
+BGFX-OpenGL_first_detail render_ms=621.54 publication_copy_ms=0.350702 before_frame_since_main_ms=522.863 result_since_main_ms=1144.75
+BGFX-OpenGL_first_frame_ms=621.891
+rgba_fnv64=0x156847cec1d97864
+image=/tmp/coin-render-coingl-reference-results/bgfx-opengl-1.ppm
+adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) vendor_id=0x10de device_id=0x0 backend=bgfx size=1024x1024 warmup=30 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=static
+BGFX-OpenGL frames=120 median_ms=2.76222 p95_ms=2.91917 min_ms=2.63534 max_ms=4.64912
+BGFX_render_and_readback frames=120 median_ms=2.55192 p95_ms=2.66607 min_ms=2.46558 max_ms=4.42172
+BGFX_publication_copy frames=120 median_ms=0.204981 p95_ms=0.245957 min_ms=0.169756 max_ms=0.501182
+BGFX-OpenGL_throughput frames=120 total_ms=334.186 fps=359.082
+backend_cleanup_begin
+backend_cleanup_ms=33.2802
+benchmark_peak_rss_kib=557120

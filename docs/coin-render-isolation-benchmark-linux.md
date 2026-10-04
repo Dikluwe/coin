@@ -1,5 +1,7 @@
 # Benchmark após a separação do CoinRender — 2026-10-04
 
+Referência principal: [CoinGL do Coin3D](coin-render-coingl-reference-linux.md), conforme o [padrão de comparação](coin-render-benchmark-standard.md). Este relatório antes/depois mede a alteração dentro de cada backend e complementa essa referência.
+
 Código medido: `24eee81929`, branch `codex/coin-render-isolation`.
 Referência: `ad82572bd3`, após a correção de geometria compartilhada e antes das quatro fases de organização.
 

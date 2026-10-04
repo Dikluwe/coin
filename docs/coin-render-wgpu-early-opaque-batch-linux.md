@@ -1,5 +1,7 @@
 # Agrupamento opaco antecipado no wgpu — Linux, 2026-10-04
 
+Referência principal: [CoinGL do Coin3D](coin-render-coingl-reference-linux.md), conforme o [padrão de comparação](coin-render-benchmark-standard.md). Este relatório antes/depois mede a alteração dentro de cada backend e complementa essa referência.
+
 Branch: `codex/coin-render-transform-performance`. Código: `f95e99f8da`.
 Referência preservada: `2574c776a3` (arquitetura organizada, antes desta otimização).
 

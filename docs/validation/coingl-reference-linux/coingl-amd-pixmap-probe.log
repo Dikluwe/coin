@@ -1,0 +1,284 @@
+startup_detail arguments_ms=0.020549 coin_init_ms=1.70101 capability_probe_ms=0.00015
+scene_load_ms=0.135612
+startup_detail material_search_ms=0.130072 target_setup_ms=0.004999
+CoinGL_first_detail render_ms=70.4632 lazy_readback_ms=9.0464 publication_copy_ms=0.364647 before_frame_since_main_ms=4.27701 result_since_main_ms=84.1513
+CoinGL_first_frame_ms=79.8743
+gl_rgba_fnv64=0xde176b46f6f5179d
+adapter=not-queried vendor_id=0x0 device_id=0x0 backend=gl size=1024x1024 warmup=1 scene=36-cubes transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static
+CoinGL frames=1 median_ms=1.9227 p95_ms=1.9227 min_ms=1.9227 max_ms=1.9227
+CoinGL_throughput frames=1 total_ms=1.9227 fps=520.101
+backend_cleanup_begin
+backend_cleanup_ms=1.11271
+Coin info in cc_glglue_context_max_dimensions(): query by making a dummy offscreen context
+Coin info in glxglue_get_display(): got Display*==0x635df8597160; got Screen==0
+Coin info in glxglue_context_create_software(): made new offscreen context == 0x635df8536ce0
+Coin info in glxglue_make_context_current(): store current status first => context==(nil), drawable==(nil), display==(nil)
+Coin info in glxglue_make_context_current(): successfully made context 0x635df8536ce0 current
+Coin info in glxglue_context_create_offscreen(): PBuffer offscreen rendering is NOT supported by the OpenGL driver
+Coin info in glxglue_context_reinstate_previous(): releasing context (glxMakeCurrent(0x635df8597160, None, NULL))
+Coin info in glxglue_make_context_current(): store current status first => context==(nil), drawable==(nil), display==(nil)
+Coin info in glxglue_make_context_current(): successfully made context 0x635df8536ce0 current
+Coin info in cc_glglue_context_max_dimensions(): GL_MAX_VIEWPORT_DIMS==<16384, 16384>
+Coin info in glxglue_context_reinstate_previous(): releasing context (glxMakeCurrent(0x635df8597160, None, NULL))
+Coin info in glxglue_context_destruct(): destroy context 0x635df8536ce0
+Coin info in cc_glglue_context_max_dimensions(): clamped max dimensions==<4096, 4096>
+Coin info in glxglue_context_create_software(): made new offscreen context == 0x635df885e570
+Coin info in glxglue_make_context_current(): store current status first => context==(nil), drawable==(nil), display==(nil)
+Coin info in glxglue_make_context_current(): successfully made context 0x635df885e570 current
+Coin info in glglue_set_glVersion(): glGetString(GL_VERSION)=='4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4'
+Coin info in glglue_set_glVersion(): parsed to major=='4', minor=='6', micro=='0'
+Coin info in glxglue_getprocaddress(): picked up glXGetProcAddress()
+Coin info in glxglue_getprocaddress(): picked up glXGetProcAddressARB()
+Coin info in cc_glglue_getprocaddress(): glXGetCurrentDisplay==0x7f52d7de4cb0
+Coin info in glxglue_get_display(): got Display*==0x635df8597160; got Screen==0
+Coin info in glxglue_get_display(): got Display*==0x635df8597160; got Screen==0
+Coin info in glxglue_version(): GLX version: 1.4
+Coin info in glxglue_get_display(): got Display*==0x635df8597160; got Screen==0
+Coin info in glxglue_get_display(): got Display*==0x635df8597160; got Screen==0
+Coin info in glxglue_get_display(): got Display*==0x635df8597160; got Screen==0
+Coin info in glxglue_get_display(): got Display*==0x635df8597160; got Screen==0
+Coin info in glxglue_init(): glXQueryServerString(GLX_VERSION)=='1.4'
+Coin info in glxglue_init(): glXQueryServerString(GLX_VENDOR)=='SGI'
+Coin info in glxglue_init(): glXQueryServerString(GLX_EXTENSIONS)=='GLX_ARB_context_flush_control GLX_ARB_create_context GLX_ARB_create_context_no_error GLX_ARB_create_context_profile GLX_ARB_create_context_robustness GLX_ARB_fbconfig_float GLX_ARB_framebuffer_sRGB GLX_ARB_multisample GLX_EXT_create_context_es_profile GLX_EXT_create_context_es2_profile GLX_EXT_fbconfig_packed_float GLX_EXT_framebuffer_sRGB GLX_EXT_get_drawable_type GLX_EXT_libglvnd GLX_EXT_no_config_context GLX_EXT_texture_from_pixmap GLX_EXT_visual_info GLX_EXT_visual_rating GLX_MESA_copy_sub_buffer GLX_OML_swap_method GLX_SGI_make_current_read GLX_SGI_swap_control GLX_SGIS_multisample GLX_SGIX_fbconfig GLX_SGIX_pbuffer GLX_SGIX_visual_select_group GLX_INTEL_swap_event '
+Coin info in glxglue_init(): glXClientString(GLX_VERSION)=='1.4'
+Coin info in glxglue_init(): glXClientString(GLX_VENDOR)=='Mesa Project and SGI'
+Coin info in glxglue_init(): glXClientString(GLX_EXTENSIONS)=='GLX_ARB_context_flush_control GLX_ARB_create_context GLX_ARB_create_context_no_error GLX_ARB_create_context_profile GLX_ARB_create_context_robustness GLX_ARB_fbconfig_float GLX_ARB_framebuffer_sRGB GLX_ARB_get_proc_address GLX_ARB_multisample GLX_EXT_buffer_age GLX_EXT_create_context_es2_profile GLX_EXT_create_context_es_profile GLX_EXT_fbconfig_packed_float GLX_EXT_framebuffer_sRGB GLX_EXT_import_context GLX_EXT_no_config_context GLX_EXT_swap_control GLX_EXT_swap_control_tear GLX_EXT_texture_from_pixmap GLX_EXT_visual_info GLX_EXT_visual_rating GLX_ATI_pixel_format_float GLX_INTEL_swap_event GLX_MESA_copy_sub_buffer GLX_MESA_gl_interop GLX_MESA_query_renderer GLX_MESA_swap_control GLX_NV_float_buffer GLX_OML_sync_control GLX_SGIS_multisample GLX_SGIX_fbconfig GLX_SGIX_pbuffer GLX_SGIX_visual_select_group GLX_SGI_make_current_read GLX_SGI_swap_control GLX_SGI_video_sync '
+Coin info in glxglue_init(): glXQueryExtensionsString()=='GLX_ARB_context_flush_control GLX_ARB_create_context GLX_ARB_create_context_no_error GLX_ARB_create_context_profile GLX_ARB_create_context_robustness GLX_ARB_fbconfig_float GLX_ARB_framebuffer_sRGB GLX_ARB_get_proc_address GLX_ARB_multisample GLX_EXT_buffer_age GLX_EXT_create_context_es2_profile GLX_EXT_create_context_es_profile GLX_EXT_fbconfig_packed_float GLX_EXT_framebuffer_sRGB GLX_EXT_no_config_context GLX_EXT_swap_control GLX_EXT_swap_control_tear GLX_EXT_texture_from_pixmap GLX_EXT_visual_info GLX_EXT_visual_rating GLX_INTEL_swap_event GLX_MESA_copy_sub_buffer GLX_MESA_gl_interop GLX_MESA_query_renderer GLX_MESA_swap_control GLX_OML_sync_control GLX_SGIS_multisample GLX_SGIX_fbconfig GLX_SGIX_pbuffer GLX_SGIX_visual_select_group GLX_SGI_make_current_read GLX_SGI_swap_control GLX_SGI_video_sync '
+Coin info in cc_glglue_getprocaddress(): glXChooseFBConfig==0x7f52d7de9a30
+Coin info in cc_glglue_getprocaddress(): glXCreateNewContext==0x7f52d7de7eb0
+Coin info in cc_glglue_getprocaddress(): glXGetFBConfigAttrib==0x7f52d7de7fd0
+Coin info in cc_glglue_getprocaddress(): glXCreatePbuffer==0x7f52d7de87c0
+Coin info in cc_glglue_getprocaddress(): glXDestroyPbuffer==0x7f52d7de9eb0
+Coin info in cc_glglue_instance(): glGetString(GL_VENDOR)=='AMD' (=> vendor_is_SGI==FALSE)
+Coin info in cc_glglue_instance(): glGetString(GL_RENDERER)=='AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)'
+Coin info in cc_glglue_instance(): glGetString(GL_EXTENSIONS)=='GL_ARB_multisample GL_EXT_abgr GL_EXT_bgra GL_EXT_blend_color GL_EXT_blend_minmax GL_EXT_blend_subtract GL_EXT_copy_texture GL_EXT_subtexture GL_EXT_texture_object GL_EXT_vertex_array GL_EXT_compiled_vertex_array GL_EXT_texture GL_EXT_texture3D GL_IBM_rasterpos_clip GL_ARB_point_parameters GL_EXT_draw_range_elements GL_EXT_packed_pixels GL_EXT_point_parameters GL_EXT_rescale_normal GL_EXT_separate_specular_color GL_EXT_texture_edge_clamp GL_SGIS_generate_mipmap GL_SGIS_texture_border_clamp GL_SGIS_texture_edge_clamp GL_SGIS_texture_lod GL_ARB_framebuffer_sRGB GL_ARB_multitexture GL_EXT_framebuffer_sRGB GL_IBM_multimode_draw_arrays GL_IBM_texture_mirrored_repeat GL_ARB_texture_cube_map GL_ARB_texture_env_add GL_ARB_transpose_matrix GL_EXT_blend_func_separate GL_EXT_fog_coord GL_EXT_multi_draw_arrays GL_EXT_secondary_color GL_EXT_texture_env_add GL_EXT_texture_filter_anisotropic GL_EXT_texture_lod_bias GL_INGR_blend_func_separate GL_NV_blend_square GL_NV_light_max_exponent GL_NV_texgen_reflection GL_NV_texture_env_combine4 GL_S3_s3tc GL_SUN_multi_draw_arrays GL_ARB_texture_border_clamp GL_ARB_texture_compression GL_EXT_framebuffer_object GL_EXT_texture_compression_s3tc GL_EXT_texture_env_combine GL_EXT_texture_env_dot3 GL_MESA_window_pos GL_NV_packed_depth_stencil GL_NV_texture_rectangle GL_ARB_depth_texture GL_ARB_occlusion_query GL_ARB_shadow GL_ARB_texture_env_combine GL_ARB_texture_env_crossbar GL_ARB_texture_env_dot3 GL_ARB_texture_mirrored_repeat GL_ARB_window_pos GL_ATI_fragment_shader GL_EXT_stencil_two_side GL_EXT_texture_cube_map GL_NV_copy_depth_to_color GL_NV_depth_clamp GL_NV_fog_distance GL_NV_half_float GL_APPLE_packed_pixels GL_ARB_draw_buffers GL_ARB_fragment_program GL_ARB_fragment_shader GL_ARB_shader_objects GL_ARB_vertex_program GL_ARB_vertex_shader GL_ATI_draw_buffers GL_ATI_texture_env_combine3 GL_ATI_texture_float GL_EXT_depth_bounds_test GL_EXT_shadow_funcs GL_EXT_stencil_wrap GL_MESA_pack_invert GL_NV_primitive_restart GL_ARB_depth_clamp GL_ARB_fragment_program_shadow GL_ARB_half_float_pixel GL_ARB_occlusion_query2 GL_ARB_point_sprite GL_ARB_shading_language_100 GL_ARB_sync GL_ARB_texture_non_power_of_two GL_ARB_vertex_buffer_object GL_ATI_blend_equation_separate GL_EXT_blend_equation_separate GL_OES_read_format GL_ARB_color_buffer_float GL_ARB_pixel_buffer_object GL_ARB_texture_compression_rgtc GL_ARB_texture_float GL_ARB_texture_rectangle GL_ATI_texture_compression_3dc GL_EXT_packed_float GL_EXT_pixel_buffer_object GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_mirror_clamp GL_EXT_texture_rectangle GL_EXT_texture_sRGB GL_EXT_texture_shared_exponent GL_ARB_framebuffer_object GL_EXT_framebuffer_blit GL_EXT_framebuffer_multisample GL_EXT_packed_depth_stencil GL_ARB_vertex_array_object GL_ATI_separate_stencil GL_ATI_texture_mirror_once GL_EXT_draw_buffers2 GL_EXT_draw_instanced GL_EXT_gpu_program_parameters GL_EXT_gpu_shader4 GL_EXT_texture_array GL_EXT_texture_compression_latc GL_EXT_texture_integer GL_EXT_texture_sRGB_decode GL_EXT_timer_query GL_OES_EGL_image GL_AMD_performance_monitor GL_EXT_texture_buffer_object GL_AMD_texture_texture4 GL_ARB_copy_buffer GL_ARB_depth_buffer_float GL_ARB_draw_instanced GL_ARB_half_float_vertex GL_ARB_instanced_arrays GL_ARB_map_buffer_range GL_ARB_texture_buffer_object GL_ARB_texture_rg GL_ARB_texture_swizzle GL_ARB_vertex_array_bgra GL_EXT_texture_swizzle GL_EXT_vertex_array_bgra GL_NV_conditional_render GL_AMD_conservative_depth GL_AMD_depth_clamp_separate GL_AMD_draw_buffers_blend GL_AMD_seamless_cubemap_per_texture GL_AMD_shader_stencil_export GL_ARB_ES2_compatibility GL_ARB_blend_func_extended GL_ARB_compatibility GL_ARB_debug_output GL_ARB_draw_buffers_blend GL_ARB_draw_elements_base_vertex GL_ARB_explicit_attrib_location GL_ARB_fragment_coord_conventions GL_ARB_provoking_vertex GL_ARB_sample_shading GL_ARB_sampler_objects GL_ARB_seamless_cube_map GL_ARB_shader_stencil_export GL_ARB_shader_texture_lod GL_ARB_tessellation_shader GL_ARB_texture_buffer_object_rgb32 GL_ARB_texture_cube_map_array GL_ARB_texture_gather GL_ARB_texture_multisample GL_ARB_texture_query_lod GL_ARB_texture_rgb10_a2ui GL_ARB_uniform_buffer_object GL_ARB_vertex_type_2_10_10_10_rev GL_ATI_meminfo GL_EXT_provoking_vertex GL_EXT_texture_snorm GL_EXT_texture_storage GL_MESA_texture_signed_rgba GL_NV_copy_image GL_NV_texture_barrier GL_ARB_draw_indirect GL_ARB_get_program_binary GL_ARB_gpu_shader5 GL_ARB_gpu_shader_fp64 GL_ARB_robustness GL_ARB_separate_shader_objects GL_ARB_shader_bit_encoding GL_ARB_shader_precision GL_ARB_shader_subroutine GL_ARB_texture_compression_bptc GL_ARB_timer_query GL_ARB_transform_feedback2 GL_ARB_transform_feedback3 GL_ARB_vertex_attrib_64bit GL_ARB_viewport_array GL_EXT_direct_state_access GL_EXT_shader_image_load_store GL_EXT_vertex_attrib_64bit GL_NV_vdpau_interop GL_AMD_multi_draw_indirect GL_ANGLE_texture_compression_dxt3 GL_ANGLE_texture_compression_dxt5 GL_ARB_base_instance GL_ARB_compressed_texture_pixel_storage GL_ARB_conservative_depth GL_ARB_internalformat_query GL_ARB_map_buffer_alignment GL_ARB_shader_atomic_counters GL_ARB_shader_image_load_store GL_ARB_shading_language_420pack GL_ARB_shading_language_packing GL_ARB_texture_storage GL_ARB_transform_feedback_instanced GL_EXT_framebuffer_multisample_blit_scaled GL_EXT_transform_feedback GL_AMD_query_buffer_object GL_AMD_shader_trinary_minmax GL_AMD_vertex_shader_layer GL_AMD_vertex_shader_viewport_index GL_ARB_ES3_compatibility GL_ARB_arrays_of_arrays GL_ARB_clear_buffer_object GL_ARB_compute_shader GL_ARB_copy_image GL_ARB_explicit_uniform_location GL_ARB_fragment_layer_viewport GL_ARB_framebuffer_no_attachments GL_ARB_invalidate_subdata GL_ARB_multi_draw_indirect GL_ARB_program_interface_query GL_ARB_robust_buffer_access_behavior GL_ARB_shader_image_size GL_ARB_shader_storage_buffer_object GL_ARB_stencil_texturing GL_ARB_texture_buffer_range GL_ARB_texture_query_levels GL_ARB_texture_storage_multisample GL_ARB_texture_view GL_ARB_vertex_attrib_binding GL_KHR_debug GL_KHR_robustness GL_KHR_texture_compression_astc_ldr GL_AMD_pinned_memory GL_ARB_bindless_texture GL_ARB_buffer_storage GL_ARB_clear_texture GL_ARB_compute_variable_group_size GL_ARB_enhanced_layouts GL_ARB_indirect_parameters GL_ARB_internalformat_query2 GL_ARB_multi_bind GL_ARB_query_buffer_object GL_ARB_seamless_cubemap_per_texture GL_ARB_shader_draw_parameters GL_ARB_shader_group_vote GL_ARB_shading_language_include GL_ARB_sparse_texture GL_ARB_texture_mirror_clamp_to_edge GL_ARB_texture_stencil8 GL_ARB_vertex_type_10f_11f_11f_rev GL_EXT_debug_label GL_EXT_shader_integer_mix GL_NVX_gpu_memory_info GL_ARB_ES3_1_compatibility GL_ARB_clip_control GL_ARB_conditional_render_inverted GL_ARB_cull_distance GL_ARB_derivative_control GL_ARB_direct_state_access GL_ARB_get_texture_sub_image GL_ARB_pipeline_statistics_query GL_ARB_shader_texture_image_samples GL_ARB_sparse_buffer GL_ARB_texture_barrier GL_ARB_transform_feedback_overflow_query GL_EXT_polygon_offset_clamp GL_EXT_shader_image_load_formatted GL_KHR_blend_equation_advanced GL_KHR_context_flush_control GL_KHR_robust_buffer_access_behavior GL_NV_shader_atomic_int64 GL_ARB_ES3_2_compatibility GL_ARB_gpu_shader_int64 GL_ARB_parallel_shader_compile GL_ARB_shader_atomic_counter_ops GL_ARB_shader_ballot GL_ARB_shader_clock GL_ARB_shader_viewport_layer_array GL_ARB_sparse_texture2 GL_ARB_sparse_texture_clamp GL_ARB_texture_filter_minmax GL_EXT_shader_samples_identical GL_EXT_texture_filter_minmax GL_EXT_texture_sRGB_R8 GL_KHR_no_error GL_KHR_texture_compression_astc_sliced_3d GL_ARB_gl_spirv GL_ARB_spirv_extensions GL_EXT_window_rectangles GL_MESA_shader_integer_functions GL_ARB_polygon_offset_clamp GL_ARB_texture_filter_anisotropic GL_EXT_memory_object GL_EXT_memory_object_fd GL_EXT_semaphore GL_EXT_semaphore_fd GL_KHR_parallel_shader_compile GL_NV_alpha_to_coverage_dither_control GL_AMD_framebuffer_multisample_advanced GL_EXT_EGL_image_storage GL_EXT_texture_shadow_lod GL_INTEL_blackhole_render GL_MESA_framebuffer_flip_y GL_NV_compute_shader_derivatives GL_EXT_EGL_sync GL_EXT_demote_to_helper_invocation GL_KHR_shader_subgroup GL_EXT_EGL_image_storage_compression GL_NV_ES1_1_compatibility GL_MESA_texture_const_bandwidth GL_EXT_shader_clock '
+Coin info in cc_glglue_instance(): Rendering is direct.
+Coin info in coin_glglue_extension_available(): extension 'GL_EXT_texture_filter_anisotropic' is present
+Coin info in cc_glglue_instance(): Anisotropic filtering: TRUE (16)
+Coin info in cc_glglue_getprocaddress(): glPolygonOffset==0x7f52d6f9baa0
+Coin info in coin_glglue_extension_available(): extension 'GL_EXT_polygon_offset' is NOT present
+Coin info in cc_glglue_getprocaddress(): glGenTextures==0x7f52d6f92a00
+Coin info in cc_glglue_getprocaddress(): glBindTexture==0x7f52d6f8cb20
+Coin info in cc_glglue_getprocaddress(): glDeleteTextures==0x7f52d6f8ff60
+Coin info in cc_glglue_getprocaddress(): glTexSubImage2D==0x7f52d6fa0ce0
+Coin info in cc_glglue_getprocaddress(): glPushClientAttrib==0x7f52d6f9d580
+Coin info in cc_glglue_getprocaddress(): glPopClientAttrib==0x7f52d6f9bba0
+Coin info in cc_glglue_getprocaddress(): glTexImage3D==0x7f52d6fa0760
+Coin info in cc_glglue_getprocaddress(): glCopyTexSubImage3D==0x7f52d6f8f260
+Coin info in cc_glglue_getprocaddress(): glTexSubImage3D==0x7f52d6fa0d20
+Coin info in cc_glglue_getprocaddress(): glActiveTexture==0x7f52d6f8c0e0
+Coin info in cc_glglue_getprocaddress(): glClientActiveTexture==0x7f52d6f8db80
+Coin info in cc_glglue_getprocaddress(): glMultiTexCoord2f==0x7f52d6f995c0
+Coin info in cc_glglue_getprocaddress(): glMultiTexCoord2fv==0x7f52d6f99600
+Coin info in cc_glglue_getprocaddress(): glMultiTexCoord3fv==0x7f52d6f99900
+Coin info in cc_glglue_getprocaddress(): glMultiTexCoord4fv==0x7f52d6f99c00
+Coin info in cc_glglue_getprocaddress(): glCompressedTexImage1D==0x7f52d6f8e980
+Coin info in cc_glglue_getprocaddress(): glCompressedTexImage2D==0x7f52d6f8e9c0
+Coin info in cc_glglue_getprocaddress(): glCompressedTexImage3D==0x7f52d6f8ea00
+Coin info in cc_glglue_getprocaddress(): glCompressedTexSubImage1D==0x7f52d6f8ea80
+Coin info in cc_glglue_getprocaddress(): glCompressedTexSubImage2D==0x7f52d6f8eac0
+Coin info in cc_glglue_getprocaddress(): glCompressedTexSubImage3D==0x7f52d6f8eb00
+Coin info in cc_glglue_getprocaddress(): glGetCompressedTexImage==0x7f52d6f93260
+Coin info in coin_glglue_extension_available(): extension 'GL_ARB_imaging' is NOT present
+Coin info in coin_glglue_extension_available(): extension 'GL_EXT_color_table' is NOT present
+Coin info in coin_glglue_extension_available(): extension 'GL_SGI_color_table' is NOT present
+Coin info in coin_glglue_extension_available(): extension 'GL_EXT_color_subtable' is NOT present
+Coin info in coin_glglue_extension_available(): extension 'GL_EXT_paletted_texture' is NOT present
+Coin info in cc_glglue_getprocaddress(): glBlendEquation==0x7f52d6f8cf80
+Coin info in coin_glglue_extension_available(): extension 'GL_EXT_blend_minmax' is present
+Coin info in cc_glglue_getprocaddress(): glBlendEquationEXT==0x7f52d6f8cfa0
+Coin info in cc_glglue_getprocaddress(): glBlendFuncSeparate==0x7f52d6f8d1c0
+Coin info in cc_glglue_getprocaddress(): glVertexPointer==0x7f52d6fa5260
+Coin info in cc_glglue_getprocaddress(): glTexCoordPointer==0x7f52d6fa0380
+Coin info in cc_glglue_getprocaddress(): glNormalPointer==0x7f52d6f9ace0
+Coin info in cc_glglue_getprocaddress(): glColorPointer==0x7f52d6f8e5a0
+Coin info in cc_glglue_getprocaddress(): glIndexPointer==0x7f52d6f970e0
+Coin info in cc_glglue_getprocaddress(): glEnableClientState==0x7f52d6f91040
+Coin info in cc_glglue_getprocaddress(): glDisableClientState==0x7f52d6f90380
+Coin info in cc_glglue_getprocaddress(): glInterleavedArrays==0x7f52d6f97340
+Coin info in cc_glglue_getprocaddress(): glDrawArrays==0x7f52d6f90600
+Coin info in cc_glglue_getprocaddress(): glDrawElements==0x7f52d6f908e0
+Coin info in cc_glglue_getprocaddress(): glArrayElement==0x7f52d6f8c2e0
+Coin info in cc_glglue_getprocaddress(): glDrawRangeElements==0x7f52d6f90be0
+Coin info in cc_glglue_getprocaddress(): glMultiDrawArrays==0x7f52d6f98ea0
+Coin info in cc_glglue_getprocaddress(): glMultiDrawElements==0x7f52d6f98fe0
+Coin info in cc_glglue_getprocaddress(): glBindBuffer==0x7f52d6f8c660
+Coin info in cc_glglue_getprocaddress(): glDeleteBuffers==0x7f52d6f8fae0
+Coin info in cc_glglue_getprocaddress(): glGenBuffers==0x7f52d6f926a0
+Coin info in cc_glglue_getprocaddress(): glIsBuffer==0x7f52d6f974a0
+Coin info in cc_glglue_getprocaddress(): glBufferData==0x7f52d6f8d460
+Coin info in cc_glglue_getprocaddress(): glBufferSubData==0x7f52d6f8d5a0
+Coin info in cc_glglue_getprocaddress(): glGetBufferSubData==0x7f52d6f92f80
+Coin info in cc_glglue_getprocaddress(): glMapBuffer==0x7f52d6f98420
+Coin info in cc_glglue_getprocaddress(): glUnmapBuffer==0x7f52d6fa26c0
+Coin info in cc_glglue_getprocaddress(): glGetBufferParameteriv==0x7f52d6f92ec0
+Coin info in cc_glglue_getprocaddress(): glGetBufferPointerv==0x7f52d6f92f20
+Coin info in coin_glglue_extension_available(): extension 'GL_NV_register_combiners' is NOT present
+Coin info in coin_glglue_extension_available(): extension 'GL_EXT_texture_rectangle' is present
+Coin info in coin_glglue_extension_available(): extension 'GL_NV_texture_shader' is NOT present
+Coin info in coin_glglue_extension_available(): extension 'GL_ARB_shadow' is present
+Coin info in coin_glglue_extension_available(): extension 'GL_ARB_depth_texture' is present
+Coin info in coin_glglue_extension_available(): extension 'GL_ARB_texture_env_combine' is present
+Coin info in coin_glglue_extension_available(): extension 'GL_ARB_fragment_program' is present
+Coin info in cc_glglue_getprocaddress(): glProgramStringARB==0x7f52d6f9c340
+Coin info in cc_glglue_getprocaddress(): glBindProgramARB==0x7f52d6f8c9c0
+Coin info in cc_glglue_getprocaddress(): glDeleteProgramsARB==0x7f52d6f8fd80
+Coin info in cc_glglue_getprocaddress(): glGenProgramsARB==0x7f52d6f92880
+Coin info in cc_glglue_getprocaddress(): glProgramEnvParameter4dARB==0x7f52d6f9bec0
+Coin info in cc_glglue_getprocaddress(): glProgramEnvParameter4dvARB==0x7f52d6f9bee0
+Coin info in cc_glglue_getprocaddress(): glProgramEnvParameter4fARB==0x7f52d6f9bf00
+Coin info in cc_glglue_getprocaddress(): glProgramEnvParameter4fvARB==0x7f52d6f9bf20
+Coin info in cc_glglue_getprocaddress(): glProgramLocalParameter4dARB==0x7f52d6f9c020
+Coin info in cc_glglue_getprocaddress(): glProgramLocalParameter4dvARB==0x7f52d6f9c040
+Coin info in cc_glglue_getprocaddress(): glProgramLocalParameter4fARB==0x7f52d6f9c060
+Coin info in cc_glglue_getprocaddress(): glProgramLocalParameter4fvARB==0x7f52d6f9c080
+Coin info in cc_glglue_getprocaddress(): glGetProgramEnvParameterdvARB==0x7f52d6f94da0
+Coin info in cc_glglue_getprocaddress(): glGetProgramEnvParameterfvARB==0x7f52d6f94dc0
+Coin info in cc_glglue_getprocaddress(): glGetProgramLocalParameterdvARB==0x7f52d6f94e60
+Coin info in cc_glglue_getprocaddress(): glGetProgramLocalParameterfvARB==0x7f52d6f94e80
+Coin info in cc_glglue_getprocaddress(): glGetProgramivARB==0x7f52d6f95120
+Coin info in cc_glglue_getprocaddress(): glGetProgramStringARB==0x7f52d6f950a0
+Coin info in cc_glglue_getprocaddress(): glIsProgramARB==0x7f52d6f97820
+Coin info in coin_glglue_extension_available(): extension 'GL_ARB_vertex_program' is present
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib1sARB==0x7f52d6fa36a0
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib1fARB==0x7f52d6fa35a0
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib1dARB==0x7f52d6fa34e0
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib2sARB==0x7f52d6fa3920
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib2fARB==0x7f52d6fa3820
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib2dARB==0x7f52d6fa3760
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib3sARB==0x7f52d6fa3ba0
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib3fARB==0x7f52d6fa3aa0
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib3dARB==0x7f52d6fa39e0
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib4sARB==0x7f52d6fa4060
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib4fARB==0x7f52d6fa3f20
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib4dARB==0x7f52d6fa3e60
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib4NubARB==0x7f52d6fa3d20
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib1svARB==0x7f52d6fa3700
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib1fvARB==0x7f52d6fa3600
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib1dvARB==0x7f52d6fa3540
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib2svARB==0x7f52d6fa3980
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib2fvARB==0x7f52d6fa3880
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib2dvARB==0x7f52d6fa37c0
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib3svARB==0x7f52d6fa3c00
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib3fvARB==0x7f52d6fa3b00
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib3dvARB==0x7f52d6fa3a40
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib4bvARB==0x7f52d6fa3e20
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib4svARB==0x7f52d6fa40c0
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib4ivARB==0x7f52d6fa4020
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib4ubvARB==0x7f52d6fa4140
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib4usvARB==0x7f52d6fa41e0
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib4uivARB==0x7f52d6fa41a0
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib4fvARB==0x7f52d6fa3f80
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib4dvARB==0x7f52d6fa3ec0
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib4NbvARB==0x7f52d6fa3c60
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib4NsvARB==0x7f52d6fa3ce0
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib4NivARB==0x7f52d6fa3ca0
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib4NubvARB==0x7f52d6fa3d60
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib4NusvARB==0x7f52d6fa3de0
+Coin info in cc_glglue_getprocaddress(): glVertexAttrib4NuivARB==0x7f52d6fa3da0
+Coin info in cc_glglue_getprocaddress(): glVertexAttribPointerARB==0x7f52d6fa4ea0
+Coin info in cc_glglue_getprocaddress(): glEnableVertexAttribArrayARB==0x7f52d6f911a0
+Coin info in cc_glglue_getprocaddress(): glDisableVertexAttribArrayARB==0x7f52d6f904e0
+Coin info in cc_glglue_getprocaddress(): glProgramStringARB==0x7f52d6f9c340
+Coin info in cc_glglue_getprocaddress(): glBindProgramARB==0x7f52d6f8c9c0
+Coin info in cc_glglue_getprocaddress(): glDeleteProgramsARB==0x7f52d6f8fd80
+Coin info in cc_glglue_getprocaddress(): glGenProgramsARB==0x7f52d6f92880
+Coin info in cc_glglue_getprocaddress(): glProgramEnvParameter4dARB==0x7f52d6f9bec0
+Coin info in cc_glglue_getprocaddress(): glProgramEnvParameter4dvARB==0x7f52d6f9bee0
+Coin info in cc_glglue_getprocaddress(): glProgramEnvParameter4fARB==0x7f52d6f9bf00
+Coin info in cc_glglue_getprocaddress(): glProgramEnvParameter4fvARB==0x7f52d6f9bf20
+Coin info in cc_glglue_getprocaddress(): glProgramLocalParameter4dARB==0x7f52d6f9c020
+Coin info in cc_glglue_getprocaddress(): glProgramLocalParameter4dvARB==0x7f52d6f9c040
+Coin info in cc_glglue_getprocaddress(): glProgramLocalParameter4fARB==0x7f52d6f9c060
+Coin info in cc_glglue_getprocaddress(): glProgramLocalParameter4fvARB==0x7f52d6f9c080
+Coin info in cc_glglue_getprocaddress(): glGetProgramEnvParameterdvARB==0x7f52d6f94da0
+Coin info in cc_glglue_getprocaddress(): glGetProgramEnvParameterfvARB==0x7f52d6f94dc0
+Coin info in cc_glglue_getprocaddress(): glGetProgramLocalParameterdvARB==0x7f52d6f94e60
+Coin info in cc_glglue_getprocaddress(): glGetProgramLocalParameterfvARB==0x7f52d6f94e80
+Coin info in cc_glglue_getprocaddress(): glGetProgramivARB==0x7f52d6f95120
+Coin info in cc_glglue_getprocaddress(): glGetProgramStringARB==0x7f52d6f950a0
+Coin info in cc_glglue_getprocaddress(): glGetVertexAttribdvARB==0x7f52d6f96540
+Coin info in cc_glglue_getprocaddress(): glGetVertexAttribfvARB==0x7f52d6f965a0
+Coin info in cc_glglue_getprocaddress(): glGetVertexAttribivARB==0x7f52d6f96600
+Coin info in cc_glglue_getprocaddress(): glGetVertexAttribPointervARB==0x7f52d6f964e0
+Coin info in cc_glglue_getprocaddress(): glIsProgramARB==0x7f52d6f97820
+Coin info in coin_glglue_extension_available(): extension 'GL_ARB_vertex_shader' is present
+Coin info in cc_glglue_getprocaddress(): glBindAttribLocationARB==0x7f52d6f8c640
+Coin info in cc_glglue_getprocaddress(): glGetActiveAttribARB==0x7f52d6f92c20
+Coin info in cc_glglue_getprocaddress(): glGetAttribLocationARB==0x7f52d6f92e20
+Coin info in coin_glglue_extension_available(): extension 'GL_ARB_shader_objects' is present
+Coin info in cc_glglue_getprocaddress(): glGetUniformLocationARB==0x7f52d6f95fa0
+Coin info in cc_glglue_getprocaddress(): glGetActiveUniformARB==0x7f52d6f92cc0
+Coin info in cc_glglue_getprocaddress(): glUniform1fARB==0x7f52d6fa1740
+Coin info in cc_glglue_getprocaddress(): glUniform2fARB==0x7f52d6fa1a00
+Coin info in cc_glglue_getprocaddress(): glUniform3fARB==0x7f52d6fa1cc0
+Coin info in cc_glglue_getprocaddress(): glUniform4fARB==0x7f52d6fa1f80
+Coin info in cc_glglue_getprocaddress(): glCreateShaderObjectARB==0x7f52d6f8f6c0
+Coin info in cc_glglue_getprocaddress(): glShaderSourceARB==0x7f52d6f9f060
+Coin info in cc_glglue_getprocaddress(): glCompileShaderARB==0x7f52d6f8e880
+Coin info in cc_glglue_getprocaddress(): glGetObjectParameterivARB==0x7f52d6f947a0
+Coin info in cc_glglue_getprocaddress(): glDeleteObjectARB==0x7f52d6f8fc80
+Coin info in cc_glglue_getprocaddress(): glAttachObjectARB==0x7f52d6f8c3a0
+Coin info in cc_glglue_getprocaddress(): glDetachObjectARB==0x7f52d6f902c0
+Coin info in cc_glglue_getprocaddress(): glGetInfoLogARB==0x7f52d6f93b80
+Coin info in cc_glglue_getprocaddress(): glLinkProgramARB==0x7f52d6f97ee0
+Coin info in cc_glglue_getprocaddress(): glUseProgramObjectARB==0x7f52d6fa2800
+Coin info in cc_glglue_getprocaddress(): glCreateProgramObjectARB==0x7f52d6f8f5c0
+Coin info in cc_glglue_getprocaddress(): glUniform1fvARB==0x7f52d6fa1780
+Coin info in cc_glglue_getprocaddress(): glUniform2fvARB==0x7f52d6fa1a40
+Coin info in cc_glglue_getprocaddress(): glUniform3fvARB==0x7f52d6fa1d00
+Coin info in cc_glglue_getprocaddress(): glUniform4fvARB==0x7f52d6fa1fc0
+Coin info in cc_glglue_getprocaddress(): glUniform1iARB==0x7f52d6fa1840
+Coin info in cc_glglue_getprocaddress(): glUniform2iARB==0x7f52d6fa1b00
+Coin info in cc_glglue_getprocaddress(): glUniform3iARB==0x7f52d6fa1dc0
+Coin info in cc_glglue_getprocaddress(): glUniform4iARB==0x7f52d6fa2080
+Coin info in cc_glglue_getprocaddress(): glUniform1ivARB==0x7f52d6fa1880
+Coin info in cc_glglue_getprocaddress(): glUniform2ivARB==0x7f52d6fa1b40
+Coin info in cc_glglue_getprocaddress(): glUniform3ivARB==0x7f52d6fa1e00
+Coin info in cc_glglue_getprocaddress(): glUniform4ivARB==0x7f52d6fa20c0
+Coin info in cc_glglue_getprocaddress(): glUniformMatrix2fvARB==0x7f52d6fa2320
+Coin info in cc_glglue_getprocaddress(): glUniformMatrix3fvARB==0x7f52d6fa2440
+Coin info in cc_glglue_getprocaddress(): glUniformMatrix4fvARB==0x7f52d6fa2560
+Coin info in coin_glglue_extension_available(): extension 'GL_EXT_geometry_shader4' is NOT present
+Coin info in cc_glglue_getprocaddress(): glGenQueries==0x7f52d6f928c0
+Coin info in cc_glglue_getprocaddress(): glDeleteQueries==0x7f52d6f8fdc0
+Coin info in cc_glglue_getprocaddress(): glIsQuery==0x7f52d6f978a0
+Coin info in cc_glglue_getprocaddress(): glBeginQuery==0x7f52d6f8c4e0
+Coin info in cc_glglue_getprocaddress(): glEndQuery==0x7f52d6f91360
+Coin info in cc_glglue_getprocaddress(): glGetQueryiv==0x7f52d6f95360
+Coin info in cc_glglue_getprocaddress(): glGetQueryObjectiv==0x7f52d6f95240
+Coin info in cc_glglue_getprocaddress(): glGetQueryObjectuiv==0x7f52d6f95300
+Coin info in coin_glglue_extension_available(): extension 'GL_NV_vertex_array_range' is NOT present
+Coin info in coin_glglue_extension_available(): extension 'GL_ARB_framebuffer_object' is present
+Coin info in cc_glglue_getprocaddress(): glGenerateMipmap==0x7f52d6f92b20
+Coin info in coin_glglue_extension_available(): extension 'GL_EXT_framebuffer_object' is present
+Coin info in cc_glglue_getprocaddress(): glIsRenderbufferEXT==0x7f52d6f97920
+Coin info in cc_glglue_getprocaddress(): glBindRenderbufferEXT==0x7f52d6f8ca60
+Coin info in cc_glglue_getprocaddress(): glDeleteRenderbuffersEXT==0x7f52d6f8fe60
+Coin info in cc_glglue_getprocaddress(): glGenRenderbuffersEXT==0x7f52d6f92960
+Coin info in cc_glglue_getprocaddress(): glRenderbufferStorageEXT==0x7f52d6f9de60
+Coin info in cc_glglue_getprocaddress(): glGetRenderbufferParameterivEXT==0x7f52d6f953e0
+Coin info in cc_glglue_getprocaddress(): glIsFramebufferEXT==0x7f52d6f97640
+Coin info in cc_glglue_getprocaddress(): glBindFramebufferEXT==0x7f52d6f8c8a0
+Coin info in cc_glglue_getprocaddress(): glDeleteFramebuffersEXT==0x7f52d6f8fbc0
+Coin info in cc_glglue_getprocaddress(): glGenFramebuffersEXT==0x7f52d6f92760
+Coin info in cc_glglue_getprocaddress(): glCheckFramebufferStatusEXT==0x7f52d6f8d660
+Coin info in cc_glglue_getprocaddress(): glFramebufferTexture1DEXT==0x7f52d6f922e0
+Coin info in cc_glglue_getprocaddress(): glFramebufferTexture2DEXT==0x7f52d6f92340
+Coin info in cc_glglue_getprocaddress(): glFramebufferTexture3DEXT==0x7f52d6f923e0
+Coin info in cc_glglue_getprocaddress(): glFramebufferRenderbufferEXT==0x7f52d6f921e0
+Coin info in cc_glglue_getprocaddress(): glGetFramebufferAttachmentParameterivEXT==0x7f52d6f938a0
+Coin info in glxglue_context_reinstate_previous(): releasing context (glxMakeCurrent(0x635df8597160, None, NULL))
+Coin info in glxglue_make_context_current(): store current status first => context==(nil), drawable==(nil), display==(nil)
+Coin info in glxglue_make_context_current(): successfully made context 0x635df885e570 current
+Coin info in glxglue_context_reinstate_previous(): releasing context (glxMakeCurrent(0x635df8597160, None, NULL))
+Coin info in glxglue_make_context_current(): store current status first => context==(nil), drawable==(nil), display==(nil)
+Coin info in glxglue_make_context_current(): successfully made context 0x635df885e570 current
+Coin info in glxglue_context_reinstate_previous(): releasing context (glxMakeCurrent(0x635df8597160, None, NULL))
+Coin info in glxglue_make_context_current(): store current status first => context==(nil), drawable==(nil), display==(nil)
+Coin info in glxglue_make_context_current(): successfully made context 0x635df885e570 current
+Coin info in glxglue_context_reinstate_previous(): releasing context (glxMakeCurrent(0x635df8597160, None, NULL))
+Coin info in glxglue_make_context_current(): store current status first => context==(nil), drawable==(nil), display==(nil)
+Coin info in glxglue_make_context_current(): successfully made context 0x635df885e570 current
+Coin info in glxglue_context_reinstate_previous(): releasing context (glxMakeCurrent(0x635df8597160, None, NULL))
+Coin info in glxglue_context_destruct(): destroy context 0x635df885e570
