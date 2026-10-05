@@ -503,7 +503,10 @@ CoinRenderActionP::cameraSensorCB(void * data, SoSensor * sensor)
     auto * material = static_cast<SoMaterial *>(trigger);
     const bool knownField = field == &material->ambientColor || field == &material->diffuseColor ||
       field == &material->specularColor || field == &material->emissiveColor || field == &material->shininess;
-    if (objectOverlayEnabled("COIN_RENDER_DISABLE_MATERIAL_OVERLAY")) self->translationInputDirty = true;
+    // Notifications record changes regardless of the current optout. Admission
+    // and preparation read the option once per operation, including changes
+    // made between this notification and apply().
+    self->translationInputDirty = true;
     // Validate all fields once per dirty source during overlay preparation.
     if (knownField && self->translationProofValid &&
         !self->translationInvalidated && !self->cameraOnlyDirty && self->materialByNode.count(trigger))
@@ -513,7 +516,7 @@ CoinRenderActionP::cameraSensorCB(void * data, SoSensor * sensor)
              nodeSensor->getTriggerOperationType() == SoNotRec::FIELD_UPDATE &&
              trigger->getTypeId() == SoCube::getClassTypeId()) {
     auto * cube = static_cast<SoCube *>(trigger);
-    if (objectOverlayEnabled("COIN_RENDER_DISABLE_CUBE_OVERLAY")) self->translationInputDirty = true;
+    self->translationInputDirty = true;
     if ((field == &cube->width || field == &cube->height || field == &cube->depth) &&
         self->translationProofValid && !self->translationInvalidated &&
         !self->cameraOnlyDirty && self->cubeByNode.count(trigger)) self->geometryDirty.insert(trigger);

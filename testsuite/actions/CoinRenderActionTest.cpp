@@ -2028,7 +2028,7 @@ int testObjectPayloadInvalidationAndOptout() {
     if (mutation == 8) scene.material->diffuseColor.disconnect();
     driver->unref();
   }
-  for (bool material : {false, true}) {
+  for (bool material : {false, true}) for (int toggleTiming = 0; toggleTiming < 3; ++toggleTiming) {
     TranslationOverlayScene scene(2);
     std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(1, 1)));
     TEST_ASSERT(target, "object optout requires a CPU target shell");
@@ -2038,14 +2038,19 @@ int testObjectPayloadInvalidationAndOptout() {
     full.getPimpl()->planOnly = true; action.setRenderTarget(target.get()); action.apply(scene.root);
     const uint64_t generation = action.getPimpl()->translationGeneration;
     const char * flag = material ? "COIN_RENDER_DISABLE_MATERIAL_OVERLAY" : "COIN_RENDER_DISABLE_CUBE_OVERLAY";
-    coinRenderTestSetEnvironment(flag, "1");
+    // Exercise disabled throughout, disabled only at notification, and
+    // disabled only at apply. The submit-time option decides the route.
+    coinRenderTestSetEnvironment(flag, toggleTiming == 2 ? "0" : "1");
     if (material) scene.material->diffuseColor.setValue(.1f, .4f, .7f);
-    else scene.cube->width = 3.2f;
+    else { scene.cube->width = 3.2f; scene.cube->height = 1.7f; scene.cube->depth = 2.4f; }
+    if (toggleTiming == 1) coinRenderTestSetEnvironment(flag, "0");
+    if (toggleTiming == 2) coinRenderTestSetEnvironment(flag, "1");
     action.apply(scene.root); full.apply(scene.root);
     TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS &&
-                action.getPimpl()->translationGeneration > generation &&
+                (toggleTiming == 1 ? action.getPimpl()->translationGeneration == generation
+                                   : action.getPimpl()->translationGeneration > generation) &&
                 sameObjectDrawPayload(action.getPimpl()->lastValidPlan, full.getPimpl()->lastValidPlan),
-                "source optouts changed after admission must force equivalent complete capture");
+                "source optouts at apply must choose overlay or equivalent complete capture after notifications");
     coinRenderTestSetEnvironment(flag, "0");
   }
   return 0;
