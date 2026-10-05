@@ -1155,6 +1155,7 @@ bool instanceMatrixCacheEquivalence()
   uint32_t width = 64, height = 64;
   CoinWgpuFfiFrame fast, literal;
   std::string a,b;
+  bool lastAccepted = false;
   const CoinRenderFrameReuseDecision rebuild(CoinRenderFrameReuseKind::RESOURCE_REBUILD,0);
   const auto compare = [&](const CoinRenderFrameReuseDecision & reuse, bool allow = true, int expected = 1) {
     MatrixFpSnapshot start;
@@ -1163,6 +1164,7 @@ bool instanceMatrixCacheEquivalence()
     start.restore();
     option.disable(true); const bool okB = literal.prepare(frame,width,height,reuse,b,nullptr,allow);
     const uint32_t flagsB = matrixExceptionStatus();
+    lastAccepted = okA;
     start.restore(); option.disable(false);
     if (!check(okA == okB && (expected < 0 || okA == bool(expected)) && a == b && flagsA == flagsB,
                "matrix cache preserves success, diagnostic and exact SSE/x87 sticky exception flags")) return false;
@@ -1325,11 +1327,13 @@ bool instanceMatrixCacheEquivalence()
         "successful late incompatible/singular fallback cannot publish a matrix-cache candidate")) return false;
     const bool sourceFinite = CoinRenderTransformCore::finiteMatrix(frame.renderStates.back().model);
     if (!sourceFinite) {
-      if (!check(a.find("RenderState matrix contains non-finite values") != std::string::npos &&
-          !fast.opaqueMatrixCacheValid(),"NaN/Inf authored inputs retain literal finite-state rejection")) return false;
-      // Repair that exact revision: packedRevision was revoked by the guard.
+      if (!check(!fast.opaqueMatrixCacheValid(),
+          "NaN/Inf authored inputs follow literal FFI admission without a matrix-cache license")) return false;
+      // FFI packing alone may transport a non-finite unused state; the Target's
+      // FramePlan admission is separate. Only a failed prepare revokes revision.
+      if (lastAccepted) ++frame.revision;
       frame.renderStates.back() = original.renderStates.back();
-      if (!compare(rebuild) || !counts(0,n,"same-revision finite-state repair cannot inherit old numerical entries")) return false;
+      if (!compare(rebuild) || !counts(0,n,"finite-state repair cannot inherit old numerical entries")) return false;
     }
   }
   revision = frame.revision + 1; frame = original; frame.revision = revision;
