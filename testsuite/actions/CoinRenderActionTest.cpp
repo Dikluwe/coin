@@ -122,12 +122,14 @@ public:
   CoinRenderFramePlan captured;
   std::vector<CoinRenderCompositionItem> items;
   CoinRenderFrameReuseDecision lastReuse;
+  unsigned submissions = 0;
   bool isGpuBackend() const override { return false; }
   CoinRenderBackendStatus getStatus() const override { return CoinRenderBackendStatus::SUCCESS; }
   CoinRenderBackendStatus prepare(CoinRenderTargetP &) override { return CoinRenderBackendStatus::SUCCESS; }
   void poll() override {}
   const std::string & getLastError() const override { return error; }
   CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target) override {
+    ++submissions;
     const auto * receipt = target.submissionPreflight(frame);
     receiptPresent = receipt != nullptr;
     CoinRenderCompositionScheduleView schedule("capture_test");
@@ -249,12 +251,33 @@ int testCapturedCompositionBorrow() {
               backend->lastReuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD,
               "submission failure must roll back payload and release the scoped lender");
   backend->fail = literalBackend->fail = false;
+  const auto failedSubmissions = backend->submissions;
   apply();
-  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && same() &&
-              backend->lastReuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD &&
-              backend->lastReuse.baseRevision == previous.revision &&
-              !action.getPimpl()->materialDirty.count(material),
-              "failed object retry must publish an independently validated current receipt");
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::BACKEND_ERROR && same() &&
+              backend->submissions == failedSubmissions &&
+              action.getPimpl()->lastValidPlan.hasSamePayload(previous) &&
+              action.getPimpl()->materialDirty.count(material),
+              "TARGET_ERROR must block retry and retain the pending update until target recovery");
+  // BACKEND_ERROR makes Target sticky. Recover through its existing public
+  // resize contract before expecting another successful submission.
+  TEST_ASSERT(target->resize(SbVec2i32(1, 1)) && literalTarget->resize(SbVec2i32(1, 1)),
+              "mock targets must recover explicitly after a backend error");
+  apply();
+  const bool sameRetry = same();
+  const bool retryAccepted = action.getLastStatus() == CoinRenderAction::SUCCESS && sameRetry &&
+    action.getPimpl()->translationProofValid && literal.getPimpl()->translationProofValid &&
+    !action.getPimpl()->materialDirty.count(material) && !literal.getPimpl()->materialDirty.count(material);
+  if (!retryAccepted)
+    std::cerr << "composition retry: status=" << action.getLastStatus()
+              << " literal_status=" << literal.getLastStatus()
+              << " reuse=" << static_cast<int>(backend->lastReuse.kind)
+              << " base=" << backend->lastReuse.baseRevision
+              << " dirty=" << action.getPimpl()->materialDirty.size()
+              << " literal_dirty=" << literal.getPimpl()->materialDirty.size()
+              << " proof=" << action.getPimpl()->translationProofValid
+              << " same=" << sameRetry << std::endl;
+  TEST_ASSERT(retryAccepted,
+              "recovered retry must publish equivalent payload/status and clear pending object updates");
   material->transparency = .5f;
   apply();
   TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && same() &&
