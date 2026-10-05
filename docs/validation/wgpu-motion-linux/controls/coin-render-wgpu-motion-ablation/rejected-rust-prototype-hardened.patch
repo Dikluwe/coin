@@ -1,0 +1,431 @@
+diff --git a/src/rendering/coinwgpu/rust_bridge/src/lib.rs b/src/rendering/coinwgpu/rust_bridge/src/lib.rs
+index 65bc28e9f6..e680c89c20 100644
+--- a/src/rendering/coinwgpu/rust_bridge/src/lib.rs
++++ b/src/rendering/coinwgpu/rust_bridge/src/lib.rs
+@@ -795,6 +795,34 @@ struct FrameGpuBuffers {
+     index_buffer: wgpu::Buffer,
+     materials_buffer: wgpu::Buffer,
+     geometry_bytes: u64,
++    mutable_opaque: bool,
++}
++
++// Encoding never publishes a new frame identity. A complete command submission
++// may replace cached buffer contents; subsequent readback/present failures must
++// invalidate that identity so a retry cannot mistake partial GPU work for a hit.
++struct FrameBufferSubmission {
++    cache: Arc<Mutex<Option<FrameGpuBuffers>>>,
++    candidate: Option<FrameGpuBuffers>,
++    submitted: bool,
++    accepted: bool,
++}
++
++impl FrameBufferSubmission {
++    fn submitted(&mut self) {
++        *self.cache.lock().unwrap() = self.candidate.take();
++        self.submitted = true;
++    }
++
++    fn accept(&mut self) { self.accepted = true; }
++}
++
++impl Drop for FrameBufferSubmission {
++    fn drop(&mut self) {
++        if self.submitted && !self.accepted {
++            if let Ok(mut cache) = self.cache.lock() { *cache = None; }
++        }
++    }
+ }
+ 
+ // Four timestamps bracket the render pass(es) and the offscreen copy. The
+@@ -1154,7 +1182,9 @@ struct DeviceState {
+     texture_cache: Mutex<TextureCache>,
+     sampler_cache: Mutex<SamplerCache>,
+     camera_bindings: Mutex<Option<CameraGpuBindings>>,
+-    frame_buffers: Mutex<Option<FrameGpuBuffers>>,
++    frame_buffers: Arc<Mutex<Option<FrameGpuBuffers>>>,
++    frame_buffer_allocations: AtomicU64,
++    frame_buffer_rewrites: AtomicU64,
+     camera_bindings_reused: AtomicU32,
+     camera_bindings_created: AtomicU32,
+     draw_bind_groups: AtomicU32,
+@@ -1217,9 +1247,11 @@ fn trace_owned_resources(dev: &DeviceState, target: &str, width: u32, height: u3
+         texture_count, texture_payload_bytes, rtt_count, rtt_nominal_bytes, attachment_count,
+         attachment_nominal_bytes, staging_color_bytes, staging_depth_bytes,
+         staging_pool_free_bytes, staging_pool_free_buffers);
+-    eprintln!("COIN_RENDER_PHASE rust_draw_resources frame_geometry_bytes={} uniform_chunks={} draw_bind_groups={}",
++    eprintln!("COIN_RENDER_PHASE rust_draw_resources frame_geometry_bytes={} uniform_chunks={} draw_bind_groups={} frame_buffer_allocations={} frame_buffer_rewrites={}",
+         frame_geometry_bytes, dev.uniform_chunks.load(Ordering::Relaxed),
+-        dev.draw_bind_groups.load(Ordering::Relaxed));
++        dev.draw_bind_groups.load(Ordering::Relaxed),
++        dev.frame_buffer_allocations.load(Ordering::Relaxed),
++        dev.frame_buffer_rewrites.load(Ordering::Relaxed));
+ }
+ 
+ struct SurfaceRecord {
+@@ -2040,7 +2072,9 @@ fn get_or_init_device_impl<'a>(
+         texture_cache: Mutex::new(TextureCache::default()),
+         sampler_cache: Mutex::new(SamplerCache::default()),
+         camera_bindings: Mutex::new(None),
+-        frame_buffers: Mutex::new(None),
++        frame_buffers: Arc::new(Mutex::new(None)),
++        frame_buffer_allocations: AtomicU64::new(0),
++        frame_buffer_rewrites: AtomicU64::new(0),
+         camera_bindings_reused: AtomicU32::new(0),
+         camera_bindings_created: AtomicU32::new(0),
+         draw_bind_groups: AtomicU32::new(0),
+@@ -2706,6 +2740,7 @@ struct ShadowFrame<'a> {
+ fn encode_frame(
+     ctx: &DeviceState,
+     frame_revision: u64,
++    allow_buffer_rewrites: bool,
+     clear_color: [f32; 4],
+     target_width: u32,
+     target_height: u32,
+@@ -2725,7 +2760,7 @@ fn encode_frame(
+     depth_view: &wgpu::TextureView,
+     depth_texture: &wgpu::Texture,
+     peel_passes: u32,
+-) -> Result<wgpu::CommandBuffer, (CoinWgpuStatus, String)> {
++) -> Result<(wgpu::CommandBuffer, FrameBufferSubmission), (CoinWgpuStatus, String)> {
+     use wgpu::util::DeviceExt;
+     if draw_order.iter().any(|item| item.peel) && !peeling::device_supported(&ctx.device) {
+         return Err((
+@@ -3150,15 +3185,29 @@ fn encode_frame(
+         && !indices_slice.is_empty() && !draws_slice.is_empty()
+         && draws_slice.iter().all(|draw| draw.stable_node_id == 0)
+         && geometry_bytes.saturating_add(material_bytes.len() as u64) <= 256 * 1024 * 1024;
+-    let mut frame_buffers = ctx.frame_buffers.lock().unwrap();
+-    if !retain_frame || !frame_buffers.as_ref().is_some_and(|entry|
+-        (entry.revision == frame_revision || camera_geometry.is_some_and(|geometry|
+-            entry.geometry.as_ref().is_some_and(|cached| Arc::ptr_eq(cached, geometry))))
+-            && entry.vertex_count == vertices_slice.len()
+-            && entry.index_count == indices_slice.len() && entry.material_bytes == material_bytes.len()) {
+-        *frame_buffers = None;
+-    }
+-    let frame_buffer_hit = frame_buffers.is_some();
++    let frame_buffers = ctx.frame_buffers.lock().unwrap();
++    let compatible_buffers = frame_buffers.as_ref().filter(|entry| retain_frame
++        && entry.vertex_count == vertices_slice.len()
++        && entry.index_count == indices_slice.len()
++        && entry.material_bytes == material_bytes.len());
++    let exact_buffers = compatible_buffers.filter(|entry|
++        entry.revision == frame_revision || camera_geometry.is_some_and(|geometry|
++            entry.geometry.as_ref().is_some_and(|cached| Arc::ptr_eq(cached, geometry))));
++    let frame_buffer_hit = exact_buffers.is_some();
++    // This is allocation reuse, never content reuse: every full revision still
++    // passes ordinary validation and uploads all vertex/index bytes. Materials
++    // get their own new buffer, keeping any old camera binding immutable.
++    // Async and direct RTT accept work before later GPU/readback failures are
++    // known. Keep their previous immutable-buffer path; this transaction owns
++    // only a complete synchronous offscreen or window submission.
++    let mutable_opaque = allow_buffer_rewrites && retain_frame && shadow_frame.is_none()
++        && textures_slice.is_empty() && samplers_slice.is_empty()
++        && opaque_camera_batch(states_slice, draws_slice, draw_order);
++    let rewrite_buffers = compatible_buffers.filter(|entry| !frame_buffer_hit
++        && entry.mutable_opaque && mutable_opaque
++        && std::env::var("COIN_WGPU_DISABLE_FRAME_BUFFER_REUSE").as_deref() != Ok("1"));
++    let reusable_buffers = exact_buffers.or(rewrite_buffers);
++    let mut pending_frame_buffers = None;
+ 
+     // Keep the experiment switch process-local so the same binary can be
+     // benchmarked against its previous behavior. It is opt-in, bounded and
+@@ -3179,7 +3228,7 @@ fn encode_frame(
+         .is_some_and(|entry| Arc::ptr_eq(&entry.geometry, geometry))) {
+         *camera_bindings = None;
+     }
+-    let materials_buffer = if let Some(entry) = frame_buffers.as_ref() {
++    let materials_buffer = if let Some(entry) = exact_buffers {
+         entry.materials_buffer.clone()
+     } else if let Some(entry) = camera_bindings.as_ref() {
+         ctx.camera_bindings_reused.fetch_add(1, Ordering::Relaxed);
+@@ -3209,7 +3258,7 @@ fn encode_frame(
+     }
+ 
+     // 2. Prepare uncached fallback buffers if there are any legacy/uncached draws
+-    let uncached_v_buffer = if let Some(entry) = frame_buffers.as_ref() {
++    let uncached_v_buffer = if let Some(entry) = reusable_buffers {
+         Some(entry.vertex_buffer.clone())
+     } else if draws_slice.iter().any(|d| d.stable_node_id == 0) && !vertices_slice.is_empty() {
+         Some(
+@@ -3217,14 +3266,14 @@ fn encode_frame(
+                 .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                     label: Some("Coin Uncached Vertex Buffer"),
+                     contents: bytemuck::cast_slice(vertices_slice),
+-                    usage: wgpu::BufferUsages::VERTEX,
++                    usage: wgpu::BufferUsages::VERTEX | if mutable_opaque { wgpu::BufferUsages::COPY_DST } else { wgpu::BufferUsages::empty() },
+                 }),
+         )
+     } else {
+         None
+     };
+ 
+-    let uncached_i_buffer = if let Some(entry) = frame_buffers.as_ref() {
++    let uncached_i_buffer = if let Some(entry) = reusable_buffers {
+         Some(entry.index_buffer.clone())
+     } else if draws_slice.iter().any(|d| d.stable_node_id == 0 && d.index_count > 0)
+         && !indices_slice.is_empty()
+@@ -3234,29 +3283,37 @@ fn encode_frame(
+                 .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                     label: Some("Coin Uncached Index Buffer"),
+                     contents: bytemuck::cast_slice(indices_slice),
+-                    usage: wgpu::BufferUsages::INDEX,
++                    usage: wgpu::BufferUsages::INDEX | if mutable_opaque { wgpu::BufferUsages::COPY_DST } else { wgpu::BufferUsages::empty() },
+                 }),
+         )
+     } else {
+         None
+     };
+ 
+-    if frame_buffer_hit {
+-        cache.cumulative_hits += 1;
+-        cache.frame_hits += 1;
+-    } else if retain_frame {
+-        *frame_buffers = Some(FrameGpuBuffers {
+-            revision: frame_revision, geometry: camera_geometry.cloned(), vertex_count: vertices_slice.len(),
+-            index_count: indices_slice.len(), material_bytes: material_bytes.len(),
++    if retain_frame {
++        pending_frame_buffers = Some(FrameGpuBuffers {
++            revision: frame_revision, geometry: camera_geometry.cloned(),
++            vertex_count: vertices_slice.len(), index_count: indices_slice.len(),
++            material_bytes: material_bytes.len(),
+             vertex_buffer: uncached_v_buffer.as_ref().unwrap().clone(),
+             index_buffer: uncached_i_buffer.as_ref().unwrap().clone(),
+             materials_buffer: materials_buffer.clone(), geometry_bytes,
++            mutable_opaque,
+         });
++    }
++    if frame_buffer_hit {
++        cache.cumulative_hits += 1;
++        cache.frame_hits += 1;
++    } else if retain_frame {
+         cache.cumulative_uploads += 1;
+         cache.frame_uploads += 1;
+         cache.cumulative_uploaded_bytes += geometry_bytes;
+         cache.frame_uploaded_bytes += geometry_bytes;
++        if rewrite_buffers.is_some() { ctx.frame_buffer_rewrites.fetch_add(1, Ordering::Relaxed); }
++        else { ctx.frame_buffer_allocations.fetch_add(1, Ordering::Relaxed); }
+     }
++    let rewrite_frame = rewrite_buffers.is_some();
++    drop(frame_buffers);
+ 
+     // Temporary storage for oversized draws exceeding cache budget
+     let mut oversized_entries: HashMap<(u64, u32), CachedGeometryEntry> = HashMap::new();
+@@ -3389,6 +3446,17 @@ fn encode_frame(
+         .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+             label: Some("Coin Frame Encoder"),
+         });
++    if rewrite_frame {
++        for (label, contents, destination) in [
++            ("Coin frame vertex rewrite", bytemuck::cast_slice(vertices_slice), uncached_v_buffer.as_ref().unwrap()),
++            ("Coin frame index rewrite", bytemuck::cast_slice(indices_slice), uncached_i_buffer.as_ref().unwrap()),
++        ] {
++            let staging = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
++                label: Some(label), contents, usage: wgpu::BufferUsages::COPY_SRC,
++            });
++            encoder.copy_buffer_to_buffer(&staging, 0, destination, 0, contents.len() as u64);
++        }
++    }
+     let shadow_map = if let Some(shadow) = shadow_frame {
+         if FAULT_INJECTION.load(Ordering::SeqCst) == FAULT_SHADOW_MAP_ALLOC {
+             FAULT_INJECTION.store(0, Ordering::SeqCst);
+@@ -4181,7 +4249,10 @@ fn encode_frame(
+     uniform_arena.upload(&ctx.queue);
+     ctx.draw_bind_groups.store(draw_bindings.len() as u32, Ordering::Relaxed);
+     ctx.uniform_chunks.store(uniform_arena.chunk_count() as u32, Ordering::Relaxed);
+-    Ok(encoder.finish())
++    Ok((encoder.finish(), FrameBufferSubmission {
++        cache: ctx.frame_buffers.clone(), candidate: pending_frame_buffers,
++        submitted: false, accepted: false,
++    }))
+ }
+ 
+ #[no_mangle]
+@@ -5270,9 +5341,10 @@ fn coin_wgpu_surface_submit_internal(
+             }
+         };
+ 
+-        let cmd_buffer = match encode_frame(
++        let (cmd_buffer, mut frame_submission) = match encode_frame(
+             dev,
+             f.frame_revision,
++            true,
+             f.clear_color,
+             f.width,
+             f.height,
+@@ -5340,6 +5412,7 @@ fn coin_wgpu_surface_submit_internal(
+         LAST_SUBMITTED_SERIAL.store(sub_serial, Ordering::SeqCst);
+         let local_serial = dev.last_submitted_serial.fetch_add(1, Ordering::SeqCst) + 1;
+         dev.queue.submit(commands);
++        frame_submission.submitted();
+         let completed = dev.completed_serial.clone();
+         dev.queue.on_submitted_work_done(move || {
+             completed.fetch_max(local_serial, Ordering::SeqCst);
+@@ -5409,6 +5482,7 @@ fn coin_wgpu_surface_submit_internal(
+         }
+ 
+         commit_camera_scene(dev, next_scene, true, f.frame_revision, owned_patch.is_some(), capture_scene);
++        frame_submission.accept();
+ 
+         if let Some(pixels) = captured_rgba {
+             unsafe { std::ptr::copy_nonoverlapping(pixels.as_ptr(), readback_rgba, pixels.len()); }
+@@ -6290,9 +6364,10 @@ fn coin_wgpu_submit_internal(
+         } else { None };
+ 
+         // 9. Encode draw calls with the exact same shared encode_frame
+-        let cmd_buffer = match encode_frame(
++        let (cmd_buffer, mut frame_submission) = match encode_frame(
+             ctx,
+             f.frame_revision,
++            out_ticket.is_null() && out_texture.is_null(),
+             f.clear_color,
+             f.width,
+             f.height,
+@@ -6335,6 +6410,7 @@ fn coin_wgpu_submit_internal(
+             LAST_SUBMITTED_SERIAL.store(serial, Ordering::SeqCst);
+             let local_serial = ctx.last_submitted_serial.fetch_add(1, Ordering::SeqCst) + 1;
+             ctx.queue.submit([cmd_buffer]);
++            frame_submission.submitted();
+             let completed = ctx.completed_serial.clone();
+             ctx.queue.on_submitted_work_done(move || {
+                 completed.fetch_max(local_serial, Ordering::SeqCst);
+@@ -6350,6 +6426,7 @@ fn coin_wgpu_submit_internal(
+             tgt.submission_serial = serial;
+             unsafe { *out_texture = token; }
+             commit_camera_scene(ctx, next_scene, commit_scene, f.frame_revision, owned_patch.is_some(), capture_scene);
++            frame_submission.accept();
+             return CoinWgpuStatus::Ok;
+         }
+ 
+@@ -6444,6 +6521,7 @@ fn coin_wgpu_submit_internal(
+         let local_serial = ctx.last_submitted_serial.fetch_add(1, Ordering::SeqCst) + 1;
+         let profile_submit_begin = std::time::Instant::now();
+         ctx.queue.submit([cmd_buffer, copy_encoder.finish()]);
++        frame_submission.submitted();
+         let profile_submitted = std::time::Instant::now();
+         let completed = ctx.completed_serial.clone();
+         ctx.queue.on_submitted_work_done(move || {
+@@ -6506,6 +6584,7 @@ fn coin_wgpu_submit_internal(
+             unsafe { *out_ticket = ticket; }
+             tgt.submission_serial = sub_serial;
+             commit_camera_scene(ctx, next_scene, commit_scene, f.frame_revision, owned_patch.is_some(), capture_scene);
++            frame_submission.accept();
+             return CoinWgpuStatus::Ok;
+         }
+ 
+@@ -6534,6 +6613,11 @@ fn coin_wgpu_submit_internal(
+             if let Ok(mut lock) = LAST_ASYNC_ERROR_MSG.lock() {
+                 *lock = "Injected async DEVICE_LOST fault during GPU execution".to_string();
+             }
++        } else if async_fault == CoinWgpuStatus::OutOfMemory as i32 {
++            LAST_ASYNC_ERROR_KIND.store(1, Ordering::SeqCst);
++            if let Ok(mut lock) = LAST_ASYNC_ERROR_MSG.lock() {
++                *lock = "Injected async OUT_OF_MEMORY fault after submission".to_string();
++            }
+         }
+ 
+         // Check if device lost occurred during submit or poll
+@@ -6682,6 +6766,7 @@ fn coin_wgpu_submit_internal(
+                 }
+                 tgt.submission_serial = sub_serial;
+                 commit_camera_scene(ctx, next_scene, commit_scene, f.frame_revision, owned_patch.is_some(), capture_scene);
++                frame_submission.accept();
+                 if attachment_cache_enabled {
+                     ctx.cached_offscreen_attachments = Some(CachedOffscreenAttachments {
+                         width, height, color_texture, color_view, depth_texture, depth_view,
+diff --git a/testsuite/coinwgpu/CoinWgpuMultiDeviceTest.cpp b/testsuite/coinwgpu/CoinWgpuMultiDeviceTest.cpp
+index 91f70c6710..1c921ba29a 100644
+--- a/testsuite/coinwgpu/CoinWgpuMultiDeviceTest.cpp
++++ b/testsuite/coinwgpu/CoinWgpuMultiDeviceTest.cpp
+@@ -621,6 +621,45 @@ bool ownedPhongCameraBuffers() {
+   char error[512] = {};
+   if (!check(coin_wgpu_submit(&target,&frame,error,sizeof(error)) == COIN_WGPU_OK,
+              "owned PHONG base",error)) return false;
++  // A failed full rewrite can leave different bytes in the retained GPU VB
++  // while the last successful Rust-owned scene remains the base. OOM keeps
++  // this generation alive: a payload-free old-camera hint must rebuild from
++  // that old Arc, rather than read the failed object's GPU bytes.
++  const uint64_t beforeOomBase = frame.frame_revision;
++  ++frame.frame_revision;
++  vertices[0].position[0] = -.2f;
++  material.diffuse[1] = .9f;
++  std::vector<uint8_t> oomOutput(kSide*kSide*4u,kSentinel);
++  target = targetFor(0,&oomOutput);
++  coin_wgpu_inject_async_fault(COIN_WGPU_OUT_OF_MEMORY);
++  const CoinWgpuStatus oom = coin_wgpu_submit(&target,&frame,error,sizeof(error));
++  coin_wgpu_inject_async_fault(COIN_WGPU_OK);
++  if (!check(oom == COIN_WGPU_OUT_OF_MEMORY && unchanged(oomOutput) &&
++             target.submission_serial == 0 &&
++             std::string(error).find("Injected async OUT_OF_MEMORY") != std::string::npos,
++             "late full rewrite OOM must preserve output without losing the device",error)) return false;
++  vertices[0].position[0] = -.75f;
++  material.diffuse[1] = .25f;
++  ++frame.frame_revision;
++  frame.camera_base_revision = beforeOomBase;
++  state.model_view[12] = state.model_view_projection[12] = .05f;
++  state.lights[0].position_type[0] = .125f;
++  CoinWgpuFrameView oldReference = frame;
++  oldReference.frame_revision = 0; oldReference.camera_base_revision = 0;
++  std::vector<uint8_t> oldExpected(kSide*kSide*4u,kSentinel), oldActual(oldExpected);
++  target = targetFor(reference,&oldExpected);
++  if (!check(coin_wgpu_submit(&target,&oldReference,error,sizeof(error)) == COIN_WGPU_OK,
++             "fresh reference for old camera after full rewrite OOM",error)) return false;
++  CoinWgpuFrameView oldCamera = frame;
++  oldCamera.vertices = nullptr; oldCamera.indices = nullptr;
++  oldCamera.draws = nullptr; oldCamera.materials = nullptr;
++  target = targetFor(0,&oldActual);
++  if (!check(coin_wgpu_submit(&target,&oldCamera,error,sizeof(error)) == COIN_WGPU_OK &&
++             oldActual == oldExpected,
++             "old owned camera must survive same-generation OOM and restore old GPU bytes",error)) return false;
++  CoinWgpuCacheStats afterOomStats{}; coin_wgpu_get_cache_stats(&afterOomStats);
++  if (!check(afterOomStats.frame_uploads == 1 && afterOomStats.frame_hits == 0,
++             "old camera after failed rewrite must rebuild invalidated GPU buffers")) return false;
+   for (unsigned iteration = 0; iteration < 3; ++iteration) {
+     frame.camera_base_revision = frame.frame_revision++;
+     state.model_view[12] = .1f + .1f*iteration;
+@@ -654,9 +693,44 @@ bool ownedPhongCameraBuffers() {
+     if (!check(coin_wgpu_submit(&target,&frame,error,sizeof(error)) == COIN_WGPU_OK,
+                "PHONG full object revision",error)) return false;
+     target = targetFor(reference,&expected);
+-    if (!check(coin_wgpu_submit(&target,&frame,error,sizeof(error)) == COIN_WGPU_OK && actual == expected,
+-               "object full revisions must match an independent device",error)) return false;
++    CoinWgpuFrameView fresh = frame;
++    fresh.frame_revision = 0; // Force independent allocation, never a cached-buffer rewrite.
++    if (!check(coin_wgpu_submit(&target,&fresh,error,sizeof(error)) == COIN_WGPU_OK && actual == expected,
++               "object full revisions must match independently allocated buffers",error)) return false;
+   }
++  // A full update with equal counts may overwrite retained GPU buffers, but
++  // a late failure must publish no pixels or cache identity. Restore the last
++  // valid object/material bytes, then compare a retry with fresh GPU resources.
++  const float lastValidX = vertices[0].position[0];
++  const float lastValidGreen = material.diffuse[1];
++  ++frame.frame_revision;
++  vertices[0].position[0] = -.1f;
++  material.diffuse[1] = .9f;
++  std::vector<uint8_t> failedFull(kSide*kSide*4u,kSentinel);
++  target = targetFor(0,&failedFull);
++  coin_wgpu_inject_async_fault(COIN_WGPU_DEVICE_LOST);
++  const CoinWgpuStatus failed = coin_wgpu_submit(&target,&frame,error,sizeof(error));
++  coin_wgpu_inject_async_fault(COIN_WGPU_OK);
++  if (!check(failed == COIN_WGPU_DEVICE_LOST && unchanged(failedFull) &&
++             target.submission_serial == 0,
++             "late full-buffer rewrite failure must not publish output or serial",error)) return false;
++  vertices[0].position[0] = lastValidX;
++  material.diffuse[1] = lastValidGreen;
++  ++frame.frame_revision;
++  std::vector<uint8_t> restored(kSide*kSide*4u,kSentinel), freshPixels(restored);
++  target = targetFor(0,&restored);
++  if (!check(coin_wgpu_submit(&target,&frame,error,sizeof(error)) == COIN_WGPU_OK,
++             "retry restores the last valid geometry after a failed full rewrite",error)) return false;
++  CoinWgpuFrameView fresh = frame; fresh.frame_revision = 0;
++  target = targetFor(reference,&freshPixels);
++  if (!check(coin_wgpu_submit(&target,&fresh,error,sizeof(error)) == COIN_WGPU_OK && restored == freshPixels,
++             "restored full frame must match fresh buffers after generation loss",error)) return false;
++  // Suspend the newly recovered owned snapshot before the existing camera
++  // readmission tests; only the first successful camera hint may restore it.
++  ++frame.frame_revision;
++  target = targetFor(0,&restored);
++  if (!check(coin_wgpu_submit(&target,&frame,error,sizeof(error)) == COIN_WGPU_OK && restored == freshPixels,
++             "consecutive full revision after recovery",error)) return false;
+   CoinWgpuFrameView stale = frame;
+   stale.frame_revision += 100; stale.camera_base_revision = oldCameraBase;
+   stale.vertices = nullptr; stale.indices = nullptr; stale.draws = nullptr; stale.materials = nullptr;

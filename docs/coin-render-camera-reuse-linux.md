@@ -276,3 +276,7 @@ campanha normal; controles de ablação registram comandos explícitos.
 Movimento de objetos ainda exige reconstrução completa e permanece um alvo de
 otimização. Os ganhos de câmera não representam aceleração de todas as formas
 de animação.
+
+A melhoria subsequente de empacotamento em mudanças de objetos, com comparação
+de materiais, geometria e apresentação, está em
+[coin-render-wgpu-motion-linux.md](coin-render-wgpu-motion-linux.md).
