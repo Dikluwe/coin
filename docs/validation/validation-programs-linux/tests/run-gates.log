@@ -1,0 +1,31 @@
+START cpu
+END cpu 0
+START composition-cpu
+END composition-cpu 0
+START bgfx-frame-core
+END bgfx-frame-core 0
+START wgpu-vulkan-CoinRenderTextureTest
+END wgpu-vulkan-CoinRenderTextureTest 0
+START wgpu-vulkan-CoinRenderMultitextureTest
+END wgpu-vulkan-CoinRenderMultitextureTest 0
+START wgpu-vulkan-CoinRenderCompositionTest
+END wgpu-vulkan-CoinRenderCompositionTest 0
+START bgfx-vulkan-CoinRenderTextureTest
+END bgfx-vulkan-CoinRenderTextureTest 0
+START bgfx-vulkan-CoinRenderMultitextureTest
+END bgfx-vulkan-CoinRenderMultitextureTest 0
+START bgfx-vulkan-CoinRenderCompositionTest
+END bgfx-vulkan-CoinRenderCompositionTest 0
+START bgfx-opengl-CoinRenderTextureTest
+END bgfx-opengl-CoinRenderTextureTest 0
+START bgfx-opengl-CoinRenderMultitextureTest
+END bgfx-opengl-CoinRenderMultitextureTest 0
+START bgfx-opengl-CoinRenderCompositionTest
+END bgfx-opengl-CoinRenderCompositionTest 0
+START wgpu-camera-rtt
+END wgpu-camera-rtt 0
+START clipping-reference
+END clipping-reference 0
+START bgfx-rtt
+END bgfx-rtt 0
+COMPLETE: 9 Core/CPU executions and 14 GPU executions

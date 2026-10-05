@@ -1,0 +1,51 @@
+{
+  "utc": "2026-10-05T11:59:12.118908+00:00",
+  "scope": "Versions and single GPU observation after current campaigns; not sample clock/temperature history",
+  "entries": [
+    {
+      "command": [
+        "nvidia-smi",
+        "--query-gpu=name,driver_version,pstate,temperature.gpu,clocks.current.graphics",
+        "--format=csv,noheader"
+      ],
+      "exit_code": 0,
+      "output": "NVIDIA GeForce RTX 3060 Laptop GPU, 610.57.04, P8, 49, 210 MHz\n"
+    },
+    {
+      "command": [
+        "g++",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\nCopyright (C) 2023 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n"
+    },
+    {
+      "command": [
+        "cmake",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "cmake version 3.28.3\n\nCMake suite maintained and supported by Kitware (kitware.com/cmake).\n"
+    },
+    {
+      "command": [
+        "ninja",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "1.11.1\n"
+    },
+    {
+      "command": [
+        "uname",
+        "-r"
+      ],
+      "exit_code": 0,
+      "output": "6.17.0-42-generic\n"
+    },
+    {
+      "source": "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor",
+      "output": "powersave\n"
+    }
+  ]
+}

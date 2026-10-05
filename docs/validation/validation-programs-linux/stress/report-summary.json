@@ -1,0 +1,3955 @@
+{
+  "generated_at_utc": "2026-10-05T11:56:37.911056+00:00",
+  "aggregation": "Median of independently recomputed per-process median/p95/p99; global maxima and summed threshold counts from CSV",
+  "first_frame": "First CSV row, including warmup; render excludes update, total includes update",
+  "rss": "Process peak RSS from time(1), not GPU memory",
+  "campaigns": {
+    "before": {
+      "name": "before",
+      "original_directory": "/tmp/coin-render-validation-stress-before",
+      "manifest": {
+        "parameters": {
+          "before_bgfx_build": "/tmp/coin-render-validation-baseline/bgfx",
+          "after_bgfx_build": "/tmp/coin-render-first-frame-bgfx",
+          "before_wgpu_build": "/tmp/coin-render-validation-baseline/wgpu",
+          "after_wgpu_build": "/tmp/coin-render-first-frame-wgpu",
+          "coingl_build": "/tmp/coin-render-material-geometry-baseline/coingl",
+          "scene": "/tmp/coin-render-city-40000.iv",
+          "output_before": "/tmp/coin-render-validation-stress-before",
+          "output_after": "/tmp/coin-render-validation-stress-after",
+          "runner": "/tmp/coin-render-first-frame/scripts/coinrender/run_animation_benchmark.py",
+          "row_helper": "/tmp/coin-render-wgpu-motion-matched.py",
+          "variants": "coingl,bgfx-vulkan,bgfx-opengl,wgpu-vulkan",
+          "cases": "geometry-100",
+          "scope": "offscreen",
+          "gpu": "nvidia",
+          "rounds": 3,
+          "warmup": 3,
+          "frames": 7,
+          "size": 1024,
+          "timeout": 1800,
+          "before_source_content_revision": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+          "after_source_content_revision": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+          "control_source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+          "mode": "measure",
+          "output": "/tmp/coin-render-validation-stress-before"
+        },
+        "scene_sha256": "bb9ccc612cd38ffb749ee599d9350a80974649eab5bf477d2f344538a42b2576",
+        "binary_hashes": {
+          "/tmp/coin-render-material-geometry-baseline/coingl/bin/coin_render_gl_benchmark": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086",
+          "/tmp/coin-render-material-geometry-baseline/coingl/lib/libCoinRender.so": "51e7cd743a87afa7476b011a72f3749246e269d3d850715ddc3675af436658be",
+          "/tmp/coin-render-material-geometry-baseline/coingl/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f",
+          "/tmp/coin-render-validation-baseline/bgfx/bin/coin_render_gl_benchmark": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086",
+          "/tmp/coin-render-validation-baseline/bgfx/lib/libCoinRender.so": "d9d3456d4b35373308a44480e5ad624deb55fd4b78c496707667352e2399c8b0",
+          "/tmp/coin-render-validation-baseline/bgfx/lib/libCoin.so.80": "c86d9ce95df367b1c649545a1d0ba1de89edeb9f5b887f765bc47229d55c5437",
+          "/tmp/coin-render-validation-baseline/wgpu/bin/coin_render_gl_benchmark": "fdeb5bec7dccc45643a62024fdabca605a6598510d63b0dcd27b6cc78ff67e4a",
+          "/tmp/coin-render-validation-baseline/wgpu/lib/libCoinRender.so": "268934ee2d0fe94393d7b5cdcdb97a02cc54e1558f1b72331ece187f6ebf6c67",
+          "/tmp/coin-render-validation-baseline/wgpu/lib/libCoin.so.80": "c86d9ce95df367b1c649545a1d0ba1de89edeb9f5b887f765bc47229d55c5437"
+        },
+        "commands": [
+          {
+            "stem": "geometry-100-coingl-1",
+            "command": [
+              "/tmp/coin-render-material-geometry-baseline/coingl/bin/coin_render_gl_benchmark",
+              "--backend",
+              "gl",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-before/samples/geometry-100-coingl-1.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-material-geometry-baseline/coingl/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1"
+            },
+            "matched_role": "control",
+            "execution_index": 1,
+            "source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+            "shared_control": true
+          },
+          {
+            "stem": "geometry-100-bgfx-vulkan-1",
+            "command": [
+              "/tmp/coin-render-validation-baseline/bgfx/bin/coin_render_gl_benchmark",
+              "--backend",
+              "bgfx",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-before/samples/geometry-100-bgfx-vulkan-1.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-validation-baseline/bgfx/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_BGFX_RENDERER": "vulkan"
+            },
+            "matched_role": "before",
+            "execution_index": 2,
+            "source_content_revision": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+            "shared_control": false
+          },
+          {
+            "stem": "geometry-100-bgfx-opengl-1",
+            "command": [
+              "/tmp/coin-render-validation-baseline/bgfx/bin/coin_render_gl_benchmark",
+              "--backend",
+              "bgfx",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-before/samples/geometry-100-bgfx-opengl-1.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-validation-baseline/bgfx/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_BGFX_RENDERER": "opengl"
+            },
+            "matched_role": "before",
+            "execution_index": 4,
+            "source_content_revision": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+            "shared_control": false
+          },
+          {
+            "stem": "geometry-100-wgpu-vulkan-1",
+            "command": [
+              "/tmp/coin-render-validation-baseline/wgpu/bin/coin_render_gl_benchmark",
+              "--backend",
+              "wgpu",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-before/samples/geometry-100-wgpu-vulkan-1.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-validation-baseline/wgpu/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "WGPU_BACKEND": "vulkan"
+            },
+            "matched_role": "before",
+            "execution_index": 6,
+            "source_content_revision": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+            "shared_control": false
+          },
+          {
+            "stem": "geometry-100-coingl-2",
+            "command": [
+              "/tmp/coin-render-material-geometry-baseline/coingl/bin/coin_render_gl_benchmark",
+              "--backend",
+              "gl",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-before/samples/geometry-100-coingl-2.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-material-geometry-baseline/coingl/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1"
+            },
+            "matched_role": "control",
+            "execution_index": 8,
+            "source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+            "shared_control": true
+          },
+          {
+            "stem": "geometry-100-wgpu-vulkan-2",
+            "command": [
+              "/tmp/coin-render-validation-baseline/wgpu/bin/coin_render_gl_benchmark",
+              "--backend",
+              "wgpu",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-before/samples/geometry-100-wgpu-vulkan-2.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-validation-baseline/wgpu/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "WGPU_BACKEND": "vulkan"
+            },
+            "matched_role": "before",
+            "execution_index": 10,
+            "source_content_revision": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+            "shared_control": false
+          },
+          {
+            "stem": "geometry-100-bgfx-opengl-2",
+            "command": [
+              "/tmp/coin-render-validation-baseline/bgfx/bin/coin_render_gl_benchmark",
+              "--backend",
+              "bgfx",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-before/samples/geometry-100-bgfx-opengl-2.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-validation-baseline/bgfx/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_BGFX_RENDERER": "opengl"
+            },
+            "matched_role": "before",
+            "execution_index": 12,
+            "source_content_revision": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+            "shared_control": false
+          },
+          {
+            "stem": "geometry-100-bgfx-vulkan-2",
+            "command": [
+              "/tmp/coin-render-validation-baseline/bgfx/bin/coin_render_gl_benchmark",
+              "--backend",
+              "bgfx",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-before/samples/geometry-100-bgfx-vulkan-2.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-validation-baseline/bgfx/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_BGFX_RENDERER": "vulkan"
+            },
+            "matched_role": "before",
+            "execution_index": 14,
+            "source_content_revision": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+            "shared_control": false
+          },
+          {
+            "stem": "geometry-100-bgfx-opengl-3",
+            "command": [
+              "/tmp/coin-render-validation-baseline/bgfx/bin/coin_render_gl_benchmark",
+              "--backend",
+              "bgfx",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-before/samples/geometry-100-bgfx-opengl-3.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-validation-baseline/bgfx/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_BGFX_RENDERER": "opengl"
+            },
+            "matched_role": "before",
+            "execution_index": 16,
+            "source_content_revision": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+            "shared_control": false
+          },
+          {
+            "stem": "geometry-100-wgpu-vulkan-3",
+            "command": [
+              "/tmp/coin-render-validation-baseline/wgpu/bin/coin_render_gl_benchmark",
+              "--backend",
+              "wgpu",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-before/samples/geometry-100-wgpu-vulkan-3.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-validation-baseline/wgpu/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "WGPU_BACKEND": "vulkan"
+            },
+            "matched_role": "before",
+            "execution_index": 18,
+            "source_content_revision": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+            "shared_control": false
+          },
+          {
+            "stem": "geometry-100-coingl-3",
+            "command": [
+              "/tmp/coin-render-material-geometry-baseline/coingl/bin/coin_render_gl_benchmark",
+              "--backend",
+              "gl",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-before/samples/geometry-100-coingl-3.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-material-geometry-baseline/coingl/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1"
+            },
+            "matched_role": "control",
+            "execution_index": 20,
+            "source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+            "shared_control": true
+          },
+          {
+            "stem": "geometry-100-bgfx-vulkan-3",
+            "command": [
+              "/tmp/coin-render-validation-baseline/bgfx/bin/coin_render_gl_benchmark",
+              "--backend",
+              "bgfx",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-before/samples/geometry-100-bgfx-vulkan-3.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-validation-baseline/bgfx/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_BGFX_RENDERER": "vulkan"
+            },
+            "matched_role": "before",
+            "execution_index": 21,
+            "source_content_revision": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+            "shared_control": false
+          }
+        ],
+        "execution_order": [
+          {
+            "case": "geometry-100",
+            "variant": "coingl",
+            "round": 1,
+            "matched_role": "control",
+            "execution_index": 1,
+            "stem": "geometry-100-coingl-1"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-vulkan",
+            "round": 1,
+            "matched_role": "before",
+            "execution_index": 2,
+            "stem": "geometry-100-bgfx-vulkan-1"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-vulkan",
+            "round": 1,
+            "matched_role": "after",
+            "execution_index": 3,
+            "stem": "geometry-100-bgfx-vulkan-1"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-opengl",
+            "round": 1,
+            "matched_role": "before",
+            "execution_index": 4,
+            "stem": "geometry-100-bgfx-opengl-1"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-opengl",
+            "round": 1,
+            "matched_role": "after",
+            "execution_index": 5,
+            "stem": "geometry-100-bgfx-opengl-1"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "wgpu-vulkan",
+            "round": 1,
+            "matched_role": "before",
+            "execution_index": 6,
+            "stem": "geometry-100-wgpu-vulkan-1"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "wgpu-vulkan",
+            "round": 1,
+            "matched_role": "after",
+            "execution_index": 7,
+            "stem": "geometry-100-wgpu-vulkan-1"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "coingl",
+            "round": 2,
+            "matched_role": "control",
+            "execution_index": 8,
+            "stem": "geometry-100-coingl-2"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "wgpu-vulkan",
+            "round": 2,
+            "matched_role": "after",
+            "execution_index": 9,
+            "stem": "geometry-100-wgpu-vulkan-2"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "wgpu-vulkan",
+            "round": 2,
+            "matched_role": "before",
+            "execution_index": 10,
+            "stem": "geometry-100-wgpu-vulkan-2"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-opengl",
+            "round": 2,
+            "matched_role": "after",
+            "execution_index": 11,
+            "stem": "geometry-100-bgfx-opengl-2"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-opengl",
+            "round": 2,
+            "matched_role": "before",
+            "execution_index": 12,
+            "stem": "geometry-100-bgfx-opengl-2"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-vulkan",
+            "round": 2,
+            "matched_role": "after",
+            "execution_index": 13,
+            "stem": "geometry-100-bgfx-vulkan-2"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-vulkan",
+            "round": 2,
+            "matched_role": "before",
+            "execution_index": 14,
+            "stem": "geometry-100-bgfx-vulkan-2"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-vulkan",
+            "round": 3,
+            "matched_role": "after",
+            "execution_index": 15,
+            "stem": "geometry-100-bgfx-vulkan-3"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-opengl",
+            "round": 3,
+            "matched_role": "before",
+            "execution_index": 16,
+            "stem": "geometry-100-bgfx-opengl-3"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-opengl",
+            "round": 3,
+            "matched_role": "after",
+            "execution_index": 17,
+            "stem": "geometry-100-bgfx-opengl-3"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "wgpu-vulkan",
+            "round": 3,
+            "matched_role": "before",
+            "execution_index": 18,
+            "stem": "geometry-100-wgpu-vulkan-3"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "wgpu-vulkan",
+            "round": 3,
+            "matched_role": "after",
+            "execution_index": 19,
+            "stem": "geometry-100-wgpu-vulkan-3"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "coingl",
+            "round": 3,
+            "matched_role": "control",
+            "execution_index": 20,
+            "stem": "geometry-100-coingl-3"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-vulkan",
+            "round": 3,
+            "matched_role": "before",
+            "execution_index": 21,
+            "stem": "geometry-100-bgfx-vulkan-3"
+          }
+        ],
+        "source_revision": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+        "source_content_revision": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+        "source_snapshot_revision": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+        "variant_source_content_revisions": {
+          "coingl": "4d63bb993022ee8d40802558b0871a4803002b8d",
+          "bgfx-vulkan": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+          "bgfx-opengl": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+          "wgpu-vulkan": "ac28529a27da5ea370cf90eef4eeaf8b22f08850"
+        },
+        "runner_path": "/tmp/coin-render-first-frame/scripts/coinrender/run_animation_benchmark.py",
+        "runner_sha256": "3e87daa2b6471a98acbaab9dc1792da05126b6a36e108ba6245abe76e9253b72",
+        "matched_runner_sha256": "584eda6e5df3643c7a0fa0e4627d3fe08470627a67a014a61bfa64bc0a8f2d5e",
+        "shared_control": true,
+        "matched_role": "before",
+        "matched_peer_output": "/tmp/coin-render-validation-stress-after"
+      },
+      "processes": [
+        {
+          "case": "geometry-100",
+          "variant": "coingl",
+          "round": 1,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-coingl-1.csv",
+          "log": "logs/geometry-100-coingl-1.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 48.982964,
+              "p95_ms": 50.343297,
+              "p99_ms": 50.343297,
+              "max_ms": 50.343297,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 195.394916,
+              "p95_ms": 198.993986,
+              "p99_ms": 198.993986,
+              "max_ms": 198.993986,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 244.178328,
+              "p95_ms": 249.769087,
+              "p99_ms": 249.769087,
+              "max_ms": 249.769087,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.431804,
+              "p95_ms": 0.497677,
+              "p99_ms": 0.497677,
+              "max_ms": 0.497677,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 245352,
+          "first_total_ms_from_csv": 405.033903,
+          "first_render_ms_from_csv": 367.307135,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=158.063 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "158.063",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=not-queried vendor_id=0x0 device_id=0x0 backend=gl size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 367.765,
+          "first_total_ms": 405.034,
+          "result_since_main_ms": 959.023,
+          "wall_total_ms": 1713.72,
+          "throughput_fps": 4.08468
+        },
+        {
+          "case": "geometry-100",
+          "variant": "bgfx-vulkan",
+          "round": 1,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-bgfx-vulkan-1.csv",
+          "log": "logs/geometry-100-bgfx-vulkan-1.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 76.216685,
+              "p95_ms": 80.683401,
+              "p99_ms": 80.683401,
+              "max_ms": 80.683401,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 163.355325,
+              "p95_ms": 168.416527,
+              "p99_ms": 168.416527,
+              "max_ms": 168.416527,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 241.461779,
+              "p95_ms": 247.461719,
+              "p99_ms": 247.461719,
+              "max_ms": 247.461719,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.436022,
+              "p95_ms": 0.50502,
+              "p99_ms": 0.50502,
+              "max_ms": 0.50502,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 489580,
+          "first_total_ms_from_csv": 783.940154,
+          "first_render_ms_from_csv": 746.229938,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=149.616 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "149.616",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x2560) vendor_id=0x10de device_id=0x2560 backend=bgfx size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 748.489,
+          "first_total_ms": 783.94,
+          "result_since_main_ms": 1538.58,
+          "wall_total_ms": 1690.94,
+          "throughput_fps": 4.13972
+        },
+        {
+          "case": "geometry-100",
+          "variant": "bgfx-opengl",
+          "round": 1,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-bgfx-opengl-1.csv",
+          "log": "logs/geometry-100-bgfx-opengl-1.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 78.407503,
+              "p95_ms": 93.871633,
+              "p99_ms": 93.871633,
+              "max_ms": 93.871633,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 169.035096,
+              "p95_ms": 207.413556,
+              "p99_ms": 207.413556,
+              "max_ms": 207.413556,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 248.757367,
+              "p95_ms": 301.711442,
+              "p99_ms": 301.711442,
+              "max_ms": 301.711442,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.379897,
+              "p95_ms": 0.44575,
+              "p99_ms": 0.44575,
+              "max_ms": 0.44575,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 523444,
+          "first_total_ms_from_csv": 836.636287,
+          "first_render_ms_from_csv": 791.382537,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=173.485 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "173.485",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) vendor_id=0x10de device_id=0x0 backend=bgfx size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 793.844,
+          "first_total_ms": 836.636,
+          "result_since_main_ms": 1631.69,
+          "wall_total_ms": 1795.2,
+          "throughput_fps": 3.89928
+        },
+        {
+          "case": "geometry-100",
+          "variant": "wgpu-vulkan",
+          "round": 1,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-wgpu-vulkan-1.csv",
+          "log": "logs/geometry-100-wgpu-vulkan-1.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 81.988448,
+              "p95_ms": 86.362822,
+              "p99_ms": 86.362822,
+              "max_ms": 86.362822,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 188.736171,
+              "p95_ms": 224.347649,
+              "p99_ms": 224.347649,
+              "max_ms": 224.347649,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 273.496389,
+              "p95_ms": 305.05859,
+              "p99_ms": 305.05859,
+              "max_ms": 305.05859,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.482238,
+              "p95_ms": 0.60125,
+              "p99_ms": 0.60125,
+              "max_ms": 0.60125,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 605580,
+          "first_total_ms_from_csv": 672.741839,
+          "first_render_ms_from_csv": 634.570896,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=150.473 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "150.473",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) vendor_id=0x10de device_id=0x2560 backend=wgpu size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 636.848,
+          "first_total_ms": 672.742,
+          "result_since_main_ms": 1408.6,
+          "wall_total_ms": 1935.26,
+          "throughput_fps": 3.61709
+        },
+        {
+          "case": "geometry-100",
+          "variant": "coingl",
+          "round": 2,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-coingl-2.csv",
+          "log": "logs/geometry-100-coingl-2.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 51.868022,
+              "p95_ms": 66.363017,
+              "p99_ms": 66.363017,
+              "max_ms": 66.363017,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 212.237299,
+              "p95_ms": 240.67408,
+              "p99_ms": 240.67408,
+              "max_ms": 240.67408,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 264.741876,
+              "p95_ms": 295.605065,
+              "p99_ms": 295.605065,
+              "max_ms": 295.605065,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.456269,
+              "p95_ms": 0.658656,
+              "p99_ms": 0.658656,
+              "max_ms": 0.658656,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 245888,
+          "first_total_ms_from_csv": 424.27028,
+          "first_render_ms_from_csv": 385.371613,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=172.47 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "172.47",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=not-queried vendor_id=0x0 device_id=0x0 backend=gl size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 385.785,
+          "first_total_ms": 424.27,
+          "result_since_main_ms": 1020.18,
+          "wall_total_ms": 1891.45,
+          "throughput_fps": 3.70086
+        },
+        {
+          "case": "geometry-100",
+          "variant": "wgpu-vulkan",
+          "round": 2,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-wgpu-vulkan-2.csv",
+          "log": "logs/geometry-100-wgpu-vulkan-2.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 73.997709,
+              "p95_ms": 74.447486,
+              "p99_ms": 74.447486,
+              "max_ms": 74.447486,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 162.461721,
+              "p95_ms": 165.247266,
+              "p99_ms": 165.247266,
+              "max_ms": 165.247266,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 236.463888,
+              "p95_ms": 239.365831,
+              "p99_ms": 239.365831,
+              "max_ms": 239.365831,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.384907,
+              "p95_ms": 0.4513,
+              "p99_ms": 0.4513,
+              "max_ms": 0.4513,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 605976,
+          "first_total_ms_from_csv": 663.742061,
+          "first_render_ms_from_csv": 625.034921,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=149.282 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "149.282",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) vendor_id=0x10de device_id=0x2560 backend=wgpu size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 627.451,
+          "first_total_ms": 663.742,
+          "result_since_main_ms": 1412.55,
+          "wall_total_ms": 1659.96,
+          "throughput_fps": 4.21696
+        },
+        {
+          "case": "geometry-100",
+          "variant": "bgfx-opengl",
+          "round": 2,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-bgfx-opengl-2.csv",
+          "log": "logs/geometry-100-bgfx-opengl-2.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 73.361845,
+              "p95_ms": 75.937028,
+              "p99_ms": 75.937028,
+              "max_ms": 75.937028,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 159.040799,
+              "p95_ms": 163.307302,
+              "p99_ms": 163.307302,
+              "max_ms": 163.307302,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 233.22844,
+              "p95_ms": 236.936724,
+              "p99_ms": 236.936724,
+              "max_ms": 236.936724,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.428578,
+              "p95_ms": 0.473291,
+              "p99_ms": 0.473291,
+              "max_ms": 0.473291,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 523516,
+          "first_total_ms_from_csv": 737.395428,
+          "first_render_ms_from_csv": 699.329252,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=153.457 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "153.457",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) vendor_id=0x10de device_id=0x0 backend=bgfx size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 701.91,
+          "first_total_ms": 737.395,
+          "result_since_main_ms": 1428.97,
+          "wall_total_ms": 1637.74,
+          "throughput_fps": 4.27419
+        },
+        {
+          "case": "geometry-100",
+          "variant": "bgfx-vulkan",
+          "round": 2,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-bgfx-vulkan-2.csv",
+          "log": "logs/geometry-100-bgfx-vulkan-2.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 75.676903,
+              "p95_ms": 78.492515,
+              "p99_ms": 78.492515,
+              "max_ms": 78.492515,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 161.425406,
+              "p95_ms": 166.144971,
+              "p99_ms": 166.144971,
+              "max_ms": 166.144971,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 237.560001,
+              "p95_ms": 242.696423,
+              "p99_ms": 242.696423,
+              "max_ms": 242.696423,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.451981,
+              "p95_ms": 0.520499,
+              "p99_ms": 0.520499,
+              "max_ms": 0.520499,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 490120,
+          "first_total_ms_from_csv": 782.036582,
+          "first_render_ms_from_csv": 744.159238,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=148.229 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "148.229",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x2560) vendor_id=0x10de device_id=0x2560 backend=bgfx size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 746.737,
+          "first_total_ms": 782.037,
+          "result_since_main_ms": 1508.58,
+          "wall_total_ms": 1666.19,
+          "throughput_fps": 4.20121
+        },
+        {
+          "case": "geometry-100",
+          "variant": "bgfx-opengl",
+          "round": 3,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-bgfx-opengl-3.csv",
+          "log": "logs/geometry-100-bgfx-opengl-3.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 73.703449,
+              "p95_ms": 76.005634,
+              "p99_ms": 76.005634,
+              "max_ms": 76.005634,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 159.844831,
+              "p95_ms": 162.881313,
+              "p99_ms": 162.881313,
+              "max_ms": 162.881313,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 234.026269,
+              "p95_ms": 239.294967,
+              "p99_ms": 239.294967,
+              "max_ms": 239.294967,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.477989,
+              "p95_ms": 0.501113,
+              "p99_ms": 0.501113,
+              "max_ms": 0.501113,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 523248,
+          "first_total_ms_from_csv": 739.677253,
+          "first_render_ms_from_csv": 701.892171,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=149.074 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "149.074",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) vendor_id=0x10de device_id=0x0 backend=bgfx size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 704.477,
+          "first_total_ms": 739.677,
+          "result_since_main_ms": 1422.89,
+          "wall_total_ms": 1640.87,
+          "throughput_fps": 4.26603
+        },
+        {
+          "case": "geometry-100",
+          "variant": "wgpu-vulkan",
+          "round": 3,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-wgpu-vulkan-3.csv",
+          "log": "logs/geometry-100-wgpu-vulkan-3.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 74.250585,
+              "p95_ms": 80.186315,
+              "p99_ms": 80.186315,
+              "max_ms": 80.186315,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 163.786176,
+              "p95_ms": 179.660779,
+              "p99_ms": 179.660779,
+              "max_ms": 179.660779,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 238.411238,
+              "p95_ms": 258.273194,
+              "p99_ms": 258.273194,
+              "max_ms": 258.273194,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.413469,
+              "p95_ms": 0.47835,
+              "p99_ms": 0.47835,
+              "max_ms": 0.47835,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 606188,
+          "first_total_ms_from_csv": 651.38218,
+          "first_render_ms_from_csv": 613.00664,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=149.024 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "149.024",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) vendor_id=0x10de device_id=0x2560 backend=wgpu size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 615.349,
+          "first_total_ms": 651.382,
+          "result_since_main_ms": 1367.88,
+          "wall_total_ms": 1705.81,
+          "throughput_fps": 4.10361
+        },
+        {
+          "case": "geometry-100",
+          "variant": "coingl",
+          "round": 3,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-coingl-3.csv",
+          "log": "logs/geometry-100-coingl-3.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 48.403288,
+              "p95_ms": 48.644627,
+              "p99_ms": 48.644627,
+              "max_ms": 48.644627,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 189.712578,
+              "p95_ms": 192.161547,
+              "p99_ms": 192.161547,
+              "max_ms": 192.161547,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 238.487758,
+              "p95_ms": 240.969388,
+              "p99_ms": 240.969388,
+              "max_ms": 240.969388,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.414752,
+              "p95_ms": 0.624172,
+              "p99_ms": 0.624172,
+              "max_ms": 0.624172,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 245552,
+          "first_total_ms_from_csv": 410.200718,
+          "first_render_ms_from_csv": 373.54479,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=153.644 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "153.644",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=not-queried vendor_id=0x0 device_id=0x0 backend=gl size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 373.964,
+          "first_total_ms": 410.201,
+          "result_since_main_ms": 944.904,
+          "wall_total_ms": 1672.27,
+          "throughput_fps": 4.18592
+        },
+        {
+          "case": "geometry-100",
+          "variant": "bgfx-vulkan",
+          "round": 3,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-bgfx-vulkan-3.csv",
+          "log": "logs/geometry-100-bgfx-vulkan-3.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 75.318192,
+              "p95_ms": 78.350647,
+              "p99_ms": 78.350647,
+              "max_ms": 78.350647,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 160.414675,
+              "p95_ms": 162.269599,
+              "p99_ms": 162.269599,
+              "max_ms": 162.269599,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 236.34121,
+              "p95_ms": 238.839712,
+              "p99_ms": 238.839712,
+              "max_ms": 238.839712,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.427245,
+              "p95_ms": 0.452993,
+              "p99_ms": 0.452993,
+              "max_ms": 0.452993,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 489752,
+          "first_total_ms_from_csv": 784.472186,
+          "first_render_ms_from_csv": 746.860148,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=147.622 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "147.622",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x2560) vendor_id=0x10de device_id=0x2560 backend=bgfx size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 749.025,
+          "first_total_ms": 784.472,
+          "result_since_main_ms": 1550.23,
+          "wall_total_ms": 1655.74,
+          "throughput_fps": 4.22772
+        }
+      ],
+      "groups": [
+        {
+          "campaign": "before",
+          "scope": "offscreen",
+          "case": "geometry-100",
+          "variant": "bgfx-opengl",
+          "processes": 3,
+          "measured_frames": 21,
+          "warmup_frames": 9,
+          "stats": {
+            "update_ms": {
+              "median_ms": 73.703449,
+              "p95_ms": 76.005634,
+              "p99_ms": 76.005634,
+              "max_global_ms": 93.871633,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "render_ms": {
+              "median_ms": 159.844831,
+              "p95_ms": 163.307302,
+              "p99_ms": 163.307302,
+              "max_global_ms": 207.413556,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "total_ms": {
+              "median_ms": 234.026269,
+              "p95_ms": 239.294967,
+              "p99_ms": 239.294967,
+              "max_global_ms": 301.711442,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "publication_ms": {
+              "median_ms": 0.428578,
+              "p95_ms": 0.473291,
+              "p99_ms": 0.473291,
+              "max_global_ms": 0.501113,
+              "frames_over_16_67_sum": 0,
+              "frames_over_33_33_sum": 0
+            }
+          },
+          "peak_rss_median_mib": 511.17578125,
+          "peak_rss_global_max_mib": 511.24609375,
+          "first_total_ms_from_csv_median": 739.677253,
+          "first_render_ms_from_csv_median": 701.892171,
+          "first_ms_median": 704.477,
+          "first_total_ms_median": 739.677,
+          "result_since_main_ms_median": 1428.97,
+          "wall_total_ms_median": 1640.87,
+          "throughput_fps_median": 4.26603
+        },
+        {
+          "campaign": "before",
+          "scope": "offscreen",
+          "case": "geometry-100",
+          "variant": "bgfx-vulkan",
+          "processes": 3,
+          "measured_frames": 21,
+          "warmup_frames": 9,
+          "stats": {
+            "update_ms": {
+              "median_ms": 75.676903,
+              "p95_ms": 78.492515,
+              "p99_ms": 78.492515,
+              "max_global_ms": 80.683401,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "render_ms": {
+              "median_ms": 161.425406,
+              "p95_ms": 166.144971,
+              "p99_ms": 166.144971,
+              "max_global_ms": 168.416527,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "total_ms": {
+              "median_ms": 237.560001,
+              "p95_ms": 242.696423,
+              "p99_ms": 242.696423,
+              "max_global_ms": 247.461719,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "publication_ms": {
+              "median_ms": 0.436022,
+              "p95_ms": 0.50502,
+              "p99_ms": 0.50502,
+              "max_global_ms": 0.520499,
+              "frames_over_16_67_sum": 0,
+              "frames_over_33_33_sum": 0
+            }
+          },
+          "peak_rss_median_mib": 478.2734375,
+          "peak_rss_global_max_mib": 478.6328125,
+          "first_total_ms_from_csv_median": 783.940154,
+          "first_render_ms_from_csv_median": 746.229938,
+          "first_ms_median": 748.489,
+          "first_total_ms_median": 783.94,
+          "result_since_main_ms_median": 1538.58,
+          "wall_total_ms_median": 1666.19,
+          "throughput_fps_median": 4.20121
+        },
+        {
+          "campaign": "before",
+          "scope": "offscreen",
+          "case": "geometry-100",
+          "variant": "coingl",
+          "processes": 3,
+          "measured_frames": 21,
+          "warmup_frames": 9,
+          "stats": {
+            "update_ms": {
+              "median_ms": 48.982964,
+              "p95_ms": 50.343297,
+              "p99_ms": 50.343297,
+              "max_global_ms": 66.363017,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "render_ms": {
+              "median_ms": 195.394916,
+              "p95_ms": 198.993986,
+              "p99_ms": 198.993986,
+              "max_global_ms": 240.67408,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "total_ms": {
+              "median_ms": 244.178328,
+              "p95_ms": 249.769087,
+              "p99_ms": 249.769087,
+              "max_global_ms": 295.605065,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "publication_ms": {
+              "median_ms": 0.431804,
+              "p95_ms": 0.624172,
+              "p99_ms": 0.624172,
+              "max_global_ms": 0.658656,
+              "frames_over_16_67_sum": 0,
+              "frames_over_33_33_sum": 0
+            }
+          },
+          "peak_rss_median_mib": 239.796875,
+          "peak_rss_global_max_mib": 240.125,
+          "first_total_ms_from_csv_median": 410.200718,
+          "first_render_ms_from_csv_median": 373.54479,
+          "first_ms_median": 373.964,
+          "first_total_ms_median": 410.201,
+          "result_since_main_ms_median": 959.023,
+          "wall_total_ms_median": 1713.72,
+          "throughput_fps_median": 4.08468
+        },
+        {
+          "campaign": "before",
+          "scope": "offscreen",
+          "case": "geometry-100",
+          "variant": "wgpu-vulkan",
+          "processes": 3,
+          "measured_frames": 21,
+          "warmup_frames": 9,
+          "stats": {
+            "update_ms": {
+              "median_ms": 74.250585,
+              "p95_ms": 80.186315,
+              "p99_ms": 80.186315,
+              "max_global_ms": 86.362822,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "render_ms": {
+              "median_ms": 163.786176,
+              "p95_ms": 179.660779,
+              "p99_ms": 179.660779,
+              "max_global_ms": 224.347649,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "total_ms": {
+              "median_ms": 238.411238,
+              "p95_ms": 258.273194,
+              "p99_ms": 258.273194,
+              "max_global_ms": 305.05859,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "publication_ms": {
+              "median_ms": 0.413469,
+              "p95_ms": 0.47835,
+              "p99_ms": 0.47835,
+              "max_global_ms": 0.60125,
+              "frames_over_16_67_sum": 0,
+              "frames_over_33_33_sum": 0
+            }
+          },
+          "peak_rss_median_mib": 591.7734375,
+          "peak_rss_global_max_mib": 591.98046875,
+          "first_total_ms_from_csv_median": 663.742061,
+          "first_render_ms_from_csv_median": 625.034921,
+          "first_ms_median": 627.451,
+          "first_total_ms_median": 663.742,
+          "result_since_main_ms_median": 1408.6,
+          "wall_total_ms_median": 1705.81,
+          "throughput_fps_median": 4.10361
+        }
+      ],
+      "state_digests": {
+        "geometry-100": [
+          "0x261648c3a17fc04c"
+        ]
+      },
+      "source_provenance": {
+        "runner_recorded_source_revision": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+        "variant_source_content_revisions": {
+          "coingl": "4d63bb993022ee8d40802558b0871a4803002b8d",
+          "bgfx-vulkan": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+          "bgfx-opengl": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+          "wgpu-vulkan": "ac28529a27da5ea370cf90eef4eeaf8b22f08850"
+        },
+        "source_identity_limit": "Runner source_revision identifies its checkout; it does not by itself prove the compiled binary source",
+        "verified_binary_source_revision_supplied": null,
+        "frozen_binary_matches": [
+          {
+            "control_original_path": "/tmp/coin-render-validation-baseline-binaries.json",
+            "source_content_revision": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+            "variant_source_content_revisions": {
+              "wgpu-vulkan": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+              "wgpu-opengl": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+              "bgfx-vulkan": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+              "bgfx-opengl": "ac28529a27da5ea370cf90eef4eeaf8b22f08850"
+            },
+            "source_head_at_snapshot": null,
+            "all_campaign_binary_hashes_match": false,
+            "matched_campaign_hashes": {
+              "/tmp/coin-render-material-geometry-baseline/coingl/bin/coin_render_gl_benchmark": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086",
+              "/tmp/coin-render-validation-baseline/bgfx/bin/coin_render_gl_benchmark": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086",
+              "/tmp/coin-render-validation-baseline/bgfx/lib/libCoinRender.so": "d9d3456d4b35373308a44480e5ad624deb55fd4b78c496707667352e2399c8b0",
+              "/tmp/coin-render-validation-baseline/bgfx/lib/libCoin.so.80": "c86d9ce95df367b1c649545a1d0ba1de89edeb9f5b887f765bc47229d55c5437",
+              "/tmp/coin-render-validation-baseline/wgpu/bin/coin_render_gl_benchmark": "fdeb5bec7dccc45643a62024fdabca605a6598510d63b0dcd27b6cc78ff67e4a",
+              "/tmp/coin-render-validation-baseline/wgpu/lib/libCoinRender.so": "268934ee2d0fe94393d7b5cdcdb97a02cc54e1558f1b72331ece187f6ebf6c67",
+              "/tmp/coin-render-validation-baseline/wgpu/lib/libCoin.so.80": "c86d9ce95df367b1c649545a1d0ba1de89edeb9f5b887f765bc47229d55c5437"
+            },
+            "match_contract": "Content SHA256 match; original filename/symlink spelling may differ"
+          },
+          {
+            "control_original_path": "/tmp/coin-render-validation-final-binaries.json",
+            "source_content_revision": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+            "variant_source_content_revisions": {
+              "wgpu-vulkan": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+              "bgfx-vulkan": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+              "bgfx-opengl": "6182410f5789bbdc30d5ccd06fa341e1810aef8e"
+            },
+            "source_head_at_snapshot": null,
+            "all_campaign_binary_hashes_match": false,
+            "matched_campaign_hashes": {
+              "/tmp/coin-render-material-geometry-baseline/coingl/bin/coin_render_gl_benchmark": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086",
+              "/tmp/coin-render-validation-baseline/bgfx/bin/coin_render_gl_benchmark": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086",
+              "/tmp/coin-render-validation-baseline/bgfx/lib/libCoin.so.80": "c86d9ce95df367b1c649545a1d0ba1de89edeb9f5b887f765bc47229d55c5437",
+              "/tmp/coin-render-validation-baseline/wgpu/bin/coin_render_gl_benchmark": "fdeb5bec7dccc45643a62024fdabca605a6598510d63b0dcd27b6cc78ff67e4a",
+              "/tmp/coin-render-validation-baseline/wgpu/lib/libCoin.so.80": "c86d9ce95df367b1c649545a1d0ba1de89edeb9f5b887f765bc47229d55c5437"
+            },
+            "match_contract": "Content SHA256 match; original filename/symlink spelling may differ"
+          },
+          {
+            "control_original_path": "/tmp/coin-render-state-coingl-binaries.json",
+            "source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+            "variant_source_content_revisions": {
+              "coingl": "4d63bb993022ee8d40802558b0871a4803002b8d"
+            },
+            "source_head_at_snapshot": null,
+            "all_campaign_binary_hashes_match": false,
+            "matched_campaign_hashes": {
+              "/tmp/coin-render-material-geometry-baseline/coingl/bin/coin_render_gl_benchmark": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086",
+              "/tmp/coin-render-material-geometry-baseline/coingl/lib/libCoinRender.so": "51e7cd743a87afa7476b011a72f3749246e269d3d850715ddc3675af436658be",
+              "/tmp/coin-render-material-geometry-baseline/coingl/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f",
+              "/tmp/coin-render-validation-baseline/bgfx/bin/coin_render_gl_benchmark": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086"
+            },
+            "match_contract": "Content SHA256 match; original filename/symlink spelling may differ"
+          }
+        ]
+      }
+    },
+    "after": {
+      "name": "after",
+      "original_directory": "/tmp/coin-render-validation-stress-after",
+      "manifest": {
+        "parameters": {
+          "before_bgfx_build": "/tmp/coin-render-validation-baseline/bgfx",
+          "after_bgfx_build": "/tmp/coin-render-first-frame-bgfx",
+          "before_wgpu_build": "/tmp/coin-render-validation-baseline/wgpu",
+          "after_wgpu_build": "/tmp/coin-render-first-frame-wgpu",
+          "coingl_build": "/tmp/coin-render-material-geometry-baseline/coingl",
+          "scene": "/tmp/coin-render-city-40000.iv",
+          "output_before": "/tmp/coin-render-validation-stress-before",
+          "output_after": "/tmp/coin-render-validation-stress-after",
+          "runner": "/tmp/coin-render-first-frame/scripts/coinrender/run_animation_benchmark.py",
+          "row_helper": "/tmp/coin-render-wgpu-motion-matched.py",
+          "variants": "coingl,bgfx-vulkan,bgfx-opengl,wgpu-vulkan",
+          "cases": "geometry-100",
+          "scope": "offscreen",
+          "gpu": "nvidia",
+          "rounds": 3,
+          "warmup": 3,
+          "frames": 7,
+          "size": 1024,
+          "timeout": 1800,
+          "before_source_content_revision": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+          "after_source_content_revision": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+          "control_source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+          "mode": "measure",
+          "output": "/tmp/coin-render-validation-stress-after"
+        },
+        "scene_sha256": "bb9ccc612cd38ffb749ee599d9350a80974649eab5bf477d2f344538a42b2576",
+        "binary_hashes": {
+          "/tmp/coin-render-material-geometry-baseline/coingl/bin/coin_render_gl_benchmark": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086",
+          "/tmp/coin-render-material-geometry-baseline/coingl/lib/libCoinRender.so": "51e7cd743a87afa7476b011a72f3749246e269d3d850715ddc3675af436658be",
+          "/tmp/coin-render-material-geometry-baseline/coingl/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f",
+          "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086",
+          "/tmp/coin-render-first-frame-bgfx/lib/libCoinRender.so": "f847f6ecff8c82256f423ba165d636f95c9abb2457aef8e68cc68e2755fe53ad",
+          "/tmp/coin-render-first-frame-bgfx/lib/libCoin.so.80": "c86d9ce95df367b1c649545a1d0ba1de89edeb9f5b887f765bc47229d55c5437",
+          "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark": "fdeb5bec7dccc45643a62024fdabca605a6598510d63b0dcd27b6cc78ff67e4a",
+          "/tmp/coin-render-first-frame-wgpu/lib/libCoinRender.so": "fd86c31067f786195976af9a5a9a873fccf976abfa80f15a7ffb12b1cb98550e",
+          "/tmp/coin-render-first-frame-wgpu/lib/libCoin.so.80": "c86d9ce95df367b1c649545a1d0ba1de89edeb9f5b887f765bc47229d55c5437"
+        },
+        "commands": [
+          {
+            "stem": "geometry-100-coingl-1",
+            "command": [
+              "/tmp/coin-render-material-geometry-baseline/coingl/bin/coin_render_gl_benchmark",
+              "--backend",
+              "gl",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-before/samples/geometry-100-coingl-1.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-material-geometry-baseline/coingl/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1"
+            },
+            "matched_role": "control",
+            "execution_index": 1,
+            "source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+            "shared_control": true
+          },
+          {
+            "stem": "geometry-100-bgfx-vulkan-1",
+            "command": [
+              "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+              "--backend",
+              "bgfx",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-after/samples/geometry-100-bgfx-vulkan-1.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_BGFX_RENDERER": "vulkan"
+            },
+            "matched_role": "after",
+            "execution_index": 3,
+            "source_content_revision": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+            "shared_control": false
+          },
+          {
+            "stem": "geometry-100-bgfx-opengl-1",
+            "command": [
+              "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+              "--backend",
+              "bgfx",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-after/samples/geometry-100-bgfx-opengl-1.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_BGFX_RENDERER": "opengl"
+            },
+            "matched_role": "after",
+            "execution_index": 5,
+            "source_content_revision": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+            "shared_control": false
+          },
+          {
+            "stem": "geometry-100-wgpu-vulkan-1",
+            "command": [
+              "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+              "--backend",
+              "wgpu",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-after/samples/geometry-100-wgpu-vulkan-1.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "WGPU_BACKEND": "vulkan"
+            },
+            "matched_role": "after",
+            "execution_index": 7,
+            "source_content_revision": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+            "shared_control": false
+          },
+          {
+            "stem": "geometry-100-coingl-2",
+            "command": [
+              "/tmp/coin-render-material-geometry-baseline/coingl/bin/coin_render_gl_benchmark",
+              "--backend",
+              "gl",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-before/samples/geometry-100-coingl-2.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-material-geometry-baseline/coingl/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1"
+            },
+            "matched_role": "control",
+            "execution_index": 8,
+            "source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+            "shared_control": true
+          },
+          {
+            "stem": "geometry-100-wgpu-vulkan-2",
+            "command": [
+              "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+              "--backend",
+              "wgpu",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-after/samples/geometry-100-wgpu-vulkan-2.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "WGPU_BACKEND": "vulkan"
+            },
+            "matched_role": "after",
+            "execution_index": 9,
+            "source_content_revision": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+            "shared_control": false
+          },
+          {
+            "stem": "geometry-100-bgfx-opengl-2",
+            "command": [
+              "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+              "--backend",
+              "bgfx",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-after/samples/geometry-100-bgfx-opengl-2.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_BGFX_RENDERER": "opengl"
+            },
+            "matched_role": "after",
+            "execution_index": 11,
+            "source_content_revision": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+            "shared_control": false
+          },
+          {
+            "stem": "geometry-100-bgfx-vulkan-2",
+            "command": [
+              "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+              "--backend",
+              "bgfx",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-after/samples/geometry-100-bgfx-vulkan-2.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_BGFX_RENDERER": "vulkan"
+            },
+            "matched_role": "after",
+            "execution_index": 13,
+            "source_content_revision": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+            "shared_control": false
+          },
+          {
+            "stem": "geometry-100-bgfx-vulkan-3",
+            "command": [
+              "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+              "--backend",
+              "bgfx",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-after/samples/geometry-100-bgfx-vulkan-3.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_BGFX_RENDERER": "vulkan"
+            },
+            "matched_role": "after",
+            "execution_index": 15,
+            "source_content_revision": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+            "shared_control": false
+          },
+          {
+            "stem": "geometry-100-bgfx-opengl-3",
+            "command": [
+              "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+              "--backend",
+              "bgfx",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-after/samples/geometry-100-bgfx-opengl-3.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_BGFX_RENDERER": "opengl"
+            },
+            "matched_role": "after",
+            "execution_index": 17,
+            "source_content_revision": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+            "shared_control": false
+          },
+          {
+            "stem": "geometry-100-wgpu-vulkan-3",
+            "command": [
+              "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+              "--backend",
+              "wgpu",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-after/samples/geometry-100-wgpu-vulkan-3.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "WGPU_BACKEND": "vulkan"
+            },
+            "matched_role": "after",
+            "execution_index": 19,
+            "source_content_revision": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+            "shared_control": false
+          },
+          {
+            "stem": "geometry-100-coingl-3",
+            "command": [
+              "/tmp/coin-render-material-geometry-baseline/coingl/bin/coin_render_gl_benchmark",
+              "--backend",
+              "gl",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "geometry",
+              "--animated-percent",
+              "100",
+              "--transparency",
+              "object",
+              "--warmup",
+              "3",
+              "--frames",
+              "7",
+              "--samples-output",
+              "/tmp/coin-render-validation-stress-before/samples/geometry-100-coingl-3.csv",
+              "--size",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-material-geometry-baseline/coingl/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1"
+            },
+            "matched_role": "control",
+            "execution_index": 20,
+            "source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+            "shared_control": true
+          }
+        ],
+        "execution_order": [
+          {
+            "case": "geometry-100",
+            "variant": "coingl",
+            "round": 1,
+            "matched_role": "control",
+            "execution_index": 1,
+            "stem": "geometry-100-coingl-1"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-vulkan",
+            "round": 1,
+            "matched_role": "before",
+            "execution_index": 2,
+            "stem": "geometry-100-bgfx-vulkan-1"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-vulkan",
+            "round": 1,
+            "matched_role": "after",
+            "execution_index": 3,
+            "stem": "geometry-100-bgfx-vulkan-1"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-opengl",
+            "round": 1,
+            "matched_role": "before",
+            "execution_index": 4,
+            "stem": "geometry-100-bgfx-opengl-1"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-opengl",
+            "round": 1,
+            "matched_role": "after",
+            "execution_index": 5,
+            "stem": "geometry-100-bgfx-opengl-1"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "wgpu-vulkan",
+            "round": 1,
+            "matched_role": "before",
+            "execution_index": 6,
+            "stem": "geometry-100-wgpu-vulkan-1"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "wgpu-vulkan",
+            "round": 1,
+            "matched_role": "after",
+            "execution_index": 7,
+            "stem": "geometry-100-wgpu-vulkan-1"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "coingl",
+            "round": 2,
+            "matched_role": "control",
+            "execution_index": 8,
+            "stem": "geometry-100-coingl-2"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "wgpu-vulkan",
+            "round": 2,
+            "matched_role": "after",
+            "execution_index": 9,
+            "stem": "geometry-100-wgpu-vulkan-2"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "wgpu-vulkan",
+            "round": 2,
+            "matched_role": "before",
+            "execution_index": 10,
+            "stem": "geometry-100-wgpu-vulkan-2"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-opengl",
+            "round": 2,
+            "matched_role": "after",
+            "execution_index": 11,
+            "stem": "geometry-100-bgfx-opengl-2"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-opengl",
+            "round": 2,
+            "matched_role": "before",
+            "execution_index": 12,
+            "stem": "geometry-100-bgfx-opengl-2"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-vulkan",
+            "round": 2,
+            "matched_role": "after",
+            "execution_index": 13,
+            "stem": "geometry-100-bgfx-vulkan-2"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-vulkan",
+            "round": 2,
+            "matched_role": "before",
+            "execution_index": 14,
+            "stem": "geometry-100-bgfx-vulkan-2"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-vulkan",
+            "round": 3,
+            "matched_role": "after",
+            "execution_index": 15,
+            "stem": "geometry-100-bgfx-vulkan-3"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-opengl",
+            "round": 3,
+            "matched_role": "before",
+            "execution_index": 16,
+            "stem": "geometry-100-bgfx-opengl-3"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-opengl",
+            "round": 3,
+            "matched_role": "after",
+            "execution_index": 17,
+            "stem": "geometry-100-bgfx-opengl-3"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "wgpu-vulkan",
+            "round": 3,
+            "matched_role": "before",
+            "execution_index": 18,
+            "stem": "geometry-100-wgpu-vulkan-3"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "wgpu-vulkan",
+            "round": 3,
+            "matched_role": "after",
+            "execution_index": 19,
+            "stem": "geometry-100-wgpu-vulkan-3"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "coingl",
+            "round": 3,
+            "matched_role": "control",
+            "execution_index": 20,
+            "stem": "geometry-100-coingl-3"
+          },
+          {
+            "case": "geometry-100",
+            "variant": "bgfx-vulkan",
+            "round": 3,
+            "matched_role": "before",
+            "execution_index": 21,
+            "stem": "geometry-100-bgfx-vulkan-3"
+          }
+        ],
+        "source_revision": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+        "source_content_revision": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+        "source_snapshot_revision": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+        "variant_source_content_revisions": {
+          "coingl": "4d63bb993022ee8d40802558b0871a4803002b8d",
+          "bgfx-vulkan": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+          "bgfx-opengl": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+          "wgpu-vulkan": "6182410f5789bbdc30d5ccd06fa341e1810aef8e"
+        },
+        "runner_path": "/tmp/coin-render-first-frame/scripts/coinrender/run_animation_benchmark.py",
+        "runner_sha256": "3e87daa2b6471a98acbaab9dc1792da05126b6a36e108ba6245abe76e9253b72",
+        "matched_runner_sha256": "584eda6e5df3643c7a0fa0e4627d3fe08470627a67a014a61bfa64bc0a8f2d5e",
+        "shared_control": true,
+        "matched_role": "after",
+        "matched_peer_output": "/tmp/coin-render-validation-stress-before"
+      },
+      "processes": [
+        {
+          "case": "geometry-100",
+          "variant": "coingl",
+          "round": 1,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-coingl-1.csv",
+          "log": "logs/geometry-100-coingl-1.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 48.982964,
+              "p95_ms": 50.343297,
+              "p99_ms": 50.343297,
+              "max_ms": 50.343297,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 195.394916,
+              "p95_ms": 198.993986,
+              "p99_ms": 198.993986,
+              "max_ms": 198.993986,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 244.178328,
+              "p95_ms": 249.769087,
+              "p99_ms": 249.769087,
+              "max_ms": 249.769087,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.431804,
+              "p95_ms": 0.497677,
+              "p99_ms": 0.497677,
+              "max_ms": 0.497677,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 245352,
+          "first_total_ms_from_csv": 405.033903,
+          "first_render_ms_from_csv": 367.307135,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=158.063 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "158.063",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=not-queried vendor_id=0x0 device_id=0x0 backend=gl size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 367.765,
+          "first_total_ms": 405.034,
+          "result_since_main_ms": 959.023,
+          "wall_total_ms": 1713.72,
+          "throughput_fps": 4.08468
+        },
+        {
+          "case": "geometry-100",
+          "variant": "bgfx-vulkan",
+          "round": 1,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-bgfx-vulkan-1.csv",
+          "log": "logs/geometry-100-bgfx-vulkan-1.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 75.02733,
+              "p95_ms": 75.844072,
+              "p99_ms": 75.844072,
+              "max_ms": 75.844072,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 163.195846,
+              "p95_ms": 173.060742,
+              "p99_ms": 173.060742,
+              "max_ms": 173.060742,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 239.166022,
+              "p95_ms": 248.165758,
+              "p99_ms": 248.165758,
+              "max_ms": 248.165758,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.463974,
+              "p95_ms": 0.598585,
+              "p99_ms": 0.598585,
+              "max_ms": 0.598585,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 489536,
+          "first_total_ms_from_csv": 810.581869,
+          "first_render_ms_from_csv": 772.165006,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=149.611 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "149.611",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x2560) vendor_id=0x10de device_id=0x2560 backend=bgfx size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 774.433,
+          "first_total_ms": 810.582,
+          "result_since_main_ms": 1583.9,
+          "wall_total_ms": 1680.78,
+          "throughput_fps": 4.16474
+        },
+        {
+          "case": "geometry-100",
+          "variant": "bgfx-opengl",
+          "round": 1,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-bgfx-opengl-1.csv",
+          "log": "logs/geometry-100-bgfx-opengl-1.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 77.210574,
+              "p95_ms": 90.545761,
+              "p99_ms": 90.545761,
+              "max_ms": 90.545761,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 166.170261,
+              "p95_ms": 170.890839,
+              "p99_ms": 170.890839,
+              "max_ms": 170.890839,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 244.867323,
+              "p95_ms": 255.821206,
+              "p99_ms": 255.821206,
+              "max_ms": 255.821206,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.449947,
+              "p95_ms": 0.539855,
+              "p99_ms": 0.539855,
+              "max_ms": 0.539855,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 523440,
+          "first_total_ms_from_csv": 752.748715,
+          "first_render_ms_from_csv": 714.502401,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=154.09 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "154.09",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) vendor_id=0x10de device_id=0x0 backend=bgfx size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 717.275,
+          "first_total_ms": 752.749,
+          "result_since_main_ms": 1458.17,
+          "wall_total_ms": 1722.51,
+          "throughput_fps": 4.06385
+        },
+        {
+          "case": "geometry-100",
+          "variant": "wgpu-vulkan",
+          "round": 1,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-wgpu-vulkan-1.csv",
+          "log": "logs/geometry-100-wgpu-vulkan-1.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 79.165322,
+              "p95_ms": 89.123962,
+              "p99_ms": 89.123962,
+              "max_ms": 89.123962,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 180.162938,
+              "p95_ms": 217.7801,
+              "p99_ms": 217.7801,
+              "max_ms": 217.7801,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 261.391872,
+              "p95_ms": 297.566058,
+              "p99_ms": 297.566058,
+              "max_ms": 297.566058,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.464806,
+              "p95_ms": 0.620636,
+              "p99_ms": 0.620636,
+              "max_ms": 0.620636,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 605316,
+          "first_total_ms_from_csv": 738.761301,
+          "first_render_ms_from_csv": 697.556771,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=158.932 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "158.932",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) vendor_id=0x10de device_id=0x2560 backend=wgpu size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 700.025,
+          "first_total_ms": 738.761,
+          "result_since_main_ms": 1560.96,
+          "wall_total_ms": 1867.93,
+          "throughput_fps": 3.74747
+        },
+        {
+          "case": "geometry-100",
+          "variant": "coingl",
+          "round": 2,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-coingl-2.csv",
+          "log": "logs/geometry-100-coingl-2.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 51.868022,
+              "p95_ms": 66.363017,
+              "p99_ms": 66.363017,
+              "max_ms": 66.363017,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 212.237299,
+              "p95_ms": 240.67408,
+              "p99_ms": 240.67408,
+              "max_ms": 240.67408,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 264.741876,
+              "p95_ms": 295.605065,
+              "p99_ms": 295.605065,
+              "max_ms": 295.605065,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.456269,
+              "p95_ms": 0.658656,
+              "p99_ms": 0.658656,
+              "max_ms": 0.658656,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 245888,
+          "first_total_ms_from_csv": 424.27028,
+          "first_render_ms_from_csv": 385.371613,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=172.47 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "172.47",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=not-queried vendor_id=0x0 device_id=0x0 backend=gl size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 385.785,
+          "first_total_ms": 424.27,
+          "result_since_main_ms": 1020.18,
+          "wall_total_ms": 1891.45,
+          "throughput_fps": 3.70086
+        },
+        {
+          "case": "geometry-100",
+          "variant": "wgpu-vulkan",
+          "round": 2,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-wgpu-vulkan-2.csv",
+          "log": "logs/geometry-100-wgpu-vulkan-2.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 76.659014,
+              "p95_ms": 86.070425,
+              "p99_ms": 86.070425,
+              "max_ms": 86.070425,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 170.318889,
+              "p95_ms": 182.117535,
+              "p99_ms": 182.117535,
+              "max_ms": 182.117535,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 252.824758,
+              "p95_ms": 263.908242,
+              "p99_ms": 263.908242,
+              "max_ms": 263.908242,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.46778,
+              "p95_ms": 0.734036,
+              "p99_ms": 0.734036,
+              "max_ms": 0.734036,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 605752,
+          "first_total_ms_from_csv": 757.456473,
+          "first_render_ms_from_csv": 713.407648,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=171.918 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "171.918",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) vendor_id=0x10de device_id=0x2560 backend=wgpu size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 716.215,
+          "first_total_ms": 757.456,
+          "result_since_main_ms": 1583.21,
+          "wall_total_ms": 1768.15,
+          "throughput_fps": 3.95895
+        },
+        {
+          "case": "geometry-100",
+          "variant": "bgfx-opengl",
+          "round": 2,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-bgfx-opengl-2.csv",
+          "log": "logs/geometry-100-bgfx-opengl-2.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 75.138162,
+              "p95_ms": 135.619418,
+              "p99_ms": 135.619418,
+              "max_ms": 135.619418,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 167.643135,
+              "p95_ms": 208.441407,
+              "p99_ms": 208.441407,
+              "max_ms": 208.441407,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 245.443954,
+              "p95_ms": 339.464939,
+              "p99_ms": 339.464939,
+              "max_ms": 339.464939,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.432696,
+              "p95_ms": 0.519968,
+              "p99_ms": 0.519968,
+              "max_ms": 0.519968,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 523132,
+          "first_total_ms_from_csv": 745.77309,
+          "first_render_ms_from_csv": 708.061113,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=149.799 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "149.799",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) vendor_id=0x10de device_id=0x0 backend=bgfx size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 710.509,
+          "first_total_ms": 745.773,
+          "result_since_main_ms": 1445.77,
+          "wall_total_ms": 1839.61,
+          "throughput_fps": 3.80515
+        },
+        {
+          "case": "geometry-100",
+          "variant": "bgfx-vulkan",
+          "round": 2,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-bgfx-vulkan-2.csv",
+          "log": "logs/geometry-100-bgfx-vulkan-2.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 75.030811,
+              "p95_ms": 76.273674,
+              "p99_ms": 76.273674,
+              "max_ms": 76.273674,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 164.069069,
+              "p95_ms": 168.564167,
+              "p99_ms": 168.564167,
+              "max_ms": 168.564167,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 240.715136,
+              "p95_ms": 244.863179,
+              "p99_ms": 244.863179,
+              "max_ms": 244.863179,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.435721,
+              "p95_ms": 0.464685,
+              "p99_ms": 0.464685,
+              "max_ms": 0.464685,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 489700,
+          "first_total_ms_from_csv": 800.562597,
+          "first_render_ms_from_csv": 763.039892,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=147.975 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "147.975",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x2560) vendor_id=0x10de device_id=0x2560 backend=bgfx size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 765.449,
+          "first_total_ms": 800.563,
+          "result_since_main_ms": 1556.0,
+          "wall_total_ms": 1677.75,
+          "throughput_fps": 4.17226
+        },
+        {
+          "case": "geometry-100",
+          "variant": "bgfx-vulkan",
+          "round": 3,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-bgfx-vulkan-3.csv",
+          "log": "logs/geometry-100-bgfx-vulkan-3.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 75.702611,
+              "p95_ms": 76.06801,
+              "p99_ms": 76.06801,
+              "max_ms": 76.06801,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 161.526333,
+              "p95_ms": 164.610103,
+              "p99_ms": 164.610103,
+              "max_ms": 164.610103,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 238.000539,
+              "p95_ms": 240.521672,
+              "p99_ms": 240.521672,
+              "max_ms": 240.521672,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.444888,
+              "p95_ms": 0.566204,
+              "p99_ms": 0.566204,
+              "max_ms": 0.566204,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 490008,
+          "first_total_ms_from_csv": 804.526333,
+          "first_render_ms_from_csv": 766.503259,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=148.607 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "148.607",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x2560) vendor_id=0x10de device_id=0x2560 backend=bgfx size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 768.968,
+          "first_total_ms": 804.526,
+          "result_since_main_ms": 1531.71,
+          "wall_total_ms": 1669.51,
+          "throughput_fps": 4.19284
+        },
+        {
+          "case": "geometry-100",
+          "variant": "bgfx-opengl",
+          "round": 3,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-bgfx-opengl-3.csv",
+          "log": "logs/geometry-100-bgfx-opengl-3.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 76.672195,
+              "p95_ms": 77.304,
+              "p99_ms": 77.304,
+              "max_ms": 77.304,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 160.068857,
+              "p95_ms": 161.107371,
+              "p99_ms": 161.107371,
+              "max_ms": 161.107371,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 237.02523,
+              "p95_ms": 238.607917,
+              "p99_ms": 238.607917,
+              "max_ms": 238.607917,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.407218,
+              "p95_ms": 0.529025,
+              "p99_ms": 0.529025,
+              "max_ms": 0.529025,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 523776,
+          "first_total_ms_from_csv": 743.386302,
+          "first_render_ms_from_csv": 705.886111,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=149.02 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "149.02",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) vendor_id=0x10de device_id=0x0 backend=bgfx size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 708.188,
+          "first_total_ms": 743.386,
+          "result_since_main_ms": 1437.55,
+          "wall_total_ms": 1658.17,
+          "throughput_fps": 4.22151
+        },
+        {
+          "case": "geometry-100",
+          "variant": "wgpu-vulkan",
+          "round": 3,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-wgpu-vulkan-3.csv",
+          "log": "logs/geometry-100-wgpu-vulkan-3.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 74.226591,
+              "p95_ms": 74.417836,
+              "p99_ms": 74.417836,
+              "max_ms": 74.417836,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 163.252821,
+              "p95_ms": 165.203984,
+              "p99_ms": 165.203984,
+              "max_ms": 165.203984,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 238.05302,
+              "p95_ms": 240.025872,
+              "p99_ms": 240.025872,
+              "max_ms": 240.025872,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.407498,
+              "p95_ms": 0.469785,
+              "p99_ms": 0.469785,
+              "max_ms": 0.469785,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 605840,
+          "first_total_ms_from_csv": 659.298794,
+          "first_render_ms_from_csv": 620.709575,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=149.986 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "149.986",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) vendor_id=0x10de device_id=0x2560 backend=wgpu size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 623.264,
+          "first_total_ms": 659.299,
+          "result_since_main_ms": 1405.13,
+          "wall_total_ms": 1667.2,
+          "throughput_fps": 4.19866
+        },
+        {
+          "case": "geometry-100",
+          "variant": "coingl",
+          "round": 3,
+          "scope": "offscreen",
+          "samples": "samples/geometry-100-coingl-3.csv",
+          "log": "logs/geometry-100-coingl-3.log",
+          "measured_frames": 7,
+          "warmup_frames": 3,
+          "stats": {
+            "update_ms": {
+              "median_ms": 48.403288,
+              "p95_ms": 48.644627,
+              "p99_ms": 48.644627,
+              "max_ms": 48.644627,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "render_ms": {
+              "median_ms": 189.712578,
+              "p95_ms": 192.161547,
+              "p99_ms": 192.161547,
+              "max_ms": 192.161547,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "total_ms": {
+              "median_ms": 238.487758,
+              "p95_ms": 240.969388,
+              "p99_ms": 240.969388,
+              "max_ms": 240.969388,
+              "over_16_67": 7,
+              "over_33_33": 7
+            },
+            "publication_ms": {
+              "median_ms": 0.414752,
+              "p95_ms": 0.624172,
+              "p99_ms": 0.624172,
+              "max_ms": 0.624172,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 245552,
+          "first_total_ms_from_csv": 410.200718,
+          "first_render_ms_from_csv": 373.54479,
+          "metadata": {
+            "lines": [
+              "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=153.644 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x3688529444a58165"
+            ],
+            "fields": {
+              "mode": "geometry",
+              "animated_percent": "100",
+              "eligible": "40000",
+              "selected": "40000",
+              "prepared_clones": "40000",
+              "prepare_ms": "153.644",
+              "frame_step": "1",
+              "time_step_seconds": "0.0166667",
+              "selection_fnv64": "0x3688529444a58165"
+            },
+            "final_state_fnv64": "0x261648c3a17fc04c",
+            "gpu_identity_lines": [
+              "adapter=not-queried vendor_id=0x0 device_id=0x0 backend=gl size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=geometry"
+            ]
+          },
+          "first_ms": 373.964,
+          "first_total_ms": 410.201,
+          "result_since_main_ms": 944.904,
+          "wall_total_ms": 1672.27,
+          "throughput_fps": 4.18592
+        }
+      ],
+      "groups": [
+        {
+          "campaign": "after",
+          "scope": "offscreen",
+          "case": "geometry-100",
+          "variant": "bgfx-opengl",
+          "processes": 3,
+          "measured_frames": 21,
+          "warmup_frames": 9,
+          "stats": {
+            "update_ms": {
+              "median_ms": 76.672195,
+              "p95_ms": 90.545761,
+              "p99_ms": 90.545761,
+              "max_global_ms": 135.619418,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "render_ms": {
+              "median_ms": 166.170261,
+              "p95_ms": 170.890839,
+              "p99_ms": 170.890839,
+              "max_global_ms": 208.441407,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "total_ms": {
+              "median_ms": 244.867323,
+              "p95_ms": 255.821206,
+              "p99_ms": 255.821206,
+              "max_global_ms": 339.464939,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "publication_ms": {
+              "median_ms": 0.432696,
+              "p95_ms": 0.529025,
+              "p99_ms": 0.529025,
+              "max_global_ms": 0.539855,
+              "frames_over_16_67_sum": 0,
+              "frames_over_33_33_sum": 0
+            }
+          },
+          "peak_rss_median_mib": 511.171875,
+          "peak_rss_global_max_mib": 511.5,
+          "first_total_ms_from_csv_median": 745.77309,
+          "first_render_ms_from_csv_median": 708.061113,
+          "first_ms_median": 710.509,
+          "first_total_ms_median": 745.773,
+          "result_since_main_ms_median": 1445.77,
+          "wall_total_ms_median": 1722.51,
+          "throughput_fps_median": 4.06385
+        },
+        {
+          "campaign": "after",
+          "scope": "offscreen",
+          "case": "geometry-100",
+          "variant": "bgfx-vulkan",
+          "processes": 3,
+          "measured_frames": 21,
+          "warmup_frames": 9,
+          "stats": {
+            "update_ms": {
+              "median_ms": 75.030811,
+              "p95_ms": 76.06801,
+              "p99_ms": 76.06801,
+              "max_global_ms": 76.273674,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "render_ms": {
+              "median_ms": 163.195846,
+              "p95_ms": 168.564167,
+              "p99_ms": 168.564167,
+              "max_global_ms": 173.060742,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "total_ms": {
+              "median_ms": 239.166022,
+              "p95_ms": 244.863179,
+              "p99_ms": 244.863179,
+              "max_global_ms": 248.165758,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "publication_ms": {
+              "median_ms": 0.444888,
+              "p95_ms": 0.566204,
+              "p99_ms": 0.566204,
+              "max_global_ms": 0.598585,
+              "frames_over_16_67_sum": 0,
+              "frames_over_33_33_sum": 0
+            }
+          },
+          "peak_rss_median_mib": 478.22265625,
+          "peak_rss_global_max_mib": 478.5234375,
+          "first_total_ms_from_csv_median": 804.526333,
+          "first_render_ms_from_csv_median": 766.503259,
+          "first_ms_median": 768.968,
+          "first_total_ms_median": 804.526,
+          "result_since_main_ms_median": 1556.0,
+          "wall_total_ms_median": 1677.75,
+          "throughput_fps_median": 4.17226
+        },
+        {
+          "campaign": "after",
+          "scope": "offscreen",
+          "case": "geometry-100",
+          "variant": "coingl",
+          "processes": 3,
+          "measured_frames": 21,
+          "warmup_frames": 9,
+          "stats": {
+            "update_ms": {
+              "median_ms": 48.982964,
+              "p95_ms": 50.343297,
+              "p99_ms": 50.343297,
+              "max_global_ms": 66.363017,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "render_ms": {
+              "median_ms": 195.394916,
+              "p95_ms": 198.993986,
+              "p99_ms": 198.993986,
+              "max_global_ms": 240.67408,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "total_ms": {
+              "median_ms": 244.178328,
+              "p95_ms": 249.769087,
+              "p99_ms": 249.769087,
+              "max_global_ms": 295.605065,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "publication_ms": {
+              "median_ms": 0.431804,
+              "p95_ms": 0.624172,
+              "p99_ms": 0.624172,
+              "max_global_ms": 0.658656,
+              "frames_over_16_67_sum": 0,
+              "frames_over_33_33_sum": 0
+            }
+          },
+          "peak_rss_median_mib": 239.796875,
+          "peak_rss_global_max_mib": 240.125,
+          "first_total_ms_from_csv_median": 410.200718,
+          "first_render_ms_from_csv_median": 373.54479,
+          "first_ms_median": 373.964,
+          "first_total_ms_median": 410.201,
+          "result_since_main_ms_median": 959.023,
+          "wall_total_ms_median": 1713.72,
+          "throughput_fps_median": 4.08468
+        },
+        {
+          "campaign": "after",
+          "scope": "offscreen",
+          "case": "geometry-100",
+          "variant": "wgpu-vulkan",
+          "processes": 3,
+          "measured_frames": 21,
+          "warmup_frames": 9,
+          "stats": {
+            "update_ms": {
+              "median_ms": 76.659014,
+              "p95_ms": 86.070425,
+              "p99_ms": 86.070425,
+              "max_global_ms": 89.123962,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "render_ms": {
+              "median_ms": 170.318889,
+              "p95_ms": 182.117535,
+              "p99_ms": 182.117535,
+              "max_global_ms": 217.7801,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "total_ms": {
+              "median_ms": 252.824758,
+              "p95_ms": 263.908242,
+              "p99_ms": 263.908242,
+              "max_global_ms": 297.566058,
+              "frames_over_16_67_sum": 21,
+              "frames_over_33_33_sum": 21
+            },
+            "publication_ms": {
+              "median_ms": 0.464806,
+              "p95_ms": 0.620636,
+              "p99_ms": 0.620636,
+              "max_global_ms": 0.734036,
+              "frames_over_16_67_sum": 0,
+              "frames_over_33_33_sum": 0
+            }
+          },
+          "peak_rss_median_mib": 591.5546875,
+          "peak_rss_global_max_mib": 591.640625,
+          "first_total_ms_from_csv_median": 738.761301,
+          "first_render_ms_from_csv_median": 697.556771,
+          "first_ms_median": 700.025,
+          "first_total_ms_median": 738.761,
+          "result_since_main_ms_median": 1560.96,
+          "wall_total_ms_median": 1768.15,
+          "throughput_fps_median": 3.95895
+        }
+      ],
+      "state_digests": {
+        "geometry-100": [
+          "0x261648c3a17fc04c"
+        ]
+      },
+      "source_provenance": {
+        "runner_recorded_source_revision": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+        "variant_source_content_revisions": {
+          "coingl": "4d63bb993022ee8d40802558b0871a4803002b8d",
+          "bgfx-vulkan": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+          "bgfx-opengl": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+          "wgpu-vulkan": "6182410f5789bbdc30d5ccd06fa341e1810aef8e"
+        },
+        "source_identity_limit": "Runner source_revision identifies its checkout; it does not by itself prove the compiled binary source",
+        "verified_binary_source_revision_supplied": null,
+        "frozen_binary_matches": [
+          {
+            "control_original_path": "/tmp/coin-render-validation-baseline-binaries.json",
+            "source_content_revision": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+            "variant_source_content_revisions": {
+              "wgpu-vulkan": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+              "wgpu-opengl": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+              "bgfx-vulkan": "ac28529a27da5ea370cf90eef4eeaf8b22f08850",
+              "bgfx-opengl": "ac28529a27da5ea370cf90eef4eeaf8b22f08850"
+            },
+            "source_head_at_snapshot": null,
+            "all_campaign_binary_hashes_match": false,
+            "matched_campaign_hashes": {
+              "/tmp/coin-render-material-geometry-baseline/coingl/bin/coin_render_gl_benchmark": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086",
+              "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086",
+              "/tmp/coin-render-first-frame-bgfx/lib/libCoin.so.80": "c86d9ce95df367b1c649545a1d0ba1de89edeb9f5b887f765bc47229d55c5437",
+              "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark": "fdeb5bec7dccc45643a62024fdabca605a6598510d63b0dcd27b6cc78ff67e4a",
+              "/tmp/coin-render-first-frame-wgpu/lib/libCoin.so.80": "c86d9ce95df367b1c649545a1d0ba1de89edeb9f5b887f765bc47229d55c5437"
+            },
+            "match_contract": "Content SHA256 match; original filename/symlink spelling may differ"
+          },
+          {
+            "control_original_path": "/tmp/coin-render-validation-final-binaries.json",
+            "source_content_revision": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+            "variant_source_content_revisions": {
+              "wgpu-vulkan": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+              "bgfx-vulkan": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+              "bgfx-opengl": "6182410f5789bbdc30d5ccd06fa341e1810aef8e"
+            },
+            "source_head_at_snapshot": null,
+            "all_campaign_binary_hashes_match": false,
+            "matched_campaign_hashes": {
+              "/tmp/coin-render-material-geometry-baseline/coingl/bin/coin_render_gl_benchmark": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086",
+              "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086",
+              "/tmp/coin-render-first-frame-bgfx/lib/libCoinRender.so": "f847f6ecff8c82256f423ba165d636f95c9abb2457aef8e68cc68e2755fe53ad",
+              "/tmp/coin-render-first-frame-bgfx/lib/libCoin.so.80": "c86d9ce95df367b1c649545a1d0ba1de89edeb9f5b887f765bc47229d55c5437",
+              "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark": "fdeb5bec7dccc45643a62024fdabca605a6598510d63b0dcd27b6cc78ff67e4a",
+              "/tmp/coin-render-first-frame-wgpu/lib/libCoinRender.so": "fd86c31067f786195976af9a5a9a873fccf976abfa80f15a7ffb12b1cb98550e",
+              "/tmp/coin-render-first-frame-wgpu/lib/libCoin.so.80": "c86d9ce95df367b1c649545a1d0ba1de89edeb9f5b887f765bc47229d55c5437"
+            },
+            "match_contract": "Content SHA256 match; original filename/symlink spelling may differ"
+          },
+          {
+            "control_original_path": "/tmp/coin-render-state-coingl-binaries.json",
+            "source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+            "variant_source_content_revisions": {
+              "coingl": "4d63bb993022ee8d40802558b0871a4803002b8d"
+            },
+            "source_head_at_snapshot": null,
+            "all_campaign_binary_hashes_match": false,
+            "matched_campaign_hashes": {
+              "/tmp/coin-render-material-geometry-baseline/coingl/bin/coin_render_gl_benchmark": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086",
+              "/tmp/coin-render-material-geometry-baseline/coingl/lib/libCoinRender.so": "51e7cd743a87afa7476b011a72f3749246e269d3d850715ddc3675af436658be",
+              "/tmp/coin-render-material-geometry-baseline/coingl/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f",
+              "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086"
+            },
+            "match_contract": "Content SHA256 match; original filename/symlink spelling may differ"
+          }
+        ]
+      }
+    }
+  },
+  "timing": {
+    "comparisons": [
+      {
+        "case": "geometry-100",
+        "variant": "bgfx-opengl",
+        "metrics": {
+          "total_median_ms": {
+            "before": 234.026269,
+            "after": 244.867323,
+            "change_percent": 4.632409022424744,
+            "ratio_before_to_after": 0.9557268243586753
+          },
+          "total_p95_ms": {
+            "before": 239.294967,
+            "after": 255.821206,
+            "change_percent": 6.906220890136816,
+            "ratio_before_to_after": 0.935399260841574
+          },
+          "total_p99_ms": {
+            "before": 239.294967,
+            "after": 255.821206,
+            "change_percent": 6.906220890136816,
+            "ratio_before_to_after": 0.935399260841574
+          },
+          "total_max_global_ms": {
+            "before": 301.711442,
+            "after": 339.464939,
+            "change_percent": 12.513114103243073,
+            "ratio_before_to_after": 0.8887852833602942
+          },
+          "update_ms_median": {
+            "before": 73.703449,
+            "after": 76.672195,
+            "change_percent": 4.027960753912607,
+            "ratio_before_to_after": 0.9612800181343446
+          },
+          "render_ms_median": {
+            "before": 159.844831,
+            "after": 166.170261,
+            "change_percent": 3.9572314978393086,
+            "ratio_before_to_after": 0.9619340430596062
+          },
+          "publication_ms_median": {
+            "before": 0.428578,
+            "after": 0.432696,
+            "change_percent": 0.9608519336036903,
+            "ratio_before_to_after": 0.9904829256568122
+          },
+          "first_total_ms_from_csv_median": {
+            "before": 739.677253,
+            "after": 745.77309,
+            "change_percent": 0.8241211927602743,
+            "ratio_before_to_after": 0.9918261504984042
+          },
+          "first_render_ms_from_csv_median": {
+            "before": 701.892171,
+            "after": 708.061113,
+            "change_percent": 0.8789016682164918,
+            "ratio_before_to_after": 0.9912875571236179
+          },
+          "result_since_main_ms_median": {
+            "before": 1428.97,
+            "after": 1445.77,
+            "change_percent": 1.1756719875154698,
+            "ratio_before_to_after": 0.988379894450708
+          },
+          "peak_rss_median_mib": {
+            "before": 511.17578125,
+            "after": 511.171875,
+            "change_percent": -0.0007641696150861854,
+            "ratio_before_to_after": 1.000007641754547
+          }
+        },
+        "same_recorded_protocol": true,
+        "protocol_differences": {},
+        "final_scene_state_digests": {
+          "before": [
+            "0x261648c3a17fc04c"
+          ],
+          "after": [
+            "0x261648c3a17fc04c"
+          ],
+          "equal": true
+        },
+        "limit": "Observed CPU wall times; matched protocol does not establish equal driver/display/thermal state"
+      },
+      {
+        "case": "geometry-100",
+        "variant": "bgfx-vulkan",
+        "metrics": {
+          "total_median_ms": {
+            "before": 237.560001,
+            "after": 239.166022,
+            "change_percent": 0.6760485743557476,
+            "ratio_before_to_after": 0.9932849115164026
+          },
+          "total_p95_ms": {
+            "before": 242.696423,
+            "after": 244.863179,
+            "change_percent": 0.8927844807997021,
+            "ratio_before_to_after": 0.9911511562953286
+          },
+          "total_p99_ms": {
+            "before": 242.696423,
+            "after": 244.863179,
+            "change_percent": 0.8927844807997021,
+            "ratio_before_to_after": 0.9911511562953286
+          },
+          "total_max_global_ms": {
+            "before": 247.461719,
+            "after": 248.165758,
+            "change_percent": 0.2845042064870018,
+            "ratio_before_to_after": 0.9971630292362896
+          },
+          "update_ms_median": {
+            "before": 75.676903,
+            "after": 75.030811,
+            "change_percent": -0.8537505822615366,
+            "ratio_before_to_after": 1.0086110224771527
+          },
+          "render_ms_median": {
+            "before": 161.425406,
+            "after": 163.195846,
+            "change_percent": 1.0967542494519034,
+            "ratio_before_to_after": 0.9891514395531859
+          },
+          "publication_ms_median": {
+            "before": 0.436022,
+            "after": 0.444888,
+            "change_percent": 2.033383636605479,
+            "ratio_before_to_after": 0.9800713887540236
+          },
+          "first_total_ms_from_csv_median": {
+            "before": 783.940154,
+            "after": 804.526333,
+            "change_percent": 2.62598859045049,
+            "ratio_before_to_after": 0.9744120507240127
+          },
+          "first_render_ms_from_csv_median": {
+            "before": 746.229938,
+            "after": 766.503259,
+            "change_percent": 2.7167659681860634,
+            "ratio_before_to_after": 0.97355090045351
+          },
+          "result_since_main_ms_median": {
+            "before": 1538.58,
+            "after": 1556.0,
+            "change_percent": 1.1322128196128878,
+            "ratio_before_to_after": 0.9888046272493572
+          },
+          "peak_rss_median_mib": {
+            "before": 478.2734375,
+            "after": 478.22265625,
+            "change_percent": -0.010617618713149035,
+            "ratio_before_to_after": 1.0001061874617112
+          }
+        },
+        "same_recorded_protocol": true,
+        "protocol_differences": {},
+        "final_scene_state_digests": {
+          "before": [
+            "0x261648c3a17fc04c"
+          ],
+          "after": [
+            "0x261648c3a17fc04c"
+          ],
+          "equal": true
+        },
+        "limit": "Observed CPU wall times; matched protocol does not establish equal driver/display/thermal state"
+      },
+      {
+        "case": "geometry-100",
+        "variant": "coingl",
+        "metrics": {
+          "total_median_ms": {
+            "before": 244.178328,
+            "after": 244.178328,
+            "change_percent": 0.0,
+            "ratio_before_to_after": 1.0
+          },
+          "total_p95_ms": {
+            "before": 249.769087,
+            "after": 249.769087,
+            "change_percent": 0.0,
+            "ratio_before_to_after": 1.0
+          },
+          "total_p99_ms": {
+            "before": 249.769087,
+            "after": 249.769087,
+            "change_percent": 0.0,
+            "ratio_before_to_after": 1.0
+          },
+          "total_max_global_ms": {
+            "before": 295.605065,
+            "after": 295.605065,
+            "change_percent": 0.0,
+            "ratio_before_to_after": 1.0
+          },
+          "update_ms_median": {
+            "before": 48.982964,
+            "after": 48.982964,
+            "change_percent": 0.0,
+            "ratio_before_to_after": 1.0
+          },
+          "render_ms_median": {
+            "before": 195.394916,
+            "after": 195.394916,
+            "change_percent": 0.0,
+            "ratio_before_to_after": 1.0
+          },
+          "publication_ms_median": {
+            "before": 0.431804,
+            "after": 0.431804,
+            "change_percent": 0.0,
+            "ratio_before_to_after": 1.0
+          },
+          "first_total_ms_from_csv_median": {
+            "before": 410.200718,
+            "after": 410.200718,
+            "change_percent": 0.0,
+            "ratio_before_to_after": 1.0
+          },
+          "first_render_ms_from_csv_median": {
+            "before": 373.54479,
+            "after": 373.54479,
+            "change_percent": 0.0,
+            "ratio_before_to_after": 1.0
+          },
+          "result_since_main_ms_median": {
+            "before": 959.023,
+            "after": 959.023,
+            "change_percent": 0.0,
+            "ratio_before_to_after": 1.0
+          },
+          "peak_rss_median_mib": {
+            "before": 239.796875,
+            "after": 239.796875,
+            "change_percent": 0.0,
+            "ratio_before_to_after": 1.0
+          }
+        },
+        "same_recorded_protocol": true,
+        "protocol_differences": {},
+        "final_scene_state_digests": {
+          "before": [
+            "0x261648c3a17fc04c"
+          ],
+          "after": [
+            "0x261648c3a17fc04c"
+          ],
+          "equal": true
+        },
+        "limit": "Observed CPU wall times; matched protocol does not establish equal driver/display/thermal state"
+      },
+      {
+        "case": "geometry-100",
+        "variant": "wgpu-vulkan",
+        "metrics": {
+          "total_median_ms": {
+            "before": 238.411238,
+            "after": 252.824758,
+            "change_percent": 6.045654609620366,
+            "ratio_before_to_after": 0.9429900769449169
+          },
+          "total_p95_ms": {
+            "before": 258.273194,
+            "after": 263.908242,
+            "change_percent": 2.181816824552052,
+            "ratio_before_to_after": 0.9786476998319742
+          },
+          "total_p99_ms": {
+            "before": 258.273194,
+            "after": 263.908242,
+            "change_percent": 2.181816824552052,
+            "ratio_before_to_after": 0.9786476998319742
+          },
+          "total_max_global_ms": {
+            "before": 305.05859,
+            "after": 297.566058,
+            "change_percent": -2.456096056826329,
+            "ratio_before_to_after": 1.0251793905876185
+          },
+          "update_ms_median": {
+            "before": 74.250585,
+            "after": 76.659014,
+            "change_percent": 3.2436498648461765,
+            "ratio_before_to_after": 0.9685825726900166
+          },
+          "render_ms_median": {
+            "before": 163.786176,
+            "after": 170.318889,
+            "change_percent": 3.9885618918167998,
+            "ratio_before_to_after": 0.9616442249103679
+          },
+          "publication_ms_median": {
+            "before": 0.413469,
+            "after": 0.464806,
+            "change_percent": 12.41616662917897,
+            "ratio_before_to_after": 0.8895517699857575
+          },
+          "first_total_ms_from_csv_median": {
+            "before": 663.742061,
+            "after": 738.761301,
+            "change_percent": 11.302468896874673,
+            "ratio_before_to_after": 0.8984526667836382
+          },
+          "first_render_ms_from_csv_median": {
+            "before": 625.034921,
+            "after": 697.556771,
+            "change_percent": 11.602847707128339,
+            "ratio_before_to_after": 0.8960344834786215
+          },
+          "result_since_main_ms_median": {
+            "before": 1408.6,
+            "after": 1560.96,
+            "change_percent": 10.816413460173235,
+            "ratio_before_to_after": 0.9023933989339893
+          },
+          "peak_rss_median_mib": {
+            "before": 591.7734375,
+            "after": 591.5546875,
+            "change_percent": -0.03696516033637742,
+            "ratio_before_to_after": 1.0003697882962004
+          }
+        },
+        "same_recorded_protocol": true,
+        "protocol_differences": {},
+        "final_scene_state_digests": {
+          "before": [
+            "0x261648c3a17fc04c"
+          ],
+          "after": [
+            "0x261648c3a17fc04c"
+          ],
+          "equal": true
+        },
+        "limit": "Observed CPU wall times; matched protocol does not establish equal driver/display/thermal state"
+      }
+    ],
+    "before_only": [],
+    "after_only": []
+  },
+  "rgb_before_after": null
+}

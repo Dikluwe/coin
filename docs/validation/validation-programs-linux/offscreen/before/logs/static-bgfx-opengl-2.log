@@ -1,0 +1,22 @@
+startup_detail arguments_ms=0.012724 coin_init_ms=2.26803 capability_probe_ms=155.531
+scene_detail parse_ms=311.896 wrapper_ms=0.020378 camera_fit_ms=70.9954
+scene_load_ms=382.975
+animation_detail mode=static animated_percent=10 eligible=40000 selected=0 prepared_clones=0 prepare_ms=22.6137 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x9ff61e351311c0b1
+startup_detail material_search_ms=0.092031 target_setup_ms=1.39077
+BGFX-OpenGL_first_detail render_ms=378.661 publication_copy_ms=0.36018 update_ms=0.000161 total_with_update_ms=379.021 before_frame_since_main_ms=567.023 result_since_main_ms=946.044
+BGFX-OpenGL_first_frame_ms=379.021
+BGFX-OpenGL_animation_final logical_frame=14 state_fnv64=0x65cec46a260273f5
+samples_output=/tmp/coin-render-validation-offscreen-before/samples/static-bgfx-opengl-2.csv rows=20
+rgba_fnv64=0x156847cec1d97864
+adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) vendor_id=0x10de device_id=0x0 backend=bgfx size=1024x1024 warmup=5 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=static
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..14 warmup_indices=-5..-1 frame_step=1 captures=0 capture_io=outside_frame_timers wall_throughput_includes_capture=0 wall_throughput_scope=update+frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+BGFX-OpenGL frames=15 median_ms=2.39784 p95_ms=2.76149 min_ms=2.24072 max_ms=2.76149
+BGFX_render_and_readback frames=15 median_ms=2.11281 p95_ms=2.2841 min_ms=2.02297 max_ms=2.2841
+BGFX_publication_copy frames=15 median_ms=0.29515 p95_ms=0.477389 min_ms=0.217756 max_ms=0.477389
+BGFX-OpenGL_timing_total frames=15 median_ms=2.398086 p95_ms=2.761612 p99_ms=2.761612 max_ms=2.761612 over_16_67=0 over_33_33=0
+BGFX-OpenGL_timing_update frames=15 median_ms=0.00016 p95_ms=0.000271 p99_ms=0.000271 max_ms=0.000271 over_16_67=0 over_33_33=0
+BGFX-OpenGL_timing_render frames=15 median_ms=2.112814 p95_ms=2.284103 p99_ms=2.284103 max_ms=2.284103 over_16_67=0 over_33_33=0
+BGFX-OpenGL_throughput frames=15 total_ms=36.5933 fps=409.911
+backend_cleanup_begin
+backend_cleanup_ms=29.1718
+benchmark_peak_rss_kib=350268
