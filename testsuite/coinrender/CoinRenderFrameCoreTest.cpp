@@ -10,6 +10,7 @@
 #include "rendering/coinrender/CoinRenderFloatCore.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
+#include "CoinRenderTestEnvironment.h"
 
 #include <Inventor/SoDB.h>
 
@@ -43,6 +44,188 @@ CoinRenderFramePlan validPlan() {
   plan.draws.emplace_back();
   plan.draws[0].geometry.vertexCount = plan.draws[0].geometry.indexCount = 3;
   return plan;
+}
+
+CoinRenderTextureCombineSnapshot activeCombine(float constant = .25f) {
+  CoinRenderTextureCombineSnapshot program;
+  program.instructions[0][0] = 1;
+  program.instructions[0][1] = program.instructions[0][2] = 1;
+  program.instructions[1][3] = program.instructions[2][3] = 1;
+  for (int c = 0; c < 3; ++c) {
+    program.instructions[1][c] = float(c);
+    program.instructions[2][c] = float(8 + c);
+    program.instructions[3][c] = constant;
+  }
+  program.instructions[3][3] = 1;
+  return program;
+}
+CoinRenderFramePlan repeatedCombinePlan(bool active = false) {
+  auto plan = validPlan();
+  plan.revision = 151;
+  plan.renderStates.resize(16, plan.renderStates[0]);
+  // Only state zero is drawn. Every subsequent state remains part of Common
+  // validation and deliberately repeats its predecessors' combine bytes.
+  if (active)
+    for (auto & state : plan.renderStates)
+      for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit)
+        state.textureCombines[unit] = activeCombine(float(unit) / 16);
+  return plan;
+}
+void enableTextureUnit(CoinRenderFramePlan & plan, size_t stateSlot, size_t unit) {
+  if (plan.textures.empty()) {
+    CoinRenderTextureImageSnapshot image;
+    image.width = image.height = 1; image.components = 4;
+    image.pixelsRgba = {255, 255, 255, 255};
+    plan.textures.push_back(image); plan.samplers.emplace_back();
+  }
+  auto & state = plan.renderStates[stateSlot];
+  if (unit == 0) state.hasTexture = true;
+  else state.extraTextures[unit - 1].enabled = true;
+}
+bool combineValidationOracle(const CoinRenderFramePlan & plan, bool expected,
+                             const char * diagnostic, const char * label) {
+  const std::string sentinel = "unchanged successful validation diagnostic";
+  std::string literalDiagnostic = sentinel, memoDiagnostic = sentinel;
+  coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMBINE_VALIDATION_MEMO", "1");
+  const bool literal = plan.isValid(&literalDiagnostic);
+  coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMBINE_VALIDATION_MEMO", "0");
+  const bool memo = plan.isValid(&memoDiagnostic);
+  const bool ok = literal == expected && memo == literal && memoDiagnostic == literalDiagnostic &&
+    literalDiagnostic == (diagnostic ? std::string(diagnostic) : sentinel);
+  if (!ok) std::cerr << label << ": literal=" << literal << " (" << literalDiagnostic << ") memo="
+                    << memo << " (" << memoDiagnostic << ")\n";
+  return check(ok, label);
+}
+bool testCombineValidationMemo() {
+  struct Environment {
+    std::string value; bool present;
+    Environment() {
+      const char * previous = std::getenv("COIN_RENDER_DISABLE_COMBINE_VALIDATION_MEMO");
+      present = previous != nullptr; value = previous ? previous : "";
+    }
+    ~Environment() { coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMBINE_VALIDATION_MEMO", present ? value.c_str() : nullptr); }
+  } environment;
+  bool ok = combineValidationOracle(repeatedCombinePlan(), true, nullptr,
+                                   "repeated inactive programs remain valid in referenced and unused states");
+  ok &= combineValidationOracle(repeatedCombinePlan(true), true, nullptr,
+                                "active programs remain validated even with disabled texture units");
+  const float invalid[] = {std::numeric_limits<float>::quiet_NaN(),
+                          std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity()};
+  for (bool active : {false, true}) {
+    const auto base = repeatedCombinePlan(active);
+    for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+      for (size_t field = 0; field < 16; ++field) {
+        for (const float value : invalid) {
+          auto changed = base;
+          changed.renderStates.back().textureCombines[unit].instructions[field / 4][field % 4] = value;
+          ok &= combineValidationOracle(changed, false, "Invalid texture combine program",
+            "every program float in every unit rejects NaN/Inf after earlier identical valid programs");
+        }
+        auto signedZero = repeatedCombinePlan();
+        signedZero.renderStates.back().textureCombines[unit].instructions[field / 4][field % 4] = -0.0f;
+        ok &= combineValidationOracle(signedZero, true, nullptr, "all program positions preserve signed-zero acceptance");
+      }
+    }
+  }
+  auto changed = repeatedCombinePlan(true);
+  for (size_t state = 0; state < changed.renderStates.size(); ++state)
+    for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+      changed.renderStates[state].textureCombines[unit] = activeCombine(state % 3 == 1 ? .75f : .25f);
+      if (state % 2) enableTextureUnit(changed, state, unit);
+    }
+  ok &= combineValidationOracle(changed, true, nullptr,
+      "A/B/A program values and changing texture enablement preserve ordinary validation");
+
+  const struct InvalidProgramField { int row, column; float value; } badFields[] = {
+    {0, 0, 2}, {0, 1, 1.5f}, {0, 2, 6}, {1, 3, 3}, {2, 0, 7}, {3, 0, 1.01f}
+  };
+  for (const auto & field : badFields) {
+    changed = repeatedCombinePlan(true);
+    changed.renderStates.back().textureCombines[7].instructions[field.row][field.column] = field.value;
+    ok &= combineValidationOracle(changed, false, "Invalid texture combine program",
+        "finite invalid active instructions cannot inherit a previous valid program");
+  }
+  changed = repeatedCombinePlan();
+  for (auto & state : changed.renderStates) state.textureCombines[3].instructions[2][0] = -200;
+  ok &= combineValidationOracle(changed, true, nullptr,
+      "inactive finite instructions retain the original unrestricted representation");
+  changed.renderStates.back().textureCombines[3].instructions[0][0] = 1;
+  ok &= combineValidationOracle(changed, false, "Invalid texture combine program",
+      "changing only activation invalidates an earlier inactive-program result");
+
+  // All enablement-dependent checks still execute after a valid combine hit,
+  // including those in states with no draw and units after unit zero.
+  for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+    changed = repeatedCombinePlan(true); enableTextureUnit(changed, 15, unit);
+    ok &= combineValidationOracle(changed, true, nullptr, "enabled texture units remain valid after repeated active programs");
+    if (unit == 0) changed.renderStates.back().textureImageSlot = 1;
+    else changed.renderStates.back().extraTextures[unit - 1].imageSlot = 1;
+    ok &= combineValidationOracle(changed, false, "RenderState references out-of-bounds texture image slot",
+        "combine cache hits do not bypass image bounds in unused states");
+    changed = repeatedCombinePlan(); enableTextureUnit(changed, 15, unit);
+    if (unit == 0) changed.renderStates.back().samplerSlot = 1;
+    else changed.renderStates.back().extraTextures[unit - 1].samplerSlot = 1;
+    ok &= combineValidationOracle(changed, false, "RenderState references out-of-bounds sampler slot",
+        "inactive program hits do not bypass enabled-unit sampler bounds");
+    changed = repeatedCombinePlan(true); enableTextureUnit(changed, 15, unit);
+    if (unit == 0) changed.renderStates.back().textureMatrix[0][0] = invalid[0];
+    else changed.renderStates.back().extraTextures[unit - 1].matrix[0][0] = invalid[0];
+    ok &= combineValidationOracle(changed, false, "RenderState contains non-finite texture matrix",
+        "combine cache hits do not bypass enabled-unit matrix validation");
+    changed = repeatedCombinePlan(true); enableTextureUnit(changed, 15, unit);
+    if (unit == 0) changed.renderStates.back().textureModel = static_cast<CoinRenderTextureModel>(99);
+    else changed.renderStates.back().extraTextures[unit - 1].model = static_cast<CoinRenderTextureModel>(99);
+    ok &= combineValidationOracle(changed, false, "RenderState contains unsupported texture model",
+        "combine cache hits do not bypass enabled-unit model validation");
+  }
+
+  changed = repeatedCombinePlan();
+  changed.renderStates.back().textureCombines[0].instructions[3][0] = invalid[0];
+  changed.renderStates.back().viewportSlot = 1;
+  ok &= combineValidationOracle(changed, false, "RenderState references out-of-bounds viewport slot",
+      "an earlier state property retains precedence over an invalid combine in that state");
+  changed = repeatedCombinePlan();
+  changed.renderStates.back().textureCombines[0].instructions[3][0] = invalid[0];
+  changed.renderStates.back().fogColor[0] = invalid[1];
+  ok &= combineValidationOracle(changed, false, "Invalid fog color",
+      "fog validation retains precedence over an invalid combine in the same state");
+  changed = repeatedCombinePlan();
+  changed.renderStates[1].textureCombines[7].instructions[3][0] = invalid[0];
+  changed.renderStates.back().viewportSlot = 1;
+  ok &= combineValidationOracle(changed, false, "Invalid texture combine program",
+      "an earlier invalid combine retains precedence over a later invalid unused state");
+  changed = repeatedCombinePlan(); enableTextureUnit(changed, 15, 0);
+  changed.renderStates.back().textureImageSlot = 1;
+  changed.renderStates.back().textureCombines[1].instructions[3][0] = invalid[0];
+  ok &= combineValidationOracle(changed, false, "RenderState references out-of-bounds texture image slot",
+      "earlier-unit image failure retains precedence over a later-unit invalid combine");
+  changed.renderStates.back().textureCombines[0].instructions[3][0] = invalid[0];
+  ok &= combineValidationOracle(changed, false, "Invalid texture combine program",
+      "same-unit combine failure remains before image validation");
+  changed = repeatedCombinePlan();
+  changed.renderStates.back().textureCombines[7].instructions[3][0] = invalid[0];
+  changed.renderStates[0].model[0][0] = invalid[1];
+  ok &= combineValidationOracle(changed, false, "Invalid texture combine program",
+      "state combine validation retains precedence over the later draw-matrix validation pass");
+  changed = repeatedCombinePlan();
+  changed.renderStates.back().textureMatrix[0][0] = invalid[0];
+  changed.renderStates.back().textureImageSlot = 99;
+  changed.renderStates.back().extraTextures[6].matrix[0][0] = invalid[1];
+  changed.renderStates.back().extraTextures[6].imageSlot = 99;
+  ok &= combineValidationOracle(changed, true, nullptr,
+      "disabled texture data remains ignored after validating its inactive program bytes");
+
+  auto sameRevision = repeatedCombinePlan(true);
+  ok &= combineValidationOracle(sameRevision, true, nullptr, "initial same-revision frame validates");
+  sameRevision.renderStates.back().textureCombines[6].instructions[3][2] = invalid[1];
+  ok &= combineValidationOracle(sameRevision, false, "Invalid texture combine program",
+      "mutation without a revision change cannot inherit prior invocation results");
+  sameRevision.renderStates.back().textureCombines[6] = activeCombine(.5f);
+  ok &= combineValidationOracle(sameRevision, true, nullptr,
+      "valid retry with the same revision is accepted after a failed invocation");
+  coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMBINE_VALIDATION_MEMO", "0");
+  ok &= check(sameRevision.isValid(nullptr), "the optional diagnostic pointer remains optional with combine memo enabled");
+  return ok;
 }
 
 bool testFiniteValidation() {
@@ -229,6 +412,7 @@ main()
   SoDB::init();
   bool ok = true;
   ok &= testFiniteValidation();
+  ok &= testCombineValidationMemo();
   ok &= testSubmissionPreflight();
   ok &= testCapturePreflightFallbacks();
 

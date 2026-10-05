@@ -14,9 +14,49 @@
 #include "rendering/coinrender/CoinRenderFloatCore.h"
 
 #include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
 
 namespace {
+// One owned program per unit, valid only during this isValid invocation. The
+// source frame is immutable here; neither revision nor source identity licenses
+// a result from a previous validation or a different unit.
+class CombineValidationMemo {
+public:
+  CombineValidationMemo() {
+    const char * disabled = std::getenv("COIN_RENDER_DISABLE_COMBINE_VALIDATION_MEMO");
+    enabled = !(disabled && std::strcmp(disabled, "1") == 0);
+    tracing = std::getenv("COIN_RENDER_TRACE_PHASES") || std::getenv("COIN_WGPU_TRACE_PHASES");
+  }
+  ~CombineValidationMemo() {
+    if (tracing)
+      std::fprintf(stderr, "COIN_RENDER_PHASE combine_validation_memo enabled=%d programs_checked=%zu cache_hits=%zu validated=%zu\n",
+        enabled ? 1 : 0, checked, hits, validated);
+  }
+  bool validate(size_t unit, const CoinRenderTextureCombineSnapshot & program) {
+    ++checked;
+    if (enabled && valid[unit] &&
+        std::memcmp(cached[unit].instructions, program.instructions, sizeof(program.instructions)) == 0) {
+      ++hits; return true;
+    }
+    ++validated; // Calls to the original validator, including a rejected miss.
+    if (!coin_render_validate_combine(program)) return false;
+    if (enabled) {
+      std::memcpy(cached[unit].instructions, program.instructions, sizeof(program.instructions));
+      valid[unit] = true;
+    }
+    return true;
+  }
+private:
+  static_assert(sizeof(CoinRenderTextureCombineSnapshot) == 16 * sizeof(float),
+                "Combine validation memo must own all sixteen program floats");
+  CoinRenderTextureCombineSnapshot cached[COIN_RENDER_MAX_TEXTURE_UNITS];
+  bool valid[COIN_RENDER_MAX_TEXTURE_UNITS] = {};
+  bool enabled, tracing;
+  size_t checked = 0, hits = 0, validated = 0;
+};
+
 template <typename T>
 bool
 samePlainSnapshots(const std::vector<T> & a, const std::vector<T> & b)
@@ -94,6 +134,7 @@ bool
 CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
 {
   CoinRenderPhaseTimer timer("validation_detail");
+  CombineValidationMemo combineMemo;
   auto isFiniteF = [](float v) { return coin_render_is_finite(v); };
 
   auto isMatrixFinite = [&](const SbMatrix & m) {
@@ -380,7 +421,7 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
       }
     }
     for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
-      if (!coin_render_validate_combine(state.textureCombines[unit])) {
+      if (!combineMemo.validate(unit, state.textureCombines[unit])) {
         if (outDiagnostic) *outDiagnostic = "Invalid texture combine program";
         return false;
       }
