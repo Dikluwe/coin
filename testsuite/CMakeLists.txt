@@ -389,3 +389,25 @@ target_include_directories(CoinSoText2ExtendedTest PRIVATE
 add_test(NAME SoText2ExtendedBounds COMMAND CoinSoText2ExtendedTest)
 add_test(NAME SoText2ExtendedRendering COMMAND CoinSoText2ExtendedTest --render)
 set_tests_properties(SoText2ExtendedRendering PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 30)
+
+add_executable(CoinSoText2Utf8PickingTest SoText2Utf8PickingTest.cpp)
+target_link_libraries(CoinSoText2Utf8PickingTest PRIVATE Coin)
+add_test(NAME SoText2Utf8Picking COMMAND CoinSoText2Utf8PickingTest)
+
+add_executable(CoinFontBitmapTest FontBitmapTest.cpp)
+target_compile_definitions(CoinFontBitmapTest PRIVATE COIN_INTERNAL)
+target_include_directories(CoinFontBitmapTest PRIVATE ${PROJECT_SOURCE_DIR}/src)
+target_link_libraries(CoinFontBitmapTest PRIVATE Coin)
+add_test(NAME FontBitmapStorage COMMAND CoinFontBitmapTest)
+
+# These fixtures require ELF interposition and a real FreeType backend.
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND COIN_BUILD_SHARED_LIBS AND
+   (HAVE_FREETYPE OR FREETYPE_RUNTIME_LINKING))
+  add_executable(CoinFontBackendTest FontBackendTest.cpp)
+  target_compile_definitions(CoinFontBackendTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+  target_include_directories(CoinFontBackendTest PRIVATE
+    ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+  target_link_libraries(CoinFontBackendTest PRIVATE Coin)
+  add_test(NAME FontBackendMetricsAndFallback COMMAND CoinFontBackendTest)
+  set_tests_properties(FontBackendMetricsAndFallback PROPERTIES SKIP_RETURN_CODE 77)
+endif()

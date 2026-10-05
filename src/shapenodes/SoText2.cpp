@@ -633,35 +633,30 @@ SoText2::rayPick(SoRayPickAction * action)
     float fonth =  1.0f / float(numstr);
     int stringidx = (numstr - SbClamp(int(vdist/fonth), 0, numstr-1)) - 1;
 
-    int maxlen = 0;
-    int i;
-    for (i = 0; i < numstr; i++) {
-      int len = this->string[i].getLength();
-      if (len > maxlen) maxlen = len;
-    }
-
     // find the character
     int charidx = -1;
-    int strlength = this->string[stringidx].getLength();
+    // positions contains one entry per decoded character, not per UTF-8 byte.
+    const int strlength = PRIVATE(this)->positions[stringidx].getLength();
+    int i;
     int32_t minx, miny, maxx, maxy;
     PRIVATE(this)->bbox.getBounds(minx, miny, maxx, maxy);
     float bbwidth = float(double(maxx) - double(minx));
-    float strleft = (bbwidth - PRIVATE(this)->stringwidth[stringidx]) / bbwidth;
-    float strright = 1.0;
+    // Match GLRender's line offset, including integer centering. Bounds
+    // can include bearings and padding beyond the logical line advance.
+    int lineoffset = 0;
     switch (this->justification.getValue()) {
-    case LEFT:
-      strleft = 0.0;
-      strright = PRIVATE(this)->stringwidth[stringidx] / bbwidth;
-      break;
+    case LEFT: break;
     case RIGHT:
+      lineoffset = PRIVATE(this)->maxwidth - PRIVATE(this)->stringwidth[stringidx];
       break;
     case CENTER:
-      strleft /= 2.0;
-      strright = 1.0f - strleft;
+      lineoffset = (PRIVATE(this)->maxwidth - PRIVATE(this)->stringwidth[stringidx]) / 2;
       break;
     default:
       assert(0 && "SoText2::rayPick: unknown justification");
     }
+    const double strleft = (double(lineoffset) - minx) / bbwidth;
+    const double strright = (double(lineoffset) + PRIVATE(this)->stringwidth[stringidx] - minx) / bbwidth;
 
     float charleft, charright;
     for (i=0; i<strlength; i++) {
@@ -765,11 +760,10 @@ SoText2P::getQuad(SoState * state, SbVec3f & v0, SbVec3f & v1,
   const double px = std::trunc(sx);
   const double py = std::trunc(sy);
   double alignment = 0.0;
-  const double width = double(xmax) - xmin;
   switch (PUBLIC(this)->justification.getValue()) {
   case SoText2::LEFT: break;
-  case SoText2::RIGHT: alignment = width; break;
-  case SoText2::CENTER: alignment = width * 0.5; break;
+  case SoText2::RIGHT: alignment = this->maxwidth; break;
+  case SoText2::CENTER: alignment = this->maxwidth * 0.5; break;
   default: assert(0 && "unknown alignment"); break;
   }
   const SbVec2d corners[4] = {
