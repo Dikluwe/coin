@@ -13,6 +13,8 @@
 #include <cstring>
 #include <limits>
 #include <Inventor/SbRotation.h>
+#include <Inventor/SbVec4f.h>
+#include <Inventor/SbViewVolume.h>
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <iostream>
 #include <string>
@@ -193,6 +195,29 @@ public:
   void disable(bool disabled) { set(disabled ? "1" : nullptr); }
 private:
   static const char * name() { return "COIN_WGPU_DISABLE_OPAQUE_INSTANCING"; }
+  static void set(const char * value) {
+#ifdef _WIN32
+    _putenv_s(name(), value ? value : "");
+#else
+    if (value) setenv(name(), value, 1); else unsetenv(name());
+#endif
+  }
+  bool wasSet;
+  std::string previous;
+};
+
+class DiagonalMeshSwitch {
+public:
+  DiagonalMeshSwitch() {
+    const char * value = std::getenv(name());
+    wasSet = value != nullptr;
+    if (value) previous = value;
+    disable(false);
+  }
+  ~DiagonalMeshSwitch() { set(wasSet ? previous.c_str() : nullptr); }
+  void disable(bool disabled) { set(disabled ? "1" : nullptr); }
+private:
+  static const char * name() { return "COIN_WGPU_DISABLE_DIAGONAL_MESH_LOWERING"; }
   static void set(const char * value) {
 #ifdef _WIN32
     _putenv_s(name(), value ? value : "");
@@ -520,14 +545,19 @@ bool incrementalBatchEquivalence(bool shared)
   return true;
 }
 
-bool instancedMatchesBake(const CoinWgpuFrameView & fast, const CoinWgpuFrameView & full)
+bool instancedMatchesBake(const CoinWgpuFrameView & fast, const CoinWgpuFrameView & full,
+                         float depthTolerance = 1.0e-4f)
 {
   if (!check(fast.instance_count > 0 && fast.instance_range_count == fast.draw_count &&
-             fast.state_count == 1 && full.instance_count == 0 && full.draw_count == 1,
+             fast.state_count == 1 && full.instance_count == 0 && full.draw_count == 1 &&
+             fast.material_count == full.material_count &&
+             std::memcmp(fast.materials,full.materials,fast.material_count*sizeof(CoinWgpuMaterial)) == 0,
              "instanced comparison requires a compact payload and a full-bake oracle")) return false;
-  SbMatrix commonView, commonNormal;
+  SbMatrix commonView, commonNormal, commonProjection, fullProjection;
   commonView.setValue(fast.states[0].model_view);
   commonNormal.setValue(fast.states[0].normal_matrix);
+  commonProjection.setValue(fast.states[0].model_view_projection);
+  fullProjection.setValue(full.states[0].model_view_projection);
   uint64_t nextInstance = 0, nextVertex = 0, nextIndex = 0;
   for (uint64_t g = 0; g < fast.instance_range_count; ++g) {
     const auto & range = fast.instance_ranges[g];
@@ -554,6 +584,16 @@ bool instancedMatchesBake(const CoinWgpuFrameView & fast, const CoinWgpuFrameVie
           if (!check(std::abs(position[c]-expected.position[c]) <= 1.0e-4f &&
               std::abs(direction[c]-expected.normal[c]) <= 1.0e-5f,
               "instance and camera-anchor transforms must match full baked positions/normals")) return false;
+        SbVec4f clip, expectedClip;
+        commonProjection.multVecMatrix(SbVec4f(anchorPosition[0],anchorPosition[1],anchorPosition[2],1),clip);
+        fullProjection.multVecMatrix(SbVec4f(expected.position[0],expected.position[1],expected.position[2],1),expectedClip);
+        for (int c = 0; c < 4; ++c)
+          if (!check(std::isfinite(clip[c]) && std::isfinite(expectedClip[c]) &&
+                     std::abs(clip[c]-expectedClip[c]) <= 1.0e-4f,
+              "instanced clip coordinates must match the independent baked projection")) return false;
+        if (clip[3] != 0 && expectedClip[3] != 0 &&
+            !check(std::abs(clip[2]/clip[3] - expectedClip[2]/expectedClip[3]) <= depthTolerance,
+                   "instanced normalized depth must match the independent baked projection")) return false;
         if (!check(instance.material_slot == expected.material_slot && source.material_slot == 0 &&
             std::memcmp(source.texcoord,expected.texcoord,sizeof(source.texcoord)) == 0 &&
             std::memcmp(source.extra_texcoords,expected.extra_texcoords,sizeof(source.extra_texcoords)) == 0 &&
@@ -767,6 +807,267 @@ bool consecutiveInstancingGroups()
   return check(samePacked(fast.getView(),original.getView()), "group limit fallback must remain byte-identical");
 }
 
+CoinRenderFramePlan diagonalBoxFrame()
+{
+  CoinRenderFramePlan frame;
+  frame.revision = 2500;
+  frame.materials.resize(2);
+  frame.materials[0].diffuse[0] = .7f;
+  frame.materials[1].diffuse[1] = .3f;
+  frame.lightingStates.resize(1);
+  CoinRenderLightSourceSnapshot light;
+  light.type = CoinRenderLightType::POINT;
+  light.position[0] = 3; light.position[1] = 2; light.position[2] = 4;
+  frame.lightingStates[0].lights.push_back(light);
+  static const int corners[8][3] = {
+    {-1,-1,-1},{1,-1,-1},{1,1,-1},{-1,1,-1},
+    {-1,-1,1},{1,-1,1},{1,1,1},{-1,1,1}
+  };
+  static const unsigned faces[6][4] = {
+    {0,3,2,1},{4,5,6,7},{0,4,7,3},{1,2,6,5},{0,1,5,4},{3,7,6,2}
+  };
+  static const float normals[6][3] = {
+    {0,0,-2},{0,0,2},{-2,0,0},{2,0,0},{0,-2,0},{0,2,0}
+  };
+  SbViewVolume volume;
+  volume.perspective(.85f,1.4f,.1f,100);
+  SbMatrix unusedView, projection;
+  volume.getMatrices(unusedView,projection);
+  SbMatrix view;
+  view.setRotate(SbRotation(SbVec3f(0,1,0),.23f));
+  view[3][0] = .5f; view[3][2] = -9;
+  for (uint32_t i = 0; i < 256; ++i) {
+    CoinRenderRenderStateSnapshot state;
+    SbMatrix rotation, modelScale;
+    rotation.setRotate(SbRotation(SbVec3f(1,2,3),.07f * float(i % 7)));
+    modelScale.setScale(SbVec3f(.8f,1.3f,.9f));
+    state.model = modelScale * rotation;
+    state.model[3][0] = float(i % 11) * .125f;
+    state.model[3][1] = float(i % 5) * -.0625f;
+    state.view = view; state.projectionCoin = projection;
+    state.materialSlot = i % 2;
+    state.transparencyType = SoGLRenderAction::NONE;
+    frame.renderStates.push_back(state);
+    CoinRenderDrawPacket draw;
+    draw.renderStateSlot = i;
+    draw.geometry.firstVertex = static_cast<uint32_t>(frame.vertices.size());
+    draw.geometry.firstIndex = static_cast<uint32_t>(frame.indices.size());
+    draw.geometry.vertexCount = 24; draw.geometry.indexCount = 36;
+    const float half[3] = {1 + float(i % 17) * .03125f,
+                          .7f + float(i % 23) * .0125f,
+                          .5f + float(i) * .001f};
+    for (unsigned face = 0; face < 6; ++face) {
+      for (unsigned vertex = 0; vertex < 4; ++vertex) {
+        CoinRenderVertexSnapshot value;
+        for (int c = 0; c < 3; ++c) {
+          value.position[c] = float(corners[faces[face][vertex]][c]) * half[c];
+          value.normal[c] = normals[face][c];
+        }
+        value.materialSlot = state.materialSlot;
+        value.texcoord[0] = vertex == 1 || vertex == 2 ? 1 : 0;
+        value.texcoord[1] = vertex >= 2 ? 1 : 0;
+        value.extraTexcoords[3][0] = .125f; value.extraTexcoords[3][1] = .75f;
+        frame.vertices.push_back(value);
+      }
+      for (unsigned local : {0u,1u,2u,0u,2u,3u})
+        frame.indices.push_back(draw.geometry.firstVertex + face * 4 + local);
+    }
+    frame.draws.push_back(draw);
+  }
+  return frame;
+}
+
+bool diagonalMeshEquivalence()
+{
+  auto frame = diagonalBoxFrame();
+  InstancingSwitch instancing;
+  DiagonalMeshSwitch lowering;
+  EarlyBatchSwitch early;
+  CameraPatchSwitch camera;
+  CoinWgpuFfiFrame fast, original;
+  std::string a,b;
+  CoinRenderFrameReuseDecision reuse(CoinRenderFrameReuseKind::FULL_REBUILD,0);
+  const auto compare = [&](bool expectedInstanced) {
+    instancing.disable(false); early.disable(false);
+    const bool okA = fast.prepare(frame,64,64,reuse,a);
+    instancing.disable(true); early.disable(true);
+    const bool okB = original.prepare(frame,64,64,b);
+    instancing.disable(false); early.disable(false);
+    if (!check(okA && okB,"diagonal position lowering and independent full-bake preparation")) return false;
+    return expectedInstanced ? instancedMatchesBake(fast.getView(),original.getView(),1.0e-5f) :
+      check(!fast.getView().instance_count && samePacked(fast.getView(),original.getView()),
+            "rejected diagonal profile must preserve byte-identical ordinary packing");
+  };
+  if (!compare(true) || !check(fast.getView().vertex_count == 24 && fast.getView().index_count == 36 &&
+      fast.getView().draw_count == 1 && fast.getView().instance_count == 256 &&
+      fast.opaqueHashedRangesLastPrepare() == 1,
+      "256 differently sized boxes must use one unit-coordinate mesh and preserve every occurrence")) return false;
+  for (uint32_t v = 0; v < 24; ++v) for (int c = 0; c < 3; ++c)
+    if (!check(std::abs(fast.getView().vertices[v].position[c]) == 1,
+               "diagonal canonical positions must be exact unit extrema")) return false;
+  SbMatrix authoredNormal = CoinRenderTransformCore::normalMatrix(frame.renderStates[7].model * frame.renderStates[7].view);
+  if (!check(std::memcmp(fast.getView().instances[7].normal_matrix,authoredNormal.getValue(),sizeof(float)*16) == 0,
+             "factoring local positions must not rescale or renormalize authored normals")) return false;
+  const auto sourcePositions = frame.vertices;
+  // A material table edit plus reassignment of one exclusive source span must
+  // preserve the new slot and table, even though geometry ignores material.
+  ++frame.revision; frame.materials[1].diffuse[2] = .45f;
+  frame.renderStates[0].materialSlot = 1;
+  for (uint32_t v = 0; v < 24; ++v) frame.vertices[v].materialSlot = 1;
+  reuse = CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::RESOURCE_REBUILD,frame.revision-1);
+  if (!compare(true) || !check(fast.getView().instances[0].material_slot == 1,
+      "material RESOURCE_REBUILD must qualify current exact slot and material bytes")) return false;
+  const uint64_t cameraBase = frame.revision++;
+  for (auto & state : frame.renderStates) state.view[3][0] += .125f;
+  reuse = CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::CAMERA_PATCH,cameraBase);
+  if (!compare(true) || !check(fast.getView().camera_base_revision == cameraBase,
+       "factorized positions must retain a valid authored camera anchor")) return false;
+  ++frame.revision;
+  for (uint32_t v = 24; v < 48; ++v) frame.vertices[v].position[1] *= 1.3f;
+  frame.renderStates[5].model[3][1] += .25f;
+  reuse = CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::RESOURCE_REBUILD,frame.revision-1);
+  if (!compare(true) || !check(fast.getView().draw_count == 1 && !fast.getView().camera_base_revision,
+      "geometry and objects immediately after camera must rebuild factored current-space positions")) return false;
+  const uint64_t objectBase = frame.revision++;
+  for (auto & state : frame.renderStates) state.view[3][1] += .125f;
+  reuse = CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::CAMERA_PATCH,objectBase);
+  if (!compare(true)) return false;
+  // The optout revokes both same-revision and camera-anchor reuse.
+  lowering.disable(true);
+  if (!check(fast.prepare(frame,64,64,a) && !fast.reusedLastPrepare() && !fast.getView().instance_count,
+      "diagonal lowering optout must revoke exact reuse of a normalized payload")) return false;
+  lowering.disable(false); ++frame.revision;
+  reuse = CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::FULL_REBUILD,0);
+  if (!compare(true)) return false;
+  const uint64_t disabledBase = frame.revision++;
+  for (auto & state : frame.renderStates) state.view[3][1] += .125f;
+  lowering.disable(true);
+  if (!check(fast.prepare(frame,64,64,
+      CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::CAMERA_PATCH,disabledBase),a) &&
+      !fast.getView().instance_count && !fast.getView().camera_base_revision,
+      "diagonal lowering optout must revoke an old normalized camera anchor")) return false;
+  lowering.disable(false); ++frame.revision;
+  if (!compare(true)) return false;
+  // In-place geometry mutation is real content, regardless of sourceRevision.
+  ++frame.revision; frame.vertices[0].position[0] *= .75f;
+  if (!compare(true) || !check(fast.getView().draw_count == 2 && fast.getView().vertex_count == 48,
+       "a non-extremal vertex must use its exact mesh instead of an unsafe diagonal reconstruction")) return false;
+  frame.vertices[0].position[0] = sourcePositions[0].position[0]; ++frame.revision;
+  if (!compare(true)) return false;
+  ++frame.revision; frame.vertices[0].materialSlot = 0;
+  if (!compare(false)) return false;
+  frame.vertices[0].materialSlot = 1; ++frame.revision;
+  if (!compare(true)) return false;
+  const SbMatrix stableModel = frame.renderStates[5].model;
+  frame.renderStates[5].model.setScale(SbVec3f(1,0,1)); ++frame.revision;
+  if (!compare(false)) return false;
+  frame.renderStates[5].model = stableModel; ++frame.revision;
+  if (!compare(true)) return false;
+  // Late failed packing must discard the normalized/camera proof, then allow
+  // an ordinary same-revision repair, as with the preexisting instanced path.
+  ++frame.revision;
+  frame.lightingStates.push_back(frame.lightingStates[0]);
+  frame.lightingStates.back().lights.resize(COIN_WGPU_FFI_MAX_LIGHTS+1);
+  frame.renderStates.push_back(frame.renderStates[0]); frame.renderStates.back().lightingSlot = 1;
+  if (!check(!fast.prepare(frame,64,64,a) && a.find("More than eight active lights") != std::string::npos,
+       "late invalid lighting must discard all diagonal proofs")) return false;
+  frame.renderStates.pop_back(); frame.lightingStates.pop_back();
+  if (!compare(true) || !check(!fast.reusedLastPrepare(),"repaired diagonal revision must rebuild")) return false;
+  if (!check(fast.prepare(frame,64,64,a,false) && !fast.getView().instance_count,
+       "RTT destination must preserve the ordinary non-instanced path after diagonal lowering")) return false;
+  return true;
+}
+
+bool diagonalMeshOrderAndFallback()
+{
+  InstancingSwitch instancing; instancing.disable(false);
+  DiagonalMeshSwitch lowering;
+  EarlyBatchSwitch early;
+  auto frame = diagonalBoxFrame();
+  CoinWgpuFfiFrame fast, original;
+  std::string a,b;
+  const auto compare = [&](bool instanced) {
+    instancing.disable(false); early.disable(false);
+    const bool okA = fast.prepare(frame,64,64,a);
+    instancing.disable(true); early.disable(true);
+    const bool okB = original.prepare(frame,64,64,b);
+    instancing.disable(false); early.disable(false);
+    if (!check(okA && okB,"diagonal order/fallback preparation")) return false;
+    return instanced ? instancedMatchesBake(fast.getView(),original.getView(),1.0e-5f) :
+      check(!fast.getView().instance_count && samePacked(fast.getView(),original.getView()),
+            "diagonal order/fallback must remain byte-identical to ordinary packing");
+  };
+  // A reflected block has different canonical positions. It cannot be merged
+  // with the positive block, or regrouped A/A/B; normals and winding stay raw.
+  for (uint32_t i = 128; i < 192; ++i)
+    for (uint32_t v = 0; v < 24; ++v) frame.vertices[i*24+v].position[0] *= -1;
+  if (!compare(true) || !check(fast.getView().draw_count == 3 && fast.getView().vertex_count == 48 &&
+      fast.getView().instance_ranges[0].instance_count == 128 &&
+      fast.getView().instance_ranges[1].instance_count == 64 &&
+      fast.getView().instance_ranges[2].instance_count == 64,
+      "A/reflected-B/A must preserve order, captured normals and unchanged indices")) return false;
+  for (uint32_t i = 128; i < 192; ++i)
+    for (uint32_t v = 0; v < 24; ++v) frame.vertices[i*24+v].position[0] *= -1;
+  ++frame.revision;
+  // Signed zero is preserved in the canonical position and its exact proof.
+  for (uint32_t i = 0; i < 256; ++i) frame.vertices[i*24].position[0] = -.0f;
+  if (!compare(true) || !check(fast.getView().draw_count == 1 &&
+      std::signbit(fast.getView().vertices[0].position[0]),"canonicalization must retain signed zero")) return false;
+  // Zero, subnormal and one-sided dimensions are not admitted to this profile;
+  // differing remaining dimensions still exceed the ordinary group bound.
+  uint64_t dimensionRevision = 2700;
+  for (float dimension : {0.0f,std::numeric_limits<float>::denorm_min()}) {
+    frame = diagonalBoxFrame(); frame.revision = dimensionRevision++;
+    for (uint32_t i = 0; i < 256; ++i) for (uint32_t v = 0; v < 24; ++v)
+      frame.vertices[i*24+v].position[0] = std::copysign(dimension,frame.vertices[i*24+v].position[0]);
+    if (!compare(false)) return false;
+  }
+  frame = diagonalBoxFrame(); frame.revision = 2900;
+  for (auto & vertex : frame.vertices) vertex.position[0] = std::abs(vertex.position[0]);
+  if (!compare(false)) return false;
+  frame = diagonalBoxFrame(); frame.revision = 2950;
+  for (auto & vertex : frame.vertices)
+    vertex.position[1] = std::copysign(std::numeric_limits<float>::max(),vertex.position[1]);
+  if (!compare(false)) return false;
+  // Different attributes/normals/topology keep different canonical meshes.
+  // Alternating either distinction cannot bypass the consecutive-group cap.
+  for (unsigned change = 0; change < 3; ++change) {
+    frame = diagonalBoxFrame(); frame.revision = 3000 + change;
+    for (uint32_t i = 1; i < 256; i += 2) {
+      if (change == 0) frame.vertices[i*24].normal[0] = .125f;
+      if (change == 1) frame.vertices[i*24].extraTexcoords[3][0] = .25f;
+      if (change == 2) std::swap(frame.indices[i*36],frame.indices[i*36+1]);
+    }
+    if (!compare(false)) return false;
+  }
+  return true;
+}
+
+bool boundedInstancingMetadata()
+{
+  auto frame = opaqueFrame(false);
+  const auto triangle = std::vector<CoinRenderVertexSnapshot>(frame.vertices.begin(),frame.vertices.begin()+3);
+  const uint32_t count = 65537;
+  frame.vertices.clear(); frame.indices.clear(); frame.draws.clear();
+  frame.renderStates.resize(1); frame.renderStates[0].materialSlot = 0;
+  for (uint32_t i = 0; i < count; ++i) {
+    CoinRenderDrawPacket draw;
+    draw.geometry.firstVertex = draw.geometry.firstIndex = i*3;
+    draw.geometry.vertexCount = draw.geometry.indexCount = 3;
+    for (uint32_t v = 0; v < 3; ++v) {
+      frame.vertices.push_back(triangle[v]); frame.indices.push_back(i*3+v);
+    }
+    frame.draws.push_back(draw);
+  }
+  InstancingSwitch instancing; instancing.disable(false);
+  CoinWgpuFfiFrame packed;
+  std::string diagnostic;
+  if (!check(packed.prepare(frame,64,64,diagnostic) && !packed.getView().instance_count &&
+      packed.getView().vertex_count == count*3 && packed.getView().draw_count == 1,
+      "source spans beyond the independent 64k/8MiB metadata bound must preserve the full-bake fallback")) return false;
+  return true;
+}
+
 bool boundedIncrementalBatch()
 {
   auto frame = opaqueFrame(true);
@@ -796,7 +1097,8 @@ main()
       !boundedIncrementalBatch()) return 1;
   instancing.disable(false);
   if (!opaqueInstancingEquivalence(false) || !opaqueInstancingEquivalence(true) ||
-      !consecutiveInstancingGroups()) return 1;
+      !consecutiveInstancingGroups() || !diagonalMeshEquivalence() ||
+      !diagonalMeshOrderAndFallback() || !boundedInstancingMetadata()) return 1;
   CoinRenderFramePlan frame;
   frame.revision = 41;
   frame.vertices.resize(1);

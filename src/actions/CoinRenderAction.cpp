@@ -80,6 +80,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <limits>
+#include <cmath>
 #include <Inventor/misc/SoState.h>
 #include <Inventor/misc/SoChildList.h>
 
@@ -412,7 +413,8 @@ captureStorageEstimate(SoNode * root)
 
 // Exact types only: custom subclasses and view-dependent traversal fall back.
 bool
-cameraStableScene(SoNode * root, SoCamera * camera, bool translationProfile = false)
+cameraStableScene(SoNode * root, SoCamera * camera, bool translationProfile = false,
+                  std::unordered_map<const SoNode *, size_t> * materialVisits = NULL)
 {
   std::vector<SoNode *> pending(1, root);
   // Node types are fixed for this qualification. Shared leaves need their
@@ -432,9 +434,16 @@ cameraStableScene(SoNode * root, SoCamera * camera, bool translationProfile = fa
   const SoType * leafEnd = leafTypes + sizeof(leafTypes) / sizeof(leafTypes[0]);
   std::unordered_set<SoNode *> qualifiedSharedLeaves;
   unsigned cameraOccurrences = 0;
+  size_t materialOccurrences = 0;
   while (!pending.empty()) {
     SoNode * node = pending.back();
     pending.pop_back();
+    // Count every syntactic material occurrence before shared-leaf dedup.
+    // Held references do not represent traversal through a different scope.
+    if (materialVisits && node->getTypeId() == SoMaterial::getClassTypeId()) {
+      if (++materialOccurrences > 65536) return false;
+      ++(*materialVisits)[node];
+    }
     if (node == camera) {
       if (++cameraOccurrences != 1) return false;
       if (!translationProfile) continue;
@@ -462,6 +471,8 @@ cameraStableScene(SoNode * root, SoCamera * camera, bool translationProfile = fa
   }
   return cameraOccurrences == 1;
 }
+bool translationFieldsStable(const SoNode *);
+bool objectOverlayEnabled(const char *);
 }
 
 void
@@ -483,6 +494,26 @@ CoinRenderActionP::cameraSensorCB(void * data, SoSensor * sensor)
     if (!position->isConnected() && !position->isIgnored() && self->translationProofValid && !self->translationInvalidated &&
         !self->cameraOnlyDirty && found != self->translationByNode.end())
       self->translationDirty.insert(found->second);
+    else self->translationInvalidated = true;
+  } else if (trigger && field && field->getContainer() == trigger &&
+             nodeSensor->getTriggerOperationType() == SoNotRec::FIELD_UPDATE &&
+             trigger->getTypeId() == SoMaterial::getClassTypeId()) {
+    auto * material = static_cast<SoMaterial *>(trigger);
+    const bool knownField = field == &material->ambientColor || field == &material->diffuseColor ||
+      field == &material->specularColor || field == &material->emissiveColor || field == &material->shininess;
+    if (objectOverlayEnabled("COIN_RENDER_DISABLE_MATERIAL_OVERLAY")) self->translationInputDirty = true;
+    if (knownField && translationFieldsStable(material) && self->translationProofValid &&
+        !self->translationInvalidated && !self->cameraOnlyDirty && self->materialByNode.count(trigger))
+      self->materialDirty.insert(trigger);
+    else self->translationInvalidated = true;
+  } else if (trigger && field && field->getContainer() == trigger &&
+             nodeSensor->getTriggerOperationType() == SoNotRec::FIELD_UPDATE &&
+             trigger->getTypeId() == SoCube::getClassTypeId()) {
+    auto * cube = static_cast<SoCube *>(trigger);
+    if (objectOverlayEnabled("COIN_RENDER_DISABLE_CUBE_OVERLAY")) self->translationInputDirty = true;
+    if ((field == &cube->width || field == &cube->height || field == &cube->depth) &&
+        translationFieldsStable(cube) && self->translationProofValid && !self->translationInvalidated &&
+        !self->cameraOnlyDirty && self->cubeByNode.count(trigger)) self->geometryDirty.insert(trigger);
     else self->translationInvalidated = true;
   } else self->translationInvalidated = true;
   if (self->candidateCamera &&
@@ -539,6 +570,35 @@ bool translationFieldsStable(const SoNode * node)
   }
   return true;
 }
+bool objectOverlayEnabled(const char * name) {
+  const char * value = std::getenv(name);
+  return !(value && std::strcmp(value, "1") == 0);
+}
+bool opaqueMaterialSnapshot(const SoMaterial * node, CoinRenderMaterialSnapshot & result) {
+  if (node->getNodeType() != SoNode::INVENTOR || node->isOverride() || !translationFieldsStable(node) ||
+      node->ambientColor.getNum() != 1 || node->diffuseColor.getNum() != 1 ||
+      node->specularColor.getNum() != 1 || node->emissiveColor.getNum() != 1 || node->shininess.getNum() != 1 ||
+      node->transparency.getNum() != 1 || node->transparency[0] != 0) return false;
+  CoinRenderMaterialSnapshot candidate;
+  const SbColor colors[] = {node->ambientColor[0], node->diffuseColor[0], node->specularColor[0], node->emissiveColor[0]};
+  float * output[] = {candidate.ambient, candidate.diffuse, candidate.specular, candidate.emission};
+  for (int color = 0; color < 4; ++color) for (int axis = 0; axis < 3; ++axis) {
+    const float value = colors[color][axis];
+    if (!std::isfinite(value) || value < 0 || value > 1) return false;
+    output[color][axis] = value;
+  }
+  candidate.shininess = node->shininess[0];
+  if (!std::isfinite(candidate.shininess) || candidate.shininess < 0 || candidate.shininess > 1) return false;
+  result = candidate;
+  return true;
+}
+bool cubeDimensions(const SoCube * node, SbVec3f & result) {
+  const SbVec3f value(node->width.getValue(), node->height.getValue(), node->depth.getValue());
+  for (int axis = 0; axis < 3; ++axis)
+    if (!std::isfinite(value[axis]) || value[axis] < .0001f || value[axis] > 32768) return false;
+  result = value;
+  return true;
+}
 }
 
 void CoinRenderActionP::clearTranslationProof()
@@ -548,6 +608,8 @@ void CoinRenderActionP::clearTranslationProof()
   this->translationBindings.clear();
   this->translationByNode.clear();
   this->translationDirty.clear();
+  this->materialDirty.clear(); this->geometryDirty.clear();
+  this->materialByNode.clear(); this->cubeByNode.clear();
   if (this->translationGeneration != std::numeric_limits<uint64_t>::max())
     ++this->translationGeneration;
 }
@@ -557,6 +619,7 @@ void CoinRenderActionP::beginTranslationCapture(bool enabled)
   this->clearTranslationProof();
   this->translationCapture.clear();
   this->translationCaptureByNode.clear();
+  this->capturedDrawSources.clear(); this->pendingCaptureShape = NULL;
   this->translationShapeCandidate = SIZE_MAX;
   const char * disabled = std::getenv("COIN_RENDER_DISABLE_TRANSLATION_OVERLAY");
   this->capturingTranslations = enabled && this->translationGeneration != std::numeric_limits<uint64_t>::max() &&
@@ -593,6 +656,9 @@ SoCallbackAction::Response CoinRenderActionP::translationPreCB(
   binding.transform = const_cast<SoNode *>(node);
   binding.parent = parent;
   binding.cube = parent->getChild(2);
+  binding.material = static_cast<SoMaterial *>(material);
+  const auto * cube = static_cast<const SoCube *>(binding.cube);
+  binding.cubeDimensions.setValue(cube->width.getValue(), cube->height.getValue(), cube->depth.getValue());
   if (type == SoTransform::getClassTypeId()) {
     auto * transform = static_cast<SoTransform *>(binding.transform);
     if (transform->center.getValue() != SbVec3f(0,0,0)) return SoCallbackAction::CONTINUE;
@@ -608,6 +674,10 @@ SoCallbackAction::Response CoinRenderActionP::translationPreCB(
 void CoinRenderActionP::beginTranslationShape(SoCallbackAction * action, const SoNode * node)
 {
   this->translationShapeCandidate = SIZE_MAX;
+  if (this->capturingTranslations && !this->translationCaptureInvalid) {
+    this->pendingCaptureShape = node;
+    this->firstCaptureDraw = this->builder.capturedDrawCount();
+  }
   if (!this->capturingTranslations || this->translationCaptureInvalid ||
       node->getTypeId() != SoCube::getClassTypeId()) return;
   const SoPath * path = action->getCurPath();
@@ -623,12 +693,28 @@ void CoinRenderActionP::beginTranslationShape(SoCallbackAction * action, const S
     if (binding.parent != parent || binding.cube != node) continue;
     this->translationShapeCandidate = found->second;
     binding.firstDraw = this->builder.capturedDrawCount();
+    SoState * state = action->getState();
+    binding.overallMaterial = SoMaterialBindingElement::get(state) == SoMaterialBindingElement::OVERALL &&
+      !binding.material->isOverride() && !SoOverrideElement::getAmbientColorOverride(state) &&
+      !SoOverrideElement::getDiffuseColorOverride(state) && !SoOverrideElement::getSpecularColorOverride(state) &&
+      !SoOverrideElement::getEmissiveColorOverride(state) && !SoOverrideElement::getShininessOverride(state) &&
+      !SoOverrideElement::getTransparencyOverride(state);
     return;
   }
 }
 
 void CoinRenderActionP::endTranslationShape()
 {
+  if (this->pendingCaptureShape) {
+    const size_t count = this->builder.capturedDrawCount();
+    if (count > 65536) this->translationCaptureInvalid = true;
+    else {
+      this->capturedDrawSources.resize(count, NULL);
+      for (size_t draw = this->firstCaptureDraw; draw < count; ++draw)
+        this->capturedDrawSources[draw] = this->pendingCaptureShape;
+    }
+    this->pendingCaptureShape = NULL;
+  }
   if (this->translationShapeCandidate != SIZE_MAX) {
     auto & binding = this->translationCapture[this->translationShapeCandidate];
     binding.endDraw = this->builder.capturedDrawCount();
@@ -641,9 +727,11 @@ void CoinRenderActionP::endTranslationShape()
 void CoinRenderActionP::qualifyTranslationCapture(SoNode * root)
 {
   struct CaptureScope { bool & capturing; ~CaptureScope() { capturing = false; } } scope{this->capturingTranslations};
+  std::unordered_map<const SoNode *, size_t> materialVisits;
   if (!this->capturingTranslations || this->translationCaptureInvalid || this->translationCapture.empty() ||
       !root || !this->candidateCamera || this->lastValidPlan.renderStates.size() > 65536 ||
-      this->lastValidPlan.draws.size() > 65536 || !cameraStableScene(root, this->candidateCamera, true)) return;
+      this->lastValidPlan.draws.size() > 65536 ||
+      !cameraStableScene(root, this->candidateCamera, true, &materialVisits)) return;
   CoinRenderCameraOverlayBasis profile;
   if (!CoinRenderFrameReuseCore::prepareCameraOverlayBasis(this->lastValidPlan, profile)) return;
   const auto & plan = this->lastValidPlan;
@@ -696,13 +784,112 @@ void CoinRenderActionP::qualifyTranslationCapture(SoNode * root)
   this->translationProofGeneration = this->translationGeneration;
   this->translationProofRevision = plan.revision;
   this->translationProofValid = true;
+  this->qualifyObjectPayloads(materialVisits);
 }
 
-bool CoinRenderActionP::prepareTranslationOverlay(SoNode * root, CoinRenderTranslationOverlayUndo & undo)
+void CoinRenderActionP::qualifyObjectPayloads(const std::unordered_map<const SoNode *, size_t> & materialVisits)
+{
+  const auto & plan = this->lastValidPlan;
+  if (plan.materials.size() > 65536 || this->capturedDrawSources.size() != plan.draws.size()) return;
+  std::vector<size_t> drawOwners(plan.draws.size(), SIZE_MAX);
+  for (size_t i = 0; i < this->translationBindings.size(); ++i)
+    drawOwners[this->translationBindings[i].firstDraw] = i;
+  std::vector<const SoNode *> materialOwners(plan.materials.size(), NULL);
+  std::vector<bool> materialConflicts(plan.materials.size(), false);
+  for (size_t draw = 0; draw < plan.draws.size(); ++draw) {
+    const auto & packet = plan.draws[draw];
+    const uint32_t slot = plan.renderStates[packet.renderStateSlot].materialSlot;
+    const SoNode * owner = drawOwners[draw] == SIZE_MAX ? NULL : this->translationBindings[drawOwners[draw]].material;
+    if (!owner) materialConflicts[slot] = true;
+    else if (!materialOwners[slot]) materialOwners[slot] = owner;
+    else if (materialOwners[slot] != owner) materialConflicts[slot] = true;
+    // OVERALL must actually be uniform across every vertex consumed by this draw.
+    for (uint32_t index = 0; index < packet.geometry.indexCount; ++index) {
+      const uint32_t material = plan.vertices[plan.indices[packet.geometry.firstIndex + index]].materialSlot;
+      if (material != slot) { materialConflicts[slot] = true; materialConflicts[material] = true; }
+    }
+  }
+  struct Range { uint64_t first, end; size_t draw; const SoNode * cube; };
+  std::vector<Range> ranges;
+  ranges.reserve(plan.draws.size());
+  for (size_t draw = 0; draw < plan.draws.size(); ++draw) {
+    const auto & range = plan.draws[draw].geometry;
+    ranges.push_back({range.firstVertex, uint64_t(range.firstVertex) + range.vertexCount, draw,
+      drawOwners[draw] == SIZE_MAX ? NULL : this->translationBindings[drawOwners[draw]].cube});
+  }
+  for (auto & binding : this->translationBindings) {
+    const auto & state = plan.renderStates[binding.stateSlot];
+    CoinRenderMaterialSnapshot material;
+    binding.materialEligible = binding.overallMaterial && !materialConflicts[state.materialSlot] &&
+      materialOwners[state.materialSlot] == binding.material &&
+      opaqueMaterialSnapshot(binding.material, material) &&
+      std::memcmp(&material, &plan.materials[state.materialSlot], sizeof(material)) == 0;
+    SbVec3f dimensions;
+    binding.geometryEligible = binding.overallMaterial && binding.geometry.vertexCount == 24 &&
+      binding.geometry.indexCount == 36 && cubeDimensions(static_cast<const SoCube *>(binding.cube), dimensions) &&
+      dimensions == binding.cubeDimensions;
+    if (binding.geometryEligible) {
+      for (uint32_t offset = 0; offset < binding.geometry.vertexCount; ++offset) {
+        const auto & vertex = plan.vertices[binding.geometry.firstVertex + offset];
+        for (int axis = 0; axis < 3; ++axis)
+          if (std::abs(vertex.position[axis]) != dimensions[axis] * .5f) binding.geometryEligible = false;
+        if (vertex.screenSpaceW != 1 || vertex.fogEyeDepth != -1) binding.geometryEligible = false;
+      }
+    }
+  }
+  std::sort(ranges.begin(), ranges.end(), [](const Range & a, const Range & b) { return a.first < b.first; });
+  for (size_t begin = 0; begin < ranges.size();) {
+    size_t end = begin + 1; uint64_t maximum = ranges[begin].end;
+    const SoNode * owner = ranges[begin].cube; bool overlapConflict = !owner;
+    while (end < ranges.size() && ranges[end].first < maximum) {
+      if (ranges[end].cube != owner || ranges[end].first != ranges[begin].first ||
+          ranges[end].end != ranges[begin].end) overlapConflict = true;
+      maximum = std::max(maximum, ranges[end].end); ++end;
+    }
+    if (overlapConflict) for (size_t i = begin; i < end; ++i)
+      if (drawOwners[ranges[i].draw] != SIZE_MAX) this->translationBindings[drawOwners[ranges[i].draw]].geometryEligible = false;
+    begin = end;
+  }
+  // A source is admitted only if all of its captured occurrences are admitted.
+  std::unordered_set<const SoNode *> rejectedMaterials, rejectedCubes;
+  std::unordered_set<const SoNode *> capturedCubes;
+  std::unordered_map<const SoNode *, size_t> materialOccurrences;
+  for (const auto & binding : this->translationBindings) {
+    capturedCubes.insert(binding.cube);
+    ++materialOccurrences[binding.material];
+  }
+  for (size_t draw = 0; draw < plan.draws.size(); ++draw) if (drawOwners[draw] == SIZE_MAX) {
+    if (capturedCubes.count(this->capturedDrawSources[draw])) rejectedCubes.insert(this->capturedDrawSources[draw]);
+  }
+  for (const auto & binding : this->translationBindings) {
+    // Unmapped syntax can use this material under partial overrides, creating
+    // a different table slot which still depends on some fields of this source.
+    // Require every occurrence in this root to belong to an isolated object.
+    const auto visits = materialVisits.find(binding.material);
+    if (!binding.materialEligible || visits == materialVisits.end() || visits->second != materialOccurrences[binding.material])
+      rejectedMaterials.insert(binding.material);
+    if (!binding.geometryEligible) rejectedCubes.insert(binding.cube);
+  }
+  for (size_t i = 0; i < this->translationBindings.size(); ++i) {
+    const auto & binding = this->translationBindings[i];
+    if (!rejectedMaterials.count(binding.material) && objectOverlayEnabled("COIN_RENDER_DISABLE_MATERIAL_OVERLAY"))
+      this->materialByNode[binding.material].push_back(i);
+    if (!rejectedCubes.count(binding.cube) && objectOverlayEnabled("COIN_RENDER_DISABLE_CUBE_OVERLAY"))
+      this->cubeByNode[binding.cube].push_back(i);
+  }
+  // Conservative accounting includes source-map nodes/buckets and occurrence
+  // indices. The existing transform proof has its independent 65,536 cap.
+  const size_t metadataBytes = this->translationBindings.size() * 80 +
+    (this->materialByNode.size() + this->cubeByNode.size()) * 128;
+  if (metadataBytes > 16 * 1024 * 1024) { this->materialByNode.clear(); this->cubeByNode.clear(); }
+}
+
+bool CoinRenderActionP::prepareTranslationOverlay(SoNode * root, CoinRenderObjectOverlayUndo & undo)
 {
   const char * disabled = std::getenv("COIN_RENDER_DISABLE_TRANSLATION_OVERLAY");
   if ((disabled && std::strcmp(disabled, "1") == 0) || !this->translationProofValid ||
-      this->translationInvalidated || !this->translationInputDirty || this->translationDirty.empty() ||
+      this->translationInvalidated || !this->translationInputDirty ||
+      (this->translationDirty.empty() && this->materialDirty.empty() && this->geometryDirty.empty()) ||
       this->cameraOnlyDirty || root != this->cachedRoot || this->cameraSensor.getAttachedNode() != root ||
       this->translationProofGeneration != this->translationGeneration || !this->translationProofRevision) return false;
   std::vector<CoinRenderModelUpdate> updates;
@@ -718,13 +905,51 @@ bool CoinRenderActionP::prepareTranslationOverlay(SoNode * root, CoinRenderTrans
         !CoinRenderFrameReuseCore::translatedModel(binding.anchor, binding.prefix, binding.field->getValue(), update.model)) return false;
     updates.push_back(update);
   }
-  return CoinRenderFrameReuseCore::beginTranslationOverlay(this->lastValidPlan, updates,
+  std::vector<CoinRenderMaterialUpdate> materials;
+  std::unordered_set<uint32_t> materialSlots;
+  if (!this->materialDirty.empty() && !objectOverlayEnabled("COIN_RENDER_DISABLE_MATERIAL_OVERLAY")) return false;
+  for (const SoNode * node : this->materialDirty) {
+    const auto found = this->materialByNode.find(node);
+    CoinRenderMaterialSnapshot snapshot;
+    if (found == this->materialByNode.end() || !opaqueMaterialSnapshot(static_cast<const SoMaterial *>(node), snapshot)) return false;
+    for (size_t object : found->second) {
+      const uint32_t slot = this->lastValidPlan.renderStates[this->translationBindings[object].stateSlot].materialSlot;
+      if (materialSlots.insert(slot).second) materials.push_back({slot, snapshot});
+    }
+  }
+  std::vector<CoinRenderPositionUpdate> positions;
+  std::vector<CoinRenderDrawSourceUpdate> draws;
+  // Admitted overlapping ranges are exact aliases of the same Cube source.
+  // Deduplicate 24-vertex ranges, avoiding a hash allocation for every vertex.
+  std::unordered_set<uint32_t> vertexRanges;
+  if (!this->geometryDirty.empty() && !objectOverlayEnabled("COIN_RENDER_DISABLE_CUBE_OVERLAY")) return false;
+  for (const SoNode * node : this->geometryDirty) {
+    const auto found = this->cubeByNode.find(node); SbVec3f dimensions;
+    if (found == this->cubeByNode.end() || !translationFieldsStable(node) ||
+        !cubeDimensions(static_cast<const SoCube *>(node), dimensions)) return false;
+    for (size_t object : found->second) {
+      const auto & binding = this->translationBindings[object];
+      if (binding.material->isOverride() || binding.material->getNodeType() != SoNode::INVENTOR) return false;
+      draws.push_back({static_cast<uint32_t>(binding.firstDraw), node->getNodeId()});
+      if (!vertexRanges.insert(binding.geometry.firstVertex).second) continue;
+      for (uint32_t offset = 0; offset < binding.geometry.vertexCount; ++offset) {
+        const uint32_t slot = binding.geometry.firstVertex + offset;
+        if (positions.size() == COIN_RENDER_OBJECT_OVERLAY_MAX_POSITIONS) return false;
+        const auto & previous = this->lastValidPlan.vertices[slot];
+        SbVec3f position;
+        for (int axis = 0; axis < 3; ++axis) position[axis] = std::copysign(dimensions[axis] * .5f, previous.position[axis]);
+        positions.push_back({slot, position});
+      }
+    }
+  }
+  return CoinRenderFrameReuseCore::beginObjectOverlay(this->lastValidPlan, updates, materials, positions, draws,
     CoinRenderFramePlanBuilder::nextRevision(), undo);
 }
 
 void CoinRenderActionP::commitTranslationOverlay()
 {
   this->translationDirty.clear();
+  this->materialDirty.clear(); this->geometryDirty.clear();
   this->translationInputDirty = false;
   this->translationInvalidated = false;
   this->cameraPatchInvalidated = false;
@@ -856,16 +1081,16 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   CoinRenderFramePlan plan;
   CoinRenderFramePreflight capturedPreflight;
   CoinRenderCameraOverlayUndo overlayUndo;
-  CoinRenderTranslationOverlayUndo translationUndo;
+  CoinRenderObjectOverlayUndo translationUndo;
   struct CameraOverlayScope {
     CoinRenderFramePlan & frame;
     CoinRenderCameraOverlayUndo & undo;
-    CoinRenderTranslationOverlayUndo & translationUndo;
+    CoinRenderObjectOverlayUndo & translationUndo;
     bool committed;
     ~CameraOverlayScope() {
       if (!committed) {
         CoinRenderFrameReuseCore::rollbackCameraOverlay(frame, undo);
-        CoinRenderFrameReuseCore::rollbackTranslationOverlay(frame, translationUndo);
+        CoinRenderFrameReuseCore::rollbackObjectOverlay(frame, translationUndo);
       }
     }
   } overlayScope{this->lastValidPlan, overlayUndo, translationUndo, false};

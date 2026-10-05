@@ -146,6 +146,68 @@ bool testTranslationOverlay() {
               "unversioned or unchanged revisions must not publish a model overlay");
   return ok;
 }
+
+bool testObjectPayloadTransaction() {
+  bool ok = true;
+  auto plan = makePlan(1600); const auto original = plan;
+  const auto * vertices = plan.vertices.data(); const auto * indices = plan.indices.data();
+  CoinRenderMaterialUpdate material; material.material.diffuse[0] = .3f;
+  CoinRenderPositionUpdate position; position.slot = 1; position.position.setValue(.7f, .2f, -.1f);
+  CoinRenderDrawSourceUpdate draw; draw.sourceNodeId = 500;
+  CoinRenderModelUpdate model; model.model[3][0] = .4f;
+  CoinRenderObjectOverlayUndo undo;
+  ok &= check(CoinRenderFrameReuseCore::beginObjectOverlay(plan, {model}, {material}, {position}, {draw}, 1601, undo) &&
+              undo.active && plan.revision == 1601 && plan.vertices.data() == vertices && plan.indices.data() == indices &&
+              plan.materials[0].diffuse[0] == .3f && plan.vertices[1].position[0] == .7f &&
+              plan.draws[0].sourceNodeId == 500 && plan.renderStates[0].model[3][0] == .4f,
+              "joint object overlay must modify only requested payloads and retain all arenas");
+  CoinRenderFrameReuseCore::rollbackObjectOverlay(plan, undo);
+  ok &= check(!undo.active && plan.revision == original.revision && plan.hasSamePayload(original),
+              "joint rollback must restore material, geometry, model and source identity completely");
+  for (int kind = 0; kind < 6; ++kind) {
+    auto materials = std::vector<CoinRenderMaterialUpdate>{material};
+    auto positions = std::vector<CoinRenderPositionUpdate>{position};
+    auto draws = std::vector<CoinRenderDrawSourceUpdate>{draw};
+    if (kind == 0) materials[0].material.transparency = .5f;
+    if (kind == 1) materials.push_back(material);
+    if (kind == 2) positions[0].position[2] = std::numeric_limits<float>::quiet_NaN();
+    if (kind == 3) positions.push_back(position);
+    if (kind == 4) draws[0].slot = 1;
+    if (kind == 5) positions.resize(COIN_RENDER_OBJECT_OVERLAY_MAX_POSITIONS + 1);
+    CoinRenderObjectOverlayUndo rejected;
+    ok &= check(!CoinRenderFrameReuseCore::beginObjectOverlay(plan, {model}, materials, positions, draws, 1602, rejected) &&
+                !rejected.active && plan.revision == original.revision && plan.hasSamePayload(original),
+                "late invalid/duplicate/transparent/oversized payload must reject before any joint mutation");
+  }
+  CoinRenderObjectOverlayUndo materialOnly;
+  ok &= check(CoinRenderFrameReuseCore::beginObjectOverlay(plan, {}, {material}, {}, {}, 1603, materialOnly),
+              "material-only overlay must not require transform changes");
+  CoinRenderFrameReuseCore::rollbackObjectOverlay(plan, materialOnly);
+  CoinRenderObjectOverlayUndo geometryOnly;
+  ok &= check(CoinRenderFrameReuseCore::beginObjectOverlay(plan, {}, {}, {position}, {draw}, 1604, geometryOnly),
+              "geometry-only overlay must not require transform/material changes");
+  CoinRenderFrameReuseCore::rollbackObjectOverlay(plan, geometryOnly);
+  ok &= check(plan.hasSamePayload(original) && plan.revision == original.revision, "independent overlays must also roll back exactly");
+  // Exercise the inclusive bound twice without retaining a second source
+  // payload. Only the position update/undo vectors are copied at this size.
+  plan.vertices.resize(COIN_RENDER_OBJECT_OVERLAY_MAX_POSITIONS);
+  std::vector<CoinRenderPositionUpdate> boundary(COIN_RENDER_OBJECT_OVERLAY_MAX_POSITIONS);
+  for (size_t slot = 0; slot < boundary.size(); ++slot) {
+    boundary[slot].slot = static_cast<uint32_t>(slot);
+    boundary[slot].position.setValue(.1f, -.2f, .3f);
+  }
+  for (int attempt = 0; attempt < 2; ++attempt) {
+    CoinRenderObjectOverlayUndo boundaryUndo;
+    ok &= check(CoinRenderFrameReuseCore::beginObjectOverlay(plan, {}, {}, boundary, {}, 1605 + attempt, boundaryUndo) &&
+                boundaryUndo.positions.size() == boundary.size() && plan.vertices.back().position[2] == .3f,
+                "the inclusive 32 MiB position-update/undo bound must be admitted repeatedly");
+    CoinRenderFrameReuseCore::rollbackObjectOverlay(plan, boundaryUndo);
+    ok &= check(plan.revision == original.revision && plan.vertices.back().position[2] == 0 &&
+                plan.vertices[1].position[0] == original.vertices[1].position[0],
+                "boundary rollback must restore both original and newly allocated vertex positions");
+  }
+  return ok;
+}
 bool sameLightsWithinPrecision(const CoinRenderFramePlan & a, const CoinRenderFramePlan & b) {
   if (a.lightingStates.size() != b.lightingStates.size()) return false;
   for (size_t i=0;i<a.lightingStates.size();++i) {
@@ -402,7 +464,7 @@ main()
 {
   SoDB::init();
   bool ok = testRigidCameraDelta() && testCameraPrecisionFallback() && testPhongWorldBasis() &&
-    testTranslationOverlay();
+    testTranslationOverlay() && testObjectPayloadTransaction();
   CoinRenderTextureImageSnapshot alphaImage;
   alphaImage.width = alphaImage.height = 1;
   alphaImage.producerId = 1;

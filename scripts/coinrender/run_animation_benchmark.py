@@ -18,7 +18,7 @@ import subprocess
 
 
 VARIANTS = {
-    "coingl": ("bgfx", "gl", "coin-gl", None),
+    "coingl": ("coingl", "gl", "coin-gl", None),
     "bgfx-vulkan": ("bgfx", "bgfx", "bgfx-vulkan", "vulkan"),
     "bgfx-opengl": ("bgfx", "bgfx", "bgfx-opengl", "opengl"),
     "wgpu-vulkan": ("wgpu", "wgpu", "wgpu-vulkan", "vulkan"),
@@ -56,6 +56,8 @@ def environment(build, variant, gpu):
                            "COIN_WGPU_GPU_TIMESTAMPS", "COIN_RENDER_DISABLE_CAPTURE_RESERVE",
                            "COIN_RENDER_DISABLE_CAMERA_OVERLAY",
                            "COIN_RENDER_DISABLE_TRANSLATION_OVERLAY",
+                           "COIN_RENDER_DISABLE_MATERIAL_OVERLAY",
+                           "COIN_RENDER_DISABLE_CUBE_OVERLAY",
                            "COIN_BGFX_READBACK_PIPELINE_DEPTH", "COIN_BGFX_RENDERER",
                            "WGPU_BACKEND", "COIN_GLXGLUE_NO_PBUFFERS",
                            "COIN_GLXGLUE_NO_GLX13_PBUFFERS", "COIN_GLX_PIXMAP_DIRECT_RENDERING",
@@ -99,6 +101,8 @@ def csv_stats(path, frames):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--bgfx-build", type=Path, required=True)
+    parser.add_argument("--coingl-build", type=Path,
+                        help="Separate Coin/OpenGL control; defaults to --bgfx-build")
     parser.add_argument("--wgpu-build", type=Path, required=True)
     parser.add_argument("--scene", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
@@ -129,7 +133,8 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     for subdir in ("logs", "samples", "images"):
         (out / subdir).mkdir(exist_ok=True)
-    builds = {"bgfx": args.bgfx_build.resolve(), "wgpu": args.wgpu_build.resolve()}
+    builds = {"bgfx": args.bgfx_build.resolve(), "wgpu": args.wgpu_build.resolve(),
+              "coingl": (args.coingl_build or args.bgfx_build).resolve()}
     binary_name = "coin_render_gl_benchmark" if args.scope == "offscreen" else "coin_render_window_benchmark"
     manifest = {"parameters": {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
                 "scene_sha256": sha256(args.scene), "binary_hashes": {}, "commands": []}

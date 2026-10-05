@@ -3,6 +3,7 @@
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include "actions/CoinRenderActionP.h"
+#include "rendering/coinrender/CoinRenderStateCore.h"
 #include "../coinrender/CoinRenderTestEnvironment.h"
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include <Inventor/rendering/CoinRenderNativeSurface.h>
@@ -866,15 +867,20 @@ private:
 };
 
 struct TranslationOverlayEnvironment {
-  std::string value;
-  bool present;
+  const char * flags[3] = {"COIN_RENDER_DISABLE_TRANSLATION_OVERLAY", "COIN_RENDER_DISABLE_MATERIAL_OVERLAY",
+                          "COIN_RENDER_DISABLE_CUBE_OVERLAY"};
+  std::string values[3];
+  bool present[3];
   TranslationOverlayEnvironment() {
-    const char * previous = std::getenv("COIN_RENDER_DISABLE_TRANSLATION_OVERLAY");
-    this->present = previous != nullptr; this->value = previous ? previous : "";
-    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_TRANSLATION_OVERLAY", "0");
+    for (int i = 0; i < 3; ++i) {
+      const char * previous = std::getenv(this->flags[i]);
+      this->present[i] = previous != nullptr; this->values[i] = previous ? previous : "";
+      coinRenderTestSetEnvironment(this->flags[i], "0");
+    }
   }
   ~TranslationOverlayEnvironment() {
-    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_TRANSLATION_OVERLAY", this->present ? this->value.c_str() : nullptr);
+    for (int i = 0; i < 3; ++i)
+      coinRenderTestSetEnvironment(this->flags[i], this->present[i] ? this->values[i].c_str() : nullptr);
   }
 };
 
@@ -1022,6 +1028,7 @@ int testTranslationOverlayInvalidationAndOwnership() {
   // These mutations also change a translation in the same notification batch.
   // None may preserve the translation-only proof or hide its full traversal.
   for (int mutation = 0; mutation < 10; ++mutation) {
+    if (mutation == 2 || mutation == 4) continue; // Covered by the admitted material/Cube overlay test.
     TranslationOverlayScene scene(2);
     CoinRenderAction action, full; full.getPimpl()->planOnly = true;
     action.apply(scene.root);
@@ -1089,6 +1096,245 @@ int testTranslationOverlayInvalidationAndOwnership() {
                 "callbacks added before or after proof must execute on full traversal of translated objects");
     const unsigned afterMovement = calls; action.apply(scene.root);
     TEST_ASSERT(calls > afterMovement, "external callbacks must also execute on an unchanged scene");
+  }
+  return 0;
+}
+
+bool sameObjectDrawPayload(const CoinRenderFramePlan & a, const CoinRenderFramePlan & b) {
+  if (a.draws.size() != b.draws.size() || a.cameras.size() != b.cameras.size()) return false;
+  // Ignore only the interned geometry/material/state layouts. All global
+  // backend-visible fields must still equal a fresh capture exactly.
+  const auto globals = [](const CoinRenderFramePlan & frame) {
+    CoinRenderFramePlan result;
+    result.transparency = frame.transparency; result.clearColor = frame.clearColor;
+    result.lightingStates = frame.lightingStates; result.shadowGroups = frame.shadowGroups;
+    result.shadowLights = frame.shadowLights; result.cameras = frame.cameras;
+    result.viewports = frame.viewports; result.textures = frame.textures; result.samplers = frame.samplers;
+    return result;
+  };
+  if (!globals(a).hasSamePayload(globals(b))) return false;
+  for (size_t draw = 0; draw < a.draws.size(); ++draw) {
+    const auto & x = a.draws[draw]; const auto & y = b.draws[draw];
+    if (x.topology != y.topology || x.geometry.indexCount != y.geometry.indexCount ||
+        x.sourceNodeId != y.sourceNodeId || x.stableNodeId != y.stableNodeId || x.sourceRevision != y.sourceRevision ||
+        x.renderLayer != y.renderLayer || x.clearDepthBefore != y.clearDepthBefore ||
+        x.shadowLightSlot != y.shadowLightSlot || x.lineStripId != y.lineStripId || x.hasSortingCenter != y.hasSortingCenter ||
+        std::memcmp(x.sortingCenterWorld, y.sortingCenterWorld, sizeof(x.sortingCenterWorld)) != 0) return false;
+    auto sx = a.renderStates[x.renderStateSlot], sy = b.renderStates[y.renderStateSlot];
+    const auto mx = sx.materialSlot, my = sy.materialSlot; sx.materialSlot = sy.materialSlot = 0;
+    if (!coin_render_same_state_except_camera(sx, sy) ||
+        std::memcmp(sx.model.getValue(), sy.model.getValue(), sizeof(float) * 16) != 0 ||
+        std::memcmp(sx.view.getValue(), sy.view.getValue(), sizeof(float) * 16) != 0 ||
+        std::memcmp(sx.projectionCoin.getValue(), sy.projectionCoin.getValue(), sizeof(float) * 16) != 0 ||
+        std::memcmp(&a.materials[mx], &b.materials[my], sizeof(CoinRenderMaterialSnapshot)) != 0) return false;
+    for (uint32_t index = 0; index < x.geometry.indexCount; ++index) {
+      auto vx = a.vertices[a.indices[x.geometry.firstIndex + index]], vy = b.vertices[b.indices[y.geometry.firstIndex + index]];
+      const auto vmx = vx.materialSlot, vmy = vy.materialSlot; vx.materialSlot = vy.materialSlot = 0;
+      if (std::memcmp(&vx, &vy, sizeof(vx)) != 0 ||
+          std::memcmp(&a.materials[vmx], &b.materials[vmy], sizeof(CoinRenderMaterialSnapshot)) != 0) return false;
+    }
+  }
+  return true;
+}
+
+int testObjectMaterialGeometryOverlay() {
+  TranslationOverlayEnvironment environment;
+  TranslationOverlayScene scene(3);
+  auto * uniqueCube = new SoCube;
+  uniqueCube->width = 3; uniqueCube->height = 4; uniqueCube->depth = 5;
+  scene.objects[1]->replaceChild(2, uniqueCube);
+  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(1, 1)));
+  TEST_ASSERT(target, "object overlay requires a CPU target shell");
+  auto * backend = new CameraOverlayTestBackend;
+  target->getPimpl()->backend.reset(backend); target->getPimpl()->depthReadbackEnabled = false;
+  CoinRenderAction action(SbViewportRegion(1, 1)), full(SbViewportRegion(1, 1));
+  full.getPimpl()->planOnly = true;
+  action.setTransparencyType(CoinRenderAction::SORTED_OBJECT_BLEND);
+  full.setTransparencyType(CoinRenderAction::SORTED_OBJECT_BLEND);
+  action.setRenderTarget(target.get()); action.apply(scene.root);
+  TEST_ASSERT(action.getPimpl()->materialByNode.count(scene.material) &&
+              action.getPimpl()->cubeByNode.count(scene.cube) && action.getPimpl()->cubeByNode.count(uniqueCube),
+              "shared material, shared Cube and distinct unique Cube ranges must all be admitted by source");
+  const auto * vertices = action.getPimpl()->lastValidPlan.vertices.data();
+  const auto * indices = action.getPimpl()->lastValidPlan.indices.data();
+  const uint64_t generation = action.getPimpl()->translationProofGeneration;
+  for (int frame = 0; frame < 4; ++frame) {
+    scene.material->ambientColor.setValue(.1f, .2f, .3f);
+    scene.material->diffuseColor.setValue(.3f + .05f * frame, .6f, .4f);
+    scene.material->specularColor.setValue(.2f, .4f, .6f);
+    scene.material->emissiveColor.setValue(.01f, .02f, .03f);
+    scene.material->shininess = .4f + .05f * frame;
+    scene.cube->width = 2 + .1f * frame; scene.cube->height = 1.3f; scene.cube->depth = .7f;
+    uniqueCube->width = 3 + .2f * frame; uniqueCube->height = 4 - .1f * frame; uniqueCube->depth = 5.5f;
+    scene.positions[0]->setValue(scene.initialPositions[0] + SbVec3f(.03f * frame, .04f, -.02f));
+    const uint64_t base = action.getPimpl()->lastValidPlan.revision;
+    action.apply(scene.root); full.apply(scene.root);
+    TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && full.getLastStatus() == CoinRenderAction::SUCCESS &&
+                backend->lastReuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD && backend->lastReuse.baseRevision == base &&
+                action.getPimpl()->translationProofGeneration == generation &&
+                action.getPimpl()->lastValidPlan.vertices.data() == vertices && action.getPimpl()->lastValidPlan.indices.data() == indices &&
+                sameObjectDrawPayload(action.getPimpl()->lastValidPlan, full.getPimpl()->lastValidPlan),
+                "mixed material/dimensions/translation must preserve MV/normals/UV/topology and match full expanded payload by bytes");
+  }
+  const auto previous = action.getPimpl()->lastValidPlan;
+  scene.material->diffuseColor.setValue(.8f, .3f, .2f); uniqueCube->width = 3.7f;
+  scene.positions[1]->setValue(scene.initialPositions[1] + SbVec3f(.2f, 0, 0));
+  backend->failNext = true; action.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+              action.getPimpl()->lastValidPlan.revision == previous.revision &&
+              action.getPimpl()->lastValidPlan.hasSamePayload(previous) &&
+              !action.getPimpl()->materialDirty.empty() && !action.getPimpl()->geometryDirty.empty() &&
+              !action.getPimpl()->translationDirty.empty(),
+              "failure must restore material/vertex/model/draw IDs together and retain every pending source for retry");
+  action.apply(scene.root); full.apply(scene.root);
+  TEST_ASSERT(backend->lastReuse.baseRevision == previous.revision &&
+              sameObjectDrawPayload(action.getPimpl()->lastValidPlan, full.getPimpl()->lastValidPlan),
+              "object-overlay retry must match the complete freshly captured payload");
+  scene.camera->position.setValue(.2f, -.1f, 19); action.apply(scene.root); full.apply(scene.root);
+  TEST_ASSERT(backend->lastReuse.kind != CoinRenderFrameReuseKind::CAMERA_PATCH &&
+              sameObjectDrawPayload(action.getPimpl()->lastValidPlan, full.getPimpl()->lastValidPlan) &&
+              action.getPimpl()->materialByNode.count(scene.material) && action.getPimpl()->cubeByNode.count(uniqueCube),
+              "camera after object payload patches must full-recapture and readmit the new source ranges");
+  uniqueCube->depth = 6; scene.material->shininess = .7f;
+  action.apply(scene.root); full.apply(scene.root);
+  TEST_ASSERT(sameObjectDrawPayload(action.getPimpl()->lastValidPlan, full.getPimpl()->lastValidPlan) &&
+              backend->lastReuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD,
+              "materials and geometry must patch safely again after camera recapture");
+  const uint64_t readmittedGeneration = action.getPimpl()->translationProofGeneration;
+  scene.material->diffuseColor.setValue(.5f, .3f, .2f); scene.material->shininess = .2f;
+  action.apply(scene.root); full.apply(scene.root);
+  TEST_ASSERT(action.getPimpl()->translationProofGeneration == readmittedGeneration &&
+              sameObjectDrawPayload(action.getPimpl()->lastValidPlan, full.getPimpl()->lastValidPlan),
+              "material-only return to earlier values must preserve the source proof and full payload semantics");
+  scene.cube->width = 2; scene.cube->height = 2; scene.cube->depth = 2;
+  uniqueCube->width = 3; uniqueCube->height = 4; uniqueCube->depth = 5;
+  action.apply(scene.root); full.apply(scene.root);
+  TEST_ASSERT(action.getPimpl()->translationProofGeneration == readmittedGeneration &&
+              sameObjectDrawPayload(action.getPimpl()->lastValidPlan, full.getPimpl()->lastValidPlan),
+              "geometry-only return to original dimensions must avoid accumulated drift in all captured vertex attributes");
+  return 0;
+}
+
+int testObjectPayloadAliasFallbacks() {
+  TranslationOverlayEnvironment environment;
+  for (int profile = 0; profile < 9; ++profile) {
+    TranslationOverlayScene scene(2);
+    auto * localMaterial = new SoMaterial;
+    localMaterial->diffuseColor.setValue(scene.material->diffuseColor[0]);
+    if (profile == 0) scene.objects[1]->replaceChild(0, localMaterial);
+    else { localMaterial->ref(); }
+    if (profile == 1) scene.material->diffuseColor.set1Value(1, SbColor(.2f, .3f, .4f));
+    if (profile == 2) {
+      auto * binding = new SoMaterialBinding; binding->value = SoMaterialBinding::PER_PART;
+      scene.root->insertChild(binding, 1);
+    }
+    if (profile == 3) scene.material->setOverride(TRUE);
+    if (profile == 4) {
+      auto * external = new SoSeparator;
+      auto * material = new SoMaterial; material->diffuseColor.setValue(.1f, .2f, .9f);
+      external->addChild(material); external->addChild(scene.cube); scene.root->addChild(external);
+    }
+    if (profile == 5) scene.cube->width = 0;
+    if (profile == 6) scene.material->diffuseColor.setIgnored(TRUE);
+    if (profile == 7) {
+      // The external occurrence depends on this source's diffuse/shininess,
+      // but inherited ambient override creates a different material slot.
+      auto * external = new SoSeparator;
+      auto * partialOverride = new SoMaterial;
+      partialOverride->ambientColor.setValue(.7f, .1f, .4f);
+      partialOverride->diffuseColor.setNum(0); partialOverride->specularColor.setNum(0);
+      partialOverride->emissiveColor.setNum(0); partialOverride->shininess.setNum(0);
+      partialOverride->transparency.setNum(0); partialOverride->setOverride(TRUE);
+      external->addChild(partialOverride); external->addChild(scene.material); external->addChild(new SoCube);
+      scene.root->addChild(external);
+    }
+    if (profile == 8) { scene.material->ref(); scene.cube->ref(); }
+    CoinRenderAction action, full; full.getPimpl()->planOnly = true;
+    action.apply(scene.root);
+    if (profile < 4 || profile == 6 || profile == 7) TEST_ASSERT(!action.getPimpl()->materialByNode.count(scene.material),
+      "material aliases/arrays/per-part/override/ignored fields must not obtain a writable material slot");
+    if (profile == 4 || profile == 5) TEST_ASSERT(!action.getPimpl()->cubeByNode.count(scene.cube),
+      "unmapped Cube occurrence or degenerate dimensions must reject geometry ownership");
+    if (profile == 8) TEST_ASSERT(action.getPimpl()->materialByNode.count(scene.material) &&
+                                 action.getPimpl()->cubeByNode.count(scene.cube),
+      "held source references must preserve admission when every occurrence in this root is isolated and mapped");
+    if (profile == 7) TEST_ASSERT(action.getPimpl()->translationProofValid,
+      "partial override fixture must retain the transform proof while material syntax rejects ownership");
+    scene.material->diffuseColor.set1Value(0, SbColor(.7f, .4f, .2f));
+    scene.cube->width = 2.7f; action.apply(scene.root); full.apply(scene.root);
+    TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && full.getLastStatus() == CoinRenderAction::SUCCESS &&
+                sameObjectDrawPayload(action.getPimpl()->lastValidPlan, full.getPimpl()->lastValidPlan),
+                "unsupported object payload ownership must fall back to complete semantic capture");
+    if (profile == 0) {
+      TEST_ASSERT(action.getPimpl()->materialByNode.count(scene.material),
+                  "diverging material values after fallback must readmit their now exclusively owned slots");
+      const uint64_t generation = action.getPimpl()->translationProofGeneration;
+      scene.material->diffuseColor.setValue(.6f, .2f, .4f); scene.cube->height = 1.7f;
+      action.apply(scene.root); full.apply(scene.root);
+      TEST_ASSERT(action.getPimpl()->translationProofGeneration == generation &&
+                  sameObjectDrawPayload(action.getPimpl()->lastValidPlan, full.getPimpl()->lastValidPlan),
+                  "later changes of separated material sources must reuse the readmitted payload proof");
+    }
+    if (profile != 0) localMaterial->unref();
+    if (profile == 8) { scene.material->unref(); scene.cube->unref(); }
+  }
+  return 0;
+}
+
+int testObjectPayloadInvalidationAndOptout() {
+  TranslationOverlayEnvironment environment;
+  for (int mutation = 0; mutation < 9; ++mutation) {
+    TranslationOverlayScene scene(2);
+    auto * driver = new SoMaterial; driver->ref();
+    driver->diffuseColor.setValue(.9f, .1f, .4f);
+    std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(1, 1)));
+    TEST_ASSERT(target, "object invalidation requires a CPU target shell");
+    auto * backend = new CameraOverlayTestBackend;
+    target->getPimpl()->backend.reset(backend); target->getPimpl()->depthReadbackEnabled = false;
+    CoinRenderAction action(SbViewportRegion(1, 1)), full(SbViewportRegion(1, 1));
+    full.getPimpl()->planOnly = true; action.setRenderTarget(target.get()); action.apply(scene.root);
+    TEST_ASSERT(action.getPimpl()->materialByNode.count(scene.material) && action.getPimpl()->cubeByNode.count(scene.cube),
+                "object invalidation fixture must begin with both source proofs");
+    const uint64_t generation = action.getPimpl()->translationGeneration;
+    unsigned callbacks = 0;
+    if (mutation == 0) scene.material->transparency = .25f;
+    if (mutation == 1) scene.material->diffuseColor.setIgnored(TRUE);
+    if (mutation == 2) scene.cube->width.connectFrom(&scene.camera->focalDistance);
+    if (mutation == 3) scene.cube->depth.setIgnored(TRUE);
+    if (mutation == 4) scene.root->addChild(new SoCube);
+    if (mutation == 5) scene.material->diffuseColor.set1Value(1, SbColor(.1f, .3f, .7f));
+    if (mutation == 6) scene.material->setOverride(TRUE);
+    if (mutation == 7) action.addPreCallback(SoCube::getClassTypeId(), translationCountingCallback, &callbacks);
+    if (mutation == 8) scene.material->diffuseColor.connectFrom(&driver->diffuseColor);
+    scene.cube->height = 2.4f; scene.material->shininess = .35f;
+    action.apply(scene.root); full.apply(scene.root);
+    TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && full.getLastStatus() == CoinRenderAction::SUCCESS &&
+                action.getPimpl()->translationGeneration > generation &&
+                sameObjectDrawPayload(action.getPimpl()->lastValidPlan, full.getPimpl()->lastValidPlan),
+                "late transparency/ignored/connection/structure/array/override/callback must recapture the full payload");
+    if (mutation == 7) TEST_ASSERT(callbacks == 2, "new shape callbacks must execute during material/geometry changes");
+    if (mutation == 8) scene.material->diffuseColor.disconnect();
+    driver->unref();
+  }
+  for (bool material : {false, true}) {
+    TranslationOverlayScene scene(2);
+    std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(1, 1)));
+    TEST_ASSERT(target, "object optout requires a CPU target shell");
+    target->getPimpl()->backend.reset(new CameraOverlayTestBackend);
+    target->getPimpl()->depthReadbackEnabled = false;
+    CoinRenderAction action(SbViewportRegion(1, 1)), full(SbViewportRegion(1, 1));
+    full.getPimpl()->planOnly = true; action.setRenderTarget(target.get()); action.apply(scene.root);
+    const uint64_t generation = action.getPimpl()->translationGeneration;
+    const char * flag = material ? "COIN_RENDER_DISABLE_MATERIAL_OVERLAY" : "COIN_RENDER_DISABLE_CUBE_OVERLAY";
+    coinRenderTestSetEnvironment(flag, "1");
+    if (material) scene.material->diffuseColor.setValue(.1f, .4f, .7f);
+    else scene.cube->width = 3.2f;
+    action.apply(scene.root); full.apply(scene.root);
+    TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS &&
+                action.getPimpl()->translationGeneration > generation &&
+                sameObjectDrawPayload(action.getPimpl()->lastValidPlan, full.getPimpl()->lastValidPlan),
+                "source optouts changed after admission must force equivalent complete capture");
+    coinRenderTestSetEnvironment(flag, "0");
   }
   return 0;
 }
@@ -1738,6 +1984,9 @@ int main() {
   if (testPhongCameraOverlayNotificationsAndRollback()) { std::cerr << "testPhongCameraOverlayNotificationsAndRollback failed" << std::endl; failed++; }
   if (testTranslationOverlayAndRollback()) { std::cerr << "testTranslationOverlayAndRollback failed" << std::endl; failed++; }
   if (testTranslationOverlayInvalidationAndOwnership()) { std::cerr << "testTranslationOverlayInvalidationAndOwnership failed" << std::endl; failed++; }
+  if (testObjectMaterialGeometryOverlay()) { std::cerr << "testObjectMaterialGeometryOverlay failed" << std::endl; failed++; }
+  if (testObjectPayloadAliasFallbacks()) { std::cerr << "testObjectPayloadAliasFallbacks failed" << std::endl; failed++; }
+  if (testObjectPayloadInvalidationAndOptout()) { std::cerr << "testObjectPayloadInvalidationAndOptout failed" << std::endl; failed++; }
   if (testSharedCameraQualification()) { std::cerr << "testSharedCameraQualification failed" << std::endl; failed++; }
   if (testDistantLightCameraFallback()) { std::cerr << "testDistantLightCameraFallback failed" << std::endl; failed++; }
       if (testWindowTargetRecordingBackend()) { std::cerr << "testWindowTargetRecordingBackend failed" << std::endl; failed++; }

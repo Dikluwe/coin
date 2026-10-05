@@ -25,6 +25,7 @@ class SoShadowGroup;
 class SoSeparator;
 class SoCube;
 class SoSFVec3f;
+class SoMaterial;
 
 class COIN_RENDER_DLL_API CoinRenderActionP {
 public:
@@ -41,7 +42,8 @@ public:
   void endTranslationShape();
   void qualifyTranslationCapture(SoNode * root);
   void clearTranslationProof();
-  bool prepareTranslationOverlay(SoNode *, CoinRenderTranslationOverlayUndo &);
+  bool prepareTranslationOverlay(SoNode *, CoinRenderObjectOverlayUndo &);
+  void qualifyObjectPayloads(const std::unordered_map<const SoNode *, size_t> & materialVisits);
   void commitTranslationOverlay();
   static SoCallbackAction::Response translationPreCB(void *, SoCallbackAction *, const SoNode *);
 
@@ -164,12 +166,21 @@ public:
     size_t firstDraw = 0, endDraw = 0;
     CoinRenderGeometryRange geometry;
     uint32_t stateSlot = 0;
+    SoMaterial * material = NULL;
+    SbVec3f cubeDimensions;
+    bool overallMaterial = false;
+    bool materialEligible = false, geometryEligible = false;
   };
   // At most 65,536 objects. One draw and one exclusively owned state per
   // object keep both proof and dirty-set storage bounded independently of GPU.
   std::vector<TranslationBinding> translationBindings, translationCapture;
   std::unordered_map<const SoNode *, size_t> translationByNode, translationCaptureByNode;
   std::unordered_set<size_t> translationDirty;
+  std::unordered_map<const SoNode *, std::vector<size_t>> materialByNode, cubeByNode;
+  std::unordered_set<const SoNode *> materialDirty, geometryDirty;
+  std::vector<const SoNode *> capturedDrawSources;
+  const SoNode * pendingCaptureShape = NULL;
+  size_t firstCaptureDraw = 0;
   uint64_t translationGeneration = 0;
   uint64_t translationProofGeneration = 0;
   uint64_t translationProofRevision = 0;

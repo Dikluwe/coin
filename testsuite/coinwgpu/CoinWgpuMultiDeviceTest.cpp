@@ -5,12 +5,16 @@
 #endif
 
 #include "rendering/coinwgpu/CoinWgpuFfi.h"
+#include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
+#include <Inventor/SbRotation.h>
+#include <Inventor/actions/SoGLRenderAction.h>
 #include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <limits>
 #include <string>
@@ -1040,6 +1044,295 @@ bool instancedOpaqueDrawOrder() {
   return true;
 }
 
+// Exercise the real C++ packer and GPU instance shader together. The oracle
+// starts with the captured, dimensioned positions and authored matrices; it
+// never reads the canonical vertices or transport matrices from the packer.
+bool normalizedCuboidTransport() {
+  constexpr uint32_t side = 64;
+  constexpr uint32_t count = 256; // The bounded C++ instancing profile's minimum.
+  struct Devices {
+    CoinWgpuDeviceId fast = 0, reference = 0; // Cache diagnostics address the default device.
+    ~Devices() {
+      if (reference) coin_wgpu_device_destroy(reference);
+    }
+  } devices;
+  if (!createDevice(devices.reference)) return false;
+  static const int corners[8][3] = {
+    {-1,-1,-1},{1,-1,-1},{1,1,-1},{-1,1,-1},
+    {-1,-1,1},{1,-1,1},{1,1,1},{-1,1,1}
+  };
+  static const unsigned faces[6][4] = {
+    {0,3,2,1},{4,5,6,7},{0,4,7,3},{1,2,6,5},{0,1,5,4},{3,7,6,2}
+  };
+  // Axis-only normals would hide inverse(transport MV) mistakes: normalization
+  // cancels a scalar on each face. These legal authored normals are oblique.
+  static const float normals[6][3] = {
+    {.25f,.375f,-1},{.25f,.375f,1},{-1,.25f,.375f},
+    {1,.25f,.375f},{.375f,-1,.25f},{.375f,1,.25f}
+  };
+  CoinRenderFramePlan frame;
+  frame.revision = 61000;
+  frame.cameras.resize(1);
+  frame.materials.resize(3);
+  for (unsigned i = 0; i < frame.materials.size(); ++i) {
+    auto & material = frame.materials[i];
+    for (int c = 0; c < 3; ++c) {
+      material.ambient[c] = .125f;
+      material.diffuse[c] = c == int(i) ? .65f : .15f;
+      material.specular[c] = .25f;
+    }
+    material.shininess = .1875f;
+  }
+  frame.lightingStates.resize(1);
+  auto & lighting = frame.lightingStates[0];
+  lighting.ambientIntensity = .25f;
+  CoinRenderLightSourceSnapshot directional, point;
+  directional.intensity = .55f;
+  point.type = CoinRenderLightType::POINT;
+  point.intensity = .7f;
+  point.attenuation[0] = .0625f; point.attenuation[1] = .125f;
+  lighting.lights = {directional,point};
+  // Lights remain in world space in this test fixture; every camera state is
+  // regenerated from those values rather than incrementally transformed.
+  const SbVec3f worldDirection(.25f,-.375f,-1);
+  const SbVec3f worldPoint(-.5f,.75f,2);
+  const auto setCamera = [&](const SbMatrix & view) {
+    frame.cameras[0].viewMatrix = view;
+    for (auto & state : frame.renderStates) state.view = view;
+    SbVec3f eyeDirection, eyePoint;
+    view.multDirMatrix(worldDirection,eyeDirection);
+    view.multVecMatrix(worldPoint,eyePoint);
+    for (int c = 0; c < 3; ++c) {
+      lighting.lights[0].direction[c] = eyeDirection[c];
+      lighting.lights[1].position[c] = eyePoint[c];
+    }
+  };
+  for (uint32_t i = 0; i < count; ++i) {
+    CoinRenderRenderStateSnapshot state;
+    // Nonuniform authored scale plus shear is independent of local dimensions.
+    state.model[0][0] = .875f; state.model[1][1] = .75f; state.model[2][2] = 1.125f;
+    state.model[0][1] = .125f; state.model[2][0] = .125f;
+    state.model[3][0] = i < 3 ? (float(i)-1)*.5625f : 4 + float(i)*.03125f;
+    state.model[3][1] = i == 1 ? .375f : -.3125f;
+    state.model[3][2] = -.1875f;
+    state.materialSlot = i % 3;
+    state.transparencyType = SoGLRenderAction::NONE;
+    state.depthFunction = CoinRenderDepthFunction::LEQUAL;
+    frame.renderStates.push_back(state);
+    CoinRenderDrawPacket draw;
+    draw.renderStateSlot = i; draw.drawOrdinal = i;
+    draw.geometry.firstVertex = static_cast<uint32_t>(frame.vertices.size());
+    draw.geometry.firstIndex = static_cast<uint32_t>(frame.indices.size());
+    draw.geometry.vertexCount = 24; draw.geometry.indexCount = 36;
+    const float half[3] = {.1875f + float(i % 5)*.00390625f,
+                          .3125f + float(i % 7)*.00390625f,
+                          .125f + float(i % 11)*.001953125f};
+    for (unsigned face = 0; face < 6; ++face) {
+      for (unsigned v = 0; v < 4; ++v) {
+        CoinRenderVertexSnapshot vertex;
+        for (int c = 0; c < 3; ++c) {
+          vertex.position[c] = float(corners[faces[face][v]][c])*half[c];
+          vertex.normal[c] = normals[face][c];
+        }
+        vertex.materialSlot = state.materialSlot;
+        vertex.texcoord[0] = v == 1 || v == 2 ? 1 : 0;
+        vertex.texcoord[1] = v >= 2 ? 1 : 0;
+        frame.vertices.push_back(vertex);
+      }
+      for (unsigned v : {0u,1u,2u,0u,2u,3u})
+        frame.indices.push_back(draw.geometry.firstVertex+face*4+v);
+    }
+    frame.draws.push_back(draw);
+  }
+  setCamera(SbMatrix::identity());
+  char error[512]{};
+  std::string diagnostic;
+  CoinWgpuFfiFrame packed;
+  uint64_t referenceRevision = 62000;
+  const auto target = [&](CoinWgpuDeviceId device, std::vector<uint8_t> & color,
+                          std::vector<float> & depth) {
+    CoinWgpuTarget result = targetFor(device,&color);
+    result.width = result.height = side;
+    result.depth_buffer = depth.data(); result.depth_buffer_len = depth.size();
+    return result;
+  };
+  const auto nullPayload = [](CoinWgpuFrameView view) {
+    view.vertices = nullptr; view.indices = nullptr; view.draws = nullptr;
+    view.materials = nullptr; view.instances = nullptr; view.instance_ranges = nullptr;
+    return view;
+  };
+  const auto prepare = [&](CoinRenderFrameReuseKind kind, uint64_t base) {
+    if (!check(packed.prepare(frame,side,side,CoinRenderFrameReuseDecision(kind,base),diagnostic),
+               "real packer prepares normalized cuboids",diagnostic.c_str())) return false;
+    const auto & view = packed.getView();
+    if (!check(view.instance_count == count && view.instance_range_count == 1 &&
+        view.vertex_count == 24 && view.index_count == 36 && view.draw_count == 1 &&
+        view.camera_base_revision == (kind == CoinRenderFrameReuseKind::CAMERA_PATCH ? base : 0),
+        "cuboid gate must exercise one normalized instanced mesh, including camera reuse")) return false;
+    for (uint32_t v = 0; v < 24; ++v) for (int c = 0; c < 3; ++c)
+      if (!check(std::abs(view.vertices[v].position[c]) == 1 &&
+                 view.vertices[v].normal[c] == frame.vertices[v].normal[c],
+                 "unit-position transport must preserve authored normal attributes")) return false;
+    if (kind != CoinRenderFrameReuseKind::CAMERA_PATCH) {
+      const SbMatrix authored = (frame.renderStates[0].model*frame.renderStates[0].view).inverse().transpose();
+      if (!check(std::memcmp(view.instances[0].normal_matrix,authored.getValue(),sizeof(float)*16) == 0,
+                 "normalized GPU transport must carry the authored normal matrix unchanged")) return false;
+    }
+    return true;
+  };
+  const auto oracle = [&](std::vector<uint8_t> & color, std::vector<float> & depth) {
+    std::vector<CoinWgpuVertex> vertices(frame.vertices.size());
+    for (const auto & draw : frame.draws) {
+      const auto & state = frame.renderStates[draw.renderStateSlot];
+      const SbMatrix authored = state.model*state.view;
+      const SbMatrix normal = authored.inverse().transpose();
+      for (uint32_t v = draw.geometry.firstVertex; v < draw.geometry.firstVertex+draw.geometry.vertexCount; ++v) {
+        const auto & source = frame.vertices[v];
+        SbVec3f position, direction;
+        authored.multVecMatrix(SbVec3f(source.position),position);
+        normal.multDirMatrix(SbVec3f(source.normal),direction);
+        auto & output = vertices[v];
+        for (int c = 0; c < 3; ++c) { output.position[c] = position[c]; output.normal[c] = direction[c]; }
+        output.screen_space_w = 1; output.material_slot = state.materialSlot;
+      }
+    }
+    std::vector<CoinWgpuMaterial> materials(frame.materials.size());
+    for (size_t i = 0; i < materials.size(); ++i) {
+      const auto & source = frame.materials[i]; auto & output = materials[i];
+      std::copy(source.ambient,source.ambient+4,output.ambient);
+      std::copy(source.diffuse,source.diffuse+4,output.diffuse);
+      std::copy(source.specular,source.specular+4,output.specular);
+      std::copy(source.emission,source.emission+4,output.emission);
+      output.shininess = source.shininess; output.transparency = source.transparency;
+    }
+    CoinWgpuRenderState state{};
+    for (unsigned i = 0; i < 4; ++i)
+      state.model_view[i*5] = state.model_view_projection[i*5] = state.normal_matrix[i*5] = 1;
+    // Coin's identity projection has [-1,1] depth; WebGPU uses [0,1].
+    state.model_view_projection[10] = .5f; state.model_view_projection[14] = .5f;
+    state.light_model = 1; state.light_count = 2; state.cull_mode = 1;
+    state.depth_test = state.depth_write = 1; state.depth_function = 3;
+    state.depth_range[1] = 1; state.polygon_offset_primitive_style = 1;
+    state.viewport[2] = state.viewport[3] = side;
+    state.ambient_light[3] = 1;
+    for (int c = 0; c < 3; ++c)
+      state.ambient_light[c] = lighting.ambientIntensity*lighting.ambientColor[c];
+    for (unsigned i = 0; i < 2; ++i) {
+      const auto & source = lighting.lights[i]; auto & output = state.lights[i];
+      for (int c = 0; c < 3; ++c) {
+        output.position_type[c] = source.position[c]; output.direction_cutoff[c] = source.direction[c];
+        output.color_intensity[c] = source.color[c]; output.attenuation_exponent[c] = source.attenuation[c];
+      }
+      output.position_type[3] = static_cast<float>(source.type);
+      output.direction_cutoff[3] = std::cos(source.cutOffAngle);
+      output.color_intensity[3] = source.intensity;
+      output.attenuation_exponent[3] = source.dropOffRate*128;
+    }
+    CoinWgpuDraw draw{}; draw.vertex_count = static_cast<uint32_t>(vertices.size());
+    draw.index_count = static_cast<uint32_t>(frame.indices.size());
+    CoinWgpuFrameView view = clearFrame(0,0,0);
+    view.width = view.height = side; view.frame_revision = ++referenceRevision;
+    view.vertices = vertices.data(); view.vertex_count = vertices.size();
+    view.indices = frame.indices.data(); view.index_count = frame.indices.size();
+    view.draws = &draw; view.draw_count = 1; view.materials = materials.data(); view.material_count = materials.size();
+    view.states = &state; view.state_count = 1;
+    CoinWgpuTarget output = target(devices.reference,color,depth);
+    return check(coin_wgpu_submit(&output,&view,error,sizeof(error)) == COIN_WGPU_OK,
+                 "independent authored cuboid RGB/depth reference",error);
+  };
+  std::vector<uint8_t> previous;
+  const auto compare = [&](const CoinWgpuFrameView & view, bool mustChange, const char * description) {
+    std::vector<uint8_t> actual(side*side*4u,kSentinel), expected(actual);
+    std::vector<float> depth(side*side,-17), expectedDepth(depth);
+    if (!oracle(expected,expectedDepth)) return false;
+    CoinWgpuTarget output = target(devices.fast,actual,depth);
+    if (!check(coin_wgpu_submit(&output,&view,error,sizeof(error)) == COIN_WGPU_OK &&
+               output.submission_serial != 0,description,error)) return false;
+    bool wroteDepth = false;
+    for (size_t i = 0; i < actual.size(); ++i)
+      if (!check(std::abs(int(actual[i])-int(expected[i])) <= 2,
+                 "normalized cuboid RGB differs from independently baked authored geometry")) return false;
+    for (size_t i = 0; i < depth.size(); ++i) {
+      if (!check(std::isfinite(depth[i]) && std::isfinite(expectedDepth[i]) &&
+                 std::abs(depth[i]-expectedDepth[i]) <= 2e-6f,
+                 "normalized cuboid depth differs from independently baked positions")) return false;
+      wroteDepth |= depth[i] < 1;
+    }
+    if (!check(wroteDepth && (!mustChange || actual != previous),
+               "cuboid gate must draw visible geometry and reflect each update")) return false;
+    previous.swap(actual);
+    return true;
+  };
+  const auto reject = [&](const CoinWgpuFrameView & view, CoinWgpuStatus expected, const char * description) {
+    std::vector<uint8_t> color(side*side*4u,kSentinel); std::vector<float> depth(side*side,-17);
+    CoinWgpuTarget output = target(devices.fast,color,depth);
+    return check(coin_wgpu_submit(&output,&view,error,sizeof(error)) == expected && unchanged(color) &&
+        std::all_of(depth.begin(),depth.end(),[](float v) { return v == -17; }) && output.submission_serial == 0,
+        description,error);
+  };
+  if (!prepare(CoinRenderFrameReuseKind::FULL_REBUILD,0) ||
+      !compare(packed.getView(),false,"real normalized cuboid initial render")) return false;
+  // Prove that this image gate is sensitive to the mistake it targets. This
+  // deliberately wrong, finite normal transport is legal at the low-level ABI
+  // but must produce a visibly different PHONG result with these oblique normals.
+  CoinWgpuFrameView wrongNormals = packed.getView();
+  std::vector<CoinWgpuInstance> wrongInstances(wrongNormals.instances,
+      wrongNormals.instances+wrongNormals.instance_count);
+  for (auto & instance : wrongInstances) {
+    SbMatrix positionTransport; positionTransport.setValue(instance.model_view);
+    const SbMatrix incorrectNormal = positionTransport.inverse().transpose();
+    std::memcpy(instance.normal_matrix,incorrectNormal.getValue(),sizeof(instance.normal_matrix));
+  }
+  wrongNormals.instances = wrongInstances.data();
+  std::vector<uint8_t> wrongColor(side*side*4u,kSentinel); std::vector<float> wrongDepth(side*side,-17);
+  CoinWgpuTarget wrongOutput = target(devices.fast,wrongColor,wrongDepth);
+  if (!check(coin_wgpu_submit(&wrongOutput,&wrongNormals,error,sizeof(error)) == COIN_WGPU_OK,
+             "finite wrong-normal contraproof must render",error)) return false;
+  unsigned differentChannels = 0;
+  for (size_t i = 0; i < wrongColor.size(); ++i)
+    if (std::abs(int(wrongColor[i])-int(previous[i])) > 8) ++differentChannels;
+  if (!check(differentChannels > 16,
+             "cuboid image oracle must detect normals computed from inverse transport scale") ||
+      !compare(packed.getView(),false,"same-revision authored normals restored after contraproof")) return false;
+  const std::vector<CoinWgpuVertex> canonical(packed.getView().vertices,
+      packed.getView().vertices+packed.getView().vertex_count);
+  ++frame.revision; frame.materials[1].diffuse[0] = .8f; frame.materials[1].shininess = .0625f;
+  if (!prepare(CoinRenderFrameReuseKind::RESOURCE_REBUILD,frame.revision-1) ||
+      !compare(packed.getView(),true,"normalized cuboid material update") ||
+      !check(std::memcmp(canonical.data(),packed.getView().vertices,canonical.size()*sizeof(CoinWgpuVertex)) == 0,
+             "material update must retain exact canonical geometry")) return false;
+  ++frame.revision;
+  for (uint32_t v = 0; v < 24; ++v) {
+    frame.vertices[v].position[0] *= 1.5f;
+    frame.vertices[v].position[1] *= .75f;
+  }
+  if (!prepare(CoinRenderFrameReuseKind::RESOURCE_REBUILD,frame.revision-1) ||
+      !compare(packed.getView(),true,"normalized cuboid local geometry resize") ||
+      !check(std::memcmp(canonical.data(),packed.getView().vertices,canonical.size()*sizeof(CoinWgpuVertex)) == 0,
+             "local resize must change instance position scale while retaining canonical geometry")) return false;
+  // Full payload failures must preserve output and permit a same-revision
+  // repair; both validation and late GPU submission failures are covered.
+  ++frame.revision;
+  if (!prepare(CoinRenderFrameReuseKind::FULL_REBUILD,0)) return false;
+  CoinWgpuFrameView invalid = packed.getView();
+  std::vector<CoinWgpuInstance> invalidInstances(invalid.instances,invalid.instances+invalid.instance_count);
+  invalid.instances = invalidInstances.data(); invalidInstances[0].normal_matrix[0] = std::numeric_limits<float>::quiet_NaN();
+  if (!reject(invalid,COIN_WGPU_INVALID_ARGUMENT,"normalized instance failure must not publish RGB/depth")) return false;
+  coin_wgpu_inject_async_fault(COIN_WGPU_OUT_OF_MEMORY);
+  const bool late = reject(packed.getView(),COIN_WGPU_OUT_OF_MEMORY,"normalized instance late OOM must not publish");
+  coin_wgpu_inject_async_fault(COIN_WGPU_OK);
+  if (!late || !compare(packed.getView(),false,"normalized instance same-revision retry after failure")) return false;
+  const uint64_t base = frame.revision++;
+  SbMatrix view;
+  view.setRotate(SbRotation(SbVec3f(0,1,0),.125f)); view[3][0] = .0625f; view[3][1] = -.03125f;
+  setCamera(view);
+  if (!prepare(CoinRenderFrameReuseKind::CAMERA_PATCH,base) ||
+      !compare(nullPayload(packed.getView()),true,"normalized cuboid camera/light reuse after retry")) return false;
+  CoinWgpuCacheStats stats{}; coin_wgpu_get_cache_stats(&stats);
+  return check(stats.frame_uploads == 0 && stats.frame_uploaded_bytes == 0 && stats.frame_hits >= 1,
+               "normalized camera must retain canonical geometry, instance and material GPU buffers");
+}
+
 bool concurrentSubmissions() {
   CoinWgpuDeviceId first = 0, second = 0;
   if (!createDevice(first) || !createDevice(second)) return false;
@@ -1113,7 +1406,7 @@ int main(int argc, char ** argv) {
   const bool runStress = argc > 1 && std::string(argv[1]) == "--stress";
   const bool passed = runStress ? stress() :
                       (invalidHandles() && lifecycleAndIsolation() && rttOwnership() &&
-                       cacheIsolation() && validatedCameraSceneOwnership() && ownedPhongCameraBuffers() && instancedOpaqueOwnership() && instancedOpaqueDrawOrder() &&
+                       cacheIsolation() && validatedCameraSceneOwnership() && ownedPhongCameraBuffers() && instancedOpaqueOwnership() && instancedOpaqueDrawOrder() && normalizedCuboidTransport() &&
                        concurrentSubmissions());
   if (passed) std::cout << "CoinWgpuMultiDeviceTest passed"
                         << (runStress ? " (stress)" : "") << '\n';

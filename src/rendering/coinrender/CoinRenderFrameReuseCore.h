@@ -73,6 +73,40 @@ struct CoinRenderTranslationOverlayUndo {
   bool active = false;
 };
 
+struct CoinRenderMaterialUpdate {
+  uint32_t slot = 0;
+  CoinRenderMaterialSnapshot material;
+  CoinRenderMaterialUpdate() = default;
+  CoinRenderMaterialUpdate(uint32_t slot, const CoinRenderMaterialSnapshot & material)
+    : slot(slot), material(material) {}
+};
+struct CoinRenderPositionUpdate {
+  uint32_t slot = 0;
+  SbVec3f position;
+  CoinRenderPositionUpdate() = default;
+  CoinRenderPositionUpdate(uint32_t slot, const SbVec3f & position)
+    : slot(slot), position(position) {}
+};
+// Both pending positions and their undo fit within 32 MiB. Full vertex
+// attributes and the source plan are never copied for an object overlay.
+static const size_t COIN_RENDER_OBJECT_OVERLAY_MAX_POSITIONS =
+  (32 * 1024 * 1024) / (2 * sizeof(CoinRenderPositionUpdate));
+struct CoinRenderDrawSourceUpdate {
+  uint32_t slot = 0;
+  SbUniqueId sourceNodeId = 0;
+  CoinRenderDrawSourceUpdate() = default;
+  CoinRenderDrawSourceUpdate(uint32_t slot, SbUniqueId sourceNodeId)
+    : slot(slot), sourceNodeId(sourceNodeId) {}
+};
+struct CoinRenderObjectOverlayUndo {
+  uint64_t revision = 0;
+  CoinRenderTranslationOverlayUndo transforms;
+  std::vector<CoinRenderMaterialUpdate> materials;
+  std::vector<CoinRenderPositionUpdate> positions;
+  std::vector<CoinRenderDrawSourceUpdate> draws;
+  bool active = false;
+};
+
 /** Traversal-free classification of the relationship between two plans. */
 class CoinRenderFrameReuseCore {
 public:
@@ -105,6 +139,11 @@ public:
     uint64_t revision, CoinRenderTranslationOverlayUndo & undo);
   COIN_RENDER_DLL_API static void rollbackTranslationOverlay(
     CoinRenderFramePlan & plan, CoinRenderTranslationOverlayUndo & undo);
+  COIN_RENDER_DLL_API static bool beginObjectOverlay(
+    CoinRenderFramePlan &, const std::vector<CoinRenderModelUpdate> &,
+    const std::vector<CoinRenderMaterialUpdate> &, const std::vector<CoinRenderPositionUpdate> &,
+    const std::vector<CoinRenderDrawSourceUpdate> &, uint64_t, CoinRenderObjectOverlayUndo &);
+  COIN_RENDER_DLL_API static void rollbackObjectOverlay(CoinRenderFramePlan &, CoinRenderObjectOverlayUndo &);
 };
 
 #endif // !COIN_RENDER_FRAME_REUSE_CORE_H

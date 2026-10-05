@@ -31,6 +31,7 @@ public:
   bool incrementalOpaqueLastPrepare() const;
   size_t opaqueRangesRebakedLastPrepare() const;
   size_t opaqueVerticesRebakedLastPrepare() const;
+  size_t opaqueHashedRangesLastPrepare() const;
 
 private:
   struct BakeMatrices { float modelView[16], normal[16]; };
@@ -65,6 +66,8 @@ private:
   bool reused;
   bool opaqueBatched;
   bool opaqueInstanced = false;
+  bool opaqueDiagonalLowered = false;
+  size_t opaqueHashedRanges = 0;
   double opaqueInstancePositionBound = 0;
   bool opaqueCameraPatchable;
   bool opaqueGeometryPatchable;

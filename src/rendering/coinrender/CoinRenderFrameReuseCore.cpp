@@ -470,3 +470,67 @@ void CoinRenderFrameReuseCore::rollbackTranslationOverlay(
   }
   undo.active = false;
 }
+
+bool CoinRenderFrameReuseCore::beginObjectOverlay(
+  CoinRenderFramePlan & plan, const std::vector<CoinRenderModelUpdate> & models,
+  const std::vector<CoinRenderMaterialUpdate> & materials, const std::vector<CoinRenderPositionUpdate> & positions,
+  const std::vector<CoinRenderDrawSourceUpdate> & draws, uint64_t revision, CoinRenderObjectOverlayUndo & undo)
+{
+  if (undo.active || !plan.revision || !revision || revision == plan.revision ||
+      (models.empty() && materials.empty() && positions.empty()) || models.size() > 65536 ||
+      materials.size() > 65536 || draws.size() > 65536 ||
+      positions.size() > COIN_RENDER_OBJECT_OVERLAY_MAX_POSITIONS) return false;
+  CoinRenderObjectOverlayUndo prepared;
+  prepared.revision = plan.revision;
+  prepared.materials.reserve(materials.size());
+  prepared.positions.reserve(positions.size());
+  prepared.draws.reserve(draws.size());
+  std::unordered_set<uint32_t> slots;
+  for (const auto & update : materials) {
+    if (update.slot >= plan.materials.size() || !slots.insert(update.slot).second ||
+        update.material.transparency != 0 || update.material.diffuse[3] != 1 ||
+        !std::isfinite(update.material.shininess) || update.material.shininess < 0 || update.material.shininess > 1) return false;
+    for (const float * color : {update.material.ambient, update.material.diffuse,
+                               update.material.specular, update.material.emission})
+      for (int i = 0; i < 4; ++i) if (!std::isfinite(color[i]) || color[i] < 0 || color[i] > 1) return false;
+    prepared.materials.push_back({update.slot, plan.materials[update.slot]});
+  }
+  std::vector<uint32_t> positionSlots;
+  positionSlots.reserve(positions.size());
+  for (const auto & update : positions) {
+    if (update.slot >= plan.vertices.size()) return false;
+    for (int i = 0; i < 3; ++i)
+      if (!std::isfinite(update.position[i]) || std::abs(update.position[i]) > 32768) return false;
+    positionSlots.push_back(update.slot);
+    prepared.positions.push_back({update.slot, SbVec3f(plan.vertices[update.slot].position)});
+  }
+  std::sort(positionSlots.begin(), positionSlots.end());
+  if (std::adjacent_find(positionSlots.begin(), positionSlots.end()) != positionSlots.end()) return false;
+  slots.clear();
+  for (const auto & update : draws) {
+    if (update.slot >= plan.draws.size() || !update.sourceNodeId || !slots.insert(update.slot).second) return false;
+    prepared.draws.push_back({update.slot, plan.draws[update.slot].sourceNodeId});
+  }
+  // All dependent payloads have been checked before publishing any mutation.
+  if (!models.empty() && !beginTranslationOverlay(plan, models, revision, prepared.transforms)) return false;
+  for (const auto & update : materials) plan.materials[update.slot] = update.material;
+  for (const auto & update : positions)
+    update.position.getValue(plan.vertices[update.slot].position[0], plan.vertices[update.slot].position[1], plan.vertices[update.slot].position[2]);
+  for (const auto & update : draws) plan.draws[update.slot].sourceNodeId = update.sourceNodeId;
+  plan.revision = revision;
+  prepared.active = true;
+  undo = std::move(prepared);
+  return true;
+}
+
+void CoinRenderFrameReuseCore::rollbackObjectOverlay(CoinRenderFramePlan & plan, CoinRenderObjectOverlayUndo & undo)
+{
+  if (!undo.active) return;
+  rollbackTranslationOverlay(plan, undo.transforms);
+  for (const auto & previous : undo.materials) plan.materials[previous.slot] = previous.material;
+  for (const auto & previous : undo.positions)
+    previous.position.getValue(plan.vertices[previous.slot].position[0], plan.vertices[previous.slot].position[1], plan.vertices[previous.slot].position[2]);
+  for (const auto & previous : undo.draws) plan.draws[previous.slot].sourceNodeId = previous.sourceNodeId;
+  plan.revision = undo.revision;
+  undo.active = false;
+}

@@ -15,6 +15,7 @@
 #include <cstdlib>
 #include <utility>
 #include <unordered_map>
+#include <limits>
 
 namespace {
 struct SharedRangeKey {
@@ -85,6 +86,45 @@ bool composableInstanceNormal(const SbMatrix & modelView, const SbMatrix & norma
       if (!std::isfinite(value) || std::abs(value - (row == column ? 1.0 : 0.0)) > 1.0e-4)
         return false;
     }
+  return true;
+}
+
+// Factor positions only. Captured normals remain authored attributes, rather
+// than normals inferred from a scaled transport matrix. Each axis must contain
+// both endpoints of a normal, positive scale, and every coordinate must round
+// trip exactly through {-1, signed zero, +1}. Failed qualification leaves the
+// original mesh available for byte-exact matching.
+bool normalizeDiagonalMesh(std::vector<CoinBgfxInstancedVertex> & vertices,
+                           float scale[3])
+{
+  float extent[3] = {};
+  for (const auto & vertex : vertices)
+    for (int axis = 0; axis < 3; ++axis)
+      extent[axis] = std::max(extent[axis], std::abs(vertex.position[axis]));
+  for (int axis = 0; axis < 3; ++axis)
+    if (!std::isfinite(extent[axis]) || extent[axis] < std::numeric_limits<float>::min())
+      return false;
+  bool negative[3] = {}, positive[3] = {};
+  for (const auto & vertex : vertices) {
+    for (int axis = 0; axis < 3; ++axis) {
+      const float value = vertex.position[axis];
+      float normalized;
+      if (value == extent[axis]) { normalized = 1.0f; positive[axis] = true; }
+      else if (value == -extent[axis]) { normalized = -1.0f; negative[axis] = true; }
+      else if (value == 0.0f) normalized = std::copysign(0.0f, value);
+      else return false;
+      const float restored = normalized * extent[axis];
+      if (std::memcmp(&value, &restored, sizeof(float)) != 0) return false;
+    }
+  }
+  for (int axis = 0; axis < 3; ++axis)
+    if (!negative[axis] || !positive[axis]) return false;
+  for (auto & vertex : vertices)
+    for (int axis = 0; axis < 3; ++axis)
+      vertex.position[axis] = vertex.position[axis] == 0.0f
+        ? std::copysign(0.0f, vertex.position[axis])
+        : std::copysign(1.0f, vertex.position[axis]);
+  std::memcpy(scale, extent, sizeof(extent));
   return true;
 }
 
@@ -296,7 +336,16 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
   copyLighting(lighting, drawTemplate);
 
   struct Mesh { uint32_t firstVertex, vertexCount, firstIndex, indexCount; };
-  struct Range { uint32_t meshSlot, materialSlot; };
+  struct Range { uint32_t meshSlot, materialSlot; float positionScale[3]; };
+  // New span metadata is bounded independently of the existing packed/GPU
+  // buffers. Logical accounting includes each key/value, hash node/bucket
+  // allowance and mesh lookup entries; no per-occurrence normalization array
+  // is retained. 65536 spans also bounds hashing-table allocation growth.
+  constexpr size_t maxSourceSpans = 65536;
+  constexpr uint64_t metadataBudget = 8u * 1024u * 1024u;
+  constexpr uint64_t spanMetadataBytes = sizeof(SharedRangeKey) + sizeof(Range) + 6 * sizeof(void *);
+  constexpr uint64_t meshMetadataBytes = sizeof(Mesh) + sizeof(uint64_t) + sizeof(uint32_t) + 8 * sizeof(void *);
+  uint64_t metadataBytes = 0;
   std::vector<Mesh> meshes;
   std::unordered_map<uint64_t, std::vector<uint32_t>> meshByHash;
   std::unordered_map<SharedRangeKey, Range, SharedRangeHash> ranges;
@@ -381,7 +430,8 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
                                geometry.firstIndex, geometry.indexCount};
     auto range = ranges.find(key);
     if (range == ranges.end()) {
-      if (ranges.size() >= 1024) return declineDraw("source span budget");
+      if (ranges.size() >= maxSourceSpans || metadataBytes + spanMetadataBytes > metadataBudget)
+        return declineDraw("source span/metadata budget");
       std::vector<CoinBgfxInstancedVertex> vertices;
       std::vector<uint32_t> indices;
       vertices.reserve(std::min(geometry.vertexCount, geometry.indexCount));
@@ -411,39 +461,59 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
         }
         indices.push_back(slot);
       }
-      uint64_t hash = hashBytes(UINT64_C(1469598103934665603), vertices.data(), vertices.size() * sizeof(CoinBgfxInstancedVertex));
-      hash = hashBytes(hash, indices.data(), indices.size() * sizeof(uint32_t));
+      float positionScale[3] = {1.0f, 1.0f, 1.0f};
+      normalizeDiagonalMesh(vertices, positionScale);
       uint32_t meshSlot = UINT32_MAX;
-      auto & matches = meshByHash[hash];
-      for (uint32_t slot : matches) {
+      const auto sameMesh = [&](uint32_t slot) {
         const auto & mesh = meshes[slot];
         if (mesh.vertexCount != vertices.size() || mesh.indexCount != indices.size() ||
             std::memcmp(candidate.instancedVertices.data() + mesh.firstVertex, vertices.data(),
-                        vertices.size() * sizeof(CoinBgfxInstancedVertex)) != 0) continue;
-        bool sameIndices = true;
+                        vertices.size() * sizeof(CoinBgfxInstancedVertex)) != 0) return false;
         for (size_t j = 0; j < indices.size(); ++j)
-          if (candidate.indices[mesh.firstIndex + j] != mesh.firstVertex + indices[j]) { sameIndices = false; break; }
-        if (sameIndices) { meshSlot = slot; break; }
-      }
+          if (candidate.indices[mesh.firstIndex + j] != mesh.firstVertex + indices[j]) return false;
+        return true;
+      };
+      // Many distinct source spans have exactly the same normalized mesh.
+      // Prove equality against the common first/previous mesh before running a
+      // byte-wise FNV pass; mutable input spans are still read on every call.
+      if (!meshes.empty() && sameMesh(0)) meshSlot = 0;
+      else if (previousMesh != UINT32_MAX && previousMesh != 0 && sameMesh(previousMesh)) meshSlot = previousMesh;
       if (meshSlot == UINT32_MAX) {
-        if (meshes.size() >= 256) return declineDraw("distinct mesh budget");
-        meshSlot = static_cast<uint32_t>(meshes.size());
-        Mesh mesh = {static_cast<uint32_t>(candidate.instancedVertices.size()), static_cast<uint32_t>(vertices.size()),
-                     static_cast<uint32_t>(candidate.indices.size()), static_cast<uint32_t>(indices.size())};
-        candidate.instancedVertices.insert(candidate.instancedVertices.end(), vertices.begin(), vertices.end());
-        for (uint32_t index : indices) candidate.indices.push_back(mesh.firstVertex + index);
-        meshes.push_back(mesh);
-        matches.push_back(meshSlot);
+        uint64_t hash = hashBytes(UINT64_C(1469598103934665603), vertices.data(), vertices.size() * sizeof(CoinBgfxInstancedVertex));
+        hash = hashBytes(hash, indices.data(), indices.size() * sizeof(uint32_t));
+        auto & matches = meshByHash[hash];
+        for (uint32_t slot : matches)
+          if (sameMesh(slot)) { meshSlot = slot; break; }
+        if (meshSlot == UINT32_MAX) {
+          if (meshes.size() >= 256 || metadataBytes + spanMetadataBytes + meshMetadataBytes > metadataBudget)
+            return declineDraw("distinct mesh/metadata budget");
+          meshSlot = static_cast<uint32_t>(meshes.size());
+          Mesh mesh = {static_cast<uint32_t>(candidate.instancedVertices.size()), static_cast<uint32_t>(vertices.size()),
+                       static_cast<uint32_t>(candidate.indices.size()), static_cast<uint32_t>(indices.size())};
+          candidate.instancedVertices.insert(candidate.instancedVertices.end(), vertices.begin(), vertices.end());
+          for (uint32_t index : indices) candidate.indices.push_back(mesh.firstVertex + index);
+          meshes.push_back(mesh);
+          matches.push_back(meshSlot);
+          metadataBytes += meshMetadataBytes;
+        }
       }
-      range = ranges.emplace(key, Range{meshSlot, materialSlot}).first;
+      range = ranges.emplace(key, Range{meshSlot, materialSlot,
+        {positionScale[0], positionScale[1], positionScale[2]}}).first;
+      metadataBytes += spanMetadataBytes;
     }
     const auto & mesh = meshes[range->second.meshSlot];
     const auto & material = frame.materials[range->second.materialSlot];
+    SbMatrix positionModelView = modelView;
+    for (int row = 0; row < 3; ++row)
+      for (int column = 0; column < 4; ++column)
+        positionModelView[row][column] *= range->second.positionScale[row];
+    if (!instancedMatrixMagnitude(positionModelView)) return declineDraw("factored position matrix coefficient magnitude");
+    const auto position = positionModelView.getValue();
     CoinBgfxInstance instance{};
     const auto normal = normalMatrix.getValue();
     for (int column = 0; column < 3; ++column) {
       for (int row = 0; row < 3; ++row) {
-        instance.data[column][row] = mv[row][column];
+        instance.data[column][row] = position[row][column];
         instance.data[column + 3][row] = normal[row][column];
       }
       instance.data[column][3] = mv[3][column];

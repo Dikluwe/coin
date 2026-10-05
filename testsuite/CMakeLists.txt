@@ -1133,7 +1133,10 @@ if(COIN_BUILD_RENDER)
 		add_test(NAME CoinRenderAsyncReadbackTest COMMAND CoinRenderAsyncReadbackTest)
 		set_tests_properties(CoinRenderAsyncReadbackTest PROPERTIES TIMEOUT 30)
 
-		add_executable(CoinWgpuMultiDeviceTest coinwgpu/CoinWgpuMultiDeviceTest.cpp)
+		add_executable(CoinWgpuMultiDeviceTest
+			coinwgpu/CoinWgpuMultiDeviceTest.cpp
+			${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp
+		)
 		set_target_properties(CoinWgpuMultiDeviceTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 		target_link_libraries(CoinWgpuMultiDeviceTest CoinRender Coin)
 		target_include_directories(CoinWgpuMultiDeviceTest PRIVATE

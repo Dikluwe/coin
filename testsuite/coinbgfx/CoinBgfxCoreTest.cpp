@@ -365,6 +365,154 @@ bool instancedOpaque(const CoinRenderFramePlan & base)
   unsupported.draws.back().geometry.vertexCount = 3; ok &= decline(unsupported);
   return ok;
 }
+
+bool diagonalInstancing(const CoinRenderFramePlan & base)
+{
+  // Independent captured geometry: no node/type recognition is involved. Faces
+  // retain their authored normal attributes and CCW triangle order.
+  const float corners[24][3] = {
+    {-1,-1,1},{1,-1,1},{1,1,1},{-1,1,1},
+    {1,-1,-1},{-1,-1,-1},{-1,1,-1},{1,1,-1},
+    {1,-1,1},{1,-1,-1},{1,1,-1},{1,1,1},
+    {-1,-1,-1},{-1,-1,1},{-1,1,1},{-1,1,-1},
+    {-1,1,1},{1,1,1},{1,1,-1},{-1,1,-1},
+    {-1,-1,-1},{1,-1,-1},{1,-1,1},{-1,-1,1}
+  };
+  const float normals[6][3] = {{0,0,1},{0,0,-1},{1,0,0},{-1,0,0},{0,1,0},{0,-1,0}};
+  constexpr size_t count = 1300; // Exceeds both former source-span/mesh limits.
+  CoinRenderFramePlan frame = base;
+  frame.vertices.resize(count * 24);
+  frame.indices.resize(count * 36);
+  frame.draws.resize(count, base.draws.front());
+  frame.renderStates.resize(count, base.renderStates.front());
+  frame.materials.resize(count, base.materials.front());
+  for (size_t occurrence = 0; occurrence < count; ++occurrence) {
+    const float extent[3] = {0.75f + float(occurrence) * .001f,
+                             1.25f + float(occurrence) * .002f,
+                             0.5f + float(occurrence) * .003f};
+    auto & state = frame.renderStates[occurrence];
+    state.lightModel = CoinRenderLightModel::PHONG;
+    state.cullMode = CoinRenderCullMode::BACK;
+    state.frontFace = CoinRenderFrontFace::CCW;
+    state.materialSlot = static_cast<uint32_t>(occurrence);
+    state.model = SbMatrix(occurrence % 13 ? 1.3f : -1.3f,.125f,0,0,
+                           0,2,.25f,0, 0,0,.7f,0, float(occurrence)*.001f,.25f,-.5f,1);
+    state.view.setTranslate(SbVec3f(-.2f,.1f,-3));
+    frame.materials[occurrence].diffuse[0] = .2f + float(occurrence % 17) * .03f;
+    auto & draw = frame.draws[occurrence];
+    draw.renderStateSlot = static_cast<uint32_t>(occurrence);
+    draw.geometry.firstVertex = static_cast<uint32_t>(occurrence * 24);
+    draw.geometry.vertexCount = 24;
+    draw.geometry.firstIndex = static_cast<uint32_t>(occurrence * 36);
+    draw.geometry.indexCount = 36;
+    for (size_t vertex = 0; vertex < 24; ++vertex) {
+      auto & source = frame.vertices[occurrence * 24 + vertex];
+      source.materialSlot = static_cast<uint32_t>(occurrence);
+      for (int axis = 0; axis < 3; ++axis) {
+        source.position[axis] = corners[vertex][axis] * extent[axis];
+        source.normal[axis] = normals[vertex / 4][axis];
+      }
+    }
+    for (uint32_t face = 0; face < 6; ++face) {
+      const uint32_t first = static_cast<uint32_t>(occurrence * 24) + face * 4;
+      const uint32_t triangle[6] = {first,first+1,first+2,first,first+2,first+3};
+      std::copy(triangle, triangle + 6, frame.indices.begin() + occurrence * 36 + face * 6);
+    }
+  }
+  CoinBgfxPlan factored, general;
+  std::string diagnostic;
+  bool ok = check(CoinBgfxLowering::lowerInstanced(frame, 4, 4, false, factored, diagnostic) &&
+                  CoinBgfxLowering::lower(frame, 4, 4, false, general, diagnostic) &&
+                  factored.instancedVertices.size() == 24 && factored.indices.size() == 36 &&
+                  factored.instances.size() == count && factored.draws.size() == 1 &&
+                  factored.draws[0].instanceCount == count && factored.draws[0].cullMode == CoinRenderCullMode::BACK &&
+                  factored.draws[0].frontFace == CoinRenderFrontFace::CCW,
+                  "distinct resized spans and materials must share one proven mesh in traversal order");
+  if (!ok) return false;
+  for (size_t occurrence = 0; occurrence < count; ++occurrence) {
+    const auto & instance = factored.instances[occurrence];
+    const auto & state = frame.renderStates[occurrence];
+    const SbMatrix authoredNormal = CoinRenderTransformCore::normalMatrix(state.model * state.view);
+    SbMatrix position = SbMatrix::identity();
+    for (int column = 0; column < 3; ++column) {
+      for (int row = 0; row < 3; ++row) {
+        position[row][column] = instance.data[column][row];
+        ok &= check(instance.data[column + 3][row] == authoredNormal[row][column],
+                    "factoring positions must preserve authored normal matrix bytes, including shear/reflection");
+      }
+      position[3][column] = instance.data[column][3];
+    }
+    ok &= check(std::memcmp(instance.data[6], frame.materials[occurrence].diffuse, sizeof(instance.data[6])) == 0,
+                "uniform per-occurrence materials must retain their original order");
+    for (size_t index = 0; index < 36; ++index) {
+      const auto & vertex = factored.instancedVertices[factored.indices[index]];
+      const auto & reference = general.vertices[general.indices[occurrence * 36 + index]];
+      SbVec3f actual;
+      position.multVecMatrix(SbVec3f(vertex.position), actual);
+      for (int axis = 0; axis < 3; ++axis)
+        ok &= check(std::abs(actual[axis] - reference.viewPosition[axis]) <=
+                      2.0e-5f * std::max(1.0f, std::abs(reference.viewPosition[axis])),
+                    "factored position must match general lowering without changing triangle winding/order");
+    }
+  }
+  CoinRenderFramePlan material = frame;
+  for (auto & value : material.materials) { value.diffuse[1] = .65f; value.shininess = .4f; }
+  CoinBgfxPlan materialPlan;
+  ok &= check(CoinBgfxLowering::lowerInstanced(material, 4, 4, false, materialPlan, diagnostic) &&
+              sameBytes(materialPlan.instancedVertices, factored.instancedVertices) &&
+              materialPlan.indices == factored.indices && materialPlan.draws.size() == 1 &&
+              materialPlan.instances.front().data[6][1] == .65f && materialPlan.instances.back().data[3][3] == .4f,
+              "material updates must preserve normalized geometry and remain per-instance data");
+  // Different authored attributes, reflected geometry and reverse winding must
+  // remain A/B/A rather than regrouping nonconsecutive occurrences.
+  for (int change = 0; change < 3; ++change) {
+    CoinRenderFramePlan different = frame;
+    if (change == 0) different.vertices[24].normal[0] = .125f;
+    if (change == 1) for (size_t vertex = 24; vertex < 48; ++vertex) different.vertices[vertex].position[0] *= -1;
+    if (change == 2) std::swap(different.indices[36], different.indices[37]);
+    CoinBgfxPlan distinct;
+    ok &= check(CoinBgfxLowering::lowerInstanced(different, 4, 4, false, distinct, diagnostic) &&
+                distinct.instancedVertices.size() == 48 && distinct.draws.size() == 3 &&
+                distinct.draws[0].firstInstance == 0 && distinct.draws[0].instanceCount == 1 &&
+                distinct.draws[1].firstInstance == 1 && distinct.draws[1].instanceCount == 1 &&
+                distinct.draws[2].firstInstance == 2 && distinct.draws[2].instanceCount == count - 2 &&
+                distinct.draws[0].firstVertex == distinct.draws[2].firstVertex &&
+                distinct.draws[1].firstVertex != distinct.draws[0].firstVertex,
+                "normals/reflection/winding must remain distinguished and preserve A/B/A order");
+  }
+  for (float extent : {0.0f, std::numeric_limits<float>::denorm_min()}) {
+    CoinRenderFramePlan unsupported = frame;
+    for (size_t vertex = 0; vertex < 24; ++vertex) unsupported.vertices[vertex].position[0] = corners[vertex][0] * extent;
+    CoinBgfxPlan exact;
+    ok &= check(CoinBgfxLowering::lowerInstanced(unsupported, 4, 4, false, exact, diagnostic) &&
+                exact.instancedVertices.size() == 48 &&
+                std::memcmp(&exact.instancedVertices[0].position[0],
+                            &unsupported.vertices[0].position[0], sizeof(float)) == 0,
+                "zero/subnormal factors must preserve the original exact geometry path");
+  }
+  CoinRenderFramePlan interior = frame;
+  interior.vertices[0].position[0] += .125f;
+  CoinBgfxPlan exact;
+  ok &= check(CoinBgfxLowering::lowerInstanced(interior, 4, 4, false, exact, diagnostic) &&
+              exact.instancedVertices.size() == 48 && exact.instancedVertices[0].position[0] == interior.vertices[0].position[0],
+              "non-grid coordinates must fail normalization without partially modifying their source mesh");
+  // Exercise the new span bound with shared vertex storage and unique index
+  // ranges, keeping this boundary regression small in CPU geometry memory.
+  CoinRenderFramePlan spans = base;
+  spans.renderStates[0].lightModel = CoinRenderLightModel::PHONG;
+  spans.draws.resize(65537, spans.draws[0]);
+  spans.indices.resize(spans.draws.size() * 3);
+  for (size_t draw = 0; draw < spans.draws.size(); ++draw) {
+    spans.draws[draw].geometry.firstIndex = static_cast<uint32_t>(draw * 3);
+    for (size_t index = 0; index < 3; ++index) spans.indices[draw * 3 + index] = static_cast<uint32_t>(index);
+  }
+  CoinBgfxPlan preserved = factored;
+  ok &= check(!CoinBgfxLowering::lowerInstanced(spans, 4, 4, false, preserved, diagnostic) &&
+              diagnostic.find("source span/metadata budget") != std::string::npos &&
+              sameBytes(preserved.instances, factored.instances) && sameBytes(preserved.instancedVertices, factored.instancedVertices),
+              "bounded span metadata must decline without publishing a partial instance plan");
+  return ok;
+}
 }
 
 int main()
@@ -464,6 +612,7 @@ int main()
               "Coin clear color was quantized before GPU submission");
   CoinRenderFramePlan city = frame;
   ok &= instancedOpaque(frame);
+  ok &= diagonalInstancing(frame);
   {
     CoinRenderFramePlan materialFrame = frame;
     materialFrame.materials.push_back(materialFrame.materials[0]);

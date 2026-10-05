@@ -41,6 +41,8 @@ struct CoinBgfxInstancedVertex {
 };
 struct CoinBgfxInstance {
   // View-position columns 0..2, normal columns 3..5, material D/A/S/E 6..9.
+  // Position may factor a positive diagonal mesh scale. Normals keep the
+  // original authored model-view inverse transpose, independent of that scale.
   // Column 3.w is shininess; column 4.w is the PHONG flag.
   float data[10][4];
 };
