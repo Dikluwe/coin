@@ -1,0 +1,67 @@
+{
+  "timestamp_utc": "2026-10-05T15:39:53.870936+00:00",
+  "source_content_revision": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+  "source_snapshot_revision": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+  "source_card": {
+    "path": "/tmp/coin-render-geometry-overlay-final-binaries.json",
+    "bytes": 3957,
+    "sha256": "b6824aad476bd5507bf1916eca9dfa3a313e2b3e6628679c3b37adb52c0afc8c"
+  },
+  "commands": [
+    {
+      "command": [
+        "uname",
+        "-a"
+      ],
+      "timeout_seconds": 30,
+      "exit_code": 0,
+      "stdout": "Linux Dell-G15-Linuxmint 6.17.0-42-generic #42-Ubuntu SMP PREEMPT_DYNAMIC Thu Jul 23 19:56:28 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux\n",
+      "stderr": "",
+      "timed_out": false
+    },
+    {
+      "command": [
+        "lscpu"
+      ],
+      "timeout_seconds": 30,
+      "exit_code": 0,
+      "stdout": "Architecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           48 bits physical, 48 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  16\nOn-line CPU(s) list:                     0-15\nVendor ID:                               AuthenticAMD\nModel name:                              AMD Ryzen 7 5800H with Radeon Graphics\nCPU family:                              25\nModel:                                   80\nThread(s) per core:                      2\nCore(s) per socket:                      8\nSocket(s):                               1\nStepping:                                0\nFrequency boost:                         enabled\nCPU(s) scaling MHz:                      58%\nCPU max MHz:                             4465.2612\nCPU min MHz:                             403.4880\nBogoMIPS:                                6388.02\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif v_spec_ctrl umip pku ospke vaes vpclmulqdq rdpid overflow_recov succor smca fsrm debug_swap\nVirtualization:                          AMD-V\nL1d cache:                               256 KiB (8 instances)\nL1i cache:                               256 KiB (8 instances)\nL2 cache:                                4 MiB (8 instances)\nL3 cache:                                16 MiB (1 instance)\nNUMA node(s):                            1\nNUMA node0 CPU(s):                       0-15\nVulnerability Gather data sampling:      Not affected\nVulnerability Ghostwrite:                Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Old microcode:             Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Not affected\nVulnerability Spec rstack overflow:      Mitigation; Safe RET\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; Retpolines; IBPB conditional; IBRS_FW; STIBP always-on; RSB filling; PBRSB-eIBRS Not affected; BHI Not affected\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Mitigation; Clear CPU buffers\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Mitigation; IBPB before exit to userspace\n",
+      "stderr": "",
+      "timed_out": false
+    },
+    {
+      "command": [
+        "nvidia-smi",
+        "--query-gpu=name,driver_version,temperature.gpu,pstate,clocks.gr,clocks.mem",
+        "--format=csv,noheader"
+      ],
+      "timeout_seconds": 30,
+      "exit_code": 0,
+      "stdout": "NVIDIA GeForce RTX 3060 Laptop GPU, 610.57.04, 56, P8, 210 MHz, 405 MHz\n",
+      "stderr": "",
+      "timed_out": false
+    }
+  ],
+  "cpu_governors": {
+    "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "powersave",
+    "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "powersave",
+    "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "powersave",
+    "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "powersave",
+    "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "powersave",
+    "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "powersave",
+    "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "powersave",
+    "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "powersave",
+    "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "powersave",
+    "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "powersave",
+    "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "powersave",
+    "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "powersave",
+    "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "powersave",
+    "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "powersave",
+    "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "powersave",
+    "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "powersave"
+  },
+  "cpu_governor_read_errors": {},
+  "gpu_workload_note": "Post-campaign read-only snapshot requested after timing and RGB collection; no clocks or display settings changed",
+  "queries_succeeded": true,
+  "script_sha256": "c7ec61a03caad741edd553774abb5615f5bcb2da5158eea5add1cb44f270de76"
+}

@@ -1,0 +1,829 @@
+{
+  "title": "CoinRender: overlay de geometria — Linux",
+  "date": null,
+  "source_content_revision": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+  "baseline_source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+  "baseline_source_snapshot_revision": "a2e19d360db9c4ef187550ae1513fddd0585a371",
+  "baseline_variant_source_content_revisions": {
+    "coingl": "4d63bb993022ee8d40802558b0871a4803002b8d",
+    "bgfx-vulkan": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+    "bgfx-opengl": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+    "wgpu-vulkan": "9a594fa39c7ca7924f9931863d4bdd7a37165cee"
+  },
+  "coingl_source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+  "scene_sha256": "bb9ccc612cd38ffb749ee599d9350a80974649eab5bf477d2f344538a42b2576",
+  "expected_counts": {
+    "steady": {
+      "processes": 84,
+      "measured_frames": 1260,
+      "warmup_frames": 420
+    },
+    "ablation": {
+      "processes": 36,
+      "measured_frames": 252,
+      "warmup_frames": 108
+    }
+  },
+  "diagnostic_contract": {
+    "schema_version": 1,
+    "configured": true,
+    "optout": "COIN_RENDER_DISABLE_GEOMETRY_INTERVAL_VALIDATION",
+    "scope": "geometry_overlay_validation",
+    "variants": [
+      "wgpu-vulkan",
+      "bgfx-vulkan",
+      "bgfx-opengl"
+    ],
+    "cases": [
+      "geometry-10",
+      "geometry-100"
+    ],
+    "rounds": 3,
+    "warmup": 3,
+    "frames": 7,
+    "alignment": "validation event belongs to next action marker",
+    "limitations": [
+      "validation_ms includes position validation, undo preparation, uniqueness and scratch cleanup; not isolated sort time",
+      "scratch_bytes is collision scratch capacity, excluding mandatory undo and allocator overhead",
+      "city profile: first full capture without event; exactly one validation before each later resource_rebuild action",
+      "on-path city requires ordered or intervals; literal fallback stays raw and blocks optimization-route proof"
+    ],
+    "observation_basis": "36 real runs: action markers aligned before CSV warmup exclusion; 36 per-process proofs and 18 on/off pairs passed; source and bin hashes match."
+  },
+  "gate_counts": {
+    "Core (inclui integração GPU)": 4,
+    "Action/Reuse misto": 2,
+    "GPU dedicado": 6
+  },
+  "build_count": 2,
+  "gates": [],
+  "builds": [],
+  "rgb_comparisons": 112,
+  "verification_ppm_files": 224,
+  "verification_processes": 32,
+  "all_rgb_identical": true,
+  "implementation_notes": [
+    "Validação usa valores atuais, sem cache persistente ou confiança em revisão. Slots estritamente crescentes dispensam sort e scratch; na primeira inversão, runs consecutivos inclusivos são reconstruídos e apenas seus intervalos são ordenados.",
+    "União usa uint64_t(last)+1. Sobreposição/duplicação recusa a transação. Capacidade opcional ≤65536 runs e ≤4×N bytes; cap/OOM usa o algoritmo literal de slots+sort após liberar scratch. Updates e undo mantêm a ordem original; mutações continuam após toda a validação.",
+    "Optout privada COIN_RENDER_DISABLE_GEOMETRY_INTERVAL_VALIDATION=1 força o caminho literal. Materiais/transformações sem posições não consultam essa opção nem emitem evento geometry_overlay_validation."
+  ],
+  "scope_notes": [
+    "Cidade de 40.000 objetos, offscreen 1024 × 1024, quatro variantes na mesma GPU NVIDIA; sem campanha de startup nesta etapa.",
+    "Baseline Render medido em 9a594fa39c7ca7924f9931863d4bdd7a37165cee; snapshot de organização/documentação a2e19d360db9c4ef187550ae1513fddd0585a371. Atual 96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33; controle CoinGL 4d63bb993022ee8d40802558b0871a4803002b8d."
+  ],
+  "ablation_notes": [],
+  "history_notes": [
+    "O bootstrap do executor de gates falhou ao localizar um caminho de fonte antes de executar qualquer teste. O caminho foi corrigido; diretório vazio, log e comandos da tentativa permanecem em history/, fora dos12 gates finais.",
+    "A categoria registrada core_cpu é preservada no manifesto: suas quatro execuções são dois Core CPU (FrameCore e PlanAssembly) e duas integrações GPU (FrameReuseCore WG/BG, que executam Target/backend real). As outras execuções são dois Action/Reuse mistos e seis GPU dedicados; não há quatro Core CPU puros."
+  ],
+  "reviews": [],
+  "limitations": [
+    "validation_ms cobre posições, preparação do undo, unicidade e limpeza do scratch; exclui fprintf, validação posterior de draws/modelos e as escritas finais do overlay. Não é tempo de whole overlay, sort isolado ou memcpy.",
+    "scratch_bytes mede a capacidade do scratch de colisão usada na fase, sem undo obrigatório ou overhead do allocator. ordered usa zero; intervals ordena R runs; literal ordena N slots.",
+    "Na ablação, o primeiro full capture não emite esta fase. Eventos são associados ao próximo marcador Action antes de usar as flags warmup do CSV; nenhum slice arbitrário da sequência bruta é tratado como medido.",
+    "A comparação principal e a ablação preservam regressões e outliers. Medianas por processo/rodada, com amostras curtas, não estabelecem latência de cauda nem causalidade de toda variação do quadro.",
+    "Snapshots de hardware antes/depois não acompanham clocks continuamente. Binários e PPMs não integram este arquivo de evidências; hashes e logs permanecem registrados.",
+    "A terceira rodada teve outliers grandes, mantidos nos dados e nas faixas do gráfico. load-observation.json preserva um snapshot de carga durante essa rodada: a lista GPU amostrada mostrou nosso benchmark, e ps incluiu Codex/navegadores. Essa amostra não prova a causa da variação nem acompanha a carga de toda a campanha.",
+    "O probe suplementar usa a mesma build BGFX/Vulkan, geometry-10, sem trace: seis processos, 90 medidos e 30 warmups. Todas as três diferenças por par permanecem, inclusive o primeiro par positivo. Não substitui a campanha principal ou a ablação e não identifica a causa da variação observada."
+  ],
+  "evidence_reference": "validation/geometry-overlay-linux/README.md",
+  "gate_commands": {
+    "core": {
+      "tests": [
+        "CoinRenderFrameReuseCoreTest",
+        "CoinRenderFrameCoreTest",
+        "CoinRenderPlanAssemblyCoreTest"
+      ],
+      "category": "Core (inclui integração GPU)",
+      "source_category": "core_cpu",
+      "variant": "wgpu-vulkan",
+      "direct_cli_override": false
+    },
+    "bgfx-reuse-core": {
+      "tests": [
+        "CoinRenderFrameReuseCoreTest"
+      ],
+      "category": "Core (inclui integração GPU)",
+      "source_category": "core_cpu",
+      "variant": "bgfx-vulkan",
+      "direct_cli_override": false
+    },
+    "wgpu-action": {
+      "tests": [
+        "CoinRenderActionTest"
+      ],
+      "category": "Action/Reuse misto",
+      "source_category": "action_reuse",
+      "variant": "wgpu-vulkan",
+      "direct_cli_override": false
+    },
+    "bgfx-action": {
+      "tests": [
+        "CoinRenderActionTest"
+      ],
+      "category": "Action/Reuse misto",
+      "source_category": "action_reuse",
+      "variant": "bgfx-vulkan",
+      "direct_cli_override": false
+    },
+    "wgpu-vulkan-composition-gpu": {
+      "tests": [
+        "CoinRenderCompositionTest"
+      ],
+      "category": "GPU dedicado",
+      "source_category": "gpu",
+      "variant": "wgpu-vulkan",
+      "direct_cli_override": true,
+      "arguments": [
+        "--gpu"
+      ],
+      "required_output_marker": "CoinRenderCompositionTest GPU passed"
+    },
+    "bgfx-vulkan-composition-gpu": {
+      "tests": [
+        "CoinRenderCompositionTest"
+      ],
+      "category": "GPU dedicado",
+      "source_category": "gpu",
+      "variant": "bgfx-vulkan",
+      "direct_cli_override": true,
+      "arguments": [
+        "--gpu"
+      ],
+      "required_output_marker": "CoinRenderCompositionTest GPU passed"
+    },
+    "bgfx-opengl-composition-gpu": {
+      "tests": [
+        "CoinRenderCompositionTest"
+      ],
+      "category": "GPU dedicado",
+      "source_category": "gpu",
+      "variant": "bgfx-opengl",
+      "direct_cli_override": true,
+      "arguments": [
+        "--gpu"
+      ],
+      "required_output_marker": "CoinRenderCompositionTest GPU passed"
+    },
+    "wgpu-multidevice": {
+      "tests": [
+        "CoinWgpuMultiDeviceTest"
+      ],
+      "category": "GPU dedicado",
+      "source_category": "gpu",
+      "variant": "wgpu-vulkan",
+      "direct_cli_override": false
+    },
+    "bgfx-instancing-vulkan": {
+      "tests": [
+        "CoinBgfxInstancingTest"
+      ],
+      "category": "GPU dedicado",
+      "source_category": "gpu",
+      "variant": "bgfx-vulkan",
+      "direct_cli_override": false
+    },
+    "bgfx-instancing-opengl": {
+      "tests": [
+        "CoinBgfxInstancingOpenGLTest"
+      ],
+      "category": "GPU dedicado",
+      "source_category": "gpu",
+      "variant": "bgfx-opengl",
+      "direct_cli_override": false
+    }
+  },
+  "focused_probe": {
+    "source_content_revision": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+    "scene_sha256": "bb9ccc612cd38ffb749ee599d9350a80974649eab5bf477d2f344538a42b2576",
+    "parameters": {
+      "variant": "bgfx-vulkan",
+      "case": "geometry-10",
+      "rounds": 3,
+      "warmup": 5,
+      "frames": 15,
+      "size": 1024,
+      "gpu": "nvidia",
+      "transparency": "object",
+      "optout": "COIN_RENDER_DISABLE_GEOMETRY_INTERVAL_VALIDATION",
+      "trace": false
+    },
+    "unique_counts": {
+      "processes": 6,
+      "measured_frames": 90,
+      "warmup_frames": 30
+    },
+    "complete_and_comparable": true,
+    "summary": {
+      "pairs": [
+        {
+          "round": 1,
+          "on": "bgfx-vulkan-geometry-10-on-1",
+          "off": "bgfx-vulkan-geometry-10-off-1",
+          "complete_and_comparable": true,
+          "stats": {
+            "update_ms": {
+              "median_ms": {
+                "off": 7.672231,
+                "on": 7.874176,
+                "delta_ms": 0.20194500000000026,
+                "change_percent": 2.6321548451812893
+              },
+              "min_ms": {
+                "off": 7.460497,
+                "on": 7.741489,
+                "delta_ms": 0.28099199999999946,
+                "change_percent": 3.7663978686674593
+              },
+              "max_ms": {
+                "off": 7.848669,
+                "on": 10.141718,
+                "delta_ms": 2.293048999999999,
+                "change_percent": 29.215768941205166
+              },
+              "p95_ms": {
+                "off": 7.848669,
+                "on": 10.141718,
+                "delta_ms": 2.293048999999999,
+                "change_percent": 29.215768941205166
+              },
+              "p99_ms": {
+                "off": 7.848669,
+                "on": 10.141718,
+                "delta_ms": 2.293048999999999,
+                "change_percent": 29.215768941205166
+              }
+            },
+            "render_ms": {
+              "median_ms": {
+                "off": 50.693781,
+                "on": 53.95589,
+                "delta_ms": 3.2621089999999953,
+                "change_percent": 6.434929365398867
+              },
+              "min_ms": {
+                "off": 49.801394,
+                "on": 52.63737,
+                "delta_ms": 2.835975999999995,
+                "change_percent": 5.6945715214316905
+              },
+              "max_ms": {
+                "off": 52.930296,
+                "on": 56.613166,
+                "delta_ms": 3.682870000000001,
+                "change_percent": 6.957962222618219
+              },
+              "p95_ms": {
+                "off": 52.930296,
+                "on": 56.613166,
+                "delta_ms": 3.682870000000001,
+                "change_percent": 6.957962222618219
+              },
+              "p99_ms": {
+                "off": 52.930296,
+                "on": 56.613166,
+                "delta_ms": 3.682870000000001,
+                "change_percent": 6.957962222618219
+              }
+            },
+            "publication_ms": {
+              "median_ms": {
+                "off": 0.405854,
+                "on": 0.43611,
+                "delta_ms": 0.030256000000000005,
+                "change_percent": 7.454897574004438
+              },
+              "min_ms": {
+                "off": 0.262538,
+                "on": 0.367283,
+                "delta_ms": 0.10474500000000003,
+                "change_percent": 39.89708156533531
+              },
+              "max_ms": {
+                "off": 0.511821,
+                "on": 0.842605,
+                "delta_ms": 0.3307840000000001,
+                "change_percent": 64.62884485005502
+              },
+              "p95_ms": {
+                "off": 0.511821,
+                "on": 0.842605,
+                "delta_ms": 0.3307840000000001,
+                "change_percent": 64.62884485005502
+              },
+              "p99_ms": {
+                "off": 0.511821,
+                "on": 0.842605,
+                "delta_ms": 0.3307840000000001,
+                "change_percent": 64.62884485005502
+              }
+            },
+            "total_ms": {
+              "median_ms": {
+                "off": 58.654367,
+                "on": 62.180738,
+                "delta_ms": 3.5263709999999975,
+                "change_percent": 6.012120120570041
+              },
+              "min_ms": {
+                "off": 57.787097,
+                "on": 60.784553,
+                "delta_ms": 2.9974559999999997,
+                "change_percent": 5.18706797124624
+              },
+              "max_ms": {
+                "off": 61.167446,
+                "on": 66.232283,
+                "delta_ms": 5.064836999999997,
+                "change_percent": 8.280281965671744
+              },
+              "p95_ms": {
+                "off": 61.167446,
+                "on": 66.232283,
+                "delta_ms": 5.064836999999997,
+                "change_percent": 8.280281965671744
+              },
+              "p99_ms": {
+                "off": 61.167446,
+                "on": 66.232283,
+                "delta_ms": 5.064836999999997,
+                "change_percent": 8.280281965671744
+              }
+            }
+          }
+        },
+        {
+          "round": 2,
+          "on": "bgfx-vulkan-geometry-10-on-2",
+          "off": "bgfx-vulkan-geometry-10-off-2",
+          "complete_and_comparable": true,
+          "stats": {
+            "update_ms": {
+              "median_ms": {
+                "off": 7.701224,
+                "on": 7.506503,
+                "delta_ms": -0.19472099999999948,
+                "change_percent": -2.5284422320399957
+              },
+              "min_ms": {
+                "off": 7.494511,
+                "on": 7.387773,
+                "delta_ms": -0.106738,
+                "change_percent": -1.424215669307849
+              },
+              "max_ms": {
+                "off": 8.687256,
+                "on": 7.591551,
+                "delta_ms": -1.0957049999999997,
+                "change_percent": -12.612785901555101
+              },
+              "p95_ms": {
+                "off": 8.687256,
+                "on": 7.591551,
+                "delta_ms": -1.0957049999999997,
+                "change_percent": -12.612785901555101
+              },
+              "p99_ms": {
+                "off": 8.687256,
+                "on": 7.591551,
+                "delta_ms": -1.0957049999999997,
+                "change_percent": -12.612785901555101
+              }
+            },
+            "render_ms": {
+              "median_ms": {
+                "off": 52.193388,
+                "on": 48.318752,
+                "delta_ms": -3.8746359999999953,
+                "change_percent": -7.423614654024746
+              },
+              "min_ms": {
+                "off": 50.754555,
+                "on": 47.730809,
+                "delta_ms": -3.0237460000000027,
+                "change_percent": -5.957585481736571
+              },
+              "max_ms": {
+                "off": 53.957064,
+                "on": 50.820729,
+                "delta_ms": -3.1363350000000025,
+                "change_percent": -5.812649479964294
+              },
+              "p95_ms": {
+                "off": 53.957064,
+                "on": 50.820729,
+                "delta_ms": -3.1363350000000025,
+                "change_percent": -5.812649479964294
+              },
+              "p99_ms": {
+                "off": 53.957064,
+                "on": 50.820729,
+                "delta_ms": -3.1363350000000025,
+                "change_percent": -5.812649479964294
+              }
+            },
+            "publication_ms": {
+              "median_ms": {
+                "off": 0.426652,
+                "on": 0.411935,
+                "delta_ms": -0.01471699999999998,
+                "change_percent": -3.4494154486560458
+              },
+              "min_ms": {
+                "off": 0.382169,
+                "on": 0.36631,
+                "delta_ms": -0.015858999999999956,
+                "change_percent": -4.149734803189153
+              },
+              "max_ms": {
+                "off": 0.467248,
+                "on": 0.532018,
+                "delta_ms": 0.06477,
+                "change_percent": 13.86201760093142
+              },
+              "p95_ms": {
+                "off": 0.467248,
+                "on": 0.532018,
+                "delta_ms": 0.06477,
+                "change_percent": 13.86201760093142
+              },
+              "p99_ms": {
+                "off": 0.467248,
+                "on": 0.532018,
+                "delta_ms": 0.06477,
+                "change_percent": 13.86201760093142
+              }
+            },
+            "total_ms": {
+              "median_ms": {
+                "off": 60.156368,
+                "on": 56.303794,
+                "delta_ms": -3.852573999999997,
+                "change_percent": -6.404266294800243
+              },
+              "min_ms": {
+                "off": 58.820076,
+                "on": 55.516852,
+                "delta_ms": -3.303224,
+                "change_percent": -5.615810493002426
+              },
+              "max_ms": {
+                "off": 62.201117,
+                "on": 58.719581,
+                "delta_ms": -3.4815360000000055,
+                "change_percent": -5.597224242773658
+              },
+              "p95_ms": {
+                "off": 62.201117,
+                "on": 58.719581,
+                "delta_ms": -3.4815360000000055,
+                "change_percent": -5.597224242773658
+              },
+              "p99_ms": {
+                "off": 62.201117,
+                "on": 58.719581,
+                "delta_ms": -3.4815360000000055,
+                "change_percent": -5.597224242773658
+              }
+            }
+          }
+        },
+        {
+          "round": 3,
+          "on": "bgfx-vulkan-geometry-10-on-3",
+          "off": "bgfx-vulkan-geometry-10-off-3",
+          "complete_and_comparable": true,
+          "stats": {
+            "update_ms": {
+              "median_ms": {
+                "off": 7.980784,
+                "on": 7.575642,
+                "delta_ms": -0.40514199999999967,
+                "change_percent": -5.07646867776399
+              },
+              "min_ms": {
+                "off": 7.687299,
+                "on": 7.420854,
+                "delta_ms": -0.26644500000000004,
+                "change_percent": -3.4660418438257734
+              },
+              "max_ms": {
+                "off": 9.950413,
+                "on": 7.91912,
+                "delta_ms": -2.031292999999999,
+                "change_percent": -20.41415768370618
+              },
+              "p95_ms": {
+                "off": 9.950413,
+                "on": 7.91912,
+                "delta_ms": -2.031292999999999,
+                "change_percent": -20.41415768370618
+              },
+              "p99_ms": {
+                "off": 9.950413,
+                "on": 7.91912,
+                "delta_ms": -2.031292999999999,
+                "change_percent": -20.41415768370618
+              }
+            },
+            "render_ms": {
+              "median_ms": {
+                "off": 51.764804,
+                "on": 48.841303,
+                "delta_ms": -2.9235009999999946,
+                "change_percent": -5.647661681477622
+              },
+              "min_ms": {
+                "off": 49.922632,
+                "on": 48.437383,
+                "delta_ms": -1.4852490000000032,
+                "change_percent": -2.97510155313927
+              },
+              "max_ms": {
+                "off": 65.56576,
+                "on": 50.544897,
+                "delta_ms": -15.020862999999999,
+                "change_percent": -22.9096147135334
+              },
+              "p95_ms": {
+                "off": 65.56576,
+                "on": 50.544897,
+                "delta_ms": -15.020862999999999,
+                "change_percent": -22.9096147135334
+              },
+              "p99_ms": {
+                "off": 65.56576,
+                "on": 50.544897,
+                "delta_ms": -15.020862999999999,
+                "change_percent": -22.9096147135334
+              }
+            },
+            "publication_ms": {
+              "median_ms": {
+                "off": 0.435058,
+                "on": 0.422866,
+                "delta_ms": -0.01219199999999998,
+                "change_percent": -2.8023849693604053
+              },
+              "min_ms": {
+                "off": 0.384444,
+                "on": 0.382841,
+                "delta_ms": -0.001603000000000021,
+                "change_percent": -0.416965799960467
+              },
+              "max_ms": {
+                "off": 0.62966,
+                "on": 0.49529,
+                "delta_ms": -0.13437,
+                "change_percent": -21.340088301623094
+              },
+              "p95_ms": {
+                "off": 0.62966,
+                "on": 0.49529,
+                "delta_ms": -0.13437,
+                "change_percent": -21.340088301623094
+              },
+              "p99_ms": {
+                "off": 0.62966,
+                "on": 0.49529,
+                "delta_ms": -0.13437,
+                "change_percent": -21.340088301623094
+              }
+            },
+            "total_ms": {
+              "median_ms": {
+                "off": 60.226241,
+                "on": 56.841774,
+                "delta_ms": -3.384467000000001,
+                "change_percent": -5.6195886440928655
+              },
+              "min_ms": {
+                "off": 58.177015,
+                "on": 56.368194,
+                "delta_ms": -1.8088209999999947,
+                "change_percent": -3.109167770123633
+              },
+              "max_ms": {
+                "off": 76.145833,
+                "on": 58.92332,
+                "delta_ms": -17.222513,
+                "change_percent": -22.617801029243456
+              },
+              "p95_ms": {
+                "off": 76.145833,
+                "on": 58.92332,
+                "delta_ms": -17.222513,
+                "change_percent": -22.617801029243456
+              },
+              "p99_ms": {
+                "off": 76.145833,
+                "on": 58.92332,
+                "delta_ms": -17.222513,
+                "change_percent": -22.617801029243456
+              }
+            }
+          }
+        }
+      ],
+      "groups": {
+        "off": {
+          "processes": 3,
+          "stems": [
+            "bgfx-vulkan-geometry-10-off-1",
+            "bgfx-vulkan-geometry-10-off-2",
+            "bgfx-vulkan-geometry-10-off-3"
+          ],
+          "rounds": [
+            1,
+            2,
+            3
+          ],
+          "stats": {
+            "update_ms": {
+              "median_ms": 7.701224,
+              "min_ms": 7.494511,
+              "max_ms": 8.687256,
+              "p95_ms": 8.687256,
+              "p99_ms": 8.687256
+            },
+            "render_ms": {
+              "median_ms": 51.764804,
+              "min_ms": 49.922632,
+              "max_ms": 53.957064,
+              "p95_ms": 53.957064,
+              "p99_ms": 53.957064
+            },
+            "publication_ms": {
+              "median_ms": 0.426652,
+              "min_ms": 0.382169,
+              "max_ms": 0.511821,
+              "p95_ms": 0.511821,
+              "p99_ms": 0.511821
+            },
+            "total_ms": {
+              "median_ms": 60.156368,
+              "min_ms": 58.177015,
+              "max_ms": 62.201117,
+              "p95_ms": 62.201117,
+              "p99_ms": 62.201117
+            }
+          },
+          "process_median_values_ms": {
+            "update_ms": [
+              7.672231,
+              7.701224,
+              7.980784
+            ],
+            "render_ms": [
+              50.693781,
+              52.193388,
+              51.764804
+            ],
+            "publication_ms": [
+              0.405854,
+              0.426652,
+              0.435058
+            ],
+            "total_ms": [
+              58.654367,
+              60.156368,
+              60.226241
+            ]
+          },
+          "process_median_range_ms": {
+            "update_ms": {
+              "minimum": 7.672231,
+              "maximum": 7.980784
+            },
+            "render_ms": {
+              "minimum": 50.693781,
+              "maximum": 52.193388
+            },
+            "publication_ms": {
+              "minimum": 0.405854,
+              "maximum": 0.435058
+            },
+            "total_ms": {
+              "minimum": 58.654367,
+              "maximum": 60.226241
+            }
+          }
+        },
+        "on": {
+          "processes": 3,
+          "stems": [
+            "bgfx-vulkan-geometry-10-on-1",
+            "bgfx-vulkan-geometry-10-on-2",
+            "bgfx-vulkan-geometry-10-on-3"
+          ],
+          "rounds": [
+            1,
+            2,
+            3
+          ],
+          "stats": {
+            "update_ms": {
+              "median_ms": 7.575642,
+              "min_ms": 7.420854,
+              "max_ms": 7.91912,
+              "p95_ms": 7.91912,
+              "p99_ms": 7.91912
+            },
+            "render_ms": {
+              "median_ms": 48.841303,
+              "min_ms": 48.437383,
+              "max_ms": 50.820729,
+              "p95_ms": 50.820729,
+              "p99_ms": 50.820729
+            },
+            "publication_ms": {
+              "median_ms": 0.422866,
+              "min_ms": 0.367283,
+              "max_ms": 0.532018,
+              "p95_ms": 0.532018,
+              "p99_ms": 0.532018
+            },
+            "total_ms": {
+              "median_ms": 56.841774,
+              "min_ms": 56.368194,
+              "max_ms": 58.92332,
+              "p95_ms": 58.92332,
+              "p99_ms": 58.92332
+            }
+          },
+          "process_median_values_ms": {
+            "update_ms": [
+              7.874176,
+              7.506503,
+              7.575642
+            ],
+            "render_ms": [
+              53.95589,
+              48.318752,
+              48.841303
+            ],
+            "publication_ms": [
+              0.43611,
+              0.411935,
+              0.422866
+            ],
+            "total_ms": [
+              62.180738,
+              56.303794,
+              56.841774
+            ]
+          },
+          "process_median_range_ms": {
+            "update_ms": {
+              "minimum": 7.506503,
+              "maximum": 7.874176
+            },
+            "render_ms": {
+              "minimum": 48.318752,
+              "maximum": 53.95589
+            },
+            "publication_ms": {
+              "minimum": 0.411935,
+              "maximum": 0.43611
+            },
+            "total_ms": {
+              "minimum": 56.303794,
+              "maximum": 62.180738
+            }
+          }
+        }
+      },
+      "comparisons": {
+        "update_ms": {
+          "off": 7.701224,
+          "on": 7.575642,
+          "delta_ms": -0.12558199999999964,
+          "change_percent": -1.6306758510075792
+        },
+        "render_ms": {
+          "off": 51.764804,
+          "on": 48.841303,
+          "delta_ms": -2.9235009999999946,
+          "change_percent": -5.647661681477622
+        },
+        "publication_ms": {
+          "off": 0.426652,
+          "on": 0.422866,
+          "delta_ms": -0.003785999999999956,
+          "change_percent": -0.8873742534899587
+        },
+        "total_ms": {
+          "off": 60.156368,
+          "on": 56.841774,
+          "delta_ms": -3.3145939999999996,
+          "change_percent": -5.50996363344276
+        }
+      },
+      "complete_and_comparable": true,
+      "summary_method": "median of three per-process measured medians; never pooled frames",
+      "difference": "on minus off; positive values mean slower",
+      "limitation": "Supplemental same-build probe without trace; does not replace or remove the principal matched increase or identify its cause"
+    },
+    "evidence_reference": "validation/geometry-overlay-linux/regression-probe/summary.json"
+  }
+}

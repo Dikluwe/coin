@@ -1,0 +1,2671 @@
+{
+  "source_content_revision": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+  "scene_sha256": "bb9ccc612cd38ffb749ee599d9350a80974649eab5bf477d2f344538a42b2576",
+  "binary_hashes": {
+    "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086",
+    "/tmp/coin-render-first-frame-bgfx/lib/libCoinRender.so": "4f91951b1ae29410c256bbed648a645af2ff36655a893fda9a427768dd39bf30",
+    "/tmp/coin-render-first-frame-bgfx/lib/libCoin.so.80": "c86d9ce95df367b1c649545a1d0ba1de89edeb9f5b887f765bc47229d55c5437"
+  },
+  "commands": [
+    {
+      "stem": "bgfx-vulkan-geometry-10-on-1",
+      "variant": "bgfx-vulkan",
+      "case": "geometry-10",
+      "mode": "on",
+      "round": 1,
+      "source_content_revision": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+      "command": [
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "geometry",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "5",
+        "--frames",
+        "15",
+        "--samples-output",
+        "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-on-1.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_BGFX_RENDERER": "vulkan"
+      },
+      "trace_environment_absent": true,
+      "timeout_seconds": 180,
+      "timed_command": [
+        "/usr/bin/time",
+        "-f",
+        "benchmark_peak_rss_kib=%M",
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "geometry",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "5",
+        "--frames",
+        "15",
+        "--samples-output",
+        "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-on-1.csv"
+      ],
+      "exit_code": 0,
+      "timed_out": false,
+      "adapter_verified_nvidia": true,
+      "phase_trace_seen": false,
+      "log_input": {
+        "path": "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-on-1.log",
+        "sha256": "bfef1469112473bf24b2845a72cbb1531d6a6859977f9ac34e61b33b0b1c0351"
+      },
+      "samples": {
+        "rows": [
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-5",
+            "logical_frame": "-5",
+            "warmup": "1",
+            "update_ms": "4.3230490000000001",
+            "render_ms": "492.68001199999998",
+            "publication_ms": "0.43086999999999998",
+            "total_ms": "497.43393099999997"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-4",
+            "logical_frame": "-4",
+            "warmup": "1",
+            "update_ms": "8.1431950000000004",
+            "render_ms": "58.029727000000001",
+            "publication_ms": "0.47403099999999998",
+            "total_ms": "66.646952999999996"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-3",
+            "logical_frame": "-3",
+            "warmup": "1",
+            "update_ms": "7.6599779999999997",
+            "render_ms": "52.787179000000002",
+            "publication_ms": "0.47468100000000002",
+            "total_ms": "60.921838000000001"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-2",
+            "logical_frame": "-2",
+            "warmup": "1",
+            "update_ms": "8.4922140000000006",
+            "render_ms": "55.609160000000003",
+            "publication_ms": "0.47642499999999999",
+            "total_ms": "64.577798999999999"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-1",
+            "logical_frame": "-1",
+            "warmup": "1",
+            "update_ms": "7.9179769999999996",
+            "render_ms": "53.27787",
+            "publication_ms": "0.38037599999999999",
+            "total_ms": "61.576222999999999"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "0",
+            "logical_frame": "0",
+            "warmup": "0",
+            "update_ms": "8.0848870000000002",
+            "render_ms": "52.660483999999997",
+            "publication_ms": "0.40612399999999999",
+            "total_ms": "61.151494999999997"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "1",
+            "logical_frame": "1",
+            "warmup": "0",
+            "update_ms": "7.7586110000000001",
+            "render_ms": "55.104492999999998",
+            "publication_ms": "0.404061",
+            "total_ms": "63.267164999999999"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "2",
+            "logical_frame": "2",
+            "warmup": "0",
+            "update_ms": "7.7414889999999996",
+            "render_ms": "52.637369999999997",
+            "publication_ms": "0.405694",
+            "total_ms": "60.784553000000002"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "3",
+            "logical_frame": "3",
+            "warmup": "0",
+            "update_ms": "7.7926539999999997",
+            "render_ms": "53.08943",
+            "publication_ms": "0.62973000000000001",
+            "total_ms": "61.511814000000001"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "4",
+            "logical_frame": "4",
+            "warmup": "0",
+            "update_ms": "7.8575650000000001",
+            "render_ms": "53.955889999999997",
+            "publication_ms": "0.36728300000000003",
+            "total_ms": "62.180737999999998"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "5",
+            "logical_frame": "5",
+            "warmup": "0",
+            "update_ms": "8.3512319999999995",
+            "render_ms": "54.302103000000002",
+            "publication_ms": "0.56038100000000002",
+            "total_ms": "63.213715999999998"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "6",
+            "logical_frame": "6",
+            "warmup": "0",
+            "update_ms": "7.8741760000000003",
+            "render_ms": "53.076335999999998",
+            "publication_ms": "0.43817400000000001",
+            "total_ms": "61.388686"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "7",
+            "logical_frame": "7",
+            "warmup": "0",
+            "update_ms": "7.8585370000000001",
+            "render_ms": "55.658923000000001",
+            "publication_ms": "0.68748699999999996",
+            "total_ms": "64.204947000000004"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "8",
+            "logical_frame": "8",
+            "warmup": "0",
+            "update_ms": "10.141717999999999",
+            "render_ms": "55.685702999999997",
+            "publication_ms": "0.404862",
+            "total_ms": "66.232282999999995"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "9",
+            "logical_frame": "9",
+            "warmup": "0",
+            "update_ms": "8.0046979999999994",
+            "render_ms": "56.613166",
+            "publication_ms": "0.84260500000000005",
+            "total_ms": "65.460469000000003"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "10",
+            "logical_frame": "10",
+            "warmup": "0",
+            "update_ms": "8.3451500000000003",
+            "render_ms": "54.107472000000001",
+            "publication_ms": "0.42421799999999998",
+            "total_ms": "62.876840000000001"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "11",
+            "logical_frame": "11",
+            "warmup": "0",
+            "update_ms": "7.7555059999999996",
+            "render_ms": "53.899234",
+            "publication_ms": "0.46564499999999998",
+            "total_ms": "62.120384999999999"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "12",
+            "logical_frame": "12",
+            "warmup": "0",
+            "update_ms": "7.8285710000000002",
+            "render_ms": "53.561407000000003",
+            "publication_ms": "0.64801399999999998",
+            "total_ms": "62.037992000000003"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "13",
+            "logical_frame": "13",
+            "warmup": "0",
+            "update_ms": "7.8937530000000002",
+            "render_ms": "53.857286000000002",
+            "publication_ms": "0.374336",
+            "total_ms": "62.125374999999998"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "14",
+            "logical_frame": "14",
+            "warmup": "0",
+            "update_ms": "7.8823210000000001",
+            "render_ms": "54.240709000000003",
+            "publication_ms": "0.43611",
+            "total_ms": "62.559139999999999"
+          }
+        ],
+        "measured_row_indices": [
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19
+        ],
+        "warmup_row_indices": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "measured_frames": 15,
+        "warmup_frames": 5,
+        "stats": {
+          "update_ms": {
+            "median_ms": 7.874176,
+            "min_ms": 7.741489,
+            "max_ms": 10.141718,
+            "p95_ms": 10.141718,
+            "p99_ms": 10.141718
+          },
+          "render_ms": {
+            "median_ms": 53.95589,
+            "min_ms": 52.63737,
+            "max_ms": 56.613166,
+            "p95_ms": 56.613166,
+            "p99_ms": 56.613166
+          },
+          "publication_ms": {
+            "median_ms": 0.43611,
+            "min_ms": 0.367283,
+            "max_ms": 0.842605,
+            "p95_ms": 0.842605,
+            "p99_ms": 0.842605
+          },
+          "total_ms": {
+            "median_ms": 62.180738,
+            "min_ms": 60.784553,
+            "max_ms": 66.232283,
+            "p95_ms": 66.232283,
+            "p99_ms": 66.232283
+          }
+        },
+        "csv_input": {
+          "path": "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-on-1.csv",
+          "bytes": 1902,
+          "sha256": "8eeec71ce66b391194b82451fa2764208dd7c31df886364e947719d519ecdf4a"
+        }
+      }
+    },
+    {
+      "stem": "bgfx-vulkan-geometry-10-off-1",
+      "variant": "bgfx-vulkan",
+      "case": "geometry-10",
+      "mode": "off",
+      "round": 1,
+      "source_content_revision": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+      "command": [
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "geometry",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "5",
+        "--frames",
+        "15",
+        "--samples-output",
+        "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-off-1.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_RENDER_DISABLE_GEOMETRY_INTERVAL_VALIDATION": "1"
+      },
+      "trace_environment_absent": true,
+      "timeout_seconds": 180,
+      "timed_command": [
+        "/usr/bin/time",
+        "-f",
+        "benchmark_peak_rss_kib=%M",
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "geometry",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "5",
+        "--frames",
+        "15",
+        "--samples-output",
+        "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-off-1.csv"
+      ],
+      "exit_code": 0,
+      "timed_out": false,
+      "adapter_verified_nvidia": true,
+      "phase_trace_seen": false,
+      "log_input": {
+        "path": "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-off-1.log",
+        "sha256": "439ae4d1a829e8e3304aa90fa06926e3b8e7c265b965b709544a6f2d96e998fb"
+      },
+      "samples": {
+        "rows": [
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-5",
+            "logical_frame": "-5",
+            "warmup": "1",
+            "update_ms": "4.3927990000000001",
+            "render_ms": "490.51176099999998",
+            "publication_ms": "0.47673599999999999",
+            "total_ms": "495.38129600000002"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-4",
+            "logical_frame": "-4",
+            "warmup": "1",
+            "update_ms": "7.7745810000000004",
+            "render_ms": "59.538781",
+            "publication_ms": "0.641181",
+            "total_ms": "67.954543000000001"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-3",
+            "logical_frame": "-3",
+            "warmup": "1",
+            "update_ms": "8.0111609999999995",
+            "render_ms": "53.424393000000002",
+            "publication_ms": "0.39279999999999998",
+            "total_ms": "61.828353999999997"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-2",
+            "logical_frame": "-2",
+            "warmup": "1",
+            "update_ms": "8.1920369999999991",
+            "render_ms": "55.448433000000001",
+            "publication_ms": "0.45455400000000001",
+            "total_ms": "64.095023999999995"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-1",
+            "logical_frame": "-1",
+            "warmup": "1",
+            "update_ms": "7.74153",
+            "render_ms": "54.027003000000001",
+            "publication_ms": "0.50097000000000003",
+            "total_ms": "62.269503"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "0",
+            "logical_frame": "0",
+            "warmup": "0",
+            "update_ms": "7.8380789999999996",
+            "render_ms": "52.930295999999998",
+            "publication_ms": "0.39907100000000001",
+            "total_ms": "61.167445999999998"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "1",
+            "logical_frame": "1",
+            "warmup": "0",
+            "update_ms": "7.7237169999999997",
+            "render_ms": "51.342565999999998",
+            "publication_ms": "0.41794700000000001",
+            "total_ms": "59.484229999999997"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "2",
+            "logical_frame": "2",
+            "warmup": "0",
+            "update_ms": "7.573798",
+            "render_ms": "50.054915000000001",
+            "publication_ms": "0.44146000000000002",
+            "total_ms": "58.070172999999997"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "3",
+            "logical_frame": "3",
+            "warmup": "0",
+            "update_ms": "7.6498790000000003",
+            "render_ms": "50.294530000000002",
+            "publication_ms": "0.428707",
+            "total_ms": "58.373116000000003"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "4",
+            "logical_frame": "4",
+            "warmup": "0",
+            "update_ms": "7.4604970000000002",
+            "render_ms": "51.172640999999999",
+            "publication_ms": "0.387069",
+            "total_ms": "59.020206999999999"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "5",
+            "logical_frame": "5",
+            "warmup": "0",
+            "update_ms": "7.6793440000000004",
+            "render_ms": "50.693781000000001",
+            "publication_ms": "0.28124199999999999",
+            "total_ms": "58.654367000000001"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "6",
+            "logical_frame": "6",
+            "warmup": "0",
+            "update_ms": "7.5240960000000001",
+            "render_ms": "50.000463000000003",
+            "publication_ms": "0.26253799999999999",
+            "total_ms": "57.787097000000003"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "7",
+            "logical_frame": "7",
+            "warmup": "0",
+            "update_ms": "7.5603129999999998",
+            "render_ms": "51.513133000000003",
+            "publication_ms": "0.38757999999999998",
+            "total_ms": "59.461025999999997"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "8",
+            "logical_frame": "8",
+            "warmup": "0",
+            "update_ms": "7.7880659999999997",
+            "render_ms": "50.337961",
+            "publication_ms": "0.29269299999999998",
+            "total_ms": "58.41872"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "9",
+            "logical_frame": "9",
+            "warmup": "0",
+            "update_ms": "7.5151589999999997",
+            "render_ms": "50.835515000000001",
+            "publication_ms": "0.43892500000000001",
+            "total_ms": "58.789599000000003"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "10",
+            "logical_frame": "10",
+            "warmup": "0",
+            "update_ms": "7.6490679999999998",
+            "render_ms": "50.173194000000002",
+            "publication_ms": "0.39745900000000001",
+            "total_ms": "58.219721"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "11",
+            "logical_frame": "11",
+            "warmup": "0",
+            "update_ms": "7.7721260000000001",
+            "render_ms": "50.221935999999999",
+            "publication_ms": "0.40585399999999999",
+            "total_ms": "58.399915999999997"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "12",
+            "logical_frame": "12",
+            "warmup": "0",
+            "update_ms": "7.7499260000000003",
+            "render_ms": "49.801394000000002",
+            "publication_ms": "0.492284",
+            "total_ms": "58.043604000000002"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "13",
+            "logical_frame": "13",
+            "warmup": "0",
+            "update_ms": "7.8486690000000001",
+            "render_ms": "52.289175",
+            "publication_ms": "0.41048299999999999",
+            "total_ms": "60.548327"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "14",
+            "logical_frame": "14",
+            "warmup": "0",
+            "update_ms": "7.672231",
+            "render_ms": "50.703769999999999",
+            "publication_ms": "0.51182099999999997",
+            "total_ms": "58.887822"
+          }
+        ],
+        "measured_row_indices": [
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19
+        ],
+        "warmup_row_indices": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "measured_frames": 15,
+        "warmup_frames": 5,
+        "stats": {
+          "update_ms": {
+            "median_ms": 7.672231,
+            "min_ms": 7.460497,
+            "max_ms": 7.848669,
+            "p95_ms": 7.848669,
+            "p99_ms": 7.848669
+          },
+          "render_ms": {
+            "median_ms": 50.693781,
+            "min_ms": 49.801394,
+            "max_ms": 52.930296,
+            "p95_ms": 52.930296,
+            "p99_ms": 52.930296
+          },
+          "publication_ms": {
+            "median_ms": 0.405854,
+            "min_ms": 0.262538,
+            "max_ms": 0.511821,
+            "p95_ms": 0.511821,
+            "p99_ms": 0.511821
+          },
+          "total_ms": {
+            "median_ms": 58.654367,
+            "min_ms": 57.787097,
+            "max_ms": 61.167446,
+            "p95_ms": 61.167446,
+            "p99_ms": 61.167446
+          }
+        },
+        "csv_input": {
+          "path": "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-off-1.csv",
+          "bytes": 1857,
+          "sha256": "0818d5976aaaf711a0748e4bd7020ce8c7875331d2f7ac5c6b2239f4857e13f4"
+        }
+      }
+    },
+    {
+      "stem": "bgfx-vulkan-geometry-10-off-2",
+      "variant": "bgfx-vulkan",
+      "case": "geometry-10",
+      "mode": "off",
+      "round": 2,
+      "source_content_revision": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+      "command": [
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "geometry",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "5",
+        "--frames",
+        "15",
+        "--samples-output",
+        "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-off-2.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_RENDER_DISABLE_GEOMETRY_INTERVAL_VALIDATION": "1"
+      },
+      "trace_environment_absent": true,
+      "timeout_seconds": 180,
+      "timed_command": [
+        "/usr/bin/time",
+        "-f",
+        "benchmark_peak_rss_kib=%M",
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "geometry",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "5",
+        "--frames",
+        "15",
+        "--samples-output",
+        "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-off-2.csv"
+      ],
+      "exit_code": 0,
+      "timed_out": false,
+      "adapter_verified_nvidia": true,
+      "phase_trace_seen": false,
+      "log_input": {
+        "path": "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-off-2.log",
+        "sha256": "b9054a22342b75eb4ade53f634b9323cb90f84f1b6dc7a10285a3d44f81bd96f"
+      },
+      "samples": {
+        "rows": [
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-5",
+            "logical_frame": "-5",
+            "warmup": "1",
+            "update_ms": "4.1622209999999997",
+            "render_ms": "470.73594700000001",
+            "publication_ms": "0.421763",
+            "total_ms": "475.319931"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-4",
+            "logical_frame": "-4",
+            "warmup": "1",
+            "update_ms": "7.3985219999999998",
+            "render_ms": "55.504638",
+            "publication_ms": "0.46067599999999997",
+            "total_ms": "63.363835999999999"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-3",
+            "logical_frame": "-3",
+            "warmup": "1",
+            "update_ms": "7.6303330000000003",
+            "render_ms": "50.499321000000002",
+            "publication_ms": "0.46125699999999997",
+            "total_ms": "58.590910999999998"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-2",
+            "logical_frame": "-2",
+            "warmup": "1",
+            "update_ms": "7.7456569999999996",
+            "render_ms": "52.340100999999997",
+            "publication_ms": "0.51838200000000001",
+            "total_ms": "60.604140000000001"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-1",
+            "logical_frame": "-1",
+            "warmup": "1",
+            "update_ms": "7.5650409999999999",
+            "render_ms": "50.287308000000003",
+            "publication_ms": "0.40840799999999999",
+            "total_ms": "58.260756999999998"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "0",
+            "logical_frame": "0",
+            "warmup": "0",
+            "update_ms": "7.7012239999999998",
+            "render_ms": "51.821457000000002",
+            "publication_ms": "0.40079500000000001",
+            "total_ms": "59.923476000000001"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "1",
+            "logical_frame": "1",
+            "warmup": "0",
+            "update_ms": "7.6716800000000003",
+            "render_ms": "52.011450000000004",
+            "publication_ms": "0.39984199999999998",
+            "total_ms": "60.082971999999998"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "2",
+            "logical_frame": "2",
+            "warmup": "0",
+            "update_ms": "7.638668",
+            "render_ms": "50.754555000000003",
+            "publication_ms": "0.42685299999999998",
+            "total_ms": "58.820076"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "3",
+            "logical_frame": "3",
+            "warmup": "0",
+            "update_ms": "7.588565",
+            "render_ms": "52.137895",
+            "publication_ms": "0.42990800000000001",
+            "total_ms": "60.156368000000001"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "4",
+            "logical_frame": "4",
+            "warmup": "0",
+            "update_ms": "7.7421810000000004",
+            "render_ms": "51.920851999999996",
+            "publication_ms": "0.42665199999999998",
+            "total_ms": "60.089685000000003"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "5",
+            "logical_frame": "5",
+            "warmup": "0",
+            "update_ms": "7.8221090000000002",
+            "render_ms": "53.957064000000003",
+            "publication_ms": "0.42194399999999999",
+            "total_ms": "62.201117000000004"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "6",
+            "logical_frame": "6",
+            "warmup": "0",
+            "update_ms": "7.4949219999999999",
+            "render_ms": "51.000081000000002",
+            "publication_ms": "0.44681999999999999",
+            "total_ms": "58.941822999999999"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "7",
+            "logical_frame": "7",
+            "warmup": "0",
+            "update_ms": "7.8282109999999996",
+            "render_ms": "53.424314000000003",
+            "publication_ms": "0.45019700000000001",
+            "total_ms": "61.702722000000001"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "8",
+            "logical_frame": "8",
+            "warmup": "0",
+            "update_ms": "7.8872799999999996",
+            "render_ms": "52.794114",
+            "publication_ms": "0.392208",
+            "total_ms": "61.073602000000001"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "9",
+            "logical_frame": "9",
+            "warmup": "0",
+            "update_ms": "8.6872559999999996",
+            "render_ms": "52.663460999999998",
+            "publication_ms": "0.467248",
+            "total_ms": "61.817965000000001"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "10",
+            "logical_frame": "10",
+            "warmup": "0",
+            "update_ms": "7.8164990000000003",
+            "render_ms": "52.932281000000003",
+            "publication_ms": "0.428896",
+            "total_ms": "61.177675999999998"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "11",
+            "logical_frame": "11",
+            "warmup": "0",
+            "update_ms": "7.6768090000000004",
+            "render_ms": "52.294997000000002",
+            "publication_ms": "0.46129700000000001",
+            "total_ms": "60.433103000000003"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "12",
+            "logical_frame": "12",
+            "warmup": "0",
+            "update_ms": "7.5130650000000001",
+            "render_ms": "52.631281999999999",
+            "publication_ms": "0.38216899999999998",
+            "total_ms": "60.526516000000001"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "13",
+            "logical_frame": "13",
+            "warmup": "0",
+            "update_ms": "7.8350030000000004",
+            "render_ms": "50.802494000000003",
+            "publication_ms": "0.41082299999999999",
+            "total_ms": "59.048319999999997"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "14",
+            "logical_frame": "14",
+            "warmup": "0",
+            "update_ms": "7.4945110000000001",
+            "render_ms": "52.193387999999999",
+            "publication_ms": "0.41121400000000002",
+            "total_ms": "60.099113000000003"
+          }
+        ],
+        "measured_row_indices": [
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19
+        ],
+        "warmup_row_indices": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "measured_frames": 15,
+        "warmup_frames": 5,
+        "stats": {
+          "update_ms": {
+            "median_ms": 7.701224,
+            "min_ms": 7.494511,
+            "max_ms": 8.687256,
+            "p95_ms": 8.687256,
+            "p99_ms": 8.687256
+          },
+          "render_ms": {
+            "median_ms": 52.193388,
+            "min_ms": 50.754555,
+            "max_ms": 53.957064,
+            "p95_ms": 53.957064,
+            "p99_ms": 53.957064
+          },
+          "publication_ms": {
+            "median_ms": 0.426652,
+            "min_ms": 0.382169,
+            "max_ms": 0.467248,
+            "p95_ms": 0.467248,
+            "p99_ms": 0.467248
+          },
+          "total_ms": {
+            "median_ms": 60.156368,
+            "min_ms": 58.820076,
+            "max_ms": 62.201117,
+            "p95_ms": 62.201117,
+            "p99_ms": 62.201117
+          }
+        },
+        "csv_input": {
+          "path": "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-off-2.csv",
+          "bytes": 1897,
+          "sha256": "3951ad94d253a606f728240ebd90c53b922a8f7a1022c5b5e0ae6e7461c5c5cf"
+        }
+      }
+    },
+    {
+      "stem": "bgfx-vulkan-geometry-10-on-2",
+      "variant": "bgfx-vulkan",
+      "case": "geometry-10",
+      "mode": "on",
+      "round": 2,
+      "source_content_revision": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+      "command": [
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "geometry",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "5",
+        "--frames",
+        "15",
+        "--samples-output",
+        "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-on-2.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_BGFX_RENDERER": "vulkan"
+      },
+      "trace_environment_absent": true,
+      "timeout_seconds": 180,
+      "timed_command": [
+        "/usr/bin/time",
+        "-f",
+        "benchmark_peak_rss_kib=%M",
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "geometry",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "5",
+        "--frames",
+        "15",
+        "--samples-output",
+        "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-on-2.csv"
+      ],
+      "exit_code": 0,
+      "timed_out": false,
+      "adapter_verified_nvidia": true,
+      "phase_trace_seen": false,
+      "log_input": {
+        "path": "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-on-2.log",
+        "sha256": "454550d9aa47fc0a1999cab563aba55b1c4409f717cb4f0cbb59b3e8463f698f"
+      },
+      "samples": {
+        "rows": [
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-5",
+            "logical_frame": "-5",
+            "warmup": "1",
+            "update_ms": "4.0413569999999996",
+            "render_ms": "462.89095200000003",
+            "publication_ms": "0.48444900000000002",
+            "total_ms": "467.41675800000002"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-4",
+            "logical_frame": "-4",
+            "warmup": "1",
+            "update_ms": "7.5478699999999996",
+            "render_ms": "54.151004999999998",
+            "publication_ms": "0.41700399999999999",
+            "total_ms": "62.115879"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-3",
+            "logical_frame": "-3",
+            "warmup": "1",
+            "update_ms": "7.4749639999999999",
+            "render_ms": "47.560504000000002",
+            "publication_ms": "0.42085099999999998",
+            "total_ms": "55.456319000000001"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-2",
+            "logical_frame": "-2",
+            "warmup": "1",
+            "update_ms": "7.6001570000000003",
+            "render_ms": "49.384360999999998",
+            "publication_ms": "0.44970500000000002",
+            "total_ms": "57.434223000000003"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-1",
+            "logical_frame": "-1",
+            "warmup": "1",
+            "update_ms": "7.4978670000000003",
+            "render_ms": "48.169955000000002",
+            "publication_ms": "0.401837",
+            "total_ms": "56.069659000000001"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "0",
+            "logical_frame": "0",
+            "warmup": "0",
+            "update_ms": "7.4201129999999997",
+            "render_ms": "48.715659000000002",
+            "publication_ms": "0.424819",
+            "total_ms": "56.560591000000002"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "1",
+            "logical_frame": "1",
+            "warmup": "0",
+            "update_ms": "7.5536909999999997",
+            "render_ms": "48.506990999999999",
+            "publication_ms": "0.43712200000000001",
+            "total_ms": "56.497804000000002"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "2",
+            "logical_frame": "2",
+            "warmup": "0",
+            "update_ms": "7.44543",
+            "render_ms": "48.673890999999998",
+            "publication_ms": "0.41648299999999999",
+            "total_ms": "56.535803999999999"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "3",
+            "logical_frame": "3",
+            "warmup": "0",
+            "update_ms": "7.3877730000000001",
+            "render_ms": "47.730809000000001",
+            "publication_ms": "0.39827000000000001",
+            "total_ms": "55.516852"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "4",
+            "logical_frame": "4",
+            "warmup": "0",
+            "update_ms": "7.4590249999999996",
+            "render_ms": "50.820729",
+            "publication_ms": "0.43982700000000002",
+            "total_ms": "58.719580999999998"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "5",
+            "logical_frame": "5",
+            "warmup": "0",
+            "update_ms": "7.5760620000000003",
+            "render_ms": "48.803142000000001",
+            "publication_ms": "0.39856999999999998",
+            "total_ms": "56.777774000000001"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "6",
+            "logical_frame": "6",
+            "warmup": "0",
+            "update_ms": "7.572025",
+            "render_ms": "48.031508000000002",
+            "publication_ms": "0.39344099999999999",
+            "total_ms": "55.996974000000002"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "7",
+            "logical_frame": "7",
+            "warmup": "0",
+            "update_ms": "7.5915509999999999",
+            "render_ms": "48.096277999999998",
+            "publication_ms": "0.39822999999999997",
+            "total_ms": "56.086058999999999"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "8",
+            "logical_frame": "8",
+            "warmup": "0",
+            "update_ms": "7.4792829999999997",
+            "render_ms": "47.873204000000001",
+            "publication_ms": "0.53201799999999999",
+            "total_ms": "55.884504999999997"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "9",
+            "logical_frame": "9",
+            "warmup": "0",
+            "update_ms": "7.5172730000000003",
+            "render_ms": "48.318752000000003",
+            "publication_ms": "0.40806799999999999",
+            "total_ms": "56.244092999999999"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "10",
+            "logical_frame": "10",
+            "warmup": "0",
+            "update_ms": "7.5733470000000001",
+            "render_ms": "48.024695999999999",
+            "publication_ms": "0.36631000000000002",
+            "total_ms": "55.964353000000003"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "11",
+            "logical_frame": "11",
+            "warmup": "0",
+            "update_ms": "7.5867820000000004",
+            "render_ms": "48.305076999999997",
+            "publication_ms": "0.411935",
+            "total_ms": "56.303794000000003"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "12",
+            "logical_frame": "12",
+            "warmup": "0",
+            "update_ms": "7.4190709999999997",
+            "render_ms": "48.898197000000003",
+            "publication_ms": "0.45675900000000003",
+            "total_ms": "56.774026999999997"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "13",
+            "logical_frame": "13",
+            "warmup": "0",
+            "update_ms": "7.4384370000000004",
+            "render_ms": "48.083964999999999",
+            "publication_ms": "0.47414099999999998",
+            "total_ms": "55.996543000000003"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "14",
+            "logical_frame": "14",
+            "warmup": "0",
+            "update_ms": "7.5065030000000004",
+            "render_ms": "48.502643999999997",
+            "publication_ms": "0.38777",
+            "total_ms": "56.396917000000002"
+          }
+        ],
+        "measured_row_indices": [
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19
+        ],
+        "warmup_row_indices": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "measured_frames": 15,
+        "warmup_frames": 5,
+        "stats": {
+          "update_ms": {
+            "median_ms": 7.506503,
+            "min_ms": 7.387773,
+            "max_ms": 7.591551,
+            "p95_ms": 7.591551,
+            "p99_ms": 7.591551
+          },
+          "render_ms": {
+            "median_ms": 48.318752,
+            "min_ms": 47.730809,
+            "max_ms": 50.820729,
+            "p95_ms": 50.820729,
+            "p99_ms": 50.820729
+          },
+          "publication_ms": {
+            "median_ms": 0.411935,
+            "min_ms": 0.36631,
+            "max_ms": 0.532018,
+            "p95_ms": 0.532018,
+            "p99_ms": 0.532018
+          },
+          "total_ms": {
+            "median_ms": 56.303794,
+            "min_ms": 55.516852,
+            "max_ms": 58.719581,
+            "p95_ms": 58.719581,
+            "p99_ms": 58.719581
+          }
+        },
+        "csv_input": {
+          "path": "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-on-2.csv",
+          "bytes": 1912,
+          "sha256": "b28e1379f624b4ddc21ea33cb293095173cecd16f1d569e91dca83349ff3efff"
+        }
+      }
+    },
+    {
+      "stem": "bgfx-vulkan-geometry-10-on-3",
+      "variant": "bgfx-vulkan",
+      "case": "geometry-10",
+      "mode": "on",
+      "round": 3,
+      "source_content_revision": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+      "command": [
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "geometry",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "5",
+        "--frames",
+        "15",
+        "--samples-output",
+        "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-on-3.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_BGFX_RENDERER": "vulkan"
+      },
+      "trace_environment_absent": true,
+      "timeout_seconds": 180,
+      "timed_command": [
+        "/usr/bin/time",
+        "-f",
+        "benchmark_peak_rss_kib=%M",
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "geometry",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "5",
+        "--frames",
+        "15",
+        "--samples-output",
+        "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-on-3.csv"
+      ],
+      "exit_code": 0,
+      "timed_out": false,
+      "adapter_verified_nvidia": true,
+      "phase_trace_seen": false,
+      "log_input": {
+        "path": "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-on-3.log",
+        "sha256": "eb285e7b8b22174152ec71df925aed4d43a402f136c78658d6d73bffd80d4d2b"
+      },
+      "samples": {
+        "rows": [
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-5",
+            "logical_frame": "-5",
+            "warmup": "1",
+            "update_ms": "3.9954019999999999",
+            "render_ms": "470.95601099999999",
+            "publication_ms": "0.47073399999999999",
+            "total_ms": "475.422147"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-4",
+            "logical_frame": "-4",
+            "warmup": "1",
+            "update_ms": "7.7345769999999998",
+            "render_ms": "56.941719999999997",
+            "publication_ms": "0.38457400000000003",
+            "total_ms": "65.060871000000006"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-3",
+            "logical_frame": "-3",
+            "warmup": "1",
+            "update_ms": "7.6445600000000002",
+            "render_ms": "48.378002000000002",
+            "publication_ms": "0.40709600000000001",
+            "total_ms": "56.429658000000003"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-2",
+            "logical_frame": "-2",
+            "warmup": "1",
+            "update_ms": "7.7845800000000001",
+            "render_ms": "50.562308999999999",
+            "publication_ms": "0.43006899999999998",
+            "total_ms": "58.776958"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-1",
+            "logical_frame": "-1",
+            "warmup": "1",
+            "update_ms": "7.3865910000000001",
+            "render_ms": "48.467818999999999",
+            "publication_ms": "0.39342100000000002",
+            "total_ms": "56.247830999999998"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "0",
+            "logical_frame": "0",
+            "warmup": "0",
+            "update_ms": "7.9191200000000004",
+            "render_ms": "50.544896999999999",
+            "publication_ms": "0.45930300000000002",
+            "total_ms": "58.923319999999997"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "1",
+            "logical_frame": "1",
+            "warmup": "0",
+            "update_ms": "7.5756420000000002",
+            "render_ms": "49.062714",
+            "publication_ms": "0.38284099999999999",
+            "total_ms": "57.021197000000001"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "2",
+            "logical_frame": "2",
+            "warmup": "0",
+            "update_ms": "7.4383470000000003",
+            "render_ms": "48.558798000000003",
+            "publication_ms": "0.46331",
+            "total_ms": "56.460455000000003"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "3",
+            "logical_frame": "3",
+            "warmup": "0",
+            "update_ms": "7.5776050000000001",
+            "render_ms": "48.841303000000003",
+            "publication_ms": "0.42286600000000002",
+            "total_ms": "56.841774000000001"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "4",
+            "logical_frame": "4",
+            "warmup": "0",
+            "update_ms": "7.5829550000000001",
+            "render_ms": "50.149984000000003",
+            "publication_ms": "0.39459300000000003",
+            "total_ms": "58.127532000000002"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "5",
+            "logical_frame": "5",
+            "warmup": "0",
+            "update_ms": "7.5371100000000002",
+            "render_ms": "48.437382999999997",
+            "publication_ms": "0.39370100000000002",
+            "total_ms": "56.368194000000003"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "6",
+            "logical_frame": "6",
+            "warmup": "0",
+            "update_ms": "7.5270809999999999",
+            "render_ms": "48.642373999999997",
+            "publication_ms": "0.44759199999999999",
+            "total_ms": "56.617046999999999"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "7",
+            "logical_frame": "7",
+            "warmup": "0",
+            "update_ms": "7.5400660000000004",
+            "render_ms": "48.748190000000001",
+            "publication_ms": "0.384214",
+            "total_ms": "56.672469999999997"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "8",
+            "logical_frame": "8",
+            "warmup": "0",
+            "update_ms": "7.4208540000000003",
+            "render_ms": "48.822879",
+            "publication_ms": "0.46552500000000002",
+            "total_ms": "56.709257999999998"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "9",
+            "logical_frame": "9",
+            "warmup": "0",
+            "update_ms": "7.6425359999999998",
+            "render_ms": "48.492876000000003",
+            "publication_ms": "0.39927200000000002",
+            "total_ms": "56.534683999999999"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "10",
+            "logical_frame": "10",
+            "warmup": "0",
+            "update_ms": "7.718858",
+            "render_ms": "50.128464000000001",
+            "publication_ms": "0.41433900000000001",
+            "total_ms": "58.261660999999997"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "11",
+            "logical_frame": "11",
+            "warmup": "0",
+            "update_ms": "7.6973779999999996",
+            "render_ms": "49.108539",
+            "publication_ms": "0.49529000000000001",
+            "total_ms": "57.301206999999998"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "12",
+            "logical_frame": "12",
+            "warmup": "0",
+            "update_ms": "7.5330029999999999",
+            "render_ms": "48.539372",
+            "publication_ms": "0.43956699999999999",
+            "total_ms": "56.511941999999998"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "13",
+            "logical_frame": "13",
+            "warmup": "0",
+            "update_ms": "7.5247070000000003",
+            "render_ms": "48.934756",
+            "publication_ms": "0.40692600000000001",
+            "total_ms": "56.866388999999998"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "14",
+            "logical_frame": "14",
+            "warmup": "0",
+            "update_ms": "7.5809509999999998",
+            "render_ms": "49.193216999999997",
+            "publication_ms": "0.45267099999999999",
+            "total_ms": "57.226838999999998"
+          }
+        ],
+        "measured_row_indices": [
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19
+        ],
+        "warmup_row_indices": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "measured_frames": 15,
+        "warmup_frames": 5,
+        "stats": {
+          "update_ms": {
+            "median_ms": 7.575642,
+            "min_ms": 7.420854,
+            "max_ms": 7.91912,
+            "p95_ms": 7.91912,
+            "p99_ms": 7.91912
+          },
+          "render_ms": {
+            "median_ms": 48.841303,
+            "min_ms": 48.437383,
+            "max_ms": 50.544897,
+            "p95_ms": 50.544897,
+            "p99_ms": 50.544897
+          },
+          "publication_ms": {
+            "median_ms": 0.422866,
+            "min_ms": 0.382841,
+            "max_ms": 0.49529,
+            "p95_ms": 0.49529,
+            "p99_ms": 0.49529
+          },
+          "total_ms": {
+            "median_ms": 56.841774,
+            "min_ms": 56.368194,
+            "max_ms": 58.92332,
+            "p95_ms": 58.92332,
+            "p99_ms": 58.92332
+          }
+        },
+        "csv_input": {
+          "path": "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-on-3.csv",
+          "bytes": 1910,
+          "sha256": "a3cee41af8fb0cd41ffcb278f52d277f33437fa5a8430970727b79b00d3c4925"
+        }
+      }
+    },
+    {
+      "stem": "bgfx-vulkan-geometry-10-off-3",
+      "variant": "bgfx-vulkan",
+      "case": "geometry-10",
+      "mode": "off",
+      "round": 3,
+      "source_content_revision": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+      "command": [
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "geometry",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "5",
+        "--frames",
+        "15",
+        "--samples-output",
+        "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-off-3.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_RENDER_DISABLE_GEOMETRY_INTERVAL_VALIDATION": "1"
+      },
+      "trace_environment_absent": true,
+      "timeout_seconds": 180,
+      "timed_command": [
+        "/usr/bin/time",
+        "-f",
+        "benchmark_peak_rss_kib=%M",
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "geometry",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "5",
+        "--frames",
+        "15",
+        "--samples-output",
+        "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-off-3.csv"
+      ],
+      "exit_code": 0,
+      "timed_out": false,
+      "adapter_verified_nvidia": true,
+      "phase_trace_seen": false,
+      "log_input": {
+        "path": "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-off-3.log",
+        "sha256": "5eff4b2a489d70af17f08668a540466a9d926eba6f377de0bc72771dd2f9dee3"
+      },
+      "samples": {
+        "rows": [
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-5",
+            "logical_frame": "-5",
+            "warmup": "1",
+            "update_ms": "4.2638299999999996",
+            "render_ms": "471.02672899999999",
+            "publication_ms": "0.40937000000000001",
+            "total_ms": "475.699929"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-4",
+            "logical_frame": "-4",
+            "warmup": "1",
+            "update_ms": "7.6267969999999998",
+            "render_ms": "59.435723000000003",
+            "publication_ms": "0.39274900000000001",
+            "total_ms": "67.455269000000001"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-3",
+            "logical_frame": "-3",
+            "warmup": "1",
+            "update_ms": "7.4943710000000001",
+            "render_ms": "49.874293000000002",
+            "publication_ms": "0.399482",
+            "total_ms": "57.768146000000002"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-2",
+            "logical_frame": "-2",
+            "warmup": "1",
+            "update_ms": "7.7170750000000004",
+            "render_ms": "52.220931",
+            "publication_ms": "0.47361999999999999",
+            "total_ms": "60.411625999999998"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "-1",
+            "logical_frame": "-1",
+            "warmup": "1",
+            "update_ms": "7.6837030000000004",
+            "render_ms": "50.743285999999998",
+            "publication_ms": "0.43017899999999998",
+            "total_ms": "58.857168000000001"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "0",
+            "logical_frame": "0",
+            "warmup": "0",
+            "update_ms": "7.8326900000000004",
+            "render_ms": "49.922632",
+            "publication_ms": "0.42169299999999998",
+            "total_ms": "58.177014999999997"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "1",
+            "logical_frame": "1",
+            "warmup": "0",
+            "update_ms": "7.6872990000000003",
+            "render_ms": "54.798309000000003",
+            "publication_ms": "0.40267799999999998",
+            "total_ms": "62.888286000000001"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "2",
+            "logical_frame": "2",
+            "warmup": "0",
+            "update_ms": "8.1473739999999992",
+            "render_ms": "56.993487000000002",
+            "publication_ms": "0.57170200000000004",
+            "total_ms": "65.712563000000003"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "3",
+            "logical_frame": "3",
+            "warmup": "0",
+            "update_ms": "8.1880500000000005",
+            "render_ms": "53.091228000000001",
+            "publication_ms": "0.48871799999999999",
+            "total_ms": "61.767995999999997"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "4",
+            "logical_frame": "4",
+            "warmup": "0",
+            "update_ms": "8.0264089999999992",
+            "render_ms": "51.764803999999998",
+            "publication_ms": "0.43502800000000003",
+            "total_ms": "60.226241000000002"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "5",
+            "logical_frame": "5",
+            "warmup": "0",
+            "update_ms": "7.8883029999999996",
+            "render_ms": "50.976579999999998",
+            "publication_ms": "0.39697700000000002",
+            "total_ms": "59.261859999999999"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "6",
+            "logical_frame": "6",
+            "warmup": "0",
+            "update_ms": "8.0888849999999994",
+            "render_ms": "50.944229999999997",
+            "publication_ms": "0.44468600000000003",
+            "total_ms": "59.477800999999999"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "7",
+            "logical_frame": "7",
+            "warmup": "0",
+            "update_ms": "7.8741760000000003",
+            "render_ms": "51.734909000000002",
+            "publication_ms": "0.38444400000000001",
+            "total_ms": "59.993529000000002"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "8",
+            "logical_frame": "8",
+            "warmup": "0",
+            "update_ms": "7.9303710000000001",
+            "render_ms": "51.705793999999997",
+            "publication_ms": "0.40010299999999999",
+            "total_ms": "60.036268"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "9",
+            "logical_frame": "9",
+            "warmup": "0",
+            "update_ms": "7.998227",
+            "render_ms": "50.717298",
+            "publication_ms": "0.43776300000000001",
+            "total_ms": "59.153288000000003"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "10",
+            "logical_frame": "10",
+            "warmup": "0",
+            "update_ms": "7.7795709999999998",
+            "render_ms": "52.405724999999997",
+            "publication_ms": "0.46984199999999998",
+            "total_ms": "60.655138000000001"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "11",
+            "logical_frame": "11",
+            "warmup": "0",
+            "update_ms": "8.2207399999999993",
+            "render_ms": "52.056655999999997",
+            "publication_ms": "0.52154900000000004",
+            "total_ms": "60.798945000000003"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "12",
+            "logical_frame": "12",
+            "warmup": "0",
+            "update_ms": "7.9807839999999999",
+            "render_ms": "51.628582000000002",
+            "publication_ms": "0.435058",
+            "total_ms": "60.044423999999999"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "13",
+            "logical_frame": "13",
+            "warmup": "0",
+            "update_ms": "7.9389159999999999",
+            "render_ms": "53.832065",
+            "publication_ms": "0.42410799999999998",
+            "total_ms": "62.195089000000003"
+          },
+          {
+            "backend": "BGFX-Vulkan",
+            "frame_index": "14",
+            "logical_frame": "14",
+            "warmup": "0",
+            "update_ms": "9.9504129999999993",
+            "render_ms": "65.565759999999997",
+            "publication_ms": "0.62966",
+            "total_ms": "76.145832999999996"
+          }
+        ],
+        "measured_row_indices": [
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19
+        ],
+        "warmup_row_indices": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "measured_frames": 15,
+        "warmup_frames": 5,
+        "stats": {
+          "update_ms": {
+            "median_ms": 7.980784,
+            "min_ms": 7.687299,
+            "max_ms": 9.950413,
+            "p95_ms": 9.950413,
+            "p99_ms": 9.950413
+          },
+          "render_ms": {
+            "median_ms": 51.764804,
+            "min_ms": 49.922632,
+            "max_ms": 65.56576,
+            "p95_ms": 65.56576,
+            "p99_ms": 65.56576
+          },
+          "publication_ms": {
+            "median_ms": 0.435058,
+            "min_ms": 0.384444,
+            "max_ms": 0.62966,
+            "p95_ms": 0.62966,
+            "p99_ms": 0.62966
+          },
+          "total_ms": {
+            "median_ms": 60.226241,
+            "min_ms": 58.177015,
+            "max_ms": 76.145833,
+            "p95_ms": 76.145833,
+            "p99_ms": 76.145833
+          }
+        },
+        "csv_input": {
+          "path": "/tmp/coin-render-geometry-overlay-regression-probe/bgfx-vulkan-geometry-10-off-3.csv",
+          "bytes": 1908,
+          "sha256": "eea474bc2a5cebd4db2c46a916ef1a9a9bae7b06c3243c4e37b82ef1a5c08ad8"
+        }
+      }
+    }
+  ],
+  "expected_unique_counts": {
+    "processes": 6,
+    "measured_frames": 90,
+    "warmup_frames": 30
+  },
+  "parameters": {
+    "variant": "bgfx-vulkan",
+    "case": "geometry-10",
+    "rounds": 3,
+    "warmup": 5,
+    "frames": 15,
+    "size": 1024,
+    "gpu": "nvidia",
+    "transparency": "object",
+    "optout": "COIN_RENDER_DISABLE_GEOMETRY_INTERVAL_VALIDATION",
+    "trace": false
+  },
+  "invocation": [
+    "/tmp/coin-render-geometry-overlay-regression-probe.py"
+  ],
+  "runner_script": "/tmp/coin-render-geometry-overlay-regression-probe.py",
+  "runner_sha256": "5e0084a3f0860b2b6b6fcff8b5abcdb91e0227f82e12d28ab02edcb09621ce00",
+  "parser_sha256": "5e0084a3f0860b2b6b6fcff8b5abcdb91e0227f82e12d28ab02edcb09621ce00",
+  "environment_helper": "/tmp/coin-render-first-frame/scripts/coinrender/run_animation_benchmark.py",
+  "environment_helper_sha256": "9c2d23361559a301b11b524a2a5ff6ad739b4295283435d0adfbb8520717911e",
+  "summary": {
+    "pairs": [
+      {
+        "round": 1,
+        "on": "bgfx-vulkan-geometry-10-on-1",
+        "off": "bgfx-vulkan-geometry-10-off-1",
+        "complete_and_comparable": true,
+        "stats": {
+          "update_ms": {
+            "median_ms": {
+              "off": 7.672231,
+              "on": 7.874176,
+              "delta_ms": 0.20194500000000026,
+              "change_percent": 2.6321548451812893
+            },
+            "min_ms": {
+              "off": 7.460497,
+              "on": 7.741489,
+              "delta_ms": 0.28099199999999946,
+              "change_percent": 3.7663978686674593
+            },
+            "max_ms": {
+              "off": 7.848669,
+              "on": 10.141718,
+              "delta_ms": 2.293048999999999,
+              "change_percent": 29.215768941205166
+            },
+            "p95_ms": {
+              "off": 7.848669,
+              "on": 10.141718,
+              "delta_ms": 2.293048999999999,
+              "change_percent": 29.215768941205166
+            },
+            "p99_ms": {
+              "off": 7.848669,
+              "on": 10.141718,
+              "delta_ms": 2.293048999999999,
+              "change_percent": 29.215768941205166
+            }
+          },
+          "render_ms": {
+            "median_ms": {
+              "off": 50.693781,
+              "on": 53.95589,
+              "delta_ms": 3.2621089999999953,
+              "change_percent": 6.434929365398867
+            },
+            "min_ms": {
+              "off": 49.801394,
+              "on": 52.63737,
+              "delta_ms": 2.835975999999995,
+              "change_percent": 5.6945715214316905
+            },
+            "max_ms": {
+              "off": 52.930296,
+              "on": 56.613166,
+              "delta_ms": 3.682870000000001,
+              "change_percent": 6.957962222618219
+            },
+            "p95_ms": {
+              "off": 52.930296,
+              "on": 56.613166,
+              "delta_ms": 3.682870000000001,
+              "change_percent": 6.957962222618219
+            },
+            "p99_ms": {
+              "off": 52.930296,
+              "on": 56.613166,
+              "delta_ms": 3.682870000000001,
+              "change_percent": 6.957962222618219
+            }
+          },
+          "publication_ms": {
+            "median_ms": {
+              "off": 0.405854,
+              "on": 0.43611,
+              "delta_ms": 0.030256000000000005,
+              "change_percent": 7.454897574004438
+            },
+            "min_ms": {
+              "off": 0.262538,
+              "on": 0.367283,
+              "delta_ms": 0.10474500000000003,
+              "change_percent": 39.89708156533531
+            },
+            "max_ms": {
+              "off": 0.511821,
+              "on": 0.842605,
+              "delta_ms": 0.3307840000000001,
+              "change_percent": 64.62884485005502
+            },
+            "p95_ms": {
+              "off": 0.511821,
+              "on": 0.842605,
+              "delta_ms": 0.3307840000000001,
+              "change_percent": 64.62884485005502
+            },
+            "p99_ms": {
+              "off": 0.511821,
+              "on": 0.842605,
+              "delta_ms": 0.3307840000000001,
+              "change_percent": 64.62884485005502
+            }
+          },
+          "total_ms": {
+            "median_ms": {
+              "off": 58.654367,
+              "on": 62.180738,
+              "delta_ms": 3.5263709999999975,
+              "change_percent": 6.012120120570041
+            },
+            "min_ms": {
+              "off": 57.787097,
+              "on": 60.784553,
+              "delta_ms": 2.9974559999999997,
+              "change_percent": 5.18706797124624
+            },
+            "max_ms": {
+              "off": 61.167446,
+              "on": 66.232283,
+              "delta_ms": 5.064836999999997,
+              "change_percent": 8.280281965671744
+            },
+            "p95_ms": {
+              "off": 61.167446,
+              "on": 66.232283,
+              "delta_ms": 5.064836999999997,
+              "change_percent": 8.280281965671744
+            },
+            "p99_ms": {
+              "off": 61.167446,
+              "on": 66.232283,
+              "delta_ms": 5.064836999999997,
+              "change_percent": 8.280281965671744
+            }
+          }
+        }
+      },
+      {
+        "round": 2,
+        "on": "bgfx-vulkan-geometry-10-on-2",
+        "off": "bgfx-vulkan-geometry-10-off-2",
+        "complete_and_comparable": true,
+        "stats": {
+          "update_ms": {
+            "median_ms": {
+              "off": 7.701224,
+              "on": 7.506503,
+              "delta_ms": -0.19472099999999948,
+              "change_percent": -2.5284422320399957
+            },
+            "min_ms": {
+              "off": 7.494511,
+              "on": 7.387773,
+              "delta_ms": -0.106738,
+              "change_percent": -1.424215669307849
+            },
+            "max_ms": {
+              "off": 8.687256,
+              "on": 7.591551,
+              "delta_ms": -1.0957049999999997,
+              "change_percent": -12.612785901555101
+            },
+            "p95_ms": {
+              "off": 8.687256,
+              "on": 7.591551,
+              "delta_ms": -1.0957049999999997,
+              "change_percent": -12.612785901555101
+            },
+            "p99_ms": {
+              "off": 8.687256,
+              "on": 7.591551,
+              "delta_ms": -1.0957049999999997,
+              "change_percent": -12.612785901555101
+            }
+          },
+          "render_ms": {
+            "median_ms": {
+              "off": 52.193388,
+              "on": 48.318752,
+              "delta_ms": -3.8746359999999953,
+              "change_percent": -7.423614654024746
+            },
+            "min_ms": {
+              "off": 50.754555,
+              "on": 47.730809,
+              "delta_ms": -3.0237460000000027,
+              "change_percent": -5.957585481736571
+            },
+            "max_ms": {
+              "off": 53.957064,
+              "on": 50.820729,
+              "delta_ms": -3.1363350000000025,
+              "change_percent": -5.812649479964294
+            },
+            "p95_ms": {
+              "off": 53.957064,
+              "on": 50.820729,
+              "delta_ms": -3.1363350000000025,
+              "change_percent": -5.812649479964294
+            },
+            "p99_ms": {
+              "off": 53.957064,
+              "on": 50.820729,
+              "delta_ms": -3.1363350000000025,
+              "change_percent": -5.812649479964294
+            }
+          },
+          "publication_ms": {
+            "median_ms": {
+              "off": 0.426652,
+              "on": 0.411935,
+              "delta_ms": -0.01471699999999998,
+              "change_percent": -3.4494154486560458
+            },
+            "min_ms": {
+              "off": 0.382169,
+              "on": 0.36631,
+              "delta_ms": -0.015858999999999956,
+              "change_percent": -4.149734803189153
+            },
+            "max_ms": {
+              "off": 0.467248,
+              "on": 0.532018,
+              "delta_ms": 0.06477,
+              "change_percent": 13.86201760093142
+            },
+            "p95_ms": {
+              "off": 0.467248,
+              "on": 0.532018,
+              "delta_ms": 0.06477,
+              "change_percent": 13.86201760093142
+            },
+            "p99_ms": {
+              "off": 0.467248,
+              "on": 0.532018,
+              "delta_ms": 0.06477,
+              "change_percent": 13.86201760093142
+            }
+          },
+          "total_ms": {
+            "median_ms": {
+              "off": 60.156368,
+              "on": 56.303794,
+              "delta_ms": -3.852573999999997,
+              "change_percent": -6.404266294800243
+            },
+            "min_ms": {
+              "off": 58.820076,
+              "on": 55.516852,
+              "delta_ms": -3.303224,
+              "change_percent": -5.615810493002426
+            },
+            "max_ms": {
+              "off": 62.201117,
+              "on": 58.719581,
+              "delta_ms": -3.4815360000000055,
+              "change_percent": -5.597224242773658
+            },
+            "p95_ms": {
+              "off": 62.201117,
+              "on": 58.719581,
+              "delta_ms": -3.4815360000000055,
+              "change_percent": -5.597224242773658
+            },
+            "p99_ms": {
+              "off": 62.201117,
+              "on": 58.719581,
+              "delta_ms": -3.4815360000000055,
+              "change_percent": -5.597224242773658
+            }
+          }
+        }
+      },
+      {
+        "round": 3,
+        "on": "bgfx-vulkan-geometry-10-on-3",
+        "off": "bgfx-vulkan-geometry-10-off-3",
+        "complete_and_comparable": true,
+        "stats": {
+          "update_ms": {
+            "median_ms": {
+              "off": 7.980784,
+              "on": 7.575642,
+              "delta_ms": -0.40514199999999967,
+              "change_percent": -5.07646867776399
+            },
+            "min_ms": {
+              "off": 7.687299,
+              "on": 7.420854,
+              "delta_ms": -0.26644500000000004,
+              "change_percent": -3.4660418438257734
+            },
+            "max_ms": {
+              "off": 9.950413,
+              "on": 7.91912,
+              "delta_ms": -2.031292999999999,
+              "change_percent": -20.41415768370618
+            },
+            "p95_ms": {
+              "off": 9.950413,
+              "on": 7.91912,
+              "delta_ms": -2.031292999999999,
+              "change_percent": -20.41415768370618
+            },
+            "p99_ms": {
+              "off": 9.950413,
+              "on": 7.91912,
+              "delta_ms": -2.031292999999999,
+              "change_percent": -20.41415768370618
+            }
+          },
+          "render_ms": {
+            "median_ms": {
+              "off": 51.764804,
+              "on": 48.841303,
+              "delta_ms": -2.9235009999999946,
+              "change_percent": -5.647661681477622
+            },
+            "min_ms": {
+              "off": 49.922632,
+              "on": 48.437383,
+              "delta_ms": -1.4852490000000032,
+              "change_percent": -2.97510155313927
+            },
+            "max_ms": {
+              "off": 65.56576,
+              "on": 50.544897,
+              "delta_ms": -15.020862999999999,
+              "change_percent": -22.9096147135334
+            },
+            "p95_ms": {
+              "off": 65.56576,
+              "on": 50.544897,
+              "delta_ms": -15.020862999999999,
+              "change_percent": -22.9096147135334
+            },
+            "p99_ms": {
+              "off": 65.56576,
+              "on": 50.544897,
+              "delta_ms": -15.020862999999999,
+              "change_percent": -22.9096147135334
+            }
+          },
+          "publication_ms": {
+            "median_ms": {
+              "off": 0.435058,
+              "on": 0.422866,
+              "delta_ms": -0.01219199999999998,
+              "change_percent": -2.8023849693604053
+            },
+            "min_ms": {
+              "off": 0.384444,
+              "on": 0.382841,
+              "delta_ms": -0.001603000000000021,
+              "change_percent": -0.416965799960467
+            },
+            "max_ms": {
+              "off": 0.62966,
+              "on": 0.49529,
+              "delta_ms": -0.13437,
+              "change_percent": -21.340088301623094
+            },
+            "p95_ms": {
+              "off": 0.62966,
+              "on": 0.49529,
+              "delta_ms": -0.13437,
+              "change_percent": -21.340088301623094
+            },
+            "p99_ms": {
+              "off": 0.62966,
+              "on": 0.49529,
+              "delta_ms": -0.13437,
+              "change_percent": -21.340088301623094
+            }
+          },
+          "total_ms": {
+            "median_ms": {
+              "off": 60.226241,
+              "on": 56.841774,
+              "delta_ms": -3.384467000000001,
+              "change_percent": -5.6195886440928655
+            },
+            "min_ms": {
+              "off": 58.177015,
+              "on": 56.368194,
+              "delta_ms": -1.8088209999999947,
+              "change_percent": -3.109167770123633
+            },
+            "max_ms": {
+              "off": 76.145833,
+              "on": 58.92332,
+              "delta_ms": -17.222513,
+              "change_percent": -22.617801029243456
+            },
+            "p95_ms": {
+              "off": 76.145833,
+              "on": 58.92332,
+              "delta_ms": -17.222513,
+              "change_percent": -22.617801029243456
+            },
+            "p99_ms": {
+              "off": 76.145833,
+              "on": 58.92332,
+              "delta_ms": -17.222513,
+              "change_percent": -22.617801029243456
+            }
+          }
+        }
+      }
+    ],
+    "groups": {
+      "off": {
+        "processes": 3,
+        "stems": [
+          "bgfx-vulkan-geometry-10-off-1",
+          "bgfx-vulkan-geometry-10-off-2",
+          "bgfx-vulkan-geometry-10-off-3"
+        ],
+        "rounds": [
+          1,
+          2,
+          3
+        ],
+        "stats": {
+          "update_ms": {
+            "median_ms": 7.701224,
+            "min_ms": 7.494511,
+            "max_ms": 8.687256,
+            "p95_ms": 8.687256,
+            "p99_ms": 8.687256
+          },
+          "render_ms": {
+            "median_ms": 51.764804,
+            "min_ms": 49.922632,
+            "max_ms": 53.957064,
+            "p95_ms": 53.957064,
+            "p99_ms": 53.957064
+          },
+          "publication_ms": {
+            "median_ms": 0.426652,
+            "min_ms": 0.382169,
+            "max_ms": 0.511821,
+            "p95_ms": 0.511821,
+            "p99_ms": 0.511821
+          },
+          "total_ms": {
+            "median_ms": 60.156368,
+            "min_ms": 58.177015,
+            "max_ms": 62.201117,
+            "p95_ms": 62.201117,
+            "p99_ms": 62.201117
+          }
+        },
+        "process_median_values_ms": {
+          "update_ms": [
+            7.672231,
+            7.701224,
+            7.980784
+          ],
+          "render_ms": [
+            50.693781,
+            52.193388,
+            51.764804
+          ],
+          "publication_ms": [
+            0.405854,
+            0.426652,
+            0.435058
+          ],
+          "total_ms": [
+            58.654367,
+            60.156368,
+            60.226241
+          ]
+        },
+        "process_median_range_ms": {
+          "update_ms": {
+            "minimum": 7.672231,
+            "maximum": 7.980784
+          },
+          "render_ms": {
+            "minimum": 50.693781,
+            "maximum": 52.193388
+          },
+          "publication_ms": {
+            "minimum": 0.405854,
+            "maximum": 0.435058
+          },
+          "total_ms": {
+            "minimum": 58.654367,
+            "maximum": 60.226241
+          }
+        }
+      },
+      "on": {
+        "processes": 3,
+        "stems": [
+          "bgfx-vulkan-geometry-10-on-1",
+          "bgfx-vulkan-geometry-10-on-2",
+          "bgfx-vulkan-geometry-10-on-3"
+        ],
+        "rounds": [
+          1,
+          2,
+          3
+        ],
+        "stats": {
+          "update_ms": {
+            "median_ms": 7.575642,
+            "min_ms": 7.420854,
+            "max_ms": 7.91912,
+            "p95_ms": 7.91912,
+            "p99_ms": 7.91912
+          },
+          "render_ms": {
+            "median_ms": 48.841303,
+            "min_ms": 48.437383,
+            "max_ms": 50.820729,
+            "p95_ms": 50.820729,
+            "p99_ms": 50.820729
+          },
+          "publication_ms": {
+            "median_ms": 0.422866,
+            "min_ms": 0.367283,
+            "max_ms": 0.532018,
+            "p95_ms": 0.532018,
+            "p99_ms": 0.532018
+          },
+          "total_ms": {
+            "median_ms": 56.841774,
+            "min_ms": 56.368194,
+            "max_ms": 58.92332,
+            "p95_ms": 58.92332,
+            "p99_ms": 58.92332
+          }
+        },
+        "process_median_values_ms": {
+          "update_ms": [
+            7.874176,
+            7.506503,
+            7.575642
+          ],
+          "render_ms": [
+            53.95589,
+            48.318752,
+            48.841303
+          ],
+          "publication_ms": [
+            0.43611,
+            0.411935,
+            0.422866
+          ],
+          "total_ms": [
+            62.180738,
+            56.303794,
+            56.841774
+          ]
+        },
+        "process_median_range_ms": {
+          "update_ms": {
+            "minimum": 7.506503,
+            "maximum": 7.874176
+          },
+          "render_ms": {
+            "minimum": 48.318752,
+            "maximum": 53.95589
+          },
+          "publication_ms": {
+            "minimum": 0.411935,
+            "maximum": 0.43611
+          },
+          "total_ms": {
+            "minimum": 56.303794,
+            "maximum": 62.180738
+          }
+        }
+      }
+    },
+    "comparisons": {
+      "update_ms": {
+        "off": 7.701224,
+        "on": 7.575642,
+        "delta_ms": -0.12558199999999964,
+        "change_percent": -1.6306758510075792
+      },
+      "render_ms": {
+        "off": 51.764804,
+        "on": 48.841303,
+        "delta_ms": -2.9235009999999946,
+        "change_percent": -5.647661681477622
+      },
+      "publication_ms": {
+        "off": 0.426652,
+        "on": 0.422866,
+        "delta_ms": -0.003785999999999956,
+        "change_percent": -0.8873742534899587
+      },
+      "total_ms": {
+        "off": 60.156368,
+        "on": 56.841774,
+        "delta_ms": -3.3145939999999996,
+        "change_percent": -5.50996363344276
+      }
+    },
+    "complete_and_comparable": true,
+    "summary_method": "median of three per-process measured medians; never pooled frames",
+    "difference": "on minus off; positive values mean slower",
+    "limitation": "Supplemental same-build probe without trace; does not replace or remove the principal matched increase or identify its cause"
+  },
+  "binary_hashes_post_campaign": {
+    "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086",
+    "/tmp/coin-render-first-frame-bgfx/lib/libCoinRender.so": "4f91951b1ae29410c256bbed648a645af2ff36655a893fda9a427768dd39bf30",
+    "/tmp/coin-render-first-frame-bgfx/lib/libCoin.so.80": "c86d9ce95df367b1c649545a1d0ba1de89edeb9f5b887f765bc47229d55c5437"
+  },
+  "binaries_unchanged": true,
+  "completed_unique_counts": {
+    "processes": 6,
+    "measured_frames": 90,
+    "warmup_frames": 30
+  },
+  "complete_and_comparable": true
+}

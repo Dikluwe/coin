@@ -1,0 +1,2217 @@
+{
+  "schema_version": 1,
+  "inventory_excludes_itself": true,
+  "file_count": 442,
+  "files": [
+    {
+      "path": "docs/coin-render-geometry-overlay-linux.md",
+      "bytes": 11594,
+      "sha256": "e3a38e62f50a5dba9824a985215ec8ed42ccad936e1d84c46e8ef9a332653634"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/README.md",
+      "bytes": 7878,
+      "sha256": "e2c9df5dc134b2bca3c24a74f30bff39c13b8bf94fc9ecede59949277645cf40"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/analysis.json",
+      "bytes": 21389074,
+      "sha256": "97cc7468b5bad052b5ec1be520aa0cbf3b98351a98112c512c5c0c0c5543f134"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/analyze-geometry-overlay.py",
+      "bytes": 38421,
+      "sha256": "be07d88c493c44a648b5de0f98e414dad0a308001b235ed4ab42052ed96811fd"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/binaries-after.json",
+      "bytes": 3957,
+      "sha256": "b6824aad476bd5507bf1916eca9dfa3a313e2b3e6628679c3b37adb52c0afc8c"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/binaries-before.json",
+      "bytes": 4862,
+      "sha256": "5a1fcd68d8d21cdaeb80c70b5a32c5cb939da5cb669b0dd874df470ef6d8d547"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/binaries-coingl.json",
+      "bytes": 1898,
+      "sha256": "c1a342954e8e9eb2b4cf971599ee639b667b3d60b148462644104ac68789058d"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/binary-hashes-post-campaign.json",
+      "bytes": 11040,
+      "sha256": "689494f9ef2cbed4c85a251cc6a7b9fb74775766df9c1c674e98fed194840203"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/build-commands.json",
+      "bytes": 888,
+      "sha256": "67cda77f7e1ebb7e30ec6d58300283a14037b4f290e34b624c56ce316998b291"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/builds/coin-render-geometry-overlay-build-bgfx.log",
+      "bytes": 3384,
+      "sha256": "20bc254dd0802787684916e64cfafbea61849705c9db7073e946cd564d1f4435"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/builds/coin-render-geometry-overlay-build-wgpu.log",
+      "bytes": 3509,
+      "sha256": "b23d8dc5b805b7205cda35b00e44a4a46e37760661f5218d77d2666a9b5f0fdf"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/campaign-commands.json",
+      "bytes": 3195,
+      "sha256": "94c4344160e00b6598e43fd4ed88bd09d9249e9919f7a0295c777d439d402ed0"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/collection-inputs.json",
+      "bytes": 122133,
+      "sha256": "27431287d041928f0d542cd630faad936803d12ac04bc34dd212c358e111a5b8"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-10-off-1.csv",
+      "bytes": 979,
+      "sha256": "48271bdd088c34f8588399d9ab371f84c1062530ed6868fd24f570f540df8f96"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-10-off-1.log",
+      "bytes": 34588,
+      "sha256": "b49440acddbc6b9e6c129eb22bba9eae450cec2446f1d6193e0cdc111244a021"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-10-off-2.csv",
+      "bytes": 943,
+      "sha256": "fd525bb3c13dbb163dcff6a4e67f6f2953f5b85a29f8688bcf3d38a98e9a98d2"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-10-off-2.log",
+      "bytes": 34579,
+      "sha256": "07cea3c947aef3d0d65327025bf92dff74f31bdb64f07d3024433313715f4c9b"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-10-off-3.csv",
+      "bytes": 991,
+      "sha256": "809fd7816a6f4a4c3711489dcae88f2c03ad1c10744fa2bd6066b3e3449d3980"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-10-off-3.log",
+      "bytes": 34583,
+      "sha256": "778d86f66c9e4c590a07cf379c6347035d7564225709d99e3ca2f2c8c5d6e40f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-10-on-1.csv",
+      "bytes": 1011,
+      "sha256": "748e5d7a2169c1270c626f547370fbc2862fb16e3c165842c96bb039aaabb911"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-10-on-1.log",
+      "bytes": 34622,
+      "sha256": "bb39717bb05e07ecfb60b6b10dda0ae44e7cb96613dfedacf03b87ee65a298a2"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-10-on-2.csv",
+      "bytes": 984,
+      "sha256": "b8d515420c6d384b25d1d4529521c50c5769bed0d90e1a0e80787a91579ba1e4"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-10-on-2.log",
+      "bytes": 34623,
+      "sha256": "4ce3fa2781c5bfebe4442910f25e49da519f5cfd9b711eb3b8f8976c9bacc4d1"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-10-on-3.csv",
+      "bytes": 998,
+      "sha256": "108a17f4ccb0cf3f4e39718084fc4e71bf53a362453a53dcb2e74990ffbed004"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-10-on-3.log",
+      "bytes": 34616,
+      "sha256": "240efe057d50af75a1a7fd639038204a76e1d14fbfcf3d0d889cdca5bab2741e"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-100-off-1.csv",
+      "bytes": 981,
+      "sha256": "674d3631d03a92448f0bfe449c840ca59c554ab5b2ccfaaf5a1cbe73135a927f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-100-off-1.log",
+      "bytes": 34605,
+      "sha256": "1bb23d0cfd71d25ac48744a026f7c5ce32f2537b0ec49df78ddbfc4ee1dd8655"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-100-off-2.csv",
+      "bytes": 961,
+      "sha256": "a0ffc2ae060a76af425bb01103d0060ad10ab2431a0899aec398aed4dc1aebdb"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-100-off-2.log",
+      "bytes": 34607,
+      "sha256": "0625cccf1f0451039230dd8df540acc61edc983cdb49acea8a3a7c62f16000f9"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-100-off-3.csv",
+      "bytes": 947,
+      "sha256": "86a4b505bad4b2689d0d48704f5f83758e776d02cc22dee4dd774a5170e3f23b"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-100-off-3.log",
+      "bytes": 34611,
+      "sha256": "c42ab7aaf28bdf2b85abf9ceb55880081e826b6a5a83b45f10470efc0ff94492"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-100-on-1.csv",
+      "bytes": 915,
+      "sha256": "ebab00c990b3877aecd4832ec038784a7b114d4dfdf1d1eb7115ebcc05c3d0f8"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-100-on-1.log",
+      "bytes": 34646,
+      "sha256": "9f57ce3e04f91abfc2422fce4b52af4ccabbb041a94c3be58e658b1f2d68b91f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-100-on-2.csv",
+      "bytes": 973,
+      "sha256": "9e3d30a2f8fe17c62f842bf728a6fedb4922489c9e0eb26c28a1ad520e1b6a6a"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-100-on-2.log",
+      "bytes": 34641,
+      "sha256": "3be7fdc779ea011d47728d81debd778fe62292d59cfbe9390385bc463bd79b7d"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-100-on-3.csv",
+      "bytes": 970,
+      "sha256": "b0a4a3f4049ca3bd9c260fbf29ea14497ace2bd8bbed5cb50aa4945e359ace77"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-opengl-geometry-100-on-3.log",
+      "bytes": 34642,
+      "sha256": "a1dc9f582f4f139a9dcbf0e5a856d1ee185ee466de9828a75b9bcbe7d9340836"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-10-off-1.csv",
+      "bytes": 963,
+      "sha256": "a370665f8fbacb93bd3144cde9fada94476b950b423008a2a92ad53d8365cb1c"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-10-off-1.log",
+      "bytes": 34581,
+      "sha256": "6c43f11b2643fa0f8d97790d801dadd10c8f37a4da2355a8344713254fd3fcff"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-10-off-2.csv",
+      "bytes": 1012,
+      "sha256": "e7901e05c6bcd3ecf0de4440dd536358e502d09b1514d00a89be4862ba7ca373"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-10-off-2.log",
+      "bytes": 34589,
+      "sha256": "89309eae68408d54fdb933b069b00ee69bc52f67f0dd6bdcaad6ffe58c0a46d0"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-10-off-3.csv",
+      "bytes": 999,
+      "sha256": "061862b842e93e27b31f49a31202c7addf2c392e008c138d6fc65f1acce2f664"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-10-off-3.log",
+      "bytes": 34583,
+      "sha256": "d41eddbe378f1f3eee9cd78ae0094319232c7add3fa72ecc0876376b7fef2327"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-10-on-1.csv",
+      "bytes": 1010,
+      "sha256": "bb5c97864bdc63092303bd3b11ca1268a8c454380030d8b6a3f864778e28715e"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-10-on-1.log",
+      "bytes": 34617,
+      "sha256": "3537b2ce476cffcd7528dfa527842c2d1d9b65791226c5649bbe61a6ceb4febb"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-10-on-2.csv",
+      "bytes": 991,
+      "sha256": "41aa3082cf0cb2311bcf0f64c88606196467e6ceb7e636ee71941da6b1e21a6d"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-10-on-2.log",
+      "bytes": 34617,
+      "sha256": "347dbff0b47a9a32c761088b3fa5f22b8fd577bd183e5d1b16f9edf6e52bc067"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-10-on-3.csv",
+      "bytes": 992,
+      "sha256": "f895ffc608a6b2943b4ec540c04381a84de2b1d7dd846d20e4cf960e3bf8e56d"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-10-on-3.log",
+      "bytes": 34622,
+      "sha256": "60cb83ad1b3b1dd19230d1bc356a970649c7ee2e3045d9db718b1bc08391bd76"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-100-off-1.csv",
+      "bytes": 954,
+      "sha256": "47b9dbc5cf2f190e9d79e1ffef15a1e1eea0c6bcd9af7b390a94b300afae471e"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-100-off-1.log",
+      "bytes": 34604,
+      "sha256": "39074ce4a1291310206869e2ed02bdf2ecc05921ef57fe657b60649763dc8043"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-100-off-2.csv",
+      "bytes": 959,
+      "sha256": "a3537ee052c64f97770f180546f7d0a9d630ae3be14bae11f188b10bcebb2720"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-100-off-2.log",
+      "bytes": 34611,
+      "sha256": "01a1aa487e8e1c6617233cc54ebcec3b818bd673b5f55346820cf0ffcbc220cf"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-100-off-3.csv",
+      "bytes": 987,
+      "sha256": "85d97a653ec6aee5d84035426b9b6cbede7b9dcfef08e87c677a407ced8828d6"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-100-off-3.log",
+      "bytes": 34611,
+      "sha256": "5b153ea8c7f84990eb17242f4b04ae6a3290ee731d185ec9f28a72ea21b7fae5"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-100-on-1.csv",
+      "bytes": 958,
+      "sha256": "19026237908bf92a58b1313a53ac710d33013de111c85a059b1bb541d2c20f99"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-100-on-1.log",
+      "bytes": 34641,
+      "sha256": "4b3a566afec2328c3c5f88aa9a7b19bbfe8eeacb402d3c29a5f82783405e518c"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-100-on-2.csv",
+      "bytes": 968,
+      "sha256": "42478dae292c4246e8c79a7da98519e85ddf4d2ba40b758cde0f9e08bea07bd0"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-100-on-2.log",
+      "bytes": 34644,
+      "sha256": "b3a4561852db79f009b8f8fb066a4224c934bbaff15c7e4f61930acb2ab2cea7"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-100-on-3.csv",
+      "bytes": 981,
+      "sha256": "2b32372ea242597e9e897046b97043e42bce9ede291f772ff4e2b13341c0eeff"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/bgfx-vulkan-geometry-100-on-3.log",
+      "bytes": 34646,
+      "sha256": "0ec40a3b9b38493e4c21346ab7773fa03d9b6e73ba388ee27356d71b6a04c90f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/commands.json",
+      "bytes": 105467,
+      "sha256": "ec159bbd2d5c05ddde19c2d12c0f35ad38b5706c397eb8d8fbeb4fd0fc8f8fa8"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/derive-diagnostic.py",
+      "bytes": 13457,
+      "sha256": "014d22f173b9a2a3c3c560e73db7bb13a49ddc14374d58f090d00d7682c68a46"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-10-off-1.csv",
+      "bytes": 939,
+      "sha256": "129c958f9bd3034c79537b37b359aa5b7618de793337f8b7c39ff40b2de2fd16"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-10-off-1.log",
+      "bytes": 39414,
+      "sha256": "d2438ea832315f41033b0dfdf4bc84a1fa195689fc95708628aed79baca1a885"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-10-off-2.csv",
+      "bytes": 951,
+      "sha256": "fa1373d3f5341e8dbb916bab34626bf791834fd11c47c6d9ac3005f2e50361d2"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-10-off-2.log",
+      "bytes": 39419,
+      "sha256": "339aed856234b8c0658d029f9e8d9c65c5c11312b7e61f8cfa09fc04182d447d"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-10-off-3.csv",
+      "bytes": 944,
+      "sha256": "4f7d0d71bdfb48f94054821b8be38f84a0858662a225344527d8f7eea7d4914f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-10-off-3.log",
+      "bytes": 39417,
+      "sha256": "8fc706e68b92cf419242b631c82bf2542526f483cde09f84860155fe6af8254a"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-10-on-1.csv",
+      "bytes": 961,
+      "sha256": "525a81d54f835f49c83dd040b98ca25cc7c3e8b68bae9bec0b952c2d3664d459"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-10-on-1.log",
+      "bytes": 39449,
+      "sha256": "bb83552e06bd8ef4f919054146728b9f8a6be6278243c5d4b01cc8c206b3103b"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-10-on-2.csv",
+      "bytes": 941,
+      "sha256": "15d12cea3e0f7550b905bb901599e742085e70014bbd08111ccdbf621216f568"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-10-on-2.log",
+      "bytes": 39451,
+      "sha256": "2be011d54c10209cc775a8b0310ee8b556adf631efd2c7a6ce7cc89b2bc8798f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-10-on-3.csv",
+      "bytes": 951,
+      "sha256": "c26567b40aa4d949de4a85e3333cde7f81568cb777aabc8fee3ac29f68db77dc"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-10-on-3.log",
+      "bytes": 39446,
+      "sha256": "f43e08e61feb3e0aa969b4a93b1b98848b79d9953f78cc9a2591ba5a36c47a3e"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-100-off-1.csv",
+      "bytes": 908,
+      "sha256": "e03a6000a4241051cec95e437835362d64a774821219b638194fca0ee36609b0"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-100-off-1.log",
+      "bytes": 39452,
+      "sha256": "ff5e216ab63a0b97ce686ca52ea26d30f8e31316e1bd797a14046468252b241f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-100-off-2.csv",
+      "bytes": 893,
+      "sha256": "0c2e73296a19db0b6da44924d5e57b3657afea4bf098e63bea5cddc062cf0802"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-100-off-2.log",
+      "bytes": 39472,
+      "sha256": "d619f23bc5b99ec4622c5f195e1c2974878479f80740d76464c8fb0d43c9a6ac"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-100-off-3.csv",
+      "bytes": 949,
+      "sha256": "2ea42549fa6ff2dc145773a472a4afac99c7bbe05ea15aa1953439a4656ca130"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-100-off-3.log",
+      "bytes": 39460,
+      "sha256": "d102b8bbae845d5121f450119bdf98bf94043de4795f113b698124869d03d103"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-100-on-1.csv",
+      "bytes": 887,
+      "sha256": "822e7cee0ebdd8b02c93ae29d087ef7de5a798f052c9a065a8ca89ae13990f6b"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-100-on-1.log",
+      "bytes": 39495,
+      "sha256": "d87125b4bb7f771f7d9c1c6a84dc5b9b2a28cb1156755e2e2a8d2dee04f82712"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-100-on-2.csv",
+      "bytes": 931,
+      "sha256": "21978e8fec150aa7bd3a00eed55024036e6b2a90c9afc07df3517d6f044e0cb4"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-100-on-2.log",
+      "bytes": 39498,
+      "sha256": "570e8ddbf5252f24bcd49edb2fc1abb1ebb841d77e3cfb5c2f3738ca25381c2d"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-100-on-3.csv",
+      "bytes": 888,
+      "sha256": "816215206bd97076ed02473110ab2d9f8c0d66ab49af20bcb708f74c88d4ea67"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic/wgpu-vulkan-geometry-100-on-3.log",
+      "bytes": 39491,
+      "sha256": "fcbfdab66f3d3e5add1ff3e244d3bc6e42685d4bbf458046686a744b1c075dac"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic-contract.json",
+      "bytes": 1049,
+      "sha256": "48efb53fb24f0d28170aba97bccb7e2a0f081d20aeb16a38b6873fd76588d16d"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic-observation-initial.json",
+      "bytes": 18989840,
+      "sha256": "0445a55d4be1b04c67154e6b6e1b0ae941c87a92025c99540c67bf62c436ad5f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/diagnostic-observation.json",
+      "bytes": 18990190,
+      "sha256": "9ad073cc2b6090d3f6c6278e2c428fb8ecccd47745a41941b855d1aec5534a88"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/execution/benchmark-runner.py",
+      "bytes": 15874,
+      "sha256": "9c2d23361559a301b11b524a2a5ff6ad739b4295283435d0adfbb8520717911e"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/execution/collect-evidence.py",
+      "bytes": 17368,
+      "sha256": "f8dcf49c269a38c23b9db9624b21b0768ff3bffff47409123350205dc4474356"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/execution/matched-rows.py",
+      "bytes": 16329,
+      "sha256": "514e4af10dd8d5245ff958a08b7e2df52f8e3f57b52d57675bc271491fbefeb6"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/execution/matched.py",
+      "bytes": 11107,
+      "sha256": "4de958f252f5b113e5d50415dd102a517b503b4530a8ee75c4ae985e53f58cf7"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/execution/post-campaign.py",
+      "bytes": 16667,
+      "sha256": "c7ec61a03caad741edd553774abb5615f5bcb2da5158eea5add1cb44f270de76"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/execution/report-config-template.json",
+      "bytes": 2776,
+      "sha256": "c0b3767c1bead2a957d561d14a795bfb91fe700c031ed04866d6eb5ca8e8bbf0"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/execution/run-ablation.py",
+      "bytes": 8956,
+      "sha256": "7dab5d40b43a5950d758b340abe910e1a83097ae5fc607251e235ffc6817f58c"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/execution/run-gates.py",
+      "bytes": 11258,
+      "sha256": "887eca8a8b207ab9261fb9eaf35a982fafb6e18e6b68c90d0a841942d6e8fcc3"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/execution/run-matched.py",
+      "bytes": 5964,
+      "sha256": "8bdc438ae4fa4cefc14c5268ebb98c182f428c2b3709f4f5a56658c24b9783b0"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/execution/verify-after-command.json",
+      "bytes": 957,
+      "sha256": "f9ab1eae590f3f358bd36de450671f9a3bd11aae36f528d679aa01195c9f7e9a"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/execution/verify-before-command.json",
+      "bytes": 986,
+      "sha256": "e7a578c2fa4f72a0428eae9edb4bbc6c7692bb1365e528d9420fc00813a95070"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/execution-commands.json",
+      "bytes": 1826,
+      "sha256": "8a17b431edd0c9f9f2f4776d2e81eaf7370ff0e983e8f11226516d80b1ab6750"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/gates/bgfx-action-ctest.log",
+      "bytes": 776,
+      "sha256": "d72b86e70906c7cfc94a3a1940f73d385fe7533365d1350c8826236feb62a84c"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/gates/bgfx-action.log",
+      "bytes": 307,
+      "sha256": "c0d9eb8db8b75efa202ff02ce1871c09fb8f6dcb58a669bd79afd70a9a402ee6"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/gates/bgfx-instancing-opengl-ctest.log",
+      "bytes": 2820,
+      "sha256": "783dca5af08f12858954236bb0707648e958998609253af2883846cb64c20743"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/gates/bgfx-instancing-opengl.log",
+      "bytes": 315,
+      "sha256": "6e0443873ec96f99022757472a792d8cd607c3ad23b1f43a7cf0568023c0d697"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/gates/bgfx-instancing-vulkan-ctest.log",
+      "bytes": 2852,
+      "sha256": "f8d3e2117fe3730df094427cfd852d762932c517d60d83d0fea18ddf89a2174e"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/gates/bgfx-instancing-vulkan.log",
+      "bytes": 309,
+      "sha256": "ca55bb1aadaaab24cc2aad6dc7b607fc0524798222753e3080813aacc451f7b2"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/gates/bgfx-opengl-composition-gpu.log",
+      "bytes": 37,
+      "sha256": "12731b0c164d732345ec5202be801cee2d927edbf6f04c198aa9916091a98ea8"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/gates/bgfx-reuse-core-ctest.log",
+      "bytes": 787,
+      "sha256": "4fadf6b7234f737933a4deacad400a65ae2b61069016ccd03087a1b1777b9672"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/gates/bgfx-reuse-core.log",
+      "bytes": 315,
+      "sha256": "78cf563b770b8536d5084aa5d2f0466d3d4d67dc64155092dbc18808e76e1679"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/gates/bgfx-vulkan-composition-gpu.log",
+      "bytes": 37,
+      "sha256": "12731b0c164d732345ec5202be801cee2d927edbf6f04c198aa9916091a98ea8"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/gates/commands.json",
+      "bytes": 191514,
+      "sha256": "c7c3364c12ad109a2e7a1a5fad1457d43b01171c88d1b045106dc370292752eb"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/gates/core-ctest.log",
+      "bytes": 2140,
+      "sha256": "765c9fac39fb62a58752bd7c0385b5a3cc8e101fd2cf44983157286f54f910f5"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/gates/core.log",
+      "bytes": 538,
+      "sha256": "60ae665033ee2a9f389a3cf68e22a98c9c05011589d9db3b87cd92e06ef8e294"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/gates/wgpu-action-ctest.log",
+      "bytes": 776,
+      "sha256": "801ac84891bd106f2266d9c7096339947cd6caa579fe5eaf8320913130d2da25"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/gates/wgpu-action.log",
+      "bytes": 307,
+      "sha256": "3e90f7ad21a78488e07c07ceaac3e162e4428206060c1d579b982e5b5c3c3b12"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/gates/wgpu-multidevice-ctest.log",
+      "bytes": 754,
+      "sha256": "f6b8d73d084a85d84862a7f4079e1d117dffb7ad14f1ebe5fe5706d3ad16ef29"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/gates/wgpu-multidevice.log",
+      "bytes": 312,
+      "sha256": "fe7fd3eae4f2ac806b1812c487a44e8d1307b567c67ee4e4ff9708ebfc681866"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/gates/wgpu-vulkan-composition-gpu.log",
+      "bytes": 37,
+      "sha256": "12731b0c164d732345ec5202be801cee2d927edbf6f04c198aa9916091a98ea8"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/geometry-overlay.png",
+      "bytes": 408707,
+      "sha256": "1bfb1892b285d39fe8c74612205ef61f63df4651385c3c3d1a28071a52a21a06"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/geometry-overlay.svg",
+      "bytes": 133627,
+      "sha256": "4037d62282ae588ffffc905e30b06ab8e6b706da957495810fb23c36615a0bfa"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/hardware-after-main.json",
+      "bytes": 6501,
+      "sha256": "43732bc5cc3cdc6138e784455c3a5af9d5f31e8529c99d7e9b82cd2618e0ea52"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/hardware-after.json",
+      "bytes": 6501,
+      "sha256": "c38c4960ff707bb0bb26e5cb08ed1198918f071433ec69b7d7bb4718e789f0d4"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/hardware-before.json",
+      "bytes": 5946,
+      "sha256": "9afea6fdf5e03aff0e535e488ba1fa33c2581456e42261e0925e3294bb46bb83"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/history/execution-commands.json-bootstrap-initial",
+      "bytes": 661,
+      "sha256": "8a07aef62e485d07221a983e7f130a8ac79879782aeba4ec070f70a5c58dc3d6"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/history/gates-run.log-bootstrap-initial",
+      "bytes": 1080,
+      "sha256": "402cf54988435d02d3f81e8c2c9cca8c91abec3b78559ccce880c2eb360a6f7e"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/load-observation.json",
+      "bytes": 1922,
+      "sha256": "f33fe102cabe755763efb3a58388487b72138fe9fb0d86718faf625ea1c370a7"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/orchestration/coin-render-geometry-overlay-ablation-run.log",
+      "bytes": 2520,
+      "sha256": "221f0038071bb4e4e2bc334217d13972bbddec8cd377de581165ae07a8fd288f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/orchestration/coin-render-geometry-overlay-gates-run.log",
+      "bytes": 579,
+      "sha256": "30538e0b07d37aaa0120dcf0feee6b525e117391075fe8c3f5c3e6c663194821"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/orchestration/coin-render-geometry-overlay-regression-probe-run.log",
+      "bytes": 1149,
+      "sha256": "423f1e36b271919479ec1f3c26204b8ceae74175f4f6118dd326dda3517ffeb0"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/orchestration/coin-render-geometry-overlay-steady-run.log",
+      "bytes": 9396,
+      "sha256": "f7c1a906312135f46d95c379146db71307bc2b44ba30f0d5fdc405f05c9611ec"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/orchestration/coin-render-geometry-overlay-verify-after-run.log",
+      "bytes": 2202,
+      "sha256": "33861993444b65ed4c3f5215175a334b0d864074b89bb8e5482ad4739eb2f3d5"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/orchestration/coin-render-geometry-overlay-verify-before-run.log",
+      "bytes": 2202,
+      "sha256": "a77049f01daeb28d7721a4524a44ed225520ad98a20e48d0e3f5a0d19815c711"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/plot-and-report.py",
+      "bytes": 42187,
+      "sha256": "d75572a25d1b466936a8a5bba99981ce785536d18ccf9e1d4a365b26b4f018a1"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-off-1.csv",
+      "bytes": 1857,
+      "sha256": "0818d5976aaaf711a0748e4bd7020ce8c7875331d2f7ac5c6b2239f4857e13f4"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-off-1.log",
+      "bytes": 2467,
+      "sha256": "439ae4d1a829e8e3304aa90fa06926e3b8e7c265b965b709544a6f2d96e998fb"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-off-1.stderr",
+      "bytes": 30,
+      "sha256": "3ebc43f60313873be0d603f3ba407d5e99b576ba977408766a883bf42d9bda3c"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-off-1.stdout",
+      "bytes": 2437,
+      "sha256": "7d3870f7b60d57cf747d09650f0086e12ddfb07a91535fb43388063b6389bf1b"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-off-2.csv",
+      "bytes": 1897,
+      "sha256": "3951ad94d253a606f728240ebd90c53b922a8f7a1022c5b5e0ae6e7461c5c5cf"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-off-2.log",
+      "bytes": 2467,
+      "sha256": "b9054a22342b75eb4ade53f634b9323cb90f84f1b6dc7a10285a3d44f81bd96f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-off-2.stderr",
+      "bytes": 30,
+      "sha256": "e86e9e8d9dedf14bb9bf4f3b0caa1a8de494cc32f3673dc8b02c986377fe2d92"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-off-2.stdout",
+      "bytes": 2437,
+      "sha256": "03fdb873acc75595ed1b570a55a62c3f6b1faa4504b047a11a8fb1fb2c0f5f9c"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-off-3.csv",
+      "bytes": 1908,
+      "sha256": "eea474bc2a5cebd4db2c46a916ef1a9a9bae7b06c3243c4e37b82ef1a5c08ad8"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-off-3.log",
+      "bytes": 2463,
+      "sha256": "5eff4b2a489d70af17f08668a540466a9d926eba6f377de0bc72771dd2f9dee3"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-off-3.stderr",
+      "bytes": 30,
+      "sha256": "9d8c2776360326c0626dec8a0efa2a40646b76fe78b323613ff338914e8162d9"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-off-3.stdout",
+      "bytes": 2433,
+      "sha256": "cc35b29bfc8ac59bec413d8f5bd12d732c0cf2c8a8475d143d833467cf33df86"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-on-1.csv",
+      "bytes": 1902,
+      "sha256": "8eeec71ce66b391194b82451fa2764208dd7c31df886364e947719d519ecdf4a"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-on-1.log",
+      "bytes": 2467,
+      "sha256": "bfef1469112473bf24b2845a72cbb1531d6a6859977f9ac34e61b33b0b1c0351"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-on-1.stderr",
+      "bytes": 30,
+      "sha256": "1275437e5a0b4eab0abb70f15b66a9e2c0ee182e4edd9c28bde51cdd2773f4d4"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-on-1.stdout",
+      "bytes": 2437,
+      "sha256": "823b59036041bbfe893a353c174e202c2d3c68f2eef00d388f132144dd07bda8"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-on-2.csv",
+      "bytes": 1912,
+      "sha256": "b28e1379f624b4ddc21ea33cb293095173cecd16f1d569e91dca83349ff3efff"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-on-2.log",
+      "bytes": 2470,
+      "sha256": "454550d9aa47fc0a1999cab563aba55b1c4409f717cb4f0cbb59b3e8463f698f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-on-2.stderr",
+      "bytes": 30,
+      "sha256": "8eb041b9a6cbf98d162535e0ab4a0bc8bdbef0f77e5fdbc0d612604f7804e551"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-on-2.stdout",
+      "bytes": 2440,
+      "sha256": "ae60335ff2135d159ba1d781d767efdc060b5df36f4b495853eb2d7e19df2648"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-on-3.csv",
+      "bytes": 1910,
+      "sha256": "a3cee41af8fb0cd41ffcb278f52d277f33437fa5a8430970727b79b00d3c4925"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-on-3.log",
+      "bytes": 2461,
+      "sha256": "eb285e7b8b22174152ec71df925aed4d43a402f136c78658d6d73bffd80d4d2b"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-on-3.stderr",
+      "bytes": 30,
+      "sha256": "1c4822d3a6aa5115aac30520f0d57509604bc27bd6a05766031246c7b1e08d04"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/bgfx-vulkan-geometry-10-on-3.stdout",
+      "bytes": 2431,
+      "sha256": "7c1077cdfdb52a8be6d8b9126a6e9e448e6f8f73bb93637992f4f7a5cfdd6ab9"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/commands.json",
+      "bytes": 83799,
+      "sha256": "8c90d0e85a952bc67472cda237c1fc63c9d1d5e85f18b823e3643e9b8c6e1980"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe/summary.json",
+      "bytes": 16830,
+      "sha256": "d2bd020b9f411a955a279f8ab1260ef4aa01f186cc498dddd723499ecc16eb1b"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/regression-probe.py",
+      "bytes": 12838,
+      "sha256": "5e0084a3f0860b2b6b6fcff8b5abcdb91e0227f82e12d28ab02edcb09621ce00"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/report-inputs.json",
+      "bytes": 1259,
+      "sha256": "7c90584bf8b7f24d509e81583617ffcea5ba78c01aa6d4f7cc3e7c139da16fe1"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/stage-metadata.json",
+      "bytes": 28894,
+      "sha256": "856bc36b422291f058b1c450ad7ee4b72aa368dd87aa277bc3d8eb603b516ce3"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-10-bgfx-opengl-1.log",
+      "bytes": 2476,
+      "sha256": "c15430783a37bd6996a814d3986450cc6ce094908a2dfcb25358ef0bdf0602c4"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-10-bgfx-opengl-2.log",
+      "bytes": 2462,
+      "sha256": "790a280a404a9db978f67c6c9aaa77d01da68d42c58ddc62cc7ba32913ff5bf1"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-10-bgfx-opengl-3.log",
+      "bytes": 2458,
+      "sha256": "dce5f0fc4de30926093cf7fc5382325b672b043543e6ab987618b667cd662f2a"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-10-bgfx-vulkan-1.log",
+      "bytes": 2477,
+      "sha256": "9c44facc8006b6989c364822d6c1b3a8c6c331756618380415788931bac924db"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-10-bgfx-vulkan-2.log",
+      "bytes": 2463,
+      "sha256": "691362ba1cbc14e9f52d103e7b4e6976464e26cece364a76c470bdc5ed618ab0"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-10-bgfx-vulkan-3.log",
+      "bytes": 2480,
+      "sha256": "deff027655c90b6034050f60ff977174665708c9061cb82d65fa786bbd7f7d8b"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-10-coingl-1.log",
+      "bytes": 2322,
+      "sha256": "76fd5c07e52177d7b30d035176a297ed1da3e1ae259cf437437c56607e212bd2"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-10-coingl-2.log",
+      "bytes": 2316,
+      "sha256": "a4fd1158aec9db1372176e8d28df136685675f440f7edad85564f67cbe8c77e8"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-10-coingl-3.log",
+      "bytes": 2318,
+      "sha256": "c4aea3974dc0c8aceefe5165e7e966f2428b817f1798b45c731f2065af73ba51"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-10-wgpu-vulkan-1.log",
+      "bytes": 2576,
+      "sha256": "ff73decffaaf9ea85f86743f37d41b4036a5451343745d4450d5b603392dd3bd"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-10-wgpu-vulkan-2.log",
+      "bytes": 2561,
+      "sha256": "355c57356ba349f8ad3842354e1e1801c5a52f45aabd50330c312c41fd8b1588"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-10-wgpu-vulkan-3.log",
+      "bytes": 2560,
+      "sha256": "f5a5cf8277c027b972066f918086fbdf5ba7c5efb3e42ac8164b05bbaa0cedb8"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-100-bgfx-opengl-1.log",
+      "bytes": 2484,
+      "sha256": "01c0bf084ad320d76c5dacbb5e8efef417e91405e92a7433c5bda4c6378cb40d"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-100-bgfx-opengl-2.log",
+      "bytes": 2483,
+      "sha256": "3d2ab6f60090d16808ce6a9d68f66ec4fed9fb400f77f256ac628e4761819087"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-100-bgfx-opengl-3.log",
+      "bytes": 2479,
+      "sha256": "7d8671d89f40ecfebe8c1117fc5bc9dd5dca198a68d146426c50a3c8ae1db863"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-100-bgfx-vulkan-1.log",
+      "bytes": 2486,
+      "sha256": "1843daf3f35097db9c028da9d5f1dbc06e07013e703373f0ef464899cfd954af"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-100-bgfx-vulkan-2.log",
+      "bytes": 2488,
+      "sha256": "b1e8518bdab5edebb083b8c1bdf0f262e7ab0deaa83135c6d9f6e701efed45ce"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-100-bgfx-vulkan-3.log",
+      "bytes": 2481,
+      "sha256": "e8e094bbfbd1d8ea4d1e964c2cc92b0ec4bd730c98c770e97e9a40eebbd09b4c"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-100-coingl-1.log",
+      "bytes": 2330,
+      "sha256": "c653f6ccb019f41af849e9872484f532868d2a2330a63824b73969e6de30ac58"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-100-coingl-2.log",
+      "bytes": 2329,
+      "sha256": "6d8d4c64a46785531a9457b0399567ab2395ade89ed09704b0ec3066f1569fb4"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-100-coingl-3.log",
+      "bytes": 2336,
+      "sha256": "88967948d596132b48931f9dfa8991b1f85f9d6e8a48862af98552017c516c3e"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-100-wgpu-vulkan-1.log",
+      "bytes": 2580,
+      "sha256": "737d59b5b4ac69e8cf8cade66382392d168ef136ff881f9951f12e90ef9a4916"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-100-wgpu-vulkan-2.log",
+      "bytes": 2579,
+      "sha256": "0f86e5945a55d68d55b79989d8061a461ba87eaf39ff439fb60c4ecda061918f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/geometry-100-wgpu-vulkan-3.log",
+      "bytes": 2585,
+      "sha256": "5cd447f6b03b039a723c0ecd17a3ce7e20da0ae62ca51210b6ffae76bde3af80"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/materials-10-bgfx-opengl-1.log",
+      "bytes": 2465,
+      "sha256": "d071b0b060c3c81e1e2a810c7f2a78dd6ba46249a252250746050f8d56bc89cd"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/materials-10-bgfx-opengl-2.log",
+      "bytes": 2462,
+      "sha256": "91d63de59e57942528ebe422fad4f6158dbe78a99d3cbfeb72041f82542df0b4"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/materials-10-bgfx-opengl-3.log",
+      "bytes": 2473,
+      "sha256": "a1791ce43c9b86c2488e42dddf3a2855d6ee04cdfc37e5a4c1ba08259bff2a45"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/materials-10-bgfx-vulkan-1.log",
+      "bytes": 2473,
+      "sha256": "70bef5c5b79222a15517b6ed1ff476977bbcdf8cd85355fe27ed8699ab953100"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/materials-10-bgfx-vulkan-2.log",
+      "bytes": 2471,
+      "sha256": "eb2ea16d1103b095032b139f51c6188e821c0bdbe206eb3c7338ef6f684fcdb7"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/materials-10-bgfx-vulkan-3.log",
+      "bytes": 2471,
+      "sha256": "66bf1cc23328d100ffd4c2641ca84739cb969f2b58ce8a66d921ec2db5c3ce18"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/materials-10-coingl-1.log",
+      "bytes": 2324,
+      "sha256": "c253d313f3c007ae105145a7814382732def9d961a8664692c443d4221f2b158"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/materials-10-coingl-2.log",
+      "bytes": 2322,
+      "sha256": "4c3e62ba983badb2ab4a67dffd1396a7e3e717c4c3974547689ff2098f126af7"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/materials-10-coingl-3.log",
+      "bytes": 2313,
+      "sha256": "e722aa451055348ad698eed03c413b67b38dcc16c471f1c69fe08666cdc99bfd"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/materials-10-wgpu-vulkan-1.log",
+      "bytes": 2568,
+      "sha256": "c3a60d287d0ea95f8f02c163f7927b061d20435d5c32df9674a052f4662faa5d"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/materials-10-wgpu-vulkan-2.log",
+      "bytes": 2567,
+      "sha256": "ba42b548f89af4653ee4f2980fd64f6354f7fb17761d8c86e8936ecfa95ca6bd"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/materials-10-wgpu-vulkan-3.log",
+      "bytes": 2564,
+      "sha256": "ba649cf2af883de47d78c9cf7169a0b3ac734267491010ee5fd9c89b211943fd"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/transforms-10-bgfx-opengl-1.log",
+      "bytes": 2465,
+      "sha256": "02b50d35505a92056cb490f16f4d4f4bbd9316560d029cec96add7da8f5db1ea"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/transforms-10-bgfx-opengl-2.log",
+      "bytes": 2466,
+      "sha256": "658d62dd13d43d3ef90186db42fc0fb0cde803a8efa4e456e8eba6ee5b13a60b"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/transforms-10-bgfx-opengl-3.log",
+      "bytes": 2462,
+      "sha256": "be660ff44df08f084c609bab7f0e903f3216a95c912091e7650ac15a4587a973"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/transforms-10-bgfx-vulkan-1.log",
+      "bytes": 2471,
+      "sha256": "39818971248f8165e1974f9c88950ac8e62547530f75da9f251714845359469c"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/transforms-10-bgfx-vulkan-2.log",
+      "bytes": 2470,
+      "sha256": "f34c5d6d4096f62527a06a1a0cd1329f6dd945b634fcf8e4d2237470f3903117"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/transforms-10-bgfx-vulkan-3.log",
+      "bytes": 2475,
+      "sha256": "cf7070b9113b06019c3861ddf068334f2ca53a9f12f6b3dd8405dc1157ffc566"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/transforms-10-coingl-1.log",
+      "bytes": 2317,
+      "sha256": "9f49e771b30f694ba9590543e101affbd28027eaab428b1bec02e5c976c619c9"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/transforms-10-coingl-2.log",
+      "bytes": 2320,
+      "sha256": "3f4710cfc813124514a377de808de997481ed393d3a16f9f8dc0cac8f0fce2a3"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/transforms-10-coingl-3.log",
+      "bytes": 2324,
+      "sha256": "3080ce64344b4ba83de56055e3f59279a11ddeb202691076f4c7f5f295c3c963"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/transforms-10-wgpu-vulkan-1.log",
+      "bytes": 2565,
+      "sha256": "81c3bd4d24974a7c6634452a4a53b8e1d105f504fdd6c0ed6fb05eb426deaf42"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/transforms-10-wgpu-vulkan-2.log",
+      "bytes": 2564,
+      "sha256": "add096db1ee67245207c9776ea2bf9d925f02561a9e5fd4c04f9090c3d717bff"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/logs/transforms-10-wgpu-vulkan-3.log",
+      "bytes": 2565,
+      "sha256": "874263ab49e4c9aea585b9c083d66cab0ce32ce55c47f611dc5620be08bb29df"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/manifest.json",
+      "bytes": 117082,
+      "sha256": "57be141073ea863439f40cf484a4a9373ca50bf105ed2617996a18fd2ec8fc7b"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/medians.json",
+      "bytes": 18209,
+      "sha256": "c56eb01a850f8518b73aa61f44b6b8e5fa5e2a21ba449cb48e09ac75a88ba4ee"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/results.json",
+      "bytes": 76917,
+      "sha256": "6f26a82fbc67e7244fa9ca148fa101dacbb9e7a42a5f4a63ef9aceb7836be992"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-10-bgfx-opengl-1.csv",
+      "bytes": 1872,
+      "sha256": "2c9c9d1a07150dc5d299832c7e1147fdf2c87cb3042463eff817aa505153e956"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-10-bgfx-opengl-2.csv",
+      "bytes": 1900,
+      "sha256": "4f7ec7adec5643ed9560a74b5730c668176dfba840f7223c3a50159ebfaab40c"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-10-bgfx-opengl-3.csv",
+      "bytes": 1912,
+      "sha256": "50047486e237257d57b163511f6f01abd779d5fac9e8ea334bdd836ea0335f3e"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-10-bgfx-vulkan-1.csv",
+      "bytes": 1812,
+      "sha256": "3a090f8250096bb5ca500eb48896f11ca98328ad30a5185608f1cf361d240712"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-10-bgfx-vulkan-2.csv",
+      "bytes": 1910,
+      "sha256": "bd33647ce67932bd29b274024777ee38a70b88ddab1236f46c96f0836864f979"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-10-bgfx-vulkan-3.csv",
+      "bytes": 1875,
+      "sha256": "40c30c9ecf5c20a3c12249e81e30e98dafb19d5340194a82228a2a2e88010fc0"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-10-coingl-1.csv",
+      "bytes": 1641,
+      "sha256": "c189f93c961a83614d24686c357e1ef119a257964579accd47d0f84641464e97"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-10-coingl-2.csv",
+      "bytes": 1637,
+      "sha256": "ffea7cb18c946192fa99368bf83be8444219a972d88f29f96b2885f3d91a196f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-10-coingl-3.csv",
+      "bytes": 1627,
+      "sha256": "f6f958ba0c8abedcd7a9f570a460f612791f438d7773058e6b8f687f73b50f01"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-10-wgpu-vulkan-1.csv",
+      "bytes": 1730,
+      "sha256": "5cfa4f8c1a36eac030602601db60fa8123cefacab8ce60b68b12875a31ae08a2"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-10-wgpu-vulkan-2.csv",
+      "bytes": 1834,
+      "sha256": "cc11f93f7b212aebf9cb3dc1d25b76bdd08c3103a66c704fc108c82191ffa7c4"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-10-wgpu-vulkan-3.csv",
+      "bytes": 1770,
+      "sha256": "c632e5b1aa3ed5f2d9e7d9aeffdf88dc054882f0c99c6408acbe22e9fac3954e"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-100-bgfx-opengl-1.csv",
+      "bytes": 1806,
+      "sha256": "ba34b21f87de2e3504a011bde54b29fe904f33666a79830d87863da7922c3646"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-100-bgfx-opengl-2.csv",
+      "bytes": 1799,
+      "sha256": "8d029df1a09d584c190ba9e49537fdaa62fabaa9b6ebd84dc3ef975956643bb4"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-100-bgfx-opengl-3.csv",
+      "bytes": 1881,
+      "sha256": "3503be440937b70c787e469ed23f58f4a5edf0b8a1631b74d63610fb0721d728"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-100-bgfx-vulkan-1.csv",
+      "bytes": 1812,
+      "sha256": "2004ef7df568eaa4734bb38805742e261f01b720a762f9e23fac6a419400a0d5"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-100-bgfx-vulkan-2.csv",
+      "bytes": 1823,
+      "sha256": "2dc0afaf3cacbeef337ff2193e730deda635906a5eeb77b9274c0dc62d15608b"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-100-bgfx-vulkan-3.csv",
+      "bytes": 1886,
+      "sha256": "f4d858784597b6677d63a5d984c05b5158533fb483cdae13d8f9cb8340dc7d7f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-100-coingl-1.csv",
+      "bytes": 1681,
+      "sha256": "6729d1c7b0dc74817cfbd4b400ad52a5a278831d3e5f7439d68f10d1e8fe4011"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-100-coingl-2.csv",
+      "bytes": 1707,
+      "sha256": "2dd219faea5f4f6e93ec50124927bf2aab67158d7e03e879ca8d19b14b7d392b"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-100-coingl-3.csv",
+      "bytes": 1759,
+      "sha256": "e470e530a8ff09808d91a1faf3197bf317532b62ecc1a1290c8dd06348936191"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-100-wgpu-vulkan-1.csv",
+      "bytes": 1764,
+      "sha256": "352542248188342fc6b6699f794e80ece54894eeb8d1ef7bed576c1c2dfe65c3"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-100-wgpu-vulkan-2.csv",
+      "bytes": 1706,
+      "sha256": "44d6678ef51ee5f6908eabb9187cb85456a88a896f1bfb1aee9929a4dce6dbcb"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/geometry-100-wgpu-vulkan-3.csv",
+      "bytes": 1764,
+      "sha256": "fabab7cb337c6a70637ec8f72834c6b00fc78668cbeb76b122dfe98b79ed273d"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/materials-10-bgfx-opengl-1.csv",
+      "bytes": 1895,
+      "sha256": "e619a3f9eefffa2da8ef5ec0344fb20f34ef00cdd42ea14e54af4a09f226e791"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/materials-10-bgfx-opengl-2.csv",
+      "bytes": 1861,
+      "sha256": "a8ecba920edf8a5b94148eb11b4f096e9c78f325a1baa0aeaaeb1f64bf0d35c8"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/materials-10-bgfx-opengl-3.csv",
+      "bytes": 1900,
+      "sha256": "f125645d028bddaa8e0448cf017df4617555b8540ba303286ec2aecb3b3d0e5c"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/materials-10-bgfx-vulkan-1.csv",
+      "bytes": 1852,
+      "sha256": "79c25293a48420259762487e89b6337ee10eb6f9b4b0678f262b1769e057ae01"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/materials-10-bgfx-vulkan-2.csv",
+      "bytes": 1890,
+      "sha256": "baa2daf4d56cad1ae5a18a9fd9436543e8cf97d66c6d5e558fafcee424270df4"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/materials-10-bgfx-vulkan-3.csv",
+      "bytes": 1905,
+      "sha256": "904f802f9ec96bf2d21bcbf3f7db1aa9c5fdc80180393916515ca10f6fc47925"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/materials-10-coingl-1.csv",
+      "bytes": 1646,
+      "sha256": "f1995f2a4237f7f73fe454fa26b3cb631ff35ee14e1747ba0b5e3f6f35084f9a"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/materials-10-coingl-2.csv",
+      "bytes": 1637,
+      "sha256": "ccbcab9740f904e073d169dc02f7d73fe4ab8d4129ca6af97ad0e37709f3aac1"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/materials-10-coingl-3.csv",
+      "bytes": 1591,
+      "sha256": "d295681295ac746fc5c3bb897747fff11e56170986f84353ae905e95cad94c35"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/materials-10-wgpu-vulkan-1.csv",
+      "bytes": 1768,
+      "sha256": "f04c55e504d23af402189c6d6c209f9a2d228be6dcc5e7563741f1061982560a"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/materials-10-wgpu-vulkan-2.csv",
+      "bytes": 1776,
+      "sha256": "95c3bedecdecb76d975ded308a9733d504de0ef35f27c7073edad0899e079f9c"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/materials-10-wgpu-vulkan-3.csv",
+      "bytes": 1813,
+      "sha256": "aa03364fb9d8bf09f33d22160be3f142f98e2d1bc87aeb6e3d60feef46fefd04"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/transforms-10-bgfx-opengl-1.csv",
+      "bytes": 1818,
+      "sha256": "7be5fba69db5be44705234e0f82d2f0f1785ce2fe232f6a69e2f096379783533"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/transforms-10-bgfx-opengl-2.csv",
+      "bytes": 1845,
+      "sha256": "e2dcb52a8a9a90f2e014173452d9723d515c6e14148169d7b64992b88f872d37"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/transforms-10-bgfx-opengl-3.csv",
+      "bytes": 1843,
+      "sha256": "55564c3d29c6feb6ce13e58ac7f3766eb1e02217178214bf81588870e7639333"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/transforms-10-bgfx-vulkan-1.csv",
+      "bytes": 1875,
+      "sha256": "f4863a5cb283306397be4ad58b5b485a4ecfc6170e84664a150fa920dce51c1b"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/transforms-10-bgfx-vulkan-2.csv",
+      "bytes": 1879,
+      "sha256": "ea6559dafdbf03aeafa10e7cae96ece0d72d21236c290cac3ce328cd3d8b8d58"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/transforms-10-bgfx-vulkan-3.csv",
+      "bytes": 1834,
+      "sha256": "a8c65c4b84f78db65a285861e9c97601b57afddb8bb71d40f987060e0209ca7f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/transforms-10-coingl-1.csv",
+      "bytes": 1608,
+      "sha256": "bccc3c31749837a24b8f475887ec3db3c488887b451e42292cdd459045623c1b"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/transforms-10-coingl-2.csv",
+      "bytes": 1560,
+      "sha256": "5a2a0c5fa2720a192c785793b167aa209822db292d401878cb080ef10def815d"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/transforms-10-coingl-3.csv",
+      "bytes": 1605,
+      "sha256": "1394a9def6a3b07f04dbbaa4a4b3a63d57d07606a3623e11faed0da429fd9058"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/transforms-10-wgpu-vulkan-1.csv",
+      "bytes": 1773,
+      "sha256": "bb1d8656fe63d0cf5a90299e250640521258f8b63593e54a1a2d9f11ecccd63d"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/transforms-10-wgpu-vulkan-2.csv",
+      "bytes": 1687,
+      "sha256": "5f7e3eb5bab1808cba2a828813beeee34f62301f5a07223814e1b57dd9bd65cb"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/after/samples/transforms-10-wgpu-vulkan-3.csv",
+      "bytes": 1757,
+      "sha256": "ffb7f2b6b301804cc5a53174457f5c634e5cbf6ecfb1d4ff179fc9d91b6159e3"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/analyze_animation_images.py",
+      "bytes": 4587,
+      "sha256": "ab2d85a2a60aa883a5f92fc1ca9d089ab50aed6451dc79fcc48a919c771cf556"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/archive-manifest.json",
+      "bytes": 80474,
+      "sha256": "1d98e31211121831d64e9d65d673e565214e344e893ba92f8ea459c666267a06"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-10-bgfx-opengl-1.log",
+      "bytes": 2474,
+      "sha256": "68aebef9e04f81d377927517a83cbfcb92648542d17d6a8ff77033249e91c597"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-10-bgfx-opengl-2.log",
+      "bytes": 2464,
+      "sha256": "7e25c4d4b9a517e393c37b40350d405dc5f3f498c7005b8eeb29445cd4fb0c29"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-10-bgfx-opengl-3.log",
+      "bytes": 2473,
+      "sha256": "a58ef7048eb930b48cf917ae20183ed575142be7c472268e9c02429ba67ca278"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-10-bgfx-vulkan-1.log",
+      "bytes": 2482,
+      "sha256": "dd1b0c434227de08eebc878ccf47fdda6341995ab231c91e46129adf974e353d"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-10-bgfx-vulkan-2.log",
+      "bytes": 2471,
+      "sha256": "5d4c1689958faa87167580e1f8152e41a434bce0a785e26ab2c5816d33d11345"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-10-bgfx-vulkan-3.log",
+      "bytes": 2475,
+      "sha256": "dad450a664191117154ef3ae4a4e0500f8012e937d7da09414de8c86be91467b"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-10-coingl-1.log",
+      "bytes": 2322,
+      "sha256": "76fd5c07e52177d7b30d035176a297ed1da3e1ae259cf437437c56607e212bd2"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-10-coingl-2.log",
+      "bytes": 2316,
+      "sha256": "a4fd1158aec9db1372176e8d28df136685675f440f7edad85564f67cbe8c77e8"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-10-coingl-3.log",
+      "bytes": 2318,
+      "sha256": "c4aea3974dc0c8aceefe5165e7e966f2428b817f1798b45c731f2065af73ba51"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-10-wgpu-vulkan-1.log",
+      "bytes": 2565,
+      "sha256": "f2db18ae811c52f81c8e3d7d9a3a9e50df11dbd3f5e9989516b0b2b8431d13b1"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-10-wgpu-vulkan-2.log",
+      "bytes": 2563,
+      "sha256": "0e68263da160270189d54b9e4e38d0ba9b15823de2e36649d8e3a9e000e74cff"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-10-wgpu-vulkan-3.log",
+      "bytes": 2565,
+      "sha256": "e32fa5872035a39bd07368a84a980d0a00a81de7838f26f65605a2f669831cf7"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-100-bgfx-opengl-1.log",
+      "bytes": 2476,
+      "sha256": "668a1e6d1f0c1811ce3123eacb21b05e3ae459fb48a956542336f154b6b78b11"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-100-bgfx-opengl-2.log",
+      "bytes": 2481,
+      "sha256": "253b2d2d67549956fdcca501e0a58388b1ce98dbf0169b227b815441a167c04f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-100-bgfx-opengl-3.log",
+      "bytes": 2480,
+      "sha256": "705e0ee44297b1fa8db33b8faa0862dc2c6f0123cb11a15de4f45271434b9fd8"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-100-bgfx-vulkan-1.log",
+      "bytes": 2487,
+      "sha256": "2186502dd12f1504a64d5d2834870cd11a81a9342130942a96f14769fb61aa59"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-100-bgfx-vulkan-2.log",
+      "bytes": 2491,
+      "sha256": "e7af1a59bfd8eacfce2292a7a12acc4ada4079de8070f5093db24f456f864161"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-100-bgfx-vulkan-3.log",
+      "bytes": 2486,
+      "sha256": "e22939884e6c6805a951173fb9b8594bd6ed89f4f28dcc055285c6b4696da532"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-100-coingl-1.log",
+      "bytes": 2330,
+      "sha256": "c653f6ccb019f41af849e9872484f532868d2a2330a63824b73969e6de30ac58"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-100-coingl-2.log",
+      "bytes": 2329,
+      "sha256": "6d8d4c64a46785531a9457b0399567ab2395ade89ed09704b0ec3066f1569fb4"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-100-coingl-3.log",
+      "bytes": 2336,
+      "sha256": "88967948d596132b48931f9dfa8991b1f85f9d6e8a48862af98552017c516c3e"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-100-wgpu-vulkan-1.log",
+      "bytes": 2585,
+      "sha256": "97a38de5685523740b6ad5a3ccbc586d7e748cba158094ee5c8d01269d58f672"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-100-wgpu-vulkan-2.log",
+      "bytes": 2583,
+      "sha256": "7f8248703623cd1217950f3c5babd43b96e3e613209923346241829915650858"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/geometry-100-wgpu-vulkan-3.log",
+      "bytes": 2583,
+      "sha256": "177b8e142e3e16b64c5f345012e80ba5eeb2b099bf3dd6e8506cbedba41ad7d1"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/materials-10-bgfx-opengl-1.log",
+      "bytes": 2468,
+      "sha256": "25a1d702c95c489840d6ce586ae27fc2afed2c07f365803c25ed3f7a30d97645"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/materials-10-bgfx-opengl-2.log",
+      "bytes": 2469,
+      "sha256": "d876505d32bd0e93fe5c533b8bafdb3704046730cabf42e783fb524c6dc4d6f6"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/materials-10-bgfx-opengl-3.log",
+      "bytes": 2465,
+      "sha256": "2b1e464eb79eff2bab7dfd5a253d4ce5f9c64bbbb8ccfba5b380ab7de14506b7"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/materials-10-bgfx-vulkan-1.log",
+      "bytes": 2470,
+      "sha256": "7d8c07fca8ab7d501cc8f443c4310b34e0dd6873be37946b3edc862f5175ca3f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/materials-10-bgfx-vulkan-2.log",
+      "bytes": 2473,
+      "sha256": "61556ee7cb38fb1267bf43fc4af8f350e161305e0722c116a93d4d9657b4a70b"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/materials-10-bgfx-vulkan-3.log",
+      "bytes": 2474,
+      "sha256": "317f5c52aaad38513c1c0c9e39946c776c030783f0b99b5ab5a6e7fb26ae8611"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/materials-10-coingl-1.log",
+      "bytes": 2324,
+      "sha256": "c253d313f3c007ae105145a7814382732def9d961a8664692c443d4221f2b158"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/materials-10-coingl-2.log",
+      "bytes": 2322,
+      "sha256": "4c3e62ba983badb2ab4a67dffd1396a7e3e717c4c3974547689ff2098f126af7"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/materials-10-coingl-3.log",
+      "bytes": 2313,
+      "sha256": "e722aa451055348ad698eed03c413b67b38dcc16c471f1c69fe08666cdc99bfd"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/materials-10-wgpu-vulkan-1.log",
+      "bytes": 2567,
+      "sha256": "a8018c60049d532f451be6c34f7047a3242055d209516764f52a8513346ce5da"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/materials-10-wgpu-vulkan-2.log",
+      "bytes": 2562,
+      "sha256": "611f1b55006309105031256b812a97526cc00bce3f12c97da77583fa8d6e7b56"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/materials-10-wgpu-vulkan-3.log",
+      "bytes": 2566,
+      "sha256": "4836013cd1bda44e486f8de037dfce931d07f3b709ee1a5daa3715647a23b8a7"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/transforms-10-bgfx-opengl-1.log",
+      "bytes": 2465,
+      "sha256": "d26801c0a37a14a63d975efd72794af68a35cf03ff0ee781c70bb1163644b43d"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/transforms-10-bgfx-opengl-2.log",
+      "bytes": 2466,
+      "sha256": "6749950cf499188734ac04a147b48c30a83b1929facd489a3ca0e2b7620dec2b"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/transforms-10-bgfx-opengl-3.log",
+      "bytes": 2464,
+      "sha256": "679101b6787ad8b33a11b2a74a437f8744d53cb5f389385e16d4e4941c587d86"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/transforms-10-bgfx-vulkan-1.log",
+      "bytes": 2473,
+      "sha256": "7fac0fe378e31520de74f6cf415f62f89bba87e89a12c38f2cae381e3d59d856"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/transforms-10-bgfx-vulkan-2.log",
+      "bytes": 2472,
+      "sha256": "4d240bae29113996d16770673e91008cc00dcfc809d9b6233d8c6d270baad05c"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/transforms-10-bgfx-vulkan-3.log",
+      "bytes": 2472,
+      "sha256": "b0de793173499a41975e7513ec141169804e99865b5b5363e61070e146633dff"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/transforms-10-coingl-1.log",
+      "bytes": 2317,
+      "sha256": "9f49e771b30f694ba9590543e101affbd28027eaab428b1bec02e5c976c619c9"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/transforms-10-coingl-2.log",
+      "bytes": 2320,
+      "sha256": "3f4710cfc813124514a377de808de997481ed393d3a16f9f8dc0cac8f0fce2a3"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/transforms-10-coingl-3.log",
+      "bytes": 2324,
+      "sha256": "3080ce64344b4ba83de56055e3f59279a11ddeb202691076f4c7f5f295c3c963"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/transforms-10-wgpu-vulkan-1.log",
+      "bytes": 2564,
+      "sha256": "55954f91dfa2c69a1073542581f09970e88c6c03dd416e21fb5638895b6aaaa9"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/transforms-10-wgpu-vulkan-2.log",
+      "bytes": 2566,
+      "sha256": "04577d8f3a89d919c6646d3e93716eeda86058a6b937d6b3988b2e74c647df6f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/logs/transforms-10-wgpu-vulkan-3.log",
+      "bytes": 2568,
+      "sha256": "118685d8d16b338cd42817840c26158835b6ae092880bfbfdc968c1f52c5bcb4"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/manifest.json",
+      "bytes": 118871,
+      "sha256": "f580198e39eda5d48be127e4bb438b9a880e348af1a5ddbe51d2fe3be99f5acc"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/medians.json",
+      "bytes": 18220,
+      "sha256": "7d8cba524905122a4a6b7acd0ce2acece420ce1052c9c65056426bc282b09ee6"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/results.json",
+      "bytes": 76897,
+      "sha256": "e3ba43ab62f53a68fb5bffc1c7d7126e541c2ba52dcaef790ca879eba9aa74f5"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-10-bgfx-opengl-1.csv",
+      "bytes": 1782,
+      "sha256": "a69b02052e7f286edc3fbaac889fcf9898aeea090febdece227aea06134451ef"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-10-bgfx-opengl-2.csv",
+      "bytes": 1845,
+      "sha256": "858069a8ec66de623c76c293c00d4f4ef0211396379d4c0038675cb909032581"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-10-bgfx-opengl-3.csv",
+      "bytes": 1825,
+      "sha256": "b213c97515d3c649df182229412b694b89787942349aeee8795adb696d36d507"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-10-bgfx-vulkan-1.csv",
+      "bytes": 1797,
+      "sha256": "86c9166b683a83ca31f0995f9271eb5c747d49ef008bcef4823c3f734982ef67"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-10-bgfx-vulkan-2.csv",
+      "bytes": 1852,
+      "sha256": "63f0094f41b109fabbd7bd2665d5e9c1db8d55ef997314a398e3fad69417e0c5"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-10-bgfx-vulkan-3.csv",
+      "bytes": 1930,
+      "sha256": "101b07c8e0560b26271412e3f84fdaec097065cf2ddefb3a472da172c8d781e1"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-10-coingl-1.csv",
+      "bytes": 1641,
+      "sha256": "c189f93c961a83614d24686c357e1ef119a257964579accd47d0f84641464e97"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-10-coingl-2.csv",
+      "bytes": 1637,
+      "sha256": "ffea7cb18c946192fa99368bf83be8444219a972d88f29f96b2885f3d91a196f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-10-coingl-3.csv",
+      "bytes": 1627,
+      "sha256": "f6f958ba0c8abedcd7a9f570a460f612791f438d7773058e6b8f687f73b50f01"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-10-wgpu-vulkan-1.csv",
+      "bytes": 1809,
+      "sha256": "8b7cf9b2189ec565d15bac6b35f9c81de30a25c7edf65b628a9d0c5cb5c697ff"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-10-wgpu-vulkan-2.csv",
+      "bytes": 1775,
+      "sha256": "0b14ded5ee29d569967ba06bb7369322cc599652d9f9c89f85b34c0ea3b31ea9"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-10-wgpu-vulkan-3.csv",
+      "bytes": 1776,
+      "sha256": "9a6d79ce2b4de18d9bd89e2552b4c4e59da4affd89ecda96df6180de3a7b82bf"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-100-bgfx-opengl-1.csv",
+      "bytes": 1819,
+      "sha256": "3e84998f5b4ff2ed5ce7240db4e97614e0fb27b6079d8132b9ab20c4f238ea75"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-100-bgfx-opengl-2.csv",
+      "bytes": 1819,
+      "sha256": "4bdf47ad85cef5d065021329668bd70b14ef755dc81211787d1bea0c3eb1c2c6"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-100-bgfx-opengl-3.csv",
+      "bytes": 1820,
+      "sha256": "aa713b521f5b5f1d172a859dd183e8be6a963254c6db1d4948db64fbbaa8486a"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-100-bgfx-vulkan-1.csv",
+      "bytes": 1863,
+      "sha256": "acbeb08118d47ce62a36df6a0d8c3b4108dfaf407c572d90313f22452b6396f0"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-100-bgfx-vulkan-2.csv",
+      "bytes": 1856,
+      "sha256": "2564ad04f9725b750c1feb6862469c6e78d91fa0cd56a10403293fe17c3b9d32"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-100-bgfx-vulkan-3.csv",
+      "bytes": 1829,
+      "sha256": "c1340be62d6b87fbf8a699b4dc7d847a4dfc4394596ff7fbffaeb42b2680b942"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-100-coingl-1.csv",
+      "bytes": 1681,
+      "sha256": "6729d1c7b0dc74817cfbd4b400ad52a5a278831d3e5f7439d68f10d1e8fe4011"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-100-coingl-2.csv",
+      "bytes": 1707,
+      "sha256": "2dd219faea5f4f6e93ec50124927bf2aab67158d7e03e879ca8d19b14b7d392b"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-100-coingl-3.csv",
+      "bytes": 1759,
+      "sha256": "e470e530a8ff09808d91a1faf3197bf317532b62ecc1a1290c8dd06348936191"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-100-wgpu-vulkan-1.csv",
+      "bytes": 1761,
+      "sha256": "6f5c9848ca2d19c51679d3e373ee058f43d6d18582c9c37e28fa3ffa50f6c89f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-100-wgpu-vulkan-2.csv",
+      "bytes": 1670,
+      "sha256": "ea78bbd22f13e23aed3628eec2ae0567f7bb93f448c31b19950c4eed6f299eb6"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/geometry-100-wgpu-vulkan-3.csv",
+      "bytes": 1774,
+      "sha256": "759d10f099d3610b1e59fe3fca45b02407b72863eb69156d0ebb8df61e5aa887"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/materials-10-bgfx-opengl-1.csv",
+      "bytes": 1892,
+      "sha256": "4b17488edb5edb634c2c569d20ce8cd81c76484528f0615cf987cfcbb64b2eb1"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/materials-10-bgfx-opengl-2.csv",
+      "bytes": 1869,
+      "sha256": "0168f85de280018a97f4ec23f2364e68891f05f24da8217536be1895138e9eeb"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/materials-10-bgfx-opengl-3.csv",
+      "bytes": 1890,
+      "sha256": "b30a96bacc42643517b43c376b02bbc3a317b7c36d4789192c3c890869bedf67"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/materials-10-bgfx-vulkan-1.csv",
+      "bytes": 1913,
+      "sha256": "951b5aa9da5223491f551984ff8aa934d96363fe8b59632b5046845ad74a691a"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/materials-10-bgfx-vulkan-2.csv",
+      "bytes": 1836,
+      "sha256": "3d2b62846d1de05b0652471b2af7daa881b00be2fc52202f2d0f2b648575b612"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/materials-10-bgfx-vulkan-3.csv",
+      "bytes": 1873,
+      "sha256": "0f14fbeaa00638d33573a061d03d82828d3f904b307d962d544cd6c18f7a2ad2"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/materials-10-coingl-1.csv",
+      "bytes": 1646,
+      "sha256": "f1995f2a4237f7f73fe454fa26b3cb631ff35ee14e1747ba0b5e3f6f35084f9a"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/materials-10-coingl-2.csv",
+      "bytes": 1637,
+      "sha256": "ccbcab9740f904e073d169dc02f7d73fe4ab8d4129ca6af97ad0e37709f3aac1"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/materials-10-coingl-3.csv",
+      "bytes": 1591,
+      "sha256": "d295681295ac746fc5c3bb897747fff11e56170986f84353ae905e95cad94c35"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/materials-10-wgpu-vulkan-1.csv",
+      "bytes": 1802,
+      "sha256": "6fdadc58e1df0055e35e8789bd99b8441bec94fec117e473ea2d3fb1c670814b"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/materials-10-wgpu-vulkan-2.csv",
+      "bytes": 1805,
+      "sha256": "f9b5c05a4ac8c187dcfcc54e4f83349d976c9e709dc5e923f5fe6d5ab6eadf88"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/materials-10-wgpu-vulkan-3.csv",
+      "bytes": 1787,
+      "sha256": "e2c387a364c542be645d343f102826bc18410bac4f214bdc80902233295cd99a"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/transforms-10-bgfx-opengl-1.csv",
+      "bytes": 1880,
+      "sha256": "5f71d5567fc9d6fff6e327fa81a696e02c4ec4be768fe9136031b2329a996a77"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/transforms-10-bgfx-opengl-2.csv",
+      "bytes": 1859,
+      "sha256": "9a4ef4ce5765feda12be458462e7b2a970f076ee5c9fca3784f04f940d165e73"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/transforms-10-bgfx-opengl-3.csv",
+      "bytes": 1876,
+      "sha256": "326cb9a2d5d157a53b66a71fa12b8d1d0327346a86d4f5fce33881b4a960eec6"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/transforms-10-bgfx-vulkan-1.csv",
+      "bytes": 1794,
+      "sha256": "6990dcb9731ed8266ebb31fcdea11ac2ba29f2f01cb2aa97ad7a8fc42c3157f2"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/transforms-10-bgfx-vulkan-2.csv",
+      "bytes": 1862,
+      "sha256": "11fcf684ac3812015180e4b897e921e7cf6df2b336624966d95e60c697aa5fbf"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/transforms-10-bgfx-vulkan-3.csv",
+      "bytes": 1830,
+      "sha256": "47110ca93c739aff3f139f8094741654c63a6c7e2ef1ec1e2ab69df8f42ed78e"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/transforms-10-coingl-1.csv",
+      "bytes": 1608,
+      "sha256": "bccc3c31749837a24b8f475887ec3db3c488887b451e42292cdd459045623c1b"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/transforms-10-coingl-2.csv",
+      "bytes": 1560,
+      "sha256": "5a2a0c5fa2720a192c785793b167aa209822db292d401878cb080ef10def815d"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/transforms-10-coingl-3.csv",
+      "bytes": 1605,
+      "sha256": "1394a9def6a3b07f04dbbaa4a4b3a63d57d07606a3623e11faed0da429fd9058"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/transforms-10-wgpu-vulkan-1.csv",
+      "bytes": 1778,
+      "sha256": "ae707563f50516fec50b82536876cc29dcad7394c99bec628c49d9ff5a5c51d7"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/transforms-10-wgpu-vulkan-2.csv",
+      "bytes": 1734,
+      "sha256": "f45669f7a13fe448e88e3b1fdee246b892db512abdea4de02713138858b473cd"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/before/samples/transforms-10-wgpu-vulkan-3.csv",
+      "bytes": 1814,
+      "sha256": "0aa41731a4860794fe2a98720d12eede93a3c87dcbfe60dbc021234465f6c1bd"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/campaign_core.py",
+      "bytes": 34538,
+      "sha256": "d5bda1398da0889130c18d46877b192a92c479a7dcc3f3adc3b91c8416eb4f04"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/controls/coin-render-geometry-overlay-baseline-binaries.json",
+      "bytes": 4862,
+      "sha256": "5a1fcd68d8d21cdaeb80c70b5a32c5cb939da5cb669b0dd874df470ef6d8d547"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/controls/coin-render-geometry-overlay-final-binaries.json",
+      "bytes": 3957,
+      "sha256": "b6824aad476bd5507bf1916eca9dfa3a313e2b3e6628679c3b37adb52c0afc8c"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/controls/coin-render-state-coingl-binaries.json",
+      "bytes": 1898,
+      "sha256": "c1a342954e8e9eb2b4cf971599ee639b667b3d60b148462644104ac68789058d"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/report-summary.json",
+      "bytes": 986505,
+      "sha256": "0c6428d5aa548bec2819ac33c39974881fb622e0de58c1cae0fd6bb900e18678"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/rgb-before-after.json",
+      "bytes": 104655,
+      "sha256": "6636935e5cacf2b5491a69d063a7a33fedf018aafbf1f3bb6f3536716365846e"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/summarize.py",
+      "bytes": 13454,
+      "sha256": "2f467b438a75844e4cf19a9a69fe87e03dfc921f19b7aaf84c0104534712f794"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/logs/geometry-10-bgfx-opengl-1.log",
+      "bytes": 4268,
+      "sha256": "c14cda69ad8dd399384f6015ba552f5b319edd474843364f04234a312648d14c"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/logs/geometry-10-bgfx-vulkan-1.log",
+      "bytes": 4274,
+      "sha256": "8933c83fa7db524057ebf7532510e6799395ee9e98027f90aa36f105b1fef5cc"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/logs/geometry-10-coingl-1.log",
+      "bytes": 4010,
+      "sha256": "f873e66ecd745ab2732a75165988ec5976641042eac2b387d9350523732571d3"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/logs/geometry-10-wgpu-vulkan-1.log",
+      "bytes": 4294,
+      "sha256": "02785daf287aa2f62f1d31d5b7be14b6125d324f9798c5e433a40e3ac9c7c105"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/logs/geometry-100-bgfx-opengl-1.log",
+      "bytes": 4280,
+      "sha256": "fd304da6ca1465d28330b795d1023c11cb26049d1e1abaf2554c0bd660e4a7be"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/logs/geometry-100-bgfx-vulkan-1.log",
+      "bytes": 4287,
+      "sha256": "250a899b690a6c77a992d5e40540100ba3462bd4660427248744efd413d53b93"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/logs/geometry-100-coingl-1.log",
+      "bytes": 4028,
+      "sha256": "2a11df13135bb8295368771823a224fd68e32af1dc97204a223ca809a889cdec"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/logs/geometry-100-wgpu-vulkan-1.log",
+      "bytes": 4300,
+      "sha256": "90e0cb56c8470142d3d244000a0c785482c73343ed846c103b5209244b3ade8d"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/logs/materials-10-bgfx-opengl-1.log",
+      "bytes": 4273,
+      "sha256": "83170ba17a7d6ea62de41213c5a47438676e1e9f252d263dc1ed2d4fa36a9eee"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/logs/materials-10-bgfx-vulkan-1.log",
+      "bytes": 4287,
+      "sha256": "f7d06479731d4ce6caafd6962eb05425e0692e9c552dbb94428c8f43746b235f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/logs/materials-10-coingl-1.log",
+      "bytes": 4020,
+      "sha256": "ebee20252ebd3f9797fbf629d88f49d2a4470d46c9f6a53c1902b1839779431d"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/logs/materials-10-wgpu-vulkan-1.log",
+      "bytes": 4298,
+      "sha256": "389fcc75406797470b3800cc4347fc4418f1bb074b8b0e4918b9d998cb2de309"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/logs/transforms-10-bgfx-opengl-1.log",
+      "bytes": 4283,
+      "sha256": "9fd1b3d78096d94572143c017aae8db0ad011fff0e8ec94adac24277980cb896"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/logs/transforms-10-bgfx-vulkan-1.log",
+      "bytes": 4292,
+      "sha256": "79f7b0454d91b4b34154eb21991f2b4aee31d77767b18cace45ea8311f2edf2c"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/logs/transforms-10-coingl-1.log",
+      "bytes": 4029,
+      "sha256": "0e45267ce070242795c99debcba1aaaa47329c5169dfcc07170d142b983eefce"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/logs/transforms-10-wgpu-vulkan-1.log",
+      "bytes": 4308,
+      "sha256": "b45d5c30173e0445b0e14ad3559a7b17347bc51993d2ab6bbf81d491480f9c4f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/manifest.json",
+      "bytes": 25363,
+      "sha256": "66ffee146646a25e4e79e32b3565006f3fba2d65f7f79db4f03d873662f803c0"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/medians.json",
+      "bytes": 18055,
+      "sha256": "3b577b254844a50aef0d94d4df48ab3dc695af6617264fb360d3368f7d0e76ec"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/results.json",
+      "bytes": 24280,
+      "sha256": "f0ad3624374a1175b9d0c323b6df99c6a597992b7d4e83895cd9dd3bacd7b17c"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/samples/geometry-10-bgfx-opengl-1.csv",
+      "bytes": 732,
+      "sha256": "ef1fd44bd2deaa980485c277b6b6f24add428f2a564f3f94b681d69c7f370c6f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/samples/geometry-10-bgfx-vulkan-1.csv",
+      "bytes": 711,
+      "sha256": "efbe224be2db60122289eaee47c3a6fe12072dfffe73c1326304139302689b30"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/samples/geometry-10-coingl-1.csv",
+      "bytes": 661,
+      "sha256": "046e7c30f43cec248a08b3d146539f871998b02eb16f464d511a5128aacd7776"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/samples/geometry-10-wgpu-vulkan-1.csv",
+      "bytes": 679,
+      "sha256": "7bc76f6c027684dc665204b1f66e0c29677b763f4055a678f3b55ad21a4dde02"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/samples/geometry-100-bgfx-opengl-1.csv",
+      "bytes": 688,
+      "sha256": "387f8eb6e013bbed4787f938274c602bac6c2dd87bd983cdac0176be378c8a24"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/samples/geometry-100-bgfx-vulkan-1.csv",
+      "bytes": 714,
+      "sha256": "0027a58e42bb8fb5af285c6953c657c00ceeb56f67141f24cc744125565d3f4f"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/samples/geometry-100-coingl-1.csv",
+      "bytes": 692,
+      "sha256": "032e5ce63a92a2c0fc022de352f969aff3455579569e9303c81cb9774582263e"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/samples/geometry-100-wgpu-vulkan-1.csv",
+      "bytes": 682,
+      "sha256": "17c6a6c6050669b432094e00f0055b170a90f179d057021e3300cfa7a7c3a19b"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/samples/materials-10-bgfx-opengl-1.csv",
+      "bytes": 751,
+      "sha256": "b8c866f4d8b2e620ecca175e976d09fd7236e41240d6be3081fd5f9e4fbc4895"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/samples/materials-10-bgfx-vulkan-1.csv",
+      "bytes": 724,
+      "sha256": "f97e6c07754db4e5c4105c3867bd5d9345056da1548d58c55fd336fc3cee0c39"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/samples/materials-10-coingl-1.csv",
+      "bytes": 590,
+      "sha256": "1f92137fe189f799cbb7b466eb1150a6c02144e98663261553d419091debf6e3"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/samples/materials-10-wgpu-vulkan-1.csv",
+      "bytes": 653,
+      "sha256": "e29e87978ec964f1d78d05287b93a88fcce63aa5d59e7ab79115a844cf421fbb"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/samples/transforms-10-bgfx-opengl-1.csv",
+      "bytes": 734,
+      "sha256": "91cec7ce872bef00f3a12c462de90549e9b026628a650bc5539eaa5e05e789ad"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/samples/transforms-10-bgfx-vulkan-1.csv",
+      "bytes": 709,
+      "sha256": "c18b2c125104c6571f695a91fc5ef59835e92aa88e73009a90ce88404a02ce36"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/samples/transforms-10-coingl-1.csv",
+      "bytes": 654,
+      "sha256": "2d850eb1c795c79fe1267bc8bd4bc72804a8ba71977ffacf416d0cf34e0ff698"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-after/samples/transforms-10-wgpu-vulkan-1.csv",
+      "bytes": 657,
+      "sha256": "c9d1153a7a7ee586bc70af8660bd2d9a10bdf456f04813f4ce564785e9ecf678"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/logs/geometry-10-bgfx-opengl-1.log",
+      "bytes": 4274,
+      "sha256": "3cd87ecc3774ea63a969007779c94c7fdb71febb7a9120c3c337ff18b20f78d5"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/logs/geometry-10-bgfx-vulkan-1.log",
+      "bytes": 4284,
+      "sha256": "b5710279a9b3c8f22d87a69beeaa07e4838b37bea214d7230fa5da6955981c75"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/logs/geometry-10-coingl-1.log",
+      "bytes": 4024,
+      "sha256": "78e2fc576fb6a9d62dff473223caebd734f48993fe61cfc310fb11ce6a2f527b"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/logs/geometry-10-wgpu-vulkan-1.log",
+      "bytes": 4302,
+      "sha256": "0e65c1ecd3dab11b584ebf78d7a65688b94651ca558ba95f4aa6697eb1e96c55"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/logs/geometry-100-bgfx-opengl-1.log",
+      "bytes": 4286,
+      "sha256": "6b44f85fc402b248ddd1fcca738cdc695e5323b461b46c8984b91b23cd3cbf82"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/logs/geometry-100-bgfx-vulkan-1.log",
+      "bytes": 4298,
+      "sha256": "6e905b514194a74686ccbd2a92667aabd78c18bda18e26d5c1c5e1a82b143f18"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/logs/geometry-100-coingl-1.log",
+      "bytes": 4039,
+      "sha256": "4ceb82f1003319fd8568ad37610417ac5bedc91a259629e35d6241691ab61135"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/logs/geometry-100-wgpu-vulkan-1.log",
+      "bytes": 4315,
+      "sha256": "4c60581e2d90aafd81e63e5969fff541d9348d8c61f29b7943a5874585445cc1"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/logs/materials-10-bgfx-opengl-1.log",
+      "bytes": 4284,
+      "sha256": "10c0dcd10de1b6f7d2cd61f1de9e3b6c386ef1437a4ed7bb98d6b37a85e5a000"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/logs/materials-10-bgfx-vulkan-1.log",
+      "bytes": 4287,
+      "sha256": "3aa13f18395116cf1fb16be607b68049fe67c43a400cee0bdf9ce07d6eb5bbc4"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/logs/materials-10-coingl-1.log",
+      "bytes": 4032,
+      "sha256": "79a4e4c5fa9ea94f7aa6309ba06363ab1e0bd161ad2097e718edf82f94ad5c55"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/logs/materials-10-wgpu-vulkan-1.log",
+      "bytes": 4298,
+      "sha256": "f9a94fe633842560168c34756b7407c0e1db7c8582616964aefc1db14a743d70"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/logs/transforms-10-bgfx-opengl-1.log",
+      "bytes": 4297,
+      "sha256": "e7fdfeb935045e2f5452530295d48ff23582eab228301c3a9c4d44d81f2c4f2d"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/logs/transforms-10-bgfx-vulkan-1.log",
+      "bytes": 4296,
+      "sha256": "1cd1b9b9c0552aef55d1253a78d4fd213a196188a35a6042bbf229ac0b0add06"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/logs/transforms-10-coingl-1.log",
+      "bytes": 4040,
+      "sha256": "b1573ec9d38bbbef29561fc04afe24a366f4c32226cdf3aafa56953d4ed83cbf"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/logs/transforms-10-wgpu-vulkan-1.log",
+      "bytes": 4321,
+      "sha256": "4edd5d35a2f32e29f802ec457de4b91f01ca1b85ac412c937f8e635f73e2bdd1"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/manifest.json",
+      "bytes": 25998,
+      "sha256": "e2fef4b4d03bcf572c5ee2a2f686a1a1137fc9aab55dcda74adefb6c0399ad08"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/medians.json",
+      "bytes": 18057,
+      "sha256": "0af190c98aeb40f0a7dfd9dbc54b858d4c2198fd0bd10c5102f9df177139bfeb"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/results.json",
+      "bytes": 24284,
+      "sha256": "039283a1537121ca3f264e202ebcd976404023147b67647b1413dde4e8588292"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/samples/geometry-10-bgfx-opengl-1.csv",
+      "bytes": 733,
+      "sha256": "33900fa59eb0b28f448002cff9c646a9142b1cb9a4875e4f019feabf2a0431ee"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/samples/geometry-10-bgfx-vulkan-1.csv",
+      "bytes": 686,
+      "sha256": "606c93fb586de7387f454e384a8a3b2971f3466dfc12fabde0d40cec972e1acf"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/samples/geometry-10-coingl-1.csv",
+      "bytes": 668,
+      "sha256": "d62e2b0de7d7b1a0e23c0795c7d0f7d42f958fa1ecc3308da436988d1c3de793"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/samples/geometry-10-wgpu-vulkan-1.csv",
+      "bytes": 695,
+      "sha256": "8ea03d1b2d1a2873001f5197f12493792220b5003c318f4203e285b3a318cbf1"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/samples/geometry-100-bgfx-opengl-1.csv",
+      "bytes": 705,
+      "sha256": "d889a07a53f2fe8e33e3dda9b20d9d0652c76c7cdad1d40206052d2699aad0f4"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/samples/geometry-100-bgfx-vulkan-1.csv",
+      "bytes": 762,
+      "sha256": "f3cbdc698fb36697aa55587f68e3c8cb82c9e1a86b65d62ea2b6bd15ea0c43b7"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/samples/geometry-100-coingl-1.csv",
+      "bytes": 644,
+      "sha256": "0cc382953539686f6d36708ca9c67cc415119a547016fd3647329706d7fd9b74"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/samples/geometry-100-wgpu-vulkan-1.csv",
+      "bytes": 635,
+      "sha256": "5ef43c771e8fb6f587fa139f10f96f57f12f11f8708d14ed80eb53bd76697f0e"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/samples/materials-10-bgfx-opengl-1.csv",
+      "bytes": 723,
+      "sha256": "8a23e342b5ddda8f4e010378eac7a5205fd3a259376072a2028d5e744f5bb87b"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/samples/materials-10-bgfx-vulkan-1.csv",
+      "bytes": 723,
+      "sha256": "9c9c3680b0977a26d3cf52662b6708347bcb7e70fea39545cdad1e65d25867e5"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/samples/materials-10-coingl-1.csv",
+      "bytes": 653,
+      "sha256": "34d89e09f7239ddbbafd0d68f91a90f41398039d2f217931c3036e8786790902"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/samples/materials-10-wgpu-vulkan-1.csv",
+      "bytes": 726,
+      "sha256": "894e88518a70f7fa9fe88d45115a944ee9464f4dbaccff97d6983c3899936e59"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/samples/transforms-10-bgfx-opengl-1.csv",
+      "bytes": 716,
+      "sha256": "8dcc36797b87b05ce4414b21ce0e8e3b73b347694eee4ae0336f11b47f7b39b3"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/samples/transforms-10-bgfx-vulkan-1.csv",
+      "bytes": 752,
+      "sha256": "f1ce086fbdec1f8d569fd5178bed946be86613737ad018c0e3d6b48b4e67d854"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/samples/transforms-10-coingl-1.csv",
+      "bytes": 599,
+      "sha256": "731707d82c0ae6929dd2f50ecb3138d98591af2cf77d42a18c2244b01a8e482e"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/steady/verify-before/samples/transforms-10-wgpu-vulkan-1.csv",
+      "bytes": 705,
+      "sha256": "3c17a73592013a29f8649b912e7cb6b7a4f71414d957620d1c51247fc7cf5180"
+    },
+    {
+      "path": "docs/validation/geometry-overlay-linux/validate-archive.py",
+      "bytes": 37444,
+      "sha256": "6569e23f1f58fa02c65e2323b75349bc0f0a67fe331e6015f56c56cf3caf3505"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "configured": true,
+  "optout": "COIN_RENDER_DISABLE_GEOMETRY_INTERVAL_VALIDATION",
+  "scope": "geometry_overlay_validation",
+  "variants": [
+    "wgpu-vulkan",
+    "bgfx-vulkan",
+    "bgfx-opengl"
+  ],
+  "cases": [
+    "geometry-10",
+    "geometry-100"
+  ],
+  "rounds": 3,
+  "warmup": 3,
+  "frames": 7,
+  "alignment": "validation event belongs to next action marker",
+  "limitations": [
+    "validation_ms includes position validation, undo preparation, uniqueness and scratch cleanup; not isolated sort time",
+    "scratch_bytes is collision scratch capacity, excluding mandatory undo and allocator overhead",
+    "city profile: first full capture without event; exactly one validation before each later resource_rebuild action",
+    "on-path city requires ordered or intervals; literal fallback stays raw and blocks optimization-route proof"
+  ],
+  "observation_basis": "36 real runs: action markers aligned before CSV warmup exclusion; 36 per-process proofs and 18 on/off pairs passed; source and bin hashes match."
+}
