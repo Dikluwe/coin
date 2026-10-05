@@ -141,6 +141,7 @@ bool compositionBorrowLowering(const CoinRenderFramePlan & base)
   for (size_t i = 0; i < frame.draws.size(); ++i) {
     frame.draws[i].renderStateSlot = static_cast<uint32_t>(i);
     frame.renderStates[i].transparencyType = SoGLRenderAction::SORTED_OBJECT_BLEND;
+    frame.renderStates[i].lightModel = CoinRenderLightModel::PHONG;
     frame.renderStates[i].model.setTranslate(SbVec3f(float(i) * .01f, 0, 0));
   }
   CoinRenderTargetP target(SbVec2i32(4, 4));
