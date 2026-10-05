@@ -1,0 +1,26 @@
+{
+  "commands": [
+    {
+      "label": "archive-collect",
+      "command": [
+        "python3",
+        "-B",
+        "/tmp/coin-render-material-table-collect.py",
+        "--root",
+        "/tmp/coin-render-first-frame"
+      ],
+      "exit_code": 1,
+      "script_path": "/tmp/coin-render-material-table-collect.py",
+      "script_sha256": "d4faaef24cfdd48c6c29caadb6f7439ad05a86878779b99b88cc6268b6a06422",
+      "started_at_utc": "2026-10-05T16:59:02.353631+00:00",
+      "ended_at_utc": "2026-10-05T16:59:04.475296+00:00",
+      "log_path": "/tmp/coin-render-material-table-archive-collect.log",
+      "log_sha256": "59dcebfa23f75418f4444a12773188bf69e3c7998712eec88b6d94eaaa2a6117"
+    }
+  ],
+  "orchestrator": {
+    "path": "/tmp/coin-render-material-table-finalize-initial.py",
+    "sha256": "8966868dd3dd5b24b6eb84c04b1d137ebdf7eefd296ff803b238233d93014eb7",
+    "scope": "Original coordinator script preserved after its CPU collector failed before archive creation."
+  }
+}

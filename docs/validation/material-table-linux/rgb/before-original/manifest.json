@@ -1,0 +1,140 @@
+{
+  "parameters": {
+    "bgfx_build": "/tmp/coin-render-material-table-baseline/bgfx",
+    "coingl_build": "/tmp/coin-render-material-geometry-baseline/coingl",
+    "wgpu_build": "/tmp/coin-render-material-table-baseline/wgpu",
+    "scene": "/tmp/coin-render-city-40000.iv",
+    "output": "/tmp/coin-render-material-table-rgb-before-original",
+    "scope": "offscreen",
+    "mode": "verify",
+    "gpu": "nvidia",
+    "variants": "wgpu-vulkan",
+    "cases": "materials-10,transforms-10,geometry-10",
+    "warmup": 60,
+    "frames": 600,
+    "rounds": 3,
+    "size": 1024,
+    "timeout": 300,
+    "resume": false
+  },
+  "scene_sha256": "bb9ccc612cd38ffb749ee599d9350a80974649eab5bf477d2f344538a42b2576",
+  "binary_hashes": {
+    "/tmp/coin-render-material-table-baseline/wgpu/bin/coin_render_gl_benchmark": "fdeb5bec7dccc45643a62024fdabca605a6598510d63b0dcd27b6cc78ff67e4a",
+    "/tmp/coin-render-material-table-baseline/wgpu/lib/libCoinRender.so": "09d7f9d8f17412aa5e128476bca03281a007e4268e2d0f83fb4fb37fce411a59",
+    "/tmp/coin-render-material-table-baseline/wgpu/lib/libCoin.so.80": "c86d9ce95df367b1c649545a1d0ba1de89edeb9f5b887f765bc47229d55c5437"
+  },
+  "commands": [
+    {
+      "stem": "materials-10-wgpu-vulkan-1",
+      "command": [
+        "/tmp/coin-render-material-table-baseline/wgpu/bin/coin_render_gl_benchmark",
+        "--backend",
+        "wgpu",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "materials",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--warmup",
+        "0",
+        "--frames",
+        "7",
+        "--samples-output",
+        "/tmp/coin-render-material-table-rgb-before-original/samples/materials-10-wgpu-vulkan-1.csv",
+        "--size",
+        "1024",
+        "--animation-step",
+        "100",
+        "--capture-frames",
+        "0,1,2,3,4,5,6",
+        "--capture-prefix",
+        "/tmp/coin-render-material-table-rgb-before-original/images/materials-10-wgpu-vulkan-1"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-material-table-baseline/wgpu/lib",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "WGPU_BACKEND": "vulkan"
+      }
+    },
+    {
+      "stem": "transforms-10-wgpu-vulkan-1",
+      "command": [
+        "/tmp/coin-render-material-table-baseline/wgpu/bin/coin_render_gl_benchmark",
+        "--backend",
+        "wgpu",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "transforms",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--warmup",
+        "0",
+        "--frames",
+        "7",
+        "--samples-output",
+        "/tmp/coin-render-material-table-rgb-before-original/samples/transforms-10-wgpu-vulkan-1.csv",
+        "--size",
+        "1024",
+        "--animation-step",
+        "100",
+        "--capture-frames",
+        "0,1,2,3,4,5,6",
+        "--capture-prefix",
+        "/tmp/coin-render-material-table-rgb-before-original/images/transforms-10-wgpu-vulkan-1"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-material-table-baseline/wgpu/lib",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "WGPU_BACKEND": "vulkan"
+      }
+    },
+    {
+      "stem": "geometry-10-wgpu-vulkan-1",
+      "command": [
+        "/tmp/coin-render-material-table-baseline/wgpu/bin/coin_render_gl_benchmark",
+        "--backend",
+        "wgpu",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "geometry",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--warmup",
+        "0",
+        "--frames",
+        "7",
+        "--samples-output",
+        "/tmp/coin-render-material-table-rgb-before-original/samples/geometry-10-wgpu-vulkan-1.csv",
+        "--size",
+        "1024",
+        "--animation-step",
+        "100",
+        "--capture-frames",
+        "0,1,2,3,4,5,6",
+        "--capture-prefix",
+        "/tmp/coin-render-material-table-rgb-before-original/images/geometry-10-wgpu-vulkan-1"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-material-table-baseline/wgpu/lib",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "WGPU_BACKEND": "vulkan"
+      }
+    }
+  ],
+  "source_revision": "c577eb7fd66c2bc53c5734da6d9784d3c7c23f79"
+}

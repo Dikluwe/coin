@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/tmp/coin-render-material-table-diagnostic.py", line 637, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/tmp/coin-render-material-table-diagnostic.py", line 627, in main
+    commands=plan(args)
+             ^^^^^^^^^^
+  File "/tmp/coin-render-material-table-diagnostic.py", line 316, in plan
+    require(scene_path is not None, "Missing scene argument for " + scene)
+  File "/tmp/coin-render-material-table-diagnostic.py", line 45, in require
+    raise ValueError(message)
+ValueError: Missing scene argument for large40001

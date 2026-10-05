@@ -1,0 +1,1198 @@
+{
+  "processes": 14,
+  "produced_ppm_files": 98,
+  "pairs": 49,
+  "all_rgb_identical": true,
+  "rgb_pixels_recomputed": true,
+  "process_counts": {
+    "original-before": 3,
+    "original-after": 3,
+    "large-before": 4,
+    "large-after": 4
+  },
+  "results": [
+    {
+      "case": "geometry-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 0,
+      "state_fnv64": "0x75f7670fb48704ed",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-original/images/geometry-10-wgpu-vulkan-1-WebGPU-000000.ppm",
+        "ppm_sha256": "24ae437186c9225d1cd88ce7bce77e99b00edd5c768658499ebad1cd3b8aadf2",
+        "rgb_fnv64": "0xeafb2ad706ce52e1",
+        "rgba_fnv64": "0xe41bbb099209bb57"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-original/images/geometry-10-wgpu-vulkan-1-WebGPU-000000.ppm",
+        "ppm_sha256": "24ae437186c9225d1cd88ce7bce77e99b00edd5c768658499ebad1cd3b8aadf2",
+        "rgb_fnv64": "0xeafb2ad706ce52e1",
+        "rgba_fnv64": "0xe41bbb099209bb57"
+      },
+      "scene_label": "original"
+    },
+    {
+      "case": "geometry-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 100,
+      "state_fnv64": "0xe9995e0a7a9b6065",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-original/images/geometry-10-wgpu-vulkan-1-WebGPU-000001.ppm",
+        "ppm_sha256": "6be49396eaa665662d682d8303a7c587b2b7542dfcd37fdd337dd365821c3ec8",
+        "rgb_fnv64": "0x1605818e54372a8c",
+        "rgba_fnv64": "0x2ca209853ed78f00"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-original/images/geometry-10-wgpu-vulkan-1-WebGPU-000001.ppm",
+        "ppm_sha256": "6be49396eaa665662d682d8303a7c587b2b7542dfcd37fdd337dd365821c3ec8",
+        "rgb_fnv64": "0x1605818e54372a8c",
+        "rgba_fnv64": "0x2ca209853ed78f00"
+      },
+      "scene_label": "original"
+    },
+    {
+      "case": "geometry-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 200,
+      "state_fnv64": "0x3858185ff05c977c",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-original/images/geometry-10-wgpu-vulkan-1-WebGPU-000002.ppm",
+        "ppm_sha256": "2865568e413998d80560bd339793da4d4e5ff0588d581948e137b5ee8a55cdb5",
+        "rgb_fnv64": "0xb061eebeea616031",
+        "rgba_fnv64": "0x2bb9fcefb0c743b9"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-original/images/geometry-10-wgpu-vulkan-1-WebGPU-000002.ppm",
+        "ppm_sha256": "2865568e413998d80560bd339793da4d4e5ff0588d581948e137b5ee8a55cdb5",
+        "rgb_fnv64": "0xb061eebeea616031",
+        "rgba_fnv64": "0x2bb9fcefb0c743b9"
+      },
+      "scene_label": "original"
+    },
+    {
+      "case": "geometry-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 300,
+      "state_fnv64": "0x28bc2744c5d515d2",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-original/images/geometry-10-wgpu-vulkan-1-WebGPU-000003.ppm",
+        "ppm_sha256": "364feb17498fb4e4d6d7008f3eadb9f8d9d24318b6135328d368c3e353f2a44c",
+        "rgb_fnv64": "0x570bf46b88c46263",
+        "rgba_fnv64": "0x2555a4fabf2e809f"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-original/images/geometry-10-wgpu-vulkan-1-WebGPU-000003.ppm",
+        "ppm_sha256": "364feb17498fb4e4d6d7008f3eadb9f8d9d24318b6135328d368c3e353f2a44c",
+        "rgb_fnv64": "0x570bf46b88c46263",
+        "rgba_fnv64": "0x2555a4fabf2e809f"
+      },
+      "scene_label": "original"
+    },
+    {
+      "case": "geometry-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 400,
+      "state_fnv64": "0xfb897f47c15c3f2d",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-original/images/geometry-10-wgpu-vulkan-1-WebGPU-000004.ppm",
+        "ppm_sha256": "26d083cb148e9b40dbde50bd691da5a7f86acb3c4325cc4be44951826571dada",
+        "rgb_fnv64": "0xc844a52cc73d670b",
+        "rgba_fnv64": "0x756c32dadb2d89d1"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-original/images/geometry-10-wgpu-vulkan-1-WebGPU-000004.ppm",
+        "ppm_sha256": "26d083cb148e9b40dbde50bd691da5a7f86acb3c4325cc4be44951826571dada",
+        "rgb_fnv64": "0xc844a52cc73d670b",
+        "rgba_fnv64": "0x756c32dadb2d89d1"
+      },
+      "scene_label": "original"
+    },
+    {
+      "case": "geometry-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 500,
+      "state_fnv64": "0x5d5b04deb672aba2",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-original/images/geometry-10-wgpu-vulkan-1-WebGPU-000005.ppm",
+        "ppm_sha256": "d0aafd2b1c03529301f4596aa504d29ae5f2c961b34566fea5bf4bc8c4e60533",
+        "rgb_fnv64": "0x996a664a7cbc89ee",
+        "rgba_fnv64": "0xcad98a6d656d6f38"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-original/images/geometry-10-wgpu-vulkan-1-WebGPU-000005.ppm",
+        "ppm_sha256": "d0aafd2b1c03529301f4596aa504d29ae5f2c961b34566fea5bf4bc8c4e60533",
+        "rgb_fnv64": "0x996a664a7cbc89ee",
+        "rgba_fnv64": "0xcad98a6d656d6f38"
+      },
+      "scene_label": "original"
+    },
+    {
+      "case": "geometry-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 600,
+      "state_fnv64": "0x3cdccc693f1cc934",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-original/images/geometry-10-wgpu-vulkan-1-WebGPU-000006.ppm",
+        "ppm_sha256": "d72ff6ea6633e0a35941312ae2d834f7ec90b7be4e0f9431cfddcf9c86d48319",
+        "rgb_fnv64": "0x4f8f269c8fec42be",
+        "rgba_fnv64": "0xf5ced8f30e7a8054"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-original/images/geometry-10-wgpu-vulkan-1-WebGPU-000006.ppm",
+        "ppm_sha256": "d72ff6ea6633e0a35941312ae2d834f7ec90b7be4e0f9431cfddcf9c86d48319",
+        "rgb_fnv64": "0x4f8f269c8fec42be",
+        "rgba_fnv64": "0xf5ced8f30e7a8054"
+      },
+      "scene_label": "original"
+    },
+    {
+      "case": "materials-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 0,
+      "state_fnv64": "0x3d9d390883d1cc34",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-original/images/materials-10-wgpu-vulkan-1-WebGPU-000000.ppm",
+        "ppm_sha256": "4ad87047f7eaf3df514d957c01de79c0d9d07c5f17ee1c244986280e2c894a97",
+        "rgb_fnv64": "0x933a3e472758874b",
+        "rgba_fnv64": "0x73c63823516897af"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-original/images/materials-10-wgpu-vulkan-1-WebGPU-000000.ppm",
+        "ppm_sha256": "4ad87047f7eaf3df514d957c01de79c0d9d07c5f17ee1c244986280e2c894a97",
+        "rgb_fnv64": "0x933a3e472758874b",
+        "rgba_fnv64": "0x73c63823516897af"
+      },
+      "scene_label": "original"
+    },
+    {
+      "case": "materials-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 100,
+      "state_fnv64": "0xab274df4cc7da166",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-original/images/materials-10-wgpu-vulkan-1-WebGPU-000001.ppm",
+        "ppm_sha256": "a1da39eda0bb26be7a36ce2d8b2ad75c077d1a9f61b0c1d45e71a13cd42c3b75",
+        "rgb_fnv64": "0xf0d24ffbc7d3f95a",
+        "rgba_fnv64": "0x7bb9f16d6999100a"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-original/images/materials-10-wgpu-vulkan-1-WebGPU-000001.ppm",
+        "ppm_sha256": "a1da39eda0bb26be7a36ce2d8b2ad75c077d1a9f61b0c1d45e71a13cd42c3b75",
+        "rgb_fnv64": "0xf0d24ffbc7d3f95a",
+        "rgba_fnv64": "0x7bb9f16d6999100a"
+      },
+      "scene_label": "original"
+    },
+    {
+      "case": "materials-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 200,
+      "state_fnv64": "0x7d766a2e7b1deb89",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-original/images/materials-10-wgpu-vulkan-1-WebGPU-000002.ppm",
+        "ppm_sha256": "989a01e2c9ed290e17daf495f099cd8ed437feba1f6ee757b1944d11789f6a61",
+        "rgb_fnv64": "0x97adc8e73890565a",
+        "rgba_fnv64": "0x83969e5e86fabdd8"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-original/images/materials-10-wgpu-vulkan-1-WebGPU-000002.ppm",
+        "ppm_sha256": "989a01e2c9ed290e17daf495f099cd8ed437feba1f6ee757b1944d11789f6a61",
+        "rgb_fnv64": "0x97adc8e73890565a",
+        "rgba_fnv64": "0x83969e5e86fabdd8"
+      },
+      "scene_label": "original"
+    },
+    {
+      "case": "materials-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 300,
+      "state_fnv64": "0xdd73043b6597eecf",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-original/images/materials-10-wgpu-vulkan-1-WebGPU-000003.ppm",
+        "ppm_sha256": "d6d802387e1f2f41eb23ee1ccc81538c56eb9a8a27d7c03d22d99060a52601b2",
+        "rgb_fnv64": "0x77ed83a9d351f53b",
+        "rgba_fnv64": "0x1d48c747898624cd"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-original/images/materials-10-wgpu-vulkan-1-WebGPU-000003.ppm",
+        "ppm_sha256": "d6d802387e1f2f41eb23ee1ccc81538c56eb9a8a27d7c03d22d99060a52601b2",
+        "rgb_fnv64": "0x77ed83a9d351f53b",
+        "rgba_fnv64": "0x1d48c747898624cd"
+      },
+      "scene_label": "original"
+    },
+    {
+      "case": "materials-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 400,
+      "state_fnv64": "0xa9a28b559446c14c",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-original/images/materials-10-wgpu-vulkan-1-WebGPU-000004.ppm",
+        "ppm_sha256": "ea3b4247bae916b691931fe77022b5e3a524ee3c2ca9512319f75d7a7a3d68e9",
+        "rgb_fnv64": "0x6d5ac23e048f06f0",
+        "rgba_fnv64": "0xd2db1004f4e99d6c"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-original/images/materials-10-wgpu-vulkan-1-WebGPU-000004.ppm",
+        "ppm_sha256": "ea3b4247bae916b691931fe77022b5e3a524ee3c2ca9512319f75d7a7a3d68e9",
+        "rgb_fnv64": "0x6d5ac23e048f06f0",
+        "rgba_fnv64": "0xd2db1004f4e99d6c"
+      },
+      "scene_label": "original"
+    },
+    {
+      "case": "materials-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 500,
+      "state_fnv64": "0x93ec6138e1cac0f1",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-original/images/materials-10-wgpu-vulkan-1-WebGPU-000005.ppm",
+        "ppm_sha256": "ef68e59bb7065542640dcf183a6166673f1cfaf28c03f4121d7b4b560d6c8ede",
+        "rgb_fnv64": "0x21a9efe22d5adfa1",
+        "rgba_fnv64": "0x68abc4e83300af25"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-original/images/materials-10-wgpu-vulkan-1-WebGPU-000005.ppm",
+        "ppm_sha256": "ef68e59bb7065542640dcf183a6166673f1cfaf28c03f4121d7b4b560d6c8ede",
+        "rgb_fnv64": "0x21a9efe22d5adfa1",
+        "rgba_fnv64": "0x68abc4e83300af25"
+      },
+      "scene_label": "original"
+    },
+    {
+      "case": "materials-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 600,
+      "state_fnv64": "0xaf98f536f6292cc9",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-original/images/materials-10-wgpu-vulkan-1-WebGPU-000006.ppm",
+        "ppm_sha256": "403189f3c4563255479a27b5f6c6578afe7962076bc2f967dded89f7b55ee30f",
+        "rgb_fnv64": "0x68bb4d64941c4164",
+        "rgba_fnv64": "0xebd0a70b27457596"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-original/images/materials-10-wgpu-vulkan-1-WebGPU-000006.ppm",
+        "ppm_sha256": "403189f3c4563255479a27b5f6c6578afe7962076bc2f967dded89f7b55ee30f",
+        "rgb_fnv64": "0x68bb4d64941c4164",
+        "rgba_fnv64": "0xebd0a70b27457596"
+      },
+      "scene_label": "original"
+    },
+    {
+      "case": "transforms-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 0,
+      "state_fnv64": "0xaadc1a60f72648a6",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-original/images/transforms-10-wgpu-vulkan-1-WebGPU-000000.ppm",
+        "ppm_sha256": "894357142c224574c2fdf8759bdc92e988065f30b5e397b11f72edd0ab44a0c3",
+        "rgb_fnv64": "0xae0f6a6e4c2bb186",
+        "rgba_fnv64": "0x7cdcf036067629de"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-original/images/transforms-10-wgpu-vulkan-1-WebGPU-000000.ppm",
+        "ppm_sha256": "894357142c224574c2fdf8759bdc92e988065f30b5e397b11f72edd0ab44a0c3",
+        "rgb_fnv64": "0xae0f6a6e4c2bb186",
+        "rgba_fnv64": "0x7cdcf036067629de"
+      },
+      "scene_label": "original"
+    },
+    {
+      "case": "transforms-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 100,
+      "state_fnv64": "0x78c439c3a7400301",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-original/images/transforms-10-wgpu-vulkan-1-WebGPU-000001.ppm",
+        "ppm_sha256": "bd607e74121e7ef53e2c5bfa1ca5dd369cb5e02ead27ee946241cd16e83294ff",
+        "rgb_fnv64": "0x88765491e3c31ca3",
+        "rgba_fnv64": "0x82aab5ddff710e63"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-original/images/transforms-10-wgpu-vulkan-1-WebGPU-000001.ppm",
+        "ppm_sha256": "bd607e74121e7ef53e2c5bfa1ca5dd369cb5e02ead27ee946241cd16e83294ff",
+        "rgb_fnv64": "0x88765491e3c31ca3",
+        "rgba_fnv64": "0x82aab5ddff710e63"
+      },
+      "scene_label": "original"
+    },
+    {
+      "case": "transforms-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 200,
+      "state_fnv64": "0x9de0837242e33ee5",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-original/images/transforms-10-wgpu-vulkan-1-WebGPU-000002.ppm",
+        "ppm_sha256": "d49116d8337ea192fc7cb9ca313d0b976b1a7411019f072b9a980dbc6605dd44",
+        "rgb_fnv64": "0x36c5ace3bcc6f2bb",
+        "rgba_fnv64": "0xfc97b834ec7bc38b"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-original/images/transforms-10-wgpu-vulkan-1-WebGPU-000002.ppm",
+        "ppm_sha256": "d49116d8337ea192fc7cb9ca313d0b976b1a7411019f072b9a980dbc6605dd44",
+        "rgb_fnv64": "0x36c5ace3bcc6f2bb",
+        "rgba_fnv64": "0xfc97b834ec7bc38b"
+      },
+      "scene_label": "original"
+    },
+    {
+      "case": "transforms-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 300,
+      "state_fnv64": "0xb1e2fe6ce12d3db6",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-original/images/transforms-10-wgpu-vulkan-1-WebGPU-000003.ppm",
+        "ppm_sha256": "d4530bfa9aae59e9590753e5bea90e4a02ae9a59bb84d1114b6884fa43cd8d2d",
+        "rgb_fnv64": "0x140a88ed9b1d7a7b",
+        "rgba_fnv64": "0x1d015e49b8c77829"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-original/images/transforms-10-wgpu-vulkan-1-WebGPU-000003.ppm",
+        "ppm_sha256": "d4530bfa9aae59e9590753e5bea90e4a02ae9a59bb84d1114b6884fa43cd8d2d",
+        "rgb_fnv64": "0x140a88ed9b1d7a7b",
+        "rgba_fnv64": "0x1d015e49b8c77829"
+      },
+      "scene_label": "original"
+    },
+    {
+      "case": "transforms-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 400,
+      "state_fnv64": "0xe5590ee404a14e00",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-original/images/transforms-10-wgpu-vulkan-1-WebGPU-000004.ppm",
+        "ppm_sha256": "bd9c290bc82b074a72ce5ad64f35dd93948d02f096d219c675759fde32b69cfe",
+        "rgb_fnv64": "0x93c1df1fc5ec4d4",
+        "rgba_fnv64": "0x58ec017baeab3846"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-original/images/transforms-10-wgpu-vulkan-1-WebGPU-000004.ppm",
+        "ppm_sha256": "bd9c290bc82b074a72ce5ad64f35dd93948d02f096d219c675759fde32b69cfe",
+        "rgb_fnv64": "0x93c1df1fc5ec4d4",
+        "rgba_fnv64": "0x58ec017baeab3846"
+      },
+      "scene_label": "original"
+    },
+    {
+      "case": "transforms-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 500,
+      "state_fnv64": "0xf191c282ffb2c4ab",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-original/images/transforms-10-wgpu-vulkan-1-WebGPU-000005.ppm",
+        "ppm_sha256": "724ad1bad94ccee27ad8462429f83de519c70a0bc0e649b957de9143f2cee093",
+        "rgb_fnv64": "0xabb171794dba70c7",
+        "rgba_fnv64": "0x39458bc75cd130d7"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-original/images/transforms-10-wgpu-vulkan-1-WebGPU-000005.ppm",
+        "ppm_sha256": "724ad1bad94ccee27ad8462429f83de519c70a0bc0e649b957de9143f2cee093",
+        "rgb_fnv64": "0xabb171794dba70c7",
+        "rgba_fnv64": "0x39458bc75cd130d7"
+      },
+      "scene_label": "original"
+    },
+    {
+      "case": "transforms-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 600,
+      "state_fnv64": "0x60ee540aee2e1a59",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-original/images/transforms-10-wgpu-vulkan-1-WebGPU-000006.ppm",
+        "ppm_sha256": "a28b4fa9d250edacb7c5f7181e1d9de8b6d21187acbf23b050a617c5448ed419",
+        "rgb_fnv64": "0x902e0bd7f3708a56",
+        "rgba_fnv64": "0x8fa9662aef61ebf8"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-original/images/transforms-10-wgpu-vulkan-1-WebGPU-000006.ppm",
+        "ppm_sha256": "a28b4fa9d250edacb7c5f7181e1d9de8b6d21187acbf23b050a617c5448ed419",
+        "rgb_fnv64": "0x902e0bd7f3708a56",
+        "rgba_fnv64": "0x8fa9662aef61ebf8"
+      },
+      "scene_label": "original"
+    },
+    {
+      "case": "materials-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 0,
+      "state_fnv64": "0x7cbdb975ae97da81",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/materials-10-wgpu-vulkan-1-WebGPU-000000.ppm",
+        "ppm_sha256": "b881b26d331121d2f966e3b49151616f4a484f8e4f3fbea6f8eb717e4b892eb9",
+        "rgb_fnv64": "0xee94f7051809036b",
+        "rgba_fnv64": "0x18492cc1c472ad17"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/materials-10-wgpu-vulkan-1-WebGPU-000000.ppm",
+        "ppm_sha256": "b881b26d331121d2f966e3b49151616f4a484f8e4f3fbea6f8eb717e4b892eb9",
+        "rgb_fnv64": "0xee94f7051809036b",
+        "rgba_fnv64": "0x18492cc1c472ad17"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "materials-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 100,
+      "state_fnv64": "0x9dd0243b932c460f",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/materials-10-wgpu-vulkan-1-WebGPU-000001.ppm",
+        "ppm_sha256": "2b5775a21359a6e01cae13e927e61d54b80cf0179be94ad9bd01901a58a7dde8",
+        "rgb_fnv64": "0xf5e71d750777135",
+        "rgba_fnv64": "0x91a7ca6ea178846b"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/materials-10-wgpu-vulkan-1-WebGPU-000001.ppm",
+        "ppm_sha256": "2b5775a21359a6e01cae13e927e61d54b80cf0179be94ad9bd01901a58a7dde8",
+        "rgb_fnv64": "0xf5e71d750777135",
+        "rgba_fnv64": "0x91a7ca6ea178846b"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "materials-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 200,
+      "state_fnv64": "0xe9ab3c2de88caec6",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/materials-10-wgpu-vulkan-1-WebGPU-000002.ppm",
+        "ppm_sha256": "ec0ae56afd31a9a1c66696235cbd74b169114d5ef75aa5df0e71814876d0b7a7",
+        "rgb_fnv64": "0xa7a89f8e6535d563",
+        "rgba_fnv64": "0x63df6025a959734d"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/materials-10-wgpu-vulkan-1-WebGPU-000002.ppm",
+        "ppm_sha256": "ec0ae56afd31a9a1c66696235cbd74b169114d5ef75aa5df0e71814876d0b7a7",
+        "rgb_fnv64": "0xa7a89f8e6535d563",
+        "rgba_fnv64": "0x63df6025a959734d"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "materials-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 300,
+      "state_fnv64": "0xb8fae36145c4d41b",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/materials-10-wgpu-vulkan-1-WebGPU-000003.ppm",
+        "ppm_sha256": "e1fe80407dffbabcd88f7b375f2d090a21e87951664c8a7b12d8bbd6f03c40f9",
+        "rgb_fnv64": "0x2149d16d535f6983",
+        "rgba_fnv64": "0xcdd027c2c5384dcd"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/materials-10-wgpu-vulkan-1-WebGPU-000003.ppm",
+        "ppm_sha256": "e1fe80407dffbabcd88f7b375f2d090a21e87951664c8a7b12d8bbd6f03c40f9",
+        "rgb_fnv64": "0x2149d16d535f6983",
+        "rgba_fnv64": "0xcdd027c2c5384dcd"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "materials-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 400,
+      "state_fnv64": "0xf200d5efe83da578",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/materials-10-wgpu-vulkan-1-WebGPU-000004.ppm",
+        "ppm_sha256": "0620b88382508327be88be1dce4e60ce20b65ef0777a10e3ee054918c4a06cc2",
+        "rgb_fnv64": "0xc11e9c661cf26f0e",
+        "rgba_fnv64": "0x68eb9ef6ad9bae12"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/materials-10-wgpu-vulkan-1-WebGPU-000004.ppm",
+        "ppm_sha256": "0620b88382508327be88be1dce4e60ce20b65ef0777a10e3ee054918c4a06cc2",
+        "rgb_fnv64": "0xc11e9c661cf26f0e",
+        "rgba_fnv64": "0x68eb9ef6ad9bae12"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "materials-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 500,
+      "state_fnv64": "0x846fd388ab3a65f5",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/materials-10-wgpu-vulkan-1-WebGPU-000005.ppm",
+        "ppm_sha256": "af5176f466f2ab93824901be2401abc5c426851385990e0352db55332f0d0867",
+        "rgb_fnv64": "0xdd60eb884ff1428c",
+        "rgba_fnv64": "0x9f01a3cb5b5689d8"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/materials-10-wgpu-vulkan-1-WebGPU-000005.ppm",
+        "ppm_sha256": "af5176f466f2ab93824901be2401abc5c426851385990e0352db55332f0d0867",
+        "rgb_fnv64": "0xdd60eb884ff1428c",
+        "rgba_fnv64": "0x9f01a3cb5b5689d8"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "materials-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 600,
+      "state_fnv64": "0x6bd2252b505f5f41",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/materials-10-wgpu-vulkan-1-WebGPU-000006.ppm",
+        "ppm_sha256": "0711765953f2dd800440721e3cbc0505642cdc108300e7def7316a5e5001b364",
+        "rgb_fnv64": "0x4e5b9a5bbf708580",
+        "rgba_fnv64": "0x50b27e292dfbbf9a"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/materials-10-wgpu-vulkan-1-WebGPU-000006.ppm",
+        "ppm_sha256": "0711765953f2dd800440721e3cbc0505642cdc108300e7def7316a5e5001b364",
+        "rgb_fnv64": "0x4e5b9a5bbf708580",
+        "rgba_fnv64": "0x50b27e292dfbbf9a"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "materials-100",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 0,
+      "state_fnv64": "0x1eb4606399cd3d4f",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/materials-100-wgpu-vulkan-1-WebGPU-000000.ppm",
+        "ppm_sha256": "fa7190e2224f981fb3201f04956ebc7fc3182301b033f11ed32698f485cd7adb",
+        "rgb_fnv64": "0x7dc35d4fe9ae90d4",
+        "rgba_fnv64": "0x8eec944f6154e0a8"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/materials-100-wgpu-vulkan-1-WebGPU-000000.ppm",
+        "ppm_sha256": "fa7190e2224f981fb3201f04956ebc7fc3182301b033f11ed32698f485cd7adb",
+        "rgb_fnv64": "0x7dc35d4fe9ae90d4",
+        "rgba_fnv64": "0x8eec944f6154e0a8"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "materials-100",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 100,
+      "state_fnv64": "0xfc98c9ddc5377e20",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/materials-100-wgpu-vulkan-1-WebGPU-000001.ppm",
+        "ppm_sha256": "7273238d0c9a50a8e00ef64070596f299d187d0a76d26385562f0d3400cd143d",
+        "rgb_fnv64": "0xfa35ae311ec85852",
+        "rgba_fnv64": "0xbe481ad1d1723388"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/materials-100-wgpu-vulkan-1-WebGPU-000001.ppm",
+        "ppm_sha256": "7273238d0c9a50a8e00ef64070596f299d187d0a76d26385562f0d3400cd143d",
+        "rgb_fnv64": "0xfa35ae311ec85852",
+        "rgba_fnv64": "0xbe481ad1d1723388"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "materials-100",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 200,
+      "state_fnv64": "0x74c25c16ce0a05bc",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/materials-100-wgpu-vulkan-1-WebGPU-000002.ppm",
+        "ppm_sha256": "65684e3a40b246e10c5740ec967483acca18d4d224de8c7533f66eb52bcfca7c",
+        "rgb_fnv64": "0xdf309ddf7eb07c48",
+        "rgba_fnv64": "0x6310eec58240d536"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/materials-100-wgpu-vulkan-1-WebGPU-000002.ppm",
+        "ppm_sha256": "65684e3a40b246e10c5740ec967483acca18d4d224de8c7533f66eb52bcfca7c",
+        "rgb_fnv64": "0xdf309ddf7eb07c48",
+        "rgba_fnv64": "0x6310eec58240d536"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "materials-100",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 300,
+      "state_fnv64": "0x3e58403c0f6f1516",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/materials-100-wgpu-vulkan-1-WebGPU-000003.ppm",
+        "ppm_sha256": "becffb65fc6e44eeda82bee3a530aa6ff9b0a392b8ebcc6a31cc899421aa0f64",
+        "rgb_fnv64": "0x58627d86942cb47b",
+        "rgba_fnv64": "0x868254dcbd0e181b"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/materials-100-wgpu-vulkan-1-WebGPU-000003.ppm",
+        "ppm_sha256": "becffb65fc6e44eeda82bee3a530aa6ff9b0a392b8ebcc6a31cc899421aa0f64",
+        "rgb_fnv64": "0x58627d86942cb47b",
+        "rgba_fnv64": "0x868254dcbd0e181b"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "materials-100",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 400,
+      "state_fnv64": "0xf02ce8b512c0c3fc",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/materials-100-wgpu-vulkan-1-WebGPU-000004.ppm",
+        "ppm_sha256": "70a2c87f3a73e76082c857c25324952ef1745ce2cac5e82c9b6aed27c571d923",
+        "rgb_fnv64": "0x78ceb01fd1a380a",
+        "rgba_fnv64": "0xefc3ea91cfe43aba"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/materials-100-wgpu-vulkan-1-WebGPU-000004.ppm",
+        "ppm_sha256": "70a2c87f3a73e76082c857c25324952ef1745ce2cac5e82c9b6aed27c571d923",
+        "rgb_fnv64": "0x78ceb01fd1a380a",
+        "rgba_fnv64": "0xefc3ea91cfe43aba"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "materials-100",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 500,
+      "state_fnv64": "0xba348bca732a92c0",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/materials-100-wgpu-vulkan-1-WebGPU-000005.ppm",
+        "ppm_sha256": "4515e0d76371df83a2164c0f448126ffc2837196ec3d7fe90c51791895d0ff85",
+        "rgb_fnv64": "0xa5cdade104714f78",
+        "rgba_fnv64": "0x410f9cdb21a966"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/materials-100-wgpu-vulkan-1-WebGPU-000005.ppm",
+        "ppm_sha256": "4515e0d76371df83a2164c0f448126ffc2837196ec3d7fe90c51791895d0ff85",
+        "rgb_fnv64": "0xa5cdade104714f78",
+        "rgba_fnv64": "0x410f9cdb21a966"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "materials-100",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 600,
+      "state_fnv64": "0x716c114530f6e5cb",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/materials-100-wgpu-vulkan-1-WebGPU-000006.ppm",
+        "ppm_sha256": "8f417966b6bce208a0d55114f5e6edaa9324a19975a1444bba1bf9d0c3a43003",
+        "rgb_fnv64": "0x2eaf31064ae35e02",
+        "rgba_fnv64": "0x7d86a68d9b4cc16a"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/materials-100-wgpu-vulkan-1-WebGPU-000006.ppm",
+        "ppm_sha256": "8f417966b6bce208a0d55114f5e6edaa9324a19975a1444bba1bf9d0c3a43003",
+        "rgb_fnv64": "0x2eaf31064ae35e02",
+        "rgba_fnv64": "0x7d86a68d9b4cc16a"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "static",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 0,
+      "state_fnv64": "0x65cec46a260273f5",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/static-wgpu-vulkan-1-WebGPU-000000.ppm",
+        "ppm_sha256": "a46da3fb564adccc262ced63616f9ef87f72553d7274d20b7b4945d9f8c251a3",
+        "rgb_fnv64": "0x20ef17f3ac8d14ac",
+        "rgba_fnv64": "0x3dff9e2cfc17f166"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/static-wgpu-vulkan-1-WebGPU-000000.ppm",
+        "ppm_sha256": "a46da3fb564adccc262ced63616f9ef87f72553d7274d20b7b4945d9f8c251a3",
+        "rgb_fnv64": "0x20ef17f3ac8d14ac",
+        "rgba_fnv64": "0x3dff9e2cfc17f166"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "static",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 100,
+      "state_fnv64": "0x65cec46a260273f5",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/static-wgpu-vulkan-1-WebGPU-000001.ppm",
+        "ppm_sha256": "a46da3fb564adccc262ced63616f9ef87f72553d7274d20b7b4945d9f8c251a3",
+        "rgb_fnv64": "0x20ef17f3ac8d14ac",
+        "rgba_fnv64": "0x3dff9e2cfc17f166"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/static-wgpu-vulkan-1-WebGPU-000001.ppm",
+        "ppm_sha256": "a46da3fb564adccc262ced63616f9ef87f72553d7274d20b7b4945d9f8c251a3",
+        "rgb_fnv64": "0x20ef17f3ac8d14ac",
+        "rgba_fnv64": "0x3dff9e2cfc17f166"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "static",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 200,
+      "state_fnv64": "0x65cec46a260273f5",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/static-wgpu-vulkan-1-WebGPU-000002.ppm",
+        "ppm_sha256": "a46da3fb564adccc262ced63616f9ef87f72553d7274d20b7b4945d9f8c251a3",
+        "rgb_fnv64": "0x20ef17f3ac8d14ac",
+        "rgba_fnv64": "0x3dff9e2cfc17f166"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/static-wgpu-vulkan-1-WebGPU-000002.ppm",
+        "ppm_sha256": "a46da3fb564adccc262ced63616f9ef87f72553d7274d20b7b4945d9f8c251a3",
+        "rgb_fnv64": "0x20ef17f3ac8d14ac",
+        "rgba_fnv64": "0x3dff9e2cfc17f166"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "static",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 300,
+      "state_fnv64": "0x65cec46a260273f5",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/static-wgpu-vulkan-1-WebGPU-000003.ppm",
+        "ppm_sha256": "a46da3fb564adccc262ced63616f9ef87f72553d7274d20b7b4945d9f8c251a3",
+        "rgb_fnv64": "0x20ef17f3ac8d14ac",
+        "rgba_fnv64": "0x3dff9e2cfc17f166"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/static-wgpu-vulkan-1-WebGPU-000003.ppm",
+        "ppm_sha256": "a46da3fb564adccc262ced63616f9ef87f72553d7274d20b7b4945d9f8c251a3",
+        "rgb_fnv64": "0x20ef17f3ac8d14ac",
+        "rgba_fnv64": "0x3dff9e2cfc17f166"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "static",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 400,
+      "state_fnv64": "0x65cec46a260273f5",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/static-wgpu-vulkan-1-WebGPU-000004.ppm",
+        "ppm_sha256": "a46da3fb564adccc262ced63616f9ef87f72553d7274d20b7b4945d9f8c251a3",
+        "rgb_fnv64": "0x20ef17f3ac8d14ac",
+        "rgba_fnv64": "0x3dff9e2cfc17f166"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/static-wgpu-vulkan-1-WebGPU-000004.ppm",
+        "ppm_sha256": "a46da3fb564adccc262ced63616f9ef87f72553d7274d20b7b4945d9f8c251a3",
+        "rgb_fnv64": "0x20ef17f3ac8d14ac",
+        "rgba_fnv64": "0x3dff9e2cfc17f166"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "static",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 500,
+      "state_fnv64": "0x65cec46a260273f5",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/static-wgpu-vulkan-1-WebGPU-000005.ppm",
+        "ppm_sha256": "a46da3fb564adccc262ced63616f9ef87f72553d7274d20b7b4945d9f8c251a3",
+        "rgb_fnv64": "0x20ef17f3ac8d14ac",
+        "rgba_fnv64": "0x3dff9e2cfc17f166"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/static-wgpu-vulkan-1-WebGPU-000005.ppm",
+        "ppm_sha256": "a46da3fb564adccc262ced63616f9ef87f72553d7274d20b7b4945d9f8c251a3",
+        "rgb_fnv64": "0x20ef17f3ac8d14ac",
+        "rgba_fnv64": "0x3dff9e2cfc17f166"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "static",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 600,
+      "state_fnv64": "0x65cec46a260273f5",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/static-wgpu-vulkan-1-WebGPU-000006.ppm",
+        "ppm_sha256": "a46da3fb564adccc262ced63616f9ef87f72553d7274d20b7b4945d9f8c251a3",
+        "rgb_fnv64": "0x20ef17f3ac8d14ac",
+        "rgba_fnv64": "0x3dff9e2cfc17f166"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/static-wgpu-vulkan-1-WebGPU-000006.ppm",
+        "ppm_sha256": "a46da3fb564adccc262ced63616f9ef87f72553d7274d20b7b4945d9f8c251a3",
+        "rgb_fnv64": "0x20ef17f3ac8d14ac",
+        "rgba_fnv64": "0x3dff9e2cfc17f166"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "transforms-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 0,
+      "state_fnv64": "0xccd77d540289f59b",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/transforms-10-wgpu-vulkan-1-WebGPU-000000.ppm",
+        "ppm_sha256": "5b84078377cd030d61f9a654470773e14f35252479a79560d80a85315a9be4b7",
+        "rgb_fnv64": "0xa2daf950bfbd12db",
+        "rgba_fnv64": "0xa38820a3c54cd1c9"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/transforms-10-wgpu-vulkan-1-WebGPU-000000.ppm",
+        "ppm_sha256": "5b84078377cd030d61f9a654470773e14f35252479a79560d80a85315a9be4b7",
+        "rgb_fnv64": "0xa2daf950bfbd12db",
+        "rgba_fnv64": "0xa38820a3c54cd1c9"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "transforms-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 100,
+      "state_fnv64": "0x536e8b1204364118",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/transforms-10-wgpu-vulkan-1-WebGPU-000001.ppm",
+        "ppm_sha256": "8346f34562360126d1a1627bcb0cd811c96794cd95142db8d3d3aea3c2568ace",
+        "rgb_fnv64": "0x79efaf58c46633aa",
+        "rgba_fnv64": "0xb67659085d1dfef8"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/transforms-10-wgpu-vulkan-1-WebGPU-000001.ppm",
+        "ppm_sha256": "8346f34562360126d1a1627bcb0cd811c96794cd95142db8d3d3aea3c2568ace",
+        "rgb_fnv64": "0x79efaf58c46633aa",
+        "rgba_fnv64": "0xb67659085d1dfef8"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "transforms-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 200,
+      "state_fnv64": "0x83dbe91e90715b70",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/transforms-10-wgpu-vulkan-1-WebGPU-000002.ppm",
+        "ppm_sha256": "50f26cab27749bee3a622d7e6effd29e546a05dc6b222f8a077dd4729a0ffbe5",
+        "rgb_fnv64": "0x1e9475b516054c37",
+        "rgba_fnv64": "0xfe6e90bea4197c1d"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/transforms-10-wgpu-vulkan-1-WebGPU-000002.ppm",
+        "ppm_sha256": "50f26cab27749bee3a622d7e6effd29e546a05dc6b222f8a077dd4729a0ffbe5",
+        "rgb_fnv64": "0x1e9475b516054c37",
+        "rgba_fnv64": "0xfe6e90bea4197c1d"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "transforms-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 300,
+      "state_fnv64": "0x527245e666fcb4bb",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/transforms-10-wgpu-vulkan-1-WebGPU-000003.ppm",
+        "ppm_sha256": "e31d5ff22643fe6e7741932aaebff0bb50fe0ddd5ff55941d013e769256da5af",
+        "rgb_fnv64": "0x3e049e963405daf7",
+        "rgba_fnv64": "0xb74b10890e14aab5"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/transforms-10-wgpu-vulkan-1-WebGPU-000003.ppm",
+        "ppm_sha256": "e31d5ff22643fe6e7741932aaebff0bb50fe0ddd5ff55941d013e769256da5af",
+        "rgb_fnv64": "0x3e049e963405daf7",
+        "rgba_fnv64": "0xb74b10890e14aab5"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "transforms-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 400,
+      "state_fnv64": "0xb2ddc0fc06992b51",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/transforms-10-wgpu-vulkan-1-WebGPU-000004.ppm",
+        "ppm_sha256": "883706a9fbdaafd2a2801b3987340cbd59ddaaa3ce44e07624a1a9b7784ebefb",
+        "rgb_fnv64": "0xa2c91bd557d94180",
+        "rgba_fnv64": "0x9b27476f1842b6f8"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/transforms-10-wgpu-vulkan-1-WebGPU-000004.ppm",
+        "ppm_sha256": "883706a9fbdaafd2a2801b3987340cbd59ddaaa3ce44e07624a1a9b7784ebefb",
+        "rgb_fnv64": "0xa2c91bd557d94180",
+        "rgba_fnv64": "0x9b27476f1842b6f8"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "transforms-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 500,
+      "state_fnv64": "0x256660b37a8b571e",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/transforms-10-wgpu-vulkan-1-WebGPU-000005.ppm",
+        "ppm_sha256": "04cd043a32725cf1090063a8e0cfe5ee41eed8733f7024196a5fad4f9381e17d",
+        "rgb_fnv64": "0xf23716d4e6823b9",
+        "rgba_fnv64": "0x6565c0967fda6313"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/transforms-10-wgpu-vulkan-1-WebGPU-000005.ppm",
+        "ppm_sha256": "04cd043a32725cf1090063a8e0cfe5ee41eed8733f7024196a5fad4f9381e17d",
+        "rgb_fnv64": "0xf23716d4e6823b9",
+        "rgba_fnv64": "0x6565c0967fda6313"
+      },
+      "scene_label": "large"
+    },
+    {
+      "case": "transforms-10",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "logical_frame": 600,
+      "state_fnv64": "0x772471832a02a2c0",
+      "rgb_mae": 0.0,
+      "max_channel_error": 0,
+      "pixels_different": 0,
+      "pixels_over3": 0,
+      "before": {
+        "original_image": "/tmp/coin-render-material-table-rgb-before-large/images/transforms-10-wgpu-vulkan-1-WebGPU-000006.ppm",
+        "ppm_sha256": "3a3e9b6baba79bf34b6fed0d37b3896ec0d37069ef70bbceb2a2b226a17db565",
+        "rgb_fnv64": "0x4b1cab9e2793827a",
+        "rgba_fnv64": "0x52f4629bcca2c3fa"
+      },
+      "after": {
+        "original_image": "/tmp/coin-render-material-table-rgb-after-large/images/transforms-10-wgpu-vulkan-1-WebGPU-000006.ppm",
+        "ppm_sha256": "3a3e9b6baba79bf34b6fed0d37b3896ec0d37069ef70bbceb2a2b226a17db565",
+        "rgb_fnv64": "0x4b1cab9e2793827a",
+        "rgba_fnv64": "0x52f4629bcca2c3fa"
+      },
+      "scene_label": "large"
+    }
+  ],
+  "helper_sha256": "2f467b438a75844e4cf19a9a69fe87e03dfc921f19b7aaf84c0104534712f794",
+  "image_analyzer_sha256": "ab2d85a2a60aa883a5f92fc1ca9d089ab50aed6451dc79fcc48a919c771cf556",
+  "comparison": "Same wgpu variant/case/logical frame; same scene-state digest, byte exact RGB",
+  "compiled_source_revisions": {
+    "before": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+    "after": "a0bda8b5ccc8d04efa96c5c807b88e5aa4e34c9d"
+  }
+}

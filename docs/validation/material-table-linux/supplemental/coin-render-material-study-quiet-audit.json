@@ -1,0 +1,466 @@
+{
+  "checks": {
+    "raw_recomputation_identical": true,
+    "runner_sha_matches_actual_execution": true,
+    "counts": {
+      "processes": 90,
+      "measured_frames": 2925,
+      "warmup_frames": 825
+    },
+    "sources": {
+      "coingl-control": "4d63bb993022ee8d40802558b0871a4803002b8d",
+      "bgfx-vulkan-control": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+      "bgfx-opengl-control": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+      "wgpu-before": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+      "wgpu-after": "a0bda8b5ccc8d04efa96c5c807b88e5aa4e34c9d"
+    },
+    "source_cards_match": true,
+    "binary_artifacts_pre_post_current_identical": 16,
+    "wg_pairs": 18,
+    "wg_pairs_per_group": 3,
+    "quiet_trace_absent_all": true,
+    "experimental_nvidia_verified": 72,
+    "coingl_not_queried_count": 18,
+    "scene_post_provenance_basis": "Separate coordinator supplement requested by root; not incorporated into frozen executor complete flag."
+  },
+  "compact_total_ms": [
+    {
+      "scene_key": "original",
+      "case": "materials-10",
+      "roles": {
+        "coingl-control": {
+          "median_ms": 112.623162,
+          "range_ms": {
+            "minimum": 112.270844,
+            "maximum": 117.650987
+          },
+          "process_values_ms": [
+            112.270844,
+            112.623162,
+            117.650987
+          ]
+        },
+        "bgfx-vulkan-control": {
+          "median_ms": 50.794472,
+          "range_ms": {
+            "minimum": 50.037523,
+            "maximum": 53.654483
+          },
+          "process_values_ms": [
+            50.037523,
+            50.794472,
+            53.654483
+          ]
+        },
+        "bgfx-opengl-control": {
+          "median_ms": 51.301214,
+          "range_ms": {
+            "minimum": 51.189668,
+            "maximum": 59.113605
+          },
+          "process_values_ms": [
+            51.301214,
+            51.189668,
+            59.113605
+          ]
+        },
+        "wgpu-before": {
+          "median_ms": 47.506216,
+          "range_ms": {
+            "minimum": 46.65475,
+            "maximum": 50.352426
+          },
+          "process_values_ms": [
+            46.65475,
+            47.506216,
+            50.352426
+          ]
+        },
+        "wgpu-after": {
+          "median_ms": 44.586624,
+          "range_ms": {
+            "minimum": 44.451091,
+            "maximum": 55.309954
+          },
+          "process_values_ms": [
+            44.451091,
+            44.586624,
+            55.309954
+          ]
+        }
+      },
+      "comparison": {
+        "before": 47.506216,
+        "after": 44.586624,
+        "delta_ms": -2.9195920000000015,
+        "unit": "ms",
+        "change_percent": -6.1457052272906765
+      }
+    },
+    {
+      "scene_key": "original",
+      "case": "transforms-10",
+      "roles": {
+        "coingl-control": {
+          "median_ms": 115.211088,
+          "range_ms": {
+            "minimum": 113.800239,
+            "maximum": 123.637484
+          },
+          "process_values_ms": [
+            113.800239,
+            115.211088,
+            123.637484
+          ]
+        },
+        "bgfx-vulkan-control": {
+          "median_ms": 44.781186,
+          "range_ms": {
+            "minimum": 42.866874,
+            "maximum": 45.157073
+          },
+          "process_values_ms": [
+            42.866874,
+            44.781186,
+            45.157073
+          ]
+        },
+        "bgfx-opengl-control": {
+          "median_ms": 45.216036,
+          "range_ms": {
+            "minimum": 44.294039,
+            "maximum": 46.079624
+          },
+          "process_values_ms": [
+            44.294039,
+            45.216036,
+            46.079624
+          ]
+        },
+        "wgpu-before": {
+          "median_ms": 41.502946,
+          "range_ms": {
+            "minimum": 40.803696,
+            "maximum": 43.175099
+          },
+          "process_values_ms": [
+            40.803696,
+            43.175099,
+            41.502946
+          ]
+        },
+        "wgpu-after": {
+          "median_ms": 42.736984,
+          "range_ms": {
+            "minimum": 41.357817,
+            "maximum": 44.217606
+          },
+          "process_values_ms": [
+            41.357817,
+            42.736984,
+            44.217606
+          ]
+        }
+      },
+      "comparison": {
+        "before": 41.502946,
+        "after": 42.736984,
+        "delta_ms": 1.2340379999999982,
+        "unit": "ms",
+        "change_percent": 2.973374468405199
+      }
+    },
+    {
+      "scene_key": "high",
+      "case": "materials-10",
+      "roles": {
+        "coingl-control": {
+          "median_ms": 128.144378,
+          "range_ms": {
+            "minimum": 126.686571,
+            "maximum": 130.816699
+          },
+          "process_values_ms": [
+            126.686571,
+            130.816699,
+            128.144378
+          ]
+        },
+        "bgfx-vulkan-control": {
+          "median_ms": 97.641663,
+          "range_ms": {
+            "minimum": 96.176037,
+            "maximum": 97.726549
+          },
+          "process_values_ms": [
+            97.726549,
+            97.641663,
+            96.176037
+          ]
+        },
+        "bgfx-opengl-control": {
+          "median_ms": 96.908088,
+          "range_ms": {
+            "minimum": 95.72122,
+            "maximum": 98.943421
+          },
+          "process_values_ms": [
+            98.943421,
+            95.72122,
+            96.908088
+          ]
+        },
+        "wgpu-before": {
+          "median_ms": 90.965,
+          "range_ms": {
+            "minimum": 87.010887,
+            "maximum": 91.30207
+          },
+          "process_values_ms": [
+            90.965,
+            87.010887,
+            91.30207
+          ]
+        },
+        "wgpu-after": {
+          "median_ms": 88.76104,
+          "range_ms": {
+            "minimum": 86.517018,
+            "maximum": 95.853116
+          },
+          "process_values_ms": [
+            88.76104,
+            86.517018,
+            95.853116
+          ]
+        }
+      },
+      "comparison": {
+        "before": 90.965,
+        "after": 88.76104,
+        "delta_ms": -2.2039600000000092,
+        "unit": "ms",
+        "change_percent": -2.4228659374484818
+      }
+    },
+    {
+      "scene_key": "high",
+      "case": "materials-100",
+      "roles": {
+        "coingl-control": {
+          "median_ms": 252.454906,
+          "range_ms": {
+            "minimum": 248.419595,
+            "maximum": 287.25887
+          },
+          "process_values_ms": [
+            252.454906,
+            248.419595,
+            287.25887
+          ]
+        },
+        "bgfx-vulkan-control": {
+          "median_ms": 163.632815,
+          "range_ms": {
+            "minimum": 162.26062,
+            "maximum": 178.42183
+          },
+          "process_values_ms": [
+            162.26062,
+            163.632815,
+            178.42183
+          ]
+        },
+        "bgfx-opengl-control": {
+          "median_ms": 165.767253,
+          "range_ms": {
+            "minimum": 163.193388,
+            "maximum": 176.879301
+          },
+          "process_values_ms": [
+            165.767253,
+            163.193388,
+            176.879301
+          ]
+        },
+        "wgpu-before": {
+          "median_ms": 161.217432,
+          "range_ms": {
+            "minimum": 158.90042,
+            "maximum": 166.018176
+          },
+          "process_values_ms": [
+            158.90042,
+            161.217432,
+            166.018176
+          ]
+        },
+        "wgpu-after": {
+          "median_ms": 157.818219,
+          "range_ms": {
+            "minimum": 156.3957,
+            "maximum": 168.116129
+          },
+          "process_values_ms": [
+            156.3957,
+            157.818219,
+            168.116129
+          ]
+        }
+      },
+      "comparison": {
+        "before": 161.217432,
+        "after": 157.818219,
+        "delta_ms": -3.399213000000003,
+        "unit": "ms",
+        "change_percent": -2.1084649208405692
+      }
+    },
+    {
+      "scene_key": "high",
+      "case": "transforms-10",
+      "roles": {
+        "coingl-control": {
+          "median_ms": 124.688156,
+          "range_ms": {
+            "minimum": 118.958717,
+            "maximum": 125.773278
+          },
+          "process_values_ms": [
+            118.958717,
+            124.688156,
+            125.773278
+          ]
+        },
+        "bgfx-vulkan-control": {
+          "median_ms": 94.775702,
+          "range_ms": {
+            "minimum": 93.43686,
+            "maximum": 96.960123
+          },
+          "process_values_ms": [
+            96.960123,
+            93.43686,
+            94.775702
+          ]
+        },
+        "bgfx-opengl-control": {
+          "median_ms": 92.728382,
+          "range_ms": {
+            "minimum": 92.123646,
+            "maximum": 95.332358
+          },
+          "process_values_ms": [
+            92.123646,
+            92.728382,
+            95.332358
+          ]
+        },
+        "wgpu-before": {
+          "median_ms": 90.259819,
+          "range_ms": {
+            "minimum": 88.135548,
+            "maximum": 90.713035
+          },
+          "process_values_ms": [
+            90.259819,
+            88.135548,
+            90.713035
+          ]
+        },
+        "wgpu-after": {
+          "median_ms": 91.228674,
+          "range_ms": {
+            "minimum": 87.643103,
+            "maximum": 99.900123
+          },
+          "process_values_ms": [
+            99.900123,
+            87.643103,
+            91.228674
+          ]
+        }
+      },
+      "comparison": {
+        "before": 90.259819,
+        "after": 91.228674,
+        "delta_ms": 0.9688550000000049,
+        "unit": "ms",
+        "change_percent": 1.073406761429463
+      }
+    },
+    {
+      "scene_key": "high",
+      "case": "static",
+      "roles": {
+        "coingl-control": {
+          "median_ms": 12.753556,
+          "range_ms": {
+            "minimum": 12.1351145,
+            "maximum": 12.9683695
+          },
+          "process_values_ms": [
+            12.9683695,
+            12.1351145,
+            12.753556
+          ]
+        },
+        "bgfx-vulkan-control": {
+          "median_ms": 2.046878,
+          "range_ms": {
+            "minimum": 2.0012980000000002,
+            "maximum": 2.0958889999999997
+          },
+          "process_values_ms": [
+            2.0012980000000002,
+            2.046878,
+            2.0958889999999997
+          ]
+        },
+        "bgfx-opengl-control": {
+          "median_ms": 2.25777,
+          "range_ms": {
+            "minimum": 2.2506515,
+            "maximum": 2.4355710000000004
+          },
+          "process_values_ms": [
+            2.25777,
+            2.2506515,
+            2.4355710000000004
+          ]
+        },
+        "wgpu-before": {
+          "median_ms": 3.041803,
+          "range_ms": {
+            "minimum": 2.9965095,
+            "maximum": 3.1501205
+          },
+          "process_values_ms": [
+            2.9965095,
+            3.041803,
+            3.1501205
+          ]
+        },
+        "wgpu-after": {
+          "median_ms": 2.751779,
+          "range_ms": {
+            "minimum": 2.7504665,
+            "maximum": 2.810313
+          },
+          "process_values_ms": [
+            2.7504665,
+            2.751779,
+            2.810313
+          ]
+        }
+      },
+      "comparison": {
+        "before": 3.041803,
+        "after": 2.751779,
+        "delta_ms": -0.29002399999999984,
+        "unit": "ms",
+        "change_percent": -9.534608257010724
+      }
+    }
+  ]
+}

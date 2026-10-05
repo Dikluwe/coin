@@ -1,0 +1,39 @@
+{
+  "command": [
+    "python3",
+    "/tmp/coin-render-first-frame/scripts/coinrender/run_animation_benchmark.py",
+    "--bgfx-build",
+    "/tmp/coin-render-material-table-baseline/bgfx",
+    "--wgpu-build",
+    "/tmp/coin-render-first-frame-wgpu",
+    "--coingl-build",
+    "/tmp/coin-render-material-geometry-baseline/coingl",
+    "--scene",
+    "/tmp/coin-render-city-materials-40001.iv",
+    "--output",
+    "/tmp/coin-render-material-table-rgb-large-controls",
+    "--scope",
+    "offscreen",
+    "--mode",
+    "verify",
+    "--gpu",
+    "nvidia",
+    "--cases",
+    "materials-10,materials-100,transforms-10,static",
+    "--variants",
+    "coingl,bgfx-vulkan,bgfx-opengl",
+    "--size",
+    "1024",
+    "--timeout",
+    "300"
+  ],
+  "exit_code": 0,
+  "source_content_revisions": {
+    "bgfx-vulkan": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+    "bgfx-opengl": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+    "coingl": "4d63bb993022ee8d40802558b0871a4803002b8d"
+  },
+  "runner_sha256": "9c2d23361559a301b11b524a2a5ff6ad739b4295283435d0adfbb8520717911e",
+  "log": "/tmp/coin-render-material-table-rgb-large-controls-run.log",
+  "log_sha256": "0ccf46a134e1f69c897564b174ca1aa0cae7bc2f68144b80ff9a74dc71a1b247"
+}

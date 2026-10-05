@@ -1,0 +1,911 @@
+{
+  "runs": {
+    "bgfx-opengl-geometry-10-off-1": {
+      "input": {
+        "path": "/tmp/coin-render-bgfx-regression-diagnostic/bgfx-opengl-geometry-10-off-1.cpu-observation.json",
+        "sha256": "71f17b37a4325da98591fd60d107e4696e8913957fb6f0e76fc4dd6de62a1933"
+      },
+      "wall_seconds": 2.269766518031247,
+      "during_snapshots": 3,
+      "global_busy_cpu_percent": 10.45353982300885,
+      "global_pressure_stall_percent": {
+        "some": 0.18971114278903647,
+        "full": 0.0
+      },
+      "global_pressure_before": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.18,
+          "avg300": 0.81,
+          "total": 3252844029.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "global_pressure_after": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.18,
+          "avg300": 0.81,
+          "total": 3252848335.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "benchmark_main_schedstat_intervals": [
+        {
+          "pid": "2153523",
+          "wall_seconds": 1.0009073910769075,
+          "cpu_running_seconds": 0.939720777,
+          "runnable_wait_seconds": 9.3135e-05,
+          "timeslices": 41
+        }
+      ]
+    },
+    "bgfx-opengl-geometry-10-off-2": {
+      "input": {
+        "path": "/tmp/coin-render-bgfx-regression-diagnostic/bgfx-opengl-geometry-10-off-2.cpu-observation.json",
+        "sha256": "1d077fa8c4b82b570b97c4b189e9168cfe9ea40413296df0994fb1ab1c837a0b"
+      },
+      "wall_seconds": 2.397871953085996,
+      "during_snapshots": 3,
+      "global_busy_cpu_percent": 17.69633507853403,
+      "global_pressure_stall_percent": {
+        "some": 0.5100772784909984,
+        "full": 0.0
+      },
+      "global_pressure_before": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.16,
+          "avg300": 0.79,
+          "total": 3252873395.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "global_pressure_after": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.16,
+          "avg300": 0.79,
+          "total": 3252885626.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "benchmark_main_schedstat_intervals": [
+        {
+          "pid": "2153868",
+          "wall_seconds": 1.000730496016331,
+          "cpu_running_seconds": 0.945315613,
+          "runnable_wait_seconds": 0.000283288,
+          "timeslices": 69
+        }
+      ]
+    },
+    "bgfx-opengl-geometry-10-off-3": {
+      "input": {
+        "path": "/tmp/coin-render-bgfx-regression-diagnostic/bgfx-opengl-geometry-10-off-3.cpu-observation.json",
+        "sha256": "0bba86f56137c816504d86c64f49833865c44bfa92aaf4a0d5af13800d122342"
+      },
+      "wall_seconds": 2.2950887660263106,
+      "during_snapshots": 3,
+      "global_busy_cpu_percent": 9.738134206219318,
+      "global_pressure_stall_percent": {
+        "some": 0.16369737221557776,
+        "full": 0.0
+      },
+      "global_pressure_before": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.13,
+          "avg300": 0.76,
+          "total": 3252901595.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "global_pressure_after": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.13,
+          "avg300": 0.75,
+          "total": 3252905352.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "benchmark_main_schedstat_intervals": [
+        {
+          "pid": "2154122",
+          "wall_seconds": 1.0010325140319765,
+          "cpu_running_seconds": 0.942718866,
+          "runnable_wait_seconds": 0.000386596,
+          "timeslices": 53
+        }
+      ]
+    },
+    "bgfx-opengl-geometry-10-on-1": {
+      "input": {
+        "path": "/tmp/coin-render-bgfx-regression-diagnostic/bgfx-opengl-geometry-10-on-1.cpu-observation.json",
+        "sha256": "afb33ebb9687da526ab41c361dc53b0d128fa5f419ab4ce91c65b55038bf171e"
+      },
+      "wall_seconds": 2.2549503119662404,
+      "during_snapshots": 3,
+      "global_busy_cpu_percent": 9.219661205220774,
+      "global_pressure_stall_percent": {
+        "some": 0.27441846355382765,
+        "full": 0.0
+      },
+      "global_pressure_before": {
+        "some": {
+          "avg10": 0.01,
+          "avg60": 0.2,
+          "avg300": 0.82,
+          "total": 3252837823.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "global_pressure_after": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.18,
+          "avg300": 0.81,
+          "total": 3252844011.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "benchmark_main_schedstat_intervals": [
+        {
+          "pid": "2153502",
+          "wall_seconds": 1.0008740419289097,
+          "cpu_running_seconds": 0.939297495,
+          "runnable_wait_seconds": 0.000759412,
+          "timeslices": 64
+        }
+      ]
+    },
+    "bgfx-opengl-geometry-10-on-2": {
+      "input": {
+        "path": "/tmp/coin-render-bgfx-regression-diagnostic/bgfx-opengl-geometry-10-on-2.cpu-observation.json",
+        "sha256": "2f41562071a08fa84b204c9d8cd32b6fc268d4b34e95bbd3d3b7abb5000e0e91"
+      },
+      "wall_seconds": 2.3794978179503232,
+      "during_snapshots": 3,
+      "global_busy_cpu_percent": 15.48404115009232,
+      "global_pressure_stall_percent": {
+        "some": 0.1087624447678325,
+        "full": 0.0
+      },
+      "global_pressure_before": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.15,
+          "avg300": 0.78,
+          "total": 3252885668.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "global_pressure_after": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.15,
+          "avg300": 0.78,
+          "total": 3252888256.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "benchmark_main_schedstat_intervals": [
+        {
+          "pid": "2153968",
+          "wall_seconds": 1.0008640210144222,
+          "cpu_running_seconds": 0.945419774,
+          "runnable_wait_seconds": 0.000435418,
+          "timeslices": 81
+        }
+      ]
+    },
+    "bgfx-opengl-geometry-10-on-3": {
+      "input": {
+        "path": "/tmp/coin-render-bgfx-regression-diagnostic/bgfx-opengl-geometry-10-on-3.cpu-observation.json",
+        "sha256": "54f2a4027cfb305fcc73b72dbbecaadbf3418eb65d792e800973406167e331e5"
+      },
+      "wall_seconds": 2.275086889974773,
+      "during_snapshots": 3,
+      "global_busy_cpu_percent": 10.584343991179711,
+      "global_pressure_stall_percent": {
+        "some": 0.15507100038887392,
+        "full": 0.0
+      },
+      "global_pressure_before": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.14,
+          "avg300": 0.77,
+          "total": 3252898059.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "global_pressure_after": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.13,
+          "avg300": 0.76,
+          "total": 3252901587.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "benchmark_main_schedstat_intervals": [
+        {
+          "pid": "2154095",
+          "wall_seconds": 1.0008626909693703,
+          "cpu_running_seconds": 0.938018602,
+          "runnable_wait_seconds": 0.000211648,
+          "timeslices": 45
+        }
+      ]
+    },
+    "bgfx-vulkan-geometry-10-off-1": {
+      "input": {
+        "path": "/tmp/coin-render-bgfx-regression-diagnostic/bgfx-vulkan-geometry-10-off-1.cpu-observation.json",
+        "sha256": "66d8cbba09056f26f3b0ceb8e14c5d50d160358fdb75cbfe9d1752c99fb275ab"
+      },
+      "wall_seconds": 2.3835566008929163,
+      "during_snapshots": 3,
+      "global_busy_cpu_percent": 8.414409676571132,
+      "global_pressure_stall_percent": {
+        "some": 0.17599749879774157,
+        "full": 0.0
+      },
+      "global_pressure_before": {
+        "some": {
+          "avg10": 0.01,
+          "avg60": 0.2,
+          "avg300": 0.83,
+          "total": 3252833391.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "global_pressure_after": {
+        "some": {
+          "avg10": 0.01,
+          "avg60": 0.2,
+          "avg300": 0.82,
+          "total": 3252837586.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "benchmark_main_schedstat_intervals": [
+        {
+          "pid": "2153469",
+          "wall_seconds": 1.0010803180048242,
+          "cpu_running_seconds": 0.941101438,
+          "runnable_wait_seconds": 0.000150501,
+          "timeslices": 47
+        }
+      ]
+    },
+    "bgfx-vulkan-geometry-10-off-2": {
+      "input": {
+        "path": "/tmp/coin-render-bgfx-regression-diagnostic/bgfx-vulkan-geometry-10-off-2.cpu-observation.json",
+        "sha256": "dc13f4619d298b445ecb166975ead4947b9ae473b2b8b99e8e5edc91fa62f879"
+      },
+      "wall_seconds": 2.425888169906102,
+      "during_snapshots": 3,
+      "global_busy_cpu_percent": 8.809093257556189,
+      "global_pressure_stall_percent": {
+        "some": 0.2123758244057646,
+        "full": 0.0
+      },
+      "global_pressure_before": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.18,
+          "avg300": 0.81,
+          "total": 3252848470.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "global_pressure_after": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.17,
+          "avg300": 0.8,
+          "total": 3252853622.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "benchmark_main_schedstat_intervals": [
+        {
+          "pid": "2153561",
+          "wall_seconds": 1.001099506043829,
+          "cpu_running_seconds": 0.927996104,
+          "runnable_wait_seconds": 0.000471713,
+          "timeslices": 44
+        }
+      ]
+    },
+    "bgfx-vulkan-geometry-10-off-3": {
+      "input": {
+        "path": "/tmp/coin-render-bgfx-regression-diagnostic/bgfx-vulkan-geometry-10-off-3.cpu-observation.json",
+        "sha256": "88e2568ab4e41673969ad088af9d284d090dc110a54dfcc0945f31b1ef73232e"
+      },
+      "wall_seconds": 2.6152521180920303,
+      "during_snapshots": 3,
+      "global_busy_cpu_percent": 20.101107366393833,
+      "global_pressure_stall_percent": {
+        "some": 0.277028740360437,
+        "full": 0.0
+      },
+      "global_pressure_before": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.11,
+          "avg300": 0.73,
+          "total": 3252916076.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "global_pressure_after": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.11,
+          "avg300": 0.73,
+          "total": 3252923321.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "benchmark_main_schedstat_intervals": [
+        {
+          "pid": "2154292",
+          "wall_seconds": 1.001076012966223,
+          "cpu_running_seconds": 0.915142451,
+          "runnable_wait_seconds": 0.001220625,
+          "timeslices": 100
+        }
+      ]
+    },
+    "bgfx-vulkan-geometry-10-on-1": {
+      "input": {
+        "path": "/tmp/coin-render-bgfx-regression-diagnostic/bgfx-vulkan-geometry-10-on-1.cpu-observation.json",
+        "sha256": "dd7e8ccf5cbb0fba47970778f0dd3abbacb70ccbc2001ad3716f575aae13373f"
+      },
+      "wall_seconds": 2.354419484967366,
+      "during_snapshots": 3,
+      "global_busy_cpu_percent": 8.08725724926842,
+      "global_pressure_stall_percent": {
+        "some": 0.1721443449596739,
+        "full": 0.0
+      },
+      "global_pressure_before": {
+        "some": {
+          "avg10": 0.01,
+          "avg60": 0.21,
+          "avg300": 0.83,
+          "total": 3252829315.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "global_pressure_after": {
+        "some": {
+          "avg10": 0.01,
+          "avg60": 0.2,
+          "avg300": 0.83,
+          "total": 3252833368.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "benchmark_main_schedstat_intervals": [
+        {
+          "pid": "2153434",
+          "wall_seconds": 1.0010679360711947,
+          "cpu_running_seconds": 0.941228068,
+          "runnable_wait_seconds": 0.000111731,
+          "timeslices": 38
+        }
+      ]
+    },
+    "bgfx-vulkan-geometry-10-on-2": {
+      "input": {
+        "path": "/tmp/coin-render-bgfx-regression-diagnostic/bgfx-vulkan-geometry-10-on-2.cpu-observation.json",
+        "sha256": "8fa5352eeab08fa722668f7c8923b620815a566a6d79243d69f36aa4c033af44"
+      },
+      "wall_seconds": 2.4396741850068793,
+      "during_snapshots": 3,
+      "global_busy_cpu_percent": 16.50785475148081,
+      "global_pressure_stall_percent": {
+        "some": 0.7961308981078239,
+        "full": 0.0
+      },
+      "global_pressure_before": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.17,
+          "avg300": 0.8,
+          "total": 3252853676.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "global_pressure_after": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.16,
+          "avg300": 0.79,
+          "total": 3252873099.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "benchmark_main_schedstat_intervals": [
+        {
+          "pid": "2153594",
+          "wall_seconds": 1.0009119639871642,
+          "cpu_running_seconds": 0.938954655,
+          "runnable_wait_seconds": 0.002508493,
+          "timeslices": 55
+        }
+      ]
+    },
+    "bgfx-vulkan-geometry-10-on-3": {
+      "input": {
+        "path": "/tmp/coin-render-bgfx-regression-diagnostic/bgfx-vulkan-geometry-10-on-3.cpu-observation.json",
+        "sha256": "d4d0343f435e2d413cbdf18e3ca30dd202a7556d7a737482175bae36923f3d3e"
+      },
+      "wall_seconds": 2.3977427519857883,
+      "during_snapshots": 3,
+      "global_busy_cpu_percent": 9.809050483913161,
+      "global_pressure_stall_percent": {
+        "some": 0.14392703292052134,
+        "full": 0.0
+      },
+      "global_pressure_before": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.11,
+          "avg300": 0.74,
+          "total": 3252912612.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "global_pressure_after": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.11,
+          "avg300": 0.73,
+          "total": 3252916063.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "benchmark_main_schedstat_intervals": [
+        {
+          "pid": "2154256",
+          "wall_seconds": 1.0010997810168192,
+          "cpu_running_seconds": 0.939206028,
+          "runnable_wait_seconds": 0.000137128,
+          "timeslices": 42
+        }
+      ]
+    },
+    "wgpu-vulkan-geometry-10-off-1": {
+      "input": {
+        "path": "/tmp/coin-render-bgfx-regression-diagnostic/wgpu-vulkan-geometry-10-off-1.cpu-observation.json",
+        "sha256": "d1f7bf470f4e2cb7124175d4a581ddc39cbc4b6cf0b4042840e28bb7af72e786"
+      },
+      "wall_seconds": 2.25944736902602,
+      "during_snapshots": 3,
+      "global_busy_cpu_percent": 14.773673979450152,
+      "global_pressure_stall_percent": {
+        "some": 0.134811726166166,
+        "full": 0.0
+      },
+      "global_pressure_before": {
+        "some": {
+          "avg10": 0.02,
+          "avg60": 0.22,
+          "avg300": 0.84,
+          "total": 3252826068.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "global_pressure_after": {
+        "some": {
+          "avg10": 0.01,
+          "avg60": 0.21,
+          "avg300": 0.83,
+          "total": 3252829114.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "benchmark_main_schedstat_intervals": [
+        {
+          "pid": "2153384",
+          "wall_seconds": 1.0011238830629736,
+          "cpu_running_seconds": 0.966555874,
+          "runnable_wait_seconds": 4.5746e-05,
+          "timeslices": 23
+        }
+      ]
+    },
+    "wgpu-vulkan-geometry-10-off-2": {
+      "input": {
+        "path": "/tmp/coin-render-bgfx-regression-diagnostic/wgpu-vulkan-geometry-10-off-2.cpu-observation.json",
+        "sha256": "d5ce64ad0563f4a37250999e50e932098aa687f27b3407ac2de02b17eb55db80"
+      },
+      "wall_seconds": 2.37846395408269,
+      "during_snapshots": 3,
+      "global_busy_cpu_percent": 20.438341695273298,
+      "global_pressure_stall_percent": {
+        "some": 0.22703728558638742,
+        "full": 0.0
+      },
+      "global_pressure_before": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.15,
+          "avg300": 0.78,
+          "total": 3252888316.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "global_pressure_after": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.14,
+          "avg300": 0.77,
+          "total": 3252893716.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "benchmark_main_schedstat_intervals": [
+        {
+          "pid": "2153996",
+          "wall_seconds": 1.0010275630047545,
+          "cpu_running_seconds": 0.970270242,
+          "runnable_wait_seconds": 0.000392185,
+          "timeslices": 57
+        }
+      ]
+    },
+    "wgpu-vulkan-geometry-10-off-3": {
+      "input": {
+        "path": "/tmp/coin-render-bgfx-regression-diagnostic/wgpu-vulkan-geometry-10-off-3.cpu-observation.json",
+        "sha256": "5542a4b6a35344fba767f6e873d1f9b97d212ca7379c7c23233cb1f3c8281412"
+      },
+      "wall_seconds": 2.1963658779859543,
+      "during_snapshots": 3,
+      "global_busy_cpu_percent": 8.411747932706016,
+      "global_pressure_stall_percent": {
+        "some": 0.12229292154470345,
+        "full": 0.0
+      },
+      "global_pressure_before": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.12,
+          "avg300": 0.74,
+          "total": 3252909912.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "global_pressure_after": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.11,
+          "avg300": 0.74,
+          "total": 3252912598.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "benchmark_main_schedstat_intervals": [
+        {
+          "pid": "2154225",
+          "wall_seconds": 1.0011301890481263,
+          "cpu_running_seconds": 0.963735878,
+          "runnable_wait_seconds": 0.000218018,
+          "timeslices": 45
+        }
+      ]
+    },
+    "wgpu-vulkan-geometry-10-on-1": {
+      "input": {
+        "path": "/tmp/coin-render-bgfx-regression-diagnostic/wgpu-vulkan-geometry-10-on-1.cpu-observation.json",
+        "sha256": "e37434f3ef5a97ecef56dd0784365125a6ee82878afd32c15f1727ebd6420140"
+      },
+      "wall_seconds": 2.2675772829679772,
+      "during_snapshots": 3,
+      "global_busy_cpu_percent": 16.523664544699702,
+      "global_pressure_stall_percent": {
+        "some": 0.5084721957043361,
+        "full": 0.0
+      },
+      "global_pressure_before": {
+        "some": {
+          "avg10": 0.03,
+          "avg60": 0.23,
+          "avg300": 0.85,
+          "total": 3252814536.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "global_pressure_after": {
+        "some": {
+          "avg10": 0.02,
+          "avg60": 0.22,
+          "avg300": 0.84,
+          "total": 3252826066.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "benchmark_main_schedstat_intervals": [
+        {
+          "pid": "2153316",
+          "wall_seconds": 1.0010301009751856,
+          "cpu_running_seconds": 0.966444035,
+          "runnable_wait_seconds": 0.000258213,
+          "timeslices": 34
+        }
+      ]
+    },
+    "wgpu-vulkan-geometry-10-on-2": {
+      "input": {
+        "path": "/tmp/coin-render-bgfx-regression-diagnostic/wgpu-vulkan-geometry-10-on-2.cpu-observation.json",
+        "sha256": "4f5dfb5708cccacf8b906f7f55cceeab3d9db233c6a4d42dc337048e62da2bc9"
+      },
+      "wall_seconds": 2.2151028939988464,
+      "during_snapshots": 3,
+      "global_busy_cpu_percent": 15.768576290414071,
+      "global_pressure_stall_percent": {
+        "some": 0.14577200945147975,
+        "full": 0.0
+      },
+      "global_pressure_before": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.14,
+          "avg300": 0.77,
+          "total": 3252894520.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "global_pressure_after": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.14,
+          "avg300": 0.77,
+          "total": 3252897749.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "benchmark_main_schedstat_intervals": [
+        {
+          "pid": "2154036",
+          "wall_seconds": 1.0009421629365534,
+          "cpu_running_seconds": 0.964545658,
+          "runnable_wait_seconds": 0.000166223,
+          "timeslices": 38
+        }
+      ]
+    },
+    "wgpu-vulkan-geometry-10-on-3": {
+      "input": {
+        "path": "/tmp/coin-render-bgfx-regression-diagnostic/wgpu-vulkan-geometry-10-on-3.cpu-observation.json",
+        "sha256": "c2188c874a5da4eb73fc6f8efdbc47254be60532e2ca9b3552b49f06842e858b"
+      },
+      "wall_seconds": 2.206488879979588,
+      "during_snapshots": 3,
+      "global_busy_cpu_percent": 11.028993746446847,
+      "global_pressure_stall_percent": {
+        "some": 0.1710409707587066,
+        "full": 0.0
+      },
+      "global_pressure_before": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.13,
+          "avg300": 0.75,
+          "total": 3252905936.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "global_pressure_after": {
+        "some": {
+          "avg10": 0.0,
+          "avg60": 0.12,
+          "avg300": 0.74,
+          "total": 3252909710.0
+        },
+        "full": {
+          "avg10": 0.0,
+          "avg60": 0.0,
+          "avg300": 0.0,
+          "total": 0.0
+        }
+      },
+      "benchmark_main_schedstat_intervals": [
+        {
+          "pid": "2154140",
+          "wall_seconds": 1.0010449240216985,
+          "cpu_running_seconds": 0.96457107,
+          "runnable_wait_seconds": 7.3269e-05,
+          "timeslices": 23
+        }
+      ]
+    }
+  },
+  "script_sha256": "d9ec0ed9f13b6eef8f0bbdece5884fd0b059d9b902d4dcd7e30f6a913e58afd0",
+  "limitations": [
+    "Global pressure/busy ratios include startup, warmup and measured frames.",
+    "One-second snapshots cannot attribute scheduling or CPU frequency to an individual frame.",
+    "schedstat describes only observed benchmark main-thread intervals; GPU worker waits are not isolated.",
+    "System load observations do not establish the cause of earlier uninstrumented campaign variation."
+  ]
+}

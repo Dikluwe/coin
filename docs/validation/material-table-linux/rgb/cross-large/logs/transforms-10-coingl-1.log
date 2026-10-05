@@ -1,0 +1,28 @@
+startup_detail arguments_ms=0.025858 coin_init_ms=1.99771 capability_probe_ms=0.000321
+scene_detail parse_ms=624.24 wrapper_ms=0.075791 camera_fit_ms=77.8203
+scene_load_ms=702.564
+animation_detail mode=transforms animated_percent=10 eligible=40000 selected=4000 prepared_clones=0 prepare_ms=31.9588 frame_step=100 time_step_seconds=1.66667 selection_fnv64=0x44ab2b433838fad2
+startup_detail material_search_ms=0.100838 target_setup_ms=0.008966
+CoinGL_first_detail render_ms=418.748 lazy_readback_ms=4.34596 publication_copy_ms=0.447532 update_ms=2.44566 total_with_update_ms=425.987 before_frame_since_main_ms=741.349 result_since_main_ms=1164.89
+CoinGL_first_frame_ms=423.541
+capture backend=CoinGL frame_index=0 logical_frame=0 rgba_fnv64=0x9a4b8ad62dff353e rgb_fnv64=0x920ed3a906730b53 state_fnv64=0xccd77d540289f59b image=/tmp/coin-render-material-table-rgb-large-controls/images/transforms-10-coingl-1-CoinGL-000000.ppm
+capture backend=CoinGL frame_index=1 logical_frame=100 rgba_fnv64=0x89d9266936fc19e3 rgb_fnv64=0x3ed47436edf473c6 state_fnv64=0x536e8b1204364118 image=/tmp/coin-render-material-table-rgb-large-controls/images/transforms-10-coingl-1-CoinGL-000001.ppm
+capture backend=CoinGL frame_index=2 logical_frame=200 rgba_fnv64=0x671a963f40388591 rgb_fnv64=0x1bb698dbb7b39d12 state_fnv64=0x83dbe91e90715b70 image=/tmp/coin-render-material-table-rgb-large-controls/images/transforms-10-coingl-1-CoinGL-000002.ppm
+capture backend=CoinGL frame_index=3 logical_frame=300 rgba_fnv64=0x61f66e95a883018b rgb_fnv64=0xfb314e688380f152 state_fnv64=0x527245e666fcb4bb image=/tmp/coin-render-material-table-rgb-large-controls/images/transforms-10-coingl-1-CoinGL-000003.ppm
+capture backend=CoinGL frame_index=4 logical_frame=400 rgba_fnv64=0xaa04d1deab4ef0c5 rgb_fnv64=0x40afd0a109407a24 state_fnv64=0xb2ddc0fc06992b51 image=/tmp/coin-render-material-table-rgb-large-controls/images/transforms-10-coingl-1-CoinGL-000004.ppm
+capture backend=CoinGL frame_index=5 logical_frame=500 rgba_fnv64=0x1cc74b1bf4c73323 rgb_fnv64=0x5f4ab3756b675788 state_fnv64=0x256660b37a8b571e image=/tmp/coin-render-material-table-rgb-large-controls/images/transforms-10-coingl-1-CoinGL-000005.ppm
+capture backend=CoinGL frame_index=6 logical_frame=600 rgba_fnv64=0xe6cbb91da6a6ef7b rgb_fnv64=0xcf58ff3248d79074 state_fnv64=0x772471832a02a2c0 image=/tmp/coin-render-material-table-rgb-large-controls/images/transforms-10-coingl-1-CoinGL-000006.ppm
+CoinGL_animation_final logical_frame=600 state_fnv64=0x772471832a02a2c0
+samples_output=/tmp/coin-render-material-table-rgb-large-controls/samples/transforms-10-coingl-1.csv rows=7
+gl_rgba_fnv64=0xe6cbb91da6a6ef7b
+adapter=not-queried vendor_id=0x0 device_id=0x0 backend=gl size=1024x1024 warmup=0 scene=/tmp/coin-render-city-materials-40001.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=transforms
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..6 warmup_indices=-0..-1 frame_step=100 captures=7 capture_io=outside_frame_timers wall_throughput_includes_capture=1 wall_throughput_scope=update+frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+CoinGL frames=7 median_ms=126.047 p95_ms=423.541 min_ms=124.423 max_ms=423.541
+CoinGL_timing_total frames=7 median_ms=129.549721 p95_ms=425.986948 p99_ms=425.986948 max_ms=425.986948 over_16_67=7 over_33_33=7
+CoinGL_timing_update frames=7 median_ms=3.484011 p95_ms=3.989862 p99_ms=3.989862 max_ms=3.989862 over_16_67=0 over_33_33=0
+CoinGL_timing_render frames=7 median_ms=125.612628 p95_ms=423.093757 p99_ms=423.093757 max_ms=423.093757 over_16_67=7 over_33_33=7
+CoinGL_publication_copy frames=7 median_ms=0.447532 p95_ms=0.485162 min_ms=0.41935 max_ms=0.485162
+CoinGL_throughput frames=7 total_ms=1566.88 fps=4.46747
+backend_cleanup_begin
+backend_cleanup_ms=63.3393
+benchmark_peak_rss_kib=346620

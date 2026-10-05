@@ -1,0 +1,50 @@
+{
+  "commands": [
+    {
+      "label": "archive-collect",
+      "command": [
+        "python3",
+        "-B",
+        "/tmp/coin-render-material-table-collect.py",
+        "--root",
+        "/tmp/coin-render-first-frame"
+      ],
+      "exit_code": 0,
+      "script_path": "/tmp/coin-render-material-table-collect.py",
+      "script_sha256": "4f2dc75841e96973cbe4fa2edc883534674a1ddf135999e3685cff2c41b123fc",
+      "started_at_utc": "2026-10-05T17:05:20.924357+00:00",
+      "ended_at_utc": "2026-10-05T17:05:31.209393+00:00",
+      "log_path": "/tmp/coin-render-material-table-archive-collect-3.log",
+      "log_sha256": "4b441993967c49fe139297cdaf7ee632f1f11c4290ed7add6283b0b1ad56f32d"
+    },
+    {
+      "label": "archive-report",
+      "command": [
+        "python3",
+        "-B",
+        "/tmp/coin-render-first-frame/docs/validation/material-table-linux/plot-and-report.py",
+        "--metadata",
+        "/tmp/coin-render-first-frame/docs/validation/material-table-linux/stage-metadata.json",
+        "--quiet",
+        "/tmp/coin-render-first-frame/docs/validation/material-table-linux/quiet/results.json",
+        "--diagnostic-primary",
+        "/tmp/coin-render-first-frame/docs/validation/material-table-linux/diagnostic-analysis.json",
+        "--diagnostic-dimensional",
+        "/tmp/coin-render-first-frame/docs/validation/material-table-linux/diagnostic-analysis.json",
+        "--rgb",
+        "/tmp/coin-render-first-frame/docs/validation/material-table-linux/rgb/before-after.json",
+        "--output",
+        "/tmp/coin-render-material-table-generated-report"
+      ],
+      "exit_code": 0,
+      "script_path": "/tmp/coin-render-first-frame/docs/validation/material-table-linux/plot-and-report.py",
+      "script_sha256": "b7010cede509aa463de776e1ee902fc5adf0bec5e8a2b01eefbbc20bcabb69d2",
+      "started_at_utc": "2026-10-05T17:05:31.209655+00:00",
+      "ended_at_utc": "2026-10-05T17:05:33.512602+00:00",
+      "log_path": "/tmp/coin-render-material-table-archive-report-3.log",
+      "log_sha256": "560a457e57608d926dc4b0d4d9e3db493252beedecc8e2051d47103fac27a848"
+    }
+  ],
+  "orchestrator_sha256": "ab6cb36589ca2afa3c6edb5e8471e597447a62c237835b7ff297635ff355c4a3",
+  "scope": "CPU evidence collection and report/figure generation after all runtime; no GPU/build command."
+}

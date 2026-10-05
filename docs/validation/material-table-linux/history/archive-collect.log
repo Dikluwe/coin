@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "/tmp/coin-render-material-table-collect.py", line 280, in <module>
+    main()
+  File "/tmp/coin-render-material-table-collect.py", line 98, in main
+    cross = validator.cross_rgb_check(paths['cross'], paths['cross_controls_command'], paths['cross_controls_log'],
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/coin-render-material-table-validate-archive.py", line 242, in cross_rgb_check
+    observed = pixels(image)
+               ^^^^^^^^^^^^^
+  File "/tmp/coin-render-material-table-validate-archive.py", line 240, in pixels
+    require(sha(path) == record['ppm_sha256'], 'Cross RGB pixel hash differs')
+            ^^^^^^^^^
+  File "/tmp/coin-render-material-table-validate-archive.py", line 32, in sha
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+                          ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1021, in read_bytes
+    with self.open(mode='rb') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/coin-render-material-table-rgb-cross-large/images/materials-10-coingl-1-CoinGL-000000.ppm'
