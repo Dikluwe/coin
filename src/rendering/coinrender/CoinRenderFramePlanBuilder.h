@@ -143,7 +143,7 @@ private:
   const SoNode * stableShape = nullptr;
   bool reuseCubeVertices = false;
   uint32_t cubeVertexSlots[48];
-  // One bounded, frame-local template learned from the native callback stream.
+  // Bounded frame-local templates learned from the native callback stream.
   // State and material slots are captured again for every occurrence.
   CoinRenderCubeGeometryCore cubeGeometryCore;
   float cubeCaptureDimensions[3] = {};

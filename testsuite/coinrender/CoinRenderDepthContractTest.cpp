@@ -71,6 +71,8 @@ struct CoinRenderFramePlanBuilderTestAccess {
   static void invalidClear(CoinRenderFramePlanBuilder & builder) {
     builder.currentPlan.clearColor[0] = std::numeric_limits<float>::quiet_NaN();
   }
+  static size_t cubeTemplates(const CoinRenderFramePlanBuilder & builder) { return builder.cubeGeometryCore.templateCount(); }
+  static size_t cubeRanges(const CoinRenderFramePlanBuilder & builder) { return builder.cubeGeometryCore.rangeCount(); }
 };
 
 namespace {
@@ -88,6 +90,128 @@ void line(void * data, SoCallbackAction * a, const SoPrimitiveVertex * x,
 }
 void point(void * data, SoCallbackAction * a, const SoPrimitiveVertex * x) {
   static_cast<CoinRenderFramePlanBuilder *>(data)->addPoint(a, x);
+}
+struct CubeCapture {
+  CoinRenderFramePlanBuilder * builder;
+  bool replay;
+};
+SoCallbackAction::Response cubeBegin(void * data, SoCallbackAction * action, const SoNode * node) {
+  auto & capture = *static_cast<CubeCapture *>(data);
+  capture.builder->beginShape(action, node);
+  if (capture.replay && capture.builder->replayNativeCube(action, const_cast<SoNode *>(node)))
+    return SoCallbackAction::PRUNE;
+  return SoCallbackAction::CONTINUE;
+}
+SoCallbackAction::Response cubeEnd(void * data, SoCallbackAction *, const SoNode *) {
+  static_cast<CubeCapture *>(data)->builder->endShape();
+  return SoCallbackAction::CONTINUE;
+}
+void captureCubes(CoinRenderFramePlanBuilder & builder, SoNode * root, bool replay) {
+  CubeCapture capture = {&builder, replay};
+  // The render action enables the complete capture element set. Its extra
+  // callbacks keep its own shortcuts disabled while this independent builder
+  // exercises native replay against the full primitive callback oracle.
+  CoinRenderAction action(SbViewportRegion(32, 32));
+  action.addPreCallback(SoCube::getClassTypeId(), cubeBegin, &capture);
+  action.addPostCallback(SoCube::getClassTypeId(), cubeEnd, &capture);
+  action.addTriangleCallback(SoShape::getClassTypeId(), triangle, &builder);
+  action.apply(root);
+  builder.endShape();
+}
+CoinRenderFramePlan expandCubeDraws(const CoinRenderFramePlan & input) {
+  CoinRenderFramePlan expanded = input;
+  expanded.vertices.clear(); expanded.indices.clear();
+  for (auto & draw : expanded.draws) {
+    const auto old = draw.geometry;
+    draw.geometry.firstVertex = static_cast<uint32_t>(expanded.vertices.size());
+    draw.geometry.firstIndex = static_cast<uint32_t>(expanded.indices.size());
+    draw.geometry.vertexCount = draw.geometry.indexCount = old.indexCount;
+    for (size_t i = 0; i < old.indexCount; ++i) {
+      expanded.indices.push_back(static_cast<uint32_t>(expanded.vertices.size()));
+      expanded.vertices.push_back(input.vertices[input.indices[old.firstIndex + i]]);
+    }
+  }
+  return expanded;
+}
+bool cubeTemplateLifecycle() {
+  using Access = CoinRenderFramePlanBuilderTestAccess;
+  struct Environment {
+    std::string value; bool present;
+    Environment() {
+      const char * previous = std::getenv("COIN_RENDER_DISABLE_CUBE_TEMPLATE_CACHE");
+      present = previous != nullptr; value = previous ? previous : "";
+      coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_CUBE_TEMPLATE_CACHE", "0");
+    }
+    ~Environment() { coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_CUBE_TEMPLATE_CACHE", present ? value.c_str() : nullptr); }
+  } environment;
+  SoSeparator * root = new SoSeparator; root->ref();
+  for (int i = 0; i < 3; ++i) {
+    auto * object = new SoSeparator;
+    auto * material = new SoMaterial; material->diffuseColor.setValue(.25f, .5f, .75f);
+    auto * translation = new SoTranslation; translation->translation.setValue(float(i) * 4, 0, 0);
+    auto * cube = new SoCube; cube->height = i == 1 ? 3 : 2;
+    object->addChild(material); object->addChild(translation); object->addChild(cube); root->addChild(object);
+  }
+  CoinRenderFramePlanBuilder builder, full;
+  const auto begin = [](CoinRenderFramePlanBuilder & target) {
+    target.beginFrame(SbColor4f(0, 0, 0, 1), SbViewportRegion(32, 32));
+  };
+  begin(builder); begin(full);
+  captureCubes(builder, root, true); captureCubes(full, root, false);
+  CoinRenderFramePlan captured, oracle;
+  std::string diagnostic;
+  bool ok = check(builder.build(captured, &diagnostic) && full.build(oracle, &diagnostic),
+                  "multi-template native Cube and full callback captures must build");
+  ok &= check(captured.vertices.size() == 48 && oracle.vertices.size() == 72 &&
+              Access::cubeTemplates(builder) == 2 && Access::cubeRanges(builder) == 2,
+              "A/B/A dimensions must reuse A across the interleaved B callback capture");
+  ok &= check(captured.draws.size() == 3 && captured.draws[0].geometry.firstVertex == captured.draws[2].geometry.firstVertex,
+              "independent equal Cubes retain sharing by captured values");
+  ok &= check(expandCubeDraws(captured).hasSamePayload(expandCubeDraws(oracle)),
+              "shared native templates must retain exact indexed geometry, attributes and states versus full callbacks");
+  CoinRenderFramePlan copied;
+  ok &= check(builder.build(copied, &diagnostic) && copied.hasSamePayload(captured),
+              "copy build must retain the original frame-local template state");
+  captureCubes(builder, root, true); captureCubes(full, root, false);
+  CoinRenderFramePlan appended, fullAppended;
+  ok &= check(builder.build(appended, &diagnostic) && full.build(fullAppended, &diagnostic) &&
+              appended.vertices.size() == 48 && Access::cubeTemplates(builder) == 2 &&
+              expandCubeDraws(appended).hasSamePayload(expandCubeDraws(fullAppended)) && copied.hasSamePayload(captured),
+              "append after copy must reuse frame ranges while preserving independent snapshots and full callback semantics");
+
+  SoSeparator * child = new SoSeparator; child->ref();
+  auto * childCube = new SoCube; childCube->width = 9; child->addChild(childCube);
+  CoinRenderFramePlanBuilder nested; begin(nested); captureCubes(nested, child, true);
+  CoinRenderFramePlan childFrame; ok &= check(nested.build(childFrame, &diagnostic), "nested native Cube capture must build");
+  std::swap(builder, nested);
+  CoinRenderFramePlan movedMain, movedChild;
+  ok &= check(Access::cubeTemplates(builder) == 1 && Access::cubeTemplates(nested) == 2 &&
+              builder.build(movedChild, &diagnostic) && nested.build(movedMain, &diagnostic) &&
+              movedChild.hasSamePayload(childFrame) && movedMain.hasSamePayload(appended),
+              "shadow-style builder swap must move Cube templates together with their captured range arenas");
+  std::swap(builder, nested);
+  CoinRenderFramePlan transferred;
+  ok &= check(builder.build(transferred, &diagnostic, true) && transferred.hasSamePayload(appended) &&
+              Access::cubeTemplates(builder) == 0 && Access::cubeRanges(builder) == 0,
+              "transfer build must clear frame-local Cube ranges without changing transferred payload");
+  begin(builder); captureCubes(builder, child, true);
+  CoinRenderFramePlan next;
+  ok &= check(builder.build(next, &diagnostic) && Access::cubeTemplates(builder) == 1 && next.vertices.size() == 24 &&
+              transferred.hasSamePayload(appended), "new frame must learn fresh Cube ranges and preserve the transferred frame");
+
+  coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_CUBE_TEMPLATE_CACHE", "1");
+  begin(builder); captureCubes(builder, root, true);
+  CoinRenderFramePlan legacy;
+  ok &= check(builder.build(legacy, &diagnostic) && legacy.vertices.size() == 72 && Access::cubeTemplates(builder) == 1 &&
+              expandCubeDraws(legacy).hasSamePayload(expandCubeDraws(oracle)),
+              "Cube template optout must reproduce the legacy A/B/A source layout and exact rendered payload");
+  coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_CUBE_TEMPLATE_CACHE", "0");
+  begin(builder); captureCubes(builder, root, true);
+  CoinRenderFramePlan restored;
+  ok &= check(builder.build(restored, &diagnostic) && restored.vertices.size() == 48 && Access::cubeTemplates(builder) == 2,
+              "frame reset must re-enable the bounded template cache after an optout frame");
+  child->unref(); root->unref();
+  return ok;
 }
 bool materialInterning() {
   using Access = CoinRenderFramePlanBuilderTestAccess;
@@ -545,5 +669,5 @@ int main(int argc, char ** argv) {
   SoDB::init();
   CoinRenderAction::initClass();
   if (argc == 2 && std::string(argv[1]) == "--gpu") return gpu();
-  return materialInterning() && stateInterning() && capture() && lowerAndCache() && annotationTransport() ? 0 : 1;
+  return materialInterning() && cubeTemplateLifecycle() && stateInterning() && capture() && lowerAndCache() && annotationTransport() ? 0 : 1;
 }

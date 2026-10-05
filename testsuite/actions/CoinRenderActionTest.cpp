@@ -1215,6 +1215,216 @@ int testObjectMaterialGeometryOverlay() {
   return 0;
 }
 
+int testInterleavedCubeSourceOwnership() {
+  TranslationOverlayEnvironment environment;
+  struct TemplateEnvironment {
+    bool present;
+    std::string value;
+    TemplateEnvironment() {
+      const char * previous = std::getenv("COIN_RENDER_DISABLE_CUBE_TEMPLATE_CACHE");
+      present = previous != NULL; value = previous ? previous : "";
+      coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_CUBE_TEMPLATE_CACHE","0");
+    }
+    ~TemplateEnvironment() {
+      coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_CUBE_TEMPLATE_CACHE",present ? value.c_str() : NULL);
+    }
+  } templateEnvironment;
+  TranslationOverlayScene scene(3);
+  SoCube * cubes[3];
+  for (unsigned i = 0; i < 3; ++i) {
+    cubes[i] = new SoCube;
+    const float dimension = i == 1 ? 3 : 2;
+    cubes[i]->width = dimension; cubes[i]->height = dimension; cubes[i]->depth = dimension;
+    scene.objects[i]->replaceChild(2,cubes[i]);
+  }
+  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(1,1)));
+  TEST_ASSERT(target,"interleaved source ownership requires a CPU target shell");
+  auto * backend = new CameraOverlayTestBackend;
+  target->getPimpl()->backend.reset(backend); target->getPimpl()->depthReadbackEnabled = false;
+  CoinRenderAction action(SbViewportRegion(1,1)), full(SbViewportRegion(1,1));
+  action.setRenderTarget(target.get()); full.getPimpl()->planOnly = true;
+  action.apply(scene.root); full.apply(scene.root);
+  auto * p = &action.getPimpl().get();
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && p->translationProofValid &&
+              p->translationBindings.size() == 3,"three isolated sources must retain distinct occurrence states");
+  const auto & a = p->translationBindings[0].geometry, & b = p->translationBindings[1].geometry,
+             & c = p->translationBindings[2].geometry;
+  TEST_ASSERT(a.firstVertex == c.firstVertex && a.firstIndex == c.firstIndex && a.firstVertex != b.firstVertex &&
+              !p->cubeByNode.count(cubes[0]) && !p->cubeByNode.count(cubes[2]) && p->cubeByNode.count(cubes[1]) &&
+              sameObjectDrawPayload(p->lastValidPlan,full.getPimpl()->lastValidPlan),
+              "value-shared A/B/A ranges across independent Cube sources must reject writable geometry ownership");
+  const auto consumedA = [&](const CoinRenderFramePlan & plan) {
+    std::vector<CoinRenderVertexSnapshot> result;
+    const auto & draw = plan.draws[0];
+    for (uint32_t i = 0; i < draw.geometry.indexCount; ++i)
+      result.push_back(plan.vertices[plan.indices[draw.geometry.firstIndex+i]]);
+    return result;
+  };
+  const auto originalA = consumedA(p->lastValidPlan);
+  const uint64_t initialGeneration = p->translationProofGeneration;
+  cubes[2]->width = 2.5f;
+  action.apply(scene.root); full.apply(scene.root);
+  const auto afterA = consumedA(p->lastValidPlan);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS &&
+              backend->lastReuse.kind == CoinRenderFrameReuseKind::FULL_REBUILD &&
+              p->translationProofGeneration != initialGeneration && p->cubeByNode.count(cubes[2]) &&
+              originalA.size() == afterA.size() &&
+              std::memcmp(originalA.data(),afterA.data(),originalA.size()*sizeof(CoinRenderVertexSnapshot)) == 0 &&
+              sameObjectDrawPayload(p->lastValidPlan,full.getPimpl()->lastValidPlan),
+              "changing C alone must recapture its former alias safely, preserve A and readmit C's separate range");
+  const uint64_t readmittedGeneration = p->translationProofGeneration;
+  const uint64_t base = p->lastValidPlan.revision;
+  cubes[2]->height = 2.75f;
+  action.apply(scene.root); full.apply(scene.root);
+  TEST_ASSERT(backend->lastReuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD &&
+              backend->lastReuse.baseRevision == base && p->translationProofGeneration == readmittedGeneration &&
+              sameObjectDrawPayload(p->lastValidPlan,full.getPimpl()->lastValidPlan),
+              "a later C update must reuse only its readmitted exclusive range and match expanded full capture");
+  const auto previous = p->lastValidPlan;
+  cubes[2]->depth = 3.25f; backend->failNext = true; action.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::UNSUPPORTED && previous.hasSamePayload(p->lastValidPlan) &&
+              p->lastValidPlan.revision == previous.revision && p->geometryDirty.count(cubes[2]),
+              "failure after alias separation must restore the exclusive C range and retain it for retry");
+  action.apply(scene.root); full.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS &&
+              backend->lastReuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD &&
+              p->translationProofGeneration == readmittedGeneration &&
+              sameObjectDrawPayload(p->lastValidPlan,full.getPimpl()->lastValidPlan),
+              "retry of a formerly aliased source must preserve the readmitted proof and full capture semantics");
+  return 0;
+}
+
+int testObjectProofMemoization() {
+  TranslationOverlayEnvironment environment;
+  struct MemoEnvironment {
+    const char * flag = "COIN_RENDER_DISABLE_OBJECT_PROOF_MEMOIZATION";
+    bool present;
+    std::string value;
+    MemoEnvironment() {
+      const char * previous = std::getenv(flag);
+      present = previous != NULL; value = previous ? previous : "";
+      coinRenderTestSetEnvironment(flag,"0");
+    }
+    ~MemoEnvironment() { coinRenderTestSetEnvironment(flag,present ? value.c_str() : NULL); }
+  } memoEnvironment;
+  // Use the original per-occurrence path as an admission oracle. Qualification
+  // itself must neither change the plan nor depend on a prior invocation.
+  const auto equivalentProof = [&](CoinRenderActionP * action,
+                                   const std::unordered_map<const SoNode *, size_t> & visits) {
+    const auto plan = action->lastValidPlan;
+    const auto eligibility = [&]() {
+      std::vector<uint8_t> flags;
+      for (const auto & binding : action->translationBindings)
+        flags.push_back((binding.materialEligible ? 1 : 0) | (binding.geometryEligible ? 2 : 0));
+      return flags;
+    };
+    action->materialByNode.clear(); action->cubeByNode.clear();
+    coinRenderTestSetEnvironment(memoEnvironment.flag,"0");
+    action->qualifyObjectPayloads(visits);
+    const auto materialOwners = action->materialByNode, cubeOwners = action->cubeByNode;
+    const auto flags = eligibility();
+    action->materialByNode.clear(); action->cubeByNode.clear();
+    coinRenderTestSetEnvironment(memoEnvironment.flag,"1");
+    action->qualifyObjectPayloads(visits);
+    coinRenderTestSetEnvironment(memoEnvironment.flag,"0");
+    return materialOwners == action->materialByNode && cubeOwners == action->cubeByNode &&
+      flags == eligibility() && plan.hasSamePayload(action->lastValidPlan);
+  };
+  {
+    TranslationOverlayScene scene(6);
+    auto * second = new SoMaterial; second->diffuseColor.setValue(.2f,.6f,.4f);
+    auto * third = new SoMaterial; third->diffuseColor.setValue(.7f,.1f,.8f);
+    scene.objects[2]->replaceChild(0,second); scene.objects[3]->replaceChild(0,third);
+    std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(1,1)));
+    TEST_ASSERT(target,"memo proof test requires a CPU target shell");
+    target->getPimpl()->backend.reset(new CameraOverlayTestBackend);
+    target->getPimpl()->depthReadbackEnabled = false;
+    CoinRenderAction action(SbViewportRegion(1,1)); action.setRenderTarget(target.get()); action.apply(scene.root);
+    auto * p = &action.getPimpl().get();
+    TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && p->translationProofValid &&
+                p->translationBindings.size() == scene.objects.size(),
+                "shared source fixture must establish the complete occurrence proof");
+    std::unordered_map<const SoNode *, size_t> visits;
+    for (const auto & binding : p->translationBindings) ++visits[binding.material];
+    const auto original = p->lastValidPlan;
+    const auto bindings = p->translationBindings;
+    TEST_ASSERT(equivalentProof(p,visits) && p->materialByNode.count(scene.material) &&
+                p->materialByNode.count(second) && p->materialByNode.count(third) && p->cubeByNode.count(scene.cube),
+                "memoized shared-source admission must equal every original per-occurrence proof");
+    const auto & first = p->lastValidPlan.draws[bindings[0].firstDraw];
+    const uint32_t secondSlot = p->lastValidPlan.renderStates[bindings[2].stateSlot].materialSlot;
+    const uint32_t thirdSlot = p->lastValidPlan.renderStates[bindings[3].stateSlot].materialSlot;
+    p->lastValidPlan.vertices[p->lastValidPlan.indices[first.geometry.firstIndex]].materialSlot = secondSlot;
+    p->lastValidPlan.vertices[p->lastValidPlan.indices[first.geometry.firstIndex+1]].materialSlot = thirdSlot;
+    TEST_ASSERT(equivalentProof(p,visits) && !p->materialByNode.count(scene.material) &&
+                !p->materialByNode.count(second) && !p->materialByNode.count(third),
+                "shared nonuniform index spans must record ALL divergent material slots before memoizing");
+    p->lastValidPlan = original;
+    // Same consumed span, different expected slot: both sources conflict.
+    // The full geometry range stays valid; only material uniformity differs.
+    auto & secondDraw = p->lastValidPlan.draws[bindings[2].firstDraw];
+    secondDraw.geometry = p->lastValidPlan.draws[bindings[0].firstDraw].geometry;
+    p->translationBindings[2].geometry = secondDraw.geometry;
+    TEST_ASSERT(equivalentProof(p,visits) && !p->materialByNode.count(second) &&
+                !p->materialByNode.count(scene.material) && p->materialByNode.count(third),
+                "index memo keys must include the draw's expected material slot");
+    p->lastValidPlan = original; p->translationBindings = bindings;
+    // One Cube source has several ranges because materials remain in vertices.
+    // A late malformed range cannot inherit the first range's successful proof.
+    p->lastValidPlan.vertices[bindings[3].geometry.firstVertex+23].screenSpaceW = 2;
+    TEST_ASSERT(equivalentProof(p,visits) && !p->cubeByNode.count(scene.cube),
+                "a late bad vertex span must reject all occurrences of its shared Cube source");
+    p->lastValidPlan = original;
+    p->translationBindings.back().overallMaterial = false;
+    TEST_ASSERT(equivalentProof(p,visits) && !p->materialByNode.count(scene.material) &&
+                !p->cubeByNode.count(scene.cube),
+                "an unqualified late occurrence must reject its source after earlier memo hits");
+    p->translationBindings = bindings;
+    auto extraVisits = visits; ++extraVisits[scene.material];
+    TEST_ASSERT(equivalentProof(p,extraVisits) && !p->materialByNode.count(scene.material),
+                "memoization must retain rejection of unmapped material syntax");
+    scene.material->diffuseColor.setValue(.9f,.8f,.7f);
+    TEST_ASSERT(equivalentProof(p,visits) && !p->materialByNode.count(scene.material),
+                "a new qualification must reread changed source values despite identical slots and revision");
+    scene.material->diffuseColor.setValue(.5f,.3f,.2f);
+    scene.cube->width = 2.5f;
+    TEST_ASSERT(equivalentProof(p,visits) && !p->cubeByNode.count(scene.cube),
+                "a new qualification must reread dimensions despite identical ranges and revision");
+    scene.cube->width = 2;
+    TEST_ASSERT(equivalentProof(p,visits) && p->materialByNode.count(scene.material) && p->cubeByNode.count(scene.cube),
+                "local proof caches must expire and permit readmission after values are restored");
+  }
+  {
+    // Saturate both range caches and the source cache. Admission past the cap
+    // must still perform ordinary proofs, including a failing final source.
+    TranslationOverlayScene scene(1030);
+    std::vector<SoCube *> cubes;
+    for (unsigned i = 0; i < scene.objects.size(); ++i) {
+      auto * cube = new SoCube; cube->width = 2 + float(i)*.0009765625f;
+      scene.objects[i]->replaceChild(2,cube); cubes.push_back(cube);
+    }
+    std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(1,1)));
+    TEST_ASSERT(target,"bounded memo proof test requires a CPU target shell");
+    target->getPimpl()->backend.reset(new CameraOverlayTestBackend);
+    target->getPimpl()->depthReadbackEnabled = false;
+    CoinRenderAction action(SbViewportRegion(1,1)); action.setRenderTarget(target.get()); action.apply(scene.root);
+    auto * p = &action.getPimpl().get();
+    TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && p->translationProofValid &&
+                p->translationBindings.size() == cubes.size(),
+                "bounded fixture must retain all distinct captured object occurrences");
+    std::unordered_map<const SoNode *, size_t> visits;
+    for (const auto & binding : p->translationBindings) ++visits[binding.material];
+    TEST_ASSERT(equivalentProof(p,visits) && p->cubeByNode.size() == cubes.size(),
+                "sources beyond the optional memo cap must qualify equivalently through ordinary checks");
+    const auto & last = p->translationBindings.back();
+    p->lastValidPlan.vertices[last.geometry.firstVertex+23].position[0] *= .75f;
+    TEST_ASSERT(equivalentProof(p,visits) && p->cubeByNode.size() == cubes.size()-1 &&
+                !p->cubeByNode.count(cubes.back()) && p->cubeByNode.count(cubes.front()),
+                "a bad span beyond the memo cap must reject only its source and preserve earlier valid proofs");
+  }
+  return 0;
+}
+
 int testObjectPayloadAliasFallbacks() {
   TranslationOverlayEnvironment environment;
   for (int profile = 0; profile < 9; ++profile) {
@@ -1985,6 +2195,8 @@ int main() {
   if (testTranslationOverlayAndRollback()) { std::cerr << "testTranslationOverlayAndRollback failed" << std::endl; failed++; }
   if (testTranslationOverlayInvalidationAndOwnership()) { std::cerr << "testTranslationOverlayInvalidationAndOwnership failed" << std::endl; failed++; }
   if (testObjectMaterialGeometryOverlay()) { std::cerr << "testObjectMaterialGeometryOverlay failed" << std::endl; failed++; }
+  if (testInterleavedCubeSourceOwnership()) { std::cerr << "testInterleavedCubeSourceOwnership failed" << std::endl; failed++; }
+  if (testObjectProofMemoization()) { std::cerr << "testObjectProofMemoization failed" << std::endl; failed++; }
   if (testObjectPayloadAliasFallbacks()) { std::cerr << "testObjectPayloadAliasFallbacks failed" << std::endl; failed++; }
   if (testObjectPayloadInvalidationAndOptout()) { std::cerr << "testObjectPayloadInvalidationAndOptout failed" << std::endl; failed++; }
   if (testSharedCameraQualification()) { std::cerr << "testSharedCameraQualification failed" << std::endl; failed++; }

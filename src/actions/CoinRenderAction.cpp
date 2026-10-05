@@ -76,6 +76,7 @@
 #include <algorithm>
 #include <chrono>
 #include <memory>
+#include <new>
 #include <unordered_set>
 #include <cstdlib>
 #include <iostream>
@@ -91,6 +92,7 @@
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderSelectionCore.h"
+#include "rendering/coinrender/CoinRenderPhaseTimer.h"
 #include "actions/SoSubActionP.h"
 
 SO_ACTION_SOURCE(CoinRenderAction);
@@ -727,12 +729,14 @@ void CoinRenderActionP::endTranslationShape()
 
 void CoinRenderActionP::qualifyTranslationCapture(SoNode * root)
 {
+  CoinRenderPhaseTimer timer("object_qualification");
   struct CaptureScope { bool & capturing; ~CaptureScope() { capturing = false; } } scope{this->capturingTranslations};
   std::unordered_map<const SoNode *, size_t> materialVisits;
   if (!this->capturingTranslations || this->translationCaptureInvalid || this->translationCapture.empty() ||
       !root || !this->candidateCamera || this->lastValidPlan.renderStates.size() > 65536 ||
       this->lastValidPlan.draws.size() > 65536 ||
       !cameraStableScene(root, this->candidateCamera, true, &materialVisits)) return;
+  timer.mark("scene_profile");
   CoinRenderCameraOverlayBasis profile;
   if (!CoinRenderFrameReuseCore::prepareCameraOverlayBasis(this->lastValidPlan, profile)) return;
   const auto & plan = this->lastValidPlan;
@@ -747,6 +751,7 @@ void CoinRenderActionP::qualifyTranslationCapture(SoNode * root)
   for (const auto & draw : plan.draws)
     if (draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST || draw.renderLayer ||
         draw.clearDepthBefore || draw.shadowLightSlot || draw.lineStripId) return;
+  timer.mark("frame_profile");
   std::vector<size_t> owners(plan.renderStates.size(), SIZE_MAX);
   std::vector<size_t> drawOwners(plan.draws.size(), SIZE_MAX);
   for (size_t object = 0; object < this->translationCapture.size(); ++object) {
@@ -785,13 +790,57 @@ void CoinRenderActionP::qualifyTranslationCapture(SoNode * root)
   this->translationProofGeneration = this->translationGeneration;
   this->translationProofRevision = plan.revision;
   this->translationProofValid = true;
+  timer.mark("ownership");
   this->qualifyObjectPayloads(materialVisits);
+  timer.mark("payload");
 }
 
 void CoinRenderActionP::qualifyObjectPayloads(const std::unordered_map<const SoNode *, size_t> & materialVisits)
 {
   const auto & plan = this->lastValidPlan;
   if (plan.materials.size() > 65536 || this->capturedDrawSources.size() != plan.draws.size()) return;
+  // All proofs below are local to this immutable qualification. There is no
+  // revision-, pointer- or node-based reuse across captures. Ownership and
+  // syntactic occurrence checks still consume every draw/binding.
+  const bool memoEnabled = objectOverlayEnabled("COIN_RENDER_DISABLE_OBJECT_PROOF_MEMOIZATION");
+  constexpr size_t maxMemoEntries = 1024;
+  // Three hash caches charge at most 128 bytes per admitted entry, plus one
+  // byte per material slot: <=448 KiB optional temporary logical metadata.
+  struct IndexKey {
+    uint32_t first, count, material;
+    bool operator==(const IndexKey & other) const {
+      return first == other.first && count == other.count && material == other.material;
+    }
+  };
+  struct IndexHash {
+    size_t operator()(const IndexKey & key) const {
+      return (size_t(key.first)*16777619u ^ key.count)*16777619u ^ key.material;
+    }
+  };
+  struct VertexKey {
+    uint32_t first, count;
+    const SoNode * cube;
+    bool operator==(const VertexKey & other) const {
+      return first == other.first && count == other.count && cube == other.cube;
+    }
+  };
+  struct VertexHash {
+    size_t operator()(const VertexKey & key) const {
+      return (std::hash<const SoNode *>()(key.cube)*16777619u ^ key.first)*16777619u ^ key.count;
+    }
+  };
+  struct Dimensions { bool valid; SbVec3f value; };
+  std::unordered_set<IndexKey, IndexHash> checkedIndices;
+  std::unordered_map<const SoNode *, Dimensions> checkedDimensions;
+  std::unordered_map<VertexKey, bool, VertexHash> checkedVertices;
+  bool indexMemoEnabled = memoEnabled, dimensionsMemoEnabled = memoEnabled, vertexMemoEnabled = memoEnabled;
+  std::vector<uint8_t> checkedMaterials;
+  if (memoEnabled) {
+    try { checkedMaterials.resize(plan.materials.size(), 0); }
+    catch (const std::bad_alloc &) {} // Optional acceleration; ordinary proofs still run.
+  }
+  size_t materialChecks = 0, materialHits = 0, indexChecks = 0, indexHits = 0;
+  size_t dimensionsChecks = 0, dimensionsHits = 0, vertexChecks = 0, vertexHits = 0;
   std::vector<size_t> drawOwners(plan.draws.size(), SIZE_MAX);
   for (size_t i = 0; i < this->translationBindings.size(); ++i)
     drawOwners[this->translationBindings[i].firstDraw] = i;
@@ -804,10 +853,20 @@ void CoinRenderActionP::qualifyObjectPayloads(const std::unordered_map<const SoN
     if (!owner) materialConflicts[slot] = true;
     else if (!materialOwners[slot]) materialOwners[slot] = owner;
     else if (materialOwners[slot] != owner) materialConflicts[slot] = true;
-    // OVERALL must actually be uniform across every vertex consumed by this draw.
-    for (uint32_t index = 0; index < packet.geometry.indexCount; ++index) {
-      const uint32_t material = plan.vertices[plan.indices[packet.geometry.firstIndex + index]].materialSlot;
-      if (material != slot) { materialConflicts[slot] = true; materialConflicts[material] = true; }
+    // An exact consumed span/expected-slot proof can be shared, including its
+    // conflict side effects. A mismatching span must record EVERY other slot.
+    const IndexKey key{packet.geometry.firstIndex, packet.geometry.indexCount, slot};
+    if (indexMemoEnabled && checkedIndices.count(key)) ++indexHits;
+    else {
+      ++indexChecks;
+      for (uint32_t index = 0; index < packet.geometry.indexCount; ++index) {
+        const uint32_t material = plan.vertices[plan.indices[packet.geometry.firstIndex + index]].materialSlot;
+        if (material != slot) { materialConflicts[slot] = true; materialConflicts[material] = true; }
+      }
+      if (indexMemoEnabled && checkedIndices.size() < maxMemoEntries) {
+        try { checkedIndices.insert(key); }
+        catch (const std::bad_alloc &) { checkedIndices.clear(); indexMemoEnabled = false; }
+      }
     }
   }
   struct Range { uint64_t first, end; size_t draw; const SoNode * cube; };
@@ -818,25 +877,63 @@ void CoinRenderActionP::qualifyObjectPayloads(const std::unordered_map<const SoN
     ranges.push_back({range.firstVertex, uint64_t(range.firstVertex) + range.vertexCount, draw,
       drawOwners[draw] == SIZE_MAX ? NULL : this->translationBindings[drawOwners[draw]].cube});
   }
-  for (auto & binding : this->translationBindings) {
-    const auto & state = plan.renderStates[binding.stateSlot];
-    CoinRenderMaterialSnapshot material;
-    binding.materialEligible = binding.overallMaterial && !materialConflicts[state.materialSlot] &&
-      materialOwners[state.materialSlot] == binding.material &&
-      opaqueMaterialSnapshot(binding.material, material) &&
-      std::memcmp(&material, &plan.materials[state.materialSlot], sizeof(material)) == 0;
-    SbVec3f dimensions;
-    binding.geometryEligible = binding.overallMaterial && binding.geometry.vertexCount == 24 &&
-      binding.geometry.indexCount == 36 && cubeDimensions(static_cast<const SoCube *>(binding.cube), dimensions) &&
-      dimensions == binding.cubeDimensions;
-    if (binding.geometryEligible) {
-      for (uint32_t offset = 0; offset < binding.geometry.vertexCount; ++offset) {
-        const auto & vertex = plan.vertices[binding.geometry.firstVertex + offset];
-        for (int axis = 0; axis < 3; ++axis)
-          if (std::abs(vertex.position[axis]) != dimensions[axis] * .5f) binding.geometryEligible = false;
-        if (vertex.screenSpaceW != 1 || vertex.fogEyeDepth != -1) binding.geometryEligible = false;
+  const auto materialMatches = [&](uint32_t slot, const SoMaterial * source) {
+    if (!checkedMaterials.empty() && checkedMaterials[slot]) {
+      ++materialHits; return checkedMaterials[slot] == 1;
+    }
+    ++materialChecks;
+    CoinRenderMaterialSnapshot snapshot;
+    const bool valid = opaqueMaterialSnapshot(source, snapshot) &&
+      std::memcmp(&snapshot, &plan.materials[slot], sizeof(snapshot)) == 0;
+    if (!checkedMaterials.empty()) checkedMaterials[slot] = valid ? 1 : 2;
+    return valid;
+  };
+  const auto dimensionsFor = [&](const SoNode * source, SbVec3f & dimensions) {
+    if (dimensionsMemoEnabled) {
+      const auto found = checkedDimensions.find(source);
+      if (found != checkedDimensions.end()) {
+        ++dimensionsHits;
+        if (found->second.valid) dimensions = found->second.value;
+        return found->second.valid;
       }
     }
+    ++dimensionsChecks;
+    const bool valid = cubeDimensions(static_cast<const SoCube *>(source), dimensions);
+    if (dimensionsMemoEnabled && checkedDimensions.size() < maxMemoEntries) {
+      try { checkedDimensions.emplace(source, Dimensions{valid, valid ? dimensions : SbVec3f(0,0,0)}); }
+      catch (const std::bad_alloc &) { checkedDimensions.clear(); dimensionsMemoEnabled = false; }
+    }
+    return valid;
+  };
+  const auto verticesMatch = [&](const TranslationBinding & binding, const SbVec3f & dimensions) {
+    const VertexKey key{binding.geometry.firstVertex, binding.geometry.vertexCount, binding.cube};
+    if (vertexMemoEnabled) {
+      const auto found = checkedVertices.find(key);
+      if (found != checkedVertices.end()) { ++vertexHits; return found->second; }
+    }
+    ++vertexChecks;
+    bool valid = true;
+    for (uint32_t offset = 0; offset < binding.geometry.vertexCount; ++offset) {
+      const auto & vertex = plan.vertices[binding.geometry.firstVertex + offset];
+      for (int axis = 0; axis < 3; ++axis)
+        if (std::abs(vertex.position[axis]) != dimensions[axis] * .5f) valid = false;
+      if (vertex.screenSpaceW != 1 || vertex.fogEyeDepth != -1) valid = false;
+    }
+    if (vertexMemoEnabled && checkedVertices.size() < maxMemoEntries) {
+      try { checkedVertices.emplace(key, valid); }
+      catch (const std::bad_alloc &) { checkedVertices.clear(); vertexMemoEnabled = false; }
+    }
+    return valid;
+  };
+  for (auto & binding : this->translationBindings) {
+    const auto & state = plan.renderStates[binding.stateSlot];
+    binding.materialEligible = binding.overallMaterial && !materialConflicts[state.materialSlot] &&
+      materialOwners[state.materialSlot] == binding.material &&
+      materialMatches(state.materialSlot, binding.material);
+    SbVec3f dimensions;
+    binding.geometryEligible = binding.overallMaterial && binding.geometry.vertexCount == 24 &&
+      binding.geometry.indexCount == 36 && dimensionsFor(binding.cube, dimensions) &&
+      dimensions == binding.cubeDimensions && verticesMatch(binding, dimensions);
   }
   std::sort(ranges.begin(), ranges.end(), [](const Range & a, const Range & b) { return a.first < b.first; });
   for (size_t begin = 0; begin < ranges.size();) {
@@ -883,6 +980,11 @@ void CoinRenderActionP::qualifyObjectPayloads(const std::unordered_map<const SoN
   const size_t metadataBytes = this->translationBindings.size() * 80 +
     (this->materialByNode.size() + this->cubeByNode.size()) * 128;
   if (metadataBytes > 16 * 1024 * 1024) { this->materialByNode.clear(); this->cubeByNode.clear(); }
+  if (CoinRenderDiagnosticShell::phaseTracingEnabled())
+    std::fprintf(stderr, "COIN_RENDER_PHASE object_proof_cache memo_enabled=%d material_checks=%zu material_hits=%zu index_checks=%zu index_hits=%zu dimensions_checks=%zu dimensions_hits=%zu vertex_checks=%zu vertex_hits=%zu cached_index_spans=%zu cached_sources=%zu cached_vertex_spans=%zu\n",
+      memoEnabled ? 1 : 0, materialChecks, materialHits, indexChecks, indexHits,
+      dimensionsChecks, dimensionsHits, vertexChecks, vertexHits,
+      checkedIndices.size(), checkedDimensions.size(), checkedVertices.size());
 }
 
 bool CoinRenderActionP::prepareTranslationOverlay(SoNode * root, CoinRenderObjectOverlayUndo & undo)

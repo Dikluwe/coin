@@ -137,7 +137,8 @@ void
 CoinRenderFramePlanBuilder::reset()
 {
   this->endShape();
-  this->cubeGeometryCore.reset();
+  const char * disabledCubeTemplates = std::getenv("COIN_RENDER_DISABLE_CUBE_TEMPLATE_CACHE");
+  this->cubeGeometryCore.reset(!(disabledCubeTemplates && std::strcmp(disabledCubeTemplates, "1") == 0));
   this->cubeReplayHits = 0;
   this->polygonNode = nullptr;
   this->polygonVertices.clear();
@@ -246,7 +247,8 @@ CoinRenderFramePlanBuilder::replayNativeCube(SoCallbackAction * action, SoNode *
   this->captureSortingCenter(action);
   const uint32_t materialSlot = this->currentPlan.renderStates[stateSlot].materialSlot;
   auto & draw = this->currentPlan.draws[this->currentDrawIndex];
-  this->cubeGeometryCore.replay(this->currentPlan, draw, materialSlot);
+  if (!this->cubeGeometryCore.replay(this->currentPlan, draw, materialSlot,
+                                    this->cubeCaptureDimensions, this->cubeCaptureNormalBinding)) return false;
   this->captureCubeTemplate = false;
   ++this->cubeReplayHits;
   return true;
@@ -1400,14 +1402,18 @@ CoinRenderFramePlanBuilder::build(CoinRenderFramePlan & outPlan, std::string * o
   timer.mark("composition");
   if (CoinRenderDiagnosticShell::phaseTracingEnabled()) {
     const auto & plan = this->currentPlan;
-    std::fprintf(stderr, "COIN_RENDER_PHASE plan_storage vertices=%zu indices=%zu render_states=%zu draws=%zu vertex_stride=%zu vertex_bytes=%zu vertex_capacity_bytes=%zu index_bytes=%zu index_capacity_bytes=%zu render_state_bytes=%zu render_state_capacity_bytes=%zu draw_capacity_bytes=%zu capture_reserve_estimate=%zu transfer_ownership=%d cube_replay_hits=%llu\n",
+    std::fprintf(stderr, "COIN_RENDER_PHASE plan_storage vertices=%zu indices=%zu render_states=%zu draws=%zu vertex_stride=%zu vertex_bytes=%zu vertex_capacity_bytes=%zu index_bytes=%zu index_capacity_bytes=%zu render_state_bytes=%zu render_state_capacity_bytes=%zu draw_capacity_bytes=%zu capture_reserve_estimate=%zu transfer_ownership=%d cube_replay_hits=%llu cube_template_entries=%zu cube_range_entries=%zu cube_template_evictions=%llu cube_range_evictions=%llu cube_range_reuse_hits=%llu\n",
       plan.vertices.size(), plan.indices.size(), plan.renderStates.size(), plan.draws.size(),
       sizeof(CoinRenderVertexSnapshot), plan.vertices.size() * sizeof(CoinRenderVertexSnapshot),
       plan.vertices.capacity() * sizeof(CoinRenderVertexSnapshot), plan.indices.size() * sizeof(uint32_t),
       plan.indices.capacity() * sizeof(uint32_t), plan.renderStates.size() * sizeof(CoinRenderRenderStateSnapshot),
       plan.renderStates.capacity() * sizeof(CoinRenderRenderStateSnapshot),
       plan.draws.capacity() * sizeof(CoinRenderDrawPacket), this->captureReserveEstimate,
-      transferOwnership ? 1 : 0, static_cast<unsigned long long>(this->cubeReplayHits));
+      transferOwnership ? 1 : 0, static_cast<unsigned long long>(this->cubeReplayHits),
+      this->cubeGeometryCore.templateCount(), this->cubeGeometryCore.rangeCount(),
+      static_cast<unsigned long long>(this->cubeGeometryCore.templateEvictionCount()),
+      static_cast<unsigned long long>(this->cubeGeometryCore.rangeEvictionCount()),
+      static_cast<unsigned long long>(this->cubeGeometryCore.rangeReuseCount()));
   }
   timer.mark("storage_report");
   if (transferOwnership) {

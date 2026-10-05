@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <new>
 
 namespace {
 uint64_t modelMatrixKey(const SbMatrix & matrix)
@@ -304,69 +305,151 @@ void CoinRenderPlanAssemblyCore::appendIndexed(CoinRenderFramePlan & plan, CoinR
     static_cast<uint32_t>(transformed.indices.size());
 }
 
-void CoinRenderCubeGeometryCore::learn(const CoinRenderFramePlan & plan, size_t firstVertex, size_t firstIndex, size_t firstDraw, const float (&newDimensions)[3], int newNormalBinding) {
-  if (plan.vertices.size() == firstVertex + 24 &&
-      plan.indices.size() == firstIndex + 36 &&
-      plan.draws.size() == firstDraw + 1) {
-    bool local = true;
-    for (size_t i = 0; i < 36; ++i) {
-      const size_t index = plan.indices[firstIndex + i];
-      if (index < firstVertex || index >= firstVertex + 24) local = false;
-    }
-    if (local) {
-      std::copy_n(plan.vertices.begin() + firstVertex, 24,
-                  vertices);
-      for (size_t i = 0; i < 36; ++i)
-        indices[i] = plan.indices[firstIndex + i] -
-          static_cast<uint32_t>(firstVertex);
-      std::copy_n(newDimensions, 3, dimensions);
-      normalBinding = newNormalBinding;
-      ready = true;
-      meshes.clear();
-      meshes.push_back({vertices[0].materialSlot,
-        static_cast<uint32_t>(firstVertex),
-        static_cast<uint32_t>(firstIndex)});
-    }
+void CoinRenderCubeGeometryCore::reset(bool useTemplateCache) {
+  templates.clear(); templateCache = useTemplateCache; disabled = false;
+  clock = templateEvictions = rangeEvictions = rangeReuseHits = 0;
+}
+
+const CoinRenderCubeGeometryCore::Template * CoinRenderCubeGeometryCore::find(
+  const float (&dimensions)[3], int normalBinding) const {
+  if (disabled) return nullptr;
+  for (const auto & entry : templates)
+    if (entry.normalBinding == normalBinding &&
+        std::memcmp(entry.dimensions, dimensions, sizeof(entry.dimensions)) == 0) return &entry;
+  return nullptr;
+}
+CoinRenderCubeGeometryCore::Template * CoinRenderCubeGeometryCore::find(
+  const float (&dimensions)[3], int normalBinding) {
+  return const_cast<Template *>(static_cast<const CoinRenderCubeGeometryCore *>(this)->find(dimensions, normalBinding));
+}
+size_t CoinRenderCubeGeometryCore::rangeCount() const {
+  size_t count = 0;
+  for (const auto & entry : templates) count += entry.meshes.size();
+  return count;
+}
+void CoinRenderCubeGeometryCore::rememberRange(Template & entry, uint32_t material, uint32_t vertex, uint32_t index) {
+  for (auto & range : entry.meshes) if (range.materialSlot == material) {
+    range.lastUsed = clock; return;
+  }
+  const size_t limit = templateCache ? RANGE_LIMIT : LEGACY_RANGE_LIMIT;
+  if (entry.meshes.size() < limit) entry.meshes.emplace_back(material, vertex, index, clock);
+  else if (templateCache) {
+    auto oldest = std::min_element(entry.meshes.begin(), entry.meshes.end(),
+      [](const Geometry & a, const Geometry & b) { return a.lastUsed < b.lastUsed; });
+    *oldest = Geometry(material, vertex, index, clock); ++rangeEvictions;
   }
 }
 
-bool CoinRenderCubeGeometryCore::matches(const float (&newDimensions)[3], int newNormalBinding) const {
-  return ready && normalBinding == newNormalBinding && std::memcmp(dimensions, newDimensions, sizeof(dimensions)) == 0;
+void CoinRenderCubeGeometryCore::learn(const CoinRenderFramePlan & plan, size_t firstVertex, size_t firstIndex,
+  size_t firstDraw, const float (&dimensions)[3], int normalBinding) {
+  static_assert(sizeof(Template) * TEMPLATE_LIMIT + sizeof(Geometry) * TEMPLATE_LIMIT * RANGE_LIMIT < 256 * 1024,
+                "Cube template metadata and captured payload must stay below 256 KiB");
+  if (disabled || clock == UINT64_MAX || firstVertex > plan.vertices.size() ||
+      plan.vertices.size() - firstVertex != 24 || firstIndex > plan.indices.size() ||
+      plan.indices.size() - firstIndex != 36 || firstDraw > plan.draws.size() ||
+      plan.draws.size() - firstDraw != 1) return;
+  const uint32_t material = plan.vertices[firstVertex].materialSlot;
+  for (size_t i = 0; i < 24; ++i) if (plan.vertices[firstVertex + i].materialSlot != material) return;
+  for (size_t i = 0; i < 36; ++i)
+    if (plan.indices[firstIndex + i] < firstVertex || plan.indices[firstIndex + i] >= firstVertex + 24) return;
+  try {
+    Template * entry = find(dimensions, normalBinding);
+    // A complete native snapshot must agree with an existing key, apart from
+    // its uniform material slot. An unexpected attribute change declines reuse.
+    if (entry && templateCache) {
+      for (size_t i = 0; i < 24; ++i) {
+        auto vertex = plan.vertices[firstVertex + i]; vertex.materialSlot = entry->vertices[i].materialSlot;
+        if (std::memcmp(&vertex, &entry->vertices[i], sizeof(vertex)) != 0) {
+          templates.clear(); disabled = true; return;
+        }
+      }
+      for (size_t i = 0; i < 36; ++i) if (plan.indices[firstIndex + i] - firstVertex != entry->indices[i]) {
+        templates.clear(); disabled = true; return;
+      }
+    }
+    if (!entry || !templateCache) {
+      const size_t limit = templateCache ? TEMPLATE_LIMIT : 1;
+      if (templates.capacity() < limit) templates.reserve(limit);
+      if (templates.size() < limit) { templates.emplace_back(); entry = &templates.back(); }
+      else {
+        entry = &*std::min_element(templates.begin(), templates.end(),
+          [](const Template & a, const Template & b) { return a.lastUsed < b.lastUsed; });
+        ++templateEvictions;
+      }
+      entry->meshes.clear();
+      entry->meshes.reserve(templateCache ? RANGE_LIMIT : LEGACY_RANGE_LIMIT);
+      std::copy_n(plan.vertices.begin() + firstVertex, 24, entry->vertices);
+      for (size_t i = 0; i < 36; ++i) entry->indices[i] = plan.indices[firstIndex + i] - static_cast<uint32_t>(firstVertex);
+      std::copy_n(dimensions, 3, entry->dimensions); entry->normalBinding = normalBinding;
+    }
+    entry->lastUsed = ++clock;
+    rememberRange(*entry, material, static_cast<uint32_t>(firstVertex), static_cast<uint32_t>(firstIndex));
+  } catch (const std::bad_alloc &) { templates.clear(); disabled = true; }
 }
-void CoinRenderCubeGeometryCore::replay(CoinRenderFramePlan & plan, CoinRenderDrawPacket & draw, uint32_t materialSlot) {
+
+bool CoinRenderCubeGeometryCore::matches(const float (&dimensions)[3], int normalBinding) const {
+  return clock != UINT64_MAX && find(dimensions, normalBinding);
+}
+bool CoinRenderCubeGeometryCore::replay(CoinRenderFramePlan & plan, CoinRenderDrawPacket & draw, uint32_t materialSlot,
+  const float (&dimensions)[3], int normalBinding) {
+  Template * entry = find(dimensions, normalBinding);
+  if (!entry || clock == UINT64_MAX) return false;
+  entry->lastUsed = ++clock;
   if (draw.geometry.indexCount == 0) {
-    for (const auto & geometry : meshes) {
+    for (auto & geometry : entry->meshes) {
       if (geometry.materialSlot != materialSlot) continue;
       draw.geometry.firstVertex = geometry.firstVertex;
       draw.geometry.vertexCount = 24;
       draw.geometry.firstIndex = geometry.firstIndex;
       draw.geometry.indexCount = 36;
-      return;
+      geometry.lastUsed = clock; ++rangeReuseHits;
+      return true;
     }
   }
   // Consecutive identical cubes still form one draw. Repeat its indices,
   // rather than widening the vertex range through unrelated shared meshes.
   if (draw.geometry.vertexCount == 24) {
-    for (const auto & geometry : meshes) {
+    for (auto & geometry : entry->meshes) {
       if (geometry.materialSlot != materialSlot || geometry.firstVertex != draw.geometry.firstVertex) continue;
-      for (const uint32_t index : indices)
+      CoinRenderPlanAssemblyCore::makeIndicesAppendable(plan, draw.geometry);
+      for (const uint32_t index : entry->indices)
         plan.indices.push_back(geometry.firstVertex + index);
       draw.geometry.indexCount += 36;
-      return;
+      geometry.lastUsed = clock; ++rangeReuseHits;
+      return true;
+    }
+    // LRU eviction removes metadata, never an earlier packet's payload. A
+    // packet can still own this exact 24-vertex range after its cache row left.
+    const auto & range = draw.geometry;
+    bool exact = templateCache && size_t(range.firstVertex) + 24 <= plan.vertices.size() && range.indexCount >= 36 &&
+      size_t(range.firstIndex) + 36 <= plan.indices.size();
+    for (size_t i = 0; exact && i < 24; ++i) {
+      auto expected = entry->vertices[i]; expected.materialSlot = materialSlot;
+      exact = std::memcmp(&plan.vertices[range.firstVertex + i], &expected, sizeof(expected)) == 0;
+    }
+    for (size_t i = 0; exact && i < 36; ++i)
+      exact = plan.indices[range.firstIndex + i] == range.firstVertex + entry->indices[i];
+    if (exact) {
+      CoinRenderPlanAssemblyCore::makeIndicesAppendable(plan, draw.geometry);
+      for (const uint32_t index : entry->indices) plan.indices.push_back(draw.geometry.firstVertex + index);
+      draw.geometry.indexCount += 36; ++rangeReuseHits;
+      return true;
     }
   }
   const bool newDraw = draw.geometry.indexCount == 0;
   const uint32_t base = static_cast<uint32_t>(plan.vertices.size());
   const uint32_t firstIndex = static_cast<uint32_t>(plan.indices.size());
   plan.vertices.insert(plan.vertices.end(),
-      vertices, vertices + 24);
+      entry->vertices, entry->vertices + 24);
   for (size_t i = base; i < plan.vertices.size(); ++i)
     plan.vertices[i].materialSlot = materialSlot;
-  for (const uint32_t index : indices)
+  for (const uint32_t index : entry->indices)
     plan.indices.push_back(base + index);
   draw.geometry.vertexCount = static_cast<uint32_t>(plan.vertices.size()) - draw.geometry.firstVertex;
   draw.geometry.indexCount += 36;
-  if (newDraw && meshes.size() < 32)
-    meshes.push_back({materialSlot, base, firstIndex});
-  return;
+  if (newDraw) {
+    try { rememberRange(*entry, materialSlot, base, firstIndex); }
+    catch (const std::bad_alloc &) { templates.clear(); disabled = true; }
+  }
+  return true;
 }
