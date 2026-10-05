@@ -1,0 +1,100 @@
+Internal ctest changing into directory: H:/Git/coin/build/coin-render-wgpu-msvc
+Test project H:/Git/coin/build/coin-render-wgpu-msvc
+      Start  13: CoinRenderActionTest
+ 1/38 Test  #13: CoinRenderActionTest .....................   Passed    3.47 sec
+      Start  14: CoinRenderBackendBoundaryTest
+ 2/38 Test  #14: CoinRenderBackendBoundaryTest ............   Passed    0.21 sec
+      Start  15: CoinRenderRuntimeBoundaryTest
+ 3/38 Test  #15: CoinRenderRuntimeBoundaryTest ............   Passed    0.09 sec
+      Start  16: CoinRenderPlanAssemblyCoreTest
+ 4/38 Test  #16: CoinRenderPlanAssemblyCoreTest ...........   Passed    0.14 sec
+      Start  17: CoinRenderTransformCoreTest
+ 5/38 Test  #17: CoinRenderTransformCoreTest ..............   Passed    0.09 sec
+      Start  18: CoinRenderCameraReuseReferenceTest
+ 6/38 Test  #18: CoinRenderCameraReuseReferenceTest .......***Skipped   0.09 sec
+      Start  24: CoinRenderFrameCoreTest
+ 7/38 Test  #24: CoinRenderFrameCoreTest ..................   Passed    0.15 sec
+      Start  28: CoinRenderFrameReuseCoreTest
+ 8/38 Test  #28: CoinRenderFrameReuseCoreTest .............   Passed    1.26 sec
+      Start  33: CoinRenderIndexedFastPathTest
+ 9/38 Test  #33: CoinRenderIndexedFastPathTest ............   Passed    0.99 sec
+      Start  34: CoinWgpuCacheTest
+10/38 Test  #34: CoinWgpuCacheTest ........................   Passed    2.43 sec
+      Start  35: CoinRenderStabilizationTest
+11/38 Test  #35: CoinRenderStabilizationTest ..............***Exception: SegFault  1.85 sec
+Running CoinRenderStabilizationTest (Onda 2F Concurrency, Packet Separation, Exact Hash & Budget)...
+-> Test 1: Strict completion serial order with pending GPU work...
+   [PASS] Test 1: Strict completion serial order verified
+-> Test 2: Separation of multiple occurrences with identical state in frame...
+   [PASS] Test 2: Separation of multiple occurrences verified
+-> Test 3: Canonical vertex serialization hash fidelity...
+   [PASS] Test 3: Canonical hash fidelity verified
+-> Test 4: Eviction of removed shapes with active key protection...
+   [PASS] Test 4: Eviction of removed shapes verified
+-> Test 5: Cache geometry budget (LRU) and transactional rollback...
+
+      Start  36: CoinRenderBenchmarkAnimationTest
+12/38 Test  #36: CoinRenderBenchmarkAnimationTest .........   Passed    0.13 sec
+      Start  37: CoinRenderMaterialTest
+13/38 Test  #37: CoinRenderMaterialTest ...................   Passed    1.33 sec
+      Start  38: CoinRenderTextureTest
+14/38 Test  #38: CoinRenderTextureTest ....................   Passed    6.73 sec
+      Start  39: CoinRenderLightingTest
+15/38 Test  #39: CoinRenderLightingTest ...................   Passed    3.75 sec
+      Start  40: CoinRenderGouraudInterpolationTest
+16/38 Test  #40: CoinRenderGouraudInterpolationTest .......   Passed    1.09 sec
+      Start  41: CoinRenderFogTest
+17/38 Test  #41: CoinRenderFogTest ........................   Passed    6.04 sec
+      Start  42: CoinRenderClipPlaneTest
+18/38 Test  #42: CoinRenderClipPlaneTest ..................   Passed    5.04 sec
+      Start  43: CoinRenderDrawStyleTest
+19/38 Test  #43: CoinRenderDrawStyleTest ..................   Passed   53.42 sec
+      Start  44: CoinRenderMultitextureTest
+20/38 Test  #44: CoinRenderMultitextureTest ...............   Passed   10.89 sec
+      Start  45: CoinRenderPeelingTest
+21/38 Test  #45: CoinRenderPeelingTest ....................   Passed    7.71 sec
+      Start  46: CoinRenderWeightedOitTest
+22/38 Test  #46: CoinRenderWeightedOitTest ................   Passed    4.85 sec
+      Start  47: CoinRenderTransparencyTest
+23/38 Test  #47: CoinRenderTransparencyTest ...............   Passed   25.20 sec
+      Start  48: CoinRenderCompositionTest
+24/38 Test  #48: CoinRenderCompositionTest ................   Passed    7.20 sec
+      Start  49: CoinRenderAnnotationTest
+25/38 Test  #49: CoinRenderAnnotationTest .................   Passed    1.42 sec
+      Start  92: CoinRenderMultiTargetDirectTest
+26/38 Test  #92: CoinRenderMultiTargetDirectTest ..........   Passed    5.92 sec
+      Start  94: CoinRenderRttOwnershipTest
+27/38 Test  #94: CoinRenderRttOwnershipTest ...............   Passed    0.71 sec
+      Start  97: CoinRenderSceneTextureDirectTest
+28/38 Test  #97: CoinRenderSceneTextureDirectTest .........   Passed   32.00 sec
+      Start  98: CoinRenderSceneTextureBudgetDirectTest
+29/38 Test  #98: CoinRenderSceneTextureBudgetDirectTest ...   Passed    0.81 sec
+      Start  99: CoinWgpuFfiFrameTest
+30/38 Test  #99: CoinWgpuFfiFrameTest .....................   Passed    1.57 sec
+      Start 100: CoinWgpuLargeBindingsTest
+31/38 Test #100: CoinWgpuLargeBindingsTest ................   Passed    3.53 sec
+      Start 101: CoinRenderPerformanceTest
+32/38 Test #101: CoinRenderPerformanceTest ................   Passed    4.68 sec
+      Start 102: CoinRenderAsyncReadbackTest
+33/38 Test #102: CoinRenderAsyncReadbackTest ..............   Passed    1.44 sec
+      Start 103: CoinWgpuMultiDeviceTest
+34/38 Test #103: CoinWgpuMultiDeviceTest ..................   Passed   22.74 sec
+      Start 104: WgpuMultiDeviceStressTest
+35/38 Test #104: WgpuMultiDeviceStressTest ................   Passed   16.93 sec
+      Start 105: CoinRenderAsyncActionTest
+36/38 Test #105: CoinRenderAsyncActionTest ................   Passed    3.37 sec
+      Start 106: CoinRenderAsyncActionDirectTest
+37/38 Test #106: CoinRenderAsyncActionDirectTest ..........   Passed    9.43 sec
+      Start 107: CoinRenderAsyncActionDirectStressTest
+38/38 Test #107: CoinRenderAsyncActionDirectStressTest ....   Passed   15.65 sec
+
+97% tests passed, 1 tests failed out of 38
+
+Total Test time (real) = 264.51 sec
+
+The following tests did not run:
+	 18 - CoinRenderCameraReuseReferenceTest (Skipped)
+
+The following tests FAILED:
+	 35 - CoinRenderStabilizationTest (SEGFAULT)
+Errors while running CTest

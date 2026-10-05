@@ -1,0 +1,16 @@
+startup_detail arguments_ms=0.0591 coin_init_ms=4.4678 capability_probe_ms=426.969
+scene_detail parse_ms=943.341 wrapper_ms=0.0176 camera_fit_ms=160.624
+scene_load_ms=1104.69
+startup_detail material_search_ms=0.1774 target_setup_ms=24.7158
+WebGPU_first_detail render_ms=1480.06 publication_copy_ms=1.9006 before_frame_since_main_ms=1562.86 result_since_main_ms=3044.82
+WebGPU_first_frame_ms=1481.97
+rgba_fnv64=0x6714299260985122
+image=H:\Git\coin\build\linux-updates-windows-20261005\static-wgpu-vulkan-before-3.ppm
+adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) vendor_id=0x10de device_id=0x1c03 backend=wgpu size=1024x1024 warmup=30 scene=H:\Git\coin\build\large-scenes\city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static
+WebGPU frames=120 median_ms=30.8793 p95_ms=52.5826 min_ms=24.5617 max_ms=78.7682
+WebGPU_render frames=120 median_ms=30.0638 p95_ms=50.7788 min_ms=24.0018 max_ms=78.265
+WebGPU_copy frames=120 median_ms=0.5599 p95_ms=1.0987 min_ms=0.4541 max_ms=5.0246
+WebGPU_throughput frames=120 total_ms=4156.3 fps=28.8718
+WebGPU_cache last_frame_uploads=0 last_frame_uploaded_bytes=0 last_frame_hits=1 cumulative_uploads=1 cumulative_uploaded_bytes=101762544 cumulative_hits=149
+backend_cleanup_begin
+backend_cleanup_ms=58.9197

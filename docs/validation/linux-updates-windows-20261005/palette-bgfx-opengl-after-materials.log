@@ -1,0 +1,27 @@
+startup_detail arguments_ms=0.0608 coin_init_ms=2.0559 capability_probe_ms=397.193
+scene_detail parse_ms=1457.2 wrapper_ms=0.067 camera_fit_ms=190.341
+scene_load_ms=1648.44
+animation_detail mode=materials animated_percent=10 eligible=40000 selected=4000 prepared_clones=4000 prepare_ms=275.951 frame_step=120 time_step_seconds=2 selection_fnv64=0x44ab2b433838fad2
+startup_detail material_search_ms=0.1896 target_setup_ms=1.4802
+BGFX-OpenGL_first_detail render_ms=1410.03 publication_copy_ms=1.1828 update_ms=6.4208 total_with_update_ms=1417.64 before_frame_since_main_ms=2333.34 result_since_main_ms=3744.56
+BGFX-OpenGL_first_frame_ms=1411.22
+capture backend=BGFX-OpenGL frame_index=0 logical_frame=0 rgba_fnv64=0x10686d929880d81 rgb_fnv64=0x305fd5896f86e1db state_fnv64=0x7cbdb975ae97da81 image=H:\Git\coin\build\linux-updates-windows-20261005\palette-bgfx-opengl-BGFX-OpenGL-000000.ppm
+capture backend=BGFX-OpenGL frame_index=1 logical_frame=120 rgba_fnv64=0xd3ea6a3016170c1e rgb_fnv64=0x6fff1bc208e64248 state_fnv64=0xebe27edfb104350c image=H:\Git\coin\build\linux-updates-windows-20261005\palette-bgfx-opengl-BGFX-OpenGL-000001.ppm
+capture backend=BGFX-OpenGL frame_index=2 logical_frame=240 rgba_fnv64=0xf1d3f43fffc48ec4 rgb_fnv64=0x6187669c58af1f04 state_fnv64=0xd8afe273874466fd image=H:\Git\coin\build\linux-updates-windows-20261005\palette-bgfx-opengl-BGFX-OpenGL-000002.ppm
+capture backend=BGFX-OpenGL frame_index=3 logical_frame=360 rgba_fnv64=0x3bcd7323ea43c4e8 rgb_fnv64=0x9769737c691f501c state_fnv64=0x4871f85df89a74f1 image=H:\Git\coin\build\linux-updates-windows-20261005\palette-bgfx-opengl-BGFX-OpenGL-000003.ppm
+capture backend=BGFX-OpenGL frame_index=4 logical_frame=480 rgba_fnv64=0x34ff977b8ff1bfb1 rgb_fnv64=0x49239867cd4f2c45 state_fnv64=0xebeaa268cb622ecf image=H:\Git\coin\build\linux-updates-windows-20261005\palette-bgfx-opengl-BGFX-OpenGL-000004.ppm
+BGFX-OpenGL_animation_final logical_frame=480 state_fnv64=0xebeaa268cb622ecf
+samples_output=H:\Git\coin\build\linux-updates-windows-20261005\palette-bgfx-opengl.csv rows=7
+rgba_fnv64=0x34ff977b8ff1bfb1
+image=H:\Git\coin\build\linux-updates-windows-20261005\palette-bgfx-opengl-after-materials.ppm
+adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) vendor_id=0x10de device_id=0x0 backend=bgfx size=1024x1024 warmup=2 scene=H:\Git\coin\build\linux-updates-windows-20261005\city-materials-40001.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=materials
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..4 warmup_indices=-2..-1 frame_step=120 captures=5 capture_io=outside_frame_timers wall_throughput_includes_capture=1 wall_throughput_scope=update+frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+BGFX-OpenGL frames=5 median_ms=297.254 p95_ms=309.701 min_ms=241.406 max_ms=309.701
+BGFX_render_and_readback frames=5 median_ms=296.534 p95_ms=309.077 min_ms=240.894 max_ms=309.077
+BGFX_publication_copy frames=5 median_ms=0.6244 p95_ms=0.7203 min_ms=0.5116 max_ms=0.7203
+BGFX-OpenGL_timing_total frames=5 median_ms=315.5289 p95_ms=327.6096 p99_ms=327.6096 max_ms=327.6096 over_16_67=5 over_33_33=5
+BGFX-OpenGL_timing_update frames=5 median_ms=18.2749 p95_ms=21.5779 p99_ms=21.5779 max_ms=21.5779 over_16_67=5 over_33_33=0
+BGFX-OpenGL_timing_render frames=5 median_ms=296.5337 p95_ms=309.0765 p99_ms=309.0765 max_ms=309.0765 over_16_67=5 over_33_33=5
+BGFX-OpenGL_throughput frames=5 total_ms=1565.49 fps=3.19389
+backend_cleanup_begin
+backend_cleanup_ms=46.4192

@@ -339,6 +339,9 @@ int main() {
     TEST_ASSERT(action.getLastStatus() != CoinRenderAction::SUCCESS, "Apply must fail under simulated OOM");
 
     // Target entered error state; replace target with fresh healthy target to test cache integrity
+    // The action borrows the target; detach while it is still alive before
+    // destroying it, so setRenderTarget() can release connector state safely.
+    action.setRenderTarget(nullptr);
     delete target;
     target = CoinRenderTarget::createOffscreen(SbVec2i32(128, 128));
     action.setRenderTarget(target);

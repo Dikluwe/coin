@@ -1,0 +1,28 @@
+startup_detail arguments_ms=0.0755 coin_init_ms=2.3185 capability_probe_ms=342.733
+scene_detail parse_ms=425.806 wrapper_ms=0.0173 camera_fit_ms=108.694
+scene_load_ms=534.634
+animation_detail mode=geometry animated_percent=10 eligible=40000 selected=4000 prepared_clones=4000 prepare_ms=68.1671 frame_step=120 time_step_seconds=2 selection_fnv64=0x44ab2b433838fad2
+startup_detail material_search_ms=0.1547 target_setup_ms=3.0646
+WebGPU_first_detail render_ms=678.039 publication_copy_ms=1.1921 update_ms=6.6665 total_with_update_ms=685.897 before_frame_since_main_ms=959.153 result_since_main_ms=1638.38
+WebGPU_first_frame_ms=679.231
+capture backend=WebGPU frame_index=0 logical_frame=0 rgba_fnv64=0xe41bbb099209bb57 rgb_fnv64=0xeafb2ad706ce52e1 state_fnv64=0x75f7670fb48704ed image=H:\Git\coin\build\linux-updates-windows-20261005\animation-wgpu-vulkan-geometry-WebGPU-000000.ppm
+capture backend=WebGPU frame_index=1 logical_frame=120 rgba_fnv64=0x2abfb94ebf19679f rgb_fnv64=0xde14cfecf2a5adf7 state_fnv64=0x58d72ae2a30bddd6 image=H:\Git\coin\build\linux-updates-windows-20261005\animation-wgpu-vulkan-geometry-WebGPU-000001.ppm
+capture backend=WebGPU frame_index=2 logical_frame=240 rgba_fnv64=0x3d47b5f11c34d73e rgb_fnv64=0x6dbc3cc67a367294 state_fnv64=0xebf4e6f4a6ca1bd2 image=H:\Git\coin\build\linux-updates-windows-20261005\animation-wgpu-vulkan-geometry-WebGPU-000002.ppm
+capture backend=WebGPU frame_index=3 logical_frame=360 rgba_fnv64=0x8922ecea47ef62d5 rgb_fnv64=0x7581a7022321735f state_fnv64=0xfa756c3e759f0b image=H:\Git\coin\build\linux-updates-windows-20261005\animation-wgpu-vulkan-geometry-WebGPU-000003.ppm
+capture backend=WebGPU frame_index=4 logical_frame=480 rgba_fnv64=0xc5b6af56aa90735d rgb_fnv64=0x7ae797fab33d66af state_fnv64=0x7800206702b85839 image=H:\Git\coin\build\linux-updates-windows-20261005\animation-wgpu-vulkan-geometry-WebGPU-000004.ppm
+WebGPU_animation_final logical_frame=480 state_fnv64=0x7800206702b85839
+samples_output=H:\Git\coin\build\linux-updates-windows-20261005\animation-wgpu-vulkan-geometry.csv rows=7
+rgba_fnv64=0xc5b6af56aa90735d
+image=H:\Git\coin\build\linux-updates-windows-20261005\animation-wgpu-vulkan-after-geometry.ppm
+adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) vendor_id=0x10de device_id=0x1c03 backend=wgpu size=1024x1024 warmup=2 scene=H:\Git\coin\build\large-scenes\city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=geometry
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..4 warmup_indices=-2..-1 frame_step=120 captures=5 capture_io=outside_frame_timers wall_throughput_includes_capture=1 wall_throughput_scope=update+frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+WebGPU frames=5 median_ms=197.575 p95_ms=292.963 min_ms=120.368 max_ms=292.963
+WebGPU_render frames=5 median_ms=196.934 p95_ms=292.399 min_ms=119.862 max_ms=292.399
+WebGPU_copy frames=5 median_ms=0.5058 p95_ms=0.6409 min_ms=0.4816 max_ms=0.6409
+WebGPU_timing_total frames=5 median_ms=277.0405 p95_ms=337.3607 p99_ms=337.3607 max_ms=337.3607 over_16_67=5 over_33_33=5
+WebGPU_timing_update frames=5 median_ms=44.3976 p95_ms=79.4657 p99_ms=79.4657 max_ms=79.4657 over_16_67=5 over_33_33=5
+WebGPU_timing_render frames=5 median_ms=196.9339 p95_ms=292.3991 p99_ms=292.3991 max_ms=292.3991 over_16_67=5 over_33_33=5
+WebGPU_throughput frames=5 total_ms=1291.93 fps=3.87019
+WebGPU_cache last_frame_uploads=1 last_frame_uploaded_bytes=5760144 last_frame_hits=1 cumulative_uploads=7 cumulative_uploaded_bytes=40324272 cumulative_hits=6
+backend_cleanup_begin
+backend_cleanup_ms=16.5963

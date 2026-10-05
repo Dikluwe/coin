@@ -801,8 +801,10 @@ if(COIN_BUILD_RENDER)
 	set(_coin_draw_style_timeout 60)
 	if(WIN32)
 		# The full CPU/GPU stipple matrix performs over 15,000 captures.
-		# Windows driver startup and scheduling can exceed a one-minute budget.
-		set(_coin_draw_style_timeout 120)
+		# Windows wgpu/OpenGL can exceed 120s on the first run; a repeat
+		# with mandatory GL references took 104s on GTX 1060. Keep the full
+		# matrix and allow startup/scheduling variation within a finite limit.
+		set(_coin_draw_style_timeout 240)
 	endif()
 	set_tests_properties(CoinRenderDrawStyleTest PROPERTIES TIMEOUT ${_coin_draw_style_timeout} SKIP_RETURN_CODE 77)
 	if(COIN_RENDER_BACKEND STREQUAL "BGFX")

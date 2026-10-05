@@ -1,0 +1,26 @@
+startup_detail arguments_ms=0.0623 coin_init_ms=2.0838 capability_probe_ms=0.0002
+scene_detail parse_ms=1180.51 wrapper_ms=0.0615 camera_fit_ms=117.804
+scene_load_ms=1298.93
+animation_detail mode=materials animated_percent=10 eligible=40000 selected=4000 prepared_clones=4000 prepare_ms=103.98 frame_step=120 time_step_seconds=2 selection_fnv64=0x44ab2b433838fad2
+startup_detail material_search_ms=0.137 target_setup_ms=0.0117
+CoinGL_first_detail render_ms=837.948 lazy_readback_ms=9.5269 publication_copy_ms=0.5861 update_ms=4.6302 total_with_update_ms=852.691 before_frame_since_main_ms=1410.99 result_since_main_ms=2259.05
+CoinGL_first_frame_ms=848.061
+capture backend=CoinGL frame_index=0 logical_frame=0 rgba_fnv64=0xd83397c25e96cd74 rgb_fnv64=0x37ad3cf75a46eb22 state_fnv64=0x7cbdb975ae97da81 image=H:\Git\coin\build\linux-updates-windows-20261005\palette-coingl-CoinGL-000000.ppm
+capture backend=CoinGL frame_index=1 logical_frame=120 rgba_fnv64=0xe653bdac44f73050 rgb_fnv64=0x8ae42497617f5bf0 state_fnv64=0xebe27edfb104350c image=H:\Git\coin\build\linux-updates-windows-20261005\palette-coingl-CoinGL-000001.ppm
+capture backend=CoinGL frame_index=2 logical_frame=240 rgba_fnv64=0x93395d1abce406ea rgb_fnv64=0xec94e0dc3fa7e84a state_fnv64=0xd8afe273874466fd image=H:\Git\coin\build\linux-updates-windows-20261005\palette-coingl-CoinGL-000002.ppm
+capture backend=CoinGL frame_index=3 logical_frame=360 rgba_fnv64=0x6240882141f99e47 rgb_fnv64=0x59d3822375e36aed state_fnv64=0x4871f85df89a74f1 image=H:\Git\coin\build\linux-updates-windows-20261005\palette-coingl-CoinGL-000003.ppm
+capture backend=CoinGL frame_index=4 logical_frame=480 rgba_fnv64=0xae567ffb0f440b81 rgb_fnv64=0x97a89759357ab64b state_fnv64=0xebeaa268cb622ecf image=H:\Git\coin\build\linux-updates-windows-20261005\palette-coingl-CoinGL-000004.ppm
+CoinGL_animation_final logical_frame=480 state_fnv64=0xebeaa268cb622ecf
+samples_output=H:\Git\coin\build\linux-updates-windows-20261005\palette-coingl.csv rows=7
+gl_rgba_fnv64=0xae567ffb0f440b81
+image=H:\Git\coin\build\linux-updates-windows-20261005\palette-coingl-after-materials.ppm
+adapter=not-queried vendor_id=0x0 device_id=0x0 backend=gl size=1024x1024 warmup=2 scene=H:\Git\coin\build\linux-updates-windows-20261005\city-materials-40001.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=materials
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..4 warmup_indices=-2..-1 frame_step=120 captures=5 capture_io=outside_frame_timers wall_throughput_includes_capture=1 wall_throughput_scope=update+frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+CoinGL frames=5 median_ms=158.398 p95_ms=1319.88 min_ms=146.982 max_ms=1319.88
+CoinGL_timing_total frames=5 median_ms=165.9646 p95_ms=1327.3321 p99_ms=1327.3321 max_ms=1327.3321 over_16_67=5 over_33_33=5
+CoinGL_timing_update frames=5 median_ms=7.7195 p95_ms=8.2697 p99_ms=8.2697 max_ms=8.2697 over_16_67=0 over_33_33=0
+CoinGL_timing_render frames=5 median_ms=157.9055 p95_ms=1319.3825 p99_ms=1319.3825 max_ms=1319.3825 over_16_67=5 over_33_33=5
+CoinGL_publication_copy frames=5 median_ms=0.603 p95_ms=0.7695 min_ms=0.4926 max_ms=0.7695
+CoinGL_throughput frames=5 total_ms=2037.03 fps=2.45456
+backend_cleanup_begin
+backend_cleanup_ms=80.8933

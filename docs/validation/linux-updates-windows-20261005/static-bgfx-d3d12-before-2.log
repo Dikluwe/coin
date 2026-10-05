@@ -1,0 +1,15 @@
+startup_detail arguments_ms=0.0532 coin_init_ms=2.3168 capability_probe_ms=613.878
+scene_detail parse_ms=618.672 wrapper_ms=0.0197 camera_fit_ms=129.186
+scene_load_ms=747.977
+startup_detail material_search_ms=0.1656 target_setup_ms=1.6348
+BGFX-D3D12_first_detail render_ms=2006.31 publication_copy_ms=2.9511 before_frame_since_main_ms=1367.43 result_since_main_ms=3376.69
+BGFX-D3D12_first_frame_ms=2009.26
+rgba_fnv64=0x6714299260985122
+image=H:\Git\coin\build\linux-updates-windows-20261005\static-bgfx-d3d12-before-2.ppm
+adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) vendor_id=0x10de device_id=0x1c03 backend=bgfx size=1024x1024 warmup=30 scene=H:\Git\coin\build\large-scenes\city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=static
+BGFX-D3D12 frames=120 median_ms=16.0752 p95_ms=22.2899 min_ms=10.068 max_ms=30.4684
+BGFX_render_and_readback frames=120 median_ms=15.1587 p95_ms=21.6119 min_ms=9.5852 max_ms=29.8597
+BGFX_publication_copy frames=120 median_ms=0.6393 p95_ms=0.9832 min_ms=0.4726 max_ms=4.1163
+BGFX-D3D12_throughput frames=120 total_ms=1943.19 fps=61.754
+backend_cleanup_begin
+backend_cleanup_ms=127.022

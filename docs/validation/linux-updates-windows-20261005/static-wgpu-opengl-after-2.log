@@ -1,0 +1,20 @@
+startup_detail arguments_ms=0.0555 coin_init_ms=2.2472 capability_probe_ms=431.689
+scene_detail parse_ms=531.08 wrapper_ms=0.0183 camera_fit_ms=128.176
+scene_load_ms=659.382
+startup_detail material_search_ms=0.1279 target_setup_ms=2.7004
+WebGPU_first_detail render_ms=745.288 publication_copy_ms=1.5338 update_ms=0.0042 total_with_update_ms=746.826 before_frame_since_main_ms=1097.26 result_since_main_ms=1844.08
+WebGPU_first_frame_ms=746.822
+rgba_fnv64=0x6714299260985122
+image=H:\Git\coin\build\linux-updates-windows-20261005\static-wgpu-opengl-after-2.ppm
+adapter=NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl) vendor_id=0x10de device_id=0x0 backend=wgpu size=1024x1024 warmup=30 scene=H:\Git\coin\build\large-scenes\city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..119 warmup_indices=-30..-1 frame_step=1 captures=0 capture_io=outside_frame_timers wall_throughput_includes_capture=0 wall_throughput_scope=legacy-frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+WebGPU frames=120 median_ms=17.0968 p95_ms=24.6683 min_ms=11.7397 max_ms=32.8698
+WebGPU_render frames=120 median_ms=16.5031 p95_ms=24.104 min_ms=11.2746 max_ms=32.0804
+WebGPU_copy frames=120 median_ms=0.5408 p95_ms=2.7679 min_ms=0.4516 max_ms=4.5409
+WebGPU_timing_total frames=120 median_ms=17.0822 p95_ms=24.6685 p99_ms=28.0651 max_ms=32.87 over_16_67=68 over_33_33=0
+WebGPU_timing_update frames=120 median_ms=0.0002 p95_ms=0.0003 p99_ms=0.0004 max_ms=0.0004 over_16_67=0 over_33_33=0
+WebGPU_timing_render frames=120 median_ms=16.4919 p95_ms=24.104 p99_ms=27.4718 max_ms=32.0804 over_16_67=54 over_33_33=0
+WebGPU_throughput frames=120 total_ms=2088.39 fps=57.4606
+WebGPU_cache last_frame_uploads=0 last_frame_uploaded_bytes=0 last_frame_hits=1 cumulative_uploads=1 cumulative_uploaded_bytes=5763408 cumulative_hits=149
+backend_cleanup_begin
+backend_cleanup_ms=19.482

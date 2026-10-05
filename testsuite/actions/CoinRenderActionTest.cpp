@@ -38,6 +38,7 @@
 #include <Inventor/lists/SoPathList.h>
 
 #include <cassert>
+#include <cstddef>
 #include <cmath>
 #include <cstring>
 #include <iostream>
@@ -1212,6 +1213,53 @@ struct CaptureCameraBasisEnvironment {
   }
 };
 
+// Production byte equality deliberately allows conservative cache misses from
+// padding. Independent captures must compare every authored draw field instead;
+// MSVC can leave different padding after hasSortingCenter on the SoPath route.
+bool sameCapturedFramePayload(const CoinRenderFramePlan & a, const CoinRenderFramePlan & b) {
+  if (a.draws.size() != b.draws.size()) return false;
+  for (size_t i = 0; i < a.draws.size(); ++i) {
+    const auto & x = a.draws[i]; const auto & y = b.draws[i];
+    if (x.topology != y.topology || x.geometry.firstVertex != y.geometry.firstVertex ||
+        x.geometry.vertexCount != y.geometry.vertexCount || x.geometry.firstIndex != y.geometry.firstIndex ||
+        x.geometry.indexCount != y.geometry.indexCount || x.renderStateSlot != y.renderStateSlot ||
+        x.shadowLightSlot != y.shadowLightSlot || x.frameNodeOrdinal != y.frameNodeOrdinal ||
+        x.sourceNodeId != y.sourceNodeId || x.stableNodeId != y.stableNodeId ||
+        x.drawOrdinal != y.drawOrdinal || x.sourceRevision != y.sourceRevision ||
+        x.hasSortingCenter != y.hasSortingCenter ||
+        std::memcmp(x.sortingCenterWorld, y.sortingCenterWorld, sizeof(x.sortingCenterWorld)) != 0 ||
+        x.renderLayer != y.renderLayer || x.clearDepthBefore != y.clearDepthBefore ||
+        x.lineStripId != y.lineStripId) return false;
+  }
+  auto left = a; auto right = b;
+  left.draws.clear(); right.draws.clear();
+  return left.hasSamePayload(right);
+}
+
+int testCapturedFramePayloadComparison() {
+  CoinRenderFramePlan a, b;
+  a.draws.emplace_back(); b = a;
+  const size_t paddingBegin = offsetof(CoinRenderDrawPacket, hasSortingCenter) + sizeof(bool);
+  const size_t paddingEnd = offsetof(CoinRenderDrawPacket, sortingCenterWorld);
+  if (paddingBegin < paddingEnd) {
+    auto * left = reinterpret_cast<unsigned char *>(&a.draws[0]);
+    auto * right = reinterpret_cast<unsigned char *>(&b.draws[0]);
+    std::memset(left + paddingBegin, 0x35, paddingEnd - paddingBegin);
+    std::memset(right + paddingBegin, 0x79, paddingEnd - paddingBegin);
+    TEST_ASSERT(std::memcmp(&a.draws[0], &b.draws[0], sizeof(CoinRenderDrawPacket)) != 0 &&
+                sameCapturedFramePayload(a, b), "capture oracle must ignore only draw padding");
+  }
+  b.draws[0].geometry.firstIndex++;
+  TEST_ASSERT(!sameCapturedFramePayload(a, b), "capture oracle must retain exact geometry layout");
+  b = a; b.draws[0].sourceRevision++;
+  TEST_ASSERT(!sameCapturedFramePayload(a, b), "capture oracle must retain source metadata");
+  b = a; b.draws[0].sortingCenterWorld[0] = -0.0f;
+  TEST_ASSERT(!sameCapturedFramePayload(a, b), "capture oracle must retain even inactive sorting-center bits");
+  a.vertices.emplace_back(); b = a; b.vertices[0].position[0] = -0.0f;
+  TEST_ASSERT(!sameCapturedFramePayload(a, b), "capture oracle must retain exact non-draw payload bytes");
+  return 0;
+}
+
 struct CaptureCameraBasisOracle {
   // Actions/sensors must be destroyed before their target shells.
   std::unique_ptr<CoinRenderTarget> target, literalTarget;
@@ -1240,7 +1288,7 @@ struct CaptureCameraBasisOracle {
     const CoinRenderActionP * a = &action.getPimpl().get(); const CoinRenderActionP * b = &literal.getPimpl().get();
     if (action.getLastStatus() != literal.getLastStatus() || a->lastDiagnosticDomain != b->lastDiagnosticDomain ||
         std::string(action.getLastError().getString()) != literal.getLastError().getString() ||
-        a->hasLastValidPlan != b->hasLastValidPlan || !a->lastValidPlan.hasSamePayload(b->lastValidPlan) ||
+        a->hasLastValidPlan != b->hasLastValidPlan || !sameCapturedFramePayload(a->lastValidPlan, b->lastValidPlan) ||
         a->candidateCamera != b->candidateCamera || a->cachedCamera != b->cachedCamera ||
         a->translationProofValid != b->translationProofValid ||
         a->translationBindings.size() != b->translationBindings.size() ||
@@ -2636,6 +2684,7 @@ int main() {
   if (testPhongCameraOverlayNotificationsAndRollback()) { std::cerr << "testPhongCameraOverlayNotificationsAndRollback failed" << std::endl; failed++; }
   if (testTranslationOverlayAndRollback()) { std::cerr << "testTranslationOverlayAndRollback failed" << std::endl; failed++; }
   if (testCaptureCameraBasisReuse()) { std::cerr << "testCaptureCameraBasisReuse failed" << std::endl; failed++; }
+  if (testCapturedFramePayloadComparison()) { std::cerr << "testCapturedFramePayloadComparison failed" << std::endl; failed++; }
   if (testTranslationOverlayInvalidationAndOwnership()) { std::cerr << "testTranslationOverlayInvalidationAndOwnership failed" << std::endl; failed++; }
   if (testObjectMaterialGeometryOverlay()) { std::cerr << "testObjectMaterialGeometryOverlay failed" << std::endl; failed++; }
   if (testInterleavedCubeSourceOwnership()) { std::cerr << "testInterleavedCubeSourceOwnership failed" << std::endl; failed++; }

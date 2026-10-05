@@ -1,0 +1,27 @@
+startup_detail arguments_ms=0.0731 coin_init_ms=2.2489 capability_probe_ms=526.783
+scene_detail parse_ms=1037.35 wrapper_ms=0.1065 camera_fit_ms=144.83
+scene_load_ms=1183.17
+animation_detail mode=materials animated_percent=10 eligible=40000 selected=4000 prepared_clones=4000 prepare_ms=114.62 frame_step=120 time_step_seconds=2 selection_fnv64=0x44ab2b433838fad2
+startup_detail material_search_ms=0.3807 target_setup_ms=1.6943
+BGFX-Vulkan_first_detail render_ms=1920.67 publication_copy_ms=1.334 update_ms=4.7596 total_with_update_ms=1926.77 before_frame_since_main_ms=1837.88 result_since_main_ms=3759.89
+BGFX-Vulkan_first_frame_ms=1922.01
+capture backend=BGFX-Vulkan frame_index=0 logical_frame=0 rgba_fnv64=0x18492cc1c472ad17 rgb_fnv64=0xee94f7051809036b state_fnv64=0x7cbdb975ae97da81 image=H:\Git\coin\build\linux-updates-windows-20261005\palette-bgfx-vulkan-BGFX-Vulkan-000000.ppm
+capture backend=BGFX-Vulkan frame_index=1 logical_frame=120 rgba_fnv64=0xbcf1f069b0c6ab75 rgb_fnv64=0x5852c9821ad6e83 state_fnv64=0xebe27edfb104350c image=H:\Git\coin\build\linux-updates-windows-20261005\palette-bgfx-vulkan-BGFX-Vulkan-000001.ppm
+capture backend=BGFX-Vulkan frame_index=2 logical_frame=240 rgba_fnv64=0xa16958ef9e407e65 rgb_fnv64=0x60acb31e16280ffd state_fnv64=0xd8afe273874466fd image=H:\Git\coin\build\linux-updates-windows-20261005\palette-bgfx-vulkan-BGFX-Vulkan-000002.ppm
+capture backend=BGFX-Vulkan frame_index=3 logical_frame=360 rgba_fnv64=0xbac12c73dc345b3c rgb_fnv64=0xab9a760599ef6672 state_fnv64=0x4871f85df89a74f1 image=H:\Git\coin\build\linux-updates-windows-20261005\palette-bgfx-vulkan-BGFX-Vulkan-000003.ppm
+capture backend=BGFX-Vulkan frame_index=4 logical_frame=480 rgba_fnv64=0x5a306f8df2664409 rgb_fnv64=0xc04b86a7dffa1eef state_fnv64=0xebeaa268cb622ecf image=H:\Git\coin\build\linux-updates-windows-20261005\palette-bgfx-vulkan-BGFX-Vulkan-000004.ppm
+BGFX-Vulkan_animation_final logical_frame=480 state_fnv64=0xebeaa268cb622ecf
+samples_output=H:\Git\coin\build\linux-updates-windows-20261005\palette-bgfx-vulkan.csv rows=7
+rgba_fnv64=0x5a306f8df2664409
+image=H:\Git\coin\build\linux-updates-windows-20261005\palette-bgfx-vulkan-after-materials.ppm
+adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) vendor_id=0x10de device_id=0x1c03 backend=bgfx size=1024x1024 warmup=2 scene=H:\Git\coin\build\linux-updates-windows-20261005\city-materials-40001.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=materials
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..4 warmup_indices=-2..-1 frame_step=120 captures=5 capture_io=outside_frame_timers wall_throughput_includes_capture=1 wall_throughput_scope=update+frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+BGFX-Vulkan frames=5 median_ms=241.537 p95_ms=298.824 min_ms=237.506 max_ms=298.824
+BGFX_render_and_readback frames=5 median_ms=240.875 p95_ms=298.043 min_ms=236.929 max_ms=298.043
+BGFX_publication_copy frames=5 median_ms=0.6329 p95_ms=0.7809 min_ms=0.5061 max_ms=0.7809
+BGFX-Vulkan_timing_total frames=5 median_ms=260.1288 p95_ms=322.957 p99_ms=322.957 max_ms=322.957 over_16_67=5 over_33_33=5
+BGFX-Vulkan_timing_update frames=5 median_ms=18.9763 p95_ms=24.1326 p99_ms=24.1326 max_ms=24.1326 over_16_67=5 over_33_33=0
+BGFX-Vulkan_timing_render frames=5 median_ms=240.8751 p95_ms=298.0435 p99_ms=298.0435 max_ms=298.0435 over_16_67=5 over_33_33=5
+BGFX-Vulkan_throughput frames=5 total_ms=1456.08 fps=3.43387
+backend_cleanup_begin
+backend_cleanup_ms=86.1945

@@ -1,0 +1,19 @@
+startup_detail arguments_ms=0.0479 coin_init_ms=2.1776 capability_probe_ms=720.858
+scene_detail parse_ms=684.536 wrapper_ms=0.0194 camera_fit_ms=132.77
+scene_load_ms=817.413
+startup_detail material_search_ms=0.1319 target_setup_ms=1.6464
+BGFX-Vulkan_first_detail render_ms=1389.25 publication_copy_ms=1.2748 update_ms=0.0075 total_with_update_ms=1390.54 before_frame_since_main_ms=1546.44 result_since_main_ms=2936.97
+BGFX-Vulkan_first_frame_ms=1390.53
+rgba_fnv64=0x6714299260985122
+image=H:\Git\coin\build\linux-updates-windows-20261005\static-bgfx-vulkan-after-2.ppm
+adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) vendor_id=0x10de device_id=0x1c03 backend=bgfx size=1024x1024 warmup=30 scene=H:\Git\coin\build\large-scenes\city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=static
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..119 warmup_indices=-30..-1 frame_step=1 captures=0 capture_io=outside_frame_timers wall_throughput_includes_capture=0 wall_throughput_scope=legacy-frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+BGFX-Vulkan frames=120 median_ms=11.3287 p95_ms=18.7324 min_ms=7.5461 max_ms=25.4732
+BGFX_render_and_readback frames=120 median_ms=10.392 p95_ms=17.8253 min_ms=6.9449 max_ms=24.5471
+BGFX_publication_copy frames=120 median_ms=0.661 p95_ms=2.3748 min_ms=0.5181 max_ms=5.6191
+BGFX-Vulkan_timing_total frames=120 median_ms=11.2233 p95_ms=18.7326 p99_ms=25.2458 max_ms=25.4734 over_16_67=9 over_33_33=0
+BGFX-Vulkan_timing_update frames=120 median_ms=0.0002 p95_ms=0.0003 p99_ms=0.0003 max_ms=0.0004 over_16_67=0 over_33_33=0
+BGFX-Vulkan_timing_render frames=120 median_ms=10.3797 p95_ms=17.8253 p99_ms=24.358 max_ms=24.5471 over_16_67=8 over_33_33=0
+BGFX-Vulkan_throughput frames=120 total_ms=1421.21 fps=84.4352
+backend_cleanup_begin
+backend_cleanup_ms=93.4464
