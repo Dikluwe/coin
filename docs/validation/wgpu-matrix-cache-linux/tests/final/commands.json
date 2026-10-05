@@ -1,0 +1,217 @@
+{
+  "source_content_revision": "199b0e02b4f0b74ffb5d042d98e2837aafc31ad8",
+  "commands": [
+    {
+      "name": "cpu",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/tmp/coin-render-first-frame-wgpu",
+        "-R",
+        "^(CoinWgpuFfiFrameTest)$",
+        "--output-on-failure"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+        "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1"
+      },
+      "required_output": [],
+      "ctest_definitions": [
+        {
+          "backtrace": 1,
+          "command": [
+            "/tmp/coin-render-first-frame-wgpu/bin/CoinWgpuFfiFrameTest"
+          ],
+          "name": "CoinWgpuFfiFrameTest",
+          "properties": [
+            {
+              "name": "TIMEOUT",
+              "value": 30.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-wgpu/testsuite"
+            }
+          ]
+        }
+      ],
+      "exit_code": 0,
+      "required_output_observed": true,
+      "skip_observed": false
+    },
+    {
+      "name": "gpu-camera-rtt-transparency",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/tmp/coin-render-first-frame-wgpu",
+        "-R",
+        "^(CoinWgpuMultiDeviceTest|CoinRenderCameraReuseReferenceTest|CoinRenderSceneTextureTest|CoinRenderSceneTextureDirectTest|CoinRenderTransparencyTest)$",
+        "--output-on-failure"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+        "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1"
+      },
+      "required_output": [],
+      "ctest_definitions": [
+        {
+          "backtrace": 1,
+          "command": [
+            "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderCameraReuseReferenceTest"
+          ],
+          "name": "CoinRenderCameraReuseReferenceTest",
+          "properties": [
+            {
+              "name": "SKIP_RETURN_CODE",
+              "value": 77
+            },
+            {
+              "name": "TIMEOUT",
+              "value": 120.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-wgpu/testsuite"
+            }
+          ]
+        },
+        {
+          "backtrace": 3,
+          "command": [
+            "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderTransparencyTest"
+          ],
+          "name": "CoinRenderTransparencyTest",
+          "properties": [
+            {
+              "name": "SKIP_RETURN_CODE",
+              "value": 77
+            },
+            {
+              "name": "TIMEOUT",
+              "value": 90.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-wgpu/testsuite"
+            }
+          ]
+        },
+        {
+          "backtrace": 5,
+          "command": [
+            "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderSceneTextureTest"
+          ],
+          "name": "CoinRenderSceneTextureTest",
+          "properties": [
+            {
+              "name": "TIMEOUT",
+              "value": 30.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-wgpu/testsuite"
+            }
+          ]
+        },
+        {
+          "backtrace": 7,
+          "command": [
+            "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderSceneTextureTest"
+          ],
+          "name": "CoinRenderSceneTextureDirectTest",
+          "properties": [
+            {
+              "name": "ENVIRONMENT",
+              "value": [
+                "COIN_RENDER_RTT_GPU_DIRECT=1"
+              ]
+            },
+            {
+              "name": "TIMEOUT",
+              "value": 30.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-wgpu/testsuite"
+            }
+          ]
+        },
+        {
+          "backtrace": 9,
+          "command": [
+            "/tmp/coin-render-first-frame-wgpu/bin/CoinWgpuMultiDeviceTest"
+          ],
+          "name": "CoinWgpuMultiDeviceTest",
+          "properties": [
+            {
+              "name": "TIMEOUT",
+              "value": 60.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-wgpu/testsuite"
+            }
+          ]
+        }
+      ],
+      "exit_code": 0,
+      "required_output_observed": true,
+      "skip_observed": false
+    },
+    {
+      "name": "gpu-composition",
+      "command": [
+        "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderCompositionTest"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+        "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1"
+      },
+      "required_output": [],
+      "exit_code": 0,
+      "required_output_observed": true,
+      "skip_observed": false
+    },
+    {
+      "name": "gpu-multitexture",
+      "command": [
+        "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderMultitextureTest"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+        "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1"
+      },
+      "required_output": [
+        "P08 Coin GL reference passed (CPU=0)"
+      ],
+      "exit_code": 0,
+      "required_output_observed": true,
+      "skip_observed": false
+    }
+  ]
+}

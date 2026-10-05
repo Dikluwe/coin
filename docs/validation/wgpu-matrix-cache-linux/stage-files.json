@@ -1,0 +1,1570 @@
+{
+  "inventory_excludes_itself": true,
+  "files": [
+    {
+      "path": "docs/coin-render-wgpu-matrix-cache-linux.md",
+      "bytes": 12429,
+      "sha256": "133611f84390923c76e57effbedad95433d2a8bcf5d1d9e77d0f541271946c0c"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/README.md",
+      "bytes": 5716,
+      "sha256": "c2b549cdc3f8e35cce809506091ccc632c2a21080e056a5342667906ebaa7d8f"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/ablation-console.log",
+      "bytes": 656,
+      "sha256": "942b2016a93405ecfa33aa8be40dee0ee278f38dfa9243e7fd782b08b8860687"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/analysis.json",
+      "bytes": 4413827,
+      "sha256": "6f352e07b92a6dc58baf98dab83162d201c10bf35a6f4c6f75f221193a08d7c0"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/analyze-matrix.py",
+      "bytes": 20535,
+      "sha256": "8b9a98641a8eceaf2e4e724aba853f10b4389661802699c45c12feb6634d390e"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/binary-hashes-post-campaign.json",
+      "bytes": 3346,
+      "sha256": "bf1fd5d1bfc3b06066400c621e8afde7750428dd3a997c20a2da681b7fc55f11"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/campaign-commands.json",
+      "bytes": 2554,
+      "sha256": "fe6ffd943775d674992d4cbdfac806734ac5f4876b4d911f7dfca5b459995b31"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/campaign-console.log",
+      "bytes": 70,
+      "sha256": "4bd53d52a31e111be8a917c462048e465862d8815206a6feea2fbefad38634e3"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/diagnostic/commands.json",
+      "bytes": 15952,
+      "sha256": "9b88c645dbac8381175098dc1824b09eaea98b592635655ae83da1200a8fc1e5"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/diagnostic/derive-diagnostic.py",
+      "bytes": 12493,
+      "sha256": "8e73f27e71a3d93ac9d053a963d5a2f24e3e7c1bc39a35dd0270746f39a42fe5"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/diagnostic/run-ablation.py",
+      "bytes": 2654,
+      "sha256": "4c0e2918fbdb3867bd4dcfbe210e2c8ab9b02106c687beff733d5d6f01781421"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/diagnostic/wgpu-vulkan-geometry-10-cache-off.csv",
+      "bytes": 794,
+      "sha256": "d8593e116f722397e6f629a6b24c9d96998339363e1ebd302f5a3e17b4b150ba"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/diagnostic/wgpu-vulkan-geometry-10-cache-off.log",
+      "bytes": 26628,
+      "sha256": "1322ed8b9cbab1cf530c49dd4c1cf9d5b3b8f8b5ef2f4f092fe7455b92f3cf0f"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/diagnostic/wgpu-vulkan-geometry-10-cache-on.csv",
+      "bytes": 787,
+      "sha256": "e7080003c88a9d108815225cbc2a6f3d481495e53eecf38e093102529905a219"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/diagnostic/wgpu-vulkan-geometry-10-cache-on.log",
+      "bytes": 26675,
+      "sha256": "1c40c4a44532cdcbd7b7459ef3872c2d2c07fe9c863945cd8d8b50b54362647f"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/diagnostic/wgpu-vulkan-materials-10-cache-off.csv",
+      "bytes": 777,
+      "sha256": "892cb54248c4bba35d59f8ceff3d0bf5d11eae0e75d918994c0ba6f75277c07c"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/diagnostic/wgpu-vulkan-materials-10-cache-off.log",
+      "bytes": 26667,
+      "sha256": "7581962bc0c6c2a5a5dd4a831bd06da3400abb65331844bca7e93fffa5d2c2e4"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/diagnostic/wgpu-vulkan-materials-10-cache-on.csv",
+      "bytes": 794,
+      "sha256": "6684102c8a3da66741c6dee4241b5082565eb073c4d09f2360c637cd20530e1e"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/diagnostic/wgpu-vulkan-materials-10-cache-on.log",
+      "bytes": 26721,
+      "sha256": "af1a3f8357bfc9570448355f6c27c1fb1dcbd604eea1b42a2379d0ccd178e1ce"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/diagnostic/wgpu-vulkan-transforms-10-cache-off.csv",
+      "bytes": 785,
+      "sha256": "2db93181b12862241b3bbc926b84a7b1b2f0959337c97f2475dcd70494d4745c"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/diagnostic/wgpu-vulkan-transforms-10-cache-off.log",
+      "bytes": 26460,
+      "sha256": "8e840cb1daa5e66bbfddc3f781c94ce5954174a422529d1f118b5fdb79b7f249"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/diagnostic/wgpu-vulkan-transforms-10-cache-on.csv",
+      "bytes": 796,
+      "sha256": "9f207f56e37a90ebf495eae4179d06f010244b2ec7b0447453d7a192861abc07"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/diagnostic/wgpu-vulkan-transforms-10-cache-on.log",
+      "bytes": 26521,
+      "sha256": "13a146435fad63257d6c4c338f72bf6b3c076f52cc7ffc726ff782c947c39ce2"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/diagnostic/wgpu-vulkan-transforms-100-cache-off.csv",
+      "bytes": 765,
+      "sha256": "1ea5313f239fe84d7e6f94625f77280ea7bb3dac8cf553f184966cbfc04b7964"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/diagnostic/wgpu-vulkan-transforms-100-cache-off.log",
+      "bytes": 26463,
+      "sha256": "48682102bd8133e399e904af9c1223e6199db933ccec76fd14fde44a1690035a"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/diagnostic/wgpu-vulkan-transforms-100-cache-on.csv",
+      "bytes": 743,
+      "sha256": "d3936c9ae3f65a9e0a491228baa6773bc00f1e08a18b4f5da4331c5f2e08cf3e"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/diagnostic/wgpu-vulkan-transforms-100-cache-on.log",
+      "bytes": 26508,
+      "sha256": "03c685b553653c21c10a260c82fcceab082cdf3f4107a86a3de7da704e4506b9"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/machine.json",
+      "bytes": 5531,
+      "sha256": "d8920b3d0ba7b556a65f728e38be37241b9585c4b771e468d6a35237a576947f"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/matched-runner.py",
+      "bytes": 16329,
+      "sha256": "514e4af10dd8d5245ff958a08b7e2df52f8e3f57b52d57675bc271491fbefeb6"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/camera-coingl-1.log",
+      "bytes": 2291,
+      "sha256": "1e8619a4b6745fa4acfe8753ac0342c84ed4d3fbd2aa5c3f17bacf520bac81f4"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/camera-coingl-2.log",
+      "bytes": 2295,
+      "sha256": "1a5b020685135a6da01e2a88ece44ea45b4b97c97aa4a302c28f9baa9fb2372a"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/camera-coingl-3.log",
+      "bytes": 2294,
+      "sha256": "ccef5093bc03a0126ad596a907796baf8617d0122fc3d5fc6f6d65b856562105"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/camera-wgpu-vulkan-1.log",
+      "bytes": 2523,
+      "sha256": "59729d89ad38531ee1ddbeb64abdab85798358a6ab26c2ef624b524b79e4a2da"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/camera-wgpu-vulkan-2.log",
+      "bytes": 2528,
+      "sha256": "bb48136cb1d12d5b1772afa749a4b7d25141e5413220a62df808b98bc066af8f"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/camera-wgpu-vulkan-3.log",
+      "bytes": 2519,
+      "sha256": "22ec2b1c88fca67331dbde6693fdf73baa7f22b0065ab369066f5dfe6bd81432"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/geometry-10-coingl-1.log",
+      "bytes": 2309,
+      "sha256": "a7fd98e6c140b906a6f54c57b1cdd5c7db364c733863b36165617e4d9d7c0ef1"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/geometry-10-coingl-2.log",
+      "bytes": 2315,
+      "sha256": "ebe7958fbd5981c1c66e70fe377ac78b009570d576b7d5f0d3fe1437f140375a"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/geometry-10-coingl-3.log",
+      "bytes": 2308,
+      "sha256": "7654d777db59305de31a6107319f24fa7a574837b5fe539dd39a3ac7a4c76ca0"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/geometry-10-wgpu-vulkan-1.log",
+      "bytes": 2561,
+      "sha256": "7fc45104ccdbbc1d29fdb7e1867b6046e1d9f92ae3ddf57ec33017de977ee61c"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/geometry-10-wgpu-vulkan-2.log",
+      "bytes": 2555,
+      "sha256": "13d9406c3c6626aa8147f07d9c1c7bbcd44b0e14c650fe8a427646e726c41508"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/geometry-10-wgpu-vulkan-3.log",
+      "bytes": 2560,
+      "sha256": "d2cf9aae87beced57c7c22296ff7fa5e076dfa74d8451c40296d4fc3d814ab30"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/materials-10-coingl-1.log",
+      "bytes": 2319,
+      "sha256": "9208ddb64c034df7018675b2404f5903b1d24f550c16367b928e9297f39187cc"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/materials-10-coingl-2.log",
+      "bytes": 2311,
+      "sha256": "45ef23851bbb9bb55f277436ec5e1b9affd309b6d60ed51a18e8ff6664138f43"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/materials-10-coingl-3.log",
+      "bytes": 2314,
+      "sha256": "a58f78a8bd85b36bf1d8fa2fd9cb8d42392e469efe34ffc828b763c5ce4eda29"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/materials-10-wgpu-vulkan-1.log",
+      "bytes": 2559,
+      "sha256": "894c949119d30c135b00504d7462c7a34aecb61a953131eb0d3d432231300f60"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/materials-10-wgpu-vulkan-2.log",
+      "bytes": 2562,
+      "sha256": "e38ce1226cd1d2329144d2f54fc81cdb5eff86e0eb89accf770e97ca3801602a"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/materials-10-wgpu-vulkan-3.log",
+      "bytes": 2561,
+      "sha256": "8c314a36f2cad1bfb483d29945d61c5c358075ab325200f7a38e921e53590d00"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/static-coingl-1.log",
+      "bytes": 2287,
+      "sha256": "1297682c3b7b1c53b17fe3755e11a9a99217747ab611c752c8ea01d0452da08c"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/static-coingl-2.log",
+      "bytes": 2280,
+      "sha256": "66f9831a292b8f9ea14231f7a841c2b6ae1b6c8b7b0baed693658070c1afc796"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/static-coingl-3.log",
+      "bytes": 2286,
+      "sha256": "757a10e305b976f5812b9639013a512c99fb875e717bd4869be45d898d033e54"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/static-wgpu-vulkan-1.log",
+      "bytes": 2509,
+      "sha256": "fcb6720eb681903254668623e481b97e6cb66965850e7b6c7c1055f18bbb16bb"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/static-wgpu-vulkan-2.log",
+      "bytes": 2518,
+      "sha256": "4ee43730879d5d244fd1c07ebcbc62f06f28ee1287d4bc221d1ff43df5245820"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/static-wgpu-vulkan-3.log",
+      "bytes": 2522,
+      "sha256": "4a4c75e40a9746695d5b9d745cdb9e8238317258bc979aff6ceeaa4c5e134d01"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/transforms-10-coingl-1.log",
+      "bytes": 2316,
+      "sha256": "2a9fb5e828559f1f522727d48374cc1090a1627d8b483a4dbe5c9775d32d49ff"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/transforms-10-coingl-2.log",
+      "bytes": 2317,
+      "sha256": "1f049afc480f78ffa710b783ea29d6ee98f1b705902ee8eeccb85f7f7217642d"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/transforms-10-coingl-3.log",
+      "bytes": 2310,
+      "sha256": "7a9140a5bcce8d67739a582d60df59e4f5fea440b578fdc6a6700f96f231360f"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/transforms-10-wgpu-vulkan-1.log",
+      "bytes": 2560,
+      "sha256": "d7f55ebd833629df4e4157e1a5c403b9b0986b9aed99cec4a187a9d6a28ce55d"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/transforms-10-wgpu-vulkan-2.log",
+      "bytes": 2557,
+      "sha256": "f941eede50d99b4c0b7c1ea5192cde4b5e69753c7958efaae8dfbeeba5bb7c55"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/logs/transforms-10-wgpu-vulkan-3.log",
+      "bytes": 2559,
+      "sha256": "9048bc8f76f8adbbbb01c3070265a296ed1fe1992a45013704ba93f62e40e25c"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/manifest.json",
+      "bytes": 46175,
+      "sha256": "62c405a4a508e09402c8757abed92e7740a5870baa8b32253a9445c28b4fc90c"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/medians.json",
+      "bytes": 11363,
+      "sha256": "9df8a7be7662ee49ee9a94afb938b57542fad42e9c45f0f900e1dfe2aae5618c"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/results.json",
+      "bytes": 45408,
+      "sha256": "2c04c45a33d0ec161f7d1a45acaf80b1cf94ff552a46fa7eb3d03033b243d8c1"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/camera-coingl-1.csv",
+      "bytes": 1704,
+      "sha256": "a38a56c7141db9b0d35a7e444bdc10c5883b2cbdf3a2bff56e8b116121841f2c"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/camera-coingl-2.csv",
+      "bytes": 1824,
+      "sha256": "5f39f3e90c4ea0eb8d44bed4cd3322c18e9f488920fc9dceba6e729250c6d228"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/camera-coingl-3.csv",
+      "bytes": 1716,
+      "sha256": "510dfc013d27065649986d85723d548326d0dd0e2738c1c0c7d35e5588f29598"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/camera-wgpu-vulkan-1.csv",
+      "bytes": 1632,
+      "sha256": "46b8dd38d565d7db7f5c46d11cabc0b1fb96604280561f9a1cf6017ebc789bf9"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/camera-wgpu-vulkan-2.csv",
+      "bytes": 1734,
+      "sha256": "ac609ba04e2293e83dddb015b501cc363f9d7d31e0080912ee37b5c8f70d7c77"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/camera-wgpu-vulkan-3.csv",
+      "bytes": 1702,
+      "sha256": "c24989da61823966fcc8c9d0b9cdd8265943687c6b89b2a3b275bc417108361c"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/geometry-10-coingl-1.csv",
+      "bytes": 1662,
+      "sha256": "5e77c31bb8669d565d9fec9ec00b4b9595665934e136aafb3854ee690d7e0e22"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/geometry-10-coingl-2.csv",
+      "bytes": 1699,
+      "sha256": "a9c78db52bc336407909594239bc28825a718d5be3dd78ec07dca5bdb41db33a"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/geometry-10-coingl-3.csv",
+      "bytes": 1612,
+      "sha256": "1824e3cce1153aec847733c22255bd9714a9593567c2fae65be2f4854e47975f"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/geometry-10-wgpu-vulkan-1.csv",
+      "bytes": 1828,
+      "sha256": "b066968090f30b48501056b4782f2d4d6c35e0af1434115e65374b8f097c38dd"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/geometry-10-wgpu-vulkan-2.csv",
+      "bytes": 1778,
+      "sha256": "108b1636b0d4e33fc66dfa5497ab0163e5b5b2a4c610573d942e8620ba1d3baf"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/geometry-10-wgpu-vulkan-3.csv",
+      "bytes": 1803,
+      "sha256": "d0c04e341dafdaa2e93f0a54bd38e32f8819cbc2e12578fe53e68b1c003d90f0"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/materials-10-coingl-1.csv",
+      "bytes": 1614,
+      "sha256": "40c7436c90ffd792f1c596ab84929437fb95f897944ac4d82b2972a833058c51"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/materials-10-coingl-2.csv",
+      "bytes": 1646,
+      "sha256": "9775f658a960e68f64c81abcd0cb628f87a49669ff5d7d38383bee2770fb38c1"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/materials-10-coingl-3.csv",
+      "bytes": 1551,
+      "sha256": "b581754ad6d168b6058b83e82b92520f5fe2c8993e1fc2258c964b4bbc189786"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/materials-10-wgpu-vulkan-1.csv",
+      "bytes": 1786,
+      "sha256": "617298ed40e14b9404a033f5be918f9dd07c7f0dc3c665835e6b2686a8f6081e"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/materials-10-wgpu-vulkan-2.csv",
+      "bytes": 1778,
+      "sha256": "6a4c2ef8840b577f171d948f3b042e456ee0a463311f1b255a9a40fc39fd25cd"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/materials-10-wgpu-vulkan-3.csv",
+      "bytes": 1806,
+      "sha256": "fa644aaf9cf7d7a40cf2ab719537f74137d9a0b1b134d8df3122713289a885ef"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/static-coingl-1.csv",
+      "bytes": 1674,
+      "sha256": "c908348271cd81f47389179d4e6284f10248f3e47d07ea8e81c1774af91a4e06"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/static-coingl-2.csv",
+      "bytes": 1751,
+      "sha256": "e44aa7ebd557fe39d37b80fbcf311515c30a7e2d3abdbf8af459a2cc77d1056f"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/static-coingl-3.csv",
+      "bytes": 1723,
+      "sha256": "e140bd2f464876738f2121901acbfab47754346b8e2b4275301f512fef673214"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/static-wgpu-vulkan-1.csv",
+      "bytes": 1765,
+      "sha256": "fbdddad0ab0c676154ac2d944fe3deacb5ca5300a71228ef304ed63a3e53e496"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/static-wgpu-vulkan-2.csv",
+      "bytes": 1671,
+      "sha256": "c567db062597082c6c098745fbf7a7e1e918b6c9cf1e3f727889fd451d08855e"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/static-wgpu-vulkan-3.csv",
+      "bytes": 1824,
+      "sha256": "d0df69aa17b6184d26aefd2e66360c36c7280214dba0b053a2dcc4aac66558c9"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/transforms-10-coingl-1.csv",
+      "bytes": 1672,
+      "sha256": "eb103471abb25a542f3e784c2e7b3111ee0d11cee4b5b71c903824e8b45f2083"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/transforms-10-coingl-2.csv",
+      "bytes": 1697,
+      "sha256": "590b293fea584310845f7c8bc62669904e0b67416531c8e94b4b951f17e0cd86"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/transforms-10-coingl-3.csv",
+      "bytes": 1619,
+      "sha256": "c0b74b215d01aeaf2d71b6d8e2f153197d239ad2adc20a3cf6c16fc2c3de7a07"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/transforms-10-wgpu-vulkan-1.csv",
+      "bytes": 1713,
+      "sha256": "4a61ad79923eb04cdb405a90974b72f44af300a729354055d92991a850e8d7ab"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/transforms-10-wgpu-vulkan-2.csv",
+      "bytes": 1786,
+      "sha256": "c6a9c8389cd38683c422e93669e591f87feb2a1ed549646e81fa624ea87cec75"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/after/samples/transforms-10-wgpu-vulkan-3.csv",
+      "bytes": 1765,
+      "sha256": "ef6f2060adcf24d431ae36b284628b1ddf938205f8b2f2a35f7668499bfb6042"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/analyze_animation_images.py",
+      "bytes": 4587,
+      "sha256": "ab2d85a2a60aa883a5f92fc1ca9d089ab50aed6451dc79fcc48a919c771cf556"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/archive-manifest.json",
+      "bytes": 54142,
+      "sha256": "43ddd23b6f8f5d6302d6bbbbe714b8e0f5e4f7feb8f278deba22916ddc0c20f9"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/camera-coingl-1.log",
+      "bytes": 2291,
+      "sha256": "1e8619a4b6745fa4acfe8753ac0342c84ed4d3fbd2aa5c3f17bacf520bac81f4"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/camera-coingl-2.log",
+      "bytes": 2295,
+      "sha256": "1a5b020685135a6da01e2a88ece44ea45b4b97c97aa4a302c28f9baa9fb2372a"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/camera-coingl-3.log",
+      "bytes": 2294,
+      "sha256": "ccef5093bc03a0126ad596a907796baf8617d0122fc3d5fc6f6d65b856562105"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/camera-wgpu-vulkan-1.log",
+      "bytes": 2527,
+      "sha256": "8e607e964d48363f3b62105048fd086616e8117002c2ee095847cd0db2c128e4"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/camera-wgpu-vulkan-2.log",
+      "bytes": 2523,
+      "sha256": "49e0bfe077ed4a9ab8e9ca9807c91131dafc2561b298d23ecf5b1f12081aac80"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/camera-wgpu-vulkan-3.log",
+      "bytes": 2526,
+      "sha256": "637dec341ab80ce35f758ef85e96e21ad66d723825ba8e0b3ae8b2c0c138a21a"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/geometry-10-coingl-1.log",
+      "bytes": 2309,
+      "sha256": "a7fd98e6c140b906a6f54c57b1cdd5c7db364c733863b36165617e4d9d7c0ef1"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/geometry-10-coingl-2.log",
+      "bytes": 2315,
+      "sha256": "ebe7958fbd5981c1c66e70fe377ac78b009570d576b7d5f0d3fe1437f140375a"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/geometry-10-coingl-3.log",
+      "bytes": 2308,
+      "sha256": "7654d777db59305de31a6107319f24fa7a574837b5fe539dd39a3ac7a4c76ca0"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/geometry-10-wgpu-vulkan-1.log",
+      "bytes": 2551,
+      "sha256": "e59d4c89aca4421735f562a97861a335d37bdc6b94757df82e1bf9c8b3934bce"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/geometry-10-wgpu-vulkan-2.log",
+      "bytes": 2553,
+      "sha256": "749d9078759cf18a00b7e86d52456f9079e3abc69415de17f7d981142344143d"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/geometry-10-wgpu-vulkan-3.log",
+      "bytes": 2553,
+      "sha256": "0ec272c51f058ea72353203f29149f4df28f7b3e046ce6caf55c456122c868d3"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/materials-10-coingl-1.log",
+      "bytes": 2319,
+      "sha256": "9208ddb64c034df7018675b2404f5903b1d24f550c16367b928e9297f39187cc"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/materials-10-coingl-2.log",
+      "bytes": 2311,
+      "sha256": "45ef23851bbb9bb55f277436ec5e1b9affd309b6d60ed51a18e8ff6664138f43"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/materials-10-coingl-3.log",
+      "bytes": 2314,
+      "sha256": "a58f78a8bd85b36bf1d8fa2fd9cb8d42392e469efe34ffc828b763c5ce4eda29"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/materials-10-wgpu-vulkan-1.log",
+      "bytes": 2561,
+      "sha256": "829057d32e5a5667690f219417c0a91d14bc1be25e4335660df0ff2bf72a2f44"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/materials-10-wgpu-vulkan-2.log",
+      "bytes": 2554,
+      "sha256": "35e3f16f55c61afcb18281b031c15e36f1a2991484a75e2db71a0692e13a5c0b"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/materials-10-wgpu-vulkan-3.log",
+      "bytes": 2563,
+      "sha256": "0c0a486489af98b4332c9718b8510a8ba7a0e049577212d19ab081c73407b810"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/static-coingl-1.log",
+      "bytes": 2287,
+      "sha256": "1297682c3b7b1c53b17fe3755e11a9a99217747ab611c752c8ea01d0452da08c"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/static-coingl-2.log",
+      "bytes": 2280,
+      "sha256": "66f9831a292b8f9ea14231f7a841c2b6ae1b6c8b7b0baed693658070c1afc796"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/static-coingl-3.log",
+      "bytes": 2286,
+      "sha256": "757a10e305b976f5812b9639013a512c99fb875e717bd4869be45d898d033e54"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/static-wgpu-vulkan-1.log",
+      "bytes": 2519,
+      "sha256": "7ef31e9db1a5d576b6437077b66760850164e39e1949c5e537bcfd958eb6515d"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/static-wgpu-vulkan-2.log",
+      "bytes": 2523,
+      "sha256": "065e2723ebbf06cc156107fda50dcf9540bfb3b8e822a5ca00b26b14d642e364"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/static-wgpu-vulkan-3.log",
+      "bytes": 2521,
+      "sha256": "d9ecd99cb1f952e2edbce07707034b625c38ac64f642b6727bafa46cc0d8ef7b"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/transforms-10-coingl-1.log",
+      "bytes": 2316,
+      "sha256": "2a9fb5e828559f1f522727d48374cc1090a1627d8b483a4dbe5c9775d32d49ff"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/transforms-10-coingl-2.log",
+      "bytes": 2317,
+      "sha256": "1f049afc480f78ffa710b783ea29d6ee98f1b705902ee8eeccb85f7f7217642d"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/transforms-10-coingl-3.log",
+      "bytes": 2310,
+      "sha256": "7a9140a5bcce8d67739a582d60df59e4f5fea440b578fdc6a6700f96f231360f"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/transforms-10-wgpu-vulkan-1.log",
+      "bytes": 2558,
+      "sha256": "d3b42d04980b5c8ce19eadfa586379726efd61e4734f5f2a0daee88a057ed0eb"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/transforms-10-wgpu-vulkan-2.log",
+      "bytes": 2560,
+      "sha256": "d2d5a3e552bff0323960d877e249dfdd751c5d80eacb4d23d2e41be0edea7c66"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/logs/transforms-10-wgpu-vulkan-3.log",
+      "bytes": 2561,
+      "sha256": "f9a0974fcb84fde8079beb7f59299e02adb11f5b3fc88d48301feb2e9824e35e"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/manifest.json",
+      "bytes": 46342,
+      "sha256": "a8397181504aad8d3bc619d809fb4b100a03ee4c219725a61a624a9f22f42f5d"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/medians.json",
+      "bytes": 11358,
+      "sha256": "67f2f215c0930d44cb3a8308a2c04bd6d491eabb382d6133acdfd50b5e666de7"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/results.json",
+      "bytes": 45398,
+      "sha256": "c452ac29fcd8fa31175b9cb8c33ec661eb98aab43a2919de808c397d7af55dd2"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/camera-coingl-1.csv",
+      "bytes": 1704,
+      "sha256": "a38a56c7141db9b0d35a7e444bdc10c5883b2cbdf3a2bff56e8b116121841f2c"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/camera-coingl-2.csv",
+      "bytes": 1824,
+      "sha256": "5f39f3e90c4ea0eb8d44bed4cd3322c18e9f488920fc9dceba6e729250c6d228"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/camera-coingl-3.csv",
+      "bytes": 1716,
+      "sha256": "510dfc013d27065649986d85723d548326d0dd0e2738c1c0c7d35e5588f29598"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/camera-wgpu-vulkan-1.csv",
+      "bytes": 1732,
+      "sha256": "a058a4ff55a13bf6775d4a36e95ae42b60740bea00012dcbe931628158e5e143"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/camera-wgpu-vulkan-2.csv",
+      "bytes": 1737,
+      "sha256": "f139fced57b9d025dd95063646f1eaea847994bcd905207aea7ab8dbb488abf4"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/camera-wgpu-vulkan-3.csv",
+      "bytes": 1808,
+      "sha256": "98f2efcce776f9ef0df2d7df83a937273dfd485f96687e2976da957c31344b37"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/geometry-10-coingl-1.csv",
+      "bytes": 1662,
+      "sha256": "5e77c31bb8669d565d9fec9ec00b4b9595665934e136aafb3854ee690d7e0e22"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/geometry-10-coingl-2.csv",
+      "bytes": 1699,
+      "sha256": "a9c78db52bc336407909594239bc28825a718d5be3dd78ec07dca5bdb41db33a"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/geometry-10-coingl-3.csv",
+      "bytes": 1612,
+      "sha256": "1824e3cce1153aec847733c22255bd9714a9593567c2fae65be2f4854e47975f"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/geometry-10-wgpu-vulkan-1.csv",
+      "bytes": 1815,
+      "sha256": "762a98a08c7d4d1c65a3f19f5c155690e8374c6eec68e82fe2b79f448f7925c5"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/geometry-10-wgpu-vulkan-2.csv",
+      "bytes": 1775,
+      "sha256": "dfc0fe48b5d85e49817f9ed50c7332b0159e91c4aebc424ec617563fc7966343"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/geometry-10-wgpu-vulkan-3.csv",
+      "bytes": 1831,
+      "sha256": "ba39730364e2a41942c6846ca6f57a50ce46f29120bb5bd3173502ea8285c7b0"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/materials-10-coingl-1.csv",
+      "bytes": 1614,
+      "sha256": "40c7436c90ffd792f1c596ab84929437fb95f897944ac4d82b2972a833058c51"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/materials-10-coingl-2.csv",
+      "bytes": 1646,
+      "sha256": "9775f658a960e68f64c81abcd0cb628f87a49669ff5d7d38383bee2770fb38c1"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/materials-10-coingl-3.csv",
+      "bytes": 1551,
+      "sha256": "b581754ad6d168b6058b83e82b92520f5fe2c8993e1fc2258c964b4bbc189786"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/materials-10-wgpu-vulkan-1.csv",
+      "bytes": 1834,
+      "sha256": "3b20d19869a76a5a0d7e9ed21bf7b8f80135cd9d5435ed04c44857d39a38f518"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/materials-10-wgpu-vulkan-2.csv",
+      "bytes": 1812,
+      "sha256": "5db0044fff6adc6d9b73ab2e6b07f15553754d68521d8647bf06e6840d84898f"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/materials-10-wgpu-vulkan-3.csv",
+      "bytes": 1732,
+      "sha256": "04bc0b4204bedc309e2e503969a498d8c0a105054eafb8746772446b12a06b15"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/static-coingl-1.csv",
+      "bytes": 1674,
+      "sha256": "c908348271cd81f47389179d4e6284f10248f3e47d07ea8e81c1774af91a4e06"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/static-coingl-2.csv",
+      "bytes": 1751,
+      "sha256": "e44aa7ebd557fe39d37b80fbcf311515c30a7e2d3abdbf8af459a2cc77d1056f"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/static-coingl-3.csv",
+      "bytes": 1723,
+      "sha256": "e140bd2f464876738f2121901acbfab47754346b8e2b4275301f512fef673214"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/static-wgpu-vulkan-1.csv",
+      "bytes": 1810,
+      "sha256": "17d1dc6917e76186e76feb514d56b219cd77bd60559caaf359dd3d7968a88f17"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/static-wgpu-vulkan-2.csv",
+      "bytes": 1804,
+      "sha256": "9821bf23298730e4303d2e65d006c7b6f379e2ea85d0666667a3c914d223b5c4"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/static-wgpu-vulkan-3.csv",
+      "bytes": 1788,
+      "sha256": "5a97895538a4a34c0d81cb9b3479cc139ad0f060a792c4b1958decdb1b73bacd"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/transforms-10-coingl-1.csv",
+      "bytes": 1672,
+      "sha256": "eb103471abb25a542f3e784c2e7b3111ee0d11cee4b5b71c903824e8b45f2083"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/transforms-10-coingl-2.csv",
+      "bytes": 1697,
+      "sha256": "590b293fea584310845f7c8bc62669904e0b67416531c8e94b4b951f17e0cd86"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/transforms-10-coingl-3.csv",
+      "bytes": 1619,
+      "sha256": "c0b74b215d01aeaf2d71b6d8e2f153197d239ad2adc20a3cf6c16fc2c3de7a07"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/transforms-10-wgpu-vulkan-1.csv",
+      "bytes": 1826,
+      "sha256": "a191ef0eca0a0e8a205a977367aded230535aefdaaeb662c36e05f871aa07e25"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/transforms-10-wgpu-vulkan-2.csv",
+      "bytes": 1777,
+      "sha256": "f0186c5a48f924750b1d03a4b5e1cdec17fa01eacf59207379238b7a4575eb6a"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/before/samples/transforms-10-wgpu-vulkan-3.csv",
+      "bytes": 1796,
+      "sha256": "3a23c3f9c60a2c276e093e7f79ebca03c3a79fa5c7f0e9b046150a5abc9a91c3"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/campaign_core.py",
+      "bytes": 34538,
+      "sha256": "d5bda1398da0889130c18d46877b192a92c479a7dcc3f3adc3b91c8416eb4f04"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/controls/coin-render-matrix-baseline-binaries.json",
+      "bytes": 1713,
+      "sha256": "d83debf81aa13978ffddf50cee559ccf4bc09f5556a5f46cf70f222f4f89c834"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/controls/coin-render-matrix-final-binaries.json",
+      "bytes": 1711,
+      "sha256": "2d2256208525278df6b4f84b85ad8a7d03ae7684448b97a05f595af427af76bb"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/controls/coin-render-state-coingl-binaries.json",
+      "bytes": 1898,
+      "sha256": "c1a342954e8e9eb2b4cf971599ee639b667b3d60b148462644104ac68789058d"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/report-summary.json",
+      "bytes": 612919,
+      "sha256": "adf2651f5c4e0a36dbd2a0fd3d090465ce6b557a41005b8d9d1d7dfdca4529db"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/rgb-before-after.json",
+      "bytes": 88357,
+      "sha256": "37b2d3e44ddfc918d3182798ccccfc46494c79b76e251e2c00f96b1fbc2c01a8"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/summarize.py",
+      "bytes": 13454,
+      "sha256": "2f467b438a75844e4cf19a9a69fe87e03dfc921f19b7aaf84c0104534712f794"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/logs/camera-coingl-1.log",
+      "bytes": 3880,
+      "sha256": "92ecc52cd233c5078f545958de23ad54b0a5459a702dc6e6bd0130197cc5b9a5"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/logs/camera-wgpu-vulkan-1.log",
+      "bytes": 4159,
+      "sha256": "11a85cf1ae85dc06fd948b1bc7dea9d6dc857d14a8abfbba59881b2219247857"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/logs/geometry-10-coingl-1.log",
+      "bytes": 3934,
+      "sha256": "70a13dc56a3ca31d738f126db243e96fc9b8536062282db07c64352017f86875"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/logs/geometry-10-wgpu-vulkan-1.log",
+      "bytes": 4211,
+      "sha256": "a4f90b8b6363a927d17e7ee2a73b989a8219074030be35afaa1e2ea9ec70c30a"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/logs/geometry-100-coingl-1.log",
+      "bytes": 3954,
+      "sha256": "4099ebd356e87324b8647ff466bae021e5f094cd74bb9f764ec04c90a73a3684"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/logs/geometry-100-wgpu-vulkan-1.log",
+      "bytes": 4228,
+      "sha256": "1fb3654ebc2fbae2501ef2c51faf8eaf18530968144b6a35980045ef9294e708"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/logs/materials-10-coingl-1.log",
+      "bytes": 3948,
+      "sha256": "6d95f53702bc5f99b48c76115eb753b2d958b9fc10df2f6172620848eedec8d0"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/logs/materials-10-wgpu-vulkan-1.log",
+      "bytes": 4224,
+      "sha256": "798bbd808ebde04ea365e2f982feeb601defc01d2a8b622316bd27e2c7642d58"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/logs/static-coingl-1.log",
+      "bytes": 3869,
+      "sha256": "4032549b00b7e10ab104d60ef5be3605c678b36c4a5a483dd9fc5aba064477b7"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/logs/static-wgpu-vulkan-1.log",
+      "bytes": 4156,
+      "sha256": "c33db252877af6021db687b5b48e75c0ba73878c670e4f8ed7932e4a81fc5399"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/logs/transforms-10-coingl-1.log",
+      "bytes": 3946,
+      "sha256": "1843505ec5a015f75dee576d59374601d1e00eabf701f2595c2093d75192fa55"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/logs/transforms-10-wgpu-vulkan-1.log",
+      "bytes": 4227,
+      "sha256": "032bd2c688bfdbed296241a43d5abd61d40d243b40dc6bca1f5250ef9e74c957"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/logs/transforms-100-coingl-1.log",
+      "bytes": 3964,
+      "sha256": "c714093b9081533ac86816c1192d6c9ad8dc24f1858154c74c24fa710c909bf5"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/logs/transforms-100-wgpu-vulkan-1.log",
+      "bytes": 4230,
+      "sha256": "45636ceb80de5b3c55705b60b0dfc4b040661bd25189b56eb5134ba5f28d3088"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/manifest.json",
+      "bytes": 17669,
+      "sha256": "b6924d466c9e2ea506f3659840721dfdb79096b8dc4184041c38589baf84421c"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/medians.json",
+      "bytes": 15753,
+      "sha256": "07c3acf39d734727d48695605743ebe570e87bc3b5a1e7b698098e9a2c172dbe"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/results.json",
+      "bytes": 21091,
+      "sha256": "7a93f3c5e3d2e9a1d4a802347783ef55e715361e705292efc30ac7b1efe913e7"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/samples/camera-coingl-1.csv",
+      "bytes": 647,
+      "sha256": "7142c5e09aa4ee3cea500c0d5ce3ba19b42578eda8617a1b3e003d80b604226d"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/samples/camera-wgpu-vulkan-1.csv",
+      "bytes": 647,
+      "sha256": "87aba7663d0b744144b4f4c8fb35feb83e7609c7f1dd1a3cfa57bfa956aeacb3"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/samples/geometry-10-coingl-1.csv",
+      "bytes": 656,
+      "sha256": "22a857cee4ecff5fc013caf8556e66fce8fae737f1b17e432e3c76937727f8f1"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/samples/geometry-10-wgpu-vulkan-1.csv",
+      "bytes": 634,
+      "sha256": "12b156ba7a998337ce26949f74791da18bea3b9274f57bfc4a85448f52c05839"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/samples/geometry-100-coingl-1.csv",
+      "bytes": 647,
+      "sha256": "13f9dd7c2105ee76aafc0bf0b859cd55fec897feb3433e35ed9977048783a4ee"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/samples/geometry-100-wgpu-vulkan-1.csv",
+      "bytes": 654,
+      "sha256": "624b8b40e0b03a722ecdb23161f3335edb300dd733aa1152495cbb77cd3431bc"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/samples/materials-10-coingl-1.csv",
+      "bytes": 624,
+      "sha256": "01a4b126b7030a9388594d28288b4fb1c7450f4347131d0be5dbf6c6a68a7495"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/samples/materials-10-wgpu-vulkan-1.csv",
+      "bytes": 695,
+      "sha256": "438b58a1a25f809711a46317b847e044431e4ef7d0ab725bf6ec799c5a0f1b94"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/samples/static-coingl-1.csv",
+      "bytes": 673,
+      "sha256": "ae0d2e927dbfafb4550e20e0b917e0e3390182988aa7086659900dad3f35e640"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/samples/static-wgpu-vulkan-1.csv",
+      "bytes": 665,
+      "sha256": "d448f1704ccbb688bf29bbe27bde8313765387099da10cb8904b9f11df28f8f9"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/samples/transforms-10-coingl-1.csv",
+      "bytes": 638,
+      "sha256": "bde54c4622674065e015729bb65e68570ba1ec3181c58d62d74a00bfbdd5f944"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/samples/transforms-10-wgpu-vulkan-1.csv",
+      "bytes": 657,
+      "sha256": "ca8a8233f3f1aaae71eb405c9d7eac8261a71ce9e899524feff7cdd340e3b951"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/samples/transforms-100-coingl-1.csv",
+      "bytes": 644,
+      "sha256": "88e4629cfe686bdfa3f9caf3cf353a68e489b6469c31892340185208e3ba8524"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-after/samples/transforms-100-wgpu-vulkan-1.csv",
+      "bytes": 692,
+      "sha256": "4f5d655276fc905be69673c5b57ad3129fe0eee10b2a5afd4ad9c9fe3e4a3c76"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/logs/camera-coingl-1.log",
+      "bytes": 3895,
+      "sha256": "80898d5f88c894078731ad356711d0cd0e04e73638d6df11085d4a602e40183a"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/logs/camera-wgpu-vulkan-1.log",
+      "bytes": 4167,
+      "sha256": "ad96427f73271ce90b7ae621344d1835d64050e7242033b7d60c7adb1739d99d"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/logs/geometry-10-coingl-1.log",
+      "bytes": 3939,
+      "sha256": "61abfc65a0376edca9c82535bd753b012dd77fc7b92bbfdf40de5b9c359bda8b"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/logs/geometry-10-wgpu-vulkan-1.log",
+      "bytes": 4219,
+      "sha256": "174bc024fdda4383d5aaa4c44122e87e425c9691e685205f1a54af178917bca2"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/logs/geometry-100-coingl-1.log",
+      "bytes": 3953,
+      "sha256": "77cd2204a50cf0bed6435c7e0d9835b5335dbbf09c0f1b001d0bea6decbf1f08"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/logs/geometry-100-wgpu-vulkan-1.log",
+      "bytes": 4237,
+      "sha256": "986365cd2634b5322e9b3f81aa915c2230a2fafabd8479c8ff0f195ad225345b"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/logs/materials-10-coingl-1.log",
+      "bytes": 3952,
+      "sha256": "a62998aa86adf40769fd6c7a01a6a19b7445d0c8cf49d0855b221f53eb2558ed"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/logs/materials-10-wgpu-vulkan-1.log",
+      "bytes": 4232,
+      "sha256": "d577f6b2a930c1336b9e2d3e70949abea010ec5676318c27e52e02195ec02a13"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/logs/static-coingl-1.log",
+      "bytes": 3869,
+      "sha256": "70056cc11c84edcc54e8cd0275357258c3159c23b03b6f12eda5d0e4303502e9"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/logs/static-wgpu-vulkan-1.log",
+      "bytes": 4163,
+      "sha256": "1b9fa0cef73a6731a6676a218fcc204ce528c7789507ecf07437222ab26a5d01"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/logs/transforms-10-coingl-1.log",
+      "bytes": 3947,
+      "sha256": "5156e415ddcfaf4b5c18a69e2afce8ec3e76096cbdb2ad7aef9e217c8a3cb649"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/logs/transforms-10-wgpu-vulkan-1.log",
+      "bytes": 4235,
+      "sha256": "f771ca7868bdfe5a8fbfbfa262b709a864577a34cf237b9fc013af7d955578f1"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/logs/transforms-100-coingl-1.log",
+      "bytes": 3973,
+      "sha256": "8ab9d1cc664bdb9cc5369868c2c4e76e04f83077e4c28d95b008e58043fd4ef3"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/logs/transforms-100-wgpu-vulkan-1.log",
+      "bytes": 4256,
+      "sha256": "4386666d0fe9bd60196edff3756fa6de11b57b58e132ebfdfad001dfb2cf44ee"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/manifest.json",
+      "bytes": 17777,
+      "sha256": "2c390913e5873f9f50bf4aebe447acc3ca027cef69db8aae4dda041d81490684"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/medians.json",
+      "bytes": 15742,
+      "sha256": "a7257ed89391ce749a37fec70d772c523cf408647819efda270feb79aa353d56"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/results.json",
+      "bytes": 21075,
+      "sha256": "9e087c85befe6c3b53ea886140ad046d0eaf450a4fc9b4766f1b62eae3c02f69"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/samples/camera-coingl-1.csv",
+      "bytes": 719,
+      "sha256": "ec23ca9212fbd0cb632260c16b1724295bcd7369daacd9f3ab82c9d11d08d9d4"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/samples/camera-wgpu-vulkan-1.csv",
+      "bytes": 696,
+      "sha256": "159065ab0cc2f75d387608fecfe34d26e8891493ba75468f5403702a0e606a53"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/samples/geometry-10-coingl-1.csv",
+      "bytes": 679,
+      "sha256": "6aad03af1a6a7027c4b75e37042399af306be2d772bfd11f8e0644017f89b935"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/samples/geometry-10-wgpu-vulkan-1.csv",
+      "bytes": 704,
+      "sha256": "cb23c7b22bd3424dacee79f539b960c408c8e31ad5b415452ca59d7a0e9bb1a1"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/samples/geometry-100-coingl-1.csv",
+      "bytes": 665,
+      "sha256": "c1686a2cf813228f092d7f603847ed2e32182d16a98bd5ed194adfce8adafed0"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/samples/geometry-100-wgpu-vulkan-1.csv",
+      "bytes": 673,
+      "sha256": "7c045da761c6bff8ff2239c3df50cf0432ed7d0a8cfab4c7647a07df507e0e8c"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/samples/materials-10-coingl-1.csv",
+      "bytes": 649,
+      "sha256": "ca7c6c5f3e0c07206f20d685c84ef51be72297761736738dc6e824c1ea530942"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/samples/materials-10-wgpu-vulkan-1.csv",
+      "bytes": 663,
+      "sha256": "c580827c9d7c08c0d5a63f6e08e434a408d17ea5960c604d42e69a01c7f351c5"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/samples/static-coingl-1.csv",
+      "bytes": 693,
+      "sha256": "62eddb8d9357cd8007456b6d2f99f051edee37f2b19f7b09a67eea8cfecba448"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/samples/static-wgpu-vulkan-1.csv",
+      "bytes": 666,
+      "sha256": "07177f9d8a9604d1048e8fc888e953dd38e1830cccaf54b24b1ab4f8fbae5075"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/samples/transforms-10-coingl-1.csv",
+      "bytes": 611,
+      "sha256": "7726ba2b36b1ec9293f04bb9b51c5eff9f0c5a9fb155c3a4eb3fa8587f05bba8"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/samples/transforms-10-wgpu-vulkan-1.csv",
+      "bytes": 666,
+      "sha256": "8d001ba159a2ffba8216366793b1d4c1f4218f22f01dbac9a719b1630d71af32"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/samples/transforms-100-coingl-1.csv",
+      "bytes": 635,
+      "sha256": "28d59bb7246d7fbcd0f7630631deb0db168c00f8c67d7489c6e763047dbbd770"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen/verify-before/samples/transforms-100-wgpu-vulkan-1.csv",
+      "bytes": 681,
+      "sha256": "9ae710f8c241f3e46def350a3f1433db11993614560ae6962f3991df1080e9f8"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/offscreen-console.log",
+      "bytes": 8111,
+      "sha256": "8ff1781f026c612a63f5a1a5ac7b2a2b926022201fa030b0e39e511c0d044367"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/plot-and-report.py",
+      "bytes": 21614,
+      "sha256": "01c979061c8ac21667f35dc4c55439336d677f244da495eef38ef75412176481"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/report-inputs.json",
+      "bytes": 1511,
+      "sha256": "47bee9a0a64cda10f88555772d2d6f94eef40aeb3e2d3ed965cccfec5a09edc0"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/run-campaigns.py",
+      "bytes": 1854,
+      "sha256": "7d4f4c1a3777ad1c540c734692e55e009ff895b9ce2b244eed41dd6b14849716"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stage-metadata.json",
+      "bytes": 7702,
+      "sha256": "b6d685dcfa4d4bbddda08a3a7ff1862a2333f5e8e6124f8a6cc3ddcd4e5649ee"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/logs/geometry-100-coingl-1.log",
+      "bytes": 2306,
+      "sha256": "8f5665d5e35c6df59e4a40ad7af109ab16fdbcf2622f87a9e73ab229b182e524"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/logs/geometry-100-coingl-2.log",
+      "bytes": 2305,
+      "sha256": "5937663978148803a04ffe4bb184ab0fe0dc36b0deba9477e096d62d0a23fbbf"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/logs/geometry-100-coingl-3.log",
+      "bytes": 2308,
+      "sha256": "9aa70d988a22c59fe0343f00f156ecc56a24a5726d42b3cb722e1f9a71b1a263"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/logs/geometry-100-wgpu-vulkan-1.log",
+      "bytes": 2556,
+      "sha256": "35bdf4d994f8493f4405cefd5e49ad21881c7ea265f647cc56cb7890e380460f"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/logs/geometry-100-wgpu-vulkan-2.log",
+      "bytes": 2547,
+      "sha256": "cf6a7a0a26d71ebdf2567d6efa51112fa8c83a166879cf2f799f2f78869f4dcc"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/logs/geometry-100-wgpu-vulkan-3.log",
+      "bytes": 2548,
+      "sha256": "7457c31dcdc3b8e6df32dd6fc80c5d283a0d45846b1336004ec782e07b521560"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/logs/transforms-100-coingl-1.log",
+      "bytes": 2306,
+      "sha256": "4a9560eacff111365e99dcfed3847a9468197c5921e208b98a41a44ffffe9fdf"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/logs/transforms-100-coingl-2.log",
+      "bytes": 2310,
+      "sha256": "5ea2b22fbeba3ff9141ca24352632b169c3b03550e6053b9e89a2fc6bcce8891"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/logs/transforms-100-coingl-3.log",
+      "bytes": 2305,
+      "sha256": "31e3a3968de1394bd3ff1634a4d11d83fb7f242a07e04adef0fcf4e59f83c0d4"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/logs/transforms-100-wgpu-vulkan-1.log",
+      "bytes": 2549,
+      "sha256": "dfa18e787a2e6cf96bddb53d6f3524c0c3d79ddbd5a62bf54795a68e2dbf91d7"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/logs/transforms-100-wgpu-vulkan-2.log",
+      "bytes": 2545,
+      "sha256": "f4cb718a34c2063eb935f8c613e039abebabfb7b2764f3358d594de1c03a6c30"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/logs/transforms-100-wgpu-vulkan-3.log",
+      "bytes": 2537,
+      "sha256": "c851842e59125bf8c3484ec00745950fbb1777f238bee7c6c30b454043ff3a68"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/manifest.json",
+      "bytes": 20346,
+      "sha256": "f3811e493da738d35c4428d1d39cba8406ddc0993a312e3e57b158af0758d853"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/medians.json",
+      "bytes": 4574,
+      "sha256": "6fcfc820fedaa17f000ccc3b2beb87e778bd63cae0855e3f0c12c36a27c333f4"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/results.json",
+      "bytes": 18401,
+      "sha256": "2fdc61603767b80716e57730aadc31dece9ab295d4ae64b31e97c4a895f07a29"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/samples/geometry-100-coingl-1.csv",
+      "bytes": 887,
+      "sha256": "45d70831df977e9a17f5b9be6a69dd4e5eeef5db9fb4d79cbcf504695eea0e1e"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/samples/geometry-100-coingl-2.csv",
+      "bytes": 933,
+      "sha256": "deb33f7d2649365a63db983a8d32d985a121a6561528b9e5e21fd119e3997174"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/samples/geometry-100-coingl-3.csv",
+      "bytes": 912,
+      "sha256": "739785b545f121b7d9729841b1bc7ab85e365fbd8d66a3fb19c273633a79fbb1"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/samples/geometry-100-wgpu-vulkan-1.csv",
+      "bytes": 897,
+      "sha256": "8a2993656390d9bf0357c21a236526ffe717dbf65f79057bcdf85a85d3c30c26"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/samples/geometry-100-wgpu-vulkan-2.csv",
+      "bytes": 941,
+      "sha256": "3526a30729320651a35bc0dd7ea31cca2ef64a7a401b939053c455f24797c820"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/samples/geometry-100-wgpu-vulkan-3.csv",
+      "bytes": 884,
+      "sha256": "73c36b0f886b8cb6c81a4f020d3eabacf0fb336eab296d47524cdb3de36cb3d2"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/samples/transforms-100-coingl-1.csv",
+      "bytes": 928,
+      "sha256": "24c49219987b77309d7082a57474fa9b9e848a604d9987cfb9e9d6176cf8b1bb"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/samples/transforms-100-coingl-2.csv",
+      "bytes": 897,
+      "sha256": "99fac461bfac8903234cf7794647990611f6642284672830b26df240c2f146fa"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/samples/transforms-100-coingl-3.csv",
+      "bytes": 934,
+      "sha256": "2ead8cf8dc9a578d7e5f4dfc9d88604260d4b04cfaa84048d4a6dfbe1bd9f303"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/samples/transforms-100-wgpu-vulkan-1.csv",
+      "bytes": 897,
+      "sha256": "9cc0244335a635f8458c4d2b69a01f085f09acc2bfb4d5ca4b29ef7ccad6c290"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/samples/transforms-100-wgpu-vulkan-2.csv",
+      "bytes": 916,
+      "sha256": "db1965aaf5f698038998b1eaa4ca117ffaab3a296c6a8f2d257c3f85979cce10"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/after/samples/transforms-100-wgpu-vulkan-3.csv",
+      "bytes": 951,
+      "sha256": "f7684fbd02d83c5e6c139a964d698e4c2bf0e852d2d6d607f185301998fcf724"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/analyze_animation_images.py",
+      "bytes": 4587,
+      "sha256": "ab2d85a2a60aa883a5f92fc1ca9d089ab50aed6451dc79fcc48a919c771cf556"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/archive-manifest.json",
+      "bytes": 16630,
+      "sha256": "bc89aa7e285e764fdc38dcfae55a12e30a6346081bc9f86f1c3ab41a10fc5858"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/logs/geometry-100-coingl-1.log",
+      "bytes": 2306,
+      "sha256": "8f5665d5e35c6df59e4a40ad7af109ab16fdbcf2622f87a9e73ab229b182e524"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/logs/geometry-100-coingl-2.log",
+      "bytes": 2305,
+      "sha256": "5937663978148803a04ffe4bb184ab0fe0dc36b0deba9477e096d62d0a23fbbf"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/logs/geometry-100-coingl-3.log",
+      "bytes": 2308,
+      "sha256": "9aa70d988a22c59fe0343f00f156ecc56a24a5726d42b3cb722e1f9a71b1a263"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/logs/geometry-100-wgpu-vulkan-1.log",
+      "bytes": 2555,
+      "sha256": "607e83a324b4774475b77a539ea1015a775e2be6e813fc40da997295edeba687"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/logs/geometry-100-wgpu-vulkan-2.log",
+      "bytes": 2551,
+      "sha256": "c64b47ac118d7a4b126545a3169e92cf5e39664f77383fe175cb852ecd7b7596"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/logs/geometry-100-wgpu-vulkan-3.log",
+      "bytes": 2556,
+      "sha256": "1c7f72b0b9be944096e17616748e916c7f6a0da93491809eace033ecde0c94fd"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/logs/transforms-100-coingl-1.log",
+      "bytes": 2306,
+      "sha256": "4a9560eacff111365e99dcfed3847a9468197c5921e208b98a41a44ffffe9fdf"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/logs/transforms-100-coingl-2.log",
+      "bytes": 2310,
+      "sha256": "5ea2b22fbeba3ff9141ca24352632b169c3b03550e6053b9e89a2fc6bcce8891"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/logs/transforms-100-coingl-3.log",
+      "bytes": 2305,
+      "sha256": "31e3a3968de1394bd3ff1634a4d11d83fb7f242a07e04adef0fcf4e59f83c0d4"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/logs/transforms-100-wgpu-vulkan-1.log",
+      "bytes": 2543,
+      "sha256": "2271cd692f07a039f1030a998d58b04e5d4d05b0cb146cc75983144aea22943d"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/logs/transforms-100-wgpu-vulkan-2.log",
+      "bytes": 2545,
+      "sha256": "fd503ccc0fb7af3a9d1f54ec825294f4f2587ad6fc741477c84f431542b90447"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/logs/transforms-100-wgpu-vulkan-3.log",
+      "bytes": 2550,
+      "sha256": "91cd882b08d02e775f81064ed06fea31a5611a5605af7df4608acf0c3000002e"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/manifest.json",
+      "bytes": 20423,
+      "sha256": "45b17a38df1e1452ce4ce860f5484c0d677d4d2348d6a9a4c4ec701b1a72ab94"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/medians.json",
+      "bytes": 4582,
+      "sha256": "b50d484a9de4f1ec7c074dccc7508fdf8754e6746737fefa2d617c070f6d92be"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/results.json",
+      "bytes": 18409,
+      "sha256": "7e7a08705b00ad8efad8e6b0078c0f19baf85d8d6b3c8ac6bde623129ae0cb05"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/samples/geometry-100-coingl-1.csv",
+      "bytes": 887,
+      "sha256": "45d70831df977e9a17f5b9be6a69dd4e5eeef5db9fb4d79cbcf504695eea0e1e"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/samples/geometry-100-coingl-2.csv",
+      "bytes": 933,
+      "sha256": "deb33f7d2649365a63db983a8d32d985a121a6561528b9e5e21fd119e3997174"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/samples/geometry-100-coingl-3.csv",
+      "bytes": 912,
+      "sha256": "739785b545f121b7d9729841b1bc7ab85e365fbd8d66a3fb19c273633a79fbb1"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/samples/geometry-100-wgpu-vulkan-1.csv",
+      "bytes": 905,
+      "sha256": "7aad0a1553d731368fab95bf5e949256a8af78f28d8abb88a07db9f5fb4e4ad1"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/samples/geometry-100-wgpu-vulkan-2.csv",
+      "bytes": 907,
+      "sha256": "cada65954add2839208a55dce374f8ef608c47dfb1c8d8be56aef1b185989761"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/samples/geometry-100-wgpu-vulkan-3.csv",
+      "bytes": 880,
+      "sha256": "5bacf8d8a64cb3a4b089f7fab7386ffea499123220b042ca765403b91f14ba3c"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/samples/transforms-100-coingl-1.csv",
+      "bytes": 928,
+      "sha256": "24c49219987b77309d7082a57474fa9b9e848a604d9987cfb9e9d6176cf8b1bb"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/samples/transforms-100-coingl-2.csv",
+      "bytes": 897,
+      "sha256": "99fac461bfac8903234cf7794647990611f6642284672830b26df240c2f146fa"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/samples/transforms-100-coingl-3.csv",
+      "bytes": 934,
+      "sha256": "2ead8cf8dc9a578d7e5f4dfc9d88604260d4b04cfaa84048d4a6dfbe1bd9f303"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/samples/transforms-100-wgpu-vulkan-1.csv",
+      "bytes": 942,
+      "sha256": "25761039a1ea9b97c0f5134c4d680adfb0d0d51c7041d2730a965cfbc9e6a2a6"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/samples/transforms-100-wgpu-vulkan-2.csv",
+      "bytes": 934,
+      "sha256": "9a0140aca22aba8495a26452fecc7abc12709d7e853d72f8b645c3c4302d2662"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/before/samples/transforms-100-wgpu-vulkan-3.csv",
+      "bytes": 940,
+      "sha256": "e77f95e5f23384179236322ee9bcc14cba380a81637d31465be8556aa184f96c"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/campaign_core.py",
+      "bytes": 34538,
+      "sha256": "d5bda1398da0889130c18d46877b192a92c479a7dcc3f3adc3b91c8416eb4f04"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/controls/coin-render-matrix-baseline-binaries.json",
+      "bytes": 1713,
+      "sha256": "d83debf81aa13978ffddf50cee559ccf4bc09f5556a5f46cf70f222f4f89c834"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/controls/coin-render-matrix-final-binaries.json",
+      "bytes": 1711,
+      "sha256": "2d2256208525278df6b4f84b85ad8a7d03ae7684448b97a05f595af427af76bb"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/controls/coin-render-state-coingl-binaries.json",
+      "bytes": 1898,
+      "sha256": "c1a342954e8e9eb2b4cf971599ee639b667b3d60b148462644104ac68789058d"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/report-summary.json",
+      "bytes": 147113,
+      "sha256": "581801f4d326b3db8cee3bcdd1d9aa79d96e6b755955e0dc62f8aa0bf4ee73fb"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress/summarize.py",
+      "bytes": 13454,
+      "sha256": "2f467b438a75844e4cf19a9a69fe87e03dfc921f19b7aaf84c0104534712f794"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/stress-console.log",
+      "bytes": 3474,
+      "sha256": "28515e08fe8989128c05abe6b16bc22b708b6e838b534bd7d5e46a21ff147062"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/tests/build-oracle-repair.log",
+      "bytes": 162,
+      "sha256": "0d026ab68c48d409722271c56d19edac23889cf175b6ec71dfad96e553dbd726"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/tests/build-wgpu.log",
+      "bytes": 4804,
+      "sha256": "391b8a01377777a38b39b19deab8a1675df33df0c78cf5534f2687f04cad66de"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/tests/final/commands.json",
+      "bytes": 6600,
+      "sha256": "f3621cc73d717524652ab9fbccfdebea1db541d70d1425dff09213e4fad2f707"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/tests/final/cpu-ctest.log",
+      "bytes": 731,
+      "sha256": "af8befd2a38e2042ee8ecf1c779d6f17ca4fa260ddfd1a097588ac4b489b5441"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/tests/final/cpu.log",
+      "bytes": 307,
+      "sha256": "a2defb9354ae603cb8e84ca4546c1b9867816a48331b1ba1ce97b99d914d27b5"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/tests/final/gpu-camera-rtt-transparency-ctest.log",
+      "bytes": 5826,
+      "sha256": "b93615ce2ae5e8493580c5bee85fdda0e635cd01bece1e0b5582ca6698df74aa"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/tests/final/gpu-camera-rtt-transparency.log",
+      "bytes": 798,
+      "sha256": "bd5864d3497f964d662657cf30dc8f8a29487da24a2f678c5c7fb84f1b6c4769"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/tests/final/gpu-composition.log",
+      "bytes": 33,
+      "sha256": "dfdaaeeb8db6795afd7e5137b563827b4af3e3ef8bb0c96de8bfd0e0490e1686"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/tests/final/gpu-multitexture.log",
+      "bytes": 127,
+      "sha256": "689e064297a3c96648850ae72db495a2393da0ca23c7f4a485bbc61dec749ddb"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/tests/final-gates-console.log",
+      "bytes": 275,
+      "sha256": "009330f390cae1c1fbdc1980a5c74838ded84acea4a2e8efff738176bcf4a2df"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/tests/initial/commands.json",
+      "bytes": 3840,
+      "sha256": "12735c1b60f4cc28c61cca0fcaf8ea25b66cc86ae97284aaaf61bdf2e363d2a0"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/tests/initial/cpu.log",
+      "bytes": 1044,
+      "sha256": "6b9743079de32147b0cf1b3106f73c6ea9a78eb82c5a8ac47166e7942d3435f5"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/tests/initial-gates-console.log",
+      "bytes": 1065,
+      "sha256": "381557b04aa8a231cf53e6188e4a74831694e7bdfe7236844956ac89cb035674"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/tests/run-gates.py",
+      "bytes": 2868,
+      "sha256": "223a82051e160f29f8b773aa7b4613e60ea71e757e4351528f180fbe771282c1"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/validate-archive.py",
+      "bytes": 6550,
+      "sha256": "f14615827dbff9e5ef4396f5e243003815adf9f8aa31db3c33f93725b8dcfb25"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/verify-after-console.log",
+      "bytes": 1859,
+      "sha256": "d2e8faf3edf9d4ef8b2d9bb11a3a9b12e5ef3cba35af7e684b3366b7486abee4"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/verify-before-console.log",
+      "bytes": 1859,
+      "sha256": "c93b4555783ad3685bb595a3934196f08d9ab27937277ff87329567707f7de80"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/wgpu-matrix-cache.png",
+      "bytes": 183406,
+      "sha256": "0e2c386c655d76345d4a944c98dae67c82356ce22c74b445e7cda06e1380660f"
+    },
+    {
+      "path": "docs/validation/wgpu-matrix-cache-linux/wgpu-matrix-cache.svg",
+      "bytes": 105043,
+      "sha256": "f9951b7d9b27d9fd917c741644738bb9ac4e7a311050abb0e96824bb5a2fe51a"
+    }
+  ]
+}
