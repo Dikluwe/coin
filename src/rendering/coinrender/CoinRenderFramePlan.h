@@ -281,12 +281,17 @@ struct CoinRenderRenderStateSnapshot {
   uint32_t shadowStyle = 3; // SoShadowStyleElement default: casts and receives.
   bool transparentMaterial = false; // Coin lazy material flag over the bound array.
   bool transparentTexture = false; // Image alpha affects casting even at texture quality zero.
+  // Raster's GL traversal classification is independent of its pixel alpha:
+  // Text2's gray coverage forces blending, but only Coin shape flags defer it.
+  bool rasterPixels = false;
+  bool rasterTransparent = false;
   CoinRenderLightModel lightModel = CoinRenderLightModel::PHONG;
   float lineWidth = 1.0f;
   float pointSize = 1.0f;
   uint32_t linePattern = 0xffffu;
   int32_t linePatternScaleFactor = 1;
   bool polygonLinePattern = false; // One stipple counter for this original polygon.
+  bool rasterForceBlend = false; // Gray Text2 forces blending independently of traversal.
   SbMatrix textureMatrix = SbMatrix::identity();
   bool hasTexture = false;
   uint32_t textureImageSlot = 0;

@@ -52,6 +52,8 @@
 #include <Inventor/fields/SoFieldData.h>
 #include <Inventor/nodes/SoClipPlane.h>
 #include <Inventor/nodes/SoCube.h>
+#include <Inventor/nodes/SoImage.h>
+#include <Inventor/nodes/SoText2.h>
 #include <Inventor/SbViewVolume.h>
 #include <Inventor/SoPath.h>
 #include <Inventor/bundles/SoTextureCoordinateBundle.h>
@@ -106,6 +108,8 @@ CoinRenderAction::initClass(void)
   SO_ENABLE(CoinRenderAction, SoShadowStyleElement);
   CoinRenderDepthPolicyElement::initClass();
   SO_ENABLE(CoinRenderAction, CoinRenderDepthPolicyElement);
+  SO_ACTION_ADD_METHOD(SoImage, CoinRenderActionP::screenContentMethod);
+  SO_ACTION_ADD_METHOD(SoText2, CoinRenderActionP::screenContentMethod);
 }
 
 SbBool
@@ -1316,6 +1320,9 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   }
 
   std::string err;
+  // Pixel geometry is already projected. Camera/transform overlays cannot
+  // patch it like object-space geometry, including a currently clipped node.
+  if (this->builder.hasScreenContent()) planCacheAllowed = false;
   CoinRenderTransparencyOptions capturedTransparency = this->transparencyOptions;
   capturedTransparency.mode = this->executionOptions.transparency;
   if (!traversalSkipped && !cameraOverlay && !translationOverlay &&
@@ -1524,6 +1531,11 @@ CoinRenderActionP::textureUnitsPreCB(void * userdata, SoCallbackAction * action,
   // PRUNE skips this shape only; subsequent state nodes still traverse.
   if (CoinRenderFramePlanBuilder::isShapeInvisible(action)) return SoCallbackAction::PRUNE;
   auto * p = static_cast<CoinRenderActionP *>(userdata);
+  if (node->getTypeId() == SoImage::getClassTypeId() ||
+      node->getTypeId() == SoText2::getClassTypeId()) {
+    p->builder.endShape();
+    return SoCallbackAction::CONTINUE; // The action method captures after all pre callbacks.
+  }
   SoState * state = action->getState();
   int last = -1;
   const SbBool * enabled = SoMultiTextureEnabledElement::getEnabledUnits(state, last);
@@ -1555,6 +1567,28 @@ CoinRenderActionP::textureUnitsPreCB(void * userdata, SoCallbackAction * action,
     }
   }
   return SoCallbackAction::CONTINUE;
+}
+
+void
+CoinRenderActionP::screenContentMethod(SoAction * action, SoNode * node)
+{
+  // Subclasses retain their virtual callback and geometry contract.
+  if (node->getTypeId() != SoImage::getClassTypeId() &&
+      node->getTypeId() != SoText2::getClassTypeId()) {
+    SoNode::callbackS(action, node);
+    return;
+  }
+  auto * render = static_cast<CoinRenderAction *>(action);
+  if (render->hasTerminated()) return;
+  render->setCurrentNode(node);
+  render->invokePreCallbacks(node);
+  if (render->getCurrentResponse() == SoCallbackAction::CONTINUE) {
+    render->pimpl->builder.captureScreenContent(render, node);
+    // Native image primitive observers still run. Our triangle callback
+    // suppresses that legacy quad, leaving only the captured screen pixels.
+    if (!render->hasSingleShapeCallbacks(node->getTypeId())) node->callback(render);
+  }
+  render->invokePostCallbacks(node);
 }
 
 SoCallbackAction::Response
@@ -1674,6 +1708,8 @@ CoinRenderActionP::triangleCB(void * userdata,
                                const SoPrimitiveVertex * v2)
 {
   CoinRenderActionP * p = static_cast<CoinRenderActionP *>(userdata);
+  const auto type = action->getCurPathTail()->getTypeId();
+  if (type == SoImage::getClassTypeId() || type == SoText2::getClassTypeId()) return;
   p->builder.addTriangle(action, v0, v1, v2);
 }
 

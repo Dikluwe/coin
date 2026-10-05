@@ -28,6 +28,8 @@ public:
   void beginShape(SoCallbackAction * action, const SoNode * node);
   void endShape();
   bool replayNativeCube(SoCallbackAction * action, SoNode * node);
+  bool captureScreenContent(SoCallbackAction * action, const SoNode * node);
+  bool hasScreenContent() const { return this->screenContentCaptured; }
   // Wiring reads the effective Coin state, including ignored fields and overrides.
   static bool isShapeInvisible(SoCallbackAction * action);
   static int polygonDrawStyle(SoCallbackAction * action);
@@ -89,7 +91,7 @@ private:
   static uint64_t materialBytesKey(const CoinRenderMaterialSnapshot & material);
   bool synchronizeMaterialIndex();
   void disableMaterialIndex();
-  uint32_t captureRenderState(SoCallbackAction * action, int materialIndex);
+  uint32_t captureRenderState(SoCallbackAction * action, int materialIndex, bool captureTextures = true);
   bool captureTexture(SoCallbackAction * action, CoinRenderRenderStateSnapshot & rs, std::string * outError = nullptr);
   bool captureTextureUnit(SoCallbackAction * action, int unit, CoinRenderRenderStateSnapshot & rs, std::string * outError);
   void captureSortingCenter(SoCallbackAction * action);
@@ -123,6 +125,7 @@ private:
   bool hasActiveDraw;
   bool hasError;
   bool isUnsupported;
+  bool screenContentCaptured = false;
   uint32_t savedAnnotationLayer = 0;
   bool savedAnnotationClear = false;
   uint32_t foregroundLayer = 0;

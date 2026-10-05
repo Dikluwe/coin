@@ -8,6 +8,9 @@
 #include "rendering/coinrender/CoinRenderImageCore.h"
 #include "rendering/coinrender/CoinRenderPlanAssemblyCore.h"
 #include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
+#include "rendering/coinrender/CoinRenderText2Capture.h"
+#include <Inventor/nodes/SoImage.h>
+#include <Inventor/nodes/SoText2.h>
 #include <Inventor/nodes/SoShape.h>
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/nodes/SoCone.h>
@@ -173,6 +176,7 @@ CoinRenderFramePlanBuilder::reset()
   this->hasActiveDraw = false;
   this->hasError = false;
   this->isUnsupported = false;
+  this->screenContentCaptured = false;
   this->savedAnnotationLayer = 0;
   this->savedAnnotationClear = false;
   this->foregroundLayer = 0;
@@ -690,9 +694,9 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
 }
 
 uint32_t
-CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materialIndex)
+CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materialIndex, bool captureTextures)
 {
-  const bool stable = this->stableShape && action->getCurPathTail() == this->stableShape;
+  const bool stable = captureTextures && this->stableShape && action->getCurPathTail() == this->stableShape;
   if (stable)
     for (const auto & cached : this->shapeRenderStates)
       if (cached.first == materialIndex) return cached.second;
@@ -700,7 +704,7 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   uint32_t materialSlot = this->captureMaterial(action, materialIndex);
 
   // 2. Lighting & CoinRenderLightModel
-  CoinRenderLightModel lm = CoinRenderLightModel::PHONG;
+  CoinRenderLightModel lm = captureTextures ? CoinRenderLightModel::PHONG : CoinRenderLightModel::BASE_COLOR;
   CoinRenderLightingSnapshot lightSnap;
   lightSnap.lights.swap(this->lightCaptureScratch);
 
@@ -872,12 +876,204 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
     this->isUnsupported = true;
     this->builderError = "UNSUPPORTED: more than eight active Coin clipping planes";
   }
-  this->captureTexture(action, rs, &this->builderError);
+  if (captureTextures) this->captureTexture(action, rs, &this->builderError);
 
   const uint32_t rsSlot = CoinRenderPlanAssemblyCore::state(
     this->currentPlan, this->renderStatesByModel, rs);
   if (stable) this->shapeRenderStates.emplace_back(materialIndex, rsSlot);
   return rsSlot;
+}
+
+bool
+CoinRenderFramePlanBuilder::captureScreenContent(SoCallbackAction * action, const SoNode * node)
+{
+  this->screenContentCaptured = true;
+  this->endShape();
+  auto fail = [&](const std::string & diagnostic, bool unsupported = false) {
+    this->hasError = true;
+    this->isUnsupported = this->isUnsupported || unsupported;
+    this->builderError = diagnostic;
+    return false;
+  };
+  if (!this->inFrame || !action || !node)
+    return fail("Invalid screen-content capture scope");
+  const bool isImage = node->getTypeId() == SoImage::getClassTypeId();
+  if (!isImage && node->getTypeId() != SoText2::getClassTypeId())
+    return fail("Invalid native screen-content node");
+  if (isImage) {
+    SbVec2s size; int components;
+    const auto * bytes = static_cast<const SoImage *>(node)->image.getValue(size, components);
+    if (!bytes || !size[0] || !size[1]) return true;
+  } else {
+    const auto & strings = static_cast<const SoText2 *>(node)->string;
+    if (strings.getNum() <= CoinRenderText2Capture::MAX_LINES) {
+      bool empty = true;
+      for (int i = 0; i < strings.getNum(); ++i) empty = empty && strings[i].getLength() == 0;
+      if (empty) return true;
+    }
+  }
+  if (this->hasActiveShadowGroup())
+    return fail("UNSUPPORTED: screen raster nodes inside an active shadow group", true);
+
+  // Text2 disables inherited texturing. SoImage with active inherited texture
+  // state requires GL's persistent raster UV attributes, outside this profile.
+  // Capture remaining state without admitting inherited texture profiles.
+  const auto source = this->currentPlan.renderStates[this->captureRenderState(action, 0, false)];
+  if (this->hasError || this->isUnsupported) return false;
+  const uint32_t shapeFlags = SoShapeStyleElement::get(action->getState())->getFlags();
+  const bool traversalAlpha = (shapeFlags &
+    (SoShapeStyleElement::TRANSP_MATERIAL | SoShapeStyleElement::TRANSP_TEXTURE)) != 0;
+  if (traversalAlpha && (source.transparencyType == SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_ADD ||
+                         source.transparencyType == SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND))
+    return fail("UNSUPPORTED: transparent screen raster with sorted-triangle traversal requires Coin's primitive-cache policy", true);
+  const auto viewport = this->currentPlan.viewports[source.viewportSlot];
+  std::string diagnostic;
+  CoinRenderScreenImageLayout imageLayout;
+  CoinRenderText2Raster text;
+  CoinRenderTextureImageSnapshot image;
+  bool imageTransparent = false;
+  if (isImage) {
+    const auto & imageNode = *static_cast<const SoImage *>(node);
+    SbVec2s size; int components = 0;
+    const unsigned char * bytes = imageNode.image.getValue(size, components);
+    if (!size[0] || !size[1]) return true;
+    int lastUnit = -1;
+    const SbBool * enabled = SoMultiTextureEnabledElement::getEnabledUnits(action->getState(), lastUnit);
+    for (int unit = 0; unit <= lastUnit; ++unit)
+      if (enabled[unit])
+        return fail("UNSUPPORTED: SoImage with active inherited texturing requires current raster texture-coordinate capture", true);
+    CoinRenderScreenRasterAnchor anchor;
+    if (!CoinRenderScreenRasterCore::imageAnchor(source.model, action->getViewVolume(),
+                                                viewport, anchor, diagnostic) ||
+        !CoinRenderScreenRasterCore::imageLayout(anchor, viewport, size[0], size[1],
+          imageNode.width.getValue(), imageNode.height.getValue(),
+          imageNode.horAlignment.getValue(), imageNode.vertAlignment.getValue(),
+          source.materialSlot, imageLayout, diagnostic))
+      return fail(diagnostic, diagnostic.find("UNSUPPORTED:") == 0);
+    if (!imageLayout.quad.visible) return true;
+    if (!CoinRenderScreenRasterCore::imagePayload(bytes,
+          size_t(size[0]) * size_t(size[1]) * size_t(components),
+          size[0], size[1], components, image, imageTransparent, diagnostic))
+      return fail(diagnostic, diagnostic.find("UNSUPPORTED:") == 0);
+  } else {
+    CoinRenderText2Capture::Status status;
+    if (!CoinRenderText2Capture::capture(*static_cast<const SoText2 *>(node), action->getState(),
+                                       text, status, diagnostic))
+      return fail(diagnostic, status == CoinRenderText2Capture::Status::UNSUPPORTED);
+    if (text.empty) return true;
+  }
+
+  auto rasterState = source;
+  rasterState.rasterPixels = true;
+  rasterState.rasterTransparent = traversalAlpha;
+  rasterState.model = rasterState.view = rasterState.projectionCoin = SbMatrix::identity();
+  rasterState.lightModel = CoinRenderLightModel::BASE_COLOR;
+  rasterState.cullMode = CoinRenderCullMode::NONE;
+  rasterState.frontFace = CoinRenderFrontFace::CCW;
+  rasterState.polygonOffsetEnabled = false;
+  rasterState.polygonLinePattern = false;
+  rasterState.clipPlanesWorld.clear(); // glRasterPos tests the anchor once below.
+  rasterState.textureMatrix = SbMatrix::identity();
+  rasterState.hasTexture = true;
+  if (rasterState.transparencyType == SoGLRenderAction::SCREEN_DOOR)
+    rasterState.transparencyType = SoGLRenderAction::NONE; // Polygon stipple never masks raster pixels.
+  // Disabling GL_DEPTH_TEST disables depth writes as well as comparisons.
+  if (!rasterState.depthTest) { rasterState.depthWrite = false; rasterState.explicitDepthMask |= 2; }
+  CoinRenderSamplerSnapshot sampler;
+  sampler.wrapS = sampler.wrapT = CoinRenderTextureWrap::CLAMP;
+  sampler.filter = CoinRenderTextureFilter::NEAREST;
+  rasterState.samplerSlot = CoinRenderPlanAssemblyCore::sampler(this->currentPlan, sampler);
+  CoinRenderMaterialSnapshot white;
+  for (int c = 0; c < 4; ++c) white.diffuse[c] = 1.0f;
+  const uint32_t whiteSlot = this->internMaterial(white);
+
+  size_t rasterQuads = 0;
+  auto emit = [&](CoinRenderScreenRasterQuad quad, uint32_t stateSlot) {
+    if (!quad.visible) return true;
+    if (++rasterQuads > 65536)
+      return fail("UNSUPPORTED: screen raster exceeds 65536 covered runs per node", true);
+    if (this->currentPlan.vertices.size() > UINT32_MAX - 4 ||
+        this->currentPlan.indices.size() > UINT32_MAX - 6)
+      return fail("UNSUPPORTED: screen raster geometry exceeds index capacity", true);
+    this->ensureDrawPacket(CoinRenderPrimitiveTopology::TRIANGLE_LIST, stateSlot,
+                           const_cast<SoNode *>(node));
+    auto & draw = this->currentPlan.draws[this->currentDrawIndex];
+    // Sorting uses the original camera, while the raster's vertex transform is I.
+    if (draw.geometry.indexCount == 0)
+      CoinRenderPlanAssemblyCore::sortingCenter(draw, source.model, SbVec3f(0,0,0));
+    const uint32_t first = static_cast<uint32_t>(this->currentPlan.vertices.size());
+    for (auto vertex : quad.vertices) {
+      vertex.materialSlot = this->currentPlan.renderStates[stateSlot].materialSlot;
+      vertex.fogEyeDepth = CoinRenderScreenRasterCore::planarRasterFogDepth(vertex.position[2]);
+      this->currentPlan.vertices.push_back(vertex);
+    }
+    const uint32_t indices[] = {0,1,2,0,2,3};
+    for (uint32_t index : indices) this->currentPlan.indices.push_back(first + index);
+    draw.geometry.vertexCount += 4;
+    draw.geometry.indexCount += 6;
+    return true;
+  };
+  auto visible = [&](float x, float y, float z, bool & admitted) {
+    if (!CoinRenderScreenRasterCore::rasterVisible(source, viewport, x, y, z, admitted, diagnostic))
+      return fail(diagnostic);
+    return true;
+  };
+
+  if (isImage) {
+    bool admitted;
+    if (!visible(imageLayout.rasterX, imageLayout.rasterY,
+                 imageLayout.quad.vertices[0].position[2], admitted)) return false;
+    if (!admitted) return true;
+    rasterState.materialSlot = whiteSlot;
+    rasterState.textureModel = CoinRenderTextureModel::REPLACE;
+    rasterState.transparentMaterial = false;
+    rasterState.transparentTexture = imageTransparent;
+    rasterState.rasterTransparent = rasterState.rasterTransparent || imageTransparent;
+    rasterState.textureImageSlot = CoinRenderPlanAssemblyCore::texture(this->currentPlan, std::move(image));
+    const uint32_t slot = CoinRenderPlanAssemblyCore::state(this->currentPlan, this->renderStatesByModel, rasterState);
+    return emit(imageLayout.quad, slot);
+  }
+
+  for (auto & pass : text.passes) {
+    bool admitted;
+    if (!visible(pass.pixelX, pass.pixelY, pass.depthCoin, admitted)) return false;
+    if (!admitted) continue;
+    auto rs = rasterState;
+    rs.materialSlot = pass.materialColorBaked ? whiteSlot : source.materialSlot;
+    if (pass.mono && source.transparencyType == SoGLRenderAction::SCREEN_DOOR) {
+      auto material = this->currentPlan.materials[source.materialSlot];
+      material.diffuse[3] = 1.0f;
+      material.transparency = 0.0f; // Coin's packed raster color ORs alpha with 0xff.
+      rs.materialSlot = this->internMaterial(material);
+    }
+    rs.textureModel = pass.materialColorBaked ? CoinRenderTextureModel::REPLACE : CoinRenderTextureModel::MODULATE;
+    if (pass.forceBlend) {
+      rs.rasterForceBlend = true;
+    }
+    rs.transparentTexture = !pass.mono;
+    rs.textureImageSlot = CoinRenderPlanAssemblyCore::texture(this->currentPlan, std::move(pass.image));
+    const auto & texture = this->currentPlan.textures[rs.textureImageSlot];
+    const uint32_t width = texture.width, height = texture.height;
+    const uint32_t slot = CoinRenderPlanAssemblyCore::state(this->currentPlan, this->renderStatesByModel, rs);
+    const float rasterX = pass.mono ? std::floor(pass.pixelX) : pass.pixelX;
+    const float rasterY = pass.mono ? std::floor(pass.pixelY) : pass.pixelY;
+    // Horizontal covered runs preserve glBitmap/alpha-test holes, including
+    // depth, with the existing texture/geometry contract in both executors.
+    for (uint32_t y = 0; y < height; ++y) {
+      for (uint32_t x = 0; x < width;) {
+        if (!pass.coverageMask[size_t(y) * width + x]) { ++x; continue; }
+        const uint32_t begin = x;
+        while (x < width && pass.coverageMask[size_t(y) * width + x]) ++x;
+        const float uv[] = {float(begin)/width, float(y)/height, float(x)/width, float(y+1)/height};
+        CoinRenderScreenRasterQuad quad;
+        if (!CoinRenderScreenRasterCore::pixelQuad(viewport, rasterX + begin, rasterY + y,
+               float(x - begin), 1.0f, pass.depthCoin, uv, rs.materialSlot, quad, diagnostic))
+          return fail(diagnostic);
+        if (!emit(quad, slot)) return false;
+      }
+    }
+  }
+  return true;
 }
 
 CoinRenderVertexSnapshot

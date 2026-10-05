@@ -33,6 +33,7 @@ public:
   ~CoinRenderActionP();
 
   void initCallbacks();
+  static void screenContentMethod(SoAction *, SoNode *);
   void setDiagnostic(const CoinRenderActionDiagnostic & diagnostic);
   static void cameraSensorCB(void * data, SoSensor * sensor);
   void rememberFrameRoot(SoNode * root, bool qualifyCamera);

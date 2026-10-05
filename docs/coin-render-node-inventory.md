@@ -4,6 +4,63 @@ P15 fecha a descoberta e a classificação do checkout local; suporte funcional
 F19/F20 e qualificação de interação P16 permanecem separados. Percorrer um nó,
 aceitar uma cena ou gerar primitivas de picking não certifica o resultado GL.
 
+## Texto e imagem implementados em Linux
+
+Em 2026-10-05, os tipos nativos exatos `SoText2` e `SoImage` passaram a ter
+captura explícita na camada comum. `CoinRenderAction` decide a captura depois
+dos callbacks anteriores do usuário; subclasses conservam sua callback virtual.
+O serviço privado de fontes do Coin fornece os mesmos glifos e medidas usados
+pelo CoinGL. Nenhuma classe pública do Coin foi alterada. A ponte privada de
+fontes só é compilada com `COIN_BUILD_RENDER`; a ABI C wgpu permanece na revisão 43.
+CoinRender precisa da biblioteca Coin produzida por esse mesmo build, que inclui
+o serviço privado de glifos; uma Coin anterior não oferece esses símbolos.
+
+- `SoText2`: UTF8, fontes mono/gray, kerning, linhas, espaçamento, justificação,
+  cor/alpha do material e máscara de cobertura. Glifos sem cobertura não
+  escrevem profundidade; gray conserva o corte de alpha e o blend do CoinGL.
+- `SoImage`: L/LA/RGB/RGBA, alinhamento, dimensões solicitadas, crop e zoom
+  nearest dos pixels originais, preservando orientação e alpha da imagem.
+- Os dois capturam coordenadas de tela na origem do objeto. Câmera, modelo e
+  viewport são recalculados em cada captura; os atalhos de atualização de
+  geometria em espaço de objeto ficam desativados em frames com esses nós.
+- Composição comum distingue o alpha dos pixels da classificação transparente
+  que determina a travessia diferida. BGFX e wgpu usam o transporte existente de
+  geometria/textura; não há implementação de fontes específica por backend.
+
+O gate `CoinRenderScreenContentTest --gpu` usa pixels do Coin/OpenGL como
+oráculo, incluindo uma cópia da cena sem o conteúdo para impedir comparações
+vazias. São 93 cenas por executor, com fontes `defaultFont`/DejaVu Sans,
+âncoras fracionárias, nove alinhamentos, zoom anisotrópico, mutações, resize,
+perspectiva, depth test/write, clip planes, fog, políticas de transparência,
+callbacks externos e recuperação após entradas recusadas. Logs em
+[validation/screen-raster-linux](validation/screen-raster-linux).
+As 279 comparações GPU passaram, com erro RGB máximo de 1/255 e MAE máximo
+de 0,366667 por canal na região avaliada. Também passaram 27 gates de regressão
+de action, captura, composição, textura, multitextura, depth, reuse e RTT.
+O snapshot de estado continua com 1.640 bytes neste build; as novas flags usam
+o padding existente. A configuração `COIN_BUILD_RENDER=OFF` foi verificada
+sem a ponte de fontes no grafo de build, sem uma compilação completa OFF.
+Essa qualificação cobre Linux/NVIDIA, wgpu/Vulkan e BGFX/Vulkan/OpenGL;
+não certifica Windows, outras GPUs ou todos os consumidores FreeCAD.
+
+Limites explícitos: 4.096 glifos, 256 linhas, 1 MiB de strings, fonte até
+1.024 pixels, 16 MiB de payload/layout capturado, texturas até 8.192 por eixo
+e 65.536 runs de cobertura por nó. Frames recusados preservam o último frame
+válido. Imagem/texto vazios são inertes.
+
+`SoImage` com texturas herdadas ativas é recusado: o CoinGL aplica texturas
+usando coordenadas raster persistentes que o estado da callback não fornece.
+Texto desativa essas texturas no CoinGL. Nós de raster dentro de um
+`SoShadowGroup` ativo e raster transparente interceptado pela ordenação de
+triângulos também são recusados até existir um contrato comum para esses casos.
+O fog usa a aproximação planar permitida pelo GL, qualificada no driver desta
+campanha. A comparação de imagem mede RGB; não é uma certificação geral de
+alpha de framebuffer/RTT. Os testes negativos não contam como paridade visual.
+
+O restante deste inventário registra a descoberta histórica P15. As referências
+a texto/imagem ausentes abaixo descrevem aquela base; os workbenches ainda
+precisam de fixtures no host, mesmo com os dois nós implementados.
+
 ## Fontes e reprodução
 
 FreeCAD base `228c679d78845c3fb6f5eb3d1a27f48aceab68b5`, com patches locais;

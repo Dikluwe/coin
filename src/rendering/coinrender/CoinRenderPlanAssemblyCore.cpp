@@ -176,6 +176,9 @@ uint32_t CoinRenderPlanAssemblyCore::state(CoinRenderFramePlan & plan, StateInde
         existing.shadowStyle == rs.shadowStyle &&
         existing.transparentMaterial == rs.transparentMaterial &&
         existing.transparentTexture == rs.transparentTexture &&
+        existing.rasterPixels == rs.rasterPixels &&
+        existing.rasterTransparent == rs.rasterTransparent &&
+        existing.rasterForceBlend == rs.rasterForceBlend &&
         existing.lightingSlot == rs.lightingSlot &&
         existing.lightModel == rs.lightModel &&
         existing.transparencyType == rs.transparencyType &&

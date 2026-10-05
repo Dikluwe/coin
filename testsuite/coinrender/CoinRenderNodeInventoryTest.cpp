@@ -110,14 +110,14 @@ int main() {
   glOnly->unref();
   auto* text = new SoText2;
   text->string = "P15";
-  ok &= check(capture(text) && witness.frame.draws.empty(),
-              "SoText2 has no callback primitives and is silently omitted");
+  ok &= check(capture(text) && !witness.frame.draws.empty() && !witness.frame.textures.empty(),
+              "SoText2 captures screen glyph coverage and texture payload");
   auto* image = new SoImage;
   std::vector<unsigned char> bytes(4 * 4 * 4, 255);
   image->image.setValue(SbVec2s(4, 4), 4, bytes.data());
   ok &=
-      check(capture(image) && !witness.frame.draws.empty() && witness.frame.textures.empty(),
-            "standalone SoImage emits a quad but its image is not captured as an enabled texture");
+      check(capture(image) && !witness.frame.draws.empty() && !witness.frame.textures.empty(),
+            "standalone SoImage captures its pixel payload as a screen raster");
   auto* coords = new SoCoordinate3;
   const SbVec3f points[] = {SbVec3f(-1, -1, 0), SbVec3f(1, -1, 0), SbVec3f(0, 1, 0)};
   coords->point.setValues(0, 3, points);

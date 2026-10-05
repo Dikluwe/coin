@@ -5,6 +5,12 @@ Auditoria do checkout `codex/coin-render-transform-performance`, base
 wgpu; a cidade animada testa somente geometria opaca, materiais, iluminação
 e câmera. Uma imagem equivalente dessa cidade não certifica outros nós.
 
+Atualização posterior em Linux: a captura comum de `SoText2` e `SoImage`
+independente foi implementada e qualificada nos executores wgpu/Vulkan e
+BGFX/Vulkan/OpenGL. Consulte o [perfil, limites e evidência](coin-render-node-inventory.md#texto-e-imagem-implementados-em-linux).
+As duas primeiras linhas abaixo preservam o resultado desta auditoria Windows
+anterior à implementação; a nova versão ainda exige qualificação Windows.
+
 ## Funcionalidades que faltam ou têm contrato limitado
 
 | Prioridade | Recurso Coin | Comportamento atual verificado | Dono e próximo fechamento |

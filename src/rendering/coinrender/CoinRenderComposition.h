@@ -343,6 +343,7 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
     item.firstIndex = draw.geometry.firstIndex;
     item.indexCount = draw.geometry.indexCount;
     item.blend = materialAlpha;
+    const bool traversalTransparent = rs.rasterPixels ? rs.rasterTransparent : item.blend;
     item.eyeDepth = count ? (minDepth + maxDepth) * 0.5f : 0.0f;
     if (draw.hasSortingCenter) {
       if (rs.cameraSlot >= frame.cameras.size()) {
@@ -383,33 +384,33 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
         break;
       case SoGLRenderAction::DELAYED_ADD:
         item.additive = true;
-        item.deferred = item.blend;
+        item.deferred = traversalTransparent;
         break;
       case SoGLRenderAction::DELAYED_BLEND:
-        item.deferred = item.blend;
+        item.deferred = traversalTransparent;
         break;
       case SoGLRenderAction::SORTED_OBJECT_ADD:
         item.additive = true;
         item.sortObject = true;
-        item.deferred = item.blend;
+        item.deferred = traversalTransparent;
         break;
       case SoGLRenderAction::SORTED_OBJECT_BLEND:
         item.sortObject = true;
-        item.deferred = item.blend;
+        item.deferred = traversalTransparent;
         break;
       case SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_ADD:
         item.additive = true;
         item.sortTriangles = true;
         item.sortObject = true;
-        item.deferred = item.blend;
+        item.deferred = traversalTransparent;
         break;
       case SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND:
         item.sortTriangles = true;
         item.sortObject = true;
-        item.deferred = item.blend;
+        item.deferred = traversalTransparent;
         break;
       case SoGLRenderAction::SORTED_LAYERS_BLEND:
-        item.deferred = item.blend;
+        item.deferred = traversalTransparent;
         item.transparencyStrategy = CoinRenderCompositionItem::SORTED_LAYERS;
         break;
       default:
@@ -417,6 +418,7 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
         return false;
       }
     }
+    if (rs.rasterForceBlend) { item.blend = true; item.additive = false; }
     if (item.blend && item.deferred && !item.additive && draw.renderLayer == 0) {
       const uint64_t required =
           item.transparencyStrategy == CoinRenderCompositionItem::SORTED_LAYERS

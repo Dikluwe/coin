@@ -179,6 +179,9 @@ CoinRenderRecordingBackend::recordToString(const CoinRenderFramePlan & frame) co
         << " offsetStyles=" << rs.polygonOffsetStyles
         << " offsetPrimitiveStyle=" << rs.polygonOffsetPrimitiveStyle
         << " hasTex=" << (rs.hasTexture ? "1" : "0");
+    if (rs.rasterPixels)
+      out << " rasterPixels=1 rasterTransparent=" << (rs.rasterTransparent ? "1" : "0")
+          << " rasterForceBlend=" << (rs.rasterForceBlend ? "1" : "0");
     if (rs.polygonOffsetSlopeBias != 0)
       out << " offsetSlopeBias=" << formatFloat(rs.polygonOffsetSlopeBias);
     if (rs.hasTexture) {

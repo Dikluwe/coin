@@ -6,6 +6,7 @@ set(COIN_RENDER_SOURCES
 	CoinRenderDepthPolicyElement.cpp
 	CoinRenderFramePlan.cpp
 	CoinRenderFramePlanBuilder.cpp
+	CoinRenderText2Capture.cpp
 	CoinRenderFrameReuseCore.cpp
 	CoinRenderImageCore.cpp
 	CoinRenderPlanAssemblyCore.cpp
