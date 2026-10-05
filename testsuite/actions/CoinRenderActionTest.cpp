@@ -1065,7 +1065,7 @@ struct CaptureCameraBasisOracle {
     coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_CAPTURE_CAMERA_BASIS_REUSE", "0");
   }
   bool same() {
-    const CoinRenderActionP * a = action.getPimpl(); const CoinRenderActionP * b = literal.getPimpl();
+    const CoinRenderActionP * a = &action.getPimpl().get(); const CoinRenderActionP * b = &literal.getPimpl().get();
     if (action.getLastStatus() != literal.getLastStatus() || a->lastDiagnosticDomain != b->lastDiagnosticDomain ||
         std::string(action.getLastError().getString()) != literal.getLastError().getString() ||
         a->hasLastValidPlan != b->hasLastValidPlan || !a->lastValidPlan.hasSamePayload(b->lastValidPlan) ||
@@ -1093,7 +1093,7 @@ struct CaptureCameraBasisOracle {
     return true;
   }
   bool counts(size_t prepares, size_t literalPrepares, size_t reuse, size_t calls = 1) {
-    const CoinRenderActionP * a = action.getPimpl(); const CoinRenderActionP * b = literal.getPimpl();
+    const CoinRenderActionP * a = &action.getPimpl().get(); const CoinRenderActionP * b = &literal.getPimpl().get();
     return a->captureCameraBasisCalls == calls && b->captureCameraBasisCalls == calls &&
       a->captureCameraBasisPrepares == prepares && b->captureCameraBasisPrepares == literalPrepares &&
       a->captureCameraBasisReuses == reuse && b->captureCameraBasisReuses == 0;
@@ -1173,7 +1173,7 @@ int testCaptureCameraBasisReuse() {
     CaptureCameraBasisOracle oracle;
     TEST_ASSERT(oracle.ready, "authored camera fallback oracle requires CPU targets");
     oracle.apply(scene.root);
-    const CoinRenderActionP * a = oracle.action.getPimpl(); const CoinRenderActionP * b = oracle.literal.getPimpl();
+    const CoinRenderActionP * a = &oracle.action.getPimpl().get(); const CoinRenderActionP * b = &oracle.literal.getPimpl().get();
     TEST_ASSERT(oracle.same() && a->captureCameraBasisCalls == b->captureCameraBasisCalls &&
                 a->captureCameraBasisPrepares + a->captureCameraBasisReuses == b->captureCameraBasisPrepares &&
                 a->captureCameraBasisReuses <= 1 && b->captureCameraBasisReuses == 0,
