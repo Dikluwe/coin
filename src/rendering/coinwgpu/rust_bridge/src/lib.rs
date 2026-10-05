@@ -378,6 +378,55 @@ pub struct GpuMaterial {
     pub params: [f32; 4], // x=shininess, y=transparency, z=0, w=0
 }
 
+fn pack_gpu_materials(materials: &[CoinWgpuMaterial]) -> Vec<GpuMaterial> {
+    materials.iter().map(|m| GpuMaterial {
+        ambient: m.ambient,
+        diffuse: m.diffuse,
+        specular: m.specular,
+        emission: m.emission,
+        params: [m.shininess, m.transparency, 0.0, 0.0],
+    }).collect()
+}
+
+fn material_resource_reuse_enabled() -> bool {
+    static ENABLED: OnceLock<bool> = OnceLock::new();
+    *ENABLED.get_or_init(|| std::env::var("COIN_WGPU_DISABLE_MATERIAL_RESOURCE_REUSE").as_deref() != Ok("1"))
+}
+
+#[cfg(test)]
+mod material_resource_tests {
+    use super::*;
+
+    #[test]
+    fn gpu_material_table_preserves_all_source_bits_and_zero_gpu_padding() {
+        assert_eq!(std::mem::size_of::<CoinWgpuMaterial>(), 72);
+        assert_eq!(std::mem::size_of::<GpuMaterial>(), 80);
+        let mut materials = vec![CoinWgpuMaterial::zeroed(); 4097];
+        for (index, material) in materials.iter_mut().enumerate() {
+            material.ambient = [index as f32, -0.0, 0.125, 0.25];
+            material.diffuse = [0.5, 0.625, 0.75, 1.0];
+            material.specular = [0.875, 1.0, -0.0, 0.0];
+            material.emission = [0.0, 0.03125, 0.0625, index as f32];
+            material.shininess = index as f32 / 4096.0;
+            material.transparency = -0.0;
+        }
+        let packed = pack_gpu_materials(&materials);
+        let bytes: &[u8] = bytemuck::cast_slice(&packed);
+        assert_eq!(bytes.len(), 4097 * 80);
+        for (index, material) in materials.iter().enumerate() {
+            let mut expected = [0.0_f32; 20];
+            expected[0..4].copy_from_slice(&material.ambient);
+            expected[4..8].copy_from_slice(&material.diffuse);
+            expected[8..12].copy_from_slice(&material.specular);
+            expected[12..16].copy_from_slice(&material.emission);
+            expected[16] = material.shininess;
+            expected[17] = material.transparency;
+            assert_eq!(&bytes[index * 80..(index + 1) * 80], bytemuck::cast_slice(&expected));
+        }
+        assert!(pack_gpu_materials(&[]).is_empty());
+    }
+}
+
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct CoinWgpuShadowDraw {
@@ -1052,6 +1101,9 @@ fn camera_scene(generation: u64, f: &CoinWgpuFrameView,
         target.extend_from_slice(source);
         Some(target)
     }
+    let trace_resources = std::env::var_os("COIN_RENDER_TRACE_PHASES")
+        .or_else(|| std::env::var_os("COIN_WGPU_TRACE_PHASES")).is_some();
+    let profile_snapshot = trace_resources.then(std::time::Instant::now);
     let geometry = if let Some(base) = base {
         base.geometry.clone()
     } else {
@@ -1065,10 +1117,20 @@ fn camera_scene(generation: u64, f: &CoinWgpuFrameView,
             instances: copy(instances)?, instance_ranges: copy(instance_ranges)?,
         })
     };
-    Some(Arc::new(ValidatedScene {
+    let scene = Arc::new(ValidatedScene {
         revision: f.frame_revision, generation, width: f.width, height: f.height,
         clear_color: f.clear_color, geometry, states: copy(states)?, draw_order: copy(order)?,
-    }))
+    });
+    if let Some(start) = profile_snapshot {
+        // Bytes are the copied payloads, not allocator capacity. This timer
+        // spans the entire scene snapshot, including bounds/states/order; it
+        // is not isolated material memcpy and precedes submission success.
+        eprintln!("COIN_RENDER_PHASE rust_material_snapshot source_bytes={} material_copied_bytes={} instance_copied_bytes={} geometry_reused={} snapshot_ms={} attempt=1",
+            std::mem::size_of_val(materials), if base.is_some() { 0 } else { std::mem::size_of_val(materials) },
+            if base.is_some() { 0 } else { std::mem::size_of_val(instances) }, base.is_some() as u32,
+            start.elapsed().as_secs_f64() * 1000.0);
+    }
+    Some(scene)
 }
 
 fn commit_camera_scene(device: &mut DeviceState, scene: Option<Arc<ValidatedScene>>,
@@ -3222,43 +3284,30 @@ fn encode_frame(
         }
     }
 
-    let gpu_materials: Vec<GpuMaterial> = materials_slice.iter().map(|m| {
-        GpuMaterial {
-            ambient: m.ambient,
-            diffuse: m.diffuse,
-            specular: m.specular,
-            emission: m.emission,
-            params: [m.shininess, m.transparency, 0.0, 0.0],
-        }
-    }).collect();
-
-    // WebGPU does not permit a zero-sized storage binding. This sentinel is
-    // unreachable because there are no draws in a material-free frame.
-    let fallback_material = [GpuMaterial {
-        ambient: [0.0; 4],
-        diffuse: [0.0; 4],
-        specular: [0.0; 4],
-        emission: [0.0; 4],
-        params: [0.0; 4],
-    }];
-    let material_bytes: &[u8] = if gpu_materials.is_empty() {
-        bytemuck::cast_slice(&fallback_material)
-    } else {
-        bytemuck::cast_slice(&gpu_materials)
-    };
-
+    let trace_materials = std::env::var_os("COIN_RENDER_TRACE_PHASES")
+        .or_else(|| std::env::var_os("COIN_WGPU_TRACE_PHASES")).is_some();
+    let reuse_materials = material_resource_reuse_enabled();
+    // The ablation restores eager packing at its original position, before
+    // resource-cache locks or equality checks, as well as coupled GPU misses.
+    let profile_eager_pack = trace_materials.then(std::time::Instant::now);
+    let literal_gpu_materials = if reuse_materials { None }
+        else { Some(pack_gpu_materials(materials_slice)) };
+    let eager_pack_ms = profile_eager_pack.map(|start| start.elapsed().as_secs_f64() * 1000.0);
+    // Keep the required GPU length independent of whether packing is needed.
+    // A clear-only frame still binds the same one-element zero sentinel.
+    let material_byte_len = mat_buffer_size.max(std::mem::size_of::<GpuMaterial>());
     let geometry_bytes = (std::mem::size_of_val(vertices_slice) as u64)
         .saturating_add(std::mem::size_of_val(indices_slice) as u64);
     let retain_frame = !instanced && frame_revision != 0 && !vertices_slice.is_empty()
         && !indices_slice.is_empty() && !draws_slice.is_empty()
         && draws_slice.iter().all(|draw| draw.stable_node_id == 0)
-        && geometry_bytes.saturating_add(material_bytes.len() as u64) <= 256 * 1024 * 1024;
+        && geometry_bytes.saturating_add(material_byte_len as u64) <= 256 * 1024 * 1024;
     let mut frame_buffers = ctx.frame_buffers.lock().unwrap();
     if !retain_frame || !frame_buffers.as_ref().is_some_and(|entry|
         (entry.revision == frame_revision || camera_geometry.is_some_and(|geometry|
             entry.geometry.as_ref().is_some_and(|cached| Arc::ptr_eq(cached, geometry))))
             && entry.vertex_count == vertices_slice.len()
-            && entry.index_count == indices_slice.len() && entry.material_bytes == material_bytes.len()) {
+            && entry.index_count == indices_slice.len() && entry.material_bytes == material_byte_len) {
         *frame_buffers = None;
     }
     let frame_buffer_hit = frame_buffers.is_some();
@@ -3287,9 +3336,33 @@ fn encode_frame(
         camera_geometry.is_some_and(|geometry| Arc::ptr_eq(geometry, &entry.geometry)));
     let geometry_hit = owned_instance_hit || (instanced && previous_instances.as_ref().is_some_and(|entry|
         instancing::same_geometry(&entry.geometry, vertices_slice, indices_slice)));
-    let payload_hit = owned_instance_hit || (geometry_hit && previous_instances.as_ref().is_some_and(|entry|
-        instancing::same_payload(&entry.geometry, instances_slice, materials_slice)));
-    let instances_buffer = if !instanced { None } else if payload_hit {
+    let profile_payload_compare = trace_materials.then(std::time::Instant::now);
+    let (instance_hit, material_hit) = if owned_instance_hit { (true, true) }
+        else if geometry_hit { previous_instances.as_ref().map(|entry|
+            instancing::payload_hits(&entry.geometry, instances_slice, materials_slice, reuse_materials)).unwrap_or((false, false)) }
+        else { (false, false) };
+    let payload_compare_ms = profile_payload_compare.map(|start| start.elapsed().as_secs_f64() * 1000.0);
+    // payload_hit retains its legacy meaning in the diagnostic event. Resource
+    // decisions now use their own proof; optout restores the coupled behavior.
+    let payload_hit = instance_hit && material_hit;
+    let material_buffer_hit = material_hit || frame_buffers.is_some() || camera_bindings.is_some();
+    let profile_material_pack = trace_materials.then(std::time::Instant::now);
+    let gpu_materials = if let Some(literal) = literal_gpu_materials { literal }
+    else if !material_buffer_hit {
+        pack_gpu_materials(materials_slice)
+    } else { Vec::new() };
+    let material_pack_ms = if reuse_materials {
+        profile_material_pack.map(|start| start.elapsed().as_secs_f64() * 1000.0)
+    } else { eager_pack_ms };
+    // WebGPU does not permit a zero-sized storage binding. This sentinel is
+    // unreachable because there are no draws in a material-free frame. A hit
+    // never consumes material_bytes, so its empty scratch Vec is harmless.
+    let fallback_material = [GpuMaterial::zeroed()];
+    let material_bytes: &[u8] = if gpu_materials.is_empty() {
+        bytemuck::cast_slice(&fallback_material)
+    } else { bytemuck::cast_slice(&gpu_materials) };
+    let profile_material_resources = trace_materials.then(std::time::Instant::now);
+    let instances_buffer = if !instanced { None } else if instance_hit {
         Some(previous_instances.as_ref().unwrap().instances_buffer.clone())
     } else {
         Some(ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -3297,7 +3370,7 @@ fn encode_frame(
             usage: wgpu::BufferUsages::STORAGE,
         }))
     };
-    let materials_buffer = if payload_hit {
+    let materials_buffer = if material_hit {
         previous_instances.as_ref().unwrap().materials_buffer.clone()
     } else if let Some(entry) = frame_buffers.as_ref() {
         entry.materials_buffer.clone()
@@ -3305,6 +3378,7 @@ fn encode_frame(
         ctx.camera_bindings_reused.fetch_add(1, Ordering::Relaxed);
         entry.materials_buffer.clone()
     } else {
+        debug_assert_eq!(material_bytes.len(), material_byte_len);
         let buffer = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Frame Materials Storage Buffer"),
             contents: material_bytes,
@@ -3319,6 +3393,16 @@ fn encode_frame(
         }
         buffer
     };
+    if let Some(start) = profile_material_resources {
+        eprintln!("COIN_RENDER_PHASE rust_material_resources count={} source_bytes={} gpu_bytes={} packed_count={} packed_bytes={} payload_compare_ms={} pack_ms={} resource_ms={} instance_hit={} material_hit={} material_buffer_hit={} instance_allocations={} material_allocations={} instance_uploaded_bytes={} material_uploaded_bytes={} reuse_enabled={} attempt=1",
+            materials_slice.len(), std::mem::size_of_val(materials_slice), material_byte_len,
+            gpu_materials.len(), std::mem::size_of_val(gpu_materials.as_slice()),
+            payload_compare_ms.unwrap(), material_pack_ms.unwrap(), start.elapsed().as_secs_f64() * 1000.0,
+            instance_hit as u32, material_hit as u32, material_buffer_hit as u32,
+            (instanced && !instance_hit) as u32, (!material_buffer_hit) as u32,
+            if instanced && !instance_hit { std::mem::size_of_val(instances_slice) } else { 0 },
+            if material_buffer_hit { 0 } else { material_byte_len }, reuse_materials as u32);
+    }
 
     // Collect keys active in the current frame to strictly protect them from LRU eviction
     let mut frame_active_keys = std::collections::HashSet::new();
@@ -3371,7 +3455,7 @@ fn encode_frame(
     } else if retain_frame {
         *frame_buffers = Some(FrameGpuBuffers {
             revision: frame_revision, geometry: camera_geometry.cloned(), vertex_count: vertices_slice.len(),
-            index_count: indices_slice.len(), material_bytes: material_bytes.len(),
+            index_count: indices_slice.len(), material_bytes: material_byte_len,
             vertex_buffer: uncached_v_buffer.as_ref().unwrap().clone(),
             index_buffer: uncached_i_buffer.as_ref().unwrap().clone(),
             materials_buffer: materials_buffer.clone(), geometry_bytes,
@@ -3386,24 +3470,26 @@ fn encode_frame(
         let geometry = camera_geometry.ok_or_else(|| (CoinWgpuStatus::OutOfMemory,
             "Cannot retain bounded validated instance payload".to_string()))?;
         let instance_bytes = std::mem::size_of_val(instances_slice) as u64;
-        let uploaded = (if geometry_hit { 0 } else { geometry_bytes })
-            + (if payload_hit { 0 } else { instance_bytes + material_bytes.len() as u64 });
+        let uploaded_instances = if instance_hit { 0 } else { instance_bytes };
+        let uploaded_materials = if material_buffer_hit { 0 } else { material_byte_len as u64 };
+        let uploaded = (if geometry_hit { 0 } else { geometry_bytes }) + uploaded_instances + uploaded_materials;
         if geometry_hit { cache.frame_hits += 1; cache.cumulative_hits += 1; }
         if uploaded != 0 {
             cache.frame_uploads += 1; cache.cumulative_uploads += 1;
             cache.frame_uploaded_bytes += uploaded; cache.cumulative_uploaded_bytes += uploaded;
         }
         if std::env::var_os("COIN_RENDER_TRACE_PHASES").or_else(|| std::env::var_os("COIN_WGPU_TRACE_PHASES")).is_some() {
-            eprintln!("COIN_RENDER_PHASE rust_instances count={} ranges={} geometry_bytes={} instance_bytes={} material_bytes={} geometry_hit={} payload_hit={} uploaded_bytes={}",
+            eprintln!("COIN_RENDER_PHASE rust_instances count={} ranges={} geometry_bytes={} instance_bytes={} material_bytes={} geometry_hit={} payload_hit={} instance_hit={} material_hit={} instance_uploaded_bytes={} material_uploaded_bytes={} uploaded_bytes={}",
                 instances_slice.len(), instance_ranges.len(), geometry_bytes, instance_bytes,
-                material_bytes.len(), geometry_hit as u32, payload_hit as u32, uploaded);
+                material_byte_len, geometry_hit as u32, payload_hit as u32, instance_hit as u32,
+                material_hit as u32, uploaded_instances, uploaded_materials, uploaded);
         }
         Some(InstancedGpuBuffers { geometry: geometry.clone(),
             vertex_buffer: uncached_v_buffer.as_ref().unwrap().clone(),
             index_buffer: uncached_i_buffer.as_ref().unwrap().clone(),
             materials_buffer: materials_buffer.clone(),
             instances_buffer: instances_buffer.as_ref().unwrap().clone(),
-            geometry_bytes, instance_bytes, material_bytes: material_bytes.len() as u64,
+            geometry_bytes, instance_bytes, material_bytes: material_byte_len as u64,
         })
     } else { None };
 

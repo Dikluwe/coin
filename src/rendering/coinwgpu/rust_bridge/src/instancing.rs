@@ -148,9 +148,24 @@ pub(super) fn same_geometry(previous: &ValidatedGeometry, vertices: &[CoinWgpuVe
         && previous.indices == indices
 }
 
-pub(super) fn same_payload(previous: &ValidatedGeometry, instances: &[CoinWgpuInstance], materials: &[CoinWgpuMaterial]) -> bool {
-    bytemuck::cast_slice::<_, u8>(&previous.instances) == bytemuck::cast_slice::<_, u8>(instances)
-        && bytemuck::cast_slice::<_, u8>(&previous.materials) == bytemuck::cast_slice::<_, u8>(materials)
+// Both resources are immutable and belong to the last successful submission.
+// Their exact byte proofs are independent: a material change cannot make an
+// equal instance buffer stale, and a model change cannot alter material bytes.
+// The caller still requires the existing validated instanced geometry profile.
+pub(super) fn payload_hits(previous: &ValidatedGeometry, instances: &[CoinWgpuInstance],
+                          materials: &[CoinWgpuMaterial], separate: bool) -> (bool, bool) {
+    let instance_hit = bytemuck::cast_slice::<_, u8>(&previous.instances)
+        == bytemuck::cast_slice::<_, u8>(instances);
+    if separate {
+        let material_hit = bytemuck::cast_slice::<_, u8>(&previous.materials)
+            == bytemuck::cast_slice::<_, u8>(materials);
+        (instance_hit, material_hit)
+    } else {
+        // Keep the literal short-circuit and coupled resource invalidation.
+        let hit = instance_hit && bytemuck::cast_slice::<_, u8>(&previous.materials)
+            == bytemuck::cast_slice::<_, u8>(materials);
+        (hit, hit)
+    }
 }
 
 pub(super) fn owned_payload_matches(previous: &ValidatedGeometry, f: &CoinWgpuFrameView) -> bool {
@@ -282,6 +297,59 @@ mod tests {
         assert!(owned_camera_base(&base, 8, &frame, &states).is_none());
         states[0].model_view_projection[0] = f32::MAX;
         assert!(owned_camera_base(&base, 7, &frame, &states).is_none(), "camera projection cannot overflow owned positions");
+    }
+
+    #[test]
+    fn material_and_instance_resources_compare_independent_owned_bytes() {
+        let (mut frame, vertices, draws, materials, states, instances, ranges) = fixture();
+        let order = [composition::CompositionItem { draw_index: 0, blend: false, additive: false,
+            screen_door: false, screen_door_level: 0, peel: false, weighted: false }];
+        let base = camera_scene(7, &frame, &vertices, &[0, 1, 2], &draws, &materials,
+            &states, &order, &[], &[], &instances, &ranges, None).unwrap();
+        let owned = &base.geometry;
+        assert_eq!(payload_hits(owned, &instances, &materials, true), (true, true));
+        assert_eq!(payload_hits(owned, &instances, &materials, false), (true, true));
+        let mut updated_materials = materials;
+        updated_materials[0].diffuse[0] = 0.25;
+        assert_eq!(payload_hits(owned, &instances, &updated_materials, true), (true, false));
+        assert_eq!(payload_hits(owned, &instances, &updated_materials, false), (false, false));
+        let mut updated_instances = instances;
+        updated_instances[1].model_view[12] = 2.0;
+        assert_eq!(payload_hits(owned, &updated_instances, &materials, true), (false, true));
+        assert_eq!(payload_hits(owned, &updated_instances, &materials, false), (false, false));
+        assert_eq!(payload_hits(owned, &updated_instances, &updated_materials, true), (false, false));
+        // Exact source bytes include signed zeros, slots and all fields.
+        updated_materials = materials;
+        updated_materials[0].emission[2] = -0.0;
+        assert_eq!(payload_hits(owned, &instances, &updated_materials, true), (true, false));
+        updated_instances = instances;
+        updated_instances[1].normal_matrix[1] = -0.0;
+        assert_eq!(payload_hits(owned, &updated_instances, &materials, true), (false, true));
+        updated_instances = instances;
+        updated_instances[1].material_slot = 1;
+        assert_eq!(payload_hits(owned, &updated_instances, &materials, true), (false, true));
+        assert!(validate_payload(&frame, &vertices, &[0, 1, 2], &draws, &materials,
+            &states, &updated_instances, &ranges).is_err(), "resource equality never replaces payload admission");
+        assert_eq!(payload_hits(owned, &instances[..1], &materials, true), (false, true));
+        assert_eq!(payload_hits(owned, &instances, &[], true), (true, false));
+        // A late, unused material participates in proof just like any slot.
+        // Mutating caller memory cannot change the successful owned snapshot.
+        let mut many_materials = vec![materials[0]; 4097];
+        frame.material_count = many_materials.len() as u64;
+        let many = camera_scene(7, &frame, &vertices, &[0, 1, 2], &draws, &many_materials,
+            &states, &order, &[], &[], &instances, &ranges, None).unwrap();
+        many_materials[4096].ambient[3] = 0.5;
+        assert_eq!(payload_hits(&many.geometry, &instances, &many_materials, true), (true, false));
+        many_materials[4096].ambient[3] = 0.0;
+        assert_eq!(payload_hits(&many.geometry, &instances, &many_materials, true), (true, true));
+        assert_eq!(many.geometry.materials[4096].ambient[3].to_bits(), 0.0f32.to_bits());
+        frame.material_count = 1;
+        updated_instances[1].material_slot = 0;
+        updated_instances[1].model_view[12] = 2.0;
+        let next = camera_scene(7, &frame, &vertices, &[0, 1, 2], &draws, &materials,
+            &states, &order, &[], &[], &updated_instances, &ranges, None).unwrap();
+        assert_eq!(payload_hits(owned, &updated_instances, &materials, true), (false, true));
+        assert_eq!(payload_hits(&next.geometry, &updated_instances, &materials, true), (true, true));
     }
 
     #[test]

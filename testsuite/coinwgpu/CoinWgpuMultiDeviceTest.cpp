@@ -1047,7 +1047,7 @@ bool instancedOpaqueDrawOrder() {
 // Exercise the real C++ packer and GPU instance shader together. The oracle
 // starts with the captured, dimensioned positions and authored matrices; it
 // never reads the canonical vertices or transport matrices from the packer.
-bool normalizedCuboidTransport() {
+bool normalizedCuboidTransport(bool largeMaterialTable = false) {
   constexpr uint32_t side = 64;
   constexpr uint32_t count = 256; // The bounded C++ instancing profile's minimum.
   struct Devices {
@@ -1073,12 +1073,15 @@ bool normalizedCuboidTransport() {
   CoinRenderFramePlan frame;
   frame.revision = 61000;
   frame.cameras.resize(1);
-  frame.materials.resize(3);
+  // The visible middle cuboid addresses the final slot of a sparse large
+  // table. A short table alone cannot detect truncated copies or stale tails.
+  frame.materials.resize(largeMaterialTable ? 4097 : 3);
+  const uint32_t middleMaterial = largeMaterialTable ? 4096 : 1;
   for (unsigned i = 0; i < frame.materials.size(); ++i) {
     auto & material = frame.materials[i];
     for (int c = 0; c < 3; ++c) {
       material.ambient[c] = .125f;
-      material.diffuse[c] = c == int(i) ? .65f : .15f;
+      material.diffuse[c] = c == int(i == middleMaterial ? 1 : i % 3) ? .65f : .15f;
       material.specular[c] = .25f;
     }
     material.shininess = .1875f;
@@ -1115,7 +1118,7 @@ bool normalizedCuboidTransport() {
     state.model[3][0] = i < 3 ? (float(i)-1)*.5625f : 4 + float(i)*.03125f;
     state.model[3][1] = i == 1 ? .375f : -.3125f;
     state.model[3][2] = -.1875f;
-    state.materialSlot = i % 3;
+    state.materialSlot = i % 3 == 1 ? middleMaterial : i % 3;
     state.transparencyType = SoGLRenderAction::NONE;
     state.depthFunction = CoinRenderDepthFunction::LEQUAL;
     frame.renderStates.push_back(state);
@@ -1296,11 +1299,20 @@ bool normalizedCuboidTransport() {
       !compare(packed.getView(),false,"same-revision authored normals restored after contraproof")) return false;
   const std::vector<CoinWgpuVertex> canonical(packed.getView().vertices,
       packed.getView().vertices+packed.getView().vertex_count);
-  ++frame.revision; frame.materials[1].diffuse[0] = .8f; frame.materials[1].shininess = .0625f;
+  ++frame.revision; frame.materials[middleMaterial].diffuse[0] = .8f;
+  frame.materials[middleMaterial].shininess = .0625f;
   if (!prepare(CoinRenderFrameReuseKind::RESOURCE_REBUILD,frame.revision-1) ||
       !compare(packed.getView(),true,"normalized cuboid material update") ||
       !check(std::memcmp(canonical.data(),packed.getView().vertices,canonical.size()*sizeof(CoinWgpuVertex)) == 0,
              "material update must retain exact canonical geometry")) return false;
+  if (largeMaterialTable) {
+    ++frame.revision;
+    auto & material = frame.materials[middleMaterial];
+    material.ambient[1] = .375f; material.specular[2] = .75f;
+    material.emission[0] = .1875f; material.shininess = .375f;
+    if (!prepare(CoinRenderFrameReuseKind::RESOURCE_REBUILD,frame.revision-1) ||
+        !compare(packed.getView(),true,"large material tail update beyond diffuse")) return false;
+  }
   ++frame.revision;
   for (uint32_t v = 0; v < 24; ++v) {
     frame.vertices[v].position[0] *= 1.5f;
@@ -1313,6 +1325,7 @@ bool normalizedCuboidTransport() {
   // Full payload failures must preserve output and permit a same-revision
   // repair; both validation and late GPU submission failures are covered.
   ++frame.revision;
+  if (largeMaterialTable) frame.materials[middleMaterial].emission[1] = .375f;
   if (!prepare(CoinRenderFrameReuseKind::FULL_REBUILD,0)) return false;
   CoinWgpuFrameView invalid = packed.getView();
   std::vector<CoinWgpuInstance> invalidInstances(invalid.instances,invalid.instances+invalid.instance_count);
@@ -1321,7 +1334,8 @@ bool normalizedCuboidTransport() {
   coin_wgpu_inject_async_fault(COIN_WGPU_OUT_OF_MEMORY);
   const bool late = reject(packed.getView(),COIN_WGPU_OUT_OF_MEMORY,"normalized instance late OOM must not publish");
   coin_wgpu_inject_async_fault(COIN_WGPU_OK);
-  if (!late || !compare(packed.getView(),false,"normalized instance same-revision retry after failure")) return false;
+  if (!late || !compare(packed.getView(),largeMaterialTable,
+                       "normalized instance same-revision retry after failure")) return false;
   const uint64_t base = frame.revision++;
   SbMatrix view;
   view.setRotate(SbRotation(SbVec3f(0,1,0),.125f)); view[3][0] = .0625f; view[3][1] = -.03125f;
@@ -1406,7 +1420,7 @@ int main(int argc, char ** argv) {
   const bool runStress = argc > 1 && std::string(argv[1]) == "--stress";
   const bool passed = runStress ? stress() :
                       (invalidHandles() && lifecycleAndIsolation() && rttOwnership() &&
-                       cacheIsolation() && validatedCameraSceneOwnership() && ownedPhongCameraBuffers() && instancedOpaqueOwnership() && instancedOpaqueDrawOrder() && normalizedCuboidTransport() &&
+                       cacheIsolation() && validatedCameraSceneOwnership() && ownedPhongCameraBuffers() && instancedOpaqueOwnership() && instancedOpaqueDrawOrder() && normalizedCuboidTransport() && normalizedCuboidTransport(true) &&
                        concurrentSubmissions());
   if (passed) std::cout << "CoinWgpuMultiDeviceTest passed"
                         << (runStress ? " (stress)" : "") << '\n';
