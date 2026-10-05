@@ -40,7 +40,10 @@ public:
   void beginTranslationCapture(bool enabled);
   void beginTranslationShape(SoCallbackAction *, const SoNode *);
   void endTranslationShape();
-  void qualifyTranslationCapture(SoNode * root);
+  // capturedBasis is a successful proof lent only by the current
+  // rememberFrameRoot call, after the submitted plan has been installed.
+  void qualifyTranslationCapture(SoNode * root,
+                                 const CoinRenderCameraOverlayBasis * capturedBasis);
   void clearTranslationProof();
   bool prepareTranslationOverlay(SoNode *, CoinRenderObjectOverlayUndo &);
   void qualifyObjectPayloads(const std::unordered_map<const SoNode *, size_t> & materialVisits);
@@ -153,6 +156,12 @@ public:
   SoCamera * candidateCamera = NULL;
   SoCamera * cachedCamera = NULL;
   CoinRenderCameraOverlayBasis cameraOverlayBasis;
+  // Last outer apply only; count capture-time Core prepares, including failed
+  // attempts. Lazy prepareCameraOverlay work is deliberately excluded.
+  size_t captureCameraBasisCalls = 0;
+  size_t captureCameraBasisPrepares = 0;
+  size_t captureCameraBasisReuses = 0;
+  double captureCameraBasisPrepareMs = 0;
   bool cameraOnlyDirty = false;
   bool cameraPatchInvalidated = false;
   bool cameraRecaptureRequired = false;

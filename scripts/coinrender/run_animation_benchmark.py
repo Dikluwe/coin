@@ -54,6 +54,7 @@ def environment(build, variant, gpu):
         if (key.startswith("COIN_BGFX_DISABLE_") or key.startswith("COIN_WGPU_DISABLE_")
                 or key in {"COIN_RENDER_TRACE_PHASES", "COIN_WGPU_TRACE_PHASES", "COIN_DEBUG_GLGLUE",
                            "COIN_WGPU_GPU_TIMESTAMPS", "COIN_RENDER_DISABLE_CAPTURE_RESERVE",
+                           "COIN_RENDER_DISABLE_CAPTURE_CAMERA_BASIS_REUSE",
                            "COIN_RENDER_DISABLE_CAMERA_OVERLAY",
                            "COIN_RENDER_DISABLE_TRANSLATION_OVERLAY",
                            "COIN_RENDER_DISABLE_MATERIAL_OVERLAY",

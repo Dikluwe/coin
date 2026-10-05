@@ -533,6 +533,17 @@ CoinRenderActionP::cameraSensorCB(void * data, SoSensor * sensor)
 void
 CoinRenderActionP::rememberFrameRoot(SoNode * root, bool qualifyCamera)
 {
+  ++this->captureCameraBasisCalls;
+  struct BasisTraceScope {
+    CoinRenderActionP * action;
+    bool enabled;
+    ~BasisTraceScope() {
+      if (enabled)
+        std::fprintf(stderr, "COIN_RENDER_PHASE capture_camera_basis calls=%zu prepares=%zu reuse=%zu prepare_ms=%.6f\n",
+          action->captureCameraBasisCalls, action->captureCameraBasisPrepares,
+          action->captureCameraBasisReuses, action->captureCameraBasisPrepareMs);
+    }
+  } basisTrace{this, CoinRenderDiagnosticShell::phaseTracingEnabled()};
   struct CaptureScope { bool & capturing; ~CaptureScope() { capturing = false; } } scope{this->capturingTranslations};
   this->cameraSensor.detach();
   this->candidateCamera = NULL;
@@ -557,10 +568,22 @@ CoinRenderActionP::rememberFrameRoot(SoNode * root, bool qualifyCamera)
   // every capture. Keep only this cheap candidate/sensor until the camera moves.
   this->candidateCamera = camera;
   this->cameraSensor.attach(root);
-  if (qualifyCamera && cameraStableScene(root, camera) &&
-      CoinRenderFrameReuseCore::prepareCameraOverlayBasis(
-        this->lastValidPlan, this->cameraOverlayBasis)) this->cachedCamera = camera;
-  this->qualifyTranslationCapture(root);
+  const CoinRenderCameraOverlayBasis * capturedBasis = NULL;
+  if (qualifyCamera && cameraStableScene(root, camera)) {
+    ++this->captureCameraBasisPrepares;
+    const auto before = basisTrace.enabled ? std::chrono::steady_clock::now()
+                                          : std::chrono::steady_clock::time_point();
+    const bool prepared = CoinRenderFrameReuseCore::prepareCameraOverlayBasis(
+      this->lastValidPlan, this->cameraOverlayBasis);
+    if (basisTrace.enabled)
+      this->captureCameraBasisPrepareMs += std::chrono::duration<double, std::milli>(
+        std::chrono::steady_clock::now() - before).count();
+    if (prepared) {
+      this->cachedCamera = camera;
+      capturedBasis = &this->cameraOverlayBasis;
+    }
+  }
+  this->qualifyTranslationCapture(root, capturedBasis);
 }
 
 namespace {
@@ -727,7 +750,8 @@ void CoinRenderActionP::endTranslationShape()
   }
 }
 
-void CoinRenderActionP::qualifyTranslationCapture(SoNode * root)
+void CoinRenderActionP::qualifyTranslationCapture(
+  SoNode * root, const CoinRenderCameraOverlayBasis * capturedBasis)
 {
   CoinRenderPhaseTimer timer("object_qualification");
   struct CaptureScope { bool & capturing; ~CaptureScope() { capturing = false; } } scope{this->capturingTranslations};
@@ -737,9 +761,31 @@ void CoinRenderActionP::qualifyTranslationCapture(SoNode * root)
       this->lastValidPlan.draws.size() > 65536 ||
       !cameraStableScene(root, this->candidateCamera, true, &materialVisits)) return;
   timer.mark("scene_profile");
-  CoinRenderCameraOverlayBasis profile;
-  if (!CoinRenderFrameReuseCore::prepareCameraOverlayBasis(this->lastValidPlan, profile)) return;
   const auto & plan = this->lastValidPlan;
+  // The strict object scene profile above must always run, independently of
+  // camera admission. This lens exists only within rememberFrameRoot: neither
+  // a retained basis nor matching revisions in later captures are a license.
+  bool reuseBasis = objectOverlayEnabled("COIN_RENDER_DISABLE_CAPTURE_CAMERA_BASIS_REUSE") &&
+    capturedBasis && capturedBasis->owner == &plan && capturedBasis->revision == plan.revision &&
+    capturedBasis->stateCount == plan.renderStates.size() &&
+    capturedBasis->referenceLighting.size() == plan.lightingStates.size() &&
+    capturedBasis->worldLighting.size() == plan.lightingStates.size();
+  for (size_t i = 0; reuseBasis && i < plan.lightingStates.size(); ++i)
+    reuseBasis = capturedBasis->referenceLighting[i].lights.size() == plan.lightingStates[i].lights.size() &&
+      capturedBasis->worldLighting[i].lights.size() == plan.lightingStates[i].lights.size();
+  CoinRenderCameraOverlayBasis profile;
+  if (reuseBasis) ++this->captureCameraBasisReuses;
+  else {
+    ++this->captureCameraBasisPrepares;
+    const bool trace = CoinRenderDiagnosticShell::phaseTracingEnabled();
+    const auto before = trace ? std::chrono::steady_clock::now()
+                              : std::chrono::steady_clock::time_point();
+    const bool prepared = CoinRenderFrameReuseCore::prepareCameraOverlayBasis(plan, profile);
+    if (trace)
+      this->captureCameraBasisPrepareMs += std::chrono::duration<double, std::milli>(
+        std::chrono::steady_clock::now() - before).count();
+    if (!prepared) return;
+  }
   for (const auto & state : plan.renderStates) {
     if (state.materialSlot >= plan.materials.size() || state.hasTexture ||
         state.transparentMaterial || state.transparentTexture || state.screenDoorTransparency > 0 ||
@@ -1112,6 +1158,11 @@ template <typename F>
 void
 CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
 {
+  // Nested apply must not erase the outer capture's diagnostic counters.
+  if (!this->isApplying) {
+    this->captureCameraBasisCalls = this->captureCameraBasisPrepares = this->captureCameraBasisReuses = 0;
+    this->captureCameraBasisPrepareMs = 0;
+  }
   typedef std::chrono::steady_clock ProfileClock;
   const ProfileClock::time_point profileBegin = ProfileClock::now();
   if (this->target)

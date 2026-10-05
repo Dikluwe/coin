@@ -1023,6 +1023,270 @@ SoCallbackAction::Response translationCountingCallback(void * data, SoCallbackAc
   return SoCallbackAction::CONTINUE;
 }
 
+struct CaptureCameraBasisEnvironment {
+  const char * flags[2] = {"COIN_RENDER_DISABLE_CAPTURE_CAMERA_BASIS_REUSE", "COIN_RENDER_DISABLE_CAMERA_OVERLAY"};
+  std::string values[2];
+  bool present[2];
+  CaptureCameraBasisEnvironment() {
+    for (int i = 0; i < 2; ++i) {
+      const char * previous = std::getenv(flags[i]);
+      present[i] = previous != nullptr; values[i] = previous ? previous : "";
+      coinRenderTestSetEnvironment(flags[i], "0");
+    }
+  }
+  ~CaptureCameraBasisEnvironment() {
+    for (int i = 0; i < 2; ++i)
+      coinRenderTestSetEnvironment(flags[i], present[i] ? values[i].c_str() : nullptr);
+  }
+};
+
+struct CaptureCameraBasisOracle {
+  // Actions/sensors must be destroyed before their target shells.
+  std::unique_ptr<CoinRenderTarget> target, literalTarget;
+  CameraOverlayTestBackend * backend = nullptr, * literalBackend = nullptr;
+  CoinRenderAction action{SbViewportRegion(1, 1)}, literal{SbViewportRegion(1, 1)};
+  bool ready = true;
+  explicit CaptureCameraBasisOracle(bool recording = false) {
+    if (recording) return;
+    target.reset(CoinRenderTarget::createOffscreen(SbVec2i32(1, 1)));
+    literalTarget.reset(CoinRenderTarget::createOffscreen(SbVec2i32(1, 1)));
+    ready = target && literalTarget;
+    if (!ready) return;
+    backend = new CameraOverlayTestBackend; literalBackend = new CameraOverlayTestBackend;
+    target->getPimpl()->backend.reset(backend); literalTarget->getPimpl()->backend.reset(literalBackend);
+    target->getPimpl()->depthReadbackEnabled = literalTarget->getPimpl()->depthReadbackEnabled = false;
+    action.setRenderTarget(target.get()); literal.setRenderTarget(literalTarget.get());
+  }
+  template <typename T> void apply(T * root) {
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_CAPTURE_CAMERA_BASIS_REUSE", "0");
+    action.apply(root);
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_CAPTURE_CAMERA_BASIS_REUSE", "1");
+    literal.apply(root);
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_CAPTURE_CAMERA_BASIS_REUSE", "0");
+  }
+  bool same() {
+    const auto * a = action.getPimpl(); const auto * b = literal.getPimpl();
+    if (action.getLastStatus() != literal.getLastStatus() || a->lastDiagnosticDomain != b->lastDiagnosticDomain ||
+        std::string(action.getLastError().getString()) != literal.getLastError().getString() ||
+        a->hasLastValidPlan != b->hasLastValidPlan || !a->lastValidPlan.hasSamePayload(b->lastValidPlan) ||
+        a->candidateCamera != b->candidateCamera || a->cachedCamera != b->cachedCamera ||
+        a->translationProofValid != b->translationProofValid ||
+        a->translationBindings.size() != b->translationBindings.size() ||
+        a->materialByNode != b->materialByNode || a->cubeByNode != b->cubeByNode ||
+        a->translationInputDirty != b->translationInputDirty || a->translationInvalidated != b->translationInvalidated ||
+        a->cameraOnlyDirty != b->cameraOnlyDirty || a->cameraPatchInvalidated != b->cameraPatchInvalidated ||
+        a->cameraRecaptureRequired != b->cameraRecaptureRequired) return false;
+    for (size_t i = 0; i < a->translationBindings.size(); ++i) {
+      const auto & x = a->translationBindings[i]; const auto & y = b->translationBindings[i];
+      if (x.transform != y.transform || x.parent != y.parent || x.cube != y.cube || x.field != y.field ||
+          x.originalPosition != y.originalPosition || x.prefix != y.prefix || x.anchor != y.anchor ||
+          x.firstDraw != y.firstDraw || x.endDraw != y.endDraw || x.stateSlot != y.stateSlot ||
+          x.geometry.firstVertex != y.geometry.firstVertex || x.geometry.vertexCount != y.geometry.vertexCount ||
+          x.geometry.firstIndex != y.geometry.firstIndex || x.geometry.indexCount != y.geometry.indexCount ||
+          x.material != y.material || x.cubeDimensions != y.cubeDimensions || x.overallMaterial != y.overallMaterial ||
+          x.materialEligible != y.materialEligible || x.geometryEligible != y.geometryEligible) return false;
+    }
+    if (a->translationProofValid && (a->translationProofRevision != a->lastValidPlan.revision ||
+                                    b->translationProofRevision != b->lastValidPlan.revision)) return false;
+    if (backend && (backend->lastReuse.kind != literalBackend->lastReuse.kind ||
+                    target->getPimpl()->colorBuffer != literalTarget->getPimpl()->colorBuffer)) return false;
+    return true;
+  }
+  bool counts(size_t prepares, size_t literalPrepares, size_t reuse, size_t calls = 1) {
+    const auto * a = action.getPimpl(); const auto * b = literal.getPimpl();
+    return a->captureCameraBasisCalls == calls && b->captureCameraBasisCalls == calls &&
+      a->captureCameraBasisPrepares == prepares && b->captureCameraBasisPrepares == literalPrepares &&
+      a->captureCameraBasisReuses == reuse && b->captureCameraBasisReuses == 0;
+  }
+};
+
+int testCaptureCameraBasisReuse() {
+  TranslationOverlayEnvironment objectEnvironment;
+  CaptureCameraBasisEnvironment environment;
+  // Fresh perspective/orthographic and PHONG/BASE_COLOR capture, through both
+  // recording and successful target submission, must publish identical proofs.
+  for (bool recording : {false, true}) for (bool ortho : {false, true}) for (bool phong : {false, true}) {
+    TranslationOverlayScene scene;
+    SoCamera * camera = scene.camera;
+    if (ortho) {
+      auto * replacement = new SoOrthographicCamera;
+      replacement->position.setValue(0, 0, 20);
+      replacement->nearDistance = .2f; replacement->farDistance = 80;
+      scene.root->replaceChild(scene.camera, replacement);
+      camera = replacement;
+    }
+    auto * model = new SoLightModel;
+    model->model = phong ? SoLightModel::PHONG : SoLightModel::BASE_COLOR;
+    scene.root->insertChild(model, 1);
+    CaptureCameraBasisOracle oracle(recording);
+    TEST_ASSERT(oracle.ready, "camera basis oracle requires CPU target shells");
+    oracle.apply(scene.root);
+    TEST_ASSERT(oracle.same() && oracle.action.getLastStatus() == CoinRenderAction::SUCCESS &&
+                oracle.action.getPimpl()->cachedCamera == camera && oracle.action.getPimpl()->translationProofValid &&
+                oracle.counts(1, 2, 1),
+                "fresh captures must reuse only the same-call successful basis and remove exactly one Core prepare");
+    const auto * vertices = oracle.action.getPimpl()->lastValidPlan.vertices.data();
+    oracle.apply(scene.root);
+    TEST_ASSERT(oracle.same() && oracle.counts(0, 0, 0, 0),
+                "unchanged reuse must reset the last-apply counters without preparing or reusing a capture basis");
+    camera->position.setValue(.25f, -.1f, 19.5f);
+    oracle.apply(scene.root);
+    TEST_ASSERT(oracle.same() && oracle.counts(0, 0, 0, 0) &&
+                oracle.action.getPimpl()->lastValidPlan.vertices.data() == vertices &&
+                (!oracle.backend || oracle.backend->lastReuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH),
+                "camera patches must keep their existing basis and must not consume a capture-time lens");
+  }
+  {
+    TranslationOverlayScene scene, other;
+    CaptureCameraBasisOracle oracle;
+    TEST_ASSERT(oracle.ready, "root ownership oracle requires CPU targets");
+    for (SoNode * root : {static_cast<SoNode *>(scene.root), static_cast<SoNode *>(other.root), static_cast<SoNode *>(scene.root)}) {
+      oracle.apply(root);
+      TEST_ASSERT(oracle.same() && oracle.action.getPimpl()->translationProofValid && oracle.counts(1, 2, 1),
+                  "A/B/A roots must each prepare a fresh owned basis instead of licensing an earlier capture");
+    }
+    // A non-camera change plus object movement recaptures with qualifyCamera
+    // false. The object path must prepare independently despite an empty basis.
+    scene.prefix->rotation.setValue(SbVec3f(1, 2, -1), .31f);
+    scene.positions[0]->setValue(scene.initialPositions[0] + SbVec3f(.2f, 0, 0));
+    oracle.apply(scene.root);
+    TEST_ASSERT(oracle.same() && oracle.action.getPimpl()->translationProofValid &&
+                !oracle.action.getPimpl()->cachedCamera && !oracle.action.getPimpl()->cameraOverlayBasis.owner &&
+                oracle.counts(1, 1, 0),
+                "object-only recapture must qualify its own current plan when camera qualification was deferred");
+    scene.positions[1]->setValue(scene.initialPositions[1] + SbVec3f(.1f, -.1f, .05f));
+    oracle.apply(scene.root);
+    TEST_ASSERT(oracle.same() && oracle.counts(0, 0, 0, 0) &&
+                oracle.backend->lastReuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD,
+                "objects admitted independently must retain the existing RESOURCE_REBUILD overlay path");
+  }
+  // Finite but invalid authored camera values can be normalized by capture.
+  // The literal path, rather than an assumed rejection policy, is the oracle.
+  for (int cameraValue = 0; cameraValue < 6; ++cameraValue) {
+    TranslationOverlayScene scene;
+    if (cameraValue == 0) scene.camera->nearDistance = -1;
+    if (cameraValue == 1) scene.camera->farDistance = -1;
+    if (cameraValue == 2) scene.camera->farDistance = scene.camera->nearDistance.getValue();
+    if (cameraValue == 3) scene.camera->focalDistance = 0;
+    if (cameraValue == 4) scene.camera->aspectRatio = 0;
+    if (cameraValue == 5) scene.camera->heightAngle = 0;
+    CaptureCameraBasisOracle oracle;
+    TEST_ASSERT(oracle.ready, "authored camera fallback oracle requires CPU targets");
+    oracle.apply(scene.root);
+    const auto * a = oracle.action.getPimpl(); const auto * b = oracle.literal.getPimpl();
+    TEST_ASSERT(oracle.same() && a->captureCameraBasisCalls == b->captureCameraBasisCalls &&
+                a->captureCameraBasisPrepares + a->captureCameraBasisReuses == b->captureCameraBasisPrepares &&
+                a->captureCameraBasisReuses <= 1 && b->captureCameraBasisReuses == 0,
+                "invalid authored camera values must preserve literal acceptance, normalized payload, diagnostics and admission");
+  }
+  // Camera scene admission skips ignored fields and the camera's own fields;
+  // strict object admission must still inspect them after the successful lens.
+  for (bool connectedCamera : {false, true}) {
+    TranslationOverlayScene scene;
+    auto * driver = new SoTranslation;
+    driver->ref(); driver->translation.setValue(0, 0, 20);
+    if (connectedCamera) scene.camera->position.connectFrom(&driver->translation);
+    else scene.prefix->translation.setIgnored(TRUE);
+    CaptureCameraBasisOracle oracle;
+    TEST_ASSERT(oracle.ready, "independent scene profile oracle requires CPU targets");
+    oracle.apply(scene.root);
+    TEST_ASSERT(oracle.same() && oracle.action.getLastStatus() == CoinRenderAction::SUCCESS &&
+                oracle.action.getPimpl()->cachedCamera == scene.camera && !oracle.action.getPimpl()->translationProofValid &&
+                oracle.counts(1, 1, 0),
+                "a successful camera basis must never bypass ignored or connected-field rejection of objects");
+    if (!connectedCamera) {
+      scene.camera->position.setValue(.15f, 0, 19.8f);
+      oracle.apply(scene.root);
+      TEST_ASSERT(oracle.same() && oracle.backend->lastReuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH &&
+                  !oracle.action.getPimpl()->translationProofValid && oracle.counts(0, 0, 0, 0),
+                  "rejecting the object profile must preserve the independent camera patch admission");
+    } else scene.camera->position.disconnect();
+    driver->unref();
+  }
+  {
+    TranslationOverlayScene scene;
+    CaptureCameraBasisOracle oracle;
+    TEST_ASSERT(oracle.ready, "capture failure oracle requires CPU targets");
+    oracle.backend->failNext = oracle.literalBackend->failNext = true;
+    oracle.apply(scene.root);
+    TEST_ASSERT(oracle.same() && oracle.action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+                !oracle.action.getPimpl()->hasLastValidPlan && oracle.counts(0, 0, 0, 0),
+                "rejected first submission must not install or qualify a camera/object proof");
+    oracle.apply(scene.root);
+    TEST_ASSERT(oracle.same() && oracle.action.getLastStatus() == CoinRenderAction::SUCCESS && oracle.counts(1, 2, 1),
+                "retry after failed first capture must prepare a new same-call basis");
+    const auto before = oracle.action.getPimpl()->lastValidPlan;
+    scene.camera->position.setValue(.3f, -.2f, 19.8f);
+    oracle.backend->failNext = oracle.literalBackend->failNext = true;
+    oracle.apply(scene.root);
+    TEST_ASSERT(oracle.same() && oracle.action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+                oracle.action.getPimpl()->lastValidPlan.revision == before.revision &&
+                oracle.action.getPimpl()->lastValidPlan.hasSamePayload(before) && oracle.counts(0, 0, 0, 0),
+                "failed camera patch must roll back the accepted payload without preparing a capture lens");
+    oracle.apply(scene.root);
+    TEST_ASSERT(oracle.same() && oracle.action.getLastStatus() == CoinRenderAction::SUCCESS &&
+                oracle.backend->lastReuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH && oracle.counts(0, 0, 0, 0),
+                "camera patch retry must retain its existing anchor and payload semantics");
+  }
+  {
+    TranslationOverlayScene scene;
+    scene.prefix->scaleFactor.setValue(1, 1, 1); scene.prefix->rotation.setValue(SbVec3f(0, 1, 0), 0);
+    scene.prefix->translation.setValue(0, 0, 0); scene.prefix->center.setValue(0, 0, 0);
+    scene.camera->position.setValue(0, 0, 1e8f);
+    scene.light->location.setValue(0, 0, 1);
+    CaptureCameraBasisOracle oracle;
+    TEST_ASSERT(oracle.ready, "basis failure oracle requires CPU targets");
+    oracle.apply(scene.root);
+    TEST_ASSERT(oracle.same() && oracle.action.getLastStatus() == CoinRenderAction::SUCCESS &&
+                !oracle.action.getPimpl()->cachedCamera && !oracle.action.getPimpl()->translationProofValid &&
+                oracle.counts(2, 2, 0),
+                "failed camera basis must leave the independent object prepare attempt and literal fallback intact");
+  }
+  {
+    TranslationOverlayScene scene;
+    scene.root->addChild(scene.camera);
+    CaptureCameraBasisOracle oracle;
+    TEST_ASSERT(oracle.ready, "shared camera oracle requires CPU targets");
+    oracle.apply(scene.root);
+    TEST_ASSERT(oracle.same() && oracle.action.getLastStatus() == CoinRenderAction::SUCCESS &&
+                !oracle.action.getPimpl()->cachedCamera && !oracle.action.getPimpl()->translationProofValid &&
+                oracle.counts(0, 0, 0),
+                "repeated syntactic cameras must fail both independent scene profiles without a Core prepare");
+  }
+  {
+    TranslationOverlayScene scene;
+    CaptureCameraBasisOracle oracle;
+    TEST_ASSERT(oracle.ready, "path capture oracle requires CPU targets");
+    auto * path = new SoPath(scene.root);
+    path->ref(); path->append(scene.root->findChild(scene.objects[0]));
+    oracle.apply(path);
+    TEST_ASSERT(oracle.same() && oracle.action.getLastStatus() == CoinRenderAction::SUCCESS &&
+                !oracle.action.getPimpl()->cachedCamera && !oracle.action.getPimpl()->translationProofValid &&
+                oracle.counts(0, 0, 0, 0),
+                "path traversal must preserve the literal non-root capture without creating a camera lens");
+    path->unref();
+  }
+  for (int exclusion = 0; exclusion < 3; ++exclusion) {
+    TranslationOverlayScene scene;
+    CaptureCameraBasisOracle oracle;
+    TEST_ASSERT(oracle.ready, "callback and plan-only oracle requires CPU targets");
+    unsigned calls = 0, literalCalls = 0;
+    if (exclusion == 0) {
+      oracle.action.addPreCallback(SoCube::getClassTypeId(), translationCountingCallback, &calls);
+      oracle.literal.addPreCallback(SoCube::getClassTypeId(), translationCountingCallback, &literalCalls);
+    } else if (exclusion == 1) oracle.action.getPimpl()->planOnly = oracle.literal.getPimpl()->planOnly = true;
+    else coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_TRANSLATION_OVERLAY", "1");
+    oracle.apply(scene.root);
+    TEST_ASSERT(oracle.same() && oracle.action.getLastStatus() == CoinRenderAction::SUCCESS &&
+                !oracle.action.getPimpl()->translationProofValid &&
+                oracle.counts(exclusion == 2 ? 1 : 0, exclusion == 2 ? 1 : 0, 0, exclusion == 1 ? 0 : 1) &&
+                calls == literalCalls && (exclusion != 0 || calls == scene.positions.size()),
+                "callbacks, plan-only capture and disabled objects must preserve their literal proof admission and work counts");
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_TRANSLATION_OVERLAY", "0");
+  }
+  return 0;
+}
+
 int testTranslationOverlayInvalidationAndOwnership() {
   TranslationOverlayEnvironment environment;
   // These mutations also change a translation in the same notification batch.
@@ -2193,6 +2457,7 @@ int main() {
   if (testCameraOverlayAndFallback()) { std::cerr << "testCameraOverlayAndFallback failed" << std::endl; failed++; }
   if (testPhongCameraOverlayNotificationsAndRollback()) { std::cerr << "testPhongCameraOverlayNotificationsAndRollback failed" << std::endl; failed++; }
   if (testTranslationOverlayAndRollback()) { std::cerr << "testTranslationOverlayAndRollback failed" << std::endl; failed++; }
+  if (testCaptureCameraBasisReuse()) { std::cerr << "testCaptureCameraBasisReuse failed" << std::endl; failed++; }
   if (testTranslationOverlayInvalidationAndOwnership()) { std::cerr << "testTranslationOverlayInvalidationAndOwnership failed" << std::endl; failed++; }
   if (testObjectMaterialGeometryOverlay()) { std::cerr << "testObjectMaterialGeometryOverlay failed" << std::endl; failed++; }
   if (testInterleavedCubeSourceOwnership()) { std::cerr << "testInterleavedCubeSourceOwnership failed" << std::endl; failed++; }
