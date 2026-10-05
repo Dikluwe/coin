@@ -1,0 +1,87 @@
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/BIM/ArchSite.py:264:        text = coin.SoText2()
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/BIM/ArchSite.py:282:        text.justification = coin.SoText2.CENTER
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/BIM/ArchSite.py:291:        text = coin.SoText2()
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/BIM/ArchSite.py:294:        text.justification = coin.SoText2.CENTER
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/BIM/ArchSite.py:2230:                        text_node = coin.SoText2()
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/BIM/ArchSectionPlane.py:1391:        self.txt.justification = coin.SoText2.LEFT
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/ViewProviderPlacement.h:31:class SoText2;
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/ViewProviderLine.cpp:25:#include <Inventor/nodes/SoText2.h>
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Sketcher/Gui/EditModeCoinManagerParameters.h:41:#include <Inventor/nodes/SoText2.h>
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Sketcher/Gui/EditModeCoinManagerParameters.h:509:    SoText2* textX;
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Sketcher/Gui/EditModeCoinManager.cpp:50:#include <Inventor/nodes/SoText2.h>
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Sketcher/Gui/EditModeCoinManager.cpp:1981:    editModeScenegraphNodes.textX = new SoText2();
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Sketcher/Gui/EditModeCoinManager.cpp:1982:    editModeScenegraphNodes.textX->justification = SoText2::LEFT;
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/ArcEngine.h:39:class SoText2;
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/ViewProviderAnnotation.h:32:class SoText2;
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/ViewProviderAnnotation.h:77:    SoText2* pLabel;
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/ViewProviderAnnotation.h:89: * SoImage node instead of an SoText2 or SoAsciiText node.
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/ViewProviderAnnotation.cpp:46:#include <Inventor/nodes/SoText2.h>
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/ViewProviderAnnotation.cpp:152:    pLabel = new SoText2();
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/ViewProviderAnnotation.cpp:189:            pLabel->justification = SoText2::LEFT;
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/ViewProviderAnnotation.cpp:193:            pLabel->justification = SoText2::RIGHT;
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/ViewProviderAnnotation.cpp:197:            pLabel->justification = SoText2::CENTER;
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Sketcher/Gui/ViewProviderSketch.h:80:class SoText2;
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/View3DInventorViewer.h:71:class SoText2;
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Fem/Gui/TaskPostBoxes.h:48:class SoText2;
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Test/TestCoinNodeSnapshots.py:1419:        # This shows up particularly with `SoText2` (text draws, but gets clipped away).
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/Quarter/SoQTQuarterAdaptor.cpp:46:#include <Inventor/nodes/SoText2.h>
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/Quarter/SoQTQuarterAdaptor.cpp:74:    SoText2* text {nullptr};
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/Quarter/SoQTQuarterAdaptor.cpp:108:        text = new SoText2;
+/mnt/Laranja/Git/externos/freecad-source/src/Base/Builder3D.h:631: * \brief The Text2Item class supports the SoText2 node.
+/mnt/Laranja/Git/externos/freecad-source/src/Base/Builder3D.cpp:907:    out.write() << "Text2 { string \"" << string << "\" "
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/SoLabelNodes.h:41:#include <Inventor/nodes/SoText2.h>
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/SoLabelNodes.h:61:class GuiExport SoColorBarLabel: public SoText2
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/SoLabelNodes.h:63:    using inherited = SoText2;
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/SoLabelNodes.cpp:103:    SO_NODE_INIT_CLASS(SoColorBarLabel, SoText2, "Text2");
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/InventorAll.h:235:#include <Inventor/nodes/SoText2.h>
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/Inventor/SoFCBoundingBox.cpp:44:#include <Inventor/nodes/SoText2.h>
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/Inventor/SoFCBoundingBox.cpp:102:        auto text = new SoText2();
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/Inventor/SoFCBoundingBox.cpp:103:        text->justification.setValue(SoText2::CENTER);
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/Inventor/SoFCBoundingBox.cpp:115:        auto text = new SoText2();
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/Inventor/SoFCBoundingBox.cpp:116:        text->justification.setValue(SoText2::CENTER);
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/Inventor/SoFCBoundingBox.cpp:232:            SoText2* t = static_cast<SoText2*>(sep->getChild(1));
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/Inventor/SoFCBoundingBox.cpp:253:            SoText2* t = static_cast<SoText2*>(sep->getChild(1));
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/Inventor/SoAxisCrossKit.h:46:class SoText2;
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/Inventor/SoAxisCrossKit.h:139:    SoText2* label {nullptr};
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/SoFCColorBar.cpp:43:#include <Inventor/nodes/SoText2.h>
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/SoFCColorBar.cpp:375:                auto label = new SoText2;
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/SoFCColorBar.cpp:397:                auto value = new SoText2;
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/Inventor/SoAxisCrossKit.cpp:46:#include <Inventor/nodes/SoText2.h>
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/Inventor/SoAxisCrossKit.cpp:365:    label = new SoText2();
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Fem/Gui/PreCompiled.h:139:#include <Inventor/nodes/SoText2.h>
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/Inventor/Draggers/SoTransformDragger.cpp:47:#include <Inventor/nodes/SoText2.h>
+/mnt/Laranja/Git/externos/freecad-source/src/Gui/Inventor/Draggers/SoPlanarDragger.cpp:47:#include <Inventor/nodes/SoText2.h>
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Sketcher/Gui/EditModeInformationOverlayCoinConverter.h:187:    void setText(const std::string& string, SoText2* text);
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Sketcher/Gui/EditModeInformationOverlayCoinConverter.cpp:32:#include <Inventor/nodes/SoText2.h>
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Sketcher/Gui/EditModeInformationOverlayCoinConverter.cpp:393:void EditModeInformationOverlayCoinConverter::setText(const std::string& string, SoText2* text)
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Sketcher/Gui/EditModeInformationOverlayCoinConverter.cpp:461:            SoText2* text = new SoText2;
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Sketcher/Gui/EditModeInformationOverlayCoinConverter.cpp:557:                    static_cast<SoText2*>(
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Sketcher/Gui/EditModeInformationOverlayCoinConverter.cpp:565:                    static_cast<SoText2*>(
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/BIM/ArchAxis.py:717:                            tx.justification = coin.SoText2.CENTER
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/BIM/ArchAxis.py:773:                        tx.justification = coin.SoText2.LEFT
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/BIM/ArchBuildingPart.py:892:        self.txt.justification = coin.SoText2.LEFT
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Fem/CreateLabels.py:64:        self.SoText2 = coin.SoText2()
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Fem/CreateLabels.py:65:        self.SoText2.string = text
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Fem/CreateLabels.py:71:        self.textSep.addChild(self.SoText2)
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Fem/CreateLabels.py:102:        self.SoText2.string = text
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Measure/Gui/ViewProviderMeasureDistance.cpp:43:#include <Inventor/nodes/SoText2.h>
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Measure/Gui/ViewProviderMeasureDistance.cpp:217:    textNode->justification = SoText2::CENTER;
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Measure/Gui/ViewProviderMeasureBase.h:45:class SoText2;
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Measure/Gui/ViewProviderMeasureAngle.h:43:class SoText2;
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Measure/Gui/ViewProviderMeasureAngle.cpp:40:#include <Inventor/nodes/SoText2.h>
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Draft/draftviewproviders/view_text.py:76:        self.text_scr = coin.SoText2()  # Screen orientation. Always faces the camera.
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Draft/draftviewproviders/view_text.py:85:        self.text_scr.justification = coin.SoText2.LEFT
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Draft/draftviewproviders/view_text.py:164:                self.text_scr.justification = coin.SoText2.LEFT
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Draft/draftviewproviders/view_text.py:167:                self.text_scr.justification = coin.SoText2.RIGHT
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Draft/draftviewproviders/view_text.py:170:                self.text_scr.justification = coin.SoText2.CENTER
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Draft/draftviewproviders/view_label.py:125:        self.text_scr = coin.SoText2()  # Screen orientation. Always faces the camera.
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Draft/draftviewproviders/view_label.py:140:        self.text_scr.justification = coin.SoText2.RIGHT
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Draft/draftviewproviders/view_label.py:351:            self.text_scr.justification = coin.SoText2.LEFT
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Draft/draftviewproviders/view_label.py:358:            self.text_scr.justification = coin.SoText2.RIGHT
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Draft/draftviewproviders/view_label.py:365:            self.text_scr.justification = coin.SoText2.CENTER
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Draft/draftviewproviders/view_dimension.py:244:        self.text_scr = coin.SoText2()  # Screen orientation. Always faces the camera.
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/Draft/draftviewproviders/view_dimension.py:828:        self.text_scr = coin.SoText2()  # Screen orientation. Always faces the camera.
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/PartDesign/Gui/ViewProviderDatumCS.cpp:34:#include <Inventor/nodes/SoText2.h>
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/PartDesign/Gui/ViewProviderDatumCS.cpp:184:    auto* t = new SoText2();
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/PartDesign/Gui/ViewProviderDatumCS.cpp:189:    t = new SoText2();
+/mnt/Laranja/Git/externos/freecad-source/src/Mod/PartDesign/Gui/ViewProviderDatumCS.cpp:194:    t = new SoText2();

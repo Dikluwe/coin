@@ -374,3 +374,10 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
       PROPERTIES TIMEOUT 10)
   endforeach()
 endif()
+
+# Offscreen text must contribute bounds before camera fitting.
+add_executable(CoinSoText2BoundsTest SoText2BoundsTest.cpp)
+target_link_libraries(CoinSoText2BoundsTest PRIVATE Coin)
+target_include_directories(CoinSoText2BoundsTest PRIVATE
+  ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include)
+add_test(NAME SoText2BoundsAndPicking COMMAND CoinSoText2BoundsTest)

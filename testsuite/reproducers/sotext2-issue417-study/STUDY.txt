@@ -1,0 +1,145 @@
+Nota de atualização: o registro abaixo descreve a etapa experimental inicial.
+A correção agora está na branch codex/fix/issue417-sotext2 e foi testada no
+FreeCAD. Resultados e limites atuais: SoText2-issue417.md, seção final,
+e freecad-validation/. O código do FreeCAD não foi modificado.
+
+Estudo de SoText2 / issue #417 — 2026-10-05
+
+Objetivo: avaliar um defeito do Coin com interesse para o FreeCAD.
+
+Revisões e método
+Coin origin/master: 674e74267df863dbaf50416c477bc7f918a826d8.
+FreeCAD local: 228c679d78845c3fb6f5eb3d1a27f48aceab68b5, com mudanças locais.
+O inventário corresponde ao checkout local, não a uma versão limpa upstream.
+O FreeCAD foi somente lido. Nenhuma sessão de FreeCAD foi alterada.
+Coin compilado de git archive origin/master, em /tmp/coin-issue417-study.
+Ubuntu, GCC 13.3.0, Release, biblioteca compartilhada, renderizador legado.
+Xvfb, GLX direto e LIBGL_ALWAYS_SOFTWARE=1, viewport 640x480.
+
+O exemplo original SoXt está preservado em original-soxt-example.cpp.
+Como SoXt não está disponível neste ambiente, reproduzimos o mesmo grafo,
+fonte, tamanho, translação e chamada viewAll por SoOffscreenRenderer.
+Portanto, foi reproduzido o defeito no Coin, não executada a janela SoXt.
+probe.cpp mede caixa delimitadora, posição da câmera e pixels não pretos.
+Retorna 2 se alguma renderização falhar; a ocorrência do defeito é registrada
+nos resultados, não transformada artificialmente em falha de infraestrutura.
+
+Reprodução na master
+Cena original: perspectiva, texto Hello World!, Times-Roman 24,
+translação (0.25, 0, 0.25), câmera inicial padrão, viewAll.
+Caixa vazia antes/depois; câmera permanece (0,0,1); 0 pixels não pretos.
+Controle com câmera (0.25,0,5.25), near=1, far=10: 683 pixels.
+Texto em x=5 fora da visão: viewAll não move câmera; 0 pixels.
+Texto em x=100 fora da visão: idem; controle manual produz 683 pixels.
+Perspectiva e ortográfica com texto na origem seguido de viewAll: 683 pixels.
+Texto na origem sem viewAll: 0 pixels, com câmera padrão no limite near.
+Não confundir esse último caso de clipping com falha de fonte.
+Cena mista com cubo e texto distante: a caixa não fica vazia, mas viewAll
+enquadra o cubo e ignora o texto. A contagem de pixels dessa cena inclui cubo.
+Resultados completos: master-results.txt; imagem: master-issue417.png.
+
+Experimento causal, não correção final
+Em cópia isolada, desativamos somente o retorno FALSE por !vv.intersect(testbox)
+em SoText2P::getQuad. Patch preservado em diagnostic-only.patch.
+A cena original passa a produzir caixa não vazia, câmera ajustada e 683 pixels.
+O caso x=5 também passa a renderizar 683 pixels.
+Entretanto x=100 produz centro/câmera incorretos e continua sem texto:
+posição x final -12.998. O código converte coordenadas de tela para short em
+getQuad (SbVec2s sp), mesmo quando estão longe do viewport; a projeção desse
+caso excede o intervalo representável. Isto é um indício adicional a tratar
+na formulação de limites; não foi investigado com sanitizadores neste estudo.
+O experimento foi revertido e a biblioteca master recompilada. A reprodução
+final na master restaurada confirmou os resultados originais.
+Resultados completos: diagnostic-results.txt; imagem: diagnostic-issue417.png.
+
+Análise das responsabilidades de SoText2
+1. Fontes/glifos: buildGlyphCache mantém posições, bitmaps e dimensões em pixels.
+   O cache lê estado de fonte e é reconstruído quando inválido. Os controles
+   renderizados descartam ausência de fonte como causa deste exemplo.
+2. Geometria dos limites: getQuad projeta a âncora 3D, soma dimensões em pixels,
+   reconstrói quatro pontos num plano paralelo à câmera e retorna ao espaço local.
+   Hoje também rejeita o quad fora do frustum antes de devolver esses pontos.
+3. Bounding box: computeBBox chama getQuad. A rejeição deixa os limites vazios.
+   SoCamera::viewAll calcula os limites e retorna sem ajustar câmera se vazios.
+   Visibilidade atual acaba interferindo na descoberta do que deveria enquadrar.
+4. Render: GLRender calcula limites e usa SoCullElement::cullTest; há ainda
+   clipping do OpenGL. Precisa preservar descarte de desenho fora da visão.
+5. Picking: rayPick também usa getQuad. Mudar esse helper afeta seleção,
+   não só enquadramento; não foi validado picking neste estudo.
+6. Cache: limites dependem de câmera, viewport e matriz; a documentação alerta
+   para invalidação de caches de separadores que também contêm geometria estática.
+7. Primitivas: generatePrimitives é intencionalmente vazio. Não presumir que
+   alterações em texto bitmap sejam cobertas por testes comuns de triângulos.
+
+Uso encontrado no FreeCAD local (caminhos relativos ao freecad-source)
+src/Gui/ViewProviderAnnotation.cpp:152,273: anotação em modo Screen com SoText2;
+  World usa SoAsciiText, portanto não entra automaticamente no mesmo defeito.
+src/Mod/Sketcher/Gui/EditModeCoinManager.cpp:1981: texto de coordenadas do cursor;
+  CoordSeparator desativa renderCaching e torna o texto não selecionável.
+src/Mod/Sketcher/Gui/EditModeInformationOverlayCoinConverter.cpp:461:
+  informações geométricas, incluindo pesos de polos B-spline; separadores
+  desativam renderCaching. Este não é o mesmo sistema de todas as restrições.
+src/Mod/PartDesign/Gui/ViewProviderDatumCS.cpp:184,189,194: rótulos X/Y/Z.
+src/Gui/Inventor/SoAxisCrossKit.cpp:365: rótulo de eixo. Seu grupo usa
+  SoSkipBoundingGroup::EXCLUDE_BBOX, por intenção não participa de Fit All.
+src/Gui/Inventor/SoFCBoundingBox.cpp:102,115: rótulos de limites/dimensões.
+  computeBBox usa minBounds/maxBounds próprios, não a soma das caixas do texto.
+src/Gui/SoFCColorBar.cpp:375,397: rótulos e valores da legenda.
+src/Gui/Quarter/SoQTQuarterAdaptor.cpp:108: texto de overlay, câmera ortográfica
+  própria e profundidade desativada; não assumir o mesmo caminho de Fit All.
+src/Gui/SoLabelNodes.h:61 e .cpp:109: SoColorBarLabel deriva de SoText2 e
+  recalcula limites após ampliar o view volume em 2%. O comentário em .cpp:89
+  cita explicitamente https://github.com/coin3d/coin/issues/417.
+Inventário de ocorrências, incluindo Python e excluindo 3rdParty: freecad-uses.txt.
+
+Trabalho anterior encontrado
+Consulta complementar em 2026-10-05 à pasta /home/dikluwe/Área de trabalho/Estudo coin:
+SoFonts.md já cobre SoText2, caches, dimensões de glifos e buffers RGBA.
+SoShapeGeometry.md cobre bounding boxes e caches de geometria.
+Não foi localizado arquivo dedicado à #417; o estudo complementar
+SoText2-issue417.md agora registra a base experimental e a retirada no FreeCAD.
+Os achados históricos de fontes não foram reconfirmados neste estudo.
+Encontramos trabalho relacionado no histórico local do FreeCAD:
+0c8b6218dc: remoção do SoTextLabel não usado e renomeação para SoLabelNodes.
+0686413829: cache das cores efetivas de SoFrameLabel.
+6ec6db32d3: retenção da geometria de labels em espaço de tela; preserva a
+  compensação da #417 em SoColorBarLabel. Não resolve a causa no Coin.
+SoStringLabel tem caminho próprio de geometria/textura em espaço de tela;
+não extrapolar os resultados de SoText2 para todos os labels do FreeCAD.
+Registros históricos Coin: BUGS.txt item 219 (View All/Text2, 2006), item 099
+(culling/caches) e docs/bugs/performance_enhancements/20040903--SoText2-nodes-never-culled.txt.
+O commit 54c3cdc81f de 2009 introduziu o descarte no helper getQuad.
+
+Conclusão e escopo de uma futura correção
+Defeito reproduzido e ligação com FreeCAD comprovada pelo workaround explícito.
+Separar cálculo de extensão de decisão de visibilidade; evitar conversão short
+fora de faixa para limites; preservar desenho, picking e política de caches.
+Cobrir perspectiva/ortográfica, fonte, alinhamento, múltiplas linhas, viewport,
+near/far, âncora atrás da câmera, texto distante e transformação do objeto.
+Depois validar os consumidores FreeCAD com câmeras próprias e exclusões de bbox.
+Não foi executado teste interativo do FreeCAD nem benchmark de caches/picking.
+Não há correção de produção, commit ou PR neste estudo.
+
+Reprodução
+Crie uma cópia da master: git archive origin/master | tar -x -C DIRETORIO_FONTE.
+Execute bash reproduce.sh DIRETORIO_FONTE DIRETORIO_BUILD DIRETORIO_RESULTADOS.
+Para o experimento, aplique diagnostic-only.patch somente em uma cópia separada,
+recompile e use outro diretório de resultados. O patch é estritamente diagnóstico.
+
+Complemento sobre a base e retirada no FreeCAD
+A base experimental de base-design-only.patch separa extensão/visibilidade por
+consumidor e substitui a posição projetada short por float, preservando truncamento
+por pixel. Nos nove cenários, inclusive x=100, o texto com View All fica visível.
+O patch foi revertido na cópia temporária depois das medições.
+edge-probe.cpp reproduz o workaround 2% do FreeCAD para uma âncora x=1.34 com
+câmera ortográfica e viewport 640x480. Master: caixa padrão vazia, workaround
+não vazio. Base proposta: ambos não vazios; workaround ainda altera limites.
+A razão é que !hasVolume() também é verdadeiro para uma caixa plana válida.
+Após validar e exigir Coin corrigido, retirar o helper
+computeText2BBoxWithCoinWorkaround, scaleWidth(1.02f), segunda avaliação e
+SoViewVolumeElement::set; remover ou delegar o override SoColorBarLabel::computeBBox,
+com atenção ao símbolo exportado, e limpar declaração/include sem usos.
+Não retirar a classe SoColorBarLabel nem exclusões intencionais de bbox,
+renderCaching=OFF do Sketcher, câmeras de overlay ou caminhos próprios de labels.
+A lista de testes pendentes e condições para remover compatibilidade antiga
+está em SoText2-issue417.md. A retirada não foi aplicada ao FreeCAD.

@@ -101,6 +101,7 @@
 #include "coindefs.h"
 
 #include <climits>
+#include <cmath>
 #include <cstring>
 
 #ifdef HAVE_CONFIG_H
@@ -220,12 +221,12 @@ public:
   }
 
   SbBool getQuad(SoState * state, SbVec3f & v0, SbVec3f & v1,
-                 SbVec3f & v2, SbVec3f & v3);
+                 SbVec3f & v2, SbVec3f & v3, SbBool visibleonly = TRUE);
   void flushGlyphCache();
   void buildGlyphCache(SoState * state);
   SbBool shouldBuildGlyphCache(SoState * state);
   void dumpBuffer(unsigned char * buffer, SbVec2s size, SbVec2s pos, SbBool mono);
-  void computeBBox(SoAction * action, SbBox3f & box, SbVec3f & center);
+  void computeBBox(SoAction * action, SbBox3f & box, SbVec3f & center, SbBool visibleonly = TRUE);
   static void setRasterPos3f(GLfloat x, GLfloat y, GLfloat z);
 
 
@@ -574,7 +575,8 @@ void
 SoText2::computeBBox(SoAction * action, SbBox3f & box, SbVec3f & center)
 {
   PRIVATE(this)->lock();
-  PRIVATE(this)->computeBBox(action, box, center);
+  // Bounds must include offscreen text so viewAll can find it.
+  PRIVATE(this)->computeBBox(action, box, center, FALSE);
   SoCacheElement::addCacheDependency(action->getState(), PRIVATE(this)->cache);
   PRIVATE(this)->unlock();
 }
@@ -708,7 +710,7 @@ SoText2P::flushGlyphCache()
 //  Return FALSE if the quad is empty.
 SbBool
 SoText2P::getQuad(SoState * state, SbVec3f & v0, SbVec3f & v1,
-                  SbVec3f & v2, SbVec3f & v3)
+                  SbVec3f & v2, SbVec3f & v3, SbBool visibleonly)
 {
   this->buildGlyphCache(state);
 
@@ -732,7 +734,13 @@ SoText2P::getQuad(SoState * state, SbVec3f & v0, SbVec3f & v1,
   SbVec2s vpsize = vp.getViewportSizePixels();
 
   SbVec2f n0, n1, n2, n3, center;
-  SbVec2s sp((short) (screenpoint[0] * vpsize[0]), (short)(screenpoint[1] * vpsize[1]));
+  // Offscreen anchors can exceed the range of short pixel coordinates.
+  // Keep the existing truncation to a pixel without narrowing the result.
+  if (vpsize[0] <= 0 || vpsize[1] <= 0) return FALSE;
+  const float sx = screenpoint[0] * vpsize[0];
+  const float sy = screenpoint[1] * vpsize[1];
+  if (!std::isfinite(sx) || !std::isfinite(sy)) return FALSE;
+  SbVec2f sp(std::trunc(sx), std::trunc(sy));
 
   n0 = SbVec2f(float(sp[0] + xmin)/float(vpsize[0]),
                float(sp[1] + ymax)/float(vpsize[1]));
@@ -780,7 +788,7 @@ SoText2P::getQuad(SoState * state, SbVec3f & v0, SbVec3f & v1,
   testbox.extendBy(v1);
   testbox.extendBy(v2);
   testbox.extendBy(v3);
-  if (!vv.intersect(testbox)) return FALSE;
+  if (visibleonly && !vv.intersect(testbox)) return FALSE;
 
   // transform back to object space
   SbMatrix inv = mat.inverse();
@@ -949,12 +957,12 @@ SoText2P::buildGlyphCache(SoState * state)
 }
 
 void
-SoText2P::computeBBox(SoAction * action, SbBox3f & box, SbVec3f & center)
+SoText2P::computeBBox(SoAction * action, SbBox3f & box, SbVec3f & center, SbBool visibleonly)
 {
   SbVec3f v0, v1, v2, v3;
   // this will cause a cache dependency on the view volume,
   // model matrix and viewport.
-  if (!this->getQuad(action->getState(), v0, v1, v2, v3)) {
+  if (!this->getQuad(action->getState(), v0, v1, v2, v3, visibleonly)) {
     return; // empty
   }
   box.makeEmpty();

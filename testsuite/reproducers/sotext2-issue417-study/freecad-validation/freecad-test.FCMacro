@@ -1,0 +1,61 @@
+import os, json, traceback
+from pathlib import Path
+import FreeCAD as App
+import FreeCADGui as Gui
+from pivy import coin
+out=Path(os.environ['ISSUE417_OUT']);out.mkdir(parents=True,exist_ok=True)
+
+def run():
+    result={'cases':[], 'version':App.Version()}
+    try:
+        result['coin_mapped']=sorted({x.split()[-1] for x in Path('/proc/self/maps').read_text().splitlines() if 'libCoin.so' in x and '/' in x})
+        result['coin_version']=coin.SoDB.getVersion()
+        doc=App.newDocument('Issue417Regression')
+        view=Gui.activeDocument().activeView()
+        view.setCameraType('Perspective')
+        camera=view.getCameraNode();sceneRoot=view.getSceneGraph()
+        for name,x,z,manual in [('original',.25,.25,False),('manual-control',.25,.25,True),('distant',100,0,False)]:
+            camera.position.setValue(0,0,1);camera.orientation.setValue(coin.SbRotation());camera.nearDistance=1;camera.farDistance=10
+            content=coin.SoSeparator();content.renderCaching=coin.SoSeparator.OFF
+            color=coin.SoBaseColor();color.rgb.setValue(1,1,1);content.addChild(color)
+            material=coin.SoMaterial();material.diffuseColor.setValue(1,1,1);material.transparency=0;content.addChild(material)
+            font=coin.SoFont();font.name='Times-Roman';font.size=24;content.addChild(font)
+            translation=coin.SoTranslation();translation.translation.setValue(x,0,z);content.addChild(translation)
+            text=coin.SoText2();text.string='Hello World!';content.addChild(text)
+            measurement=coin.SoSeparator();measurement.addChild(camera);measurement.addChild(content)
+            vp=coin.SbViewportRegion(640,480);bbox=coin.SoGetBoundingBoxAction(vp);bbox.apply(measurement)
+            item={'name':name,'bbox_before_empty':bool(bbox.getBoundingBox().isEmpty())}
+            if manual:camera.position.setValue(x,0,z+5)
+            else:camera.viewAll(measurement,vp)
+            bbox.apply(measurement);item['bbox_after_empty']=bool(bbox.getBoundingBox().isEmpty());item['camera']=list(camera.position.getValue().getValue())
+            display=coin.SoSeparator();display.addChild(camera);display.addChild(content)
+            sceneRoot.addChild(display)
+            for _ in range(5):
+                coin.SoDB.getSensorManager().processDelayQueue(False)
+                Gui.updateGui()
+            view.redraw()
+            view.saveImage(str(out/(name+'-viewer.png')),640,480,'Black')
+            sceneRoot.removeChild(display)
+            result['cases'].append(item)
+        # Actual FreeCAD annotation view provider, not just manually built Coin nodes.
+        anno=doc.addObject('App::Annotation','Annotation417');anno.LabelText=['FreeCAD SoText2'];anno.Position=App.Vector(.25,0,.25)
+        doc.recompute();anno.ViewObject.DisplayMode='Screen'
+        view.setCameraOrientation((0,0,0,1));view.fitAll()
+        for _ in range(5):Gui.updateGui()
+        view.saveImage(str(out/'annotation-screen.png'),640,480,'Black')
+        result['annotation']={'type':anno.TypeId,'display_mode':anno.ViewObject.DisplayMode,'camera':view.getCamera()}
+        # Part reference validates ordinary geometry and document operations.
+        box=doc.addObject('Part::Box','ReferenceBox');doc.recompute();view.viewAxonometric();view.fitAll()
+        for _ in range(5):Gui.updateGui()
+        view.saveImage(str(out/'part-and-annotation.png'),640,480,'Black')
+        result['shape_volume']=box.Shape.Volume
+        result['ok']=True
+        App.closeDocument(doc.Name)
+    except BaseException:
+        result['ok']=False;result['error']=traceback.format_exc()
+    (out/'result.json').write_text(json.dumps(result,indent=2))
+    print('ISSUE417_FREECAD_RESULT',json.dumps(result),flush=True)
+    os._exit(0 if result['ok'] else 1)
+
+def delayed(data,sensor):run()
+_sensor=coin.SoOneShotSensor(delayed,None);_sensor.schedule()

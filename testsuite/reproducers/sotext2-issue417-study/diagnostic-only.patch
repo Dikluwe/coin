@@ -1,0 +1,11 @@
+--- /tmp/coin-issue417-study/SoText2-master.cpp	2026-10-05 11:34:54.546128988 -0300
++++ /tmp/coin-issue417-study/master-src/src/shapenodes/SoText2.cpp	2026-10-05 11:34:54.570750086 -0300
+@@ -780,7 +780,7 @@
+   testbox.extendBy(v1);
+   testbox.extendBy(v2);
+   testbox.extendBy(v3);
+-  if (!vv.intersect(testbox)) return FALSE;
++  // Diagnostic experiment only: do not reject an offscreen quad.
+ 
+   // transform back to object space
+   SbMatrix inv = mat.inverse();
