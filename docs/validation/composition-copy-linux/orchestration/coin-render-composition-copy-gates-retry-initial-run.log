@@ -1,0 +1,30 @@
+START core
+END core 0
+START wgpu-action-reuse
+END wgpu-action-reuse 8
+Traceback (most recent call last):
+  File "/tmp/coin-render-composition-copy-gates.py", line 237, in <module>
+    main()
+  File "/tmp/coin-render-composition-copy-gates.py", line 227, in main
+    raise RuntimeError(gate["name"] + " failed or skipped\n" + log[-4000:])
+RuntimeError: wgpu-action-reuse failed or skipped
+Internal ctest changing into directory: /tmp/coin-render-first-frame-wgpu
+Test project /tmp/coin-render-first-frame-wgpu
+    Start 11: CoinRenderActionTest
+1/2 Test #11: CoinRenderActionTest .............***Failed    0.62 sec
+Running CoinRenderActionTest...
+FAILED: failed object retry must publish an independently validated current receipt (action.getLastStatus() == CoinRenderAction::SUCCESS && same() && backend->lastReuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD && backend->lastReuse.baseRevision == previous.revision && !action.getPimpl()->materialDirty.count(material)) at /tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp:253
+testCapturedCompositionBorrow failed
+1 test(s) FAILED!
+
+    Start 26: CoinRenderFrameReuseCoreTest
+2/2 Test #26: CoinRenderFrameReuseCoreTest .....   Passed    0.42 sec
+
+50% tests passed, 1 tests failed out of 2
+
+Total Test time (real) =   1.04 sec
+
+The following tests FAILED:
+	 11 - CoinRenderActionTest (Failed)
+Errors while running CTest
+

@@ -1,0 +1,38 @@
+Start testing: Oct 05 11:24 -03
+----------------------------------------------------------
+11/106 Testing: CoinRenderActionTest
+11/106 Test: CoinRenderActionTest
+Command: "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderActionTest"
+Directory: /tmp/coin-render-first-frame-wgpu/testsuite
+"CoinRenderActionTest" start time: Oct 05 11:24 -03
+Output:
+----------------------------------------------------------
+Running CoinRenderActionTest...
+FAILED: failed object retry must publish an independently validated current receipt (action.getLastStatus() == CoinRenderAction::SUCCESS && same() && backend->lastReuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD && backend->lastReuse.baseRevision == previous.revision && !action.getPimpl()->materialDirty.count(material)) at /tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp:253
+testCapturedCompositionBorrow failed
+1 test(s) FAILED!
+<end of output>
+Test time =   0.62 sec
+----------------------------------------------------------
+Test Failed.
+"CoinRenderActionTest" end time: Oct 05 11:24 -03
+"CoinRenderActionTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+26/106 Testing: CoinRenderFrameReuseCoreTest
+26/106 Test: CoinRenderFrameReuseCoreTest
+Command: "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderFrameReuseCoreTest"
+Directory: /tmp/coin-render-first-frame-wgpu/testsuite
+"CoinRenderFrameReuseCoreTest" start time: Oct 05 11:24 -03
+Output:
+----------------------------------------------------------
+CoinRenderFrameReuseCoreTest passed
+<end of output>
+Test time =   0.42 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderFrameReuseCoreTest" end time: Oct 05 11:24 -03
+"CoinRenderFrameReuseCoreTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 05 11:24 -03

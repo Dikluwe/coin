@@ -1,0 +1,19 @@
+Internal ctest changing into directory: /tmp/coin-render-first-frame-wgpu
+Test project /tmp/coin-render-first-frame-wgpu
+    Start 11: CoinRenderActionTest
+1/2 Test #11: CoinRenderActionTest .............***Failed    0.62 sec
+Running CoinRenderActionTest...
+FAILED: the fixture must admit real object/material overlays (action.getPimpl()->translationProofValid && literal.getPimpl()->translationProofValid && action.getPimpl()->materialByNode.count(material) && literal.getPimpl()->materialByNode.count(material)) at /tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp:221
+testCapturedCompositionBorrow failed
+1 test(s) FAILED!
+
+    Start 26: CoinRenderFrameReuseCoreTest
+2/2 Test #26: CoinRenderFrameReuseCoreTest .....   Passed    0.42 sec
+
+50% tests passed, 1 tests failed out of 2
+
+Total Test time (real) =   1.05 sec
+
+The following tests FAILED:
+	 11 - CoinRenderActionTest (Failed)
+Errors while running CTest

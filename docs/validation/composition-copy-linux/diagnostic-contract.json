@@ -1,0 +1,410 @@
+{
+  "configured": true,
+  "optout": "COIN_RENDER_DISABLE_COMPOSITION_BORROW",
+  "rounds": 3,
+  "profiles": {
+    "static": {
+      "frames": 1,
+      "warmup": 0
+    },
+    "transforms-10": {
+      "frames": 1,
+      "warmup": 5
+    }
+  },
+  "variants": [
+    "bgfx-vulkan",
+    "bgfx-opengl",
+    "wgpu-vulkan"
+  ],
+  "cases": [
+    "static",
+    "transforms-10"
+  ],
+  "scopes": [
+    "target_composition_copy",
+    "composition_schedule_copy"
+  ],
+  "metrics": [
+    {
+      "category": "csv_measured_medians_ms",
+      "key": "total_ms",
+      "label": "Total",
+      "unit": "ms",
+      "digits": 3,
+      "table": "timing"
+    },
+    {
+      "category": "phase_measured_medians_ms",
+      "key": "composition_transfer.copy_lookup_ms",
+      "label": "Transferência + lookup O(1)",
+      "unit": "ms",
+      "digits": 3,
+      "table": "timing",
+      "primary": true
+    },
+    {
+      "category": "phase_measured_medians_ms",
+      "key": "target_composition_copy.copy_ms",
+      "label": "Target: cópia/ativação",
+      "unit": "ms",
+      "digits": 3,
+      "table": "timing"
+    },
+    {
+      "category": "phase_measured_medians_ms",
+      "key": "composition_schedule_copy.copy_ms",
+      "label": "Lowering: schedule literal",
+      "unit": "ms",
+      "digits": 3,
+      "table": "timing"
+    },
+    {
+      "category": "phase_measured_medians_ms",
+      "key": "target_composition_copy.qualify_ms",
+      "label": "Target: lookup",
+      "unit": "ms",
+      "digits": 6,
+      "table": "lookup"
+    },
+    {
+      "category": "phase_measured_medians_ms",
+      "key": "composition_schedule_copy.qualify_ms",
+      "label": "Lowering: lookup",
+      "unit": "ms",
+      "digits": 6,
+      "table": "lookup"
+    },
+    {
+      "category": "counter_measured_medians",
+      "key": "target_composition_copy.copied_items",
+      "label": "Target: copied_items",
+      "unit": "itens",
+      "counter": true,
+      "table": "Target"
+    },
+    {
+      "category": "counter_measured_medians",
+      "key": "target_composition_copy.copied_bytes",
+      "label": "Target: copied_bytes",
+      "unit": "bytes lógicos",
+      "counter": true,
+      "table": "Target"
+    },
+    {
+      "category": "counter_measured_medians",
+      "key": "target_composition_copy.borrowed_items",
+      "label": "Target: borrowed_items",
+      "unit": "itens",
+      "counter": true,
+      "table": "Target"
+    },
+    {
+      "category": "counter_measured_medians",
+      "key": "target_composition_copy.borrowed_bytes",
+      "label": "Target: borrowed_bytes",
+      "unit": "bytes lógicos",
+      "counter": true,
+      "table": "Target"
+    },
+    {
+      "category": "counter_measured_medians",
+      "key": "target_composition_copy.computed_items",
+      "label": "Target: computed_items",
+      "unit": "itens",
+      "counter": true,
+      "table": "Target"
+    },
+    {
+      "category": "counter_measured_medians",
+      "key": "composition_schedule_copy.copied_items",
+      "label": "Lowering: copied_items",
+      "unit": "itens",
+      "counter": true,
+      "table": "Lowering"
+    },
+    {
+      "category": "counter_measured_medians",
+      "key": "composition_schedule_copy.copied_bytes",
+      "label": "Lowering: copied_bytes",
+      "unit": "bytes lógicos",
+      "counter": true,
+      "table": "Lowering"
+    },
+    {
+      "category": "counter_measured_medians",
+      "key": "composition_schedule_copy.borrowed_items",
+      "label": "Lowering: borrowed_items",
+      "unit": "itens",
+      "counter": true,
+      "table": "Lowering"
+    },
+    {
+      "category": "counter_measured_medians",
+      "key": "composition_schedule_copy.borrowed_bytes",
+      "label": "Lowering: borrowed_bytes",
+      "unit": "bytes lógicos",
+      "counter": true,
+      "table": "Lowering"
+    },
+    {
+      "category": "counter_measured_medians",
+      "key": "composition_schedule_copy.computed_items",
+      "label": "Lowering: computed_items",
+      "unit": "itens",
+      "counter": true,
+      "table": "Lowering"
+    }
+  ],
+  "per_frame_assertions": [
+    {
+      "scope": "target_composition_copy",
+      "key": "copied_items",
+      "expected": {
+        "on": 0,
+        "off": 40001
+      },
+      "sample_selection": "all",
+      "groups": [
+        "bgfx-vulkan|static",
+        "bgfx-opengl|static",
+        "wgpu-vulkan|static"
+      ]
+    },
+    {
+      "scope": "target_composition_copy",
+      "key": "copied_bytes",
+      "expected": {
+        "on": 0,
+        "off": 2240056
+      },
+      "sample_selection": "all",
+      "groups": [
+        "bgfx-vulkan|static",
+        "bgfx-opengl|static",
+        "wgpu-vulkan|static"
+      ]
+    },
+    {
+      "scope": "target_composition_copy",
+      "key": "borrowed_items",
+      "expected": {
+        "on": 40001,
+        "off": 0
+      },
+      "sample_selection": "all",
+      "groups": [
+        "bgfx-vulkan|static",
+        "bgfx-opengl|static",
+        "wgpu-vulkan|static"
+      ]
+    },
+    {
+      "scope": "target_composition_copy",
+      "key": "borrowed_bytes",
+      "expected": {
+        "on": 2240056,
+        "off": 0
+      },
+      "sample_selection": "all",
+      "groups": [
+        "bgfx-vulkan|static",
+        "bgfx-opengl|static",
+        "wgpu-vulkan|static"
+      ]
+    },
+    {
+      "scope": "target_composition_copy",
+      "key": "computed_items",
+      "expected": {
+        "on": 0,
+        "off": 0
+      },
+      "sample_selection": "all",
+      "groups": [
+        "bgfx-vulkan|static",
+        "bgfx-opengl|static",
+        "wgpu-vulkan|static"
+      ]
+    },
+    {
+      "scope": "composition_schedule_copy",
+      "key": "copied_items",
+      "expected": {
+        "on": 0,
+        "off": 40001
+      },
+      "sample_selection": "all"
+    },
+    {
+      "scope": "composition_schedule_copy",
+      "key": "copied_bytes",
+      "expected": {
+        "on": 0,
+        "off": 2240056
+      },
+      "sample_selection": "all"
+    },
+    {
+      "scope": "composition_schedule_copy",
+      "key": "borrowed_items",
+      "expected": {
+        "on": 40001,
+        "off": 0
+      },
+      "sample_selection": "all"
+    },
+    {
+      "scope": "composition_schedule_copy",
+      "key": "borrowed_bytes",
+      "expected": {
+        "on": 2240056,
+        "off": 0
+      },
+      "sample_selection": "all"
+    },
+    {
+      "scope": "composition_schedule_copy",
+      "key": "computed_items",
+      "expected": {
+        "on": 0,
+        "off": 0
+      },
+      "sample_selection": "all"
+    },
+    {
+      "scope": "target_composition_copy",
+      "key": "copied_items",
+      "expected": {
+        "on": 0,
+        "off": 0
+      },
+      "sample_selection": "measured",
+      "groups": [
+        "bgfx-vulkan|transforms-10",
+        "bgfx-opengl|transforms-10",
+        "wgpu-vulkan|transforms-10"
+      ]
+    },
+    {
+      "scope": "target_composition_copy",
+      "key": "copied_bytes",
+      "expected": {
+        "on": 0,
+        "off": 0
+      },
+      "sample_selection": "measured",
+      "groups": [
+        "bgfx-vulkan|transforms-10",
+        "bgfx-opengl|transforms-10",
+        "wgpu-vulkan|transforms-10"
+      ]
+    },
+    {
+      "scope": "target_composition_copy",
+      "key": "borrowed_items",
+      "expected": {
+        "on": 0,
+        "off": 0
+      },
+      "sample_selection": "measured",
+      "groups": [
+        "bgfx-vulkan|transforms-10",
+        "bgfx-opengl|transforms-10",
+        "wgpu-vulkan|transforms-10"
+      ]
+    },
+    {
+      "scope": "target_composition_copy",
+      "key": "borrowed_bytes",
+      "expected": {
+        "on": 0,
+        "off": 0
+      },
+      "sample_selection": "measured",
+      "groups": [
+        "bgfx-vulkan|transforms-10",
+        "bgfx-opengl|transforms-10",
+        "wgpu-vulkan|transforms-10"
+      ]
+    },
+    {
+      "scope": "target_composition_copy",
+      "key": "computed_items",
+      "expected": {
+        "on": 40001,
+        "off": 40001
+      },
+      "sample_selection": "measured",
+      "groups": [
+        "bgfx-vulkan|transforms-10",
+        "bgfx-opengl|transforms-10",
+        "wgpu-vulkan|transforms-10"
+      ]
+    },
+    {
+      "scope": "target_composition_copy",
+      "key": "consumer",
+      "expected": {
+        "on": "target",
+        "off": "target"
+      },
+      "sample_selection": "all"
+    },
+    {
+      "scope": "composition_schedule_copy",
+      "key": "consumer",
+      "expected": {
+        "on": "bgfx_instancing",
+        "off": "bgfx_instancing"
+      },
+      "sample_selection": "all",
+      "groups": [
+        "bgfx-vulkan|static",
+        "bgfx-vulkan|transforms-10"
+      ]
+    },
+    {
+      "scope": "composition_schedule_copy",
+      "key": "consumer",
+      "expected": {
+        "on": "bgfx_instancing",
+        "off": "bgfx_instancing"
+      },
+      "sample_selection": "all",
+      "groups": [
+        "bgfx-opengl|static",
+        "bgfx-opengl|transforms-10"
+      ]
+    },
+    {
+      "scope": "composition_schedule_copy",
+      "key": "consumer",
+      "expected": {
+        "on": "wgpu_instancing",
+        "off": "wgpu_instancing"
+      },
+      "sample_selection": "all",
+      "groups": [
+        "wgpu-vulkan|static",
+        "wgpu-vulkan|transforms-10"
+      ]
+    }
+  ],
+  "description": "City profile only: Target1 and schedule1 per CSV row; static cold two logical copies, RESOURCE measured frame Target moves computed order and lowering alone copies. composition_identity is descriptive per order call, not universal CSV frame or isolated overhead.",
+  "descriptive_scopes": [
+    "composition_identity"
+  ],
+  "derived_metrics": [
+    {
+      "key": "composition_transfer.copy_lookup_ms",
+      "source_keys": [
+        "target_composition_copy.copy_ms",
+        "target_composition_copy.qualify_ms",
+        "composition_schedule_copy.copy_ms",
+        "composition_schedule_copy.qualify_ms"
+      ],
+      "description": "Row-wise sum of these four separately instrumented transfer/activation/lookup intervals only; excludes composition_identity.qualify_ms. Median after CSV measured-row selection."
+    }
+  ]
+}

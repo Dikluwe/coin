@@ -1,0 +1,874 @@
+{
+  "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+  "baseline_source_content_revision": "24bc92d8d60d3a1ce782e7787d2060a6b08261fb",
+  "baseline_variant_source_content_revisions": {
+    "coingl": "4d63bb993022ee8d40802558b0871a4803002b8d",
+    "bgfx-vulkan": "24bc92d8d60d3a1ce782e7787d2060a6b08261fb",
+    "bgfx-opengl": "24bc92d8d60d3a1ce782e7787d2060a6b08261fb",
+    "wgpu-vulkan": "24bc92d8d60d3a1ce782e7787d2060a6b08261fb"
+  },
+  "coingl_source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+  "date": "2026-10-05",
+  "scene_sha256": "bb9ccc612cd38ffb749ee599d9350a80974649eab5bf477d2f344538a42b2576",
+  "expected_counts": {
+    "cold": {
+      "processes": 63,
+      "measured_frames": 63,
+      "warmup_frames": 0
+    },
+    "steady": {
+      "processes": 105,
+      "measured_frames": 1575,
+      "warmup_frames": 525
+    },
+    "ablation": {
+      "processes": 36,
+      "measured_frames": 36,
+      "warmup_frames": 90
+    }
+  },
+  "diagnostic_contract": {
+    "configured": true,
+    "optout": "COIN_RENDER_DISABLE_COMPOSITION_BORROW",
+    "rounds": 3,
+    "profiles": {
+      "static": {
+        "frames": 1,
+        "warmup": 0
+      },
+      "transforms-10": {
+        "frames": 1,
+        "warmup": 5
+      }
+    },
+    "variants": [
+      "bgfx-vulkan",
+      "bgfx-opengl",
+      "wgpu-vulkan"
+    ],
+    "cases": [
+      "static",
+      "transforms-10"
+    ],
+    "scopes": [
+      "target_composition_copy",
+      "composition_schedule_copy"
+    ],
+    "metrics": [
+      {
+        "category": "csv_measured_medians_ms",
+        "key": "total_ms",
+        "label": "Total",
+        "unit": "ms",
+        "digits": 3,
+        "table": "timing"
+      },
+      {
+        "category": "phase_measured_medians_ms",
+        "key": "composition_transfer.copy_lookup_ms",
+        "label": "Transferência + lookup O(1)",
+        "unit": "ms",
+        "digits": 3,
+        "table": "timing",
+        "primary": true
+      },
+      {
+        "category": "phase_measured_medians_ms",
+        "key": "target_composition_copy.copy_ms",
+        "label": "Target: cópia/ativação",
+        "unit": "ms",
+        "digits": 3,
+        "table": "timing"
+      },
+      {
+        "category": "phase_measured_medians_ms",
+        "key": "composition_schedule_copy.copy_ms",
+        "label": "Lowering: schedule literal",
+        "unit": "ms",
+        "digits": 3,
+        "table": "timing"
+      },
+      {
+        "category": "phase_measured_medians_ms",
+        "key": "target_composition_copy.qualify_ms",
+        "label": "Target: lookup",
+        "unit": "ms",
+        "digits": 6,
+        "table": "lookup"
+      },
+      {
+        "category": "phase_measured_medians_ms",
+        "key": "composition_schedule_copy.qualify_ms",
+        "label": "Lowering: lookup",
+        "unit": "ms",
+        "digits": 6,
+        "table": "lookup"
+      },
+      {
+        "category": "counter_measured_medians",
+        "key": "target_composition_copy.copied_items",
+        "label": "Target: copied_items",
+        "unit": "itens",
+        "counter": true,
+        "table": "Target"
+      },
+      {
+        "category": "counter_measured_medians",
+        "key": "target_composition_copy.copied_bytes",
+        "label": "Target: copied_bytes",
+        "unit": "bytes lógicos",
+        "counter": true,
+        "table": "Target"
+      },
+      {
+        "category": "counter_measured_medians",
+        "key": "target_composition_copy.borrowed_items",
+        "label": "Target: borrowed_items",
+        "unit": "itens",
+        "counter": true,
+        "table": "Target"
+      },
+      {
+        "category": "counter_measured_medians",
+        "key": "target_composition_copy.borrowed_bytes",
+        "label": "Target: borrowed_bytes",
+        "unit": "bytes lógicos",
+        "counter": true,
+        "table": "Target"
+      },
+      {
+        "category": "counter_measured_medians",
+        "key": "target_composition_copy.computed_items",
+        "label": "Target: computed_items",
+        "unit": "itens",
+        "counter": true,
+        "table": "Target"
+      },
+      {
+        "category": "counter_measured_medians",
+        "key": "composition_schedule_copy.copied_items",
+        "label": "Lowering: copied_items",
+        "unit": "itens",
+        "counter": true,
+        "table": "Lowering"
+      },
+      {
+        "category": "counter_measured_medians",
+        "key": "composition_schedule_copy.copied_bytes",
+        "label": "Lowering: copied_bytes",
+        "unit": "bytes lógicos",
+        "counter": true,
+        "table": "Lowering"
+      },
+      {
+        "category": "counter_measured_medians",
+        "key": "composition_schedule_copy.borrowed_items",
+        "label": "Lowering: borrowed_items",
+        "unit": "itens",
+        "counter": true,
+        "table": "Lowering"
+      },
+      {
+        "category": "counter_measured_medians",
+        "key": "composition_schedule_copy.borrowed_bytes",
+        "label": "Lowering: borrowed_bytes",
+        "unit": "bytes lógicos",
+        "counter": true,
+        "table": "Lowering"
+      },
+      {
+        "category": "counter_measured_medians",
+        "key": "composition_schedule_copy.computed_items",
+        "label": "Lowering: computed_items",
+        "unit": "itens",
+        "counter": true,
+        "table": "Lowering"
+      }
+    ],
+    "per_frame_assertions": [
+      {
+        "scope": "target_composition_copy",
+        "key": "copied_items",
+        "expected": {
+          "on": 0,
+          "off": 40001
+        },
+        "sample_selection": "all",
+        "groups": [
+          "bgfx-vulkan|static",
+          "bgfx-opengl|static",
+          "wgpu-vulkan|static"
+        ]
+      },
+      {
+        "scope": "target_composition_copy",
+        "key": "copied_bytes",
+        "expected": {
+          "on": 0,
+          "off": 2240056
+        },
+        "sample_selection": "all",
+        "groups": [
+          "bgfx-vulkan|static",
+          "bgfx-opengl|static",
+          "wgpu-vulkan|static"
+        ]
+      },
+      {
+        "scope": "target_composition_copy",
+        "key": "borrowed_items",
+        "expected": {
+          "on": 40001,
+          "off": 0
+        },
+        "sample_selection": "all",
+        "groups": [
+          "bgfx-vulkan|static",
+          "bgfx-opengl|static",
+          "wgpu-vulkan|static"
+        ]
+      },
+      {
+        "scope": "target_composition_copy",
+        "key": "borrowed_bytes",
+        "expected": {
+          "on": 2240056,
+          "off": 0
+        },
+        "sample_selection": "all",
+        "groups": [
+          "bgfx-vulkan|static",
+          "bgfx-opengl|static",
+          "wgpu-vulkan|static"
+        ]
+      },
+      {
+        "scope": "target_composition_copy",
+        "key": "computed_items",
+        "expected": {
+          "on": 0,
+          "off": 0
+        },
+        "sample_selection": "all",
+        "groups": [
+          "bgfx-vulkan|static",
+          "bgfx-opengl|static",
+          "wgpu-vulkan|static"
+        ]
+      },
+      {
+        "scope": "composition_schedule_copy",
+        "key": "copied_items",
+        "expected": {
+          "on": 0,
+          "off": 40001
+        },
+        "sample_selection": "all"
+      },
+      {
+        "scope": "composition_schedule_copy",
+        "key": "copied_bytes",
+        "expected": {
+          "on": 0,
+          "off": 2240056
+        },
+        "sample_selection": "all"
+      },
+      {
+        "scope": "composition_schedule_copy",
+        "key": "borrowed_items",
+        "expected": {
+          "on": 40001,
+          "off": 0
+        },
+        "sample_selection": "all"
+      },
+      {
+        "scope": "composition_schedule_copy",
+        "key": "borrowed_bytes",
+        "expected": {
+          "on": 2240056,
+          "off": 0
+        },
+        "sample_selection": "all"
+      },
+      {
+        "scope": "composition_schedule_copy",
+        "key": "computed_items",
+        "expected": {
+          "on": 0,
+          "off": 0
+        },
+        "sample_selection": "all"
+      },
+      {
+        "scope": "target_composition_copy",
+        "key": "copied_items",
+        "expected": {
+          "on": 0,
+          "off": 0
+        },
+        "sample_selection": "measured",
+        "groups": [
+          "bgfx-vulkan|transforms-10",
+          "bgfx-opengl|transforms-10",
+          "wgpu-vulkan|transforms-10"
+        ]
+      },
+      {
+        "scope": "target_composition_copy",
+        "key": "copied_bytes",
+        "expected": {
+          "on": 0,
+          "off": 0
+        },
+        "sample_selection": "measured",
+        "groups": [
+          "bgfx-vulkan|transforms-10",
+          "bgfx-opengl|transforms-10",
+          "wgpu-vulkan|transforms-10"
+        ]
+      },
+      {
+        "scope": "target_composition_copy",
+        "key": "borrowed_items",
+        "expected": {
+          "on": 0,
+          "off": 0
+        },
+        "sample_selection": "measured",
+        "groups": [
+          "bgfx-vulkan|transforms-10",
+          "bgfx-opengl|transforms-10",
+          "wgpu-vulkan|transforms-10"
+        ]
+      },
+      {
+        "scope": "target_composition_copy",
+        "key": "borrowed_bytes",
+        "expected": {
+          "on": 0,
+          "off": 0
+        },
+        "sample_selection": "measured",
+        "groups": [
+          "bgfx-vulkan|transforms-10",
+          "bgfx-opengl|transforms-10",
+          "wgpu-vulkan|transforms-10"
+        ]
+      },
+      {
+        "scope": "target_composition_copy",
+        "key": "computed_items",
+        "expected": {
+          "on": 40001,
+          "off": 40001
+        },
+        "sample_selection": "measured",
+        "groups": [
+          "bgfx-vulkan|transforms-10",
+          "bgfx-opengl|transforms-10",
+          "wgpu-vulkan|transforms-10"
+        ]
+      },
+      {
+        "scope": "target_composition_copy",
+        "key": "consumer",
+        "expected": {
+          "on": "target",
+          "off": "target"
+        },
+        "sample_selection": "all"
+      },
+      {
+        "scope": "composition_schedule_copy",
+        "key": "consumer",
+        "expected": {
+          "on": "bgfx_instancing",
+          "off": "bgfx_instancing"
+        },
+        "sample_selection": "all",
+        "groups": [
+          "bgfx-vulkan|static",
+          "bgfx-vulkan|transforms-10"
+        ]
+      },
+      {
+        "scope": "composition_schedule_copy",
+        "key": "consumer",
+        "expected": {
+          "on": "bgfx_instancing",
+          "off": "bgfx_instancing"
+        },
+        "sample_selection": "all",
+        "groups": [
+          "bgfx-opengl|static",
+          "bgfx-opengl|transforms-10"
+        ]
+      },
+      {
+        "scope": "composition_schedule_copy",
+        "key": "consumer",
+        "expected": {
+          "on": "wgpu_instancing",
+          "off": "wgpu_instancing"
+        },
+        "sample_selection": "all",
+        "groups": [
+          "wgpu-vulkan|static",
+          "wgpu-vulkan|transforms-10"
+        ]
+      }
+    ],
+    "description": "City profile only: Target1 and schedule1 per CSV row; static cold two logical copies, RESOURCE measured frame Target moves computed order and lowering alone copies. composition_identity is descriptive per order call, not universal CSV frame or isolated overhead.",
+    "descriptive_scopes": [
+      "composition_identity"
+    ],
+    "derived_metrics": [
+      {
+        "key": "composition_transfer.copy_lookup_ms",
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "description": "Row-wise sum of these four separately instrumented transfer/activation/lookup intervals only; excludes composition_identity.qualify_ms. Median after CSV measured-row selection."
+      }
+    ]
+  },
+  "gate_counts": {
+    "Core puro": 7,
+    "Action/Reuse misto": 4,
+    "GPU": 18
+  },
+  "gate_commands": {
+    "core": {
+      "tests": [
+        "CoinRenderFrameCoreTest",
+        "CoinRenderPlanAssemblyCoreTest"
+      ],
+      "category": "Core puro",
+      "source_category": "core_cpu",
+      "variant": "wgpu-vulkan",
+      "direct_cli_override": false
+    },
+    "wgpu-action-reuse": {
+      "tests": [
+        "CoinRenderActionTest",
+        "CoinRenderFrameReuseCoreTest"
+      ],
+      "category": "Action/Reuse misto",
+      "source_category": "action_reuse",
+      "variant": "wgpu-vulkan",
+      "direct_cli_override": false
+    },
+    "bgfx-action-reuse": {
+      "tests": [
+        "CoinRenderActionTest",
+        "CoinRenderFrameReuseCoreTest"
+      ],
+      "category": "Action/Reuse misto",
+      "source_category": "action_reuse",
+      "variant": "bgfx-vulkan",
+      "direct_cli_override": false
+    },
+    "wgpu-vulkan-camera-transparency": {
+      "tests": [
+        "CoinRenderCameraReuseReferenceTest",
+        "CoinRenderTransparencyTest"
+      ],
+      "category": "GPU",
+      "source_category": "gpu",
+      "variant": "wgpu-vulkan",
+      "direct_cli_override": false
+    },
+    "bgfx-vulkan-camera-transparency": {
+      "tests": [
+        "CoinRenderCameraReuseReferenceTest",
+        "CoinRenderTransparencyTest"
+      ],
+      "category": "GPU",
+      "source_category": "gpu",
+      "variant": "bgfx-vulkan",
+      "direct_cli_override": false
+    },
+    "bgfx-opengl-camera-transparency": {
+      "tests": [
+        "CoinRenderCameraReuseReferenceTest",
+        "CoinRenderTransparencyTest"
+      ],
+      "category": "GPU",
+      "source_category": "gpu",
+      "variant": "bgfx-opengl",
+      "direct_cli_override": false
+    },
+    "wgpu-rtt-runtime": {
+      "tests": [
+        "CoinRenderSceneTextureTest",
+        "CoinRenderSceneTextureDirectTest",
+        "CoinWgpuMultiDeviceTest",
+        "CoinRenderAsyncActionTest"
+      ],
+      "category": "GPU",
+      "source_category": "gpu",
+      "variant": "wgpu-vulkan",
+      "direct_cli_override": false
+    },
+    "bgfx-rtt": {
+      "tests": [
+        "CoinRenderRttOwnership_vulkan",
+        "CoinRenderRttOwnership_opengl"
+      ],
+      "category": "GPU",
+      "source_category": "gpu",
+      "variant": "bgfx-vulkan",
+      "direct_cli_override": false
+    },
+    "composition-range-memo-cpu": {
+      "tests": [
+        "CoinRenderCompositionTest"
+      ],
+      "category": "Core puro",
+      "source_category": "core_cpu",
+      "variant": "wgpu-vulkan",
+      "direct_cli_override": true,
+      "arguments": [
+        "--range-memo"
+      ]
+    },
+    "composition-borrow-cpu": {
+      "tests": [
+        "CoinRenderCompositionTest"
+      ],
+      "category": "Core puro",
+      "source_category": "core_cpu",
+      "variant": "wgpu-vulkan",
+      "direct_cli_override": true,
+      "arguments": [
+        "--borrow"
+      ],
+      "required_output_marker": "CoinRenderCompositionTest borrow passed"
+    },
+    "wgpu-ffi-frame-cpu": {
+      "tests": [
+        "CoinWgpuFfiFrameTest"
+      ],
+      "category": "Core puro",
+      "source_category": "core_cpu",
+      "variant": "wgpu-vulkan",
+      "direct_cli_override": false
+    },
+    "depth-contract-cpu": {
+      "tests": [
+        "CoinRenderDepthContractTest"
+      ],
+      "category": "Core puro",
+      "source_category": "core_cpu",
+      "variant": "wgpu-vulkan",
+      "direct_cli_override": false
+    },
+    "bgfx-core-cpu": {
+      "tests": [
+        "CoinBgfxCoreTest"
+      ],
+      "category": "Core puro",
+      "source_category": "core_cpu",
+      "variant": "bgfx-vulkan",
+      "direct_cli_override": false
+    },
+    "wgpu-vulkan-composition-gpu": {
+      "tests": [
+        "CoinRenderCompositionTest"
+      ],
+      "category": "GPU",
+      "source_category": "gpu",
+      "variant": "wgpu-vulkan",
+      "direct_cli_override": true,
+      "arguments": [
+        "--gpu"
+      ],
+      "required_output_marker": "CoinRenderCompositionTest GPU passed"
+    },
+    "bgfx-vulkan-composition-gpu": {
+      "tests": [
+        "CoinRenderCompositionTest"
+      ],
+      "category": "GPU",
+      "source_category": "gpu",
+      "variant": "bgfx-vulkan",
+      "direct_cli_override": true,
+      "arguments": [
+        "--gpu"
+      ],
+      "required_output_marker": "CoinRenderCompositionTest GPU passed"
+    },
+    "bgfx-opengl-composition-gpu": {
+      "tests": [
+        "CoinRenderCompositionTest"
+      ],
+      "category": "GPU",
+      "source_category": "gpu",
+      "variant": "bgfx-opengl",
+      "direct_cli_override": true,
+      "arguments": [
+        "--gpu"
+      ],
+      "required_output_marker": "CoinRenderCompositionTest GPU passed"
+    },
+    "wgpu-vulkan-depth-gpu": {
+      "tests": [
+        "CoinRenderDepthContractTest"
+      ],
+      "category": "GPU",
+      "source_category": "gpu",
+      "variant": "wgpu-vulkan",
+      "direct_cli_override": true,
+      "arguments": [
+        "--gpu"
+      ]
+    },
+    "bgfx-vulkan-depth-gpu": {
+      "tests": [
+        "CoinRenderDepthContractVulkanTest"
+      ],
+      "category": "GPU",
+      "source_category": "gpu",
+      "variant": "bgfx-vulkan",
+      "direct_cli_override": false
+    },
+    "bgfx-opengl-depth-gpu": {
+      "tests": [
+        "CoinRenderDepthContractOpenGLTest"
+      ],
+      "category": "GPU",
+      "source_category": "gpu",
+      "variant": "bgfx-opengl",
+      "direct_cli_override": false
+    }
+  },
+  "historical_gate_runs": [
+    {
+      "directory": "gates-initial",
+      "source_content_revision": "56248de16058e3b8a6996a943ae06099002bf94f",
+      "commands": {
+        "core": {
+          "tests": [
+            "CoinRenderFrameCoreTest",
+            "CoinRenderPlanAssemblyCoreTest"
+          ],
+          "category": "Core puro",
+          "source_category": "core_cpu",
+          "variant": "wgpu-vulkan",
+          "direct_cli_override": false
+        },
+        "wgpu-action-reuse": {
+          "tests": [
+            "CoinRenderActionTest",
+            "CoinRenderFrameReuseCoreTest"
+          ],
+          "category": "Action/Reuse misto",
+          "source_category": "action_reuse",
+          "variant": "wgpu-vulkan",
+          "direct_cli_override": false
+        }
+      },
+      "expected_status_counts": {
+        "executions": 4,
+        "passed": 3,
+        "failed": 1
+      }
+    },
+    {
+      "directory": "gates-retry-initial",
+      "source_content_revision": "001822803da2ecaee26f0726decdb9b6e0dc75c0",
+      "commands": {
+        "core": {
+          "tests": [
+            "CoinRenderFrameCoreTest",
+            "CoinRenderPlanAssemblyCoreTest"
+          ],
+          "category": "Core puro",
+          "source_category": "core_cpu",
+          "variant": "wgpu-vulkan",
+          "direct_cli_override": false
+        },
+        "wgpu-action-reuse": {
+          "tests": [
+            "CoinRenderActionTest",
+            "CoinRenderFrameReuseCoreTest"
+          ],
+          "category": "Action/Reuse misto",
+          "source_category": "action_reuse",
+          "variant": "wgpu-vulkan",
+          "direct_cli_override": false
+        }
+      },
+      "expected_status_counts": {
+        "executions": 4,
+        "passed": 3,
+        "failed": 1
+      }
+    }
+  ],
+  "rgb_comparisons": 196,
+  "verification_ppm_files": 392,
+  "verification_processes": 56,
+  "all_rgb_identical": true,
+  "implementation_notes": [
+    "A ordem opaca já qualificada é emprestada em escopos locais de captura/submission e lowering. Target deixa de copiar a ordem da captura elegível; o lowering usa uma view imutável em vez de copiar a schedule. A prova fica vinculada ao frame, à revisão e às opções de transparência da chamada atual.",
+    "O predicado de identidade é acumulado dentro da ordenação/classificação existente. O perfil preserva o modo opaco com sortObject e ordem de traversal; compositing fora do perfil mantém os vetores owned, validação e diagnósticos literais. RTT/shadow/expansão e estados que exigem outra ordem continuam fora do empréstimo.",
+    "computed_items descreve a ordem calculada localmente; mover esse vetor no Target não conta como cópia. As views não cruzam a submissão backend/Rust nem tickets assíncronos."
+  ],
+  "scope_notes": [
+    "Cidade de 40.000 objetos, offscreen 1024 × 1024, quatro variantes na mesma GPU NVIDIA. Metadados e snapshots de hardware antes/depois estão preservados; clocks não foram acompanhados em cada amostra.",
+    "Mudança de produção: `f6d05aedb83d01204c2ebb20fee78768a587e963`. A fonte atual inclui as correções dos oracles e está vinculada aos binários congelados."
+  ],
+  "ablation_notes": [
+    "Na captura fria, o caminho literal copia a ordem no Target e no lowering; a opção ativa empresta a mesma ordem admitida a ambos. Em RESOURCE_REBUILD, Target calcula a ordem e move o vetor; somente o lowering faz a cópia literal. computed_items não representa uma cópia.",
+    "copied_bytes e borrowed_bytes representam itens × sizeof(CoinRenderCompositionItem), como transporte lógico. Não medem capacidade dos vetores, tráfego do alocador, RSS ou memória GPU.",
+    "copy_ms do Target inclui copiar ou ativar/mover a ordem; copy_ms do lowering engloba a chamada literal de preparação de schedule. qualify_ms desses dois scopes mede lookup. composition_identity.qualify_ms é a classificação/sort existente inteiro quando a prova é solicitada, não overhead puro da otimização.",
+    "A prova de uma observação Target e uma schedule por linha vale apenas para static/transforms-10 elegíveis nesta cidade. Tentativas extras são retidas e tornam a ablação incomparável. Em REUSE/CAMERA_PATCH, não se presume identity ou schedule por quadro.",
+    "A métrica primária soma, por linha CSV antes de selecionar os quadros medidos, copy_ms e qualify_ms dos scopes Target e schedule. São os quatro intervalos separados de transferência/ativação/lookup instrumentados; composition_identity.qualify_ms fica excluído. Ela não é a soma de medianas nem inclui a classificação inteira.",
+    "A redução de transferência/lookup exclui o predicado adicional acumulado no classificador; não representa ganho líquido após todo overhead. total_ms on/off inclui o classificador e mostra o resultado conjunto. copy_ms do lowering é a realização literal completa da schedule, não tempo de memcpy puro.",
+    "diagnostic-observation.json preserva a observação do contrato admitido. inclusive-description.json e inclusive-analysis.py preservam, separadamente, o subtotal descritivo de classify+sort+finish mais transferência/lookup, somado por linha medida. Esse subtotal inclui a classificação existente, não mede overhead incremental isolado e não substitui o primário transfer+lookup nem total_ms.",
+    "composition_schedule_copy.copy_ms inclui a realização literal completa do schedule, não apenas memcpy. A variação líquida conjunta é lida de total_ms; a classificação e o subtotal inclusivo permanecem evidência descritiva."
+  ],
+  "gates": [
+    "Core puro: 7 execuções finais aprovadas sem skips.",
+    "Action/Reuse misto: 4 execuções finais aprovadas sem skips.",
+    "GPU: 18 execuções finais aprovadas sem skips."
+  ],
+  "history_notes": [
+    "As duas primeiras tentativas tiveram quatro execuções cada: três passaram e o novo fixture Action falhou. A primeira não admitia overlays por usar Material fora do escopo isolado do objeto. A segunda esperava sucesso no retry sem recuperar o Target: BACKEND_ERROR deixa TARGET_ERROR e bloqueia apply até resize. O oracle agora cobre bloqueio, recuperação pública e sucesso. As expectativas/estrutura do teste foram corrigidas, sem mudança adicional de produção. Comandos, fontes e resultados de cada tentativa permanecem separados dos 29 gates finais.",
+    "7 builds com exit_code=0 são preservados em build-commands.json e builds/: WG inicial na produção f6, WG incremental e BG na fonte 562, seguidos dos builds dos oracles corrigidos. O fixture BG foi ajustado para PHONG antes das execuções de teste."
+  ],
+  "reviews": [
+    "Revisão independente: profile/admission antes da ativação do recibo, restauração por RAII, wrapper local não copiável/não movível, bytes dos itens preservados e ausência de referência em tickets/caches/Rust. Os caminhos gerais de composição e anexação de sombras permanecem owned.",
+    "Oracles com optout comparam composição, payloads, status e diagnóstico; os testes dos consumidores exigem instanciação efetiva e igualdade dos arrays/header. O fixture Action cobre captura real, overlays admitidos, REUSE, falha, rollback e retry."
+  ],
+  "limitations": [
+    "O resumo descritivo de composition_identity agrega eventos da chamada de ordenação, incluindo warmups; o timer marca o passe original inteiro quando solicitado. Não mede overhead novo separado nem duração GPU.",
+    "Execuções diretas dos gates usam a definição CTest registrada e override CLI exato. Composition --borrow/--gpu exigem markers; range memo e Depth --gpu não imprimem marker próprio em sua versão atual, e são validados por modo/SHA/exit/ausência de skip.",
+    "A optout privada é conjunta para Target e schedule. A ablação não produz intervenções independentes das duas cópias; seus counters/intervalos descrevem partes instrumentadas do mesmo experimento.",
+    "SCREEN_DOOR, incluindo nível zero, permanece fora do perfil de empréstimo. Esta campanha usa SORTED_OBJECT_BLEND com materiais opacos e preserva os campos e a ordem da composição opaca, incluindo sortObject.",
+    "Os PPMs e os binários não integram o Git. A validação relocável confere métricas/hashes e logs de captura; só reabre pixels se os arquivos originais ainda estiverem disponíveis.",
+    "Cold conserva todos os outliers. Processos novos na mesma sessão não reinicializam o driver/computador. Amostras curtas não estabelecem latência de cauda; regressões steady permanecem no relatório.",
+    "Probe suplementar BGFX/Vulkan materials-10 na mesma build, três pares on/off: seis processos, 90 quadros medidos e 30 warmups, separados de matched168 e ablação36. Total off→on 52.641419→52.709456 ms (+0.068037 ms; +0.129%). Transferência/lookup 0.367967→0.000712 ms. O aumento de +2,997 ms (+5,72%) observado na comparação principal não se repetiu com essa magnitude no probe; a variação positiva do probe permanece registrada. Ele não substitui a campanha principal nem estabelece causalidade. hardware-after-main.json preserva o snapshot anterior ao probe; hardware-after.json e os 20 hashes pós-campanha foram atualizados após ele."
+  ],
+  "evidence_reference": "validation/composition-copy-linux/README.md",
+  "composition_item_bytes": 56,
+  "diagnostic_draws_expected": 40001,
+  "production_change_revision": "f6d05aedb83d01204c2ebb20fee78768a587e963",
+  "build_runs": [
+    {
+      "family": "wgpu",
+      "source_content_revision": "f6d05aedb83d01204c2ebb20fee78768a587e963",
+      "exit_code": 0,
+      "command": [
+        "cmake",
+        "--build",
+        "/tmp/coin-render-first-frame-wgpu",
+        "--parallel",
+        "4"
+      ],
+      "archive_log": "builds/coin-render-composition-copy-build-wgpu.log",
+      "sha256": "a31798117bdbf83f8e27915d1c4382b612495c4982e9879e08c61a9b3d6c2bc5"
+    },
+    {
+      "family": "wgpu",
+      "source_content_revision": "56248de16058e3b8a6996a943ae06099002bf94f",
+      "exit_code": 0,
+      "command": [
+        "cmake",
+        "--build",
+        "/tmp/coin-render-first-frame-wgpu",
+        "--parallel",
+        "4"
+      ],
+      "archive_log": "builds/coin-render-composition-copy-build-wgpu-final.log",
+      "sha256": "6ac7acf6cfd0c842cefff2c9e58b579d91d03b958a84c2fe2c2989dd3e01e2ba"
+    },
+    {
+      "family": "bgfx",
+      "source_content_revision": "56248de16058e3b8a6996a943ae06099002bf94f",
+      "exit_code": 0,
+      "command": [
+        "cmake",
+        "--build",
+        "/tmp/coin-render-first-frame-bgfx",
+        "--parallel",
+        "4"
+      ],
+      "archive_log": "builds/coin-render-composition-copy-build-bgfx.log",
+      "sha256": "a7222488c0efa1bc464234237840960bb60a8bd8782e4647a78eebe6a95f9cc2"
+    },
+    {
+      "family": "wgpu",
+      "source_content_revision": "001822803da2ecaee26f0726decdb9b6e0dc75c0",
+      "exit_code": 0,
+      "command": [
+        "cmake",
+        "--build",
+        "/tmp/coin-render-first-frame-wgpu",
+        "--parallel",
+        "4"
+      ],
+      "archive_log": "builds/coin-render-composition-copy-build-wgpu-oracle.log",
+      "sha256": "38673a41c762c2949a3b7107da0373f10dac6515c998e822b6789b18d5be5f45"
+    },
+    {
+      "family": "bgfx",
+      "source_content_revision": "001822803da2ecaee26f0726decdb9b6e0dc75c0",
+      "exit_code": 0,
+      "command": [
+        "cmake",
+        "--build",
+        "/tmp/coin-render-first-frame-bgfx",
+        "--parallel",
+        "4"
+      ],
+      "archive_log": "builds/coin-render-composition-copy-build-bgfx-oracle.log",
+      "sha256": "38673a41c762c2949a3b7107da0373f10dac6515c998e822b6789b18d5be5f45"
+    },
+    {
+      "family": "wgpu",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "exit_code": 0,
+      "command": [
+        "cmake",
+        "--build",
+        "/tmp/coin-render-first-frame-wgpu",
+        "--parallel",
+        "4"
+      ],
+      "archive_log": "builds/coin-render-composition-copy-build-wgpu-recovery.log",
+      "sha256": "38673a41c762c2949a3b7107da0373f10dac6515c998e822b6789b18d5be5f45"
+    },
+    {
+      "family": "bgfx",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "exit_code": 0,
+      "command": [
+        "cmake",
+        "--build",
+        "/tmp/coin-render-first-frame-bgfx",
+        "--parallel",
+        "4"
+      ],
+      "archive_log": "builds/coin-render-composition-copy-build-bgfx-recovery.log",
+      "sha256": "38673a41c762c2949a3b7107da0373f10dac6515c998e822b6789b18d5be5f45"
+    }
+  ],
+  "supplemental_probe": {
+    "directory": "supplemental/material-probe",
+    "contract": "supplemental/material-probe-contract.json",
+    "observation": "supplemental/material-probe-observation.json",
+    "runner": "supplemental/material-probe.py",
+    "expected_counts": {
+      "processes": 6,
+      "measured_frames": 90,
+      "warmup_frames": 30
+    }
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "source_content_revision": "24bc92d8d60d3a1ce782e7787d2060a6b08261fb",
+  "source_snapshot_revision": "0404504657db0eba5b57cce1d48534e4f576181b",
+  "variant_source_content_revisions": {
+    "wgpu-vulkan": "24bc92d8d60d3a1ce782e7787d2060a6b08261fb",
+    "bgfx-vulkan": "24bc92d8d60d3a1ce782e7787d2060a6b08261fb",
+    "bgfx-opengl": "24bc92d8d60d3a1ce782e7787d2060a6b08261fb"
+  },
+  "files": [
+    {
+      "role": "wgpu",
+      "path": "/tmp/coin-render-composition-copy-baseline/wgpu/bin/coin_render_gl_benchmark",
+      "source_content_revision": "24bc92d8d60d3a1ce782e7787d2060a6b08261fb",
+      "bytes": 109568,
+      "sha256": "fdeb5bec7dccc45643a62024fdabca605a6598510d63b0dcd27b6cc78ff67e4a",
+      "original_path": "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark"
+    },
+    {
+      "role": "wgpu",
+      "path": "/tmp/coin-render-composition-copy-baseline/wgpu/bin/coin_render_window_benchmark",
+      "source_content_revision": "24bc92d8d60d3a1ce782e7787d2060a6b08261fb",
+      "bytes": 86840,
+      "sha256": "1ebce110760db5bd624e645b3b2957ee4392c8361f8372240f17d6be3c739cfb",
+      "original_path": "/tmp/coin-render-first-frame-wgpu/bin/coin_render_window_benchmark"
+    },
+    {
+      "role": "wgpu",
+      "path": "/tmp/coin-render-composition-copy-baseline/wgpu/lib/libCoin.so.80.0.10",
+      "source_content_revision": "24bc92d8d60d3a1ce782e7787d2060a6b08261fb",
+      "bytes": 11968880,
+      "sha256": "c86d9ce95df367b1c649545a1d0ba1de89edeb9f5b887f765bc47229d55c5437",
+      "original_path": "/tmp/coin-render-first-frame-wgpu/lib/libCoin.so.80.0.10"
+    },
+    {
+      "role": "wgpu",
+      "path": "/tmp/coin-render-composition-copy-baseline/wgpu/lib/libCoinRender.so",
+      "source_content_revision": "24bc92d8d60d3a1ce782e7787d2060a6b08261fb",
+      "bytes": 15607128,
+      "sha256": "8aef89cc5295799148f22793967abb8191d08016982795a53f83911f3c958311",
+      "original_path": "/tmp/coin-render-first-frame-wgpu/lib/libCoinRender.so"
+    },
+    {
+      "role": "bgfx",
+      "path": "/tmp/coin-render-composition-copy-baseline/bgfx/bin/coin_render_gl_benchmark",
+      "source_content_revision": "24bc92d8d60d3a1ce782e7787d2060a6b08261fb",
+      "bytes": 109568,
+      "sha256": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086",
+      "original_path": "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark"
+    },
+    {
+      "role": "bgfx",
+      "path": "/tmp/coin-render-composition-copy-baseline/bgfx/bin/coin_render_window_benchmark",
+      "source_content_revision": "24bc92d8d60d3a1ce782e7787d2060a6b08261fb",
+      "bytes": 86840,
+      "sha256": "635c8d5dbc4aa59894a7ae2fc1541a27356054d10f5314db27a06b3c8e59ff5a",
+      "original_path": "/tmp/coin-render-first-frame-bgfx/bin/coin_render_window_benchmark"
+    },
+    {
+      "role": "bgfx",
+      "path": "/tmp/coin-render-composition-copy-baseline/bgfx/lib/libCoin.so.80.0.10",
+      "source_content_revision": "24bc92d8d60d3a1ce782e7787d2060a6b08261fb",
+      "bytes": 11968880,
+      "sha256": "c86d9ce95df367b1c649545a1d0ba1de89edeb9f5b887f765bc47229d55c5437",
+      "original_path": "/tmp/coin-render-first-frame-bgfx/lib/libCoin.so.80.0.10"
+    },
+    {
+      "role": "bgfx",
+      "path": "/tmp/coin-render-composition-copy-baseline/bgfx/lib/libCoinRender.so",
+      "source_content_revision": "24bc92d8d60d3a1ce782e7787d2060a6b08261fb",
+      "bytes": 5278208,
+      "sha256": "b33dcd6a1346010d1d4ce985d55042948f8e75b1f08a2625d6ff381fd01c1fc2",
+      "original_path": "/tmp/coin-render-first-frame-bgfx/lib/libCoinRender.so"
+    }
+  ],
+  "hashes": {
+    "/tmp/coin-render-composition-copy-baseline/wgpu/bin/coin_render_gl_benchmark": "fdeb5bec7dccc45643a62024fdabca605a6598510d63b0dcd27b6cc78ff67e4a",
+    "/tmp/coin-render-composition-copy-baseline/wgpu/bin/coin_render_window_benchmark": "1ebce110760db5bd624e645b3b2957ee4392c8361f8372240f17d6be3c739cfb",
+    "/tmp/coin-render-composition-copy-baseline/wgpu/lib/libCoin.so.80.0.10": "c86d9ce95df367b1c649545a1d0ba1de89edeb9f5b887f765bc47229d55c5437",
+    "/tmp/coin-render-composition-copy-baseline/wgpu/lib/libCoinRender.so": "8aef89cc5295799148f22793967abb8191d08016982795a53f83911f3c958311",
+    "/tmp/coin-render-composition-copy-baseline/bgfx/bin/coin_render_gl_benchmark": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086",
+    "/tmp/coin-render-composition-copy-baseline/bgfx/bin/coin_render_window_benchmark": "635c8d5dbc4aa59894a7ae2fc1541a27356054d10f5314db27a06b3c8e59ff5a",
+    "/tmp/coin-render-composition-copy-baseline/bgfx/lib/libCoin.so.80.0.10": "c86d9ce95df367b1c649545a1d0ba1de89edeb9f5b887f765bc47229d55c5437",
+    "/tmp/coin-render-composition-copy-baseline/bgfx/lib/libCoinRender.so": "b33dcd6a1346010d1d4ce985d55042948f8e75b1f08a2625d6ff381fd01c1fc2"
+  }
+}

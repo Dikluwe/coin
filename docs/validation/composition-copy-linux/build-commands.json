@@ -1,0 +1,89 @@
+{
+  "commands": [
+    {
+      "command": [
+        "cmake",
+        "--build",
+        "/tmp/coin-render-first-frame-wgpu",
+        "--parallel",
+        "4"
+      ],
+      "source_revision_at_start": "f6d05aedb83d01204c2ebb20fee78768a587e963",
+      "exit_code": 0,
+      "log": "/tmp/coin-render-composition-copy-build-wgpu.log"
+    },
+    {
+      "command": [
+        "cmake",
+        "--build",
+        "/tmp/coin-render-first-frame-wgpu",
+        "--parallel",
+        "4"
+      ],
+      "source_revision_at_start": "56248de16058e3b8a6996a943ae06099002bf94f",
+      "exit_code": 0,
+      "log": "/tmp/coin-render-composition-copy-build-wgpu-final.log"
+    },
+    {
+      "command": [
+        "cmake",
+        "--build",
+        "/tmp/coin-render-first-frame-bgfx",
+        "--parallel",
+        "4"
+      ],
+      "source_revision_at_start": "56248de16058e3b8a6996a943ae06099002bf94f",
+      "exit_code": 0,
+      "log": "/tmp/coin-render-composition-copy-build-bgfx.log"
+    },
+    {
+      "command": [
+        "cmake",
+        "--build",
+        "/tmp/coin-render-first-frame-wgpu",
+        "--parallel",
+        "4"
+      ],
+      "source_revision_at_start": "001822803da2ecaee26f0726decdb9b6e0dc75c0",
+      "exit_code": 0,
+      "log": "/tmp/coin-render-composition-copy-build-wgpu-oracle.log"
+    },
+    {
+      "command": [
+        "cmake",
+        "--build",
+        "/tmp/coin-render-first-frame-bgfx",
+        "--parallel",
+        "4"
+      ],
+      "source_revision_at_start": "001822803da2ecaee26f0726decdb9b6e0dc75c0",
+      "exit_code": 0,
+      "log": "/tmp/coin-render-composition-copy-build-bgfx-oracle.log"
+    },
+    {
+      "command": [
+        "cmake",
+        "--build",
+        "/tmp/coin-render-first-frame-wgpu",
+        "--parallel",
+        "4"
+      ],
+      "source_revision_at_start": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "exit_code": 0,
+      "log": "/tmp/coin-render-composition-copy-build-wgpu-recovery.log"
+    },
+    {
+      "command": [
+        "cmake",
+        "--build",
+        "/tmp/coin-render-first-frame-bgfx",
+        "--parallel",
+        "4"
+      ],
+      "source_revision_at_start": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "exit_code": 0,
+      "log": "/tmp/coin-render-composition-copy-build-bgfx-recovery.log"
+    }
+  ],
+  "note": "A fixture PHONG correction was committed while the first WG build completed. The incremental WG build refreshed that CPU oracle; the render code was unchanged."
+}
