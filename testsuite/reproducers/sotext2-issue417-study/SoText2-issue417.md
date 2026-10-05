@@ -1,6 +1,6 @@
 # SoText2 e base da correção da issue 417
 
-Estado: correção materializada na branch `codex/fix/issue417-sotext2`, em 5 de outubro de 2026. Foram executados testes de limites, seleção e integração delimitada no FreeCAD. A validação visual do grafo mínimo dentro do viewer ainda está inconclusiva; veja os resultados ao final.
+Estado: correção validada no escopo dos testes da issue 417 na branch `codex/fix/issue417-sotext2`, em 5 de outubro de 2026. A falha da macro de captura foi resolvida e a comparação visual no FreeCAD passou. Resultados finais: 38 casos Coin, 79 testes CTest e 44 verificações da comparação FreeCAD, sem falhas na correção. Veja a última seção para evidências e limites de abrangência.
 
 O objetivo é melhorar o Coin usado pelo FreeCAD. O FreeCAD local contém uma adaptação explícita à issue 417 em `SoColorBarLabel`; este estudo descreve a correção na origem e a retirada posterior dessa adaptação.
 
@@ -105,7 +105,7 @@ Fontes, resultados, imagens e dois patches experimentais estão em `/mnt/Laranja
 
 `diagnostic-only.patch` remove o filtro globalmente e demonstra sua insuficiência. `base-design-only.patch` separa o filtro por consumidor e evita o short na posição projetada. Ambos são experimentais. A cópia temporária do Coin foi restaurada à master. A correção foi depois aplicada ao Coin em um worktree separado; o código do FreeCAD não foi modificado.
 
-Próximo passo antes de entrega upstream: completar a validação visual do exemplo no viewer e os usos específicos do FreeCAD, especialmente SoColorBarLabel, datum e Sketcher, e validar a retirada do workaround em uma compilação do FreeCAD.
+A validação visual do exemplo no FreeCAD foi concluída na última seção. A remoção do workaround, e as verificações de SoColorBarLabel nativo, datum e Sketcher, continuam como trabalhos específicos adicionais antes de alterar o FreeCAD.
 
 
 ## Branch e testes no FreeCAD — 5 de outubro de 2026
@@ -140,3 +140,23 @@ Na auditoria, o teste foi corrigido para percorrer SoText2::LEFT (1), RIGHT (2) 
 As 36 falhas correspondem a 2 câmeras × 3 alinhamentos × 6 âncoras: (0.25,0,0.25), (5,0,0), (100,0,0), (-100,0,0), (0,100,0) e (0,-100,0). Não representam 36 bugs independentes. Cada caso exige limites não vazios, centro finito próximo da âncora, estabilidade ao repetir a ação e limites não vazios após View All. Os dois controles de picking passam nas duas versões.
 
 As imagens audit-before/ e audit-after/ foram geradas novamente pelo mesmo probe.cpp, respectivamente com a biblioteca master e a biblioteca compilada da branch, por SoOffscreenRenderer em 640×480. A conversão PPM→PNG apenas orienta as linhas do buffer para exibição. Na cena original, antes: 0 pixels não pretos; depois: 683. O controle com câmera manual produz 683 pixels nas duas versões. São renderizações isoladas da Coin; não são capturas do viewer FreeCAD.
+
+
+## Resultado final: correção da macro e validação visual FreeCAD
+
+A pendência visual registrada nas seções anteriores foi resolvida. A macro adicionava o texto diretamente ao grafo geral retornado por getSceneGraph(), mas o caminho saveImage()/savePicture() constrói o grafo de captura a partir de pcViewProviderRoot, câmeras, luzes e decoração. O subgrafo manual não estava no conjunto de objetos do documento capturado. Isso explicava também o controle manual vazio. Não foi necessário alterar novamente a implementação Coin para resolver essa falha da macro.
+
+A macro agora cria App::FeaturePython com um ViewProvider Python que registra o SoSeparator do texto usando addDisplayMode. Assim, o exemplo é parte de um objeto real do documento FreeCAD e entra no caminho de captura. A câmera, o texto, as posições e as bibliotecas comparadas permanecem os mesmos. As execuções finais estão em freecad-validation/freecad-master-vp/ e freecad-fixed-vp/; as capturas antigas permanecem somente como registro histórico da macro incorreta.
+
+| Captura real do FreeCAD | Master | Correção |
+| --- | --- | --- |
+| Exemplo original após View All | Sem texto | Hello World! visível |
+| Texto distante x=100 após View All | Sem texto | Hello World! visível |
+| Controle com câmera manual | Hello World! visível | Hello World! visível |
+| Anotação Screen e Part::Box | Visíveis | Visíveis |
+
+O verificador verify-freecad.py exige: macro concluída; apenas a biblioteca Coin esperada carregada; limites antes/depois e movimento da câmera coerentes; imagens 640×480; texto visível nos cenários esperados; controle manual visível nas duas variantes; modo Screen; volume 1000 do cubo; capturas da anotação e do cubo não vazias. A região do teste de texto é y>=150, excluindo o cubo de navegação; pixels claros RGB>180: 0 na master nos dois casos problemáticos, 434 na correção e no controle manual de ambas. Resultado: 44 verificações, zero falhas.
+
+A suíte CTest foi repetida sob Xvfb: 79 testes aprovados, nenhum ignorado. O teste específico, agora com os três alinhamentos válidos, continua com 38 casos e zero falhas na biblioteca corrigida. As 36 falhas da master são o controle negativo esperado e mostram por que a correção é necessária; não são falhas remanescentes na branch. Logs finais: branch-ctest-final.txt, freecad-viewprovider-verification.json e fixed-native-tests.txt.
+
+Este resultado valida a issue 417 nos cenários executados e resolve a antiga pendência de captura. Não equivale a uma validação completa de todos os usos SoText2 do FreeCAD. SoColorBarLabel nativo com o workaround removido, datum, Sketcher e overlays ainda não foram exercitados especificamente; o código FreeCAD e sua Coin instalada não foram alterados. Os erros PySide6/Qt em workbenches auxiliares continuam registrados nos logs. A retirada do workaround permanece um trabalho condicionado à versão mínima suportada.

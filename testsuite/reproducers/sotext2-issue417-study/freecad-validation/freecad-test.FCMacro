@@ -5,6 +5,19 @@ import FreeCADGui as Gui
 from pivy import coin
 out=Path(os.environ['ISSUE417_OUT']);out.mkdir(parents=True,exist_ok=True)
 
+class TestViewProvider:
+    def __init__(self, view_object, content):
+        self.content = content
+        view_object.Proxy = self
+    def attach(self, view_object):
+        view_object.addDisplayMode(self.content, 'Issue417')
+    def getDisplayModes(self, obj):
+        return ['Issue417']
+    def getDefaultDisplayMode(self):
+        return 'Issue417'
+    def setDisplayMode(self, mode):
+        return mode
+
 def run():
     result={'cases':[], 'version':App.Version()}
     try:
@@ -29,13 +42,17 @@ def run():
             else:camera.viewAll(measurement,vp)
             bbox.apply(measurement);item['bbox_after_empty']=bool(bbox.getBoundingBox().isEmpty());item['camera']=list(camera.position.getValue().getValue())
             display=coin.SoSeparator();display.addChild(camera);display.addChild(content)
-            sceneRoot.addChild(display)
+            feature=doc.addObject('App::FeaturePython','Text417')
+            provider=TestViewProvider(feature.ViewObject,content)
+            feature.ViewObject.DisplayMode='Issue417'
+            doc.recompute()
             for _ in range(5):
                 coin.SoDB.getSensorManager().processDelayQueue(False)
                 Gui.updateGui()
             view.redraw()
             view.saveImage(str(out/(name+'-viewer.png')),640,480,'Black')
-            sceneRoot.removeChild(display)
+            doc.removeObject(feature.Name)
+            doc.recompute()
             result['cases'].append(item)
         # Actual FreeCAD annotation view provider, not just manually built Coin nodes.
         anno=doc.addObject('App::Annotation','Annotation417');anno.LabelText=['FreeCAD SoText2'];anno.Position=App.Vector(.25,0,.25)

@@ -1,0 +1,55 @@
+{
+  "cases": [
+    {
+      "name": "original",
+      "bbox_before_empty": false,
+      "bbox_after_empty": false,
+      "camera": [
+        0.33266526460647583,
+        0.011002547107636929,
+        0.45175617933273315
+      ]
+    },
+    {
+      "name": "manual-control",
+      "bbox_before_empty": false,
+      "bbox_after_empty": false,
+      "camera": [
+        0.25,
+        0.0,
+        5.25
+      ]
+    },
+    {
+      "name": "distant",
+      "bbox_before_empty": false,
+      "bbox_after_empty": false,
+      "camera": [
+        100.11024475097656,
+        0.014670062810182571,
+        0.2690025568008423
+      ]
+    }
+  ],
+  "version": [
+    "26",
+    "3",
+    "0",
+    "48386 (Git)",
+    "git://github.com/FreeCAD/FreeCAD.git main",
+    "2026/09/01 11:53:58",
+    "main",
+    "d8d85f05ffad8277db968d6872c4a7a9b733c1b3"
+  ],
+  "coin_mapped": [
+    "/tmp/coin-issue417-branch-build/lib/libCoin.so.80.0.10"
+  ],
+  "coin_version": "SIM Coin 4.0.10",
+  "annotation": {
+    "type": "App::Annotation",
+    "display_mode": "Screen",
+    "camera": "#Inventor V2.1 ascii\n\n\nPerspectiveCamera {\n  viewportMapping ADJUST_CAMERA\n  position 0.32656252 0.012968302 0.43747106\n  orientation 0 0 1  0\n  nearDistance 0.109818\n  farDistance 0.26512411\n  aspectRatio 1\n  focalDistance 0.18747106\n  heightAngle 0.78539819\n\n}\n"
+  },
+  "shape_volume": 999.9999999999998,
+  "ok": true
+}
