@@ -7,6 +7,7 @@
 #include "rendering/coinwgpu/CoinWgpuShadowFrame.h"
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -34,9 +35,27 @@ public:
   size_t opaqueHashedRangesLastPrepare() const;
   size_t opaqueCommonStatesPackedLastPrepare() const;
   size_t opaqueCameraProofReusedLastPrepare() const;
+  size_t opaqueMatrixCacheHitsLastPrepare() const;
+  size_t opaqueMatricesCalculatedLastPrepare() const;
+  size_t opaqueMatrixCacheBytes() const;
+  size_t opaqueMatrixCacheAllocationsLastPrepare() const;
+  uint32_t opaqueMatrixCacheBypassLastPrepare() const;
+  bool opaqueMatrixCacheValid() const;
 
 private:
   struct BakeMatrices { float modelView[16], normal[16]; };
+  struct MatrixCacheEntry {
+    float model[16];
+    BakeMatrices matrices;
+    uint32_t unchangedFpStatus;
+  };
+  struct MatrixCache {
+    std::unique_ptr<MatrixCacheEntry[]> entries;
+    size_t capacity = 0, count = 0;
+    SbMatrix view;
+    uint32_t fpControl = 0;
+    bool valid = false, candidate = false;
+  };
   struct OpaqueRange {
     size_t drawIndex;
     CoinRenderGeometryRange geometry;
@@ -74,6 +93,12 @@ private:
   // A proof produced and consumed within one successful prepare, over the
   // authored matrices before diagonal transport factorization.
   bool opaqueCameraMatricesQualified = false;
+  // Private optional cache authority owns every key/result; bakeMatrices is
+  // scratch and never licenses a hit. A partial prepare cannot publish it.
+  MatrixCache opaqueMatrixCache;
+  bool opaqueMatrixCacheAllowed = false;
+  uint32_t opaqueMatrixFpControl = 0, opaqueMatrixCacheBypass = 0;
+  size_t opaqueMatrixCacheHits = 0, opaqueMatricesCalculated = 0, opaqueMatrixCacheAllocations = 0;
   double opaqueInstancePositionBound = 0;
   bool opaqueCameraPatchable;
   bool opaqueGeometryPatchable;

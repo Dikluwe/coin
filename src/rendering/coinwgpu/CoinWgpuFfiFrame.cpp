@@ -12,12 +12,20 @@
 #include "rendering/coinrender/CoinRenderComposition.h"
 
 #include <cmath>
+#include <cfenv>
 #include <cstddef>
 #include <cstring>
 #include <cstdlib>
 #include <cstdio>
 #include <limits>
+#include <new>
 #include <unordered_map>
+
+#if (defined(__GNUC__) || defined(__clang__)) && defined(__SSE_MATH__) && defined(__SSE2_MATH__) && \
+    (defined(__x86_64__) || defined(__i386__))
+#include <xmmintrin.h>
+#define COIN_WGPU_MATRIX_CACHE_FP_X86 1
+#endif
 
 static_assert(sizeof(CoinWgpuFrameView) == 448, "Frame view ABI size changed");
 static_assert(sizeof(CoinWgpuInstance) == 144, "Instance ABI size changed");
@@ -65,6 +73,42 @@ static_assert(offsetof(CoinWgpuRenderState, depth_function) == 924, "depth_funct
 static_assert(offsetof(CoinWgpuRenderState, depth_range) == 928, "depth_range ABI offset changed");
 
 namespace {
+// Numerical memoization is optional. Recognize a fully masked, gradual,
+// nearest-even x86 environment, including x87 precision/infinity controls.
+// Unknown platforms/modes retain the literal matrix operations. Sticky flags
+// are read separately: they are never cleared, raised or restored here.
+bool instanceMatrixFpControl(uint32_t & key)
+{
+#ifdef COIN_WGPU_MATRIX_CACHE_FP_X86
+  if (sizeof(float) != 4 || !std::numeric_limits<float>::is_iec559 ||
+      std::fegetround() != FE_TONEAREST) return false;
+  const uint32_t sse = _mm_getcsr() & 0xffc0u;
+  uint16_t x87;
+  __asm__ __volatile__("fnstcw %0" : "=m" (x87));
+  const uint32_t x87Control = x87 & 0x1f3fu;
+  if (sse != 0x1f80u || x87Control != 0x033fu) return false;
+  key = (x87Control << 16) | sse;
+  return true;
+#else
+  (void)key;
+  return false;
+#endif
+}
+
+uint32_t instanceMatrixFpStatus()
+{
+#ifdef COIN_WGPU_MATRIX_CACHE_FP_X86
+  uint16_t x87;
+  __asm__ __volatile__("fnstsw %0" : "=am" (x87));
+  return (_mm_getcsr() & 0x3fu) | (uint32_t(x87 & 0x3fu) << 6);
+#else
+  return 0;
+#endif
+}
+const uint32_t unchangedMatrixFpStatus = 1u << 12;
+const size_t matrixCacheBudget = 8u * 1024u * 1024u;
+const size_t matrixCacheAllocatorAllowance = 256;
+
 // Only the view-space coordinates of captured lights may change with a camera.
 // Type, color, intensity, cutoff and attenuation remain part of the immutable key.
 CoinWgpuRenderState opaqueCameraKey(CoinWgpuRenderState key)
@@ -229,6 +273,18 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
   this->opaqueHashedRanges = 0;
   this->opaqueCommonStatesPacked = this->opaqueCameraProofReused = 0;
   this->opaqueCameraMatricesQualified = false;
+  this->opaqueMatrixCacheHits = this->opaqueMatricesCalculated = this->opaqueMatrixCacheAllocations = 0;
+  this->opaqueMatrixCache.candidate = false;
+  const char * matrixDisabled = std::getenv("COIN_WGPU_DISABLE_INSTANCE_MATRIX_CACHE");
+  const char * commonDisabled = std::getenv("COIN_WGPU_DISABLE_INSTANCE_COMMON_STATE");
+  this->opaqueMatrixCacheBypass = !allowInstancing ? 6 :
+    (matrixDisabled && std::strcmp(matrixDisabled, "1") == 0) ? 1 :
+    (commonDisabled && std::strcmp(commonDisabled, "1") == 0) ? 5 :
+    !instanceMatrixFpControl(this->opaqueMatrixFpControl) ? 2 : 0;
+  this->opaqueMatrixCacheAllowed = this->opaqueMatrixCacheBypass == 0;
+  // These switches/environment checks also revoke the optional proof on the
+  // pre-existing immutable-revision fast path; that payload contract is intact.
+  if (!this->opaqueMatrixCacheAllowed) this->opaqueMatrixCache.valid = false;
   this->opaqueRebakedRanges = this->opaqueRebakedVertices = 0;
   this->opaqueIncrementalCandidate = false;
   // Failed qualification/packing must never leave an old revision or geometry
@@ -238,23 +294,29 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     bool & cameraPatchable;
     bool & instanced;
     bool & matricesQualified;
+    bool & matrixCacheValid;
+    bool & matrixCacheCandidate;
     uint64_t & revision;
     CoinRenderFrameReuseKind & kind;
     bool committed;
-    PrepareGuard(bool & v, bool & c, bool & i, bool & m, uint64_t & r, CoinRenderFrameReuseKind & k)
-      : valid(v), cameraPatchable(c), instanced(i), matricesQualified(m), revision(r), kind(k), committed(false) {}
+    PrepareGuard(bool & v, bool & c, bool & i, bool & m, bool & mv, bool & mc,
+                 uint64_t & r, CoinRenderFrameReuseKind & k)
+      : valid(v), cameraPatchable(c), instanced(i), matricesQualified(m), matrixCacheValid(mv),
+        matrixCacheCandidate(mc), revision(r), kind(k), committed(false) {}
     ~PrepareGuard() {
       if (!committed) {
         valid = false;
         cameraPatchable = false;
         instanced = false;
         matricesQualified = false;
+        matrixCacheValid = matrixCacheCandidate = false;
         revision = 0;
         kind = CoinRenderFrameReuseKind::UNKNOWN;
       }
     }
   } guard(this->opaqueIncrementalValid, this->opaqueCameraPatchable, this->opaqueInstanced,
-          this->opaqueCameraMatricesQualified, this->packedRevision, this->prepareKind);
+          this->opaqueCameraMatricesQualified, this->opaqueMatrixCache.valid,
+          this->opaqueMatrixCache.candidate, this->packedRevision, this->prepareKind);
   for (const auto& texture : frame.textures) {
     if (texture.producerId) {
       outDiagnostic = "Unresolved scene texture producer at wgpu execution boundary";
@@ -290,6 +352,7 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     // The output still belongs to the camera anchor, while the captured states
     // now contain a different view. Do not mix it with a later object rebake.
     this->opaqueIncrementalValid = false;
+    this->opaqueMatrixCache.valid = false;
     this->shadowFrame = std::move(candidateShadow);
     this->bindView(frame, width, height);
     this->view.camera_base_revision = reuse.baseRevision;
@@ -305,6 +368,7 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
       reuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH &&
       frame.revision != 0 && frame.revision != reuse.baseRevision &&
       reuse.baseRevision != 0 && reuse.baseRevision == this->packedRevision) {
+    this->opaqueMatrixCache.valid = false;
     const auto previousDraws = this->draws;
     this->packedRevision = 0;
     if (!this->packStates(frame, candidateShadow, width, height, outDiagnostic, preflight)) return false;
@@ -354,10 +418,13 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
       ? CoinRenderFrameReuseKind::RESOURCE_REBUILD
       : CoinRenderFrameReuseKind::FULL_REBUILD;
     this->opaqueIncrementalValid = this->opaqueIncrementalCandidate;
+    this->opaqueMatrixCache.valid = this->opaqueInstanced && this->opaqueMatrixCache.candidate;
+    this->opaqueMatrixCache.candidate = false;
     guard.committed = true;
     return true;
   }
   this->opaqueIncrementalValid = false;
+  this->opaqueMatrixCache.valid = this->opaqueMatrixCache.candidate = false;
   this->vertices.resize(frame.vertices.size());
   for (size_t i = 0; i < frame.vertices.size(); ++i)
     packVertex(frame.vertices[i], this->vertices[i]);
@@ -507,6 +574,10 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
                                     uint32_t width, uint32_t height,
                                     const CoinRenderFramePreflight * preflight)
 {
+  const bool previousMatrixCacheValid = this->opaqueMatrixCache.valid;
+  // Forward-only in-place writes need no second transactional array: no entry
+  // is read twice, and only prepare's final commit can license the new data.
+  this->opaqueMatrixCache.valid = this->opaqueMatrixCache.candidate = false;
   for (const char * option : {"COIN_WGPU_DISABLE_OPAQUE_INSTANCING", "COIN_WGPU_DISABLE_OPAQUE_BATCHING"}) {
     const char * value = std::getenv(option);
     if (value && std::strcmp(value, "1") == 0) return false;
@@ -768,6 +839,8 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
   // A proven geometry/group fallback returns before scanning the entire state
   // table a second time. Successful candidates still qualify every captured
   // state, including unreferenced states and late lighting errors.
+  const char * commonDisabled = std::getenv("COIN_WGPU_DISABLE_INSTANCE_COMMON_STATE");
+  const bool fastCommon = !(commonDisabled && std::strcmp(commonDisabled, "1") == 0);
   for (const auto & state : frame.renderStates) {
     if (!CoinRenderTransformCore::finiteMatrix(state.model) ||
         state.model[0][3] != 0 || state.model[1][3] != 0 || state.model[2][3] != 0 || state.model[3][3] != 1 ||
@@ -782,16 +855,60 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
         state.depthWrite != first.depthWrite || state.depthFunction != first.depthFunction ||
         state.depthRange[0] != first.depthRange[0] || state.depthRange[1] != first.depthRange[1]) return false;
     for (const auto & texture : state.extraTextures) if (texture.enabled) return false;
+    if (fastCommon && !sameOpaquePackedFields(first, state)) return false;
   }
   this->bakeMatrices.resize(frame.renderStates.size());
   const SbMatrix identity = SbMatrix::identity();
   CoinWgpuRenderState common{};
-  const char * commonDisabled = std::getenv("COIN_WGPU_DISABLE_INSTANCE_COMMON_STATE");
-  const bool fastCommon = !(commonDisabled && std::strcmp(commonDisabled, "1") == 0);
-  if (fastCommon && !this->packState(frame, first, width, height, common, diagnostic)) return false;
+  if (fastCommon) {
+    ++this->opaqueMatricesCalculated;
+    if (!this->packState(frame, first, width, height, common, diagnostic)) return false;
+  }
+  auto & cache = this->opaqueMatrixCache;
+  static_assert(sizeof(MatrixCacheEntry) == 196, "Matrix cache accounting changed");
+  const size_t cacheOverhead = sizeof(MatrixCache) + matrixCacheAllocatorAllowance;
+  const size_t cacheLimit = (matrixCacheBudget - cacheOverhead) / sizeof(MatrixCacheEntry);
+  bool useMatrixCache = fastCommon && this->opaqueMatrixCacheAllowed;
+  bool reuseMatrices = useMatrixCache && previousMatrixCacheValid &&
+    cache.count == frame.renderStates.size() && cache.fpControl == this->opaqueMatrixFpControl &&
+    std::memcmp(cache.view.getValue(), first.view.getValue(), sizeof(float) * 16) == 0;
+  if (useMatrixCache && frame.renderStates.size() > cacheLimit) {
+    cache.entries.reset(); cache.capacity = cache.count = 0;
+    this->opaqueMatrixCacheBypass = 3;
+    useMatrixCache = reuseMatrices = false;
+  }
+  if (useMatrixCache && frame.renderStates.size() > cache.capacity) {
+    // Release before growing: optional cache allocation never temporarily
+    // doubles its independent budget and never turns a valid frame into OOM.
+    cache.entries.reset(); cache.capacity = cache.count = 0;
+    reuseMatrices = false;
+    cache.entries.reset(new (std::nothrow) MatrixCacheEntry[frame.renderStates.size()]);
+    if (cache.entries) {
+      cache.capacity = frame.renderStates.size();
+      ++this->opaqueMatrixCacheAllocations;
+    }
+    else {
+      this->opaqueMatrixCacheBypass = 4;
+      useMatrixCache = false;
+    }
+  }
   for (size_t i = 0; i < frame.renderStates.size(); ++i) {
     SbMatrix modelView, normal;
+    uint32_t beforeFpStatus = 0;
     if (fastCommon) {
+      // Qualify each complete packed common key before considering its matrix
+      // hit, including unreferenced states and disabled transported metadata.
+      if (useMatrixCache) beforeFpStatus = instanceMatrixFpStatus();
+      if (i && reuseMatrices &&
+          std::memcmp(cache.entries[i].model, frame.renderStates[i].model.getValue(), sizeof(float) * 16) == 0 &&
+          cache.entries[i].unchangedFpStatus == (beforeFpStatus | unchangedMatrixFpStatus)) {
+        this->bakeMatrices[i] = cache.entries[i].matrices;
+        ++this->opaqueMatrixCacheHits;
+        continue;
+      }
+      // Slot zero remains literal: packState above actually computed MV and
+      // normal even on a warm cache, and that work is counted as calculated.
+      if (i) ++this->opaqueMatricesCalculated;
       if (i == 0) {
         modelView.setValue(common.model_view); normal.setValue(common.normal_matrix);
       }
@@ -799,7 +916,6 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
         // Every state is visited, including unreferenced states. Common source
         // equality proves the ordinary packed key without rewriting 2280 bytes
         // or computing an MVP which the instanced payload discards.
-        if (!sameOpaquePackedFields(first, frame.renderStates[i])) return false;
         modelView = frame.renderStates[i].model * frame.renderStates[i].view;
         normal = CoinRenderTransformCore::normalMatrix(modelView);
       }
@@ -807,6 +923,7 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
     else {
       // Literal pre-optimization path for controlled ablation.
       CoinWgpuRenderState key{};
+      ++this->opaqueMatricesCalculated;
       if (!this->packState(frame, frame.renderStates[i], width, height, key, diagnostic)) return false;
       if (key.has_texture || key.fog_mode || key.clip_plane_count || key.polygon_offset_enabled) return false;
       modelView.setValue(key.model_view); normal.setValue(key.normal_matrix);
@@ -827,6 +944,21 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
     auto & matrices = this->bakeMatrices[i];
     std::memcpy(matrices.modelView, modelView.getValue(), sizeof(matrices.modelView));
     std::memcpy(matrices.normal, normal.getValue(), sizeof(matrices.normal));
+    if (useMatrixCache) {
+      const uint32_t afterFpStatus = instanceMatrixFpStatus();
+      auto & entry = cache.entries[i];
+      std::memcpy(entry.model, frame.renderStates[i].model.getValue(), sizeof(entry.model));
+      entry.matrices = matrices;
+      // A hit may omit operations only when they provably left sticky flags
+      // unchanged, under the exact same incoming SSE/x87 exception status.
+      entry.unchangedFpStatus = beforeFpStatus == afterFpStatus
+        ? beforeFpStatus | unchangedMatrixFpStatus : 0;
+    }
+  }
+  if (useMatrixCache) {
+    cache.count = frame.renderStates.size();
+    cache.view = first.view;
+    cache.fpControl = this->opaqueMatrixFpControl;
   }
   if (fastCommon) {
     common.material_slot = 0;
@@ -906,12 +1038,15 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
   this->opaqueBatched = this->opaqueInstanced = this->opaqueGeometryPatchable = true;
   this->opaqueCommonStatesPacked = fastCommon ? 1 : frame.renderStates.size();
   this->opaqueCameraMatricesQualified = fastCommon;
+  cache.candidate = useMatrixCache;
   if (std::getenv("COIN_RENDER_TRACE_PHASES")) {
-    std::fprintf(stderr, "COIN_RENDER_PHASE wgpu_opaque_instancing source_draws=%zu source_ranges=%zu diagonal_ranges=%zu hashed_ranges=%zu canonical_meshes=%zu groups=%zu compact_vertices=%llu compact_indices=%llu instances=%zu instance_bytes=%llu common_state_fast=%d states_packed=%zu\n",
+    std::fprintf(stderr, "COIN_RENDER_PHASE wgpu_opaque_instancing source_draws=%zu source_ranges=%zu diagonal_ranges=%zu hashed_ranges=%zu canonical_meshes=%zu groups=%zu compact_vertices=%llu compact_indices=%llu instances=%zu instance_bytes=%llu common_state_fast=%d states_packed=%zu matrix_cache_hits=%zu matrix_calculated=%zu matrix_cache_bytes=%zu matrix_cache_allocations=%zu matrix_cache_bypass=%u\n",
       frame.draws.size(), sourceMemo.size(), diagonalSpans, this->opaqueHashedRanges, canonicalMeshes.size(), groups.size(),
       static_cast<unsigned long long>(compactVertices), static_cast<unsigned long long>(compactIndices),
       this->instances.size(), static_cast<unsigned long long>(this->instances.size()) * sizeof(CoinWgpuInstance),
-      fastCommon ? 1 : 0, this->opaqueCommonStatesPacked);
+      fastCommon ? 1 : 0, this->opaqueCommonStatesPacked, this->opaqueMatrixCacheHits,
+      this->opaqueMatricesCalculated, this->opaqueMatrixCacheBytes(), this->opaqueMatrixCacheAllocations,
+      this->opaqueMatrixCacheBypass);
   }
   return true;
 }
@@ -1603,3 +1738,13 @@ CoinWgpuFfiFrame::opaqueCameraProofReusedLastPrepare() const
 {
   return this->packedRevision ? this->opaqueCameraProofReused : 0;
 }
+
+size_t CoinWgpuFfiFrame::opaqueMatrixCacheHitsLastPrepare() const { return this->opaqueMatrixCacheHits; }
+size_t CoinWgpuFfiFrame::opaqueMatricesCalculatedLastPrepare() const { return this->opaqueMatricesCalculated; }
+size_t CoinWgpuFfiFrame::opaqueMatrixCacheBytes() const {
+  return this->opaqueMatrixCache.capacity ? sizeof(MatrixCache) + matrixCacheAllocatorAllowance +
+    this->opaqueMatrixCache.capacity * sizeof(MatrixCacheEntry) : 0;
+}
+size_t CoinWgpuFfiFrame::opaqueMatrixCacheAllocationsLastPrepare() const { return this->opaqueMatrixCacheAllocations; }
+uint32_t CoinWgpuFfiFrame::opaqueMatrixCacheBypassLastPrepare() const { return this->opaqueMatrixCacheBypass; }
+bool CoinWgpuFfiFrame::opaqueMatrixCacheValid() const { return this->opaqueMatrixCache.valid; }

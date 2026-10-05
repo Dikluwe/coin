@@ -9,6 +9,7 @@
 
 #include <cstdint>
 #include <cmath>
+#include <cfenv>
 #include <cstdlib>
 #include <cstring>
 #include <functional>
@@ -19,6 +20,12 @@
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <iostream>
 #include <string>
+
+#if (defined(__GNUC__) || defined(__clang__)) && defined(__SSE_MATH__) && defined(__SSE2_MATH__) && \
+    (defined(__x86_64__) || defined(__i386__))
+#include <xmmintrin.h>
+#define COIN_WGPU_MATRIX_CACHE_TEST_FP_X86 1
+#endif
 
 namespace {
 bool check(bool condition, const char * message)
@@ -229,6 +236,64 @@ private:
   bool wasSet;
   std::string previous;
 };
+
+class InstanceMatrixCacheSwitch {
+public:
+  InstanceMatrixCacheSwitch() {
+    const char * value = std::getenv(name());
+    wasSet = value != nullptr;
+    if (value) previous = value;
+    disable(false);
+  }
+  ~InstanceMatrixCacheSwitch() { set(wasSet ? previous.c_str() : nullptr); }
+  void disable(bool disabled) { set(disabled ? "1" : nullptr); }
+private:
+  static const char * name() { return "COIN_WGPU_DISABLE_INSTANCE_MATRIX_CACHE"; }
+  static void set(const char * value) {
+#ifdef _WIN32
+    _putenv_s(name(), value ? value : "");
+#else
+    if (value) setenv(name(), value, 1); else unsetenv(name());
+#endif
+  }
+  bool wasSet;
+  std::string previous;
+};
+
+// Retain controls and sticky flags independently for the two owner oracles.
+// The test never executes arithmetic with an unmasked trap: those checks use
+// only the pre-existing immutable-revision path, then restore the environment.
+class MatrixFpSnapshot {
+public:
+  MatrixFpSnapshot() {
+    std::fegetenv(&environment);
+#ifdef COIN_WGPU_MATRIX_CACHE_TEST_FP_X86
+    sse = _mm_getcsr();
+#endif
+  }
+  ~MatrixFpSnapshot() { restore(); }
+  void restore() const {
+    std::fesetenv(&environment);
+#ifdef COIN_WGPU_MATRIX_CACHE_TEST_FP_X86
+    _mm_setcsr(sse);
+#endif
+  }
+private:
+  std::fenv_t environment;
+#ifdef COIN_WGPU_MATRIX_CACHE_TEST_FP_X86
+  uint32_t sse;
+#endif
+};
+
+uint32_t matrixExceptionStatus() {
+#ifdef COIN_WGPU_MATRIX_CACHE_TEST_FP_X86
+  uint16_t x87;
+  __asm__ __volatile__("fnstsw %0" : "=am" (x87));
+  return (_mm_getcsr() & 0x3fu) | (uint32_t(x87 & 0x3fu) << 6);
+#else
+  return static_cast<uint32_t>(std::fetestexcept(FE_ALL_EXCEPT));
+#endif
+}
 
 class DiagonalMeshSwitch {
 public:
@@ -1067,6 +1132,244 @@ bool instanceCommonStateEquivalence()
   return true;
 }
 
+bool instanceMatrixCacheEquivalence()
+{
+  MatrixFpSnapshot callerEnvironment;
+  std::fesetenv(FE_DFL_ENV);
+  InstancingSwitch instancing; instancing.disable(false);
+  DiagonalMeshSwitch lowering; lowering.disable(false);
+  EarlyBatchSwitch early; early.disable(false);
+  CameraPatchSwitch camera;
+  InstanceCommonStateSwitch common;
+  InstanceMatrixCacheSwitch option;
+  auto frame = diagonalBoxFrame();
+  // Include shear/reflection and an unused rotated/scaled authored matrix.
+  frame.renderStates[11].model[0][1] += .125f;
+  frame.renderStates[12].model[0][0] *= -1;
+  frame.renderStates.push_back(frame.renderStates[5]);
+  frame.renderStates.back().model[3][1] += .375f;
+  const auto original = frame;
+  const size_t n = frame.renderStates.size();
+  uint64_t revision = 5000;
+  frame.revision = ++revision;
+  uint32_t width = 64, height = 64;
+  CoinWgpuFfiFrame fast, literal;
+  std::string a,b;
+  const CoinRenderFrameReuseDecision rebuild(CoinRenderFrameReuseKind::RESOURCE_REBUILD,0);
+  const auto compare = [&](const CoinRenderFrameReuseDecision & reuse, bool allow = true, int expected = 1) {
+    MatrixFpSnapshot start;
+    option.disable(false); const bool okA = fast.prepare(frame,width,height,reuse,a,nullptr,allow);
+    const uint32_t flagsA = matrixExceptionStatus();
+    start.restore();
+    option.disable(true); const bool okB = literal.prepare(frame,width,height,reuse,b,nullptr,allow);
+    const uint32_t flagsB = matrixExceptionStatus();
+    start.restore(); option.disable(false);
+    if (!check(okA == okB && (expected < 0 || okA == bool(expected)) && a == b && flagsA == flagsB,
+               "matrix cache preserves success, diagnostic and exact SSE/x87 sticky exception flags")) return false;
+    if (!okA) return check(!fast.opaqueMatrixCacheValid(),"failed preparation revokes the numerical cache license");
+    return check(samePacked(fast.getView(),literal.getView()) &&
+      fast.lastPrepareKind() == literal.lastPrepareKind(),
+      "matrix cache and literal calculation must produce byte-identical complete payload and reuse kind");
+  };
+  std::fesetenv(FE_DFL_ENV);
+  if (!compare(rebuild) || !check(fast.getView().instance_count == 256,
+        "rotated/scaled/sheared/reflected matrix-cache fixture remains instanced")) return false;
+  const bool supported = fast.opaqueMatrixCacheBypassLastPrepare() == 0;
+  if (!check(fast.opaqueMatrixCacheValid() == supported &&
+      fast.opaqueMatricesCalculatedLastPrepare() == n && !fast.opaqueMatrixCacheHitsLastPrepare() &&
+      fast.opaqueMatrixCacheBytes() <= 8u*1024u*1024u &&
+      fast.opaqueMatrixCacheAllocationsLastPrepare() == (supported ? 1 : 0),
+      "cold matrix cache computes all states and accounts bounded independent storage")) return false;
+  const auto counts = [&](size_t hits, size_t calculated, const char * message) {
+    return check(fast.opaqueMatrixCacheHitsLastPrepare() == (supported ? hits : 0) &&
+      fast.opaqueMatricesCalculatedLastPrepare() == (supported ? calculated : n),message);
+  };
+  ++frame.revision;
+  if (!compare(rebuild) || !counts(n-1,1,"unchanged models use exact temporal hits while slot zero stays literal")) return false;
+  for (size_t changed : {size_t(26),n}) {
+    ++frame.revision;
+    // Ten percent excludes slot zero; 100 percent includes the unused state.
+    const size_t first = changed == n ? 0 : 1;
+    for (size_t i = first; i < first + changed; ++i) frame.renderStates[i].model[3][0] += .125f;
+    const size_t calculated = changed == n ? n : changed+1;
+    if (!compare(rebuild) || !counts(n-calculated,calculated,
+        "10/100 percent matrix changes recompute exactly the current authored models")) return false;
+  }
+  // Returning to A after B re-reads owned values; no source pointer licenses it.
+  revision = frame.revision + 1; frame = original; frame.revision = revision;
+  if (!compare(rebuild)) return false;
+  ++frame.revision;
+  if (!compare(rebuild) || !counts(n-1,1,"A/B/A models become hits only after a successful fresh proof")) return false;
+  ++frame.revision; frame.renderStates[7].model[0][3] = -.0f;
+  if (!compare(rebuild) || !counts(n-2,2,"signed-zero source model bytes must not inherit a prior matrix proof")) return false;
+  ++frame.revision;
+  std::swap(frame.renderStates[1].model,frame.renderStates[2].model);
+  if (!compare(rebuild) || !counts(n-3,3,"reordered model values are proved independently at their new state indices")) return false;
+  ++frame.revision; std::swap(frame.draws[1],frame.draws[2]);
+  if (!compare(rebuild) || !counts(n-1,1,"draw reordering preserves instance order independently of cached authored matrices")) return false;
+  ++frame.revision; frame.renderStates.back().model[3][2] -= .25f;
+  if (!compare(rebuild) || !counts(n-2,2,"changed unused state still receives a current matrix proof")) return false;
+
+  ++frame.revision; frame.materials[1].diffuse[2] += .125f;
+  frame.renderStates[0].materialSlot = 1;
+  for (size_t i = 0; i < 24; ++i) frame.vertices[i].materialSlot = 1;
+  if (!compare(rebuild) || !counts(n-1,1,"matrix hits must retain current material table and per-instance slots")) return false;
+  ++frame.revision;
+  for (size_t i = 0; i < 24; ++i) frame.vertices[i].position[0] *= 1.125f;
+  if (!compare(rebuild) || !counts(n-1,1,"mutable geometry is requalified and scaled with current data despite matrix hits")) return false;
+  ++frame.revision;
+  for (auto & state : frame.renderStates) state.projectionCoin[0][0] *= 1.03125f;
+  if (!compare(rebuild) || !counts(n-1,1,"projection remains current while model/view matrix proofs are reused")) return false;
+  ++frame.revision; width = 96; height = 80;
+  if (!compare(rebuild) || !counts(n-1,1,"resize reassembles current viewport without changing authored matrix values")) return false;
+
+  uint64_t base = frame.revision++;
+  for (auto & state : frame.renderStates) state.view[3][0] += .25f;
+  if (!compare(CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::CAMERA_PATCH,base)) ||
+      !check(!fast.opaqueMatrixCacheValid() && !fast.opaqueMatrixCacheHitsLastPrepare() &&
+        !fast.opaqueMatricesCalculatedLastPrepare(),"camera anchor patch revokes temporal authored-matrix license")) return false;
+  ++frame.revision; frame.renderStates[3].model[3][1] += .125f;
+  if (!compare(rebuild) || !counts(0,n,"objects after a camera patch must prove all authored matrices again")) return false;
+  if (!compare(rebuild,false) || !check(!fast.getView().instance_count && !fast.opaqueMatrixCacheValid(),
+      "allowInstancing=false/RTT revokes the cache even on the same packed revision")) return false;
+  ++frame.revision;
+  if (!compare(rebuild) || !counts(0,n,"instancing after RTT rebuilds without a stale authored proof")) return false;
+  option.disable(true);
+  if (!check(fast.prepare(frame,width,height,a) && fast.reusedLastPrepare() && !fast.opaqueMatrixCacheValid(),
+      "matrix optout revokes its license on the unchanged-revision fast path")) return false;
+  option.disable(false); ++frame.revision;
+  if (!compare(rebuild) || !counts(0,n,"reenabling matrix cache readmits only after a fresh full proof")) return false;
+  ++frame.revision;
+  if (!compare(rebuild)) return false;
+
+  // Start both calculations with exactly the same sticky flags. An altered
+  // incoming status declines individual hits and is readmitted on next call.
+  std::feclearexcept(FE_ALL_EXCEPT);
+  std::feraiseexcept(FE_DIVBYZERO);
+  ++frame.revision;
+  if (!compare(rebuild) || !counts(0,n,"new sticky exception status cannot reuse an old numerical proof")) return false;
+  ++frame.revision;
+  if (!compare(rebuild) || !counts(n-1,1,"identical sticky status is readmitted after successful literal calculation")) return false;
+  std::feclearexcept(FE_ALL_EXCEPT);
+  ++frame.revision;
+  if (!compare(rebuild) || !counts(0,n,"cleared sticky status cannot inherit a proof from raised exception flags")) return false;
+  ++frame.revision;
+  if (!compare(rebuild) || !counts(n-1,1,"cleared status is readmitted without clearing flags in production")) return false;
+  for (int rounding : {FE_DOWNWARD,FE_UPWARD,FE_TOWARDZERO}) {
+    std::fesetround(rounding); ++frame.revision;
+    if (!compare(rebuild) || !check(!fast.opaqueMatrixCacheValid() &&
+        fast.opaqueMatrixCacheBypassLastPrepare() == 2 && !fast.opaqueMatrixCacheHitsLastPrepare(),
+        "nondefault rounding retains literal bytes and revokes the matrix cache")) return false;
+  }
+  std::fesetenv(FE_DFL_ENV); ++frame.revision;
+  if (!compare(rebuild) || !counts(0,n,"default FP mode requires readmission after rounding-mode bypass")) return false;
+#ifdef COIN_WGPU_MATRIX_CACHE_TEST_FP_X86
+  for (uint32_t mode : {uint32_t(1u<<15),uint32_t(1u<<6),uint32_t(3u<<13)}) {
+    MatrixFpSnapshot modeEnvironment;
+    _mm_setcsr(_mm_getcsr() | mode);
+    // Exercise revocation before the pre-existing revision fast path too.
+    if (!compare(rebuild) || !check(fast.reusedLastPrepare() && !fast.opaqueMatrixCacheValid() &&
+        fast.opaqueMatrixCacheBypassLastPrepare() == 2,"FTZ/DAZ/SSE rounding revoke a NoChange matrix license")) return false;
+    ++frame.revision;
+    if (!compare(rebuild) || !check(!fast.opaqueMatrixCacheHitsLastPrepare(),
+        "unrecognized denormal/rounding mode computes matrices literally")) return false;
+    modeEnvironment.restore(); ++frame.revision;
+    if (!compare(rebuild) || !counts(0,n,"FP controls restored after bypass require fresh proof")) return false;
+  }
+  {
+    MatrixFpSnapshot trapEnvironment;
+    _mm_setcsr(0x1f80u & ~(1u<<9)); // Divide-by-zero trap, no pending flags.
+    if (!compare(rebuild) || !check(fast.reusedLastPrepare() && !fast.opaqueMatrixCacheValid() &&
+        fast.opaqueMatrixCacheBypassLastPrepare() == 2,"unmasked SSE trap declines cache before NoChange")) return false;
+    trapEnvironment.restore(); ++frame.revision;
+    if (!compare(rebuild)) return false;
+  }
+  {
+    MatrixFpSnapshot trapEnvironment;
+    std::feclearexcept(FE_ALL_EXCEPT);
+    uint16_t x87 = 0x037fu & ~uint16_t(4);
+    __asm__ __volatile__("fldcw %0" : : "m" (x87));
+    if (!compare(rebuild) || !check(fast.reusedLastPrepare() && !fast.opaqueMatrixCacheValid() &&
+        fast.opaqueMatrixCacheBypassLastPrepare() == 2,"unmasked x87 trap declines cache before NoChange")) return false;
+    trapEnvironment.restore(); ++frame.revision;
+    if (!compare(rebuild)) return false;
+  }
+#endif
+
+  // Prime a valid cache before each late error/fallback so stale entries would
+  // cause observable differences. Every changed source keeps its new revision.
+  const std::vector<std::function<void(CoinRenderRenderStateSnapshot &)>> badStates = {
+    [](CoinRenderRenderStateSnapshot & s) { s.model.setScale(SbVec3f(0,1,1)); },
+    [](CoinRenderRenderStateSnapshot & s) { s.model.setScale(SbVec3f(.5e-12f,1,1)); },
+    [](CoinRenderRenderStateSnapshot & s) { s.model.setScale(SbVec3f(2e-12f,1,1)); },
+    [](CoinRenderRenderStateSnapshot & s) { s.model.setScale(SbVec3f(.5e-9f,1,1)); },
+    [](CoinRenderRenderStateSnapshot & s) { s.model.setScale(SbVec3f(2e-9f,1,1)); },
+    [](CoinRenderRenderStateSnapshot & s) { s.model[0][0] = std::numeric_limits<float>::max(); },
+    [](CoinRenderRenderStateSnapshot & s) { s.model[0][0] = std::numeric_limits<float>::infinity(); },
+    [](CoinRenderRenderStateSnapshot & s) { s.model[0][0] = std::numeric_limits<float>::quiet_NaN(); },
+    [](CoinRenderRenderStateSnapshot & s) { s.model[0][1] = std::numeric_limits<float>::denorm_min(); },
+    [](CoinRenderRenderStateSnapshot & s) { s.model[0][3] = .125f; },
+    [](CoinRenderRenderStateSnapshot & s) { s.extraTextures[6].matrix[3][2] = .125f; },
+    [](CoinRenderRenderStateSnapshot & s) { s.depthRange[0] = -.0f; },
+    [](CoinRenderRenderStateSnapshot & s) { s.transparentMaterial = true; }
+  };
+  for (const auto & mutate : badStates) {
+    revision = frame.revision + 1; frame = original; frame.revision = revision;
+    std::fesetenv(FE_DFL_ENV);
+    if (!compare(rebuild) || !check(fast.getView().instance_count == 256 &&
+        fast.opaqueMatrixCacheValid() == supported,"each late-state oracle starts with a successfully proved instance cache")) return false;
+    ++frame.revision; mutate(frame.renderStates.back());
+    // Literal optout is the authority for the acceptance of adversarial input.
+    if (!compare(rebuild,true,-1)) return false;
+    if (!fast.getView().instance_count && !check(!fast.opaqueMatrixCacheValid(),
+        "successful late incompatible/singular fallback cannot publish a matrix-cache candidate")) return false;
+    const bool sourceFinite = CoinRenderTransformCore::finiteMatrix(frame.renderStates.back().model);
+    if (!sourceFinite) {
+      if (!check(a.find("RenderState matrix contains non-finite values") != std::string::npos &&
+          !fast.opaqueMatrixCacheValid(),"NaN/Inf authored inputs retain literal finite-state rejection")) return false;
+      // Repair that exact revision: packedRevision was revoked by the guard.
+      frame.renderStates.back() = original.renderStates.back();
+      if (!compare(rebuild) || !counts(0,n,"same-revision finite-state repair cannot inherit old numerical entries")) return false;
+    }
+  }
+  revision = frame.revision + 1; frame = original; frame.revision = revision;
+  std::fesetenv(FE_DFL_ENV);
+  if (!compare(rebuild)) return false;
+  ++frame.revision;
+  for (size_t i = 0; i < 24; ++i) frame.vertices[i].position[0] *= 1.0e31f;
+  if (!compare(rebuild) || !check(!fast.getView().instance_count && !fast.opaqueMatrixCacheValid(),
+      "post-matrix position-bound fallback cannot publish entries through the successful early-batch branch")) return false;
+  frame.vertices = original.vertices;
+  if (!compare(rebuild) || !check(fast.reusedLastPrepare() && !fast.opaqueMatrixCacheValid(),
+      "successful fallback keeps the pre-existing immutable-revision contract without licensing matrix entries")) return false;
+  ++frame.revision;
+  if (!compare(rebuild) || !counts(0,n,"repaired geometry at a new revision must reprove matrices after late fallback")) return false;
+  base = frame.revision++;
+  frame.lightingStates.push_back(frame.lightingStates[0]);
+  frame.lightingStates.back().lights.resize(COIN_WGPU_FFI_MAX_LIGHTS+1);
+  frame.renderStates.back().lightingSlot = 1;
+  if (!compare(rebuild,true,false) || !check(!fast.opaqueMatrixCacheValid(),
+      "late unused nine-light error revokes temporal cache authority")) return false;
+  frame.lightingStates.pop_back(); frame.renderStates.back().lightingSlot = 0;
+  if (!compare(CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::CAMERA_PATCH,base)) ||
+      !counts(0,n,"same-revision repair with stale camera hint recomputes every matrix after failure")) return false;
+
+  // The independent budget includes allocated capacity, view and bookkeeping.
+  // Large unused state tables cannot evade the cap by having only 256 draws.
+  revision = frame.revision + 1; frame = original; frame.renderStates.resize(40001,frame.renderStates.front());
+  frame.revision = revision; std::fesetenv(FE_DFL_ENV);
+  if (!compare(rebuild) || !check(fast.opaqueMatrixCacheBytes() <= 8u*1024u*1024u &&
+      fast.opaqueMatrixCacheValid() == supported,"40k matrix entries fit the accounted independent cache budget")) return false;
+  frame.renderStates.resize(43000,frame.renderStates.front()); ++frame.revision;
+  if (!compare(rebuild) || !check(!fast.opaqueMatrixCacheValid() && !fast.opaqueMatrixCacheBytes() &&
+      !fast.opaqueMatrixCacheHitsLastPrepare() &&
+      fast.opaqueMatricesCalculatedLastPrepare() == frame.renderStates.size() &&
+      fast.opaqueMatrixCacheBypassLastPrepare() == (supported ? 3 : 2),
+      "above-budget matrix state tables preserve instancing and release optional storage")) return false;
+  revision = frame.revision + 1; frame = original; frame.revision = revision;
+  return compare(rebuild) && counts(0,n,"a small scene after budget fallback is readmitted without stale entries");
+}
+
 bool diagonalMeshEquivalence()
 {
   auto frame = diagonalBoxFrame();
@@ -1289,7 +1592,7 @@ main()
   if (!opaqueInstancingEquivalence(false) || !opaqueInstancingEquivalence(true) ||
       !consecutiveInstancingGroups() || !diagonalMeshEquivalence() ||
       !diagonalMeshOrderAndFallback() || !boundedInstancingMetadata() ||
-      !instanceCommonStateEquivalence()) return 1;
+      !instanceCommonStateEquivalence() || !instanceMatrixCacheEquivalence()) return 1;
   CoinRenderFramePlan frame;
   frame.revision = 41;
   frame.vertices.resize(1);
