@@ -10,9 +10,11 @@
 #include "rendering/coinrender/CoinRenderTransformCore.h"
 #include <Inventor/SbRotation.h>
 #include "rendering/coinrender/CoinRenderTargetP.h"
+#include "CoinRenderTestEnvironment.h"
 
 #include <Inventor/SoDB.h>
 
+#include <algorithm>
 #include <iostream>
 #include <cmath>
 #include <cstring>
@@ -202,12 +204,243 @@ bool testObjectPayloadTransaction() {
                 boundaryUndo.positions.size() == boundary.size() && plan.vertices.back().position[2] == .3f,
                 "the inclusive 32 MiB position-update/undo bound must be admitted repeatedly");
     CoinRenderFrameReuseCore::rollbackObjectOverlay(plan, boundaryUndo);
+    std::reverse(boundary.begin(), boundary.end());
     ok &= check(plan.revision == original.revision && plan.vertices.back().position[2] == 0 &&
                 plan.vertices[1].position[0] == original.vertices[1].position[0],
                 "boundary rollback must restore both original and newly allocated vertex positions");
   }
   return ok;
 }
+bool sameObjectUndo(const CoinRenderObjectOverlayUndo & a, const CoinRenderObjectOverlayUndo & b) {
+  if (a.revision != b.revision || a.active != b.active ||
+      a.transforms.revision != b.transforms.revision || a.transforms.active != b.transforms.active ||
+      a.transforms.states.size() != b.transforms.states.size() || a.materials.size() != b.materials.size() ||
+      a.positions.size() != b.positions.size() || a.draws.size() != b.draws.size()) return false;
+  for (size_t i = 0; i < a.transforms.states.size(); ++i) {
+    const auto & x = a.transforms.states[i]; const auto & y = b.transforms.states[i];
+    if (x.state.stateSlot != y.state.stateSlot || x.state.sortingDrawSlot != y.state.sortingDrawSlot ||
+        !sameMatrixBits(x.state.model, y.state.model) ||
+        std::memcmp(x.sortingCenterWorld, y.sortingCenterWorld, sizeof(x.sortingCenterWorld))) return false;
+  }
+  for (size_t i = 0; i < a.materials.size(); ++i)
+    if (a.materials[i].slot != b.materials[i].slot ||
+        std::memcmp(&a.materials[i].material, &b.materials[i].material, sizeof(CoinRenderMaterialSnapshot))) return false;
+  for (size_t i = 0; i < a.positions.size(); ++i)
+    if (a.positions[i].slot != b.positions[i].slot ||
+        std::memcmp(a.positions[i].position.getValue(), b.positions[i].position.getValue(), 3 * sizeof(float))) return false;
+  for (size_t i = 0; i < a.draws.size(); ++i)
+    if (a.draws[i].slot != b.draws[i].slot || a.draws[i].sourceNodeId != b.draws[i].sourceNodeId) return false;
+  return true;
+}
+
+struct GeometryIntervalEnvironment {
+  bool present;
+  std::string value;
+  GeometryIntervalEnvironment() {
+    const char * previous = std::getenv("COIN_RENDER_DISABLE_GEOMETRY_INTERVAL_VALIDATION");
+    present = previous != nullptr; value = previous ? previous : "";
+  }
+  ~GeometryIntervalEnvironment() {
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_GEOMETRY_INTERVAL_VALIDATION", present ? value.c_str() : nullptr);
+  }
+  void literal(bool disabled) const {
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_GEOMETRY_INTERVAL_VALIDATION", disabled ? "1" : "0");
+  }
+};
+
+CoinRenderFramePlan geometryIntervalPlan() {
+  auto plan = makePlan(1700);
+  plan.vertices.resize(4096);
+  for (size_t i = 0; i < plan.vertices.size(); ++i) {
+    auto & vertex = plan.vertices[i];
+    vertex.position[0] = i == 0 ? -0.0f : float(i % 31) * .125f;
+    vertex.position[1] = float(i % 7) * -.25f;
+    vertex.position[2] = float(i % 13) * -.0625f;
+    vertex.normal[0] = .25f; vertex.normal[1] = -.5f; vertex.normal[2] = 1;
+    vertex.texcoord[0] = float(i % 4) * .25f; vertex.texcoord[1] = -.0f;
+    for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS - 1; ++unit) {
+      vertex.extraTexcoords[unit][0] = float(unit) * .125f;
+      vertex.extraTexcoords[unit][1] = float(i % 3) * .25f;
+    }
+    vertex.screenSpaceW = 1; vertex.fogEyeDepth = -1;
+  }
+  CoinRenderPlanAssemblyCore::sortingCenter(plan.draws[0], plan.renderStates[0].model, SbVec3f(0, 0, 0));
+  return plan;
+}
+
+CoinRenderPositionUpdate geometryPosition(uint32_t slot, unsigned generation = 0) {
+  return {slot, SbVec3f(slot % 5 == 0 ? -0.0f : float(slot % 37) * -.125f,
+                       slot % 7 == 0 ? std::numeric_limits<float>::denorm_min() : float(slot % 11) * .25f,
+                       -.5f - float(generation) * .125f)};
+}
+
+// A direct literal write oracle is independent of the validator's run layout.
+// Whole vertex bytes also protect normal/UV/material/stroke attributes and gaps.
+void literalGeometryUpdates(CoinRenderFramePlan & plan,
+    const std::vector<CoinRenderModelUpdate> & models,
+    const std::vector<CoinRenderMaterialUpdate> & materials,
+    const std::vector<CoinRenderPositionUpdate> & positions,
+    const std::vector<CoinRenderDrawSourceUpdate> & draws, uint64_t revision) {
+  for (const auto & update : models) {
+    plan.renderStates[update.stateSlot].model = update.model;
+    if (update.sortingDrawSlot != UINT32_MAX) {
+      SbVec3f center;
+      update.model.multVecMatrix(SbVec3f(0, 0, 0), center);
+      std::memcpy(plan.draws[update.sortingDrawSlot].sortingCenterWorld, center.getValue(), 3 * sizeof(float));
+    }
+  }
+  for (const auto & update : materials) plan.materials[update.slot] = update.material;
+  for (const auto & update : positions)
+    std::memcpy(plan.vertices[update.slot].position, update.position.getValue(), 3 * sizeof(float));
+  for (const auto & update : draws) plan.draws[update.slot].sourceNodeId = update.sourceNodeId;
+  plan.revision = revision;
+}
+
+bool geometryIntervalOracle(const GeometryIntervalEnvironment & environment, const CoinRenderFramePlan & source,
+    const std::vector<CoinRenderPositionUpdate> & positions, const char * label, bool accepted = true,
+    const std::vector<CoinRenderModelUpdate> & models = {},
+    const std::vector<CoinRenderMaterialUpdate> & materials = {},
+    const std::vector<CoinRenderDrawSourceUpdate> & draws = {}) {
+  auto fast = source, literal = source, expected = source;
+  CoinRenderObjectOverlayUndo fastUndo;
+  // An inactive caller-owned output must remain byte-equivalent on rejection,
+  // rather than being cleared or partially published by the optional validator.
+  fastUndo.revision = 99;
+  fastUndo.positions.push_back({17, SbVec3f(-0.0f, .25f, -.5f)});
+  fastUndo.draws.push_back({0, 902});
+  fastUndo.materials.push_back({0, source.materials[0]});
+  CoinRenderTranslationStateUndo oldState;
+  oldState.state.model = source.renderStates[0].model;
+  oldState.state.sortingDrawSlot = 0;
+  std::memcpy(oldState.sortingCenterWorld, source.draws[0].sortingCenterWorld, sizeof(oldState.sortingCenterWorld));
+  fastUndo.transforms.states.push_back(oldState);
+  const auto previousUndo = fastUndo;
+  auto literalUndo = fastUndo;
+  const auto * vertexArena = fast.vertices.data(); const auto * indexArena = fast.indices.data();
+  const auto * materialArena = fast.materials.data(); const auto * stateArena = fast.renderStates.data();
+  const auto * drawArena = fast.draws.data();
+  environment.literal(false);
+  const bool fastResult = CoinRenderFrameReuseCore::beginObjectOverlay(fast, models, materials, positions, draws,
+                                                                    source.revision + 1, fastUndo);
+  environment.literal(true);
+  const bool literalResult = CoinRenderFrameReuseCore::beginObjectOverlay(literal, models, materials, positions, draws,
+                                                                       source.revision + 1, literalUndo);
+  environment.literal(false);
+  if (accepted) literalGeometryUpdates(expected, models, materials, positions, draws, source.revision + 1);
+  bool ok = check(fastResult == accepted && literalResult == accepted && fast.revision == expected.revision &&
+    fast.hasSamePayload(expected) && literal.hasSamePayload(expected) && sameObjectUndo(fastUndo, literalUndo) &&
+    fast.vertices.data() == vertexArena && fast.indices.data() == indexArena && fast.materials.data() == materialArena &&
+    fast.renderStates.data() == stateArena && fast.draws.data() == drawArena, label);
+  if (!accepted)
+    ok &= check(sameObjectUndo(fastUndo, previousUndo), "rejected interval validation must retain the complete caller undo");
+  else {
+    const auto activeUndo = fastUndo;
+    ok &= check(!CoinRenderFrameReuseCore::beginObjectOverlay(fast, models, materials, positions, draws,
+                                                             source.revision + 2, fastUndo) &&
+                fast.revision == expected.revision && fast.hasSamePayload(expected) && sameObjectUndo(fastUndo, activeUndo),
+                "an active interval transaction must reject a second overlay without changing its undo or payload");
+    CoinRenderFrameReuseCore::rollbackObjectOverlay(fast, fastUndo);
+    CoinRenderFrameReuseCore::rollbackObjectOverlay(literal, literalUndo);
+    ok &= check(fast.revision == source.revision && literal.revision == source.revision &&
+      fast.hasSamePayload(source) && literal.hasSamePayload(source) && sameObjectUndo(fastUndo, literalUndo) &&
+      !fastUndo.active && !fastUndo.transforms.active && fast.vertices.data() == vertexArena,
+      "interval rollback must restore every payload byte and the original revision/arena");
+    CoinRenderFrameReuseCore::rollbackObjectOverlay(fast, fastUndo);
+    ok &= check(fast.hasSamePayload(source), "repeated rollback must be inert");
+  }
+  if (!ok) std::cerr << label << ": optimized=" << fastResult << " literal=" << literalResult
+                    << " updates=" << positions.size() << '\n';
+  return ok;
+}
+
+bool testGeometryIntervalValidation() {
+  GeometryIntervalEnvironment environment;
+  const auto source = geometryIntervalPlan();
+  bool ok = check(source.isValid(), "interval fixture must be a valid captured payload");
+  std::vector<CoinRenderPositionUpdate> runs;
+  for (uint32_t first : {0u, 48u, 96u})
+    for (uint32_t offset = 0; offset < 24; ++offset) runs.push_back(geometryPosition(first + offset));
+  ok &= geometryIntervalOracle(environment, source, runs, "ascending runs with untouched gaps");
+  auto permutation = runs;
+  std::rotate(permutation.begin(), permutation.begin() + 48, permutation.end());
+  ok &= geometryIntervalOracle(environment, source, permutation, "permuted complete runs must preserve literal writes");
+  std::reverse(permutation.begin(), permutation.end());
+  ok &= geometryIntervalOracle(environment, source, permutation, "descending slots inside runs retain the fallback result");
+  permutation.clear();
+  for (uint32_t offset = 0; offset < 24; ++offset)
+    for (uint32_t first : {96u, 0u, 48u}) permutation.push_back(geometryPosition(first + offset));
+  ok &= geometryIntervalOracle(environment, source, permutation, "interleaved singleton slots retain literal writes");
+  permutation.clear();
+  for (uint32_t first : {24u, 0u, 48u})
+    for (uint32_t offset = 0; offset < 24; ++offset) permutation.push_back(geometryPosition(first + offset));
+  ok &= geometryIntervalOracle(environment, source, permutation, "permuted adjacent intervals are disjoint at their boundaries");
+  permutation.clear();
+  for (uint32_t slot = 1; slot <= 2051; slot += 2) permutation.push_back(geometryPosition(slot));
+  ok &= geometryIntervalOracle(environment, source, permutation, "many gapped singletons retain ordered collision validation");
+  std::reverse(permutation.begin(), permutation.end());
+  ok &= geometryIntervalOracle(environment, source, permutation, "many reversed singleton slots retain the same payload");
+  permutation = {{0, SbVec3f(32768, -32768, -0.0f)},
+                 {4095, SbVec3f(-32768, 32768, std::numeric_limits<float>::denorm_min())}};
+  ok &= geometryIntervalOracle(environment, source, permutation, "inclusive coordinate/vertex bounds and signed zero remain accepted");
+
+  for (unsigned collision = 0; collision < 4; ++collision) {
+    permutation = runs;
+    if (collision == 0) permutation.insert(permutation.begin(), runs.front());
+    if (collision == 1) permutation.push_back(runs.back());
+    if (collision == 2) // Last run overlaps the first at one slot despite its other disjoint slots.
+      for (uint32_t offset = 0; offset < 24; ++offset) permutation.push_back(geometryPosition(23 + offset));
+    if (collision == 3) permutation.push_back(geometryPosition(runs[30].slot, 1));
+    ok &= geometryIntervalOracle(environment, source, permutation,
+      "duplicate/overlapping slots must reject even when repeated positions are identical", false);
+  }
+  for (unsigned invalid = 0; invalid < 6; ++invalid) {
+    permutation = runs;
+    auto late = geometryPosition(4095);
+    if (invalid == 0) late.slot = static_cast<uint32_t>(source.vertices.size());
+    if (invalid == 1) late.slot = UINT32_MAX;
+    if (invalid == 2) late.position[2] = std::numeric_limits<float>::quiet_NaN();
+    if (invalid == 3) late.position[1] = std::numeric_limits<float>::infinity();
+    if (invalid == 4) late.position[0] = std::nextafter(32768.0f, std::numeric_limits<float>::infinity());
+    if (invalid == 5) late.position[0] = std::nextafter(-32768.0f, -std::numeric_limits<float>::infinity());
+    permutation.push_back(late);
+    ok &= geometryIntervalOracle(environment, source, permutation,
+      "late bounds/non-finite/domain errors must reject all payloads without overflow", false);
+  }
+  CoinRenderModelUpdate model; model.model[3][0] = .5f; model.sortingDrawSlot = 0;
+  CoinRenderMaterialUpdate material; material.material.diffuse[0] = .3f;
+  CoinRenderDrawSourceUpdate draw; draw.sourceNodeId = 903;
+  ok &= geometryIntervalOracle(environment, source, runs, "joint interval/model/material/source literal oracle", true,
+                               {model}, {material}, {draw});
+  auto badModel = model; badModel.stateSlot = UINT32_MAX;
+  ok &= geometryIntervalOracle(environment, source, runs, "late model rejection retains positions/materials/source and undo", false,
+                               {badModel}, {material}, {draw});
+  auto badDraw = draw; badDraw.slot = UINT32_MAX;
+  ok &= geometryIntervalOracle(environment, source, runs, "late source rejection retains joint payload and undo", false,
+                               {model}, {material}, {badDraw});
+
+  // Commit one geometry frame, then fail and repair at the same next revision.
+  // Optional metadata from the first call cannot license or alias later slots.
+  auto committed = source, expected = source;
+  CoinRenderObjectOverlayUndo undo;
+  environment.literal(false);
+  ok &= check(CoinRenderFrameReuseCore::beginObjectOverlay(committed, {}, {}, runs, {}, 1701, undo),
+              "first interval transaction must prepare");
+  literalGeometryUpdates(expected, {}, {}, runs, {}, 1701);
+  undo.active = false;
+  const auto previousUndo = undo;
+  auto bad = runs; bad.push_back(runs.front());
+  ok &= check(!CoinRenderFrameReuseCore::beginObjectOverlay(committed, {}, {}, bad, {}, 1702, undo) &&
+              committed.revision == 1701 && committed.hasSamePayload(expected) && sameObjectUndo(undo, previousUndo),
+              "duplicate retry must not mutate the committed frame or inactive historical undo");
+  for (auto & update : runs) update = geometryPosition(update.slot, 1);
+  ok &= check(CoinRenderFrameReuseCore::beginObjectOverlay(committed, {}, {}, runs, {}, 1702, undo),
+              "repaired same-revision interval transaction must prepare independently");
+  CoinRenderFrameReuseCore::rollbackObjectOverlay(committed, undo);
+  ok &= check(committed.revision == expected.revision && committed.hasSamePayload(expected) && !undo.active,
+              "rollback after repeated interval updates must restore the immediate committed base");
+  return ok;
+}
+
 bool sameLightsWithinPrecision(const CoinRenderFramePlan & a, const CoinRenderFramePlan & b) {
   if (a.lightingStates.size() != b.lightingStates.size()) return false;
   for (size_t i=0;i<a.lightingStates.size();++i) {
@@ -464,7 +697,7 @@ main()
 {
   SoDB::init();
   bool ok = testRigidCameraDelta() && testCameraPrecisionFallback() && testPhongWorldBasis() &&
-    testTranslationOverlay() && testObjectPayloadTransaction();
+    testTranslationOverlay() && testObjectPayloadTransaction() && testGeometryIntervalValidation();
   CoinRenderTextureImageSnapshot alphaImage;
   alphaImage.width = alphaImage.height = 1;
   alphaImage.producerId = 1;

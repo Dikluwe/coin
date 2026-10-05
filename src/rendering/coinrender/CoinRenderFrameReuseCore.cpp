@@ -8,6 +8,7 @@
 #include "rendering/coinrender/CoinRenderStateCore.h"
 #include "rendering/coinrender/CoinRenderTransformCore.h"
 #include "rendering/coinrender/CoinRenderPlanAssemblyCore.h"
+#include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 
 #include <Inventor/actions/SoGLRenderAction.h>
 
@@ -15,6 +16,10 @@
 #include <algorithm>
 #include <cmath>
 #include <cassert>
+#include <chrono>
+#include <cstdio>
+#include <memory>
+#include <new>
 #include <utility>
 #include <unordered_set>
 
@@ -392,6 +397,102 @@ CoinRenderFrameReuseCore::rollbackCameraOverlay(
 }
 
 namespace {
+struct PositionInterval {
+  uint32_t first;
+  uint32_t last;
+};
+
+// Only collision-validation scratch is optional. The caller still prepares
+// every undo entry in input order before publishing any plan mutation.
+class PositionIntervalValidation {
+public:
+  PositionIntervalValidation(const std::vector<CoinRenderPositionUpdate> & source, bool enabled)
+    : source(source), enabled(enabled),
+      capacityLimit(std::min<size_t>(65536, source.size() * sizeof(uint32_t) / sizeof(PositionInterval))) {}
+
+  void observe(uint32_t slot)
+  {
+    if (!enabled) return;
+    const size_t index = observed++;
+    if (index == 0 || uint64_t(previous) + 1 != uint64_t(slot)) ++observedRuns;
+    if (ordered && index && slot <= previous) {
+      ordered = false;
+      // A strictly increasing input never needs collision scratch. On its
+      // first inversion, reconstruct only the prefix already validated by
+      // the caller, then collect subsequent maximal consecutive intervals.
+      if (capacityLimit) intervals.reset(new (std::nothrow) PositionInterval[capacityLimit]);
+      if (intervals) {
+        for (size_t i = 0; i < index && intervals; ++i) append(source[i].slot);
+      }
+    }
+    if (!ordered && intervals) append(slot);
+    previous = slot;
+  }
+
+  bool unique(size_t & sortedItems, size_t & scratchBytes, const char * & mode)
+  {
+    sortedItems = 0;
+    scratchBytes = 0;
+    if (enabled && ordered) {
+      mode = "ordered";
+      return true;
+    }
+    if (intervals) {
+      mode = "intervals";
+      sortedItems = intervalCount;
+      scratchBytes = capacityLimit * sizeof(PositionInterval);
+      std::sort(intervals.get(), intervals.get() + intervalCount,
+        [](const PositionInterval & a, const PositionInterval & b) { return a.first < b.first; });
+      for (size_t i = 1; i < intervalCount; ++i)
+        if (intervals[i].first <= intervals[i - 1].last) return false;
+      return true;
+    }
+    // Optional OOM, excessive singleton runs or the optout use the literal
+    // algorithm. Release all optional scratch before its mandatory allocation.
+    intervals.reset();
+    mode = "literal";
+    std::vector<uint32_t> slots;
+    slots.reserve(source.size());
+    for (const auto & update : source) slots.push_back(update.slot);
+    sortedItems = slots.size();
+    scratchBytes = slots.capacity() * sizeof(uint32_t);
+    std::sort(slots.begin(), slots.end());
+    return std::adjacent_find(slots.begin(), slots.end()) == slots.end();
+  }
+
+  size_t runCount(const char * mode) const
+  {
+    return std::strcmp(mode, "literal") == 0 ? 0 : observedRuns;
+  }
+
+  void releaseScratch() { intervals.reset(); }
+
+private:
+  void append(uint32_t slot)
+  {
+    if (intervalCount && uint64_t(intervals[intervalCount - 1].last) + 1 == uint64_t(slot)) {
+      intervals[intervalCount - 1].last = slot;
+      return;
+    }
+    if (intervalCount == capacityLimit) {
+      intervals.reset();
+      intervalCount = 0;
+      return;
+    }
+    intervals[intervalCount++] = {slot, slot};
+  }
+
+  const std::vector<CoinRenderPositionUpdate> & source;
+  const bool enabled;
+  const size_t capacityLimit;
+  std::unique_ptr<PositionInterval[]> intervals;
+  size_t observed = 0;
+  size_t observedRuns = 0;
+  size_t intervalCount = 0;
+  uint32_t previous = 0;
+  bool ordered = true;
+};
+
 bool boundedAffineModel(const SbMatrix & matrix)
 {
   if (!CoinRenderTransformCore::finiteMatrix(matrix) || matrix[0][3] != 0 ||
@@ -483,7 +584,6 @@ bool CoinRenderFrameReuseCore::beginObjectOverlay(
   CoinRenderObjectOverlayUndo prepared;
   prepared.revision = plan.revision;
   prepared.materials.reserve(materials.size());
-  prepared.positions.reserve(positions.size());
   prepared.draws.reserve(draws.size());
   std::unordered_set<uint32_t> slots;
   for (const auto & update : materials) {
@@ -495,17 +595,34 @@ bool CoinRenderFrameReuseCore::beginObjectOverlay(
       for (int i = 0; i < 4; ++i) if (!std::isfinite(color[i]) || color[i] < 0 || color[i] > 1) return false;
     prepared.materials.push_back({update.slot, plan.materials[update.slot]});
   }
-  std::vector<uint32_t> positionSlots;
-  positionSlots.reserve(positions.size());
+  const bool tracePositions = !positions.empty() && CoinRenderDiagnosticShell::phaseTracingEnabled();
+  using PositionClock = std::chrono::steady_clock;
+  PositionClock::time_point positionBegin;
+  if (tracePositions) positionBegin = PositionClock::now();
+  const char * disabled = positions.empty() ? nullptr :
+    CoinRenderDiagnosticShell::environmentOption("COIN_RENDER_DISABLE_GEOMETRY_INTERVAL_VALIDATION");
+  PositionIntervalValidation positionValidation(positions, !(disabled && std::strcmp(disabled, "1") == 0));
+  prepared.positions.reserve(positions.size());
   for (const auto & update : positions) {
     if (update.slot >= plan.vertices.size()) return false;
     for (int i = 0; i < 3; ++i)
       if (!std::isfinite(update.position[i]) || std::abs(update.position[i]) > 32768) return false;
-    positionSlots.push_back(update.slot);
+    positionValidation.observe(update.slot);
     prepared.positions.push_back({update.slot, SbVec3f(plan.vertices[update.slot].position)});
   }
-  std::sort(positionSlots.begin(), positionSlots.end());
-  if (std::adjacent_find(positionSlots.begin(), positionSlots.end()) != positionSlots.end()) return false;
+  size_t sortedPositions = 0, positionScratchBytes = 0;
+  const char * positionMode = nullptr;
+  if (!positionValidation.unique(sortedPositions, positionScratchBytes, positionMode)) return false;
+  positionValidation.releaseScratch();
+  if (tracePositions) {
+    const double elapsed = std::chrono::duration<double, std::milli>(PositionClock::now() - positionBegin).count();
+    // No sample for empty/rejected position lists. scratch_bytes is the
+    // collision-scratch capacity used during this phase, excluding mandatory
+    // position undo and allocator overhead. Cleanup is included in elapsed.
+    std::fprintf(stderr, "COIN_RENDER_PHASE geometry_overlay_validation positions=%zu runs=%zu mode=%s sorted_items=%zu scratch_bytes=%zu validation_ms=%.6f\n",
+      positions.size(), positionValidation.runCount(positionMode), positionMode,
+      sortedPositions, positionScratchBytes, elapsed);
+  }
   slots.clear();
   for (const auto & update : draws) {
     if (update.slot >= plan.draws.size() || !update.sourceNodeId || !slots.insert(update.slot).second) return false;

@@ -56,6 +56,7 @@ def environment(build, variant, gpu):
                            "COIN_WGPU_GPU_TIMESTAMPS", "COIN_RENDER_DISABLE_CAPTURE_RESERVE",
                            "COIN_RENDER_DISABLE_CAPTURE_CAMERA_BASIS_REUSE",
                            "COIN_RENDER_DISABLE_COMPOSITION_BORROW",
+                           "COIN_RENDER_DISABLE_GEOMETRY_INTERVAL_VALIDATION",
                            "COIN_RENDER_DISABLE_CAMERA_OVERLAY",
                            "COIN_RENDER_DISABLE_TRANSLATION_OVERLAY",
                            "COIN_RENDER_DISABLE_MATERIAL_OVERLAY",
