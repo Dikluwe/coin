@@ -83,7 +83,12 @@ public:
   static uint64_t nextRevision();
 
 private:
+  friend struct CoinRenderFramePlanBuilderTestAccess;
   uint32_t captureMaterial(SoCallbackAction * action, int materialIndex);
+  uint32_t internMaterial(const CoinRenderMaterialSnapshot & material);
+  static uint64_t materialBytesKey(const CoinRenderMaterialSnapshot & material);
+  bool synchronizeMaterialIndex();
+  void disableMaterialIndex();
   uint32_t captureRenderState(SoCallbackAction * action, int materialIndex);
   bool captureTexture(SoCallbackAction * action, CoinRenderRenderStateSnapshot & rs, std::string * outError = nullptr);
   bool captureTextureUnit(SoCallbackAction * action, int unit, CoinRenderRenderStateSnapshot & rs, std::string * outError);
@@ -128,6 +133,13 @@ private:
   std::string builderError;
   std::unordered_map<uint64_t, uint32_t> nodeOccurrenceCount;
   CoinRenderPlanAssemblyCore::StateIndex renderStatesByModel;
+  // Optional capture-only acceleration. Slots remain in first-occurrence
+  // order, and collisions always compare complete snapshot bytes. At most
+  // 65,536 heads/links (conservative metadata estimate below 9 MiB).
+  enum { MATERIAL_INDEX_LIMIT = 65536, MATERIAL_INDEX_THRESHOLD = 32 };
+  std::unordered_map<uint64_t, uint32_t> materialHeads;
+  std::vector<uint32_t> materialNext;
+  bool materialIndexDisabled = false;
   const SoNode * stableShape = nullptr;
   bool reuseCubeVertices = false;
   uint32_t cubeVertexSlots[48];

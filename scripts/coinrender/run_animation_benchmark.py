@@ -58,6 +58,7 @@ def environment(build, variant, gpu):
                            "COIN_RENDER_DISABLE_TRANSLATION_OVERLAY",
                            "COIN_RENDER_DISABLE_MATERIAL_OVERLAY",
                            "COIN_RENDER_DISABLE_CUBE_OVERLAY",
+                           "COIN_RENDER_DISABLE_MATERIAL_INTERNING",
                            "COIN_BGFX_READBACK_PIPELINE_DEPTH", "COIN_BGFX_RENDERER",
                            "WGPU_BACKEND", "COIN_GLXGLUE_NO_PBUFFERS",
                            "COIN_GLXGLUE_NO_GLX13_PBUFFERS", "COIN_GLX_PIXMAP_DIRECT_RENDERING",

@@ -22,9 +22,56 @@
 #include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
 #include "rendering/coinbgfx/CoinBgfxLowering.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
+#include "rendering/coinrender/CoinRenderPolygonStyleCore.h"
+#include "CoinRenderTestEnvironment.h"
 #include <cmath>
+#include <cstring>
+#include <limits>
 #include <iostream>
 #include <string>
+#include <utility>
+
+// Test access to the private, capture-only optimization; production API and
+// the independently usable assembly core retain their existing contracts.
+struct CoinRenderFramePlanBuilderTestAccess {
+  static uint32_t material(CoinRenderFramePlanBuilder & builder, const CoinRenderMaterialSnapshot & value) {
+    return builder.internMaterial(value);
+  }
+  static std::vector<CoinRenderMaterialSnapshot> & materials(CoinRenderFramePlanBuilder & builder) {
+    return builder.currentPlan.materials;
+  }
+  static size_t indexed(const CoinRenderFramePlanBuilder & builder) { return builder.materialNext.size(); }
+  static bool disabled(const CoinRenderFramePlanBuilder & builder) { return builder.materialIndexDisabled; }
+  static size_t limit() { return CoinRenderFramePlanBuilder::MATERIAL_INDEX_LIMIT; }
+  static void collision(CoinRenderFramePlanBuilder & builder, const CoinRenderMaterialSnapshot & value, uint32_t otherSlot) {
+    builder.materialHeads[builder.materialBytesKey(value)] = otherSlot;
+  }
+  static void polygonMaterial(CoinRenderFramePlanBuilder & builder, const CoinRenderMaterialSnapshot & value) {
+    CoinRenderPolygonStyleResult polygon;
+    polygon.vertices.resize(1); polygon.vertices[0].material = value;
+    CoinRenderDrawPacket draw;
+    CoinRenderPlanAssemblyCore::appendPolygon(builder.currentPlan, draw, polygon);
+  }
+  static void clippedLine(CoinRenderFramePlanBuilder & builder, uint32_t a, uint32_t b) {
+    auto & plan = builder.currentPlan;
+    plan.vertices.resize(2);
+    plan.vertices[0].position[0] = -.8f; plan.vertices[1].position[0] = .8f;
+    plan.vertices[0].materialSlot = a; plan.vertices[1].materialSlot = b;
+    plan.indices = {0, 1}; plan.cameras.emplace_back(); plan.viewports.emplace_back();
+    plan.viewports[0].width = plan.viewports[0].height = 32;
+    plan.lightingStates.emplace_back(); plan.renderStates.emplace_back();
+    plan.renderStates[0].lightModel = CoinRenderLightModel::BASE_COLOR;
+    plan.renderStates[0].materialSlot = a;
+    plan.renderStates[0].clipPlanesWorld.push_back(SbPlane(SbVec3f(1, 0, 0), 0));
+    CoinRenderDrawPacket draw;
+    draw.topology = CoinRenderPrimitiveTopology::LINE_LIST;
+    draw.geometry.vertexCount = draw.geometry.indexCount = 2;
+    plan.draws.push_back(draw);
+  }
+  static void invalidClear(CoinRenderFramePlanBuilder & builder) {
+    builder.currentPlan.clearColor[0] = std::numeric_limits<float>::quiet_NaN();
+  }
+};
 
 namespace {
 bool check(bool condition, const char * message) {
@@ -41,6 +88,142 @@ void line(void * data, SoCallbackAction * a, const SoPrimitiveVertex * x,
 }
 void point(void * data, SoCallbackAction * a, const SoPrimitiveVertex * x) {
   static_cast<CoinRenderFramePlanBuilder *>(data)->addPoint(a, x);
+}
+bool materialInterning() {
+  using Access = CoinRenderFramePlanBuilderTestAccess;
+  struct Environment {
+    std::string value; bool present;
+    Environment() {
+      const char * previous = std::getenv("COIN_RENDER_DISABLE_MATERIAL_INTERNING");
+      present = previous != nullptr; value = previous ? previous : "";
+      coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_MATERIAL_INTERNING", "0");
+    }
+    ~Environment() { coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_MATERIAL_INTERNING", present ? value.c_str() : nullptr); }
+  } environment;
+  bool ok = true;
+  CoinRenderFramePlanBuilder builder;
+  builder.beginFrame(SbColor4f(0, 0, 0, 1), SbViewportRegion(32, 32));
+  CoinRenderFramePlan oracle;
+  std::vector<CoinRenderMaterialSnapshot> values(512);
+  for (size_t i = 0; i < values.size(); ++i) {
+    values[i].diffuse[0] = .1f + float(i) / 1024;
+    values[i].diffuse[1] = .2f + float(i % 7) / 128;
+    values[i].shininess = .3f + float(i % 11) / 128;
+    ok &= check(Access::material(builder, values[i]) == CoinRenderPlanAssemblyCore::material(oracle, values[i]),
+                "material hash lookup must retain exact first-occurrence slot order");
+  }
+  for (size_t i = values.size(); i-- > 0;)
+    ok &= check(Access::material(builder, values[i]) == CoinRenderPlanAssemblyCore::material(oracle, values[i]),
+                "reverse repeated material capture must equal the independent linear interner");
+  ok &= check(Access::indexed(builder) == values.size(), "many materials must activate the optional index");
+  const auto tableMatches = [&]() {
+    const auto & table = Access::materials(builder);
+    return table.size() == oracle.materials.size() &&
+      std::memcmp(table.data(), oracle.materials.data(), table.size() * sizeof(CoinRenderMaterialSnapshot)) == 0;
+  };
+  ok &= check(tableMatches(), "material table bytes must equal the linear oracle");
+  CoinRenderMaterialSnapshot collision; collision.emission[1] = .91f;
+  Access::collision(builder, collision, 5);
+  const auto collidedSlot = CoinRenderPlanAssemblyCore::material(oracle, collision);
+  ok &= check(Access::material(builder, collision) == collidedSlot &&
+              Access::material(builder, collision) == collidedSlot && tableMatches(),
+              "hash collisions must compare bytes and keep distinct snapshots distinct");
+  Access::materials(builder).push_back(values[7]);
+  oracle.materials.push_back(values[7]);
+  ok &= check(Access::material(builder, values[7]) == 7 && tableMatches(),
+              "external duplicate suffix must preserve the earliest matching slot");
+  CoinRenderMaterialSnapshot polygon; polygon.emission[0] = .87f;
+  Access::polygonMaterial(builder, polygon);
+  CoinRenderPlanAssemblyCore::material(oracle, polygon);
+  ok &= check(Access::material(builder, polygon) == oracle.materials.size() - 1 && tableMatches(),
+              "styled polygon assembly appended materials must be synchronized before capture lookup");
+  CoinRenderFramePlan copied, repeated, transferred;
+  std::string diagnostic;
+  ok &= check(builder.build(copied, &diagnostic) && builder.build(repeated, &diagnostic) &&
+              repeated.hasSamePayload(copied), "indexed builder must retain repeatable copy builds");
+  CoinRenderMaterialSnapshot afterCopy; afterCopy.emission[2] = .79f;
+  Access::polygonMaterial(builder, afterCopy);
+  CoinRenderPlanAssemblyCore::material(oracle, afterCopy);
+  ok &= check(Access::material(builder, afterCopy) == oracle.materials.size() - 1 && tableMatches() &&
+              copied.materials.size() + 1 == Access::materials(builder).size(),
+              "append after copy build must update only the builder and its append-only index");
+  CoinRenderFramePlanBuilder nested;
+  nested.beginFrame(SbColor4f(1, 0, 0, 1), SbViewportRegion(32, 32));
+  for (size_t i = 0; i < 40; ++i) Access::material(nested, values[values.size() - 1 - i]);
+  std::swap(builder, nested);
+  ok &= check(Access::material(builder, values[511]) == 0 &&
+              Access::material(nested, values[0]) == 0 && Access::indexed(nested) == oracle.materials.size(),
+              "suspending capture must move material metadata with its own source table");
+  std::swap(builder, nested);
+  ok &= check(builder.build(transferred, &diagnostic, true) &&
+              Access::indexed(builder) == 0 && Access::materials(builder).empty() &&
+              transferred.materials.size() == oracle.materials.size(),
+              "ownership transfer must clear the builder index without altering the transferred table");
+  builder.beginFrame(SbColor4f(0, 0, 0, 1), SbViewportRegion(32, 32));
+  ok &= check(Access::material(builder, values[123]) == 0, "reset must start a fresh material slot order");
+
+  // Raw bit equality also preserves signed zero and NaN payload distinctions.
+  // These lookup tests do not submit or validate a non-finite scene.
+  for (size_t i = 0; i < 40; ++i) Access::material(builder, values[i]);
+  CoinRenderMaterialSnapshot bits;
+  bits.ambient[0] = 0;
+  const auto positiveZero = Access::material(builder, bits);
+  bits.ambient[0] = -0.0f;
+  const auto negativeZero = Access::material(builder, bits);
+  ok &= check(positiveZero != negativeZero && Access::material(builder, bits) == negativeZero,
+              "material byte keys must preserve signed zero unlike numeric state equality");
+  uint32_t nanBits = UINT32_C(0x7fc00001);
+  std::memcpy(&bits.diffuse[2], &nanBits, sizeof(nanBits));
+  const auto firstNan = Access::material(builder, bits);
+  nanBits = UINT32_C(0x7fc00002); std::memcpy(&bits.diffuse[2], &nanBits, sizeof(nanBits));
+  const auto secondNan = Access::material(builder, bits);
+  ok &= check(firstNan != secondNan && Access::material(builder, bits) == secondNan,
+              "material byte equality must preserve distinct and repeated NaN payloads");
+
+  builder.beginFrame(SbColor4f(0, 0, 0, 1), SbViewportRegion(32, 32));
+  for (size_t i = 0; i < 40; ++i) Access::material(builder, values[i]);
+  Access::clippedLine(builder, 0, 39);
+  const size_t beforeStroke = Access::materials(builder).size();
+  ok &= check(builder.build(copied, &diagnostic) && copied.materials.size() > beforeStroke,
+              "clipped line build must actually append interpolated stroke materials");
+  const auto stroke = copied.materials.back();
+  const auto strokeSlot = static_cast<uint32_t>(copied.materials.size() - 1);
+  ok &= check(Access::material(builder, stroke) == strokeSlot &&
+              builder.build(repeated, &diagnostic) && repeated.hasSamePayload(copied),
+              "material suffix created during a copy build must be available to subsequent capture lookups");
+  CoinRenderMaterialSnapshot failedSuffix; failedSuffix.emission[2] = .82f;
+  Access::polygonMaterial(builder, failedSuffix); Access::invalidClear(builder);
+  CoinRenderFramePlan failed;
+  ok &= check(!builder.build(failed, &diagnostic) &&
+              Access::material(builder, failedSuffix) == Access::materials(builder).size() - 1 &&
+              repeated.hasSamePayload(copied),
+              "failed builds must retain a synchronizable append suffix without mutating prior copied snapshots");
+
+  // The metadata limit bounds only acceleration: the full material table and
+  // independently callable core may continue past it with exact linear lookup.
+  builder.beginFrame(SbColor4f(0, 0, 0, 1), SbViewportRegion(32, 32));
+  auto & boundary = Access::materials(builder); boundary.resize(Access::limit());
+  for (size_t i = 0; i < boundary.size(); ++i) boundary[i].diffuse[0] = float(i) / float(boundary.size());
+  const auto first = boundary[0], last = boundary.back();
+  ok &= check(Access::material(builder, last) == Access::limit() - 1 && Access::indexed(builder) == Access::limit(),
+              "the inclusive material metadata cap must admit its complete table");
+  CoinRenderMaterialSnapshot overflow; overflow.emission[0] = .83f;
+  ok &= check(Access::material(builder, overflow) == Access::limit() && Access::disabled(builder) &&
+              Access::indexed(builder) == 0 && Access::material(builder, first) == 0 &&
+              Access::material(builder, overflow) == Access::limit(),
+              "over-cap capture must retain every material and fall back linearly until reset");
+  builder.beginFrame(SbColor4f(0, 0, 0, 1), SbViewportRegion(32, 32));
+  for (size_t i = 0; i < 40; ++i) Access::material(builder, values[i]);
+  ok &= check(!Access::disabled(builder) && Access::indexed(builder) == 40,
+              "a later frame must readmit bounded interning after metadata fallback");
+  coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_MATERIAL_INTERNING", "1");
+  builder.beginFrame(SbColor4f(0, 0, 0, 1), SbViewportRegion(32, 32));
+  oracle.materials.clear();
+  for (const auto & value : values)
+    ok &= check(Access::material(builder, value) == CoinRenderPlanAssemblyCore::material(oracle, value),
+                "material interning optout must preserve the ordinary assembly slots");
+  ok &= check(Access::indexed(builder) == 0 && tableMatches(), "optout must keep the bounded index disabled");
+  return ok;
 }
 bool stateInterning() {
   SoSeparator * root = new SoSeparator;
@@ -362,5 +545,5 @@ int main(int argc, char ** argv) {
   SoDB::init();
   CoinRenderAction::initClass();
   if (argc == 2 && std::string(argv[1]) == "--gpu") return gpu();
-  return stateInterning() && capture() && lowerAndCache() && annotationTransport() ? 0 : 1;
+  return materialInterning() && stateInterning() && capture() && lowerAndCache() && annotationTransport() ? 0 : 1;
 }

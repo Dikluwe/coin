@@ -70,6 +70,8 @@
 #include <atomic>
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
+#include <new>
 
 
 CoinRenderCameraSnapshot
@@ -145,6 +147,10 @@ CoinRenderFramePlanBuilder::reset()
   this->currentPlan.vertices.clear();
   this->currentPlan.indices.clear();
   this->currentPlan.materials.clear();
+  this->materialHeads.clear();
+  this->materialNext.clear();
+  const char * disabledMaterialIndex = std::getenv("COIN_RENDER_DISABLE_MATERIAL_INTERNING");
+  this->materialIndexDisabled = disabledMaterialIndex && std::strcmp(disabledMaterialIndex, "1") == 0;
   this->currentPlan.lightingStates.clear();
   this->currentPlan.shadowGroups.clear();
   this->currentPlan.shadowLights.clear();
@@ -356,6 +362,69 @@ CoinRenderFramePlanBuilder::recordLightAttenuation(SoCallbackAction * action)
 }
 
 uint32_t
+CoinRenderFramePlanBuilder::internMaterial(const CoinRenderMaterialSnapshot & material)
+{
+  if (this->currentPlan.materials.size() < this->materialNext.size()) {
+    this->materialHeads.clear(); this->materialNext.clear();
+  }
+  if (this->materialIndexDisabled || this->currentPlan.materials.size() < MATERIAL_INDEX_THRESHOLD ||
+      !this->synchronizeMaterialIndex())
+    return CoinRenderPlanAssemblyCore::material(this->currentPlan, material);
+  const uint64_t key = materialBytesKey(material);
+  const auto head = this->materialHeads.find(key);
+  uint32_t matchingSlot = UINT32_MAX;
+  for (uint32_t slot = head == this->materialHeads.end() ? UINT32_MAX : head->second;
+       slot != UINT32_MAX; slot = this->materialNext[slot]) {
+    if (std::memcmp(&this->currentPlan.materials[slot], &material, sizeof(material)) == 0)
+      matchingSlot = std::min(matchingSlot, slot);
+  }
+  if (matchingSlot != UINT32_MAX) return matchingSlot;
+  const uint32_t slot = static_cast<uint32_t>(this->currentPlan.materials.size());
+  this->currentPlan.materials.push_back(material);
+  // Suffix synchronization also handles additions made by styled polygon or
+  // stroke assembly. Allocation failure only discards optional metadata.
+  this->synchronizeMaterialIndex();
+  return slot;
+}
+
+uint64_t CoinRenderFramePlanBuilder::materialBytesKey(const CoinRenderMaterialSnapshot & material)
+{
+  uint64_t key = UINT64_C(14695981039346656037);
+  const auto * bytes = reinterpret_cast<const unsigned char *>(&material);
+  for (size_t i = 0; i < sizeof(material); ++i)
+    key = (key ^ bytes[i]) * UINT64_C(1099511628211);
+  return key;
+}
+
+void CoinRenderFramePlanBuilder::disableMaterialIndex()
+{
+  this->materialHeads.clear(); this->materialNext.clear();
+  this->materialIndexDisabled = true;
+}
+
+bool CoinRenderFramePlanBuilder::synchronizeMaterialIndex()
+{
+  if (this->materialIndexDisabled) return false;
+  if (this->currentPlan.materials.size() > MATERIAL_INDEX_LIMIT) {
+    this->disableMaterialIndex(); return false;
+  }
+  try {
+    // The capture table is append-only, including helper paths outside this
+    // interner. No pointers into its reallocating vector are retained.
+    while (this->materialNext.size() < this->currentPlan.materials.size()) {
+      const uint32_t slot = static_cast<uint32_t>(this->materialNext.size());
+      const uint64_t key = materialBytesKey(this->currentPlan.materials[slot]);
+      auto inserted = this->materialHeads.emplace(key, slot);
+      this->materialNext.push_back(inserted.second ? UINT32_MAX : inserted.first->second);
+      if (!inserted.second) inserted.first->second = slot;
+    }
+  } catch (const std::bad_alloc &) {
+    this->disableMaterialIndex(); return false;
+  }
+  return true;
+}
+
+uint32_t
 CoinRenderFramePlanBuilder::captureMaterial(SoCallbackAction * action, int materialIndex)
 {
   SbColor amb(0.2f, 0.2f, 0.2f), diff(0.8f, 0.8f, 0.8f), spec(0.0f, 0.0f, 0.0f), emiss(0.0f, 0.0f, 0.0f);
@@ -383,7 +452,7 @@ CoinRenderFramePlanBuilder::captureMaterial(SoCallbackAction * action, int mater
   matSnap.shininess = shin;
   matSnap.transparency = transp;
 
-  return CoinRenderPlanAssemblyCore::material(this->currentPlan, matSnap);
+  return this->internMaterial(matSnap);
 }
 
 bool

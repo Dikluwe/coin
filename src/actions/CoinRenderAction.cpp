@@ -502,7 +502,8 @@ CoinRenderActionP::cameraSensorCB(void * data, SoSensor * sensor)
     const bool knownField = field == &material->ambientColor || field == &material->diffuseColor ||
       field == &material->specularColor || field == &material->emissiveColor || field == &material->shininess;
     if (objectOverlayEnabled("COIN_RENDER_DISABLE_MATERIAL_OVERLAY")) self->translationInputDirty = true;
-    if (knownField && translationFieldsStable(material) && self->translationProofValid &&
+    // Validate all fields once per dirty source during overlay preparation.
+    if (knownField && self->translationProofValid &&
         !self->translationInvalidated && !self->cameraOnlyDirty && self->materialByNode.count(trigger))
       self->materialDirty.insert(trigger);
     else self->translationInvalidated = true;
@@ -512,7 +513,7 @@ CoinRenderActionP::cameraSensorCB(void * data, SoSensor * sensor)
     auto * cube = static_cast<SoCube *>(trigger);
     if (objectOverlayEnabled("COIN_RENDER_DISABLE_CUBE_OVERLAY")) self->translationInputDirty = true;
     if ((field == &cube->width || field == &cube->height || field == &cube->depth) &&
-        translationFieldsStable(cube) && self->translationProofValid && !self->translationInvalidated &&
+        self->translationProofValid && !self->translationInvalidated &&
         !self->cameraOnlyDirty && self->cubeByNode.count(trigger)) self->geometryDirty.insert(trigger);
     else self->translationInvalidated = true;
   } else self->translationInvalidated = true;
