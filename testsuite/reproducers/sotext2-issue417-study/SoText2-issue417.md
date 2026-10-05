@@ -160,3 +160,54 @@ O verificador verify-freecad.py exige: macro concluída; apenas a biblioteca Coi
 A suíte CTest foi repetida sob Xvfb: 79 testes aprovados, nenhum ignorado. O teste específico, agora com os três alinhamentos válidos, continua com 38 casos e zero falhas na biblioteca corrigida. As 36 falhas da master são o controle negativo esperado e mostram por que a correção é necessária; não são falhas remanescentes na branch. Logs finais: branch-ctest-final.txt, freecad-viewprovider-verification.json e fixed-native-tests.txt.
 
 Este resultado valida a issue 417 nos cenários executados e resolve a antiga pendência de captura. Não equivale a uma validação completa de todos os usos SoText2 do FreeCAD. SoColorBarLabel nativo com o workaround removido, datum, Sketcher e overlays ainda não foram exercitados especificamente; o código FreeCAD e sua Coin instalada não foram alterados. Os erros PySide6/Qt em workbenches auxiliares continuam registrados nos logs. A retirada do workaround permanece um trabalho condicionado à versão mínima suportada.
+
+
+## Limites adicionais no mesmo caminho — análise, sem alteração do FreeCAD
+
+O FreeCAD é apenas ferramenta de análise. Não há proposta de modificar seus fontes nesta etapa. Os ViewProviders Python usados nos testes são objetos temporários criados pela macro, não mudanças no programa. A inspeção adicional abaixo não alterou o código de produção da Coin; somente acrescentou fontes de sondagem e evidências ao estudo.
+
+Base: branch com correção da #417, após a6ace5e3a8. Comparação negativa: master 674e74267df863dbaf50416c477bc7f918a826d8. Probes em additional-limits/; C++11, bibliotecas já compiladas, sem renderizar buffers gigantes. Os resultados são sondagens diagnósticas, não novos testes aprovados da suíte.
+
+### 1. Limites e posições dos glifos ainda usam short — reproduzido
+
+SoText2P mantém SbBox2s bbox e SbList<SbVec2s> positions. buildGlyphCache converte posições acumuladas em int para short; a extensão final também converte maxwidth+maxoverhang para short. A correção da #417 eliminou somente a conversão da âncora projetada, não essas outras reduções.
+
+Com Times-Roman tamanho 12, câmera perspectiva (0,0,5), viewport 640×480 e uma linha de letras M: 1000 caracteres produzem largura 94.92395 unidades; 2000, 189.84790; 3000, 565.44470 e centro x=-0.03882; 4000 e 6000 repetem a mesma largura incorreta. O esperado é crescimento aproximadamente linear, com o texto à direita da origem. O limite depende da largura em pixels, não de um número fixo de caracteres.
+
+Mil linhas produzem altura 103.51888; duas mil, 207.07227; três mil, 565.47052 e centro y=0. O mesmo defeito ocorre com três linhas e spacing=10000, com a caixa aparecendo acima da origem apesar de as linhas avançarem para baixo. Os mesmos resultados de largura/altura aparecem na master: são defeitos preexistentes.
+
+Direção de correção: coordenadas internas de pelo menos 32 bits, validação das somas, e tratamento explícito de caixas grandes antes de desenho e seleção. Mudar só SbBox2s é insuficiente: posições, tamanhos, índices e buffer precisam permanecer coerentes.
+
+### 2. Buffer RGBA faz produtos em int — confirmado por inspeção, sem crash reproduzido
+
+GLRender calcula numpixels=bbsize[0]*bbsize[1], aloca numpixels*4, zera esse produto e calcula offsets também em int. Por exemplo, dimensões positivas 32767×32767 têm 1073676289 pixels, mas 4294705156 bytes RGBA, acima de INT_MAX. Não foi forçada uma alocação dessa magnitude. A possibilidade aritmética e a ausência de checagens são observáveis no código; não foi demonstrada corrupção de memória nesta análise.
+
+Direção de correção: dimensões validadas, produtos em size_t com checagem, limites explícitos de alocação e offsets coerentes. Deve acompanhar qualquer ampliação das caixas internas, para não liberar tamanhos maiores em um buffer sem proteção.
+
+### 3. Seleção mistura bytes UTF-8 com posições por glifo — reproduzido
+
+buildGlyphCache percorre codepoints UTF-8 e adiciona uma posição por glifo. rayPick percorre string.getLength(), que nos exemplos devolve o número de bytes, e usa esse índice para acessar positions. Para um texto de um único é, há uma posição e dois bytes; para 世, uma posição e três bytes. Assim, o laço pode acessar posições além do número lógico de elementos e devolver detalhes incoerentes.
+
+No probe, é devolve characterIndex=1 e 世 devolve 2, embora cada string contenha só um caractere. éA e Aé devolvem índice 2 em regiões que pertencem ao segundo glifo. Master e correção têm o mesmo comportamento. Houve também pontos sem acerto dentro da caixa de textos ASCII; sem um oráculo do contorno/avanço do glifo, esses pontos não foram classificados aqui como um defeito adicional confirmado.
+
+Direção de correção: usar contagem e índices coerentes com os glifos; definir o contrato de characterIndex em UTF-8; nunca acessar positions além de seu tamanho. Acrescentar casos ASCII e multibyte com oráculos de detalhe da seleção, além de verificar apenas a existência do hit.
+
+### 4. Âncora exatamente no plano da câmera — limite reproduzido
+
+Câmera perspectiva em z=5: texto ancorado exatamente em z=5 tem caixa vazia, inclusive após a correção. Em z=4.9999 e z=5.0001 a caixa é não vazia, porém de largura aproximadamente 0.00002281; no plano exato, a projeção é singular. As verificações de finitude evitam continuar com valores inválidos, mas não criam um fallback que permita View All encontrar essa âncora.
+
+Isso exige uma decisão de contrato: devolver uma caixa mínima/âncora para enquadramento, usar uma escala de referência ou documentar a projeção singular como não suportada. Não basta retirar o clipping. O caso do plano exato já falhava na master; a nova correção passa a devolver limites também para âncoras finitas atrás da câmera.
+
+### 5. Precisão em coordenadas muito grandes — reproduzido
+
+Em x=1000 a largura do texto de 12 letras M é 1.13910; em x=1000000, 1.125; em x=1000000000, zero, com centro x=999999936, diferença de 64 em relação à âncora. A conversão para short da âncora foi removida, mas o armazenamento final e operações intermediárias continuam usando float. Nessa escala, a largura do texto é menor que a resolução numérica das coordenadas. A master também falha nesse extremo e ainda desloca a caixa para perto da origem.
+
+Direção de análise: intermediários de maior precisão e cálculo relativo à câmera podem reduzir perda, mas SbBox3f/SbVec3f ainda impõem limites à representação final. Não é uma correção isolada de casting.
+
+### 6. Viewport e métricas do backend — limites de API e riscos inspecionados
+
+SbViewportRegion recebe width/height como short. Passar 40000 já perde representabilidade antes de SoText2; a branch recusa a dimensão não positiva resultante. Isso é uma fronteira da API, não prova de regressão para um viewport válido. Viewport com largura zero também produz caixa vazia, como previsto pelo novo guard.
+
+cc_glyph2d mantém larguras/alturas em unsigned short e offsets em short. A fronteira FreeType ainda copia rows*pitch sem validações completas e mistura pitch assinado com representação unsigned. Os trechos apontados em SoFonts permanecem presentes nesta revisão, mas pitch negativo, dimensões extremas e falhas de alocação não foram novamente reproduzidos com backend simulado. São pendências de investigação/validação, não falhas observadas do teste de integração FreeCAD.
+
+Prioridade para ampliar o escopo: primeiro limites internos de glifos/caixas junto com proteção do buffer; seleção UTF-8 com teste independente; e uma decisão explícita para a âncora no plano da câmera. O limite de precisão em coordenadas extremas e a largura do viewport envolvem contratos mais amplos da biblioteca. Os 38 casos originais continuam cobrindo a correção delimitada da #417, não esses novos extremos.
