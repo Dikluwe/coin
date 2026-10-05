@@ -602,9 +602,9 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
       !CoinRenderTransformCore::finiteMatrix(first.projectionCoin) ||
       (first.lightModel != CoinRenderLightModel::PHONG && first.lightModel != CoinRenderLightModel::BASE_COLOR))
     return false;
-  std::vector<CoinRenderCompositionItem> order;
+  CoinRenderCompositionScheduleView order("wgpu_instancing");
   std::string diagnostic;
-  if (!coin_render_composition_schedule(frame, order, diagnostic, preflight) ||
+  if (!order.prepare(frame, diagnostic, preflight) ||
       order.size() != frame.draws.size()) return false;
 
   struct SourceKey {
@@ -1083,9 +1083,9 @@ CoinWgpuFfiFrame::tryEarlyOpaqueBatch(const CoinRenderFramePlan & frame,
       if (values[0][3] != 0 || values[1][3] != 0 || values[2][3] != 0 || values[3][3] != 1) return false;
     }
   }
-  std::vector<CoinRenderCompositionItem> order;
+  CoinRenderCompositionScheduleView order("wgpu_early_batch");
   std::string diagnostic;
-  if (!coin_render_composition_schedule(frame, order, diagnostic, preflight) ||
+  if (!order.prepare(frame, diagnostic, preflight) ||
       order.size() != frame.draws.size() || order.size() < 256) return false;
   uint64_t nextVertex = 0, nextIndex = 0;
   for (const auto & item : order) {

@@ -14,6 +14,7 @@
 #include <memory>
 
 class CoinRenderFramePreflight;
+struct CoinRenderCompositionTransferTrace;
 
 class COIN_RENDER_DLL_API CoinRenderTargetP {
 public:
@@ -108,7 +109,9 @@ private:
   static CoinRenderFrameExecutionResult validateProfileInternal(const CoinRenderFramePlan & frame,
       const SbVec2i32 & targetSize, bool deferUnresolvedAlpha,
       CoinRenderFramePreflight * preflight,
-      const CoinRenderFramePreflight * capturedPreflight = nullptr);
+      const CoinRenderFramePreflight * capturedPreflight = nullptr,
+      bool allowCompositionBorrow = false,
+      CoinRenderCompositionTransferTrace * transfers = nullptr);
   CoinRenderFrameExecutionResult executeFrameInternal(const CoinRenderFramePlan & frame,
                                              CoinRenderReadbackTicket * outTicket,
                                              const CoinRenderFrameReuseDecision & reuse,

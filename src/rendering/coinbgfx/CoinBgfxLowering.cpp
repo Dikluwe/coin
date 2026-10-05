@@ -313,8 +313,8 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
   if (!frame.shadowGroups.empty()) return decline("shadow groups");
   if (!frame.textures.empty()) return decline("texture images");
   if ((!preflight || !preflight->compositionFor(frame)) && !frame.isValid(&diagnostic)) return false;
-  std::vector<CoinRenderCompositionItem> order;
-  if (!coin_render_composition_schedule(frame, order, diagnostic, preflight)) return false;
+  CoinRenderCompositionScheduleView order("bgfx_instancing");
+  if (!order.prepare(frame, diagnostic, preflight)) return false;
   if (order.size() != frame.draws.size()) return decline("composition count");
   const auto & firstState = frame.renderStates[frame.draws[0].renderStateSlot];
   const auto view = firstState.view.getValue();

@@ -6,6 +6,9 @@
 
 #include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
 #include "rendering/coinrender/CoinRenderTransformCore.h"
+#include "rendering/coinrender/CoinRenderTargetP.h"
+#include "rendering/coinrender/CoinRenderComposition.h"
+#include "../coinrender/CoinRenderTestEnvironment.h"
 
 #include <cstdint>
 #include <cmath>
@@ -426,6 +429,100 @@ bool samePacked(const CoinWgpuFrameView & a, const CoinWgpuFrameView & b) {
     (a.instance_count == 0 || std::memcmp(a.instances,b.instances,a.instance_count*sizeof(CoinWgpuInstance)) == 0) &&
     (a.instance_range_count == 0 || std::memcmp(a.instance_ranges,b.instance_ranges,
       a.instance_range_count*sizeof(CoinWgpuInstanceRange)) == 0);
+}
+
+bool sameOpaqueHeader(const CoinWgpuFrameView & a, const CoinWgpuFrameView & b) {
+  const uint32_t flagsA[] = {a.abi_version, a.struct_size, a.sorted_layers_passes, a.transparency_reserved,
+    a.shadow_map_size, a.shadow_kind, a.shadow_map_size_second, a.shadow_kind_second,
+    a.shadow_map_size_third, a.shadow_kind_third, a.shadow_map_size_fourth, a.shadow_kind_fourth};
+  const uint32_t flagsB[] = {b.abi_version, b.struct_size, b.sorted_layers_passes, b.transparency_reserved,
+    b.shadow_map_size, b.shadow_kind, b.shadow_map_size_second, b.shadow_kind_second,
+    b.shadow_map_size_third, b.shadow_kind_third, b.shadow_map_size_fourth, b.shadow_kind_fourth};
+  const float shadowA[] = {a.shadow_near_distance, a.shadow_far_distance, a.shadow_epsilon, a.shadow_threshold,
+    a.shadow_near_distance_second, a.shadow_far_distance_second, a.shadow_epsilon_second, a.shadow_threshold_second,
+    a.shadow_near_distance_third, a.shadow_far_distance_third, a.shadow_epsilon_third, a.shadow_threshold_third,
+    a.shadow_near_distance_fourth, a.shadow_far_distance_fourth, a.shadow_epsilon_fourth, a.shadow_threshold_fourth};
+  const float shadowB[] = {b.shadow_near_distance, b.shadow_far_distance, b.shadow_epsilon, b.shadow_threshold,
+    b.shadow_near_distance_second, b.shadow_far_distance_second, b.shadow_epsilon_second, b.shadow_threshold_second,
+    b.shadow_near_distance_third, b.shadow_far_distance_third, b.shadow_epsilon_third, b.shadow_threshold_third,
+    b.shadow_near_distance_fourth, b.shadow_far_distance_fourth, b.shadow_epsilon_fourth, b.shadow_threshold_fourth};
+  const auto noResources = [](const CoinWgpuFrameView & view) {
+    return !view.texture_count && !view.textures && !view.sampler_count && !view.samplers &&
+      !view.shadow_caster_count && !view.shadow_casters && !view.shadow_receiver_count && !view.shadow_receivers &&
+      !view.shadow_caster_count_second && !view.shadow_casters_second &&
+      !view.shadow_receiver_count_second && !view.shadow_receivers_second &&
+      !view.shadow_caster_count_third && !view.shadow_casters_third &&
+      !view.shadow_receiver_count_third && !view.shadow_receivers_third &&
+      !view.shadow_caster_count_fourth && !view.shadow_casters_fourth &&
+      !view.shadow_receiver_count_fourth && !view.shadow_receivers_fourth &&
+      !view.extra_shadow_pass_count && !view.extra_shadow_passes;
+  };
+  return std::memcmp(flagsA, flagsB, sizeof(flagsA)) == 0 && std::memcmp(shadowA, shadowB, sizeof(shadowA)) == 0 &&
+    std::memcmp(a.clear_color, b.clear_color, sizeof(a.clear_color)) == 0 &&
+    a.transparency_budget_bytes == b.transparency_budget_bytes && noResources(a) && noResources(b);
+}
+
+class BorrowPackingBackend : public CoinRenderBackend {
+public:
+  bool ok = true, allowInstancing = true;
+  unsigned submissions = 0, instancedSubmissions = 0;
+  bool isGpuBackend() const override { return false; }
+  CoinRenderBackendStatus getStatus() const override { return CoinRenderBackendStatus::SUCCESS; }
+  CoinRenderBackendStatus prepare(CoinRenderTargetP &) override { return CoinRenderBackendStatus::SUCCESS; }
+  void poll() override {}
+  const std::string & getLastError() const override { return error; }
+  CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target) override {
+    ++submissions;
+    const auto * receipt = target.submissionPreflight(frame);
+    ok &= check(receipt && receipt->opaqueCompositionFor(frame), "packing oracle requires a current opaque Target receipt");
+    CoinWgpuFfiFrame fast, literal;
+    std::string fastDiagnostic, literalDiagnostic;
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMPOSITION_BORROW", "0");
+    const bool fastResult = fast.prepare(frame, 64, 64, CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::FULL_REBUILD, 0), fastDiagnostic, receipt, allowInstancing);
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMPOSITION_BORROW", "1");
+    const bool literalResult = literal.prepare(frame, 64, 64, CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::FULL_REBUILD, 0), literalDiagnostic, receipt, allowInstancing);
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMPOSITION_BORROW", "0");
+    ok &= check(fastResult == literalResult && fastDiagnostic == literalDiagnostic,
+                "borrowed schedule must preserve pack acceptance and diagnostics");
+    if (fastResult) {
+      const auto & a = fast.getView(); const auto & b = literal.getView();
+      ok &= check(samePacked(a, b) && sameOpaqueHeader(a, b),
+        "schedule loan must preserve complete opaque FFI geometry/state/material/draw/instance payload and header");
+      if (a.instance_count) ++instancedSubmissions;
+    }
+    return {};
+  }
+private:
+  std::string error;
+};
+
+bool compositionBorrowPacking()
+{
+  const char * option = std::getenv("COIN_RENDER_DISABLE_COMPOSITION_BORROW");
+  struct Restore {
+    bool present;
+    std::string value;
+    ~Restore() { coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMPOSITION_BORROW", present ? value.c_str() : nullptr); }
+  } restore{option != nullptr, option ? option : ""};
+  coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMPOSITION_BORROW", "0");
+  CoinRenderTargetP target(SbVec2i32(64, 64));
+  target.depthReadbackEnabled = false;
+  auto * backend = new BorrowPackingBackend;
+  target.backend.reset(backend);
+  auto frame = opaqueFrame(true);
+  frame.cameras.resize(1); frame.viewports.resize(1); frame.lightingStates.resize(1);
+  frame.viewports[0].width = frame.viewports[0].height = 64;
+  for (auto & state : frame.renderStates) state.transparencyType = SoGLRenderAction::SORTED_OBJECT_BLEND;
+  uint64_t revision = 6000;
+  const auto compare = [&]() {
+    frame.revision = ++revision;
+    return check(target.executeFrame(frame).status == CoinRenderBackendStatus::SUCCESS && backend->ok &&
+                 !target.submissionPreflight(frame), "Target packing oracle must release its lender after submission");
+  };
+  if (!compare() || !check(backend->instancedSubmissions == 1, "CPU oracle must exercise borrowed opaque instancing")) return false;
+  // The direct-texture destination retains its original non-instanced path.
+  backend->allowInstancing = false;
+  return compare();
 }
 
 bool earlyBatchEquivalence(bool shared) {
@@ -1593,7 +1690,7 @@ main()
       !incrementalBatchEquivalence(false) || !incrementalBatchEquivalence(true) ||
       !boundedIncrementalBatch()) return 1;
   instancing.disable(false);
-  if (!opaqueInstancingEquivalence(false) || !opaqueInstancingEquivalence(true) ||
+  if (!compositionBorrowPacking() || !opaqueInstancingEquivalence(false) || !opaqueInstancingEquivalence(true) ||
       !consecutiveInstancingGroups() || !diagonalMeshEquivalence() ||
       !diagonalMeshOrderAndFallback() || !boundedInstancingMetadata() ||
       !instanceCommonStateEquivalence() || !instanceMatrixCacheEquivalence()) return 1;

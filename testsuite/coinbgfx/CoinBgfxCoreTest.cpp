@@ -7,6 +7,9 @@
 #include "rendering/coinbgfx/CoinBgfxLowering.h"
 #include "rendering/coinbgfx/CoinBgfxProgramCache.h"
 #include "rendering/coinrender/CoinRenderTransformCore.h"
+#include "rendering/coinrender/CoinRenderTargetP.h"
+#include "rendering/coinrender/CoinRenderComposition.h"
+#include "../coinrender/CoinRenderTestEnvironment.h"
 
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/SoDB.h>
@@ -78,6 +81,75 @@ bool sharedRangeMatchesGeneral(const CoinRenderFramePlan & frame,
     (optimizedOk ? std::memcmp(optimized.clearColor, general.clearColor,
                               sizeof(optimized.clearColor)) == 0 : true),
     "shared ranges must preserve all geometry/draw bytes, validity and diagnostic");
+}
+
+class BorrowLoweringBackend : public CoinRenderBackend {
+public:
+  bool ok = true;
+  unsigned submissions = 0;
+  bool isGpuBackend() const override { return false; }
+  CoinRenderBackendStatus getStatus() const override { return CoinRenderBackendStatus::SUCCESS; }
+  CoinRenderBackendStatus prepare(CoinRenderTargetP &) override { return CoinRenderBackendStatus::SUCCESS; }
+  void poll() override {}
+  const std::string & getLastError() const override { return error; }
+  CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target) override {
+    ++submissions;
+    const auto * receipt = target.submissionPreflight(frame);
+    ok &= check(receipt && receipt->opaqueCompositionFor(frame), "BG oracle must consume a current opaque Target proof");
+    CoinBgfxPlan borrowed, literal;
+    std::string a, b;
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMPOSITION_BORROW", "0");
+    const bool fastResult = CoinBgfxLowering::lowerInstanced(frame, 4, 4, false, borrowed, a, receipt);
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMPOSITION_BORROW", "1");
+    const bool literalResult = CoinBgfxLowering::lowerInstanced(frame, 4, 4, false, literal, b, receipt);
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMPOSITION_BORROW", "0");
+    ok &= check(fastResult && fastResult == literalResult && a == b && borrowed.usesInstancing &&
+      borrowed.usesCompactVertices == literal.usesCompactVertices &&
+      borrowed.instancedCameraPatchable == literal.instancedCameraPatchable &&
+      std::memcmp(borrowed.instanceCameraAnchorView.getValue(), literal.instanceCameraAnchorView.getValue(),
+                  16 * sizeof(float)) == 0 &&
+      sameBytes(borrowed.vertices, literal.vertices) && sameBytes(borrowed.packedVertices, literal.packedVertices) &&
+      sameBytes(borrowed.instancedVertices, literal.instancedVertices) && sameBytes(borrowed.instances, literal.instances) &&
+      sameBytes(borrowed.indices, literal.indices) && sameBytes(borrowed.draws, literal.draws) &&
+      sameBytes(borrowed.shadowDraws, literal.shadowDraws) && borrowed.textures.empty() && literal.textures.empty() &&
+      borrowed.uploadedVertexCount == literal.uploadedVertexCount && borrowed.uploadedIndexCount == literal.uploadedIndexCount &&
+      std::memcmp(borrowed.clearColor, literal.clearColor, sizeof(borrowed.clearColor)) == 0,
+      "borrowed BG schedule must preserve every geometry/instance/draw byte, metadata and diagnostic");
+    return {};
+  }
+private:
+  std::string error;
+};
+
+bool compositionBorrowLowering(const CoinRenderFramePlan & base)
+{
+  const char * option = std::getenv("COIN_RENDER_DISABLE_COMPOSITION_BORROW");
+  struct Restore {
+    bool present;
+    std::string value;
+    ~Restore() { coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMPOSITION_BORROW", present ? value.c_str() : nullptr); }
+  } restore{option != nullptr, option ? option : ""};
+  coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMPOSITION_BORROW", "0");
+  auto frame = base;
+  frame.revision = 4901;
+  frame.vertices[0].position[0] = -1; frame.vertices[0].position[1] = -1;
+  frame.vertices[1].position[0] = 1; frame.vertices[1].position[1] = -1;
+  frame.vertices[2].position[1] = 1;
+  for (auto & vertex : frame.vertices) vertex.normal[2] = 1;
+  frame.renderStates.resize(300, frame.renderStates.front());
+  frame.draws.resize(300, frame.draws.front());
+  for (size_t i = 0; i < frame.draws.size(); ++i) {
+    frame.draws[i].renderStateSlot = static_cast<uint32_t>(i);
+    frame.renderStates[i].transparencyType = SoGLRenderAction::SORTED_OBJECT_BLEND;
+    frame.renderStates[i].model.setTranslate(SbVec3f(float(i) * .01f, 0, 0));
+  }
+  CoinRenderTargetP target(SbVec2i32(4, 4));
+  target.depthReadbackEnabled = false;
+  auto * backend = new BorrowLoweringBackend;
+  target.backend.reset(backend);
+  return check(target.executeFrame(frame).status == CoinRenderBackendStatus::SUCCESS && backend->ok &&
+               backend->submissions == 1 && !target.submissionPreflight(frame),
+               "BG lowering oracle must use and release the real submission-local proof");
 }
 
 bool instancedCamera(const CoinRenderFramePlan & frame, const CoinBgfxPlan & anchor)
@@ -537,7 +609,7 @@ int main()
   draw.geometry.indexCount = 3;
   frame.draws.push_back(draw);
 
-  bool ok = true;
+  bool ok = compositionBorrowLowering(frame);
   CoinBgfxProgramCache programCache(16, 12, 2);
   const uint8_t binary[8] = {0, 1, 2, 3, 4, 5, 6, 7};
   const uint8_t replacement[8] = {7, 6, 5, 4, 3, 2, 1, 0};

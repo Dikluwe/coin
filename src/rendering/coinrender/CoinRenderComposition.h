@@ -35,6 +35,37 @@ struct CoinRenderCompositionItem {
   enum TransparencyStrategy { OBJECT, WEIGHTED_OIT, SORTED_LAYERS } transparencyStrategy = OBJECT;
 };
 
+// This option revokes both submission-local loans; the literal owned paths
+// remain available for ablation and for every composition outside the profile.
+inline bool coin_render_composition_borrow_enabled() {
+  const char * option = std::getenv("COIN_RENDER_DISABLE_COMPOSITION_BORROW");
+  return !(option && std::strcmp(option, "1") == 0);
+}
+
+// Logical payload transfers, not vector capacity or allocator traffic. Clock
+// reads and output are disabled unless phase tracing is requested.
+struct CoinRenderCompositionTransferTrace {
+  explicit CoinRenderCompositionTransferTrace(const char * scope, const char * consumer = "common")
+    : scope(scope), consumer(consumer), enabled(std::getenv("COIN_RENDER_TRACE_PHASES") ||
+                                               std::getenv("COIN_WGPU_TRACE_PHASES")) {}
+  using Clock = std::chrono::steady_clock;
+  Clock::time_point begin() const { return enabled ? Clock::now() : Clock::time_point{}; }
+  double elapsed(Clock::time_point start) const {
+    return enabled ? std::chrono::duration<double, std::milli>(Clock::now() - start).count() : 0;
+  }
+  ~CoinRenderCompositionTransferTrace() {
+    if (enabled) std::fprintf(stderr,
+      "COIN_RENDER_PHASE %s consumer=%s copied_items=%zu copied_bytes=%zu borrowed_items=%zu borrowed_bytes=%zu computed_items=%zu qualify_ms=%.6f copy_ms=%.6f\n",
+      scope, consumer, copiedItems, copiedItems * sizeof(CoinRenderCompositionItem),
+      borrowedItems, borrowedItems * sizeof(CoinRenderCompositionItem), computedItems, qualifyMs, copyMs);
+  }
+  const char * scope;
+  const char * consumer;
+  bool enabled;
+  size_t copiedItems = 0, borrowedItems = 0, computedItems = 0;
+  double qualifyMs = 0, copyMs = 0;
+};
+
 // Only a final ordinary capture can carry its common validation into Target.
 // Shadow scene assembly and RTT resource resolution can change the payload
 // after Builder publication and must take the complete submission path.
@@ -57,6 +88,7 @@ public:
   void invalidate() {
     frame = nullptr;
     revision = 0;
+    opaqueIdentity = false;
     order.clear();
   }
   const std::vector<CoinRenderCompositionItem> * compositionFor(
@@ -64,12 +96,17 @@ public:
     return frame == &candidate && revision == candidate.revision &&
       coin_render_same_transparency_options(transparency, candidate.transparency) ? &order : nullptr;
   }
+  const std::vector<CoinRenderCompositionItem> * opaqueCompositionFor(
+      const CoinRenderFramePlan & candidate) const {
+    return opaqueIdentity ? compositionFor(candidate) : nullptr;
+  }
 private:
   CoinRenderFramePreflight(const CoinRenderFramePreflight &) = delete;
   CoinRenderFramePreflight & operator=(const CoinRenderFramePreflight &) = delete;
   const CoinRenderFramePlan * frame = nullptr;
   uint64_t revision = 0;
   CoinRenderTransparencyOptions transparency;
+  bool opaqueIdentity = false;
   std::vector<CoinRenderCompositionItem> order;
 };
 
@@ -181,8 +218,17 @@ inline bool coin_render_transparency_strategy(
 inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
                                           std::vector<CoinRenderCompositionItem>& order,
                                           std::string& diagnostic,
-                                          bool deferUnresolvedAlpha = false) {
+                                          bool deferUnresolvedAlpha = false,
+                                          bool * opaqueIdentity = nullptr) {
   CoinRenderPhaseTimer timer("composition_detail");
+  if (opaqueIdentity) *opaqueIdentity = false;
+  // Classification already visits each packet/item. Accumulate the loan proof
+  // there, rather than validating the completed schedule in a second pass.
+  bool identity = opaqueIdentity && coin_render_composition_borrow_enabled() &&
+    !deferUnresolvedAlpha && frame.draws.size() >= 256 && frame.textures.empty() &&
+    frame.samplers.empty() && frame.shadowGroups.empty() && frame.shadowLights.empty();
+  CoinRenderCompositionTransferTrace qualification("composition_identity");
+  const auto qualificationBegin = qualification.begin();
   coin_render_composition_detail::RangeMemo rangeMemo;
   order.clear();
   uint64_t unusedBudget = 0;
@@ -412,6 +458,12 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
         item.depthRange[1] = 1;
       }
     }
+    if (identity && (draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST ||
+        draw.stableNodeId || draw.renderLayer || draw.clearDepthBefore || draw.lineStripId ||
+        !draw.geometry.vertexCount || !draw.geometry.indexCount || draw.geometry.indexCount % 3 ||
+        rs.polygonOffsetPrimitiveStyle != 1 || item.blend || item.deferred || item.additive ||
+        item.sortTriangles || item.screenDoor || item.screenDoorLevel)) identity = false;
+    // sortObject is inert for immediate opaque items, and remains in the loan.
     order.push_back(item);
   }
   timer.mark("classify");
@@ -438,6 +490,13 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
   if (!std::is_sorted(order.begin(), order.end(), precedes))
     std::stable_sort(order.begin(), order.end(), precedes);
   timer.mark("sort");
+  if (opaqueIdentity) *opaqueIdentity = identity && order.size() == frame.draws.size();
+  // Includes the existing classification/sort pass; this is not an estimate
+  // of incremental predicate overhead. No additional qualification scan runs.
+  if (opaqueIdentity && coin_render_composition_borrow_enabled()) {
+    qualification.qualifyMs = qualification.elapsed(qualificationBegin);
+    qualification.computedItems = order.size();
+  }
   diagnostic.clear();
   return true;
 }
@@ -525,5 +584,50 @@ inline bool coin_render_composition_schedule(const CoinRenderFramePlan& frame,
   diagnostic.clear();
   return true;
 }
+
+// Immutable schedule for one lowering call. A positive current preflight can
+// loan its exact, unexpanded order; every other caller executes the original
+// vector algorithm, including its partial output and diagnostics on failure.
+// This object never crosses backend/Rust submission or asynchronous tickets.
+class CoinRenderCompositionScheduleView {
+public:
+  explicit CoinRenderCompositionScheduleView(const char * consumer)
+    : trace("composition_schedule_copy", consumer), items(&owned) {}
+  CoinRenderCompositionScheduleView(const CoinRenderCompositionScheduleView &) = delete;
+  CoinRenderCompositionScheduleView & operator=(const CoinRenderCompositionScheduleView &) = delete;
+  CoinRenderCompositionScheduleView(CoinRenderCompositionScheduleView &&) = delete;
+  CoinRenderCompositionScheduleView & operator=(CoinRenderCompositionScheduleView &&) = delete;
+  bool prepare(const CoinRenderFramePlan & frame, std::string & diagnostic,
+               const CoinRenderFramePreflight * preflight = nullptr) {
+    items = &owned;
+    trace.copiedItems = trace.borrowedItems = trace.computedItems = 0;
+    const auto qualifyBegin = trace.begin();
+    const auto * loan = coin_render_composition_borrow_enabled() && preflight
+      ? preflight->opaqueCompositionFor(frame) : nullptr;
+    trace.qualifyMs += trace.elapsed(qualifyBegin);
+    if (loan) {
+      items = loan;
+      trace.borrowedItems = loan->size();
+      diagnostic.clear();
+      return true;
+    }
+    const auto copyBegin = trace.begin();
+    const bool result = coin_render_composition_schedule(frame, owned, diagnostic, preflight);
+    trace.copyMs += trace.elapsed(copyBegin);
+    trace.copiedItems = owned.size();
+    trace.computedItems = preflight && preflight->compositionFor(frame) ? 0 : owned.size();
+    return result;
+  }
+  size_t size() const { return items->size(); }
+  const CoinRenderCompositionItem & front() const { return items->front(); }
+  const CoinRenderCompositionItem & operator[](size_t index) const { return (*items)[index]; }
+  std::vector<CoinRenderCompositionItem>::const_iterator begin() const { return items->begin(); }
+  std::vector<CoinRenderCompositionItem>::const_iterator end() const { return items->end(); }
+  bool borrowed() const { return items != &owned; }
+private:
+  CoinRenderCompositionTransferTrace trace;
+  std::vector<CoinRenderCompositionItem> owned;
+  const std::vector<CoinRenderCompositionItem> * items;
+};
 
 #endif // COIN_RENDER_COMPOSITION_H

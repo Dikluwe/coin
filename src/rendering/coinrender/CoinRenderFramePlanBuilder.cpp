@@ -1393,7 +1393,11 @@ CoinRenderFramePlanBuilder::build(CoinRenderFramePlan & outPlan, std::string * o
   timer.mark("validation");
   std::vector<CoinRenderCompositionItem> order;
   std::string compositionError;
-  if (!coin_render_composition_order(this->currentPlan, order, compositionError)) {
+  bool opaqueIdentity = false;
+  const bool publishPreflight = preflight && transferOwnership &&
+    coin_render_capture_preflight_eligible(this->currentPlan);
+  if (!coin_render_composition_order(this->currentPlan, order, compositionError, false,
+                                     publishPreflight ? &opaqueIdentity : nullptr)) {
     this->isUnsupported = true;
     this->builderError = compositionError;
     if (outError) *outError = compositionError;
@@ -1426,6 +1430,7 @@ CoinRenderFramePlanBuilder::build(CoinRenderFramePlan & outPlan, std::string * o
     preflight->frame = &outPlan;
     preflight->revision = outPlan.revision;
     preflight->transparency = outPlan.transparency;
+    preflight->opaqueIdentity = opaqueIdentity;
   }
   timer.mark("publish_plan");
   return true;

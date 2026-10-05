@@ -116,6 +116,153 @@ int testCapturedCompositionPolicy() {
   return 0;
 }
 
+class CompositionCaptureBackend : public CoinRenderBackend {
+public:
+  bool fail = false, receiptPresent = false, borrowed = false, matched = true;
+  CoinRenderFramePlan captured;
+  std::vector<CoinRenderCompositionItem> items;
+  CoinRenderFrameReuseDecision lastReuse;
+  bool isGpuBackend() const override { return false; }
+  CoinRenderBackendStatus getStatus() const override { return CoinRenderBackendStatus::SUCCESS; }
+  CoinRenderBackendStatus prepare(CoinRenderTargetP &) override { return CoinRenderBackendStatus::SUCCESS; }
+  void poll() override {}
+  const std::string & getLastError() const override { return error; }
+  CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target) override {
+    const auto * receipt = target.submissionPreflight(frame);
+    receiptPresent = receipt != nullptr;
+    CoinRenderCompositionScheduleView schedule("capture_test");
+    std::string diagnostic;
+    matched = schedule.prepare(frame, diagnostic, receipt);
+    borrowed = schedule.borrowed();
+    captured = frame;
+    items.assign(schedule.begin(), schedule.end());
+    return {fail ? CoinRenderBackendStatus::BACKEND_ERROR : CoinRenderBackendStatus::SUCCESS,
+            fail ? "intentional composition failure" : ""};
+  }
+  CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
+                                const CoinRenderFrameReuseDecision & reuse) override {
+    lastReuse = reuse;
+    return submit(frame, target);
+  }
+private:
+  std::string error;
+};
+
+bool sameCapturedComposition(const CompositionCaptureBackend & a, const CompositionCaptureBackend & b) {
+  if (!a.matched || !b.matched || !a.captured.hasSamePayload(b.captured) ||
+      a.items.size() != b.items.size() || a.lastReuse.kind != b.lastReuse.kind) return false;
+  for (size_t i = 0; i < a.items.size(); ++i) {
+    const auto & x = a.items[i]; const auto & y = b.items[i];
+    if (x.drawIndex != y.drawIndex || x.firstIndex != y.firstIndex || x.indexCount != y.indexCount ||
+        x.blend != y.blend || x.deferred != y.deferred || x.additive != y.additive ||
+        x.sortTriangles != y.sortTriangles || x.sortObject != y.sortObject ||
+        std::memcmp(&x.eyeDepth, &y.eyeDepth, sizeof(x.eyeDepth)) ||
+        x.screenDoor != y.screenDoor || x.screenDoorLevel != y.screenDoorLevel ||
+        x.depthTest != y.depthTest || x.depthWrite != y.depthWrite || x.depthFunction != y.depthFunction ||
+        std::memcmp(x.depthRange, y.depthRange, sizeof(x.depthRange)) ||
+        x.transparencyStrategy != y.transparencyStrategy) return false;
+  }
+  return true;
+}
+
+int testCapturedCompositionBorrow() {
+  const char * option = std::getenv("COIN_RENDER_DISABLE_COMPOSITION_BORROW");
+  struct Restore {
+    bool present;
+    std::string value;
+    ~Restore() { coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMPOSITION_BORROW", present ? value.c_str() : nullptr); }
+  } restore{option != nullptr, option ? option : ""};
+  auto * root = new SoSeparator;
+  root->ref();
+  auto * camera = new SoPerspectiveCamera;
+  camera->position.setValue(0, 0, 20);
+  root->addChild(camera);
+  auto * model = new SoLightModel; model->model = SoLightModel::BASE_COLOR;
+  root->addChild(model);
+  auto * material = new SoMaterial;
+  root->addChild(material);
+  auto * cube = new SoCube;
+  std::vector<SoTranslation *> positions;
+  for (int i = 0; i < 300; ++i) {
+    auto * occurrence = new SoSeparator;
+    auto * translation = new SoTranslation;
+    translation->translation.setValue(float(i) * .01f, 0, 0);
+    positions.push_back(translation);
+    occurrence->addChild(translation); occurrence->addChild(cube); root->addChild(occurrence);
+  }
+  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(1, 1)));
+  std::unique_ptr<CoinRenderTarget> literalTarget(CoinRenderTarget::createOffscreen(SbVec2i32(1, 1)));
+  TEST_ASSERT(target && literalTarget, "composition capture requires mock target shells");
+  auto * backend = new CompositionCaptureBackend, * literalBackend = new CompositionCaptureBackend;
+  target->getPimpl()->backend.reset(backend); literalTarget->getPimpl()->backend.reset(literalBackend);
+  target->getPimpl()->depthReadbackEnabled = literalTarget->getPimpl()->depthReadbackEnabled = false;
+  CoinRenderAction action(SbViewportRegion(1, 1)), literal(SbViewportRegion(1, 1));
+  action.setRenderTarget(target.get()); literal.setRenderTarget(literalTarget.get());
+  action.setTransparencyType(CoinRenderAction::SORTED_OBJECT_BLEND);
+  literal.setTransparencyType(CoinRenderAction::SORTED_OBJECT_BLEND);
+  const auto apply = [&]() {
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMPOSITION_BORROW", "0"); action.apply(root);
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMPOSITION_BORROW", "1"); literal.apply(root);
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMPOSITION_BORROW", "0");
+  };
+  const auto same = [&]() {
+    return action.getLastStatus() == literal.getLastStatus() &&
+      std::string(action.getLastError().getString()) == literal.getLastError().getString() &&
+      sameCapturedComposition(*backend, *literalBackend) &&
+      action.getPimpl()->lastValidPlan.hasSamePayload(literal.getPimpl()->lastValidPlan) &&
+      !target->getPimpl()->submissionPreflight(action.getPimpl()->lastValidPlan) &&
+      !literalTarget->getPimpl()->submissionPreflight(literal.getPimpl()->lastValidPlan);
+  };
+  apply();
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && same() &&
+              backend->captured.draws.size() >= 256 && backend->receiptPresent && backend->borrowed &&
+              literalBackend->receiptPresent && !literalBackend->borrowed,
+              "captured submission must loan the exact opaque order and retain literal payload/status");
+  TEST_ASSERT(action.getPimpl()->translationProofValid && literal.getPimpl()->translationProofValid &&
+              action.getPimpl()->materialByNode.count(material) && literal.getPimpl()->materialByNode.count(material),
+              "the fixture must admit real object/material overlays");
+  apply();
+  TEST_ASSERT(same() && backend->lastReuse.kind == CoinRenderFrameReuseKind::REUSE &&
+              !backend->receiptPresent && !literalBackend->receiptPresent && !backend->borrowed,
+              "cached REUSE must not retain the previous capture lender");
+  const auto generation = action.getPimpl()->translationProofGeneration;
+  const auto * vertices = action.getPimpl()->lastValidPlan.vertices.data();
+  const auto baseRevision = action.getPimpl()->lastValidPlan.revision;
+  positions[0]->translation.setValue(-.25f, .125f, 0);
+  apply();
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && same() &&
+              backend->lastReuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD &&
+              backend->lastReuse.baseRevision == baseRevision &&
+              action.getPimpl()->translationProofGeneration == generation &&
+              action.getPimpl()->lastValidPlan.vertices.data() == vertices,
+              "object update must preserve literal composition and its existing reuse decision");
+  material->diffuseColor.setValue(.2f,.6f,.3f);
+  backend->fail = literalBackend->fail = true;
+  const auto previous = action.getPimpl()->lastValidPlan;
+  apply();
+  TEST_ASSERT(action.getLastStatus() != CoinRenderAction::SUCCESS && same() &&
+              action.getPimpl()->lastValidPlan.hasSamePayload(previous) &&
+              action.getPimpl()->lastValidPlan.revision == previous.revision &&
+              action.getPimpl()->materialDirty.count(material) &&
+              backend->lastReuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD,
+              "submission failure must roll back payload and release the scoped lender");
+  backend->fail = literalBackend->fail = false;
+  apply();
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && same() &&
+              backend->lastReuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD &&
+              backend->lastReuse.baseRevision == previous.revision &&
+              !action.getPimpl()->materialDirty.count(material),
+              "failed object retry must publish an independently validated current receipt");
+  material->transparency = .5f;
+  apply();
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && same() &&
+              !backend->borrowed && !literalBackend->borrowed,
+              "transparent capture must keep the general owned schedule");
+  action.setRenderTarget(nullptr); literal.setRenderTarget(nullptr);
+  root->unref();
+  return 0;
+}
+
 int testSeparatorAndState() {
   SoSeparator * root = new SoSeparator;
   root->ref();
@@ -2455,6 +2602,7 @@ int main() {
 
   int failed = 0;
   if (testCaptureStorageReserve()) { std::cerr << "testCaptureStorageReserve failed" << std::endl; failed++; }
+  if (testCapturedCompositionBorrow()) { std::cerr << "testCapturedCompositionBorrow failed" << std::endl; failed++; }
   if (testCapturedCompositionPolicy()) { std::cerr << "testCapturedCompositionPolicy failed" << std::endl; failed++; }
   if (testPrimitiveStateReuse()) { std::cerr << "testPrimitiveStateReuse failed" << std::endl; failed++; }
   if (testDepthStateCapture()) { std::cerr << "testDepthStateCapture failed" << std::endl; failed++; }

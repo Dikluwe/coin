@@ -1064,7 +1064,7 @@ if(COIN_BUILD_RENDER)
 			${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp
 		)
 		set_target_properties(CoinWgpuFfiFrameTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
-		target_link_libraries(CoinWgpuFfiFrameTest Coin)
+		target_link_libraries(CoinWgpuFfiFrameTest CoinRender Coin)
 		target_include_directories(CoinWgpuFfiFrameTest PRIVATE
 			${PROJECT_SOURCE_DIR}/experimental/include
 			${PROJECT_SOURCE_DIR}/include

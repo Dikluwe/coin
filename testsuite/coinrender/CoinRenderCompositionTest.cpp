@@ -153,6 +153,218 @@ bool sameCompositionItem(const CoinRenderCompositionItem & a, const CoinRenderCo
     std::memcmp(a.depthRange, b.depthRange, sizeof(a.depthRange)) == 0 &&
     a.transparencyStrategy == b.transparencyStrategy;
 }
+// These mock submissions exercise the actual Target scope and its source
+// receipt without a device. Items are compared field-wise, including float
+// bytes, because struct padding is not part of the composition contract.
+class BorrowBackend : public CoinRenderBackend {
+public:
+  bool ok = true, fail = false, checkNested = false, revoke = false, asyncAdmitted = true;
+  unsigned submissions = 0;
+  bool expectedBorrow = true;
+  const CoinRenderFramePreflight * expectedSource = nullptr;
+  bool isGpuBackend() const override { return false; }
+  CoinRenderBackendStatus getStatus() const override { return CoinRenderBackendStatus::SUCCESS; }
+  CoinRenderBackendStatus prepare(CoinRenderTargetP &) override { return CoinRenderBackendStatus::SUCCESS; }
+  void poll() override {}
+  const std::string & getLastError() const override { return error; }
+  bool readbackLoad(uint64_t & jobs, uint64_t & bytes) const override {
+    jobs = bytes = 0;
+    return asyncAdmitted;
+  }
+  CoinRenderSubmitResult submitAsync(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
+                                   CoinRenderReadbackTicket &, const CoinRenderFrameReuseDecision &) override {
+    const auto result = submit(frame, target);
+    return result.status == CoinRenderBackendStatus::SUCCESS
+      ? CoinRenderSubmitResult{CoinRenderBackendStatus::UNSUPPORTED, "mock has no asynchronous ticket"} : result;
+  }
+  CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target) override {
+    ++submissions;
+    const auto * receipt = target.submissionPreflight(frame);
+    ok &= check(receipt && receipt->compositionFor(frame), "Target must provide a scoped receipt");
+    if (!receipt) return {CoinRenderBackendStatus::BACKEND_ERROR, "missing receipt"};
+    if (expectedSource)
+      ok &= check((receipt == expectedSource) == expectedBorrow,
+                  "Target must loan the source receipt only for the admitted opaque profile");
+    {
+      CoinRenderCompositionScheduleView view("test");
+      std::string viewDiagnostic, literalDiagnostic;
+      std::vector<CoinRenderCompositionItem> literal;
+      const bool viewResult = view.prepare(frame, viewDiagnostic, receipt);
+      const bool literalResult = coin_render_composition_schedule(frame, literal, literalDiagnostic, receipt);
+      ok &= check(viewResult == literalResult && viewDiagnostic == literalDiagnostic &&
+                  view.size() == literal.size() && view.borrowed() == expectedBorrow,
+                  "borrowed/owned schedule must retain literal result and diagnostic");
+      for (size_t i = 0; i < literal.size() && i < view.size(); ++i)
+        ok &= check(sameCompositionItem(view[i], literal[i]), "every schedule field and float byte must match");
+      if (view.borrowed())
+        ok &= check(&view[0] == &receipt->compositionFor(frame)->front(), "view must reference the source items");
+      if (!frame.draws.empty())
+        ok &= check(view[0].sortObject == (frame.renderStates[frame.draws[0].renderStateSlot].transparencyType ==
+                    SoGLRenderAction::SORTED_OBJECT_BLEND), "opaque sortObject flag must remain literal");
+    }
+    if (checkNested) {
+      CoinRenderTargetP other(SbVec2i32(64, 64));
+      other.depthReadbackEnabled = false;
+      auto * nested = new BorrowBackend;
+      nested->expectedBorrow = expectedBorrow;
+      nested->expectedSource = receipt;
+      other.backend.reset(nested);
+      const auto result = other.executeFrame(frame, CoinRenderFrameReuseDecision{}, receipt);
+      ok &= check(result.status == CoinRenderBackendStatus::SUCCESS && nested->ok && nested->submissions == 1,
+                  "a nested target must validate its own profile and use the live source receipt");
+      ok &= check(!other.submissionPreflight(frame) && target.submissionPreflight(frame) == receipt,
+                  "nested scope must restore the outer proof and release its own active pointer");
+      other.options.transparency = static_cast<CoinRenderTransparencyMode>(99);
+      ok &= check(other.executeFrame(frame, CoinRenderFrameReuseDecision{}, receipt).status ==
+                    CoinRenderBackendStatus::UNSUPPORTED && nested->submissions == 1,
+                  "receipt cannot bypass target options or admission");
+    }
+    auto foreign = frame;
+    CoinRenderCompositionScheduleView foreignView("test_foreign");
+    std::string diagnostic;
+    ok &= check(foreignView.prepare(foreign, diagnostic, receipt) && !foreignView.borrowed(),
+                "a different plan with the same revision must use owned composition");
+    auto & mutableFrame = const_cast<CoinRenderFramePlan &>(frame);
+    ++mutableFrame.revision;
+    ok &= check(!receipt->opaqueCompositionFor(frame), "revision change revokes the opaque loan");
+    --mutableFrame.revision;
+    const auto savedPolicy = mutableFrame.transparency;
+    ++mutableFrame.transparency.layers;
+    ok &= check(!receipt->opaqueCompositionFor(frame), "policy change revokes the opaque loan");
+    mutableFrame.transparency = savedPolicy;
+    if (revoke) {
+      const_cast<CoinRenderFramePreflight *>(receipt)->invalidate();
+      ok &= check(!target.submissionPreflight(frame), "explicit source revocation must invalidate the live lender");
+      CoinRenderCompositionScheduleView revokedView("test_revoked");
+      ok &= check(revokedView.prepare(frame, diagnostic, receipt) && !revokedView.borrowed(),
+                  "revoked source must take the literal owned schedule");
+    }
+    return {fail ? CoinRenderBackendStatus::BACKEND_ERROR : CoinRenderBackendStatus::SUCCESS,
+            fail ? "intentional borrow failure" : ""};
+  }
+private:
+  std::string error;
+};
+
+CoinRenderFramePlan borrowPlan() {
+  auto plan = makePlan();
+  for (auto & material : plan.materials) { material.diffuse[3] = 1; material.transparency = 0; }
+  plan.draws.resize(300, plan.draws.front());
+  plan.revision = 100;
+  return plan;
+}
+
+bool identityOracle(const CoinRenderFramePlan & plan, bool expectedProfile, bool expectedResult = true) {
+  std::vector<CoinRenderCompositionItem> borrowedOrder, literalOrder;
+  std::string borrowedDiagnostic, literalDiagnostic;
+  bool profile = true;
+  coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMPOSITION_BORROW", "0");
+  const bool borrowedResult = coin_render_composition_order(plan, borrowedOrder, borrowedDiagnostic, false, &profile);
+  coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMPOSITION_BORROW", "1");
+  bool disabledProfile = true;
+  const bool literalResult = coin_render_composition_order(plan, literalOrder, literalDiagnostic, false, &disabledProfile);
+  coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMPOSITION_BORROW", "0");
+  bool equal = borrowedResult == literalResult && borrowedResult == expectedResult && profile == expectedProfile &&
+    !disabledProfile && borrowedDiagnostic == literalDiagnostic && borrowedOrder.size() == literalOrder.size();
+  for (size_t i = 0; equal && i < borrowedOrder.size(); ++i)
+    equal = sameCompositionItem(borrowedOrder[i], literalOrder[i]);
+  return check(equal, "identity qualification must not change literal order, partial output or diagnostics");
+}
+
+bool testCompositionBorrow() {
+  const char * option = std::getenv("COIN_RENDER_DISABLE_COMPOSITION_BORROW");
+  const bool hadOption = option != nullptr;
+  const std::string savedOption = option ? option : "";
+  struct Restore {
+    bool set;
+    std::string value;
+    ~Restore() { coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMPOSITION_BORROW", set ? value.c_str() : nullptr); }
+  } restore{hadOption, savedOption};
+  const auto base = borrowPlan();
+  bool ok = identityOracle(base, true);
+  for (bool invalid : {false, true}) {
+    auto plan = base;
+    if (invalid) plan.draws.back().renderStateSlot = UINT32_MAX;
+    CoinRenderCompositionScheduleView view("test_no_receipt");
+    std::vector<CoinRenderCompositionItem> literal;
+    std::string a, b;
+    const bool actual = view.prepare(plan, a), expected = coin_render_composition_schedule(plan, literal, b);
+    ok &= check(actual == expected && actual == !invalid && a == b && !view.borrowed() &&
+                view.size() == literal.size(), "no-proof caller must use the literal schedule and failure output");
+    for (size_t i = 0; i < view.size() && i < literal.size(); ++i)
+      ok &= check(sameCompositionItem(view[i], literal[i]), "literal fallback changed a composition item");
+  }
+  auto changed = base;
+  changed.draws.resize(255); ok &= identityOracle(changed, false);
+  changed = base; changed.draws.back().renderLayer = 1; ok &= identityOracle(changed, false);
+  changed = base; changed.draws.back().clearDepthBefore = true; ok &= identityOracle(changed, false);
+  changed = base; changed.draws.back().stableNodeId = 1; ok &= identityOracle(changed, false);
+  changed = base; changed.draws.back().lineStripId = 1; ok &= identityOracle(changed, false);
+  changed = base; changed.draws.back().shadowLightSlot = 1; ok &= identityOracle(changed, false);
+  changed = base; changed.samplers.emplace_back(); ok &= identityOracle(changed, false);
+  changed = base; changed.textures.emplace_back(); ok &= identityOracle(changed, false);
+  changed = base; changed.shadowGroups.emplace_back(); ok &= identityOracle(changed, false);
+  changed = base; changed.shadowLights.emplace_back(); ok &= identityOracle(changed, false);
+  changed = base; changed.renderStates[0].polygonOffsetPrimitiveStyle = 2; ok &= identityOracle(changed, false);
+  changed = base; changed.draws.back().topology = CoinRenderPrimitiveTopology::LINE_LIST;
+  ok &= identityOracle(changed, false);
+  for (int mode : {SoGLRenderAction::ADD, SoGLRenderAction::SCREEN_DOOR,
+                   SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND}) {
+    changed = base; changed.renderStates[0].transparencyType = mode; ok &= identityOracle(changed, false);
+  }
+  changed = base; changed.materials[0].diffuse[3] = .5f; changed.materials[0].transparency = .5f;
+  ok &= identityOracle(changed, false);
+  changed = base; changed.vertices[0].materialSlot = 2;
+  changed.materials[2].diffuse[3] = .25f; changed.materials[2].transparency = .75f;
+  ok &= identityOracle(changed, false);
+  changed = base; changed.renderStates[0].depthRange[0] = -0.0f;
+  changed.renderStates[0].explicitDepthMask = 15;
+  ok &= identityOracle(changed, true);
+  changed = base; changed.draws.back().renderStateSlot = UINT32_MAX;
+  ok &= identityOracle(changed, false, false);
+  changed = base; changed.materials.back().diffuse[3] = std::numeric_limits<float>::quiet_NaN();
+  ok &= identityOracle(changed, false, false);
+  changed = base; changed.draws.back().geometry.firstIndex = UINT32_MAX;
+  ok &= identityOracle(changed, false, false);
+
+  for (bool disabled : {false, true}) {
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMPOSITION_BORROW", disabled ? "1" : "0");
+    CoinRenderTargetP target(SbVec2i32(64, 64));
+    target.depthReadbackEnabled = false;
+    auto * backend = new BorrowBackend;
+    backend->expectedBorrow = !disabled;
+    backend->checkNested = true;
+    target.backend.reset(backend);
+    auto frame = base;
+    ok &= check(target.executeFrame(frame).status == CoinRenderBackendStatus::SUCCESS && backend->ok &&
+                !target.submissionPreflight(frame), "full validation supplies and releases the appropriate schedule");
+    backend->fail = true;
+    ++frame.revision;
+    ok &= check(target.executeFrame(frame).status == CoinRenderBackendStatus::BACKEND_ERROR && backend->ok &&
+                !target.submissionPreflight(frame), "failed submission must revoke all active loans");
+    backend->fail = false;
+    // Same revision after failure must have a fresh scoped receipt.
+    ok &= check(target.executeFrame(frame).status == CoinRenderBackendStatus::SUCCESS && backend->ok,
+                "retry after failure must rebuild the current proof safely");
+    ++frame.revision;
+    backend->revoke = true;
+    ok &= check(target.executeFrame(frame).status == CoinRenderBackendStatus::SUCCESS && backend->ok &&
+                !target.submissionPreflight(frame), "revoked source must not survive successful submission");
+    backend->revoke = false;
+    ++frame.revision;
+    CoinRenderReadbackTicket ticket;
+    ok &= check(target.executeFrameAsync(frame, ticket).status == CoinRenderBackendStatus::UNSUPPORTED &&
+                backend->ok && !ticket.token && !target.submissionPreflight(frame),
+                "asynchronous entry must use the local proof and release it before returning");
+    const auto submissions = backend->submissions;
+    backend->asyncAdmitted = false;
+    ok &= check(target.executeFrameAsync(frame, ticket).status == CoinRenderBackendStatus::UNSUPPORTED &&
+                backend->submissions == submissions && !target.submissionPreflight(frame),
+                "failed asynchronous admission must never activate or consume a loan");
+  }
+  return ok;
+}
+
 bool compositionMemoOracle(const CoinRenderFramePlan & plan, const char * label, bool expected = true) {
   std::vector<CoinRenderCompositionItem> original, memo;
   std::string originalDiagnostic, memoDiagnostic;
@@ -1032,6 +1244,13 @@ bool testTraversal() {
 int main(int argc, char ** argv) {
   SoDB::init();
   CoinRenderAction::initClass();
+  if (argc == 2 && std::string(argv[1]) == "--borrow") {
+    if (!testCompositionBorrow()) return 1;
+    std::cout << "CoinRenderCompositionTest borrow passed\n";
+    return 0;
+  }
+  const bool requireGpu = argc == 2 && std::string(argv[1]) == "--gpu";
+  if (requireGpu && !CoinRenderAction::isGpuBackendAvailable()) return 77;
   if (argc == 2 && std::string(argv[1]) == "--range-memo")
     return testCompositionRangeMemoization() ? 0 : 1;
   if (argc == 2 && std::string(argv[1]) == "--annotations") {
@@ -1040,7 +1259,7 @@ int main(int argc, char ** argv) {
     std::cout << "Wgpu annotation GPU regressions passed\n";
     return 0;
   }
-  if (!testCompositionRangeMemoization() || !testProjectiveDepth() || !testMaterialBlend() || !testStableDepthTie() ||
+  if (!testCompositionBorrow() || !testCompositionRangeMemoization() || !testProjectiveDepth() || !testMaterialBlend() || !testStableDepthTie() ||
       !testOverlayPreservesTraversalOrder() ||
       !testMixedOverlayRendersInTraversalOrder() || !testTextureAlpha() ||
       !testTextureMutationAndSharing() ||
@@ -1050,6 +1269,6 @@ int main(int argc, char ** argv) {
       !testFailurePreservesFrame() ||
       !testUnsupportedExecutorPreservesFrame() || !testCommonTransparencyPolicy() || !testRejections() || !testSceneTextureRejected() ||
       !testTraversal()) return 1;
-  std::cout << "CoinRenderCompositionTest passed\n";
+  std::cout << (requireGpu ? "CoinRenderCompositionTest GPU passed\n" : "CoinRenderCompositionTest passed\n");
   return 0;
 }

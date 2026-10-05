@@ -279,7 +279,8 @@ CoinRenderTargetP::submissionPreflight(const CoinRenderFramePlan & frame) const 
 CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfileInternal(
     const CoinRenderFramePlan & frame, const SbVec2i32 & targetSize,
     bool deferUnresolvedAlpha, CoinRenderFramePreflight * preflight,
-    const CoinRenderFramePreflight * capturedPreflight) {
+    const CoinRenderFramePreflight * capturedPreflight, bool allowCompositionBorrow,
+    CoinRenderCompositionTransferTrace * transfers) {
   std::string planDiag;
   const auto * capturedOrder = !deferUnresolvedAlpha && capturedPreflight
     ? capturedPreflight->compositionFor(frame) : nullptr;
@@ -287,8 +288,10 @@ CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfileInternal(
     return CoinRenderFrameExecutionResult{CoinRenderBackendStatus::BACKEND_ERROR, "Invalid CoinRenderFramePlan: " + planDiag};
   }
   std::vector<CoinRenderCompositionItem> compositionOrder;
+  bool opaqueIdentity = false;
   if (!capturedOrder &&
-      !coin_render_composition_order(frame, compositionOrder, planDiag, deferUnresolvedAlpha)) {
+      !coin_render_composition_order(frame, compositionOrder, planDiag, deferUnresolvedAlpha,
+                                    preflight ? &opaqueIdentity : nullptr)) {
     return CoinRenderFrameExecutionResult{CoinRenderBackendStatus::UNSUPPORTED, planDiag};
   }
 
@@ -360,11 +363,27 @@ CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfileInternal(
   }
 
   if (preflight) {
-    if (capturedOrder) preflight->order = *capturedOrder;
-    else preflight->order = std::move(compositionOrder);
+    const auto qualifyBegin = transfers ? transfers->begin() : CoinRenderCompositionTransferTrace::Clock::time_point{};
+    const bool loan = capturedOrder && allowCompositionBorrow && coin_render_composition_borrow_enabled() &&
+      capturedPreflight->opaqueCompositionFor(frame);
+    if (transfers) transfers->qualifyMs += transfers->elapsed(qualifyBegin);
+    // Only executeFrameInternal can request this loan. No persistent receipt
+    // gains a lender pointer, and activation is rechecked after admission.
+    if (loan) return CoinRenderFrameExecutionResult(CoinRenderBackendStatus::SUCCESS, "");
+    const auto copyBegin = transfers ? transfers->begin() : CoinRenderCompositionTransferTrace::Clock::time_point{};
+    if (capturedOrder) {
+      preflight->order = *capturedOrder;
+      if (transfers) transfers->copiedItems = capturedOrder->size();
+      opaqueIdentity = capturedPreflight->opaqueCompositionFor(frame) != nullptr;
+    } else {
+      preflight->order = std::move(compositionOrder);
+      if (transfers) transfers->computedItems = preflight->order.size();
+    }
+    if (transfers) transfers->copyMs += transfers->elapsed(copyBegin);
     preflight->frame = &frame;
     preflight->revision = frame.revision;
     preflight->transparency = frame.transparency;
+    preflight->opaqueIdentity = opaqueIdentity;
   }
   return CoinRenderFrameExecutionResult(CoinRenderBackendStatus::SUCCESS, "");
 }
@@ -583,12 +602,13 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     frame.revision != 0 &&
     frame.revision != reuse.baseRevision;
   CoinRenderFramePreflight preflight;
+  CoinRenderCompositionTransferTrace compositionTransfers("target_composition_copy", "target");
   // A capture receipt skips only the two common passes. Target profile and
   // submission checks still run, and a mismatched receipt validates in full.
   if (capturedPreflight || (!validatedCameraPatch &&
       (frame.revision == 0 || frame.revision != this->lastValidatedPlanRevision))) {
     CoinRenderFrameExecutionResult val =
-      validateProfileInternal(frame, this->size, false, &preflight, capturedPreflight);
+      validateProfileInternal(frame, this->size, false, &preflight, capturedPreflight, true, &compositionTransfers);
     if (val.status != CoinRenderBackendStatus::SUCCESS) {
       this->lastError = val.diagnostic;
       return val;
@@ -605,6 +625,13 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     ~PreflightScope() { active = previous; }
   } preflightScope{this->activePreflight, this->activePreflight};
   this->activePreflight = preflight.compositionFor(frame) ? &preflight : nullptr;
+  const auto loanBegin = compositionTransfers.begin();
+  if (!this->activePreflight && coin_render_composition_borrow_enabled() && capturedPreflight &&
+      capturedPreflight->opaqueCompositionFor(frame)) {
+    this->activePreflight = capturedPreflight;
+    compositionTransfers.borrowedItems = capturedPreflight->opaqueCompositionFor(frame)->size();
+  }
+  compositionTransfers.qualifyMs += compositionTransfers.elapsed(loanBegin);
   const auto phaseValidated = PhaseClock::now();
   ReadbackPublication publication(*this);
   try {
