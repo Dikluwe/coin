@@ -202,6 +202,7 @@ private:
   bgfx::UniformHandle depthInfoUniform;
   bgfx::UniformHandle coinDepthUniform;
   bgfx::UniformHandle screenDoorUniform;
+  bgfx::UniformHandle alphaTestUniform;
   bgfx::UniformHandle clipMetaUniform;
   bgfx::UniformHandle clipPlanesUniform;
   bgfx::VertexBufferHandle fullscreenVertexBuffer;

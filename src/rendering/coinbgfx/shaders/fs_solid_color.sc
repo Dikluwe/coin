@@ -2,12 +2,15 @@ $input v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition,
 
 #include <bgfx_shader.sh>
 #include "coin_depth.sh"
+#include "coin_alpha.sh"
 
 // Used only after every draw has been qualified without textures, fog, clip
-// planes, screen-door transparency or blending. PHONG remains in the unchanged
+// planes, screen-door transparency or blending. Alpha test remains a per-draw
+// surface operation. PHONG remains in the unchanged
 // base vertex stage; keep its interface and depth contract exactly.
 void main()
 {
+  coinAlphaTest(v_color0.a);
   gl_FragDepth = coinWindowDepth(gl_FragCoord.z);
   gl_FragColor = v_color0;
 }

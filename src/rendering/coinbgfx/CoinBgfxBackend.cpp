@@ -15,6 +15,7 @@
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include "rendering/coinrender/CoinRenderRttCore.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
+#include "rendering/coinrender/CoinRenderAlphaTestCore.h"
 
 #include "coin_bgfx_fs_depth_readback_glsl.h"
 #include "coin_bgfx_fs_depth_readback_spirv.h"
@@ -141,6 +142,18 @@ bool bgfxShadowBatchSupported(const CoinRenderFramePlan & frame,
   if (plan.passes.size() > 8) {
     diagnostic = "BGFX shadow receiver supports at most eight maps";
     return false;
+  }
+  // The receiver surface implements alpha testing, but the moments stage has
+  // no material/texture alpha. Decline the combined profile before GPU work.
+  for (const auto & draw : frame.draws) {
+    if (draw.renderStateSlot >= frame.renderStates.size()) {
+      diagnostic = "BGFX shadow draw references an invalid render-state slot";
+      return false;
+    }
+    if (coin_render_alpha_test_active(frame.renderStates[draw.renderStateSlot].alphaTestFunction)) {
+      diagnostic = "BGFX alpha test with shadow maps requires an alpha-tested caster contract";
+      return false;
+    }
   }
   return true;
 }
@@ -355,7 +368,7 @@ uint64_t drawState(const CoinBgfxDraw & draw)
     case CoinRenderDepthFunction::LESS: default: state |= BGFX_STATE_DEPTH_TEST_LESS; break;
     }
   }
-  if (draw.depthWrite) state |= BGFX_STATE_WRITE_Z;
+  if (draw.depthTest && draw.depthWrite) state |= BGFX_STATE_WRITE_Z;
   if (draw.blend && draw.additive) {
     state |= BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_ONE);
   } else if (draw.blend) {
@@ -387,6 +400,8 @@ bool samePipelineState(const CoinBgfxDraw & lhs,
                        const CoinBgfxDraw & rhs)
 {
   return drawState(lhs) == drawState(rhs) &&
+    lhs.alphaTestFunction == rhs.alphaTestFunction &&
+    std::memcmp(&lhs.alphaTestReference, &rhs.alphaTestReference, sizeof(lhs.alphaTestReference)) == 0 &&
     std::memcmp(lhs.viewport, rhs.viewport, sizeof(lhs.viewport)) == 0;
 }
 
@@ -498,7 +513,7 @@ uint64_t peelDrawState(const CoinBgfxDraw & draw, bool depthOnly)
   uint64_t state = drawState(draw);
   state &= ~(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A |
              BGFX_STATE_WRITE_Z | BGFX_STATE_BLEND_MASK);
-  state |= BGFX_STATE_WRITE_Z;
+  if (!depthOnly || (draw.depthTest && draw.depthWrite)) state |= BGFX_STATE_WRITE_Z;
   if (!depthOnly) state |= BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A;
   return state;
 }
@@ -663,6 +678,7 @@ CoinBgfxBackend::CoinBgfxBackend()
     layerSampler(BGFX_INVALID_HANDLE), oitAccumSampler(BGFX_INVALID_HANDLE),
     oitRevealSampler(BGFX_INVALID_HANDLE), depthInfoUniform(BGFX_INVALID_HANDLE),
     coinDepthUniform(BGFX_INVALID_HANDLE), screenDoorUniform(BGFX_INVALID_HANDLE),
+    alphaTestUniform(BGFX_INVALID_HANDLE),
     clipMetaUniform(BGFX_INVALID_HANDLE), clipPlanesUniform(BGFX_INVALID_HANDLE),
     textureSampler(BGFX_INVALID_HANDLE), fogColorModeUniform(BGFX_INVALID_HANDLE),
     fogRangeUniform(BGFX_INVALID_HANDLE), textureParamsUniform(BGFX_INVALID_HANDLE),
@@ -852,6 +868,7 @@ CoinBgfxBackend::destroyResources()
   if (bgfx::isValid(this->layerSampler)) bgfx::destroy(this->layerSampler);
   if (bgfx::isValid(this->depthInfoUniform)) bgfx::destroy(this->depthInfoUniform);
   if (bgfx::isValid(this->screenDoorUniform)) bgfx::destroy(this->screenDoorUniform);
+  if (bgfx::isValid(this->alphaTestUniform)) bgfx::destroy(this->alphaTestUniform);
   if (bgfx::isValid(this->clipMetaUniform)) bgfx::destroy(this->clipMetaUniform);
   if (bgfx::isValid(this->clipPlanesUniform)) bgfx::destroy(this->clipPlanesUniform);
   if (bgfx::isValid(this->coinDepthUniform)) bgfx::destroy(this->coinDepthUniform);
@@ -1202,6 +1219,7 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
   this->fogRangeUniform = bgfx::createUniform("u_fogRange", bgfx::UniformType::Vec4);
   this->textureParamsUniform = bgfx::createUniform("u_texParams", bgfx::UniformType::Vec4, COIN_RENDER_MAX_TEXTURE_UNITS);
   this->screenDoorUniform = bgfx::createUniform("u_screenDoor", bgfx::UniformType::Vec4);
+  this->alphaTestUniform = bgfx::createUniform("u_alphaTest", bgfx::UniformType::Vec4);
   this->clipMetaUniform = bgfx::createUniform("u_clipMeta", bgfx::UniformType::Vec4);
   this->clipPlanesUniform = bgfx::createUniform("u_clipPlanes", bgfx::UniformType::Vec4, COIN_RENDER_MAX_CLIP_PLANES);
   this->coinDepthUniform = bgfx::createUniform("u_coinDepth", bgfx::UniformType::Vec4);
@@ -1222,6 +1240,7 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
   for (auto handle : this->extraTextureSamplers) textureUniformsValid = textureUniformsValid && bgfx::isValid(handle);
   if (!textureUniformsValid || !bgfx::isValid(this->textureSampler) ||
       !bgfx::isValid(this->coinDepthUniform) ||
+      !bgfx::isValid(this->alphaTestUniform) ||
       !bgfx::isValid(this->textureParamsUniform) ||
       !bgfx::isValid(this->textureBlendUniform) ||
       !bgfx::isValid(this->textureCombineUniform) ||
@@ -1631,6 +1650,8 @@ CoinBgfxBackend::bindDrawLighting(const CoinBgfxDraw & draw, int targetHeight)
   const float door[4] = {draw.screenDoor[0], float(targetHeight > 0 ? targetHeight : this->height),
     bgfx::getCaps()->originBottomLeft ? 1.0f : 0.0f, draw.screenDoor[3]};
   bgfx::setUniform(this->screenDoorUniform, door);
+  const float alphaTest[4] = {static_cast<float>(draw.alphaTestFunction), draw.alphaTestReference, 0.0f, 0.0f};
+  bgfx::setUniform(this->alphaTestUniform, alphaTest);
   bgfx::setUniform(this->clipMetaUniform, draw.clipMeta);
   bgfx::setUniform(this->clipPlanesUniform, draw.clipPlanes, COIN_RENDER_MAX_CLIP_PLANES);
   // Use two D24 LSBs on GL to survive the gl_FragCoord-to-gl_FragDepth
@@ -1683,7 +1704,7 @@ CoinBgfxBackend::encodeSortedLayers(const std::vector<CoinBgfxDraw> & draws,
     bgfx::touch(view);
     // Opaque geometry supplies the occlusion depth in every peel pass.
     for (const CoinBgfxDraw & draw : draws) {
-      if (draw.renderLayer != 0 || (draw.blend && draw.deferred) || !draw.depthWrite)
+      if (draw.renderLayer != 0 || (draw.blend && draw.deferred) || !draw.depthTest || !draw.depthWrite)
         continue;
       bgfx::setTransform(draw.mvp);
       bgfx::setVertexBuffer(0, vertices);
@@ -1779,7 +1800,7 @@ CoinBgfxBackend::encodeWeightedOit(const std::vector<CoinBgfxDraw> & draws,
   // Rebuild only opaque depth so transparent fragments behind opaque Coin
   // geometry cannot contribute to either accumulation attachment.
   for (const CoinBgfxDraw & draw : draws) {
-    if (draw.renderLayer != 0 || (draw.blend && draw.deferred) || !draw.depthWrite)
+    if (draw.renderLayer != 0 || (draw.blend && draw.deferred) || !draw.depthTest || !draw.depthWrite)
       continue;
     bgfx::setTransform(draw.mvp);
     bgfx::setVertexBuffer(0, vertices);

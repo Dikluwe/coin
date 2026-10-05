@@ -5,6 +5,7 @@
 #endif
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
+#include "rendering/coinrender/CoinRenderAlphaTestCore.h"
 #include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
 #include <Inventor/nodes/SoSceneTexture2.h>
 #include "rendering/coinrender/CoinRenderTextureCombineCore.h"
@@ -373,6 +374,10 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
         state.depthFunction != CoinRenderDepthFunction::GREATER &&
         state.depthFunction != CoinRenderDepthFunction::NOTEQUAL) {
       if (outDiagnostic) *outDiagnostic = "Unsupported depth comparison function";
+      return false;
+    }
+    if (!coin_render_alpha_test_valid(state.alphaTestFunction, state.alphaTestReference)) {
+      if (outDiagnostic) *outDiagnostic = "Invalid alpha comparison function or reference";
       return false;
     }
     if (!isFiniteF(state.polygonOffsetFactor) || !isFiniteF(state.polygonOffsetUnits) ||

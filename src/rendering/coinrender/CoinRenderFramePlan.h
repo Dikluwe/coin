@@ -246,6 +246,12 @@ struct CoinRenderTextureCombineSnapshot {
   float instructions[4][4] = {};
 };
 
+// Portable alpha comparisons; these values are not OpenGL enum constants.
+enum class CoinRenderAlphaTestFunction : uint32_t {
+  NONE = 0, NEVER = 1, ALWAYS = 2, LESS = 3, LEQUAL = 4, EQUAL = 5,
+  GEQUAL = 6, GREATER = 7, NOTEQUAL = 8
+};
+
 struct CoinRenderTextureUnitSnapshot {
   bool enabled = false;
   uint32_t imageSlot = 0, samplerSlot = 0;
@@ -267,6 +273,8 @@ struct CoinRenderRenderStateSnapshot {
   CoinRenderFrontFace frontFace = CoinRenderFrontFace::CCW;
   bool depthTest = true;
   bool depthWrite = true;
+  CoinRenderAlphaTestFunction alphaTestFunction = CoinRenderAlphaTestFunction::NONE;
+  float alphaTestReference = 0.5f; // GL resolves the reference into [0,1].
   uint32_t explicitDepthMask = 0; // test=1, write=2, function=4, range=8; path replay overrides.
   CoinRenderDepthFunction depthFunction = CoinRenderDepthFunction::LESS;
   float depthRange[2] = {0.0f, 1.0f};

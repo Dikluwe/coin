@@ -11,7 +11,9 @@ captura explícita na camada comum. `CoinRenderAction` decide a captura depois
 dos callbacks anteriores do usuário; subclasses conservam sua callback virtual.
 O serviço privado de fontes do Coin fornece os mesmos glifos e medidas usados
 pelo CoinGL. Nenhuma classe pública do Coin foi alterada. A ponte privada de
-fontes só é compilada com `COIN_BUILD_RENDER`; a ABI C wgpu permanece na revisão 43.
+fontes só é compilada com `COIN_BUILD_RENDER`. A captura de raster manteve a ABI
+C wgpu na revisão 43; a implementação posterior de `SoAlphaTest` passa à revisão
+44, conforme o [contrato de fragmentos](coin-render-fragment-policy-contract.md).
 CoinRender precisa da biblioteca Coin produzida por esse mesmo build, que inclui
 o serviço privado de glifos; uma Coin anterior não oferece esses símbolos.
 
@@ -37,8 +39,9 @@ callbacks externos e recuperação após entradas recusadas. Logs em
 As 279 comparações GPU passaram, com erro RGB máximo de 1/255 e MAE máximo
 de 0,366667 por canal na região avaliada. Também passaram 27 gates de regressão
 de action, captura, composição, textura, multitextura, depth, reuse e RTT.
-O snapshot de estado continua com 1.640 bytes neste build; as novas flags usam
-o padding existente. A configuração `COIN_BUILD_RENDER=OFF` foi verificada
+O snapshot de estado dessa campanha de raster tinha 1.640 bytes; suas flags
+usam o padding existente. A implementação posterior de `SoAlphaTest` leva o
+snapshot a 1.648 bytes neste build Linux. A configuração `COIN_BUILD_RENDER=OFF` foi verificada
 sem a ponte de fontes no grafo de build, sem uma compilação completa OFF.
 Essa qualificação cobre Linux/NVIDIA, wgpu/Vulkan e BGFX/Vulkan/OpenGL;
 não certifica Windows, outras GPUs ou todos os consumidores FreeCAD.

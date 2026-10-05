@@ -182,6 +182,9 @@ CoinRenderRecordingBackend::recordToString(const CoinRenderFramePlan & frame) co
     if (rs.rasterPixels)
       out << " rasterPixels=1 rasterTransparent=" << (rs.rasterTransparent ? "1" : "0")
           << " rasterForceBlend=" << (rs.rasterForceBlend ? "1" : "0");
+    if (rs.alphaTestFunction != CoinRenderAlphaTestFunction::NONE)
+      out << " alphaTestFunction=" << static_cast<uint32_t>(rs.alphaTestFunction)
+          << " alphaTestReference=" << formatFloat(rs.alphaTestReference);
     if (rs.polygonOffsetSlopeBias != 0)
       out << " offsetSlopeBias=" << formatFloat(rs.polygonOffsetSlopeBias);
     if (rs.hasTexture) {

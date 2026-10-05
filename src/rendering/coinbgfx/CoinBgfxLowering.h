@@ -74,6 +74,8 @@ struct CoinBgfxDraw {
   float polygonOffsetFactor = 0.0f; // Effective, style-filtered bias.
   float polygonOffsetUnits = 0.0f;
   float polygonOffsetSlopeBias = 0.0f;
+  CoinRenderAlphaTestFunction alphaTestFunction = CoinRenderAlphaTestFunction::NONE;
+  float alphaTestReference = 0.5f;
   bool blend = false;
   SbUniqueId sourceNodeId = 0;
   bool sortTriangles = false;

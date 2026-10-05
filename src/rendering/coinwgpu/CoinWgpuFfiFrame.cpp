@@ -7,6 +7,7 @@
 #include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
 #include "rendering/coinrender/CoinRenderTransformCore.h"
 #include "rendering/coinrender/CoinRenderClipCore.h"
+#include "rendering/coinrender/CoinRenderAlphaTestCore.h"
 
 #include <Inventor/SbMatrix.h>
 #include "rendering/coinrender/CoinRenderComposition.h"
@@ -63,7 +64,9 @@ static_assert(sizeof(CoinWgpuTextureUnit) == 96, "Texture unit ABI size changed"
 static_assert(offsetof(CoinWgpuVertex, extra_texcoords) == 44, "Extra UV ABI offset changed");
 static_assert(offsetof(CoinWgpuRenderState, extra_textures) == 1096, "Extra textures ABI offset changed");
 static_assert(offsetof(CoinWgpuRenderState, texture_combines) == 1768, "Combine ABI offset changed");
-static_assert(sizeof(CoinWgpuRenderState) == 2280, "CoinWgpuRenderState ABI size changed");
+static_assert(sizeof(CoinWgpuRenderState) == 2288, "CoinWgpuRenderState ABI size changed");
+static_assert(offsetof(CoinWgpuRenderState, alpha_test_function) == 2280, "Alpha function ABI tail changed");
+static_assert(offsetof(CoinWgpuRenderState, alpha_test_reference) == 2284, "Alpha reference ABI tail changed");
 static_assert(offsetof(CoinWgpuRenderState, polygon_offset_max_depth_bits) == 1092, "Maximum depth ABI offset changed");
 static_assert(offsetof(CoinWgpuRenderState, polygon_offset_slope_bias) == 1088, "Slope bias ABI offset changed");
 static_assert(offsetof(CoinWgpuRenderState, polygon_offset_enabled) == 936, "Polygon offset ABI tail changed");
@@ -182,6 +185,8 @@ bool sameOpaquePackedFields(const CoinRenderRenderStateSnapshot & a,
                             const CoinRenderRenderStateSnapshot & b)
 {
   if (std::memcmp(a.textureMatrix.getValue(), b.textureMatrix.getValue(), sizeof(float) * 16) ||
+      a.alphaTestFunction != b.alphaTestFunction ||
+      std::memcmp(&a.alphaTestReference, &b.alphaTestReference, sizeof(float)) ||
       std::memcmp(a.textureCombines, b.textureCombines, sizeof(a.textureCombines)) ||
       a.textureImageSlot != b.textureImageSlot || a.samplerSlot != b.samplerSlot ||
       a.textureModel != b.textureModel ||
@@ -843,6 +848,7 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
   const bool fastCommon = !(commonDisabled && std::strcmp(commonDisabled, "1") == 0);
   for (const auto & state : frame.renderStates) {
     if (!CoinRenderTransformCore::finiteMatrix(state.model) ||
+        coin_render_alpha_test_active(state.alphaTestFunction) ||
         state.model[0][3] != 0 || state.model[1][3] != 0 || state.model[2][3] != 0 || state.model[3][3] != 1 ||
         std::memcmp(state.view.getValue(), first.view.getValue(), sizeof(float) * 16) ||
         std::memcmp(state.projectionCoin.getValue(), first.projectionCoin.getValue(), sizeof(float) * 16) ||
@@ -914,7 +920,7 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
       }
       else {
         // Every state is visited, including unreferenced states. Common source
-        // equality proves the ordinary packed key without rewriting 2280 bytes
+        // equality proves the ordinary packed key without rewriting 2288 bytes
         // or computing an MVP which the instanced payload discards.
         modelView = frame.renderStates[i].model * frame.renderStates[i].view;
         normal = CoinRenderTransformCore::normalMatrix(modelView);
@@ -1051,7 +1057,7 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
   return true;
 }
 
-// Qualify without allocating one 2280-byte GPU state per occurrence. Every
+// Qualify without allocating one 2288-byte GPU state per occurrence. Every
 // captured state still passes the ordinary packer; only its two bake matrices
 // survive the scan. Publication happens after all draws and states qualify.
 // Unsupported profiles keep the full pack-then-batch mechanism below.
@@ -1072,6 +1078,7 @@ CoinWgpuFfiFrame::tryEarlyOpaqueBatch(const CoinRenderFramePlan & frame,
   const auto & firstState = frame.renderStates.front();
   for (const auto & state : frame.renderStates) {
     if (state.hasTexture || state.fogMode != CoinRenderFogMode::NONE ||
+        coin_render_alpha_test_active(state.alphaTestFunction) ||
         !state.clipPlanesWorld.empty() || state.polygonOffsetEnabled ||
         state.cullMode != firstState.cullMode || state.frontFace != firstState.frontFace ||
         state.lightModel != firstState.lightModel || state.lightingSlot != firstState.lightingSlot ||
@@ -1393,6 +1400,16 @@ CoinWgpuFfiFrame::packState(const CoinRenderFramePlan & frame,
                            uint32_t targetWidth, uint32_t targetHeight,
                            CoinWgpuRenderState & dst, std::string & outDiagnostic)
 {
+  if (!coin_render_alpha_test_valid(src.alphaTestFunction, src.alphaTestReference)) {
+    outDiagnostic = "Invalid alpha comparison function or reference";
+    return false;
+  }
+  if (!frame.shadowGroups.empty() && coin_render_alpha_test_active(src.alphaTestFunction)) {
+    outDiagnostic = "Active alpha test requires alpha-aware shadow-map casters";
+    return false;
+  }
+  dst.alpha_test_function = static_cast<uint32_t>(src.alphaTestFunction);
+  dst.alpha_test_reference = src.alphaTestReference;
   dst.clip_plane_count = static_cast<uint32_t>(src.clipPlanesWorld.size());
   if (!coin_render_clip_equations(src, dst.clip_planes, outDiagnostic)) return false;
   const SbMatrix modelView = src.model * src.view;

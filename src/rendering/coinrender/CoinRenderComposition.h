@@ -2,6 +2,7 @@
 #define COIN_RENDER_COMPOSITION_H
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
+#include "rendering/coinrender/CoinRenderAlphaTestCore.h"
 #include "rendering/coinrender/CoinRenderTextureCombineCore.h"
 #include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
 #include <Inventor/actions/SoGLRenderAction.h>
@@ -257,7 +258,11 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
       return false;
     }
     const float alpha = frame.materials[rs.materialSlot].diffuse[3];
-    bool materialAlpha = alpha < 1.0f;
+    // Packed primary alpha can round a native transparent material to opaque.
+    // Preserve Coin's original traversal classification before texture proofs.
+    const bool nativeMaterialAlpha =
+      coin_render_alpha_test_active(rs.alphaTestFunction) && rs.transparentMaterial;
+    bool materialAlpha = alpha < 1.0f || nativeMaterialAlpha;
     const size_t first = draw.geometry.firstIndex;
     const size_t count = draw.geometry.indexCount;
     if (first > frame.indices.size() || count > frame.indices.size() - first) {
@@ -337,6 +342,10 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
       else if (tex.model != CoinRenderTextureModel::DECAL)
         materialAlpha = materialAlpha || cached != 0;
     }
+
+    // Coin's traversal flag precedes shading, including an opaque REPLACE or
+    // combine result that replaces packed primary alpha with one.
+    materialAlpha = materialAlpha || nativeMaterialAlpha;
 
     CoinRenderCompositionItem item;
     item.drawIndex = i;

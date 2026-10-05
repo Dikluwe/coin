@@ -35,6 +35,7 @@ coin_render_same_state_except_camera(const CoinRenderRenderStateSnapshot & a,
     a.explicitDepthMask == b.explicitDepthMask &&
     a.screenDoorTransparency == b.screenDoorTransparency &&
     a.depthFunction == b.depthFunction &&
+    a.alphaTestFunction == b.alphaTestFunction && a.alphaTestReference == b.alphaTestReference &&
     std::memcmp(a.depthRange, b.depthRange, sizeof(a.depthRange)) == 0 &&
     a.polygonOffsetEnabled == b.polygonOffsetEnabled &&
     a.polygonOffsetFactor == b.polygonOffsetFactor &&

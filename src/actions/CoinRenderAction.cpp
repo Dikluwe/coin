@@ -94,6 +94,7 @@
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderSelectionCore.h"
+#include "rendering/coinrender/CoinRenderAlphaTestCapture.h"
 #include "rendering/coinrender/CoinRenderPhaseTimer.h"
 #include "actions/SoSubActionP.h"
 
@@ -110,6 +111,7 @@ CoinRenderAction::initClass(void)
   SO_ENABLE(CoinRenderAction, CoinRenderDepthPolicyElement);
   SO_ACTION_ADD_METHOD(SoImage, CoinRenderActionP::screenContentMethod);
   SO_ACTION_ADD_METHOD(SoText2, CoinRenderActionP::screenContentMethod);
+  SO_ACTION_ADD_METHOD(SoAlphaTest, CoinRenderActionP::alphaTestMethod);
 }
 
 SbBool
@@ -1350,6 +1352,14 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     return;
   }
   if (!plan.shadowGroups.empty()) {
+    for (const auto & state : plan.renderStates) {
+      if (coin_render_alpha_test_active(state.alphaTestFunction)) {
+        this->setDiagnostic(CoinRenderDiagnosticShell::action(
+          CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+          SbString("Active SoAlphaTest requires alpha-aware shadow-map caster capture")));
+        return;
+      }
+    }
     CoinRenderShadowPlan shadowPlan;
     std::string shadowDiagnostic;
     if (!coin_render_plan_shadows(plan, shadowPlan, shadowDiagnostic)) {
@@ -1614,6 +1624,27 @@ CoinRenderActionP::textureCombinePreCB(void * userdata, SoCallbackAction* action
   // Use the node's own field/override interpretation with our enabled state.
   const_cast<SoTextureCombine*>(static_cast<const SoTextureCombine*>(node))->doAction(action);
   return SoCallbackAction::CONTINUE;
+}
+
+void
+CoinRenderActionP::alphaTestMethod(SoAction * action, SoNode * node)
+{
+  auto * render = static_cast<CoinRenderAction *>(action);
+  if (render->hasTerminated()) return;
+  render->setCurrentNode(node);
+  render->invokePreCallbacks(node);
+  if (render->getCurrentResponse() == SoCallbackAction::CONTINUE) {
+    if (!coin_render_capture_alpha_node(*static_cast<const SoAlphaTest *>(node), render->getState())) {
+      render->pimpl->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::INVALID_SCENE,
+        CoinRenderDiagnosticDomain::FRAME_PLAN, SbString("SoAlphaTest has invalid function or NaN reference")));
+      render->setTerminated(TRUE);
+    } else {
+      // Preserve subclass callback behavior after interpreting inherited fields.
+      // This virtual callback remains responsible for any subclass-specific state.
+      node->callback(render);
+    }
+  }
+  render->invokePostCallbacks(node);
 }
 
 SoCallbackAction::Response

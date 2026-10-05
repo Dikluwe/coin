@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 43
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 44
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -180,6 +180,8 @@ typedef struct CoinWgpuRenderState {
   uint32_t polygon_offset_max_depth_bits; /* 0: absent; IEEE-754 maximum depth bits + 1 */
   CoinWgpuTextureUnit extra_textures[7];
   float texture_combines[8][4][4];
+  uint32_t alpha_test_function; /* semantic 0=None,1=Never,2=Always,3=Less,4=LEqual,5=Equal,6=GEqual,7=Greater,8=NotEqual */
+  float alpha_test_reference; /* finite and clamped to [0,1] */
 } CoinWgpuRenderState;
 
 typedef struct CoinWgpuShadowDraw {

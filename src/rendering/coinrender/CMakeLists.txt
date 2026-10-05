@@ -63,6 +63,7 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 					${_coin_bgfx_shader_dir}/coin_depth.sh
 					${_coin_bgfx_shader_dir}/coin_lighting.sh
 					${_coin_bgfx_shader_dir}/coin_surface.sh
+					${_coin_bgfx_shader_dir}/coin_alpha.sh
 					${_coin_bgfx_shader_dir}/coin_weighted.sh
 					${_coin_bgfx_shader_dir}/coin_shadow_quality.sh
 					${_coin_bgfx_shader_dir}/varying.def.sc
@@ -94,6 +95,7 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 					${_coin_bgfx_shader_dir}/coin_depth.sh
 					${_coin_bgfx_shader_dir}/coin_lighting.sh
 					${_coin_bgfx_shader_dir}/coin_surface.sh
+					${_coin_bgfx_shader_dir}/coin_alpha.sh
 					${_coin_bgfx_shader_dir}/coin_weighted.sh
 					${_coin_bgfx_shader_dir}/varying.def.sc
 				VERBATIM)
@@ -130,6 +132,7 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 					${_coin_bgfx_shader_dir}/coin_depth.sh
 					${_coin_bgfx_shader_dir}/coin_lighting.sh
 					${_coin_bgfx_shader_dir}/coin_surface.sh
+					${_coin_bgfx_shader_dir}/coin_alpha.sh
 					${_coin_bgfx_shader_dir}/coin_weighted.sh
 					${_coin_bgfx_shader_dir}/varying.def.sc
 				VERBATIM)

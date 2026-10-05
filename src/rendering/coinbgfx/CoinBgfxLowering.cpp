@@ -8,6 +8,7 @@
 #include "rendering/coinrender/CoinRenderClipCore.h"
 #include "rendering/coinrender/CoinRenderTransformCore.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
+#include "rendering/coinrender/CoinRenderAlphaTestCore.h"
 
 #include <cmath>
 #include <algorithm>
@@ -178,6 +179,8 @@ int compareDrawGroupingKey(const CoinBgfxDraw & lhs,
   if (result == 0) result = compareValue(lhs.polygonOffsetFactor, rhs.polygonOffsetFactor);
   if (result == 0) result = compareValue(lhs.polygonOffsetUnits, rhs.polygonOffsetUnits);
   if (result == 0) result = compareValue(lhs.polygonOffsetSlopeBias, rhs.polygonOffsetSlopeBias);
+  if (result == 0) result = compareValue(lhs.alphaTestFunction, rhs.alphaTestFunction);
+  if (result == 0) result = compareBytes(&lhs.alphaTestReference, &rhs.alphaTestReference, sizeof(lhs.alphaTestReference));
   if (result == 0) result = compareBytes(lhs.clipMeta, rhs.clipMeta, sizeof(lhs.clipMeta));
   if (result == 0) result = compareBytes(lhs.clipPlanes, rhs.clipPlanes, sizeof(lhs.clipPlanes));
   if (result == 0) result = compareBytes(lhs.viewport, rhs.viewport, sizeof(lhs.viewport));
@@ -329,6 +332,8 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
   drawTemplate.cullMode = firstState.cullMode;
   drawTemplate.frontFace = firstState.frontFace;
   drawTemplate.depthFunction = firstState.depthFunction;
+  drawTemplate.alphaTestFunction = firstState.alphaTestFunction;
+  drawTemplate.alphaTestReference = firstState.alphaTestReference;
   drawTemplate.alpha = 1.0f;
   drawTemplate.viewport[0] = viewport.x; drawTemplate.viewport[1] = viewport.y;
   drawTemplate.viewport[2] = viewport.width; drawTemplate.viewport[3] = viewport.height;
@@ -366,6 +371,11 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
     const auto declineDraw = [&](const std::string & reason) {
       return decline("draw " + std::to_string(item.drawIndex) + ": " + reason);
     };
+    if (coin_render_alpha_test_active(state.alphaTestFunction))
+      return declineDraw("alpha test requires the general surface shader");
+    if (state.alphaTestFunction != drawTemplate.alphaTestFunction ||
+        std::memcmp(&state.alphaTestReference, &drawTemplate.alphaTestReference, sizeof(state.alphaTestReference)) != 0)
+      return declineDraw("different inactive alpha-test state");
     if (item.drawIndex != ordinal || item.firstIndex != geometry.firstIndex ||
         item.indexCount != geometry.indexCount) return declineDraw("composition order/range");
     if (item.blend || (item.screenDoor && item.screenDoorLevel != 0) || item.sortTriangles || item.additive)
@@ -572,6 +582,14 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     return false;
   }
   if ((!preflight || !preflight->compositionFor(frame)) && !frame.isValid(&diagnostic)) return false;
+  if (!frame.shadowGroups.empty()) {
+    for (const auto & draw : frame.draws) {
+      if (coin_render_alpha_test_active(frame.renderStates[draw.renderStateSlot].alphaTestFunction)) {
+        diagnostic = "BGFX alpha test with shadow maps requires an alpha-tested caster contract";
+        return false;
+      }
+    }
+  }
   std::vector<CoinRenderCompositionItem> order;
   if (!coin_render_composition_schedule(frame, order, diagnostic, preflight))
     return false;
@@ -741,6 +759,8 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     lowered.depthFunction = item.depthFunction;
     lowered.depthRange[0] = item.depthRange[0];
     lowered.depthRange[1] = item.depthRange[1];
+    lowered.alphaTestFunction = state.alphaTestFunction;
+    lowered.alphaTestReference = state.alphaTestReference;
     if (state.polygonOffsetEnabled &&
         (state.polygonOffsetStyles & state.polygonOffsetPrimitiveStyle) != 0) {
       lowered.polygonOffsetFactor = state.polygonOffsetFactor;
@@ -1186,6 +1206,9 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
           state.hasTexture || state.transparentMaterial || state.transparentTexture ||
           !state.clipPlanesWorld.empty() || state.fogMode != CoinRenderFogMode::NONE || state.shadowGroupSlot ||
           state.polygonOffsetEnabled || state.polygonLinePattern || state.linePattern != 0xffffu ||
+          coin_render_alpha_test_active(state.alphaTestFunction) ||
+          state.alphaTestFunction != draw.alphaTestFunction ||
+          std::memcmp(&state.alphaTestReference, &draw.alphaTestReference, sizeof(state.alphaTestReference)) != 0 ||
           state.explicitDepthMask || state.cullMode != draw.cullMode || state.frontFace != draw.frontFace ||
           !state.depthTest || !state.depthWrite || state.depthFunction != draw.depthFunction ||
           state.depthRange[0] != draw.depthRange[0] || state.depthRange[1] != draw.depthRange[1])
@@ -1269,6 +1292,8 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
         state.depthFunction != previous.depthFunction ||
         state.depthRange[0] != previous.depthRange[0] ||
         state.depthRange[1] != previous.depthRange[1] ||
+        state.alphaTestFunction != previous.alphaTestFunction ||
+        std::memcmp(&state.alphaTestReference, &previous.alphaTestReference, sizeof(state.alphaTestReference)) != 0 ||
         ((state.polygonOffsetEnabled &&
           (state.polygonOffsetStyles & state.polygonOffsetPrimitiveStyle))
           ? state.polygonOffsetFactor : 0.0f) != previous.polygonOffsetFactor ||

@@ -91,6 +91,7 @@ public:
   static SoCallbackAction::Response textureUnitsPreCB(void *, SoCallbackAction *, const SoNode *);
   static SoCallbackAction::Response shapePostCB(void *, SoCallbackAction *, const SoNode *);
   static SoCallbackAction::Response textureCombinePreCB(void *, SoCallbackAction *, const SoNode *);
+  static void alphaTestMethod(SoAction *, SoNode *);
   static SoCallbackAction::Response unsupportedEffectPreCB(void *, SoCallbackAction *, const SoNode *);
 
   static SoCallbackAction::Response sceneTexturePreCB(void * userdata,

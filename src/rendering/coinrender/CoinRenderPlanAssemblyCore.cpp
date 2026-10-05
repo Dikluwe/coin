@@ -189,6 +189,8 @@ uint32_t CoinRenderPlanAssemblyCore::state(CoinRenderFramePlan & plan, StateInde
         existing.depthTest == rs.depthTest &&
         existing.depthWrite == rs.depthWrite &&
         existing.depthFunction == rs.depthFunction &&
+        existing.alphaTestFunction == rs.alphaTestFunction &&
+        existing.alphaTestReference == rs.alphaTestReference &&
         existing.explicitDepthMask == rs.explicitDepthMask &&
         existing.screenDoorTransparency == rs.screenDoorTransparency &&
         existing.depthRange[0] == rs.depthRange[0] &&

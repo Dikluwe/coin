@@ -19,6 +19,7 @@ uniform vec4 u_fogRange;
 uniform vec4 u_screenDoor;
 uniform vec4 u_clipMeta;
 uniform vec4 u_clipPlanes[8];
+#include "coin_alpha.sh"
 
 vec2 coinSurfaceUv(vec2 uv, vec4 params)
 {
@@ -107,6 +108,7 @@ vec4 coinSurfaceColor(vec2 pixelCoord, vec4 v_color0, vec2 v_texcoord0, vec3 v_v
   if (u_texParams[7].x > 0.5)
     color = coinTextureProgram(primary, color, texture2D(s_texColor7, coinSurfaceUv(v_texcoords7.xy, u_texParams[7])), u_texParams[7], u_texBlend[7], 7);
 #endif
+  coinAlphaTest(color.a);
   float mode = u_fogColorMode.w;
   if (mode < 0.5) return color;
   float distanceToEye = max(-v_viewPosition.z, 0.0);

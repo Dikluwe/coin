@@ -29,7 +29,7 @@ mod shader_profile;
 mod depth_transfer;
 mod instancing;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 43;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 44;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
@@ -250,6 +250,7 @@ pub struct CoinWgpuUniforms {
     pub shadow_params_fourth: [f32; 4],
     pub shadow_meta_fourth: [f32; 4],
     pub shadow_falloff_fourth: [f32; 4],
+    pub alpha_test: [f32; 4],
 }
 
 #[repr(C)]
@@ -306,6 +307,13 @@ pub struct CoinWgpuRenderState {
     pub polygon_offset_max_depth_bits: u32,
     pub extra_textures: [CoinWgpuTextureUnit; 7],
     pub texture_combines: [[[f32; 4]; 4]; 8],
+    pub alpha_test_function: u32,
+    pub alpha_test_reference: f32,
+}
+
+fn valid_alpha_test(st: &CoinWgpuRenderState) -> bool {
+    st.alpha_test_function <= 8 && st.alpha_test_reference.is_finite()
+        && (0.0..=1.0).contains(&st.alpha_test_reference)
 }
 
 // Validate the normalized transport program, without interpreting Coin enums.
@@ -356,7 +364,9 @@ const _: () = {
     assert!(std::mem::offset_of!(CoinWgpuRenderState, extra_textures) == 1096);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, texture_combines) == 1768);
     assert!(std::mem::size_of::<CoinWgpuVertex>() == 100);
-    assert!(std::mem::size_of::<CoinWgpuRenderState>() == 2280);
+    assert!(std::mem::size_of::<CoinWgpuRenderState>() == 2288);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, alpha_test_function) == 2280);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, alpha_test_reference) == 2284);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, polygon_offset_max_depth_bits) == 1092);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, polygon_offset_slope_bias) == 1088);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, clip_plane_count) == 956);
@@ -941,6 +951,8 @@ impl CachedOffscreenAttachments {
 }
 
 fn same_camera_independent_state(a: &CoinWgpuRenderState, b: &CoinWgpuRenderState) -> bool {
+    if a.alpha_test_function != b.alpha_test_function ||
+        a.alpha_test_reference.to_bits() != b.alpha_test_reference.to_bits() { return false; }
     a.light_direction == b.light_direction && a.light_color == b.light_color
         && a.light_intensity == b.light_intensity && a.has_light == b.has_light
         && a.material_slot == b.material_slot && a.cull_mode == b.cull_mode
@@ -2885,6 +2897,13 @@ fn encode_frame(
     peel_passes: u32,
 ) -> Result<(wgpu::CommandBuffer, Option<InstancedGpuBuffers>), (CoinWgpuStatus, String)> {
     use wgpu::util::DeviceExt;
+    if !states_slice.iter().all(valid_alpha_test) {
+        return Err((CoinWgpuStatus::InvalidArgument, "Invalid alpha comparison function or reference".into()));
+    }
+    if shadow_frame.is_some() && states_slice.iter().any(|st|
+        st.alpha_test_function != 0 && st.alpha_test_function != 2) {
+        return Err((CoinWgpuStatus::Unsupported, "Active alpha test requires alpha-aware shadow-map casters".into()));
+    }
     let instanced = !instances_slice.is_empty();
     if instanced && (ctx.device.limits().max_storage_buffers_per_shader_stage < 2
         || std::mem::size_of_val(instances_slice) as u64
@@ -3922,7 +3941,7 @@ fn encode_frame(
                     item.blend && !is_peel && !is_weighted,
                     item.additive,
                     is_peel,
-                    is_peel || st.depth_write != 0,
+                    is_peel || (st.depth_test != 0 && st.depth_write != 0),
                     if is_peel {
                         wgpu::CompareFunction::LessEqual
                     } else {
@@ -4053,6 +4072,7 @@ fn encode_frame(
                     flags
                 });
                 let uniforms = CoinWgpuUniforms {
+                    alpha_test: [st.alpha_test_function as f32, st.alpha_test_reference, 0.0, 0.0],
                     model_view_projection: mvp,
                     model_view: mv,
                     normal_matrix: nm,
@@ -4087,7 +4107,7 @@ fn encode_frame(
                         if is_peel { (peel_step + 1) as f32 } else { 0.0 },
                         st.depth_test as f32,
                         st.depth_function as f32,
-                        st.depth_write as f32,
+                        if st.depth_test != 0 && st.depth_write != 0 { 1.0 } else { 0.0 },
                     ],
                     tex_params: [
                         if st.has_texture != 0 { 1.0 } else { 0.0 },
@@ -5075,6 +5095,10 @@ fn coin_wgpu_surface_submit_internal(
                 Ok(s) => s,
                 Err(st) => return st,
             };
+        if !states_slice.iter().all(valid_alpha_test) {
+            set_error(error_buf, error_buf_len, "Invalid alpha comparison function or reference");
+            return CoinWgpuStatus::InvalidArgument;
+        }
         let owned_patch = RUNTIME_CTX.lock().ok().and_then(|guard| {
             let runtime = guard.as_ref()?;
             if !runtime.surfaces.contains_key(&surface_id) { return None; }
@@ -5999,6 +6023,11 @@ fn coin_wgpu_submit_internal(
                 Ok(s) => s,
                 Err(st) => return st,
             };
+
+        if !states_slice.iter().all(valid_alpha_test) {
+            set_error(error_buf, error_buf_len, "Invalid alpha comparison function or reference");
+            return CoinWgpuStatus::InvalidArgument;
+        }
 
         let owned_patch = if out_texture.is_null() && f.frame_revision != 0
             && f.texture_count == 0 && f.sampler_count == 0 {

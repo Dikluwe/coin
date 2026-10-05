@@ -55,6 +55,7 @@
 #include <Inventor/elements/SoCreaseAngleElement.h>
 #include <Inventor/elements/SoLightModelElement.h>
 #include <Inventor/elements/SoShapeStyleElement.h>
+#include "rendering/coinrender/CoinRenderAlphaTestCapture.h"
 #include <Inventor/elements/SoLazyElement.h>
 #include <Inventor/elements/SoMultiTextureImageElement.h>
 #include <Inventor/elements/SoMultiTextureEnabledElement.h>
@@ -458,6 +459,25 @@ CoinRenderFramePlanBuilder::captureMaterial(SoCallbackAction * action, int mater
   matSnap.shininess = shin;
   matSnap.transparency = transp;
 
+  if (state) {
+    CoinRenderAlphaTestFunction alphaTestFunction;
+    float alphaTestReference;
+    if (!coin_render_snapshot_alpha_test(state, alphaTestFunction, alphaTestReference)) {
+      this->hasError = true;
+      this->builderError = "SoAlphaTest state has invalid function or NaN reference";
+    } else if (coin_render_alpha_test_active(alphaTestFunction) &&
+               std::isfinite(transp) && transp >= 0.0f && transp <= 1.0f &&
+               std::isfinite(matSnap.diffuse[3]) &&
+               matSnap.diffuse[3] >= 0.0f && matSnap.diffuse[3] <= 1.0f) {
+      // Coin sends primary alpha through its packed glColor4ub value before
+      // texture operations and alpha testing. Normalize that source here;
+      // executors consume the snapshot without a Coin-specific packing rule.
+      matSnap.diffuse[3] = SoShapeStyleElement::getTransparencyType(state) == SoGLRenderAction::SCREEN_DOOR
+        ? 1.0f : std::floor(matSnap.diffuse[3] * 255.0f + 0.5f) / 255.0f;
+      matSnap.transparency = 1.0f - matSnap.diffuse[3];
+    }
+  }
+
   return this->internMaterial(matSnap);
 }
 
@@ -480,6 +500,7 @@ CoinRenderFramePlanBuilder::captureTexture(SoCallbackAction * action, CoinRender
     CoinRenderRenderStateSnapshot captured;
     if (!captureTextureUnit(action, unit, captured, outError)) return false;
     rs.extraTextures[unit - 1] = coin_render_texture_unit(captured, 0);
+    rs.textureCombines[unit] = captured.textureCombines[0];
     rs.transparentTexture = rs.transparentTexture || captured.transparentTexture;
 
   }
@@ -615,6 +636,11 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
       break;
     case SoMultiTextureImageElement::REPLACE:
       rs.textureModel = CoinRenderTextureModel::REPLACE;
+      // Canonical RGBA storage adds opaque alpha to RGB/luminance images.
+      // Legacy REPLACE keeps the previous alpha for these base formats.
+      // An authored SoTextureCombine, compiled after capture, still takes precedence.
+      if (numComponents == 1 || numComponents == 3)
+        rs.textureCombines[0] = coin_render_replace_rgb_preserve_alpha();
       break;
     case SoMultiTextureImageElement::DECAL:
       rs.textureModel = CoinRenderTextureModel::DECAL;
@@ -829,6 +855,10 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   SoDepthBufferElement::get(state, depthTest, depthWrite, depthFunction, depthRange);
   rs.depthTest = depthTest != FALSE;
   rs.depthWrite = depthWrite != FALSE;
+  if (!coin_render_snapshot_alpha_test(state, rs.alphaTestFunction, rs.alphaTestReference)) {
+    this->hasError = true;
+    this->builderError = "SoAlphaTest state has invalid function or NaN reference";
+  }
   rs.depthFunction = static_cast<CoinRenderDepthFunction>(depthFunction);
   rs.screenDoorTransparency = SoLazyElement::getTransparency(state, 0);
   if (state->isElementEnabled(CoinRenderDepthPolicyElement::getClassStackIndex()))
@@ -1039,6 +1069,12 @@ CoinRenderFramePlanBuilder::captureScreenContent(SoCallbackAction * action, cons
     if (!visible(pass.pixelX, pass.pixelY, pass.depthCoin, admitted)) return false;
     if (!admitted) continue;
     auto rs = rasterState;
+    // Gray DrawPixels installs its own GL_GREATER test after every mono glyph;
+    // Bitmap and SoImage retain the inherited test from the scene state.
+    if (pass.alphaCutoff >= 0.0f) {
+      rs.alphaTestFunction = CoinRenderAlphaTestFunction::GREATER;
+      rs.alphaTestReference = pass.alphaCutoff;
+    }
     rs.materialSlot = pass.materialColorBaked ? whiteSlot : source.materialSlot;
     if (pass.mono && source.transparencyType == SoGLRenderAction::SCREEN_DOOR) {
       auto material = this->currentPlan.materials[source.materialSlot];

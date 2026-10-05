@@ -10,6 +10,19 @@
 // Four vec4 instructions per unit: active/RGB-op/alpha-op, RGB arguments/scale,
 // alpha arguments/scale, constant. Sources 0..3 are primary/texture/constant/previous;
 // operands 0..3 are color/complement/alpha/alpha-complement. No Coin enum reaches Infra.
+inline CoinRenderTextureCombineSnapshot coin_render_replace_rgb_preserve_alpha() {
+  CoinRenderTextureCombineSnapshot result;
+  result.instructions[0][0] = 1;
+  // Both channels use REPLACE: texture RGB and previous alpha.
+  for (int i = 0; i < 3; ++i) {
+    result.instructions[1][i] = 1;  // TEXTURE, SRC_COLOR
+    result.instructions[2][i] = 11; // PREVIOUS, SRC_ALPHA
+  }
+  result.instructions[1][3] = 1;
+  result.instructions[2][3] = 1;
+  return result;
+}
+
 inline bool coin_render_compile_combine(const SoTextureCombineElement::UnitData& raw,
                                         CoinRenderTextureCombineSnapshot& result,
                                         std::string& diagnostic) {

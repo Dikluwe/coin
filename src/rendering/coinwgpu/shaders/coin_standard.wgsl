@@ -53,6 +53,7 @@ struct Uniforms {
     shadow_params_fourth: vec4<f32>,
     shadow_meta_fourth: vec4<f32>,
     shadow_falloff_fourth: vec4<f32>,
+    alpha_test: vec4<f32>, // semantic function, clamped reference
 };
 
 struct GpuMaterial {
@@ -303,6 +304,22 @@ fn texture_layer(primary: vec4<f32>, previous: vec4<f32>, tex: vec4<f32>, params
     return vec4<f32>(mix(previous.rgb, blend.rgb, tex.rgb), previous.a * tex.a);
 }
 
+fn alpha_test_accepts(value: f32) -> bool {
+    let alpha = clamp(value, 0.0, 1.0);
+    let reference = u.alpha_test.y;
+    switch u32(u.alpha_test.x) {
+        case 0u, 2u: { return true; }
+        case 1u: { return false; }
+        case 3u: { return alpha < reference; }
+        case 4u: { return alpha <= reference; }
+        case 5u: { return alpha == reference; }
+        case 6u: { return alpha >= reference; }
+        case 7u: { return alpha > reference; }
+        case 8u: { return alpha != reference; }
+        default: { return false; }
+    }
+}
+
 fn apply_fog(color: vec4<f32>, eye_depth: f32) -> vec4<f32> {
     let mode = u.fog_color_mode.w;
     if (mode < 0.5) { return color; }
@@ -439,6 +456,7 @@ fn fragment_color(input: VertexOutput) -> vec4<f32> {
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[6], 7u);
     }
     // COIN_UPPER_TEXTURE_UNITS_END
+    if (!alpha_test_accepts(base_color.a)) { discard; }
     return apply_fog(base_color, -input.position_view.z);
 }
 

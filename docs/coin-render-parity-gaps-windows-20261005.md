@@ -11,6 +11,10 @@ BGFX/Vulkan/OpenGL. Consulte o [perfil, limites e evidência](coin-render-node-i
 As duas primeiras linhas abaixo preservam o resultado desta auditoria Windows
 anterior à implementação; a nova versão ainda exige qualificação Windows.
 
+Outra atualização Linux implementa `SoAlphaTest`, preserva o alpha anterior em
+texturas RGB/L com `REPLACE` e impede escrita de profundidade com o teste
+desligado. Consulte o [contrato e os gates](coin-render-fragment-policy-contract.md).
+
 ## Funcionalidades que faltam ou têm contrato limitado
 
 | Prioridade | Recurso Coin | Comportamento atual verificado | Dono e próximo fechamento |
