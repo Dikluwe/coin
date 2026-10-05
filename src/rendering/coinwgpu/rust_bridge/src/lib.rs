@@ -5340,11 +5340,13 @@ fn coin_wgpu_surface_submit_internal(
         LAST_SUBMITTED_SERIAL.store(sub_serial, Ordering::SeqCst);
         let local_serial = dev.last_submitted_serial.fetch_add(1, Ordering::SeqCst) + 1;
         dev.queue.submit(commands);
+        let profile_submitted = trace_phases.then(std::time::Instant::now);
         let completed = dev.completed_serial.clone();
         dev.queue.on_submitted_work_done(move || {
             completed.fetch_max(local_serial, Ordering::SeqCst);
             GLOBAL_COMPLETED_SERIAL.fetch_max(sub_serial, Ordering::SeqCst);
         });
+        let profile_notified = trace_phases.then(std::time::Instant::now);
         let mut captured_rgba = None;
         if let Some((staging, bytes_per_row)) = capture_buffer {
             let slice = staging.slice(..);
@@ -5376,6 +5378,7 @@ fn coin_wgpu_surface_submit_internal(
             staging.unmap();
             captured_rgba = Some(pixels);
         }
+        let profile_present_begin = trace_phases.then(std::time::Instant::now);
         surface_texture.present();
         let profile_presented = trace_phases.then(std::time::Instant::now);
 
@@ -5425,10 +5428,15 @@ fn coin_wgpu_surface_submit_internal(
             let capture_bytes = if readback_rgba.is_null() { 0 } else {
                 u64::from((f.width * 4 + 255) & !255) * u64::from(f.height)
             };
-            eprintln!("COIN_RENDER_PHASE rust_surface_cpu total_ms={:.6} validation_ms={:.6} acquire_ms={:.6} encode_ms={:.6} submit_present_ms={:.6} capture_requested={} capture_staging_bytes={} queue_submissions=1 command_buffers={} gpu_timing=unavailable",
+            eprintln!("COIN_RENDER_PHASE rust_surface_cpu total_ms={:.6} validation_ms={:.6} acquire_ms={:.6} encode_ms={:.6} submit_present_ms={:.6} queue_submit_ms={:.6} completion_registration_ms={:.6} capture_readback_ms={:.6} present_ms={:.6} capture_requested={} capture_staging_bytes={} queue_submissions=1 command_buffers={} gpu_timing=unavailable",
                 duration_ms(start, presented), duration_ms(start, validated),
                 duration_ms(validated, acquired), duration_ms(acquired, encoded),
-                duration_ms(encoded, presented), u8::from(!readback_rgba.is_null()),
+                duration_ms(encoded, presented),
+                duration_ms(encoded, profile_submitted.unwrap()),
+                duration_ms(profile_submitted.unwrap(), profile_notified.unwrap()),
+                duration_ms(profile_notified.unwrap(), profile_present_begin.unwrap()),
+                duration_ms(profile_present_begin.unwrap(), presented),
+                u8::from(!readback_rgba.is_null()),
                 capture_bytes, if readback_rgba.is_null() { 1 } else { 2 });
             trace_owned_resources(dev, "window", f.width, f.height, capture_bytes, 0);
             let info = dev.adapter.get_info();
