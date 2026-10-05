@@ -180,7 +180,6 @@ int testCapturedCompositionBorrow() {
   auto * model = new SoLightModel; model->model = SoLightModel::BASE_COLOR;
   root->addChild(model);
   auto * material = new SoMaterial;
-  root->addChild(material);
   auto * cube = new SoCube;
   std::vector<SoTranslation *> positions;
   for (int i = 0; i < 300; ++i) {
@@ -188,7 +187,10 @@ int testCapturedCompositionBorrow() {
     auto * translation = new SoTranslation;
     translation->translation.setValue(float(i) * .01f, 0, 0);
     positions.push_back(translation);
-    occurrence->addChild(translation); occurrence->addChild(cube); root->addChild(occurrence);
+    // The object proof requires the isolated Material/Transform/Cube scope;
+    // each syntactic material occurrence must belong to one mapped object.
+    occurrence->addChild(material); occurrence->addChild(translation);
+    occurrence->addChild(cube); root->addChild(occurrence);
   }
   std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(1, 1)));
   std::unique_ptr<CoinRenderTarget> literalTarget(CoinRenderTarget::createOffscreen(SbVec2i32(1, 1)));
