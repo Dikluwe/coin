@@ -68,7 +68,11 @@ static_assert(offsetof(CoinWgpuRenderState, fog_start) == 908, "CoinWgpuRenderSt
 static_assert(offsetof(CoinWgpuRenderState, fog_end) == 912, "CoinWgpuRenderState fog_end offset mismatch");
 
 static_assert(sizeof(CoinWgpuTarget) == 56, "CoinWgpuTarget size mismatch");
-static_assert(sizeof(CoinWgpuFrameView) == 416, "CoinWgpuFrameView size mismatch");
+static_assert(sizeof(CoinWgpuFrameView) == 448, "CoinWgpuFrameView size mismatch");
+static_assert(sizeof(CoinWgpuInstance) == 144, "CoinWgpuInstance size mismatch");
+static_assert(sizeof(CoinWgpuInstanceRange) == 16, "CoinWgpuInstanceRange size mismatch");
+static_assert(offsetof(CoinWgpuFrameView, instances) == 416, "CoinWgpuFrameView instance offset mismatch");
+static_assert(offsetof(CoinWgpuFrameView, instance_ranges) == 432, "CoinWgpuFrameView instance range offset mismatch");
 static_assert(sizeof(CoinWgpuShadowDraw) == 144, "CoinWgpuShadowDraw size mismatch");
 static_assert(sizeof(CoinWgpuShadowReceiver) == 144, "CoinWgpuShadowReceiver size mismatch");
 static_assert(sizeof(CoinWgpuNativeSurfaceDescriptor) == 32, "CoinWgpuNativeSurfaceDescriptor size mismatch");
@@ -259,7 +263,8 @@ CoinWgpuBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
                                static_cast<uint32_t>(target.size[0]),
                                static_cast<uint32_t>(target.size[1]),
                                reuse,
-                               packDiagnostic, target.submissionPreflight(frame))) {
+                               packDiagnostic, target.submissionPreflight(frame),
+                               !target.directTextureOutput)) {
     this->lastError = packDiagnostic;
     this->status = CoinRenderBackendStatus::UNSUPPORTED;
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);

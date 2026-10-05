@@ -17,11 +17,12 @@ class CoinWgpuFfiFrame {
 public:
   CoinWgpuFfiFrame();
   bool prepare(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height,
-               std::string & outDiagnostic);
+               std::string & outDiagnostic, bool allowInstancing = true);
   bool prepare(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height,
                const CoinRenderFrameReuseDecision & reuse,
                std::string & outDiagnostic,
-               const CoinRenderFramePreflight * preflight = nullptr);
+               const CoinRenderFramePreflight * preflight = nullptr,
+               bool allowInstancing = true);
   const CoinWgpuFrameView & getView() const;
   const CoinWgpuShadowFrame & getShadowFrame() const;
   bool reusedLastPrepare() const;
@@ -51,6 +52,9 @@ private:
   bool tryEarlyOpaqueBatch(const CoinRenderFramePlan & frame,
                           uint32_t width, uint32_t height,
                           const CoinRenderFramePreflight * preflight);
+  bool tryOpaqueInstancing(const CoinRenderFramePlan & frame,
+                          uint32_t width, uint32_t height,
+                          const CoinRenderFramePreflight * preflight);
   void bindView(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height);
   void batchOpaqueTriangles(const CoinRenderFramePlan & frame);
   void rememberOpaqueCamera(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height);
@@ -60,6 +64,8 @@ private:
   uint64_t packedRevision;
   bool reused;
   bool opaqueBatched;
+  bool opaqueInstanced = false;
+  double opaqueInstancePositionBound = 0;
   bool opaqueCameraPatchable;
   bool opaqueGeometryPatchable;
   SbMatrix opaqueCameraAnchor;
@@ -76,6 +82,8 @@ private:
   std::vector<CoinWgpuDraw> draws;
   std::vector<CoinWgpuMaterial> materials;
   std::vector<CoinWgpuRenderState> states;
+  std::vector<CoinWgpuInstance> instances;
+  std::vector<CoinWgpuInstanceRange> instanceRanges;
   std::vector<CoinWgpuTexture> textures;
   std::vector<CoinWgpuSampler> samplers;
   std::vector<std::vector<uint8_t> > texturePixels;

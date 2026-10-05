@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <cmath>
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
@@ -726,6 +727,319 @@ bool ownedPhongCameraBuffers() {
   return guard;
 }
 
+// Compare the storage-instance path against the old baked vertex path on a
+// second device. Both color and depth are public readback oracles; equal counts
+// and repeated revisions deliberately cannot serve as proof of equal contents.
+bool instancedOpaqueOwnership() {
+  CoinWgpuDeviceId reference = 0, peer = 0;
+  if (!createDevice(reference) || !createDevice(peer)) return false;
+  CoinWgpuVertex vertices[3]{};
+  vertices[0].position[0] = -.5f; vertices[0].position[1] = -.5f;
+  vertices[1].position[0] = .5f; vertices[1].position[1] = -.5f;
+  vertices[2].position[1] = .5f;
+  for (auto & vertex : vertices) { vertex.normal[2] = 1; vertex.screen_space_w = 1; }
+  const uint32_t indices[] = {0,1,2};
+  CoinWgpuDraw draws[2]{};
+  for (auto & draw : draws) { draw.vertex_count = 3; draw.index_count = 3; }
+  CoinWgpuMaterial materials[2]{};
+  for (auto & material : materials) {
+    material.diffuse[3] = 1; material.ambient[0] = material.ambient[1] = .1f;
+    material.specular[0] = material.specular[1] = material.specular[2] = .15f;
+    material.shininess = .25f;
+  }
+  materials[0].diffuse[0] = .85f; materials[0].diffuse[1] = .2f;
+  materials[1].diffuse[1] = .65f; materials[1].diffuse[2] = .3f;
+  CoinWgpuRenderState state{}; state.polygon_offset_primitive_style = 1;
+  state.light_model = 1; state.light_count = 1;
+  state.depth_test = 1; state.depth_write = 1; state.depth_function = 2;
+  state.depth_range[1] = 1;
+  state.lights[0].position_type[2] = 2; state.lights[0].position_type[3] = 1;
+  for (unsigned i = 0; i < 4; ++i) {
+    state.model_view[i*5] = state.model_view_projection[i*5] = state.normal_matrix[i*5] = 1;
+    state.lights[0].color_intensity[i] = 1;
+  }
+  state.lights[0].attenuation_exponent[0] = 1;
+  CoinWgpuInstance instances[2]{};
+  for (unsigned i = 0; i < 2; ++i) {
+    for (unsigned c = 0; c < 4; ++c) instances[i].model_view[c*5] = instances[i].normal_matrix[c*5] = 1;
+    instances[i].model_view[0] = .5f; instances[i].model_view[5] = .75f;
+    instances[i].model_view[12] = i ? .5f : -.5f;
+    instances[i].model_view[14] = i ? .5f : .25f;
+    instances[i].material_slot = i;
+  }
+  instances[1].normal_matrix[8] = .25f;
+  CoinWgpuInstanceRange ranges[] = {{0,0,1,0},{1,1,1,0}};
+  CoinWgpuFrameView frame = clearFrame(0,0,0);
+  frame.frame_revision = 53001;
+  frame.vertices = vertices; frame.vertex_count = 3;
+  frame.indices = indices; frame.index_count = 3;
+  frame.draws = draws; frame.draw_count = 2;
+  frame.materials = materials; frame.material_count = 2;
+  frame.states = &state; frame.state_count = 1;
+  frame.instances = instances; frame.instance_count = 2;
+  frame.instance_ranges = ranges; frame.instance_range_count = 2;
+  char error[512]{};
+  uint64_t referenceRevision = 59000;
+  auto samePixels = [&](const std::vector<uint8_t> & actual, const std::vector<uint8_t> & expected,
+                        const std::vector<float> & depth, const std::vector<float> & expectedDepth) {
+    if (actual.size() != expected.size() || depth.size() != expectedDepth.size()) return false;
+    bool wroteDepth = false;
+    for (size_t i = 0; i < actual.size(); ++i)
+      if (std::abs(int(actual[i]) - int(expected[i])) > 2) return false;
+    for (size_t i = 0; i < depth.size(); ++i) {
+      if (!std::isfinite(depth[i]) || std::abs(depth[i] - expectedDepth[i]) > 2e-6f) return false;
+      wroteDepth |= depth[i] < 1;
+    }
+    return wroteDepth;
+  };
+  auto target = [&](CoinWgpuDeviceId id, std::vector<uint8_t> & color, std::vector<float> & depth) {
+    CoinWgpuTarget result = targetFor(id, &color);
+    result.depth_buffer = depth.data(); result.depth_buffer_len = depth.size();
+    return result;
+  };
+  auto referencePixels = [&](std::vector<uint8_t> & color, std::vector<float> & depth) {
+    CoinWgpuVertex baked[6]{};
+    const uint32_t bakedIndices[] = {0,1,2,3,4,5};
+    for (unsigned i = 0; i < 2; ++i) for (unsigned v = 0; v < 3; ++v) {
+      auto & output = baked[i*3+v]; output = vertices[v];
+      const auto & instance = instances[i];
+      float normal[3]{};
+      for (unsigned r = 0; r < 3; ++r) {
+        output.position[r] = instance.model_view[r]*vertices[v].position[0]
+            + instance.model_view[4+r]*vertices[v].position[1]
+            + instance.model_view[8+r]*vertices[v].position[2] + instance.model_view[12+r];
+        normal[r] = instance.normal_matrix[r]*vertices[v].normal[0]
+            + instance.normal_matrix[4+r]*vertices[v].normal[1]
+            + instance.normal_matrix[8+r]*vertices[v].normal[2];
+      }
+      const float length = std::sqrt(normal[0]*normal[0]+normal[1]*normal[1]+normal[2]*normal[2]);
+      for (unsigned r = 0; r < 3; ++r) output.normal[r] = normal[r]/length;
+      output.material_slot = instance.material_slot;
+    }
+    CoinWgpuDraw bakedDraw{}; bakedDraw.vertex_count = bakedDraw.index_count = 6;
+    CoinWgpuFrameView bakedFrame = clearFrame(0,0,0);
+    bakedFrame.frame_revision = ++referenceRevision;
+    bakedFrame.vertices = baked; bakedFrame.vertex_count = 6;
+    bakedFrame.indices = bakedIndices; bakedFrame.index_count = 6;
+    bakedFrame.draws = &bakedDraw; bakedFrame.draw_count = 1;
+    bakedFrame.materials = materials; bakedFrame.material_count = 2;
+    bakedFrame.states = &state; bakedFrame.state_count = 1;
+    CoinWgpuTarget output = target(reference,color,depth);
+    return check(coin_wgpu_submit(&output,&bakedFrame,error,sizeof(error)) == COIN_WGPU_OK,
+                 "baked independent RGB/depth reference",error);
+  };
+  auto compare = [&](CoinWgpuDeviceId id, const CoinWgpuFrameView & submission, const char * description) {
+    std::vector<uint8_t> actual(kSide*kSide*4u,kSentinel), expected(actual);
+    std::vector<float> depth(kSide*kSide,-17), expectedDepth(depth);
+    if (!referencePixels(expected,expectedDepth)) return false;
+    CoinWgpuTarget output = target(id,actual,depth);
+    return check(coin_wgpu_submit(&output,&submission,error,sizeof(error)) == COIN_WGPU_OK &&
+                 samePixels(actual,expected,depth,expectedDepth),description,error);
+  };
+  auto nullPayload = [](CoinWgpuFrameView f) {
+    f.vertices = nullptr; f.indices = nullptr; f.draws = nullptr; f.materials = nullptr;
+    f.instances = nullptr; f.instance_ranges = nullptr;
+    return f;
+  };
+  auto reject = [&](CoinWgpuDeviceId id, const CoinWgpuFrameView & submission, CoinWgpuStatus status,
+                    const char * description) {
+    std::vector<uint8_t> color(kSide*kSide*4u,kSentinel);
+    std::vector<float> depth(kSide*kSide,-17);
+    CoinWgpuTarget output = target(id,color,depth);
+    return check(coin_wgpu_submit(&output,&submission,error,sizeof(error)) == status &&
+        unchanged(color) && std::all_of(depth.begin(),depth.end(),[](float v){ return v == -17; }) &&
+        output.submission_serial == 0,description,error);
+  };
+  auto zeroUploads = [&] {
+    CoinWgpuCacheStats stats{}; coin_wgpu_get_cache_stats(&stats);
+    return check(stats.frame_uploads == 0 && stats.frame_uploaded_bytes == 0 && stats.frame_hits >= 1,
+                 "instances static/camera must retain vertex/index/instance/material GPU buffers");
+  };
+  auto dynamicOnly = [&] {
+    CoinWgpuCacheStats stats{}; coin_wgpu_get_cache_stats(&stats);
+    // GpuMaterial: four color vec4 plus one params vec4, as in the shader.
+    return check(stats.frame_uploads == 1 && stats.frame_hits >= 1 &&
+                 stats.frame_uploaded_bytes == sizeof(instances) + 2u*5u*16u,
+                 "object/material updates must upload only instances/materials, retaining canonical geometry");
+  };
+  if (!compare(0,frame,"initial instances RGB/depth") ||
+      !compare(0,frame,"full static instance payload") || !zeroUploads()) return false;
+  // Same revision, same counts, changed object and material: exact bytes are
+  // required, even though a validated owned snapshot already exists.
+  instances[0].model_view[12] += .125f; materials[1].diffuse[1] = .3f;
+  if (!compare(0,frame,"instances changed under the same revision") || !dynamicOnly()) return false;
+  ++frame.frame_revision; instances[1].model_view[12] -= .125f;
+  instances[1].material_slot = 0; materials[0].diffuse[2] = .25f;
+  if (!compare(0,frame,"new object/material instance revision") || !dynamicOnly()) return false;
+  frame.camera_base_revision = frame.frame_revision++;
+  state.model_view[12] = state.model_view_projection[12] = .125f;
+  state.lights[0].position_type[0] = .125f;
+  if (!compare(0,nullPayload(frame),"instance camera delta with null immutable payloads") || !zeroUploads()) return false;
+  frame.camera_base_revision = frame.frame_revision++;
+  state.model_view[12] = state.model_view_projection[12] = state.lights[0].position_type[0] = 0;
+  if (!compare(0,nullPayload(frame),"instance camera returns to anchor") || !zeroUploads()) return false;
+  CoinWgpuFrameView full = frame; full.camera_base_revision = 0; ++full.frame_revision;
+  instances[0].reserved[0] = 1;
+  if (!reject(0,full,COIN_WGPU_INVALID_ARGUMENT,"instance reserved field must reject without publishing")) return false;
+  instances[0].reserved[0] = 0; ranges[1].first_instance = 0;
+  if (!reject(0,full,COIN_WGPU_INVALID_ARGUMENT,"overlapping instance ranges must reject")) return false;
+  ranges[1].first_instance = 1; instances[0].normal_matrix[0] = std::numeric_limits<float>::quiet_NaN();
+  if (!reject(0,full,COIN_WGPU_INVALID_ARGUMENT,"nonfinite instance transform must reject")) return false;
+  instances[0].normal_matrix[0] = 1;
+  CoinWgpuFrameView invalid = full; invalid.instance_count = std::numeric_limits<uint64_t>::max();
+  if (!reject(0,invalid,COIN_WGPU_UNSUPPORTED,"instance count overflow before pointer reads")) return false;
+  invalid = full; invalid.instances = reinterpret_cast<const CoinWgpuInstance *>(
+      reinterpret_cast<const char *>(instances)+1);
+  if (!reject(0,invalid,COIN_WGPU_INVALID_ARGUMENT,"misaligned instance pointer must reject")) return false;
+  uint64_t rtt = 0; CoinWgpuTarget rttTarget = targetFor(0);
+  if (!check(coin_wgpu_submit_texture(&rttTarget,&full,&rtt,error,sizeof(error)) == COIN_WGPU_UNSUPPORTED &&
+             rtt == 0 && std::string(error).find("render-to-texture") != std::string::npos,
+             "instanced RTT must reject clearly",error)) return false;
+  // A late failure must keep the former camera snapshot AND GPU buffers.
+  const CoinWgpuInstance oldInstance = instances[0]; const CoinWgpuMaterial oldMaterial = materials[0];
+  instances[0].model_view[12] += .25f; materials[0].diffuse[0] = .3f;
+  coin_wgpu_inject_async_fault(COIN_WGPU_OUT_OF_MEMORY);
+  const bool late = reject(0,full,COIN_WGPU_OUT_OF_MEMORY,"late instance OOM preserves outputs and previous base");
+  coin_wgpu_inject_async_fault(COIN_WGPU_OK);
+  if (!late) return false;
+  const CoinWgpuInstance retryInstance = instances[0]; const CoinWgpuMaterial retryMaterial = materials[0];
+  instances[0] = oldInstance; materials[0] = oldMaterial;
+  frame.camera_base_revision = frame.frame_revision++; // the last successful camera revision
+  state.model_view[12] = state.model_view_projection[12] = state.lights[0].position_type[0] = .125f;
+  if (!compare(0,nullPayload(frame),"camera after failed instance revision uses old owned payload") || !zeroUploads()) return false;
+  instances[0] = retryInstance; materials[0] = retryMaterial;
+  state.model_view[12] = state.model_view_projection[12] = state.lights[0].position_type[0] = 0;
+  frame.camera_base_revision = 0; ++frame.frame_revision;
+  if (!compare(0,frame,"retry full instance revision after late OOM") || !dynamicOnly()) return false;
+  auto submitDepthAsync = [&](const CoinWgpuFrameView & submission, CoinWgpuReadbackTicket & ticket) {
+    CoinWgpuTarget output = targetFor(0); output.depth_buffer_len = kSide*kSide;
+    ticket = CoinWgpuReadbackTicket{}; ticket.abi_version = COIN_WGPU_ABI_VERSION; ticket.struct_size = sizeof(ticket);
+    return check(coin_wgpu_submit_async(&output,&submission,&ticket,error,sizeof(error)) == COIN_WGPU_OK &&
+                 ticket.token != 0 && ticket.depth_bytes == kSide*kSide*sizeof(float),"async full instance submit with depth",error);
+  };
+  auto pollPixels = [&](const CoinWgpuReadbackTicket & ticket,
+                        const std::vector<uint8_t> & expected, const std::vector<float> & expectedDepth) {
+    std::vector<uint8_t> color(kSide*kSide*4u,kSentinel); std::vector<float> depth(kSide*kSide,-17);
+    for (unsigned i = 0; i < 10000; ++i) {
+      const CoinWgpuStatus status = coin_wgpu_readback_poll(ticket.token,color.data(),color.size(),
+          depth.data(),depth.size(),error,sizeof(error));
+      if (status == COIN_WGPU_NOT_READY) { std::this_thread::sleep_for(std::chrono::milliseconds(1)); continue; }
+      return check(status == COIN_WGPU_OK && samePixels(color,expected,depth,expectedDepth),
+                   "async instances RGB/depth match baked reference",error);
+    }
+    return check(false,"async instanced readback timeout");
+  };
+  // A readback failure follows a successful rendering submission. Its owned
+  // snapshot stays current; generation loss invalidates it independently.
+  ++frame.frame_revision; instances[1].model_view[14] = .375f;
+  CoinWgpuReadbackTicket ticket{};
+  if (!submitDepthAsync(frame,ticket)) return false;
+  coin_wgpu_inject_async_fault(COIN_WGPU_BACKEND_ERROR);
+  std::vector<uint8_t> failedColor(kSide*kSide*4u,kSentinel); std::vector<float> failedDepth(kSide*kSide,-17);
+  if (!check(coin_wgpu_readback_poll(ticket.token,failedColor.data(),failedColor.size(),failedDepth.data(),
+       failedDepth.size(),error,sizeof(error)) == COIN_WGPU_BACKEND_ERROR && unchanged(failedColor) &&
+       std::all_of(failedDepth.begin(),failedDepth.end(),[](float v){ return v == -17; }),
+       "failed instance poll preserves both outputs",error)) return false;
+  coin_wgpu_inject_async_fault(COIN_WGPU_OK);
+  frame.camera_base_revision = frame.frame_revision++;
+  state.model_view[12] = state.model_view_projection[12] = state.lights[0].position_type[0] = .125f;
+  if (!compare(0,nullPayload(frame),"camera after failed poll retains successfully submitted instance base") || !zeroUploads()) return false;
+  frame.camera_base_revision = 0; ++frame.frame_revision;
+  state.model_view[12] = state.model_view_projection[12] = state.lights[0].position_type[0] = 0;
+  std::vector<uint8_t> expected(kSide*kSide*4u,kSentinel); std::vector<float> expectedDepth(kSide*kSide,-17);
+  if (!referencePixels(expected,expectedDepth) || !submitDepthAsync(frame,ticket) || !pollPixels(ticket,expected,expectedDepth)) return false;
+  ++frame.frame_revision;
+  if (!submitDepthAsync(frame,ticket)) return false;
+  coin_wgpu_inject_async_fault(COIN_WGPU_DEVICE_LOST);
+  if (!check(coin_wgpu_readback_poll(ticket.token,failedColor.data(),failedColor.size(),failedDepth.data(),
+       failedDepth.size(),error,sizeof(error)) == COIN_WGPU_DEVICE_LOST && unchanged(failedColor),
+       "instance poll generation loss",error)) return false;
+  coin_wgpu_inject_async_fault(COIN_WGPU_OK);
+  CoinWgpuFrameView lostCamera = nullPayload(frame); lostCamera.camera_base_revision = frame.frame_revision; ++lostCamera.frame_revision;
+  if (!reject(0,lostCamera,COIN_WGPU_INVALID_ARGUMENT,"lost generation cannot resolve null instance payloads") ||
+      !compare(0,frame,"full instance retry after generation loss")) return false;
+  CoinWgpuFrameView peerCamera = nullPayload(frame); peerCamera.camera_base_revision = frame.frame_revision; ++peerCamera.frame_revision;
+  if (!reject(peer,peerCamera,COIN_WGPU_INVALID_ARGUMENT,"peer must not borrow default device instance snapshot") ||
+      !compare(peer,frame,"same instance revision belongs independently to another device")) return false;
+  state.model_view[12] = state.model_view_projection[12] = state.lights[0].position_type[0] = .125f;
+  if (!compare(peer,peerCamera,"peer null camera owns its instance snapshot")) return false;
+  coin_wgpu_inject_device_fault(peer,COIN_WGPU_DEVICE_LOST);
+  if (!reject(peer,frame,COIN_WGPU_DEVICE_LOST,"instance device loss before submit") ||
+      !reject(peer,peerCamera,COIN_WGPU_INVALID_ARGUMENT,"peer lost generation invalidates null instance payloads")) return false;
+  state.model_view[12] = state.model_view_projection[12] = state.lights[0].position_type[0] = 0;
+  const bool recovered = compare(peer,frame,"peer full instance retry after device loss");
+  coin_wgpu_device_destroy(reference); coin_wgpu_device_destroy(peer);
+  return recovered;
+}
+
+// Equal-depth overlapping occurrences require traversal order A/B/A, including
+// the nonzero first_instance in later groups. Always and LessEqual are both
+// admitted by the opaque profile and both must leave the last material visible.
+bool instancedOpaqueDrawOrder() {
+  CoinWgpuDeviceId reference = 0;
+  if (!createDevice(reference)) return false;
+  CoinWgpuVertex vertices[6]{};
+  for (unsigned mesh = 0; mesh < 2; ++mesh) {
+    vertices[mesh*3].position[0] = -.5f; vertices[mesh*3].position[1] = -.5f;
+    vertices[mesh*3+1].position[0] = .5f; vertices[mesh*3+1].position[1] = -.5f;
+    vertices[mesh*3+2].position[1] = .5f;
+    for (unsigned v = mesh*3; v < mesh*3+3; ++v) {
+      vertices[v].position[2] = .25f; vertices[v].normal[2] = 1;
+      vertices[v].normal[0] = mesh ? .25f : 0; vertices[v].screen_space_w = 1;
+    }
+  }
+  const uint32_t indices[] = {0,1,2,3,4,5};
+  CoinWgpuDraw draws[3]{};
+  for (unsigned i = 0; i < 3; ++i) {
+    draws[i].vertex_count = draws[i].index_count = 3;
+    draws[i].first_vertex = draws[i].first_index = i == 1 ? 3 : 0;
+  }
+  CoinWgpuMaterial materials[3]{};
+  for (unsigned i = 0; i < 3; ++i) { materials[i].diffuse[i] = 1; materials[i].diffuse[3] = 1; }
+  CoinWgpuRenderState state{}; state.polygon_offset_primitive_style = 1; state.depth_test = state.depth_write = 1; state.depth_range[1] = 1;
+  CoinWgpuInstance instances[3]{};
+  for (unsigned i = 0; i < 4; ++i) {
+    state.model_view[i*5] = state.model_view_projection[i*5] = state.normal_matrix[i*5] = 1;
+    for (auto & instance : instances) instance.model_view[i*5] = instance.normal_matrix[i*5] = 1;
+  }
+  for (unsigned i = 0; i < 3; ++i) instances[i].material_slot = i;
+  const CoinWgpuInstanceRange ranges[] = {{0,0,1,0},{1,1,1,0},{2,2,1,0}};
+  CoinWgpuVertex baked[9]{};
+  uint32_t bakedIndices[9]{};
+  for (unsigned i = 0; i < 3; ++i) for (unsigned v = 0; v < 3; ++v) {
+    baked[i*3+v] = vertices[(i == 1 ? 3 : 0)+v]; baked[i*3+v].material_slot = i;
+    bakedIndices[i*3+v] = i*3+v;
+  }
+  CoinWgpuDraw bakedDraw{}; bakedDraw.vertex_count = bakedDraw.index_count = 9;
+  CoinWgpuFrameView frame = clearFrame(0,0,0);
+  frame.vertices = vertices; frame.vertex_count = 6; frame.indices = indices; frame.index_count = 6;
+  frame.draws = draws; frame.draw_count = 3; frame.materials = materials; frame.material_count = 3;
+  frame.states = &state; frame.state_count = 1; frame.instances = instances; frame.instance_count = 3;
+  frame.instance_ranges = ranges; frame.instance_range_count = 3;
+  CoinWgpuFrameView full = frame; full.instances = nullptr; full.instance_count = 0;
+  full.instance_ranges = nullptr; full.instance_range_count = 0;
+  full.vertices = baked; full.vertex_count = 9; full.indices = bakedIndices; full.index_count = 9;
+  full.draws = &bakedDraw; full.draw_count = 1;
+  char error[512]{};
+  for (unsigned test = 0; test < 2; ++test) {
+    state.depth_function = test ? 3 : 1;
+    frame.frame_revision = 54001+test; full.frame_revision = 54101+test;
+    std::vector<uint8_t> actual(kSide*kSide*4u,kSentinel), expected(actual);
+    std::vector<float> depth(kSide*kSide,-17), expectedDepth(depth);
+    CoinWgpuTarget target = targetFor(0,&actual); target.depth_buffer = depth.data(); target.depth_buffer_len = depth.size();
+    if (!check(coin_wgpu_submit(&target,&frame,error,sizeof(error)) == COIN_WGPU_OK,
+               "overlapping A/B/A instanced groups",error)) return false;
+    target = targetFor(reference,&expected); target.depth_buffer = expectedDepth.data(); target.depth_buffer_len = expectedDepth.size();
+    const size_t center = (kSide/2*kSide+kSide/2);
+    if (!check(coin_wgpu_submit(&target,&full,error,sizeof(error)) == COIN_WGPU_OK && actual == expected &&
+               depth == expectedDepth && depth[center] == .25f && actual[center*4] == 0 &&
+               actual[center*4+1] == 0 && actual[center*4+2] == 255,
+               "equal-depth overlapping groups must preserve last occurrence color",error)) return false;
+  }
+  coin_wgpu_device_destroy(reference);
+  return true;
+}
+
 bool concurrentSubmissions() {
   CoinWgpuDeviceId first = 0, second = 0;
   if (!createDevice(first) || !createDevice(second)) return false;
@@ -799,7 +1113,7 @@ int main(int argc, char ** argv) {
   const bool runStress = argc > 1 && std::string(argv[1]) == "--stress";
   const bool passed = runStress ? stress() :
                       (invalidHandles() && lifecycleAndIsolation() && rttOwnership() &&
-                       cacheIsolation() && validatedCameraSceneOwnership() && ownedPhongCameraBuffers() &&
+                       cacheIsolation() && validatedCameraSceneOwnership() && ownedPhongCameraBuffers() && instancedOpaqueOwnership() && instancedOpaqueDrawOrder() &&
                        concurrentSubmissions());
   if (passed) std::cout << "CoinWgpuMultiDeviceTest passed"
                         << (runStress ? " (stress)" : "") << '\n';

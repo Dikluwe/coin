@@ -16,8 +16,14 @@
 #include <cstring>
 #include <cstdlib>
 #include <cstdio>
+#include <limits>
+#include <unordered_map>
 
-static_assert(sizeof(CoinWgpuFrameView) == 416, "Frame view ABI size changed");
+static_assert(sizeof(CoinWgpuFrameView) == 448, "Frame view ABI size changed");
+static_assert(sizeof(CoinWgpuInstance) == 144, "Instance ABI size changed");
+static_assert(sizeof(CoinWgpuInstanceRange) == 16, "Instance range ABI size changed");
+static_assert(offsetof(CoinWgpuFrameView, instances) == 416, "Instance ABI tail offset changed");
+static_assert(offsetof(CoinWgpuFrameView, instance_ranges) == 432, "Instance range ABI tail offset changed");
 static_assert(sizeof(CoinWgpuShadowPassView) == 56, "Extra shadow pass ABI size changed");
 static_assert(offsetof(CoinWgpuFrameView, extra_shadow_passes) == 400,
               "Extra shadow pass ABI offset changed");
@@ -87,6 +93,22 @@ bool patchableBakedVertex(const SbVec3f & position, const SbVec3f & normal)
   return true;
 }
 
+double instanceMatrixBound(const float * matrix, double value, int column, bool translation)
+{
+  return value * (std::abs(double(matrix[column])) + std::abs(double(matrix[4 + column])) +
+                  std::abs(double(matrix[8 + column]))) +
+    (translation ? std::abs(double(matrix[12 + column])) : 0.0);
+}
+
+bool instanceCommonMatricesValid(const CoinWgpuRenderState & state, double position)
+{
+  for (int column = 0; column < 4; ++column)
+    if (instanceMatrixBound(state.model_view, position, column, true) > std::numeric_limits<float>::max() ||
+        instanceMatrixBound(state.model_view_projection, position, column, true) > std::numeric_limits<float>::max() ||
+        instanceMatrixBound(state.normal_matrix, 1.0e18, column, false) > std::numeric_limits<float>::max()) return false;
+  return true;
+}
+
 void packVertex(const CoinRenderVertexSnapshot & src, CoinWgpuVertex & dst)
 {
   std::memcpy(dst.position, src.position, sizeof(src.position));
@@ -117,18 +139,19 @@ CoinWgpuFfiFrame::CoinWgpuFfiFrame()
 
 bool
 CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height,
-                        std::string & outDiagnostic)
+                        std::string & outDiagnostic, bool allowInstancing)
 {
   return this->prepare(frame, width, height,
     CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::FULL_REBUILD, 0),
-    outDiagnostic);
+    outDiagnostic, nullptr, allowInstancing);
 }
 
 bool
 CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height,
                         const CoinRenderFrameReuseDecision & reuse,
                         std::string & outDiagnostic,
-                        const CoinRenderFramePreflight * preflight)
+                        const CoinRenderFramePreflight * preflight,
+                        bool allowInstancing)
 {
   outDiagnostic.clear();
   this->opaqueIncrementalUsed = false;
@@ -138,26 +161,32 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
   // proof available to a retry. Successful exact reuse retains the proof.
   struct PrepareGuard {
     bool & valid;
+    bool & cameraPatchable;
+    bool & instanced;
     uint64_t & revision;
     CoinRenderFrameReuseKind & kind;
     bool committed;
-    PrepareGuard(bool & v, uint64_t & r, CoinRenderFrameReuseKind & k)
-      : valid(v), revision(r), kind(k), committed(false) {}
+    PrepareGuard(bool & v, bool & c, bool & i, uint64_t & r, CoinRenderFrameReuseKind & k)
+      : valid(v), cameraPatchable(c), instanced(i), revision(r), kind(k), committed(false) {}
     ~PrepareGuard() {
       if (!committed) {
         valid = false;
+        cameraPatchable = false;
+        instanced = false;
         revision = 0;
         kind = CoinRenderFrameReuseKind::UNKNOWN;
       }
     }
-  } guard(this->opaqueIncrementalValid, this->packedRevision, this->prepareKind);
+  } guard(this->opaqueIncrementalValid, this->opaqueCameraPatchable, this->opaqueInstanced,
+          this->packedRevision, this->prepareKind);
   for (const auto& texture : frame.textures) {
     if (texture.producerId) {
       outDiagnostic = "Unresolved scene texture producer at wgpu execution boundary";
       return false;
     }
   }
-  if (frame.revision != 0 && frame.revision == this->packedRevision) {
+  if (frame.revision != 0 && frame.revision == this->packedRevision &&
+      (allowInstancing || !this->opaqueInstanced)) {
     uint64_t requiredBytes = 0;
     const bool needsPeeling =
         std::any_of(this->draws.begin(), this->draws.end(), [](const CoinWgpuDraw& draw) {
@@ -180,7 +209,7 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
   CoinWgpuShadowFrame candidateShadow;
   if (!candidateShadow.prepare(frame, outDiagnostic)) return false;
 
-  if (this->patchOpaqueCamera(frame, width, height, reuse)) {
+  if ((allowInstancing || !this->opaqueInstanced) && this->patchOpaqueCamera(frame, width, height, reuse)) {
     // The output still belongs to the camera anchor, while the captured states
     // now contain a different view. Do not mix it with a later object rebake.
     this->opaqueIncrementalValid = false;
@@ -217,6 +246,9 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
 
   this->packedRevision = 0;
   this->opaqueBatched = false;
+  this->opaqueInstanced = false;
+  this->instances.clear();
+  this->instanceRanges.clear();
   this->opaqueCameraPatchable = false;
   this->opaqueGeometryPatchable = false;
   this->materials.resize(frame.materials.size());
@@ -231,7 +263,8 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     dst.transparency = src.transparency;
   }
 
-  if (this->tryEarlyOpaqueBatch(frame, width, height, preflight)) {
+  if ((allowInstancing && this->tryOpaqueInstancing(frame, width, height, preflight)) ||
+      this->tryEarlyOpaqueBatch(frame, width, height, preflight)) {
     this->rememberOpaqueCamera(frame, width, height);
     this->textures.clear();
     this->texturePixels.clear();
@@ -339,7 +372,9 @@ CoinWgpuFfiFrame::patchOpaqueCamera(const CoinRenderFramePlan & frame, uint32_t 
                                    uint32_t height, const CoinRenderFrameReuseDecision & reuse)
 {
   const char * disabled = std::getenv("COIN_WGPU_DISABLE_OPAQUE_CAMERA_PATCH");
+  const char * instancingDisabled = std::getenv("COIN_WGPU_DISABLE_OPAQUE_INSTANCING");
   if ((disabled && std::strcmp(disabled, "1") == 0) || !this->opaqueCameraPatchable ||
+      (this->opaqueInstanced && instancingDisabled && std::strcmp(instancingDisabled, "1") == 0) ||
       !this->opaqueBatched || reuse.kind != CoinRenderFrameReuseKind::CAMERA_PATCH ||
       !reuse.baseRevision || reuse.baseRevision != this->packedRevision ||
       !frame.revision || frame.revision == reuse.baseRevision || !frame.shadowGroups.empty() ||
@@ -370,7 +405,291 @@ CoinWgpuFfiFrame::patchOpaqueCamera(const CoinRenderFramePlan & frame, uint32_t 
   std::memcpy(updated.normal_matrix, normal.getValue(), sizeof(updated.normal_matrix));
   std::memcpy(updated.model_view_projection, mvp.getValue(), sizeof(updated.model_view_projection));
   updated.material_slot = 0;
+  if (this->opaqueInstanced && !instanceCommonMatricesValid(updated, this->opaqueInstancePositionBound)) return false;
   this->states.front() = updated;
+  return true;
+}
+
+// Homogeneous opaque surfaces can transport their local geometry once and
+// apply their exact captured model/view matrices per occurrence. Consecutive
+// canonical meshes form groups; no draw is reordered across another mesh.
+bool
+CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
+                                    uint32_t width, uint32_t height,
+                                    const CoinRenderFramePreflight * preflight)
+{
+  for (const char * option : {"COIN_WGPU_DISABLE_OPAQUE_INSTANCING", "COIN_WGPU_DISABLE_OPAQUE_BATCHING"}) {
+    const char * value = std::getenv(option);
+    if (value && std::strcmp(value, "1") == 0) return false;
+  }
+  if (frame.draws.size() < 256 || frame.draws.size() > (32u * 1024u * 1024u) / sizeof(CoinWgpuInstance) ||
+      frame.renderStates.empty() ||
+      frame.materials.empty() || frame.materials.size() > (32u * 1024u * 1024u) / sizeof(CoinWgpuMaterial) ||
+      !frame.shadowGroups.empty() || !frame.shadowLights.empty() ||
+      !frame.textures.empty() || !frame.samplers.empty()) return false;
+  // Rust's bounded profile validates the entire material table, including
+  // unused entries. Reject this candidate rather than changing acceptance of
+  // an otherwise valid opaque frame with an unused transparent material.
+  for (const auto & material : frame.materials) {
+    if (material.diffuse[3] != 1 || material.transparency != 0 ||
+        !std::isfinite(material.shininess) || !std::isfinite(material.transparency)) return false;
+    for (int c = 0; c < 4; ++c)
+      if (!std::isfinite(material.ambient[c]) || !std::isfinite(material.diffuse[c]) ||
+          !std::isfinite(material.specular[c]) || !std::isfinite(material.emission[c])) return false;
+  }
+  const auto & first = frame.renderStates.front();
+  if (!CoinRenderTransformCore::cameraReuseView(first.view) ||
+      !CoinRenderTransformCore::finiteMatrix(first.projectionCoin) ||
+      (first.lightModel != CoinRenderLightModel::PHONG && first.lightModel != CoinRenderLightModel::BASE_COLOR))
+    return false;
+  for (const auto & state : frame.renderStates) {
+    if (!CoinRenderTransformCore::finiteMatrix(state.model) ||
+        state.model[0][3] != 0 || state.model[1][3] != 0 || state.model[2][3] != 0 || state.model[3][3] != 1 ||
+        std::memcmp(state.view.getValue(), first.view.getValue(), sizeof(float) * 16) ||
+        std::memcmp(state.projectionCoin.getValue(), first.projectionCoin.getValue(), sizeof(float) * 16) ||
+        state.hasTexture || state.transparentMaterial || state.transparentTexture ||
+        state.screenDoorTransparency > 0 || state.fogMode != CoinRenderFogMode::NONE ||
+        !state.clipPlanesWorld.empty() || state.polygonOffsetEnabled ||
+        state.lightModel != first.lightModel || state.lightingSlot != first.lightingSlot ||
+        state.cullMode != first.cullMode || state.frontFace != first.frontFace ||
+        state.viewportSlot != first.viewportSlot || state.depthTest != first.depthTest ||
+        state.depthWrite != first.depthWrite || state.depthFunction != first.depthFunction ||
+        state.depthRange[0] != first.depthRange[0] || state.depthRange[1] != first.depthRange[1]) return false;
+    for (const auto & texture : state.extraTextures) if (texture.enabled) return false;
+  }
+  std::vector<CoinRenderCompositionItem> order;
+  std::string diagnostic;
+  if (!coin_render_composition_schedule(frame, order, diagnostic, preflight) ||
+      order.size() != frame.draws.size()) return false;
+
+  struct SourceKey {
+    uint32_t firstVertex, vertexCount, firstIndex, indexCount;
+    bool operator==(const SourceKey & other) const {
+      return firstVertex == other.firstVertex && vertexCount == other.vertexCount &&
+        firstIndex == other.firstIndex && indexCount == other.indexCount;
+    }
+  };
+  struct SourceHash {
+    size_t operator()(const SourceKey & key) const {
+      size_t hash = key.firstVertex;
+      hash = hash * 16777619u ^ key.vertexCount;
+      hash = hash * 16777619u ^ key.firstIndex;
+      return hash * 16777619u ^ key.indexCount;
+    }
+  };
+  struct SourceInfo { size_t canonical; uint32_t material; };
+  struct CanonicalMesh {
+    CoinRenderGeometryRange source;
+    uint32_t firstVertex, firstIndex;
+    double maxPosition[3], maxNormal[3];
+  };
+  struct Group { size_t canonical, firstInstance, count, sourceDraw; };
+  std::unordered_map<SourceKey, SourceInfo, SourceHash> sourceMemo;
+  std::unordered_multimap<uint64_t, size_t> canonicalHashes;
+  std::vector<CanonicalMesh> canonicalMeshes;
+  std::vector<Group> groups;
+  std::vector<size_t> occurrences;
+  occurrences.reserve(order.size());
+  uint64_t compactVertices = 0, compactIndices = 0;
+  const size_t materialOffset = offsetof(CoinRenderVertexSnapshot, materialSlot);
+  static_assert(sizeof(CoinRenderVertexSnapshot) == 100, "Source vertex proof layout changed");
+  const auto hashBytes = [](uint64_t hash, const unsigned char * bytes, size_t length) {
+    for (size_t i = 0; i < length; ++i) hash = (hash ^ bytes[i]) * 1099511628211ull;
+    return hash;
+  };
+  const auto sameVertex = [materialOffset](const CoinRenderVertexSnapshot & a,
+                                         const CoinRenderVertexSnapshot & b) {
+    const auto * x = reinterpret_cast<const unsigned char *>(&a);
+    const auto * y = reinterpret_cast<const unsigned char *>(&b);
+    return std::memcmp(x, y, materialOffset) == 0 &&
+      std::memcmp(x + materialOffset + sizeof(uint32_t), y + materialOffset + sizeof(uint32_t),
+                  sizeof(a) - materialOffset - sizeof(uint32_t)) == 0;
+  };
+  // Each source range is checked/hashed once even when referenced 40,001 times.
+  // Different material bindings may canonicalize to the same local geometry.
+  for (const auto & item : order) {
+    const auto & draw = frame.draws[item.drawIndex];
+    const auto & range = draw.geometry;
+    if (draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST || draw.stableNodeId ||
+        item.blend || item.screenDoor || item.screenDoorLevel || draw.renderLayer || draw.clearDepthBefore ||
+        !range.vertexCount || !range.indexCount || range.indexCount % 3 ||
+        draw.renderStateSlot >= frame.renderStates.size() ||
+        item.firstIndex != range.firstIndex || item.indexCount != range.indexCount) return false;
+    const auto & state = frame.renderStates[draw.renderStateSlot];
+    if (state.materialSlot >= frame.materials.size() ||
+        frame.materials[state.materialSlot].diffuse[3] != 1 || frame.materials[state.materialSlot].transparency != 0 ||
+        item.depthTest != state.depthTest || item.depthWrite != state.depthWrite ||
+        item.depthFunction != state.depthFunction || item.depthRange[0] != state.depthRange[0] ||
+        item.depthRange[1] != state.depthRange[1]) return false;
+    const SourceKey key{range.firstVertex, range.vertexCount, range.firstIndex, range.indexCount};
+    auto memo = sourceMemo.find(key);
+    size_t canonical;
+    if (memo != sourceMemo.end()) {
+      if (memo->second.material != state.materialSlot) return false;
+      canonical = memo->second.canonical;
+    }
+    else {
+      const uint64_t vertexEnd = uint64_t(range.firstVertex) + range.vertexCount;
+      const uint64_t indexEnd = uint64_t(range.firstIndex) + range.indexCount;
+      if (vertexEnd > frame.vertices.size() || indexEnd > frame.indices.size()) return false;
+      uint64_t hash = 14695981039346656037ull;
+      CanonicalMesh candidate{};
+      candidate.source = range;
+      for (uint64_t v = range.firstVertex; v < vertexEnd; ++v) {
+        const auto & vertex = frame.vertices[v];
+        if (vertex.materialSlot != state.materialSlot || vertex.screenSpaceW != 1 || vertex.fogEyeDepth >= 0)
+          return false;
+        for (int c = 0; c < 3; ++c) {
+          if (!std::isfinite(vertex.position[c]) || !std::isfinite(vertex.normal[c])) return false;
+          candidate.maxPosition[c] = std::max(candidate.maxPosition[c], std::abs(double(vertex.position[c])));
+          candidate.maxNormal[c] = std::max(candidate.maxNormal[c], std::abs(double(vertex.normal[c])));
+        }
+        for (float coordinate : vertex.texcoord) if (!std::isfinite(coordinate)) return false;
+        for (const auto & unit : vertex.extraTexcoords)
+          for (float coordinate : unit) if (!std::isfinite(coordinate)) return false;
+        const auto * bytes = reinterpret_cast<const unsigned char *>(&vertex);
+        hash = hashBytes(hash, bytes, materialOffset);
+        hash = hashBytes(hash, bytes + materialOffset + sizeof(uint32_t),
+                         sizeof(vertex) - materialOffset - sizeof(uint32_t));
+      }
+      for (uint64_t j = range.firstIndex; j < indexEnd; ++j) {
+        if (frame.indices[j] < range.firstVertex || frame.indices[j] >= vertexEnd) return false;
+        const uint32_t local = frame.indices[j] - range.firstVertex;
+        hash = hashBytes(hash, reinterpret_cast<const unsigned char *>(&local), sizeof(local));
+      }
+      canonical = canonicalMeshes.size();
+      const auto bucket = canonicalHashes.equal_range(hash);
+      for (auto match = bucket.first; match != bucket.second; ++match) {
+        const auto & previous = canonicalMeshes[match->second].source;
+        if (previous.vertexCount != range.vertexCount || previous.indexCount != range.indexCount) continue;
+        bool equal = true;
+        for (uint32_t v = 0; equal && v < range.vertexCount; ++v)
+          equal = sameVertex(frame.vertices[previous.firstVertex + v], frame.vertices[range.firstVertex + v]);
+        for (uint32_t j = 0; equal && j < range.indexCount; ++j)
+          equal = frame.indices[previous.firstIndex + j] - previous.firstVertex ==
+            frame.indices[range.firstIndex + j] - range.firstVertex;
+        if (equal) { canonical = match->second; break; }
+      }
+      if (canonical == canonicalMeshes.size()) {
+        if (compactVertices + range.vertexCount > UINT32_MAX || compactIndices + range.indexCount > UINT32_MAX ||
+            (compactVertices + range.vertexCount) * sizeof(CoinWgpuVertex) +
+            (compactIndices + range.indexCount) * sizeof(uint32_t) > 8u * 1024u * 1024u)
+          return false;
+        candidate.firstVertex = static_cast<uint32_t>(compactVertices);
+        candidate.firstIndex = static_cast<uint32_t>(compactIndices);
+        compactVertices += range.vertexCount; compactIndices += range.indexCount;
+        canonicalMeshes.push_back(candidate);
+        canonicalHashes.emplace(hash, canonical);
+      }
+      sourceMemo.emplace(key, SourceInfo{canonical, state.materialSlot});
+    }
+    if (groups.empty() || groups.back().canonical != canonical) {
+      // Changed geometry interspersed among shared shapes can form thousands
+      // of groups; preserve the full-bake path instead of multiplying submits.
+      if (groups.size() == 128) return false;
+      groups.push_back(Group{canonical, occurrences.size(), 0, item.drawIndex});
+    }
+    ++groups.back().count;
+    occurrences.push_back(canonical);
+  }
+  this->bakeMatrices.resize(frame.renderStates.size());
+  const SbMatrix identity = SbMatrix::identity();
+  CoinWgpuRenderState common{};
+  for (size_t i = 0; i < frame.renderStates.size(); ++i) {
+    CoinWgpuRenderState key{};
+    if (!this->packState(frame, frame.renderStates[i], width, height, key, diagnostic)) return false;
+    if (key.has_texture || key.fog_mode || key.clip_plane_count || key.polygon_offset_enabled) return false;
+    SbMatrix modelView, normal;
+    modelView.setValue(key.model_view); normal.setValue(key.normal_matrix);
+    const float determinant = modelView.det4();
+    // Singular/unstable normal transforms retain the existing identity-normal
+    // fallback. This also preserves the camera anchor's residual guard.
+    if (!std::isfinite(determinant) || std::abs(determinant) <= 1.0e-9f ||
+        !CoinRenderTransformCore::finiteMatrix(modelView) || !CoinRenderTransformCore::finiteMatrix(normal))
+      return false;
+    const SbMatrix inverse = normal.transpose();
+    const SbMatrix residual = modelView * inverse;
+    if (!CoinRenderTransformCore::finiteMatrix(residual)) return false;
+    for (int row = 0; row < 3; ++row) for (int col = 0; col < 3; ++col)
+      if (std::abs(residual[row][col] - (row == col ? 1.0f : 0.0f)) > 1.0e-4f) return false;
+    auto & matrices = this->bakeMatrices[i];
+    std::memcpy(matrices.modelView, key.model_view, sizeof(matrices.modelView));
+    std::memcpy(matrices.normal, key.normal_matrix, sizeof(matrices.normal));
+    key.material_slot = 0;
+    std::memcpy(key.model_view, identity.getValue(), sizeof(key.model_view));
+    std::memcpy(key.normal_matrix, identity.getValue(), sizeof(key.normal_matrix));
+    const SbMatrix projection = CoinRenderTransformCore::projection(frame.renderStates[i].projectionCoin, false);
+    std::memcpy(key.model_view_projection, projection.getValue(), sizeof(key.model_view_projection));
+    if (i == 0) common = key;
+    else if (std::memcmp(&common, &key, sizeof(key))) return false;
+  }
+  // Match Rust's conservative global bounds exactly: all canonical meshes
+  // contribute to one coordinate/normal maximum, including mesh reuse across
+  // different draws. No per-occurrence vertex expansion is needed.
+  double sourcePosition = 0, sourceNormal = 0, eyeBound = 0;
+  for (const auto & mesh : canonicalMeshes) for (int c = 0; c < 3; ++c) {
+    sourcePosition = std::max(sourcePosition, mesh.maxPosition[c]);
+    sourceNormal = std::max(sourceNormal, mesh.maxNormal[c]);
+  }
+  for (size_t i = 0; i < order.size(); ++i) {
+    const auto & matrix = this->bakeMatrices[frame.draws[order[i].drawIndex].renderStateSlot];
+    for (int c = 0; c < 3; ++c) {
+      const double position = instanceMatrixBound(matrix.modelView, sourcePosition, c, true);
+      const double normal = instanceMatrixBound(matrix.normal, sourceNormal, c, false);
+      if (position > 1.0e30 || normal > double(1.0e18f)) return false;
+      eyeBound = std::max(eyeBound, position);
+    }
+  }
+  if (!instanceCommonMatricesValid(common, eyeBound)) return false;
+  uint64_t requiredBytes = 0;
+  if (!coin_render_transparency_budget(width, height, frame.transparency, false, requiredBytes, diagnostic))
+    return false;
+  // The entire candidate is qualified before the first output write.
+  this->opaqueIncrementalValid = false;
+  this->vertices.resize(static_cast<size_t>(compactVertices));
+  this->indices.resize(static_cast<size_t>(compactIndices));
+  for (const auto & mesh : canonicalMeshes) {
+    for (uint32_t v = 0; v < mesh.source.vertexCount; ++v) {
+      auto & target = this->vertices[mesh.firstVertex + v];
+      packVertex(frame.vertices[mesh.source.firstVertex + v], target);
+      target.material_slot = 0;
+    }
+    for (uint32_t j = 0; j < mesh.source.indexCount; ++j)
+      this->indices[mesh.firstIndex + j] = mesh.firstVertex +
+        frame.indices[mesh.source.firstIndex + j] - mesh.source.firstVertex;
+  }
+  this->instances.resize(order.size());
+  for (size_t i = 0; i < order.size(); ++i) {
+    const auto & draw = frame.draws[order[i].drawIndex];
+    auto & instance = this->instances[i];
+    const auto & matrix = this->bakeMatrices[draw.renderStateSlot];
+    std::memcpy(instance.model_view, matrix.modelView, sizeof(instance.model_view));
+    std::memcpy(instance.normal_matrix, matrix.normal, sizeof(instance.normal_matrix));
+    instance.material_slot = frame.renderStates[draw.renderStateSlot].materialSlot;
+    instance.reserved[0] = instance.reserved[1] = instance.reserved[2] = 0;
+  }
+  this->draws.assign(groups.size(), CoinWgpuDraw{});
+  this->instanceRanges.resize(groups.size());
+  for (size_t i = 0; i < groups.size(); ++i) {
+    const auto & group = groups[i];
+    const auto & mesh = canonicalMeshes[group.canonical];
+    const auto & source = frame.draws[group.sourceDraw];
+    auto & draw = this->draws[i];
+    draw.first_vertex = mesh.firstVertex; draw.vertex_count = mesh.source.vertexCount;
+    draw.first_index = mesh.firstIndex; draw.index_count = mesh.source.indexCount;
+    draw.draw_ordinal = source.drawOrdinal; draw.source_revision = source.sourceRevision;
+    this->instanceRanges[i] = {static_cast<uint32_t>(i), static_cast<uint32_t>(group.firstInstance),
+                              static_cast<uint32_t>(group.count), 0};
+  }
+  this->states.assign(1, common);
+  this->opaqueInstancePositionBound = eyeBound;
+  this->opaqueBatched = this->opaqueInstanced = this->opaqueGeometryPatchable = true;
+  if (std::getenv("COIN_RENDER_TRACE_PHASES")) {
+    std::fprintf(stderr, "COIN_RENDER_PHASE wgpu_opaque_instancing source_draws=%zu source_ranges=%zu canonical_meshes=%zu groups=%zu compact_vertices=%llu compact_indices=%llu instances=%zu instance_bytes=%llu\n",
+      frame.draws.size(), sourceMemo.size(), canonicalMeshes.size(), groups.size(),
+      static_cast<unsigned long long>(compactVertices), static_cast<unsigned long long>(compactIndices),
+      this->instances.size(), static_cast<unsigned long long>(this->instances.size()) * sizeof(CoinWgpuInstance));
+  }
   return true;
 }
 
@@ -919,6 +1238,10 @@ CoinWgpuFfiFrame::bindView(const CoinRenderFramePlan & frame, uint32_t width, ui
   this->view.material_count = static_cast<uint64_t>(this->materials.size());
   this->view.states = this->states.empty() ? NULL : this->states.data();
   this->view.state_count = static_cast<uint64_t>(this->states.size());
+  this->view.instances = this->instances.empty() ? NULL : this->instances.data();
+  this->view.instance_count = static_cast<uint64_t>(this->instances.size());
+  this->view.instance_ranges = this->instanceRanges.empty() ? NULL : this->instanceRanges.data();
+  this->view.instance_range_count = static_cast<uint64_t>(this->instanceRanges.size());
   this->view.textures = this->textures.empty() ? NULL : this->textures.data();
   this->view.texture_count = static_cast<uint64_t>(this->textures.size());
   this->view.samplers = this->samplers.empty() ? NULL : this->samplers.data();

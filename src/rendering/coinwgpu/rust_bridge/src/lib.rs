@@ -27,12 +27,17 @@ mod weighted;
 mod uniform_arena;
 mod shader_profile;
 mod depth_transfer;
+mod instancing;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 42;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 43;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
-    assert!(std::mem::size_of::<CoinWgpuFrameView>() == 416);
+    assert!(std::mem::size_of::<CoinWgpuFrameView>() == 448);
+    assert!(std::mem::size_of::<CoinWgpuInstance>() == 144);
+    assert!(std::mem::size_of::<CoinWgpuInstanceRange>() == 16);
+    assert!(std::mem::offset_of!(CoinWgpuFrameView, instances) == 416);
+    assert!(std::mem::offset_of!(CoinWgpuFrameView, instance_ranges) == 432);
     assert!(std::mem::size_of::<CoinWgpuShadowPassView>() == 56);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, extra_shadow_passes) == 400);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, shadow_epsilon_second) == 376);
@@ -103,7 +108,7 @@ pub struct CoinWgpuVertex {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct CoinWgpuDraw {
     pub topology: u32,
     pub first_vertex: u32,
@@ -157,7 +162,7 @@ pub struct CoinWgpuPerformanceStats {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct CoinWgpuMaterial {
     pub ambient: [f32; 4],
     pub diffuse: [f32; 4],
@@ -411,6 +416,24 @@ pub struct CoinWgpuShadowPassView {
 }
 
 #[repr(C)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
+pub struct CoinWgpuInstance {
+    pub model_view: [f32; 16],
+    pub normal_matrix: [f32; 16],
+    pub material_slot: u32,
+    pub reserved: [u32; 3],
+}
+
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
+pub struct CoinWgpuInstanceRange {
+    pub draw_index: u32,
+    pub first_instance: u32,
+    pub instance_count: u32,
+    pub reserved: u32,
+}
+
+#[repr(C)]
 pub struct CoinWgpuFrameView {
     pub abi_version: u32,
     pub struct_size: u32,
@@ -482,6 +505,10 @@ pub struct CoinWgpuFrameView {
     pub shadow_threshold_fourth: f32,
     pub extra_shadow_passes: *const CoinWgpuShadowPassView,
     pub extra_shadow_pass_count: u64,
+    pub instances: *const CoinWgpuInstance,
+    pub instance_count: u64,
+    pub instance_ranges: *const CoinWgpuInstanceRange,
+    pub instance_range_count: u64,
 }
 
 #[repr(C)]
@@ -643,6 +670,7 @@ static WGSL_POINT_SHADER: &str = include_str!("../../shaders/coin_point.wgsl");
 
 #[derive(Hash, PartialEq, Eq, Clone, Debug)]
 struct PipelineKey {
+    instanced: bool,
     textured: bool,
     eight_shadows: bool,
     shadow_profile: bool,
@@ -740,6 +768,8 @@ struct ValidatedGeometry {
     materials: Vec<CoinWgpuMaterial>,
     max_abs_position: f64,
     opaque_batch: bool,
+    instances: Vec<CoinWgpuInstance>,
+    instance_ranges: Vec<CoinWgpuInstanceRange>,
 }
 
 struct ValidatedScene {
@@ -795,6 +825,21 @@ struct FrameGpuBuffers {
     index_buffer: wgpu::Buffer,
     materials_buffer: wgpu::Buffer,
     geometry_bytes: u64,
+}
+
+// Fresh immutable buffers are committed only after successful submission.
+// Keeping one bounded owned payload permits exact comparison; revisions alone
+// never establish equality for new instanced object/material contents.
+#[derive(Clone)]
+struct InstancedGpuBuffers {
+    geometry: Arc<ValidatedGeometry>,
+    vertex_buffer: wgpu::Buffer,
+    index_buffer: wgpu::Buffer,
+    materials_buffer: wgpu::Buffer,
+    instances_buffer: wgpu::Buffer,
+    geometry_bytes: u64,
+    instance_bytes: u64,
+    material_bytes: u64,
 }
 
 // Four timestamps bracket the render pass(es) and the offscreen copy. The
@@ -878,7 +923,7 @@ fn same_camera_independent_state(a: &CoinWgpuRenderState, b: &CoinWgpuRenderStat
 
 fn camera_states_match(scene: &ValidatedScene, states: &[CoinWgpuRenderState]) -> bool {
     scene.states.len() == states.len() && scene.states.iter().zip(states).all(|(old, next)| {
-        let immutable_state_matches = if scene.geometry.opaque_batch && old.light_model == 1 {
+        let immutable_state_matches = if (scene.geometry.opaque_batch || !scene.geometry.instances.is_empty()) && old.light_model == 1 {
             let mut a = *old;
             let mut b = *next;
             // Camera overlays resolve these coordinates from immutable world
@@ -903,6 +948,9 @@ fn camera_states_match(scene: &ValidatedScene, states: &[CoinWgpuRenderState]) -
         }
         // Composition preflight rejects non-finite view-space depth. Bound
         // the changed matrix against the previously validated positions.
+        if !scene.geometry.instances.is_empty() && !instancing::camera_matrices_valid(next, scene.geometry.max_abs_position) {
+            return false;
+        }
         let m = &next.model_view;
         let bound = scene.geometry.max_abs_position
             * (f64::from(m[2]).abs() + f64::from(m[6]).abs() + f64::from(m[10]).abs())
@@ -964,22 +1012,29 @@ fn camera_base(device: &DeviceState, f: &CoinWgpuFrameView,
 
 fn owned_camera_base(scene: &Arc<ValidatedScene>, generation: u64, f: &CoinWgpuFrameView,
                      states: &[CoinWgpuRenderState]) -> Option<Arc<ValidatedScene>> {
-    if f.frame_revision == 0 || f.texture_count != 0
-        || f.sampler_count != 0 { return None; }
+    if f.frame_revision == 0 || f.texture_count != 0 || f.sampler_count != 0 { return None; }
     let geometry = &scene.geometry;
-    let exact = f.camera_base_revision == 0 && scene.revision == f.frame_revision
-        && scene.states.len() == states.len() && scene.states.iter().zip(states).all(|(a, b)|
-            same_camera_independent_state(a, b) && a.fog_end == b.fog_end
-                && a.model_view == b.model_view && a.model_view_projection == b.model_view_projection
-                && a.normal_matrix == b.normal_matrix);
+    if !geometry.instances.is_empty() && instancing::validate_counts(f).is_err() { return None; }
+    if scene.generation != generation || scene.width != f.width || scene.height != f.height
+        || scene.clear_color != f.clear_color
+        || geometry.vertices.len() as u64 != f.vertex_count
+        || geometry.indices.len() as u64 != f.index_count
+        || geometry.draws.len() as u64 != f.draw_count
+        || geometry.materials.len() as u64 != f.material_count
+        || geometry.instances.len() as u64 != f.instance_count
+        || geometry.instance_ranges.len() as u64 != f.instance_range_count { return None; }
+    let exact_state = scene.states.len() == states.len() && scene.states.iter().zip(states).all(|(a, b)|
+        same_camera_independent_state(a, b) && a.fog_end == b.fog_end
+            && a.model_view == b.model_view && a.model_view_projection == b.model_view_projection
+            && a.normal_matrix == b.normal_matrix);
+    // A full instanced payload can change under the same caller revision.
+    // Exact bytes from bounded, aligned slices are required before skipping
+    // validation; only a null immutable payload directly licenses our Arc.
+    let exact = f.camera_base_revision == 0 && scene.revision == f.frame_revision && exact_state
+        && (geometry.instances.is_empty() || instancing::owned_payload_matches(geometry, f));
     let patch = f.camera_base_revision != 0 && f.frame_revision != f.camera_base_revision
         && scene.revision == f.camera_base_revision && camera_states_match(scene, states);
-    ((exact || patch) && scene.generation == generation
-        && scene.width == f.width && scene.height == f.height && scene.clear_color == f.clear_color
-        && geometry.vertices.len() as u64 == f.vertex_count
-        && geometry.indices.len() as u64 == f.index_count
-        && geometry.draws.len() as u64 == f.draw_count
-        && geometry.materials.len() as u64 == f.material_count).then(|| scene.clone())
+    (exact || patch).then(|| scene.clone())
 }
 
 // Build only after ordinary draw/index/composition preflight. Allocation is
@@ -988,8 +1043,9 @@ fn camera_scene(generation: u64, f: &CoinWgpuFrameView,
     vertices: &[CoinWgpuVertex], indices: &[u32], draws: &[CoinWgpuDraw],
     materials: &[CoinWgpuMaterial], states: &[CoinWgpuRenderState],
     order: &[composition::CompositionItem], textures: &[CoinWgpuTexture], samplers: &[CoinWgpuSampler],
+    instances: &[CoinWgpuInstance], instance_ranges: &[CoinWgpuInstanceRange],
     base: Option<&Arc<ValidatedScene>>) -> Option<Arc<ValidatedScene>> {
-    if f.frame_revision == 0 { return None; }
+    if f.frame_revision == 0 && instances.is_empty() { return None; }
     fn copy<T: Clone>(source: &[T]) -> Option<Vec<T>> {
         let mut target = Vec::new();
         target.try_reserve_exact(source.len()).ok()?;
@@ -999,14 +1055,14 @@ fn camera_scene(generation: u64, f: &CoinWgpuFrameView,
     let geometry = if let Some(base) = base {
         base.geometry.clone()
     } else {
-        if !camera_scene_eligible(vertices, indices, draws, materials, states, order, textures, samplers) {
+        if instances.is_empty() && !camera_scene_eligible(vertices, indices, draws, materials, states, order, textures, samplers) {
             return None;
         }
         Arc::new(ValidatedGeometry {
             vertices: copy(vertices)?, indices: copy(indices)?, draws: copy(draws)?, materials: copy(materials)?,
-            max_abs_position: vertices.iter().flat_map(|v| v.position)
-                .map(|x| f64::from(x).abs()).fold(0.0_f64, f64::max),
+            max_abs_position: instancing::position_bound(vertices, instances),
             opaque_batch: opaque_camera_batch(states, draws, order),
+            instances: copy(instances)?, instance_ranges: copy(instance_ranges)?,
         })
     };
     Some(Arc::new(ValidatedScene {
@@ -1016,11 +1072,13 @@ fn camera_scene(generation: u64, f: &CoinWgpuFrameView,
 }
 
 fn commit_camera_scene(device: &mut DeviceState, scene: Option<Arc<ValidatedScene>>,
-                       update: bool, revision: u64, owned_base: bool, capture: bool) {
+                       update: bool, revision: u64, owned_base: bool, capture: bool,
+                       instanced: bool, pending_instances: Option<InstancedGpuBuffers>) {
     if !update { return; }
+    *device.instanced_buffers.lock().unwrap() = if instanced { pending_instances } else { None };
     device.camera_snapshot_policy.commit(capture, scene.is_some());
     device.validated_scene = scene;
-    if owned_base {
+    if owned_base && !instanced {
         if let Ok(mut cache) = VALIDATED_FRAME_CACHE.lock() {
             if let Some(scene) = device.validated_scene.as_ref() {
                 *cache = Some((revision, scene.draw_order.clone()));
@@ -1085,7 +1143,7 @@ mod camera_scene_tests {
             additive: false, screen_door: false, screen_door_level: 0, peel: false, weighted: false }];
         let mut state = phong_state();
         let base = camera_scene(7, &frame, &vertices, &[0,1,2], &[draw], &[material],
-            &[state], &order, &[], &[], None).expect("validated opaque PHONG snapshot");
+            &[state], &order, &[], &[], &[], &[], None).expect("validated opaque PHONG snapshot");
         assert!(base.geometry.opaque_batch);
         vertices[0].position[0] = 100.0;
         assert_eq!(base.geometry.vertices[0].position[0], 0.0, "must own caller payload");
@@ -1104,7 +1162,7 @@ mod camera_scene_tests {
                 .expect("PHONG camera with resolved light coordinates");
             let next = camera_scene(7, &frame, &owned.geometry.vertices, &owned.geometry.indices,
                 &owned.geometry.draws, &owned.geometry.materials, &[state], &order,
-                &[], &[], Some(&owned)).unwrap();
+                &[], &[], &[], &[], Some(&owned)).unwrap();
             assert!(Arc::ptr_eq(&base.geometry, &next.geometry));
             assert_eq!(next.states[0].lights[0].position_type[0], revision as f32);
             current = next;
@@ -1130,6 +1188,9 @@ struct DeviceState {
     device: wgpu::Device,
     queue: wgpu::Queue,
     shader_module: wgpu::ShaderModule,
+    instanced_shader: wgpu::ShaderModule,
+    instanced_bind_group_layout: wgpu::BindGroupLayout,
+    instanced_pipeline_layout: wgpu::PipelineLayout,
     shadow_eight_shader: wgpu::ShaderModule,
     shadow_shader: wgpu::ShaderModule,
     shadow_eight_layout: wgpu::BindGroupLayout,
@@ -1155,6 +1216,7 @@ struct DeviceState {
     sampler_cache: Mutex<SamplerCache>,
     camera_bindings: Mutex<Option<CameraGpuBindings>>,
     frame_buffers: Mutex<Option<FrameGpuBuffers>>,
+    instanced_buffers: Mutex<Option<InstancedGpuBuffers>>,
     camera_bindings_reused: AtomicU32,
     camera_bindings_created: AtomicU32,
     draw_bind_groups: AtomicU32,
@@ -1193,6 +1255,14 @@ fn trace_owned_resources(dev: &DeviceState, target: &str, width: u32, height: u3
     vertex_buffers += usize::from(frame.is_some());
     index_buffers += usize::from(frame.is_some());
     drop(frame);
+    let instances = dev.instanced_buffers.lock().unwrap();
+    if let Some(entry) = instances.as_ref() {
+        geometry_active_bytes += entry.geometry_bytes;
+        vertex_buffers += 1; index_buffers += 1;
+        eprintln!("COIN_RENDER_PHASE rust_instance_resources geometry_bytes={} instance_bytes={} material_bytes={}",
+            entry.geometry_bytes, entry.instance_bytes, entry.material_bytes);
+    }
+    drop(instances);
     let textures = dev.texture_cache.lock().unwrap();
     let texture_payload_bytes: u64 = textures.entries.values()
         .map(|entry| entry.size_bytes as u64).sum();
@@ -1809,6 +1879,12 @@ fn get_or_init_device_impl<'a>(
             &format!("{}{}",shader_profile::without_shadows(WGSL_SHADER),weighted::FRAGMENT)).into()),
     });
 
+    let instanced_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some("Coin opaque instances"),
+        source: wgpu::ShaderSource::Wgsl(shader_source(
+            &format!("{}{}", instancing::shader_source(), weighted::FRAGMENT)).into()),
+    });
+
     let shadow_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("Coin quality shadow receivers"),
         source: wgpu::ShaderSource::Wgsl(shader_source(
@@ -1921,6 +1997,21 @@ fn get_or_init_device_impl<'a>(
         push_constant_ranges: &[],
     });
 
+    let mut instanced_entries = layout_entries.clone();
+    instanced_entries.push(wgpu::BindGroupLayoutEntry {
+        binding: 24, visibility: wgpu::ShaderStages::VERTEX,
+        ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Storage { read_only: true },
+            has_dynamic_offset: false, min_binding_size: std::num::NonZeroU64::new(144) },
+        count: None,
+    });
+    let instanced_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        label: Some("Coin opaque instance bindings"), entries: &instanced_entries,
+    });
+    let instanced_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: Some("Coin opaque instance pipeline"), bind_group_layouts: &[&instanced_bind_group_layout],
+        push_constant_ranges: &[],
+    });
+
     let eight_entries: Vec<_> = layout_entries.iter().copied()
         .filter(|entry| !(10..18).contains(&entry.binding)).collect();
     let shadow_eight_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -2020,6 +2111,7 @@ fn get_or_init_device_impl<'a>(
         device,
         queue,
         shader_module: shader,
+        instanced_shader, instanced_bind_group_layout, instanced_pipeline_layout,
         shadow_shader, shadow_eight_shader, shadow_eight_layout, shadow_extra_layout, shadow_eight_pipeline_layout,
         line_shader_module: line_shader,
         point_shader_module: point_shader,
@@ -2041,6 +2133,7 @@ fn get_or_init_device_impl<'a>(
         sampler_cache: Mutex::new(SamplerCache::default()),
         camera_bindings: Mutex::new(None),
         frame_buffers: Mutex::new(None),
+        instanced_buffers: Mutex::new(None),
         camera_bindings_reused: AtomicU32::new(0),
         camera_bindings_created: AtomicU32::new(0),
         draw_bind_groups: AtomicU32::new(0),
@@ -2458,6 +2551,7 @@ fn get_or_create_pipeline<'a>(
     shadow_profile: bool,
     weighted: bool,
     textured: bool,
+    instanced: bool,
 ) -> Result<wgpu::RenderPipeline, String> {
     let mut map = ctx.pipelines.lock().map_err(|e| e.to_string())?;
 
@@ -2466,11 +2560,11 @@ fn get_or_create_pipeline<'a>(
         1 => (wgpu::PrimitiveTopology::LineList, &ctx.line_shader_module, None),
         2 => (wgpu::PrimitiveTopology::PointList, &ctx.point_shader_module, None),
         _ => (wgpu::PrimitiveTopology::TriangleList,
-            if eight_shadows { &ctx.shadow_eight_shader } else if shadow_profile { &ctx.shadow_shader } else { &ctx.shader_module }, cull_face),
+            if instanced { &ctx.instanced_shader } else if eight_shadows { &ctx.shadow_eight_shader } else if shadow_profile { &ctx.shadow_shader } else { &ctx.shader_module }, cull_face),
     };
 
     let key = PipelineKey {
-        eight_shadows, shadow_profile, weighted, topology, textured,
+        instanced, eight_shadows, shadow_profile, weighted, topology, textured,
         color_format,
         depth_format,
         sample_count: 1,
@@ -2591,7 +2685,7 @@ fn get_or_create_pipeline<'a>(
     // wgpu-hal 24's GL program cache keys module IDs/entry points but omits
     // override constants. Give textured/untextured variants distinct modules
     // so switching profiles cannot reuse the first profile's GL program.
-    let selected_shader = if !textured && ctx.adapter.get_info().backend == wgpu::Backend::Gl {
+    let selected_shader = if !instanced && !textured && ctx.adapter.get_info().backend == wgpu::Backend::Gl {
         let mut profiles = ctx.untextured_shaders.lock().map_err(|e| e.to_string())?;
         profiles.entry((topology, shadow_profile, eight_shadows)).or_insert_with(|| {
             let source = match topology {
@@ -2614,7 +2708,7 @@ fn get_or_create_pipeline<'a>(
         .device
         .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some(pipeline_label),
-            layout: Some(if eight_shadows { &ctx.shadow_eight_pipeline_layout } else { &ctx.pipeline_layout }),
+            layout: Some(if instanced { &ctx.instanced_pipeline_layout } else if eight_shadows { &ctx.shadow_eight_pipeline_layout } else { &ctx.pipeline_layout }),
             vertex: wgpu::VertexState {
                 module: &selected_shader,
                 entry_point: Some("vs_main"),
@@ -2719,14 +2813,23 @@ fn encode_frame(
     samplers_slice: &[CoinWgpuSampler],
     shadow_frame: Option<&ShadowFrame>,
     camera_geometry: Option<&Arc<ValidatedGeometry>>,
+    instances_slice: &[CoinWgpuInstance],
+    instance_ranges: &[CoinWgpuInstanceRange],
     timestamp_query: Option<&wgpu::QuerySet>,
     color_view: &wgpu::TextureView,
     color_format: wgpu::TextureFormat,
     depth_view: &wgpu::TextureView,
     depth_texture: &wgpu::Texture,
     peel_passes: u32,
-) -> Result<wgpu::CommandBuffer, (CoinWgpuStatus, String)> {
+) -> Result<(wgpu::CommandBuffer, Option<InstancedGpuBuffers>), (CoinWgpuStatus, String)> {
     use wgpu::util::DeviceExt;
+    let instanced = !instances_slice.is_empty();
+    if instanced && (ctx.device.limits().max_storage_buffers_per_shader_stage < 2
+        || std::mem::size_of_val(instances_slice) as u64
+            > u64::from(ctx.device.limits().max_storage_buffer_binding_size)) {
+        return Err((CoinWgpuStatus::Unsupported,
+            "Instancing exceeds enabled vertex storage buffer limits".into()));
+    }
     if draw_order.iter().any(|item| item.peel) && !peeling::device_supported(&ctx.device) {
         return Err((
             CoinWgpuStatus::Unsupported,
@@ -3146,7 +3249,7 @@ fn encode_frame(
 
     let geometry_bytes = (std::mem::size_of_val(vertices_slice) as u64)
         .saturating_add(std::mem::size_of_val(indices_slice) as u64);
-    let retain_frame = frame_revision != 0 && !vertices_slice.is_empty()
+    let retain_frame = !instanced && frame_revision != 0 && !vertices_slice.is_empty()
         && !indices_slice.is_empty() && !draws_slice.is_empty()
         && draws_slice.iter().all(|draw| draw.stable_node_id == 0)
         && geometry_bytes.saturating_add(material_bytes.len() as u64) <= 256 * 1024 * 1024;
@@ -3179,7 +3282,24 @@ fn encode_frame(
         .is_some_and(|entry| Arc::ptr_eq(&entry.geometry, geometry))) {
         *camera_bindings = None;
     }
-    let materials_buffer = if let Some(entry) = frame_buffers.as_ref() {
+    let previous_instances = ctx.instanced_buffers.lock().unwrap().clone();
+    let owned_instance_hit = instanced && previous_instances.as_ref().is_some_and(|entry|
+        camera_geometry.is_some_and(|geometry| Arc::ptr_eq(geometry, &entry.geometry)));
+    let geometry_hit = owned_instance_hit || (instanced && previous_instances.as_ref().is_some_and(|entry|
+        instancing::same_geometry(&entry.geometry, vertices_slice, indices_slice)));
+    let payload_hit = owned_instance_hit || (geometry_hit && previous_instances.as_ref().is_some_and(|entry|
+        instancing::same_payload(&entry.geometry, instances_slice, materials_slice)));
+    let instances_buffer = if !instanced { None } else if payload_hit {
+        Some(previous_instances.as_ref().unwrap().instances_buffer.clone())
+    } else {
+        Some(ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Coin opaque instance storage"), contents: bytemuck::cast_slice(instances_slice),
+            usage: wgpu::BufferUsages::STORAGE,
+        }))
+    };
+    let materials_buffer = if payload_hit {
+        previous_instances.as_ref().unwrap().materials_buffer.clone()
+    } else if let Some(entry) = frame_buffers.as_ref() {
         entry.materials_buffer.clone()
     } else if let Some(entry) = camera_bindings.as_ref() {
         ctx.camera_bindings_reused.fetch_add(1, Ordering::Relaxed);
@@ -3209,7 +3329,9 @@ fn encode_frame(
     }
 
     // 2. Prepare uncached fallback buffers if there are any legacy/uncached draws
-    let uncached_v_buffer = if let Some(entry) = frame_buffers.as_ref() {
+    let uncached_v_buffer = if geometry_hit {
+        Some(previous_instances.as_ref().unwrap().vertex_buffer.clone())
+    } else if let Some(entry) = frame_buffers.as_ref() {
         Some(entry.vertex_buffer.clone())
     } else if draws_slice.iter().any(|d| d.stable_node_id == 0) && !vertices_slice.is_empty() {
         Some(
@@ -3224,7 +3346,9 @@ fn encode_frame(
         None
     };
 
-    let uncached_i_buffer = if let Some(entry) = frame_buffers.as_ref() {
+    let uncached_i_buffer = if geometry_hit {
+        Some(previous_instances.as_ref().unwrap().index_buffer.clone())
+    } else if let Some(entry) = frame_buffers.as_ref() {
         Some(entry.index_buffer.clone())
     } else if draws_slice.iter().any(|d| d.stable_node_id == 0 && d.index_count > 0)
         && !indices_slice.is_empty()
@@ -3257,6 +3381,31 @@ fn encode_frame(
         cache.cumulative_uploaded_bytes += geometry_bytes;
         cache.frame_uploaded_bytes += geometry_bytes;
     }
+
+    let pending_instances = if instanced {
+        let geometry = camera_geometry.ok_or_else(|| (CoinWgpuStatus::OutOfMemory,
+            "Cannot retain bounded validated instance payload".to_string()))?;
+        let instance_bytes = std::mem::size_of_val(instances_slice) as u64;
+        let uploaded = (if geometry_hit { 0 } else { geometry_bytes })
+            + (if payload_hit { 0 } else { instance_bytes + material_bytes.len() as u64 });
+        if geometry_hit { cache.frame_hits += 1; cache.cumulative_hits += 1; }
+        if uploaded != 0 {
+            cache.frame_uploads += 1; cache.cumulative_uploads += 1;
+            cache.frame_uploaded_bytes += uploaded; cache.cumulative_uploaded_bytes += uploaded;
+        }
+        if std::env::var_os("COIN_RENDER_TRACE_PHASES").or_else(|| std::env::var_os("COIN_WGPU_TRACE_PHASES")).is_some() {
+            eprintln!("COIN_RENDER_PHASE rust_instances count={} ranges={} geometry_bytes={} instance_bytes={} material_bytes={} geometry_hit={} payload_hit={} uploaded_bytes={}",
+                instances_slice.len(), instance_ranges.len(), geometry_bytes, instance_bytes,
+                material_bytes.len(), geometry_hit as u32, payload_hit as u32, uploaded);
+        }
+        Some(InstancedGpuBuffers { geometry: geometry.clone(),
+            vertex_buffer: uncached_v_buffer.as_ref().unwrap().clone(),
+            index_buffer: uncached_i_buffer.as_ref().unwrap().clone(),
+            materials_buffer: materials_buffer.clone(),
+            instances_buffer: instances_buffer.as_ref().unwrap().clone(),
+            geometry_bytes, instance_bytes, material_bytes: material_bytes.len() as u64,
+        })
+    } else { None };
 
     // Temporary storage for oversized draws exceeding cache budget
     let mut oversized_entries: HashMap<(u64, u32), CachedGeometryEntry> = HashMap::new();
@@ -3699,6 +3848,7 @@ fn encode_frame(
                     shadow_frame.is_some(),
                     is_weighted,
                     st.has_texture != 0 || st.extra_textures.iter().any(|unit| unit.enabled != 0),
+                    instanced,
                 ) {
                     Ok(p) => p,
                     Err(e) => return Err((CoinWgpuStatus::BackendError, e)),
@@ -4030,9 +4180,13 @@ fn encode_frame(
                         binding: 23,
                         resource: wgpu::BindingResource::TextureView(shadow_views[3]),
                     });
+                    if let Some(buffer) = instances_buffer.as_ref() {
+                        entries.push(wgpu::BindGroupEntry { binding: 24,
+                            resource: buffer.as_entire_binding() });
+                    }
                     ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
                         label: Some("Coin shared draw texture bindings"),
-                        layout: if eight_shadows { &ctx.shadow_eight_layout } else { &ctx.bind_group_layout },
+                        layout: if instanced { &ctx.instanced_bind_group_layout } else if eight_shadows { &ctx.shadow_eight_layout } else { &ctx.bind_group_layout },
                         entries: &entries,
                     })
                 };
@@ -4148,7 +4302,11 @@ fn encode_frame(
                     }
                     let start_idx = draw.first_index;
                     let end_idx = start_idx + draw.index_count;
-                    pass.draw_indexed(start_idx..end_idx, 0, 0..1);
+                    let instance_range = if instanced {
+                        let range = &instance_ranges[item.draw_index];
+                        range.first_instance..range.first_instance + range.instance_count
+                    } else { 0..1 };
+                    pass.draw_indexed(start_idx..end_idx, 0, instance_range);
                 }
 
             }
@@ -4181,7 +4339,7 @@ fn encode_frame(
     uniform_arena.upload(&ctx.queue);
     ctx.draw_bind_groups.store(draw_bindings.len() as u32, Ordering::Relaxed);
     ctx.uniform_chunks.store(uniform_arena.chunk_count() as u32, Ordering::Relaxed);
-    Ok(encoder.finish())
+    Ok((encoder.finish(), pending_instances))
 }
 
 #[no_mangle]
@@ -4823,6 +4981,9 @@ fn coin_wgpu_surface_submit_internal(
             return CoinWgpuStatus::NotReady;
         }
 
+        if let Err((status, message)) = instancing::validate_counts(f) {
+            set_error(error_buf, error_buf_len, &message); return status;
+        }
         let states_slice =
             match validate_slice(f.states, f.state_count, "states", error_buf, error_buf_len) {
                 Ok(s) => s,
@@ -4877,6 +5038,23 @@ fn coin_wgpu_surface_submit_internal(
             Ok(s) => s,
             Err(st) => return st,
         } };
+
+        let instances_slice = if let Some(scene) = owned_patch.as_ref() {
+            scene.geometry.instances.as_slice()
+        } else { match validate_slice(f.instances, f.instance_count, "instances", error_buf, error_buf_len) {
+            Ok(s) => s, Err(st) => return st,
+        } };
+        let instance_ranges = if let Some(scene) = owned_patch.as_ref() {
+            scene.geometry.instance_ranges.as_slice()
+        } else { match validate_slice(f.instance_ranges, f.instance_range_count, "instance ranges", error_buf, error_buf_len) {
+            Ok(s) => s, Err(st) => return st,
+        } };
+        if owned_patch.is_none() {
+            if let Err((status, message)) = instancing::validate_payload(f, vertices_slice, indices_slice,
+                draws_slice, materials_slice, states_slice, instances_slice, instance_ranges) {
+                set_error(error_buf, error_buf_len, &message); return status;
+            }
+        }
 
         let textures_slice = if f.texture_count > 0 {
             match validate_slice(f.textures, f.texture_count, "textures", error_buf, error_buf_len) {
@@ -5083,13 +5261,13 @@ fn coin_wgpu_surface_submit_internal(
                 return CoinWgpuStatus::NotReady;
             }
         }
-        let capture_scene = dev.camera_snapshot_policy.capture(
+        let capture_scene = !instances_slice.is_empty() || dev.camera_snapshot_policy.capture(
             dev.validated_scene.as_ref().map(|scene| scene.revision), f.frame_revision,
             f.camera_base_revision, owned_patch.is_some());
         let next_scene = if capture_scene {
             camera_scene(dev.generation, f, vertices_slice, indices_slice, draws_slice,
                 materials_slice, states_slice, &draw_order, textures_slice, samplers_slice,
-                owned_patch.as_ref())
+                instances_slice, instance_ranges, owned_patch.as_ref())
         } else { None };
 
         let record = runtime.surfaces.get_mut(&surface_id).unwrap();
@@ -5270,7 +5448,7 @@ fn coin_wgpu_surface_submit_internal(
             }
         };
 
-        let cmd_buffer = match encode_frame(
+        let (cmd_buffer, pending_instances) = match encode_frame(
             dev,
             f.frame_revision,
             f.clear_color,
@@ -5286,6 +5464,7 @@ fn coin_wgpu_surface_submit_internal(
             samplers_slice,
             None, // window shadows remain preflight-rejected
             next_scene.as_ref().map(|scene| &scene.geometry),
+            instances_slice, instance_ranges,
             None,
             &color_view,
             record.color_format,
@@ -5411,7 +5590,8 @@ fn coin_wgpu_surface_submit_internal(
             return CoinWgpuStatus::BackendError;
         }
 
-        commit_camera_scene(dev, next_scene, true, f.frame_revision, owned_patch.is_some(), capture_scene);
+        commit_camera_scene(dev, next_scene, true, f.frame_revision, owned_patch.is_some(), capture_scene,
+            !instances_slice.is_empty(), pending_instances);
 
         if let Some(pixels) = captured_rgba {
             unsafe { std::ptr::copy_nonoverlapping(pixels.as_ptr(), readback_rgba, pixels.len()); }
@@ -5725,6 +5905,9 @@ fn coin_wgpu_submit_internal(
         // 5. Validate the changed states before considering a camera hint.
         // All immutable pointers are ignored only if this device still owns
         // the validated base. A stale/mismatched hint takes the old full path.
+        if let Err((status, message)) = instancing::validate_counts(f) {
+            set_error(error_buf, error_buf_len, &message); return status;
+        }
         let states_slice =
             match validate_slice(f.states, f.state_count, "states", error_buf, error_buf_len) {
                 Ok(s) => s,
@@ -5772,6 +5955,28 @@ fn coin_wgpu_submit_internal(
                 Ok(s) => s, Err(st) => return st,
             }
         };
+
+        let instances_slice = if let Some(scene) = owned_patch.as_ref() {
+            scene.geometry.instances.as_slice()
+        } else { match validate_slice(f.instances, f.instance_count, "instances", error_buf, error_buf_len) {
+            Ok(s) => s, Err(st) => return st,
+        } };
+        let instance_ranges = if let Some(scene) = owned_patch.as_ref() {
+            scene.geometry.instance_ranges.as_slice()
+        } else { match validate_slice(f.instance_ranges, f.instance_range_count, "instance ranges", error_buf, error_buf_len) {
+            Ok(s) => s, Err(st) => return st,
+        } };
+        if owned_patch.is_none() {
+            if let Err((status, message)) = instancing::validate_payload(f, vertices_slice, indices_slice,
+                draws_slice, materials_slice, states_slice, instances_slice, instance_ranges) {
+                set_error(error_buf, error_buf_len, &message); return status;
+            }
+        }
+
+        if !instances_slice.is_empty() && !out_texture.is_null() {
+            set_error(error_buf, error_buf_len, "Instanced frames do not support render-to-texture");
+            return CoinWgpuStatus::Unsupported;
+        }
 
         let textures_slice = if owned_patch.is_some() { &[] } else if f.texture_count > 0 {
             match validate_slice(f.textures, f.texture_count, "textures", error_buf, error_buf_len) {
@@ -6012,7 +6217,7 @@ fn coin_wgpu_submit_internal(
         // A camera hint without an owned base readmits a new snapshot only
         // after this submission validates the full geometry, even if another
         // device previously validated the same private frame revision.
-        let cached_draw_order = if owned_patch.is_none() && f.camera_base_revision == 0
+        let cached_draw_order = if instances_slice.is_empty() && owned_patch.is_none() && f.camera_base_revision == 0
             && f.frame_revision != 0 {
             VALIDATED_FRAME_CACHE.lock().ok().and_then(|cache| {
                 cache.as_ref().and_then(|(revision, order)| {
@@ -6151,7 +6356,7 @@ fn coin_wgpu_submit_internal(
                 return status;
             }
         };
-        if f.frame_revision != 0 {
+        if instances_slice.is_empty() && f.frame_revision != 0 {
             if let Ok(mut cache) = VALIDATED_FRAME_CACHE.lock() {
                 *cache = Some((f.frame_revision, computed_draw_order.clone()));
             }
@@ -6288,17 +6493,17 @@ fn coin_wgpu_submit_internal(
         };
         let profile_attachments_created = trace_phases.then(std::time::Instant::now);
 
-        let capture_scene = ctx.camera_snapshot_policy.capture(
+        let capture_scene = !instances_slice.is_empty() || ctx.camera_snapshot_policy.capture(
             ctx.validated_scene.as_ref().map(|scene| scene.revision), f.frame_revision,
             f.camera_base_revision, owned_patch.is_some());
         let next_scene = if capture_scene && out_texture.is_null() && shadow_frame.is_none()
             && (owned_patch.is_some() || fully_validated) {
             camera_scene(ctx.generation, f, vertices_slice, indices_slice, draws_slice, materials_slice,
-                states_slice, &draw_order, textures_slice, samplers_slice, owned_patch.as_ref())
+                states_slice, &draw_order, textures_slice, samplers_slice, instances_slice, instance_ranges, owned_patch.as_ref())
         } else { None };
 
         // 9. Encode draw calls with the exact same shared encode_frame
-        let cmd_buffer = match encode_frame(
+        let (cmd_buffer, pending_instances) = match encode_frame(
             ctx,
             f.frame_revision,
             f.clear_color,
@@ -6314,6 +6519,7 @@ fn coin_wgpu_submit_internal(
             samplers_slice,
             shadow_frame.as_ref(),
             next_scene.as_ref().map(|scene| &scene.geometry),
+            instances_slice, instance_ranges,
             gpu_probe.as_ref().map(|probe| &probe.queries),
             &color_view,
             wgpu::TextureFormat::Rgba8Unorm,
@@ -6357,7 +6563,8 @@ fn coin_wgpu_submit_internal(
             });
             tgt.submission_serial = serial;
             unsafe { *out_texture = token; }
-            commit_camera_scene(ctx, next_scene, commit_scene, f.frame_revision, owned_patch.is_some(), capture_scene);
+            commit_camera_scene(ctx, next_scene, commit_scene, f.frame_revision, owned_patch.is_some(), capture_scene,
+                !instances_slice.is_empty(), pending_instances);
             return CoinWgpuStatus::Ok;
         }
 
@@ -6513,7 +6720,8 @@ fn coin_wgpu_submit_internal(
             });
             unsafe { *out_ticket = ticket; }
             tgt.submission_serial = sub_serial;
-            commit_camera_scene(ctx, next_scene, commit_scene, f.frame_revision, owned_patch.is_some(), capture_scene);
+            commit_camera_scene(ctx, next_scene, commit_scene, f.frame_revision, owned_patch.is_some(), capture_scene,
+                !instances_slice.is_empty(), pending_instances);
             return CoinWgpuStatus::Ok;
         }
 
@@ -6537,6 +6745,10 @@ fn coin_wgpu_submit_internal(
 
         // Inject async fault if requested
         let async_fault = if ctx.device_id == 0 { FAULT_INJECTION_ASYNC.swap(0, Ordering::SeqCst) } else { 0 };
+        if async_fault == CoinWgpuStatus::OutOfMemory as i32 {
+            set_error(error_buf, error_buf_len, "Injected async OUT_OF_MEMORY after GPU execution");
+            return CoinWgpuStatus::OutOfMemory;
+        }
         if async_fault == CoinWgpuStatus::DeviceLost as i32 {
             DEVICE_LOST_OCCURRED.store(true, Ordering::SeqCst);
             if let Ok(mut lock) = LAST_ASYNC_ERROR_MSG.lock() {
@@ -6689,7 +6901,8 @@ fn coin_wgpu_submit_internal(
                     }
                 }
                 tgt.submission_serial = sub_serial;
-                commit_camera_scene(ctx, next_scene, commit_scene, f.frame_revision, owned_patch.is_some(), capture_scene);
+                commit_camera_scene(ctx, next_scene, commit_scene, f.frame_revision, owned_patch.is_some(), capture_scene,
+                    !instances_slice.is_empty(), pending_instances);
                 if attachment_cache_enabled {
                     ctx.cached_offscreen_attachments = Some(CachedOffscreenAttachments {
                         width, height, color_texture, color_view, depth_texture, depth_view,

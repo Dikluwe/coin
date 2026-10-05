@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 42
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 43
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -83,6 +83,21 @@ typedef struct CoinWgpuDraw {
   uint32_t render_layer; /* zero=base; overlays retain traversal order */
   uint32_t clear_depth_before; /* 0/1: clear only this draw's viewport */
 } CoinWgpuDraw;
+
+/* Private opaque instancing: source geometry remains in object space. */
+typedef struct CoinWgpuInstance {
+  float model_view[16];
+  float normal_matrix[16];
+  uint32_t material_slot;
+  uint32_t reserved[3]; /* must be zero; storage stride is 144 bytes */
+} CoinWgpuInstance;
+
+typedef struct CoinWgpuInstanceRange {
+  uint32_t draw_index;
+  uint32_t first_instance;
+  uint32_t instance_count;
+  uint32_t reserved; /* must be zero */
+} CoinWgpuInstanceRange;
 
 typedef struct CoinWgpuMaterial {
   float ambient[4];
@@ -270,6 +285,10 @@ typedef struct CoinWgpuFrameView {
   float shadow_threshold_fourth;
   const CoinWgpuShadowPassView * extra_shadow_passes;
   uint64_t extra_shadow_pass_count;
+  const CoinWgpuInstance * instances;
+  uint64_t instance_count;
+  const CoinWgpuInstanceRange * instance_ranges;
+  uint64_t instance_range_count;
 } CoinWgpuFrameView;
 
 typedef struct CoinWgpuTarget {
