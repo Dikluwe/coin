@@ -1,0 +1,569 @@
+{
+  "summary": "/tmp/coin-render-first-frame/docs/validation/wgpu-instancing-linux/offscreen/report-summary.json",
+  "summary_sha256": "7c22bcf4b3fba04f1a1c061519cec7c708cefdf45bff31fe79bcef760b038db4",
+  "statistic": "median of three process medians; error bars are min/max of those medians, not confidence intervals",
+  "CoinGL": "shared identical per-round control, taken from after; not counted twice",
+  "cases": [
+    "transforms-10",
+    "transforms-100",
+    "materials-10",
+    "geometry-10",
+    "static",
+    "camera"
+  ],
+  "panels_use_independent_scales": true,
+  "metrics": {
+    "total_ms": [
+      {
+        "case": "transforms-10",
+        "campaign": "before",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu antes",
+        "color": "#79848c",
+        "round_medians_ms": [
+          302.98858900000005,
+          300.551729,
+          298.5974285
+        ],
+        "median_ms": 300.551729,
+        "minimum_ms": 298.5974285,
+        "maximum_ms": 302.98858900000005
+      },
+      {
+        "case": "transforms-10",
+        "campaign": "after",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu depois",
+        "color": "#287bb8",
+        "round_medians_ms": [
+          73.2090515,
+          73.4975635,
+          73.571753
+        ],
+        "median_ms": 73.4975635,
+        "minimum_ms": 73.2090515,
+        "maximum_ms": 73.571753
+      },
+      {
+        "case": "transforms-10",
+        "campaign": "after",
+        "variant": "coingl",
+        "label": "CoinGL",
+        "color": "#ce811f",
+        "round_medians_ms": [
+          117.7463185,
+          113.81953,
+          113.71230600000001
+        ],
+        "median_ms": 113.81953,
+        "minimum_ms": 113.71230600000001,
+        "maximum_ms": 117.7463185
+      },
+      {
+        "case": "transforms-100",
+        "campaign": "before",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu antes",
+        "color": "#79848c",
+        "round_medians_ms": [
+          336.5179455,
+          336.53700249999997,
+          335.73033350000003
+        ],
+        "median_ms": 336.5179455,
+        "minimum_ms": 335.73033350000003,
+        "maximum_ms": 336.53700249999997
+      },
+      {
+        "case": "transforms-100",
+        "campaign": "after",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu depois",
+        "color": "#287bb8",
+        "round_medians_ms": [
+          117.535294,
+          109.43670750000001,
+          108.89302
+        ],
+        "median_ms": 109.43670750000001,
+        "minimum_ms": 108.89302,
+        "maximum_ms": 117.535294
+      },
+      {
+        "case": "transforms-100",
+        "campaign": "after",
+        "variant": "coingl",
+        "label": "CoinGL",
+        "color": "#ce811f",
+        "round_medians_ms": [
+          215.31306899999998,
+          223.711286,
+          235.93584650000003
+        ],
+        "median_ms": 223.711286,
+        "minimum_ms": 215.31306899999998,
+        "maximum_ms": 235.93584650000003
+      },
+      {
+        "case": "materials-10",
+        "campaign": "before",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu antes",
+        "color": "#79848c",
+        "round_medians_ms": [
+          352.02478399999995,
+          346.90741049999997,
+          345.103701
+        ],
+        "median_ms": 346.90741049999997,
+        "minimum_ms": 345.103701,
+        "maximum_ms": 352.02478399999995
+      },
+      {
+        "case": "materials-10",
+        "campaign": "after",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu depois",
+        "color": "#287bb8",
+        "round_medians_ms": [
+          260.0809595,
+          260.095328,
+          256.4957275
+        ],
+        "median_ms": 260.0809595,
+        "minimum_ms": 256.4957275,
+        "maximum_ms": 260.095328
+      },
+      {
+        "case": "materials-10",
+        "campaign": "after",
+        "variant": "coingl",
+        "label": "CoinGL",
+        "color": "#ce811f",
+        "round_medians_ms": [
+          130.95890450000002,
+          115.420626,
+          118.618243
+        ],
+        "median_ms": 118.618243,
+        "minimum_ms": 115.420626,
+        "maximum_ms": 130.95890450000002
+      },
+      {
+        "case": "geometry-10",
+        "campaign": "before",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu antes",
+        "color": "#79848c",
+        "round_medians_ms": [
+          483.0130345,
+          484.770271,
+          481.6441865
+        ],
+        "median_ms": 483.0130345,
+        "minimum_ms": 481.6441865,
+        "maximum_ms": 484.770271
+      },
+      {
+        "case": "geometry-10",
+        "campaign": "after",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu depois",
+        "color": "#287bb8",
+        "round_medians_ms": [
+          495.4230405,
+          493.561014,
+          490.670711
+        ],
+        "median_ms": 493.561014,
+        "minimum_ms": 490.670711,
+        "maximum_ms": 495.4230405
+      },
+      {
+        "case": "geometry-10",
+        "campaign": "after",
+        "variant": "coingl",
+        "label": "CoinGL",
+        "color": "#ce811f",
+        "round_medians_ms": [
+          117.513313,
+          116.793169,
+          117.058501
+        ],
+        "median_ms": 117.058501,
+        "minimum_ms": 116.793169,
+        "maximum_ms": 117.513313
+      },
+      {
+        "case": "static",
+        "campaign": "before",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu antes",
+        "color": "#79848c",
+        "round_medians_ms": [
+          2.15967,
+          2.0698220000000003,
+          2.1331990000000003
+        ],
+        "median_ms": 2.1331990000000003,
+        "minimum_ms": 2.0698220000000003,
+        "maximum_ms": 2.15967
+      },
+      {
+        "case": "static",
+        "campaign": "after",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu depois",
+        "color": "#287bb8",
+        "round_medians_ms": [
+          2.626085,
+          2.972349,
+          2.7597355
+        ],
+        "median_ms": 2.7597355,
+        "minimum_ms": 2.626085,
+        "maximum_ms": 2.972349
+      },
+      {
+        "case": "static",
+        "campaign": "after",
+        "variant": "coingl",
+        "label": "CoinGL",
+        "color": "#ce811f",
+        "round_medians_ms": [
+          12.7321405,
+          12.7056425,
+          13.055869000000001
+        ],
+        "median_ms": 12.7321405,
+        "minimum_ms": 12.7056425,
+        "maximum_ms": 13.055869000000001
+      },
+      {
+        "case": "camera",
+        "campaign": "before",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu antes",
+        "color": "#79848c",
+        "round_medians_ms": [
+          10.396286,
+          9.594421,
+          9.2947525
+        ],
+        "median_ms": 9.594421,
+        "minimum_ms": 9.2947525,
+        "maximum_ms": 10.396286
+      },
+      {
+        "case": "camera",
+        "campaign": "after",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu depois",
+        "color": "#287bb8",
+        "round_medians_ms": [
+          9.440565500000002,
+          9.9768875,
+          9.830932
+        ],
+        "median_ms": 9.830932,
+        "minimum_ms": 9.440565500000002,
+        "maximum_ms": 9.9768875
+      },
+      {
+        "case": "camera",
+        "campaign": "after",
+        "variant": "coingl",
+        "label": "CoinGL",
+        "color": "#ce811f",
+        "round_medians_ms": [
+          72.983851,
+          75.3989835,
+          72.56324599999999
+        ],
+        "median_ms": 72.983851,
+        "minimum_ms": 72.56324599999999,
+        "maximum_ms": 75.3989835
+      }
+    ],
+    "render_ms": [
+      {
+        "case": "transforms-10",
+        "campaign": "before",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu antes",
+        "color": "#79848c",
+        "round_medians_ms": [
+          300.17391150000003,
+          297.081346,
+          295.2559395
+        ],
+        "median_ms": 297.081346,
+        "minimum_ms": 295.2559395,
+        "maximum_ms": 300.17391150000003
+      },
+      {
+        "case": "transforms-10",
+        "campaign": "after",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu depois",
+        "color": "#287bb8",
+        "round_medians_ms": [
+          69.583497,
+          69.7110265,
+          69.741143
+        ],
+        "median_ms": 69.7110265,
+        "minimum_ms": 69.583497,
+        "maximum_ms": 69.741143
+      },
+      {
+        "case": "transforms-10",
+        "campaign": "after",
+        "variant": "coingl",
+        "label": "CoinGL",
+        "color": "#ce811f",
+        "round_medians_ms": [
+          113.734167,
+          109.755736,
+          109.6284595
+        ],
+        "median_ms": 109.755736,
+        "minimum_ms": 109.6284595,
+        "maximum_ms": 113.734167
+      },
+      {
+        "case": "transforms-100",
+        "campaign": "before",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu antes",
+        "color": "#79848c",
+        "round_medians_ms": [
+          313.71061050000003,
+          314.654684,
+          312.814786
+        ],
+        "median_ms": 313.71061050000003,
+        "minimum_ms": 312.814786,
+        "maximum_ms": 314.654684
+      },
+      {
+        "case": "transforms-100",
+        "campaign": "after",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu depois",
+        "color": "#287bb8",
+        "round_medians_ms": [
+          93.4047705,
+          86.66194949999999,
+          86.2079035
+        ],
+        "median_ms": 86.66194949999999,
+        "minimum_ms": 86.2079035,
+        "maximum_ms": 93.4047705
+      },
+      {
+        "case": "transforms-100",
+        "campaign": "after",
+        "variant": "coingl",
+        "label": "CoinGL",
+        "color": "#ce811f",
+        "round_medians_ms": [
+          190.6252445,
+          200.06424049999998,
+          211.5967305
+        ],
+        "median_ms": 200.06424049999998,
+        "minimum_ms": 190.6252445,
+        "maximum_ms": 211.5967305
+      },
+      {
+        "case": "materials-10",
+        "campaign": "before",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu antes",
+        "color": "#79848c",
+        "round_medians_ms": [
+          348.6295495,
+          342.84736699999996,
+          341.279542
+        ],
+        "median_ms": 342.84736699999996,
+        "minimum_ms": 341.279542,
+        "maximum_ms": 348.6295495
+      },
+      {
+        "case": "materials-10",
+        "campaign": "after",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu depois",
+        "color": "#287bb8",
+        "round_medians_ms": [
+          256.72633599999995,
+          256.625367,
+          253.0780145
+        ],
+        "median_ms": 256.625367,
+        "minimum_ms": 253.0780145,
+        "maximum_ms": 256.72633599999995
+      },
+      {
+        "case": "materials-10",
+        "campaign": "after",
+        "variant": "coingl",
+        "label": "CoinGL",
+        "color": "#ce811f",
+        "round_medians_ms": [
+          126.02513099999999,
+          111.06979899999999,
+          114.175286
+        ],
+        "median_ms": 114.175286,
+        "minimum_ms": 111.06979899999999,
+        "maximum_ms": 126.02513099999999
+      },
+      {
+        "case": "geometry-10",
+        "campaign": "before",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu antes",
+        "color": "#79848c",
+        "round_medians_ms": [
+          477.86001450000003,
+          479.59054000000003,
+          476.5761905
+        ],
+        "median_ms": 477.86001450000003,
+        "minimum_ms": 476.5761905,
+        "maximum_ms": 479.59054000000003
+      },
+      {
+        "case": "geometry-10",
+        "campaign": "after",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu depois",
+        "color": "#287bb8",
+        "round_medians_ms": [
+          490.1476175,
+          488.24048000000005,
+          485.4154565
+        ],
+        "median_ms": 488.24048000000005,
+        "minimum_ms": 485.4154565,
+        "maximum_ms": 490.1476175
+      },
+      {
+        "case": "geometry-10",
+        "campaign": "after",
+        "variant": "coingl",
+        "label": "CoinGL",
+        "color": "#ce811f",
+        "round_medians_ms": [
+          111.14443449999999,
+          110.312427,
+          110.76354950000001
+        ],
+        "median_ms": 110.76354950000001,
+        "minimum_ms": 110.312427,
+        "maximum_ms": 111.14443449999999
+      },
+      {
+        "case": "static",
+        "campaign": "before",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu antes",
+        "color": "#79848c",
+        "round_medians_ms": [
+          1.7950504999999999,
+          1.7415255,
+          1.8112940000000002
+        ],
+        "median_ms": 1.7950504999999999,
+        "minimum_ms": 1.7415255,
+        "maximum_ms": 1.8112940000000002
+      },
+      {
+        "case": "static",
+        "campaign": "after",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu depois",
+        "color": "#287bb8",
+        "round_medians_ms": [
+          2.250254,
+          2.565521,
+          2.416867
+        ],
+        "median_ms": 2.416867,
+        "minimum_ms": 2.250254,
+        "maximum_ms": 2.565521
+      },
+      {
+        "case": "static",
+        "campaign": "after",
+        "variant": "coingl",
+        "label": "CoinGL",
+        "color": "#ce811f",
+        "round_medians_ms": [
+          12.3471425,
+          12.284152500000001,
+          12.6377955
+        ],
+        "median_ms": 12.3471425,
+        "minimum_ms": 12.284152500000001,
+        "maximum_ms": 12.6377955
+      },
+      {
+        "case": "camera",
+        "campaign": "before",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu antes",
+        "color": "#79848c",
+        "round_medians_ms": [
+          9.914378,
+          9.110033,
+          8.8844835
+        ],
+        "median_ms": 9.110033,
+        "minimum_ms": 8.8844835,
+        "maximum_ms": 9.914378
+      },
+      {
+        "case": "camera",
+        "campaign": "after",
+        "variant": "wgpu-vulkan",
+        "label": "wgpu depois",
+        "color": "#287bb8",
+        "round_medians_ms": [
+          8.9658305,
+          9.485813,
+          9.340363499999999
+        ],
+        "median_ms": 9.340363499999999,
+        "minimum_ms": 8.9658305,
+        "maximum_ms": 9.485813
+      },
+      {
+        "case": "camera",
+        "campaign": "after",
+        "variant": "coingl",
+        "label": "CoinGL",
+        "color": "#ce811f",
+        "round_medians_ms": [
+          72.52237600000001,
+          74.907292,
+          72.0922145
+        ],
+        "median_ms": 72.52237600000001,
+        "minimum_ms": 72.0922145,
+        "maximum_ms": 74.907292
+      }
+    ]
+  },
+  "figures": [
+    "mediana-tempo-total-ms.png",
+    "mediana-tempo-total-ms.svg",
+    "mediana-tempo-total-ms.pdf",
+    "mediana-renderizacao-ms.png",
+    "mediana-renderizacao-ms.svg",
+    "mediana-renderizacao-ms.pdf"
+  ]
+}

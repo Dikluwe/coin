@@ -4,6 +4,7 @@ Implementação C++: `9e347591a9825ce4c1fcbdc76dc31d142d50d264`.
 Diagnóstico opt-in de apresentação: `1357bea43d`.
 Branch: `codex/coin-render-transform-performance`.
 Esta etapa sucede a [reutilização da câmera](coin-render-camera-reuse-linux.md).
+O trabalho seguinte implementa [instâncias e atualização de translação](coin-render-wgpu-instancing-linux.md).
 A referência continua sendo o OpenGL clássico do Coin3D, `SoGLRenderAction`
 (CoinGL), com as correções locais de GLX/PRIME descritas nos relatórios anteriores.
 

@@ -1,0 +1,11 @@
+{
+  "code_source_revision": "b02aa54783f3844b10a23fbdbca8a73eec0e1215",
+  "common_commit": "64b909b00b",
+  "before_wgpu_source_revision": "1357bea43d",
+  "control_coingl_source_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+  "scene_sha256": "bb9ccc612cd38ffb749ee599d9350a80974649eab5bf477d2f344538a42b2576",
+  "gpu_tests_serial": true,
+  "timing_excludes_instrumented_diagnostics": true,
+  "ppm_copied": false,
+  "gates_notes": "Initial multi-device fixture failed on invalid polygon-offset style, corrected and passed. Rust parallel probe SIGSEGV preserved; serial27 passed."
+}

@@ -1,0 +1,22 @@
+Parallel Rust test SIGSEGV diagnostic (read-only inspection)
+
+Journal-reported stack; the core memory dump was not opened:
+Stack trace of thread 102:
+#0  0x0000000000000000 n/a (n/a + 0x0)
+#1  0x00007d239795c0ca n/a (libvulkan.so.1 + 0x2a0ca)
+#2  0x00007d23979664f2 vkEnumerateInstanceExtensionProperties (libvulkan.so.1 + 0x344f2)
+#3  0x000060a7e672f28c n/a (/tmp/coin-render-first-frame-wgpu/rust_target/release/deps/coin_wgpu_rust_bridge-468f9cd9666e0d73 + 0x3b328c)
+#4  0x0000000000000000 n/a (n/a + 0x0)
+ELF object binary architecture: AMD x86-64
+
+Symbolication command:
+addr2line -Cfipe /tmp/coin-render-first-frame-wgpu/rust_target/release/deps/coin_wgpu_rust_bridge-468f9cd9666e0d73 0x3b328c
+Result:
+ash::prelude::read_into_uninitialized_vector at wgpu_hal.f904096c90d8064e-cgu.12:?
+
+Relevant source callsites:
+wgpu-hal-24.0.4/src/vulkan/instance.rs:208-218 enumerate_instance_extension_properties wraps ash entry enumeration.
+wgpu-hal-24.0.4/src/vulkan/instance.rs:242 enumerates instance extensions before adapter/device creation.
+
+Observed scope:
+The stack reaches vkEnumerateInstanceExtensionProperties in libvulkan and calls a null address. This locates the crash in the Vulkan instance probe/loader path, before instanced rendering. The stack alone does not establish the exact loader/driver/layer cause or prove that concurrency caused it.

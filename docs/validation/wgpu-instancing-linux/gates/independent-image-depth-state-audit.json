@@ -1,0 +1,203 @@
+{
+  "generated_at_utc": "2026-10-05T01:30:24.772449+00:00",
+  "status": "PASS_NO_SAMPLED_RGB_OR_STATE_REGRESSION",
+  "method": "Read existing logs/CSVs/PPMs; recomputed RGB and SHA-256; no build or rendering executed",
+  "coverage": {
+    "scene": "city-40000",
+    "scope": "offscreen",
+    "gpu": "NVIDIA RTX 3060 Laptop / Vulkan",
+    "resolution": [
+      1024,
+      1024
+    ],
+    "cases": [
+      "camera",
+      "geometry-10",
+      "materials-10",
+      "static",
+      "transforms-10",
+      "transforms-100"
+    ],
+    "capture_logical_frames": [
+      0,
+      100,
+      200,
+      300,
+      400,
+      500,
+      600
+    ],
+    "verification_rounds_actually_run": 1,
+    "images_per_campaign": 84,
+    "same_variant_before_after_pairs": 84,
+    "wgpu_before_after_pairs": 42,
+    "coingl_before_after_pairs": 42,
+    "wgpu_vs_coingl_pairs_per_campaign": 42
+  },
+  "protocol": {
+    "scene_sha256": "bb9ccc612cd38ffb749ee599d9350a80974649eab5bf477d2f344538a42b2576",
+    "recorded_parameters_equal": [
+      "scope",
+      "mode",
+      "gpu",
+      "size",
+      "cases",
+      "variants",
+      "warmup",
+      "frames",
+      "rounds"
+    ],
+    "effective_verification_protocol": "--warmup 0 --frames 7 --animation-step 100; captures outside frame timers",
+    "CoinGL_binary_and_libraries_unchanged": {
+      "/tmp/coin-render-instancing-baseline/bgfx/bin/coin_render_gl_benchmark": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086",
+      "/tmp/coin-render-instancing-baseline/bgfx/lib/libCoinRender.so": "51e7cd743a87afa7476b011a72f3749246e269d3d850715ddc3675af436658be",
+      "/tmp/coin-render-instancing-baseline/bgfx/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f"
+    },
+    "binary_hashes": {
+      "before": {
+        "/tmp/coin-render-instancing-baseline/bgfx/bin/coin_render_gl_benchmark": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086",
+        "/tmp/coin-render-instancing-baseline/bgfx/lib/libCoinRender.so": "51e7cd743a87afa7476b011a72f3749246e269d3d850715ddc3675af436658be",
+        "/tmp/coin-render-instancing-baseline/bgfx/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f",
+        "/tmp/coin-render-instancing-baseline/wgpu/bin/coin_render_gl_benchmark": "fdeb5bec7dccc45643a62024fdabca605a6598510d63b0dcd27b6cc78ff67e4a",
+        "/tmp/coin-render-instancing-baseline/wgpu/lib/libCoinRender.so": "08293b18e1d37c2525426eb843516b5f2128d3d462ff103034be0842532caebe",
+        "/tmp/coin-render-instancing-baseline/wgpu/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f"
+      },
+      "after": {
+        "/tmp/coin-render-instancing-baseline/bgfx/bin/coin_render_gl_benchmark": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086",
+        "/tmp/coin-render-instancing-baseline/bgfx/lib/libCoinRender.so": "51e7cd743a87afa7476b011a72f3749246e269d3d850715ddc3675af436658be",
+        "/tmp/coin-render-instancing-baseline/bgfx/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f",
+        "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark": "fdeb5bec7dccc45643a62024fdabca605a6598510d63b0dcd27b6cc78ff67e4a",
+        "/tmp/coin-render-first-frame-wgpu/lib/libCoinRender.so": "fcc15e5cbdb6a9079fdae73ff84959b2c5bf6cfb7a2a10cbe1a2c0625d168ba1",
+        "/tmp/coin-render-first-frame-wgpu/lib/libCoin.so.80": "c86d9ce95df367b1c649545a1d0ba1de89edeb9f5b887f765bc47229d55c5437"
+      }
+    },
+    "source_provenance_limit": "after manifest records source_revision only; source content is still uncommitted, so compiled binary hashes are the authoritative identities here"
+  },
+  "before_after": {
+    "all_rgb_and_ppm_sha256_identical": true,
+    "max_rgb_mae": 0.0,
+    "max_channel_error": 0,
+    "all_logged_state_rgb_rgba_digests_equal": true,
+    "detailed_evidence": "independent-rgb-before-after.json",
+    "digest_pair_count": 84
+  },
+  "CoinGL_reference": {
+    "before_after_metrics_equal": true,
+    "metrics_8bit_channel_units": [
+      {
+        "case": "camera",
+        "samples_per_campaign": 7,
+        "before_after_metrics_equal": true,
+        "max_rgb_mae": 0.027938206990559895,
+        "max_pixels_different": 77882,
+        "max_pixels_over3": 7,
+        "max_pixels_over3_percent": 0.000667572021484375,
+        "max_channel_error": 150
+      },
+      {
+        "case": "geometry-10",
+        "samples_per_campaign": 7,
+        "before_after_metrics_equal": true,
+        "max_rgb_mae": 0.022727330525716145,
+        "max_pixels_different": 63832,
+        "max_pixels_over3": 3,
+        "max_pixels_over3_percent": 0.000286102294921875,
+        "max_channel_error": 110
+      },
+      {
+        "case": "materials-10",
+        "samples_per_campaign": 7,
+        "before_after_metrics_equal": true,
+        "max_rgb_mae": 0.023153305053710938,
+        "max_pixels_different": 65424,
+        "max_pixels_over3": 1,
+        "max_pixels_over3_percent": 9.5367431640625e-05,
+        "max_channel_error": 31
+      },
+      {
+        "case": "static",
+        "samples_per_campaign": 7,
+        "before_after_metrics_equal": true,
+        "max_rgb_mae": 0.022607167561848957,
+        "max_pixels_different": 63723,
+        "max_pixels_over3": 1,
+        "max_pixels_over3_percent": 9.5367431640625e-05,
+        "max_channel_error": 31
+      },
+      {
+        "case": "transforms-10",
+        "samples_per_campaign": 7,
+        "before_after_metrics_equal": true,
+        "max_rgb_mae": 0.02271715799967448,
+        "max_pixels_different": 63886,
+        "max_pixels_over3": 2,
+        "max_pixels_over3_percent": 0.00019073486328125,
+        "max_channel_error": 113
+      },
+      {
+        "case": "transforms-100",
+        "samples_per_campaign": 7,
+        "before_after_metrics_equal": true,
+        "max_rgb_mae": 0.02305316925048828,
+        "max_pixels_different": 64109,
+        "max_pixels_over3": 6,
+        "max_pixels_over3_percent": 0.00057220458984375,
+        "max_channel_error": 140
+      }
+    ],
+    "per_frame_evidence": "independent-reference-state-details.json"
+  },
+  "depth": {
+    "city_raw_depth_or_depth_digests_present": false,
+    "city_before_after_or_CoinGL_depth_equality_established": false,
+    "supporting_gpu_fixture": {
+      "gate": "CoinWgpuMultiDeviceTest instancedOpaqueOwnership",
+      "retry_command": {
+        "gate": "multi-device-retry",
+        "command": [
+          "/tmp/coin-render-first-frame-wgpu/bin/CoinWgpuMultiDeviceTest"
+        ],
+        "returncode": 0
+      },
+      "result_log": "multi-device.log",
+      "result_log_sha256": "96354101276d4305a59d9b3bbbf3a62fb2569254ce7ff5b567bdd01ed740e599",
+      "oracle": "independent CPU-baked vertices on separate device; synchronous/asynchronous color+depth; objects/materials/camera, failure/retry and device loss",
+      "color_max_allowed_channel_error": 2,
+      "depth_max_allowed_absolute_error": 2e-06,
+      "requires_finite_depth_and_written_pixel": true,
+      "raw_fixture_depth_values_or_maximum_error_recorded": false,
+      "initial_gate_failed": {
+        "gate": "multi-device",
+        "command": [
+          "/tmp/coin-render-first-frame-wgpu/bin/CoinWgpuMultiDeviceTest"
+        ],
+        "returncode": 1
+      },
+      "initial_failure": "invalid polygon offset in baked test fixture; later retry passed",
+      "source_sha256": "2a4565df2ab473b842b11d7e1737579179ece66ab71839da7d844a041120e84e"
+    }
+  },
+  "limits": [
+    "Only the six stated cases, single scene, single resolution, one GPU/backend and seven sparse logical frames were compared.",
+    "Scene-state/RGBA digests were recorded by the benchmark; PPM SHA-256 and RGB metrics were independently recomputed.",
+    "PPM captures have no alpha or depth; RGBA equality is based on the recorded digest, and city depth equality is unmeasured.",
+    "No performance conclusion is drawn from verification-mode runs."
+  ],
+  "evidence_hashes": {
+    "/tmp/coin-render-instancing-verify-before/manifest.json": "aeff61f5cbf8f1c0fb94000c7d2e72be848e4daeb28397b08529cfdf05c1509f",
+    "/tmp/coin-render-instancing-verify-before/results.json": "4a0741860ec85e282633f3257edccaa841a75062684942b2cfefddc12d72c102",
+    "/tmp/coin-render-instancing-verify-before/image-manifest.json": "6eee11757cd1c79790c61d97f4e14b717d601275e3b3ce9691e3d4bda8547e09",
+    "/tmp/coin-render-instancing-verify-before/rgb.json": "bb0f1f977bf0c5f60b988722832c5d8b990e9aa6e6221b5c3016db3da16381db",
+    "/tmp/coin-render-instancing-verify-before/motion.json": "d987f76e11bb510ee0b7610f986a1d52a95cf82d2bd32bd0a2aaf8fdd6374ad3",
+    "/tmp/coin-render-instancing-verify-after/manifest.json": "4241c1c144e984b3922786c466a663b2fd3edc878b0226f8ed3816c868e6d21e",
+    "/tmp/coin-render-instancing-verify-after/results.json": "e5b5d940708bb6ad2bfbb14b31924dbdadf151891712e165408d5a48c02aa453",
+    "/tmp/coin-render-instancing-verify-after/image-manifest.json": "6eee11757cd1c79790c61d97f4e14b717d601275e3b3ce9691e3d4bda8547e09",
+    "/tmp/coin-render-instancing-verify-after/rgb.json": "bb0f1f977bf0c5f60b988722832c5d8b990e9aa6e6221b5c3016db3da16381db",
+    "/tmp/coin-render-instancing-verify-after/motion.json": "d987f76e11bb510ee0b7610f986a1d52a95cf82d2bd32bd0a2aaf8fdd6374ad3"
+  },
+  "motion": {
+    "dynamic_distinct_states_and_rgb_per_case_renderer_campaign": 7,
+    "static_distinct_states_and_rgb_per_renderer_campaign": 1,
+    "detail_evidence": "independent-reference-state-details.json"
+  }
+}

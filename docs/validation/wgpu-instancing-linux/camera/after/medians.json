@@ -1,0 +1,97 @@
+[
+  {
+    "case": "camera",
+    "variant": "coingl",
+    "processes": 3,
+    "scope": "offscreen",
+    "gpu": "nvidia",
+    "stats": {
+      "update_ms": {
+        "median_ms": 0.0113265,
+        "p95_ms": 0.018274,
+        "p99_ms": 0.022542,
+        "max_ms": 0.023133,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "render_ms": {
+        "median_ms": 71.343681,
+        "p95_ms": 74.351239,
+        "p99_ms": 76.659466,
+        "max_ms": 77.516302,
+        "over_16_67": 100,
+        "over_33_33": 100
+      },
+      "publication_ms": {
+        "median_ms": 0.3741765,
+        "p95_ms": 0.467541,
+        "p99_ms": 0.516272,
+        "max_ms": 0.520209,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "total_ms": {
+        "median_ms": 71.72446500000001,
+        "p95_ms": 74.840851,
+        "p99_ms": 77.153846,
+        "max_ms": 78.043703,
+        "over_16_67": 100,
+        "over_33_33": 100
+      }
+    },
+    "peak_rss_kib": 434540,
+    "first_ms": 356.323,
+    "first_total_ms": 356.324,
+    "result_since_main_ms": 771.206,
+    "wall_total_ms": 7263.49,
+    "throughput_fps": 13.7675,
+    "shared_control": true
+  },
+  {
+    "case": "camera",
+    "variant": "wgpu-vulkan",
+    "processes": 3,
+    "scope": "offscreen",
+    "gpu": "nvidia",
+    "stats": {
+      "update_ms": {
+        "median_ms": 0.018749500000000002,
+        "p95_ms": 0.030176,
+        "p99_ms": 0.035416,
+        "max_ms": 0.063979,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "render_ms": {
+        "median_ms": 8.610557,
+        "p95_ms": 9.707403,
+        "p99_ms": 10.16796,
+        "max_ms": 11.041727,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "publication_ms": {
+        "median_ms": 0.4369385,
+        "p95_ms": 0.509839,
+        "p99_ms": 0.570101,
+        "max_ms": 0.721223,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "total_ms": {
+        "median_ms": 9.0900245,
+        "p95_ms": 10.193809,
+        "p99_ms": 10.627756,
+        "max_ms": 11.513486,
+        "over_16_67": 0,
+        "over_33_33": 0
+      }
+    },
+    "peak_rss_kib": 437264,
+    "first_ms": 292.269,
+    "first_total_ms": 292.276,
+    "result_since_main_ms": 874.663,
+    "wall_total_ms": 916.991,
+    "throughput_fps": 109.052
+  }
+]

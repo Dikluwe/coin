@@ -1,0 +1,191 @@
+{
+  "note": "Instrumented pilot and presentation diagnostics are excluded from qualifying performance tables. GPU/Rust gates run serially; parallel Rust failure preserved.",
+  "files": [
+    {
+      "original_path": "/tmp/coin-render-instancing-validation/after-binaries.json",
+      "archive_path": "gates/after-binaries.json",
+      "sha256": "f5d1fe96029ebd8c8d32d6893bd2190c2c1fb51eeb5ca6b6be9606e4a6507cb9",
+      "bytes": 1001
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-validation/bgfx-ctest.log",
+      "archive_path": "gates/bgfx-ctest.log",
+      "sha256": "8800c97894c061b2ff7b8fb2a178df7755ccccd70aa7b1de1f182fdae713cd27",
+      "bytes": 410
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-validation/camera-reference.log",
+      "archive_path": "gates/camera-reference.log",
+      "sha256": "bd44fe9da72cfd53df9b78a6edacfc8a4dc6d7013e2cfcd13dab33e7a63f2458",
+      "bytes": 2378
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-validation/commands.json",
+      "archive_path": "gates/commands.json",
+      "sha256": "2391a70f84d73f8bd6752577220446c53660f87f3689aeca72274c5e548e7660",
+      "bytes": 1429
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-validation/cpu-ctest.log",
+      "archive_path": "gates/cpu-ctest.log",
+      "sha256": "63cfee3574aadf465e1ad280795fe88937ce72250841f0f2ab75b584010f84bc",
+      "bytes": 2737
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-validation/independent-rgb-before-after.json",
+      "archive_path": "gates/independent-rgb-before-after.json",
+      "sha256": "bb783b1d29238a4fcd74a51c6d8bee379bc19c9213d0df100e92fd118de5d94c",
+      "bytes": 76388
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-validation/multi-device-failed-style.log",
+      "archive_path": "gates/multi-device-failed-style.log",
+      "sha256": "d42a7803581e3d8922005931ae2a805ad4f315d1c07548e428bc3a5151b5bcba",
+      "bytes": 95
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-validation/multi-device.log",
+      "archive_path": "gates/multi-device.log",
+      "sha256": "96354101276d4305a59d9b3bbbf3a62fb2569254ce7ff5b567bdd01ed740e599",
+      "bytes": 31
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-validation/rtt-ownership.log",
+      "archive_path": "gates/rtt-ownership.log",
+      "sha256": "7648497037f3005af97dacdf7e10bde095bad29763ecb9267c6a98d264e11364",
+      "bytes": 34
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-validation/rust-parallel-diagnostic.txt",
+      "archive_path": "gates/rust-parallel-diagnostic.txt",
+      "sha256": "de6402d60738aa437a8522c4ea7e5929a340a0c48a5a8adc03d3e54a86dc5307",
+      "bytes": 1355
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-validation/rust-parallel-failed.log",
+      "archive_path": "gates/rust-parallel-failed.log",
+      "sha256": "963fe5e90f6af7aa51cbc1fb6bc1ccaf8b19a432b5f412a24ebc2bae483c6d9e",
+      "bytes": 4830
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-validation/rust-serial-nvidia.log",
+      "archive_path": "gates/rust-serial-nvidia.log",
+      "sha256": "d84b01528a6ad29143f79008482c6aa4a445b209fc49faa00a5119ddcdebcd57",
+      "bytes": 2523
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-validation/rust-serial-software.log",
+      "archive_path": "gates/rust-serial-software.log",
+      "sha256": "dac26507a71caa879bb9241911f3afa86eda9a68ba8fb06cc46cb1b206f760a3",
+      "bytes": 2546
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-validation/scene-texture.log",
+      "archive_path": "gates/scene-texture.log",
+      "sha256": "792b14dee0789bfc3ce00e88355119e0cc23ec2843b8d239d87b5794277cd9d1",
+      "bytes": 34
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-validation/surface-camera.log",
+      "archive_path": "gates/surface-camera.log",
+      "sha256": "f9817b164cc5c9de6321fc6ad3707db13450701754b2871a133651c0ac85cf01",
+      "bytes": 112
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-validation/surface-full.log",
+      "archive_path": "gates/surface-full.log",
+      "sha256": "ae742abbcfe10ef87cee34ca2f50abde1813ba1045b2a60834027d444249d1b8",
+      "bytes": 478
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-pilot/camera.csv",
+      "archive_path": "pilot-trace/camera.csv",
+      "sha256": "135ef6465830ad9df0ff819c8943dfdee550bc06fd2c78f5d633c8ff96d4e817",
+      "bytes": 880
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-pilot/camera.log",
+      "archive_path": "pilot-trace/camera.log",
+      "sha256": "d983bb3b12fd019210dbf9c4249ea5af3251b632d100b3291f5f62435bc98525",
+      "bytes": 20582
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-pilot/commands.json",
+      "archive_path": "pilot-trace/commands.json",
+      "sha256": "7e8bfbbd89aeb82045897f7f8bdc7c3690a17395d221a4a2b28674626311a687",
+      "bytes": 1584
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-pilot/static.csv",
+      "archive_path": "pilot-trace/static.csv",
+      "sha256": "06a1726637b4d2ca03ced0357248393d7a0ea2519f088826dc394fb0fff6f75c",
+      "bytes": 863
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-pilot/static.log",
+      "archive_path": "pilot-trace/static.log",
+      "sha256": "4aa9d3df92854617f3eaad1d8afd9c094b0bd7b20de0ac1b51dbfa24bc7e1142",
+      "bytes": 20489
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-pilot/transforms-10.csv",
+      "archive_path": "pilot-trace/transforms-10.csv",
+      "sha256": "df41d3d54d91ace34303a8780d6d564fd8bf87f32e3faa1d1937ec3075a4cc59",
+      "bytes": 820
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-pilot/transforms-10.log",
+      "archive_path": "pilot-trace/transforms-10.log",
+      "sha256": "5800774c74af2ea9451dd2af9226859d366dc9ddce03116fdb999c6aed84ebcf",
+      "bytes": 24444
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-present-baseline/1024-long-command.json",
+      "archive_path": "presentation-diagnostic/1024-long-command.json",
+      "sha256": "c9ffc2ed877029ae77732fe8675966060dbf9405b4bf87dbb30925f2ed44d8bd",
+      "bytes": 436
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-present-baseline/1024-long.csv",
+      "archive_path": "presentation-diagnostic/1024-long.csv",
+      "sha256": "ce3453a5595baf15f8237de9462fbf9c8478b2861a263c33855b4d95d7cd64fc",
+      "bytes": 2594
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-present-baseline/1024-long.log",
+      "archive_path": "presentation-diagnostic/1024-long.log",
+      "sha256": "8540b7eb33b9f37a7d848eab71251311205a91a34a856eeb83b9580976bdd7d3",
+      "bytes": 82830
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-present-baseline/1024.csv",
+      "archive_path": "presentation-diagnostic/1024.csv",
+      "sha256": "39b8a933b3d104510993bb4f7df7951a9f965e7605ed0b1b650d90839e48267f",
+      "bytes": 795
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-present-baseline/1024.log",
+      "archive_path": "presentation-diagnostic/1024.log",
+      "sha256": "97e0f419d1219eea961a0bdc208ae40d7226e252219da2ae357db62fb7254c45",
+      "bytes": 25433
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-present-baseline/512.csv",
+      "archive_path": "presentation-diagnostic/512.csv",
+      "sha256": "5d9bcc36c15aa11bc3e5363a35d72851fe818b52619b372eb05b47747c00562f",
+      "bytes": 795
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-present-baseline/512.log",
+      "archive_path": "presentation-diagnostic/512.log",
+      "sha256": "9245d22f049494d4219312dd36df6241923ae43803d5f3ce087e646d3f79f0a0",
+      "bytes": 25407
+    },
+    {
+      "original_path": "/tmp/coin-render-instancing-present-baseline/commands.json",
+      "archive_path": "presentation-diagnostic/commands.json",
+      "sha256": "f3c5816046beb224051d11b89040af9be5d19ae7b7cdb98a449b0669e5865bd6",
+      "bytes": 1128
+    }
+  ]
+}

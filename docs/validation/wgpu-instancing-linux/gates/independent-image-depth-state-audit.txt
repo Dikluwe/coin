@@ -1,0 +1,18 @@
+Independent instancing image/depth/state audit
+PASS: no sampled RGB/state regression.
+84/84 same-variant before/after RGB+PPM comparisons identical (42 wgpu, 42 CoinGL); MAE 0 and max channel error 0.
+84/84 logged scene-state, RGB and RGBA digests equal before/after.
+42/42 wgpu-vs-CoinGL scene-state digests match per campaign; RGB error metrics are unchanged.
+Cases: six; 1024x1024; logical frames 0,100,...,600; actual verification rounds: 1.
+Dynamic cases: seven distinct state/image digests; static: one, in each renderer/campaign.
+CoinGL reference maxima (8-bit channel units):
+  camera: MAE 0.02793821; max channel 150; pixels over 3 7 (0.000668%).
+  geometry-10: MAE 0.02272733; max channel 110; pixels over 3 3 (0.000286%).
+  materials-10: MAE 0.02315331; max channel 31; pixels over 3 1 (0.000095%).
+  static: MAE 0.02260717; max channel 31; pixels over 3 1 (0.000095%).
+  transforms-10: MAE 0.02271716; max channel 113; pixels over 3 2 (0.000191%).
+  transforms-100: MAE 0.02305317; max channel 140; pixels over 3 6 (0.000572%).
+Depth limit: city campaigns have no depth capture or depth digest; no city depth equality claim.
+Supporting GPU fixture: multi-device retry passed; independent baked color <=2 channel units and depth <=2e-6 with finite/written depth, including async and retry cases. No raw depth/max-error metrics were retained. Initial fixture gate failed on polygon offset; retry passed.
+Source is still uncommitted; after binary hashes identify the measured build. This audit does not establish full scene/backend coverage or timing performance.
+Detailed report: independent-image-depth-state-audit.json; recomputed PPM pairs: independent-rgb-before-after.json.
