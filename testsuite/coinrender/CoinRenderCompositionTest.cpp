@@ -5,6 +5,7 @@
 #endif
 
 #include <Inventor/SoDB.h>
+#include <Inventor/SbRotation.h>
 #include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/nodes/SoMaterial.h>
@@ -15,9 +16,12 @@
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
+#include "CoinRenderTestEnvironment.h"
 
 #include <array>
 #include <cmath>
+#include <cstring>
+#include <limits>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -137,6 +141,157 @@ CoinRenderFramePlan makePlan(bool textureAlpha = false) {
     plan.samplers.push_back(CoinRenderSamplerSnapshot{});
   }
   return plan;
+}
+
+bool sameCompositionItem(const CoinRenderCompositionItem & a, const CoinRenderCompositionItem & b) {
+  return a.drawIndex == b.drawIndex && a.firstIndex == b.firstIndex && a.indexCount == b.indexCount &&
+    a.blend == b.blend && a.deferred == b.deferred && a.additive == b.additive &&
+    a.sortTriangles == b.sortTriangles && a.sortObject == b.sortObject &&
+    std::memcmp(&a.eyeDepth, &b.eyeDepth, sizeof(a.eyeDepth)) == 0 &&
+    a.screenDoor == b.screenDoor && a.screenDoorLevel == b.screenDoorLevel &&
+    a.depthTest == b.depthTest && a.depthWrite == b.depthWrite && a.depthFunction == b.depthFunction &&
+    std::memcmp(a.depthRange, b.depthRange, sizeof(a.depthRange)) == 0 &&
+    a.transparencyStrategy == b.transparencyStrategy;
+}
+bool compositionMemoOracle(const CoinRenderFramePlan & plan, const char * label, bool expected = true) {
+  std::vector<CoinRenderCompositionItem> original, memo;
+  std::string originalDiagnostic, memoDiagnostic;
+  coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMPOSITION_RANGE_MEMOIZATION", "1");
+  const bool originalResult = coin_render_composition_order(plan, original, originalDiagnostic);
+  coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMPOSITION_RANGE_MEMOIZATION", "0");
+  const bool memoResult = coin_render_composition_order(plan, memo, memoDiagnostic);
+  bool equal = originalResult == memoResult && originalResult == expected &&
+    originalDiagnostic == memoDiagnostic && original.size() == memo.size();
+  for (size_t i = 0; equal && i < original.size(); ++i) equal = sameCompositionItem(original[i], memo[i]);
+  if (!equal) std::cerr << label << ": original=" << originalResult << " (" << originalDiagnostic << ") memo="
+                        << memoResult << " (" << memoDiagnostic << ")\n";
+  return check(equal, label);
+}
+CoinRenderFramePlan centeredAliases() {
+  auto plan = makePlan();
+  // Include both opaque and heterogeneous vertex materials. A range summary
+  // describes the vertices; each draw still owns its state material policy.
+  plan.materials[0].diffuse[3] = 1; plan.materials[0].transparency = 0;
+  plan.vertices[1].materialSlot = 2;
+  for (size_t i = 0; i < plan.draws.size(); ++i) {
+    plan.draws[i].geometry = plan.draws[0].geometry;
+    plan.draws[i].hasSortingCenter = true;
+    plan.draws[i].sortingCenterWorld[2] = -float(2 + i);
+    plan.renderStates[i].model.setTranslate(SbVec3f(float(i), 0, -float(i)));
+    plan.renderStates[i].depthRange[0] = .1f * float(i);
+    plan.renderStates[i].depthRange[1] = .8f;
+    plan.renderStates[i].explicitDepthMask = static_cast<uint32_t>(i);
+  }
+  return plan;
+}
+bool testCompositionRangeMemoization() {
+  struct Environment {
+    std::string value; bool present;
+    Environment() {
+      const char * previous = std::getenv("COIN_RENDER_DISABLE_COMPOSITION_RANGE_MEMOIZATION");
+      present = previous != nullptr; value = previous ? previous : "";
+    }
+    ~Environment() { coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_COMPOSITION_RANGE_MEMOIZATION", present ? value.c_str() : nullptr); }
+  } environment;
+  auto base = centeredAliases(); base.revision = 91;
+  bool ok = compositionMemoOracle(base, "centered aliases with heterogeneous vertex alpha and distinct models");
+  auto changed = base;
+  changed.cameras[0].viewMatrix.setTranslate(SbVec3f(0, 0, 7));
+  changed.renderStates[1].view.setRotate(SbRotation(SbVec3f(0, 1, 0), .37f));
+  changed.renderStates[2].model[0][2] = .5f;
+  changed.draws[2].sortingCenterWorld[2] = 19;
+  ok &= compositionMemoOracle(changed, "centers, shared ranges, camera view and sheared affine Z remain independent");
+  for (const int mode : {SoGLRenderAction::NONE, SoGLRenderAction::SCREEN_DOOR, SoGLRenderAction::ADD,
+                         SoGLRenderAction::BLEND, SoGLRenderAction::DELAYED_ADD, SoGLRenderAction::DELAYED_BLEND,
+                         SoGLRenderAction::SORTED_OBJECT_ADD, SoGLRenderAction::SORTED_OBJECT_BLEND,
+                         SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_ADD,
+                         SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND, SoGLRenderAction::SORTED_LAYERS_BLEND}) {
+    changed = base;
+    for (auto & state : changed.renderStates) state.transparencyType = mode;
+    changed.draws[1].renderLayer = 2; changed.draws[1].clearDepthBefore = true;
+    ok &= compositionMemoOracle(changed, "memo preserves every composition policy and annotation/depth field");
+  }
+  changed = base;
+  changed.draws[1].geometry.firstIndex = 3; changed.draws[1].geometry.indexCount = 3;
+  changed.draws[2].geometry.indexCount = 3;
+  ok &= compositionMemoOracle(changed, "overlapping index ranges must have independent exact range keys");
+  changed = base;
+  changed.draws[1].hasSortingCenter = false;
+  ok &= compositionMemoOracle(changed, "draws without sorting centers retain the full depth scan");
+  changed = base;
+  changed.renderStates[1].model[0][3] = .125f;
+  ok &= compositionMemoOracle(changed, "projective homogeneous divisor uses original scan");
+  changed = base;
+  changed.renderStates[1].model[3][3] = 0;
+  ok &= compositionMemoOracle(changed, "zero homogeneous divisor retains original depth rejection", false);
+  changed = base;
+  changed.renderStates[1].polygonOffsetPrimitiveStyle = 2;
+  changed.cameras[0].projectionMatrixCoin = projection();
+  ok &= compositionMemoOracle(changed, "expanded stroke inverse-projection depth is not memoized");
+  changed = base;
+  changed.renderStates[1].model[0][2] = std::numeric_limits<float>::max() / 2;
+  ok &= compositionMemoOracle(changed, "conservative bound miss retains finite large transformed Z");
+  changed.vertices[3].position[0] = 16;
+  ok &= compositionMemoOracle(changed, "late transformed Z overflow retains original diagnostic", false);
+  changed = base;
+  changed.indices[5] = static_cast<uint32_t>(changed.vertices.size());
+  ok &= compositionMemoOracle(changed, "late invalid index retains original diagnostic", false);
+  changed = base;
+  changed.vertices[3].materialSlot = static_cast<uint32_t>(changed.materials.size());
+  ok &= compositionMemoOracle(changed, "late invalid vertex material retains original diagnostic", false);
+  changed = base;
+  changed.vertices[0].position[2] = std::numeric_limits<float>::infinity();
+  changed.indices[5] = static_cast<uint32_t>(changed.vertices.size());
+  ok &= compositionMemoOracle(changed, "early invalid depth precedes a later invalid index when summary declines", false);
+  changed = base;
+  changed.vertices[0].position[2] = std::numeric_limits<float>::infinity();
+  changed.vertices[3].materialSlot = static_cast<uint32_t>(changed.materials.size());
+  ok &= compositionMemoOracle(changed, "early invalid depth precedes a later invalid material when summary declines", false);
+  changed = base;
+  changed.vertices[3].position[2] = std::numeric_limits<float>::infinity();
+  ok &= compositionMemoOracle(changed, "nonfinite Z retains original depth rejection", false);
+  changed = base;
+  changed.draws[2].sortingCenterWorld[2] = std::numeric_limits<float>::quiet_NaN();
+  ok &= compositionMemoOracle(changed, "nonfinite sorting center is still rejected after memo hits", false);
+  changed = base;
+  changed.renderStates[2].cameraSlot = static_cast<uint32_t>(changed.cameras.size());
+  ok &= compositionMemoOracle(changed, "late sorting camera bounds remain validated", false);
+
+  // Legacy identity-view depth consumes only Z. An optional summary cannot
+  // strengthen that contract by rejecting unused nonfinite X/Y coordinates.
+  changed = base;
+  changed.draws.resize(1); changed.renderStates.resize(1);
+  changed.vertices[3].position[0] = std::numeric_limits<float>::quiet_NaN();
+  changed.vertices[3].position[1] = std::numeric_limits<float>::infinity();
+  ok &= compositionMemoOracle(changed, "identity view accepts unused nonfinite X/Y exactly as legacy");
+  changed.renderStates[0].model[3][0] = 1;
+  ok &= compositionMemoOracle(changed, "nonidentity arithmetic retains NaN multiplied by zero rejection", false);
+
+  changed = makePlan(true);
+  for (auto & draw : changed.draws) { draw.hasSortingCenter = true; draw.sortingCenterWorld[2] = -2; }
+  changed.draws[1].geometry = changed.draws[0].geometry;
+  ok &= compositionMemoOracle(changed, "texture alpha remains per-state after shared vertex summary");
+  for (size_t i = 3; i < changed.textures[0].pixelsRgba.size(); i += 4) changed.textures[0].pixelsRgba[i] = 255;
+  ok &= compositionMemoOracle(changed, "texture bytes changed at the same revision are reclassified");
+
+  // Exercise the cap, later uncached misses and an earlier cached alias.
+  changed = base; changed.draws.clear();
+  const auto anchor = base.draws[0];
+  for (size_t i = 0; i < 1100; ++i) {
+    auto draw = anchor;
+    draw.geometry.firstIndex = static_cast<uint32_t>(changed.indices.size());
+    for (size_t j = 0; j < anchor.geometry.indexCount; ++j) changed.indices.push_back(base.indices[j]);
+    draw.sortingCenterWorld[2] = -float(i); changed.draws.push_back(draw);
+  }
+  changed.draws.push_back(changed.draws[0]);
+  ok &= compositionMemoOracle(changed, "bounded memo serves existing aliases after 1024 admissions and preserves cap misses");
+  changed.indices.back() = static_cast<uint32_t>(changed.vertices.size());
+  ok &= compositionMemoOracle(changed, "late invalid capped range still rejects at the same revision", false);
+  ok &= compositionMemoOracle(base, "an earlier unchanged frame after a failed frame is readmitted without stale summaries");
+  changed = base;
+  changed.vertices[1].materialSlot = 0;
+  ok &= compositionMemoOracle(changed, "same revision mutable vertex alpha is re-read on every invocation");
+  return ok;
 }
 
 bool render(const CoinRenderFramePlan & plan, bool cpu, Sample & sample) {
@@ -877,13 +1032,15 @@ bool testTraversal() {
 int main(int argc, char ** argv) {
   SoDB::init();
   CoinRenderAction::initClass();
+  if (argc == 2 && std::string(argv[1]) == "--range-memo")
+    return testCompositionRangeMemoization() ? 0 : 1;
   if (argc == 2 && std::string(argv[1]) == "--annotations") {
     if (!CoinRenderAction::isGpuBackendAvailable()) return 77;
     if (!testAnnotationDepthClearViewport()) return 1;
     std::cout << "Wgpu annotation GPU regressions passed\n";
     return 0;
   }
-  if (!testProjectiveDepth() || !testMaterialBlend() || !testStableDepthTie() ||
+  if (!testCompositionRangeMemoization() || !testProjectiveDepth() || !testMaterialBlend() || !testStableDepthTie() ||
       !testOverlayPreservesTraversalOrder() ||
       !testMixedOverlayRendersInTraversalOrder() || !testTextureAlpha() ||
       !testTextureMutationAndSharing() ||

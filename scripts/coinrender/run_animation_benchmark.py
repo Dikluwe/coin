@@ -52,7 +52,7 @@ def environment(build, variant, gpu):
     env = os.environ.copy()
     for key in list(env):
         if (key.startswith("COIN_BGFX_DISABLE_") or key.startswith("COIN_WGPU_DISABLE_")
-                or key in {"COIN_RENDER_TRACE_PHASES", "COIN_DEBUG_GLGLUE",
+                or key in {"COIN_RENDER_TRACE_PHASES", "COIN_WGPU_TRACE_PHASES", "COIN_DEBUG_GLGLUE",
                            "COIN_WGPU_GPU_TIMESTAMPS", "COIN_RENDER_DISABLE_CAPTURE_RESERVE",
                            "COIN_RENDER_DISABLE_CAMERA_OVERLAY",
                            "COIN_RENDER_DISABLE_TRANSLATION_OVERLAY",
@@ -61,6 +61,7 @@ def environment(build, variant, gpu):
                            "COIN_RENDER_DISABLE_MATERIAL_INTERNING",
                            "COIN_RENDER_DISABLE_CUBE_TEMPLATE_CACHE",
                            "COIN_RENDER_DISABLE_OBJECT_PROOF_MEMOIZATION",
+                           "COIN_RENDER_DISABLE_COMPOSITION_RANGE_MEMOIZATION",
                            "COIN_BGFX_READBACK_PIPELINE_DEPTH", "COIN_BGFX_RENDERER",
                            "WGPU_BACKEND", "COIN_GLXGLUE_NO_PBUFFERS",
                            "COIN_GLXGLUE_NO_GLX13_PBUFFERS", "COIN_GLX_PIXMAP_DIRECT_RENDERING",

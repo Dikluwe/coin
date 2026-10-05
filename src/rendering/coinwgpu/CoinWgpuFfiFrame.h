@@ -32,6 +32,8 @@ public:
   size_t opaqueRangesRebakedLastPrepare() const;
   size_t opaqueVerticesRebakedLastPrepare() const;
   size_t opaqueHashedRangesLastPrepare() const;
+  size_t opaqueCommonStatesPackedLastPrepare() const;
+  size_t opaqueCameraProofReusedLastPrepare() const;
 
 private:
   struct BakeMatrices { float modelView[16], normal[16]; };
@@ -68,6 +70,10 @@ private:
   bool opaqueInstanced = false;
   bool opaqueDiagonalLowered = false;
   size_t opaqueHashedRanges = 0;
+  size_t opaqueCommonStatesPacked = 0, opaqueCameraProofReused = 0;
+  // A proof produced and consumed within one successful prepare, over the
+  // authored matrices before diagonal transport factorization.
+  bool opaqueCameraMatricesQualified = false;
   double opaqueInstancePositionBound = 0;
   bool opaqueCameraPatchable;
   bool opaqueGeometryPatchable;

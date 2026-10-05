@@ -11,6 +11,11 @@
 #include "rendering/coinrender/CoinRenderFloatCore.h"
 #include <algorithm>
 #include <cmath>
+#include <cstring>
+#include <limits>
+#include <memory>
+#include <new>
+#include <unordered_map>
 
 struct CoinRenderCompositionItem {
   size_t drawIndex = 0;
@@ -68,6 +73,78 @@ private:
   std::vector<CoinRenderCompositionItem> order;
 };
 
+namespace coin_render_composition_detail {
+// Borrowed captured ranges are immutable during this single composition call.
+// Exact range keys retain index/material validation; no revision or source
+// identity carries this summary into another invocation.
+class RangeMemo {
+public:
+  RangeMemo() {
+    const char * option = std::getenv("COIN_RENDER_DISABLE_COMPOSITION_RANGE_MEMOIZATION");
+    enabled = !(option && std::strcmp(option, "1") == 0);
+  }
+  ~RangeMemo() {
+    if (std::getenv("COIN_RENDER_TRACE_PHASES") || std::getenv("COIN_WGPU_TRACE_PHASES"))
+      std::fprintf(stderr, "COIN_RENDER_PHASE composition_range_memo enabled=%d entries=%zu admissions=%zu hits=%zu depth_skipped=%zu bound_fallbacks=%zu\n",
+        enabled ? 1 : 0, ranges ? ranges->size() : 0, admissions, hits, depthSkipped, boundFallbacks);
+  }
+  bool centeredDepth(const CoinRenderFramePlan & frame, const SbMatrix & modelView,
+                     uint32_t first, uint32_t count, bool & materialAlpha) {
+    if (!enabled) return false;
+    const auto & matrix = modelView.getValue();
+    // The old homogeneous divisor is exactly one in this profile. General
+    // projective/stroke depths, including their rejection behavior, stay full.
+    for (int row = 0; row < 4; ++row)
+      if (matrix[row][3] != (row == 3 ? 1.0f : 0.0f) || !coin_render_is_finite(matrix[row][2])) return false;
+    const uint64_t key = (uint64_t(first) << 32) | count;
+    const Summary * cached = nullptr;
+    if (ranges) {
+      const auto found = ranges->find(key);
+      if (found != ranges->end()) cached = &found->second;
+    }
+    Summary summary;
+    if (cached) { summary = *cached; ++hits; }
+    else {
+      // A full cache still serves earlier admitted aliases, but never scans or
+      // allocates optional summaries for further misses.
+      if (ranges && ranges->size() == LIMIT) return false;
+      for (size_t i = first; i < size_t(first) + count; ++i) {
+        const uint32_t index = frame.indices[i];
+        if (index >= frame.vertices.size()) return false;
+        const auto & vertex = frame.vertices[index];
+        if (vertex.materialSlot >= frame.materials.size()) return false;
+        summary.alpha = summary.alpha || frame.materials[vertex.materialSlot].diffuse[3] < 1.0f;
+        for (int axis = 0; axis < 3; ++axis) {
+          // This is qualification, not a new rejection: identity-view legacy
+          // depth may legitimately ignore a non-finite X/Y. Use its full loop.
+          if (!coin_render_is_finite(vertex.position[axis])) return false;
+          summary.maxAbs[axis] = std::max(summary.maxAbs[axis], std::abs(double(vertex.position[axis])));
+        }
+      }
+      try {
+        if (!ranges) ranges.reset(new Map);
+        ranges->emplace(key, summary); ++admissions;
+      } catch (const std::bad_alloc &) { ranges.reset(); enabled = false; return false; }
+    }
+    double bound = std::abs(double(matrix[3][2]));
+    for (int axis = 0; axis < 3; ++axis) bound += summary.maxAbs[axis] * std::abs(double(matrix[axis][2]));
+    // Every float product and partial sum, and min/max midpoint, remains
+    // finite with margin. The sorting center replaces that midpoint below.
+    if (!(bound < double(std::numeric_limits<float>::max()) / 8)) { ++boundFallbacks; return false; }
+    materialAlpha = materialAlpha || summary.alpha;
+    depthSkipped += count;
+    return true;
+  }
+private:
+  enum { LIMIT = 1024 };
+  struct Summary { bool alpha = false; double maxAbs[3] = {}; };
+  using Map = std::unordered_map<uint64_t, Summary>;
+  std::unique_ptr<Map> ranges;
+  bool enabled;
+  size_t admissions = 0, hits = 0, depthSkipped = 0, boundFallbacks = 0;
+};
+}
+
 // Names describe the Coin operation; GPU algorithms are selected by Infra.
 inline bool coin_render_transparency_strategy(
     int32_t type, CoinRenderCompositionItem::TransparencyStrategy& strategy, const char*& name) {
@@ -106,6 +183,7 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
                                           std::string& diagnostic,
                                           bool deferUnresolvedAlpha = false) {
   CoinRenderPhaseTimer timer("composition_detail");
+  coin_render_composition_detail::RangeMemo rangeMemo;
   order.clear();
   uint64_t unusedBudget = 0;
   if (!coin_render_transparency_budget(1, 1, frame.transparency, false, unusedBudget, diagnostic))
@@ -144,7 +222,9 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
     const bool identityView = modelView == SbMatrix::identity();
     const auto & matrix = modelView.getValue();
     float minDepth = 0, maxDepth = 0;
-    for (size_t j = first; j < first + count; ++j) {
+    const bool centeredDepth = draw.hasSortingCenter && rs.polygonOffsetPrimitiveStyle == 1 &&
+      rangeMemo.centeredDepth(frame, modelView, draw.geometry.firstIndex, draw.geometry.indexCount, materialAlpha);
+    if (!centeredDepth) for (size_t j = first; j < first + count; ++j) {
       const uint32_t vertexIndex = frame.indices[j];
       if (vertexIndex >= frame.vertices.size()) {
         diagnostic = "Invalid vertex in composition order";

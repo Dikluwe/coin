@@ -11,6 +11,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <functional>
 #include <limits>
 #include <Inventor/SbRotation.h>
 #include <Inventor/SbVec4f.h>
@@ -195,6 +196,29 @@ public:
   void disable(bool disabled) { set(disabled ? "1" : nullptr); }
 private:
   static const char * name() { return "COIN_WGPU_DISABLE_OPAQUE_INSTANCING"; }
+  static void set(const char * value) {
+#ifdef _WIN32
+    _putenv_s(name(), value ? value : "");
+#else
+    if (value) setenv(name(), value, 1); else unsetenv(name());
+#endif
+  }
+  bool wasSet;
+  std::string previous;
+};
+
+class InstanceCommonStateSwitch {
+public:
+  InstanceCommonStateSwitch() {
+    const char * value = std::getenv(name());
+    wasSet = value != nullptr;
+    if (value) previous = value;
+    disable(false);
+  }
+  ~InstanceCommonStateSwitch() { set(wasSet ? previous.c_str() : nullptr); }
+  void disable(bool disabled) { set(disabled ? "1" : nullptr); }
+private:
+  static const char * name() { return "COIN_WGPU_DISABLE_INSTANCE_COMMON_STATE"; }
   static void set(const char * value) {
 #ifdef _WIN32
     _putenv_s(name(), value ? value : "");
@@ -877,6 +901,172 @@ CoinRenderFramePlan diagonalBoxFrame()
   return frame;
 }
 
+bool instanceCommonStateEquivalence()
+{
+  InstancingSwitch instancing; instancing.disable(false);
+  DiagonalMeshSwitch lowering; lowering.disable(false);
+  EarlyBatchSwitch early; early.disable(false);
+  InstanceCommonStateSwitch option;
+  auto frame = diagonalBoxFrame();
+  frame.revision = 4000;
+  frame.viewports.resize(1);
+  frame.viewports[0].x = 3; frame.viewports[0].y = 7;
+  frame.viewports[0].width = 51; frame.viewports[0].height = 43;
+  // Disabled metadata still belongs to the packed key. Nondefault values make
+  // accidental omission visible independently of the optimized comparator.
+  for (auto & state : frame.renderStates) {
+    state.textureMatrix[3][0] = .375f;
+    state.textureImageSlot = 3; state.samplerSlot = 5;
+    state.textureBlendColor[0] = .25f;
+    state.fogColor[0] = .3f; state.fogStart = .5f; state.fogEnd = 17;
+    state.polygonOffsetFactor = .125f; state.polygonOffsetUnits = .25f;
+    state.polygonOffsetSlopeBias = .375f;
+    for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS - 1; ++unit) {
+      state.extraTextures[unit].matrix[3][1] = float(unit) * .125f;
+      state.extraTextures[unit].imageSlot = static_cast<uint32_t>(unit + 1);
+      state.extraTextures[unit].samplerSlot = static_cast<uint32_t>(unit + 3);
+      state.extraTextures[unit].blendColor[2] = .625f;
+    }
+  }
+  // This state has no draw and must still participate in every proof.
+  frame.renderStates.push_back(frame.renderStates.front());
+  frame.renderStates.back().model[3][0] += .375f;
+  const auto originalFrame = frame;
+  const auto compareFresh = [&](const CoinRenderFramePlan & candidate, bool expectInstances) {
+    CoinWgpuFfiFrame fast, legacy;
+    std::string a, b;
+    option.disable(false); const bool okA = fast.prepare(candidate,64,64,a);
+    option.disable(true); const bool okB = legacy.prepare(candidate,64,64,b);
+    option.disable(false);
+    if (!check(okA == okB && a == b, "common-state optimization must preserve success/error diagnostics")) return false;
+    if (!okA) return check(!fast.reusedLastPrepare() && fast.opaqueCameraProofReusedLastPrepare() == 0,
+                         "failed common-state proof cannot publish a camera proof");
+    if (!check(samePacked(fast.getView(),legacy.getView()),
+               "common-state and literal paths must produce byte-identical geometry/material/state/instance payload")) return false;
+    if (!check(bool(fast.getView().instance_count) == expectInstances,
+               "common-state differences must preserve literal instancing admission/fallback")) return false;
+    return check(fast.opaqueCommonStatesPackedLastPrepare() == (expectInstances ? 1 : 0) &&
+      legacy.opaqueCommonStatesPackedLastPrepare() == (expectInstances ? candidate.renderStates.size() : 0) &&
+      fast.opaqueCameraProofReusedLastPrepare() == (expectInstances ? candidate.renderStates.size() : 0) &&
+      legacy.opaqueCameraProofReusedLastPrepare() == 0,
+      "private counters must prove one common pack and one authored camera proof per state versus the optout");
+  };
+  if (!compareFresh(frame,true)) return false;
+  for (bool shared : {false,true}) {
+    const auto triangles = opaqueFrame(shared);
+    if (!compareFresh(triangles,true)) return false;
+  }
+  // Each field below is transported by the ordinary packer even when the
+  // feature is disabled. The late unused state must never inherit equality.
+  std::vector<std::function<void(CoinRenderRenderStateSnapshot &)>> mutations = {
+    [](CoinRenderRenderStateSnapshot & s) { s.textureMatrix[0][1] = .125f; },
+    [](CoinRenderRenderStateSnapshot & s) { ++s.textureImageSlot; },
+    [](CoinRenderRenderStateSnapshot & s) { ++s.samplerSlot; },
+    [](CoinRenderRenderStateSnapshot & s) { s.textureModel = CoinRenderTextureModel::REPLACE; },
+    [](CoinRenderRenderStateSnapshot & s) { s.textureBlendColor[1] = -.0f; },
+    [](CoinRenderRenderStateSnapshot & s) { s.textureCombines[7].instructions[3][2] = .75f; },
+    [](CoinRenderRenderStateSnapshot & s) { s.fogColor[2] = .125f; },
+    [](CoinRenderRenderStateSnapshot & s) { s.fogStart += .25f; },
+    [](CoinRenderRenderStateSnapshot & s) { s.fogEnd += .5f; },
+    [](CoinRenderRenderStateSnapshot & s) { s.depthRange[0] = -.0f; },
+    [](CoinRenderRenderStateSnapshot & s) { s.polygonOffsetFactor = -.0f; },
+    [](CoinRenderRenderStateSnapshot & s) { s.polygonOffsetUnits += .5f; },
+    [](CoinRenderRenderStateSnapshot & s) { s.polygonOffsetSlopeBias += .25f; },
+    [](CoinRenderRenderStateSnapshot & s) { s.polygonOffsetMaxDepth = .75f; },
+    [](CoinRenderRenderStateSnapshot & s) { s.polygonOffsetMaxDepth = -.0f; },
+    [](CoinRenderRenderStateSnapshot & s) { ++s.polygonOffsetStyles; },
+    [](CoinRenderRenderStateSnapshot & s) { s.polygonOffsetPrimitiveStyle = 2; },
+    [](CoinRenderRenderStateSnapshot & s) { s.depthWrite = false; },
+    [](CoinRenderRenderStateSnapshot & s) { s.cullMode = CoinRenderCullMode::FRONT; },
+    [](CoinRenderRenderStateSnapshot & s) { s.frontFace = CoinRenderFrontFace::CW; },
+    [](CoinRenderRenderStateSnapshot & s) { ++s.viewportSlot; },
+    [](CoinRenderRenderStateSnapshot & s) { s.lightModel = CoinRenderLightModel::BASE_COLOR; },
+    [](CoinRenderRenderStateSnapshot & s) { s.model[0][0] = 0; },
+    [](CoinRenderRenderStateSnapshot & s) { s.model[0][0] = std::numeric_limits<float>::infinity(); }
+  };
+  for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS - 1; ++unit) {
+    mutations.push_back([unit](CoinRenderRenderStateSnapshot & s) { s.extraTextures[unit].matrix[0][2] = .5f; });
+    mutations.push_back([unit](CoinRenderRenderStateSnapshot & s) { ++s.extraTextures[unit].imageSlot; });
+    mutations.push_back([unit](CoinRenderRenderStateSnapshot & s) { ++s.extraTextures[unit].samplerSlot; });
+    mutations.push_back([unit](CoinRenderRenderStateSnapshot & s) { s.extraTextures[unit].model = CoinRenderTextureModel::REPLACE; });
+    mutations.push_back([unit](CoinRenderRenderStateSnapshot & s) { s.extraTextures[unit].blendColor[0] = -.0f; });
+  }
+  for (const auto & mutation : mutations) {
+    auto changed = originalFrame;
+    mutation(changed.renderStates.back());
+    if (!compareFresh(changed,false)) return false;
+  }
+  auto equivalentSentinel = originalFrame;
+  equivalentSentinel.renderStates.back().polygonOffsetMaxDepth = -2;
+  // Unpacked fields and alternate absent-depth sentinels are not new reasons
+  // to decline the exact profile accepted by the ordinary packed comparison.
+  equivalentSentinel.renderStates.back().cameraSlot = 17;
+  equivalentSentinel.renderStates.back().explicitDepthMask = 7;
+  if (!compareFresh(equivalentSentinel,true)) return false;
+  // Use the local literal-payload oracle; this standalone test does not link
+  // Common's captured-frame comparison implementation.
+  CoinWgpuFfiFrame sourceBefore, sourceAfter;
+  std::string beforeDiagnostic, afterDiagnostic;
+  option.disable(true); instancing.disable(true); early.disable(true);
+  const bool unchanged = sourceBefore.prepare(originalFrame,64,64,beforeDiagnostic) &&
+    sourceAfter.prepare(frame,64,64,afterDiagnostic) &&
+    beforeDiagnostic == afterDiagnostic && samePacked(sourceBefore.getView(),sourceAfter.getView());
+  option.disable(false); instancing.disable(false); early.disable(false);
+  if (!check(unchanged, "common-state proof must not mutate the captured payload")) return false;
+
+  CoinWgpuFfiFrame fast, legacy;
+  std::string a,b;
+  uint32_t width = 64, height = 64;
+  const auto compareOwners = [&](const CoinRenderFrameReuseDecision & reuse, bool allow = true) {
+    option.disable(false); const bool okA = fast.prepare(frame,width,height,reuse,a,nullptr,allow);
+    option.disable(true); const bool okB = legacy.prepare(frame,width,height,reuse,b,nullptr,allow);
+    option.disable(false);
+    return check(okA && okB && a == b && samePacked(fast.getView(),legacy.getView()) &&
+      fast.lastPrepareKind() == legacy.lastPrepareKind(), "common-state reuse/camera/RTT/retry must remain byte-identical");
+  };
+  const CoinRenderFrameReuseDecision rebuild(CoinRenderFrameReuseKind::FULL_REBUILD,0);
+  if (!compareOwners(rebuild) || !compareOwners(rebuild) ||
+      !check(fast.reusedLastPrepare() && legacy.reusedLastPrepare(), "common-state exact reuse remains immutable")) return false;
+  uint64_t base = frame.revision++;
+  for (auto & state : frame.renderStates) state.view[3][0] += .25f;
+  if (!compareOwners(CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::CAMERA_PATCH,base)) ||
+      !check(fast.getView().camera_base_revision == base, "common-state camera proof remains patchable")) return false;
+  for (size_t changedCount : {size_t(26),size_t(256)}) {
+    base = frame.revision++;
+    for (size_t i = 0; i < changedCount; ++i) frame.renderStates[i].model[3][1] += .125f;
+    if (!compareOwners(CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::RESOURCE_REBUILD,base)) ||
+        !check(!fast.getView().camera_base_revision && fast.opaqueCommonStatesPackedLastPrepare() == 1,
+               "objects after a camera patch must rebuild authored matrices with one common state")) return false;
+    base = frame.revision++;
+    for (auto & state : frame.renderStates) state.view[3][1] -= .125f;
+    if (!compareOwners(CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::CAMERA_PATCH,base))) return false;
+  }
+  ++frame.revision; width = 96; height = 72;
+  if (!compareOwners(rebuild) || !compareOwners(rebuild,false) ||
+      !check(!fast.getView().instance_count && !fast.getView().camera_base_revision,
+             "RTT destination must revoke common-state instancing/camera proof")) return false;
+  ++frame.revision;
+  if (!compareOwners(rebuild)) return false;
+  base = frame.revision++;
+  frame.lightingStates.push_back(frame.lightingStates[0]);
+  frame.lightingStates.back().lights.resize(COIN_WGPU_FFI_MAX_LIGHTS + 1);
+  frame.renderStates.push_back(frame.renderStates.front());
+  frame.renderStates.back().lightingSlot = 1;
+  option.disable(false); const bool okA = fast.prepare(frame,width,height,a);
+  option.disable(true); const bool okB = legacy.prepare(frame,width,height,b);
+  option.disable(false);
+  if (!check(!okA && !okB && a == b && a.find("More than eight active lights") != std::string::npos &&
+      !fast.opaqueCommonStatesPackedLastPrepare() && !fast.opaqueCameraProofReusedLastPrepare(),
+      "late unused-state lighting error must revoke common and camera proofs")) return false;
+  frame.renderStates.pop_back(); frame.lightingStates.pop_back();
+  // Repair without changing revision and present the now-stale camera hint.
+  if (!compareOwners(CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::CAMERA_PATCH,base)) ||
+      !check(!fast.reusedLastPrepare() && !fast.getView().camera_base_revision &&
+             fast.opaqueCommonStatesPackedLastPrepare() == 1,
+             "same-revision repair must fully rebuild without licensing old camera storage")) return false;
+  return true;
+}
+
 bool diagonalMeshEquivalence()
 {
   auto frame = diagonalBoxFrame();
@@ -1098,7 +1288,8 @@ main()
   instancing.disable(false);
   if (!opaqueInstancingEquivalence(false) || !opaqueInstancingEquivalence(true) ||
       !consecutiveInstancingGroups() || !diagonalMeshEquivalence() ||
-      !diagonalMeshOrderAndFallback() || !boundedInstancingMetadata()) return 1;
+      !diagonalMeshOrderAndFallback() || !boundedInstancingMetadata() ||
+      !instanceCommonStateEquivalence()) return 1;
   CoinRenderFramePlan frame;
   frame.revision = 41;
   frame.vertices.resize(1);

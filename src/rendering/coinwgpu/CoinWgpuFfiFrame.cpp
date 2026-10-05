@@ -121,6 +121,63 @@ bool diagonalPositionMatrix(const float * authored, const float * scale, float *
   return true;
 }
 
+uint32_t packedMaximumDepth(float depth)
+{
+  uint32_t bits = 0;
+  if (depth >= 0) { std::memcpy(&bits, &depth, sizeof(bits)); ++bits; }
+  return bits;
+}
+
+// After the opaque qualifier has proved common view/projection, lighting,
+// viewport, cull/depth flags and empty clip planes, these are the remaining
+// source fields transported by packState. Compare fields rather than struct
+// padding, and retain disabled texture/fog/offset payloads in the exact key.
+// The absent maximum-depth encoding intentionally maps all negative values
+// to zero, exactly as the ordinary packer does.
+bool sameOpaquePackedFields(const CoinRenderRenderStateSnapshot & a,
+                            const CoinRenderRenderStateSnapshot & b)
+{
+  if (std::memcmp(a.textureMatrix.getValue(), b.textureMatrix.getValue(), sizeof(float) * 16) ||
+      std::memcmp(a.textureCombines, b.textureCombines, sizeof(a.textureCombines)) ||
+      a.textureImageSlot != b.textureImageSlot || a.samplerSlot != b.samplerSlot ||
+      a.textureModel != b.textureModel ||
+      std::memcmp(a.textureBlendColor, b.textureBlendColor, sizeof(a.textureBlendColor)) ||
+      std::memcmp(a.fogColor, b.fogColor, sizeof(a.fogColor)) ||
+      std::memcmp(&a.fogStart, &b.fogStart, sizeof(float)) ||
+      std::memcmp(&a.fogEnd, &b.fogEnd, sizeof(float)) ||
+      std::memcmp(a.depthRange, b.depthRange, sizeof(a.depthRange)) ||
+      std::memcmp(&a.polygonOffsetFactor, &b.polygonOffsetFactor, sizeof(float)) ||
+      std::memcmp(&a.polygonOffsetUnits, &b.polygonOffsetUnits, sizeof(float)) ||
+      std::memcmp(&a.polygonOffsetSlopeBias, &b.polygonOffsetSlopeBias, sizeof(float)) ||
+      packedMaximumDepth(a.polygonOffsetMaxDepth) != packedMaximumDepth(b.polygonOffsetMaxDepth) ||
+      a.polygonOffsetStyles != b.polygonOffsetStyles ||
+      a.polygonOffsetPrimitiveStyle != b.polygonOffsetPrimitiveStyle) return false;
+  for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS - 1; ++unit) {
+    const auto & x = a.extraTextures[unit];
+    const auto & y = b.extraTextures[unit];
+    if (x.enabled != y.enabled || x.imageSlot != y.imageSlot || x.samplerSlot != y.samplerSlot ||
+        x.model != y.model || std::memcmp(x.matrix.getValue(), y.matrix.getValue(), sizeof(float) * 16) ||
+        std::memcmp(x.blendColor, y.blendColor, sizeof(x.blendColor))) return false;
+  }
+  return true;
+}
+
+bool validOpaqueAuthoredMatrices(const SbMatrix & modelView, const SbMatrix & normal)
+{
+  const float determinant = modelView.det4();
+  // Singular/unstable normals retain the ordinary identity-normal fallback.
+  // This proof applies before any position-only transport factorization.
+  if (!std::isfinite(determinant) || std::abs(determinant) <= 1.0e-9f ||
+      !CoinRenderTransformCore::finiteMatrix(modelView) || !CoinRenderTransformCore::finiteMatrix(normal))
+    return false;
+  const SbMatrix inverse = normal.transpose();
+  const SbMatrix residual = modelView * inverse;
+  if (!CoinRenderTransformCore::finiteMatrix(residual)) return false;
+  for (int row = 0; row < 3; ++row) for (int col = 0; col < 3; ++col)
+    if (std::abs(residual[row][col] - (row == col ? 1.0f : 0.0f)) > 1.0e-4f) return false;
+  return true;
+}
+
 void packVertex(const CoinRenderVertexSnapshot & src, CoinWgpuVertex & dst)
 {
   std::memcpy(dst.position, src.position, sizeof(src.position));
@@ -170,6 +227,8 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
   const bool loweringAllowed = !(loweringDisabled && std::strcmp(loweringDisabled, "1") == 0);
   this->opaqueIncrementalUsed = false;
   this->opaqueHashedRanges = 0;
+  this->opaqueCommonStatesPacked = this->opaqueCameraProofReused = 0;
+  this->opaqueCameraMatricesQualified = false;
   this->opaqueRebakedRanges = this->opaqueRebakedVertices = 0;
   this->opaqueIncrementalCandidate = false;
   // Failed qualification/packing must never leave an old revision or geometry
@@ -178,22 +237,24 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     bool & valid;
     bool & cameraPatchable;
     bool & instanced;
+    bool & matricesQualified;
     uint64_t & revision;
     CoinRenderFrameReuseKind & kind;
     bool committed;
-    PrepareGuard(bool & v, bool & c, bool & i, uint64_t & r, CoinRenderFrameReuseKind & k)
-      : valid(v), cameraPatchable(c), instanced(i), revision(r), kind(k), committed(false) {}
+    PrepareGuard(bool & v, bool & c, bool & i, bool & m, uint64_t & r, CoinRenderFrameReuseKind & k)
+      : valid(v), cameraPatchable(c), instanced(i), matricesQualified(m), revision(r), kind(k), committed(false) {}
     ~PrepareGuard() {
       if (!committed) {
         valid = false;
         cameraPatchable = false;
         instanced = false;
+        matricesQualified = false;
         revision = 0;
         kind = CoinRenderFrameReuseKind::UNKNOWN;
       }
     }
   } guard(this->opaqueIncrementalValid, this->opaqueCameraPatchable, this->opaqueInstanced,
-          this->packedRevision, this->prepareKind);
+          this->opaqueCameraMatricesQualified, this->packedRevision, this->prepareKind);
   for (const auto& texture : frame.textures) {
     if (texture.producerId) {
       outDiagnostic = "Unresolved scene texture producer at wgpu execution boundary";
@@ -343,11 +404,19 @@ CoinWgpuFfiFrame::rememberOpaqueCamera(const CoinRenderFramePlan & frame,
                                       uint32_t width, uint32_t height)
 {
   this->opaqueCameraPatchable = false;
+  const bool matricesQualified = this->opaqueInstanced && this->opaqueCameraMatricesQualified;
+  this->opaqueCameraMatricesQualified = false;
   if (!this->opaqueBatched || !this->opaqueGeometryPatchable || this->states.size() != 1 || frame.renderStates.empty() ||
       frame.revision == 0 || !frame.shadowGroups.empty()) return;
   const auto & first = frame.renderStates.front();
   if (!CoinRenderTransformCore::cameraReuseView(first.view)) return;
-  for (const auto & state : frame.renderStates) {
+  // Instancing already proved every authored matrix with these same guards.
+  // This proof cannot survive prepare's reset/failure or come from a revision
+  // hint. Baked/fallback frames continue through the original camera proof.
+  if (matricesQualified) {
+    this->opaqueCameraProofReused = frame.renderStates.size();
+  }
+  else for (const auto & state : frame.renderStates) {
     // Near-singular normals use Core's identity fallback and cannot be rotated
     // from a baked reference. Keep those valid frames on the existing rebake path.
     const SbMatrix modelView = state.model * state.view;
@@ -382,6 +451,9 @@ CoinWgpuFfiFrame::rememberOpaqueCamera(const CoinRenderFramePlan & frame,
   this->opaqueTargetWidth = width; this->opaqueTargetHeight = height;
   std::memcpy(this->opaqueClearColor, frame.clearColor.getValue(), sizeof(this->opaqueClearColor));
   this->opaqueCameraPatchable = true;
+  if (this->opaqueCameraProofReused && std::getenv("COIN_RENDER_TRACE_PHASES"))
+    std::fprintf(stderr, "COIN_RENDER_PHASE wgpu_opaque_camera authored_proofs_reused=%zu\n",
+                 this->opaqueCameraProofReused);
 }
 
 bool
@@ -714,33 +786,54 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
   this->bakeMatrices.resize(frame.renderStates.size());
   const SbMatrix identity = SbMatrix::identity();
   CoinWgpuRenderState common{};
+  const char * commonDisabled = std::getenv("COIN_WGPU_DISABLE_INSTANCE_COMMON_STATE");
+  const bool fastCommon = !(commonDisabled && std::strcmp(commonDisabled, "1") == 0);
+  if (fastCommon && !this->packState(frame, first, width, height, common, diagnostic)) return false;
   for (size_t i = 0; i < frame.renderStates.size(); ++i) {
-    CoinWgpuRenderState key{};
-    if (!this->packState(frame, frame.renderStates[i], width, height, key, diagnostic)) return false;
-    if (key.has_texture || key.fog_mode || key.clip_plane_count || key.polygon_offset_enabled) return false;
     SbMatrix modelView, normal;
-    modelView.setValue(key.model_view); normal.setValue(key.normal_matrix);
-    const float determinant = modelView.det4();
-    // Singular/unstable normal transforms retain the existing identity-normal
-    // fallback. This also preserves the camera anchor's residual guard.
-    if (!std::isfinite(determinant) || std::abs(determinant) <= 1.0e-9f ||
-        !CoinRenderTransformCore::finiteMatrix(modelView) || !CoinRenderTransformCore::finiteMatrix(normal))
-      return false;
-    const SbMatrix inverse = normal.transpose();
-    const SbMatrix residual = modelView * inverse;
-    if (!CoinRenderTransformCore::finiteMatrix(residual)) return false;
-    for (int row = 0; row < 3; ++row) for (int col = 0; col < 3; ++col)
-      if (std::abs(residual[row][col] - (row == col ? 1.0f : 0.0f)) > 1.0e-4f) return false;
+    if (fastCommon) {
+      if (i == 0) {
+        modelView.setValue(common.model_view); normal.setValue(common.normal_matrix);
+      }
+      else {
+        // Every state is visited, including unreferenced states. Common source
+        // equality proves the ordinary packed key without rewriting 2280 bytes
+        // or computing an MVP which the instanced payload discards.
+        if (!sameOpaquePackedFields(first, frame.renderStates[i])) return false;
+        modelView = frame.renderStates[i].model * frame.renderStates[i].view;
+        normal = CoinRenderTransformCore::normalMatrix(modelView);
+      }
+    }
+    else {
+      // Literal pre-optimization path for controlled ablation.
+      CoinWgpuRenderState key{};
+      if (!this->packState(frame, frame.renderStates[i], width, height, key, diagnostic)) return false;
+      if (key.has_texture || key.fog_mode || key.clip_plane_count || key.polygon_offset_enabled) return false;
+      modelView.setValue(key.model_view); normal.setValue(key.normal_matrix);
+      if (!validOpaqueAuthoredMatrices(modelView, normal)) return false;
+      auto & matrices = this->bakeMatrices[i];
+      std::memcpy(matrices.modelView, key.model_view, sizeof(matrices.modelView));
+      std::memcpy(matrices.normal, key.normal_matrix, sizeof(matrices.normal));
+      key.material_slot = 0;
+      std::memcpy(key.model_view, identity.getValue(), sizeof(key.model_view));
+      std::memcpy(key.normal_matrix, identity.getValue(), sizeof(key.normal_matrix));
+      const SbMatrix projection = CoinRenderTransformCore::projection(frame.renderStates[i].projectionCoin, false);
+      std::memcpy(key.model_view_projection, projection.getValue(), sizeof(key.model_view_projection));
+      if (i == 0) common = key;
+      else if (std::memcmp(&common, &key, sizeof(key))) return false;
+      continue;
+    }
+    if (!validOpaqueAuthoredMatrices(modelView, normal)) return false;
     auto & matrices = this->bakeMatrices[i];
-    std::memcpy(matrices.modelView, key.model_view, sizeof(matrices.modelView));
-    std::memcpy(matrices.normal, key.normal_matrix, sizeof(matrices.normal));
-    key.material_slot = 0;
-    std::memcpy(key.model_view, identity.getValue(), sizeof(key.model_view));
-    std::memcpy(key.normal_matrix, identity.getValue(), sizeof(key.normal_matrix));
-    const SbMatrix projection = CoinRenderTransformCore::projection(frame.renderStates[i].projectionCoin, false);
-    std::memcpy(key.model_view_projection, projection.getValue(), sizeof(key.model_view_projection));
-    if (i == 0) common = key;
-    else if (std::memcmp(&common, &key, sizeof(key))) return false;
+    std::memcpy(matrices.modelView, modelView.getValue(), sizeof(matrices.modelView));
+    std::memcpy(matrices.normal, normal.getValue(), sizeof(matrices.normal));
+  }
+  if (fastCommon) {
+    common.material_slot = 0;
+    std::memcpy(common.model_view, identity.getValue(), sizeof(common.model_view));
+    std::memcpy(common.normal_matrix, identity.getValue(), sizeof(common.normal_matrix));
+    const SbMatrix projection = CoinRenderTransformCore::projection(first.projectionCoin, false);
+    std::memcpy(common.model_view_projection, projection.getValue(), sizeof(common.model_view_projection));
   }
   // Match Rust's conservative global bounds exactly: all canonical meshes
   // contribute to one coordinate/normal maximum, including mesh reuse across
@@ -811,11 +904,14 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
   this->opaqueInstancePositionBound = eyeBound;
   this->opaqueDiagonalLowered = diagonalSpans != 0;
   this->opaqueBatched = this->opaqueInstanced = this->opaqueGeometryPatchable = true;
+  this->opaqueCommonStatesPacked = fastCommon ? 1 : frame.renderStates.size();
+  this->opaqueCameraMatricesQualified = fastCommon;
   if (std::getenv("COIN_RENDER_TRACE_PHASES")) {
-    std::fprintf(stderr, "COIN_RENDER_PHASE wgpu_opaque_instancing source_draws=%zu source_ranges=%zu diagonal_ranges=%zu hashed_ranges=%zu canonical_meshes=%zu groups=%zu compact_vertices=%llu compact_indices=%llu instances=%zu instance_bytes=%llu\n",
+    std::fprintf(stderr, "COIN_RENDER_PHASE wgpu_opaque_instancing source_draws=%zu source_ranges=%zu diagonal_ranges=%zu hashed_ranges=%zu canonical_meshes=%zu groups=%zu compact_vertices=%llu compact_indices=%llu instances=%zu instance_bytes=%llu common_state_fast=%d states_packed=%zu\n",
       frame.draws.size(), sourceMemo.size(), diagonalSpans, this->opaqueHashedRanges, canonicalMeshes.size(), groups.size(),
       static_cast<unsigned long long>(compactVertices), static_cast<unsigned long long>(compactIndices),
-      this->instances.size(), static_cast<unsigned long long>(this->instances.size()) * sizeof(CoinWgpuInstance));
+      this->instances.size(), static_cast<unsigned long long>(this->instances.size()) * sizeof(CoinWgpuInstance),
+      fastCommon ? 1 : 0, this->opaqueCommonStatesPacked);
   }
   return true;
 }
@@ -1240,11 +1336,7 @@ CoinWgpuFfiFrame::packState(const CoinRenderFramePlan & frame,
   dst.polygon_offset_factor = src.polygonOffsetFactor;
   dst.polygon_offset_units = src.polygonOffsetUnits;
   dst.polygon_offset_slope_bias = src.polygonOffsetSlopeBias;
-  dst.polygon_offset_max_depth_bits = 0;
-  if (src.polygonOffsetMaxDepth >= 0) {
-    std::memcpy(&dst.polygon_offset_max_depth_bits, &src.polygonOffsetMaxDepth, sizeof(float));
-    ++dst.polygon_offset_max_depth_bits;
-  }
+  dst.polygon_offset_max_depth_bits = packedMaximumDepth(src.polygonOffsetMaxDepth);
   dst.polygon_offset_styles = src.polygonOffsetStyles;
   dst.polygon_offset_primitive_style = src.polygonOffsetPrimitiveStyle;
   dst.ambient_light[3] = 1.0f;
@@ -1498,4 +1590,16 @@ size_t
 CoinWgpuFfiFrame::opaqueHashedRangesLastPrepare() const
 {
   return this->opaqueHashedRanges;
+}
+
+size_t
+CoinWgpuFfiFrame::opaqueCommonStatesPackedLastPrepare() const
+{
+  return this->packedRevision ? this->opaqueCommonStatesPacked : 0;
+}
+
+size_t
+CoinWgpuFfiFrame::opaqueCameraProofReusedLastPrepare() const
+{
+  return this->packedRevision ? this->opaqueCameraProofReused : 0;
 }
