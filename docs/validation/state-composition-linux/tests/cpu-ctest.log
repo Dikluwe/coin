@@ -1,0 +1,149 @@
+Start testing: Oct 05 07:57 -03
+----------------------------------------------------------
+11/106 Testing: CoinRenderActionTest
+11/106 Test: CoinRenderActionTest
+Command: "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderActionTest"
+Directory: /tmp/coin-render-first-frame-wgpu/testsuite
+"CoinRenderActionTest" start time: Oct 05 07:57 -03
+Output:
+----------------------------------------------------------
+Running CoinRenderActionTest...
+All CoinRenderRenderAction tests PASSED!
+<end of output>
+Test time =   0.65 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderActionTest" end time: Oct 05 07:57 -03
+"CoinRenderActionTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+14/106 Testing: CoinRenderPlanAssemblyCoreTest
+14/106 Test: CoinRenderPlanAssemblyCoreTest
+Command: "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderPlanAssemblyCoreTest"
+Directory: /tmp/coin-render-first-frame-wgpu/testsuite
+"CoinRenderPlanAssemblyCoreTest" start time: Oct 05 07:57 -03
+Output:
+----------------------------------------------------------
+Captured values, image conversion, deduplication and bounded cube ranges passed
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderPlanAssemblyCoreTest" end time: Oct 05 07:57 -03
+"CoinRenderPlanAssemblyCoreTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+15/106 Testing: CoinRenderTransformCoreTest
+15/106 Test: CoinRenderTransformCoreTest
+Command: "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderTransformCoreTest"
+Directory: /tmp/coin-render-first-frame-wgpu/testsuite
+"CoinRenderTransformCoreTest" start time: Oct 05 07:57 -03
+Output:
+----------------------------------------------------------
+Shared depth, normal, viewport and scissor transforms passed
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderTransformCoreTest" end time: Oct 05 07:57 -03
+"CoinRenderTransformCoreTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+23/106 Testing: CoinBgfxCoreTest
+23/106 Test: CoinBgfxCoreTest
+Command: "/tmp/coin-render-first-frame-wgpu/bin/CoinBgfxCoreTest"
+Directory: /tmp/coin-render-first-frame-wgpu/testsuite
+"CoinBgfxCoreTest" start time: Oct 05 07:57 -03
+Output:
+----------------------------------------------------------
+CoinBgfxCoreTest passed
+<end of output>
+Test time =   0.38 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxCoreTest" end time: Oct 05 07:57 -03
+"CoinBgfxCoreTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+25/106 Testing: CoinRenderDepthContractTest
+25/106 Test: CoinRenderDepthContractTest
+Command: "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderDepthContractTest"
+Directory: /tmp/coin-render-first-frame-wgpu/testsuite
+"CoinRenderDepthContractTest" start time: Oct 05 07:57 -03
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderDepthContractTest" end time: Oct 05 07:57 -03
+"CoinRenderDepthContractTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+26/106 Testing: CoinRenderFrameReuseCoreTest
+26/106 Test: CoinRenderFrameReuseCoreTest
+Command: "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderFrameReuseCoreTest"
+Directory: /tmp/coin-render-first-frame-wgpu/testsuite
+"CoinRenderFrameReuseCoreTest" start time: Oct 05 07:57 -03
+Output:
+----------------------------------------------------------
+CoinRenderFrameReuseCoreTest passed
+<end of output>
+Test time =   0.42 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderFrameReuseCoreTest" end time: Oct 05 07:57 -03
+"CoinRenderFrameReuseCoreTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+40/106 Testing: CoinRenderClipPlaneTest
+40/106 Test: CoinRenderClipPlaneTest
+Command: "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderClipPlaneTest"
+Directory: /tmp/coin-render-first-frame-wgpu/testsuite
+"CoinRenderClipPlaneTest" start time: Oct 05 07:57 -03
+Output:
+----------------------------------------------------------
+Coin warning in glxglue_context_create_software(): Couldn't create GLX context.
+[SKIP] Optional Coin/GL clipping reference unavailable
+ClipPlane capture/Core/CPU/GPU contracts passed
+<end of output>
+Test time =   0.27 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderClipPlaneTest" end time: Oct 05 07:57 -03
+"CoinRenderClipPlaneTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+41/106 Testing: CoinRenderDrawStyleTest
+41/106 Test: CoinRenderDrawStyleTest
+Command: "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderDrawStyleTest"
+Directory: /tmp/coin-render-first-frame-wgpu/testsuite
+"CoinRenderDrawStyleTest" start time: Oct 05 07:57 -03
+Output:
+----------------------------------------------------------
+DrawStyle polygon/Core/INVISIBLE CPU/GPU contracts passed
+<end of output>
+Test time =   3.79 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderDrawStyleTest" end time: Oct 05 07:57 -03
+"CoinRenderDrawStyleTest" time elapsed: 00:00:03
+----------------------------------------------------------
+
+97/106 Testing: CoinWgpuFfiFrameTest
+97/106 Test: CoinWgpuFfiFrameTest
+Command: "/tmp/coin-render-first-frame-wgpu/bin/CoinWgpuFfiFrameTest"
+Directory: /tmp/coin-render-first-frame-wgpu/testsuite
+"CoinWgpuFfiFrameTest" start time: Oct 05 07:57 -03
+Output:
+----------------------------------------------------------
+CoinWgpuFfiFrameTest passed
+<end of output>
+Test time =   0.27 sec
+----------------------------------------------------------
+Test Passed.
+"CoinWgpuFfiFrameTest" end time: Oct 05 07:57 -03
+"CoinWgpuFfiFrameTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 05 07:57 -03

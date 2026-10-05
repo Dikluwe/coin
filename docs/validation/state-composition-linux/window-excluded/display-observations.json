@@ -1,0 +1,26 @@
+[
+  {
+    "utc": "2026-10-05T11:04:15.983434+00:00",
+    "display": {
+      "argv": [
+        "xset",
+        "q"
+      ],
+      "exit_code": 0,
+      "output": "Screen Saver:\n  prefer blanking:  yes    allow exposures:  yes\n  timeout:  0    cycle:  0\nColors:\n  default colormap:  0x20    BlackPixel:  0x0    WhitePixel:  0xffffff\nFont Path:\n  /usr/share/fonts/X11/misc,/usr/share/fonts/X11/Type1,built-ins\nDPMS (Display Power Management Signaling):\n  Standby: 0    Suspend: 0    Off: 0\n  DPMS is Enabled\n  Monitor is Off\n"
+    },
+    "screensaver": {
+      "argv": [
+        "dbus-send",
+        "--session",
+        "--print-reply",
+        "--dest=org.cinnamon.ScreenSaver",
+        "/org/cinnamon/ScreenSaver",
+        "org.cinnamon.ScreenSaver.GetActive"
+      ],
+      "exit_code": 0,
+      "output": "method return time=1791198255.988826 sender=:1.68687 -> destination=:1.68720 serial=82 reply_serial=2\n   boolean true\n"
+    },
+    "active": false
+  }
+]
