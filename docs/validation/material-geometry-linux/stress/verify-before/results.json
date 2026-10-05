@@ -1,0 +1,426 @@
+[
+  {
+    "case": "materials-100",
+    "variant": "coingl",
+    "round": 1,
+    "scope": "offscreen",
+    "gpu": "nvidia",
+    "stats": {
+      "update_ms": {
+        "median_ms": 30.565494,
+        "p95_ms": 31.743155,
+        "p99_ms": 31.743155,
+        "max_ms": 31.743155,
+        "over_16_67": 7,
+        "over_33_33": 0
+      },
+      "render_ms": {
+        "median_ms": 242.921923,
+        "p95_ms": 436.449242,
+        "p99_ms": 436.449242,
+        "max_ms": 436.449242,
+        "over_16_67": 7,
+        "over_33_33": 7
+      },
+      "publication_ms": {
+        "median_ms": 0.439187,
+        "p95_ms": 0.455858,
+        "p99_ms": 0.455858,
+        "max_ms": 0.455858,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "total_ms": {
+        "median_ms": 273.168874,
+        "p95_ms": 462.451406,
+        "p99_ms": 462.451406,
+        "max_ms": 462.451406,
+        "over_16_67": 7,
+        "over_33_33": 7
+      }
+    },
+    "peak_rss_kib": 265156,
+    "log": "logs/materials-100-coingl-1.log",
+    "samples": "samples/materials-100-coingl-1.csv",
+    "first_ms": 436.898,
+    "first_total_ms": 462.451,
+    "result_since_main_ms": 1074.52,
+    "final_rgba_checksum": "0xcf35570fd1927255",
+    "wall_total_ms": 2221.24,
+    "throughput_fps": 3.15139,
+    "animation_metadata": [
+      "animation_detail mode=materials animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=194.11 frame_step=100 time_step_seconds=1.66667 selection_fnv64=0x3688529444a58165"
+    ]
+  },
+  {
+    "case": "materials-100",
+    "variant": "bgfx-vulkan",
+    "round": 1,
+    "scope": "offscreen",
+    "gpu": "nvidia",
+    "stats": {
+      "update_ms": {
+        "median_ms": 27.725972,
+        "p95_ms": 29.152144,
+        "p99_ms": 29.152144,
+        "max_ms": 29.152144,
+        "over_16_67": 7,
+        "over_33_33": 0
+      },
+      "render_ms": {
+        "median_ms": 2782.333925,
+        "p95_ms": 2977.440301,
+        "p99_ms": 2977.440301,
+        "max_ms": 2977.440301,
+        "over_16_67": 7,
+        "over_33_33": 7
+      },
+      "publication_ms": {
+        "median_ms": 0.720491,
+        "p95_ms": 0.802262,
+        "p99_ms": 0.802262,
+        "max_ms": 0.802262,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "total_ms": {
+        "median_ms": 2811.419456,
+        "p95_ms": 3002.903423,
+        "p99_ms": 3002.903423,
+        "max_ms": 3002.903423,
+        "over_16_67": 7,
+        "over_33_33": 7
+      }
+    },
+    "peak_rss_kib": 1014044,
+    "log": "logs/materials-100-bgfx-vulkan-1.log",
+    "samples": "samples/materials-100-bgfx-vulkan-1.csv",
+    "first_ms": 2977.83,
+    "first_total_ms": 3002.9,
+    "result_since_main_ms": 3785.17,
+    "final_rgba_checksum": "0x7ac1dfd69d1204a3",
+    "wall_total_ms": 19981.9,
+    "throughput_fps": 0.350318,
+    "animation_metadata": [
+      "animation_detail mode=materials animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=180.071 frame_step=100 time_step_seconds=1.66667 selection_fnv64=0x3688529444a58165"
+    ]
+  },
+  {
+    "case": "materials-100",
+    "variant": "bgfx-opengl",
+    "round": 1,
+    "scope": "offscreen",
+    "gpu": "nvidia",
+    "stats": {
+      "update_ms": {
+        "median_ms": 26.919131,
+        "p95_ms": 28.958565,
+        "p99_ms": 28.958565,
+        "max_ms": 28.958565,
+        "over_16_67": 7,
+        "over_33_33": 0
+      },
+      "render_ms": {
+        "median_ms": 2620.970596,
+        "p95_ms": 2990.0436,
+        "p99_ms": 2990.0436,
+        "max_ms": 2990.0436,
+        "over_16_67": 7,
+        "over_33_33": 7
+      },
+      "publication_ms": {
+        "median_ms": 0.380137,
+        "p95_ms": 0.436692,
+        "p99_ms": 0.436692,
+        "max_ms": 0.436692,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "total_ms": {
+        "median_ms": 2650.339454,
+        "p95_ms": 3014.974562,
+        "p99_ms": 3014.974562,
+        "max_ms": 3014.974562,
+        "over_16_67": 7,
+        "over_33_33": 7
+      }
+    },
+    "peak_rss_kib": 921388,
+    "log": "logs/materials-100-bgfx-opengl-1.log",
+    "samples": "samples/materials-100-bgfx-opengl-1.csv",
+    "first_ms": 2990.4,
+    "first_total_ms": 3014.97,
+    "result_since_main_ms": 3767.45,
+    "final_rgba_checksum": "0x6b9a9a1202e43158",
+    "wall_total_ms": 19261.1,
+    "throughput_fps": 0.363427,
+    "animation_metadata": [
+      "animation_detail mode=materials animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=183.566 frame_step=100 time_step_seconds=1.66667 selection_fnv64=0x3688529444a58165"
+    ]
+  },
+  {
+    "case": "materials-100",
+    "variant": "wgpu-vulkan",
+    "round": 1,
+    "scope": "offscreen",
+    "gpu": "nvidia",
+    "stats": {
+      "update_ms": {
+        "median_ms": 26.9779,
+        "p95_ms": 28.243334,
+        "p99_ms": 28.243334,
+        "max_ms": 28.243334,
+        "over_16_67": 7,
+        "over_33_33": 0
+      },
+      "render_ms": {
+        "median_ms": 2627.394158,
+        "p95_ms": 2723.921627,
+        "p99_ms": 2723.921627,
+        "max_ms": 2723.921627,
+        "over_16_67": 7,
+        "over_33_33": 7
+      },
+      "publication_ms": {
+        "median_ms": 0.406265,
+        "p95_ms": 2.022402,
+        "p99_ms": 2.022402,
+        "max_ms": 2.022402,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "total_ms": {
+        "median_ms": 2654.261051,
+        "p95_ms": 2750.92297,
+        "p99_ms": 2750.92297,
+        "max_ms": 2750.92297,
+        "over_16_67": 7,
+        "over_33_33": 7
+      }
+    },
+    "peak_rss_kib": 836460,
+    "log": "logs/materials-100-wgpu-vulkan-1.log",
+    "samples": "samples/materials-100-wgpu-vulkan-1.csv",
+    "first_ms": 2725.94,
+    "first_total_ms": 2750.92,
+    "result_since_main_ms": 3522.3,
+    "final_rgba_checksum": "0x7ac1dfd69d1204a3",
+    "wall_total_ms": 18700.5,
+    "throughput_fps": 0.374322,
+    "animation_metadata": [
+      "animation_detail mode=materials animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=176.923 frame_step=100 time_step_seconds=1.66667 selection_fnv64=0x3688529444a58165"
+    ]
+  },
+  {
+    "case": "geometry-100",
+    "variant": "bgfx-vulkan",
+    "round": 1,
+    "scope": "offscreen",
+    "gpu": "nvidia",
+    "stats": {
+      "update_ms": {
+        "median_ms": 40.383549,
+        "p95_ms": 40.617746,
+        "p99_ms": 40.617746,
+        "max_ms": 40.617746,
+        "over_16_67": 7,
+        "over_33_33": 7
+      },
+      "render_ms": {
+        "median_ms": 657.201401,
+        "p95_ms": 908.523131,
+        "p99_ms": 908.523131,
+        "max_ms": 908.523131,
+        "over_16_67": 7,
+        "over_33_33": 7
+      },
+      "publication_ms": {
+        "median_ms": 0.674865,
+        "p95_ms": 0.782195,
+        "p99_ms": 0.782195,
+        "max_ms": 0.782195,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "total_ms": {
+        "median_ms": 698.167014,
+        "p95_ms": 943.540678,
+        "p99_ms": 943.540678,
+        "max_ms": 943.540678,
+        "over_16_67": 7,
+        "over_33_33": 7
+      }
+    },
+    "peak_rss_kib": 999808,
+    "log": "logs/geometry-100-bgfx-vulkan-1.log",
+    "samples": "samples/geometry-100-bgfx-vulkan-1.csv",
+    "first_ms": 909.193,
+    "first_total_ms": 943.541,
+    "result_since_main_ms": 1701.39,
+    "final_rgba_checksum": "0xf2417bcb5b2b7a99",
+    "wall_total_ms": 5206.51,
+    "throughput_fps": 1.34447,
+    "animation_metadata": [
+      "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=139.191 frame_step=100 time_step_seconds=1.66667 selection_fnv64=0x3688529444a58165"
+    ]
+  },
+  {
+    "case": "geometry-100",
+    "variant": "bgfx-opengl",
+    "round": 1,
+    "scope": "offscreen",
+    "gpu": "nvidia",
+    "stats": {
+      "update_ms": {
+        "median_ms": 40.532838,
+        "p95_ms": 44.867171,
+        "p99_ms": 44.867171,
+        "max_ms": 44.867171,
+        "over_16_67": 7,
+        "over_33_33": 7
+      },
+      "render_ms": {
+        "median_ms": 600.85287,
+        "p95_ms": 865.740589,
+        "p99_ms": 865.740589,
+        "max_ms": 865.740589,
+        "over_16_67": 7,
+        "over_33_33": 7
+      },
+      "publication_ms": {
+        "median_ms": 0.465276,
+        "p95_ms": 1.040676,
+        "p99_ms": 1.040676,
+        "max_ms": 1.040676,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "total_ms": {
+        "median_ms": 641.850984,
+        "p95_ms": 901.502871,
+        "p99_ms": 901.502871,
+        "max_ms": 901.502871,
+        "over_16_67": 7,
+        "over_33_33": 7
+      }
+    },
+    "peak_rss_kib": 914004,
+    "log": "logs/geometry-100-bgfx-opengl-1.log",
+    "samples": "samples/geometry-100-bgfx-opengl-1.csv",
+    "first_ms": 866.781,
+    "first_total_ms": 901.503,
+    "result_since_main_ms": 1621.77,
+    "final_rgba_checksum": "0x335bfb4dacfee0a",
+    "wall_total_ms": 4860.15,
+    "throughput_fps": 1.44028,
+    "animation_metadata": [
+      "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=144.579 frame_step=100 time_step_seconds=1.66667 selection_fnv64=0x3688529444a58165"
+    ]
+  },
+  {
+    "case": "geometry-100",
+    "variant": "wgpu-vulkan",
+    "round": 1,
+    "scope": "offscreen",
+    "gpu": "nvidia",
+    "stats": {
+      "update_ms": {
+        "median_ms": 42.024252,
+        "p95_ms": 43.747237,
+        "p99_ms": 43.747237,
+        "max_ms": 43.747237,
+        "over_16_67": 7,
+        "over_33_33": 7
+      },
+      "render_ms": {
+        "median_ms": 498.759876,
+        "p95_ms": 681.960864,
+        "p99_ms": 681.960864,
+        "max_ms": 681.960864,
+        "over_16_67": 7,
+        "over_33_33": 7
+      },
+      "publication_ms": {
+        "median_ms": 0.410524,
+        "p95_ms": 0.436001,
+        "p99_ms": 0.436001,
+        "max_ms": 0.436001,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "total_ms": {
+        "median_ms": 540.778368,
+        "p95_ms": 718.424391,
+        "p99_ms": 718.424391,
+        "max_ms": 718.424391,
+        "over_16_67": 7,
+        "over_33_33": 7
+      }
+    },
+    "peak_rss_kib": 945092,
+    "log": "logs/geometry-100-wgpu-vulkan-1.log",
+    "samples": "samples/geometry-100-wgpu-vulkan-1.csv",
+    "first_ms": 682.397,
+    "first_total_ms": 718.424,
+    "result_since_main_ms": 1442.21,
+    "final_rgba_checksum": "0xf2417bcb5b2b7a99",
+    "wall_total_ms": 4017.48,
+    "throughput_fps": 1.74239,
+    "animation_metadata": [
+      "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=144.578 frame_step=100 time_step_seconds=1.66667 selection_fnv64=0x3688529444a58165"
+    ]
+  },
+  {
+    "case": "geometry-100",
+    "variant": "coingl",
+    "round": 1,
+    "scope": "offscreen",
+    "gpu": "nvidia",
+    "stats": {
+      "update_ms": {
+        "median_ms": 48.678152,
+        "p95_ms": 49.013285,
+        "p99_ms": 49.013285,
+        "max_ms": 49.013285,
+        "over_16_67": 7,
+        "over_33_33": 7
+      },
+      "render_ms": {
+        "median_ms": 193.869316,
+        "p95_ms": 351.238205,
+        "p99_ms": 351.238205,
+        "max_ms": 351.238205,
+        "over_16_67": 7,
+        "over_33_33": 7
+      },
+      "publication_ms": {
+        "median_ms": 0.398251,
+        "p95_ms": 0.435991,
+        "p99_ms": 0.435991,
+        "max_ms": 0.435991,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "total_ms": {
+        "median_ms": 243.128377,
+        "p95_ms": 386.214225,
+        "p99_ms": 386.214225,
+        "max_ms": 386.214225,
+        "over_16_67": 7,
+        "over_33_33": 7
+      }
+    },
+    "peak_rss_kib": 247624,
+    "log": "logs/geometry-100-coingl-1.log",
+    "samples": "samples/geometry-100-coingl-1.csv",
+    "first_ms": 351.674,
+    "first_total_ms": 386.214,
+    "result_since_main_ms": 903.624,
+    "final_rgba_checksum": "0xdb54318f95996776",
+    "wall_total_ms": 1922.14,
+    "throughput_fps": 3.64178,
+    "animation_metadata": [
+      "animation_detail mode=geometry animated_percent=100 eligible=40000 selected=40000 prepared_clones=40000 prepare_ms=142.619 frame_step=100 time_step_seconds=1.66667 selection_fnv64=0x3688529444a58165"
+    ]
+  }
+]

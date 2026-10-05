@@ -1,0 +1,936 @@
+{
+  "ppm_files_copied": false,
+  "runner_json_preserved_verbatim": true,
+  "copied_files": [
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/camera-bgfx-opengl-1.log",
+      "archive_path": "before/logs/camera-bgfx-opengl-1.log",
+      "sha256": "35d8e84ded407b2dfc0dae7bd4ae6792bf3a81b3c450232e92661b93d98eeea3",
+      "bytes": 2433
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/camera-bgfx-opengl-2.log",
+      "archive_path": "before/logs/camera-bgfx-opengl-2.log",
+      "sha256": "070fae1b55214844c613f123ef61d5cea7a11b0b7047efbea0a208b2c4b12fd4",
+      "bytes": 2423
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/camera-bgfx-opengl-3.log",
+      "archive_path": "before/logs/camera-bgfx-opengl-3.log",
+      "sha256": "5a41ce3d3399e24d75666d3458efdee773c4b1340d8add69a38a97b8a1fede76",
+      "bytes": 2434
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/camera-bgfx-vulkan-1.log",
+      "archive_path": "before/logs/camera-bgfx-vulkan-1.log",
+      "sha256": "c5ec7156960360017523828e2e02572113a2bfdeb5fa4665fc702e7d5b14565a",
+      "bytes": 2439
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/camera-bgfx-vulkan-2.log",
+      "archive_path": "before/logs/camera-bgfx-vulkan-2.log",
+      "sha256": "2b693c12a5937d5b261ac26956fb6d2ae33b79b89a2388806d88193a81c584f7",
+      "bytes": 2440
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/camera-bgfx-vulkan-3.log",
+      "archive_path": "before/logs/camera-bgfx-vulkan-3.log",
+      "sha256": "277ae58d668b32d8873b668fedbe8c5aca6e3ace4c30dbd7657604a3646e17cf",
+      "bytes": 2431
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/camera-coingl-1.log",
+      "archive_path": "before/logs/camera-coingl-1.log",
+      "sha256": "1c77efad9863334d14cd5a493def4bb102a052d5ae695d6828548e93aad725cb",
+      "bytes": 2292
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/camera-coingl-2.log",
+      "archive_path": "before/logs/camera-coingl-2.log",
+      "sha256": "f5bcac02f57bef07215521c4036cd7efc3cedbfd311e16dd0d8556d27e9da9f3",
+      "bytes": 2298
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/camera-coingl-3.log",
+      "archive_path": "before/logs/camera-coingl-3.log",
+      "sha256": "3c8ae77ed622dd66c80f094bb9b55c33a9bb67514a5d4c459147f4af630ea643",
+      "bytes": 2296
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/camera-wgpu-vulkan-1.log",
+      "archive_path": "before/logs/camera-wgpu-vulkan-1.log",
+      "sha256": "d10abd47997e0413722e9dc84a5dcd975a850f0ed79a2640f0d907ee309d5640",
+      "bytes": 2529
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/camera-wgpu-vulkan-2.log",
+      "archive_path": "before/logs/camera-wgpu-vulkan-2.log",
+      "sha256": "788cb13889c6bb2a01aab61200695c7b5c973cfe2fc46f7107d68af3704b781b",
+      "bytes": 2531
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/camera-wgpu-vulkan-3.log",
+      "archive_path": "before/logs/camera-wgpu-vulkan-3.log",
+      "sha256": "fbae10bd2c9868db39a02ce6666839e4bd8cf71be3582ad62b2eafd4ab9e7b4d",
+      "bytes": 2526
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/static-bgfx-opengl-1.log",
+      "archive_path": "before/logs/static-bgfx-opengl-1.log",
+      "sha256": "a83d4efe5933799207f5e0e38b495fda8faae8a1df171f014d9bbbabf398835c",
+      "bytes": 2429
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/static-bgfx-opengl-2.log",
+      "archive_path": "before/logs/static-bgfx-opengl-2.log",
+      "sha256": "5682666f39cdca6b7226dce4f8bd7efa3e2a8ff120347a9a95de9aa6176890ba",
+      "bytes": 2431
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/static-bgfx-opengl-3.log",
+      "archive_path": "before/logs/static-bgfx-opengl-3.log",
+      "sha256": "cb484dbfcf05ac4f92ecae4179797a4c6a6202ac485c6abb83f7f543260a6b16",
+      "bytes": 2432
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/static-bgfx-vulkan-1.log",
+      "archive_path": "before/logs/static-bgfx-vulkan-1.log",
+      "sha256": "93a361b46cfeb601e0e90baf49ff8bd70a3d88d01126c2c2b05120039208b040",
+      "bytes": 2427
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/static-bgfx-vulkan-2.log",
+      "archive_path": "before/logs/static-bgfx-vulkan-2.log",
+      "sha256": "9ddb0f56f55c36ca2b4374b18d947c5144569c8ddcc299dbc935defc294b9a9c",
+      "bytes": 2435
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/static-bgfx-vulkan-3.log",
+      "archive_path": "before/logs/static-bgfx-vulkan-3.log",
+      "sha256": "c47002314b758ac05c1f409dcac9fc2fbe7543ef6469274e14f016802f726054",
+      "bytes": 2435
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/static-coingl-1.log",
+      "archive_path": "before/logs/static-coingl-1.log",
+      "sha256": "0fb3881da621e3b9dc63aacf246801725a1f6c2e9b7f6cd0dace059e0cb83eaa",
+      "bytes": 2275
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/static-coingl-2.log",
+      "archive_path": "before/logs/static-coingl-2.log",
+      "sha256": "c4ec3699e772a63aff54407be294a1cf1d857c1aa9e9b6f4dfec16ed5c04d579",
+      "bytes": 2289
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/static-coingl-3.log",
+      "archive_path": "before/logs/static-coingl-3.log",
+      "sha256": "32e261f8c6cd536fe5fa9b245fa662da889bfbc295ed7d050176ae262645bf8e",
+      "bytes": 2283
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/static-wgpu-vulkan-1.log",
+      "archive_path": "before/logs/static-wgpu-vulkan-1.log",
+      "sha256": "d8f1862e4b21a06eb43b5ea5a413c3b808bdd9303930552def5ffc05e0c1fda5",
+      "bytes": 2519
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/static-wgpu-vulkan-2.log",
+      "archive_path": "before/logs/static-wgpu-vulkan-2.log",
+      "sha256": "c2d438bf7a17e974b0f0eb1d82bdd55c8bd649a8178b4a8cacd4e7072626c112",
+      "bytes": 2515
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/static-wgpu-vulkan-3.log",
+      "archive_path": "before/logs/static-wgpu-vulkan-3.log",
+      "sha256": "20ebbc47796bf7e4680893e95b186cf67dec7b92053dc61c7dba9e7538b3e002",
+      "bytes": 2519
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/transforms-10-bgfx-opengl-1.log",
+      "archive_path": "before/logs/transforms-10-bgfx-opengl-1.log",
+      "sha256": "3a7bda0990b4cd068a0eac0fb963d06ebc79dad9c2eef5cba28712b81a56cd17",
+      "bytes": 2460
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/transforms-10-bgfx-opengl-2.log",
+      "archive_path": "before/logs/transforms-10-bgfx-opengl-2.log",
+      "sha256": "6c7901f81ef43c96d666bbd14c24f34dea4055720af0fd387c1968bc9f27eef0",
+      "bytes": 2462
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/transforms-10-bgfx-opengl-3.log",
+      "archive_path": "before/logs/transforms-10-bgfx-opengl-3.log",
+      "sha256": "4ff2da1332494bdefc89113d5ac0de50bedbcc30b34d41ad342258d062410d47",
+      "bytes": 2460
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/transforms-10-bgfx-vulkan-1.log",
+      "archive_path": "before/logs/transforms-10-bgfx-vulkan-1.log",
+      "sha256": "19e945c2a33ae199bfeeda5dae94fb41407209c39956b22bc63688948855bc17",
+      "bytes": 2461
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/transforms-10-bgfx-vulkan-2.log",
+      "archive_path": "before/logs/transforms-10-bgfx-vulkan-2.log",
+      "sha256": "53fdf58976342a9086c8dbfe4794ca897daa4aefadba0cda9a1e20cc552b816e",
+      "bytes": 2460
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/transforms-10-bgfx-vulkan-3.log",
+      "archive_path": "before/logs/transforms-10-bgfx-vulkan-3.log",
+      "sha256": "635258e18de4a052038b5c2a01de253d53959d6987e54bf394f52a415ae0aebf",
+      "bytes": 2459
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/transforms-10-coingl-1.log",
+      "archive_path": "before/logs/transforms-10-coingl-1.log",
+      "sha256": "cdbfd02a0864fddfd9a52c745eef9210edbe5524b2b8e948547b0d3ce1f87401",
+      "bytes": 2312
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/transforms-10-coingl-2.log",
+      "archive_path": "before/logs/transforms-10-coingl-2.log",
+      "sha256": "c2e225f05d3540348d3385c01e95b49a9d6edc7c40ba2c245543dc2bd7bcc040",
+      "bytes": 2315
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/transforms-10-coingl-3.log",
+      "archive_path": "before/logs/transforms-10-coingl-3.log",
+      "sha256": "9b5633ff6b78c90d10217801dfa5ee78490736d35a349d9c6774453e818fbe5a",
+      "bytes": 2315
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/transforms-10-wgpu-vulkan-1.log",
+      "archive_path": "before/logs/transforms-10-wgpu-vulkan-1.log",
+      "sha256": "6d0e0b1d153607b9e754a6a28e1a13d158c953c699abcc4f3185762bc3e3b865",
+      "bytes": 2557
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/transforms-10-wgpu-vulkan-2.log",
+      "archive_path": "before/logs/transforms-10-wgpu-vulkan-2.log",
+      "sha256": "385f004285ef62a28e644c2d6bb9dcd76011e2a2c63c18a99668ba6e28b05071",
+      "bytes": 2555
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/logs/transforms-10-wgpu-vulkan-3.log",
+      "archive_path": "before/logs/transforms-10-wgpu-vulkan-3.log",
+      "sha256": "1220a42de2f754433f6d69b6503879e961d3bf5b63df8de6b7caa3916fa607b4",
+      "bytes": 2550
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/manifest.json",
+      "archive_path": "before/manifest.json",
+      "sha256": "b75b6b21001b5e38e439c7792cbfcb18f7fb41be55b104b30752abbc69000ca6",
+      "bytes": 55261
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/medians.json",
+      "archive_path": "before/medians.json",
+      "sha256": "fa88abd2788a3bcb94b02b3802067647f20eacfbee3768243bebf0d705c5a7a2",
+      "bytes": 13462
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/results.json",
+      "archive_path": "before/results.json",
+      "sha256": "dd794f096cf1d6f0af723d371995c9bb4a4531bfd2f90fe307108b29349bf0ef",
+      "bytes": 53879
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/camera-bgfx-opengl-1.csv",
+      "archive_path": "before/samples/camera-bgfx-opengl-1.csv",
+      "sha256": "5e0d49ec0c5dd394d017d13ce89d51a81c0c04443e289d9b0f6d81272dc5a393",
+      "bytes": 1006
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/camera-bgfx-opengl-2.csv",
+      "archive_path": "before/samples/camera-bgfx-opengl-2.csv",
+      "sha256": "87fed7021c714440f76b336c301d731ea1b4ba392222568714b438e9870a0afe",
+      "bytes": 993
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/camera-bgfx-opengl-3.csv",
+      "archive_path": "before/samples/camera-bgfx-opengl-3.csv",
+      "sha256": "0826839ab663b2446cbdf7645604bc992b79ead0589bc1683483c23cee4041f6",
+      "bytes": 974
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/camera-bgfx-vulkan-1.csv",
+      "archive_path": "before/samples/camera-bgfx-vulkan-1.csv",
+      "sha256": "039456ae37d624386d3d0e1d72ebcd8fc5cf5bbb57ef63230479a39ab4d52915",
+      "bytes": 1026
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/camera-bgfx-vulkan-2.csv",
+      "archive_path": "before/samples/camera-bgfx-vulkan-2.csv",
+      "sha256": "dbd357430af1794f9b73592b3b0d7fa967c480504dcd65e7c43270e7bea0deb2",
+      "bytes": 950
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/camera-bgfx-vulkan-3.csv",
+      "archive_path": "before/samples/camera-bgfx-vulkan-3.csv",
+      "sha256": "f0ae075aa9368d84600bc1ad8aa8ea643570013564f50f426d5160edcc7901b8",
+      "bytes": 1006
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/camera-coingl-1.csv",
+      "archive_path": "before/samples/camera-coingl-1.csv",
+      "sha256": "10fdbce5859c7e290b5dbc2b59e562a5b6e2d11c938f55e5c4d214203141a8c1",
+      "bytes": 884
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/camera-coingl-2.csv",
+      "archive_path": "before/samples/camera-coingl-2.csv",
+      "sha256": "0d50e3ad24bb1f1f9f3fa63e33dad725a41d7d85c94af57f60a62a639a6de8c7",
+      "bytes": 913
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/camera-coingl-3.csv",
+      "archive_path": "before/samples/camera-coingl-3.csv",
+      "sha256": "b1fa1fce53649aa9320dae7119ea403a215a6c3fddfa43623d6fc7fb29721702",
+      "bytes": 929
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/camera-wgpu-vulkan-1.csv",
+      "archive_path": "before/samples/camera-wgpu-vulkan-1.csv",
+      "sha256": "59de4f75e177c04d2614411fcefcbf8dd727dbb3626989f2ecb33deed3fb57d9",
+      "bytes": 877
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/camera-wgpu-vulkan-2.csv",
+      "archive_path": "before/samples/camera-wgpu-vulkan-2.csv",
+      "sha256": "1511bb5160e34ef31ebe2fdf35938ff7f75ba178a4c8ba0ae21b0f3065574372",
+      "bytes": 890
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/camera-wgpu-vulkan-3.csv",
+      "archive_path": "before/samples/camera-wgpu-vulkan-3.csv",
+      "sha256": "837e8dce69f4ef2ee4f0396d8e004039112420979f2402cc471968a9f0cca37b",
+      "bytes": 883
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/static-bgfx-opengl-1.csv",
+      "archive_path": "before/samples/static-bgfx-opengl-1.csv",
+      "sha256": "da0fbf43ba47b06fa77b8f2c7bbc44f7023ff0a3240111db23ea06cca197ab81",
+      "bytes": 915
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/static-bgfx-opengl-2.csv",
+      "archive_path": "before/samples/static-bgfx-opengl-2.csv",
+      "sha256": "dba40756544b387efbf197cc6a497e534353d630d1fd0ccf1ef6036f097938cc",
+      "bytes": 1005
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/static-bgfx-opengl-3.csv",
+      "archive_path": "before/samples/static-bgfx-opengl-3.csv",
+      "sha256": "2d2642dc82da909015db3665060eb43e6a9de2764c6747f576775b644c0ec6d0",
+      "bytes": 971
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/static-bgfx-vulkan-1.csv",
+      "archive_path": "before/samples/static-bgfx-vulkan-1.csv",
+      "sha256": "ec766c1474a6e3a800db7a87fb3946ef80be01bdc05ab32c86d03c62a46b2a8c",
+      "bytes": 999
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/static-bgfx-vulkan-2.csv",
+      "archive_path": "before/samples/static-bgfx-vulkan-2.csv",
+      "sha256": "e9dbfffa2db34a727d01a5cb0cb1f21c7d3f9a36dca0c878aeac2a981ba45cf5",
+      "bytes": 948
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/static-bgfx-vulkan-3.csv",
+      "archive_path": "before/samples/static-bgfx-vulkan-3.csv",
+      "sha256": "d763ea2e2bfbe5fcd8bd8ebd2fb1256e5dda47b780c26f834b0ff92530a02c27",
+      "bytes": 967
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/static-coingl-1.csv",
+      "archive_path": "before/samples/static-coingl-1.csv",
+      "sha256": "9dc15ebe28a2095c6836b2ca6f6658983f62f18752168b592aa2b69e00fee09c",
+      "bytes": 906
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/static-coingl-2.csv",
+      "archive_path": "before/samples/static-coingl-2.csv",
+      "sha256": "2ad9849953307c6b72fa2400958fc5ff2dd1789e54515ac0cca56613ea550313",
+      "bytes": 924
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/static-coingl-3.csv",
+      "archive_path": "before/samples/static-coingl-3.csv",
+      "sha256": "02ac91fcb8d028bd785784f35045c7732debe65b3a6a412ade86a2229f33c285",
+      "bytes": 865
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/static-wgpu-vulkan-1.csv",
+      "archive_path": "before/samples/static-wgpu-vulkan-1.csv",
+      "sha256": "f8d34343aaeb1797e0ad3fc29cb0a4f2609815b0a15673c5f6388a85c40056f4",
+      "bytes": 974
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/static-wgpu-vulkan-2.csv",
+      "archive_path": "before/samples/static-wgpu-vulkan-2.csv",
+      "sha256": "fcb6efb4ae695086f6193c499426fb3d228ef6176fe0b85acc5f99a539dcabd5",
+      "bytes": 895
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/static-wgpu-vulkan-3.csv",
+      "archive_path": "before/samples/static-wgpu-vulkan-3.csv",
+      "sha256": "971e215040c8bbc14b32651036dabc3b224212b8437e357476766f183177eb54",
+      "bytes": 886
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/transforms-10-bgfx-opengl-1.csv",
+      "archive_path": "before/samples/transforms-10-bgfx-opengl-1.csv",
+      "sha256": "73a60e46b21964b97f4c2241149404c3e307dffc5d9ea0d8e4f144f9e9a9840a",
+      "bytes": 959
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/transforms-10-bgfx-opengl-2.csv",
+      "archive_path": "before/samples/transforms-10-bgfx-opengl-2.csv",
+      "sha256": "ef13556f4ae2bdfe2308ddcdf8a56538f83b842d58f208d1c2d26d8009758066",
+      "bytes": 952
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/transforms-10-bgfx-opengl-3.csv",
+      "archive_path": "before/samples/transforms-10-bgfx-opengl-3.csv",
+      "sha256": "ff51aa181cc9e9b99f3e53e900fd576cb491055d06ba41836eb0dcab048f8574",
+      "bytes": 1013
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/transforms-10-bgfx-vulkan-1.csv",
+      "archive_path": "before/samples/transforms-10-bgfx-vulkan-1.csv",
+      "sha256": "b63105eee9cbdbed57b6de747bae4a6e933a11ddcfbe34ce8291dffc97ed39b9",
+      "bytes": 992
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/transforms-10-bgfx-vulkan-2.csv",
+      "archive_path": "before/samples/transforms-10-bgfx-vulkan-2.csv",
+      "sha256": "3835d63f5638a4c0ac0563237116ee7f0ddd933fc40f0b6f6c7c1177671888df",
+      "bytes": 972
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/transforms-10-bgfx-vulkan-3.csv",
+      "archive_path": "before/samples/transforms-10-bgfx-vulkan-3.csv",
+      "sha256": "e457f4d5c3ebc491aea8b5113abafda9bbd0b2a96c78b9068acf21d02d0d4c88",
+      "bytes": 997
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/transforms-10-coingl-1.csv",
+      "archive_path": "before/samples/transforms-10-coingl-1.csv",
+      "sha256": "6a2ccf2c68691c7495a8d72364ea0b47e88d732d1fe400cb64f6db9a9f0778d1",
+      "bytes": 847
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/transforms-10-coingl-2.csv",
+      "archive_path": "before/samples/transforms-10-coingl-2.csv",
+      "sha256": "b63fc82be4ef24868f605fe88e9215727674842effc61637bc96e6ef7361f3b1",
+      "bytes": 880
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/transforms-10-coingl-3.csv",
+      "archive_path": "before/samples/transforms-10-coingl-3.csv",
+      "sha256": "7cbb8012755b029e174c56796d4a08d2fbe12b12a5f243c0dc359d78d4098efb",
+      "bytes": 831
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/transforms-10-wgpu-vulkan-1.csv",
+      "archive_path": "before/samples/transforms-10-wgpu-vulkan-1.csv",
+      "sha256": "a8c191b8f314acd91d59c09c90240c463df6940902bfb3e824ea1cff2bff88d5",
+      "bytes": 910
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/transforms-10-wgpu-vulkan-2.csv",
+      "archive_path": "before/samples/transforms-10-wgpu-vulkan-2.csv",
+      "sha256": "cd8f1c7c37de0077bc76c7a031bf70f08f60c10f8164615dde84917ce18f91c4",
+      "bytes": 921
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-before/samples/transforms-10-wgpu-vulkan-3.csv",
+      "archive_path": "before/samples/transforms-10-wgpu-vulkan-3.csv",
+      "sha256": "120a55c5a67fa6229db5271696578d4a628be7cf60a9623c7ff99e74b2533b03",
+      "bytes": 971
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/camera-bgfx-opengl-1.log",
+      "archive_path": "after/logs/camera-bgfx-opengl-1.log",
+      "sha256": "ac4f0cbf8dcce996b154b4ef4053fc634bc55ed395efe012d960c682a47b26d9",
+      "bytes": 2430
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/camera-bgfx-opengl-2.log",
+      "archive_path": "after/logs/camera-bgfx-opengl-2.log",
+      "sha256": "da65954650bde7d368ee2ae06e40ab20b27bf06b25ae111a659075d546e28864",
+      "bytes": 2430
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/camera-bgfx-opengl-3.log",
+      "archive_path": "after/logs/camera-bgfx-opengl-3.log",
+      "sha256": "f01433cbc837cfe01bf5e01425a5d0c3b340fb00594ca74c595cc38543e4a66b",
+      "bytes": 2429
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/camera-bgfx-vulkan-1.log",
+      "archive_path": "after/logs/camera-bgfx-vulkan-1.log",
+      "sha256": "6ccbeef9fa8a2e2e7ee110f3e07df7981eb98bd7eb1b9481b41ce18c82a3151c",
+      "bytes": 2432
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/camera-bgfx-vulkan-2.log",
+      "archive_path": "after/logs/camera-bgfx-vulkan-2.log",
+      "sha256": "b66330c670f8ed01444906db01c81f6c18b236f965a05d2b3dbde13f9fcf972a",
+      "bytes": 2439
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/camera-bgfx-vulkan-3.log",
+      "archive_path": "after/logs/camera-bgfx-vulkan-3.log",
+      "sha256": "3418ea4810114edc8e0b6924d7066be63779ffe3f6f901bb54dfff6a3a676330",
+      "bytes": 2440
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/camera-coingl-1.log",
+      "archive_path": "after/logs/camera-coingl-1.log",
+      "sha256": "1c77efad9863334d14cd5a493def4bb102a052d5ae695d6828548e93aad725cb",
+      "bytes": 2292
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/camera-coingl-2.log",
+      "archive_path": "after/logs/camera-coingl-2.log",
+      "sha256": "f5bcac02f57bef07215521c4036cd7efc3cedbfd311e16dd0d8556d27e9da9f3",
+      "bytes": 2298
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/camera-coingl-3.log",
+      "archive_path": "after/logs/camera-coingl-3.log",
+      "sha256": "3c8ae77ed622dd66c80f094bb9b55c33a9bb67514a5d4c459147f4af630ea643",
+      "bytes": 2296
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/camera-wgpu-vulkan-1.log",
+      "archive_path": "after/logs/camera-wgpu-vulkan-1.log",
+      "sha256": "bab5b1be7a286e4395387b1e1981d3c701804ec1ec9ecbf0cc3a56444cd8d399",
+      "bytes": 2530
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/camera-wgpu-vulkan-2.log",
+      "archive_path": "after/logs/camera-wgpu-vulkan-2.log",
+      "sha256": "ee0493bc0f33dfad6771196b4c3c2d8909908aa8c4a55dad1819e5493f6d60ad",
+      "bytes": 2523
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/camera-wgpu-vulkan-3.log",
+      "archive_path": "after/logs/camera-wgpu-vulkan-3.log",
+      "sha256": "214c4518fc7cd2cb4637ca39fc8ab7c6abd00d7a0fb0c4f802901cdf5bccf7f4",
+      "bytes": 2529
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/static-bgfx-opengl-1.log",
+      "archive_path": "after/logs/static-bgfx-opengl-1.log",
+      "sha256": "8683d4e575cfefd4d093f7a11ccc0140a48a4c84c38720eac148604092765f2c",
+      "bytes": 2428
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/static-bgfx-opengl-2.log",
+      "archive_path": "after/logs/static-bgfx-opengl-2.log",
+      "sha256": "6daeaca0a7b291193299ba09f85ed5b5dad851328b1cd3295801c25b40216005",
+      "bytes": 2430
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/static-bgfx-opengl-3.log",
+      "archive_path": "after/logs/static-bgfx-opengl-3.log",
+      "sha256": "4dd91d32fd0fe3e5be0ec6038cc67a92fe9569e4e4f726048adcab6284a120f0",
+      "bytes": 2431
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/static-bgfx-vulkan-1.log",
+      "archive_path": "after/logs/static-bgfx-vulkan-1.log",
+      "sha256": "b00e8a27b46000816fb628407832e8a63687f99f99728ba1dd276695a9cb914f",
+      "bytes": 2435
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/static-bgfx-vulkan-2.log",
+      "archive_path": "after/logs/static-bgfx-vulkan-2.log",
+      "sha256": "62c9bb80ba91a68c6bf4dbb488f5ae5284c6a7024ea7ebb28bed4c0b0dd38457",
+      "bytes": 2434
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/static-bgfx-vulkan-3.log",
+      "archive_path": "after/logs/static-bgfx-vulkan-3.log",
+      "sha256": "57c45715ebd848554773bb9bca3d7ecd39a7d89e0d968188ef5e217e0af1baca",
+      "bytes": 2427
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/static-coingl-1.log",
+      "archive_path": "after/logs/static-coingl-1.log",
+      "sha256": "0fb3881da621e3b9dc63aacf246801725a1f6c2e9b7f6cd0dace059e0cb83eaa",
+      "bytes": 2275
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/static-coingl-2.log",
+      "archive_path": "after/logs/static-coingl-2.log",
+      "sha256": "c4ec3699e772a63aff54407be294a1cf1d857c1aa9e9b6f4dfec16ed5c04d579",
+      "bytes": 2289
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/static-coingl-3.log",
+      "archive_path": "after/logs/static-coingl-3.log",
+      "sha256": "32e261f8c6cd536fe5fa9b245fa662da889bfbc295ed7d050176ae262645bf8e",
+      "bytes": 2283
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/static-wgpu-vulkan-1.log",
+      "archive_path": "after/logs/static-wgpu-vulkan-1.log",
+      "sha256": "1d4569663808d61002bbf717c449bcbcd9244177743022681bfdaacc103135b0",
+      "bytes": 2518
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/static-wgpu-vulkan-2.log",
+      "archive_path": "after/logs/static-wgpu-vulkan-2.log",
+      "sha256": "648ef82bba8c5cd534ea3563452ca80b86dcb9e9326dee4a5404824991164bee",
+      "bytes": 2520
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/static-wgpu-vulkan-3.log",
+      "archive_path": "after/logs/static-wgpu-vulkan-3.log",
+      "sha256": "22832637b92ad153c5483356e24e20f79b7d78b652c2b29c40abeae1c088ed8a",
+      "bytes": 2521
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/transforms-10-bgfx-opengl-1.log",
+      "archive_path": "after/logs/transforms-10-bgfx-opengl-1.log",
+      "sha256": "ce67b78250d951729706bf7326b840084f45131889e2f78a48360c0e679e7034",
+      "bytes": 2456
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/transforms-10-bgfx-opengl-2.log",
+      "archive_path": "after/logs/transforms-10-bgfx-opengl-2.log",
+      "sha256": "7aa39a1514a51abbe6975c76500e86d3cb4882a7cceb4e255fb8c6c094d6d1fe",
+      "bytes": 2457
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/transforms-10-bgfx-opengl-3.log",
+      "archive_path": "after/logs/transforms-10-bgfx-opengl-3.log",
+      "sha256": "ffd12e960493d7b84275110161047e4be8dbb05d86388b74c8274668fb348d1d",
+      "bytes": 2455
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/transforms-10-bgfx-vulkan-1.log",
+      "archive_path": "after/logs/transforms-10-bgfx-vulkan-1.log",
+      "sha256": "f8b57cfc6c9c85c5daf797f80b09f48af68a1d3ae51635a89b4b9a3f9cb5bdd0",
+      "bytes": 2464
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/transforms-10-bgfx-vulkan-2.log",
+      "archive_path": "after/logs/transforms-10-bgfx-vulkan-2.log",
+      "sha256": "2796f0d1fc6daed1c8b89203d39dcf3c269a3cfe8d0fa780db7ca474dd73f5b4",
+      "bytes": 2461
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/transforms-10-bgfx-vulkan-3.log",
+      "archive_path": "after/logs/transforms-10-bgfx-vulkan-3.log",
+      "sha256": "648e575d13dae0ae2947fd04d40d9cd027d8c4beb0e9d1253397d07ff14a1461",
+      "bytes": 2462
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/transforms-10-coingl-1.log",
+      "archive_path": "after/logs/transforms-10-coingl-1.log",
+      "sha256": "cdbfd02a0864fddfd9a52c745eef9210edbe5524b2b8e948547b0d3ce1f87401",
+      "bytes": 2312
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/transforms-10-coingl-2.log",
+      "archive_path": "after/logs/transforms-10-coingl-2.log",
+      "sha256": "c2e225f05d3540348d3385c01e95b49a9d6edc7c40ba2c245543dc2bd7bcc040",
+      "bytes": 2315
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/transforms-10-coingl-3.log",
+      "archive_path": "after/logs/transforms-10-coingl-3.log",
+      "sha256": "9b5633ff6b78c90d10217801dfa5ee78490736d35a349d9c6774453e818fbe5a",
+      "bytes": 2315
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/transforms-10-wgpu-vulkan-1.log",
+      "archive_path": "after/logs/transforms-10-wgpu-vulkan-1.log",
+      "sha256": "b8b9d803b0fa281f04b43323ceef0c6053ad764343f88ad47e97c4c07c5c25ee",
+      "bytes": 2551
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/transforms-10-wgpu-vulkan-2.log",
+      "archive_path": "after/logs/transforms-10-wgpu-vulkan-2.log",
+      "sha256": "1e538f43efe39214770a090e9c911a399653609420050d40bb6e0e1677bd22d3",
+      "bytes": 2554
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/logs/transforms-10-wgpu-vulkan-3.log",
+      "archive_path": "after/logs/transforms-10-wgpu-vulkan-3.log",
+      "sha256": "6b0981e622af5a039a62ab22641138f2cd8b26c371b70cd50c9d60a72213f362",
+      "bytes": 2554
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/manifest.json",
+      "archive_path": "after/manifest.json",
+      "sha256": "338e106fe539e6732b1e9cf473e3950f4211a592e2c2e1b255b9530c4196f236",
+      "bytes": 54306
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/medians.json",
+      "archive_path": "after/medians.json",
+      "sha256": "3c8b0fa5aa074eb9c44348ec1abc262cddd4e46ed8db7f55c1387b185713ab1a",
+      "bytes": 13461
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/results.json",
+      "archive_path": "after/results.json",
+      "sha256": "834569a1b849a52b583cc8cfce5ea8452096058c4c0c4a2693e1d8a57a431f9a",
+      "bytes": 53888
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/camera-bgfx-opengl-1.csv",
+      "archive_path": "after/samples/camera-bgfx-opengl-1.csv",
+      "sha256": "8a09aa09e27425757c7da41d50d9724e12ba7330e59926d383516dfc58ea7182",
+      "bytes": 951
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/camera-bgfx-opengl-2.csv",
+      "archive_path": "after/samples/camera-bgfx-opengl-2.csv",
+      "sha256": "46ed3618d1559965e3761d9c86da74578aabd61379800f084cba79d99a362f30",
+      "bytes": 1021
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/camera-bgfx-opengl-3.csv",
+      "archive_path": "after/samples/camera-bgfx-opengl-3.csv",
+      "sha256": "1d5ba916adfbca66ced2379eaa6ae5fc1cdd31174be321033818124ff05e42bc",
+      "bytes": 952
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/camera-bgfx-vulkan-1.csv",
+      "archive_path": "after/samples/camera-bgfx-vulkan-1.csv",
+      "sha256": "0036c9feab7adc579d62610a373ccc82cf97002e39f9f6f92152067906b11ccf",
+      "bytes": 954
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/camera-bgfx-vulkan-2.csv",
+      "archive_path": "after/samples/camera-bgfx-vulkan-2.csv",
+      "sha256": "e8f654369f9097d43021052b7b9a804663ef5e3aabd0ba7649116d87fbbb41e6",
+      "bytes": 981
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/camera-bgfx-vulkan-3.csv",
+      "archive_path": "after/samples/camera-bgfx-vulkan-3.csv",
+      "sha256": "586b4aa8b2f632e673ced4510859070bcfbb857760617da877429a0bd9e86595",
+      "bytes": 1009
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/camera-coingl-1.csv",
+      "archive_path": "after/samples/camera-coingl-1.csv",
+      "sha256": "10fdbce5859c7e290b5dbc2b59e562a5b6e2d11c938f55e5c4d214203141a8c1",
+      "bytes": 884
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/camera-coingl-2.csv",
+      "archive_path": "after/samples/camera-coingl-2.csv",
+      "sha256": "0d50e3ad24bb1f1f9f3fa63e33dad725a41d7d85c94af57f60a62a639a6de8c7",
+      "bytes": 913
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/camera-coingl-3.csv",
+      "archive_path": "after/samples/camera-coingl-3.csv",
+      "sha256": "b1fa1fce53649aa9320dae7119ea403a215a6c3fddfa43623d6fc7fb29721702",
+      "bytes": 929
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/camera-wgpu-vulkan-1.csv",
+      "archive_path": "after/samples/camera-wgpu-vulkan-1.csv",
+      "sha256": "65c62268d554f98e1e2359e68f21dafb0498addb9c29f5b3b1440b82d56dba92",
+      "bytes": 904
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/camera-wgpu-vulkan-2.csv",
+      "archive_path": "after/samples/camera-wgpu-vulkan-2.csv",
+      "sha256": "5c27b56ecc9250d3e92c59c6fbf38610ed59a8c9d5203f43dd49121fc4beb168",
+      "bytes": 886
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/camera-wgpu-vulkan-3.csv",
+      "archive_path": "after/samples/camera-wgpu-vulkan-3.csv",
+      "sha256": "4ee2c9286078d20c9a1fbd96405e952d1ec36a76ce023bba95c6dcd200f99003",
+      "bytes": 842
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/static-bgfx-opengl-1.csv",
+      "archive_path": "after/samples/static-bgfx-opengl-1.csv",
+      "sha256": "dac386316eb5e407c8dc291b9e85b17fb28377d2a0ef10f44561cbc46deee409",
+      "bytes": 989
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/static-bgfx-opengl-2.csv",
+      "archive_path": "after/samples/static-bgfx-opengl-2.csv",
+      "sha256": "50e1614a6465a645b6ad45638f3cdb13ce752b6b80a789da46fef395920ffb75",
+      "bytes": 1040
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/static-bgfx-opengl-3.csv",
+      "archive_path": "after/samples/static-bgfx-opengl-3.csv",
+      "sha256": "7811c6156d2b4921a90b3bb96369f2f8aa3c92190d3e855db48f6c58849045ee",
+      "bytes": 924
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/static-bgfx-vulkan-1.csv",
+      "archive_path": "after/samples/static-bgfx-vulkan-1.csv",
+      "sha256": "95f3da0923768aba535a5512ebb8ac02e05572911cae83316632de7b6736f9bb",
+      "bytes": 933
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/static-bgfx-vulkan-2.csv",
+      "archive_path": "after/samples/static-bgfx-vulkan-2.csv",
+      "sha256": "81d490416b9469bfb5df4f88818ea8bb6fb4ec879c6ead2520483db1f7f53d7f",
+      "bytes": 1020
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/static-bgfx-vulkan-3.csv",
+      "archive_path": "after/samples/static-bgfx-vulkan-3.csv",
+      "sha256": "ba5462ddbdbd938108e2811aeb587dfff54c9c8d814d472228dd28ba4d7c00eb",
+      "bytes": 1003
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/static-coingl-1.csv",
+      "archive_path": "after/samples/static-coingl-1.csv",
+      "sha256": "9dc15ebe28a2095c6836b2ca6f6658983f62f18752168b592aa2b69e00fee09c",
+      "bytes": 906
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/static-coingl-2.csv",
+      "archive_path": "after/samples/static-coingl-2.csv",
+      "sha256": "2ad9849953307c6b72fa2400958fc5ff2dd1789e54515ac0cca56613ea550313",
+      "bytes": 924
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/static-coingl-3.csv",
+      "archive_path": "after/samples/static-coingl-3.csv",
+      "sha256": "02ac91fcb8d028bd785784f35045c7732debe65b3a6a412ade86a2229f33c285",
+      "bytes": 865
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/static-wgpu-vulkan-1.csv",
+      "archive_path": "after/samples/static-wgpu-vulkan-1.csv",
+      "sha256": "13cc79266271e4d1bfc90f548633a0f1bb89c65c8b5382396c5a15b4f1fa433c",
+      "bytes": 932
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/static-wgpu-vulkan-2.csv",
+      "archive_path": "after/samples/static-wgpu-vulkan-2.csv",
+      "sha256": "4ca3ddd836678ac810ca114943b30caf7f365692131c0db5b3f6c1ef6c036069",
+      "bytes": 962
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/static-wgpu-vulkan-3.csv",
+      "archive_path": "after/samples/static-wgpu-vulkan-3.csv",
+      "sha256": "a973ca234927fbd57e7eb308127385b9ae2117789a68e1c37f2414696aeb19f2",
+      "bytes": 940
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/transforms-10-bgfx-opengl-1.csv",
+      "archive_path": "after/samples/transforms-10-bgfx-opengl-1.csv",
+      "sha256": "87649fa15a9216a5e38d7050ecebde7c85de561fcc729069c63a3751bbe77946",
+      "bytes": 1003
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/transforms-10-bgfx-opengl-2.csv",
+      "archive_path": "after/samples/transforms-10-bgfx-opengl-2.csv",
+      "sha256": "a2e62d2b2853b6489e2142b8a580ef84ebf41edec58981cbdc3ea73d757db1ee",
+      "bytes": 983
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/transforms-10-bgfx-opengl-3.csv",
+      "archive_path": "after/samples/transforms-10-bgfx-opengl-3.csv",
+      "sha256": "489009a0209e81a332679fc263cf8f637edf0d8f2e1839bf702c6c2256532988",
+      "bytes": 953
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/transforms-10-bgfx-vulkan-1.csv",
+      "archive_path": "after/samples/transforms-10-bgfx-vulkan-1.csv",
+      "sha256": "96f0866618bb846f37d611cc86894f2619c8f1b593eed5bb3c861ffc51187f84",
+      "bytes": 1000
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/transforms-10-bgfx-vulkan-2.csv",
+      "archive_path": "after/samples/transforms-10-bgfx-vulkan-2.csv",
+      "sha256": "c1cc02e3c41ba1740e23d293dea5dbe0289d6bef4061d010fa453b18acb07342",
+      "bytes": 994
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/transforms-10-bgfx-vulkan-3.csv",
+      "archive_path": "after/samples/transforms-10-bgfx-vulkan-3.csv",
+      "sha256": "62f6c5ff5cfe41eea0dc1a635365d0f36d69fba842d41253197654eb1f70197e",
+      "bytes": 958
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/transforms-10-coingl-1.csv",
+      "archive_path": "after/samples/transforms-10-coingl-1.csv",
+      "sha256": "6a2ccf2c68691c7495a8d72364ea0b47e88d732d1fe400cb64f6db9a9f0778d1",
+      "bytes": 847
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/transforms-10-coingl-2.csv",
+      "archive_path": "after/samples/transforms-10-coingl-2.csv",
+      "sha256": "b63fc82be4ef24868f605fe88e9215727674842effc61637bc96e6ef7361f3b1",
+      "bytes": 880
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/transforms-10-coingl-3.csv",
+      "archive_path": "after/samples/transforms-10-coingl-3.csv",
+      "sha256": "7cbb8012755b029e174c56796d4a08d2fbe12b12a5f243c0dc359d78d4098efb",
+      "bytes": 831
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/transforms-10-wgpu-vulkan-1.csv",
+      "archive_path": "after/samples/transforms-10-wgpu-vulkan-1.csv",
+      "sha256": "ebe1f8df79a23c02d169f4539b222ddf0727e1690c8144ae9f7266204306cb68",
+      "bytes": 924
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/transforms-10-wgpu-vulkan-2.csv",
+      "archive_path": "after/samples/transforms-10-wgpu-vulkan-2.csv",
+      "sha256": "78cb394322352ce3a79eb7fdbbb71f83f8ba635dd137e3620847059247874986",
+      "bytes": 880
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-controls-after/samples/transforms-10-wgpu-vulkan-3.csv",
+      "archive_path": "after/samples/transforms-10-wgpu-vulkan-3.csv",
+      "sha256": "9bb4d8c71c0188293122c2c198d640a95c6a312d55b13dc6712b4a527cd9ae21",
+      "bytes": 893
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-baseline/frozen-binaries.json",
+      "archive_path": "controls/frozen-binaries.json",
+      "sha256": "bca6d7f94b2053f1aef7388cf7361fedc9ed25b4b8d470182893b9131c26849a",
+      "bytes": 4865
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-final-binaries.json",
+      "archive_path": "controls/coin-render-material-geometry-final-binaries.json",
+      "sha256": "d5acf9ceeae7ebc9e21517747dcd3cac999bd338a184305125521b9f2c495979",
+      "bytes": 3055
+    },
+    {
+      "original_path": "/tmp/coin-render-wgpu-motion-summary.py",
+      "archive_path": "summarize.py",
+      "sha256": "2f467b438a75844e4cf19a9a69fe87e03dfc921f19b7aaf84c0104534712f794",
+      "bytes": 13454
+    },
+    {
+      "original_path": "/tmp/campaign_core.py",
+      "archive_path": "campaign_core.py",
+      "sha256": "d5bda1398da0889130c18d46877b192a92c479a7dcc3f3adc3b91c8416eb4f04",
+      "bytes": 34538
+    },
+    {
+      "original_path": "/tmp/coin-render-first-frame/scripts/coinrender/analyze_animation_images.py",
+      "archive_path": "analyze_animation_images.py",
+      "sha256": "ab2d85a2a60aa883a5f92fc1ca9d089ab50aed6451dc79fcc48a919c771cf556",
+      "bytes": 4587
+    }
+  ]
+}

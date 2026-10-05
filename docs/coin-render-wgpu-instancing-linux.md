@@ -1,5 +1,7 @@
 # Instâncias e translação no wgpu — Linux, 2026-10-04
 
+Etapa seguinte: [materiais e geometria no Common, BGFX e wgpu](coin-render-material-geometry-linux.md).
+
 Common: `64b909b00b`. wgpu/ABI e testes: `b02aa54783`.
 Branch: `codex/coin-render-transform-performance`.
 Esta etapa sucede a [redução de reconstrução CPU](coin-render-wgpu-motion-linux.md).

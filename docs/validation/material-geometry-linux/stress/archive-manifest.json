@@ -1,0 +1,912 @@
+{
+  "ppm_files_copied": false,
+  "runner_json_preserved_verbatim": true,
+  "copied_files": [
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/geometry-100-bgfx-opengl-1.log",
+      "archive_path": "before/logs/geometry-100-bgfx-opengl-1.log",
+      "sha256": "bcbf0fce605e55f7e9f00f3fe80d0ea7569c207297f31eb12a082dcceb8099a5",
+      "bytes": 2469
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/geometry-100-bgfx-opengl-2.log",
+      "archive_path": "before/logs/geometry-100-bgfx-opengl-2.log",
+      "sha256": "da1ba9fc5bc4d224d97c42b1b6c9f005ffffb3a786ff0962af65d2f5786f8c35",
+      "bytes": 2470
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/geometry-100-bgfx-opengl-3.log",
+      "archive_path": "before/logs/geometry-100-bgfx-opengl-3.log",
+      "sha256": "d568b6922dd6544d57a66ab2ab6b7ba2bf129999a24c2890916011cfc75d838e",
+      "bytes": 2468
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/geometry-100-bgfx-vulkan-1.log",
+      "archive_path": "before/logs/geometry-100-bgfx-vulkan-1.log",
+      "sha256": "b13c02a867e33490ce5a3a9d1c5da30aafe43d7cabd50a275e1ca6d0f51c6771",
+      "bytes": 2476
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/geometry-100-bgfx-vulkan-2.log",
+      "archive_path": "before/logs/geometry-100-bgfx-vulkan-2.log",
+      "sha256": "feddfa276f39ac5ab18b40b28ca739fa5c869cede98fba57c2e2d9444a9c8665",
+      "bytes": 2471
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/geometry-100-bgfx-vulkan-3.log",
+      "archive_path": "before/logs/geometry-100-bgfx-vulkan-3.log",
+      "sha256": "fe56fc37255ff6cc1c1d05b3eb50a57e05c9ffb3f0e60d2172be7ade8b4f1b40",
+      "bytes": 2472
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/geometry-100-coingl-1.log",
+      "archive_path": "before/logs/geometry-100-coingl-1.log",
+      "sha256": "a5070c4e3c7fec0b6124a3d67703ae090c98346fd853069a74da9dd439f1bcba",
+      "bytes": 2317
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/geometry-100-coingl-2.log",
+      "archive_path": "before/logs/geometry-100-coingl-2.log",
+      "sha256": "8de89f46026f641d7040ad687fc0b98d570421a20d688ca636240642f5d5c932",
+      "bytes": 2318
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/geometry-100-coingl-3.log",
+      "archive_path": "before/logs/geometry-100-coingl-3.log",
+      "sha256": "6f499a630d59ea2a9662c7279d015d119c2a032f97cb8b045c2c67c665a326e8",
+      "bytes": 2311
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/geometry-100-wgpu-vulkan-1.log",
+      "archive_path": "before/logs/geometry-100-wgpu-vulkan-1.log",
+      "sha256": "06d840158ecac37db49115ea1ee2edd5004f8710a6efdb996b5c4d731311de77",
+      "bytes": 2568
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/geometry-100-wgpu-vulkan-2.log",
+      "archive_path": "before/logs/geometry-100-wgpu-vulkan-2.log",
+      "sha256": "a27fa900e9eb542a5f4667d58b77b2bf3af28e842dd23eb3ccc484d36d3ae128",
+      "bytes": 2573
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/geometry-100-wgpu-vulkan-3.log",
+      "archive_path": "before/logs/geometry-100-wgpu-vulkan-3.log",
+      "sha256": "c77601629f8edec0ecd30dbd9b9990cbcf65b64a9de0e1fd6043ab17e0b4db35",
+      "bytes": 2569
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/materials-100-bgfx-opengl-1.log",
+      "archive_path": "before/logs/materials-100-bgfx-opengl-1.log",
+      "sha256": "c1998a167c85666cf66f1fb9d22ea11cee6c414204b126bdb2fb64f962809ef4",
+      "bytes": 2473
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/materials-100-bgfx-opengl-2.log",
+      "archive_path": "before/logs/materials-100-bgfx-opengl-2.log",
+      "sha256": "4aaf59f540566f03f5ae31183ce0be6f425e0b943e3d82bacc329b95c4bdd870",
+      "bytes": 2469
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/materials-100-bgfx-opengl-3.log",
+      "archive_path": "before/logs/materials-100-bgfx-opengl-3.log",
+      "sha256": "be6b10200b932e3451f967a4a37fbba2bb8bba3c2fb90d72d8bcb0a3da14b114",
+      "bytes": 2465
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/materials-100-bgfx-vulkan-1.log",
+      "archive_path": "before/logs/materials-100-bgfx-vulkan-1.log",
+      "sha256": "5a61f1285eb9d2679518b5b17dfbc35f6aedc27b202b85cc78cdc844b5cb5bc1",
+      "bytes": 2468
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/materials-100-bgfx-vulkan-2.log",
+      "archive_path": "before/logs/materials-100-bgfx-vulkan-2.log",
+      "sha256": "8f83be1ac1745eb7538e8318dcd70582808e8f616e8bd9b228f380334320ebf5",
+      "bytes": 2478
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/materials-100-bgfx-vulkan-3.log",
+      "archive_path": "before/logs/materials-100-bgfx-vulkan-3.log",
+      "sha256": "a6d47ee27ef65c82c62fbca8a82201bded948ac219e75a9bcf24489e1560f3c4",
+      "bytes": 2475
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/materials-100-coingl-1.log",
+      "archive_path": "before/logs/materials-100-coingl-1.log",
+      "sha256": "7ae584512f8f05974f0c7a08ec649c96df564c7c650e1e084ab2dc2c81ff2705",
+      "bytes": 2320
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/materials-100-coingl-2.log",
+      "archive_path": "before/logs/materials-100-coingl-2.log",
+      "sha256": "b3137add7938837ba9475721e258f6e08f72fa14ad79022becbeb8b3cdb1065f",
+      "bytes": 2315
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/materials-100-coingl-3.log",
+      "archive_path": "before/logs/materials-100-coingl-3.log",
+      "sha256": "411e0c8f829566dc56e301aa539e039022df49ecb9b73f9dd80b10f1bc2120a2",
+      "bytes": 2318
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/materials-100-wgpu-vulkan-1.log",
+      "archive_path": "before/logs/materials-100-wgpu-vulkan-1.log",
+      "sha256": "dc283159378dd4079ba0137f9d111d87e135297913efc8f891f5bc0d9cff33b7",
+      "bytes": 2566
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/materials-100-wgpu-vulkan-2.log",
+      "archive_path": "before/logs/materials-100-wgpu-vulkan-2.log",
+      "sha256": "562c0e43216e699ec7b33f9b1da6b01caccaed45926036dbc2c7f99762bb0d3f",
+      "bytes": 2567
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/logs/materials-100-wgpu-vulkan-3.log",
+      "archive_path": "before/logs/materials-100-wgpu-vulkan-3.log",
+      "sha256": "be2cf08a8260459148f5d763ff994aaf9d54cb2f01b8e8ed646a99c6bfe339e1",
+      "bytes": 2563
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/manifest.json",
+      "archive_path": "before/manifest.json",
+      "sha256": "d1c8c1f513f1344837a17712ed0e1f0591a9bc6a0cb0cf3beb427490193b5257",
+      "bytes": 38614
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/medians.json",
+      "archive_path": "before/medians.json",
+      "sha256": "017d7716ca87e7996f10ffdcc9a4a61494890be1cb705ce2e464548a9d12da5d",
+      "bytes": 9139
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/results.json",
+      "archive_path": "before/results.json",
+      "sha256": "cd5427f3965ffef818544906d94eefc7710b5cb29e25ab3c055c033b46982f55",
+      "bytes": 36875
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/geometry-100-bgfx-opengl-1.csv",
+      "archive_path": "before/samples/geometry-100-bgfx-opengl-1.csv",
+      "sha256": "cb7320561865c056c4ccbbabad92c1a5351419f64eb2c9ec39b18d5b079827bc",
+      "bytes": 1008
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/geometry-100-bgfx-opengl-2.csv",
+      "archive_path": "before/samples/geometry-100-bgfx-opengl-2.csv",
+      "sha256": "468e4d7f348f9346586ccb6e1e6d16b59005736567a9e8350d0b3b20573099cd",
+      "bytes": 1012
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/geometry-100-bgfx-opengl-3.csv",
+      "archive_path": "before/samples/geometry-100-bgfx-opengl-3.csv",
+      "sha256": "16ff0be38e64d14492d3ec036b420218632e5bf0ce0029ca2bf4a6943b1708da",
+      "bytes": 993
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/geometry-100-bgfx-vulkan-1.csv",
+      "archive_path": "before/samples/geometry-100-bgfx-vulkan-1.csv",
+      "sha256": "e83825e8a084f9de547e3c33c7e2ac24cf94b0dd337b4d3f8916acff627fb091",
+      "bytes": 1025
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/geometry-100-bgfx-vulkan-2.csv",
+      "archive_path": "before/samples/geometry-100-bgfx-vulkan-2.csv",
+      "sha256": "d2dcc824259d5845cbd2849e5ec74f2ab9246fc58df9f437cf5059db8eaf39cb",
+      "bytes": 1024
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/geometry-100-bgfx-vulkan-3.csv",
+      "archive_path": "before/samples/geometry-100-bgfx-vulkan-3.csv",
+      "sha256": "41542e9f127a11bc44b855a1a70a0c75e19b813b7351e76b5da3469f4adac7bc",
+      "bytes": 980
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/geometry-100-coingl-1.csv",
+      "archive_path": "before/samples/geometry-100-coingl-1.csv",
+      "sha256": "a193873f33563182fad5e4efecba4a13f4f05edb971c53043eccd1720fd16f00",
+      "bytes": 906
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/geometry-100-coingl-2.csv",
+      "archive_path": "before/samples/geometry-100-coingl-2.csv",
+      "sha256": "af61d2b026f1b85012097a643c45343b00b4b2b4ef6108fb782cdddc57d1902c",
+      "bytes": 901
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/geometry-100-coingl-3.csv",
+      "archive_path": "before/samples/geometry-100-coingl-3.csv",
+      "sha256": "b210d1bf265ca67bcef62a1c2382edd0df2695076d9bfe511b911b8ab1d6b65c",
+      "bytes": 940
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/geometry-100-wgpu-vulkan-1.csv",
+      "archive_path": "before/samples/geometry-100-wgpu-vulkan-1.csv",
+      "sha256": "f7f6e27141666be26a811af485d8e46614e3ae483037c6d4f384e045b3158424",
+      "bytes": 947
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/geometry-100-wgpu-vulkan-2.csv",
+      "archive_path": "before/samples/geometry-100-wgpu-vulkan-2.csv",
+      "sha256": "43a7b75653d1a5e6587a1bf79576ff899370919c7463cadc75889bbae919db49",
+      "bytes": 955
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/geometry-100-wgpu-vulkan-3.csv",
+      "archive_path": "before/samples/geometry-100-wgpu-vulkan-3.csv",
+      "sha256": "6769731214f38c4f3ffb37b61abc299e93dbe220cadb3e564af664dec646a517",
+      "bytes": 887
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/materials-100-bgfx-opengl-1.csv",
+      "archive_path": "before/samples/materials-100-bgfx-opengl-1.csv",
+      "sha256": "72e88f04a2fe6ffceb49144c16583a0feb08893f192ef30b19575a698bd52df3",
+      "bytes": 949
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/materials-100-bgfx-opengl-2.csv",
+      "archive_path": "before/samples/materials-100-bgfx-opengl-2.csv",
+      "sha256": "38c2f00a9017a6fa0ef89435b8656fd5fe8efa012a310861af26c4036b9313ae",
+      "bytes": 958
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/materials-100-bgfx-opengl-3.csv",
+      "archive_path": "before/samples/materials-100-bgfx-opengl-3.csv",
+      "sha256": "34db64adb9060a110bf8f495173b75c34822460be72bf31df8dbe724058ebc7b",
+      "bytes": 971
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/materials-100-bgfx-vulkan-1.csv",
+      "archive_path": "before/samples/materials-100-bgfx-vulkan-1.csv",
+      "sha256": "187ae785561f2fb0d99c3a83577f7e7726d55e89d79920ed82140e7dc6476488",
+      "bytes": 982
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/materials-100-bgfx-vulkan-2.csv",
+      "archive_path": "before/samples/materials-100-bgfx-vulkan-2.csv",
+      "sha256": "30df3bd2e56d89e1f3be6a4717c2a241bd1fceaec010e2e70960a1ff88a00abf",
+      "bytes": 930
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/materials-100-bgfx-vulkan-3.csv",
+      "archive_path": "before/samples/materials-100-bgfx-vulkan-3.csv",
+      "sha256": "afb1fe0046bc4ff109a5b3b2fd6972efab09d73d20d7b3a8cdbd0692401be10a",
+      "bytes": 951
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/materials-100-coingl-1.csv",
+      "archive_path": "before/samples/materials-100-coingl-1.csv",
+      "sha256": "4518b5a26b9e5407895ff3c3ceaded7195db5dcb7ff7fbac35ee2a1a4ae0b47c",
+      "bytes": 828
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/materials-100-coingl-2.csv",
+      "archive_path": "before/samples/materials-100-coingl-2.csv",
+      "sha256": "211593f2aa2b7621758b14453e32b740ceea58f84c608f7a2cfd5a05f61bbb83",
+      "bytes": 940
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/materials-100-coingl-3.csv",
+      "archive_path": "before/samples/materials-100-coingl-3.csv",
+      "sha256": "e232e5bf861b14e169a9d5d2dc0c58e59287023b45fdca79c22eddeff6680691",
+      "bytes": 934
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/materials-100-wgpu-vulkan-1.csv",
+      "archive_path": "before/samples/materials-100-wgpu-vulkan-1.csv",
+      "sha256": "9b14b9a8837e3a4ae393d27af93104d65e2527a2a602de6da89fd46ef6222f5f",
+      "bytes": 938
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/materials-100-wgpu-vulkan-2.csv",
+      "archive_path": "before/samples/materials-100-wgpu-vulkan-2.csv",
+      "sha256": "073ca9ad2dae05045bdd1ebc5beb9f88fc359ce9047352a6e9ec23cde15a233d",
+      "bytes": 888
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-before/samples/materials-100-wgpu-vulkan-3.csv",
+      "archive_path": "before/samples/materials-100-wgpu-vulkan-3.csv",
+      "sha256": "7b44458791788103a384635fdb17941acc0c75e92405fa1c868f9ca86c50ec19",
+      "bytes": 940
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/geometry-100-bgfx-opengl-1.log",
+      "archive_path": "after/logs/geometry-100-bgfx-opengl-1.log",
+      "sha256": "c5b1d887912ebd13991fa2c100228be80588436873983c7897f11b9dd4f5e11b",
+      "bytes": 2466
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/geometry-100-bgfx-opengl-2.log",
+      "archive_path": "after/logs/geometry-100-bgfx-opengl-2.log",
+      "sha256": "e03ff91cc4d2917ed6473f9663e60ad0c692a992f244a23e6316b56d61295185",
+      "bytes": 2469
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/geometry-100-bgfx-opengl-3.log",
+      "archive_path": "after/logs/geometry-100-bgfx-opengl-3.log",
+      "sha256": "fe2a8fbfb74b3b891b1d6126cf10a728de17a51ac27eb18f472d8f6d26105037",
+      "bytes": 2470
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/geometry-100-bgfx-vulkan-1.log",
+      "archive_path": "after/logs/geometry-100-bgfx-vulkan-1.log",
+      "sha256": "fe43460a9c023ab6ebbc96ab48be220a43e5b8743f088e9077b4de423b574cb1",
+      "bytes": 2476
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/geometry-100-bgfx-vulkan-2.log",
+      "archive_path": "after/logs/geometry-100-bgfx-vulkan-2.log",
+      "sha256": "b3545f375de7de488d281a000c08843306693f69fe3190c47a16f2ad65333f1f",
+      "bytes": 2470
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/geometry-100-bgfx-vulkan-3.log",
+      "archive_path": "after/logs/geometry-100-bgfx-vulkan-3.log",
+      "sha256": "0dedb5a7cd50603e8f2159491b4a0602f9263ebe91a26f07c84a80b56dbfc4e5",
+      "bytes": 2470
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/geometry-100-coingl-1.log",
+      "archive_path": "after/logs/geometry-100-coingl-1.log",
+      "sha256": "a5070c4e3c7fec0b6124a3d67703ae090c98346fd853069a74da9dd439f1bcba",
+      "bytes": 2317
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/geometry-100-coingl-2.log",
+      "archive_path": "after/logs/geometry-100-coingl-2.log",
+      "sha256": "8de89f46026f641d7040ad687fc0b98d570421a20d688ca636240642f5d5c932",
+      "bytes": 2318
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/geometry-100-coingl-3.log",
+      "archive_path": "after/logs/geometry-100-coingl-3.log",
+      "sha256": "6f499a630d59ea2a9662c7279d015d119c2a032f97cb8b045c2c67c665a326e8",
+      "bytes": 2311
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/geometry-100-wgpu-vulkan-1.log",
+      "archive_path": "after/logs/geometry-100-wgpu-vulkan-1.log",
+      "sha256": "e98825e25cf28fcb4bb99d6f31ef10d25b0a68f28245a9ebdb2ceaee2b28e15a",
+      "bytes": 2566
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/geometry-100-wgpu-vulkan-2.log",
+      "archive_path": "after/logs/geometry-100-wgpu-vulkan-2.log",
+      "sha256": "51b19fc59ed14c82efff95feec348f39206d27f807cd74d7f479cb715c950f3b",
+      "bytes": 2562
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/geometry-100-wgpu-vulkan-3.log",
+      "archive_path": "after/logs/geometry-100-wgpu-vulkan-3.log",
+      "sha256": "ce0865f3736c7946c550bde892d8de3e1d0f64ab3c3c43939c0bbd13eac20c36",
+      "bytes": 2562
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/materials-100-bgfx-opengl-1.log",
+      "archive_path": "after/logs/materials-100-bgfx-opengl-1.log",
+      "sha256": "48cd568cb60adfcc2821b0b56c9a8c61ec3193377922aaf5a278860705e9c0e5",
+      "bytes": 2469
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/materials-100-bgfx-opengl-2.log",
+      "archive_path": "after/logs/materials-100-bgfx-opengl-2.log",
+      "sha256": "b35bd12505c688837ec15679871b37a1b0f07bdd299d06ebecbd6c30a7d9bde7",
+      "bytes": 2467
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/materials-100-bgfx-opengl-3.log",
+      "archive_path": "after/logs/materials-100-bgfx-opengl-3.log",
+      "sha256": "860b83140e8fc66b92415f6a17ec8807918b1d2aa9128bae141fe41ab0b41e8e",
+      "bytes": 2467
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/materials-100-bgfx-vulkan-1.log",
+      "archive_path": "after/logs/materials-100-bgfx-vulkan-1.log",
+      "sha256": "484bcb4227674fe58ef170d50c1fd62e02d09938ccb878f62782f19173177d40",
+      "bytes": 2475
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/materials-100-bgfx-vulkan-2.log",
+      "archive_path": "after/logs/materials-100-bgfx-vulkan-2.log",
+      "sha256": "f7da7ed1a2d720ce31310dbc5c5c5aff253e569746a0c634c8cc91f45de2ed7c",
+      "bytes": 2476
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/materials-100-bgfx-vulkan-3.log",
+      "archive_path": "after/logs/materials-100-bgfx-vulkan-3.log",
+      "sha256": "9250fe5f7046aeb8f3c0ec12d1f1b3c5f80537809d15297bb4d3fdf11c6fbd9c",
+      "bytes": 2471
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/materials-100-coingl-1.log",
+      "archive_path": "after/logs/materials-100-coingl-1.log",
+      "sha256": "7ae584512f8f05974f0c7a08ec649c96df564c7c650e1e084ab2dc2c81ff2705",
+      "bytes": 2320
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/materials-100-coingl-2.log",
+      "archive_path": "after/logs/materials-100-coingl-2.log",
+      "sha256": "b3137add7938837ba9475721e258f6e08f72fa14ad79022becbeb8b3cdb1065f",
+      "bytes": 2315
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/materials-100-coingl-3.log",
+      "archive_path": "after/logs/materials-100-coingl-3.log",
+      "sha256": "411e0c8f829566dc56e301aa539e039022df49ecb9b73f9dd80b10f1bc2120a2",
+      "bytes": 2318
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/materials-100-wgpu-vulkan-1.log",
+      "archive_path": "after/logs/materials-100-wgpu-vulkan-1.log",
+      "sha256": "02a08261573dcf4ad48ac9c1e98c9c5e980f867a6f00fe7eed71860ac7453e89",
+      "bytes": 2569
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/materials-100-wgpu-vulkan-2.log",
+      "archive_path": "after/logs/materials-100-wgpu-vulkan-2.log",
+      "sha256": "13196067a1c2184ceb9234e66ac7d4fe279f3a1fa1fa5e9d8f6206e32b6f473d",
+      "bytes": 2565
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/logs/materials-100-wgpu-vulkan-3.log",
+      "archive_path": "after/logs/materials-100-wgpu-vulkan-3.log",
+      "sha256": "c11aa659ff25420db707cf86c8d7cc8a765f11cf06dac626b351c6d63c63b752",
+      "bytes": 2565
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/manifest.json",
+      "archive_path": "after/manifest.json",
+      "sha256": "e70af38a08680e26dcacbc6c91eda53e47780775e313ea9ae2fda364a81f0c50",
+      "bytes": 37947
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/medians.json",
+      "archive_path": "after/medians.json",
+      "sha256": "4c334b9f6124909c697cd54f14ff651d3455d05824cd62ae099dbb378e6631e1",
+      "bytes": 9123
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/results.json",
+      "archive_path": "after/results.json",
+      "sha256": "1653299a93c51014b81ba5ccf3161e2efd29a9c2834c06b0ccc9a7c666cb3fa8",
+      "bytes": 36799
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/geometry-100-bgfx-opengl-1.csv",
+      "archive_path": "after/samples/geometry-100-bgfx-opengl-1.csv",
+      "sha256": "17a02f8dc85a2b0ab2252bd8bde47b7bc84a6b892235746f44edbf6eedc28a18",
+      "bytes": 951
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/geometry-100-bgfx-opengl-2.csv",
+      "archive_path": "after/samples/geometry-100-bgfx-opengl-2.csv",
+      "sha256": "e89bed9a32fa236ceea277c912b4cc52a6ba54988e68ab08832cd9befb31fd15",
+      "bytes": 973
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/geometry-100-bgfx-opengl-3.csv",
+      "archive_path": "after/samples/geometry-100-bgfx-opengl-3.csv",
+      "sha256": "1931290f754ef066ff36c4a2e586404815a0302a540705dec95f84cfbb8e5871",
+      "bytes": 951
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/geometry-100-bgfx-vulkan-1.csv",
+      "archive_path": "after/samples/geometry-100-bgfx-vulkan-1.csv",
+      "sha256": "4593a7f1dc59117f4fa44ffe5f344cf65d0ccdd603ae5ededa42ac484241dfe7",
+      "bytes": 957
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/geometry-100-bgfx-vulkan-2.csv",
+      "archive_path": "after/samples/geometry-100-bgfx-vulkan-2.csv",
+      "sha256": "27f03c6b865a66705687abb87cc189a954d4652a5312d21e3a0da4ad8e9af1b2",
+      "bytes": 972
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/geometry-100-bgfx-vulkan-3.csv",
+      "archive_path": "after/samples/geometry-100-bgfx-vulkan-3.csv",
+      "sha256": "6d652e3d43eb0801e74a28d34374667a6941cb2e0e526a69374a663f077de364",
+      "bytes": 957
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/geometry-100-coingl-1.csv",
+      "archive_path": "after/samples/geometry-100-coingl-1.csv",
+      "sha256": "a193873f33563182fad5e4efecba4a13f4f05edb971c53043eccd1720fd16f00",
+      "bytes": 906
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/geometry-100-coingl-2.csv",
+      "archive_path": "after/samples/geometry-100-coingl-2.csv",
+      "sha256": "af61d2b026f1b85012097a643c45343b00b4b2b4ef6108fb782cdddc57d1902c",
+      "bytes": 901
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/geometry-100-coingl-3.csv",
+      "archive_path": "after/samples/geometry-100-coingl-3.csv",
+      "sha256": "b210d1bf265ca67bcef62a1c2382edd0df2695076d9bfe511b911b8ab1d6b65c",
+      "bytes": 940
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/geometry-100-wgpu-vulkan-1.csv",
+      "archive_path": "after/samples/geometry-100-wgpu-vulkan-1.csv",
+      "sha256": "93f03985ecee85d55b1c9e0babb481262c359998059b71f576b4172cf939ff9c",
+      "bytes": 894
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/geometry-100-wgpu-vulkan-2.csv",
+      "archive_path": "after/samples/geometry-100-wgpu-vulkan-2.csv",
+      "sha256": "179de688cfa3682e82f3ac37f8f677bc2057323be6b9e41b32c3259c50717fd1",
+      "bytes": 930
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/geometry-100-wgpu-vulkan-3.csv",
+      "archive_path": "after/samples/geometry-100-wgpu-vulkan-3.csv",
+      "sha256": "7bd9a6e03e17d0bfb196682c023637347990e81bcce0aa534937c241665ba0c7",
+      "bytes": 941
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/materials-100-bgfx-opengl-1.csv",
+      "archive_path": "after/samples/materials-100-bgfx-opengl-1.csv",
+      "sha256": "683a20d156c5644c45f5066e63f0ea6158ab3330c0410b8451cc9edcc54bd5c8",
+      "bytes": 920
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/materials-100-bgfx-opengl-2.csv",
+      "archive_path": "after/samples/materials-100-bgfx-opengl-2.csv",
+      "sha256": "99a3517c16694c5ff7c34bb6cd7d71e25cbc17066cfb5cddc7ef228d7fdfbe5c",
+      "bytes": 951
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/materials-100-bgfx-opengl-3.csv",
+      "archive_path": "after/samples/materials-100-bgfx-opengl-3.csv",
+      "sha256": "fc1b46de13e971ef16d597425c821bd6dd991a290579a83d3e3430b184d8547b",
+      "bytes": 938
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/materials-100-bgfx-vulkan-1.csv",
+      "archive_path": "after/samples/materials-100-bgfx-vulkan-1.csv",
+      "sha256": "bf011b507d89bad8d9013a0e59d64cd1302f953442db1deeea21e2e481263f49",
+      "bytes": 917
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/materials-100-bgfx-vulkan-2.csv",
+      "archive_path": "after/samples/materials-100-bgfx-vulkan-2.csv",
+      "sha256": "b50bf667f8e54c274e28cb49eb5e2dd8fac3c82be45da1841b923ebafcc84ea6",
+      "bytes": 957
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/materials-100-bgfx-vulkan-3.csv",
+      "archive_path": "after/samples/materials-100-bgfx-vulkan-3.csv",
+      "sha256": "e3c1ef4d71ac6bb96441e48f849c247fc6671d0abb31a3e3751f6b996f9e33e9",
+      "bytes": 922
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/materials-100-coingl-1.csv",
+      "archive_path": "after/samples/materials-100-coingl-1.csv",
+      "sha256": "4518b5a26b9e5407895ff3c3ceaded7195db5dcb7ff7fbac35ee2a1a4ae0b47c",
+      "bytes": 828
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/materials-100-coingl-2.csv",
+      "archive_path": "after/samples/materials-100-coingl-2.csv",
+      "sha256": "211593f2aa2b7621758b14453e32b740ceea58f84c608f7a2cfd5a05f61bbb83",
+      "bytes": 940
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/materials-100-coingl-3.csv",
+      "archive_path": "after/samples/materials-100-coingl-3.csv",
+      "sha256": "e232e5bf861b14e169a9d5d2dc0c58e59287023b45fdca79c22eddeff6680691",
+      "bytes": 934
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/materials-100-wgpu-vulkan-1.csv",
+      "archive_path": "after/samples/materials-100-wgpu-vulkan-1.csv",
+      "sha256": "1bd17e54d97ed96bf59e829e0ca76d39b6870b231bfde34ef2bcdb265cded8a3",
+      "bytes": 905
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/materials-100-wgpu-vulkan-2.csv",
+      "archive_path": "after/samples/materials-100-wgpu-vulkan-2.csv",
+      "sha256": "38baab5defdf37403da0f2b458c96c5f7c9dead7f7130f3e5d13c3002f912a92",
+      "bytes": 901
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-stress-after/samples/materials-100-wgpu-vulkan-3.csv",
+      "archive_path": "after/samples/materials-100-wgpu-vulkan-3.csv",
+      "sha256": "65b4be5c463262a161507639ad015eedebc575471ca0f19a3f92aead51ba29c8",
+      "bytes": 907
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-before/image-manifest.json",
+      "archive_path": "verify-before/image-manifest.json",
+      "sha256": "3eb532191829d19fed5e33e5ea60549cbd3c0e093cc8e3cf49420578c8a8d450",
+      "bytes": 18010
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-before/logs/geometry-100-bgfx-opengl-1.log",
+      "archive_path": "verify-before/logs/geometry-100-bgfx-opengl-1.log",
+      "sha256": "99ca916480669ad735a7f78c5dca9290e9bd7fbb55a56ff54facdb38c20fb561",
+      "bytes": 4324
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-before/logs/geometry-100-bgfx-vulkan-1.log",
+      "archive_path": "verify-before/logs/geometry-100-bgfx-vulkan-1.log",
+      "sha256": "e203089ef42faba4b208d08b847a52aa628f5c361d101a4af627df06bad90b3f",
+      "bytes": 4333
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-before/logs/geometry-100-coingl-1.log",
+      "archive_path": "verify-before/logs/geometry-100-coingl-1.log",
+      "sha256": "a8d30d5892c477cc5fb4b0adae7cdb74a21a4d44a7b1bd45bf24b5bee42c2218",
+      "bytes": 4068
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-before/logs/geometry-100-wgpu-vulkan-1.log",
+      "archive_path": "verify-before/logs/geometry-100-wgpu-vulkan-1.log",
+      "sha256": "8cda0d3323af706337db907acb12282e89d9c1de56c53afcd193ef4f8d9a7ba0",
+      "bytes": 4357
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-before/logs/materials-100-bgfx-opengl-1.log",
+      "archive_path": "verify-before/logs/materials-100-bgfx-opengl-1.log",
+      "sha256": "a96da1302b9db4ac651705f140e4d5432194261898070255903f48eb31b1aa0a",
+      "bytes": 4333
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-before/logs/materials-100-bgfx-vulkan-1.log",
+      "archive_path": "verify-before/logs/materials-100-bgfx-vulkan-1.log",
+      "sha256": "c00cb2c1827606fd90055cc4b616a94dfc3f17026d01a63502dc495361df6316",
+      "bytes": 4340
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-before/logs/materials-100-coingl-1.log",
+      "archive_path": "verify-before/logs/materials-100-coingl-1.log",
+      "sha256": "c87364ba1d5f978d1a2eebcf6c26c78b6771fc3e84dc320145ca1e9bbe0d25c5",
+      "bytes": 4080
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-before/logs/materials-100-wgpu-vulkan-1.log",
+      "archive_path": "verify-before/logs/materials-100-wgpu-vulkan-1.log",
+      "sha256": "952fed141b95c03b612c75f97c0650c513cf92a50ed44ffbd52defd4581d6f1f",
+      "bytes": 4358
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-before/manifest.json",
+      "archive_path": "verify-before/manifest.json",
+      "sha256": "df84e10f3f890c94f154381bdbeeeeb236d3e4b902e8c35ba2f091e42bc805a0",
+      "bytes": 12754
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-before/medians.json",
+      "archive_path": "verify-before/medians.json",
+      "sha256": "359f9bbab836643f10d93c2da9644d36801a5317d67285a1567dca4ab25992be",
+      "bytes": 9098
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-before/motion.json",
+      "archive_path": "verify-before/motion.json",
+      "sha256": "976ecfe0d180b38f255d7b2ce35f499e883ab654563c7b4a18edbc139344285d",
+      "bytes": 917
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-before/results.json",
+      "archive_path": "verify-before/results.json",
+      "sha256": "0e106c505a126fe59235d658b88049673854c6b1c11988a27f82fb7fce93c766",
+      "bytes": 12240
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-before/rgb.json",
+      "archive_path": "verify-before/rgb.json",
+      "sha256": "691afe74858a8fc77220d67a34558be51f32687b227366dd2b941a0c43eb54a9",
+      "bytes": 14974
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-before/samples/geometry-100-bgfx-opengl-1.csv",
+      "archive_path": "verify-before/samples/geometry-100-bgfx-opengl-1.csv",
+      "sha256": "404a87b33722ceda0b15c78e38d1abb8cd791b633637acccb28663affdf13d37",
+      "bytes": 742
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-before/samples/geometry-100-bgfx-vulkan-1.csv",
+      "archive_path": "verify-before/samples/geometry-100-bgfx-vulkan-1.csv",
+      "sha256": "1c36d3801e69a0e930652750b220e166e68ad8ff30841c9d47adcd8ff2167f05",
+      "bytes": 729
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-before/samples/geometry-100-coingl-1.csv",
+      "archive_path": "verify-before/samples/geometry-100-coingl-1.csv",
+      "sha256": "f4e6e892a883d24ee79c548fd563ca786321a940481ace9b37fb4234778e89fb",
+      "bytes": 676
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-before/samples/geometry-100-wgpu-vulkan-1.csv",
+      "archive_path": "verify-before/samples/geometry-100-wgpu-vulkan-1.csv",
+      "sha256": "335d64f29df068b02107f27ca9203d5d409d9dcffee08a3b20f30333626f1a2b",
+      "bytes": 664
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-before/samples/materials-100-bgfx-opengl-1.csv",
+      "archive_path": "verify-before/samples/materials-100-bgfx-opengl-1.csv",
+      "sha256": "29d3320b488d1cf070459fd6c0fec10b757d8e70826f6a3a994e6ee72be65aad",
+      "bytes": 683
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-before/samples/materials-100-bgfx-vulkan-1.csv",
+      "archive_path": "verify-before/samples/materials-100-bgfx-vulkan-1.csv",
+      "sha256": "42d649f45e23d614bfac8c10c7d1228d0c34790ae7de6bb63e49055a7bef068f",
+      "bytes": 722
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-before/samples/materials-100-coingl-1.csv",
+      "archive_path": "verify-before/samples/materials-100-coingl-1.csv",
+      "sha256": "65f2d68761abfc4b3544e0c42ab21d94abf1cbed881a026d2d09b2e4ecf4e7bd",
+      "bytes": 665
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-before/samples/materials-100-wgpu-vulkan-1.csv",
+      "archive_path": "verify-before/samples/materials-100-wgpu-vulkan-1.csv",
+      "sha256": "236eae4dca73d40abad1a781e9690b02183c031f2a58314a3bdcbc73a1985b80",
+      "bytes": 668
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-final/image-manifest.json",
+      "archive_path": "verify-after/image-manifest.json",
+      "sha256": "0cd0b8be381225fa166f0bfcba99d3f8ec4a781a9550c1d987e0d60a7d95d2fb",
+      "bytes": 18010
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-final/logs/geometry-100-bgfx-opengl-1.log",
+      "archive_path": "verify-after/logs/geometry-100-bgfx-opengl-1.log",
+      "sha256": "0879449e412c46764cd498ed46f7774c7695d5cb258482bebe2b8fe5ed39e919",
+      "bytes": 4316
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-final/logs/geometry-100-bgfx-vulkan-1.log",
+      "archive_path": "verify-after/logs/geometry-100-bgfx-vulkan-1.log",
+      "sha256": "32516cf3d3468f626f70f3c73f2e9a55aa841a3771a27d30c5f41f74ba3f9245",
+      "bytes": 4321
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-final/logs/geometry-100-coingl-1.log",
+      "archive_path": "verify-after/logs/geometry-100-coingl-1.log",
+      "sha256": "6a0d75a156c9a7913c9c28eb86c50a0c84cbb64a68e7e2d1ec7cfb7e1771ef9c",
+      "bytes": 4065
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-final/logs/geometry-100-wgpu-vulkan-1.log",
+      "archive_path": "verify-after/logs/geometry-100-wgpu-vulkan-1.log",
+      "sha256": "93548cb396a42a35b3ab32163d3b070f0729d47e04fda500d2201ab6684743f4",
+      "bytes": 4341
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-final/logs/materials-100-bgfx-opengl-1.log",
+      "archive_path": "verify-after/logs/materials-100-bgfx-opengl-1.log",
+      "sha256": "c15e377376cf17486b6ae34cd09ded6c7cddb30dd0591db731bdf53c2adbc282",
+      "bytes": 4326
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-final/logs/materials-100-bgfx-vulkan-1.log",
+      "archive_path": "verify-after/logs/materials-100-bgfx-vulkan-1.log",
+      "sha256": "1b68dd9a8ff7903ec997d40429a3dd7aa5bde2651c492bbb8b54cb7d256cbf13",
+      "bytes": 4332
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-final/logs/materials-100-coingl-1.log",
+      "archive_path": "verify-after/logs/materials-100-coingl-1.log",
+      "sha256": "4f08bc581f11fb80a37ec6d48646b8c7b6e56d6c0c1c617377efddb8f975f379",
+      "bytes": 4074
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-final/logs/materials-100-wgpu-vulkan-1.log",
+      "archive_path": "verify-after/logs/materials-100-wgpu-vulkan-1.log",
+      "sha256": "bcb856f374a7d04899ec48723d266b643b9fd689d97acecdbe093b531b7cff3a",
+      "bytes": 4354
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-final/manifest.json",
+      "archive_path": "verify-after/manifest.json",
+      "sha256": "e82a35c5fafa07973d6f707f720b6e573028e4d58ec85618b84d30baa2bbe11b",
+      "bytes": 12266
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-final/medians.json",
+      "archive_path": "verify-after/medians.json",
+      "sha256": "2684dd3af736dbc26573a53a9a751dae297a497519df1d2170ab0e89be7be276",
+      "bytes": 9076
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-final/motion.json",
+      "archive_path": "verify-after/motion.json",
+      "sha256": "976ecfe0d180b38f255d7b2ce35f499e883ab654563c7b4a18edbc139344285d",
+      "bytes": 917
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-final/results.json",
+      "archive_path": "verify-after/results.json",
+      "sha256": "9c9767670f571d46a1141c567976119dd654170b2b6474a946958fe07c0121ab",
+      "bytes": 12219
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-final/rgb.json",
+      "archive_path": "verify-after/rgb.json",
+      "sha256": "c925259b218ec20c587a81b87f93e4f1166b33dae772a3d21c22419ee94081ae",
+      "bytes": 14975
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-final/samples/geometry-100-bgfx-opengl-1.csv",
+      "archive_path": "verify-after/samples/geometry-100-bgfx-opengl-1.csv",
+      "sha256": "c01072bdef71173e28ddd4d4488d31ca44569aa4d5eba4b0d5fe14a7278065b2",
+      "bytes": 728
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-final/samples/geometry-100-bgfx-vulkan-1.csv",
+      "archive_path": "verify-after/samples/geometry-100-bgfx-vulkan-1.csv",
+      "sha256": "2be17557dd5a09de7acd959fb9cea56086ce337fb5dd3d6594abcb827dbccc28",
+      "bytes": 738
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-final/samples/geometry-100-coingl-1.csv",
+      "archive_path": "verify-after/samples/geometry-100-coingl-1.csv",
+      "sha256": "f7335b93099f054ff357c09956f36bbf53745397602831caaf72725f73126b10",
+      "bytes": 688
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-final/samples/geometry-100-wgpu-vulkan-1.csv",
+      "archive_path": "verify-after/samples/geometry-100-wgpu-vulkan-1.csv",
+      "sha256": "9726815d61de3ee0391abac88e09dd17ab5574a35a7c10f7b15ed27d995949b2",
+      "bytes": 648
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-final/samples/materials-100-bgfx-opengl-1.csv",
+      "archive_path": "verify-after/samples/materials-100-bgfx-opengl-1.csv",
+      "sha256": "5d0b38f17904817a9f6db42dc640d6fb7711ef78c73f89c33b0436b334e32570",
+      "bytes": 672
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-final/samples/materials-100-bgfx-vulkan-1.csv",
+      "archive_path": "verify-after/samples/materials-100-bgfx-vulkan-1.csv",
+      "sha256": "f00944ff86b8018634d83cd6acbdf88fa29c5c4d48487a094592244c9735e7ff",
+      "bytes": 726
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-final/samples/materials-100-coingl-1.csv",
+      "archive_path": "verify-after/samples/materials-100-coingl-1.csv",
+      "sha256": "449cf453310b4d9fd897afc54eb6057cbc91e446cdada42c7c99b5d3a490a403",
+      "bytes": 654
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-verify100-final/samples/materials-100-wgpu-vulkan-1.csv",
+      "archive_path": "verify-after/samples/materials-100-wgpu-vulkan-1.csv",
+      "sha256": "2d1613bfbb695350eb948eec9e02cff4fb353a79e0a160552b5e539dd9105785",
+      "bytes": 700
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-baseline/frozen-binaries.json",
+      "archive_path": "controls/frozen-binaries.json",
+      "sha256": "bca6d7f94b2053f1aef7388cf7361fedc9ed25b4b8d470182893b9131c26849a",
+      "bytes": 4865
+    },
+    {
+      "original_path": "/tmp/coin-render-material-geometry-final-binaries.json",
+      "archive_path": "controls/coin-render-material-geometry-final-binaries.json",
+      "sha256": "d5acf9ceeae7ebc9e21517747dcd3cac999bd338a184305125521b9f2c495979",
+      "bytes": 3055
+    },
+    {
+      "original_path": "/tmp/coin-render-wgpu-motion-summary.py",
+      "archive_path": "summarize.py",
+      "sha256": "2f467b438a75844e4cf19a9a69fe87e03dfc921f19b7aaf84c0104534712f794",
+      "bytes": 13454
+    },
+    {
+      "original_path": "/tmp/campaign_core.py",
+      "archive_path": "campaign_core.py",
+      "sha256": "d5bda1398da0889130c18d46877b192a92c479a7dcc3f3adc3b91c8416eb4f04",
+      "bytes": 34538
+    },
+    {
+      "original_path": "/tmp/coin-render-first-frame/scripts/coinrender/analyze_animation_images.py",
+      "archive_path": "analyze_animation_images.py",
+      "sha256": "ab2d85a2a60aa883a5f92fc1ca9d089ab50aed6451dc79fcc48a919c771cf556",
+      "bytes": 4587
+    }
+  ]
+}
