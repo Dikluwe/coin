@@ -131,3 +131,12 @@ As capturas dos grafos Coin adicionados manualmente ao viewer ficaram sem texto 
 Houve erros preexistentes de carregamento PySide6/Qt em workbenches auxiliares (BIM, Draft, Help, Measure e Tux). As operações de Annotation e Part usadas aqui concluíram. Isso limita a abrangência da integração: não foram validados Sketcher, datum, overlays nem SoColorBarLabel compilado com o workaround removido. O estudo anterior do workaround continua sendo uma reprodução do algoritmo copiado.
 
 Macro, JSONs, logs, capturas e resultados CTest estão em `freecad-validation/`. A retirada de código do FreeCAD descrita acima permanece condicionada à versão mínima efetivamente corrigida e à validação de suas classes nativas.
+
+
+## Auditoria dos 36 casos e imagens
+
+Na auditoria, o teste foi corrigido para percorrer SoText2::LEFT (1), RIGHT (2) e CENTER (3). A versão inicial percorria 0, 1 e 2, incluindo um valor inválido e omitindo CENTER. Após a correção, o resultado foi novamente 36 falhas na master e zero na correção, em 38 casos. Os logs de freecad-validation/master-native-tests.txt e fixed-native-tests.txt foram atualizados.
+
+As 36 falhas correspondem a 2 câmeras × 3 alinhamentos × 6 âncoras: (0.25,0,0.25), (5,0,0), (100,0,0), (-100,0,0), (0,100,0) e (0,-100,0). Não representam 36 bugs independentes. Cada caso exige limites não vazios, centro finito próximo da âncora, estabilidade ao repetir a ação e limites não vazios após View All. Os dois controles de picking passam nas duas versões.
+
+As imagens audit-before/ e audit-after/ foram geradas novamente pelo mesmo probe.cpp, respectivamente com a biblioteca master e a biblioteca compilada da branch, por SoOffscreenRenderer em 640×480. A conversão PPM→PNG apenas orienta as linhas do buffer para exibição. Na cena original, antes: 0 pixels não pretos; depois: 683. O controle com câmera manual produz 683 pixels nas duas versões. São renderizações isoladas da Coin; não são capturas do viewer FreeCAD.

@@ -16,7 +16,7 @@ int main() {
                              SbVec3f(100, 0, 0),     SbVec3f(-100, 0, 0),
                              SbVec3f(0, 100, 0),     SbVec3f(0, -100, 0)};
   for (int orthographic = 0; orthographic < 2; ++orthographic)
-    for (int alignment = 0; alignment < 3; ++alignment)
+    for (int alignment = SoText2::LEFT; alignment <= SoText2::CENTER; ++alignment)
       for (const auto &anchor : anchors) {
         auto *root = new SoSeparator;
         root->ref();
