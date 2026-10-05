@@ -1840,6 +1840,19 @@ int testObjectProofMemoization() {
     TEST_ASSERT(equivalentProof(p,visits) && p->materialByNode.count(scene.material) &&
                 p->materialByNode.count(second) && p->materialByNode.count(third) && p->cubeByNode.count(scene.cube),
                 "memoized shared-source admission must equal every original per-occurrence proof");
+    const auto admittedMaterials = p->materialByNode, admittedCubes = p->cubeByNode;
+    // Options must be refreshed for every qualification, including readmission
+    // of the same plan and sources after each independently disabled overlay.
+    for (unsigned options : {0u, 1u, 2u, 3u, 0u}) {
+      coinRenderTestSetEnvironment(environment.flags[1], options & 1u ? "1" : "0");
+      coinRenderTestSetEnvironment(environment.flags[2], options & 2u ? "1" : "0");
+      p->materialByNode.clear(); p->cubeByNode.clear();
+      p->qualifyObjectPayloads(visits);
+      TEST_ASSERT((options & 1u ? p->materialByNode.empty() : p->materialByNode == admittedMaterials) &&
+                  (options & 2u ? p->cubeByNode.empty() : p->cubeByNode == admittedCubes) &&
+                  original.hasSamePayload(p->lastValidPlan),
+                  "overlay options must refresh independently without changing the captured payload");
+    }
     const auto & first = p->lastValidPlan.draws[bindings[0].firstDraw];
     const uint32_t secondSlot = p->lastValidPlan.renderStates[bindings[2].stateSlot].materialSlot;
     const uint32_t thirdSlot = p->lastValidPlan.renderStates[bindings[3].stateSlot].materialSlot;

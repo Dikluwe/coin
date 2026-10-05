@@ -1,0 +1,10 @@
+bgfx-d3d12 891.21 -> 732.16 gain% 17.85 warm 9.73
+bgfx-opengl 757.38 -> 555.15 gain% 26.7 warm 8.93
+bgfx-vulkan 939.96 -> 736.23 gain% 21.67 warm 7.82
+coingl 707.71 -> 683.9 gain% 3.36 warm 37.16
+wgpu-d3d12 919.9 -> 680.84 gain% 25.99 warm 11.73
+wgpu-opengl 640.01 -> 384.92 gain% 39.86 warm 13.35
+wgpu-vulkan 625.77 -> 428.81 gain% 31.47 warm 9.81
+Tests passed: 101 image checks: 177
+Probes: {'bgfx': {'before': {'payload_ms': 229.9105, 'first_ms': 783.169}, 'after': {'payload_ms': 16.5832, 'first_ms': 592.636}}, 'wgpu': {'before': {'payload_ms': 244.1305, 'first_ms': 644.904}, 'after': {'payload_ms': 14.8701, 'first_ms': 402.548}}}
+Max animation MAE: 0.02785332997639974

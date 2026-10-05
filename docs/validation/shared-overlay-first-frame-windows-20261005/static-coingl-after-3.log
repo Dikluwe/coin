@@ -1,0 +1,18 @@
+startup_detail arguments_ms=0.047 coin_init_ms=2.2606 capability_probe_ms=0.0002
+scene_detail parse_ms=424.122 wrapper_ms=0.0221 camera_fit_ms=100.807
+scene_load_ms=525.041
+startup_detail material_search_ms=0.1104 target_setup_ms=0.0111
+CoinGL_first_detail render_ms=649.503 lazy_readback_ms=8.6335 publication_copy_ms=0.4619 update_ms=0.0018 total_with_update_ms=658.6 before_frame_since_main_ms=528.873 result_since_main_ms=1187.47
+CoinGL_first_frame_ms=658.598
+gl_rgba_fnv64=0x4df2a9ab75b7504
+image=H:\Git\coin\build\shared-overlay-first-frame-windows-20261005\static-coingl-after-3.ppm
+adapter=not-queried vendor_id=0x0 device_id=0x0 backend=gl size=1024x1024 warmup=30 scene=H:\Git\coin\build\large-scenes\city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..119 warmup_indices=-30..-1 frame_step=1 captures=0 capture_io=outside_frame_timers wall_throughput_includes_capture=0 wall_throughput_scope=legacy-frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+CoinGL frames=120 median_ms=37.1554 p95_ms=41.5892 min_ms=33.8434 max_ms=51.4146
+CoinGL_timing_total frames=120 median_ms=37.1479 p95_ms=41.5893 p99_ms=47.1192 max_ms=51.4147 over_16_67=120 over_33_33=120
+CoinGL_timing_update frames=120 median_ms=0.0002 p95_ms=0.0003 p99_ms=0.0004 max_ms=0.0007 over_16_67=0 over_33_33=0
+CoinGL_timing_render frames=120 median_ms=36.50325 p95_ms=41.0091 p99_ms=46.0745 max_ms=50.8845 over_16_67=120 over_33_33=120
+CoinGL_publication_copy frames=120 median_ms=0.5169 p95_ms=0.7458 min_ms=0.4606 max_ms=1.3113
+CoinGL_throughput frames=120 total_ms=4491.51 fps=26.7171
+backend_cleanup_begin
+backend_cleanup_ms=34.654

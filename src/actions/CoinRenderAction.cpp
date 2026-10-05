@@ -1014,11 +1014,15 @@ void CoinRenderActionP::qualifyObjectPayloads(const std::unordered_map<const SoN
       rejectedMaterials.insert(binding.material);
     if (!binding.geometryEligible) rejectedCubes.insert(binding.cube);
   }
+  // Options are constant during this qualification, but can change before the
+  // next capture. Avoid two CRT environment scans for every object on Windows.
+  const bool materialOverlayEnabled = objectOverlayEnabled("COIN_RENDER_DISABLE_MATERIAL_OVERLAY");
+  const bool cubeOverlayEnabled = objectOverlayEnabled("COIN_RENDER_DISABLE_CUBE_OVERLAY");
   for (size_t i = 0; i < this->translationBindings.size(); ++i) {
     const auto & binding = this->translationBindings[i];
-    if (!rejectedMaterials.count(binding.material) && objectOverlayEnabled("COIN_RENDER_DISABLE_MATERIAL_OVERLAY"))
+    if (!rejectedMaterials.count(binding.material) && materialOverlayEnabled)
       this->materialByNode[binding.material].push_back(i);
-    if (!rejectedCubes.count(binding.cube) && objectOverlayEnabled("COIN_RENDER_DISABLE_CUBE_OVERLAY"))
+    if (!rejectedCubes.count(binding.cube) && cubeOverlayEnabled)
       this->cubeByNode[binding.cube].push_back(i);
   }
   // Conservative accounting includes source-map nodes/buckets and occurrence

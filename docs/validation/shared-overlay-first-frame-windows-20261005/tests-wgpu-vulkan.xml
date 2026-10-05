@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="17"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="11"
+	timestamp="2026-10-05T16:03:52"
+	>
+	<testcase name="CoinRenderActionTest" classname="CoinRenderActionTest" time="1.94309" status="run">
+		<properties/>
+		<system-out>Running CoinRenderActionTest...
+All CoinRenderRenderAction tests PASSED!
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderBackendBoundaryTest" classname="CoinRenderBackendBoundaryTest" time="0.0887862" status="run">
+		<properties/>
+		<system-out>Common action, manager, shadow admission and reuse dispatch passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRuntimeBoundaryTest" classname="CoinRenderRuntimeBoundaryTest" time="0.0770535" status="run">
+		<properties/>
+		<system-out>Independent runtime surface lifetime, descriptor validation, telemetry, depth and detach passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderPlanAssemblyCoreTest" classname="CoinRenderPlanAssemblyCoreTest" time="0.124771" status="run">
+		<properties/>
+		<system-out>Captured values, image conversion, deduplication and bounded cube ranges passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderTransformCoreTest" classname="CoinRenderTransformCoreTest" time="0.0752137" status="run">
+		<properties/>
+		<system-out>Shared depth, normal, viewport and scissor transforms passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderCameraReuseReferenceTest" classname="CoinRenderCameraReuseReferenceTest" time="1.02609" status="run">
+		<properties/>
+		<system-out>perspective/rebuild frame=0 rgb_mae=0 max=0 pixels_over3=0
+perspective/CoinGL frame=0 rgb_mae=0.067159 max=1 pixels_over3=0
+perspective/rebuild frame=1 rgb_mae=5.08626e-06 max=1 pixels_over3=0
+perspective/CoinGL frame=1 rgb_mae=0.0674438 max=109 pixels_over3=1
+perspective/rebuild frame=2 rgb_mae=5.08626e-06 max=1 pixels_over3=0
+perspective/CoinGL frame=2 rgb_mae=0.0656891 max=1 pixels_over3=0
+perspective/rebuild frame=3 rgb_mae=0 max=0 pixels_over3=0
+perspective/CoinGL frame=3 rgb_mae=0.066157 max=1 pixels_over3=0
+perspective/rebuild frame=4 rgb_mae=0 max=0 pixels_over3=0
+perspective/CoinGL frame=4 rgb_mae=0.0640462 max=1 pixels_over3=0
+perspective/rebuild frame=5 rgb_mae=1.52588e-05 max=1 pixels_over3=0
+perspective/CoinGL frame=5 rgb_mae=0.0597839 max=58 pixels_over3=1
+perspective/rebuild frame=6 rgb_mae=1.01725e-05 max=1 pixels_over3=0
+perspective/CoinGL frame=6 rgb_mae=0.0556691 max=1 pixels_over3=0
+perspective/rebuild frame=7 rgb_mae=5.08626e-06 max=1 pixels_over3=0
+perspective/CoinGL frame=7 rgb_mae=0.05...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderFrameCoreTest" classname="CoinRenderFrameCoreTest" time="0.132369" status="run">
+		<properties/>
+		<system-out>CoinRenderFrameCoreTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderFrameReuseCoreTest" classname="CoinRenderFrameReuseCoreTest" time="0.719797" status="run">
+		<properties/>
+		<system-out>CoinRenderFrameReuseCoreTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderIndexedFastPathTest" classname="CoinRenderIndexedFastPathTest" time="0.478492" status="run">
+		<properties/>
+		<system-out>Running CoinRenderIndexedFastPathTest (Onda 2D Indexed Fast Path)...
+-&gt; Test 1: Sentinel parser, triangles and convex quads...
+   [PASS] Test 1: Sentinel parser and convex quads
+-&gt; Test 2: Degenerate faces and consecutive sentinels...
+   [PASS] Test 2: Degenerate faces handled cleanly
+-&gt; Test 3: Atomic validation and rollback on invalid indices...
+   [PASS] Test 3: Atomic validation and rollback
+-&gt; Test 4: Concave quads diversion to fallback...
+   [PASS] Test 4: Concave quad fallback verified
+-&gt; Test 5: Canonical vertex deduplication...
+   [PASS] Test 5: Canonical vertex deduplication verified
+-&gt; Test 6: Indexed line sets (SoIndexedLineSet)...
+   [PASS] Test 6: IndexedLineSet fast path verified
+-&gt; Test 7: Strict pixel and depth equivalence (Fast Path vs Fallback)...
+   [PASS] Test 7: Strict pixel and depth equivalence verified
+-&gt; Test 8: Generated normals at hard and smooth edges...
+   [PASS] Test 8: Hard and smooth generated normals verified
+
+ALL 8 TESTS IN CoinRenderIndexedFastPathTest PASSED!
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderBenchmarkAnimationTest" classname="CoinRenderBenchmarkAnimationTest" time="0.104923" status="run">
+		<properties/>
+		<system-out>Benchmark animation selection, isolated mutations, deterministic replay and lifetime passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderTextureTest" classname="CoinRenderTextureTest" time="0.506083" status="run">
+		<properties/>
+		<system-out>========================================================
+Running CoinRenderTextureTest (Subwave 3B: 2D Texture Pipeline)
+========================================================
+-&gt; Test 1: Texture formats (1, 2, 3, 4 components) with MODULATE...
+-&gt; Test 2: MODULATE model color verification...
+-&gt; Test 3: Strict UNSUPPORTED rejections outside the texture profile...
+Coin error in SbImage::readFile(): couldn't find 'non_existent_file_dummy_test_123.png'.
+Coin warning in SoTexture2::filenameSensorCB(): Image file 'non_existent_file_dummy_test_123.png' could not be read
+-&gt; Test 4: UV coordinates (explicit vs procedural vs out-of-bounds)...
+-&gt; Test 5: Texture transformation and wrap modes...
+-&gt; Test 6: Multiple draws with different textures in same frame...
+-&gt; Test 7: Texture image deduplication with different samplers...
+-&gt; Test 8: Texture quality 0.0 disables texture smoothly...
+
+ALL CoinRenderTextureTest checks PASSED successfully!
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderLightingTest" classname="CoinRenderLightingTest" time="2.40393" status="run">
+		<properties/>
+		<system-out>Coin/GL reference active; directional CPU=71 GL=71; two lights CPU=142 GL=143
+Gouraud oracle PASS: curved normals: specular before interpolation
+Gouraud oracle PASS: broad point-light face: vertex distance
+Gouraud oracle PASS: spot cone misses vertices: no fragment relighting
+Gouraud oracle PASS: spot drop-off: vertex cone factor
+Gouraud oracle PASS: negative N.H: no artificial specular floor
+Curved sphere Gouraud PASS: light=0
+Curved sphere Gouraud PASS: light=1
+Curved sphere Gouraud PASS: light=2
+Ambient CPU=[25,51,12] GL=[25,51,13]
+Point constant CPU=133 GL=133; linear CPU=54 GL=54
+Spot inside CPU=161 GL=162; outside CPU=0 GL=0
+Spot dropoff hard CPU=162 GL=162; soft CPU=84 GL=84
+Nonuniform normal CPU=69 GL=69
+CoinRenderLightingTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGouraudInterpolationTest" classname="CoinRenderGouraudInterpolationTest" time="0.47272" status="run">
+		<properties/>
+		<system-out>CoinRenderGouraudInterpolationTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderFogTest" classname="CoinRenderFogTest" time="1.50028" status="run">
+		<properties/>
+		<system-out>CoinRenderFogTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderClipPlaneTest" classname="CoinRenderClipPlaneTest" time="0.820063" status="run">
+		<properties/>
+		<system-out>Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderCompositionTest" classname="CoinRenderCompositionTest" time="0.552069" status="run">
+		<properties/>
+		<system-out>CoinRenderCompositionTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderAnnotationTest" classname="CoinRenderAnnotationTest" time="0.448086" status="run">
+		<properties/>
+		<system-out>Wgpu annotation GPU regressions passed
+</system-out>
+	</testcase>
+</testsuite>
