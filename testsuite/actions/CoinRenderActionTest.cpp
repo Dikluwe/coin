@@ -1086,8 +1086,13 @@ struct CaptureCameraBasisOracle {
           x.material != y.material || x.cubeDimensions != y.cubeDimensions || x.overallMaterial != y.overallMaterial ||
           x.materialEligible != y.materialEligible || x.geometryEligible != y.geometryEligible) return false;
     }
-    if (a->translationProofValid && (a->translationProofRevision != a->lastValidPlan.revision ||
-                                    b->translationProofRevision != b->lastValidPlan.revision)) return false;
+    // The proof keeps the captured anchor revision across object overlays;
+    // successful overlays advance the published frame revision independently.
+    if (a->translationProofValid &&
+        (!a->translationProofRevision || a->translationProofRevision > a->lastValidPlan.revision ||
+         a->translationProofGeneration != a->translationGeneration ||
+         !b->translationProofRevision || b->translationProofRevision > b->lastValidPlan.revision ||
+         b->translationProofGeneration != b->translationGeneration)) return false;
     if (backend && (backend->lastReuse.kind != literalBackend->lastReuse.kind ||
                     target->getPimpl()->colorBuffer != literalTarget->getPimpl()->colorBuffer)) return false;
     return true;
