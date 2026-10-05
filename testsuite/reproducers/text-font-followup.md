@@ -1,7 +1,7 @@
 # Follow-up to SoText2 issue #417
 
-This branch builds on the exact implementation submitted in PR #774, commit
-3d57d697419aa4138492ecc9021a41a14fa42b9c. It addresses the UTF-8 picking and
+This branch builds on PR #774, including its ABI repair commit
+5ee49a197b1e56ef93ff26a975898aec969c85c8. It addresses the UTF-8 picking and
 bitmap/backend boundaries left outside that PR. The #417 study branch and PR
 are preserved independently.
 
@@ -36,7 +36,9 @@ signedness of the official structure without changing its binary layout.
 
 The FreeType 26.6 size conversion uses checked long arithmetic instead of a
 signed int shift. Negative/unrepresentable sizes are rejected at this boundary.
-No public headers or FreeCAD sources are changed.
+No public headers or FreeCAD sources are changed. The original SoText2P member
+layout and exported signatures are preserved; the decoded-character picking
+count reads the extended layout storage.
 
 ## Tests and evidence
 
@@ -103,3 +105,13 @@ and glyph-cache construction.
 
 FreeType's signed pitch, empty bitmap and pixel-mode contracts:
 https://freetype.org/freetype2/docs/reference/ft2-basic_types.html#ft_bitmap
+
+## ABI repair propagated from PR #774
+
+The branch includes the ABI-preserving SoText2P storage extension from commit
+5ee49a197b. UTF-8 picking reads the extended positions list. After integration,
+all 84 CTest tests pass. A RelWithDebInfo comparison of the four changed
+production units against repaired #774 reports **0 removed, 0 changed, 0 added
+functions/symbols; abidiff exit 0** with the installed public headers. This
+comparison isolates the follow-up changes using the same remaining library
+objects and compiler flags, rather than comparing unrelated configurations.
