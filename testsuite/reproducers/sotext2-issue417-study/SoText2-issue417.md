@@ -1,6 +1,6 @@
 # SoText2 e base da correção da issue 417
 
-Estado: correção ampliada e validada na branch `codex/fix/issue417-sotext2`, em 5 de outubro de 2026. Escopo atual: limites de layout, buffer visível, plano da câmera e limites conservadores em coordenadas grandes. Resultado final: 81 testes CTest aprovados, 38 casos originais, 45 casos adicionais de limites, 21 de desenho e 44 verificações FreeCAD sem falhas. As etapas anteriores ficam preservadas como histórico; a última seção descreve o código atual.
+Estado: correção ampliada e validada na branch `codex/fix/issue417-sotext2`, em 5 de outubro de 2026. Escopo atual: limites de layout, buffer visível, plano da câmera e limites conservadores em coordenadas grandes. Resultado final: 81 testes CTest aprovados, 38 casos originais, 45 casos adicionais de limites, 21 de desenho e 44 verificações FreeCAD sem falhas. O exemplo original também foi validado em janelas SoXt 1.4.0 e 1.4.2: preto na master, texto visível na correção. As etapas anteriores ficam preservadas como histórico; as últimas seções descrevem o código e as evidências atuais.
 
 O objetivo é melhorar o Coin usado pelo FreeCAD. O FreeCAD local contém uma adaptação explícita à issue 417 em `SoColorBarLabel`; este estudo descreve a correção na origem e a retirada posterior dessa adaptação.
 
@@ -250,3 +250,23 @@ Quando a precisão final de float colapsaria uma extensão não nula, os limites
 Evidências finais estão em extended-validation/. instrument-text2.py registra como foi instrumentada somente a unidade alterada, usando os objetos da compilação local existente. As cópias antigas de resultados e patches experimentais continuam identificadas nas seções anteriores e não representam o estado final da implementação.
 
 Pendências para outras correções: seleção por bytes em strings UTF-8; dimensões e bearings em 16 bits no backend de glifos; pitch, produtos e falhas de alocação nas camadas gerais de fontes. A API SbViewportRegion continua recebendo dimensões short; ampliar esse contrato não faz parte desta branch. O layout interno de SoText2 passa a aceitar a representação de 32 bits e rejeita layouts que a ultrapassem. Não houve alteração no FreeCAD nem retirada de seu workaround.
+
+
+## Validação do exemplo original em SoXt — concluída
+
+A pendência anterior de não executar a janela SoXt foi resolvida. Motif 2.3.8 estava instalado pelo usuário e o checkout SoXt estava em /repos/GitHub/soxt (alias de /mnt/Laranja/Git/externos/soxt). Foram inicializados seus submódulos necessários. O checkout permaneceu na master, sem alteração de fontes. As compilações e a instalação auxiliar da Coin ficaram em /tmp/coin-issue417-study, sem substituir bibliotecas do sistema ou do FreeCAD.
+
+Foram compiladas duas versões: SoXt 1.4.2 do checkout 74f3d5ef0e24d969fe1292033a584d374432844d e SoXt 1.4.0 da tag SoXt-1.4.0 (2ebe342067fcd7a30864f0841e15b74c771f51d3), a versão citada na issue. A tag antiga referencia sub-repositórios Mercurial; a cópia temporária foi completada com os arquivos dos tags Git sogui/soxt-1_4_0, soanydata-1_1_0 e cpack.d-1_0_0. As revisões usadas e o .hgsubstate original estão preservados. Isso identifica exatamente a montagem testada; não afirma reproduzir toda a distribuição Ubuntu 18.04 ou Coin 4.0.0 do relato original.
+
+original-soxt-example.cpp foi compilado sem alteração de código, câmera, fonte, texto ou chamada a View All. Para cada versão de SoXt, o mesmo executável foi executado duas vezes, trocando somente a biblioteca Coin via LD_LIBRARY_PATH: a master 674e74267df863dbaf50416c477bc7f918a826d8 e a branch corrigida no commit 3839b47921. As duas bibliotecas Coin são 4.0.10. /proc/PID/maps confirma Coin, SoXt e Motif carregados em cada processo.
+
+| SoXt | Coin master | Coin corrigida |
+| --- | --- | --- |
+| 1.4.0 | Janela preta, 0 pixels não pretos | Hello World! visível, 683 pixels não pretos |
+| 1.4.2 | Janela preta, 0 pixels não pretos | Hello World! visível, 683 pixels não pretos |
+
+As quatro janelas reais tiveram tamanho 400×400. O programa executou seu event loop SoXt sob Xvfb com GLX por software; xwininfo identificou a janela 2D Text e xwd capturou seus pixels. ImageMagick apenas converteu XWD para PNG. As capturas foram inspecionadas e o harness exige Coin/SoXt esperados, somente uma Coin carregada e conteúdo visível exclusivamente na variante corrigida. Não houve erro registrado nos logs dos aplicativos. O harness encerra cada aplicativo após capturar a janela, pois o mainLoop original permanece aberto; não é um teste do fechamento interativo do aplicativo.
+
+As imagens não são SoOffscreenRenderer nem FreeCAD: são as janelas nativas do exemplo SoXt. Fontes do exemplo, build-and-test.sh, capture.py, logs, hashes, revisões, mapas de bibliotecas e capturas estão em soxt-validation/. O script de reprodução pressupõe os dois builds Coin já preparados em /tmp e o checkout SoXt com submódulos inicializados. Não foi alterado código de produção da Coin nesta etapa; os 81 testes anteriores continuam correspondendo ao mesmo código corrigido.
+
+Esta execução cobre o caminho original SoXtRenderArea + getViewportRegion + camera->viewAll + setSceneGraph + mainLoop e fecha a lacuna de integração indicada anteriormente. A seleção UTF-8 e os problemas do backend geral de fontes continuam fora deste fechamento, conforme a separação de escopo já registrada.

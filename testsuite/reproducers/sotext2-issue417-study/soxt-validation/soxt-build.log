@@ -1,0 +1,1152 @@
+[  4%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/SoXt.cpp.o
+[  4%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/SoXtClipboard.cpp.o
+[  4%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/SoXtComponent.cpp.o
+[  5%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/SoXtGLWidget.cpp.o
+[  7%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/SoXtIcons.cpp.o
+[  8%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/SoXtInternal.cpp.o
+[ 10%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/SoXtDirectionalLightEditor.cpp.o
+[ 11%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/SoXtLightSliderSet.cpp.o
+[ 12%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/SoXtMaterialSliderSet.cpp.o
+/repos/GitHub/soxt/src/Inventor/Xt/SoXtGLWidget.cpp: In member function ‘void SoXtGLWidgetP::buildContext()’:
+/repos/GitHub/soxt/src/Inventor/Xt/SoXtGLWidget.cpp:1011:54: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+ 1011 |     SoAny::si()->getSharedGLContext((void *)display, (void *)screen);
+      |                                                      ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXtGLWidget.cpp:1023:75: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+ 1023 |     SoAny::si()->registerGLContext((void *)PUBLIC(this), (void *)display, (void *)screen);
+      |                                                                           ^~~~~~~~~~~~~~
+[ 14%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/SoXtPrintDialog.cpp.o
+[ 17%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/SoXtSliderSetBase.cpp.o
+[ 17%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/SoXtResource.cpp.o
+/repos/GitHub/soxt/src/Inventor/Xt/SoXtComponent.cpp: In constructor ‘SoXtComponent::SoXtComponent(Widget, const char*, SbBool)’:
+/repos/GitHub/soxt/src/Inventor/Xt/SoXtComponent.cpp:243:44: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  243 |                                            "WM_DELETE_WINDOW", False);
+      |                                            ^~~~~~~~~~~~~~~~~~
+[ 18%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/SoXtSliderSet.cpp.o
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp: In static member function ‘static void SoXt::init(Widget)’:
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:336:60: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  336 |   Atom WM_DELETE_WINDOW = XmInternAtom(SoXt::getDisplay(), "WM_DELETE_WINDOW", False);
+      |                                                            ^~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp: At global scope:
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1006:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1006 | #define SOXT_COMPONENT "*SoXtGLWidget"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1007:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1007 |   SOXT_COMPONENT ".background:" "white", // not used
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1010:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1010 | #define SOXT_COMPONENT "*SoXtRenderArea"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1011:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1011 |   SOXT_COMPONENT ".border:" "false",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1010:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1010 | #define SOXT_COMPONENT "*SoXtRenderArea"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1012:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1012 |   SOXT_COMPONENT ".borderThickness:" "2",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1010:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1010 | #define SOXT_COMPONENT "*SoXtRenderArea"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1013:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1013 |   SOXT_COMPONENT ".background:" "black",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1016:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1016 | #define SOXT_COMPONENT "*SoXtExaminerViewer"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1017:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1017 |   SOXT_COMPONENT ".title:" "Examiner Viewer",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1016:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1016 | #define SOXT_COMPONENT "*SoXtExaminerViewer"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1018:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1018 |   SOXT_COMPONENT "*LeftWheelLabel.labelString:" "Rot Y",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1016:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1016 | #define SOXT_COMPONENT "*SoXtExaminerViewer"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1019:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1019 |   SOXT_COMPONENT "*BottomWheelLabel.labelString:" "Rot X",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1016:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1016 | #define SOXT_COMPONENT "*SoXtExaminerViewer"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1020:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1020 |   SOXT_COMPONENT "*RightWheelLabel.dollyString:" "Dolly",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1016:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1016 | #define SOXT_COMPONENT "*SoXtExaminerViewer"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1021:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1021 |   SOXT_COMPONENT "*RightWheelLabel.zoomString:" "Zoom",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1024:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1024 | #define SOXT_COMPONENT "*SoXtPlaneViewer"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1025:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1025 |   SOXT_COMPONENT ".title:" "Plane Viewer",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1024:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1024 | #define SOXT_COMPONENT "*SoXtPlaneViewer"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1026:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1026 |   SOXT_COMPONENT "*LeftWheelLabel.labelString:" "Trans Y",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1024:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1024 | #define SOXT_COMPONENT "*SoXtPlaneViewer"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1027:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1027 |   SOXT_COMPONENT "*BottomWheelLabel.labelString:" "Trans X",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1024:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1024 | #define SOXT_COMPONENT "*SoXtPlaneViewer"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1028:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1028 |   SOXT_COMPONENT "*RightWheelLabel.dollyString:" "Dolly",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1024:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1024 | #define SOXT_COMPONENT "*SoXtPlaneViewer"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1029:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1029 |   SOXT_COMPONENT "*RightWheelLabel.zoomString:" "Zoom",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1038:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1038 | #define SOXT_COMPONENT "*SoXtFlyViewer"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1039:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1039 |   SOXT_COMPONENT ".title:" "Fly Viewer",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1038:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1038 | #define SOXT_COMPONENT "*SoXtFlyViewer"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1040:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1040 |   SOXT_COMPONENT ".LeftWheelLabel:" "Tilt",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1038:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1038 | #define SOXT_COMPONENT "*SoXtFlyViewer"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1041:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1041 |   SOXT_COMPONENT ".BottomWheelLabel:" "Rotate",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1038:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1038 | #define SOXT_COMPONENT "*SoXtFlyViewer"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1042:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1042 |   SOXT_COMPONENT ".RotateWheelLabel:" "Dolly",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1051:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1051 | #define SOXT_COMPONENT "*SoXtLightSliderSet"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1052:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1052 |   SOXT_COMPONENT ".title:" "Light Sliders",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1051:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1051 | #define SOXT_COMPONENT "*SoXtLightSliderSet"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1053:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1053 |   SOXT_COMPONENT ".sliderset1:" "LightIntensity",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1051:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1051 | #define SOXT_COMPONENT "*SoXtLightSliderSet"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1054:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1054 |   SOXT_COMPONENT ".sliderset2:" "LightColor",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1057:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1057 | #define SOXT_COMPONENT "*SoXtMaterialSliderSet"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1058:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1058 |   SOXT_COMPONENT ".title:" "Material Sliders",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1057:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1057 | #define SOXT_COMPONENT "*SoXtMaterialSliderSet"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1059:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1059 |   SOXT_COMPONENT ".sliderset1:" "AmbientColor",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1057:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1057 | #define SOXT_COMPONENT "*SoXtMaterialSliderSet"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1060:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1060 |   SOXT_COMPONENT ".sliderset2:" "DiffuseColor",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1057:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1057 | #define SOXT_COMPONENT "*SoXtMaterialSliderSet"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1061:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1061 |   SOXT_COMPONENT ".sliderset3:" "SpecularColor",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1057:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1057 | #define SOXT_COMPONENT "*SoXtMaterialSliderSet"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1062:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1062 |   SOXT_COMPONENT ".sliderset4:" "EmissiveColor",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1057:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1057 | #define SOXT_COMPONENT "*SoXtMaterialSliderSet"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1063:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1063 |   SOXT_COMPONENT ".sliderset5:" "Shininess",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1057:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1057 | #define SOXT_COMPONENT "*SoXtMaterialSliderSet"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1064:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1064 |   SOXT_COMPONENT ".sliderset6:" "Transparency",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1067:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1067 | #define SOXT_COMPONENT "*SoXtTransformSliderSet"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1068:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1068 |   SOXT_COMPONENT ".title:" "Transform Sliders",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1067:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1067 | #define SOXT_COMPONENT "*SoXtTransformSliderSet"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1069:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1069 |   SOXT_COMPONENT ".sliderset1:" "Translations",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1067:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1067 | #define SOXT_COMPONENT "*SoXtTransformSliderSet"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1070:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1070 |   SOXT_COMPONENT ".sliderset2:" "Scales",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1067:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1067 | #define SOXT_COMPONENT "*SoXtTransformSliderSet"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1071:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1071 |   SOXT_COMPONENT ".sliderset3:" "Rotations",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1067:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1067 | #define SOXT_COMPONENT "*SoXtTransformSliderSet"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1072:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1072 |   SOXT_COMPONENT ".sliderset4:" "ScaleOrientation",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1067:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1067 | #define SOXT_COMPONENT "*SoXtTransformSliderSet"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1073:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1073 |   SOXT_COMPONENT ".sliderset5:" "Center",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1079:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1079 | #define SOXT_COMPONENT "*SoXtPrintDialog"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1080:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1080 |   SOXT_COMPONENT "*title:" "Print",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1085:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1085 | #define SOXT_COMPONENT "*SoXtAmbientColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1086:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1086 |   SOXT_COMPONENT ".title:" "AMBIENT COLOR",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1085:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1085 | #define SOXT_COMPONENT "*SoXtAmbientColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1087:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1087 |   SOXT_COMPONENT ".slider1Title:" "Ambient Red",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1085:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1085 | #define SOXT_COMPONENT "*SoXtAmbientColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1088:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1088 |   SOXT_COMPONENT ".slider1Field:" "ambientColor[0]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1085:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1085 | #define SOXT_COMPONENT "*SoXtAmbientColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1089:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1089 |   SOXT_COMPONENT ".slider2Title:" "Ambient Green",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1085:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1085 | #define SOXT_COMPONENT "*SoXtAmbientColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1090:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1090 |   SOXT_COMPONENT ".slider2Field:" "ambientColor[1]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1085:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1085 | #define SOXT_COMPONENT "*SoXtAmbientColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1091:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1091 |   SOXT_COMPONENT ".slider3Title:" "Ambient Blue",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1085:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1085 | #define SOXT_COMPONENT "*SoXtAmbientColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1092:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1092 |   SOXT_COMPONENT ".slider3Field:" "ambientColor[2]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1095:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1095 | #define SOXT_COMPONENT "*SoXtCenterSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1096:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1096 |   SOXT_COMPONENT ".title:" "CENTER",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1095:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1095 | #define SOXT_COMPONENT "*SoXtCenterSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1097:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1097 |   SOXT_COMPONENT ".slider1Title:" "X Center",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1095:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1095 | #define SOXT_COMPONENT "*SoXtCenterSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1098:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1098 |   SOXT_COMPONENT ".slider1Field:" "center[0]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1095:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1095 | #define SOXT_COMPONENT "*SoXtCenterSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1099:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1099 |   SOXT_COMPONENT ".slider2Title:" "Y Center",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1095:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1095 | #define SOXT_COMPONENT "*SoXtCenterSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1100:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1100 |   SOXT_COMPONENT ".slider2Field:" "center[1]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1095:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1095 | #define SOXT_COMPONENT "*SoXtCenterSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1101:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1101 |   SOXT_COMPONENT ".slider3Title:" "Z Center",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1095:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1095 | #define SOXT_COMPONENT "*SoXtCenterSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1102:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1102 |   SOXT_COMPONENT ".slider3Field:" "center[2]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1105:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1105 | #define SOXT_COMPONENT "*SoXtDiffuseColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1106:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1106 |   SOXT_COMPONENT ".title:" "DIFFUSE COLOR",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1105:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1105 | #define SOXT_COMPONENT "*SoXtDiffuseColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1107:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1107 |   SOXT_COMPONENT ".slider1Title:" "Diffuse Red",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1105:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1105 | #define SOXT_COMPONENT "*SoXtDiffuseColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1108:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1108 |   SOXT_COMPONENT ".slider1Field:" "diffuseColor[0]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1105:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1105 | #define SOXT_COMPONENT "*SoXtDiffuseColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1109:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1109 |   SOXT_COMPONENT ".slider2Title:" "Diffuse Green",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1105:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1105 | #define SOXT_COMPONENT "*SoXtDiffuseColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1110:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1110 |   SOXT_COMPONENT ".slider2Field:" "diffuseColor[1]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1105:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1105 | #define SOXT_COMPONENT "*SoXtDiffuseColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1111:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1111 |   SOXT_COMPONENT ".slider3Title:" "Diffuse Blue",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1105:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1105 | #define SOXT_COMPONENT "*SoXtDiffuseColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1112:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1112 |   SOXT_COMPONENT ".slider3Field:" "diffuseColor[2]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1115:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1115 | #define SOXT_COMPONENT "*SoXtEmissiveColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1116:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1116 |   SOXT_COMPONENT ".title:" "EMISSIVE COLOR",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1115:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1115 | #define SOXT_COMPONENT "*SoXtEmissiveColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1117:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1117 |   SOXT_COMPONENT ".slider1Title:" "Emissive Red",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1115:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1115 | #define SOXT_COMPONENT "*SoXtEmissiveColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1118:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1118 |   SOXT_COMPONENT ".slider1Field:" "emissiveColor[0]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1115:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1115 | #define SOXT_COMPONENT "*SoXtEmissiveColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1119:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1119 |   SOXT_COMPONENT ".slider2Title:" "Emissive Green",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1115:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1115 | #define SOXT_COMPONENT "*SoXtEmissiveColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1120:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1120 |   SOXT_COMPONENT ".slider2Field:" "emissiveColor[1]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1115:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1115 | #define SOXT_COMPONENT "*SoXtEmissiveColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1121:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1121 |   SOXT_COMPONENT ".slider3Title:" "Emissive Blue",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1115:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1115 | #define SOXT_COMPONENT "*SoXtEmissiveColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1122:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1122 |   SOXT_COMPONENT ".slider3Field:" "emissiveColor[2]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1125:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1125 | #define SOXT_COMPONENT "*SoXtLightColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1126:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1126 |   SOXT_COMPONENT ".title:" "COLOR",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1125:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1125 | #define SOXT_COMPONENT "*SoXtLightColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1127:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1127 |   SOXT_COMPONENT ".slider1Title:" "Red",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1125:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1125 | #define SOXT_COMPONENT "*SoXtLightColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1128:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1128 |   SOXT_COMPONENT ".slider1Field:" "color[0]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1125:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1125 | #define SOXT_COMPONENT "*SoXtLightColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1129:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1129 |   SOXT_COMPONENT ".slider2Title:" "Green",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1125:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1125 | #define SOXT_COMPONENT "*SoXtLightColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1130:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1130 |   SOXT_COMPONENT ".slider2Field:" "color[1]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1125:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1125 | #define SOXT_COMPONENT "*SoXtLightColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1131:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1131 |   SOXT_COMPONENT ".slider3Title:" "Blue",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1125:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1125 | #define SOXT_COMPONENT "*SoXtLightColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1132:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1132 |   SOXT_COMPONENT ".slider3Field:" "color[2]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1135:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1135 | #define SOXT_COMPONENT "*SoXtLightIntensitySliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1136:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1136 |   SOXT_COMPONENT ".title:" "INTENSITY",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1135:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1135 | #define SOXT_COMPONENT "*SoXtLightIntensitySliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1137:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1137 |   SOXT_COMPONENT ".slider1Title:" "Intensity",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1135:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1135 | #define SOXT_COMPONENT "*SoXtLightIntensitySliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1138:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1138 |   SOXT_COMPONENT ".slider1Field:" "intensity",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1141:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1141 | #define SOXT_COMPONENT "*SoXtRotationsSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1142:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1142 |   SOXT_COMPONENT ".title:" "ROTATIONS",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1141:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1141 | #define SOXT_COMPONENT "*SoXtRotationsSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1143:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1143 |   SOXT_COMPONENT ".slider1Title:" "X Rotate",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1141:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1141 | #define SOXT_COMPONENT "*SoXtRotationsSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1144:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1144 |   SOXT_COMPONENT ".slider1Field:" "rotation[0]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1141:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1141 | #define SOXT_COMPONENT "*SoXtRotationsSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1145:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1145 |   SOXT_COMPONENT ".slider2Title:" "Y Rotate",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1141:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1141 | #define SOXT_COMPONENT "*SoXtRotationsSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1146:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1146 |   SOXT_COMPONENT ".slider2Field:" "rotation[1]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1141:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1141 | #define SOXT_COMPONENT "*SoXtRotationsSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1147:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1147 |   SOXT_COMPONENT ".slider3Title:" "Z Rotate",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1141:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1141 | #define SOXT_COMPONENT "*SoXtRotationsSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1148:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1148 |   SOXT_COMPONENT ".slider3Field:" "rotation[2]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1151:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1151 | #define SOXT_COMPONENT "*SoXtScalesSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1152:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1152 |   SOXT_COMPONENT ".title:" "SCALES",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1151:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1151 | #define SOXT_COMPONENT "*SoXtScalesSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1153:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1153 |   SOXT_COMPONENT ".slider1Title:" "X Scale",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1151:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1151 | #define SOXT_COMPONENT "*SoXtScalesSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1154:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1154 |   SOXT_COMPONENT ".slider1Field:" "scaleFactor[0]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1151:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1151 | #define SOXT_COMPONENT "*SoXtScalesSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1155:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1155 |   SOXT_COMPONENT ".slider2Title:" "Y Scale",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1151:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1151 | #define SOXT_COMPONENT "*SoXtScalesSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1156:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1156 |   SOXT_COMPONENT ".slider2Field:" "scaleFactor[1]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1151:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1151 | #define SOXT_COMPONENT "*SoXtScalesSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1157:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1157 |   SOXT_COMPONENT ".slider3Title:" "Z Scale",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1151:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1151 | #define SOXT_COMPONENT "*SoXtScalesSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1158:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1158 |   SOXT_COMPONENT ".slider3Field:" "scaleFactor[2]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1161:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1161 | #define SOXT_COMPONENT "*SoXtScaleOrientationSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1162:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1162 |   SOXT_COMPONENT ".title:" "SCALE ORIENTATION",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1161:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1161 | #define SOXT_COMPONENT "*SoXtScaleOrientationSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1163:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1163 |   SOXT_COMPONENT ".slider1Title:" "X Rotate",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1161:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1161 | #define SOXT_COMPONENT "*SoXtScaleOrientationSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1164:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1164 |   SOXT_COMPONENT ".slider1Field:" "scaleOrientation[0]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1161:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1161 | #define SOXT_COMPONENT "*SoXtScaleOrientationSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1165:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1165 |   SOXT_COMPONENT ".slider2Title:" "Y Rotate",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1161:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1161 | #define SOXT_COMPONENT "*SoXtScaleOrientationSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1166:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1166 |   SOXT_COMPONENT ".slider2Field:" "scaleOrientation[1]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1161:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1161 | #define SOXT_COMPONENT "*SoXtScaleOrientationSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1167:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1167 |   SOXT_COMPONENT ".slider3Title:" "Z Rotate",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1161:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1161 | #define SOXT_COMPONENT "*SoXtScaleOrientationSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1168:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1168 |   SOXT_COMPONENT ".slider3Field:" "scaleOrientation[2]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1171:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1171 | #define SOXT_COMPONENT "*SoXtShininessSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1172:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1172 |   SOXT_COMPONENT ".title:" "SHININESS",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1171:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1171 | #define SOXT_COMPONENT "*SoXtShininessSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1173:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1173 |   SOXT_COMPONENT ".slider1Title:" "Shininess",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1171:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1171 | #define SOXT_COMPONENT "*SoXtShininessSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1174:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1174 |   SOXT_COMPONENT ".slider1Field:" "shininess",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1177:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1177 | #define SOXT_COMPONENT "*SoXtSpecularColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1178:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1178 |   SOXT_COMPONENT ".title:" "SPECULAR COLOR",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1177:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1177 | #define SOXT_COMPONENT "*SoXtSpecularColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1179:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1179 |   SOXT_COMPONENT ".slider1Title:" "Specular Red",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1177:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1177 | #define SOXT_COMPONENT "*SoXtSpecularColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1180:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1180 |   SOXT_COMPONENT ".slider1Field:" "specularColor[0]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1177:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1177 | #define SOXT_COMPONENT "*SoXtSpecularColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1181:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1181 |   SOXT_COMPONENT ".slider2Title:" "Specular Green",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1177:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1177 | #define SOXT_COMPONENT "*SoXtSpecularColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1182:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1182 |   SOXT_COMPONENT ".slider2Field:" "specularColor[1]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1177:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1177 | #define SOXT_COMPONENT "*SoXtSpecularColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1183:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1183 |   SOXT_COMPONENT ".slider3Title:" "Specular Blue",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1177:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1177 | #define SOXT_COMPONENT "*SoXtSpecularColorSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1184:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1184 |   SOXT_COMPONENT ".slider3Field:" "specularColor[2]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1187:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1187 | #define SOXT_COMPONENT "*SoXtTranslationsSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1188:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1188 |   SOXT_COMPONENT ".title:" "TRANSLATIONS",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1187:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1187 | #define SOXT_COMPONENT "*SoXtTranslationsSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1189:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1189 |   SOXT_COMPONENT ".slider1Title:" "X Translation",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1187:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1187 | #define SOXT_COMPONENT "*SoXtTranslationsSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1190:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1190 |   SOXT_COMPONENT ".slider1Field:" "translation[0]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1187:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1187 | #define SOXT_COMPONENT "*SoXtTranslationsSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1191:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1191 |   SOXT_COMPONENT ".slider2Title:" "Y Translation",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1187:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1187 | #define SOXT_COMPONENT "*SoXtTranslationsSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1192:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1192 |   SOXT_COMPONENT ".slider2Field:" "translation[1]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1187:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1187 | #define SOXT_COMPONENT "*SoXtTranslationsSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1193:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1193 |   SOXT_COMPONENT ".slider3Title:" "Z Translation",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1187:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1187 | #define SOXT_COMPONENT "*SoXtTranslationsSliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1194:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1194 |   SOXT_COMPONENT ".slider3Field:" "translation[2]",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1197:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1197 | #define SOXT_COMPONENT "*SoXtTransparencySliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1198:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1198 |   SOXT_COMPONENT ".title:" "TRANSPARENCY",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1197:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1197 | #define SOXT_COMPONENT "*SoXtTransparencySliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1199:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1199 |   SOXT_COMPONENT ".slider1Title:" "Transparency",
+      |   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1197:24: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+ 1197 | #define SOXT_COMPONENT "*SoXtTransparencySliderModule"
+      |                        ^
+/repos/GitHub/soxt/src/Inventor/Xt/SoXt.cpp:1200:3: note: in expansion of macro ‘SOXT_COMPONENT’
+ 1200 |   SOXT_COMPONENT ".slider1Field:" "transparency",
+      |   ^~~~~~~~~~~~~~
+[ 20%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/SoXtTransformSliderSet.cpp.o
+[ 21%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/devices/SoXtDevice.cpp.o
+[ 22%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/devices/SoXtInputFocus.cpp.o
+[ 24%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/devices/SoXtKeyboard.cpp.o
+[ 25%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/devices/SoXtMouse.cpp.o
+[ 27%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/devices/SoXtSpacenavDevice.cpp.o
+[ 28%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/viewers/ExaminerViewer.cpp.o
+[ 30%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/viewers/FullViewer.cpp.o
+[ 31%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/viewers/PlaneViewer.cpp.o
+[ 32%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/widgets/SoXtGLArea.cpp.o
+[ 34%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/widgets/SoXtSlider.cpp.o
+[ 35%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/widgets/SoXtThumbWheel.cpp.o
+[ 37%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/widgets/XtNativePopupMenu.cpp.o
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:101:5: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  101 |   { "glwInput", (XtActionProc) glwInput }, // key or mouse input
+      |     ^~~~~~~~~~
+In file included from /repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLAreaP.h:57,
+                 from /repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:69:
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:149:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  149 | #define SoXtNbufferSize           "bufferSize"
+      |                                   ^~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:128:5: note: in expansion of macro ‘SoXtNbufferSize’
+  128 |     SoXtNbufferSize, SoXtCBufferSize, XtRInt,
+      |     ^~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:150:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  150 | #define SoXtCBufferSize           "BufferSize"
+      |                                   ^~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:128:22: note: in expansion of macro ‘SoXtCBufferSize’
+  128 |     SoXtNbufferSize, SoXtCBufferSize, XtRInt,
+      |                      ^~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:151:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  151 | #define SoXtNlevel                "level"
+      |                                   ^~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:132:5: note: in expansion of macro ‘SoXtNlevel’
+  132 |     SoXtNlevel, SoXtCLevel, XtRInt,
+      |     ^~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:152:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  152 | #define SoXtCLevel                "Level"
+      |                                   ^~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:132:17: note: in expansion of macro ‘SoXtCLevel’
+  132 |     SoXtNlevel, SoXtCLevel, XtRInt,
+      |                 ^~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:153:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  153 | #define SoXtNrgba                 "rgba"
+      |                                   ^~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:136:5: note: in expansion of macro ‘SoXtNrgba’
+  136 |     SoXtNrgba, SoXtCRgba, XtRBoolean,
+      |     ^~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:154:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  154 | #define SoXtCRgba                 "Rgba"
+      |                                   ^~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:136:16: note: in expansion of macro ‘SoXtCRgba’
+  136 |     SoXtNrgba, SoXtCRgba, XtRBoolean,
+      |                ^~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:155:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  155 | #define SoXtNdoublebuffer         "doublebuffer"
+      |                                   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:140:5: note: in expansion of macro ‘SoXtNdoublebuffer’
+  140 |     SoXtNdoublebuffer, SoXtCDoublebuffer, XtRBoolean,
+      |     ^~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:156:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  156 | #define SoXtCDoublebuffer         "Doublebuffer"
+      |                                   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:140:24: note: in expansion of macro ‘SoXtCDoublebuffer’
+  140 |     SoXtNdoublebuffer, SoXtCDoublebuffer, XtRBoolean,
+      |                        ^~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:157:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  157 | #define SoXtNstereo               "stereo"
+      |                                   ^~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:144:5: note: in expansion of macro ‘SoXtNstereo’
+  144 |     SoXtNstereo, SoXtCStereo, XtRBoolean,
+      |     ^~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:158:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  158 | #define SoXtCStereo               "Stereo"
+      |                                   ^~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:144:18: note: in expansion of macro ‘SoXtCStereo’
+  144 |     SoXtNstereo, SoXtCStereo, XtRBoolean,
+      |                  ^~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:159:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  159 | #define SoXtNauxBuffers           "auxBuffers"
+      |                                   ^~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:148:5: note: in expansion of macro ‘SoXtNauxBuffers’
+  148 |     SoXtNauxBuffers, SoXtCAuxBuffers, XtRInt,
+      |     ^~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:160:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  160 | #define SoXtCAuxBuffers           "AuxBuffers"
+      |                                   ^~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:148:22: note: in expansion of macro ‘SoXtCAuxBuffers’
+  148 |     SoXtNauxBuffers, SoXtCAuxBuffers, XtRInt,
+      |                      ^~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:161:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  161 | #define SoXtNredSize              "redSize"
+      |                                   ^~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:152:5: note: in expansion of macro ‘SoXtNredSize’
+  152 |     SoXtNredSize, SoXtCColorSize, XtRInt,
+      |     ^~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:164:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  164 | #define SoXtCColorSize            "ColorSize"
+      |                                   ^~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:152:19: note: in expansion of macro ‘SoXtCColorSize’
+  152 |     SoXtNredSize, SoXtCColorSize, XtRInt,
+      |                   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:162:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  162 | #define SoXtNgreenSize            "greenSize"
+      |                                   ^~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:156:5: note: in expansion of macro ‘SoXtNgreenSize’
+  156 |     SoXtNgreenSize, SoXtCColorSize, XtRInt,
+      |     ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:164:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  164 | #define SoXtCColorSize            "ColorSize"
+      |                                   ^~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:156:21: note: in expansion of macro ‘SoXtCColorSize’
+  156 |     SoXtNgreenSize, SoXtCColorSize, XtRInt,
+      |                     ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:163:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  163 | #define SoXtNblueSize             "blueSize"
+      |                                   ^~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:160:5: note: in expansion of macro ‘SoXtNblueSize’
+  160 |     SoXtNblueSize, SoXtCColorSize, XtRInt,
+      |     ^~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:164:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  164 | #define SoXtCColorSize            "ColorSize"
+      |                                   ^~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:160:20: note: in expansion of macro ‘SoXtCColorSize’
+  160 |     SoXtNblueSize, SoXtCColorSize, XtRInt,
+      |                    ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:165:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  165 | #define SoXtNalphaSize            "alphaSize"
+      |                                   ^~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:164:5: note: in expansion of macro ‘SoXtNalphaSize’
+  164 |     SoXtNalphaSize, SoXtCAlphaSize, XtRInt,
+      |     ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:166:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  166 | #define SoXtCAlphaSize            "AlphaSize"
+      |                                   ^~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:164:21: note: in expansion of macro ‘SoXtCAlphaSize’
+  164 |     SoXtNalphaSize, SoXtCAlphaSize, XtRInt,
+      |                     ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:167:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  167 | #define SoXtNdepthSize            "depthSize"
+      |                                   ^~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:168:5: note: in expansion of macro ‘SoXtNdepthSize’
+  168 |     SoXtNdepthSize, SoXtCDepthSize, XtRInt,
+      |     ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:168:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  168 | #define SoXtCDepthSize            "DepthSize"
+      |                                   ^~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:168:21: note: in expansion of macro ‘SoXtCDepthSize’
+  168 |     SoXtNdepthSize, SoXtCDepthSize, XtRInt,
+      |                     ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:169:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  169 | #define SoXtNstencilSize          "stencilSize"
+      |                                   ^~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:172:5: note: in expansion of macro ‘SoXtNstencilSize’
+  172 |     SoXtNstencilSize, SoXtCStencilSize, XtRInt,
+      |     ^~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:170:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  170 | #define SoXtCStencilSize          "StencilSize"
+      |                                   ^~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:172:23: note: in expansion of macro ‘SoXtCStencilSize’
+  172 |     SoXtNstencilSize, SoXtCStencilSize, XtRInt,
+      |                       ^~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:171:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  171 | #define SoXtNaccumRedSize         "accumRedSize"
+      |                                   ^~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:176:5: note: in expansion of macro ‘SoXtNaccumRedSize’
+  176 |     SoXtNaccumRedSize, SoXtCAccumColorSize, XtRInt,
+      |     ^~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:174:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  174 | #define SoXtCAccumColorSize       "AccumColorSize"
+      |                                   ^~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:176:24: note: in expansion of macro ‘SoXtCAccumColorSize’
+  176 |     SoXtNaccumRedSize, SoXtCAccumColorSize, XtRInt,
+      |                        ^~~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:172:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  172 | #define SoXtNaccumGreenSize       "accumGreenSize"
+      |                                   ^~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:180:5: note: in expansion of macro ‘SoXtNaccumGreenSize’
+  180 |     SoXtNaccumGreenSize, SoXtCAccumColorSize, XtRInt,
+      |     ^~~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:174:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  174 | #define SoXtCAccumColorSize       "AccumColorSize"
+      |                                   ^~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:180:26: note: in expansion of macro ‘SoXtCAccumColorSize’
+  180 |     SoXtNaccumGreenSize, SoXtCAccumColorSize, XtRInt,
+      |                          ^~~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:173:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  173 | #define SoXtNaccumBlueSize        "accumBlueSize"
+      |                                   ^~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:184:5: note: in expansion of macro ‘SoXtNaccumBlueSize’
+  184 |     SoXtNaccumBlueSize, SoXtCAccumColorSize, XtRInt,
+      |     ^~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:174:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  174 | #define SoXtCAccumColorSize       "AccumColorSize"
+      |                                   ^~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:184:25: note: in expansion of macro ‘SoXtCAccumColorSize’
+  184 |     SoXtNaccumBlueSize, SoXtCAccumColorSize, XtRInt,
+      |                         ^~~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:175:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  175 | #define SoXtNaccumAlphaSize       "accumAlphaSize"
+      |                                   ^~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:188:5: note: in expansion of macro ‘SoXtNaccumAlphaSize’
+  188 |     SoXtNaccumAlphaSize, SoXtCAccumAlphaSize, XtRInt,
+      |     ^~~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:176:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  176 | #define SoXtCAccumAlphaSize       "AccumAlphaSize"
+      |                                   ^~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:188:26: note: in expansion of macro ‘SoXtCAccumAlphaSize’
+  188 |     SoXtNaccumAlphaSize, SoXtCAccumAlphaSize, XtRInt,
+      |                          ^~~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:129:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  129 | #define SoXtNattribList           "attribList"
+      |                                   ^~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:192:5: note: in expansion of macro ‘SoXtNattribList’
+  192 |     SoXtNattribList, SoXtCAttribList, XtRPointer,
+      |     ^~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:130:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  130 | #define SoXtCAttribList           "AttribList"
+      |                                   ^~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:192:22: note: in expansion of macro ‘SoXtCAttribList’
+  192 |     SoXtNattribList, SoXtCAttribList, XtRPointer,
+      |                      ^~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:131:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  131 | #define SoXtNvisualInfo           "visualInfo"
+      |                                   ^~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:196:5: note: in expansion of macro ‘SoXtNvisualInfo’
+  196 |     SoXtNvisualInfo, SoXtCVisualInfo, SoXtRVisualInfo,
+      |     ^~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:132:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  132 | #define SoXtCVisualInfo           "VisualInfo"
+      |                                   ^~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:196:22: note: in expansion of macro ‘SoXtCVisualInfo’
+  196 |     SoXtNvisualInfo, SoXtCVisualInfo, SoXtRVisualInfo,
+      |                      ^~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:133:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  133 | #define SoXtRVisualInfo           "VisualInfo"
+      |                                   ^~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:196:39: note: in expansion of macro ‘SoXtRVisualInfo’
+  196 |     SoXtNvisualInfo, SoXtCVisualInfo, SoXtRVisualInfo,
+      |                                       ^~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:135:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  135 | #define SoXtNinstallColormap      "installColormap"
+      |                                   ^~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:202:5: note: in expansion of macro ‘SoXtNinstallColormap’
+  202 |     SoXtNinstallColormap, SoXtCInstallColormap, XtRBoolean,
+      |     ^~~~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:136:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  136 | #define SoXtCInstallColormap      "InstallColormap"
+      |                                   ^~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:202:27: note: in expansion of macro ‘SoXtCInstallColormap’
+  202 |     SoXtNinstallColormap, SoXtCInstallColormap, XtRBoolean,
+      |                           ^~~~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:137:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  137 | #define SoXtNallocateBackground   "allocateBackground"
+      |                                   ^~~~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:206:5: note: in expansion of macro ‘SoXtNallocateBackground’
+  206 |     SoXtNallocateBackground, SoXtCAllocateColors, XtRBoolean,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:139:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  139 | #define SoXtCAllocateColors       "AllocateColors"
+      |                                   ^~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:206:30: note: in expansion of macro ‘SoXtCAllocateColors’
+  206 |     SoXtNallocateBackground, SoXtCAllocateColors, XtRBoolean,
+      |                              ^~~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:138:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  138 | #define SoXtNallocateOtherColors  "allocateOtherColors"
+      |                                   ^~~~~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:210:5: note: in expansion of macro ‘SoXtNallocateOtherColors’
+  210 |     SoXtNallocateOtherColors, SoXtCAllocateColors, XtRBoolean,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:139:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  139 | #define SoXtCAllocateColors       "AllocateColors"
+      |                                   ^~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:210:31: note: in expansion of macro ‘SoXtCAllocateColors’
+  210 |     SoXtNallocateOtherColors, SoXtCAllocateColors, XtRBoolean,
+      |                               ^~~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:140:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  140 | #define SoXtNinstallBackground    "installBackground"
+      |                                   ^~~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:214:5: note: in expansion of macro ‘SoXtNinstallBackground’
+  214 |     SoXtNinstallBackground, SoXtCInstallBackground, XtRBoolean,
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:141:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  141 | #define SoXtCInstallBackground    "InstallBackground"
+      |                                   ^~~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:214:29: note: in expansion of macro ‘SoXtCInstallBackground’
+  214 |     SoXtNinstallBackground, SoXtCInstallBackground, XtRBoolean,
+      |                             ^~~~~~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:145:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  145 | #define SoXtNginitCallback        "ginitCallback"
+      |                                   ^~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:218:5: note: in expansion of macro ‘SoXtNginitCallback’
+  218 |     SoXtNginitCallback, SoXtCCallback, XtRCallback,
+      |     ^~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:143:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  143 | #define SoXtCCallback             "Callback"
+      |                                   ^~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:218:25: note: in expansion of macro ‘SoXtCCallback’
+  218 |     SoXtNginitCallback, SoXtCCallback, XtRCallback,
+      |                         ^~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:147:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  147 | #define SoXtNinputCallback        "inputCallback"
+      |                                   ^~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:222:5: note: in expansion of macro ‘SoXtNinputCallback’
+  222 |     SoXtNinputCallback, SoXtCCallback, XtRCallback,
+      |     ^~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:143:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  143 | #define SoXtCCallback             "Callback"
+      |                                   ^~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:222:25: note: in expansion of macro ‘SoXtCCallback’
+  222 |     SoXtNinputCallback, SoXtCCallback, XtRCallback,
+      |                         ^~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:146:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  146 | #define SoXtNresizeCallback       "resizeCallback"
+      |                                   ^~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:226:5: note: in expansion of macro ‘SoXtNresizeCallback’
+  226 |     SoXtNresizeCallback, SoXtCCallback, XtRCallback,
+      |     ^~~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:143:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  143 | #define SoXtCCallback             "Callback"
+      |                                   ^~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:226:26: note: in expansion of macro ‘SoXtCCallback’
+  226 |     SoXtNresizeCallback, SoXtCCallback, XtRCallback,
+      |                          ^~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:144:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  144 | #define SoXtNexposeCallback       "exposeCallback"
+      |                                   ^~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:230:5: note: in expansion of macro ‘SoXtNexposeCallback’
+  230 |     SoXtNexposeCallback, SoXtCCallback, XtRCallback,
+      |     ^~~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:143:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  143 | #define SoXtCCallback             "Callback"
+      |                                   ^~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:230:26: note: in expansion of macro ‘SoXtCCallback’
+  230 |     SoXtNexposeCallback, SoXtCCallback, XtRCallback,
+      |                          ^~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:179:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  179 | #define SoXtNrefresh              "refresh"
+      |                                   ^~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:234:5: note: in expansion of macro ‘SoXtNrefresh’
+  234 |     SoXtNrefresh, SoXtCRefresh, XtRBoolean,
+      |     ^~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.h:182:35: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  182 | #define SoXtCRefresh              "Refresh"
+      |                                   ^~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:234:19: note: in expansion of macro ‘SoXtCRefresh’
+  234 |     SoXtNrefresh, SoXtCRefresh, XtRBoolean,
+      |                   ^~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:319:5: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  319 |     "SoXtGLArea",                          // class_name
+      |     ^~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp: In function ‘void createAttribList(SoXtGLAreaWidget)’:
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:397:28: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  397 |     error((Widget) widget, "Unable to allocate attribute list");
+      |                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp: In function ‘void createVisualInfo(SoXtGLAreaWidget)’:
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:448:28: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  448 |     error((Widget) widget, "requested visual not supported");
+      |                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp: In function ‘void Realize(Widget, Mask*, XSetWindowAttributes*)’:
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtGLArea.cpp:617:23: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  617 |       warning(widget, "Could not set colormap property on parent shell");
+      |                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[ 38%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/devices/SoXtLinuxJoystick.cpp.o
+In file included from /repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtThumbWheel.cpp:41:
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtThumbWheelP.h:93:22: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+   93 | #define SoXtNrefresh "refresh"
+      |                      ^~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtThumbWheel.cpp:76:5: note: in expansion of macro ‘SoXtNrefresh’
+   76 |     SoXtNrefresh, SoXtCRefresh, XmRBoolean,
+      |     ^~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtThumbWheelP.h:97:22: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+   97 | #define SoXtCRefresh "Refresh"
+      |                      ^~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtThumbWheel.cpp:76:19: note: in expansion of macro ‘SoXtCRefresh’
+   76 |     SoXtNrefresh, SoXtCRefresh, XmRBoolean,
+      |                   ^~~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtThumbWheel.cpp:113:5: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  113 |   { "Arm", Arm },
+      |     ^~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtThumbWheel.cpp:114:5: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  114 |   { "Disarm", Disarm },
+      |     ^~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtThumbWheel.cpp:115:5: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  115 |   { "Roll", Roll },
+      |     ^~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtThumbWheel.cpp:116:5: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  116 |   { "WheelUp", WheelUp },
+      |     ^~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtThumbWheel.cpp:117:5: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  117 |   { "WheelDown", WheelDown }
+      |     ^~~~~~~~~~~
+/repos/GitHub/soxt/src/Inventor/Xt/widgets/SoXtThumbWheel.cpp:152:5: warning: ISO C++ forbids converting a string constant to ‘String’ {aka ‘char*’} [-Wwrite-strings]
+  152 |     "SoXtThumbWheel",                      // class_name
+      |     ^~~~~~~~~~~~~~~~
+[ 40%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/SoAny.cpp.o
+[ 41%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/SoXtCommon.cpp.o
+[ 42%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/SoXtComponentCommon.cpp.o
+[ 44%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/SoXtCursor.cpp.o
+[ 45%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/SoXtGLWidgetCommon.cpp.o
+[ 47%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/SoXtObject.cpp.o
+[ 48%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/SoXtRenderArea.cpp.o
+[ 50%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/devices/SoXtDeviceCommon.cpp.o
+[ 51%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/devices/SoXtInputFocusCommon.cpp.o
+[ 52%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/devices/SoXtKeyboardCommon.cpp.o
+[ 54%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/devices/SoXtMouseCommon.cpp.o
+[ 55%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/devices/spwinput_x11.cpp.o
+[ 57%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/editors/SoXtColorEditor.cpp.o
+[ 58%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/editors/SoXtMaterialEditor.cpp.o
+[ 60%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/engines/Engines.cpp.o
+[ 61%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/engines/Format.cpp.o
+[ 62%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/engines/RadioGroup.cpp.o
+[ 64%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/nodes/ClickCounter.cpp.o
+[ 65%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/nodes/ColorEditor.cpp.o
+[ 67%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/nodes/Frame.cpp.o
+[ 68%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/nodes/Image.cpp.o
+[ 70%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/nodes/Label.cpp.o
+[ 71%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/nodes/MaterialEditor.cpp.o
+[ 72%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/nodes/Nodes.cpp.o
+[ 74%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/nodes/Pane.cpp.o
+[ 75%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/nodes/Position.cpp.o
+[ 77%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/nodes/RadioButton.cpp.o
+[ 78%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/nodes/SceneTexture2.cpp.o
+[ 80%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/nodes/Slider1.cpp.o
+[ 81%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/nodes/Slider2.cpp.o
+[ 82%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/nodes/ToggleButton.cpp.o
+[ 84%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/nodes/Translation.cpp.o
+[ 85%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/nodes/ViewpointWrapper.cpp.o
+[ 87%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/nodes/ViewportFix.cpp.o
+[ 88%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/viewers/SoXtConstrainedViewer.cpp.o
+[ 90%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/viewers/SoXtExaminerViewer.cpp.o
+[ 91%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/viewers/SoXtFlyViewer.cpp.o
+[ 92%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/viewers/SoXtFullViewer.cpp.o
+[ 94%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/viewers/SoXtPlaneViewer.cpp.o
+[ 95%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/viewers/SoXtViewer.cpp.o
+[ 97%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/widgets/SoAnyThumbWheel.cpp.o
+[ 98%] Building CXX object src/CMakeFiles/SoXt.dir/Inventor/Xt/widgets/SoXtPopupMenu.cpp.o
+[100%] Linking CXX shared library ../lib/libSoXt.so
+[100%] Built target SoXt

@@ -1,0 +1,15 @@
+CMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.5 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value or use a ...<max> suffix to tell
+  CMake that the project does not need compatibility with older versions.
+
+
+CMake Warning at cpack.d/CMakeLists.txt:113 (message):
+  Mercurial not found, PACKAGE_BUILD_NUMBER set to 1
+
+
+-- Configuring done (0.5s)
+-- Generating done (0.0s)
+-- Build files have been written to: /tmp/coin-issue417-study/soxt-1.4.0-build
