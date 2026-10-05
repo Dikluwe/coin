@@ -270,3 +270,26 @@ As quatro janelas reais tiveram tamanho 400×400. O programa executou seu event 
 As imagens não são SoOffscreenRenderer nem FreeCAD: são as janelas nativas do exemplo SoXt. Fontes do exemplo, build-and-test.sh, capture.py, logs, hashes, revisões, mapas de bibliotecas e capturas estão em soxt-validation/. O script de reprodução pressupõe os dois builds Coin já preparados em /tmp e o checkout SoXt com submódulos inicializados. Não foi alterado código de produção da Coin nesta etapa; os 81 testes anteriores continuam correspondendo ao mesmo código corrigido.
 
 Esta execução cobre o caminho original SoXtRenderArea + getViewportRegion + camera->viewAll + setSceneGraph + mainLoop e fecha a lacuna de integração indicada anteriormente. A seleção UTF-8 e os problemas do backend geral de fontes continuam fora deste fechamento, conforme a separação de escopo já registrada.
+
+
+## Reparação ABI da #774
+
+A primeira publicação removeu quatro símbolos exportados: as assinaturas antigas
+de SoText2P::getQuad/computeBBox e grow/destructor da lista aninhada de SbVec2s.
+O commit 5ee49a197b restaura esses símbolos e o layout original de SoText2P;
+os dados ampliados ficam numa extensão não virtual da alocação. O destrutor
+do nó libera a extensão completa. Não foi alterada a política do check ABI.
+
+Na comparação local RelWithDebInfo contra a master: zero funções removidas,
+zero alteradas e seis adicionadas. Contra v4.0.10: nenhuma remoção ou indicador
+de incompatibilidade; o workflow classifica as adições como permitidas.
+O check ABI do GitHub foi aprovado. Os 81 testes locais e os 44 controles
+FreeCAD passaram, sem alteração de fontes ou bibliotecas instaladas do FreeCAD.
+
+O teste que falhava no Windows assumia que a caixa continha a âncora do texto.
+Um bearing positivo torna essa suposição inválida. O oráculo agora compara
+o centro após translação com uma referência da mesma fonte, tolerando uma ULP
+de float. As duas configurações Windows também foram aprovadas pelo CI.
+
+A branch local de fontes recebeu a reparação: 84 testes aprovados e abidiff
+sem alterações em relação à #774 reparada. Essa branch segue separada do PR.
