@@ -56,6 +56,96 @@ makePlan(uint64_t revision)
 bool nearValue(float a, float b) {
   return std::abs(a-b) <= 2.0e-5f * (1.0f + std::abs(b));
 }
+
+bool sameMatrixBits(const SbMatrix & a, const SbMatrix & b) {
+  return std::memcmp(a.getValue(), b.getValue(), sizeof(float) * 16) == 0;
+}
+
+bool testTranslationOverlay() {
+  bool ok = true;
+  const SbRotation rotation(SbVec3f(1, 2, 3), .37f);
+  const SbRotation scaleOrientation(SbVec3f(2, -1, 1), -.21f);
+  const SbVec3f scale(-1.3f, .7f, 2.1f);
+  SbMatrix prefix;
+  prefix.setTransform(SbVec3f(3, -2, 5), SbRotation(SbVec3f(-1, 3, 2), .41f),
+                      SbVec3f(.6f, -1.2f, 1.7f), scaleOrientation, SbVec3f(1, -.5f, 2));
+  const SbVec3f originalPosition(.2f, -.4f, 1.1f);
+  SbMatrix local, anchor;
+  local.setTransform(originalPosition, rotation, scale, scaleOrientation, SbVec3f(0, 0, 0));
+  anchor = local; anchor.multRight(prefix);
+  SbMatrix translated = SbMatrix::identity();
+  for (const SbVec3f position : {SbVec3f(2, -3, .25f), SbVec3f(-.1f, .8f, -1.5f), originalPosition}) {
+    local.setTransform(position, rotation, scale, scaleOrientation, SbVec3f(0, 0, 0));
+    SbMatrix expected = local; expected.multRight(prefix);
+    ok &= check(CoinRenderFrameReuseCore::translatedModel(anchor, prefix, position, translated) &&
+                sameMatrixBits(translated, expected),
+                "translation through rotated/scaled/reflected prefix must match full Coin multiplication by bytes");
+  }
+  ok &= check(sameMatrixBits(translated, anchor),
+              "returning to the anchor position must not accumulate matrix drift");
+  SbMatrix translationAnchor;
+  translationAnchor.setTranslate(originalPosition); translationAnchor.multRight(prefix);
+  SbMatrix expectedTranslation;
+  expectedTranslation.setTranslate(SbVec3f(1, -2, 3)); expectedTranslation.multRight(prefix);
+  ok &= check(CoinRenderFrameReuseCore::translatedModel(translationAnchor, prefix, SbVec3f(1, -2, 3), translated) &&
+              sameMatrixBits(translated, expectedTranslation),
+              "SoTranslation must follow its actual prefix without undoing scale");
+  const SbMatrix saved = translated;
+  for (int kind = 0; kind < 5; ++kind) {
+    SbMatrix badPrefix = prefix, badAnchor = anchor;
+    SbVec3f badPosition(1, 2, 3);
+    if (kind == 0) badPrefix[0][3] = .25f;
+    if (kind == 1) badAnchor[3][3] = 2;
+    if (kind == 2) badPosition[0] = std::numeric_limits<float>::quiet_NaN();
+    if (kind == 3) badPrefix[0][0] = 32769;
+    if (kind == 4) badPosition[2] = 32769;
+    ok &= check(!CoinRenderFrameReuseCore::translatedModel(badAnchor, badPrefix, badPosition, translated) &&
+                sameMatrixBits(translated, saved),
+                "invalid/projective/out-of-domain translation must reject without changing output");
+  }
+  SbMatrix enlarged = SbMatrix::identity(); enlarged[0][0] = 2;
+  ok &= check(!CoinRenderFrameReuseCore::translatedModel(anchor, enlarged, SbVec3f(20000, 0, 0), translated) &&
+              sameMatrixBits(translated, saved),
+              "a resulting out-of-domain model must reject transactionally");
+
+  CoinRenderFramePlan plan = makePlan(1500);
+  plan.renderStates.push_back(plan.renderStates[0]);
+  plan.renderStates[0].model = anchor;
+  plan.renderStates[1].model = translationAnchor;
+  CoinRenderPlanAssemblyCore::sortingCenter(plan.draws[0], anchor, SbVec3f(0, 0, 0));
+  const CoinRenderFramePlan original = plan;
+  const auto * vertices = plan.vertices.data(); const auto * indices = plan.indices.data();
+  std::vector<CoinRenderModelUpdate> updates(2);
+  updates[0].stateSlot = 0; updates[0].model = saved; updates[0].sortingDrawSlot = 0;
+  updates[1].stateSlot = 1; updates[1].model = expectedTranslation;
+  CoinRenderTranslationOverlayUndo undo;
+  ok &= check(CoinRenderFrameReuseCore::beginTranslationOverlay(plan, updates, 1501, undo) && undo.active &&
+              undo.revision == 1500 && plan.revision == 1501 && plan.vertices.data() == vertices &&
+              plan.indices.data() == indices && sameMatrixBits(plan.renderStates[0].model, saved),
+              "model overlay must retain geometry and keep its previous revision for rollback");
+  ok &= check(!CoinRenderFrameReuseCore::beginTranslationOverlay(plan, updates, 1502, undo) &&
+              plan.revision == 1501, "an already active undo must not be overwritten");
+  CoinRenderFrameReuseCore::rollbackTranslationOverlay(plan, undo);
+  ok &= check(!undo.active && plan.revision == original.revision && plan.hasSamePayload(original),
+              "rollback must restore every model and the revision byte for byte");
+  for (int kind = 0; kind < 5; ++kind) {
+    auto invalidUpdates = updates;
+    if (kind == 0) invalidUpdates[1].stateSlot = invalidUpdates[0].stateSlot;
+    if (kind == 1) invalidUpdates[1].stateSlot = 2;
+    if (kind == 2) invalidUpdates[1].model[0][0] = std::numeric_limits<float>::infinity();
+    if (kind == 3) invalidUpdates.resize(65537);
+    if (kind == 4) invalidUpdates[1].sortingDrawSlot = 0;
+    CoinRenderTranslationOverlayUndo invalidUndo;
+    ok &= check(!CoinRenderFrameReuseCore::beginTranslationOverlay(plan, invalidUpdates, 1503, invalidUndo) &&
+                !invalidUndo.active && plan.revision == original.revision && plan.hasSamePayload(original),
+                "duplicate/late-invalid/oversized update lists must preserve the entire prior plan");
+  }
+  CoinRenderTranslationOverlayUndo sameRevision;
+  ok &= check(!CoinRenderFrameReuseCore::beginTranslationOverlay(plan, updates, 1500, sameRevision) &&
+              !CoinRenderFrameReuseCore::beginTranslationOverlay(plan, updates, 0, sameRevision),
+              "unversioned or unchanged revisions must not publish a model overlay");
+  return ok;
+}
 bool sameLightsWithinPrecision(const CoinRenderFramePlan & a, const CoinRenderFramePlan & b) {
   if (a.lightingStates.size() != b.lightingStates.size()) return false;
   for (size_t i=0;i<a.lightingStates.size();++i) {
@@ -311,7 +401,8 @@ int
 main()
 {
   SoDB::init();
-  bool ok = testRigidCameraDelta() && testCameraPrecisionFallback() && testPhongWorldBasis();
+  bool ok = testRigidCameraDelta() && testCameraPrecisionFallback() && testPhongWorldBasis() &&
+    testTranslationOverlay();
   CoinRenderTextureImageSnapshot alphaImage;
   alphaImage.width = alphaImage.height = 1;
   alphaImage.producerId = 1;

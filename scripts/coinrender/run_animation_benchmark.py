@@ -55,6 +55,7 @@ def environment(build, variant, gpu):
                 or key in {"COIN_RENDER_TRACE_PHASES", "COIN_DEBUG_GLGLUE",
                            "COIN_WGPU_GPU_TIMESTAMPS", "COIN_RENDER_DISABLE_CAPTURE_RESERVE",
                            "COIN_RENDER_DISABLE_CAMERA_OVERLAY",
+                           "COIN_RENDER_DISABLE_TRANSLATION_OVERLAY",
                            "COIN_BGFX_READBACK_PIPELINE_DEPTH", "COIN_BGFX_RENDERER",
                            "WGPU_BACKEND", "COIN_GLXGLUE_NO_PBUFFERS",
                            "COIN_GLXGLUE_NO_GLX13_PBUFFERS", "COIN_GLX_PIXMAP_DIRECT_RENDERING",

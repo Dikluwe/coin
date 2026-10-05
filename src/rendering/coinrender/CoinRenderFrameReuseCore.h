@@ -58,6 +58,21 @@ struct CoinRenderCameraOverlayBasis {
   std::vector<CoinRenderLightingSnapshot> worldLighting;
 };
 
+struct CoinRenderModelUpdate {
+  uint32_t stateSlot = 0;
+  SbMatrix model = SbMatrix::identity();
+  uint32_t sortingDrawSlot = UINT32_MAX;
+};
+struct CoinRenderTranslationStateUndo {
+  CoinRenderModelUpdate state;
+  float sortingCenterWorld[3] = {0, 0, 0};
+};
+struct CoinRenderTranslationOverlayUndo {
+  uint64_t revision = 0;
+  std::vector<CoinRenderTranslationStateUndo> states;
+  bool active = false;
+};
+
 /** Traversal-free classification of the relationship between two plans. */
 class CoinRenderFrameReuseCore {
 public:
@@ -81,6 +96,15 @@ public:
   /** Restore an uncommitted overlay after a failed frame execution. */
   COIN_RENDER_DLL_API static void rollbackCameraOverlay(
     CoinRenderFramePlan & plan, CoinRenderCameraOverlayUndo & undo);
+  /** Zero-center local translation; retain the captured linear transform. */
+  COIN_RENDER_DLL_API static bool translatedModel(
+    const SbMatrix & anchor, const SbMatrix & prefix, const SbVec3f & translation,
+    SbMatrix & result);
+  COIN_RENDER_DLL_API static bool beginTranslationOverlay(
+    CoinRenderFramePlan & plan, const std::vector<CoinRenderModelUpdate> & updates,
+    uint64_t revision, CoinRenderTranslationOverlayUndo & undo);
+  COIN_RENDER_DLL_API static void rollbackTranslationOverlay(
+    CoinRenderFramePlan & plan, CoinRenderTranslationOverlayUndo & undo);
 };
 
 #endif // !COIN_RENDER_FRAME_REUSE_CORE_H

@@ -17,9 +17,14 @@
 #include <memory>
 #include <cstdint>
 #include <cstddef>
+#include <unordered_map>
+#include <unordered_set>
 
 class SoCamera;
 class SoShadowGroup;
+class SoSeparator;
+class SoCube;
+class SoSFVec3f;
 
 class COIN_RENDER_DLL_API CoinRenderActionP {
 public:
@@ -31,6 +36,14 @@ public:
   static void cameraSensorCB(void * data, SoSensor * sensor);
   void rememberFrameRoot(SoNode * root, bool qualifyCamera);
   bool prepareCameraOverlay(SoNode * root, CoinRenderCameraOverlayUndo & undo);
+  void beginTranslationCapture(bool enabled);
+  void beginTranslationShape(SoCallbackAction *, const SoNode *);
+  void endTranslationShape();
+  void qualifyTranslationCapture(SoNode * root);
+  void clearTranslationProof();
+  bool prepareTranslationOverlay(SoNode *, CoinRenderTranslationOverlayUndo &);
+  void commitTranslationOverlay();
+  static SoCallbackAction::Response translationPreCB(void *, SoCallbackAction *, const SoNode *);
 
   template <typename F>
   void executeApply(F traversalFn, SoNode * cacheRoot = NULL);
@@ -131,6 +144,7 @@ public:
   bool isApplying;
   bool hasReentrancyError;
   bool fastPathEnabled;
+  uint64_t captureCallbackRevision = 0;
   SoNode * cachedRoot = NULL;
   SbUniqueId cachedRootId = 0;
   SoNodeSensor cameraSensor;
@@ -139,6 +153,32 @@ public:
   CoinRenderCameraOverlayBasis cameraOverlayBasis;
   bool cameraOnlyDirty = false;
   bool cameraPatchInvalidated = false;
+  bool cameraRecaptureRequired = false;
+  struct TranslationBinding {
+    SoNode * transform = NULL;
+    SoSeparator * parent = NULL;
+    const SoNode * cube = NULL;
+    SoSFVec3f * field = NULL;
+    SbVec3f originalPosition;
+    SbMatrix prefix, anchor;
+    size_t firstDraw = 0, endDraw = 0;
+    CoinRenderGeometryRange geometry;
+    uint32_t stateSlot = 0;
+  };
+  // At most 65,536 objects. One draw and one exclusively owned state per
+  // object keep both proof and dirty-set storage bounded independently of GPU.
+  std::vector<TranslationBinding> translationBindings, translationCapture;
+  std::unordered_map<const SoNode *, size_t> translationByNode, translationCaptureByNode;
+  std::unordered_set<size_t> translationDirty;
+  uint64_t translationGeneration = 0;
+  uint64_t translationProofGeneration = 0;
+  uint64_t translationProofRevision = 0;
+  bool translationProofValid = false;
+  bool translationInputDirty = false;
+  bool translationInvalidated = false;
+  bool capturingTranslations = false;
+  bool translationCaptureInvalid = false;
+  size_t translationShapeCandidate = SIZE_MAX;
 };
 
 #endif // !SOWGPURENDERACTIONP_H

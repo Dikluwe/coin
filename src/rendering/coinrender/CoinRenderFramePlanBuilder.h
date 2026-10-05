@@ -76,6 +76,10 @@ public:
              const CoinRenderTransparencyOptions * transparency = nullptr,
              CoinRenderFramePreflight * preflight = nullptr);
   bool isUnsupportedBuild() const { return this->isUnsupported; }
+  size_t capturedDrawCount() const { return this->currentPlan.draws.size(); }
+  const CoinRenderDrawPacket * capturedDraw(size_t index) const {
+    return index < this->currentPlan.draws.size() ? &this->currentPlan.draws[index] : nullptr;
+  }
   static uint64_t nextRevision();
 
 private:

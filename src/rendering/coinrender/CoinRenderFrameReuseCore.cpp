@@ -7,6 +7,7 @@
 #include "rendering/coinrender/CoinRenderFrameReuseCore.h"
 #include "rendering/coinrender/CoinRenderStateCore.h"
 #include "rendering/coinrender/CoinRenderTransformCore.h"
+#include "rendering/coinrender/CoinRenderPlanAssemblyCore.h"
 
 #include <Inventor/actions/SoGLRenderAction.h>
 
@@ -15,6 +16,7 @@
 #include <cmath>
 #include <cassert>
 #include <utility>
+#include <unordered_set>
 
 namespace {
 template <typename T>
@@ -385,6 +387,86 @@ CoinRenderFrameReuseCore::rollbackCameraOverlay(
     plan.renderStates[i].view = undo.states[i].view;
     plan.renderStates[i].projectionCoin = undo.states[i].projectionCoin;
     plan.renderStates[i].fogEnd = undo.states[i].fogEnd;
+  }
+  undo.active = false;
+}
+
+namespace {
+bool boundedAffineModel(const SbMatrix & matrix)
+{
+  if (!CoinRenderTransformCore::finiteMatrix(matrix) || matrix[0][3] != 0 ||
+      matrix[1][3] != 0 || matrix[2][3] != 0 || matrix[3][3] != 1) return false;
+  for (int row = 0; row < 4; ++row) for (int column = 0; column < 4; ++column)
+    if (std::abs(matrix[row][column]) > 32768.0f) return false;
+  return true;
+}
+}
+
+bool CoinRenderFrameReuseCore::translatedModel(
+  const SbMatrix & anchor, const SbMatrix & prefix, const SbVec3f & translation,
+  SbMatrix & result)
+{
+  if (!boundedAffineModel(anchor) || !boundedAffineModel(prefix)) return false;
+  for (int axis = 0; axis < 3; ++axis)
+    if (!std::isfinite(translation[axis]) || std::abs(translation[axis]) > 32768.0f) return false;
+  // The local transform has zero center. Its last row is the position field,
+  // regardless of scale, rotation or reflection. Recompute that row through
+  // the real upstream matrix, avoiding cancellation in anchor + delta.
+  SbMatrix positioned;
+  positioned.setTranslate(translation);
+  positioned.multRight(prefix);
+  SbMatrix candidate = anchor;
+  for (int column = 0; column < 4; ++column) candidate[3][column] = positioned[3][column];
+  if (!boundedAffineModel(candidate)) return false;
+  result = candidate;
+  return true;
+}
+
+bool CoinRenderFrameReuseCore::beginTranslationOverlay(
+  CoinRenderFramePlan & plan, const std::vector<CoinRenderModelUpdate> & updates,
+  uint64_t revision, CoinRenderTranslationOverlayUndo & undo)
+{
+  if (undo.active || !plan.revision || !revision || revision == plan.revision ||
+      updates.empty() || updates.size() > 65536) return false;
+  std::unordered_set<uint32_t> slots;
+  CoinRenderTranslationOverlayUndo prepared;
+  prepared.revision = plan.revision;
+  prepared.states.reserve(updates.size());
+  for (const auto & update : updates) {
+    if (update.stateSlot >= plan.renderStates.size() ||
+        !boundedAffineModel(update.model) || !slots.insert(update.stateSlot).second) return false;
+    if (update.sortingDrawSlot != UINT32_MAX &&
+        (update.sortingDrawSlot >= plan.draws.size() || !plan.draws[update.sortingDrawSlot].hasSortingCenter ||
+         plan.draws[update.sortingDrawSlot].renderStateSlot != update.stateSlot)) return false;
+    CoinRenderTranslationStateUndo previous;
+    previous.state = update;
+    previous.state.model = plan.renderStates[update.stateSlot].model;
+    if (update.sortingDrawSlot != UINT32_MAX)
+      std::memcpy(previous.sortingCenterWorld, plan.draws[update.sortingDrawSlot].sortingCenterWorld,
+                  sizeof(previous.sortingCenterWorld));
+    prepared.states.push_back(previous);
+  }
+  prepared.active = true;
+  undo = std::move(prepared);
+  for (const auto & update : updates) {
+    plan.renderStates[update.stateSlot].model = update.model;
+    if (update.sortingDrawSlot != UINT32_MAX)
+      CoinRenderPlanAssemblyCore::sortingCenter(plan.draws[update.sortingDrawSlot], update.model, SbVec3f(0, 0, 0));
+  }
+  plan.revision = revision;
+  return true;
+}
+
+void CoinRenderFrameReuseCore::rollbackTranslationOverlay(
+  CoinRenderFramePlan & plan, CoinRenderTranslationOverlayUndo & undo)
+{
+  if (!undo.active) return;
+  plan.revision = undo.revision;
+  for (const auto & previous : undo.states) {
+    plan.renderStates[previous.state.stateSlot].model = previous.state.model;
+    if (previous.state.sortingDrawSlot != UINT32_MAX)
+      std::memcpy(plan.draws[previous.state.sortingDrawSlot].sortingCenterWorld, previous.sortingCenterWorld,
+                  sizeof(previous.sortingCenterWorld));
   }
   undo.active = false;
 }

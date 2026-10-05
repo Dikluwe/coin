@@ -865,6 +865,234 @@ private:
   std::string error;
 };
 
+struct TranslationOverlayEnvironment {
+  std::string value;
+  bool present;
+  TranslationOverlayEnvironment() {
+    const char * previous = std::getenv("COIN_RENDER_DISABLE_TRANSLATION_OVERLAY");
+    this->present = previous != nullptr; this->value = previous ? previous : "";
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_TRANSLATION_OVERLAY", "0");
+  }
+  ~TranslationOverlayEnvironment() {
+    coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_TRANSLATION_OVERLAY", this->present ? this->value.c_str() : nullptr);
+  }
+};
+
+struct TranslationOverlayScene {
+  SoSeparator * root = new SoSeparator;
+  SoPerspectiveCamera * camera = new SoPerspectiveCamera;
+  SoTransform * prefix = new SoTransform;
+  SoPointLight * light = new SoPointLight;
+  SoMaterial * material = new SoMaterial;
+  SoCube * cube = new SoCube;
+  std::vector<SoSeparator *> objects;
+  std::vector<SoNode *> transforms;
+  std::vector<SoSFVec3f *> positions;
+  std::vector<SbVec3f> initialPositions;
+  TranslationOverlayScene(unsigned count = 6) {
+    this->root->ref();
+    this->camera->position.setValue(0, 0, 20);
+    this->camera->nearDistance = .2f; this->camera->farDistance = 80;
+    this->root->addChild(this->camera);
+    this->prefix->translation.setValue(1, -2, .5f);
+    this->prefix->rotation.setValue(SbVec3f(1, -2, 3), .23f);
+    this->prefix->scaleFactor.setValue(.7f, -1.1f, 1.4f);
+    this->prefix->center.setValue(.5f, -.3f, .2f);
+    this->root->addChild(this->prefix);
+    this->light->location.setValue(-2, 4, 7);
+    this->root->addChild(this->light);
+    this->material->diffuseColor.setValue(.5f, .3f, .2f);
+    for (unsigned i = 0; i < count; ++i) {
+      auto * object = new SoSeparator;
+      object->addChild(this->material);
+      SoNode * transform;
+      SoSFVec3f * position;
+      if (i % 2) {
+        auto * local = new SoTransform;
+        local->rotation.setValue(SbVec3f(2, 1, -3), .17f);
+        local->scaleFactor.setValue(-.8f, 1.2f, .9f);
+        local->scaleOrientation.setValue(SbVec3f(1, 3, 2), .11f);
+        transform = local; position = &local->translation;
+      } else {
+        auto * local = new SoTranslation;
+        transform = local; position = &local->translation;
+      }
+      const SbVec3f initial(float(i * 4) + .2f, float(i % 3) + .3f, -.4f);
+      position->setValue(initial);
+      object->addChild(transform); object->addChild(this->cube); this->root->addChild(object);
+      this->objects.push_back(object); this->transforms.push_back(transform);
+      this->positions.push_back(position); this->initialPositions.push_back(initial);
+    }
+  }
+  ~TranslationOverlayScene() { this->root->unref(); }
+};
+
+int testTranslationOverlayAndRollback() {
+  TranslationOverlayEnvironment environment;
+  TranslationOverlayScene scene;
+  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(1, 1)));
+  TEST_ASSERT(target, "CPU translation proof test requires a target shell");
+  auto * backend = new CameraOverlayTestBackend;
+  target->getPimpl()->backend.reset(backend); target->getPimpl()->depthReadbackEnabled = false;
+  CoinRenderAction action(SbViewportRegion(1, 1)), full(SbViewportRegion(1, 1));
+  full.getPimpl()->planOnly = true;
+  action.setTransparencyType(CoinRenderAction::SORTED_OBJECT_BLEND);
+  full.setTransparencyType(CoinRenderAction::SORTED_OBJECT_BLEND);
+  action.setRenderTarget(target.get()); action.apply(scene.root); full.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && action.getPimpl()->translationProofValid &&
+              action.getPimpl()->translationBindings.size() == scene.positions.size() &&
+              action.getPimpl()->lastValidPlan.hasSamePayload(full.getPimpl()->lastValidPlan),
+              "shared Cube geometry with exclusive transform/state occurrences must qualify exactly");
+  const auto * vertices = action.getPimpl()->lastValidPlan.vertices.data();
+  const auto * indices = action.getPimpl()->lastValidPlan.indices.data();
+  const uint64_t generation = action.getPimpl()->translationProofGeneration;
+  for (int frame = 0; frame < 3; ++frame) {
+    const uint64_t base = action.getPimpl()->lastValidPlan.revision;
+    for (unsigned i : {0u, 1u, 4u}) {
+      SbVec3f position = scene.initialPositions[i];
+      if (frame < 2) position += SbVec3f(.13f * (frame + 1), -.07f * frame, .04f);
+      scene.positions[i]->setValue(position);
+    }
+    TEST_ASSERT(action.getPimpl()->translationInputDirty && !action.getPimpl()->translationInvalidated &&
+                action.getPimpl()->translationDirty.size() == 3,
+                "only changed translations must enter the bounded dirty occurrence set");
+    action.apply(scene.root); full.apply(scene.root);
+    TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS &&
+                backend->lastReuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD &&
+                backend->lastReuse.baseRevision == base && action.getPimpl()->lastValidPlan.revision > base &&
+                action.getPimpl()->lastValidPlan.vertices.data() == vertices &&
+                action.getPimpl()->lastValidPlan.indices.data() == indices &&
+                action.getPimpl()->translationProofGeneration == generation &&
+                action.getPimpl()->translationDirty.empty() &&
+                action.getPimpl()->lastValidPlan.hasSamePayload(full.getPimpl()->lastValidPlan),
+                "mixed Translation/Transform movement and return must match full matrix capture by bytes without copying geometry");
+  }
+  const auto beforeFailure = action.getPimpl()->lastValidPlan;
+  const auto pixels = target->getPimpl()->colorBuffer;
+  scene.positions[1]->setValue(scene.initialPositions[1] + SbVec3f(.31f, -.2f, .1f));
+  backend->failNext = true; action.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+              action.getPimpl()->lastValidPlan.revision == beforeFailure.revision &&
+              action.getPimpl()->lastValidPlan.hasSamePayload(beforeFailure) &&
+              target->getPimpl()->colorBuffer == pixels && action.getPimpl()->translationDirty.size() == 1 &&
+              action.getPimpl()->translationProofValid && action.getPimpl()->translationInputDirty,
+              "late failure must restore model/revision/pixels and preserve the pending translation proof");
+  action.apply(scene.root); full.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS &&
+              backend->lastReuse.baseRevision == beforeFailure.revision &&
+              backend->lastReuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD &&
+              action.getPimpl()->lastValidPlan.hasSamePayload(full.getPimpl()->lastValidPlan),
+              "retry must apply from the last successfully submitted plan and match full capture");
+  action.apply(scene.root);
+  TEST_ASSERT(backend->lastReuse.kind == CoinRenderFrameReuseKind::REUSE,
+              "a static frame after translation must reuse the submitted model state");
+  scene.camera->position.setValue(.4f, -.2f, 19);
+  action.apply(scene.root); full.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS &&
+              backend->lastReuse.kind != CoinRenderFrameReuseKind::CAMERA_PATCH &&
+              action.getPimpl()->translationProofValid && !action.getPimpl()->cameraRecaptureRequired &&
+              action.getPimpl()->translationProofGeneration > generation &&
+              action.getPimpl()->lastValidPlan.hasSamePayload(full.getPimpl()->lastValidPlan),
+              "camera after translated objects must recapture and readmit the new translation anchor");
+  vertices = action.getPimpl()->lastValidPlan.vertices.data();
+  scene.positions[0]->setValue(scene.initialPositions[0] + SbVec3f(-.15f, .06f, 0));
+  action.apply(scene.root); full.apply(scene.root);
+  TEST_ASSERT(backend->lastReuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD &&
+              action.getPimpl()->lastValidPlan.vertices.data() == vertices &&
+              action.getPimpl()->lastValidPlan.hasSamePayload(full.getPimpl()->lastValidPlan),
+              "translation after camera recapture must reuse only its newly qualified model anchor");
+  coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_TRANSLATION_OVERLAY", "1");
+  scene.positions[0]->setValue(scene.initialPositions[0]);
+  const uint64_t oldGeneration = action.getPimpl()->translationGeneration;
+  action.apply(scene.root); full.apply(scene.root);
+  TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && !action.getPimpl()->translationProofValid &&
+              action.getPimpl()->translationGeneration > oldGeneration &&
+              action.getPimpl()->lastValidPlan.hasSamePayload(full.getPimpl()->lastValidPlan),
+              "optout must force ordinary capture and discard the previous proof");
+  return 0;
+}
+
+SoCallbackAction::Response translationCountingCallback(void * data, SoCallbackAction *, const SoNode *) {
+  ++*static_cast<unsigned *>(data);
+  return SoCallbackAction::CONTINUE;
+}
+
+int testTranslationOverlayInvalidationAndOwnership() {
+  TranslationOverlayEnvironment environment;
+  // These mutations also change a translation in the same notification batch.
+  // None may preserve the translation-only proof or hide its full traversal.
+  for (int mutation = 0; mutation < 10; ++mutation) {
+    TranslationOverlayScene scene(2);
+    CoinRenderAction action, full; full.getPimpl()->planOnly = true;
+    action.apply(scene.root);
+    TEST_ASSERT(action.getPimpl()->translationProofValid, "ordinary fixture must qualify before invalidation");
+    auto * transform = static_cast<SoTransform *>(scene.transforms[1]);
+    if (mutation == 0) transform->rotation.setValue(SbVec3f(0, 1, 0), .4f);
+    if (mutation == 1) transform->scaleFactor.setValue(1, 1.2f, .9f);
+    if (mutation == 2) scene.material->diffuseColor.setValue(.2f, .4f, .7f);
+    if (mutation == 3) scene.light->location.setValue(3, 2, 1);
+    if (mutation == 4) scene.cube->width = 3;
+    if (mutation == 5) scene.root->addChild(new SoCube);
+    if (mutation == 6) scene.prefix->translation.setValue(2, 3, 4);
+    if (mutation == 7) transform->center.setValue(.2f, -.1f, .3f);
+    if (mutation == 8) transform->translation.setIgnored(TRUE);
+    if (mutation == 9) transform->translation.connectFrom(&scene.camera->position);
+    scene.positions[0]->setValue(scene.initialPositions[0] + SbVec3f(.3f, 0, 0));
+    TEST_ASSERT(action.getPimpl()->translationInvalidated, "nontranslation/ignored/connected changes must invalidate the proof");
+    const uint64_t oldGeneration = action.getPimpl()->translationGeneration;
+    action.apply(scene.root); full.apply(scene.root);
+    TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && full.getLastStatus() == CoinRenderAction::SUCCESS &&
+                action.getPimpl()->translationGeneration > oldGeneration &&
+                action.getPimpl()->lastValidPlan.hasSamePayload(full.getPimpl()->lastValidPlan),
+                "invalidated movement must take full capture and match its complete payload");
+  }
+  for (int alias = 0; alias < 4; ++alias) {
+    TranslationOverlayScene scene(1);
+    if (alias == 0) {
+      auto * other = new SoSeparator;
+      other->addChild(scene.material); other->addChild(scene.transforms[0]); other->addChild(scene.cube);
+      scene.root->addChild(other);
+    }
+    if (alias == 1) scene.root->addChild(scene.objects[0]);
+    if (alias == 2) {
+      // Equal external state must not share ownership with a mutable object.
+      scene.positions[0]->setValue(0, 0, 0);
+      scene.root->addChild(scene.material); scene.root->addChild(scene.cube);
+    }
+    if (alias == 3) scene.transforms[0]->ref();
+    CoinRenderAction action, full; full.getPimpl()->planOnly = true;
+    action.apply(scene.root);
+    TEST_ASSERT(!action.getPimpl()->translationProofValid,
+                "shared transform/parent, interned external state or held transform must refuse ownership");
+    scene.positions[0]->setValue(.3f, .2f, -.1f);
+    action.apply(scene.root); full.apply(scene.root);
+    TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS &&
+                action.getPimpl()->lastValidPlan.hasSamePayload(full.getPimpl()->lastValidPlan),
+                "unqualified ownership must capture every actual occurrence after movement");
+    if (alias == 3) scene.transforms[0]->unref();
+  }
+  for (bool registerBefore : {false, true}) for (bool onGroup : {false, true}) {
+    TranslationOverlayScene scene(2);
+    CoinRenderAction action;
+    unsigned calls = 0;
+    if (registerBefore)
+      action.addPreCallback(onGroup ? SoSeparator::getClassTypeId() : SoTransform::getClassTypeId(), translationCountingCallback, &calls);
+    action.apply(scene.root);
+    TEST_ASSERT(action.getPimpl()->translationProofValid == !registerBefore,
+                "extra callbacks registered before capture must prevent translation qualification");
+    if (!registerBefore)
+      action.addPreCallback(onGroup ? SoSeparator::getClassTypeId() : SoTransform::getClassTypeId(), translationCountingCallback, &calls);
+    const unsigned before = calls;
+    scene.positions[0]->setValue(.6f, .2f, -.1f); action.apply(scene.root);
+    TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS && calls > before &&
+                !action.getPimpl()->translationProofValid,
+                "callbacks added before or after proof must execute on full traversal of translated objects");
+    const unsigned afterMovement = calls; action.apply(scene.root);
+    TEST_ASSERT(calls > afterMovement, "external callbacks must also execute on an unchanged scene");
+  }
+  return 0;
+}
+
 bool cameraLightingNear(const CoinRenderFramePlan & a, const CoinRenderFramePlan & b) {
   if (a.lightingStates.size() != b.lightingStates.size()) return false;
   const auto near = [](float x, float y) {
@@ -1508,6 +1736,8 @@ int main() {
   if (testAnnotationLayers()) { std::cerr << "testAnnotationLayers failed" << std::endl; failed++; }
   if (testCameraOverlayAndFallback()) { std::cerr << "testCameraOverlayAndFallback failed" << std::endl; failed++; }
   if (testPhongCameraOverlayNotificationsAndRollback()) { std::cerr << "testPhongCameraOverlayNotificationsAndRollback failed" << std::endl; failed++; }
+  if (testTranslationOverlayAndRollback()) { std::cerr << "testTranslationOverlayAndRollback failed" << std::endl; failed++; }
+  if (testTranslationOverlayInvalidationAndOwnership()) { std::cerr << "testTranslationOverlayInvalidationAndOwnership failed" << std::endl; failed++; }
   if (testSharedCameraQualification()) { std::cerr << "testSharedCameraQualification failed" << std::endl; failed++; }
   if (testDistantLightCameraFallback()) { std::cerr << "testDistantLightCameraFallback failed" << std::endl; failed++; }
       if (testWindowTargetRecordingBackend()) { std::cerr << "testWindowTargetRecordingBackend failed" << std::endl; failed++; }
