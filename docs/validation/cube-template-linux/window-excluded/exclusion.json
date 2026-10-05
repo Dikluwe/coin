@@ -1,0 +1,10 @@
+{
+  "recorded_utc": "2026-10-05T04:23:28.332060+00:00",
+  "status": "excluded_incomplete",
+  "reason": "Monitor DPMS Off; Cinnamon ScreenSaver GetActive true; native presentation outliers around 1000 ms in multiple variants",
+  "termination": "SIGTERM sent only to matching window campaign and its descendants",
+  "display_query": "Screen Saver:\n  prefer blanking:  yes    allow exposures:  yes\n  timeout:  0    cycle:  0\nColors:\n  default colormap:  0x20    BlackPixel:  0x0    WhitePixel:  0xffffff\nFont Path:\n  /usr/share/fonts/X11/misc,/usr/share/fonts/X11/Type1,built-ins\nDPMS (Display Power Management Signaling):\n  Standby: 0    Suspend: 0    Off: 0\n  DPMS is Enabled\n  Monitor is Off\n",
+  "screensaver_query": "(true,)\n",
+  "output_before": "/tmp/coin-render-cube-window-before",
+  "output_after": "/tmp/coin-render-cube-window-after"
+}

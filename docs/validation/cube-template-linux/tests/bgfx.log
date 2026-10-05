@@ -1,0 +1,129 @@
+Start testing: Oct 05 01:15 -03
+----------------------------------------------------------
+36/161 Testing: CoinRenderDepthContractVulkanTest
+36/161 Test: CoinRenderDepthContractVulkanTest
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderDepthContractTest" "--gpu"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderDepthContractVulkanTest" start time: Oct 05 01:15 -03
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.29 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderDepthContractVulkanTest" end time: Oct 05 01:15 -03
+"CoinRenderDepthContractVulkanTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+37/161 Testing: CoinRenderDepthContractOpenGLTest
+37/161 Test: CoinRenderDepthContractOpenGLTest
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderDepthContractTest" "--gpu"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderDepthContractOpenGLTest" start time: Oct 05 01:15 -03
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.19 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderDepthContractOpenGLTest" end time: Oct 05 01:15 -03
+"CoinRenderDepthContractOpenGLTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+41/161 Testing: CoinBgfxInstancingTest
+41/161 Test: CoinBgfxInstancingTest
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinBgfxInstancingTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinBgfxInstancingTest" start time: Oct 05 01:15 -03
+Output:
+----------------------------------------------------------
+affine PHONG directional+point max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+classified camera update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+classified material update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+resized target max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+fog fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+return from fog max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+clip fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+return from clip max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+uniform LEQUAL PHONG max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+LEQUAL coplanar materials max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+coplanar last occurrence must win max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+coplanar first-vs-last reference pixels_over_20=48
+outside viewport depth readback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=0,0,0 general_rgb=0,0,0
+outside viewport depth readback max_depth_error=0
+return from outside viewport with depth max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=0,0,0 general_rgb=0,0,0
+return from outside viewport with depth max_depth_error=0
+CoinBgfxInstancingTest passed
+<end of output>
+Test time =   0.31 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxInstancingTest" end time: Oct 05 01:15 -03
+"CoinBgfxInstancingTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+42/161 Testing: CoinBgfxInstancingOpenGLTest
+42/161 Test: CoinBgfxInstancingOpenGLTest
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinBgfxInstancingTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinBgfxInstancingOpenGLTest" start time: Oct 05 01:15 -03
+Output:
+----------------------------------------------------------
+affine PHONG directional+point max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+classified camera update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+classified material update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+resized target max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+fog fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+return from fog max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+clip fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+return from clip max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+uniform LEQUAL PHONG max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+LEQUAL coplanar materials max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+coplanar last occurrence must win max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+coplanar first-vs-last reference pixels_over_20=48
+outside viewport depth readback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=0,0,0 general_rgb=0,0,0
+outside viewport depth readback max_depth_error=0
+return from outside viewport with depth max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=0,0,0 general_rgb=0,0,0
+return from outside viewport with depth max_depth_error=5.96046e-08
+CoinBgfxInstancingTest passed
+<end of output>
+Test time =   0.23 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxInstancingOpenGLTest" end time: Oct 05 01:15 -03
+"CoinBgfxInstancingOpenGLTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+150/161 Testing: CoinRenderRttOwnership_vulkan
+150/161 Test: CoinRenderRttOwnership_vulkan
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderRttOwnershipTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderRttOwnership_vulkan" start time: Oct 05 01:15 -03
+Output:
+----------------------------------------------------------
+CoinRenderRttOwnershipTest passed
+<end of output>
+Test time =   0.24 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRttOwnership_vulkan" end time: Oct 05 01:15 -03
+"CoinRenderRttOwnership_vulkan" time elapsed: 00:00:00
+----------------------------------------------------------
+
+151/161 Testing: CoinRenderRttOwnership_opengl
+151/161 Test: CoinRenderRttOwnership_opengl
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderRttOwnershipTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderRttOwnership_opengl" start time: Oct 05 01:15 -03
+Output:
+----------------------------------------------------------
+CoinRenderRttOwnershipTest passed
+<end of output>
+Test time =   0.18 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRttOwnership_opengl" end time: Oct 05 01:15 -03
+"CoinRenderRttOwnership_opengl" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 05 01:15 -03

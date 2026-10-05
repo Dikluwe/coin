@@ -1,5 +1,7 @@
 # Materiais e geometria no CoinRender — Linux, 2026-10-05
 
+Etapa seguinte: [cache de Cubes e qualificação CPU](coin-render-cube-template-linux.md).
+
 Branch: `codex/coin-render-transform-performance`.
 Implementação de overlays e lowering: `6d076c4707`.
 Índice de materiais e notificações: `ff289a50b9`.

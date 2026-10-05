@@ -1,0 +1,473 @@
+{
+  "source_content_revision": "9737b2e1e60eba6b44988d684c2838271d99dc05",
+  "record": "Gate selectors and selected environment reconstructed from completed invocations; log outputs copied after execution. CTest definitions read subsequently; this file does not rerun tests or claim to preserve the full inherited environment.",
+  "gates": [
+    {
+      "name": "cpu",
+      "argv": [
+        "ctest",
+        "--test-dir",
+        "/tmp/coin-render-first-frame-wgpu",
+        "-R",
+        "^(CoinRenderActionTest|CoinRenderPlanAssemblyCoreTest|CoinRenderFrameReuseCoreTest|CoinRenderTransformCoreTest|CoinWgpuFfiFrameTest|CoinBgfxCoreTest|CoinRenderDepthContractTest|CoinRenderDrawStyleTest|CoinRenderClipPlaneTest)$",
+        "--output-on-failure"
+      ],
+      "selected_environment_overrides": {},
+      "exit_code": 0,
+      "passed": 9,
+      "skipped": 0,
+      "log": "cpu.log",
+      "ctest_definitions_observed_after_execution": [
+        {
+          "backtrace": 1,
+          "command": [
+            "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderActionTest"
+          ],
+          "name": "CoinRenderActionTest",
+          "properties": [
+            {
+              "name": "TIMEOUT",
+              "value": 30.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-wgpu/testsuite"
+            }
+          ]
+        },
+        {
+          "backtrace": 3,
+          "command": [
+            "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderPlanAssemblyCoreTest"
+          ],
+          "name": "CoinRenderPlanAssemblyCoreTest",
+          "properties": [
+            {
+              "name": "TIMEOUT",
+              "value": 30.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-wgpu/testsuite"
+            }
+          ]
+        },
+        {
+          "backtrace": 5,
+          "command": [
+            "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderTransformCoreTest"
+          ],
+          "name": "CoinRenderTransformCoreTest",
+          "properties": [
+            {
+              "name": "TIMEOUT",
+              "value": 30.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-wgpu/testsuite"
+            }
+          ]
+        },
+        {
+          "backtrace": 7,
+          "command": [
+            "/tmp/coin-render-first-frame-wgpu/bin/CoinBgfxCoreTest"
+          ],
+          "name": "CoinBgfxCoreTest",
+          "properties": [
+            {
+              "name": "TIMEOUT",
+              "value": 30.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-wgpu/testsuite"
+            }
+          ]
+        },
+        {
+          "backtrace": 9,
+          "command": [
+            "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderDepthContractTest"
+          ],
+          "name": "CoinRenderDepthContractTest",
+          "properties": [
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-wgpu/testsuite"
+            }
+          ]
+        },
+        {
+          "backtrace": 11,
+          "command": [
+            "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderFrameReuseCoreTest"
+          ],
+          "name": "CoinRenderFrameReuseCoreTest",
+          "properties": [
+            {
+              "name": "TIMEOUT",
+              "value": 30.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-wgpu/testsuite"
+            }
+          ]
+        },
+        {
+          "backtrace": 13,
+          "command": [
+            "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderClipPlaneTest"
+          ],
+          "name": "CoinRenderClipPlaneTest",
+          "properties": [
+            {
+              "name": "SKIP_RETURN_CODE",
+              "value": 77
+            },
+            {
+              "name": "TIMEOUT",
+              "value": 60.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-wgpu/testsuite"
+            }
+          ]
+        },
+        {
+          "backtrace": 15,
+          "command": [
+            "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderDrawStyleTest"
+          ],
+          "name": "CoinRenderDrawStyleTest",
+          "properties": [
+            {
+              "name": "SKIP_RETURN_CODE",
+              "value": 77
+            },
+            {
+              "name": "TIMEOUT",
+              "value": 60.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-wgpu/testsuite"
+            }
+          ]
+        },
+        {
+          "backtrace": 17,
+          "command": [
+            "/tmp/coin-render-first-frame-wgpu/bin/CoinWgpuFfiFrameTest"
+          ],
+          "name": "CoinWgpuFfiFrameTest",
+          "properties": [
+            {
+              "name": "TIMEOUT",
+              "value": 30.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-wgpu/testsuite"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "wgpu",
+      "argv": [
+        "ctest",
+        "--test-dir",
+        "/tmp/coin-render-first-frame-wgpu",
+        "-R",
+        "^(CoinWgpuMultiDeviceTest|CoinRenderCameraReuseReferenceTest|CoinRenderSceneTextureDirectTest)$",
+        "--output-on-failure"
+      ],
+      "selected_environment_overrides": {
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1"
+      },
+      "exit_code": 0,
+      "passed": 3,
+      "skipped": 0,
+      "log": "wgpu.log",
+      "ctest_definitions_observed_after_execution": [
+        {
+          "backtrace": 1,
+          "command": [
+            "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderCameraReuseReferenceTest"
+          ],
+          "name": "CoinRenderCameraReuseReferenceTest",
+          "properties": [
+            {
+              "name": "SKIP_RETURN_CODE",
+              "value": 77
+            },
+            {
+              "name": "TIMEOUT",
+              "value": 120.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-wgpu/testsuite"
+            }
+          ]
+        },
+        {
+          "backtrace": 3,
+          "command": [
+            "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderSceneTextureTest"
+          ],
+          "name": "CoinRenderSceneTextureDirectTest",
+          "properties": [
+            {
+              "name": "ENVIRONMENT",
+              "value": [
+                "COIN_RENDER_RTT_GPU_DIRECT=1"
+              ]
+            },
+            {
+              "name": "TIMEOUT",
+              "value": 30.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-wgpu/testsuite"
+            }
+          ]
+        },
+        {
+          "backtrace": 5,
+          "command": [
+            "/tmp/coin-render-first-frame-wgpu/bin/CoinWgpuMultiDeviceTest"
+          ],
+          "name": "CoinWgpuMultiDeviceTest",
+          "properties": [
+            {
+              "name": "TIMEOUT",
+              "value": 60.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-wgpu/testsuite"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bgfx",
+      "argv": [
+        "ctest",
+        "--test-dir",
+        "/tmp/coin-render-first-frame-bgfx",
+        "-R",
+        "^(CoinBgfxInstancingTest|CoinBgfxInstancingOpenGLTest|CoinRenderDepthContractVulkanTest|CoinRenderDepthContractOpenGLTest|CoinRenderRttOwnership_vulkan|CoinRenderRttOwnership_opengl)$",
+        "--output-on-failure"
+      ],
+      "selected_environment_overrides": {
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib"
+      },
+      "exit_code": 0,
+      "passed": 6,
+      "skipped": 0,
+      "log": "bgfx.log",
+      "ctest_definitions_observed_after_execution": [
+        {
+          "backtrace": 1,
+          "command": [
+            "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderDepthContractTest",
+            "--gpu"
+          ],
+          "name": "CoinRenderDepthContractVulkanTest",
+          "properties": [
+            {
+              "name": "ENVIRONMENT",
+              "value": [
+                "COIN_BGFX_RENDERER=vulkan",
+                "COIN_BGFX_DISABLE_DRAW_GROUPING=1"
+              ]
+            },
+            {
+              "name": "SKIP_RETURN_CODE",
+              "value": 77
+            },
+            {
+              "name": "TIMEOUT",
+              "value": 60.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-bgfx/testsuite"
+            }
+          ]
+        },
+        {
+          "backtrace": 3,
+          "command": [
+            "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderDepthContractTest",
+            "--gpu"
+          ],
+          "name": "CoinRenderDepthContractOpenGLTest",
+          "properties": [
+            {
+              "name": "ENVIRONMENT",
+              "value": [
+                "COIN_BGFX_RENDERER=opengl",
+                "COIN_BGFX_DISABLE_DRAW_GROUPING=1"
+              ]
+            },
+            {
+              "name": "SKIP_RETURN_CODE",
+              "value": 77
+            },
+            {
+              "name": "TIMEOUT",
+              "value": 60.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-bgfx/testsuite"
+            }
+          ]
+        },
+        {
+          "backtrace": 5,
+          "command": [
+            "/tmp/coin-render-first-frame-bgfx/bin/CoinBgfxInstancingTest"
+          ],
+          "name": "CoinBgfxInstancingTest",
+          "properties": [
+            {
+              "name": "ENVIRONMENT",
+              "value": [
+                "COIN_BGFX_RENDERER=vulkan"
+              ]
+            },
+            {
+              "name": "SKIP_RETURN_CODE",
+              "value": 77
+            },
+            {
+              "name": "TIMEOUT",
+              "value": 60.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-bgfx/testsuite"
+            }
+          ]
+        },
+        {
+          "backtrace": 7,
+          "command": [
+            "/tmp/coin-render-first-frame-bgfx/bin/CoinBgfxInstancingTest"
+          ],
+          "name": "CoinBgfxInstancingOpenGLTest",
+          "properties": [
+            {
+              "name": "ENVIRONMENT",
+              "value": [
+                "COIN_BGFX_RENDERER=opengl"
+              ]
+            },
+            {
+              "name": "SKIP_RETURN_CODE",
+              "value": 77
+            },
+            {
+              "name": "TIMEOUT",
+              "value": 60.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-bgfx/testsuite"
+            }
+          ]
+        },
+        {
+          "backtrace": 9,
+          "command": [
+            "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderRttOwnershipTest"
+          ],
+          "name": "CoinRenderRttOwnership_vulkan",
+          "properties": [
+            {
+              "name": "ENVIRONMENT",
+              "value": [
+                "COIN_BGFX_RENDERER=vulkan",
+                "COIN_BGFX_TRANSPARENCY=auto"
+              ]
+            },
+            {
+              "name": "TIMEOUT",
+              "value": 30.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-bgfx/testsuite"
+            }
+          ]
+        },
+        {
+          "backtrace": 11,
+          "command": [
+            "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderRttOwnershipTest"
+          ],
+          "name": "CoinRenderRttOwnership_opengl",
+          "properties": [
+            {
+              "name": "ENVIRONMENT",
+              "value": [
+                "COIN_BGFX_RENDERER=opengl",
+                "COIN_BGFX_TRANSPARENCY=auto"
+              ]
+            },
+            {
+              "name": "TIMEOUT",
+              "value": 30.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-bgfx/testsuite"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "surface",
+      "argv": [
+        "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderSurfaceTest",
+        "--camera-only",
+        "--require-display"
+      ],
+      "selected_environment_overrides": {
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1"
+      },
+      "exit_code": 0,
+      "passed": 1,
+      "skipped": 0,
+      "log": "surface.log",
+      "scope": "Native camera API validation; no display latency measurement"
+    }
+  ]
+}
