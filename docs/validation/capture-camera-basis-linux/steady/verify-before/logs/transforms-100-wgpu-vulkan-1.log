@@ -1,0 +1,30 @@
+startup_detail arguments_ms=0.025638 coin_init_ms=2.08106 capability_probe_ms=175.486
+scene_detail parse_ms=315.538 wrapper_ms=0.03204 camera_fit_ms=72.9512
+scene_load_ms=388.591
+animation_detail mode=transforms animated_percent=100 eligible=40000 selected=40000 prepared_clones=0 prepare_ms=27.1082 frame_step=100 time_step_seconds=1.66667 selection_fnv64=0x3688529444a58165
+startup_detail material_search_ms=0.099876 target_setup_ms=4.14639
+WebGPU_first_detail render_ms=310.502 publication_copy_ms=2.19581 update_ms=19.0909 total_with_update_ms=331.789 before_frame_since_main_ms=618.818 result_since_main_ms=931.516
+WebGPU_first_frame_ms=312.698
+capture backend=WebGPU frame_index=0 logical_frame=0 rgba_fnv64=0x39b5e6d601c28ac1 rgb_fnv64=0x6e47bf0b9a61fe97 state_fnv64=0x949914c167b5f04e image=/tmp/coin-render-capture-verify-before/images/transforms-100-wgpu-vulkan-1-WebGPU-000000.ppm
+capture backend=WebGPU frame_index=1 logical_frame=100 rgba_fnv64=0xe44285c7969dfdb7 rgb_fnv64=0x5df8e090636e7a13 state_fnv64=0x37bbcca55c2d85ee image=/tmp/coin-render-capture-verify-before/images/transforms-100-wgpu-vulkan-1-WebGPU-000001.ppm
+capture backend=WebGPU frame_index=2 logical_frame=200 rgba_fnv64=0xe0ffbe0dc983f269 rgb_fnv64=0x2120f2374f7c92c7 state_fnv64=0xd3bb33b2ffdb79c9 image=/tmp/coin-render-capture-verify-before/images/transforms-100-wgpu-vulkan-1-WebGPU-000002.ppm
+capture backend=WebGPU frame_index=3 logical_frame=300 rgba_fnv64=0xa2315f1464939822 rgb_fnv64=0x993badb5e330a08a state_fnv64=0xabaa8cf4de9ee4bb image=/tmp/coin-render-capture-verify-before/images/transforms-100-wgpu-vulkan-1-WebGPU-000003.ppm
+capture backend=WebGPU frame_index=4 logical_frame=400 rgba_fnv64=0xbaeeeb46dc531ace rgb_fnv64=0x3053d3a2d2881628 state_fnv64=0x379f4595ad8303ba image=/tmp/coin-render-capture-verify-before/images/transforms-100-wgpu-vulkan-1-WebGPU-000004.ppm
+capture backend=WebGPU frame_index=5 logical_frame=500 rgba_fnv64=0x10c642705cfea30d rgb_fnv64=0xe31a793cf72a5fc5 state_fnv64=0x339dfd456328b96 image=/tmp/coin-render-capture-verify-before/images/transforms-100-wgpu-vulkan-1-WebGPU-000005.ppm
+capture backend=WebGPU frame_index=6 logical_frame=600 rgba_fnv64=0x3b6dd2bbd6b3e2c5 rgb_fnv64=0x18d6de67d9680587 state_fnv64=0x76c6a86585db1c57 image=/tmp/coin-render-capture-verify-before/images/transforms-100-wgpu-vulkan-1-WebGPU-000006.ppm
+WebGPU_animation_final logical_frame=600 state_fnv64=0x76c6a86585db1c57
+samples_output=/tmp/coin-render-capture-verify-before/samples/transforms-100-wgpu-vulkan-1.csv rows=7
+rgba_fnv64=0x3b6dd2bbd6b3e2c5
+adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) vendor_id=0x10de device_id=0x2560 backend=wgpu size=1024x1024 warmup=0 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=transforms
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..6 warmup_indices=-0..-1 frame_step=100 captures=7 capture_io=outside_frame_timers wall_throughput_includes_capture=1 wall_throughput_scope=update+frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+WebGPU frames=7 median_ms=65.1444 p95_ms=312.698 min_ms=64.615 max_ms=312.698
+WebGPU_render frames=7 median_ms=64.8154 p95_ms=310.502 min_ms=64.258 max_ms=310.502
+WebGPU_copy frames=7 median_ms=0.382923 p95_ms=2.19581 min_ms=0.328942 max_ms=2.19581
+WebGPU_timing_total frames=7 median_ms=88.317641 p95_ms=331.788994 p99_ms=331.788994 max_ms=331.788994 over_16_67=7 over_33_33=7
+WebGPU_timing_update frames=7 median_ms=23.194591 p95_ms=24.253652 p99_ms=24.253652 max_ms=24.253652 over_16_67=7 over_33_33=0
+WebGPU_timing_render frames=7 median_ms=64.815408 p95_ms=310.502294 p99_ms=310.502294 max_ms=310.502294 over_16_67=7 over_33_33=7
+WebGPU_throughput frames=7 total_ms=954.47 fps=7.33391
+WebGPU_cache last_frame_uploads=1 last_frame_uploaded_bytes=5760864 last_frame_hits=1 cumulative_uploads=7 cumulative_uploaded_bytes=40328592 cumulative_hits=6
+backend_cleanup_begin
+backend_cleanup_ms=6.84184
+benchmark_peak_rss_kib=458984

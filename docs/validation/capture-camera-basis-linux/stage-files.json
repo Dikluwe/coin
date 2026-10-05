@@ -1,0 +1,3181 @@
+{
+  "scope": "Capture camera basis evidence and report",
+  "inventory_excludes_itself": true,
+  "files": [
+    {
+      "path": "docs/coin-render-capture-camera-basis-linux.md",
+      "bytes": 10913,
+      "sha256": "c31bc55fee511f6dca40b1a0a935a68de2b5f52ac32a8a7e62a4e927ee8dd40b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/README.md",
+      "bytes": 3804,
+      "sha256": "80d6bbec805234719d4cc751017c8fdedbf8c2b69c27a172674ae3604e9d7e62"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/analysis.json",
+      "bytes": 7118974,
+      "sha256": "fd54d85f3c7d1626351fbeb2c12c5b655ea37ad8f937e7af0f720ac43fe6cc4f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/analyze-capture.py",
+      "bytes": 32057,
+      "sha256": "bfe7a1d630f61f94de627bf0982a5015c5b255ee7f14d0c9024713903ee299b5"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/binaries-after.json",
+      "bytes": 3564,
+      "sha256": "675ea696694439ef07b34da0d8076911fa297370554f0dc619abc3f5f372bc90"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/binaries-before.json",
+      "bytes": 4759,
+      "sha256": "56aa83dc43c64da291224662b58ded71d91d7ad1f5dda9897a4c47ff5127105f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/binaries-coingl.json",
+      "bytes": 1898,
+      "sha256": "c1a342954e8e9eb2b4cf971599ee639b667b3d60b148462644104ac68789058d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/binary-hashes-post-campaign.json",
+      "bytes": 9161,
+      "sha256": "9f96e1bcd16ea674198ae6878179ba0fa04922cdf6de241c30d3ff6bfa4f7951"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/builds/coin-render-capture-build-bgfx-oracle.log",
+      "bytes": 161,
+      "sha256": "38673a41c762c2949a3b7107da0373f10dac6515c998e822b6789b18d5be5f45"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/builds/coin-render-capture-build-bgfx.log",
+      "bytes": 4027,
+      "sha256": "ee9bcfb5e0c7519029e85729b16e3ee23215b95bf91b94f209f55af87c86b34a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/builds/coin-render-capture-build-wgpu-final.log",
+      "bytes": 2170,
+      "sha256": "a43e4b79907c1fde68dff42192ecac04c936f0a6b5cc275e638f2d2dd752ead6"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/builds/coin-render-capture-build-wgpu-oracle.log",
+      "bytes": 161,
+      "sha256": "38673a41c762c2949a3b7107da0373f10dac6515c998e822b6789b18d5be5f45"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/builds/coin-render-capture-build-wgpu-retry.log",
+      "bytes": 6091,
+      "sha256": "20774574b2e413a988c738dc55b110c85405abf14e245d904035d74dbbc120d9"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/builds/coin-render-capture-build-wgpu.log",
+      "bytes": 6086,
+      "sha256": "15d73d6a139248eeb97dbd53a70a776e4ff07798672194f6c973d84b28d48b8e"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/campaign-commands.json",
+      "bytes": 5150,
+      "sha256": "01faaa92711fe1f3ff07a07ddd0643b25dc7b64a93fcc209283aa36b45bd2861"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/capture-camera-basis.png",
+      "bytes": 283949,
+      "sha256": "5b63f308792cf5abca0002dd4a4da63f36bcf4412d9a99f061de77bf75eed395"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/capture-camera-basis.svg",
+      "bytes": 63973,
+      "sha256": "b008bca277b1b0254139a8ca4a4e4aafbac87f492e6cd5bbc5312c7150743c94"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-bgfx-opengl-1.log",
+      "bytes": 2425,
+      "sha256": "efef119fbdff27c2e240d1a176ca1e9872478af71d44403213956e4a3e6db5dd"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-bgfx-opengl-2.log",
+      "bytes": 2425,
+      "sha256": "503f5ccc14e5442fec4016a490a5ac3a1b20b617194f47a07e4eb5ec3ff56e4f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-bgfx-opengl-3.log",
+      "bytes": 2432,
+      "sha256": "5a3a82f3c4a01610cde904d41caf8178d1f542e50d5b55bbdaa680f980de81e1"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-bgfx-opengl-4.log",
+      "bytes": 2435,
+      "sha256": "74b000a89c53b4d1d79fd06049c551a5aa551f20d8f078997a96b0247efc4284"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-bgfx-opengl-5.log",
+      "bytes": 2430,
+      "sha256": "d3b9cb88b20b1e394f72e3ccf1705234c3bc7e458c4e3a1e3a832218b5ccd4f0"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-bgfx-opengl-6.log",
+      "bytes": 2427,
+      "sha256": "8600cd6244f92b9cb1a71497fa1487d82707a70ee2d03b49541e0a556160a33a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-bgfx-opengl-7.log",
+      "bytes": 2425,
+      "sha256": "618d790cae70367c17e13e2e9a6e45a41b8230dfe70681e3d5564be02ced2363"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-bgfx-opengl-8.log",
+      "bytes": 2431,
+      "sha256": "40f55793e8faf4e4b759d35bdcf568d590c6f39675589047d9635096aab7032a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-bgfx-opengl-9.log",
+      "bytes": 2431,
+      "sha256": "fa7c63b98850fc72789dc9d0b772c4b5abe8347e50180c27cda4f72cb83467a3"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-bgfx-vulkan-1.log",
+      "bytes": 2430,
+      "sha256": "7ef51506c73edb9db56cdb1834a4f1481be83be9f55cf09790d5ad2eea07cdca"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-bgfx-vulkan-2.log",
+      "bytes": 2440,
+      "sha256": "d2d4c51832fb4fee47fa83c6d969dc285f7a83174fb01017b009d435accf0b53"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-bgfx-vulkan-3.log",
+      "bytes": 2433,
+      "sha256": "21b90ba947e4f3d17d7d09848d437a73aa1eb84a93a81b9050048fba3c5e2095"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-bgfx-vulkan-4.log",
+      "bytes": 2433,
+      "sha256": "ee0a5392afc0e19fc575498feedc948eafca5e74c1f87fa17b91848492c713a9"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-bgfx-vulkan-5.log",
+      "bytes": 2430,
+      "sha256": "93a909675aaf38ff45bccac25272e70fd0610a65cbfab243374e0b141fd0a6b4"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-bgfx-vulkan-6.log",
+      "bytes": 2436,
+      "sha256": "6dc72b1b16e28f4fbd4e7b1caabe2a18ba4ac7c992b58434cd6e93779828d85f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-bgfx-vulkan-7.log",
+      "bytes": 2429,
+      "sha256": "2d56a651f4b1e6145319ee6f6d5227843b83d85407b1f45e1410c4e03666ee62"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-bgfx-vulkan-8.log",
+      "bytes": 2439,
+      "sha256": "976254188c13eda1bb3836aacaaefbe1e9ae7cca74c5e9db4fb8dbc145b31438"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-bgfx-vulkan-9.log",
+      "bytes": 2430,
+      "sha256": "3662716c3f95f44ee19089aa6ae8214c301cdc9c606d828d69b389d0d593bc6c"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-coingl-1.log",
+      "bytes": 2283,
+      "sha256": "da41b90c270eb90f2c0d5051eefc8b65d295cd2d3bf52d477ac06638d9a66bdf"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-coingl-2.log",
+      "bytes": 2277,
+      "sha256": "30d472c517e52226953e32455f10463bb3291164888c20424a06e14c0e3c4d7e"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-coingl-3.log",
+      "bytes": 2277,
+      "sha256": "86e633e91d44d191fe6b49aa5ce4ad112e0ac081067b65b45e852fd8c48fa8b2"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-coingl-4.log",
+      "bytes": 2277,
+      "sha256": "4e9ce30cf307ce2c007f7d69369cf63e55b7e8de3fb3a22227e3a1706410c026"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-coingl-5.log",
+      "bytes": 2279,
+      "sha256": "c4e3085505d144c5cbea65f5660e562b59b63c0a7f1f5c32edc3b86d71ac6253"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-coingl-6.log",
+      "bytes": 2279,
+      "sha256": "467b4799403531bbba0ad5903542e222c390dfbffddaa77c1fbc66b0a2628c6f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-coingl-7.log",
+      "bytes": 2269,
+      "sha256": "10ad5bc8485b2a372a2a651052ae80498d0963cd37ea04a3ef1688bc89f9a296"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-coingl-8.log",
+      "bytes": 2278,
+      "sha256": "85cde5fbbb046f2243d7bf6e7c18150c7d62b1f99bf84f14df3508a887014ef7"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-coingl-9.log",
+      "bytes": 2274,
+      "sha256": "acc15f56fbd5537364246d8065f8eab516acc5e43d485cf623debc59244a4012"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-wgpu-vulkan-1.log",
+      "bytes": 2526,
+      "sha256": "2f4c6858804c941db5e2c357c0c617ca6b408632bdfbe256f0ebf239ecf708b1"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-wgpu-vulkan-2.log",
+      "bytes": 2522,
+      "sha256": "52424b3b1adc80d270eb621803b05b55287f2866d64a01eb878c575dba59d304"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-wgpu-vulkan-3.log",
+      "bytes": 2515,
+      "sha256": "4037c8aacfca82b9859970b78020ed7e9c308b61e4de84b20577447a6d3ff3b2"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-wgpu-vulkan-4.log",
+      "bytes": 2525,
+      "sha256": "be10e538d5db94ac00e1c8fd72da7852b7e1be5f91086c94dd3e8bd29d000e68"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-wgpu-vulkan-5.log",
+      "bytes": 2518,
+      "sha256": "177dc958f4d6e11bf189909af7564941ba04a456e3e077370f6b02c13febca2a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-wgpu-vulkan-6.log",
+      "bytes": 2520,
+      "sha256": "e7af7aaeda3b48bf5b21bec265eac082c4d0650874bdb01c733981083d611ded"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-wgpu-vulkan-7.log",
+      "bytes": 2522,
+      "sha256": "1a6024ab24fbd7c1c6b82a8a88e388594533d6909ca6480aa58fef0906a5f1ce"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-wgpu-vulkan-8.log",
+      "bytes": 2522,
+      "sha256": "200f023ef1f80ea334acf6843b8b656a9362189ab52cff3d064a9d4f30ee71e9"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/logs/static-wgpu-vulkan-9.log",
+      "bytes": 2521,
+      "sha256": "733228b53b1ac3269cb1d2ebadfe53df6eaca0d2586050bcefece795df25c6d0"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/manifest.json",
+      "bytes": 80261,
+      "sha256": "780ee1d7e802f4f1f7b1612d10c074df4cdbf42422cfefa63e5a38e085390292"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/medians.json",
+      "bytes": 4504,
+      "sha256": "4dd70076afdc05be48431a6408355f4335a0378fce4303cf487b8054b60d4e5a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/results.json",
+      "bytes": 56558,
+      "sha256": "ca9bd14872be8e87dc14fded3c9435e690329573b7eac4b047a24b432f082883"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-bgfx-opengl-1.csv",
+      "bytes": 173,
+      "sha256": "a81a9f9a993d169b3d7cb52aad9c7c692cfd10084e87a68ca2f55c6bd0aa411b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-bgfx-opengl-2.csv",
+      "bytes": 184,
+      "sha256": "cf6d6c9c8d8188e95cc9412edc26f1a5f0a00076d3376d1bedf895311b059d5b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-bgfx-opengl-3.csv",
+      "bytes": 173,
+      "sha256": "43096d1db4990cd48cfe6941bfb701948f60b50c0622b9cbfb7fd3324023e899"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-bgfx-opengl-4.csv",
+      "bytes": 184,
+      "sha256": "51450526a0a07bb05968805a8003266bf903df139ed6b4e32b3d04e0373cbd87"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-bgfx-opengl-5.csv",
+      "bytes": 184,
+      "sha256": "c151ac69d17a18b62f98e1e75c3064e2f33cbe516ba7e36730808e43129d44ab"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-bgfx-opengl-6.csv",
+      "bytes": 184,
+      "sha256": "1df61f0ac0bf593583c50f353e195c7c2bde48109fc5f34cc529f2fb495916e1"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-bgfx-opengl-7.csv",
+      "bytes": 176,
+      "sha256": "3ae2901f84dbcb37f17fe47069deb2bc3f3d9163aa3b59b61f21cf958fa8c9cd"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-bgfx-opengl-8.csv",
+      "bytes": 176,
+      "sha256": "21316dbd7c44ba7a266465dcc6ae3660551f5b9032b07cdfdcb544becd93d9c1"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-bgfx-opengl-9.csv",
+      "bytes": 176,
+      "sha256": "96dead66861332658f91d195f7ba28fb85e6142a8be5dff293525388f2dc9ee2"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-bgfx-vulkan-1.csv",
+      "bytes": 173,
+      "sha256": "18db19b89758f97207d4a94e337d1a6b609cd59e8f406628a2e88de8763e0507"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-bgfx-vulkan-2.csv",
+      "bytes": 173,
+      "sha256": "44035b279035ff13c7882cec13c4dbb09845a88f17c143069b79c6208b2e6370"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-bgfx-vulkan-3.csv",
+      "bytes": 184,
+      "sha256": "6472c460a149c83e91a902df31c4a2fd67e049e1fa0e0d17cf8efad9ae453fbe"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-bgfx-vulkan-4.csv",
+      "bytes": 153,
+      "sha256": "2f048173fd183e81bf47901be8413d810c2c09552618bd3fce692b03e24de6bd"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-bgfx-vulkan-5.csv",
+      "bytes": 184,
+      "sha256": "e93ca8a257f16558ea650845800404882ad7e1df3200aba88db3fd88a1cdbc68"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-bgfx-vulkan-6.csv",
+      "bytes": 165,
+      "sha256": "fec145cc8b26941f0d2fcf7edac80f5ba8e67b6a2a894769a614b0eaeeecdd24"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-bgfx-vulkan-7.csv",
+      "bytes": 184,
+      "sha256": "3bedd3470029115b673f6fd0ed6a4148be0fab2da399dc4220d539b71712f052"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-bgfx-vulkan-8.csv",
+      "bytes": 162,
+      "sha256": "dfecf8a8817c18c84d24cef466df5161c7f89a0ca0cec6c9f371950475ad47be"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-bgfx-vulkan-9.csv",
+      "bytes": 173,
+      "sha256": "f7816f52a51f674ab9e1ef70cc9932b99fda1fcb0ee897f74093983399d2a59f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-coingl-1.csv",
+      "bytes": 168,
+      "sha256": "d0d5bcaf78140ce70ccf1e4ca867e626977a2ca257e710033155b0888b343832"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-coingl-2.csv",
+      "bytes": 171,
+      "sha256": "6030321da74261de7761111f817366147c52952ebbf4c37f74ff789354613293"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-coingl-3.csv",
+      "bytes": 179,
+      "sha256": "9f697590a8094df4b27245b6ac2fc6c65e1bacdf3179e5bf84b87dd4ef38033a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-coingl-4.csv",
+      "bytes": 179,
+      "sha256": "4a7607960490a6bc3b01a68988f7c814b79c99ec1f22325cb6efd8e492928690"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-coingl-5.csv",
+      "bytes": 157,
+      "sha256": "a1a6ccd8139603c09edc8b6bf8a213250cac0ce6a732427b2f594c9d1896cfa4"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-coingl-6.csv",
+      "bytes": 179,
+      "sha256": "38b625f4be6b798bde8b0c7b2ea43597af5606c3b579fa499efa4a6f4920ec68"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-coingl-7.csv",
+      "bytes": 179,
+      "sha256": "e854caec507aa2333befd32adbdc54f0f0dd1d02bbbe530357fd39f42d3fb349"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-coingl-8.csv",
+      "bytes": 179,
+      "sha256": "ce69f484baeb05ee85fbaf683c6e50e5bb1dbfbc560fc215be00f6c3fac8185c"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-coingl-9.csv",
+      "bytes": 179,
+      "sha256": "dd3cf4ab37837fe17733fab8549d326b72cfc4355bbf23f1c16e93399f7de151"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-wgpu-vulkan-1.csv",
+      "bytes": 178,
+      "sha256": "73513880f56d903ed4acd4755ec7bc8c18f627d49277601534a6760b86cc2ede"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-wgpu-vulkan-2.csv",
+      "bytes": 162,
+      "sha256": "58c3ff1414d8c0675da9622762ce89a495cfb14cc861ab47b02a6d60f9f0aad7"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-wgpu-vulkan-3.csv",
+      "bytes": 168,
+      "sha256": "29cb71b87b9dd557b94f32c5b98af553e4df841430e8acf0154a30d477619142"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-wgpu-vulkan-4.csv",
+      "bytes": 178,
+      "sha256": "e438cc7cc50feddd8b4c85195080e1b1b5c9ce94dcea6ba79bba4628c1bdc29d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-wgpu-vulkan-5.csv",
+      "bytes": 178,
+      "sha256": "a0c35682b0a7c816fa6d60416ba64717907e7560f226372abc0e8443a358fffa"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-wgpu-vulkan-6.csv",
+      "bytes": 156,
+      "sha256": "0a77f192286bea980195232d4e431449b34261e1e1151e52bda32120d24b594d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-wgpu-vulkan-7.csv",
+      "bytes": 178,
+      "sha256": "17d109eac832397ec95026e53f7680c25207c39f409d2813c7d7c0f2b64c89bb"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-wgpu-vulkan-8.csv",
+      "bytes": 156,
+      "sha256": "351c413461834b9bab87474256ee8ffdbca9d2ad34d4122247c9aeccac5cf390"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/after/samples/static-wgpu-vulkan-9.csv",
+      "bytes": 178,
+      "sha256": "941d02bd9764a48e3733ec420180c99130f4b68a06dd0fc323219ed3c32023d2"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/analyze_animation_images.py",
+      "bytes": 4587,
+      "sha256": "ab2d85a2a60aa883a5f92fc1ca9d089ab50aed6451dc79fcc48a919c771cf556"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/archive-manifest.json",
+      "bytes": 42044,
+      "sha256": "f18120fa4deea1cc870ac16f3ff9b13a5341fbe6a3722d6d2b57e396de8a76b1"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-bgfx-opengl-1.log",
+      "bytes": 2437,
+      "sha256": "9d1b56704f883255bcf02792c7fb5f38e22250ec5430d2dfd3bb31708981b465"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-bgfx-opengl-2.log",
+      "bytes": 2431,
+      "sha256": "7abf3166f92e7adfa718cb77b406f7ddeb6c85f5bec49d5e205b1925ab9a9dd4"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-bgfx-opengl-3.log",
+      "bytes": 2425,
+      "sha256": "0ea4a6919e2c3fa34ece13e8ff10fb936786e22242d176714e73f755bbba4a12"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-bgfx-opengl-4.log",
+      "bytes": 2432,
+      "sha256": "9ba9e89d71a274121d346b8dcebb0577d49254aca0d6421a8c41de571364c51d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-bgfx-opengl-5.log",
+      "bytes": 2427,
+      "sha256": "02506e170c9271246c3e80781f55e0910e338ad4223174c5cd36a26ddbf3f0f1"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-bgfx-opengl-6.log",
+      "bytes": 2435,
+      "sha256": "e9976215fcd014c9d3ed94d659d907dba142adc228f8c7c785dec819c26ae6bd"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-bgfx-opengl-7.log",
+      "bytes": 2434,
+      "sha256": "7b889c478320e0cb256d59cfdc226761ee1a6412b047d13066ff9933264ed4e1"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-bgfx-opengl-8.log",
+      "bytes": 2436,
+      "sha256": "e0903c6f4af819aac693d54b7773ce6fe5f66d3b8eb3f39ffa04c940daee0981"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-bgfx-opengl-9.log",
+      "bytes": 2429,
+      "sha256": "f205544f67b58f7daf0479692d387f1c87b0c60aedb656549c0fb1dce67dcbb3"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-bgfx-vulkan-1.log",
+      "bytes": 2435,
+      "sha256": "92f2b78ebeb968b5573c9b9c4fe9bdc53c7f45d10f51a22e65e841f6b074b566"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-bgfx-vulkan-2.log",
+      "bytes": 2439,
+      "sha256": "63d8735e4e2458a302ba400b9ae5f10bb5852446c83043bedbdc8ddc331840ff"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-bgfx-vulkan-3.log",
+      "bytes": 2440,
+      "sha256": "b347f1977c303f793b71c192b8b4ea7f0c333827a13cde25f089a94f08ce09ba"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-bgfx-vulkan-4.log",
+      "bytes": 2435,
+      "sha256": "7ac327fec8329e1a8d38b45df813426becc51748c8538c43ac95f3709ede237f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-bgfx-vulkan-5.log",
+      "bytes": 2434,
+      "sha256": "0ef67a16581c6f34cba640e52a035fbd558921e6c636247c06cd67f912092230"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-bgfx-vulkan-6.log",
+      "bytes": 2437,
+      "sha256": "ddbb7b4b79bef17c9ab80a799804514658fb18ab24d55996ec527f33ebf471ba"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-bgfx-vulkan-7.log",
+      "bytes": 2433,
+      "sha256": "72295ee9bcb11d71491e774f5759255ffd88a057ec0a0e5cf47f923bbe3e5b1b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-bgfx-vulkan-8.log",
+      "bytes": 2437,
+      "sha256": "4338e2cd6859620795be170c0fa406fd847590cb852042e8899debca44a4c778"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-bgfx-vulkan-9.log",
+      "bytes": 2441,
+      "sha256": "2d9750eaa91ebda702e53ee2d1c381c24ec15998cba77bb5f41e73f395908876"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-coingl-1.log",
+      "bytes": 2283,
+      "sha256": "da41b90c270eb90f2c0d5051eefc8b65d295cd2d3bf52d477ac06638d9a66bdf"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-coingl-2.log",
+      "bytes": 2277,
+      "sha256": "30d472c517e52226953e32455f10463bb3291164888c20424a06e14c0e3c4d7e"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-coingl-3.log",
+      "bytes": 2277,
+      "sha256": "86e633e91d44d191fe6b49aa5ce4ad112e0ac081067b65b45e852fd8c48fa8b2"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-coingl-4.log",
+      "bytes": 2277,
+      "sha256": "4e9ce30cf307ce2c007f7d69369cf63e55b7e8de3fb3a22227e3a1706410c026"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-coingl-5.log",
+      "bytes": 2279,
+      "sha256": "c4e3085505d144c5cbea65f5660e562b59b63c0a7f1f5c32edc3b86d71ac6253"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-coingl-6.log",
+      "bytes": 2279,
+      "sha256": "467b4799403531bbba0ad5903542e222c390dfbffddaa77c1fbc66b0a2628c6f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-coingl-7.log",
+      "bytes": 2269,
+      "sha256": "10ad5bc8485b2a372a2a651052ae80498d0963cd37ea04a3ef1688bc89f9a296"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-coingl-8.log",
+      "bytes": 2278,
+      "sha256": "85cde5fbbb046f2243d7bf6e7c18150c7d62b1f99bf84f14df3508a887014ef7"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-coingl-9.log",
+      "bytes": 2274,
+      "sha256": "acc15f56fbd5537364246d8065f8eab516acc5e43d485cf623debc59244a4012"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-wgpu-vulkan-1.log",
+      "bytes": 2520,
+      "sha256": "a796ac912cef9d7d8777c7b3722e4cbc6877cc585bbe693840fe42c4c973f1d8"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-wgpu-vulkan-2.log",
+      "bytes": 2516,
+      "sha256": "7de9c1594975ea2391a7e8facaaeaeb1634c2a430741ae99411068cce6f28b57"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-wgpu-vulkan-3.log",
+      "bytes": 2527,
+      "sha256": "8d007b636d30d147b1b42fcc131260b9d40b165a3261f63229733c79e17ececd"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-wgpu-vulkan-4.log",
+      "bytes": 2526,
+      "sha256": "87d3dd02e44d392288524bbffd61187c23ccd2e81804db5b91826abdc7ce74c2"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-wgpu-vulkan-5.log",
+      "bytes": 2524,
+      "sha256": "d6166fa69e13f6aa8ceb67e4e2e20fadc2edaac9202febe12c94d0137d3d2cef"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-wgpu-vulkan-6.log",
+      "bytes": 2526,
+      "sha256": "6d28e745bfdcc37591ac603be2ace85d40ade16de86ef49c215a41e558a1dbbc"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-wgpu-vulkan-7.log",
+      "bytes": 2526,
+      "sha256": "46143df75bfec595efbf43878943bfbecf9a62a578437e5b0265a4784e086272"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-wgpu-vulkan-8.log",
+      "bytes": 2520,
+      "sha256": "07f877fc960b1d41bdc0e1f36ce22dbd99268221ff222474471a9f2cb27b6773"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/logs/static-wgpu-vulkan-9.log",
+      "bytes": 2522,
+      "sha256": "cde8df0e06f91fc9a5ead337ab203bcd07c17d923332e3393d99de1c06175aba"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/manifest.json",
+      "bytes": 80702,
+      "sha256": "5380f137473d5c1bc8621c8239e40e345e1f9e95250cfb0cb831369b4c6481de"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/medians.json",
+      "bytes": 4506,
+      "sha256": "0c2343243ec5a3b5bf400f777bcb38b05b9ff53214e46a7e947ca97b52a93b6e"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/results.json",
+      "bytes": 56575,
+      "sha256": "ec60243d2ef5e3db9322f42767c93d5fe01fac6784c2a5aa027a85a49bd841f1"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-bgfx-opengl-1.csv",
+      "bytes": 184,
+      "sha256": "61060bd2ca351eba57c1cb887926b289d11dbc01eae0b19672258837b77ef447"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-bgfx-opengl-2.csv",
+      "bytes": 176,
+      "sha256": "6d23fc5e203f5bfa8b7ba778e1f93a53e3a512200a991442673c89c6eb31504c"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-bgfx-opengl-3.csv",
+      "bytes": 176,
+      "sha256": "9b88f1e9b570478b8dd9e67eb5085a00d71b3643408fca5540206d77a11bad44"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-bgfx-opengl-4.csv",
+      "bytes": 184,
+      "sha256": "d3ba9a317f6b53be5609e012c4b3b333eb754ceda003b09a893404cbc1ce4796"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-bgfx-opengl-5.csv",
+      "bytes": 172,
+      "sha256": "7a5aa187f1cf4044b862234ac82d1b0de53633bf67e6bd37e0f443212e5c0450"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-bgfx-opengl-6.csv",
+      "bytes": 173,
+      "sha256": "7a6fd621d3f6e4fc56ab70ca7e6f10b27af45194ca4a9e361f54efacf4a3194b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-bgfx-opengl-7.csv",
+      "bytes": 170,
+      "sha256": "4e54744d6ff5937760e308392bd38aab0d3e886348c58effcd338fd6c3482dfa"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-bgfx-opengl-8.csv",
+      "bytes": 184,
+      "sha256": "24208984a58357dfe454e3c91e904a80b3d8bec8f7b9bc8c043a7599f50e3966"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-bgfx-opengl-9.csv",
+      "bytes": 176,
+      "sha256": "9ae8782660753cd5af4c27c988064d994b6b9a117b7fd273161ff3a5d92e0028"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-bgfx-vulkan-1.csv",
+      "bytes": 168,
+      "sha256": "1052258af31ede674a31b10ac0508692fb55472ac9f90dbdf07b782b8953a0e1"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-bgfx-vulkan-2.csv",
+      "bytes": 184,
+      "sha256": "68b40d0796cd8acd4653dc4eb89836594a6c214a8125de4008cba08ef7a539a3"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-bgfx-vulkan-3.csv",
+      "bytes": 173,
+      "sha256": "412e363817be8ddff16a1f973b9b6b19d7c014ebd70d65a77f668f3b43ba3bdb"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-bgfx-vulkan-4.csv",
+      "bytes": 184,
+      "sha256": "6a3616ffd454c9b5a4f48321cd68e565dff514c6af6f2f6cb44bb51cb25ef60b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-bgfx-vulkan-5.csv",
+      "bytes": 184,
+      "sha256": "92e16bdd573ca126e9438b0b6dec81728e2dd2e9c82988b4b12c84453f3f1a9e"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-bgfx-vulkan-6.csv",
+      "bytes": 184,
+      "sha256": "a9285ac9156f0f18aa512c9781bc1805317436899df4acf9f69a5c01f4372ae8"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-bgfx-vulkan-7.csv",
+      "bytes": 168,
+      "sha256": "1dc855e6a37e747e9b28bbf2b26a054a80429e2564128fbbf0c58e2ae2dbf0e5"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-bgfx-vulkan-8.csv",
+      "bytes": 173,
+      "sha256": "f4ea41a4cea8bab80e8c95eaebc7626cef4817bf3286c604c3fa2b1b8313330a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-bgfx-vulkan-9.csv",
+      "bytes": 184,
+      "sha256": "678a1b613ed3ee2c93c8571f6036fcba9800586708352b3420ef2dac0e835a1f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-coingl-1.csv",
+      "bytes": 168,
+      "sha256": "d0d5bcaf78140ce70ccf1e4ca867e626977a2ca257e710033155b0888b343832"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-coingl-2.csv",
+      "bytes": 171,
+      "sha256": "6030321da74261de7761111f817366147c52952ebbf4c37f74ff789354613293"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-coingl-3.csv",
+      "bytes": 179,
+      "sha256": "9f697590a8094df4b27245b6ac2fc6c65e1bacdf3179e5bf84b87dd4ef38033a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-coingl-4.csv",
+      "bytes": 179,
+      "sha256": "4a7607960490a6bc3b01a68988f7c814b79c99ec1f22325cb6efd8e492928690"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-coingl-5.csv",
+      "bytes": 157,
+      "sha256": "a1a6ccd8139603c09edc8b6bf8a213250cac0ce6a732427b2f594c9d1896cfa4"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-coingl-6.csv",
+      "bytes": 179,
+      "sha256": "38b625f4be6b798bde8b0c7b2ea43597af5606c3b579fa499efa4a6f4920ec68"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-coingl-7.csv",
+      "bytes": 179,
+      "sha256": "e854caec507aa2333befd32adbdc54f0f0dd1d02bbbe530357fd39f42d3fb349"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-coingl-8.csv",
+      "bytes": 179,
+      "sha256": "ce69f484baeb05ee85fbaf683c6e50e5bb1dbfbc560fc215be00f6c3fac8185c"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-coingl-9.csv",
+      "bytes": 179,
+      "sha256": "dd3cf4ab37837fe17733fab8549d326b72cfc4355bbf23f1c16e93399f7de151"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-wgpu-vulkan-1.csv",
+      "bytes": 178,
+      "sha256": "f6c1485f8318d82f40f286da35ab869146536f921afb166ef39d07f0cc22d3cd"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-wgpu-vulkan-2.csv",
+      "bytes": 178,
+      "sha256": "f1158f8c967d860746ceabd2f132e1dc8f8a625ced27fde8e559d98c13d72abf"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-wgpu-vulkan-3.csv",
+      "bytes": 170,
+      "sha256": "c7bf19699d14a204e2715f2a5b3ab0ad594882140595bb579b57c394de6b1123"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-wgpu-vulkan-4.csv",
+      "bytes": 178,
+      "sha256": "df13ae779bd2f62b64543b40728fd22c866f893ae9108f946087b10e0f84ceab"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-wgpu-vulkan-5.csv",
+      "bytes": 168,
+      "sha256": "d8526cffefeb0b9250273c6a4a83bf5a14ffc0929062f174aa5c4496c9ccf988"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-wgpu-vulkan-6.csv",
+      "bytes": 178,
+      "sha256": "6abfb8d33efb0d199e1a5fabbb5cc940faaefd1350d423048e45c4fb1c97c443"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-wgpu-vulkan-7.csv",
+      "bytes": 167,
+      "sha256": "82445ac344e68266088b4e03301add8821404cb8260da1ca812748cd58f84385"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-wgpu-vulkan-8.csv",
+      "bytes": 178,
+      "sha256": "24a72e223a9b58306bf44aea0db5e402966b0d3bbc7dbf10c0b63ce50c8f8425"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/before/samples/static-wgpu-vulkan-9.csv",
+      "bytes": 153,
+      "sha256": "aeb27a84637768ac78d33756abf4ac2e31dfd63d26618c8edbca806678e7e253"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/campaign_core.py",
+      "bytes": 34538,
+      "sha256": "d5bda1398da0889130c18d46877b192a92c479a7dcc3f3adc3b91c8416eb4f04"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/controls/coin-render-capture-baseline-binaries.json",
+      "bytes": 4759,
+      "sha256": "56aa83dc43c64da291224662b58ded71d91d7ad1f5dda9897a4c47ff5127105f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/controls/coin-render-capture-final-binaries.json",
+      "bytes": 3564,
+      "sha256": "675ea696694439ef07b34da0d8076911fa297370554f0dc619abc3f5f372bc90"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/controls/coin-render-state-coingl-binaries.json",
+      "bytes": 1898,
+      "sha256": "c1a342954e8e9eb2b4cf971599ee639b667b3d60b148462644104ac68789058d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/report-summary.json",
+      "bytes": 424769,
+      "sha256": "71530d84aa6d93d16e17519e88eeab2d4cc05d26f7055dd63428b18b3185ada9"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/cold/summarize.py",
+      "bytes": 13454,
+      "sha256": "2f467b438a75844e4cf19a9a69fe87e03dfc921f19b7aaf84c0104534712f794"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-opengl-static-reuse-off-1.csv",
+      "bytes": 176,
+      "sha256": "c49c5cc7fde8ca1f0f7b7e8d9862f70fb07db047a51f525ba78073bcae7fbab1"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-opengl-static-reuse-off-1.log",
+      "bytes": 6281,
+      "sha256": "1763f6bb46a4292e14fc292b59a91d9cea4264a951c9b5daa6e385da79264e7d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-opengl-static-reuse-off-2.csv",
+      "bytes": 173,
+      "sha256": "d33184f5d9809b1256eb70824a1a48557e696431cf08f22e3edfd218c5627e09"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-opengl-static-reuse-off-2.log",
+      "bytes": 6290,
+      "sha256": "f271408e5b749194a6a8fd8e0e23ab7047294b8d10bc0c7e1ea28190a33687de"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-opengl-static-reuse-off-3.csv",
+      "bytes": 184,
+      "sha256": "a8acb638a8fe7226ff47923a1b60a963b04752e074683e5b56ba4524d65c5d95"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-opengl-static-reuse-off-3.log",
+      "bytes": 6290,
+      "sha256": "7d0e6bc4408ac59911bac14560de6ffb612da1d894ed23c2ef4c0ef557ace6b5"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-opengl-static-reuse-on-1.csv",
+      "bytes": 176,
+      "sha256": "19454773f1a9353609c099c67a4da6f50e8c8789a2e863babecc9cad878e8532"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-opengl-static-reuse-on-1.log",
+      "bytes": 6287,
+      "sha256": "7eca5a122dc652c7ff829deb52275e393899a340b1123bc9db116fc36ea83f43"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-opengl-static-reuse-on-2.csv",
+      "bytes": 176,
+      "sha256": "a49d4901db435b7b4a8163df6fca9b7dc8555824c8b9482dbb21a0b7bfaed8ca"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-opengl-static-reuse-on-2.log",
+      "bytes": 6291,
+      "sha256": "19ff8c934292f7c4ae5dc359dfef74377a785d8766ed1f51523a71812c4c5153"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-opengl-static-reuse-on-3.csv",
+      "bytes": 176,
+      "sha256": "9f1642236fb1345f15e3c7ef897e7468a99e2c84d3e6380ebd6159fcdddf7c67"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-opengl-static-reuse-on-3.log",
+      "bytes": 6286,
+      "sha256": "09f13b1cc2679c08870b73e822cae7f051a743c590ec51e023c2ce80dd82aaf9"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-vulkan-static-reuse-off-1.csv",
+      "bytes": 158,
+      "sha256": "5d9f21f3f9d2caaff3fc9d5294e7a92a6f4b1533a07fe224b591f55d716a7312"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-vulkan-static-reuse-off-1.log",
+      "bytes": 6291,
+      "sha256": "ad4aed1ddde5b23859def0b03d0a8a8bca7d95f29646eee2bbac06ba57028f51"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-vulkan-static-reuse-off-2.csv",
+      "bytes": 176,
+      "sha256": "11f0202a150565eb8073032272f0301b1fc7bc92d4d090ab71e21291769a2611"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-vulkan-static-reuse-off-2.log",
+      "bytes": 6289,
+      "sha256": "f8d913a105c1ae2f3e70cc74b755273b501780ef14382a6ef9e92785912d8b7d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-vulkan-static-reuse-off-3.csv",
+      "bytes": 184,
+      "sha256": "51032847a9a665fe5bda707eb549989e8b09b1b2ddc71ef4a012b8c259d14e8b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-vulkan-static-reuse-off-3.log",
+      "bytes": 6289,
+      "sha256": "aea2bd1399e79a9ce13f887d8851be7fc0b508eae27d171257041ed44e8c44fd"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-vulkan-static-reuse-on-1.csv",
+      "bytes": 184,
+      "sha256": "d4d9e0e5202006b83ab2dc8f994b971ae5b32e7f8bcf69a5153178e68dcb0194"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-vulkan-static-reuse-on-1.log",
+      "bytes": 6282,
+      "sha256": "2fe4f70c0065a27998c732c1c19dcba14248e45beb8df3f862000927486d2f34"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-vulkan-static-reuse-on-2.csv",
+      "bytes": 176,
+      "sha256": "9fb8bdf00d6c65bb09249e221e28cb199cf53a16cc6cbb657a0ffe4f263553fb"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-vulkan-static-reuse-on-2.log",
+      "bytes": 6287,
+      "sha256": "7f61b0c2bf8c3761a0af5991ecc9ac3d6fae5bd0794d8da92b34a1911383eda8"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-vulkan-static-reuse-on-3.csv",
+      "bytes": 184,
+      "sha256": "aa1e0399b2f83e5186e340e83efd7eda0ec6ea2d9015915b83754e3f7296693e"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/bgfx-vulkan-static-reuse-on-3.log",
+      "bytes": 6284,
+      "sha256": "e39d376ec296d813d79ebcefaa23b3fb820fbb26fef57ab11c1e6af262c90eee"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/commands.json",
+      "bytes": 36913,
+      "sha256": "3220f01774b8460cc0ffc8ee9f0daeda5db8d4df885e0354b9105732956deb7d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/derive-diagnostic.py",
+      "bytes": 13430,
+      "sha256": "6d86b607b468d5c267e2b3dad8befe821fbeb41ca9982676f60c841bf9907398"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/wgpu-vulkan-static-reuse-off-1.csv",
+      "bytes": 170,
+      "sha256": "202a78d0b8fdc7ff1ba757267a17cbb5e980cb325006cb7c77a1a2b42c58b0f3"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/wgpu-vulkan-static-reuse-off-1.log",
+      "bytes": 6505,
+      "sha256": "6545b8b30898fc34107f8e8164eb92d481ac5e12a41244f2f9874ee9e51065d7"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/wgpu-vulkan-static-reuse-off-2.csv",
+      "bytes": 168,
+      "sha256": "acf8bd24b4ee094f10ea990356573b6092e5fe2c832414fea49d81126d2b4d3e"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/wgpu-vulkan-static-reuse-off-2.log",
+      "bytes": 6508,
+      "sha256": "3428c09c7efb82a055c8d3f24c05b147e055cdb804e2b44b8ec2b7b1bb29dbe4"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/wgpu-vulkan-static-reuse-off-3.csv",
+      "bytes": 178,
+      "sha256": "776b8a37e326b4eb17e2ad805a69ac13825d3a0766e6623b47560904bce4beb6"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/wgpu-vulkan-static-reuse-off-3.log",
+      "bytes": 6507,
+      "sha256": "7563a45381212cb4bd0412e7ec786710b157c3ac6bc17ee7e556d3542aef5f49"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/wgpu-vulkan-static-reuse-on-1.csv",
+      "bytes": 178,
+      "sha256": "ba54211e9aea6070993477cf51c12946988ada04d96ba9b4abf4683fe7fc2003"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/wgpu-vulkan-static-reuse-on-1.log",
+      "bytes": 6506,
+      "sha256": "e3c77c4954dbf3426e859caf9cd4638d5b1a1ab1ba36d9b0c9c774333fab93a0"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/wgpu-vulkan-static-reuse-on-2.csv",
+      "bytes": 160,
+      "sha256": "a69040cb5cd9378cf179f332df5bdb8176b60b87a9e0b8e9ac08a8efb9acc60b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/wgpu-vulkan-static-reuse-on-2.log",
+      "bytes": 6507,
+      "sha256": "0906d7b5f167c84805b750337739ed825849730ee2b6366b8e0a00ad7a208c44"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/wgpu-vulkan-static-reuse-on-3.csv",
+      "bytes": 169,
+      "sha256": "2704ec7a95433054b72996bf650b13efcc6c0216b4510da4bc4a93866a30fe2f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic/wgpu-vulkan-static-reuse-on-3.log",
+      "bytes": 6511,
+      "sha256": "430740107fd2950f4c9fbd04c836884a9013572e35af418455c2f986bc0f875b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic-cli-initial/commands.json",
+      "bytes": 1605,
+      "sha256": "8bc373211981b91da1025381be563e200689a8990fac06bc70a61de488392a0a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/diagnostic-cli-initial/wgpu-vulkan-static-reuse-on-1.log",
+      "bytes": 37,
+      "sha256": "bc00f9dbccc9d8ce67557e5dd78742ae0a4095fe3e816d5cf978b9781890e409"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/execution/benchmark-runner.py",
+      "bytes": 15726,
+      "sha256": "deb4bac79a0b900f3686b5eea9eff91559dc2340d9bdd98f8ddbe66ec1f247e4"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/execution/collect-evidence.py",
+      "bytes": 7714,
+      "sha256": "46971a02cd4eb60ee486cabb8cd7826ee716b65980fe96b8691b75767120f710"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/execution/freeze-baseline.py",
+      "bytes": 1788,
+      "sha256": "8a9e4a8f72dd5ce206b66400baf03be5154a2b0d771171da6970e488edfeea7a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/execution/matched-rows.py",
+      "bytes": 16329,
+      "sha256": "514e4af10dd8d5245ff958a08b7e2df52f8e3f57b52d57675bc271491fbefeb6"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/execution/matched.py",
+      "bytes": 9687,
+      "sha256": "8cf22577e03b925a22946d7fcc24389be95a2ce1f4933ba5938b9b23807fbd1b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/execution/post-campaign.py",
+      "bytes": 2148,
+      "sha256": "22f5c654bf9cf7716cfaed384b3492fb67dd78a74640caaecc3bb36de5146f2d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/execution/run-ablation.py",
+      "bytes": 2590,
+      "sha256": "63d5bb0d4fb757a514456aa118714c074c571a15172b0376822efa54e3e4c395"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/execution/run-gates.py",
+      "bytes": 2754,
+      "sha256": "cd77acee9cf7b1c04266a89d1115536457ca2d98e615c16ee0baf3022043b871"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/execution/run-matched.py",
+      "bytes": 5723,
+      "sha256": "195e21649b69efd996d708f993699696947945e674c2cf5e14a80bc7bc250053"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/gates/bgfx-action-reuse-ctest.log",
+      "bytes": 1442,
+      "sha256": "e3943cb8fe4d99d5736e8ad0a01ae4b8022c0c4d39e8b659c30abffb52fa924f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/gates/bgfx-action-reuse.log",
+      "bytes": 420,
+      "sha256": "39dd95f2ac1b68060a3697b4b9015fcb168a0691f3d2c0d54bb007dd0fa55bd6"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/gates/bgfx-opengl-camera-transparency-ctest.log",
+      "bytes": 3859,
+      "sha256": "daf8282b7c664fa180779691949407d52cf446acde0d30913139c0b4cbbd30f1"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/gates/bgfx-opengl-camera-transparency.log",
+      "bytes": 440,
+      "sha256": "8d540b049a79e2d492e8f4fd8a5e30d361e35d19c4c7614a30e5d2252373c7f6"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/gates/bgfx-rtt-ctest.log",
+      "bytes": 1459,
+      "sha256": "b3fa54d0894969d082e27e4b06a2755ff26d2fd638c742c9b6d2f0b88989ac95"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/gates/bgfx-rtt.log",
+      "bytes": 434,
+      "sha256": "a962d4002ef7a4f04b5a18e7180aedb8eb49c1c392639ab2aa73d8daacef9b86"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/gates/bgfx-vulkan-camera-transparency-ctest.log",
+      "bytes": 3868,
+      "sha256": "863409cdb00d6aa520b9594775e458ae9fcd836562a6c4dfb25423904e472b4f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/gates/bgfx-vulkan-camera-transparency.log",
+      "bytes": 440,
+      "sha256": "434c8ddebf1eb21c5d62f11883da642bc7e6809817fbac7fb090562160755b96"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/gates/commands.json",
+      "bytes": 16435,
+      "sha256": "1513f282aac79e0157cb3e7edea38073d6daf7785c6140d2688aa9ad9ac7c723"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/gates/core-ctest.log",
+      "bytes": 1474,
+      "sha256": "58c6e54a93ef56657b4c9353c5a0038a24491100f0fd4fdff62e343c671035bf"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/gates/core.log",
+      "bytes": 425,
+      "sha256": "41e555e4b7af0d05c3c8fede24ac020fc033b7affa292f6a0a528779ab6bd9ed"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/gates/wgpu-action-reuse-ctest.log",
+      "bytes": 1442,
+      "sha256": "d20c2f95d76d7afb3fe6da1db1cc7f8a91eb51a771f90b27740b5f428dd4701f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/gates/wgpu-action-reuse.log",
+      "bytes": 420,
+      "sha256": "6933e299d11f6d85ec73d9aaa621d237a1946df89fa2691196615d61d6484783"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/gates/wgpu-rtt-runtime-ctest.log",
+      "bytes": 2735,
+      "sha256": "f6fcee1d736ea176002716a31db4d1aae92f28a82ca392df14b1d6633511bad7"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/gates/wgpu-rtt-runtime.log",
+      "bytes": 664,
+      "sha256": "1b679557101441f84dbea88aa77fb37b397a7742aaa166a35923f70c734117c6"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/gates/wgpu-vulkan-camera-transparency-ctest.log",
+      "bytes": 3859,
+      "sha256": "0952c585fe29a8382b3d2fe4c1e93763ad733a036e3d616592113529481cbe73"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/gates/wgpu-vulkan-camera-transparency.log",
+      "bytes": 440,
+      "sha256": "d8d4876bb60fa19bf714f017effd96b0e76aa5e7df11e6a07db2c30c25b4b628"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/gates-initial/commands.json",
+      "bytes": 3596,
+      "sha256": "9034e68c523e32b073ae673390f596c7d574f74c3dde6e4baaac79acaecd2a47"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/gates-initial/core-ctest.log",
+      "bytes": 1474,
+      "sha256": "06c05363223a400beab4da3ba6dd28bdcc017131acf5954e21fd844d3cbc7b21"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/gates-initial/core.log",
+      "bytes": 425,
+      "sha256": "e64e65fb6089ec7098c80c5928a2378470f07e05fd84b8ede883668056285d13"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/gates-initial/wgpu-action-reuse-ctest.log",
+      "bytes": 1753,
+      "sha256": "3ec3ffaa8453383229cc33443c894fa5f224af801f21cc354bcc60491779596a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/gates-initial/wgpu-action-reuse.log",
+      "bytes": 897,
+      "sha256": "551cd3f8992c9b04431a4f770426729e4d967bfd0d4f06458b4dc8f866abb257"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/hardware-after.json",
+      "bytes": 5845,
+      "sha256": "819e44de2f48230f8c9d6494684681daed2d112ae9f3f0cb0b598885546751f6"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/hardware-before.json",
+      "bytes": 5843,
+      "sha256": "b70f2435532bf943d4b0c8be9ba1436de0c33f24bbd288fd814914d2189fab95"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/orchestration/coin-render-capture-ablation-cli-initial-run.log",
+      "bytes": 364,
+      "sha256": "abf6baf2f77d353784f10f60fc6a303de564d644d42feaa49145c71e382e7e33"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/orchestration/coin-render-capture-ablation-run.log",
+      "bytes": 1278,
+      "sha256": "2e5fc0ee5dfa61ff45eda93a8d7bf00a66f36b18c1f1773fd9c4564ecbc7ff5d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/orchestration/coin-render-capture-cold-run.log",
+      "bytes": 6369,
+      "sha256": "b2ef49ebb4cf926b7c057d9b20684b7e1a16470f1fd2da8a85ece84b5d5a912d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/orchestration/coin-render-capture-gates-initial-run.log",
+      "bytes": 1525,
+      "sha256": "f40c00a11a348a247f84928c4c8be2d2ffbe30e87894b5701e04a11e1c73db8c"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/orchestration/coin-render-capture-gates-run.log",
+      "bytes": 494,
+      "sha256": "a8779c091a916e6786a487d8a627ec616da65fa091ccfdb89e4be7f2d01263c2"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/orchestration/coin-render-capture-matched-run.log",
+      "bytes": 60,
+      "sha256": "b1bf89d29688d4011e0d6263a3b508057429234e2afe78ce7da0565b11cc32e4"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/orchestration/coin-render-capture-post-run.log",
+      "bytes": 115,
+      "sha256": "3c7d044a728b2a65f78ea7cea435fd22a4c97b86e1f42894bb13e3df489deff8"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/orchestration/coin-render-capture-steady-run.log",
+      "bytes": 11111,
+      "sha256": "0156c64020226cf96f1d48a919593e0076ea8ca63b0b0b54472a6a85800465ae"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/orchestration/coin-render-capture-verify-after-run.log",
+      "bytes": 3725,
+      "sha256": "3b97942b5d4982d93156721d6d6d3d03f1b73488c3ca4e057e70be0e91325da0"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/orchestration/coin-render-capture-verify-before-run.log",
+      "bytes": 3725,
+      "sha256": "b85ded24358d449226894f1a3a1c71e3ac61a05afe1fcd48d2b59589fd184c07"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/plot-and-report.py",
+      "bytes": 35108,
+      "sha256": "7d9a261729fa1d20fa5233898e014d82feb28e654149cffd8ab6c5d43650c280"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/report-inputs.json",
+      "bytes": 1470,
+      "sha256": "4d689d464f556e16c2c943bab0162cb7fd7e71d661dafd87d5bc5b0cd0f98c1c"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/stage-metadata.json",
+      "bytes": 4125,
+      "sha256": "0fbe688c992f7288f94cef0f49db054002a38aaa9e29c9148a641e1bbb94b20a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/camera-bgfx-opengl-1.log",
+      "bytes": 2422,
+      "sha256": "15a1512a0ae241a7a84bca3665469e3db7a8fa7a6591cfa2d3a4f5f730acd0b0"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/camera-bgfx-opengl-2.log",
+      "bytes": 2428,
+      "sha256": "22311a7ea52de62b22b13146c5087e11061981f05352cc68a2648163fc0d414c"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/camera-bgfx-opengl-3.log",
+      "bytes": 2431,
+      "sha256": "793de52724b0e9a82cb6467251a1bcf143359476759f5eebb72e6cf21a304207"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/camera-bgfx-vulkan-1.log",
+      "bytes": 2431,
+      "sha256": "749541f3a554e4865a8dad911480c398a517fec39bf6309925ddb5bdb9887e9f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/camera-bgfx-vulkan-2.log",
+      "bytes": 2424,
+      "sha256": "05f8b6473bd3e8b6888554f0643dcd707262b79b8ed5acd0268809e6ec44fb63"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/camera-bgfx-vulkan-3.log",
+      "bytes": 2438,
+      "sha256": "f7a2db07d8673d2e0fd03310dcb0743f9aa5fd01be010e24f4844515d2dd5a40"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/camera-coingl-1.log",
+      "bytes": 2293,
+      "sha256": "6968463100cf5fc433458aeafccb8786abfb5069d73084dc094844b7e888b321"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/camera-coingl-2.log",
+      "bytes": 2292,
+      "sha256": "065555ad096b6e23aeb72dd3ed3c36cd0bebb966130bf11f0877bb00b02bb5a1"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/camera-coingl-3.log",
+      "bytes": 2292,
+      "sha256": "deefe889c83a37051b76ed788f2ab3aea3b75b5b8122809b0fc63323b81df2b9"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/camera-wgpu-vulkan-1.log",
+      "bytes": 2515,
+      "sha256": "25f14321401a552266c4626b164267536181ddeb14a09c0a4280d7de795aafef"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/camera-wgpu-vulkan-2.log",
+      "bytes": 2521,
+      "sha256": "a9315ca3d9d63a1de1e4bb6d07d9757ebb50bf716d48f569cfcac0128e61e0ef"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/camera-wgpu-vulkan-3.log",
+      "bytes": 2520,
+      "sha256": "bc194e1f9d8e7893266db2cc9c0f620dc508004dda9bcd411a30addb7894fe8c"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/geometry-10-bgfx-opengl-1.log",
+      "bytes": 2450,
+      "sha256": "f9f3b17d384d7cd67e5ff896069043a944a089f00016e4f9ee3fd65389aaf8d2"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/geometry-10-bgfx-opengl-2.log",
+      "bytes": 2455,
+      "sha256": "b32e1b4f026df04ae1fc3e44b069c32633940477ac1e5c11e002cfd07bba47d7"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/geometry-10-bgfx-opengl-3.log",
+      "bytes": 2454,
+      "sha256": "064eeb5772c1c29b7a8b1acc6f5aca4c6750f242c94fc14ba9e147ab74ab1e1e"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/geometry-10-bgfx-vulkan-1.log",
+      "bytes": 2457,
+      "sha256": "70b7f7806a6884aa7daff64f66310cdcda156877b66c27a308ae5fe31214d472"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/geometry-10-bgfx-vulkan-2.log",
+      "bytes": 2459,
+      "sha256": "446289ea96b5f6ea31867c8b9599679f6953d3aeb2be4f6ede59727d7427da1f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/geometry-10-bgfx-vulkan-3.log",
+      "bytes": 2461,
+      "sha256": "12d741abf07dcb5eec8113f55c2d220db0a7aa2c1a27ecd1daf67d63b8b3baf3"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/geometry-10-coingl-1.log",
+      "bytes": 2308,
+      "sha256": "6a666ed108f2b344f8b0bb1743620c01007743ad4804c471c52df295ebb88df3"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/geometry-10-coingl-2.log",
+      "bytes": 2308,
+      "sha256": "810f08e0a0a5cd1cb6fb311e8b749552a5582ec817dbbe04fd0497ab9d77cf09"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/geometry-10-coingl-3.log",
+      "bytes": 2313,
+      "sha256": "6de21d7fac22845b87d5d601112bd9eb1a73ef1635099277de55bfc75760158d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/geometry-10-wgpu-vulkan-1.log",
+      "bytes": 2553,
+      "sha256": "9a509d0a9fccfb99495889602b474493c71dd9f0f7a04cb1aaf41463a9ac6f43"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/geometry-10-wgpu-vulkan-2.log",
+      "bytes": 2556,
+      "sha256": "5cf72c26e20f0ba86ecd84fef28d7cc6ace3bf8cc0b295aa9002ba830bd9198f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/geometry-10-wgpu-vulkan-3.log",
+      "bytes": 2547,
+      "sha256": "6c958c64977696c75b469a4b6255e6cd809c94bb6f2310bd676dafee390f39da"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/materials-10-bgfx-opengl-1.log",
+      "bytes": 2458,
+      "sha256": "c49fee575342ef5e9e97f1d8a2ff2ffadc5b64b9f811859ad8269a28039bdc05"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/materials-10-bgfx-opengl-2.log",
+      "bytes": 2458,
+      "sha256": "b0c089278bd8a290c730643d7648dc9d34c83054c032a49a856fe64b183d3117"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/materials-10-bgfx-opengl-3.log",
+      "bytes": 2452,
+      "sha256": "576b9246d4ce636c5876fde0104b05678371df55f08ccfc6a83c4d126f2971f9"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/materials-10-bgfx-vulkan-1.log",
+      "bytes": 2461,
+      "sha256": "c0dfbd61c3340f7f34729e808335e53b32845f046ca08ce5321d23f7d5bd8772"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/materials-10-bgfx-vulkan-2.log",
+      "bytes": 2462,
+      "sha256": "e10f8f8083d48913ac8053f633e76cba675b91d67ded9691109f4351f95d2143"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/materials-10-bgfx-vulkan-3.log",
+      "bytes": 2463,
+      "sha256": "232b8d166ff8652c4cbd48591249d1b1187f73fb1accd6c2bfd072fe44516224"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/materials-10-coingl-1.log",
+      "bytes": 2314,
+      "sha256": "d7c66ca0fe8012f145a07c1ff9e5a9a903fff55bf45f9a1063eaf0f74b47ebb3"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/materials-10-coingl-2.log",
+      "bytes": 2314,
+      "sha256": "839711c1a1c0e99f0f26025d545f5732b8b8e382703b5f1cff21df8c274ac176"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/materials-10-coingl-3.log",
+      "bytes": 2305,
+      "sha256": "ff761333f45fa0e0fdad5c1d6e1309c19cb5d28d199c2f96eb24ee491ffbc0c9"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/materials-10-wgpu-vulkan-1.log",
+      "bytes": 2559,
+      "sha256": "ba92522aa79a9102a02f9586a1c688a13294c421c74e4c2c05728939325e9d0b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/materials-10-wgpu-vulkan-2.log",
+      "bytes": 2558,
+      "sha256": "f416367631b91fb44c93e096c32e7041250de21ec3fa733781397767292e3974"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/materials-10-wgpu-vulkan-3.log",
+      "bytes": 2560,
+      "sha256": "b9a324c66ed7e1ad65bf953ea10ef2242c2ccc08bf18caa0ec53f1eeafd945e0"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/static-bgfx-opengl-1.log",
+      "bytes": 2427,
+      "sha256": "b04e35903aa7f50afcc3155048aac95031b5601af083f141650a9a639d7f92dd"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/static-bgfx-opengl-2.log",
+      "bytes": 2424,
+      "sha256": "ecf9ef21a72ed78baa94d0c79c613d5f304692d7156903fdfa137082bd4b2513"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/static-bgfx-opengl-3.log",
+      "bytes": 2420,
+      "sha256": "81c5c60ad3d8291a1cb705ded6f446a239c1012dd267d84bbb255ef1c5b52c01"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/static-bgfx-vulkan-1.log",
+      "bytes": 2429,
+      "sha256": "e3d4bb417acea7b2ce2a5dbd6c59fd7338dddbda49eb08ecc309e47c6883404f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/static-bgfx-vulkan-2.log",
+      "bytes": 2430,
+      "sha256": "d72d02e4d76eae9165b3b9defa65a495639ba43375d4241fcb44309a92d381fd"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/static-bgfx-vulkan-3.log",
+      "bytes": 2425,
+      "sha256": "21a7b7f8de1efdd9f0cdc8df2db4d981c9be15f7276b4444167887eead08f85d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/static-coingl-1.log",
+      "bytes": 2282,
+      "sha256": "df3a45e5ff6d22dc8d681353c6f9888ea558e2785c781c38f0ed50d4677c0b5a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/static-coingl-2.log",
+      "bytes": 2282,
+      "sha256": "49233373b11d09ecb8e45621452fe40595f4cd1dde4f2a40fc0963c80ee5c8e7"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/static-coingl-3.log",
+      "bytes": 2282,
+      "sha256": "4eb6930aadd0492f3e54e5b0a6c2e7ebb95c6da609e8c5b70ec96c7580867a92"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/static-wgpu-vulkan-1.log",
+      "bytes": 2515,
+      "sha256": "a863f3b5a89796a6d86f2799bd1dbc16d3dab13cfe0b22f367d88ebf3e36536f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/static-wgpu-vulkan-2.log",
+      "bytes": 2517,
+      "sha256": "c8512d060190a849966e129e26dc8ad2f779ea0bfe926f90b674bd6d8c1f12ce"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/static-wgpu-vulkan-3.log",
+      "bytes": 2511,
+      "sha256": "5f1df4e528f6b608c297dfb85e2e06fba86e15784a54a18a6f5b83deefc5274f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/transforms-10-bgfx-opengl-1.log",
+      "bytes": 2454,
+      "sha256": "6e0b19e6336deda8a62073c046a3dd47235a454dae8e0999023aa3f337cf3d41"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/transforms-10-bgfx-opengl-2.log",
+      "bytes": 2455,
+      "sha256": "800e66e0aa0ca2277b90a6b5085bfa75d40b736f4729b553da8f54e77b97159a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/transforms-10-bgfx-opengl-3.log",
+      "bytes": 2460,
+      "sha256": "b48cf086a2ab2dbb2eb36271715c2fcf7c02ac34fa1a0f924a567227186f7507"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/transforms-10-bgfx-vulkan-1.log",
+      "bytes": 2460,
+      "sha256": "7650f3b7c8861a94f1cb2b7a93415548a9686480eea71294a95f709cab194357"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/transforms-10-bgfx-vulkan-2.log",
+      "bytes": 2456,
+      "sha256": "ac19d0208659a7730942b67695bb2e5e97bdce19f37155d556501a82f6ddea0c"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/transforms-10-bgfx-vulkan-3.log",
+      "bytes": 2464,
+      "sha256": "ada9c30918c9551d7bbf3cc3f38fde0b4c02ffabfc5c8a351741a75ff0b65120"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/transforms-10-coingl-1.log",
+      "bytes": 2316,
+      "sha256": "92ea4fa26bd9fce14d98c28993d765974a9b246b202d116ec703a383f1b6f86f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/transforms-10-coingl-2.log",
+      "bytes": 2313,
+      "sha256": "d0de04b6f4c13a5cc40f6d87ecfbcec9f9cebdfed4ea29873c107734cb3c1312"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/transforms-10-coingl-3.log",
+      "bytes": 2314,
+      "sha256": "fef463206dc0f48e7276781001415771df34c26186604ab58376564d7fa0ada2"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/transforms-10-wgpu-vulkan-1.log",
+      "bytes": 2550,
+      "sha256": "c0665d3d462b729dc6db6b760479911d9613101998bd7bcad8fc02bf949a2f4c"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/transforms-10-wgpu-vulkan-2.log",
+      "bytes": 2554,
+      "sha256": "3ad6ee6b04fdbbb8d0a2228c603720713c07ef849e5ce087285f7457715cdd11"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/logs/transforms-10-wgpu-vulkan-3.log",
+      "bytes": 2557,
+      "sha256": "ee495865ef3105b0dc8b755a6c02907a1a24240fd03a30505cae2445382b28aa"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/manifest.json",
+      "bytes": 133450,
+      "sha256": "eb58bbde94b400b0153ef56d29ed4e901fab85f0d39de1cadeda6334ecc110be"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/medians.json",
+      "bytes": 22526,
+      "sha256": "9081468320addb7a7a793dd3b9b954ef17f957b5b58507de0db4229cf1e6e8aa"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/results.json",
+      "bytes": 94929,
+      "sha256": "43e19374ee693682e33e4fa8c2b4eefdf6a3f33ca70abaab42015fa93aa4d09d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/camera-bgfx-opengl-1.csv",
+      "bytes": 1881,
+      "sha256": "30ffc2a4871da62bcdc1103595a3d0a03885948dcfc8beca95a8fdefca6dedfb"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/camera-bgfx-opengl-2.csv",
+      "bytes": 1826,
+      "sha256": "8cd59e06ae120235595fe9ff652d39b942c2ae175da00524b6dfe95414b4b6cf"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/camera-bgfx-opengl-3.csv",
+      "bytes": 1843,
+      "sha256": "edc9449001a5f196ed527a04dfe792c23816efb531b2920027b514b765d97637"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/camera-bgfx-vulkan-1.csv",
+      "bytes": 1918,
+      "sha256": "97f412d86d6d7335cc74b4b73d21971c67790b6305f28c4eb6d7e767d8801925"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/camera-bgfx-vulkan-2.csv",
+      "bytes": 1918,
+      "sha256": "43a8f2738aebe6ee7f0dfab223e5b02dabaa872abc2790ca7dd2eb777f8d3af2"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/camera-bgfx-vulkan-3.csv",
+      "bytes": 1875,
+      "sha256": "e4e22be85e4df400af93b82e3cfa3450166a07fa00ca3e80a8940549ae21d78f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/camera-coingl-1.csv",
+      "bytes": 1765,
+      "sha256": "42277e76213d9ae96c400e20c9998dc69586145535ecc5ea575e03f98659917a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/camera-coingl-2.csv",
+      "bytes": 1766,
+      "sha256": "a0580d299aa91c217c6864430b5f0be47a015436d9538b04eb09c35e0914f3e7"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/camera-coingl-3.csv",
+      "bytes": 1795,
+      "sha256": "307f68fed363f80689f80cf6675ff2010aafde05dfb5e9de2bd54ee6bca10f55"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/camera-wgpu-vulkan-1.csv",
+      "bytes": 1776,
+      "sha256": "b40d341f540169f5cab3f1a8a3cc65b02ed5a130a369cdc8de15d4541613946b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/camera-wgpu-vulkan-2.csv",
+      "bytes": 1780,
+      "sha256": "e863b96aa1a73db1deb84cbb55ef045c5c255cf5d3fd7d1561f4b8a484ed6132"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/camera-wgpu-vulkan-3.csv",
+      "bytes": 1735,
+      "sha256": "3ec25e1d7822064698b0682ef165d8926fcc9d69e03da9e80e189f1a9ed8763d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/geometry-10-bgfx-opengl-1.csv",
+      "bytes": 1900,
+      "sha256": "921ce47ce4821040ec4aa1d5f2bf69fce746579045aa767383b41856abc9d783"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/geometry-10-bgfx-opengl-2.csv",
+      "bytes": 1888,
+      "sha256": "1e5e4c13474f1327c5d6cdf16dfba8a07fac8c5b7bf609d72da52005b5108b0a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/geometry-10-bgfx-opengl-3.csv",
+      "bytes": 1923,
+      "sha256": "802f4220659eb57e514f749be8805e29253a8d295f00242a5eb1c25412e98f7c"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/geometry-10-bgfx-vulkan-1.csv",
+      "bytes": 1864,
+      "sha256": "d8fd94c531932504a60e661437286af870b3991ead30a10de3c81895cb157e56"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/geometry-10-bgfx-vulkan-2.csv",
+      "bytes": 1918,
+      "sha256": "fa995010690c8cf306c1dab91b784ff5a6c44183f9d8c83ccc00c1dfd92ee9b3"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/geometry-10-bgfx-vulkan-3.csv",
+      "bytes": 1854,
+      "sha256": "9d33d4cfecfcb3a88c3c9adedbc2d986d1feb498bb964a7d8b8700c52f873122"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/geometry-10-coingl-1.csv",
+      "bytes": 1661,
+      "sha256": "2fa42b7f8f95b017c103656299caf2cf5ea4b7a9dd1a7731a263bc96b99336b0"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/geometry-10-coingl-2.csv",
+      "bytes": 1610,
+      "sha256": "6b013cb139caac6e95459383c965223f2452e59e5ceb5101389a4e6c5c21d1d3"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/geometry-10-coingl-3.csv",
+      "bytes": 1627,
+      "sha256": "c65823e67d6dae00cde079a2f232f4570762ebc75789ad3410bad36fc7140e98"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/geometry-10-wgpu-vulkan-1.csv",
+      "bytes": 1786,
+      "sha256": "3ca69a7846b12336e742769289b92d52583d23e24572485054891f6900226a49"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/geometry-10-wgpu-vulkan-2.csv",
+      "bytes": 1796,
+      "sha256": "5b99b1ea3aa8cb05609a0d9a9316cca3366d295837cd5b62f3466309836821d3"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/geometry-10-wgpu-vulkan-3.csv",
+      "bytes": 1826,
+      "sha256": "658b75eb696117ec07bfb0c955c18ae6def4b42cf6380f9c6a1ad0effc27ba69"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/materials-10-bgfx-opengl-1.csv",
+      "bytes": 1935,
+      "sha256": "5fdaac4bfafd05b46739562c70e654a3fb37517fa530a585d92390c3fd4c0462"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/materials-10-bgfx-opengl-2.csv",
+      "bytes": 1889,
+      "sha256": "1f947c4bcc3a38dbc1c0700eda21fb23affd69e843b417c2bff9a4a99b6d508b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/materials-10-bgfx-opengl-3.csv",
+      "bytes": 1927,
+      "sha256": "ed4f308bd1bd3d548c03a339bfe3f700b05a5a8921db8f01ed5be64a24dd6ed3"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/materials-10-bgfx-vulkan-1.csv",
+      "bytes": 1899,
+      "sha256": "eca4f72688ded6af95e1ae4e1eddafc85f44824798cddb10cb31f8653364b398"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/materials-10-bgfx-vulkan-2.csv",
+      "bytes": 1899,
+      "sha256": "c8e0f7ed9c56099d5338b407974e0936f936e6db90f6b0f06c18b1cfc3dbea02"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/materials-10-bgfx-vulkan-3.csv",
+      "bytes": 1864,
+      "sha256": "9bb9e96c03b609cf508100ea3a74883653775424ad1c8f3a64d1467959813e75"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/materials-10-coingl-1.csv",
+      "bytes": 1581,
+      "sha256": "4505fff5f4134b6486057960f3697868549742260676eb899cedf8bddff2a9b9"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/materials-10-coingl-2.csv",
+      "bytes": 1644,
+      "sha256": "4e23b3eb1c4d95be7a7853817baa25a60c5eaedd747c0a3052161992d2b85cff"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/materials-10-coingl-3.csv",
+      "bytes": 1647,
+      "sha256": "8efe148b549bcd9dc90298018de04639dc1d0b89b2d99286b505febf3376119a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/materials-10-wgpu-vulkan-1.csv",
+      "bytes": 1831,
+      "sha256": "79b784a86ed51b24d6123ba69484b0edd4a7c3f032a0f6bde05a008f5b7f10a6"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/materials-10-wgpu-vulkan-2.csv",
+      "bytes": 1788,
+      "sha256": "e8cae9749c8753d8d5929701b2b7f2326dbee91278dac506e675de5366e71d40"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/materials-10-wgpu-vulkan-3.csv",
+      "bytes": 1817,
+      "sha256": "ce079a23c7402041b470a91e0d199f490fe17b931046119d0336298157914e9d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/static-bgfx-opengl-1.csv",
+      "bytes": 1915,
+      "sha256": "8e796755dc6c2729efc81ad92b4ae1383945caa95e333b5df62e33ac0817f2ed"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/static-bgfx-opengl-2.csv",
+      "bytes": 1963,
+      "sha256": "4c937673f06574a53e16f1aec7e65d892964ca2b53a9db1e7700e78785a502ff"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/static-bgfx-opengl-3.csv",
+      "bytes": 1882,
+      "sha256": "1913946b6fd8182bae78a1cb83dbdf54dd363806a14dc157f3be95778ad56c2d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/static-bgfx-vulkan-1.csv",
+      "bytes": 1778,
+      "sha256": "b827c04387cbb06409853d68c9b81df2718ea4ef787e1e5415e66a3f074c2276"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/static-bgfx-vulkan-2.csv",
+      "bytes": 1835,
+      "sha256": "6699d18ec746f3466380e0db6ab27363a27a1fc131599a4f2d01bce13d503c6c"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/static-bgfx-vulkan-3.csv",
+      "bytes": 1844,
+      "sha256": "1a2b0a8132eab1c5bc3fcef1cef1ea3f7012905aef7c2511d1b1c8538669f215"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/static-coingl-1.csv",
+      "bytes": 1622,
+      "sha256": "101560e6aa0579476a01b2b6aaeafc2cb13c89ca918bfbeddd27b0ab941443a5"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/static-coingl-2.csv",
+      "bytes": 1665,
+      "sha256": "7dff1800e178d079c03a0da12b703e16c846adbb740d662da89ad264dc56eae1"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/static-coingl-3.csv",
+      "bytes": 1633,
+      "sha256": "f6b5fc003c8d33bad0cf61feb8a8ef82b03e08e181c982b017cd0e6471b39ac1"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/static-wgpu-vulkan-1.csv",
+      "bytes": 1866,
+      "sha256": "10f592e49be10e0f6dcc3f154f68d8a59ad612c8a11f275142f74d2f20aa033c"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/static-wgpu-vulkan-2.csv",
+      "bytes": 1749,
+      "sha256": "62cc456eaadbe5cfaca7016e42e443b1a4a3d358a23884c49e00449cdff5586d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/static-wgpu-vulkan-3.csv",
+      "bytes": 1804,
+      "sha256": "cd4d29656455bd7dd36fd657f4ca8164c4935c7a5421441fc49e0685fdb0d399"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/transforms-10-bgfx-opengl-1.csv",
+      "bytes": 1909,
+      "sha256": "6ef4a87e9f051d173caf5c7c09c65ac433374ec03f6c6f5b9edd7778275b375d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/transforms-10-bgfx-opengl-2.csv",
+      "bytes": 1906,
+      "sha256": "942f9ede7be64d8d2636652831f2f9327c1e6f032febd612233470e6724d87de"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/transforms-10-bgfx-opengl-3.csv",
+      "bytes": 1888,
+      "sha256": "9273c15cefac30f46964080d81ec058af3856890bbfbd8dba7fb64cf5b628704"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/transforms-10-bgfx-vulkan-1.csv",
+      "bytes": 1825,
+      "sha256": "47f2b64aa8dac816982739c43e06924a0f0c493fa274fa8acdec7059a4a88a5c"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/transforms-10-bgfx-vulkan-2.csv",
+      "bytes": 1901,
+      "sha256": "4dc496587dfb1b8506864b1b9503e6e568e997fa7edf7ee88dc530440452fcd1"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/transforms-10-bgfx-vulkan-3.csv",
+      "bytes": 1890,
+      "sha256": "46394e000ad8f9cd6995d90db8b2ae8ba6c28b459aaa5840c83a6398b10f88d4"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/transforms-10-coingl-1.csv",
+      "bytes": 1610,
+      "sha256": "92c125db9e7cc3c662d1085626bde26a1ed02f84c5eb4ccaf82ac3fbd7970c95"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/transforms-10-coingl-2.csv",
+      "bytes": 1601,
+      "sha256": "0b9f28cc11a243c3ab57ab98c3093ee4d7d701c4c7c984e7716ef27fdad42cb7"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/transforms-10-coingl-3.csv",
+      "bytes": 1639,
+      "sha256": "fcec4c6bfa2ac9472dfdaa7d5eff47a97e661894ad149a7701fefa60a4cac73b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/transforms-10-wgpu-vulkan-1.csv",
+      "bytes": 1737,
+      "sha256": "c6b98728174176af99aab82cffe3a245cbc8f826851d8abf4c93c67b4b05dbd3"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/transforms-10-wgpu-vulkan-2.csv",
+      "bytes": 1824,
+      "sha256": "ee8689d688477fa8a9cf86d340cd09f52da5b02a96165d4cdbe6d267ec3c08c8"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/after/samples/transforms-10-wgpu-vulkan-3.csv",
+      "bytes": 1770,
+      "sha256": "b0f1ef9c610cd1165f4ad44a53e8864b6891beb3e579dc3ea0b461c704e6c6fb"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/analyze_animation_images.py",
+      "bytes": 4587,
+      "sha256": "ab2d85a2a60aa883a5f92fc1ca9d089ab50aed6451dc79fcc48a919c771cf556"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/archive-manifest.json",
+      "bytes": 104274,
+      "sha256": "4fe7142f95f49a9afabd5156a6005926ef2060c6737ca1195a35184ad95959a4"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/camera-bgfx-opengl-1.log",
+      "bytes": 2430,
+      "sha256": "2b50a28947b8c3f7123d113234e48b1e162e14597aebe31583d2805ad177f8dd"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/camera-bgfx-opengl-2.log",
+      "bytes": 2427,
+      "sha256": "d9805d9712eac49afec45f19f0f0c79d391f52612895eff1909f4522116a0b4a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/camera-bgfx-opengl-3.log",
+      "bytes": 2431,
+      "sha256": "87c7c7c1cea90829d797074a7ea403d7b93e8b9b5bbb216213cf69d05b5d3645"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/camera-bgfx-vulkan-1.log",
+      "bytes": 2435,
+      "sha256": "edc9bf307d8d80748cb433402b4107c092ef65dc4eec6e22bed4c916ff7211ef"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/camera-bgfx-vulkan-2.log",
+      "bytes": 2436,
+      "sha256": "98ccd6ef545b3cd2f3f75ee4cff282153aefb7784c69733c2cbf46203b45ca51"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/camera-bgfx-vulkan-3.log",
+      "bytes": 2434,
+      "sha256": "8b9dc550353416b7315360de5d8135c2c4e1b85aacb2e70093f0ce47adb6fd00"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/camera-coingl-1.log",
+      "bytes": 2293,
+      "sha256": "6968463100cf5fc433458aeafccb8786abfb5069d73084dc094844b7e888b321"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/camera-coingl-2.log",
+      "bytes": 2292,
+      "sha256": "065555ad096b6e23aeb72dd3ed3c36cd0bebb966130bf11f0877bb00b02bb5a1"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/camera-coingl-3.log",
+      "bytes": 2292,
+      "sha256": "deefe889c83a37051b76ed788f2ab3aea3b75b5b8122809b0fc63323b81df2b9"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/camera-wgpu-vulkan-1.log",
+      "bytes": 2527,
+      "sha256": "000a8f5d1e78a042a44f085e47708c7a0613682d5efcf20f7f4a05186a25cac3"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/camera-wgpu-vulkan-2.log",
+      "bytes": 2517,
+      "sha256": "81cf659b74ee474c85773f3c695959303702994d7dc8f32d62508d39ef5c4802"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/camera-wgpu-vulkan-3.log",
+      "bytes": 2526,
+      "sha256": "88eebe385ea7763f82136c4e35a1eb76cfdf1c853312892a2a2425cf710ab417"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/geometry-10-bgfx-opengl-1.log",
+      "bytes": 2455,
+      "sha256": "9eb3024b5c54a99e4610d45aedd3a6e29e30110dc9fcbb07d251dd2627a38f4b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/geometry-10-bgfx-opengl-2.log",
+      "bytes": 2458,
+      "sha256": "234cca97333ecdec5e483d0144e6dac3feeab6dd71ff0b6153ae3af4f0b96f80"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/geometry-10-bgfx-opengl-3.log",
+      "bytes": 2453,
+      "sha256": "564b3b096f591c725b1840f81ed3d5c11d744aba11108afd75e3c77976140d75"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/geometry-10-bgfx-vulkan-1.log",
+      "bytes": 2463,
+      "sha256": "c771960c59bab3ec16c06c30763029cb016ac56a3d1317dd5b6a08fe370944db"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/geometry-10-bgfx-vulkan-2.log",
+      "bytes": 2456,
+      "sha256": "3431e09afb60907d65c392b11161e448908c67b87c8d545aa2f7fa016824f54b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/geometry-10-bgfx-vulkan-3.log",
+      "bytes": 2451,
+      "sha256": "f569101257204706fc53998f15d35edd234ab5027413d8fa53fff7bc892d6453"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/geometry-10-coingl-1.log",
+      "bytes": 2308,
+      "sha256": "6a666ed108f2b344f8b0bb1743620c01007743ad4804c471c52df295ebb88df3"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/geometry-10-coingl-2.log",
+      "bytes": 2308,
+      "sha256": "810f08e0a0a5cd1cb6fb311e8b749552a5582ec817dbbe04fd0497ab9d77cf09"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/geometry-10-coingl-3.log",
+      "bytes": 2313,
+      "sha256": "6de21d7fac22845b87d5d601112bd9eb1a73ef1635099277de55bfc75760158d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/geometry-10-wgpu-vulkan-1.log",
+      "bytes": 2557,
+      "sha256": "5f9cccc0ab085187079af8c0948febdb5aa8507f402942772e9e01df31bfe925"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/geometry-10-wgpu-vulkan-2.log",
+      "bytes": 2555,
+      "sha256": "97d4f0d2318c9defa69864889dbcb2340c51b4b1267f21bd9da2adf7151feb4a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/geometry-10-wgpu-vulkan-3.log",
+      "bytes": 2556,
+      "sha256": "af99273880ccc1a5fcf9e93512e2982c8ca0e01d33f183182672286a8d12a8d8"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/materials-10-bgfx-opengl-1.log",
+      "bytes": 2463,
+      "sha256": "5432efd11c62b8aab453b9400b0d7d4330d6845918bbdfa9394d3d115f058906"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/materials-10-bgfx-opengl-2.log",
+      "bytes": 2459,
+      "sha256": "55bdd23a17dd07edd28e7feb5a21b276b382af16006fa9f730e3968a643d931e"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/materials-10-bgfx-opengl-3.log",
+      "bytes": 2460,
+      "sha256": "e5b02561a80a667821f6d623030d4ece3345aacfa2242581a23d96a6eab82906"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/materials-10-bgfx-vulkan-1.log",
+      "bytes": 2465,
+      "sha256": "6246eccc1f4cfd0fab237b0a2a9d2fce38ef3f57d2adee3b5abe52d97a9df4e5"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/materials-10-bgfx-vulkan-2.log",
+      "bytes": 2463,
+      "sha256": "cfe98f13da4a29157c964d21031ea9588385840f97e48c4acc0252d33a8d2b7b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/materials-10-bgfx-vulkan-3.log",
+      "bytes": 2461,
+      "sha256": "67d439c8baa086d1709071cbb59facf6894d009602fdaa9abb00cea0f6afc95f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/materials-10-coingl-1.log",
+      "bytes": 2314,
+      "sha256": "d7c66ca0fe8012f145a07c1ff9e5a9a903fff55bf45f9a1063eaf0f74b47ebb3"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/materials-10-coingl-2.log",
+      "bytes": 2314,
+      "sha256": "839711c1a1c0e99f0f26025d545f5732b8b8e382703b5f1cff21df8c274ac176"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/materials-10-coingl-3.log",
+      "bytes": 2305,
+      "sha256": "ff761333f45fa0e0fdad5c1d6e1309c19cb5d28d199c2f96eb24ee491ffbc0c9"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/materials-10-wgpu-vulkan-1.log",
+      "bytes": 2554,
+      "sha256": "1867fb744baf8bbee9797d76fa635ab35800dca97ce1c9491fb7af81ed45493c"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/materials-10-wgpu-vulkan-2.log",
+      "bytes": 2557,
+      "sha256": "d94252c16dbd5337f532503b6020186b8457cde44f14ecd123402af4b9cf5451"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/materials-10-wgpu-vulkan-3.log",
+      "bytes": 2554,
+      "sha256": "dc4d9c3722569c7d54057cca36c43fbc9965e5d768c68c58a5876187e0380245"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/static-bgfx-opengl-1.log",
+      "bytes": 2426,
+      "sha256": "a2b4f28fa319bfc7367914c0cdecf509f0993497910fa396e3f46a4a671048eb"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/static-bgfx-opengl-2.log",
+      "bytes": 2424,
+      "sha256": "84ba4ed68fb4fb31bc0d7c241cab51ceae97e39e38d1ee81fe2e406a7dac6b63"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/static-bgfx-opengl-3.log",
+      "bytes": 2430,
+      "sha256": "df7e4118edcc800ff93632a5c93998753c30673e8b816631bb1ea279f75864e5"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/static-bgfx-vulkan-1.log",
+      "bytes": 2432,
+      "sha256": "1c72d6e1d1b50d52c73b909c611ac0d366b32eb9e0ce08e17963210e21314bef"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/static-bgfx-vulkan-2.log",
+      "bytes": 2434,
+      "sha256": "bab711c7e87ed16962c0090aa5bf6d43f19836669a0c2ad2fac93063212dc41b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/static-bgfx-vulkan-3.log",
+      "bytes": 2434,
+      "sha256": "e46687fce66c288feb9ce5ccca34a3e89a8bdf1783639a488b2050122bf64992"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/static-coingl-1.log",
+      "bytes": 2282,
+      "sha256": "df3a45e5ff6d22dc8d681353c6f9888ea558e2785c781c38f0ed50d4677c0b5a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/static-coingl-2.log",
+      "bytes": 2282,
+      "sha256": "49233373b11d09ecb8e45621452fe40595f4cd1dde4f2a40fc0963c80ee5c8e7"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/static-coingl-3.log",
+      "bytes": 2282,
+      "sha256": "4eb6930aadd0492f3e54e5b0a6c2e7ebb95c6da609e8c5b70ec96c7580867a92"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/static-wgpu-vulkan-1.log",
+      "bytes": 2516,
+      "sha256": "7b1d2b2b450d75625f88a74f28b6c77705ff07d7378e6a3c5df2f4fc9b879bcf"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/static-wgpu-vulkan-2.log",
+      "bytes": 2521,
+      "sha256": "832b7ff2107704a9504396782f7536b1a3bd74317062ac3ce787ac53ec8b51d9"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/static-wgpu-vulkan-3.log",
+      "bytes": 2504,
+      "sha256": "980feb0135bcfa5a77ea454fc14f10a8ea43b7a6d4897c8def1bef3bb1416622"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/transforms-10-bgfx-opengl-1.log",
+      "bytes": 2460,
+      "sha256": "3ee38125656fa31a4e5ef1ecd7b59c2fdafe9cc1697d8df42bfb46a938df51b5"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/transforms-10-bgfx-opengl-2.log",
+      "bytes": 2459,
+      "sha256": "db99238e2b3168774746b9ccf1e6f43e5a7ecdbddf0d5649d5da7a5366b83403"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/transforms-10-bgfx-opengl-3.log",
+      "bytes": 2458,
+      "sha256": "b64e641272c7a843eca554e612258942432c5facdd99898499f287ec35d243a3"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/transforms-10-bgfx-vulkan-1.log",
+      "bytes": 2462,
+      "sha256": "10c757d5b160abb74f6a81c5910e69165268ef634083f07ca4ccb60090d97266"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/transforms-10-bgfx-vulkan-2.log",
+      "bytes": 2462,
+      "sha256": "90af0a619c9d4fdc13c82de47fe6279646edef6da3f595fb5562fed75c52ab7c"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/transforms-10-bgfx-vulkan-3.log",
+      "bytes": 2466,
+      "sha256": "053c586217d9fbbfad29993bcbe00e40d57c70dc551eaf70d2f20a867a5e2c6b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/transforms-10-coingl-1.log",
+      "bytes": 2316,
+      "sha256": "92ea4fa26bd9fce14d98c28993d765974a9b246b202d116ec703a383f1b6f86f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/transforms-10-coingl-2.log",
+      "bytes": 2313,
+      "sha256": "d0de04b6f4c13a5cc40f6d87ecfbcec9f9cebdfed4ea29873c107734cb3c1312"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/transforms-10-coingl-3.log",
+      "bytes": 2314,
+      "sha256": "fef463206dc0f48e7276781001415771df34c26186604ab58376564d7fa0ada2"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/transforms-10-wgpu-vulkan-1.log",
+      "bytes": 2557,
+      "sha256": "c57981455f72560832481e60066df5e97a22bb48d6e4df2f6291fef3484f96ea"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/transforms-10-wgpu-vulkan-2.log",
+      "bytes": 2560,
+      "sha256": "0179e3c7fbbd88e3295d91dfc0ad792e516977f4d168c14ba0a007041274f805"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/logs/transforms-10-wgpu-vulkan-3.log",
+      "bytes": 2559,
+      "sha256": "162216fd4daacfb65cedd5ca3e857f060913338062eb03397541d8f29c267d0d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/manifest.json",
+      "bytes": 134215,
+      "sha256": "dfb56555620ae1b4ad8c4cc4a36d1c4973e52c41651e06a144c29f3efc9266af"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/medians.json",
+      "bytes": 22551,
+      "sha256": "9ffa75ce6aa1f3d54b7efb17c2efe6eb2a11dc512bd2fe2173712e8af9c0a5f7"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/results.json",
+      "bytes": 94948,
+      "sha256": "81105c17cabf73b540596d188b00c2db5f91c00e6120b68c458ab7418973efb8"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/camera-bgfx-opengl-1.csv",
+      "bytes": 1814,
+      "sha256": "602a6f0b203fa42730eae57fb56949a29e0cd726625818bb8d6fff27c5c7f889"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/camera-bgfx-opengl-2.csv",
+      "bytes": 1827,
+      "sha256": "f38685572f1282e1a1324e28d0aa1a7767d8b141ab09ddc24d679d79ef8a7419"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/camera-bgfx-opengl-3.csv",
+      "bytes": 1837,
+      "sha256": "a77ff4a4563e3eca22bebef111e9dd9e5e02aa7cf20b2c158711870db4cfb2b8"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/camera-bgfx-vulkan-1.csv",
+      "bytes": 1865,
+      "sha256": "0fbd2ad628eba526a582c27429e0ce64bbcf526eddab58da6a0c62c850a8b3c7"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/camera-bgfx-vulkan-2.csv",
+      "bytes": 1899,
+      "sha256": "d7706799f6767edc94dad1cafc2d214052e4cc443921b769b44bd8ef205d4b0d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/camera-bgfx-vulkan-3.csv",
+      "bytes": 1927,
+      "sha256": "78ee4ac4b90dbaaf8a0696612a44a2bcea77e04e60adce8f15884129c7da4fd1"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/camera-coingl-1.csv",
+      "bytes": 1765,
+      "sha256": "42277e76213d9ae96c400e20c9998dc69586145535ecc5ea575e03f98659917a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/camera-coingl-2.csv",
+      "bytes": 1766,
+      "sha256": "a0580d299aa91c217c6864430b5f0be47a015436d9538b04eb09c35e0914f3e7"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/camera-coingl-3.csv",
+      "bytes": 1795,
+      "sha256": "307f68fed363f80689f80cf6675ff2010aafde05dfb5e9de2bd54ee6bca10f55"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/camera-wgpu-vulkan-1.csv",
+      "bytes": 1746,
+      "sha256": "359d559353dcdd7217a4bb02b406012f98669d8a03fe0c8c698cdcc2f473635d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/camera-wgpu-vulkan-2.csv",
+      "bytes": 1706,
+      "sha256": "103f58ee6aeb05473444771d1c170e068ff7215835bf3ef6dbc8da2d5c260ded"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/camera-wgpu-vulkan-3.csv",
+      "bytes": 1675,
+      "sha256": "07bfa18d7442c3d204620c1f4814b6e5731dd517af5036cedfd08810da3b98e2"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/geometry-10-bgfx-opengl-1.csv",
+      "bytes": 1878,
+      "sha256": "af9a34bed196fc7bfc2a521a699f7d3864cf25542a17641abff4af52f158b5b3"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/geometry-10-bgfx-opengl-2.csv",
+      "bytes": 1876,
+      "sha256": "6219e502485387395e69eb49f494672ae03a17209fb38dc366714e77209ec3b1"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/geometry-10-bgfx-opengl-3.csv",
+      "bytes": 1933,
+      "sha256": "7cb765039d579b105ed91e2a677a8505f781ff5f0cf0ef1c0169922ef87c3b28"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/geometry-10-bgfx-vulkan-1.csv",
+      "bytes": 1926,
+      "sha256": "31a799cadb8f8bcff94662db905760dd8343d404eb1ac533ee0f7d67c1df7f6d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/geometry-10-bgfx-vulkan-2.csv",
+      "bytes": 1907,
+      "sha256": "2186d6eedeffcc929fe73ea7ae9bd0d0498d621bcab6de5cf7b96439a5e527fb"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/geometry-10-bgfx-vulkan-3.csv",
+      "bytes": 1884,
+      "sha256": "892e9fec5c8c9b0b80103651b0dfd0015aa53a22dd638e370199fc524afc6e84"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/geometry-10-coingl-1.csv",
+      "bytes": 1661,
+      "sha256": "2fa42b7f8f95b017c103656299caf2cf5ea4b7a9dd1a7731a263bc96b99336b0"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/geometry-10-coingl-2.csv",
+      "bytes": 1610,
+      "sha256": "6b013cb139caac6e95459383c965223f2452e59e5ceb5101389a4e6c5c21d1d3"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/geometry-10-coingl-3.csv",
+      "bytes": 1627,
+      "sha256": "c65823e67d6dae00cde079a2f232f4570762ebc75789ad3410bad36fc7140e98"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/geometry-10-wgpu-vulkan-1.csv",
+      "bytes": 1828,
+      "sha256": "fe167acbbc19918a9fd3b379754ca7143b68fffe04adcb359678d65b23de3059"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/geometry-10-wgpu-vulkan-2.csv",
+      "bytes": 1755,
+      "sha256": "795233792d16a0f3db59cf32771a3ef96fd45914293e01197a6c59605d7a9092"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/geometry-10-wgpu-vulkan-3.csv",
+      "bytes": 1823,
+      "sha256": "36e90c7e15a76d97ed5f5f1e38f7bce52e4143879f72dda8c641440144bcda00"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/materials-10-bgfx-opengl-1.csv",
+      "bytes": 1817,
+      "sha256": "9994d96a1e09045988d26407221af87c0780429ffb683d8375e91e09e9d8024d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/materials-10-bgfx-opengl-2.csv",
+      "bytes": 1824,
+      "sha256": "7d5b632960cd26758d3771f699c5344059159cf57e7a36fe9335fd22bad130b0"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/materials-10-bgfx-opengl-3.csv",
+      "bytes": 1916,
+      "sha256": "bb364dfe543fc5bfc770b34cb29afbaa5d525e9886895c9773f9083d692b15c7"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/materials-10-bgfx-vulkan-1.csv",
+      "bytes": 1888,
+      "sha256": "b9daef05176e241f25081f04bba58eb3a4c449c30f4f3b7f539de35f723b6f91"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/materials-10-bgfx-vulkan-2.csv",
+      "bytes": 1890,
+      "sha256": "9a13c29ffa1912c588e50dd3224612e17ce3b7512f8ed180dc2dc1279c8b3d45"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/materials-10-bgfx-vulkan-3.csv",
+      "bytes": 1849,
+      "sha256": "81631779fe48c9a507c06f134130b83b466e647f442f46202e4d0924f648d871"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/materials-10-coingl-1.csv",
+      "bytes": 1581,
+      "sha256": "4505fff5f4134b6486057960f3697868549742260676eb899cedf8bddff2a9b9"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/materials-10-coingl-2.csv",
+      "bytes": 1644,
+      "sha256": "4e23b3eb1c4d95be7a7853817baa25a60c5eaedd747c0a3052161992d2b85cff"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/materials-10-coingl-3.csv",
+      "bytes": 1647,
+      "sha256": "8efe148b549bcd9dc90298018de04639dc1d0b89b2d99286b505febf3376119a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/materials-10-wgpu-vulkan-1.csv",
+      "bytes": 1776,
+      "sha256": "a333d2b54b72b76fdd81bda41c698e6e0fde535f10a91b77856c9928a7114071"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/materials-10-wgpu-vulkan-2.csv",
+      "bytes": 1735,
+      "sha256": "8d082a9ff4f37454dae0f61115404b4a284dbc2a6bbb94eaa112500c793c9c9f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/materials-10-wgpu-vulkan-3.csv",
+      "bytes": 1775,
+      "sha256": "c975ab3164e1474f960bf1614b2d4d4e8d835b48522580907a3bc39439f6a758"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/static-bgfx-opengl-1.csv",
+      "bytes": 1833,
+      "sha256": "fbdeb7a8b082c0d815da05858c35404ecd9a1004fc54303385323e19e221b303"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/static-bgfx-opengl-2.csv",
+      "bytes": 1908,
+      "sha256": "6101f9ac0bb071463921854ee7186c46c724100a9bd247b42df9fd16d0754988"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/static-bgfx-opengl-3.csv",
+      "bytes": 1867,
+      "sha256": "7f4054175b7c2237e0954fbd29ff27867ac443094493575fc85d7348fd40a081"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/static-bgfx-vulkan-1.csv",
+      "bytes": 1786,
+      "sha256": "f20476baac7d5a217e1c83b99bf7fde4c4e4a900c515afdf832004c0bfac5908"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/static-bgfx-vulkan-2.csv",
+      "bytes": 1896,
+      "sha256": "0939a39aa817b4ce7ff46ebf437d87a956683a0d07ebb104547c2db02fb97493"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/static-bgfx-vulkan-3.csv",
+      "bytes": 1826,
+      "sha256": "481ecf1d0f2f193ef7d1d0feb0ac169c54aa5a1f646fdd11a309f0d68fddb72c"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/static-coingl-1.csv",
+      "bytes": 1622,
+      "sha256": "101560e6aa0579476a01b2b6aaeafc2cb13c89ca918bfbeddd27b0ab941443a5"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/static-coingl-2.csv",
+      "bytes": 1665,
+      "sha256": "7dff1800e178d079c03a0da12b703e16c846adbb740d662da89ad264dc56eae1"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/static-coingl-3.csv",
+      "bytes": 1633,
+      "sha256": "f6b5fc003c8d33bad0cf61feb8a8ef82b03e08e181c982b017cd0e6471b39ac1"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/static-wgpu-vulkan-1.csv",
+      "bytes": 1804,
+      "sha256": "13c44fe8bba31850b4df817f9b8514179e4af691f2d90c1f17ec4dc34b2345c6"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/static-wgpu-vulkan-2.csv",
+      "bytes": 1765,
+      "sha256": "0c54b79cf010a9d2b036d26f3fef623f53f815bf5bc769569db661d02c415f98"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/static-wgpu-vulkan-3.csv",
+      "bytes": 1807,
+      "sha256": "5bdbda2ab4a33156752e17f824b32b89dafcae98a43b89f46b6c605fa2532be2"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/transforms-10-bgfx-opengl-1.csv",
+      "bytes": 1901,
+      "sha256": "be7d7a973ec0791c878105517cc9f666140bc7e96cd64dd64e39c2ddbcc29dd5"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/transforms-10-bgfx-opengl-2.csv",
+      "bytes": 1801,
+      "sha256": "a1e0c4701406566e38ec37e0605db864c6f2d4239210d1b79ecd7df6c566d310"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/transforms-10-bgfx-opengl-3.csv",
+      "bytes": 1854,
+      "sha256": "70f43614447493c8938d1b355ff91b48d392658f3aec68141dd7a7534ed55aa6"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/transforms-10-bgfx-vulkan-1.csv",
+      "bytes": 1876,
+      "sha256": "5be830f6c079fbd7fc8f6974d8c088a04ccecb3ddf2575bacc775bf94305446d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/transforms-10-bgfx-vulkan-2.csv",
+      "bytes": 1922,
+      "sha256": "1f5ff5f2104448c5a44f636ee70ef09ab1b1c35088766c79f699f5c87c4d2b14"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/transforms-10-bgfx-vulkan-3.csv",
+      "bytes": 1882,
+      "sha256": "1e46ff5733b4f0b90854167adaa23149596671412f22ae70d0c7dcaf3cedb32f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/transforms-10-coingl-1.csv",
+      "bytes": 1610,
+      "sha256": "92c125db9e7cc3c662d1085626bde26a1ed02f84c5eb4ccaf82ac3fbd7970c95"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/transforms-10-coingl-2.csv",
+      "bytes": 1601,
+      "sha256": "0b9f28cc11a243c3ab57ab98c3093ee4d7d701c4c7c984e7716ef27fdad42cb7"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/transforms-10-coingl-3.csv",
+      "bytes": 1639,
+      "sha256": "fcec4c6bfa2ac9472dfdaa7d5eff47a97e661894ad149a7701fefa60a4cac73b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/transforms-10-wgpu-vulkan-1.csv",
+      "bytes": 1758,
+      "sha256": "5e5cc78d7d2872e2036c345295f48a19e9b7245c22c40c25801d6f0c9bcd85c0"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/transforms-10-wgpu-vulkan-2.csv",
+      "bytes": 1790,
+      "sha256": "846b6670d27e0e0621ab32c40a87cfe40f7a63f24dd45cff360706396e0d7e9d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/before/samples/transforms-10-wgpu-vulkan-3.csv",
+      "bytes": 1797,
+      "sha256": "c77922ee98a316231589693d9718f0c6451e7c7a61e9f305760e7ea1b63758b7"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/campaign_core.py",
+      "bytes": 34538,
+      "sha256": "d5bda1398da0889130c18d46877b192a92c479a7dcc3f3adc3b91c8416eb4f04"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/controls/coin-render-capture-baseline-binaries.json",
+      "bytes": 4759,
+      "sha256": "56aa83dc43c64da291224662b58ded71d91d7ad1f5dda9897a4c47ff5127105f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/controls/coin-render-capture-final-binaries.json",
+      "bytes": 3564,
+      "sha256": "675ea696694439ef07b34da0d8076911fa297370554f0dc619abc3f5f372bc90"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/controls/coin-render-state-coingl-binaries.json",
+      "bytes": 1898,
+      "sha256": "c1a342954e8e9eb2b4cf971599ee639b667b3d60b148462644104ac68789058d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/report-summary.json",
+      "bytes": 1327803,
+      "sha256": "cdd00625e3efd006025012a2dca7b2ec39143c008e8ae87bfa0fab36bff22a7b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/rgb-before-after.json",
+      "bytes": 178538,
+      "sha256": "86994ae5fba448250e33672295b3b06f314bcf312073484099826a487743a4c3"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/summarize.py",
+      "bytes": 13454,
+      "sha256": "2f467b438a75844e4cf19a9a69fe87e03dfc921f19b7aaf84c0104534712f794"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/camera-bgfx-opengl-1.log",
+      "bytes": 4145,
+      "sha256": "794825ab4fb6195ea603526c43c8a02241dd5e795642cdf83f7cff32cc3e0340"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/camera-bgfx-vulkan-1.log",
+      "bytes": 4148,
+      "sha256": "db6e044d0bea092531efed147bdd5342e346d68aeef4b754c79dac8684730ba8"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/camera-coingl-1.log",
+      "bytes": 3893,
+      "sha256": "0623d03dbdc13c3531e53075bc81cee5f83be12281829aa3fd8a9215ef993e50"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/camera-wgpu-vulkan-1.log",
+      "bytes": 4159,
+      "sha256": "e50dd14c1c14b0f0866efddb4380defade7b5a6872b26bfe036ee007fdfe7bb6"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/geometry-10-bgfx-opengl-1.log",
+      "bytes": 4203,
+      "sha256": "36f12f611217cfd996f5ca8199111ad47f89e5e2983e846a4beb9eafde22988c"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/geometry-10-bgfx-vulkan-1.log",
+      "bytes": 4199,
+      "sha256": "09e8af16df68f33fb7bab9b5208a5f664652708ac771981e5bad95de569a82a4"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/geometry-10-coingl-1.log",
+      "bytes": 3941,
+      "sha256": "3133db1990446884a56111ee9bd6513badb11266dfa1bd57d8a68b1ab1f9b98b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/geometry-10-wgpu-vulkan-1.log",
+      "bytes": 4224,
+      "sha256": "179ddde4fa98f8273968cc05ca332e48486bce3b4464a9ddbfd031688f3b2009"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/geometry-100-bgfx-opengl-1.log",
+      "bytes": 4210,
+      "sha256": "15d4ac7f70239be745f29975bd940b0e4a8e61f13eba4dbb387e50bc1c5cfd1a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/geometry-100-bgfx-vulkan-1.log",
+      "bytes": 4217,
+      "sha256": "0582a51583ce93d185447e831799652c7bee8a1ad3ed0b216a1be4978f07c57a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/geometry-100-coingl-1.log",
+      "bytes": 3960,
+      "sha256": "5ea555d08b88520014c24e062371c074ad39c199d6ec328b762ff1e9a40da49f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/geometry-100-wgpu-vulkan-1.log",
+      "bytes": 4234,
+      "sha256": "402dc3281483fcb6037dc664953ca43cb4b8623d64ef73cbbe5276c3ef894dc6"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/materials-10-bgfx-opengl-1.log",
+      "bytes": 4208,
+      "sha256": "000525bd13d2f1bb613052d69ce3e7f954ffe3305e65db1be9c7519dc2321012"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/materials-10-bgfx-vulkan-1.log",
+      "bytes": 4212,
+      "sha256": "8dbb62fd0e15e757d917273b4901330a0489b9a0fc2492297197907c01b2c145"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/materials-10-coingl-1.log",
+      "bytes": 3952,
+      "sha256": "377d2a06be6ee8e17e61babbc5bc7118576e5afc313bba0444eafde6a043f2bc"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/materials-10-wgpu-vulkan-1.log",
+      "bytes": 4234,
+      "sha256": "bf7fc127b25b874b305c2b491713df71ba0b1f8b78dc569937262d86f9de212e"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/static-bgfx-opengl-1.log",
+      "bytes": 4149,
+      "sha256": "f0634d950ac0d60f6d71b791995bcf6dcf41084cd69b083ebe0efadb3897b35b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/static-bgfx-vulkan-1.log",
+      "bytes": 4150,
+      "sha256": "ccf3dddf7c9528b165baf79e30bbcc7715353ff300269ea46d309a4edb0e25ba"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/static-coingl-1.log",
+      "bytes": 3884,
+      "sha256": "4956dbdf9f43c1258db36b6043b35c8a013b234844434dbacd667c735682b23b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/static-wgpu-vulkan-1.log",
+      "bytes": 4163,
+      "sha256": "1c87c380243885f4bfdfc3f6c255381372b2bec6711e6f20560ffcf652ceedef"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/transforms-10-bgfx-opengl-1.log",
+      "bytes": 4215,
+      "sha256": "83affc09388441584d86577a0c10a1f9add211a086c519386b51a867bbc3b446"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/transforms-10-bgfx-vulkan-1.log",
+      "bytes": 4220,
+      "sha256": "82bbb38d2182d96c6e3b427ee61dca2140114d6bbd1df7695c3fc350817520b8"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/transforms-10-coingl-1.log",
+      "bytes": 3959,
+      "sha256": "c4b9e037b710c94a195d04ffbdf81dfad4087db5f1be4029d62e52348e79e162"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/transforms-10-wgpu-vulkan-1.log",
+      "bytes": 4234,
+      "sha256": "734df0d11b55df2370d797d9b410c14f7f7121090ebc22dff2cef9b2497d04cc"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/transforms-100-bgfx-opengl-1.log",
+      "bytes": 4231,
+      "sha256": "9b9b407187b7804fc2e083374ebf71fdf509095896b8acfb5dc994713450858c"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/transforms-100-bgfx-vulkan-1.log",
+      "bytes": 4236,
+      "sha256": "1d2f895aeea1e99c854698204410bb196d6190618002e0cf520cb86cff9e3e8c"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/transforms-100-coingl-1.log",
+      "bytes": 3971,
+      "sha256": "1c7781b833f494b5a14e8bcf01148419456f7f2e5c082f955730f4d0bee5fbbd"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/logs/transforms-100-wgpu-vulkan-1.log",
+      "bytes": 4254,
+      "sha256": "ef3ff8c45d2fe999c4219102f7f63db9adf450c1ab8621fdcf7b9e2a3a4e6c11"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/manifest.json",
+      "bytes": 36777,
+      "sha256": "208aa8b2635eb65c652385d2114188776573d9d0f1f5d5a60640ee2436615b0f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/medians.json",
+      "bytes": 31566,
+      "sha256": "6f3b91fced31c6cb0a5e4529e32a0dbdc46986f0673794c1184d718c3d0ec6d8"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/results.json",
+      "bytes": 42311,
+      "sha256": "11bd0239b3379793dba3aa28299f823360d5f7c629120fabef82269e4a517eda"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/camera-bgfx-opengl-1.csv",
+      "bytes": 699,
+      "sha256": "8a76c09250ba32a0bf4a8e08244304b7ac22793adc70658e919cc22bc9ec0188"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/camera-bgfx-vulkan-1.csv",
+      "bytes": 726,
+      "sha256": "cd14bcc43a1474b39c73927d22d7aa0946af823ec2b99d2c2f8675d6030498d4"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/camera-coingl-1.csv",
+      "bytes": 672,
+      "sha256": "77eb19879b2a3aaafc727e722d764caa182b4e50453d54255f91f0807059dfea"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/camera-wgpu-vulkan-1.csv",
+      "bytes": 697,
+      "sha256": "7d85e5b76000aab5a61b8ac3dc2343097749b64095f014706ac932337ea10b64"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/geometry-10-bgfx-opengl-1.csv",
+      "bytes": 714,
+      "sha256": "f4171b2e85d2875790bc242c8e0a5d1af46e99b4f24f4928f66fb58917d54f57"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/geometry-10-bgfx-vulkan-1.csv",
+      "bytes": 745,
+      "sha256": "e8e5c0bfe03d22a2988de580ac75d283edd08457908aaad95369fe6b4eefa561"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/geometry-10-coingl-1.csv",
+      "bytes": 668,
+      "sha256": "6f81e106bd32924d8b4c81aef05fde8ea43dd416c7827a6ca21ee36bfca4761a"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/geometry-10-wgpu-vulkan-1.csv",
+      "bytes": 687,
+      "sha256": "ede1057ce9ca2f54f304eac0f2df9952e231e2644bb1d06851141ac63f2a5cb5"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/geometry-100-bgfx-opengl-1.csv",
+      "bytes": 717,
+      "sha256": "f223c9037c69e95a5d3b0e0e5017bdddea398638718c8111207ec4fd253c9941"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/geometry-100-bgfx-vulkan-1.csv",
+      "bytes": 706,
+      "sha256": "f9a817e07b0b9bdce8755ec281a66cd5d3b3ca731f0cd7891482798832b8dd90"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/geometry-100-coingl-1.csv",
+      "bytes": 625,
+      "sha256": "06aff023f48e3f2dedb55b1874657ca6cd4f7120b2420c61a3d78069f45ff8ea"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/geometry-100-wgpu-vulkan-1.csv",
+      "bytes": 672,
+      "sha256": "d2ace62db4b986f509cde6c3feb9c0968446154e3774ce71d61c27dd96c9cad2"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/materials-10-bgfx-opengl-1.csv",
+      "bytes": 715,
+      "sha256": "f7f13bd3d017a019a3dac4ff41454dce83ac5c03814e33e9d6ab616e829dc569"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/materials-10-bgfx-vulkan-1.csv",
+      "bytes": 721,
+      "sha256": "d56dca0775528dfeb8737df23e8ff649dd3491d347574bc2665beb3fec1d66ec"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/materials-10-coingl-1.csv",
+      "bytes": 624,
+      "sha256": "54c5483b60997bfbfb6ad95eab721932465cc71c93df7bd3c15de9d282515d5c"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/materials-10-wgpu-vulkan-1.csv",
+      "bytes": 651,
+      "sha256": "b092ed2d84bf1a0b88e005661fd39f0a827a56844ff42d76f8cb2db54abb113e"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/static-bgfx-opengl-1.csv",
+      "bytes": 687,
+      "sha256": "db9e6db03a748ff0f8afe7b420a229bdf6111bd5edbdeb5e0ee2e474d74adad2"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/static-bgfx-vulkan-1.csv",
+      "bytes": 671,
+      "sha256": "98e2683587015ec21f39c40a5c2542a54eec54eba1d70bfb6fd669666201052d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/static-coingl-1.csv",
+      "bytes": 640,
+      "sha256": "04ca669d6e04b02bb00e6e1cf135ea47a7ee959288791021f73a4a978a5037c0"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/static-wgpu-vulkan-1.csv",
+      "bytes": 703,
+      "sha256": "6b118a3800b055489a8ca52b62bb77ec9f1931b733494f44c7cc3374cac06ea8"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/transforms-10-bgfx-opengl-1.csv",
+      "bytes": 691,
+      "sha256": "aa147f6e1a157dff1e580254c1661ef148d0ab40e324b598e861e21f425ef092"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/transforms-10-bgfx-vulkan-1.csv",
+      "bytes": 720,
+      "sha256": "ea2ae5cc06c8fcc935d1a9656575d2f9fdb92ba1d76f1835f9bcd645ec0f8ab2"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/transforms-10-coingl-1.csv",
+      "bytes": 644,
+      "sha256": "62788124d1d53bbf122dac6ef5746a84fba5f7ed2f316215271b5c7dbb73eb2d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/transforms-10-wgpu-vulkan-1.csv",
+      "bytes": 666,
+      "sha256": "ebe3cbe7286faef928dcbc328107e08acf07641c80f8712d5e95b892a568b630"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/transforms-100-bgfx-opengl-1.csv",
+      "bytes": 725,
+      "sha256": "3808d563bb9c239de94c960d786b0d61612d9443ef26e4f8351855b562a372a9"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/transforms-100-bgfx-vulkan-1.csv",
+      "bytes": 742,
+      "sha256": "f94b33b2b45683f5f00dc61aacb85b0f5dc47fe9469b7fb452c474623f6ce122"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/transforms-100-coingl-1.csv",
+      "bytes": 627,
+      "sha256": "3ad60bb2011a4edb253fa19cf3937b7f2a9f010ca4e6c3e8995352565443e0d7"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-after/samples/transforms-100-wgpu-vulkan-1.csv",
+      "bytes": 658,
+      "sha256": "852afd3040a106b42f9cc8e0e358cb424fcfd3dfd21679b2cfe878089db00ec1"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/camera-bgfx-opengl-1.log",
+      "bytes": 4156,
+      "sha256": "da0db9a16d8e30fef8c6ad76090dc87583a571aa930844875c389745a5a83fb6"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/camera-bgfx-vulkan-1.log",
+      "bytes": 4151,
+      "sha256": "451bc8f68b98536231df2c4edd431a1ae808785d78b3c647497de3a9633394da"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/camera-coingl-1.log",
+      "bytes": 3903,
+      "sha256": "539c6dada31e3207221edc69a2bfc15e4922e413447b84272aa328e64f1b464f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/camera-wgpu-vulkan-1.log",
+      "bytes": 4164,
+      "sha256": "301acceebcb002c943daf89da21c9abd3ed792c8c7013409f4a34d3adf7953fd"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/geometry-10-bgfx-opengl-1.log",
+      "bytes": 4208,
+      "sha256": "ef662f8e341377ab278ad92b2e52af2363abcb036f2864af5dc1001a0e506993"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/geometry-10-bgfx-vulkan-1.log",
+      "bytes": 4211,
+      "sha256": "bac7256ec46f9acbfd2ee67f1535febfa12d1d995f88acc8655b797c97f299c5"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/geometry-10-coingl-1.log",
+      "bytes": 3949,
+      "sha256": "12c7c138e81f5f868e36720d7f68c9e29e82289590bb365d08e729da4ce8b000"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/geometry-10-wgpu-vulkan-1.log",
+      "bytes": 4233,
+      "sha256": "ce07cda320581d8fe416615b547e0c92ec7879dc24db558cd048c93c7f790cb7"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/geometry-100-bgfx-opengl-1.log",
+      "bytes": 4215,
+      "sha256": "fd69ba1cbee45e24e3eac19992f028deae6d2d050f0e3412cc564a55fdaf2ebf"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/geometry-100-bgfx-vulkan-1.log",
+      "bytes": 4221,
+      "sha256": "5ec62de8a71417e54a8fe1620b71192631544977b7fa48ef757f38ca77282232"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/geometry-100-coingl-1.log",
+      "bytes": 3967,
+      "sha256": "e02508c25bceaae627f2c1a6ad0a2745c367d638f99fbe20e15aeab3493d458b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/geometry-100-wgpu-vulkan-1.log",
+      "bytes": 4246,
+      "sha256": "beed1aac1700647de269bcbc9c57be0cf49215d8c8079d9c16bca365fe1aaa3b"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/materials-10-bgfx-opengl-1.log",
+      "bytes": 4212,
+      "sha256": "6718c7b6c546e0f30a0a16a23bd149e77f218fc0442e8e9a064f79a80e914cdf"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/materials-10-bgfx-vulkan-1.log",
+      "bytes": 4220,
+      "sha256": "016f402cb02c74deb301c86d1b882acc9440f0982b3c934a0293dd35aa17ea00"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/materials-10-coingl-1.log",
+      "bytes": 3961,
+      "sha256": "b6e6621c6952173468f93bc4457ba7842349e9d86dbdbbead3fba0f7c561b4eb"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/materials-10-wgpu-vulkan-1.log",
+      "bytes": 4241,
+      "sha256": "a56c9842d9c78a8eaf422f8328138df9f92809069627041efaa456983c820386"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/static-bgfx-opengl-1.log",
+      "bytes": 4156,
+      "sha256": "e0fc42678a98fdc670c4280ba2ccd561d46c2c0cf4b374877bb09ca926a53f55"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/static-bgfx-vulkan-1.log",
+      "bytes": 4156,
+      "sha256": "e6672a114951f6ff4bdf4ed38b9b03f2dc6b096e3df86a4517c2053152a2de54"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/static-coingl-1.log",
+      "bytes": 3889,
+      "sha256": "68a79ca22b82e50912cf5af88dd3d68d18c8f4b7c96f181dbc748ec81fac1595"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/static-wgpu-vulkan-1.log",
+      "bytes": 4174,
+      "sha256": "c78e7ed9851e76a0b32d4b8009ce169b87cf7a8888d96a762668b64797b5505f"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/transforms-10-bgfx-opengl-1.log",
+      "bytes": 4224,
+      "sha256": "7773caaceb23e147785aa31fa4fbe87141236623ede2b91da102c8b3a0d1ed04"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/transforms-10-bgfx-vulkan-1.log",
+      "bytes": 4227,
+      "sha256": "068899aa35aa5301125c500970a1989a2e20dd78aa41bd2b2fa0c00193b09ca6"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/transforms-10-coingl-1.log",
+      "bytes": 3971,
+      "sha256": "a83057b2ccd29d5cb7ac046484019a886fc3762209ba1044b7de375618ce0ebe"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/transforms-10-wgpu-vulkan-1.log",
+      "bytes": 4242,
+      "sha256": "5774b26e39ac37f5f69435f51eec5885350cd5fddba95169f77b958bc5e74ec7"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/transforms-100-bgfx-opengl-1.log",
+      "bytes": 4236,
+      "sha256": "537e250da4e70a2f26f19056b93771cd0faf8e82f1a8ef9281a049a54001dabb"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/transforms-100-bgfx-vulkan-1.log",
+      "bytes": 4239,
+      "sha256": "78dddcf2d24eb733e59645aa5613ea9e0e49144601dea8e6b048be074769e5f4"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/transforms-100-coingl-1.log",
+      "bytes": 3977,
+      "sha256": "5e22bb802e44d82c3f22d1039235f6151ce0f8c2478c46ee70eba45ad9b44e84"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/logs/transforms-100-wgpu-vulkan-1.log",
+      "bytes": 4260,
+      "sha256": "d74eb32c50dc138f2f95cc31538f4709f323c7e2b7a6d2369d2c31a8dd38cad6"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/manifest.json",
+      "bytes": 37462,
+      "sha256": "05a3ceccb763747913b2fab1d50734c79897c8d9748556c004f3172d27015ecc"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/medians.json",
+      "bytes": 31559,
+      "sha256": "74e616de0446abad414cbf7e8aa6423c4b528af3b07887cdcdcb40d443880c6d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/results.json",
+      "bytes": 42300,
+      "sha256": "7bc10f766bf418545028adefc0a424b6af8d72565bf01a6df2699fe2e6401210"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/camera-bgfx-opengl-1.csv",
+      "bytes": 725,
+      "sha256": "f2522843f9252e87fe88b6db602b66972a7b1eb02d514e4b844583eb1fb412bb"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/camera-bgfx-vulkan-1.csv",
+      "bytes": 724,
+      "sha256": "9b1686e3a2782f73bfcff9009d4635ae4291cdc1dd17dfa19b19b084a789ed09"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/camera-coingl-1.csv",
+      "bytes": 710,
+      "sha256": "c246905b9a7df42ce42ab695caf746c054008a566432ec143fa81ee0c65b4f61"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/camera-wgpu-vulkan-1.csv",
+      "bytes": 682,
+      "sha256": "4a7d3a93f04afd1224fd6475633f850b53822b0e7a8d90e76063910206bcbfd1"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/geometry-10-bgfx-opengl-1.csv",
+      "bytes": 740,
+      "sha256": "dc5278c4cb7831645c18823ba3a5fa12d631b5cae7c7529872e0c704973e7643"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/geometry-10-bgfx-vulkan-1.csv",
+      "bytes": 674,
+      "sha256": "8137e611fabdb8b8f09b3c9f66e9e80f8cd2d1060d1246ef173f551ed493ae8c"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/geometry-10-coingl-1.csv",
+      "bytes": 666,
+      "sha256": "707584e07c3d9e382acae07f4c682fd9c7a162fb2c2e4437923ff92dd0536f23"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/geometry-10-wgpu-vulkan-1.csv",
+      "bytes": 708,
+      "sha256": "e5f8f207db74ecb5c55b98679be04adc775cc59f0df287e5b75c77dd1749b695"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/geometry-100-bgfx-opengl-1.csv",
+      "bytes": 710,
+      "sha256": "3d17122220c10f6bc5022dce251ec1277d4d55a2d208c4d59615b3fe2d8f314c"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/geometry-100-bgfx-vulkan-1.csv",
+      "bytes": 711,
+      "sha256": "1efbd35eb0fc60f576c98ab03b116a3273e80dfc52d1911db3a4abab04ae7ac2"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/geometry-100-coingl-1.csv",
+      "bytes": 685,
+      "sha256": "30e3dea5c2333768573a874073fb6889269ead04f0e1138fc6919a1cc8b85fa7"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/geometry-100-wgpu-vulkan-1.csv",
+      "bytes": 669,
+      "sha256": "c77ac4bfae38d1f929508972119e81a6d8fc5e86e92a6a1627de95f96640c3db"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/materials-10-bgfx-opengl-1.csv",
+      "bytes": 714,
+      "sha256": "7bb6f89fb15009202c9a0ceede8f998cc2002be276967e18025bc4d3417f3ee8"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/materials-10-bgfx-vulkan-1.csv",
+      "bytes": 691,
+      "sha256": "8bdb2103338706151ba8d39d73f424df848c05d4b8ed38c51b4193948101130d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/materials-10-coingl-1.csv",
+      "bytes": 663,
+      "sha256": "838e42cf73ebb8fb50f3416935502f5fe2888a1280e37b291884d0e6782bcb14"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/materials-10-wgpu-vulkan-1.csv",
+      "bytes": 659,
+      "sha256": "7ea93e65d7880b8f06bf9760456c7dc1eb5e52f4fb4f09dde9580385974ec0a4"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/static-bgfx-opengl-1.csv",
+      "bytes": 735,
+      "sha256": "e2a5c195065a6752357d9aa307f7d9af236aa13bea18105fde348b2d1ec50d22"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/static-bgfx-vulkan-1.csv",
+      "bytes": 742,
+      "sha256": "417572e164ad45ca58eaaa70818c2cfdb67efae7151213c840c89ee327356382"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/static-coingl-1.csv",
+      "bytes": 696,
+      "sha256": "858cd9daf71fffd1c6e848c6d306778b072fc81be3d0b702abb4865ed6b1ada2"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/static-wgpu-vulkan-1.csv",
+      "bytes": 664,
+      "sha256": "f87c7073235ca3bc6b43a7761f3a35e838829a64006cd4608ecdce9942f93995"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/transforms-10-bgfx-opengl-1.csv",
+      "bytes": 683,
+      "sha256": "28821c73c947cf37faa41b8b1b336f3bf3ba0cfb853393df9c18d260d937d821"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/transforms-10-bgfx-vulkan-1.csv",
+      "bytes": 742,
+      "sha256": "eaafe5fcf31ad655e86f564ead6654ee3a487977e23d97526ab5a33558d73caf"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/transforms-10-coingl-1.csv",
+      "bytes": 692,
+      "sha256": "abf6362d721ce49d2879cd386fe2040f579ebdca09bddecbcc93490fe2231c7d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/transforms-10-wgpu-vulkan-1.csv",
+      "bytes": 675,
+      "sha256": "c07e357bef59fde189d10fa6d265804f88b43e49216e4c7e5b3c3c96c542aa82"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/transforms-100-bgfx-opengl-1.csv",
+      "bytes": 723,
+      "sha256": "c2f706ce20ecdbaa12a1f7da05973f6c553be60d591d5dd718bad3fbb933ec9e"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/transforms-100-bgfx-vulkan-1.csv",
+      "bytes": 703,
+      "sha256": "8e3efe7a1ffb9ed392e95f78b628ba75675119bcf7d9d315221dc663145326a5"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/transforms-100-coingl-1.csv",
+      "bytes": 668,
+      "sha256": "b96696d8956d2a568362c3cc9bf8c1ec7abc4547f0ee8e97e3a3c253bebd1d1d"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/steady/verify-before/samples/transforms-100-wgpu-vulkan-1.csv",
+      "bytes": 686,
+      "sha256": "f3cfb9b22c4ed508a674f5c341ec090ff62cbf1f1bae38b04c97a401d22e3a41"
+    },
+    {
+      "path": "docs/validation/capture-camera-basis-linux/validate-archive.py",
+      "bytes": 28760,
+      "sha256": "86cdf84ab5eb6151879f8774d65a151c0eb6911863128f5addc1593c8f093ce9"
+    }
+  ]
+}

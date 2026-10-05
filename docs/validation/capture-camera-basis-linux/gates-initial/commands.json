@@ -1,0 +1,123 @@
+{
+  "source_content_revision": "553ec46f4e0ae9d396972a672b528b9fe6431962",
+  "commands": [
+    {
+      "name": "core",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/tmp/coin-render-first-frame-wgpu",
+        "-R",
+        "^(CoinRenderFrameCoreTest|CoinRenderPlanAssemblyCoreTest)$",
+        "--output-on-failure"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+        "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1"
+      },
+      "ctest_definitions": [
+        {
+          "backtrace": 1,
+          "command": [
+            "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderPlanAssemblyCoreTest"
+          ],
+          "name": "CoinRenderPlanAssemblyCoreTest",
+          "properties": [
+            {
+              "name": "TIMEOUT",
+              "value": 30.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-wgpu/testsuite"
+            }
+          ]
+        },
+        {
+          "backtrace": 3,
+          "command": [
+            "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderFrameCoreTest"
+          ],
+          "name": "CoinRenderFrameCoreTest",
+          "properties": [
+            {
+              "name": "TIMEOUT",
+              "value": 30.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-wgpu/testsuite"
+            }
+          ]
+        }
+      ],
+      "exit_code": 0,
+      "skip_observed": false
+    },
+    {
+      "name": "wgpu-action-reuse",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/tmp/coin-render-first-frame-wgpu",
+        "-R",
+        "^(CoinRenderActionTest|CoinRenderFrameReuseCoreTest)$",
+        "--output-on-failure"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+        "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1"
+      },
+      "ctest_definitions": [
+        {
+          "backtrace": 1,
+          "command": [
+            "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderActionTest"
+          ],
+          "name": "CoinRenderActionTest",
+          "properties": [
+            {
+              "name": "TIMEOUT",
+              "value": 30.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-wgpu/testsuite"
+            }
+          ]
+        },
+        {
+          "backtrace": 3,
+          "command": [
+            "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderFrameReuseCoreTest"
+          ],
+          "name": "CoinRenderFrameReuseCoreTest",
+          "properties": [
+            {
+              "name": "TIMEOUT",
+              "value": 30.0
+            },
+            {
+              "name": "WORKING_DIRECTORY",
+              "value": "/tmp/coin-render-first-frame-wgpu/testsuite"
+            }
+          ]
+        }
+      ],
+      "exit_code": 8,
+      "skip_observed": false
+    }
+  ]
+}

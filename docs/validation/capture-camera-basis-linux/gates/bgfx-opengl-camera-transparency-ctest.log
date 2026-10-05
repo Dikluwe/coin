@@ -1,0 +1,73 @@
+Start testing: Oct 05 10:25 -03
+----------------------------------------------------------
+16/161 Testing: CoinRenderCameraReuseReferenceTest
+16/161 Test: CoinRenderCameraReuseReferenceTest
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderCameraReuseReferenceTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderCameraReuseReferenceTest" start time: Oct 05 10:25 -03
+Output:
+----------------------------------------------------------
+perspective/rebuild frame=0 rgb_mae=0 max=0 pixels_over3=0
+perspective/CoinGL frame=0 rgb_mae=0.0671539 max=1 pixels_over3=0
+perspective/rebuild frame=1 rgb_mae=0.00137329 max=114 pixels_over3=1
+perspective/CoinGL frame=1 rgb_mae=0.0674438 max=109 pixels_over3=1
+perspective/rebuild frame=2 rgb_mae=5.08626e-06 max=1 pixels_over3=0
+perspective/CoinGL frame=2 rgb_mae=0.0656891 max=1 pixels_over3=0
+perspective/rebuild frame=3 rgb_mae=5.08626e-06 max=1 pixels_over3=0
+perspective/CoinGL frame=3 rgb_mae=0.0661621 max=1 pixels_over3=0
+perspective/rebuild frame=4 rgb_mae=1.52588e-05 max=1 pixels_over3=0
+perspective/CoinGL frame=4 rgb_mae=0.0640411 max=1 pixels_over3=0
+perspective/rebuild frame=5 rgb_mae=2.03451e-05 max=1 pixels_over3=0
+perspective/CoinGL frame=5 rgb_mae=0.0590617 max=1 pixels_over3=0
+perspective/rebuild frame=6 rgb_mae=5.08626e-06 max=1 pixels_over3=0
+perspective/CoinGL frame=6 rgb_mae=0.0556691 max=1 pixels_over3=0
+perspective/rebuild frame=7 rgb_mae=5.08626e-06 max=1 pixels_over3=0
+perspective/CoinGL frame=7 rgb_mae=0.0511678 max=1 pixels_over3=0
+perspective/rebuild frame=8 rgb_mae=0 max=0 pixels_over3=0
+perspective/CoinGL frame=8 rgb_mae=0.0671539 max=1 pixels_over3=0
+scene-mutation/rebuild frame=9 rgb_mae=0 max=0 pixels_over3=0
+ortho/rebuild frame=0 rgb_mae=0 max=0 pixels_over3=0
+ortho/CoinGL frame=0 rgb_mae=0.0792643 max=1 pixels_over3=0
+ortho/rebuild frame=1 rgb_mae=1.01725e-05 max=1 pixels_over3=0
+ortho/CoinGL frame=1 rgb_mae=0.0777995 max=1 pixels_over3=0
+ortho/rebuild frame=2 rgb_mae=0 max=0 pixels_over3=0
+ortho/CoinGL frame=2 rgb_mae=0.0750936 max=1 pixels_over3=0
+ortho/rebuild frame=3 rgb_mae=0 max=0 pixels_over3=0
+ortho/CoinGL frame=3 rgb_mae=0.0717824 max=1 pixels_over3=0
+ortho/rebuild frame=4 rgb_mae=5.08626e-06 max=1 pixels_over3=0
+ortho/CoinGL frame=4 rgb_mae=0.065211 max=1 pixels_over3=0
+ortho/rebuild frame=5 rgb_mae=0 max=0 pixels_over3=0
+ortho/CoinGL frame=5 rgb_mae=0.0575663 max=1 pixels_over3=0
+ortho/rebuild frame=6 rgb_mae=2.54313e-05 max=1 pixels_over3=0
+ortho/CoinGL frame=6 rgb_mae=0.0525564 max=1 pixels_over3=0
+ortho/rebuild frame=7 rgb_mae=1.52588e-05 max=1 pixels_over3=0
+ortho/CoinGL frame=7 rgb_mae=0.0486857 max=1 pixels_over3=0
+ortho/rebuild frame=8 rgb_mae=0 max=0 pixels_over3=0
+ortho/CoinGL frame=8 rgb_mae=0.0792643 max=1 pixels_over3=0
+scene-mutation/rebuild frame=9 rgb_mae=0 max=0 pixels_over3=0
+<end of output>
+Test time =   0.47 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderCameraReuseReferenceTest" end time: Oct 05 10:25 -03
+"CoinRenderCameraReuseReferenceTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+99/161 Testing: CoinRenderTransparencyTest
+99/161 Test: CoinRenderTransparencyTest
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderTransparencyTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderTransparencyTest" start time: Oct 05 10:25 -03
+Output:
+----------------------------------------------------------
+CPU transparency matrices
+P09 eleven-mode action matrix passed, CPU and GPU
+<end of output>
+Test time =   2.59 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderTransparencyTest" end time: Oct 05 10:25 -03
+"CoinRenderTransparencyTest" time elapsed: 00:00:02
+----------------------------------------------------------
+
+End testing: Oct 05 10:25 -03

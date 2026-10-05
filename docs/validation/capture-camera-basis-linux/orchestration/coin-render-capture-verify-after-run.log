@@ -1,0 +1,57 @@
+START offscreen/static-coingl-1
+DONE static-coingl-1: total median=16.626 p95=445.183 p99=445.183 update=0.000 ms
+START offscreen/static-bgfx-vulkan-1
+DONE static-bgfx-vulkan-1: total median=2.271 p95=427.384 p99=427.384 update=0.000 ms
+START offscreen/static-bgfx-opengl-1
+DONE static-bgfx-opengl-1: total median=2.548 p95=375.026 p99=375.026 update=0.000 ms
+START offscreen/static-wgpu-vulkan-1
+DONE static-wgpu-vulkan-1: total median=2.949 p95=290.539 p99=290.539 update=0.000 ms
+START offscreen/camera-bgfx-vulkan-1
+DONE camera-bgfx-vulkan-1: total median=8.224 p95=437.663 p99=437.663 update=0.021 ms
+START offscreen/camera-bgfx-opengl-1
+DONE camera-bgfx-opengl-1: total median=8.634 p95=377.351 p99=377.351 update=0.020 ms
+START offscreen/camera-wgpu-vulkan-1
+DONE camera-wgpu-vulkan-1: total median=10.229 p95=307.820 p99=307.820 update=0.022 ms
+START offscreen/camera-coingl-1
+DONE camera-coingl-1: total median=431.033 p95=457.986 p99=457.986 update=0.016 ms
+START offscreen/transforms-10-bgfx-opengl-1
+DONE transforms-10-bgfx-opengl-1: total median=46.358 p95=376.437 p99=376.437 update=3.274 ms
+START offscreen/transforms-10-wgpu-vulkan-1
+DONE transforms-10-wgpu-vulkan-1: total median=42.464 p95=307.431 p99=307.431 update=3.443 ms
+START offscreen/transforms-10-coingl-1
+DONE transforms-10-coingl-1: total median=115.997 p95=363.531 p99=363.531 update=3.294 ms
+START offscreen/transforms-10-bgfx-vulkan-1
+DONE transforms-10-bgfx-vulkan-1: total median=45.220 p95=449.406 p99=449.406 update=3.268 ms
+START offscreen/materials-10-wgpu-vulkan-1
+DONE materials-10-wgpu-vulkan-1: total median=49.603 p95=340.721 p99=340.721 update=4.227 ms
+START offscreen/materials-10-coingl-1
+DONE materials-10-coingl-1: total median=120.607 p95=376.281 p99=376.281 update=3.938 ms
+START offscreen/materials-10-bgfx-vulkan-1
+DONE materials-10-bgfx-vulkan-1: total median=49.973 p95=461.578 p99=461.578 update=3.889 ms
+START offscreen/materials-10-bgfx-opengl-1
+DONE materials-10-bgfx-opengl-1: total median=51.259 p95=401.970 p99=401.970 update=4.292 ms
+START offscreen/geometry-10-coingl-1
+DONE geometry-10-coingl-1: total median=120.794 p95=382.487 p99=382.487 update=5.836 ms
+START offscreen/geometry-10-bgfx-vulkan-1
+DONE geometry-10-bgfx-vulkan-1: total median=62.602 p95=480.514 p99=480.514 update=7.575 ms
+START offscreen/geometry-10-bgfx-opengl-1
+DONE geometry-10-bgfx-opengl-1: total median=60.050 p95=413.773 p99=413.773 update=7.616 ms
+START offscreen/geometry-10-wgpu-vulkan-1
+DONE geometry-10-wgpu-vulkan-1: total median=56.628 p95=338.360 p99=338.360 update=7.788 ms
+START offscreen/transforms-100-bgfx-vulkan-1
+DONE transforms-100-bgfx-vulkan-1: total median=81.528 p95=455.469 p99=455.469 update=22.188 ms
+START offscreen/transforms-100-bgfx-opengl-1
+DONE transforms-100-bgfx-opengl-1: total median=81.818 p95=393.204 p99=393.204 update=22.284 ms
+START offscreen/transforms-100-wgpu-vulkan-1
+DONE transforms-100-wgpu-vulkan-1: total median=86.929 p95=318.466 p99=318.466 update=22.286 ms
+START offscreen/transforms-100-coingl-1
+DONE transforms-100-coingl-1: total median=235.672 p95=375.266 p99=375.266 update=23.736 ms
+START offscreen/geometry-100-bgfx-opengl-1
+DONE geometry-100-bgfx-opengl-1: total median=232.240 p95=725.494 p99=725.494 update=72.261 ms
+START offscreen/geometry-100-wgpu-vulkan-1
+DONE geometry-100-wgpu-vulkan-1: total median=224.316 p95=656.163 p99=656.163 update=72.479 ms
+START offscreen/geometry-100-coingl-1
+DONE geometry-100-coingl-1: total median=244.371 p95=404.583 p99=404.583 update=49.242 ms
+START offscreen/geometry-100-bgfx-vulkan-1
+DONE geometry-100-bgfx-vulkan-1: total median=230.712 p95=775.201 p99=775.201 update=72.608 ms
+Completed 28 new processes; raw CSV and logs preserved

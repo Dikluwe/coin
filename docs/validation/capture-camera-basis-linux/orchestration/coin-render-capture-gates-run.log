@@ -1,0 +1,17 @@
+START core
+END core 0
+START wgpu-action-reuse
+END wgpu-action-reuse 0
+START bgfx-action-reuse
+END bgfx-action-reuse 0
+START wgpu-vulkan-camera-transparency
+END wgpu-vulkan-camera-transparency 0
+START bgfx-vulkan-camera-transparency
+END bgfx-vulkan-camera-transparency 0
+START bgfx-opengl-camera-transparency
+END bgfx-opengl-camera-transparency 0
+START wgpu-rtt-runtime
+END wgpu-rtt-runtime 0
+START bgfx-rtt
+END bgfx-rtt 0
+COMPLETE: 2 pure Core, 4 Action/Reuse integration and 12 GPU executions
