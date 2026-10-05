@@ -1,0 +1,171 @@
+Internal ctest changing into directory: /tmp/coin-issue417-branch-build
+Test project /tmp/coin-issue417-branch-build
+      Start  1: BumpProgramFailuresAndLifetime
+ 1/81 Test  #1: BumpProgramFailuresAndLifetime ..............   Passed    0.04 sec
+      Start  2: BumpProgramGLX
+ 2/81 Test  #2: BumpProgramGLX ..............................   Passed    0.26 sec
+      Start  3: CoinTests
+ 3/81 Test  #3: CoinTests ...................................   Passed    2.22 sec
+      Start  4: SoTempPathReplaceTail_valid_sentinel
+ 4/81 Test  #4: SoTempPathReplaceTail_valid_sentinel ........   Passed    0.02 sec
+      Start  5: SoTempPathReplaceTail_valid_replacement
+ 5/81 Test  #5: SoTempPathReplaceTail_valid_replacement .....   Passed    0.02 sec
+      Start  6: SoTempPathReplaceTail_empty_noop
+ 6/81 Test  #6: SoTempPathReplaceTail_empty_noop ............   Passed    0.02 sec
+      Start  7: SoPathRange
+ 7/81 Test  #7: SoPathRange .................................   Passed    0.02 sec
+      Start  8: SoPathLegacyAccessorBounds_node
+ 8/81 Test  #8: SoPathLegacyAccessorBounds_node .............   Passed    0.01 sec
+      Start  9: SoPathLegacyAccessorBounds_node-tail
+ 9/81 Test  #9: SoPathLegacyAccessorBounds_node-tail ........   Passed    0.01 sec
+      Start 10: SoPathLegacyAccessorBounds_index
+10/81 Test #10: SoPathLegacyAccessorBounds_index ............   Passed    0.01 sec
+      Start 11: SoPathLegacyAccessorBounds_index-tail
+11/81 Test #11: SoPathLegacyAccessorBounds_index-tail .......   Passed    0.01 sec
+      Start 12: SoPathLegacyAccessorBounds_valid
+12/81 Test #12: SoPathLegacyAccessorBounds_valid ............   Passed    0.02 sec
+      Start 13: SoPathLegacyAccessorBounds_visibility
+13/81 Test #13: SoPathLegacyAccessorBounds_visibility .......   Passed    0.01 sec
+      Start 14: SoPathAssignmentAuditor_reassign
+14/81 Test #14: SoPathAssignmentAuditor_reassign ............   Passed    0.01 sec
+      Start 15: SoPathAssignmentAuditor_self-assign
+15/81 Test #15: SoPathAssignmentAuditor_self-assign .........   Passed    0.01 sec
+      Start 16: SoPathAssignmentAuditor_copy-construct
+16/81 Test #16: SoPathAssignmentAuditor_copy-construct ......   Passed    0.02 sec
+      Start 17: SoPathAuditorCallback_empty
+17/81 Test #17: SoPathAuditorCallback_empty .................   Passed    0.01 sec
+      Start 18: SoPathAuditorCallback_foreign-parent
+18/81 Test #18: SoPathAuditorCallback_foreign-parent ........   Passed    0.02 sec
+      Start 19: SoPathAuditorCallback_negative-index
+19/81 Test #19: SoPathAuditorCallback_negative-index ........   Passed    0.03 sec
+      Start 20: SoPathAuditorCallback_null-replacement
+20/81 Test #20: SoPathAuditorCallback_null-replacement ......   Passed    0.03 sec
+      Start 21: SoPathAuditorCallback_valid-callbacks
+21/81 Test #21: SoPathAuditorCallback_valid-callbacks .......   Passed    0.03 sec
+      Start 22: SbPListGrowthFailure
+22/81 Test #22: SbPListGrowthFailure ........................   Passed    0.02 sec
+      Start 23: SoPathAssignmentAllocationFailure
+23/81 Test #23: SoPathAssignmentAllocationFailure ...........   Passed    0.03 sec
+      Start 24: SoPathChildAppend
+24/81 Test #24: SoPathChildAppend ...........................   Passed    0.02 sec
+      Start 25: CoinConfigCompatibility
+25/81 Test #25: CoinConfigCompatibility .....................   Passed    0.95 sec
+      Start 26: CoinTestsFilterExact
+26/81 Test #26: CoinTestsFilterExact ........................   Passed    0.02 sec
+      Start 27: CoinTestsFilterWildcard
+27/81 Test #27: CoinTestsFilterWildcard .....................   Passed    0.04 sec
+      Start 28: CoinTestsFilterSuite
+28/81 Test #28: CoinTestsFilterSuite ........................   Passed    0.02 sec
+      Start 29: CoinTestsFilterCombined
+29/81 Test #29: CoinTestsFilterCombined .....................   Passed    0.02 sec
+      Start 30: CoinTestsFilterRepeated
+30/81 Test #30: CoinTestsFilterRepeated .....................   Passed    0.02 sec
+      Start 31: CoinTestsFilterNoMatch
+31/81 Test #31: CoinTestsFilterNoMatch ......................   Passed    0.02 sec
+      Start 32: CoinTestsFilterMissingValue
+32/81 Test #32: CoinTestsFilterMissingValue .................   Passed    0.02 sec
+      Start 33: CoinTestsFilterEmptyValue
+33/81 Test #33: CoinTestsFilterEmptyValue ...................   Passed    0.02 sec
+      Start 34: CoinTestsFilterDirectSuite
+34/81 Test #34: CoinTestsFilterDirectSuite ..................   Passed    0.02 sec
+      Start 35: ProfilerInit_unset
+35/81 Test #35: ProfilerInit_unset ..........................   Passed    0.03 sec
+      Start 36: ProfilerInit_off
+36/81 Test #36: ProfilerInit_off ............................   Passed    0.03 sec
+      Start 37: ProfilerInit_0
+37/81 Test #37: ProfilerInit_0 ..............................   Passed    0.06 sec
+      Start 38: ProfilerInit_on
+38/81 Test #38: ProfilerInit_on .............................   Passed    0.07 sec
+      Start 39: ProfilerInit_1
+39/81 Test #39: ProfilerInit_1 ..............................   Passed    0.04 sec
+      Start 40: ProfilerInit_syncgl
+40/81 Test #40: ProfilerInit_syncgl .........................   Passed    0.04 sec
+      Start 41: ProfilerInit_invalid
+41/81 Test #41: ProfilerInit_invalid ........................   Passed    0.04 sec
+      Start 42: SensorScheduling_alarm_cancel
+42/81 Test #42: SensorScheduling_alarm_cancel ...............   Passed    0.02 sec
+      Start 43: SensorScheduling_recurring_cancel
+43/81 Test #43: SensorScheduling_recurring_cancel ...........   Passed    0.01 sec
+      Start 44: SensorScheduling_alarm_reschedule
+44/81 Test #44: SensorScheduling_alarm_reschedule ...........   Passed    0.02 sec
+      Start 45: SensorScheduling_timeout_change_cancel
+45/81 Test #45: SensorScheduling_timeout_change_cancel ......   Passed    0.02 sec
+      Start 46: SensorScheduling_zero_repeat
+46/81 Test #46: SensorScheduling_zero_repeat ................   Passed    0.02 sec
+      Start 47: SensorScheduling_zero_nonidle
+47/81 Test #47: SensorScheduling_zero_nonidle ...............   Passed    0.01 sec
+      Start 48: SensorScheduling_nonzero_timeout
+48/81 Test #48: SensorScheduling_nonzero_timeout ............   Passed    0.02 sec
+      Start 49: SensorScheduling_node_detach
+49/81 Test #49: SensorScheduling_node_detach ................   Passed    0.01 sec
+      Start 50: SensorScheduling_delay_reentry
+50/81 Test #50: SensorScheduling_delay_reentry ..............   Passed    0.01 sec
+      Start 51: SensorScheduling_delay_timeout_reentry
+51/81 Test #51: SensorScheduling_delay_timeout_reentry ......   Passed    0.01 sec
+      Start 52: SensorScheduling_timer_reentry
+52/81 Test #52: SensorScheduling_timer_reentry ..............   Passed    0.01 sec
+      Start 53: SensorScheduling_delay_changed_exception
+53/81 Test #53: SensorScheduling_delay_changed_exception ....   Passed    0.02 sec
+      Start 54: SensorScheduling_timer_changed_exception
+54/81 Test #54: SensorScheduling_timer_changed_exception ....   Passed    0.02 sec
+      Start 55: SensorScheduling_delay_remove_reentry
+55/81 Test #55: SensorScheduling_delay_remove_reentry .......   Passed    0.01 sec
+      Start 56: SensorScheduling_timer_remove_reentry
+56/81 Test #56: SensorScheduling_timer_remove_reentry .......   Passed    0.01 sec
+      Start 57: SensorScheduling_timer_exception
+57/81 Test #57: SensorScheduling_timer_exception ............   Passed    0.01 sec
+      Start 58: SensorScheduling_delay_exception
+58/81 Test #58: SensorScheduling_delay_exception ............   Passed    0.01 sec
+      Start 59: SensorScheduling_timer_cancel_exception
+59/81 Test #59: SensorScheduling_timer_cancel_exception .....   Passed    0.01 sec
+      Start 60: SensorScheduling_delay_deferred_exception
+60/81 Test #60: SensorScheduling_delay_deferred_exception ...   Passed    0.02 sec
+      Start 61: SensorScheduling_absolute_deadline
+61/81 Test #61: SensorScheduling_absolute_deadline ..........   Passed    0.02 sec
+      Start 62: SensorScheduling_changed_during_dispatch
+62/81 Test #62: SensorScheduling_changed_during_dispatch ....   Passed    0.03 sec
+      Start 63: SensorScheduling_immediate_notification
+63/81 Test #63: SensorScheduling_immediate_notification .....   Passed    0.02 sec
+      Start 64: SensorQueueAllocation_delay
+64/81 Test #64: SensorQueueAllocation_delay .................   Passed    0.01 sec
+      Start 65: SensorQueueAllocation_immediate
+65/81 Test #65: SensorQueueAllocation_immediate .............   Passed    0.01 sec
+      Start 66: SensorQueueAllocation_timer
+66/81 Test #66: SensorQueueAllocation_timer .................   Passed    0.01 sec
+      Start 67: SensorQueueAllocation_recurring
+67/81 Test #67: SensorQueueAllocation_recurring .............   Passed    0.02 sec
+      Start 68: SoText2BoundsAndPicking
+68/81 Test #68: SoText2BoundsAndPicking .....................   Passed    0.02 sec
+      Start 69: SoText2ExtendedBounds
+69/81 Test #69: SoText2ExtendedBounds .......................   Passed    0.07 sec
+      Start 70: SoText2ExtendedRendering
+70/81 Test #70: SoText2ExtendedRendering ....................   Passed    1.04 sec
+      Start 71: XmlCHeaderAttributeTest
+71/81 Test #71: XmlCHeaderAttributeTest .....................   Passed    0.00 sec
+      Start 72: XmlCHeaderDocumentTest
+72/81 Test #72: XmlCHeaderDocumentTest ......................   Passed    0.00 sec
+      Start 73: XmlCHeaderElementTest
+73/81 Test #73: XmlCHeaderElementTest .......................   Passed    0.00 sec
+      Start 74: XmlCHeaderEntityTest
+74/81 Test #74: XmlCHeaderEntityTest ........................   Passed    0.00 sec
+      Start 75: XmlCHeaderParserTest
+75/81 Test #75: XmlCHeaderParserTest ........................   Passed    0.00 sec
+      Start 76: XmlCHeaderPathTest
+76/81 Test #76: XmlCHeaderPathTest ..........................   Passed    0.00 sec
+      Start 77: XmlCHeaderTypesTest
+77/81 Test #77: XmlCHeaderTypesTest .........................   Passed    0.00 sec
+      Start 78: XmlCHeaderWorldTest
+78/81 Test #78: XmlCHeaderWorldTest .........................   Passed    0.00 sec
+      Start 79: XmlCHeadersAggregateTest
+79/81 Test #79: XmlCHeadersAggregateTest ....................   Passed    0.00 sec
+      Start 80: XmlCApiTest
+80/81 Test #80: XmlCApiTest .................................   Passed    0.01 sec
+      Start 81: XmlLegacyPathDocumentCxxAbiTest
+81/81 Test #81: XmlLegacyPathDocumentCxxAbiTest .............   Passed    0.01 sec
+
+100% tests passed, 0 tests failed out of 81
+
+Label Time Summary:
+sopath-legacy-accessor    =   0.09 sec*proc (6 tests)
+
+Total Test time (real) =   5.99 sec

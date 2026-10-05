@@ -381,3 +381,11 @@ target_link_libraries(CoinSoText2BoundsTest PRIVATE Coin)
 target_include_directories(CoinSoText2BoundsTest PRIVATE
   ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include)
 add_test(NAME SoText2BoundsAndPicking COMMAND CoinSoText2BoundsTest)
+
+add_executable(CoinSoText2ExtendedTest SoText2ExtendedTest.cpp)
+target_link_libraries(CoinSoText2ExtendedTest PRIVATE Coin)
+target_include_directories(CoinSoText2ExtendedTest PRIVATE
+  ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include)
+add_test(NAME SoText2ExtendedBounds COMMAND CoinSoText2ExtendedTest)
+add_test(NAME SoText2ExtendedRendering COMMAND CoinSoText2ExtendedTest --render)
+set_tests_properties(SoText2ExtendedRendering PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 30)

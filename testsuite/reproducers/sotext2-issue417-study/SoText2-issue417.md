@@ -1,6 +1,6 @@
 # SoText2 e base da correção da issue 417
 
-Estado: correção validada no escopo dos testes da issue 417 na branch `codex/fix/issue417-sotext2`, em 5 de outubro de 2026. A falha da macro de captura foi resolvida e a comparação visual no FreeCAD passou. Resultados finais: 38 casos Coin, 79 testes CTest e 44 verificações da comparação FreeCAD, sem falhas na correção. Veja a última seção para evidências e limites de abrangência.
+Estado: correção ampliada e validada na branch `codex/fix/issue417-sotext2`, em 5 de outubro de 2026. Escopo atual: limites de layout, buffer visível, plano da câmera e limites conservadores em coordenadas grandes. Resultado final: 81 testes CTest aprovados, 38 casos originais, 45 casos adicionais de limites, 21 de desenho e 44 verificações FreeCAD sem falhas. As etapas anteriores ficam preservadas como histórico; a última seção descreve o código atual.
 
 O objetivo é melhorar o Coin usado pelo FreeCAD. O FreeCAD local contém uma adaptação explícita à issue 417 em `SoColorBarLabel`; este estudo descreve a correção na origem e a retirada posterior dessa adaptação.
 
@@ -211,3 +211,42 @@ SbViewportRegion recebe width/height como short. Passar 40000 já perde represen
 cc_glyph2d mantém larguras/alturas em unsigned short e offsets em short. A fronteira FreeType ainda copia rows*pitch sem validações completas e mistura pitch assinado com representação unsigned. Os trechos apontados em SoFonts permanecem presentes nesta revisão, mas pitch negativo, dimensões extremas e falhas de alocação não foram novamente reproduzidos com backend simulado. São pendências de investigação/validação, não falhas observadas do teste de integração FreeCAD.
 
 Prioridade para ampliar o escopo: primeiro limites internos de glifos/caixas junto com proteção do buffer; seleção UTF-8 com teste independente; e uma decisão explícita para a âncora no plano da câmera. O limite de precisão em coordenadas extremas e a largura do viewport envolvem contratos mais amplos da biblioteca. Os 38 casos originais continuam cobrindo a correção delimitada da #417, não esses novos extremos.
+
+
+## Ampliação autorizada na mesma branch — implementação final
+
+O FreeCAD permanece ferramenta de análise: seus fontes e sua biblioteca Coin instalada não foram alterados. A ampliação de código está toda em SoText2.cpp, com testes em SoText2ExtendedTest.cpp e registro no CTest. A seleção UTF-8 e a fronteira geral do backend de fontes permanecem separadas para a próxima etapa.
+
+### Limites de layout e acúmulo
+
+SbBox2s e posições SbVec2s foram substituídos pelos tipos internos SbBox2i32 e SbVec2i32. O acúmulo de avanço e de linhas usa int64_t; antes de guardar uma coordenada de 32 bits são verificados os limites, inclusive a extensão do bitmap e da borda direita. Se o layout ultrapassar a representação aceita, sua caixa e posições são descartadas coerentemente, em vez de sofrer wrap. Tamanho de fonte não positivo/não finito e espaçamento não finito ou fora da representação do avanço são rejeitados na entrada desse caminho. As checagens não substituem a futura validação das métricas fornecidas pelo backend de fontes.
+
+Na sondagem original, 3000 letras M tinham largura 565.4447 e centro próximo de zero; agora têm largura 284.77185 e centro 142.38593, coerentes com o crescimento de 1000 e 2000 letras. As 6000 letras têm largura 569.54370. Quatro mil linhas têm altura 414.17905 e centro negativo. Três linhas com spacing=10000 têm altura 2071.13696 e também ficam abaixo da origem, sem o wrap anteriormente observado.
+
+### Buffer RGBA proporcional à região visível
+
+O desenho calcula a interseção entre a caixa do texto em pixels e o viewport. A alocação e glDrawPixels usam essa região visível, sem alocar a área inteira de um texto largo ou de linhas muito afastadas. Cada bitmap é copiado com recorte de origem e destino, incluindo glifos parcialmente visíveis nas bordas. Cálculos de raster usam intermediários de 64 bits, e produtos/offsets de memória usam size_t. O produto da alocação é verificado antes de multiplicar; a alocação usa nothrow e conserva o buffer anterior quando não consegue obter um novo. Não foi injetada artificialmente uma falha de alocação nesta validação.
+
+No teste de 6000 letras por linha, três linhas e spacing=10000, o antigo cálculo de área completa exigiria dezenas de GB após ampliar as coordenadas. O buffer atual fica limitado pela janela: em 640×480, no máximo 1228800 bytes RGBA, independentemente dessa área completa. Caches e posições dos glifos ainda crescem com a quantidade de caracteres; o limite descrito é do buffer RGBA, não de toda a memória do nó.
+
+Os testes comparam texto largo e alto com referências que têm os mesmos pixels visíveis. Três casos adicionais deslocam os pixels de um glifo íntegro para formar o oráculo de recorte nas bordas esquerda, superior e inferior. Esses oráculos verificam os pixels de origem utilizados, não apenas se apareceu algum texto.
+
+### Plano da câmera e precisão
+
+getQuad agora usa SbDPMatrix, SbDPViewVolume, SbVec3d e SbVec2d para o cálculo intermediário, mantendo o truncamento da âncora ao pixel. Na projeção perspectiva singular, quando o texto está exatamente no plano da câmera, somente a consulta de limites constrói um retângulo na escala da distância do plano próximo e o translada para a âncora real. Isso produz uma caixa finita, com extensão, para View All reposicionar a câmera. Desenho e seleção continuam rejeitando a projeção singular até esse reposicionamento. Os testes confirmam limites finitos, planos de clipping válidos e texto desenhado após View All, tanto no plano exato quanto atrás da câmera.
+
+Quando a precisão final de float colapsaria uma extensão não nula, os limites públicos são expandidos conservadoramente para valores float adjacentes. Isso é feito também antes de devolver coordenadas locais, para a reaplicação da transformação pelo cálculo de bounding box não eliminar a extensão. Em x=1000000000, a caixa tem largura conservadora 128 e centro x=1000000000, em vez de largura zero e centro deslocado. Essa largura é deliberadamente maior que a largura geométrica real: preserva o enquadramento dentro do contrato SbBox3f, sem prometer precisão sub-ULP. Desenho e picking não recebem essa expansão artificial.
+
+### Validação final e limites de abrangência
+
+- CTest sob Xvfb: 81 testes aprovados, nenhum ignorado.
+- Regressão original: 38 casos, zero falhas.
+- Novos limites: 45 casos, zero falhas; master tem 33 falhas nesse controle negativo.
+- Novo desenho: 21 casos, zero falhas, incluindo referências de recorte, extensão muito grande, View All no plano da câmera/atrás dele, coordenadas grandes e entradas inválidas.
+- SoText2.cpp foi compilado separadamente com UBSan, float-cast-overflow e assertions, e depois com AddressSanitizer junto dessas verificações. Limites e desenho passaram sem diagnóstico dos sanitizers. Somente a unidade alterada foi instrumentada; o restante da Coin permaneceu da compilação Release. A detecção de leaks foi desabilitada no ensaio ASan, que visou acessos ao buffer.
+- FreeCAD como ferramenta: comparação repetida com a biblioteca ampliada, 44 verificações sem falhas. A biblioteca master usada como controle permaneceu a mesma.
+- As três imagens isoladas do exemplo original, controle manual e texto distante ficaram idênticas byte a byte às da correção anterior; original e distante continuam visíveis após View All somente com a correção.
+
+Evidências finais estão em extended-validation/. instrument-text2.py registra como foi instrumentada somente a unidade alterada, usando os objetos da compilação local existente. As cópias antigas de resultados e patches experimentais continuam identificadas nas seções anteriores e não representam o estado final da implementação.
+
+Pendências para outras correções: seleção por bytes em strings UTF-8; dimensões e bearings em 16 bits no backend de glifos; pitch, produtos e falhas de alocação nas camadas gerais de fontes. A API SbViewportRegion continua recebendo dimensões short; ampliar esse contrato não faz parte desta branch. O layout interno de SoText2 passa a aceitar a representação de 32 bits e rejeita layouts que a ultrapassem. Não houve alteração no FreeCAD nem retirada de seu workaround.
