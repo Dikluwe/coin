@@ -417,3 +417,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set_tests_properties(SoText2ExtendedRenderingBuiltinFont PROPERTIES
     ENVIRONMENT "COIN_FORCE_FREETYPE_OFF=1" SKIP_RETURN_CODE 77 TIMEOUT 30)
 endif()
+
+add_executable(CoinSoText2Utf8PickingTest SoText2Utf8PickingTest.cpp)
+target_link_libraries(CoinSoText2Utf8PickingTest PRIVATE Coin)
+add_test(NAME SoText2Utf8Picking COMMAND CoinSoText2Utf8PickingTest)
