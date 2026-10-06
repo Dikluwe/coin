@@ -7,6 +7,9 @@ target_include_directories(CcDictResizeTest PRIVATE
   ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/include
   ${PROJECT_BINARY_DIR}/src ${PROJECT_BINARY_DIR}/include
   ${COIN_TARGET_INCLUDE_DIRECTORIES})
+if(WIN32 AND COIN_BUILD_SHARED_LIBS)
+  target_sources(CcDictResizeTest PRIVATE CoinGeqPrimeNumberWin32TestSupport.cpp)
+endif()
 add_test(NAME CcDictResizeRelink COMMAND CcDictResizeTest relink)
 add_test(NAME CcDictResizeAllocationFailure COMMAND CcDictResizeTest failure)
 add_test(NAME CcDictNumericLoadfactor COMMAND CcDictResizeTest numeric)
