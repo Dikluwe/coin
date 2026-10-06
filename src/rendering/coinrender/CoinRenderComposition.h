@@ -258,10 +258,10 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
       return false;
     }
     const float alpha = frame.materials[rs.materialSlot].diffuse[3];
-    // Packed primary alpha can round a native transparent material to opaque.
-    // Preserve Coin's original traversal classification before texture proofs.
-    const bool nativeMaterialAlpha =
-      coin_render_alpha_test_active(rs.alphaTestFunction) && rs.transparentMaterial;
+    // Coin classifies the whole material before shading, including unused
+    // transparency slots and packed primary alpha that rounds to opaque.
+    // Preserve that traversal flag independently of the alpha-test function.
+    const bool nativeMaterialAlpha = rs.transparentMaterial;
     bool materialAlpha = alpha < 1.0f || nativeMaterialAlpha;
     const size_t first = draw.geometry.firstIndex;
     const size_t count = draw.geometry.indexCount;

@@ -24,6 +24,7 @@
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/nodes/SoMaterial.h>
+#include <Inventor/nodes/SoMaterialBinding.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoPointSet.h>
 #include <Inventor/nodes/SoSceneTexture2.h>
@@ -479,6 +480,44 @@ bool replaceComponents(bool gpu) {
   return true;
 }
 
+bool replaceUnusedMaterialTransparency(bool gpu) {
+  Scene scene; Harness test(gpu); Quad textured,cover(0,SbColor(0,1,0));
+  test.transparency(CoinRenderAction::SORTED_OBJECT_BLEND);
+  auto * binding = new SoMaterialBinding; binding->value = SoMaterialBinding::OVERALL;
+  textured.group->insertChild(binding,textured.group->findChild(textured.alpha));
+  const float opaque[] = {0,0}; textured.material->transparency.setValues(0,2,opaque);
+  textured.alpha->function = SoAlphaTest::NONE;
+  textured.texture(0,3,{255,0,0});
+  cover.depth->test = FALSE; cover.depth->write = FALSE;
+  scene.root->addChild(textured.group); scene.root->addChild(cover.group);
+  if (!test.render(scene.root,"replace/overall-all-opaque-slots-immediate") ||
+      !test.sample(53,37,{{0,255,0}},"replace/opaque-slots-covered")) return false;
+  const auto originalCpu = test.lastCpu,originalGpu = test.lastNative;
+  // Native material classification considers every transparency slot even
+  // when OVERALL uses opaque slot zero. RGB REPLACE keeps that slot's alpha,
+  // but the shape is still deferred and is drawn after the green cover.
+  textured.material->transparency.set1Value(1,.5f);
+  if (!test.render(scene.root,"replace/overall-unused-transparent-slot-deferred") ||
+      !test.sample(53,37,{{255,0,0}},"replace/unused-slot-native-order")) return false;
+  const auto deferredCpu = test.lastCpu,deferredGpu = test.lastNative;
+  const uint64_t revision = test.observer->revision;
+  if (!test.render(scene.root,"replace/overall-unused-transparent-slot-repeat") ||
+      !check(test.lastCpu == deferredCpu && test.observer->revision == revision &&
+             (!gpu || test.lastNative == deferredGpu),"RGB REPLACE repeated frame retained a different order")) return false;
+  textured.alpha->function = SoAlphaTest::ALWAYS;
+  if (!test.render(scene.root,"replace/overall-unused-transparent-slot-alpha-always") ||
+      !test.sample(53,37,{{255,0,0}},"replace/always-preserves-native-order")) return false;
+  textured.alpha->function = SoAlphaTest::NONE;
+  textured.material->transparency.set1Value(0,.5f);
+  if (!test.render(scene.root,"replace/overall-used-transparent-slot-alpha-preserved") ||
+      !test.sample(53,37,{{128,127,0}},"replace/used-slot-blends-over-cover")) return false;
+  textured.material->transparency.setValues(0,2,opaque);
+  return test.render(scene.root,"replace/overall-unused-transparent-slot-restore") &&
+         test.sample(53,37,{{0,255,0}},"replace/opaque-slots-restored") &&
+         check(test.lastCpu == originalCpu && (!gpu || test.lastNative == originalGpu),
+               "RGB REPLACE transparency-array A/B/A did not restore the immediate order");
+}
+
 bool multipleUnitsAndCombine(bool gpu) {
   Scene scene; Harness test(gpu); Quad content; content.material->transparency = .5f;
   auto * first = content.texture(0, 2, {255,192});
@@ -804,7 +843,7 @@ int main(int argc, char ** argv) {
 #endif
   if (!depthDisabled(gpu) || !alphaFunctions(gpu) || !alphaTextureDepth(gpu) ||
       !screenDoorAlpha(gpu) || !tinyTransparencyDepth(gpu) ||
-      !inheritanceAndMutation(gpu) || !replaceComponents(gpu) ||
+      !inheritanceAndMutation(gpu) || !replaceComponents(gpu) || !replaceUnusedMaterialTransparency(gpu) ||
       !multipleUnitsAndCombine(gpu) || !alphaCallbacks(gpu) ||
       !lineAndPointPolicies(gpu) || !rasterPolicies(gpu, font) ||
       !invalidAlphaRecovery(gpu) || !layeredAlpha(gpu,false) || !layeredAlpha(gpu,true) ||

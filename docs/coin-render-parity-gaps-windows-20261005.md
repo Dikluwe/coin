@@ -14,6 +14,9 @@ anterior à implementação; a nova versão ainda exige qualificação Windows.
 Outra atualização Linux implementa `SoAlphaTest`, preserva o alpha anterior em
 texturas RGB/L com `REPLACE` e impede escrita de profundidade com o teste
 desligado. Consulte o [contrato e os gates](coin-render-fragment-policy-contract.md).
+A revisão de RGB/REPLACE também preserva a classificação nativa de material
+com slots transparentes não usados, incluindo `SoAlphaTest.NONE` e `ALWAYS`,
+para manter a ordem de desenho do CoinGL nos modos de transparência ordenada.
 
 `SoMarkerSet` e `SoIndexedMarkerSet` também receberam captura comum dos bitmaps.
 O [contrato de marcadores](coin-render-marker-contract.md) registra o perfil

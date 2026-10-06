@@ -76,6 +76,24 @@ como nos exemplos do Coin: o GL aplica a combinação ao configurar a imagem.
 Esta campanha não qualifica mudanças de combine posteriores à imagem na
 ordem de travessia.
 
+### Classificação do material e ordem de desenho
+
+O alpha usado pelo fragmento e a classificação nativa da forma são preservados
+separadamente. O Coin considera todos os slots de transparência do material,
+mesmo quando o binding `OVERALL` usa somente o slot zero opaco. Essa flag
+continua governando blend e adiamento nos modos correspondentes, inclusive
+com `SoAlphaTest.NONE` ou `ALWAYS` e resultado opaco de `REPLACE`/combine.
+`NONE` e `SCREEN_DOOR` da action conservam suas políticas próprias.
+
+O gate discriminante sobrepõe um quad RGB/REPLACE a um quad verde desenhado
+depois, com profundidade desligada no verde. Sem slots transparentes, o verde
+cobre a textura. Alterar somente um slot não usado para transparência `0.5`
+adia a textura no CoinGL, que passa a aparecer vermelha por cima. O gate
+também verifica repetição do frame, `ALWAYS`, alpha do slot usado e restauração
+exata A/B/A. A composição comum agora preserva essa classificação sem depender
+da função de alpha-test; o programa de textura e o alpha de shading permanecem
+os mesmos.
+
 ## Validação
 
 O gate [CoinRenderFragmentPolicyTest](../testsuite/coinrender/CoinRenderFragmentPolicyTest.cpp)
@@ -101,3 +119,12 @@ O oracle RTT usa produtor uniforme e UVs interiores: prova o teste de alpha
 do produtor staged/direct, sem certificar filtros, bordas CLAMP ou geometria
 geral de RTT. A recusa em sombras verifica diagnóstico e preservação do frame,
 com controle GPU PHONG válido antes da entrada recusada.
+
+A campanha adicional de RGB/REPLACE em
+[validation/rgb-replace-linux](validation/rgb-replace-linux) reexecuta o gate
+com seis cenas adicionais por executor e registra o piloto que reproduziu a
+divergência de ordem antes da correção. Passaram **348 comparações GPU RGB**
+(116 por executor), com erro máximo de 1/255, além de 279 comparações de
+texto/imagem, 363 de marcadores e 49 gates CTest. Não houve skip nas execuções
+finais. O perfil continua restrito a Linux/NVIDIA; não houve alteração de ABI,
+Rust ou shaders nesta correção.
