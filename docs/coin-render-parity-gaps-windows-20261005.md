@@ -39,6 +39,14 @@ Linux com CoinGL em wgpu/Vulkan e BGFX/Vulkan/OpenGL, inclusive clipping
 transparente e caixas degeneradas. FUNCTION/texgen e unidades adicionais
 ativas permanecem fora desse perfil; Windows ainda exige qualificação.
 
+## Critério de compatibilidade
+
+A [política de compatibilidade e bugs](coin-render-compatibility-policy.md)
+orienta os próximos fechamentos. Bugs confirmados ou comportamento indefinido
+do CoinGL devem ter resultado correto e seguro no CoinRender, com teste próprio
+e divergência documentada. Uma diferença ainda sem diagnóstico permanece aberta;
+igualdade com o legado não é suficiente para certificar correção.
+
 ## Funcionalidades que faltam ou têm contrato limitado
 
 | Prioridade | Recurso Coin | Comportamento atual verificado | Dono e próximo fechamento |

@@ -4,6 +4,11 @@ A **referência principal é o renderer OpenGL clássico do Coin3D**: `SoGLRende
 
 **BGFX/OpenGL é uma variante experimental**, separada da referência CoinGL. As comparações antes/depois dentro de um backend são medidas complementares de otimização e regressão; devem acompanhar a comparação principal com CoinGL.
 
+A [política de compatibilidade e bugs](coin-render-compatibility-policy.md)
+define como tratar divergências: defeitos confirmados e comportamento indefinido
+do CoinGL não devem ser copiados. A comparação visual precisa distinguir esses
+casos das diferenças ainda em investigação e das lacunas de suporte.
+
 ## Regras da campanha
 
 - Compare cada variante com CoinGL na mesma GPU física, sessão, cena, câmera, resolução, perfil de atualização e política de transparência. Uma referência NVIDIA não qualifica uma variante AMD.
