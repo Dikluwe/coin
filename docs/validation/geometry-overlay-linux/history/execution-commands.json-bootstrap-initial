@@ -1,0 +1,19 @@
+{
+  "source_snapshot_revision": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+  "commands": [
+    {
+      "name": "gates",
+      "command": [
+        "python3",
+        "/tmp/coin-render-geometry-overlay-gates.py",
+        "--expected-source-content-revision",
+        "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33"
+      ],
+      "script_sha256": "fdc9a2109ec8b32e79b333fd42df2ce26f412f5d393b3919de98b380f396f7df",
+      "log": "/tmp/coin-render-geometry-overlay-gates-run.log",
+      "source_revision_at_start": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+      "exit_code": 1,
+      "source_revision_at_end": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33"
+    }
+  ]
+}

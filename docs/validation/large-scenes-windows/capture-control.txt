@@ -1,0 +1,16 @@
+scene_load_ms=3.1367
+WebGPU_first_frame_ms=8642.09
+CoinGL_first_frame_ms=493.66
+rgba_fnv64=0x9d82b460ab77c2d6
+gl_rgba_fnv64=0x8020f1058fca8fc1
+image=H:/Git/coin/build/large-scenes/capture-control.ppm
+adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) vendor_id=0x10de device_id=0x1c03 backend=both size=256x256 warmup=1 scene=H:/Git/coin/build/large-scenes/city-100.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static
+WebGPU frames=2 median_ms=37.5256 p95_ms=37.5256 min_ms=36.7282 max_ms=37.5256
+WebGPU_render frames=2 median_ms=37.4863 p95_ms=37.4863 min_ms=36.6773 max_ms=37.4863
+WebGPU_copy frames=2 median_ms=0.0509 p95_ms=0.0509 min_ms=0.0393 max_ms=0.0509
+WebGPU_throughput frames=2 total_ms=74.2561 fps=26.9338
+CoinGL frames=2 median_ms=15.7105 p95_ms=15.7105 min_ms=7.3011 max_ms=15.7105
+CoinGL_throughput frames=2 total_ms=23.0136 fps=86.9051
+WebGPU_cache last_frame_uploads=0 last_frame_uploaded_bytes=0 last_frame_hits=0 cumulative_uploads=0 cumulative_uploaded_bytes=0 cumulative_hits=0
+backend_cleanup_begin
+backend_cleanup_ms=26.7034

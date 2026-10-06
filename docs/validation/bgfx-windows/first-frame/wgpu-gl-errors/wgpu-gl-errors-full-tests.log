@@ -1,0 +1,106 @@
+Internal ctest changing into directory: H:/Git/coin/build/coin-render-wgpu-msvc
+Test project H:/Git/coin/build/coin-render-wgpu-msvc
+        Start   1: CoinRenderWin32D3D12Smoke
+  1/100 Test   #1: CoinRenderWin32D3D12Smoke ................   Passed    1.84 sec
+        Start   2: CoinRenderWin32VulkanSmoke
+  2/100 Test   #2: CoinRenderWin32VulkanSmoke ...............   Passed    1.18 sec
+        Start   3: CoinTests
+  3/100 Test   #3: CoinTests ................................   Passed    1.63 sec
+        Start   4: CoinConfigCompatibility
+  4/100 Test   #4: CoinConfigCompatibility ..................   Passed    1.39 sec
+        Start   5: ProfilerInit_unset
+  5/100 Test   #5: ProfilerInit_unset .......................   Passed    0.11 sec
+        Start   6: ProfilerInit_off
+  6/100 Test   #6: ProfilerInit_off .........................   Passed    0.11 sec
+        Start   7: ProfilerInit_0
+  7/100 Test   #7: ProfilerInit_0 ...........................   Passed    0.11 sec
+        Start   8: ProfilerInit_on
+  8/100 Test   #8: ProfilerInit_on ..........................   Passed    0.11 sec
+        Start   9: ProfilerInit_1
+  9/100 Test   #9: ProfilerInit_1 ...........................   Passed    0.12 sec
+        Start  10: ProfilerInit_syncgl
+ 10/100 Test  #10: ProfilerInit_syncgl ......................   Passed    0.10 sec
+        Start  11: ProfilerInit_invalid
+ 11/100 Test  #11: ProfilerInit_invalid .....................   Passed    0.11 sec
+        Start  12: RenderManagerFramePreparationTest
+ 12/100 Test  #12: RenderManagerFramePreparationTest ........   Passed    0.08 sec
+        Start  13: CoinRenderActionTest
+ 13/100 Test  #13: CoinRenderActionTest .....................   Passed    0.73 sec
+        Start  14: CoinRenderSelectionTest
+ 14/100 Test  #14: CoinRenderSelectionTest ..................   Passed    0.79 sec
+        Start  15: CoinRenderProductTest
+ 15/100 Test  #15: CoinRenderProductTest ....................   Passed    0.95 sec
+        Start  16: CoinRenderBackendContractTest
+ 16/100 Test  #16: CoinRenderBackendContractTest ............   Passed    0.57 sec
+        Start  17: CoinRenderOffscreenTest
+ 17/100 Test  #17: CoinRenderOffscreenTest ..................   Passed    0.67 sec
+        Start  18: CoinRenderGateG0Test
+ 18/100 Test  #18: CoinRenderGateG0Test .....................   Passed    0.10 sec
+        Start  19: CoinRenderFrameCoreTest
+ 19/100 Test  #19: CoinRenderFrameCoreTest ..................   Passed    0.09 sec
+        Start  20: CoinBgfxCoreTest
+ 20/100 Test  #20: CoinBgfxCoreTest .........................   Passed    0.09 sec
+        Start  21: CoinRenderDepthContractTest
+ 21/100 Test  #21: CoinRenderDepthContractTest ..............   Passed    0.24 sec
+        Start  22: CoinRenderFrameReuseCoreTest
+ 22/100 Test  #22: CoinRenderFrameReuseCoreTest .............   Passed    0.56 sec
+        Start  23: CoinRenderDiagnosticShellTest
+ 23/100 Test  #23: CoinRenderDiagnosticShellTest ............   Passed    0.08 sec
+        Start  24: CoinRenderIndexedGeometryCoreTest
+ 24/100 Test  #24: CoinRenderIndexedGeometryCoreTest ........   Passed    0.09 sec
+        Start  25: CoinRenderGateG1Test
+ 25/100 Test  #25: CoinRenderGateG1Test .....................   Passed    0.70 sec
+        Start  26: CoinRenderGateG2Test
+ 26/100 Test  #26: CoinRenderGateG2Test .....................   Passed    0.56 sec
+        Start  27: CoinRenderIndexedFastPathTest
+ 27/100 Test  #27: CoinRenderIndexedFastPathTest ............   Passed    0.48 sec
+        Start  28: CoinWgpuCacheTest
+ 28/100 Test  #28: CoinWgpuCacheTest ........................   Passed    0.54 sec
+        Start  29: CoinRenderStabilizationTest
+ 29/100 Test  #29: CoinRenderStabilizationTest ..............   Passed    0.67 sec
+        Start  30: CoinRenderMaterialTest
+ 30/100 Test  #30: CoinRenderMaterialTest ...................   Passed    0.55 sec
+        Start  31: CoinRenderTextureTest
+ 31/100 Test  #31: CoinRenderTextureTest ....................   Passed    0.50 sec
+        Start  32: CoinRenderLightingTest
+ 32/100 Test  #32: CoinRenderLightingTest ...................   Passed    2.72 sec
+        Start  33: CoinRenderGouraudInterpolationTest
+ 33/100 Test  #33: CoinRenderGouraudInterpolationTest .......   Passed    0.41 sec
+        Start  34: CoinRenderFogTest
+ 34/100 Test  #34: CoinRenderFogTest ........................   Passed    1.48 sec
+        Start  35: CoinRenderClipPlaneTest
+ 35/100 Test  #35: CoinRenderClipPlaneTest ..................   Passed    1.14 sec
+        Start  36: CoinRenderDrawStyleTest
+ 36/100 Test  #36: CoinRenderDrawStyleTest ..................   Passed   97.80 sec
+        Start  37: CoinRenderMultitextureTest
+ 37/100 Test  #37: CoinRenderMultitextureTest ...............   Passed    6.60 sec
+        Start  38: CoinRenderPeelingTest
+ 38/100 Test  #38: CoinRenderPeelingTest ....................***Failed    0.99 sec
+CPU=0 layers=1 channel=0 actual=31 expected=73.95
+
+        Start  39: CoinRenderWeightedOitTest
+ 39/100 Test  #39: CoinRenderWeightedOitTest ................   Passed    1.03 sec
+        Start  40: CoinRenderTransparencyTest
+ 40/100 Test  #40: CoinRenderTransparencyTest ...............***Failed    1.92 sec
+CPU transparency matrices
+numeric CPU=0 mode=10 at 40,32 channel=0 expected=63.75 actual=0
+
+        Start  41: CoinRenderCompositionTest
+ 41/100 Test  #41: CoinRenderCompositionTest ................   Passed    0.99 sec
+        Start  42: CoinRenderAnnotationTest
+ 42/100 Test  #42: CoinRenderAnnotationTest .................   Passed    0.41 sec
+        Start  43: CoinRenderNodeInventoryDiscoveryTest
+ 43/100 Test  #43: CoinRenderNodeInventoryDiscoveryTest .....   Passed    0.25 sec
+        Start  44: CoinRenderNodeInventoryTest
+ 44/100 Test  #44: CoinRenderNodeInventoryTest ..............   Passed    0.09 sec
+        Start  45: CoinRenderShadowReferenceTest
+ 45/100 Test  #45: CoinRenderShadowReferenceTest ............   Passed   58.44 sec
+        Start  46: CoinRenderShadowWiringTest
+ 46/100 Test  #46: CoinRenderShadowWiringTest ...............   Passed    0.70 sec
+        Start  47: CoinRenderShadowTransparency5Test
+ 47/100 Test  #47: CoinRenderShadowTransparency5Test ........   Passed   48.23 sec
+        Start  48: CoinRenderShadowTransparency6Test
+ 48/100 Test  #48: CoinRenderShadowTransparency6Test ........   Passed   40.21 sec
+        Start  49: CoinRenderShadowTransparency7Test
+ 49/100 Test  #49: CoinRenderShadowTransparency7Test ........   Passed   41.80 sec
+        Start  50: CoinRenderShadowTransparency8Test

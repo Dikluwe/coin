@@ -1,0 +1,25 @@
+startup_detail arguments_ms=0.0685 coin_init_ms=2.1069 capability_probe_ms=358.496
+scene_detail parse_ms=501.773 wrapper_ms=0.0201 camera_fit_ms=109.527
+scene_load_ms=611.417
+animation_detail mode=geometry animated_percent=20 eligible=40000 selected=8000 prepared_clones=8000 prepare_ms=105.658 frame_step=3 time_step_seconds=0.05 selection_fnv64=0xaaccdd6bf19c5eff
+startup_detail material_search_ms=0.1442 target_setup_ms=1.7215
+WebGPU_first_detail render_ms=543.038 publication_copy_ms=3.208 update_ms=15.5306 total_with_update_ms=561.777 before_frame_since_main_ms=1095.95 result_since_main_ms=1642.2
+WebGPU_first_frame_ms=546.246
+capture backend=WebGPU frame_index=0 logical_frame=0 rgba_fnv64=0xe1a0f4d3dbfcd299 rgb_fnv64=0x4206bdf4eab17b3b state_fnv64=0x68076ef1c0a26d63 image=H:\Git\coin\build\animated-buildings-windows-20261005\wgpu-vulkan-after-geometry-1-WebGPU-000000.ppm
+capture backend=WebGPU frame_index=15 logical_frame=45 rgba_fnv64=0xb7344005e5fc5893 rgb_fnv64=0x50a284c1f6bd06d7 state_fnv64=0x5d167957d1ff72c2 image=H:\Git\coin\build\animated-buildings-windows-20261005\wgpu-vulkan-after-geometry-1-WebGPU-000015.ppm
+capture backend=WebGPU frame_index=29 logical_frame=87 rgba_fnv64=0x6deefbb5fe6fb6d5 rgb_fnv64=0x8fcb2844c1dfb4b state_fnv64=0x6027660fb2957a50 image=H:\Git\coin\build\animated-buildings-windows-20261005\wgpu-vulkan-after-geometry-1-WebGPU-000029.ppm
+WebGPU_animation_final logical_frame=87 state_fnv64=0x6027660fb2957a50
+samples_output=H:\Git\coin\build\animated-buildings-windows-20261005\wgpu-vulkan-after-geometry-1.csv rows=35
+rgba_fnv64=0x6deefbb5fe6fb6d5
+adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) vendor_id=0x10de device_id=0x1c03 backend=wgpu size=768x768 warmup=5 scene=H:\Git\coin\build\large-scenes\city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=geometry
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..29 warmup_indices=-5..-1 frame_step=3 captures=3 capture_io=outside_frame_timers wall_throughput_includes_capture=1 wall_throughput_scope=update+frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+WebGPU frames=30 median_ms=168.387 p95_ms=177.597 min_ms=156.161 max_ms=180.26
+WebGPU_render frames=30 median_ms=167.996 p95_ms=177.298 min_ms=155.882 max_ms=179.97
+WebGPU_copy frames=30 median_ms=0.3013 p95_ms=0.4502 min_ms=0.2762 max_ms=0.6019
+WebGPU_timing_total frames=30 median_ms=194.7424 p95_ms=202.6966 p99_ms=219.7143 max_ms=219.7143 over_16_67=30 over_33_33=30
+WebGPU_timing_update frames=30 median_ms=25.78355 p95_ms=31.9699 p99_ms=39.4547 max_ms=39.4547 over_16_67=30 over_33_33=1
+WebGPU_timing_render frames=30 median_ms=167.89695 p95_ms=177.298 p99_ms=179.9697 max_ms=179.9697 over_16_67=30 over_33_33=30
+WebGPU_throughput frames=30 total_ms=5837.17 fps=5.13947
+WebGPU_cache last_frame_uploads=1 last_frame_uploaded_bytes=5760144 last_frame_hits=1 cumulative_uploads=35 cumulative_uploaded_bytes=201608304 cumulative_hits=34
+backend_cleanup_begin
+backend_cleanup_ms=24.136

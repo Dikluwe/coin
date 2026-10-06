@@ -18,12 +18,12 @@
 #include <iostream>
 
 // Static assertions ensuring ABI compatibility with Rust bridge
-static_assert(sizeof(CoinWgpuVertex) == 100, "CoinWgpuVertex size mismatch");
+static_assert(sizeof(CoinWgpuVertex) == 164, "CoinWgpuVertex size mismatch");
 static_assert(alignof(CoinWgpuVertex) == 4, "CoinWgpuVertex alignment mismatch");
 static_assert(offsetof(CoinWgpuVertex, position) == 0, "CoinWgpuVertex position offset mismatch");
 static_assert(offsetof(CoinWgpuVertex, normal) == 12, "CoinWgpuVertex normal offset mismatch");
 static_assert(offsetof(CoinWgpuVertex, texcoord) == 24, "CoinWgpuVertex texcoord offset mismatch");
-static_assert(offsetof(CoinWgpuVertex, material_slot) == 32, "CoinWgpuVertex material_slot offset mismatch");
+static_assert(offsetof(CoinWgpuVertex, material_slot) == 40, "CoinWgpuVertex material_slot offset mismatch");
 
 static_assert(sizeof(CoinWgpuDraw) == 56, "CoinWgpuDraw size mismatch");
 static_assert(alignof(CoinWgpuDraw) == 8, "CoinWgpuDraw alignment mismatch");
@@ -46,7 +46,10 @@ static_assert(alignof(CoinWgpuTexture) == 8, "CoinWgpuTexture alignment mismatch
 static_assert(sizeof(CoinWgpuSampler) == 16, "CoinWgpuSampler size mismatch");
 static_assert(alignof(CoinWgpuSampler) == 4, "CoinWgpuSampler alignment mismatch");
 
-static_assert(sizeof(CoinWgpuRenderState) == 2280, "CoinWgpuRenderState size mismatch");
+static_assert(sizeof(CoinWgpuRenderState) == 2292, "CoinWgpuRenderState size mismatch");
+static_assert(offsetof(CoinWgpuRenderState, alpha_test_function) == 2280, "Alpha function ABI tail mismatch");
+static_assert(offsetof(CoinWgpuRenderState, alpha_test_reference) == 2284, "Alpha reference ABI tail mismatch");
+static_assert(offsetof(CoinWgpuRenderState, texture_projection) == 2288, "Texture projection ABI tail changed");
 static_assert(alignof(CoinWgpuRenderState) == 4, "CoinWgpuRenderState alignment mismatch");
 static_assert(offsetof(CoinWgpuRenderState, cull_mode) == 236, "CoinWgpuRenderState cull_mode offset mismatch");
 static_assert(offsetof(CoinWgpuRenderState, front_face) == 240, "CoinWgpuRenderState front_face offset mismatch");
@@ -68,7 +71,11 @@ static_assert(offsetof(CoinWgpuRenderState, fog_start) == 908, "CoinWgpuRenderSt
 static_assert(offsetof(CoinWgpuRenderState, fog_end) == 912, "CoinWgpuRenderState fog_end offset mismatch");
 
 static_assert(sizeof(CoinWgpuTarget) == 56, "CoinWgpuTarget size mismatch");
-static_assert(sizeof(CoinWgpuFrameView) == 416, "CoinWgpuFrameView size mismatch");
+static_assert(sizeof(CoinWgpuFrameView) == 448, "CoinWgpuFrameView size mismatch");
+static_assert(sizeof(CoinWgpuInstance) == 144, "CoinWgpuInstance size mismatch");
+static_assert(sizeof(CoinWgpuInstanceRange) == 16, "CoinWgpuInstanceRange size mismatch");
+static_assert(offsetof(CoinWgpuFrameView, instances) == 416, "CoinWgpuFrameView instance offset mismatch");
+static_assert(offsetof(CoinWgpuFrameView, instance_ranges) == 432, "CoinWgpuFrameView instance range offset mismatch");
 static_assert(sizeof(CoinWgpuShadowDraw) == 144, "CoinWgpuShadowDraw size mismatch");
 static_assert(sizeof(CoinWgpuShadowReceiver) == 144, "CoinWgpuShadowReceiver size mismatch");
 static_assert(sizeof(CoinWgpuNativeSurfaceDescriptor) == 32, "CoinWgpuNativeSurfaceDescriptor size mismatch");
@@ -259,7 +266,8 @@ CoinWgpuBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
                                static_cast<uint32_t>(target.size[0]),
                                static_cast<uint32_t>(target.size[1]),
                                reuse,
-                               packDiagnostic)) {
+                               packDiagnostic, target.submissionPreflight(frame),
+                               !target.directTextureOutput)) {
     this->lastError = packDiagnostic;
     this->status = CoinRenderBackendStatus::UNSUPPORTED;
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);

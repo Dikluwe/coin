@@ -1,0 +1,19 @@
+Running CoinRenderSurfaceTest...
+-> Native PHONG camera payload reuse...
+COIN_RENDER_PHASE rust_surface_cpu total_ms=7.094860 validation_ms=0.015279 acquire_ms=0.009598 encode_ms=3.223803 submit_present_ms=3.846180 capture_requested=1 capture_staging_bytes=1228800 queue_submissions=1 command_buffers=2 gpu_timing=unavailable
+COIN_RENDER_PHASE rust_resources target=window geometry_active_bytes=312 geometry_retired_bytes=0 vertex_buffers=1 index_buffers=1 texture_cache_count=0 texture_payload_bytes=0 rtt_texture_count=0 rtt_color_nominal_bytes=0 attachment_textures=1 attachment_nominal_bytes=1228800 staging_frame_color_bytes=1228800 staging_frame_depth_bytes=0 staging_pool_free_bytes=0 staging_pool_free_buffers=0 gpu_memory_used_bytes=unavailable framebuffer_count=unavailable
+COIN_RENDER_PHASE rust_draw_resources frame_geometry_bytes=312 uniform_chunks=1 draw_bind_groups=1
+COIN_RENDER_PHASE wgpu_surface renderer=vulkan vendor_id=0x10de device_id=0x2560 device_type=DiscreteGpu surface=1 serial=1 size=640x480
+COIN_RENDER_PHASE rust_surface_cpu total_ms=4.498694 validation_ms=0.003917 acquire_ms=0.012293 encode_ms=1.561653 submit_present_ms=2.920831 capture_requested=1 capture_staging_bytes=1228800 queue_submissions=1 command_buffers=2 gpu_timing=unavailable
+COIN_RENDER_PHASE rust_resources target=window geometry_active_bytes=312 geometry_retired_bytes=0 vertex_buffers=1 index_buffers=1 texture_cache_count=0 texture_payload_bytes=0 rtt_texture_count=0 rtt_color_nominal_bytes=0 attachment_textures=1 attachment_nominal_bytes=1228800 staging_frame_color_bytes=1228800 staging_frame_depth_bytes=0 staging_pool_free_bytes=0 staging_pool_free_buffers=0 gpu_memory_used_bytes=unavailable framebuffer_count=unavailable
+COIN_RENDER_PHASE rust_draw_resources frame_geometry_bytes=312 uniform_chunks=1 draw_bind_groups=1
+COIN_RENDER_PHASE wgpu_surface renderer=vulkan vendor_id=0x10de device_id=0x2560 device_type=DiscreteGpu surface=1 serial=2 size=640x480
+COIN_RENDER_PHASE rust_surface_cpu total_ms=748.656578 validation_ms=0.010489 acquire_ms=0.006382 encode_ms=1.188911 submit_present_ms=747.450796 capture_requested=1 capture_staging_bytes=1228800 queue_submissions=1 command_buffers=2 gpu_timing=unavailable
+COIN_RENDER_PHASE rust_resources target=window geometry_active_bytes=312 geometry_retired_bytes=0 vertex_buffers=1 index_buffers=1 texture_cache_count=0 texture_payload_bytes=0 rtt_texture_count=0 rtt_color_nominal_bytes=0 attachment_textures=1 attachment_nominal_bytes=1228800 staging_frame_color_bytes=1228800 staging_frame_depth_bytes=0 staging_pool_free_bytes=0 staging_pool_free_buffers=0 gpu_memory_used_bytes=unavailable framebuffer_count=unavailable
+COIN_RENDER_PHASE rust_draw_resources frame_geometry_bytes=312 uniform_chunks=1 draw_bind_groups=1
+COIN_RENDER_PHASE wgpu_surface renderer=vulkan vendor_id=0x10de device_id=0x2560 device_type=DiscreteGpu surface=1 serial=3 size=640x480
+COIN_RENDER_PHASE rust_surface_cpu total_ms=3.468758 validation_ms=0.012523 acquire_ms=0.021169 encode_ms=1.736218 submit_present_ms=1.698848 capture_requested=1 capture_staging_bytes=1228800 queue_submissions=1 command_buffers=2 gpu_timing=unavailable
+COIN_RENDER_PHASE rust_resources target=window geometry_active_bytes=312 geometry_retired_bytes=0 vertex_buffers=1 index_buffers=1 texture_cache_count=0 texture_payload_bytes=0 rtt_texture_count=0 rtt_color_nominal_bytes=0 attachment_textures=1 attachment_nominal_bytes=1228800 staging_frame_color_bytes=1228800 staging_frame_depth_bytes=0 staging_pool_free_bytes=0 staging_pool_free_buffers=0 gpu_memory_used_bytes=unavailable framebuffer_count=unavailable
+COIN_RENDER_PHASE rust_draw_resources frame_geometry_bytes=312 uniform_chunks=1 draw_bind_groups=1
+COIN_RENDER_PHASE wgpu_surface renderer=vulkan vendor_id=0x10de device_id=0x2560 device_type=DiscreteGpu surface=1 serial=4 size=640x480
+Native PHONG camera-only checks PASSED

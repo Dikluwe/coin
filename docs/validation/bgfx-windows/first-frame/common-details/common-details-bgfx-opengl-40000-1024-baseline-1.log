@@ -1,0 +1,11 @@
+scene_load_ms=464.708
+BGFX-OpenGL_first_frame_ms=2192.81
+rgba_fnv64=0x156847cec1d97864
+image=build/large-scenes/common-details-bgfx-opengl-40000-1024-baseline-1.ppm
+adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) vendor_id=0x10de device_id=0x0 backend=bgfx size=1024x1024 warmup=1 scene=build/large-scenes/city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=static
+BGFX-OpenGL frames=3 median_ms=12.4976 p95_ms=13.2874 min_ms=12.4145 max_ms=13.2874
+BGFX_render_and_readback frames=3 median_ms=12.0422 p95_ms=12.787 min_ms=11.7862 max_ms=12.787
+BGFX_publication_copy frames=3 median_ms=0.5004 p95_ms=0.6283 min_ms=0.4554 max_ms=0.6283
+BGFX-OpenGL_throughput frames=3 total_ms=38.2034 fps=78.527
+backend_cleanup_begin
+backend_cleanup_ms=65.2878

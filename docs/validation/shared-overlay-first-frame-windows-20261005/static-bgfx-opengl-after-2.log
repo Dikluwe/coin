@@ -1,0 +1,19 @@
+startup_detail arguments_ms=0.0456 coin_init_ms=2.0474 capability_probe_ms=401.945
+scene_detail parse_ms=461.276 wrapper_ms=0.0182 camera_fit_ms=110.616
+scene_load_ms=572.008
+startup_detail material_search_ms=0.1303 target_setup_ms=2.1343
+BGFX-OpenGL_first_detail render_ms=561.161 publication_copy_ms=1.143 update_ms=0.0032 total_with_update_ms=562.308 before_frame_since_main_ms=980.007 result_since_main_ms=1542.31
+BGFX-OpenGL_first_frame_ms=562.304
+rgba_fnv64=0x156847cec1d97864
+image=H:\Git\coin\build\shared-overlay-first-frame-windows-20261005\static-bgfx-opengl-after-2.ppm
+adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) vendor_id=0x10de device_id=0x0 backend=bgfx size=1024x1024 warmup=30 scene=H:\Git\coin\build\large-scenes\city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=static
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..119 warmup_indices=-30..-1 frame_step=1 captures=0 capture_io=outside_frame_timers wall_throughput_includes_capture=0 wall_throughput_scope=legacy-frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+BGFX-OpenGL frames=120 median_ms=8.7508 p95_ms=9.7062 min_ms=7.8904 max_ms=11.2519
+BGFX_render_and_readback frames=120 median_ms=8.383 p95_ms=9.1735 min_ms=7.5449 max_ms=10.0307
+BGFX_publication_copy frames=120 median_ms=0.3732 p95_ms=0.6516 min_ms=0.3243 max_ms=1.2212
+BGFX-OpenGL_timing_total frames=120 median_ms=8.7499 p95_ms=9.7064 p99_ms=10.0371 max_ms=11.2521 over_16_67=0 over_33_33=0
+BGFX-OpenGL_timing_update frames=120 median_ms=0.0002 p95_ms=0.0003 p99_ms=0.0007 max_ms=0.0052 over_16_67=0 over_33_33=0
+BGFX-OpenGL_timing_render frames=120 median_ms=8.36535 p95_ms=9.1735 p99_ms=9.5217 max_ms=10.0307 over_16_67=0 over_33_33=0
+BGFX-OpenGL_throughput frames=120 total_ms=1062.66 fps=112.924
+backend_cleanup_begin
+backend_cleanup_ms=33.9358

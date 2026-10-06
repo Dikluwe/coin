@@ -1,0 +1,16 @@
+startup_detail arguments_ms=0.011311 coin_init_ms=2.01814 capability_probe_ms=168.425
+scene_detail parse_ms=304.983 wrapper_ms=0.018675 camera_fit_ms=69.7592
+scene_load_ms=374.832
+startup_detail material_search_ms=0.078417 target_setup_ms=4.33123
+WebGPU_first_detail render_ms=398.225 publication_copy_ms=1.05763 before_frame_since_main_ms=551.942 result_since_main_ms=951.225
+WebGPU_first_frame_ms=399.283
+rgba_fnv64=0x6714299260985122
+adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) vendor_id=0x10de device_id=0x2560 backend=wgpu size=1024x1024 warmup=4 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static
+WebGPU frames=8 median_ms=8.49998 p95_ms=8.86467 min_ms=8.20863 max_ms=8.86467
+WebGPU_render frames=8 median_ms=8.04821 p95_ms=8.45935 min_ms=7.785 max_ms=8.45935
+WebGPU_copy frames=8 median_ms=0.42879 p95_ms=0.500344 min_ms=0.328132 max_ms=0.500344
+WebGPU_throughput frames=8 total_ms=67.7014 fps=118.166
+WebGPU_cache last_frame_uploads=0 last_frame_uploaded_bytes=0 last_frame_hits=1 cumulative_uploads=1 cumulative_uploaded_bytes=101762544 cumulative_hits=11
+backend_cleanup_begin
+backend_cleanup_ms=13.8444
+benchmark_peak_rss_kib=506108

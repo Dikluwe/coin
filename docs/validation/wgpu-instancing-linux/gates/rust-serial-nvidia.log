@@ -1,0 +1,34 @@
+
+running 27 tests
+test camera_scene_tests::phong_camera_scene_owns_and_preserves_geometry_arc ... ok
+test camera_scene_tests::snapshot_policy_suspends_objects_and_readmits_a_camera_transactionally ... ok
+test composition::tests::depth_barrier_splits_even_within_one_overlay_layer ... ok
+test composition::tests::executes_resolved_sequence_without_reclassifying_or_sorting ... ok
+test composition::tests::rejects_invalid_barriers_and_clears_empty_frame ... ok
+test composition::tests::rejects_invalid_clip_payload_before_execution ... ok
+test composition::tests::rejects_invalid_resolved_flags_and_layer_sequence ... ok
+test composition::tests::validates_new_resolved_mechanisms_without_coin_interpretation ... ok
+test depth_transfer::tests::conversion_preserves_depth_bits_and_padded_rows ... ok
+test depth_transfer::tests::exact_depth_shader_translates_to_glsl ... ok
+test instancing::tests::bounded_owned_scene_compares_full_bytes_and_camera_reuses_its_arc ... ok
+test instancing::tests::rejects_partial_overflow_nonfinite_slots_and_noncontiguous_ranges ... ok
+test instancing::tests::shader_layout_matches_private_instance_abi_and_validates ... ok
+test peeling::tests::compositor_validates ... ok
+test peeling::tests::rejects_unbounded_and_over_budget_transport ... ok
+test polygon_depth_tests::d32_quantum_tracks_exponent_and_fractional_units ... ok
+test polygon_depth_tests::masks_signs_and_disable_preserve_pipeline_bias ... ok
+test row_copy_tests::contiguous_rows_copy_exactly ... ok
+test row_copy_tests::padded_rows_skip_padding ... ok
+test rtt_capacity_has_an_exact_saturating_boundary ... ok
+test runtime_capabilities_tests::format_bits_keep_sampling_and_storage_access_separate ... ok
+test runtime_capabilities_tests::rejects_invalid_output_without_a_probe ... ok
+test shader_profile::tests::all_specialized_profiles_preserve_valid_entry_points ... ok
+test shader_profile::tests::gl_peeling_profiles_translate_to_glsl ... ok
+test shadow::tests::captured_casters_write_front_moments ... ok
+test texture_payload_tests::rejects_malformed_programs_and_extra_unit_values ... ok
+test weighted::tests::shaders_validate ... ok
+
+test result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.73s
+
+Depth conversion adapter: AdapterInfo { name: "NVIDIA GeForce RTX 3060 Laptop GPU", vendor: 4318, device: 9568, device_type: DiscreteGpu, driver: "NVIDIA", driver_info: "610.57.04", backend: Vulkan }
+Coin captured shadow caster adapter: NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan), driver NVIDIA

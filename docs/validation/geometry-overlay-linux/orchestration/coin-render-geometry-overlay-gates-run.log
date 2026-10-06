@@ -1,0 +1,21 @@
+START core
+END core 0
+START bgfx-reuse-core
+END bgfx-reuse-core 0
+START wgpu-action
+END wgpu-action 0
+START bgfx-action
+END bgfx-action 0
+START wgpu-vulkan-composition-gpu
+END wgpu-vulkan-composition-gpu 0
+START bgfx-vulkan-composition-gpu
+END bgfx-vulkan-composition-gpu 0
+START bgfx-opengl-composition-gpu
+END bgfx-opengl-composition-gpu 0
+START wgpu-multidevice
+END wgpu-multidevice 0
+START bgfx-instancing-vulkan
+END bgfx-instancing-vulkan 0
+START bgfx-instancing-opengl
+END bgfx-instancing-opengl 0
+COMPLETE: 12 gate executions; {'core_cpu': 4, 'action_reuse': 2, 'gpu': 6}

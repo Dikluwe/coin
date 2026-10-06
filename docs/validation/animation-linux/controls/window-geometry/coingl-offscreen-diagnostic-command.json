@@ -1,0 +1,26 @@
+{
+  "command": [
+    "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+    "--backend",
+    "gl",
+    "--animation",
+    "static",
+    "--scene",
+    "/tmp/coin-render-city-40000.iv",
+    "--size",
+    "1024",
+    "--warmup",
+    "0",
+    "--frames",
+    "1"
+  ],
+  "environment": {
+    "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+    "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+    "__NV_PRIME_RENDER_OFFLOAD": "1",
+    "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+    "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+    "COIN_DEBUG_GLGLUE": "1"
+  },
+  "returncode": 0
+}

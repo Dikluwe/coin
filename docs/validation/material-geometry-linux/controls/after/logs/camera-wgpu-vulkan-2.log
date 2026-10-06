@@ -1,0 +1,23 @@
+startup_detail arguments_ms=0.012773 coin_init_ms=1.97612 capability_probe_ms=165.911
+scene_detail parse_ms=333.331 wrapper_ms=0.018645 camera_fit_ms=72.9743
+scene_load_ms=406.396
+animation_detail mode=camera animated_percent=10 eligible=40000 selected=0 prepared_clones=0 prepare_ms=23.1884 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x9ff61e351311c0b1
+startup_detail material_search_ms=0.099586 target_setup_ms=3.42306
+WebGPU_first_detail render_ms=340.553 publication_copy_ms=2.25933 update_ms=0.008416 total_with_update_ms=342.821 before_frame_since_main_ms=603.188 result_since_main_ms=946
+WebGPU_first_frame_ms=342.812
+WebGPU_animation_final logical_frame=6 state_fnv64=0x9fc537fdd3080d02
+samples_output=/tmp/coin-render-material-geometry-controls-after/samples/camera-wgpu-vulkan-2.csv rows=10
+rgba_fnv64=0x39fe97d30a3cf9dc
+adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) vendor_id=0x10de device_id=0x2560 backend=wgpu size=1024x1024 warmup=3 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=camera
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..6 warmup_indices=-3..-1 frame_step=1 captures=0 capture_io=outside_frame_timers wall_throughput_includes_capture=0 wall_throughput_scope=update+frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+WebGPU frames=7 median_ms=9.95346 p95_ms=10.5176 min_ms=9.46414 max_ms=10.5176
+WebGPU_render frames=7 median_ms=9.46956 p95_ms=10.1606 min_ms=9.03885 max_ms=10.1606
+WebGPU_copy frames=7 median_ms=0.454948 p95_ms=0.522103 min_ms=0.356985 max_ms=0.522103
+WebGPU_timing_total frames=7 median_ms=9.973652 p95_ms=10.541189 p99_ms=10.541189 max_ms=10.541189 over_16_67=0 over_33_33=0
+WebGPU_timing_update frames=7 median_ms=0.020188 p95_ms=0.027451 p99_ms=0.027451 max_ms=0.027451 over_16_67=0 over_33_33=0
+WebGPU_timing_render frames=7 median_ms=9.469562 p95_ms=10.16058 p99_ms=10.16058 max_ms=10.16058 over_16_67=0 over_33_33=0
+WebGPU_throughput frames=7 total_ms=70.0983 fps=99.8597
+WebGPU_cache last_frame_uploads=0 last_frame_uploaded_bytes=0 last_frame_hits=1 cumulative_uploads=1 cumulative_uploaded_bytes=5763408 cumulative_hits=9
+backend_cleanup_begin
+backend_cleanup_ms=7.09223
+benchmark_peak_rss_kib=438504

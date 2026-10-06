@@ -262,7 +262,7 @@ if(COIN_BUILD_RENDER)
       OUTPUT "${RUST_LIB_PATH}"
       COMMAND ${CMAKE_COMMAND} -E env CARGO_TARGET_DIR=${RUST_TARGET_DIR} ${COIN_RENDER_CARGO_ENV} ${CARGO_EXECUTABLE} build ${CARGO_BUILD_FLAGS} --manifest-path "${RUST_BRIDGE_DIR}/Cargo.toml"
       WORKING_DIRECTORY "${RUST_BRIDGE_DIR}"
-      DEPENDS "${RUST_BRIDGE_DIR}/src/lib.rs" "${RUST_BRIDGE_DIR}/src/composition.rs" "${RUST_BRIDGE_DIR}/src/peeling.rs" "${RUST_BRIDGE_DIR}/src/shadow.rs" "${RUST_BRIDGE_DIR}/src/shadow_receiver.rs" "${RUST_BRIDGE_DIR}/src/weighted.rs" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_shadow.wgsl" "${RUST_BRIDGE_DIR}/Cargo.toml" "${RUST_BRIDGE_DIR}/Cargo.lock" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_standard.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_line.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_point.wgsl"
+      DEPENDS "${RUST_BRIDGE_DIR}/src/lib.rs" "${RUST_BRIDGE_DIR}/src/instancing.rs" "${RUST_BRIDGE_DIR}/src/depth_transfer.rs" "${RUST_BRIDGE_DIR}/src/uniform_arena.rs" "${RUST_BRIDGE_DIR}/src/shader_profile.rs" "${RUST_BRIDGE_DIR}/src/composition.rs" "${RUST_BRIDGE_DIR}/src/peeling.rs" "${RUST_BRIDGE_DIR}/src/shadow.rs" "${RUST_BRIDGE_DIR}/src/shadow_receiver.rs" "${RUST_BRIDGE_DIR}/src/weighted.rs" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_shadow.wgsl" "${RUST_BRIDGE_DIR}/Cargo.toml" "${RUST_BRIDGE_DIR}/Cargo.lock" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_standard.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_line.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_point.wgsl"
       COMMENT "Building Rust WebGPU bridge library (${RUST_PROFILE_DIR})..."
       VERBATIM
     )
@@ -292,8 +292,8 @@ if(COIN_BUILD_RENDER)
   elseif(COIN_RENDER_BACKEND STREQUAL "RECORDING")
     message(STATUS "COIN_RENDER_BACKEND is set to RECORDING: using deterministic recording log and reference software rasterizer.")
   elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
-    if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
-      message(FATAL_ERROR "The BGFX evaluation currently supports Linux only.")
+    if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT WIN32)
+      message(FATAL_ERROR "The BGFX evaluation supports Linux and Windows.")
     endif()
     find_package(bgfx QUIET CONFIG)
     if(NOT TARGET bgfx::bgfx)
@@ -303,7 +303,7 @@ if(COIN_BUILD_RENDER)
     find_path(COIN_BGFX_SHADER_INCLUDE_DIR NAMES bgfx_shader.sh PATH_SUFFIXES bgfx REQUIRED)
     set(COIN_RENDER_LINK_LIBRARIES bgfx::bgfx)
     set(HAVE_COIN_BGFX 1)
-    message(STATUS "BGFX evaluation: Linux offscreen or Xlib window, Vulkan/OpenGL, BASE_COLOR indexed triangles and opt-in transparency modes")
+    message(STATUS "BGFX evaluation: offscreen or native window, Vulkan/OpenGL and Windows D3D12, BASE_COLOR indexed triangles and opt-in transparency modes")
   else()
     message(FATAL_ERROR "Unsupported COIN_RENDER_BACKEND: ${COIN_RENDER_BACKEND}. Supported backends are RECORDING, DAWN, WGPU_NATIVE, RUST_BRIDGE, BGFX.")
   endif()
@@ -315,7 +315,7 @@ endif()
 
 if(COIN_BUILD_RENDER)
   set(COIN_HAVE_RENDER ON)
-  if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE" AND
+  if((COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE" OR COIN_RENDER_BACKEND STREQUAL "BGFX") AND
      ((UNIX AND NOT APPLE) OR WIN32 OR APPLE OR ANDROID))
     set(HAVE_COIN_RENDER_WINDOW_SURFACE 1)
     set(COIN_HAVE_RENDER_WINDOW_SURFACE ON)

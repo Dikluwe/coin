@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="1"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="0"
+	timestamp="2026-10-05T15:23:41"
+	>
+	<testcase name="CoinRenderStabilizationTest" classname="CoinRenderStabilizationTest" time="0.943996" status="run">
+		<properties/>
+		<system-out>Running CoinRenderStabilizationTest (Onda 2F Concurrency, Packet Separation, Exact Hash &amp; Budget)...
+-&gt; Test 1: Strict completion serial order with pending GPU work...
+   [PASS] Test 1: Strict completion serial order verified
+-&gt; Test 2: Separation of multiple occurrences with identical state in frame...
+   [PASS] Test 2: Separation of multiple occurrences verified
+-&gt; Test 3: Canonical vertex serialization hash fidelity...
+   [PASS] Test 3: Canonical hash fidelity verified
+-&gt; Test 4: Eviction of removed shapes with active key protection...
+   [PASS] Test 4: Eviction of removed shapes verified
+-&gt; Test 5: Cache geometry budget (LRU) and transactional rollback...
+   [PASS] Test 5: Cache geometry budget and transactional rollback verified
+All CoinRenderStabilizationTest assertions PASSED successfully!
+</system-out>
+	</testcase>
+</testsuite>

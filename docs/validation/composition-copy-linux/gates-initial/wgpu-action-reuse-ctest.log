@@ -1,0 +1,38 @@
+Start testing: Oct 05 11:21 -03
+----------------------------------------------------------
+11/106 Testing: CoinRenderActionTest
+11/106 Test: CoinRenderActionTest
+Command: "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderActionTest"
+Directory: /tmp/coin-render-first-frame-wgpu/testsuite
+"CoinRenderActionTest" start time: Oct 05 11:21 -03
+Output:
+----------------------------------------------------------
+Running CoinRenderActionTest...
+FAILED: the fixture must admit real object/material overlays (action.getPimpl()->translationProofValid && literal.getPimpl()->translationProofValid && action.getPimpl()->materialByNode.count(material) && literal.getPimpl()->materialByNode.count(material)) at /tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp:221
+testCapturedCompositionBorrow failed
+1 test(s) FAILED!
+<end of output>
+Test time =   0.62 sec
+----------------------------------------------------------
+Test Failed.
+"CoinRenderActionTest" end time: Oct 05 11:21 -03
+"CoinRenderActionTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+26/106 Testing: CoinRenderFrameReuseCoreTest
+26/106 Test: CoinRenderFrameReuseCoreTest
+Command: "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderFrameReuseCoreTest"
+Directory: /tmp/coin-render-first-frame-wgpu/testsuite
+"CoinRenderFrameReuseCoreTest" start time: Oct 05 11:21 -03
+Output:
+----------------------------------------------------------
+CoinRenderFrameReuseCoreTest passed
+<end of output>
+Test time =   0.42 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderFrameReuseCoreTest" end time: Oct 05 11:21 -03
+"CoinRenderFrameReuseCoreTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 05 11:21 -03

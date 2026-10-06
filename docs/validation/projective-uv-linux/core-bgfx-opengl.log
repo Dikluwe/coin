@@ -1,0 +1,44 @@
+Internal ctest changing into directory: /tmp/coin-render-first-frame-bgfx
+Test project /tmp/coin-render-first-frame-bgfx
+      Start  11: CoinRenderActionTest
+ 1/19 Test  #11: CoinRenderActionTest ..................   Passed    0.59 sec
+      Start  14: CoinRenderPlanAssemblyCoreTest
+ 2/19 Test  #14: CoinRenderPlanAssemblyCoreTest ........   Passed    0.05 sec
+      Start  24: CoinRenderFrameCoreTest
+ 3/19 Test  #24: CoinRenderFrameCoreTest ...............   Passed    0.04 sec
+      Start  33: CoinBgfxCoreTest
+ 4/19 Test  #33: CoinBgfxCoreTest ......................   Passed    0.43 sec
+      Start  35: CoinRenderDepthContractTest
+ 5/19 Test  #35: CoinRenderDepthContractTest ...........   Passed    0.10 sec
+      Start  62: CoinRenderFrameReuseCoreTest
+ 6/19 Test  #62: CoinRenderFrameReuseCoreTest ..........   Passed    1.00 sec
+      Start  67: CoinRenderIndexedFastPathTest
+ 7/19 Test  #67: CoinRenderIndexedFastPathTest .........   Passed    1.28 sec
+      Start  71: CoinRenderTextureTest
+ 8/19 Test  #71: CoinRenderTextureTest .................   Passed    2.51 sec
+      Start  72: CoinRenderLightingTest
+ 9/19 Test  #72: CoinRenderLightingTest ................   Passed    5.92 sec
+      Start  88: CoinRenderDrawStyleTest
+10/19 Test  #88: CoinRenderDrawStyleTest ...............   Passed   11.93 sec
+      Start  91: CoinRenderMultitextureTest
+11/19 Test  #91: CoinRenderMultitextureTest ............   Passed    2.08 sec
+      Start  94: CoinRenderPeelingTest
+12/19 Test  #94: CoinRenderPeelingTest .................   Passed    0.86 sec
+      Start  99: CoinRenderTransparencyTest
+13/19 Test  #99: CoinRenderTransparencyTest ............   Passed    3.24 sec
+      Start 102: CoinRenderCompositionTest
+14/19 Test #102: CoinRenderCompositionTest .............   Passed    3.02 sec
+      Start 104: CoinRenderNodeInventoryTest
+15/19 Test #104: CoinRenderNodeInventoryTest ...........   Passed    0.05 sec
+      Start 105: CoinRenderScreenContentCaptureTest
+16/19 Test #105: CoinRenderScreenContentCaptureTest ....   Passed    0.19 sec
+      Start 108: CoinRenderFragmentPolicyCaptureTest
+17/19 Test #108: CoinRenderFragmentPolicyCaptureTest ...   Passed    0.21 sec
+      Start 161: CoinRenderRttOwnershipTest
+18/19 Test #161: CoinRenderRttOwnershipTest ............   Passed    0.48 sec
+      Start 164: CoinRenderSceneTextureTest
+19/19 Test #164: CoinRenderSceneTextureTest ............   Passed    3.33 sec
+
+100% tests passed, 0 tests failed out of 19
+
+Total Test time (real) =  37.32 sec

@@ -220,6 +220,7 @@
 
 #include "actions/SoSubActionP.h"
 #include "SbBasicP.h"
+#include <limits>
 
 #ifndef DOXYGEN_SKIP_THIS
 
@@ -328,6 +329,11 @@ SoCallbackData::doPointCallbacks(SoCallbackAction * action,
 // class to hold private, hidden data
 class SoCallbackActionP {
 public:
+  uint64_t callbackregistrationrevision;
+  void advanceCallbackRevision() {
+    if (this->callbackregistrationrevision != std::numeric_limits<uint64_t>::max())
+      ++this->callbackregistrationrevision;
+  }
   SbBool viewportset;
   SbViewportRegion viewport;
   SoCallbackAction::Response response;
@@ -442,6 +448,7 @@ SoCallbackAction::commonConstructor(void)
   PRIVATE(this)->posttailcallback = NULL;
   PRIVATE(this)->viewportset = FALSE;
   PRIVATE(this)->callbackall = FALSE;
+  PRIVATE(this)->callbackregistrationrevision = 0;
 }
 
 /*!
@@ -524,6 +531,7 @@ void
 SoCallbackAction::addPreCallback(const SoType type, SoCallbackActionCB * cb,
                                  void * userdata)
 {
+  PRIVATE(this)->advanceCallbackRevision();
   set_callback_data(PRIVATE(this)->precallback, type, function_to_object_cast<void *>(cb), userdata);
 }
 
@@ -535,6 +543,7 @@ void
 SoCallbackAction::addPostCallback(const SoType type, SoCallbackActionCB * cb,
                                   void * userdata)
 {
+  PRIVATE(this)->advanceCallbackRevision();
   set_callback_data(PRIVATE(this)->postcallback, type, function_to_object_cast<void *>(cb), userdata);
 }
 
@@ -545,6 +554,7 @@ SoCallbackAction::addPostCallback(const SoType type, SoCallbackActionCB * cb,
 void
 SoCallbackAction::addPreTailCallback(SoCallbackActionCB * cb, void * userdata)
 {
+  PRIVATE(this)->advanceCallbackRevision();
   if (PRIVATE(this)->pretailcallback == NULL)
     PRIVATE(this)->pretailcallback = new SoCallbackData(function_to_object_cast<void *>(cb), userdata);
   else
@@ -558,6 +568,7 @@ SoCallbackAction::addPreTailCallback(SoCallbackActionCB * cb, void * userdata)
 void
 SoCallbackAction::addPostTailCallback(SoCallbackActionCB * cb, void * userdata)
 {
+  PRIVATE(this)->advanceCallbackRevision();
   if (PRIVATE(this)->posttailcallback == NULL)
     PRIVATE(this)->posttailcallback = new SoCallbackData(function_to_object_cast<void *>(cb), userdata);
   else
@@ -573,6 +584,7 @@ void
 SoCallbackAction::addTriangleCallback(const SoType type, SoTriangleCB * cb,
                                       void * userdata)
 {
+  PRIVATE(this)->advanceCallbackRevision();
   set_callback_data(PRIVATE(this)->trianglecallback, type, function_to_object_cast<void *>(cb), userdata);
 }
 
@@ -585,6 +597,7 @@ void
 SoCallbackAction::addLineSegmentCallback(const SoType type, SoLineSegmentCB * cb,
                                          void * userdata)
 {
+  PRIVATE(this)->advanceCallbackRevision();
   set_callback_data(PRIVATE(this)->linecallback, type, function_to_object_cast<void *>(cb), userdata);
 }
 
@@ -597,6 +610,7 @@ void
 SoCallbackAction::addPointCallback(const SoType type, SoPointCB * cb,
                                    void * userdata)
 {
+  PRIVATE(this)->advanceCallbackRevision();
   set_callback_data(PRIVATE(this)->pointcallback, type, function_to_object_cast<void *>(cb), userdata);
 }
 
@@ -1202,6 +1216,27 @@ SoCallbackAction::invokeTriangleCallbacks(const SoShape * const shape,
   int idx = static_cast<int>(shape->getTypeId().getData());
   if (idx < PRIVATE(this)->trianglecallback.getLength() && PRIVATE(this)->trianglecallback[idx] != NULL)
     PRIVATE(this)->trianglecallback[idx]->doTriangleCallbacks(this, v1, v2, v3);
+}
+
+SbBool
+SoCallbackAction::hasSingleShapeCallbacks(const SoType type) const
+{
+  const int idx = static_cast<int>(type.getData());
+  const auto single = [idx](const SbList<SoCallbackData *> & callbacks) {
+    if (idx < 0 || idx >= callbacks.getLength()) return false;
+    const SoCallbackData * data = callbacks[idx];
+    return data && data->next == NULL;
+  };
+  return !PRIVATE(this)->pretailcallback && !PRIVATE(this)->posttailcallback &&
+    single(PRIVATE(this)->precallback) && single(PRIVATE(this)->postcallback) &&
+    single(PRIVATE(this)->trianglecallback) && single(PRIVATE(this)->linecallback) &&
+    single(PRIVATE(this)->pointcallback);
+}
+
+uint64_t
+SoCallbackAction::callbackRegistrationRevision(void) const
+{
+  return PRIVATE(this)->callbackregistrationrevision;
 }
 
 /*!

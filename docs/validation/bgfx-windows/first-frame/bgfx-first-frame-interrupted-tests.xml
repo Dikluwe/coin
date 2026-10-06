@@ -1,0 +1,92 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuite name="Interrupted rendering suite; completed cases only" tests="75">
+  <testcase name="CoinRenderWin32D3D12Smoke" time="0.90" />
+  <testcase name="CoinRenderWin32VulkanSmoke" time="0.98" />
+  <testcase name="CoinRenderActionTest" time="0.71" />
+  <testcase name="CoinRenderSelectionTest" time="4.28" />
+  <testcase name="CoinRenderSelection_vulkan" time="4.13" />
+  <testcase name="CoinRenderSelection_opengl" time="3.35" />
+  <testcase name="CoinRenderSelection_d3d12" time="4.76" />
+  <testcase name="CoinRenderProductTest" time="1.58" />
+  <testcase name="CoinRenderBackendContractTest" time="0.88" />
+  <testcase name="CoinRenderOffscreenTest" time="0.11" />
+  <testcase name="CoinRenderGateG0Test" time="0.12" />
+  <testcase name="CoinRenderFrameCoreTest" time="0.10" />
+  <testcase name="CoinBgfxReadbackModes_vulkan" time="2.88" />
+  <testcase name="CoinBgfxReadbackModes_opengl" time="1.70" />
+  <testcase name="CoinBgfxReadbackModes_d3d12" time="2.79" />
+  <testcase name="CoinBgfxSurface_vulkan_object" time="20.94" />
+  <testcase name="CoinBgfxSurface_vulkan_weighted_oit" time="19.63" />
+  <testcase name="CoinBgfxSurface_vulkan_sorted_layers" time="21.01" />
+  <testcase name="CoinBgfxSurface_opengl_object" time="13.77" />
+  <testcase name="CoinBgfxSurface_opengl_weighted_oit" time="11.92" />
+  <testcase name="CoinBgfxSurface_opengl_sorted_layers" time="11.81" />
+  <testcase name="CoinBgfxSurface_d3d12_object" time="21.35" />
+  <testcase name="CoinBgfxSurface_d3d12_weighted_oit" time="18.01" />
+  <testcase name="CoinBgfxSurface_d3d12_sorted_layers" time="23.27" />
+  <testcase name="CoinBgfxCoreTest" time="0.15" />
+  <testcase name="CoinRenderDepthContractTest" time="0.38" />
+  <testcase name="CoinRenderDepthContractVulkanTest" time="0.66" />
+  <testcase name="CoinRenderDepthContractOpenGLTest" time="0.63" />
+  <testcase name="CoinRenderProductOpenGLTest" time="1.21" />
+  <testcase name="CoinBgfxOffscreenTest" time="3.51" />
+  <testcase name="CoinBgfxOpenGLTest" time="2.67" />
+  <testcase name="CoinRenderBackendContractOpenGLTest" time="0.80" />
+  <testcase name="CoinBgfxTransparencyTest" time="4.36" />
+  <testcase name="CoinBgfxTransparencyOpenGLTest" time="2.38" />
+  <testcase name="CoinBgfxSortedLayersTest" time="2.38" />
+  <testcase name="CoinBgfxSortedLayersOpenGLTest" time="1.52" />
+  <testcase name="CoinBgfxWeightedOitTest" time="6.13" />
+  <testcase name="CoinBgfxWeightedOitOpenGLTest" time="7.92" />
+  <testcase name="CoinRenderFrameReuseCoreTest" time="0.72" />
+  <testcase name="CoinRenderDiagnosticShellTest" time="0.11" />
+  <testcase name="CoinRenderIndexedGeometryCoreTest" time="0.09" />
+  <testcase name="CoinRenderGateG1Test" time="2.56" />
+  <testcase name="CoinRenderGateG2Test" time="2.02" />
+  <testcase name="CoinRenderIndexedFastPathTest" time="2.69" />
+  <testcase name="CoinRenderStabilizationTest" time="0.10" />
+  <testcase name="CoinRenderTextureTest" time="8.05" />
+  <testcase name="CoinRenderLightingTest" time="30.23">
+    <failure message="Original CTest timeout" />
+  </testcase>
+  <testcase name="CoinRenderGouraudInterpolationTest" time="10.17" />
+  <testcase name="CoinRenderGouraud_vulkan_object" time="2.81" />
+  <testcase name="CoinRenderGouraud_vulkan_weighted_oit" time="3.18" />
+  <testcase name="CoinRenderGouraud_vulkan_sorted_layers" time="3.68" />
+  <testcase name="CoinRenderGouraud_opengl_object" time="2.62" />
+  <testcase name="CoinRenderGouraud_opengl_weighted_oit" time="3.39" />
+  <testcase name="CoinRenderGouraud_opengl_sorted_layers" time="2.34" />
+  <testcase name="CoinRenderGouraud_d3d12_object" time="3.50" />
+  <testcase name="CoinRenderGouraud_d3d12_weighted_oit" time="1.95" />
+  <testcase name="CoinRenderGouraud_d3d12_sorted_layers" time="1.53" />
+  <testcase name="CoinRenderFogTest" time="20.52" />
+  <testcase name="CoinRenderClipPlaneTest" time="2.74" />
+  <testcase name="CoinRenderClipPlane_vulkan_object" time="1.71" />
+  <testcase name="CoinRenderClipPlane_vulkan_weighted_oit" time="1.71" />
+  <testcase name="CoinRenderClipPlane_vulkan_sorted_layers" time="1.68" />
+  <testcase name="CoinRenderClipPlane_opengl_object" time="1.00" />
+  <testcase name="CoinRenderClipPlane_opengl_weighted_oit" time="1.08" />
+  <testcase name="CoinRenderClipPlane_opengl_sorted_layers" time="1.13" />
+  <testcase name="CoinRenderClipPlane_d3d12_object" time="1.59" />
+  <testcase name="CoinRenderClipPlane_d3d12_weighted_oit" time="16.97" />
+  <testcase name="CoinRenderClipPlane_d3d12_sorted_layers" time="23.50" />
+  <testcase name="CoinRenderDrawStyleTest" time="60.60">
+    <failure message="Original CTest timeout" />
+  </testcase>
+  <testcase name="CoinRenderDrawStyle_vulkan" time="63.19">
+    <failure message="Original CTest timeout" />
+  </testcase>
+  <testcase name="CoinRenderDrawStyle_opengl" time="62.46">
+    <failure message="Original CTest timeout" />
+  </testcase>
+  <testcase name="CoinRenderDrawStyle_d3d12" time="62.57">
+    <failure message="Original CTest timeout" />
+  </testcase>
+  <testcase name="CoinRenderMultitextureTest" time="61.62">
+    <failure message="Original CTest timeout" />
+  </testcase>
+  <testcase name="CoinRenderMultitexture_vulkan" time="62.63">
+    <failure message="Original CTest timeout" />
+  </testcase>
+  <testcase name="CoinRenderMultitexture_opengl" time="26.93" />
+</testsuite>

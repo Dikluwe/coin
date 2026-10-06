@@ -24,12 +24,20 @@ mod peeling;
 mod shadow;
 mod shadow_receiver;
 mod weighted;
+mod uniform_arena;
+mod shader_profile;
+mod depth_transfer;
+mod instancing;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 42;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 45;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
-    assert!(std::mem::size_of::<CoinWgpuFrameView>() == 416);
+    assert!(std::mem::size_of::<CoinWgpuFrameView>() == 448);
+    assert!(std::mem::size_of::<CoinWgpuInstance>() == 144);
+    assert!(std::mem::size_of::<CoinWgpuInstanceRange>() == 16);
+    assert!(std::mem::offset_of!(CoinWgpuFrameView, instances) == 416);
+    assert!(std::mem::offset_of!(CoinWgpuFrameView, instance_ranges) == 432);
     assert!(std::mem::size_of::<CoinWgpuShadowPassView>() == 56);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, extra_shadow_passes) == 400);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, shadow_epsilon_second) == 376);
@@ -92,15 +100,15 @@ pub struct CoinWgpuSurfaceCreateInfo {
 pub struct CoinWgpuVertex {
     pub position: [f32; 3],
     pub normal: [f32; 3],
-    pub texcoord: [f32; 2],
+    pub texcoord: [f32; 4],
     pub material_slot: u32,
     pub screen_space_w: f32,
     pub fog_eye_depth_plus_one: f32,
-    pub extra_texcoords: [[f32; 2]; 7],
+    pub extra_texcoords: [[f32; 4]; 7],
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct CoinWgpuDraw {
     pub topology: u32,
     pub first_vertex: u32,
@@ -154,7 +162,7 @@ pub struct CoinWgpuPerformanceStats {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct CoinWgpuMaterial {
     pub ambient: [f32; 4],
     pub diffuse: [f32; 4],
@@ -242,6 +250,7 @@ pub struct CoinWgpuUniforms {
     pub shadow_params_fourth: [f32; 4],
     pub shadow_meta_fourth: [f32; 4],
     pub shadow_falloff_fourth: [f32; 4],
+    pub alpha_test: [f32; 4],
 }
 
 #[repr(C)]
@@ -298,6 +307,14 @@ pub struct CoinWgpuRenderState {
     pub polygon_offset_max_depth_bits: u32,
     pub extra_textures: [CoinWgpuTextureUnit; 7],
     pub texture_combines: [[[f32; 4]; 4]; 8],
+    pub alpha_test_function: u32,
+    pub alpha_test_reference: f32,
+    pub texture_projection: u32,
+}
+
+fn valid_alpha_test(st: &CoinWgpuRenderState) -> bool {
+    st.alpha_test_function <= 8 && st.alpha_test_reference.is_finite()
+        && (0.0..=1.0).contains(&st.alpha_test_reference)
 }
 
 // Validate the normalized transport program, without interpreting Coin enums.
@@ -312,14 +329,173 @@ fn valid_texture_program(p: &[[f32; 4]; 4]) -> bool {
 }
 
 fn valid_texture_payload(st: &CoinWgpuRenderState) -> bool {
-    st.texture_combines.iter().all(valid_texture_program)
+    st.texture_projection <= 1 && st.texture_combines.iter().all(valid_texture_program)
         && st.extra_textures.iter().all(|t| t.enabled <= 1 && (t.enabled == 0
             || (t.model <= 3 && t.matrix.iter().chain(t.blend_color.iter()).all(|v| v.is_finite()))))
+}
+
+// Direct FFI callers obey the same nonsingular primitive contract as the
+// common capture. Inactive units permit zeroed transport, including q=0.
+fn validate_texture_coordinates(st: &CoinWgpuRenderState, topology: u32,
+    vertices: &[CoinWgpuVertex], indices: &[u32]) -> Result<(), String> {
+    if st.texture_projection > 1 { return Err("Invalid texture projection policy".into()); }
+    if st.has_texture == 0 && st.extra_textures.iter().all(|t| t.enabled == 0) {
+        return Ok(());
+    }
+    let primitive_size = match topology { 1 => 2, 2 => 1, _ => 3 };
+    for unit in 0..8 {
+        let matrix = if unit == 0 {
+            if st.has_texture == 0 { continue; }
+            &st.texture_matrix
+        } else {
+            let layer = &st.extra_textures[unit - 1];
+            if layer.enabled == 0 { continue; }
+            &layer.matrix
+        };
+        for primitive in indices.chunks_exact(primitive_size) {
+            let mut previous_negative = None;
+            for index in primitive {
+                let vertex = vertices.get(*index as usize).ok_or_else(||
+                    "Projective texture index out of bounds".to_string())?;
+                let coordinate = if unit == 0 { &vertex.texcoord }
+                    else { &vertex.extra_texcoords[unit - 1] };
+                if !coordinate.iter().chain(matrix.iter()).all(|v| v.is_finite()) {
+                    return Err("Non-finite homogeneous texture coordinate or matrix".into());
+                }
+                let mut transformed = [0.0_f32; 4];
+                for row in 0..4 {
+                    transformed[row] = matrix[row] * coordinate[0]
+                        + matrix[4 + row] * coordinate[1]
+                        + matrix[8 + row] * coordinate[2]
+                        + matrix[12 + row] * coordinate[3];
+                }
+                if st.texture_projection == 1 {
+                    if !transformed[..2].iter().all(|v| v.is_finite()) {
+                        return Err("Non-finite transformed direct ST texture coordinate".into());
+                    }
+                    continue;
+                }
+                if !transformed.iter().all(|v| v.is_finite()) {
+                    return Err("Non-finite transformed homogeneous texture coordinate".into());
+                }
+                let q = transformed[3];
+                let negative = q < 0.0;
+                if q == 0.0 || previous_negative.is_some_and(|previous| previous != negative) {
+                    return Err("Projective texture Q is zero or changes sign within a primitive".into());
+                }
+                if q.abs() < f32::MIN_POSITIVE || !(transformed[0] / q).is_finite()
+                    || !(transformed[1] / q).is_finite() {
+                    return Err("Projective texture coordinate exceeds finite sampling precision".into());
+                }
+                previous_negative = Some(negative);
+            }
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]
 mod texture_payload_tests {
     use super::*;
+    fn projective_fixture() -> (CoinWgpuRenderState, [CoinWgpuVertex; 3]) {
+        let mut state: CoinWgpuRenderState = unsafe { std::mem::zeroed() };
+        state.has_texture = 1;
+        for i in 0..4 { state.texture_matrix[i * 5] = 1.0; }
+        let mut vertices = [CoinWgpuVertex::zeroed(); 3];
+        for vertex in &mut vertices { vertex.texcoord = [0.5, 0.25, 0.0, 1.0]; }
+        (state, vertices)
+    }
+
+    #[test]
+    fn rejects_singular_crossing_nonfinite_and_overflowing_projective_coordinates() {
+        let (mut state, mut vertices) = projective_fixture();
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_ok());
+        vertices[1].texcoord[3] = 0.0;
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_err());
+        vertices[1].texcoord[3] = -1.0;
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_err());
+        assert!(validate_texture_coordinates(&state, 1, &vertices, &[0, 1]).is_err());
+        assert!(validate_texture_coordinates(&state, 2, &vertices, &[0, 1, 2]).is_ok(),
+            "each point owns its own q sign");
+        for vertex in &mut vertices { vertex.texcoord[3] = -2.0; }
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_ok());
+        vertices[0].texcoord[3] = f32::MIN_POSITIVE * 0.5;
+        assert!(validate_texture_coordinates(&state, 2, &vertices, &[0]).is_err());
+        vertices[0].texcoord = [f32::MAX, 0.25, 0.0, 0.5];
+        assert!(validate_texture_coordinates(&state, 2, &vertices, &[0]).is_err());
+        vertices[0].texcoord = [f32::MAX, 0.25, 0.0, 1.0];
+        state.texture_matrix[0] = 2.0;
+        assert!(validate_texture_coordinates(&state, 2, &vertices, &[0]).is_err());
+        vertices[0].texcoord = [0.5, 0.25, f32::NAN, 1.0];
+        assert!(validate_texture_coordinates(&state, 2, &vertices, &[0]).is_err());
+        vertices[0] = CoinWgpuVertex::zeroed();
+        state.has_texture = 0;
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_ok(),
+            "inactive unit zero q is valid dormant transport");
+    }
+
+    #[test]
+    fn transforms_r_into_q_and_validates_upper_unit_independently() {
+        let (mut state, mut vertices) = projective_fixture();
+        // q' = r + q. Raw positive q cannot qualify a zero/crossing transformed q.
+        state.texture_matrix[11] = 1.0;
+        vertices[1].texcoord[2] = -1.0;
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_err());
+        vertices[1].texcoord[2] = -2.0;
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_err());
+        for vertex in &mut vertices { vertex.texcoord[2] = -3.0; }
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_ok());
+        state.has_texture = 0;
+        let upper = &mut state.extra_textures[6];
+        upper.enabled = 1;
+        for i in 0..4 { upper.matrix[i * 5] = 1.0; }
+        upper.matrix[11] = 1.0;
+        for vertex in &mut vertices { vertex.extra_texcoords[6] = [0.5, 0.25, 0.0, 1.0]; }
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_ok());
+        vertices[2].extra_texcoords[6][2] = -1.0;
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_err());
+        state.extra_textures[6].enabled = 0;
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_ok());
+    }
+
+    #[test]
+    fn direct_st_policy_permits_singular_q_but_requires_finite_st_and_raw_payload() {
+        let (mut state, mut vertices) = projective_fixture();
+        vertices[0].texcoord[3] = 0.0;
+        vertices[1].texcoord[3] = -1.0;
+        vertices[2].texcoord[3] = f32::MIN_POSITIVE * 0.5;
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_err());
+        let projective = state;
+        state.texture_projection = 1;
+        assert!(valid_texture_payload(&state));
+        assert!(!same_camera_independent_state(&projective, &state),
+            "projection policy participates in state reuse even without a shadow map");
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_ok());
+        // Native direct ST does not sample R/Q, so a finite input whose Q row
+        // overflows remains valid when the transformed S/T rows stay finite.
+        vertices[0].texcoord = [0.5, 0.25, f32::MAX, 1.0];
+        state.texture_matrix[11] = 2.0;
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_ok());
+        vertices[0].texcoord[0] = f32::MAX;
+        state.texture_matrix[0] = 2.0;
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_err());
+        vertices[0].texcoord = [0.5, 0.25, f32::NAN, 1.0];
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_err());
+        vertices[0].texcoord = [0.5, 0.25, 0.0, 1.0];
+        state.has_texture = 0;
+        state.extra_textures[6].enabled = 1;
+        for i in 0..4 { state.extra_textures[6].matrix[i * 5] = 1.0; }
+        for vertex in &mut vertices { vertex.extra_texcoords[6] = [0.5, 0.25, 0.0, 0.0]; }
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_ok());
+        state.texture_projection = 0;
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_err());
+        state.texture_projection = 2;
+        state.extra_textures[6].enabled = 0;
+        assert!(!valid_texture_payload(&state));
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_err(),
+            "unknown projection policy is rejected even without active texture units");
+    }
+
     #[test]
     fn rejects_malformed_programs_and_extra_unit_values() {
         let mut state: CoinWgpuRenderState = unsafe { std::mem::zeroed() };
@@ -344,11 +520,18 @@ mod texture_payload_tests {
 
 const _: () = {
     assert!(std::mem::size_of::<CoinWgpuTextureUnit>() == 96);
-    assert!(std::mem::offset_of!(CoinWgpuVertex, extra_texcoords) == 44);
+    assert!(std::mem::offset_of!(CoinWgpuVertex, texcoord) == 24);
+    assert!(std::mem::offset_of!(CoinWgpuVertex, material_slot) == 40);
+    assert!(std::mem::offset_of!(CoinWgpuVertex, screen_space_w) == 44);
+    assert!(std::mem::offset_of!(CoinWgpuVertex, fog_eye_depth_plus_one) == 48);
+    assert!(std::mem::offset_of!(CoinWgpuVertex, extra_texcoords) == 52);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, extra_textures) == 1096);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, texture_combines) == 1768);
-    assert!(std::mem::size_of::<CoinWgpuVertex>() == 100);
-    assert!(std::mem::size_of::<CoinWgpuRenderState>() == 2280);
+    assert!(std::mem::size_of::<CoinWgpuVertex>() == 164);
+    assert!(std::mem::size_of::<CoinWgpuRenderState>() == 2292);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, alpha_test_function) == 2280);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, alpha_test_reference) == 2284);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, texture_projection) == 2288);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, polygon_offset_max_depth_bits) == 1092);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, polygon_offset_slope_bias) == 1088);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, clip_plane_count) == 956);
@@ -368,6 +551,55 @@ pub struct GpuMaterial {
     pub specular: [f32; 4],
     pub emission: [f32; 4],
     pub params: [f32; 4], // x=shininess, y=transparency, z=0, w=0
+}
+
+fn pack_gpu_materials(materials: &[CoinWgpuMaterial]) -> Vec<GpuMaterial> {
+    materials.iter().map(|m| GpuMaterial {
+        ambient: m.ambient,
+        diffuse: m.diffuse,
+        specular: m.specular,
+        emission: m.emission,
+        params: [m.shininess, m.transparency, 0.0, 0.0],
+    }).collect()
+}
+
+fn material_resource_reuse_enabled() -> bool {
+    static ENABLED: OnceLock<bool> = OnceLock::new();
+    *ENABLED.get_or_init(|| std::env::var("COIN_WGPU_DISABLE_MATERIAL_RESOURCE_REUSE").as_deref() != Ok("1"))
+}
+
+#[cfg(test)]
+mod material_resource_tests {
+    use super::*;
+
+    #[test]
+    fn gpu_material_table_preserves_all_source_bits_and_zero_gpu_padding() {
+        assert_eq!(std::mem::size_of::<CoinWgpuMaterial>(), 72);
+        assert_eq!(std::mem::size_of::<GpuMaterial>(), 80);
+        let mut materials = vec![CoinWgpuMaterial::zeroed(); 4097];
+        for (index, material) in materials.iter_mut().enumerate() {
+            material.ambient = [index as f32, -0.0, 0.125, 0.25];
+            material.diffuse = [0.5, 0.625, 0.75, 1.0];
+            material.specular = [0.875, 1.0, -0.0, 0.0];
+            material.emission = [0.0, 0.03125, 0.0625, index as f32];
+            material.shininess = index as f32 / 4096.0;
+            material.transparency = -0.0;
+        }
+        let packed = pack_gpu_materials(&materials);
+        let bytes: &[u8] = bytemuck::cast_slice(&packed);
+        assert_eq!(bytes.len(), 4097 * 80);
+        for (index, material) in materials.iter().enumerate() {
+            let mut expected = [0.0_f32; 20];
+            expected[0..4].copy_from_slice(&material.ambient);
+            expected[4..8].copy_from_slice(&material.diffuse);
+            expected[8..12].copy_from_slice(&material.specular);
+            expected[12..16].copy_from_slice(&material.emission);
+            expected[16] = material.shininess;
+            expected[17] = material.transparency;
+            assert_eq!(&bytes[index * 80..(index + 1) * 80], bytemuck::cast_slice(&expected));
+        }
+        assert!(pack_gpu_materials(&[]).is_empty());
+    }
 }
 
 #[repr(C)]
@@ -405,6 +637,24 @@ pub struct CoinWgpuShadowPassView {
     pub far_distance: f32,
     pub epsilon: f32,
     pub threshold: f32,
+}
+
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
+pub struct CoinWgpuInstance {
+    pub model_view: [f32; 16],
+    pub normal_matrix: [f32; 16],
+    pub material_slot: u32,
+    pub reserved: [u32; 3],
+}
+
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
+pub struct CoinWgpuInstanceRange {
+    pub draw_index: u32,
+    pub first_instance: u32,
+    pub instance_count: u32,
+    pub reserved: u32,
 }
 
 #[repr(C)]
@@ -479,6 +729,10 @@ pub struct CoinWgpuFrameView {
     pub shadow_threshold_fourth: f32,
     pub extra_shadow_passes: *const CoinWgpuShadowPassView,
     pub extra_shadow_pass_count: u64,
+    pub instances: *const CoinWgpuInstance,
+    pub instance_count: u64,
+    pub instance_ranges: *const CoinWgpuInstanceRange,
+    pub instance_range_count: u64,
 }
 
 #[repr(C)]
@@ -640,6 +894,8 @@ static WGSL_POINT_SHADER: &str = include_str!("../../shaders/coin_point.wgsl");
 
 #[derive(Hash, PartialEq, Eq, Clone, Debug)]
 struct PipelineKey {
+    instanced: bool,
+    textured: bool,
     eight_shadows: bool,
     shadow_profile: bool,
     weighted: bool,
@@ -725,7 +981,7 @@ struct SamplerCache {
     entries: HashMap<SamplerKey, wgpu::Sampler>,
 }
 
-// The offscreen camera fast path reads geometry only from this Rust-owned
+// The camera fast path reads geometry only from this Rust-owned
 // snapshot. A revision hint alone never licenses dereferencing caller-owned
 // geometry without full validation. One snapshot belongs to one device
 // generation and is discarded with that device on loss/destruction.
@@ -735,6 +991,9 @@ struct ValidatedGeometry {
     draws: Vec<CoinWgpuDraw>,
     materials: Vec<CoinWgpuMaterial>,
     max_abs_position: f64,
+    opaque_batch: bool,
+    instances: Vec<CoinWgpuInstance>,
+    instance_ranges: Vec<CoinWgpuInstanceRange>,
 }
 
 struct ValidatedScene {
@@ -748,16 +1007,63 @@ struct ValidatedScene {
     draw_order: Vec<composition::CompositionItem>,
 }
 
-// Device-local bindings for one validated camera scene. Only uniforms change.
-struct CameraDrawBinding {
-    uniform_buffer: wgpu::Buffer,
-    bind_group: wgpu::BindGroup,
+// Object animation changes baked geometry on each full revision. Retain one
+// initial snapshot, then stop cloning until an actual camera hint asks for it.
+// The decision is speculative; only a successful submission commits policy.
+#[derive(Default)]
+struct CameraSnapshotPolicy {
+    suspended: bool,
 }
 
+impl CameraSnapshotPolicy {
+    fn capture(&self, previous_revision: Option<u64>, revision: u64,
+               camera_hint: u64, owned_base: bool) -> bool {
+        owned_base || camera_hint != 0 || (!self.suspended &&
+            !previous_revision.is_some_and(|previous| previous != revision))
+    }
+
+    fn commit(&mut self, capture: bool, snapshot: bool) {
+        if snapshot { self.suspended = false; }
+        else if !capture { self.suspended = true; }
+    }
+}
+
+// The camera experiment retains materials; draw uniforms always use the
+// shared arena so it cannot recreate one sampler descriptor table per draw.
 struct CameraGpuBindings {
     geometry: Arc<ValidatedGeometry>,
     materials_buffer: wgpu::Buffer,
-    draws: Vec<Option<CameraDrawBinding>>,
+}
+
+// One immutable packed frame per device generation. The private transport's
+// nonzero revision names CoinWgpuFfiFrame-owned storage, as in its validation
+// cache. This retains GPU buffers only; incoming slices still pass validation.
+// Zero revisions and stable per-node draws keep their existing paths.
+struct FrameGpuBuffers {
+    revision: u64,
+    geometry: Option<Arc<ValidatedGeometry>>,
+    vertex_count: usize,
+    index_count: usize,
+    material_bytes: usize,
+    vertex_buffer: wgpu::Buffer,
+    index_buffer: wgpu::Buffer,
+    materials_buffer: wgpu::Buffer,
+    geometry_bytes: u64,
+}
+
+// Fresh immutable buffers are committed only after successful submission.
+// Keeping one bounded owned payload permits exact comparison; revisions alone
+// never establish equality for new instanced object/material contents.
+#[derive(Clone)]
+struct InstancedGpuBuffers {
+    geometry: Arc<ValidatedGeometry>,
+    vertex_buffer: wgpu::Buffer,
+    index_buffer: wgpu::Buffer,
+    materials_buffer: wgpu::Buffer,
+    instances_buffer: wgpu::Buffer,
+    geometry_bytes: u64,
+    instance_bytes: u64,
+    material_bytes: u64,
 }
 
 // Four timestamps bracket the render pass(es) and the offscreen copy. The
@@ -810,6 +1116,8 @@ impl CachedOffscreenAttachments {
 }
 
 fn same_camera_independent_state(a: &CoinWgpuRenderState, b: &CoinWgpuRenderState) -> bool {
+    if a.texture_projection != b.texture_projection || a.alpha_test_function != b.alpha_test_function ||
+        a.alpha_test_reference.to_bits() != b.alpha_test_reference.to_bits() { return false; }
     a.light_direction == b.light_direction && a.light_color == b.light_color
         && a.light_intensity == b.light_intensity && a.has_light == b.has_light
         && a.material_slot == b.material_slot && a.cull_mode == b.cull_mode
@@ -841,8 +1149,24 @@ fn same_camera_independent_state(a: &CoinWgpuRenderState, b: &CoinWgpuRenderStat
 
 fn camera_states_match(scene: &ValidatedScene, states: &[CoinWgpuRenderState]) -> bool {
     scene.states.len() == states.len() && scene.states.iter().zip(states).all(|(old, next)| {
-        if old.light_model != 0 || old.fog_mode != 0 || (old.has_texture != 0 || old.extra_textures.iter().any(|t| t.enabled != 0))
-            || !same_camera_independent_state(old, next)
+        let immutable_state_matches = if (scene.geometry.opaque_batch || !scene.geometry.instances.is_empty()) && old.light_model == 1 {
+            let mut a = *old;
+            let mut b = *next;
+            // Camera overlays resolve these coordinates from immutable world
+            // light values. Keep all light types/colors/attenuation in the key.
+            for state in [&mut a, &mut b] {
+                state.light_direction[..3].fill(0.0);
+                for light in &mut state.lights {
+                    light.position_type[..3].fill(0.0);
+                    light.direction_cutoff[..3].fill(0.0);
+                }
+            }
+            same_camera_independent_state(&a, &b)
+        } else {
+            old.light_model == 0 && same_camera_independent_state(old, next)
+        };
+        if old.fog_mode != 0 || (old.has_texture != 0 || old.extra_textures.iter().any(|t| t.enabled != 0))
+            || !immutable_state_matches
             || !next.model_view.iter().chain(next.model_view_projection.iter())
                 .chain(next.normal_matrix.iter()).all(|x| x.is_finite())
             || !next.fog_end.is_finite() {
@@ -850,6 +1174,9 @@ fn camera_states_match(scene: &ValidatedScene, states: &[CoinWgpuRenderState]) -
         }
         // Composition preflight rejects non-finite view-space depth. Bound
         // the changed matrix against the previously validated positions.
+        if !scene.geometry.instances.is_empty() && !instancing::camera_matrices_valid(next, scene.geometry.max_abs_position) {
+            return false;
+        }
         let m = &next.model_view;
         let bound = scene.geometry.max_abs_position
             * (f64::from(m[2]).abs() + f64::from(m[6]).abs() + f64::from(m[10]).abs())
@@ -858,25 +1185,241 @@ fn camera_states_match(scene: &ValidatedScene, states: &[CoinWgpuRenderState]) -
     })
 }
 
+fn opaque_camera_batch(states: &[CoinWgpuRenderState], draws: &[CoinWgpuDraw],
+                       order: &[composition::CompositionItem]) -> bool {
+    states.len() == 1 && draws.len() == 1 && order.len() == 1
+        && matches!(states[0].light_model, 0 | 1)
+        && states[0].fog_mode == 0 && states[0].clip_plane_count == 0
+        && states[0].polygon_offset_enabled == 0 && states[0].has_texture == 0
+        && states[0].extra_textures.iter().all(|t| t.enabled == 0)
+        && draws[0].topology == 0 && draws[0].stable_node_id == 0
+        && draws[0].composition_flags == 0 && draws[0].render_layer == 0
+        && draws[0].clear_depth_before == 0 && draws[0].first_vertex == 0
+        && draws[0].first_index == 0 && draws[0].vertex_count != 0
+        && draws[0].index_count != 0 && draws[0].index_count % 3 == 0
+        && !order[0].blend && !order[0].peel && !order[0].weighted
+}
+
 fn camera_scene_eligible(
     vertices: &[CoinWgpuVertex], indices: &[u32], draws: &[CoinWgpuDraw],
     materials: &[CoinWgpuMaterial],
     states: &[CoinWgpuRenderState], order: &[composition::CompositionItem],
     textures: &[CoinWgpuTexture], samplers: &[CoinWgpuSampler],
 ) -> bool {
-    const MAX_OWNED_SCENE_BYTES: usize = 32 * 1024 * 1024;
+    let max_owned_scene_bytes = if opaque_camera_batch(states, draws, order) {
+        256 * 1024 * 1024
+    } else { 32 * 1024 * 1024 };
     let owned_bytes = std::mem::size_of_val(vertices)
         .saturating_add(std::mem::size_of_val(indices))
         .saturating_add(std::mem::size_of_val(draws))
         .saturating_add(std::mem::size_of_val(materials))
         .saturating_add(std::mem::size_of_val(states))
         .saturating_add(std::mem::size_of_val(order));
-    owned_bytes <= MAX_OWNED_SCENE_BYTES
+    owned_bytes <= max_owned_scene_bytes
         && textures.is_empty() && samplers.is_empty()
-        && states.iter().all(|s| s.light_model == 0 && s.fog_mode == 0 && s.has_texture == 0 && s.extra_textures.iter().all(|t| t.enabled == 0))
+        && states.iter().all(|s| (s.light_model == 0 || opaque_camera_batch(states, draws, order))
+            && s.fog_mode == 0 && s.has_texture == 0 && s.texture_projection <= 1
+            && s.extra_textures.iter().all(|t| t.enabled == 0))
         && materials.iter().all(|m| m.diffuse[3] == 1.0 && m.transparency == 0.0)
         && order.iter().all(|item| !item.blend)
-        && vertices.iter().all(|v| v.position.iter().all(|x| x.is_finite()))
+        && vertices.iter().all(|v| v.position.iter().chain(v.normal.iter()).chain(v.texcoord.iter()).all(|x| x.is_finite())
+            && v.extra_texcoords.iter().flatten().all(|x| x.is_finite())
+            && v.screen_space_w.is_finite() && v.screen_space_w >= 0.0
+            && v.fog_eye_depth_plus_one.is_finite() && v.fog_eye_depth_plus_one >= 0.0
+            && (v.material_slot as usize) < materials.len()
+            && (!opaque_camera_batch(states, draws, order) ||
+                (v.screen_space_w == 1.0 && v.fog_eye_depth_plus_one == 0.0
+                    && v.normal.iter().all(|x| x.abs() <= 1.0e18))))
+}
+
+fn camera_base(device: &DeviceState, f: &CoinWgpuFrameView,
+               states: &[CoinWgpuRenderState]) -> Option<Arc<ValidatedScene>> {
+    owned_camera_base(device.validated_scene.as_ref()?, device.generation, f, states)
+}
+
+fn owned_camera_base(scene: &Arc<ValidatedScene>, generation: u64, f: &CoinWgpuFrameView,
+                     states: &[CoinWgpuRenderState]) -> Option<Arc<ValidatedScene>> {
+    if f.frame_revision == 0 || f.texture_count != 0 || f.sampler_count != 0 { return None; }
+    let geometry = &scene.geometry;
+    if !geometry.instances.is_empty() && instancing::validate_counts(f).is_err() { return None; }
+    if scene.generation != generation || scene.width != f.width || scene.height != f.height
+        || scene.clear_color != f.clear_color
+        || geometry.vertices.len() as u64 != f.vertex_count
+        || geometry.indices.len() as u64 != f.index_count
+        || geometry.draws.len() as u64 != f.draw_count
+        || geometry.materials.len() as u64 != f.material_count
+        || geometry.instances.len() as u64 != f.instance_count
+        || geometry.instance_ranges.len() as u64 != f.instance_range_count { return None; }
+    let exact_state = scene.states.len() == states.len() && scene.states.iter().zip(states).all(|(a, b)|
+        same_camera_independent_state(a, b) && a.fog_end == b.fog_end
+            && a.model_view == b.model_view && a.model_view_projection == b.model_view_projection
+            && a.normal_matrix == b.normal_matrix);
+    // A full instanced payload can change under the same caller revision.
+    // Exact bytes from bounded, aligned slices are required before skipping
+    // validation; only a null immutable payload directly licenses our Arc.
+    let exact = f.camera_base_revision == 0 && scene.revision == f.frame_revision && exact_state
+        && (geometry.instances.is_empty() || instancing::owned_payload_matches(geometry, f));
+    let patch = f.camera_base_revision != 0 && f.frame_revision != f.camera_base_revision
+        && scene.revision == f.camera_base_revision && camera_states_match(scene, states);
+    (exact || patch).then(|| scene.clone())
+}
+
+// Build only after ordinary draw/index/composition preflight. Allocation is
+// bounded and fallible: an unavailable snapshot simply keeps the full path.
+fn camera_scene(generation: u64, f: &CoinWgpuFrameView,
+    vertices: &[CoinWgpuVertex], indices: &[u32], draws: &[CoinWgpuDraw],
+    materials: &[CoinWgpuMaterial], states: &[CoinWgpuRenderState],
+    order: &[composition::CompositionItem], textures: &[CoinWgpuTexture], samplers: &[CoinWgpuSampler],
+    instances: &[CoinWgpuInstance], instance_ranges: &[CoinWgpuInstanceRange],
+    base: Option<&Arc<ValidatedScene>>) -> Option<Arc<ValidatedScene>> {
+    if f.frame_revision == 0 && instances.is_empty() { return None; }
+    fn copy<T: Clone>(source: &[T]) -> Option<Vec<T>> {
+        let mut target = Vec::new();
+        target.try_reserve_exact(source.len()).ok()?;
+        target.extend_from_slice(source);
+        Some(target)
+    }
+    let trace_resources = std::env::var_os("COIN_RENDER_TRACE_PHASES")
+        .or_else(|| std::env::var_os("COIN_WGPU_TRACE_PHASES")).is_some();
+    let profile_snapshot = trace_resources.then(std::time::Instant::now);
+    let geometry = if let Some(base) = base {
+        base.geometry.clone()
+    } else {
+        if instances.is_empty() && !camera_scene_eligible(vertices, indices, draws, materials, states, order, textures, samplers) {
+            return None;
+        }
+        Arc::new(ValidatedGeometry {
+            vertices: copy(vertices)?, indices: copy(indices)?, draws: copy(draws)?, materials: copy(materials)?,
+            max_abs_position: instancing::position_bound(vertices, instances),
+            opaque_batch: opaque_camera_batch(states, draws, order),
+            instances: copy(instances)?, instance_ranges: copy(instance_ranges)?,
+        })
+    };
+    let scene = Arc::new(ValidatedScene {
+        revision: f.frame_revision, generation, width: f.width, height: f.height,
+        clear_color: f.clear_color, geometry, states: copy(states)?, draw_order: copy(order)?,
+    });
+    if let Some(start) = profile_snapshot {
+        // Bytes are the copied payloads, not allocator capacity. This timer
+        // spans the entire scene snapshot, including bounds/states/order; it
+        // is not isolated material memcpy and precedes submission success.
+        eprintln!("COIN_RENDER_PHASE rust_material_snapshot source_bytes={} material_copied_bytes={} instance_copied_bytes={} geometry_reused={} snapshot_ms={} attempt=1",
+            std::mem::size_of_val(materials), if base.is_some() { 0 } else { std::mem::size_of_val(materials) },
+            if base.is_some() { 0 } else { std::mem::size_of_val(instances) }, base.is_some() as u32,
+            start.elapsed().as_secs_f64() * 1000.0);
+    }
+    Some(scene)
+}
+
+fn commit_camera_scene(device: &mut DeviceState, scene: Option<Arc<ValidatedScene>>,
+                       update: bool, revision: u64, owned_base: bool, capture: bool,
+                       instanced: bool, pending_instances: Option<InstancedGpuBuffers>) {
+    if !update { return; }
+    *device.instanced_buffers.lock().unwrap() = if instanced { pending_instances } else { None };
+    device.camera_snapshot_policy.commit(capture, scene.is_some());
+    device.validated_scene = scene;
+    if owned_base && !instanced {
+        if let Ok(mut cache) = VALIDATED_FRAME_CACHE.lock() {
+            if let Some(scene) = device.validated_scene.as_ref() {
+                *cache = Some((revision, scene.draw_order.clone()));
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod camera_scene_tests {
+    use super::*;
+
+    #[test]
+    fn snapshot_policy_suspends_objects_and_readmits_a_camera_transactionally() {
+        let mut policy = CameraSnapshotPolicy::default();
+        assert!(policy.capture(None, 1, 0, false));
+        policy.commit(true, true); // initial eligible frame
+        assert!(policy.capture(Some(1), 1, 0, true)); // static reuse
+        assert!(!policy.capture(Some(1), 2, 0, false)); // object rebuild candidate
+        // A failed candidate does not commit; the old owned base still works.
+        assert!(!policy.suspended);
+        assert!(policy.capture(Some(1), 3, 1, true));
+        policy.commit(false, false); // successful object rebuild, old base cleared
+        assert!(policy.suspended);
+        assert!(!policy.capture(None, 3, 0, false));
+        assert!(policy.capture(None, 4, 3, false)); // camera hint needs full validation
+        assert!(policy.suspended); // failed validation leaves it suspended
+        policy.commit(true, true);
+        assert!(!policy.suspended);
+        assert!(policy.capture(Some(4), 5, 4, true));
+        assert!(!policy.capture(Some(5), 6, 0, false));
+    }
+
+    fn phong_state() -> CoinWgpuRenderState {
+        let mut state: CoinWgpuRenderState = unsafe { std::mem::zeroed() };
+        state.light_model = 1;
+        state.light_count = 1;
+        state.lights[0].position_type = [0.0, 0.0, 3.0, 1.0];
+        state.lights[0].color_intensity = [1.0, 0.5, 0.25, 1.0];
+        state.lights[0].attenuation_exponent = [0.0, 0.0, 1.0, 0.0];
+        for i in 0..4 {
+            state.model_view[i*5] = 1.0;
+            state.model_view_projection[i*5] = 1.0;
+            state.normal_matrix[i*5] = 1.0;
+        }
+        state
+    }
+
+    #[test]
+    fn phong_camera_scene_owns_and_preserves_geometry_arc() {
+        let mut frame: CoinWgpuFrameView = unsafe { std::mem::zeroed() };
+        frame.frame_revision = 1; frame.width = 64; frame.height = 64;
+        frame.vertex_count = 3; frame.index_count = 3; frame.draw_count = 1;
+        frame.material_count = 1; frame.state_count = 1;
+        let mut vertices = [CoinWgpuVertex::zeroed(); 3];
+        for vertex in &mut vertices { vertex.screen_space_w = 1.0; vertex.normal[2] = 1.0; }
+        let mut draw: CoinWgpuDraw = unsafe { std::mem::zeroed() };
+        draw.vertex_count = 3; draw.index_count = 3;
+        let mut material: CoinWgpuMaterial = unsafe { std::mem::zeroed() };
+        material.diffuse[3] = 1.0;
+        let order = [composition::CompositionItem { draw_index: 0, blend: false,
+            additive: false, screen_door: false, screen_door_level: 0, peel: false, weighted: false }];
+        let mut state = phong_state();
+        let base = camera_scene(7, &frame, &vertices, &[0,1,2], &[draw], &[material],
+            &[state], &order, &[], &[], &[], &[], None).expect("validated opaque PHONG snapshot");
+        assert!(base.geometry.opaque_batch);
+        vertices[0].position[0] = 100.0;
+        assert_eq!(base.geometry.vertices[0].position[0], 0.0, "must own caller payload");
+
+        // The same resolver/builder is used by both native surface and
+        // offscreen submission. Incoming immutable pointers intentionally stay
+        // null: only a matching device generation/base may license the Arc.
+        let mut current = base.clone();
+        for revision in 2..5 {
+            frame.camera_base_revision = revision - 1;
+            frame.frame_revision = revision;
+            state.model_view[12] = revision as f32 * 0.1;
+            state.model_view_projection[12] = state.model_view[12];
+            state.lights[0].position_type[0] = revision as f32;
+            let owned = owned_camera_base(&current, 7, &frame, &[state])
+                .expect("PHONG camera with resolved light coordinates");
+            let next = camera_scene(7, &frame, &owned.geometry.vertices, &owned.geometry.indices,
+                &owned.geometry.draws, &owned.geometry.materials, &[state], &order,
+                &[], &[], &[], &[], Some(&owned)).unwrap();
+            assert!(Arc::ptr_eq(&base.geometry, &next.geometry));
+            assert_eq!(next.states[0].lights[0].position_type[0], revision as f32);
+            current = next;
+        }
+        frame.camera_base_revision = current.revision; frame.frame_revision = current.revision + 1;
+        assert!(owned_camera_base(&current, 7, &frame, &[state]).is_some());
+        assert!(owned_camera_base(&current, 8, &frame, &[state]).is_none(), "device generation cannot alias");
+        frame.camera_base_revision = 1; frame.frame_revision = 5;
+        state.lights[0].color_intensity[0] = 0.25;
+        assert!(owned_camera_base(&base, 7, &frame, &[state]).is_none(), "light color is immutable");
+        state = phong_state(); state.normal_matrix[0] = f32::NAN;
+        assert!(owned_camera_base(&base, 7, &frame, &[state]).is_none());
+        state = phong_state(); state.fog_mode = 1;
+        assert!(owned_camera_base(&base, 7, &frame, &[state]).is_none());
+        state = phong_state(); frame.vertex_count = 4;
+        assert!(owned_camera_base(&base, 7, &frame, &[state]).is_none());
+    }
 }
 
 struct DeviceState {
@@ -885,6 +1428,9 @@ struct DeviceState {
     device: wgpu::Device,
     queue: wgpu::Queue,
     shader_module: wgpu::ShaderModule,
+    instanced_shader: wgpu::ShaderModule,
+    instanced_bind_group_layout: wgpu::BindGroupLayout,
+    instanced_pipeline_layout: wgpu::PipelineLayout,
     shadow_eight_shader: wgpu::ShaderModule,
     shadow_shader: wgpu::ShaderModule,
     shadow_eight_layout: wgpu::BindGroupLayout,
@@ -892,10 +1438,13 @@ struct DeviceState {
     shadow_eight_pipeline_layout: wgpu::PipelineLayout,
     line_shader_module: wgpu::ShaderModule,
     point_shader_module: wgpu::ShaderModule,
+    untextured_shaders: Mutex<HashMap<(u32, bool, bool), wgpu::ShaderModule>>,
     bind_group_layout: wgpu::BindGroupLayout,
     pipeline_layout: wgpu::PipelineLayout,
     pipelines: Mutex<HashMap<PipelineKey, wgpu::RenderPipeline>>,
     annotation_depth_pipeline: Mutex<Option<wgpu::RenderPipeline>>,
+    depth_readback: Mutex<Option<depth_transfer::DepthTransfer>>,
+    depth_snapshot: Mutex<Option<depth_transfer::DepthTransfer>>,
     pipeline_compilations: AtomicU64,
     pipeline_hits: AtomicU64,
     cache: Mutex<GeometryCache>,
@@ -906,9 +1455,14 @@ struct DeviceState {
     texture_cache: Mutex<TextureCache>,
     sampler_cache: Mutex<SamplerCache>,
     camera_bindings: Mutex<Option<CameraGpuBindings>>,
+    frame_buffers: Mutex<Option<FrameGpuBuffers>>,
+    instanced_buffers: Mutex<Option<InstancedGpuBuffers>>,
     camera_bindings_reused: AtomicU32,
     camera_bindings_created: AtomicU32,
+    draw_bind_groups: AtomicU32,
+    uniform_chunks: AtomicU32,
     validated_scene: Option<Arc<ValidatedScene>>,
+    camera_snapshot_policy: CameraSnapshotPolicy,
     readback_pool: Arc<Mutex<ReadbackPool>>,
     cached_offscreen_attachments: Option<CachedOffscreenAttachments>,
     rtt_textures: Mutex<RttRegistry>,
@@ -928,13 +1482,27 @@ fn trace_owned_resources(dev: &DeviceState, target: &str, width: u32, height: u3
     let geometry = dev.cache.lock().unwrap();
     let retired_geometry_bytes: u64 = geometry.deferred_release.iter()
         .map(|entry| entry.size_bytes).sum();
-    let vertex_buffers = geometry.active_entries.len() + geometry.deferred_release.len();
-    let index_buffers = geometry.active_entries.values()
+    let mut vertex_buffers = geometry.active_entries.len() + geometry.deferred_release.len();
+    let mut index_buffers = geometry.active_entries.values()
         .filter(|(_, entry)| entry.index_buffer.is_some()).count()
         + geometry.deferred_release.iter()
             .filter(|entry| entry.index_buffer.is_some()).count();
-    let geometry_active_bytes = geometry.total_active_geometry_bytes;
+    let mut geometry_active_bytes = geometry.total_active_geometry_bytes;
     drop(geometry);
+    let frame = dev.frame_buffers.lock().unwrap();
+    let frame_geometry_bytes = frame.as_ref().map_or(0, |entry| entry.geometry_bytes);
+    geometry_active_bytes += frame_geometry_bytes;
+    vertex_buffers += usize::from(frame.is_some());
+    index_buffers += usize::from(frame.is_some());
+    drop(frame);
+    let instances = dev.instanced_buffers.lock().unwrap();
+    if let Some(entry) = instances.as_ref() {
+        geometry_active_bytes += entry.geometry_bytes;
+        vertex_buffers += 1; index_buffers += 1;
+        eprintln!("COIN_RENDER_PHASE rust_instance_resources geometry_bytes={} instance_bytes={} material_bytes={}",
+            entry.geometry_bytes, entry.instance_bytes, entry.material_bytes);
+    }
+    drop(instances);
     let textures = dev.texture_cache.lock().unwrap();
     let texture_payload_bytes: u64 = textures.entries.values()
         .map(|entry| entry.size_bytes as u64).sum();
@@ -959,6 +1527,9 @@ fn trace_owned_resources(dev: &DeviceState, target: &str, width: u32, height: u3
         texture_count, texture_payload_bytes, rtt_count, rtt_nominal_bytes, attachment_count,
         attachment_nominal_bytes, staging_color_bytes, staging_depth_bytes,
         staging_pool_free_bytes, staging_pool_free_buffers);
+    eprintln!("COIN_RENDER_PHASE rust_draw_resources frame_geometry_bytes={} uniform_chunks={} draw_bind_groups={}",
+        frame_geometry_bytes, dev.uniform_chunks.load(Ordering::Relaxed),
+        dev.draw_bind_groups.load(Ordering::Relaxed));
 }
 
 struct SurfaceRecord {
@@ -1517,8 +2088,9 @@ fn get_or_init_device_impl<'a>(
         });
         let error_kind = error_signal.clone();
         device.on_uncaptured_error(Box::new(move |error: wgpu::Error| {
-            error_kind.store(if matches!(error, wgpu::Error::OutOfMemory { .. }) { 1 } else { 2 },
-                Ordering::SeqCst);
+            let _ = error_kind.compare_exchange(0,
+                if matches!(error, wgpu::Error::OutOfMemory { .. }) { 1 } else { 2 },
+                Ordering::SeqCst, Ordering::SeqCst);
         }));
     } else {
         device.set_device_lost_callback(|reason, message| {
@@ -1528,36 +2100,51 @@ fn get_or_init_device_impl<'a>(
             }
         });
         device.on_uncaptured_error(Box::new(|error: wgpu::Error| {
-            LAST_ASYNC_ERROR_KIND.store(
-                if matches!(error, wgpu::Error::OutOfMemory { .. }) { 1 } else { 2 },
-                Ordering::SeqCst);
             if let Ok(mut lock) = LAST_ASYNC_ERROR_MSG.lock() {
-                *lock = format!("WebGPU uncaptured error: {}", error);
+                if LAST_ASYNC_ERROR_KIND.compare_exchange(0,
+                    if matches!(error, wgpu::Error::OutOfMemory { .. }) { 1 } else { 2 },
+                    Ordering::SeqCst, Ordering::SeqCst).is_ok() {
+                    *lock = format!("WebGPU uncaptured error: {}", error);
+                }
             }
         }));
     }
 
+    let gl_depth_loads = adapter.get_info().backend == wgpu::Backend::Gl;
+    let shader_source = |source: &str| shader_profile::depth_load_profile(
+        &shader_profile::texture_specialization(source), gl_depth_loads);
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("coin_standard.wgsl"),
-        source: wgpu::ShaderSource::Wgsl(format!("{}{}",WGSL_SHADER,weighted::FRAGMENT).into()),
+        source: wgpu::ShaderSource::Wgsl(shader_source(
+            &format!("{}{}",shader_profile::without_shadows(WGSL_SHADER),weighted::FRAGMENT)).into()),
+    });
+
+    let instanced_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some("Coin opaque instances"),
+        source: wgpu::ShaderSource::Wgsl(shader_source(
+            &format!("{}{}", instancing::shader_source(), weighted::FRAGMENT)).into()),
     });
 
     let shadow_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("Coin quality shadow receivers"),
-        source: wgpu::ShaderSource::Wgsl(format!("{}{}",shadow_receiver::four_map_source(),weighted::FRAGMENT).into()),
+        source: wgpu::ShaderSource::Wgsl(shader_source(
+            &format!("{}{}",shadow_receiver::four_map_source(),weighted::FRAGMENT)).into()),
     });
     let shadow_eight_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("Coin eight shadow receivers"),
-        source: wgpu::ShaderSource::Wgsl(format!("{}{}",shadow_receiver::eight_map_source(),weighted::FRAGMENT).into()),
+        source: wgpu::ShaderSource::Wgsl(shader_source(
+            &format!("{}{}",shadow_receiver::eight_map_source(),weighted::FRAGMENT)).into()),
     });
     let line_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("coin_line.wgsl"),
-        source: wgpu::ShaderSource::Wgsl(format!("{}{}",WGSL_LINE_SHADER,weighted::FRAGMENT).into()),
+        source: wgpu::ShaderSource::Wgsl(shader_source(
+            &format!("{}{}",WGSL_LINE_SHADER,weighted::FRAGMENT)).into()),
     });
 
     let point_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("coin_point.wgsl"),
-        source: wgpu::ShaderSource::Wgsl(format!("{}{}",WGSL_POINT_SHADER,weighted::FRAGMENT).into()),
+        source: wgpu::ShaderSource::Wgsl(shader_source(
+            &format!("{}{}",WGSL_POINT_SHADER,weighted::FRAGMENT)).into()),
     });
 
     let storage_visibility = if device.limits().max_storage_buffers_per_shader_stage >= 1 {
@@ -1569,7 +2156,8 @@ fn get_or_init_device_impl<'a>(
     let mut layout_entries = vec![
         wgpu::BindGroupLayoutEntry { binding: 0, visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
             ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform,
-                has_dynamic_offset: false, min_binding_size: None }, count: None },
+                has_dynamic_offset: true,
+                min_binding_size: std::num::NonZeroU64::new(std::mem::size_of::<CoinWgpuUniforms>() as u64) }, count: None },
         wgpu::BindGroupLayoutEntry { binding: 1, visibility: storage_visibility,
             ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Storage { read_only: true },
                 has_dynamic_offset: false, min_binding_size: None }, count: None },
@@ -1596,7 +2184,8 @@ fn get_or_init_device_impl<'a>(
             binding,
             visibility: wgpu::ShaderStages::FRAGMENT,
             ty: wgpu::BindingType::Texture {
-                sample_type: wgpu::TextureSampleType::Depth,
+                sample_type: if gl_depth_loads { wgpu::TextureSampleType::Float { filterable: false } }
+                    else { wgpu::TextureSampleType::Depth },
                 view_dimension: wgpu::TextureViewDimension::D2,
                 multisampled: false,
             },
@@ -1645,6 +2234,21 @@ fn get_or_init_device_impl<'a>(
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("Coin Pipeline Layout"),
         bind_group_layouts: &[&bind_group_layout],
+        push_constant_ranges: &[],
+    });
+
+    let mut instanced_entries = layout_entries.clone();
+    instanced_entries.push(wgpu::BindGroupLayoutEntry {
+        binding: 24, visibility: wgpu::ShaderStages::VERTEX,
+        ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Storage { read_only: true },
+            has_dynamic_offset: false, min_binding_size: std::num::NonZeroU64::new(144) },
+        count: None,
+    });
+    let instanced_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        label: Some("Coin opaque instance bindings"), entries: &instanced_entries,
+    });
+    let instanced_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: Some("Coin opaque instance pipeline"), bind_group_layouts: &[&instanced_bind_group_layout],
         push_constant_ranges: &[],
     });
 
@@ -1747,13 +2351,17 @@ fn get_or_init_device_impl<'a>(
         device,
         queue,
         shader_module: shader,
+        instanced_shader, instanced_bind_group_layout, instanced_pipeline_layout,
         shadow_shader, shadow_eight_shader, shadow_eight_layout, shadow_extra_layout, shadow_eight_pipeline_layout,
         line_shader_module: line_shader,
         point_shader_module: point_shader,
         bind_group_layout,
         pipeline_layout,
         pipelines: Mutex::new(HashMap::new()),
+        untextured_shaders: Mutex::new(HashMap::new()),
         annotation_depth_pipeline: Mutex::new(None),
+        depth_readback: Mutex::new(None),
+        depth_snapshot: Mutex::new(None),
         pipeline_compilations: AtomicU64::new(0),
         pipeline_hits: AtomicU64::new(0),
         cache: Mutex::new(GeometryCache::default()),
@@ -1764,9 +2372,14 @@ fn get_or_init_device_impl<'a>(
         texture_cache: Mutex::new(TextureCache::default()),
         sampler_cache: Mutex::new(SamplerCache::default()),
         camera_bindings: Mutex::new(None),
+        frame_buffers: Mutex::new(None),
+        instanced_buffers: Mutex::new(None),
         camera_bindings_reused: AtomicU32::new(0),
         camera_bindings_created: AtomicU32::new(0),
+        draw_bind_groups: AtomicU32::new(0),
+        uniform_chunks: AtomicU32::new(0),
         validated_scene: None,
+        camera_snapshot_policy: CameraSnapshotPolicy::default(),
         readback_pool: Arc::new(Mutex::new(ReadbackPool::default())),
         cached_offscreen_attachments: None,
         rtt_textures: Mutex::new(RttRegistry::default()),
@@ -1994,7 +2607,7 @@ fn configure_surface_record(
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
         format: wgpu::TextureFormat::Depth32Float,
-        usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::TEXTURE_BINDING,
         view_formats: &[],
     };
     let depth_texture = device_state.device.create_texture(&depth_desc);
@@ -2177,6 +2790,8 @@ fn get_or_create_pipeline<'a>(
     eight_shadows: bool,
     shadow_profile: bool,
     weighted: bool,
+    textured: bool,
+    instanced: bool,
 ) -> Result<wgpu::RenderPipeline, String> {
     let mut map = ctx.pipelines.lock().map_err(|e| e.to_string())?;
 
@@ -2185,11 +2800,11 @@ fn get_or_create_pipeline<'a>(
         1 => (wgpu::PrimitiveTopology::LineList, &ctx.line_shader_module, None),
         2 => (wgpu::PrimitiveTopology::PointList, &ctx.point_shader_module, None),
         _ => (wgpu::PrimitiveTopology::TriangleList,
-            if eight_shadows { &ctx.shadow_eight_shader } else if shadow_profile { &ctx.shadow_shader } else { &ctx.shader_module }, cull_face),
+            if instanced { &ctx.instanced_shader } else if eight_shadows { &ctx.shadow_eight_shader } else if shadow_profile { &ctx.shadow_shader } else { &ctx.shader_module }, cull_face),
     };
 
     let key = PipelineKey {
-        eight_shadows, shadow_profile, weighted, topology,
+        instanced, eight_shadows, shadow_profile, weighted, topology, textured,
         color_format,
         depth_format,
         sample_count: 1,
@@ -2224,32 +2839,32 @@ fn get_or_create_pipeline<'a>(
                 shader_location: 1,
             },
             wgpu::VertexAttribute {
-                format: wgpu::VertexFormat::Float32x2,
+                format: wgpu::VertexFormat::Float32x4,
                 offset: 24,
                 shader_location: 2,
             },
             wgpu::VertexAttribute {
                 format: wgpu::VertexFormat::Uint32,
-                offset: 32,
+                offset: 40,
                 shader_location: 3,
             },
             wgpu::VertexAttribute {
                 format: wgpu::VertexFormat::Float32,
-                offset: 36,
+                offset: 44,
                 shader_location: 4,
             },
             wgpu::VertexAttribute {
                 format: wgpu::VertexFormat::Float32,
-                offset: 40,
+                offset: 48,
                 shader_location: 5,
             },
-            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x2, offset: 44, shader_location: 6 },
-            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x2, offset: 52, shader_location: 7 },
-            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x2, offset: 60, shader_location: 8 },
-            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x2, offset: 68, shader_location: 9 },
-            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x2, offset: 76, shader_location: 10 },
-            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x2, offset: 84, shader_location: 11 },
-            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x2, offset: 92, shader_location: 12 },
+            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x4, offset: 52, shader_location: 6 },
+            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x4, offset: 68, shader_location: 7 },
+            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x4, offset: 84, shader_location: 8 },
+            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x4, offset: 100, shader_location: 9 },
+            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x4, offset: 116, shader_location: 10 },
+            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x4, offset: 132, shader_location: 11 },
+            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x4, offset: 148, shader_location: 12 },
         ],
     };
 
@@ -2307,19 +2922,41 @@ fn get_or_create_pipeline<'a>(
             write_mask: wgpu::ColorWrites::ALL,
         }));
     }
+    // wgpu-hal 24's GL program cache keys module IDs/entry points but omits
+    // override constants. Give textured/untextured variants distinct modules
+    // so switching profiles cannot reuse the first profile's GL program.
+    let selected_shader = if !instanced && !textured && ctx.adapter.get_info().backend == wgpu::Backend::Gl {
+        let mut profiles = ctx.untextured_shaders.lock().map_err(|e| e.to_string())?;
+        profiles.entry((topology, shadow_profile, eight_shadows)).or_insert_with(|| {
+            let source = match topology {
+                1 => WGSL_LINE_SHADER.to_owned(),
+                2 => WGSL_POINT_SHADER.to_owned(),
+                _ if eight_shadows => shadow_receiver::eight_map_source(),
+                _ if shadow_profile => shadow_receiver::four_map_source(),
+                _ => shader_profile::without_shadows(WGSL_SHADER),
+            };
+            ctx.device.create_shader_module(wgpu::ShaderModuleDescriptor {
+                label: Some("Coin untextured shader profile"),
+                source: wgpu::ShaderSource::Wgsl(shader_profile::depth_load_profile(
+                    &shader_profile::texture_specialization(
+                        &format!("{}{}", source, weighted::FRAGMENT)), true).into()),
+            })
+        }).clone()
+    } else { selected_shader.clone() };
+    let constants = HashMap::from([("coin_textures_enabled".to_owned(), if textured { 1.0 } else { 0.0 })]);
     let pipeline = ctx
         .device
         .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some(pipeline_label),
-            layout: Some(if eight_shadows { &ctx.shadow_eight_pipeline_layout } else { &ctx.pipeline_layout }),
+            layout: Some(if instanced { &ctx.instanced_pipeline_layout } else if eight_shadows { &ctx.shadow_eight_pipeline_layout } else { &ctx.pipeline_layout }),
             vertex: wgpu::VertexState {
-                module: selected_shader,
+                module: &selected_shader,
                 entry_point: Some("vs_main"),
                 buffers: &[vertex_buffer_layout],
-                compilation_options: wgpu::PipelineCompilationOptions::default(),
+                compilation_options: wgpu::PipelineCompilationOptions { constants: &constants, ..Default::default() },
             },
             fragment: Some(wgpu::FragmentState {
-                module: selected_shader,
+                module: &selected_shader,
                 entry_point: Some(if weighted { "fs_weighted" } else if peel {
                     "fs_peel"
                 } else if resolved_depth_bias {
@@ -2328,7 +2965,7 @@ fn get_or_create_pipeline<'a>(
                     "fs_main"
                 }),
                 targets: &color_targets,
-                compilation_options: wgpu::PipelineCompilationOptions::default(),
+                compilation_options: wgpu::PipelineCompilationOptions { constants: &constants, ..Default::default() },
             }),
             primitive: wgpu::PrimitiveState {
                 topology: primitive_topology,
@@ -2402,6 +3039,7 @@ struct ShadowFrame<'a> {
 // Pure shared command encoder function strictly common to offscreen and window targets
 fn encode_frame(
     ctx: &DeviceState,
+    frame_revision: u64,
     clear_color: [f32; 4],
     target_width: u32,
     target_height: u32,
@@ -2415,14 +3053,33 @@ fn encode_frame(
     samplers_slice: &[CoinWgpuSampler],
     shadow_frame: Option<&ShadowFrame>,
     camera_geometry: Option<&Arc<ValidatedGeometry>>,
+    instances_slice: &[CoinWgpuInstance],
+    instance_ranges: &[CoinWgpuInstanceRange],
     timestamp_query: Option<&wgpu::QuerySet>,
     color_view: &wgpu::TextureView,
     color_format: wgpu::TextureFormat,
     depth_view: &wgpu::TextureView,
     depth_texture: &wgpu::Texture,
     peel_passes: u32,
-) -> Result<wgpu::CommandBuffer, (CoinWgpuStatus, String)> {
+) -> Result<(wgpu::CommandBuffer, Option<InstancedGpuBuffers>), (CoinWgpuStatus, String)> {
     use wgpu::util::DeviceExt;
+    if !states_slice.iter().all(valid_alpha_test) {
+        return Err((CoinWgpuStatus::InvalidArgument, "Invalid alpha comparison function or reference".into()));
+    }
+    if states_slice.iter().any(|st| st.texture_projection > 1) {
+        return Err((CoinWgpuStatus::InvalidArgument, "Invalid texture projection policy".into()));
+    }
+    if shadow_frame.is_some() && states_slice.iter().any(|st|
+        st.alpha_test_function != 0 && st.alpha_test_function != 2) {
+        return Err((CoinWgpuStatus::Unsupported, "Active alpha test requires alpha-aware shadow-map casters".into()));
+    }
+    let instanced = !instances_slice.is_empty();
+    if instanced && (ctx.device.limits().max_storage_buffers_per_shader_stage < 2
+        || std::mem::size_of_val(instances_slice) as u64
+            > u64::from(ctx.device.limits().max_storage_buffer_binding_size)) {
+        return Err((CoinWgpuStatus::Unsupported,
+            "Instancing exceeds enabled vertex storage buffer limits".into()));
+    }
     if draw_order.iter().any(|item| item.peel) && !peeling::device_supported(&ctx.device) {
         return Err((
             CoinWgpuStatus::Unsupported,
@@ -2800,48 +3457,54 @@ fn encode_frame(
         return Err((CoinWgpuStatus::Unsupported, "Material buffer exceeds max_storage_buffer_binding_size".to_string()));
     }
 
-    for (v_idx, v) in vertices_slice.iter().enumerate() {
-        if !v.extra_texcoords.iter().flatten().all(|x| x.is_finite())
+    // An owned scene already validated this immutable vertex payload. Camera
+    // frames update only states; scanning a million vertices would defeat reuse.
+    let unchecked_vertices = if camera_geometry.is_none() { vertices_slice } else { &[] };
+    for (v_idx, v) in unchecked_vertices.iter().enumerate() {
+        if !v.texcoord.iter().chain(v.extra_texcoords.iter().flatten()).all(|x| x.is_finite())
             || !v.screen_space_w.is_finite() || v.screen_space_w < 0.0
             || !v.fog_eye_depth_plus_one.is_finite() || v.fog_eye_depth_plus_one < 0.0 {
             return Err((CoinWgpuStatus::InvalidArgument,
-                format!("Vertex {} has invalid homogeneous stroke attributes", v_idx)));
+                format!("Vertex {} has invalid homogeneous texture/stroke attributes", v_idx)));
         }
         if (v.material_slot as usize) >= materials_slice.len() {
             return Err((CoinWgpuStatus::InvalidArgument, format!("Vertex {} references invalid material_slot {} >= material_count {}", v_idx, v.material_slot, materials_slice.len())));
         }
     }
 
-    let gpu_materials: Vec<GpuMaterial> = materials_slice.iter().map(|m| {
-        GpuMaterial {
-            ambient: m.ambient,
-            diffuse: m.diffuse,
-            specular: m.specular,
-            emission: m.emission,
-            params: [m.shininess, m.transparency, 0.0, 0.0],
-        }
-    }).collect();
-
-    // WebGPU does not permit a zero-sized storage binding. This sentinel is
-    // unreachable because there are no draws in a material-free frame.
-    let fallback_material = [GpuMaterial {
-        ambient: [0.0; 4],
-        diffuse: [0.0; 4],
-        specular: [0.0; 4],
-        emission: [0.0; 4],
-        params: [0.0; 4],
-    }];
-    let material_bytes: &[u8] = if gpu_materials.is_empty() {
-        bytemuck::cast_slice(&fallback_material)
-    } else {
-        bytemuck::cast_slice(&gpu_materials)
-    };
+    let trace_materials = std::env::var_os("COIN_RENDER_TRACE_PHASES")
+        .or_else(|| std::env::var_os("COIN_WGPU_TRACE_PHASES")).is_some();
+    let reuse_materials = material_resource_reuse_enabled();
+    // The ablation restores eager packing at its original position, before
+    // resource-cache locks or equality checks, as well as coupled GPU misses.
+    let profile_eager_pack = trace_materials.then(std::time::Instant::now);
+    let literal_gpu_materials = if reuse_materials { None }
+        else { Some(pack_gpu_materials(materials_slice)) };
+    let eager_pack_ms = profile_eager_pack.map(|start| start.elapsed().as_secs_f64() * 1000.0);
+    // Keep the required GPU length independent of whether packing is needed.
+    // A clear-only frame still binds the same one-element zero sentinel.
+    let material_byte_len = mat_buffer_size.max(std::mem::size_of::<GpuMaterial>());
+    let geometry_bytes = (std::mem::size_of_val(vertices_slice) as u64)
+        .saturating_add(std::mem::size_of_val(indices_slice) as u64);
+    let retain_frame = !instanced && frame_revision != 0 && !vertices_slice.is_empty()
+        && !indices_slice.is_empty() && !draws_slice.is_empty()
+        && draws_slice.iter().all(|draw| draw.stable_node_id == 0)
+        && geometry_bytes.saturating_add(material_byte_len as u64) <= 256 * 1024 * 1024;
+    let mut frame_buffers = ctx.frame_buffers.lock().unwrap();
+    if !retain_frame || !frame_buffers.as_ref().is_some_and(|entry|
+        (entry.revision == frame_revision || camera_geometry.is_some_and(|geometry|
+            entry.geometry.as_ref().is_some_and(|cached| Arc::ptr_eq(cached, geometry))))
+            && entry.vertex_count == vertices_slice.len()
+            && entry.index_count == indices_slice.len() && entry.material_bytes == material_byte_len) {
+        *frame_buffers = None;
+    }
+    let frame_buffer_hit = frame_buffers.is_some();
 
     // Keep the experiment switch process-local so the same binary can be
     // benchmarked against its previous behavior. It is opt-in, bounded and
     // applies only to the already-validated, untextured camera patch.
     static CAMERA_GPU_CACHE_ENABLED: OnceLock<bool> = OnceLock::new();
-    let camera_geometry = camera_geometry.filter(|_| shadow_frame.is_none()).filter(|_| {
+    let camera_binding_geometry = camera_geometry.filter(|_| shadow_frame.is_none()).filter(|_| {
         *CAMERA_GPU_CACHE_ENABLED.get_or_init(|| {
             std::env::var("COIN_WGPU_CAMERA_BINDINGS").as_deref() == Ok("1")
         })
@@ -2852,27 +3515,82 @@ fn encode_frame(
             .saturating_mul(std::mem::size_of::<CoinWgpuUniforms>())) <= 4 * 1024 * 1024
     });
     let mut camera_bindings = ctx.camera_bindings.lock().unwrap();
-    if !camera_geometry.is_some_and(|geometry| camera_bindings.as_ref()
+    if !camera_binding_geometry.is_some_and(|geometry| camera_bindings.as_ref()
         .is_some_and(|entry| Arc::ptr_eq(&entry.geometry, geometry))) {
         *camera_bindings = None;
     }
-    let materials_buffer = if let Some(entry) = camera_bindings.as_ref() {
+    let previous_instances = ctx.instanced_buffers.lock().unwrap().clone();
+    let owned_instance_hit = instanced && previous_instances.as_ref().is_some_and(|entry|
+        camera_geometry.is_some_and(|geometry| Arc::ptr_eq(geometry, &entry.geometry)));
+    let geometry_hit = owned_instance_hit || (instanced && previous_instances.as_ref().is_some_and(|entry|
+        instancing::same_geometry(&entry.geometry, vertices_slice, indices_slice)));
+    let profile_payload_compare = trace_materials.then(std::time::Instant::now);
+    let (instance_hit, material_hit) = if owned_instance_hit { (true, true) }
+        else if geometry_hit { previous_instances.as_ref().map(|entry|
+            instancing::payload_hits(&entry.geometry, instances_slice, materials_slice, reuse_materials)).unwrap_or((false, false)) }
+        else { (false, false) };
+    let payload_compare_ms = profile_payload_compare.map(|start| start.elapsed().as_secs_f64() * 1000.0);
+    // payload_hit retains its legacy meaning in the diagnostic event. Resource
+    // decisions now use their own proof; optout restores the coupled behavior.
+    let payload_hit = instance_hit && material_hit;
+    let material_buffer_hit = material_hit || frame_buffers.is_some() || camera_bindings.is_some();
+    let profile_material_pack = trace_materials.then(std::time::Instant::now);
+    let gpu_materials = if let Some(literal) = literal_gpu_materials { literal }
+    else if !material_buffer_hit {
+        pack_gpu_materials(materials_slice)
+    } else { Vec::new() };
+    let material_pack_ms = if reuse_materials {
+        profile_material_pack.map(|start| start.elapsed().as_secs_f64() * 1000.0)
+    } else { eager_pack_ms };
+    // WebGPU does not permit a zero-sized storage binding. This sentinel is
+    // unreachable because there are no draws in a material-free frame. A hit
+    // never consumes material_bytes, so its empty scratch Vec is harmless.
+    let fallback_material = [GpuMaterial::zeroed()];
+    let material_bytes: &[u8] = if gpu_materials.is_empty() {
+        bytemuck::cast_slice(&fallback_material)
+    } else { bytemuck::cast_slice(&gpu_materials) };
+    let profile_material_resources = trace_materials.then(std::time::Instant::now);
+    let instances_buffer = if !instanced { None } else if instance_hit {
+        Some(previous_instances.as_ref().unwrap().instances_buffer.clone())
+    } else {
+        Some(ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Coin opaque instance storage"), contents: bytemuck::cast_slice(instances_slice),
+            usage: wgpu::BufferUsages::STORAGE,
+        }))
+    };
+    let materials_buffer = if material_hit {
+        previous_instances.as_ref().unwrap().materials_buffer.clone()
+    } else if let Some(entry) = frame_buffers.as_ref() {
+        entry.materials_buffer.clone()
+    } else if let Some(entry) = camera_bindings.as_ref() {
+        ctx.camera_bindings_reused.fetch_add(1, Ordering::Relaxed);
         entry.materials_buffer.clone()
     } else {
+        debug_assert_eq!(material_bytes.len(), material_byte_len);
         let buffer = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Frame Materials Storage Buffer"),
             contents: material_bytes,
             usage: wgpu::BufferUsages::STORAGE,
         });
-        if let Some(geometry) = camera_geometry {
+        if let Some(geometry) = camera_binding_geometry {
             *camera_bindings = Some(CameraGpuBindings {
                 geometry: geometry.clone(),
                 materials_buffer: buffer.clone(),
-                draws: (0..draws_slice.len()).map(|_| None).collect(),
             });
+            ctx.camera_bindings_created.fetch_add(1, Ordering::Relaxed);
         }
         buffer
     };
+    if let Some(start) = profile_material_resources {
+        eprintln!("COIN_RENDER_PHASE rust_material_resources count={} source_bytes={} gpu_bytes={} packed_count={} packed_bytes={} payload_compare_ms={} pack_ms={} resource_ms={} instance_hit={} material_hit={} material_buffer_hit={} instance_allocations={} material_allocations={} instance_uploaded_bytes={} material_uploaded_bytes={} reuse_enabled={} attempt=1",
+            materials_slice.len(), std::mem::size_of_val(materials_slice), material_byte_len,
+            gpu_materials.len(), std::mem::size_of_val(gpu_materials.as_slice()),
+            payload_compare_ms.unwrap(), material_pack_ms.unwrap(), start.elapsed().as_secs_f64() * 1000.0,
+            instance_hit as u32, material_hit as u32, material_buffer_hit as u32,
+            (instanced && !instance_hit) as u32, (!material_buffer_hit) as u32,
+            if instanced && !instance_hit { std::mem::size_of_val(instances_slice) } else { 0 },
+            if material_buffer_hit { 0 } else { material_byte_len }, reuse_materials as u32);
+    }
 
     // Collect keys active in the current frame to strictly protect them from LRU eviction
     let mut frame_active_keys = std::collections::HashSet::new();
@@ -2883,7 +3601,11 @@ fn encode_frame(
     }
 
     // 2. Prepare uncached fallback buffers if there are any legacy/uncached draws
-    let uncached_v_buffer = if draws_slice.iter().any(|d| d.stable_node_id == 0) && !vertices_slice.is_empty() {
+    let uncached_v_buffer = if geometry_hit {
+        Some(previous_instances.as_ref().unwrap().vertex_buffer.clone())
+    } else if let Some(entry) = frame_buffers.as_ref() {
+        Some(entry.vertex_buffer.clone())
+    } else if draws_slice.iter().any(|d| d.stable_node_id == 0) && !vertices_slice.is_empty() {
         Some(
             ctx.device
                 .create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -2896,7 +3618,11 @@ fn encode_frame(
         None
     };
 
-    let uncached_i_buffer = if draws_slice.iter().any(|d| d.stable_node_id == 0 && d.index_count > 0)
+    let uncached_i_buffer = if geometry_hit {
+        Some(previous_instances.as_ref().unwrap().index_buffer.clone())
+    } else if let Some(entry) = frame_buffers.as_ref() {
+        Some(entry.index_buffer.clone())
+    } else if draws_slice.iter().any(|d| d.stable_node_id == 0 && d.index_count > 0)
         && !indices_slice.is_empty()
     {
         Some(
@@ -2910,6 +3636,50 @@ fn encode_frame(
     } else {
         None
     };
+
+    if frame_buffer_hit {
+        cache.cumulative_hits += 1;
+        cache.frame_hits += 1;
+    } else if retain_frame {
+        *frame_buffers = Some(FrameGpuBuffers {
+            revision: frame_revision, geometry: camera_geometry.cloned(), vertex_count: vertices_slice.len(),
+            index_count: indices_slice.len(), material_bytes: material_byte_len,
+            vertex_buffer: uncached_v_buffer.as_ref().unwrap().clone(),
+            index_buffer: uncached_i_buffer.as_ref().unwrap().clone(),
+            materials_buffer: materials_buffer.clone(), geometry_bytes,
+        });
+        cache.cumulative_uploads += 1;
+        cache.frame_uploads += 1;
+        cache.cumulative_uploaded_bytes += geometry_bytes;
+        cache.frame_uploaded_bytes += geometry_bytes;
+    }
+
+    let pending_instances = if instanced {
+        let geometry = camera_geometry.ok_or_else(|| (CoinWgpuStatus::OutOfMemory,
+            "Cannot retain bounded validated instance payload".to_string()))?;
+        let instance_bytes = std::mem::size_of_val(instances_slice) as u64;
+        let uploaded_instances = if instance_hit { 0 } else { instance_bytes };
+        let uploaded_materials = if material_buffer_hit { 0 } else { material_byte_len as u64 };
+        let uploaded = (if geometry_hit { 0 } else { geometry_bytes }) + uploaded_instances + uploaded_materials;
+        if geometry_hit { cache.frame_hits += 1; cache.cumulative_hits += 1; }
+        if uploaded != 0 {
+            cache.frame_uploads += 1; cache.cumulative_uploads += 1;
+            cache.frame_uploaded_bytes += uploaded; cache.cumulative_uploaded_bytes += uploaded;
+        }
+        if std::env::var_os("COIN_RENDER_TRACE_PHASES").or_else(|| std::env::var_os("COIN_WGPU_TRACE_PHASES")).is_some() {
+            eprintln!("COIN_RENDER_PHASE rust_instances count={} ranges={} geometry_bytes={} instance_bytes={} material_bytes={} geometry_hit={} payload_hit={} instance_hit={} material_hit={} instance_uploaded_bytes={} material_uploaded_bytes={} uploaded_bytes={}",
+                instances_slice.len(), instance_ranges.len(), geometry_bytes, instance_bytes,
+                material_byte_len, geometry_hit as u32, payload_hit as u32, instance_hit as u32,
+                material_hit as u32, uploaded_instances, uploaded_materials, uploaded);
+        }
+        Some(InstancedGpuBuffers { geometry: geometry.clone(),
+            vertex_buffer: uncached_v_buffer.as_ref().unwrap().clone(),
+            index_buffer: uncached_i_buffer.as_ref().unwrap().clone(),
+            materials_buffer: materials_buffer.clone(),
+            instances_buffer: instances_buffer.as_ref().unwrap().clone(),
+            geometry_bytes, instance_bytes, material_bytes: material_byte_len as u64,
+        })
+    } else { None };
 
     // Temporary storage for oversized draws exceeding cache budget
     let mut oversized_entries: HashMap<(u64, u32), CachedGeometryEntry> = HashMap::new();
@@ -3116,11 +3886,19 @@ fn encode_frame(
             target_height,
             color_format,
             peel_passes as usize,
+            ctx.adapter.get_info().backend == wgpu::Backend::Gl,
         )
     });
     let weighted=draw_order.iter().any(|item|item.weighted).then(||
         weighted::Weighted::new(&ctx.device,target_width,target_height,color_format));
     let passes = composition::passes(draw_order, draws_slice);
+    let uniform_records = draw_order.iter().try_fold(0usize, |count, item| {
+        count.checked_add(if item.peel { peel_passes as usize } else { 1 })
+    }).ok_or_else(|| (CoinWgpuStatus::InvalidArgument, "Draw uniform count overflow".into()))?;
+    let mut uniform_arena = uniform_arena::UniformArena::new(&ctx.device, uniform_records);
+    // Resources are stable while the texture/RTT caches are locked. A disabled
+    // unit always binds the same defaults; unused eight-shadow units are omitted.
+    let mut draw_bindings: HashMap<(usize, [(u32, u32); 8], usize), wgpu::BindGroup> = HashMap::new();
     let depth_clear_pipeline = if draws_slice.iter().any(|draw| draw.clear_depth_before != 0) {
         let mut cached = ctx.annotation_depth_pipeline.lock().unwrap();
         Some(
@@ -3167,25 +3945,31 @@ fn encode_frame(
         let is_peel = draw_order.get(range.start).is_some_and(|item| item.peel);
         let is_weighted = draw_order.get(range.start).is_some_and(|item|item.weighted);
         if is_peel {
-            encoder.copy_texture_to_texture(
-                wgpu::TexelCopyTextureInfo {
-                    texture: depth_texture,
-                    mip_level: 0,
-                    origin: wgpu::Origin3d::ZERO,
-                    aspect: wgpu::TextureAspect::DepthOnly,
-                },
-                wgpu::TexelCopyTextureInfo {
-                    texture: &peeling.as_ref().unwrap().opaque,
-                    mip_level: 0,
-                    origin: wgpu::Origin3d::ZERO,
-                    aspect: wgpu::TextureAspect::DepthOnly,
-                },
-                wgpu::Extent3d {
-                    width: target_width,
-                    height: target_height,
-                    depth_or_array_layers: 1,
-                },
-            );
+            if ctx.adapter.get_info().backend == wgpu::Backend::Gl {
+                let mut converter = ctx.depth_snapshot.lock().unwrap();
+                let converter = converter.get_or_insert_with(|| depth_transfer::DepthTransfer::new(&ctx.device, true));
+                converter.copy_depth(&ctx.device, &mut encoder, depth_view, &peeling.as_ref().unwrap().opaque_view);
+            } else {
+                encoder.copy_texture_to_texture(
+                    wgpu::TexelCopyTextureInfo {
+                        texture: depth_texture,
+                        mip_level: 0,
+                        origin: wgpu::Origin3d::ZERO,
+                        aspect: wgpu::TextureAspect::DepthOnly,
+                    },
+                    wgpu::TexelCopyTextureInfo {
+                        texture: &peeling.as_ref().unwrap().opaque,
+                        mip_level: 0,
+                        origin: wgpu::Origin3d::ZERO,
+                        aspect: wgpu::TextureAspect::DepthOnly,
+                    },
+                    wgpu::Extent3d {
+                        width: target_width,
+                        height: target_height,
+                        depth_or_array_layers: 1,
+                    },
+                );
+            }
         }
         for peel_step in 0..if is_peel { peel_passes as usize } else { 1 } {
             let selected_color = if is_weighted { &weighted.as_ref().unwrap().accumulation } else if is_peel {
@@ -3326,7 +4110,7 @@ fn encode_frame(
                     item.blend && !is_peel && !is_weighted,
                     item.additive,
                     is_peel,
-                    is_peel || st.depth_write != 0,
+                    is_peel || (st.depth_test != 0 && st.depth_write != 0),
                     if is_peel {
                         wgpu::CompareFunction::LessEqual
                     } else {
@@ -3337,6 +4121,8 @@ fn encode_frame(
                     eight_shadows,
                     shadow_frame.is_some(),
                     is_weighted,
+                    st.has_texture != 0 || st.extra_textures.iter().any(|unit| unit.enabled != 0),
+                    instanced,
                 ) {
                     Ok(p) => p,
                     Err(e) => return Err((CoinWgpuStatus::BackendError, e)),
@@ -3421,7 +4207,7 @@ fn encode_frame(
                         } else {
                             0.0
                         },
-                        0.0,
+                        st.texture_projection as f32,
                     ]
                 });
                 let extra_texture_blends =
@@ -3455,6 +4241,7 @@ fn encode_frame(
                     flags
                 });
                 let uniforms = CoinWgpuUniforms {
+                    alpha_test: [st.alpha_test_function as f32, st.alpha_test_reference, 0.0, 0.0],
                     model_view_projection: mvp,
                     model_view: mv,
                     normal_matrix: nm,
@@ -3489,7 +4276,7 @@ fn encode_frame(
                         if is_peel { (peel_step + 1) as f32 } else { 0.0 },
                         st.depth_test as f32,
                         st.depth_function as f32,
-                        st.depth_write as f32,
+                        if st.depth_test != 0 && st.depth_write != 0 { 1.0 } else { 0.0 },
                     ],
                     tex_params: [
                         if st.has_texture != 0 { 1.0 } else { 0.0 },
@@ -3501,7 +4288,7 @@ fn encode_frame(
                         } else {
                             0.0
                         },
-                        0.0,
+                        st.texture_projection as f32,
                     ],
                     ambient_light: st.ambient_light,
                     light_meta: [st.light_count as f32, 0.0,
@@ -3608,24 +4395,15 @@ fn encode_frame(
                 let extra_shadow_views: [&wgpu::TextureView; 4] = std::array::from_fn(|slot|
                     extra_shadow_maps.get(slot).map_or(&ctx.default_texture_view,
                         |map| &map.view));
-                let create_binding = |persistent: bool,
-                    draw_uniforms: &CoinWgpuUniforms,
+                let create_binding = |u_buffer: &wgpu::Buffer,
                     shadow_views: [&wgpu::TextureView; 4]| {
-                    let u_buffer =
-                        ctx.device
-                            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                                label: Some("Draw Uniform Buffer"),
-                                contents: bytemuck::bytes_of(draw_uniforms),
-                                usage: if persistent {
-                                    wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST
-                                } else {
-                                    wgpu::BufferUsages::UNIFORM
-                                },
-                            });
                     let mut entries = vec![
                         wgpu::BindGroupEntry {
                             binding: 0,
-                            resource: u_buffer.as_entire_binding(),
+                            resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
+                                buffer: u_buffer, offset: 0,
+                                size: std::num::NonZeroU64::new(std::mem::size_of::<CoinWgpuUniforms>() as u64),
+                            }),
                         },
                         wgpu::BindGroupEntry {
                             binding: 1,
@@ -3677,15 +4455,15 @@ fn encode_frame(
                         binding: 23,
                         resource: wgpu::BindingResource::TextureView(shadow_views[3]),
                     });
-                    let bind_group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                        label: Some("Draw eight-unit texture bindings"),
-                        layout: if eight_shadows { &ctx.shadow_eight_layout } else { &ctx.bind_group_layout },
-                        entries: &entries,
-                    });
-                    CameraDrawBinding {
-                        uniform_buffer: u_buffer,
-                        bind_group,
+                    if let Some(buffer) = instances_buffer.as_ref() {
+                        entries.push(wgpu::BindGroupEntry { binding: 24,
+                            resource: buffer.as_entire_binding() });
                     }
+                    ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                        label: Some("Coin shared draw texture bindings"),
+                        layout: if instanced { &ctx.instanced_bind_group_layout } else if eight_shadows { &ctx.shadow_eight_layout } else { &ctx.bind_group_layout },
+                        entries: &entries,
+                    })
                 };
                 if eight_shadows {
                     #[repr(C)]
@@ -3721,26 +4499,18 @@ fn encode_frame(
                 // Queue writes are submitted before this frame's command buffer.
                 // They cannot alter a preceding submission; wgpu keeps the
                 // underlying resources alive while that submission is in flight.
-                let transient_binding;
-                let binding = if let Some(entry) = camera_bindings.as_mut() {
-                    let slot = &mut entry.draws[item.draw_index];
-                    if slot.is_none() {
-                        *slot = Some(create_binding(true, &uniforms, base_shadow_views));
-                        ctx.camera_bindings_created.fetch_add(1, Ordering::Relaxed);
-                    } else {
-                        ctx.queue.write_buffer(
-                            &slot.as_ref().unwrap().uniform_buffer,
-                            0,
-                            bytemuck::bytes_of(&uniforms),
-                        );
-                        ctx.camera_bindings_reused.fetch_add(1, Ordering::Relaxed);
-                    }
-                    slot.as_ref().unwrap()
-                } else {
-                    transient_binding = create_binding(false, &uniforms, base_shadow_views);
-                    &transient_binding
-                };
-                pass.set_bind_group(0, &binding.bind_group, &[]);
+                let (chunk, uniform_offset) = uniform_arena.push(&ctx.device, &uniforms);
+                let units = std::array::from_fn(|unit| {
+                    let layer = &layers[unit];
+                    if layer.enabled == 0 || (eight_shadows && unit >= 4) {
+                        (u32::MAX, u32::MAX)
+                    } else { (layer.texture_slot, layer.sampler_slot) }
+                });
+                let key = (chunk, units, if is_peel { peel_step } else { usize::MAX });
+                let binding = draw_bindings.entry(key).or_insert_with(|| {
+                    create_binding(uniform_arena.buffer(chunk), base_shadow_views)
+                });
+                pass.set_bind_group(0, &*binding, &[uniform_offset]);
                 let viewport = resolved_viewport(st, target_width, target_height)?;
                 if !st.depth_range[0].is_finite()
                     || !st.depth_range[1].is_finite()
@@ -3807,7 +4577,11 @@ fn encode_frame(
                     }
                     let start_idx = draw.first_index;
                     let end_idx = start_idx + draw.index_count;
-                    pass.draw_indexed(start_idx..end_idx, 0, 0..1);
+                    let instance_range = if instanced {
+                        let range = &instance_ranges[item.draw_index];
+                        range.first_instance..range.first_instance + range.instance_count
+                    } else { 0..1 };
+                    pass.draw_indexed(start_idx..end_idx, 0, instance_range);
                 }
 
             }
@@ -3837,7 +4611,10 @@ fn encode_frame(
         });
     }
 
-    Ok(encoder.finish())
+    uniform_arena.upload(&ctx.queue);
+    ctx.draw_bind_groups.store(draw_bindings.len() as u32, Ordering::Relaxed);
+    ctx.uniform_chunks.store(uniform_arena.chunk_count() as u32, Ordering::Relaxed);
+    Ok((encoder.finish(), pending_instances))
 }
 
 #[no_mangle]
@@ -4479,8 +5256,28 @@ fn coin_wgpu_surface_submit_internal(
             return CoinWgpuStatus::NotReady;
         }
 
+        if let Err((status, message)) = instancing::validate_counts(f) {
+            set_error(error_buf, error_buf_len, &message); return status;
+        }
+        let states_slice =
+            match validate_slice(f.states, f.state_count, "states", error_buf, error_buf_len) {
+                Ok(s) => s,
+                Err(st) => return st,
+            };
+        if !states_slice.iter().all(valid_alpha_test) {
+            set_error(error_buf, error_buf_len, "Invalid alpha comparison function or reference");
+            return CoinWgpuStatus::InvalidArgument;
+        }
+        let owned_patch = RUNTIME_CTX.lock().ok().and_then(|guard| {
+            let runtime = guard.as_ref()?;
+            if !runtime.surfaces.contains_key(&surface_id) { return None; }
+            camera_base(runtime.device_state.as_ref()?, f, states_slice)
+        });
+
         // 5. Preflight slice bounds and alignment validation BEFORE acquire
-        let vertices_slice = match validate_slice(
+        let vertices_slice = if let Some(scene) = owned_patch.as_ref() {
+            scene.geometry.vertices.as_slice()
+        } else { match validate_slice(
             f.vertices,
             f.vertex_count,
             "vertices",
@@ -4489,8 +5286,10 @@ fn coin_wgpu_surface_submit_internal(
         ) {
             Ok(s) => s,
             Err(st) => return st,
-        };
-        let indices_slice = match validate_slice(
+        } };
+        let indices_slice = if let Some(scene) = owned_patch.as_ref() {
+            scene.geometry.indices.as_slice()
+        } else { match validate_slice(
             f.indices,
             f.index_count,
             "indices",
@@ -4499,13 +5298,16 @@ fn coin_wgpu_surface_submit_internal(
         ) {
             Ok(s) => s,
             Err(st) => return st,
-        };
-        let draws_slice =
-            match validate_slice(f.draws, f.draw_count, "draws", error_buf, error_buf_len) {
+        } };
+        let draws_slice = if let Some(scene) = owned_patch.as_ref() {
+            scene.geometry.draws.as_slice()
+        } else { match validate_slice(f.draws, f.draw_count, "draws", error_buf, error_buf_len) {
                 Ok(s) => s,
                 Err(st) => return st,
-            };
-        let materials_slice = match validate_slice(
+            } };
+        let materials_slice = if let Some(scene) = owned_patch.as_ref() {
+            scene.geometry.materials.as_slice()
+        } else { match validate_slice(
             f.materials,
             f.material_count,
             "materials",
@@ -4514,12 +5316,24 @@ fn coin_wgpu_surface_submit_internal(
         ) {
             Ok(s) => s,
             Err(st) => return st,
-        };
-        let states_slice =
-            match validate_slice(f.states, f.state_count, "states", error_buf, error_buf_len) {
-                Ok(s) => s,
-                Err(st) => return st,
-            };
+        } };
+
+        let instances_slice = if let Some(scene) = owned_patch.as_ref() {
+            scene.geometry.instances.as_slice()
+        } else { match validate_slice(f.instances, f.instance_count, "instances", error_buf, error_buf_len) {
+            Ok(s) => s, Err(st) => return st,
+        } };
+        let instance_ranges = if let Some(scene) = owned_patch.as_ref() {
+            scene.geometry.instance_ranges.as_slice()
+        } else { match validate_slice(f.instance_ranges, f.instance_range_count, "instance ranges", error_buf, error_buf_len) {
+            Ok(s) => s, Err(st) => return st,
+        } };
+        if owned_patch.is_none() {
+            if let Err((status, message)) = instancing::validate_payload(f, vertices_slice, indices_slice,
+                draws_slice, materials_slice, states_slice, instances_slice, instance_ranges) {
+                set_error(error_buf, error_buf_len, &message); return status;
+            }
+        }
 
         let textures_slice = if f.texture_count > 0 {
             match validate_slice(f.textures, f.texture_count, "textures", error_buf, error_buf_len) {
@@ -4539,7 +5353,8 @@ fn coin_wgpu_surface_submit_internal(
             &[]
         };
 
-        for (i, draw) in draws_slice.iter().enumerate() {
+        let unchecked_draws = if owned_patch.is_some() { &[] } else { draws_slice };
+        for (i, draw) in unchecked_draws.iter().enumerate() {
             let idx_end = match draw.first_index.checked_add(draw.index_count) {
                 Some(end) => end as usize,
                 None => {
@@ -4610,6 +5425,11 @@ fn coin_wgpu_surface_submit_internal(
                 set_error(error_buf, error_buf_len, "Invalid normalized texture program or extra unit state");
                 return CoinWgpuStatus::InvalidArgument;
             }
+            if let Err(message) = validate_texture_coordinates(st, draw.topology, vertices_slice,
+                &indices_slice[draw.first_index as usize..idx_end]) {
+                set_error(error_buf, error_buf_len, &format!("Draw {i}: {message}"));
+                return CoinWgpuStatus::InvalidArgument;
+            }
             for layer in &st.extra_textures {
                 if layer.enabled != 0 && ((layer.texture_slot as usize) >= textures_slice.len() ||
                     (layer.sampler_slot as usize) >= samplers_slice.len()) {
@@ -4654,14 +5474,16 @@ fn coin_wgpu_surface_submit_internal(
         }
 
         // Reject unsupported composition before acquiring a swapchain texture.
-        let draw_order = match composition::order(
+        let draw_order = if let Some(scene) = owned_patch.as_ref() {
+            scene.draw_order.clone()
+        } else { match composition::order(
             vertices_slice, indices_slice, draws_slice, materials_slice, states_slice, textures_slice) {
             Ok(order) => order,
             Err((status, message)) => {
                 set_error(error_buf, error_buf_len, &message);
                 return status;
             }
-        };
+        } };
 
         if let Err((status, message)) = peeling::validate_request(
             if draw_order.iter().any(|item| item.peel) { f.sorted_layers_passes } else { 1 },
@@ -4712,6 +5534,25 @@ fn coin_wgpu_surface_submit_internal(
             }
         };
         let dev = unsafe { &mut *device_state };
+
+        if let Some(scene) = owned_patch.as_ref() {
+            if scene.generation != dev.generation {
+                set_error(error_buf, error_buf_len, "Camera base belongs to a lost device generation");
+                return CoinWgpuStatus::DeviceLost;
+            }
+            if !dev.validated_scene.as_ref().is_some_and(|current| Arc::ptr_eq(current, scene)) {
+                set_error(error_buf, error_buf_len, "Camera base is no longer current on this device");
+                return CoinWgpuStatus::NotReady;
+            }
+        }
+        let capture_scene = !instances_slice.is_empty() || dev.camera_snapshot_policy.capture(
+            dev.validated_scene.as_ref().map(|scene| scene.revision), f.frame_revision,
+            f.camera_base_revision, owned_patch.is_some());
+        let next_scene = if capture_scene {
+            camera_scene(dev.generation, f, vertices_slice, indices_slice, draws_slice,
+                materials_slice, states_slice, &draw_order, textures_slice, samplers_slice,
+                instances_slice, instance_ranges, owned_patch.as_ref())
+        } else { None };
 
         let record = runtime.surfaces.get_mut(&surface_id).unwrap();
 
@@ -4891,8 +5732,9 @@ fn coin_wgpu_surface_submit_internal(
             }
         };
 
-        let cmd_buffer = match encode_frame(
+        let (cmd_buffer, pending_instances) = match encode_frame(
             dev,
+            f.frame_revision,
             f.clear_color,
             f.width,
             f.height,
@@ -4905,7 +5747,8 @@ fn coin_wgpu_surface_submit_internal(
             textures_slice,
             samplers_slice,
             None, // window shadows remain preflight-rejected
-            None,
+            next_scene.as_ref().map(|scene| &scene.geometry),
+            instances_slice, instance_ranges,
             None,
             &color_view,
             record.color_format,
@@ -4960,11 +5803,13 @@ fn coin_wgpu_surface_submit_internal(
         LAST_SUBMITTED_SERIAL.store(sub_serial, Ordering::SeqCst);
         let local_serial = dev.last_submitted_serial.fetch_add(1, Ordering::SeqCst) + 1;
         dev.queue.submit(commands);
+        let profile_submitted = trace_phases.then(std::time::Instant::now);
         let completed = dev.completed_serial.clone();
         dev.queue.on_submitted_work_done(move || {
             completed.fetch_max(local_serial, Ordering::SeqCst);
             GLOBAL_COMPLETED_SERIAL.fetch_max(sub_serial, Ordering::SeqCst);
         });
+        let profile_notified = trace_phases.then(std::time::Instant::now);
         let mut captured_rgba = None;
         if let Some((staging, bytes_per_row)) = capture_buffer {
             let slice = staging.slice(..);
@@ -4996,6 +5841,7 @@ fn coin_wgpu_surface_submit_internal(
             staging.unmap();
             captured_rgba = Some(pixels);
         }
+        let profile_present_begin = trace_phases.then(std::time::Instant::now);
         surface_texture.present();
         let profile_presented = trace_phases.then(std::time::Instant::now);
 
@@ -5028,6 +5874,9 @@ fn coin_wgpu_surface_submit_internal(
             return CoinWgpuStatus::BackendError;
         }
 
+        commit_camera_scene(dev, next_scene, true, f.frame_revision, owned_patch.is_some(), capture_scene,
+            !instances_slice.is_empty(), pending_instances);
+
         if let Some(pixels) = captured_rgba {
             unsafe { std::ptr::copy_nonoverlapping(pixels.as_ptr(), readback_rgba, pixels.len()); }
         }
@@ -5043,10 +5892,15 @@ fn coin_wgpu_surface_submit_internal(
             let capture_bytes = if readback_rgba.is_null() { 0 } else {
                 u64::from((f.width * 4 + 255) & !255) * u64::from(f.height)
             };
-            eprintln!("COIN_RENDER_PHASE rust_surface_cpu total_ms={:.6} validation_ms={:.6} acquire_ms={:.6} encode_ms={:.6} submit_present_ms={:.6} capture_requested={} capture_staging_bytes={} queue_submissions=1 command_buffers={} gpu_timing=unavailable",
+            eprintln!("COIN_RENDER_PHASE rust_surface_cpu total_ms={:.6} validation_ms={:.6} acquire_ms={:.6} encode_ms={:.6} submit_present_ms={:.6} queue_submit_ms={:.6} completion_registration_ms={:.6} capture_readback_ms={:.6} present_ms={:.6} capture_requested={} capture_staging_bytes={} queue_submissions=1 command_buffers={} gpu_timing=unavailable",
                 duration_ms(start, presented), duration_ms(start, validated),
                 duration_ms(validated, acquired), duration_ms(acquired, encoded),
-                duration_ms(encoded, presented), u8::from(!readback_rgba.is_null()),
+                duration_ms(encoded, presented),
+                duration_ms(encoded, profile_submitted.unwrap()),
+                duration_ms(profile_submitted.unwrap(), profile_notified.unwrap()),
+                duration_ms(profile_notified.unwrap(), profile_present_begin.unwrap()),
+                duration_ms(profile_present_begin.unwrap(), presented),
+                u8::from(!readback_rgba.is_null()),
                 capture_bytes, if readback_rgba.is_null() { 1 } else { 2 });
             trace_owned_resources(dev, "window", f.width, f.height, capture_bytes, 0);
             let info = dev.adapter.get_info();
@@ -5335,14 +6189,21 @@ fn coin_wgpu_submit_internal(
         // 5. Validate the changed states before considering a camera hint.
         // All immutable pointers are ignored only if this device still owns
         // the validated base. A stale/mismatched hint takes the old full path.
+        if let Err((status, message)) = instancing::validate_counts(f) {
+            set_error(error_buf, error_buf_len, &message); return status;
+        }
         let states_slice =
             match validate_slice(f.states, f.state_count, "states", error_buf, error_buf_len) {
                 Ok(s) => s,
                 Err(st) => return st,
             };
 
-        let owned_patch = if out_texture.is_null() && f.camera_base_revision != 0
-            && f.frame_revision != 0 && f.frame_revision != f.camera_base_revision
+        if !states_slice.iter().all(valid_alpha_test) {
+            set_error(error_buf, error_buf_len, "Invalid alpha comparison function or reference");
+            return CoinWgpuStatus::InvalidArgument;
+        }
+
+        let owned_patch = if out_texture.is_null() && f.frame_revision != 0
             && f.texture_count == 0 && f.sampler_count == 0 {
             RUNTIME_CTX.lock().ok().and_then(|guard| {
                 let runtime = guard.as_ref()?;
@@ -5351,18 +6212,7 @@ fn coin_wgpu_submit_internal(
                 } else {
                     runtime.extra_devices.get(&tgt.device_id)
                 }?;
-                let scene = device.validated_scene.as_ref()?;
-                let geometry = &scene.geometry;
-                (scene.revision == f.camera_base_revision
-                    && scene.generation == device.generation
-                    && scene.width == width && scene.height == height
-                    && scene.clear_color == f.clear_color
-                    && geometry.vertices.len() as u64 == f.vertex_count
-                    && geometry.indices.len() as u64 == f.index_count
-                    && geometry.draws.len() as u64 == f.draw_count
-                    && geometry.materials.len() as u64 == f.material_count
-                    && camera_states_match(scene, states_slice))
-                    .then(|| scene.clone())
+                camera_base(device, f, states_slice)
             })
         } else { None };
 
@@ -5394,6 +6244,28 @@ fn coin_wgpu_submit_internal(
                 Ok(s) => s, Err(st) => return st,
             }
         };
+
+        let instances_slice = if let Some(scene) = owned_patch.as_ref() {
+            scene.geometry.instances.as_slice()
+        } else { match validate_slice(f.instances, f.instance_count, "instances", error_buf, error_buf_len) {
+            Ok(s) => s, Err(st) => return st,
+        } };
+        let instance_ranges = if let Some(scene) = owned_patch.as_ref() {
+            scene.geometry.instance_ranges.as_slice()
+        } else { match validate_slice(f.instance_ranges, f.instance_range_count, "instance ranges", error_buf, error_buf_len) {
+            Ok(s) => s, Err(st) => return st,
+        } };
+        if owned_patch.is_none() {
+            if let Err((status, message)) = instancing::validate_payload(f, vertices_slice, indices_slice,
+                draws_slice, materials_slice, states_slice, instances_slice, instance_ranges) {
+                set_error(error_buf, error_buf_len, &message); return status;
+            }
+        }
+
+        if !instances_slice.is_empty() && !out_texture.is_null() {
+            set_error(error_buf, error_buf_len, "Instanced frames do not support render-to-texture");
+            return CoinWgpuStatus::Unsupported;
+        }
 
         let textures_slice = if owned_patch.is_some() { &[] } else if f.texture_count > 0 {
             match validate_slice(f.textures, f.texture_count, "textures", error_buf, error_buf_len) {
@@ -5631,7 +6503,11 @@ fn coin_wgpu_submit_internal(
         };
 
         // 6. Strict validation and composition are immutable for one private CoinRenderFramePlan revision.
-        let cached_draw_order = if owned_patch.is_none() && f.frame_revision != 0 {
+        // A camera hint without an owned base readmits a new snapshot only
+        // after this submission validates the full geometry, even if another
+        // device previously validated the same private frame revision.
+        let cached_draw_order = if instances_slice.is_empty() && owned_patch.is_none() && f.camera_base_revision == 0
+            && f.frame_revision != 0 {
             VALIDATED_FRAME_CACHE.lock().ok().and_then(|cache| {
                 cache.as_ref().and_then(|(revision, order)| {
                     if *revision == f.frame_revision { Some(order.clone()) } else { None }
@@ -5717,6 +6593,11 @@ fn coin_wgpu_submit_internal(
                 set_error(error_buf, error_buf_len, "Invalid normalized texture program or extra unit state");
                 return CoinWgpuStatus::InvalidArgument;
             }
+            if let Err(message) = validate_texture_coordinates(st, draw.topology, vertices_slice,
+                &indices_slice[draw.first_index as usize..idx_end]) {
+                set_error(error_buf, error_buf_len, &format!("Draw {i}: {message}"));
+                return CoinWgpuStatus::InvalidArgument;
+            }
             for layer in &st.extra_textures {
                 if layer.enabled != 0 && ((layer.texture_slot as usize) >= textures_slice.len() ||
                     (layer.sampler_slot as usize) >= samplers_slice.len()) {
@@ -5769,7 +6650,7 @@ fn coin_wgpu_submit_internal(
                 return status;
             }
         };
-        if f.frame_revision != 0 {
+        if instances_slice.is_empty() && f.frame_revision != 0 {
             if let Ok(mut cache) = VALIDATED_FRAME_CACHE.lock() {
                 *cache = Some((f.frame_revision, computed_draw_order.clone()));
             }
@@ -5893,7 +6774,7 @@ fn coin_wgpu_submit_internal(
                 sample_count: 1,
                 dimension: wgpu::TextureDimension::D2,
                 format: wgpu::TextureFormat::Depth32Float,
-                usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
+                usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::TEXTURE_BINDING,
                 view_formats: &[],
             };
             let depth_texture = ctx.device.create_texture(&depth_desc);
@@ -5906,9 +6787,19 @@ fn coin_wgpu_submit_internal(
         };
         let profile_attachments_created = trace_phases.then(std::time::Instant::now);
 
+        let capture_scene = !instances_slice.is_empty() || ctx.camera_snapshot_policy.capture(
+            ctx.validated_scene.as_ref().map(|scene| scene.revision), f.frame_revision,
+            f.camera_base_revision, owned_patch.is_some());
+        let next_scene = if capture_scene && out_texture.is_null() && shadow_frame.is_none()
+            && (owned_patch.is_some() || fully_validated) {
+            camera_scene(ctx.generation, f, vertices_slice, indices_slice, draws_slice, materials_slice,
+                states_slice, &draw_order, textures_slice, samplers_slice, instances_slice, instance_ranges, owned_patch.as_ref())
+        } else { None };
+
         // 9. Encode draw calls with the exact same shared encode_frame
-        let cmd_buffer = match encode_frame(
+        let (cmd_buffer, pending_instances) = match encode_frame(
             ctx,
+            f.frame_revision,
             f.clear_color,
             f.width,
             f.height,
@@ -5921,7 +6812,8 @@ fn coin_wgpu_submit_internal(
             textures_slice,
             samplers_slice,
             shadow_frame.as_ref(),
-            owned_patch.as_ref().map(|scene| &scene.geometry),
+            next_scene.as_ref().map(|scene| &scene.geometry),
+            instances_slice, instance_ranges,
             gpu_probe.as_ref().map(|probe| &probe.queries),
             &color_view,
             wgpu::TextureFormat::Rgba8Unorm,
@@ -5936,48 +6828,9 @@ fn coin_wgpu_submit_internal(
             }
         };
         let profile_draw_encoded = trace_phases.then(std::time::Instant::now);
-        if f.frame_revision != 0 && (owned_patch.is_some() || fully_validated) {
-            let next_scene = if let Some(scene) = owned_patch.as_ref() {
-                Some(Arc::new(ValidatedScene {
-                    revision: f.frame_revision,
-                    generation: ctx.generation,
-                    width,
-                    height,
-                    clear_color: f.clear_color,
-                    geometry: scene.geometry.clone(),
-                    states: states_slice.to_vec(),
-                    draw_order: draw_order.clone(),
-                }))
-            } else if camera_scene_eligible(vertices_slice, indices_slice, draws_slice,
-                materials_slice,
-                states_slice, &draw_order, textures_slice, samplers_slice) {
-                let max_abs_position = vertices_slice.iter()
-                    .flat_map(|v| v.position).map(|x| f64::from(x).abs())
-                    .fold(0.0_f64, f64::max);
-                Some(Arc::new(ValidatedScene {
-                    revision: f.frame_revision,
-                    generation: ctx.generation,
-                    width,
-                    height,
-                    clear_color: f.clear_color,
-                    geometry: Arc::new(ValidatedGeometry {
-                        vertices: vertices_slice.to_vec(),
-                        indices: indices_slice.to_vec(),
-                        draws: draws_slice.to_vec(),
-                        materials: materials_slice.to_vec(),
-                        max_abs_position,
-                    }),
-                    states: states_slice.to_vec(),
-                    draw_order: draw_order.clone(),
-                }))
-            } else { None };
-            ctx.validated_scene = next_scene;
-            if owned_patch.is_some() {
-                if let Ok(mut cache) = VALIDATED_FRAME_CACHE.lock() {
-                    *cache = Some((f.frame_revision, draw_order.clone()));
-                }
-            }
-        }
+        // Any successful full frame replaces the device's current scene even
+        // when its revision is zero or snapshot admission is suspended.
+        let commit_scene = true;
         let profile_encoded = std::time::Instant::now();
 
         if !out_texture.is_null() {
@@ -6004,6 +6857,8 @@ fn coin_wgpu_submit_internal(
             });
             tgt.submission_serial = serial;
             unsafe { *out_texture = token; }
+            commit_camera_scene(ctx, next_scene, commit_scene, f.frame_revision, owned_patch.is_some(), capture_scene,
+                !instances_slice.is_empty(), pending_instances);
             return CoinWgpuStatus::Ok;
         }
 
@@ -6052,12 +6907,19 @@ fn coin_wgpu_submit_internal(
         {
             let (dbuf, _) = ctx.readback_pool
                 .lock().unwrap().acquire(&ctx.device, depth_staging_size);
+            let converted = if !ctx.adapter.get_downlevel_capabilities().flags
+                .contains(wgpu::DownlevelFlags::DEPTH_TEXTURE_AND_BUFFER_COPIES) {
+                let mut converter = ctx.depth_readback.lock().unwrap();
+                let converter = converter.get_or_insert_with(|| depth_transfer::DepthTransfer::new(&ctx.device, false));
+                Some(converter.encode(&ctx.device, &mut copy_encoder, &depth_view, width, height))
+            } else { None };
             copy_encoder.copy_texture_to_buffer(
                 wgpu::TexelCopyTextureInfo {
-                    texture: &depth_texture,
+                    texture: converted.as_ref().unwrap_or(&depth_texture),
                     mip_level: 0,
                     origin: wgpu::Origin3d::ZERO,
-                    aspect: wgpu::TextureAspect::DepthOnly,
+                    aspect: if converted.is_some() { wgpu::TextureAspect::All }
+                        else { wgpu::TextureAspect::DepthOnly },
                 },
                 wgpu::TexelCopyBufferInfo {
                     buffer: &dbuf,
@@ -6152,6 +7014,8 @@ fn coin_wgpu_submit_internal(
             });
             unsafe { *out_ticket = ticket; }
             tgt.submission_serial = sub_serial;
+            commit_camera_scene(ctx, next_scene, commit_scene, f.frame_revision, owned_patch.is_some(), capture_scene,
+                !instances_slice.is_empty(), pending_instances);
             return CoinWgpuStatus::Ok;
         }
 
@@ -6175,6 +7039,10 @@ fn coin_wgpu_submit_internal(
 
         // Inject async fault if requested
         let async_fault = if ctx.device_id == 0 { FAULT_INJECTION_ASYNC.swap(0, Ordering::SeqCst) } else { 0 };
+        if async_fault == CoinWgpuStatus::OutOfMemory as i32 {
+            set_error(error_buf, error_buf_len, "Injected async OUT_OF_MEMORY after GPU execution");
+            return CoinWgpuStatus::OutOfMemory;
+        }
         if async_fault == CoinWgpuStatus::DeviceLost as i32 {
             DEVICE_LOST_OCCURRED.store(true, Ordering::SeqCst);
             if let Ok(mut lock) = LAST_ASYNC_ERROR_MSG.lock() {
@@ -6327,6 +7195,8 @@ fn coin_wgpu_submit_internal(
                     }
                 }
                 tgt.submission_serial = sub_serial;
+                commit_camera_scene(ctx, next_scene, commit_scene, f.frame_revision, owned_patch.is_some(), capture_scene,
+                    !instances_slice.is_empty(), pending_instances);
                 if attachment_cache_enabled {
                     ctx.cached_offscreen_attachments = Some(CachedOffscreenAttachments {
                         width, height, color_texture, color_view, depth_texture, depth_view,

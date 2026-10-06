@@ -5,12 +5,18 @@
 #endif
 
 #include "rendering/coinwgpu/CoinWgpuFfi.h"
+#include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
+#include <Inventor/SbRotation.h>
+#include <Inventor/actions/SoGLRenderAction.h>
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <cmath>
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <thread>
 #include <vector>
@@ -339,6 +345,7 @@ bool cacheIsolation() {
     vertices[i].normal[2] = 1.0f;
     vertices[i].texcoord[0] = 0.5f;
     vertices[i].texcoord[1] = 0.5f;
+    vertices[i].texcoord[3] = 1.0f;
   }
   const uint32_t indices[3] = {0, 1, 2};
   CoinWgpuDraw draw{};
@@ -586,6 +593,761 @@ bool validatedCameraSceneOwnership() {
   return lostBaseRejected;
 }
 
+bool ownedPhongCameraBuffers() {
+  CoinWgpuDeviceId reference = 0;
+  if (!createDevice(reference)) return false;
+  CoinWgpuVertex vertices[3] = {};
+  vertices[0].position[0] = -.75f; vertices[0].position[1] = -.75f;
+  vertices[1].position[0] = .75f; vertices[1].position[1] = -.75f;
+  vertices[2].position[1] = .75f;
+  for (auto & vertex : vertices) { vertex.normal[2] = 1; vertex.screen_space_w = 1; }
+  const uint32_t indices[3] = {0,1,2};
+  CoinWgpuDraw draw{}; draw.vertex_count = draw.index_count = 3;
+  CoinWgpuMaterial material{};
+  material.diffuse[0] = .8f; material.diffuse[1] = .25f; material.diffuse[3] = 1;
+  material.specular[0] = .2f; material.shininess = .25f;
+  CoinWgpuRenderState state{};
+  state.light_model = 1; state.light_count = 1; state.polygon_offset_primitive_style = 1;
+  state.lights[0].position_type[2] = 3; state.lights[0].position_type[3] = 1;
+  state.lights[0].color_intensity[0] = state.lights[0].color_intensity[1] = 1;
+  state.lights[0].color_intensity[2] = state.lights[0].color_intensity[3] = 1;
+  state.lights[0].attenuation_exponent[2] = 1;
+  for (unsigned i = 0; i < 4; ++i) {
+    state.model_view[i*5] = state.model_view_projection[i*5] = state.normal_matrix[i*5] = 1;
+  }
+  CoinWgpuFrameView frame = clearFrame(0,0,0);
+  frame.frame_revision = 42001;
+  frame.vertices = vertices; frame.vertex_count = 3;
+  frame.indices = indices; frame.index_count = 3;
+  frame.draws = &draw; frame.draw_count = 1;
+  frame.materials = &material; frame.material_count = 1;
+  frame.states = &state; frame.state_count = 1;
+  std::vector<uint8_t> base(kSide*kSide*4u,kSentinel);
+  CoinWgpuTarget target = targetFor(0,&base);
+  char error[512] = {};
+  if (!check(coin_wgpu_submit(&target,&frame,error,sizeof(error)) == COIN_WGPU_OK,
+             "owned PHONG base",error)) return false;
+  for (unsigned iteration = 0; iteration < 3; ++iteration) {
+    frame.camera_base_revision = frame.frame_revision++;
+    state.model_view[12] = .1f + .1f*iteration;
+    state.model_view_projection[12] = state.model_view[12];
+    state.lights[0].position_type[0] = .25f + iteration;
+    CoinWgpuFrameView full = frame; full.camera_base_revision = 0;
+    std::vector<uint8_t> expected(kSide*kSide*4u,kSentinel), actual(expected);
+    target = targetFor(reference,&expected);
+    if (!check(coin_wgpu_submit(&target,&full,error,sizeof(error)) == COIN_WGPU_OK,
+               "full PHONG camera reference",error)) return false;
+    CoinWgpuFrameView patch = frame;
+    patch.vertices = nullptr; patch.indices = nullptr; patch.draws = nullptr; patch.materials = nullptr;
+    target = targetFor(0,&actual);
+    if (!check(coin_wgpu_submit(&target,&patch,error,sizeof(error)) == COIN_WGPU_OK &&
+               actual == expected && actual != base,
+               "owned PHONG camera must match full frame with new view-space light",error)) return false;
+    CoinWgpuCacheStats stats{}; coin_wgpu_get_cache_stats(&stats);
+    if (!check(stats.frame_uploads == 0 && stats.frame_uploaded_bytes == 0 && stats.frame_hits >= 1,
+               "PHONG camera must retain GPU vertex/index/material payload")) return false;
+  }
+  const uint64_t oldCameraBase = frame.frame_revision;
+  // Consecutive object revisions must keep the ordinary full path and retire
+  // the former owned snapshot. A subsequent camera hint may readmit exactly
+  // the current object payload after complete validation, then reuse its Arc.
+  for (unsigned iteration = 0; iteration < 2; ++iteration) {
+    frame.camera_base_revision = 0; ++frame.frame_revision;
+    vertices[0].position[0] = -.6f + .1f*iteration;
+    material.diffuse[1] = .4f + .1f*iteration;
+    std::vector<uint8_t> actual(kSide*kSide*4u,kSentinel), expected(actual);
+    target = targetFor(0,&actual);
+    if (!check(coin_wgpu_submit(&target,&frame,error,sizeof(error)) == COIN_WGPU_OK,
+               "PHONG full object revision",error)) return false;
+    target = targetFor(reference,&expected);
+    if (!check(coin_wgpu_submit(&target,&frame,error,sizeof(error)) == COIN_WGPU_OK && actual == expected,
+               "object full revisions must match an independent device",error)) return false;
+  }
+  CoinWgpuFrameView stale = frame;
+  stale.frame_revision += 100; stale.camera_base_revision = oldCameraBase;
+  stale.vertices = nullptr; stale.indices = nullptr; stale.draws = nullptr; stale.materials = nullptr;
+  std::vector<uint8_t> staleOutput(kSide*kSide*4u,kSentinel);
+  target = targetFor(0,&staleOutput);
+  if (!check(coin_wgpu_submit(&target,&stale,error,sizeof(error)) == COIN_WGPU_INVALID_ARGUMENT &&
+             unchanged(staleOutput), "object rebuild must clear the old camera-owned base",error)) return false;
+  for (unsigned iteration = 0; iteration < 3; ++iteration) {
+    frame.camera_base_revision = frame.frame_revision++;
+    state.model_view[12] = .4f + .1f*iteration;
+    state.model_view_projection[12] = state.model_view[12];
+    state.lights[0].position_type[0] = 2 + .25f*iteration;
+    CoinWgpuFrameView full = frame; full.camera_base_revision = 0;
+    std::vector<uint8_t> actual(kSide*kSide*4u,kSentinel), expected(actual);
+    target = targetFor(reference,&expected);
+    if (!check(coin_wgpu_submit(&target,&full,error,sizeof(error)) == COIN_WGPU_OK,
+               "readmitted PHONG camera reference",error)) return false;
+    CoinWgpuFrameView patch = frame;
+    if (iteration) {
+      patch.vertices = nullptr; patch.indices = nullptr; patch.draws = nullptr; patch.materials = nullptr;
+    }
+    target = targetFor(0,&actual);
+    if (iteration == 0) {
+      // This field is checked by encode_frame, after the full composition
+      // preflight and speculative snapshot admission. Rejecting it must leave
+      // this device's suspension/base unchanged, without publishing pixels.
+      const float validNormal = state.normal_matrix[0];
+      state.normal_matrix[0] = std::numeric_limits<float>::quiet_NaN();
+      const CoinWgpuStatus invalidNormal = coin_wgpu_submit(&target,&patch,error,sizeof(error));
+      state.normal_matrix[0] = validNormal;
+      if (!check(invalidNormal == COIN_WGPU_INVALID_ARGUMENT && unchanged(actual) &&
+                 std::string(error).find("normal matrix") != std::string::npos,
+                 "failed encoder readmission must preserve the sentinel and uncommitted base",error)) return false;
+      CoinWgpuFrameView withoutPayload = patch;
+      withoutPayload.vertices = nullptr; withoutPayload.indices = nullptr;
+      withoutPayload.draws = nullptr; withoutPayload.materials = nullptr;
+      if (!check(coin_wgpu_submit(&target,&withoutPayload,error,sizeof(error)) == COIN_WGPU_INVALID_ARGUMENT &&
+                 unchanged(actual), "failed encoder must not admit owned camera geometry",error)) return false;
+
+      // Existing synchronous late fault: consumed after queue submission,
+      // map requests and GPU wait, before snapshot/output publication. Device
+      // loss also changes generation; the retry must validate every payload.
+      coin_wgpu_inject_async_fault(COIN_WGPU_DEVICE_LOST);
+      const CoinWgpuStatus lateFailure = coin_wgpu_submit(&target,&patch,error,sizeof(error));
+      coin_wgpu_inject_async_fault(COIN_WGPU_OK);
+      if (!check(lateFailure == COIN_WGPU_DEVICE_LOST && unchanged(actual) &&
+                 std::string(error).find("Injected async DEVICE_LOST") != std::string::npos,
+                 "late failed camera readmission must preserve the output sentinel",error)) return false;
+      if (!check(coin_wgpu_submit(&target,&withoutPayload,error,sizeof(error)) == COIN_WGPU_INVALID_ARGUMENT &&
+                 unchanged(actual), "late failure must not leave an owned base for a payload-free hint",error)) return false;
+    }
+    if (!check(coin_wgpu_submit(&target,&patch,error,sizeof(error)) == COIN_WGPU_OK && actual == expected,
+               "validated hint must readmit the current object geometry and subsequent patches",error)) return false;
+    CoinWgpuCacheStats stats{}; coin_wgpu_get_cache_stats(&stats);
+    if (!check(iteration == 0 ? stats.frame_uploads == 1 :
+                 (stats.frame_uploads == 0 && stats.frame_uploaded_bytes == 0 && stats.frame_hits >= 1),
+               "hint must upload once, followed by owned geometry cache hits")) return false;
+  }
+  frame.camera_base_revision = frame.frame_revision++;
+  frame.vertices = nullptr; frame.indices = nullptr; frame.draws = nullptr; frame.materials = nullptr;
+  state.lights[0].color_intensity[0] = .25f;
+  std::vector<uint8_t> rejected(kSide*kSide*4u,kSentinel);
+  target = targetFor(0,&rejected);
+  const bool guard = check(coin_wgpu_submit(&target,&frame,error,sizeof(error)) == COIN_WGPU_INVALID_ARGUMENT &&
+               unchanged(rejected), "changed PHONG light color must decline immutable camera hint",error);
+  coin_wgpu_device_destroy(reference);
+  return guard;
+}
+
+// Compare the storage-instance path against the old baked vertex path on a
+// second device. Both color and depth are public readback oracles; equal counts
+// and repeated revisions deliberately cannot serve as proof of equal contents.
+bool instancedOpaqueOwnership() {
+  CoinWgpuDeviceId reference = 0, peer = 0;
+  if (!createDevice(reference) || !createDevice(peer)) return false;
+  CoinWgpuVertex vertices[3]{};
+  vertices[0].position[0] = -.5f; vertices[0].position[1] = -.5f;
+  vertices[1].position[0] = .5f; vertices[1].position[1] = -.5f;
+  vertices[2].position[1] = .5f;
+  for (auto & vertex : vertices) { vertex.normal[2] = 1; vertex.screen_space_w = 1; }
+  const uint32_t indices[] = {0,1,2};
+  CoinWgpuDraw draws[2]{};
+  for (auto & draw : draws) { draw.vertex_count = 3; draw.index_count = 3; }
+  CoinWgpuMaterial materials[2]{};
+  for (auto & material : materials) {
+    material.diffuse[3] = 1; material.ambient[0] = material.ambient[1] = .1f;
+    material.specular[0] = material.specular[1] = material.specular[2] = .15f;
+    material.shininess = .25f;
+  }
+  materials[0].diffuse[0] = .85f; materials[0].diffuse[1] = .2f;
+  materials[1].diffuse[1] = .65f; materials[1].diffuse[2] = .3f;
+  CoinWgpuRenderState state{}; state.polygon_offset_primitive_style = 1;
+  state.light_model = 1; state.light_count = 1;
+  state.depth_test = 1; state.depth_write = 1; state.depth_function = 2;
+  state.depth_range[1] = 1;
+  state.lights[0].position_type[2] = 2; state.lights[0].position_type[3] = 1;
+  for (unsigned i = 0; i < 4; ++i) {
+    state.model_view[i*5] = state.model_view_projection[i*5] = state.normal_matrix[i*5] = 1;
+    state.lights[0].color_intensity[i] = 1;
+  }
+  state.lights[0].attenuation_exponent[0] = 1;
+  CoinWgpuInstance instances[2]{};
+  for (unsigned i = 0; i < 2; ++i) {
+    for (unsigned c = 0; c < 4; ++c) instances[i].model_view[c*5] = instances[i].normal_matrix[c*5] = 1;
+    instances[i].model_view[0] = .5f; instances[i].model_view[5] = .75f;
+    instances[i].model_view[12] = i ? .5f : -.5f;
+    instances[i].model_view[14] = i ? .5f : .25f;
+    instances[i].material_slot = i;
+  }
+  instances[1].normal_matrix[8] = .25f;
+  CoinWgpuInstanceRange ranges[] = {{0,0,1,0},{1,1,1,0}};
+  CoinWgpuFrameView frame = clearFrame(0,0,0);
+  frame.frame_revision = 53001;
+  frame.vertices = vertices; frame.vertex_count = 3;
+  frame.indices = indices; frame.index_count = 3;
+  frame.draws = draws; frame.draw_count = 2;
+  frame.materials = materials; frame.material_count = 2;
+  frame.states = &state; frame.state_count = 1;
+  frame.instances = instances; frame.instance_count = 2;
+  frame.instance_ranges = ranges; frame.instance_range_count = 2;
+  char error[512]{};
+  uint64_t referenceRevision = 59000;
+  auto samePixels = [&](const std::vector<uint8_t> & actual, const std::vector<uint8_t> & expected,
+                        const std::vector<float> & depth, const std::vector<float> & expectedDepth) {
+    if (actual.size() != expected.size() || depth.size() != expectedDepth.size()) return false;
+    bool wroteDepth = false;
+    for (size_t i = 0; i < actual.size(); ++i)
+      if (std::abs(int(actual[i]) - int(expected[i])) > 2) return false;
+    for (size_t i = 0; i < depth.size(); ++i) {
+      if (!std::isfinite(depth[i]) || std::abs(depth[i] - expectedDepth[i]) > 2e-6f) return false;
+      wroteDepth |= depth[i] < 1;
+    }
+    return wroteDepth;
+  };
+  auto target = [&](CoinWgpuDeviceId id, std::vector<uint8_t> & color, std::vector<float> & depth) {
+    CoinWgpuTarget result = targetFor(id, &color);
+    result.depth_buffer = depth.data(); result.depth_buffer_len = depth.size();
+    return result;
+  };
+  auto referencePixels = [&](std::vector<uint8_t> & color, std::vector<float> & depth) {
+    CoinWgpuVertex baked[6]{};
+    const uint32_t bakedIndices[] = {0,1,2,3,4,5};
+    for (unsigned i = 0; i < 2; ++i) for (unsigned v = 0; v < 3; ++v) {
+      auto & output = baked[i*3+v]; output = vertices[v];
+      const auto & instance = instances[i];
+      float normal[3]{};
+      for (unsigned r = 0; r < 3; ++r) {
+        output.position[r] = instance.model_view[r]*vertices[v].position[0]
+            + instance.model_view[4+r]*vertices[v].position[1]
+            + instance.model_view[8+r]*vertices[v].position[2] + instance.model_view[12+r];
+        normal[r] = instance.normal_matrix[r]*vertices[v].normal[0]
+            + instance.normal_matrix[4+r]*vertices[v].normal[1]
+            + instance.normal_matrix[8+r]*vertices[v].normal[2];
+      }
+      const float length = std::sqrt(normal[0]*normal[0]+normal[1]*normal[1]+normal[2]*normal[2]);
+      for (unsigned r = 0; r < 3; ++r) output.normal[r] = normal[r]/length;
+      output.material_slot = instance.material_slot;
+    }
+    CoinWgpuDraw bakedDraw{}; bakedDraw.vertex_count = bakedDraw.index_count = 6;
+    CoinWgpuFrameView bakedFrame = clearFrame(0,0,0);
+    bakedFrame.frame_revision = ++referenceRevision;
+    bakedFrame.vertices = baked; bakedFrame.vertex_count = 6;
+    bakedFrame.indices = bakedIndices; bakedFrame.index_count = 6;
+    bakedFrame.draws = &bakedDraw; bakedFrame.draw_count = 1;
+    bakedFrame.materials = materials; bakedFrame.material_count = 2;
+    bakedFrame.states = &state; bakedFrame.state_count = 1;
+    CoinWgpuTarget output = target(reference,color,depth);
+    return check(coin_wgpu_submit(&output,&bakedFrame,error,sizeof(error)) == COIN_WGPU_OK,
+                 "baked independent RGB/depth reference",error);
+  };
+  auto compare = [&](CoinWgpuDeviceId id, const CoinWgpuFrameView & submission, const char * description) {
+    std::vector<uint8_t> actual(kSide*kSide*4u,kSentinel), expected(actual);
+    std::vector<float> depth(kSide*kSide,-17), expectedDepth(depth);
+    if (!referencePixels(expected,expectedDepth)) return false;
+    CoinWgpuTarget output = target(id,actual,depth);
+    return check(coin_wgpu_submit(&output,&submission,error,sizeof(error)) == COIN_WGPU_OK &&
+                 samePixels(actual,expected,depth,expectedDepth),description,error);
+  };
+  auto nullPayload = [](CoinWgpuFrameView f) {
+    f.vertices = nullptr; f.indices = nullptr; f.draws = nullptr; f.materials = nullptr;
+    f.instances = nullptr; f.instance_ranges = nullptr;
+    return f;
+  };
+  auto reject = [&](CoinWgpuDeviceId id, const CoinWgpuFrameView & submission, CoinWgpuStatus status,
+                    const char * description) {
+    std::vector<uint8_t> color(kSide*kSide*4u,kSentinel);
+    std::vector<float> depth(kSide*kSide,-17);
+    CoinWgpuTarget output = target(id,color,depth);
+    return check(coin_wgpu_submit(&output,&submission,error,sizeof(error)) == status &&
+        unchanged(color) && std::all_of(depth.begin(),depth.end(),[](float v){ return v == -17; }) &&
+        output.submission_serial == 0,description,error);
+  };
+  auto zeroUploads = [&] {
+    CoinWgpuCacheStats stats{}; coin_wgpu_get_cache_stats(&stats);
+    return check(stats.frame_uploads == 0 && stats.frame_uploaded_bytes == 0 && stats.frame_hits >= 1,
+                 "instances static/camera must retain vertex/index/instance/material GPU buffers");
+  };
+  auto dynamicOnly = [&] {
+    CoinWgpuCacheStats stats{}; coin_wgpu_get_cache_stats(&stats);
+    // GpuMaterial: four color vec4 plus one params vec4, as in the shader.
+    return check(stats.frame_uploads == 1 && stats.frame_hits >= 1 &&
+                 stats.frame_uploaded_bytes == sizeof(instances) + 2u*5u*16u,
+                 "object/material updates must upload only instances/materials, retaining canonical geometry");
+  };
+  if (!compare(0,frame,"initial instances RGB/depth") ||
+      !compare(0,frame,"full static instance payload") || !zeroUploads()) return false;
+  // Same revision, same counts, changed object and material: exact bytes are
+  // required, even though a validated owned snapshot already exists.
+  instances[0].model_view[12] += .125f; materials[1].diffuse[1] = .3f;
+  if (!compare(0,frame,"instances changed under the same revision") || !dynamicOnly()) return false;
+  ++frame.frame_revision; instances[1].model_view[12] -= .125f;
+  instances[1].material_slot = 0; materials[0].diffuse[2] = .25f;
+  if (!compare(0,frame,"new object/material instance revision") || !dynamicOnly()) return false;
+  frame.camera_base_revision = frame.frame_revision++;
+  state.model_view[12] = state.model_view_projection[12] = .125f;
+  state.lights[0].position_type[0] = .125f;
+  if (!compare(0,nullPayload(frame),"instance camera delta with null immutable payloads") || !zeroUploads()) return false;
+  frame.camera_base_revision = frame.frame_revision++;
+  state.model_view[12] = state.model_view_projection[12] = state.lights[0].position_type[0] = 0;
+  if (!compare(0,nullPayload(frame),"instance camera returns to anchor") || !zeroUploads()) return false;
+  CoinWgpuFrameView full = frame; full.camera_base_revision = 0; ++full.frame_revision;
+  instances[0].reserved[0] = 1;
+  if (!reject(0,full,COIN_WGPU_INVALID_ARGUMENT,"instance reserved field must reject without publishing")) return false;
+  instances[0].reserved[0] = 0; ranges[1].first_instance = 0;
+  if (!reject(0,full,COIN_WGPU_INVALID_ARGUMENT,"overlapping instance ranges must reject")) return false;
+  ranges[1].first_instance = 1; instances[0].normal_matrix[0] = std::numeric_limits<float>::quiet_NaN();
+  if (!reject(0,full,COIN_WGPU_INVALID_ARGUMENT,"nonfinite instance transform must reject")) return false;
+  instances[0].normal_matrix[0] = 1;
+  CoinWgpuFrameView invalid = full; invalid.instance_count = std::numeric_limits<uint64_t>::max();
+  if (!reject(0,invalid,COIN_WGPU_UNSUPPORTED,"instance count overflow before pointer reads")) return false;
+  invalid = full; invalid.instances = reinterpret_cast<const CoinWgpuInstance *>(
+      reinterpret_cast<const char *>(instances)+1);
+  if (!reject(0,invalid,COIN_WGPU_INVALID_ARGUMENT,"misaligned instance pointer must reject")) return false;
+  uint64_t rtt = 0; CoinWgpuTarget rttTarget = targetFor(0);
+  if (!check(coin_wgpu_submit_texture(&rttTarget,&full,&rtt,error,sizeof(error)) == COIN_WGPU_UNSUPPORTED &&
+             rtt == 0 && std::string(error).find("render-to-texture") != std::string::npos,
+             "instanced RTT must reject clearly",error)) return false;
+  // A late failure must keep the former camera snapshot AND GPU buffers.
+  const CoinWgpuInstance oldInstance = instances[0]; const CoinWgpuMaterial oldMaterial = materials[0];
+  instances[0].model_view[12] += .25f; materials[0].diffuse[0] = .3f;
+  coin_wgpu_inject_async_fault(COIN_WGPU_OUT_OF_MEMORY);
+  const bool late = reject(0,full,COIN_WGPU_OUT_OF_MEMORY,"late instance OOM preserves outputs and previous base");
+  coin_wgpu_inject_async_fault(COIN_WGPU_OK);
+  if (!late) return false;
+  const CoinWgpuInstance retryInstance = instances[0]; const CoinWgpuMaterial retryMaterial = materials[0];
+  instances[0] = oldInstance; materials[0] = oldMaterial;
+  frame.camera_base_revision = frame.frame_revision++; // the last successful camera revision
+  state.model_view[12] = state.model_view_projection[12] = state.lights[0].position_type[0] = .125f;
+  if (!compare(0,nullPayload(frame),"camera after failed instance revision uses old owned payload") || !zeroUploads()) return false;
+  instances[0] = retryInstance; materials[0] = retryMaterial;
+  state.model_view[12] = state.model_view_projection[12] = state.lights[0].position_type[0] = 0;
+  frame.camera_base_revision = 0; ++frame.frame_revision;
+  if (!compare(0,frame,"retry full instance revision after late OOM") || !dynamicOnly()) return false;
+  auto submitDepthAsync = [&](const CoinWgpuFrameView & submission, CoinWgpuReadbackTicket & ticket) {
+    CoinWgpuTarget output = targetFor(0); output.depth_buffer_len = kSide*kSide;
+    ticket = CoinWgpuReadbackTicket{}; ticket.abi_version = COIN_WGPU_ABI_VERSION; ticket.struct_size = sizeof(ticket);
+    return check(coin_wgpu_submit_async(&output,&submission,&ticket,error,sizeof(error)) == COIN_WGPU_OK &&
+                 ticket.token != 0 && ticket.depth_bytes == kSide*kSide*sizeof(float),"async full instance submit with depth",error);
+  };
+  auto pollPixels = [&](const CoinWgpuReadbackTicket & ticket,
+                        const std::vector<uint8_t> & expected, const std::vector<float> & expectedDepth) {
+    std::vector<uint8_t> color(kSide*kSide*4u,kSentinel); std::vector<float> depth(kSide*kSide,-17);
+    for (unsigned i = 0; i < 10000; ++i) {
+      const CoinWgpuStatus status = coin_wgpu_readback_poll(ticket.token,color.data(),color.size(),
+          depth.data(),depth.size(),error,sizeof(error));
+      if (status == COIN_WGPU_NOT_READY) { std::this_thread::sleep_for(std::chrono::milliseconds(1)); continue; }
+      return check(status == COIN_WGPU_OK && samePixels(color,expected,depth,expectedDepth),
+                   "async instances RGB/depth match baked reference",error);
+    }
+    return check(false,"async instanced readback timeout");
+  };
+  // A readback failure follows a successful rendering submission. Its owned
+  // snapshot stays current; generation loss invalidates it independently.
+  ++frame.frame_revision; instances[1].model_view[14] = .375f;
+  CoinWgpuReadbackTicket ticket{};
+  if (!submitDepthAsync(frame,ticket)) return false;
+  coin_wgpu_inject_async_fault(COIN_WGPU_BACKEND_ERROR);
+  std::vector<uint8_t> failedColor(kSide*kSide*4u,kSentinel); std::vector<float> failedDepth(kSide*kSide,-17);
+  if (!check(coin_wgpu_readback_poll(ticket.token,failedColor.data(),failedColor.size(),failedDepth.data(),
+       failedDepth.size(),error,sizeof(error)) == COIN_WGPU_BACKEND_ERROR && unchanged(failedColor) &&
+       std::all_of(failedDepth.begin(),failedDepth.end(),[](float v){ return v == -17; }),
+       "failed instance poll preserves both outputs",error)) return false;
+  coin_wgpu_inject_async_fault(COIN_WGPU_OK);
+  frame.camera_base_revision = frame.frame_revision++;
+  state.model_view[12] = state.model_view_projection[12] = state.lights[0].position_type[0] = .125f;
+  if (!compare(0,nullPayload(frame),"camera after failed poll retains successfully submitted instance base") || !zeroUploads()) return false;
+  frame.camera_base_revision = 0; ++frame.frame_revision;
+  state.model_view[12] = state.model_view_projection[12] = state.lights[0].position_type[0] = 0;
+  std::vector<uint8_t> expected(kSide*kSide*4u,kSentinel); std::vector<float> expectedDepth(kSide*kSide,-17);
+  if (!referencePixels(expected,expectedDepth) || !submitDepthAsync(frame,ticket) || !pollPixels(ticket,expected,expectedDepth)) return false;
+  ++frame.frame_revision;
+  if (!submitDepthAsync(frame,ticket)) return false;
+  coin_wgpu_inject_async_fault(COIN_WGPU_DEVICE_LOST);
+  if (!check(coin_wgpu_readback_poll(ticket.token,failedColor.data(),failedColor.size(),failedDepth.data(),
+       failedDepth.size(),error,sizeof(error)) == COIN_WGPU_DEVICE_LOST && unchanged(failedColor),
+       "instance poll generation loss",error)) return false;
+  coin_wgpu_inject_async_fault(COIN_WGPU_OK);
+  CoinWgpuFrameView lostCamera = nullPayload(frame); lostCamera.camera_base_revision = frame.frame_revision; ++lostCamera.frame_revision;
+  if (!reject(0,lostCamera,COIN_WGPU_INVALID_ARGUMENT,"lost generation cannot resolve null instance payloads") ||
+      !compare(0,frame,"full instance retry after generation loss")) return false;
+  CoinWgpuFrameView peerCamera = nullPayload(frame); peerCamera.camera_base_revision = frame.frame_revision; ++peerCamera.frame_revision;
+  if (!reject(peer,peerCamera,COIN_WGPU_INVALID_ARGUMENT,"peer must not borrow default device instance snapshot") ||
+      !compare(peer,frame,"same instance revision belongs independently to another device")) return false;
+  state.model_view[12] = state.model_view_projection[12] = state.lights[0].position_type[0] = .125f;
+  if (!compare(peer,peerCamera,"peer null camera owns its instance snapshot")) return false;
+  coin_wgpu_inject_device_fault(peer,COIN_WGPU_DEVICE_LOST);
+  if (!reject(peer,frame,COIN_WGPU_DEVICE_LOST,"instance device loss before submit") ||
+      !reject(peer,peerCamera,COIN_WGPU_INVALID_ARGUMENT,"peer lost generation invalidates null instance payloads")) return false;
+  state.model_view[12] = state.model_view_projection[12] = state.lights[0].position_type[0] = 0;
+  const bool recovered = compare(peer,frame,"peer full instance retry after device loss");
+  coin_wgpu_device_destroy(reference); coin_wgpu_device_destroy(peer);
+  return recovered;
+}
+
+// Equal-depth overlapping occurrences require traversal order A/B/A, including
+// the nonzero first_instance in later groups. Always and LessEqual are both
+// admitted by the opaque profile and both must leave the last material visible.
+bool instancedOpaqueDrawOrder() {
+  CoinWgpuDeviceId reference = 0;
+  if (!createDevice(reference)) return false;
+  CoinWgpuVertex vertices[6]{};
+  for (unsigned mesh = 0; mesh < 2; ++mesh) {
+    vertices[mesh*3].position[0] = -.5f; vertices[mesh*3].position[1] = -.5f;
+    vertices[mesh*3+1].position[0] = .5f; vertices[mesh*3+1].position[1] = -.5f;
+    vertices[mesh*3+2].position[1] = .5f;
+    for (unsigned v = mesh*3; v < mesh*3+3; ++v) {
+      vertices[v].position[2] = .25f; vertices[v].normal[2] = 1;
+      vertices[v].normal[0] = mesh ? .25f : 0; vertices[v].screen_space_w = 1;
+    }
+  }
+  const uint32_t indices[] = {0,1,2,3,4,5};
+  CoinWgpuDraw draws[3]{};
+  for (unsigned i = 0; i < 3; ++i) {
+    draws[i].vertex_count = draws[i].index_count = 3;
+    draws[i].first_vertex = draws[i].first_index = i == 1 ? 3 : 0;
+  }
+  CoinWgpuMaterial materials[3]{};
+  for (unsigned i = 0; i < 3; ++i) { materials[i].diffuse[i] = 1; materials[i].diffuse[3] = 1; }
+  CoinWgpuRenderState state{}; state.polygon_offset_primitive_style = 1; state.depth_test = state.depth_write = 1; state.depth_range[1] = 1;
+  CoinWgpuInstance instances[3]{};
+  for (unsigned i = 0; i < 4; ++i) {
+    state.model_view[i*5] = state.model_view_projection[i*5] = state.normal_matrix[i*5] = 1;
+    for (auto & instance : instances) instance.model_view[i*5] = instance.normal_matrix[i*5] = 1;
+  }
+  for (unsigned i = 0; i < 3; ++i) instances[i].material_slot = i;
+  const CoinWgpuInstanceRange ranges[] = {{0,0,1,0},{1,1,1,0},{2,2,1,0}};
+  CoinWgpuVertex baked[9]{};
+  uint32_t bakedIndices[9]{};
+  for (unsigned i = 0; i < 3; ++i) for (unsigned v = 0; v < 3; ++v) {
+    baked[i*3+v] = vertices[(i == 1 ? 3 : 0)+v]; baked[i*3+v].material_slot = i;
+    bakedIndices[i*3+v] = i*3+v;
+  }
+  CoinWgpuDraw bakedDraw{}; bakedDraw.vertex_count = bakedDraw.index_count = 9;
+  CoinWgpuFrameView frame = clearFrame(0,0,0);
+  frame.vertices = vertices; frame.vertex_count = 6; frame.indices = indices; frame.index_count = 6;
+  frame.draws = draws; frame.draw_count = 3; frame.materials = materials; frame.material_count = 3;
+  frame.states = &state; frame.state_count = 1; frame.instances = instances; frame.instance_count = 3;
+  frame.instance_ranges = ranges; frame.instance_range_count = 3;
+  CoinWgpuFrameView full = frame; full.instances = nullptr; full.instance_count = 0;
+  full.instance_ranges = nullptr; full.instance_range_count = 0;
+  full.vertices = baked; full.vertex_count = 9; full.indices = bakedIndices; full.index_count = 9;
+  full.draws = &bakedDraw; full.draw_count = 1;
+  char error[512]{};
+  for (unsigned test = 0; test < 2; ++test) {
+    state.depth_function = test ? 3 : 1;
+    frame.frame_revision = 54001+test; full.frame_revision = 54101+test;
+    std::vector<uint8_t> actual(kSide*kSide*4u,kSentinel), expected(actual);
+    std::vector<float> depth(kSide*kSide,-17), expectedDepth(depth);
+    CoinWgpuTarget target = targetFor(0,&actual); target.depth_buffer = depth.data(); target.depth_buffer_len = depth.size();
+    if (!check(coin_wgpu_submit(&target,&frame,error,sizeof(error)) == COIN_WGPU_OK,
+               "overlapping A/B/A instanced groups",error)) return false;
+    target = targetFor(reference,&expected); target.depth_buffer = expectedDepth.data(); target.depth_buffer_len = expectedDepth.size();
+    const size_t center = (kSide/2*kSide+kSide/2);
+    if (!check(coin_wgpu_submit(&target,&full,error,sizeof(error)) == COIN_WGPU_OK && actual == expected &&
+               depth == expectedDepth && depth[center] == .25f && actual[center*4] == 0 &&
+               actual[center*4+1] == 0 && actual[center*4+2] == 255,
+               "equal-depth overlapping groups must preserve last occurrence color",error)) return false;
+  }
+  coin_wgpu_device_destroy(reference);
+  return true;
+}
+
+// Exercise the real C++ packer and GPU instance shader together. The oracle
+// starts with the captured, dimensioned positions and authored matrices; it
+// never reads the canonical vertices or transport matrices from the packer.
+bool normalizedCuboidTransport(bool largeMaterialTable = false) {
+  constexpr uint32_t side = 64;
+  constexpr uint32_t count = 256; // The bounded C++ instancing profile's minimum.
+  struct Devices {
+    CoinWgpuDeviceId fast = 0, reference = 0; // Cache diagnostics address the default device.
+    ~Devices() {
+      if (reference) coin_wgpu_device_destroy(reference);
+    }
+  } devices;
+  if (!createDevice(devices.reference)) return false;
+  static const int corners[8][3] = {
+    {-1,-1,-1},{1,-1,-1},{1,1,-1},{-1,1,-1},
+    {-1,-1,1},{1,-1,1},{1,1,1},{-1,1,1}
+  };
+  static const unsigned faces[6][4] = {
+    {0,3,2,1},{4,5,6,7},{0,4,7,3},{1,2,6,5},{0,1,5,4},{3,7,6,2}
+  };
+  // Axis-only normals would hide inverse(transport MV) mistakes: normalization
+  // cancels a scalar on each face. These legal authored normals are oblique.
+  static const float normals[6][3] = {
+    {.25f,.375f,-1},{.25f,.375f,1},{-1,.25f,.375f},
+    {1,.25f,.375f},{.375f,-1,.25f},{.375f,1,.25f}
+  };
+  CoinRenderFramePlan frame;
+  frame.revision = 61000;
+  frame.cameras.resize(1);
+  // The visible middle cuboid addresses the final slot of a sparse large
+  // table. A short table alone cannot detect truncated copies or stale tails.
+  frame.materials.resize(largeMaterialTable ? 4097 : 3);
+  const uint32_t middleMaterial = largeMaterialTable ? 4096 : 1;
+  for (unsigned i = 0; i < frame.materials.size(); ++i) {
+    auto & material = frame.materials[i];
+    for (int c = 0; c < 3; ++c) {
+      material.ambient[c] = .125f;
+      material.diffuse[c] = c == int(i == middleMaterial ? 1 : i % 3) ? .65f : .15f;
+      material.specular[c] = .25f;
+    }
+    material.shininess = .1875f;
+  }
+  frame.lightingStates.resize(1);
+  auto & lighting = frame.lightingStates[0];
+  lighting.ambientIntensity = .25f;
+  CoinRenderLightSourceSnapshot directional, point;
+  directional.intensity = .55f;
+  point.type = CoinRenderLightType::POINT;
+  point.intensity = .7f;
+  point.attenuation[0] = .0625f; point.attenuation[1] = .125f;
+  lighting.lights = {directional,point};
+  // Lights remain in world space in this test fixture; every camera state is
+  // regenerated from those values rather than incrementally transformed.
+  const SbVec3f worldDirection(.25f,-.375f,-1);
+  const SbVec3f worldPoint(-.5f,.75f,2);
+  const auto setCamera = [&](const SbMatrix & view) {
+    frame.cameras[0].viewMatrix = view;
+    for (auto & state : frame.renderStates) state.view = view;
+    SbVec3f eyeDirection, eyePoint;
+    view.multDirMatrix(worldDirection,eyeDirection);
+    view.multVecMatrix(worldPoint,eyePoint);
+    for (int c = 0; c < 3; ++c) {
+      lighting.lights[0].direction[c] = eyeDirection[c];
+      lighting.lights[1].position[c] = eyePoint[c];
+    }
+  };
+  for (uint32_t i = 0; i < count; ++i) {
+    CoinRenderRenderStateSnapshot state;
+    // Nonuniform authored scale plus shear is independent of local dimensions.
+    state.model[0][0] = .875f; state.model[1][1] = .75f; state.model[2][2] = 1.125f;
+    state.model[0][1] = .125f; state.model[2][0] = .125f;
+    state.model[3][0] = i < 3 ? (float(i)-1)*.5625f : 4 + float(i)*.03125f;
+    state.model[3][1] = i == 1 ? .375f : -.3125f;
+    state.model[3][2] = -.1875f;
+    state.materialSlot = i % 3 == 1 ? middleMaterial : i % 3;
+    state.transparencyType = SoGLRenderAction::NONE;
+    state.depthFunction = CoinRenderDepthFunction::LEQUAL;
+    frame.renderStates.push_back(state);
+    CoinRenderDrawPacket draw;
+    draw.renderStateSlot = i; draw.drawOrdinal = i;
+    draw.geometry.firstVertex = static_cast<uint32_t>(frame.vertices.size());
+    draw.geometry.firstIndex = static_cast<uint32_t>(frame.indices.size());
+    draw.geometry.vertexCount = 24; draw.geometry.indexCount = 36;
+    const float half[3] = {.1875f + float(i % 5)*.00390625f,
+                          .3125f + float(i % 7)*.00390625f,
+                          .125f + float(i % 11)*.001953125f};
+    for (unsigned face = 0; face < 6; ++face) {
+      for (unsigned v = 0; v < 4; ++v) {
+        CoinRenderVertexSnapshot vertex;
+        for (int c = 0; c < 3; ++c) {
+          vertex.position[c] = float(corners[faces[face][v]][c])*half[c];
+          vertex.normal[c] = normals[face][c];
+        }
+        vertex.materialSlot = state.materialSlot;
+        vertex.texcoord[0] = v == 1 || v == 2 ? 1 : 0;
+        vertex.texcoord[1] = v >= 2 ? 1 : 0;
+        frame.vertices.push_back(vertex);
+      }
+      for (unsigned v : {0u,1u,2u,0u,2u,3u})
+        frame.indices.push_back(draw.geometry.firstVertex+face*4+v);
+    }
+    frame.draws.push_back(draw);
+  }
+  setCamera(SbMatrix::identity());
+  char error[512]{};
+  std::string diagnostic;
+  CoinWgpuFfiFrame packed;
+  uint64_t referenceRevision = 62000;
+  const auto target = [&](CoinWgpuDeviceId device, std::vector<uint8_t> & color,
+                          std::vector<float> & depth) {
+    CoinWgpuTarget result = targetFor(device,&color);
+    result.width = result.height = side;
+    result.depth_buffer = depth.data(); result.depth_buffer_len = depth.size();
+    return result;
+  };
+  const auto nullPayload = [](CoinWgpuFrameView view) {
+    view.vertices = nullptr; view.indices = nullptr; view.draws = nullptr;
+    view.materials = nullptr; view.instances = nullptr; view.instance_ranges = nullptr;
+    return view;
+  };
+  const auto prepare = [&](CoinRenderFrameReuseKind kind, uint64_t base) {
+    if (!check(packed.prepare(frame,side,side,CoinRenderFrameReuseDecision(kind,base),diagnostic),
+               "real packer prepares normalized cuboids",diagnostic.c_str())) return false;
+    const auto & view = packed.getView();
+    if (!check(view.instance_count == count && view.instance_range_count == 1 &&
+        view.vertex_count == 24 && view.index_count == 36 && view.draw_count == 1 &&
+        view.camera_base_revision == (kind == CoinRenderFrameReuseKind::CAMERA_PATCH ? base : 0),
+        "cuboid gate must exercise one normalized instanced mesh, including camera reuse")) return false;
+    for (uint32_t v = 0; v < 24; ++v) for (int c = 0; c < 3; ++c)
+      if (!check(std::abs(view.vertices[v].position[c]) == 1 &&
+                 view.vertices[v].normal[c] == frame.vertices[v].normal[c],
+                 "unit-position transport must preserve authored normal attributes")) return false;
+    if (kind != CoinRenderFrameReuseKind::CAMERA_PATCH) {
+      const SbMatrix authored = (frame.renderStates[0].model*frame.renderStates[0].view).inverse().transpose();
+      if (!check(std::memcmp(view.instances[0].normal_matrix,authored.getValue(),sizeof(float)*16) == 0,
+                 "normalized GPU transport must carry the authored normal matrix unchanged")) return false;
+    }
+    return true;
+  };
+  const auto oracle = [&](std::vector<uint8_t> & color, std::vector<float> & depth) {
+    std::vector<CoinWgpuVertex> vertices(frame.vertices.size());
+    for (const auto & draw : frame.draws) {
+      const auto & state = frame.renderStates[draw.renderStateSlot];
+      const SbMatrix authored = state.model*state.view;
+      const SbMatrix normal = authored.inverse().transpose();
+      for (uint32_t v = draw.geometry.firstVertex; v < draw.geometry.firstVertex+draw.geometry.vertexCount; ++v) {
+        const auto & source = frame.vertices[v];
+        SbVec3f position, direction;
+        authored.multVecMatrix(SbVec3f(source.position),position);
+        normal.multDirMatrix(SbVec3f(source.normal),direction);
+        auto & output = vertices[v];
+        for (int c = 0; c < 3; ++c) { output.position[c] = position[c]; output.normal[c] = direction[c]; }
+        output.screen_space_w = 1; output.material_slot = state.materialSlot;
+      }
+    }
+    std::vector<CoinWgpuMaterial> materials(frame.materials.size());
+    for (size_t i = 0; i < materials.size(); ++i) {
+      const auto & source = frame.materials[i]; auto & output = materials[i];
+      std::copy(source.ambient,source.ambient+4,output.ambient);
+      std::copy(source.diffuse,source.diffuse+4,output.diffuse);
+      std::copy(source.specular,source.specular+4,output.specular);
+      std::copy(source.emission,source.emission+4,output.emission);
+      output.shininess = source.shininess; output.transparency = source.transparency;
+    }
+    CoinWgpuRenderState state{};
+    for (unsigned i = 0; i < 4; ++i)
+      state.model_view[i*5] = state.model_view_projection[i*5] = state.normal_matrix[i*5] = 1;
+    // Coin's identity projection has [-1,1] depth; WebGPU uses [0,1].
+    state.model_view_projection[10] = .5f; state.model_view_projection[14] = .5f;
+    state.light_model = 1; state.light_count = 2; state.cull_mode = 1;
+    state.depth_test = state.depth_write = 1; state.depth_function = 3;
+    state.depth_range[1] = 1; state.polygon_offset_primitive_style = 1;
+    state.viewport[2] = state.viewport[3] = side;
+    state.ambient_light[3] = 1;
+    for (int c = 0; c < 3; ++c)
+      state.ambient_light[c] = lighting.ambientIntensity*lighting.ambientColor[c];
+    for (unsigned i = 0; i < 2; ++i) {
+      const auto & source = lighting.lights[i]; auto & output = state.lights[i];
+      for (int c = 0; c < 3; ++c) {
+        output.position_type[c] = source.position[c]; output.direction_cutoff[c] = source.direction[c];
+        output.color_intensity[c] = source.color[c]; output.attenuation_exponent[c] = source.attenuation[c];
+      }
+      output.position_type[3] = static_cast<float>(source.type);
+      output.direction_cutoff[3] = std::cos(source.cutOffAngle);
+      output.color_intensity[3] = source.intensity;
+      output.attenuation_exponent[3] = source.dropOffRate*128;
+    }
+    CoinWgpuDraw draw{}; draw.vertex_count = static_cast<uint32_t>(vertices.size());
+    draw.index_count = static_cast<uint32_t>(frame.indices.size());
+    CoinWgpuFrameView view = clearFrame(0,0,0);
+    view.width = view.height = side; view.frame_revision = ++referenceRevision;
+    view.vertices = vertices.data(); view.vertex_count = vertices.size();
+    view.indices = frame.indices.data(); view.index_count = frame.indices.size();
+    view.draws = &draw; view.draw_count = 1; view.materials = materials.data(); view.material_count = materials.size();
+    view.states = &state; view.state_count = 1;
+    CoinWgpuTarget output = target(devices.reference,color,depth);
+    return check(coin_wgpu_submit(&output,&view,error,sizeof(error)) == COIN_WGPU_OK,
+                 "independent authored cuboid RGB/depth reference",error);
+  };
+  std::vector<uint8_t> previous;
+  const auto compare = [&](const CoinWgpuFrameView & view, bool mustChange, const char * description) {
+    std::vector<uint8_t> actual(side*side*4u,kSentinel), expected(actual);
+    std::vector<float> depth(side*side,-17), expectedDepth(depth);
+    if (!oracle(expected,expectedDepth)) return false;
+    CoinWgpuTarget output = target(devices.fast,actual,depth);
+    if (!check(coin_wgpu_submit(&output,&view,error,sizeof(error)) == COIN_WGPU_OK &&
+               output.submission_serial != 0,description,error)) return false;
+    bool wroteDepth = false;
+    for (size_t i = 0; i < actual.size(); ++i)
+      if (!check(std::abs(int(actual[i])-int(expected[i])) <= 2,
+                 "normalized cuboid RGB differs from independently baked authored geometry")) return false;
+    for (size_t i = 0; i < depth.size(); ++i) {
+      if (!check(std::isfinite(depth[i]) && std::isfinite(expectedDepth[i]) &&
+                 std::abs(depth[i]-expectedDepth[i]) <= 2e-6f,
+                 "normalized cuboid depth differs from independently baked positions")) return false;
+      wroteDepth |= depth[i] < 1;
+    }
+    if (!check(wroteDepth && (!mustChange || actual != previous),
+               "cuboid gate must draw visible geometry and reflect each update")) return false;
+    previous.swap(actual);
+    return true;
+  };
+  const auto reject = [&](const CoinWgpuFrameView & view, CoinWgpuStatus expected, const char * description) {
+    std::vector<uint8_t> color(side*side*4u,kSentinel); std::vector<float> depth(side*side,-17);
+    CoinWgpuTarget output = target(devices.fast,color,depth);
+    return check(coin_wgpu_submit(&output,&view,error,sizeof(error)) == expected && unchanged(color) &&
+        std::all_of(depth.begin(),depth.end(),[](float v) { return v == -17; }) && output.submission_serial == 0,
+        description,error);
+  };
+  if (!prepare(CoinRenderFrameReuseKind::FULL_REBUILD,0) ||
+      !compare(packed.getView(),false,"real normalized cuboid initial render")) return false;
+  // Prove that this image gate is sensitive to the mistake it targets. This
+  // deliberately wrong, finite normal transport is legal at the low-level ABI
+  // but must produce a visibly different PHONG result with these oblique normals.
+  CoinWgpuFrameView wrongNormals = packed.getView();
+  std::vector<CoinWgpuInstance> wrongInstances(wrongNormals.instances,
+      wrongNormals.instances+wrongNormals.instance_count);
+  for (auto & instance : wrongInstances) {
+    SbMatrix positionTransport; positionTransport.setValue(instance.model_view);
+    const SbMatrix incorrectNormal = positionTransport.inverse().transpose();
+    std::memcpy(instance.normal_matrix,incorrectNormal.getValue(),sizeof(instance.normal_matrix));
+  }
+  wrongNormals.instances = wrongInstances.data();
+  std::vector<uint8_t> wrongColor(side*side*4u,kSentinel); std::vector<float> wrongDepth(side*side,-17);
+  CoinWgpuTarget wrongOutput = target(devices.fast,wrongColor,wrongDepth);
+  if (!check(coin_wgpu_submit(&wrongOutput,&wrongNormals,error,sizeof(error)) == COIN_WGPU_OK,
+             "finite wrong-normal contraproof must render",error)) return false;
+  unsigned differentChannels = 0;
+  for (size_t i = 0; i < wrongColor.size(); ++i)
+    if (std::abs(int(wrongColor[i])-int(previous[i])) > 8) ++differentChannels;
+  if (!check(differentChannels > 16,
+             "cuboid image oracle must detect normals computed from inverse transport scale") ||
+      !compare(packed.getView(),false,"same-revision authored normals restored after contraproof")) return false;
+  const std::vector<CoinWgpuVertex> canonical(packed.getView().vertices,
+      packed.getView().vertices+packed.getView().vertex_count);
+  ++frame.revision; frame.materials[middleMaterial].diffuse[0] = .8f;
+  frame.materials[middleMaterial].shininess = .0625f;
+  if (!prepare(CoinRenderFrameReuseKind::RESOURCE_REBUILD,frame.revision-1) ||
+      !compare(packed.getView(),true,"normalized cuboid material update") ||
+      !check(std::memcmp(canonical.data(),packed.getView().vertices,canonical.size()*sizeof(CoinWgpuVertex)) == 0,
+             "material update must retain exact canonical geometry")) return false;
+  if (largeMaterialTable) {
+    ++frame.revision;
+    auto & material = frame.materials[middleMaterial];
+    material.ambient[1] = .375f; material.specular[2] = .75f;
+    material.emission[0] = .1875f; material.shininess = .375f;
+    if (!prepare(CoinRenderFrameReuseKind::RESOURCE_REBUILD,frame.revision-1) ||
+        !compare(packed.getView(),true,"large material tail update beyond diffuse")) return false;
+  }
+  ++frame.revision;
+  for (uint32_t v = 0; v < 24; ++v) {
+    frame.vertices[v].position[0] *= 1.5f;
+    frame.vertices[v].position[1] *= .75f;
+  }
+  if (!prepare(CoinRenderFrameReuseKind::RESOURCE_REBUILD,frame.revision-1) ||
+      !compare(packed.getView(),true,"normalized cuboid local geometry resize") ||
+      !check(std::memcmp(canonical.data(),packed.getView().vertices,canonical.size()*sizeof(CoinWgpuVertex)) == 0,
+             "local resize must change instance position scale while retaining canonical geometry")) return false;
+  // Full payload failures must preserve output and permit a same-revision
+  // repair; both validation and late GPU submission failures are covered.
+  ++frame.revision;
+  if (largeMaterialTable) frame.materials[middleMaterial].emission[1] = .375f;
+  if (!prepare(CoinRenderFrameReuseKind::FULL_REBUILD,0)) return false;
+  CoinWgpuFrameView invalid = packed.getView();
+  std::vector<CoinWgpuInstance> invalidInstances(invalid.instances,invalid.instances+invalid.instance_count);
+  invalid.instances = invalidInstances.data(); invalidInstances[0].normal_matrix[0] = std::numeric_limits<float>::quiet_NaN();
+  if (!reject(invalid,COIN_WGPU_INVALID_ARGUMENT,"normalized instance failure must not publish RGB/depth")) return false;
+  coin_wgpu_inject_async_fault(COIN_WGPU_OUT_OF_MEMORY);
+  const bool late = reject(packed.getView(),COIN_WGPU_OUT_OF_MEMORY,"normalized instance late OOM must not publish");
+  coin_wgpu_inject_async_fault(COIN_WGPU_OK);
+  if (!late || !compare(packed.getView(),largeMaterialTable,
+                       "normalized instance same-revision retry after failure")) return false;
+  const uint64_t base = frame.revision++;
+  SbMatrix view;
+  view.setRotate(SbRotation(SbVec3f(0,1,0),.125f)); view[3][0] = .0625f; view[3][1] = -.03125f;
+  setCamera(view);
+  if (!prepare(CoinRenderFrameReuseKind::CAMERA_PATCH,base) ||
+      !compare(nullPayload(packed.getView()),true,"normalized cuboid camera/light reuse after retry")) return false;
+  CoinWgpuCacheStats stats{}; coin_wgpu_get_cache_stats(&stats);
+  return check(stats.frame_uploads == 0 && stats.frame_uploaded_bytes == 0 && stats.frame_hits >= 1,
+               "normalized camera must retain canonical geometry, instance and material GPU buffers");
+}
+
 bool concurrentSubmissions() {
   CoinWgpuDeviceId first = 0, second = 0;
   if (!createDevice(first) || !createDevice(second)) return false;
@@ -659,7 +1421,7 @@ int main(int argc, char ** argv) {
   const bool runStress = argc > 1 && std::string(argv[1]) == "--stress";
   const bool passed = runStress ? stress() :
                       (invalidHandles() && lifecycleAndIsolation() && rttOwnership() &&
-                       cacheIsolation() && validatedCameraSceneOwnership() &&
+                       cacheIsolation() && validatedCameraSceneOwnership() && ownedPhongCameraBuffers() && instancedOpaqueOwnership() && instancedOpaqueDrawOrder() && normalizedCuboidTransport() && normalizedCuboidTransport(true) &&
                        concurrentSubmissions());
   if (passed) std::cout << "CoinWgpuMultiDeviceTest passed"
                         << (runStress ? " (stress)" : "") << '\n';

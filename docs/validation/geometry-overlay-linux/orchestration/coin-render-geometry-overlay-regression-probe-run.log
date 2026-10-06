@@ -1,0 +1,38 @@
+START bgfx-vulkan-geometry-10-on-1
+END bgfx-vulkan-geometry-10-on-1 total_median_ms=62.180738
+START bgfx-vulkan-geometry-10-off-1
+END bgfx-vulkan-geometry-10-off-1 total_median_ms=58.654367
+START bgfx-vulkan-geometry-10-off-2
+END bgfx-vulkan-geometry-10-off-2 total_median_ms=60.156368
+START bgfx-vulkan-geometry-10-on-2
+END bgfx-vulkan-geometry-10-on-2 total_median_ms=56.303794
+START bgfx-vulkan-geometry-10-on-3
+END bgfx-vulkan-geometry-10-on-3 total_median_ms=56.841774
+START bgfx-vulkan-geometry-10-off-3
+END bgfx-vulkan-geometry-10-off-3 total_median_ms=60.226241
+{
+  "update_ms": {
+    "off": 7.701224,
+    "on": 7.575642,
+    "delta_ms": -0.12558199999999964,
+    "change_percent": -1.6306758510075792
+  },
+  "render_ms": {
+    "off": 51.764804,
+    "on": 48.841303,
+    "delta_ms": -2.9235009999999946,
+    "change_percent": -5.647661681477622
+  },
+  "publication_ms": {
+    "off": 0.426652,
+    "on": 0.422866,
+    "delta_ms": -0.003785999999999956,
+    "change_percent": -0.8873742534899587
+  },
+  "total_ms": {
+    "off": 60.156368,
+    "on": 56.841774,
+    "delta_ms": -3.3145939999999996,
+    "change_percent": -5.50996363344276
+  }
+}

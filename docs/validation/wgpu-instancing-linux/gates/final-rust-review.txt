@@ -1,0 +1,30 @@
+Revisão final Rust/ABI43 — commit b02aa54783
+Somente leitura de código, ABI e logs existentes; sem novos builds ou execuções GPU.
+Conclusão: não encontrei risco concreto bloqueante no perfil implementado e validado.
+
+Benefícios do caminho
+- Geometria canônica permanece em VB/IB pequenos; matrizes e material_slot ficam no storage de instâncias (144 bytes por ocorrência). PHONG reutiliza a implementação existente do shader.
+- Uma revisão de objetos com geometria idêntica envia instâncias e materiais GPU, sem expandir nem reenviar a geometria. Revisões iniciais ou geometria diferente criam VB/IB novos.
+- Static/camera com a mesma Arc owned evitam comparações repetidas no encoder e reutilizam todos os buffers. Static com payload completo compara seus bytes uma vez na admissão; câmera com payloads nulos usa somente o snapshot válido.
+
+Garantias de ABI/cache/falha
+- C++ e Rust concordam: protocolo43, Frame448, Instance144, Range16 e offsets416/432. O teste Naga confirma stride144 e material_slot no offset128.
+- Counts/limites são verificados antes de ler payloads nas duas entradas. Há validação de alinhamento, reserved, finitude, slots, índices/draws e ranges contíguos cobrindo todas as instâncias. O perfil leve também roda nos hits owned.
+- Revisão igual não prova igualdade de conteúdo instanced. Full novo passa validação; reuso de geometria e payload exige bytes exatos. O oráculo GPU altera transform/material com a mesma revisão e contagens.
+- Scene e buffers são locais ao dispositivo/geração. CPU snapshots e GPU buffers compartilham a mesma Arc; hints antigos, contagens/dimensões/clear diferentes e gerações perdidas não autorizam acesso a payloads nulos.
+- Buffers dinâmicos são novos e imutáveis. O cache candidato fica local ao encode e só é publicado após sucesso: offscreen síncrono depois de maps/publicação, janela depois de present/checagem de erros, async depois da submissão aceita. Falha tardia síncrona conserva a base antiga; falha de readback async conserva a base já submetida, salvo perda de geração.
+- Um dispositivo mantém um snapshot/cache instanced corrente. Intercalar superfícies pode perder o hit de snapshot e exigir payload completo; não autoriza misturar bases.
+
+Limites e custos restantes
+- Perfil opaco BASE_COLOR/PHONG, um estado comum, até128 grupos triangulares consecutivos; sem textura, fog, clipping, transparência, shadows, polygon offset ou RTT instanced. C++ seleciona o caminho comum nos casos restantes e pode desativar instancing por COIN_WGPU_DISABLE_OPAQUE_INSTANCING=1. RTT comum permanece habilitado; payload privado instanced RTT retorna Unsupported.
+- Budgets privados: geometria8MiB, instâncias32MiB e materiais CPU32MiB; matrizes têm bounds conservadores compartilhados com C++. O dispositivo precisa comportar dois storage buffers no vertex stage e o tamanho de binding usado.
+- Cada full dinâmico ainda valida/copia o snapshot e aloca um buffer inteiro de instâncias/material. Não há upload somente de instâncias dirty nem rewrite mutável.
+- Retenção persistente é bounded por dispositivo, mas versões temporárias e buffers de comandos ainda em voo vivem até a conclusão GPU. Esses budgets não são um teto global de RSS/VRAM. Counters/trace medem bytes nominais de payload; materiais GPU usam80 bytes por slot, contra72 no POD CPU.
+- A política de apresentação e seu backpressure permanecem os existentes. Esta mudança não comprova ganho de primeiro frame frio nem desempenho em outros drivers/backends.
+
+Validação registrada
+- Quatro gates CPU: Action, TransformCore, FrameReuseCore e FfiFrame.
+- Rust:27 testes seriais passaram na NVIDIA/Vulkan (0,73s); também houve passagem serial em llvmpipe. Inclui layouts WGSL, limites, conteúdo exato e Arc/câmera.
+- MultiDevice passou após corrigir polygon_offset_primitive_style nos novos fixtures. Oráculos incluem RGB/depth contra baked independente, transforms/material, delta→âncora, ordem A/B/A com profundidade igual (Always/LessEqual), OOM tardio/rollback, async submit/poll, dispositivos e gerações.
+- CameraReuseReference/CoinGL, Surface câmera/full/faults, SceneTexture e RttOwnership passaram. commands.json preserva a falha inicial de fixture e a execução corrigida.
+- Execução Rust paralela teve SIGSEGV no probe vkEnumerateInstanceExtensionProperties/libvulkan, antes de adapter/device/encoder. Stack/símbolo estão em rust-parallel-diagnostic.txt; o core de memória não foi aberto. A causa específica do loader/driver/layer/concurrency não foi demonstrada. O gate serial NVIDIA completo passou.

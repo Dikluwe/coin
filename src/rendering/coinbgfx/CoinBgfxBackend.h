@@ -15,9 +15,13 @@ struct CoinRenderShadowPlan;
 /** Experimental BGFX renderer. Targets share an API-thread-owned device. */
 class CoinBgfxBackend : public CoinRenderBackend {
 public:
+  static CoinRenderBackendRuntime & runtime();
   CoinBgfxBackend();
   ~CoinBgfxBackend() override;
+  bool initializesCpuDepthBuffer() const override { return false; }
+  bool resetOnActionDetach() const override { return true; }
   bool isGpuBackend() const override { return true; }
+  bool supportsOffscreenShadows() const override { return true; }
   uint64_t getAvailableTransparencyMechanisms(bool window = false) const {
     if (!(window ? this->windowSupported : this->offscreenSupported))
       return 0;
@@ -29,7 +33,7 @@ public:
   CoinRenderBackendStatus prepare(CoinRenderTargetP & target) override;
   CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target) override;
   CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
-                      const CoinRenderFrameReuseDecision & reuse);
+                      const CoinRenderFrameReuseDecision & reuse) override;
   CoinRenderSubmitResult submitDirectTexture(const CoinRenderFramePlan & frame,
                                    const SbVec2i32 & size,
                                    uint64_t producerKey,
@@ -51,7 +55,7 @@ public:
   void finishDirectTextures(const std::vector<uint64_t> & usedTokens);
   struct AsyncEntry;
   CoinRenderSubmitResult submitAsync(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
-                           CoinRenderReadbackTicket & ticket, const CoinRenderFrameReuseDecision & reuse);
+                           CoinRenderReadbackTicket & ticket, const CoinRenderFrameReuseDecision & reuse) override;
   static CoinRenderTarget::ReadbackStatus pollReadback(const CoinRenderReadbackTicket & ticket,
     std::vector<uint8_t> & color, std::vector<float> & depth, SbString * diagnostic);
   static bool cancelReadback(const CoinRenderReadbackTicket & ticket);
@@ -80,7 +84,14 @@ private:
   CoinRenderSubmitResult submitInternal(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
                               const CoinRenderFrameReuseDecision & reuse, CoinRenderReadbackTicket * ticket);
   bool resize(int width, int height);
+  bool prepareBaseProgram(const std::vector<CoinBgfxDraw> & draws,
+                          bool hasShadows,
+                          CoinBgfxTransparencyStrategy strategy,
+                          bool instanced = false);
+  bool prepareFullscreenResources();
+  bool prepareDepthReadbackResources();
   bool prepareShadowPrograms(size_t mapCount);
+  bool prepareTransparencyPrograms(CoinBgfxTransparencyStrategy strategy);
   bool prepareShadowTransparencyPrograms();
   CoinRenderBackendStatus checkRuntimeFailure(const char * operation);
   void destroyResources();
@@ -135,6 +146,7 @@ private:
   bool presentToWindow;
   bool cameraPatchEnabled;
   bool drawGroupingEnabled;
+  bool drawBatchingEnabled;
   bool readbackDepthEnabled = false;
   uint32_t readbackPipelineDepth;
   uint32_t readbackCursor;
@@ -151,7 +163,13 @@ private:
   int width;
   int height;
   bgfx::VertexLayout layout;
+  bgfx::VertexLayout compactLayout;
+  bgfx::VertexLayout instancedLayout;
+  bgfx::VertexLayout instanceLayout;
   bgfx::ProgramHandle program;
+  bgfx::ProgramHandle solidProgram;
+  bgfx::ProgramHandle instancedProgram;
+  bgfx::ProgramHandle activeProgram; // Alias selected for the current submission.
   bgfx::ProgramHandle shadowMomentsProgram;
   bgfx::ProgramHandle shadowReceiverProgram;
   bgfx::ProgramHandle shadowReceiverProgram4;
@@ -184,6 +202,7 @@ private:
   bgfx::UniformHandle depthInfoUniform;
   bgfx::UniformHandle coinDepthUniform;
   bgfx::UniformHandle screenDoorUniform;
+  bgfx::UniformHandle alphaTestUniform;
   bgfx::UniformHandle clipMetaUniform;
   bgfx::UniformHandle clipPlanesUniform;
   bgfx::VertexBufferHandle fullscreenVertexBuffer;
@@ -200,6 +219,7 @@ private:
   bgfx::UniformHandle lightPositionTypeUniform;
   bgfx::UniformHandle lightDirectionCutoffUniform;
   bgfx::UniformHandle lightColorIntensityUniform;
+  bgfx::UniformHandle instancedCameraUniform;
   bgfx::UniformHandle lightAttenuationDropUniform;
   bgfx::FrameBufferHandle frameBuffer;
   bgfx::FrameBufferHandle oitFrameBuffer;
@@ -219,7 +239,11 @@ private:
   std::vector<bgfx::TextureHandle> cachedTextures;
   bgfx::DynamicVertexBufferHandle cachedVertexBuffer;
   bgfx::DynamicIndexBufferHandle cachedIndexBuffer;
+  bgfx::DynamicVertexBufferHandle cachedInstanceBuffer = BGFX_INVALID_HANDLE;
+  uint32_t cachedInstanceCapacity = 0;
   uint32_t cachedVertexCapacity;
+  bool cachedCompactVertices = false;
+  bool cachedInstancedVertices = false;
   uint32_t cachedIndexCapacity;
 };
 

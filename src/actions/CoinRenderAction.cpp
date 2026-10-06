@@ -28,6 +28,11 @@
 #include <Inventor/elements/SoEnvironmentElement.h>
 #include <Inventor/nodes/SoSpotLight.h>
 #include <Inventor/nodes/SoPointLight.h>
+#include <Inventor/nodes/SoPointSet.h>
+#include <Inventor/nodes/SoIndexedPointSet.h>
+#include <Inventor/nodes/SoFaceSet.h>
+#include <Inventor/nodes/SoVertexShape.h>
+#include <Inventor/nodes/SoComplexity.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/elements/SoTextureCombineElement.h>
 #include <Inventor/nodes/SoVertexProperty.h>
@@ -47,9 +52,17 @@
 #include <Inventor/nodes/SoRotation.h>
 #include <Inventor/nodes/SoScale.h>
 #include <Inventor/nodes/SoTransform.h>
+#include <Inventor/nodes/SoEnvironment.h>
+#include <Inventor/fields/SoField.h>
+#include <Inventor/fields/SoFieldData.h>
 #include <Inventor/nodes/SoClipPlane.h>
 #include <Inventor/nodes/SoCube.h>
+#include <Inventor/nodes/SoImage.h>
+#include <Inventor/nodes/SoText2.h>
+#include <Inventor/nodes/SoMarkerSet.h>
+#include <Inventor/nodes/SoIndexedMarkerSet.h>
 #include <Inventor/SbViewVolume.h>
+#include <Inventor/SoPath.h>
 #include <Inventor/bundles/SoTextureCoordinateBundle.h>
 #include <Inventor/elements/SoCoordinateElement.h>
 #include <Inventor/elements/SoNormalElement.h>
@@ -72,24 +85,25 @@
 #include <algorithm>
 #include <chrono>
 #include <memory>
+#include <new>
+#include <unordered_set>
 #include <cstdlib>
 #include <iostream>
+#include <limits>
+#include <cmath>
 #include <Inventor/misc/SoState.h>
+#include <Inventor/misc/SoChildList.h>
 
 #include "actions/CoinRenderActionP.h"
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 #include "rendering/coinrender/CoinRenderFrameReuseCore.h"
 #include "rendering/coinrender/CoinRenderRttExecution.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
+#include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderSelectionCore.h"
+#include "rendering/coinrender/CoinRenderAlphaTestCapture.h"
+#include "rendering/coinrender/CoinRenderPhaseTimer.h"
 #include "actions/SoSubActionP.h"
-#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-#include "rendering/coinwgpu/CoinWgpuBackend.h"
-#elif defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
-#include "rendering/coinwgpu/CoinWgpuNativeBackend.h"
-#elif defined(HAVE_COIN_BGFX)
-#include "rendering/coinbgfx/CoinBgfxBackend.h"
-#endif
 
 SO_ACTION_SOURCE(CoinRenderAction);
 
@@ -102,23 +116,18 @@ CoinRenderAction::initClass(void)
   SO_ENABLE(CoinRenderAction, SoShadowStyleElement);
   CoinRenderDepthPolicyElement::initClass();
   SO_ENABLE(CoinRenderAction, CoinRenderDepthPolicyElement);
+  SO_ACTION_ADD_METHOD(SoShape, CoinRenderActionP::shapeContentMethod);
+  SO_ACTION_ADD_METHOD(SoImage, CoinRenderActionP::screenContentMethod);
+  SO_ACTION_ADD_METHOD(SoText2, CoinRenderActionP::screenContentMethod);
+  SO_ACTION_ADD_METHOD(SoMarkerSet, CoinRenderActionP::markerContentMethod);
+  SO_ACTION_ADD_METHOD(SoIndexedMarkerSet, CoinRenderActionP::markerContentMethod);
+  SO_ACTION_ADD_METHOD(SoAlphaTest, CoinRenderActionP::alphaTestMethod);
 }
 
 SbBool
 CoinRenderAction::isGpuBackendAvailable(void)
 {
-#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-  return CoinWgpuBackend::isAvailable() ? TRUE : FALSE;
-#elif defined(HAVE_COIN_BGFX)
-  CoinRenderCapabilities caps{};
-  caps.struct_size = sizeof(caps);
-  return coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN,
-    &caps, sizeof(caps)) == 0 && caps.gpu_available ? TRUE : FALSE;
-#elif defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
-  return CoinWgpuNativeBackend::isAvailable() ? TRUE : FALSE;
-#else
-  return FALSE;
-#endif
+  return CoinRenderTargetP::isGpuBackendAvailable() ? TRUE : FALSE;
 }
 
 CoinRenderAction::CoinRenderAction(void)
@@ -398,38 +407,90 @@ CoinRenderActionP::setDiagnostic(const CoinRenderActionDiagnostic & diagnostic)
 }
 
 namespace {
+size_t
+captureStorageEstimate(SoNode * root)
+{
+  if (!root) return 0;
+  // Inspect at most 64 nodes through two child levels. Broad groups already
+  // supply a useful hint; their descendants are never scanned here.
+  struct Pending { SoNode * node; unsigned depth; };
+  Pending pending[64] = {{root, 0}};
+  size_t next = 0, end = 1, estimate = 0;
+  while (next < end) {
+    const Pending current = pending[next++];
+    const SoChildList * children = current.node->getChildren();
+    if (!children) continue;
+    const int count = children->getLength();
+    estimate = std::max(estimate, std::min(size_t(count), size_t(65536)));
+    if (current.depth == 2 || count >= 256) continue;
+    for (int i = 0; i < count && end < 64; ++i)
+      pending[end++] = {(*children)[i], current.depth + 1};
+  }
+  return estimate;
+}
+
 // Exact types only: custom subclasses and view-dependent traversal fall back.
 bool
-cameraStableScene(SoNode * root, SoCamera * camera)
+cameraStableScene(SoNode * root, SoCamera * camera, bool translationProfile = false,
+                  std::unordered_map<const SoNode *, size_t> * materialVisits = NULL)
 {
   std::vector<SoNode *> pending(1, root);
+  // Node types are fixed for this qualification. Shared leaves need their
+  // fields checked once; groups still expand on every occurrence so a reused
+  // camera cannot disappear behind a cached ancestor.
+  const SoType separatorType = SoSeparator::getClassTypeId();
+  const SoType groupType = SoGroup::getClassTypeId();
+  const SoType leafTypes[] = {
+    SoCube::getClassTypeId(), SoTransform::getClassTypeId(), SoMaterial::getClassTypeId(),
+    SoTranslation::getClassTypeId(), SoLightModel::getClassTypeId(),
+    SoDirectionalLight::getClassTypeId(), SoEnvironment::getClassTypeId(),
+    SoCoordinate3::getClassTypeId(), SoNormal::getClassTypeId(),
+    SoNormalBinding::getClassTypeId(), SoMaterialBinding::getClassTypeId(),
+    SoShapeHints::getClassTypeId(), SoPointLight::getClassTypeId(), SoSpotLight::getClassTypeId(),
+    SoIndexedFaceSet::getClassTypeId(), SoIndexedLineSet::getClassTypeId()
+  };
+  const SoType * leafEnd = leafTypes + sizeof(leafTypes) / sizeof(leafTypes[0]);
+  std::unordered_set<SoNode *> qualifiedSharedLeaves;
+  unsigned cameraOccurrences = 0;
+  size_t materialOccurrences = 0;
   while (!pending.empty()) {
     SoNode * node = pending.back();
     pending.pop_back();
+    // Count every syntactic material occurrence before shared-leaf dedup.
+    // Held references do not represent traversal through a different scope.
+    if (materialVisits && node->getTypeId() == SoMaterial::getClassTypeId()) {
+      if (++materialOccurrences > 65536) return false;
+      ++(*materialVisits)[node];
+    }
+    if (node == camera) {
+      if (++cameraOccurrences != 1) return false;
+      if (!translationProfile) continue;
+    }
+    const bool shared = node->getRefCount() > 1;
+    if (shared && qualifiedSharedLeaves.find(node) != qualifiedSharedLeaves.end()) continue;
     const SoType type = node->getTypeId();
-    if (node == camera) continue;
-    if (type == SoSeparator::getClassTypeId() ||
-        type == SoGroup::getClassTypeId()) {
+    const bool isGroup = type == separatorType || type == groupType;
+    if (node != camera && !isGroup && std::find(leafTypes, leafEnd, type) == leafEnd) return false;
+    // Connected scene fields may change as a consequence of camera fields.
+    // Qualify their absence once, outside all subsequent overlay updates.
+    const SoFieldData * fields = node->getFieldData();
+    if (fields) {
+      const int fieldCount = fields->getNumFields();
+      for (int i = 0; i < fieldCount; ++i)
+        if (fields->getField(node, i)->isConnected() ||
+            (translationProfile && fields->getField(node, i)->isIgnored())) return false;
+    }
+    if (isGroup) {
       SoGroup * group = static_cast<SoGroup *>(node);
       for (int i = 0; i < group->getNumChildren(); ++i) {
         pending.push_back(group->getChild(i));
       }
-    } else if (type != SoCoordinate3::getClassTypeId() &&
-               type != SoNormal::getClassTypeId() &&
-               type != SoNormalBinding::getClassTypeId() &&
-               type != SoMaterial::getClassTypeId() &&
-               type != SoMaterialBinding::getClassTypeId() &&
-               type != SoShapeHints::getClassTypeId() &&
-               type != SoLightModel::getClassTypeId() &&
-               type != SoTranslation::getClassTypeId() &&
-               type != SoIndexedFaceSet::getClassTypeId() &&
-               type != SoIndexedLineSet::getClassTypeId() &&
-               type != SoCube::getClassTypeId()) {
-      return false;
-    }
+    } else if (shared) qualifiedSharedLeaves.insert(node);
   }
-  return true;
+  return cameraOccurrences == 1;
 }
+bool translationFieldsStable(const SoNode *);
+bool objectOverlayEnabled(const char *);
 }
 
 void
@@ -437,9 +498,50 @@ CoinRenderActionP::cameraSensorCB(void * data, SoSensor * sensor)
 {
   CoinRenderActionP * self = static_cast<CoinRenderActionP *>(data);
   SoNodeSensor * nodeSensor = static_cast<SoNodeSensor *>(sensor);
-  if (self->cachedCamera &&
-      nodeSensor->getTriggerNode() == self->cachedCamera &&
+  SoNode * trigger = nodeSensor->getTriggerNode();
+  SoField * field = nodeSensor->getTriggerField();
+  SoSFVec3f * position = NULL;
+  if (trigger && trigger->getTypeId() == SoTranslation::getClassTypeId())
+    position = &static_cast<SoTranslation *>(trigger)->translation;
+  else if (trigger && trigger->getTypeId() == SoTransform::getClassTypeId())
+    position = &static_cast<SoTransform *>(trigger)->translation;
+  if (position && field == position && field->getContainer() == trigger &&
+      nodeSensor->getTriggerOperationType() == SoNotRec::FIELD_UPDATE) {
+    self->translationInputDirty = true;
+    const auto found = self->translationByNode.find(trigger);
+    if (!position->isConnected() && !position->isIgnored() && self->translationProofValid && !self->translationInvalidated &&
+        !self->cameraOnlyDirty && found != self->translationByNode.end())
+      self->translationDirty.insert(found->second);
+    else self->translationInvalidated = true;
+  } else if (trigger && field && field->getContainer() == trigger &&
+             nodeSensor->getTriggerOperationType() == SoNotRec::FIELD_UPDATE &&
+             trigger->getTypeId() == SoMaterial::getClassTypeId()) {
+    auto * material = static_cast<SoMaterial *>(trigger);
+    const bool knownField = field == &material->ambientColor || field == &material->diffuseColor ||
+      field == &material->specularColor || field == &material->emissiveColor || field == &material->shininess;
+    // Notifications record changes regardless of the current optout. Admission
+    // and preparation read the option once per operation, including changes
+    // made between this notification and apply().
+    self->translationInputDirty = true;
+    // Validate all fields once per dirty source during overlay preparation.
+    if (knownField && self->translationProofValid &&
+        !self->translationInvalidated && !self->cameraOnlyDirty && self->materialByNode.count(trigger))
+      self->materialDirty.insert(trigger);
+    else self->translationInvalidated = true;
+  } else if (trigger && field && field->getContainer() == trigger &&
+             nodeSensor->getTriggerOperationType() == SoNotRec::FIELD_UPDATE &&
+             trigger->getTypeId() == SoCube::getClassTypeId()) {
+    auto * cube = static_cast<SoCube *>(trigger);
+    self->translationInputDirty = true;
+    if ((field == &cube->width || field == &cube->height || field == &cube->depth) &&
+        self->translationProofValid && !self->translationInvalidated &&
+        !self->cameraOnlyDirty && self->cubeByNode.count(trigger)) self->geometryDirty.insert(trigger);
+    else self->translationInvalidated = true;
+  } else self->translationInvalidated = true;
+  if (self->candidateCamera &&
+      nodeSensor->getTriggerNode() == self->candidateCamera &&
       nodeSensor->getTriggerField() &&
+      nodeSensor->getTriggerField()->getContainer() == self->candidateCamera &&
       nodeSensor->getTriggerOperationType() == SoNotRec::FIELD_UPDATE) {
     self->cameraOnlyDirty = true;
   } else {
@@ -448,12 +550,29 @@ CoinRenderActionP::cameraSensorCB(void * data, SoSensor * sensor)
 }
 
 void
-CoinRenderActionP::rememberFrameRoot(SoNode * root)
+CoinRenderActionP::rememberFrameRoot(SoNode * root, bool qualifyCamera)
 {
+  ++this->captureCameraBasisCalls;
+  struct BasisTraceScope {
+    CoinRenderActionP * action;
+    bool enabled;
+    ~BasisTraceScope() {
+      if (enabled)
+        std::fprintf(stderr, "COIN_RENDER_PHASE capture_camera_basis calls=%zu prepares=%zu reuse=%zu prepare_ms=%.6f\n",
+          action->captureCameraBasisCalls, action->captureCameraBasisPrepares,
+          action->captureCameraBasisReuses, action->captureCameraBasisPrepareMs);
+    }
+  } basisTrace{this, CoinRenderDiagnosticShell::phaseTracingEnabled()};
+  struct CaptureScope { bool & capturing; ~CaptureScope() { capturing = false; } } scope{this->capturingTranslations};
   this->cameraSensor.detach();
+  this->candidateCamera = NULL;
   this->cachedCamera = NULL;
+  this->cameraOverlayBasis = CoinRenderCameraOverlayBasis();
   this->cameraOnlyDirty = false;
   this->cameraPatchInvalidated = false;
+  this->cameraRecaptureRequired = false;
+  this->translationInputDirty = false;
+  this->translationInvalidated = false;
   if (!root || root->getTypeId() != SoSeparator::getClassTypeId()) return;
   SoSeparator * group = static_cast<SoSeparator *>(root);
   if (group->getNumChildren() < 2) return;
@@ -464,22 +583,566 @@ CoinRenderActionP::rememberFrameRoot(SoNode * root)
   SoCamera * camera = static_cast<SoCamera *>(first);
   if (camera->viewportMapping.getValue() != SoCamera::ADJUST_CAMERA &&
       camera->viewportMapping.getValue() != SoCamera::LEAVE_ALONE) return;
-  if (!cameraStableScene(root, camera)) return;
-  this->cachedCamera = camera;
+  // Object animation must not pay for a scene-wide camera qualification after
+  // every capture. Keep only this cheap candidate/sensor until the camera moves.
+  this->candidateCamera = camera;
   this->cameraSensor.attach(root);
+  const CoinRenderCameraOverlayBasis * capturedBasis = NULL;
+  if (qualifyCamera && cameraStableScene(root, camera)) {
+    ++this->captureCameraBasisPrepares;
+    const auto before = basisTrace.enabled ? std::chrono::steady_clock::now()
+                                          : std::chrono::steady_clock::time_point();
+    const bool prepared = CoinRenderFrameReuseCore::prepareCameraOverlayBasis(
+      this->lastValidPlan, this->cameraOverlayBasis);
+    if (basisTrace.enabled)
+      this->captureCameraBasisPrepareMs += std::chrono::duration<double, std::milli>(
+        std::chrono::steady_clock::now() - before).count();
+    if (prepared) {
+      this->cachedCamera = camera;
+      capturedBasis = &this->cameraOverlayBasis;
+    }
+  }
+  this->qualifyTranslationCapture(root, capturedBasis);
+}
+
+namespace {
+bool translationFieldsStable(const SoNode * node)
+{
+  const SoFieldData * fields = node->getFieldData();
+  for (int i = 0; fields && i < fields->getNumFields(); ++i) {
+    const SoField * field = fields->getField(node, i);
+    if (field->isConnected() || field->isIgnored()) return false;
+  }
+  return true;
+}
+bool objectOverlayEnabled(const char * name) {
+  const char * value = std::getenv(name);
+  return !(value && std::strcmp(value, "1") == 0);
+}
+bool opaqueMaterialSnapshot(const SoMaterial * node, CoinRenderMaterialSnapshot & result) {
+  if (node->getNodeType() != SoNode::INVENTOR || node->isOverride() || !translationFieldsStable(node) ||
+      node->ambientColor.getNum() != 1 || node->diffuseColor.getNum() != 1 ||
+      node->specularColor.getNum() != 1 || node->emissiveColor.getNum() != 1 || node->shininess.getNum() != 1 ||
+      node->transparency.getNum() != 1 || node->transparency[0] != 0) return false;
+  CoinRenderMaterialSnapshot candidate;
+  const SbColor colors[] = {node->ambientColor[0], node->diffuseColor[0], node->specularColor[0], node->emissiveColor[0]};
+  float * output[] = {candidate.ambient, candidate.diffuse, candidate.specular, candidate.emission};
+  for (int color = 0; color < 4; ++color) for (int axis = 0; axis < 3; ++axis) {
+    const float value = colors[color][axis];
+    if (!std::isfinite(value) || value < 0 || value > 1) return false;
+    output[color][axis] = value;
+  }
+  candidate.shininess = node->shininess[0];
+  if (!std::isfinite(candidate.shininess) || candidate.shininess < 0 || candidate.shininess > 1) return false;
+  result = candidate;
+  return true;
+}
+bool cubeDimensions(const SoCube * node, SbVec3f & result) {
+  const SbVec3f value(node->width.getValue(), node->height.getValue(), node->depth.getValue());
+  for (int axis = 0; axis < 3; ++axis)
+    if (!std::isfinite(value[axis]) || value[axis] < .0001f || value[axis] > 32768) return false;
+  result = value;
+  return true;
+}
+}
+
+void CoinRenderActionP::clearTranslationProof()
+{
+  this->translationProofValid = false;
+  this->translationProofRevision = this->translationProofGeneration = 0;
+  this->translationBindings.clear();
+  this->translationByNode.clear();
+  this->translationDirty.clear();
+  this->materialDirty.clear(); this->geometryDirty.clear();
+  this->materialByNode.clear(); this->cubeByNode.clear();
+  if (this->translationGeneration != std::numeric_limits<uint64_t>::max())
+    ++this->translationGeneration;
+}
+
+void CoinRenderActionP::beginTranslationCapture(bool enabled)
+{
+  this->clearTranslationProof();
+  this->translationCapture.clear();
+  this->translationCaptureByNode.clear();
+  this->capturedDrawSources.clear(); this->pendingCaptureShape = NULL;
+  this->translationShapeCandidate = SIZE_MAX;
+  const char * disabled = std::getenv("COIN_RENDER_DISABLE_TRANSLATION_OVERLAY");
+  this->capturingTranslations = enabled && this->translationGeneration != std::numeric_limits<uint64_t>::max() &&
+    !(disabled && std::strcmp(disabled, "1") == 0);
+  this->translationCaptureInvalid = false;
+}
+
+SoCallbackAction::Response CoinRenderActionP::translationPreCB(
+  void * data, SoCallbackAction * action, const SoNode * node)
+{
+  auto * self = static_cast<CoinRenderActionP *>(data);
+  if (!self->capturingTranslations || self->translationCaptureInvalid) return SoCallbackAction::CONTINUE;
+  const SoType type = node->getTypeId();
+  if (type != SoTransform::getClassTypeId() && type != SoTranslation::getClassTypeId())
+    return SoCallbackAction::CONTINUE;
+  const SoPath * path = action->getCurPath();
+  if (path->getLength() < 2) return SoCallbackAction::CONTINUE;
+  SoNode * parentNode = path->getNodeFromTail(1);
+  if (parentNode->getTypeId() != SoSeparator::getClassTypeId()) return SoCallbackAction::CONTINUE;
+  auto * parent = static_cast<SoSeparator *>(parentNode);
+  if (parent->getNumChildren() != 3 || parent->getRefCount() != 1 || node->getRefCount() != 1 ||
+      parent->getChild(2)->getTypeId() != SoCube::getClassTypeId() ||
+      !translationFieldsStable(parent) || !translationFieldsStable(node) ||
+      !translationFieldsStable(parent->getChild(2))) return SoCallbackAction::CONTINUE;
+  SoNode * material = parent->getChild(0) == node ? parent->getChild(1) : parent->getChild(0);
+  if ((parent->getChild(0) != node && parent->getChild(1) != node) ||
+      material->getTypeId() != SoMaterial::getClassTypeId() || !translationFieldsStable(material) ||
+      !self->master->hasSingleShapeCallbacks(SoCube::getClassTypeId())) return SoCallbackAction::CONTINUE;
+  if (self->translationCapture.size() == 65536 || self->translationCaptureByNode.count(node)) {
+    self->translationCaptureInvalid = true;
+    return SoCallbackAction::CONTINUE;
+  }
+  TranslationBinding binding;
+  binding.transform = const_cast<SoNode *>(node);
+  binding.parent = parent;
+  binding.cube = parent->getChild(2);
+  binding.material = static_cast<SoMaterial *>(material);
+  const auto * cube = static_cast<const SoCube *>(binding.cube);
+  binding.cubeDimensions.setValue(cube->width.getValue(), cube->height.getValue(), cube->depth.getValue());
+  if (type == SoTransform::getClassTypeId()) {
+    auto * transform = static_cast<SoTransform *>(binding.transform);
+    if (transform->center.getValue() != SbVec3f(0,0,0)) return SoCallbackAction::CONTINUE;
+    binding.field = &transform->translation;
+  } else binding.field = &static_cast<SoTranslation *>(binding.transform)->translation;
+  binding.originalPosition = binding.field->getValue();
+  binding.prefix = action->getModelMatrix();
+  self->translationCaptureByNode[node] = self->translationCapture.size();
+  self->translationCapture.push_back(binding);
+  return SoCallbackAction::CONTINUE;
+}
+
+void CoinRenderActionP::beginTranslationShape(SoCallbackAction * action, const SoNode * node)
+{
+  this->translationShapeCandidate = SIZE_MAX;
+  if (this->capturingTranslations && !this->translationCaptureInvalid) {
+    this->pendingCaptureShape = node;
+    this->firstCaptureDraw = this->builder.capturedDrawCount();
+  }
+  if (!this->capturingTranslations || this->translationCaptureInvalid ||
+      node->getTypeId() != SoCube::getClassTypeId()) return;
+  const SoPath * path = action->getCurPath();
+  if (path->getLength() < 2) return;
+  SoNode * parent = path->getNodeFromTail(1);
+  if (parent->getTypeId() != SoSeparator::getClassTypeId()) return;
+  auto * group = static_cast<SoSeparator *>(parent);
+  if (group->getNumChildren() != 3 || group->getChild(2) != node) return;
+  for (int child = 0; child < 2; ++child) {
+    const auto found = this->translationCaptureByNode.find(group->getChild(child));
+    if (found == this->translationCaptureByNode.end()) continue;
+    auto & binding = this->translationCapture[found->second];
+    if (binding.parent != parent || binding.cube != node) continue;
+    this->translationShapeCandidate = found->second;
+    binding.firstDraw = this->builder.capturedDrawCount();
+    SoState * state = action->getState();
+    binding.overallMaterial = SoMaterialBindingElement::get(state) == SoMaterialBindingElement::OVERALL &&
+      !binding.material->isOverride() && !SoOverrideElement::getAmbientColorOverride(state) &&
+      !SoOverrideElement::getDiffuseColorOverride(state) && !SoOverrideElement::getSpecularColorOverride(state) &&
+      !SoOverrideElement::getEmissiveColorOverride(state) && !SoOverrideElement::getShininessOverride(state) &&
+      !SoOverrideElement::getTransparencyOverride(state);
+    return;
+  }
+}
+
+void CoinRenderActionP::endTranslationShape()
+{
+  if (this->pendingCaptureShape) {
+    const size_t count = this->builder.capturedDrawCount();
+    if (count > 65536) this->translationCaptureInvalid = true;
+    else {
+      this->capturedDrawSources.resize(count, NULL);
+      for (size_t draw = this->firstCaptureDraw; draw < count; ++draw)
+        this->capturedDrawSources[draw] = this->pendingCaptureShape;
+    }
+    this->pendingCaptureShape = NULL;
+  }
+  if (this->translationShapeCandidate != SIZE_MAX) {
+    auto & binding = this->translationCapture[this->translationShapeCandidate];
+    binding.endDraw = this->builder.capturedDrawCount();
+    if (binding.endDraw == binding.firstDraw + 1)
+      binding.geometry = this->builder.capturedDraw(binding.firstDraw)->geometry;
+    this->translationShapeCandidate = SIZE_MAX;
+  }
+}
+
+void CoinRenderActionP::qualifyTranslationCapture(
+  SoNode * root, const CoinRenderCameraOverlayBasis * capturedBasis)
+{
+  CoinRenderPhaseTimer timer("object_qualification");
+  struct CaptureScope { bool & capturing; ~CaptureScope() { capturing = false; } } scope{this->capturingTranslations};
+  std::unordered_map<const SoNode *, size_t> materialVisits;
+  if (!this->capturingTranslations || this->translationCaptureInvalid || this->translationCapture.empty() ||
+      !root || !this->candidateCamera || this->lastValidPlan.renderStates.size() > 65536 ||
+      this->lastValidPlan.draws.size() > 65536 ||
+      !cameraStableScene(root, this->candidateCamera, true, &materialVisits)) return;
+  timer.mark("scene_profile");
+  const auto & plan = this->lastValidPlan;
+  // The strict object scene profile above must always run, independently of
+  // camera admission. This lens exists only within rememberFrameRoot: neither
+  // a retained basis nor matching revisions in later captures are a license.
+  bool reuseBasis = objectOverlayEnabled("COIN_RENDER_DISABLE_CAPTURE_CAMERA_BASIS_REUSE") &&
+    capturedBasis && capturedBasis->owner == &plan && capturedBasis->revision == plan.revision &&
+    capturedBasis->stateCount == plan.renderStates.size() &&
+    capturedBasis->referenceLighting.size() == plan.lightingStates.size() &&
+    capturedBasis->worldLighting.size() == plan.lightingStates.size();
+  for (size_t i = 0; reuseBasis && i < plan.lightingStates.size(); ++i)
+    reuseBasis = capturedBasis->referenceLighting[i].lights.size() == plan.lightingStates[i].lights.size() &&
+      capturedBasis->worldLighting[i].lights.size() == plan.lightingStates[i].lights.size();
+  CoinRenderCameraOverlayBasis profile;
+  if (reuseBasis) ++this->captureCameraBasisReuses;
+  else {
+    ++this->captureCameraBasisPrepares;
+    const bool trace = CoinRenderDiagnosticShell::phaseTracingEnabled();
+    const auto before = trace ? std::chrono::steady_clock::now()
+                              : std::chrono::steady_clock::time_point();
+    const bool prepared = CoinRenderFrameReuseCore::prepareCameraOverlayBasis(plan, profile);
+    if (trace)
+      this->captureCameraBasisPrepareMs += std::chrono::duration<double, std::milli>(
+        std::chrono::steady_clock::now() - before).count();
+    if (!prepared) return;
+  }
+  for (const auto & state : plan.renderStates) {
+    if (state.materialSlot >= plan.materials.size() || state.hasTexture ||
+        state.transparentMaterial || state.transparentTexture || state.screenDoorTransparency > 0 ||
+        !state.clipPlanesWorld.empty() || state.fogMode != CoinRenderFogMode::NONE ||
+        state.polygonOffsetEnabled || state.polygonLinePattern || state.shadowGroupSlot ||
+        plan.materials[state.materialSlot].transparency != 0 || plan.materials[state.materialSlot].diffuse[3] < 1) return;
+    for (const auto & texture : state.extraTextures) if (texture.enabled) return;
+  }
+  for (const auto & draw : plan.draws)
+    if (draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST || draw.renderLayer ||
+        draw.clearDepthBefore || draw.shadowLightSlot || draw.lineStripId) return;
+  timer.mark("frame_profile");
+  std::vector<size_t> owners(plan.renderStates.size(), SIZE_MAX);
+  std::vector<size_t> drawOwners(plan.draws.size(), SIZE_MAX);
+  for (size_t object = 0; object < this->translationCapture.size(); ++object) {
+    auto & binding = this->translationCapture[object];
+    // One native Cube packet and one state make ownership explicit, including
+    // aliases produced by model/state interning. Shared Cube geometry is fine.
+    if (binding.endDraw != binding.firstDraw + 1 || binding.endDraw > plan.draws.size() ||
+        binding.field->getValue() != binding.originalPosition) return;
+    const auto & draw = plan.draws[binding.firstDraw];
+    // A later occurrence may have been merged into this packet. Its captured
+    // range must still describe exactly this Cube, before assigning ownership.
+    if (draw.geometry.firstVertex != binding.geometry.firstVertex || draw.geometry.vertexCount != binding.geometry.vertexCount ||
+        draw.geometry.firstIndex != binding.geometry.firstIndex || draw.geometry.indexCount != binding.geometry.indexCount ||
+        draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST ||
+        draw.renderLayer || draw.clearDepthBefore || draw.shadowLightSlot || draw.lineStripId ||
+        draw.renderStateSlot >= plan.renderStates.size() || owners[draw.renderStateSlot] != SIZE_MAX) return;
+    binding.stateSlot = draw.renderStateSlot;
+    binding.anchor = plan.renderStates[binding.stateSlot].model;
+    SbMatrix qualified;
+    if (!CoinRenderFrameReuseCore::translatedModel(binding.anchor, binding.prefix, binding.originalPosition, qualified) ||
+        std::memcmp(qualified.getValue(), binding.anchor.getValue(), sizeof(float) * 16) != 0) return;
+    if (draw.hasSortingCenter) {
+      SbVec3f center;
+      binding.anchor.multVecMatrix(SbVec3f(0, 0, 0), center);
+      if (std::memcmp(center.getValue(), draw.sortingCenterWorld, sizeof(float) * 3) != 0) return;
+    }
+    owners[binding.stateSlot] = object;
+    drawOwners[binding.firstDraw] = object;
+  }
+  for (size_t draw = 0; draw < plan.draws.size(); ++draw)
+    if (owners[plan.draws[draw].renderStateSlot] != SIZE_MAX &&
+        owners[plan.draws[draw].renderStateSlot] != drawOwners[draw]) return;
+  this->translationBindings.swap(this->translationCapture);
+  this->translationByNode.swap(this->translationCaptureByNode);
+  this->translationDirty.clear();
+  this->translationProofGeneration = this->translationGeneration;
+  this->translationProofRevision = plan.revision;
+  this->translationProofValid = true;
+  timer.mark("ownership");
+  this->qualifyObjectPayloads(materialVisits);
+  timer.mark("payload");
+}
+
+void CoinRenderActionP::qualifyObjectPayloads(const std::unordered_map<const SoNode *, size_t> & materialVisits)
+{
+  const auto & plan = this->lastValidPlan;
+  if (plan.materials.size() > 65536 || this->capturedDrawSources.size() != plan.draws.size()) return;
+  // All proofs below are local to this immutable qualification. There is no
+  // revision-, pointer- or node-based reuse across captures. Ownership and
+  // syntactic occurrence checks still consume every draw/binding.
+  const bool memoEnabled = objectOverlayEnabled("COIN_RENDER_DISABLE_OBJECT_PROOF_MEMOIZATION");
+  constexpr size_t maxMemoEntries = 1024;
+  // Three hash caches charge at most 128 bytes per admitted entry, plus one
+  // byte per material slot: <=448 KiB optional temporary logical metadata.
+  struct IndexKey {
+    uint32_t first, count, material;
+    bool operator==(const IndexKey & other) const {
+      return first == other.first && count == other.count && material == other.material;
+    }
+  };
+  struct IndexHash {
+    size_t operator()(const IndexKey & key) const {
+      return (size_t(key.first)*16777619u ^ key.count)*16777619u ^ key.material;
+    }
+  };
+  struct VertexKey {
+    uint32_t first, count;
+    const SoNode * cube;
+    bool operator==(const VertexKey & other) const {
+      return first == other.first && count == other.count && cube == other.cube;
+    }
+  };
+  struct VertexHash {
+    size_t operator()(const VertexKey & key) const {
+      return (std::hash<const SoNode *>()(key.cube)*16777619u ^ key.first)*16777619u ^ key.count;
+    }
+  };
+  struct Dimensions { bool valid; SbVec3f value; };
+  std::unordered_set<IndexKey, IndexHash> checkedIndices;
+  std::unordered_map<const SoNode *, Dimensions> checkedDimensions;
+  std::unordered_map<VertexKey, bool, VertexHash> checkedVertices;
+  bool indexMemoEnabled = memoEnabled, dimensionsMemoEnabled = memoEnabled, vertexMemoEnabled = memoEnabled;
+  std::vector<uint8_t> checkedMaterials;
+  if (memoEnabled) {
+    try { checkedMaterials.resize(plan.materials.size(), 0); }
+    catch (const std::bad_alloc &) {} // Optional acceleration; ordinary proofs still run.
+  }
+  size_t materialChecks = 0, materialHits = 0, indexChecks = 0, indexHits = 0;
+  size_t dimensionsChecks = 0, dimensionsHits = 0, vertexChecks = 0, vertexHits = 0;
+  std::vector<size_t> drawOwners(plan.draws.size(), SIZE_MAX);
+  for (size_t i = 0; i < this->translationBindings.size(); ++i)
+    drawOwners[this->translationBindings[i].firstDraw] = i;
+  std::vector<const SoNode *> materialOwners(plan.materials.size(), NULL);
+  std::vector<bool> materialConflicts(plan.materials.size(), false);
+  for (size_t draw = 0; draw < plan.draws.size(); ++draw) {
+    const auto & packet = plan.draws[draw];
+    const uint32_t slot = plan.renderStates[packet.renderStateSlot].materialSlot;
+    const SoNode * owner = drawOwners[draw] == SIZE_MAX ? NULL : this->translationBindings[drawOwners[draw]].material;
+    if (!owner) materialConflicts[slot] = true;
+    else if (!materialOwners[slot]) materialOwners[slot] = owner;
+    else if (materialOwners[slot] != owner) materialConflicts[slot] = true;
+    // An exact consumed span/expected-slot proof can be shared, including its
+    // conflict side effects. A mismatching span must record EVERY other slot.
+    const IndexKey key{packet.geometry.firstIndex, packet.geometry.indexCount, slot};
+    if (indexMemoEnabled && checkedIndices.count(key)) ++indexHits;
+    else {
+      ++indexChecks;
+      for (uint32_t index = 0; index < packet.geometry.indexCount; ++index) {
+        const uint32_t material = plan.vertices[plan.indices[packet.geometry.firstIndex + index]].materialSlot;
+        if (material != slot) { materialConflicts[slot] = true; materialConflicts[material] = true; }
+      }
+      if (indexMemoEnabled && checkedIndices.size() < maxMemoEntries) {
+        try { checkedIndices.insert(key); }
+        catch (const std::bad_alloc &) { checkedIndices.clear(); indexMemoEnabled = false; }
+      }
+    }
+  }
+  struct Range { uint64_t first, end; size_t draw; const SoNode * cube; };
+  std::vector<Range> ranges;
+  ranges.reserve(plan.draws.size());
+  for (size_t draw = 0; draw < plan.draws.size(); ++draw) {
+    const auto & range = plan.draws[draw].geometry;
+    ranges.push_back({range.firstVertex, uint64_t(range.firstVertex) + range.vertexCount, draw,
+      drawOwners[draw] == SIZE_MAX ? NULL : this->translationBindings[drawOwners[draw]].cube});
+  }
+  const auto materialMatches = [&](uint32_t slot, const SoMaterial * source) {
+    if (!checkedMaterials.empty() && checkedMaterials[slot]) {
+      ++materialHits; return checkedMaterials[slot] == 1;
+    }
+    ++materialChecks;
+    CoinRenderMaterialSnapshot snapshot;
+    const bool valid = opaqueMaterialSnapshot(source, snapshot) &&
+      std::memcmp(&snapshot, &plan.materials[slot], sizeof(snapshot)) == 0;
+    if (!checkedMaterials.empty()) checkedMaterials[slot] = valid ? 1 : 2;
+    return valid;
+  };
+  const auto dimensionsFor = [&](const SoNode * source, SbVec3f & dimensions) {
+    if (dimensionsMemoEnabled) {
+      const auto found = checkedDimensions.find(source);
+      if (found != checkedDimensions.end()) {
+        ++dimensionsHits;
+        if (found->second.valid) dimensions = found->second.value;
+        return found->second.valid;
+      }
+    }
+    ++dimensionsChecks;
+    const bool valid = cubeDimensions(static_cast<const SoCube *>(source), dimensions);
+    if (dimensionsMemoEnabled && checkedDimensions.size() < maxMemoEntries) {
+      try { checkedDimensions.emplace(source, Dimensions{valid, valid ? dimensions : SbVec3f(0,0,0)}); }
+      catch (const std::bad_alloc &) { checkedDimensions.clear(); dimensionsMemoEnabled = false; }
+    }
+    return valid;
+  };
+  const auto verticesMatch = [&](const TranslationBinding & binding, const SbVec3f & dimensions) {
+    const VertexKey key{binding.geometry.firstVertex, binding.geometry.vertexCount, binding.cube};
+    if (vertexMemoEnabled) {
+      const auto found = checkedVertices.find(key);
+      if (found != checkedVertices.end()) { ++vertexHits; return found->second; }
+    }
+    ++vertexChecks;
+    bool valid = true;
+    for (uint32_t offset = 0; offset < binding.geometry.vertexCount; ++offset) {
+      const auto & vertex = plan.vertices[binding.geometry.firstVertex + offset];
+      for (int axis = 0; axis < 3; ++axis)
+        if (std::abs(vertex.position[axis]) != dimensions[axis] * .5f) valid = false;
+      if (vertex.screenSpaceW != 1 || vertex.fogEyeDepth != -1) valid = false;
+    }
+    if (vertexMemoEnabled && checkedVertices.size() < maxMemoEntries) {
+      try { checkedVertices.emplace(key, valid); }
+      catch (const std::bad_alloc &) { checkedVertices.clear(); vertexMemoEnabled = false; }
+    }
+    return valid;
+  };
+  for (auto & binding : this->translationBindings) {
+    const auto & state = plan.renderStates[binding.stateSlot];
+    binding.materialEligible = binding.overallMaterial && !materialConflicts[state.materialSlot] &&
+      materialOwners[state.materialSlot] == binding.material &&
+      materialMatches(state.materialSlot, binding.material);
+    SbVec3f dimensions;
+    binding.geometryEligible = binding.overallMaterial && binding.geometry.vertexCount == 24 &&
+      binding.geometry.indexCount == 36 && dimensionsFor(binding.cube, dimensions) &&
+      dimensions == binding.cubeDimensions && verticesMatch(binding, dimensions);
+  }
+  std::sort(ranges.begin(), ranges.end(), [](const Range & a, const Range & b) { return a.first < b.first; });
+  for (size_t begin = 0; begin < ranges.size();) {
+    size_t end = begin + 1; uint64_t maximum = ranges[begin].end;
+    const SoNode * owner = ranges[begin].cube; bool overlapConflict = !owner;
+    while (end < ranges.size() && ranges[end].first < maximum) {
+      if (ranges[end].cube != owner || ranges[end].first != ranges[begin].first ||
+          ranges[end].end != ranges[begin].end) overlapConflict = true;
+      maximum = std::max(maximum, ranges[end].end); ++end;
+    }
+    if (overlapConflict) for (size_t i = begin; i < end; ++i)
+      if (drawOwners[ranges[i].draw] != SIZE_MAX) this->translationBindings[drawOwners[ranges[i].draw]].geometryEligible = false;
+    begin = end;
+  }
+  // A source is admitted only if all of its captured occurrences are admitted.
+  std::unordered_set<const SoNode *> rejectedMaterials, rejectedCubes;
+  std::unordered_set<const SoNode *> capturedCubes;
+  std::unordered_map<const SoNode *, size_t> materialOccurrences;
+  for (const auto & binding : this->translationBindings) {
+    capturedCubes.insert(binding.cube);
+    ++materialOccurrences[binding.material];
+  }
+  for (size_t draw = 0; draw < plan.draws.size(); ++draw) if (drawOwners[draw] == SIZE_MAX) {
+    if (capturedCubes.count(this->capturedDrawSources[draw])) rejectedCubes.insert(this->capturedDrawSources[draw]);
+  }
+  for (const auto & binding : this->translationBindings) {
+    // Unmapped syntax can use this material under partial overrides, creating
+    // a different table slot which still depends on some fields of this source.
+    // Require every occurrence in this root to belong to an isolated object.
+    const auto visits = materialVisits.find(binding.material);
+    if (!binding.materialEligible || visits == materialVisits.end() || visits->second != materialOccurrences[binding.material])
+      rejectedMaterials.insert(binding.material);
+    if (!binding.geometryEligible) rejectedCubes.insert(binding.cube);
+  }
+  // Options are constant during this qualification, but can change before the
+  // next capture. Avoid two CRT environment scans for every object on Windows.
+  const bool materialOverlayEnabled = objectOverlayEnabled("COIN_RENDER_DISABLE_MATERIAL_OVERLAY");
+  const bool cubeOverlayEnabled = objectOverlayEnabled("COIN_RENDER_DISABLE_CUBE_OVERLAY");
+  for (size_t i = 0; i < this->translationBindings.size(); ++i) {
+    const auto & binding = this->translationBindings[i];
+    if (!rejectedMaterials.count(binding.material) && materialOverlayEnabled)
+      this->materialByNode[binding.material].push_back(i);
+    if (!rejectedCubes.count(binding.cube) && cubeOverlayEnabled)
+      this->cubeByNode[binding.cube].push_back(i);
+  }
+  // Conservative accounting includes source-map nodes/buckets and occurrence
+  // indices. The existing transform proof has its independent 65,536 cap.
+  const size_t metadataBytes = this->translationBindings.size() * 80 +
+    (this->materialByNode.size() + this->cubeByNode.size()) * 128;
+  if (metadataBytes > 16 * 1024 * 1024) { this->materialByNode.clear(); this->cubeByNode.clear(); }
+  if (CoinRenderDiagnosticShell::phaseTracingEnabled())
+    std::fprintf(stderr, "COIN_RENDER_PHASE object_proof_cache memo_enabled=%d material_checks=%zu material_hits=%zu index_checks=%zu index_hits=%zu dimensions_checks=%zu dimensions_hits=%zu vertex_checks=%zu vertex_hits=%zu cached_index_spans=%zu cached_sources=%zu cached_vertex_spans=%zu\n",
+      memoEnabled ? 1 : 0, materialChecks, materialHits, indexChecks, indexHits,
+      dimensionsChecks, dimensionsHits, vertexChecks, vertexHits,
+      checkedIndices.size(), checkedDimensions.size(), checkedVertices.size());
+}
+
+bool CoinRenderActionP::prepareTranslationOverlay(SoNode * root, CoinRenderObjectOverlayUndo & undo)
+{
+  const char * disabled = std::getenv("COIN_RENDER_DISABLE_TRANSLATION_OVERLAY");
+  if ((disabled && std::strcmp(disabled, "1") == 0) || !this->translationProofValid ||
+      this->translationInvalidated || !this->translationInputDirty ||
+      (this->translationDirty.empty() && this->materialDirty.empty() && this->geometryDirty.empty()) ||
+      this->cameraOnlyDirty || root != this->cachedRoot || this->cameraSensor.getAttachedNode() != root ||
+      this->translationProofGeneration != this->translationGeneration || !this->translationProofRevision) return false;
+  std::vector<CoinRenderModelUpdate> updates;
+  updates.reserve(this->translationDirty.size());
+  for (size_t index : this->translationDirty) {
+    if (index >= this->translationBindings.size()) return false;
+    const auto & binding = this->translationBindings[index];
+    CoinRenderModelUpdate update;
+    update.stateSlot = binding.stateSlot;
+    if (this->lastValidPlan.draws[binding.firstDraw].hasSortingCenter)
+      update.sortingDrawSlot = static_cast<uint32_t>(binding.firstDraw);
+    if (binding.field->isConnected() || binding.field->isIgnored() ||
+        !CoinRenderFrameReuseCore::translatedModel(binding.anchor, binding.prefix, binding.field->getValue(), update.model)) return false;
+    updates.push_back(update);
+  }
+  std::vector<CoinRenderMaterialUpdate> materials;
+  std::unordered_set<uint32_t> materialSlots;
+  if (!this->materialDirty.empty() && !objectOverlayEnabled("COIN_RENDER_DISABLE_MATERIAL_OVERLAY")) return false;
+  for (const SoNode * node : this->materialDirty) {
+    const auto found = this->materialByNode.find(node);
+    CoinRenderMaterialSnapshot snapshot;
+    if (found == this->materialByNode.end() || !opaqueMaterialSnapshot(static_cast<const SoMaterial *>(node), snapshot)) return false;
+    for (size_t object : found->second) {
+      const uint32_t slot = this->lastValidPlan.renderStates[this->translationBindings[object].stateSlot].materialSlot;
+      if (materialSlots.insert(slot).second) materials.push_back({slot, snapshot});
+    }
+  }
+  std::vector<CoinRenderPositionUpdate> positions;
+  std::vector<CoinRenderDrawSourceUpdate> draws;
+  // Admitted overlapping ranges are exact aliases of the same Cube source.
+  // Deduplicate 24-vertex ranges, avoiding a hash allocation for every vertex.
+  std::unordered_set<uint32_t> vertexRanges;
+  if (!this->geometryDirty.empty() && !objectOverlayEnabled("COIN_RENDER_DISABLE_CUBE_OVERLAY")) return false;
+  for (const SoNode * node : this->geometryDirty) {
+    const auto found = this->cubeByNode.find(node); SbVec3f dimensions;
+    if (found == this->cubeByNode.end() || !translationFieldsStable(node) ||
+        !cubeDimensions(static_cast<const SoCube *>(node), dimensions)) return false;
+    for (size_t object : found->second) {
+      const auto & binding = this->translationBindings[object];
+      if (binding.material->isOverride() || binding.material->getNodeType() != SoNode::INVENTOR) return false;
+      draws.push_back({static_cast<uint32_t>(binding.firstDraw), node->getNodeId()});
+      if (!vertexRanges.insert(binding.geometry.firstVertex).second) continue;
+      for (uint32_t offset = 0; offset < binding.geometry.vertexCount; ++offset) {
+        const uint32_t slot = binding.geometry.firstVertex + offset;
+        if (positions.size() == COIN_RENDER_OBJECT_OVERLAY_MAX_POSITIONS) return false;
+        const auto & previous = this->lastValidPlan.vertices[slot];
+        SbVec3f position;
+        for (int axis = 0; axis < 3; ++axis) position[axis] = std::copysign(dimensions[axis] * .5f, previous.position[axis]);
+        positions.push_back({slot, position});
+      }
+    }
+  }
+  return CoinRenderFrameReuseCore::beginObjectOverlay(this->lastValidPlan, updates, materials, positions, draws,
+    CoinRenderFramePlanBuilder::nextRevision(), undo);
+}
+
+void CoinRenderActionP::commitTranslationOverlay()
+{
+  this->translationDirty.clear();
+  this->materialDirty.clear(); this->geometryDirty.clear();
+  this->translationInputDirty = false;
+  this->translationInvalidated = false;
+  this->cameraPatchInvalidated = false;
+  this->cachedCamera = NULL;
+  this->cameraOverlayBasis = CoinRenderCameraOverlayBasis();
+  this->cameraRecaptureRequired = true;
 }
 
 bool
 CoinRenderActionP::prepareCameraOverlay(SoNode * root,
                                          CoinRenderCameraOverlayUndo & undo)
 {
-  if (!root || root != this->cachedRoot || !this->cachedCamera ||
+  const char * disabled = std::getenv("COIN_RENDER_DISABLE_CAMERA_OVERLAY");
+  if ((disabled && std::strcmp(disabled, "1") == 0) ||
+      !root || root != this->cachedRoot || !this->candidateCamera || this->cameraRecaptureRequired ||
       this->cameraSensor.getAttachedNode() != root ||
       !this->cameraOnlyDirty || this->cameraPatchInvalidated ||
-      static_cast<SoGroup *>(root)->getChild(0) != this->cachedCamera) return false;
+      static_cast<SoGroup *>(root)->getChild(0) != this->candidateCamera) return false;
 
   SbViewportRegion adjusted;
-  const SbViewVolume vv = this->cachedCamera->getViewVolume(
+  const SbViewVolume vv = this->candidateCamera->getViewVolume(
     this->master->getViewportRegion(), adjusted, SbMatrix::identity());
   if (adjusted != this->master->getViewportRegion()) return false;
   CoinRenderCameraSnapshot snapshot;
@@ -497,19 +1160,32 @@ CoinRenderActionP::prepareCameraOverlay(SoNode * root,
     snapshot.nearDistance = 0.1f;
   if (snapshot.farDistance <= snapshot.nearDistance)
     snapshot.farDistance = snapshot.nearDistance + 100.0f;
-  snapshot.focalDistance = this->cachedCamera->focalDistance.getValue();
+  snapshot.focalDistance = this->candidateCamera->focalDistance.getValue();
   snapshot.aspectRatio = adjusted.getViewportAspectRatio();
   if (this->cameraPatchInvalidated ||
       this->cameraSensor.getAttachedNode() != root) return false;
+  if (!this->cachedCamera) {
+    CoinRenderCameraOverlayBasis basis;
+    if (!CoinRenderFrameReuseCore::prepareCameraOverlayBasis(this->lastValidPlan, basis) ||
+        !cameraStableScene(root, this->candidateCamera) || this->cameraPatchInvalidated ||
+        this->cameraSensor.getAttachedNode() != root) return false;
+    this->cameraOverlayBasis = std::move(basis);
+    this->cachedCamera = this->candidateCamera;
+  }
   return CoinRenderFrameReuseCore::beginCameraOverlay(
     this->lastValidPlan, snapshot,
-    CoinRenderFramePlanBuilder::nextRevision(), undo);
+    CoinRenderFramePlanBuilder::nextRevision(), undo, this->cameraOverlayBasis);
 }
 
 template <typename F>
 void
 CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
 {
+  // Nested apply must not erase the outer capture's diagnostic counters.
+  if (!this->isApplying) {
+    this->captureCameraBasisCalls = this->captureCameraBasisPrepares = this->captureCameraBasisReuses = 0;
+    this->captureCameraBasisPrepareMs = 0;
+  }
   typedef std::chrono::steady_clock ProfileClock;
   const ProfileClock::time_point profileBegin = ProfileClock::now();
   if (this->target)
@@ -546,7 +1222,9 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   } annotationScope{this};
   this->isApplying = true;
   this->hasReentrancyError = false;
-  bool planCacheAllowed = true;
+  // External callbacks can change capture or have observable side effects.
+  // Registration after construction permanently requires their traversal.
+  bool planCacheAllowed = this->master->callbackRegistrationRevision() == this->captureCallbackRevision;
 
   const bool ownsSceneTexturePlan = !this->sceneTexturePlan;
   if (ownsSceneTexturePlan)
@@ -563,9 +1241,10 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   for (const auto& texture : this->lastValidPlan.textures)
     if (texture.producerId)
       planCacheAllowed = false;
+  const bool qualifyCapturedCamera = !this->hasLastValidPlan || this->cachedRoot != cacheRoot;
   const bool traversalSkipped = planCacheAllowed && cacheRoot && this->hasLastValidPlan &&
     this->cachedRoot == cacheRoot && this->cachedRootId == cacheRoot->getNodeId() &&
-    !this->cameraOnlyDirty && !this->cameraPatchInvalidated;
+    !this->cameraOnlyDirty && !this->cameraPatchInvalidated && !this->translationInputDirty;
   CoinRenderFrameReuseDecision reuseDecision = traversalSkipped
     ? CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::REUSE,
                                this->lastValidPlan.revision)
@@ -577,26 +1256,41 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   this->lastRejectedShadowFrame = CoinRenderFramePlan();
   this->lastRejectedShadowPlan = CoinRenderShadowPlan();
   CoinRenderFramePlan plan;
+  CoinRenderFramePreflight capturedPreflight;
   CoinRenderCameraOverlayUndo overlayUndo;
+  CoinRenderObjectOverlayUndo translationUndo;
   struct CameraOverlayScope {
     CoinRenderFramePlan & frame;
     CoinRenderCameraOverlayUndo & undo;
+    CoinRenderObjectOverlayUndo & translationUndo;
     bool committed;
     ~CameraOverlayScope() {
-      if (!committed) CoinRenderFrameReuseCore::rollbackCameraOverlay(frame, undo);
+      if (!committed) {
+        CoinRenderFrameReuseCore::rollbackCameraOverlay(frame, undo);
+        CoinRenderFrameReuseCore::rollbackObjectOverlay(frame, translationUndo);
+      }
     }
-  } overlayScope{this->lastValidPlan, overlayUndo, false};
+  } overlayScope{this->lastValidPlan, overlayUndo, translationUndo, false};
   ProfileClock::time_point profileTraversed = ProfileClock::now();
   ProfileClock::time_point profilePlanned = profileTraversed;
-  const bool cameraOverlay = !traversalSkipped && planCacheAllowed &&
+  const bool translationOverlay = !traversalSkipped && planCacheAllowed && !this->planOnly &&
+    this->hasLastValidPlan && this->prepareTranslationOverlay(cacheRoot, translationUndo);
+  const bool cameraOverlay = !translationOverlay && !traversalSkipped && planCacheAllowed &&
     !this->planOnly && this->hasLastValidPlan &&
     this->prepareCameraOverlay(cacheRoot, overlayUndo);
   if (cameraOverlay) {
     reuseDecision = CoinRenderFrameReuseDecision(
       CoinRenderFrameReuseKind::CAMERA_PATCH, overlayUndo.revision);
   }
-  if (!traversalSkipped && !cameraOverlay) {
+  if (translationOverlay) {
+    reuseDecision = CoinRenderFrameReuseDecision(
+      CoinRenderFrameReuseKind::RESOURCE_REBUILD, translationUndo.revision);
+  }
+  if (!traversalSkipped && !cameraOverlay && !translationOverlay) {
+    this->beginTranslationCapture(planCacheAllowed && cacheRoot &&
+      (qualifyCapturedCamera || this->translationInputDirty || this->cameraRecaptureRequired));
     this->builder.beginFrame(this->backgroundColor, this->master->getViewportRegion());
+    this->builder.reserveCaptureStorage(captureStorageEstimate(cacheRoot));
     traversalFn();
     const uint32_t delayedLayers = (this->delayedOverlays.empty() ? 0 : 1) +
                                   (this->delayedAnnotations.empty() ? 0 : 1);
@@ -638,13 +1332,21 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   }
 
   std::string err;
-  if (!traversalSkipped && !cameraOverlay && !this->builder.build(plan, &err)) {
+  // Pixel geometry is already projected. Camera/transform overlays cannot
+  // patch it like object-space geometry, including a currently clipped node.
+  if (this->builder.hasScreenContent()) planCacheAllowed = false;
+  CoinRenderTransparencyOptions capturedTransparency = this->transparencyOptions;
+  capturedTransparency.mode = this->executionOptions.transparency;
+  if (!traversalSkipped && !cameraOverlay && !translationOverlay &&
+      !this->builder.build(plan, &err, true, &capturedTransparency,
+                           this->target && !this->planOnly ? &capturedPreflight : nullptr)) {
     const CoinRenderAction::Status status = this->builder.isUnsupportedBuild()
       ? CoinRenderAction::UNSUPPORTED : CoinRenderAction::INVALID_SCENE;
     this->setDiagnostic(CoinRenderDiagnosticShell::action(
       status, CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(err.c_str())));
     return;
   }
+  if (!this->shadowSceneCaptures.empty()) capturedPreflight.invalidate();
   for (const auto & capture : this->shadowSceneCaptures) {
     for (size_t l = 0; l < plan.shadowLights.size(); ++l) {
       auto & light = plan.shadowLights[l];
@@ -660,6 +1362,14 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     return;
   }
   if (!plan.shadowGroups.empty()) {
+    for (const auto & state : plan.renderStates) {
+      if (coin_render_alpha_test_active(state.alphaTestFunction)) {
+        this->setDiagnostic(CoinRenderDiagnosticShell::action(
+          CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+          SbString("Active SoAlphaTest requires alpha-aware shadow-map caster capture")));
+        return;
+      }
+    }
     CoinRenderShadowPlan shadowPlan;
     std::string shadowDiagnostic;
     if (!coin_render_plan_shadows(plan, shadowPlan, shadowDiagnostic)) {
@@ -679,26 +1389,12 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       executableShadow = coin_render_shadow_object_profile(
         plan, shadowPlan, shadowPlan.passes.size(), profileDiagnostic);
     }
-#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-    if (this->target && this->target->getPimpl()->kind == CoinRenderTargetP::KIND_OFFSCREEN &&
-        !this->target->getPimpl()->directTextureOutput && !this->asyncTicket &&
-        (!this->target->getPimpl()->backend ||
-         dynamic_cast<CoinWgpuBackend *>(this->target->getPimpl()->backend.get()))) {
+    if (this->target &&
+        this->target->getPimpl()->supportsOffscreenShadows(this->asyncTicket != nullptr)) {
       std::string profileDiagnostic;
       executableShadow = coin_render_shadow_object_profile(
         plan, shadowPlan, shadowPlan.passes.size(), profileDiagnostic);
     }
-#endif
-#if defined(HAVE_COIN_BGFX)
-    if (this->target && this->target->getPimpl()->kind == CoinRenderTargetP::KIND_OFFSCREEN &&
-        !this->target->getPimpl()->directTextureOutput && !this->asyncTicket &&
-        (!this->target->getPimpl()->backend ||
-         dynamic_cast<CoinBgfxBackend *>(this->target->getPimpl()->backend.get()))) {
-      std::string profileDiagnostic;
-      executableShadow = coin_render_shadow_object_profile(
-        plan, shadowPlan, shadowPlan.passes.size(), profileDiagnostic);
-    }
-#endif
     if (!executableShadow) {
       this->lastRejectedShadowFrame = std::move(plan);
       this->lastRejectedShadowPlan = std::move(shadowPlan);
@@ -714,9 +1410,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   profilePlanned = ProfileClock::now();
   if (!this->sceneTexturePlan->producers.empty())
     planCacheAllowed = false;
-  if (!traversalSkipped && !cameraOverlay) {
-    plan.transparency = this->transparencyOptions;
-    plan.transparency.mode = this->executionOptions.transparency;
+  if (!traversalSkipped && !cameraOverlay && !translationOverlay) {
     if (planCacheAllowed && cacheRoot && this->hasLastValidPlan &&
         this->cachedRoot == cacheRoot) {
       reuseDecision = CoinRenderFrameReuseCore::classify(this->lastValidPlan, plan);
@@ -728,7 +1422,8 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   const bool reusePreviousPlan =
     reuseDecision.kind == CoinRenderFrameReuseKind::REUSE &&
     this->hasLastValidPlan;
-  const bool useCachedPlan = reusePreviousPlan || cameraOverlay;
+  const bool useCachedPlan = reusePreviousPlan || cameraOverlay || translationOverlay;
+  if (useCachedPlan) capturedPreflight.invalidate();
   const CoinRenderFramePlan& capturedPlan = useCachedPlan ? this->lastValidPlan : plan;
   const CoinRenderFramePlan& framePlan = capturedPlan;
 
@@ -765,6 +1460,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   CoinRenderFramePlan resolvedPlan;
   const bool hasSceneTextures = !this->sceneTexturePlan->producers.empty();
   if (hasSceneTextures) {
+    capturedPreflight.invalidate();
     const auto prepared = rttExecution.prepare(*this->sceneTexturePlan, capturedPlan, resolvedPlan);
     if (prepared.status != CoinRenderBackendStatus::SUCCESS) {
       this->setDiagnostic(CoinRenderDiagnosticShell::fromBackend(prepared));
@@ -786,9 +1482,12 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     if (cacheRoot) {
       this->cachedRoot = planCacheAllowed ? cacheRoot : NULL;
       this->cachedRootId = cacheRoot->getNodeId();
-      if (cameraOverlay) this->cameraOnlyDirty = false;
+      if (cameraOverlay) {
+        this->cameraOnlyDirty = false;
+        this->clearTranslationProof();
+      } else if (translationOverlay) this->commitTranslationOverlay();
       else if (!traversalSkipped)
-        this->rememberFrameRoot(planCacheAllowed ? cacheRoot : NULL);
+        this->rememberFrameRoot(planCacheAllowed ? cacheRoot : NULL, qualifyCapturedCamera);
     }
     overlayScope.committed = true;
     this->setDiagnostic(CoinRenderDiagnosticShell::success());
@@ -796,10 +1495,13 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   }
 
   // Execute frame on target
+  const auto * submissionPreflight = capturedPreflight.compositionFor(executionPlan)
+    ? &capturedPreflight : nullptr;
   CoinRenderFrameExecutionResult execRes =
       this->asyncTicket
-          ? this->target->pimpl->executeFrameAsync(executionPlan, *this->asyncTicket, reuseDecision)
-          : this->target->pimpl->executeFrame(executionPlan, reuseDecision);
+          ? this->target->pimpl->executeFrameAsync(executionPlan, *this->asyncTicket, reuseDecision,
+                                                  submissionPreflight)
+          : this->target->pimpl->executeFrame(executionPlan, reuseDecision, submissionPreflight);
   if (execRes.status != CoinRenderBackendStatus::SUCCESS) {
     this->setDiagnostic(CoinRenderDiagnosticShell::fromBackend(execRes));
     return;
@@ -817,35 +1519,48 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     sample.vertices = framePlan.vertices.size();
     sample.indices = framePlan.indices.size();
     sample.draws = framePlan.draws.size();
-    sample.planCacheHit = traversalSkipped || cameraOverlay;
+    sample.planCacheHit = traversalSkipped || cameraOverlay || translationOverlay;
     sample.reuseKind = reuseDecision.kind;
     std::cerr << CoinRenderDiagnosticShell::formatActionPhase(sample) << '\n';
   }
   if (!useCachedPlan) {
+    capturedPreflight.invalidate();
     this->lastValidPlan = retainStagedPixels ? std::move(resolvedPlan) : std::move(plan);
     this->hasLastValidPlan = true;
     this->recordingLogValid = false;
-  } else if (cameraOverlay) {
+  } else if (cameraOverlay || translationOverlay) {
     this->recordingLogValid = false;
   }
   if (cacheRoot) {
     this->cachedRoot = planCacheAllowed ? cacheRoot : NULL;
     this->cachedRootId = cacheRoot->getNodeId();
-    if (cameraOverlay) this->cameraOnlyDirty = false;
+    if (cameraOverlay) {
+      this->cameraOnlyDirty = false;
+      this->clearTranslationProof();
+    } else if (translationOverlay) this->commitTranslationOverlay();
     else if (!traversalSkipped)
-      this->rememberFrameRoot(planCacheAllowed ? cacheRoot : NULL);
+      this->rememberFrameRoot(planCacheAllowed ? cacheRoot : NULL, qualifyCapturedCamera);
   }
   overlayScope.committed = true;
   this->setDiagnostic(CoinRenderDiagnosticShell::success());
 }
 
 SoCallbackAction::Response
-CoinRenderActionP::textureUnitsPreCB(void * userdata, SoCallbackAction * action, const SoNode *)
+CoinRenderActionP::textureUnitsPreCB(void * userdata, SoCallbackAction * action, const SoNode * node)
 {
   // PRUNE skips this shape only; subsequent state nodes still traverse.
   if (CoinRenderFramePlanBuilder::isShapeInvisible(action)) return SoCallbackAction::PRUNE;
   auto * p = static_cast<CoinRenderActionP *>(userdata);
+  if (node->getTypeId() == SoImage::getClassTypeId() ||
+      node->getTypeId() == SoText2::getClassTypeId() ||
+      node->getTypeId() == SoMarkerSet::getClassTypeId() ||
+      node->getTypeId() == SoIndexedMarkerSet::getClassTypeId()) {
+    p->builder.endShape();
+    return SoCallbackAction::CONTINUE; // The action method captures after all pre callbacks.
+  }
   SoState * state = action->getState();
+  if (!p->capturingShadowScene && (SoShapeStyleElement::get(state)->getFlags() &
+      SoShapeStyleElement::BBOXCMPLX)) return SoCallbackAction::CONTINUE;
   int last = -1;
   const SbBool * enabled = SoMultiTextureEnabledElement::getEnabledUnits(state, last);
   if (last >= static_cast<int>(COIN_RENDER_MAX_TEXTURE_UNITS)) {
@@ -865,9 +1580,175 @@ CoinRenderActionP::textureUnitsPreCB(void * userdata, SoCallbackAction * action,
       return SoCallbackAction::ABORT;
     }
   }
+  p->builder.endShape();
+  p->beginTranslationShape(action, node);
+  if (p->master->hasSingleShapeCallbacks(node->getTypeId())) {
+    p->builder.beginShape(action, node);
+    if (p->fastPathEnabled && p->master->callbackRegistrationRevision() == p->captureCallbackRevision &&
+        p->builder.replayNativeCube(action, const_cast<SoNode *>(node))) {
+      p->endTranslationShape();
+      p->builder.endShape();
+      return SoCallbackAction::PRUNE;
+    }
+  }
   return SoCallbackAction::CONTINUE;
 }
 
+bool
+CoinRenderActionP::captureBoundingBox(SoCallbackAction * action, SoNode * node)
+{
+  if (this->capturingShadowScene || !(SoShapeStyleElement::get(action->getState())->getFlags() &
+      SoShapeStyleElement::BBOXCMPLX)) return false;
+  // Match native returns that precede shouldGLRender, even if an otherwise
+  // nonempty coordinate element could supply a box.
+  if ((node->isOfType(SoIndexedFaceSet::getClassTypeId()) &&
+       static_cast<SoIndexedFaceSet *>(node)->coordIndex.getNum() < 3) ||
+      (node->isOfType(SoIndexedLineSet::getClassTypeId()) &&
+       static_cast<SoIndexedLineSet *>(node)->coordIndex.getNum() < 2) ||
+      (node->isOfType(SoIndexedPointSet::getClassTypeId()) &&
+       static_cast<SoIndexedPointSet *>(node)->coordIndex.getNum() == 0) ||
+      (node->isOfType(SoIndexedMarkerSet::getClassTypeId()) &&
+       static_cast<SoIndexedMarkerSet *>(node)->coordIndex.getNum() == 0) ||
+      (node->isOfType(SoPointSet::getClassTypeId()) &&
+       static_cast<SoPointSet *>(node)->numPoints.getValue() == 0) ||
+      (node->isOfType(SoFaceSet::getClassTypeId()) &&
+       static_cast<SoFaceSet *>(node)->numVertices.getNum() == 1 &&
+       static_cast<SoFaceSet *>(node)->numVertices[0] == 0)) return true;
+  if (node->isOfType(SoImage::getClassTypeId())) {
+    SbVec2s size; int components = 0;
+    const auto * bytes = static_cast<SoImage *>(node)->image.getValue(size, components);
+    if (!bytes || !size[0] || !size[1]) return true;
+  }
+  SoState * state = action->getState();
+  state->push();
+  const bool marker = node->isOfType(SoMarkerSet::getClassTypeId());
+  if (marker) {
+    SoLazyElement::setLightModel(state, SoLazyElement::BASE_COLOR);
+    SoMultiTextureEnabledElement::disableAll(state);
+  }
+  // PointSet reads VP coordinates in computeBBox but applies its material
+  // only after shouldGLRender. Other vertex shapes apply the property first.
+  if (node->isOfType(SoVertexShape::getClassTypeId()) &&
+      (!node->isOfType(SoPointSet::getClassTypeId()) || marker)) {
+    auto * property = static_cast<SoVertexShape *>(node)->vertexProperty.getValue();
+    if (property) property->doAction(action);
+  }
+  const bool success = this->builder.captureBoundingBox(action, node);
+  state->pop();
+  if (!success) this->master->setTerminated(TRUE);
+  return true;
+}
+
+void
+CoinRenderActionP::observeBoundingBox(SoCallbackAction * action, SoNode * node)
+{
+  if (action->hasTerminated() || action->hasSingleShapeCallbacks(node->getTypeId())) return;
+  const bool marker = node->isOfType(SoMarkerSet::getClassTypeId()) ||
+                      node->isOfType(SoIndexedMarkerSet::getClassTypeId());
+  SoState * state = action->getState();
+  struct ObserverScope {
+    CoinRenderActionP & owner;
+    SoState * markerState;
+    bool previous;
+    ~ObserverScope() {
+      if (markerState) markerState->pop();
+      owner.boundingBoxObservers = previous;
+    }
+  } scope{*this, marker ? state : nullptr, this->boundingBoxObservers};
+  if (marker) {
+    state->push();
+    SoLazyElement::setLightModel(state, SoLazyElement::BASE_COLOR);
+    SoMultiTextureEnabledElement::disableAll(state);
+  }
+  this->boundingBoxObservers = true;
+  node->callback(action);
+}
+
+void
+CoinRenderActionP::shapeContentMethod(SoAction * action, SoNode * node)
+{
+  auto * render = static_cast<CoinRenderAction *>(action);
+  if (render->hasTerminated()) return;
+  render->setCurrentNode(node);
+  render->invokePreCallbacks(node);
+  if (render->getCurrentResponse() == SoCallbackAction::CONTINUE) {
+    const bool box = render->pimpl->captureBoundingBox(render, node);
+    if (!box) node->callback(render);
+    else render->pimpl->observeBoundingBox(render, node);
+  }
+  render->invokePostCallbacks(node);
+}
+
+void
+CoinRenderActionP::markerContentMethod(SoAction * action, SoNode * node)
+{
+  // Custom subclasses retain their own virtual callback contract.
+  if (node->getTypeId() != SoMarkerSet::getClassTypeId() &&
+      node->getTypeId() != SoIndexedMarkerSet::getClassTypeId()) {
+    shapeContentMethod(action, node);
+    return;
+  }
+  auto * render = static_cast<CoinRenderAction *>(action);
+  if (render->hasTerminated()) return;
+  render->setCurrentNode(node);
+  render->invokePreCallbacks(node);
+  if (render->getCurrentResponse() == SoCallbackAction::CONTINUE) {
+    if (render->pimpl->captureBoundingBox(render, node)) {
+      render->pimpl->observeBoundingBox(render, node);
+      render->invokePostCallbacks(node);
+      return;
+    }
+    const bool observers = !render->hasSingleShapeCallbacks(node->getTypeId());
+    if (render->pimpl->builder.captureMarkerContent(render, node, observers) && observers) {
+      // Native marker rendering disables texture-coordinate functions and
+      // lighting. Retain inherited point observers in the same safe scope;
+      // our point callback suppresses their legacy one-pixel geometry.
+      SoState * state = render->getState();
+      state->push();
+      SoLazyElement::setLightModel(state, SoLazyElement::BASE_COLOR);
+      SoMultiTextureEnabledElement::disableAll(state);
+      node->callback(render);
+      state->pop();
+    }
+  }
+  render->invokePostCallbacks(node);
+}
+
+void
+CoinRenderActionP::screenContentMethod(SoAction * action, SoNode * node)
+{
+  // Subclasses retain their virtual callback and geometry contract.
+  if (node->getTypeId() != SoImage::getClassTypeId() &&
+      node->getTypeId() != SoText2::getClassTypeId()) {
+    shapeContentMethod(action, node);
+    return;
+  }
+  auto * render = static_cast<CoinRenderAction *>(action);
+  if (render->hasTerminated()) return;
+  render->setCurrentNode(node);
+  render->invokePreCallbacks(node);
+  if (render->getCurrentResponse() == SoCallbackAction::CONTINUE) {
+    if (render->pimpl->captureBoundingBox(render, node)) {
+      render->pimpl->observeBoundingBox(render, node);
+      render->invokePostCallbacks(node);
+      return;
+    }
+    render->pimpl->builder.captureScreenContent(render, node);
+    // Native image primitive observers still run. Our triangle callback
+    // suppresses that legacy quad, leaving only the captured screen pixels.
+    if (!render->hasSingleShapeCallbacks(node->getTypeId())) node->callback(render);
+  }
+  render->invokePostCallbacks(node);
+}
+
+SoCallbackAction::Response
+CoinRenderActionP::shapePostCB(void * userdata, SoCallbackAction *, const SoNode *)
+{
+  auto * self = static_cast<CoinRenderActionP *>(userdata);
+  self->builder.endShape();
+  self->endTranslationShape();
+  return SoCallbackAction::CONTINUE;
+}
 
 SoCallbackAction::Response
 CoinRenderActionP::textureCombinePreCB(void * userdata, SoCallbackAction* action, const SoNode* node)
@@ -883,6 +1764,27 @@ CoinRenderActionP::textureCombinePreCB(void * userdata, SoCallbackAction* action
   // Use the node's own field/override interpretation with our enabled state.
   const_cast<SoTextureCombine*>(static_cast<const SoTextureCombine*>(node))->doAction(action);
   return SoCallbackAction::CONTINUE;
+}
+
+void
+CoinRenderActionP::alphaTestMethod(SoAction * action, SoNode * node)
+{
+  auto * render = static_cast<CoinRenderAction *>(action);
+  if (render->hasTerminated()) return;
+  render->setCurrentNode(node);
+  render->invokePreCallbacks(node);
+  if (render->getCurrentResponse() == SoCallbackAction::CONTINUE) {
+    if (!coin_render_capture_alpha_node(*static_cast<const SoAlphaTest *>(node), render->getState())) {
+      render->pimpl->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::INVALID_SCENE,
+        CoinRenderDiagnosticDomain::FRAME_PLAN, SbString("SoAlphaTest has invalid function or NaN reference")));
+      render->setTerminated(TRUE);
+    } else {
+      // Preserve subclass callback behavior after interpreting inherited fields.
+      // This virtual callback remains responsible for any subclass-specific state.
+      node->callback(render);
+    }
+  }
+  render->invokePostCallbacks(node);
 }
 
 SoCallbackAction::Response
@@ -927,9 +1829,13 @@ CoinRenderActionP::unsupportedEffectPreCB(void * userdata, SoCallbackAction *, c
       return SoCallbackAction::CONTINUE;
     diagnostic = "SoSceneTextureCubeMap requires a cube RTT contract and executor";
   } else if (node->isOfType(SoShaderProgram::getClassTypeId())) {
-    if (static_cast<const SoShaderProgram *>(node)->shaderObject.getNum() == 0)
-      return SoCallbackAction::CONTINUE;
-    diagnostic = "SoShaderProgram has no portable shader contract";
+    if (static_cast<const SoShaderProgram *>(node)->shaderObject.getNum() == 0) {
+      const auto * owner = static_cast<CoinRenderActionP *>(userdata);
+      if (!owner->builder.hasActiveShadowGroup()) return SoCallbackAction::CONTINUE;
+      // Empty programs remove Coin's generated shadow program, changing both
+      // lighting/shadows and texture projection without changing ShadowStyle.
+      diagnostic = "Empty SoShaderProgram disables the active shadow shader; this profile is unsupported";
+    } else diagnostic = "SoShaderProgram has no portable shader contract";
   }
   if (!diagnostic) return SoCallbackAction::CONTINUE;
   auto * p = static_cast<CoinRenderActionP *>(userdata);
@@ -948,6 +1854,9 @@ CoinRenderActionP::initCallbacks()
 
   this->master->addPreCallback(SoCamera::getClassTypeId(), unsupportedEffectPreCB, this);
   this->master->addPreCallback(SoShape::getClassTypeId(), textureUnitsPreCB, this);
+  this->master->addPostCallback(SoShape::getClassTypeId(), shapePostCB, this);
+  this->master->addPreCallback(SoTranslation::getClassTypeId(), translationPreCB, this);
+  this->master->addPreCallback(SoTransform::getClassTypeId(), translationPreCB, this);
   this->master->addPreCallback(SoLight::getClassTypeId(), lightPreCB, this);
   this->master->addPreCallback(SoTextureCombine::getClassTypeId(), textureCombinePreCB, this);
   this->master->addPreCallback(SoTexture3::getClassTypeId(), unsupportedEffectPreCB, this);
@@ -963,6 +1872,7 @@ CoinRenderActionP::initCallbacks()
   this->master->addPreCallback(SoSceneTexture2::getClassTypeId(), sceneTexturePreCB, this);
   this->master->addPreCallback(SoIndexedFaceSet::getClassTypeId(), indexedFaceSetPreCB, this);
   this->master->addPreCallback(SoIndexedLineSet::getClassTypeId(), indexedLineSetPreCB, this);
+  this->captureCallbackRevision = this->master->callbackRegistrationRevision();
 }
 
 void
@@ -973,6 +1883,9 @@ CoinRenderActionP::triangleCB(void * userdata,
                                const SoPrimitiveVertex * v2)
 {
   CoinRenderActionP * p = static_cast<CoinRenderActionP *>(userdata);
+  if (p->boundingBoxObservers) return;
+  const auto type = action->getCurPathTail()->getTypeId();
+  if (type == SoImage::getClassTypeId() || type == SoText2::getClassTypeId()) return;
   p->builder.addTriangle(action, v0, v1, v2);
 }
 
@@ -983,6 +1896,7 @@ CoinRenderActionP::lineCB(void * userdata,
                            const SoPrimitiveVertex * v1)
 {
   CoinRenderActionP * p = static_cast<CoinRenderActionP *>(userdata);
+  if (p->boundingBoxObservers) return;
   p->builder.addLine(action, v0, v1);
 }
 
@@ -992,6 +1906,9 @@ CoinRenderActionP::pointCB(void * userdata,
                             const SoPrimitiveVertex * vertex)
 {
   CoinRenderActionP * p = static_cast<CoinRenderActionP *>(userdata);
+  if (p->boundingBoxObservers) return;
+  const auto type = action->getCurPathTail()->getTypeId();
+  if (type == SoMarkerSet::getClassTypeId() || type == SoIndexedMarkerSet::getClassTypeId()) return;
   p->builder.addPoint(action, vertex);
 }
 
@@ -1198,8 +2115,15 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, 
   int pathIndexCount=0;
   const int * pathIndices=nullptr;
   bool separateMap = snapshot.parentGroupSlot != 0 ||
+    p->master->callbackRegistrationRevision() != p->captureCallbackRevision ||
+    (SoShapeStyleElement::get(action->getState())->getFlags() & SoShapeStyleElement::BBOXCMPLX) ||
     action->getPathCode(pathIndexCount,pathIndices) == SoAction::IN_PATH;
   SoSearchAction structure;
+  structure.setType(SoComplexity::getClassTypeId());
+  structure.setInterest(SoSearchAction::FIRST);
+  structure.apply(const_cast<SoShadowGroup *>(group));
+  separateMap = separateMap || structure.getPath() != nullptr;
+  structure.reset();
   structure.setType(SoAnnotation::getClassTypeId());
   structure.setInterest(SoSearchAction::FIRST);
   structure.apply(const_cast<SoShadowGroup *>(group));
@@ -1267,7 +2191,7 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, 
     capture.inheritedClipPlaneCount = inheritedPlanes;
     std::string error;
     p->builder.endShadowGroup();
-    const bool ok = p->builder.build(capture.frame, &error);
+    const bool ok = p->builder.build(capture.frame, &error, true);
     std::swap(savedBuilder, p->builder);
     if (!ok || action->hasTerminated()) {
       if (!action->hasTerminated()) p->setDiagnostic(CoinRenderDiagnosticShell::action(
@@ -1372,7 +2296,9 @@ CoinRenderActionP::indexedFaceSetPreCB(void * userdata,
   // PRUNE skips this shape only; subsequent state nodes still traverse.
   if (CoinRenderFramePlanBuilder::isShapeInvisible(action)) return SoCallbackAction::PRUNE;
   CoinRenderActionP * p = static_cast<CoinRenderActionP *>(userdata);
-  if (!p->fastPathEnabled) {
+  if (!p->fastPathEnabled || p->master->callbackRegistrationRevision() != p->captureCallbackRevision ||
+      (!p->capturingShadowScene && (SoShapeStyleElement::get(action->getState())->getFlags() &
+                                   SoShapeStyleElement::BBOXCMPLX))) {
     return SoCallbackAction::CONTINUE;
   }
 
@@ -1462,6 +2388,12 @@ CoinRenderActionP::indexedFaceSetPreCB(void * userdata,
   if (tcElem) {
     SoMultiTextureCoordinateElement::CoordType ct = tcElem->getType(0);
     if (ct == SoMultiTextureCoordinateElement::EXPLICIT) {
+      // The direct geometry view carries 2D coordinates. Native callbacks
+      // preserve R and Q for explicit 3D/4D coordinates.
+      if (tcElem->getDimension(0) != 2) {
+        if (vp) state->pop();
+        return SoCallbackAction::CONTINUE;
+      }
       int32_t numTc = tcElem->getNum(0);
       if (numTc > 0) {
         const SbVec2f * tcPtr = tcElem->getArrayPtr2(0);
@@ -1507,7 +2439,9 @@ CoinRenderActionP::indexedLineSetPreCB(void * userdata,
   // PRUNE skips this shape only; subsequent state nodes still traverse.
   if (CoinRenderFramePlanBuilder::isShapeInvisible(action)) return SoCallbackAction::PRUNE;
   CoinRenderActionP * p = static_cast<CoinRenderActionP *>(userdata);
-  if (!p->fastPathEnabled) {
+  if (!p->fastPathEnabled || p->master->callbackRegistrationRevision() != p->captureCallbackRevision ||
+      (!p->capturingShadowScene && (SoShapeStyleElement::get(action->getState())->getFlags() &
+                                   SoShapeStyleElement::BBOXCMPLX))) {
     return SoCallbackAction::CONTINUE;
   }
 

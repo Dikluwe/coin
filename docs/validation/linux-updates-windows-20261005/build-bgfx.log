@@ -1,0 +1,335 @@
+CMake is re-running because H:/Git/coin/build/coin-render-bgfx-msvc/CMakeFiles/generate.stamp is out-of-date.
+  the file 'H:/Git/coin/build/coin-render-source/CMakeLists.txt'
+  is newer than 'H:/Git/coin/build/coin-render-bgfx-msvc/CMakeFiles/generate.stamp.depend'
+  result='-1'
+-- Selecting Windows SDK version 10.0.26100.0 to target Windows 10.0.19045.
+-- Setting C++ standard: '11', which is the minimum needed to compile Coin.
+-- BGFX evaluation: offscreen or native window, Vulkan/OpenGL and Windows D3D12, BASE_COLOR indexed triangles and opt-in transparency modes
+--
+-- OpenGL::GL;Threads::Threads
+-- Build against dynamic Microsoft Visual C runtime library
+-- Configuring done (17.7s)
+-- Generating done (12.5s)
+-- Build files have been written to: H:/Git/coin/build/coin-render-bgfx-msvc
+Versão do MSBuild 17.14.60+43b635718 para .NET Framework
+
+  SoAction.cpp
+  SoCallbackAction.cpp
+  SoReorganizeAction.cpp
+  SoToVRML2Action.cpp
+  SoToVRMLAction.cpp
+  SoIntersectionDetectionAction.cpp
+  SoDragger.cpp
+  SoSTLFileKit.cpp
+  SoGeoOrigin.cpp
+  SoGeoSeparator.cpp
+  HardCopy.cpp
+  VectorizeAction.cpp
+  VectorizeActionP.cpp
+  VectorizePSAction.cpp
+  SoClipPlaneManip.cpp
+  SoDirectionalLightManip.cpp
+  SoPointLightManip.cpp
+  SoSpotLightManip.cpp
+  SoTransformManip.cpp
+  SoArray.cpp
+  SoBaseColor.cpp
+  SoBumpMap.cpp
+  SoBumpMapCoordinate.cpp
+  SoBumpMapTransform.cpp
+  SoCacheHint.cpp
+  SoCallback.cpp
+  SoCamera.cpp
+  SoClipPlane.cpp
+  SoComplexity.cpp
+  SoCoordinate3.cpp
+  SoCoordinate4.cpp
+  SoDrawStyle.cpp
+  SoEnvironment.cpp
+  SoExtSelection.cpp
+  SoFile.cpp
+  SoFont.cpp
+  SoGroup.cpp
+  SoLOD.cpp
+  SoLevelOfDetail.cpp
+  SoLight.cpp
+  SoLightModel.cpp
+  SoMaterial.cpp
+  SoMaterialBinding.cpp
+  SoMultipleCopy.cpp
+  SoNode.cpp
+  SoNormal.cpp
+  SoNormalBinding.cpp
+  SoPackedColor.cpp
+  SoPathSwitch.cpp
+  SoPickStyle.cpp
+  SoPolygonOffset.cpp
+  SoProfile.cpp
+  SoProfileCoordinate2.cpp
+  SoProfileCoordinate3.cpp
+  SoSceneTexture2.cpp
+  SoSceneTextureCubeMap.cpp
+  SoSeparator.cpp
+  SoShapeHints.cpp
+  SoSwitch.cpp
+  SoTexture2.cpp
+  SoTexture2Transform.cpp
+  SoTexture3.cpp
+  SoTexture3Transform.cpp
+  SoTextureCombine.cpp
+  SoTextureCoordinate2.cpp
+  SoTextureCoordinate3.cpp
+  SoTextureCoordinateBinding.cpp
+  SoTextureCoordinateCube.cpp
+  SoTextureCoordinateCylinder.cpp
+  SoTextureCoordinateSphere.cpp
+  SoTextureCubeMap.cpp
+  SoTextureMatrixTransform.cpp
+  SoTextureUnit.cpp
+  SoTransformSeparator.cpp
+  SoTransformation.cpp
+  SoTransparencyType.cpp
+  SoUnits.cpp
+  SoVertexAttributeBinding.cpp
+  SoVertexProperty.cpp
+  SoProfiler.cpp
+  SoProfilerStats.cpp
+  SoShape.cpp
+  Appearance.cpp
+  Color.cpp
+  Group.cpp
+  ImageTexture.cpp
+  IndexedFaceSet.cpp
+  Inline.cpp
+  Material.cpp
+  PixelTexture.cpp
+  Switch.cpp
+  Transform.cpp
+     Criando biblioteca H:/Git/coin/build/coin-render-bgfx-msvc/lib/Coin4.lib e objeto H:/Git/coin/build/coin-render-bgfx-msvc/lib/Coin4.exp
+  Coin.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\Coin4.dll
+  Building Custom Rule H:/Git/coin/build/coin-render-source/testsuite/CMakeLists.txt
+  Building Custom Rule H:/Git/coin/build/coin-render-source/testsuite/CMakeLists.txt
+  CoinRenderTransformCoreTest.cpp
+  RenderManagerFramePreparationTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\RenderManagerFramePreparationTest.exe
+  CoinRenderBenchmarkAnimationTest.cpp
+  CoinProfilerInitTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinProfilerInitTest.exe
+  1>Generating bgfx-generated/coin_bgfx_vs_spirv.h
+  actionsSoCallbackActionTest.cpp
+  draggersSoTransformerDraggerTest.cpp
+  shapenodesSoIndexedFaceSetTest.cpp
+  1>Generating bgfx-generated/coin_bgfx_vs_glsl.h
+  1>Generating bgfx-generated/coin_bgfx_vs_dx11.h
+  CoinRenderTransformCoreTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderTransformCoreTest.exe
+  1>Generating bgfx-generated/coin_bgfx_fs_spirv.h
+  2>Generating bgfx-generated/coin_bgfx_fs_composite_glsl.h
+  2>Generating bgfx-generated/coin_bgfx_fs_composite_dx11.h
+  2>Generating bgfx-generated/coin_bgfx_fs_weighted_oit_spirv.h
+  CoinTests.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinTests.exe
+  2>Generating bgfx-generated/coin_bgfx_fs_weighted_oit_glsl.h
+  1>Generating bgfx-generated/coin_bgfx_fs_glsl.h
+  2>Generating bgfx-generated/coin_bgfx_fs_weighted_oit_dx11.h
+  1>Generating bgfx-generated/coin_bgfx_fs_dx11.h
+  3>Generating bgfx-generated/coin_bgfx_vs_instanced_color_dx11.h
+  3>Generating bgfx-generated/coin_bgfx_fs_instanced_color_spirv.h
+  3>Generating bgfx-generated/coin_bgfx_fs_instanced_color_glsl.h
+  3>Generating bgfx-generated/coin_bgfx_fs_instanced_color_dx11.h
+  3>Generating bgfx-generated/coin_bgfx_vs_shadow_moments_spirv.h
+  3>Generating bgfx-generated/coin_bgfx_vs_shadow_moments_glsl.h
+  3>Generating bgfx-generated/coin_bgfx_vs_shadow_moments_dx11.h
+  3>Generating bgfx-generated/coin_bgfx_fs_shadow_moments_spirv.h
+  3>Generating bgfx-generated/coin_bgfx_fs_shadow_moments_glsl.h
+  3>Generating bgfx-generated/coin_bgfx_fs_shadow_moments_dx11.h
+  3>Generating bgfx-generated/coin_bgfx_vs_shadow_receiver_spirv.h
+  3>Generating bgfx-generated/coin_bgfx_vs_shadow_receiver_glsl.h
+  3>Generating bgfx-generated/coin_bgfx_vs_shadow_receiver_dx11.h
+  2>Generating bgfx-generated/coin_bgfx_fs_weighted_composite_spirv.h
+  2>Generating bgfx-generated/coin_bgfx_fs_weighted_composite_glsl.h
+  1>Generating bgfx-generated/coin_bgfx_fs_solid_color_spirv.h
+  2>Generating bgfx-generated/coin_bgfx_fs_weighted_composite_dx11.h
+  2>Generating bgfx-generated/coin_bgfx_fs_depth_readback_spirv.h
+  1>Generating bgfx-generated/coin_bgfx_fs_solid_color_glsl.h
+  2>Generating bgfx-generated/coin_bgfx_fs_depth_readback_glsl.h
+  1>Generating bgfx-generated/coin_bgfx_fs_solid_color_dx11.h
+  1>Generating bgfx-generated/coin_bgfx_fs_peel_next_spirv.h
+  2>Generating bgfx-generated/coin_bgfx_fs_depth_readback_dx11.h
+  2>Generating bgfx-generated/coin_bgfx_vs_instanced_color_spirv.h
+  2>Generating bgfx-generated/coin_bgfx_vs_instanced_color_glsl.h
+  4>Generating bgfx-generated/coin_bgfx_fs_shadow_receiver_spirv.h
+  4>Generating bgfx-generated/coin_bgfx_fs_shadow_receiver_glsl.h
+  4>Generating bgfx-generated/coin_bgfx_fs_shadow_receiver_dx11.h
+  4>Generating bgfx-generated/coin_bgfx_fs_shadow_receiver4_spirv.h
+  4>Generating bgfx-generated/coin_bgfx_fs_shadow_receiver4_glsl.h
+  4>Generating bgfx-generated/coin_bgfx_fs_shadow_receiver4_dx11.h
+  4>Generating bgfx-generated/coin_bgfx_fs_shadow_receiver8_spirv.h
+  4>Generating bgfx-generated/coin_bgfx_fs_shadow_receiver8_glsl.h
+  4>Generating bgfx-generated/coin_bgfx_fs_shadow_receiver8_dx11.h
+  1>Generating bgfx-generated/coin_bgfx_fs_peel_next_glsl.h
+  3>Generating bgfx-generated/coin_bgfx_fs_shadow_oit_glsl.h
+  3>Generating bgfx-generated/coin_bgfx_fs_shadow_oit_dx11.h
+  1>Generating bgfx-generated/coin_bgfx_fs_peel_next_dx11.h
+  4>Generating bgfx-generated/coin_bgfx_fs_shadow_peel_spirv.h
+  4>Generating bgfx-generated/coin_bgfx_fs_shadow_peel_glsl.h
+  4>Generating bgfx-generated/coin_bgfx_fs_shadow_peel_dx11.h
+  1>Generating bgfx-generated/coin_bgfx_fs_composite_spirv.h
+  4>Generating bgfx-generated/coin_bgfx_fs_shadow_oit_spirv.h
+  CoinRenderBackendFactory.cpp
+  CoinRenderDiagnosticShell.cpp
+  CoinRenderFramePlan.cpp
+  CoinRenderFramePlanBuilder.cpp
+  CoinRenderBenchmarkAnimationTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderBenchmarkAnimationTest.exe
+  CoinRenderFrameReuseCore.cpp
+  CoinRenderImageCore.cpp
+  CoinRenderPlanAssemblyCore.cpp
+  CoinRenderManagerAdapter.cpp
+  CoinRenderRecordingBackend.cpp
+  CoinRenderCapabilities.cpp
+  CoinRenderSceneManager.cpp
+  CoinRenderCpuReferenceBackend.cpp
+  CoinRenderRttExecution.cpp
+  CoinRenderTarget.cpp
+  CoinRenderAction.cpp
+  CoinBgfxLowering.cpp
+  CoinBgfxAction.cpp
+  CoinBgfxRuntime.cpp
+  CoinBgfxBackend.cpp
+     Criando biblioteca H:/Git/coin/build/coin-render-bgfx-msvc/lib/CoinRender4.lib e objeto H:/Git/coin/build/coin-render-bgfx-msvc/lib/CoinRender4.exp
+  CoinRender.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRender4.dll
+  Building Custom Rule H:/Git/coin/build/coin-render-source/testsuite/CMakeLists.txt
+  Building Custom Rule H:/Git/coin/build/coin-render-source/testsuite/CMakeLists.txt
+  CoinBgfxLowering.cpp
+  CoinBgfxCoreTest.cpp
+  CoinRenderGateG2Test.cpp
+  CoinBgfxTransparencyTest.cpp
+  CoinRenderPlanAssemblyCoreTest.cpp
+  coin_render_gl_benchmark.cpp
+  CoinRenderActionTest.cpp
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\xmemory(732,103): warning C4244: 'argumento': conversão de '_Ty' para 'const float', possível perda de dados [H:\Git\coin\build\coin-render-bgfx-msvc\testsuite\CoinBgfxCoreTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\xmemory(732,103): warning C4244:         with [H:\Git\coin\build\coin-render-bgfx-msvc\testsuite\CoinBgfxCoreTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\xmemory(732,103): warning C4244:         [ [H:\Git\coin\build\coin-render-bgfx-msvc\testsuite\CoinBgfxCoreTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\xmemory(732,103): warning C4244:             _Ty=int [H:\Git\coin\build\coin-render-bgfx-msvc\testsuite\CoinBgfxCoreTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\xmemory(732,103): warning C4244:         ] [H:\Git\coin\build\coin-render-bgfx-msvc\testsuite\CoinBgfxCoreTest.vcxproj]
+  (compilando o arquivo fonte '../../../coin-render-source/testsuite/coinbgfx/CoinBgfxCoreTest.cpp')
+      C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\xmemory(732,103):
+      o contexto de instanciação do modelo (o mais antigo primeiro) é
+          H:\Git\coin\build\coin-render-source\testsuite\coinbgfx\CoinBgfxCoreTest.cpp(420,68):
+          consulte a referência à instanciação 'void std::vector<SbPlane,std::allocator<SbPlane>>::emplace_back<SbVec3f,int>(SbVec3f &&,int &&)' do modelo que está sendo compilada
+              H:\Git\coin\build\coin-render-source\testsuite\coinbgfx\CoinBgfxCoreTest.cpp(420,80):
+              veja a primeira referência a 'std::vector<SbPlane,std::allocator<SbPlane>>::emplace_back' em '`anonymous-namespace'::instancedOpaque'
+          C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\vector(924,24):
+          consulte a referência à instanciação '_Ty &std::vector<_Ty,std::allocator<_Ty>>::_Emplace_one_at_back<SbVec3f,int>(SbVec3f &&,int &&)' do modelo que está sendo compilada
+          with
+          [
+              _Ty=SbPlane
+          ]
+          C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\vector(845,20):
+          consulte a referência à instanciação '_Ty &std::vector<_Ty,std::allocator<_Ty>>::_Emplace_back_with_unused_capacity<SbVec3f,int>(SbVec3f &&,int &&)' do modelo que está sendo compilada
+          with
+          [
+              _Ty=SbPlane
+          ]
+          C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\vector(863,27):
+          consulte a referência à instanciação 'void std::_Default_allocator_traits<_Alloc>::construct<_Ty,SbVec3f,int>(_Alloc &,_Objty *const ,SbVec3f &&,int &&)' do modelo que está sendo compilada
+          with
+          [
+              _Alloc=std::allocator<SbPlane>,
+              _Ty=SbPlane,
+              _Objty=SbPlane
+          ]
+
+  CoinWgpuCacheTest.cpp
+  CoinRenderStabilizationTest.cpp
+  CoinBgfxTransparencyTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinBgfxTransparencyTest.exe
+  CoinRenderSceneTextureTest.cpp
+  CoinRenderGateG2Test.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderGateG2Test.exe
+  CoinRenderPlanAssemblyCoreTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderPlanAssemblyCoreTest.exe
+  CoinRenderStabilizationTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderStabilizationTest.exe
+  coin_render_win32_smoke.cpp
+  CoinRenderShadowReferenceTest.cpp
+  CoinRenderRuntimeBoundaryTest.cpp
+  coin_render_gl_benchmark.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\coin_render_gl_benchmark.exe
+  CoinRenderActionTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderActionTest.exe
+  CoinRenderPublicationTest.cpp
+  CoinBgfxCoreTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinBgfxCoreTest.exe
+  CoinRenderOffscreenTest.cpp
+  coin_render_freecad_compare.cpp
+  CoinRenderSceneTextureTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderSceneTextureTest.exe
+  CoinRenderRuntimeBoundaryTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderRuntimeBoundaryTest.exe
+  CoinRenderTransparencyTest.cpp
+  CoinWgpuCacheTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinWgpuCacheTest.exe
+  coin_render_win32_smoke.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\coin_render_win32_smoke.exe
+  CoinRenderRttOwnershipTest.cpp
+  CoinRenderProductTest.cpp
+  CoinRenderPublicationTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderPublicationTest.exe
+  CoinRenderPeelingTest.cpp
+  coin_render_freecad_compare.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\coin_render_freecad_compare.exe
+  CoinRenderMultitextureTest.cpp
+  CoinRenderOffscreenTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderOffscreenTest.exe
+  CoinRenderMultiTargetTest.cpp
+  CoinRenderProductTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderProductTest.exe
+  CoinRenderIndexedFastPathTest.cpp
+  CoinRenderIndexedGeometryCoreTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderIndexedGeometryCoreTest.exe
+  CoinRenderTransparencyTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderTransparencyTest.exe
+  CoinRenderRttOwnershipTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderRttOwnershipTest.exe
+  CoinRenderTextureTest.cpp
+  CoinRenderFrameReuseCoreTest.cpp
+  CoinRenderMultiTargetTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderMultiTargetTest.exe
+  CoinRenderPeelingTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderPeelingTest.exe
+  CoinRenderDiagnosticShellTest.cpp
+  CoinRenderFogTest.cpp
+  CoinRenderMultitextureTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderMultitextureTest.exe
+  Building Custom Rule H:/Git/coin/build/coin-render-source/testsuite/CMakeLists.txt
+  CoinRenderTextureTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderTextureTest.exe
+  CoinRenderIndexedFastPathTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderIndexedFastPathTest.exe
+  CoinRenderSelectionTest.cpp
+  CoinRenderCameraReuseReferenceTest.cpp
+  CoinRenderGateG1Test.cpp
+  CoinRenderSceneTextureBudgetTest.cpp
+  CoinRenderFrameReuseCoreTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderFrameReuseCoreTest.exe
+  CoinRenderGateG0Test.cpp
+  CoinBgfxLowering.cpp
+  CoinRenderFramePlanBuilder.cpp
+  CoinWgpuFfiFrame.cpp
+  CoinRenderDepthContractTest.cpp
+  CoinRenderDiagnosticShellTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderDiagnosticShellTest.exe
+  CoinRenderSceneTextureBudgetTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderSceneTextureBudgetTest.exe
+  CoinRenderGateG1Test.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderGateG1Test.exe
+  CoinRenderSelectionTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderSelectionTest.exe
+  CoinRenderCameraReuseReferenceTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderCameraReuseReferenceTest.exe
+  CoinRenderNodeInventoryTest.cpp
+  CoinRenderLightingTest.cpp
+  CoinRenderGateG0Test.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderGateG0Test.exe
+  CoinRenderFogTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderFogTest.exe
+  CoinRenderBackendContractTest.cpp
+  CoinRenderFramePlanBuilder.cpp
+  CoinRenderClipPlaneTest.cpp
+  CoinBgfxReadbackModesTest.cpp
+  CoinRenderDepthContractTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderDepthContractTest.exe
+  CoinRenderNodeInventoryTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderNodeInventoryTest.exe
+  CoinRenderBackendContractTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderBackendContractTest.exe
+  CoinRenderLightingTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderLightingTest.exe
+  Building Custom Rule H:/Git/coin/build/coin-render-source/testsuite/CMakeLists.txt
+  CoinRenderGouraudInterpolationTest.cpp
+  CoinRenderFrameCoreTest.cpp
+  CoinRenderFramePlanBuilder.cpp
+  CoinRenderDrawStyleTest.cpp
+  CoinRenderClipPlaneTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderClipPlaneTest.exe
+  CoinBgfxInstancingTest.cpp
+  CoinBgfxLowering.cpp
+  CoinRenderCompositionTest.cpp
+  CoinRenderGouraudInterpolationTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderGouraudInterpolationTest.exe
+  CoinBgfxReadbackModesTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinBgfxReadbackModesTest.exe
+  CoinRenderFrameCoreTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderFrameCoreTest.exe
+  CoinRenderDrawStyleTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderDrawStyleTest.exe
+  CoinRenderCompositionTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderCompositionTest.exe
+  Building Custom Rule H:/Git/coin/build/coin-render-source/testsuite/CMakeLists.txt
+  CoinRenderBackendBoundaryTest.cpp
+  CoinBgfxSurfaceFeaturesTest.cpp
+  Building Custom Rule H:/Git/coin/build/coin-render-source/testsuite/CMakeLists.txt
+  CoinBgfxInstancingTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinBgfxInstancingTest.exe
+  CoinBgfxProgramSelectionTest.cpp
+  CoinRenderBackendBoundaryTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderBackendBoundaryTest.exe
+  CoinBgfxSurfaceFeaturesTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinBgfxSurfaceFeaturesTest.exe
+  CoinBgfxOffscreenTest.cpp
+  CoinBgfxProgramSelectionTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinBgfxProgramSelectionTest.exe
+  CoinBgfxOffscreenTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinBgfxOffscreenTest.exe
+  CoinRenderShadowReferenceTest.vcxproj -> H:\Git\coin\build\coin-render-bgfx-msvc\bin\CoinRenderShadowReferenceTest.exe

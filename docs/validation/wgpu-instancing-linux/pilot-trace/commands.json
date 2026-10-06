@@ -1,0 +1,77 @@
+[
+  {
+    "case": "transforms-10",
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+      "--backend",
+      "wgpu",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "transforms",
+      "--animated-percent",
+      "10",
+      "--transparency",
+      "object",
+      "--warmup",
+      "3",
+      "--frames",
+      "6",
+      "--size",
+      "1024",
+      "--samples-output",
+      "/tmp/coin-render-instancing-pilot/transforms-10.csv"
+    ],
+    "returncode": 0
+  },
+  {
+    "case": "static",
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+      "--backend",
+      "wgpu",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "static",
+      "--animated-percent",
+      "10",
+      "--transparency",
+      "object",
+      "--warmup",
+      "3",
+      "--frames",
+      "6",
+      "--size",
+      "1024",
+      "--samples-output",
+      "/tmp/coin-render-instancing-pilot/static.csv"
+    ],
+    "returncode": 0
+  },
+  {
+    "case": "camera",
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+      "--backend",
+      "wgpu",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "camera",
+      "--animated-percent",
+      "10",
+      "--transparency",
+      "object",
+      "--warmup",
+      "3",
+      "--frames",
+      "6",
+      "--size",
+      "1024",
+      "--samples-output",
+      "/tmp/coin-render-instancing-pilot/camera.csv"
+    ],
+    "returncode": 0
+  }
+]

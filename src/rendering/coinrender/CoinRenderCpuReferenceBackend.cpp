@@ -2,6 +2,8 @@
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
 #include "rendering/coinrender/CoinRenderClipCore.h"
 #include "rendering/coinrender/CoinRenderLightingCore.h"
+#include "rendering/coinrender/CoinRenderAlphaTestCore.h"
+#include "rendering/coinrender/CoinRenderTextureCoordinateCore.h"
 #include <atomic>
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
@@ -22,8 +24,8 @@ struct ShadedVertex {
   SbVec4f clipPos;
   SbVec3f viewPos;
   SbVec4f litColor;
-  SbVec2f texCoord;
-  SbVec2f extraTexcoords[COIN_RENDER_MAX_TEXTURE_UNITS - 1];
+  SbVec3f texCoord;
+  SbVec3f extraTexcoords[COIN_RENDER_MAX_TEXTURE_UNITS - 1];
 };
 
 inline float edgeFunction(const SbVec2f & a, const SbVec2f & b, const SbVec2f & c) {
@@ -102,9 +104,10 @@ inline SbVec4f sampleTexture(const CoinRenderTextureImageSnapshot & tex, const C
   SbVec4f p01 = fetchPixel(x0, y1);
   SbVec4f p11 = fetchPixel(x1, y1);
 
-  SbVec4f top = p00 * (1.0f - wx) + p10 * wx;
-  SbVec4f bot = p01 * (1.0f - wx) + p11 * wx;
-  return top * (1.0f - wy) + bot * wy;
+  // Preserve constant channels exactly, including alpha-test boundaries.
+  SbVec4f top = p00 + (p10 - p00) * wx;
+  SbVec4f bot = p01 + (p11 - p01) * wx;
+  return top + (bot - top) * wy;
 }
 
 inline void applyFog(const CoinRenderRenderStateSnapshot & rs, float eyeDepth,
@@ -131,6 +134,34 @@ inline float mappedDepth(float z, const CoinRenderRenderStateSnapshot & state) {
   if (state.polygonOffsetEnabled && (state.polygonOffsetStyles & state.polygonOffsetPrimitiveStyle))
     depth += state.polygonOffsetSlopeBias;
   return std::max(0.0f, std::min(1.0f, depth));
+}
+
+// Captured strokes expand into triangles. Direct CPU plans may keep raw
+// lines/points; their alpha comparison still consumes the final texture alpha.
+inline SbVec4f rawFragmentColor(const CoinRenderFramePlan & frame,
+                               const CoinRenderRenderStateSnapshot & state,
+                               const CoinRenderVertexSnapshot & vertex,
+                               const SbVec4f & primary) {
+  SbVec4f color = primary;
+  for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+    const auto layer = coin_render_texture_unit(state, unit);
+    if (!layer.enabled) continue;
+    const SbVec4f transformed = coin_render_transformed_texture_coordinate(vertex, unit, layer.matrix);
+    const SbVec2f projected = coin_render_project_texture_coordinate(
+      SbVec3f(transformed[0], transformed[1], transformed[3]), state.textureProjection);
+    const SbVec4f tex = sampleTexture(frame.textures[layer.imageSlot], frame.samplers[layer.samplerSlot],
+                                    projected[0], projected[1]);
+    if (state.textureCombines[unit].instructions[0][0] > .5f)
+      color = coin_render_texture_combine(state.textureCombines[unit], primary, tex, color);
+    else if (layer.model == CoinRenderTextureModel::REPLACE) color = tex;
+    else if (layer.model == CoinRenderTextureModel::DECAL)
+      for (int c = 0; c < 3; ++c) color[c] = color[c] * (1 - tex[3]) + tex[c] * tex[3];
+    else if (layer.model == CoinRenderTextureModel::BLEND) {
+      for (int c = 0; c < 3; ++c) color[c] = color[c] * (1 - tex[c]) + layer.blendColor[c] * tex[c];
+      color[3] *= tex[3];
+    } else for (int c = 0; c < 4; ++c) color[c] *= tex[c];
+  }
+  return color;
 }
 
 inline bool depthPass(float z, float stored, const CoinRenderRenderStateSnapshot & state) {
@@ -244,7 +275,9 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
       float l1 = w1 * invArea;
       float l2 = w2 * invArea;
 
-      float zVal = l0 * ndcZ[0] + l1 * ndcZ[1] + l2 * ndcZ[2];
+      // Preserve constant-depth planes exactly. Small barycentric sum errors
+      // must not change LEQUAL coverage between coincident bounding-box faces.
+      float zVal = ndcZ[2] + l0 * (ndcZ[0] - ndcZ[2]) + l1 * (ndcZ[1] - ndcZ[2]);
       if (zVal < 0.0f || zVal > 1.0f) continue;
 
       size_t pIdx = static_cast<size_t>(py * width + px);
@@ -274,9 +307,8 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
       zVal = mappedDepth(zVal, rs);
       if (!depthPass(zVal, depthBuffer[pIdx], rs))
         continue;
-      if (rs.depthWrite && !peeled)
-        depthBuffer[pIdx] = zVal;
-      SbVec4f color = sv0.litColor * b0 + sv1.litColor * b1 + sv2.litColor * b2;
+      SbVec4f color = sv0.litColor + (sv1.litColor - sv0.litColor) * b1 +
+        (sv2.litColor - sv0.litColor) * b2;
       if (composition.screenDoor)
         color[3] = 1;
       float finalR = color[0], finalG = color[1], finalB = color[2];
@@ -284,9 +316,10 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
       for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
         const CoinRenderTextureUnitSnapshot layer = coin_render_texture_unit(rs, unit);
         if (!layer.enabled) continue;
-        const SbVec2f tc = unit == 0 ? sv0.texCoord * b0 + sv1.texCoord * b1 + sv2.texCoord * b2 :
+        const SbVec3f tc = unit == 0 ? sv0.texCoord * b0 + sv1.texCoord * b1 + sv2.texCoord * b2 :
           sv0.extraTexcoords[unit - 1] * b0 + sv1.extraTexcoords[unit - 1] * b1 + sv2.extraTexcoords[unit - 1] * b2;
-        SbVec4f texCol = sampleTexture(frame.textures[layer.imageSlot], frame.samplers[layer.samplerSlot], tc[0], tc[1]);
+        const SbVec2f projected = coin_render_project_texture_coordinate(tc, rs.textureProjection);
+        SbVec4f texCol = sampleTexture(frame.textures[layer.imageSlot], frame.samplers[layer.samplerSlot], projected[0], projected[1]);
         if (rs.textureCombines[unit].instructions[0][0] > .5f) {
           const SbVec4f combined = coin_render_texture_combine(rs.textureCombines[unit], color,
               texCol, SbVec4f(finalR, finalG, finalB, sourceAlpha));
@@ -309,11 +342,15 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
         }
       }
 
+      if (!coin_render_alpha_test_pass(rs.alphaTestFunction, rs.alphaTestReference, sourceAlpha))
+        continue;
+      if (rs.depthTest && rs.depthWrite && !peeled)
+        depthBuffer[pIdx] = zVal;
       applyFog(rs, -vPos[2], finalR, finalG, finalB);
       if (peeled) {
         auto& layers = (*peeled)[pIdx];
         const CpuPeelFragment fragment = {zVal, SbVec4f(finalR, finalG, finalB, sourceAlpha),
-                                          rs.depthWrite};
+                                          rs.depthTest && rs.depthWrite};
         auto next =
             std::lower_bound(layers.begin(), layers.end(), zVal,
                              [](const CpuPeelFragment& a, float depth) { return a.depth < depth; });
@@ -388,6 +425,9 @@ CoinRenderCpuReferenceBackend::prepare(CoinRenderTargetP & target)
 CoinRenderSubmitResult
 CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target)
 {
+  for (const auto & state : frame.renderStates)
+    if (!coin_render_alpha_test_valid(state.alphaTestFunction, state.alphaTestReference))
+      return {CoinRenderBackendStatus::UNSUPPORTED, "Invalid alpha comparison function or reference"};
   for (const auto& texture : frame.textures) {
     if (texture.producerId || texture.gpuToken)
       return {CoinRenderBackendStatus::UNSUPPORTED,
@@ -559,20 +599,11 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
           const auto & material = rawV[k]->materialSlot < frame.materials.size()
             ? frame.materials[rawV[k]->materialSlot] : CoinRenderMaterialSnapshot{};
           sv[k].litColor = coin_render_shade_vertex(material, sv[k].viewPos, viewNormal, lighting, rs);
-          if (rs.hasTexture) {
-            SbVec4f tc4(rawV[k]->texcoord[0], rawV[k]->texcoord[1], 0.0f, 1.0f);
-            SbVec4f tcTrans;
-            rs.textureMatrix.multVecMatrix(tc4, tcTrans);
-            sv[k].texCoord.setValue(tcTrans[0], tcTrans[1]);
-          } else {
-            sv[k].texCoord.setValue(rawV[k]->texcoord[0], rawV[k]->texcoord[1]);
-          }
-          for (size_t unit = 1; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
-            const auto & layer = rs.extraTextures[unit - 1];
-            SbVec4f uv;
-            layer.matrix.multVecMatrix(SbVec4f(rawV[k]->extraTexcoords[unit - 1][0],
-                                              rawV[k]->extraTexcoords[unit - 1][1], 0, 1), uv);
-            sv[k].extraTexcoords[unit - 1].setValue(uv[0], uv[1]);
+          for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+            const auto layer = coin_render_texture_unit(rs, unit);
+            const SbVec4f uv = coin_render_transformed_texture_coordinate(*rawV[k], unit, layer.matrix);
+            SbVec3f & destination = unit ? sv[k].extraTexcoords[unit - 1] : sv[k].texCoord;
+            destination.setValue(uv[0], uv[1], uv[3]);
           }
         }
 
@@ -691,7 +722,7 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
               size_t pIdx = py * width + px;
               z = mappedDepth(z, rs);
             if (depthPass(z, target.depthBuffer[pIdx], rs)) {
-                if (rs.depthWrite) target.depthBuffer[pIdx] = z;
+                const float alpha = (1.0f - t) * m0.diffuse[3] + t * m1.diffuse[3];
                 float r = (rs.lightModel == CoinRenderLightModel::BASE_COLOR)
                   ? ((1.0f - t) * m0.diffuse[0] + t * m1.diffuse[0])
                   : ((1.0f - t) * (m0.diffuse[0] + m0.ambient[0] + m0.emission[0]) + t * (m1.diffuse[0] + m1.ambient[0] + m1.emission[0]));
@@ -701,9 +732,12 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
                 float b = (rs.lightModel == CoinRenderLightModel::BASE_COLOR)
                   ? ((1.0f - t) * m0.diffuse[2] + t * m1.diffuse[2])
                   : ((1.0f - t) * (m0.diffuse[2] + m0.ambient[2] + m0.emission[2]) + t * (m1.diffuse[2] + m1.ambient[2] + m1.emission[2]));
+                const SbVec4f rgba = rawFragmentColor(frame, rs, sample, SbVec4f(r,g,b,alpha));
+                if (!coin_render_alpha_test_pass(rs.alphaTestFunction, rs.alphaTestReference, rgba[3])) continue;
+                if (rs.depthTest && rs.depthWrite) target.depthBuffer[pIdx] = z;
+                r = rgba[0]; g = rgba[1]; b = rgba[2];
                 applyFog(rs, -((1.0f - t) * view0[2] + t * view1[2]), r, g, b);
-                const float alpha = (1.0f - t) * m0.diffuse[3] + t * m1.diffuse[3];
-                writePixel(target.colorBuffer, pIdx * 4, r, g, b, alpha, blend);
+                writePixel(target.colorBuffer, pIdx * 4, r, g, b, rgba[3], blend);
               }
             }
           }
@@ -732,7 +766,6 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
             size_t pIdx = py * width + px;
             z = mappedDepth(z, rs);
             if (depthPass(z, target.depthBuffer[pIdx], rs)) {
-              if (rs.depthWrite) target.depthBuffer[pIdx] = z;
               const auto & m0 = frame.materials[v0.materialSlot < frame.materials.size() ? v0.materialSlot : 0];
               float r = (rs.lightModel == CoinRenderLightModel::BASE_COLOR)
                 ? m0.diffuse[0]
@@ -743,8 +776,12 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
               float b = (rs.lightModel == CoinRenderLightModel::BASE_COLOR)
                 ? m0.diffuse[2]
                 : (m0.diffuse[2] + m0.ambient[2] + m0.emission[2]);
+              const SbVec4f rgba = rawFragmentColor(frame, rs, v0, SbVec4f(r,g,b,m0.diffuse[3]));
+              if (!coin_render_alpha_test_pass(rs.alphaTestFunction, rs.alphaTestReference, rgba[3])) continue;
+              if (rs.depthTest && rs.depthWrite) target.depthBuffer[pIdx] = z;
+              r = rgba[0]; g = rgba[1]; b = rgba[2];
               applyFog(rs, -view0[2], r, g, b);
-              writePixel(target.colorBuffer, pIdx * 4, r, g, b, m0.diffuse[3], blend);
+              writePixel(target.colorBuffer, pIdx * 4, r, g, b, rgba[3], blend);
             }
           }
         }

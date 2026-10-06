@@ -1,0 +1,275 @@
+{
+  "source_content_revision": "9737b2e1e60eba6b44988d684c2838271d99dc05",
+  "binary_hashes": {
+    "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark": "fdeb5bec7dccc45643a62024fdabca605a6598510d63b0dcd27b6cc78ff67e4a",
+    "/tmp/coin-render-first-frame-wgpu/lib/libCoinRender.so": "31c211c1ed445ac480ff9af1e1861d58faec9b947b9ab3d453b661e9ad470dfc",
+    "/tmp/coin-render-first-frame-wgpu/lib/libCoin.so.80": "c86d9ce95df367b1c649545a1d0ba1de89edeb9f5b887f765bc47229d55c5437"
+  },
+  "scene_sha256": "bb9ccc612cd38ffb749ee599d9350a80974649eab5bf477d2f344538a42b2576",
+  "commands": [
+    {
+      "stem": "geometry-10-both-on",
+      "command": [
+        "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+        "--backend",
+        "wgpu",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "geometry",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "5",
+        "--frames",
+        "3",
+        "--samples-output",
+        "/tmp/coin-render-cube-ablation/geometry-10-both-on.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "COIN_RENDER_TRACE_PHASES": "1",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "WGPU_BACKEND": "vulkan",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia"
+      }
+    },
+    {
+      "stem": "geometry-10-legacy-template",
+      "command": [
+        "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+        "--backend",
+        "wgpu",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "geometry",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "5",
+        "--frames",
+        "3",
+        "--samples-output",
+        "/tmp/coin-render-cube-ablation/geometry-10-legacy-template.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "COIN_RENDER_TRACE_PHASES": "1",
+        "COIN_RENDER_DISABLE_CUBE_TEMPLATE_CACHE": "1",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "WGPU_BACKEND": "vulkan",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia"
+      }
+    },
+    {
+      "stem": "geometry-10-memo-off",
+      "command": [
+        "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+        "--backend",
+        "wgpu",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "geometry",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "5",
+        "--frames",
+        "3",
+        "--samples-output",
+        "/tmp/coin-render-cube-ablation/geometry-10-memo-off.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "COIN_RENDER_TRACE_PHASES": "1",
+        "COIN_RENDER_DISABLE_OBJECT_PROOF_MEMOIZATION": "1",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "WGPU_BACKEND": "vulkan",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia"
+      }
+    },
+    {
+      "stem": "geometry-10-both-off",
+      "command": [
+        "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+        "--backend",
+        "wgpu",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "geometry",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "5",
+        "--frames",
+        "3",
+        "--samples-output",
+        "/tmp/coin-render-cube-ablation/geometry-10-both-off.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "COIN_RENDER_TRACE_PHASES": "1",
+        "COIN_RENDER_DISABLE_CUBE_TEMPLATE_CACHE": "1",
+        "COIN_RENDER_DISABLE_OBJECT_PROOF_MEMOIZATION": "1",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "WGPU_BACKEND": "vulkan",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia"
+      }
+    },
+    {
+      "stem": "static-both-on",
+      "command": [
+        "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+        "--backend",
+        "wgpu",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "static",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "5",
+        "--frames",
+        "3",
+        "--samples-output",
+        "/tmp/coin-render-cube-ablation/static-both-on.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "COIN_RENDER_TRACE_PHASES": "1",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "WGPU_BACKEND": "vulkan",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia"
+      }
+    },
+    {
+      "stem": "static-legacy-template",
+      "command": [
+        "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+        "--backend",
+        "wgpu",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "static",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "5",
+        "--frames",
+        "3",
+        "--samples-output",
+        "/tmp/coin-render-cube-ablation/static-legacy-template.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "COIN_RENDER_TRACE_PHASES": "1",
+        "COIN_RENDER_DISABLE_CUBE_TEMPLATE_CACHE": "1",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "WGPU_BACKEND": "vulkan",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia"
+      }
+    },
+    {
+      "stem": "static-memo-off",
+      "command": [
+        "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+        "--backend",
+        "wgpu",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "static",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "5",
+        "--frames",
+        "3",
+        "--samples-output",
+        "/tmp/coin-render-cube-ablation/static-memo-off.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "COIN_RENDER_TRACE_PHASES": "1",
+        "COIN_RENDER_DISABLE_OBJECT_PROOF_MEMOIZATION": "1",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "WGPU_BACKEND": "vulkan",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia"
+      }
+    },
+    {
+      "stem": "static-both-off",
+      "command": [
+        "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+        "--backend",
+        "wgpu",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "static",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "5",
+        "--frames",
+        "3",
+        "--samples-output",
+        "/tmp/coin-render-cube-ablation/static-both-off.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "COIN_RENDER_TRACE_PHASES": "1",
+        "COIN_RENDER_DISABLE_CUBE_TEMPLATE_CACHE": "1",
+        "COIN_RENDER_DISABLE_OBJECT_PROOF_MEMOIZATION": "1",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "WGPU_BACKEND": "vulkan",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia"
+      }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "/tmp/coin-render-material-table-diagnostic.py",
+    "analyze",
+    "--input",
+    "/tmp/coin-render-material-table-diagnostic",
+    "--output",
+    "/tmp/coin-render-material-table-diagnostic-analysis.json"
+  ],
+  "exit_code": 0,
+  "script": "/tmp/coin-render-material-table-diagnostic.py",
+  "script_sha256": "cd14d51c5bf12dbfae22a7e60f6f7cb627b06b705ef2386cff956f32e952596e",
+  "log": "/tmp/coin-render-material-table-diagnostic-analysis.log",
+  "log_sha256": "df3652d54e6c2ae83380e6faab74c6d8febbca566a6a5f4a2f2a39c38f1ca40f",
+  "input_manifest": "/tmp/coin-render-material-table-diagnostic/commands.json",
+  "input_manifest_sha256": "9ea44a2c6eb837c160cca4f8584575bc8518bedaeb578320d223f10c3d773532",
+  "output": "/tmp/coin-render-material-table-diagnostic-analysis.json",
+  "output_sha256": "01f77eef7091a1090f8bb8f661c2db24c7ce0427d9fe55e27afea8d9a7b9cde0",
+  "execution": "CPU-only analyzer; no benchmark/build/GPU/Cargo/Git command"
+}

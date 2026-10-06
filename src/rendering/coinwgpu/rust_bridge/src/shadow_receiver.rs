@@ -78,7 +78,7 @@ pub(crate) fn four_map_source() -> String {
 fn quality_source(mut source: String, eight: bool) -> String {
     let start = source.find("struct VertexOutput {").unwrap();
     let end = source[start..].find("\n};").unwrap() + start + 3;
-    let mut output = String::from("struct VertexOutput {\n@builtin(position) clip_position:vec4<f32>,\n@location(0) position_view:vec3<f32>,\n@location(1) normal_view:vec3<f32>,\n@location(2) diffuse_color:vec4<f32>,\n@location(3) @interpolate(flat) material_slot:u32,\n@location(4) texcoord:vec2<f32>,\n@location(13) position_model:vec3<f32>,\n");
+    let mut output = String::from("struct VertexOutput {\n@builtin(position) clip_position:vec4<f32>,\n@location(0) position_view:vec3<f32>,\n@location(1) normal_view:vec3<f32>,\n@location(2) diffuse_color:vec4<f32>,\n@location(3) @interpolate(flat) material_slot:u32,\n@location(4) texcoord:vec3<f32>,\n@location(13) position_model:vec3<f32>,\n");
     for slot in 0..8 {
         output += &format!("@location({}) shadow_vertex{}:vec3<f32>,\n", slot + 5, slot);
     }

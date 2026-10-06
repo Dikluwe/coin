@@ -37,6 +37,7 @@ impl Peeling {
         height: u32,
         format: TextureFormat,
         layers: usize,
+        gl_depth_loads: bool,
     ) -> Self {
         let texture = |format, usage, label| {
             device.create_texture(&TextureDescriptor {
@@ -56,7 +57,9 @@ impl Peeling {
         };
         let opaque = texture(
             TextureFormat::Depth32Float,
-            TextureUsages::COPY_DST | TextureUsages::TEXTURE_BINDING,
+            TextureUsages::TEXTURE_BINDING | if gl_depth_loads {
+                TextureUsages::RENDER_ATTACHMENT
+            } else { TextureUsages::COPY_DST },
             "Coin opaque depth snapshot",
         );
         let opaque_view = opaque.create_view(&TextureViewDescriptor::default());
@@ -106,7 +109,8 @@ impl Peeling {
                     binding: 1,
                     visibility: ShaderStages::FRAGMENT,
                     ty: BindingType::Texture {
-                        sample_type: TextureSampleType::Depth,
+                        sample_type: if gl_depth_loads { TextureSampleType::Float { filterable: false } }
+                            else { TextureSampleType::Depth },
                         view_dimension: TextureViewDimension::D2,
                         multisampled: false,
                     },
@@ -148,7 +152,7 @@ impl Peeling {
             .collect();
         let shader = device.create_shader_module(ShaderModuleDescriptor {
             label: Some("Coin peel compositor"),
-            source: ShaderSource::Wgsl(COMPOSITE.into()),
+            source: ShaderSource::Wgsl(super::shader_profile::depth_load_profile(COMPOSITE, gl_depth_loads).into()),
         });
         let pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
             label: Some("Coin peel compositor"),
@@ -342,5 +346,7 @@ mod tests {
         )
         .validate(&module)
         .unwrap();
+        super::super::shader_profile::tests::assert_glsl(
+            &super::super::shader_profile::depth_load_profile(super::COMPOSITE, true), "fs_depth");
     }
 }

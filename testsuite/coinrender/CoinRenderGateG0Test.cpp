@@ -312,7 +312,7 @@ int main() {
   // =========================================================================
   {
     std::cout << "-> Test G0.6: Backend GPU availability isolation (B07)..." << std::endl;
-#if !defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+#if !defined(HAVE_COIN_WGPU_RUST_BRIDGE) && !defined(HAVE_COIN_BGFX) && !defined(HAVE_COIN_DAWN) && !defined(HAVE_COIN_WGPU_NATIVE)
     TEST_ASSERT(!CoinRenderAction::isGpuBackendAvailable(),
                 "RECORDING or CPU reference must report isGpuBackendAvailable() == FALSE");
 #endif

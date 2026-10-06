@@ -18,7 +18,7 @@ struct Uniforms {
     light_color: vec4<f32>,
     params: vec4<f32>, // x=shininess, y=headlight, z=light_enabled, w=light_model
     texture_matrix: mat4x4<f32>,
-    tex_params: vec4<f32>, // x=has_texture, y=texture_model, z=direct RTT (flip V)
+    tex_params: vec4<f32>, // x=has_texture, y=texture_model, z=direct RTT (flip V), w=texture projection policy
     fog_color_mode: vec4<f32>, // rgb and mode
     fog_range: vec4<f32>, // x=start, y=end
     ambient_light: vec4<f32>,
@@ -33,6 +33,9 @@ struct Uniforms {
     texture_combines: array<array<vec4<f32>, 4>, 8>,
     composition_meta: vec4<f32>,
     peel_meta: vec4<f32>,
+    // Preserve the standard uniform tail offset in this shadow-free profile.
+    shadow_layout_padding: array<vec4<f32>, 44>,
+    alpha_test: vec4<f32>, // semantic function, clamped reference
 };
 
 struct GpuMaterial {
@@ -73,17 +76,17 @@ var s_diffuse: sampler;
 struct VertexInput {
     @location(0) position: vec3<f32>,
     @location(1) normal: vec3<f32>,
-    @location(2) texcoord: vec2<f32>,
+    @location(2) texcoord: vec4<f32>,
     @location(3) material_slot: u32,
     @location(4) screen_space_w: f32,
     @location(5) fog_eye_depth_plus_one: f32,
-    @location(6) uv1: vec2<f32>,
-    @location(7) uv2: vec2<f32>,
-    @location(8) uv3: vec2<f32>,
-    @location(9) uv4: vec2<f32>,
-    @location(10) uv5: vec2<f32>,
-    @location(11) uv6: vec2<f32>,
-    @location(12) uv7: vec2<f32>,
+    @location(6) uv1: vec4<f32>,
+    @location(7) uv2: vec4<f32>,
+    @location(8) uv3: vec4<f32>,
+    @location(9) uv4: vec4<f32>,
+    @location(10) uv5: vec4<f32>,
+    @location(11) uv6: vec4<f32>,
+    @location(12) uv7: vec4<f32>,
 
 };
 
@@ -93,14 +96,14 @@ struct VertexOutput {
     @location(1) normal_view: vec3<f32>,
     @location(2) diffuse_color: vec4<f32>,
     @location(3) @interpolate(flat) material_slot: u32,
-    @location(4) texcoord: vec2<f32>,
-    @location(5) uv1: vec2<f32>,
-    @location(6) uv2: vec2<f32>,
-    @location(7) uv3: vec2<f32>,
-    @location(8) uv4: vec2<f32>,
-    @location(9) uv5: vec2<f32>,
-    @location(10) uv6: vec2<f32>,
-    @location(11) uv7: vec2<f32>,
+    @location(4) texcoord: vec3<f32>,
+    @location(5) uv1: vec3<f32>,
+    @location(6) uv2: vec3<f32>,
+    @location(7) uv3: vec3<f32>,
+    @location(8) uv4: vec3<f32>,
+    @location(9) uv5: vec3<f32>,
+    @location(10) uv6: vec3<f32>,
+    @location(11) uv7: vec3<f32>,
 
 };
 
@@ -177,19 +180,26 @@ fn vs_main(input: VertexInput) -> VertexOutput {
     output.material_slot = input.material_slot;
 
     if (u.tex_params.x > 0.5) {
-        output.texcoord = (u.texture_matrix * vec4<f32>(input.texcoord, 0.0, 1.0)).xy;
+        output.texcoord = (u.texture_matrix * input.texcoord).xyw;
     } else {
-        output.texcoord = input.texcoord;
+        output.texcoord = input.texcoord.xyw;
     }
 
-    output.uv1 = (u.extra_texture_matrices[0] * vec4<f32>(input.uv1, 0.0, 1.0)).xy;
-    output.uv2 = (u.extra_texture_matrices[1] * vec4<f32>(input.uv2, 0.0, 1.0)).xy;
-    output.uv3 = (u.extra_texture_matrices[2] * vec4<f32>(input.uv3, 0.0, 1.0)).xy;
-    output.uv4 = (u.extra_texture_matrices[3] * vec4<f32>(input.uv4, 0.0, 1.0)).xy;
-    output.uv5 = (u.extra_texture_matrices[4] * vec4<f32>(input.uv5, 0.0, 1.0)).xy;
-    output.uv6 = (u.extra_texture_matrices[5] * vec4<f32>(input.uv6, 0.0, 1.0)).xy;
-    output.uv7 = (u.extra_texture_matrices[6] * vec4<f32>(input.uv7, 0.0, 1.0)).xy;
+    output.uv1 = (u.extra_texture_matrices[0] * input.uv1).xyw;
+    output.uv2 = (u.extra_texture_matrices[1] * input.uv2).xyw;
+    output.uv3 = (u.extra_texture_matrices[2] * input.uv3).xyw;
+    output.uv4 = (u.extra_texture_matrices[3] * input.uv4).xyw;
+    output.uv5 = (u.extra_texture_matrices[4] * input.uv5).xyw;
+    output.uv6 = (u.extra_texture_matrices[5] * input.uv6).xyw;
+    output.uv7 = (u.extra_texture_matrices[6] * input.uv7).xyw;
     return output;
+}
+
+// Coin's active shadow shader samples transformed ST without Q division.
+// Other paths preserve Q through interpolation and keep ordinary q=1 UV fast.
+fn projected_uv(value: vec3<f32>, projection: f32) -> vec2<f32> {
+    if (projection > 0.5 || value.z == 1.0) { return value.xy; }
+    return value.xy / value.z;
 }
 
 // Mechanical execution of CoinRender's validated texture-combine program.
@@ -230,6 +240,22 @@ fn texture_layer(primary: vec4<f32>, previous: vec4<f32>, tex: vec4<f32>, params
     return vec4<f32>(mix(previous.rgb, blend.rgb, tex.rgb), previous.a * tex.a);
 }
 
+fn alpha_test_accepts(value: f32) -> bool {
+    let alpha = clamp(value, 0.0, 1.0);
+    let reference = u.alpha_test.y;
+    switch u32(u.alpha_test.x) {
+        case 0u, 2u: { return true; }
+        case 1u: { return false; }
+        case 3u: { return alpha < reference; }
+        case 4u: { return alpha <= reference; }
+        case 5u: { return alpha == reference; }
+        case 6u: { return alpha >= reference; }
+        case 7u: { return alpha > reference; }
+        case 8u: { return alpha != reference; }
+        default: { return false; }
+    }
+}
+
 fn apply_fog(color: vec4<f32>, eye_depth: f32) -> vec4<f32> {
     let mode = u.fog_color_mode.w;
     if (mode < 0.5) { return color; }
@@ -268,52 +294,61 @@ fn fragment_color(input: VertexOutput) -> vec4<f32> {
     var base_color = primary;
 
     if (u.tex_params.x > 0.5) {
-        let uv = select(input.texcoord, vec2<f32>(input.texcoord.x, 1.0 - input.texcoord.y), u.tex_params.z > 0.5);
+        let projected = projected_uv(input.texcoord, u.tex_params.w);
+        let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), u.tex_params.z > 0.5);
         let tex_col = textureSample(t_diffuse, s_diffuse, uv);
         base_color = texture_layer(primary, base_color, tex_col, u.tex_params, u.texture_blend_color, 0u);
     }
     if (u.extra_tex_params[0].x > 0.5) {
         let params = u.extra_tex_params[0];
-        let uv = select(input.uv1, vec2<f32>(input.uv1.x, 1.0 - input.uv1.y), params.z > 0.5);
+        let projected = projected_uv(input.uv1, params.w);
+        let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
         let tex = textureSample(t_texture1, s_texture1, uv);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[0], 1u);
     }
     if (u.extra_tex_params[1].x > 0.5) {
         let params = u.extra_tex_params[1];
-        let uv = select(input.uv2, vec2<f32>(input.uv2.x, 1.0 - input.uv2.y), params.z > 0.5);
+        let projected = projected_uv(input.uv2, params.w);
+        let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
         let tex = textureSample(t_texture2, s_texture2, uv);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[1], 2u);
     }
     if (u.extra_tex_params[2].x > 0.5) {
         let params = u.extra_tex_params[2];
-        let uv = select(input.uv3, vec2<f32>(input.uv3.x, 1.0 - input.uv3.y), params.z > 0.5);
+        let projected = projected_uv(input.uv3, params.w);
+        let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
         let tex = textureSample(t_texture3, s_texture3, uv);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[2], 3u);
     }
     if (u.extra_tex_params[3].x > 0.5) {
         let params = u.extra_tex_params[3];
-        let uv = select(input.uv4, vec2<f32>(input.uv4.x, 1.0 - input.uv4.y), params.z > 0.5);
+        let projected = projected_uv(input.uv4, params.w);
+        let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
         let tex = textureSample(t_texture4, s_texture4, uv);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[3], 4u);
     }
     if (u.extra_tex_params[4].x > 0.5) {
         let params = u.extra_tex_params[4];
-        let uv = select(input.uv5, vec2<f32>(input.uv5.x, 1.0 - input.uv5.y), params.z > 0.5);
+        let projected = projected_uv(input.uv5, params.w);
+        let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
         let tex = textureSample(t_texture5, s_texture5, uv);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[4], 5u);
     }
     if (u.extra_tex_params[5].x > 0.5) {
         let params = u.extra_tex_params[5];
-        let uv = select(input.uv6, vec2<f32>(input.uv6.x, 1.0 - input.uv6.y), params.z > 0.5);
+        let projected = projected_uv(input.uv6, params.w);
+        let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
         let tex = textureSample(t_texture6, s_texture6, uv);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[5], 6u);
     }
     if (u.extra_tex_params[6].x > 0.5) {
         let params = u.extra_tex_params[6];
-        let uv = select(input.uv7, vec2<f32>(input.uv7.x, 1.0 - input.uv7.y), params.z > 0.5);
+        let projected = projected_uv(input.uv7, params.w);
+        let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
         let tex = textureSample(t_texture7, s_texture7, uv);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[6], 7u);
     }
+    if (!alpha_test_accepts(base_color.a)) { discard; }
     return apply_fog(base_color, -input.position_view.z);
 }
 

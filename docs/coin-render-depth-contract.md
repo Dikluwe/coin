@@ -8,6 +8,11 @@ O estilo original de linhas/pontos permanece no estado após expansão em
 triângulos. Só draws cujo estilo intersecta a máscara recebem bias; estados
 seguintes e irmãos de `SoSeparator` não herdam uniform de um submit anterior.
 
+Com teste desligado, a execução também desliga a escrita efetiva, mesmo com
+`write = TRUE`. A captura conserva os campos originais. O contrato e os gates
+focados OFF/ON/OFF estão em
+[profundidade e política de fragmentos](coin-render-fragment-policy-contract.md#profundidade).
+
 ## BGFX
 
 O shader calcula profundidade de janela por fragmento, depois do clipping:

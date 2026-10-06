@@ -1,0 +1,48 @@
+# CoinRender: cache de Cubes e qualificação CPU
+
+Continuação de [materiais e geometria](coin-render-material-geometry-linux.md), usando Coin3D/Coin/OpenGL (`SoGLRenderAction`) como referência.
+
+## Alterações no Common
+
+O cache anterior retinha uma única geometria de Cube. Um Cube de dimensões diferentes descartava o template e seus intervalos por material. Numa sequência de objetos compartilhados intercalados com clones modificados, o mesmo Cube estável ganhava milhares de cópias no plano CPU.
+
+O novo cache retém até **32 templates** com dimensões comparadas pelos bits dos floats e normal binding, e até **64 intervalos totais por template, identificados pelo material**. Os menos usados são substituídos; a substituição descarta somente metadados, preservando os vértices e índices já capturados. Payload e metadados lógicos do cache ficam abaixo de **256 KiB**, com `static_assert`. O total de geometria do plano não está limitado a esse tamanho.
+
+A admissão continua limitada ao gerador nativo exato de `SoCube`, preenchimento e material OVERALL. Estado, material, câmera, transformações e centro de ordenação são capturados em cada ocorrência. Texturas habilitadas, funções de coordenadas, subclasses e callbacks adicionais seguem a captura correspondente. O Core recebe valores; não identifica nós, nomes de cena ou benchmark.
+
+O compartilhamento permanece por valores. Cubes independentes inicialmente iguais podem compartilhar o mesmo intervalo: a prova de ownership recusa sua edição direta e exige recaptura. Quando os valores divergem, uma nova captura pode admitir fontes separadas. Isso conserva o comportamento de cenas estáticas com muitos objetos iguais sem ampliar desnecessariamente o plano.
+
+A qualificação do object overlay agora memoriza verificações repetidas **apenas durante a qualificação atual**:
+
+- Snapshot e igualdade do material por slot cuja fonte proprietária foi provada.
+- Uniformidade dos materiais por intervalo de índices completo e slot esperado, preservando conflitos de todos os slots encontrados.
+- Dimensões por fonte Cube; vértices por intervalo completo e fonte Cube.
+
+As verificações de ownership, referências sintáticas, ocorrência, alias e rejeição da fonte inteira continuam em cada ocorrência. São três caches de até 1.024 entradas e um byte por material (até 65.536): estimativa lógica temporária até **448 KiB**. Saturação e falha de alocação opcional retornam às verificações originais. Nenhum resultado sobre valores mutáveis sobrevive à qualificação.
+
+`COIN_RENDER_DISABLE_CUBE_TEMPLATE_CACHE=1` seleciona o cache legado de um template/32 intervalos. `COIN_RENDER_DISABLE_OBJECT_PROOF_MEMOIZATION=1` repete as verificações originais. O runner limpa ambos antes das campanhas normais.
+
+## Perfil e resultados
+
+RESULTADOS_A_INSERIR
+
+## Protocolo
+
+PROTOCOLO_A_INSERIR
+
+## Validação
+
+VALIDACAO_A_INSERIR
+
+## Próximos custos identificados
+
+A inspeção de código encontrou candidatos no wgpu ainda sem atribuição isolada de tempo:
+
+1. `CoinWgpuFfiFrame::tryOpaqueInstancing` monta `CoinWgpuRenderState` inteiro para cada estado, recalcula projeção/MVP e depois substitui as matrizes para comparar o estado comum. A struct tem 2.280 bytes; 40.001 structs somam 91,2 MB lógicos por passagem, sem implicar medição de tráfego de memória. Um caminho específico pode validar todos os campos comuns, inclusive campos desabilitados, uma vez e calcular somente model-view/normal authored por estado.
+2. `rememberOpaqueCamera` refaz model-view, inversa e prova residual depois da admissão de instâncias que acabou de calcular e provar essas matrizes. Uma prova pertencente ao mesmo `prepare` pode alimentar a câmera, sendo publicada somente após sucesso.
+3. A matriz de posição com escala diagonal é montada para a prova de bounds e novamente para o payload final. Scratch limitado pode evitar a repetição sem publicar saída parcial.
+4. A normalização e igualdade da geometria executam vários passes. Uma comparação direta dos pontos reconstruídos contra o primeiro mesh canônico pode reduzir passes, preservando signed zero, normais, UVs, índices, materiais e fallback exato.
+
+No BGFX, o novo trabalho por ocorrência inclui cópia da model-view, 12 produtos de escala e uma segunda verificação de magnitude. O corpo de normalização por range toca poucos vértices no caso de transformação (~9 ranges); atribuir os ~2 ms anteriores a ele seria prematuro. A seção por instância precisa de uma subfase ou ablação antes de mudar a implementação.
+
+Esses candidatos precisam manter validação de estados não referenciados, erros tardios, luzes, reflexão, matriz singular, RTT, falha/retry, alterações com a mesma revision e oráculos RGB/depth PHONG. Nenhum backend foi alterado nesta etapa.

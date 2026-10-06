@@ -1,0 +1,617 @@
+{
+  "date": "2026-10-02",
+  "source_commit": "fc8bad6a21",
+  "rendering_code_commit": "cad421ab74",
+  "hardware": "Windows 10 Pro, i5-4670K, 16 GiB RAM, NVIDIA GTX 1060 6 GB, driver 581.08",
+  "method": {
+    "size": [
+      1024,
+      1024
+    ],
+    "readback": "synchronous RGBA copy",
+    "large_scene_warmup": 4,
+    "large_scene_measured_frames": 8,
+    "first_frame_scope": "First apply with rendering and readback; excludes file load and capability probe. New processes, existing OS/driver caches.",
+    "first_frame_trials": {
+      "coin-gl": {
+        "processes": 3,
+        "values_ms": [
+          663.671,
+          664.414,
+          655.85
+        ],
+        "median_ms": 663.671
+      },
+      "wgpu-vulkan": {
+        "processes": 3,
+        "values_ms": [
+          3346.18,
+          3410.24,
+          3339.64
+        ],
+        "median_ms": 3346.18
+      }
+    },
+    "all_runs_serial": true,
+    "tracing": false,
+    "wgpu_build": "Rebuilt benchmark and CoinRender against current common rendering code; Rust bridge unchanged.",
+    "log_normalization": "Trailing whitespace removed, final newline added; originals preserved under build.",
+    "image_note": "PPM is RGB; Coin/OpenGL export corrects bottom-up rows. Image deltas are observations, not regression tolerances.",
+    "scope": "Benchmarks and image controls only; no rendering changes or full suite requalification."
+  },
+  "binary_sha256": {
+    "coin-render-bgfx-msvc/coin_render_gl_benchmark.exe": "bed3f18b2ef9409832bf8b652ac0a4675cbd5d08bb7d5e327830361d8bf37228",
+    "coin-render-bgfx-msvc/Coin4.dll": "0fdb8c867dd0793e81c2ea1f0c8bdd4e580c5003b173ec10be41810311d58bbc",
+    "coin-render-bgfx-msvc/CoinRender4.dll": "cad1afd5f69e49995e8642209cec2c589e17ba2f23a8058f67c1df0c00ca95ee",
+    "coin-render-wgpu-msvc/coin_render_gl_benchmark.exe": "7597b4dfe8f34486b2d1f89981461cc29a340a3139e53524e2a408d833c4c6cf",
+    "coin-render-wgpu-msvc/Coin4.dll": "c1254cf72e4dffc9e8ba7bbed6dd4019d75ee664626a0a24d473da06e058cc15",
+    "coin-render-wgpu-msvc/CoinRender4.dll": "9ac92bc966faf0877871c63ea7c24c4001a10c28d1e987662d924d6bda544db0"
+  },
+  "runs": [
+    {
+      "name": "coin-gl",
+      "api": "",
+      "buildings": 40000,
+      "warmup": 1,
+      "frames": 1,
+      "sample": "first-1",
+      "exit_code": 0,
+      "wall_ms": 1601.3401,
+      "log": "build/coin-gl-40000-first-1.log",
+      "image": "build/large-scenes/coin-gl-40000-first-1.ppm",
+      "status": "passed",
+      "scene_load_ms": 475.807,
+      "backend_cleanup_ms": 11.0155,
+      "first_frame_ms": 663.671,
+      "adapter": "not-queried",
+      "median_ms": 121.121,
+      "p95_ms": 121.121,
+      "rgba_fnv64": "0x4df2a9ab75b7504",
+      "png_sha256": "9a307e501a8a922319dff8256656955f7e97a3f47da28c16ee8b84cbf8970c31",
+      "image_vs_bgfx_d3d12": {
+        "different_pixels": 63723,
+        "rgb_pixel_exact": false,
+        "maximum_channel_difference": 31,
+        "mean_absolute_channel_difference": [
+          0.014499664306640625,
+          0.03040313720703125,
+          0.022918701171875
+        ]
+      },
+      "image_vs_previous_same_backend": {
+        "different_pixels": 0,
+        "rgb_pixel_exact": true,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "coin-gl",
+      "api": "",
+      "buildings": 40000,
+      "warmup": 1,
+      "frames": 1,
+      "sample": "first-2",
+      "exit_code": 0,
+      "wall_ms": 1725.694,
+      "log": "build/coin-gl-40000-first-2.log",
+      "image": "build/large-scenes/coin-gl-40000-first-2.ppm",
+      "status": "passed",
+      "scene_load_ms": 511.501,
+      "backend_cleanup_ms": 11.0783,
+      "first_frame_ms": 664.414,
+      "adapter": "not-queried",
+      "median_ms": 153.05,
+      "p95_ms": 153.05,
+      "rgba_fnv64": "0x4df2a9ab75b7504",
+      "png_sha256": "9a307e501a8a922319dff8256656955f7e97a3f47da28c16ee8b84cbf8970c31",
+      "image_vs_bgfx_d3d12": {
+        "different_pixels": 63723,
+        "rgb_pixel_exact": false,
+        "maximum_channel_difference": 31,
+        "mean_absolute_channel_difference": [
+          0.014499664306640625,
+          0.03040313720703125,
+          0.022918701171875
+        ]
+      },
+      "image_vs_previous_same_backend": {
+        "different_pixels": 0,
+        "rgb_pixel_exact": true,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "coin-gl",
+      "api": "",
+      "buildings": 40000,
+      "warmup": 1,
+      "frames": 1,
+      "sample": "first-3",
+      "exit_code": 0,
+      "wall_ms": 1609.3552,
+      "log": "build/coin-gl-40000-first-3.log",
+      "image": "build/large-scenes/coin-gl-40000-first-3.ppm",
+      "status": "passed",
+      "scene_load_ms": 492.501,
+      "backend_cleanup_ms": 11.0619,
+      "first_frame_ms": 655.85,
+      "adapter": "not-queried",
+      "median_ms": 141.613,
+      "p95_ms": 141.613,
+      "rgba_fnv64": "0x4df2a9ab75b7504",
+      "png_sha256": "9a307e501a8a922319dff8256656955f7e97a3f47da28c16ee8b84cbf8970c31",
+      "image_vs_bgfx_d3d12": {
+        "different_pixels": 63723,
+        "rgb_pixel_exact": false,
+        "maximum_channel_difference": 31,
+        "mean_absolute_channel_difference": [
+          0.014499664306640625,
+          0.03040313720703125,
+          0.022918701171875
+        ]
+      },
+      "image_vs_previous_same_backend": {
+        "different_pixels": 0,
+        "rgb_pixel_exact": true,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "coin-gl",
+      "api": "",
+      "buildings": 40000,
+      "warmup": 4,
+      "frames": 8,
+      "sample": "warm",
+      "exit_code": 0,
+      "wall_ms": 2510.8084,
+      "log": "build/coin-gl-40000-warm.log",
+      "image": "build/large-scenes/coin-gl-40000-warm.ppm",
+      "status": "passed",
+      "scene_load_ms": 542.771,
+      "backend_cleanup_ms": 32.3388,
+      "first_frame_ms": 685.956,
+      "adapter": "not-queried",
+      "median_ms": 35.3583,
+      "p95_ms": 39.0078,
+      "rgba_fnv64": "0x4df2a9ab75b7504",
+      "png_sha256": "9a307e501a8a922319dff8256656955f7e97a3f47da28c16ee8b84cbf8970c31",
+      "image_vs_bgfx_d3d12": {
+        "different_pixels": 63723,
+        "rgb_pixel_exact": false,
+        "maximum_channel_difference": 31,
+        "mean_absolute_channel_difference": [
+          0.014499664306640625,
+          0.03040313720703125,
+          0.022918701171875
+        ]
+      },
+      "image_vs_previous_same_backend": {
+        "different_pixels": 0,
+        "rgb_pixel_exact": true,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "coin-gl",
+      "api": "",
+      "buildings": 10000,
+      "warmup": 4,
+      "frames": 8,
+      "sample": "warm",
+      "exit_code": 0,
+      "wall_ms": 1106.8097,
+      "log": "build/coin-gl-10000-warm.log",
+      "image": "build/large-scenes/coin-gl-10000-warm.ppm",
+      "status": "passed",
+      "scene_load_ms": 119.005,
+      "backend_cleanup_ms": 10.5663,
+      "first_frame_ms": 470.275,
+      "adapter": "not-queried",
+      "median_ms": 15.3242,
+      "p95_ms": 16.5413,
+      "rgba_fnv64": "0xafc0aba9cda7f9c4",
+      "png_sha256": "1a2c82987abe84b673c051160f860dd051d15f6091c82758bdec2dd4639daa3d",
+      "image_vs_bgfx_d3d12": {
+        "different_pixels": 71693,
+        "rgb_pixel_exact": false,
+        "maximum_channel_difference": 118,
+        "mean_absolute_channel_difference": [
+          0.014494895935058594,
+          0.03799152374267578,
+          0.02317333221435547
+        ]
+      },
+      "image_vs_previous_same_backend": {
+        "different_pixels": 0,
+        "rgb_pixel_exact": true,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "wgpu-dx12",
+      "api": "dx12",
+      "buildings": 100,
+      "warmup": 1,
+      "frames": 1,
+      "sample": "control",
+      "exit_code": 0,
+      "wall_ms": 5386.0947,
+      "log": "build/wgpu-dx12-100-control.log",
+      "image": "build/large-scenes/wgpu-dx12-100-control.ppm",
+      "status": "passed",
+      "scene_load_ms": 22.6151,
+      "backend_cleanup_ms": 2.2894,
+      "first_frame_ms": 4185.31,
+      "adapter": "NVIDIA GeForce GTX 1060 6GB (Dx12)",
+      "median_ms": 17.3966,
+      "p95_ms": 17.3966,
+      "rgba_fnv64": "0x5339038fccb0b6c4",
+      "png_sha256": "9fccd30eeedaa3a8eecc211c457aa242e1e944b00f387b25dfaea540e50277ab"
+    },
+    {
+      "name": "wgpu-gl",
+      "api": "gl",
+      "buildings": 100,
+      "warmup": 1,
+      "frames": 1,
+      "sample": "control",
+      "exit_code": 0,
+      "wall_ms": 1391.517,
+      "log": "build/wgpu-gl-100-control.log",
+      "image": "build/large-scenes/wgpu-gl-100-control.ppm",
+      "status": "passed",
+      "scene_load_ms": 2.4239,
+      "backend_cleanup_ms": 2.7883,
+      "first_frame_ms": 714.385,
+      "adapter": "NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl)",
+      "median_ms": 87.1406,
+      "p95_ms": 87.1406,
+      "rgba_fnv64": "0x5339038fccb0b6c4",
+      "png_sha256": "9fccd30eeedaa3a8eecc211c457aa242e1e944b00f387b25dfaea540e50277ab"
+    },
+    {
+      "name": "wgpu-vulkan",
+      "api": "vulkan",
+      "buildings": 100,
+      "warmup": 1,
+      "frames": 1,
+      "sample": "control",
+      "exit_code": 0,
+      "wall_ms": 546.949,
+      "log": "build/wgpu-vulkan-100-control.log",
+      "image": "build/large-scenes/wgpu-vulkan-100-control.ppm",
+      "status": "passed",
+      "scene_load_ms": 2.0362,
+      "backend_cleanup_ms": 1.6602,
+      "first_frame_ms": 27.9744,
+      "adapter": "NVIDIA GeForce GTX 1060 6GB (Vulkan)",
+      "median_ms": 13.4093,
+      "p95_ms": 13.4093,
+      "rgba_fnv64": "0x5339038fccb0b6c4",
+      "png_sha256": "9fccd30eeedaa3a8eecc211c457aa242e1e944b00f387b25dfaea540e50277ab"
+    },
+    {
+      "name": "wgpu-dx12",
+      "api": "dx12",
+      "buildings": 10000,
+      "warmup": 4,
+      "frames": 8,
+      "sample": "warm",
+      "exit_code": 1,
+      "wall_ms": 6562.5009,
+      "log": "build/wgpu-dx12-10000-warm.log",
+      "image": "build/large-scenes/wgpu-dx12-10000-warm.ppm",
+      "status": "failed_first_frame",
+      "scene_load_ms": 117.519,
+      "error": "WebGPU frame failed: WebGPU uncaptured error: Validation Error\n\nCaused by:\n  In RenderPass::set_bind_group, label = 'Coin Composition Pass'\n    In a set_bind_group command\n      BindGroup with 'Draw eight-unit texture bindings' label is invalid"
+    },
+    {
+      "name": "wgpu-dx12",
+      "api": "dx12",
+      "buildings": 40000,
+      "warmup": 4,
+      "frames": 8,
+      "sample": "warm",
+      "exit_code": 1,
+      "wall_ms": 12066.9877,
+      "log": "build/wgpu-dx12-40000-warm.log",
+      "image": "build/large-scenes/wgpu-dx12-40000-warm.ppm",
+      "status": "failed_first_frame",
+      "scene_load_ms": 528.325,
+      "error": "WebGPU frame failed: WebGPU uncaptured error: Validation Error\n\nCaused by:\n  In RenderPass::set_bind_group, label = 'Coin Composition Pass'\n    In a set_bind_group command\n      BindGroup with 'Draw eight-unit texture bindings' label is invalid"
+    },
+    {
+      "name": "wgpu-vulkan",
+      "api": "vulkan",
+      "buildings": 10000,
+      "warmup": 4,
+      "frames": 8,
+      "sample": "warm",
+      "exit_code": 0,
+      "wall_ms": 7133.6376,
+      "log": "build/wgpu-vulkan-10000-warm.log",
+      "image": "build/large-scenes/wgpu-vulkan-10000-warm.ppm",
+      "status": "passed",
+      "scene_load_ms": 171.461,
+      "backend_cleanup_ms": 14.2537,
+      "first_frame_ms": 967.623,
+      "adapter": "NVIDIA GeForce GTX 1060 6GB (Vulkan)",
+      "median_ms": 409.53,
+      "p95_ms": 595.75,
+      "rgba_fnv64": "0xff02ebcc71d93719",
+      "png_sha256": "4224e9a6d7d62f2878572a98b196eea483697cc93422e3f0db13c4250a310e91",
+      "image_vs_bgfx_d3d12": {
+        "different_pixels": 0,
+        "rgb_pixel_exact": true,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "image_vs_previous_same_backend": {
+        "different_pixels": 0,
+        "rgb_pixel_exact": true,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "wgpu-vulkan",
+      "api": "vulkan",
+      "buildings": 40000,
+      "warmup": 4,
+      "frames": 8,
+      "sample": "warm",
+      "exit_code": 0,
+      "wall_ms": 24517.5033,
+      "log": "build/wgpu-vulkan-40000-warm.log",
+      "image": "build/large-scenes/wgpu-vulkan-40000-warm.ppm",
+      "status": "passed",
+      "scene_load_ms": 656.747,
+      "backend_cleanup_ms": 49.1333,
+      "first_frame_ms": 4659.89,
+      "adapter": "NVIDIA GeForce GTX 1060 6GB (Vulkan)",
+      "median_ms": 1445.01,
+      "p95_ms": 2085.81,
+      "rgba_fnv64": "0x6714299260985122",
+      "png_sha256": "130672f04a599e6b399064f5c8b502fb6a8d7a18cf7162d7a3e0f54bc487ceb0",
+      "image_vs_bgfx_d3d12": {
+        "different_pixels": 0,
+        "rgb_pixel_exact": true,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "image_vs_previous_same_backend": {
+        "different_pixels": 0,
+        "rgb_pixel_exact": true,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "wgpu-gl",
+      "api": "gl",
+      "buildings": 10000,
+      "warmup": 4,
+      "frames": 8,
+      "sample": "warm",
+      "exit_code": 0,
+      "wall_ms": 110351.3466,
+      "log": "build/wgpu-gl-10000-warm.log",
+      "image": "build/large-scenes/wgpu-gl-10000-warm.ppm",
+      "status": "passed",
+      "scene_load_ms": 138.751,
+      "backend_cleanup_ms": 14.303,
+      "first_frame_ms": 13603.3,
+      "adapter": "NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl)",
+      "median_ms": 6561.96,
+      "p95_ms": 16583.9,
+      "rgba_fnv64": "0xff02ebcc71d93719",
+      "png_sha256": "4224e9a6d7d62f2878572a98b196eea483697cc93422e3f0db13c4250a310e91",
+      "image_vs_bgfx_d3d12": {
+        "different_pixels": 0,
+        "rgb_pixel_exact": true,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "wgpu-gl",
+      "api": "gl",
+      "buildings": 40000,
+      "warmup": 4,
+      "frames": 8,
+      "sample": "warm",
+      "exit_code": 0,
+      "wall_ms": 324048.2727,
+      "log": "build/wgpu-gl-40000-warm.log",
+      "image": "build/large-scenes/wgpu-gl-40000-warm.ppm",
+      "status": "passed",
+      "scene_load_ms": 576.201,
+      "backend_cleanup_ms": 48.0349,
+      "first_frame_ms": 43231.7,
+      "adapter": "NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl)",
+      "median_ms": 24935.4,
+      "p95_ms": 26403.4,
+      "rgba_fnv64": "0x6714299260985122",
+      "png_sha256": "130672f04a599e6b399064f5c8b502fb6a8d7a18cf7162d7a3e0f54bc487ceb0",
+      "image_vs_bgfx_d3d12": {
+        "different_pixels": 0,
+        "rgb_pixel_exact": true,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "wgpu-vulkan",
+      "api": "vulkan",
+      "buildings": 40000,
+      "warmup": 1,
+      "frames": 1,
+      "sample": "first-1",
+      "exit_code": 0,
+      "wall_ms": 6144.9869,
+      "log": "build/wgpu-vulkan-40000-first-1.log",
+      "image": "build/large-scenes/wgpu-vulkan-40000-first-1.ppm",
+      "status": "passed",
+      "scene_load_ms": 531.889,
+      "backend_cleanup_ms": 52.8756,
+      "first_frame_ms": 3346.18,
+      "adapter": "NVIDIA GeForce GTX 1060 6GB (Vulkan)",
+      "median_ms": 1550.94,
+      "p95_ms": 1550.94,
+      "rgba_fnv64": "0x6714299260985122",
+      "png_sha256": "130672f04a599e6b399064f5c8b502fb6a8d7a18cf7162d7a3e0f54bc487ceb0",
+      "image_vs_bgfx_d3d12": {
+        "different_pixels": 0,
+        "rgb_pixel_exact": true,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "image_vs_previous_same_backend": {
+        "different_pixels": 0,
+        "rgb_pixel_exact": true,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "wgpu-vulkan",
+      "api": "vulkan",
+      "buildings": 40000,
+      "warmup": 1,
+      "frames": 1,
+      "sample": "first-2",
+      "exit_code": 0,
+      "wall_ms": 6500.786,
+      "log": "build/wgpu-vulkan-40000-first-2.log",
+      "image": "build/large-scenes/wgpu-vulkan-40000-first-2.ppm",
+      "status": "passed",
+      "scene_load_ms": 557.196,
+      "backend_cleanup_ms": 71.5871,
+      "first_frame_ms": 3410.24,
+      "adapter": "NVIDIA GeForce GTX 1060 6GB (Vulkan)",
+      "median_ms": 1618.36,
+      "p95_ms": 1618.36,
+      "rgba_fnv64": "0x6714299260985122",
+      "png_sha256": "130672f04a599e6b399064f5c8b502fb6a8d7a18cf7162d7a3e0f54bc487ceb0",
+      "image_vs_bgfx_d3d12": {
+        "different_pixels": 0,
+        "rgb_pixel_exact": true,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "image_vs_previous_same_backend": {
+        "different_pixels": 0,
+        "rgb_pixel_exact": true,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "wgpu-vulkan",
+      "api": "vulkan",
+      "buildings": 40000,
+      "warmup": 1,
+      "frames": 1,
+      "sample": "first-3",
+      "exit_code": 0,
+      "wall_ms": 6241.0415,
+      "log": "build/wgpu-vulkan-40000-first-3.log",
+      "image": "build/large-scenes/wgpu-vulkan-40000-first-3.ppm",
+      "status": "passed",
+      "scene_load_ms": 569.729,
+      "backend_cleanup_ms": 42.6836,
+      "first_frame_ms": 3339.64,
+      "adapter": "NVIDIA GeForce GTX 1060 6GB (Vulkan)",
+      "median_ms": 1564.98,
+      "p95_ms": 1564.98,
+      "rgba_fnv64": "0x6714299260985122",
+      "png_sha256": "130672f04a599e6b399064f5c8b502fb6a8d7a18cf7162d7a3e0f54bc487ceb0",
+      "image_vs_bgfx_d3d12": {
+        "different_pixels": 0,
+        "rgb_pixel_exact": true,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "image_vs_previous_same_backend": {
+        "different_pixels": 0,
+        "rgb_pixel_exact": true,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    }
+  ]
+}

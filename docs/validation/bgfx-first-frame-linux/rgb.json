@@ -1,0 +1,50 @@
+[
+  {
+    "variant": "bgfx-vulkan-after",
+    "reference": "bgfx-vulkan-before",
+    "mae": 0.0,
+    "max": 0,
+    "changed_pixels": 0,
+    "pixels_over3": 0
+  },
+  {
+    "variant": "bgfx-vulkan-after",
+    "reference": "coingl-nvidia",
+    "mae": 0.022607167561848957,
+    "max": 31,
+    "changed_pixels": 63723,
+    "pixels_over3": 1
+  },
+  {
+    "variant": "bgfx-opengl-after",
+    "reference": "bgfx-opengl-before",
+    "mae": 0.0,
+    "max": 0,
+    "changed_pixels": 0,
+    "pixels_over3": 0
+  },
+  {
+    "variant": "bgfx-opengl-after",
+    "reference": "coingl-nvidia",
+    "mae": 0.022740681966145832,
+    "max": 88,
+    "changed_pixels": 63724,
+    "pixels_over3": 3
+  },
+  {
+    "variant": "wgpu-vulkan-after",
+    "reference": "wgpu-vulkan-before",
+    "mae": 0.0,
+    "max": 0,
+    "changed_pixels": 0,
+    "pixels_over3": 0
+  },
+  {
+    "variant": "wgpu-vulkan-after",
+    "reference": "coingl-nvidia",
+    "mae": 0.022607167561848957,
+    "max": 31,
+    "changed_pixels": 63723,
+    "pixels_over3": 1
+  }
+]

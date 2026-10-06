@@ -3,12 +3,14 @@
 
 #include "rendering/coinrender/CoinRenderClipCore.h"
 #include "rendering/coinrender/CoinRenderLightingCore.h"
+#include "rendering/coinrender/CoinRenderTextureCoordinateCore.h"
 #include <Inventor/SbVec3d.h>
 #include <limits>
 
 struct CoinRenderPolygonStyleVertex {
   CoinRenderVertexSnapshot vertex;
   CoinRenderMaterialSnapshot material;
+  bool boundaryEdge = true; // Boundary flag of the outgoing edge.
 };
 
 // Original convex polygon ring; no scene traversal, Coin elements or GPU calls.
@@ -17,7 +19,8 @@ inline bool coin_render_resolve_polygon_style(
     const std::vector<CoinRenderVertexSnapshot>& ring, const CoinRenderRenderStateSnapshot& state,
     const std::vector<CoinRenderMaterialSnapshot>& materials,
     const CoinRenderLightingSnapshot& lighting, std::vector<CoinRenderPolygonStyleVertex>& output,
-    std::string& diagnostic) {
+    std::string& diagnostic, bool preserveDegenerateContour = false,
+    const bool * boundaryEdges = nullptr) {
   output.clear();
   if (ring.size() < 3) {
     diagnostic = "Polygon style requires at least three vertices";
@@ -40,7 +43,7 @@ inline bool coin_render_resolve_polygon_style(
     const SbVec3f origin(ring[0].position);
     normal += (a - origin).cross(b - origin);
   }
-  if (normal.normalize() == 0)
+  if (normal.normalize() == 0 && !preserveDegenerateContour)
     return true;
   for (size_t i = 0; i < ring.size(); ++i) {
     const SbVec3f a(ring[i].position), b(ring[(i + 1) % ring.size()].position),
@@ -67,6 +70,7 @@ inline bool coin_render_resolve_polygon_style(
     }
     CoinRenderPolygonStyleVertex item;
     item.vertex = vertex;
+    if (boundaryEdges) item.boundaryEdge = boundaryEdges[output.size()];
     item.material = materials[vertex.materialSlot];
     SbVec3f eye, n;
     modelView.multVecMatrix(SbVec3f(vertex.position), eye);
@@ -97,8 +101,8 @@ inline bool coin_render_resolve_polygon_style(
         a.material.transparency + (b.material.transparency - a.material.transparency) * t;
     return out;
   };
-  // Clip the original polygon, creating complete cut edges. Clipping its
-  // triangulation separately would split those edges and duplicate points.
+  // Ordinary styles clip the original ring. Native GL_QUADS point capture
+  // supplies triangles with boundary flags to retain clip-created points.
   for (size_t plane = 0; plane < 6 + state.clipPlanesWorld.size() && !output.empty(); ++plane) {
     auto distance = [&](const CoinRenderPolygonStyleVertex& item) {
       if (plane < 6) {
@@ -122,9 +126,12 @@ inline bool coin_render_resolve_polygon_style(
         diagnostic = "Invalid styled polygon clip coordinates";
         return false;
       }
-      if ((previousDistance < 0) != (currentDistance < 0))
-        clipped.push_back(interpolate(previous, current,
-                                      previousDistance / (previousDistance - currentDistance)));
+      if ((previousDistance < 0) != (currentDistance < 0)) {
+        auto intersection = interpolate(previous, current,
+          previousDistance / (previousDistance - currentDistance));
+        intersection.boundaryEdge = previousDistance < 0 ? previous.boundaryEdge : true;
+        clipped.push_back(intersection);
+      }
       if (currentDistance >= 0)
         clipped.push_back(current);
       previous = current;
@@ -133,14 +140,15 @@ inline bool coin_render_resolve_polygon_style(
     output.swap(clipped);
   }
   // Remove coincident vertices introduced when a plane passes through a corner.
-  for (size_t i = 0; i < output.size() && output.size() > 1;) {
+  for (size_t i = 0; !preserveDegenerateContour && i < output.size() && output.size() > 1;) {
     const size_t next = (i + 1) % output.size();
     if (SbVec3f(output[i].vertex.position) == SbVec3f(output[next].vertex.position))
       output.erase(output.begin() + next);
     else
       ++i;
   }
-  if (output.size() < 3) {
+  if (output.empty()) return true;
+  if (output.size() < 3 && !(preserveDegenerateContour && boundaryEdges)) {
     output.clear();
     return true;
   }
@@ -183,12 +191,35 @@ inline bool coin_render_prepare_polygon_style(
     const std::vector<CoinRenderMaterialSnapshot>& materials,
     const CoinRenderLightingSnapshot& lighting, CoinRenderPolygonStyle style,
     CoinRenderPolygonStyleResult& result, std::string& diagnostic,
-    const CoinRenderViewportSnapshot& viewport) {
+    const CoinRenderViewportSnapshot& viewport, bool preserveDegenerateContour = false) {
   result = CoinRenderPolygonStyleResult{};
+  if (style == CoinRenderPolygonStyle::LINES) {
+    if (!coin_render_validate_texture_coordinates(state, ring.size(),
+        [&](size_t i) -> const CoinRenderVertexSnapshot & { return ring[i]; }, diagnostic)) return false;
+  } else {
+    for (const auto & vertex : ring)
+      if (!coin_render_validate_texture_coordinates(state, 1,
+          [&](size_t) -> const CoinRenderVertexSnapshot & { return vertex; }, diagnostic)) return false;
+  }
   const uint32_t primitiveStyle = style == CoinRenderPolygonStyle::LINES ? 2u : 4u;
-  if (!coin_render_resolve_polygon_style(ring, state, materials, lighting, result.vertices,
-                                         diagnostic))
-    return false;
+  if (preserveDegenerateContour && style == CoinRenderPolygonStyle::POINTS && ring.size() == 4) {
+    // Qualified native GL_QUADS point raster: two triangles preserve original
+    // boundary flags, while clip-created edges acquire their own point starts.
+    // This retains a cut vertex on the implicit diagonal without exposing
+    // that diagonal in ordinary line or uncut point rasterization.
+    static const size_t indices[2][3] = {{0, 1, 2}, {0, 2, 3}};
+    static const bool edges[2][3] = {{true, true, false}, {false, true, true}};
+    for (size_t triangle = 0; triangle < 2; ++triangle) {
+      std::vector<CoinRenderVertexSnapshot> primitive;
+      for (size_t index : indices[triangle]) primitive.push_back(ring[index]);
+      std::vector<CoinRenderPolygonStyleVertex> clipped;
+      if (!coin_render_resolve_polygon_style(primitive, state, materials, lighting, clipped,
+          diagnostic, true, edges[triangle])) return false;
+      for (const auto & vertex : clipped)
+        if (vertex.boundaryEdge) result.vertices.push_back(vertex);
+    }
+  } else if (!coin_render_resolve_polygon_style(ring, state, materials, lighting, result.vertices,
+                                                diagnostic, preserveDegenerateContour)) return false;
   const bool lines = style == CoinRenderPolygonStyle::LINES;
   result.topology =
       lines ? CoinRenderPrimitiveTopology::LINE_LIST : CoinRenderPrimitiveTopology::POINT_LIST;

@@ -1,0 +1,178 @@
+{
+  "base_commit": "e0009692a2d786ecf9382252253527246798139e",
+  "utc": "2026-10-05T22:22:25.479209+00:00",
+  "platform": "Linux NVIDIA RTX 3060 Laptop; Vulkan and OpenGL",
+  "oracle": "Coin/OpenGL from same source/build; RGB ROI comparison",
+  "snapshot_size_bytes": {
+    "before": 1640,
+    "after": 1640
+  },
+  "regression_tests": [
+    "CoinRenderActionTest",
+    "CoinRenderNodeInventoryTest",
+    "CoinRenderCompositionTest",
+    "CoinRenderTextureTest",
+    "CoinRenderMultitextureTest",
+    "CoinRenderDepthContractTest",
+    "CoinRenderFrameReuseCoreTest",
+    "CoinRenderRttOwnershipTest",
+    "CoinRenderScreenContentCaptureTest"
+  ],
+  "variants": {
+    "wgpu-vulkan": {
+      "screen_command": [
+        "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderScreenContentTest",
+        "--gpu"
+      ],
+      "screen_environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_BGFX_TRANSPARENCY": "object",
+        "WGPU_BACKEND": "vulkan"
+      },
+      "regression_command": [
+        "ctest",
+        "--test-dir",
+        "/tmp/coin-render-first-frame-wgpu",
+        "-R",
+        "^(CoinRenderActionTest|CoinRenderNodeInventoryTest|CoinRenderCompositionTest|CoinRenderTextureTest|CoinRenderMultitextureTest|CoinRenderDepthContractTest|CoinRenderFrameReuseCoreTest|CoinRenderRttOwnershipTest|CoinRenderScreenContentCaptureTest)$",
+        "--output-on-failure"
+      ],
+      "regression_environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_BGFX_TRANSPARENCY": "object",
+        "WGPU_BACKEND": "vulkan"
+      },
+      "gpu_rgb_comparisons": 93,
+      "max_rgb_error": 1,
+      "max_rgb_roi_mae": 0.366667,
+      "regression_gates": 9,
+      "binary_sha256": {
+        "bin/CoinRenderScreenContentTest": "d9444cf858a20383ad0ac4b2cff54c153b35153527d8cf9a0fa7d14221452936",
+        "lib/libCoinRender.so": "480fb28a29eaede5ccfa759c0fea56f922ffc423af052dfbf2fe5a93fc9d6394",
+        "lib/libCoin.so": "6e48c028d7c76bc604a234e8933935e80528f6af04190d65e19d8be98f59a07f"
+      }
+    },
+    "bgfx-vulkan": {
+      "screen_command": [
+        "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderScreenContentTest",
+        "--gpu"
+      ],
+      "screen_environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_BGFX_TRANSPARENCY": "object",
+        "COIN_BGFX_RENDERER": "vulkan"
+      },
+      "regression_command": [
+        "ctest",
+        "--test-dir",
+        "/tmp/coin-render-first-frame-bgfx",
+        "-R",
+        "^(CoinRenderActionTest|CoinRenderNodeInventoryTest|CoinRenderCompositionTest|CoinRenderTextureTest|CoinRenderMultitextureTest|CoinRenderDepthContractTest|CoinRenderFrameReuseCoreTest|CoinRenderRttOwnershipTest|CoinRenderScreenContentCaptureTest)$",
+        "--output-on-failure"
+      ],
+      "regression_environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_BGFX_TRANSPARENCY": "auto",
+        "COIN_BGFX_RENDERER": "vulkan"
+      },
+      "gpu_rgb_comparisons": 93,
+      "max_rgb_error": 1,
+      "max_rgb_roi_mae": 0.366667,
+      "regression_gates": 9,
+      "binary_sha256": {
+        "bin/CoinRenderScreenContentTest": "4f74263ee07430ebe90c9228a1868b112261ae7a8d081a6e174c64342df8e0e3",
+        "lib/libCoinRender.so": "2d12a65d2109a451c569fd1d4dab25760b112dba11d0bbb2d874d8133cc77942",
+        "lib/libCoin.so": "6e48c028d7c76bc604a234e8933935e80528f6af04190d65e19d8be98f59a07f"
+      }
+    },
+    "bgfx-opengl": {
+      "screen_command": [
+        "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderScreenContentTest",
+        "--gpu"
+      ],
+      "screen_environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_BGFX_TRANSPARENCY": "object",
+        "COIN_BGFX_RENDERER": "opengl"
+      },
+      "regression_command": [
+        "ctest",
+        "--test-dir",
+        "/tmp/coin-render-first-frame-bgfx",
+        "-R",
+        "^(CoinRenderActionTest|CoinRenderNodeInventoryTest|CoinRenderCompositionTest|CoinRenderTextureTest|CoinRenderMultitextureTest|CoinRenderDepthContractTest|CoinRenderFrameReuseCoreTest|CoinRenderRttOwnershipTest|CoinRenderScreenContentCaptureTest)$",
+        "--output-on-failure"
+      ],
+      "regression_environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_BGFX_TRANSPARENCY": "auto",
+        "COIN_BGFX_RENDERER": "opengl"
+      },
+      "gpu_rgb_comparisons": 93,
+      "max_rgb_error": 1,
+      "max_rgb_roi_mae": 0.366667,
+      "regression_gates": 9,
+      "binary_sha256": {
+        "bin/CoinRenderScreenContentTest": "4f74263ee07430ebe90c9228a1868b112261ae7a8d081a6e174c64342df8e0e3",
+        "lib/libCoinRender.so": "2d12a65d2109a451c569fd1d4dab25760b112dba11d0bbb2d874d8133cc77942",
+        "lib/libCoin.so": "6e48c028d7c76bc604a234e8933935e80528f6af04190d65e19d8be98f59a07f"
+      }
+    }
+  },
+  "source_sha256": {
+    "src/actions/CoinRenderAction.cpp": "5b6e38a38ed0a689703e773c421094aa38119cb100f1a505694752d1944b471c",
+    "src/actions/CoinRenderActionP.h": "314ad8ceafca0be716a3a32b42613794925dbac213e6509cd9797e56435c1f69",
+    "src/fonts/CMakeLists.txt": "822d896765483f2aad9b891969ddc327760e8e0ca9f8ec911e0abb5d3a79f9af",
+    "src/rendering/coinrender/CMakeLists.txt": "c80eee9e619b9c7f3e030897d04d55049a8061de45c30f519ce931d19a8a5a01",
+    "src/rendering/coinrender/CoinRenderComposition.h": "bc2a604cc44a89f9395723535c67ae478cdbb6fe5153f5ff5a17e128adadd2b1",
+    "src/rendering/coinrender/CoinRenderFramePlan.h": "9847fa90efb84cfd71f8d14b6712b5a77f832d1164a53080ec6f1b55e412f7ad",
+    "src/rendering/coinrender/CoinRenderFramePlanBuilder.cpp": "386e0ec4d6d1dd38578708bbad4279ebe7930988c913a5f0d191451322f5e307",
+    "src/rendering/coinrender/CoinRenderFramePlanBuilder.h": "f4a3583313a3cf602071200c1f4b9d28f1c385e131e2a7592d498ac5aca4fb7c",
+    "src/rendering/coinrender/CoinRenderPlanAssemblyCore.cpp": "68881d6946aaa3c195e5e2b39b753e75da038988a4e9526be200fcf8d5a31487",
+    "src/rendering/coinrender/CoinRenderRecordingBackend.cpp": "a25bd94719621dae4eaac0e34fc2314bffdde70b558b90a14de3feeff65885d8",
+    "src/rendering/coinrender/CoinRenderStateCore.h": "502e6a641db07beba4242e656bee6b9c043139fedc15d7ed3fabd077b4f946dc",
+    "testsuite/CMakeLists.txt": "2c923aa5938f7af5988875d71918fb103b063e8b48ec5cbfdab9e08d97f3b5ef",
+    "testsuite/coinrender/CoinRenderNodeInventoryTest.cpp": "553c18b0fe31ef0e88973b5c2538206aea6c9756e6c24be44c7f7cbebfba53c7",
+    "src/fonts/CoinRenderGlyphBridge.cpp": "a31300d161d799d2afc822509fc35c6fa3178a30677d6d8221195348aa42b054",
+    "src/fonts/CoinRenderGlyphBridge.h": "85d67702bb130431fb228770b6dd01df6aa9efb871353366c6d4f223abd61c30",
+    "src/rendering/coinrender/CoinRenderScreenRasterCore.h": "f31c6866414d58091349bd30a42644d63627b43b52833ed04df5079ce928bf4f",
+    "src/rendering/coinrender/CoinRenderText2Capture.cpp": "7d31f0a3d9799b283b1c67e51b38bd31c28620f014a3b7fed5635ef2f9679179",
+    "src/rendering/coinrender/CoinRenderText2Capture.h": "dd3850d409e712a0241766ad08942e53a110a6a18f1e21287b501df58f5f80b8",
+    "testsuite/coinrender/CoinRenderScreenContentTest.cpp": "9566f96252fa7432c72f6ec28b6a5d02fdc08a5b2bf65decdd60e3182a6be2a6"
+  },
+  "render_off_configure": "COIN_BUILD_RENDER=OFF, COIN_BUILD_SINGLE_LIB=ON: configured successfully; private glyph bridge absent from build graph (not a full OFF compilation)",
+  "evidence_sha256": {
+    "wgpu-vulkan.log": "886ba89572d9eece1d5950b0d7912e12c3bfb327a8ed1ca53f5b4a4d98213897",
+    "wgpu-vulkan-regressions.log": "f48724ac8713c3d57df3cf8b4a473870ef95efd5388d05a921d896d26701a9e0",
+    "bgfx-vulkan.log": "886ba89572d9eece1d5950b0d7912e12c3bfb327a8ed1ca53f5b4a4d98213897",
+    "bgfx-vulkan-regressions.log": "71049249883af1687f802f5c472c00cf3937cd88c8085cb711cfcf803010802f",
+    "bgfx-opengl.log": "886ba89572d9eece1d5950b0d7912e12c3bfb327a8ed1ca53f5b4a4d98213897",
+    "bgfx-opengl-regressions.log": "d0759256649edebfd523ede86b312851914bf347d48429020375203321419e12",
+    "render-off-configure.log": "1a3dbd1ce619e8179e53acc6303552521b581d23c05fe74ceeef586537511b1b"
+  },
+  "configure_log_normalization": "Trailing whitespace stripped; other captured logs unchanged"
+}

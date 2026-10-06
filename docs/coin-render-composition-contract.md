@@ -65,6 +65,35 @@ um pedido válido seguinte; `UNSUPPORTED` de um frame não é erro fatal de recu
 O [contrato P09](coin-render-transparency-contract.md) delimita qualificação,
 overrides de peeling e particularidades da referência GL.
 
+## Empréstimo da composição opaca durante a submissão
+
+A classificação comum pode publicar uma prova de ordem opaca sem expansão
+para planos com pelo menos 256 draws de triângulos, sem texturas, samplers,
+sombras, anotações, strokes, screen door ou passes transparentes. A prova é
+acumulada na classificação existente e só é publicada após seu sucesso.
+Flags inertes de sorting e os campos efetivos de profundidade permanecem
+exatamente como foram resolvidos pelo Core.
+
+Target conserva as verificações de perfil e admissão. Quando a prova capturada
+corresponde ao endereço, revisão e política do plano, usa a própria receipt
+durante sua chamada. O schedule de instanciação BGFX e os schedules de
+instanciação/agrupamento opaco wgpu podem ler essa ordem por uma view imutável
+local. O escopo restaura a receipt ativa ao retornar, inclusive em falha; nenhuma
+referência de composição entra em cache de backend, transporte Rust ou ticket
+assíncrono. Revogação da receipt cancela a prova.
+
+Os demais perfis continuam usando os vetores e o algoritmo de composição
+geral. `COIN_RENDER_DISABLE_COMPOSITION_BORROW=1` restaura as duas cópias para
+comparação. O trace distingue itens/bytes lógicos copiados, emprestados e
+calculados; esses bytes não representam capacidade do vetor ou tráfego do
+alocador. O tempo `composition_identity.qualify_ms` inclui a classificação
+existente e não mede o custo incremental da prova.
+
+Esta mudança conserva a ABI privada atual 43. As revisões 21–28 na seção de
+transporte acima registram etapas anteriores da sua evolução.
+
+[Medições e validação local](coin-render-composition-copy-linux.md).
+
 ## Evidências e limites
 
 `CoinRenderCompositionTest` verifica os onze pedidos Coin no Core, a ordem

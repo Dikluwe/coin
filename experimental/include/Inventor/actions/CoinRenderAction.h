@@ -112,6 +112,9 @@ public:
   void setViewportRegion(const SbViewportRegion & region);
   const SbViewportRegion & getViewportRegion(void) const;
 
+  /** Borrow a render target. Before destroying a target that will be replaced,
+   * detach it with setRenderTarget(NULL) while the old target is still alive.
+   */
   void setRenderTarget(CoinRenderTarget * target);
   CoinRenderTarget * getRenderTarget(void) const;
 

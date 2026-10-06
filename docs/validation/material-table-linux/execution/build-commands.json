@@ -1,0 +1,36 @@
+[
+  {
+    "label": "build-wgpu",
+    "command": [
+      "cmake",
+      "--build",
+      "/tmp/coin-render-first-frame-wgpu",
+      "--parallel",
+      "2"
+    ],
+    "exit_code": 0,
+    "source_content_revision_before": "a0bda8b5ccc8d04efa96c5c807b88e5aa4e34c9d",
+    "source_content_revision_after": "a0bda8b5ccc8d04efa96c5c807b88e5aa4e34c9d",
+    "log": "/tmp/coin-render-material-table-build-wgpu.log",
+    "log_sha256": "8df4e8a7c6849ae44763e9c3062cca877200a8e69d6a15ee82e045c879190ea6"
+  },
+  {
+    "label": "cargo-cpu",
+    "command": [
+      "/home/dikluwe/.cargo/bin/cargo",
+      "test",
+      "--offline",
+      "--locked",
+      "--target-dir",
+      "/tmp/coin-render-material-resource-cargo-tests",
+      "--manifest-path",
+      "/tmp/coin-render-first-frame/src/rendering/coinwgpu/rust_bridge/Cargo.toml",
+      "--lib"
+    ],
+    "exit_code": 0,
+    "source_content_revision_before": "a0bda8b5ccc8d04efa96c5c807b88e5aa4e34c9d",
+    "source_content_revision_after": "a0bda8b5ccc8d04efa96c5c807b88e5aa4e34c9d",
+    "log": "/tmp/coin-render-material-table-cargo-cpu.log",
+    "log_sha256": "e3cb6592bd91dadd931c6f11bbb50eae6bf290a494f7c96c4fce98c4ec390ef9"
+  }
+]

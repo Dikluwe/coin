@@ -1,0 +1,70 @@
+Internal ctest changing into directory: H:/Git/coin/build/coin-render-wgpu-msvc
+Test project H:/Git/coin/build/coin-render-wgpu-msvc
+      Start  13: CoinRenderActionTest
+ 1/32 Test  #13: CoinRenderActionTest .....................   Passed    1.25 sec
+      Start  19: CoinRenderFrameCoreTest
+ 2/32 Test  #19: CoinRenderFrameCoreTest ..................   Passed    0.08 sec
+      Start  21: CoinRenderDepthContractTest
+ 3/32 Test  #21: CoinRenderDepthContractTest ..............   Passed    0.35 sec
+      Start  27: CoinRenderIndexedFastPathTest
+ 4/32 Test  #27: CoinRenderIndexedFastPathTest ............   Passed    0.88 sec
+      Start  28: CoinWgpuCacheTest
+ 5/32 Test  #28: CoinWgpuCacheTest ........................   Passed    1.68 sec
+      Start  29: CoinRenderStabilizationTest
+ 6/32 Test  #29: CoinRenderStabilizationTest ..............   Passed    1.56 sec
+      Start  30: CoinRenderMaterialTest
+ 7/32 Test  #30: CoinRenderMaterialTest ...................   Passed    1.06 sec
+      Start  31: CoinRenderTextureTest
+ 8/32 Test  #31: CoinRenderTextureTest ....................   Passed    4.37 sec
+      Start  32: CoinRenderLightingTest
+ 9/32 Test  #32: CoinRenderLightingTest ...................   Passed    3.13 sec
+      Start  33: CoinRenderGouraudInterpolationTest
+10/32 Test  #33: CoinRenderGouraudInterpolationTest .......   Passed    0.91 sec
+      Start  34: CoinRenderFogTest
+11/32 Test  #34: CoinRenderFogTest ........................   Passed    3.69 sec
+      Start  35: CoinRenderClipPlaneTest
+12/32 Test  #35: CoinRenderClipPlaneTest ..................   Passed    3.48 sec
+      Start  36: CoinRenderDrawStyleTest
+13/32 Test  #36: CoinRenderDrawStyleTest ..................   Passed   32.12 sec
+      Start  37: CoinRenderMultitextureTest
+14/32 Test  #37: CoinRenderMultitextureTest ...............   Passed    7.72 sec
+      Start  38: CoinRenderPeelingTest
+15/32 Test  #38: CoinRenderPeelingTest ....................   Passed    5.80 sec
+      Start  39: CoinRenderWeightedOitTest
+16/32 Test  #39: CoinRenderWeightedOitTest ................   Passed    4.18 sec
+      Start  40: CoinRenderTransparencyTest
+17/32 Test  #40: CoinRenderTransparencyTest ...............   Passed   17.88 sec
+      Start  41: CoinRenderCompositionTest
+18/32 Test  #41: CoinRenderCompositionTest ................   Passed    4.76 sec
+      Start  42: CoinRenderAnnotationTest
+19/32 Test  #42: CoinRenderAnnotationTest .................   Passed    1.22 sec
+      Start  45: CoinRenderShadowReferenceTest
+20/32 Test  #45: CoinRenderShadowReferenceTest ............   Passed  116.05 sec
+      Start  85: CoinRenderMultiTargetDirectTest
+21/32 Test  #85: CoinRenderMultiTargetDirectTest ..........   Passed    4.53 sec
+      Start  87: CoinRenderRttOwnershipTest
+22/32 Test  #87: CoinRenderRttOwnershipTest ...............   Passed    0.61 sec
+      Start  90: CoinRenderSceneTextureDirectTest
+23/32 Test  #90: CoinRenderSceneTextureDirectTest .........   Passed   25.32 sec
+      Start  91: CoinRenderSceneTextureBudgetDirectTest
+24/32 Test  #91: CoinRenderSceneTextureBudgetDirectTest ...   Passed    0.80 sec
+      Start  93: CoinWgpuLargeBindingsTest
+25/32 Test  #93: CoinWgpuLargeBindingsTest ................   Passed    2.05 sec
+      Start  94: CoinRenderPerformanceTest
+26/32 Test  #94: CoinRenderPerformanceTest ................   Passed    2.82 sec
+      Start  95: CoinRenderAsyncReadbackTest
+27/32 Test  #95: CoinRenderAsyncReadbackTest ..............   Passed    1.16 sec
+      Start  96: CoinWgpuMultiDeviceTest
+28/32 Test  #96: CoinWgpuMultiDeviceTest ..................   Passed   10.43 sec
+      Start  97: WgpuMultiDeviceStressTest
+29/32 Test  #97: WgpuMultiDeviceStressTest ................   Passed    6.83 sec
+      Start  98: CoinRenderAsyncActionTest
+30/32 Test  #98: CoinRenderAsyncActionTest ................   Passed    2.91 sec
+      Start  99: CoinRenderAsyncActionDirectTest
+31/32 Test  #99: CoinRenderAsyncActionDirectTest ..........   Passed    7.50 sec
+      Start 100: CoinRenderAsyncActionDirectStressTest
+32/32 Test #100: CoinRenderAsyncActionDirectStressTest ....   Passed   11.25 sec
+
+100% tests passed, 0 tests failed out of 32
+
+Total Test time (real) = 288.41 sec

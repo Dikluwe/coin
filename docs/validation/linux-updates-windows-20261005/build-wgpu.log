@@ -1,0 +1,340 @@
+CMake is re-running because H:/Git/coin/build/coin-render-wgpu-msvc/CMakeFiles/generate.stamp is out-of-date.
+  the file 'H:/Git/coin/build/coin-render-source/CMakeLists.txt'
+  is newer than 'H:/Git/coin/build/coin-render-wgpu-msvc/CMakeFiles/generate.stamp.depend'
+  result='-1'
+-- Selecting Windows SDK version 10.0.26100.0 to target Windows 10.0.19045.
+-- Setting C++ standard: '11', which is the minimum needed to compile Coin.
+--
+-- OpenGL::GL;Threads::Threads
+-- Build against dynamic Microsoft Visual C runtime library
+-- Configuring done (4.6s)
+-- Generating done (9.9s)
+-- Build files have been written to: H:/Git/coin/build/coin-render-wgpu-msvc
+Versão do MSBuild 17.14.60+43b635718 para .NET Framework
+
+  1>Building Rust WebGPU bridge library (release)...
+     Compiling coin_wgpu_rust_bridge v0.1.0 (H:\Git\coin\build\coin-render-source\src\rendering\coinwgpu\rust_bridge)
+CUSTOMBUILD : warning : use of deprecated type alias `wgpu::ImageCopyTexture`: This has been renamed to `TexelCopyTextureInfo`, and will be removed in 25.0.0. [H:\Git\coin\build\coin-render-wgpu-msvc\coin_wgpu_rust_bridge_build.vcxproj]
+      --> src\lib.rs:2124:15
+       |
+  2124 |         wgpu::ImageCopyTexture {
+       |               ^^^^^^^^^^^^^^^^
+       |
+       = note: `#[warn(deprecated)]` on by default
+
+CUSTOMBUILD : warning : use of deprecated type alias `wgpu::ImageDataLayout`: This has been renamed to `TexelCopyBufferLayout`, and will be removed in 25.0.0. [H:\Git\coin\build\coin-render-wgpu-msvc\coin_wgpu_rust_bridge_build.vcxproj]
+      --> src\lib.rs:2131:15
+       |
+  2131 |         wgpu::ImageDataLayout {
+       |               ^^^^^^^^^^^^^^^
+
+CUSTOMBUILD : warning : use of deprecated type alias `wgpu::ImageCopyTexture`: This has been renamed to `TexelCopyTextureInfo`, and will be removed in 25.0.0. [H:\Git\coin\build\coin-render-wgpu-msvc\coin_wgpu_rust_bridge_build.vcxproj]
+      --> src\lib.rs:3151:19
+       |
+  3151 |             wgpu::ImageCopyTexture {
+       |                   ^^^^^^^^^^^^^^^^
+
+CUSTOMBUILD : warning : use of deprecated type alias `wgpu::ImageDataLayout`: This has been renamed to `TexelCopyBufferLayout`, and will be removed in 25.0.0. [H:\Git\coin\build\coin-render-wgpu-msvc\coin_wgpu_rust_bridge_build.vcxproj]
+      --> src\lib.rs:3158:19
+       |
+  3158 |             wgpu::ImageDataLayout {
+       |                   ^^^^^^^^^^^^^^^
+
+CUSTOMBUILD : warning : use of deprecated method `std::sync::atomic::Atomic::<i32>::fetch_update`: renamed to `try_update` for consistency [H:\Git\coin\build\coin-render-wgpu-msvc\coin_wgpu_rust_bridge_build.vcxproj]
+      --> src\lib.rs:5778:68
+       |
+  5778 |         let delayed = requested_device == 0 && FAULT_AFTER_SUBMITS.fetch_update(
+       |                                                                    ^^^^^^^^^^^^
+       |
+  help: replace the use of the deprecated method
+       |
+  5778 -         let delayed = requested_device == 0 && FAULT_AFTER_SUBMITS.fetch_update(
+  5778 +         let delayed = requested_device == 0 && FAULT_AFTER_SUBMITS.try_update(
+       |
+
+CUSTOMBUILD : warning : field `default_texture` is never read [H:\Git\coin\build\coin-render-wgpu-msvc\coin_wgpu_rust_bridge_build.vcxproj]
+      --> src\lib.rs:1273:5
+       |
+  1247 | struct DeviceState {
+       |        ----------- field in this struct
+  ...
+  1273 |     default_texture: wgpu::Texture,
+       |     ^^^^^^^^^^^^^^^
+       |
+       = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+CUSTOMBUILD : warning : `coin_wgpu_rust_bridge` (lib) generated 6 warnings (run `cargo fix --lib -p coin_wgpu_rust_bridge` to apply 1 suggestion) [H:\Git\coin\build\coin-render-wgpu-msvc\coin_wgpu_rust_bridge_build.vcxproj]
+      Finished `release` profile [optimized] target(s) in 30.38s
+  SoAction.cpp
+  SoCallbackAction.cpp
+  SoReorganizeAction.cpp
+  SoToVRML2Action.cpp
+  SoToVRMLAction.cpp
+  SoIntersectionDetectionAction.cpp
+  SoDragger.cpp
+  SoSTLFileKit.cpp
+  SoGeoOrigin.cpp
+  SoGeoSeparator.cpp
+  HardCopy.cpp
+  VectorizeAction.cpp
+  VectorizeActionP.cpp
+  VectorizePSAction.cpp
+  SoClipPlaneManip.cpp
+  SoDirectionalLightManip.cpp
+  SoPointLightManip.cpp
+  SoSpotLightManip.cpp
+  SoTransformManip.cpp
+  SoArray.cpp
+  SoBaseColor.cpp
+  SoBumpMap.cpp
+  SoBumpMapCoordinate.cpp
+  SoBumpMapTransform.cpp
+  SoCacheHint.cpp
+  SoCallback.cpp
+  SoCamera.cpp
+  SoClipPlane.cpp
+  SoComplexity.cpp
+  SoCoordinate3.cpp
+  SoCoordinate4.cpp
+  SoDrawStyle.cpp
+  SoEnvironment.cpp
+  SoExtSelection.cpp
+  SoFile.cpp
+  SoFont.cpp
+  SoGroup.cpp
+  SoLOD.cpp
+  SoLevelOfDetail.cpp
+  SoLight.cpp
+  SoLightModel.cpp
+  SoMaterial.cpp
+  SoMaterialBinding.cpp
+  SoMultipleCopy.cpp
+  SoNode.cpp
+  SoNormal.cpp
+  SoNormalBinding.cpp
+  SoPackedColor.cpp
+  SoPathSwitch.cpp
+  SoPickStyle.cpp
+  SoPolygonOffset.cpp
+  SoProfile.cpp
+  SoProfileCoordinate2.cpp
+  SoProfileCoordinate3.cpp
+  SoSceneTexture2.cpp
+  SoSceneTextureCubeMap.cpp
+  SoSeparator.cpp
+  SoShapeHints.cpp
+  SoSwitch.cpp
+  SoTexture2.cpp
+  SoTexture2Transform.cpp
+  SoTexture3.cpp
+  SoTexture3Transform.cpp
+  SoTextureCombine.cpp
+  SoTextureCoordinate2.cpp
+  SoTextureCoordinate3.cpp
+  SoTextureCoordinateBinding.cpp
+  SoTextureCoordinateCube.cpp
+  SoTextureCoordinateCylinder.cpp
+  SoTextureCoordinateSphere.cpp
+  SoTextureCubeMap.cpp
+  SoTextureMatrixTransform.cpp
+  SoTextureUnit.cpp
+  SoTransformSeparator.cpp
+  SoTransformation.cpp
+  SoTransparencyType.cpp
+  SoUnits.cpp
+  SoVertexAttributeBinding.cpp
+  SoVertexProperty.cpp
+  SoProfiler.cpp
+  SoProfilerStats.cpp
+  SoShape.cpp
+  Appearance.cpp
+  Color.cpp
+  Group.cpp
+  ImageTexture.cpp
+  IndexedFaceSet.cpp
+  Inline.cpp
+  Material.cpp
+  PixelTexture.cpp
+  Switch.cpp
+  Transform.cpp
+     Criando biblioteca H:/Git/coin/build/coin-render-wgpu-msvc/lib/Coin4.lib e objeto H:/Git/coin/build/coin-render-wgpu-msvc/lib/Coin4.exp
+  Coin.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\Coin4.dll
+  Building Custom Rule H:/Git/coin/build/coin-render-source/testsuite/CMakeLists.txt
+  Building Custom Rule H:/Git/coin/build/coin-render-source/testsuite/CMakeLists.txt
+  CoinRenderTransformCoreTest.cpp
+  CoinRenderBenchmarkAnimationTest.cpp
+  RenderManagerFramePreparationTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\RenderManagerFramePreparationTest.exe
+  CoinWgpuFfiFrame.cpp
+  actionsSoCallbackActionTest.cpp
+  draggersSoTransformerDraggerTest.cpp
+  shapenodesSoIndexedFaceSetTest.cpp
+  CoinRenderFrameReuseBenchmark.cpp
+  CoinProfilerInitTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinProfilerInitTest.exe
+  CoinTests.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinTests.exe
+  CoinRenderTransformCoreTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderTransformCoreTest.exe
+  CoinRenderBackendFactory.cpp
+  CoinRenderDiagnosticShell.cpp
+  CoinRenderFramePlan.cpp
+  CoinRenderFramePlanBuilder.cpp
+  CoinRenderBenchmarkAnimationTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderBenchmarkAnimationTest.exe
+  CoinRenderFrameReuseCore.cpp
+  CoinRenderImageCore.cpp
+  CoinRenderPlanAssemblyCore.cpp
+  CoinRenderManagerAdapter.cpp
+  CoinRenderRecordingBackend.cpp
+  CoinRenderCapabilities.cpp
+  CoinRenderFrameReuseBenchmark.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderFrameReuseBenchmark.exe
+  CoinRenderSceneManager.cpp
+  CoinRenderCpuReferenceBackend.cpp
+  CoinRenderRttExecution.cpp
+  CoinRenderTarget.cpp
+  CoinRenderAction.cpp
+  CoinWgpuFfiFrame.cpp
+  CoinWgpuBackend.cpp
+  CoinWgpuRuntime.cpp
+     Criando biblioteca H:/Git/coin/build/coin-render-wgpu-msvc/lib/CoinRender4.lib e objeto H:/Git/coin/build/coin-render-wgpu-msvc/lib/CoinRender4.exp
+  CoinRender.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRender4.dll
+  Building Custom Rule H:/Git/coin/build/coin-render-source/testsuite/CMakeLists.txt
+  Building Custom Rule H:/Git/coin/build/coin-render-source/testsuite/CMakeLists.txt
+  Building Custom Rule H:/Git/coin/build/coin-render-source/testsuite/CMakeLists.txt
+  Building Custom Rule H:/Git/coin/build/coin-render-source/testsuite/CMakeLists.txt
+  CoinBgfxLowering.cpp
+  CoinWgpuFfiFrameTest.cpp
+  CoinBgfxCoreTest.cpp
+  CoinWgpuFfiFrame.cpp
+  CoinRenderCameraReuseReferenceTest.cpp
+  coin_render_win32_smoke.cpp
+  CoinRenderSelectionTest.cpp
+  CoinRenderSceneTextureTest.cpp
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\xmemory(732,103): warning C4244: 'argumento': conversão de '_Ty' para 'const float', possível perda de dados [H:\Git\coin\build\coin-render-wgpu-msvc\testsuite\CoinBgfxCoreTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\xmemory(732,103): warning C4244:         with [H:\Git\coin\build\coin-render-wgpu-msvc\testsuite\CoinBgfxCoreTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\xmemory(732,103): warning C4244:         [ [H:\Git\coin\build\coin-render-wgpu-msvc\testsuite\CoinBgfxCoreTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\xmemory(732,103): warning C4244:             _Ty=int [H:\Git\coin\build\coin-render-wgpu-msvc\testsuite\CoinBgfxCoreTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\xmemory(732,103): warning C4244:         ] [H:\Git\coin\build\coin-render-wgpu-msvc\testsuite\CoinBgfxCoreTest.vcxproj]
+  (compilando o arquivo fonte '../../../coin-render-source/testsuite/coinbgfx/CoinBgfxCoreTest.cpp')
+      C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\xmemory(732,103):
+      o contexto de instanciação do modelo (o mais antigo primeiro) é
+          H:\Git\coin\build\coin-render-source\testsuite\coinbgfx\CoinBgfxCoreTest.cpp(420,68):
+          consulte a referência à instanciação 'void std::vector<SbPlane,std::allocator<SbPlane>>::emplace_back<SbVec3f,int>(SbVec3f &&,int &&)' do modelo que está sendo compilada
+              H:\Git\coin\build\coin-render-source\testsuite\coinbgfx\CoinBgfxCoreTest.cpp(420,80):
+              veja a primeira referência a 'std::vector<SbPlane,std::allocator<SbPlane>>::emplace_back' em '`anonymous-namespace'::instancedOpaque'
+          C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\vector(924,24):
+          consulte a referência à instanciação '_Ty &std::vector<_Ty,std::allocator<_Ty>>::_Emplace_one_at_back<SbVec3f,int>(SbVec3f &&,int &&)' do modelo que está sendo compilada
+          with
+          [
+              _Ty=SbPlane
+          ]
+          C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\vector(845,20):
+          consulte a referência à instanciação '_Ty &std::vector<_Ty,std::allocator<_Ty>>::_Emplace_back_with_unused_capacity<SbVec3f,int>(SbVec3f &&,int &&)' do modelo que está sendo compilada
+          with
+          [
+              _Ty=SbPlane
+          ]
+          C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\vector(863,27):
+          consulte a referência à instanciação 'void std::_Default_allocator_traits<_Alloc>::construct<_Ty,SbVec3f,int>(_Alloc &,_Objty *const ,SbVec3f &&,int &&)' do modelo que está sendo compilada
+          with
+          [
+              _Alloc=std::allocator<SbPlane>,
+              _Ty=SbPlane,
+              _Objty=SbPlane
+          ]
+
+  coin_render_win32_smoke.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\coin_render_win32_smoke.exe
+  coin_render_gl_benchmark.cpp
+  CoinRenderCameraReuseReferenceTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderCameraReuseReferenceTest.exe
+  CoinRenderSelectionTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderSelectionTest.exe
+  CoinWgpuMultiDeviceTest.cpp
+  CoinWgpuFfiFrame.cpp
+  CoinRenderBackendBoundaryTest.cpp
+  CoinRenderTransparencyTest.cpp
+  coin_render_freecad_compare.cpp
+  CoinWgpuFfiFrameTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinWgpuFfiFrameTest.exe
+  CoinBgfxCoreTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinBgfxCoreTest.exe
+  coin_render_freecad_compare.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\coin_render_freecad_compare.exe
+  CoinRenderSceneTextureTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderSceneTextureTest.exe
+  CoinRenderTransparencyTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderTransparencyTest.exe
+  CoinRenderPlanAssemblyCoreTest.cpp
+  CoinRenderBackendBoundaryTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderBackendBoundaryTest.exe
+  CoinRenderOffscreenTest.cpp
+  coin_render_gl_benchmark.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\coin_render_gl_benchmark.exe
+  CoinRenderMultiTargetTest.cpp
+  CoinWgpuFfiFrame.cpp
+  CoinWgpuLargeBindingsTest.cpp
+  CoinRenderStabilizationTest.cpp
+  CoinWgpuMultiDeviceTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinWgpuMultiDeviceTest.exe
+  CoinRenderRuntimeBoundaryTest.cpp
+  CoinWgpuCacheTest.cpp
+  CoinRenderStabilizationTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderStabilizationTest.exe
+  CoinRenderTextureTest.cpp
+  CoinRenderOffscreenTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderOffscreenTest.exe
+  CoinRenderRttOwnershipTest.cpp
+  CoinRenderShadowReferenceTest.cpp
+  CoinRenderPlanAssemblyCoreTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderPlanAssemblyCoreTest.exe
+  CoinRenderRuntimeBoundaryTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderRuntimeBoundaryTest.exe
+  CoinWgpuCacheTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinWgpuCacheTest.exe
+  CoinRenderMultiTargetTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderMultiTargetTest.exe
+  CoinRenderPublicationTest.cpp
+  CoinRenderPerformanceTest.cpp
+  CoinRenderTextureTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderTextureTest.exe
+  CoinRenderNodeInventoryTest.cpp
+  CoinRenderMultitextureTest.cpp
+  CoinRenderPerformanceTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderPerformanceTest.exe
+  CoinWgpuLargeBindingsTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinWgpuLargeBindingsTest.exe
+  CoinRenderSceneTextureBudgetTest.cpp
+  CoinRenderPublicationTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderPublicationTest.exe
+  CoinRenderLightingTest.cpp
+  CoinRenderProductTest.cpp
+  CoinRenderPeelingTest.cpp
+  CoinRenderNodeInventoryTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderNodeInventoryTest.exe
+  CoinRenderMultitextureTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderMultitextureTest.exe
+  CoinRenderGouraudInterpolationTest.cpp
+  CoinRenderSceneTextureBudgetTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderSceneTextureBudgetTest.exe
+  CoinRenderRttOwnershipTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderRttOwnershipTest.exe
+  CoinRenderLightingTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderLightingTest.exe
+  CoinRenderProductTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderProductTest.exe
+  CoinRenderIndexedFastPathTest.cpp
+  CoinRenderFrameReuseCoreTest.cpp
+  CoinRenderMaterialTest.cpp
+  CoinRenderGateG1Test.cpp
+  CoinRenderPeelingTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderPeelingTest.exe
+  CoinRenderFogTest.cpp
+  CoinBgfxLowering.cpp
+  CoinRenderFramePlanBuilder.cpp
+  CoinWgpuFfiFrame.cpp
+  CoinRenderDepthContractTest.cpp
+  CoinRenderMaterialTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderMaterialTest.exe
+  CoinRenderGouraudInterpolationTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderGouraudInterpolationTest.exe
+  CoinRenderIndexedFastPathTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderIndexedFastPathTest.exe
+  CoinRenderIndexedGeometryCoreTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderIndexedGeometryCoreTest.exe
+  CoinRenderGateG2Test.cpp
+  CoinRenderFogTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderFogTest.exe
+  CoinRenderFrameReuseCoreTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderFrameReuseCoreTest.exe
+  CoinRenderGateG0Test.cpp
+  CoinRenderDiagnosticShellTest.cpp
+  CoinRenderGateG1Test.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderGateG1Test.exe
+  CoinRenderFramePlanBuilder.cpp
+  CoinRenderClipPlaneTest.cpp
+  CoinRenderDepthContractTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderDepthContractTest.exe
+  CoinRenderGateG2Test.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderGateG2Test.exe
+  CoinRenderAsyncReadbackTest.cpp
+  CoinRenderAsyncActionTest.cpp
+  CoinRenderActionTest.cpp
+  CoinRenderGateG0Test.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderGateG0Test.exe
+  CoinRenderFrameCoreTest.cpp
+  CoinRenderAsyncReadbackTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderAsyncReadbackTest.exe
+  CoinRenderFramePlanBuilder.cpp
+  CoinRenderDrawStyleTest.cpp
+  CoinRenderClipPlaneTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderClipPlaneTest.exe
+  CoinRenderAsyncActionTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderAsyncActionTest.exe
+  CoinRenderDiagnosticShellTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderDiagnosticShellTest.exe
+  CoinRenderCompositionTest.cpp
+  CoinRenderBackendContractTest.cpp
+  CoinRenderActionTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderActionTest.exe
+  CoinRenderBackendContractTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderBackendContractTest.exe
+  CoinRenderFrameCoreTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderFrameCoreTest.exe
+  CoinRenderDrawStyleTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderDrawStyleTest.exe
+  Building Custom Rule H:/Git/coin/build/coin-render-source/testsuite/CMakeLists.txt
+  CoinBgfxProgramSelectionTest.cpp
+  CoinRenderCompositionTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderCompositionTest.exe
+  CoinBgfxProgramSelectionTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinBgfxProgramSelectionTest.exe
+  CoinRenderShadowReferenceTest.vcxproj -> H:\Git\coin\build\coin-render-wgpu-msvc\bin\CoinRenderShadowReferenceTest.exe

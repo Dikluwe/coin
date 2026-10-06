@@ -1,10 +1,10 @@
 # CoinBgfxAction, fog e superfícies texturizadas
 
-O backend BGFX usa `CoinBgfxAction`, um tipo registrado no sistema de tipos
-Coin, derivado da infraestrutura compartilhada `CoinRenderAction`. Não é um
-`typedef`: `getTypeId().getName()` retorna `CoinBgfxAction`. O scene manager
-usado pelo adaptador FreeCAD cria essa ação em builds BGFX. A base antiga continua
-disponível para compatibilidade e para o backend Rust/wgpu.
+A entrada comum para BGFX e wgpu é `CoinRenderAction`. O scene manager e o
+exemplo compartilhado criam essa action; o target seleciona o executor compilado.
+`CoinBgfxAction` permanece como tipo registrado de compatibilidade, derivado de
+`CoinRenderAction`: `getTypeId().getName()` continua retornando `CoinBgfxAction`.
+Sua implementação está em `src/rendering/coinbgfx`, sem captura independente.
 
 ## Perfil implementado
 

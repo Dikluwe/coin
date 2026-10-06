@@ -1,0 +1,58 @@
+[
+  {
+    "backend": "bgfx",
+    "mode": "dynamic",
+    "before": "0x972ec92989e3abdc",
+    "after": "0x972ec92989e3abdc",
+    "identical": true
+  },
+  {
+    "backend": "bgfx",
+    "mode": "material-dynamic",
+    "before": "0x9147e63e47d4fcaf",
+    "after": "0x9147e63e47d4fcaf",
+    "identical": true
+  },
+  {
+    "backend": "bgfx",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "depth-gpu",
+    "code": 0
+  },
+  {
+    "backend": "bgfx",
+    "api": "opengl",
+    "gpu": "nvidia",
+    "test": "depth-gpu",
+    "code": 0
+  },
+  {
+    "backend": "wgpu",
+    "mode": "dynamic",
+    "before": "0x972ec92989e3abdc",
+    "after": "0x972ec92989e3abdc",
+    "identical": true
+  },
+  {
+    "backend": "wgpu",
+    "mode": "material-dynamic",
+    "before": "0x9147e63e47d4fcaf",
+    "after": "0x9147e63e47d4fcaf",
+    "identical": true
+  },
+  {
+    "backend": "wgpu",
+    "api": "vulkan",
+    "gpu": "nvidia",
+    "test": "depth-gpu",
+    "code": 0
+  },
+  {
+    "backend": "wgpu",
+    "api": "gl",
+    "gpu": "amd",
+    "test": "depth-gpu",
+    "code": 0
+  }
+]

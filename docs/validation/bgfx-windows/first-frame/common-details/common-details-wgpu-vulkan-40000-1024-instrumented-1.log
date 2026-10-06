@@ -1,0 +1,16 @@
+startup_detail arguments_ms=0.0579 coin_init_ms=1.95 capability_probe_ms=322.402
+scene_detail parse_ms=381.253 wrapper_ms=0.0155 camera_fit_ms=88.1795
+scene_load_ms=469.547
+startup_detail material_search_ms=0.1361 target_setup_ms=2.4753
+WebGPU_first_detail render_ms=1455.43 publication_copy_ms=1.0292 before_frame_since_main_ms=797.414 result_since_main_ms=2253.88
+WebGPU_first_frame_ms=1456.46
+rgba_fnv64=0x6714299260985122
+image=build/large-scenes/common-details-wgpu-vulkan-40000-1024-instrumented-1.ppm
+adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) vendor_id=0x10de device_id=0x1c03 backend=wgpu size=1024x1024 warmup=1 scene=build/large-scenes/city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static
+WebGPU frames=3 median_ms=38.9888 p95_ms=40.6097 min_ms=38.787 max_ms=40.6097
+WebGPU_render frames=3 median_ms=38.3195 p95_ms=39.9039 min_ms=38.2607 max_ms=39.9039
+WebGPU_copy frames=3 median_ms=0.7058 p95_ms=0.7281 min_ms=0.4675 max_ms=0.7281
+WebGPU_throughput frames=3 total_ms=118.392 fps=25.3395
+WebGPU_cache last_frame_uploads=0 last_frame_uploaded_bytes=0 last_frame_hits=1 cumulative_uploads=1 cumulative_uploaded_bytes=149763744 cumulative_hits=3
+backend_cleanup_begin
+backend_cleanup_ms=39.9886

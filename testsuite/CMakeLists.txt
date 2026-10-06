@@ -1,3 +1,9 @@
+# BGFX renderer parity runs include native Direct3D12 on Windows.
+set(_coin_bgfx_test_renderers vulkan opengl)
+if(WIN32)
+  list(APPEND _coin_bgfx_test_renderers d3d12)
+endif()
+
 macro(create_testsuite input)
 	get_filename_component(FLNAME "${input}" NAME_WE)
 	get_filename_component(FLPATH "${input}" PATH)
@@ -201,6 +207,51 @@ if(COIN_BUILD_RENDER)
 	add_test(NAME CoinRenderActionTest COMMAND CoinRenderActionTest)
 	set_tests_properties(CoinRenderActionTest PROPERTIES TIMEOUT 30)
 
+	add_executable(CoinRenderBackendBoundaryTest coinrender/CoinRenderBackendBoundaryTest.cpp)
+	set_target_properties(CoinRenderBackendBoundaryTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinRenderBackendBoundaryTest CoinRender Coin)
+	target_include_directories(CoinRenderBackendBoundaryTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	add_test(NAME CoinRenderBackendBoundaryTest COMMAND CoinRenderBackendBoundaryTest)
+	set_tests_properties(CoinRenderBackendBoundaryTest PROPERTIES TIMEOUT 30)
+
+	add_executable(CoinRenderRuntimeBoundaryTest coinrender/CoinRenderRuntimeBoundaryTest.cpp)
+	set_target_properties(CoinRenderRuntimeBoundaryTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinRenderRuntimeBoundaryTest CoinRender Coin)
+	target_include_directories(CoinRenderRuntimeBoundaryTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	add_test(NAME CoinRenderRuntimeBoundaryTest COMMAND CoinRenderRuntimeBoundaryTest)
+	set_tests_properties(CoinRenderRuntimeBoundaryTest PROPERTIES TIMEOUT 30)
+
+	add_executable(CoinRenderPlanAssemblyCoreTest coinrender/CoinRenderPlanAssemblyCoreTest.cpp)
+	set_target_properties(CoinRenderPlanAssemblyCoreTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinRenderPlanAssemblyCoreTest CoinRender Coin)
+	target_include_directories(CoinRenderPlanAssemblyCoreTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	add_test(NAME CoinRenderPlanAssemblyCoreTest COMMAND CoinRenderPlanAssemblyCoreTest)
+	set_tests_properties(CoinRenderPlanAssemblyCoreTest PROPERTIES TIMEOUT 30)
+
+	add_executable(CoinRenderTransformCoreTest coinrender/CoinRenderTransformCoreTest.cpp)
+	set_target_properties(CoinRenderTransformCoreTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinRenderTransformCoreTest Coin)
+	target_include_directories(CoinRenderTransformCoreTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	add_test(NAME CoinRenderTransformCoreTest COMMAND CoinRenderTransformCoreTest)
+	set_tests_properties(CoinRenderTransformCoreTest PROPERTIES TIMEOUT 30)
+
+	add_executable(CoinRenderCameraReuseReferenceTest coinrender/CoinRenderCameraReuseReferenceTest.cpp)
+	set_target_properties(CoinRenderCameraReuseReferenceTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinRenderCameraReuseReferenceTest CoinRender Coin)
+	target_include_directories(CoinRenderCameraReuseReferenceTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	add_test(NAME CoinRenderCameraReuseReferenceTest COMMAND CoinRenderCameraReuseReferenceTest)
+	set_tests_properties(CoinRenderCameraReuseReferenceTest PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77)
+
 	add_executable(CoinRenderSelectionTest coinrender/CoinRenderSelectionTest.cpp)
 	set_target_properties(CoinRenderSelectionTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 	target_link_libraries(CoinRenderSelectionTest CoinRender Coin)
@@ -210,7 +261,7 @@ if(COIN_BUILD_RENDER)
 	add_test(NAME CoinRenderSelectionTest COMMAND CoinRenderSelectionTest)
 	set_tests_properties(CoinRenderSelectionTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77)
 	if(COIN_RENDER_BACKEND STREQUAL "BGFX")
-		foreach(renderer vulkan opengl)
+		foreach(renderer ${_coin_bgfx_test_renderers})
 			add_test(NAME CoinRenderSelection_${renderer} COMMAND CoinRenderSelectionTest)
 			set_tests_properties(CoinRenderSelection_${renderer} PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77
 				ENVIRONMENT "COIN_BGFX_RENDERER=${renderer};COIN_BGFX_TRANSPARENCY=auto")
@@ -300,7 +351,7 @@ if(COIN_BUILD_RENDER)
 	set_target_properties(CoinBgfxReadbackModesTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 	target_link_libraries(CoinBgfxReadbackModesTest CoinRender Coin)
 	target_include_directories(CoinBgfxReadbackModesTest PRIVATE ${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
-	foreach(renderer vulkan opengl)
+	foreach(renderer ${_coin_bgfx_test_renderers})
 		add_test(NAME CoinBgfxReadbackModes_${renderer} COMMAND ${CMAKE_COMMAND} -E env COIN_BGFX_RENDERER=${renderer} COIN_BGFX_TRANSPARENCY=auto $<TARGET_FILE:CoinBgfxReadbackModesTest>)
 		set_tests_properties(CoinBgfxReadbackModes_${renderer} PROPERTIES TIMEOUT 90)
 	endforeach()
@@ -308,7 +359,7 @@ if(COIN_BUILD_RENDER)
 	set_target_properties(CoinBgfxSurfaceFeaturesTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 	target_link_libraries(CoinBgfxSurfaceFeaturesTest CoinRender Coin)
 	target_include_directories(CoinBgfxSurfaceFeaturesTest PRIVATE ${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
-	foreach(renderer vulkan opengl)
+	foreach(renderer ${_coin_bgfx_test_renderers})
 		foreach(mode object weighted_oit sorted_layers)
 			add_test(NAME CoinBgfxSurface_${renderer}_${mode} COMMAND ${CMAKE_COMMAND} -E env COIN_BGFX_RENDERER=${renderer} COIN_BGFX_TRANSPARENCY=${mode} $<TARGET_FILE:CoinBgfxSurfaceFeaturesTest>)
 			set_tests_properties(CoinBgfxSurface_${renderer}_${mode} PROPERTIES TIMEOUT 90)
@@ -328,6 +379,14 @@ if(COIN_BUILD_RENDER)
 		${COIN_TARGET_INCLUDE_DIRECTORIES}
 	)
 	add_test(NAME CoinBgfxCoreTest COMMAND CoinBgfxCoreTest)
+	add_executable(CoinBgfxProgramSelectionTest coinbgfx/CoinBgfxProgramSelectionTest.cpp)
+	set_target_properties(CoinBgfxProgramSelectionTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinBgfxProgramSelectionTest CoinRender Coin)
+	target_include_directories(CoinBgfxProgramSelectionTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include
+		${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src)
+	add_test(NAME CoinBgfxProgramSelectionTest COMMAND CoinBgfxProgramSelectionTest)
+	set_tests_properties(CoinBgfxProgramSelectionTest PROPERTIES TIMEOUT 30)
 	add_executable(CoinRenderDepthContractTest coinrender/CoinRenderDepthContractTest.cpp
 		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxLowering.cpp
 		${PROJECT_SOURCE_DIR}/src/rendering/coinrender/CoinRenderFramePlanBuilder.cpp)
@@ -364,6 +423,20 @@ if(COIN_BUILD_RENDER)
 		set_tests_properties(CoinBgfxOffscreenTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77)
 		add_test(NAME CoinBgfxOpenGLTest COMMAND CoinBgfxOffscreenTest)
 		set_tests_properties(CoinBgfxOpenGLTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77
+			ENVIRONMENT "COIN_BGFX_RENDERER=opengl")
+		add_executable(CoinBgfxInstancingTest coinbgfx/CoinBgfxInstancingTest.cpp
+			${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxLowering.cpp)
+		set_target_properties(CoinBgfxInstancingTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+		target_link_libraries(CoinBgfxInstancingTest CoinRender Coin)
+		target_include_directories(CoinBgfxInstancingTest PRIVATE
+			${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include
+			${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src
+			${COIN_TARGET_INCLUDE_DIRECTORIES})
+		add_test(NAME CoinBgfxInstancingTest COMMAND CoinBgfxInstancingTest)
+		set_tests_properties(CoinBgfxInstancingTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77
+			ENVIRONMENT "COIN_BGFX_RENDERER=vulkan")
+		add_test(NAME CoinBgfxInstancingOpenGLTest COMMAND CoinBgfxInstancingTest)
+		set_tests_properties(CoinBgfxInstancingOpenGLTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77
 			ENVIRONMENT "COIN_BGFX_RENDERER=opengl")
 		add_test(NAME CoinRenderBackendContractOpenGLTest COMMAND CoinRenderBackendContractTest)
 		set_tests_properties(CoinRenderBackendContractOpenGLTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77
@@ -437,7 +510,7 @@ if(COIN_BUILD_RENDER)
 			set_tests_properties(CoinBgfxMultiWindowOffscreenFirstOpenGLTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77
 				ENVIRONMENT "COIN_BGFX_TEST_OFFSCREEN_FIRST=1;COIN_BGFX_RENDERER=opengl")
 			foreach(_composition weighted_oit sorted_layers)
-				foreach(_renderer vulkan opengl)
+				foreach(_renderer ${_coin_bgfx_test_renderers})
 					set(_multi_composition_test "CoinBgfxMultiWindow_${_composition}_${_renderer}Test")
 					add_test(NAME ${_multi_composition_test} COMMAND CoinBgfxMultiWindowTest)
 					set_tests_properties(${_multi_composition_test} PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77
@@ -574,6 +647,18 @@ if(COIN_BUILD_RENDER)
 	add_test(NAME CoinRenderStabilizationTest COMMAND CoinRenderStabilizationTest)
 	set_tests_properties(CoinRenderStabilizationTest PROPERTIES TIMEOUT 30)
 
+	# Deterministic benchmark workloads, including isolation of shared scene nodes.
+	add_executable(CoinRenderBenchmarkAnimationTest
+		coinrender/CoinRenderBenchmarkAnimationTest.cpp)
+	target_link_libraries(CoinRenderBenchmarkAnimationTest Coin)
+	target_include_directories(CoinRenderBenchmarkAnimationTest PRIVATE
+		${PROJECT_SOURCE_DIR}/examples/coinrender
+		${PROJECT_SOURCE_DIR}/include
+		${PROJECT_BINARY_DIR}/include
+		${COIN_TARGET_INCLUDE_DIRECTORIES})
+	add_test(NAME CoinRenderBenchmarkAnimationTest COMMAND CoinRenderBenchmarkAnimationTest)
+	set_tests_properties(CoinRenderBenchmarkAnimationTest PROPERTIES TIMEOUT 30)
+
 	if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
 	add_executable(CoinRenderMaterialTest
 		coinrender/CoinRenderMaterialTest.cpp
@@ -644,7 +729,7 @@ if(COIN_BUILD_RENDER)
 	add_test(NAME CoinRenderGouraudInterpolationTest COMMAND CoinRenderGouraudInterpolationTest)
 	set_tests_properties(CoinRenderGouraudInterpolationTest PROPERTIES TIMEOUT 30)
 	if(COIN_RENDER_BACKEND STREQUAL "BGFX")
-		foreach(_gouraud_renderer vulkan opengl)
+		foreach(_gouraud_renderer ${_coin_bgfx_test_renderers})
 			foreach(_gouraud_mode object weighted_oit sorted_layers)
 				add_test(NAME CoinRenderGouraud_${_gouraud_renderer}_${_gouraud_mode}
 					COMMAND CoinRenderGouraudInterpolationTest)
@@ -689,7 +774,7 @@ if(COIN_BUILD_RENDER)
 	set_tests_properties(CoinRenderClipPlaneTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77)
 	if(COIN_RENDER_BACKEND STREQUAL "BGFX")
 		set_tests_properties(CoinRenderClipPlaneTest PROPERTIES ENVIRONMENT "COIN_BGFX_RENDERER=vulkan;COIN_BGFX_TRANSPARENCY=object")
-		foreach(renderer vulkan opengl)
+		foreach(renderer ${_coin_bgfx_test_renderers})
 			foreach(mode object weighted_oit sorted_layers)
 				add_test(NAME CoinRenderClipPlane_${renderer}_${mode} COMMAND CoinRenderClipPlaneTest)
 				set_tests_properties(CoinRenderClipPlane_${renderer}_${mode} PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77
@@ -713,15 +798,24 @@ if(COIN_BUILD_RENDER)
 		${COIN_TARGET_INCLUDE_DIRECTORIES}
 	)
 	add_test(NAME CoinRenderDrawStyleTest COMMAND CoinRenderDrawStyleTest)
-	set_tests_properties(CoinRenderDrawStyleTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77)
+	set(_coin_draw_style_timeout 60)
+	if(WIN32)
+		# The full CPU/GPU stipple matrix performs over 15,000 captures.
+		# Windows wgpu/OpenGL can exceed 120s on the first run; a repeat
+		# with mandatory GL references took 104s on GTX 1060. Keep the full
+		# matrix and allow startup/scheduling variation within a finite limit.
+		set(_coin_draw_style_timeout 240)
+	endif()
+	set_tests_properties(CoinRenderDrawStyleTest PROPERTIES TIMEOUT ${_coin_draw_style_timeout} SKIP_RETURN_CODE 77)
 	if(COIN_RENDER_BACKEND STREQUAL "BGFX")
 		set_tests_properties(CoinRenderDrawStyleTest PROPERTIES ENVIRONMENT "COIN_BGFX_RENDERER=vulkan;COIN_BGFX_TRANSPARENCY=object")
-		foreach(renderer vulkan opengl)
+		foreach(renderer ${_coin_bgfx_test_renderers})
 			add_test(NAME CoinRenderDrawStyle_${renderer} COMMAND CoinRenderDrawStyleTest)
-			set_tests_properties(CoinRenderDrawStyle_${renderer} PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77
+			set_tests_properties(CoinRenderDrawStyle_${renderer} PROPERTIES TIMEOUT ${_coin_draw_style_timeout} SKIP_RETURN_CODE 77
 				ENVIRONMENT "COIN_BGFX_RENDERER=${renderer};COIN_BGFX_TRANSPARENCY=object")
 		endforeach()
 	endif()
+	unset(_coin_draw_style_timeout)
 
 
 	add_executable(CoinRenderMultitextureTest coinrender/CoinRenderMultitextureTest.cpp)
@@ -733,7 +827,7 @@ if(COIN_BUILD_RENDER)
 	add_test(NAME CoinRenderMultitextureTest COMMAND CoinRenderMultitextureTest)
 	set_tests_properties(CoinRenderMultitextureTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77)
 	if(COIN_RENDER_BACKEND STREQUAL "BGFX")
-		foreach(renderer vulkan opengl)
+		foreach(renderer ${_coin_bgfx_test_renderers})
 			add_test(NAME CoinRenderMultitexture_${renderer} COMMAND CoinRenderMultitextureTest)
 			set_tests_properties(CoinRenderMultitexture_${renderer} PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77
 				ENVIRONMENT "COIN_BGFX_RENDERER=${renderer};COIN_BGFX_TRANSPARENCY=object")
@@ -749,7 +843,7 @@ if(COIN_BUILD_RENDER)
 	add_test(NAME CoinRenderPeelingTest COMMAND CoinRenderPeelingTest)
 	set_tests_properties(CoinRenderPeelingTest PROPERTIES TIMEOUT 90 SKIP_RETURN_CODE 77)
 	if(COIN_RENDER_BACKEND STREQUAL "BGFX")
-		foreach(renderer vulkan opengl)
+		foreach(renderer ${_coin_bgfx_test_renderers})
 			add_test(NAME CoinRenderPeeling_${renderer} COMMAND CoinRenderPeelingTest)
 			add_test(NAME CoinRenderOit_${renderer} COMMAND CoinRenderPeelingTest --weighted)
 			set_tests_properties(CoinRenderOit_${renderer} PROPERTIES TIMEOUT 90 SKIP_RETURN_CODE 77
@@ -778,7 +872,7 @@ if(COIN_BUILD_RENDER)
 		set_tests_properties(CoinRenderTransparencyTest PROPERTIES TIMEOUT 180)
 	endif()
 	if(COIN_RENDER_BACKEND STREQUAL "BGFX")
-		foreach(renderer vulkan opengl)
+		foreach(renderer ${_coin_bgfx_test_renderers})
 			add_test(NAME CoinRenderTransparency_${renderer} COMMAND CoinRenderTransparencyTest)
 			set_tests_properties(CoinRenderTransparency_${renderer} PROPERTIES TIMEOUT 90 SKIP_RETURN_CODE 77
 				ENVIRONMENT "COIN_BGFX_RENDERER=${renderer};COIN_BGFX_TRANSPARENCY=auto")
@@ -821,6 +915,115 @@ if(COIN_BUILD_RENDER)
 		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
 	add_test(NAME CoinRenderNodeInventoryTest COMMAND CoinRenderNodeInventoryTest)
 	set_tests_properties(CoinRenderNodeInventoryTest PROPERTIES TIMEOUT 30)
+	add_executable(CoinRenderScreenContentTest coinrender/CoinRenderScreenContentTest.cpp)
+	set_target_properties(CoinRenderScreenContentTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinRenderScreenContentTest CoinRender Coin)
+	target_include_directories(CoinRenderScreenContentTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	add_test(NAME CoinRenderScreenContentCaptureTest COMMAND CoinRenderScreenContentTest --capture)
+	set_tests_properties(CoinRenderScreenContentCaptureTest PROPERTIES TIMEOUT 60)
+	if(COIN_BUILD_LEGACY_GL_RENDERER)
+		if(COIN_RENDER_BACKEND STREQUAL "BGFX")
+			foreach(renderer ${_coin_bgfx_test_renderers})
+				add_test(NAME CoinRenderScreenContent_${renderer} COMMAND CoinRenderScreenContentTest --gpu)
+				set_tests_properties(CoinRenderScreenContent_${renderer} PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu
+					ENVIRONMENT "COIN_BGFX_RENDERER=${renderer};COIN_BGFX_TRANSPARENCY=object")
+			endforeach()
+		elseif(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
+			add_test(NAME CoinRenderScreenContentGpuTest COMMAND CoinRenderScreenContentTest --gpu)
+			set_tests_properties(CoinRenderScreenContentGpuTest PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+		endif()
+	endif()
+	add_executable(CoinRenderFragmentPolicyTest coinrender/CoinRenderFragmentPolicyTest.cpp)
+	set_target_properties(CoinRenderFragmentPolicyTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinRenderFragmentPolicyTest CoinRender Coin)
+	target_include_directories(CoinRenderFragmentPolicyTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	add_test(NAME CoinRenderFragmentPolicyCaptureTest COMMAND CoinRenderFragmentPolicyTest --capture)
+	set_tests_properties(CoinRenderFragmentPolicyCaptureTest PROPERTIES TIMEOUT 60)
+	add_test(NAME CoinRenderDepthDisabledCaptureTest COMMAND CoinRenderFragmentPolicyTest --capture --depth-only)
+	set_tests_properties(CoinRenderDepthDisabledCaptureTest PROPERTIES TIMEOUT 60)
+	if(COIN_BUILD_LEGACY_GL_RENDERER)
+		if(COIN_RENDER_BACKEND STREQUAL "BGFX")
+			foreach(renderer ${_coin_bgfx_test_renderers})
+				add_test(NAME CoinRenderFragmentPolicy_${renderer} COMMAND CoinRenderFragmentPolicyTest --gpu)
+				set_tests_properties(CoinRenderFragmentPolicy_${renderer} PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu
+					ENVIRONMENT "COIN_BGFX_RENDERER=${renderer};COIN_BGFX_TRANSPARENCY=object")
+				add_test(NAME CoinRenderDepthDisabled_${renderer} COMMAND CoinRenderFragmentPolicyTest --gpu --depth-only)
+				set_tests_properties(CoinRenderDepthDisabled_${renderer} PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu
+					ENVIRONMENT "COIN_BGFX_RENDERER=${renderer};COIN_BGFX_TRANSPARENCY=object")
+			endforeach()
+		elseif(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
+			add_test(NAME CoinRenderFragmentPolicyGpuTest COMMAND CoinRenderFragmentPolicyTest --gpu)
+			set_tests_properties(CoinRenderFragmentPolicyGpuTest PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+			add_test(NAME CoinRenderDepthDisabledGpuTest COMMAND CoinRenderFragmentPolicyTest --gpu --depth-only)
+			set_tests_properties(CoinRenderDepthDisabledGpuTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+		endif()
+	endif()
+	add_executable(CoinRenderProjectiveUvTest coinrender/CoinRenderProjectiveUvTest.cpp)
+	set_target_properties(CoinRenderProjectiveUvTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinRenderProjectiveUvTest CoinRender Coin)
+	target_include_directories(CoinRenderProjectiveUvTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	add_test(NAME CoinRenderProjectiveUvCaptureTest COMMAND CoinRenderProjectiveUvTest --capture)
+	set_tests_properties(CoinRenderProjectiveUvCaptureTest PROPERTIES TIMEOUT 60)
+	if(COIN_BUILD_LEGACY_GL_RENDERER)
+		target_link_libraries(CoinRenderProjectiveUvTest ${COIN_TARGET_LINK_LIBRARIES_GL})
+		if(COIN_RENDER_BACKEND STREQUAL "BGFX")
+			foreach(renderer ${_coin_bgfx_test_renderers})
+				add_test(NAME CoinRenderProjectiveUv_${renderer} COMMAND CoinRenderProjectiveUvTest --gpu)
+				set_tests_properties(CoinRenderProjectiveUv_${renderer} PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu
+					ENVIRONMENT "COIN_BGFX_RENDERER=${renderer};COIN_BGFX_TRANSPARENCY=object")
+			endforeach()
+		elseif(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
+			add_test(NAME CoinRenderProjectiveUvGpuTest COMMAND CoinRenderProjectiveUvTest --gpu)
+			set_tests_properties(CoinRenderProjectiveUvGpuTest PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+		endif()
+	endif()
+	add_executable(CoinRenderBoundingBoxTest coinrender/CoinRenderBoundingBoxTest.cpp)
+	set_target_properties(CoinRenderBoundingBoxTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinRenderBoundingBoxTest CoinRender Coin)
+	target_include_directories(CoinRenderBoundingBoxTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	add_test(NAME CoinRenderBoundingBoxCaptureTest COMMAND CoinRenderBoundingBoxTest --capture)
+	set_tests_properties(CoinRenderBoundingBoxCaptureTest PROPERTIES TIMEOUT 60)
+	if(COIN_BUILD_LEGACY_GL_RENDERER)
+		target_link_libraries(CoinRenderBoundingBoxTest ${COIN_TARGET_LINK_LIBRARIES_GL})
+		if(COIN_RENDER_BACKEND STREQUAL "BGFX")
+			foreach(renderer ${_coin_bgfx_test_renderers})
+				add_test(NAME CoinRenderBoundingBox_${renderer} COMMAND CoinRenderBoundingBoxTest --gpu)
+				set_tests_properties(CoinRenderBoundingBox_${renderer} PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu
+					ENVIRONMENT "COIN_BGFX_RENDERER=${renderer};COIN_BGFX_TRANSPARENCY=object")
+			endforeach()
+		elseif(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
+			add_test(NAME CoinRenderBoundingBoxGpuTest COMMAND CoinRenderBoundingBoxTest --gpu)
+			set_tests_properties(CoinRenderBoundingBoxGpuTest PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+		endif()
+	endif()
+	add_executable(CoinRenderMarkerSetTest coinrender/CoinRenderMarkerSetTest.cpp)
+	set_target_properties(CoinRenderMarkerSetTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinRenderMarkerSetTest CoinRender Coin)
+	target_include_directories(CoinRenderMarkerSetTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	add_test(NAME CoinRenderMarkerSetCaptureTest COMMAND CoinRenderMarkerSetTest --capture)
+	set_tests_properties(CoinRenderMarkerSetCaptureTest PROPERTIES TIMEOUT 60)
+	if(COIN_BUILD_LEGACY_GL_RENDERER)
+		if(COIN_RENDER_BACKEND STREQUAL "BGFX")
+			foreach(renderer ${_coin_bgfx_test_renderers})
+				add_test(NAME CoinRenderMarkerSet_${renderer} COMMAND CoinRenderMarkerSetTest --gpu)
+				set_tests_properties(CoinRenderMarkerSet_${renderer} PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu
+					ENVIRONMENT "COIN_BGFX_RENDERER=${renderer};COIN_BGFX_TRANSPARENCY=object")
+			endforeach()
+		elseif(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
+			add_test(NAME CoinRenderMarkerSetGpuTest COMMAND CoinRenderMarkerSetTest --gpu)
+			set_tests_properties(CoinRenderMarkerSetGpuTest PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+		endif()
+	endif()
 	if(COIN_BUILD_LEGACY_GL_RENDERER)
 		add_executable(CoinRenderShadowReferenceTest coinrender/CoinRenderShadowReferenceTest.cpp)
 		set_target_properties(CoinRenderShadowReferenceTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
@@ -903,7 +1106,7 @@ if(COIN_BUILD_RENDER)
 	add_test(NAME CoinRenderRttOwnershipTest COMMAND CoinRenderRttOwnershipTest)
 	set_tests_properties(CoinRenderRttOwnershipTest PROPERTIES TIMEOUT 30)
 	if(COIN_RENDER_BACKEND STREQUAL "BGFX")
-		foreach(renderer vulkan opengl)
+		foreach(renderer ${_coin_bgfx_test_renderers})
 			add_test(NAME CoinRenderRttOwnership_${renderer} COMMAND CoinRenderRttOwnershipTest)
 			set_tests_properties(CoinRenderRttOwnership_${renderer} PROPERTIES TIMEOUT 30
 				ENVIRONMENT "COIN_BGFX_RENDERER=${renderer};COIN_BGFX_TRANSPARENCY=auto")
@@ -940,7 +1143,7 @@ if(COIN_BUILD_RENDER)
 	set_tests_properties(CoinRenderSceneTextureBudgetTest PROPERTIES TIMEOUT 240)
 
 	if(COIN_RENDER_BACKEND STREQUAL "BGFX")
-		foreach(renderer vulkan opengl)
+		foreach(renderer ${_coin_bgfx_test_renderers})
 			foreach(mode staged direct)
 				if(mode STREQUAL "direct")
 					set(_rtt_direct 1)
@@ -972,7 +1175,7 @@ if(COIN_BUILD_RENDER)
 			${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp
 		)
 		set_target_properties(CoinWgpuFfiFrameTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
-		target_link_libraries(CoinWgpuFfiFrameTest Coin)
+		target_link_libraries(CoinWgpuFfiFrameTest CoinRender Coin)
 		target_include_directories(CoinWgpuFfiFrameTest PRIVATE
 			${PROJECT_SOURCE_DIR}/experimental/include
 			${PROJECT_SOURCE_DIR}/include
@@ -983,6 +1186,18 @@ if(COIN_BUILD_RENDER)
 		)
 		add_test(NAME CoinWgpuFfiFrameTest COMMAND CoinWgpuFfiFrameTest)
 		set_tests_properties(CoinWgpuFfiFrameTest PROPERTIES TIMEOUT 30)
+
+		add_executable(CoinWgpuLargeBindingsTest
+			coinwgpu/CoinWgpuLargeBindingsTest.cpp
+			${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp)
+		set_target_properties(CoinWgpuLargeBindingsTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+		target_link_libraries(CoinWgpuLargeBindingsTest CoinRender Coin)
+		target_include_directories(CoinWgpuLargeBindingsTest PRIVATE
+			${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include
+			${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/include
+			${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+		add_test(NAME CoinWgpuLargeBindingsTest COMMAND CoinWgpuLargeBindingsTest)
+		set_tests_properties(CoinWgpuLargeBindingsTest PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77)
 
 		# Measurement utility only: no timing threshold is stable enough for CTest.
 		add_executable(CoinRenderFrameReuseBenchmark
@@ -1029,7 +1244,10 @@ if(COIN_BUILD_RENDER)
 		add_test(NAME CoinRenderAsyncReadbackTest COMMAND CoinRenderAsyncReadbackTest)
 		set_tests_properties(CoinRenderAsyncReadbackTest PROPERTIES TIMEOUT 30)
 
-		add_executable(CoinWgpuMultiDeviceTest coinwgpu/CoinWgpuMultiDeviceTest.cpp)
+		add_executable(CoinWgpuMultiDeviceTest
+			coinwgpu/CoinWgpuMultiDeviceTest.cpp
+			${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp
+		)
 		set_target_properties(CoinWgpuMultiDeviceTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 		target_link_libraries(CoinWgpuMultiDeviceTest CoinRender Coin)
 		target_include_directories(CoinWgpuMultiDeviceTest PRIVATE
@@ -1075,7 +1293,7 @@ if(COIN_BUILD_RENDER)
 			message(FATAL_ERROR "COIN_TEST_RENDER_GL_REFERENCE requires xvfb-run")
 		endif()
 		if(COIN_RENDER_BACKEND STREQUAL "BGFX")
-			foreach(renderer vulkan opengl)
+			foreach(renderer ${_coin_bgfx_test_renderers})
 				add_test(NAME CoinBgfxReadbackModes_${renderer}_GlReference
 					COMMAND ${CMAKE_COMMAND} -E env COIN_BGFX_RENDERER=${renderer} COIN_BGFX_TRANSPARENCY=auto
 					COIN_BGFX_COMPARE_GL=1 COIN_GLX_PIXMAP_DIRECT_RENDERING=1 COIN_GLXGLUE_NO_PBUFFERS=1
@@ -1127,6 +1345,8 @@ if(COIN_BUILD_RENDER)
 		if(COIN_TEST_RENDER_STRICT_DISPLAY)
 			add_test(NAME CoinRenderSurfaceDisplayStrictTest COMMAND CoinRenderSurfaceTest --require-display)
 			set_tests_properties(CoinRenderSurfaceDisplayStrictTest PROPERTIES TIMEOUT 30)
+			add_test(NAME CoinRenderSurfaceCameraReuseStrictTest COMMAND CoinRenderSurfaceTest --camera-only --require-display)
+			set_tests_properties(CoinRenderSurfaceCameraReuseStrictTest PROPERTIES TIMEOUT 30)
 		endif()
 	endif()
 endif()

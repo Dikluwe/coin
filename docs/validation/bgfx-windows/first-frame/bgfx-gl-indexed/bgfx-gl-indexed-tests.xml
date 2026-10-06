@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="50"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="224"
+	timestamp="2026-10-03T10:59:57"
+	>
+	<testcase name="CoinRenderActionTest" classname="CoinRenderActionTest" time="0.973799" status="run">
+		<properties/>
+		<system-out>Running CoinRenderActionTest...
+All CoinRenderRenderAction tests PASSED!
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSelection_opengl" classname="CoinRenderSelection_opengl" time="3.62441" status="run">
+		<properties/>
+		<system-out>P11 typed selection and capability matrix passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderFrameCoreTest" classname="CoinRenderFrameCoreTest" time="0.156231" status="run">
+		<properties/>
+		<system-out>CoinRenderFrameCoreTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxReadbackModes_opengl" classname="CoinBgfxReadbackModes_opengl" time="1.8522" status="run">
+		<properties/>
+		<system-out>Coin transparency modes, GPU depth, async lifetime and public action passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxSurface_opengl_object" classname="CoinBgfxSurface_opengl_object" time="9.5805" status="run">
+		<properties/>
+		<system-out>CoinBgfxSurfaceFeaturesTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxSurface_opengl_weighted_oit" classname="CoinBgfxSurface_opengl_weighted_oit" time="9.73239" status="run">
+		<properties/>
+		<system-out>CoinBgfxSurfaceFeaturesTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxSurface_opengl_sorted_layers" classname="CoinBgfxSurface_opengl_sorted_layers" time="10.608" status="run">
+		<properties/>
+		<system-out>CoinBgfxSurfaceFeaturesTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxCoreTest" classname="CoinBgfxCoreTest" time="0.217324" status="run">
+		<properties/>
+		<system-out>CoinBgfxCoreTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderDepthContractOpenGLTest" classname="CoinRenderDepthContractOpenGLTest" time="0.635634" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderProductOpenGLTest" classname="CoinRenderProductOpenGLTest" time="1.34797" status="run">
+		<properties/>
+		<system-out>COIN_WGPU_CAPABILITIES backend=3 probe_status=1 renderer=2 vendor_id=0x10de device_id=0x0000 max_framebuffer_attachments=8 runtime_features=0xf rgba8=0x1f d24s8=0x7 d32f=0x7 rgba16f=0x1f r16f=0x1f adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) diagnostic=BGFX OpenGL probe succeeded; MRT=1 (max attachments=8), independent blend=1, compute=1, timestamps=1; framebuffer formats RGBA8=0x1f D24S8=0x7 D32F=0x7 RGBA16F=0x1f R16F=0x1f
+CoinRenderProductTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxOpenGLTest" classname="CoinBgfxOpenGLTest" time="1.84788" status="run">
+		<properties/>
+		<system-out>CoinBgfxOffscreenTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderBackendContractOpenGLTest" classname="CoinRenderBackendContractOpenGLTest" time="0.769941" status="run">
+		<properties/>
+		<system-out>Shared offscreen rendering contract passed for backend 3
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxTransparencyOpenGLTest" classname="CoinBgfxTransparencyOpenGLTest" time="2.02799" status="run">
+		<properties/>
+		<system-out>layered: BGFX left=(127,64,64) right=(127,64,64) Coin/GL left=(128,64,63) right=(128,64,63) different_pixels=0
+crossing: BGFX left=(64,127,64) right=(64,127,64) Coin/GL left=(64,128,63) right=(64,128,63) different_pixels=0 Coin/GL layers-or-fallback left=(128,64,63) right=(64,128,63) different_pixels=5508
+occluded: BGFX left=(0,0,255) right=(0,0,255) Coin/GL left=(0,0,255) right=(0,0,255) different_pixels=0
+weighted stress: 32 crossing lit layers, max order delta=0, outside max=0
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxSortedLayersOpenGLTest" classname="CoinBgfxSortedLayersOpenGLTest" time="1.50882" status="run">
+		<properties/>
+		<system-out>layered: BGFX left=(127,64,64) right=(127,64,64) Coin/GL left=(128,64,63) right=(128,64,63) different_pixels=0
+crossing: BGFX left=(127,64,64) right=(64,127,64) Coin/GL left=(64,128,63) right=(64,128,63) different_pixels=5202 Coin/GL layers-or-fallback left=(128,64,63) right=(64,128,63) different_pixels=612
+occluded: BGFX left=(0,0,255) right=(0,0,255) Coin/GL left=(0,0,255) right=(0,0,255) different_pixels=0
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxWeightedOitOpenGLTest" classname="CoinBgfxWeightedOitOpenGLTest" time="3.63559" status="run">
+		<properties/>
+		<system-out>layered: BGFX left=(109,82,64) right=(109,82,64) Coin/GL left=(128,64,63) right=(128,64,63) different_pixels=10404
+crossing: BGFX left=(109,82,64) right=(82,109,64) Coin/GL left=(64,128,63) right=(64,128,63) different_pixels=10404 Coin/GL layers-or-fallback left=(128,64,63) right=(64,128,63) different_pixels=10404
+occluded: BGFX left=(0,0,255) right=(0,0,255) Coin/GL left=(0,0,255) right=(0,0,255) different_pixels=0
+weighted stress: 32 crossing lit layers, max order delta=0, outside max=0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderFrameReuseCoreTest" classname="CoinRenderFrameReuseCoreTest" time="0.685031" status="run">
+		<properties/>
+		<system-out>CoinRenderFrameReuseCoreTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderIndexedGeometryCoreTest" classname="CoinRenderIndexedGeometryCoreTest" time="0.113817" status="run">
+		<properties/>
+		<system-out>CoinRenderIndexedGeometryCoreTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderIndexedFastPathTest" classname="CoinRenderIndexedFastPathTest" time="1.70188" status="run">
+		<properties/>
+		<system-out>Running CoinRenderIndexedFastPathTest (Onda 2D Indexed Fast Path)...
+-&gt; Test 1: Sentinel parser, triangles and convex quads...
+   [PASS] Test 1: Sentinel parser and convex quads
+-&gt; Test 2: Degenerate faces and consecutive sentinels...
+   [PASS] Test 2: Degenerate faces handled cleanly
+-&gt; Test 3: Atomic validation and rollback on invalid indices...
+   [PASS] Test 3: Atomic validation and rollback
+-&gt; Test 4: Concave quads diversion to fallback...
+   [PASS] Test 4: Concave quad fallback verified
+-&gt; Test 5: Canonical vertex deduplication...
+   [PASS] Test 5: Canonical vertex deduplication verified
+-&gt; Test 6: Indexed line sets (SoIndexedLineSet)...
+   [PASS] Test 6: IndexedLineSet fast path verified
+-&gt; Test 7: Strict pixel and depth equivalence (Fast Path vs Fallback)...
+   [PASS] Test 7: Strict pixel and depth equivalence verified
+-&gt; Test 8: Generated normals at hard and smooth edges...
+   [PASS] Test 8: Hard and smooth generated normals verified
+
+ALL 8 TESTS IN CoinRenderIndexedFastPathTest PASSED!
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderTextureTest" classname="CoinRenderTextureTest" time="4.37851" status="run">
+		<properties/>
+		<system-out>========================================================
+Running CoinRenderTextureTest (Subwave 3B: 2D Texture Pipeline)
+========================================================
+-&gt; Test 1: Texture formats (1, 2, 3, 4 components) with MODULATE...
+-&gt; Test 2: MODULATE model color verification...
+-&gt; Test 3: Strict UNSUPPORTED rejections outside the texture profile...
+Coin error in SbImage::readFile(): couldn't find 'non_existent_file_dummy_test_123.png'.
+Coin warning in SoTexture2::filenameSensorCB(): Image file 'non_existent_file_dummy_test_123.png' could not be read
+-&gt; Test 4: UV coordinates (explicit vs procedural vs out-of-bounds)...
+-&gt; Test 5: Texture transformation and wrap modes...
+-&gt; Test 6: Multiple draws with different textures in same frame...
+-&gt; Test 7: Texture image deduplication with different samplers...
+-&gt; Test 8: Texture quality 0.0 disables texture smoothly...
+
+ALL CoinRenderTextureTest checks PASSED successfully!
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderLightingTest" classname="CoinRenderLightingTest" time="13.3101" status="run">
+		<properties/>
+		<system-out>Coin/GL reference active; directional CPU=71 GL=71; two lights CPU=142 GL=143
+Gouraud oracle PASS: curved normals: specular before interpolation
+Gouraud oracle PASS: broad point-light face: vertex distance
+Gouraud oracle PASS: spot cone misses vertices: no fragment relighting
+Gouraud oracle PASS: spot drop-off: vertex cone factor
+Gouraud oracle PASS: negative N.H: no artificial specular floor
+Curved sphere Gouraud PASS: light=0
+Curved sphere Gouraud PASS: light=1
+Curved sphere Gouraud PASS: light=2
+Ambient CPU=[25,51,12] GL=[25,51,13]
+Point constant CPU=133 GL=133; linear CPU=54 GL=54
+Spot inside CPU=161 GL=162; outside CPU=0 GL=0
+Spot dropoff hard CPU=162 GL=162; soft CPU=84 GL=84
+Nonuniform normal CPU=69 GL=69
+CoinRenderLightingTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGouraudInterpolationTest" classname="CoinRenderGouraudInterpolationTest" time="1.04525" status="run">
+		<properties/>
+		<system-out>CoinRenderGouraudInterpolationTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGouraud_opengl_object" classname="CoinRenderGouraud_opengl_object" time="0.95599" status="run">
+		<properties/>
+		<system-out>CoinRenderGouraudInterpolationTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGouraud_opengl_weighted_oit" classname="CoinRenderGouraud_opengl_weighted_oit" time="0.99197" status="run">
+		<properties/>
+		<system-out>CoinRenderGouraudInterpolationTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGouraud_opengl_sorted_layers" classname="CoinRenderGouraud_opengl_sorted_layers" time="1.13706" status="run">
+		<properties/>
+		<system-out>CoinRenderGouraudInterpolationTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderFogTest" classname="CoinRenderFogTest" time="9.86789" status="run">
+		<properties/>
+		<system-out>CoinRenderFogTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderClipPlaneTest" classname="CoinRenderClipPlaneTest" time="2.02134" status="run">
+		<properties/>
+		<system-out>Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderClipPlane_opengl_object" classname="CoinRenderClipPlane_opengl_object" time="1.11124" status="run">
+		<properties/>
+		<system-out>Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderClipPlane_opengl_weighted_oit" classname="CoinRenderClipPlane_opengl_weighted_oit" time="1.11533" status="run">
+		<properties/>
+		<system-out>Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderClipPlane_opengl_sorted_layers" classname="CoinRenderClipPlane_opengl_sorted_layers" time="1.09701" status="run">
+		<properties/>
+		<system-out>Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderDrawStyleTest" classname="CoinRenderDrawStyleTest" time="23.5567" status="run">
+		<properties/>
+		<system-out>Coin/GL native stipple reference passed
+Coin/GL clip 0 edge 0 phase displacement -25
+Coin/GL clip 0 edge 1 phase displacement -25
+Coin/GL clip 0 edge 2 phase displacement -57
+Coin/GL clip 0 edge 3 phase displacement -25
+Coin/GL clip 1 edge 0 phase displacement -25
+Coin/GL clip 1 edge 1 phase displacement -19
+Coin/GL clip 1 edge 3 phase displacement -25
+Coin/GL clip 2 edge 0 phase displacement -25
+Coin/GL clip 2 edge 1 phase displacement -31
+Coin/GL clip 2 edge 2 phase displacement -83
+Coin/GL clip 3 edge 1 phase displacement -29
+Coin/GL clip 3 edge 2 phase displacement -77
+Coin/GL clip 3 edge 3 phase displacement -29
+Coin/GL clip 4 edge 0 phase displacement -57
+Coin/GL clip 4 edge 2 phase displacement -103
+Coin/GL clip 4 edge 3 phase displacement -57
+Coin/GL clip 5 edge 1 phase displacement -19
+Coin/GL clip 5 edge 3 phase displacement -19
+Coin/GL clip 6 edge 0 phase displacement -25
+Coin/GL clip 6 edge 1 phase displacement 0
+Coin/GL clip 6 edge 3 phase displacement -25
+Coin/GL clip 7 edge 0 phase displacement...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderDrawStyle_opengl" classname="CoinRenderDrawStyle_opengl" time="25.0003" status="run">
+		<properties/>
+		<system-out>Coin/GL native stipple reference passed
+Coin/GL clip 0 edge 0 phase displacement -25
+Coin/GL clip 0 edge 1 phase displacement -25
+Coin/GL clip 0 edge 2 phase displacement -57
+Coin/GL clip 0 edge 3 phase displacement -25
+Coin/GL clip 1 edge 0 phase displacement -25
+Coin/GL clip 1 edge 1 phase displacement -19
+Coin/GL clip 1 edge 3 phase displacement -25
+Coin/GL clip 2 edge 0 phase displacement -25
+Coin/GL clip 2 edge 1 phase displacement -31
+Coin/GL clip 2 edge 2 phase displacement -83
+Coin/GL clip 3 edge 1 phase displacement -29
+Coin/GL clip 3 edge 2 phase displacement -77
+Coin/GL clip 3 edge 3 phase displacement -29
+Coin/GL clip 4 edge 0 phase displacement -57
+Coin/GL clip 4 edge 2 phase displacement -103
+Coin/GL clip 4 edge 3 phase displacement -57
+Coin/GL clip 5 edge 1 phase displacement -19
+Coin/GL clip 5 edge 3 phase displacement -19
+Coin/GL clip 6 edge 0 phase displacement -25
+Coin/GL clip 6 edge 1 phase displacement 0
+Coin/GL clip 6 edge 3 phase displacement -25
+Coin/GL clip 7 edge 0 phase displacement...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMultitextureTest" classname="CoinRenderMultitextureTest" time="3.20688" status="run">
+		<properties/>
+		<system-out>P08 Coin GL reference passed (CPU=1)
+P08 Coin GL reference passed (CPU=0)
+P08 multitexture/combine and textured strokes passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMultitexture_opengl" classname="CoinRenderMultitexture_opengl" time="2.94167" status="run">
+		<properties/>
+		<system-out>P08 Coin GL reference passed (CPU=1)
+P08 Coin GL reference passed (CPU=0)
+P08 multitexture/combine and textured strokes passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderPeeling_opengl" classname="CoinRenderPeeling_opengl" time="2.47675" status="run">
+		<properties/>
+		<system-out>P10 bounded peeling CPU/GPU matrix passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderOit_opengl" classname="CoinRenderOit_opengl" time="0.967742" status="run">
+		<properties/>
+		<system-out>weighted-OIT numeric matrix passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderTransparencyTest" classname="CoinRenderTransparencyTest" time="4.81577" status="run">
+		<properties/>
+		<system-out>CPU transparency matrices
+P09 eleven-mode action matrix passed, CPU and GPU
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderTransparency_opengl" classname="CoinRenderTransparency_opengl" time="4.81068" status="run">
+		<properties/>
+		<system-out>CPU transparency matrices
+P09 eleven-mode action matrix passed, CPU and GPU
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderCompositionTest" classname="CoinRenderCompositionTest" time="5.49773" status="run">
+		<properties/>
+		<system-out>CoinRenderCompositionTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowReferenceTest" classname="CoinRenderShadowReferenceTest" time="52.495" status="run">
+		<properties/>
+		<system-out>smoothBorder Coin/GL/GPU unchanged=1
+low-quality spot Coin/GL/GPU delta=480/480
+clipped caster Coin/GL/GPU delta=531/531
+active/inactive sibling Coin/GL/GPU delta=486/474
+sibling groups Coin/GL/GPU delta=486/474
+distinct sibling VSM Coin/GL/GPU delta=138/165
+staged RTT distinct VSM Coin/GL/GPU delta=108/132
+direct RTT distinct VSM Coin/GL/GPU delta=108/132
+inherited directional with shadow group Coin/GL/GPU delta=152/152
+ordinary light inside active group GL/GPU unchanged=1
+inherited point with shadow group Coin/GL/GPU delta=594/594
+ordinary point inside active group GL/GPU unchanged=1
+opaque textured shadow receiver Coin/GL/GPU delta=485/485
+five lights textured receiver Coin/GL/GPU delta=81/81
+three lights Coin/GL/BGFX delta=666/666
+four lights Coin/GL/BGFX delta=228/228
+five lights Coin/GL/BGFX delta=291/291
+eight lights Coin/GL/BGFX delta=117/174
+eight lights staged RTT Coin/GL/BGFX delta=225/0
+BGFX eight-light staged RTT: BGFX targets must share the active renderer delta=0
+eight lights direct RTT Coin/GL...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowWiringTest" classname="CoinRenderShadowWiringTest" time="0.717016" status="run">
+		<properties/>
+		<system-out>shadow path sample GPU=126/126 GL=126/126
+shadow path ground_only=0 qualified=1
+partial shadow capture draws=3 passes=1 casters=1
+shadow path sample GPU=126/126 GL=126/126
+shadow path ground_only=1 qualified=1
+override stable texture=0 GPU=1 GL=1 qualified=1
+override removed texture=0 GPU=1 GL=1 status=0
+shadow override texture=0 qualified=1
+override stable texture=1 GPU=1 GL=1 qualified=1
+override removed texture=1 GPU=1 GL=1 status=0
+shadow override texture=1 qualified=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMultiTargetStagedOpenGLTest" classname="CoinRenderMultiTargetStagedOpenGLTest" time="0.992897" status="run">
+		<properties/>
+		<system-out>multi-target RTT, queues, resize, destruction and shared recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMultiTargetOpenGLTest" classname="CoinRenderMultiTargetOpenGLTest" time="0.947873" status="run">
+		<properties/>
+		<system-out>multi-target RTT, queues, resize, destruction and shared recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderPublicationTest" classname="CoinRenderPublicationTest" time="0.121278" status="run">
+		<properties/>
+		<system-out>CoinRenderPublicationTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttOwnershipTest" classname="CoinRenderRttOwnershipTest" time="0.672509" status="run">
+		<properties/>
+		<system-out>CoinRenderRttOwnershipTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttOwnership_opengl" classname="CoinRenderRttOwnership_opengl" time="0.59954" status="run">
+		<properties/>
+		<system-out>CoinRenderRttOwnershipTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureTest" classname="CoinRenderSceneTextureTest" time="1.5761" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTexture_opengl_staged" classname="CoinRenderSceneTexture_opengl_staged" time="1.50666" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureBudget_opengl_staged" classname="CoinRenderSceneTextureBudget_opengl_staged" time="1.41811" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureBudgetTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTexture_opengl_direct" classname="CoinRenderSceneTexture_opengl_direct" time="1.43737" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureBudget_opengl_direct" classname="CoinRenderSceneTextureBudget_opengl_direct" time="0.515777" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureBudgetTest passed
+</system-out>
+	</testcase>
+</testsuite>

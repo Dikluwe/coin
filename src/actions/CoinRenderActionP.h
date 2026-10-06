@@ -17,9 +17,15 @@
 #include <memory>
 #include <cstdint>
 #include <cstddef>
+#include <unordered_map>
+#include <unordered_set>
 
 class SoCamera;
 class SoShadowGroup;
+class SoSeparator;
+class SoCube;
+class SoSFVec3f;
+class SoMaterial;
 
 class COIN_RENDER_DLL_API CoinRenderActionP {
 public:
@@ -27,10 +33,27 @@ public:
   ~CoinRenderActionP();
 
   void initCallbacks();
+  static void shapeContentMethod(SoAction *, SoNode *);
+  bool captureBoundingBox(SoCallbackAction *, SoNode *);
+  void observeBoundingBox(SoCallbackAction *, SoNode *);
+  static void screenContentMethod(SoAction *, SoNode *);
+  static void markerContentMethod(SoAction *, SoNode *);
   void setDiagnostic(const CoinRenderActionDiagnostic & diagnostic);
   static void cameraSensorCB(void * data, SoSensor * sensor);
-  void rememberFrameRoot(SoNode * root);
+  void rememberFrameRoot(SoNode * root, bool qualifyCamera);
   bool prepareCameraOverlay(SoNode * root, CoinRenderCameraOverlayUndo & undo);
+  void beginTranslationCapture(bool enabled);
+  void beginTranslationShape(SoCallbackAction *, const SoNode *);
+  void endTranslationShape();
+  // capturedBasis is a successful proof lent only by the current
+  // rememberFrameRoot call, after the submitted plan has been installed.
+  void qualifyTranslationCapture(SoNode * root,
+                                 const CoinRenderCameraOverlayBasis * capturedBasis);
+  void clearTranslationProof();
+  bool prepareTranslationOverlay(SoNode *, CoinRenderObjectOverlayUndo &);
+  void qualifyObjectPayloads(const std::unordered_map<const SoNode *, size_t> & materialVisits);
+  void commitTranslationOverlay();
+  static SoCallbackAction::Response translationPreCB(void *, SoCallbackAction *, const SoNode *);
 
   template <typename F>
   void executeApply(F traversalFn, SoNode * cacheRoot = NULL);
@@ -70,7 +93,9 @@ public:
                                                      const SoNode * node);
 
   static SoCallbackAction::Response textureUnitsPreCB(void *, SoCallbackAction *, const SoNode *);
+  static SoCallbackAction::Response shapePostCB(void *, SoCallbackAction *, const SoNode *);
   static SoCallbackAction::Response textureCombinePreCB(void *, SoCallbackAction *, const SoNode *);
+  static void alphaTestMethod(SoAction *, SoNode *);
   static SoCallbackAction::Response unsupportedEffectPreCB(void *, SoCallbackAction *, const SoNode *);
 
   static SoCallbackAction::Response sceneTexturePreCB(void * userdata,
@@ -111,6 +136,7 @@ public:
   };
   std::vector<ShadowSceneCapture> shadowSceneCaptures;
   bool capturingShadowScene = false;
+  bool boundingBoxObservers = false;
   std::vector<int> shadowStyleBeforeGroups;
   std::vector<const SoShadowGroup *> activeShadowGroupNodes;
   // Owns staged scene-texture pixels for the entire parent traversal.
@@ -130,12 +156,56 @@ public:
   bool isApplying;
   bool hasReentrancyError;
   bool fastPathEnabled;
+  uint64_t captureCallbackRevision = 0;
   SoNode * cachedRoot = NULL;
   SbUniqueId cachedRootId = 0;
   SoNodeSensor cameraSensor;
+  SoCamera * candidateCamera = NULL;
   SoCamera * cachedCamera = NULL;
+  CoinRenderCameraOverlayBasis cameraOverlayBasis;
+  // Last outer apply only; count capture-time Core prepares, including failed
+  // attempts. Lazy prepareCameraOverlay work is deliberately excluded.
+  size_t captureCameraBasisCalls = 0;
+  size_t captureCameraBasisPrepares = 0;
+  size_t captureCameraBasisReuses = 0;
+  double captureCameraBasisPrepareMs = 0;
   bool cameraOnlyDirty = false;
   bool cameraPatchInvalidated = false;
+  bool cameraRecaptureRequired = false;
+  struct TranslationBinding {
+    SoNode * transform = NULL;
+    SoSeparator * parent = NULL;
+    const SoNode * cube = NULL;
+    SoSFVec3f * field = NULL;
+    SbVec3f originalPosition;
+    SbMatrix prefix, anchor;
+    size_t firstDraw = 0, endDraw = 0;
+    CoinRenderGeometryRange geometry;
+    uint32_t stateSlot = 0;
+    SoMaterial * material = NULL;
+    SbVec3f cubeDimensions;
+    bool overallMaterial = false;
+    bool materialEligible = false, geometryEligible = false;
+  };
+  // At most 65,536 objects. One draw and one exclusively owned state per
+  // object keep both proof and dirty-set storage bounded independently of GPU.
+  std::vector<TranslationBinding> translationBindings, translationCapture;
+  std::unordered_map<const SoNode *, size_t> translationByNode, translationCaptureByNode;
+  std::unordered_set<size_t> translationDirty;
+  std::unordered_map<const SoNode *, std::vector<size_t>> materialByNode, cubeByNode;
+  std::unordered_set<const SoNode *> materialDirty, geometryDirty;
+  std::vector<const SoNode *> capturedDrawSources;
+  const SoNode * pendingCaptureShape = NULL;
+  size_t firstCaptureDraw = 0;
+  uint64_t translationGeneration = 0;
+  uint64_t translationProofGeneration = 0;
+  uint64_t translationProofRevision = 0;
+  bool translationProofValid = false;
+  bool translationInputDirty = false;
+  bool translationInvalidated = false;
+  bool capturingTranslations = false;
+  bool translationCaptureInvalid = false;
+  size_t translationShapeCandidate = SIZE_MAX;
 };
 
 #endif // !SOWGPURENDERACTIONP_H

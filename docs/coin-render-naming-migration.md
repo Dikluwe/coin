@@ -38,9 +38,9 @@ migrados. Os exemplos e o patch FreeCAD distribuído usam os nomes principais.
 Estrutura principal após a integração:
 
 - `src/rendering/coinrender`: contrato, Core comum, fachadas e Shell.
-- `src/rendering/coinbgfx`: lowering, executor e shaders BGFX.
+- `src/rendering/coinbgfx`: lowering, executor, shaders e action de compatibilidade BGFX.
 - `src/rendering/coinwgpu`: adaptação C/Rust, executor, protótipos e shaders WGSL.
-- `src/actions`: integração Coin comum e a entrada específica `CoinBgfxAction`.
+- `src/actions`: integração Coin comum (`CoinRenderAction`).
 - `testsuite/coinrender`, `testsuite/coinbgfx`, `testsuite/coinwgpu`: testes por escopo.
 - `examples/coinrender`: exemplos compartilhados e patch de integração FreeCAD.
 

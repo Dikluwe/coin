@@ -1,0 +1,23 @@
+[
+  "/tmp/coin-render-instancing-baseline/wgpu/bin/coin_render_window_benchmark",
+  "--backend",
+  "wgpu-vulkan",
+  "--scene",
+  "/tmp/coin-render-city-40000.iv",
+  "--animation",
+  "transforms",
+  "--animated-percent",
+  "10",
+  "--transparency",
+  "object",
+  "--warmup",
+  "5",
+  "--frames",
+  "30",
+  "--width",
+  "1024",
+  "--height",
+  "1024",
+  "--samples-output",
+  "/tmp/coin-render-instancing-present-baseline/1024-long.csv"
+]

@@ -1,0 +1,126 @@
+[
+  {
+    "variant": "bgfx-vulkan",
+    "checksum_unchanged": true,
+    "first_image_sha256_unchanged": true,
+    "first_ms": {
+      "previous": 688.821,
+      "current": 681.349,
+      "delta_percent": -1.08475206185642,
+      "previous_range": [
+        671.36,
+        690.313
+      ],
+      "current_range": [
+        678.606,
+        688.258
+      ]
+    },
+    "median_ms": {
+      "previous": 3.02705,
+      "current": 3.13725,
+      "delta_percent": 3.6405080854297056,
+      "previous_range": [
+        3.01876,
+        3.19013
+      ],
+      "current_range": [
+        2.96756,
+        3.18955
+      ]
+    }
+  },
+  {
+    "variant": "bgfx-opengl",
+    "checksum_unchanged": true,
+    "first_image_sha256_unchanged": true,
+    "first_ms": {
+      "previous": 649.874,
+      "current": 639.632,
+      "delta_percent": -1.575997808806029,
+      "previous_range": [
+        643.465,
+        653.607
+      ],
+      "current_range": [
+        638.606,
+        643.768
+      ]
+    },
+    "median_ms": {
+      "previous": 3.16199,
+      "current": 3.13151,
+      "delta_percent": -0.96394991761517,
+      "previous_range": [
+        3.05853,
+        3.17406
+      ],
+      "current_range": [
+        3.1066,
+        3.26043
+      ]
+    }
+  },
+  {
+    "variant": "wgpu-vulkan",
+    "checksum_unchanged": true,
+    "first_image_sha256_unchanged": true,
+    "first_ms": {
+      "previous": 447.378,
+      "current": 448.625,
+      "delta_percent": 0.27873520825789644,
+      "previous_range": [
+        443.673,
+        458.897
+      ],
+      "current_range": [
+        444.645,
+        450.772
+      ]
+    },
+    "median_ms": {
+      "previous": 8.22427,
+      "current": 8.19681,
+      "delta_percent": -0.33388981636062187,
+      "previous_range": [
+        8.06725,
+        8.62428
+      ],
+      "current_range": [
+        8.00032,
+        8.61928
+      ]
+    }
+  },
+  {
+    "variant": "wgpu-opengl",
+    "checksum_unchanged": true,
+    "first_image_sha256_unchanged": true,
+    "first_ms": {
+      "previous": 460.546,
+      "current": 454.084,
+      "delta_percent": -1.4031171696204048,
+      "previous_range": [
+        459.995,
+        467.444
+      ],
+      "current_range": [
+        449.058,
+        456.215
+      ]
+    },
+    "median_ms": {
+      "previous": 11.6154,
+      "current": 11.3458,
+      "delta_percent": -2.3210565284019435,
+      "previous_range": [
+        11.3975,
+        11.8776
+      ],
+      "current_range": [
+        11.178,
+        11.4579
+      ]
+    }
+  }
+]

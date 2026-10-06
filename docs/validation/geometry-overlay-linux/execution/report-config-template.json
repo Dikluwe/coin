@@ -1,0 +1,70 @@
+{
+  "title": "CoinRender: overlay de geometria — Linux",
+  "date": null,
+  "source_content_revision": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+  "baseline_source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+  "baseline_source_snapshot_revision": "a2e19d360d",
+  "baseline_variant_source_content_revisions": {
+    "coingl": "4d63bb993022ee8d40802558b0871a4803002b8d",
+    "bgfx-vulkan": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+    "bgfx-opengl": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+    "wgpu-vulkan": "9a594fa39c7ca7924f9931863d4bdd7a37165cee"
+  },
+  "coingl_source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+  "scene_sha256": null,
+  "expected_counts": {
+    "steady": {
+      "processes": 84,
+      "measured_frames": 1260,
+      "warmup_frames": 420
+    },
+    "ablation": {
+      "processes": 36,
+      "measured_frames": 252,
+      "warmup_frames": 108
+    }
+  },
+  "diagnostic_contract": {
+    "schema_version": 1,
+    "configured": false,
+    "optout": "COIN_RENDER_DISABLE_GEOMETRY_INTERVAL_VALIDATION",
+    "scope": "geometry_overlay_validation",
+    "variants": [
+      "wgpu-vulkan",
+      "bgfx-vulkan",
+      "bgfx-opengl"
+    ],
+    "cases": [
+      "geometry-10",
+      "geometry-100"
+    ],
+    "rounds": 3,
+    "warmup": 3,
+    "frames": 7,
+    "alignment": "validation event belongs to next action marker",
+    "limitations": [
+      "validation_ms includes position validation, undo preparation, uniqueness and scratch cleanup; not isolated sort time",
+      "scratch_bytes is collision scratch capacity, excluding mandatory undo and allocator overhead",
+      "city profile: first full capture without event; exactly one validation before each later resource_rebuild action",
+      "on-path city requires ordered or intervals; literal fallback stays raw and blocks optimization-route proof"
+    ]
+  },
+  "gate_counts": {},
+  "build_count": null,
+  "gates": [],
+  "builds": [],
+  "rgb_comparisons": 112,
+  "verification_ppm_files": 224,
+  "verification_processes": 32,
+  "all_rgb_identical": null,
+  "implementation_notes": [
+    "A validação de unicidade de posições reconhece ordem estritamente crescente sem scratch. Na primeira inversão, reúne runs inclusivos; ordena os intervalos e recusa interseções. A ordem dos updates e do undo permanece a mesma.",
+    "O scratch opcional é limitado a min(65.536, N/2) intervalos e no máximo 4×N bytes. Saturação ou falha opcional de alocação libera o scratch e usa slots + sort literal. Não há inferência sobre tipo de nó, revisão ou geometria mutável."
+  ],
+  "scope_notes": [],
+  "ablation_notes": [],
+  "history_notes": [],
+  "reviews": [],
+  "limitations": [],
+  "evidence_reference": "validation/geometry-overlay-linux/README.md"
+}

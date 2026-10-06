@@ -36,19 +36,20 @@ do pedido, enquanto Infra cria, retém e libera os recursos concretos.
 
 | Componente atual | Responsabilidade real | Compartilhamento e pendência |
 |---|---|---|
-| `CoinRenderAction`, callbacks e replay de paths | Wiring | Captura comum; a action ainda conhece BGFX/Rust, libera tokens concretos e lê configuração textual de RTT. |
-| `CoinRenderFramePlanBuilder` | Wiring + Core | Lê `SoCallbackAction`/`SoState` e também transforma geometria e monta o plano. Separar funções de captura e funções mecânicas, sem exigir separar o arquivo inteiro. |
+| `CoinRenderAction`, callbacks e replay de paths | Wiring | Captura comum sem referências a executores concretos; submissão/reuse e fatos de sombras passam pelo contrato do target. Ver [isolamento da entrada](coin-render-isolation.md). |
+| `CoinRenderFramePlanBuilder` | Wiring + Core | Captura Coin e continuidade dos callbacks em Wiring; montagem/deduplicação e geometrias em Core sobre snapshots/arrays. [Terceira etapa](coin-render-builder-isolation.md). |
 | `CoinRenderFramePlan` e snapshots em `CoinRenderFramePlan.h` | Contrato comum | Compartilháveis; `gpuToken`, limites e convenções precisam de significado independente do executor. |
 | `CoinRenderIndexedGeometryCore` | Core comum | Bons limites explícitos: arrays e fatos capturados, sem travessia nem recursos GPU. |
 | `CoinRenderFrameReuseCore` | Core comum | Classificação e atualização de câmera compartilháveis; Infra decide se seus buffers podem materializar o reuso. |
 | `CoinRenderImageCore` | Core comum | Transformação mecânica de linhas; readback e publicação são responsabilidades distintas. |
 | `CoinRenderComposition.h` | Core comum | Dono único de alpha, modalidade Coin, ordenação, screen door e profundidade efetiva; `exactCoin` removido. |
-| `CoinBgfxLowering` | Core específico + decisões comuns | Layout BGFX pode permanecer específico. Políticas de transparência/depth extraídas; outras operações reaproveitáveis continuam pendentes. |
+| `CoinBgfxLowering` | Core específico + decisões comuns | Layout, agrupamento e patches BGFX específicos; composição e transformações reutilizáveis no Core comum. [Quarta etapa](coin-render-lowering-isolation.md). |
 | `CoinWgpuFfiFrame`, `CoinWgpuFfi.h` | Adaptação específica Rust/wgpu | Empacotamento e ABI privados do conector; transportam draws ordenados, blend e variantes de depth resolvidos, na ABI privada 28 (frame view 176, vértice 100, estado 2280, draw 56 bytes). |
 | `rust_bridge/src/composition.rs` | Adaptação Infra | Valida flags, referências e sequência recebida; não reclassifica alpha nem reordena draws. |
 | `CoinBgfxBackend`, recursos e shaders BGFX | Infra BGFX | Devem permanecer específicos; recebem o plano resolvido e executam mecanismos compatíveis. |
 | `rust_bridge/src/lib.rs`, recursos e shaders WGSL | Infra wgpu, com lógica mecânica misturada | Execução específica; separar validação/adaptação de decisões semânticas. |
-| `CoinRenderTarget`, scene manager e adapter | Fachada comum + Wiring + Infra | Separar ciclo/publicação de operações nativas por método/colaborador. A API comum não precisa expor a classe concreta. |
+| `CoinRenderTarget`, scene manager e adapter | Fachada comum + Wiring | Ciclo, admissão e publicação comuns; operações nativas delegadas ao contrato privado de runtime, sem classes concretas no target. [Segunda etapa](coin-render-runtime-isolation.md). |
+| `CoinRenderBackendRuntime`, `CoinBgfxRuntime`, `CoinWgpuRuntime` | Contrato de Infra + materialização específica | Serviços com vida independente dos targets: superfícies, polling/cancelamento, telemetria e polling do dispositivo. |
 | `CoinRenderCapabilities` | Infra + Core + Shell | Probe nativo é Infra; seleção mecânica tem dono comum; V3 separa fatos, execução e evidência de perfil; defaults textuais são Shell. [P11](coin-render-selection-contract.md). |
 | `CoinRenderDiagnosticShell` | Shell comum e extensões específicas | Mensagens/status/tempos comuns compartilháveis; contadores BGFX ou da ponte Rust devem conservar identificação específica. |
 
@@ -118,10 +119,10 @@ Essas checkboxes são o modelo por item, não oito trabalhos globais já conclu�
 ## Checklist de arquitetura
 
 - [x] **A01 — Nome neutro para o contrato comum.** API, tipos, módulo, exemplos e testes migrados para `CoinRender`; componentes específicos usam `CoinBgfx`/`CoinWgpu`. Headers/pacote antigos encaminham a fonte; consumidores precisam ser recompilados. Evidência: [migração de nomes](coin-render-naming-migration.md).
-- [ ] **A02 — Limite Wiring/Core no builder.** Funções de transformação recebem snapshots/arrays Coin, sem acessar actions, paths ou `SoState`.
+- [x] **A02 — Limite Wiring/Core no builder.** Transformações e montagem extraídas recebem snapshots/arrays Coin, sem acessar actions, paths ou `SoState`. Elegibilidade, continuidade dos detalhes de callbacks e publicação permanecem Wiring. [Escopo e validação](coin-render-builder-isolation.md).
 - [x] **A03 — Composição com dono único.** Classificação de alpha, modalidade Coin, ordenação, screen door e estados efetivos estão no Core comum; interpretação paralela de C++/Rust removida. Fechado nesse escopo; suporte GPU e qualificação GL continuam em F01/F02. [Evidência](coin-render-composition-contract.md).
 - [x] **A04 — Plano de execução comum, perfis P09/P12/P13.** Sequência, camadas, barreiras, blend/depth efetivos e grafo RTT staged/direto compartilham o Core. Wiring captura; Infra resolve e executa. Preflight e publicação qualificados no [P13](coin-render-rtt-publication-contract.md); ampliação de formatos/estados RTT continua F14.
-- [ ] **A05 — Extrair o comum de `CoinBgfxLowering`.** Manter layout/agrupamento BGFX específicos; mover decisões Coin e cálculos reutilizáveis para Core comum. **Parcial:** transparência, screen door e depth efetivo extraídos nesta etapa.
+- [x] **A05 — Extrair o comum de `CoinBgfxLowering`.** Manter layout/agrupamento BGFX específicos; mover decisões Coin e cálculos reutilizáveis para Core comum. Transparência, screen door, depth efetivo e transformações compartilhadas extraídos; layouts/agrupamento/patches BGFX permanecem específicos. [Escopo das quatro fases](coin-render-isolation-roadmap.md).
 - [x] **A06 — Recursos opacos com ownership definido, escopo P12.** Action usa IDs lógicos; criação/liberação de tokens está na Infra. Owner, produtor, device, gerações, retenção e invalidação são verificados no contrato comum. Dispositivo default wgpu e runtime compartilhado BGFX no perfil atual. Recuperação compartilhada qualificada no [P14](coin-render-multi-target-contract.md); seleção pública de dispositivos por alvo permanece fora do perfil. [Contrato](coin-render-rtt-ownership-contract.md).
 - [x] **A07 — Configuração estruturada, escopo P11.** Renderer/transparência/RTT em opções tipadas e imutáveis por alvo; Shell interpreta defaults. Wiring/Core não interpretam texto/env para essas escolhas. Controles de instrumentação/caches/readback continuam nas campanhas P18/P19. [Contrato](coin-render-selection-contract.md).
 - [x] **A08 — Capacidades por contrato e alvo, escopo P11.** V3 separa fatos conhecidos, mecanismos implementados/disponíveis e evidência de perfis offscreen; seleção retorna motivos estruturados. V1/V2 preservados. Janela, novos drivers e erros gerais de recursos não são certificados pelo probe. [Contrato](coin-render-selection-contract.md).

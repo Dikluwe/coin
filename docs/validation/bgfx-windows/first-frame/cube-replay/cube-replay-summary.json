@@ -1,0 +1,4287 @@
+{
+  "date": "2026-10-03",
+  "baseline_commit": "113ee2b4f8",
+  "scope": "Bounded per-frame geometry template replay for exact native untextured OVERALL Cubes, with fresh occurrence state.",
+  "method": {
+    "paired_new_processes_per_variant_per_api": 3,
+    "size": [
+      1024,
+      1024
+    ],
+    "buildings": 40000,
+    "warmup_frames": 1,
+    "measured_warm_frames": 3,
+    "warm_control": {
+      "warmup": 4,
+      "frames": 8
+    },
+    "trace": "separate traced process; CPU wall times, nested phase intervals must not be added",
+    "updates": "single before/after control per mode/backend, 10000 buildings; image equivalence, not a performance distribution",
+    "limits": "single Windows adapter/driver; OS and shader caches retained, no reboot; color + synchronous RGBA copy; first action excludes process/scene load; serial GPU processes"
+  },
+  "native_coin_opengl": {
+    "first_median_ms": 630.141,
+    "first_range_ms": [
+      618.246,
+      653.457
+    ],
+    "warm_median_ms": 34.8511,
+    "image_sha256": "89f899fc34c92f3356c98f6ef5b0ab53f6ab7a781e06216510703d47be2481fc",
+    "rgba_fnv64": "0x4df2a9ab75b7504"
+  },
+  "comparisons": [
+    {
+      "flavor": "wgpu",
+      "api": "dx12",
+      "before": {
+        "first_median_ms": 1191.0,
+        "first_range_ms": [
+          1183.66,
+          1239.1
+        ],
+        "warm_median_ms": 26.1917,
+        "warm_8_control_ms": 26.1378,
+        "image_sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e",
+        "rgba_fnv64": "0x6714299260985122",
+        "trace": {
+          "action_first": {
+            "traversal_ms": 433.08,
+            "frame_plan_ms": 69.7406,
+            "backend_ms": 692.734,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 0.0
+          },
+          "target_first": {
+            "validation_ms": 67.7442,
+            "prepare_ms": 1.813,
+            "submit_ms": 622.7325
+          },
+          "builder": {
+            "expand_styles_ms": 1.6534,
+            "validation_ms": 41.2295,
+            "composition_ms": 21.8585,
+            "storage_report_ms": 0.0175,
+            "publish_plan_ms": 4.6943,
+            "finish_ms": 0.2031
+          },
+          "storage": {
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "render_states": 40001.0,
+            "draws": 40001.0,
+            "vertex_stride": 100.0,
+            "vertex_bytes": 96002400.0,
+            "vertex_capacity_bytes": 104986900.0,
+            "index_bytes": 5760144.0,
+            "index_capacity_bytes": 6299212.0,
+            "render_state_bytes": 65601640.0,
+            "transfer_ownership": 1.0
+          },
+          "validation_passes": [
+            {
+              "materials_ms": 0.0006,
+              "vertices_ms": 24.7744,
+              "indices_ms": 0.606,
+              "scene_state_ms": 0.0118,
+              "render_states_ms": 9.922,
+              "draws_ms": 5.8461,
+              "finish_ms": 0.0001
+            },
+            {
+              "materials_ms": 0.0005,
+              "vertices_ms": 25.7538,
+              "indices_ms": 0.7008,
+              "scene_state_ms": 0.0016,
+              "render_states_ms": 12.0834,
+              "draws_ms": 4.9288,
+              "finish_ms": 0.0
+            }
+          ],
+          "composition_passes": [
+            {
+              "classify_ms": 21.3782,
+              "sort_ms": 0.4145,
+              "finish_ms": 0.0002
+            },
+            {
+              "classify_ms": 21.54,
+              "sort_ms": 0.5023,
+              "finish_ms": 0.0002
+            }
+          ],
+          "validation_total_ms": 84.62989999999999,
+          "vertices_validation_total_ms": 50.5282,
+          "composition_total_ms": 43.8354,
+          "action_warm": [
+            {
+              "traversal_ms": 0.0181,
+              "frame_plan_ms": 0.0006,
+              "backend_ms": 27.1929,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.0092,
+              "frame_plan_ms": 0.0006,
+              "backend_ms": 26.0936,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.0063,
+              "frame_plan_ms": 0.0005,
+              "backend_ms": 25.9575,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            }
+          ]
+        }
+      },
+      "after": {
+        "first_median_ms": 1087.34,
+        "first_range_ms": [
+          1073.61,
+          1087.47
+        ],
+        "warm_median_ms": 26.277,
+        "warm_8_control_ms": 26.0085,
+        "image_sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e",
+        "rgba_fnv64": "0x6714299260985122",
+        "trace": {
+          "action_first": {
+            "traversal_ms": 297.985,
+            "frame_plan_ms": 70.762,
+            "backend_ms": 714.297,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 0.0
+          },
+          "target_first": {
+            "validation_ms": 67.2682,
+            "prepare_ms": 1.8883,
+            "submit_ms": 644.9118
+          },
+          "builder": {
+            "expand_styles_ms": 1.7539,
+            "validation_ms": 41.166,
+            "composition_ms": 23.0604,
+            "storage_report_ms": 0.0182,
+            "publish_plan_ms": 4.5309,
+            "finish_ms": 0.1847
+          },
+          "storage": {
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "render_states": 40001.0,
+            "draws": 40001.0,
+            "vertex_stride": 100.0,
+            "vertex_bytes": 96002400.0,
+            "vertex_capacity_bytes": 104986900.0,
+            "index_bytes": 5760144.0,
+            "index_capacity_bytes": 6299212.0,
+            "render_state_bytes": 65601640.0,
+            "transfer_ownership": 1.0,
+            "cube_replay_hits": 39999.0
+          },
+          "validation_passes": [
+            {
+              "materials_ms": 0.0006,
+              "vertices_ms": 24.4679,
+              "indices_ms": 0.8069,
+              "scene_state_ms": 0.0123,
+              "render_states_ms": 10.1709,
+              "draws_ms": 5.6406,
+              "finish_ms": 0.0001
+            },
+            {
+              "materials_ms": 0.0005,
+              "vertices_ms": 25.153,
+              "indices_ms": 0.5343,
+              "scene_state_ms": 0.0013,
+              "render_states_ms": 10.3886,
+              "draws_ms": 5.4536,
+              "finish_ms": 0.0001
+            }
+          ],
+          "composition_passes": [
+            {
+              "classify_ms": 22.6538,
+              "sort_ms": 0.3666,
+              "finish_ms": 0.0002
+            },
+            {
+              "classify_ms": 22.6678,
+              "sort_ms": 0.4602,
+              "finish_ms": 0.0001
+            }
+          ],
+          "validation_total_ms": 82.63069999999999,
+          "vertices_validation_total_ms": 49.6209,
+          "composition_total_ms": 46.148700000000005,
+          "action_warm": [
+            {
+              "traversal_ms": 0.0171,
+              "frame_plan_ms": 0.0005,
+              "backend_ms": 26.2576,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.0077,
+              "frame_plan_ms": 0.0005,
+              "backend_ms": 26.8649,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.0084,
+              "frame_plan_ms": 0.0004,
+              "backend_ms": 25.9974,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            }
+          ]
+        }
+      },
+      "images_equal": true,
+      "first_reduction_percent": 8.703610411418982,
+      "remaining_native_gap_ms": 457.19899999999996
+    },
+    {
+      "flavor": "wgpu",
+      "api": "vulkan",
+      "before": {
+        "first_median_ms": 942.057,
+        "first_range_ms": [
+          936.592,
+          944.688
+        ],
+        "warm_median_ms": 24.8472,
+        "warm_8_control_ms": 24.1066,
+        "image_sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e",
+        "rgba_fnv64": "0x6714299260985122",
+        "trace": {
+          "action_first": {
+            "traversal_ms": 429.27,
+            "frame_plan_ms": 72.0982,
+            "backend_ms": 441.855,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 0.0
+          },
+          "target_first": {
+            "validation_ms": 65.5586,
+            "prepare_ms": 1.4408,
+            "submit_ms": 374.6501
+          },
+          "builder": {
+            "expand_styles_ms": 2.5016,
+            "validation_ms": 41.4647,
+            "composition_ms": 21.7904,
+            "storage_report_ms": 0.0137,
+            "publish_plan_ms": 6.0754,
+            "finish_ms": 0.202
+          },
+          "storage": {
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "render_states": 40001.0,
+            "draws": 40001.0,
+            "vertex_stride": 100.0,
+            "vertex_bytes": 96002400.0,
+            "vertex_capacity_bytes": 104986900.0,
+            "index_bytes": 5760144.0,
+            "index_capacity_bytes": 6299212.0,
+            "render_state_bytes": 65601640.0,
+            "transfer_ownership": 1.0
+          },
+          "validation_passes": [
+            {
+              "materials_ms": 0.0007,
+              "vertices_ms": 24.6976,
+              "indices_ms": 0.7758,
+              "scene_state_ms": 0.0138,
+              "render_states_ms": 10.9274,
+              "draws_ms": 4.9558,
+              "finish_ms": 0.0
+            },
+            {
+              "materials_ms": 0.0005,
+              "vertices_ms": 24.4182,
+              "indices_ms": 0.5923,
+              "scene_state_ms": 0.0014,
+              "render_states_ms": 11.0762,
+              "draws_ms": 4.7544,
+              "finish_ms": 0.0001
+            }
+          ],
+          "composition_passes": [
+            {
+              "classify_ms": 21.3153,
+              "sort_ms": 0.4175,
+              "finish_ms": 0.0001
+            },
+            {
+              "classify_ms": 21.166,
+              "sort_ms": 0.5164,
+              "finish_ms": 0.0001
+            }
+          ],
+          "validation_total_ms": 82.2142,
+          "vertices_validation_total_ms": 49.1158,
+          "composition_total_ms": 43.415400000000005,
+          "action_warm": [
+            {
+              "traversal_ms": 0.0062,
+              "frame_plan_ms": 0.0006,
+              "backend_ms": 24.3844,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.0084,
+              "frame_plan_ms": 0.0008,
+              "backend_ms": 23.7395,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.0053,
+              "frame_plan_ms": 0.0005,
+              "backend_ms": 24.0431,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            }
+          ]
+        }
+      },
+      "after": {
+        "first_median_ms": 819.147,
+        "first_range_ms": [
+          815.646,
+          819.192
+        ],
+        "warm_median_ms": 24.7563,
+        "warm_8_control_ms": 24.5551,
+        "image_sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e",
+        "rgba_fnv64": "0x6714299260985122",
+        "trace": {
+          "action_first": {
+            "traversal_ms": 300.745,
+            "frame_plan_ms": 70.4461,
+            "backend_ms": 442.034,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 0.0
+          },
+          "target_first": {
+            "validation_ms": 64.1979,
+            "prepare_ms": 2.1453,
+            "submit_ms": 375.47
+          },
+          "builder": {
+            "expand_styles_ms": 2.0719,
+            "validation_ms": 40.7382,
+            "composition_ms": 22.0198,
+            "storage_report_ms": 0.0179,
+            "publish_plan_ms": 5.1035,
+            "finish_ms": 0.4152
+          },
+          "storage": {
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "render_states": 40001.0,
+            "draws": 40001.0,
+            "vertex_stride": 100.0,
+            "vertex_bytes": 96002400.0,
+            "vertex_capacity_bytes": 104986900.0,
+            "index_bytes": 5760144.0,
+            "index_capacity_bytes": 6299212.0,
+            "render_state_bytes": 65601640.0,
+            "transfer_ownership": 1.0,
+            "cube_replay_hits": 39999.0
+          },
+          "validation_passes": [
+            {
+              "materials_ms": 0.0007,
+              "vertices_ms": 24.7316,
+              "indices_ms": 0.5915,
+              "scene_state_ms": 0.0108,
+              "render_states_ms": 10.3132,
+              "draws_ms": 5.019,
+              "finish_ms": 0.0001
+            },
+            {
+              "materials_ms": 0.0004,
+              "vertices_ms": 24.5389,
+              "indices_ms": 0.6348,
+              "scene_state_ms": 0.0015,
+              "render_states_ms": 10.5389,
+              "draws_ms": 5.1161,
+              "finish_ms": 0.0
+            }
+          ],
+          "composition_passes": [
+            {
+              "classify_ms": 21.6015,
+              "sort_ms": 0.3682,
+              "finish_ms": 0.0002
+            },
+            {
+              "classify_ms": 20.9287,
+              "sort_ms": 0.3719,
+              "finish_ms": 0.0002
+            }
+          ],
+          "validation_total_ms": 81.4975,
+          "vertices_validation_total_ms": 49.2705,
+          "composition_total_ms": 43.270700000000005,
+          "action_warm": [
+            {
+              "traversal_ms": 0.0052,
+              "frame_plan_ms": 0.0005,
+              "backend_ms": 24.5205,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.0344,
+              "frame_plan_ms": 0.0006,
+              "backend_ms": 24.2457,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.0055,
+              "frame_plan_ms": 0.0004,
+              "backend_ms": 23.5678,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            }
+          ]
+        }
+      },
+      "images_equal": true,
+      "first_reduction_percent": 13.046981233619615,
+      "remaining_native_gap_ms": 189.00600000000009
+    },
+    {
+      "flavor": "wgpu",
+      "api": "gl",
+      "before": {
+        "first_median_ms": 1101.83,
+        "first_range_ms": [
+          1094.51,
+          1118.04
+        ],
+        "warm_median_ms": 27.5391,
+        "warm_8_control_ms": 27.9315,
+        "image_sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e",
+        "rgba_fnv64": "0x6714299260985122",
+        "trace": {
+          "action_first": {
+            "traversal_ms": 426.668,
+            "frame_plan_ms": 71.8587,
+            "backend_ms": 607.792,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 0.0
+          },
+          "target_first": {
+            "validation_ms": 65.6061,
+            "prepare_ms": 1.3222,
+            "submit_ms": 540.6289
+          },
+          "builder": {
+            "expand_styles_ms": 2.1646,
+            "validation_ms": 40.9672,
+            "composition_ms": 22.8825,
+            "storage_report_ms": 0.0178,
+            "publish_plan_ms": 5.5613,
+            "finish_ms": 0.2155
+          },
+          "storage": {
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "render_states": 40001.0,
+            "draws": 40001.0,
+            "vertex_stride": 100.0,
+            "vertex_bytes": 96002400.0,
+            "vertex_capacity_bytes": 104986900.0,
+            "index_bytes": 5760144.0,
+            "index_capacity_bytes": 6299212.0,
+            "render_state_bytes": 65601640.0,
+            "transfer_ownership": 1.0
+          },
+          "validation_passes": [
+            {
+              "materials_ms": 0.0007,
+              "vertices_ms": 24.5645,
+              "indices_ms": 0.6578,
+              "scene_state_ms": 0.0132,
+              "render_states_ms": 10.9299,
+              "draws_ms": 4.72,
+              "finish_ms": 0.0001
+            },
+            {
+              "materials_ms": 0.0007,
+              "vertices_ms": 23.8548,
+              "indices_ms": 0.5338,
+              "scene_state_ms": 0.0015,
+              "render_states_ms": 10.8194,
+              "draws_ms": 4.6923,
+              "finish_ms": 0.0
+            }
+          ],
+          "composition_passes": [
+            {
+              "classify_ms": 22.4305,
+              "sort_ms": 0.4033,
+              "finish_ms": 0.0002
+            },
+            {
+              "classify_ms": 22.5671,
+              "sort_ms": 0.5434,
+              "finish_ms": 0.0002
+            }
+          ],
+          "validation_total_ms": 80.7887,
+          "vertices_validation_total_ms": 48.4193,
+          "composition_total_ms": 45.9447,
+          "action_warm": [
+            {
+              "traversal_ms": 0.0085,
+              "frame_plan_ms": 0.0258,
+              "backend_ms": 26.896,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.006,
+              "frame_plan_ms": 0.0005,
+              "backend_ms": 27.0389,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.0078,
+              "frame_plan_ms": 0.0005,
+              "backend_ms": 27.574,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            }
+          ]
+        }
+      },
+      "after": {
+        "first_median_ms": 996.476,
+        "first_range_ms": [
+          982.222,
+          1034.04
+        ],
+        "warm_median_ms": 27.0489,
+        "warm_8_control_ms": 27.917,
+        "image_sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e",
+        "rgba_fnv64": "0x6714299260985122",
+        "trace": {
+          "action_first": {
+            "traversal_ms": 295.898,
+            "frame_plan_ms": 71.1208,
+            "backend_ms": 617.224,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 0.0
+          },
+          "target_first": {
+            "validation_ms": 67.3786,
+            "prepare_ms": 1.3396,
+            "submit_ms": 548.2806
+          },
+          "builder": {
+            "expand_styles_ms": 1.5307,
+            "validation_ms": 41.633,
+            "composition_ms": 23.1542,
+            "storage_report_ms": 0.0196,
+            "publish_plan_ms": 4.496,
+            "finish_ms": 0.2391
+          },
+          "storage": {
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "render_states": 40001.0,
+            "draws": 40001.0,
+            "vertex_stride": 100.0,
+            "vertex_bytes": 96002400.0,
+            "vertex_capacity_bytes": 104986900.0,
+            "index_bytes": 5760144.0,
+            "index_capacity_bytes": 6299212.0,
+            "render_state_bytes": 65601640.0,
+            "transfer_ownership": 1.0,
+            "cube_replay_hits": 39999.0
+          },
+          "validation_passes": [
+            {
+              "materials_ms": 0.0005,
+              "vertices_ms": 25.2117,
+              "indices_ms": 0.6068,
+              "scene_state_ms": 0.013,
+              "render_states_ms": 9.6896,
+              "draws_ms": 6.0486,
+              "finish_ms": 0.0
+            },
+            {
+              "materials_ms": 0.0005,
+              "vertices_ms": 25.6132,
+              "indices_ms": 0.6022,
+              "scene_state_ms": 0.0016,
+              "render_states_ms": 11.6605,
+              "draws_ms": 5.3979,
+              "finish_ms": 0.0
+            }
+          ],
+          "composition_passes": [
+            {
+              "classify_ms": 22.648,
+              "sort_ms": 0.4585,
+              "finish_ms": 0.0001
+            },
+            {
+              "classify_ms": 21.185,
+              "sort_ms": 0.387,
+              "finish_ms": 0.0
+            }
+          ],
+          "validation_total_ms": 84.8461,
+          "vertices_validation_total_ms": 50.8249,
+          "composition_total_ms": 44.6786,
+          "action_warm": [
+            {
+              "traversal_ms": 0.006,
+              "frame_plan_ms": 0.0005,
+              "backend_ms": 27.3162,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.0062,
+              "frame_plan_ms": 0.0004,
+              "backend_ms": 26.9337,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.0067,
+              "frame_plan_ms": 0.0005,
+              "backend_ms": 27.5325,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            }
+          ]
+        }
+      },
+      "images_equal": true,
+      "first_reduction_percent": 9.56172912336748,
+      "remaining_native_gap_ms": 366.33500000000004
+    },
+    {
+      "flavor": "bgfx",
+      "api": "d3d12",
+      "before": {
+        "first_median_ms": 1784.46,
+        "first_range_ms": [
+          1770.34,
+          1803.14
+        ],
+        "warm_median_ms": 12.2022,
+        "warm_8_control_ms": 12.4711,
+        "image_sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e",
+        "rgba_fnv64": "0x6714299260985122",
+        "trace": {
+          "action_first": {
+            "traversal_ms": 460.468,
+            "frame_plan_ms": 74.0619,
+            "backend_ms": 1328.33,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 0.0
+          },
+          "target_first": {
+            "validation_ms": 68.1354,
+            "prepare_ms": 301.913,
+            "submit_ms": 958.0355
+          },
+          "builder": {
+            "expand_styles_ms": 1.9471,
+            "validation_ms": 44.506,
+            "composition_ms": 23.2352,
+            "storage_report_ms": 0.0164,
+            "publish_plan_ms": 4.103,
+            "finish_ms": 0.2047
+          },
+          "storage": {
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "render_states": 40001.0,
+            "draws": 40001.0,
+            "vertex_stride": 100.0,
+            "vertex_bytes": 96002400.0,
+            "vertex_capacity_bytes": 104986900.0,
+            "index_bytes": 5760144.0,
+            "index_capacity_bytes": 6299212.0,
+            "render_state_bytes": 65601640.0,
+            "transfer_ownership": 1.0
+          },
+          "validation_passes": [
+            {
+              "materials_ms": 0.0007,
+              "vertices_ms": 24.6617,
+              "indices_ms": 0.6967,
+              "scene_state_ms": 0.008,
+              "render_states_ms": 14.2753,
+              "draws_ms": 4.7854,
+              "finish_ms": 0.0001
+            },
+            {
+              "materials_ms": 0.0006,
+              "vertices_ms": 24.2686,
+              "indices_ms": 0.5697,
+              "scene_state_ms": 0.0017,
+              "render_states_ms": 10.8421,
+              "draws_ms": 4.9733,
+              "finish_ms": 0.0
+            }
+          ],
+          "composition_passes": [
+            {
+              "classify_ms": 22.8062,
+              "sort_ms": 0.3618,
+              "finish_ms": 0.0001
+            },
+            {
+              "classify_ms": 24.7189,
+              "sort_ms": 0.3808,
+              "finish_ms": 0.0
+            }
+          ],
+          "validation_total_ms": 85.0839,
+          "vertices_validation_total_ms": 48.9303,
+          "composition_total_ms": 48.2678,
+          "action_warm": [
+            {
+              "traversal_ms": 0.0073,
+              "frame_plan_ms": 0.0005,
+              "backend_ms": 11.9971,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.006,
+              "frame_plan_ms": 0.0005,
+              "backend_ms": 12.1312,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.0097,
+              "frame_plan_ms": 0.0007,
+              "backend_ms": 12.1376,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            }
+          ]
+        }
+      },
+      "after": {
+        "first_median_ms": 1680.07,
+        "first_range_ms": [
+          1663.13,
+          1682.71
+        ],
+        "warm_median_ms": 12.1959,
+        "warm_8_control_ms": 12.2739,
+        "image_sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e",
+        "rgba_fnv64": "0x6714299260985122",
+        "trace": {
+          "action_first": {
+            "traversal_ms": 302.783,
+            "frame_plan_ms": 70.4337,
+            "backend_ms": 1284.9,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 0.0
+          },
+          "target_first": {
+            "validation_ms": 64.5933,
+            "prepare_ms": 308.0901,
+            "submit_ms": 911.9924
+          },
+          "builder": {
+            "expand_styles_ms": 2.1021,
+            "validation_ms": 41.1277,
+            "composition_ms": 21.0562,
+            "storage_report_ms": 0.0123,
+            "publish_plan_ms": 5.6603,
+            "finish_ms": 0.2356
+          },
+          "storage": {
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "render_states": 40001.0,
+            "draws": 40001.0,
+            "vertex_stride": 100.0,
+            "vertex_bytes": 96002400.0,
+            "vertex_capacity_bytes": 104986900.0,
+            "index_bytes": 5760144.0,
+            "index_capacity_bytes": 6299212.0,
+            "render_state_bytes": 65601640.0,
+            "transfer_ownership": 1.0,
+            "cube_replay_hits": 39999.0
+          },
+          "validation_passes": [
+            {
+              "materials_ms": 0.0009,
+              "vertices_ms": 24.6028,
+              "indices_ms": 0.5199,
+              "scene_state_ms": 0.0135,
+              "render_states_ms": 11.1349,
+              "draws_ms": 4.791,
+              "finish_ms": 0.0
+            },
+            {
+              "materials_ms": 0.0007,
+              "vertices_ms": 24.5474,
+              "indices_ms": 0.6858,
+              "scene_state_ms": 0.0015,
+              "render_states_ms": 11.196,
+              "draws_ms": 4.8921,
+              "finish_ms": 0.0
+            }
+          ],
+          "composition_passes": [
+            {
+              "classify_ms": 20.6374,
+              "sort_ms": 0.3593,
+              "finish_ms": 0.0002
+            },
+            {
+              "classify_ms": 20.5388,
+              "sort_ms": 0.4139,
+              "finish_ms": 0.0002
+            }
+          ],
+          "validation_total_ms": 82.38650000000001,
+          "vertices_validation_total_ms": 49.1502,
+          "composition_total_ms": 41.949799999999996,
+          "action_warm": [
+            {
+              "traversal_ms": 0.007,
+              "frame_plan_ms": 0.0004,
+              "backend_ms": 11.7746,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.0047,
+              "frame_plan_ms": 0.0004,
+              "backend_ms": 12.8012,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.007,
+              "frame_plan_ms": 0.0006,
+              "backend_ms": 11.8301,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            }
+          ]
+        }
+      },
+      "images_equal": true,
+      "first_reduction_percent": 5.8499490041805435,
+      "remaining_native_gap_ms": 1049.929
+    },
+    {
+      "flavor": "bgfx",
+      "api": "vulkan",
+      "before": {
+        "first_median_ms": 1830.92,
+        "first_range_ms": [
+          1793.15,
+          1862.2
+        ],
+        "warm_median_ms": 10.3692,
+        "warm_8_control_ms": 10.5754,
+        "image_sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e",
+        "rgba_fnv64": "0x6714299260985122",
+        "trace": {
+          "action_first": {
+            "traversal_ms": 440.184,
+            "frame_plan_ms": 70.2738,
+            "backend_ms": 1298.51,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 0.0
+          },
+          "target_first": {
+            "validation_ms": 65.9096,
+            "prepare_ms": 361.516,
+            "submit_ms": 870.8476
+          },
+          "builder": {
+            "expand_styles_ms": 1.6306,
+            "validation_ms": 41.8538,
+            "composition_ms": 21.9941,
+            "storage_report_ms": 0.012,
+            "publish_plan_ms": 4.5073,
+            "finish_ms": 0.2177
+          },
+          "storage": {
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "render_states": 40001.0,
+            "draws": 40001.0,
+            "vertex_stride": 100.0,
+            "vertex_bytes": 96002400.0,
+            "vertex_capacity_bytes": 104986900.0,
+            "index_bytes": 5760144.0,
+            "index_capacity_bytes": 6299212.0,
+            "render_state_bytes": 65601640.0,
+            "transfer_ownership": 1.0
+          },
+          "validation_passes": [
+            {
+              "materials_ms": 0.0007,
+              "vertices_ms": 25.5507,
+              "indices_ms": 0.5472,
+              "scene_state_ms": 0.0123,
+              "render_states_ms": 10.545,
+              "draws_ms": 5.1357,
+              "finish_ms": 0.0
+            },
+            {
+              "materials_ms": 0.0006,
+              "vertices_ms": 25.1515,
+              "indices_ms": 0.5716,
+              "scene_state_ms": 0.0015,
+              "render_states_ms": 11.3337,
+              "draws_ms": 4.8472,
+              "finish_ms": 0.0
+            }
+          ],
+          "composition_passes": [
+            {
+              "classify_ms": 21.508,
+              "sort_ms": 0.4317,
+              "finish_ms": 0.0001
+            },
+            {
+              "classify_ms": 21.5118,
+              "sort_ms": 0.4081,
+              "finish_ms": 0.0001
+            }
+          ],
+          "validation_total_ms": 83.6977,
+          "vertices_validation_total_ms": 50.7022,
+          "composition_total_ms": 43.8598,
+          "action_warm": [
+            {
+              "traversal_ms": 0.0062,
+              "frame_plan_ms": 0.0004,
+              "backend_ms": 10.6628,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.0083,
+              "frame_plan_ms": 0.0005,
+              "backend_ms": 10.5039,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.0047,
+              "frame_plan_ms": 0.0004,
+              "backend_ms": 10.4236,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            }
+          ]
+        }
+      },
+      "after": {
+        "first_median_ms": 1745.58,
+        "first_range_ms": [
+          1682.8,
+          1824.18
+        ],
+        "warm_median_ms": 10.5351,
+        "warm_8_control_ms": 10.6709,
+        "image_sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e",
+        "rgba_fnv64": "0x6714299260985122",
+        "trace": {
+          "action_first": {
+            "traversal_ms": 322.738,
+            "frame_plan_ms": 70.3372,
+            "backend_ms": 1320.18,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 0.0
+          },
+          "target_first": {
+            "validation_ms": 68.7807,
+            "prepare_ms": 386.4086,
+            "submit_ms": 864.7228
+          },
+          "builder": {
+            "expand_styles_ms": 1.7976,
+            "validation_ms": 40.7164,
+            "composition_ms": 22.2049,
+            "storage_report_ms": 0.0156,
+            "publish_plan_ms": 5.3388,
+            "finish_ms": 0.2144
+          },
+          "storage": {
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "render_states": 40001.0,
+            "draws": 40001.0,
+            "vertex_stride": 100.0,
+            "vertex_bytes": 96002400.0,
+            "vertex_capacity_bytes": 104986900.0,
+            "index_bytes": 5760144.0,
+            "index_capacity_bytes": 6299212.0,
+            "render_state_bytes": 65601640.0,
+            "transfer_ownership": 1.0,
+            "cube_replay_hits": 39999.0
+          },
+          "validation_passes": [
+            {
+              "materials_ms": 0.0008,
+              "vertices_ms": 24.5037,
+              "indices_ms": 0.9181,
+              "scene_state_ms": 0.0134,
+              "render_states_ms": 10.4091,
+              "draws_ms": 4.7971,
+              "finish_ms": 0.0
+            },
+            {
+              "materials_ms": 0.0005,
+              "vertices_ms": 25.2157,
+              "indices_ms": 0.6227,
+              "scene_state_ms": 0.0016,
+              "render_states_ms": 11.028,
+              "draws_ms": 5.97,
+              "finish_ms": 0.0
+            }
+          ],
+          "composition_passes": [
+            {
+              "classify_ms": 21.7986,
+              "sort_ms": 0.3537,
+              "finish_ms": 0.0002
+            },
+            {
+              "classify_ms": 23.1845,
+              "sort_ms": 0.5205,
+              "finish_ms": 0.0003
+            }
+          ],
+          "validation_total_ms": 83.4807,
+          "vertices_validation_total_ms": 49.71939999999999,
+          "composition_total_ms": 45.8578,
+          "action_warm": [
+            {
+              "traversal_ms": 0.0081,
+              "frame_plan_ms": 0.0007,
+              "backend_ms": 10.1277,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.0093,
+              "frame_plan_ms": 0.0006,
+              "backend_ms": 10.0,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.0052,
+              "frame_plan_ms": 0.0005,
+              "backend_ms": 10.4421,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            }
+          ]
+        }
+      },
+      "images_equal": true,
+      "first_reduction_percent": 4.6610447206868795,
+      "remaining_native_gap_ms": 1115.4389999999999
+    },
+    {
+      "flavor": "bgfx",
+      "api": "opengl",
+      "before": {
+        "first_median_ms": 1661.26,
+        "first_range_ms": [
+          1657.61,
+          1708.0
+        ],
+        "warm_median_ms": 12.8606,
+        "warm_8_control_ms": 12.9898,
+        "image_sha256": "b5e7005ac8325b7499b71d87e8e0a42f292a477420107865433fa53d2254614e",
+        "rgba_fnv64": "0x156847cec1d97864",
+        "trace": {
+          "action_first": {
+            "traversal_ms": 455.151,
+            "frame_plan_ms": 71.2103,
+            "backend_ms": 1147.06,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 0.0
+          },
+          "target_first": {
+            "validation_ms": 64.36,
+            "prepare_ms": 184.8265,
+            "submit_ms": 897.6207
+          },
+          "builder": {
+            "expand_styles_ms": 2.1103,
+            "validation_ms": 41.8545,
+            "composition_ms": 21.1876,
+            "storage_report_ms": 0.0153,
+            "publish_plan_ms": 5.7986,
+            "finish_ms": 0.1941
+          },
+          "storage": {
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "render_states": 40001.0,
+            "draws": 40001.0,
+            "vertex_stride": 100.0,
+            "vertex_bytes": 96002400.0,
+            "vertex_capacity_bytes": 104986900.0,
+            "index_bytes": 5760144.0,
+            "index_capacity_bytes": 6299212.0,
+            "render_state_bytes": 65601640.0,
+            "transfer_ownership": 1.0
+          },
+          "validation_passes": [
+            {
+              "materials_ms": 0.0007,
+              "vertices_ms": 24.5605,
+              "indices_ms": 0.6178,
+              "scene_state_ms": 0.0127,
+              "render_states_ms": 11.0822,
+              "draws_ms": 5.4912,
+              "finish_ms": 0.0001
+            },
+            {
+              "materials_ms": 0.0006,
+              "vertices_ms": 24.241,
+              "indices_ms": 0.5553,
+              "scene_state_ms": 0.0012,
+              "render_states_ms": 10.7025,
+              "draws_ms": 5.1063,
+              "finish_ms": 0.0
+            }
+          ],
+          "composition_passes": [
+            {
+              "classify_ms": 20.7718,
+              "sort_ms": 0.3585,
+              "finish_ms": 0.0
+            },
+            {
+              "classify_ms": 20.8484,
+              "sort_ms": 0.4848,
+              "finish_ms": 0.0001
+            }
+          ],
+          "validation_total_ms": 82.3721,
+          "vertices_validation_total_ms": 48.801500000000004,
+          "composition_total_ms": 42.4636,
+          "action_warm": [
+            {
+              "traversal_ms": 0.0053,
+              "frame_plan_ms": 0.0005,
+              "backend_ms": 13.0038,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.0042,
+              "frame_plan_ms": 0.0005,
+              "backend_ms": 12.6135,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.0049,
+              "frame_plan_ms": 0.0006,
+              "backend_ms": 12.3239,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            }
+          ]
+        }
+      },
+      "after": {
+        "first_median_ms": 1531.86,
+        "first_range_ms": [
+          1515.14,
+          1532.72
+        ],
+        "warm_median_ms": 13.4432,
+        "warm_8_control_ms": 12.4763,
+        "image_sha256": "b5e7005ac8325b7499b71d87e8e0a42f292a477420107865433fa53d2254614e",
+        "rgba_fnv64": "0x156847cec1d97864",
+        "trace": {
+          "action_first": {
+            "traversal_ms": 312.366,
+            "frame_plan_ms": 69.5496,
+            "backend_ms": 1142.31,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 0.0
+          },
+          "target_first": {
+            "validation_ms": 67.8254,
+            "prepare_ms": 182.9049,
+            "submit_ms": 891.3464
+          },
+          "builder": {
+            "expand_styles_ms": 1.508,
+            "validation_ms": 41.1134,
+            "composition_ms": 22.5217,
+            "storage_report_ms": 0.0157,
+            "publish_plan_ms": 4.1213,
+            "finish_ms": 0.2182
+          },
+          "storage": {
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "render_states": 40001.0,
+            "draws": 40001.0,
+            "vertex_stride": 100.0,
+            "vertex_bytes": 96002400.0,
+            "vertex_capacity_bytes": 104986900.0,
+            "index_bytes": 5760144.0,
+            "index_capacity_bytes": 6299212.0,
+            "render_state_bytes": 65601640.0,
+            "transfer_ownership": 1.0,
+            "cube_replay_hits": 39999.0
+          },
+          "validation_passes": [
+            {
+              "materials_ms": 0.0005,
+              "vertices_ms": 24.5688,
+              "indices_ms": 0.523,
+              "scene_state_ms": 0.0132,
+              "render_states_ms": 10.6126,
+              "draws_ms": 5.3241,
+              "finish_ms": 0.0001
+            },
+            {
+              "materials_ms": 0.0006,
+              "vertices_ms": 27.9186,
+              "indices_ms": 0.582,
+              "scene_state_ms": 0.0016,
+              "render_states_ms": 10.4743,
+              "draws_ms": 5.6933,
+              "finish_ms": 0.0
+            }
+          ],
+          "composition_passes": [
+            {
+              "classify_ms": 22.08,
+              "sort_ms": 0.3881,
+              "finish_ms": 0.0001
+            },
+            {
+              "classify_ms": 20.6388,
+              "sort_ms": 0.3543,
+              "finish_ms": 0.0001
+            }
+          ],
+          "validation_total_ms": 85.7127,
+          "vertices_validation_total_ms": 52.4874,
+          "composition_total_ms": 43.4614,
+          "action_warm": [
+            {
+              "traversal_ms": 0.0075,
+              "frame_plan_ms": 0.0005,
+              "backend_ms": 12.6798,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.0093,
+              "frame_plan_ms": 0.0006,
+              "backend_ms": 11.9196,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            },
+            {
+              "traversal_ms": 0.0077,
+              "frame_plan_ms": 0.0005,
+              "backend_ms": 12.0871,
+              "vertices": 960024.0,
+              "indices": 1440036.0,
+              "draws": 40001.0,
+              "plan_cache_hit": 1.0
+            }
+          ]
+        }
+      },
+      "images_equal": true,
+      "first_reduction_percent": 7.789268386646286,
+      "remaining_native_gap_ms": 901.7189999999999
+    }
+  ],
+  "update_controls": [
+    {
+      "flavor": "wgpu",
+      "api": "vulkan",
+      "mode": "camera",
+      "buildings": 10000,
+      "images_equal": true,
+      "image_sha256": "51687589cae892f04cc48bf8ce1d4f2a6abade4db14d3f70ab4792c8f3dfac3e",
+      "before_first_ms": 253.676,
+      "after_first_ms": 221.383,
+      "before_warm_ms": 249.227,
+      "after_warm_ms": 216.748
+    },
+    {
+      "flavor": "wgpu",
+      "api": "vulkan",
+      "mode": "material",
+      "buildings": 10000,
+      "images_equal": true,
+      "image_sha256": "3857b0fe4697de55e7725ff7c9562ab1339f5745d13867d79ea78acaa93cabe9",
+      "before_first_ms": 251.238,
+      "after_first_ms": 221.594,
+      "before_warm_ms": 245.828,
+      "after_warm_ms": 212.972
+    },
+    {
+      "flavor": "bgfx",
+      "api": "vulkan",
+      "mode": "camera",
+      "buildings": 10000,
+      "images_equal": true,
+      "image_sha256": "51687589cae892f04cc48bf8ce1d4f2a6abade4db14d3f70ab4792c8f3dfac3e",
+      "before_first_ms": 729.193,
+      "after_first_ms": 726.501,
+      "before_warm_ms": 362.217,
+      "after_warm_ms": 328.183
+    },
+    {
+      "flavor": "bgfx",
+      "api": "vulkan",
+      "mode": "material",
+      "buildings": 10000,
+      "images_equal": true,
+      "image_sha256": "3857b0fe4697de55e7725ff7c9562ab1339f5745d13867d79ea78acaa93cabe9",
+      "before_first_ms": 745.775,
+      "after_first_ms": 732.378,
+      "before_warm_ms": 368.685,
+      "after_warm_ms": 327.589
+    }
+  ],
+  "tests": {
+    "cube-replay-core-tests": {
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "cases": {
+        "CoinRenderActionTest": "passed",
+        "CoinRenderFrameCoreTest": "passed",
+        "CoinRenderFrameReuseCoreTest": "passed",
+        "CoinRenderIndexedFastPathTest": "passed",
+        "CoinRenderCompositionTest": "passed",
+        "CoinWgpuFfiFrameTest": "passed"
+      }
+    },
+    "cube-replay-wgpu-vulkan-tests": {
+      "total": 15,
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0,
+      "cases": {
+        "CoinRenderActionTest": "passed",
+        "CoinRenderFrameCoreTest": "passed",
+        "CoinRenderDepthContractTest": "passed",
+        "CoinRenderFrameReuseCoreTest": "passed",
+        "CoinRenderIndexedFastPathTest": "passed",
+        "CoinRenderMaterialTest": "passed",
+        "CoinRenderTextureTest": "passed",
+        "CoinRenderLightingTest": "passed",
+        "CoinRenderClipPlaneTest": "passed",
+        "CoinRenderDrawStyleTest": "passed",
+        "CoinRenderTransparencyTest": "passed",
+        "CoinRenderCompositionTest": "passed",
+        "CoinRenderShadowReferenceTest": "passed",
+        "CoinRenderSceneTextureTest": "passed",
+        "CoinWgpuFfiFrameTest": "passed"
+      }
+    },
+    "cube-replay-wgpu-gl-tests": {
+      "total": 15,
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0,
+      "cases": {
+        "CoinRenderActionTest": "passed",
+        "CoinRenderFrameCoreTest": "passed",
+        "CoinRenderDepthContractTest": "passed",
+        "CoinRenderFrameReuseCoreTest": "passed",
+        "CoinRenderIndexedFastPathTest": "passed",
+        "CoinRenderMaterialTest": "passed",
+        "CoinRenderTextureTest": "passed",
+        "CoinRenderLightingTest": "passed",
+        "CoinRenderClipPlaneTest": "passed",
+        "CoinRenderDrawStyleTest": "passed",
+        "CoinRenderTransparencyTest": "passed",
+        "CoinRenderCompositionTest": "passed",
+        "CoinRenderShadowReferenceTest": "passed",
+        "CoinRenderSceneTextureTest": "passed",
+        "CoinWgpuFfiFrameTest": "passed"
+      }
+    },
+    "cube-replay-wgpu-dx12-tests": {
+      "total": 15,
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0,
+      "cases": {
+        "CoinRenderActionTest": "passed",
+        "CoinRenderFrameCoreTest": "passed",
+        "CoinRenderDepthContractTest": "passed",
+        "CoinRenderFrameReuseCoreTest": "passed",
+        "CoinRenderIndexedFastPathTest": "passed",
+        "CoinRenderMaterialTest": "passed",
+        "CoinRenderTextureTest": "passed",
+        "CoinRenderLightingTest": "passed",
+        "CoinRenderClipPlaneTest": "passed",
+        "CoinRenderDrawStyleTest": "passed",
+        "CoinRenderTransparencyTest": "passed",
+        "CoinRenderCompositionTest": "passed",
+        "CoinRenderShadowReferenceTest": "passed",
+        "CoinRenderSceneTextureTest": "passed",
+        "CoinWgpuFfiFrameTest": "passed"
+      }
+    },
+    "cube-replay-bgfx-vulkan-tests": {
+      "total": 13,
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0,
+      "cases": {
+        "CoinRenderActionTest": "passed",
+        "CoinRenderFrameCoreTest": "passed",
+        "CoinRenderDepthContractTest": "passed",
+        "CoinRenderFrameReuseCoreTest": "passed",
+        "CoinRenderIndexedFastPathTest": "passed",
+        "CoinRenderTextureTest": "passed",
+        "CoinRenderLightingTest": "passed",
+        "CoinRenderClipPlaneTest": "passed",
+        "CoinRenderDrawStyleTest": "passed",
+        "CoinRenderTransparencyTest": "passed",
+        "CoinRenderCompositionTest": "passed",
+        "CoinRenderShadowReferenceTest": "passed",
+        "CoinRenderSceneTextureTest": "passed"
+      }
+    },
+    "cube-replay-bgfx-opengl-tests": {
+      "total": 13,
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0,
+      "cases": {
+        "CoinRenderActionTest": "passed",
+        "CoinRenderFrameCoreTest": "passed",
+        "CoinRenderDepthContractTest": "passed",
+        "CoinRenderFrameReuseCoreTest": "passed",
+        "CoinRenderIndexedFastPathTest": "passed",
+        "CoinRenderTextureTest": "passed",
+        "CoinRenderLightingTest": "passed",
+        "CoinRenderClipPlaneTest": "passed",
+        "CoinRenderDrawStyleTest": "passed",
+        "CoinRenderTransparencyTest": "passed",
+        "CoinRenderCompositionTest": "passed",
+        "CoinRenderShadowReferenceTest": "passed",
+        "CoinRenderSceneTextureTest": "passed"
+      }
+    },
+    "cube-replay-bgfx-d3d12-tests": {
+      "total": 13,
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0,
+      "cases": {
+        "CoinRenderActionTest": "passed",
+        "CoinRenderFrameCoreTest": "passed",
+        "CoinRenderDepthContractTest": "passed",
+        "CoinRenderFrameReuseCoreTest": "passed",
+        "CoinRenderIndexedFastPathTest": "passed",
+        "CoinRenderTextureTest": "passed",
+        "CoinRenderLightingTest": "passed",
+        "CoinRenderClipPlaneTest": "passed",
+        "CoinRenderDrawStyleTest": "passed",
+        "CoinRenderTransparencyTest": "passed",
+        "CoinRenderCompositionTest": "passed",
+        "CoinRenderShadowReferenceTest": "passed",
+        "CoinRenderSceneTextureTest": "passed"
+      }
+    }
+  },
+  "runs": [
+    {
+      "flavor": "coin",
+      "api": "opengl",
+      "buildings": 40000,
+      "variant": "current",
+      "sample": 1,
+      "tracing": false,
+      "warmup": 4,
+      "frames": 8,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 3109.3205,
+      "log": "build/cube-replay-coin-opengl-40000-current-1-static.log",
+      "image": "build/large-scenes/cube-replay-coin-opengl-40000-current-1-static.ppm",
+      "archived_log": "cube-replay-coin-opengl-40000-current-1-static.log",
+      "first_frame_ms": 653.457,
+      "warm_median_ms": 35.4742,
+      "rgba_fnv64": "0x4df2a9ab75b7504",
+      "image_sha256": "89f899fc34c92f3356c98f6ef5b0ab53f6ab7a781e06216510703d47be2481fc"
+    },
+    {
+      "flavor": "coin",
+      "api": "opengl",
+      "buildings": 40000,
+      "variant": "current",
+      "sample": 2,
+      "tracing": false,
+      "warmup": 4,
+      "frames": 8,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2316.0928,
+      "log": "build/cube-replay-coin-opengl-40000-current-2-static.log",
+      "image": null,
+      "archived_log": "cube-replay-coin-opengl-40000-current-2-static.log",
+      "first_frame_ms": 618.246,
+      "warm_median_ms": 34.7032,
+      "rgba_fnv64": "0x4df2a9ab75b7504"
+    },
+    {
+      "flavor": "coin",
+      "api": "opengl",
+      "buildings": 40000,
+      "variant": "current",
+      "sample": 3,
+      "tracing": false,
+      "warmup": 4,
+      "frames": 8,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2314.135,
+      "log": "build/cube-replay-coin-opengl-40000-current-3-static.log",
+      "image": null,
+      "archived_log": "cube-replay-coin-opengl-40000-current-3-static.log",
+      "first_frame_ms": 630.141,
+      "warm_median_ms": 34.8511,
+      "rgba_fnv64": "0x4df2a9ab75b7504"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "dx12",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 1,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 3160.8114,
+      "log": "build/cube-replay-wgpu-dx12-40000-before-1-static.log",
+      "image": "build/large-scenes/cube-replay-wgpu-dx12-40000-before-1-static.ppm",
+      "archived_log": "cube-replay-wgpu-dx12-40000-before-1-static.log",
+      "first_frame_ms": 1239.1,
+      "warm_median_ms": 26.2658,
+      "rgba_fnv64": "0x6714299260985122",
+      "image_sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "dx12",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 1,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2476.9136,
+      "log": "build/cube-replay-wgpu-dx12-40000-after-1-static.log",
+      "image": "build/large-scenes/cube-replay-wgpu-dx12-40000-after-1-static.ppm",
+      "archived_log": "cube-replay-wgpu-dx12-40000-after-1-static.log",
+      "first_frame_ms": 1087.47,
+      "warm_median_ms": 26.6994,
+      "rgba_fnv64": "0x6714299260985122",
+      "image_sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "dx12",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 2,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2524.6416,
+      "log": "build/cube-replay-wgpu-dx12-40000-before-2-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-dx12-40000-before-2-static.log",
+      "first_frame_ms": 1191.0,
+      "warm_median_ms": 26.1917,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "dx12",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 2,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2394.2173,
+      "log": "build/cube-replay-wgpu-dx12-40000-after-2-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-dx12-40000-after-2-static.log",
+      "first_frame_ms": 1073.61,
+      "warm_median_ms": 26.1685,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "dx12",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 3,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2523.1028,
+      "log": "build/cube-replay-wgpu-dx12-40000-before-3-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-dx12-40000-before-3-static.log",
+      "first_frame_ms": 1183.66,
+      "warm_median_ms": 26.1861,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "dx12",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 3,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2425.4345,
+      "log": "build/cube-replay-wgpu-dx12-40000-after-3-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-dx12-40000-after-3-static.log",
+      "first_frame_ms": 1087.34,
+      "warm_median_ms": 26.277,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "dx12",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": "trace",
+      "tracing": true,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2537.1377,
+      "log": "build/cube-replay-wgpu-dx12-40000-before-trace-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-dx12-40000-before-trace-static.log",
+      "first_frame_ms": 1197.15,
+      "warm_median_ms": 26.6311,
+      "rgba_fnv64": "0x6714299260985122",
+      "trace": {
+        "action_first": {
+          "traversal_ms": 433.08,
+          "frame_plan_ms": 69.7406,
+          "backend_ms": 692.734,
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "draws": 40001.0,
+          "plan_cache_hit": 0.0
+        },
+        "target_first": {
+          "validation_ms": 67.7442,
+          "prepare_ms": 1.813,
+          "submit_ms": 622.7325
+        },
+        "builder": {
+          "expand_styles_ms": 1.6534,
+          "validation_ms": 41.2295,
+          "composition_ms": 21.8585,
+          "storage_report_ms": 0.0175,
+          "publish_plan_ms": 4.6943,
+          "finish_ms": 0.2031
+        },
+        "storage": {
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "render_states": 40001.0,
+          "draws": 40001.0,
+          "vertex_stride": 100.0,
+          "vertex_bytes": 96002400.0,
+          "vertex_capacity_bytes": 104986900.0,
+          "index_bytes": 5760144.0,
+          "index_capacity_bytes": 6299212.0,
+          "render_state_bytes": 65601640.0,
+          "transfer_ownership": 1.0
+        },
+        "validation_passes": [
+          {
+            "materials_ms": 0.0006,
+            "vertices_ms": 24.7744,
+            "indices_ms": 0.606,
+            "scene_state_ms": 0.0118,
+            "render_states_ms": 9.922,
+            "draws_ms": 5.8461,
+            "finish_ms": 0.0001
+          },
+          {
+            "materials_ms": 0.0005,
+            "vertices_ms": 25.7538,
+            "indices_ms": 0.7008,
+            "scene_state_ms": 0.0016,
+            "render_states_ms": 12.0834,
+            "draws_ms": 4.9288,
+            "finish_ms": 0.0
+          }
+        ],
+        "composition_passes": [
+          {
+            "classify_ms": 21.3782,
+            "sort_ms": 0.4145,
+            "finish_ms": 0.0002
+          },
+          {
+            "classify_ms": 21.54,
+            "sort_ms": 0.5023,
+            "finish_ms": 0.0002
+          }
+        ],
+        "validation_total_ms": 84.62989999999999,
+        "vertices_validation_total_ms": 50.5282,
+        "composition_total_ms": 43.8354,
+        "action_warm": [
+          {
+            "traversal_ms": 0.0181,
+            "frame_plan_ms": 0.0006,
+            "backend_ms": 27.1929,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.0092,
+            "frame_plan_ms": 0.0006,
+            "backend_ms": 26.0936,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.0063,
+            "frame_plan_ms": 0.0005,
+            "backend_ms": 25.9575,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "flavor": "wgpu",
+      "api": "dx12",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": "warm",
+      "tracing": false,
+      "warmup": 4,
+      "frames": 8,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2882.5262,
+      "log": "build/cube-replay-wgpu-dx12-40000-before-warm-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-dx12-40000-before-warm-static.log",
+      "first_frame_ms": 1350.14,
+      "warm_median_ms": 26.1378,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "dx12",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": "trace",
+      "tracing": true,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2588.5178,
+      "log": "build/cube-replay-wgpu-dx12-40000-after-trace-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-dx12-40000-after-trace-static.log",
+      "first_frame_ms": 1084.58,
+      "warm_median_ms": 26.9408,
+      "rgba_fnv64": "0x6714299260985122",
+      "trace": {
+        "action_first": {
+          "traversal_ms": 297.985,
+          "frame_plan_ms": 70.762,
+          "backend_ms": 714.297,
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "draws": 40001.0,
+          "plan_cache_hit": 0.0
+        },
+        "target_first": {
+          "validation_ms": 67.2682,
+          "prepare_ms": 1.8883,
+          "submit_ms": 644.9118
+        },
+        "builder": {
+          "expand_styles_ms": 1.7539,
+          "validation_ms": 41.166,
+          "composition_ms": 23.0604,
+          "storage_report_ms": 0.0182,
+          "publish_plan_ms": 4.5309,
+          "finish_ms": 0.1847
+        },
+        "storage": {
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "render_states": 40001.0,
+          "draws": 40001.0,
+          "vertex_stride": 100.0,
+          "vertex_bytes": 96002400.0,
+          "vertex_capacity_bytes": 104986900.0,
+          "index_bytes": 5760144.0,
+          "index_capacity_bytes": 6299212.0,
+          "render_state_bytes": 65601640.0,
+          "transfer_ownership": 1.0,
+          "cube_replay_hits": 39999.0
+        },
+        "validation_passes": [
+          {
+            "materials_ms": 0.0006,
+            "vertices_ms": 24.4679,
+            "indices_ms": 0.8069,
+            "scene_state_ms": 0.0123,
+            "render_states_ms": 10.1709,
+            "draws_ms": 5.6406,
+            "finish_ms": 0.0001
+          },
+          {
+            "materials_ms": 0.0005,
+            "vertices_ms": 25.153,
+            "indices_ms": 0.5343,
+            "scene_state_ms": 0.0013,
+            "render_states_ms": 10.3886,
+            "draws_ms": 5.4536,
+            "finish_ms": 0.0001
+          }
+        ],
+        "composition_passes": [
+          {
+            "classify_ms": 22.6538,
+            "sort_ms": 0.3666,
+            "finish_ms": 0.0002
+          },
+          {
+            "classify_ms": 22.6678,
+            "sort_ms": 0.4602,
+            "finish_ms": 0.0001
+          }
+        ],
+        "validation_total_ms": 82.63069999999999,
+        "vertices_validation_total_ms": 49.6209,
+        "composition_total_ms": 46.148700000000005,
+        "action_warm": [
+          {
+            "traversal_ms": 0.0171,
+            "frame_plan_ms": 0.0005,
+            "backend_ms": 26.2576,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.0077,
+            "frame_plan_ms": 0.0005,
+            "backend_ms": 26.8649,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.0084,
+            "frame_plan_ms": 0.0004,
+            "backend_ms": 25.9974,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "flavor": "wgpu",
+      "api": "dx12",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": "warm",
+      "tracing": false,
+      "warmup": 4,
+      "frames": 8,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2597.8152,
+      "log": "build/cube-replay-wgpu-dx12-40000-after-warm-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-dx12-40000-after-warm-static.log",
+      "first_frame_ms": 1061.12,
+      "warm_median_ms": 26.0085,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 1,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2204.0941,
+      "log": "build/cube-replay-wgpu-vulkan-40000-before-1-static.log",
+      "image": "build/large-scenes/cube-replay-wgpu-vulkan-40000-before-1-static.ppm",
+      "archived_log": "cube-replay-wgpu-vulkan-40000-before-1-static.log",
+      "first_frame_ms": 936.592,
+      "warm_median_ms": 24.8737,
+      "rgba_fnv64": "0x6714299260985122",
+      "image_sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 1,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 1981.7779,
+      "log": "build/cube-replay-wgpu-vulkan-40000-after-1-static.log",
+      "image": "build/large-scenes/cube-replay-wgpu-vulkan-40000-after-1-static.ppm",
+      "archived_log": "cube-replay-wgpu-vulkan-40000-after-1-static.log",
+      "first_frame_ms": 819.192,
+      "warm_median_ms": 23.909,
+      "rgba_fnv64": "0x6714299260985122",
+      "image_sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 2,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2037.4903,
+      "log": "build/cube-replay-wgpu-vulkan-40000-before-2-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-vulkan-40000-before-2-static.log",
+      "first_frame_ms": 944.688,
+      "warm_median_ms": 24.8472,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 2,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 1943.9367,
+      "log": "build/cube-replay-wgpu-vulkan-40000-after-2-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-vulkan-40000-after-2-static.log",
+      "first_frame_ms": 819.147,
+      "warm_median_ms": 24.8529,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 3,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2051.2388,
+      "log": "build/cube-replay-wgpu-vulkan-40000-before-3-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-vulkan-40000-before-3-static.log",
+      "first_frame_ms": 942.057,
+      "warm_median_ms": 24.3331,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 3,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 1908.256,
+      "log": "build/cube-replay-wgpu-vulkan-40000-after-3-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-vulkan-40000-after-3-static.log",
+      "first_frame_ms": 815.646,
+      "warm_median_ms": 24.7563,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": "trace",
+      "tracing": true,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2035.3243,
+      "log": "build/cube-replay-wgpu-vulkan-40000-before-trace-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-vulkan-40000-before-trace-static.log",
+      "first_frame_ms": 944.862,
+      "warm_median_ms": 24.726,
+      "rgba_fnv64": "0x6714299260985122",
+      "trace": {
+        "action_first": {
+          "traversal_ms": 429.27,
+          "frame_plan_ms": 72.0982,
+          "backend_ms": 441.855,
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "draws": 40001.0,
+          "plan_cache_hit": 0.0
+        },
+        "target_first": {
+          "validation_ms": 65.5586,
+          "prepare_ms": 1.4408,
+          "submit_ms": 374.6501
+        },
+        "builder": {
+          "expand_styles_ms": 2.5016,
+          "validation_ms": 41.4647,
+          "composition_ms": 21.7904,
+          "storage_report_ms": 0.0137,
+          "publish_plan_ms": 6.0754,
+          "finish_ms": 0.202
+        },
+        "storage": {
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "render_states": 40001.0,
+          "draws": 40001.0,
+          "vertex_stride": 100.0,
+          "vertex_bytes": 96002400.0,
+          "vertex_capacity_bytes": 104986900.0,
+          "index_bytes": 5760144.0,
+          "index_capacity_bytes": 6299212.0,
+          "render_state_bytes": 65601640.0,
+          "transfer_ownership": 1.0
+        },
+        "validation_passes": [
+          {
+            "materials_ms": 0.0007,
+            "vertices_ms": 24.6976,
+            "indices_ms": 0.7758,
+            "scene_state_ms": 0.0138,
+            "render_states_ms": 10.9274,
+            "draws_ms": 4.9558,
+            "finish_ms": 0.0
+          },
+          {
+            "materials_ms": 0.0005,
+            "vertices_ms": 24.4182,
+            "indices_ms": 0.5923,
+            "scene_state_ms": 0.0014,
+            "render_states_ms": 11.0762,
+            "draws_ms": 4.7544,
+            "finish_ms": 0.0001
+          }
+        ],
+        "composition_passes": [
+          {
+            "classify_ms": 21.3153,
+            "sort_ms": 0.4175,
+            "finish_ms": 0.0001
+          },
+          {
+            "classify_ms": 21.166,
+            "sort_ms": 0.5164,
+            "finish_ms": 0.0001
+          }
+        ],
+        "validation_total_ms": 82.2142,
+        "vertices_validation_total_ms": 49.1158,
+        "composition_total_ms": 43.415400000000005,
+        "action_warm": [
+          {
+            "traversal_ms": 0.0062,
+            "frame_plan_ms": 0.0006,
+            "backend_ms": 24.3844,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.0084,
+            "frame_plan_ms": 0.0008,
+            "backend_ms": 23.7395,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.0053,
+            "frame_plan_ms": 0.0005,
+            "backend_ms": 24.0431,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "flavor": "wgpu",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": "warm",
+      "tracing": false,
+      "warmup": 4,
+      "frames": 8,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2232.7203,
+      "log": "build/cube-replay-wgpu-vulkan-40000-before-warm-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-vulkan-40000-before-warm-static.log",
+      "first_frame_ms": 944.643,
+      "warm_median_ms": 24.1066,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": "trace",
+      "tracing": true,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 1912.6097,
+      "log": "build/cube-replay-wgpu-vulkan-40000-after-trace-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-vulkan-40000-after-trace-static.log",
+      "first_frame_ms": 814.811,
+      "warm_median_ms": 24.8383,
+      "rgba_fnv64": "0x6714299260985122",
+      "trace": {
+        "action_first": {
+          "traversal_ms": 300.745,
+          "frame_plan_ms": 70.4461,
+          "backend_ms": 442.034,
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "draws": 40001.0,
+          "plan_cache_hit": 0.0
+        },
+        "target_first": {
+          "validation_ms": 64.1979,
+          "prepare_ms": 2.1453,
+          "submit_ms": 375.47
+        },
+        "builder": {
+          "expand_styles_ms": 2.0719,
+          "validation_ms": 40.7382,
+          "composition_ms": 22.0198,
+          "storage_report_ms": 0.0179,
+          "publish_plan_ms": 5.1035,
+          "finish_ms": 0.4152
+        },
+        "storage": {
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "render_states": 40001.0,
+          "draws": 40001.0,
+          "vertex_stride": 100.0,
+          "vertex_bytes": 96002400.0,
+          "vertex_capacity_bytes": 104986900.0,
+          "index_bytes": 5760144.0,
+          "index_capacity_bytes": 6299212.0,
+          "render_state_bytes": 65601640.0,
+          "transfer_ownership": 1.0,
+          "cube_replay_hits": 39999.0
+        },
+        "validation_passes": [
+          {
+            "materials_ms": 0.0007,
+            "vertices_ms": 24.7316,
+            "indices_ms": 0.5915,
+            "scene_state_ms": 0.0108,
+            "render_states_ms": 10.3132,
+            "draws_ms": 5.019,
+            "finish_ms": 0.0001
+          },
+          {
+            "materials_ms": 0.0004,
+            "vertices_ms": 24.5389,
+            "indices_ms": 0.6348,
+            "scene_state_ms": 0.0015,
+            "render_states_ms": 10.5389,
+            "draws_ms": 5.1161,
+            "finish_ms": 0.0
+          }
+        ],
+        "composition_passes": [
+          {
+            "classify_ms": 21.6015,
+            "sort_ms": 0.3682,
+            "finish_ms": 0.0002
+          },
+          {
+            "classify_ms": 20.9287,
+            "sort_ms": 0.3719,
+            "finish_ms": 0.0002
+          }
+        ],
+        "validation_total_ms": 81.4975,
+        "vertices_validation_total_ms": 49.2705,
+        "composition_total_ms": 43.270700000000005,
+        "action_warm": [
+          {
+            "traversal_ms": 0.0052,
+            "frame_plan_ms": 0.0005,
+            "backend_ms": 24.5205,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.0344,
+            "frame_plan_ms": 0.0006,
+            "backend_ms": 24.2457,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.0055,
+            "frame_plan_ms": 0.0004,
+            "backend_ms": 23.5678,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "flavor": "wgpu",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": "warm",
+      "tracing": false,
+      "warmup": 4,
+      "frames": 8,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2105.4994,
+      "log": "build/cube-replay-wgpu-vulkan-40000-after-warm-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-vulkan-40000-after-warm-static.log",
+      "first_frame_ms": 820.421,
+      "warm_median_ms": 24.5551,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "gl",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 1,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2342.9608,
+      "log": "build/cube-replay-wgpu-gl-40000-before-1-static.log",
+      "image": "build/large-scenes/cube-replay-wgpu-gl-40000-before-1-static.ppm",
+      "archived_log": "cube-replay-wgpu-gl-40000-before-1-static.log",
+      "first_frame_ms": 1101.83,
+      "warm_median_ms": 26.6328,
+      "rgba_fnv64": "0x6714299260985122",
+      "image_sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "gl",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 1,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2183.2686,
+      "log": "build/cube-replay-wgpu-gl-40000-after-1-static.log",
+      "image": "build/large-scenes/cube-replay-wgpu-gl-40000-after-1-static.ppm",
+      "archived_log": "cube-replay-wgpu-gl-40000-after-1-static.log",
+      "first_frame_ms": 1034.04,
+      "warm_median_ms": 27.5414,
+      "rgba_fnv64": "0x6714299260985122",
+      "image_sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "gl",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 2,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2193.2425,
+      "log": "build/cube-replay-wgpu-gl-40000-before-2-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-gl-40000-before-2-static.log",
+      "first_frame_ms": 1094.51,
+      "warm_median_ms": 27.5391,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "gl",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 2,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2097.782,
+      "log": "build/cube-replay-wgpu-gl-40000-after-2-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-gl-40000-after-2-static.log",
+      "first_frame_ms": 996.476,
+      "warm_median_ms": 27.0489,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "gl",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 3,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2199.579,
+      "log": "build/cube-replay-wgpu-gl-40000-before-3-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-gl-40000-before-3-static.log",
+      "first_frame_ms": 1118.04,
+      "warm_median_ms": 27.7988,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "gl",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 3,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2195.1058,
+      "log": "build/cube-replay-wgpu-gl-40000-after-3-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-gl-40000-after-3-static.log",
+      "first_frame_ms": 982.222,
+      "warm_median_ms": 26.9083,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "gl",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": "trace",
+      "tracing": true,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2187.132,
+      "log": "build/cube-replay-wgpu-gl-40000-before-trace-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-gl-40000-before-trace-static.log",
+      "first_frame_ms": 1108.13,
+      "warm_median_ms": 27.597,
+      "rgba_fnv64": "0x6714299260985122",
+      "trace": {
+        "action_first": {
+          "traversal_ms": 426.668,
+          "frame_plan_ms": 71.8587,
+          "backend_ms": 607.792,
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "draws": 40001.0,
+          "plan_cache_hit": 0.0
+        },
+        "target_first": {
+          "validation_ms": 65.6061,
+          "prepare_ms": 1.3222,
+          "submit_ms": 540.6289
+        },
+        "builder": {
+          "expand_styles_ms": 2.1646,
+          "validation_ms": 40.9672,
+          "composition_ms": 22.8825,
+          "storage_report_ms": 0.0178,
+          "publish_plan_ms": 5.5613,
+          "finish_ms": 0.2155
+        },
+        "storage": {
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "render_states": 40001.0,
+          "draws": 40001.0,
+          "vertex_stride": 100.0,
+          "vertex_bytes": 96002400.0,
+          "vertex_capacity_bytes": 104986900.0,
+          "index_bytes": 5760144.0,
+          "index_capacity_bytes": 6299212.0,
+          "render_state_bytes": 65601640.0,
+          "transfer_ownership": 1.0
+        },
+        "validation_passes": [
+          {
+            "materials_ms": 0.0007,
+            "vertices_ms": 24.5645,
+            "indices_ms": 0.6578,
+            "scene_state_ms": 0.0132,
+            "render_states_ms": 10.9299,
+            "draws_ms": 4.72,
+            "finish_ms": 0.0001
+          },
+          {
+            "materials_ms": 0.0007,
+            "vertices_ms": 23.8548,
+            "indices_ms": 0.5338,
+            "scene_state_ms": 0.0015,
+            "render_states_ms": 10.8194,
+            "draws_ms": 4.6923,
+            "finish_ms": 0.0
+          }
+        ],
+        "composition_passes": [
+          {
+            "classify_ms": 22.4305,
+            "sort_ms": 0.4033,
+            "finish_ms": 0.0002
+          },
+          {
+            "classify_ms": 22.5671,
+            "sort_ms": 0.5434,
+            "finish_ms": 0.0002
+          }
+        ],
+        "validation_total_ms": 80.7887,
+        "vertices_validation_total_ms": 48.4193,
+        "composition_total_ms": 45.9447,
+        "action_warm": [
+          {
+            "traversal_ms": 0.0085,
+            "frame_plan_ms": 0.0258,
+            "backend_ms": 26.896,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.006,
+            "frame_plan_ms": 0.0005,
+            "backend_ms": 27.0389,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.0078,
+            "frame_plan_ms": 0.0005,
+            "backend_ms": 27.574,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "flavor": "wgpu",
+      "api": "gl",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": "warm",
+      "tracing": false,
+      "warmup": 4,
+      "frames": 8,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2399.1487,
+      "log": "build/cube-replay-wgpu-gl-40000-before-warm-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-gl-40000-before-warm-static.log",
+      "first_frame_ms": 1091.28,
+      "warm_median_ms": 27.9315,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "gl",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": "trace",
+      "tracing": true,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2063.8171,
+      "log": "build/cube-replay-wgpu-gl-40000-after-trace-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-gl-40000-after-trace-static.log",
+      "first_frame_ms": 985.59,
+      "warm_median_ms": 27.9056,
+      "rgba_fnv64": "0x6714299260985122",
+      "trace": {
+        "action_first": {
+          "traversal_ms": 295.898,
+          "frame_plan_ms": 71.1208,
+          "backend_ms": 617.224,
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "draws": 40001.0,
+          "plan_cache_hit": 0.0
+        },
+        "target_first": {
+          "validation_ms": 67.3786,
+          "prepare_ms": 1.3396,
+          "submit_ms": 548.2806
+        },
+        "builder": {
+          "expand_styles_ms": 1.5307,
+          "validation_ms": 41.633,
+          "composition_ms": 23.1542,
+          "storage_report_ms": 0.0196,
+          "publish_plan_ms": 4.496,
+          "finish_ms": 0.2391
+        },
+        "storage": {
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "render_states": 40001.0,
+          "draws": 40001.0,
+          "vertex_stride": 100.0,
+          "vertex_bytes": 96002400.0,
+          "vertex_capacity_bytes": 104986900.0,
+          "index_bytes": 5760144.0,
+          "index_capacity_bytes": 6299212.0,
+          "render_state_bytes": 65601640.0,
+          "transfer_ownership": 1.0,
+          "cube_replay_hits": 39999.0
+        },
+        "validation_passes": [
+          {
+            "materials_ms": 0.0005,
+            "vertices_ms": 25.2117,
+            "indices_ms": 0.6068,
+            "scene_state_ms": 0.013,
+            "render_states_ms": 9.6896,
+            "draws_ms": 6.0486,
+            "finish_ms": 0.0
+          },
+          {
+            "materials_ms": 0.0005,
+            "vertices_ms": 25.6132,
+            "indices_ms": 0.6022,
+            "scene_state_ms": 0.0016,
+            "render_states_ms": 11.6605,
+            "draws_ms": 5.3979,
+            "finish_ms": 0.0
+          }
+        ],
+        "composition_passes": [
+          {
+            "classify_ms": 22.648,
+            "sort_ms": 0.4585,
+            "finish_ms": 0.0001
+          },
+          {
+            "classify_ms": 21.185,
+            "sort_ms": 0.387,
+            "finish_ms": 0.0
+          }
+        ],
+        "validation_total_ms": 84.8461,
+        "vertices_validation_total_ms": 50.8249,
+        "composition_total_ms": 44.6786,
+        "action_warm": [
+          {
+            "traversal_ms": 0.006,
+            "frame_plan_ms": 0.0005,
+            "backend_ms": 27.3162,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.0062,
+            "frame_plan_ms": 0.0004,
+            "backend_ms": 26.9337,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.0067,
+            "frame_plan_ms": 0.0005,
+            "backend_ms": 27.5325,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "flavor": "wgpu",
+      "api": "gl",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": "warm",
+      "tracing": false,
+      "warmup": 4,
+      "frames": 8,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2310.766,
+      "log": "build/cube-replay-wgpu-gl-40000-after-warm-static.log",
+      "image": null,
+      "archived_log": "cube-replay-wgpu-gl-40000-after-warm-static.log",
+      "first_frame_ms": 978.342,
+      "warm_median_ms": 27.917,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "vulkan",
+      "buildings": 10000,
+      "variant": "before",
+      "sample": "update",
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "camera",
+      "exit_code": 0,
+      "process_wall_ms": 1761.4736,
+      "log": "build/cube-replay-wgpu-vulkan-10000-before-update-camera.log",
+      "image": "build/large-scenes/cube-replay-wgpu-vulkan-10000-before-update-camera.ppm",
+      "archived_log": "cube-replay-wgpu-vulkan-10000-before-update-camera.log",
+      "first_frame_ms": 253.676,
+      "warm_median_ms": 249.227,
+      "rgba_fnv64": "0x7d4c848f9418f2b5",
+      "image_sha256": "51687589cae892f04cc48bf8ce1d4f2a6abade4db14d3f70ab4792c8f3dfac3e"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "vulkan",
+      "buildings": 10000,
+      "variant": "after",
+      "sample": "update",
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "camera",
+      "exit_code": 0,
+      "process_wall_ms": 1483.2859,
+      "log": "build/cube-replay-wgpu-vulkan-10000-after-update-camera.log",
+      "image": "build/large-scenes/cube-replay-wgpu-vulkan-10000-after-update-camera.ppm",
+      "archived_log": "cube-replay-wgpu-vulkan-10000-after-update-camera.log",
+      "first_frame_ms": 221.383,
+      "warm_median_ms": 216.748,
+      "rgba_fnv64": "0x7d4c848f9418f2b5",
+      "image_sha256": "51687589cae892f04cc48bf8ce1d4f2a6abade4db14d3f70ab4792c8f3dfac3e"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "vulkan",
+      "buildings": 10000,
+      "variant": "before",
+      "sample": "update",
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "material",
+      "exit_code": 0,
+      "process_wall_ms": 1599.6227,
+      "log": "build/cube-replay-wgpu-vulkan-10000-before-update-material.log",
+      "image": "build/large-scenes/cube-replay-wgpu-vulkan-10000-before-update-material.ppm",
+      "archived_log": "cube-replay-wgpu-vulkan-10000-before-update-material.log",
+      "first_frame_ms": 251.238,
+      "warm_median_ms": 245.828,
+      "rgba_fnv64": "0x7992ecd3f2c22b6f",
+      "image_sha256": "3857b0fe4697de55e7725ff7c9562ab1339f5745d13867d79ea78acaa93cabe9"
+    },
+    {
+      "flavor": "wgpu",
+      "api": "vulkan",
+      "buildings": 10000,
+      "variant": "after",
+      "sample": "update",
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "material",
+      "exit_code": 0,
+      "process_wall_ms": 1471.1669,
+      "log": "build/cube-replay-wgpu-vulkan-10000-after-update-material.log",
+      "image": "build/large-scenes/cube-replay-wgpu-vulkan-10000-after-update-material.ppm",
+      "archived_log": "cube-replay-wgpu-vulkan-10000-after-update-material.log",
+      "first_frame_ms": 221.594,
+      "warm_median_ms": 212.972,
+      "rgba_fnv64": "0x7992ecd3f2c22b6f",
+      "image_sha256": "3857b0fe4697de55e7725ff7c9562ab1339f5745d13867d79ea78acaa93cabe9"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "d3d12",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 1,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 3549.1798,
+      "log": "build/cube-replay-bgfx-d3d12-40000-before-1-static.log",
+      "image": "build/large-scenes/cube-replay-bgfx-d3d12-40000-before-1-static.ppm",
+      "archived_log": "cube-replay-bgfx-d3d12-40000-before-1-static.log",
+      "first_frame_ms": 1803.14,
+      "warm_median_ms": 12.2022,
+      "rgba_fnv64": "0x6714299260985122",
+      "image_sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "d3d12",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 1,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2965.9034,
+      "log": "build/cube-replay-bgfx-d3d12-40000-after-1-static.log",
+      "image": "build/large-scenes/cube-replay-bgfx-d3d12-40000-after-1-static.ppm",
+      "archived_log": "cube-replay-bgfx-d3d12-40000-after-1-static.log",
+      "first_frame_ms": 1663.13,
+      "warm_median_ms": 12.7269,
+      "rgba_fnv64": "0x6714299260985122",
+      "image_sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "d3d12",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 2,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2986.5468,
+      "log": "build/cube-replay-bgfx-d3d12-40000-before-2-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-d3d12-40000-before-2-static.log",
+      "first_frame_ms": 1770.34,
+      "warm_median_ms": 12.9481,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "d3d12",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 2,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2906.897,
+      "log": "build/cube-replay-bgfx-d3d12-40000-after-2-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-d3d12-40000-after-2-static.log",
+      "first_frame_ms": 1682.71,
+      "warm_median_ms": 12.1959,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "d3d12",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 3,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2996.8864,
+      "log": "build/cube-replay-bgfx-d3d12-40000-before-3-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-d3d12-40000-before-3-static.log",
+      "first_frame_ms": 1784.46,
+      "warm_median_ms": 12.0145,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "d3d12",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 3,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2909.2876,
+      "log": "build/cube-replay-bgfx-d3d12-40000-after-3-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-d3d12-40000-after-3-static.log",
+      "first_frame_ms": 1680.07,
+      "warm_median_ms": 12.1174,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "d3d12",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": "trace",
+      "tracing": true,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 3104.8303,
+      "log": "build/cube-replay-bgfx-d3d12-40000-before-trace-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-d3d12-40000-before-trace-static.log",
+      "first_frame_ms": 1864.76,
+      "warm_median_ms": 12.7038,
+      "rgba_fnv64": "0x6714299260985122",
+      "trace": {
+        "action_first": {
+          "traversal_ms": 460.468,
+          "frame_plan_ms": 74.0619,
+          "backend_ms": 1328.33,
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "draws": 40001.0,
+          "plan_cache_hit": 0.0
+        },
+        "target_first": {
+          "validation_ms": 68.1354,
+          "prepare_ms": 301.913,
+          "submit_ms": 958.0355
+        },
+        "builder": {
+          "expand_styles_ms": 1.9471,
+          "validation_ms": 44.506,
+          "composition_ms": 23.2352,
+          "storage_report_ms": 0.0164,
+          "publish_plan_ms": 4.103,
+          "finish_ms": 0.2047
+        },
+        "storage": {
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "render_states": 40001.0,
+          "draws": 40001.0,
+          "vertex_stride": 100.0,
+          "vertex_bytes": 96002400.0,
+          "vertex_capacity_bytes": 104986900.0,
+          "index_bytes": 5760144.0,
+          "index_capacity_bytes": 6299212.0,
+          "render_state_bytes": 65601640.0,
+          "transfer_ownership": 1.0
+        },
+        "validation_passes": [
+          {
+            "materials_ms": 0.0007,
+            "vertices_ms": 24.6617,
+            "indices_ms": 0.6967,
+            "scene_state_ms": 0.008,
+            "render_states_ms": 14.2753,
+            "draws_ms": 4.7854,
+            "finish_ms": 0.0001
+          },
+          {
+            "materials_ms": 0.0006,
+            "vertices_ms": 24.2686,
+            "indices_ms": 0.5697,
+            "scene_state_ms": 0.0017,
+            "render_states_ms": 10.8421,
+            "draws_ms": 4.9733,
+            "finish_ms": 0.0
+          }
+        ],
+        "composition_passes": [
+          {
+            "classify_ms": 22.8062,
+            "sort_ms": 0.3618,
+            "finish_ms": 0.0001
+          },
+          {
+            "classify_ms": 24.7189,
+            "sort_ms": 0.3808,
+            "finish_ms": 0.0
+          }
+        ],
+        "validation_total_ms": 85.0839,
+        "vertices_validation_total_ms": 48.9303,
+        "composition_total_ms": 48.2678,
+        "action_warm": [
+          {
+            "traversal_ms": 0.0073,
+            "frame_plan_ms": 0.0005,
+            "backend_ms": 11.9971,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.006,
+            "frame_plan_ms": 0.0005,
+            "backend_ms": 12.1312,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.0097,
+            "frame_plan_ms": 0.0007,
+            "backend_ms": 12.1376,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "flavor": "bgfx",
+      "api": "d3d12",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": "warm",
+      "tracing": false,
+      "warmup": 4,
+      "frames": 8,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 3127.4572,
+      "log": "build/cube-replay-bgfx-d3d12-40000-before-warm-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-d3d12-40000-before-warm-static.log",
+      "first_frame_ms": 1814.72,
+      "warm_median_ms": 12.4711,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "d3d12",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": "trace",
+      "tracing": true,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2987.8344,
+      "log": "build/cube-replay-bgfx-d3d12-40000-after-trace-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-d3d12-40000-after-trace-static.log",
+      "first_frame_ms": 1660.28,
+      "warm_median_ms": 12.464,
+      "rgba_fnv64": "0x6714299260985122",
+      "trace": {
+        "action_first": {
+          "traversal_ms": 302.783,
+          "frame_plan_ms": 70.4337,
+          "backend_ms": 1284.9,
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "draws": 40001.0,
+          "plan_cache_hit": 0.0
+        },
+        "target_first": {
+          "validation_ms": 64.5933,
+          "prepare_ms": 308.0901,
+          "submit_ms": 911.9924
+        },
+        "builder": {
+          "expand_styles_ms": 2.1021,
+          "validation_ms": 41.1277,
+          "composition_ms": 21.0562,
+          "storage_report_ms": 0.0123,
+          "publish_plan_ms": 5.6603,
+          "finish_ms": 0.2356
+        },
+        "storage": {
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "render_states": 40001.0,
+          "draws": 40001.0,
+          "vertex_stride": 100.0,
+          "vertex_bytes": 96002400.0,
+          "vertex_capacity_bytes": 104986900.0,
+          "index_bytes": 5760144.0,
+          "index_capacity_bytes": 6299212.0,
+          "render_state_bytes": 65601640.0,
+          "transfer_ownership": 1.0,
+          "cube_replay_hits": 39999.0
+        },
+        "validation_passes": [
+          {
+            "materials_ms": 0.0009,
+            "vertices_ms": 24.6028,
+            "indices_ms": 0.5199,
+            "scene_state_ms": 0.0135,
+            "render_states_ms": 11.1349,
+            "draws_ms": 4.791,
+            "finish_ms": 0.0
+          },
+          {
+            "materials_ms": 0.0007,
+            "vertices_ms": 24.5474,
+            "indices_ms": 0.6858,
+            "scene_state_ms": 0.0015,
+            "render_states_ms": 11.196,
+            "draws_ms": 4.8921,
+            "finish_ms": 0.0
+          }
+        ],
+        "composition_passes": [
+          {
+            "classify_ms": 20.6374,
+            "sort_ms": 0.3593,
+            "finish_ms": 0.0002
+          },
+          {
+            "classify_ms": 20.5388,
+            "sort_ms": 0.4139,
+            "finish_ms": 0.0002
+          }
+        ],
+        "validation_total_ms": 82.38650000000001,
+        "vertices_validation_total_ms": 49.1502,
+        "composition_total_ms": 41.949799999999996,
+        "action_warm": [
+          {
+            "traversal_ms": 0.007,
+            "frame_plan_ms": 0.0004,
+            "backend_ms": 11.7746,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.0047,
+            "frame_plan_ms": 0.0004,
+            "backend_ms": 12.8012,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.007,
+            "frame_plan_ms": 0.0006,
+            "backend_ms": 11.8301,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "flavor": "bgfx",
+      "api": "d3d12",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": "warm",
+      "tracing": false,
+      "warmup": 4,
+      "frames": 8,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 3093.7813,
+      "log": "build/cube-replay-bgfx-d3d12-40000-after-warm-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-d3d12-40000-after-warm-static.log",
+      "first_frame_ms": 1669.12,
+      "warm_median_ms": 12.2739,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 1,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 3197.1551,
+      "log": "build/cube-replay-bgfx-vulkan-40000-before-1-static.log",
+      "image": "build/large-scenes/cube-replay-bgfx-vulkan-40000-before-1-static.ppm",
+      "archived_log": "cube-replay-bgfx-vulkan-40000-before-1-static.log",
+      "first_frame_ms": 1793.15,
+      "warm_median_ms": 10.6885,
+      "rgba_fnv64": "0x6714299260985122",
+      "image_sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 1,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 3199.6216,
+      "log": "build/cube-replay-bgfx-vulkan-40000-after-1-static.log",
+      "image": "build/large-scenes/cube-replay-bgfx-vulkan-40000-after-1-static.ppm",
+      "archived_log": "cube-replay-bgfx-vulkan-40000-after-1-static.log",
+      "first_frame_ms": 1682.8,
+      "warm_median_ms": 10.4018,
+      "rgba_fnv64": "0x6714299260985122",
+      "image_sha256": "77afc06bc324407024bc0168d99d5c6703ab81f064ee4c4f33e1235d39e60b0e"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 2,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 3202.7141,
+      "log": "build/cube-replay-bgfx-vulkan-40000-before-2-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-vulkan-40000-before-2-static.log",
+      "first_frame_ms": 1862.2,
+      "warm_median_ms": 10.2619,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 2,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 3208.3717,
+      "log": "build/cube-replay-bgfx-vulkan-40000-after-2-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-vulkan-40000-after-2-static.log",
+      "first_frame_ms": 1745.58,
+      "warm_median_ms": 10.6353,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 3,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 3182.5594,
+      "log": "build/cube-replay-bgfx-vulkan-40000-before-3-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-vulkan-40000-before-3-static.log",
+      "first_frame_ms": 1830.92,
+      "warm_median_ms": 10.3692,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 3,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 3276.3929,
+      "log": "build/cube-replay-bgfx-vulkan-40000-after-3-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-vulkan-40000-after-3-static.log",
+      "first_frame_ms": 1824.18,
+      "warm_median_ms": 10.5351,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": "trace",
+      "tracing": true,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 3165.7398,
+      "log": "build/cube-replay-bgfx-vulkan-40000-before-trace-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-vulkan-40000-before-trace-static.log",
+      "first_frame_ms": 1810.54,
+      "warm_median_ms": 11.1228,
+      "rgba_fnv64": "0x6714299260985122",
+      "trace": {
+        "action_first": {
+          "traversal_ms": 440.184,
+          "frame_plan_ms": 70.2738,
+          "backend_ms": 1298.51,
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "draws": 40001.0,
+          "plan_cache_hit": 0.0
+        },
+        "target_first": {
+          "validation_ms": 65.9096,
+          "prepare_ms": 361.516,
+          "submit_ms": 870.8476
+        },
+        "builder": {
+          "expand_styles_ms": 1.6306,
+          "validation_ms": 41.8538,
+          "composition_ms": 21.9941,
+          "storage_report_ms": 0.012,
+          "publish_plan_ms": 4.5073,
+          "finish_ms": 0.2177
+        },
+        "storage": {
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "render_states": 40001.0,
+          "draws": 40001.0,
+          "vertex_stride": 100.0,
+          "vertex_bytes": 96002400.0,
+          "vertex_capacity_bytes": 104986900.0,
+          "index_bytes": 5760144.0,
+          "index_capacity_bytes": 6299212.0,
+          "render_state_bytes": 65601640.0,
+          "transfer_ownership": 1.0
+        },
+        "validation_passes": [
+          {
+            "materials_ms": 0.0007,
+            "vertices_ms": 25.5507,
+            "indices_ms": 0.5472,
+            "scene_state_ms": 0.0123,
+            "render_states_ms": 10.545,
+            "draws_ms": 5.1357,
+            "finish_ms": 0.0
+          },
+          {
+            "materials_ms": 0.0006,
+            "vertices_ms": 25.1515,
+            "indices_ms": 0.5716,
+            "scene_state_ms": 0.0015,
+            "render_states_ms": 11.3337,
+            "draws_ms": 4.8472,
+            "finish_ms": 0.0
+          }
+        ],
+        "composition_passes": [
+          {
+            "classify_ms": 21.508,
+            "sort_ms": 0.4317,
+            "finish_ms": 0.0001
+          },
+          {
+            "classify_ms": 21.5118,
+            "sort_ms": 0.4081,
+            "finish_ms": 0.0001
+          }
+        ],
+        "validation_total_ms": 83.6977,
+        "vertices_validation_total_ms": 50.7022,
+        "composition_total_ms": 43.8598,
+        "action_warm": [
+          {
+            "traversal_ms": 0.0062,
+            "frame_plan_ms": 0.0004,
+            "backend_ms": 10.6628,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.0083,
+            "frame_plan_ms": 0.0005,
+            "backend_ms": 10.5039,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.0047,
+            "frame_plan_ms": 0.0004,
+            "backend_ms": 10.4236,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "flavor": "bgfx",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": "warm",
+      "tracing": false,
+      "warmup": 4,
+      "frames": 8,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 3270.1265,
+      "log": "build/cube-replay-bgfx-vulkan-40000-before-warm-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-vulkan-40000-before-warm-static.log",
+      "first_frame_ms": 1822.45,
+      "warm_median_ms": 10.5754,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": "trace",
+      "tracing": true,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 3048.2683,
+      "log": "build/cube-replay-bgfx-vulkan-40000-after-trace-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-vulkan-40000-after-trace-static.log",
+      "first_frame_ms": 1714.86,
+      "warm_median_ms": 10.9853,
+      "rgba_fnv64": "0x6714299260985122",
+      "trace": {
+        "action_first": {
+          "traversal_ms": 322.738,
+          "frame_plan_ms": 70.3372,
+          "backend_ms": 1320.18,
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "draws": 40001.0,
+          "plan_cache_hit": 0.0
+        },
+        "target_first": {
+          "validation_ms": 68.7807,
+          "prepare_ms": 386.4086,
+          "submit_ms": 864.7228
+        },
+        "builder": {
+          "expand_styles_ms": 1.7976,
+          "validation_ms": 40.7164,
+          "composition_ms": 22.2049,
+          "storage_report_ms": 0.0156,
+          "publish_plan_ms": 5.3388,
+          "finish_ms": 0.2144
+        },
+        "storage": {
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "render_states": 40001.0,
+          "draws": 40001.0,
+          "vertex_stride": 100.0,
+          "vertex_bytes": 96002400.0,
+          "vertex_capacity_bytes": 104986900.0,
+          "index_bytes": 5760144.0,
+          "index_capacity_bytes": 6299212.0,
+          "render_state_bytes": 65601640.0,
+          "transfer_ownership": 1.0,
+          "cube_replay_hits": 39999.0
+        },
+        "validation_passes": [
+          {
+            "materials_ms": 0.0008,
+            "vertices_ms": 24.5037,
+            "indices_ms": 0.9181,
+            "scene_state_ms": 0.0134,
+            "render_states_ms": 10.4091,
+            "draws_ms": 4.7971,
+            "finish_ms": 0.0
+          },
+          {
+            "materials_ms": 0.0005,
+            "vertices_ms": 25.2157,
+            "indices_ms": 0.6227,
+            "scene_state_ms": 0.0016,
+            "render_states_ms": 11.028,
+            "draws_ms": 5.97,
+            "finish_ms": 0.0
+          }
+        ],
+        "composition_passes": [
+          {
+            "classify_ms": 21.7986,
+            "sort_ms": 0.3537,
+            "finish_ms": 0.0002
+          },
+          {
+            "classify_ms": 23.1845,
+            "sort_ms": 0.5205,
+            "finish_ms": 0.0003
+          }
+        ],
+        "validation_total_ms": 83.4807,
+        "vertices_validation_total_ms": 49.71939999999999,
+        "composition_total_ms": 45.8578,
+        "action_warm": [
+          {
+            "traversal_ms": 0.0081,
+            "frame_plan_ms": 0.0007,
+            "backend_ms": 10.1277,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.0093,
+            "frame_plan_ms": 0.0006,
+            "backend_ms": 10.0,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.0052,
+            "frame_plan_ms": 0.0005,
+            "backend_ms": 10.4421,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "flavor": "bgfx",
+      "api": "vulkan",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": "warm",
+      "tracing": false,
+      "warmup": 4,
+      "frames": 8,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 3140.814,
+      "log": "build/cube-replay-bgfx-vulkan-40000-after-warm-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-vulkan-40000-after-warm-static.log",
+      "first_frame_ms": 1709.33,
+      "warm_median_ms": 10.6709,
+      "rgba_fnv64": "0x6714299260985122"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "opengl",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 1,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2927.8906,
+      "log": "build/cube-replay-bgfx-opengl-40000-before-1-static.log",
+      "image": "build/large-scenes/cube-replay-bgfx-opengl-40000-before-1-static.ppm",
+      "archived_log": "cube-replay-bgfx-opengl-40000-before-1-static.log",
+      "first_frame_ms": 1661.26,
+      "warm_median_ms": 12.8606,
+      "rgba_fnv64": "0x156847cec1d97864",
+      "image_sha256": "b5e7005ac8325b7499b71d87e8e0a42f292a477420107865433fa53d2254614e"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "opengl",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 1,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 3051.0617,
+      "log": "build/cube-replay-bgfx-opengl-40000-after-1-static.log",
+      "image": "build/large-scenes/cube-replay-bgfx-opengl-40000-after-1-static.ppm",
+      "archived_log": "cube-replay-bgfx-opengl-40000-after-1-static.log",
+      "first_frame_ms": 1515.14,
+      "warm_median_ms": 13.4432,
+      "rgba_fnv64": "0x156847cec1d97864",
+      "image_sha256": "b5e7005ac8325b7499b71d87e8e0a42f292a477420107865433fa53d2254614e"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "opengl",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 2,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2863.9923,
+      "log": "build/cube-replay-bgfx-opengl-40000-before-2-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-opengl-40000-before-2-static.log",
+      "first_frame_ms": 1657.61,
+      "warm_median_ms": 12.5544,
+      "rgba_fnv64": "0x156847cec1d97864"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "opengl",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 2,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2854.2905,
+      "log": "build/cube-replay-bgfx-opengl-40000-after-2-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-opengl-40000-after-2-static.log",
+      "first_frame_ms": 1531.86,
+      "warm_median_ms": 13.323,
+      "rgba_fnv64": "0x156847cec1d97864"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "opengl",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": 3,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2937.8171,
+      "log": "build/cube-replay-bgfx-opengl-40000-before-3-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-opengl-40000-before-3-static.log",
+      "first_frame_ms": 1708.0,
+      "warm_median_ms": 13.0946,
+      "rgba_fnv64": "0x156847cec1d97864"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "opengl",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": 3,
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2747.836,
+      "log": "build/cube-replay-bgfx-opengl-40000-after-3-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-opengl-40000-after-3-static.log",
+      "first_frame_ms": 1532.72,
+      "warm_median_ms": 13.6405,
+      "rgba_fnv64": "0x156847cec1d97864"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "opengl",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": "trace",
+      "tracing": true,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2884.4726,
+      "log": "build/cube-replay-bgfx-opengl-40000-before-trace-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-opengl-40000-before-trace-static.log",
+      "first_frame_ms": 1675.33,
+      "warm_median_ms": 13.1797,
+      "rgba_fnv64": "0x156847cec1d97864",
+      "trace": {
+        "action_first": {
+          "traversal_ms": 455.151,
+          "frame_plan_ms": 71.2103,
+          "backend_ms": 1147.06,
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "draws": 40001.0,
+          "plan_cache_hit": 0.0
+        },
+        "target_first": {
+          "validation_ms": 64.36,
+          "prepare_ms": 184.8265,
+          "submit_ms": 897.6207
+        },
+        "builder": {
+          "expand_styles_ms": 2.1103,
+          "validation_ms": 41.8545,
+          "composition_ms": 21.1876,
+          "storage_report_ms": 0.0153,
+          "publish_plan_ms": 5.7986,
+          "finish_ms": 0.1941
+        },
+        "storage": {
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "render_states": 40001.0,
+          "draws": 40001.0,
+          "vertex_stride": 100.0,
+          "vertex_bytes": 96002400.0,
+          "vertex_capacity_bytes": 104986900.0,
+          "index_bytes": 5760144.0,
+          "index_capacity_bytes": 6299212.0,
+          "render_state_bytes": 65601640.0,
+          "transfer_ownership": 1.0
+        },
+        "validation_passes": [
+          {
+            "materials_ms": 0.0007,
+            "vertices_ms": 24.5605,
+            "indices_ms": 0.6178,
+            "scene_state_ms": 0.0127,
+            "render_states_ms": 11.0822,
+            "draws_ms": 5.4912,
+            "finish_ms": 0.0001
+          },
+          {
+            "materials_ms": 0.0006,
+            "vertices_ms": 24.241,
+            "indices_ms": 0.5553,
+            "scene_state_ms": 0.0012,
+            "render_states_ms": 10.7025,
+            "draws_ms": 5.1063,
+            "finish_ms": 0.0
+          }
+        ],
+        "composition_passes": [
+          {
+            "classify_ms": 20.7718,
+            "sort_ms": 0.3585,
+            "finish_ms": 0.0
+          },
+          {
+            "classify_ms": 20.8484,
+            "sort_ms": 0.4848,
+            "finish_ms": 0.0001
+          }
+        ],
+        "validation_total_ms": 82.3721,
+        "vertices_validation_total_ms": 48.801500000000004,
+        "composition_total_ms": 42.4636,
+        "action_warm": [
+          {
+            "traversal_ms": 0.0053,
+            "frame_plan_ms": 0.0005,
+            "backend_ms": 13.0038,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.0042,
+            "frame_plan_ms": 0.0005,
+            "backend_ms": 12.6135,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.0049,
+            "frame_plan_ms": 0.0006,
+            "backend_ms": 12.3239,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "flavor": "bgfx",
+      "api": "opengl",
+      "buildings": 40000,
+      "variant": "before",
+      "sample": "warm",
+      "tracing": false,
+      "warmup": 4,
+      "frames": 8,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2973.3679,
+      "log": "build/cube-replay-bgfx-opengl-40000-before-warm-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-opengl-40000-before-warm-static.log",
+      "first_frame_ms": 1677.96,
+      "warm_median_ms": 12.9898,
+      "rgba_fnv64": "0x156847cec1d97864"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "opengl",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": "trace",
+      "tracing": true,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2777.3026,
+      "log": "build/cube-replay-bgfx-opengl-40000-after-trace-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-opengl-40000-after-trace-static.log",
+      "first_frame_ms": 1526.48,
+      "warm_median_ms": 12.7282,
+      "rgba_fnv64": "0x156847cec1d97864",
+      "trace": {
+        "action_first": {
+          "traversal_ms": 312.366,
+          "frame_plan_ms": 69.5496,
+          "backend_ms": 1142.31,
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "draws": 40001.0,
+          "plan_cache_hit": 0.0
+        },
+        "target_first": {
+          "validation_ms": 67.8254,
+          "prepare_ms": 182.9049,
+          "submit_ms": 891.3464
+        },
+        "builder": {
+          "expand_styles_ms": 1.508,
+          "validation_ms": 41.1134,
+          "composition_ms": 22.5217,
+          "storage_report_ms": 0.0157,
+          "publish_plan_ms": 4.1213,
+          "finish_ms": 0.2182
+        },
+        "storage": {
+          "vertices": 960024.0,
+          "indices": 1440036.0,
+          "render_states": 40001.0,
+          "draws": 40001.0,
+          "vertex_stride": 100.0,
+          "vertex_bytes": 96002400.0,
+          "vertex_capacity_bytes": 104986900.0,
+          "index_bytes": 5760144.0,
+          "index_capacity_bytes": 6299212.0,
+          "render_state_bytes": 65601640.0,
+          "transfer_ownership": 1.0,
+          "cube_replay_hits": 39999.0
+        },
+        "validation_passes": [
+          {
+            "materials_ms": 0.0005,
+            "vertices_ms": 24.5688,
+            "indices_ms": 0.523,
+            "scene_state_ms": 0.0132,
+            "render_states_ms": 10.6126,
+            "draws_ms": 5.3241,
+            "finish_ms": 0.0001
+          },
+          {
+            "materials_ms": 0.0006,
+            "vertices_ms": 27.9186,
+            "indices_ms": 0.582,
+            "scene_state_ms": 0.0016,
+            "render_states_ms": 10.4743,
+            "draws_ms": 5.6933,
+            "finish_ms": 0.0
+          }
+        ],
+        "composition_passes": [
+          {
+            "classify_ms": 22.08,
+            "sort_ms": 0.3881,
+            "finish_ms": 0.0001
+          },
+          {
+            "classify_ms": 20.6388,
+            "sort_ms": 0.3543,
+            "finish_ms": 0.0001
+          }
+        ],
+        "validation_total_ms": 85.7127,
+        "vertices_validation_total_ms": 52.4874,
+        "composition_total_ms": 43.4614,
+        "action_warm": [
+          {
+            "traversal_ms": 0.0075,
+            "frame_plan_ms": 0.0005,
+            "backend_ms": 12.6798,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.0093,
+            "frame_plan_ms": 0.0006,
+            "backend_ms": 11.9196,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          },
+          {
+            "traversal_ms": 0.0077,
+            "frame_plan_ms": 0.0005,
+            "backend_ms": 12.0871,
+            "vertices": 960024.0,
+            "indices": 1440036.0,
+            "draws": 40001.0,
+            "plan_cache_hit": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "flavor": "bgfx",
+      "api": "opengl",
+      "buildings": 40000,
+      "variant": "after",
+      "sample": "warm",
+      "tracing": false,
+      "warmup": 4,
+      "frames": 8,
+      "mode": "static",
+      "exit_code": 0,
+      "process_wall_ms": 2808.391,
+      "log": "build/cube-replay-bgfx-opengl-40000-after-warm-static.log",
+      "image": null,
+      "archived_log": "cube-replay-bgfx-opengl-40000-after-warm-static.log",
+      "first_frame_ms": 1507.52,
+      "warm_median_ms": 12.4763,
+      "rgba_fnv64": "0x156847cec1d97864"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "vulkan",
+      "buildings": 10000,
+      "variant": "before",
+      "sample": "update",
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "camera",
+      "exit_code": 0,
+      "process_wall_ms": 2727.612,
+      "log": "build/cube-replay-bgfx-vulkan-10000-before-update-camera.log",
+      "image": "build/large-scenes/cube-replay-bgfx-vulkan-10000-before-update-camera.ppm",
+      "archived_log": "cube-replay-bgfx-vulkan-10000-before-update-camera.log",
+      "first_frame_ms": 729.193,
+      "warm_median_ms": 362.217,
+      "rgba_fnv64": "0x7d4c848f9418f2b5",
+      "image_sha256": "51687589cae892f04cc48bf8ce1d4f2a6abade4db14d3f70ab4792c8f3dfac3e"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "vulkan",
+      "buildings": 10000,
+      "variant": "after",
+      "sample": "update",
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "camera",
+      "exit_code": 0,
+      "process_wall_ms": 2743.7182,
+      "log": "build/cube-replay-bgfx-vulkan-10000-after-update-camera.log",
+      "image": "build/large-scenes/cube-replay-bgfx-vulkan-10000-after-update-camera.ppm",
+      "archived_log": "cube-replay-bgfx-vulkan-10000-after-update-camera.log",
+      "first_frame_ms": 726.501,
+      "warm_median_ms": 328.183,
+      "rgba_fnv64": "0x7d4c848f9418f2b5",
+      "image_sha256": "51687589cae892f04cc48bf8ce1d4f2a6abade4db14d3f70ab4792c8f3dfac3e"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "vulkan",
+      "buildings": 10000,
+      "variant": "before",
+      "sample": "update",
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "material",
+      "exit_code": 0,
+      "process_wall_ms": 2732.689,
+      "log": "build/cube-replay-bgfx-vulkan-10000-before-update-material.log",
+      "image": "build/large-scenes/cube-replay-bgfx-vulkan-10000-before-update-material.ppm",
+      "archived_log": "cube-replay-bgfx-vulkan-10000-before-update-material.log",
+      "first_frame_ms": 745.775,
+      "warm_median_ms": 368.685,
+      "rgba_fnv64": "0x7992ecd3f2c22b6f",
+      "image_sha256": "3857b0fe4697de55e7725ff7c9562ab1339f5745d13867d79ea78acaa93cabe9"
+    },
+    {
+      "flavor": "bgfx",
+      "api": "vulkan",
+      "buildings": 10000,
+      "variant": "after",
+      "sample": "update",
+      "tracing": false,
+      "warmup": 1,
+      "frames": 3,
+      "mode": "material",
+      "exit_code": 0,
+      "process_wall_ms": 2613.0383,
+      "log": "build/cube-replay-bgfx-vulkan-10000-after-update-material.log",
+      "image": "build/large-scenes/cube-replay-bgfx-vulkan-10000-after-update-material.ppm",
+      "archived_log": "cube-replay-bgfx-vulkan-10000-after-update-material.log",
+      "first_frame_ms": 732.378,
+      "warm_median_ms": 327.589,
+      "rgba_fnv64": "0x7992ecd3f2c22b6f",
+      "image_sha256": "3857b0fe4697de55e7725ff7c9562ab1339f5745d13867d79ea78acaa93cabe9"
+    }
+  ],
+  "binary_sha256": {
+    "wgpu-before": {
+      "Coin4.dll": "ff72becc14c61e14fb99e69e57aadcb7dfa74d4104fb306757e66a56158ce6b1",
+      "CoinRender4.dll": "bdf7086344ac54791573cab354f4f228b903a47a7722735953b8836eff193498",
+      "coin_render_gl_benchmark.exe": "1da6cf6cde375226538ef0e18c2b0ee5a4ee3f77623723d45d31e5704ea2619e"
+    },
+    "wgpu-after": {
+      "Coin4.dll": "ff72becc14c61e14fb99e69e57aadcb7dfa74d4104fb306757e66a56158ce6b1",
+      "CoinRender4.dll": "c86dcdcc9624aaedd9275fa619c40d09cd7e5c8e2624f1abffb31ab9b5b43cda",
+      "coin_render_gl_benchmark.exe": "1da6cf6cde375226538ef0e18c2b0ee5a4ee3f77623723d45d31e5704ea2619e"
+    },
+    "bgfx-before": {
+      "Coin4.dll": "5ed9a37fc5ff02829087dd76b7680454a0fc49d1ded8d71f4d35cadac285b9f6",
+      "CoinRender4.dll": "04197741b6843543459966cb55218d79f873a693bac089858c17e45000056306",
+      "coin_render_gl_benchmark.exe": "b6bf4a99db41ec24cccb119567128ca25070bdecf2a700ececce147ba734e64b"
+    },
+    "bgfx-after": {
+      "Coin4.dll": "5ed9a37fc5ff02829087dd76b7680454a0fc49d1ded8d71f4d35cadac285b9f6",
+      "CoinRender4.dll": "d87d06ed58efaeefaa05ee0d994a6600b0095f58c31e188f7ac2741d174437c1",
+      "coin_render_gl_benchmark.exe": "b6bf4a99db41ec24cccb119567128ca25070bdecf2a700ececce147ba734e64b"
+    }
+  },
+  "installation": [
+    {
+      "flavor": "wgpu",
+      "file": "Coin4.dll",
+      "build": "build/coin-render-wgpu-msvc",
+      "prefix": "build/coin-render-install",
+      "sha256": "ff72becc14c61e14fb99e69e57aadcb7dfa74d4104fb306757e66a56158ce6b1",
+      "matches": true
+    },
+    {
+      "flavor": "wgpu",
+      "file": "CoinRender4.dll",
+      "build": "build/coin-render-wgpu-msvc",
+      "prefix": "build/coin-render-install",
+      "sha256": "c86dcdcc9624aaedd9275fa619c40d09cd7e5c8e2624f1abffb31ab9b5b43cda",
+      "matches": true
+    },
+    {
+      "flavor": "wgpu",
+      "file": "coin_render_gl_benchmark.exe",
+      "build": "build/coin-render-wgpu-msvc",
+      "prefix": "build/coin-render-install",
+      "sha256": "1da6cf6cde375226538ef0e18c2b0ee5a4ee3f77623723d45d31e5704ea2619e",
+      "matches": true
+    },
+    {
+      "flavor": "bgfx",
+      "file": "Coin4.dll",
+      "build": "build/coin-render-bgfx-msvc",
+      "prefix": "build/coin-render-bgfx-install",
+      "sha256": "5ed9a37fc5ff02829087dd76b7680454a0fc49d1ded8d71f4d35cadac285b9f6",
+      "matches": true
+    },
+    {
+      "flavor": "bgfx",
+      "file": "CoinRender4.dll",
+      "build": "build/coin-render-bgfx-msvc",
+      "prefix": "build/coin-render-bgfx-install",
+      "sha256": "d87d06ed58efaeefaa05ee0d994a6600b0095f58c31e188f7ac2741d174437c1",
+      "matches": true
+    },
+    {
+      "flavor": "bgfx",
+      "file": "coin_render_gl_benchmark.exe",
+      "build": "build/coin-render-bgfx-msvc",
+      "prefix": "build/coin-render-bgfx-install",
+      "sha256": "b6bf4a99db41ec24cccb119567128ca25070bdecf2a700ececce147ba734e64b",
+      "matches": true
+    }
+  ],
+  "bgfx_geometry_limit": "BGFX lowering still expands indexed vertices. Shared CPU capture shrinks, but BGFX output/upload vertex count does not."
+}

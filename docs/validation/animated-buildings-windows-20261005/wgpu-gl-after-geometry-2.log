@@ -1,0 +1,25 @@
+startup_detail arguments_ms=0.077 coin_init_ms=2.4687 capability_probe_ms=294.187
+scene_detail parse_ms=440.488 wrapper_ms=0.0215 camera_fit_ms=97.932
+scene_load_ms=538.543
+animation_detail mode=geometry animated_percent=20 eligible=40000 selected=8000 prepared_clones=8000 prepare_ms=98.0802 frame_step=3 time_step_seconds=0.05 selection_fnv64=0xaaccdd6bf19c5eff
+startup_detail material_search_ms=0.1581 target_setup_ms=1.9201
+WebGPU_first_detail render_ms=496.264 publication_copy_ms=0.7057 update_ms=18.5018 total_with_update_ms=515.471 before_frame_since_main_ms=954.695 result_since_main_ms=1451.66
+WebGPU_first_frame_ms=496.969
+capture backend=WebGPU frame_index=0 logical_frame=0 rgba_fnv64=0xe1a0f4d3dbfcd299 rgb_fnv64=0x4206bdf4eab17b3b state_fnv64=0x68076ef1c0a26d63 image=H:\Git\coin\build\animated-buildings-windows-20261005\wgpu-gl-after-geometry-2-WebGPU-000000.ppm
+capture backend=WebGPU frame_index=15 logical_frame=45 rgba_fnv64=0xb7344005e5fc5893 rgb_fnv64=0x50a284c1f6bd06d7 state_fnv64=0x5d167957d1ff72c2 image=H:\Git\coin\build\animated-buildings-windows-20261005\wgpu-gl-after-geometry-2-WebGPU-000015.ppm
+capture backend=WebGPU frame_index=29 logical_frame=87 rgba_fnv64=0x6deefbb5fe6fb6d5 rgb_fnv64=0x8fcb2844c1dfb4b state_fnv64=0x6027660fb2957a50 image=H:\Git\coin\build\animated-buildings-windows-20261005\wgpu-gl-after-geometry-2-WebGPU-000029.ppm
+WebGPU_animation_final logical_frame=87 state_fnv64=0x6027660fb2957a50
+samples_output=H:\Git\coin\build\animated-buildings-windows-20261005\wgpu-gl-after-geometry-2.csv rows=35
+rgba_fnv64=0x6deefbb5fe6fb6d5
+adapter=NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl) vendor_id=0x10de device_id=0x0 backend=wgpu size=768x768 warmup=5 scene=H:\Git\coin\build\large-scenes\city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=geometry
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..29 warmup_indices=-5..-1 frame_step=3 captures=3 capture_io=outside_frame_timers wall_throughput_includes_capture=1 wall_throughput_scope=update+frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+WebGPU frames=30 median_ms=143.239 p95_ms=161.145 min_ms=136.426 max_ms=212.55
+WebGPU_render frames=30 median_ms=142.974 p95_ms=160.748 min_ms=136.113 max_ms=203.821
+WebGPU_copy frames=30 median_ms=0.2907 p95_ms=0.4751 min_ms=0.2631 max_ms=8.7291
+WebGPU_timing_total frames=30 median_ms=163.3055 p95_ms=181.7155 p99_ms=232.507 max_ms=232.507 over_16_67=30 over_33_33=30
+WebGPU_timing_update frames=30 median_ms=20.60445 p95_ms=23.0875 p99_ms=24.6 max_ms=24.6 over_16_67=30 over_33_33=0
+WebGPU_timing_render frames=30 median_ms=142.57205 p95_ms=160.7476 p99_ms=203.8208 max_ms=203.8208 over_16_67=30 over_33_33=30
+WebGPU_throughput frames=30 total_ms=5018.75 fps=5.97758
+WebGPU_cache last_frame_uploads=1 last_frame_uploaded_bytes=5760144 last_frame_hits=1 cumulative_uploads=35 cumulative_uploaded_bytes=201608304 cumulative_hits=34
+backend_cleanup_begin
+backend_cleanup_ms=18.5555

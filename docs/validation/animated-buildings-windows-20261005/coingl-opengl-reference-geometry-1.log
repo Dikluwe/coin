@@ -1,0 +1,23 @@
+startup_detail arguments_ms=0.0799 coin_init_ms=2.3397 capability_probe_ms=0.0003
+scene_detail parse_ms=463.952 wrapper_ms=0.0194 camera_fit_ms=102.828
+scene_load_ms=566.891
+animation_detail mode=geometry animated_percent=20 eligible=40000 selected=8000 prepared_clones=8000 prepare_ms=106.746 frame_step=3 time_step_seconds=0.05 selection_fnv64=0xaaccdd6bf19c5eff
+startup_detail material_search_ms=0.1574 target_setup_ms=0.0136
+CoinGL_first_detail render_ms=730.26 lazy_readback_ms=6.2112 publication_copy_ms=0.2845 update_ms=12.986 total_with_update_ms=749.742 before_frame_since_main_ms=689.93 result_since_main_ms=1426.69
+CoinGL_first_frame_ms=736.756
+capture backend=CoinGL frame_index=0 logical_frame=0 rgba_fnv64=0x2978fdc76b7371bf rgb_fnv64=0x1e53ff8b2554559d state_fnv64=0x68076ef1c0a26d63 image=H:\Git\coin\build\animated-buildings-windows-20261005\coingl-opengl-reference-geometry-1-CoinGL-000000.ppm
+capture backend=CoinGL frame_index=15 logical_frame=45 rgba_fnv64=0x24c8104ba6dea51f rgb_fnv64=0x2165dc938f4f0f90 state_fnv64=0x5d167957d1ff72c2 image=H:\Git\coin\build\animated-buildings-windows-20261005\coingl-opengl-reference-geometry-1-CoinGL-000015.ppm
+capture backend=CoinGL frame_index=29 logical_frame=87 rgba_fnv64=0x1505246672932a1a rgb_fnv64=0xb9c578533c727eeb state_fnv64=0x6027660fb2957a50 image=H:\Git\coin\build\animated-buildings-windows-20261005\coingl-opengl-reference-geometry-1-CoinGL-000029.ppm
+CoinGL_animation_final logical_frame=87 state_fnv64=0x6027660fb2957a50
+samples_output=H:\Git\coin\build\animated-buildings-windows-20261005\coingl-opengl-reference-geometry-1.csv rows=35
+gl_rgba_fnv64=0x1505246672932a1a
+adapter=not-queried vendor_id=0x0 device_id=0x0 backend=gl size=768x768 warmup=5 scene=H:\Git\coin\build\large-scenes\city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=geometry
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..29 warmup_indices=-5..-1 frame_step=3 captures=3 capture_io=outside_frame_timers wall_throughput_includes_capture=1 wall_throughput_scope=update+frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+CoinGL frames=30 median_ms=163.425 p95_ms=192.134 min_ms=152.107 max_ms=253.13
+CoinGL_timing_total frames=30 median_ms=188.66365 p95_ms=221.0569 p99_ms=279.5791 max_ms=279.5791 over_16_67=30 over_33_33=30
+CoinGL_timing_update frames=30 median_ms=25.6076 p95_ms=29.8343 p99_ms=30.5417 max_ms=30.5417 over_16_67=30 over_33_33=0
+CoinGL_timing_render frames=30 median_ms=162.3326 p95_ms=191.7832 p99_ms=252.6136 max_ms=252.6136 over_16_67=30 over_33_33=30
+CoinGL_publication_copy frames=30 median_ms=0.31 p95_ms=0.6358 min_ms=0.2784 max_ms=0.7411
+CoinGL_throughput frames=30 total_ms=5862.67 fps=5.11712
+backend_cleanup_begin
+backend_cleanup_ms=74.9271

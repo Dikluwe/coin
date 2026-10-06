@@ -1,0 +1,91 @@
+START offscreen/transforms-10-coingl-1 matched_role=coingl execution_index=1
+DONE transforms-10-coingl-1/coingl: total median=111.714 p95=115.346 p99=115.346 update=3.402 ms
+START offscreen/transforms-10-wgpu-vulkan-1 matched_role=wgpu-before execution_index=2
+DONE transforms-10-wgpu-vulkan-1/wgpu-before: total median=55.400 p95=60.674 p99=60.674 update=3.450 ms
+START offscreen/transforms-10-wgpu-vulkan-1 matched_role=wgpu-after execution_index=3
+DONE transforms-10-wgpu-vulkan-1/wgpu-after: total median=43.355 p95=43.855 p99=43.855 update=3.652 ms
+START offscreen/materials-10-wgpu-vulkan-1 matched_role=wgpu-before execution_index=4
+DONE materials-10-wgpu-vulkan-1/wgpu-before: total median=62.334 p95=63.830 p99=63.830 update=4.512 ms
+START offscreen/materials-10-wgpu-vulkan-1 matched_role=wgpu-after execution_index=5
+DONE materials-10-wgpu-vulkan-1/wgpu-after: total median=50.092 p95=50.835 p99=50.835 update=4.483 ms
+START offscreen/materials-10-coingl-1 matched_role=coingl execution_index=6
+DONE materials-10-coingl-1/coingl: total median=118.148 p95=121.260 p99=121.260 update=3.991 ms
+START offscreen/geometry-10-wgpu-vulkan-1 matched_role=wgpu-after execution_index=7
+DONE geometry-10-wgpu-vulkan-1/wgpu-after: total median=62.849 p95=74.191 p99=74.191 update=8.283 ms
+START offscreen/geometry-10-coingl-1 matched_role=coingl execution_index=8
+DONE geometry-10-coingl-1/coingl: total median=119.160 p95=126.505 p99=126.505 update=6.024 ms
+START offscreen/geometry-10-wgpu-vulkan-1 matched_role=wgpu-before execution_index=9
+DONE geometry-10-wgpu-vulkan-1/wgpu-before: total median=71.156 p95=77.133 p99=77.133 update=7.914 ms
+START offscreen/static-coingl-1 matched_role=coingl execution_index=10
+DONE static-coingl-1/coingl: total median=12.867 p95=15.148 p99=15.148 update=0.000 ms
+START offscreen/static-wgpu-vulkan-1 matched_role=wgpu-before execution_index=11
+DONE static-wgpu-vulkan-1/wgpu-before: total median=3.342 p95=4.751 p99=4.751 update=0.000 ms
+START offscreen/static-wgpu-vulkan-1 matched_role=wgpu-after execution_index=12
+DONE static-wgpu-vulkan-1/wgpu-after: total median=2.846 p95=3.292 p99=3.292 update=0.000 ms
+START offscreen/camera-wgpu-vulkan-1 matched_role=wgpu-before execution_index=13
+DONE camera-wgpu-vulkan-1/wgpu-before: total median=9.721 p95=10.601 p99=10.601 update=0.023 ms
+START offscreen/camera-wgpu-vulkan-1 matched_role=wgpu-after execution_index=14
+DONE camera-wgpu-vulkan-1/wgpu-after: total median=10.673 p95=11.499 p99=11.499 update=0.022 ms
+START offscreen/camera-coingl-1 matched_role=coingl execution_index=15
+DONE camera-coingl-1/coingl: total median=74.078 p95=435.266 p99=435.266 update=0.013 ms
+START offscreen/transforms-10-coingl-2 matched_role=coingl execution_index=16
+DONE transforms-10-coingl-2/coingl: total median=115.199 p95=117.532 p99=117.532 update=3.479 ms
+START offscreen/transforms-10-wgpu-vulkan-2 matched_role=wgpu-after execution_index=17
+DONE transforms-10-wgpu-vulkan-2/wgpu-after: total median=43.139 p95=44.545 p99=44.545 update=3.590 ms
+START offscreen/transforms-10-wgpu-vulkan-2 matched_role=wgpu-before execution_index=18
+DONE transforms-10-wgpu-vulkan-2/wgpu-before: total median=54.911 p95=55.765 p99=55.765 update=3.430 ms
+START offscreen/camera-wgpu-vulkan-2 matched_role=wgpu-before execution_index=19
+DONE camera-wgpu-vulkan-2/wgpu-before: total median=10.236 p95=10.706 p99=10.706 update=0.021 ms
+START offscreen/camera-coingl-2 matched_role=coingl execution_index=20
+DONE camera-coingl-2/coingl: total median=73.644 p95=455.492 p99=455.492 update=0.012 ms
+START offscreen/camera-wgpu-vulkan-2 matched_role=wgpu-after execution_index=21
+DONE camera-wgpu-vulkan-2/wgpu-after: total median=9.948 p95=11.031 p99=11.031 update=0.022 ms
+START offscreen/static-wgpu-vulkan-2 matched_role=wgpu-after execution_index=22
+DONE static-wgpu-vulkan-2/wgpu-after: total median=2.960 p95=3.299 p99=3.299 update=0.000 ms
+START offscreen/static-wgpu-vulkan-2 matched_role=wgpu-before execution_index=23
+DONE static-wgpu-vulkan-2/wgpu-before: total median=3.258 p95=3.448 p99=3.448 update=0.000 ms
+START offscreen/static-coingl-2 matched_role=coingl execution_index=24
+DONE static-coingl-2/coingl: total median=14.484 p95=16.445 p99=16.445 update=0.000 ms
+START offscreen/geometry-10-coingl-2 matched_role=coingl execution_index=25
+DONE geometry-10-coingl-2/coingl: total median=128.712 p95=133.388 p99=133.388 update=6.546 ms
+START offscreen/geometry-10-wgpu-vulkan-2 matched_role=wgpu-after execution_index=26
+DONE geometry-10-wgpu-vulkan-2/wgpu-after: total median=67.258 p95=80.707 p99=80.707 update=8.803 ms
+START offscreen/geometry-10-wgpu-vulkan-2 matched_role=wgpu-before execution_index=27
+DONE geometry-10-wgpu-vulkan-2/wgpu-before: total median=76.996 p95=93.274 p99=93.274 update=8.278 ms
+START offscreen/materials-10-wgpu-vulkan-2 matched_role=wgpu-before execution_index=28
+DONE materials-10-wgpu-vulkan-2/wgpu-before: total median=68.125 p95=74.151 p99=74.151 update=4.829 ms
+START offscreen/materials-10-coingl-2 matched_role=coingl execution_index=29
+DONE materials-10-coingl-2/coingl: total median=117.531 p95=120.495 p99=120.495 update=4.073 ms
+START offscreen/materials-10-wgpu-vulkan-2 matched_role=wgpu-after execution_index=30
+DONE materials-10-wgpu-vulkan-2/wgpu-after: total median=49.606 p95=51.108 p99=51.108 update=4.498 ms
+START offscreen/geometry-10-wgpu-vulkan-3 matched_role=wgpu-after execution_index=31
+DONE geometry-10-wgpu-vulkan-3/wgpu-after: total median=56.865 p95=88.501 p99=88.501 update=7.878 ms
+START offscreen/geometry-10-coingl-3 matched_role=coingl execution_index=32
+DONE geometry-10-coingl-3/coingl: total median=117.662 p95=119.967 p99=119.967 update=5.945 ms
+START offscreen/geometry-10-wgpu-vulkan-3 matched_role=wgpu-before execution_index=33
+DONE geometry-10-wgpu-vulkan-3/wgpu-before: total median=69.192 p95=70.895 p99=70.895 update=7.896 ms
+START offscreen/static-coingl-3 matched_role=coingl execution_index=34
+DONE static-coingl-3/coingl: total median=13.429 p95=15.582 p99=15.582 update=0.000 ms
+START offscreen/static-wgpu-vulkan-3 matched_role=wgpu-before execution_index=35
+DONE static-wgpu-vulkan-3/wgpu-before: total median=2.662 p95=2.853 p99=2.853 update=0.000 ms
+START offscreen/static-wgpu-vulkan-3 matched_role=wgpu-after execution_index=36
+DONE static-wgpu-vulkan-3/wgpu-after: total median=2.790 p95=3.392 p99=3.392 update=0.000 ms
+START offscreen/camera-wgpu-vulkan-3 matched_role=wgpu-before execution_index=37
+DONE camera-wgpu-vulkan-3/wgpu-before: total median=9.547 p95=10.789 p99=10.789 update=0.020 ms
+START offscreen/camera-wgpu-vulkan-3 matched_role=wgpu-after execution_index=38
+DONE camera-wgpu-vulkan-3/wgpu-after: total median=9.517 p95=10.804 p99=10.804 update=0.020 ms
+START offscreen/camera-coingl-3 matched_role=coingl execution_index=39
+DONE camera-coingl-3/coingl: total median=74.862 p95=431.721 p99=431.721 update=0.012 ms
+START offscreen/transforms-10-wgpu-vulkan-3 matched_role=wgpu-after execution_index=40
+DONE transforms-10-wgpu-vulkan-3/wgpu-after: total median=42.779 p95=43.474 p99=43.474 update=3.593 ms
+START offscreen/transforms-10-coingl-3 matched_role=coingl execution_index=41
+DONE transforms-10-coingl-3/coingl: total median=115.142 p95=120.651 p99=120.651 update=3.484 ms
+START offscreen/transforms-10-wgpu-vulkan-3 matched_role=wgpu-before execution_index=42
+DONE transforms-10-wgpu-vulkan-3/wgpu-before: total median=55.205 p95=55.669 p99=55.669 update=3.376 ms
+START offscreen/materials-10-coingl-3 matched_role=coingl execution_index=43
+DONE materials-10-coingl-3/coingl: total median=118.178 p95=120.472 p99=120.472 update=3.996 ms
+START offscreen/materials-10-wgpu-vulkan-3 matched_role=wgpu-before execution_index=44
+DONE materials-10-wgpu-vulkan-3/wgpu-before: total median=62.450 p95=63.740 p99=63.740 update=4.473 ms
+START offscreen/materials-10-wgpu-vulkan-3 matched_role=wgpu-after execution_index=45
+DONE materials-10-wgpu-vulkan-3/wgpu-after: total median=50.004 p95=50.611 p99=50.611 update=4.541 ms
+Completed 45 interleaved processes; each output contains 30 results, including identical shared controls

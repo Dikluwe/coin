@@ -1,0 +1,15 @@
+startup_detail arguments_ms=0.0727 coin_init_ms=41.7967 capability_probe_ms=446.491
+scene_detail parse_ms=400.042 wrapper_ms=0.0182 camera_fit_ms=90.5558
+scene_load_ms=491.424
+startup_detail material_search_ms=0.236 target_setup_ms=1.7755
+BGFX-D3D12_first_detail render_ms=1802.28 publication_copy_ms=0.8612 before_frame_since_main_ms=982.749 result_since_main_ms=2785.89
+BGFX-D3D12_first_frame_ms=1803.14
+rgba_fnv64=0x6714299260985122
+image=build/large-scenes/cube-replay-bgfx-d3d12-40000-before-1-static.ppm
+adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) vendor_id=0x10de device_id=0x1c03 backend=bgfx size=1024x1024 warmup=1 scene=build/large-scenes/city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=static
+BGFX-D3D12 frames=3 median_ms=12.2022 p95_ms=12.2307 min_ms=11.812 max_ms=12.2307
+BGFX_render_and_readback frames=3 median_ms=11.6564 p95_ms=11.6564 min_ms=11.3048 max_ms=11.6564
+BGFX_publication_copy frames=3 median_ms=0.5458 p95_ms=0.5743 min_ms=0.5072 max_ms=0.5743
+BGFX-D3D12_throughput frames=3 total_ms=36.2505 fps=82.7575
+backend_cleanup_begin
+backend_cleanup_ms=73.653

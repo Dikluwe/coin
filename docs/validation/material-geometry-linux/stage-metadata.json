@@ -1,0 +1,24 @@
+{
+  "generated_at_utc": "2026-10-05T03:38:04.582072+00:00",
+  "branch": "codex/coin-render-transform-performance",
+  "source_content_revision": "ff289a50b971fbc012e791194acf0a5ec24cfb3b",
+  "overlay_revision": "6d076c47076f04e94c4d37b0383edb120559c505",
+  "before_source_content_revision": "b02aa54783f3844b10a23fbdbca8a73eec0e1215",
+  "coingl_control_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+  "timing_processes": 189,
+  "measured_frames_actual_executions": 2625,
+  "warmup_frames_actual_executions": 651,
+  "rgb_comparisons": 196,
+  "cpu_gates_final": 7,
+  "gpu_gates_final": 10,
+  "runtime_unavailable": [
+    "wgpu-opengl"
+  ],
+  "scene_sha256": "bb9ccc612cd38ffb749ee599d9350a80974649eab5bf477d2f344538a42b2576",
+  "limits": [
+    "Linux NVIDIA only",
+    "100-percent and preservation campaigns short",
+    "PPMs not copied; archived RGB uses stored metrics and image hashes",
+    "Matched protocol does not prove equal thermal/driver/compositor state"
+  ]
+}

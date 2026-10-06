@@ -1,0 +1,2639 @@
+{
+  "generated_at_utc": "2026-10-05T00:06:35.738905+00:00",
+  "aggregation": "Median of independently recomputed per-process median/p95/p99; global maxima and summed threshold counts from CSV",
+  "first_frame": "First CSV row, including warmup; render excludes update, total includes update",
+  "rss": "Process peak RSS from time(1), not GPU memory",
+  "campaigns": {
+    "before": {
+      "name": "before",
+      "original_directory": "/tmp/coin-render-wgpu-motion-window-before",
+      "manifest": {
+        "parameters": {
+          "before_wgpu_build": "/tmp/coin-render-motion-baseline/wgpu",
+          "after_wgpu_build": "/tmp/coin-render-first-frame-wgpu",
+          "bgfx_build": "/tmp/coin-render-motion-baseline/bgfx",
+          "scene": "/tmp/coin-render-city-40000.iv",
+          "output_before": "/tmp/coin-render-wgpu-motion-window-before",
+          "output_after": "/tmp/coin-render-wgpu-motion-window-after",
+          "cases": "transforms-10",
+          "scope": "window",
+          "rounds": 3,
+          "warmup": 5,
+          "frames": 30,
+          "gpu": "nvidia",
+          "size": 1024,
+          "timeout": 1800,
+          "runner": "/tmp/coin-render-first-frame/scripts/coinrender/run_animation_benchmark.py",
+          "before_source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+          "after_source_content_revision": "9e347591a9825ce4c1fcbdc76dc31d142d50d264",
+          "control_source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+          "mode": "measure",
+          "variants": "coingl,wgpu-vulkan",
+          "wgpu_build": "/tmp/coin-render-motion-baseline/wgpu",
+          "output": "/tmp/coin-render-wgpu-motion-window-before"
+        },
+        "scene_sha256": "bb9ccc612cd38ffb749ee599d9350a80974649eab5bf477d2f344538a42b2576",
+        "binary_hashes": {
+          "/tmp/coin-render-motion-baseline/bgfx/bin/coin_render_window_benchmark": "635c8d5dbc4aa59894a7ae2fc1541a27356054d10f5314db27a06b3c8e59ff5a",
+          "/tmp/coin-render-motion-baseline/bgfx/lib/libCoinRender.so": "51e7cd743a87afa7476b011a72f3749246e269d3d850715ddc3675af436658be",
+          "/tmp/coin-render-motion-baseline/bgfx/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f",
+          "/tmp/coin-render-motion-baseline/wgpu/bin/coin_render_window_benchmark": "1ebce110760db5bd624e645b3b2957ee4392c8361f8372240f17d6be3c739cfb",
+          "/tmp/coin-render-motion-baseline/wgpu/lib/libCoinRender.so": "ba932ff12475718e005eb8c738ad115e7475f7dd2f578a1071959f2e4871364a",
+          "/tmp/coin-render-motion-baseline/wgpu/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f"
+        },
+        "commands": [
+          {
+            "stem": "transforms-10-coingl-1",
+            "command": [
+              "/tmp/coin-render-motion-baseline/bgfx/bin/coin_render_window_benchmark",
+              "--backend",
+              "coin-gl",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "transforms",
+              "--animated-percent",
+              "10",
+              "--transparency",
+              "object",
+              "--warmup",
+              "5",
+              "--frames",
+              "30",
+              "--samples-output",
+              "/tmp/coin-render-wgpu-motion-window-before/samples/transforms-10-coingl-1.csv",
+              "--width",
+              "1024",
+              "--height",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-motion-baseline/bgfx/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1"
+            },
+            "matched_role": "coingl",
+            "execution_index": 1,
+            "source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+            "shared_control": true,
+            "executed_in_output": "/tmp/coin-render-wgpu-motion-window-before",
+            "copied_to_output": "/tmp/coin-render-wgpu-motion-window-after"
+          },
+          {
+            "stem": "transforms-10-wgpu-vulkan-1",
+            "command": [
+              "/tmp/coin-render-motion-baseline/wgpu/bin/coin_render_window_benchmark",
+              "--backend",
+              "wgpu-vulkan",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "transforms",
+              "--animated-percent",
+              "10",
+              "--transparency",
+              "object",
+              "--warmup",
+              "5",
+              "--frames",
+              "30",
+              "--samples-output",
+              "/tmp/coin-render-wgpu-motion-window-before/samples/transforms-10-wgpu-vulkan-1.csv",
+              "--width",
+              "1024",
+              "--height",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-motion-baseline/wgpu/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "WGPU_BACKEND": "vulkan"
+            },
+            "matched_role": "wgpu-before",
+            "execution_index": 2,
+            "source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+            "shared_control": false
+          },
+          {
+            "stem": "transforms-10-coingl-2",
+            "command": [
+              "/tmp/coin-render-motion-baseline/bgfx/bin/coin_render_window_benchmark",
+              "--backend",
+              "coin-gl",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "transforms",
+              "--animated-percent",
+              "10",
+              "--transparency",
+              "object",
+              "--warmup",
+              "5",
+              "--frames",
+              "30",
+              "--samples-output",
+              "/tmp/coin-render-wgpu-motion-window-before/samples/transforms-10-coingl-2.csv",
+              "--width",
+              "1024",
+              "--height",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-motion-baseline/bgfx/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1"
+            },
+            "matched_role": "coingl",
+            "execution_index": 4,
+            "source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+            "shared_control": true,
+            "executed_in_output": "/tmp/coin-render-wgpu-motion-window-before",
+            "copied_to_output": "/tmp/coin-render-wgpu-motion-window-after"
+          },
+          {
+            "stem": "transforms-10-wgpu-vulkan-2",
+            "command": [
+              "/tmp/coin-render-motion-baseline/wgpu/bin/coin_render_window_benchmark",
+              "--backend",
+              "wgpu-vulkan",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "transforms",
+              "--animated-percent",
+              "10",
+              "--transparency",
+              "object",
+              "--warmup",
+              "5",
+              "--frames",
+              "30",
+              "--samples-output",
+              "/tmp/coin-render-wgpu-motion-window-before/samples/transforms-10-wgpu-vulkan-2.csv",
+              "--width",
+              "1024",
+              "--height",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-motion-baseline/wgpu/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "WGPU_BACKEND": "vulkan"
+            },
+            "matched_role": "wgpu-before",
+            "execution_index": 6,
+            "source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+            "shared_control": false
+          },
+          {
+            "stem": "transforms-10-coingl-3",
+            "command": [
+              "/tmp/coin-render-motion-baseline/bgfx/bin/coin_render_window_benchmark",
+              "--backend",
+              "coin-gl",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "transforms",
+              "--animated-percent",
+              "10",
+              "--transparency",
+              "object",
+              "--warmup",
+              "5",
+              "--frames",
+              "30",
+              "--samples-output",
+              "/tmp/coin-render-wgpu-motion-window-before/samples/transforms-10-coingl-3.csv",
+              "--width",
+              "1024",
+              "--height",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-motion-baseline/bgfx/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1"
+            },
+            "matched_role": "coingl",
+            "execution_index": 8,
+            "source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+            "shared_control": true,
+            "executed_in_output": "/tmp/coin-render-wgpu-motion-window-before",
+            "copied_to_output": "/tmp/coin-render-wgpu-motion-window-after"
+          },
+          {
+            "stem": "transforms-10-wgpu-vulkan-3",
+            "command": [
+              "/tmp/coin-render-motion-baseline/wgpu/bin/coin_render_window_benchmark",
+              "--backend",
+              "wgpu-vulkan",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "transforms",
+              "--animated-percent",
+              "10",
+              "--transparency",
+              "object",
+              "--warmup",
+              "5",
+              "--frames",
+              "30",
+              "--samples-output",
+              "/tmp/coin-render-wgpu-motion-window-before/samples/transforms-10-wgpu-vulkan-3.csv",
+              "--width",
+              "1024",
+              "--height",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-motion-baseline/wgpu/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "WGPU_BACKEND": "vulkan"
+            },
+            "matched_role": "wgpu-before",
+            "execution_index": 9,
+            "source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+            "shared_control": false
+          }
+        ],
+        "execution_order": [
+          {
+            "case": "transforms-10",
+            "round": 1,
+            "matched_role": "coingl",
+            "variant": "coingl",
+            "stem": "transforms-10-coingl-1",
+            "execution_index": 1
+          },
+          {
+            "case": "transforms-10",
+            "round": 1,
+            "matched_role": "wgpu-before",
+            "variant": "wgpu-vulkan",
+            "stem": "transforms-10-wgpu-vulkan-1",
+            "execution_index": 2
+          },
+          {
+            "case": "transforms-10",
+            "round": 1,
+            "matched_role": "wgpu-after",
+            "variant": "wgpu-vulkan",
+            "stem": "transforms-10-wgpu-vulkan-1",
+            "execution_index": 3
+          },
+          {
+            "case": "transforms-10",
+            "round": 2,
+            "matched_role": "coingl",
+            "variant": "coingl",
+            "stem": "transforms-10-coingl-2",
+            "execution_index": 4
+          },
+          {
+            "case": "transforms-10",
+            "round": 2,
+            "matched_role": "wgpu-after",
+            "variant": "wgpu-vulkan",
+            "stem": "transforms-10-wgpu-vulkan-2",
+            "execution_index": 5
+          },
+          {
+            "case": "transforms-10",
+            "round": 2,
+            "matched_role": "wgpu-before",
+            "variant": "wgpu-vulkan",
+            "stem": "transforms-10-wgpu-vulkan-2",
+            "execution_index": 6
+          },
+          {
+            "case": "transforms-10",
+            "round": 3,
+            "matched_role": "wgpu-after",
+            "variant": "wgpu-vulkan",
+            "stem": "transforms-10-wgpu-vulkan-3",
+            "execution_index": 7
+          },
+          {
+            "case": "transforms-10",
+            "round": 3,
+            "matched_role": "coingl",
+            "variant": "coingl",
+            "stem": "transforms-10-coingl-3",
+            "execution_index": 8
+          },
+          {
+            "case": "transforms-10",
+            "round": 3,
+            "matched_role": "wgpu-before",
+            "variant": "wgpu-vulkan",
+            "stem": "transforms-10-wgpu-vulkan-3",
+            "execution_index": 9
+          }
+        ],
+        "source_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+        "source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+        "variant_source_content_revisions": {
+          "coingl": "4d63bb993022ee8d40802558b0871a4803002b8d",
+          "wgpu-vulkan": "4d63bb993022ee8d40802558b0871a4803002b8d"
+        },
+        "runner_source_revision": "9e347591a9825ce4c1fcbdc76dc31d142d50d264",
+        "runner_path": "/tmp/coin-render-first-frame/scripts/coinrender/run_animation_benchmark.py",
+        "runner_sha256": "b90c4c26c6b45b79d83984d54e182e19f457d54519901c8e75dc8688dbc2046d",
+        "matched_runner_sha256": "514e4af10dd8d5245ff958a08b7e2df52f8e3f57b52d57675bc271491fbefeb6",
+        "matched_role": "wgpu-before",
+        "shared_control": true,
+        "shared_control_output": "/tmp/coin-render-wgpu-motion-window-before",
+        "matched_peer_output": "/tmp/coin-render-wgpu-motion-window-after"
+      },
+      "processes": [
+        {
+          "case": "transforms-10",
+          "variant": "coingl",
+          "round": 1,
+          "scope": "window",
+          "samples": "samples/transforms-10-coingl-1.csv",
+          "log": "logs/transforms-10-coingl-1.log",
+          "measured_frames": 30,
+          "warmup_frames": 5,
+          "stats": {
+            "update_ms": {
+              "median_ms": 3.464175,
+              "p95_ms": 5.178245,
+              "p99_ms": 5.56307,
+              "max_ms": 5.56307,
+              "over_16_67": 0,
+              "over_33_33": 0
+            },
+            "render_ms": {
+              "median_ms": 99.523102,
+              "p95_ms": 481.723225,
+              "p99_ms": 482.440479,
+              "max_ms": 482.440479,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "total_ms": {
+              "median_ms": 102.897245,
+              "p95_ms": 485.109165,
+              "p99_ms": 485.881591,
+              "max_ms": 485.881591,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "event_ms": {
+              "median_ms": 0.0021939999999999998,
+              "p95_ms": 0.00538,
+              "p99_ms": 0.007684,
+              "max_ms": 0.007684,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 315964,
+          "first_total_ms_from_csv": 276.237397,
+          "first_render_ms_from_csv": 273.769315,
+          "metadata": {
+            "lines": [
+              "window_benchmark backend=coin-gl transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2\" vendor_id=0x0 device_id=0x0 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=glFinish throughput_scope=cpu-loop-plus-final-GL-queue-drain final_gpu_drain_ms=7.462243 cpu_frame_median_ms=99.523102 cpu_frame_p95_ms=481.723225 cpu_frame_min_ms=97.208536 cpu_frame_max_ms=482.440479 update_median_ms=3.464175 update_p95_ms=5.178245 update_p99_ms=5.563070 update_min_ms=3.362877 update_max_ms=5.563070 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=99.523102 render_present_p95_ms=481.723225 render_present_p99_ms=482.440479 render_present_min_ms=97.208536 render_present_max_ms=482.440479 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=102.897245 frame_total_p95_ms=485.109165 frame_total_p99_ms=485.881591 frame_total_min_ms=100.591229 frame_total_max_ms=485.881591 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=4988.632784 event_ms=0.081338 total_ms=4996.181728 throughput_fps=6.004585"
+            ],
+            "fields": {
+              "backend": "coin-gl",
+              "transparency": "object",
+              "size": "1024x1024",
+              "warmup": "5",
+              "frames": "30",
+              "scene_update": "transforms",
+              "animation": "transforms",
+              "animated_percent": "10",
+              "animation_step": "1",
+              "eligible": "40000",
+              "selected": "4000",
+              "prepared_clones": "0",
+              "selection_digest": "0x44ab2b433838fad2",
+              "final_state_digest": "0x4b76e9998add7ebb",
+              "scene": "/tmp/coin-render-city-40000.iv",
+              "framing": "perspective-viewAll-1.15",
+              "readback": "none",
+              "adapter": "\"NVIDIA",
+              "vendor_id": "0x0",
+              "device_id": "0x0",
+              "present_policy": "off-requested",
+              "timing_scope": "cpu-update-and-render-present-call",
+              "display_latency_measured": "0",
+              "gpu_duration_measured": "0",
+              "final_sync": "glFinish",
+              "throughput_scope": "cpu-loop-plus-final-GL-queue-drain",
+              "final_gpu_drain_ms": "7.462243",
+              "cpu_frame_median_ms": "99.523102",
+              "cpu_frame_p95_ms": "481.723225",
+              "cpu_frame_min_ms": "97.208536",
+              "cpu_frame_max_ms": "482.440479",
+              "update_median_ms": "3.464175",
+              "update_p95_ms": "5.178245",
+              "update_p99_ms": "5.563070",
+              "update_min_ms": "3.362877",
+              "update_max_ms": "5.563070",
+              "update_over_16_666667_ms": "0",
+              "update_over_33_333333_ms": "0",
+              "render_present_median_ms": "99.523102",
+              "render_present_p95_ms": "481.723225",
+              "render_present_p99_ms": "482.440479",
+              "render_present_min_ms": "97.208536",
+              "render_present_max_ms": "482.440479",
+              "render_present_over_16_666667_ms": "30",
+              "render_present_over_33_333333_ms": "30",
+              "frame_total_median_ms": "102.897245",
+              "frame_total_p95_ms": "485.109165",
+              "frame_total_p99_ms": "485.881591",
+              "frame_total_min_ms": "100.591229",
+              "frame_total_max_ms": "485.881591",
+              "frame_total_over_16_666667_ms": "30",
+              "frame_total_over_33_333333_ms": "30",
+              "sample_total_ms": "4988.632784",
+              "event_ms": "0.081338",
+              "total_ms": "4996.181728",
+              "throughput_fps": "6.004585"
+            },
+            "final_state_fnv64": "0x4b76e9998add7ebb",
+            "gpu_identity_lines": [
+              "window_benchmark backend=coin-gl transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2\" vendor_id=0x0 device_id=0x0 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=glFinish throughput_scope=cpu-loop-plus-final-GL-queue-drain final_gpu_drain_ms=7.462243 cpu_frame_median_ms=99.523102 cpu_frame_p95_ms=481.723225 cpu_frame_min_ms=97.208536 cpu_frame_max_ms=482.440479 update_median_ms=3.464175 update_p95_ms=5.178245 update_p99_ms=5.563070 update_min_ms=3.362877 update_max_ms=5.563070 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=99.523102 render_present_p95_ms=481.723225 render_present_p99_ms=482.440479 render_present_min_ms=97.208536 render_present_max_ms=482.440479 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=102.897245 frame_total_p95_ms=485.109165 frame_total_p99_ms=485.881591 frame_total_min_ms=100.591229 frame_total_max_ms=485.881591 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=4988.632784 event_ms=0.081338 total_ms=4996.181728 throughput_fps=6.004585"
+            ]
+          },
+          "first_ms": 273.769315,
+          "first_total_ms": 276.237397,
+          "result_since_main_ms": 1569.18298,
+          "wall_total_ms": 4996.181728,
+          "throughput_fps": 6.004585,
+          "final_gpu_drain_ms": 7.462243,
+          "throughput_scope": "cpu-loop-plus-final-GL-queue-drain"
+        },
+        {
+          "case": "transforms-10",
+          "variant": "wgpu-vulkan",
+          "round": 1,
+          "scope": "window",
+          "samples": "samples/transforms-10-wgpu-vulkan-1.csv",
+          "log": "logs/transforms-10-wgpu-vulkan-1.log",
+          "measured_frames": 30,
+          "warmup_frames": 5,
+          "stats": {
+            "update_ms": {
+              "median_ms": 2.587038,
+              "p95_ms": 3.376001,
+              "p99_ms": 3.392542,
+              "max_ms": 3.392542,
+              "over_16_67": 0,
+              "over_33_33": 0
+            },
+            "render_ms": {
+              "median_ms": 499.01897699999995,
+              "p95_ms": 719.450567,
+              "p99_ms": 721.099974,
+              "max_ms": 721.099974,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "total_ms": {
+              "median_ms": 501.8086975,
+              "p95_ms": 721.87642,
+              "p99_ms": 723.569829,
+              "max_ms": 723.569829,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "event_ms": {
+              "median_ms": 0.0050745,
+              "p95_ms": 0.015659,
+              "p99_ms": 0.01611,
+              "max_ms": 0.01611,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 764420,
+          "first_total_ms_from_csv": 425.249428,
+          "first_render_ms_from_csv": 421.822792,
+          "metadata": {
+            "lines": [
+              "window_benchmark backend=wgpu-vulkan transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan)\" vendor_id=0x10de device_id=0x2560 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=none-public-api throughput_scope=cpu-loop-native-queue-may-remain-pending final_gpu_drain_ms=-1.000000 cpu_frame_median_ms=499.018977 cpu_frame_p95_ms=719.450567 cpu_frame_min_ms=275.595701 cpu_frame_max_ms=721.099974 update_median_ms=2.587038 update_p95_ms=3.376001 update_p99_ms=3.392542 update_min_ms=2.425853 update_max_ms=3.392542 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=499.018977 render_present_p95_ms=719.450567 render_present_p99_ms=721.099974 render_present_min_ms=275.595701 render_present_max_ms=721.099974 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=501.808697 frame_total_p95_ms=721.876420 frame_total_p99_ms=723.569829 frame_total_min_ms=278.898435 frame_total_max_ms=723.569829 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=15009.279433 event_ms=0.181319 total_ms=15009.461832 throughput_fps=1.998739"
+            ],
+            "fields": {
+              "backend": "wgpu-vulkan",
+              "transparency": "object",
+              "size": "1024x1024",
+              "warmup": "5",
+              "frames": "30",
+              "scene_update": "transforms",
+              "animation": "transforms",
+              "animated_percent": "10",
+              "animation_step": "1",
+              "eligible": "40000",
+              "selected": "4000",
+              "prepared_clones": "0",
+              "selection_digest": "0x44ab2b433838fad2",
+              "final_state_digest": "0x4b76e9998add7ebb",
+              "scene": "/tmp/coin-render-city-40000.iv",
+              "framing": "perspective-viewAll-1.15",
+              "readback": "none",
+              "adapter": "\"NVIDIA",
+              "vendor_id": "0x10de",
+              "device_id": "0x2560",
+              "present_policy": "off-requested",
+              "timing_scope": "cpu-update-and-render-present-call",
+              "display_latency_measured": "0",
+              "gpu_duration_measured": "0",
+              "final_sync": "none-public-api",
+              "throughput_scope": "cpu-loop-native-queue-may-remain-pending",
+              "final_gpu_drain_ms": "-1.000000",
+              "cpu_frame_median_ms": "499.018977",
+              "cpu_frame_p95_ms": "719.450567",
+              "cpu_frame_min_ms": "275.595701",
+              "cpu_frame_max_ms": "721.099974",
+              "update_median_ms": "2.587038",
+              "update_p95_ms": "3.376001",
+              "update_p99_ms": "3.392542",
+              "update_min_ms": "2.425853",
+              "update_max_ms": "3.392542",
+              "update_over_16_666667_ms": "0",
+              "update_over_33_333333_ms": "0",
+              "render_present_median_ms": "499.018977",
+              "render_present_p95_ms": "719.450567",
+              "render_present_p99_ms": "721.099974",
+              "render_present_min_ms": "275.595701",
+              "render_present_max_ms": "721.099974",
+              "render_present_over_16_666667_ms": "30",
+              "render_present_over_33_333333_ms": "30",
+              "frame_total_median_ms": "501.808697",
+              "frame_total_p95_ms": "721.876420",
+              "frame_total_p99_ms": "723.569829",
+              "frame_total_min_ms": "278.898435",
+              "frame_total_max_ms": "723.569829",
+              "frame_total_over_16_666667_ms": "30",
+              "frame_total_over_33_333333_ms": "30",
+              "sample_total_ms": "15009.279433",
+              "event_ms": "0.181319",
+              "total_ms": "15009.461832",
+              "throughput_fps": "1.998739"
+            },
+            "final_state_fnv64": "0x4b76e9998add7ebb",
+            "gpu_identity_lines": [
+              "window_benchmark backend=wgpu-vulkan transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan)\" vendor_id=0x10de device_id=0x2560 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=none-public-api throughput_scope=cpu-loop-native-queue-may-remain-pending final_gpu_drain_ms=-1.000000 cpu_frame_median_ms=499.018977 cpu_frame_p95_ms=719.450567 cpu_frame_min_ms=275.595701 cpu_frame_max_ms=721.099974 update_median_ms=2.587038 update_p95_ms=3.376001 update_p99_ms=3.392542 update_min_ms=2.425853 update_max_ms=3.392542 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=499.018977 render_present_p95_ms=719.450567 render_present_p99_ms=721.099974 render_present_min_ms=275.595701 render_present_max_ms=721.099974 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=501.808697 frame_total_p95_ms=721.876420 frame_total_p99_ms=723.569829 frame_total_min_ms=278.898435 frame_total_max_ms=723.569829 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=15009.279433 event_ms=0.181319 total_ms=15009.461832 throughput_fps=1.998739"
+            ]
+          },
+          "first_ms": 421.822792,
+          "first_total_ms": 425.249428,
+          "result_since_main_ms": 1952.284768,
+          "wall_total_ms": 15009.461832,
+          "throughput_fps": 1.998739,
+          "final_gpu_drain_ms": -1.0,
+          "throughput_scope": "cpu-loop-native-queue-may-remain-pending"
+        },
+        {
+          "case": "transforms-10",
+          "variant": "coingl",
+          "round": 2,
+          "scope": "window",
+          "samples": "samples/transforms-10-coingl-2.csv",
+          "log": "logs/transforms-10-coingl-2.log",
+          "measured_frames": 30,
+          "warmup_frames": 5,
+          "stats": {
+            "update_ms": {
+              "median_ms": 3.5018599999999998,
+              "p95_ms": 5.130246,
+              "p99_ms": 5.373508,
+              "max_ms": 5.373508,
+              "over_16_67": 0,
+              "over_33_33": 0
+            },
+            "render_ms": {
+              "median_ms": 103.0461325,
+              "p95_ms": 464.525532,
+              "p99_ms": 465.424117,
+              "max_ms": 465.424117,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "total_ms": {
+              "median_ms": 106.51607849999999,
+              "p95_ms": 468.031094,
+              "p99_ms": 468.94091,
+              "max_ms": 468.94091,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "event_ms": {
+              "median_ms": 0.0024245,
+              "p95_ms": 0.004148,
+              "p99_ms": 0.004659,
+              "max_ms": 0.004659,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 313640,
+          "first_total_ms_from_csv": 251.825653,
+          "first_render_ms_from_csv": 249.483486,
+          "metadata": {
+            "lines": [
+              "window_benchmark backend=coin-gl transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2\" vendor_id=0x0 device_id=0x0 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=glFinish throughput_scope=cpu-loop-plus-final-GL-queue-drain final_gpu_drain_ms=5.979245 cpu_frame_median_ms=103.046132 cpu_frame_p95_ms=464.525532 cpu_frame_min_ms=99.819099 cpu_frame_max_ms=465.424117 update_median_ms=3.501860 update_p95_ms=5.130246 update_p99_ms=5.373508 update_min_ms=3.350324 update_max_ms=5.373508 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=103.046132 render_present_p95_ms=464.525532 render_present_p99_ms=465.424117 render_present_min_ms=99.819099 render_present_max_ms=465.424117 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=106.516078 frame_total_p95_ms=468.031094 frame_total_p99_ms=468.940910 frame_total_min_ms=103.273897 frame_total_max_ms=468.940910 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=4999.058390 event_ms=0.078305 total_ms=5005.120281 throughput_fps=5.993862"
+            ],
+            "fields": {
+              "backend": "coin-gl",
+              "transparency": "object",
+              "size": "1024x1024",
+              "warmup": "5",
+              "frames": "30",
+              "scene_update": "transforms",
+              "animation": "transforms",
+              "animated_percent": "10",
+              "animation_step": "1",
+              "eligible": "40000",
+              "selected": "4000",
+              "prepared_clones": "0",
+              "selection_digest": "0x44ab2b433838fad2",
+              "final_state_digest": "0x4b76e9998add7ebb",
+              "scene": "/tmp/coin-render-city-40000.iv",
+              "framing": "perspective-viewAll-1.15",
+              "readback": "none",
+              "adapter": "\"NVIDIA",
+              "vendor_id": "0x0",
+              "device_id": "0x0",
+              "present_policy": "off-requested",
+              "timing_scope": "cpu-update-and-render-present-call",
+              "display_latency_measured": "0",
+              "gpu_duration_measured": "0",
+              "final_sync": "glFinish",
+              "throughput_scope": "cpu-loop-plus-final-GL-queue-drain",
+              "final_gpu_drain_ms": "5.979245",
+              "cpu_frame_median_ms": "103.046132",
+              "cpu_frame_p95_ms": "464.525532",
+              "cpu_frame_min_ms": "99.819099",
+              "cpu_frame_max_ms": "465.424117",
+              "update_median_ms": "3.501860",
+              "update_p95_ms": "5.130246",
+              "update_p99_ms": "5.373508",
+              "update_min_ms": "3.350324",
+              "update_max_ms": "5.373508",
+              "update_over_16_666667_ms": "0",
+              "update_over_33_333333_ms": "0",
+              "render_present_median_ms": "103.046132",
+              "render_present_p95_ms": "464.525532",
+              "render_present_p99_ms": "465.424117",
+              "render_present_min_ms": "99.819099",
+              "render_present_max_ms": "465.424117",
+              "render_present_over_16_666667_ms": "30",
+              "render_present_over_33_333333_ms": "30",
+              "frame_total_median_ms": "106.516078",
+              "frame_total_p95_ms": "468.031094",
+              "frame_total_p99_ms": "468.940910",
+              "frame_total_min_ms": "103.273897",
+              "frame_total_max_ms": "468.940910",
+              "frame_total_over_16_666667_ms": "30",
+              "frame_total_over_33_333333_ms": "30",
+              "sample_total_ms": "4999.058390",
+              "event_ms": "0.078305",
+              "total_ms": "5005.120281",
+              "throughput_fps": "5.993862"
+            },
+            "final_state_fnv64": "0x4b76e9998add7ebb",
+            "gpu_identity_lines": [
+              "window_benchmark backend=coin-gl transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2\" vendor_id=0x0 device_id=0x0 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=glFinish throughput_scope=cpu-loop-plus-final-GL-queue-drain final_gpu_drain_ms=5.979245 cpu_frame_median_ms=103.046132 cpu_frame_p95_ms=464.525532 cpu_frame_min_ms=99.819099 cpu_frame_max_ms=465.424117 update_median_ms=3.501860 update_p95_ms=5.130246 update_p99_ms=5.373508 update_min_ms=3.350324 update_max_ms=5.373508 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=103.046132 render_present_p95_ms=464.525532 render_present_p99_ms=465.424117 render_present_min_ms=99.819099 render_present_max_ms=465.424117 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=106.516078 frame_total_p95_ms=468.031094 frame_total_p99_ms=468.940910 frame_total_min_ms=103.273897 frame_total_max_ms=468.940910 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=4999.058390 event_ms=0.078305 total_ms=5005.120281 throughput_fps=5.993862"
+            ]
+          },
+          "first_ms": 249.483486,
+          "first_total_ms": 251.825653,
+          "result_since_main_ms": 1743.701148,
+          "wall_total_ms": 5005.120281,
+          "throughput_fps": 5.993862,
+          "final_gpu_drain_ms": 5.979245,
+          "throughput_scope": "cpu-loop-plus-final-GL-queue-drain"
+        },
+        {
+          "case": "transforms-10",
+          "variant": "wgpu-vulkan",
+          "round": 2,
+          "scope": "window",
+          "samples": "samples/transforms-10-wgpu-vulkan-2.csv",
+          "log": "logs/transforms-10-wgpu-vulkan-2.log",
+          "measured_frames": 30,
+          "warmup_frames": 5,
+          "stats": {
+            "update_ms": {
+              "median_ms": 2.5124495,
+              "p95_ms": 3.055054,
+              "p99_ms": 3.058972,
+              "max_ms": 3.058972,
+              "over_16_67": 0,
+              "over_33_33": 0
+            },
+            "render_ms": {
+              "median_ms": 497.096876,
+              "p95_ms": 719.387041,
+              "p99_ms": 722.589507,
+              "max_ms": 722.589507,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "total_ms": {
+              "median_ms": 499.5945125,
+              "p95_ms": 721.887073,
+              "p99_ms": 725.014509,
+              "max_ms": 725.014509,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "event_ms": {
+              "median_ms": 0.005049,
+              "p95_ms": 0.008446,
+              "p99_ms": 0.008616,
+              "max_ms": 0.008616,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 764340,
+          "first_total_ms_from_csv": 426.941629,
+          "first_render_ms_from_csv": 423.175151,
+          "metadata": {
+            "lines": [
+              "window_benchmark backend=wgpu-vulkan transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan)\" vendor_id=0x10de device_id=0x2560 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=none-public-api throughput_scope=cpu-loop-native-queue-may-remain-pending final_gpu_drain_ms=-1.000000 cpu_frame_median_ms=497.096876 cpu_frame_p95_ms=719.387041 cpu_frame_min_ms=276.496094 cpu_frame_max_ms=722.589507 update_median_ms=2.512449 update_p95_ms=3.055054 update_p99_ms=3.058972 update_min_ms=2.413140 update_max_ms=3.058972 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=497.096876 render_present_p95_ms=719.387041 render_present_p99_ms=722.589507 render_present_min_ms=276.496094 render_present_max_ms=722.589507 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=499.594513 frame_total_p95_ms=721.887073 frame_total_p99_ms=725.014509 frame_total_min_ms=279.551148 frame_total_max_ms=725.014509 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=15005.928988 event_ms=0.160249 total_ms=15006.091051 throughput_fps=1.999188"
+            ],
+            "fields": {
+              "backend": "wgpu-vulkan",
+              "transparency": "object",
+              "size": "1024x1024",
+              "warmup": "5",
+              "frames": "30",
+              "scene_update": "transforms",
+              "animation": "transforms",
+              "animated_percent": "10",
+              "animation_step": "1",
+              "eligible": "40000",
+              "selected": "4000",
+              "prepared_clones": "0",
+              "selection_digest": "0x44ab2b433838fad2",
+              "final_state_digest": "0x4b76e9998add7ebb",
+              "scene": "/tmp/coin-render-city-40000.iv",
+              "framing": "perspective-viewAll-1.15",
+              "readback": "none",
+              "adapter": "\"NVIDIA",
+              "vendor_id": "0x10de",
+              "device_id": "0x2560",
+              "present_policy": "off-requested",
+              "timing_scope": "cpu-update-and-render-present-call",
+              "display_latency_measured": "0",
+              "gpu_duration_measured": "0",
+              "final_sync": "none-public-api",
+              "throughput_scope": "cpu-loop-native-queue-may-remain-pending",
+              "final_gpu_drain_ms": "-1.000000",
+              "cpu_frame_median_ms": "497.096876",
+              "cpu_frame_p95_ms": "719.387041",
+              "cpu_frame_min_ms": "276.496094",
+              "cpu_frame_max_ms": "722.589507",
+              "update_median_ms": "2.512449",
+              "update_p95_ms": "3.055054",
+              "update_p99_ms": "3.058972",
+              "update_min_ms": "2.413140",
+              "update_max_ms": "3.058972",
+              "update_over_16_666667_ms": "0",
+              "update_over_33_333333_ms": "0",
+              "render_present_median_ms": "497.096876",
+              "render_present_p95_ms": "719.387041",
+              "render_present_p99_ms": "722.589507",
+              "render_present_min_ms": "276.496094",
+              "render_present_max_ms": "722.589507",
+              "render_present_over_16_666667_ms": "30",
+              "render_present_over_33_333333_ms": "30",
+              "frame_total_median_ms": "499.594513",
+              "frame_total_p95_ms": "721.887073",
+              "frame_total_p99_ms": "725.014509",
+              "frame_total_min_ms": "279.551148",
+              "frame_total_max_ms": "725.014509",
+              "frame_total_over_16_666667_ms": "30",
+              "frame_total_over_33_333333_ms": "30",
+              "sample_total_ms": "15005.928988",
+              "event_ms": "0.160249",
+              "total_ms": "15006.091051",
+              "throughput_fps": "1.999188"
+            },
+            "final_state_fnv64": "0x4b76e9998add7ebb",
+            "gpu_identity_lines": [
+              "window_benchmark backend=wgpu-vulkan transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan)\" vendor_id=0x10de device_id=0x2560 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=none-public-api throughput_scope=cpu-loop-native-queue-may-remain-pending final_gpu_drain_ms=-1.000000 cpu_frame_median_ms=497.096876 cpu_frame_p95_ms=719.387041 cpu_frame_min_ms=276.496094 cpu_frame_max_ms=722.589507 update_median_ms=2.512449 update_p95_ms=3.055054 update_p99_ms=3.058972 update_min_ms=2.413140 update_max_ms=3.058972 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=497.096876 render_present_p95_ms=719.387041 render_present_p99_ms=722.589507 render_present_min_ms=276.496094 render_present_max_ms=722.589507 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=499.594513 frame_total_p95_ms=721.887073 frame_total_p99_ms=725.014509 frame_total_min_ms=279.551148 frame_total_max_ms=725.014509 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=15005.928988 event_ms=0.160249 total_ms=15006.091051 throughput_fps=1.999188"
+            ]
+          },
+          "first_ms": 423.175151,
+          "first_total_ms": 426.941629,
+          "result_since_main_ms": 1852.444999,
+          "wall_total_ms": 15006.091051,
+          "throughput_fps": 1.999188,
+          "final_gpu_drain_ms": -1.0,
+          "throughput_scope": "cpu-loop-native-queue-may-remain-pending"
+        },
+        {
+          "case": "transforms-10",
+          "variant": "coingl",
+          "round": 3,
+          "scope": "window",
+          "samples": "samples/transforms-10-coingl-3.csv",
+          "log": "logs/transforms-10-coingl-3.log",
+          "measured_frames": 30,
+          "warmup_frames": 5,
+          "stats": {
+            "update_ms": {
+              "median_ms": 3.530584,
+              "p95_ms": 4.249046,
+              "p99_ms": 5.904336,
+              "max_ms": 5.904336,
+              "over_16_67": 0,
+              "over_33_33": 0
+            },
+            "render_ms": {
+              "median_ms": 104.3297885,
+              "p95_ms": 463.053448,
+              "p99_ms": 467.89181,
+              "max_ms": 467.89181,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "total_ms": {
+              "median_ms": 107.8948115,
+              "p95_ms": 466.605236,
+              "p99_ms": 471.333644,
+              "max_ms": 471.333644,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "event_ms": {
+              "median_ms": 0.002084,
+              "p95_ms": 0.003596,
+              "p99_ms": 0.003847,
+              "max_ms": 0.003847,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 313920,
+          "first_total_ms_from_csv": 254.060069,
+          "first_render_ms_from_csv": 251.673779,
+          "metadata": {
+            "lines": [
+              "window_benchmark backend=coin-gl transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2\" vendor_id=0x0 device_id=0x0 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=glFinish throughput_scope=cpu-loop-plus-final-GL-queue-drain final_gpu_drain_ms=5.348020 cpu_frame_median_ms=104.329789 cpu_frame_p95_ms=463.053448 cpu_frame_min_ms=100.057298 cpu_frame_max_ms=467.891810 update_median_ms=3.530584 update_p95_ms=4.249046 update_p99_ms=5.904336 update_min_ms=3.441834 update_max_ms=5.904336 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=104.329789 render_present_p95_ms=463.053448 render_present_p99_ms=467.891810 render_present_min_ms=100.057298 render_present_max_ms=467.891810 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=107.894812 frame_total_p95_ms=466.605236 frame_total_p99_ms=471.333644 frame_total_min_ms=103.511175 frame_total_max_ms=471.333644 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=4996.353012 event_ms=0.068778 total_ms=5001.773602 throughput_fps=5.997872"
+            ],
+            "fields": {
+              "backend": "coin-gl",
+              "transparency": "object",
+              "size": "1024x1024",
+              "warmup": "5",
+              "frames": "30",
+              "scene_update": "transforms",
+              "animation": "transforms",
+              "animated_percent": "10",
+              "animation_step": "1",
+              "eligible": "40000",
+              "selected": "4000",
+              "prepared_clones": "0",
+              "selection_digest": "0x44ab2b433838fad2",
+              "final_state_digest": "0x4b76e9998add7ebb",
+              "scene": "/tmp/coin-render-city-40000.iv",
+              "framing": "perspective-viewAll-1.15",
+              "readback": "none",
+              "adapter": "\"NVIDIA",
+              "vendor_id": "0x0",
+              "device_id": "0x0",
+              "present_policy": "off-requested",
+              "timing_scope": "cpu-update-and-render-present-call",
+              "display_latency_measured": "0",
+              "gpu_duration_measured": "0",
+              "final_sync": "glFinish",
+              "throughput_scope": "cpu-loop-plus-final-GL-queue-drain",
+              "final_gpu_drain_ms": "5.348020",
+              "cpu_frame_median_ms": "104.329789",
+              "cpu_frame_p95_ms": "463.053448",
+              "cpu_frame_min_ms": "100.057298",
+              "cpu_frame_max_ms": "467.891810",
+              "update_median_ms": "3.530584",
+              "update_p95_ms": "4.249046",
+              "update_p99_ms": "5.904336",
+              "update_min_ms": "3.441834",
+              "update_max_ms": "5.904336",
+              "update_over_16_666667_ms": "0",
+              "update_over_33_333333_ms": "0",
+              "render_present_median_ms": "104.329789",
+              "render_present_p95_ms": "463.053448",
+              "render_present_p99_ms": "467.891810",
+              "render_present_min_ms": "100.057298",
+              "render_present_max_ms": "467.891810",
+              "render_present_over_16_666667_ms": "30",
+              "render_present_over_33_333333_ms": "30",
+              "frame_total_median_ms": "107.894812",
+              "frame_total_p95_ms": "466.605236",
+              "frame_total_p99_ms": "471.333644",
+              "frame_total_min_ms": "103.511175",
+              "frame_total_max_ms": "471.333644",
+              "frame_total_over_16_666667_ms": "30",
+              "frame_total_over_33_333333_ms": "30",
+              "sample_total_ms": "4996.353012",
+              "event_ms": "0.068778",
+              "total_ms": "5001.773602",
+              "throughput_fps": "5.997872"
+            },
+            "final_state_fnv64": "0x4b76e9998add7ebb",
+            "gpu_identity_lines": [
+              "window_benchmark backend=coin-gl transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2\" vendor_id=0x0 device_id=0x0 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=glFinish throughput_scope=cpu-loop-plus-final-GL-queue-drain final_gpu_drain_ms=5.348020 cpu_frame_median_ms=104.329789 cpu_frame_p95_ms=463.053448 cpu_frame_min_ms=100.057298 cpu_frame_max_ms=467.891810 update_median_ms=3.530584 update_p95_ms=4.249046 update_p99_ms=5.904336 update_min_ms=3.441834 update_max_ms=5.904336 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=104.329789 render_present_p95_ms=463.053448 render_present_p99_ms=467.891810 render_present_min_ms=100.057298 render_present_max_ms=467.891810 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=107.894812 frame_total_p95_ms=466.605236 frame_total_p99_ms=471.333644 frame_total_min_ms=103.511175 frame_total_max_ms=471.333644 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=4996.353012 event_ms=0.068778 total_ms=5001.773602 throughput_fps=5.997872"
+            ]
+          },
+          "first_ms": 251.673779,
+          "first_total_ms": 254.060069,
+          "result_since_main_ms": 1764.13178,
+          "wall_total_ms": 5001.773602,
+          "throughput_fps": 5.997872,
+          "final_gpu_drain_ms": 5.34802,
+          "throughput_scope": "cpu-loop-plus-final-GL-queue-drain"
+        },
+        {
+          "case": "transforms-10",
+          "variant": "wgpu-vulkan",
+          "round": 3,
+          "scope": "window",
+          "samples": "samples/transforms-10-wgpu-vulkan-3.csv",
+          "log": "logs/transforms-10-wgpu-vulkan-3.log",
+          "measured_frames": 30,
+          "warmup_frames": 5,
+          "stats": {
+            "update_ms": {
+              "median_ms": 2.5424154999999997,
+              "p95_ms": 3.357437,
+              "p99_ms": 3.611089,
+              "max_ms": 3.611089,
+              "over_16_67": 0,
+              "over_33_33": 0
+            },
+            "render_ms": {
+              "median_ms": 498.0674295,
+              "p95_ms": 720.587611,
+              "p99_ms": 720.845081,
+              "max_ms": 720.845081,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "total_ms": {
+              "median_ms": 500.62397599999997,
+              "p95_ms": 723.031358,
+              "p99_ms": 723.23659,
+              "max_ms": 723.23659,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "event_ms": {
+              "median_ms": 0.0057305,
+              "p95_ms": 0.008205,
+              "p99_ms": 0.011832,
+              "max_ms": 0.011832,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 762368,
+          "first_total_ms_from_csv": 433.343211,
+          "first_render_ms_from_csv": 429.751708,
+          "metadata": {
+            "lines": [
+              "window_benchmark backend=wgpu-vulkan transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan)\" vendor_id=0x10de device_id=0x2560 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=none-public-api throughput_scope=cpu-loop-native-queue-may-remain-pending final_gpu_drain_ms=-1.000000 cpu_frame_median_ms=498.067430 cpu_frame_p95_ms=720.587611 cpu_frame_min_ms=274.345816 cpu_frame_max_ms=720.845081 update_median_ms=2.542415 update_p95_ms=3.357437 update_p99_ms=3.611089 update_min_ms=2.366213 update_max_ms=3.611089 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=498.067430 render_present_p95_ms=720.587611 render_present_p99_ms=720.845081 render_present_min_ms=274.345816 render_present_max_ms=720.845081 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=500.623976 frame_total_p95_ms=723.031358 frame_total_p99_ms=723.236590 frame_total_min_ms=277.522777 frame_total_max_ms=723.236590 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=14992.950789 event_ms=0.170289 total_ms=14993.127618 throughput_fps=2.000917"
+            ],
+            "fields": {
+              "backend": "wgpu-vulkan",
+              "transparency": "object",
+              "size": "1024x1024",
+              "warmup": "5",
+              "frames": "30",
+              "scene_update": "transforms",
+              "animation": "transforms",
+              "animated_percent": "10",
+              "animation_step": "1",
+              "eligible": "40000",
+              "selected": "4000",
+              "prepared_clones": "0",
+              "selection_digest": "0x44ab2b433838fad2",
+              "final_state_digest": "0x4b76e9998add7ebb",
+              "scene": "/tmp/coin-render-city-40000.iv",
+              "framing": "perspective-viewAll-1.15",
+              "readback": "none",
+              "adapter": "\"NVIDIA",
+              "vendor_id": "0x10de",
+              "device_id": "0x2560",
+              "present_policy": "off-requested",
+              "timing_scope": "cpu-update-and-render-present-call",
+              "display_latency_measured": "0",
+              "gpu_duration_measured": "0",
+              "final_sync": "none-public-api",
+              "throughput_scope": "cpu-loop-native-queue-may-remain-pending",
+              "final_gpu_drain_ms": "-1.000000",
+              "cpu_frame_median_ms": "498.067430",
+              "cpu_frame_p95_ms": "720.587611",
+              "cpu_frame_min_ms": "274.345816",
+              "cpu_frame_max_ms": "720.845081",
+              "update_median_ms": "2.542415",
+              "update_p95_ms": "3.357437",
+              "update_p99_ms": "3.611089",
+              "update_min_ms": "2.366213",
+              "update_max_ms": "3.611089",
+              "update_over_16_666667_ms": "0",
+              "update_over_33_333333_ms": "0",
+              "render_present_median_ms": "498.067430",
+              "render_present_p95_ms": "720.587611",
+              "render_present_p99_ms": "720.845081",
+              "render_present_min_ms": "274.345816",
+              "render_present_max_ms": "720.845081",
+              "render_present_over_16_666667_ms": "30",
+              "render_present_over_33_333333_ms": "30",
+              "frame_total_median_ms": "500.623976",
+              "frame_total_p95_ms": "723.031358",
+              "frame_total_p99_ms": "723.236590",
+              "frame_total_min_ms": "277.522777",
+              "frame_total_max_ms": "723.236590",
+              "frame_total_over_16_666667_ms": "30",
+              "frame_total_over_33_333333_ms": "30",
+              "sample_total_ms": "14992.950789",
+              "event_ms": "0.170289",
+              "total_ms": "14993.127618",
+              "throughput_fps": "2.000917"
+            },
+            "final_state_fnv64": "0x4b76e9998add7ebb",
+            "gpu_identity_lines": [
+              "window_benchmark backend=wgpu-vulkan transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan)\" vendor_id=0x10de device_id=0x2560 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=none-public-api throughput_scope=cpu-loop-native-queue-may-remain-pending final_gpu_drain_ms=-1.000000 cpu_frame_median_ms=498.067430 cpu_frame_p95_ms=720.587611 cpu_frame_min_ms=274.345816 cpu_frame_max_ms=720.845081 update_median_ms=2.542415 update_p95_ms=3.357437 update_p99_ms=3.611089 update_min_ms=2.366213 update_max_ms=3.611089 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=498.067430 render_present_p95_ms=720.587611 render_present_p99_ms=720.845081 render_present_min_ms=274.345816 render_present_max_ms=720.845081 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=500.623976 frame_total_p95_ms=723.031358 frame_total_p99_ms=723.236590 frame_total_min_ms=277.522777 frame_total_max_ms=723.236590 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=14992.950789 event_ms=0.170289 total_ms=14993.127618 throughput_fps=2.000917"
+            ]
+          },
+          "first_ms": 429.751708,
+          "first_total_ms": 433.343211,
+          "result_since_main_ms": 1077.491651,
+          "wall_total_ms": 14993.127618,
+          "throughput_fps": 2.000917,
+          "final_gpu_drain_ms": -1.0,
+          "throughput_scope": "cpu-loop-native-queue-may-remain-pending"
+        }
+      ],
+      "groups": [
+        {
+          "campaign": "before",
+          "scope": "window",
+          "case": "transforms-10",
+          "variant": "coingl",
+          "processes": 3,
+          "measured_frames": 90,
+          "warmup_frames": 15,
+          "stats": {
+            "update_ms": {
+              "median_ms": 3.5018599999999998,
+              "p95_ms": 5.130246,
+              "p99_ms": 5.56307,
+              "max_global_ms": 5.904336,
+              "frames_over_16_67_sum": 0,
+              "frames_over_33_33_sum": 0
+            },
+            "render_ms": {
+              "median_ms": 103.0461325,
+              "p95_ms": 464.525532,
+              "p99_ms": 467.89181,
+              "max_global_ms": 482.440479,
+              "frames_over_16_67_sum": 90,
+              "frames_over_33_33_sum": 90
+            },
+            "total_ms": {
+              "median_ms": 106.51607849999999,
+              "p95_ms": 468.031094,
+              "p99_ms": 471.333644,
+              "max_global_ms": 485.881591,
+              "frames_over_16_67_sum": 90,
+              "frames_over_33_33_sum": 90
+            },
+            "event_ms": {
+              "median_ms": 0.0021939999999999998,
+              "p95_ms": 0.004148,
+              "p99_ms": 0.004659,
+              "max_global_ms": 0.007684,
+              "frames_over_16_67_sum": 0,
+              "frames_over_33_33_sum": 0
+            }
+          },
+          "peak_rss_median_mib": 306.5625,
+          "peak_rss_global_max_mib": 308.55859375,
+          "first_total_ms_from_csv_median": 254.060069,
+          "first_render_ms_from_csv_median": 251.673779,
+          "first_ms_median": 251.673779,
+          "first_total_ms_median": 254.060069,
+          "result_since_main_ms_median": 1743.701148,
+          "wall_total_ms_median": 5001.773602,
+          "throughput_fps_median": 5.997872,
+          "final_gpu_drain_ms_median": 5.979245,
+          "throughput_scope": "cpu-loop-plus-final-GL-queue-drain"
+        },
+        {
+          "campaign": "before",
+          "scope": "window",
+          "case": "transforms-10",
+          "variant": "wgpu-vulkan",
+          "processes": 3,
+          "measured_frames": 90,
+          "warmup_frames": 15,
+          "stats": {
+            "update_ms": {
+              "median_ms": 2.5424154999999997,
+              "p95_ms": 3.357437,
+              "p99_ms": 3.392542,
+              "max_global_ms": 3.611089,
+              "frames_over_16_67_sum": 0,
+              "frames_over_33_33_sum": 0
+            },
+            "render_ms": {
+              "median_ms": 498.0674295,
+              "p95_ms": 719.450567,
+              "p99_ms": 721.099974,
+              "max_global_ms": 722.589507,
+              "frames_over_16_67_sum": 90,
+              "frames_over_33_33_sum": 90
+            },
+            "total_ms": {
+              "median_ms": 500.62397599999997,
+              "p95_ms": 721.887073,
+              "p99_ms": 723.569829,
+              "max_global_ms": 725.014509,
+              "frames_over_16_67_sum": 90,
+              "frames_over_33_33_sum": 90
+            },
+            "event_ms": {
+              "median_ms": 0.0050745,
+              "p95_ms": 0.008446,
+              "p99_ms": 0.011832,
+              "max_global_ms": 0.01611,
+              "frames_over_16_67_sum": 0,
+              "frames_over_33_33_sum": 0
+            }
+          },
+          "peak_rss_median_mib": 746.42578125,
+          "peak_rss_global_max_mib": 746.50390625,
+          "first_total_ms_from_csv_median": 426.941629,
+          "first_render_ms_from_csv_median": 423.175151,
+          "first_ms_median": 423.175151,
+          "first_total_ms_median": 426.941629,
+          "result_since_main_ms_median": 1852.444999,
+          "wall_total_ms_median": 15006.091051,
+          "throughput_fps_median": 1.999188,
+          "final_gpu_drain_ms_median": null,
+          "throughput_scope": "cpu-loop-native-queue-may-remain-pending"
+        }
+      ],
+      "state_digests": {
+        "transforms-10": [
+          "0x4b76e9998add7ebb"
+        ]
+      },
+      "source_provenance": {
+        "runner_recorded_source_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+        "source_identity_limit": "Runner source_revision identifies its checkout; it does not by itself prove the compiled binary source",
+        "verified_binary_source_revision_supplied": null,
+        "frozen_binary_matches": [
+          {
+            "control_original_path": "/tmp/coin-render-motion-baseline/frozen-binaries.json",
+            "source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+            "source_head_at_snapshot": "4262fd9207358644cc23a6a102befc2816e85b49",
+            "all_campaign_binary_hashes_match": true,
+            "matched_campaign_hashes": {
+              "/tmp/coin-render-motion-baseline/bgfx/bin/coin_render_window_benchmark": "635c8d5dbc4aa59894a7ae2fc1541a27356054d10f5314db27a06b3c8e59ff5a",
+              "/tmp/coin-render-motion-baseline/bgfx/lib/libCoinRender.so": "51e7cd743a87afa7476b011a72f3749246e269d3d850715ddc3675af436658be",
+              "/tmp/coin-render-motion-baseline/bgfx/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f",
+              "/tmp/coin-render-motion-baseline/wgpu/bin/coin_render_window_benchmark": "1ebce110760db5bd624e645b3b2957ee4392c8361f8372240f17d6be3c739cfb",
+              "/tmp/coin-render-motion-baseline/wgpu/lib/libCoinRender.so": "ba932ff12475718e005eb8c738ad115e7475f7dd2f578a1071959f2e4871364a",
+              "/tmp/coin-render-motion-baseline/wgpu/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f"
+            },
+            "match_contract": "Content SHA256 match; original filename/symlink spelling may differ"
+          },
+          {
+            "control_original_path": "/tmp/coin-render-wgpu-motion-final-binaries.json",
+            "source_content_revision": "9e347591a9825ce4c1fcbdc76dc31d142d50d264",
+            "source_head_at_snapshot": "9e347591a9825ce4c1fcbdc76dc31d142d50d264",
+            "all_campaign_binary_hashes_match": false,
+            "matched_campaign_hashes": {
+              "/tmp/coin-render-motion-baseline/bgfx/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f",
+              "/tmp/coin-render-motion-baseline/wgpu/bin/coin_render_window_benchmark": "1ebce110760db5bd624e645b3b2957ee4392c8361f8372240f17d6be3c739cfb",
+              "/tmp/coin-render-motion-baseline/wgpu/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f"
+            },
+            "match_contract": "Content SHA256 match; original filename/symlink spelling may differ"
+          }
+        ]
+      }
+    },
+    "after": {
+      "name": "after",
+      "original_directory": "/tmp/coin-render-wgpu-motion-window-after",
+      "manifest": {
+        "parameters": {
+          "before_wgpu_build": "/tmp/coin-render-motion-baseline/wgpu",
+          "after_wgpu_build": "/tmp/coin-render-first-frame-wgpu",
+          "bgfx_build": "/tmp/coin-render-motion-baseline/bgfx",
+          "scene": "/tmp/coin-render-city-40000.iv",
+          "output_before": "/tmp/coin-render-wgpu-motion-window-before",
+          "output_after": "/tmp/coin-render-wgpu-motion-window-after",
+          "cases": "transforms-10",
+          "scope": "window",
+          "rounds": 3,
+          "warmup": 5,
+          "frames": 30,
+          "gpu": "nvidia",
+          "size": 1024,
+          "timeout": 1800,
+          "runner": "/tmp/coin-render-first-frame/scripts/coinrender/run_animation_benchmark.py",
+          "before_source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+          "after_source_content_revision": "9e347591a9825ce4c1fcbdc76dc31d142d50d264",
+          "control_source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+          "mode": "measure",
+          "variants": "coingl,wgpu-vulkan",
+          "wgpu_build": "/tmp/coin-render-first-frame-wgpu",
+          "output": "/tmp/coin-render-wgpu-motion-window-after"
+        },
+        "scene_sha256": "bb9ccc612cd38ffb749ee599d9350a80974649eab5bf477d2f344538a42b2576",
+        "binary_hashes": {
+          "/tmp/coin-render-motion-baseline/bgfx/bin/coin_render_window_benchmark": "635c8d5dbc4aa59894a7ae2fc1541a27356054d10f5314db27a06b3c8e59ff5a",
+          "/tmp/coin-render-motion-baseline/bgfx/lib/libCoinRender.so": "51e7cd743a87afa7476b011a72f3749246e269d3d850715ddc3675af436658be",
+          "/tmp/coin-render-motion-baseline/bgfx/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f",
+          "/tmp/coin-render-first-frame-wgpu/bin/coin_render_window_benchmark": "1ebce110760db5bd624e645b3b2957ee4392c8361f8372240f17d6be3c739cfb",
+          "/tmp/coin-render-first-frame-wgpu/lib/libCoinRender.so": "39f8a11288037d96f6b76a28df636a76a629833a68682c89b2927cea422b2aaa",
+          "/tmp/coin-render-first-frame-wgpu/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f"
+        },
+        "commands": [
+          {
+            "stem": "transforms-10-coingl-1",
+            "command": [
+              "/tmp/coin-render-motion-baseline/bgfx/bin/coin_render_window_benchmark",
+              "--backend",
+              "coin-gl",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "transforms",
+              "--animated-percent",
+              "10",
+              "--transparency",
+              "object",
+              "--warmup",
+              "5",
+              "--frames",
+              "30",
+              "--samples-output",
+              "/tmp/coin-render-wgpu-motion-window-before/samples/transforms-10-coingl-1.csv",
+              "--width",
+              "1024",
+              "--height",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-motion-baseline/bgfx/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1"
+            },
+            "matched_role": "coingl",
+            "execution_index": 1,
+            "source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+            "shared_control": true,
+            "executed_in_output": "/tmp/coin-render-wgpu-motion-window-before",
+            "copied_to_output": "/tmp/coin-render-wgpu-motion-window-after"
+          },
+          {
+            "stem": "transforms-10-wgpu-vulkan-1",
+            "command": [
+              "/tmp/coin-render-first-frame-wgpu/bin/coin_render_window_benchmark",
+              "--backend",
+              "wgpu-vulkan",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "transforms",
+              "--animated-percent",
+              "10",
+              "--transparency",
+              "object",
+              "--warmup",
+              "5",
+              "--frames",
+              "30",
+              "--samples-output",
+              "/tmp/coin-render-wgpu-motion-window-after/samples/transforms-10-wgpu-vulkan-1.csv",
+              "--width",
+              "1024",
+              "--height",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "WGPU_BACKEND": "vulkan"
+            },
+            "matched_role": "wgpu-after",
+            "execution_index": 3,
+            "source_content_revision": "9e347591a9825ce4c1fcbdc76dc31d142d50d264",
+            "shared_control": false
+          },
+          {
+            "stem": "transforms-10-coingl-2",
+            "command": [
+              "/tmp/coin-render-motion-baseline/bgfx/bin/coin_render_window_benchmark",
+              "--backend",
+              "coin-gl",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "transforms",
+              "--animated-percent",
+              "10",
+              "--transparency",
+              "object",
+              "--warmup",
+              "5",
+              "--frames",
+              "30",
+              "--samples-output",
+              "/tmp/coin-render-wgpu-motion-window-before/samples/transforms-10-coingl-2.csv",
+              "--width",
+              "1024",
+              "--height",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-motion-baseline/bgfx/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1"
+            },
+            "matched_role": "coingl",
+            "execution_index": 4,
+            "source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+            "shared_control": true,
+            "executed_in_output": "/tmp/coin-render-wgpu-motion-window-before",
+            "copied_to_output": "/tmp/coin-render-wgpu-motion-window-after"
+          },
+          {
+            "stem": "transforms-10-wgpu-vulkan-2",
+            "command": [
+              "/tmp/coin-render-first-frame-wgpu/bin/coin_render_window_benchmark",
+              "--backend",
+              "wgpu-vulkan",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "transforms",
+              "--animated-percent",
+              "10",
+              "--transparency",
+              "object",
+              "--warmup",
+              "5",
+              "--frames",
+              "30",
+              "--samples-output",
+              "/tmp/coin-render-wgpu-motion-window-after/samples/transforms-10-wgpu-vulkan-2.csv",
+              "--width",
+              "1024",
+              "--height",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "WGPU_BACKEND": "vulkan"
+            },
+            "matched_role": "wgpu-after",
+            "execution_index": 5,
+            "source_content_revision": "9e347591a9825ce4c1fcbdc76dc31d142d50d264",
+            "shared_control": false
+          },
+          {
+            "stem": "transforms-10-wgpu-vulkan-3",
+            "command": [
+              "/tmp/coin-render-first-frame-wgpu/bin/coin_render_window_benchmark",
+              "--backend",
+              "wgpu-vulkan",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "transforms",
+              "--animated-percent",
+              "10",
+              "--transparency",
+              "object",
+              "--warmup",
+              "5",
+              "--frames",
+              "30",
+              "--samples-output",
+              "/tmp/coin-render-wgpu-motion-window-after/samples/transforms-10-wgpu-vulkan-3.csv",
+              "--width",
+              "1024",
+              "--height",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "WGPU_BACKEND": "vulkan"
+            },
+            "matched_role": "wgpu-after",
+            "execution_index": 7,
+            "source_content_revision": "9e347591a9825ce4c1fcbdc76dc31d142d50d264",
+            "shared_control": false
+          },
+          {
+            "stem": "transforms-10-coingl-3",
+            "command": [
+              "/tmp/coin-render-motion-baseline/bgfx/bin/coin_render_window_benchmark",
+              "--backend",
+              "coin-gl",
+              "--scene",
+              "/tmp/coin-render-city-40000.iv",
+              "--animation",
+              "transforms",
+              "--animated-percent",
+              "10",
+              "--transparency",
+              "object",
+              "--warmup",
+              "5",
+              "--frames",
+              "30",
+              "--samples-output",
+              "/tmp/coin-render-wgpu-motion-window-before/samples/transforms-10-coingl-3.csv",
+              "--width",
+              "1024",
+              "--height",
+              "1024"
+            ],
+            "environment": {
+              "LD_LIBRARY_PATH": "/tmp/coin-render-motion-baseline/bgfx/lib",
+              "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+              "__NV_PRIME_RENDER_OFFLOAD": "1",
+              "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+              "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1"
+            },
+            "matched_role": "coingl",
+            "execution_index": 8,
+            "source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+            "shared_control": true,
+            "executed_in_output": "/tmp/coin-render-wgpu-motion-window-before",
+            "copied_to_output": "/tmp/coin-render-wgpu-motion-window-after"
+          }
+        ],
+        "execution_order": [
+          {
+            "case": "transforms-10",
+            "round": 1,
+            "matched_role": "coingl",
+            "variant": "coingl",
+            "stem": "transforms-10-coingl-1",
+            "execution_index": 1
+          },
+          {
+            "case": "transforms-10",
+            "round": 1,
+            "matched_role": "wgpu-before",
+            "variant": "wgpu-vulkan",
+            "stem": "transforms-10-wgpu-vulkan-1",
+            "execution_index": 2
+          },
+          {
+            "case": "transforms-10",
+            "round": 1,
+            "matched_role": "wgpu-after",
+            "variant": "wgpu-vulkan",
+            "stem": "transforms-10-wgpu-vulkan-1",
+            "execution_index": 3
+          },
+          {
+            "case": "transforms-10",
+            "round": 2,
+            "matched_role": "coingl",
+            "variant": "coingl",
+            "stem": "transforms-10-coingl-2",
+            "execution_index": 4
+          },
+          {
+            "case": "transforms-10",
+            "round": 2,
+            "matched_role": "wgpu-after",
+            "variant": "wgpu-vulkan",
+            "stem": "transforms-10-wgpu-vulkan-2",
+            "execution_index": 5
+          },
+          {
+            "case": "transforms-10",
+            "round": 2,
+            "matched_role": "wgpu-before",
+            "variant": "wgpu-vulkan",
+            "stem": "transforms-10-wgpu-vulkan-2",
+            "execution_index": 6
+          },
+          {
+            "case": "transforms-10",
+            "round": 3,
+            "matched_role": "wgpu-after",
+            "variant": "wgpu-vulkan",
+            "stem": "transforms-10-wgpu-vulkan-3",
+            "execution_index": 7
+          },
+          {
+            "case": "transforms-10",
+            "round": 3,
+            "matched_role": "coingl",
+            "variant": "coingl",
+            "stem": "transforms-10-coingl-3",
+            "execution_index": 8
+          },
+          {
+            "case": "transforms-10",
+            "round": 3,
+            "matched_role": "wgpu-before",
+            "variant": "wgpu-vulkan",
+            "stem": "transforms-10-wgpu-vulkan-3",
+            "execution_index": 9
+          }
+        ],
+        "source_revision": "9e347591a9825ce4c1fcbdc76dc31d142d50d264",
+        "source_content_revision": "9e347591a9825ce4c1fcbdc76dc31d142d50d264",
+        "variant_source_content_revisions": {
+          "coingl": "4d63bb993022ee8d40802558b0871a4803002b8d",
+          "wgpu-vulkan": "9e347591a9825ce4c1fcbdc76dc31d142d50d264"
+        },
+        "runner_source_revision": "9e347591a9825ce4c1fcbdc76dc31d142d50d264",
+        "runner_path": "/tmp/coin-render-first-frame/scripts/coinrender/run_animation_benchmark.py",
+        "runner_sha256": "b90c4c26c6b45b79d83984d54e182e19f457d54519901c8e75dc8688dbc2046d",
+        "matched_runner_sha256": "514e4af10dd8d5245ff958a08b7e2df52f8e3f57b52d57675bc271491fbefeb6",
+        "matched_role": "wgpu-after",
+        "shared_control": true,
+        "shared_control_output": "/tmp/coin-render-wgpu-motion-window-before",
+        "matched_peer_output": "/tmp/coin-render-wgpu-motion-window-before"
+      },
+      "processes": [
+        {
+          "case": "transforms-10",
+          "variant": "coingl",
+          "round": 1,
+          "scope": "window",
+          "samples": "samples/transforms-10-coingl-1.csv",
+          "log": "logs/transforms-10-coingl-1.log",
+          "measured_frames": 30,
+          "warmup_frames": 5,
+          "stats": {
+            "update_ms": {
+              "median_ms": 3.464175,
+              "p95_ms": 5.178245,
+              "p99_ms": 5.56307,
+              "max_ms": 5.56307,
+              "over_16_67": 0,
+              "over_33_33": 0
+            },
+            "render_ms": {
+              "median_ms": 99.523102,
+              "p95_ms": 481.723225,
+              "p99_ms": 482.440479,
+              "max_ms": 482.440479,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "total_ms": {
+              "median_ms": 102.897245,
+              "p95_ms": 485.109165,
+              "p99_ms": 485.881591,
+              "max_ms": 485.881591,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "event_ms": {
+              "median_ms": 0.0021939999999999998,
+              "p95_ms": 0.00538,
+              "p99_ms": 0.007684,
+              "max_ms": 0.007684,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 315964,
+          "first_total_ms_from_csv": 276.237397,
+          "first_render_ms_from_csv": 273.769315,
+          "metadata": {
+            "lines": [
+              "window_benchmark backend=coin-gl transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2\" vendor_id=0x0 device_id=0x0 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=glFinish throughput_scope=cpu-loop-plus-final-GL-queue-drain final_gpu_drain_ms=7.462243 cpu_frame_median_ms=99.523102 cpu_frame_p95_ms=481.723225 cpu_frame_min_ms=97.208536 cpu_frame_max_ms=482.440479 update_median_ms=3.464175 update_p95_ms=5.178245 update_p99_ms=5.563070 update_min_ms=3.362877 update_max_ms=5.563070 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=99.523102 render_present_p95_ms=481.723225 render_present_p99_ms=482.440479 render_present_min_ms=97.208536 render_present_max_ms=482.440479 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=102.897245 frame_total_p95_ms=485.109165 frame_total_p99_ms=485.881591 frame_total_min_ms=100.591229 frame_total_max_ms=485.881591 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=4988.632784 event_ms=0.081338 total_ms=4996.181728 throughput_fps=6.004585"
+            ],
+            "fields": {
+              "backend": "coin-gl",
+              "transparency": "object",
+              "size": "1024x1024",
+              "warmup": "5",
+              "frames": "30",
+              "scene_update": "transforms",
+              "animation": "transforms",
+              "animated_percent": "10",
+              "animation_step": "1",
+              "eligible": "40000",
+              "selected": "4000",
+              "prepared_clones": "0",
+              "selection_digest": "0x44ab2b433838fad2",
+              "final_state_digest": "0x4b76e9998add7ebb",
+              "scene": "/tmp/coin-render-city-40000.iv",
+              "framing": "perspective-viewAll-1.15",
+              "readback": "none",
+              "adapter": "\"NVIDIA",
+              "vendor_id": "0x0",
+              "device_id": "0x0",
+              "present_policy": "off-requested",
+              "timing_scope": "cpu-update-and-render-present-call",
+              "display_latency_measured": "0",
+              "gpu_duration_measured": "0",
+              "final_sync": "glFinish",
+              "throughput_scope": "cpu-loop-plus-final-GL-queue-drain",
+              "final_gpu_drain_ms": "7.462243",
+              "cpu_frame_median_ms": "99.523102",
+              "cpu_frame_p95_ms": "481.723225",
+              "cpu_frame_min_ms": "97.208536",
+              "cpu_frame_max_ms": "482.440479",
+              "update_median_ms": "3.464175",
+              "update_p95_ms": "5.178245",
+              "update_p99_ms": "5.563070",
+              "update_min_ms": "3.362877",
+              "update_max_ms": "5.563070",
+              "update_over_16_666667_ms": "0",
+              "update_over_33_333333_ms": "0",
+              "render_present_median_ms": "99.523102",
+              "render_present_p95_ms": "481.723225",
+              "render_present_p99_ms": "482.440479",
+              "render_present_min_ms": "97.208536",
+              "render_present_max_ms": "482.440479",
+              "render_present_over_16_666667_ms": "30",
+              "render_present_over_33_333333_ms": "30",
+              "frame_total_median_ms": "102.897245",
+              "frame_total_p95_ms": "485.109165",
+              "frame_total_p99_ms": "485.881591",
+              "frame_total_min_ms": "100.591229",
+              "frame_total_max_ms": "485.881591",
+              "frame_total_over_16_666667_ms": "30",
+              "frame_total_over_33_333333_ms": "30",
+              "sample_total_ms": "4988.632784",
+              "event_ms": "0.081338",
+              "total_ms": "4996.181728",
+              "throughput_fps": "6.004585"
+            },
+            "final_state_fnv64": "0x4b76e9998add7ebb",
+            "gpu_identity_lines": [
+              "window_benchmark backend=coin-gl transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2\" vendor_id=0x0 device_id=0x0 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=glFinish throughput_scope=cpu-loop-plus-final-GL-queue-drain final_gpu_drain_ms=7.462243 cpu_frame_median_ms=99.523102 cpu_frame_p95_ms=481.723225 cpu_frame_min_ms=97.208536 cpu_frame_max_ms=482.440479 update_median_ms=3.464175 update_p95_ms=5.178245 update_p99_ms=5.563070 update_min_ms=3.362877 update_max_ms=5.563070 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=99.523102 render_present_p95_ms=481.723225 render_present_p99_ms=482.440479 render_present_min_ms=97.208536 render_present_max_ms=482.440479 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=102.897245 frame_total_p95_ms=485.109165 frame_total_p99_ms=485.881591 frame_total_min_ms=100.591229 frame_total_max_ms=485.881591 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=4988.632784 event_ms=0.081338 total_ms=4996.181728 throughput_fps=6.004585"
+            ]
+          },
+          "first_ms": 273.769315,
+          "first_total_ms": 276.237397,
+          "result_since_main_ms": 1569.18298,
+          "wall_total_ms": 4996.181728,
+          "throughput_fps": 6.004585,
+          "final_gpu_drain_ms": 7.462243,
+          "throughput_scope": "cpu-loop-plus-final-GL-queue-drain"
+        },
+        {
+          "case": "transforms-10",
+          "variant": "wgpu-vulkan",
+          "round": 1,
+          "scope": "window",
+          "samples": "samples/transforms-10-wgpu-vulkan-1.csv",
+          "log": "logs/transforms-10-wgpu-vulkan-1.log",
+          "measured_frames": 30,
+          "warmup_frames": 5,
+          "stats": {
+            "update_ms": {
+              "median_ms": 2.605117,
+              "p95_ms": 3.634012,
+              "p99_ms": 4.549915,
+              "max_ms": 4.549915,
+              "over_16_67": 0,
+              "over_33_33": 0
+            },
+            "render_ms": {
+              "median_ms": 495.159784,
+              "p95_ms": 787.222022,
+              "p99_ms": 789.029475,
+              "max_ms": 789.029475,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "total_ms": {
+              "median_ms": 497.82043450000003,
+              "p95_ms": 789.739768,
+              "p99_ms": 791.529276,
+              "max_ms": 791.529276,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "event_ms": {
+              "median_ms": 0.0055555,
+              "p95_ms": 0.010961,
+              "p99_ms": 0.011651,
+              "max_ms": 0.011651,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 670864,
+          "first_total_ms_from_csv": 422.60646,
+          "first_render_ms_from_csv": 419.839342,
+          "metadata": {
+            "lines": [
+              "window_benchmark backend=wgpu-vulkan transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan)\" vendor_id=0x10de device_id=0x2560 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=none-public-api throughput_scope=cpu-loop-native-queue-may-remain-pending final_gpu_drain_ms=-1.000000 cpu_frame_median_ms=495.159784 cpu_frame_p95_ms=787.222022 cpu_frame_min_ms=206.109274 cpu_frame_max_ms=789.029475 update_median_ms=2.605117 update_p95_ms=3.634012 update_p99_ms=4.549915 update_min_ms=2.432005 update_max_ms=4.549915 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=495.159784 render_present_p95_ms=787.222022 render_present_p99_ms=789.029475 render_present_min_ms=206.109274 render_present_max_ms=789.029475 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=497.820435 frame_total_p95_ms=789.739768 frame_total_p99_ms=791.529276 frame_total_min_ms=209.743286 frame_total_max_ms=791.529276 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=14989.315675 event_ms=0.175620 total_ms=14989.492676 throughput_fps=2.001402"
+            ],
+            "fields": {
+              "backend": "wgpu-vulkan",
+              "transparency": "object",
+              "size": "1024x1024",
+              "warmup": "5",
+              "frames": "30",
+              "scene_update": "transforms",
+              "animation": "transforms",
+              "animated_percent": "10",
+              "animation_step": "1",
+              "eligible": "40000",
+              "selected": "4000",
+              "prepared_clones": "0",
+              "selection_digest": "0x44ab2b433838fad2",
+              "final_state_digest": "0x4b76e9998add7ebb",
+              "scene": "/tmp/coin-render-city-40000.iv",
+              "framing": "perspective-viewAll-1.15",
+              "readback": "none",
+              "adapter": "\"NVIDIA",
+              "vendor_id": "0x10de",
+              "device_id": "0x2560",
+              "present_policy": "off-requested",
+              "timing_scope": "cpu-update-and-render-present-call",
+              "display_latency_measured": "0",
+              "gpu_duration_measured": "0",
+              "final_sync": "none-public-api",
+              "throughput_scope": "cpu-loop-native-queue-may-remain-pending",
+              "final_gpu_drain_ms": "-1.000000",
+              "cpu_frame_median_ms": "495.159784",
+              "cpu_frame_p95_ms": "787.222022",
+              "cpu_frame_min_ms": "206.109274",
+              "cpu_frame_max_ms": "789.029475",
+              "update_median_ms": "2.605117",
+              "update_p95_ms": "3.634012",
+              "update_p99_ms": "4.549915",
+              "update_min_ms": "2.432005",
+              "update_max_ms": "4.549915",
+              "update_over_16_666667_ms": "0",
+              "update_over_33_333333_ms": "0",
+              "render_present_median_ms": "495.159784",
+              "render_present_p95_ms": "787.222022",
+              "render_present_p99_ms": "789.029475",
+              "render_present_min_ms": "206.109274",
+              "render_present_max_ms": "789.029475",
+              "render_present_over_16_666667_ms": "30",
+              "render_present_over_33_333333_ms": "30",
+              "frame_total_median_ms": "497.820435",
+              "frame_total_p95_ms": "789.739768",
+              "frame_total_p99_ms": "791.529276",
+              "frame_total_min_ms": "209.743286",
+              "frame_total_max_ms": "791.529276",
+              "frame_total_over_16_666667_ms": "30",
+              "frame_total_over_33_333333_ms": "30",
+              "sample_total_ms": "14989.315675",
+              "event_ms": "0.175620",
+              "total_ms": "14989.492676",
+              "throughput_fps": "2.001402"
+            },
+            "final_state_fnv64": "0x4b76e9998add7ebb",
+            "gpu_identity_lines": [
+              "window_benchmark backend=wgpu-vulkan transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan)\" vendor_id=0x10de device_id=0x2560 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=none-public-api throughput_scope=cpu-loop-native-queue-may-remain-pending final_gpu_drain_ms=-1.000000 cpu_frame_median_ms=495.159784 cpu_frame_p95_ms=787.222022 cpu_frame_min_ms=206.109274 cpu_frame_max_ms=789.029475 update_median_ms=2.605117 update_p95_ms=3.634012 update_p99_ms=4.549915 update_min_ms=2.432005 update_max_ms=4.549915 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=495.159784 render_present_p95_ms=787.222022 render_present_p99_ms=789.029475 render_present_min_ms=206.109274 render_present_max_ms=789.029475 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=497.820435 frame_total_p95_ms=789.739768 frame_total_p99_ms=791.529276 frame_total_min_ms=209.743286 frame_total_max_ms=791.529276 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=14989.315675 event_ms=0.175620 total_ms=14989.492676 throughput_fps=2.001402"
+            ]
+          },
+          "first_ms": 419.839342,
+          "first_total_ms": 422.60646,
+          "result_since_main_ms": 1774.597442,
+          "wall_total_ms": 14989.492676,
+          "throughput_fps": 2.001402,
+          "final_gpu_drain_ms": -1.0,
+          "throughput_scope": "cpu-loop-native-queue-may-remain-pending"
+        },
+        {
+          "case": "transforms-10",
+          "variant": "coingl",
+          "round": 2,
+          "scope": "window",
+          "samples": "samples/transforms-10-coingl-2.csv",
+          "log": "logs/transforms-10-coingl-2.log",
+          "measured_frames": 30,
+          "warmup_frames": 5,
+          "stats": {
+            "update_ms": {
+              "median_ms": 3.5018599999999998,
+              "p95_ms": 5.130246,
+              "p99_ms": 5.373508,
+              "max_ms": 5.373508,
+              "over_16_67": 0,
+              "over_33_33": 0
+            },
+            "render_ms": {
+              "median_ms": 103.0461325,
+              "p95_ms": 464.525532,
+              "p99_ms": 465.424117,
+              "max_ms": 465.424117,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "total_ms": {
+              "median_ms": 106.51607849999999,
+              "p95_ms": 468.031094,
+              "p99_ms": 468.94091,
+              "max_ms": 468.94091,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "event_ms": {
+              "median_ms": 0.0024245,
+              "p95_ms": 0.004148,
+              "p99_ms": 0.004659,
+              "max_ms": 0.004659,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 313640,
+          "first_total_ms_from_csv": 251.825653,
+          "first_render_ms_from_csv": 249.483486,
+          "metadata": {
+            "lines": [
+              "window_benchmark backend=coin-gl transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2\" vendor_id=0x0 device_id=0x0 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=glFinish throughput_scope=cpu-loop-plus-final-GL-queue-drain final_gpu_drain_ms=5.979245 cpu_frame_median_ms=103.046132 cpu_frame_p95_ms=464.525532 cpu_frame_min_ms=99.819099 cpu_frame_max_ms=465.424117 update_median_ms=3.501860 update_p95_ms=5.130246 update_p99_ms=5.373508 update_min_ms=3.350324 update_max_ms=5.373508 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=103.046132 render_present_p95_ms=464.525532 render_present_p99_ms=465.424117 render_present_min_ms=99.819099 render_present_max_ms=465.424117 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=106.516078 frame_total_p95_ms=468.031094 frame_total_p99_ms=468.940910 frame_total_min_ms=103.273897 frame_total_max_ms=468.940910 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=4999.058390 event_ms=0.078305 total_ms=5005.120281 throughput_fps=5.993862"
+            ],
+            "fields": {
+              "backend": "coin-gl",
+              "transparency": "object",
+              "size": "1024x1024",
+              "warmup": "5",
+              "frames": "30",
+              "scene_update": "transforms",
+              "animation": "transforms",
+              "animated_percent": "10",
+              "animation_step": "1",
+              "eligible": "40000",
+              "selected": "4000",
+              "prepared_clones": "0",
+              "selection_digest": "0x44ab2b433838fad2",
+              "final_state_digest": "0x4b76e9998add7ebb",
+              "scene": "/tmp/coin-render-city-40000.iv",
+              "framing": "perspective-viewAll-1.15",
+              "readback": "none",
+              "adapter": "\"NVIDIA",
+              "vendor_id": "0x0",
+              "device_id": "0x0",
+              "present_policy": "off-requested",
+              "timing_scope": "cpu-update-and-render-present-call",
+              "display_latency_measured": "0",
+              "gpu_duration_measured": "0",
+              "final_sync": "glFinish",
+              "throughput_scope": "cpu-loop-plus-final-GL-queue-drain",
+              "final_gpu_drain_ms": "5.979245",
+              "cpu_frame_median_ms": "103.046132",
+              "cpu_frame_p95_ms": "464.525532",
+              "cpu_frame_min_ms": "99.819099",
+              "cpu_frame_max_ms": "465.424117",
+              "update_median_ms": "3.501860",
+              "update_p95_ms": "5.130246",
+              "update_p99_ms": "5.373508",
+              "update_min_ms": "3.350324",
+              "update_max_ms": "5.373508",
+              "update_over_16_666667_ms": "0",
+              "update_over_33_333333_ms": "0",
+              "render_present_median_ms": "103.046132",
+              "render_present_p95_ms": "464.525532",
+              "render_present_p99_ms": "465.424117",
+              "render_present_min_ms": "99.819099",
+              "render_present_max_ms": "465.424117",
+              "render_present_over_16_666667_ms": "30",
+              "render_present_over_33_333333_ms": "30",
+              "frame_total_median_ms": "106.516078",
+              "frame_total_p95_ms": "468.031094",
+              "frame_total_p99_ms": "468.940910",
+              "frame_total_min_ms": "103.273897",
+              "frame_total_max_ms": "468.940910",
+              "frame_total_over_16_666667_ms": "30",
+              "frame_total_over_33_333333_ms": "30",
+              "sample_total_ms": "4999.058390",
+              "event_ms": "0.078305",
+              "total_ms": "5005.120281",
+              "throughput_fps": "5.993862"
+            },
+            "final_state_fnv64": "0x4b76e9998add7ebb",
+            "gpu_identity_lines": [
+              "window_benchmark backend=coin-gl transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2\" vendor_id=0x0 device_id=0x0 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=glFinish throughput_scope=cpu-loop-plus-final-GL-queue-drain final_gpu_drain_ms=5.979245 cpu_frame_median_ms=103.046132 cpu_frame_p95_ms=464.525532 cpu_frame_min_ms=99.819099 cpu_frame_max_ms=465.424117 update_median_ms=3.501860 update_p95_ms=5.130246 update_p99_ms=5.373508 update_min_ms=3.350324 update_max_ms=5.373508 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=103.046132 render_present_p95_ms=464.525532 render_present_p99_ms=465.424117 render_present_min_ms=99.819099 render_present_max_ms=465.424117 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=106.516078 frame_total_p95_ms=468.031094 frame_total_p99_ms=468.940910 frame_total_min_ms=103.273897 frame_total_max_ms=468.940910 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=4999.058390 event_ms=0.078305 total_ms=5005.120281 throughput_fps=5.993862"
+            ]
+          },
+          "first_ms": 249.483486,
+          "first_total_ms": 251.825653,
+          "result_since_main_ms": 1743.701148,
+          "wall_total_ms": 5005.120281,
+          "throughput_fps": 5.993862,
+          "final_gpu_drain_ms": 5.979245,
+          "throughput_scope": "cpu-loop-plus-final-GL-queue-drain"
+        },
+        {
+          "case": "transforms-10",
+          "variant": "wgpu-vulkan",
+          "round": 2,
+          "scope": "window",
+          "samples": "samples/transforms-10-wgpu-vulkan-2.csv",
+          "log": "logs/transforms-10-wgpu-vulkan-2.log",
+          "measured_frames": 30,
+          "warmup_frames": 5,
+          "stats": {
+            "update_ms": {
+              "median_ms": 2.507851,
+              "p95_ms": 3.169758,
+              "p99_ms": 3.292145,
+              "max_ms": 3.292145,
+              "over_16_67": 0,
+              "over_33_33": 0
+            },
+            "render_ms": {
+              "median_ms": 496.267702,
+              "p95_ms": 786.123073,
+              "p99_ms": 787.655717,
+              "max_ms": 787.655717,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "total_ms": {
+              "median_ms": 499.04588,
+              "p95_ms": 788.549418,
+              "p99_ms": 790.20999,
+              "max_ms": 790.20999,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "event_ms": {
+              "median_ms": 0.005776,
+              "p95_ms": 0.008847,
+              "p99_ms": 0.009117,
+              "max_ms": 0.009117,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 669884,
+          "first_total_ms_from_csv": 432.812622,
+          "first_render_ms_from_csv": 429.754973,
+          "metadata": {
+            "lines": [
+              "window_benchmark backend=wgpu-vulkan transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan)\" vendor_id=0x10de device_id=0x2560 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=none-public-api throughput_scope=cpu-loop-native-queue-may-remain-pending final_gpu_drain_ms=-1.000000 cpu_frame_median_ms=496.267702 cpu_frame_p95_ms=786.123073 cpu_frame_min_ms=208.330723 cpu_frame_max_ms=787.655717 update_median_ms=2.507851 update_p95_ms=3.169758 update_p99_ms=3.292145 update_min_ms=2.400256 update_max_ms=3.292145 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=496.267702 render_present_p95_ms=786.123073 render_present_p99_ms=787.655717 render_present_min_ms=208.330723 render_present_max_ms=787.655717 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=499.045880 frame_total_p95_ms=788.549418 frame_total_p99_ms=790.209990 frame_total_min_ms=211.410313 frame_total_max_ms=790.209990 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=14996.522953 event_ms=0.166654 total_ms=14996.690914 throughput_fps=2.000441"
+            ],
+            "fields": {
+              "backend": "wgpu-vulkan",
+              "transparency": "object",
+              "size": "1024x1024",
+              "warmup": "5",
+              "frames": "30",
+              "scene_update": "transforms",
+              "animation": "transforms",
+              "animated_percent": "10",
+              "animation_step": "1",
+              "eligible": "40000",
+              "selected": "4000",
+              "prepared_clones": "0",
+              "selection_digest": "0x44ab2b433838fad2",
+              "final_state_digest": "0x4b76e9998add7ebb",
+              "scene": "/tmp/coin-render-city-40000.iv",
+              "framing": "perspective-viewAll-1.15",
+              "readback": "none",
+              "adapter": "\"NVIDIA",
+              "vendor_id": "0x10de",
+              "device_id": "0x2560",
+              "present_policy": "off-requested",
+              "timing_scope": "cpu-update-and-render-present-call",
+              "display_latency_measured": "0",
+              "gpu_duration_measured": "0",
+              "final_sync": "none-public-api",
+              "throughput_scope": "cpu-loop-native-queue-may-remain-pending",
+              "final_gpu_drain_ms": "-1.000000",
+              "cpu_frame_median_ms": "496.267702",
+              "cpu_frame_p95_ms": "786.123073",
+              "cpu_frame_min_ms": "208.330723",
+              "cpu_frame_max_ms": "787.655717",
+              "update_median_ms": "2.507851",
+              "update_p95_ms": "3.169758",
+              "update_p99_ms": "3.292145",
+              "update_min_ms": "2.400256",
+              "update_max_ms": "3.292145",
+              "update_over_16_666667_ms": "0",
+              "update_over_33_333333_ms": "0",
+              "render_present_median_ms": "496.267702",
+              "render_present_p95_ms": "786.123073",
+              "render_present_p99_ms": "787.655717",
+              "render_present_min_ms": "208.330723",
+              "render_present_max_ms": "787.655717",
+              "render_present_over_16_666667_ms": "30",
+              "render_present_over_33_333333_ms": "30",
+              "frame_total_median_ms": "499.045880",
+              "frame_total_p95_ms": "788.549418",
+              "frame_total_p99_ms": "790.209990",
+              "frame_total_min_ms": "211.410313",
+              "frame_total_max_ms": "790.209990",
+              "frame_total_over_16_666667_ms": "30",
+              "frame_total_over_33_333333_ms": "30",
+              "sample_total_ms": "14996.522953",
+              "event_ms": "0.166654",
+              "total_ms": "14996.690914",
+              "throughput_fps": "2.000441"
+            },
+            "final_state_fnv64": "0x4b76e9998add7ebb",
+            "gpu_identity_lines": [
+              "window_benchmark backend=wgpu-vulkan transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan)\" vendor_id=0x10de device_id=0x2560 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=none-public-api throughput_scope=cpu-loop-native-queue-may-remain-pending final_gpu_drain_ms=-1.000000 cpu_frame_median_ms=496.267702 cpu_frame_p95_ms=786.123073 cpu_frame_min_ms=208.330723 cpu_frame_max_ms=787.655717 update_median_ms=2.507851 update_p95_ms=3.169758 update_p99_ms=3.292145 update_min_ms=2.400256 update_max_ms=3.292145 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=496.267702 render_present_p95_ms=786.123073 render_present_p99_ms=787.655717 render_present_min_ms=208.330723 render_present_max_ms=787.655717 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=499.045880 frame_total_p95_ms=788.549418 frame_total_p99_ms=790.209990 frame_total_min_ms=211.410313 frame_total_max_ms=790.209990 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=14996.522953 event_ms=0.166654 total_ms=14996.690914 throughput_fps=2.000441"
+            ]
+          },
+          "first_ms": 429.754973,
+          "first_total_ms": 432.812622,
+          "result_since_main_ms": 1073.69481,
+          "wall_total_ms": 14996.690914,
+          "throughput_fps": 2.000441,
+          "final_gpu_drain_ms": -1.0,
+          "throughput_scope": "cpu-loop-native-queue-may-remain-pending"
+        },
+        {
+          "case": "transforms-10",
+          "variant": "wgpu-vulkan",
+          "round": 3,
+          "scope": "window",
+          "samples": "samples/transforms-10-wgpu-vulkan-3.csv",
+          "log": "logs/transforms-10-wgpu-vulkan-3.log",
+          "measured_frames": 30,
+          "warmup_frames": 5,
+          "stats": {
+            "update_ms": {
+              "median_ms": 2.5476705,
+              "p95_ms": 3.147406,
+              "p99_ms": 4.24559,
+              "max_ms": 4.24559,
+              "over_16_67": 0,
+              "over_33_33": 0
+            },
+            "render_ms": {
+              "median_ms": 496.0247195,
+              "p95_ms": 788.457668,
+              "p99_ms": 789.239803,
+              "max_ms": 789.239803,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "total_ms": {
+              "median_ms": 498.7920835,
+              "p95_ms": 790.937111,
+              "p99_ms": 791.650889,
+              "max_ms": 791.650889,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "event_ms": {
+              "median_ms": 0.006206,
+              "p95_ms": 0.008866,
+              "p99_ms": 0.009818,
+              "max_ms": 0.009818,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 670480,
+          "first_total_ms_from_csv": 418.079128,
+          "first_render_ms_from_csv": 414.802151,
+          "metadata": {
+            "lines": [
+              "window_benchmark backend=wgpu-vulkan transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan)\" vendor_id=0x10de device_id=0x2560 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=none-public-api throughput_scope=cpu-loop-native-queue-may-remain-pending final_gpu_drain_ms=-1.000000 cpu_frame_median_ms=496.024720 cpu_frame_p95_ms=788.457668 cpu_frame_min_ms=207.246595 cpu_frame_max_ms=789.239803 update_median_ms=2.547671 update_p95_ms=3.147406 update_p99_ms=4.245590 update_min_ms=2.403331 update_max_ms=4.245590 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=496.024720 render_present_p95_ms=788.457668 render_present_p99_ms=789.239803 render_present_min_ms=207.246595 render_present_max_ms=789.239803 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=498.792083 frame_total_p95_ms=790.937111 frame_total_p99_ms=791.650889 frame_total_min_ms=210.196023 frame_total_max_ms=791.650889 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=14999.041058 event_ms=0.177970 total_ms=14999.220880 throughput_fps=2.000104"
+            ],
+            "fields": {
+              "backend": "wgpu-vulkan",
+              "transparency": "object",
+              "size": "1024x1024",
+              "warmup": "5",
+              "frames": "30",
+              "scene_update": "transforms",
+              "animation": "transforms",
+              "animated_percent": "10",
+              "animation_step": "1",
+              "eligible": "40000",
+              "selected": "4000",
+              "prepared_clones": "0",
+              "selection_digest": "0x44ab2b433838fad2",
+              "final_state_digest": "0x4b76e9998add7ebb",
+              "scene": "/tmp/coin-render-city-40000.iv",
+              "framing": "perspective-viewAll-1.15",
+              "readback": "none",
+              "adapter": "\"NVIDIA",
+              "vendor_id": "0x10de",
+              "device_id": "0x2560",
+              "present_policy": "off-requested",
+              "timing_scope": "cpu-update-and-render-present-call",
+              "display_latency_measured": "0",
+              "gpu_duration_measured": "0",
+              "final_sync": "none-public-api",
+              "throughput_scope": "cpu-loop-native-queue-may-remain-pending",
+              "final_gpu_drain_ms": "-1.000000",
+              "cpu_frame_median_ms": "496.024720",
+              "cpu_frame_p95_ms": "788.457668",
+              "cpu_frame_min_ms": "207.246595",
+              "cpu_frame_max_ms": "789.239803",
+              "update_median_ms": "2.547671",
+              "update_p95_ms": "3.147406",
+              "update_p99_ms": "4.245590",
+              "update_min_ms": "2.403331",
+              "update_max_ms": "4.245590",
+              "update_over_16_666667_ms": "0",
+              "update_over_33_333333_ms": "0",
+              "render_present_median_ms": "496.024720",
+              "render_present_p95_ms": "788.457668",
+              "render_present_p99_ms": "789.239803",
+              "render_present_min_ms": "207.246595",
+              "render_present_max_ms": "789.239803",
+              "render_present_over_16_666667_ms": "30",
+              "render_present_over_33_333333_ms": "30",
+              "frame_total_median_ms": "498.792083",
+              "frame_total_p95_ms": "790.937111",
+              "frame_total_p99_ms": "791.650889",
+              "frame_total_min_ms": "210.196023",
+              "frame_total_max_ms": "791.650889",
+              "frame_total_over_16_666667_ms": "30",
+              "frame_total_over_33_333333_ms": "30",
+              "sample_total_ms": "14999.041058",
+              "event_ms": "0.177970",
+              "total_ms": "14999.220880",
+              "throughput_fps": "2.000104"
+            },
+            "final_state_fnv64": "0x4b76e9998add7ebb",
+            "gpu_identity_lines": [
+              "window_benchmark backend=wgpu-vulkan transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan)\" vendor_id=0x10de device_id=0x2560 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=none-public-api throughput_scope=cpu-loop-native-queue-may-remain-pending final_gpu_drain_ms=-1.000000 cpu_frame_median_ms=496.024720 cpu_frame_p95_ms=788.457668 cpu_frame_min_ms=207.246595 cpu_frame_max_ms=789.239803 update_median_ms=2.547671 update_p95_ms=3.147406 update_p99_ms=4.245590 update_min_ms=2.403331 update_max_ms=4.245590 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=496.024720 render_present_p95_ms=788.457668 render_present_p99_ms=789.239803 render_present_min_ms=207.246595 render_present_max_ms=789.239803 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=498.792083 frame_total_p95_ms=790.937111 frame_total_p99_ms=791.650889 frame_total_min_ms=210.196023 frame_total_max_ms=791.650889 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=14999.041058 event_ms=0.177970 total_ms=14999.220880 throughput_fps=2.000104"
+            ]
+          },
+          "first_ms": 414.802151,
+          "first_total_ms": 418.079128,
+          "result_since_main_ms": 1768.189453,
+          "wall_total_ms": 14999.22088,
+          "throughput_fps": 2.000104,
+          "final_gpu_drain_ms": -1.0,
+          "throughput_scope": "cpu-loop-native-queue-may-remain-pending"
+        },
+        {
+          "case": "transforms-10",
+          "variant": "coingl",
+          "round": 3,
+          "scope": "window",
+          "samples": "samples/transforms-10-coingl-3.csv",
+          "log": "logs/transforms-10-coingl-3.log",
+          "measured_frames": 30,
+          "warmup_frames": 5,
+          "stats": {
+            "update_ms": {
+              "median_ms": 3.530584,
+              "p95_ms": 4.249046,
+              "p99_ms": 5.904336,
+              "max_ms": 5.904336,
+              "over_16_67": 0,
+              "over_33_33": 0
+            },
+            "render_ms": {
+              "median_ms": 104.3297885,
+              "p95_ms": 463.053448,
+              "p99_ms": 467.89181,
+              "max_ms": 467.89181,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "total_ms": {
+              "median_ms": 107.8948115,
+              "p95_ms": 466.605236,
+              "p99_ms": 471.333644,
+              "max_ms": 471.333644,
+              "over_16_67": 30,
+              "over_33_33": 30
+            },
+            "event_ms": {
+              "median_ms": 0.002084,
+              "p95_ms": 0.003596,
+              "p99_ms": 0.003847,
+              "max_ms": 0.003847,
+              "over_16_67": 0,
+              "over_33_33": 0
+            }
+          },
+          "peak_rss_kib": 313920,
+          "first_total_ms_from_csv": 254.060069,
+          "first_render_ms_from_csv": 251.673779,
+          "metadata": {
+            "lines": [
+              "window_benchmark backend=coin-gl transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2\" vendor_id=0x0 device_id=0x0 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=glFinish throughput_scope=cpu-loop-plus-final-GL-queue-drain final_gpu_drain_ms=5.348020 cpu_frame_median_ms=104.329789 cpu_frame_p95_ms=463.053448 cpu_frame_min_ms=100.057298 cpu_frame_max_ms=467.891810 update_median_ms=3.530584 update_p95_ms=4.249046 update_p99_ms=5.904336 update_min_ms=3.441834 update_max_ms=5.904336 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=104.329789 render_present_p95_ms=463.053448 render_present_p99_ms=467.891810 render_present_min_ms=100.057298 render_present_max_ms=467.891810 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=107.894812 frame_total_p95_ms=466.605236 frame_total_p99_ms=471.333644 frame_total_min_ms=103.511175 frame_total_max_ms=471.333644 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=4996.353012 event_ms=0.068778 total_ms=5001.773602 throughput_fps=5.997872"
+            ],
+            "fields": {
+              "backend": "coin-gl",
+              "transparency": "object",
+              "size": "1024x1024",
+              "warmup": "5",
+              "frames": "30",
+              "scene_update": "transforms",
+              "animation": "transforms",
+              "animated_percent": "10",
+              "animation_step": "1",
+              "eligible": "40000",
+              "selected": "4000",
+              "prepared_clones": "0",
+              "selection_digest": "0x44ab2b433838fad2",
+              "final_state_digest": "0x4b76e9998add7ebb",
+              "scene": "/tmp/coin-render-city-40000.iv",
+              "framing": "perspective-viewAll-1.15",
+              "readback": "none",
+              "adapter": "\"NVIDIA",
+              "vendor_id": "0x0",
+              "device_id": "0x0",
+              "present_policy": "off-requested",
+              "timing_scope": "cpu-update-and-render-present-call",
+              "display_latency_measured": "0",
+              "gpu_duration_measured": "0",
+              "final_sync": "glFinish",
+              "throughput_scope": "cpu-loop-plus-final-GL-queue-drain",
+              "final_gpu_drain_ms": "5.348020",
+              "cpu_frame_median_ms": "104.329789",
+              "cpu_frame_p95_ms": "463.053448",
+              "cpu_frame_min_ms": "100.057298",
+              "cpu_frame_max_ms": "467.891810",
+              "update_median_ms": "3.530584",
+              "update_p95_ms": "4.249046",
+              "update_p99_ms": "5.904336",
+              "update_min_ms": "3.441834",
+              "update_max_ms": "5.904336",
+              "update_over_16_666667_ms": "0",
+              "update_over_33_333333_ms": "0",
+              "render_present_median_ms": "104.329789",
+              "render_present_p95_ms": "463.053448",
+              "render_present_p99_ms": "467.891810",
+              "render_present_min_ms": "100.057298",
+              "render_present_max_ms": "467.891810",
+              "render_present_over_16_666667_ms": "30",
+              "render_present_over_33_333333_ms": "30",
+              "frame_total_median_ms": "107.894812",
+              "frame_total_p95_ms": "466.605236",
+              "frame_total_p99_ms": "471.333644",
+              "frame_total_min_ms": "103.511175",
+              "frame_total_max_ms": "471.333644",
+              "frame_total_over_16_666667_ms": "30",
+              "frame_total_over_33_333333_ms": "30",
+              "sample_total_ms": "4996.353012",
+              "event_ms": "0.068778",
+              "total_ms": "5001.773602",
+              "throughput_fps": "5.997872"
+            },
+            "final_state_fnv64": "0x4b76e9998add7ebb",
+            "gpu_identity_lines": [
+              "window_benchmark backend=coin-gl transparency=object size=1024x1024 warmup=5 frames=30 scene_update=transforms animation=transforms animated_percent=10 animation_step=1 eligible=40000 selected=4000 prepared_clones=0 selection_digest=0x44ab2b433838fad2 final_state_digest=0x4b76e9998add7ebb scene=/tmp/coin-render-city-40000.iv framing=perspective-viewAll-1.15 readback=none adapter=\"NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2\" vendor_id=0x0 device_id=0x0 present_policy=off-requested timing_scope=cpu-update-and-render-present-call display_latency_measured=0 gpu_duration_measured=0 final_sync=glFinish throughput_scope=cpu-loop-plus-final-GL-queue-drain final_gpu_drain_ms=5.348020 cpu_frame_median_ms=104.329789 cpu_frame_p95_ms=463.053448 cpu_frame_min_ms=100.057298 cpu_frame_max_ms=467.891810 update_median_ms=3.530584 update_p95_ms=4.249046 update_p99_ms=5.904336 update_min_ms=3.441834 update_max_ms=5.904336 update_over_16_666667_ms=0 update_over_33_333333_ms=0 render_present_median_ms=104.329789 render_present_p95_ms=463.053448 render_present_p99_ms=467.891810 render_present_min_ms=100.057298 render_present_max_ms=467.891810 render_present_over_16_666667_ms=30 render_present_over_33_333333_ms=30 frame_total_median_ms=107.894812 frame_total_p95_ms=466.605236 frame_total_p99_ms=471.333644 frame_total_min_ms=103.511175 frame_total_max_ms=471.333644 frame_total_over_16_666667_ms=30 frame_total_over_33_333333_ms=30 sample_total_ms=4996.353012 event_ms=0.068778 total_ms=5001.773602 throughput_fps=5.997872"
+            ]
+          },
+          "first_ms": 251.673779,
+          "first_total_ms": 254.060069,
+          "result_since_main_ms": 1764.13178,
+          "wall_total_ms": 5001.773602,
+          "throughput_fps": 5.997872,
+          "final_gpu_drain_ms": 5.34802,
+          "throughput_scope": "cpu-loop-plus-final-GL-queue-drain"
+        }
+      ],
+      "groups": [
+        {
+          "campaign": "after",
+          "scope": "window",
+          "case": "transforms-10",
+          "variant": "coingl",
+          "processes": 3,
+          "measured_frames": 90,
+          "warmup_frames": 15,
+          "stats": {
+            "update_ms": {
+              "median_ms": 3.5018599999999998,
+              "p95_ms": 5.130246,
+              "p99_ms": 5.56307,
+              "max_global_ms": 5.904336,
+              "frames_over_16_67_sum": 0,
+              "frames_over_33_33_sum": 0
+            },
+            "render_ms": {
+              "median_ms": 103.0461325,
+              "p95_ms": 464.525532,
+              "p99_ms": 467.89181,
+              "max_global_ms": 482.440479,
+              "frames_over_16_67_sum": 90,
+              "frames_over_33_33_sum": 90
+            },
+            "total_ms": {
+              "median_ms": 106.51607849999999,
+              "p95_ms": 468.031094,
+              "p99_ms": 471.333644,
+              "max_global_ms": 485.881591,
+              "frames_over_16_67_sum": 90,
+              "frames_over_33_33_sum": 90
+            },
+            "event_ms": {
+              "median_ms": 0.0021939999999999998,
+              "p95_ms": 0.004148,
+              "p99_ms": 0.004659,
+              "max_global_ms": 0.007684,
+              "frames_over_16_67_sum": 0,
+              "frames_over_33_33_sum": 0
+            }
+          },
+          "peak_rss_median_mib": 306.5625,
+          "peak_rss_global_max_mib": 308.55859375,
+          "first_total_ms_from_csv_median": 254.060069,
+          "first_render_ms_from_csv_median": 251.673779,
+          "first_ms_median": 251.673779,
+          "first_total_ms_median": 254.060069,
+          "result_since_main_ms_median": 1743.701148,
+          "wall_total_ms_median": 5001.773602,
+          "throughput_fps_median": 5.997872,
+          "final_gpu_drain_ms_median": 5.979245,
+          "throughput_scope": "cpu-loop-plus-final-GL-queue-drain"
+        },
+        {
+          "campaign": "after",
+          "scope": "window",
+          "case": "transforms-10",
+          "variant": "wgpu-vulkan",
+          "processes": 3,
+          "measured_frames": 90,
+          "warmup_frames": 15,
+          "stats": {
+            "update_ms": {
+              "median_ms": 2.5476705,
+              "p95_ms": 3.169758,
+              "p99_ms": 4.24559,
+              "max_global_ms": 4.549915,
+              "frames_over_16_67_sum": 0,
+              "frames_over_33_33_sum": 0
+            },
+            "render_ms": {
+              "median_ms": 496.0247195,
+              "p95_ms": 787.222022,
+              "p99_ms": 789.029475,
+              "max_global_ms": 789.239803,
+              "frames_over_16_67_sum": 90,
+              "frames_over_33_33_sum": 90
+            },
+            "total_ms": {
+              "median_ms": 498.7920835,
+              "p95_ms": 789.739768,
+              "p99_ms": 791.529276,
+              "max_global_ms": 791.650889,
+              "frames_over_16_67_sum": 90,
+              "frames_over_33_33_sum": 90
+            },
+            "event_ms": {
+              "median_ms": 0.005776,
+              "p95_ms": 0.008866,
+              "p99_ms": 0.009818,
+              "max_global_ms": 0.011651,
+              "frames_over_16_67_sum": 0,
+              "frames_over_33_33_sum": 0
+            }
+          },
+          "peak_rss_median_mib": 654.765625,
+          "peak_rss_global_max_mib": 655.140625,
+          "first_total_ms_from_csv_median": 422.60646,
+          "first_render_ms_from_csv_median": 419.839342,
+          "first_ms_median": 419.839342,
+          "first_total_ms_median": 422.60646,
+          "result_since_main_ms_median": 1768.189453,
+          "wall_total_ms_median": 14996.690914,
+          "throughput_fps_median": 2.000441,
+          "final_gpu_drain_ms_median": null,
+          "throughput_scope": "cpu-loop-native-queue-may-remain-pending"
+        }
+      ],
+      "state_digests": {
+        "transforms-10": [
+          "0x4b76e9998add7ebb"
+        ]
+      },
+      "source_provenance": {
+        "runner_recorded_source_revision": "9e347591a9825ce4c1fcbdc76dc31d142d50d264",
+        "source_identity_limit": "Runner source_revision identifies its checkout; it does not by itself prove the compiled binary source",
+        "verified_binary_source_revision_supplied": null,
+        "frozen_binary_matches": [
+          {
+            "control_original_path": "/tmp/coin-render-motion-baseline/frozen-binaries.json",
+            "source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+            "source_head_at_snapshot": "4262fd9207358644cc23a6a102befc2816e85b49",
+            "all_campaign_binary_hashes_match": false,
+            "matched_campaign_hashes": {
+              "/tmp/coin-render-motion-baseline/bgfx/bin/coin_render_window_benchmark": "635c8d5dbc4aa59894a7ae2fc1541a27356054d10f5314db27a06b3c8e59ff5a",
+              "/tmp/coin-render-motion-baseline/bgfx/lib/libCoinRender.so": "51e7cd743a87afa7476b011a72f3749246e269d3d850715ddc3675af436658be",
+              "/tmp/coin-render-motion-baseline/bgfx/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f",
+              "/tmp/coin-render-first-frame-wgpu/bin/coin_render_window_benchmark": "1ebce110760db5bd624e645b3b2957ee4392c8361f8372240f17d6be3c739cfb",
+              "/tmp/coin-render-first-frame-wgpu/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f"
+            },
+            "match_contract": "Content SHA256 match; original filename/symlink spelling may differ"
+          },
+          {
+            "control_original_path": "/tmp/coin-render-wgpu-motion-final-binaries.json",
+            "source_content_revision": "9e347591a9825ce4c1fcbdc76dc31d142d50d264",
+            "source_head_at_snapshot": "9e347591a9825ce4c1fcbdc76dc31d142d50d264",
+            "all_campaign_binary_hashes_match": false,
+            "matched_campaign_hashes": {
+              "/tmp/coin-render-motion-baseline/bgfx/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f",
+              "/tmp/coin-render-first-frame-wgpu/bin/coin_render_window_benchmark": "1ebce110760db5bd624e645b3b2957ee4392c8361f8372240f17d6be3c739cfb",
+              "/tmp/coin-render-first-frame-wgpu/lib/libCoinRender.so": "39f8a11288037d96f6b76a28df636a76a629833a68682c89b2927cea422b2aaa",
+              "/tmp/coin-render-first-frame-wgpu/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f"
+            },
+            "match_contract": "Content SHA256 match; original filename/symlink spelling may differ"
+          }
+        ]
+      }
+    }
+  },
+  "timing": {
+    "comparisons": [
+      {
+        "case": "transforms-10",
+        "variant": "coingl",
+        "metrics": {
+          "total_median_ms": {
+            "before": 106.51607849999999,
+            "after": 106.51607849999999,
+            "change_percent": 0.0,
+            "ratio_before_to_after": 1.0
+          },
+          "total_p95_ms": {
+            "before": 468.031094,
+            "after": 468.031094,
+            "change_percent": 0.0,
+            "ratio_before_to_after": 1.0
+          },
+          "total_p99_ms": {
+            "before": 471.333644,
+            "after": 471.333644,
+            "change_percent": 0.0,
+            "ratio_before_to_after": 1.0
+          },
+          "total_max_global_ms": {
+            "before": 485.881591,
+            "after": 485.881591,
+            "change_percent": 0.0,
+            "ratio_before_to_after": 1.0
+          },
+          "update_ms_median": {
+            "before": 3.5018599999999998,
+            "after": 3.5018599999999998,
+            "change_percent": 0.0,
+            "ratio_before_to_after": 1.0
+          },
+          "render_ms_median": {
+            "before": 103.0461325,
+            "after": 103.0461325,
+            "change_percent": 0.0,
+            "ratio_before_to_after": 1.0
+          },
+          "first_total_ms_from_csv_median": {
+            "before": 254.060069,
+            "after": 254.060069,
+            "change_percent": 0.0,
+            "ratio_before_to_after": 1.0
+          },
+          "first_render_ms_from_csv_median": {
+            "before": 251.673779,
+            "after": 251.673779,
+            "change_percent": 0.0,
+            "ratio_before_to_after": 1.0
+          },
+          "result_since_main_ms_median": {
+            "before": 1743.701148,
+            "after": 1743.701148,
+            "change_percent": 0.0,
+            "ratio_before_to_after": 1.0
+          },
+          "peak_rss_median_mib": {
+            "before": 306.5625,
+            "after": 306.5625,
+            "change_percent": 0.0,
+            "ratio_before_to_after": 1.0
+          }
+        },
+        "same_recorded_protocol": true,
+        "protocol_differences": {},
+        "final_scene_state_digests": {
+          "before": [
+            "0x4b76e9998add7ebb"
+          ],
+          "after": [
+            "0x4b76e9998add7ebb"
+          ],
+          "equal": true
+        },
+        "limit": "Observed CPU wall times; matched protocol does not establish equal driver/display/thermal state"
+      },
+      {
+        "case": "transforms-10",
+        "variant": "wgpu-vulkan",
+        "metrics": {
+          "total_median_ms": {
+            "before": 500.62397599999997,
+            "after": 498.7920835,
+            "change_percent": -0.36592184709905995,
+            "ratio_before_to_after": 1.003672657527252
+          },
+          "total_p95_ms": {
+            "before": 721.887073,
+            "after": 789.739768,
+            "change_percent": 9.399350333012556,
+            "ratio_before_to_after": 0.9140822106858876
+          },
+          "total_p99_ms": {
+            "before": 723.569829,
+            "after": 791.529276,
+            "change_percent": 9.392244435332863,
+            "ratio_before_to_after": 0.9141415876069252
+          },
+          "total_max_global_ms": {
+            "before": 725.014509,
+            "after": 791.650889,
+            "change_percent": 9.191040892672685,
+            "ratio_before_to_after": 0.9158260529661326
+          },
+          "update_ms_median": {
+            "before": 2.5424154999999997,
+            "after": 2.5476705,
+            "change_percent": 0.2066932017996459,
+            "ratio_before_to_after": 0.9979373313778213
+          },
+          "render_ms_median": {
+            "before": 498.0674295,
+            "after": 496.0247195,
+            "change_percent": -0.4101271994538247,
+            "ratio_before_to_after": 1.0041181616957702
+          },
+          "first_total_ms_from_csv_median": {
+            "before": 426.941629,
+            "after": 422.60646,
+            "change_percent": -1.0154008664261527,
+            "ratio_before_to_after": 1.0102581702134887
+          },
+          "first_render_ms_from_csv_median": {
+            "before": 423.175151,
+            "after": 419.839342,
+            "change_percent": -0.7882809262588442,
+            "ratio_before_to_after": 1.0079454416637306
+          },
+          "result_since_main_ms_median": {
+            "before": 1852.444999,
+            "after": 1768.189453,
+            "change_percent": -4.548342652304582,
+            "ratio_before_to_after": 1.0476507457145205
+          },
+          "peak_rss_median_mib": {
+            "before": 746.42578125,
+            "after": 654.765625,
+            "change_percent": -12.279875448099009,
+            "ratio_before_to_after": 1.139989261424651
+          }
+        },
+        "same_recorded_protocol": true,
+        "protocol_differences": {},
+        "final_scene_state_digests": {
+          "before": [
+            "0x4b76e9998add7ebb"
+          ],
+          "after": [
+            "0x4b76e9998add7ebb"
+          ],
+          "equal": true
+        },
+        "limit": "Observed CPU wall times; matched protocol does not establish equal driver/display/thermal state"
+      }
+    ],
+    "before_only": [],
+    "after_only": []
+  },
+  "rgb_before_after": null
+}

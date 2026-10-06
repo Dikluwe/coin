@@ -1,0 +1,23 @@
+{
+  "utc": "2026-10-05T11:50:08.531353+00:00",
+  "scope": "Read-only load observation during matched timing; ps used the restricted execution namespace and cannot establish whole-host idle state; not a sample history",
+  "entries": [
+    {
+      "command": [
+        "uptime"
+      ],
+      "exit_code": 0,
+      "output": " 08:50:08 up 7 days, 14:57,  1 user,  load average: 2.69, 1.66, 1.11\n"
+    },
+    {
+      "command": [
+        "ps",
+        "-eo",
+        "pid,pcpu,pmem,comm",
+        "--sort=-pcpu"
+      ],
+      "exit_code": 0,
+      "output": "    PID %CPU %MEM COMMAND\n      7 15.3  0.0 python3\n      1  5.8  0.0 codex\n      2  0.0  0.0 bash\n      9  0.0  0.0 ps\n"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+startup_detail arguments_ms=0.0662 coin_init_ms=2.131 capability_probe_ms=491.337
+scene_detail parse_ms=503.981 wrapper_ms=0.02 camera_fit_ms=110.199
+scene_load_ms=614.292
+animation_detail mode=camera animated_percent=20 eligible=40000 selected=0 prepared_clones=0 prepare_ms=65.7991 frame_step=3 time_step_seconds=0.05 selection_fnv64=0x9ff61e351311c0b1
+startup_detail material_search_ms=0.3469 target_setup_ms=1.6363
+BGFX-OpenGL_first_detail render_ms=643.167 publication_copy_ms=1.1482 update_ms=0.0067 total_with_update_ms=644.322 before_frame_since_main_ms=1176.4 result_since_main_ms=1820.71
+BGFX-OpenGL_first_frame_ms=644.315
+capture backend=BGFX-OpenGL frame_index=0 logical_frame=0 rgba_fnv64=0x8e35c308d994005 rgb_fnv64=0xaa84ad0082892813 state_fnv64=0x65cec46a260273f5 image=H:\Git\coin\build\animated-buildings-windows-20261005\bgfx-opengl-before-camera-1-BGFX-OpenGL-000000.ppm
+capture backend=BGFX-OpenGL frame_index=5 logical_frame=15 rgba_fnv64=0xfa474bd3a3a85d69 rgb_fnv64=0xfda6bd8f64c5c7d3 state_fnv64=0x4e18e1739e91f9f6 image=H:\Git\coin\build\animated-buildings-windows-20261005\bgfx-opengl-before-camera-1-BGFX-OpenGL-000005.ppm
+capture backend=BGFX-OpenGL frame_index=9 logical_frame=27 rgba_fnv64=0x910a8d19469389d7 rgb_fnv64=0x70e639cc0edf2993 state_fnv64=0xc214eb75417e0d71 image=H:\Git\coin\build\animated-buildings-windows-20261005\bgfx-opengl-before-camera-1-BGFX-OpenGL-000009.ppm
+BGFX-OpenGL_animation_final logical_frame=27 state_fnv64=0xc214eb75417e0d71
+samples_output=H:\Git\coin\build\animated-buildings-windows-20261005\bgfx-opengl-before-camera-1.csv rows=15
+rgba_fnv64=0x910a8d19469389d7
+adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) vendor_id=0x10de device_id=0x0 backend=bgfx size=768x768 warmup=5 scene=H:\Git\coin\build\large-scenes\city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=camera
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..9 warmup_indices=-5..-1 frame_step=3 captures=3 capture_io=outside_frame_timers wall_throughput_includes_capture=1 wall_throughput_scope=update+frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+BGFX-OpenGL frames=10 median_ms=16.3676 p95_ms=23.3844 min_ms=13.8095 max_ms=23.3844
+BGFX_render_and_readback frames=10 median_ms=16.1545 p95_ms=23.0601 min_ms=13.5805 max_ms=23.0601
+BGFX_publication_copy frames=10 median_ms=0.229 p95_ms=2.5816 min_ms=0.183 max_ms=2.5816
+BGFX-OpenGL_timing_total frames=10 median_ms=16.36735 p95_ms=23.3962 p99_ms=23.3962 max_ms=23.3962 over_16_67=4 over_33_33=0
+BGFX-OpenGL_timing_update frames=10 median_ms=0.01195 p95_ms=0.0143 p99_ms=0.0143 max_ms=0.0143 over_16_67=0 over_33_33=0
+BGFX-OpenGL_timing_render frames=10 median_ms=16.14915 p95_ms=23.0601 p99_ms=23.0601 max_ms=23.0601 over_16_67=3 over_33_33=0
+BGFX-OpenGL_throughput frames=10 total_ms=184.908 fps=54.0809
+backend_cleanup_begin
+backend_cleanup_ms=55.4635

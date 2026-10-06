@@ -1,0 +1,1301 @@
+{
+  "source_content_revision": "24bc92d8d60d3a1ce782e7787d2060a6b08261fb",
+  "scene_sha256": "bb9ccc612cd38ffb749ee599d9350a80974649eab5bf477d2f344538a42b2576",
+  "binary_hashes": {
+    "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark": "fdeb5bec7dccc45643a62024fdabca605a6598510d63b0dcd27b6cc78ff67e4a",
+    "/tmp/coin-render-first-frame-wgpu/lib/libCoinRender.so": "8aef89cc5295799148f22793967abb8191d08016982795a53f83911f3c958311",
+    "/tmp/coin-render-first-frame-wgpu/lib/libCoin.so.80": "c86d9ce95df367b1c649545a1d0ba1de89edeb9f5b887f765bc47229d55c5437",
+    "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark": "6a1a60e80e91bfbd4d61bcad806ee0e35d90f81022f77dad2dc215a52a121086",
+    "/tmp/coin-render-first-frame-bgfx/lib/libCoinRender.so": "b33dcd6a1346010d1d4ce985d55042948f8e75b1f08a2625d6ff381fd01c1fc2",
+    "/tmp/coin-render-first-frame-bgfx/lib/libCoin.so.80": "c86d9ce95df367b1c649545a1d0ba1de89edeb9f5b887f765bc47229d55c5437"
+  },
+  "commands": [
+    {
+      "stem": "wgpu-vulkan-static-reuse-on-1",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "mode": "reuse-on",
+      "command": [
+        "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+        "--backend",
+        "wgpu",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "static",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "0",
+        "--frames",
+        "1",
+        "--samples-output",
+        "/tmp/coin-render-capture-ablation/wgpu-vulkan-static-reuse-on-1.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_RENDER_TRACE_PHASES": "1"
+      },
+      "exit_code": 0,
+      "adapter_verified_nvidia": true,
+      "measured_csv_stats": {
+        "update_ms": {
+          "median_ms": 0.00026,
+          "p95_ms": 0.00026,
+          "p99_ms": 0.00026,
+          "max_ms": 0.00026,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "render_ms": {
+          "median_ms": 299.239614,
+          "p95_ms": 299.239614,
+          "p99_ms": 299.239614,
+          "max_ms": 299.239614,
+          "over_16_67": 1,
+          "over_33_33": 1
+        },
+        "publication_ms": {
+          "median_ms": 1.915625,
+          "p95_ms": 1.915625,
+          "p99_ms": 1.915625,
+          "max_ms": 1.915625,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "total_ms": {
+          "median_ms": 301.155499,
+          "p95_ms": 301.155499,
+          "p99_ms": 301.155499,
+          "max_ms": 301.155499,
+          "over_16_67": 1,
+          "over_33_33": 1
+        }
+      }
+    },
+    {
+      "stem": "wgpu-vulkan-static-reuse-off-1",
+      "variant": "wgpu-vulkan",
+      "round": 1,
+      "mode": "reuse-off",
+      "command": [
+        "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+        "--backend",
+        "wgpu",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "static",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "0",
+        "--frames",
+        "1",
+        "--samples-output",
+        "/tmp/coin-render-capture-ablation/wgpu-vulkan-static-reuse-off-1.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_RENDER_TRACE_PHASES": "1",
+        "COIN_RENDER_DISABLE_CAPTURE_CAMERA_BASIS_REUSE": "1"
+      },
+      "exit_code": 0,
+      "adapter_verified_nvidia": true,
+      "measured_csv_stats": {
+        "update_ms": {
+          "median_ms": 0.0003,
+          "p95_ms": 0.0003,
+          "p99_ms": 0.0003,
+          "max_ms": 0.0003,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "render_ms": {
+          "median_ms": 299.031086,
+          "p95_ms": 299.031086,
+          "p99_ms": 299.031086,
+          "max_ms": 299.031086,
+          "over_16_67": 1,
+          "over_33_33": 1
+        },
+        "publication_ms": {
+          "median_ms": 1.870721,
+          "p95_ms": 1.870721,
+          "p99_ms": 1.870721,
+          "max_ms": 1.870721,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "total_ms": {
+          "median_ms": 300.902107,
+          "p95_ms": 300.902107,
+          "p99_ms": 300.902107,
+          "max_ms": 300.902107,
+          "over_16_67": 1,
+          "over_33_33": 1
+        }
+      }
+    },
+    {
+      "stem": "bgfx-vulkan-static-reuse-on-1",
+      "variant": "bgfx-vulkan",
+      "round": 1,
+      "mode": "reuse-on",
+      "command": [
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "static",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "0",
+        "--frames",
+        "1",
+        "--samples-output",
+        "/tmp/coin-render-capture-ablation/bgfx-vulkan-static-reuse-on-1.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_RENDER_TRACE_PHASES": "1"
+      },
+      "exit_code": 0,
+      "adapter_verified_nvidia": true,
+      "measured_csv_stats": {
+        "update_ms": {
+          "median_ms": 0.00017,
+          "p95_ms": 0.00017,
+          "p99_ms": 0.00017,
+          "max_ms": 0.00017,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "render_ms": {
+          "median_ms": 433.671974,
+          "p95_ms": 433.671974,
+          "p99_ms": 433.671974,
+          "max_ms": 433.671974,
+          "over_16_67": 1,
+          "over_33_33": 1
+        },
+        "publication_ms": {
+          "median_ms": 0.33297,
+          "p95_ms": 0.33297,
+          "p99_ms": 0.33297,
+          "max_ms": 0.33297,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "total_ms": {
+          "median_ms": 434.005114,
+          "p95_ms": 434.005114,
+          "p99_ms": 434.005114,
+          "max_ms": 434.005114,
+          "over_16_67": 1,
+          "over_33_33": 1
+        }
+      }
+    },
+    {
+      "stem": "bgfx-vulkan-static-reuse-off-1",
+      "variant": "bgfx-vulkan",
+      "round": 1,
+      "mode": "reuse-off",
+      "command": [
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "static",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "0",
+        "--frames",
+        "1",
+        "--samples-output",
+        "/tmp/coin-render-capture-ablation/bgfx-vulkan-static-reuse-off-1.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_RENDER_TRACE_PHASES": "1",
+        "COIN_RENDER_DISABLE_CAPTURE_CAMERA_BASIS_REUSE": "1"
+      },
+      "exit_code": 0,
+      "adapter_verified_nvidia": true,
+      "measured_csv_stats": {
+        "update_ms": {
+          "median_ms": 0.00035,
+          "p95_ms": 0.00035,
+          "p99_ms": 0.00035,
+          "max_ms": 0.00035,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "render_ms": {
+          "median_ms": 437.489007,
+          "p95_ms": 437.489007,
+          "p99_ms": 437.489007,
+          "max_ms": 437.489007,
+          "over_16_67": 1,
+          "over_33_33": 1
+        },
+        "publication_ms": {
+          "median_ms": 0.389816,
+          "p95_ms": 0.389816,
+          "p99_ms": 0.389816,
+          "max_ms": 0.389816,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "total_ms": {
+          "median_ms": 437.879173,
+          "p95_ms": 437.879173,
+          "p99_ms": 437.879173,
+          "max_ms": 437.879173,
+          "over_16_67": 1,
+          "over_33_33": 1
+        }
+      }
+    },
+    {
+      "stem": "bgfx-opengl-static-reuse-on-1",
+      "variant": "bgfx-opengl",
+      "round": 1,
+      "mode": "reuse-on",
+      "command": [
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "static",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "0",
+        "--frames",
+        "1",
+        "--samples-output",
+        "/tmp/coin-render-capture-ablation/bgfx-opengl-static-reuse-on-1.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_BGFX_RENDERER": "opengl",
+        "COIN_RENDER_TRACE_PHASES": "1"
+      },
+      "exit_code": 0,
+      "adapter_verified_nvidia": true,
+      "measured_csv_stats": {
+        "update_ms": {
+          "median_ms": 0.00015,
+          "p95_ms": 0.00015,
+          "p99_ms": 0.00015,
+          "max_ms": 0.00015,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "render_ms": {
+          "median_ms": 379.604432,
+          "p95_ms": 379.604432,
+          "p99_ms": 379.604432,
+          "max_ms": 379.604432,
+          "over_16_67": 1,
+          "over_33_33": 1
+        },
+        "publication_ms": {
+          "median_ms": 0.420252,
+          "p95_ms": 0.420252,
+          "p99_ms": 0.420252,
+          "max_ms": 0.420252,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "total_ms": {
+          "median_ms": 380.024834,
+          "p95_ms": 380.024834,
+          "p99_ms": 380.024834,
+          "max_ms": 380.024834,
+          "over_16_67": 1,
+          "over_33_33": 1
+        }
+      }
+    },
+    {
+      "stem": "bgfx-opengl-static-reuse-off-1",
+      "variant": "bgfx-opengl",
+      "round": 1,
+      "mode": "reuse-off",
+      "command": [
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "static",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "0",
+        "--frames",
+        "1",
+        "--samples-output",
+        "/tmp/coin-render-capture-ablation/bgfx-opengl-static-reuse-off-1.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_BGFX_RENDERER": "opengl",
+        "COIN_RENDER_TRACE_PHASES": "1",
+        "COIN_RENDER_DISABLE_CAPTURE_CAMERA_BASIS_REUSE": "1"
+      },
+      "exit_code": 0,
+      "adapter_verified_nvidia": true,
+      "measured_csv_stats": {
+        "update_ms": {
+          "median_ms": 0.00019,
+          "p95_ms": 0.00019,
+          "p99_ms": 0.00019,
+          "max_ms": 0.00019,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "render_ms": {
+          "median_ms": 382.124081,
+          "p95_ms": 382.124081,
+          "p99_ms": 382.124081,
+          "max_ms": 382.124081,
+          "over_16_67": 1,
+          "over_33_33": 1
+        },
+        "publication_ms": {
+          "median_ms": 0.3923,
+          "p95_ms": 0.3923,
+          "p99_ms": 0.3923,
+          "max_ms": 0.3923,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "total_ms": {
+          "median_ms": 382.516571,
+          "p95_ms": 382.516571,
+          "p99_ms": 382.516571,
+          "max_ms": 382.516571,
+          "over_16_67": 1,
+          "over_33_33": 1
+        }
+      }
+    },
+    {
+      "stem": "bgfx-vulkan-static-reuse-off-2",
+      "variant": "bgfx-vulkan",
+      "round": 2,
+      "mode": "reuse-off",
+      "command": [
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "static",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "0",
+        "--frames",
+        "1",
+        "--samples-output",
+        "/tmp/coin-render-capture-ablation/bgfx-vulkan-static-reuse-off-2.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_RENDER_TRACE_PHASES": "1",
+        "COIN_RENDER_DISABLE_CAPTURE_CAMERA_BASIS_REUSE": "1"
+      },
+      "exit_code": 0,
+      "adapter_verified_nvidia": true,
+      "measured_csv_stats": {
+        "update_ms": {
+          "median_ms": 0.00025,
+          "p95_ms": 0.00025,
+          "p99_ms": 0.00025,
+          "max_ms": 0.00025,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "render_ms": {
+          "median_ms": 432.602935,
+          "p95_ms": 432.602935,
+          "p99_ms": 432.602935,
+          "max_ms": 432.602935,
+          "over_16_67": 1,
+          "over_33_33": 1
+        },
+        "publication_ms": {
+          "median_ms": 0.331977,
+          "p95_ms": 0.331977,
+          "p99_ms": 0.331977,
+          "max_ms": 0.331977,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "total_ms": {
+          "median_ms": 432.935162,
+          "p95_ms": 432.935162,
+          "p99_ms": 432.935162,
+          "max_ms": 432.935162,
+          "over_16_67": 1,
+          "over_33_33": 1
+        }
+      }
+    },
+    {
+      "stem": "bgfx-vulkan-static-reuse-on-2",
+      "variant": "bgfx-vulkan",
+      "round": 2,
+      "mode": "reuse-on",
+      "command": [
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "static",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "0",
+        "--frames",
+        "1",
+        "--samples-output",
+        "/tmp/coin-render-capture-ablation/bgfx-vulkan-static-reuse-on-2.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_RENDER_TRACE_PHASES": "1"
+      },
+      "exit_code": 0,
+      "adapter_verified_nvidia": true,
+      "measured_csv_stats": {
+        "update_ms": {
+          "median_ms": 0.000181,
+          "p95_ms": 0.000181,
+          "p99_ms": 0.000181,
+          "max_ms": 0.000181,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "render_ms": {
+          "median_ms": 435.133483,
+          "p95_ms": 435.133483,
+          "p99_ms": 435.133483,
+          "max_ms": 435.133483,
+          "over_16_67": 1,
+          "over_33_33": 1
+        },
+        "publication_ms": {
+          "median_ms": 0.416385,
+          "p95_ms": 0.416385,
+          "p99_ms": 0.416385,
+          "max_ms": 0.416385,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "total_ms": {
+          "median_ms": 435.550049,
+          "p95_ms": 435.550049,
+          "p99_ms": 435.550049,
+          "max_ms": 435.550049,
+          "over_16_67": 1,
+          "over_33_33": 1
+        }
+      }
+    },
+    {
+      "stem": "bgfx-opengl-static-reuse-off-2",
+      "variant": "bgfx-opengl",
+      "round": 2,
+      "mode": "reuse-off",
+      "command": [
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "static",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "0",
+        "--frames",
+        "1",
+        "--samples-output",
+        "/tmp/coin-render-capture-ablation/bgfx-opengl-static-reuse-off-2.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_BGFX_RENDERER": "opengl",
+        "COIN_RENDER_TRACE_PHASES": "1",
+        "COIN_RENDER_DISABLE_CAPTURE_CAMERA_BASIS_REUSE": "1"
+      },
+      "exit_code": 0,
+      "adapter_verified_nvidia": true,
+      "measured_csv_stats": {
+        "update_ms": {
+          "median_ms": 0.00017,
+          "p95_ms": 0.00017,
+          "p99_ms": 0.00017,
+          "max_ms": 0.00017,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "render_ms": {
+          "median_ms": 384.568139,
+          "p95_ms": 384.568139,
+          "p99_ms": 384.568139,
+          "max_ms": 384.568139,
+          "over_16_67": 1,
+          "over_33_33": 1
+        },
+        "publication_ms": {
+          "median_ms": 0.427786,
+          "p95_ms": 0.427786,
+          "p99_ms": 0.427786,
+          "max_ms": 0.427786,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "total_ms": {
+          "median_ms": 384.996095,
+          "p95_ms": 384.996095,
+          "p99_ms": 384.996095,
+          "max_ms": 384.996095,
+          "over_16_67": 1,
+          "over_33_33": 1
+        }
+      }
+    },
+    {
+      "stem": "bgfx-opengl-static-reuse-on-2",
+      "variant": "bgfx-opengl",
+      "round": 2,
+      "mode": "reuse-on",
+      "command": [
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "static",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "0",
+        "--frames",
+        "1",
+        "--samples-output",
+        "/tmp/coin-render-capture-ablation/bgfx-opengl-static-reuse-on-2.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_BGFX_RENDERER": "opengl",
+        "COIN_RENDER_TRACE_PHASES": "1"
+      },
+      "exit_code": 0,
+      "adapter_verified_nvidia": true,
+      "measured_csv_stats": {
+        "update_ms": {
+          "median_ms": 0.00017,
+          "p95_ms": 0.00017,
+          "p99_ms": 0.00017,
+          "max_ms": 0.00017,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "render_ms": {
+          "median_ms": 370.078946,
+          "p95_ms": 370.078946,
+          "p99_ms": 370.078946,
+          "max_ms": 370.078946,
+          "over_16_67": 1,
+          "over_33_33": 1
+        },
+        "publication_ms": {
+          "median_ms": 0.326618,
+          "p95_ms": 0.326618,
+          "p99_ms": 0.326618,
+          "max_ms": 0.326618,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "total_ms": {
+          "median_ms": 370.405734,
+          "p95_ms": 370.405734,
+          "p99_ms": 370.405734,
+          "max_ms": 370.405734,
+          "over_16_67": 1,
+          "over_33_33": 1
+        }
+      }
+    },
+    {
+      "stem": "wgpu-vulkan-static-reuse-off-2",
+      "variant": "wgpu-vulkan",
+      "round": 2,
+      "mode": "reuse-off",
+      "command": [
+        "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+        "--backend",
+        "wgpu",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "static",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "0",
+        "--frames",
+        "1",
+        "--samples-output",
+        "/tmp/coin-render-capture-ablation/wgpu-vulkan-static-reuse-off-2.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_RENDER_TRACE_PHASES": "1",
+        "COIN_RENDER_DISABLE_CAPTURE_CAMERA_BASIS_REUSE": "1"
+      },
+      "exit_code": 0,
+      "adapter_verified_nvidia": true,
+      "measured_csv_stats": {
+        "update_ms": {
+          "median_ms": 0.00017,
+          "p95_ms": 0.00017,
+          "p99_ms": 0.00017,
+          "max_ms": 0.00017,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "render_ms": {
+          "median_ms": 301.296993,
+          "p95_ms": 301.296993,
+          "p99_ms": 301.296993,
+          "max_ms": 301.296993,
+          "over_16_67": 1,
+          "over_33_33": 1
+        },
+        "publication_ms": {
+          "median_ms": 2.019498,
+          "p95_ms": 2.019498,
+          "p99_ms": 2.019498,
+          "max_ms": 2.019498,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "total_ms": {
+          "median_ms": 303.316661,
+          "p95_ms": 303.316661,
+          "p99_ms": 303.316661,
+          "max_ms": 303.316661,
+          "over_16_67": 1,
+          "over_33_33": 1
+        }
+      }
+    },
+    {
+      "stem": "wgpu-vulkan-static-reuse-on-2",
+      "variant": "wgpu-vulkan",
+      "round": 2,
+      "mode": "reuse-on",
+      "command": [
+        "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+        "--backend",
+        "wgpu",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "static",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "0",
+        "--frames",
+        "1",
+        "--samples-output",
+        "/tmp/coin-render-capture-ablation/wgpu-vulkan-static-reuse-on-2.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_RENDER_TRACE_PHASES": "1"
+      },
+      "exit_code": 0,
+      "adapter_verified_nvidia": true,
+      "measured_csv_stats": {
+        "update_ms": {
+          "median_ms": 0.00015,
+          "p95_ms": 0.00015,
+          "p99_ms": 0.00015,
+          "max_ms": 0.00015,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "render_ms": {
+          "median_ms": 300.202777,
+          "p95_ms": 300.202777,
+          "p99_ms": 300.202777,
+          "max_ms": 300.202777,
+          "over_16_67": 1,
+          "over_33_33": 1
+        },
+        "publication_ms": {
+          "median_ms": 2.073528,
+          "p95_ms": 2.073528,
+          "p99_ms": 2.073528,
+          "max_ms": 2.073528,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "total_ms": {
+          "median_ms": 302.276455,
+          "p95_ms": 302.276455,
+          "p99_ms": 302.276455,
+          "max_ms": 302.276455,
+          "over_16_67": 1,
+          "over_33_33": 1
+        }
+      }
+    },
+    {
+      "stem": "bgfx-opengl-static-reuse-on-3",
+      "variant": "bgfx-opengl",
+      "round": 3,
+      "mode": "reuse-on",
+      "command": [
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "static",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "0",
+        "--frames",
+        "1",
+        "--samples-output",
+        "/tmp/coin-render-capture-ablation/bgfx-opengl-static-reuse-on-3.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_BGFX_RENDERER": "opengl",
+        "COIN_RENDER_TRACE_PHASES": "1"
+      },
+      "exit_code": 0,
+      "adapter_verified_nvidia": true,
+      "measured_csv_stats": {
+        "update_ms": {
+          "median_ms": 0.00022,
+          "p95_ms": 0.00022,
+          "p99_ms": 0.00022,
+          "max_ms": 0.00022,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "render_ms": {
+          "median_ms": 380.736188,
+          "p95_ms": 380.736188,
+          "p99_ms": 380.736188,
+          "max_ms": 380.736188,
+          "over_16_67": 1,
+          "over_33_33": 1
+        },
+        "publication_ms": {
+          "median_ms": 0.448885,
+          "p95_ms": 0.448885,
+          "p99_ms": 0.448885,
+          "max_ms": 0.448885,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "total_ms": {
+          "median_ms": 381.185293,
+          "p95_ms": 381.185293,
+          "p99_ms": 381.185293,
+          "max_ms": 381.185293,
+          "over_16_67": 1,
+          "over_33_33": 1
+        }
+      }
+    },
+    {
+      "stem": "bgfx-opengl-static-reuse-off-3",
+      "variant": "bgfx-opengl",
+      "round": 3,
+      "mode": "reuse-off",
+      "command": [
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "static",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "0",
+        "--frames",
+        "1",
+        "--samples-output",
+        "/tmp/coin-render-capture-ablation/bgfx-opengl-static-reuse-off-3.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_BGFX_RENDERER": "opengl",
+        "COIN_RENDER_TRACE_PHASES": "1",
+        "COIN_RENDER_DISABLE_CAPTURE_CAMERA_BASIS_REUSE": "1"
+      },
+      "exit_code": 0,
+      "adapter_verified_nvidia": true,
+      "measured_csv_stats": {
+        "update_ms": {
+          "median_ms": 0.00024,
+          "p95_ms": 0.00024,
+          "p99_ms": 0.00024,
+          "max_ms": 0.00024,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "render_ms": {
+          "median_ms": 374.490736,
+          "p95_ms": 374.490736,
+          "p99_ms": 374.490736,
+          "max_ms": 374.490736,
+          "over_16_67": 1,
+          "over_33_33": 1
+        },
+        "publication_ms": {
+          "median_ms": 0.337748,
+          "p95_ms": 0.337748,
+          "p99_ms": 0.337748,
+          "max_ms": 0.337748,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "total_ms": {
+          "median_ms": 374.828724,
+          "p95_ms": 374.828724,
+          "p99_ms": 374.828724,
+          "max_ms": 374.828724,
+          "over_16_67": 1,
+          "over_33_33": 1
+        }
+      }
+    },
+    {
+      "stem": "wgpu-vulkan-static-reuse-on-3",
+      "variant": "wgpu-vulkan",
+      "round": 3,
+      "mode": "reuse-on",
+      "command": [
+        "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+        "--backend",
+        "wgpu",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "static",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "0",
+        "--frames",
+        "1",
+        "--samples-output",
+        "/tmp/coin-render-capture-ablation/wgpu-vulkan-static-reuse-on-3.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_RENDER_TRACE_PHASES": "1"
+      },
+      "exit_code": 0,
+      "adapter_verified_nvidia": true,
+      "measured_csv_stats": {
+        "update_ms": {
+          "median_ms": 0.000291,
+          "p95_ms": 0.000291,
+          "p99_ms": 0.000291,
+          "max_ms": 0.000291,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "render_ms": {
+          "median_ms": 294.606091,
+          "p95_ms": 294.606091,
+          "p99_ms": 294.606091,
+          "max_ms": 294.606091,
+          "over_16_67": 1,
+          "over_33_33": 1
+        },
+        "publication_ms": {
+          "median_ms": 1.992638,
+          "p95_ms": 1.992638,
+          "p99_ms": 1.992638,
+          "max_ms": 1.992638,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "total_ms": {
+          "median_ms": 296.59902,
+          "p95_ms": 296.59902,
+          "p99_ms": 296.59902,
+          "max_ms": 296.59902,
+          "over_16_67": 1,
+          "over_33_33": 1
+        }
+      }
+    },
+    {
+      "stem": "wgpu-vulkan-static-reuse-off-3",
+      "variant": "wgpu-vulkan",
+      "round": 3,
+      "mode": "reuse-off",
+      "command": [
+        "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+        "--backend",
+        "wgpu",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "static",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "0",
+        "--frames",
+        "1",
+        "--samples-output",
+        "/tmp/coin-render-capture-ablation/wgpu-vulkan-static-reuse-off-3.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_RENDER_TRACE_PHASES": "1",
+        "COIN_RENDER_DISABLE_CAPTURE_CAMERA_BASIS_REUSE": "1"
+      },
+      "exit_code": 0,
+      "adapter_verified_nvidia": true,
+      "measured_csv_stats": {
+        "update_ms": {
+          "median_ms": 0.00015,
+          "p95_ms": 0.00015,
+          "p99_ms": 0.00015,
+          "max_ms": 0.00015,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "render_ms": {
+          "median_ms": 305.329356,
+          "p95_ms": 305.329356,
+          "p99_ms": 305.329356,
+          "max_ms": 305.329356,
+          "over_16_67": 1,
+          "over_33_33": 1
+        },
+        "publication_ms": {
+          "median_ms": 2.412289,
+          "p95_ms": 2.412289,
+          "p99_ms": 2.412289,
+          "max_ms": 2.412289,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "total_ms": {
+          "median_ms": 307.741795,
+          "p95_ms": 307.741795,
+          "p99_ms": 307.741795,
+          "max_ms": 307.741795,
+          "over_16_67": 1,
+          "over_33_33": 1
+        }
+      }
+    },
+    {
+      "stem": "bgfx-vulkan-static-reuse-on-3",
+      "variant": "bgfx-vulkan",
+      "round": 3,
+      "mode": "reuse-on",
+      "command": [
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "static",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "0",
+        "--frames",
+        "1",
+        "--samples-output",
+        "/tmp/coin-render-capture-ablation/bgfx-vulkan-static-reuse-on-3.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_RENDER_TRACE_PHASES": "1"
+      },
+      "exit_code": 0,
+      "adapter_verified_nvidia": true,
+      "measured_csv_stats": {
+        "update_ms": {
+          "median_ms": 0.00015,
+          "p95_ms": 0.00015,
+          "p99_ms": 0.00015,
+          "max_ms": 0.00015,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "render_ms": {
+          "median_ms": 436.246876,
+          "p95_ms": 436.246876,
+          "p99_ms": 436.246876,
+          "max_ms": 436.246876,
+          "over_16_67": 1,
+          "over_33_33": 1
+        },
+        "publication_ms": {
+          "median_ms": 0.349781,
+          "p95_ms": 0.349781,
+          "p99_ms": 0.349781,
+          "max_ms": 0.349781,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "total_ms": {
+          "median_ms": 436.596807,
+          "p95_ms": 436.596807,
+          "p99_ms": 436.596807,
+          "max_ms": 436.596807,
+          "over_16_67": 1,
+          "over_33_33": 1
+        }
+      }
+    },
+    {
+      "stem": "bgfx-vulkan-static-reuse-off-3",
+      "variant": "bgfx-vulkan",
+      "round": 3,
+      "mode": "reuse-off",
+      "command": [
+        "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+        "--backend",
+        "bgfx",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--animation",
+        "static",
+        "--animated-percent",
+        "10",
+        "--transparency",
+        "object",
+        "--size",
+        "1024",
+        "--warmup",
+        "0",
+        "--frames",
+        "1",
+        "--samples-output",
+        "/tmp/coin-render-capture-ablation/bgfx-vulkan-static-reuse-off-3.csv"
+      ],
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_RENDER_TRACE_PHASES": "1",
+        "COIN_RENDER_DISABLE_CAPTURE_CAMERA_BASIS_REUSE": "1"
+      },
+      "exit_code": 0,
+      "adapter_verified_nvidia": true,
+      "measured_csv_stats": {
+        "update_ms": {
+          "median_ms": 0.00017,
+          "p95_ms": 0.00017,
+          "p99_ms": 0.00017,
+          "max_ms": 0.00017,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "render_ms": {
+          "median_ms": 438.711421,
+          "p95_ms": 438.711421,
+          "p99_ms": 438.711421,
+          "max_ms": 438.711421,
+          "over_16_67": 1,
+          "over_33_33": 1
+        },
+        "publication_ms": {
+          "median_ms": 0.339372,
+          "p95_ms": 0.339372,
+          "p99_ms": 0.339372,
+          "max_ms": 0.339372,
+          "over_16_67": 0,
+          "over_33_33": 0
+        },
+        "total_ms": {
+          "median_ms": 439.050963,
+          "p95_ms": 439.050963,
+          "p99_ms": 439.050963,
+          "max_ms": 439.050963,
+          "over_16_67": 1,
+          "over_33_33": 1
+        }
+      }
+    }
+  ]
+}

@@ -5,16 +5,60 @@
 #endif
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
+#include "rendering/coinrender/CoinRenderAlphaTestCore.h"
 #include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
 #include <Inventor/nodes/SoSceneTexture2.h>
 #include "rendering/coinrender/CoinRenderTextureCombineCore.h"
 #include "rendering/coinrender/CoinRenderClipCore.h"
 #include "rendering/coinrender/CoinRenderStateCore.h"
+#include "rendering/coinrender/CoinRenderPhaseTimer.h"
+#include "rendering/coinrender/CoinRenderFloatCore.h"
+#include "rendering/coinrender/CoinRenderTextureCoordinateCore.h"
 
 #include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
 
 namespace {
+// One owned program per unit, valid only during this isValid invocation. The
+// source frame is immutable here; neither revision nor source identity licenses
+// a result from a previous validation or a different unit.
+class CombineValidationMemo {
+public:
+  CombineValidationMemo() {
+    const char * disabled = std::getenv("COIN_RENDER_DISABLE_COMBINE_VALIDATION_MEMO");
+    enabled = !(disabled && std::strcmp(disabled, "1") == 0);
+    tracing = std::getenv("COIN_RENDER_TRACE_PHASES") || std::getenv("COIN_WGPU_TRACE_PHASES");
+  }
+  ~CombineValidationMemo() {
+    if (tracing)
+      std::fprintf(stderr, "COIN_RENDER_PHASE combine_validation_memo enabled=%d programs_checked=%zu cache_hits=%zu validated=%zu\n",
+        enabled ? 1 : 0, checked, hits, validated);
+  }
+  bool validate(size_t unit, const CoinRenderTextureCombineSnapshot & program) {
+    ++checked;
+    if (enabled && valid[unit] &&
+        std::memcmp(cached[unit].instructions, program.instructions, sizeof(program.instructions)) == 0) {
+      ++hits; return true;
+    }
+    ++validated; // Calls to the original validator, including a rejected miss.
+    if (!coin_render_validate_combine(program)) return false;
+    if (enabled) {
+      std::memcpy(cached[unit].instructions, program.instructions, sizeof(program.instructions));
+      valid[unit] = true;
+    }
+    return true;
+  }
+private:
+  static_assert(sizeof(CoinRenderTextureCombineSnapshot) == 16 * sizeof(float),
+                "Combine validation memo must own all sixteen program floats");
+  CoinRenderTextureCombineSnapshot cached[COIN_RENDER_MAX_TEXTURE_UNITS];
+  bool valid[COIN_RENDER_MAX_TEXTURE_UNITS] = {};
+  bool enabled, tracing;
+  size_t checked = 0, hits = 0, validated = 0;
+};
+
 template <typename T>
 bool
 samePlainSnapshots(const std::vector<T> & a, const std::vector<T> & b)
@@ -91,7 +135,9 @@ CoinRenderFramePlan::hasSamePayload(const CoinRenderFramePlan & other) const
 bool
 CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
 {
-  auto isFiniteF = [](float v) { return std::isfinite(v); };
+  CoinRenderPhaseTimer timer("validation_detail");
+  CombineValidationMemo combineMemo;
+  auto isFiniteF = [](float v) { return coin_render_is_finite(v); };
 
   auto isMatrixFinite = [&](const SbMatrix & m) {
     const float (*mat)[4] = m.getValue();
@@ -124,6 +170,7 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
   }
 
   const size_t numVertices = this->vertices.size();
+  timer.mark("materials");
   for (size_t i = 0; i < numVertices; ++i) {
     const CoinRenderVertexSnapshot & v = this->vertices[i];
     for (int k = 0; k < 3; ++k) {
@@ -149,6 +196,12 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
           if (outDiagnostic) *outDiagnostic = "Non-finite multitexture coordinate";
           return false;
         }
+    for (size_t u = 0; u < COIN_RENDER_MAX_TEXTURE_UNITS; ++u) {
+      if (!isFiniteF(v.textureR[u]) || !isFiniteF(v.textureQ[u])) {
+        if (outDiagnostic) *outDiagnostic = "Non-finite homogeneous texture coordinate";
+        return false;
+      }
+    }
     if (this->materials.empty() || v.materialSlot >= this->materials.size()) {
       if (outDiagnostic) *outDiagnostic = "Vertex references out-of-range material slot";
       return false;
@@ -156,6 +209,7 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
   }
 
   const size_t numIndices = this->indices.size();
+  timer.mark("vertices");
   for (size_t i = 0; i < numIndices; ++i) {
     if (this->indices[i] >= numVertices) {
       if (outDiagnostic) *outDiagnostic = "Index out of range of vertex buffer";
@@ -164,6 +218,7 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
   }
 
   for (size_t i = 0; i < this->cameras.size(); ++i) {
+    if (i == 0) timer.mark("indices");
     const CoinRenderCameraSnapshot & c = this->cameras[i];
     if (!isMatrixFinite(c.viewMatrix) || !isMatrixFinite(c.projectionMatrixCoin)) {
       if (outDiagnostic) *outDiagnostic = "Camera matrix contains non-finite values";
@@ -301,6 +356,7 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
     }
   }
   for (size_t i = 0; i < this->renderStates.size(); ++i) {
+    if (i == 0) timer.mark("scene_state");
     const CoinRenderRenderStateSnapshot & state = this->renderStates[i];
     if (state.shadowGroupSlot > this->shadowGroups.size() || state.shadowStyle > 3u) {
       if (outDiagnostic) *outDiagnostic = "RenderState has invalid shadow group or style";
@@ -325,6 +381,15 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
         state.depthFunction != CoinRenderDepthFunction::GREATER &&
         state.depthFunction != CoinRenderDepthFunction::NOTEQUAL) {
       if (outDiagnostic) *outDiagnostic = "Unsupported depth comparison function";
+      return false;
+    }
+    if (!coin_render_alpha_test_valid(state.alphaTestFunction, state.alphaTestReference)) {
+      if (outDiagnostic) *outDiagnostic = "Invalid alpha comparison function or reference";
+      return false;
+    }
+    if (state.textureProjection != CoinRenderTextureProjection::PROJECTIVE &&
+        state.textureProjection != CoinRenderTextureProjection::DIRECT_ST) {
+      if (outDiagnostic) *outDiagnostic = "Invalid texture coordinate projection policy";
       return false;
     }
     if (!isFiniteF(state.polygonOffsetFactor) || !isFiniteF(state.polygonOffsetUnits) ||
@@ -373,12 +438,12 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
       }
     }
     for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
-      const CoinRenderTextureUnitSnapshot tex = coin_render_texture_unit(state, unit);
-      if (!coin_render_validate_combine(state.textureCombines[unit])) {
+      if (!combineMemo.validate(unit, state.textureCombines[unit])) {
         if (outDiagnostic) *outDiagnostic = "Invalid texture combine program";
         return false;
       }
-      if (!tex.enabled) continue;
+      if (!coin_render_texture_unit_enabled(state, unit)) continue;
+      const CoinRenderTextureUnitSnapshot tex = coin_render_texture_unit(state, unit);
       if (tex.model != CoinRenderTextureModel::MODULATE &&
           tex.model != CoinRenderTextureModel::REPLACE &&
           tex.model != CoinRenderTextureModel::DECAL &&
@@ -409,6 +474,7 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
   }
 
   for (size_t i = 0; i < this->draws.size(); ++i) {
+    if (i == 0) timer.mark("render_states");
     const CoinRenderDrawPacket & draw = this->draws[i];
     if (draw.hasSortingCenter &&
         (!isFiniteF(draw.sortingCenterWorld[0]) || !isFiniteF(draw.sortingCenterWorld[1]) || !isFiniteF(draw.sortingCenterWorld[2]))) {
@@ -475,7 +541,20 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
       if (outDiagnostic) *outDiagnostic = "RenderState viewportSlot out of range";
       return false;
     }
+    if (!this->textures.empty()) {
+      const size_t primitiveSize = draw.topology == CoinRenderPrimitiveTopology::TRIANGLE_LIST ? 3 :
+        draw.topology == CoinRenderPrimitiveTopology::LINE_LIST ? 2 : 1;
+      std::string textureDiagnostic;
+      for (size_t index = 0; index + primitiveSize <= geometry.indexCount; index += primitiveSize) {
+        if (!coin_render_validate_texture_primitive(*this, state,
+            this->indices.data() + geometry.firstIndex + index, primitiveSize, textureDiagnostic)) {
+          if (outDiagnostic) *outDiagnostic = textureDiagnostic;
+          return false;
+        }
+      }
+    }
   }
 
+  timer.mark("draws");
   return true;
 }

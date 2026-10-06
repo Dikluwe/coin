@@ -1,0 +1,64 @@
+[0/1] Re-running CMake...
+-- Setting C++ standard: '11', which is the minimum needed to compile Coin.
+-- /usr/include
+-- /usr/lib/x86_64-linux-gnu/libSM.so;/usr/lib/x86_64-linux-gnu/libICE.so;/usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so;OpenGL::EGL;OpenGL::GL;Threads::Threads
+-- Configuring done (0.7s)
+-- Generating done (0.1s)
+-- Build files have been written to: /tmp/coin-render-first-frame-wgpu
+[1/17] Building CXX object testsuite/CMakeFiles/CoinWgpuFfiFrameTest.dir/coinwgpu/CoinWgpuFfiFrameTest.cpp.o
+[2/17] Building CXX object testsuite/CMakeFiles/CoinWgpuFfiFrameTest.dir/__/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp.o
+[3/17] Linking CXX executable bin/CoinWgpuFfiFrameTest
+[4/17] Building Rust WebGPU bridge library (release)...
+   Compiling coin_wgpu_rust_bridge v0.1.0 (/tmp/coin-render-first-frame/src/rendering/coinwgpu/rust_bridge)
+warning: use of deprecated type alias `wgpu::ImageCopyTexture`: This has been renamed to `TexelCopyTextureInfo`, and will be removed in 25.0.0.
+    --> src/lib.rs:1971:15
+     |
+1971 |         wgpu::ImageCopyTexture {
+     |               ^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated type alias `wgpu::ImageDataLayout`: This has been renamed to `TexelCopyBufferLayout`, and will be removed in 25.0.0.
+    --> src/lib.rs:1978:15
+     |
+1978 |         wgpu::ImageDataLayout {
+     |               ^^^^^^^^^^^^^^^
+
+warning: use of deprecated type alias `wgpu::ImageCopyTexture`: This has been renamed to `TexelCopyTextureInfo`, and will be removed in 25.0.0.
+    --> src/lib.rs:2986:19
+     |
+2986 |             wgpu::ImageCopyTexture {
+     |                   ^^^^^^^^^^^^^^^^
+
+warning: use of deprecated type alias `wgpu::ImageDataLayout`: This has been renamed to `TexelCopyBufferLayout`, and will be removed in 25.0.0.
+    --> src/lib.rs:2993:19
+     |
+2993 |             wgpu::ImageDataLayout {
+     |                   ^^^^^^^^^^^^^^^
+
+warning: field `default_texture` is never read
+    --> src/lib.rs:1150:5
+     |
+1127 | struct DeviceState {
+     |        ----------- field in this struct
+...
+1150 |     default_texture: wgpu::Texture,
+     |     ^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `coin_wgpu_rust_bridge` (lib) generated 5 warnings
+    Finished `release` profile [optimized] target(s) in 4.55s
+[5/17] Building CXX object testsuite/CMakeFiles/CoinRenderCameraReuseReferenceTest.dir/coinrender/CoinRenderCameraReuseReferenceTest.cpp.o
+[6/17] Building CXX object src/rendering/coinrender/CMakeFiles/CoinRender.dir/__/coinwgpu/CoinWgpuBackend.cpp.o
+[7/17] Building CXX object testsuite/CMakeFiles/CoinWgpuMultiDeviceTest.dir/coinwgpu/CoinWgpuMultiDeviceTest.cpp.o
+[8/17] Building CXX object testsuite/CMakeFiles/CoinRenderActionTest.dir/actions/CoinRenderActionTest.cpp.o
+[9/17] Building CXX object src/rendering/coinrender/CMakeFiles/CoinRender.dir/__/coinwgpu/CoinWgpuFfiFrame.cpp.o
+[10/17] Linking CXX shared library lib/libCoinRender.so
+[11/17] Linking CXX executable bin/CoinRenderActionTest
+[12/17] Linking CXX executable bin/CoinRenderCameraReuseReferenceTest
+[13/17] Linking CXX executable bin/coin_render_gl_benchmark
+[14/17] Linking CXX executable bin/coin_render_window_benchmark
+[15/17] Linking CXX executable bin/CoinWgpuMultiDeviceTest
+[16/17] Linking CXX executable bin/CoinRenderSurfaceTest
+[17/17] Linking CXX executable bin/CoinRenderFrameReuseCoreTest

@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="47"
+	failures="1"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="322"
+	timestamp="2026-10-02T15:18:35"
+	>
+	<testcase name="CoinRenderWin32D3D12Smoke" classname="CoinRenderWin32D3D12Smoke" time="0.951103" status="run">
+		<properties/>
+		<system-out>window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+window_offscreen fixture=opaque max_channel_delta=0 tolerance=3
+window_rgba_fnv64=0x5dbd5ccf10be2a4d size=504x351 dpi=96
+window_offscreen fixture=transparent max_channel_delta=0 tolerance=3
+renderer=4 vendor_id=0x10de device_id=0x1c03 adapter="BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03)"
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderWin32VulkanSmoke" classname="CoinRenderWin32VulkanSmoke" time="0.997688" status="run">
+		<properties/>
+		<system-out>window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+window_offscreen fixture=opaque max_channel_delta=0 tolerance=3
+window_rgba_fnv64=0x5dbd5ccf10be2a4d size=504x351 dpi=96
+window_offscreen fixture=transparent max_channel_delta=0 tolerance=3
+renderer=1 vendor_id=0x10de device_id=0x1c03 adapter="BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03)"
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxReadbackModes_vulkan" classname="CoinBgfxReadbackModes_vulkan" time="2.94896" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinBgfxReadbackModes_opengl" classname="CoinBgfxReadbackModes_opengl" time="1.72939" status="run">
+		<properties/>
+		<system-out>Coin transparency modes, GPU depth, async lifetime and public action passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxReadbackModes_d3d12" classname="CoinBgfxReadbackModes_d3d12" time="2.79126" status="run">
+		<properties/>
+		<system-out>Coin transparency modes, GPU depth, async lifetime and public action passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxSurface_vulkan_object" classname="CoinBgfxSurface_vulkan_object" time="21.3313" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinBgfxSurface_vulkan_weighted_oit" classname="CoinBgfxSurface_vulkan_weighted_oit" time="20.4612" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinBgfxSurface_vulkan_sorted_layers" classname="CoinBgfxSurface_vulkan_sorted_layers" time="19.6197" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinBgfxSurface_opengl_object" classname="CoinBgfxSurface_opengl_object" time="13.0711" status="run">
+		<properties/>
+		<system-out>CoinBgfxSurfaceFeaturesTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxSurface_opengl_weighted_oit" classname="CoinBgfxSurface_opengl_weighted_oit" time="11.9354" status="run">
+		<properties/>
+		<system-out>CoinBgfxSurfaceFeaturesTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxSurface_opengl_sorted_layers" classname="CoinBgfxSurface_opengl_sorted_layers" time="12.1545" status="run">
+		<properties/>
+		<system-out>CoinBgfxSurfaceFeaturesTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxSurface_d3d12_object" classname="CoinBgfxSurface_d3d12_object" time="17.5968" status="run">
+		<properties/>
+		<system-out>CoinBgfxSurfaceFeaturesTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxSurface_d3d12_weighted_oit" classname="CoinBgfxSurface_d3d12_weighted_oit" time="18.3802" status="run">
+		<properties/>
+		<system-out>CoinBgfxSurfaceFeaturesTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxSurface_d3d12_sorted_layers" classname="CoinBgfxSurface_d3d12_sorted_layers" time="17.7151" status="run">
+		<properties/>
+		<system-out>CoinBgfxSurfaceFeaturesTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxCoreTest" classname="CoinBgfxCoreTest" time="0.241961" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>CoinBgfxCoreTest: compatible PHONG geometry did not form a contiguous opaque batch
+CoinBgfxCoreTest: opaque batching crossed a depth clear barrier
+CoinBgfxCoreTest: opaque batching accepted a projective model transform
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderDepthContractTest" classname="CoinRenderDepthContractTest" time="0.293209" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderDepthContractVulkanTest" classname="CoinRenderDepthContractVulkanTest" time="0.802222" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderDepthContractOpenGLTest" classname="CoinRenderDepthContractOpenGLTest" time="0.591776" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinBgfxOffscreenTest" classname="CoinBgfxOffscreenTest" time="2.29705" status="run">
+		<properties/>
+		<system-out>CoinBgfxOffscreenTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxOpenGLTest" classname="CoinBgfxOpenGLTest" time="1.47946" status="run">
+		<properties/>
+		<system-out>CoinBgfxOffscreenTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxTransparencyTest" classname="CoinBgfxTransparencyTest" time="3.14553" status="run">
+		<properties/>
+		<system-out>layered: BGFX left=(127,64,64) right=(127,64,64) Coin/GL left=(128,64,63) right=(128,64,63) different_pixels=0
+crossing: BGFX left=(64,127,64) right=(64,127,64) Coin/GL left=(64,128,63) right=(64,128,63) different_pixels=0 Coin/GL layers-or-fallback left=(128,64,63) right=(64,128,63) different_pixels=5508
+occluded: BGFX left=(0,0,255) right=(0,0,255) Coin/GL left=(0,0,255) right=(0,0,255) different_pixels=0
+weighted stress: 32 crossing lit layers, max order delta=0, outside max=0
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxTransparencyOpenGLTest" classname="CoinBgfxTransparencyOpenGLTest" time="3.61096" status="run">
+		<properties/>
+		<system-out>layered: BGFX left=(127,64,64) right=(127,64,64) Coin/GL left=(128,64,63) right=(128,64,63) different_pixels=0
+crossing: BGFX left=(64,127,64) right=(64,127,64) Coin/GL left=(64,128,63) right=(64,128,63) different_pixels=0 Coin/GL layers-or-fallback left=(128,64,63) right=(64,128,63) different_pixels=5508
+occluded: BGFX left=(0,0,255) right=(0,0,255) Coin/GL left=(0,0,255) right=(0,0,255) different_pixels=0
+weighted stress: 32 crossing lit layers, max order delta=0, outside max=0
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxSortedLayersTest" classname="CoinBgfxSortedLayersTest" time="3.02518" status="run">
+		<properties/>
+		<system-out>layered: BGFX left=(127,64,64) right=(127,64,64) Coin/GL left=(128,64,63) right=(128,64,63) different_pixels=0
+crossing: BGFX left=(127,64,64) right=(64,127,64) Coin/GL left=(64,128,63) right=(64,128,63) different_pixels=5202 Coin/GL layers-or-fallback left=(128,64,63) right=(64,128,63) different_pixels=612
+occluded: BGFX left=(0,0,255) right=(0,0,255) Coin/GL left=(0,0,255) right=(0,0,255) different_pixels=0
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxSortedLayersOpenGLTest" classname="CoinBgfxSortedLayersOpenGLTest" time="1.94903" status="run">
+		<properties/>
+		<system-out>layered: BGFX left=(127,64,64) right=(127,64,64) Coin/GL left=(128,64,63) right=(128,64,63) different_pixels=0
+crossing: BGFX left=(127,64,64) right=(64,127,64) Coin/GL left=(64,128,63) right=(64,128,63) different_pixels=5202 Coin/GL layers-or-fallback left=(128,64,63) right=(64,128,63) different_pixels=612
+occluded: BGFX left=(0,0,255) right=(0,0,255) Coin/GL left=(0,0,255) right=(0,0,255) different_pixels=0
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxWeightedOitTest" classname="CoinBgfxWeightedOitTest" time="6.11366" status="run">
+		<properties/>
+		<system-out>layered: BGFX left=(109,82,64) right=(109,82,64) Coin/GL left=(128,64,63) right=(128,64,63) different_pixels=10404
+crossing: BGFX left=(109,82,64) right=(82,109,64) Coin/GL left=(64,128,63) right=(64,128,63) different_pixels=10404 Coin/GL layers-or-fallback left=(128,64,63) right=(64,128,63) different_pixels=10404
+occluded: BGFX left=(0,0,255) right=(0,0,255) Coin/GL left=(0,0,255) right=(0,0,255) different_pixels=0
+weighted stress: 32 crossing lit layers, max order delta=0, outside max=0
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxWeightedOitOpenGLTest" classname="CoinBgfxWeightedOitOpenGLTest" time="3.98988" status="run">
+		<properties/>
+		<system-out>layered: BGFX left=(109,82,64) right=(109,82,64) Coin/GL left=(128,64,63) right=(128,64,63) different_pixels=10404
+crossing: BGFX left=(109,82,64) right=(82,109,64) Coin/GL left=(64,128,63) right=(64,128,63) different_pixels=10404 Coin/GL layers-or-fallback left=(128,64,63) right=(64,128,63) different_pixels=10404
+occluded: BGFX left=(0,0,255) right=(0,0,255) Coin/GL left=(0,0,255) right=(0,0,255) different_pixels=0
+weighted stress: 32 crossing lit layers, max order delta=0, outside max=0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderFrameReuseCoreTest" classname="CoinRenderFrameReuseCoreTest" time="0.641936" status="run">
+		<properties/>
+		<system-out>CoinRenderFrameReuseCoreTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowReferenceTest" classname="CoinRenderShadowReferenceTest" time="74.4455" status="run">
+		<properties/>
+		<system-out>smoothBorder Coin/GL/GPU unchanged=1
+low-quality spot Coin/GL/GPU delta=480/480
+clipped caster Coin/GL/GPU delta=531/531
+active/inactive sibling Coin/GL/GPU delta=486/474
+sibling groups Coin/GL/GPU delta=486/474
+distinct sibling VSM Coin/GL/GPU delta=138/165
+staged RTT distinct VSM Coin/GL/GPU delta=108/132
+direct RTT distinct VSM Coin/GL/GPU delta=108/132
+inherited directional with shadow group Coin/GL/GPU delta=152/152
+ordinary light inside active group GL/GPU unchanged=1
+inherited point with shadow group Coin/GL/GPU delta=594/594
+ordinary point inside active group GL/GPU unchanged=1
+opaque textured shadow receiver Coin/GL/GPU delta=485/485
+five lights textured receiver Coin/GL/GPU delta=81/81
+three lights Coin/GL/BGFX delta=666/666
+four lights Coin/GL/BGFX delta=228/228
+five lights Coin/GL/BGFX delta=291/291
+eight lights Coin/GL/BGFX delta=117/174
+eight lights staged RTT Coin/GL/BGFX delta=225/225
+eight lights direct RTT Coin/GL/BGFX delta=225/225
+fifth spot Coin/GL/BGFX delta=162/162
+sixth spot Coin/GL/BG...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest8_0Test" classname="CoinRenderShadowAlphaTest8_0Test" time="24.177" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=0 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=1 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=2 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=3 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=4 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=5 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=7 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=8 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver m...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMultiTargetTest" classname="CoinRenderMultiTargetTest" time="1.68147" status="run">
+		<properties/>
+		<system-out>multi-target RTT, queues, resize, destruction and shared recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMultiTargetDirectTest" classname="CoinRenderMultiTargetDirectTest" time="1.3003" status="run">
+		<properties/>
+		<system-out>multi-target RTT, queues, resize, destruction and shared recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMultiTargetStagedOpenGLTest" classname="CoinRenderMultiTargetStagedOpenGLTest" time="1.02264" status="run">
+		<properties/>
+		<system-out>multi-target RTT, queues, resize, destruction and shared recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMultiTargetOpenGLTest" classname="CoinRenderMultiTargetOpenGLTest" time="0.968429" status="run">
+		<properties/>
+		<system-out>multi-target RTT, queues, resize, destruction and shared recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureTest" classname="CoinRenderSceneTextureTest" time="2.70338" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureBudgetTest" classname="CoinRenderSceneTextureBudgetTest" time="1.51523" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureBudgetTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTexture_vulkan_staged" classname="CoinRenderSceneTexture_vulkan_staged" time="2.80156" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureBudget_vulkan_staged" classname="CoinRenderSceneTextureBudget_vulkan_staged" time="1.78931" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTexture_vulkan_direct" classname="CoinRenderSceneTexture_vulkan_direct" time="2.75779" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureBudget_vulkan_direct" classname="CoinRenderSceneTextureBudget_vulkan_direct" time="0.686328" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTexture_opengl_staged" classname="CoinRenderSceneTexture_opengl_staged" time="1.69098" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureBudget_opengl_staged" classname="CoinRenderSceneTextureBudget_opengl_staged" time="1.38959" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureBudgetTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTexture_opengl_direct" classname="CoinRenderSceneTexture_opengl_direct" time="2.66086" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureBudget_opengl_direct" classname="CoinRenderSceneTextureBudget_opengl_direct" time="0.638098" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureBudgetTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTexture_d3d12_staged" classname="CoinRenderSceneTexture_d3d12_staged" time="2.7481" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureBudget_d3d12_staged" classname="CoinRenderSceneTextureBudget_d3d12_staged" time="1.57262" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureBudgetTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTexture_d3d12_direct" classname="CoinRenderSceneTexture_d3d12_direct" time="3.78597" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureBudget_d3d12_direct" classname="CoinRenderSceneTextureBudget_d3d12_direct" time="1.89124" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureBudgetTest passed
+</system-out>
+	</testcase>
+</testsuite>

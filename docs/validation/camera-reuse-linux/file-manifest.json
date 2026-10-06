@@ -1,0 +1,1346 @@
+{
+  "generated_at_utc": "2026-10-04T23:16:20.226469+00:00",
+  "excludes_self": true,
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 5607,
+      "sha256": "b8b08b74e7dc2d82ef172dcf3063d5372fa7d2169e819ab469e439e7810979cd"
+    },
+    {
+      "path": "archive-manifest.json",
+      "bytes": 137489,
+      "sha256": "28a66c2213efa6e9f381e825c926bc4ed08f1e3ad2b9f79d931ccac4f7f39fc8"
+    },
+    {
+      "path": "archive-validation.txt",
+      "bytes": 374,
+      "sha256": "f4364e4889b7e605ec02c177ed9dd420966305598418b5733f8e0783079bf4e6"
+    },
+    {
+      "path": "camera-before-after.png",
+      "bytes": 122245,
+      "sha256": "e4e2eafc888c2dd2a7ce1afabe30db6975dba6670814e465a409362d28040c06"
+    },
+    {
+      "path": "camera-rgb-comparison.png",
+      "bytes": 102508,
+      "sha256": "0df887e5f6c9d4a5c795501dba33dbbb00a07c2a8b1f214484377f75b3851ef6"
+    },
+    {
+      "path": "campaign-complete.json",
+      "bytes": 762,
+      "sha256": "711f86313d740f8c71b057508f6690421cac5a5bbc1ab73459288a2400c6c88a"
+    },
+    {
+      "path": "controls/coin-render-camera-release-ablation/bgfx-opengl-backend-disabled.csv",
+      "bytes": 1052,
+      "sha256": "1ca7075e8ffb901602bedba8e40c0f99da685be8cff172ffaaf05315fe65b9ae"
+    },
+    {
+      "path": "controls/coin-render-camera-release-ablation/bgfx-opengl-backend-disabled.log",
+      "bytes": 26709,
+      "sha256": "2d0811132b7ca8578ac970578fbc12401bc571f576c1bbe0c24457006759cfdd"
+    },
+    {
+      "path": "controls/coin-render-camera-release-ablation/bgfx-opengl-common-disabled.csv",
+      "bytes": 1056,
+      "sha256": "64325791bb6fc20a308fe3187cbe1526f8a7e99713c09949ff5350f5b11697f1"
+    },
+    {
+      "path": "controls/coin-render-camera-release-ablation/bgfx-opengl-common-disabled.log",
+      "bytes": 32177,
+      "sha256": "348aeca303fdbd9bd67e9f62b3cdf9aed67848d526a293997dc887bbd3ca2ef6"
+    },
+    {
+      "path": "controls/coin-render-camera-release-ablation/bgfx-opengl-optimized.csv",
+      "bytes": 1105,
+      "sha256": "0c0de72ab85348574c497e7ae9b3379eea13951b665402028f26659c570db9d7"
+    },
+    {
+      "path": "controls/coin-render-camera-release-ablation/bgfx-opengl-optimized.log",
+      "bytes": 23870,
+      "sha256": "59169fcec9d6c5780e226f29d4730d2468abdfd9b0c9b76c5e765ad11e2ee239"
+    },
+    {
+      "path": "controls/coin-render-camera-release-ablation/bgfx-vulkan-backend-disabled.csv",
+      "bytes": 1000,
+      "sha256": "b5c6da9f20fd38d7008e00cdf2efa719410817de51ec94a3fa5bd4c7ea97d098"
+    },
+    {
+      "path": "controls/coin-render-camera-release-ablation/bgfx-vulkan-backend-disabled.log",
+      "bytes": 26714,
+      "sha256": "e98379280f7e52f0bf19817605b8df476b101fa11c28e70640c263caf43c37a2"
+    },
+    {
+      "path": "controls/coin-render-camera-release-ablation/bgfx-vulkan-common-disabled.csv",
+      "bytes": 1012,
+      "sha256": "5d5d2ce23c3e21d5133b7d8b20c8a70dccd175e95cf0f315e795d8ee3a91ff21"
+    },
+    {
+      "path": "controls/coin-render-camera-release-ablation/bgfx-vulkan-common-disabled.log",
+      "bytes": 32176,
+      "sha256": "140f3bd3691292da60a0618c7276f241d86d7befbf2ea03329a5244133920b45"
+    },
+    {
+      "path": "controls/coin-render-camera-release-ablation/bgfx-vulkan-optimized.csv",
+      "bytes": 1081,
+      "sha256": "f83e69c75e1ac0ca8f9ed45d7788494719f875b6295f91ebef9151336e8b2b0b"
+    },
+    {
+      "path": "controls/coin-render-camera-release-ablation/bgfx-vulkan-optimized.log",
+      "bytes": 23858,
+      "sha256": "b5e39ed45865d617e3f10b70afed096fef72b5976dca8b8b7e8d6a0d5938b587"
+    },
+    {
+      "path": "controls/coin-render-camera-release-ablation/manifest.json",
+      "bytes": 1177,
+      "sha256": "e08a3a691cf4b3b137e5928cfff568760aa4d3a2a3c7ccd119b16378d1aef18d"
+    },
+    {
+      "path": "controls/coin-render-camera-release-ablation/results.json",
+      "bytes": 18014,
+      "sha256": "3b92c3f4c92102099088ec05fd4368f17131f65645762c0ae96ccecada153b1e"
+    },
+    {
+      "path": "controls/coin-render-camera-release-ablation/wgpu-vulkan-backend-disabled.csv",
+      "bytes": 994,
+      "sha256": "c7b96c9cafd7bcb2ba62416f8d2939480090b913477dc1e82c4865657605ae63"
+    },
+    {
+      "path": "controls/coin-render-camera-release-ablation/wgpu-vulkan-backend-disabled.log",
+      "bytes": 22497,
+      "sha256": "a9f64d2a8e55ff0082a805aaca308cdb0c64cb27e6cf3cd6cc024df28ad123fc"
+    },
+    {
+      "path": "controls/coin-render-camera-release-ablation/wgpu-vulkan-common-disabled.csv",
+      "bytes": 1073,
+      "sha256": "8a7e4a557a2a13f6f5438316602e45b1f4e5bf89a33a7ff6d5e0f74ba0928280"
+    },
+    {
+      "path": "controls/coin-render-camera-release-ablation/wgpu-vulkan-common-disabled.log",
+      "bytes": 29854,
+      "sha256": "ee9c24d3d78f7b220e7ee3aa39cfa6db94b0e11353974a4e83fb01de0a1ae51d"
+    },
+    {
+      "path": "controls/coin-render-camera-release-ablation/wgpu-vulkan-optimized.csv",
+      "bytes": 976,
+      "sha256": "f7ec6e5067578488b854354e9eeee45d63d0e7f3e7ebfff23c37818a35965247"
+    },
+    {
+      "path": "controls/coin-render-camera-release-ablation/wgpu-vulkan-optimized.log",
+      "bytes": 21457,
+      "sha256": "61e65636d9a33cd881a6de43194fb5049f6e948c5858e17b167ca7def97e5bb2"
+    },
+    {
+      "path": "controls/coin-render-camera-release-controls/camera-patch-trace-proof.json",
+      "bytes": 471,
+      "sha256": "668f82c6f97ff2eb6d4837d084a96c3ea8d5816be5771c5946ff9a2a0156d481"
+    },
+    {
+      "path": "controls/coin-render-camera-release-controls/coin-gl-gpu-diagnostic-command.json",
+      "bytes": 610,
+      "sha256": "2f2bb1edcc8267d9a55d7ece8cc154b67eeeed65b34ce0ad0cbb66f08ad316a0"
+    },
+    {
+      "path": "controls/coin-render-camera-release-controls/coin-gl-gpu-diagnostic.log",
+      "bytes": 71902,
+      "sha256": "5a7c03b739a2acd076088357e9ac81a177d2eaf67ba151bf9508bc65d5b98e1a"
+    },
+    {
+      "path": "controls/coin-render-camera-release-controls/coin-render-camera-release-bgfx-build.log",
+      "bytes": 681,
+      "sha256": "befa3c4200d714b75e7cc3110951788ab11654ebf4bf05c8e9efd0f1bf622af5"
+    },
+    {
+      "path": "controls/coin-render-camera-release-controls/coin-render-camera-release-cpu-bgfx.log",
+      "bytes": 633,
+      "sha256": "cc5dde2696029c90248a7327ac3e4adc6371914b9b04c48bb3faab421cb1d11f"
+    },
+    {
+      "path": "controls/coin-render-camera-release-controls/coin-render-camera-release-cpu-wgpu.log",
+      "bytes": 637,
+      "sha256": "9c9e8ed95b5d05afacd3c497a140a5d5fe7d033809dfec48af7c186732b87d7b"
+    },
+    {
+      "path": "controls/coin-render-camera-release-controls/coin-render-camera-release-multidevice-build.log",
+      "bytes": 171,
+      "sha256": "cf6aae1ed2986b0fd41379c8b9f669c33dafea4a5ef76c5e8062b4d489ffd21a"
+    },
+    {
+      "path": "controls/coin-render-camera-release-controls/coin-render-camera-release-multidevice.log",
+      "bytes": 31,
+      "sha256": "96354101276d4305a59d9b3bbbf3a62fb2569254ce7ff5b567bdd01ed740e599"
+    },
+    {
+      "path": "controls/coin-render-camera-release-controls/coin-render-camera-release-reference-bgfx-opengl.log",
+      "bytes": 95808,
+      "sha256": "b689d18c5242d503dff178fc982809d8c4327ce6b9523a5d59d78d809b7f9d8b"
+    },
+    {
+      "path": "controls/coin-render-camera-release-controls/coin-render-camera-release-reference-bgfx-vulkan.log",
+      "bytes": 95760,
+      "sha256": "1453f6686f8e66ee362ce84e9ee34d3320ab2802ce8692b5a96420afc7b46c4a"
+    },
+    {
+      "path": "controls/coin-render-camera-release-controls/coin-render-camera-release-reference-commands.json",
+      "bytes": 2112,
+      "sha256": "7331f566f5fcbbbc4e52602b42e066b463688727b823a9a8552494d9db2a4256"
+    },
+    {
+      "path": "controls/coin-render-camera-release-controls/coin-render-camera-release-reference-wgpu-vulkan.log",
+      "bytes": 88606,
+      "sha256": "1d2add542030776ade0dde7f230da30a86ada8c130c4f07ecf499a7e2dab90dd"
+    },
+    {
+      "path": "controls/coin-render-camera-release-controls/coin-render-camera-release-rust-tests.log",
+      "bytes": 2891,
+      "sha256": "704c484838cc6629cac776d1294e2fe387ca188862d3c8e71f9ab201113a9db5"
+    },
+    {
+      "path": "controls/coin-render-camera-release-controls/coin-render-camera-release-surface-build.log",
+      "bytes": 167,
+      "sha256": "4ee5b51f4e876a6e8951873e0b2406b7bb35f308828449209178b456972e5b4b"
+    },
+    {
+      "path": "controls/coin-render-camera-release-controls/coin-render-camera-release-surface-camera.log",
+      "bytes": 112,
+      "sha256": "f9817b164cc5c9de6321fc6ad3707db13450701754b2871a133651c0ac85cf01"
+    },
+    {
+      "path": "controls/coin-render-camera-release-controls/coin-render-camera-release-surface.log",
+      "bytes": 478,
+      "sha256": "ae742abbcfe10ef87cee34ca2f50abde1813ba1045b2a60834027d444249d1b8"
+    },
+    {
+      "path": "controls/coin-render-camera-release-controls/coin-render-camera-release-wgpu-build.log",
+      "bytes": 3483,
+      "sha256": "a43f00c25ac5e1a4849bf86f4d2768c1cc9c5056a524e7b8309652180d875eff"
+    },
+    {
+      "path": "controls/coin-render-camera-release-controls/coin-render-camera-release-wgpu-gpu-commands.json",
+      "bytes": 1572,
+      "sha256": "e1ba879a1c820c38eccfcbaca27960ab98a5e4232ac32b8ee38f66329628bd4e"
+    },
+    {
+      "path": "controls/coin-render-camera-release-controls/frozen-binaries.json",
+      "bytes": 1303,
+      "sha256": "c72de1b9607688cb46776b2c3230c9c708b53587eacab3e7ea9c19c1d4ebd9b6"
+    },
+    {
+      "path": "controls/coin-render-camera-release-controls/machine.json",
+      "bytes": 6600,
+      "sha256": "8a4b75f9f20812c822a131fdfb515590cf855abe1b093caa4f650b93916ed3f2"
+    },
+    {
+      "path": "controls/coin-render-camera-release-controls/nvidia-smi.txt",
+      "bytes": 56,
+      "sha256": "ec005e160840cf87df3fc953f8ed990b060ee7c6cd82ae48aa0e1a3cb5b76861"
+    },
+    {
+      "path": "controls/coin-render-camera-transform-diagnostics/after-bgfx-opengl.csv",
+      "bytes": 451,
+      "sha256": "59b4f4017e5803c2a9000069ebf8bcd787234e80ef3987b07d2e2ddae86b1242"
+    },
+    {
+      "path": "controls/coin-render-camera-transform-diagnostics/after-bgfx-opengl.log",
+      "bytes": 13454,
+      "sha256": "01e00d9dac437ff0027b8c8de158de46ec0f5f8509c9814cad3bb5d772291e5e"
+    },
+    {
+      "path": "controls/coin-render-camera-transform-diagnostics/after-bgfx-vulkan.csv",
+      "bytes": 422,
+      "sha256": "33061d3c174511f100b8bfb5c09b7dba5958d9d1819eb6f92c945b421f6db422"
+    },
+    {
+      "path": "controls/coin-render-camera-transform-diagnostics/after-bgfx-vulkan.log",
+      "bytes": 13455,
+      "sha256": "05ff4c9ef6ea81df8f026e91028cac00e083e13b8c2e67d4149c7d56cedf8203"
+    },
+    {
+      "path": "controls/coin-render-camera-transform-diagnostics/after-wgpu-vulkan.csv",
+      "bytes": 414,
+      "sha256": "21819cd616fa40c5d87d811ecf5d916bd17a9498c4f9759fdbcf3c23a98cd8d2"
+    },
+    {
+      "path": "controls/coin-render-camera-transform-diagnostics/after-wgpu-vulkan.log",
+      "bytes": 12431,
+      "sha256": "21f259601fce95827fb34df4db72e79646f8e236c7de21b2bdd3467fc4f71250"
+    },
+    {
+      "path": "controls/coin-render-camera-transform-diagnostics/before-bgfx-opengl.csv",
+      "bytes": 416,
+      "sha256": "08eb7260ea2d74196d20d1b9101cda660282f2c2bd98866f2d8ea99de2f485e4"
+    },
+    {
+      "path": "controls/coin-render-camera-transform-diagnostics/before-bgfx-opengl.log",
+      "bytes": 13460,
+      "sha256": "a30adfc9af0ad748af54b351a27515f854a1d0b860cca1dcba2ccac0761abaf6"
+    },
+    {
+      "path": "controls/coin-render-camera-transform-diagnostics/before-bgfx-vulkan.csv",
+      "bytes": 435,
+      "sha256": "e386227c2558eff589932be17e2ccd809b3c92c20b78be3bf42f3762bcb5e88a"
+    },
+    {
+      "path": "controls/coin-render-camera-transform-diagnostics/before-bgfx-vulkan.log",
+      "bytes": 13460,
+      "sha256": "099f4f98048c75de567cadd009298cd5d5c8701967eea106a2e11c7043cdccbb"
+    },
+    {
+      "path": "controls/coin-render-camera-transform-diagnostics/before-wgpu-vulkan.csv",
+      "bytes": 413,
+      "sha256": "0f0cbadefa77da71dfd8942651d7398b6a1f625b7afe25b696cf265f24655188"
+    },
+    {
+      "path": "controls/coin-render-camera-transform-diagnostics/before-wgpu-vulkan.log",
+      "bytes": 12429,
+      "sha256": "a6aca32cdc54f1989108e3be45e08325f59bb13e0dfac62e218dd6fe01d3fc54"
+    },
+    {
+      "path": "controls/coin-render-camera-transform-diagnostics/commands.json",
+      "bytes": 5379,
+      "sha256": "4beb68d315edca59e8e66b56349e9d4459378199d21e72afd4773e091e03a87c"
+    },
+    {
+      "path": "controls/coin-render-camera-transform-final-diagnostics/after-wgpu-vulkan.csv",
+      "bytes": 690,
+      "sha256": "ff6a3711c46a2b7166a1a8a6c145371c3a7324adfc2ac53d783e6308840c0325"
+    },
+    {
+      "path": "controls/coin-render-camera-transform-final-diagnostics/after-wgpu-vulkan.log",
+      "bytes": 19866,
+      "sha256": "a5e18f8fb41b922e004423cef3aab937b84aabf7aa46996aea8fd8f22b6c028f"
+    },
+    {
+      "path": "controls/coin-render-camera-transform-final-diagnostics/before-wgpu-vulkan.csv",
+      "bytes": 688,
+      "sha256": "294b1d75aca1174a2cb2134c8fab0db8dd70927bf2701bd8679c56f8c19329d6"
+    },
+    {
+      "path": "controls/coin-render-camera-transform-final-diagnostics/before-wgpu-vulkan.log",
+      "bytes": 19862,
+      "sha256": "4129de2c795157d42b2ea6632442634b48289ffa68730f64c832b87a9ddf67aa"
+    },
+    {
+      "path": "controls/coin-render-camera-transform-final-diagnostics/commands.json",
+      "bytes": 1799,
+      "sha256": "7508d96e1828da72b03f6f939d1c6b4fbef37f377b8e83b875c67e639d47772f"
+    },
+    {
+      "path": "controls/coin-render-transforms-after-pilot/logs/transforms-10-bgfx-opengl-1.log",
+      "bytes": 2468,
+      "sha256": "f4799f6a8d6b322b8ed2ba91e29151ef06f478e3d8c612bdd053625da5bb5efd"
+    },
+    {
+      "path": "controls/coin-render-transforms-after-pilot/logs/transforms-10-bgfx-vulkan-1.log",
+      "bytes": 2470,
+      "sha256": "ed8c21950728e0a687f6e5616132a8c689eb6b525eb536831da92fcce81724c1"
+    },
+    {
+      "path": "controls/coin-render-transforms-after-pilot/logs/transforms-10-coingl-1.log",
+      "bytes": 2308,
+      "sha256": "86728098b626fa439c0e152d703edce2e4eb15eb03686987247fff818314baf1"
+    },
+    {
+      "path": "controls/coin-render-transforms-after-pilot/logs/transforms-10-wgpu-vulkan-1.log",
+      "bytes": 2567,
+      "sha256": "27d790584559ac42a713835884142b3a6994641baf46c17f62edf8b9cb8309d3"
+    },
+    {
+      "path": "controls/coin-render-transforms-after-pilot/manifest.json",
+      "bytes": 5122,
+      "sha256": "8cb33d22a25dca6d53965eeb4a4890b3c4d9dfa460db49ac3eb8e2f3ad5772b2"
+    },
+    {
+      "path": "controls/coin-render-transforms-after-pilot/medians.json",
+      "bytes": 4561,
+      "sha256": "55b8b0fe5ca0c774d766d81993b97f01def8693595e6123acae9ce55a9251649"
+    },
+    {
+      "path": "controls/coin-render-transforms-after-pilot/results.json",
+      "bytes": 6118,
+      "sha256": "db5cdbbdb5c81b29a4b92f0c4772edc4e0c70dd63a1262130c96e77583bc7de5"
+    },
+    {
+      "path": "controls/coin-render-transforms-after-pilot/samples/transforms-10-bgfx-opengl-1.csv",
+      "bytes": 2245,
+      "sha256": "5c5648d31a88a8a4035aa3ef31adf3db1f163d7ee10849b0e92240d19afa681e"
+    },
+    {
+      "path": "controls/coin-render-transforms-after-pilot/samples/transforms-10-bgfx-vulkan-1.csv",
+      "bytes": 2285,
+      "sha256": "cb31e6b29ddc1c9131398a669e69b15366497f4a342f80b3c76efa1627b56393"
+    },
+    {
+      "path": "controls/coin-render-transforms-after-pilot/samples/transforms-10-coingl-1.csv",
+      "bytes": 2027,
+      "sha256": "f45585e9a4c09087aea8c234045e3ddae1f7ce937515c2ecb18b923b9d4c3c03"
+    },
+    {
+      "path": "controls/coin-render-transforms-after-pilot/samples/transforms-10-wgpu-vulkan-1.csv",
+      "bytes": 2145,
+      "sha256": "94b72813b342a4babb7680b62599ccbf2c3da7af1a5fc8201610f1223758be80"
+    },
+    {
+      "path": "controls/coin-render-transforms-before-pilot/logs/transforms-10-bgfx-opengl-1.log",
+      "bytes": 2471,
+      "sha256": "117553484e3f7b22f484ce97ad7ea7769c02bfbdd116bcc9c0ee082d415a3532"
+    },
+    {
+      "path": "controls/coin-render-transforms-before-pilot/logs/transforms-10-bgfx-vulkan-1.log",
+      "bytes": 2471,
+      "sha256": "db309c03be8c485bcd6d3acf4a47d684e3516477ae4cfbc9781f9f91b97b1360"
+    },
+    {
+      "path": "controls/coin-render-transforms-before-pilot/logs/transforms-10-coingl-1.log",
+      "bytes": 2314,
+      "sha256": "bac1be2cd7b4ed52163271f67f14a8e089b62b0862a5db8c5065f4027e220163"
+    },
+    {
+      "path": "controls/coin-render-transforms-before-pilot/logs/transforms-10-wgpu-vulkan-1.log",
+      "bytes": 2571,
+      "sha256": "65e7f61e866c940797fcbdec57f91d37c769c270443f74ee6ad1b83b3daae1c7"
+    },
+    {
+      "path": "controls/coin-render-transforms-before-pilot/manifest.json",
+      "bytes": 5351,
+      "sha256": "486a6b7a467c5272214dc7198b8ba45d1e246ad8da8efe5b2ef9a5381e5abf5e"
+    },
+    {
+      "path": "controls/coin-render-transforms-before-pilot/medians.json",
+      "bytes": 4617,
+      "sha256": "616e0c616fee882e5528dcb9b6d4f967a9abdaa56f157aaa62dcb4e736130afe"
+    },
+    {
+      "path": "controls/coin-render-transforms-before-pilot/results.json",
+      "bytes": 6175,
+      "sha256": "c889a8f8f2858919c5d32c26c0fceaaad391c7dfa41bfb8bd443d9b581a403e1"
+    },
+    {
+      "path": "controls/coin-render-transforms-before-pilot/samples/transforms-10-bgfx-opengl-1.csv",
+      "bytes": 2292,
+      "sha256": "5d272508c29867c52cfbabaa6432cf611903a0914431a36c957e7f98f6c99d5c"
+    },
+    {
+      "path": "controls/coin-render-transforms-before-pilot/samples/transforms-10-bgfx-vulkan-1.csv",
+      "bytes": 2307,
+      "sha256": "47fad6b0fdac74a951ff3c89c169f249dccee94895f0d2e29b53c99f1c0ee1cd"
+    },
+    {
+      "path": "controls/coin-render-transforms-before-pilot/samples/transforms-10-coingl-1.csv",
+      "bytes": 2035,
+      "sha256": "c7dcd91d7f75da11b54547337c44f885acf5cdd8b61fab4e08b3381d0a14fd98"
+    },
+    {
+      "path": "controls/coin-render-transforms-before-pilot/samples/transforms-10-wgpu-vulkan-1.csv",
+      "bytes": 2142,
+      "sha256": "694df08bac54cc11b851cfe2ba36bc3d27a9cd7680f123cec9cd5b16d6f06189"
+    },
+    {
+      "path": "controls/coin-render-transforms-final-pilot/logs/transforms-10-bgfx-opengl-1.log",
+      "bytes": 2468,
+      "sha256": "11d9a007d8568609422950938779d8a0ff33a3782101aca4f08205cf1026efeb"
+    },
+    {
+      "path": "controls/coin-render-transforms-final-pilot/logs/transforms-10-bgfx-vulkan-1.log",
+      "bytes": 2471,
+      "sha256": "2eeb4f2744acc567eb8a3039c465da4bd1185004d294945289ea059f61f4869c"
+    },
+    {
+      "path": "controls/coin-render-transforms-final-pilot/logs/transforms-10-coingl-1.log",
+      "bytes": 2315,
+      "sha256": "e585088ede7d3dc806edfbbe24a9146750d16b8fd10bde21cc8bcdd8cd46e4ef"
+    },
+    {
+      "path": "controls/coin-render-transforms-final-pilot/logs/transforms-10-wgpu-vulkan-1.log",
+      "bytes": 2565,
+      "sha256": "5444cdb88161be32a0cb06bf88132578140df22b6cce2af10225272a61eb1508"
+    },
+    {
+      "path": "controls/coin-render-transforms-final-pilot/manifest.json",
+      "bytes": 5122,
+      "sha256": "71c1dff16cadba3fe5f780db10533f2263b46c562d7a0f988e85468b888a8bdd"
+    },
+    {
+      "path": "controls/coin-render-transforms-final-pilot/medians.json",
+      "bytes": 4605,
+      "sha256": "d0188e1e41e6b63f2a89a71213ea3b5d7f49dbb412923888436039a2610a549f"
+    },
+    {
+      "path": "controls/coin-render-transforms-final-pilot/results.json",
+      "bytes": 6162,
+      "sha256": "a02dd7c68c512f9eb01932dabb765a9e8099f770ba9dfb29ac344ec46298f4d2"
+    },
+    {
+      "path": "controls/coin-render-transforms-final-pilot/samples/transforms-10-bgfx-opengl-1.csv",
+      "bytes": 2259,
+      "sha256": "279ffeac9658813c2eb1ba7465f8c20f0ab8e8dd0f6881cb702ea81e67516af6"
+    },
+    {
+      "path": "controls/coin-render-transforms-final-pilot/samples/transforms-10-bgfx-vulkan-1.csv",
+      "bytes": 2300,
+      "sha256": "35920edadf5a8f3b2d71292cfa21cafeee32a4bff18b5465e644365ff26b8e35"
+    },
+    {
+      "path": "controls/coin-render-transforms-final-pilot/samples/transforms-10-coingl-1.csv",
+      "bytes": 2057,
+      "sha256": "bde43e5839f43861fbaf0dabd879466e462c16f417734cf593f4e48487f7147c"
+    },
+    {
+      "path": "controls/coin-render-transforms-final-pilot/samples/transforms-10-wgpu-vulkan-1.csv",
+      "bytes": 2172,
+      "sha256": "5e2787f9a0dca62a8fccd12f6fbc03a82a4165099ac01fc09f6d8ce96aa8519f"
+    },
+    {
+      "path": "images/camera-bgfx-opengl-300.png",
+      "bytes": 171085,
+      "sha256": "95f18242a0a7420efbf366391e57e4251fadb7a04aab856eac724cd8b040ab01"
+    },
+    {
+      "path": "images/camera-bgfx-vulkan-300.png",
+      "bytes": 171088,
+      "sha256": "b0f0a903ba43a900b5db61f57b4197413ef5fc9e4e0da9c96ad3aaec3a963c5a"
+    },
+    {
+      "path": "images/camera-coingl-300.png",
+      "bytes": 171016,
+      "sha256": "5dd8ff8cf428e0ee005a0ba21f656af2b68b3a4832985788e995d1df49668f7f"
+    },
+    {
+      "path": "images/camera-wgpu-vulkan-300.png",
+      "bytes": 171084,
+      "sha256": "2d27251aa9af170511e70a8b01977dbe450fe0a24929daf09f9359f3b23af3f6"
+    },
+    {
+      "path": "offscreen/logs/camera-bgfx-opengl-1.log",
+      "bytes": 2445,
+      "sha256": "28d12feb4554b47c6f5d61b12ccfd2d3d7fa184f0ef16fa85a367f463b4e7f54"
+    },
+    {
+      "path": "offscreen/logs/camera-bgfx-opengl-2.log",
+      "bytes": 2455,
+      "sha256": "747b833aa2618cefe9009062f29c39a92a06f4e8589c853c1b0d980111dd3708"
+    },
+    {
+      "path": "offscreen/logs/camera-bgfx-opengl-3.log",
+      "bytes": 2453,
+      "sha256": "f6f13489ea6f8eeb0a84337125b10c3cf20191e906453034c15f4e90b8bee2d8"
+    },
+    {
+      "path": "offscreen/logs/camera-bgfx-vulkan-1.log",
+      "bytes": 2454,
+      "sha256": "20cda1ae0fb8ea5bf42cfe3ffbbe6d9889795732de8b3a585e179e9f66414d3a"
+    },
+    {
+      "path": "offscreen/logs/camera-bgfx-vulkan-2.log",
+      "bytes": 2455,
+      "sha256": "623ce9ff685f1199367e27151208f3fee636100f274b8865ef6f4ace854c26c2"
+    },
+    {
+      "path": "offscreen/logs/camera-bgfx-vulkan-3.log",
+      "bytes": 2456,
+      "sha256": "047ea1db5344bd22b2f4a4efe12342f2a4de16f0524195c01acfc2b71692ecf5"
+    },
+    {
+      "path": "offscreen/logs/camera-coingl-1.log",
+      "bytes": 2308,
+      "sha256": "8fd92847aeb31a08dd4fb8089eccd1262cadb0109d22ebf3eea3c5af672fe8a2"
+    },
+    {
+      "path": "offscreen/logs/camera-coingl-2.log",
+      "bytes": 2307,
+      "sha256": "ab28a746d76da1a3e72f39a07eac37518179c778575566bc933e0ebe7894b80f"
+    },
+    {
+      "path": "offscreen/logs/camera-coingl-3.log",
+      "bytes": 2307,
+      "sha256": "9d3f3fa558eaa16a3daec058e72cff8f4cef6fe8fd0cbc7fefc5acc8d62f4e1b"
+    },
+    {
+      "path": "offscreen/logs/camera-wgpu-vulkan-1.log",
+      "bytes": 2546,
+      "sha256": "8b266a11f7f43d7d74230da8213b421432f313fe54557efba59804d43967f840"
+    },
+    {
+      "path": "offscreen/logs/camera-wgpu-vulkan-2.log",
+      "bytes": 2541,
+      "sha256": "2fe9728458e4a5d7f595f12bda5fb28533e5e148468a8b2636718ac197df33c2"
+    },
+    {
+      "path": "offscreen/logs/camera-wgpu-vulkan-3.log",
+      "bytes": 2549,
+      "sha256": "50d898f711af6a59fe5be6559803cc4fc2457c3ac305bb3476635853502be8c2"
+    },
+    {
+      "path": "offscreen/logs/static-bgfx-opengl-1.log",
+      "bytes": 2443,
+      "sha256": "aba04d90cef661382b38ac50df0ee7548f955f85ec7eb719f6cc9ad30b4a17b5"
+    },
+    {
+      "path": "offscreen/logs/static-bgfx-opengl-2.log",
+      "bytes": 2446,
+      "sha256": "71891d95a9171e1029213655fa5e6eeab3bf44231b7e24ab022341605c1d8354"
+    },
+    {
+      "path": "offscreen/logs/static-bgfx-opengl-3.log",
+      "bytes": 2437,
+      "sha256": "bf0973761c11f0e5478f8577c08336fe904326cac81a01c5cff8bf23962b9777"
+    },
+    {
+      "path": "offscreen/logs/static-bgfx-vulkan-1.log",
+      "bytes": 2443,
+      "sha256": "65427596434ff4891c4c83856163f0156763ec5af33bb73d299472edd04dc03d"
+    },
+    {
+      "path": "offscreen/logs/static-bgfx-vulkan-2.log",
+      "bytes": 2443,
+      "sha256": "201b7f255768a89239f939a21c9601a8074ac3338679de7e8efee2a984d45e4b"
+    },
+    {
+      "path": "offscreen/logs/static-bgfx-vulkan-3.log",
+      "bytes": 2449,
+      "sha256": "12f0d671b689d043a65ac00e96e80da0aa3a91b199e2e10b11e5c9887d592baf"
+    },
+    {
+      "path": "offscreen/logs/static-coingl-1.log",
+      "bytes": 2300,
+      "sha256": "f67fcada528cd4688cfd61856a93b4c07b7f61153e8e4ef612dacb4cc49f1fdb"
+    },
+    {
+      "path": "offscreen/logs/static-coingl-2.log",
+      "bytes": 2297,
+      "sha256": "3276d053418174ec1296e3d5253a2042abdf1513b3c1a95394ae7324a8d9d659"
+    },
+    {
+      "path": "offscreen/logs/static-coingl-3.log",
+      "bytes": 2296,
+      "sha256": "7cc00829e3f32721043e042695dca6708c6a13c632d46e987d458681e8c907ac"
+    },
+    {
+      "path": "offscreen/logs/static-wgpu-vulkan-1.log",
+      "bytes": 2537,
+      "sha256": "1363fae8e23de5b649ab3d60292dfb90289b47805c179dca541cbdb3c13c2ccf"
+    },
+    {
+      "path": "offscreen/logs/static-wgpu-vulkan-2.log",
+      "bytes": 2540,
+      "sha256": "8d69c1b44d9cb391d8e1fc49bdcd53a9992f1c7162905d0586f0ce9dff0b2cfb"
+    },
+    {
+      "path": "offscreen/logs/static-wgpu-vulkan-3.log",
+      "bytes": 2539,
+      "sha256": "5d6395f6f7039d0e1d83b3c58389e8066efa65413fd2334dcc0cf961ceae8bc2"
+    },
+    {
+      "path": "offscreen/manifest.json",
+      "bytes": 22905,
+      "sha256": "037f5ef3d0bb72199d0d6133c7558a53383c23b23a77263d0e96ada26d5a419f"
+    },
+    {
+      "path": "offscreen/medians.json",
+      "bytes": 8956,
+      "sha256": "c1537cb0b40beeb07f2a45ea7fd4433dd1fb87a55e11b3222d8a939c9a5741d2"
+    },
+    {
+      "path": "offscreen/results.json",
+      "bytes": 35754,
+      "sha256": "3fdd11e330aae09850dcdf23ee4ee23932f76a6349072935eb2320b9a7cc30a4"
+    },
+    {
+      "path": "offscreen/samples/camera-bgfx-opengl-1.csv",
+      "bytes": 59918,
+      "sha256": "2ec1b9bbe8544ed1c532a11e6f9963ac1df69d8684f8bf596597a33e683d1a9c"
+    },
+    {
+      "path": "offscreen/samples/camera-bgfx-opengl-2.csv",
+      "bytes": 59580,
+      "sha256": "1e48947915096afdb0f690815fde6c5a599d5134332b1ff71f0d93594a0bba93"
+    },
+    {
+      "path": "offscreen/samples/camera-bgfx-opengl-3.csv",
+      "bytes": 59002,
+      "sha256": "83e77c1534488495936b2b8789fb54b9f293933ecb010b652b930b2b5a2d369c"
+    },
+    {
+      "path": "offscreen/samples/camera-bgfx-vulkan-1.csv",
+      "bytes": 60071,
+      "sha256": "f79d1a60b7ec6997676c3e7fce6d09a07e270afa527edff2697c259d0b1fea69"
+    },
+    {
+      "path": "offscreen/samples/camera-bgfx-vulkan-2.csv",
+      "bytes": 60017,
+      "sha256": "c91f8661a3a2ca2f2efcc4b6570556fa279cae3122bb2c21c94654f1b4e93304"
+    },
+    {
+      "path": "offscreen/samples/camera-bgfx-vulkan-3.csv",
+      "bytes": 59841,
+      "sha256": "f7673fa47fbc52596bec3437a3f636c1652ca10efe3cccd143f34e72e0636444"
+    },
+    {
+      "path": "offscreen/samples/camera-coingl-1.csv",
+      "bytes": 57176,
+      "sha256": "754a2e4d2a15e888337062b02ef20134708b1d7a146946e272bb27f0cc178801"
+    },
+    {
+      "path": "offscreen/samples/camera-coingl-2.csv",
+      "bytes": 57074,
+      "sha256": "8af8d843914ef88b65882e5d91b4d2b99aa365e182772a9d7e898a215a983afc"
+    },
+    {
+      "path": "offscreen/samples/camera-coingl-3.csv",
+      "bytes": 56485,
+      "sha256": "baed73a911ae43c434b09ba94ced90ee65e745a9a2f48b64f46245f1523a354c"
+    },
+    {
+      "path": "offscreen/samples/camera-wgpu-vulkan-1.csv",
+      "bytes": 54999,
+      "sha256": "0c4b850142b6697e1bee563b00534e97b83fa500d3167b8c40c0542939281f23"
+    },
+    {
+      "path": "offscreen/samples/camera-wgpu-vulkan-2.csv",
+      "bytes": 55070,
+      "sha256": "334bc061f2b1d1a2edc812ba53621dca03fddc842f485e51494c10a865471cd8"
+    },
+    {
+      "path": "offscreen/samples/camera-wgpu-vulkan-3.csv",
+      "bytes": 54183,
+      "sha256": "fd845d99ca8bf582989a5261d45e924b4cc68ee958a9bebb955790f9624e83b3"
+    },
+    {
+      "path": "offscreen/samples/static-bgfx-opengl-1.csv",
+      "bytes": 59912,
+      "sha256": "b0b6111892c31b32b4daabd0ca655e43ea873db6f5b47971573eee7a4966ec6b"
+    },
+    {
+      "path": "offscreen/samples/static-bgfx-opengl-2.csv",
+      "bytes": 59251,
+      "sha256": "eec5d20589379e21124a4ae921c5463b3562fe67719670274ec287b9befd88ab"
+    },
+    {
+      "path": "offscreen/samples/static-bgfx-opengl-3.csv",
+      "bytes": 59247,
+      "sha256": "8e84a60372e1684f570c8462500f6aad59b689dbe859d63f6ecaba9e0ec383b3"
+    },
+    {
+      "path": "offscreen/samples/static-bgfx-vulkan-1.csv",
+      "bytes": 58768,
+      "sha256": "357079a6ac5b492265c06082c9b274768154bef6435b9bc0a9b0f53279d82da6"
+    },
+    {
+      "path": "offscreen/samples/static-bgfx-vulkan-2.csv",
+      "bytes": 58610,
+      "sha256": "dc23420d1f843cadd9a55a6df386cf6564a9dbd2d485779e591f3799d422e39f"
+    },
+    {
+      "path": "offscreen/samples/static-bgfx-vulkan-3.csv",
+      "bytes": 59066,
+      "sha256": "d7851cb04fd45bd4fb85729a116ef5d741b3846f2df1677a29612dfb04ec7795"
+    },
+    {
+      "path": "offscreen/samples/static-coingl-1.csv",
+      "bytes": 55039,
+      "sha256": "89aa9d02420d269563ae105f27f809bc22e0d2f0df7a6a9cbe81254b484997f6"
+    },
+    {
+      "path": "offscreen/samples/static-coingl-2.csv",
+      "bytes": 53106,
+      "sha256": "c9e73f5b5f5c6467679738baf886c8a3f6aac1292004024c2d41e91b3ceb8211"
+    },
+    {
+      "path": "offscreen/samples/static-coingl-3.csv",
+      "bytes": 53989,
+      "sha256": "f9c9521e8a58d1a926d8405cbc00d363e731127f38ae2e118612bc05fbbe7af6"
+    },
+    {
+      "path": "offscreen/samples/static-wgpu-vulkan-1.csv",
+      "bytes": 53393,
+      "sha256": "03b8e33d0be4c43029dda6a1cc2d03298908017755d5cf16ac7638288218e11a"
+    },
+    {
+      "path": "offscreen/samples/static-wgpu-vulkan-2.csv",
+      "bytes": 54951,
+      "sha256": "342664b589a6366d61f9aaeea5f70e96ad8d49a80b7299d5f47a6e77a7aceacb"
+    },
+    {
+      "path": "offscreen/samples/static-wgpu-vulkan-3.csv",
+      "bytes": 56492,
+      "sha256": "c98a4312a8133b54e52e8fd5ac5dc69c6941685886d35f32f23bdb1bd04ea32d"
+    },
+    {
+      "path": "report-summary.json",
+      "bytes": 1018690,
+      "sha256": "ac185bba3ce14af2aeaadd3034b046fc9b9fcdd505cd10f127dbf7fb7a59d330"
+    },
+    {
+      "path": "summarize.py",
+      "bytes": 34009,
+      "sha256": "ae48a42f94be749f1f0aefda36e8fbb271c32ed15d76b2a19d3af069546d480f"
+    },
+    {
+      "path": "transform-after/logs/transforms-10-bgfx-opengl-1.log",
+      "bytes": 2477,
+      "sha256": "f6665e39899919795ac09ceffcbe9a17114f7fc45923c8b0299ffea7726f0834"
+    },
+    {
+      "path": "transform-after/logs/transforms-10-bgfx-opengl-2.log",
+      "bytes": 2473,
+      "sha256": "b1281b547a9b6f29994d3240596c785d4ff5953dbc9a14857386bec14ca069b0"
+    },
+    {
+      "path": "transform-after/logs/transforms-10-bgfx-opengl-3.log",
+      "bytes": 2481,
+      "sha256": "b03943595f615a503fdbe28d7f8844e67a2045a18d720d4639af50663cf0ef04"
+    },
+    {
+      "path": "transform-after/logs/transforms-10-bgfx-vulkan-1.log",
+      "bytes": 2478,
+      "sha256": "f6dcd25611da28e45fb6d06c6ae8280a82bda563514744ff150544f001d3b0ab"
+    },
+    {
+      "path": "transform-after/logs/transforms-10-bgfx-vulkan-2.log",
+      "bytes": 2481,
+      "sha256": "efc159436d149bfb5032c1bfda3ae2ade33041b9f7f2946d50751f033321edb8"
+    },
+    {
+      "path": "transform-after/logs/transforms-10-bgfx-vulkan-3.log",
+      "bytes": 2480,
+      "sha256": "1b8a69971ddf9ad0fb7ba9a87f092c72ce36c57396126414964f4a2ab562727d"
+    },
+    {
+      "path": "transform-after/logs/transforms-10-coingl-1.log",
+      "bytes": 2319,
+      "sha256": "1d96050e183025d623b611fb6b2604a2c50e9d918a1e0983daaefa3a9002bc6c"
+    },
+    {
+      "path": "transform-after/logs/transforms-10-coingl-2.log",
+      "bytes": 2320,
+      "sha256": "f690b15ddf5e49d9106b1b654bb08b095c4608b84397e4eb4db65ea22183ef69"
+    },
+    {
+      "path": "transform-after/logs/transforms-10-coingl-3.log",
+      "bytes": 2323,
+      "sha256": "19adb60aaf84bd7660dd8d3a4b0e19829b12fd4b3151762fff5eadde03649fcd"
+    },
+    {
+      "path": "transform-after/logs/transforms-10-wgpu-vulkan-1.log",
+      "bytes": 2575,
+      "sha256": "34012db5f7ec99f945ed40faef9e606f032b765309d8525a3f067aa8b0308523"
+    },
+    {
+      "path": "transform-after/logs/transforms-10-wgpu-vulkan-2.log",
+      "bytes": 2576,
+      "sha256": "560dff749e66ea2d280b4aa54158cda66fd7587dbc54c3ccd0ecbfb6444d1547"
+    },
+    {
+      "path": "transform-after/logs/transforms-10-wgpu-vulkan-3.log",
+      "bytes": 2580,
+      "sha256": "b660e50efd53131ba337e4c8e5416b3b7ea7523dfe46dde1f2b416549a4a7f93"
+    },
+    {
+      "path": "transform-after/manifest.json",
+      "bytes": 12472,
+      "sha256": "2f4041a7ea191575769a5fdc6ea782e3bf63566f22f9ca4199bfaf76c36b9402"
+    },
+    {
+      "path": "transform-after/medians.json",
+      "bytes": 4580,
+      "sha256": "239cd7f97a8c4d4b15d522c493c19dec389a701f47eed2cf62f1bb6cb22c6408"
+    },
+    {
+      "path": "transform-after/results.json",
+      "bytes": 18394,
+      "sha256": "37017e3896834e7cfb1a1735a6bc116d3bf9863a2173cbaca80bfdc888d44713"
+    },
+    {
+      "path": "transform-after/samples/transforms-10-bgfx-opengl-1.csv",
+      "bytes": 3052,
+      "sha256": "293023d5096872669c744b23d046fa5b36020b25ba75728d1fbb3082036e8d92"
+    },
+    {
+      "path": "transform-after/samples/transforms-10-bgfx-opengl-2.csv",
+      "bytes": 3100,
+      "sha256": "a5f64dd852c230355d2d3b9cd62c5f167ff302c957ce50816a5c9ddfdc5606f0"
+    },
+    {
+      "path": "transform-after/samples/transforms-10-bgfx-opengl-3.csv",
+      "bytes": 3048,
+      "sha256": "b6482e3a4da62090e2cb3acf8bf7c32d0fbc54dcaaf33a2aec27dd75b46bef53"
+    },
+    {
+      "path": "transform-after/samples/transforms-10-bgfx-vulkan-1.csv",
+      "bytes": 3133,
+      "sha256": "dad49c7b25e0f2d539a5f651f685b7c70573f5ab28ce9dca9485ae0a245cae55"
+    },
+    {
+      "path": "transform-after/samples/transforms-10-bgfx-vulkan-2.csv",
+      "bytes": 3160,
+      "sha256": "b104634662707819ed889d5514ae8a41d38deebed45a939659e0816576356ebd"
+    },
+    {
+      "path": "transform-after/samples/transforms-10-bgfx-vulkan-3.csv",
+      "bytes": 3107,
+      "sha256": "d353ac4865ec9b859a0dbf9724ad385bf4dd131f6f2514a7e9617b11bc9e7dac"
+    },
+    {
+      "path": "transform-after/samples/transforms-10-coingl-1.csv",
+      "bytes": 2730,
+      "sha256": "95961b55649738955212058664a2390ea0c9e068f6523f218d407bc06a4a04c7"
+    },
+    {
+      "path": "transform-after/samples/transforms-10-coingl-2.csv",
+      "bytes": 2823,
+      "sha256": "a046442ad0a7463203d6a87257e24a09bdaacf52c9d871362e70c98c309da891"
+    },
+    {
+      "path": "transform-after/samples/transforms-10-coingl-3.csv",
+      "bytes": 2660,
+      "sha256": "18143c50fc0029109c209707be07b7fbea04c33e374013762bd3cf1592f0f973"
+    },
+    {
+      "path": "transform-after/samples/transforms-10-wgpu-vulkan-1.csv",
+      "bytes": 3085,
+      "sha256": "c2a028db14f1a40fe1ba5bce870db45cafa41f637542cbd1ac9b7bbcd730dcc6"
+    },
+    {
+      "path": "transform-after/samples/transforms-10-wgpu-vulkan-2.csv",
+      "bytes": 2993,
+      "sha256": "3a7e1871546074ac9c8da2cdb3bd8e97ab23984d2a83bd9bfcec8639f023a55b"
+    },
+    {
+      "path": "transform-after/samples/transforms-10-wgpu-vulkan-3.csv",
+      "bytes": 3073,
+      "sha256": "a011c5dad48223420467d9164059a54b78eb451ec6d6e53be5795638f5b607eb"
+    },
+    {
+      "path": "transform-before/logs/transforms-10-bgfx-opengl-1.log",
+      "bytes": 2475,
+      "sha256": "bcbb820d7d869c537517834000111023a14efe7cb708fda6a34bf5ee0057a8ab"
+    },
+    {
+      "path": "transform-before/logs/transforms-10-bgfx-opengl-2.log",
+      "bytes": 2478,
+      "sha256": "8ee9e98a32962bc84111b1a8a5c99730b7b824e6865efaba9d9a024bf54e0e31"
+    },
+    {
+      "path": "transform-before/logs/transforms-10-bgfx-opengl-3.log",
+      "bytes": 2474,
+      "sha256": "e8d03de7ce8f234aa9f4e38cbf5a7e158c54add3824afe53b8d3183f63f3259e"
+    },
+    {
+      "path": "transform-before/logs/transforms-10-bgfx-vulkan-1.log",
+      "bytes": 2481,
+      "sha256": "44463f6df3d72e591399a891e615b8634fd84cba867e5e2b76f79b729f98bc93"
+    },
+    {
+      "path": "transform-before/logs/transforms-10-bgfx-vulkan-2.log",
+      "bytes": 2481,
+      "sha256": "f7446b6fb8135506ca1fc5f9260a050fb73a0b41300b1998a1e233dce194e45a"
+    },
+    {
+      "path": "transform-before/logs/transforms-10-bgfx-vulkan-3.log",
+      "bytes": 2484,
+      "sha256": "502c773645570268d3e55835d6a25f0f0307187902def1bfc5ad7fbd2c671934"
+    },
+    {
+      "path": "transform-before/logs/transforms-10-coingl-1.log",
+      "bytes": 2322,
+      "sha256": "db46d25b6cfe031f1b7ef6a959d6ec5939b03d384ae14615d7a63e12b05ea25e"
+    },
+    {
+      "path": "transform-before/logs/transforms-10-coingl-2.log",
+      "bytes": 2319,
+      "sha256": "b55d3fb0ae8fcc81294519583e6328de51987e838594f0d9f4663c951eac9d4d"
+    },
+    {
+      "path": "transform-before/logs/transforms-10-coingl-3.log",
+      "bytes": 2325,
+      "sha256": "ede1fe83d564d91b970448948b2582dc6e8ef4e0ef6b4a0e5b1fe3786bf4854a"
+    },
+    {
+      "path": "transform-before/logs/transforms-10-wgpu-vulkan-1.log",
+      "bytes": 2574,
+      "sha256": "e719d0706543b998486af386d8e7adcaf6be2a800277f63dbbd35332bb9b6a62"
+    },
+    {
+      "path": "transform-before/logs/transforms-10-wgpu-vulkan-2.log",
+      "bytes": 2567,
+      "sha256": "7d2dcd4e3b342c9c6ab4c09d547ddb91a09ea79fb1eb4ec3acf22333633b88b4"
+    },
+    {
+      "path": "transform-before/logs/transforms-10-wgpu-vulkan-3.log",
+      "bytes": 2579,
+      "sha256": "4e085916757add4220abcd46117aaa1f1853e6d33036b95e31abd717eabca22b"
+    },
+    {
+      "path": "transform-before/manifest.json",
+      "bytes": 12933,
+      "sha256": "9dd51fc46078b2321f5a5bc167b742545ad1a1f43aac89fee4c3131c91afded5"
+    },
+    {
+      "path": "transform-before/medians.json",
+      "bytes": 4569,
+      "sha256": "095f67ff909bb861360865983caeaa454f6b4dc0f6094722ee83658172d38a99"
+    },
+    {
+      "path": "transform-before/results.json",
+      "bytes": 18373,
+      "sha256": "105117ca1a1133e440744eb236098708f27e14a1a3c52a6d9a60b24b9718cbb5"
+    },
+    {
+      "path": "transform-before/samples/transforms-10-bgfx-opengl-1.csv",
+      "bytes": 3089,
+      "sha256": "6c737aa0cd1a1091666cefc20e00b8b807e8afb15719b1cd06a95763118b1adc"
+    },
+    {
+      "path": "transform-before/samples/transforms-10-bgfx-opengl-2.csv",
+      "bytes": 3128,
+      "sha256": "07a599417e18f9a1956b5d9d4f628bda02e687f2f765cf131fde8f5d67f180ea"
+    },
+    {
+      "path": "transform-before/samples/transforms-10-bgfx-opengl-3.csv",
+      "bytes": 3144,
+      "sha256": "a6d9c063c069d07aca410860803931a70bdadbd62417b5f96df56f651c4a3c94"
+    },
+    {
+      "path": "transform-before/samples/transforms-10-bgfx-vulkan-1.csv",
+      "bytes": 3111,
+      "sha256": "0385bd6e627ed424a3c5ae1c4b361663a5a340260903e9526126b44fe42d324c"
+    },
+    {
+      "path": "transform-before/samples/transforms-10-bgfx-vulkan-2.csv",
+      "bytes": 3172,
+      "sha256": "9a278650e4fc2b37b4cad05e0e58a719222f0bf8cb4e409b2fb315b9553a1722"
+    },
+    {
+      "path": "transform-before/samples/transforms-10-bgfx-vulkan-3.csv",
+      "bytes": 3119,
+      "sha256": "50e117277ab1f1d748aa77958a4e9338b488018d392812aebc54464bfd0a028f"
+    },
+    {
+      "path": "transform-before/samples/transforms-10-coingl-1.csv",
+      "bytes": 2771,
+      "sha256": "3d95dccfffb2cf57b3cd28a20b1d84eb16010a11d94dafbe78b581c5248f2b16"
+    },
+    {
+      "path": "transform-before/samples/transforms-10-coingl-2.csv",
+      "bytes": 2753,
+      "sha256": "fa687b61b9842a36163d94c57d1a74a035bcefa71cdbfa9ebc130188ee24485d"
+    },
+    {
+      "path": "transform-before/samples/transforms-10-coingl-3.csv",
+      "bytes": 2816,
+      "sha256": "72a1bedbc486c9ae89385dc6869db92e07875ede8600edc7cfd8ac3ff247c934"
+    },
+    {
+      "path": "transform-before/samples/transforms-10-wgpu-vulkan-1.csv",
+      "bytes": 3105,
+      "sha256": "7fe4af5dff0b0bc60477c8cdc6f3f65d25f95a6491f77671c7afa4484005c87a"
+    },
+    {
+      "path": "transform-before/samples/transforms-10-wgpu-vulkan-2.csv",
+      "bytes": 3054,
+      "sha256": "02b567c2b9d7ccf78abbe443c0675f95cd034585aa7564f806f37e5e155cd628"
+    },
+    {
+      "path": "transform-before/samples/transforms-10-wgpu-vulkan-3.csv",
+      "bytes": 3144,
+      "sha256": "39a7f7f577ee65030a6e77bf9f1dcaff9599341df68920cfd097ba1dc3dd21d1"
+    },
+    {
+      "path": "verification-before-after-rgb.json",
+      "bytes": 21374,
+      "sha256": "6c47d5a502b80c9c7b96ef7255232d078cfba48424ab39d435e9e5913cd1809a"
+    },
+    {
+      "path": "verify/image-manifest.json",
+      "bytes": 26311,
+      "sha256": "ba466c44e0a609aefe4b7bb53e95d8fdb66465f1db2e1419dc8e0fcf63be1956"
+    },
+    {
+      "path": "verify/logs/camera-bgfx-opengl-1.log",
+      "bytes": 4154,
+      "sha256": "c598cbecfa3c8e8b61b04438ca17d6ff880c7e16d61e2c72329df564aa05efa1"
+    },
+    {
+      "path": "verify/logs/camera-bgfx-vulkan-1.log",
+      "bytes": 4153,
+      "sha256": "1875faf8d8033dd0cf9bcd6c3cced24b15b88e0e7426cda64768d9d71702a83e"
+    },
+    {
+      "path": "verify/logs/camera-coingl-1.log",
+      "bytes": 3899,
+      "sha256": "3855f5bf486da5b8fa1d4a92af26e77331fccc4a30d28dc3a54ef266998b0a68"
+    },
+    {
+      "path": "verify/logs/camera-wgpu-vulkan-1.log",
+      "bytes": 4179,
+      "sha256": "c1d30b20baf0d2e37a8823611df6b2cfe89b6d99c539eb872d9d08b0f03b72d0"
+    },
+    {
+      "path": "verify/logs/static-bgfx-opengl-1.log",
+      "bytes": 4148,
+      "sha256": "43943051694cee65bb41e08873249419ae9ef08c8a1cd1c6333629f6a392a1f3"
+    },
+    {
+      "path": "verify/logs/static-bgfx-vulkan-1.log",
+      "bytes": 4158,
+      "sha256": "c46bd0e4f79565c32e06e9b0e81aafbcf970042fd5f7f134348e8c9ff2527aeb"
+    },
+    {
+      "path": "verify/logs/static-coingl-1.log",
+      "bytes": 3889,
+      "sha256": "6dbf3f7d362998f17ebb05bd81c73c806c2e8790f913b1634a817602428878b5"
+    },
+    {
+      "path": "verify/logs/static-wgpu-vulkan-1.log",
+      "bytes": 4181,
+      "sha256": "aadd517b81436e37ee681c19071bf2fd4cc4bc6105fa4a09567b955c558225da"
+    },
+    {
+      "path": "verify/logs/transforms-10-bgfx-opengl-1.log",
+      "bytes": 4220,
+      "sha256": "2d45e954f6397a1348db6f90bc7ff08ccf9dd27319c0968a1357870dfb4f924d"
+    },
+    {
+      "path": "verify/logs/transforms-10-bgfx-vulkan-1.log",
+      "bytes": 4231,
+      "sha256": "10bd36cbf230da5fb871bf70754dfc2f906c2045faeb344ad5c1972a783e6f80"
+    },
+    {
+      "path": "verify/logs/transforms-10-coingl-1.log",
+      "bytes": 3967,
+      "sha256": "bb05c508847b4ac186a88c7fbd214c1901b84a8d44a27754fca18fd67540bdb8"
+    },
+    {
+      "path": "verify/logs/transforms-10-wgpu-vulkan-1.log",
+      "bytes": 4253,
+      "sha256": "e62d5d489be746ee1c39127426b786173dcdd4f33ff2cbfced074a873aff0f78"
+    },
+    {
+      "path": "verify/manifest.json",
+      "bytes": 14651,
+      "sha256": "7b7bcf6694727c2f718f6a974869dcc6e48b4a494f53539afc917193dac35785"
+    },
+    {
+      "path": "verify/medians.json",
+      "bytes": 13465,
+      "sha256": "7a05e8e64c76c2c23788fe0f5a6ff1cff8ef0bd84fb5afe38bc319dd97f38693"
+    },
+    {
+      "path": "verify/motion.json",
+      "bytes": 1324,
+      "sha256": "757ec73e59336c8fa4c5009d84f0f6eead2a9282598b00818b82e78e92119b91"
+    },
+    {
+      "path": "verify/report-image-evidence.json",
+      "bytes": 81653,
+      "sha256": "b87d7cb76040929731e787bb33715f9fbb5eaca79c6f0a466d48a82708d4f461"
+    },
+    {
+      "path": "verify/results.json",
+      "bytes": 17970,
+      "sha256": "c6dc127dbdcfa5a539ec72b7a8e36e84be13278a8f5a3f74a056fc302d15a28f"
+    },
+    {
+      "path": "verify/rgb.json",
+      "bytes": 22117,
+      "sha256": "6b3878046d6332e8bea8b6bdeeb8ee506dfa67bd6bcd2c34c7477353bebf2d8e"
+    },
+    {
+      "path": "verify/samples/camera-bgfx-opengl-1.csv",
+      "bytes": 758,
+      "sha256": "d1ee730edcffa35cda4a49a6d8bf98ba8bd591e4fed747f868dd3e9d9198c41a"
+    },
+    {
+      "path": "verify/samples/camera-bgfx-vulkan-1.csv",
+      "bytes": 696,
+      "sha256": "5553c9d42639ce8551b715e43678d69bec932fb53c9f857c776553804997e17c"
+    },
+    {
+      "path": "verify/samples/camera-coingl-1.csv",
+      "bytes": 722,
+      "sha256": "86cf848b9d8b0cb55920c9783dae2487163b0061599ab2e2fbf4836dfe76c701"
+    },
+    {
+      "path": "verify/samples/camera-wgpu-vulkan-1.csv",
+      "bytes": 653,
+      "sha256": "e296d34ca0822839ed79b167e028ed91f2894f15d66ae865bf44be29ef367943"
+    },
+    {
+      "path": "verify/samples/static-bgfx-opengl-1.csv",
+      "bytes": 744,
+      "sha256": "802996ab4c5149bc3547853b585a7a17343b077025ee7d0afd3d55b4fea653e4"
+    },
+    {
+      "path": "verify/samples/static-bgfx-vulkan-1.csv",
+      "bytes": 686,
+      "sha256": "06ff3778bda5a791b1bc8f3cde4772a7a24d829c648e484238c7222ad9d6a5dc"
+    },
+    {
+      "path": "verify/samples/static-coingl-1.csv",
+      "bytes": 662,
+      "sha256": "013dc3562bedd4ce0781d46b1f4095bea4d23c99b5dd58bc70a5f8e4c402aa90"
+    },
+    {
+      "path": "verify/samples/static-wgpu-vulkan-1.csv",
+      "bytes": 652,
+      "sha256": "a3e11d9841c701773a8540007111c8c4b9e271a7039c95a97ba2febaab82f659"
+    },
+    {
+      "path": "verify/samples/transforms-10-bgfx-opengl-1.csv",
+      "bytes": 704,
+      "sha256": "87b768c8cb98794faa961309c36d7577c5950de013c0417891f7156211b116a0"
+    },
+    {
+      "path": "verify/samples/transforms-10-bgfx-vulkan-1.csv",
+      "bytes": 666,
+      "sha256": "e4e4a55094f543d2cee7c768d5521e8a93ae4392a832768351a41f1c0f1f5369"
+    },
+    {
+      "path": "verify/samples/transforms-10-coingl-1.csv",
+      "bytes": 626,
+      "sha256": "01ab937e32330c78a55d45d50f17748a6932aa266cdc4422603bcdf42ba97697"
+    },
+    {
+      "path": "verify/samples/transforms-10-wgpu-vulkan-1.csv",
+      "bytes": 641,
+      "sha256": "5669a2d181782b8f44dd331ef0165af43c1206c60b15ab28b6253e8026f482f1"
+    },
+    {
+      "path": "window/logs/camera-bgfx-opengl-1.log",
+      "bytes": 2469,
+      "sha256": "16be270ac8698e13cf267bf57982fd1a85f8c1d25dd1348b126bf9b720ac525d"
+    },
+    {
+      "path": "window/logs/camera-bgfx-opengl-2.log",
+      "bytes": 2469,
+      "sha256": "816e0b58b007445284031ddfefa9c395d0dc3e2b127ff7e5d5d91f5efd1b5503"
+    },
+    {
+      "path": "window/logs/camera-bgfx-opengl-3.log",
+      "bytes": 2469,
+      "sha256": "48c7206297ecd42023ab636f13a4496301df40d9e0bfba5dbb64e443dacd1ea0"
+    },
+    {
+      "path": "window/logs/camera-bgfx-vulkan-1.log",
+      "bytes": 2473,
+      "sha256": "909c52d3f2d21d96583fe51f2234446a8d1027f3b9b7c0b09f1c55f7ede4d218"
+    },
+    {
+      "path": "window/logs/camera-bgfx-vulkan-2.log",
+      "bytes": 2472,
+      "sha256": "8b599f48eafb9442c59306df039f4832ab89d88ba911dbde4b9c6a9fad7e0b8d"
+    },
+    {
+      "path": "window/logs/camera-bgfx-vulkan-3.log",
+      "bytes": 2473,
+      "sha256": "84c92b5d5173961806fd29df926444a18e71d57e17640fb7305365009d1130d8"
+    },
+    {
+      "path": "window/logs/camera-coingl-1.log",
+      "bytes": 2450,
+      "sha256": "1bc281cdef543ec3512e3a67d0dc403397ef190fce4b1c8e7f96b5935ff44ef6"
+    },
+    {
+      "path": "window/logs/camera-coingl-2.log",
+      "bytes": 2450,
+      "sha256": "d579939ec4d3291b87b7407a392f89c4d13a0e9d4ca76f7a3bc33fb4ee41d01c"
+    },
+    {
+      "path": "window/logs/camera-coingl-3.log",
+      "bytes": 2450,
+      "sha256": "6860e66375f6209cd038df3df05f536f9614fa8fc5d5719f201965ef4b32eaee"
+    },
+    {
+      "path": "window/logs/camera-wgpu-vulkan-1.log",
+      "bytes": 2467,
+      "sha256": "a87cb5f74ce00d71ea8c5cf440d8927ecdc10beee9cd8801345f527fb1018b21"
+    },
+    {
+      "path": "window/logs/camera-wgpu-vulkan-2.log",
+      "bytes": 2467,
+      "sha256": "9f2910192b37901b0c100df163b305474ba7db6333ebe8075d9291da2dff44a3"
+    },
+    {
+      "path": "window/logs/camera-wgpu-vulkan-3.log",
+      "bytes": 2467,
+      "sha256": "4cbe891f1705b1c71bc33baef4aa3233c4fc377befe7d902c19203394dce6a13"
+    },
+    {
+      "path": "window/manifest.json",
+      "bytes": 12733,
+      "sha256": "ad602eadc5af5cbb64c80bf16649fec825c2802e8ac5c678b4d4dbd9ed0505c7"
+    },
+    {
+      "path": "window/medians.json",
+      "bytes": 4847,
+      "sha256": "1737f16e23edfa52ea233fad9285292dfe4e567f893648d51d572a073f820c7a"
+    },
+    {
+      "path": "window/results.json",
+      "bytes": 34212,
+      "sha256": "7625bd5086146f3761bbc7686340275e91856243861537a4db25c324cfa4f4cd"
+    },
+    {
+      "path": "window/samples/camera-bgfx-opengl-1.csv",
+      "bytes": 9322,
+      "sha256": "6b6ef3c4fdca53734afb0c56a841d40d8377f7c01a0390d8d4294e9c6154be4d"
+    },
+    {
+      "path": "window/samples/camera-bgfx-opengl-2.csv",
+      "bytes": 9322,
+      "sha256": "7ca8d93a104daf1649ff792eefea3a436b3125205d3b56b21d57e2e1d0a7104a"
+    },
+    {
+      "path": "window/samples/camera-bgfx-opengl-3.csv",
+      "bytes": 9322,
+      "sha256": "63d87b146bf7ba5da7870bb4869e11ad23f4fe6a4e8ab550e978000dc7d2bf55"
+    },
+    {
+      "path": "window/samples/camera-bgfx-vulkan-1.csv",
+      "bytes": 9322,
+      "sha256": "36a650702d0050177b2c8cc1f5ded748a98ecb084cab60a83bfff3742d480a9e"
+    },
+    {
+      "path": "window/samples/camera-bgfx-vulkan-2.csv",
+      "bytes": 9322,
+      "sha256": "7904eb14b0ee308c85f7b2bff5199f3e693d692c68f3780fc9d7c8ee5a139a22"
+    },
+    {
+      "path": "window/samples/camera-bgfx-vulkan-3.csv",
+      "bytes": 9322,
+      "sha256": "950c5d80feaf322184481d8d786b2a90cf48284e4abbe7798ba82aac11a26ba4"
+    },
+    {
+      "path": "window/samples/camera-coingl-1.csv",
+      "bytes": 9602,
+      "sha256": "e7dbbf678e31da93a32687b89fa678080867c7645db4357b306fb55906184a9e"
+    },
+    {
+      "path": "window/samples/camera-coingl-2.csv",
+      "bytes": 9602,
+      "sha256": "8af0db63287609597a3347432056077d7ffc54369dc093b76b3a136ce1261f4a"
+    },
+    {
+      "path": "window/samples/camera-coingl-3.csv",
+      "bytes": 9602,
+      "sha256": "8506331ab87af4bd5f76793ca263360efdbd5235c2ce536402e1d4e76b7e894e"
+    },
+    {
+      "path": "window/samples/camera-wgpu-vulkan-1.csv",
+      "bytes": 9320,
+      "sha256": "0b46c6474c01609f53c10028efee43ee4aac37f2a4091a335d15f9dc65be998f"
+    },
+    {
+      "path": "window/samples/camera-wgpu-vulkan-2.csv",
+      "bytes": 9320,
+      "sha256": "403d59b38a873a8cad93d5ec1ec5975df98c5d908ee27440be5972f0cb5c0049"
+    },
+    {
+      "path": "window/samples/camera-wgpu-vulkan-3.csv",
+      "bytes": 9320,
+      "sha256": "d5f99f6487789b2b3c023625e363a1f19d80509e6d8726c2896e7d29b417eb9c"
+    }
+  ]
+}

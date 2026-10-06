@@ -2,13 +2,21 @@
 #define COIN_RENDER_COMPOSITION_H
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
+#include "rendering/coinrender/CoinRenderAlphaTestCore.h"
 #include "rendering/coinrender/CoinRenderTextureCombineCore.h"
 #include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/nodes/SoSceneTexture2.h>
 #include "rendering/coinrender/CoinRenderSelectionCore.h"
+#include "rendering/coinrender/CoinRenderPhaseTimer.h"
+#include "rendering/coinrender/CoinRenderFloatCore.h"
 #include <algorithm>
 #include <cmath>
+#include <cstring>
+#include <limits>
+#include <memory>
+#include <new>
+#include <unordered_map>
 
 struct CoinRenderCompositionItem {
   size_t drawIndex = 0;
@@ -27,6 +35,153 @@ struct CoinRenderCompositionItem {
   float depthRange[2] = {0.0f, 1.0f};
   enum TransparencyStrategy { OBJECT, WEIGHTED_OIT, SORTED_LAYERS } transparencyStrategy = OBJECT;
 };
+
+// This option revokes both submission-local loans; the literal owned paths
+// remain available for ablation and for every composition outside the profile.
+inline bool coin_render_composition_borrow_enabled() {
+  const char * option = std::getenv("COIN_RENDER_DISABLE_COMPOSITION_BORROW");
+  return !(option && std::strcmp(option, "1") == 0);
+}
+
+// Logical payload transfers, not vector capacity or allocator traffic. Clock
+// reads and output are disabled unless phase tracing is requested.
+struct CoinRenderCompositionTransferTrace {
+  explicit CoinRenderCompositionTransferTrace(const char * scope, const char * consumer = "common")
+    : scope(scope), consumer(consumer), enabled(std::getenv("COIN_RENDER_TRACE_PHASES") ||
+                                               std::getenv("COIN_WGPU_TRACE_PHASES")) {}
+  using Clock = std::chrono::steady_clock;
+  Clock::time_point begin() const { return enabled ? Clock::now() : Clock::time_point{}; }
+  double elapsed(Clock::time_point start) const {
+    return enabled ? std::chrono::duration<double, std::milli>(Clock::now() - start).count() : 0;
+  }
+  ~CoinRenderCompositionTransferTrace() {
+    if (enabled) std::fprintf(stderr,
+      "COIN_RENDER_PHASE %s consumer=%s copied_items=%zu copied_bytes=%zu borrowed_items=%zu borrowed_bytes=%zu computed_items=%zu qualify_ms=%.6f copy_ms=%.6f\n",
+      scope, consumer, copiedItems, copiedItems * sizeof(CoinRenderCompositionItem),
+      borrowedItems, borrowedItems * sizeof(CoinRenderCompositionItem), computedItems, qualifyMs, copyMs);
+  }
+  const char * scope;
+  const char * consumer;
+  bool enabled;
+  size_t copiedItems = 0, borrowedItems = 0, computedItems = 0;
+  double qualifyMs = 0, copyMs = 0;
+};
+
+// Only a final ordinary capture can carry its common validation into Target.
+// Shadow scene assembly and RTT resource resolution can change the payload
+// after Builder publication and must take the complete submission path.
+inline bool coin_render_capture_preflight_eligible(const CoinRenderFramePlan & frame) {
+  if (!frame.shadowGroups.empty() || !frame.shadowLights.empty()) return false;
+  for (const auto & texture : frame.textures)
+    if (texture.producerId || texture.gpuToken) return false;
+  return true;
+}
+
+// A borrowed proof for one C++ capture/submission scope. Builder and Target
+// alone can bind it after validation. Wiring must invalidate it before changing
+// the captured payload; address/revision/policy checks also reject other plans.
+// It carries no target, Coin traversal state, or GPU resource.
+class CoinRenderFramePreflight {
+  friend class CoinRenderTargetP;
+  friend class CoinRenderFramePlanBuilder;
+public:
+  CoinRenderFramePreflight() = default;
+  void invalidate() {
+    frame = nullptr;
+    revision = 0;
+    opaqueIdentity = false;
+    order.clear();
+  }
+  const std::vector<CoinRenderCompositionItem> * compositionFor(
+      const CoinRenderFramePlan & candidate) const {
+    return frame == &candidate && revision == candidate.revision &&
+      coin_render_same_transparency_options(transparency, candidate.transparency) ? &order : nullptr;
+  }
+  const std::vector<CoinRenderCompositionItem> * opaqueCompositionFor(
+      const CoinRenderFramePlan & candidate) const {
+    return opaqueIdentity ? compositionFor(candidate) : nullptr;
+  }
+private:
+  CoinRenderFramePreflight(const CoinRenderFramePreflight &) = delete;
+  CoinRenderFramePreflight & operator=(const CoinRenderFramePreflight &) = delete;
+  const CoinRenderFramePlan * frame = nullptr;
+  uint64_t revision = 0;
+  CoinRenderTransparencyOptions transparency;
+  bool opaqueIdentity = false;
+  std::vector<CoinRenderCompositionItem> order;
+};
+
+namespace coin_render_composition_detail {
+// Borrowed captured ranges are immutable during this single composition call.
+// Exact range keys retain index/material validation; no revision or source
+// identity carries this summary into another invocation.
+class RangeMemo {
+public:
+  RangeMemo() {
+    const char * option = std::getenv("COIN_RENDER_DISABLE_COMPOSITION_RANGE_MEMOIZATION");
+    enabled = !(option && std::strcmp(option, "1") == 0);
+  }
+  ~RangeMemo() {
+    if (std::getenv("COIN_RENDER_TRACE_PHASES") || std::getenv("COIN_WGPU_TRACE_PHASES"))
+      std::fprintf(stderr, "COIN_RENDER_PHASE composition_range_memo enabled=%d entries=%zu admissions=%zu hits=%zu depth_skipped=%zu bound_fallbacks=%zu\n",
+        enabled ? 1 : 0, ranges ? ranges->size() : 0, admissions, hits, depthSkipped, boundFallbacks);
+  }
+  bool centeredDepth(const CoinRenderFramePlan & frame, const SbMatrix & modelView,
+                     uint32_t first, uint32_t count, bool & materialAlpha) {
+    if (!enabled) return false;
+    const auto & matrix = modelView.getValue();
+    // The old homogeneous divisor is exactly one in this profile. General
+    // projective/stroke depths, including their rejection behavior, stay full.
+    for (int row = 0; row < 4; ++row)
+      if (matrix[row][3] != (row == 3 ? 1.0f : 0.0f) || !coin_render_is_finite(matrix[row][2])) return false;
+    const uint64_t key = (uint64_t(first) << 32) | count;
+    const Summary * cached = nullptr;
+    if (ranges) {
+      const auto found = ranges->find(key);
+      if (found != ranges->end()) cached = &found->second;
+    }
+    Summary summary;
+    if (cached) { summary = *cached; ++hits; }
+    else {
+      // A full cache still serves earlier admitted aliases, but never scans or
+      // allocates optional summaries for further misses.
+      if (ranges && ranges->size() == LIMIT) return false;
+      for (size_t i = first; i < size_t(first) + count; ++i) {
+        const uint32_t index = frame.indices[i];
+        if (index >= frame.vertices.size()) return false;
+        const auto & vertex = frame.vertices[index];
+        if (vertex.materialSlot >= frame.materials.size()) return false;
+        summary.alpha = summary.alpha || frame.materials[vertex.materialSlot].diffuse[3] < 1.0f;
+        for (int axis = 0; axis < 3; ++axis) {
+          // This is qualification, not a new rejection: identity-view legacy
+          // depth may legitimately ignore a non-finite X/Y. Use its full loop.
+          if (!coin_render_is_finite(vertex.position[axis])) return false;
+          summary.maxAbs[axis] = std::max(summary.maxAbs[axis], std::abs(double(vertex.position[axis])));
+        }
+      }
+      try {
+        if (!ranges) ranges.reset(new Map);
+        ranges->emplace(key, summary); ++admissions;
+      } catch (const std::bad_alloc &) { ranges.reset(); enabled = false; return false; }
+    }
+    double bound = std::abs(double(matrix[3][2]));
+    for (int axis = 0; axis < 3; ++axis) bound += summary.maxAbs[axis] * std::abs(double(matrix[axis][2]));
+    // Every float product and partial sum, and min/max midpoint, remains
+    // finite with margin. The sorting center replaces that midpoint below.
+    if (!(bound < double(std::numeric_limits<float>::max()) / 8)) { ++boundFallbacks; return false; }
+    materialAlpha = materialAlpha || summary.alpha;
+    depthSkipped += count;
+    return true;
+  }
+private:
+  enum { LIMIT = 1024 };
+  struct Summary { bool alpha = false; double maxAbs[3] = {}; };
+  using Map = std::unordered_map<uint64_t, Summary>;
+  std::unique_ptr<Map> ranges;
+  bool enabled;
+  size_t admissions = 0, hits = 0, depthSkipped = 0, boundFallbacks = 0;
+};
+}
 
 // Names describe the Coin operation; GPU algorithms are selected by Infra.
 inline bool coin_render_transparency_strategy(
@@ -64,7 +219,18 @@ inline bool coin_render_transparency_strategy(
 inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
                                           std::vector<CoinRenderCompositionItem>& order,
                                           std::string& diagnostic,
-                                          bool deferUnresolvedAlpha = false) {
+                                          bool deferUnresolvedAlpha = false,
+                                          bool * opaqueIdentity = nullptr) {
+  CoinRenderPhaseTimer timer("composition_detail");
+  if (opaqueIdentity) *opaqueIdentity = false;
+  // Classification already visits each packet/item. Accumulate the loan proof
+  // there, rather than validating the completed schedule in a second pass.
+  bool identity = opaqueIdentity && coin_render_composition_borrow_enabled() &&
+    !deferUnresolvedAlpha && frame.draws.size() >= 256 && frame.textures.empty() &&
+    frame.samplers.empty() && frame.shadowGroups.empty() && frame.shadowLights.empty();
+  CoinRenderCompositionTransferTrace qualification("composition_identity");
+  const auto qualificationBegin = qualification.begin();
+  coin_render_composition_detail::RangeMemo rangeMemo;
   order.clear();
   uint64_t unusedBudget = 0;
   if (!coin_render_transparency_budget(1, 1, frame.transparency, false, unusedBudget, diagnostic))
@@ -72,7 +238,7 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
   order.reserve(frame.draws.size());
   for (const auto& material : frame.materials) {
     const float alpha = material.diffuse[3], transparency = material.transparency;
-    if (!std::isfinite(alpha) || !std::isfinite(transparency) || alpha < 0 || alpha > 1 ||
+    if (!coin_render_is_finite(alpha) || !coin_render_is_finite(transparency) || alpha < 0 || alpha > 1 ||
         transparency < 0 || transparency > 1 || std::abs(alpha + transparency - 1.0f) > 1.0e-5f) {
       diagnostic = "Invalid or inconsistent material alpha/transparency";
       return false;
@@ -92,7 +258,11 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
       return false;
     }
     const float alpha = frame.materials[rs.materialSlot].diffuse[3];
-    bool materialAlpha = alpha < 1.0f;
+    // Coin classifies the whole material before shading, including unused
+    // transparency slots and packed primary alpha that rounds to opaque.
+    // Preserve that traversal flag independently of the alpha-test function.
+    const bool nativeMaterialAlpha = rs.transparentMaterial;
+    bool materialAlpha = alpha < 1.0f || nativeMaterialAlpha;
     const size_t first = draw.geometry.firstIndex;
     const size_t count = draw.geometry.indexCount;
     if (first > frame.indices.size() || count > frame.indices.size() - first) {
@@ -100,8 +270,12 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
       return false;
     }
     SbMatrix modelView = rs.model * rs.view;
+    const bool identityView = modelView == SbMatrix::identity();
+    const auto & matrix = modelView.getValue();
     float minDepth = 0, maxDepth = 0;
-    for (size_t j = first; j < first + count; ++j) {
+    const bool centeredDepth = draw.hasSortingCenter && rs.polygonOffsetPrimitiveStyle == 1 &&
+      rangeMemo.centeredDepth(frame, modelView, draw.geometry.firstIndex, draw.geometry.indexCount, materialAlpha);
+    if (!centeredDepth) for (size_t j = first; j < first + count; ++j) {
       const uint32_t vertexIndex = frame.indices[j];
       if (vertexIndex >= frame.vertices.size()) {
         diagnostic = "Invalid vertex in composition order";
@@ -113,14 +287,17 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
         return false;
       }
       materialAlpha = materialAlpha || frame.materials[vertex.materialSlot].diffuse[3] < 1.0f;
-      SbVec3f viewPosition;
-      modelView.multVecMatrix(SbVec3f(vertex.position[0], vertex.position[1], vertex.position[2]),
-                              viewPosition);
-      if (!std::isfinite(viewPosition[2])) {
+      // Composition needs only Z. Keep the same homogeneous divide and
+      // finite-depth checks without computing X/Y or calling into Core DLL.
+      const float * position = vertex.position;
+      const float viewZ = identityView ? position[2] :
+        (position[0] * matrix[0][2] + position[1] * matrix[1][2] + position[2] * matrix[2][2] + matrix[3][2]) /
+        (position[0] * matrix[0][3] + position[1] * matrix[1][3] + position[2] * matrix[2][3] + matrix[3][3]);
+      if (!coin_render_is_finite(viewZ)) {
         diagnostic = "Invalid non-finite eye depth in composition order";
         return false;
       }
-      float eyeDepth = -viewPosition[2];
+      float eyeDepth = -viewZ;
       if (rs.polygonOffsetPrimitiveStyle != 1) {
         // Expanded strokes are in NDC. Recover their original eye-space depth
         // from the source camera rather than sorting on normalized depth.
@@ -143,9 +320,9 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
     const bool primaryAlpha = materialAlpha;
     bool unresolvedAlpha = false;
     for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
-      const CoinRenderTextureUnitSnapshot tex = coin_render_texture_unit(rs, unit);
-      if (!tex.enabled)
+      if (!coin_render_texture_unit_enabled(rs, unit))
         continue;
+      const CoinRenderTextureUnitSnapshot tex = coin_render_texture_unit(rs, unit);
       if (tex.imageSlot >= frame.textures.size()) {
         diagnostic = "Invalid texture in composition order";
         return false;
@@ -166,11 +343,19 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
         materialAlpha = materialAlpha || cached != 0;
     }
 
+    // Coin's traversal flag precedes shading, including an opaque REPLACE or
+    // combine result that replaces packed primary alpha with one.
+    materialAlpha = materialAlpha || nativeMaterialAlpha;
+
     CoinRenderCompositionItem item;
     item.drawIndex = i;
     item.firstIndex = draw.geometry.firstIndex;
     item.indexCount = draw.geometry.indexCount;
-    item.blend = materialAlpha;
+    // Native Bitmap/DrawPixels traversal classifies before raster shading.
+    // The same flag governs blending and deferral; gray Text2's explicit
+    // rasterForceBlend remains a separate non-additive override below.
+    item.blend = rs.rasterPixels ? rs.rasterTransparent : materialAlpha;
+    const bool traversalTransparent = rs.rasterPixels ? rs.rasterTransparent : item.blend;
     item.eyeDepth = count ? (minDepth + maxDepth) * 0.5f : 0.0f;
     if (draw.hasSortingCenter) {
       if (rs.cameraSlot >= frame.cameras.size()) {
@@ -182,7 +367,7 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
                                                             center);
       item.eyeDepth = -center[2];
     }
-    if (!std::isfinite(item.eyeDepth)) {
+    if (!coin_render_is_finite(item.eyeDepth)) {
       diagnostic = "Invalid non-finite average eye depth in composition order";
       return false;
     }
@@ -211,33 +396,33 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
         break;
       case SoGLRenderAction::DELAYED_ADD:
         item.additive = true;
-        item.deferred = item.blend;
+        item.deferred = traversalTransparent;
         break;
       case SoGLRenderAction::DELAYED_BLEND:
-        item.deferred = item.blend;
+        item.deferred = traversalTransparent;
         break;
       case SoGLRenderAction::SORTED_OBJECT_ADD:
         item.additive = true;
         item.sortObject = true;
-        item.deferred = item.blend;
+        item.deferred = traversalTransparent;
         break;
       case SoGLRenderAction::SORTED_OBJECT_BLEND:
         item.sortObject = true;
-        item.deferred = item.blend;
+        item.deferred = traversalTransparent;
         break;
       case SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_ADD:
         item.additive = true;
         item.sortTriangles = true;
         item.sortObject = true;
-        item.deferred = item.blend;
+        item.deferred = traversalTransparent;
         break;
       case SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND:
         item.sortTriangles = true;
         item.sortObject = true;
-        item.deferred = item.blend;
+        item.deferred = traversalTransparent;
         break;
       case SoGLRenderAction::SORTED_LAYERS_BLEND:
-        item.deferred = item.blend;
+        item.deferred = traversalTransparent;
         item.transparencyStrategy = CoinRenderCompositionItem::SORTED_LAYERS;
         break;
       default:
@@ -245,6 +430,7 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
         return false;
       }
     }
+    if (rs.rasterForceBlend) { item.blend = true; item.additive = false; }
     if (item.blend && item.deferred && !item.additive && draw.renderLayer == 0) {
       const uint64_t required =
           item.transparencyStrategy == CoinRenderCompositionItem::SORTED_LAYERS
@@ -286,11 +472,16 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
         item.depthRange[1] = 1;
       }
     }
+    if (identity && (draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST ||
+        draw.stableNodeId || draw.renderLayer || draw.clearDepthBefore || draw.lineStripId ||
+        !draw.geometry.vertexCount || !draw.geometry.indexCount || draw.geometry.indexCount % 3 ||
+        rs.polygonOffsetPrimitiveStyle != 1 || item.blend || item.deferred || item.additive ||
+        item.sortTriangles || item.screenDoor || item.screenDoorLevel)) identity = false;
+    // sortObject is inert for immediate opaque items, and remains in the loan.
     order.push_back(item);
   }
-  std::stable_sort(
-      order.begin(), order.end(),
-      [&frame](const CoinRenderCompositionItem& a, const CoinRenderCompositionItem& b) {
+  timer.mark("classify");
+  const auto precedes = [&frame](const CoinRenderCompositionItem& a, const CoinRenderCompositionItem& b) {
         const uint32_t layerA = frame.draws[a.drawIndex].renderLayer;
         const uint32_t layerB = frame.draws[b.drawIndex].renderLayer;
         if (layerA != layerB)
@@ -307,7 +498,19 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
         if (a.sortObject != b.sortObject)
           return a.sortObject;
         return a.sortObject && a.eyeDepth > b.eyeDepth;
-      });
+      };
+  // Preserve traversal order without sorting/allocating for already ordered
+  // captures, including the common all-opaque base layer.
+  if (!std::is_sorted(order.begin(), order.end(), precedes))
+    std::stable_sort(order.begin(), order.end(), precedes);
+  timer.mark("sort");
+  if (opaqueIdentity) *opaqueIdentity = identity && order.size() == frame.draws.size();
+  // Includes the existing classification/sort pass; this is not an estimate
+  // of incremental predicate overhead. No additional qualification scan runs.
+  if (opaqueIdentity && coin_render_composition_borrow_enabled()) {
+    qualification.qualifyMs = qualification.elapsed(qualificationBegin);
+    qualification.computedItems = order.size();
+  }
   diagnostic.clear();
   return true;
 }
@@ -329,10 +532,13 @@ inline uint32_t coin_render_screen_door_rank(uint32_t x, uint32_t y) {
 // shape. Executors consume this sequence; no backend sorts Coin triangles.
 inline bool coin_render_composition_schedule(const CoinRenderFramePlan& frame,
                                              std::vector<CoinRenderCompositionItem>& schedule,
-                                             std::string& diagnostic) {
-  std::vector<CoinRenderCompositionItem> order;
-  if (!coin_render_composition_order(frame, order, diagnostic))
+                                             std::string& diagnostic,
+                                             const CoinRenderFramePreflight * preflight = nullptr) {
+  std::vector<CoinRenderCompositionItem> computedOrder;
+  const auto * cachedOrder = preflight ? preflight->compositionFor(frame) : nullptr;
+  if (!cachedOrder && !coin_render_composition_order(frame, computedOrder, diagnostic))
     return false;
+  const auto & order = cachedOrder ? *cachedOrder : computedOrder;
   schedule.clear();
   for (size_t begin = 0; begin < order.size();) {
     const auto& first = order[begin];
@@ -375,7 +581,7 @@ inline bool coin_render_composition_schedule(const CoinRenderFramePlan& frame,
           mv.multVecMatrix(SbVec3f(frame.vertices[frame.indices[index + v]].position), eye);
           triangle.eyeDepth -= eye[2] / 3;
         }
-        if (!std::isfinite(triangle.eyeDepth)) {
+        if (!coin_render_is_finite(triangle.eyeDepth)) {
           diagnostic = "Non-finite triangle sorting depth";
           return false;
         }
@@ -392,5 +598,50 @@ inline bool coin_render_composition_schedule(const CoinRenderFramePlan& frame,
   diagnostic.clear();
   return true;
 }
+
+// Immutable schedule for one lowering call. A positive current preflight can
+// loan its exact, unexpanded order; every other caller executes the original
+// vector algorithm, including its partial output and diagnostics on failure.
+// This object never crosses backend/Rust submission or asynchronous tickets.
+class CoinRenderCompositionScheduleView {
+public:
+  explicit CoinRenderCompositionScheduleView(const char * consumer)
+    : trace("composition_schedule_copy", consumer), items(&owned) {}
+  CoinRenderCompositionScheduleView(const CoinRenderCompositionScheduleView &) = delete;
+  CoinRenderCompositionScheduleView & operator=(const CoinRenderCompositionScheduleView &) = delete;
+  CoinRenderCompositionScheduleView(CoinRenderCompositionScheduleView &&) = delete;
+  CoinRenderCompositionScheduleView & operator=(CoinRenderCompositionScheduleView &&) = delete;
+  bool prepare(const CoinRenderFramePlan & frame, std::string & diagnostic,
+               const CoinRenderFramePreflight * preflight = nullptr) {
+    items = &owned;
+    trace.copiedItems = trace.borrowedItems = trace.computedItems = 0;
+    const auto qualifyBegin = trace.begin();
+    const auto * loan = coin_render_composition_borrow_enabled() && preflight
+      ? preflight->opaqueCompositionFor(frame) : nullptr;
+    trace.qualifyMs += trace.elapsed(qualifyBegin);
+    if (loan) {
+      items = loan;
+      trace.borrowedItems = loan->size();
+      diagnostic.clear();
+      return true;
+    }
+    const auto copyBegin = trace.begin();
+    const bool result = coin_render_composition_schedule(frame, owned, diagnostic, preflight);
+    trace.copyMs += trace.elapsed(copyBegin);
+    trace.copiedItems = owned.size();
+    trace.computedItems = preflight && preflight->compositionFor(frame) ? 0 : owned.size();
+    return result;
+  }
+  size_t size() const { return items->size(); }
+  const CoinRenderCompositionItem & front() const { return items->front(); }
+  const CoinRenderCompositionItem & operator[](size_t index) const { return (*items)[index]; }
+  std::vector<CoinRenderCompositionItem>::const_iterator begin() const { return items->begin(); }
+  std::vector<CoinRenderCompositionItem>::const_iterator end() const { return items->end(); }
+  bool borrowed() const { return items != &owned; }
+private:
+  CoinRenderCompositionTransferTrace trace;
+  std::vector<CoinRenderCompositionItem> owned;
+  const std::vector<CoinRenderCompositionItem> * items;
+};
 
 #endif // COIN_RENDER_COMPOSITION_H

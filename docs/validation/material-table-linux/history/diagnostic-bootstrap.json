@@ -1,0 +1,20 @@
+{
+  "command": [
+    "python3",
+    "/tmp/coin-render-material-table-diagnostic.py",
+    "execute",
+    "--suite",
+    "all",
+    "--source-content-revision",
+    "a0bda8b5ccc8d04efa96c5c807b88e5aa4e34c9d",
+    "--output",
+    "/tmp/coin-render-material-table-diagnostic"
+  ],
+  "exit_code": 1,
+  "stage": "argument-plan validation before output or benchmark process creation",
+  "renderer_processes": 0,
+  "cause": "Missing scene path arguments required by suite all",
+  "log": "/tmp/coin-render-material-table-diagnostic-run.log-bootstrap-initial",
+  "log_sha256": "2150158b08d426030e6737d120cc7135e482d4139c5bb858d5de9b371200044b",
+  "script_sha256": "cd14d51c5bf12dbfae22a7e60f6f7cb627b06b705ef2386cff956f32e952596e"
+}

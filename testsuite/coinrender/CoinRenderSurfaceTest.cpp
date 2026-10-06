@@ -30,6 +30,7 @@
 
 #if defined(HAVE_X11)
 #include <X11/Xlib.h>
+#include <X11/Xutil.h>
 #endif
 
 #include <cassert>
@@ -45,11 +46,143 @@
   } \
 } while (0)
 
+#if defined(HAVE_X11) && defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+// Executed with --camera-only in a fresh process to isolate the native
+// ownership and camera readmission contract.
+static int nativePhongCamera(Display * dpy, bool requireVulkan)
+{
+  const int screen = DefaultScreen(dpy);
+  const Window rootWin = RootWindow(dpy,screen);
+  // Direct private transport proves native camera patches use the same
+  // owned immutable geometry as offscreen submissions. Null input pointers
+  // are accepted only while this device still owns the validated base.
+  std::cout << "-> Native PHONG camera payload reuse..." << std::endl;
+  // Use a mapped native window with an explicit, verified drawable extent.
+  Window patchWin = XCreateSimpleWindow(dpy,rootWin,30,30,640,480,1,
+    BlackPixel(dpy,screen),WhitePixel(dpy,screen));
+  XSizeHints patchHints{};
+  patchHints.flags = PMinSize | PMaxSize;
+  patchHints.min_width = patchHints.max_width = 640;
+  patchHints.min_height = patchHints.max_height = 480;
+  XSetWMNormalHints(dpy,patchWin,&patchHints);
+  XSelectInput(dpy,patchWin,StructureNotifyMask);
+  XMapWindow(dpy,patchWin);
+  XFlush(dpy);
+  XEvent patchEvent;
+  do { XWindowEvent(dpy,patchWin,StructureNotifyMask,&patchEvent); }
+  while (patchEvent.type != MapNotify);
+  XSync(dpy,False);
+  XWindowAttributes patchAttributes{};
+  TEST_ASSERT(XGetWindowAttributes(dpy,patchWin,&patchAttributes) &&
+              patchAttributes.width == 640 && patchAttributes.height == 480 &&
+              patchAttributes.map_state == IsViewable,
+              "Native camera fixture must have a mapped drawable with matching extent");
+  CoinWgpuSurfaceCreateInfo patchInfo{};
+  patchInfo.abi_version = COIN_WGPU_ABI_VERSION;
+  patchInfo.struct_size = sizeof(patchInfo);
+  patchInfo.native.abi_version = COIN_WGPU_ABI_VERSION;
+  patchInfo.native.struct_size = sizeof(patchInfo.native);
+  patchInfo.native.type = COIN_WGPU_NATIVE_XLIB;
+  patchInfo.native.handle_a = reinterpret_cast<uintptr_t>(dpy);
+  patchInfo.native.handle_b = patchWin;
+  patchInfo.width = 640; patchInfo.height = 480;
+  if (requireVulkan) patchInfo.renderer = COIN_RENDER_RENDERER_VULKAN;
+  CoinWgpuSurfaceId patchSurface = COIN_WGPU_INVALID_SURFACE_ID;
+  char patchError[512] = {};
+  const auto patchStatus = [&](CoinWgpuStatus status, const char * operation,
+                                CoinWgpuStatus expectedStatus = COIN_WGPU_OK) {
+    if (status != expectedStatus) {
+      std::cerr << "Native PHONG " << operation << " status=" << int(status)
+                << " expected=" << int(expectedStatus) << " error=" << patchError << '\n';
+    }
+    return status == expectedStatus;
+  };
+  TEST_ASSERT(patchStatus(coin_wgpu_surface_create(&patchInfo,&patchSurface,patchError,sizeof(patchError)),"surface create"),
+              "Native camera test surface creation");
+  CoinWgpuVertex vertices[3] = {};
+  vertices[0].position[0] = -.75f; vertices[0].position[1] = -.75f;
+  vertices[1].position[0] = .75f; vertices[1].position[1] = -.75f;
+  vertices[2].position[1] = .75f;
+  for (auto & vertex : vertices) { vertex.normal[2] = 1; vertex.screen_space_w = 1; }
+  const uint32_t indices[3] = {0,1,2};
+  CoinWgpuDraw draw{}; draw.vertex_count = draw.index_count = 3;
+  CoinWgpuMaterial material{};
+  material.diffuse[0] = .8f; material.diffuse[1] = .25f; material.diffuse[3] = 1;
+  material.specular[0] = .2f; material.shininess = .25f;
+  CoinWgpuRenderState state{};
+  state.light_model = 1; state.light_count = 1; state.polygon_offset_primitive_style = 1;
+  state.lights[0].position_type[2] = 3; state.lights[0].position_type[3] = 1;
+  for (int c = 0; c < 4; ++c) {
+    state.lights[0].color_intensity[c] = 1;
+    state.model_view[c*5] = state.model_view_projection[c*5] = state.normal_matrix[c*5] = 1;
+  }
+  state.lights[0].attenuation_exponent[2] = 1;
+  const CoinWgpuRenderState baseState = state;
+  CoinWgpuFrameView patchFrame{};
+  patchFrame.abi_version = COIN_WGPU_ABI_VERSION;
+  patchFrame.struct_size = sizeof(patchFrame);
+  const uint64_t initialRevision = 53001;
+  const uint64_t referenceRevision = 53002;
+  const uint64_t readmittedRevision = 53003;
+  const uint64_t patchRevision = 53004;
+  const uint64_t staleRevision = 53005;
+  patchFrame.frame_revision = initialRevision; patchFrame.width = 640; patchFrame.height = 480;
+  patchFrame.vertices = vertices; patchFrame.vertex_count = 3;
+  patchFrame.indices = indices; patchFrame.index_count = 3;
+  patchFrame.draws = &draw; patchFrame.draw_count = 1;
+  patchFrame.materials = &material; patchFrame.material_count = 1;
+  patchFrame.states = &state; patchFrame.state_count = 1; patchFrame.clear_color[3] = 1;
+  std::vector<uint8_t> expected(640u*480u*4u,37), basePixels(expected), actual(expected);
+  TEST_ASSERT(patchStatus(coin_wgpu_surface_submit_readback(patchSurface,&patchFrame,basePixels.data(),basePixels.size(),
+                patchError,sizeof(patchError)),"initial immutable base"), "Native PHONG initial immutable base");
+  // A new full revision without a camera hint suspends owned snapshots.
+  // Capture the reference through this full path, then explicitly readmit
+  // the original camera using complete buffers before testing a null-payload patch.
+  state.model_view[12] = state.model_view_projection[12] = .2f;
+  state.lights[0].position_type[0] = 1;
+  patchFrame.frame_revision = referenceRevision;
+  TEST_ASSERT(patchStatus(coin_wgpu_surface_submit_readback(patchSurface,&patchFrame,expected.data(),expected.size(),
+                patchError,sizeof(patchError)),"full camera reference"), "Native PHONG full camera reference");
+  state = baseState;
+  patchFrame.frame_revision = readmittedRevision;
+  patchFrame.camera_base_revision = referenceRevision;
+  std::vector<uint8_t> readmitted(basePixels.size(),37);
+  TEST_ASSERT(patchStatus(coin_wgpu_surface_submit_readback(patchSurface,&patchFrame,readmitted.data(),readmitted.size(),
+                patchError,sizeof(patchError)),"camera base readmission") && readmitted == basePixels,
+              "Native PHONG readmission must fully validate buffers and restore the base image");
+  state.model_view[12] = state.model_view_projection[12] = .2f;
+  state.lights[0].position_type[0] = 1;
+  patchFrame.frame_revision = patchRevision; patchFrame.camera_base_revision = readmittedRevision;
+  patchFrame.vertices = nullptr; patchFrame.indices = nullptr;
+  patchFrame.draws = nullptr; patchFrame.materials = nullptr;
+  TEST_ASSERT(patchStatus(coin_wgpu_surface_submit_readback(patchSurface,&patchFrame,actual.data(),actual.size(),
+                patchError,sizeof(patchError)),"camera patch") && actual == expected && actual != basePixels,
+              "Native PHONG patch must use owned geometry and resolved light coordinates");
+  CoinWgpuCacheStats patchStats{}; coin_wgpu_get_cache_stats(&patchStats);
+  TEST_ASSERT(patchStats.frame_uploads == 0 && patchStats.frame_uploaded_bytes == 0 && patchStats.frame_hits >= 1,
+              "Native PHONG patch must reuse GPU geometry and material payload");
+  patchFrame.frame_revision = staleRevision; patchFrame.camera_base_revision = readmittedRevision;
+  std::vector<uint8_t> rejected(actual.size(),37);
+  TEST_ASSERT(patchStatus(coin_wgpu_surface_submit_readback(patchSurface,&patchFrame,rejected.data(),rejected.size(),
+                patchError,sizeof(patchError)),"stale base",COIN_WGPU_INVALID_ARGUMENT) &&
+              rejected == std::vector<uint8_t>(rejected.size(),37),
+              "Stale native camera base must validate pointers and preserve the output");
+  TEST_ASSERT(coin_wgpu_surface_destroy(patchSurface,patchError,sizeof(patchError)) == COIN_WGPU_OK,
+              "Native camera test surface destruction");
+  XDestroyWindow(dpy,patchWin);
+  return 0;
+}
+#endif
+
 int main(int argc, char ** argv) {
   bool requireDisplay = false;
   bool requireVulkan = false;
+  bool cameraOnly = false;
   for (int i = 1; i < argc; ++i) {
-    if (std::strcmp(argv[i], "--require-display") == 0) {
+    if (std::strcmp(argv[i], "--camera-only") == 0) {
+      cameraOnly = true;
+      requireDisplay = true;
+    } else if (std::strcmp(argv[i], "--require-display") == 0) {
       requireDisplay = true;
     } else if (std::strcmp(argv[i], "--require-vulkan") == 0) {
       requireDisplay = true;
@@ -65,6 +198,19 @@ int main(int argc, char ** argv) {
   SoDB::init();
   CoinRenderAction::initClass();
   std::cout << "Running CoinRenderSurfaceTest..." << std::endl;
+
+  if (cameraOnly) {
+#if defined(HAVE_X11) && defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+    Display * display = XOpenDisplay(NULL);
+    TEST_ASSERT(display != nullptr, "--camera-only requires an accessible X11 display");
+    const int status = nativePhongCamera(display,requireVulkan);
+    XCloseDisplay(display);
+    if (status == 0) std::cout << "Native PHONG camera-only checks PASSED" << std::endl;
+    return status;
+#else
+    TEST_ASSERT(false, "--camera-only requires X11 and Rust Bridge support");
+#endif
+  }
 
   // Build canonical cone scene
   SoSeparator * root = new SoSeparator;
@@ -491,6 +637,7 @@ int main(int argc, char ** argv) {
 
       // Clean up target and X11 window
       delete windowTarget;
+
       XDestroyWindow(dpy, win);
       XCloseDisplay(dpy);
       std::cout << "-> X11 Window presentation and fault injection tests PASSED!" << std::endl;

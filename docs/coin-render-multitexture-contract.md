@@ -4,6 +4,11 @@ P08 fecha o perfil abaixo em CoinRender, CoinBgfx e CoinWgpu. A qualificação
 usa as mesmas cenas, expectativas numéricas e referência Coin/GL para os três
 executores CPU, BGFX e wgpu. Não fecha integralmente P02, P05, P07 ou P09.
 
+A revisão posterior de [UV projetivo](coin-render-projective-uv-contract.md)
+conserva ST/R/Q, aplica divisão no fragmento e distingue o shader nativo de
+sombras. Ela também registra os layouts atuais da ABI privada 45 e separa o
+oracle analítico de oito estágios da referência CoinGL limitada a quatro.
+
 ## Responsabilidades
 
 Wiring habilita `SoTextureCombineElement` e usa a interpretação de campos do

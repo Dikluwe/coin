@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "scene": {
+    "path": "H:\\Git\\coin\\build\\linux-updates-windows-20261005\\city-materials-40001.iv",
+    "sha256": "e85dedc3ae203ff45507c5eea78b07655bbf6789678cb94c4fb84cc6cacd5cd7",
+    "bytes": 8116034
+  },
+  "source_city": {
+    "path": "H:\\Git\\coin\\build\\large-scenes\\city-40000.iv",
+    "sha256": "bb9ccc612cd38ffb749ee599d9350a80974649eab5bf477d2f344538a42b2576",
+    "bytes": 5285711,
+    "buildings": 40000
+  },
+  "generator": {
+    "path": "H:\\Git\\coin\\build\\coin-render-source\\scripts\\coinrender\\generate_material_slot_scene.py",
+    "sha256": "32c89ceb9a70a632450d31b851bcb63418b369afc726a78e1ad1f5c2fa75d479",
+    "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]"
+  },
+  "parameters": {
+    "objects": 40000,
+    "material_slots": 40001
+  },
+  "layout": {
+    "selection": "all source buildings",
+    "non_material_bytes_preserved": true,
+    "source_layout_sha256": "78a0aab9713220b3bfbbf94dea458149e16f8eba233f38f0e4bd2c6e344a696c",
+    "output_layout_sha256": "78a0aab9713220b3bfbbf94dea458149e16f8eba233f38f0e4bd2c6e344a696c"
+  },
+  "expected_static": {
+    "eligible_buildings": 40000,
+    "ground_draws": 1,
+    "logical_draws": 40001,
+    "triangles": 480012,
+    "shared_building_cube_nodes": 1,
+    "total_cube_nodes": 2,
+    "building_material_nodes": 40000,
+    "total_material_nodes": 40001,
+    "captured_material_slots": 40001,
+    "wgpu_gpu_material_table_nominal_bytes": 3200080
+  },
+  "colors": {
+    "unique_building_float32_rgb": 40000,
+    "float32_round_trip_literals": true,
+    "minimum_component": 0.25,
+    "maximum_component": 0.7421875,
+    "shininess": 0.2,
+    "opaque": true
+  },
+  "animation": {
+    "materials-10": {
+      "selected_buildings": 4000,
+      "prepared_clones": 4000
+    },
+    "materials-100": {
+      "selected_buildings": 40000,
+      "prepared_clones": 40000
+    },
+    "captured_slot_count_guaranteed": false,
+    "note": "Animation clones selected occurrences and changes diffuseColor. Full captures deduplicate current bytes; overlays can retain existing slots. Measure the real GPU table per frame."
+  },
+  "limits": [
+    "Static counts are predictions for the unchanged generated scene, not observed GPU results.",
+    "Shared Cube nodes do not guarantee shared captured ranges or a fixed number of GPU draws; material slots can increase source geometry.",
+    "No renderer, benchmark, build or Git command was invoked."
+  ]
+}

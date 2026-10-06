@@ -1,0 +1,16 @@
+startup_detail arguments_ms=0.01084 coin_init_ms=1.95082 capability_probe_ms=179.464
+scene_detail parse_ms=302.553 wrapper_ms=0.020398 camera_fit_ms=69.6399
+scene_load_ms=372.28
+startup_detail material_search_ms=0.068408 target_setup_ms=2.17196
+BGFX-Vulkan_first_detail render_ms=652.085 publication_copy_ms=0.607041 before_frame_since_main_ms=558.025 result_since_main_ms=1210.72
+BGFX-Vulkan_first_frame_ms=652.692
+rgba_fnv64=0x6714299260985122
+image=/tmp/coin-render-bgfx-300-results/bgfx-vulkan-before-1.ppm
+adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x2560) vendor_id=0x10de device_id=0x2560 backend=bgfx size=1024x1024 warmup=30 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=static
+BGFX-Vulkan frames=120 median_ms=2.4799 p95_ms=2.70911 min_ms=2.26037 max_ms=2.73448
+BGFX_render_and_readback frames=120 median_ms=2.12451 p95_ms=2.28023 min_ms=2.0038 max_ms=2.39939
+BGFX_publication_copy frames=120 median_ms=0.330435 p95_ms=0.439819 min_ms=0.242612 max_ms=0.581593
+BGFX-Vulkan_throughput frames=120 total_ms=297.583 fps=403.249
+backend_cleanup_begin
+backend_cleanup_ms=41.4234
+benchmark_peak_rss_kib=633836

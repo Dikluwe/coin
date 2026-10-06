@@ -36,6 +36,10 @@ struct CoinRenderVertexSnapshot {
   float extraTexcoords[COIN_RENDER_MAX_TEXTURE_UNITS - 1][2] = {};
   float screenSpaceW = 1.0f; // Preserves perspective interpolation after stroke expansion.
   float fogEyeDepth = -1.0f; // Negative means derive depth from model-view.
+  // Homogeneous texture coordinates remain separate from geometric clip W.
+  // A 2D coordinate is (s,t,0,1); division by texture Q happens per fragment.
+  float textureR[COIN_RENDER_MAX_TEXTURE_UNITS] = {};
+  float textureQ[COIN_RENDER_MAX_TEXTURE_UNITS] = {1,1,1,1,1,1,1,1};
 };
 
 enum class CoinRenderPrimitiveTopology : uint32_t {
@@ -246,6 +250,18 @@ struct CoinRenderTextureCombineSnapshot {
   float instructions[4][4] = {};
 };
 
+// Portable alpha comparisons; these values are not OpenGL enum constants.
+enum class CoinRenderAlphaTestFunction : uint32_t {
+  NONE = 0, NEVER = 1, ALWAYS = 2, LESS = 3, LEQUAL = 4, EQUAL = 5,
+  GEQUAL = 6, GREATER = 7, NOTEQUAL = 8
+};
+
+// Fixed-function Coin divides ST by Q; its generated shadow shader samples
+// transformed ST directly. Capture that semantic policy independently of API.
+enum class CoinRenderTextureProjection : uint8_t {
+  PROJECTIVE = 0, DIRECT_ST = 1
+};
+
 struct CoinRenderTextureUnitSnapshot {
   bool enabled = false;
   uint32_t imageSlot = 0, samplerSlot = 0;
@@ -267,6 +283,9 @@ struct CoinRenderRenderStateSnapshot {
   CoinRenderFrontFace frontFace = CoinRenderFrontFace::CCW;
   bool depthTest = true;
   bool depthWrite = true;
+  CoinRenderTextureProjection textureProjection = CoinRenderTextureProjection::PROJECTIVE;
+  CoinRenderAlphaTestFunction alphaTestFunction = CoinRenderAlphaTestFunction::NONE;
+  float alphaTestReference = 0.5f; // GL resolves the reference into [0,1].
   uint32_t explicitDepthMask = 0; // test=1, write=2, function=4, range=8; path replay overrides.
   CoinRenderDepthFunction depthFunction = CoinRenderDepthFunction::LESS;
   float depthRange[2] = {0.0f, 1.0f};
@@ -281,12 +300,17 @@ struct CoinRenderRenderStateSnapshot {
   uint32_t shadowStyle = 3; // SoShadowStyleElement default: casts and receives.
   bool transparentMaterial = false; // Coin lazy material flag over the bound array.
   bool transparentTexture = false; // Image alpha affects casting even at texture quality zero.
+  // Raster's GL traversal classification is independent of its pixel alpha:
+  // Text2's gray coverage forces blending, but only Coin shape flags defer it.
+  bool rasterPixels = false;
+  bool rasterTransparent = false;
   CoinRenderLightModel lightModel = CoinRenderLightModel::PHONG;
   float lineWidth = 1.0f;
   float pointSize = 1.0f;
   uint32_t linePattern = 0xffffu;
   int32_t linePatternScaleFactor = 1;
   bool polygonLinePattern = false; // One stipple counter for this original polygon.
+  bool rasterForceBlend = false; // Gray Text2 forces blending independently of traversal.
   SbMatrix textureMatrix = SbMatrix::identity();
   bool hasTexture = false;
   uint32_t textureImageSlot = 0;
@@ -302,6 +326,10 @@ struct CoinRenderRenderStateSnapshot {
   CoinRenderTextureUnitSnapshot extraTextures[COIN_RENDER_MAX_TEXTURE_UNITS - 1];
   CoinRenderTextureCombineSnapshot textureCombines[COIN_RENDER_MAX_TEXTURE_UNITS];
 };
+
+inline bool coin_render_texture_unit_enabled(const CoinRenderRenderStateSnapshot & state, size_t unit) {
+  return unit == 0 ? state.hasTexture : state.extraTextures[unit - 1].enabled;
+}
 
 inline CoinRenderTextureUnitSnapshot coin_render_texture_unit(const CoinRenderRenderStateSnapshot & state, size_t unit) {
   if (unit != 0) return state.extraTextures[unit - 1];

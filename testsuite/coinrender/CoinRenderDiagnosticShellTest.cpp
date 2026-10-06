@@ -6,6 +6,7 @@
 
 #include <Inventor/rendering/SoWgpuNativeSurface.h>
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
+#include "CoinRenderTestEnvironment.h"
 
 #include <cstring>
 #include <cstdlib>
@@ -25,6 +26,16 @@ int
 main()
 {
   bool ok = true;
+  const char * oldRenderer = std::getenv("COIN_BGFX_RENDERER");
+  const bool hadRenderer = oldRenderer != nullptr;
+  const std::string savedRenderer = oldRenderer ? oldRenderer : "";
+  coinRenderTestSetEnvironment("COIN_BGFX_RENDERER", "d3d12");
+  std::string rendererError;
+  ok &= check(CoinRenderDiagnosticShell::rendererOption(rendererError) ==
+                COIN_RENDER_RENDERER_D3D12 && rendererError.empty(),
+              "Direct3D12 renderer option was not recognized");
+  coinRenderTestSetEnvironment("COIN_BGFX_RENDERER",
+    hadRenderer ? savedRenderer.c_str() : nullptr);
   // The same textual mode must reach targets in every compiled backend.
   const char * oldMode = std::getenv("COIN_RENDER_TRANSPARENCY");
   const std::string savedMode = oldMode ? oldMode : "";

@@ -38,6 +38,11 @@ set(COIN_FONTS_INTERNAL_FILES
 	common.cpp
 )
 
+if(COIN_BUILD_RENDER)
+	list(APPEND COIN_FONTS_FILES CoinRenderGlyphBridge.cpp)
+	list(APPEND COIN_FONTS_INTERNAL_FILES CoinRenderGlyphBridge.h CoinRenderGlyphBridge.cpp)
+endif()
+
 # build library
 if(COIN_BUILD_SINGLE_LIB)
 	foreach(SRCFILE ${COIN_FONTS_FILES})

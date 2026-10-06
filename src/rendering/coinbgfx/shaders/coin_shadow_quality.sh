@@ -19,8 +19,8 @@ vec3 coinShadowContribution(int index, vec3 vertexColor, vec4 diffuse, vec4 spec
 vec3 coinOrdinaryFragmentColor(vec4 diffuse, vec4 specular,
   vec3 positionView, vec3 normalView, float shininess, out vec3 specularColor)
 {
-  specularColor = vec3(0.0);
-  vec3 color = vec3(0.0);
+  specularColor = vec3_splat(0.0);
+  vec3 color = vec3_splat(0.0);
   if (u_shadowQuality.y > 0.5) for (int i = 0; i < 8; ++i) {
     if (float(i) >= u_lightCount.x) break;
     if (abs(float(i) - u_shadowLightIndices.x) < 0.5 ||
@@ -31,8 +31,8 @@ vec3 coinOrdinaryFragmentColor(vec4 diffuse, vec4 specular,
         abs(float(i) - u_shadowLightIndicesExtra.y) < 0.5 ||
         abs(float(i) - u_shadowLightIndicesExtra.z) < 0.5 ||
         abs(float(i) - u_shadowLightIndicesExtra.w) < 0.5) continue;
-    color += coinGroupLightContribution(i, diffuse, vec4(0.0), positionView, normalView, shininess);
-    specularColor += coinGroupLightContribution(i, vec4(0.0), specular, positionView, normalView, shininess);
+    color += coinGroupLightContribution(i, diffuse, vec4_splat(0.0), positionView, normalView, shininess);
+    specularColor += coinGroupLightContribution(i, vec4_splat(0.0), specular, positionView, normalView, shininess);
   }
   return color;
 }

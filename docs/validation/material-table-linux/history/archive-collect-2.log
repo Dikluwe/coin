@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/tmp/coin-render-material-table-collect.py", line 289, in <module>
+    main()
+  File "/tmp/coin-render-material-table-collect.py", line 106, in main
+    validator.binary_manifest_check(paths['cards'], measurement_manifests)
+  File "/tmp/coin-render-material-table-validate-archive.py", line 459, in binary_manifest_check
+    require(checked >= 16 + 3 + 4 * 3 + 9, 'Incomplete measurement binary identity proof')
+  File "/tmp/coin-render-material-table-validate-archive.py", line 23, in require
+    raise ValueError(message)
+ValueError: Incomplete measurement binary identity proof

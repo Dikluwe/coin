@@ -13,6 +13,9 @@
 #include <string>
 #include <memory>
 
+class CoinRenderFramePreflight;
+struct CoinRenderCompositionTransferTrace;
+
 class COIN_RENDER_DLL_API CoinRenderTargetP {
 public:
   enum TargetKind {
@@ -23,6 +26,10 @@ public:
   CoinRenderTargetP(const SbVec2i32 & sz = SbVec2i32(0, 0));
   ~CoinRenderTargetP();
 
+  static CoinRenderBackendRuntime & backendRuntime();
+  static bool compiledBackendInitializesCpuDepthBuffer();
+  // Non-owning, process-lifetime Infra service, independent of executor ownership.
+  CoinRenderBackendRuntime * runtime;
   bool capabilityProbeOnly = false;
   CoinRenderOptions options;
   std::string optionsDiagnostic;
@@ -39,6 +46,9 @@ public:
   uint64_t resourceOwnerId{0};
   uint64_t resourceGeneration{0};
   static std::unique_ptr<CoinRenderBackend> createBackend();
+  static bool isGpuBackendAvailable();
+  // Admission uses implementation facts without preparing a GPU/device.
+  bool supportsOffscreenShadows(bool asynchronous) const;
   CoinRenderBackendStatus prepareBackend();
   CoinRenderSubmitResult preflightSubmission(bool asynchronous);
   void deviceLost();
@@ -77,18 +87,35 @@ public:
   CoinRenderFrameExecutionResult executeFrame(const CoinRenderFramePlan & frame);
   CoinRenderFrameExecutionResult executeFrame(const CoinRenderFramePlan & frame,
                                     const CoinRenderFrameReuseDecision & reuse);
+  CoinRenderFrameExecutionResult executeFrame(const CoinRenderFramePlan & frame,
+                                    const CoinRenderFrameReuseDecision & reuse,
+                                    const CoinRenderFramePreflight * capturedPreflight);
   CoinRenderFrameExecutionResult executeFrameAsync(const CoinRenderFramePlan & frame,
                                          CoinRenderReadbackTicket & outTicket);
   CoinRenderFrameExecutionResult executeFrameAsync(const CoinRenderFramePlan & frame,
                                          CoinRenderReadbackTicket & outTicket,
                                          const CoinRenderFrameReuseDecision & reuse);
+  CoinRenderFrameExecutionResult executeFrameAsync(const CoinRenderFramePlan & frame,
+                                         CoinRenderReadbackTicket & outTicket,
+                                         const CoinRenderFrameReuseDecision & reuse,
+                                         const CoinRenderFramePreflight * capturedPreflight);
 
   std::unique_ptr<CoinRenderBackend> backend;
+  // Available only while a freshly validated frame is being submitted.
+  const CoinRenderFramePreflight * submissionPreflight(const CoinRenderFramePlan & frame) const;
 
 private:
+  const CoinRenderFramePreflight * activePreflight = nullptr;
+  static CoinRenderFrameExecutionResult validateProfileInternal(const CoinRenderFramePlan & frame,
+      const SbVec2i32 & targetSize, bool deferUnresolvedAlpha,
+      CoinRenderFramePreflight * preflight,
+      const CoinRenderFramePreflight * capturedPreflight = nullptr,
+      bool allowCompositionBorrow = false,
+      CoinRenderCompositionTransferTrace * transfers = nullptr);
   CoinRenderFrameExecutionResult executeFrameInternal(const CoinRenderFramePlan & frame,
                                              CoinRenderReadbackTicket * outTicket,
-                                             const CoinRenderFrameReuseDecision & reuse);
+                                             const CoinRenderFrameReuseDecision & reuse,
+                                             const CoinRenderFramePreflight * capturedPreflight = nullptr);
 };
 
 #endif // !SOWGPURENDERTARGETP_H

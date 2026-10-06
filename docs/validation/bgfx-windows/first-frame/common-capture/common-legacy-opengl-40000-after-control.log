@@ -1,0 +1,9 @@
+scene_load_ms=501.276
+CoinGL_first_frame_ms=723.616
+gl_rgba_fnv64=0x4df2a9ab75b7504
+image=build/large-scenes/common-legacy-opengl-40000-after-control.ppm
+adapter=not-queried vendor_id=0x0 device_id=0x0 backend=gl size=1024x1024 warmup=4 scene=build/large-scenes/city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static
+CoinGL frames=8 median_ms=35.8983 p95_ms=39.4647 min_ms=33.646 max_ms=39.4647
+CoinGL_throughput frames=8 total_ms=289.383 fps=27.645
+backend_cleanup_begin
+backend_cleanup_ms=30.1792

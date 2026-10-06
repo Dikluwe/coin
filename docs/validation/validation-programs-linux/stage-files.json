@@ -1,0 +1,2386 @@
+{
+  "source_content_revision": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+  "self_excluded": true,
+  "files": [
+    {
+      "path": "docs/coin-render-validation-programs-linux.md",
+      "bytes": 10817,
+      "sha256": "92448dca96189a4fd6a237f0a06326ec24bb5ba2786d8f699df5cdae8adb66b7"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/README.md",
+      "bytes": 4102,
+      "sha256": "a564ed42b82458eac9d5754313f8fad2e86c0457740939511825ab56f9895459"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/ablation-run.log",
+      "bytes": 636,
+      "sha256": "19eeea26e0e3233edd8796e99c6b29f02742db634a6b310dbb3d041a1012c1ae"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/campaign-commands.json",
+      "bytes": 3139,
+      "sha256": "20f37b25bb39da9fff669759ff146742446c0d566f7c5772d9d5c9441e6159b8"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/diagnostic/bgfx-vulkan-transforms-10-memo-off.csv",
+      "bytes": 802,
+      "sha256": "a4441e3ab0906b97eb7afb00c61c2e5c9b2bc4a911a3dbeafc894b24f2848a1b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/diagnostic/bgfx-vulkan-transforms-10-memo-off.log",
+      "bytes": 22750,
+      "sha256": "2ac464ef5a4b12c525cbe5f0a62cca32db50c01126d83f040c4ea56368e1a08b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/diagnostic/bgfx-vulkan-transforms-10-memo-on.csv",
+      "bytes": 816,
+      "sha256": "435bf8ec99c82f01bdeaaf06c955d01f63762520545fd24645a1b52adbeea81d"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/diagnostic/bgfx-vulkan-transforms-10-memo-on.log",
+      "bytes": 22748,
+      "sha256": "75469e138a1832fda677894097c72f776d267b3a45c98698236b11a7b1243c5c"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/diagnostic/commands.json",
+      "bytes": 8959,
+      "sha256": "f5be4632debb5189ee1c3c53824b690f17561a5382ba2a6ec15ef541b2321f7c"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/diagnostic/derive-diagnostic.py",
+      "bytes": 12493,
+      "sha256": "8e73f27e71a3d93ac9d053a963d5a2f24e3e7c1bc39a35dd0270746f39a42fe5"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/diagnostic/derived-profile.json",
+      "bytes": 2079351,
+      "sha256": "126344e73ed18cbdb791f3bad1557f4ac95db4167202ac8a016e26227894ca1f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/diagnostic/run-ablation.py",
+      "bytes": 2391,
+      "sha256": "8baf0c437030639dcd5b4e96e721a1976ac41a9bf78b2434b0985527517ce585"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/diagnostic/wgpu-vulkan-geometry-10-memo-off.csv",
+      "bytes": 784,
+      "sha256": "7c5a207d74e3e5618a798129a4df75a70210b370dee16c8f1c1ed5793b60857b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/diagnostic/wgpu-vulkan-geometry-10-memo-off.log",
+      "bytes": 25724,
+      "sha256": "fc83b54fc17f8d2131be2a18c5f47ecf78941f4442705ff7f34680439c509e41"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/diagnostic/wgpu-vulkan-geometry-10-memo-on.csv",
+      "bytes": 786,
+      "sha256": "120805aad8a3cae1c874f57408f7a48f49b38936114d9b66f4f0ffd782b7fcce"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/diagnostic/wgpu-vulkan-geometry-10-memo-on.log",
+      "bytes": 25714,
+      "sha256": "8cad99f4f85b8490c4b067bef073b2aad110443947bedb2738023deaebe619ef"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/diagnostic/wgpu-vulkan-materials-10-memo-off.csv",
+      "bytes": 762,
+      "sha256": "ceabbfff9e0944a61dcf275775114fb28484f061f3ae5c17140569c23c65b3f1"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/diagnostic/wgpu-vulkan-materials-10-memo-off.log",
+      "bytes": 25766,
+      "sha256": "0d52f8f8adf6b4be483e3ee4019f17548e73bfe7281d5fc5cd3c41ffcdb6c5a0"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/diagnostic/wgpu-vulkan-materials-10-memo-on.csv",
+      "bytes": 764,
+      "sha256": "9c64b47a6b923b02a552b582997db133ec7a8ad34af18154d593b02563090556"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/diagnostic/wgpu-vulkan-materials-10-memo-on.log",
+      "bytes": 25762,
+      "sha256": "843e8127b317e6dc1a7a426890338aeb5614a5dd53fab3cdf9b41bb258da8c1e"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/diagnostic/wgpu-vulkan-transforms-10-memo-off.csv",
+      "bytes": 733,
+      "sha256": "13c9f7ead60e5e7b95bc76c37356d9efd537370763275035f3cb55d1649c7079"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/diagnostic/wgpu-vulkan-transforms-10-memo-off.log",
+      "bytes": 25550,
+      "sha256": "e3bfa15e93b6f7dd02fab24f08898d72ab66b7e98b81761aaef65451db39ec12"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/diagnostic/wgpu-vulkan-transforms-10-memo-on.csv",
+      "bytes": 741,
+      "sha256": "6ecb91bb70cc1f719cdb33da79f5427c1ab5ff95c7ba8a4952fd052c68c83c01"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/diagnostic/wgpu-vulkan-transforms-10-memo-on.log",
+      "bytes": 25544,
+      "sha256": "b1783a9b0294f50b2c89f0e9d9bc96a6fc956a511575744724612fada489d0b3"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/load-observation.json",
+      "bytes": 697,
+      "sha256": "7aa065b3646083ea81fcfe0aaf2e0cdc8ab7e48f1647144196fd0fef89d0406b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/machine.json",
+      "bytes": 1424,
+      "sha256": "77f66265a08ba6d89a3f8370e27fefb00df12d6a29d359b6e40a1c4b51b3b57b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/camera-bgfx-opengl-1.log",
+      "bytes": 2437,
+      "sha256": "7f984315016163ebb5b45e3afae393d1921800d4b08ee541445b7a3ca1619d59"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/camera-bgfx-opengl-2.log",
+      "bytes": 2435,
+      "sha256": "e60857671ba5d127152fab9156f8da895934df7a33856903a97e6caf15b36c8c"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/camera-bgfx-opengl-3.log",
+      "bytes": 2435,
+      "sha256": "37c42ca0f28ddcc800e539de5ceb0de30ef166356d67e7840ed197b5e1dd9ee4"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/camera-bgfx-vulkan-1.log",
+      "bytes": 2437,
+      "sha256": "e6f12e032cddae6cfa4807a930b17e2d5309487faf5a5e468701507852deb6be"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/camera-bgfx-vulkan-2.log",
+      "bytes": 2432,
+      "sha256": "5d45a9eda0d72d7a06defe22ce89898f612cf37856c9a93c7a0210acbac2cf8a"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/camera-bgfx-vulkan-3.log",
+      "bytes": 2437,
+      "sha256": "46a8559771411555cc65d3f3ceddd08e068ad069f34eed5e6504715011069b61"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/camera-coingl-1.log",
+      "bytes": 2301,
+      "sha256": "10c5342eb3bb1dbc6e26a17474497ac54b888f4bc5bdf5977d17120f420c3a87"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/camera-coingl-2.log",
+      "bytes": 2301,
+      "sha256": "ccf4eea01d7b90a5262e38318dec0e928f9e9abc15f2630732f4f5a0cd187d3d"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/camera-coingl-3.log",
+      "bytes": 2300,
+      "sha256": "0c8b01c4d0a32f8f82f708cbff13ad0743df9d08d25efb688f127dcdc3ce19a0"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/camera-wgpu-vulkan-1.log",
+      "bytes": 2525,
+      "sha256": "60204a5755f6752675fecbf8c92d0466409d9ab0227fb1ae13d7da222443fd51"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/camera-wgpu-vulkan-2.log",
+      "bytes": 2534,
+      "sha256": "d88c6773180a196d3e4a1de0757b575b29450c4e9ef4e8be890db10c8b26dc0f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/camera-wgpu-vulkan-3.log",
+      "bytes": 2525,
+      "sha256": "f32f7bff60baafbbd5f52a3c8e2037b5a2eeceaf5731050ca2034d1cb8ceb85f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/geometry-10-bgfx-opengl-1.log",
+      "bytes": 2463,
+      "sha256": "29504c3b1dc9fb36b9397ba1aa6d974d6357c1853810db99045063ad55d87cad"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/geometry-10-bgfx-opengl-2.log",
+      "bytes": 2460,
+      "sha256": "ee7263ce802c67035f48c3dc245bc07b65969498a9c1772ac6609c14080a4e84"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/geometry-10-bgfx-opengl-3.log",
+      "bytes": 2461,
+      "sha256": "98f579c8bc2bdcdbf0d8a3d7585df1d26281f95345c6efa0c9f658b457856007"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/geometry-10-bgfx-vulkan-1.log",
+      "bytes": 2465,
+      "sha256": "de5eeb4fd99cbd4f1e9e321142cb865399586d4930ba88dc74eb22503941e45b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/geometry-10-bgfx-vulkan-2.log",
+      "bytes": 2463,
+      "sha256": "9e358851f5d8109f94c234643c2688580560fbab1826d8b97be80226118a3927"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/geometry-10-bgfx-vulkan-3.log",
+      "bytes": 2469,
+      "sha256": "569fd1c7e2a8fd9e1ad70751ecb9ea65da47e93bbd4bda2703b947359830f1fc"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/geometry-10-coingl-1.log",
+      "bytes": 2318,
+      "sha256": "e45f27eb3b12ef8f48d4dc54fe9c1896c5338e1bd210b0a5cbab746b65536c81"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/geometry-10-coingl-2.log",
+      "bytes": 2315,
+      "sha256": "dfb75d402b699998f8293456c42ae0f4bd72d98327f75402a79468bcd9b0b82b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/geometry-10-coingl-3.log",
+      "bytes": 2318,
+      "sha256": "5e5f0c467c133d42eaaa2547532ebc3f0fe05f525a0a8ab68bf91547e5c5e940"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/geometry-10-wgpu-vulkan-1.log",
+      "bytes": 2556,
+      "sha256": "899710096bc44edeb18f30905fc12b633d662509b3aa7e70d7bc5c0a10b8688e"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/geometry-10-wgpu-vulkan-2.log",
+      "bytes": 2557,
+      "sha256": "9f89715c7ace80890585b07a972789aa9e1d7936d7fe5f0c9bc6bc69d449c1f1"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/geometry-10-wgpu-vulkan-3.log",
+      "bytes": 2557,
+      "sha256": "3bb9b7a88730ba15b89c77950db663de65fa60e270c4b54f0e0c0a932944077b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/materials-10-bgfx-opengl-1.log",
+      "bytes": 2462,
+      "sha256": "75edeb9d9052355e573a8e536311f9302538d2b29101c9134fda86e9c5aa06a4"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/materials-10-bgfx-opengl-2.log",
+      "bytes": 2464,
+      "sha256": "716b783f1cab51308830cb00f8b90806ce75797b68f0f73b598b6420b70fa403"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/materials-10-bgfx-opengl-3.log",
+      "bytes": 2459,
+      "sha256": "e562fc38fba4f34ddc83cf7eba44764c967191ee0f4788690084ba0cdda21b07"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/materials-10-bgfx-vulkan-1.log",
+      "bytes": 2451,
+      "sha256": "78845f197ecfe8eb01ea107e35874368c26eb1170e72a591299021d04d3ff642"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/materials-10-bgfx-vulkan-2.log",
+      "bytes": 2467,
+      "sha256": "fab0f6d36d21487156791d0e1bc0d9eaccdf35af829e0751c7ad116a4ede59a2"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/materials-10-bgfx-vulkan-3.log",
+      "bytes": 2470,
+      "sha256": "03fbc73b5b15bf76d68dabe7f10a95f9633fe5ef5ea9f79b818152b719a95cdf"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/materials-10-coingl-1.log",
+      "bytes": 2320,
+      "sha256": "cd300c5f9f7733718abca16940daf9fc22360375e77aa79dd115b5fe8e3203a5"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/materials-10-coingl-2.log",
+      "bytes": 2313,
+      "sha256": "e46b5e74a3a5702565626a23c58ff8b4e4b7f57000e3d0acf2579d3339a833da"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/materials-10-coingl-3.log",
+      "bytes": 2320,
+      "sha256": "12e6826559c36567cc273b448faada4abb486bb704718184a7d103103a8a953b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/materials-10-wgpu-vulkan-1.log",
+      "bytes": 2561,
+      "sha256": "770244f410134ffefecbdd543e67746d56133802e119b9231d9dba2f3d685b63"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/materials-10-wgpu-vulkan-2.log",
+      "bytes": 2563,
+      "sha256": "c93c4aff4e305ba4c525e15926857634d89ee1868e4c962c5dd41216825d01c4"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/materials-10-wgpu-vulkan-3.log",
+      "bytes": 2564,
+      "sha256": "4231744859ee0b478a3c6cde84460c66d1ebe1a4d533b7e82abe87aeede0483e"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/static-bgfx-opengl-1.log",
+      "bytes": 2432,
+      "sha256": "ab4e3fb890275be31d74cdc8d5c46bcadfad8793e35b99f558f998ab12650944"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/static-bgfx-opengl-2.log",
+      "bytes": 2436,
+      "sha256": "6ed46a23124e63e2208e70709aea217de07b2fcfd2145612735f80b3f9a6a21d"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/static-bgfx-opengl-3.log",
+      "bytes": 2432,
+      "sha256": "89fa52c835b5d9e59a03b0ee8137bf25b8e5efe095cd6dc9f35fc18898c3d2ad"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/static-bgfx-vulkan-1.log",
+      "bytes": 2440,
+      "sha256": "75f37c99878c7ee30dc3df572771ebb1908d487896a14f1943445e236bd34f25"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/static-bgfx-vulkan-2.log",
+      "bytes": 2437,
+      "sha256": "25889b6470e317513f82a8e0d11586f89b94075b8974bcadb6c84778d2424010"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/static-bgfx-vulkan-3.log",
+      "bytes": 2441,
+      "sha256": "c0e598d555d538e68a2f4c5137f76cbaa3408b599aa0fb9bcb4c11837bf269f5"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/static-coingl-1.log",
+      "bytes": 2289,
+      "sha256": "885647c63454ffb4939191fce06d40627d54ade865bc4d13056a89c08bcc0df8"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/static-coingl-2.log",
+      "bytes": 2285,
+      "sha256": "806cd0951522cd1a81a58a8af29b8edeb9b0130ab203ec40f99a702fd715261b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/static-coingl-3.log",
+      "bytes": 2289,
+      "sha256": "07fa9bc5cda5519c44b117eed9aa7dcf41cc75acc77fdb96a0150d30239055f4"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/static-wgpu-vulkan-1.log",
+      "bytes": 2522,
+      "sha256": "9d0cd2c0a9ca3bc7410c5e27b28d7c794c54120c1ac157a428939dc801141054"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/static-wgpu-vulkan-2.log",
+      "bytes": 2527,
+      "sha256": "5aaef32805cdf6dc17922aaa29e6129c11de173ce268d95e13de4ffa2eb4d9e8"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/static-wgpu-vulkan-3.log",
+      "bytes": 2526,
+      "sha256": "e794d93c323f683669fd8f66561f9e9415d01f261d31e1f34c92cdfe371c8812"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/transforms-10-bgfx-opengl-1.log",
+      "bytes": 2460,
+      "sha256": "c6c0b63f8c64d028091a3dda4052a27dd49f016fa523cc874675ac839afc3a83"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/transforms-10-bgfx-opengl-2.log",
+      "bytes": 2463,
+      "sha256": "87dea216bbed0e2e5fe9c2661c930ca1f9753fbcfc97464ba3895af8398ede4c"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/transforms-10-bgfx-opengl-3.log",
+      "bytes": 2465,
+      "sha256": "05bdea8eb15bc16ce23010832da61ef91e72563f9f87691dca0b924b965b341f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/transforms-10-bgfx-vulkan-1.log",
+      "bytes": 2470,
+      "sha256": "42f2c2458914e4334d2adf49418434424c23b7b9838fe8f4b66ca9ad24334ce0"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/transforms-10-bgfx-vulkan-2.log",
+      "bytes": 2470,
+      "sha256": "77e123697860f4cd0906ce2f05e044a1f50852439d14d33d4cd4627f7e4e5800"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/transforms-10-bgfx-vulkan-3.log",
+      "bytes": 2466,
+      "sha256": "ef6e28f2a6dcf4607dcee6785d3b117b21a7fa990cad1e6b9ccd43613490d4be"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/transforms-10-coingl-1.log",
+      "bytes": 2316,
+      "sha256": "17dce45757ae0c6b4f0693a365e8f66f4768c32e7718cc9855e37b60a54fa33b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/transforms-10-coingl-2.log",
+      "bytes": 2321,
+      "sha256": "51d7991e6104196f5849fcd34da5b9419f794079f708b87f6813a61ff1e9c268"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/transforms-10-coingl-3.log",
+      "bytes": 2314,
+      "sha256": "55d6463e855cdbf24564bb3f427c98690a5388f2d13d699c3ebda82abe8100cc"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/transforms-10-wgpu-vulkan-1.log",
+      "bytes": 2559,
+      "sha256": "2da05b8f8d7bf521101b0f05c478194fb3851e43875b4cbdc552bbb313089694"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/transforms-10-wgpu-vulkan-2.log",
+      "bytes": 2562,
+      "sha256": "d21a95244d9f869c0f69b6fa2702d894f93fafbdeeb70aac33c2386926b64113"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/logs/transforms-10-wgpu-vulkan-3.log",
+      "bytes": 2564,
+      "sha256": "51b670c2934f110c6fb09cd1d498a43e009c6d32de3f7db341b4ab531ec2dfa3"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/manifest.json",
+      "bytes": 88257,
+      "sha256": "990f9588e67150fc8e7fb7f0a0e2a1e9b89e4eb90235872fb420efa70846dbd2"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/medians.json",
+      "bytes": 22539,
+      "sha256": "e4b8a5ed7bf5301d6efe9a63265cb1c590c278d7e39cea956e41cde0c8eba957"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/results.json",
+      "bytes": 90437,
+      "sha256": "991902b396a018774c6434b55d19e95489a40399009c3aa3235f8ca43c1863ef"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/camera-bgfx-opengl-1.csv",
+      "bytes": 1925,
+      "sha256": "ae4a505d3f816d42cd650cdf839d77f9a9e160f3ca02cf0fa4c86c0006aec8dc"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/camera-bgfx-opengl-2.csv",
+      "bytes": 1842,
+      "sha256": "4106d8f78164ee625ab9cf926ae96304e125b0faac82efda4845a801941c8b60"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/camera-bgfx-opengl-3.csv",
+      "bytes": 1914,
+      "sha256": "092f32b5285212f2ba13c4897cf9072991d2550c9e9ae3b1648ec5fc49a0f388"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/camera-bgfx-vulkan-1.csv",
+      "bytes": 1832,
+      "sha256": "7932ee44634d1fdd211c955e4eee310da18ed7ff74b990da31bf6009edb14b4f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/camera-bgfx-vulkan-2.csv",
+      "bytes": 1883,
+      "sha256": "f4c47a126080cf8bc7ea0ea5f31e255c64a1b128f075a6adc2dc46bcbb537ce9"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/camera-bgfx-vulkan-3.csv",
+      "bytes": 1930,
+      "sha256": "f8d53413e49fdf7a6ceced33696f00da6037d0719482e113bbdf508f51569a91"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/camera-coingl-1.csv",
+      "bytes": 1741,
+      "sha256": "0f723ba38ee835febb39909bd34fce93df448ec3f0db27d27dbe0e878d0c0b4a"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/camera-coingl-2.csv",
+      "bytes": 1761,
+      "sha256": "2a20da614bf54676424a212ed0cd95a6db7cffdca9099a1166e6cfccb7b500b7"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/camera-coingl-3.csv",
+      "bytes": 1720,
+      "sha256": "240b5ac762120247471b8cc04d97ef521e68e233a5305a2a75794ed9a56ab942"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/camera-wgpu-vulkan-1.csv",
+      "bytes": 1620,
+      "sha256": "330d08bbdeaaaabea211cf6fc18a6abe69dbf9be0b1ee512aaa9fd9306d45655"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/camera-wgpu-vulkan-2.csv",
+      "bytes": 1629,
+      "sha256": "c06daa017293c2ae4195545f75966b1230a14ab98d40123b1b66874d8b36f001"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/camera-wgpu-vulkan-3.csv",
+      "bytes": 1709,
+      "sha256": "69e6150f3e9b6858681363b678e652c3ac08ecb6d090947c6f3e5ac1216f6427"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/geometry-10-bgfx-opengl-1.csv",
+      "bytes": 1876,
+      "sha256": "b05b47eee72edbd39d4347db9c90db37b63a5457a35fc5c51d72c4167f08fc58"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/geometry-10-bgfx-opengl-2.csv",
+      "bytes": 1893,
+      "sha256": "55e2f91f0739be3c2c8f56ae9e18559204d6249ff1e2bacc980916f8a5743773"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/geometry-10-bgfx-opengl-3.csv",
+      "bytes": 1809,
+      "sha256": "757a0931db60827e01bbc61939384c0b3e4133fa2d8d92f0572fc42764e7502d"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/geometry-10-bgfx-vulkan-1.csv",
+      "bytes": 1905,
+      "sha256": "532ae2cd8c3cf9e2569dd3222aa2c351cfb3991e7887491ece9d6a2995a9022f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/geometry-10-bgfx-vulkan-2.csv",
+      "bytes": 1894,
+      "sha256": "31f4e8817502fbb856fe216a386253f17f9c1b00ffa654c955b72102e2f2cdc8"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/geometry-10-bgfx-vulkan-3.csv",
+      "bytes": 1896,
+      "sha256": "9eb1f291236fe00d99509076b43a828fd2b269243b79623b4c08eba1ad67f8de"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/geometry-10-coingl-1.csv",
+      "bytes": 1660,
+      "sha256": "d2aef02bb2b2da940e596b5a46aa240d252720b5383c802958f6d0fddcfce2eb"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/geometry-10-coingl-2.csv",
+      "bytes": 1681,
+      "sha256": "1b9f9eedc9dbf31c347882fa0a0220a2647c929e1fd39154f46e78d98646f404"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/geometry-10-coingl-3.csv",
+      "bytes": 1591,
+      "sha256": "8659424f8badb516624c4b6c250742fda9902bb07506da842ce4885e92cc34a7"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/geometry-10-wgpu-vulkan-1.csv",
+      "bytes": 1831,
+      "sha256": "b957e4d2c14b803d9c4705e7369767f8c7f90bd3e321e21cd6f0addf7f9e2506"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/geometry-10-wgpu-vulkan-2.csv",
+      "bytes": 1781,
+      "sha256": "5beaa54097e8d798f3ba69ff7bb244c0f1070733cf1af386ac30bed80cf5a70c"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/geometry-10-wgpu-vulkan-3.csv",
+      "bytes": 1800,
+      "sha256": "cebd536c88d3cf84633939ffd4985c32bb27d7fcddd895fc88b620b9da01201a"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/materials-10-bgfx-opengl-1.csv",
+      "bytes": 1873,
+      "sha256": "68d4047c4ca0a314d9cca7bf5af02680474c60989b4126cca02138c4430a90e7"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/materials-10-bgfx-opengl-2.csv",
+      "bytes": 1852,
+      "sha256": "12919279d4394fb8e397c07e6e6403f86be130369c06f48bc757321e68911e70"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/materials-10-bgfx-opengl-3.csv",
+      "bytes": 1917,
+      "sha256": "98a862d1160341fb43314ddd8545555e826771bff57e9a1957fab1143d8b9fb3"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/materials-10-bgfx-vulkan-1.csv",
+      "bytes": 1902,
+      "sha256": "8b43b94d6df565b1cf6c63bd60604e14c4355c9f336263ed065a7da1b74e85b2"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/materials-10-bgfx-vulkan-2.csv",
+      "bytes": 1899,
+      "sha256": "2828457cd153a08390bb124865ca934d68d50a5e8b5865f4a62ec4293ebcab8d"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/materials-10-bgfx-vulkan-3.csv",
+      "bytes": 1918,
+      "sha256": "d799c791a8dfe309c728d61ad294ff15111e8e01fc408dbd2ef7ccf1ab0ecf29"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/materials-10-coingl-1.csv",
+      "bytes": 1643,
+      "sha256": "874812e0461ddd726df55aa39763e1d1ebd5428d41b37c6de4c1fd2400cda69e"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/materials-10-coingl-2.csv",
+      "bytes": 1682,
+      "sha256": "4927032f99c0a29feba1a88b716aa60b4a5c3866170c27f44aaf3d0999fd7bbd"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/materials-10-coingl-3.csv",
+      "bytes": 1701,
+      "sha256": "d6d7bd25b250d864191beb318239ba5c765cbf7233a869a656f269f0f2ce9f55"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/materials-10-wgpu-vulkan-1.csv",
+      "bytes": 1829,
+      "sha256": "208ca521d8a1c7958d72fc95c2e868cfa72bb2f56f45343ec578ab193a9c281e"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/materials-10-wgpu-vulkan-2.csv",
+      "bytes": 1826,
+      "sha256": "37f60b3754a48a8c649493a5983caf1e4036b9f264ba71e15ed3ed06d2b0dd17"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/materials-10-wgpu-vulkan-3.csv",
+      "bytes": 1793,
+      "sha256": "7ab4b16ad51a989929e08ac0aae073c0026f30ca44b214a10645409444dc51e7"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/static-bgfx-opengl-1.csv",
+      "bytes": 1814,
+      "sha256": "976f0d7811384cbd70e7ad21907fb8169672a9962fba7e79ec595ab3f6ec20dd"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/static-bgfx-opengl-2.csv",
+      "bytes": 1955,
+      "sha256": "7b67b7c0de7b5a20faeaebe8b2b73ac64f2ed5dccb1d101e8caae70f5b259891"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/static-bgfx-opengl-3.csv",
+      "bytes": 1948,
+      "sha256": "e3863711542da30e036ffaf445a391435440255ecc503357f4c1b3933dea8d10"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/static-bgfx-vulkan-1.csv",
+      "bytes": 1908,
+      "sha256": "36c935c3dba3ddada9811288e22c780c74e996d53d0423c8faac52f2a520bbef"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/static-bgfx-vulkan-2.csv",
+      "bytes": 1899,
+      "sha256": "7f8a6e3fcf92f3f0323384ce0df9faa4d5cea536f77cc73fd072b60f0ef72e49"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/static-bgfx-vulkan-3.csv",
+      "bytes": 1841,
+      "sha256": "878341ff7e6e8d3b658fc8bbb08171a0221690731e02d19aad41e6dbf40d5348"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/static-coingl-1.csv",
+      "bytes": 1726,
+      "sha256": "413703a3c2d1d6f9ae520ac20098c66671238134eb7021a468dbb4ce52a70e5a"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/static-coingl-2.csv",
+      "bytes": 1756,
+      "sha256": "37611ff7585c17db32875bb97e90e24f2ae1a654803be87a45f80e9a64c9d32d"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/static-coingl-3.csv",
+      "bytes": 1684,
+      "sha256": "2ef724fa06c2d7ff41b1d3f52eb1c90c8758af366167138f7d0afea70171141f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/static-wgpu-vulkan-1.csv",
+      "bytes": 1755,
+      "sha256": "2f6804518c354b89ed4822ec4922ad34f3a0545a2902fe8fcb03a03b50cde4da"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/static-wgpu-vulkan-2.csv",
+      "bytes": 1797,
+      "sha256": "3a915158220c360ed4919a6095a17e793c2554683174fff4ebaf3cdf6ce067ca"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/static-wgpu-vulkan-3.csv",
+      "bytes": 1782,
+      "sha256": "7f218d677a33d6699b731e2d668396680bf2ff1ab0fa19c1c9b823ee54bc8ae9"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/transforms-10-bgfx-opengl-1.csv",
+      "bytes": 1836,
+      "sha256": "55f0043173c4d18aabf95b474f2af1420b3b6c410b6d33bd1c67fbe08a757457"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/transforms-10-bgfx-opengl-2.csv",
+      "bytes": 1908,
+      "sha256": "8c8f08ee0a013b181b3fe231dc7b262f3e1e8f72cbfb3da1cc91d1db1066771b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/transforms-10-bgfx-opengl-3.csv",
+      "bytes": 1834,
+      "sha256": "0bc9045d68b26fd8bb4eabb939827390d72aa2087920c8cabf795156a27c5bfd"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/transforms-10-bgfx-vulkan-1.csv",
+      "bytes": 1886,
+      "sha256": "dca7713e5909387af264271692c61c65ad9e7f6a2e38b32ad95bd4c4b40cb927"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/transforms-10-bgfx-vulkan-2.csv",
+      "bytes": 1829,
+      "sha256": "614ff7fe9f7e2457142d2c256dfb584c03f61accd193d6e1d84d3993e1d55de2"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/transforms-10-bgfx-vulkan-3.csv",
+      "bytes": 1956,
+      "sha256": "e2501483aaffe67e6b16d00f1000a2c3ffd39a18d62e93e63a86e9ad1a500ff4"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/transforms-10-coingl-1.csv",
+      "bytes": 1571,
+      "sha256": "970edfdd3f67c02aeaecd992038a18c8efc71dd3e898fa7cdb4cc920fb2e2f41"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/transforms-10-coingl-2.csv",
+      "bytes": 1625,
+      "sha256": "9cdc5fcb00daa98dd16d91a46cc3b49965b5c68ee0ca7b4cdc508e2d3f34d731"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/transforms-10-coingl-3.csv",
+      "bytes": 1656,
+      "sha256": "7f4812b891a9ffc17d6f7df49217de66f4bb195913edd9e85f65009177ba5364"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/transforms-10-wgpu-vulkan-1.csv",
+      "bytes": 1739,
+      "sha256": "278475b122d678ec4e1c124599fdd929b4f0e5cb47147ed36788c160d3d401c7"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/transforms-10-wgpu-vulkan-2.csv",
+      "bytes": 1754,
+      "sha256": "91a61186f0304b4fd1cb3af2211aa565de4c5e03cb526c5775df42f7dd9ad574"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/after/samples/transforms-10-wgpu-vulkan-3.csv",
+      "bytes": 1747,
+      "sha256": "13e544c3070711184e71bd6aa4c7e9f0b0ee61c923660e90a8d0dd78f79ece78"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/analyze_animation_images.py",
+      "bytes": 4587,
+      "sha256": "ab2d85a2a60aa883a5f92fc1ca9d089ab50aed6451dc79fcc48a919c771cf556"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/archive-manifest.json",
+      "bytes": 101024,
+      "sha256": "ebc47c5729d4ae014c7b6857b6444e00aa1d6bd8039e63647494d00dc1e2b58d"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/camera-bgfx-opengl-1.log",
+      "bytes": 2432,
+      "sha256": "fbe6980580216164438aa27b7c4d05eec565ba16e5a70ba730482c2a5312350b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/camera-bgfx-opengl-2.log",
+      "bytes": 2433,
+      "sha256": "d7c44a72ca622f079639f40d84c8c0846385601917f0077b645e6adc6c3f36f3"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/camera-bgfx-opengl-3.log",
+      "bytes": 2435,
+      "sha256": "549bcda1e50ac77b597c8b9b7c11207c26c5a474db8db2cc56fd16ace7474c58"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/camera-bgfx-vulkan-1.log",
+      "bytes": 2438,
+      "sha256": "4c740cdd939a67de49ce8f0bca8b3493e84978cc98b690834db5b585c3fbedc4"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/camera-bgfx-vulkan-2.log",
+      "bytes": 2438,
+      "sha256": "73e780d38e046e63d7ccd7aad3822dacefdaa44b86acb85966f710c923c15ff9"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/camera-bgfx-vulkan-3.log",
+      "bytes": 2441,
+      "sha256": "eacdfc5b279e8a85b9128c3b764e317c8477ceebeaa9020052372595d0e86f3f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/camera-coingl-1.log",
+      "bytes": 2301,
+      "sha256": "10c5342eb3bb1dbc6e26a17474497ac54b888f4bc5bdf5977d17120f420c3a87"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/camera-coingl-2.log",
+      "bytes": 2301,
+      "sha256": "ccf4eea01d7b90a5262e38318dec0e928f9e9abc15f2630732f4f5a0cd187d3d"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/camera-coingl-3.log",
+      "bytes": 2300,
+      "sha256": "0c8b01c4d0a32f8f82f708cbff13ad0743df9d08d25efb688f127dcdc3ce19a0"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/camera-wgpu-vulkan-1.log",
+      "bytes": 2527,
+      "sha256": "9f9b9b0affd1238d05dc3b7dee8bfc0cc8fbe3c6da2f07a8fc0954cd1c3d649c"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/camera-wgpu-vulkan-2.log",
+      "bytes": 2534,
+      "sha256": "cf31608f8836854bd15b293f9a175760a2092409c62cb08fa5b74727ac1d65c9"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/camera-wgpu-vulkan-3.log",
+      "bytes": 2526,
+      "sha256": "d5c5b3b42d94d58e3b782674c47751459531ea54d630e165edef8a85cf28be3a"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/geometry-10-bgfx-opengl-1.log",
+      "bytes": 2457,
+      "sha256": "d1a3b0c16615164923aa73c10e5df994d581fee7c4cd9e6d127ace9cd29d8a29"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/geometry-10-bgfx-opengl-2.log",
+      "bytes": 2463,
+      "sha256": "1940f354dd66be24af153ab97fb0e96f3e308a67828200c713c9d0453ded2be1"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/geometry-10-bgfx-opengl-3.log",
+      "bytes": 2458,
+      "sha256": "a76ac5656e61972faa8fad747894c437012ce9a02c5fd575e25ec286ce4bbaea"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/geometry-10-bgfx-vulkan-1.log",
+      "bytes": 2469,
+      "sha256": "a2d88c03834b8a906a228119a55183a104d9e666f9cae4ae3932e8f85aef8fbb"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/geometry-10-bgfx-vulkan-2.log",
+      "bytes": 2464,
+      "sha256": "23221e60953ff13fb9e094d5ba33df57caa616fed2442d1472e9bcb20876c169"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/geometry-10-bgfx-vulkan-3.log",
+      "bytes": 2468,
+      "sha256": "09a7bae82e7d7186e6c9ff6415d2a1efab7284eb570376e533e162c006fb1d1e"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/geometry-10-coingl-1.log",
+      "bytes": 2318,
+      "sha256": "e45f27eb3b12ef8f48d4dc54fe9c1896c5338e1bd210b0a5cbab746b65536c81"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/geometry-10-coingl-2.log",
+      "bytes": 2315,
+      "sha256": "dfb75d402b699998f8293456c42ae0f4bd72d98327f75402a79468bcd9b0b82b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/geometry-10-coingl-3.log",
+      "bytes": 2318,
+      "sha256": "5e5f0c467c133d42eaaa2547532ebc3f0fe05f525a0a8ab68bf91547e5c5e940"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/geometry-10-wgpu-vulkan-1.log",
+      "bytes": 2562,
+      "sha256": "a606b947d6706e30338ffa5434e134b8bb5f91fb67b211dbef6b17cdfda46329"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/geometry-10-wgpu-vulkan-2.log",
+      "bytes": 2561,
+      "sha256": "1e1bcebf1196c91b7059bc2ff3f9a2a07274cd7f19e4809b815948c8e8e40f13"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/geometry-10-wgpu-vulkan-3.log",
+      "bytes": 2557,
+      "sha256": "95227fe2642d42a28f5f5e31ad6290bd8678b030eecd94cafc200c5fb27c7ae0"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/materials-10-bgfx-opengl-1.log",
+      "bytes": 2463,
+      "sha256": "565a621abccb5b86c00aaea379ed6950d4e2af1c36daaa7294ef3a9dbacefd47"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/materials-10-bgfx-opengl-2.log",
+      "bytes": 2463,
+      "sha256": "2ac3d779feb8c42f37121a356cb8d641efd90973d6f5ab10132b7dc74e5b44a9"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/materials-10-bgfx-opengl-3.log",
+      "bytes": 2465,
+      "sha256": "6e49d5b53feab1dce6770881b827a7c20b6b3013e953c4bf02837dcb770c256b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/materials-10-bgfx-vulkan-1.log",
+      "bytes": 2473,
+      "sha256": "00b0234f5270b5ee544dcf7ddd96ac51db243df5904bd0079dc128c48854ae8c"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/materials-10-bgfx-vulkan-2.log",
+      "bytes": 2464,
+      "sha256": "6b721656a1d06dc0083d32e900de8eb7ae14e9ad88a1b63f26caaf36534b975c"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/materials-10-bgfx-vulkan-3.log",
+      "bytes": 2469,
+      "sha256": "79925d145c2f4cdbeba59f2149137134696e661b7fdef4354c1438aee6651432"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/materials-10-coingl-1.log",
+      "bytes": 2320,
+      "sha256": "cd300c5f9f7733718abca16940daf9fc22360375e77aa79dd115b5fe8e3203a5"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/materials-10-coingl-2.log",
+      "bytes": 2313,
+      "sha256": "e46b5e74a3a5702565626a23c58ff8b4e4b7f57000e3d0acf2579d3339a833da"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/materials-10-coingl-3.log",
+      "bytes": 2320,
+      "sha256": "12e6826559c36567cc273b448faada4abb486bb704718184a7d103103a8a953b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/materials-10-wgpu-vulkan-1.log",
+      "bytes": 2563,
+      "sha256": "0e71789b06846eb1cc8621a7308435e5f88f063ca55222553be86a18d8cb705b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/materials-10-wgpu-vulkan-2.log",
+      "bytes": 2566,
+      "sha256": "86557a30e68921a19110e359f5272e5b915493727321f1d8b7d444c2565be6aa"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/materials-10-wgpu-vulkan-3.log",
+      "bytes": 2559,
+      "sha256": "d2be8c380c5d395f20781ad1f8295cdff02e4c62054009cb26660e7432d6d927"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/static-bgfx-opengl-1.log",
+      "bytes": 2436,
+      "sha256": "2f30b7dd5dc518a76e831af6795e2773870dc691108e04b6a7210573ed3e7226"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/static-bgfx-opengl-2.log",
+      "bytes": 2435,
+      "sha256": "772afe563f9ef48449c180ea1d70172e3f181020cf860a7fb26bc210970957c3"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/static-bgfx-opengl-3.log",
+      "bytes": 2439,
+      "sha256": "21d9da030d3628eb4aef569dde56ffaff85a5ba11719347ff1afacd847c4be3b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/static-bgfx-vulkan-1.log",
+      "bytes": 2439,
+      "sha256": "e5d23cece2eadbd515b4c8d0418577af5cae8fdb61887cc9b0ae0145a69a9325"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/static-bgfx-vulkan-2.log",
+      "bytes": 2433,
+      "sha256": "23edf2bc57981ab5919c20082ad66fcb844288f0bf933f25e55c56870d9b56a8"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/static-bgfx-vulkan-3.log",
+      "bytes": 2442,
+      "sha256": "6ccf637878c48ca3c80dc12bcabafc4a7d4d5cfa8d1e94d520d11baca374dedc"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/static-coingl-1.log",
+      "bytes": 2289,
+      "sha256": "885647c63454ffb4939191fce06d40627d54ade865bc4d13056a89c08bcc0df8"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/static-coingl-2.log",
+      "bytes": 2285,
+      "sha256": "806cd0951522cd1a81a58a8af29b8edeb9b0130ab203ec40f99a702fd715261b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/static-coingl-3.log",
+      "bytes": 2289,
+      "sha256": "07fa9bc5cda5519c44b117eed9aa7dcf41cc75acc77fdb96a0150d30239055f4"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/static-wgpu-vulkan-1.log",
+      "bytes": 2524,
+      "sha256": "d18c520de45d58fa6e904fcec1196cb22489accfb8983a262a00691e7cbd3fff"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/static-wgpu-vulkan-2.log",
+      "bytes": 2524,
+      "sha256": "6bcbda49ec062f4629263a6f2abf1c92844e3686cd519aeebc6a890af62c4e99"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/static-wgpu-vulkan-3.log",
+      "bytes": 2525,
+      "sha256": "2a8995a4db46a2ec5a764f1ecb759fd1d17c9dbb298b2bce2ac9ea2c28914ad6"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/transforms-10-bgfx-opengl-1.log",
+      "bytes": 2467,
+      "sha256": "a4106d0a3a0d2f9e4c5e4baced5f5d925e48159947c5b1fcabbfad003bbf3985"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/transforms-10-bgfx-opengl-2.log",
+      "bytes": 2464,
+      "sha256": "3251879c6cc55f3e7c8854f7a5a04caec27803f2ac2808f875e9caab342b5bbe"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/transforms-10-bgfx-opengl-3.log",
+      "bytes": 2467,
+      "sha256": "9de735580c852ae74e10a956a58f4545fc611ab39be11d0db5c7053a191eb54e"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/transforms-10-bgfx-vulkan-1.log",
+      "bytes": 2467,
+      "sha256": "673cb9c7a27024c1bcc5e319978812345e748c56fef4d4c003effd03c167f5f1"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/transforms-10-bgfx-vulkan-2.log",
+      "bytes": 2468,
+      "sha256": "dfac036accee78c6c11334976daf04889063ef58f54ea129130dff7d1ca31897"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/transforms-10-bgfx-vulkan-3.log",
+      "bytes": 2468,
+      "sha256": "8f0de8afe7ec4885548824093281b622c4089ed39f7d9ea821ace69959080893"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/transforms-10-coingl-1.log",
+      "bytes": 2316,
+      "sha256": "17dce45757ae0c6b4f0693a365e8f66f4768c32e7718cc9855e37b60a54fa33b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/transforms-10-coingl-2.log",
+      "bytes": 2321,
+      "sha256": "51d7991e6104196f5849fcd34da5b9419f794079f708b87f6813a61ff1e9c268"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/transforms-10-coingl-3.log",
+      "bytes": 2314,
+      "sha256": "55d6463e855cdbf24564bb3f427c98690a5388f2d13d699c3ebda82abe8100cc"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/transforms-10-wgpu-vulkan-1.log",
+      "bytes": 2565,
+      "sha256": "d19b95c5fb489fb1b2be32b7fd9791b5ee8de5f0e7d58c0efe216748f6f37a6d"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/transforms-10-wgpu-vulkan-2.log",
+      "bytes": 2567,
+      "sha256": "db8331193716915202f31fe2ec358ac7de891d74eb79dd2ea27a501232acc708"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/logs/transforms-10-wgpu-vulkan-3.log",
+      "bytes": 2563,
+      "sha256": "b5c1cffe098e72945c51ebe7f9cbba72dab24bc17f3dd2e2af8f17fb82a95c00"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/manifest.json",
+      "bytes": 89117,
+      "sha256": "e8a2c9adbd173b45ec69948ffb454c386a8ab1203aca6ead922930b4718fe001"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/medians.json",
+      "bytes": 22540,
+      "sha256": "7d49ddd69282488ec7a084b6f89091c090ddf25c4c6ef88401fa764f9124b996"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/results.json",
+      "bytes": 90456,
+      "sha256": "d6351460348ebab3427f877a6f0fee2a2785a883fa2cd6e79437b41fd4d2a087"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/camera-bgfx-opengl-1.csv",
+      "bytes": 1917,
+      "sha256": "c34b22af4047cdeb9d908a72898ede919c2a3b9a0f3a724086c990fdf2832362"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/camera-bgfx-opengl-2.csv",
+      "bytes": 1908,
+      "sha256": "6393650ba1f54fd296836198ac90800a007f9b931904add74ed9b29acfef7611"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/camera-bgfx-opengl-3.csv",
+      "bytes": 1885,
+      "sha256": "93765f459f2d96a3c27f8646501ca328e7f71caf53dd25aea52f97d67f2f74ca"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/camera-bgfx-vulkan-1.csv",
+      "bytes": 1864,
+      "sha256": "f051a0715ca43baf3bb7044d2b2feea794624945faf189312309183972b9233d"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/camera-bgfx-vulkan-2.csv",
+      "bytes": 1932,
+      "sha256": "ee3277c175667436acf5fd68f9d1dd0e43916513ee5387aa7418df15d8807c2c"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/camera-bgfx-vulkan-3.csv",
+      "bytes": 1898,
+      "sha256": "267cfe0a2ef50ab6e7b838443def8fddba73bfff7eff88d0c82ae4bf71bdb0bf"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/camera-coingl-1.csv",
+      "bytes": 1741,
+      "sha256": "0f723ba38ee835febb39909bd34fce93df448ec3f0db27d27dbe0e878d0c0b4a"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/camera-coingl-2.csv",
+      "bytes": 1761,
+      "sha256": "2a20da614bf54676424a212ed0cd95a6db7cffdca9099a1166e6cfccb7b500b7"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/camera-coingl-3.csv",
+      "bytes": 1720,
+      "sha256": "240b5ac762120247471b8cc04d97ef521e68e233a5305a2a75794ed9a56ab942"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/camera-wgpu-vulkan-1.csv",
+      "bytes": 1664,
+      "sha256": "da006b2ffefaf25e618e1519d86d38cddc11bf2a368f745a7137a9fd2d0c0b13"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/camera-wgpu-vulkan-2.csv",
+      "bytes": 1648,
+      "sha256": "a480d95b9b189f3141386eaa5076f235b3880d8a8dc8636d65b54caef8264778"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/camera-wgpu-vulkan-3.csv",
+      "bytes": 1632,
+      "sha256": "6329e39f7439005ee210a3d29d1d77114b0fcfade56299e86a6bdd8a7b9163f6"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/geometry-10-bgfx-opengl-1.csv",
+      "bytes": 1935,
+      "sha256": "8583110b2b48a3fc1308b6c570eb9034077b9e947271ba57276c671cee79f908"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/geometry-10-bgfx-opengl-2.csv",
+      "bytes": 1950,
+      "sha256": "a273c4f9a4a2fd195ec9957dfd727a6ffab9373e331b332795ee63b561664e1b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/geometry-10-bgfx-opengl-3.csv",
+      "bytes": 1858,
+      "sha256": "f0d15605f9cd4c43029b19e4fa6bf89c2b5c9b7cf4360b6f0b9c2bb790e0d638"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/geometry-10-bgfx-vulkan-1.csv",
+      "bytes": 1825,
+      "sha256": "7f7cd1b79a03dec7e4d0c9c1ca9dc9654fbb1c9a4916c8741efc72c95d5344f5"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/geometry-10-bgfx-vulkan-2.csv",
+      "bytes": 1926,
+      "sha256": "36ddf3899260bc1d4b524a598cbe7378d6e1ca7b5d09f487ab448c53d4543cb0"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/geometry-10-bgfx-vulkan-3.csv",
+      "bytes": 1915,
+      "sha256": "fb25f0df33744d301c5106590744203e46bddadc4221e6ed570503243907090b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/geometry-10-coingl-1.csv",
+      "bytes": 1660,
+      "sha256": "d2aef02bb2b2da940e596b5a46aa240d252720b5383c802958f6d0fddcfce2eb"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/geometry-10-coingl-2.csv",
+      "bytes": 1681,
+      "sha256": "1b9f9eedc9dbf31c347882fa0a0220a2647c929e1fd39154f46e78d98646f404"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/geometry-10-coingl-3.csv",
+      "bytes": 1591,
+      "sha256": "8659424f8badb516624c4b6c250742fda9902bb07506da842ce4885e92cc34a7"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/geometry-10-wgpu-vulkan-1.csv",
+      "bytes": 1755,
+      "sha256": "0770758fe2e1d2497f714977113527b0bc644d53a140f66f48b86ffc89e9d929"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/geometry-10-wgpu-vulkan-2.csv",
+      "bytes": 1825,
+      "sha256": "2b9b69623844e8b0348e73511a9e4e4c118a9e6c1580dd2e0bd268cb9cadfc77"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/geometry-10-wgpu-vulkan-3.csv",
+      "bytes": 1766,
+      "sha256": "58eb6ce2061fcab7151b221b04fad652ec6489b588ba938ce95d14c96ba08818"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/materials-10-bgfx-opengl-1.csv",
+      "bytes": 1902,
+      "sha256": "57ea409ba3f2cf9fca7f71bb21fa40d82b980694b2e9c0e10c5e314b5c98c4a6"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/materials-10-bgfx-opengl-2.csv",
+      "bytes": 1892,
+      "sha256": "2a2abb23bc25e1193945f0550fa6ec644fb3bfa8914a4d3d2ebf3a1fd2933289"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/materials-10-bgfx-opengl-3.csv",
+      "bytes": 1934,
+      "sha256": "c82da6e11d7ec0c68d2a70f2087729205220ccef20e53a140ef08db5f1bddd98"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/materials-10-bgfx-vulkan-1.csv",
+      "bytes": 1837,
+      "sha256": "a6637431346eb2dff16f68340d52e7fe3eef88f25b9898e48f54504e1a65cbf6"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/materials-10-bgfx-vulkan-2.csv",
+      "bytes": 1898,
+      "sha256": "62165ba517c0e3ec063a8f1ef7bd15de6801cdb037b468a3080189b5c02e1df9"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/materials-10-bgfx-vulkan-3.csv",
+      "bytes": 1849,
+      "sha256": "d4b48ddd81e0c3e82ffa37c13e68d6987cf9fb2ce4e1c295461ab95e0ac3fe7c"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/materials-10-coingl-1.csv",
+      "bytes": 1643,
+      "sha256": "874812e0461ddd726df55aa39763e1d1ebd5428d41b37c6de4c1fd2400cda69e"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/materials-10-coingl-2.csv",
+      "bytes": 1682,
+      "sha256": "4927032f99c0a29feba1a88b716aa60b4a5c3866170c27f44aaf3d0999fd7bbd"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/materials-10-coingl-3.csv",
+      "bytes": 1701,
+      "sha256": "d6d7bd25b250d864191beb318239ba5c765cbf7233a869a656f269f0f2ce9f55"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/materials-10-wgpu-vulkan-1.csv",
+      "bytes": 1814,
+      "sha256": "753b68175871c863099e103c637a06839eae9a1fbc8d32344f08dbe9a076c9a4"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/materials-10-wgpu-vulkan-2.csv",
+      "bytes": 1868,
+      "sha256": "7bc96af30caad4c329f1bc4892a55eaf71851af50f22c0af8606cbd0afe59fa9"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/materials-10-wgpu-vulkan-3.csv",
+      "bytes": 1794,
+      "sha256": "9e7a9a8db435b443fd53eed174dde5e414ef68cff869c43a9b30d783867a6932"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/static-bgfx-opengl-1.csv",
+      "bytes": 1989,
+      "sha256": "b44977917ded5d151ac3403d4dd63f003da5fe4c809f7fbd8fe6a23dfaf0db0e"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/static-bgfx-opengl-2.csv",
+      "bytes": 1822,
+      "sha256": "bf50ed024bf365bded16aef625714a68640ad8e086dd5354f45a29d25bd76fe4"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/static-bgfx-opengl-3.csv",
+      "bytes": 1966,
+      "sha256": "332ad6b865346f663a2832cd832ba24b3ccc09237e3084e04f6c359882c79a17"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/static-bgfx-vulkan-1.csv",
+      "bytes": 1873,
+      "sha256": "823ee5bcdbed67440974f265d430421a6130fb8acc3df1025c823a8eef876319"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/static-bgfx-vulkan-2.csv",
+      "bytes": 1864,
+      "sha256": "e33631a28ab753c58ddb34dcd8163181c258b42b40ed4169578bc037a9f9f992"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/static-bgfx-vulkan-3.csv",
+      "bytes": 1877,
+      "sha256": "2fcacdf267e7b4ce908be61e534828b60e9a6c5e9131a8c167e90405d3aa169f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/static-coingl-1.csv",
+      "bytes": 1726,
+      "sha256": "413703a3c2d1d6f9ae520ac20098c66671238134eb7021a468dbb4ce52a70e5a"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/static-coingl-2.csv",
+      "bytes": 1756,
+      "sha256": "37611ff7585c17db32875bb97e90e24f2ae1a654803be87a45f80e9a64c9d32d"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/static-coingl-3.csv",
+      "bytes": 1684,
+      "sha256": "2ef724fa06c2d7ff41b1d3f52eb1c90c8758af366167138f7d0afea70171141f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/static-wgpu-vulkan-1.csv",
+      "bytes": 1748,
+      "sha256": "4a00e525daa2d92e7bce5950fb8a4c5812a0b78300914716c27240292a8c0d28"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/static-wgpu-vulkan-2.csv",
+      "bytes": 1814,
+      "sha256": "f33680121abd8fc60268dca82e7e7d8aa6814b97903a7737f502745915a80bea"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/static-wgpu-vulkan-3.csv",
+      "bytes": 1781,
+      "sha256": "a24d145052a74a1ed7ccdee75bafd6cccfd8ac4ad7978df79ab899951862e841"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/transforms-10-bgfx-opengl-1.csv",
+      "bytes": 1927,
+      "sha256": "7707786cdf9cde00c075947e9fd91dafbdbaee4a784f210f43d5dc4d9d83362f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/transforms-10-bgfx-opengl-2.csv",
+      "bytes": 1903,
+      "sha256": "630bce77aba483d1f0093e8af12571cd28f3dfb3eb9f2fd3d612f454ff2bf864"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/transforms-10-bgfx-opengl-3.csv",
+      "bytes": 1879,
+      "sha256": "4ce879591959eef37ccd5d6d7ca5f8f605ee8cb4ecb550b63fed96e0f23bbe90"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/transforms-10-bgfx-vulkan-1.csv",
+      "bytes": 1893,
+      "sha256": "515b96f52c8ebf26a2b2fae04db71a9266b5805858281f3cd5726a73b0aa05f9"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/transforms-10-bgfx-vulkan-2.csv",
+      "bytes": 1766,
+      "sha256": "dcded60638139fb8492d00387aab2c816c55341cb308edd382300ca2f9aea077"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/transforms-10-bgfx-vulkan-3.csv",
+      "bytes": 1873,
+      "sha256": "295e61c81654c8ce190eb4ed08b3ef2e0e43514655df714369b1ce201ef0e843"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/transforms-10-coingl-1.csv",
+      "bytes": 1571,
+      "sha256": "970edfdd3f67c02aeaecd992038a18c8efc71dd3e898fa7cdb4cc920fb2e2f41"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/transforms-10-coingl-2.csv",
+      "bytes": 1625,
+      "sha256": "9cdc5fcb00daa98dd16d91a46cc3b49965b5c68ee0ca7b4cdc508e2d3f34d731"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/transforms-10-coingl-3.csv",
+      "bytes": 1656,
+      "sha256": "7f4812b891a9ffc17d6f7df49217de66f4bb195913edd9e85f65009177ba5364"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/transforms-10-wgpu-vulkan-1.csv",
+      "bytes": 1786,
+      "sha256": "683bb3dca7684d3891fb998492c4c049db2cf20eee0c4ec1734de1482c8a02a8"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/transforms-10-wgpu-vulkan-2.csv",
+      "bytes": 1788,
+      "sha256": "3cd8ca3b6470a3e18ef60fc5217107ce6eba0e21e97606081a98bf655b153ed3"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/before/samples/transforms-10-wgpu-vulkan-3.csv",
+      "bytes": 1751,
+      "sha256": "238e2ba6ae83ebf28b793be424302d9ea580d2daec871eed4169784f0c6afc97"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/campaign_core.py",
+      "bytes": 34538,
+      "sha256": "d5bda1398da0889130c18d46877b192a92c479a7dcc3f3adc3b91c8416eb4f04"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/controls/coin-render-state-coingl-binaries.json",
+      "bytes": 1898,
+      "sha256": "c1a342954e8e9eb2b4cf971599ee639b667b3d60b148462644104ac68789058d"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/controls/coin-render-validation-baseline-binaries.json",
+      "bytes": 3416,
+      "sha256": "ad2490b3c9fd5b23dee3c2a29a9fc45e577a23f33ef3a6680f8abfb27490bc20"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/controls/coin-render-validation-final-binaries.json",
+      "bytes": 3181,
+      "sha256": "b075a9351438952a82f1d17872eb620ebe56224931a3eab0dab64fb637be0242"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/report-summary.json",
+      "bytes": 1135692,
+      "sha256": "33f68a00ecd6beaa07a83f2d4a64fc65f11386f45751b61d1ec2c67de5e3c743"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/rgb-before-after.json",
+      "bytes": 152789,
+      "sha256": "8bbb988858d7a3712affb335aa5cdc9200fddaec911429d59850c488d3f5596e"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/summarize.py",
+      "bytes": 13454,
+      "sha256": "2f467b438a75844e4cf19a9a69fe87e03dfc921f19b7aaf84c0104534712f794"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/camera-bgfx-opengl-1.log",
+      "bytes": 4172,
+      "sha256": "4f55b23107dcc36ea8c68e859f9a53f68cd0a6ada5bad2057e13eb22482eba09"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/camera-bgfx-vulkan-1.log",
+      "bytes": 4177,
+      "sha256": "f5de076007428c7e739d1b7366a31b7d3c8fbb3eab801b28e7e00ed2f284ecc4"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/camera-coingl-1.log",
+      "bytes": 3916,
+      "sha256": "64bac683b7a77626af3bcbb23d9df6fd42b4721153fbb24afaa3105147027df2"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/camera-wgpu-vulkan-1.log",
+      "bytes": 4179,
+      "sha256": "ebe873b56379f3a48c45c6fac18bcc0929e2c89bc76f2ff0df988325dd8f1a64"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/geometry-10-bgfx-opengl-1.log",
+      "bytes": 4218,
+      "sha256": "f0e821cd11d6419f446cb99e187ee432d7d880286fd51fa0082a721197ad64bb"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/geometry-10-bgfx-vulkan-1.log",
+      "bytes": 4226,
+      "sha256": "db91669256d5ab818897abd9d74cf003cb58859f4a48f59dcb069ff10c93707f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/geometry-10-coingl-1.log",
+      "bytes": 3965,
+      "sha256": "5b345e2d22fe8accd29d3827c98e3e531aeb503affb7afcf29e644cc7609d5db"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/geometry-10-wgpu-vulkan-1.log",
+      "bytes": 4247,
+      "sha256": "46541a3208278c187e74b73ecd5b7499af45c72a4d4085724ab0716d009b850f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/geometry-100-bgfx-opengl-1.log",
+      "bytes": 4230,
+      "sha256": "f8bb67387bcd4f2caa1fcf11ec4a417b02e0fdbd21762746ae77fc373a604e9c"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/geometry-100-bgfx-vulkan-1.log",
+      "bytes": 4235,
+      "sha256": "b0a8c03672658c81945766b9643c84d473c9a197ff5c242895211a4eef94f54c"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/geometry-100-coingl-1.log",
+      "bytes": 3979,
+      "sha256": "c004b16c2c48e84ab06536b12186e48ac47288b0e28104e7c2078de65cfa715a"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/geometry-100-wgpu-vulkan-1.log",
+      "bytes": 4259,
+      "sha256": "54ab231f3d4c4776240f1da2fecf9fc3ce0350e661a3a7acee020d3e8b38033b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/materials-10-bgfx-opengl-1.log",
+      "bytes": 4227,
+      "sha256": "0c05fd670ac29215f03b20c05952ab68628ba95109eec5e42f19ad767b15ca52"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/materials-10-bgfx-vulkan-1.log",
+      "bytes": 4237,
+      "sha256": "ab13a1e67f8a9e53e5cae039c758825c2ff16d2c208d7a66181b046852c3ee6f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/materials-10-coingl-1.log",
+      "bytes": 3980,
+      "sha256": "721fd043a417542264f9cc5ece2056f4655e4db973b6b2f0c815c82aa38e0a5b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/materials-10-wgpu-vulkan-1.log",
+      "bytes": 4256,
+      "sha256": "fbe4860a91f0b5d612d4e653f9a275e592c7f22190f91940f2d5864327d1d33d"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/static-bgfx-opengl-1.log",
+      "bytes": 4175,
+      "sha256": "126dfbeaecc7419c4d1c4165e2d7902f5114fb5200e3082f3d77a33ef4e67747"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/static-bgfx-vulkan-1.log",
+      "bytes": 4177,
+      "sha256": "d135f621a07729f49171baaf9a887ed8e6543bed4ad39692e36dd6f7fa388d76"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/static-coingl-1.log",
+      "bytes": 3907,
+      "sha256": "0ec29ba7204fe811ef72c5643c3a9e358160d7c87a673e2d71ac1d732e6f1070"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/static-wgpu-vulkan-1.log",
+      "bytes": 4190,
+      "sha256": "d605825d4fdf9feba7783031a4be1871118fee59f8262b2d820320dbead0fef8"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/transforms-10-bgfx-opengl-1.log",
+      "bytes": 4240,
+      "sha256": "4b757c0b5328116c40eed83d4a069d537a0e30f1b37fbcc0109e505d29ef94d9"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/transforms-10-bgfx-vulkan-1.log",
+      "bytes": 4246,
+      "sha256": "09b7c6e21c83e531d04eb7bd0b5091fef8969f7324d811123639d381ea196198"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/transforms-10-coingl-1.log",
+      "bytes": 3982,
+      "sha256": "0a687eb6a2c09da396468b708f67df2d6a0b8c8f6a59ce5824fb2643130d60d0"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/logs/transforms-10-wgpu-vulkan-1.log",
+      "bytes": 4260,
+      "sha256": "0dd3177422170531bef94990fa5b99ee26854284bd159215c25540e683da8908"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/manifest.json",
+      "bytes": 29220,
+      "sha256": "54552c12b124242d0f4e7717a5bef5c657cc168331bb2fb122255c2f585be459"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/medians.json",
+      "bytes": 27021,
+      "sha256": "92d337009f44c95a83c8ecf1bc5ab073b9862185bdb4e8119e590a43a63356f5"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/results.json",
+      "bytes": 36193,
+      "sha256": "897d8ceb0841daa22f7f7aeffb463b43115148ecd330a4324585e2a4aaf2f321"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/camera-bgfx-opengl-1.csv",
+      "bytes": 727,
+      "sha256": "2673cdac67668e31d264c196ac92db76643436d40f7d3b33ed94454574e3a52a"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/camera-bgfx-vulkan-1.csv",
+      "bytes": 695,
+      "sha256": "a9ea9e0c748110ae2f7149918e415bf7da1fbf46fb215a407df16b2fbe9c9704"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/camera-coingl-1.csv",
+      "bytes": 659,
+      "sha256": "4428117f322e3e8ec88a8999a10967c4825bc77f5d629dc16d6cbeb53d7708aa"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/camera-wgpu-vulkan-1.csv",
+      "bytes": 679,
+      "sha256": "fd65d25e1afb6a0f54b0b34ee66ac86c8b2ae69bca7f1b50120d241eb17cdfb5"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/geometry-10-bgfx-opengl-1.csv",
+      "bytes": 701,
+      "sha256": "3b0238c03fc1937ec3827b599b468ab7e031e774042bd5f602edfcece8c9c081"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/geometry-10-bgfx-vulkan-1.csv",
+      "bytes": 733,
+      "sha256": "e189585eeaf3670bc8b2943ee7bd33115ac909530e2d7c97ad0bd87e3514ad5e"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/geometry-10-coingl-1.csv",
+      "bytes": 671,
+      "sha256": "098fe617749d7eb065f6fde81e6dcd239142465c52822c9ec14cbdd99848a9e8"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/geometry-10-wgpu-vulkan-1.csv",
+      "bytes": 684,
+      "sha256": "0f3a110863e9843138991d1395db7154e7654e8060deca0feeeb3dd22e55b683"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/geometry-100-bgfx-opengl-1.csv",
+      "bytes": 710,
+      "sha256": "0a320b38fc316209a94dcf59a6b61b9f9478fea5bd682467ee6015e617385ea0"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/geometry-100-bgfx-vulkan-1.csv",
+      "bytes": 731,
+      "sha256": "448f75de935fd197fad9b74d817d8c3e4d688a6cedc2fb561ffdd7184c512708"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/geometry-100-coingl-1.csv",
+      "bytes": 669,
+      "sha256": "17b1ef2f9850b9555e58fb873dbc5a915c3848eb891a1deb9ffb92d3933ebe8e"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/geometry-100-wgpu-vulkan-1.csv",
+      "bytes": 643,
+      "sha256": "f7db072a77bd60978c34f6c9f54ffbdb0a06e90406eff0206a5c808d7344ad94"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/materials-10-bgfx-opengl-1.csv",
+      "bytes": 751,
+      "sha256": "0fcf804e0e5d6512e89ce17c4ac9351fcc2ee253aacc3bf5c6fee481ca90a7ae"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/materials-10-bgfx-vulkan-1.csv",
+      "bytes": 713,
+      "sha256": "c25ab7116dc3707560e6033eb8f76579330bba32dd44e9141c4e313f1ed9ce60"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/materials-10-coingl-1.csv",
+      "bytes": 627,
+      "sha256": "a8078ad8882e45f20523dbc6280f41985acd0f27b7673f98f1ffa3edfa9166d9"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/materials-10-wgpu-vulkan-1.csv",
+      "bytes": 658,
+      "sha256": "b93bb4a15b36e912ce3b4fe37eabbfe1524d92cf79fd0eefae89f1820ff7aee1"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/static-bgfx-opengl-1.csv",
+      "bytes": 725,
+      "sha256": "2c8fb27bacd694bbca28da70930b4835d0be33509228c5d78a40e8df232e05e8"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/static-bgfx-vulkan-1.csv",
+      "bytes": 721,
+      "sha256": "f9c68591917547baad44be136870a273cc36bab86f9b2b5870d97225975921d8"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/static-coingl-1.csv",
+      "bytes": 677,
+      "sha256": "f649dd47b8dbf22468103cfccadde5959d616c3e17801633ce64a36d59e8fb5d"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/static-wgpu-vulkan-1.csv",
+      "bytes": 703,
+      "sha256": "4d93c7bde671be6a00902db2925dc3d1ba9b1b65626f570fb1d8cfde2fd04729"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/transforms-10-bgfx-opengl-1.csv",
+      "bytes": 683,
+      "sha256": "a539295d189c7a227ae212221469dba231e82a2942afc98d00d399316831f166"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/transforms-10-bgfx-vulkan-1.csv",
+      "bytes": 703,
+      "sha256": "b2938c214d8569660a443db3d56584be81d4fa48213010c92330908a580dcb55"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/transforms-10-coingl-1.csv",
+      "bytes": 619,
+      "sha256": "5b53c4d2b423e448fe18cc10df52f01c110e69ee23bcccd810cd76a38d8f4079"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-after/samples/transforms-10-wgpu-vulkan-1.csv",
+      "bytes": 642,
+      "sha256": "391b54bb93db6f4866614f6f3c238d67f17fb049b969acc4fe0847d0afde11e6"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/camera-bgfx-opengl-1.log",
+      "bytes": 4132,
+      "sha256": "7f3782465a325996e892dcb3048e457b03f3497b8ba3c5bd1e5f7a5b2024a8a7"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/camera-bgfx-vulkan-1.log",
+      "bytes": 4135,
+      "sha256": "8957d0af86687ea2599082545a0bbc184b48e83600e8ec9f13c7850f1ba4f44a"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/camera-coingl-1.log",
+      "bytes": 3879,
+      "sha256": "7fc32b0297c5a7e1d7ca54b3b9fac449b40f7fcaa6d5b9f203327da57eb4ade0"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/camera-wgpu-vulkan-1.log",
+      "bytes": 4144,
+      "sha256": "855e6c0f80637ff5253e776e34ff07237bfbed3fe662818893c2b1e427fd8138"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/geometry-10-bgfx-opengl-1.log",
+      "bytes": 4183,
+      "sha256": "806c984d0a34adcf8d7d6caa397c8aa4032913d829e4f9f3441af38dcf4f1862"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/geometry-10-bgfx-vulkan-1.log",
+      "bytes": 4188,
+      "sha256": "a13a754ad43c0cd8c3db8e45abea0a23c5cd283af285aa8366b07c9f0013df81"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/geometry-10-coingl-1.log",
+      "bytes": 3926,
+      "sha256": "bef2b4b2dc8d0c56b3b891caa29846d9363b4a10becbd6551d41fadc0c484e4f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/geometry-10-wgpu-vulkan-1.log",
+      "bytes": 4207,
+      "sha256": "66b38f8a9296d3c78132df5bd0572964b90133cbe6180d0a5f6733006b5945ab"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/geometry-100-bgfx-opengl-1.log",
+      "bytes": 4192,
+      "sha256": "d799b1fbe60f73dd893c8ae29674912a4ffbacbf0832fc7538f2471f64256471"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/geometry-100-bgfx-vulkan-1.log",
+      "bytes": 4197,
+      "sha256": "49722cc7c7454526abc6261751f57b6ecb922c1c0658882b40413433ea55e39b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/geometry-100-coingl-1.log",
+      "bytes": 3945,
+      "sha256": "faf4a2f7df78b0d161ce8f17cdc409b1e22ad32cb53c5cb0c10a193b02f2068e"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/geometry-100-wgpu-vulkan-1.log",
+      "bytes": 4221,
+      "sha256": "fc0eab3bd94e69a1afdf02d944f7e486c7e2cde78a8eb8e6b946319c7a7b525d"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/materials-10-bgfx-opengl-1.log",
+      "bytes": 4195,
+      "sha256": "41102126685f34bf337c499fa9c2db8a2a5cb5285aaab24da9312262a4abfbdf"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/materials-10-bgfx-vulkan-1.log",
+      "bytes": 4199,
+      "sha256": "63712f8fad5d999869f08b5513dcda3424938bc3b42d52472a44aca4f39da351"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/materials-10-coingl-1.log",
+      "bytes": 3932,
+      "sha256": "0779c10b56dcd6ab297e9796c269ef800d0ddb3470fdca86cbc960234710199f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/materials-10-wgpu-vulkan-1.log",
+      "bytes": 4218,
+      "sha256": "2a27699b877913bcaacfdf746f0aa1343647d738569728f3db1ef2a66ac180db"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/static-bgfx-opengl-1.log",
+      "bytes": 4123,
+      "sha256": "3fedcca83d6efe15cae66b899a4e00ce9c8dd6eb6c9e059ced0bd1904c58d66f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/static-bgfx-vulkan-1.log",
+      "bytes": 4130,
+      "sha256": "92a75c9c92a04b7862754fd2c0e5e3e587d1087abbb29499c30be264b73e8c00"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/static-coingl-1.log",
+      "bytes": 3868,
+      "sha256": "f5901817bfff6d2b2f0a2db921d85a35142827f3397ee61a4480441bbb31b52e"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/static-wgpu-vulkan-1.log",
+      "bytes": 4148,
+      "sha256": "6e9a5f40b114792d2385b939ee1389e78026e5fa50117c37ab579789ed34a8ec"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/transforms-10-bgfx-opengl-1.log",
+      "bytes": 4200,
+      "sha256": "bfa795a10afe782cdf16685f39041b9123f11f54a1dd2e64e842f1079d46fed8"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/transforms-10-bgfx-vulkan-1.log",
+      "bytes": 4202,
+      "sha256": "1c4bd052d1ff4e286db5b20def06275446416344d086bd09c06b0714d682a223"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/transforms-10-coingl-1.log",
+      "bytes": 3941,
+      "sha256": "c51c23b22e0460c358df83c84045632adf1df4d0550c6a3408eccac35515428d"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/logs/transforms-10-wgpu-vulkan-1.log",
+      "bytes": 4226,
+      "sha256": "e92269a8cfe8476995daa3291fb13933aa211193b6a47fd4e2a6f11f171ecd72"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/manifest.json",
+      "bytes": 28828,
+      "sha256": "0a9bbdcc37c01ec33edb2674f5fa657f3f2c2198b25ab43b9a5729fb39416171"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/medians.json",
+      "bytes": 27010,
+      "sha256": "9d6660e7f147efcf396bfbc5d7e088523b66b5c02dd7246f0c0fd63e0191f603"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/results.json",
+      "bytes": 36182,
+      "sha256": "a4b471699f8669aab1fa029c536d3b9273c7e63bc440b482b9102ebf3a5116bb"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/camera-bgfx-opengl-1.csv",
+      "bytes": 713,
+      "sha256": "7e4e5b80b246653a2b47228a6be2e2364762ab533a97df3f9a8c05673c7973dd"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/camera-bgfx-vulkan-1.csv",
+      "bytes": 747,
+      "sha256": "6a0fb15a38aff0a489537f901dade4d2d65e2b5cdba5c3a2208e17e5f070600e"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/camera-coingl-1.csv",
+      "bytes": 641,
+      "sha256": "06d3ddb0803cdf1863d30023627af99bbea09f0e2bdb99bc72a26b6cca14700b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/camera-wgpu-vulkan-1.csv",
+      "bytes": 660,
+      "sha256": "875b44b13ccbc2309e5a4edb50fa03bd128efe63e3bb9e382bd1941a9edf92be"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/geometry-10-bgfx-opengl-1.csv",
+      "bytes": 735,
+      "sha256": "382bd56da04bb39384c70eb51ba6df14a20f44033b6b17e10408dec9b59cc0d0"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/geometry-10-bgfx-vulkan-1.csv",
+      "bytes": 723,
+      "sha256": "2b3b2f279fc88e9808ebb38e90d87dfc4893bfb049f567295df8f9c43991de68"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/geometry-10-coingl-1.csv",
+      "bytes": 612,
+      "sha256": "8fea408aa0aff0545b0d29ee1065ce7d8a82198ccd2ea6f5757a784a71d60962"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/geometry-10-wgpu-vulkan-1.csv",
+      "bytes": 685,
+      "sha256": "9f3940d4e61e911d588ffac6593ba2e580ca8e29b878f951da672efbe602963a"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/geometry-100-bgfx-opengl-1.csv",
+      "bytes": 729,
+      "sha256": "c9be5d76898a495beb0bd46a8cf0a9a26825bff3051feb8b601074eff864816c"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/geometry-100-bgfx-vulkan-1.csv",
+      "bytes": 700,
+      "sha256": "83461ac403eaeea7dc8db127cf1433771a14f98da5ea9fd4a607edba63da5164"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/geometry-100-coingl-1.csv",
+      "bytes": 672,
+      "sha256": "0d83999bdf09828a52c16a630596c9f4ddac3a6e7c09b2c6d51853b56412cb83"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/geometry-100-wgpu-vulkan-1.csv",
+      "bytes": 691,
+      "sha256": "9572dd34b667feb4bd0b0c416904d0d8fd9996bb7a90e1b8798dd8fa717e1305"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/materials-10-bgfx-opengl-1.csv",
+      "bytes": 731,
+      "sha256": "ef23beb5b634251d0bc5cff923674aae6c818dba667c5b385be544957595c041"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/materials-10-bgfx-vulkan-1.csv",
+      "bytes": 739,
+      "sha256": "bc4586de93d8b7b9e6edae1502fb2d19eb98c854ef0eaf94c5194acf6973a1d1"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/materials-10-coingl-1.csv",
+      "bytes": 658,
+      "sha256": "8a98633be55339d0cfcfa4a2a5715f42d126d06c45452744e45f209bf407c6af"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/materials-10-wgpu-vulkan-1.csv",
+      "bytes": 639,
+      "sha256": "cf910e750cf381f345de98ff2d9dfa6fd82fdc9ba42295424aec5a6a39e66c7a"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/static-bgfx-opengl-1.csv",
+      "bytes": 747,
+      "sha256": "f9d1f8877d95fc2b9e78a2a4c6df4f057ea7b1881ec40a0f5989a6ef56d2b054"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/static-bgfx-vulkan-1.csv",
+      "bytes": 676,
+      "sha256": "17723614d5d2d1c66a5a7b174e2b64b63c61431ff2e71dbe352c3393a2b412c4"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/static-coingl-1.csv",
+      "bytes": 724,
+      "sha256": "b3a21adde3aebafdd0ea330898f1cdd4723fcd0cb5f156132567a15ee895ad72"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/static-wgpu-vulkan-1.csv",
+      "bytes": 679,
+      "sha256": "36549de071219d543dfb6fd392dad478723acef39acda7637f67e83f3a7ab099"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/transforms-10-bgfx-opengl-1.csv",
+      "bytes": 692,
+      "sha256": "e319dffd2ae2466f75f3cbf21f6b8381b408e43e62eb058460393d70f1d20477"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/transforms-10-bgfx-vulkan-1.csv",
+      "bytes": 733,
+      "sha256": "0cb422e96451294890a546a952c56082b466c86ebd692c9145a6dc79d5df58b8"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/transforms-10-coingl-1.csv",
+      "bytes": 648,
+      "sha256": "64e376601be0eb3b875e94aef907ca665b19791e6976038bad4222d621f59110"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen/verify-before/samples/transforms-10-wgpu-vulkan-1.csv",
+      "bytes": 698,
+      "sha256": "8451d22804e2a0acbb7b18bec999e4cb676d0ea3ea47d1a19a28149dc0433bb7"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/offscreen-run.log",
+      "bytes": 11119,
+      "sha256": "109bb85abf4d5c953747e0c4baba79c1d06f2ef6eb9df2c7110eeb93cff91eea"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/plot-and-report.py",
+      "bytes": 14121,
+      "sha256": "648abd10c20c36f7c7d15cd8ec99a2564f6e2076dd816eb5e6a9087c12314cc4"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/run-campaigns.py",
+      "bytes": 2165,
+      "sha256": "6aa6e865fcd22fd797b8e9c5f0b512cf87816756ea1a8216704258da0c6e202c"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stage-metadata.json",
+      "bytes": 977,
+      "sha256": "ccf4f8e87519bc0cc6ea5099b1acc109a2dddbf38ed8940fe5a017582e2566d6"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/logs/geometry-100-bgfx-opengl-1.log",
+      "bytes": 2460,
+      "sha256": "763aef05eb97a2cf57f815a16ad8e75291af59cc4ed9499578569711075ed257"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/logs/geometry-100-bgfx-opengl-2.log",
+      "bytes": 2465,
+      "sha256": "b86b5f1522aa53c9e8161c9bf88039d884561d190fc376f510353f198b916cee"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/logs/geometry-100-bgfx-opengl-3.log",
+      "bytes": 2450,
+      "sha256": "50e864978a0ad68e46b538af6d3ef5692207d66e5d341e276ea75d1103962b3a"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/logs/geometry-100-bgfx-vulkan-1.log",
+      "bytes": 2464,
+      "sha256": "5d6d151bb56ab2728d3bc904bbd4505b03db853cf3dadbf072dbdeefd10b2298"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/logs/geometry-100-bgfx-vulkan-2.log",
+      "bytes": 2454,
+      "sha256": "808461047b97477c2545558bdb92f6e8695a582d6d575debc204f3fcb9066144"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/logs/geometry-100-bgfx-vulkan-3.log",
+      "bytes": 2458,
+      "sha256": "7a2cc0b4e37de66d13e4b3e731f816679ff97c782d9f5c3e7df8419ba71fd929"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/logs/geometry-100-coingl-1.log",
+      "bytes": 2311,
+      "sha256": "e36474019d04720e155e208eb21dda6f4a677667816b4157042cdba1082ba82f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/logs/geometry-100-coingl-2.log",
+      "bytes": 2308,
+      "sha256": "3401b2e6e5a67baa1385425c8b97b717dfea8cb380c32e43adf390af162a143f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/logs/geometry-100-coingl-3.log",
+      "bytes": 2311,
+      "sha256": "dfa2a56ca299df3f2f241edf10fd926e1101938c6157a6cc2d1b72f724faaf19"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/logs/geometry-100-wgpu-vulkan-1.log",
+      "bytes": 2551,
+      "sha256": "594f0668ca083f98c9331ecb6259b1b0d1429b3b90a7b7ce3ca69d4bb322aa9c"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/logs/geometry-100-wgpu-vulkan-2.log",
+      "bytes": 2556,
+      "sha256": "5614c36be5889d7dd790f8a2e8b7ac19e82d52348351f0a81fc96d62df15a294"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/logs/geometry-100-wgpu-vulkan-3.log",
+      "bytes": 2555,
+      "sha256": "0e7c4a0632c001031d5b9cc71169358c42e20f95444c00e86af85fc9c297b20a"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/manifest.json",
+      "bytes": 20586,
+      "sha256": "65608492dc754e23cfe880e97aaa32666856f9f22b88c20ec103cd4e2504a697"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/medians.json",
+      "bytes": 4566,
+      "sha256": "8c75a06db40c66d5194dcdd53f08ed4e8b4bd890e50dfd10b0f77b222af199f2"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/results.json",
+      "bytes": 18373,
+      "sha256": "685b58f7cdd0dd2e37a90946484371a0741b415021d09caa1328e88b92fbb0bc"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/samples/geometry-100-bgfx-opengl-1.csv",
+      "bytes": 943,
+      "sha256": "6e94397e82a1a4cc59255e1e223d2bbb49cf0f0bc685189c2a3caa41ecada5f1"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/samples/geometry-100-bgfx-opengl-2.csv",
+      "bytes": 957,
+      "sha256": "4790f85caa5917c978a7921d3de4e4208a0cf20d8f08a58af7752bbbec02d523"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/samples/geometry-100-bgfx-opengl-3.csv",
+      "bytes": 951,
+      "sha256": "2c3deb576cec5671ef8cbfad0c53e0308337255a05dfac1d4f350d4856753ef0"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/samples/geometry-100-bgfx-vulkan-1.csv",
+      "bytes": 986,
+      "sha256": "0840e1b9476b86b3ace86ccb21cc41f0605aa9c60f0d795df4cabe1656396baa"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/samples/geometry-100-bgfx-vulkan-2.csv",
+      "bytes": 957,
+      "sha256": "c80ab59a5d8ea834b4ce643f3f4dd33c1f5c2b0e14ea054b06eecd21a27b5dcb"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/samples/geometry-100-bgfx-vulkan-3.csv",
+      "bytes": 971,
+      "sha256": "777847cc6bc76e7ef2d7dd34bb6b119e5c213a3d8db25106c7c026fe77a892f3"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/samples/geometry-100-coingl-1.csv",
+      "bytes": 920,
+      "sha256": "e226044f149431d9e00cd843d80605a2e3c900310ef35f185b909a5e89e7699a"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/samples/geometry-100-coingl-2.csv",
+      "bytes": 915,
+      "sha256": "08fe30266ce18e9c81f8428a95298e468cf92e7e58e889a1b8741c439d87cef9"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/samples/geometry-100-coingl-3.csv",
+      "bytes": 923,
+      "sha256": "6529b64c868cae7b83ee31dabb68378976abfc8462b0250ee38674bae4aeb49c"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/samples/geometry-100-wgpu-vulkan-1.csv",
+      "bytes": 901,
+      "sha256": "78c268ece51bfcc6e54f61419dd7886e902c21b25c5e5db67bc6735e38fdd748"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/samples/geometry-100-wgpu-vulkan-2.csv",
+      "bytes": 922,
+      "sha256": "724b5c541d64685348bc7b63dbbcedf2cca916c191b9d11fbd9f84db3fc4deef"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/after/samples/geometry-100-wgpu-vulkan-3.csv",
+      "bytes": 941,
+      "sha256": "f0c951a46e9f144a1b63d78779479f4cb680bf1aba31b67e5a74f99b51cb0d2f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/analyze_animation_images.py",
+      "bytes": 4587,
+      "sha256": "ab2d85a2a60aa883a5f92fc1ca9d089ab50aed6451dc79fcc48a919c771cf556"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/archive-manifest.json",
+      "bytes": 16886,
+      "sha256": "b56d1bfc8282cef8fa9bf86f619500da36d6f0decc6f7508e08498be56dcc488"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/logs/geometry-100-bgfx-opengl-1.log",
+      "bytes": 2460,
+      "sha256": "cd4777484eb9126d49a2e63a1bd2e84f349e47dc4692ebfe36ed784e89b6757d"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/logs/geometry-100-bgfx-opengl-2.log",
+      "bytes": 2459,
+      "sha256": "61fe6b24ee22064b68d7260159074071d00c9760eeedcc1cb4d56595115f98ab"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/logs/geometry-100-bgfx-opengl-3.log",
+      "bytes": 2464,
+      "sha256": "de71f55dee4a2b50e18cecf8f38b563d3509a520684480bf80e6bd895e1399b7"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/logs/geometry-100-bgfx-vulkan-1.log",
+      "bytes": 2465,
+      "sha256": "0a09773dfce34b43a34d4108a721162a21cb36272ed151d0536b25d2c59d2c66"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/logs/geometry-100-bgfx-vulkan-2.log",
+      "bytes": 2463,
+      "sha256": "89fb011849315f5e19ca267b5ace594a57f8c7bf3111c5746864cf91aba86323"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/logs/geometry-100-bgfx-vulkan-3.log",
+      "bytes": 2464,
+      "sha256": "dbb28e4720f700a7ac5b576929eb2367131b157380e75052c9a0f7ba798ceef1"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/logs/geometry-100-coingl-1.log",
+      "bytes": 2311,
+      "sha256": "e36474019d04720e155e208eb21dda6f4a677667816b4157042cdba1082ba82f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/logs/geometry-100-coingl-2.log",
+      "bytes": 2308,
+      "sha256": "3401b2e6e5a67baa1385425c8b97b717dfea8cb380c32e43adf390af162a143f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/logs/geometry-100-coingl-3.log",
+      "bytes": 2311,
+      "sha256": "dfa2a56ca299df3f2f241edf10fd926e1101938c6157a6cc2d1b72f724faaf19"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/logs/geometry-100-wgpu-vulkan-1.log",
+      "bytes": 2554,
+      "sha256": "9c366603413ad6d454695e84610a5d352832260e662fc02a82b2170d389fd908"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/logs/geometry-100-wgpu-vulkan-2.log",
+      "bytes": 2556,
+      "sha256": "a64be72eff276e6c7565a542547aef8cc224877f7287e8869d28b7db699908d1"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/logs/geometry-100-wgpu-vulkan-3.log",
+      "bytes": 2559,
+      "sha256": "8926ac5e31c8e23f2e161d0a61e2c06c866f82a2e966438b718b4eee5532f7b0"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/manifest.json",
+      "bytes": 20798,
+      "sha256": "45adde36dad9983ebdc413a56f3ab8f4398c2c8291bfed407b9d474a5c7fc400"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/medians.json",
+      "bytes": 4562,
+      "sha256": "5f3b474c04cf9bd013a5e0b362aac6a71358aa26484b1e6845a5573014eb965f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/results.json",
+      "bytes": 18370,
+      "sha256": "e5e4daff349c01a6a9b77db362696346d48755983b9253c48493f15f18b7b489"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/samples/geometry-100-bgfx-opengl-1.csv",
+      "bytes": 967,
+      "sha256": "cec6fff0033637187ca5ac65bf2a72ab15a9ec37e1c9ab787664877654f4c3e6"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/samples/geometry-100-bgfx-opengl-2.csv",
+      "bytes": 981,
+      "sha256": "ad0b874e2e4fb01b69e48b0dc25f9d328e0b01f059a1e57a7ef17558bc58eed5"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/samples/geometry-100-bgfx-opengl-3.csv",
+      "bytes": 988,
+      "sha256": "08d94a765596f99b9891f23ab2a04527da738150e5d6ac108328bd4c198a9861"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/samples/geometry-100-bgfx-vulkan-1.csv",
+      "bytes": 989,
+      "sha256": "88cc683791d74f46639f96750f0da061c50a6db6bf521cdd035c03b328ff8fa7"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/samples/geometry-100-bgfx-vulkan-2.csv",
+      "bytes": 973,
+      "sha256": "9fe7b036927ff50c42ba96e2b6ded1d934b048dac47910a2f4d878e04a2e374f"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/samples/geometry-100-bgfx-vulkan-3.csv",
+      "bytes": 983,
+      "sha256": "79d5f0049aeea11612a24fe1d181f315d2f599f8ec7383064f550444b020e234"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/samples/geometry-100-coingl-1.csv",
+      "bytes": 920,
+      "sha256": "e226044f149431d9e00cd843d80605a2e3c900310ef35f185b909a5e89e7699a"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/samples/geometry-100-coingl-2.csv",
+      "bytes": 915,
+      "sha256": "08fe30266ce18e9c81f8428a95298e468cf92e7e58e889a1b8741c439d87cef9"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/samples/geometry-100-coingl-3.csv",
+      "bytes": 923,
+      "sha256": "6529b64c868cae7b83ee31dabb68378976abfc8462b0250ee38674bae4aeb49c"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/samples/geometry-100-wgpu-vulkan-1.csv",
+      "bytes": 940,
+      "sha256": "6c92d56844dc1d8e3389a03235c29351a694701218ac4aaea1db6c74c7920e1b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/samples/geometry-100-wgpu-vulkan-2.csv",
+      "bytes": 907,
+      "sha256": "e840045a27b84b7d5096d9a1dcbbae31ca7de51c09561a209a4f956a83b5f0ec"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/before/samples/geometry-100-wgpu-vulkan-3.csv",
+      "bytes": 880,
+      "sha256": "3463fd531c198c4c14d673101778ebd01c5a5ce844228e0451442e61c92d5a59"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/campaign_core.py",
+      "bytes": 34538,
+      "sha256": "d5bda1398da0889130c18d46877b192a92c479a7dcc3f3adc3b91c8416eb4f04"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/controls/coin-render-state-coingl-binaries.json",
+      "bytes": 1898,
+      "sha256": "c1a342954e8e9eb2b4cf971599ee639b667b3d60b148462644104ac68789058d"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/controls/coin-render-validation-baseline-binaries.json",
+      "bytes": 3416,
+      "sha256": "ad2490b3c9fd5b23dee3c2a29a9fc45e577a23f33ef3a6680f8abfb27490bc20"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/controls/coin-render-validation-final-binaries.json",
+      "bytes": 3181,
+      "sha256": "b075a9351438952a82f1d17872eb620ebe56224931a3eab0dab64fb637be0242"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/report-summary.json",
+      "bytes": 152018,
+      "sha256": "75d63b1c246055266139b7140e9fc56eed6b65ea337033a8370e244e3b5f3145"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress/summarize.py",
+      "bytes": 13454,
+      "sha256": "2f467b438a75844e4cf19a9a69fe87e03dfc921f19b7aaf84c0104534712f794"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/stress-run.log",
+      "bytes": 2382,
+      "sha256": "49e5a827bd628ec0c892bb08a425f4b136dc0d227127e89092c4af1fc3017a0c"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/tests/bgfx-frame-core.log",
+      "bytes": 31,
+      "sha256": "81d0a84158b32bef472f2e051ddde58b3e46fbc470c79b6331a89cc3acb5745a"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/tests/bgfx-opengl-CoinRenderCompositionTest.log",
+      "bytes": 33,
+      "sha256": "dfdaaeeb8db6795afd7e5137b563827b4af3e3ef8bb0c96de8bfd0e0490e1686"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/tests/bgfx-opengl-CoinRenderMultitextureTest.log",
+      "bytes": 127,
+      "sha256": "689e064297a3c96648850ae72db495a2393da0ca23c7f4a485bbc61dec749ddb"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/tests/bgfx-opengl-CoinRenderTextureTest.log",
+      "bytes": 942,
+      "sha256": "bb9445c1b425607e8a9ef2e492e5c6b9a101cd442f7e4cc688a268a8c7ae3350"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/tests/bgfx-rtt-ctest.log",
+      "bytes": 1459,
+      "sha256": "1e48aa5dea9838e9ae0b504d5d692c36b27fc01b2d5107b0784d1a01f742ec32"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/tests/bgfx-rtt.log",
+      "bytes": 434,
+      "sha256": "4c007ed70c7f85c9f6962689b0d4c6a8fe56149d544c7f4d9dc33f7a645d7b9e"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/tests/bgfx-vulkan-CoinRenderCompositionTest.log",
+      "bytes": 33,
+      "sha256": "dfdaaeeb8db6795afd7e5137b563827b4af3e3ef8bb0c96de8bfd0e0490e1686"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/tests/bgfx-vulkan-CoinRenderMultitextureTest.log",
+      "bytes": 127,
+      "sha256": "689e064297a3c96648850ae72db495a2393da0ca23c7f4a485bbc61dec749ddb"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/tests/bgfx-vulkan-CoinRenderTextureTest.log",
+      "bytes": 942,
+      "sha256": "bb9445c1b425607e8a9ef2e492e5c6b9a101cd442f7e4cc688a268a8c7ae3350"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/tests/build-bgfx.log",
+      "bytes": 3369,
+      "sha256": "f48223a5c4672809b67b1295622113a193a8a8da6255d4b448c0a83033f8b440"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/tests/build-wgpu.log",
+      "bytes": 3438,
+      "sha256": "a6d10d3af11fb62735ed9b10f0ca98edabefb62987c2c527f0efdb1a1c9f2f90"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/tests/clipping-reference.log",
+      "bytes": 73,
+      "sha256": "e4176bf3f5abc34d2640d5d0d1a9cb8b9657352b76d654a2b7d1dbcc55b2147d"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/tests/commands.json",
+      "bytes": 17048,
+      "sha256": "e9419a1e1f09328826b4d127c35e8ee35b7310732a9ce67aaa963149b87ee565"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/tests/composition-cpu.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/tests/cpu-ctest.log",
+      "bytes": 4672,
+      "sha256": "2aba6052179fb4fd17fb1772f5659a9d57e7e76ce53410646a7ef29e6f3b8b52"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/tests/cpu.log",
+      "bytes": 961,
+      "sha256": "87acc3bf657f19dd69e9964f90d483b76771e0b8acf947eff415a197d1fa7fe8"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/tests/run-gates.log",
+      "bytes": 1060,
+      "sha256": "866450ca7b6d3bd84b4ee56cb826d064ba8f0004e045939da0cd14c689c8887b"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/tests/run-gates.py",
+      "bytes": 3997,
+      "sha256": "500ff502044d1e5153008ff0fc5ab88263668fc93430320f9762de8df9cdde25"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/tests/wgpu-camera-rtt-ctest.log",
+      "bytes": 3847,
+      "sha256": "64e8087e206da7dc99f748c8b939d6674fb8b3174e2cce4d5e35a4ac329b0683"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/tests/wgpu-camera-rtt.log",
+      "bytes": 446,
+      "sha256": "751e3cd6fd274f02128c3e9860ab384ad3a50a14b32e7234aaabeb6b6ed87138"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/tests/wgpu-vulkan-CoinRenderCompositionTest.log",
+      "bytes": 33,
+      "sha256": "dfdaaeeb8db6795afd7e5137b563827b4af3e3ef8bb0c96de8bfd0e0490e1686"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/tests/wgpu-vulkan-CoinRenderMultitextureTest.log",
+      "bytes": 127,
+      "sha256": "689e064297a3c96648850ae72db495a2393da0ca23c7f4a485bbc61dec749ddb"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/tests/wgpu-vulkan-CoinRenderTextureTest.log",
+      "bytes": 942,
+      "sha256": "bb9445c1b425607e8a9ef2e492e5c6b9a101cd442f7e4cc688a268a8c7ae3350"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/validation-programs.png",
+      "bytes": 93264,
+      "sha256": "a873235e1292eac38e8166197b7fb49a48423c772bf06024198dbabd977f8d29"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/validation-programs.svg",
+      "bytes": 78326,
+      "sha256": "317bbca0cccdb50c2bbfd4713b1aad87fe391d913f6f57c312da98fd745b8094"
+    },
+    {
+      "path": "docs/validation/validation-programs-linux/verify-run.log",
+      "bytes": 3170,
+      "sha256": "8129c0f7689dad4be07a68efd62c609642cecf327b34eae6e5e588348917b60f"
+    }
+  ]
+}

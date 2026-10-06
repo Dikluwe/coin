@@ -1,0 +1,98 @@
+Internal ctest changing into directory: H:/Git/coin/build/coin-render-bgfx-msvc
+Test project H:/Git/coin/build/coin-render-bgfx-msvc
+      Start  13: CoinRenderActionTest
+ 1/59 Test  #13: CoinRenderActionTest .........................***Failed    2.68 sec
+Running CoinRenderActionTest...
+FAILED: path traversal must preserve the literal non-root capture without creating a camera lens (oracle.same() && oracle.action.getLastStatus() == CoinRenderAction::SUCCESS && !oracle.action.getPimpl()->cachedCamera && !oracle.action.getPimpl()->translationProofValid && oracle.counts(0, 0, 0, 0)) at H:\Git\coin\build\coin-render-source\testsuite\actions\CoinRenderActionTest.cpp:1443
+testCaptureCameraBasisReuse failed
+1 test(s) FAILED!
+
+      Start  14: CoinRenderBackendBoundaryTest
+ 2/59 Test  #14: CoinRenderBackendBoundaryTest ................   Passed    0.11 sec
+      Start  15: CoinRenderRuntimeBoundaryTest
+ 3/59 Test  #15: CoinRenderRuntimeBoundaryTest ................   Passed    0.12 sec
+      Start  16: CoinRenderPlanAssemblyCoreTest
+ 4/59 Test  #16: CoinRenderPlanAssemblyCoreTest ...............   Passed    0.15 sec
+      Start  17: CoinRenderTransformCoreTest
+ 5/59 Test  #17: CoinRenderTransformCoreTest ..................   Passed    0.12 sec
+      Start  18: CoinRenderCameraReuseReferenceTest
+ 6/59 Test  #18: CoinRenderCameraReuseReferenceTest ...........***Skipped   0.13 sec
+      Start  21: CoinRenderSelection_opengl
+ 7/59 Test  #21: CoinRenderSelection_opengl ...................   Passed    3.98 sec
+      Start  27: CoinRenderFrameCoreTest
+ 8/59 Test  #27: CoinRenderFrameCoreTest ......................   Passed    0.16 sec
+      Start  29: CoinBgfxReadbackModes_opengl
+ 9/59 Test  #29: CoinBgfxReadbackModes_opengl .................   Passed    1.95 sec
+      Start  34: CoinBgfxSurface_opengl_object
+10/59 Test  #34: CoinBgfxSurface_opengl_object ................   Passed   12.79 sec
+      Start  35: CoinBgfxSurface_opengl_weighted_oit
+11/59 Test  #35: CoinBgfxSurface_opengl_weighted_oit ..........   Passed   12.81 sec
+      Start  36: CoinBgfxSurface_opengl_sorted_layers
+12/59 Test  #36: CoinBgfxSurface_opengl_sorted_layers .........   Passed   11.74 sec
+      Start  40: CoinBgfxCoreTest
+13/59 Test  #40: CoinBgfxCoreTest .............................   Passed    0.78 sec
+      Start  41: CoinBgfxProgramSelectionTest
+14/59 Test  #41: CoinBgfxProgramSelectionTest .................   Passed    0.05 sec
+      Start  44: CoinRenderDepthContractOpenGLTest
+15/59 Test  #44: CoinRenderDepthContractOpenGLTest ............   Passed    0.62 sec
+      Start  45: CoinRenderProductOpenGLTest
+16/59 Test  #45: CoinRenderProductOpenGLTest ..................   Passed    1.16 sec
+      Start  47: CoinBgfxOpenGLTest
+17/59 Test  #47: CoinBgfxOpenGLTest ...........................   Passed    2.83 sec
+      Start  48: CoinBgfxInstancingTest
+18/59 Test  #48: CoinBgfxInstancingTest .......................   Passed    1.25 sec
+      Start  49: CoinBgfxInstancingOpenGLTest
+19/59 Test  #49: CoinBgfxInstancingOpenGLTest .................   Passed    1.80 sec
+      Start  50: CoinRenderBackendContractOpenGLTest
+20/59 Test  #50: CoinRenderBackendContractOpenGLTest ..........   Passed    0.80 sec
+      Start  52: CoinBgfxTransparencyOpenGLTest
+21/59 Test  #52: CoinBgfxTransparencyOpenGLTest ...............   Passed    2.16 sec
+      Start  54: CoinBgfxSortedLayersOpenGLTest
+22/59 Test  #54: CoinBgfxSortedLayersOpenGLTest ...............   Passed    1.60 sec
+      Start  56: CoinBgfxWeightedOitOpenGLTest
+23/59 Test  #56: CoinBgfxWeightedOitOpenGLTest ................   Passed    3.54 sec
+      Start  57: CoinRenderFrameReuseCoreTest
+24/59 Test  #57: CoinRenderFrameReuseCoreTest .................   Passed    0.81 sec
+      Start  59: CoinRenderIndexedGeometryCoreTest
+25/59 Test  #59: CoinRenderIndexedGeometryCoreTest ............   Passed    0.12 sec
+      Start  62: CoinRenderIndexedFastPathTest
+26/59 Test  #62: CoinRenderIndexedFastPathTest ................   Passed    1.68 sec
+      Start  65: CoinRenderBenchmarkAnimationTest
+27/59 Test  #65: CoinRenderBenchmarkAnimationTest .............   Passed    0.14 sec
+      Start  66: CoinRenderTextureTest
+28/59 Test  #66: CoinRenderTextureTest ........................   Passed    4.50 sec
+      Start  67: CoinRenderLightingTest
+29/59 Test  #67: CoinRenderLightingTest .......................   Passed   12.73 sec
+      Start  68: CoinRenderGouraudInterpolationTest
+30/59 Test  #68: CoinRenderGouraudInterpolationTest ...........   Passed    1.11 sec
+      Start  72: CoinRenderGouraud_opengl_object
+31/59 Test  #72: CoinRenderGouraud_opengl_object ..............   Passed    1.06 sec
+      Start  73: CoinRenderGouraud_opengl_weighted_oit
+32/59 Test  #73: CoinRenderGouraud_opengl_weighted_oit ........   Passed    0.98 sec
+      Start  74: CoinRenderGouraud_opengl_sorted_layers
+33/59 Test  #74: CoinRenderGouraud_opengl_sorted_layers .......   Passed    1.02 sec
+      Start  78: CoinRenderFogTest
+34/59 Test  #78: CoinRenderFogTest ............................   Passed   13.38 sec
+      Start  79: CoinRenderClipPlaneTest
+35/59 Test  #79: CoinRenderClipPlaneTest ......................   Passed    2.64 sec
+      Start  83: CoinRenderClipPlane_opengl_object
+36/59 Test  #83: CoinRenderClipPlane_opengl_object ............   Passed    1.64 sec
+      Start  84: CoinRenderClipPlane_opengl_weighted_oit
+37/59 Test  #84: CoinRenderClipPlane_opengl_weighted_oit ......   Passed    1.67 sec
+      Start  85: CoinRenderClipPlane_opengl_sorted_layers
+38/59 Test  #85: CoinRenderClipPlane_opengl_sorted_layers .....   Passed    1.73 sec
+      Start  89: CoinRenderDrawStyleTest
+39/59 Test  #89: CoinRenderDrawStyleTest ......................   Passed   42.93 sec
+      Start  91: CoinRenderDrawStyle_opengl
+40/59 Test  #91: CoinRenderDrawStyle_opengl ...................   Passed   54.25 sec
+      Start  93: CoinRenderMultitextureTest
+41/59 Test  #93: CoinRenderMultitextureTest ...................   Passed    7.13 sec
+      Start  95: CoinRenderMultitexture_opengl
+42/59 Test  #95: CoinRenderMultitexture_opengl ................   Passed    4.29 sec
+      Start 100: CoinRenderPeeling_opengl
+43/59 Test #100: CoinRenderPeeling_opengl .....................   Passed    3.99 sec
+      Start 101: CoinRenderOit_opengl
+44/59 Test #101: CoinRenderOit_opengl .........................   Passed    1.41 sec
+      Start 104: CoinRenderTransparencyTest
+45/59 Test #104: CoinRenderTransparencyTest ...................   Passed    7.41 sec
+      Start 106: CoinRenderTransparency_opengl

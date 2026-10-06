@@ -1,0 +1,16 @@
+startup_detail arguments_ms=0.0561 coin_init_ms=3.1504 capability_probe_ms=307.751
+scene_detail parse_ms=101.379 wrapper_ms=0.0154 camera_fit_ms=23.7776
+scene_load_ms=125.295
+startup_detail material_search_ms=0.2027 target_setup_ms=2.1673
+WebGPU_first_detail render_ms=252.687 publication_copy_ms=0.9888 before_frame_since_main_ms=440.152 result_since_main_ms=693.828
+WebGPU_first_frame_ms=253.676
+rgba_fnv64=0x7d4c848f9418f2b5
+image=build/large-scenes/cube-replay-wgpu-vulkan-10000-before-update-camera.ppm
+adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) vendor_id=0x10de device_id=0x1c03 backend=wgpu size=1024x1024 warmup=1 scene=build/large-scenes/city-10000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=camera-each-frame
+WebGPU frames=3 median_ms=249.227 p95_ms=256.662 min_ms=243.819 max_ms=256.662
+WebGPU_render frames=3 median_ms=248.61 p95_ms=255.908 min_ms=243.3 max_ms=255.908
+WebGPU_copy frames=3 median_ms=0.6167 p95_ms=0.7544 min_ms=0.5198 max_ms=0.7544
+WebGPU_throughput frames=3 total_ms=749.727 fps=4.00146
+WebGPU_cache last_frame_uploads=1 last_frame_uploaded_bytes=25442544 last_frame_hits=0 cumulative_uploads=4 cumulative_uploaded_bytes=101770176 cumulative_hits=0
+backend_cleanup_begin
+backend_cleanup_ms=13.2684

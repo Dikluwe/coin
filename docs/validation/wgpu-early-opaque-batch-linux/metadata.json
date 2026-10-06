@@ -1,0 +1,26 @@
+{
+  "timestamp_utc": "2026-10-04T13:32:52.180307+00:00",
+  "baseline_commit": "2574c776a38d78dbe68af3794f6915e792e76e9b",
+  "measured_commit": "f95e99f8dae59e0352e74a9ed39cf1a49c0e11af",
+  "scene_sha256": "bb9ccc612cd38ffb749ee599d9350a80974649eab5bf477d2f344538a42b2576",
+  "fallback_scene_sha256": "94e98acdb3fe7fb9f61264359c3eca68ab6cbc41f96e3c474846d3fa26067c6a",
+  "fallback_scene_generation": "generate_large_scene.py --grid 100 --seed 136; before final root brace append Separator { DepthBuffer { write FALSE } USE CityBlock }",
+  "build": "Release/Ninja, GCC 13.3.0, -O3 -DNDEBUG",
+  "size": 1024,
+  "warmup": 4,
+  "frames": 8,
+  "pairs_per_variant": 3,
+  "gpu_runs_serial": true,
+  "baseline_loading": "LD_LIBRARY_PATH=/tmp/coin-render-optimization-baseline-{backend}/lib",
+  "controls": "BGFX library binary identical before/after",
+  "nvidia_driver": "NVRM version: NVIDIA UNIX Open Kernel Module for x86_64  610.57.04  Release Build  (dvs-builder@U22-I3-AF05-32-1)  Wed Jul 29 02:45:17 UTC 2026\nGCC version:  gcc version 13.3.0 (Ubuntu 13.3.0-6ubuntu2~24.04.1) \n",
+  "disabled_early_batch_option": null,
+  "measured_binaries": {
+    "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark": "543780f7d2d8b1e6f95037d2f4d4bc1f0ea83152ebe63427e9fec6d534131eba",
+    "/tmp/coin-render-first-frame-bgfx/lib/libCoinRender.so": "b6aae445042ce29c37f636ba56f130deed01fa4edb80f19d9ce468267aa5d912",
+    "/tmp/coin-render-first-frame-bgfx/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f",
+    "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark": "be99e658003826df62efff2e232483dd35aabaa8b7f2a471c003ec9078878c8a",
+    "/tmp/coin-render-first-frame-wgpu/lib/libCoinRender.so": "b2e5ea358af0c4d8af1d282cd5b01e3ed4ab23fadf80f884e538ef0771a9428f",
+    "/tmp/coin-render-first-frame-wgpu/lib/libCoin.so.80": "67eb5cadbef49453f662e8954cb32ee4c98778a7792b7590abc775fe74457d1f"
+  }
+}

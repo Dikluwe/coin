@@ -1,0 +1,51 @@
+{
+  "platform": "Windows-10-10.0.19045-SP0",
+  "gpu": "NVIDIA GeForce GTX 1060 6GB, 581.08, 00000000:01:00.0",
+  "coingl_diagnostic_command": [
+    "H:\\Git\\coin\\build\\coin-render-bgfx-msvc\\bin\\coin_render_gl_benchmark.exe",
+    "--backend",
+    "gl",
+    "--scene",
+    "H:\\Git\\coin\\build\\large-scenes\\city-40000.iv",
+    "--size",
+    "768",
+    "--warmup",
+    "0",
+    "--frames",
+    "1"
+  ],
+  "binaries": [
+    {
+      "name": "bgfx-before",
+      "files": {
+        "H:\\Git\\coin\\build\\animated-buildings-windows-20261005\\baseline-bin\\Coin4.dll": "610ffbb4ae7d305dd1f56e09af2fa7e47d712129854ac59e64c2b5e2d3b27a5f",
+        "H:\\Git\\coin\\build\\animated-buildings-windows-20261005\\baseline-bin\\CoinRender4.dll": "60711eab94f33a9c51172da68402a383ac339409591618509ddd347f2a2b5c2f",
+        "H:\\Git\\coin\\build\\animated-buildings-windows-20261005\\baseline-bin\\coin_render_gl_benchmark.exe": "981fc6a4d593fa502ab18cc58f6c5c9d1931d9c84acd6cd52823a0d39784fd79"
+      }
+    },
+    {
+      "name": "wgpu-before",
+      "files": {
+        "H:\\Git\\coin\\build\\animated-buildings-windows-20261005\\wgpu-baseline-bin\\Coin4.dll": "0a1e99820af539797e10573f5395fcbf95bdbc92bdda935f85b5eb71ca6294af",
+        "H:\\Git\\coin\\build\\animated-buildings-windows-20261005\\wgpu-baseline-bin\\CoinRender4.dll": "08abd35b03484206762ed591651bea56e5f85cc99fb4c4d2d2942f420c474820",
+        "H:\\Git\\coin\\build\\animated-buildings-windows-20261005\\wgpu-baseline-bin\\coin_render_gl_benchmark.exe": "2fbf4361db46f594c58a07060fbfeb2e9f6c5fc3f9efa1169c29c7eb94d5ea08"
+      }
+    },
+    {
+      "name": "bgfx-after",
+      "files": {
+        "H:\\Git\\coin\\build\\coin-render-bgfx-msvc\\bin\\Coin4.dll": "610ffbb4ae7d305dd1f56e09af2fa7e47d712129854ac59e64c2b5e2d3b27a5f",
+        "H:\\Git\\coin\\build\\coin-render-bgfx-msvc\\bin\\CoinRender4.dll": "bf6d16ea77c2c937c959b79c5fafbab2eb2a1a21a4bf3a1f9cede3925ec81e2d",
+        "H:\\Git\\coin\\build\\coin-render-bgfx-msvc\\bin\\coin_render_gl_benchmark.exe": "981fc6a4d593fa502ab18cc58f6c5c9d1931d9c84acd6cd52823a0d39784fd79"
+      }
+    },
+    {
+      "name": "wgpu-after",
+      "files": {
+        "H:\\Git\\coin\\build\\coin-render-wgpu-msvc\\bin\\Coin4.dll": "0a1e99820af539797e10573f5395fcbf95bdbc92bdda935f85b5eb71ca6294af",
+        "H:\\Git\\coin\\build\\coin-render-wgpu-msvc\\bin\\CoinRender4.dll": "27aaf047b16d7dab8add426b219e9bcf5850741445a9386a7c3d61f2c71ce838",
+        "H:\\Git\\coin\\build\\coin-render-wgpu-msvc\\bin\\coin_render_gl_benchmark.exe": "2fbf4361db46f594c58a07060fbfeb2e9f6c5fc3f9efa1169c29c7eb94d5ea08"
+      }
+    }
+  ]
+}

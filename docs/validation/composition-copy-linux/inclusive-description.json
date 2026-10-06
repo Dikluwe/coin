@@ -1,0 +1,5971 @@
+{
+  "source_keys": [
+    "composition_detail.classify_ms",
+    "composition_detail.sort_ms",
+    "composition_detail.finish_ms",
+    "composition_transfer.copy_lookup_ms"
+  ],
+  "processes": {
+    "bgfx-opengl-static-off-1": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-opengl-static-off-1",
+      "variant": "bgfx-opengl",
+      "case": "static",
+      "round": 1,
+      "mode": "off",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 1,
+      "measured_row_indices": [
+        0
+      ],
+      "warmup_row_indices": [],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            7.480165
+          ],
+          "raw_values": [
+            "7.480165"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            7.480165
+          ],
+          "measured_median": 7.480165
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.24089
+          ],
+          "raw_values": [
+            "0.240890"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.24089
+          ],
+          "measured_median": 0.24089
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.010529
+          ],
+          "raw_values": [
+            "0.010529"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.010529
+          ],
+          "measured_median": 0.010529
+        }
+      },
+      "transfer_series": {
+        "values": [
+          3.520883
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 1,
+        "csv_row_count": 1,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          0
+        ],
+        "measured_values": [
+          3.520883
+        ],
+        "measured_median": 3.520883
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.731584000000001
+      ],
+      "inclusive_values_ms": [
+        11.252467000000001
+      ],
+      "classifier_measured_values_ms": [
+        7.731584000000001
+      ],
+      "inclusive_measured_values_ms": [
+        11.252467000000001
+      ],
+      "classifier_measured_median_ms": 7.731584000000001,
+      "inclusive_measured_median_ms": 11.252467000000001
+    },
+    "bgfx-opengl-static-off-2": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-opengl-static-off-2",
+      "variant": "bgfx-opengl",
+      "case": "static",
+      "round": 2,
+      "mode": "off",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 1,
+      "measured_row_indices": [
+        0
+      ],
+      "warmup_row_indices": [],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            9.033382
+          ],
+          "raw_values": [
+            "9.033382"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            9.033382
+          ],
+          "measured_median": 9.033382
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.233947
+          ],
+          "raw_values": [
+            "0.233947"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.233947
+          ],
+          "measured_median": 0.233947
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.019006
+          ],
+          "raw_values": [
+            "0.019006"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.019006
+          ],
+          "measured_median": 0.019006
+        }
+      },
+      "transfer_series": {
+        "values": [
+          4.510118
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 1,
+        "csv_row_count": 1,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          0
+        ],
+        "measured_values": [
+          4.510118
+        ],
+        "measured_median": 4.510118
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        9.286335
+      ],
+      "inclusive_values_ms": [
+        13.796453
+      ],
+      "classifier_measured_values_ms": [
+        9.286335
+      ],
+      "inclusive_measured_values_ms": [
+        13.796453
+      ],
+      "classifier_measured_median_ms": 9.286335,
+      "inclusive_measured_median_ms": 13.796453
+    },
+    "bgfx-opengl-static-off-3": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-opengl-static-off-3",
+      "variant": "bgfx-opengl",
+      "case": "static",
+      "round": 3,
+      "mode": "off",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 1,
+      "measured_row_indices": [
+        0
+      ],
+      "warmup_row_indices": [],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            7.106025
+          ],
+          "raw_values": [
+            "7.106025"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            7.106025
+          ],
+          "measured_median": 7.106025
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.21991
+          ],
+          "raw_values": [
+            "0.219910"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.21991
+          ],
+          "measured_median": 0.21991
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.01571
+          ],
+          "raw_values": [
+            "0.015710"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.01571
+          ],
+          "measured_median": 0.01571
+        }
+      },
+      "transfer_series": {
+        "values": [
+          3.390028
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 1,
+        "csv_row_count": 1,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          0
+        ],
+        "measured_values": [
+          3.390028
+        ],
+        "measured_median": 3.390028
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.341645
+      ],
+      "inclusive_values_ms": [
+        10.731673
+      ],
+      "classifier_measured_values_ms": [
+        7.341645
+      ],
+      "inclusive_measured_values_ms": [
+        10.731673
+      ],
+      "classifier_measured_median_ms": 7.341645,
+      "inclusive_measured_median_ms": 10.731673
+    },
+    "bgfx-opengl-static-on-1": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-opengl-static-on-1",
+      "variant": "bgfx-opengl",
+      "case": "static",
+      "round": 1,
+      "mode": "on",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 1,
+      "measured_row_indices": [
+        0
+      ],
+      "warmup_row_indices": [],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            7.375219
+          ],
+          "raw_values": [
+            "7.375219"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            7.375219
+          ],
+          "measured_median": 7.375219
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.207076
+          ],
+          "raw_values": [
+            "0.207076"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.207076
+          ],
+          "measured_median": 0.207076
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.012614
+          ],
+          "raw_values": [
+            "0.012614"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.012614
+          ],
+          "measured_median": 0.012614
+        }
+      },
+      "transfer_series": {
+        "values": [
+          0.001271
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 1,
+        "csv_row_count": 1,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          0
+        ],
+        "measured_values": [
+          0.001271
+        ],
+        "measured_median": 0.001271
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.594909
+      ],
+      "inclusive_values_ms": [
+        7.59618
+      ],
+      "classifier_measured_values_ms": [
+        7.594909
+      ],
+      "inclusive_measured_values_ms": [
+        7.59618
+      ],
+      "classifier_measured_median_ms": 7.594909,
+      "inclusive_measured_median_ms": 7.59618
+    },
+    "bgfx-opengl-static-on-2": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-opengl-static-on-2",
+      "variant": "bgfx-opengl",
+      "case": "static",
+      "round": 2,
+      "mode": "on",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 1,
+      "measured_row_indices": [
+        0
+      ],
+      "warmup_row_indices": [],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            7.250445
+          ],
+          "raw_values": [
+            "7.250445"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            7.250445
+          ],
+          "measured_median": 7.250445
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.25212
+          ],
+          "raw_values": [
+            "0.252120"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.25212
+          ],
+          "measured_median": 0.25212
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.016361
+          ],
+          "raw_values": [
+            "0.016361"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.016361
+          ],
+          "measured_median": 0.016361
+        }
+      },
+      "transfer_series": {
+        "values": [
+          0.002144
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 1,
+        "csv_row_count": 1,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          0
+        ],
+        "measured_values": [
+          0.002144
+        ],
+        "measured_median": 0.002144
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.518926
+      ],
+      "inclusive_values_ms": [
+        7.521070000000001
+      ],
+      "classifier_measured_values_ms": [
+        7.518926
+      ],
+      "inclusive_measured_values_ms": [
+        7.521070000000001
+      ],
+      "classifier_measured_median_ms": 7.518926,
+      "inclusive_measured_median_ms": 7.521070000000001
+    },
+    "bgfx-opengl-static-on-3": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-opengl-static-on-3",
+      "variant": "bgfx-opengl",
+      "case": "static",
+      "round": 3,
+      "mode": "on",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 1,
+      "measured_row_indices": [
+        0
+      ],
+      "warmup_row_indices": [],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            7.641975
+          ],
+          "raw_values": [
+            "7.641975"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            7.641975
+          ],
+          "measured_median": 7.641975
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.219349
+          ],
+          "raw_values": [
+            "0.219349"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.219349
+          ],
+          "measured_median": 0.219349
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.016321
+          ],
+          "raw_values": [
+            "0.016321"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.016321
+          ],
+          "measured_median": 0.016321
+        }
+      },
+      "transfer_series": {
+        "values": [
+          0.003648
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 1,
+        "csv_row_count": 1,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          0
+        ],
+        "measured_values": [
+          0.003648
+        ],
+        "measured_median": 0.003648
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.877645
+      ],
+      "inclusive_values_ms": [
+        7.881293
+      ],
+      "classifier_measured_values_ms": [
+        7.877645
+      ],
+      "inclusive_measured_values_ms": [
+        7.881293
+      ],
+      "classifier_measured_median_ms": 7.877645,
+      "inclusive_measured_median_ms": 7.881293
+    },
+    "bgfx-opengl-transforms-10-off-1": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-opengl-transforms-10-off-1",
+      "variant": "bgfx-opengl",
+      "case": "transforms-10",
+      "round": 1,
+      "mode": "off",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 6,
+      "measured_row_indices": [
+        5
+      ],
+      "warmup_row_indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            6.945607,
+            7.503488,
+            7.230639,
+            7.627058,
+            7.085257,
+            7.408571
+          ],
+          "raw_values": [
+            "6.945607",
+            "7.503488",
+            "7.230639",
+            "7.627058",
+            "7.085257",
+            "7.408571"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            7.408571
+          ],
+          "measured_median": 7.408571
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.195144,
+            0.211796,
+            0.218387,
+            0.190686,
+            0.196777,
+            0.197679
+          ],
+          "raw_values": [
+            "0.195144",
+            "0.211796",
+            "0.218387",
+            "0.190686",
+            "0.196777",
+            "0.197679"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.197679
+          ],
+          "measured_median": 0.197679
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.013866,
+            0.029996,
+            0.015059,
+            0.013826,
+            0.010981,
+            0.011522
+          ],
+          "raw_values": [
+            "0.013866",
+            "0.029996",
+            "0.015059",
+            "0.013826",
+            "0.010981",
+            "0.011522"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.011522
+          ],
+          "measured_median": 0.011522
+        }
+      },
+      "transfer_series": {
+        "values": [
+          3.6453450000000003,
+          1.965139,
+          0.416416,
+          0.329174,
+          0.815462,
+          2.4980759999999997
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 6,
+        "csv_row_count": 6,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          5
+        ],
+        "measured_values": [
+          2.4980759999999997
+        ],
+        "measured_median": 2.4980759999999997
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.154617,
+        7.74528,
+        7.464085,
+        7.83157,
+        7.2930150000000005,
+        7.617772
+      ],
+      "inclusive_values_ms": [
+        10.799962,
+        9.710419,
+        7.880501,
+        8.160744,
+        8.108477,
+        10.115848
+      ],
+      "classifier_measured_values_ms": [
+        7.617772
+      ],
+      "inclusive_measured_values_ms": [
+        10.115848
+      ],
+      "classifier_measured_median_ms": 7.617772,
+      "inclusive_measured_median_ms": 10.115848
+    },
+    "bgfx-opengl-transforms-10-off-2": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-opengl-transforms-10-off-2",
+      "variant": "bgfx-opengl",
+      "case": "transforms-10",
+      "round": 2,
+      "mode": "off",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 6,
+      "measured_row_indices": [
+        5
+      ],
+      "warmup_row_indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            7.264942,
+            7.282815,
+            7.002341,
+            7.206353,
+            7.169304,
+            7.082772
+          ],
+          "raw_values": [
+            "7.264942",
+            "7.282815",
+            "7.002341",
+            "7.206353",
+            "7.169304",
+            "7.082772"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            7.082772
+          ],
+          "measured_median": 7.082772
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.195285,
+            0.208088,
+            0.189093,
+            0.208779,
+            0.210072,
+            0.234598
+          ],
+          "raw_values": [
+            "0.195285",
+            "0.208088",
+            "0.189093",
+            "0.208779",
+            "0.210072",
+            "0.234598"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.234598
+          ],
+          "measured_median": 0.234598
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.015789,
+            0.016291,
+            0.01029,
+            0.010791,
+            0.01579,
+            0.016861
+          ],
+          "raw_values": [
+            "0.015789",
+            "0.016291",
+            "0.010290",
+            "0.010791",
+            "0.015790",
+            "0.016861"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.016861
+          ],
+          "measured_median": 0.016861
+        }
+      },
+      "transfer_series": {
+        "values": [
+          3.489523,
+          2.137311,
+          0.378355,
+          0.38391699999999995,
+          0.883467,
+          2.64087
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 6,
+        "csv_row_count": 6,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          5
+        ],
+        "measured_values": [
+          2.64087
+        ],
+        "measured_median": 2.64087
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.4760159999999996,
+        7.507194,
+        7.2017240000000005,
+        7.425923,
+        7.395166000000001,
+        7.334231
+      ],
+      "inclusive_values_ms": [
+        10.965539,
+        9.644505,
+        7.5800790000000005,
+        7.80984,
+        8.278633000000001,
+        9.975101
+      ],
+      "classifier_measured_values_ms": [
+        7.334231
+      ],
+      "inclusive_measured_values_ms": [
+        9.975101
+      ],
+      "classifier_measured_median_ms": 7.334231,
+      "inclusive_measured_median_ms": 9.975101
+    },
+    "bgfx-opengl-transforms-10-off-3": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-opengl-transforms-10-off-3",
+      "variant": "bgfx-opengl",
+      "case": "transforms-10",
+      "round": 3,
+      "mode": "off",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 6,
+      "measured_row_indices": [
+        5
+      ],
+      "warmup_row_indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            7.068885,
+            7.257758,
+            7.29631,
+            7.297341,
+            7.27502,
+            7.174722
+          ],
+          "raw_values": [
+            "7.068885",
+            "7.257758",
+            "7.296310",
+            "7.297341",
+            "7.275020",
+            "7.174722"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            7.174722
+          ],
+          "measured_median": 7.174722
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.188011,
+            0.196296,
+            0.195515,
+            0.194373,
+            0.216324,
+            0.190546
+          ],
+          "raw_values": [
+            "0.188011",
+            "0.196296",
+            "0.195515",
+            "0.194373",
+            "0.216324",
+            "0.190546"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.190546
+          ],
+          "measured_median": 0.190546
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.011021,
+            0.014017,
+            0.01611,
+            0.012313,
+            0.011792,
+            0.01103
+          ],
+          "raw_values": [
+            "0.011021",
+            "0.014017",
+            "0.016110",
+            "0.012313",
+            "0.011792",
+            "0.011030"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.01103
+          ],
+          "measured_median": 0.01103
+        }
+      },
+      "transfer_series": {
+        "values": [
+          3.427289,
+          2.059355,
+          0.371063,
+          0.336278,
+          0.9686089999999999,
+          2.714518
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 6,
+        "csv_row_count": 6,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          5
+        ],
+        "measured_values": [
+          2.714518
+        ],
+        "measured_median": 2.714518
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.267917,
+        7.468071,
+        7.507935,
+        7.504027000000001,
+        7.503136,
+        7.376298
+      ],
+      "inclusive_values_ms": [
+        10.695205999999999,
+        9.527426,
+        7.878998,
+        7.840305000000001,
+        8.471745,
+        10.090816
+      ],
+      "classifier_measured_values_ms": [
+        7.376298
+      ],
+      "inclusive_measured_values_ms": [
+        10.090816
+      ],
+      "classifier_measured_median_ms": 7.376298,
+      "inclusive_measured_median_ms": 10.090816
+    },
+    "bgfx-opengl-transforms-10-on-1": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-opengl-transforms-10-on-1",
+      "variant": "bgfx-opengl",
+      "case": "transforms-10",
+      "round": 1,
+      "mode": "on",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 6,
+      "measured_row_indices": [
+        5
+      ],
+      "warmup_row_indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            6.950406,
+            7.392661,
+            6.822667,
+            7.024964,
+            6.789515,
+            6.788112
+          ],
+          "raw_values": [
+            "6.950406",
+            "7.392661",
+            "6.822667",
+            "7.024964",
+            "6.789515",
+            "6.788112"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            6.788112
+          ],
+          "measured_median": 6.788112
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.218447,
+            0.180186,
+            0.175608,
+            0.23025,
+            0.179365,
+            0.165289
+          ],
+          "raw_values": [
+            "0.218447",
+            "0.180186",
+            "0.175608",
+            "0.230250",
+            "0.179365",
+            "0.165289"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.165289
+          ],
+          "measured_median": 0.165289
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.013205,
+            0.011352,
+            0.011912,
+            0.013495,
+            0.01092,
+            0.011672
+          ],
+          "raw_values": [
+            "0.013205",
+            "0.011352",
+            "0.011912",
+            "0.013495",
+            "0.010920",
+            "0.011672"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.011672
+          ],
+          "measured_median": 0.011672
+        }
+      },
+      "transfer_series": {
+        "values": [
+          0.001572,
+          0.000671,
+          0.000721,
+          0.0013830000000000001,
+          0.000701,
+          0.001121
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 6,
+        "csv_row_count": 6,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          5
+        ],
+        "measured_values": [
+          0.001121
+        ],
+        "measured_median": 0.001121
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.1820580000000005,
+        7.584199000000001,
+        7.010187,
+        7.268708999999999,
+        6.9798,
+        6.965073
+      ],
+      "inclusive_values_ms": [
+        7.183630000000001,
+        7.5848700000000004,
+        7.010908000000001,
+        7.270091999999999,
+        6.980501,
+        6.966194000000001
+      ],
+      "classifier_measured_values_ms": [
+        6.965073
+      ],
+      "inclusive_measured_values_ms": [
+        6.966194000000001
+      ],
+      "classifier_measured_median_ms": 6.965073,
+      "inclusive_measured_median_ms": 6.966194000000001
+    },
+    "bgfx-opengl-transforms-10-on-2": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-opengl-transforms-10-on-2",
+      "variant": "bgfx-opengl",
+      "case": "transforms-10",
+      "round": 2,
+      "mode": "on",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 6,
+      "measured_row_indices": [
+        5
+      ],
+      "warmup_row_indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            8.246835,
+            7.142744,
+            7.028,
+            7.90634,
+            7.164314,
+            7.254632
+          ],
+          "raw_values": [
+            "8.246835",
+            "7.142744",
+            "7.028000",
+            "7.906340",
+            "7.164314",
+            "7.254632"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            7.254632
+          ],
+          "measured_median": 7.254632
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.285233,
+            0.207707,
+            0.227073,
+            0.222244,
+            0.245719,
+            0.190736
+          ],
+          "raw_values": [
+            "0.285233",
+            "0.207707",
+            "0.227073",
+            "0.222244",
+            "0.245719",
+            "0.190736"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.190736
+          ],
+          "measured_median": 0.190736
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.022391,
+            0.016,
+            0.015369,
+            0.016752,
+            0.014857,
+            0.014678
+          ],
+          "raw_values": [
+            "0.022391",
+            "0.016000",
+            "0.015369",
+            "0.016752",
+            "0.014857",
+            "0.014678"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.014678
+          ],
+          "measured_median": 0.014678
+        }
+      },
+      "transfer_series": {
+        "values": [
+          0.002074,
+          0.000791,
+          0.000741,
+          0.001093,
+          0.000781,
+          0.000691
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 6,
+        "csv_row_count": 6,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          5
+        ],
+        "measured_values": [
+          0.000691
+        ],
+        "measured_median": 0.000691
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        8.554459000000001,
+        7.3664510000000005,
+        7.270441999999999,
+        8.145336,
+        7.42489,
+        7.460046
+      ],
+      "inclusive_values_ms": [
+        8.556533000000002,
+        7.367242000000001,
+        7.271182999999999,
+        8.146429,
+        7.425671,
+        7.460737
+      ],
+      "classifier_measured_values_ms": [
+        7.460046
+      ],
+      "inclusive_measured_values_ms": [
+        7.460737
+      ],
+      "classifier_measured_median_ms": 7.460046,
+      "inclusive_measured_median_ms": 7.460737
+    },
+    "bgfx-opengl-transforms-10-on-3": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-opengl-transforms-10-on-3",
+      "variant": "bgfx-opengl",
+      "case": "transforms-10",
+      "round": 3,
+      "mode": "on",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 6,
+      "measured_row_indices": [
+        5
+      ],
+      "warmup_row_indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            9.698374,
+            7.091458,
+            7.560734,
+            7.844032,
+            7.802564,
+            7.640492
+          ],
+          "raw_values": [
+            "9.698374",
+            "7.091458",
+            "7.560734",
+            "7.844032",
+            "7.802564",
+            "7.640492"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            7.640492
+          ],
+          "measured_median": 7.640492
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.275604,
+            0.18251,
+            0.206525,
+            0.217546,
+            0.249436,
+            0.210012
+          ],
+          "raw_values": [
+            "0.275604",
+            "0.182510",
+            "0.206525",
+            "0.217546",
+            "0.249436",
+            "0.210012"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.210012
+          ],
+          "measured_median": 0.210012
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.018214,
+            0.011852,
+            0.01075,
+            0.01112,
+            0.013415,
+            0.011742
+          ],
+          "raw_values": [
+            "0.018214",
+            "0.011852",
+            "0.010750",
+            "0.011120",
+            "0.013415",
+            "0.011742"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.011742
+          ],
+          "measured_median": 0.011742
+        }
+      },
+      "transfer_series": {
+        "values": [
+          0.002284,
+          0.001012,
+          0.000731,
+          0.0006709999999999999,
+          0.001203,
+          0.000751
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 6,
+        "csv_row_count": 6,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          5
+        ],
+        "measured_values": [
+          0.000751
+        ],
+        "measured_median": 0.000751
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        9.992192,
+        7.28582,
+        7.778009,
+        8.072698,
+        8.065415,
+        7.862246
+      ],
+      "inclusive_values_ms": [
+        9.994475999999999,
+        7.286832,
+        7.77874,
+        8.073369000000001,
+        8.066618,
+        7.862997
+      ],
+      "classifier_measured_values_ms": [
+        7.862246
+      ],
+      "inclusive_measured_values_ms": [
+        7.862997
+      ],
+      "classifier_measured_median_ms": 7.862246,
+      "inclusive_measured_median_ms": 7.862997
+    },
+    "bgfx-vulkan-static-off-1": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-vulkan-static-off-1",
+      "variant": "bgfx-vulkan",
+      "case": "static",
+      "round": 1,
+      "mode": "off",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 1,
+      "measured_row_indices": [
+        0
+      ],
+      "warmup_row_indices": [],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            6.863042
+          ],
+          "raw_values": [
+            "6.863042"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            6.863042
+          ],
+          "measured_median": 6.863042
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.204612
+          ],
+          "raw_values": [
+            "0.204612"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.204612
+          ],
+          "measured_median": 0.204612
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.009969
+          ],
+          "raw_values": [
+            "0.009969"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.009969
+          ],
+          "measured_median": 0.009969
+        }
+      },
+      "transfer_series": {
+        "values": [
+          4.174123
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 1,
+        "csv_row_count": 1,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          0
+        ],
+        "measured_values": [
+          4.174123
+        ],
+        "measured_median": 4.174123
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.077623
+      ],
+      "inclusive_values_ms": [
+        11.251746
+      ],
+      "classifier_measured_values_ms": [
+        7.077623
+      ],
+      "inclusive_measured_values_ms": [
+        11.251746
+      ],
+      "classifier_measured_median_ms": 7.077623,
+      "inclusive_measured_median_ms": 11.251746
+    },
+    "bgfx-vulkan-static-off-2": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-vulkan-static-off-2",
+      "variant": "bgfx-vulkan",
+      "case": "static",
+      "round": 2,
+      "mode": "off",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 1,
+      "measured_row_indices": [
+        0
+      ],
+      "warmup_row_indices": [],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            7.12428
+          ],
+          "raw_values": [
+            "7.124280"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            7.12428
+          ],
+          "measured_median": 7.12428
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.201286
+          ],
+          "raw_values": [
+            "0.201286"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.201286
+          ],
+          "measured_median": 0.201286
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.014457
+          ],
+          "raw_values": [
+            "0.014457"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.014457
+          ],
+          "measured_median": 0.014457
+        }
+      },
+      "transfer_series": {
+        "values": [
+          3.448688
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 1,
+        "csv_row_count": 1,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          0
+        ],
+        "measured_values": [
+          3.448688
+        ],
+        "measured_median": 3.448688
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.3400229999999995
+      ],
+      "inclusive_values_ms": [
+        10.788711
+      ],
+      "classifier_measured_values_ms": [
+        7.3400229999999995
+      ],
+      "inclusive_measured_values_ms": [
+        10.788711
+      ],
+      "classifier_measured_median_ms": 7.3400229999999995,
+      "inclusive_measured_median_ms": 10.788711
+    },
+    "bgfx-vulkan-static-off-3": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-vulkan-static-off-3",
+      "variant": "bgfx-vulkan",
+      "case": "static",
+      "round": 3,
+      "mode": "off",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 1,
+      "measured_row_indices": [
+        0
+      ],
+      "warmup_row_indices": [],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            7.095575
+          ],
+          "raw_values": [
+            "7.095575"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            7.095575
+          ],
+          "measured_median": 7.095575
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.185105
+          ],
+          "raw_values": [
+            "0.185105"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.185105
+          ],
+          "measured_median": 0.185105
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.01076
+          ],
+          "raw_values": [
+            "0.010760"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.01076
+          ],
+          "measured_median": 0.01076
+        }
+      },
+      "transfer_series": {
+        "values": [
+          3.715776
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 1,
+        "csv_row_count": 1,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          0
+        ],
+        "measured_values": [
+          3.715776
+        ],
+        "measured_median": 3.715776
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.291440000000001
+      ],
+      "inclusive_values_ms": [
+        11.007216
+      ],
+      "classifier_measured_values_ms": [
+        7.291440000000001
+      ],
+      "inclusive_measured_values_ms": [
+        11.007216
+      ],
+      "classifier_measured_median_ms": 7.291440000000001,
+      "inclusive_measured_median_ms": 11.007216
+    },
+    "bgfx-vulkan-static-on-1": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-vulkan-static-on-1",
+      "variant": "bgfx-vulkan",
+      "case": "static",
+      "round": 1,
+      "mode": "on",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 1,
+      "measured_row_indices": [
+        0
+      ],
+      "warmup_row_indices": [],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            6.956517
+          ],
+          "raw_values": [
+            "6.956517"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            6.956517
+          ],
+          "measured_median": 6.956517
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.223287
+          ],
+          "raw_values": [
+            "0.223287"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.223287
+          ],
+          "measured_median": 0.223287
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.010329
+          ],
+          "raw_values": [
+            "0.010329"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.010329
+          ],
+          "measured_median": 0.010329
+        }
+      },
+      "transfer_series": {
+        "values": [
+          0.001313
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 1,
+        "csv_row_count": 1,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          0
+        ],
+        "measured_values": [
+          0.001313
+        ],
+        "measured_median": 0.001313
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.190132999999999
+      ],
+      "inclusive_values_ms": [
+        7.191445999999999
+      ],
+      "classifier_measured_values_ms": [
+        7.190132999999999
+      ],
+      "inclusive_measured_values_ms": [
+        7.191445999999999
+      ],
+      "classifier_measured_median_ms": 7.190132999999999,
+      "inclusive_measured_median_ms": 7.191445999999999
+    },
+    "bgfx-vulkan-static-on-2": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-vulkan-static-on-2",
+      "variant": "bgfx-vulkan",
+      "case": "static",
+      "round": 2,
+      "mode": "on",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 1,
+      "measured_row_indices": [
+        0
+      ],
+      "warmup_row_indices": [],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            7.446822
+          ],
+          "raw_values": [
+            "7.446822"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            7.446822
+          ],
+          "measured_median": 7.446822
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.198901
+          ],
+          "raw_values": [
+            "0.198901"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.198901
+          ],
+          "measured_median": 0.198901
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.012994
+          ],
+          "raw_values": [
+            "0.012994"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.012994
+          ],
+          "measured_median": 0.012994
+        }
+      },
+      "transfer_series": {
+        "values": [
+          0.001452
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 1,
+        "csv_row_count": 1,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          0
+        ],
+        "measured_values": [
+          0.001452
+        ],
+        "measured_median": 0.001452
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.658717
+      ],
+      "inclusive_values_ms": [
+        7.660169
+      ],
+      "classifier_measured_values_ms": [
+        7.658717
+      ],
+      "inclusive_measured_values_ms": [
+        7.660169
+      ],
+      "classifier_measured_median_ms": 7.658717,
+      "inclusive_measured_median_ms": 7.660169
+    },
+    "bgfx-vulkan-static-on-3": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-vulkan-static-on-3",
+      "variant": "bgfx-vulkan",
+      "case": "static",
+      "round": 3,
+      "mode": "on",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 1,
+      "measured_row_indices": [
+        0
+      ],
+      "warmup_row_indices": [],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            7.207413
+          ],
+          "raw_values": [
+            "7.207413"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            7.207413
+          ],
+          "measured_median": 7.207413
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.19282
+          ],
+          "raw_values": [
+            "0.192820"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.19282
+          ],
+          "measured_median": 0.19282
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.011411
+          ],
+          "raw_values": [
+            "0.011411"
+          ],
+          "log_line_numbers": [
+            28
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.011411
+          ],
+          "measured_median": 0.011411
+        }
+      },
+      "transfer_series": {
+        "values": [
+          0.001423
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 1,
+        "csv_row_count": 1,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          0
+        ],
+        "measured_values": [
+          0.001423
+        ],
+        "measured_median": 0.001423
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.411644
+      ],
+      "inclusive_values_ms": [
+        7.413067
+      ],
+      "classifier_measured_values_ms": [
+        7.411644
+      ],
+      "inclusive_measured_values_ms": [
+        7.413067
+      ],
+      "classifier_measured_median_ms": 7.411644,
+      "inclusive_measured_median_ms": 7.413067
+    },
+    "bgfx-vulkan-transforms-10-off-1": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-vulkan-transforms-10-off-1",
+      "variant": "bgfx-vulkan",
+      "case": "transforms-10",
+      "round": 1,
+      "mode": "off",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 6,
+      "measured_row_indices": [
+        5
+      ],
+      "warmup_row_indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            7.524357,
+            7.315778,
+            7.629694,
+            7.036667,
+            7.567498,
+            7.082072
+          ],
+          "raw_values": [
+            "7.524357",
+            "7.315778",
+            "7.629694",
+            "7.036667",
+            "7.567498",
+            "7.082072"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            7.082072
+          ],
+          "measured_median": 7.082072
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.197779,
+            0.194182,
+            0.195585,
+            0.183913,
+            0.222595,
+            0.193461
+          ],
+          "raw_values": [
+            "0.197779",
+            "0.194182",
+            "0.195585",
+            "0.183913",
+            "0.222595",
+            "0.193461"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.193461
+          ],
+          "measured_median": 0.193461
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.011181,
+            0.013846,
+            0.011372,
+            0.011241,
+            0.012644,
+            0.011832
+          ],
+          "raw_values": [
+            "0.011181",
+            "0.013846",
+            "0.011372",
+            "0.011241",
+            "0.012644",
+            "0.011832"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.011832
+          ],
+          "measured_median": 0.011832
+        }
+      },
+      "transfer_series": {
+        "values": [
+          3.589632,
+          1.980808,
+          0.350694,
+          0.31812399999999996,
+          0.880332,
+          0.341348
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 6,
+        "csv_row_count": 6,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          5
+        ],
+        "measured_values": [
+          0.341348
+        ],
+        "measured_median": 0.341348
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.733317,
+        7.5238059999999995,
+        7.836651,
+        7.231820999999999,
+        7.802737,
+        7.287365
+      ],
+      "inclusive_values_ms": [
+        11.322949000000001,
+        9.504614,
+        8.187345,
+        7.549944999999999,
+        8.683069,
+        7.628713
+      ],
+      "classifier_measured_values_ms": [
+        7.287365
+      ],
+      "inclusive_measured_values_ms": [
+        7.628713
+      ],
+      "classifier_measured_median_ms": 7.287365,
+      "inclusive_measured_median_ms": 7.628713
+    },
+    "bgfx-vulkan-transforms-10-off-2": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-vulkan-transforms-10-off-2",
+      "variant": "bgfx-vulkan",
+      "case": "transforms-10",
+      "round": 2,
+      "mode": "off",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 6,
+      "measured_row_indices": [
+        5
+      ],
+      "warmup_row_indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            6.717952,
+            7.229817,
+            8.359626,
+            8.078281,
+            6.825512,
+            7.368756
+          ],
+          "raw_values": [
+            "6.717952",
+            "7.229817",
+            "8.359626",
+            "8.078281",
+            "6.825512",
+            "7.368756"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            7.368756
+          ],
+          "measured_median": 7.368756
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.190916,
+            0.179706,
+            0.197779,
+            0.171299,
+            0.188472,
+            0.248464
+          ],
+          "raw_values": [
+            "0.190916",
+            "0.179706",
+            "0.197779",
+            "0.171299",
+            "0.188472",
+            "0.248464"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.248464
+          ],
+          "measured_median": 0.248464
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.010099,
+            0.011862,
+            0.010429,
+            0.013886,
+            0.011772,
+            0.012523
+          ],
+          "raw_values": [
+            "0.010099",
+            "0.011862",
+            "0.010429",
+            "0.013886",
+            "0.011772",
+            "0.012523"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.012523
+          ],
+          "measured_median": 0.012523
+        }
+      },
+      "transfer_series": {
+        "values": [
+          3.987183,
+          1.9639669999999998,
+          0.395058,
+          0.32361399999999996,
+          0.842472,
+          0.35379
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 6,
+        "csv_row_count": 6,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          5
+        ],
+        "measured_values": [
+          0.35379
+        ],
+        "measured_median": 0.35379
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        6.918967,
+        7.421385,
+        8.567834000000001,
+        8.263466000000001,
+        7.0257559999999994,
+        7.629743
+      ],
+      "inclusive_values_ms": [
+        10.90615,
+        9.385352,
+        8.962892000000002,
+        8.58708,
+        7.868227999999999,
+        7.983533
+      ],
+      "classifier_measured_values_ms": [
+        7.629743
+      ],
+      "inclusive_measured_values_ms": [
+        7.983533
+      ],
+      "classifier_measured_median_ms": 7.629743,
+      "inclusive_measured_median_ms": 7.983533
+    },
+    "bgfx-vulkan-transforms-10-off-3": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-vulkan-transforms-10-off-3",
+      "variant": "bgfx-vulkan",
+      "case": "transforms-10",
+      "round": 3,
+      "mode": "off",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 6,
+      "measured_row_indices": [
+        5
+      ],
+      "warmup_row_indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            6.92736,
+            7.517312,
+            7.158822,
+            7.469994,
+            7.141841,
+            7.206361
+          ],
+          "raw_values": [
+            "6.927360",
+            "7.517312",
+            "7.158822",
+            "7.469994",
+            "7.141841",
+            "7.206361"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            7.206361
+          ],
+          "measured_median": 7.206361
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.18196,
+            0.189694,
+            0.17666,
+            0.184895,
+            0.186929,
+            0.218468
+          ],
+          "raw_values": [
+            "0.181960",
+            "0.189694",
+            "0.176660",
+            "0.184895",
+            "0.186929",
+            "0.218468"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.218468
+          ],
+          "measured_median": 0.218468
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.012463,
+            0.012954,
+            0.013104,
+            0.011541,
+            0.013575,
+            0.01083
+          ],
+          "raw_values": [
+            "0.012463",
+            "0.012954",
+            "0.013104",
+            "0.011541",
+            "0.013575",
+            "0.010830"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.01083
+          ],
+          "measured_median": 0.01083
+        }
+      },
+      "transfer_series": {
+        "values": [
+          3.7958149999999997,
+          2.03011,
+          0.34430299999999997,
+          0.329195,
+          0.914377,
+          0.3536
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 6,
+        "csv_row_count": 6,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          5
+        ],
+        "measured_values": [
+          0.3536
+        ],
+        "measured_median": 0.3536
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.121783,
+        7.71996,
+        7.348586,
+        7.66643,
+        7.342345,
+        7.435659
+      ],
+      "inclusive_values_ms": [
+        10.917598,
+        9.750070000000001,
+        7.692889,
+        7.995625,
+        8.256722,
+        7.789259
+      ],
+      "classifier_measured_values_ms": [
+        7.435659
+      ],
+      "inclusive_measured_values_ms": [
+        7.789259
+      ],
+      "classifier_measured_median_ms": 7.435659,
+      "inclusive_measured_median_ms": 7.789259
+    },
+    "bgfx-vulkan-transforms-10-on-1": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-vulkan-transforms-10-on-1",
+      "variant": "bgfx-vulkan",
+      "case": "transforms-10",
+      "round": 1,
+      "mode": "on",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 6,
+      "measured_row_indices": [
+        5
+      ],
+      "warmup_row_indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            6.975051,
+            7.186977,
+            6.968359,
+            7.330566,
+            7.077172,
+            6.939425
+          ],
+          "raw_values": [
+            "6.975051",
+            "7.186977",
+            "6.968359",
+            "7.330566",
+            "7.077172",
+            "6.939425"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            6.939425
+          ],
+          "measured_median": 6.939425
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.182321,
+            0.187841,
+            0.17662,
+            0.190205,
+            0.189353,
+            0.191728
+          ],
+          "raw_values": [
+            "0.182321",
+            "0.187841",
+            "0.176620",
+            "0.190205",
+            "0.189353",
+            "0.191728"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.191728
+          ],
+          "measured_median": 0.191728
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.011571,
+            0.013164,
+            0.011902,
+            0.011291,
+            0.016511,
+            0.013105
+          ],
+          "raw_values": [
+            "0.011571",
+            "0.013164",
+            "0.011902",
+            "0.011291",
+            "0.016511",
+            "0.013105"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.013105
+          ],
+          "measured_median": 0.013105
+        }
+      },
+      "transfer_series": {
+        "values": [
+          0.001433,
+          0.000722,
+          0.000732,
+          0.00073,
+          0.000661,
+          0.001162
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 6,
+        "csv_row_count": 6,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          5
+        ],
+        "measured_values": [
+          0.001162
+        ],
+        "measured_median": 0.001162
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.168943,
+        7.387982,
+        7.156881,
+        7.532062,
+        7.283036,
+        7.144258
+      ],
+      "inclusive_values_ms": [
+        7.170375999999999,
+        7.388704,
+        7.1576130000000004,
+        7.532792,
+        7.283697,
+        7.14542
+      ],
+      "classifier_measured_values_ms": [
+        7.144258
+      ],
+      "inclusive_measured_values_ms": [
+        7.14542
+      ],
+      "classifier_measured_median_ms": 7.144258,
+      "inclusive_measured_median_ms": 7.14542
+    },
+    "bgfx-vulkan-transforms-10-on-2": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-vulkan-transforms-10-on-2",
+      "variant": "bgfx-vulkan",
+      "case": "transforms-10",
+      "round": 2,
+      "mode": "on",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 6,
+      "measured_row_indices": [
+        5
+      ],
+      "warmup_row_indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            7.120032,
+            7.023942,
+            6.775709,
+            6.955765,
+            7.305699,
+            6.838025
+          ],
+          "raw_values": [
+            "7.120032",
+            "7.023942",
+            "6.775709",
+            "6.955765",
+            "7.305699",
+            "6.838025"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            6.838025
+          ],
+          "measured_median": 6.838025
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.186067,
+            0.233256,
+            0.175648,
+            0.185045,
+            0.190876,
+            0.1873
+          ],
+          "raw_values": [
+            "0.186067",
+            "0.233256",
+            "0.175648",
+            "0.185045",
+            "0.190876",
+            "0.187300"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.1873
+          ],
+          "measured_median": 0.1873
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.011542,
+            0.015819,
+            0.011682,
+            0.012704,
+            0.011111,
+            0.01089
+          ],
+          "raw_values": [
+            "0.011542",
+            "0.015819",
+            "0.011682",
+            "0.012704",
+            "0.011111",
+            "0.010890"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.01089
+          ],
+          "measured_median": 0.01089
+        }
+      },
+      "transfer_series": {
+        "values": [
+          0.001163,
+          0.001142,
+          0.001142,
+          0.0010609999999999999,
+          0.000511,
+          0.000662
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 6,
+        "csv_row_count": 6,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          5
+        ],
+        "measured_values": [
+          0.000662
+        ],
+        "measured_median": 0.000662
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.317641,
+        7.273017,
+        6.963039,
+        7.153514,
+        7.507686,
+        7.036215
+      ],
+      "inclusive_values_ms": [
+        7.318804,
+        7.274159,
+        6.964181,
+        7.154575,
+        7.508197,
+        7.0368770000000005
+      ],
+      "classifier_measured_values_ms": [
+        7.036215
+      ],
+      "inclusive_measured_values_ms": [
+        7.0368770000000005
+      ],
+      "classifier_measured_median_ms": 7.036215,
+      "inclusive_measured_median_ms": 7.0368770000000005
+    },
+    "bgfx-vulkan-transforms-10-on-3": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "bgfx-vulkan-transforms-10-on-3",
+      "variant": "bgfx-vulkan",
+      "case": "transforms-10",
+      "round": 3,
+      "mode": "on",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 6,
+      "measured_row_indices": [
+        5
+      ],
+      "warmup_row_indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            7.675136,
+            7.387369,
+            7.698941,
+            7.454584,
+            7.350691,
+            7.478459
+          ],
+          "raw_values": [
+            "7.675136",
+            "7.387369",
+            "7.698941",
+            "7.454584",
+            "7.350691",
+            "7.478459"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            7.478459
+          ],
+          "measured_median": 7.478459
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.199833,
+            0.186448,
+            0.193441,
+            0.194423,
+            0.23587,
+            0.205443
+          ],
+          "raw_values": [
+            "0.199833",
+            "0.186448",
+            "0.193441",
+            "0.194423",
+            "0.235870",
+            "0.205443"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.205443
+          ],
+          "measured_median": 0.205443
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.013135,
+            0.013365,
+            0.01081,
+            0.011221,
+            0.014758,
+            0.012794
+          ],
+          "raw_values": [
+            "0.013135",
+            "0.013365",
+            "0.010810",
+            "0.011221",
+            "0.014758",
+            "0.012794"
+          ],
+          "log_line_numbers": [
+            28,
+            48,
+            61,
+            74,
+            87,
+            100
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.012794
+          ],
+          "measured_median": 0.012794
+        }
+      },
+      "transfer_series": {
+        "values": [
+          0.001264,
+          0.000692,
+          0.000712,
+          0.000702,
+          0.00076,
+          0.000742
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 6,
+        "csv_row_count": 6,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          5
+        ],
+        "measured_values": [
+          0.000742
+        ],
+        "measured_median": 0.000742
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.888104,
+        7.587181999999999,
+        7.903192,
+        7.660228,
+        7.601319,
+        7.696696
+      ],
+      "inclusive_values_ms": [
+        7.889368,
+        7.587873999999999,
+        7.903904,
+        7.6609300000000005,
+        7.602079,
+        7.697438
+      ],
+      "classifier_measured_values_ms": [
+        7.696696
+      ],
+      "inclusive_measured_values_ms": [
+        7.697438
+      ],
+      "classifier_measured_median_ms": 7.696696,
+      "inclusive_measured_median_ms": 7.697438
+    },
+    "wgpu-vulkan-static-off-1": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "wgpu-vulkan-static-off-1",
+      "variant": "wgpu-vulkan",
+      "case": "static",
+      "round": 1,
+      "mode": "off",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 1,
+      "measured_row_indices": [
+        0
+      ],
+      "warmup_row_indices": [],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            7.0757
+          ],
+          "raw_values": [
+            "7.075700"
+          ],
+          "log_line_numbers": [
+            27
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            7.0757
+          ],
+          "measured_median": 7.0757
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.194823
+          ],
+          "raw_values": [
+            "0.194823"
+          ],
+          "log_line_numbers": [
+            27
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.194823
+          ],
+          "measured_median": 0.194823
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.011953
+          ],
+          "raw_values": [
+            "0.011953"
+          ],
+          "log_line_numbers": [
+            27
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.011953
+          ],
+          "measured_median": 0.011953
+        }
+      },
+      "transfer_series": {
+        "values": [
+          4.406597
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 1,
+        "csv_row_count": 1,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          0
+        ],
+        "measured_values": [
+          4.406597
+        ],
+        "measured_median": 4.406597
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.282476
+      ],
+      "inclusive_values_ms": [
+        11.689073
+      ],
+      "classifier_measured_values_ms": [
+        7.282476
+      ],
+      "inclusive_measured_values_ms": [
+        11.689073
+      ],
+      "classifier_measured_median_ms": 7.282476,
+      "inclusive_measured_median_ms": 11.689073
+    },
+    "wgpu-vulkan-static-off-2": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "wgpu-vulkan-static-off-2",
+      "variant": "wgpu-vulkan",
+      "case": "static",
+      "round": 2,
+      "mode": "off",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 1,
+      "measured_row_indices": [
+        0
+      ],
+      "warmup_row_indices": [],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            7.503878
+          ],
+          "raw_values": [
+            "7.503878"
+          ],
+          "log_line_numbers": [
+            27
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            7.503878
+          ],
+          "measured_median": 7.503878
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.212557
+          ],
+          "raw_values": [
+            "0.212557"
+          ],
+          "log_line_numbers": [
+            27
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.212557
+          ],
+          "measured_median": 0.212557
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.011
+          ],
+          "raw_values": [
+            "0.011000"
+          ],
+          "log_line_numbers": [
+            27
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.011
+          ],
+          "measured_median": 0.011
+        }
+      },
+      "transfer_series": {
+        "values": [
+          3.4808280000000003
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 1,
+        "csv_row_count": 1,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          0
+        ],
+        "measured_values": [
+          3.4808280000000003
+        ],
+        "measured_median": 3.4808280000000003
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.727435
+      ],
+      "inclusive_values_ms": [
+        11.208263
+      ],
+      "classifier_measured_values_ms": [
+        7.727435
+      ],
+      "inclusive_measured_values_ms": [
+        11.208263
+      ],
+      "classifier_measured_median_ms": 7.727435,
+      "inclusive_measured_median_ms": 11.208263
+    },
+    "wgpu-vulkan-static-off-3": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "wgpu-vulkan-static-off-3",
+      "variant": "wgpu-vulkan",
+      "case": "static",
+      "round": 3,
+      "mode": "off",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 1,
+      "measured_row_indices": [
+        0
+      ],
+      "warmup_row_indices": [],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            7.332887
+          ],
+          "raw_values": [
+            "7.332887"
+          ],
+          "log_line_numbers": [
+            27
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            7.332887
+          ],
+          "measured_median": 7.332887
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.205825
+          ],
+          "raw_values": [
+            "0.205825"
+          ],
+          "log_line_numbers": [
+            27
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.205825
+          ],
+          "measured_median": 0.205825
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.01644
+          ],
+          "raw_values": [
+            "0.016440"
+          ],
+          "log_line_numbers": [
+            27
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.01644
+          ],
+          "measured_median": 0.01644
+        }
+      },
+      "transfer_series": {
+        "values": [
+          3.1749759999999996
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 1,
+        "csv_row_count": 1,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          0
+        ],
+        "measured_values": [
+          3.1749759999999996
+        ],
+        "measured_median": 3.1749759999999996
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.5551520000000005
+      ],
+      "inclusive_values_ms": [
+        10.730128
+      ],
+      "classifier_measured_values_ms": [
+        7.5551520000000005
+      ],
+      "inclusive_measured_values_ms": [
+        10.730128
+      ],
+      "classifier_measured_median_ms": 7.5551520000000005,
+      "inclusive_measured_median_ms": 10.730128
+    },
+    "wgpu-vulkan-static-on-1": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "wgpu-vulkan-static-on-1",
+      "variant": "wgpu-vulkan",
+      "case": "static",
+      "round": 1,
+      "mode": "on",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 1,
+      "measured_row_indices": [
+        0
+      ],
+      "warmup_row_indices": [],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            7.115574
+          ],
+          "raw_values": [
+            "7.115574"
+          ],
+          "log_line_numbers": [
+            27
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            7.115574
+          ],
+          "measured_median": 7.115574
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.204352
+          ],
+          "raw_values": [
+            "0.204352"
+          ],
+          "log_line_numbers": [
+            27
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.204352
+          ],
+          "measured_median": 0.204352
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.011451
+          ],
+          "raw_values": [
+            "0.011451"
+          ],
+          "log_line_numbers": [
+            27
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.011451
+          ],
+          "measured_median": 0.011451
+        }
+      },
+      "transfer_series": {
+        "values": [
+          0.0008110000000000001
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 1,
+        "csv_row_count": 1,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          0
+        ],
+        "measured_values": [
+          0.0008110000000000001
+        ],
+        "measured_median": 0.0008110000000000001
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.331377
+      ],
+      "inclusive_values_ms": [
+        7.3321879999999995
+      ],
+      "classifier_measured_values_ms": [
+        7.331377
+      ],
+      "inclusive_measured_values_ms": [
+        7.3321879999999995
+      ],
+      "classifier_measured_median_ms": 7.331377,
+      "inclusive_measured_median_ms": 7.3321879999999995
+    },
+    "wgpu-vulkan-static-on-2": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "wgpu-vulkan-static-on-2",
+      "variant": "wgpu-vulkan",
+      "case": "static",
+      "round": 2,
+      "mode": "on",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 1,
+      "measured_row_indices": [
+        0
+      ],
+      "warmup_row_indices": [],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            7.542069
+          ],
+          "raw_values": [
+            "7.542069"
+          ],
+          "log_line_numbers": [
+            27
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            7.542069
+          ],
+          "measured_median": 7.542069
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.20889
+          ],
+          "raw_values": [
+            "0.208890"
+          ],
+          "log_line_numbers": [
+            27
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.20889
+          ],
+          "measured_median": 0.20889
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.013465
+          ],
+          "raw_values": [
+            "0.013465"
+          ],
+          "log_line_numbers": [
+            27
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.013465
+          ],
+          "measured_median": 0.013465
+        }
+      },
+      "transfer_series": {
+        "values": [
+          0.001002
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 1,
+        "csv_row_count": 1,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          0
+        ],
+        "measured_values": [
+          0.001002
+        ],
+        "measured_median": 0.001002
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.764424
+      ],
+      "inclusive_values_ms": [
+        7.765426
+      ],
+      "classifier_measured_values_ms": [
+        7.764424
+      ],
+      "inclusive_measured_values_ms": [
+        7.765426
+      ],
+      "classifier_measured_median_ms": 7.764424,
+      "inclusive_measured_median_ms": 7.765426
+    },
+    "wgpu-vulkan-static-on-3": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "wgpu-vulkan-static-on-3",
+      "variant": "wgpu-vulkan",
+      "case": "static",
+      "round": 3,
+      "mode": "on",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 1,
+      "measured_row_indices": [
+        0
+      ],
+      "warmup_row_indices": [],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            6.671222
+          ],
+          "raw_values": [
+            "6.671222"
+          ],
+          "log_line_numbers": [
+            27
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            6.671222
+          ],
+          "measured_median": 6.671222
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.196998
+          ],
+          "raw_values": [
+            "0.196998"
+          ],
+          "log_line_numbers": [
+            27
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.196998
+          ],
+          "measured_median": 0.196998
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.009828
+          ],
+          "raw_values": [
+            "0.009828"
+          ],
+          "log_line_numbers": [
+            27
+          ],
+          "sample_count": 1,
+          "csv_row_count": 1,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            0
+          ],
+          "measured_values": [
+            0.009828
+          ],
+          "measured_median": 0.009828
+        }
+      },
+      "transfer_series": {
+        "values": [
+          0.001353
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 1,
+        "csv_row_count": 1,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          0
+        ],
+        "measured_values": [
+          0.001353
+        ],
+        "measured_median": 0.001353
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        6.878048000000001
+      ],
+      "inclusive_values_ms": [
+        6.8794010000000005
+      ],
+      "classifier_measured_values_ms": [
+        6.878048000000001
+      ],
+      "inclusive_measured_values_ms": [
+        6.8794010000000005
+      ],
+      "classifier_measured_median_ms": 6.878048000000001,
+      "inclusive_measured_median_ms": 6.8794010000000005
+    },
+    "wgpu-vulkan-transforms-10-off-1": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "wgpu-vulkan-transforms-10-off-1",
+      "variant": "wgpu-vulkan",
+      "case": "transforms-10",
+      "round": 1,
+      "mode": "off",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 6,
+      "measured_row_indices": [
+        5
+      ],
+      "warmup_row_indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            7.752143,
+            7.51999,
+            7.312873,
+            7.670751,
+            7.183732,
+            6.847835
+          ],
+          "raw_values": [
+            "7.752143",
+            "7.519990",
+            "7.312873",
+            "7.670751",
+            "7.183732",
+            "6.847835"
+          ],
+          "log_line_numbers": [
+            27,
+            51,
+            70,
+            89,
+            108,
+            127
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            6.847835
+          ],
+          "measured_median": 6.847835
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.244907,
+            0.301963,
+            0.231222,
+            0.241731,
+            0.242112,
+            0.206195
+          ],
+          "raw_values": [
+            "0.244907",
+            "0.301963",
+            "0.231222",
+            "0.241731",
+            "0.242112",
+            "0.206195"
+          ],
+          "log_line_numbers": [
+            27,
+            51,
+            70,
+            89,
+            108,
+            127
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.206195
+          ],
+          "measured_median": 0.206195
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.014648,
+            0.020869,
+            0.018605,
+            0.017814,
+            0.014718,
+            0.013175
+          ],
+          "raw_values": [
+            "0.014648",
+            "0.020869",
+            "0.018605",
+            "0.017814",
+            "0.014718",
+            "0.013175"
+          ],
+          "log_line_numbers": [
+            27,
+            51,
+            70,
+            89,
+            108,
+            127
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.013175
+          ],
+          "measured_median": 0.013175
+        }
+      },
+      "transfer_series": {
+        "values": [
+          3.689919,
+          2.962852,
+          1.5966609999999999,
+          0.48492599999999997,
+          0.453186,
+          0.457735
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 6,
+        "csv_row_count": 6,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          5
+        ],
+        "measured_values": [
+          0.457735
+        ],
+        "measured_median": 0.457735
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        8.011698,
+        7.842822,
+        7.5626999999999995,
+        7.930296,
+        7.440562,
+        7.0672049999999995
+      ],
+      "inclusive_values_ms": [
+        11.701617,
+        10.805674,
+        9.159360999999999,
+        8.415222,
+        7.8937479999999995,
+        7.524939999999999
+      ],
+      "classifier_measured_values_ms": [
+        7.0672049999999995
+      ],
+      "inclusive_measured_values_ms": [
+        7.524939999999999
+      ],
+      "classifier_measured_median_ms": 7.0672049999999995,
+      "inclusive_measured_median_ms": 7.524939999999999
+    },
+    "wgpu-vulkan-transforms-10-off-2": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "wgpu-vulkan-transforms-10-off-2",
+      "variant": "wgpu-vulkan",
+      "case": "transforms-10",
+      "round": 2,
+      "mode": "off",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 6,
+      "measured_row_indices": [
+        5
+      ],
+      "warmup_row_indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            7.496183,
+            8.004211,
+            7.773861,
+            7.190122,
+            7.659598,
+            7.454305
+          ],
+          "raw_values": [
+            "7.496183",
+            "8.004211",
+            "7.773861",
+            "7.190122",
+            "7.659598",
+            "7.454305"
+          ],
+          "log_line_numbers": [
+            27,
+            51,
+            70,
+            89,
+            108,
+            127
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            7.454305
+          ],
+          "measured_median": 7.454305
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.290913,
+            0.324306,
+            0.328954,
+            0.200835,
+            0.233727,
+            0.271517
+          ],
+          "raw_values": [
+            "0.290913",
+            "0.324306",
+            "0.328954",
+            "0.200835",
+            "0.233727",
+            "0.271517"
+          ],
+          "log_line_numbers": [
+            27,
+            51,
+            70,
+            89,
+            108,
+            127
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.271517
+          ],
+          "measured_median": 0.271517
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.010971,
+            0.016941,
+            0.019787,
+            0.01069,
+            0.015448,
+            0.012924
+          ],
+          "raw_values": [
+            "0.010971",
+            "0.016941",
+            "0.019787",
+            "0.010690",
+            "0.015448",
+            "0.012924"
+          ],
+          "log_line_numbers": [
+            27,
+            51,
+            70,
+            89,
+            108,
+            127
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.012924
+          ],
+          "measured_median": 0.012924
+        }
+      },
+      "transfer_series": {
+        "values": [
+          3.714785,
+          2.91998,
+          1.355039,
+          0.344733,
+          0.44989999999999997,
+          0.365794
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 6,
+        "csv_row_count": 6,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          5
+        ],
+        "measured_values": [
+          0.365794
+        ],
+        "measured_median": 0.365794
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.7980670000000005,
+        8.345457999999999,
+        8.122602,
+        7.401647,
+        7.908773,
+        7.738746
+      ],
+      "inclusive_values_ms": [
+        11.512852,
+        11.265438,
+        9.477641,
+        7.746379999999999,
+        8.358673,
+        8.10454
+      ],
+      "classifier_measured_values_ms": [
+        7.738746
+      ],
+      "inclusive_measured_values_ms": [
+        8.10454
+      ],
+      "classifier_measured_median_ms": 7.738746,
+      "inclusive_measured_median_ms": 8.10454
+    },
+    "wgpu-vulkan-transforms-10-off-3": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "wgpu-vulkan-transforms-10-off-3",
+      "variant": "wgpu-vulkan",
+      "case": "transforms-10",
+      "round": 3,
+      "mode": "off",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 6,
+      "measured_row_indices": [
+        5
+      ],
+      "warmup_row_indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            6.945915,
+            6.727067,
+            7.24866,
+            6.822174,
+            6.61107,
+            7.360629
+          ],
+          "raw_values": [
+            "6.945915",
+            "6.727067",
+            "7.248660",
+            "6.822174",
+            "6.611070",
+            "7.360629"
+          ],
+          "log_line_numbers": [
+            27,
+            51,
+            70,
+            89,
+            108,
+            127
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            7.360629
+          ],
+          "measured_median": 7.360629
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.187039,
+            0.185727,
+            0.212386,
+            0.223437,
+            0.182881,
+            0.186639
+          ],
+          "raw_values": [
+            "0.187039",
+            "0.185727",
+            "0.212386",
+            "0.223437",
+            "0.182881",
+            "0.186639"
+          ],
+          "log_line_numbers": [
+            27,
+            51,
+            70,
+            89,
+            108,
+            127
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.186639
+          ],
+          "measured_median": 0.186639
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.012203,
+            0.011331,
+            0.014217,
+            0.012012,
+            0.013586,
+            0.013194
+          ],
+          "raw_values": [
+            "0.012203",
+            "0.011331",
+            "0.014217",
+            "0.012012",
+            "0.013586",
+            "0.013194"
+          ],
+          "log_line_numbers": [
+            27,
+            51,
+            70,
+            89,
+            108,
+            127
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.013194
+          ],
+          "measured_median": 0.013194
+        }
+      },
+      "transfer_series": {
+        "values": [
+          3.352477,
+          2.7961489999999998,
+          1.3092439999999999,
+          0.443698,
+          0.340554,
+          0.401659
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 6,
+        "csv_row_count": 6,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          5
+        ],
+        "measured_values": [
+          0.401659
+        ],
+        "measured_median": 0.401659
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.145157,
+        6.924125,
+        7.475263,
+        7.057623,
+        6.807537,
+        7.560462
+      ],
+      "inclusive_values_ms": [
+        10.497634,
+        9.720274,
+        8.784507,
+        7.501321000000001,
+        7.148091,
+        7.962121
+      ],
+      "classifier_measured_values_ms": [
+        7.560462
+      ],
+      "inclusive_measured_values_ms": [
+        7.962121
+      ],
+      "classifier_measured_median_ms": 7.560462,
+      "inclusive_measured_median_ms": 7.962121
+    },
+    "wgpu-vulkan-transforms-10-on-1": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "wgpu-vulkan-transforms-10-on-1",
+      "variant": "wgpu-vulkan",
+      "case": "transforms-10",
+      "round": 1,
+      "mode": "on",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 6,
+      "measured_row_indices": [
+        5
+      ],
+      "warmup_row_indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            7.315487,
+            7.062074,
+            7.189813,
+            7.227022,
+            7.229537,
+            7.873009
+          ],
+          "raw_values": [
+            "7.315487",
+            "7.062074",
+            "7.189813",
+            "7.227022",
+            "7.229537",
+            "7.873009"
+          ],
+          "log_line_numbers": [
+            27,
+            51,
+            70,
+            89,
+            108,
+            127
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            7.873009
+          ],
+          "measured_median": 7.873009
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.224219,
+            0.212958,
+            0.218918,
+            0.23005,
+            0.201406,
+            0.23567
+          ],
+          "raw_values": [
+            "0.224219",
+            "0.212958",
+            "0.218918",
+            "0.230050",
+            "0.201406",
+            "0.235670"
+          ],
+          "log_line_numbers": [
+            27,
+            51,
+            70,
+            89,
+            108,
+            127
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.23567
+          ],
+          "measured_median": 0.23567
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.017653,
+            0.011762,
+            0.012103,
+            0.010039,
+            0.014357,
+            0.01632
+          ],
+          "raw_values": [
+            "0.017653",
+            "0.011762",
+            "0.012103",
+            "0.010039",
+            "0.014357",
+            "0.016320"
+          ],
+          "log_line_numbers": [
+            27,
+            51,
+            70,
+            89,
+            108,
+            127
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.01632
+          ],
+          "measured_median": 0.01632
+        }
+      },
+      "transfer_series": {
+        "values": [
+          0.0008910000000000001,
+          0.0005200000000000001,
+          0.000492,
+          0.000481,
+          0.000491,
+          0.000611
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 6,
+        "csv_row_count": 6,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          5
+        ],
+        "measured_values": [
+          0.000611
+        ],
+        "measured_median": 0.000611
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.557359,
+        7.2867939999999995,
+        7.420834,
+        7.467111,
+        7.4453,
+        8.124998999999999
+      ],
+      "inclusive_values_ms": [
+        7.55825,
+        7.287313999999999,
+        7.4213260000000005,
+        7.467592,
+        7.445791,
+        8.125609999999998
+      ],
+      "classifier_measured_values_ms": [
+        8.124998999999999
+      ],
+      "inclusive_measured_values_ms": [
+        8.125609999999998
+      ],
+      "classifier_measured_median_ms": 8.124998999999999,
+      "inclusive_measured_median_ms": 8.125609999999998
+    },
+    "wgpu-vulkan-transforms-10-on-2": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "wgpu-vulkan-transforms-10-on-2",
+      "variant": "wgpu-vulkan",
+      "case": "transforms-10",
+      "round": 2,
+      "mode": "on",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 6,
+      "measured_row_indices": [
+        5
+      ],
+      "warmup_row_indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            6.56259,
+            7.57453,
+            7.398651,
+            8.03546,
+            7.63884,
+            7.096247
+          ],
+          "raw_values": [
+            "6.562590",
+            "7.574530",
+            "7.398651",
+            "8.035460",
+            "7.638840",
+            "7.096247"
+          ],
+          "log_line_numbers": [
+            27,
+            51,
+            70,
+            89,
+            108,
+            127
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            7.096247
+          ],
+          "measured_median": 7.096247
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.208209,
+            0.242091,
+            0.233375,
+            0.211324,
+            0.222696,
+            0.187239
+          ],
+          "raw_values": [
+            "0.208209",
+            "0.242091",
+            "0.233375",
+            "0.211324",
+            "0.222696",
+            "0.187239"
+          ],
+          "log_line_numbers": [
+            27,
+            51,
+            70,
+            89,
+            108,
+            127
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.187239
+          ],
+          "measured_median": 0.187239
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.013455,
+            0.017012,
+            0.013035,
+            0.016451,
+            0.011141,
+            0.011792
+          ],
+          "raw_values": [
+            "0.013455",
+            "0.017012",
+            "0.013035",
+            "0.016451",
+            "0.011141",
+            "0.011792"
+          ],
+          "log_line_numbers": [
+            27,
+            51,
+            70,
+            89,
+            108,
+            127
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.011792
+          ],
+          "measured_median": 0.011792
+        }
+      },
+      "transfer_series": {
+        "values": [
+          0.001432,
+          0.000491,
+          0.000462,
+          0.000851,
+          0.00051,
+          0.0006709999999999999
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 6,
+        "csv_row_count": 6,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          5
+        ],
+        "measured_values": [
+          0.0006709999999999999
+        ],
+        "measured_median": 0.0006709999999999999
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        6.784254,
+        7.833633,
+        7.645061,
+        8.263235,
+        7.872677,
+        7.295278
+      ],
+      "inclusive_values_ms": [
+        6.785686,
+        7.834124,
+        7.645523,
+        8.264086,
+        7.873187000000001,
+        7.295948999999999
+      ],
+      "classifier_measured_values_ms": [
+        7.295278
+      ],
+      "inclusive_measured_values_ms": [
+        7.295948999999999
+      ],
+      "classifier_measured_median_ms": 7.295278,
+      "inclusive_measured_median_ms": 7.295948999999999
+    },
+    "wgpu-vulkan-transforms-10-on-3": {
+      "directory": "/tmp/coin-render-composition-copy-ablation",
+      "stem": "wgpu-vulkan-transforms-10-on-3",
+      "variant": "wgpu-vulkan",
+      "case": "transforms-10",
+      "round": 3,
+      "mode": "on",
+      "source_content_revision": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+      "csv_row_count": 6,
+      "measured_row_indices": [
+        5
+      ],
+      "warmup_row_indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "source_series": {
+        "composition_detail.classify_ms": {
+          "scope": "composition_detail",
+          "key": "classify_ms",
+          "values": [
+            7.396266,
+            7.411724,
+            7.221991,
+            7.15167,
+            6.977695,
+            6.955453
+          ],
+          "raw_values": [
+            "7.396266",
+            "7.411724",
+            "7.221991",
+            "7.151670",
+            "6.977695",
+            "6.955453"
+          ],
+          "log_line_numbers": [
+            27,
+            51,
+            70,
+            89,
+            108,
+            127
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            6.955453
+          ],
+          "measured_median": 6.955453
+        },
+        "composition_detail.sort_ms": {
+          "scope": "composition_detail",
+          "key": "sort_ms",
+          "values": [
+            0.212486,
+            0.241862,
+            0.272819,
+            0.208689,
+            0.227545,
+            0.200103
+          ],
+          "raw_values": [
+            "0.212486",
+            "0.241862",
+            "0.272819",
+            "0.208689",
+            "0.227545",
+            "0.200103"
+          ],
+          "log_line_numbers": [
+            27,
+            51,
+            70,
+            89,
+            108,
+            127
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.200103
+          ],
+          "measured_median": 0.200103
+        },
+        "composition_detail.finish_ms": {
+          "scope": "composition_detail",
+          "key": "finish_ms",
+          "values": [
+            0.011872,
+            0.013255,
+            0.01599,
+            0.018635,
+            0.015098,
+            0.017192
+          ],
+          "raw_values": [
+            "0.011872",
+            "0.013255",
+            "0.015990",
+            "0.018635",
+            "0.015098",
+            "0.017192"
+          ],
+          "log_line_numbers": [
+            27,
+            51,
+            70,
+            89,
+            108,
+            127
+          ],
+          "sample_count": 6,
+          "csv_row_count": 6,
+          "cardinality_matches_csv": true,
+          "measured_row_indices": [
+            5
+          ],
+          "measured_values": [
+            0.017192
+          ],
+          "measured_median": 0.017192
+        }
+      },
+      "transfer_series": {
+        "values": [
+          0.000891,
+          0.000621,
+          0.000531,
+          0.000662,
+          0.0005499999999999999,
+          0.000591
+        ],
+        "source_keys": [
+          "target_composition_copy.copy_ms",
+          "target_composition_copy.qualify_ms",
+          "composition_schedule_copy.copy_ms",
+          "composition_schedule_copy.qualify_ms"
+        ],
+        "operation": "row-wise sum before measured selection",
+        "sample_count": 6,
+        "csv_row_count": 6,
+        "cardinality_matches_csv": true,
+        "measured_row_indices": [
+          5
+        ],
+        "measured_values": [
+          0.000591
+        ],
+        "measured_median": 0.000591
+      },
+      "all_sources_cardinality_matches_csv": true,
+      "classifier_values_ms": [
+        7.620623999999999,
+        7.666841000000001,
+        7.5108,
+        7.3789940000000005,
+        7.220338,
+        7.172748
+      ],
+      "inclusive_values_ms": [
+        7.621515,
+        7.667462,
+        7.511330999999999,
+        7.379656000000001,
+        7.2208879999999995,
+        7.173339
+      ],
+      "classifier_measured_values_ms": [
+        7.172748
+      ],
+      "inclusive_measured_values_ms": [
+        7.173339
+      ],
+      "classifier_measured_median_ms": 7.172748,
+      "inclusive_measured_median_ms": 7.173339
+    }
+  },
+  "group_comparisons": {
+    "bgfx-opengl|static": {
+      "modes": {
+        "off": {
+          "processes": 3,
+          "stems": [
+            "bgfx-opengl-static-off-1",
+            "bgfx-opengl-static-off-2",
+            "bgfx-opengl-static-off-3"
+          ],
+          "all_cardinalities_match": true,
+          "classifier_process_measured_medians_ms": [
+            7.731584000000001,
+            9.286335,
+            7.341645
+          ],
+          "classifier_median_of_process_medians_ms": 7.731584000000001,
+          "inclusive_process_measured_medians_ms": [
+            11.252467000000001,
+            13.796453,
+            10.731673
+          ],
+          "inclusive_median_of_process_medians_ms": 11.252467000000001
+        },
+        "on": {
+          "processes": 3,
+          "stems": [
+            "bgfx-opengl-static-on-1",
+            "bgfx-opengl-static-on-2",
+            "bgfx-opengl-static-on-3"
+          ],
+          "all_cardinalities_match": true,
+          "classifier_process_measured_medians_ms": [
+            7.594909,
+            7.518926,
+            7.877645
+          ],
+          "classifier_median_of_process_medians_ms": 7.594909,
+          "inclusive_process_measured_medians_ms": [
+            7.59618,
+            7.521070000000001,
+            7.881293
+          ],
+          "inclusive_median_of_process_medians_ms": 7.59618
+        }
+      },
+      "comparisons": {
+        "classifier_ms": {
+          "before": 7.731584000000001,
+          "after": 7.594909,
+          "delta": -0.13667500000000032,
+          "change_percent": -1.7677490149495934
+        },
+        "inclusive_ms": {
+          "before": 11.252467000000001,
+          "after": 7.59618,
+          "delta": -3.6562870000000007,
+          "change_percent": -32.49320349039905
+        }
+      }
+    },
+    "bgfx-opengl|transforms-10": {
+      "modes": {
+        "off": {
+          "processes": 3,
+          "stems": [
+            "bgfx-opengl-transforms-10-off-1",
+            "bgfx-opengl-transforms-10-off-2",
+            "bgfx-opengl-transforms-10-off-3"
+          ],
+          "all_cardinalities_match": true,
+          "classifier_process_measured_medians_ms": [
+            7.617772,
+            7.334231,
+            7.376298
+          ],
+          "classifier_median_of_process_medians_ms": 7.376298,
+          "inclusive_process_measured_medians_ms": [
+            10.115848,
+            9.975101,
+            10.090816
+          ],
+          "inclusive_median_of_process_medians_ms": 10.090816
+        },
+        "on": {
+          "processes": 3,
+          "stems": [
+            "bgfx-opengl-transforms-10-on-1",
+            "bgfx-opengl-transforms-10-on-2",
+            "bgfx-opengl-transforms-10-on-3"
+          ],
+          "all_cardinalities_match": true,
+          "classifier_process_measured_medians_ms": [
+            6.965073,
+            7.460046,
+            7.862246
+          ],
+          "classifier_median_of_process_medians_ms": 7.460046,
+          "inclusive_process_measured_medians_ms": [
+            6.966194000000001,
+            7.460737,
+            7.862997
+          ],
+          "inclusive_median_of_process_medians_ms": 7.460737
+        }
+      },
+      "comparisons": {
+        "classifier_ms": {
+          "before": 7.376298,
+          "after": 7.460046,
+          "delta": 0.08374799999999993,
+          "change_percent": 1.135366277230121
+        },
+        "inclusive_ms": {
+          "before": 10.090816,
+          "after": 7.460737,
+          "delta": -2.6300790000000003,
+          "change_percent": -26.06408639301321
+        }
+      }
+    },
+    "bgfx-vulkan|static": {
+      "modes": {
+        "off": {
+          "processes": 3,
+          "stems": [
+            "bgfx-vulkan-static-off-1",
+            "bgfx-vulkan-static-off-2",
+            "bgfx-vulkan-static-off-3"
+          ],
+          "all_cardinalities_match": true,
+          "classifier_process_measured_medians_ms": [
+            7.077623,
+            7.3400229999999995,
+            7.291440000000001
+          ],
+          "classifier_median_of_process_medians_ms": 7.291440000000001,
+          "inclusive_process_measured_medians_ms": [
+            11.251746,
+            10.788711,
+            11.007216
+          ],
+          "inclusive_median_of_process_medians_ms": 11.007216
+        },
+        "on": {
+          "processes": 3,
+          "stems": [
+            "bgfx-vulkan-static-on-1",
+            "bgfx-vulkan-static-on-2",
+            "bgfx-vulkan-static-on-3"
+          ],
+          "all_cardinalities_match": true,
+          "classifier_process_measured_medians_ms": [
+            7.190132999999999,
+            7.658717,
+            7.411644
+          ],
+          "classifier_median_of_process_medians_ms": 7.411644,
+          "inclusive_process_measured_medians_ms": [
+            7.191445999999999,
+            7.660169,
+            7.413067
+          ],
+          "inclusive_median_of_process_medians_ms": 7.413067
+        }
+      },
+      "comparisons": {
+        "classifier_ms": {
+          "before": 7.291440000000001,
+          "after": 7.411644,
+          "delta": 0.12020399999999931,
+          "change_percent": 1.648563246766055
+        },
+        "inclusive_ms": {
+          "before": 11.007216,
+          "after": 7.413067,
+          "delta": -3.594149,
+          "change_percent": -32.65266167212491
+        }
+      }
+    },
+    "bgfx-vulkan|transforms-10": {
+      "modes": {
+        "off": {
+          "processes": 3,
+          "stems": [
+            "bgfx-vulkan-transforms-10-off-1",
+            "bgfx-vulkan-transforms-10-off-2",
+            "bgfx-vulkan-transforms-10-off-3"
+          ],
+          "all_cardinalities_match": true,
+          "classifier_process_measured_medians_ms": [
+            7.287365,
+            7.629743,
+            7.435659
+          ],
+          "classifier_median_of_process_medians_ms": 7.435659,
+          "inclusive_process_measured_medians_ms": [
+            7.628713,
+            7.983533,
+            7.789259
+          ],
+          "inclusive_median_of_process_medians_ms": 7.789259
+        },
+        "on": {
+          "processes": 3,
+          "stems": [
+            "bgfx-vulkan-transforms-10-on-1",
+            "bgfx-vulkan-transforms-10-on-2",
+            "bgfx-vulkan-transforms-10-on-3"
+          ],
+          "all_cardinalities_match": true,
+          "classifier_process_measured_medians_ms": [
+            7.144258,
+            7.036215,
+            7.696696
+          ],
+          "classifier_median_of_process_medians_ms": 7.144258,
+          "inclusive_process_measured_medians_ms": [
+            7.14542,
+            7.0368770000000005,
+            7.697438
+          ],
+          "inclusive_median_of_process_medians_ms": 7.14542
+        }
+      },
+      "comparisons": {
+        "classifier_ms": {
+          "before": 7.435659,
+          "after": 7.144258,
+          "delta": -0.29140100000000047,
+          "change_percent": -3.9189666981769955
+        },
+        "inclusive_ms": {
+          "before": 7.789259,
+          "after": 7.14542,
+          "delta": -0.6438390000000007,
+          "change_percent": -8.265728485854694
+        }
+      }
+    },
+    "wgpu-vulkan|static": {
+      "modes": {
+        "off": {
+          "processes": 3,
+          "stems": [
+            "wgpu-vulkan-static-off-1",
+            "wgpu-vulkan-static-off-2",
+            "wgpu-vulkan-static-off-3"
+          ],
+          "all_cardinalities_match": true,
+          "classifier_process_measured_medians_ms": [
+            7.282476,
+            7.727435,
+            7.5551520000000005
+          ],
+          "classifier_median_of_process_medians_ms": 7.5551520000000005,
+          "inclusive_process_measured_medians_ms": [
+            11.689073,
+            11.208263,
+            10.730128
+          ],
+          "inclusive_median_of_process_medians_ms": 11.208263
+        },
+        "on": {
+          "processes": 3,
+          "stems": [
+            "wgpu-vulkan-static-on-1",
+            "wgpu-vulkan-static-on-2",
+            "wgpu-vulkan-static-on-3"
+          ],
+          "all_cardinalities_match": true,
+          "classifier_process_measured_medians_ms": [
+            7.331377,
+            7.764424,
+            6.878048000000001
+          ],
+          "classifier_median_of_process_medians_ms": 7.331377,
+          "inclusive_process_measured_medians_ms": [
+            7.3321879999999995,
+            7.765426,
+            6.8794010000000005
+          ],
+          "inclusive_median_of_process_medians_ms": 7.3321879999999995
+        }
+      },
+      "comparisons": {
+        "classifier_ms": {
+          "before": 7.5551520000000005,
+          "after": 7.331377,
+          "delta": -0.22377500000000072,
+          "change_percent": -2.9618861407421204
+        },
+        "inclusive_ms": {
+          "before": 11.208263,
+          "after": 7.3321879999999995,
+          "delta": -3.876075000000001,
+          "change_percent": -34.58229879152551
+        }
+      }
+    },
+    "wgpu-vulkan|transforms-10": {
+      "modes": {
+        "off": {
+          "processes": 3,
+          "stems": [
+            "wgpu-vulkan-transforms-10-off-1",
+            "wgpu-vulkan-transforms-10-off-2",
+            "wgpu-vulkan-transforms-10-off-3"
+          ],
+          "all_cardinalities_match": true,
+          "classifier_process_measured_medians_ms": [
+            7.0672049999999995,
+            7.738746,
+            7.560462
+          ],
+          "classifier_median_of_process_medians_ms": 7.560462,
+          "inclusive_process_measured_medians_ms": [
+            7.524939999999999,
+            8.10454,
+            7.962121
+          ],
+          "inclusive_median_of_process_medians_ms": 7.962121
+        },
+        "on": {
+          "processes": 3,
+          "stems": [
+            "wgpu-vulkan-transforms-10-on-1",
+            "wgpu-vulkan-transforms-10-on-2",
+            "wgpu-vulkan-transforms-10-on-3"
+          ],
+          "all_cardinalities_match": true,
+          "classifier_process_measured_medians_ms": [
+            8.124998999999999,
+            7.295278,
+            7.172748
+          ],
+          "classifier_median_of_process_medians_ms": 7.295278,
+          "inclusive_process_measured_medians_ms": [
+            8.125609999999998,
+            7.295948999999999,
+            7.173339
+          ],
+          "inclusive_median_of_process_medians_ms": 7.295948999999999
+        }
+      },
+      "comparisons": {
+        "classifier_ms": {
+          "before": 7.560462,
+          "after": 7.295278,
+          "delta": -0.26518400000000053,
+          "change_percent": -3.507510519859769
+        },
+        "inclusive_ms": {
+          "before": 7.962121,
+          "after": 7.295948999999999,
+          "delta": -0.6661720000000004,
+          "change_percent": -8.366765589219261
+        }
+      }
+    }
+  },
+  "all_sources_cardinality_matches_csv": true,
+  "process_count": 36,
+  "protocol": {
+    "selection": "CSV measured indices only; row-wise sum before selection; all raw source series preserved",
+    "aggregation": "median of three per-process measured medians in each on/off API/case group",
+    "classifier": "classify+sort+finish cover the existing order pass including accumulated proof and trace effects; not isolated new overhead",
+    "transfer": "Target/schedule copy+lookup primary excludes classification; schedule copy_ms includes complete literal schedule realization, not pure memcpy",
+    "inclusive": "descriptive classification plus transfer/lookup subtotal; distinct from measured total_ms and does not explain all of its variation"
+  },
+  "provenance": {
+    "input": {
+      "path": "/tmp/coin-render-composition-copy-diagnostic-observation.json",
+      "sha256": "4ea41488e0c9796b26194a68eefaba9d78440034ef5a9b121da16c20afb725f8"
+    },
+    "script": {
+      "path": "/tmp/coin-render-composition-copy-inclusive-analysis.py",
+      "sha256": "626fc3465a6e51ce729dd2de123f5f8425944d1beb94aa9064614b3a1db40b64"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "command": [
+    "python3",
+    "/tmp/coin-render-first-frame/scripts/coinrender/analyze_animation_images.py",
+    "/tmp/coin-render-material-table-rgb-cross-large"
+  ],
+  "exit_code": 0,
+  "script_sha256": "ab2d85a2a60aa883a5f92fc1ca9d089ab50aed6451dc79fcc48a919c771cf556",
+  "log": "/tmp/coin-render-material-table-rgb-cross-analysis.log",
+  "log_sha256": "bbc05465225f0e7f46c74aae7768a76121505368dfede9cb2391bdf65ca7eb23",
+  "initial_attempt_note": "Public analyzer --reference expects a variant name, not a directory. An earlier CPU-only call on the WG-only directory with a directory reference ended in StopIteration. This aggregation supplies the actual four-variant records; captures are reused without re-execution."
+}

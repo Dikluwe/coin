@@ -18,9 +18,15 @@
 #include <Inventor/nodes/SoNormalBinding.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
+#include <Inventor/nodes/SoCube.h>
+#include <Inventor/nodes/SoTransform.h>
+#include <Inventor/nodes/SoMaterialBinding.h>
+#include <Inventor/SoPrimitiveVertex.h>
+#include "actions/CoinRenderActionP.h"
 
 #include <cassert>
 #include <cmath>
+#include <cstring>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -41,9 +47,99 @@ static CoinRenderTarget * createTestTarget(int width, int height) {
   return target;
 }
 
+struct NativeReferenceVertex {
+  CoinRenderVertexSnapshot vertex;
+  SbColor4f diffuse;
+};
+
+static void collectNativeTriangles(void * data, SoCallbackAction * action,
+    const SoPrimitiveVertex * a, const SoPrimitiveVertex * b, const SoPrimitiveVertex * c) {
+  auto & vertices = *static_cast<std::vector<NativeReferenceVertex> *>(data);
+  const SoPrimitiveVertex * triangle[] = {a, b, c};
+  for (const auto * primitive : triangle) {
+    NativeReferenceVertex record;
+    primitive->getPoint().getValue(record.vertex.position[0], record.vertex.position[1], record.vertex.position[2]);
+    primitive->getNormal().getValue(record.vertex.normal[0], record.vertex.normal[1], record.vertex.normal[2]);
+    record.vertex.texcoord[0] = primitive->getTextureCoords()[0];
+    record.vertex.texcoord[1] = primitive->getTextureCoords()[1];
+    SbColor ambient, diffuse, specular, emission;
+    float shininess, transparency;
+    action->getMaterial(ambient, diffuse, specular, emission, shininess, transparency,
+                        primitive->getMaterialIndex());
+    record.diffuse = SbColor4f(diffuse[0], diffuse[1], diffuse[2], 1.0f - transparency);
+    vertices.push_back(record);
+  }
+}
+
+static int testNativeCubeVertexReuse() {
+  for (float width : {2.0f, 0.0f, -2.0f}) {
+    for (bool perFace : {false, true}) {
+      SoSeparator * root = new SoSeparator;
+      root->ref();
+      root->addChild(new SoPerspectiveCamera);
+      auto * material = new SoMaterial;
+      for (int i = 0; i < 6; ++i)
+        material->diffuseColor.set1Value(i, .1f + i * .1f, .2f, .7f);
+      root->addChild(material);
+      auto * binding = new SoMaterialBinding;
+      binding->value = perFace ? SoMaterialBinding::PER_PART : SoMaterialBinding::OVERALL;
+      root->addChild(binding);
+      auto * sharedCube = new SoCube;
+      sharedCube->width = width;
+      sharedCube->height = 4.0f;
+      sharedCube->depth = 6.0f;
+      for (int i = 0; i < 2; ++i) {
+        auto * instance = new SoSeparator;
+        auto * transform = new SoTransform;
+        transform->translation.setValue(float(i * 5), 0, 0);
+        transform->scaleFactor.setValue(1, .5f, 2);
+        instance->addChild(transform);
+        if (!perFace) {
+          auto * occurrenceMaterial = new SoMaterial;
+          occurrenceMaterial->diffuseColor.setValue(.2f + i * .3f, .4f, .8f);
+          instance->addChild(occurrenceMaterial);
+        }
+        instance->addChild(sharedCube);
+        root->addChild(instance);
+      }
+      std::vector<NativeReferenceVertex> reference;
+      SoCallbackAction native;
+      native.addTriangleCallback(SoCube::getClassTypeId(), collectNativeTriangles, &reference);
+      native.apply(root);
+      CoinRenderAction capture;
+      capture.getPimpl()->planOnly = true;
+      capture.apply(root);
+      const auto & plan = capture.getPimpl()->lastValidPlan;
+      TEST_ASSERT(capture.getLastStatus() == CoinRenderAction::SUCCESS && plan.isValid(),
+                  "compact cube capture must validate for ordinary, degenerate and negative dimensions");
+      TEST_ASSERT(plan.indices.size() == reference.size(), "triangle order and index count must match native callbacks");
+      if (width == 2.0f)
+        TEST_ASSERT(plan.vertices.size() == 48, "two occurrences retain separate sets of 24 face vertices");
+      for (size_t i = 0; i < reference.size(); ++i) {
+        const auto & vertex = plan.vertices[plan.indices[i]];
+        const auto & expected = reference[i];
+        TEST_ASSERT(std::memcmp(vertex.position, expected.vertex.position, sizeof(vertex.position)) == 0 &&
+                    std::memcmp(vertex.normal, expected.vertex.normal, sizeof(vertex.normal)) == 0 &&
+                    std::memcmp(vertex.texcoord, expected.vertex.texcoord, sizeof(vertex.texcoord)) == 0,
+                    "expanded indexed attributes must match native primitive callbacks bit for bit");
+        TEST_ASSERT(std::memcmp(plan.materials[vertex.materialSlot].diffuse, expected.diffuse.getValue(), sizeof(float) * 4) == 0,
+                    "vertex sharing must preserve overall and per-face materials");
+      }
+      for (const auto & draw : plan.draws)
+        for (size_t i = draw.geometry.firstIndex; i < draw.geometry.firstIndex + draw.geometry.indexCount; ++i)
+          TEST_ASSERT(plan.indices[i] >= draw.geometry.firstVertex &&
+                      plan.indices[i] < draw.geometry.firstVertex + draw.geometry.vertexCount,
+                      "shared vertices must stay inside their own occurrence and draw range");
+      root->unref();
+    }
+  }
+  return 0;
+}
+
 int main() {
   SoDB::init();
   CoinRenderAction::initClass();
+  if (testNativeCubeVertexReuse() != 0) return 1;
 
   std::cout << "Running CoinRenderIndexedFastPathTest (Onda 2D Indexed Fast Path)..." << std::endl;
 

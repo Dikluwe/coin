@@ -101,6 +101,10 @@
 #include "coindefs.h" // COIN_OBSOLETED
 #include "tidbitsp.h"
 #include "nodes/SoSubNodeP.h"
+#ifdef HAVE_COIN_RENDER
+#include "shapenodes/CoinRenderMarkerBridge.h"
+#include <limits>
+#endif
 
 /*!
   \enum SoMarkerSet::MarkerType
@@ -148,6 +152,33 @@ typedef struct {
 static SbList <so_marker> * markerlist;
 static GLubyte * markerimages;
 static void convert_bitmaps(void);
+#ifdef HAVE_COIN_RENDER
+int
+coin_render_marker_bitmap(int index, coin_render_marker_bitmap_view * output)
+{
+  if (!output || !markerlist || index < 0 || index >= markerlist->getLength()) return 0;
+  const so_marker & marker = (*markerlist)[index];
+  if (marker.width < 0 || marker.height < 0 ||
+      (marker.align != 1 && marker.align != 2 && marker.align != 4 && marker.align != 8)) {
+    // Sparse addMarker slots have no storage and an alignment of zero.
+    if (!marker.data && marker.width == 0 && marker.height == 0) return 0;
+    return -1;
+  }
+  if (!marker.data && marker.width && marker.height) return 0;
+  const size_t rowBytes = (size_t(marker.width) + 7) / 8;
+  const size_t stride = (rowBytes + size_t(marker.align) - 1) & ~(size_t(marker.align) - 1);
+  if (marker.height && stride > std::numeric_limits<size_t>::max() / size_t(marker.height)) return -1;
+  coin_render_marker_bitmap_view candidate = {};
+  candidate.bytes = marker.data;
+  candidate.byte_count = stride * size_t(marker.height);
+  candidate.row_stride = stride;
+  candidate.width = marker.width;
+  candidate.height = marker.height;
+  candidate.alignment = marker.align;
+  *output = candidate;
+  return 1;
+}
+#endif
 // -----------------------------------------------------------------------
 static void
 free_marker_images(void)

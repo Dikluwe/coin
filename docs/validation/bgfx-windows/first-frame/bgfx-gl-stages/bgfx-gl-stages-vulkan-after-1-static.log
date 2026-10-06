@@ -1,0 +1,15 @@
+startup_detail arguments_ms=0.0415 coin_init_ms=1.9088 capability_probe_ms=595.138
+scene_detail parse_ms=455.061 wrapper_ms=0.0186 camera_fit_ms=104.927
+scene_load_ms=560.107
+startup_detail material_search_ms=0.1779 target_setup_ms=1.4639
+BGFX-Vulkan_first_detail render_ms=1402.94 publication_copy_ms=1.0435 before_frame_since_main_ms=1160.27 result_since_main_ms=2564.26
+BGFX-Vulkan_first_frame_ms=1403.99
+rgba_fnv64=0x6714299260985122
+image=build/large-scenes/bgfx-gl-stages-vulkan-after-1-static.ppm
+adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) vendor_id=0x10de device_id=0x1c03 backend=bgfx size=1024x1024 warmup=1 scene=build/large-scenes/city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=static
+BGFX-Vulkan frames=3 median_ms=8.373 p95_ms=8.5151 min_ms=8.3363 max_ms=8.5151
+BGFX_render_and_readback frames=3 median_ms=7.7094 p95_ms=7.7813 min_ms=7.6537 max_ms=7.7813
+BGFX_publication_copy frames=3 median_ms=0.6269 p95_ms=0.8614 min_ms=0.5917 max_ms=0.8614
+BGFX-Vulkan_throughput frames=3 total_ms=25.2281 fps=118.915
+backend_cleanup_begin
+backend_cleanup_ms=91.8716

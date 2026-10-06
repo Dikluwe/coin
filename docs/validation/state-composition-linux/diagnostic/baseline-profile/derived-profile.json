@@ -1,0 +1,6922 @@
+{
+  "bgfx-vulkan-geometry-10": {
+    "first_total_ms": 510.822943,
+    "total_median_ms": 75.76034,
+    "phase_measured_medians_ms": {
+      "validation_detail.materials_ms": 0.000671,
+      "validation_detail.vertices_ms": 0.81075,
+      "validation_detail.indices_ms": 0.071242,
+      "validation_detail.scene_state_ms": 0.001433,
+      "validation_detail.render_states_ms": 9.016405,
+      "validation_detail.draws_ms": 5.146021,
+      "validation_detail.finish_ms": 0.00021,
+      "composition_detail.classify_ms": 14.220905,
+      "composition_detail.sort_ms": 0.256348,
+      "composition_detail.finish_ms": 0.00014,
+      "bgfx.lower_ms": 24.076001,
+      "bgfx.upload_ms": 0.768871,
+      "bgfx.encode_ms": 0.020969,
+      "bgfx.draw_encode_ms": 0.01572,
+      "bgfx.blit_encode_ms": 0.005249,
+      "bgfx.submit_frame_ms": 0.015519,
+      "bgfx.read_request_ms": 0.000632,
+      "bgfx.read_wait_ms": 3.275498,
+      "bgfx.frame_wait_ms": 3.275468,
+      "bgfx.row_flip_ms": 0.000601,
+      "bgfx.gpu_query_drain_ms": 6e-05,
+      "target.validation_ms": 30.192148,
+      "target.prepare_ms": 0.000801,
+      "target.submit_ms": 28.024332,
+      "action.traversal_ms": 0.004028,
+      "action.frame_plan_ms": 8.66958,
+      "action.backend_ms": 58.2232
+    },
+    "phase_values": {
+      "validation_detail.materials_ms": [
+        0.001804,
+        0.001193,
+        0.000691,
+        0.00039,
+        0.000511,
+        0.000671,
+        0.00033,
+        0.001032
+      ],
+      "validation_detail.vertices_ms": [
+        0.642936,
+        1.076454,
+        0.627859,
+        0.561626,
+        0.587564,
+        0.909584,
+        0.81075,
+        0.794489
+      ],
+      "validation_detail.indices_ms": [
+        0.043441,
+        0.090258,
+        0.049201,
+        0.052778,
+        0.044342,
+        0.071242,
+        0.053108,
+        0.099105
+      ],
+      "validation_detail.scene_state_ms": [
+        0.000471,
+        0.001232,
+        0.001363,
+        0.001283,
+        0.001082,
+        0.002395,
+        0.001433,
+        0.001222
+      ],
+      "validation_detail.render_states_ms": [
+        7.638631,
+        9.361799,
+        8.860245,
+        7.593156,
+        7.887074,
+        9.016405,
+        9.164591,
+        8.509131
+      ],
+      "validation_detail.draws_ms": [
+        4.339929,
+        5.351803,
+        4.784998,
+        4.411923,
+        4.312668,
+        5.202636,
+        5.146021,
+        4.521768
+      ],
+      "validation_detail.finish_ms": [
+        0.000221,
+        0.00027,
+        0.00019,
+        0.000201,
+        0.000201,
+        0.00021,
+        0.0002,
+        0.00022
+      ],
+      "composition_detail.classify_ms": [
+        13.149701,
+        15.577651,
+        13.819117,
+        13.798769,
+        15.129967,
+        15.563864,
+        14.220905,
+        13.781166
+      ],
+      "composition_detail.sort_ms": [
+        0.208317,
+        0.248232,
+        0.213137,
+        0.251478,
+        0.237001,
+        0.256348,
+        0.287465,
+        0.20973
+      ],
+      "composition_detail.finish_ms": [
+        0.000131,
+        0.00032,
+        0.00017,
+        0.000531,
+        0.00022,
+        0.00014,
+        0.00016,
+        0.000131
+      ],
+      "builder_detail.expand_styles_ms": [
+        0.411817
+      ],
+      "builder_detail.validation_ms": [
+        12.691918
+      ],
+      "builder_detail.composition_ms": [
+        13.372265
+      ],
+      "builder_detail.storage_report_ms": [
+        0.010509
+      ],
+      "builder_detail.publish_plan_ms": [
+        1.124874
+      ],
+      "builder_detail.finish_ms": [
+        0.000131
+      ],
+      "bgfx.lower_ms": [
+        27.869594,
+        30.912078,
+        23.272796,
+        23.256125,
+        28.40439,
+        26.558082,
+        24.076001,
+        22.734765
+      ],
+      "bgfx.upload_ms": [
+        1.228828,
+        3.615652,
+        0.57465,
+        0.564641,
+        0.879908,
+        0.938948,
+        0.651743,
+        0.768871
+      ],
+      "bgfx.encode_ms": [
+        0.048289,
+        0.030987,
+        0.017502,
+        0.01605,
+        0.024455,
+        0.020819,
+        0.020969,
+        0.026229
+      ],
+      "bgfx.draw_encode_ms": [
+        0.041226,
+        0.023924,
+        0.013875,
+        0.012032,
+        0.019416,
+        0.015509,
+        0.01572,
+        0.021931
+      ],
+      "bgfx.blit_encode_ms": [
+        0.007063,
+        0.007063,
+        0.003627,
+        0.004018,
+        0.005039,
+        0.00531,
+        0.005249,
+        0.004298
+      ],
+      "bgfx.submit_frame_ms": [
+        0.011781,
+        0.016662,
+        0.011181,
+        0.014807,
+        0.016881,
+        0.015519,
+        0.013024,
+        0.018284
+      ],
+      "bgfx.read_request_ms": [
+        0.001143,
+        0.001222,
+        0.000481,
+        0.000531,
+        0.000722,
+        0.000601,
+        0.000632,
+        0.001152
+      ],
+      "bgfx.read_wait_ms": [
+        14.015763,
+        3.257955,
+        3.081587,
+        3.187034,
+        3.299753,
+        3.275498,
+        3.202372,
+        3.389981
+      ],
+      "bgfx.frame_wait_ms": [
+        14.015713,
+        3.257925,
+        3.081547,
+        3.186973,
+        3.299723,
+        3.275468,
+        3.202322,
+        3.389871
+      ],
+      "bgfx.row_flip_ms": [
+        0.001052,
+        0.001322,
+        0.000912,
+        0.00022,
+        0.000291,
+        0.00023,
+        0.000601,
+        0.001002
+      ],
+      "bgfx.gpu_query_drain_ms": [
+        5e-05,
+        4e-05,
+        6e-05,
+        6e-05,
+        6e-05,
+        0.00015,
+        5e-05,
+        6e-05
+      ],
+      "target.validation_ms": [
+        1.198381,
+        32.213431,
+        28.746427,
+        27.225215,
+        28.614461,
+        31.550697,
+        30.192148,
+        28.304564
+      ],
+      "target.prepare_ms": [
+        137.732802,
+        0.000711,
+        0.000791,
+        0.001352,
+        0.000942,
+        0.001282,
+        0.000791,
+        0.000801
+      ],
+      "target.submit_ms": [
+        43.257311,
+        37.931145,
+        27.01875,
+        27.105432,
+        32.714614,
+        30.869749,
+        28.024332,
+        26.993273
+      ],
+      "action.traversal_ms": [
+        229.847,
+        0.004549,
+        0.003978,
+        0.004148,
+        0.003857,
+        0.004028,
+        0.003807,
+        0.004318
+      ],
+      "action.frame_plan_ms": [
+        27.6251,
+        9.52906,
+        8.64152,
+        7.57175,
+        7.50079,
+        9.31903,
+        8.66958,
+        7.99634
+      ],
+      "action.backend_ms": [
+        182.199,
+        70.1524,
+        55.7749,
+        54.3391,
+        61.3379,
+        62.4291,
+        58.2232,
+        55.3048
+      ],
+      "object_qualification.scene_profile_ms": [
+        16.756024
+      ],
+      "object_qualification.frame_profile_ms": [
+        5.230728
+      ],
+      "object_qualification.ownership_ms": [
+        10.93129
+      ],
+      "object_qualification.payload_ms": [
+        16.441348
+      ],
+      "object_qualification.finish_ms": [
+        0.033252
+      ]
+    },
+    "counters": {
+      "bgfx_device.homogeneous_depth": [
+        0.0,
+        0.0
+      ],
+      "bgfx_formats.readback": [
+        1.0,
+        1.0
+      ],
+      "plan_storage.vertices": [
+        96216.0
+      ],
+      "plan_storage.indices": [
+        144324.0
+      ],
+      "plan_storage.render_states": [
+        40001.0
+      ],
+      "plan_storage.draws": [
+        40001.0
+      ],
+      "plan_storage.vertex_stride": [
+        100.0
+      ],
+      "plan_storage.vertex_bytes": [
+        9621600.0
+      ],
+      "plan_storage.vertex_capacity_bytes": [
+        9830400.0
+      ],
+      "plan_storage.index_bytes": [
+        577296.0
+      ],
+      "plan_storage.index_capacity_bytes": [
+        1048576.0
+      ],
+      "plan_storage.render_state_bytes": [
+        65601640.0
+      ],
+      "plan_storage.render_state_capacity_bytes": [
+        65606560.0
+      ],
+      "plan_storage.draw_capacity_bytes": [
+        3840096.0
+      ],
+      "plan_storage.capture_reserve_estimate": [
+        40004.0
+      ],
+      "plan_storage.transfer_ownership": [
+        1.0
+      ],
+      "plan_storage.cube_replay_hits": [
+        35999.0
+      ],
+      "plan_storage.cube_template_entries": [
+        32.0
+      ],
+      "plan_storage.cube_range_entries": [
+        39.0
+      ],
+      "plan_storage.cube_template_evictions": [
+        3970.0
+      ],
+      "plan_storage.cube_range_evictions": [
+        0.0
+      ],
+      "plan_storage.cube_range_reuse_hits": [
+        35992.0
+      ],
+      "bgfx_base_program.solid": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx_base_program.instancing": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx_program_cache.enabled": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx_program_cache.hits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx_program_cache.writes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx_geometry.compact_vertices": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx_geometry.vertex_stride": [
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0
+      ],
+      "bgfx_geometry.instancing": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx_geometry.instances": [
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0
+      ],
+      "bgfx_geometry.instance_stride": [
+        160.0,
+        160.0,
+        160.0,
+        160.0,
+        160.0,
+        160.0,
+        160.0,
+        160.0
+      ],
+      "bgfx_geometry.instance_buffer_capacity": [
+        65536.0,
+        65536.0,
+        65536.0,
+        65536.0,
+        65536.0,
+        65536.0,
+        65536.0,
+        65536.0
+      ],
+      "bgfx.vertices": [
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0
+      ],
+      "bgfx.draws": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx.read_wait_frames": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ],
+      "bgfx.readback_pipeline_depth": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx.readback_latency_frames": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.readback_pipeline_bytes": [
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0
+      ],
+      "bgfx.readback_gpu_staging_bytes": [
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0
+      ],
+      "bgfx.readback_cpu_staging_bytes": [
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0
+      ],
+      "bgfx.readback_published_bytes": [
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0
+      ],
+      "bgfx.readback_bootstrap": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx.resource_cache_hit": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.texture_cache_hit": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.geometry_buffer_reused": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx.vertex_buffer_capacity": [
+        256.0,
+        256.0,
+        256.0,
+        256.0,
+        256.0,
+        256.0,
+        256.0,
+        256.0
+      ],
+      "bgfx.index_buffer_capacity": [
+        256.0,
+        256.0,
+        256.0,
+        256.0,
+        256.0,
+        256.0,
+        256.0,
+        256.0
+      ],
+      "bgfx.camera_patch": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.material_patch": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.material_patch_ranges": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.material_patch_vertices": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.gpu_query_frames": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.gpu_pass_frame": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.gpu_resource_stats": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.gpu_draw_submits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.opaque_draws": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx.transparent_draws": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.opaque_grouping": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx.opaque_reordered": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.logical_pipeline_changes": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx.logical_material_changes": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx.logical_texture_changes": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx.logical_lighting_changes": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx.gpu_memory_used_bytes": [
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "bgfx.texture_memory_used_bytes": [
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "bgfx.render_target_memory_used_bytes": [
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "bgfx.gpu_vertex_buffers": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.gpu_index_buffers": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.gpu_textures": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.gpu_framebuffers": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.gpu_programs": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "action.vertices": [
+        96216.0,
+        96216.0,
+        96216.0,
+        96216.0,
+        96216.0,
+        96216.0,
+        96216.0,
+        96216.0
+      ],
+      "action.indices": [
+        144324.0,
+        144324.0,
+        144324.0,
+        144324.0,
+        144324.0,
+        144324.0,
+        144324.0,
+        144324.0
+      ],
+      "action.draws": [
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0
+      ],
+      "action.plan_cache_hit": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "object_proof_cache.memo_enabled": [
+        1.0
+      ],
+      "object_proof_cache.material_checks": [
+        8.0
+      ],
+      "object_proof_cache.material_hits": [
+        39992.0
+      ],
+      "object_proof_cache.index_checks": [
+        4009.0
+      ],
+      "object_proof_cache.index_hits": [
+        35992.0
+      ],
+      "object_proof_cache.dimensions_checks": [
+        4001.0
+      ],
+      "object_proof_cache.dimensions_hits": [
+        35999.0
+      ],
+      "object_proof_cache.vertex_checks": [
+        4008.0
+      ],
+      "object_proof_cache.vertex_hits": [
+        35992.0
+      ],
+      "object_proof_cache.cached_index_spans": [
+        1024.0
+      ],
+      "object_proof_cache.cached_sources": [
+        1024.0
+      ],
+      "object_proof_cache.cached_vertex_spans": [
+        1024.0
+      ]
+    },
+    "aggregation": "Only CSV warmup=false frame indices for phase series matching frame count; all raw series retained"
+  },
+  "bgfx-vulkan-transforms-10": {
+    "first_total_ms": 480.136628,
+    "total_median_ms": 53.413889,
+    "phase_measured_medians_ms": {
+      "validation_detail.materials_ms": 0.000401,
+      "validation_detail.vertices_ms": 0.002174,
+      "validation_detail.indices_ms": 0.000401,
+      "validation_detail.scene_state_ms": 0.000611,
+      "validation_detail.render_states_ms": 7.681841,
+      "validation_detail.draws_ms": 4.31332,
+      "validation_detail.finish_ms": 0.000191,
+      "composition_detail.classify_ms": 12.686027,
+      "composition_detail.sort_ms": 0.200002,
+      "composition_detail.finish_ms": 0.000131,
+      "bgfx.lower_ms": 17.723896,
+      "bgfx.upload_ms": 0.567566,
+      "bgfx.encode_ms": 0.017353,
+      "bgfx.draw_encode_ms": 0.014227,
+      "bgfx.blit_encode_ms": 0.003126,
+      "bgfx.submit_frame_ms": 0.01099,
+      "bgfx.read_request_ms": 0.000712,
+      "bgfx.read_wait_ms": 3.209625,
+      "bgfx.frame_wait_ms": 3.209585,
+      "bgfx.row_flip_ms": 0.000471,
+      "bgfx.gpu_query_drain_ms": 5e-05,
+      "target.validation_ms": 25.408242,
+      "target.prepare_ms": 0.001323,
+      "target.submit_ms": 21.584713,
+      "action.traversal_ms": 0.003607,
+      "action.frame_plan_ms": 2.07295,
+      "action.backend_ms": 46.9986
+    },
+    "phase_values": {
+      "validation_detail.materials_ms": [
+        0.001583,
+        0.000461,
+        0.000511,
+        0.00038,
+        0.000631,
+        0.000411,
+        0.000401,
+        0.000291
+      ],
+      "validation_detail.vertices_ms": [
+        0.001823,
+        0.001853,
+        0.001653,
+        0.001643,
+        0.001814,
+        0.002314,
+        0.001713,
+        0.002174
+      ],
+      "validation_detail.indices_ms": [
+        0.000391,
+        0.000431,
+        0.00037,
+        0.000812,
+        0.00045,
+        0.000421,
+        0.000401,
+        0.00035
+      ],
+      "validation_detail.scene_state_ms": [
+        0.001252,
+        0.000671,
+        0.001052,
+        0.000551,
+        0.001263,
+        0.000611,
+        0.000681,
+        0.000541
+      ],
+      "validation_detail.render_states_ms": [
+        7.736212,
+        8.082327,
+        7.735221,
+        7.961061,
+        8.002929,
+        7.946233,
+        7.600059,
+        7.681841
+      ],
+      "validation_detail.draws_ms": [
+        4.111595,
+        4.296679,
+        4.110382,
+        4.313039,
+        4.363443,
+        4.31332,
+        4.429626,
+        4.305255
+      ],
+      "validation_detail.finish_ms": [
+        0.0002,
+        0.0002,
+        0.00012,
+        0.000221,
+        0.00023,
+        0.00019,
+        0.000191,
+        0.000191
+      ],
+      "composition_detail.classify_ms": [
+        12.794289,
+        12.686548,
+        12.592734,
+        12.266126,
+        12.480355,
+        12.686027,
+        12.641734,
+        12.857727
+      ],
+      "composition_detail.sort_ms": [
+        0.214068,
+        0.326708,
+        0.256046,
+        0.241339,
+        0.292985,
+        0.200002,
+        0.191707,
+        0.205723
+      ],
+      "composition_detail.finish_ms": [
+        0.00013,
+        0.000131,
+        0.00014,
+        0.00013,
+        0.000241,
+        0.000131,
+        0.00016,
+        0.00013
+      ],
+      "builder_detail.expand_styles_ms": [
+        0.419361
+      ],
+      "builder_detail.validation_ms": [
+        11.878784
+      ],
+      "builder_detail.composition_ms": [
+        13.025389
+      ],
+      "builder_detail.storage_report_ms": [
+        0.01022
+      ],
+      "builder_detail.publish_plan_ms": [
+        0.72001
+      ],
+      "builder_detail.finish_ms": [
+        0.00011
+      ],
+      "bgfx.lower_ms": [
+        22.938074,
+        22.784397,
+        18.196716,
+        18.081301,
+        18.556336,
+        17.845803,
+        17.579167,
+        17.723896
+      ],
+      "bgfx.upload_ms": [
+        1.060093,
+        3.325812,
+        0.778049,
+        0.670769,
+        0.607601,
+        0.609454,
+        0.567566,
+        0.559031
+      ],
+      "bgfx.encode_ms": [
+        0.057948,
+        0.019697,
+        0.016711,
+        0.017472,
+        0.018054,
+        0.018314,
+        0.017353,
+        0.015659
+      ],
+      "bgfx.draw_encode_ms": [
+        0.049242,
+        0.015709,
+        0.013725,
+        0.013836,
+        0.014928,
+        0.015138,
+        0.014227,
+        0.013395
+      ],
+      "bgfx.blit_encode_ms": [
+        0.008706,
+        0.003988,
+        0.002986,
+        0.003636,
+        0.003126,
+        0.003176,
+        0.003126,
+        0.002264
+      ],
+      "bgfx.submit_frame_ms": [
+        0.012143,
+        0.014477,
+        0.011471,
+        0.011582,
+        0.012834,
+        0.01118,
+        0.01099,
+        0.01095
+      ],
+      "bgfx.read_request_ms": [
+        0.001222,
+        0.000661,
+        0.000441,
+        0.000581,
+        0.000451,
+        0.000712,
+        0.000561,
+        0.000962
+      ],
+      "bgfx.read_wait_ms": [
+        13.43984,
+        3.134495,
+        3.041072,
+        3.134806,
+        3.154292,
+        3.118366,
+        3.209625,
+        3.225044
+      ],
+      "bgfx.frame_wait_ms": [
+        13.43979,
+        3.134455,
+        3.041042,
+        3.134766,
+        3.154252,
+        3.118326,
+        3.209585,
+        3.225014
+      ],
+      "bgfx.row_flip_ms": [
+        0.000521,
+        0.000131,
+        0.00015,
+        0.000751,
+        0.000341,
+        0.000471,
+        0.000622,
+        0.00021
+      ],
+      "bgfx.gpu_query_drain_ms": [
+        5e-05,
+        8e-05,
+        5e-05,
+        4e-05,
+        4e-05,
+        5e-05,
+        5e-05,
+        5.1e-05
+      ],
+      "target.validation_ms": [
+        1.907341,
+        25.796073,
+        25.214551,
+        25.217617,
+        25.668797,
+        25.572117,
+        25.213459,
+        25.408242
+      ],
+      "target.prepare_ms": [
+        138.920454,
+        0.001603,
+        0.000942,
+        0.000882,
+        0.000941,
+        0.001422,
+        0.000882,
+        0.001323
+      ],
+      "target.submit_ms": [
+        37.609507,
+        29.336285,
+        22.094422,
+        21.977785,
+        22.397848,
+        21.65782,
+        21.433191,
+        21.584713
+      ],
+      "action.traversal_ms": [
+        213.518,
+        0.004969,
+        0.004438,
+        0.002465,
+        0.002845,
+        0.004238,
+        0.002855,
+        0.003607
+      ],
+      "action.frame_plan_ms": [
+        26.0682,
+        2.45226,
+        2.16856,
+        2.04514,
+        2.12208,
+        2.07335,
+        2.07295,
+        2.05206
+      ],
+      "action.backend_ms": [
+        178.449,
+        55.1404,
+        47.3197,
+        47.203,
+        48.0728,
+        47.2361,
+        46.653,
+        46.9986
+      ],
+      "object_qualification.scene_profile_ms": [
+        15.985069
+      ],
+      "object_qualification.frame_profile_ms": [
+        4.639447
+      ],
+      "object_qualification.ownership_ms": [
+        10.583042
+      ],
+      "object_qualification.payload_ms": [
+        13.381492
+      ],
+      "object_qualification.finish_ms": [
+        0.002044
+      ]
+    },
+    "counters": {
+      "bgfx_device.homogeneous_depth": [
+        0.0,
+        0.0
+      ],
+      "bgfx_formats.readback": [
+        1.0,
+        1.0
+      ],
+      "plan_storage.vertices": [
+        216.0
+      ],
+      "plan_storage.indices": [
+        324.0
+      ],
+      "plan_storage.render_states": [
+        40001.0
+      ],
+      "plan_storage.draws": [
+        40001.0
+      ],
+      "plan_storage.vertex_stride": [
+        100.0
+      ],
+      "plan_storage.vertex_bytes": [
+        21600.0
+      ],
+      "plan_storage.vertex_capacity_bytes": [
+        38400.0
+      ],
+      "plan_storage.index_bytes": [
+        1296.0
+      ],
+      "plan_storage.index_capacity_bytes": [
+        2048.0
+      ],
+      "plan_storage.render_state_bytes": [
+        65601640.0
+      ],
+      "plan_storage.render_state_capacity_bytes": [
+        65606560.0
+      ],
+      "plan_storage.draw_capacity_bytes": [
+        3840096.0
+      ],
+      "plan_storage.capture_reserve_estimate": [
+        40004.0
+      ],
+      "plan_storage.transfer_ownership": [
+        1.0
+      ],
+      "plan_storage.cube_replay_hits": [
+        39999.0
+      ],
+      "plan_storage.cube_template_entries": [
+        2.0
+      ],
+      "plan_storage.cube_range_entries": [
+        9.0
+      ],
+      "plan_storage.cube_template_evictions": [
+        0.0
+      ],
+      "plan_storage.cube_range_evictions": [
+        0.0
+      ],
+      "plan_storage.cube_range_reuse_hits": [
+        39992.0
+      ],
+      "bgfx_base_program.solid": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx_base_program.instancing": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx_program_cache.enabled": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx_program_cache.hits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx_program_cache.writes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx_geometry.compact_vertices": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx_geometry.vertex_stride": [
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0
+      ],
+      "bgfx_geometry.instancing": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx_geometry.instances": [
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0
+      ],
+      "bgfx_geometry.instance_stride": [
+        160.0,
+        160.0,
+        160.0,
+        160.0,
+        160.0,
+        160.0,
+        160.0,
+        160.0
+      ],
+      "bgfx_geometry.instance_buffer_capacity": [
+        65536.0,
+        65536.0,
+        65536.0,
+        65536.0,
+        65536.0,
+        65536.0,
+        65536.0,
+        65536.0
+      ],
+      "bgfx.vertices": [
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0
+      ],
+      "bgfx.draws": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx.read_wait_frames": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ],
+      "bgfx.readback_pipeline_depth": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx.readback_latency_frames": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.readback_pipeline_bytes": [
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0
+      ],
+      "bgfx.readback_gpu_staging_bytes": [
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0
+      ],
+      "bgfx.readback_cpu_staging_bytes": [
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0
+      ],
+      "bgfx.readback_published_bytes": [
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0
+      ],
+      "bgfx.readback_bootstrap": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx.resource_cache_hit": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.texture_cache_hit": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.geometry_buffer_reused": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx.vertex_buffer_capacity": [
+        256.0,
+        256.0,
+        256.0,
+        256.0,
+        256.0,
+        256.0,
+        256.0,
+        256.0
+      ],
+      "bgfx.index_buffer_capacity": [
+        256.0,
+        256.0,
+        256.0,
+        256.0,
+        256.0,
+        256.0,
+        256.0,
+        256.0
+      ],
+      "bgfx.camera_patch": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.material_patch": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.material_patch_ranges": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.material_patch_vertices": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.gpu_query_frames": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.gpu_pass_frame": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.gpu_resource_stats": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.gpu_draw_submits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.opaque_draws": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx.transparent_draws": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.opaque_grouping": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx.opaque_reordered": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.logical_pipeline_changes": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx.logical_material_changes": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx.logical_texture_changes": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx.logical_lighting_changes": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "bgfx.gpu_memory_used_bytes": [
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "bgfx.texture_memory_used_bytes": [
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "bgfx.render_target_memory_used_bytes": [
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "bgfx.gpu_vertex_buffers": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.gpu_index_buffers": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.gpu_textures": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.gpu_framebuffers": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bgfx.gpu_programs": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "action.vertices": [
+        216.0,
+        216.0,
+        216.0,
+        216.0,
+        216.0,
+        216.0,
+        216.0,
+        216.0
+      ],
+      "action.indices": [
+        324.0,
+        324.0,
+        324.0,
+        324.0,
+        324.0,
+        324.0,
+        324.0,
+        324.0
+      ],
+      "action.draws": [
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0
+      ],
+      "action.plan_cache_hit": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "object_proof_cache.memo_enabled": [
+        1.0
+      ],
+      "object_proof_cache.material_checks": [
+        8.0
+      ],
+      "object_proof_cache.material_hits": [
+        39992.0
+      ],
+      "object_proof_cache.index_checks": [
+        9.0
+      ],
+      "object_proof_cache.index_hits": [
+        39992.0
+      ],
+      "object_proof_cache.dimensions_checks": [
+        1.0
+      ],
+      "object_proof_cache.dimensions_hits": [
+        39999.0
+      ],
+      "object_proof_cache.vertex_checks": [
+        8.0
+      ],
+      "object_proof_cache.vertex_hits": [
+        39992.0
+      ],
+      "object_proof_cache.cached_index_spans": [
+        9.0
+      ],
+      "object_proof_cache.cached_sources": [
+        1.0
+      ],
+      "object_proof_cache.cached_vertex_spans": [
+        8.0
+      ]
+    },
+    "aggregation": "Only CSV warmup=false frame indices for phase series matching frame count; all raw series retained"
+  },
+  "wgpu-vulkan-camera": {
+    "first_total_ms": 378.565666,
+    "total_median_ms": 11.595698,
+    "phase_measured_medians_ms": {
+      "rust.validation_ms": 0.009838,
+      "rust.prepare_encode_ms": 0.404713,
+      "rust.submit_ms": 0.046487,
+      "rust.gpu_wait_ms": 1.343521,
+      "rust.readback_publish_ms": 0.453163,
+      "rust_cpu_detail.total_ms": 2.262662,
+      "rust_cpu_detail.validation_ms": 0.009838,
+      "rust_cpu_detail.gpu_probe_setup_ms": 0.000591,
+      "rust_cpu_detail.attachments_ms": 0.234697,
+      "rust_cpu_detail.draw_encode_ms": 0.169405,
+      "rust_cpu_detail.scene_snapshot_ms": 2e-05,
+      "rust_cpu_detail.staging_prepare_ms": 0.012664,
+      "rust_cpu_detail.submit_ms": 0.046487,
+      "rust_cpu_detail.map_request_ms": 0.003737,
+      "rust_cpu_detail.gpu_wait_ms": 1.343521,
+      "rust_cpu_detail.post_wait_checks_ms": 0.000281,
+      "rust_cpu_detail.gpu_probe_read_ms": 6e-05,
+      "rust_cpu_detail.map_receive_ms": 0.001362,
+      "rust_cpu_detail.color_copy_ms": 0.446732,
+      "rust_cpu_detail.depth_copy_ms": 6.1e-05,
+      "rust_cpu_detail.output_commit_ms": 0.00029,
+      "rust_cpu_detail.recycle_ms": 0.004909,
+      "bridge.pack_ms": 1.91257,
+      "bridge.ffi_ms": 2.53707,
+      "target.validation_ms": 0.000401,
+      "target.prepare_ms": 0.000611,
+      "target.submit_ms": 4.442501,
+      "action.traversal_ms": 0.002926,
+      "action.frame_plan_ms": 6.08408,
+      "action.backend_ms": 4.45192
+    },
+    "phase_values": {
+      "validation_detail.materials_ms": [
+        0.002334
+      ],
+      "validation_detail.vertices_ms": [
+        0.003617
+      ],
+      "validation_detail.indices_ms": [
+        0.000932
+      ],
+      "validation_detail.scene_state_ms": [
+        0.001122
+      ],
+      "validation_detail.render_states_ms": [
+        10.846262
+      ],
+      "validation_detail.draws_ms": [
+        5.772847
+      ],
+      "validation_detail.finish_ms": [
+        0.00022
+      ],
+      "composition_detail.classify_ms": [
+        14.863842
+      ],
+      "composition_detail.sort_ms": [
+        0.262729
+      ],
+      "composition_detail.finish_ms": [
+        0.00015
+      ],
+      "builder_detail.expand_styles_ms": [
+        0.570873
+      ],
+      "builder_detail.validation_ms": [
+        16.665656
+      ],
+      "builder_detail.composition_ms": [
+        15.147169
+      ],
+      "builder_detail.storage_report_ms": [
+        0.01105
+      ],
+      "builder_detail.publish_plan_ms": [
+        1.578459
+      ],
+      "builder_detail.finish_ms": [
+        0.00019
+      ],
+      "rust.validation_ms": [
+        1.967352,
+        0.01039,
+        0.010179,
+        0.011211,
+        0.008476,
+        0.009348,
+        0.009838,
+        0.009969
+      ],
+      "rust.prepare_encode_ms": [
+        5.395725,
+        0.563479,
+        0.419471,
+        0.443746,
+        0.39797,
+        0.404713,
+        0.414061,
+        0.383774
+      ],
+      "rust.submit_ms": [
+        0.071353,
+        0.048981,
+        0.044483,
+        0.045104,
+        0.045796,
+        0.046487,
+        0.056164,
+        0.044733
+      ],
+      "rust.gpu_wait_ms": [
+        2.337341,
+        1.329385,
+        1.358479,
+        1.334645,
+        1.340806,
+        1.333392,
+        1.349402,
+        1.343521
+      ],
+      "rust.readback_publish_ms": [
+        0.435441,
+        0.376401,
+        0.475174,
+        0.425091,
+        0.557768,
+        0.452552,
+        0.502666,
+        0.453163
+      ],
+      "rust_cpu_detail.total_ms": [
+        11.592752,
+        2.346359,
+        2.324547,
+        2.276217,
+        2.368469,
+        2.262662,
+        2.351688,
+        2.251902
+      ],
+      "rust_cpu_detail.validation_ms": [
+        1.967352,
+        0.01039,
+        0.010179,
+        0.011211,
+        0.008476,
+        0.009348,
+        0.009838,
+        0.009969
+      ],
+      "rust_cpu_detail.gpu_probe_setup_ms": [
+        0.002836,
+        0.000741,
+        0.000701,
+        0.000741,
+        0.000521,
+        0.000591,
+        0.000651,
+        0.000561
+      ],
+      "rust_cpu_detail.attachments_ms": [
+        0.634471,
+        0.25222,
+        0.260345,
+        0.25271,
+        0.228134,
+        0.234697,
+        0.240227,
+        0.228645
+      ],
+      "rust_cpu_detail.draw_encode_ms": [
+        4.758388,
+        0.310488,
+        0.158395,
+        0.190275,
+        0.169285,
+        0.169405,
+        0.173163,
+        0.154548
+      ],
+      "rust_cpu_detail.scene_snapshot_ms": [
+        3e-05,
+        3e-05,
+        3e-05,
+        2e-05,
+        3e-05,
+        2e-05,
+        2e-05,
+        2e-05
+      ],
+      "rust_cpu_detail.staging_prepare_ms": [
+        1.382063,
+        0.014026,
+        0.012713,
+        0.012443,
+        0.012804,
+        0.011812,
+        0.01616,
+        0.012664
+      ],
+      "rust_cpu_detail.submit_ms": [
+        0.071353,
+        0.048981,
+        0.044483,
+        0.045104,
+        0.045796,
+        0.046487,
+        0.056164,
+        0.044733
+      ],
+      "rust_cpu_detail.map_request_ms": [
+        0.003086,
+        0.003336,
+        0.003727,
+        0.003526,
+        0.004358,
+        0.004007,
+        0.003036,
+        0.003737
+      ],
+      "rust_cpu_detail.gpu_wait_ms": [
+        2.337341,
+        1.329385,
+        1.358479,
+        1.334645,
+        1.340806,
+        1.333392,
+        1.349402,
+        1.343521
+      ],
+      "rust_cpu_detail.post_wait_checks_ms": [
+        0.000301,
+        0.000291,
+        0.000261,
+        0.000391,
+        0.0004,
+        0.000291,
+        0.000241,
+        0.000281
+      ],
+      "rust_cpu_detail.gpu_probe_read_ms": [
+        9e-05,
+        7e-05,
+        6e-05,
+        6e-05,
+        9.1e-05,
+        6e-05,
+        0.00012,
+        6e-05
+      ],
+      "rust_cpu_detail.map_receive_ms": [
+        0.001984,
+        0.001593,
+        0.003025,
+        0.002254,
+        0.002364,
+        0.001503,
+        0.001262,
+        0.001362
+      ],
+      "rust_cpu_detail.color_copy_ms": [
+        0.43,
+        0.371491,
+        0.468292,
+        0.41917,
+        0.549764,
+        0.446721,
+        0.494831,
+        0.446732
+      ],
+      "rust_cpu_detail.depth_copy_ms": [
+        0.000131,
+        0.000131,
+        0.00021,
+        5.1e-05,
+        0.00038,
+        0.000241,
+        6.1e-05,
+        4e-05
+      ],
+      "rust_cpu_detail.output_commit_ms": [
+        5e-05,
+        0.00011,
+        5.1e-05,
+        0.00011,
+        5e-05,
+        0.000631,
+        0.00029,
+        0.00012
+      ],
+      "rust_cpu_detail.recycle_ms": [
+        0.003276,
+        0.003076,
+        0.003596,
+        0.003506,
+        0.00521,
+        0.003456,
+        0.006222,
+        0.004909
+      ],
+      "bridge.pack_ms": [
+        57.7129,
+        2.0417,
+        1.95025,
+        1.98702,
+        1.23916,
+        1.67772,
+        2.14279,
+        1.91257
+      ],
+      "bridge.ffi_ms": [
+        12.2988,
+        2.59934,
+        2.58387,
+        2.52935,
+        2.60395,
+        2.53707,
+        2.72757,
+        2.49944
+      ],
+      "target.validation_ms": [
+        2.571598,
+        0.0003,
+        0.000591,
+        0.000151,
+        0.000251,
+        0.000411,
+        0.000241,
+        0.000401
+      ],
+      "target.prepare_ms": [
+        2.797868,
+        0.000952,
+        0.000682,
+        0.000871,
+        0.000531,
+        0.000861,
+        0.000591,
+        0.000611
+      ],
+      "target.submit_ms": [
+        70.069276,
+        4.67309,
+        4.561371,
+        4.545352,
+        3.879252,
+        4.240154,
+        4.899551,
+        4.442501
+      ],
+      "action.traversal_ms": [
+        210.423,
+        0.004097,
+        0.004779,
+        0.003297,
+        0.002995,
+        0.002825,
+        0.003948,
+        0.002926
+      ],
+      "action.frame_plan_ms": [
+        34.0062,
+        8.484,
+        5.72109,
+        5.90815,
+        5.61015,
+        5.74932,
+        6.08408,
+        6.46373
+      ],
+      "action.backend_ms": [
+        75.4528,
+        4.68236,
+        4.57026,
+        4.55464,
+        3.88588,
+        4.24771,
+        4.90752,
+        4.45192
+      ],
+      "object_qualification.scene_profile_ms": [
+        13.689796
+      ],
+      "object_qualification.frame_profile_ms": [
+        4.464502
+      ],
+      "object_qualification.ownership_ms": [
+        11.626665
+      ],
+      "object_qualification.payload_ms": [
+        12.694703
+      ],
+      "object_qualification.finish_ms": [
+        0.002665
+      ]
+    },
+    "counters": {
+      "plan_storage.vertices": [
+        216.0
+      ],
+      "plan_storage.indices": [
+        324.0
+      ],
+      "plan_storage.render_states": [
+        40001.0
+      ],
+      "plan_storage.draws": [
+        40001.0
+      ],
+      "plan_storage.vertex_stride": [
+        100.0
+      ],
+      "plan_storage.vertex_bytes": [
+        21600.0
+      ],
+      "plan_storage.vertex_capacity_bytes": [
+        38400.0
+      ],
+      "plan_storage.index_bytes": [
+        1296.0
+      ],
+      "plan_storage.index_capacity_bytes": [
+        2048.0
+      ],
+      "plan_storage.render_state_bytes": [
+        65601640.0
+      ],
+      "plan_storage.render_state_capacity_bytes": [
+        65606560.0
+      ],
+      "plan_storage.draw_capacity_bytes": [
+        3840096.0
+      ],
+      "plan_storage.capture_reserve_estimate": [
+        40004.0
+      ],
+      "plan_storage.transfer_ownership": [
+        1.0
+      ],
+      "plan_storage.cube_replay_hits": [
+        39999.0
+      ],
+      "plan_storage.cube_template_entries": [
+        2.0
+      ],
+      "plan_storage.cube_range_entries": [
+        9.0
+      ],
+      "plan_storage.cube_template_evictions": [
+        0.0
+      ],
+      "plan_storage.cube_range_evictions": [
+        0.0
+      ],
+      "plan_storage.cube_range_reuse_hits": [
+        39992.0
+      ],
+      "wgpu_opaque_instancing.source_draws": [
+        40001.0
+      ],
+      "wgpu_opaque_instancing.source_ranges": [
+        9.0
+      ],
+      "wgpu_opaque_instancing.diagonal_ranges": [
+        9.0
+      ],
+      "wgpu_opaque_instancing.hashed_ranges": [
+        1.0
+      ],
+      "wgpu_opaque_instancing.canonical_meshes": [
+        1.0
+      ],
+      "wgpu_opaque_instancing.groups": [
+        1.0
+      ],
+      "wgpu_opaque_instancing.compact_vertices": [
+        24.0
+      ],
+      "wgpu_opaque_instancing.compact_indices": [
+        36.0
+      ],
+      "wgpu_opaque_instancing.instances": [
+        40001.0
+      ],
+      "wgpu_opaque_instancing.instance_bytes": [
+        5760144.0
+      ],
+      "rust_instances.count": [
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0
+      ],
+      "rust_instances.ranges": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_instances.geometry_bytes": [
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0
+      ],
+      "rust_instances.instance_bytes": [
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0
+      ],
+      "rust_instances.material_bytes": [
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0
+      ],
+      "rust_instances.geometry_hit": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_instances.payload_hit": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_instances.uploaded_bytes": [
+        5763408.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_instance_resources.geometry_bytes": [
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0
+      ],
+      "rust_instance_resources.instance_bytes": [
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0
+      ],
+      "rust_instance_resources.material_bytes": [
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0
+      ],
+      "rust_resources.geometry_active_bytes": [
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0
+      ],
+      "rust_resources.geometry_retired_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.vertex_buffers": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_resources.index_buffers": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_resources.texture_cache_count": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.texture_payload_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.rtt_texture_count": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.rtt_color_nominal_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.attachment_textures": [
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+      ],
+      "rust_resources.attachment_nominal_bytes": [
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0
+      ],
+      "rust_resources.staging_frame_color_bytes": [
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0
+      ],
+      "rust_resources.staging_frame_depth_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.staging_pool_free_bytes": [
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0
+      ],
+      "rust_resources.staging_pool_free_buffers": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_draw_resources.frame_geometry_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_draw_resources.uniform_chunks": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_draw_resources.draw_bind_groups": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust.staging_color_reused": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust.attachments_reused": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust.camera_bindings_created": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust.camera_bindings_reused": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bridge.pack_cache_hit": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "action.vertices": [
+        216.0,
+        216.0,
+        216.0,
+        216.0,
+        216.0,
+        216.0,
+        216.0,
+        216.0
+      ],
+      "action.indices": [
+        324.0,
+        324.0,
+        324.0,
+        324.0,
+        324.0,
+        324.0,
+        324.0,
+        324.0
+      ],
+      "action.draws": [
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0
+      ],
+      "action.plan_cache_hit": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "object_proof_cache.memo_enabled": [
+        1.0
+      ],
+      "object_proof_cache.material_checks": [
+        8.0
+      ],
+      "object_proof_cache.material_hits": [
+        39992.0
+      ],
+      "object_proof_cache.index_checks": [
+        9.0
+      ],
+      "object_proof_cache.index_hits": [
+        39992.0
+      ],
+      "object_proof_cache.dimensions_checks": [
+        1.0
+      ],
+      "object_proof_cache.dimensions_hits": [
+        39999.0
+      ],
+      "object_proof_cache.vertex_checks": [
+        8.0
+      ],
+      "object_proof_cache.vertex_hits": [
+        39992.0
+      ],
+      "object_proof_cache.cached_index_spans": [
+        9.0
+      ],
+      "object_proof_cache.cached_sources": [
+        1.0
+      ],
+      "object_proof_cache.cached_vertex_spans": [
+        8.0
+      ]
+    },
+    "aggregation": "Only CSV warmup=false frame indices for phase series matching frame count; all raw series retained"
+  },
+  "wgpu-vulkan-geometry-10": {
+    "first_total_ms": 368.299135,
+    "total_median_ms": 89.445289,
+    "phase_measured_medians_ms": {
+      "validation_detail.materials_ms": 0.000591,
+      "validation_detail.vertices_ms": 0.56382,
+      "validation_detail.indices_ms": 0.077755,
+      "validation_detail.scene_state_ms": 0.001333,
+      "validation_detail.render_states_ms": 7.599447,
+      "validation_detail.draws_ms": 4.289656,
+      "validation_detail.finish_ms": 0.00023,
+      "composition_detail.classify_ms": 12.627749,
+      "composition_detail.sort_ms": 0.222614,
+      "composition_detail.finish_ms": 0.00014,
+      "rust.validation_ms": 1.455019,
+      "rust.prepare_encode_ms": 2.352369,
+      "rust.submit_ms": 0.049352,
+      "rust.gpu_wait_ms": 2.061197,
+      "rust.readback_publish_ms": 0.448445,
+      "rust_cpu_detail.total_ms": 6.387922,
+      "rust_cpu_detail.validation_ms": 1.455019,
+      "rust_cpu_detail.gpu_probe_setup_ms": 0.000711,
+      "rust_cpu_detail.attachments_ms": 0.591691,
+      "rust_cpu_detail.draw_encode_ms": 1.760037,
+      "rust_cpu_detail.scene_snapshot_ms": 2e-05,
+      "rust_cpu_detail.staging_prepare_ms": 0.0161,
+      "rust_cpu_detail.submit_ms": 0.049352,
+      "rust_cpu_detail.map_request_ms": 0.004098,
+      "rust_cpu_detail.gpu_wait_ms": 2.061197,
+      "rust_cpu_detail.post_wait_checks_ms": 0.00036,
+      "rust_cpu_detail.gpu_probe_read_ms": 9.1e-05,
+      "rust_cpu_detail.map_receive_ms": 0.001153,
+      "rust_cpu_detail.color_copy_ms": 0.439047,
+      "rust_cpu_detail.depth_copy_ms": 0.000161,
+      "rust_cpu_detail.output_commit_ms": 6e-05,
+      "rust_cpu_detail.recycle_ms": 0.009137,
+      "bridge.pack_ms": 40.6581,
+      "bridge.ffi_ms": 7.03904,
+      "target.validation_ms": 25.696869,
+      "target.prepare_ms": 0.000691,
+      "target.submit_ms": 47.775223,
+      "action.traversal_ms": 0.002886,
+      "action.frame_plan_ms": 7.264,
+      "action.backend_ms": 73.6321
+    },
+    "phase_values": {
+      "validation_detail.materials_ms": [
+        0.001303,
+        0.000701,
+        0.000952,
+        0.000371,
+        0.000661,
+        0.000582,
+        0.000661,
+        0.000591
+      ],
+      "validation_detail.vertices_ms": [
+        0.621096,
+        0.674005,
+        0.61783,
+        0.604796,
+        0.573237,
+        0.562687,
+        0.56382,
+        0.56942
+      ],
+      "validation_detail.indices_ms": [
+        0.08049,
+        0.08063,
+        0.077113,
+        0.082684,
+        0.083215,
+        0.08062,
+        0.077033,
+        0.077755
+      ],
+      "validation_detail.scene_state_ms": [
+        0.000591,
+        0.001784,
+        0.001563,
+        0.001292,
+        0.000962,
+        0.001333,
+        0.000912,
+        0.009307
+      ],
+      "validation_detail.render_states_ms": [
+        7.943007,
+        7.874619,
+        7.822002,
+        7.711116,
+        7.657636,
+        8.063992,
+        7.599447,
+        7.511615
+      ],
+      "validation_detail.draws_ms": [
+        4.575779,
+        4.081779,
+        4.358364,
+        4.040191,
+        4.074275,
+        4.319051,
+        4.289656,
+        4.162078
+      ],
+      "validation_detail.finish_ms": [
+        0.0002,
+        0.000201,
+        0.000191,
+        0.00013,
+        0.00012,
+        0.00023,
+        0.000221,
+        0.000721
+      ],
+      "composition_detail.classify_ms": [
+        12.414081,
+        13.661142,
+        12.471778,
+        12.53714,
+        12.427686,
+        12.419271,
+        12.637527,
+        12.627749
+      ],
+      "composition_detail.sort_ms": [
+        0.215932,
+        0.192359,
+        0.191387,
+        0.229147,
+        0.191597,
+        0.222614,
+        0.186998,
+        0.275793
+      ],
+      "composition_detail.finish_ms": [
+        0.00017,
+        0.00013,
+        0.00016,
+        0.00015,
+        0.00014,
+        0.00014,
+        0.000131,
+        0.00015
+      ],
+      "builder_detail.expand_styles_ms": [
+        0.37062
+      ],
+      "builder_detail.validation_ms": [
+        13.25169
+      ],
+      "builder_detail.composition_ms": [
+        12.642376
+      ],
+      "builder_detail.storage_report_ms": [
+        0.009949
+      ],
+      "builder_detail.publish_plan_ms": [
+        1.342709
+      ],
+      "builder_detail.finish_ms": [
+        0.000131
+      ],
+      "rust.validation_ms": [
+        1.564723,
+        1.495274,
+        1.533616,
+        1.511905,
+        1.479625,
+        1.456532,
+        1.448036,
+        1.455019
+      ],
+      "rust.prepare_encode_ms": [
+        5.406095,
+        3.820592,
+        2.204474,
+        2.209603,
+        3.699196,
+        2.465179,
+        2.352369,
+        2.303829
+      ],
+      "rust.submit_ms": [
+        0.065663,
+        0.049022,
+        0.048691,
+        0.048641,
+        0.048019,
+        0.051256,
+        0.046727,
+        0.049352
+      ],
+      "rust.gpu_wait_ms": [
+        2.370593,
+        2.059274,
+        2.06291,
+        2.079531,
+        2.057901,
+        2.069553,
+        2.061197,
+        2.050768
+      ],
+      "rust.readback_publish_ms": [
+        0.457091,
+        0.45633,
+        0.502075,
+        0.566254,
+        0.48889,
+        0.448445,
+        0.459585,
+        0.423439
+      ],
+      "rust_cpu_detail.total_ms": [
+        11.239244,
+        7.905868,
+        6.371713,
+        6.43505,
+        7.792227,
+        6.518786,
+        6.387922,
+        6.303415
+      ],
+      "rust_cpu_detail.validation_ms": [
+        1.564723,
+        1.495274,
+        1.533616,
+        1.511905,
+        1.479625,
+        1.456532,
+        1.448036,
+        1.455019
+      ],
+      "rust_cpu_detail.gpu_probe_setup_ms": [
+        0.001132,
+        0.001132,
+        0.001152,
+        0.000751,
+        0.000711,
+        0.000711,
+        0.000621,
+        0.000711
+      ],
+      "rust_cpu_detail.attachments_ms": [
+        0.895497,
+        0.605737,
+        0.593114,
+        0.589548,
+        0.570081,
+        0.565703,
+        0.591691,
+        0.6124
+      ],
+      "rust_cpu_detail.draw_encode_ms": [
+        4.509446,
+        3.213693,
+        1.610188,
+        1.619284,
+        3.128384,
+        1.898735,
+        1.760037,
+        1.690698
+      ],
+      "rust_cpu_detail.scene_snapshot_ms": [
+        2e-05,
+        3e-05,
+        2e-05,
+        2e-05,
+        2e-05,
+        3e-05,
+        2e-05,
+        2e-05
+      ],
+      "rust_cpu_detail.staging_prepare_ms": [
+        1.372274,
+        0.0216,
+        0.015298,
+        0.014818,
+        0.014197,
+        0.023784,
+        0.015489,
+        0.0161
+      ],
+      "rust_cpu_detail.submit_ms": [
+        0.065663,
+        0.049022,
+        0.048691,
+        0.048641,
+        0.048019,
+        0.051256,
+        0.046727,
+        0.049352
+      ],
+      "rust_cpu_detail.map_request_ms": [
+        0.002414,
+        0.003296,
+        0.004218,
+        0.003887,
+        0.003888,
+        0.003106,
+        0.004098,
+        0.004478
+      ],
+      "rust_cpu_detail.gpu_wait_ms": [
+        2.370593,
+        2.059274,
+        2.06291,
+        2.079531,
+        2.057901,
+        2.069553,
+        2.061197,
+        2.050768
+      ],
+      "rust_cpu_detail.post_wait_checks_ms": [
+        0.000291,
+        0.00038,
+        0.000371,
+        0.000321,
+        0.000411,
+        0.000781,
+        0.00033,
+        0.00036
+      ],
+      "rust_cpu_detail.gpu_probe_read_ms": [
+        0.0001,
+        0.0001,
+        6e-05,
+        9e-05,
+        0.0001,
+        0.00015,
+        9.1e-05,
+        7e-05
+      ],
+      "rust_cpu_detail.map_receive_ms": [
+        0.002254,
+        0.001513,
+        0.001342,
+        0.001362,
+        0.001342,
+        0.000972,
+        0.001823,
+        0.001153
+      ],
+      "rust_cpu_detail.color_copy_ms": [
+        0.450148,
+        0.445199,
+        0.490343,
+        0.554312,
+        0.475465,
+        0.439047,
+        0.447713,
+        0.412928
+      ],
+      "rust_cpu_detail.depth_copy_ms": [
+        0.000171,
+        0.00017,
+        0.000141,
+        0.000161,
+        0.000191,
+        7.1e-05,
+        0.000161,
+        0.000171
+      ],
+      "rust_cpu_detail.output_commit_ms": [
+        7e-05,
+        8.1e-05,
+        5e-05,
+        0.00013,
+        8e-05,
+        9e-05,
+        6e-05,
+        5e-05
+      ],
+      "rust_cpu_detail.recycle_ms": [
+        0.004448,
+        0.009367,
+        0.010199,
+        0.010289,
+        0.011812,
+        0.008265,
+        0.009828,
+        0.009137
+      ],
+      "bridge.pack_ms": [
+        48.0489,
+        41.6941,
+        40.7117,
+        40.9859,
+        41.9495,
+        40.5212,
+        40.6581,
+        41.3697
+      ],
+      "bridge.ffi_ms": [
+        12.1466,
+        8.55033,
+        6.90479,
+        6.9297,
+        8.3557,
+        7.03904,
+        7.08325,
+        6.83466
+      ],
+      "target.validation_ms": [
+        1.780374,
+        26.914857,
+        25.890961,
+        25.595871,
+        25.369329,
+        26.038626,
+        25.696869,
+        25.590892
+      ],
+      "target.prepare_ms": [
+        2.579743,
+        0.000722,
+        0.000701,
+        0.000672,
+        0.000702,
+        0.000701,
+        0.000691,
+        0.000691
+      ],
+      "target.submit_ms": [
+        60.268691,
+        50.271619,
+        47.645661,
+        47.947923,
+        50.335618,
+        47.58617,
+        47.775223,
+        48.231682
+      ],
+      "action.traversal_ms": [
+        208.794,
+        0.003807,
+        0.002534,
+        0.002655,
+        0.003216,
+        0.002475,
+        0.002886,
+        0.003607
+      ],
+      "action.frame_plan_ms": [
+        27.6329,
+        7.95244,
+        6.85731,
+        6.98746,
+        7.91451,
+        6.93469,
+        7.264,
+        7.47323
+      ],
+      "action.backend_ms": [
+        64.6424,
+        77.1946,
+        73.5439,
+        73.5506,
+        75.7131,
+        73.6321,
+        73.48,
+        73.8297
+      ],
+      "object_qualification.scene_profile_ms": [
+        14.331271
+      ],
+      "object_qualification.frame_profile_ms": [
+        4.670505
+      ],
+      "object_qualification.ownership_ms": [
+        11.159555
+      ],
+      "object_qualification.payload_ms": [
+        15.066188
+      ],
+      "object_qualification.finish_ms": [
+        0.001593
+      ]
+    },
+    "counters": {
+      "plan_storage.vertices": [
+        96216.0
+      ],
+      "plan_storage.indices": [
+        144324.0
+      ],
+      "plan_storage.render_states": [
+        40001.0
+      ],
+      "plan_storage.draws": [
+        40001.0
+      ],
+      "plan_storage.vertex_stride": [
+        100.0
+      ],
+      "plan_storage.vertex_bytes": [
+        9621600.0
+      ],
+      "plan_storage.vertex_capacity_bytes": [
+        9830400.0
+      ],
+      "plan_storage.index_bytes": [
+        577296.0
+      ],
+      "plan_storage.index_capacity_bytes": [
+        1048576.0
+      ],
+      "plan_storage.render_state_bytes": [
+        65601640.0
+      ],
+      "plan_storage.render_state_capacity_bytes": [
+        65606560.0
+      ],
+      "plan_storage.draw_capacity_bytes": [
+        3840096.0
+      ],
+      "plan_storage.capture_reserve_estimate": [
+        40004.0
+      ],
+      "plan_storage.transfer_ownership": [
+        1.0
+      ],
+      "plan_storage.cube_replay_hits": [
+        35999.0
+      ],
+      "plan_storage.cube_template_entries": [
+        32.0
+      ],
+      "plan_storage.cube_range_entries": [
+        39.0
+      ],
+      "plan_storage.cube_template_evictions": [
+        3970.0
+      ],
+      "plan_storage.cube_range_evictions": [
+        0.0
+      ],
+      "plan_storage.cube_range_reuse_hits": [
+        35992.0
+      ],
+      "wgpu_opaque_instancing.source_draws": [
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0
+      ],
+      "wgpu_opaque_instancing.source_ranges": [
+        4009.0,
+        4009.0,
+        4009.0,
+        4009.0,
+        4009.0,
+        4009.0,
+        4009.0,
+        4009.0
+      ],
+      "wgpu_opaque_instancing.diagonal_ranges": [
+        4009.0,
+        4009.0,
+        4009.0,
+        4009.0,
+        4009.0,
+        4009.0,
+        4009.0,
+        4009.0
+      ],
+      "wgpu_opaque_instancing.hashed_ranges": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "wgpu_opaque_instancing.canonical_meshes": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "wgpu_opaque_instancing.groups": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "wgpu_opaque_instancing.compact_vertices": [
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0
+      ],
+      "wgpu_opaque_instancing.compact_indices": [
+        36.0,
+        36.0,
+        36.0,
+        36.0,
+        36.0,
+        36.0,
+        36.0,
+        36.0
+      ],
+      "wgpu_opaque_instancing.instances": [
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0
+      ],
+      "wgpu_opaque_instancing.instance_bytes": [
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0
+      ],
+      "rust_instances.count": [
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0
+      ],
+      "rust_instances.ranges": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_instances.geometry_bytes": [
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0
+      ],
+      "rust_instances.instance_bytes": [
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0
+      ],
+      "rust_instances.material_bytes": [
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0
+      ],
+      "rust_instances.geometry_hit": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_instances.payload_hit": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_instances.uploaded_bytes": [
+        5763408.0,
+        5760864.0,
+        5760864.0,
+        5760864.0,
+        5760864.0,
+        5760864.0,
+        5760864.0,
+        5760864.0
+      ],
+      "rust_instance_resources.geometry_bytes": [
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0
+      ],
+      "rust_instance_resources.instance_bytes": [
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0
+      ],
+      "rust_instance_resources.material_bytes": [
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0
+      ],
+      "rust_resources.geometry_active_bytes": [
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0
+      ],
+      "rust_resources.geometry_retired_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.vertex_buffers": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_resources.index_buffers": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_resources.texture_cache_count": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.texture_payload_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.rtt_texture_count": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.rtt_color_nominal_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.attachment_textures": [
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+      ],
+      "rust_resources.attachment_nominal_bytes": [
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0
+      ],
+      "rust_resources.staging_frame_color_bytes": [
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0
+      ],
+      "rust_resources.staging_frame_depth_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.staging_pool_free_bytes": [
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0
+      ],
+      "rust_resources.staging_pool_free_buffers": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_draw_resources.frame_geometry_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_draw_resources.uniform_chunks": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_draw_resources.draw_bind_groups": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust.staging_color_reused": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust.attachments_reused": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust.camera_bindings_created": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust.camera_bindings_reused": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bridge.pack_cache_hit": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "action.vertices": [
+        96216.0,
+        96216.0,
+        96216.0,
+        96216.0,
+        96216.0,
+        96216.0,
+        96216.0,
+        96216.0
+      ],
+      "action.indices": [
+        144324.0,
+        144324.0,
+        144324.0,
+        144324.0,
+        144324.0,
+        144324.0,
+        144324.0,
+        144324.0
+      ],
+      "action.draws": [
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0
+      ],
+      "action.plan_cache_hit": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "object_proof_cache.memo_enabled": [
+        1.0
+      ],
+      "object_proof_cache.material_checks": [
+        8.0
+      ],
+      "object_proof_cache.material_hits": [
+        39992.0
+      ],
+      "object_proof_cache.index_checks": [
+        4009.0
+      ],
+      "object_proof_cache.index_hits": [
+        35992.0
+      ],
+      "object_proof_cache.dimensions_checks": [
+        4001.0
+      ],
+      "object_proof_cache.dimensions_hits": [
+        35999.0
+      ],
+      "object_proof_cache.vertex_checks": [
+        4008.0
+      ],
+      "object_proof_cache.vertex_hits": [
+        35992.0
+      ],
+      "object_proof_cache.cached_index_spans": [
+        1024.0
+      ],
+      "object_proof_cache.cached_sources": [
+        1024.0
+      ],
+      "object_proof_cache.cached_vertex_spans": [
+        1024.0
+      ]
+    },
+    "aggregation": "Only CSV warmup=false frame indices for phase series matching frame count; all raw series retained"
+  },
+  "wgpu-vulkan-materials-10": {
+    "first_total_ms": 366.981944,
+    "total_median_ms": 81.437972,
+    "phase_measured_medians_ms": {
+      "validation_detail.materials_ms": 0.006683,
+      "validation_detail.vertices_ms": 0.648798,
+      "validation_detail.indices_ms": 0.07509,
+      "validation_detail.scene_state_ms": 0.000892,
+      "validation_detail.render_states_ms": 7.448848,
+      "validation_detail.draws_ms": 4.314262,
+      "validation_detail.finish_ms": 0.00019,
+      "composition_detail.classify_ms": 12.893363,
+      "composition_detail.sort_ms": 0.189322,
+      "composition_detail.finish_ms": 0.00014,
+      "rust.validation_ms": 1.631457,
+      "rust.prepare_encode_ms": 2.615128,
+      "rust.submit_ms": 0.045315,
+      "rust.gpu_wait_ms": 2.124294,
+      "rust.readback_publish_ms": 0.43521,
+      "rust_cpu_detail.total_ms": 6.914312,
+      "rust_cpu_detail.validation_ms": 1.631457,
+      "rust_cpu_detail.gpu_probe_setup_ms": 0.000852,
+      "rust_cpu_detail.attachments_ms": 0.597653,
+      "rust_cpu_detail.draw_encode_ms": 2.016594,
+      "rust_cpu_detail.scene_snapshot_ms": 3e-05,
+      "rust_cpu_detail.staging_prepare_ms": 0.014487,
+      "rust_cpu_detail.submit_ms": 0.045315,
+      "rust_cpu_detail.map_request_ms": 0.003176,
+      "rust_cpu_detail.gpu_wait_ms": 2.124294,
+      "rust_cpu_detail.post_wait_checks_ms": 0.000401,
+      "rust_cpu_detail.gpu_probe_read_ms": 9e-05,
+      "rust_cpu_detail.map_receive_ms": 0.001673,
+      "rust_cpu_detail.color_copy_ms": 0.423058,
+      "rust_cpu_detail.depth_copy_ms": 0.000141,
+      "rust_cpu_detail.output_commit_ms": 5e-05,
+      "rust_cpu_detail.recycle_ms": 0.009718,
+      "bridge.pack_ms": 40.2528,
+      "bridge.ffi_ms": 7.48873,
+      "target.validation_ms": 26.187954,
+      "target.prepare_ms": 0.000641,
+      "target.submit_ms": 47.701094,
+      "action.traversal_ms": 0.002234,
+      "action.frame_plan_ms": 2.50954,
+      "action.backend_ms": 73.8672
+    },
+    "phase_values": {
+      "validation_detail.materials_ms": [
+        0.01583,
+        0.006662,
+        0.006272,
+        0.006302,
+        0.006101,
+        0.006683,
+        0.006322,
+        0.006692
+      ],
+      "validation_detail.vertices_ms": [
+        0.616708,
+        0.619303,
+        0.630514,
+        0.592993,
+        0.683633,
+        0.674966,
+        0.602832,
+        0.648798
+      ],
+      "validation_detail.indices_ms": [
+        0.078105,
+        0.077615,
+        0.083305,
+        0.075822,
+        0.07532,
+        0.07508,
+        0.093404,
+        0.07509
+      ],
+      "validation_detail.scene_state_ms": [
+        0.000562,
+        0.000811,
+        0.001352,
+        0.000861,
+        0.000832,
+        0.001082,
+        0.000892,
+        0.000801
+      ],
+      "validation_detail.render_states_ms": [
+        7.832311,
+        7.449479,
+        7.402732,
+        7.495074,
+        7.319456,
+        7.367526,
+        8.301845,
+        7.448848
+      ],
+      "validation_detail.draws_ms": [
+        4.607868,
+        4.229213,
+        4.113257,
+        4.322397,
+        4.178269,
+        4.237158,
+        4.395663,
+        4.314262
+      ],
+      "validation_detail.finish_ms": [
+        0.000231,
+        0.000191,
+        0.000191,
+        0.00023,
+        0.00019,
+        0.000181,
+        0.000191,
+        0.00019
+      ],
+      "composition_detail.classify_ms": [
+        12.507745,
+        12.869229,
+        12.624533,
+        12.883294,
+        12.711965,
+        12.893363,
+        12.694653,
+        13.146635
+      ],
+      "composition_detail.sort_ms": [
+        0.185967,
+        0.180906,
+        0.192608,
+        0.194352,
+        0.183873,
+        0.184323,
+        0.196115,
+        0.189322
+      ],
+      "composition_detail.finish_ms": [
+        0.000691,
+        0.000171,
+        0.000141,
+        0.00014,
+        0.00012,
+        0.000702,
+        0.00014,
+        0.00012
+      ],
+      "builder_detail.expand_styles_ms": [
+        0.375429
+      ],
+      "builder_detail.validation_ms": [
+        13.178805
+      ],
+      "builder_detail.composition_ms": [
+        12.706886
+      ],
+      "builder_detail.storage_report_ms": [
+        0.009668
+      ],
+      "builder_detail.publish_plan_ms": [
+        1.703982
+      ],
+      "builder_detail.finish_ms": [
+        0.00012
+      ],
+      "rust.validation_ms": [
+        1.534186,
+        1.620497,
+        1.524118,
+        1.563751,
+        1.518788,
+        1.631888,
+        1.631457,
+        1.504871
+      ],
+      "rust.prepare_encode_ms": [
+        5.189942,
+        3.50201,
+        2.852059,
+        2.586575,
+        2.955041,
+        2.615128,
+        2.740382,
+        2.55146
+      ],
+      "rust.submit_ms": [
+        0.05898,
+        0.047048,
+        0.058338,
+        0.049462,
+        0.055072,
+        0.045315,
+        0.057337,
+        0.044874
+      ],
+      "rust.gpu_wait_ms": [
+        2.176702,
+        2.108275,
+        2.109758,
+        2.131078,
+        2.107834,
+        2.124294,
+        2.112873,
+        2.301805
+      ],
+      "rust.readback_publish_ms": [
+        0.407899,
+        0.505681,
+        0.406046,
+        0.448875,
+        0.41379,
+        0.480084,
+        0.43521,
+        0.409092
+      ],
+      "rust_cpu_detail.total_ms": [
+        10.661538,
+        7.800312,
+        6.979394,
+        6.798346,
+        7.070734,
+        6.914312,
+        6.995433,
+        6.831468
+      ],
+      "rust_cpu_detail.validation_ms": [
+        1.534186,
+        1.620497,
+        1.524118,
+        1.563751,
+        1.518788,
+        1.631888,
+        1.631457,
+        1.504871
+      ],
+      "rust_cpu_detail.gpu_probe_setup_ms": [
+        0.001383,
+        0.000752,
+        0.000821,
+        0.000862,
+        0.000852,
+        0.000861,
+        0.000852,
+        0.000692
+      ],
+      "rust_cpu_detail.attachments_ms": [
+        0.889806,
+        0.611057,
+        0.588245,
+        0.59616,
+        0.582604,
+        0.597653,
+        0.614123,
+        0.597191
+      ],
+      "rust_cpu_detail.draw_encode_ms": [
+        4.298733,
+        2.890171,
+        2.262963,
+        1.989533,
+        2.371565,
+        2.016594,
+        2.125377,
+        1.953547
+      ],
+      "rust_cpu_detail.scene_snapshot_ms": [
+        2e-05,
+        3e-05,
+        3e-05,
+        2e-05,
+        2e-05,
+        2e-05,
+        3e-05,
+        3e-05
+      ],
+      "rust_cpu_detail.staging_prepare_ms": [
+        1.291304,
+        0.013074,
+        0.025568,
+        0.014217,
+        0.016952,
+        0.013986,
+        0.014687,
+        0.014487
+      ],
+      "rust_cpu_detail.submit_ms": [
+        0.05898,
+        0.047048,
+        0.058338,
+        0.049462,
+        0.055072,
+        0.045315,
+        0.057337,
+        0.044874
+      ],
+      "rust_cpu_detail.map_request_ms": [
+        0.002144,
+        0.003306,
+        0.003036,
+        0.003967,
+        0.002786,
+        0.003176,
+        0.002986,
+        0.003717
+      ],
+      "rust_cpu_detail.gpu_wait_ms": [
+        2.176702,
+        2.108275,
+        2.109758,
+        2.131078,
+        2.107834,
+        2.124294,
+        2.112873,
+        2.301805
+      ],
+      "rust_cpu_detail.post_wait_checks_ms": [
+        0.000301,
+        0.00033,
+        0.00036,
+        0.00035,
+        0.00038,
+        0.000351,
+        0.000401,
+        0.001092
+      ],
+      "rust_cpu_detail.gpu_probe_read_ms": [
+        8e-05,
+        9.1e-05,
+        0.000111,
+        7.1e-05,
+        9.1e-05,
+        9e-05,
+        0.0001,
+        7e-05
+      ],
+      "rust_cpu_detail.map_receive_ms": [
+        0.001092,
+        0.001202,
+        0.001272,
+        0.001412,
+        0.001332,
+        0.001553,
+        0.001743,
+        0.001673
+      ],
+      "rust_cpu_detail.color_copy_ms": [
+        0.404233,
+        0.493739,
+        0.394785,
+        0.436312,
+        0.403181,
+        0.468763,
+        0.423058,
+        0.39751
+      ],
+      "rust_cpu_detail.depth_copy_ms": [
+        0.00013,
+        0.000711,
+        0.00015,
+        0.000141,
+        0.00016,
+        0.00014,
+        0.00016,
+        0.000141
+      ],
+      "rust_cpu_detail.output_commit_ms": [
+        0.00013,
+        5e-05,
+        0.0001,
+        0.0001,
+        7e-05,
+        5e-05,
+        0.0001,
+        5e-05
+      ],
+      "rust_cpu_detail.recycle_ms": [
+        0.002314,
+        0.009979,
+        0.009739,
+        0.01091,
+        0.009047,
+        0.009578,
+        0.010149,
+        0.009718
+      ],
+      "bridge.pack_ms": [
+        47.164,
+        41.8454,
+        41.8141,
+        40.4745,
+        40.9401,
+        40.1816,
+        41.2923,
+        40.2528
+      ],
+      "bridge.ffi_ms": [
+        11.3269,
+        8.31889,
+        7.66693,
+        7.37727,
+        7.74562,
+        7.48873,
+        7.58413,
+        7.3909
+      ],
+      "target.validation_ms": [
+        2.049575,
+        25.817444,
+        25.402332,
+        25.919083,
+        25.507437,
+        25.792949,
+        26.650846,
+        26.187954
+      ],
+      "target.prepare_ms": [
+        2.811594,
+        0.000641,
+        0.000641,
+        0.000571,
+        0.001172,
+        0.000641,
+        0.000641,
+        0.000631
+      ],
+      "target.submit_ms": [
+        58.546265,
+        50.192974,
+        49.516424,
+        47.88134,
+        48.720272,
+        47.701094,
+        48.903573,
+        47.672711
+      ],
+      "action.traversal_ms": [
+        205.447,
+        0.003176,
+        0.003005,
+        0.002194,
+        0.003416,
+        0.002234,
+        0.002715,
+        0.001613
+      ],
+      "action.frame_plan_ms": [
+        27.9915,
+        2.64629,
+        2.30665,
+        2.50062,
+        2.63564,
+        2.50436,
+        2.84731,
+        2.50954
+      ],
+      "action.backend_ms": [
+        63.4202,
+        76.0166,
+        74.9265,
+        73.8066,
+        74.2379,
+        73.5015,
+        75.5608,
+        73.8672
+      ],
+      "object_qualification.scene_profile_ms": [
+        16.316205
+      ],
+      "object_qualification.frame_profile_ms": [
+        5.096148
+      ],
+      "object_qualification.ownership_ms": [
+        10.92022
+      ],
+      "object_qualification.payload_ms": [
+        17.005749
+      ],
+      "object_qualification.finish_ms": [
+        0.131946
+      ]
+    },
+    "counters": {
+      "plan_storage.vertices": [
+        96216.0
+      ],
+      "plan_storage.indices": [
+        144324.0
+      ],
+      "plan_storage.render_states": [
+        40001.0
+      ],
+      "plan_storage.draws": [
+        40001.0
+      ],
+      "plan_storage.vertex_stride": [
+        100.0
+      ],
+      "plan_storage.vertex_bytes": [
+        9621600.0
+      ],
+      "plan_storage.vertex_capacity_bytes": [
+        9830400.0
+      ],
+      "plan_storage.index_bytes": [
+        577296.0
+      ],
+      "plan_storage.index_capacity_bytes": [
+        1048576.0
+      ],
+      "plan_storage.render_state_bytes": [
+        65601640.0
+      ],
+      "plan_storage.render_state_capacity_bytes": [
+        65606560.0
+      ],
+      "plan_storage.draw_capacity_bytes": [
+        3840096.0
+      ],
+      "plan_storage.capture_reserve_estimate": [
+        40004.0
+      ],
+      "plan_storage.transfer_ownership": [
+        1.0
+      ],
+      "plan_storage.cube_replay_hits": [
+        39999.0
+      ],
+      "plan_storage.cube_template_entries": [
+        2.0
+      ],
+      "plan_storage.cube_range_entries": [
+        65.0
+      ],
+      "plan_storage.cube_template_evictions": [
+        0.0
+      ],
+      "plan_storage.cube_range_evictions": [
+        3944.0
+      ],
+      "plan_storage.cube_range_reuse_hits": [
+        35992.0
+      ],
+      "wgpu_opaque_instancing.source_draws": [
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0
+      ],
+      "wgpu_opaque_instancing.source_ranges": [
+        4009.0,
+        4009.0,
+        4009.0,
+        4009.0,
+        4009.0,
+        4009.0,
+        4009.0,
+        4009.0
+      ],
+      "wgpu_opaque_instancing.diagonal_ranges": [
+        4009.0,
+        4009.0,
+        4009.0,
+        4009.0,
+        4009.0,
+        4009.0,
+        4009.0,
+        4009.0
+      ],
+      "wgpu_opaque_instancing.hashed_ranges": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "wgpu_opaque_instancing.canonical_meshes": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "wgpu_opaque_instancing.groups": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "wgpu_opaque_instancing.compact_vertices": [
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0
+      ],
+      "wgpu_opaque_instancing.compact_indices": [
+        36.0,
+        36.0,
+        36.0,
+        36.0,
+        36.0,
+        36.0,
+        36.0,
+        36.0
+      ],
+      "wgpu_opaque_instancing.instances": [
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0
+      ],
+      "wgpu_opaque_instancing.instance_bytes": [
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0
+      ],
+      "rust_instances.count": [
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0
+      ],
+      "rust_instances.ranges": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_instances.geometry_bytes": [
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0
+      ],
+      "rust_instances.instance_bytes": [
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0
+      ],
+      "rust_instances.material_bytes": [
+        320720.0,
+        320720.0,
+        320720.0,
+        320720.0,
+        320720.0,
+        320720.0,
+        320720.0,
+        320720.0
+      ],
+      "rust_instances.geometry_hit": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_instances.payload_hit": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_instances.uploaded_bytes": [
+        6083408.0,
+        6080864.0,
+        6080864.0,
+        6080864.0,
+        6080864.0,
+        6080864.0,
+        6080864.0,
+        6080864.0
+      ],
+      "rust_instance_resources.geometry_bytes": [
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0
+      ],
+      "rust_instance_resources.instance_bytes": [
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0
+      ],
+      "rust_instance_resources.material_bytes": [
+        320720.0,
+        320720.0,
+        320720.0,
+        320720.0,
+        320720.0,
+        320720.0,
+        320720.0,
+        320720.0
+      ],
+      "rust_resources.geometry_active_bytes": [
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0
+      ],
+      "rust_resources.geometry_retired_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.vertex_buffers": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_resources.index_buffers": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_resources.texture_cache_count": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.texture_payload_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.rtt_texture_count": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.rtt_color_nominal_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.attachment_textures": [
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+      ],
+      "rust_resources.attachment_nominal_bytes": [
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0
+      ],
+      "rust_resources.staging_frame_color_bytes": [
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0
+      ],
+      "rust_resources.staging_frame_depth_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.staging_pool_free_bytes": [
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0
+      ],
+      "rust_resources.staging_pool_free_buffers": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_draw_resources.frame_geometry_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_draw_resources.uniform_chunks": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_draw_resources.draw_bind_groups": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust.staging_color_reused": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust.attachments_reused": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust.camera_bindings_created": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust.camera_bindings_reused": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bridge.pack_cache_hit": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "action.vertices": [
+        96216.0,
+        96216.0,
+        96216.0,
+        96216.0,
+        96216.0,
+        96216.0,
+        96216.0,
+        96216.0
+      ],
+      "action.indices": [
+        144324.0,
+        144324.0,
+        144324.0,
+        144324.0,
+        144324.0,
+        144324.0,
+        144324.0,
+        144324.0
+      ],
+      "action.draws": [
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0
+      ],
+      "action.plan_cache_hit": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "object_proof_cache.memo_enabled": [
+        1.0
+      ],
+      "object_proof_cache.material_checks": [
+        4008.0
+      ],
+      "object_proof_cache.material_hits": [
+        35992.0
+      ],
+      "object_proof_cache.index_checks": [
+        4009.0
+      ],
+      "object_proof_cache.index_hits": [
+        35992.0
+      ],
+      "object_proof_cache.dimensions_checks": [
+        1.0
+      ],
+      "object_proof_cache.dimensions_hits": [
+        39999.0
+      ],
+      "object_proof_cache.vertex_checks": [
+        4008.0
+      ],
+      "object_proof_cache.vertex_hits": [
+        35992.0
+      ],
+      "object_proof_cache.cached_index_spans": [
+        1024.0
+      ],
+      "object_proof_cache.cached_sources": [
+        1.0
+      ],
+      "object_proof_cache.cached_vertex_spans": [
+        1024.0
+      ]
+    },
+    "aggregation": "Only CSV warmup=false frame indices for phase series matching frame count; all raw series retained"
+  },
+  "wgpu-vulkan-static": {
+    "first_total_ms": 331.149734,
+    "total_median_ms": 3.241986,
+    "phase_measured_medians_ms": {
+      "rust.validation_ms": 0.514678,
+      "rust.prepare_encode_ms": 0.362024,
+      "rust.submit_ms": 0.04273,
+      "rust.gpu_wait_ms": 1.171401,
+      "rust.readback_publish_ms": 0.435601,
+      "rust_cpu_detail.total_ms": 2.524239,
+      "rust_cpu_detail.validation_ms": 0.514678,
+      "rust_cpu_detail.gpu_probe_setup_ms": 0.000761,
+      "rust_cpu_detail.attachments_ms": 0.210993,
+      "rust_cpu_detail.draw_encode_ms": 0.149669,
+      "rust_cpu_detail.scene_snapshot_ms": 2e-05,
+      "rust_cpu_detail.staging_prepare_ms": 0.013004,
+      "rust_cpu_detail.submit_ms": 0.04273,
+      "rust_cpu_detail.map_request_ms": 0.003036,
+      "rust_cpu_detail.gpu_wait_ms": 1.171401,
+      "rust_cpu_detail.post_wait_checks_ms": 0.00029,
+      "rust_cpu_detail.gpu_probe_read_ms": 6e-05,
+      "rust_cpu_detail.map_receive_ms": 0.001272,
+      "rust_cpu_detail.color_copy_ms": 0.431864,
+      "rust_cpu_detail.depth_copy_ms": 0.00014,
+      "rust_cpu_detail.output_commit_ms": 6e-05,
+      "rust_cpu_detail.recycle_ms": 0.002645,
+      "bridge.pack_ms": 0.002024,
+      "bridge.ffi_ms": 2.74601,
+      "target.validation_ms": 0.00026,
+      "target.prepare_ms": 0.001022,
+      "target.submit_ms": 2.776428,
+      "action.traversal_ms": 0.003687,
+      "action.frame_plan_ms": 0.000811,
+      "action.backend_ms": 2.78233
+    },
+    "phase_values": {
+      "validation_detail.materials_ms": [
+        0.001332
+      ],
+      "validation_detail.vertices_ms": [
+        0.002064
+      ],
+      "validation_detail.indices_ms": [
+        0.000471
+      ],
+      "validation_detail.scene_state_ms": [
+        0.000531
+      ],
+      "validation_detail.render_states_ms": [
+        8.256361
+      ],
+      "validation_detail.draws_ms": [
+        4.285828
+      ],
+      "validation_detail.finish_ms": [
+        0.000191
+      ],
+      "composition_detail.classify_ms": [
+        12.076603
+      ],
+      "composition_detail.sort_ms": [
+        0.194542
+      ],
+      "composition_detail.finish_ms": [
+        0.00024
+      ],
+      "builder_detail.expand_styles_ms": [
+        0.396919
+      ],
+      "builder_detail.validation_ms": [
+        12.574199
+      ],
+      "builder_detail.composition_ms": [
+        12.285682
+      ],
+      "builder_detail.storage_report_ms": [
+        0.009447
+      ],
+      "builder_detail.publish_plan_ms": [
+        1.362938
+      ],
+      "builder_detail.finish_ms": [
+        0.00012
+      ],
+      "rust.validation_ms": [
+        1.543684,
+        0.482308,
+        0.453805,
+        0.495032,
+        0.44084,
+        0.514678,
+        0.532071,
+        0.509238
+      ],
+      "rust.prepare_encode_ms": [
+        4.843557,
+        0.536098,
+        0.344391,
+        0.390477,
+        0.33268,
+        0.344501,
+        0.362024,
+        0.427315
+      ],
+      "rust.submit_ms": [
+        0.068488,
+        0.050083,
+        0.04294,
+        0.051235,
+        0.039623,
+        0.041256,
+        0.04273,
+        0.046968
+      ],
+      "rust.gpu_wait_ms": [
+        2.16984,
+        1.167274,
+        1.155361,
+        1.156372,
+        1.163045,
+        1.173845,
+        1.171401,
+        1.153177
+      ],
+      "rust.readback_publish_ms": [
+        0.422136,
+        0.400275,
+        0.406918,
+        0.37582,
+        0.424249,
+        0.435601,
+        0.557197,
+        0.356514
+      ],
+      "rust_cpu_detail.total_ms": [
+        10.481523,
+        2.652828,
+        2.418102,
+        2.490537,
+        2.414875,
+        2.524239,
+        2.681452,
+        2.511455
+      ],
+      "rust_cpu_detail.validation_ms": [
+        1.543684,
+        0.482308,
+        0.453805,
+        0.495032,
+        0.44084,
+        0.514678,
+        0.532071,
+        0.509238
+      ],
+      "rust_cpu_detail.gpu_probe_setup_ms": [
+        0.001342,
+        0.000751,
+        0.000401,
+        0.00041,
+        0.000441,
+        0.000631,
+        0.001342,
+        0.000761
+      ],
+      "rust_cpu_detail.attachments_ms": [
+        0.552479,
+        0.229878,
+        0.193951,
+        0.22011,
+        0.197137,
+        0.195885,
+        0.210993,
+        0.223927
+      ],
+      "rust_cpu_detail.draw_encode_ms": [
+        4.289716,
+        0.305439,
+        0.150019,
+        0.169937,
+        0.135082,
+        0.147965,
+        0.149669,
+        0.202597
+      ],
+      "rust_cpu_detail.scene_snapshot_ms": [
+        2e-05,
+        3e-05,
+        2e-05,
+        2e-05,
+        2e-05,
+        2e-05,
+        2e-05,
+        3e-05
+      ],
+      "rust_cpu_detail.staging_prepare_ms": [
+        1.428529,
+        0.013054,
+        0.011993,
+        0.017783,
+        0.01077,
+        0.011011,
+        0.013004,
+        0.014537
+      ],
+      "rust_cpu_detail.submit_ms": [
+        0.068488,
+        0.050083,
+        0.04294,
+        0.051235,
+        0.039623,
+        0.041256,
+        0.04273,
+        0.046968
+      ],
+      "rust_cpu_detail.map_request_ms": [
+        0.002945,
+        0.003406,
+        0.002374,
+        0.003467,
+        0.002786,
+        0.003036,
+        0.002634,
+        0.003356
+      ],
+      "rust_cpu_detail.gpu_wait_ms": [
+        2.16984,
+        1.167274,
+        1.155361,
+        1.156372,
+        1.163045,
+        1.173845,
+        1.171401,
+        1.153177
+      ],
+      "rust_cpu_detail.post_wait_checks_ms": [
+        0.000892,
+        0.00027,
+        0.00026,
+        0.000271,
+        0.000721,
+        0.000261,
+        0.000321,
+        0.00029
+      ],
+      "rust_cpu_detail.gpu_probe_read_ms": [
+        0.001452,
+        6e-05,
+        6e-05,
+        8e-05,
+        0.000161,
+        5e-05,
+        7e-05,
+        6e-05
+      ],
+      "rust_cpu_detail.map_receive_ms": [
+        0.003367,
+        0.001112,
+        0.000762,
+        0.001603,
+        0.001172,
+        0.000912,
+        0.001272,
+        0.001573
+      ],
+      "rust_cpu_detail.color_copy_ms": [
+        0.414511,
+        0.395957,
+        0.403761,
+        0.371582,
+        0.419952,
+        0.431864,
+        0.548732,
+        0.352887
+      ],
+      "rust_cpu_detail.depth_copy_ms": [
+        0.000822,
+        3.1e-05,
+        0.000181,
+        0.00014,
+        0.00014,
+        0.00014,
+        0.00019,
+        0.000111
+      ],
+      "rust_cpu_detail.output_commit_ms": [
+        7e-05,
+        4e-05,
+        7e-05,
+        7e-05,
+        0.00018,
+        4e-05,
+        0.000241,
+        6e-05
+      ],
+      "rust_cpu_detail.recycle_ms": [
+        0.003366,
+        0.003135,
+        0.002144,
+        0.002425,
+        0.002805,
+        0.002645,
+        0.006762,
+        0.001883
+      ],
+      "bridge.pack_ms": [
+        45.6678,
+        0.002254,
+        0.001613,
+        0.001562,
+        0.001152,
+        0.001523,
+        0.002254,
+        0.002024
+      ],
+      "bridge.ffi_ms": [
+        11.2704,
+        2.85908,
+        2.6104,
+        2.70079,
+        2.64922,
+        2.74601,
+        2.94958,
+        2.70015
+      ],
+      "target.validation_ms": [
+        1.678294,
+        0.000351,
+        0.00021,
+        0.000201,
+        0.00027,
+        0.00015,
+        0.00026,
+        0.000321
+      ],
+      "target.prepare_ms": [
+        2.022646,
+        0.00043,
+        0.000531,
+        0.00034,
+        0.00023,
+        0.000882,
+        0.001032,
+        0.001022
+      ],
+      "target.submit_ms": [
+        56.993964,
+        2.887065,
+        2.636258,
+        2.727949,
+        2.675111,
+        2.776428,
+        2.982493,
+        2.726866
+      ],
+      "action.traversal_ms": [
+        187.448,
+        0.004408,
+        0.002575,
+        0.003927,
+        0.002895,
+        0.002805,
+        0.003687,
+        0.004198
+      ],
+      "action.frame_plan_ms": [
+        26.644,
+        0.000501,
+        0.000481,
+        0.001162,
+        0.000511,
+        0.001042,
+        0.000811,
+        0.000591
+      ],
+      "action.backend_ms": [
+        60.7059,
+        2.8923,
+        2.64104,
+        2.73227,
+        2.68021,
+        2.78233,
+        2.98887,
+        2.73287
+      ],
+      "object_qualification.scene_profile_ms": [
+        12.839252
+      ],
+      "object_qualification.frame_profile_ms": [
+        4.576721
+      ],
+      "object_qualification.ownership_ms": [
+        11.269971
+      ],
+      "object_qualification.payload_ms": [
+        12.05398
+      ],
+      "object_qualification.finish_ms": [
+        0.005531
+      ]
+    },
+    "counters": {
+      "plan_storage.vertices": [
+        216.0
+      ],
+      "plan_storage.indices": [
+        324.0
+      ],
+      "plan_storage.render_states": [
+        40001.0
+      ],
+      "plan_storage.draws": [
+        40001.0
+      ],
+      "plan_storage.vertex_stride": [
+        100.0
+      ],
+      "plan_storage.vertex_bytes": [
+        21600.0
+      ],
+      "plan_storage.vertex_capacity_bytes": [
+        38400.0
+      ],
+      "plan_storage.index_bytes": [
+        1296.0
+      ],
+      "plan_storage.index_capacity_bytes": [
+        2048.0
+      ],
+      "plan_storage.render_state_bytes": [
+        65601640.0
+      ],
+      "plan_storage.render_state_capacity_bytes": [
+        65606560.0
+      ],
+      "plan_storage.draw_capacity_bytes": [
+        3840096.0
+      ],
+      "plan_storage.capture_reserve_estimate": [
+        40004.0
+      ],
+      "plan_storage.transfer_ownership": [
+        1.0
+      ],
+      "plan_storage.cube_replay_hits": [
+        39999.0
+      ],
+      "plan_storage.cube_template_entries": [
+        2.0
+      ],
+      "plan_storage.cube_range_entries": [
+        9.0
+      ],
+      "plan_storage.cube_template_evictions": [
+        0.0
+      ],
+      "plan_storage.cube_range_evictions": [
+        0.0
+      ],
+      "plan_storage.cube_range_reuse_hits": [
+        39992.0
+      ],
+      "wgpu_opaque_instancing.source_draws": [
+        40001.0
+      ],
+      "wgpu_opaque_instancing.source_ranges": [
+        9.0
+      ],
+      "wgpu_opaque_instancing.diagonal_ranges": [
+        9.0
+      ],
+      "wgpu_opaque_instancing.hashed_ranges": [
+        1.0
+      ],
+      "wgpu_opaque_instancing.canonical_meshes": [
+        1.0
+      ],
+      "wgpu_opaque_instancing.groups": [
+        1.0
+      ],
+      "wgpu_opaque_instancing.compact_vertices": [
+        24.0
+      ],
+      "wgpu_opaque_instancing.compact_indices": [
+        36.0
+      ],
+      "wgpu_opaque_instancing.instances": [
+        40001.0
+      ],
+      "wgpu_opaque_instancing.instance_bytes": [
+        5760144.0
+      ],
+      "rust_instances.count": [
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0
+      ],
+      "rust_instances.ranges": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_instances.geometry_bytes": [
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0
+      ],
+      "rust_instances.instance_bytes": [
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0
+      ],
+      "rust_instances.material_bytes": [
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0
+      ],
+      "rust_instances.geometry_hit": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_instances.payload_hit": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_instances.uploaded_bytes": [
+        5763408.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_instance_resources.geometry_bytes": [
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0
+      ],
+      "rust_instance_resources.instance_bytes": [
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0
+      ],
+      "rust_instance_resources.material_bytes": [
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0
+      ],
+      "rust_resources.geometry_active_bytes": [
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0
+      ],
+      "rust_resources.geometry_retired_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.vertex_buffers": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_resources.index_buffers": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_resources.texture_cache_count": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.texture_payload_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.rtt_texture_count": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.rtt_color_nominal_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.attachment_textures": [
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+      ],
+      "rust_resources.attachment_nominal_bytes": [
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0
+      ],
+      "rust_resources.staging_frame_color_bytes": [
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0
+      ],
+      "rust_resources.staging_frame_depth_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.staging_pool_free_bytes": [
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0
+      ],
+      "rust_resources.staging_pool_free_buffers": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_draw_resources.frame_geometry_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_draw_resources.uniform_chunks": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_draw_resources.draw_bind_groups": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust.staging_color_reused": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust.attachments_reused": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust.camera_bindings_created": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust.camera_bindings_reused": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bridge.pack_cache_hit": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "action.vertices": [
+        216.0,
+        216.0,
+        216.0,
+        216.0,
+        216.0,
+        216.0,
+        216.0,
+        216.0
+      ],
+      "action.indices": [
+        324.0,
+        324.0,
+        324.0,
+        324.0,
+        324.0,
+        324.0,
+        324.0,
+        324.0
+      ],
+      "action.draws": [
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0
+      ],
+      "action.plan_cache_hit": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "object_proof_cache.memo_enabled": [
+        1.0
+      ],
+      "object_proof_cache.material_checks": [
+        8.0
+      ],
+      "object_proof_cache.material_hits": [
+        39992.0
+      ],
+      "object_proof_cache.index_checks": [
+        9.0
+      ],
+      "object_proof_cache.index_hits": [
+        39992.0
+      ],
+      "object_proof_cache.dimensions_checks": [
+        1.0
+      ],
+      "object_proof_cache.dimensions_hits": [
+        39999.0
+      ],
+      "object_proof_cache.vertex_checks": [
+        8.0
+      ],
+      "object_proof_cache.vertex_hits": [
+        39992.0
+      ],
+      "object_proof_cache.cached_index_spans": [
+        9.0
+      ],
+      "object_proof_cache.cached_sources": [
+        1.0
+      ],
+      "object_proof_cache.cached_vertex_spans": [
+        8.0
+      ]
+    },
+    "aggregation": "Only CSV warmup=false frame indices for phase series matching frame count; all raw series retained"
+  },
+  "wgpu-vulkan-transforms-10": {
+    "first_total_ms": 330.104111,
+    "total_median_ms": 74.813419,
+    "phase_measured_medians_ms": {
+      "validation_detail.materials_ms": 0.000441,
+      "validation_detail.vertices_ms": 0.001854,
+      "validation_detail.indices_ms": 0.000741,
+      "validation_detail.scene_state_ms": 0.000591,
+      "validation_detail.render_states_ms": 7.732175,
+      "validation_detail.draws_ms": 4.163321,
+      "validation_detail.finish_ms": 0.000201,
+      "composition_detail.classify_ms": 12.06953,
+      "composition_detail.sort_ms": 0.207055,
+      "composition_detail.finish_ms": 0.000131,
+      "rust.validation_ms": 1.495183,
+      "rust.prepare_encode_ms": 1.911599,
+      "rust.submit_ms": 0.050064,
+      "rust.gpu_wait_ms": 2.053302,
+      "rust.readback_publish_ms": 0.450379,
+      "rust_cpu_detail.total_ms": 5.99473,
+      "rust_cpu_detail.validation_ms": 1.495183,
+      "rust_cpu_detail.gpu_probe_setup_ms": 0.000701,
+      "rust_cpu_detail.attachments_ms": 0.233515,
+      "rust_cpu_detail.draw_encode_ms": 1.677353,
+      "rust_cpu_detail.scene_snapshot_ms": 3e-05,
+      "rust_cpu_detail.staging_prepare_ms": 0.016501,
+      "rust_cpu_detail.submit_ms": 0.050064,
+      "rust_cpu_detail.map_request_ms": 0.003857,
+      "rust_cpu_detail.gpu_wait_ms": 2.053302,
+      "rust_cpu_detail.post_wait_checks_ms": 0.000361,
+      "rust_cpu_detail.gpu_probe_read_ms": 0.00011,
+      "rust_cpu_detail.map_receive_ms": 0.001433,
+      "rust_cpu_detail.color_copy_ms": 0.425242,
+      "rust_cpu_detail.depth_copy_ms": 0.00016,
+      "rust_cpu_detail.output_commit_ms": 8e-05,
+      "rust_cpu_detail.recycle_ms": 0.011061,
+      "bridge.pack_ms": 37.5391,
+      "bridge.ffi_ms": 6.63521,
+      "target.validation_ms": 24.585331,
+      "target.prepare_ms": 0.000571,
+      "target.submit_ms": 44.269806,
+      "action.traversal_ms": 0.002023,
+      "action.frame_plan_ms": 2.12241,
+      "action.backend_ms": 68.8625
+    },
+    "phase_values": {
+      "validation_detail.materials_ms": [
+        0.001954,
+        0.000461,
+        0.000471,
+        0.000451,
+        0.00039,
+        0.0004,
+        0.000441,
+        0.000481
+      ],
+      "validation_detail.vertices_ms": [
+        0.001953,
+        0.002324,
+        0.002184,
+        0.001864,
+        0.001663,
+        0.001854,
+        0.001703,
+        0.002384
+      ],
+      "validation_detail.indices_ms": [
+        0.000451,
+        0.000441,
+        0.001022,
+        0.000481,
+        0.000491,
+        0.000741,
+        0.000511,
+        0.000882
+      ],
+      "validation_detail.scene_state_ms": [
+        0.000541,
+        0.001262,
+        0.000601,
+        0.001182,
+        0.000712,
+        0.000501,
+        0.000591,
+        0.000741
+      ],
+      "validation_detail.render_states_ms": [
+        7.646445,
+        7.452184,
+        7.526041,
+        7.610959,
+        7.385219,
+        7.732175,
+        7.548082,
+        7.775496
+      ],
+      "validation_detail.draws_ms": [
+        4.061361,
+        4.138535,
+        4.518092,
+        4.040041,
+        4.154905,
+        4.121533,
+        4.163321,
+        4.177507
+      ],
+      "validation_detail.finish_ms": [
+        0.000211,
+        0.00012,
+        0.00022,
+        0.000141,
+        0.00013,
+        0.00029,
+        0.000201,
+        0.000131
+      ],
+      "composition_detail.classify_ms": [
+        11.857755,
+        11.931643,
+        12.563549,
+        11.979763,
+        12.083957,
+        12.239506,
+        12.028894,
+        12.06953
+      ],
+      "composition_detail.sort_ms": [
+        0.1825,
+        0.210622,
+        0.223346,
+        0.220009,
+        0.207336,
+        0.228736,
+        0.205803,
+        0.207055
+      ],
+      "composition_detail.finish_ms": [
+        0.00012,
+        0.00014,
+        0.00014,
+        0.000131,
+        0.00013,
+        0.00013,
+        0.00015,
+        0.000131
+      ],
+      "builder_detail.expand_styles_ms": [
+        0.410474
+      ],
+      "builder_detail.validation_ms": [
+        11.743062
+      ],
+      "builder_detail.composition_ms": [
+        12.068959
+      ],
+      "builder_detail.storage_report_ms": [
+        0.009478
+      ],
+      "builder_detail.publish_plan_ms": [
+        0.627337
+      ],
+      "builder_detail.finish_ms": [
+        0.000141
+      ],
+      "rust.validation_ms": [
+        1.456111,
+        1.469726,
+        1.471319,
+        1.486948,
+        1.468474,
+        1.488741,
+        1.495183,
+        1.505002
+      ],
+      "rust.prepare_encode_ms": [
+        4.597859,
+        2.169319,
+        1.766338,
+        1.910798,
+        1.891131,
+        1.82586,
+        1.911599,
+        2.03601
+      ],
+      "rust.submit_ms": [
+        0.066144,
+        0.047899,
+        0.048721,
+        0.05371,
+        0.045504,
+        0.04808,
+        0.058849,
+        0.050064
+      ],
+      "rust.gpu_wait_ms": [
+        2.152448,
+        2.059214,
+        2.06772,
+        2.058532,
+        2.059555,
+        2.037784,
+        2.053302,
+        2.066407
+      ],
+      "rust.readback_publish_ms": [
+        0.477259,
+        0.437123,
+        0.551497,
+        0.427566,
+        0.516862,
+        0.576082,
+        0.418369,
+        0.450379
+      ],
+      "rust_cpu_detail.total_ms": [
+        10.019072,
+        6.200453,
+        5.92468,
+        5.957962,
+        5.99986,
+        5.99473,
+        5.958653,
+        6.12882
+      ],
+      "rust_cpu_detail.validation_ms": [
+        1.456111,
+        1.469726,
+        1.471319,
+        1.486948,
+        1.468474,
+        1.488741,
+        1.495183,
+        1.505002
+      ],
+      "rust_cpu_detail.gpu_probe_setup_ms": [
+        0.000631,
+        0.001022,
+        0.000631,
+        0.000702,
+        0.000631,
+        0.000692,
+        0.000701,
+        0.000701
+      ],
+      "rust_cpu_detail.attachments_ms": [
+        0.58007,
+        0.228035,
+        0.23109,
+        0.233364,
+        0.226402,
+        0.238263,
+        0.233515,
+        0.227153
+      ],
+      "rust_cpu_detail.draw_encode_ms": [
+        4.017128,
+        1.940232,
+        1.534597,
+        1.676712,
+        1.664028,
+        1.586875,
+        1.677353,
+        1.808136
+      ],
+      "rust_cpu_detail.scene_snapshot_ms": [
+        3e-05,
+        3e-05,
+        2e-05,
+        2e-05,
+        7e-05,
+        3e-05,
+        3e-05,
+        2e-05
+      ],
+      "rust_cpu_detail.staging_prepare_ms": [
+        1.265596,
+        0.013635,
+        0.014327,
+        0.015609,
+        0.013856,
+        0.013855,
+        0.016501,
+        0.016821
+      ],
+      "rust_cpu_detail.submit_ms": [
+        0.066144,
+        0.047899,
+        0.048721,
+        0.05371,
+        0.045504,
+        0.04808,
+        0.058849,
+        0.050064
+      ],
+      "rust_cpu_detail.map_request_ms": [
+        0.003125,
+        0.003196,
+        0.003586,
+        0.004378,
+        0.003767,
+        0.003857,
+        0.004409,
+        0.003586
+      ],
+      "rust_cpu_detail.gpu_wait_ms": [
+        2.152448,
+        2.059214,
+        2.06772,
+        2.058532,
+        2.059555,
+        2.037784,
+        2.053302,
+        2.066407
+      ],
+      "rust_cpu_detail.post_wait_checks_ms": [
+        0.00041,
+        0.00027,
+        0.001062,
+        0.000341,
+        0.000601,
+        0.000361,
+        0.000361,
+        0.000421
+      ],
+      "rust_cpu_detail.gpu_probe_read_ms": [
+        0.00012,
+        7.1e-05,
+        0.00011,
+        8e-05,
+        0.00011,
+        0.00011,
+        8e-05,
+        0.00013
+      ],
+      "rust_cpu_detail.map_receive_ms": [
+        0.001413,
+        0.000901,
+        0.001292,
+        0.001292,
+        0.001232,
+        0.001332,
+        0.001433,
+        0.001573
+      ],
+      "rust_cpu_detail.color_copy_ms": [
+        0.47249,
+        0.426073,
+        0.539294,
+        0.413941,
+        0.506102,
+        0.563409,
+        0.405645,
+        0.425242
+      ],
+      "rust_cpu_detail.depth_copy_ms": [
+        0.00016,
+        0.000642,
+        0.000221,
+        0.00014,
+        0.000531,
+        0.00019,
+        0.00015,
+        0.00016
+      ],
+      "rust_cpu_detail.output_commit_ms": [
+        0.00012,
+        5e-05,
+        7e-05,
+        0.00012,
+        7.1e-05,
+        0.000211,
+        8e-05,
+        6e-05
+      ],
+      "rust_cpu_detail.recycle_ms": [
+        0.003076,
+        0.009457,
+        0.01062,
+        0.012073,
+        0.008926,
+        0.01094,
+        0.011061,
+        0.023344
+      ],
+      "bridge.pack_ms": [
+        44.0452,
+        39.5018,
+        40.3797,
+        37.3746,
+        37.4017,
+        37.7853,
+        37.232,
+        37.5391
+      ],
+      "bridge.ffi_ms": [
+        10.8144,
+        6.77755,
+        6.64423,
+        6.5094,
+        6.53784,
+        6.63521,
+        6.52234,
+        6.70197
+      ],
+      "target.validation_ms": [
+        0.959116,
+        24.420153,
+        25.242825,
+        24.251478,
+        24.196466,
+        24.687721,
+        24.330405,
+        24.585331
+      ],
+      "target.prepare_ms": [
+        1.451172,
+        0.000551,
+        0.000611,
+        0.000621,
+        0.000541,
+        0.000571,
+        0.000572,
+        0.000551
+      ],
+      "target.submit_ms": [
+        54.917188,
+        46.309233,
+        47.05962,
+        43.910528,
+        43.966051,
+        44.460611,
+        43.781707,
+        44.269806
+      ],
+      "action.traversal_ms": [
+        188.374,
+        0.002966,
+        0.001713,
+        0.002124,
+        0.003917,
+        0.001944,
+        0.002023,
+        0.002765
+      ],
+      "action.frame_plan_ms": [
+        24.8723,
+        2.20826,
+        2.13951,
+        2.29287,
+        2.11068,
+        2.12241,
+        2.1126,
+        2.20823
+      ],
+      "action.backend_ms": [
+        57.3372,
+        70.7367,
+        72.3109,
+        68.1689,
+        68.1687,
+        69.1542,
+        68.118,
+        68.8625
+      ],
+      "object_qualification.scene_profile_ms": [
+        13.404946
+      ],
+      "object_qualification.frame_profile_ms": [
+        4.464932
+      ],
+      "object_qualification.ownership_ms": [
+        11.015167
+      ],
+      "object_qualification.payload_ms": [
+        11.875588
+      ],
+      "object_qualification.finish_ms": [
+        0.002064
+      ]
+    },
+    "counters": {
+      "plan_storage.vertices": [
+        216.0
+      ],
+      "plan_storage.indices": [
+        324.0
+      ],
+      "plan_storage.render_states": [
+        40001.0
+      ],
+      "plan_storage.draws": [
+        40001.0
+      ],
+      "plan_storage.vertex_stride": [
+        100.0
+      ],
+      "plan_storage.vertex_bytes": [
+        21600.0
+      ],
+      "plan_storage.vertex_capacity_bytes": [
+        38400.0
+      ],
+      "plan_storage.index_bytes": [
+        1296.0
+      ],
+      "plan_storage.index_capacity_bytes": [
+        2048.0
+      ],
+      "plan_storage.render_state_bytes": [
+        65601640.0
+      ],
+      "plan_storage.render_state_capacity_bytes": [
+        65606560.0
+      ],
+      "plan_storage.draw_capacity_bytes": [
+        3840096.0
+      ],
+      "plan_storage.capture_reserve_estimate": [
+        40004.0
+      ],
+      "plan_storage.transfer_ownership": [
+        1.0
+      ],
+      "plan_storage.cube_replay_hits": [
+        39999.0
+      ],
+      "plan_storage.cube_template_entries": [
+        2.0
+      ],
+      "plan_storage.cube_range_entries": [
+        9.0
+      ],
+      "plan_storage.cube_template_evictions": [
+        0.0
+      ],
+      "plan_storage.cube_range_evictions": [
+        0.0
+      ],
+      "plan_storage.cube_range_reuse_hits": [
+        39992.0
+      ],
+      "wgpu_opaque_instancing.source_draws": [
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0
+      ],
+      "wgpu_opaque_instancing.source_ranges": [
+        9.0,
+        9.0,
+        9.0,
+        9.0,
+        9.0,
+        9.0,
+        9.0,
+        9.0
+      ],
+      "wgpu_opaque_instancing.diagonal_ranges": [
+        9.0,
+        9.0,
+        9.0,
+        9.0,
+        9.0,
+        9.0,
+        9.0,
+        9.0
+      ],
+      "wgpu_opaque_instancing.hashed_ranges": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "wgpu_opaque_instancing.canonical_meshes": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "wgpu_opaque_instancing.groups": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "wgpu_opaque_instancing.compact_vertices": [
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0
+      ],
+      "wgpu_opaque_instancing.compact_indices": [
+        36.0,
+        36.0,
+        36.0,
+        36.0,
+        36.0,
+        36.0,
+        36.0,
+        36.0
+      ],
+      "wgpu_opaque_instancing.instances": [
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0
+      ],
+      "wgpu_opaque_instancing.instance_bytes": [
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0
+      ],
+      "rust_instances.count": [
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0
+      ],
+      "rust_instances.ranges": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_instances.geometry_bytes": [
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0
+      ],
+      "rust_instances.instance_bytes": [
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0
+      ],
+      "rust_instances.material_bytes": [
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0
+      ],
+      "rust_instances.geometry_hit": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_instances.payload_hit": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_instances.uploaded_bytes": [
+        5763408.0,
+        5760864.0,
+        5760864.0,
+        5760864.0,
+        5760864.0,
+        5760864.0,
+        5760864.0,
+        5760864.0
+      ],
+      "rust_instance_resources.geometry_bytes": [
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0
+      ],
+      "rust_instance_resources.instance_bytes": [
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0,
+        5760144.0
+      ],
+      "rust_instance_resources.material_bytes": [
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0,
+        720.0
+      ],
+      "rust_resources.geometry_active_bytes": [
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0,
+        2544.0
+      ],
+      "rust_resources.geometry_retired_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.vertex_buffers": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_resources.index_buffers": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_resources.texture_cache_count": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.texture_payload_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.rtt_texture_count": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.rtt_color_nominal_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.attachment_textures": [
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+      ],
+      "rust_resources.attachment_nominal_bytes": [
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0,
+        8388608.0
+      ],
+      "rust_resources.staging_frame_color_bytes": [
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0
+      ],
+      "rust_resources.staging_frame_depth_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_resources.staging_pool_free_bytes": [
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0,
+        4194304.0
+      ],
+      "rust_resources.staging_pool_free_buffers": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_draw_resources.frame_geometry_bytes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust_draw_resources.uniform_chunks": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust_draw_resources.draw_bind_groups": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust.staging_color_reused": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rust.attachments_reused": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust.camera_bindings_created": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rust.camera_bindings_reused": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bridge.pack_cache_hit": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "action.vertices": [
+        216.0,
+        216.0,
+        216.0,
+        216.0,
+        216.0,
+        216.0,
+        216.0,
+        216.0
+      ],
+      "action.indices": [
+        324.0,
+        324.0,
+        324.0,
+        324.0,
+        324.0,
+        324.0,
+        324.0,
+        324.0
+      ],
+      "action.draws": [
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0,
+        40001.0
+      ],
+      "action.plan_cache_hit": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "object_proof_cache.memo_enabled": [
+        1.0
+      ],
+      "object_proof_cache.material_checks": [
+        8.0
+      ],
+      "object_proof_cache.material_hits": [
+        39992.0
+      ],
+      "object_proof_cache.index_checks": [
+        9.0
+      ],
+      "object_proof_cache.index_hits": [
+        39992.0
+      ],
+      "object_proof_cache.dimensions_checks": [
+        1.0
+      ],
+      "object_proof_cache.dimensions_hits": [
+        39999.0
+      ],
+      "object_proof_cache.vertex_checks": [
+        8.0
+      ],
+      "object_proof_cache.vertex_hits": [
+        39992.0
+      ],
+      "object_proof_cache.cached_index_spans": [
+        9.0
+      ],
+      "object_proof_cache.cached_sources": [
+        1.0
+      ],
+      "object_proof_cache.cached_vertex_spans": [
+        8.0
+      ]
+    },
+    "aggregation": "Only CSV warmup=false frame indices for phase series matching frame count; all raw series retained"
+  }
+}

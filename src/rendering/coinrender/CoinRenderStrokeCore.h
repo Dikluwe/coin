@@ -1,5 +1,6 @@
 #ifndef COIN_RENDER_STROKE_CORE_H
 #define COIN_RENDER_STROKE_CORE_H
+#include "rendering/coinrender/CoinRenderTextureCoordinateCore.h"
 
 #include "rendering/coinrender/CoinRenderClipCore.h"
 #include "rendering/coinrender/CoinRenderLineStippleCore.h"
@@ -10,6 +11,7 @@
 
 // Mechanical expansion of captured strokes, shared by every GPU backend.
 inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& diagnostic) {
+  if (!coin_render_validate_stroke_texture_coordinates(plan, diagnostic)) return false;
   diagnostic.clear();
   const size_t originalDrawCount = plan.draws.size();
   std::vector<CoinRenderDrawPacket> expandedDraws;
@@ -145,6 +147,10 @@ inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& d
         for (size_t u = 0; u < COIN_RENDER_MAX_TEXTURE_UNITS - 1; ++u)
           out.extraTexcoords[u][c] =
               a.extraTexcoords[u][c] * (1.0f - t) + b.extraTexcoords[u][c] * t;
+      }
+      for (size_t u = 0; u < COIN_RENDER_MAX_TEXTURE_UNITS; ++u) {
+        out.textureR[u] = a.textureR[u] * (1.0f - t) + b.textureR[u] * t;
+        out.textureQ[u] = a.textureQ[u] * (1.0f - t) + b.textureQ[u] * t;
       }
       out.materialSlot = materialAt(a.materialSlot, b.materialSlot, t);
       return out;

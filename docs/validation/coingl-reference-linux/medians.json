@@ -1,0 +1,44 @@
+{
+  "coingl-nvidia": {
+    "first_ms": 357.518,
+    "median_ms": 11.8822,
+    "p95_ms": 13.7481,
+    "result_since_main_ms": 736.535,
+    "peak_rss_kib": 339464
+  },
+  "bgfx-vulkan": {
+    "first_ms": 654.018,
+    "median_ms": 2.23508,
+    "p95_ms": 2.45008,
+    "result_since_main_ms": 1230.23,
+    "peak_rss_kib": 634328
+  },
+  "bgfx-opengl": {
+    "first_ms": 618.568,
+    "median_ms": 2.92184,
+    "p95_ms": 3.14325,
+    "result_since_main_ms": 1144.75,
+    "peak_rss_kib": 556888
+  },
+  "wgpu-vulkan": {
+    "first_ms": 392.778,
+    "median_ms": 8.19857,
+    "p95_ms": 8.85169,
+    "result_since_main_ms": 936.879,
+    "peak_rss_kib": 506224
+  },
+  "coingl-amd": {
+    "first_ms": 298.372,
+    "median_ms": 19.1909,
+    "p95_ms": 20.3233,
+    "result_since_main_ms": 677.705,
+    "peak_rss_kib": 263576
+  },
+  "wgpu-opengl": {
+    "first_ms": 398.155,
+    "median_ms": 11.1629,
+    "p95_ms": 11.7534,
+    "result_since_main_ms": 864.035,
+    "peak_rss_kib": 428768
+  }
+}

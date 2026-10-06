@@ -8,13 +8,7 @@
 \**************************************************************************/
 
 #include <Inventor/SoDB.h>
-#if defined(COIN_EXAMPLE_BGFX)
-#include <Inventor/actions/CoinBgfxAction.h>
-using ExampleRenderAction = CoinBgfxAction;
-#else
 #include <Inventor/actions/CoinRenderAction.h>
-using ExampleRenderAction = CoinRenderAction;
-#endif
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include <Inventor/rendering/CoinRenderNativeSurface.h>
 #include <Inventor/nodes/SoSeparator.h>
@@ -56,7 +50,7 @@ int main(int argc, char ** argv) {
   }
 
   SoDB::init();
-  ExampleRenderAction::initClass();
+  CoinRenderAction::initClass();
   std::cout << "Starting Coin3D CoinRender Window Example (GLFW + X11)..." << std::endl;
 
   if (!glfwInit()) {
@@ -100,7 +94,7 @@ int main(int argc, char ** argv) {
     return 1;
   }
 
-  ExampleRenderAction action;
+  CoinRenderAction action;
   action.setRenderTarget(target);
   action.setViewportRegion(SbViewportRegion(fbWidth, fbHeight));
   action.setBackgroundColor(SbColor4f(0.12f, 0.14f, 0.18f, 1.0f));
@@ -164,7 +158,7 @@ int main(int argc, char ** argv) {
     action.apply(root);
 
     auto st = action.getLastStatus();
-    if (st != ExampleRenderAction::SUCCESS && st != ExampleRenderAction::NOT_READY) {
+    if (st != CoinRenderAction::SUCCESS && st != CoinRenderAction::NOT_READY) {
       std::cerr << "RenderAction error: " << action.getLastError().getString() << std::endl;
       break;
     }
@@ -204,7 +198,7 @@ int main(int argc, char ** argv) {
   }
 
   SoDB::init();
-  ExampleRenderAction::initClass();
+  CoinRenderAction::initClass();
   std::cout << "Starting Coin3D CoinRender Window Example (Direct Xlib)..." << std::endl;
 
   Display * dpy = XOpenDisplay(NULL);
@@ -243,7 +237,7 @@ int main(int argc, char ** argv) {
     return 1;
   }
 
-  ExampleRenderAction action;
+  CoinRenderAction action;
   action.setRenderTarget(target);
   action.setViewportRegion(SbViewportRegion(960, 540));
   action.setBackgroundColor(SbColor4f(0.12f, 0.14f, 0.18f, 1.0f));
@@ -319,7 +313,7 @@ int main(int argc, char ** argv) {
     action.apply(root);
 
     auto st = action.getLastStatus();
-    if (st != ExampleRenderAction::SUCCESS && st != ExampleRenderAction::NOT_READY) {
+    if (st != CoinRenderAction::SUCCESS && st != CoinRenderAction::NOT_READY) {
       std::cerr << "RenderAction error: " << action.getLastError().getString() << std::endl;
       break;
     }

@@ -22,20 +22,20 @@ vec3 coinLightContributionWithEye(int i, vec4 diffuse, vec4 specular,
   } else {
     vec3 delta = positionType.xyz - viewPosition;
     float distanceToLight = length(delta);
-    if (distanceToLight <= 0.000001) return vec3(0.0);
+    if (distanceToLight <= 0.000001) return vec3_splat(0.0);
     toLight = delta / distanceToLight;
     float denominator = attenuationDrop.z + attenuationDrop.y * distanceToLight +
       attenuationDrop.x * distanceToLight * distanceToLight;
-    if (denominator <= 0.000001) return vec3(0.0);
+    if (denominator <= 0.000001) return vec3_splat(0.0);
     attenuation = 1.0 / denominator;
     if (positionType.w > 1.5) {
       float coneCos = dot(normalize(directionCutoff.xyz), -toLight);
-      if (coneCos < directionCutoff.w) return vec3(0.0);
+      if (coneCos < directionCutoff.w) return vec3_splat(0.0);
       attenuation *= pow(max(coneCos, 0.0), attenuationDrop.w * 128.0);
     }
   }
   float diffuseFactor = max(dot(normal, toLight), 0.0);
-  if (diffuseFactor <= 0.0) return vec3(0.0);
+  if (diffuseFactor <= 0.0) return vec3_splat(0.0);
   vec3 halfVector = normalize(toLight + viewDirection);
   float exponent = shininess * 128.0;
   float specularFactor = exponent > 0.0 ?

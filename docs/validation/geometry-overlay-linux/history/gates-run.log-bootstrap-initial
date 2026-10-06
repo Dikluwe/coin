@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "/tmp/coin-render-geometry-overlay-gates.py", line 207, in <module>
+    main()
+  File "/tmp/coin-render-geometry-overlay-gates.py", line 117, in main
+    source_files=source_hashes(args.root)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/coin-render-geometry-overlay-gates.py", line 27, in source_hashes
+    return {name:sha256(root/name) for name in names}
+                 ^^^^^^^^^^^^^^^^^
+  File "/tmp/coin-render-geometry-overlay-gates.py", line 22, in sha256
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+                          ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1021, in read_bytes
+    with self.open(mode='rb') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/coin-render-first-frame/testsuite/coinrender/CoinRenderActionTest.cpp'

@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-05",
+  "source_content_revision": "199b0e02b4f0b74ffb5d042d98e2837aafc31ad8",
+  "implementation_revision": "d3f1656766",
+  "oracle_repair_revision": "199b0e02b4",
+  "baseline_source_content_revision": "6182410f5789bbdc30d5ccd06fa341e1810aef8e",
+  "coingl_source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+  "scene_sha256": "bb9ccc612cd38ffb749ee599d9350a80974649eab5bf477d2f344538a42b2576",
+  "timing_valid_processes": 63,
+  "timing_measured_frames": 801,
+  "timing_warmup_frames": 279,
+  "diagnostic_processes": 8,
+  "diagnostic_warmup_frames_per_process": 5,
+  "diagnostic_measured_frames_per_process": 3,
+  "rgb_comparisons": 98,
+  "all_rgb_identical": true,
+  "new_verification_processes": 28,
+  "core_cpu_test_executions": 6,
+  "core_cpu_failed_attempts": 1,
+  "gpu_test_executions": 7,
+  "abi_cpp_rust": 43,
+  "binary_hashes_verified_post_campaign": 12,
+  "raw_ppms_copied": false,
+  "window_campaign_status": "not part of this offscreen campaign",
+  "evidence_reference": "validation/wgpu-matrix-cache-linux/README.md",
+  "implementation_notes": [
+    "Continuação de [validação Common e custos identificados](coin-render-validation-programs-linux.md). As quatro fases de isolamento continuam concluídas; esta mudança fica em `CoinWgpuFfiFrame`, dentro de pack/FFI específico do wgpu.",
+    "O cache temporal possui cópias próprias dos 16 floats de modelo, modelo-view e normal por índice de estado, além de uma view comum própria. Cada entrada tem **196 bytes**, incluindo o status FP observado. Um hit exige igualdade dos bytes atuais de modelo/view e um ambiente FP compatível; não usa revisão, ponteiro ou identidade de nó como chave.",
+    "O teto independente é **8 MiB por CoinWgpuFfiFrame**, incluindo capacidade alocada, view, bookkeeping e 256 bytes de margem do alocador. A cidade com 40.001 estados usa **7.840.548 bytes (~7,48 MiB)** contabilizados. O crescimento libera a capacidade anterior antes de alocar, sem duas cópias simultâneas. Acima do teto ou em falha de alocação opcional, mantém o cálculo literal.",
+    "Guarda numérica conservadora: GCC/Clang x86 com matemática SSE/SSE2, FE_TONEAREST, underflow gradual, FTZ/DAZ desligados, exceções mascaradas e controles x87 reconhecidos. Cada entrada só é reutilizável quando o cálculo anterior não mudou as flags sticky SSE/x87 e o status atual coincide. O cache não altera o ambiente FP; plataformas ou modos não reconhecidos usam a matemática literal.",
+    "O estado de índice zero continua literal, inclusive quando nenhum draw o referencia: `packState` calcula suas matrizes em toda preparação completa. No quadro medido da cidade, transformação 10% teve **36.000 hits e 4.001 matrizes calculadas**; materiais/geometria 10% tiveram **40.000 hits e uma calculada**. Transformação 100% teve zero hits e 40.001 calculadas.",
+    "A licença anterior é revogada antes de escrever entradas em lugar. Só o sucesso final do prepare CPU instanced publica uma licença nova; scratch `bakeMatrices` não é autoridade. Erro de prepare, fallback, camera patch, RTT/allowInstancing=false, optout e ambiente FP não reconhecido a invalidam. A prova não contém recurso ou device GPU.",
+    "Todos os estados atuais, inclusive os sem draws e campos transportados desabilitados, continuam sendo qualificados. Projeção, geometria, limites de posição/normal e fatoração de transporte são atuais em cada preparação. As matrizes guardadas vêm dos estados da cena, antes da fatoração diagonal. O contrato anterior de revisão imutável para REUSE permanece intacto."
+  ],
+  "scope_notes": [
+    "Cena: 40.000 objetos, 480.012 triângulos, PHONG com duas luzes direcionais, seed 136, 1024×1024 offscreen. ABI permanece 43: state 2.280 bytes, instance 144 bytes e frame view 448 bytes. Core/Common, BGFX, Rust e shaders não receberam alterações nesta etapa.",
+    "Ryzen 5800H, NVIDIA RTX 3060 Laptop, driver 610.57.04, GCC 13.3, Linux 6.17.0-42, Release/Ninja, governor powersave. `machine.json` é observação posterior à campanha, sem histórico de clocks/temperatura por amostra."
+  ],
+  "limitations": [
+    "Ablação N=1 por configuração, cinco warmups e três quadros medidos; não estima variância populacional. O pack caiu 8,33/9,19/8,59 ms em transformação/materiais/geometria 10%, respectivamente.",
+    "Em transformação 100%, a ablação não registrou hits e o pack aumentou 20,34 → 21,95 ms (+1,60 ms; +7,88%). A queda do total antes/depois nesse stress não é evidência de economia do cache quando todos os modelos mudam.",
+    "O cache ainda precisa calcular todas as matrizes no primeiro quadro e ocupa memória também em cenas que alteram todos os modelos. Os deltas do primeiro quadro, estático e câmera são observados; não atribuem economia diretamente a hits deste cache.",
+    "Câmera aumentou 9,72 → 9,95 ms (+0,23 ms; +2,34%) nesta campanha. Camera patch invalida a reutilização de matrizes authored.",
+    "Não houve benchmark BGFX nesta etapa específica do wgpu. Resultados em janela e latência de exibição continuam sem medição nesta campanha.",
+    "PPMs e bibliotecas ficam fora do Git. O arquivo RGB conserva hashes e métricas calculadas a partir dos 196 PPMs originais (98 pares); a reprodução sem PPMs reutiliza esses registros de forma explícita."
+  ],
+  "gates": [
+    "Seis execuções CPU/Core passaram: PlanAssembly, Transform, FrameCore, DepthContract e FrameReuse na primeira rodada; FfiFrame oracle na rodada corrigida. As cinco primeiras usam a mesma produção: entre d3f1656766 e 199b0e02b4 só mudou o teste.",
+    "Uma tentativa FfiFrame inicial falhou por uma expectativa errada no oracle: FFI packing sozinho pode transportar um estado não finito sem draw. O teste corrigido usa admissão/diagnóstico literais como autoridade, verifica ausência de licença e mantém a revisão somente se o prepare falhou. Logs da tentativa e do reparo estão preservados; nenhuma falha de produção foi detectada.",
+    "Sete execuções GPU passaram sem skips: MultiDevice, CameraReuseReference, SceneTexture staged/direct, Transparency, Composition e Multitexture. As referências Coin/OpenGL de câmera/transparência/multitextura foram exigidas por ambiente; multitextura registra CPU=0.",
+    "Oráculo compara bytes completos de states/instances/geometry/draws/materials e flags de exceção SSE/x87: 0/10/100%, A/B/A, signed zero, reorder, estado sem draw, material/geometry/projection/resize, camera/RTT/optout, rounding/FTZ/DAZ/traps, clear/raise/readmissão, shear/reflection, singular/limiares/overflow/NaN/Inf, erro tardio e reparo na mesma revisão, recusa de bound após loop de hits e teto 40.001/43.000 estados.",
+    "RGB fresco antes e depois: sete casos × duas variantes × sete quadros lógicos, 98 comparações idênticas com digests de estado iguais e movimento confirmado. Antes wgpu usa binário 6182410f congelado; depois usa 199b0e02b4. Coin/OpenGL permanece 4d63bb99 em ambos. São comparações por variante entre revisões, não igualdade entre backends.",
+    "Os 12 hashes dos binários/bibliotecas dos três controles permaneceram iguais após todas as campanhas."
+  ],
+  "reviews": [
+    "Revisão independente da produção e dos testes confirmou propriedade das chaves, publicação transacional, qualificações atuais, guardas FP e teto. Corrigiu o perfil SSE e duas expectativas do oracle antes da validação final.",
+    "Revisão independente do protocolo confirmou 63 processos únicos/801 medidos/279 warmups, exclusão dos warmups, optouts limpos, fontes congeladas e compartilhamento Coin/OpenGL por SHA de CSV/log."
+  ]
+}

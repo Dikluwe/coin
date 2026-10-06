@@ -50,6 +50,7 @@ uint32_t
 rendererId(bgfx::RendererType::Enum renderer)
 {
   switch (renderer) {
+  case bgfx::RendererType::Direct3D12: return COIN_RENDER_RENDERER_D3D12;
   case bgfx::RendererType::Vulkan: return COIN_RENDER_RENDERER_VULKAN;
   case bgfx::RendererType::OpenGL: return COIN_RENDER_RENDERER_OPENGL;
   default: return COIN_RENDER_RENDERER_OTHER;
@@ -126,7 +127,7 @@ void probeBgfx(uint32_t target, CoinRenderRenderer renderer, CoinRenderCapabilit
                          COIN_RENDER_KNOWN_D32F | COIN_RENDER_KNOWN_RGBA16F |
                          COIN_RENDER_KNOWN_R16F;
   result.available_mechanisms = probeBackend.getAvailableTransparencyMechanisms(
-      target == COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW);
+      target != COIN_RENDER_EXPERIMENTAL_OFFSCREEN);
   result.gpu_available = 1;
   result.probe_status = COIN_RENDER_PROBE_AVAILABLE;
   result.renderer = rendererId(caps->rendererType);
@@ -163,7 +164,9 @@ void probeBgfx(uint32_t target, CoinRenderRenderer renderer, CoinRenderCapabilit
                 result.format_rgba8, result.format_d24s8, result.format_d32f,
                 result.format_rgba16f, result.format_r16f,
                 target == COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW ?
-                  "; Xlib presentation requires preparing a real surface" : "");
+                  "; Xlib presentation requires preparing a real surface" :
+                target == COIN_RENDER_EXPERIMENTAL_WIN32_WINDOW ?
+                  "; Win32 presentation requires preparing a real surface" : "");
 }
 #endif
 }
@@ -204,8 +207,10 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
 #if !defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   if (target == COIN_RENDER_EXPERIMENTAL_ANDROID_WINDOW ||
       target == COIN_RENDER_EXPERIMENTAL_WAYLAND_WINDOW ||
-      target == COIN_RENDER_EXPERIMENTAL_WIN32_WINDOW ||
       target == COIN_RENDER_EXPERIMENTAL_APPKIT_LAYER) return 1;
+#if !defined(HAVE_COIN_BGFX)
+  if (target == COIN_RENDER_EXPERIMENTAL_WIN32_WINDOW) return 1;
+#endif
 #endif
 
   CoinRenderCapabilities result{};

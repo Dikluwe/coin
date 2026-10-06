@@ -12,16 +12,9 @@
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderSelectionCore.h"
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
-#include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
 
-#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-#include "rendering/coinwgpu/CoinWgpuBackend.h"
-#include "rendering/coinwgpu/CoinWgpuFfi.h"
-#elif defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
-#include "rendering/coinwgpu/CoinWgpuNativeBackend.h"
-#elif defined(HAVE_COIN_BGFX)
-#include "rendering/coinbgfx/CoinBgfxBackend.h"
-#endif
+#include "rendering/coinrender/CoinRenderBackendRuntime.h"
+#include "rendering/coinrender/CoinRenderNativeSurfaceCore.h"
 
 #include <Inventor/SbMatrix.h>
 #include <Inventor/SbVec2f.h>
@@ -39,6 +32,8 @@
 #include <cstdlib>
 #include <atomic>
 #include <mutex>
+#include <chrono>
+#include <cstdio>
 #include "rendering/coinrender/CoinRenderResourceCore.h"
 namespace {
 struct TargetRegistry {
@@ -56,18 +51,12 @@ static_assert(sizeof(CoinRenderNativeSurfaceDescriptor) >= 32, "CoinRenderNative
 static bool
 prepareCpuDepthBuffer(const CoinRenderTargetP * target)
 {
-#if defined(HAVE_COIN_BGFX)
-  // BGFX fills depth from the GPU; never synthesize a CPU depth result.
-  // A target can still explicitly use the CPU reference backend in the same
-  // binary, so decide from the prepared backend rather than the build alone.
+  const bool initialize = target->backend
+    ? target->backend->initializesCpuDepthBuffer()
+    : CoinRenderTargetP::compiledBackendInitializesCpuDepthBuffer();
+  if (initialize) return true;
   static const bool diagnosticFill = CoinRenderDiagnosticShell::diagnosticCpuDepthFill();
-  if (diagnosticFill) return true;
-  return target != NULL && target->backend.get() != NULL &&
-         dynamic_cast<CoinBgfxBackend *>(target->backend.get()) == NULL;
-#else
-  (void)target;
-  return true;
-#endif
+  return diagnosticFill;
 }
 
 // CoinRenderTargetP private implementation
@@ -78,7 +67,8 @@ uint64_t CoinRenderTargetP::allocateResourceOwnerId() {
 }
 
 CoinRenderTargetP::CoinRenderTargetP(const SbVec2i32 & sz)
-  : kind(KIND_OFFSCREEN),
+  : runtime(&backendRuntime()),
+    kind(KIND_OFFSCREEN),
     status(CoinRenderTarget::TARGET_READY),
     size(sz),
     generation(0),
@@ -103,13 +93,7 @@ CoinRenderTargetP::~CoinRenderTargetP()
     registry.targets.erase(std::remove(registry.targets.begin(), registry.targets.end(), this),
                            registry.targets.end());
   }
-#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-  if (this->surfaceId != 0) {
-    char errBuf[256] = {0};
-    coin_wgpu_surface_destroy(this->surfaceId, errBuf, sizeof(errBuf));
-    this->surfaceId = 0;
-  }
-#endif
+  this->runtime->destroySurface(*this);
   this->backend.reset();
 }
 
@@ -122,89 +106,17 @@ CoinRenderTargetP::initWindow(const CoinRenderNativeSurfaceDescriptor & desc, co
   this->colorBuffer.clear();
   this->depthBuffer.clear();
 
-#if !defined(HAVE_COIN_WGPU_RUST_BRIDGE) && !defined(HAVE_COIN_BGFX)
-  this->status = CoinRenderTarget::TARGET_ERROR;
-  this->lastError = "Native window surface targets require the RUST_BRIDGE or BGFX backend.";
-  return false;
-#else
-  if (desc.abiVersion != COIN_RENDER_NATIVE_SURFACE_ABI_VERSION) {
-    this->status = CoinRenderTarget::TARGET_ERROR;
-    this->lastError = "Invalid ABI version in CoinRenderNativeSurfaceDescriptor: expected 1";
-    return false;
+  std::string diagnostic;
+  if (!this->runtime->supportsWindowTargets())
+    diagnostic = "Native window surface targets require the RUST_BRIDGE or BGFX backend.";
+  else {
+    diagnostic = coin_render_surface_header_diagnostic(desc);
+    if (diagnostic.empty()) diagnostic = this->runtime->surfaceTypeDiagnostic(desc.type);
+    if (diagnostic.empty()) diagnostic = coin_render_surface_handles_diagnostic(desc);
   }
-  if (desc.structSize != sizeof(CoinRenderNativeSurfaceDescriptor)) {
+  if (!diagnostic.empty()) {
     this->status = CoinRenderTarget::TARGET_ERROR;
-    this->lastError = "Invalid structSize in CoinRenderNativeSurfaceDescriptor";
-    return false;
-  }
-  if (desc.reserved != 0) {
-    this->status = CoinRenderTarget::TARGET_ERROR;
-    this->lastError = "Reserved field must be 0 in CoinRenderNativeSurfaceDescriptor";
-    return false;
-  }
-
-  if (desc.type == COIN_RENDER_SURFACE_XLIB) {
-    if (desc.native.xlib.display == nullptr) {
-      this->status = CoinRenderTarget::TARGET_ERROR;
-      this->lastError = "Null display pointer in Xlib surface descriptor";
-      return false;
-    }
-    if (desc.native.xlib.window == 0) {
-      this->status = CoinRenderTarget::TARGET_ERROR;
-      this->lastError = "Window ID must be non-zero in Xlib surface descriptor";
-      return false;
-    }
-  } else if (desc.type == COIN_RENDER_SURFACE_WAYLAND) {
-#if defined(__linux__) && defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-    if (desc.native.wayland.display == nullptr || desc.native.wayland.surface == nullptr) {
-      this->status = CoinRenderTarget::TARGET_ERROR;
-      this->lastError = "Null wl_display or wl_surface in Wayland surface descriptor";
-      return false;
-    }
-#else
-    this->status = CoinRenderTarget::TARGET_ERROR;
-    this->lastError = "Wayland surface requires the Linux Rust bridge";
-    return false;
-#endif
-  } else if (desc.type == COIN_RENDER_SURFACE_WIN32) {
-#if defined(_WIN32) && defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-    if (desc.native.win32.hwnd == nullptr) {
-      this->status = CoinRenderTarget::TARGET_ERROR;
-      this->lastError = "Null HWND in Win32 surface descriptor";
-      return false;
-    }
-#else
-    this->status = CoinRenderTarget::TARGET_ERROR;
-    this->lastError = "Win32 surface requires the Windows Rust bridge";
-    return false;
-#endif
-  } else if (desc.type == COIN_RENDER_SURFACE_APPKIT_LAYER) {
-#if defined(__APPLE__) && defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-    if (desc.native.appkit.metalLayer == nullptr || desc.native.appkit.reserved != nullptr) {
-      this->status = CoinRenderTarget::TARGET_ERROR;
-      this->lastError = "AppKit requires a non-null CAMetalLayer and null reserved pointer";
-      return false;
-    }
-#else
-    this->status = CoinRenderTarget::TARGET_ERROR;
-    this->lastError = "AppKit layer requires the macOS Rust bridge";
-    return false;
-#endif
-  } else if (desc.type == COIN_RENDER_SURFACE_ANDROID_NDK) {
-#if defined(__ANDROID__) && defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-    if (desc.native.android.nativeWindow == nullptr || desc.native.android.reserved != nullptr) {
-      this->status = CoinRenderTarget::TARGET_ERROR;
-      this->lastError = "Android requires a non-null ANativeWindow and null reserved pointer";
-      return false;
-    }
-#else
-    this->status = CoinRenderTarget::TARGET_ERROR;
-    this->lastError = "Android NDK surface requires the Android Rust bridge";
-    return false;
-#endif
-  } else {
-    this->status = CoinRenderTarget::TARGET_ERROR;
-    this->lastError = "Unknown native surface type in CoinRenderNativeSurfaceDescriptor";
+    this->lastError = diagnostic;
     return false;
   }
 
@@ -226,7 +138,6 @@ CoinRenderTargetP::initWindow(const CoinRenderNativeSurfaceDescriptor & desc, co
   this->status = CoinRenderTarget::TARGET_READY;
   this->lastError.clear();
   return true;
-#endif
 }
 
 bool
@@ -357,12 +268,30 @@ CoinRenderTargetP::readbackDepth(std::vector<float> & outDepth) const
 CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfile(const CoinRenderFramePlan& frame,
                                                                   const SbVec2i32& targetSize,
                                                                   bool deferUnresolvedAlpha) {
+  return validateProfileInternal(frame, targetSize, deferUnresolvedAlpha, nullptr);
+}
+
+const CoinRenderFramePreflight *
+CoinRenderTargetP::submissionPreflight(const CoinRenderFramePlan & frame) const {
+  return activePreflight && activePreflight->compositionFor(frame) ? activePreflight : nullptr;
+}
+
+CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfileInternal(
+    const CoinRenderFramePlan & frame, const SbVec2i32 & targetSize,
+    bool deferUnresolvedAlpha, CoinRenderFramePreflight * preflight,
+    const CoinRenderFramePreflight * capturedPreflight, bool allowCompositionBorrow,
+    CoinRenderCompositionTransferTrace * transfers) {
   std::string planDiag;
-  if (!frame.isValid(&planDiag)) {
+  const auto * capturedOrder = !deferUnresolvedAlpha && capturedPreflight
+    ? capturedPreflight->compositionFor(frame) : nullptr;
+  if (!capturedOrder && !frame.isValid(&planDiag)) {
     return CoinRenderFrameExecutionResult{CoinRenderBackendStatus::BACKEND_ERROR, "Invalid CoinRenderFramePlan: " + planDiag};
   }
   std::vector<CoinRenderCompositionItem> compositionOrder;
-  if (!coin_render_composition_order(frame, compositionOrder, planDiag, deferUnresolvedAlpha)) {
+  bool opaqueIdentity = false;
+  if (!capturedOrder &&
+      !coin_render_composition_order(frame, compositionOrder, planDiag, deferUnresolvedAlpha,
+                                    preflight ? &opaqueIdentity : nullptr)) {
     return CoinRenderFrameExecutionResult{CoinRenderBackendStatus::UNSUPPORTED, planDiag};
   }
 
@@ -433,6 +362,29 @@ CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfile(const CoinRend
 
   }
 
+  if (preflight) {
+    const auto qualifyBegin = transfers ? transfers->begin() : CoinRenderCompositionTransferTrace::Clock::time_point{};
+    const bool loan = capturedOrder && allowCompositionBorrow && coin_render_composition_borrow_enabled() &&
+      capturedPreflight->opaqueCompositionFor(frame);
+    if (transfers) transfers->qualifyMs += transfers->elapsed(qualifyBegin);
+    // Only executeFrameInternal can request this loan. No persistent receipt
+    // gains a lender pointer, and activation is rechecked after admission.
+    if (loan) return CoinRenderFrameExecutionResult(CoinRenderBackendStatus::SUCCESS, "");
+    const auto copyBegin = transfers ? transfers->begin() : CoinRenderCompositionTransferTrace::Clock::time_point{};
+    if (capturedOrder) {
+      preflight->order = *capturedOrder;
+      if (transfers) transfers->copiedItems = capturedOrder->size();
+      opaqueIdentity = capturedPreflight->opaqueCompositionFor(frame) != nullptr;
+    } else {
+      preflight->order = std::move(compositionOrder);
+      if (transfers) transfers->computedItems = preflight->order.size();
+    }
+    if (transfers) transfers->copyMs += transfers->elapsed(copyBegin);
+    preflight->frame = &frame;
+    preflight->revision = frame.revision;
+    preflight->transparency = frame.transparency;
+    preflight->opaqueIdentity = opaqueIdentity;
+  }
   return CoinRenderFrameExecutionResult(CoinRenderBackendStatus::SUCCESS, "");
 }
 
@@ -454,25 +406,22 @@ CoinRenderTargetP::validateProfile(const CoinRenderFramePlan & frame, std::strin
 void
 CoinRenderTargetP::detachedFromAction()
 {
-#if defined(HAVE_COIN_BGFX)
-  // Preserve the existing target-switch policy of the shared BGFX runtime.
-  if (dynamic_cast<CoinBgfxBackend *>(this->backend.get())) {
+  if (this->backend && this->backend->resetOnActionDetach()) {
     this->backend.reset();
     ++this->resourceGeneration;
   }
-#endif
 }
 
-std::unique_ptr<CoinRenderBackend> CoinRenderTargetP::createBackend() {
-#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-  return std::unique_ptr<CoinRenderBackend>(new CoinWgpuBackend());
-#elif defined(HAVE_COIN_DAWN) || defined(HAVE_COIN_WGPU_NATIVE)
-  return std::unique_ptr<CoinRenderBackend>(new CoinWgpuNativeBackend());
-#elif defined(HAVE_COIN_BGFX)
-  return std::unique_ptr<CoinRenderBackend>(new CoinBgfxBackend());
-#else
-  return std::unique_ptr<CoinRenderBackend>(new CoinRenderCpuReferenceBackend());
-#endif
+bool
+CoinRenderTargetP::supportsOffscreenShadows(bool asynchronous) const
+{
+  if (this->kind != KIND_OFFSCREEN || this->directTextureOutput || asynchronous)
+    return false;
+  if (this->backend) return this->backend->supportsOffscreenShadows();
+  // An unprepared target uses the compiled connector's implementation facts.
+  // Constructing a connector does not create GPU resources or probe hardware.
+  const auto candidate = createBackend();
+  return candidate->supportsOffscreenShadows();
 }
 
 CoinRenderBackendStatus CoinRenderTargetP::prepareBackend() {
@@ -580,6 +529,14 @@ CoinRenderTargetP::executeFrame(const CoinRenderFramePlan & frame,
 }
 
 CoinRenderFrameExecutionResult
+CoinRenderTargetP::executeFrame(const CoinRenderFramePlan & frame,
+                                  const CoinRenderFrameReuseDecision & reuse,
+                                  const CoinRenderFramePreflight * capturedPreflight)
+{
+  return this->executeFrameInternal(frame, NULL, reuse, capturedPreflight);
+}
+
+CoinRenderFrameExecutionResult
 CoinRenderTargetP::executeFrameAsync(const CoinRenderFramePlan & frame,
                                        CoinRenderReadbackTicket & outTicket)
 {
@@ -598,10 +555,23 @@ CoinRenderTargetP::executeFrameAsync(const CoinRenderFramePlan & frame,
 }
 
 CoinRenderFrameExecutionResult
+CoinRenderTargetP::executeFrameAsync(const CoinRenderFramePlan & frame,
+                                       CoinRenderReadbackTicket & outTicket,
+                                       const CoinRenderFrameReuseDecision & reuse,
+                                       const CoinRenderFramePreflight * capturedPreflight)
+{
+  outTicket = CoinRenderReadbackTicket{};
+  return this->executeFrameInternal(frame, &outTicket, reuse, capturedPreflight);
+}
+
+CoinRenderFrameExecutionResult
 CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
                                           CoinRenderReadbackTicket * outTicket,
-                                          const CoinRenderFrameReuseDecision & reuse)
+                                          const CoinRenderFrameReuseDecision & reuse,
+                                          const CoinRenderFramePreflight * capturedPreflight)
 {
+  using PhaseClock = std::chrono::steady_clock;
+  const auto phaseBegin = PhaseClock::now();
   const bool captureWindow = this->kind == KIND_WINDOW && this->windowReadbackRequested;
   struct RequestReset {
     bool & request;
@@ -616,12 +586,6 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     return CoinRenderFrameExecutionResult(CoinRenderBackendStatus::UNSUPPORTED,
                                 "applyAsync() requires an offscreen target");
   }
-#if !defined(HAVE_COIN_WGPU_RUST_BRIDGE) && !defined(HAVE_COIN_BGFX)
-  if (outTicket) {
-    return CoinRenderFrameExecutionResult(CoinRenderBackendStatus::UNSUPPORTED,
-                                "Asynchronous readback requires the Rust bridge backend");
-  }
-#endif
   if (this->suspended || this->size[0] <= 0 || this->size[1] <= 0) {
     this->status = CoinRenderTarget::TARGET_NOT_READY;
     this->lastError = "Target is suspended or has zero size";
@@ -637,9 +601,14 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     reuse.baseRevision == this->lastValidatedPlanRevision &&
     frame.revision != 0 &&
     frame.revision != reuse.baseRevision;
-  if (!validatedCameraPatch &&
-      (frame.revision == 0 || frame.revision != this->lastValidatedPlanRevision)) {
-    CoinRenderFrameExecutionResult val = this->validateProfile(frame, this->size);
+  CoinRenderFramePreflight preflight;
+  CoinRenderCompositionTransferTrace compositionTransfers("target_composition_copy", "target");
+  // A capture receipt skips only the two common passes. Target profile and
+  // submission checks still run, and a mismatched receipt validates in full.
+  if (capturedPreflight || (!validatedCameraPatch &&
+      (frame.revision == 0 || frame.revision != this->lastValidatedPlanRevision))) {
+    CoinRenderFrameExecutionResult val =
+      validateProfileInternal(frame, this->size, false, &preflight, capturedPreflight, true, &compositionTransfers);
     if (val.status != CoinRenderBackendStatus::SUCCESS) {
       this->lastError = val.diagnostic;
       return val;
@@ -650,6 +619,20 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     lastError = admission.diagnostic;
     return admission;
   }
+  struct PreflightScope {
+    const CoinRenderFramePreflight * & active;
+    const CoinRenderFramePreflight * previous;
+    ~PreflightScope() { active = previous; }
+  } preflightScope{this->activePreflight, this->activePreflight};
+  this->activePreflight = preflight.compositionFor(frame) ? &preflight : nullptr;
+  const auto loanBegin = compositionTransfers.begin();
+  if (!this->activePreflight && coin_render_composition_borrow_enabled() && capturedPreflight &&
+      capturedPreflight->opaqueCompositionFor(frame)) {
+    this->activePreflight = capturedPreflight;
+    compositionTransfers.borrowedItems = capturedPreflight->opaqueCompositionFor(frame)->size();
+  }
+  compositionTransfers.qualifyMs += compositionTransfers.elapsed(loanBegin);
+  const auto phaseValidated = PhaseClock::now();
   ReadbackPublication publication(*this);
   try {
     publication.prepare();
@@ -690,29 +673,10 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     }
   }
 
-  CoinRenderSubmitResult res;
-#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-  if (outTicket) {
-    CoinWgpuBackend * rust = dynamic_cast<CoinWgpuBackend *>(this->backend.get());
-    res = rust ? rust->submitAsync(frame, *this, *submitTicket, reuse)
-               : CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED,
-                                        "Asynchronous readback requires the Rust bridge backend");
-  } else if (CoinWgpuBackend * rust =
-               dynamic_cast<CoinWgpuBackend *>(this->backend.get())) {
-    res = rust->submit(frame, *this, reuse);
-  } else
-#endif
-  {
-#if defined(HAVE_COIN_BGFX)
-    if (CoinBgfxBackend * bgfx =
-          dynamic_cast<CoinBgfxBackend *>(this->backend.get())) {
-      res = outTicket ? bgfx->submitAsync(frame, *this, *submitTicket, reuse)
-                      : bgfx->submit(frame, *this, reuse);
-    } else
-#endif
-      res = outTicket ? CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, "The selected backend does not support asynchronous readback")
-                      : this->backend->submit(frame, *this);
-  }
+  const auto phasePrepared = PhaseClock::now();
+  CoinRenderSubmitResult res = outTicket
+    ? this->backend->submitAsync(frame, *this, *submitTicket, reuse)
+    : this->backend->submit(frame, *this, reuse);
   if (res.status == CoinRenderBackendStatus::SUCCESS &&
       (this->kind == KIND_OFFSCREEN || captureWindow) && !this->directTextureOutput) {
     const uint64_t pixels = uint64_t(this->size[0]) * this->size[1];
@@ -768,6 +732,14 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     this->depthBuffer.clear();
   }
   publication.commit();
+  if (CoinRenderDiagnosticShell::phaseTracingEnabled()) {
+    const auto now = PhaseClock::now();
+    const auto ms = [](PhaseClock::time_point a, PhaseClock::time_point b) {
+      return std::chrono::duration<double, std::milli>(b - a).count();
+    };
+    std::fprintf(stderr, "COIN_RENDER_PHASE target validation_ms=%.6f prepare_ms=%.6f submit_ms=%.6f\n",
+      ms(phaseBegin, phaseValidated), ms(phaseValidated, phasePrepared), ms(phasePrepared, now));
+  }
   if (outTicket)
     *outTicket = candidateTicket;
   this->lastValidatedPlanRevision = frame.revision;
@@ -930,87 +902,13 @@ CoinRenderTarget::pollReadback(const CoinRenderReadbackTicket & ticket,
                                   SbString * diagnostic)
 {
   if (diagnostic) *diagnostic = "";
-#if defined(HAVE_COIN_BGFX)
-  return CoinBgfxBackend::pollReadback(ticket, outColor, outDepth, diagnostic);
-#elif defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-  const uint64_t pixels = uint64_t(ticket.width) * uint64_t(ticket.height);
-  const uint64_t bytes = pixels * 4;
-  const uint64_t rowPitch = (uint64_t(ticket.width) * 4 + 255) & ~uint64_t(255);
-  if (ticket.token == 0 || ticket.width == 0 || ticket.height == 0 ||
-      ticket.width > 16384 || ticket.height > 16384 ||
-      ticket.colorFormat != 0 || ticket.colorBytes != bytes ||
-      ticket.colorRowPitch != rowPitch ||
-      (ticket.depthFormat != 0 && ticket.depthFormat != 1) ||
-      (ticket.depthFormat == 0 && (ticket.depthBytes != 0 || ticket.depthRowPitch != 0)) ||
-      (ticket.depthFormat == 1 && (ticket.depthBytes != bytes ||
-          ticket.depthRowPitch != rowPitch))) {
-    if (diagnostic) *diagnostic = "Invalid asynchronous readback ticket";
-    return READBACK_INVALID_TICKET;
-  }
-
-  char error[512] = {0};
-  const CoinWgpuStatus readiness =
-    coin_wgpu_readback_query(ticket.token, error, sizeof(error));
-  if (readiness != COIN_WGPU_OK) {
-    if (diagnostic && error[0]) *diagnostic = error;
-    switch (readiness) {
-      case COIN_WGPU_NOT_READY: return READBACK_NOT_READY;
-      case COIN_WGPU_INVALID_ARGUMENT: return READBACK_INVALID_TICKET;
-      case COIN_WGPU_DEVICE_LOST: return READBACK_DEVICE_LOST;
-      case COIN_WGPU_UNSUPPORTED: return READBACK_UNSUPPORTED;
-      default: return READBACK_ERROR;
-    }
-  }
-
-  std::vector<uint8_t> color;
-  std::vector<float> depth;
-  try {
-    color.resize(static_cast<size_t>(ticket.colorBytes));
-    if (ticket.depthFormat == 1) {
-      depth.resize(static_cast<size_t>(ticket.depthBytes / 4));
-    }
-  } catch (const std::exception &) {
-    if (diagnostic) *diagnostic = "Cannot allocate asynchronous readback outputs";
-    return READBACK_ERROR;
-  }
-  error[0] = 0;
-  const CoinWgpuStatus status = coin_wgpu_readback_poll(ticket.token,
-    color.data(), color.size(), depth.empty() ? NULL : depth.data(),
-    depth.size(), error, sizeof(error));
-  if (status == COIN_WGPU_OK) {
-    outColor.swap(color);
-    outDepth.swap(depth);
-    return READBACK_READY;
-  }
-  if (diagnostic && error[0]) *diagnostic = error;
-  switch (status) {
-    case COIN_WGPU_NOT_READY: return READBACK_NOT_READY;
-    case COIN_WGPU_INVALID_ARGUMENT: return READBACK_INVALID_TICKET;
-    case COIN_WGPU_DEVICE_LOST: return READBACK_DEVICE_LOST;
-    case COIN_WGPU_UNSUPPORTED: return READBACK_UNSUPPORTED;
-    default: return READBACK_ERROR;
-  }
-#else
-  (void)ticket;
-  (void)outColor;
-  (void)outDepth;
-  if (diagnostic) *diagnostic = "Asynchronous readback requires the Rust bridge backend";
-  return READBACK_UNSUPPORTED;
-#endif
+  return CoinRenderTargetP::backendRuntime().pollReadback(ticket, outColor, outDepth, diagnostic);
 }
 
 SbBool
 CoinRenderTarget::cancelReadback(const CoinRenderReadbackTicket & ticket)
 {
-#if defined(HAVE_COIN_BGFX)
-  return CoinBgfxBackend::cancelReadback(ticket) ? TRUE : FALSE;
-#elif defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-  return ticket.token != 0 && coin_wgpu_readback_cancel(ticket.token) == COIN_WGPU_OK
-    ? TRUE : FALSE;
-#else
-  (void)ticket;
-  return FALSE;
-#endif
+  return CoinRenderTargetP::backendRuntime().cancelReadback(ticket) ? TRUE : FALSE;
 }
 
 uint64_t
@@ -1028,30 +926,11 @@ CoinRenderTarget::resize(const SbVec2i32 & size)
 SbBool
 CoinRenderTarget::getCacheTelemetry(CoinRenderCacheTelemetry & outTelemetry) const
 {
-#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-  CoinWgpuCacheStats stats;
-  coin_wgpu_get_cache_stats(&stats);
-  outTelemetry.cumulativeUploads = stats.cumulative_uploads;
-  outTelemetry.cumulativeHits = stats.cumulative_hits;
-  outTelemetry.cumulativeMisses = stats.cumulative_misses;
-  outTelemetry.cumulativeUploadedBytes = stats.cumulative_uploaded_bytes;
-  outTelemetry.frameUploadedBytes = stats.frame_uploaded_bytes;
-  outTelemetry.frameUploads = stats.frame_uploads;
-  outTelemetry.frameHits = stats.frame_hits;
-  outTelemetry.activeEntries = stats.active_entries;
-  outTelemetry.retiredEntries = stats.retired_entries;
-  outTelemetry.completedSerial = stats.completed_serial;
-  outTelemetry.submissionSerial = stats.submission_serial;
-  return TRUE;
-#else
-  return FALSE;
-#endif
+  return this->pimpl->runtime->cacheTelemetry(outTelemetry) ? TRUE : FALSE;
 }
 
 void
 CoinRenderTarget::pollDevice(void)
 {
-#if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-  coin_wgpu_poll_device();
-#endif
+  CoinRenderTargetP::backendRuntime().pollDevice();
 }

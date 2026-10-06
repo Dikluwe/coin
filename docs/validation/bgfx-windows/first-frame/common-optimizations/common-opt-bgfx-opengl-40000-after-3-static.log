@@ -1,0 +1,14 @@
+startup_detail arguments_ms=0.0477 coin_init_ms=1.951 capability_probe_ms=369.107
+scene_detail parse_ms=395.182 wrapper_ms=0.0161 camera_fit_ms=94.0133
+scene_load_ms=489.302
+startup_detail material_search_ms=0.1616 target_setup_ms=1.0266
+BGFX-OpenGL_first_detail render_ms=1638.06 publication_copy_ms=1.0409 before_frame_since_main_ms=862.373 result_since_main_ms=2501.48
+BGFX-OpenGL_first_frame_ms=1639.1
+rgba_fnv64=0x156847cec1d97864
+adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) vendor_id=0x10de device_id=0x0 backend=bgfx size=1024x1024 warmup=1 scene=build/large-scenes/city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=static
+BGFX-OpenGL frames=3 median_ms=12.8567 p95_ms=14.6714 min_ms=12.6723 max_ms=14.6714
+BGFX_render_and_readback frames=3 median_ms=12.3143 p95_ms=14.1154 min_ms=12.1839 max_ms=14.1154
+BGFX_publication_copy frames=3 median_ms=0.5424 p95_ms=0.556 min_ms=0.4884 max_ms=0.556
+BGFX-OpenGL_throughput frames=3 total_ms=40.2047 fps=74.6181
+backend_cleanup_begin
+backend_cleanup_ms=61.5568

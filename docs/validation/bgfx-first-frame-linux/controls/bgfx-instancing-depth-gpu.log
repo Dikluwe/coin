@@ -1,0 +1,70 @@
+Internal ctest changing into directory: /tmp/coin-render-first-frame-bgfx
+UpdateCTestConfiguration  from :/tmp/coin-render-first-frame-bgfx/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/tmp/coin-render-first-frame-bgfx/DartConfiguration.tcl
+Test project /tmp/coin-render-first-frame-bgfx
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 40
+    Start 40: CoinBgfxInstancingTest
+
+40: Test command: /tmp/coin-render-first-frame-bgfx/bin/CoinBgfxInstancingTest
+40: Working Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+40: Environment variables: 
+40:  COIN_BGFX_RENDERER=vulkan
+40: Test timeout computed to be: 60
+40: affine PHONG directional+point max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+40: classified camera update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+40: classified material update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+40: resized target max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+40: fog fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+40: return from fog max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+40: clip fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+40: return from clip max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+40: uniform LEQUAL PHONG max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+40: LEQUAL coplanar materials max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+40: coplanar last occurrence must win max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+40: coplanar first-vs-last reference pixels_over_20=48
+40: outside viewport depth readback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=0,0,0 general_rgb=0,0,0
+40: outside viewport depth readback max_depth_error=0
+40: return from outside viewport with depth max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=0,0,0 general_rgb=0,0,0
+40: return from outside viewport with depth max_depth_error=0
+40: CoinBgfxInstancingTest passed
+1/2 Test #40: CoinBgfxInstancingTest ...........   Passed    0.35 sec
+test 41
+    Start 41: CoinBgfxInstancingOpenGLTest
+
+41: Test command: /tmp/coin-render-first-frame-bgfx/bin/CoinBgfxInstancingTest
+41: Working Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+41: Environment variables: 
+41:  COIN_BGFX_RENDERER=opengl
+41: Test timeout computed to be: 60
+41: affine PHONG directional+point max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+41: classified camera update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+41: classified material update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+41: resized target max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+41: fog fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+41: return from fog max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+41: clip fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+41: return from clip max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+41: uniform LEQUAL PHONG max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+41: LEQUAL coplanar materials max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+41: coplanar last occurrence must win max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+41: coplanar first-vs-last reference pixels_over_20=48
+41: outside viewport depth readback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=0,0,0 general_rgb=0,0,0
+41: outside viewport depth readback max_depth_error=0
+41: return from outside viewport with depth max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=0,0,0 general_rgb=0,0,0
+41: return from outside viewport with depth max_depth_error=5.96046e-08
+41: CoinBgfxInstancingTest passed
+2/2 Test #41: CoinBgfxInstancingOpenGLTest .....   Passed    0.30 sec
+
+The following tests passed:
+	CoinBgfxInstancingTest
+	CoinBgfxInstancingOpenGLTest
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =   0.65 sec

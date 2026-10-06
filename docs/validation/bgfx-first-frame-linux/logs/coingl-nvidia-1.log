@@ -1,0 +1,14 @@
+startup_detail arguments_ms=0.01065 coin_init_ms=1.90126 capability_probe_ms=0.00013
+scene_detail parse_ms=302.83 wrapper_ms=0.016361 camera_fit_ms=67.7589
+scene_load_ms=370.647
+startup_detail material_search_ms=0.068798 target_setup_ms=0.007464
+CoinGL_first_detail render_ms=359.19 lazy_readback_ms=3.92952 publication_copy_ms=0.423739 before_frame_since_main_ms=374.63 result_since_main_ms=738.173
+CoinGL_first_frame_ms=363.543
+gl_rgba_fnv64=0x4df2a9ab75b7504
+image=/tmp/coin-render-bgfx-300-results/coingl-nvidia-1.ppm
+adapter=not-queried vendor_id=0x0 device_id=0x0 backend=gl size=1024x1024 warmup=30 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static
+CoinGL frames=120 median_ms=12.3147 p95_ms=14.1865 min_ms=11.7773 max_ms=14.7639
+CoinGL_throughput frames=120 total_ms=1503.79 fps=79.7984
+backend_cleanup_begin
+backend_cleanup_ms=13.9611
+benchmark_peak_rss_kib=339612

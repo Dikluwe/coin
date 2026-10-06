@@ -1,0 +1,389 @@
+{
+  "date": "2026-10-06",
+  "status": "passed",
+  "branch": "codex/coin-render-transform-performance",
+  "parent_commit": "b4543b0dc5cef6f127a40b64527bf06b9c811145",
+  "baseline_release": "v4.0.10",
+  "baseline_commit": "b3ccdc8c5cc22774377b0baa5543990055f28ba2",
+  "public_version": "4.0.10",
+  "public_soname": "libCoin.so.80",
+  "private_wgpu_protocol_revision": 45,
+  "scope": "Linux/GCC 13.3, C++11; binary public ABI qualification, not full inherited source compatibility or MSVC/macOS qualification",
+  "abi": {
+    "verdict": "compatible additions only in public scope",
+    "public_report": {
+      "command": [
+        "abidiff",
+        "--no-show-locs",
+        "--drop-private-types",
+        "--leaf-changes-only",
+        "--headers-dir1",
+        "/tmp/coin-uv-abi-baseline-install/include",
+        "--headers-dir2",
+        "/tmp/coin-uv-abi-candidate-install/include",
+        "/tmp/coin-uv-abi-baseline-install/lib/libCoin.so.80.0.10",
+        "/tmp/coin-uv-abi-candidate-install/lib/libCoin.so.80.0.10"
+      ],
+      "exit_code": 4,
+      "seconds": 34.979,
+      "log": "abidiff-public.log",
+      "scope": "Public-header types retained, private implementation types made opaque; no hand-written suppressions"
+    },
+    "unfiltered_report": {
+      "command": [
+        "abidiff",
+        "--no-show-locs",
+        "--headers-dir1",
+        "/tmp/coin-uv-abi-baseline-install/include",
+        "--headers-dir2",
+        "/tmp/coin-uv-abi-candidate-install/include",
+        "/tmp/coin-uv-abi-baseline-install/lib/libCoin.so.80.0.10",
+        "/tmp/coin-uv-abi-candidate-install/lib/libCoin.so.80.0.10"
+      ],
+      "exit_code": 4,
+      "seconds": 142.592,
+      "log": "abidiff.log"
+    },
+    "public_leaf_types_changed": 0,
+    "existing_functions_removed": 0,
+    "existing_functions_changed": 0,
+    "functions_added": 40,
+    "existing_variables_removed_or_changed": 0,
+    "variable_symbols_added": 4,
+    "custom_suppressions": false,
+    "unfiltered_indirect_findings_review": "Two indirect differences with unchanged size and no public member changes; SoField header unchanged and SbList physical members unchanged. Private implementation types are opaque in public scope."
+  },
+  "totals": {
+    "uv_native_gpu_comparisons": 414,
+    "uv_equivalent_gpu_comparisons": 27,
+    "uv_analytic_gpu_comparisons": 150,
+    "core_ctest_gates": 6,
+    "additional_bgfx_capture_runs": 1,
+    "legacy_runtime_checks_per_execution": 14,
+    "legacy_executions_without_recompilation": 2,
+    "final_skips": 0
+  },
+  "uv_oracles": {
+    "bgfx-opengl": {
+      "native": 138,
+      "equivalent_unit_zero": 4,
+      "equivalent_one_layer": 5,
+      "analytic_eight_stage": 50
+    },
+    "bgfx-vulkan": {
+      "native": 138,
+      "equivalent_unit_zero": 4,
+      "equivalent_one_layer": 5,
+      "analytic_eight_stage": 50
+    },
+    "wgpu-vulkan": {
+      "native": 138,
+      "equivalent_unit_zero": 4,
+      "equivalent_one_layer": 5,
+      "analytic_eight_stage": 50
+    }
+  },
+  "legacy_compile_command": [
+    "g++",
+    "-std=c++11",
+    "-I/tmp/coin-uv-abi-baseline-install/include",
+    "/tmp/coin-uv-public-abi-validation/legacy-consumer.cpp",
+    "-L/tmp/coin-uv-abi-baseline-install/lib",
+    "-Wl,-rpath,/tmp/coin-uv-abi-baseline-install/lib",
+    "-lCoin",
+    "-ldl",
+    "-o",
+    "/tmp/coin-uv-public-abi-validation/legacy-consumer"
+  ],
+  "legacy_candidate_run": {
+    "command": [
+      "/tmp/coin-uv-public-abi-validation/legacy-consumer"
+    ],
+    "LD_LIBRARY_PATH": "/tmp/coin-uv-abi-candidate-install/lib",
+    "executable_sha256": "633527d23cb1a3a14f79624a331d3f67520bf4bac44564ef5ddf2c8ce043461e",
+    "recompiled": false
+  },
+  "canonical_type_compile_command": [
+    "g++",
+    "-std=c++11",
+    "-I/tmp/coin-uv-abi-candidate-install/include",
+    "/tmp/coin-uv-public-abi-validation/canonical-types.cpp",
+    "-o",
+    "/tmp/coin-uv-public-abi-validation/canonical-types"
+  ],
+  "abi_build_options": [
+    "RelWithDebInfo",
+    "C++11",
+    "CMAKE_C_FLAGS=-g",
+    "CMAKE_CXX_FLAGS=-g",
+    "COIN_BUILD_SHARED_LIBS=ON"
+  ],
+  "baseline_render_enabled": false,
+  "candidate_render_enabled": true,
+  "candidate_backend": "RUST_BRIDGE",
+  "rust_artifact_reused_from": "/tmp/coin-render-first-frame-wgpu/rust_target",
+  "uv_commit_public_headers_changed": [],
+  "source_sha256": {
+    "CMakeLists.txt": "d763aa0bd2641accd0880a56910406c612f6c289e2da2073c8efa6364a30a267",
+    "docs/coin-render-projective-uv-contract.md": "b52ba65e40acee96fa83010a822b41bc4d1e22046b1b66881eeaf05079ae0fed",
+    "include/Inventor/elements/SoLazyElement.h": "50102e1a2dd2ae2eb04e9c570e8c7ca08284472afa68bc83922ede3d5d9fca9f",
+    "scripts/coinrender/run_animation_benchmark.py": "9c2d23361559a301b11b524a2a5ff6ad739b4295283435d0adfbb8520717911e",
+    "src/rendering/coinrender/CoinRenderFramePlan.h": "3f88304590d5a8e3ab3f4572f15499be046f70005f5af60ed7624890c00712cb",
+    "src/rendering/coinrender/CoinRenderTextureCoordinateCore.h": "3ef33c134befbbcb660421c8c98cae5e82f91af8f4c00107eefeaae0e7b6d0d4",
+    "src/rendering/coinwgpu/CoinWgpuFfi.h": "3f024b51d02af30d7ad0675556412226c896e48086458c6f6a6681b963edbc97",
+    "src/rendering/coinwgpu/rust_bridge/src/lib.rs": "9b386dbb25516c665d01f3c469583246667f02c61ee9090c5f405a22fb3512ba"
+  },
+  "binary_sha256": {
+    "/tmp/coin-uv-public-abi-validation/legacy-consumer": "633527d23cb1a3a14f79624a331d3f67520bf4bac44564ef5ddf2c8ce043461e",
+    "/tmp/coin-uv-public-abi-validation/canonical-types": "0f528775ce57823c2c2f3d73e5e30e0f2178ba975d7b6eedfaf885a36bec9da1",
+    "/tmp/coin-uv-abi-baseline-install/lib/libCoin.so": "eeabda6771cc9c4e22b35873b9f93dd8ccf096c8827d63f382dffa425e8893c5",
+    "/tmp/coin-uv-abi-candidate-install/lib/libCoin.so": "813abfad473c89d1b3e85744ce806797658223617c121488034669582c09d2e8",
+    "/tmp/coin-render-first-frame-bgfx/lib/libCoin.so": "0b9af662c5eac76cc1ec17647cefe3cf6fd486043993665b4bcedf02248b3097",
+    "/tmp/coin-render-first-frame-bgfx/lib/libCoinRender.so": "c8154ff902ba43a9692052dbe2175887b806f11588bd91cd0f90bb77a9179e72",
+    "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderProjectiveUvTest": "542a2df8c0d624634cb88a6c2932314207095e09b6a1d4cb6f2209b18af54854",
+    "/tmp/coin-uv-abi-candidate-build/lib/libCoin.so": "813abfad473c89d1b3e85744ce806797658223617c121488034669582c09d2e8",
+    "/tmp/coin-uv-abi-candidate-build/lib/libCoinRender.so": "e1f49efcc12ccee7b9bbec101d91686f8ec0c18afc02b5aa1ba24a81af64795d",
+    "/tmp/coin-uv-abi-candidate-build/bin/CoinTests": "146b02c4466e959dc8a7ae87523978f7f2f909cf9eeaeea74d109126ee91c507",
+    "/usr/bin/cmake": "1c5227af4edd22d8d689def545e18ee458260c0fd579eba2187967f38817e638",
+    "/tmp/coin-uv-abi-candidate-build/bin/RenderManagerFramePreparationTest": "ddebcafd38042664c35c7c3b441fbd424b04ee3486aea595c702a4f32c31f734",
+    "/tmp/coin-uv-abi-candidate-build/bin/CoinRenderActionTest": "0b59799fcf61af637f5e4e8ad84a7886d05adc3c1eca0dda03eaffbb7a67e7e2",
+    "/tmp/coin-uv-abi-candidate-build/bin/CoinRenderProjectiveUvTest": "035b57a85c6dadbabd8a9606c5791dcadaeef2a144aeaf11ff06ebcdf016d19a",
+    "/tmp/coin-uv-abi-candidate-build/bin/CoinRenderBoundingBoxTest": "1b1efb454d78c3dd4448ebd84e0ab8d0de5ccbed3c7d1deca022eaf9ae620b79"
+  },
+  "runs": [
+    {
+      "phase": "capture",
+      "variant": "bgfx-vulkan",
+      "command": [
+        "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderProjectiveUvTest",
+        "--capture"
+      ],
+      "exit_code": 0,
+      "seconds": 0.152,
+      "log": "capture-bgfx-vulkan.log",
+      "executed_binaries_sha256": {
+        "/tmp/coin-render-first-frame-bgfx/lib/libCoin.so": "0b9af662c5eac76cc1ec17647cefe3cf6fd486043993665b4bcedf02248b3097",
+        "/tmp/coin-render-first-frame-bgfx/lib/libCoinRender.so": "c8154ff902ba43a9692052dbe2175887b806f11588bd91cd0f90bb77a9179e72",
+        "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderProjectiveUvTest": "542a2df8c0d624634cb88a6c2932314207095e09b6a1d4cb6f2209b18af54854"
+      },
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "WGPU_BACKEND": null,
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_BGFX_TRANSPARENCY": "object",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia"
+      }
+    },
+    {
+      "phase": "core",
+      "variant": "wgpu-vulkan",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/tmp/coin-uv-abi-candidate-build",
+        "-R",
+        "^(CoinTests|CoinConfigCompatibility|RenderManagerFramePreparationTest|CoinRenderActionTest|CoinRenderProjectiveUvCaptureTest|CoinRenderBoundingBoxCaptureTest)$",
+        "--output-on-failure",
+        "-j",
+        "1"
+      ],
+      "exit_code": 0,
+      "seconds": 2.287,
+      "log": "core-wgpu-vulkan.log",
+      "executed_binaries_sha256": {
+        "/tmp/coin-uv-abi-candidate-build/lib/libCoin.so": "813abfad473c89d1b3e85744ce806797658223617c121488034669582c09d2e8",
+        "/tmp/coin-uv-abi-candidate-build/lib/libCoinRender.so": "e1f49efcc12ccee7b9bbec101d91686f8ec0c18afc02b5aa1ba24a81af64795d",
+        "/tmp/coin-uv-abi-candidate-build/bin/CoinTests": "146b02c4466e959dc8a7ae87523978f7f2f909cf9eeaeea74d109126ee91c507",
+        "/usr/bin/cmake": "1c5227af4edd22d8d689def545e18ee458260c0fd579eba2187967f38817e638",
+        "/tmp/coin-uv-abi-candidate-build/bin/RenderManagerFramePreparationTest": "ddebcafd38042664c35c7c3b441fbd424b04ee3486aea595c702a4f32c31f734",
+        "/tmp/coin-uv-abi-candidate-build/bin/CoinRenderActionTest": "0b59799fcf61af637f5e4e8ad84a7886d05adc3c1eca0dda03eaffbb7a67e7e2",
+        "/tmp/coin-uv-abi-candidate-build/bin/CoinRenderProjectiveUvTest": "035b57a85c6dadbabd8a9606c5791dcadaeef2a144aeaf11ff06ebcdf016d19a",
+        "/tmp/coin-uv-abi-candidate-build/bin/CoinRenderBoundingBoxTest": "1b1efb454d78c3dd4448ebd84e0ab8d0de5ccbed3c7d1deca022eaf9ae620b79"
+      },
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-uv-abi-candidate-build/lib",
+        "WGPU_BACKEND": "vulkan",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+        "COIN_BGFX_RENDERER": null,
+        "COIN_BGFX_TRANSPARENCY": "object",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia"
+      }
+    },
+    {
+      "phase": "uv",
+      "variant": "bgfx-opengl",
+      "command": [
+        "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderProjectiveUvTest",
+        "--gpu"
+      ],
+      "exit_code": 0,
+      "seconds": 5.678,
+      "log": "uv-bgfx-opengl.log",
+      "executed_binaries_sha256": {
+        "/tmp/coin-render-first-frame-bgfx/lib/libCoin.so": "0b9af662c5eac76cc1ec17647cefe3cf6fd486043993665b4bcedf02248b3097",
+        "/tmp/coin-render-first-frame-bgfx/lib/libCoinRender.so": "c8154ff902ba43a9692052dbe2175887b806f11588bd91cd0f90bb77a9179e72",
+        "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderProjectiveUvTest": "542a2df8c0d624634cb88a6c2932314207095e09b6a1d4cb6f2209b18af54854"
+      },
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "WGPU_BACKEND": null,
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+        "COIN_BGFX_RENDERER": "opengl",
+        "COIN_BGFX_TRANSPARENCY": "object",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia"
+      }
+    },
+    {
+      "phase": "uv",
+      "variant": "bgfx-vulkan",
+      "command": [
+        "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderProjectiveUvTest",
+        "--gpu"
+      ],
+      "exit_code": 0,
+      "seconds": 5.698,
+      "log": "uv-bgfx-vulkan.log",
+      "executed_binaries_sha256": {
+        "/tmp/coin-render-first-frame-bgfx/lib/libCoin.so": "0b9af662c5eac76cc1ec17647cefe3cf6fd486043993665b4bcedf02248b3097",
+        "/tmp/coin-render-first-frame-bgfx/lib/libCoinRender.so": "c8154ff902ba43a9692052dbe2175887b806f11588bd91cd0f90bb77a9179e72",
+        "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderProjectiveUvTest": "542a2df8c0d624634cb88a6c2932314207095e09b6a1d4cb6f2209b18af54854"
+      },
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+        "WGPU_BACKEND": null,
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_BGFX_TRANSPARENCY": "object",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia"
+      }
+    },
+    {
+      "phase": "uv",
+      "variant": "wgpu-vulkan",
+      "command": [
+        "/tmp/coin-uv-abi-candidate-build/bin/CoinRenderProjectiveUvTest",
+        "--gpu"
+      ],
+      "exit_code": 0,
+      "seconds": 1.033,
+      "log": "uv-wgpu-vulkan.log",
+      "executed_binaries_sha256": {
+        "/tmp/coin-uv-abi-candidate-build/lib/libCoin.so": "813abfad473c89d1b3e85744ce806797658223617c121488034669582c09d2e8",
+        "/tmp/coin-uv-abi-candidate-build/lib/libCoinRender.so": "e1f49efcc12ccee7b9bbec101d91686f8ec0c18afc02b5aa1ba24a81af64795d",
+        "/tmp/coin-uv-abi-candidate-build/bin/CoinRenderProjectiveUvTest": "035b57a85c6dadbabd8a9606c5791dcadaeef2a144aeaf11ff06ebcdf016d19a"
+      },
+      "environment": {
+        "LD_LIBRARY_PATH": "/tmp/coin-uv-abi-candidate-build/lib",
+        "WGPU_BACKEND": "vulkan",
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+        "COIN_BGFX_RENDERER": null,
+        "COIN_BGFX_TRANSPARENCY": "object",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia"
+      }
+    }
+  ],
+  "logs": {
+    "abidiff-public.log": {
+      "raw_sha256": "65a370ca04282ef8c31d0db939e273afcd1bd5a5cb2425d24d918a73e2d6650c",
+      "archived_sha256": "4eab27751204191839712aac7863a9be816b7d94e98670efade8fa3740d5a251"
+    },
+    "abidiff.log": {
+      "raw_sha256": "04e27732b5c55517eece1389c5786c38f057f95ce31b6e455f6089f5cadea154",
+      "archived_sha256": "f88849f96e93c2a23cc47fc05af0c44ce47498c5d438d5e29fa5e1c23591a47a"
+    },
+    "build-baseline.log": {
+      "raw_sha256": "565ce277b048bc7bf4a85075b3d65d788dc004ccd20a37005869b6a48b71758a",
+      "archived_sha256": "565ce277b048bc7bf4a85075b3d65d788dc004ccd20a37005869b6a48b71758a"
+    },
+    "build-bgfx.log": {
+      "raw_sha256": "732fb5e3eefcc9c1b94c46ab443ae60341fb8650af326e35b046f24ae1de4211",
+      "archived_sha256": "732fb5e3eefcc9c1b94c46ab443ae60341fb8650af326e35b046f24ae1de4211"
+    },
+    "build-candidate.log": {
+      "raw_sha256": "37b111d02c1895b994262e6cbdd99c91b22c34dab17473450e017e2c9af1e380",
+      "archived_sha256": "37b111d02c1895b994262e6cbdd99c91b22c34dab17473450e017e2c9af1e380"
+    },
+    "capture-bgfx-vulkan.log": {
+      "raw_sha256": "33763f560a3caf356514ee173f26afd343b9bdbb2ed1fdd01fb704be2ac87fc2",
+      "archived_sha256": "33763f560a3caf356514ee173f26afd343b9bdbb2ed1fdd01fb704be2ac87fc2"
+    },
+    "configure-baseline.log": {
+      "raw_sha256": "24fda54ae9ee2531941be27e543630e30352d8a59024a6f44337ce2e1fc1fc94",
+      "archived_sha256": "c3342b79210c50f20590f83aa602ee2bc657024b35bf4e6e60a2a53fc05c5910"
+    },
+    "configure-candidate.log": {
+      "raw_sha256": "a503fcf50f5808e43f342ca69d4139f44025ad08e25489789ff97c462014310d",
+      "archived_sha256": "1e97d609a9e6a68da8e67e74ece0f420ca0858633c4e356422acc8d1e632acfb"
+    },
+    "core-wgpu-vulkan.log": {
+      "raw_sha256": "68b95df38c975d35ffa43251abf16019d8b08adedd0d3f7519dca5f72f0fabab",
+      "archived_sha256": "68b95df38c975d35ffa43251abf16019d8b08adedd0d3f7519dca5f72f0fabab"
+    },
+    "install-baseline.log": {
+      "raw_sha256": "92d1d603b96793b5b2752b210ca30a5828e7ed8176bac0271045c7b9644e41f9",
+      "archived_sha256": "92d1d603b96793b5b2752b210ca30a5828e7ed8176bac0271045c7b9644e41f9"
+    },
+    "install-candidate.log": {
+      "raw_sha256": "7e86fe371220356c182108ae62190ccb39c6198d5d6c2c30e48d3877ad25d44f",
+      "archived_sha256": "7e86fe371220356c182108ae62190ccb39c6198d5d6c2c30e48d3877ad25d44f"
+    },
+    "legacy-baseline.log": {
+      "raw_sha256": "4a9695896370937c9db568c5be9e7a86762303fc7074718aa54193c8180d37c7",
+      "archived_sha256": "4a9695896370937c9db568c5be9e7a86762303fc7074718aa54193c8180d37c7"
+    },
+    "legacy-candidate.log": {
+      "raw_sha256": "22c489f980b3be84501c024ee94d7f88d8bb7fbe72f03e783fd278c119d35804",
+      "archived_sha256": "22c489f980b3be84501c024ee94d7f88d8bb7fbe72f03e783fd278c119d35804"
+    },
+    "uv-bgfx-opengl.log": {
+      "raw_sha256": "e3ee7dc1eabbd61ac086508b5d9ac4bb028bcae8606a96deab34f3b555c92894",
+      "archived_sha256": "e3ee7dc1eabbd61ac086508b5d9ac4bb028bcae8606a96deab34f3b555c92894"
+    },
+    "uv-bgfx-vulkan.log": {
+      "raw_sha256": "e3ee7dc1eabbd61ac086508b5d9ac4bb028bcae8606a96deab34f3b555c92894",
+      "archived_sha256": "e3ee7dc1eabbd61ac086508b5d9ac4bb028bcae8606a96deab34f3b555c92894"
+    },
+    "uv-wgpu-vulkan.log": {
+      "raw_sha256": "e3ee7dc1eabbd61ac086508b5d9ac4bb028bcae8606a96deab34f3b555c92894",
+      "archived_sha256": "e3ee7dc1eabbd61ac086508b5d9ac4bb028bcae8606a96deab34f3b555c92894"
+    }
+  },
+  "artifacts_sha256": {
+    "README.md": "6687a001d11847861748f2976ee5e978e0b8111a9acb22eedf8f166a0b6f71f3",
+    "abidiff-public.log": "4eab27751204191839712aac7863a9be816b7d94e98670efade8fa3740d5a251",
+    "abidiff.log": "f88849f96e93c2a23cc47fc05af0c44ce47498c5d438d5e29fa5e1c23591a47a",
+    "build-baseline.log": "565ce277b048bc7bf4a85075b3d65d788dc004ccd20a37005869b6a48b71758a",
+    "build-bgfx.log": "732fb5e3eefcc9c1b94c46ab443ae60341fb8650af326e35b046f24ae1de4211",
+    "build-candidate.log": "37b111d02c1895b994262e6cbdd99c91b22c34dab17473450e017e2c9af1e380",
+    "canonical-types.cpp": "547aa7c6e8ff12c4d6d2b6478e1d63b6cc37da050c08bb8966558d8dfe4f8837",
+    "capture-bgfx-vulkan.log": "33763f560a3caf356514ee173f26afd343b9bdbb2ed1fdd01fb704be2ac87fc2",
+    "configure-baseline.log": "c3342b79210c50f20590f83aa602ee2bc657024b35bf4e6e60a2a53fc05c5910",
+    "configure-candidate.log": "1e97d609a9e6a68da8e67e74ece0f420ca0858633c4e356422acc8d1e632acfb",
+    "core-wgpu-vulkan.log": "68b95df38c975d35ffa43251abf16019d8b08adedd0d3f7519dca5f72f0fabab",
+    "install-baseline.log": "92d1d603b96793b5b2752b210ca30a5828e7ed8176bac0271045c7b9644e41f9",
+    "install-candidate.log": "7e86fe371220356c182108ae62190ccb39c6198d5d6c2c30e48d3877ad25d44f",
+    "legacy-baseline.log": "4a9695896370937c9db568c5be9e7a86762303fc7074718aa54193c8180d37c7",
+    "legacy-candidate.log": "22c489f980b3be84501c024ee94d7f88d8bb7fbe72f03e783fd278c119d35804",
+    "legacy-consumer.cpp": "946f5357e03971c768ab34c8998628167090eecf673ca30ca2df4c97463ec732",
+    "run.py": "103f341820c293a3bae78aaca500508df969d9b29ba568f830771aa9d6f53a22",
+    "uv-bgfx-opengl.log": "e3ee7dc1eabbd61ac086508b5d9ac4bb028bcae8606a96deab34f3b555c92894",
+    "uv-bgfx-vulkan.log": "e3ee7dc1eabbd61ac086508b5d9ac4bb028bcae8606a96deab34f3b555c92894",
+    "uv-wgpu-vulkan.log": "e3ee7dc1eabbd61ac086508b5d9ac4bb028bcae8606a96deab34f3b555c92894"
+  }
+}

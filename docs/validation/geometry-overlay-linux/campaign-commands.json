@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "source_content_revision": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+  "invocation": [
+    "/tmp/coin-render-geometry-overlay-run-matched.py",
+    "--source-content-revision",
+    "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+    "--source-snapshot-revision",
+    "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33"
+  ],
+  "script": "/tmp/coin-render-geometry-overlay-run-matched.py",
+  "script_sha256": "8bdc438ae4fa4cefc14c5268ebb98c182f428c2b3709f4f5a56658c24b9783b0",
+  "matched_script_sha256": "4de958f252f5b113e5d50415dd102a517b503b4530a8ee75c4ae985e53f58cf7",
+  "expected_unique_counts": {
+    "processes": 84,
+    "measured_frames": 1260,
+    "warmup_frames": 420
+  },
+  "commands": [
+    {
+      "name": "steady",
+      "command": [
+        "/usr/bin/python3",
+        "/tmp/coin-render-geometry-overlay-matched.py",
+        "--before-bgfx-build",
+        "/tmp/coin-render-geometry-overlay-baseline/bgfx",
+        "--before-wgpu-build",
+        "/tmp/coin-render-geometry-overlay-baseline/wgpu",
+        "--after-bgfx-build",
+        "/tmp/coin-render-first-frame-bgfx",
+        "--after-wgpu-build",
+        "/tmp/coin-render-first-frame-wgpu",
+        "--coingl-build",
+        "/tmp/coin-render-material-geometry-baseline/coingl",
+        "--scene",
+        "/tmp/coin-render-city-40000.iv",
+        "--scope",
+        "offscreen",
+        "--gpu",
+        "nvidia",
+        "--size",
+        "1024",
+        "--variants",
+        "coingl,bgfx-vulkan,bgfx-opengl,wgpu-vulkan",
+        "--before-source-content-revision",
+        "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+        "--before-bgfx-source-content-revision",
+        "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+        "--before-wgpu-source-content-revision",
+        "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+        "--after-source-content-revision",
+        "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+        "--source-snapshot-revision",
+        "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+        "--control-source-content-revision",
+        "4d63bb993022ee8d40802558b0871a4803002b8d",
+        "--runner",
+        "/tmp/coin-render-first-frame/scripts/coinrender/run_animation_benchmark.py",
+        "--rounds",
+        "3",
+        "--warmup",
+        "5",
+        "--cases",
+        "geometry-10,geometry-100,transforms-10,materials-10",
+        "--frames",
+        "15",
+        "--output-before",
+        "/tmp/coin-render-geometry-overlay-steady-before",
+        "--output-after",
+        "/tmp/coin-render-geometry-overlay-steady-after"
+      ],
+      "source_content_revision": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+      "variant_source_content_revisions_before": {
+        "bgfx-vulkan": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+        "bgfx-opengl": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+        "wgpu-vulkan": "9a594fa39c7ca7924f9931863d4bdd7a37165cee",
+        "coingl": "4d63bb993022ee8d40802558b0871a4803002b8d"
+      },
+      "expected_unique_counts": {
+        "processes": 84,
+        "measured_frames": 1260,
+        "warmup_frames": 420
+      },
+      "orchestration_log": "/tmp/coin-render-geometry-overlay-steady-run.log",
+      "exit_code": 0
+    }
+  ]
+}

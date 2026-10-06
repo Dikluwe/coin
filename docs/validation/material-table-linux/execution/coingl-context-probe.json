@@ -1,0 +1,33 @@
+{
+  "command": [
+    "/tmp/coin-render-material-geometry-baseline/coingl/bin/coin_render_gl_benchmark",
+    "--backend",
+    "gl",
+    "--scene",
+    "/tmp/coin-render-city-materials-40001.iv",
+    "--animation",
+    "static",
+    "--transparency",
+    "object",
+    "--size",
+    "1024",
+    "--warmup",
+    "0",
+    "--frames",
+    "1"
+  ],
+  "exit_code": 0,
+  "source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+  "environment": {
+    "LD_LIBRARY_PATH": "/tmp/coin-render-material-geometry-baseline/coingl/lib",
+    "__NV_PRIME_RENDER_OFFLOAD": "1",
+    "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+    "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+    "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+    "COIN_DEBUG_GLGLUE": "1"
+  },
+  "log": "/tmp/coin-render-material-table-coingl-gpu-probe.log",
+  "log_sha256": "0a6aa202bb2bd5b3fbf82ab6f655d4e3c2f03da381f6763169125cbab2a839f0",
+  "runner_sha256": "9c2d23361559a301b11b524a2a5ff6ad739b4295283435d0adfbb8520717911e",
+  "scope": "GPU/context identification only; no performance claim"
+}

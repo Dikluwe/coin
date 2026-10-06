@@ -1,0 +1,31 @@
+{
+  "command": [
+    "python3",
+    "/tmp/coin-render-first-frame/scripts/coinrender/run_animation_benchmark.py",
+    "--bgfx-build",
+    "/tmp/coin-render-first-frame-bgfx",
+    "--wgpu-build",
+    "/tmp/coin-render-first-frame-wgpu",
+    "--coingl-build",
+    "/tmp/coin-render-material-geometry-baseline/coingl",
+    "--scene",
+    "/tmp/coin-render-city-40000.iv",
+    "--output",
+    "/tmp/coin-render-geometry-overlay-verify-after",
+    "--mode",
+    "verify",
+    "--gpu",
+    "nvidia",
+    "--cases",
+    "geometry-10,geometry-100,transforms-10,materials-10",
+    "--rounds",
+    "1",
+    "--size",
+    "1024"
+  ],
+  "source_snapshot_revision": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+  "source_content_revision": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+  "control_source_content_revision": "4d63bb993022ee8d40802558b0871a4803002b8d",
+  "runner_sha256": "9c2d23361559a301b11b524a2a5ff6ad739b4295283435d0adfbb8520717911e",
+  "exit_code": 0
+}

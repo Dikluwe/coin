@@ -1,5 +1,6 @@
 #ifndef COIN_RENDER_TEXTURE_COMBINE_CORE_H
 #define COIN_RENDER_TEXTURE_COMBINE_CORE_H
+#include "rendering/coinrender/CoinRenderFloatCore.h"
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
 #include <Inventor/elements/SoTextureCombineElement.h>
@@ -9,6 +10,19 @@
 // Four vec4 instructions per unit: active/RGB-op/alpha-op, RGB arguments/scale,
 // alpha arguments/scale, constant. Sources 0..3 are primary/texture/constant/previous;
 // operands 0..3 are color/complement/alpha/alpha-complement. No Coin enum reaches Infra.
+inline CoinRenderTextureCombineSnapshot coin_render_replace_rgb_preserve_alpha() {
+  CoinRenderTextureCombineSnapshot result;
+  result.instructions[0][0] = 1;
+  // Both channels use REPLACE: texture RGB and previous alpha.
+  for (int i = 0; i < 3; ++i) {
+    result.instructions[1][i] = 1;  // TEXTURE, SRC_COLOR
+    result.instructions[2][i] = 11; // PREVIOUS, SRC_ALPHA
+  }
+  result.instructions[1][3] = 1;
+  result.instructions[2][3] = 1;
+  return result;
+}
+
 inline bool coin_render_compile_combine(const SoTextureCombineElement::UnitData& raw,
                                         CoinRenderTextureCombineSnapshot& result,
                                         std::string& diagnostic) {
@@ -88,7 +102,7 @@ inline bool coin_render_compile_combine(const SoTextureCombineElement::UnitData&
     result.instructions[2][i] = float(as + 4 * ao);
   }
   for (int c = 0; c < 4; ++c) {
-    if (!std::isfinite(raw.constantcolor[c])) {
+    if (!coin_render_is_finite(raw.constantcolor[c])) {
       diagnostic = "Non-finite TextureCombine constant";
       return false;
     }
@@ -102,7 +116,7 @@ inline bool coin_render_validate_combine(const CoinRenderTextureCombineSnapshot&
   const auto& p = program.instructions;
   for (int row = 0; row < 4; ++row)
     for (int c = 0; c < 4; ++c)
-      if (!std::isfinite(p[row][c]))
+      if (!coin_render_is_finite(p[row][c]))
         return false;
   if (p[0][0] == 0)
     return true;

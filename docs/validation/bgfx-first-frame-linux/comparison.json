@@ -1,0 +1,86 @@
+[
+  {
+    "backend": "bgfx-vulkan",
+    "before": {
+      "first_ms": 665.357,
+      "median_ms": 2.4799,
+      "p95_ms": 2.70911,
+      "result_since_main_ms": 1240.95,
+      "peak_rss_kib": 634272
+    },
+    "after": {
+      "first_ms": 318.924,
+      "median_ms": 2.10249,
+      "p95_ms": 2.33802,
+      "result_since_main_ms": 887.773,
+      "peak_rss_kib": 300636
+    },
+    "coingl": {
+      "first_ms": 343.53,
+      "median_ms": 12.3449,
+      "p95_ms": 14.2852,
+      "result_since_main_ms": 724.271,
+      "peak_rss_kib": 339612
+    },
+    "first_change_percent": -52.06723608528956,
+    "hot_change_percent": -15.218758820920208,
+    "first_vs_coingl_percent": -7.162693214566418,
+    "hot_speedup_vs_coingl": 5.871561814800547
+  },
+  {
+    "backend": "bgfx-opengl",
+    "before": {
+      "first_ms": 630.624,
+      "median_ms": 2.97911,
+      "p95_ms": 3.19657,
+      "result_since_main_ms": 1153.25,
+      "peak_rss_kib": 556904
+    },
+    "after": {
+      "first_ms": 270.775,
+      "median_ms": 2.40496,
+      "p95_ms": 2.62882,
+      "result_since_main_ms": 786.471,
+      "peak_rss_kib": 335964
+    },
+    "coingl": {
+      "first_ms": 343.53,
+      "median_ms": 12.3449,
+      "p95_ms": 14.2852,
+      "result_since_main_ms": 724.271,
+      "peak_rss_kib": 339612
+    },
+    "first_change_percent": -57.0623699700614,
+    "hot_change_percent": -19.272534414640607,
+    "first_vs_coingl_percent": -21.178645242045825,
+    "hot_speedup_vs_coingl": 5.13309992681791
+  },
+  {
+    "backend": "wgpu-vulkan",
+    "before": {
+      "first_ms": 401.538,
+      "median_ms": 8.09947,
+      "p95_ms": 8.67246,
+      "result_since_main_ms": 944.597,
+      "peak_rss_kib": 506016
+    },
+    "after": {
+      "first_ms": 315.37,
+      "median_ms": 8.32747,
+      "p95_ms": 9.06854,
+      "result_since_main_ms": 870.902,
+      "peak_rss_kib": 501356
+    },
+    "coingl": {
+      "first_ms": 343.53,
+      "median_ms": 12.3449,
+      "p95_ms": 14.2852,
+      "result_since_main_ms": 724.271,
+      "peak_rss_kib": 339612
+    },
+    "first_change_percent": -21.459488267611036,
+    "hot_change_percent": 2.814999006107799,
+    "first_vs_coingl_percent": -8.197246237592049,
+    "hot_speedup_vs_coingl": 1.4824310384786736
+  }
+]

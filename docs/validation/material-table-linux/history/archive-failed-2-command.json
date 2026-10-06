@@ -1,0 +1,21 @@
+{
+  "commands": [
+    {
+      "label": "archive-collect",
+      "command": [
+        "python3",
+        "-B",
+        "/tmp/coin-render-material-table-collect.py",
+        "--root",
+        "/tmp/coin-render-first-frame"
+      ],
+      "exit_code": 1,
+      "script_path": "/tmp/coin-render-material-table-collect.py",
+      "script_sha256": "f476f690649d48fe2d50f4dbb8919ab2e244c6bc10bd4f24050599cd1c97306d",
+      "started_at_utc": "2026-10-05T17:01:56.776086+00:00",
+      "ended_at_utc": "2026-10-05T17:02:04.056980+00:00",
+      "log_path": "/tmp/coin-render-material-table-archive-collect-2.log",
+      "log_sha256": "7eb9f1e80c9e3eb6d7d3dc82ce94dc23d77509f5577726be13241cf830a42749"
+    }
+  ]
+}

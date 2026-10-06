@@ -1,0 +1,64 @@
+[
+  {
+    "gate": "rust-serial-nvidia",
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/rust_target/release/deps/coin_wgpu_rust_bridge-468f9cd9666e0d73",
+      "--nocapture",
+      "--test-threads=1"
+    ],
+    "returncode": 0
+  },
+  {
+    "gate": "multi-device",
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/CoinWgpuMultiDeviceTest"
+    ],
+    "returncode": 1
+  },
+  {
+    "gate": "camera-reference",
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderCameraReuseReferenceTest"
+    ],
+    "returncode": 0
+  },
+  {
+    "gate": "surface-camera",
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderSurfaceTest",
+      "--camera-only",
+      "--require-vulkan"
+    ],
+    "returncode": 0
+  },
+  {
+    "gate": "surface-full",
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderSurfaceTest",
+      "--require-display",
+      "--require-vulkan"
+    ],
+    "returncode": 0
+  },
+  {
+    "gate": "scene-texture",
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderSceneTextureTest"
+    ],
+    "returncode": 0
+  },
+  {
+    "gate": "rtt-ownership",
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderRttOwnershipTest"
+    ],
+    "returncode": 0
+  },
+  {
+    "gate": "multi-device-retry",
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/CoinWgpuMultiDeviceTest"
+    ],
+    "returncode": 0
+  }
+]

@@ -1,0 +1,54 @@
+[
+  {
+    "command": [
+      "/tmp/coin-render-instancing-baseline/wgpu/bin/coin_render_window_benchmark",
+      "--backend",
+      "wgpu-vulkan",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "transforms",
+      "--animated-percent",
+      "10",
+      "--transparency",
+      "object",
+      "--warmup",
+      "2",
+      "--frames",
+      "8",
+      "--width",
+      "512",
+      "--height",
+      "512",
+      "--samples-output",
+      "/tmp/coin-render-instancing-present-baseline/512.csv"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "/tmp/coin-render-instancing-baseline/wgpu/bin/coin_render_window_benchmark",
+      "--backend",
+      "wgpu-vulkan",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "transforms",
+      "--animated-percent",
+      "10",
+      "--transparency",
+      "object",
+      "--warmup",
+      "2",
+      "--frames",
+      "8",
+      "--width",
+      "1024",
+      "--height",
+      "1024",
+      "--samples-output",
+      "/tmp/coin-render-instancing-present-baseline/1024.csv"
+    ],
+    "returncode": 0
+  }
+]

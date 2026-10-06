@@ -1,0 +1,47 @@
+[1/58] Building CXX object testsuite/CMakeFiles/CoinRenderCameraReuseReferenceTest.dir/coinrender/CoinRenderCameraReuseReferenceTest.cpp.o
+[2/58] Building CXX object testsuite/CMakeFiles/CoinRenderIndexedFastPathTest.dir/coinrender/CoinRenderIndexedFastPathTest.cpp.o
+[3/58] Building CXX object testsuite/CMakeFiles/CoinRenderActionTest.dir/actions/CoinRenderActionTest.cpp.o
+FAILED: testsuite/CMakeFiles/CoinRenderActionTest.dir/actions/CoinRenderActionTest.cpp.o 
+/usr/bin/c++ -DCOIN_INTERNAL -DHAVE_CONFIG_H -I/tmp/coin-render-first-frame/testsuite -I/tmp/coin-render-first-frame/experimental/include -I/tmp/coin-render-first-frame/include -I/tmp/coin-render-first-frame/src -I/tmp/coin-render-first-frame-wgpu/include -I/tmp/coin-render-first-frame-wgpu/src -Wsuggest-override -O3 -DNDEBUG -std=gnu++11 -fPIE -MD -MT testsuite/CMakeFiles/CoinRenderActionTest.dir/actions/CoinRenderActionTest.cpp.o -MF testsuite/CMakeFiles/CoinRenderActionTest.dir/actions/CoinRenderActionTest.cpp.o.d -o testsuite/CMakeFiles/CoinRenderActionTest.dir/actions/CoinRenderActionTest.cpp.o -c /tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp: In member function ‘bool CaptureCameraBasisOracle::same()’:
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp:1068:37: error: unable to deduce ‘const auto*’ from ‘((CaptureCameraBasisOracle*)this)->CaptureCameraBasisOracle::action.CoinRenderAction::getPimpl()’
+ 1068 |     const auto * a = action.getPimpl(); const auto * b = literal.getPimpl();
+      |                      ~~~~~~~~~~~~~~~^~
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp:1068:38: note:   mismatched types ‘const auto*’ and ‘SbPimplPtr<CoinRenderActionP>’
+ 1068 |     const auto * a = action.getPimpl(); const auto * b = literal.getPimpl();
+      |                                      ^
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp:1068:74: error: unable to deduce ‘const auto*’ from ‘((CaptureCameraBasisOracle*)this)->CaptureCameraBasisOracle::literal.CoinRenderAction::getPimpl()’
+ 1068 |     const auto * a = action.getPimpl(); const auto * b = literal.getPimpl();
+      |                                                          ~~~~~~~~~~~~~~~~^~
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp:1068:75: note:   mismatched types ‘const auto*’ and ‘SbPimplPtr<CoinRenderActionP>’
+ 1068 |     const auto * a = action.getPimpl(); const auto * b = literal.getPimpl();
+      |                                                                           ^
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp: In member function ‘bool CaptureCameraBasisOracle::counts(size_t, size_t, size_t, size_t)’:
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp:1096:37: error: unable to deduce ‘const auto*’ from ‘((CaptureCameraBasisOracle*)this)->CaptureCameraBasisOracle::action.CoinRenderAction::getPimpl()’
+ 1096 |     const auto * a = action.getPimpl(); const auto * b = literal.getPimpl();
+      |                      ~~~~~~~~~~~~~~~^~
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp:1096:38: note:   mismatched types ‘const auto*’ and ‘SbPimplPtr<CoinRenderActionP>’
+ 1096 |     const auto * a = action.getPimpl(); const auto * b = literal.getPimpl();
+      |                                      ^
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp:1096:74: error: unable to deduce ‘const auto*’ from ‘((CaptureCameraBasisOracle*)this)->CaptureCameraBasisOracle::literal.CoinRenderAction::getPimpl()’
+ 1096 |     const auto * a = action.getPimpl(); const auto * b = literal.getPimpl();
+      |                                                          ~~~~~~~~~~~~~~~~^~
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp:1096:75: note:   mismatched types ‘const auto*’ and ‘SbPimplPtr<CoinRenderActionP>’
+ 1096 |     const auto * a = action.getPimpl(); const auto * b = literal.getPimpl();
+      |                                                                           ^
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp: In function ‘int testCaptureCameraBasisReuse()’:
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp:1176:44: error: unable to deduce ‘const auto*’ from ‘oracle.CaptureCameraBasisOracle::action.CoinRenderAction::getPimpl()’
+ 1176 |     const auto * a = oracle.action.getPimpl(); const auto * b = oracle.literal.getPimpl();
+      |                      ~~~~~~~~~~~~~~~~~~~~~~^~
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp:1176:45: note:   mismatched types ‘const auto*’ and ‘SbPimplPtr<CoinRenderActionP>’
+ 1176 |     const auto * a = oracle.action.getPimpl(); const auto * b = oracle.literal.getPimpl();
+      |                                             ^
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp:1176:88: error: unable to deduce ‘const auto*’ from ‘oracle.CaptureCameraBasisOracle::literal.CoinRenderAction::getPimpl()’
+ 1176 |     const auto * a = oracle.action.getPimpl(); const auto * b = oracle.literal.getPimpl();
+      |                                                                 ~~~~~~~~~~~~~~~~~~~~~~~^~
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp:1176:89: note:   mismatched types ‘const auto*’ and ‘SbPimplPtr<CoinRenderActionP>’
+ 1176 |     const auto * a = oracle.action.getPimpl(); const auto * b = oracle.literal.getPimpl();
+      |                                                                                         ^
+[4/58] Building CXX object src/rendering/coinrender/CMakeFiles/CoinRender.dir/__/__/actions/CoinRenderAction.cpp.o
+[5/58] Building CXX object testsuite/CMakeFiles/CoinRenderShadowReferenceTest.dir/coinrender/CoinRenderShadowReferenceTest.cpp.o
+ninja: build stopped: subcommand failed.

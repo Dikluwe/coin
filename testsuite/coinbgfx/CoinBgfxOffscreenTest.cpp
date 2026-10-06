@@ -1,3 +1,4 @@
+#include "../coinrender/CoinRenderTestEnvironment.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #else
@@ -5,10 +6,11 @@
 #endif
 
 #include "rendering/coinrender/CoinRenderTargetP.h"
+#include "rendering/coinbgfx/CoinBgfxLowering.h"
 
 #include <Inventor/SoDB.h>
+#include <Inventor/actions/SoGLRenderAction.h>
 
-#include <bgfx/bgfx.h>
 #include <cstdlib>
 #include <iostream>
 #include <memory>
@@ -72,6 +74,35 @@ int main()
   }
   if (!target.depthBuffer.empty()) {
     std::cerr << "BGFX populated an unpublished CPU depth buffer\n";
+    return 1;
+  }
+  // Switch programs on an already prepared target. A plan captured as solid
+  // must produce the same publication when the full surface stage is forced,
+  // and returning to the solid stage must not retain the previous selection.
+  const std::vector<uint8_t> firstSolidPixels = target.colorBuffer;
+  const char * previousSolidOptout = std::getenv("COIN_BGFX_DISABLE_SOLID_PROGRAM");
+  const bool hadSolidOptout = previousSolidOptout != nullptr;
+  const std::string savedSolidOptout = previousSolidOptout ? previousSolidOptout : "";
+  const char * previousInstanceOptout = std::getenv("COIN_BGFX_DISABLE_INSTANCING");
+  const bool hadInstanceOptout = previousInstanceOptout != nullptr;
+  const std::string savedInstanceOptout = previousInstanceOptout ? previousInstanceOptout : "";
+  coinRenderTestSetEnvironment("COIN_BGFX_DISABLE_INSTANCING", "1");
+  coinRenderTestSetEnvironment("COIN_BGFX_DISABLE_SOLID_PROGRAM", "1");
+  const bool fullMatched = target.executeFrame(frame).status == CoinRenderBackendStatus::SUCCESS &&
+    target.colorBuffer == firstSolidPixels;
+  coinRenderTestSetEnvironment("COIN_BGFX_DISABLE_SOLID_PROGRAM", "0");
+  const bool solidMatched = target.executeFrame(frame).status == CoinRenderBackendStatus::SUCCESS &&
+    target.colorBuffer == firstSolidPixels;
+  if (hadSolidOptout)
+    coinRenderTestSetEnvironment("COIN_BGFX_DISABLE_SOLID_PROGRAM", savedSolidOptout.c_str());
+  else coinRenderTestSetEnvironment("COIN_BGFX_DISABLE_SOLID_PROGRAM", nullptr);
+  if (hadInstanceOptout)
+    coinRenderTestSetEnvironment("COIN_BGFX_DISABLE_INSTANCING", savedInstanceOptout.c_str());
+  else coinRenderTestSetEnvironment("COIN_BGFX_DISABLE_INSTANCING", nullptr);
+  const bool restoredMatched = target.executeFrame(frame).status == CoinRenderBackendStatus::SUCCESS &&
+    target.colorBuffer == firstSolidPixels;
+  if (!fullMatched || !solidMatched || !restoredMatched) {
+    std::cerr << "BGFX solid/full program switch changed the published image\n";
     return 1;
   }
   // A shifted viewport must crop rather than reposition the triangle.
@@ -205,6 +236,98 @@ int main()
     std::cerr << "BGFX camera patch differs from complete frame lowering\n";
     return 1;
   }
+  // Cross the old 32 MiB lowering cache cutoff without a large framebuffer.
+  // Repeated indices preserve the reference image while exercising a real
+  // GPU-only cache and its material invalidation after CPU geometry is freed.
+  CoinRenderFramePlan largeFrame = frame;
+  const size_t triangles = 32u * 1024u * 1024u / (3u * sizeof(CoinBgfxVertex)) + 1;
+  largeFrame.indices.clear();
+  largeFrame.indices.reserve(triangles * 3);
+  for (size_t i = 0; i < triangles; ++i)
+    largeFrame.indices.insert(largeFrame.indices.end(), frame.indices.begin(), frame.indices.end());
+  largeFrame.draws[0].geometry.indexCount = static_cast<uint32_t>(largeFrame.indices.size());
+  largeFrame.revision = 9001;
+  if (target.executeFrame(largeFrame).status != CoinRenderBackendStatus::SUCCESS ||
+      target.colorBuffer != patchedPixels ||
+      target.executeFrame(largeFrame).status != CoinRenderBackendStatus::SUCCESS ||
+      target.colorBuffer != patchedPixels) {
+    std::cerr << "BGFX large GPU-only cache changed the reference image\n";
+    return 1;
+  }
+  const CoinRenderFramePlan largeBase = largeFrame;
+  largeFrame.revision = 9002;
+  largeFrame.materials[0].diffuse[1] = 0.0f;
+  largeFrame.materials[0].diffuse[2] = 1.0f;
+  const auto largeMaterialReuse = CoinRenderFrameReuseCore::classify(largeBase, largeFrame);
+  if (target.executeFrame(largeFrame, largeMaterialReuse).status != CoinRenderBackendStatus::SUCCESS) {
+    std::cerr << "BGFX large GPU-only cache could not rebuild a material change\n";
+    return 1;
+  }
+  const auto largeBlue = target.colorBuffer;
+  CoinRenderFramePlan smallBlue = frame;
+  smallBlue.revision = 9003;
+  smallBlue.materials = largeFrame.materials;
+  if (target.executeFrame(smallBlue).status != CoinRenderBackendStatus::SUCCESS ||
+      target.colorBuffer != largeBlue || largeBlue == patchedPixels) {
+    std::cerr << "BGFX large GPU-only cache retained stale material data\n";
+    return 1;
+  }
+  // Fail after a large upload is queued but before frame submission. Runtime
+  // teardown must release the transferred allocation, and recreation must
+  // upload independent data rather than reuse a dangling reference.
+  largeFrame.revision = 9004;
+  const uint32_t largeUploadGeneration = target.generation;
+  coinRenderTestSetEnvironment("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE", "1");
+  if (target.executeFrame(largeFrame).status != CoinRenderBackendStatus::DEVICE_LOST ||
+      target.generation != largeUploadGeneration + 1 || target.backend) {
+    std::cerr << "BGFX queued large upload did not tear down after submission loss\n";
+    return 1;
+  }
+  if (target.executeFrame(largeFrame).status != CoinRenderBackendStatus::SUCCESS ||
+      target.colorBuffer != largeBlue) {
+    std::cerr << "BGFX large upload failed to recover its owned memory\n";
+    return 1;
+  }
+  {
+    CoinRenderTargetP compactTarget(SbVec2i32(32, 32));
+    compactTarget.depthReadbackEnabled = false;
+    CoinRenderFramePlan opaque = smallBlue;
+    opaque.revision = 9100;
+    opaque.renderStates[0].lightModel = CoinRenderLightModel::PHONG;
+    opaque.renderStates[0].transparencyType = SoGLRenderAction::BLEND;
+    opaque.materials[0].emission[2] = 1.0f;
+    if (compactTarget.executeFrame(opaque).status != CoinRenderBackendStatus::SUCCESS) return 1;
+    const auto opaqueReference = compactTarget.colorBuffer;
+    if (opaqueReference[upper + 2] < 200) {
+      std::cerr << "BGFX compact reference did not contain visible emissive geometry\n";
+      return 1;
+    }
+    opaque.draws.resize(65000, opaque.draws[0]);
+    opaque.revision++;
+    if (compactTarget.executeFrame(opaque).status != CoinRenderBackendStatus::SUCCESS ||
+        compactTarget.colorBuffer != opaqueReference ||
+        compactTarget.executeFrame(opaque).status != CoinRenderBackendStatus::SUCCESS ||
+        compactTarget.colorBuffer != opaqueReference) {
+      std::cerr << "BGFX compact large frame or its GPU reuse changed the reference image\n";
+      return 1;
+    }
+    opaque.draws[1].renderLayer = 1;
+    opaque.draws[1].clearDepthBefore = true;
+    opaque.revision++;
+    if (compactTarget.executeFrame(opaque).status != CoinRenderBackendStatus::SUCCESS ||
+        compactTarget.colorBuffer != opaqueReference) {
+      std::cerr << "BGFX compact-to-full layout transition changed the image\n";
+      return 1;
+    }
+    opaque.draws[1].renderLayer = 0;
+    opaque.draws[1].clearDepthBefore = false;
+    opaque.revision++;
+    if (compactTarget.executeFrame(opaque).status != CoinRenderBackendStatus::SUCCESS ||
+        compactTarget.colorBuffer != opaqueReference) {
+      std::cerr << "BGFX full-to-compact layout transition changed the image\n";
+      return 1;
+    }
+  }
   CoinRenderTextureImageSnapshot recoveryTexture;
   recoveryTexture.width = 1;
   recoveryTexture.height = 1;
@@ -234,7 +357,7 @@ int main()
   frame.viewports[0].width = 48;
   frame.viewports[0].height = 48;
   frame.revision = 79;
-  setenv("COIN_BGFX_TEST_DEVICE_LOST_ON_RESIZE_ONCE", "1", 1);
+  coinRenderTestSetEnvironment("COIN_BGFX_TEST_DEVICE_LOST_ON_RESIZE_ONCE", "1");
   const uint32_t resizeGeneration = target.generation;
   const CoinRenderFrameExecutionResult lostOnResize = target.executeFrame(frame);
   if (lostOnResize.status != CoinRenderBackendStatus::DEVICE_LOST ||
@@ -252,7 +375,7 @@ int main()
   // A loss after encoding exercises the same teardown from the submission
   // path. A partial prepare failure immediately afterwards proves that neither
   // failure leaves the global singleton reservation stuck.
-  setenv("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE", "1", 1);
+  coinRenderTestSetEnvironment("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE", "1");
   const uint32_t submitGeneration = target.generation;
   const CoinRenderFrameExecutionResult lostOnSubmit = target.executeFrame(frame);
   if (lostOnSubmit.status != CoinRenderBackendStatus::DEVICE_LOST ||
@@ -260,7 +383,7 @@ int main()
     std::cerr << "BGFX did not release its runtime after submission loss\n";
     return 1;
   }
-  setenv("COIN_BGFX_TEST_FAIL_PREPARE_ONCE", "1", 1);
+  coinRenderTestSetEnvironment("COIN_BGFX_TEST_FAIL_PREPARE_ONCE", "1");
   if (target.executeFrame(frame).status != CoinRenderBackendStatus::BACKEND_ERROR ||
       target.backend) {
     std::cerr << "BGFX partial prepare failure did not tear down the runtime\n";
@@ -314,40 +437,44 @@ int main()
     return 1;
   }
 
-  // Follow the linked BGFX build's view budget, including larger demo builds.
-  const unsigned int targetCapacity = bgfx::getCaps()->limits.maxViews / 16;
+  // Exercise the runtime owned by CoinRender. A statically linked BGFX in a
+  // Windows test executable has separate globals from the copy in the DLL.
+  // Discover the budget through preparation, up to the 16-bit view-ID bound.
   std::vector<std::unique_ptr<CoinRenderTargetP>> extraTargets;
-  for (unsigned int i = 2; i < targetCapacity; ++i) {
+  std::unique_ptr<CoinRenderTargetP> overflow;
+  for (unsigned int i = 2; i < 4096; ++i) {
     std::unique_ptr<CoinRenderTargetP> extra(new CoinRenderTargetP(SbVec2i32(48, 48)));
     extra->depthReadbackEnabled = false;
-    if (extra->executeFrame(frame).status != CoinRenderBackendStatus::SUCCESS ||
+    const CoinRenderFrameExecutionResult prepared = extra->executeFrame(frame);
+    if (prepared.status == CoinRenderBackendStatus::UNSUPPORTED && !extra->backend &&
+        prepared.diagnostic.find("view budget") != std::string::npos) {
+      overflow = std::move(extra);
+      break;
+    }
+    if (prepared.status != CoinRenderBackendStatus::SUCCESS ||
         !hasBlueTexturePixel(extra->colorBuffer)) {
       std::cerr << "BGFX failed before reaching target view budget\n";
       return 1;
     }
     extraTargets.push_back(std::move(extra));
   }
-  CoinRenderTargetP overflow(SbVec2i32(48, 48));
-  overflow.depthReadbackEnabled = false;
-  const CoinRenderFrameExecutionResult exhausted = overflow.executeFrame(frame);
-  if (exhausted.status != CoinRenderBackendStatus::UNSUPPORTED || overflow.backend ||
-      exhausted.diagnostic.find("view budget") == std::string::npos) {
+  if (!overflow || extraTargets.empty()) {
     std::cerr << "BGFX exhausted view budget was not diagnosed\n";
     return 1;
   }
   extraTargets.pop_back();
-  if (overflow.executeFrame(frame).status != CoinRenderBackendStatus::SUCCESS ||
-      !hasBlueTexturePixel(overflow.colorBuffer) ||
+  if (overflow->executeFrame(frame).status != CoinRenderBackendStatus::SUCCESS ||
+      !hasBlueTexturePixel(overflow->colorBuffer) ||
       contender.executeFrame(frame).status != CoinRenderBackendStatus::SUCCESS) {
     std::cerr << "BGFX failed to reuse released target view slot\n";
     return 1;
   }
-  overflow.backend.reset();
+  overflow->backend.reset();
   extraTargets.clear();
 
   // Device loss belongs to the shared runtime. Every survivor must observe
   // it before using stale GPU handles; after the last owner drops, retry works.
-  setenv("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE", "1", 1);
+  coinRenderTestSetEnvironment("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE", "1");
   if (target.executeFrame(frame).status != CoinRenderBackendStatus::DEVICE_LOST || target.backend) {
     std::cerr << "BGFX shared runtime did not report injected device loss\n";
     return 1;

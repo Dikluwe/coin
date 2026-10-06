@@ -1,0 +1,27 @@
+startup_detail arguments_ms=0.0658 coin_init_ms=2.7888 capability_probe_ms=468.95
+scene_detail parse_ms=862.387 wrapper_ms=0.0924 camera_fit_ms=101.517
+scene_load_ms=964.99
+animation_detail mode=materials animated_percent=10 eligible=40000 selected=4000 prepared_clones=4000 prepare_ms=98.8318 frame_step=120 time_step_seconds=2 selection_fnv64=0x44ab2b433838fad2
+startup_detail material_search_ms=0.1541 target_setup_ms=1.2131
+BGFX-D3D12_first_detail render_ms=1119.18 publication_copy_ms=1.1758 update_ms=4.2124 total_with_update_ms=1124.57 before_frame_since_main_ms=1542.23 result_since_main_ms=2662.59
+BGFX-D3D12_first_frame_ms=1120.35
+capture backend=BGFX-D3D12 frame_index=0 logical_frame=0 rgba_fnv64=0x18492cc1c472ad17 rgb_fnv64=0xee94f7051809036b state_fnv64=0x7cbdb975ae97da81 image=H:\Git\coin\build\shared-overlay-first-frame-windows-20261005\palette-bgfx-d3d12-BGFX-D3D12-000000.ppm
+capture backend=BGFX-D3D12 frame_index=1 logical_frame=120 rgba_fnv64=0xbcf1f069b0c6ab75 rgb_fnv64=0x5852c9821ad6e83 state_fnv64=0xebe27edfb104350c image=H:\Git\coin\build\shared-overlay-first-frame-windows-20261005\palette-bgfx-d3d12-BGFX-D3D12-000001.ppm
+capture backend=BGFX-D3D12 frame_index=2 logical_frame=240 rgba_fnv64=0xa16958ef9e407e65 rgb_fnv64=0x60acb31e16280ffd state_fnv64=0xd8afe273874466fd image=H:\Git\coin\build\shared-overlay-first-frame-windows-20261005\palette-bgfx-d3d12-BGFX-D3D12-000002.ppm
+capture backend=BGFX-D3D12 frame_index=3 logical_frame=360 rgba_fnv64=0xbac12c73dc345b3c rgb_fnv64=0xab9a760599ef6672 state_fnv64=0x4871f85df89a74f1 image=H:\Git\coin\build\shared-overlay-first-frame-windows-20261005\palette-bgfx-d3d12-BGFX-D3D12-000003.ppm
+capture backend=BGFX-D3D12 frame_index=4 logical_frame=480 rgba_fnv64=0x5a306f8df2664409 rgb_fnv64=0xc04b86a7dffa1eef state_fnv64=0xebeaa268cb622ecf image=H:\Git\coin\build\shared-overlay-first-frame-windows-20261005\palette-bgfx-d3d12-BGFX-D3D12-000004.ppm
+BGFX-D3D12_animation_final logical_frame=480 state_fnv64=0xebeaa268cb622ecf
+samples_output=H:\Git\coin\build\shared-overlay-first-frame-windows-20261005\palette-bgfx-d3d12.csv rows=7
+rgba_fnv64=0x5a306f8df2664409
+image=H:\Git\coin\build\shared-overlay-first-frame-windows-20261005\palette-bgfx-d3d12-after-materials.ppm
+adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) vendor_id=0x10de device_id=0x1c03 backend=bgfx size=1024x1024 warmup=2 scene=H:\Git\coin\build\shared-overlay-first-frame-windows-20261005\city-materials-40001.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=materials
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..4 warmup_indices=-2..-1 frame_step=120 captures=5 capture_io=outside_frame_timers wall_throughput_includes_capture=1 wall_throughput_scope=update+frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+BGFX-D3D12 frames=5 median_ms=224.977 p95_ms=229.249 min_ms=219.144 max_ms=229.249
+BGFX_render_and_readback frames=5 median_ms=224.498 p95_ms=228.655 min_ms=218.508 max_ms=228.655
+BGFX_publication_copy frames=5 median_ms=0.5939 p95_ms=1.0756 min_ms=0.479 max_ms=1.0756
+BGFX-D3D12_timing_total frames=5 median_ms=242.9313 p95_ms=247.5818 p99_ms=247.5818 max_ms=247.5818 over_16_67=5 over_33_33=5
+BGFX-D3D12_timing_update frames=5 median_ms=18.0662 p95_ms=20.2201 p99_ms=20.2201 max_ms=20.2201 over_16_67=5 over_33_33=0
+BGFX-D3D12_timing_render frames=5 median_ms=224.4979 p95_ms=228.6551 p99_ms=228.6551 max_ms=228.6551 over_16_67=5 over_33_33=5
+BGFX-D3D12_throughput frames=5 total_ms=1275.62 fps=3.91966
+backend_cleanup_begin
+backend_cleanup_ms=73.7208

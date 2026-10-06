@@ -1,0 +1,56 @@
+[1/54] Linking CXX shared library lib/libCoinRender.so
+[2/54] Linking CXX executable bin/CoinRenderBackendBoundaryTest
+[3/54] Linking CXX executable bin/coin_render_viewer
+[4/54] Linking CXX executable bin/coin_render_window_cone
+[5/54] Linking CXX executable bin/coin_render_freecad_compare
+[6/54] Linking CXX executable bin/coin_render_gl_benchmark
+[7/54] Linking CXX executable bin/coin_render_window_benchmark
+[8/54] Linking CXX executable bin/coin_render_wayland_smoke
+[9/54] Linking CXX executable bin/CoinRenderRuntimeBoundaryTest
+[10/54] Linking CXX executable bin/CoinRenderPlanAssemblyCoreTest
+[11/54] Linking CXX executable bin/CoinRenderSelectionTest
+[12/54] Linking CXX executable bin/CoinRenderCameraReuseReferenceTest
+[13/54] Building CXX object testsuite/CMakeFiles/CoinRenderActionTest.dir/actions/CoinRenderActionTest.cpp.o
+FAILED: testsuite/CMakeFiles/CoinRenderActionTest.dir/actions/CoinRenderActionTest.cpp.o 
+/usr/bin/c++ -DCOIN_INTERNAL -DHAVE_CONFIG_H -I/tmp/coin-render-first-frame/testsuite -I/tmp/coin-render-first-frame/experimental/include -I/tmp/coin-render-first-frame/include -I/tmp/coin-render-first-frame/src -I/tmp/coin-render-first-frame-wgpu/include -I/tmp/coin-render-first-frame-wgpu/src -Wsuggest-override -O3 -DNDEBUG -std=gnu++11 -fPIE -MD -MT testsuite/CMakeFiles/CoinRenderActionTest.dir/actions/CoinRenderActionTest.cpp.o -MF testsuite/CMakeFiles/CoinRenderActionTest.dir/actions/CoinRenderActionTest.cpp.o.d -o testsuite/CMakeFiles/CoinRenderActionTest.dir/actions/CoinRenderActionTest.cpp.o -c /tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp: In member function ‘bool CaptureCameraBasisOracle::same()’:
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp:1068:50: error: cannot convert ‘SbPimplPtr<CoinRenderActionP>’ to ‘const CoinRenderActionP*’ in initialization
+ 1068 |     const CoinRenderActionP * a = action.getPimpl(); const CoinRenderActionP * b = literal.getPimpl();
+      |                                   ~~~~~~~~~~~~~~~^~
+      |                                                  |
+      |                                                  SbPimplPtr<CoinRenderActionP>
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp:1068:100: error: cannot convert ‘SbPimplPtr<CoinRenderActionP>’ to ‘const CoinRenderActionP*’ in initialization
+ 1068 |     const CoinRenderActionP * a = action.getPimpl(); const CoinRenderActionP * b = literal.getPimpl();
+      |                                                                                    ~~~~~~~~~~~~~~~~^~
+      |                                                                                                    |
+      |                                                                                                    SbPimplPtr<CoinRenderActionP>
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp: In member function ‘bool CaptureCameraBasisOracle::counts(size_t, size_t, size_t, size_t)’:
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp:1096:50: error: cannot convert ‘SbPimplPtr<CoinRenderActionP>’ to ‘const CoinRenderActionP*’ in initialization
+ 1096 |     const CoinRenderActionP * a = action.getPimpl(); const CoinRenderActionP * b = literal.getPimpl();
+      |                                   ~~~~~~~~~~~~~~~^~
+      |                                                  |
+      |                                                  SbPimplPtr<CoinRenderActionP>
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp:1096:100: error: cannot convert ‘SbPimplPtr<CoinRenderActionP>’ to ‘const CoinRenderActionP*’ in initialization
+ 1096 |     const CoinRenderActionP * a = action.getPimpl(); const CoinRenderActionP * b = literal.getPimpl();
+      |                                                                                    ~~~~~~~~~~~~~~~~^~
+      |                                                                                                    |
+      |                                                                                                    SbPimplPtr<CoinRenderActionP>
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp: In function ‘int testCaptureCameraBasisReuse()’:
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp:1176:57: error: cannot convert ‘SbPimplPtr<CoinRenderActionP>’ to ‘const CoinRenderActionP*’ in initialization
+ 1176 |     const CoinRenderActionP * a = oracle.action.getPimpl(); const CoinRenderActionP * b = oracle.literal.getPimpl();
+      |                                   ~~~~~~~~~~~~~~~~~~~~~~^~
+      |                                                         |
+      |                                                         SbPimplPtr<CoinRenderActionP>
+/tmp/coin-render-first-frame/testsuite/actions/CoinRenderActionTest.cpp:1176:114: error: cannot convert ‘SbPimplPtr<CoinRenderActionP>’ to ‘const CoinRenderActionP*’ in initialization
+ 1176 |     const CoinRenderActionP * a = oracle.action.getPimpl(); const CoinRenderActionP * b = oracle.literal.getPimpl();
+      |                                                                                           ~~~~~~~~~~~~~~~~~~~~~~~^~
+      |                                                                                                                  |
+      |                                                                                                                  SbPimplPtr<CoinRenderActionP>
+[14/54] Linking CXX executable bin/CoinRenderProductTest
+[15/54] Linking CXX executable bin/CoinRenderBackendContractTest
+[16/54] Linking CXX executable bin/CoinBgfxProgramSelectionTest
+[17/54] Linking CXX executable bin/CoinRenderOffscreenTest
+[18/54] Linking CXX executable bin/CoinRenderGateG0Test
+[19/54] Linking CXX executable bin/CoinRenderFrameCoreTest
+[20/54] Linking CXX executable bin/CoinBgfxCoreTest
+ninja: build stopped: subcommand failed.

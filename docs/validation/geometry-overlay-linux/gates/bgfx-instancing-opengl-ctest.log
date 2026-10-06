@@ -1,0 +1,35 @@
+Start testing: Oct 05 12:25 -03
+----------------------------------------------------------
+42/161 Testing: CoinBgfxInstancingOpenGLTest
+42/161 Test: CoinBgfxInstancingOpenGLTest
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinBgfxInstancingTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinBgfxInstancingOpenGLTest" start time: Oct 05 12:25 -03
+Output:
+----------------------------------------------------------
+affine PHONG directional+point max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+classified camera update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+classified material update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+resized target max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+fog fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+return from fog max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+clip fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+return from clip max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+uniform LEQUAL PHONG max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+LEQUAL coplanar materials max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+coplanar last occurrence must win max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+coplanar first-vs-last reference pixels_over_20=48
+outside viewport depth readback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=0,0,0 general_rgb=0,0,0
+outside viewport depth readback max_depth_error=0
+return from outside viewport with depth max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=0,0,0 general_rgb=0,0,0
+return from outside viewport with depth max_depth_error=5.96046e-08
+CoinBgfxInstancingTest passed
+<end of output>
+Test time =   0.24 sec
+----------------------------------------------------------
+Test Passed.
+"CoinBgfxInstancingOpenGLTest" end time: Oct 05 12:25 -03
+"CoinBgfxInstancingOpenGLTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 05 12:25 -03

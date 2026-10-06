@@ -1,0 +1,22 @@
+startup_detail arguments_ms=0.011682 coin_init_ms=1.95184 capability_probe_ms=193.223
+scene_detail parse_ms=310.234 wrapper_ms=0.025138 camera_fit_ms=73.993
+scene_load_ms=384.325
+animation_detail mode=materials animated_percent=10 eligible=40000 selected=4000 prepared_clones=4000 prepare_ms=39.7416 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x44ab2b433838fad2
+startup_detail material_search_ms=0.102321 target_setup_ms=0.307317
+BGFX-Vulkan_first_detail render_ms=732.771 publication_copy_ms=0.377688 update_ms=2.77442 total_with_update_ms=735.923 before_frame_since_main_ms=622.631 result_since_main_ms=1355.78
+BGFX-Vulkan_first_frame_ms=733.149
+BGFX-Vulkan_animation_final logical_frame=29 state_fnv64=0xe2ec8bdf523ee6b6
+samples_output=/tmp/coin-render-material-geometry-offscreen-before/samples/materials-10-bgfx-vulkan-2.csv rows=35
+rgba_fnv64=0xecfabc3b2acabb2a
+adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x2560) vendor_id=0x10de device_id=0x2560 backend=bgfx size=1024x1024 warmup=5 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=materials
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..29 warmup_indices=-5..-1 frame_step=1 captures=0 capture_io=outside_frame_timers wall_throughput_includes_capture=0 wall_throughput_scope=update+frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+BGFX-Vulkan frames=30 median_ms=541.079 p95_ms=590.306 min_ms=477.942 max_ms=596.415
+BGFX_render_and_readback frames=30 median_ms=540.465 p95_ms=589.552 min_ms=477.287 max_ms=595.792
+BGFX_publication_copy frames=30 median_ms=0.692358 p95_ms=0.987863 min_ms=0.568056 max_ms=1.01537
+BGFX-Vulkan_timing_total frames=30 median_ms=539.480502 p95_ms=594.083211 p99_ms=600.742412 max_ms=600.742412 over_16_67=30 over_33_33=30
+BGFX-Vulkan_timing_update frames=30 median_ms=3.967407 p95_ms=4.502748 p99_ms=4.678216 max_ms=4.678216 over_16_67=0 over_33_33=0
+BGFX-Vulkan_timing_render frames=30 median_ms=534.548851 p95_ms=589.552158 p99_ms=595.791956 max_ms=595.791956 over_16_67=30 over_33_33=30
+BGFX-Vulkan_throughput frames=30 total_ms=16545.8 fps=1.81315
+backend_cleanup_begin
+backend_cleanup_ms=90.3478
+benchmark_peak_rss_kib=777372

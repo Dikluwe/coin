@@ -1,0 +1,249 @@
+{
+  "instrumented": true,
+  "not_qualifying_timing": true,
+  "sequential_processes": 4,
+  "warmup": 1,
+  "frames": 5,
+  "phases": [
+    {
+      "role": "after-no-instancing-no-overlay",
+      "fields": {
+        "traversal": {
+          "first_ms": 300.696,
+          "post_first_median_ms": 266.632,
+          "post_first_values_ms": [
+            290.933,
+            268.318,
+            266.632,
+            263.264,
+            260.737
+          ]
+        },
+        "plan": {
+          "first_ms": 31.4064,
+          "post_first_median_ms": 30.9083,
+          "post_first_values_ms": [
+            31.6338,
+            30.5423,
+            30.4198,
+            31.4799,
+            30.9083
+          ]
+        },
+        "pack": {
+          "first_ms": 103.38,
+          "post_first_median_ms": 52.6752,
+          "post_first_values_ms": [
+            53.7892,
+            53.2366,
+            50.897,
+            52.6752,
+            52.3953
+          ]
+        },
+        "submit": {
+          "first_ms": 213.212362,
+          "post_first_median_ms": 96.236802,
+          "post_first_values_ms": [
+            105.350788,
+            99.046382,
+            94.227342,
+            96.10137,
+            96.236802
+          ]
+        },
+        "rust_prepare_encode": {
+          "first_ms": 85.237006,
+          "post_first_median_ms": 20.559343,
+          "post_first_values_ms": [
+            20.919443,
+            22.56136,
+            20.06385,
+            20.559343,
+            20.516743
+          ]
+        }
+      }
+    },
+    {
+      "role": "after-no-instancing",
+      "fields": {
+        "traversal": {
+          "first_ms": 320.54,
+          "post_first_median_ms": 265.201,
+          "post_first_values_ms": [
+            288.279,
+            261.934,
+            284.576,
+            265.201,
+            261.002
+          ]
+        },
+        "plan": {
+          "first_ms": 30.6784,
+          "post_first_median_ms": 30.7463,
+          "post_first_values_ms": [
+            32.2271,
+            30.1506,
+            30.6992,
+            31.0704,
+            30.7463
+          ]
+        },
+        "pack": {
+          "first_ms": 97.6412,
+          "post_first_median_ms": 51.6978,
+          "post_first_values_ms": [
+            56.8917,
+            51.0812,
+            51.0166,
+            51.9891,
+            51.6978
+          ]
+        },
+        "submit": {
+          "first_ms": 214.900726,
+          "post_first_median_ms": 94.769701,
+          "post_first_values_ms": [
+            109.723189,
+            94.659497,
+            94.044892,
+            94.807462,
+            94.769701
+          ]
+        },
+        "rust_prepare_encode": {
+          "first_ms": 92.89382,
+          "post_first_median_ms": 20.194584,
+          "post_first_values_ms": [
+            21.026102,
+            20.315238,
+            20.158386,
+            20.194584,
+            20.070693
+          ]
+        }
+      }
+    },
+    {
+      "role": "after",
+      "fields": {
+        "traversal": {
+          "first_ms": 323.158,
+          "post_first_median_ms": 268.226,
+          "post_first_values_ms": [
+            281.185,
+            268.226,
+            274.725,
+            261.898,
+            260.808
+          ]
+        },
+        "plan": {
+          "first_ms": 30.0991,
+          "post_first_median_ms": 30.2418,
+          "post_first_values_ms": [
+            29.8446,
+            30.1912,
+            30.6857,
+            30.3822,
+            30.2418
+          ]
+        },
+        "pack": {
+          "first_ms": 101.073,
+          "post_first_median_ms": 57.2794,
+          "post_first_values_ms": [
+            57.2008,
+            58.38,
+            57.1812,
+            57.2794,
+            58.3239
+          ]
+        },
+        "submit": {
+          "first_ms": 207.079278,
+          "post_first_median_ms": 101.800421,
+          "post_first_values_ms": [
+            108.37523,
+            101.947254,
+            99.797652,
+            100.041255,
+            101.800421
+          ]
+        },
+        "rust_prepare_encode": {
+          "first_ms": 81.645491,
+          "post_first_median_ms": 20.194373,
+          "post_first_values_ms": [
+            19.970236,
+            20.261358,
+            20.194373,
+            20.070643,
+            20.455189
+          ]
+        }
+      }
+    },
+    {
+      "role": "before",
+      "fields": {
+        "traversal": {
+          "first_ms": 269.196,
+          "post_first_median_ms": 257.618,
+          "post_first_values_ms": [
+            283.296,
+            256.996,
+            259.442,
+            257.618,
+            254.794
+          ]
+        },
+        "plan": {
+          "first_ms": 30.4231,
+          "post_first_median_ms": 30.9099,
+          "post_first_values_ms": [
+            31.6188,
+            30.8457,
+            30.9099,
+            31.3933,
+            30.8412
+          ]
+        },
+        "pack": {
+          "first_ms": 94.9491,
+          "post_first_median_ms": 52.8253,
+          "post_first_values_ms": [
+            52.8253,
+            51.3739,
+            51.4239,
+            53.206,
+            53.7025
+          ]
+        },
+        "submit": {
+          "first_ms": 198.074165,
+          "post_first_median_ms": 93.286041,
+          "post_first_values_ms": [
+            98.854808,
+            91.65249,
+            90.61586,
+            93.286041,
+            93.395776
+          ]
+        },
+        "rust_prepare_encode": {
+          "first_ms": 79.189479,
+          "post_first_median_ms": 17.202183,
+          "post_first_values_ms": [
+            16.741796,
+            17.676156,
+            16.632824,
+            17.25389,
+            17.202183
+          ]
+        }
+      }
+    }
+  ]
+}

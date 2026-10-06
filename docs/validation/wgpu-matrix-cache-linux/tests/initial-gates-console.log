@@ -1,0 +1,27 @@
+START cpu
+END cpu 8
+Internal ctest changing into directory: /tmp/coin-render-first-frame-wgpu
+Test project /tmp/coin-render-first-frame-wgpu
+    Start 14: CoinRenderPlanAssemblyCoreTest
+1/6 Test #14: CoinRenderPlanAssemblyCoreTest ...   Passed    0.05 sec
+    Start 15: CoinRenderTransformCoreTest
+2/6 Test #15: CoinRenderTransformCoreTest ......   Passed    0.02 sec
+    Start 22: CoinRenderFrameCoreTest
+3/6 Test #22: CoinRenderFrameCoreTest ..........   Passed    0.03 sec
+    Start 25: CoinRenderDepthContractTest
+4/6 Test #25: CoinRenderDepthContractTest ......   Passed    0.09 sec
+    Start 26: CoinRenderFrameReuseCoreTest
+5/6 Test #26: CoinRenderFrameReuseCoreTest .....   Passed    0.46 sec
+    Start 97: CoinWgpuFfiFrameTest
+6/6 Test #97: CoinWgpuFfiFrameTest .............***Failed    0.32 sec
+CoinWgpuFfiFrameTest: NaN/Inf authored inputs retain literal finite-state rejection
+
+
+83% tests passed, 1 tests failed out of 6
+
+Total Test time (real) =   0.97 sec
+
+The following tests FAILED:
+	 97 - CoinWgpuFfiFrameTest (Failed)
+Errors while running CTest
+

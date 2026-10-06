@@ -1,0 +1,39 @@
+START core
+END core 0
+START wgpu-action-reuse
+END wgpu-action-reuse 0
+START bgfx-action-reuse
+END bgfx-action-reuse 0
+START wgpu-vulkan-camera-transparency
+END wgpu-vulkan-camera-transparency 0
+START bgfx-vulkan-camera-transparency
+END bgfx-vulkan-camera-transparency 0
+START bgfx-opengl-camera-transparency
+END bgfx-opengl-camera-transparency 0
+START wgpu-rtt-runtime
+END wgpu-rtt-runtime 0
+START bgfx-rtt
+END bgfx-rtt 0
+START composition-range-memo-cpu
+END composition-range-memo-cpu 0
+START composition-borrow-cpu
+END composition-borrow-cpu 0
+START wgpu-ffi-frame-cpu
+END wgpu-ffi-frame-cpu 0
+START depth-contract-cpu
+END depth-contract-cpu 0
+START bgfx-core-cpu
+END bgfx-core-cpu 0
+START wgpu-vulkan-composition-gpu
+END wgpu-vulkan-composition-gpu 0
+START bgfx-vulkan-composition-gpu
+END bgfx-vulkan-composition-gpu 0
+START bgfx-opengl-composition-gpu
+END bgfx-opengl-composition-gpu 0
+START wgpu-vulkan-depth-gpu
+END wgpu-vulkan-depth-gpu 0
+START bgfx-vulkan-depth-gpu
+END bgfx-vulkan-depth-gpu 0
+START bgfx-opengl-depth-gpu
+END bgfx-opengl-depth-gpu 0
+COMPLETE: 29 gate executions; {'core_cpu': 7, 'action_reuse': 4, 'gpu': 18}

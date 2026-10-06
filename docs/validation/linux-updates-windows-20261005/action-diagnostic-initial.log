@@ -1,0 +1,5 @@
+Running CoinRenderActionTest...
+path diagnostic same=0 status=0,0 error= payload=0 camera=0000000000000000,0000000000000000 proof=0,0 counts=0,0/0,0/0,0
+FAILED: path traversal must preserve the literal non-root capture without creating a camera lens (oracle.same() && oracle.action.getLastStatus() == CoinRenderAction::SUCCESS && !oracle.action.getPimpl()->cachedCamera && !oracle.action.getPimpl()->translationProofValid && oracle.counts(0, 0, 0, 0)) at H:\Git\coin\build\coin-render-source\testsuite\actions\CoinRenderActionTest.cpp:1458
+testCaptureCameraBasisReuse failed
+1 test(s) FAILED!

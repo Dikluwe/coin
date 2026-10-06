@@ -1,0 +1,42 @@
+Final Common translation-overlay review
+Workspace: /tmp/coin-render-first-frame
+Reviewed source: HEAD b02aa54783 plus current Common/Action working-tree diff.
+Review mode: source/log inspection only; no build, tests or GPU commands run by this reviewer.
+
+Conclusion
+- No material/geometry shortcut is introduced. The Common gain applies only to qualified object translation notifications. It removes their scene traversal and frame-plan assembly; target validation, composition and RESOURCE_REBUILD backend execution remain.
+- Material, Cube dimensions/geometry, lights, structure, camera, rotation, scale, center and other field updates invalidate the translation-only notification proof. They enter the existing full traversal, builder.build, shadow/RTT handling, classification and submission path. No cost reduction is promised for material or geometry animation.
+- No new backend ABI or CAMERA_PATCH meaning is introduced. Translation is explicitly submitted as RESOURCE_REBUILD with the previous successful revision (CoinRenderAction.cpp:884). CoinRenderTarget.cpp:580 skips validation only for a qualified CAMERA_PATCH; changed translation revisions validate normally.
+
+Admission and bounds
+- Exact root SoSeparator with one first Perspective/Orthographic camera, accepted viewport mapping, and exact known scene node types. All inspected fields must be unconnected and not ignored.
+- Candidate object: exact SoSeparator with exactly Material + SoTranslation/SoTransform + Cube, Cube last. Parent and transform refCount must be one at admission; shared Cube/material leaves may be reused.
+- SoTransform local center must be zero. Captured upstream prefix is the real pre-transform model, including upstream scale/rotation/reflection/center. Local scale/rotation/reflection/scaleOrientation remain fixed.
+- Model update preserves captured linear rows and computes the position row through Coin matrix multiplication using the current local translation and actual prefix; no inverse scale or accumulated delta is used (FrameReuseCore.cpp:405).
+- Affine finite prefix/anchor/result and translation values bounded to magnitude 32768. At most 65536 candidates, states, draws and dirty updates; generation monotonically advances and saturation disables further admission.
+- Each candidate owns exactly one draw and one exclusively used state. Its draw geometry range must remain equal to its end-of-shape range, preventing a later merged packet from hiding another owner. External draws sharing that state invalidate admission.
+- Opaque triangle profile only: texture, transparency, fog, clip planes, offset/pattern, shadows and layered/line draws decline admission. A Cube sorting center is allowed only if its captured World center equals model(origin) by bytes; it is recomputed transactionally with the model.
+
+Notification and callback guards
+- Only FIELD_UPDATE on the exact, mapped translation field may populate the dirty set. Nontranslation or mixed notifications invalidate the proof. Sensor attachment, root identity and proof generation are checked before reuse (CoinRenderAction.cpp:468, 701).
+- Private SoCallbackAction registration revision covers all seven add*Callback methods. The baseline is recorded after internal callbacks are installed. Any later external registration disables plan caching, so transform/group callbacks execute even on unchanged scenes (CoinRenderAction.cpp:825, 1280; SoCallbackAction.cpp:531 onward).
+- Optout: COIN_RENDER_DISABLE_TRANSLATION_OVERLAY=1 forces ordinary translation capture and clears previous proof on that full capture.
+- Reference-count ownership is checked at admission. A new external ref created outside the rendered root does not notify that root and is not rechecked for each dirty binding. It does not add an occurrence to this rendered root; nevertheless, the literal no-external-owner restriction is an admission condition rather than a continuously polled condition in the current source.
+
+Failure and camera handling
+- Every update and target draw slot is validated before publishing any model/center/revision mutation. Duplicate state slots and late invalid updates leave the prior plan untouched (FrameReuseCore.cpp:425).
+- An apply scope restores dirty models, sorting centers and the previous plan revision on every unsuccessful exit. Dirty notifications and their anchor remain available for retry; commit clears them only after successful execution (CoinRenderAction.cpp:860, 1079, 1131; FrameReuseCore.cpp:460).
+- Successful translation discards camera basis and requires a full capture for the next camera movement. That full capture may readmit translation bindings. A successful camera overlay also clears translation proof. This prevents combining a stale camera proof with newly translated models.
+- Unsupported profiles and failed admission return false and fall through to full capture; they are not rejected merely because the optimization is unavailable. Existing capture/backend rejection diagnostics remain in force.
+
+Verification inspected
+- cpu-ctest.log: CoinRenderActionTest, CoinRenderTransformCoreTest, CoinRenderFrameReuseCoreTest and CoinWgpuFfiFrameTest passed. Action tests cover shared Cube, mixed Translation/Transform, SORTED_OBJECT_BLEND, repeated movement/return, geometry pointer retention, failure/retry, translation->camera->translation, invalidating fields, connected/ignored fields, alias ownership and external callbacks before/after admission.
+- Core tests explicitly compare composed matrices with memcmp, including scale/rotation/reflection and a nontrivial prefix, and exercise finite/domain checks, oversized/duplicate/late-invalid updates and rollback. Action compares complete hasSamePayload equality; model/view comparisons there use float equality, while geometry/draw/material snapshots use byte comparisons.
+- rust-serial-nvidia.log and rust-serial-software.log: 27 Rust tests passed each. bgfx-ctest.log: CoinBgfxCoreTest and CoinBgfxInstancingTest passed. Logs confirm MultiDevice, native camera-only, RTT ownership and scene-texture checks passed. Camera-reference log retains CoinGL as reference and records at most one channel value difference in the listed camera cases.
+- Parent reports a TF10 pilot around 73 ms with Common overlay active. This is a pilot result, not the final repeated benchmark result or evidence for material/geometry animation.
+- independent-rgb-before-after.json reports 84 identical RGB comparisons for its instancing campaign. It is not treated here as a fresh complete image campaign of this Common change.
+- git diff --check passed during this final source review.
+
+Residual scope
+- This remains a narrow translation proof, not arbitrary transform reuse, generic scene diffing, material animation reuse or geometry deformation reuse.
+- Admission/full recapture currently performs separate camera and translation qualifications. It may add first-frame/admission work; subsequent qualified dirty translations avoid both scans. Sharing that admission work is a future measured refinement.

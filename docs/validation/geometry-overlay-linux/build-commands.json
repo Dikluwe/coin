@@ -1,0 +1,31 @@
+{
+  "source_content_revision": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+  "commands": [
+    {
+      "command": [
+        "cmake",
+        "--build",
+        "/tmp/coin-render-first-frame-wgpu",
+        "--parallel",
+        "4"
+      ],
+      "source_revision_at_start": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+      "log": "/tmp/coin-render-geometry-overlay-build-wgpu.log",
+      "exit_code": 0,
+      "source_revision_at_end": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33"
+    },
+    {
+      "command": [
+        "cmake",
+        "--build",
+        "/tmp/coin-render-first-frame-bgfx",
+        "--parallel",
+        "4"
+      ],
+      "source_revision_at_start": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33",
+      "log": "/tmp/coin-render-geometry-overlay-build-bgfx.log",
+      "exit_code": 0,
+      "source_revision_at_end": "96e5ed80fa3ab3c9016cf10e6bbfc9b638335a33"
+    }
+  ]
+}

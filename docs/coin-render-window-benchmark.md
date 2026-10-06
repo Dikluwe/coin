@@ -1,5 +1,7 @@
 # Benchmark direto em janela, sem readback
 
+A referência principal é `--backend coin-gl`, que usa o OpenGL clássico do Coin3D. BGFX/OpenGL e wgpu são comparados com ela na mesma GPU, conforme o [padrão de comparação](coin-render-benchmark-standard.md).
+
 A [campanha P17](coin-render-p17-campaign.md) acrescenta wgpu/Vulkan, cena
 opaca intercalada, offscreen separado, dois perfis de atualização e amostras
 individuais reproduzíveis no mesmo GPU físico. A baseline ao fim desta página

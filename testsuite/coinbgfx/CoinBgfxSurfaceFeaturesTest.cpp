@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <array>
 #include <cstdlib>
+#include <cmath>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -39,7 +40,7 @@ bool check(bool result, const char * message) {
 }
 SoSeparator * scene(int topology, int units, SoTexture2::Model model,
                     int alpha = 255, bool fog = false, bool sparse = false,
-                    bool varying = false) {
+                    bool varying = false, bool glReference = false) {
   auto * root = new SoSeparator; root->ref();
   auto * camera = new SoOrthographicCamera;
   camera->position.setValue(0,0,5); camera->height = 2;
@@ -55,7 +56,12 @@ SoSeparator * scene(int topology, int units, SoTexture2::Model model,
     root->addChild(env);
   }
   for (int i = sparse ? units-1 : 0; i < units; ++i) {
-    auto * unit = new SoTextureUnit; unit->unit = i; root->addChild(unit);
+    // The eight constant MODULATE layers have an equivalent single texture.
+    // Keep all eight units in the CPU/BGFX fixture; legacy WGL has four units.
+    if (glReference && units > 4 && !sparse && i > 0) continue;
+    auto * unit = new SoTextureUnit;
+    unit->unit = glReference && sparse ? 0 : i;
+    root->addChild(unit);
     auto * texture = new SoTexture2;
     texture->model = i ? model : SoTexture2::MODULATE;
     texture->blendColor.setValue(0.25f,0.5f,0.75f);
@@ -66,6 +72,8 @@ SoSeparator * scene(int topology, int units, SoTexture2::Model model,
       image[p*4+1] = varying ? (p%4<2 ? 0 : 255) : (i ? 128 : 255);
       image[p*4+2] = varying ? 0 : 255;
       image[p*4+3] = static_cast<unsigned char>(alpha);
+      if (glReference && units > 4 && !sparse)
+        image[p*4+1] = static_cast<unsigned char>(std::lround(255.0 * std::pow(128.0 / 255.0, units - 1)));
     }
     texture->image.setValue(SbVec2s(4,4),4,image); root->addChild(texture);
     auto * uv = new SoTextureCoordinate2;
@@ -123,7 +131,8 @@ Pixel pixel(const std::vector<uint8_t> & data, int x, int y) {
   for (int c=0;c<4;++c) value[c]=data[(y*64+x)*4+c];
   return value;
 }
-bool compare(SoSeparator * root, int x, int y, Pixel * result = nullptr) {
+bool compare(SoSeparator * root, int x, int y, Pixel * result = nullptr,
+             SoSeparator * glReference = nullptr) {
   std::vector<uint8_t> cpu,gpu,fallback;
   if (!render(root,true,cpu) || !render(root,false,gpu) || !render(root,true,fallback,false)) return false;
   Pixel a=pixel(cpu,x,y), b=pixel(gpu,x,y), c=pixel(fallback,x,y);
@@ -135,7 +144,7 @@ bool compare(SoSeparator * root, int x, int y, Pixel * result = nullptr) {
   if (std::getenv("COIN_WGPU_REQUIRE_GL_REFERENCE")) {
     SoOffscreenRenderer gl(SbViewportRegion(64,64)); gl.setComponents(SoOffscreenRenderer::RGB);
     gl.getGLRenderAction()->setTransparencyType(SoGLRenderAction::BLEND);
-    if (!gl.render(root) || !gl.getBuffer()) return false;
+    if (!gl.render(glReference ? glReference : root) || !gl.getBuffer()) return false;
     for (int ch=0;ch<3;++ch) if (std::abs(a[ch]-gl.getBuffer()[(y*64+x)*3+ch])>5) {
       std::cerr << "GL reference mismatch " << ch << " CPU=" << a[ch]
                 << " GL=" << int(gl.getBuffer()[(y*64+x)*3+ch]) << '\n'; return false;
@@ -152,8 +161,11 @@ int main() {
   for (int topology=0;topology<3;++topology) {
     for (int units : {1,2,8}) for (bool fog : {false,true}) {
       auto * root=scene(topology,units,SoTexture2::MODULATE,255,fog);
+      auto * glReference = units > 4 ?
+        scene(topology,units,SoTexture2::MODULATE,255,fog,false,false,true) : nullptr;
       Pixel sample;
-      const bool ok=compare(root,topology==2?8:32,32,&sample);
+      const bool ok=compare(root,topology==2?8:32,32,&sample,glReference);
+      if (glReference) glReference->unref();
       root->unref();
       if (!check(ok,"texture cascade / textured stroke / fog")) return 1;
       if (!check(sample[2]>20,"missing primitive or texture color")) return 1;
@@ -182,8 +194,10 @@ int main() {
   }
   for (int topology=0;topology<3;++topology) {
     auto * root=scene(topology,8,SoTexture2::REPLACE,255,false,true,true);
+    auto * glReference=scene(topology,8,SoTexture2::REPLACE,255,false,true,true,true);
     Pixel left,right;
-    const bool ok=compare(root,8,32,&left) && compare(root,55,32,&right);
+    const bool ok=compare(root,8,32,&left,glReference) && compare(root,55,32,&right,glReference);
+    glReference->unref();
     root->unref();
     if (!check(ok && left[0]>220 && right[1]>220,"unit 7 independent UVs with unit 0 disabled")) return 1;
   }

@@ -1,0 +1,122 @@
+Internal ctest changing into directory: H:/Git/coin/build/coin-render-bgfx-msvc
+Test project H:/Git/coin/build/coin-render-bgfx-msvc
+      Start  13: CoinRenderActionTest
+ 1/58 Test  #13: CoinRenderActionTest ...................   Passed    0.80 sec
+      Start  21: CoinRenderGateG0Test
+ 2/58 Test  #21: CoinRenderGateG0Test ...................   Passed    0.13 sec
+      Start  26: CoinBgfxSurface_vulkan_object
+ 3/58 Test  #26: CoinBgfxSurface_vulkan_object ..........   Passed   20.51 sec
+      Start  27: CoinBgfxSurface_vulkan_weighted_oit
+ 4/58 Test  #27: CoinBgfxSurface_vulkan_weighted_oit ....   Passed   19.22 sec
+      Start  28: CoinBgfxSurface_vulkan_sorted_layers
+ 5/58 Test  #28: CoinBgfxSurface_vulkan_sorted_layers ...   Passed   19.39 sec
+      Start  29: CoinBgfxSurface_opengl_object
+ 6/58 Test  #29: CoinBgfxSurface_opengl_object ..........   Passed   11.83 sec
+      Start  30: CoinBgfxSurface_opengl_weighted_oit
+ 7/58 Test  #30: CoinBgfxSurface_opengl_weighted_oit ....   Passed   19.77 sec
+      Start  31: CoinBgfxSurface_opengl_sorted_layers
+ 8/58 Test  #31: CoinBgfxSurface_opengl_sorted_layers ...   Passed   13.27 sec
+      Start  32: CoinBgfxSurface_d3d12_object
+ 9/58 Test  #32: CoinBgfxSurface_d3d12_object ...........   Passed   17.92 sec
+      Start  33: CoinBgfxSurface_d3d12_weighted_oit
+10/58 Test  #33: CoinBgfxSurface_d3d12_weighted_oit .....   Passed   18.14 sec
+      Start  34: CoinBgfxSurface_d3d12_sorted_layers
+11/58 Test  #34: CoinBgfxSurface_d3d12_sorted_layers ....   Passed   17.69 sec
+      Start  40: CoinBgfxOffscreenTest
+12/58 Test  #40: CoinBgfxOffscreenTest ..................   Passed    2.20 sec
+      Start  41: CoinBgfxOpenGLTest
+13/58 Test  #41: CoinBgfxOpenGLTest .....................   Passed    1.46 sec
+      Start  43: CoinBgfxTransparencyTest
+14/58 Test  #43: CoinBgfxTransparencyTest ...............   Passed    2.96 sec
+      Start  44: CoinBgfxTransparencyOpenGLTest
+15/58 Test  #44: CoinBgfxTransparencyOpenGLTest .........   Passed    2.06 sec
+      Start  45: CoinBgfxSortedLayersTest
+16/58 Test  #45: CoinBgfxSortedLayersTest ...............   Passed    2.20 sec
+      Start  46: CoinBgfxSortedLayersOpenGLTest
+17/58 Test  #46: CoinBgfxSortedLayersOpenGLTest .........   Passed    1.52 sec
+      Start  47: CoinBgfxWeightedOitTest
+18/58 Test  #47: CoinBgfxWeightedOitTest ................   Passed    5.14 sec
+      Start  48: CoinBgfxWeightedOitOpenGLTest
+19/58 Test  #48: CoinBgfxWeightedOitOpenGLTest ..........   Passed    3.40 sec
+      Start 102: CoinRenderShadowReferenceTest
+20/58 Test #102: CoinRenderShadowReferenceTest ..........   Passed   57.08 sec
+      Start 103: CoinRenderShadowWiringTest
+21/58 Test #103: CoinRenderShadowWiringTest .............   Passed    0.92 sec
+      Start 104: CoinRenderShadowTransparency5Test
+22/58 Test #104: CoinRenderShadowTransparency5Test ......   Passed   25.61 sec
+      Start 105: CoinRenderShadowTransparency6Test
+23/58 Test #105: CoinRenderShadowTransparency6Test ......   Passed   28.54 sec
+      Start 106: CoinRenderShadowTransparency7Test
+24/58 Test #106: CoinRenderShadowTransparency7Test ......   Passed   30.27 sec
+      Start 107: CoinRenderShadowTransparency8Test
+25/58 Test #107: CoinRenderShadowTransparency8Test ......   Passed   33.52 sec
+      Start 108: CoinRenderShadowAlphaTest1_0Test
+26/58 Test #108: CoinRenderShadowAlphaTest1_0Test .......   Passed    9.44 sec
+      Start 109: CoinRenderShadowAlphaTest1_1Test
+27/58 Test #109: CoinRenderShadowAlphaTest1_1Test .......   Passed    3.00 sec
+      Start 110: CoinRenderShadowAlphaTest1_2Test
+28/58 Test #110: CoinRenderShadowAlphaTest1_2Test .......   Passed    2.93 sec
+      Start 111: CoinRenderShadowAlphaTest4_0Test
+29/58 Test #111: CoinRenderShadowAlphaTest4_0Test .......   Passed   11.74 sec
+      Start 112: CoinRenderShadowAlphaTest4_1Test
+30/58 Test #112: CoinRenderShadowAlphaTest4_1Test .......   Passed    2.94 sec
+      Start 113: CoinRenderShadowAlphaTest4_2Test
+31/58 Test #113: CoinRenderShadowAlphaTest4_2Test .......   Passed    2.96 sec
+      Start 114: CoinRenderShadowAlphaTest5_0Test
+32/58 Test #114: CoinRenderShadowAlphaTest5_0Test .......   Passed   15.87 sec
+      Start 115: CoinRenderShadowAlphaTest5_1Test
+33/58 Test #115: CoinRenderShadowAlphaTest5_1Test .......   Passed    3.37 sec
+      Start 116: CoinRenderShadowAlphaTest5_2Test
+34/58 Test #116: CoinRenderShadowAlphaTest5_2Test .......   Passed    3.16 sec
+      Start 117: CoinRenderShadowAlphaTest6_0Test
+35/58 Test #117: CoinRenderShadowAlphaTest6_0Test .......   Passed   18.22 sec
+      Start 118: CoinRenderShadowAlphaTest6_1Test
+36/58 Test #118: CoinRenderShadowAlphaTest6_1Test .......   Passed    3.92 sec
+      Start 119: CoinRenderShadowAlphaTest6_2Test
+37/58 Test #119: CoinRenderShadowAlphaTest6_2Test .......   Passed    3.96 sec
+      Start 120: CoinRenderShadowAlphaTest7_0Test
+38/58 Test #120: CoinRenderShadowAlphaTest7_0Test .......   Passed   19.70 sec
+      Start 121: CoinRenderShadowAlphaTest7_1Test
+39/58 Test #121: CoinRenderShadowAlphaTest7_1Test .......   Passed    4.14 sec
+      Start 122: CoinRenderShadowAlphaTest7_2Test
+40/58 Test #122: CoinRenderShadowAlphaTest7_2Test .......   Passed    3.93 sec
+      Start 123: CoinRenderShadowAlphaTest8_0Test
+41/58 Test #123: CoinRenderShadowAlphaTest8_0Test .......   Passed   19.58 sec
+      Start 124: CoinRenderShadowAlphaTest8_1Test
+42/58 Test #124: CoinRenderShadowAlphaTest8_1Test .......   Passed    3.76 sec
+      Start 125: CoinRenderShadowAlphaTest8_2Test
+43/58 Test #125: CoinRenderShadowAlphaTest8_2Test .......   Passed    3.97 sec
+      Start 126: CoinRenderShadowQuality1Test
+44/58 Test #126: CoinRenderShadowQuality1Test ...........   Passed    2.94 sec
+      Start 127: CoinRenderShadowOit1_1Test
+45/58 Test #127: CoinRenderShadowOit1_1Test .............   Passed    4.04 sec
+      Start 128: CoinRenderShadowLayers1_1Test
+46/58 Test #128: CoinRenderShadowLayers1_1Test ..........   Passed    1.11 sec
+      Start 129: CoinRenderShadowOit1_2Test
+47/58 Test #129: CoinRenderShadowOit1_2Test .............   Passed    3.69 sec
+      Start 130: CoinRenderShadowLayers1_2Test
+48/58 Test #130: CoinRenderShadowLayers1_2Test ..........   Passed    1.02 sec
+      Start 131: CoinRenderShadowQuality4Test
+49/58 Test #131: CoinRenderShadowQuality4Test ...........   Passed    3.61 sec
+      Start 132: CoinRenderShadowOit4_1Test
+50/58 Test #132: CoinRenderShadowOit4_1Test .............   Passed    4.50 sec
+      Start 133: CoinRenderShadowLayers4_1Test
+51/58 Test #133: CoinRenderShadowLayers4_1Test ..........   Passed    1.24 sec
+      Start 134: CoinRenderShadowOit4_2Test
+52/58 Test #134: CoinRenderShadowOit4_2Test .............   Passed    4.37 sec
+      Start 135: CoinRenderShadowLayers4_2Test
+53/58 Test #135: CoinRenderShadowLayers4_2Test ..........   Passed    1.17 sec
+      Start 136: CoinRenderShadowQuality8Test
+54/58 Test #136: CoinRenderShadowQuality8Test ...........   Passed    4.24 sec
+      Start 137: CoinRenderShadowOit8_1Test
+55/58 Test #137: CoinRenderShadowOit8_1Test .............   Passed    5.91 sec
+      Start 138: CoinRenderShadowLayers8_1Test
+56/58 Test #138: CoinRenderShadowLayers8_1Test ..........   Passed    1.44 sec
+      Start 139: CoinRenderShadowOit8_2Test
+57/58 Test #139: CoinRenderShadowOit8_2Test .............   Passed    5.79 sec
+      Start 140: CoinRenderShadowLayers8_2Test
+58/58 Test #140: CoinRenderShadowLayers8_2Test ..........   Passed    1.33 sec
+
+100% tests passed, 0 tests failed out of 58
+
+Total Test time (real) = 538.66 sec

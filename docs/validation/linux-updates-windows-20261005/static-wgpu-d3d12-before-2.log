@@ -1,0 +1,16 @@
+startup_detail arguments_ms=0.0535 coin_init_ms=3.1253 capability_probe_ms=673.038
+scene_detail parse_ms=780.719 wrapper_ms=0.0199 camera_fit_ms=179.366
+scene_load_ms=960.29
+startup_detail material_search_ms=0.1369 target_setup_ms=3.8639
+WebGPU_first_detail render_ms=1977.71 publication_copy_ms=1.2898 before_frame_since_main_ms=1642.43 result_since_main_ms=3621.42
+WebGPU_first_frame_ms=1979
+rgba_fnv64=0x6714299260985122
+image=H:\Git\coin\build\linux-updates-windows-20261005\static-wgpu-d3d12-before-2.ppm
+adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) vendor_id=0x10de device_id=0x1c03 backend=wgpu size=1024x1024 warmup=30 scene=H:\Git\coin\build\large-scenes\city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static
+WebGPU frames=120 median_ms=34.9213 p95_ms=50.7491 min_ms=28.1672 max_ms=152.094
+WebGPU_render frames=120 median_ms=34.2807 p95_ms=50.1883 min_ms=27.6889 max_ms=151.42
+WebGPU_copy frames=120 median_ms=0.5385 p95_ms=0.9876 min_ms=0.4517 max_ms=6.75
+WebGPU_throughput frames=120 total_ms=4613.95 fps=26.0081
+WebGPU_cache last_frame_uploads=0 last_frame_uploaded_bytes=0 last_frame_hits=1 cumulative_uploads=1 cumulative_uploaded_bytes=101762544 cumulative_hits=149
+backend_cleanup_begin
+backend_cleanup_ms=53.2709

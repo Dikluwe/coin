@@ -22,16 +22,16 @@ if(COIN_BUILD_RENDER_WINDOW_EXAMPLE)
       ${PROJECT_BINARY_DIR}/include
       ${COIN_TARGET_INCLUDE_DIRECTORIES})
   elseif(WIN32)
-    if(NOT COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
-      message(FATAL_ERROR "The P21 Win32 smoke requires COIN_RENDER_BACKEND=RUST_BRIDGE")
+    if(NOT COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE" AND NOT COIN_RENDER_BACKEND STREQUAL "BGFX")
+      message(FATAL_ERROR "The P21 Win32 smoke requires RUST_BRIDGE or BGFX")
     endif()
     add_executable(coin_render_win32_smoke coin_render_win32_smoke.cpp)
     target_compile_definitions(coin_render_win32_smoke PRIVATE _WIN32_WINNT=0x0A00)
     if(COIN_BUILD_TESTS)
       add_test(NAME CoinRenderWin32D3D12Smoke COMMAND coin_render_win32_smoke)
-      set_tests_properties(CoinRenderWin32D3D12Smoke PROPERTIES TIMEOUT 60 ENVIRONMENT "WGPU_BACKEND=dx12")
+      set_tests_properties(CoinRenderWin32D3D12Smoke PROPERTIES TIMEOUT 60 ENVIRONMENT "WGPU_BACKEND=dx12;COIN_BGFX_RENDERER=d3d12")
       add_test(NAME CoinRenderWin32VulkanSmoke COMMAND coin_render_win32_smoke --vulkan)
-      set_tests_properties(CoinRenderWin32VulkanSmoke PROPERTIES TIMEOUT 60 ENVIRONMENT "WGPU_BACKEND=vulkan")
+      set_tests_properties(CoinRenderWin32VulkanSmoke PROPERTIES TIMEOUT 60 ENVIRONMENT "WGPU_BACKEND=vulkan;COIN_BGFX_RENDERER=vulkan")
     endif()
     target_link_libraries(coin_render_win32_smoke PRIVATE CoinRender Coin user32)
     target_include_directories(coin_render_win32_smoke PRIVATE
@@ -178,6 +178,6 @@ if(COIN_INSTALL_RENDER_EXPERIMENTAL)
 			RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime)
 	endif()
 	install(FILES AndroidManifest-p23.xml coin_render_android_smoke.cpp coin_render_appkit_smoke.mm coin_render_wayland_smoke.cpp coin_render_win32_smoke.cpp coin_render_window_cone.cpp coin_render_viewer.cpp coin_render_window_benchmark.cpp coin_render_gl_benchmark.cpp
-		coin_render_freecad_compare.cpp freecad_export_iv.py
+		coin_render_freecad_compare.cpp CoinRenderBenchmarkAnimation.h freecad_export_iv.py generate_large_scene.py
 		DESTINATION ${CMAKE_INSTALL_DOCDIR}/examples/coinrender COMPONENT development)
 endif()
