@@ -32,6 +32,13 @@ a matriz de textura externa, enquanto pbuffer e captura CoinRender começam
 independentemente. Essa herança ainda precisa de um contrato próprio; os gates
 projetivos aplicam a matriz do consumidor após `SceneTexture`.
 
+`SoComplexity::BOUNDING_BOX` recebeu captura comum de caixas, com estilos,
+materiais, UV próprias e geometria original nos mapas de sombra. O
+[contrato de caixas](coin-render-bounding-box-contract.md) registra a comparação
+Linux com CoinGL em wgpu/Vulkan e BGFX/Vulkan/OpenGL, inclusive clipping
+transparente e caixas degeneradas. FUNCTION/texgen e unidades adicionais
+ativas permanecem fora desse perfil; Windows ainda exige qualificação.
+
 ## Funcionalidades que faltam ou têm contrato limitado
 
 | Prioridade | Recurso Coin | Comportamento atual verificado | Dono e próximo fechamento |

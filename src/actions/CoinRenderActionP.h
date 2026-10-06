@@ -33,6 +33,9 @@ public:
   ~CoinRenderActionP();
 
   void initCallbacks();
+  static void shapeContentMethod(SoAction *, SoNode *);
+  bool captureBoundingBox(SoCallbackAction *, SoNode *);
+  void observeBoundingBox(SoCallbackAction *, SoNode *);
   static void screenContentMethod(SoAction *, SoNode *);
   static void markerContentMethod(SoAction *, SoNode *);
   void setDiagnostic(const CoinRenderActionDiagnostic & diagnostic);
@@ -133,6 +136,7 @@ public:
   };
   std::vector<ShadowSceneCapture> shadowSceneCaptures;
   bool capturingShadowScene = false;
+  bool boundingBoxObservers = false;
   std::vector<int> shadowStyleBeforeGroups;
   std::vector<const SoShadowGroup *> activeShadowGroupNodes;
   // Owns staged scene-texture pixels for the entire parent traversal.

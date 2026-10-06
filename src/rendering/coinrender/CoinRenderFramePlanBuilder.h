@@ -28,6 +28,7 @@ public:
   void beginShape(SoCallbackAction * action, const SoNode * node);
   void endShape();
   bool replayNativeCube(SoCallbackAction * action, SoNode * node);
+  bool captureBoundingBox(SoCallbackAction * action, SoNode * node);
   bool captureScreenContent(SoCallbackAction * action, const SoNode * node);
   bool captureMarkerContent(SoCallbackAction * action, const SoNode * node,
                             bool primitiveObservers);
@@ -88,19 +89,21 @@ public:
 
 private:
   friend struct CoinRenderFramePlanBuilderTestAccess;
-  uint32_t captureMaterial(SoCallbackAction * action, int materialIndex);
+  uint32_t captureMaterial(SoCallbackAction * action, int materialIndex, bool packedDiffuse = false);
   uint32_t internMaterial(const CoinRenderMaterialSnapshot & material);
   static uint64_t materialBytesKey(const CoinRenderMaterialSnapshot & material);
   bool synchronizeMaterialIndex();
   void disableMaterialIndex();
-  uint32_t captureRenderState(SoCallbackAction * action, int materialIndex, bool captureTextures = true);
+  uint32_t captureRenderState(SoCallbackAction * action, int materialIndex, bool captureTextures = true,
+                              bool boundingBox = false);
   bool captureTexture(SoCallbackAction * action, CoinRenderRenderStateSnapshot & rs, std::string * outError = nullptr);
+  bool captureStoredTextureAlpha(SoCallbackAction *, bool & transparent);
   bool captureTextureUnit(SoCallbackAction * action, int unit, CoinRenderRenderStateSnapshot & rs, std::string * outError);
   void captureSortingCenter(SoCallbackAction * action);
   bool expandStyledPrimitives(std::string * outError);
   void addStyledTriangle(SoCallbackAction * action, const SoPrimitiveVertex * v0,
                          const SoPrimitiveVertex * v1, const SoPrimitiveVertex * v2);
-  void emitStyledPolygon(SoCallbackAction * action);
+  void emitStyledPolygon(SoCallbackAction * action, bool preserveDegenerateContour = false);
   CoinRenderVertexSnapshot captureVertex(SoCallbackAction * action,
     const SoPrimitiveVertex * pv, uint32_t materialSlot, const CoinRenderRenderStateSnapshot & state);
   uint32_t addVertex(SoCallbackAction * action, const SoPrimitiveVertex * pv, uint32_t materialSlot);

@@ -8,6 +8,7 @@
 #include "rendering/coinrender/CoinRenderImageCore.h"
 #include "rendering/coinrender/CoinRenderPlanAssemblyCore.h"
 #include "rendering/coinrender/CoinRenderTextureCoordinateCore.h"
+#include "rendering/coinrender/CoinRenderBoundingBoxCore.h"
 #include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
 #include "rendering/coinrender/CoinRenderText2Capture.h"
 #include "rendering/coinrender/CoinRenderScreenRasterCore.h"
@@ -248,6 +249,149 @@ CoinRenderFramePlanBuilder::endShape()
 }
 
 bool
+CoinRenderFramePlanBuilder::captureStoredTextureAlpha(SoCallbackAction * action, bool & inheritedTextureAlpha)
+{
+  inheritedTextureAlpha = false;
+  SoState * state = action->getState();
+  auto fail = [&](const std::string & message, bool unsupported = false) {
+    this->hasError = true;
+    this->isUnsupported = this->isUnsupported || unsupported;
+    this->builderError = message;
+    return false;
+  };
+  // GLImage sets TRANSP_TEXTURE from every stored image, independently of
+  // enabled/quality. The generic callback image element never sets that
+  // style flag, and disableAll only clears TEXENABLED. Snapshot the same
+  // source classification for boxes and markers independently of sampling.
+  // This scan does not capture UV functions, sampler state or texture uploads.
+  class ImageUnitAccess : public SoMultiTextureImageElement {
+  public:
+    static int count(const SoMultiTextureImageElement * element) {
+      // A protected member pointer is formed in derived-class scope and
+      // invoked on the actual Base instance. No downcast or fake derived
+      // object is involved; no public Coin element API is changed.
+      const auto getter = &ImageUnitAccess::getNumUnits;
+      return (element->*getter)();
+    }
+  };
+  const int imageStack = SoMultiTextureImageElement::getClassStackIndex();
+  if (!state->isElementEnabled(imageStack))
+    return fail("Transparency capture has no inherited image element");
+  const auto * images = static_cast<const SoMultiTextureImageElement *>(state->getConstElement(imageStack));
+  const int units = ImageUnitAccess::count(images);
+  if (units < 0 || units > static_cast<int>(COIN_RENDER_MAX_TEXTURE_UNITS))
+    return fail("UNSUPPORTED: stored-image transparency classification supports at most eight inherited image units", true);
+  size_t classifiedBytes = 0;
+  for (int unit = 0; unit < units; ++unit) {
+    SbVec3s size;
+    int components = 0;
+    const unsigned char * bytes = SoMultiTextureImageElement::getImage(state, unit, size, components);
+    const auto producer = this->sceneTextures.find(bytes);
+    if (producer != this->sceneTextures.end()) {
+      const int32_t policy = producer->second.transparencyFunction;
+      if (!coin_render_scene_texture_policy_supported(policy))
+        return fail("UNSUPPORTED: inherited scene texture has an unknown transparency policy", true);
+      if (!producer->second.producerId && coin_render_scene_texture_forces_transparency(policy))
+        return fail("UNSUPPORTED: Stored-image transparency from an inactive scene texture depends on native GL image history", true);
+      inheritedTextureAlpha = inheritedTextureAlpha || coin_render_scene_texture_forces_transparency(policy);
+      continue; // Native FORCE flags precede pixel-alpha inspection.
+    }
+    if (size[0] < 0 || size[1] < 0 || size[2] < 0 || components < 0 || components > 4)
+      return fail("Inherited image has invalid dimensions or component count");
+    if (!size[0] || !size[1]) continue; // Default/cleared image: native GLImage is absent.
+    if (components < 1)
+      return fail("Inherited image has no components for a nonempty image");
+    if (components != 2 && components != 4) continue;
+    // Native images without CPU bytes conservatively classify their alpha
+    // base format as transparent. Ordinary callback images have owned bytes;
+    // unresolved scene producers were handled by their force policy above.
+    if (!bytes) { inheritedTextureAlpha = true; continue; }
+    const size_t remaining = 128 * 1024 * 1024 - classifiedBytes;
+    size_t pixels = 1;
+    const size_t dimensions[] = {size_t(size[0]), size_t(size[1]), size_t(size[2] ? size[2] : 1)};
+    for (size_t dimension : dimensions) {
+      if (dimension > remaining / pixels)
+        return fail("UNSUPPORTED: stored-image transparency classification exceeds 128 MiB of inherited alpha images", true);
+      pixels *= dimension;
+    }
+    if (pixels > remaining / size_t(components))
+      return fail("UNSUPPORTED: stored-image transparency classification exceeds 128 MiB of inherited alpha images", true);
+    const size_t scanBytes = pixels * size_t(components);
+    classifiedBytes += scanBytes;
+    // SoGLImage::checkTransparency treats zero alpha as transparent too,
+    // even when it could select alpha testing for an ordinary textured shape.
+    inheritedTextureAlpha = inheritedTextureAlpha ||
+      coin_render_image_has_transparency(bytes, pixels, components);
+  }
+  return true;
+}
+
+bool
+CoinRenderFramePlanBuilder::captureBoundingBox(SoCallbackAction * action, SoNode * node)
+{
+  this->endShape();
+  if (isShapeInvisible(action)) return true;
+  SbBox3f box; SbVec3f sortingCenter;
+  static_cast<SoShape *>(node)->computeBBox(action, box, sortingCenter);
+  if (!coin_render_bounding_box_valid(box, this->builderError)) {
+    this->hasError = true;
+    return false;
+  }
+  // The native empty cube has no finite drawable surface.
+  if (box.isEmpty()) return true;
+  SoState * state = action->getState();
+  int last = -1;
+  const SbBool * enabled = SoMultiTextureEnabledElement::getEnabledUnits(state, last);
+  for (int unit = 1; unit <= last; ++unit)
+    if (enabled[unit]) {
+      this->isUnsupported = true;
+      this->builderError = "Bounding-box complexity with additional textures requires persistent GL texture coordinates";
+      return false;
+    }
+  if (last >= 0 && enabled[0] && SoMultiTextureCoordinateElement::getType(state, 0) ==
+      SoMultiTextureCoordinateElement::FUNCTION) {
+    this->isUnsupported = true;
+    this->builderError = "Bounding-box complexity with texture-coordinate functions requires a texgen contract";
+    return false;
+  }
+  state->push();
+  // Native GLRenderBoundingBox ignores authored UV arrays and emits cube UV.
+  static const SbVec2f uv[] = {{1, 1}, {0, 1}, {0, 0}, {1, 0}};
+  SoMultiTextureCoordinateElement::set2(state, node, 0, 4, uv);
+  const uint32_t slot = this->captureRenderState(action, 0, true, true);
+  state->pop();
+  if (this->hasError || this->isUnsupported) return false;
+  const auto snapshot = this->currentPlan.renderStates[slot];
+  std::array<CoinRenderVertexSnapshot, 24> vertices;
+  if (!coin_render_bounding_box_vertices(box, snapshot.materialSlot, vertices, this->builderError)) {
+    this->hasError = true;
+    return false;
+  }
+  const int style = polygonDrawStyle(action);
+  if (style == SoDrawStyleElement::FILLED) {
+    this->ensureDrawPacket(CoinRenderPrimitiveTopology::TRIANGLE_LIST, slot, node, true);
+    this->captureSortingCenter(action);
+    auto & draw = this->currentPlan.draws[this->currentDrawIndex];
+    const uint32_t first = static_cast<uint32_t>(this->currentPlan.vertices.size());
+    this->currentPlan.vertices.insert(this->currentPlan.vertices.end(), vertices.begin(), vertices.end());
+    static const uint32_t triangle[] = {0, 1, 2, 0, 2, 3};
+    for (uint32_t face = 0; face < 6; ++face)
+      for (uint32_t corner : triangle) this->currentPlan.indices.push_back(first + face * 4 + corner);
+    draw.geometry.vertexCount = 24; draw.geometry.indexCount = 36;
+  } else {
+    for (size_t face = 0; face < 6; ++face) {
+      this->polygonNode = node; this->polygonState = slot; this->polygonStyle = style;
+      this->polygonVertices.assign(vertices.begin() + face * 4, vertices.begin() + face * 4 + 4);
+      this->emitStyledPolygon(action, true);
+      this->polygonNode = nullptr; this->polygonVertices.clear();
+      if (this->hasError || this->isUnsupported) return false;
+    }
+  }
+  this->hasActiveDraw = false;
+  return true;
+}
+
+bool
 CoinRenderFramePlanBuilder::replayNativeCube(SoCallbackAction * action, SoNode * node)
 {
   if (!this->captureCubeTemplate || this->stableShape != node ||
@@ -438,7 +582,7 @@ bool CoinRenderFramePlanBuilder::synchronizeMaterialIndex()
 }
 
 uint32_t
-CoinRenderFramePlanBuilder::captureMaterial(SoCallbackAction * action, int materialIndex)
+CoinRenderFramePlanBuilder::captureMaterial(SoCallbackAction * action, int materialIndex, bool packedDiffuse)
 {
   SbColor amb(0.2f, 0.2f, 0.2f), diff(0.8f, 0.8f, 0.8f), spec(0.0f, 0.0f, 0.0f), emiss(0.0f, 0.0f, 0.0f);
   float shin = 0.2f, transp = 0.0f;
@@ -464,6 +608,24 @@ CoinRenderFramePlanBuilder::captureMaterial(SoCallbackAction * action, int mater
   matSnap.emission[0] = emiss[0]; matSnap.emission[1] = emiss[1]; matSnap.emission[2] = emiss[2]; matSnap.emission[3] = 1.0f;
   matSnap.shininess = shin;
   matSnap.transparency = transp;
+
+  if (packedDiffuse) {
+    // GLRenderBoundingBox's sendFirst supplies diffuse RGBA through
+    // glColor4ub, including when color material feeds PHONG lighting.
+    // Preserve that source precision before repeated transparent blending.
+    for (int channel = 0; channel < 4; ++channel) {
+      const float value = matSnap.diffuse[channel];
+      if (!std::isfinite(value) || value < 0.0f || value > 1.0f) {
+        this->hasError = true;
+        this->builderError = "Bounding-box primary RGBA is outside finite [0,1]";
+        return 0;
+      }
+      matSnap.diffuse[channel] = std::floor(value * 255.0f + 0.5f) / 255.0f;
+    }
+    if (SoShapeStyleElement::getTransparencyType(state) == SoGLRenderAction::SCREEN_DOOR)
+      matSnap.diffuse[3] = 1.0f;
+    matSnap.transparency = 1.0f - matSnap.diffuse[3];
+  }
 
   if (state) {
     CoinRenderAlphaTestFunction alphaTestFunction;
@@ -726,14 +888,15 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
 }
 
 uint32_t
-CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materialIndex, bool captureTextures)
+CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materialIndex, bool captureTextures,
+                                               bool boundingBox)
 {
   const bool stable = captureTextures && this->stableShape && action->getCurPathTail() == this->stableShape;
   if (stable)
     for (const auto & cached : this->shapeRenderStates)
       if (cached.first == materialIndex) return cached.second;
   // 1. Material
-  uint32_t materialSlot = this->captureMaterial(action, materialIndex);
+  uint32_t materialSlot = this->captureMaterial(action, materialIndex, boundingBox);
 
   // 2. Lighting & CoinRenderLightModel
   CoinRenderLightModel lm = captureTextures ? CoinRenderLightModel::PHONG : CoinRenderLightModel::BASE_COLOR;
@@ -854,8 +1017,8 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   rs.lightingSlot = lightingSlot;
   rs.cameraSlot = cameraSlot;
   rs.viewportSlot = viewportSlot;
-  rs.cullMode = cullMode;
-  rs.frontFace = frontFace;
+  rs.cullMode = boundingBox ? CoinRenderCullMode::NONE : cullMode;
+  rs.frontFace = boundingBox ? CoinRenderFrontFace::CCW : frontFace;
   SbBool depthTest = TRUE;
   SbBool depthWrite = TRUE;
   SoDepthBufferElement::DepthWriteFunction depthFunction = SoDepthBufferElement::LESS;
@@ -881,6 +1044,11 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   rs.polygonOffsetEnabled = offsetEnabled != FALSE;
   rs.lightModel = lm;
   rs.transparencyType = SoShapeStyleElement::getTransparencyType(state);
+  // Native bounding-box dispatch precedes the primitive-cache triangle sort.
+  if (boundingBox && rs.transparencyType == SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_ADD)
+    rs.transparencyType = SoGLRenderAction::SORTED_OBJECT_ADD;
+  else if (boundingBox && rs.transparencyType == SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND)
+    rs.transparencyType = SoGLRenderAction::SORTED_OBJECT_BLEND;
   float ambientIntensity = 0.0f;
   SbColor ambientColor, fogColor;
   SbVec3f lightAttenuation;
@@ -915,6 +1083,12 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
     this->builderError = "UNSUPPORTED: more than eight active Coin clipping planes";
   }
   if (captureTextures) this->captureTexture(action, rs, &this->builderError);
+  if (boundingBox) {
+    bool inheritedTextureAlpha = false;
+    this->captureStoredTextureAlpha(action, inheritedTextureAlpha);
+    rs.transparentTexture = rs.transparentTexture || inheritedTextureAlpha ||
+      (SoShapeStyleElement::get(state)->getFlags() & SoShapeStyleElement::TRANSP_TEXTURE) != 0;
+  }
 
   const uint32_t rsSlot = CoinRenderPlanAssemblyCore::state(
     this->currentPlan, this->renderStatesByModel, rs);
@@ -956,72 +1130,7 @@ CoinRenderFramePlanBuilder::captureMarkerContent(SoCallbackAction * action, cons
     ~StateScope() { state->pop(); }
   } scope(state);
   bool inheritedTextureAlpha = false;
-  {
-    // GLImage sets TRANSP_TEXTURE from every stored image, independently of
-    // enabled/quality. The generic callback image element never sets that
-    // style flag, and disableAll only clears TEXENABLED. Snapshot the same
-    // source classification before disabling marker sampling; do not capture
-    // UV functions, sampler state, or upload a texture for these bitmaps.
-    class ImageUnitAccess : public SoMultiTextureImageElement {
-    public:
-      static int count(const SoMultiTextureImageElement * element) {
-        // A protected member pointer is formed in derived-class scope and
-        // invoked on the actual Base instance. No downcast or fake derived
-        // object is involved; no public Coin element API is changed.
-        const auto getter = &ImageUnitAccess::getNumUnits;
-        return (element->*getter)();
-      }
-    };
-    const int imageStack = SoMultiTextureImageElement::getClassStackIndex();
-    if (!state->isElementEnabled(imageStack))
-      return fail("Marker capture has no inherited image element");
-    const auto * images = static_cast<const SoMultiTextureImageElement *>(state->getConstElement(imageStack));
-    const int units = ImageUnitAccess::count(images);
-    if (units < 0 || units > static_cast<int>(COIN_RENDER_MAX_TEXTURE_UNITS))
-      return fail("UNSUPPORTED: marker transparency classification supports at most eight inherited image units", true);
-    size_t classifiedBytes = 0;
-    for (int unit = 0; unit < units; ++unit) {
-      SbVec3s size;
-      int components = 0;
-      const unsigned char * bytes = SoMultiTextureImageElement::getImage(state, unit, size, components);
-      const auto producer = this->sceneTextures.find(bytes);
-      if (producer != this->sceneTextures.end()) {
-        const int32_t policy = producer->second.transparencyFunction;
-        if (!coin_render_scene_texture_policy_supported(policy))
-          return fail("UNSUPPORTED: inherited marker scene texture has an unknown transparency policy", true);
-        if (!producer->second.producerId && coin_render_scene_texture_forces_transparency(policy))
-          return fail("UNSUPPORTED: marker transparency from an inactive scene texture depends on native GL image history", true);
-        inheritedTextureAlpha = inheritedTextureAlpha || coin_render_scene_texture_forces_transparency(policy);
-        continue; // Native FORCE flags precede pixel-alpha inspection.
-      }
-      if (size[0] < 0 || size[1] < 0 || size[2] < 0 || components < 0 || components > 4)
-        return fail("Inherited marker image has invalid dimensions or component count");
-      if (!size[0] || !size[1]) continue; // Default/cleared image: native GLImage is absent.
-      if (components < 1)
-        return fail("Inherited marker image has no components for a nonempty image");
-      if (components != 2 && components != 4) continue;
-      // Native images without CPU bytes conservatively classify their alpha
-      // base format as transparent. Ordinary callback images have owned bytes;
-      // unresolved scene producers were handled by their force policy above.
-      if (!bytes) { inheritedTextureAlpha = true; continue; }
-      const size_t remaining = 128 * 1024 * 1024 - classifiedBytes;
-      size_t pixels = 1;
-      const size_t dimensions[] = {size_t(size[0]), size_t(size[1]), size_t(size[2] ? size[2] : 1)};
-      for (size_t dimension : dimensions) {
-        if (dimension > remaining / pixels)
-          return fail("UNSUPPORTED: marker transparency classification exceeds 128 MiB of inherited alpha images", true);
-        pixels *= dimension;
-      }
-      if (pixels > remaining / size_t(components))
-        return fail("UNSUPPORTED: marker transparency classification exceeds 128 MiB of inherited alpha images", true);
-      const size_t scanBytes = pixels * size_t(components);
-      classifiedBytes += scanBytes;
-      // SoGLImage::checkTransparency treats zero alpha as transparent too,
-      // even when it could select alpha testing for an ordinary textured shape.
-      inheritedTextureAlpha = inheritedTextureAlpha ||
-        coin_render_image_has_transparency(bytes, pixels, components);
-    }
-  }
+  if (!this->captureStoredTextureAlpha(action, inheritedTextureAlpha)) return false;
   // MarkerSet disables texture state before shouldGLRender; IndexedMarkerSet
   // classifies transparency first. Neither disable clears the native stored
   // image transparency flag, so both retain the source classification above.
@@ -1956,7 +2065,7 @@ void CoinRenderFramePlanBuilder::addStyledTriangle(SoCallbackAction* action,
   }
 }
 
-void CoinRenderFramePlanBuilder::emitStyledPolygon(SoCallbackAction* action) {
+void CoinRenderFramePlanBuilder::emitStyledPolygon(SoCallbackAction* action, bool preserveDegenerateContour) {
   const auto sourceState = this->currentPlan.renderStates[this->polygonState];
   CoinRenderPolygonStyleResult resolved;
   const auto style = this->polygonStyle == SoDrawStyleElement::LINES
@@ -1967,7 +2076,7 @@ void CoinRenderFramePlanBuilder::emitStyledPolygon(SoCallbackAction* action) {
                                          this->currentPlan.materials,
                                          this->currentPlan.lightingStates[sourceState.lightingSlot],
                                          style, resolved, diagnostic,
-                                         this->currentPlan.viewports[sourceState.viewportSlot])) {
+                                         this->currentPlan.viewports[sourceState.viewportSlot], preserveDegenerateContour)) {
     if (diagnostic.compare(0, 12, "UNSUPPORTED:") == 0)
       this->isUnsupported = true;
     else

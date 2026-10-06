@@ -28,6 +28,11 @@
 #include <Inventor/elements/SoEnvironmentElement.h>
 #include <Inventor/nodes/SoSpotLight.h>
 #include <Inventor/nodes/SoPointLight.h>
+#include <Inventor/nodes/SoPointSet.h>
+#include <Inventor/nodes/SoIndexedPointSet.h>
+#include <Inventor/nodes/SoFaceSet.h>
+#include <Inventor/nodes/SoVertexShape.h>
+#include <Inventor/nodes/SoComplexity.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/elements/SoTextureCombineElement.h>
 #include <Inventor/nodes/SoVertexProperty.h>
@@ -111,6 +116,7 @@ CoinRenderAction::initClass(void)
   SO_ENABLE(CoinRenderAction, SoShadowStyleElement);
   CoinRenderDepthPolicyElement::initClass();
   SO_ENABLE(CoinRenderAction, CoinRenderDepthPolicyElement);
+  SO_ACTION_ADD_METHOD(SoShape, CoinRenderActionP::shapeContentMethod);
   SO_ACTION_ADD_METHOD(SoImage, CoinRenderActionP::screenContentMethod);
   SO_ACTION_ADD_METHOD(SoText2, CoinRenderActionP::screenContentMethod);
   SO_ACTION_ADD_METHOD(SoMarkerSet, CoinRenderActionP::markerContentMethod);
@@ -1553,6 +1559,8 @@ CoinRenderActionP::textureUnitsPreCB(void * userdata, SoCallbackAction * action,
     return SoCallbackAction::CONTINUE; // The action method captures after all pre callbacks.
   }
   SoState * state = action->getState();
+  if (!p->capturingShadowScene && (SoShapeStyleElement::get(state)->getFlags() &
+      SoShapeStyleElement::BBOXCMPLX)) return SoCallbackAction::CONTINUE;
   int last = -1;
   const SbBool * enabled = SoMultiTextureEnabledElement::getEnabledUnits(state, last);
   if (last >= static_cast<int>(COIN_RENDER_MAX_TEXTURE_UNITS)) {
@@ -1576,7 +1584,8 @@ CoinRenderActionP::textureUnitsPreCB(void * userdata, SoCallbackAction * action,
   p->beginTranslationShape(action, node);
   if (p->master->hasSingleShapeCallbacks(node->getTypeId())) {
     p->builder.beginShape(action, node);
-    if (p->fastPathEnabled && p->builder.replayNativeCube(action, const_cast<SoNode *>(node))) {
+    if (p->fastPathEnabled && p->master->callbackRegistrationRevision() == p->captureCallbackRevision &&
+        p->builder.replayNativeCube(action, const_cast<SoNode *>(node))) {
       p->endTranslationShape();
       p->builder.endShape();
       return SoCallbackAction::PRUNE;
@@ -1585,13 +1594,98 @@ CoinRenderActionP::textureUnitsPreCB(void * userdata, SoCallbackAction * action,
   return SoCallbackAction::CONTINUE;
 }
 
+bool
+CoinRenderActionP::captureBoundingBox(SoCallbackAction * action, SoNode * node)
+{
+  if (this->capturingShadowScene || !(SoShapeStyleElement::get(action->getState())->getFlags() &
+      SoShapeStyleElement::BBOXCMPLX)) return false;
+  // Match native returns that precede shouldGLRender, even if an otherwise
+  // nonempty coordinate element could supply a box.
+  if ((node->isOfType(SoIndexedFaceSet::getClassTypeId()) &&
+       static_cast<SoIndexedFaceSet *>(node)->coordIndex.getNum() < 3) ||
+      (node->isOfType(SoIndexedLineSet::getClassTypeId()) &&
+       static_cast<SoIndexedLineSet *>(node)->coordIndex.getNum() < 2) ||
+      (node->isOfType(SoIndexedPointSet::getClassTypeId()) &&
+       static_cast<SoIndexedPointSet *>(node)->coordIndex.getNum() == 0) ||
+      (node->isOfType(SoIndexedMarkerSet::getClassTypeId()) &&
+       static_cast<SoIndexedMarkerSet *>(node)->coordIndex.getNum() == 0) ||
+      (node->isOfType(SoPointSet::getClassTypeId()) &&
+       static_cast<SoPointSet *>(node)->numPoints.getValue() == 0) ||
+      (node->isOfType(SoFaceSet::getClassTypeId()) &&
+       static_cast<SoFaceSet *>(node)->numVertices.getNum() == 1 &&
+       static_cast<SoFaceSet *>(node)->numVertices[0] == 0)) return true;
+  if (node->isOfType(SoImage::getClassTypeId())) {
+    SbVec2s size; int components = 0;
+    const auto * bytes = static_cast<SoImage *>(node)->image.getValue(size, components);
+    if (!bytes || !size[0] || !size[1]) return true;
+  }
+  SoState * state = action->getState();
+  state->push();
+  const bool marker = node->isOfType(SoMarkerSet::getClassTypeId());
+  if (marker) {
+    SoLazyElement::setLightModel(state, SoLazyElement::BASE_COLOR);
+    SoMultiTextureEnabledElement::disableAll(state);
+  }
+  // PointSet reads VP coordinates in computeBBox but applies its material
+  // only after shouldGLRender. Other vertex shapes apply the property first.
+  if (node->isOfType(SoVertexShape::getClassTypeId()) &&
+      (!node->isOfType(SoPointSet::getClassTypeId()) || marker)) {
+    auto * property = static_cast<SoVertexShape *>(node)->vertexProperty.getValue();
+    if (property) property->doAction(action);
+  }
+  const bool success = this->builder.captureBoundingBox(action, node);
+  state->pop();
+  if (!success) this->master->setTerminated(TRUE);
+  return true;
+}
+
+void
+CoinRenderActionP::observeBoundingBox(SoCallbackAction * action, SoNode * node)
+{
+  if (action->hasTerminated() || action->hasSingleShapeCallbacks(node->getTypeId())) return;
+  const bool marker = node->isOfType(SoMarkerSet::getClassTypeId()) ||
+                      node->isOfType(SoIndexedMarkerSet::getClassTypeId());
+  SoState * state = action->getState();
+  struct ObserverScope {
+    CoinRenderActionP & owner;
+    SoState * markerState;
+    bool previous;
+    ~ObserverScope() {
+      if (markerState) markerState->pop();
+      owner.boundingBoxObservers = previous;
+    }
+  } scope{*this, marker ? state : nullptr, this->boundingBoxObservers};
+  if (marker) {
+    state->push();
+    SoLazyElement::setLightModel(state, SoLazyElement::BASE_COLOR);
+    SoMultiTextureEnabledElement::disableAll(state);
+  }
+  this->boundingBoxObservers = true;
+  node->callback(action);
+}
+
+void
+CoinRenderActionP::shapeContentMethod(SoAction * action, SoNode * node)
+{
+  auto * render = static_cast<CoinRenderAction *>(action);
+  if (render->hasTerminated()) return;
+  render->setCurrentNode(node);
+  render->invokePreCallbacks(node);
+  if (render->getCurrentResponse() == SoCallbackAction::CONTINUE) {
+    const bool box = render->pimpl->captureBoundingBox(render, node);
+    if (!box) node->callback(render);
+    else render->pimpl->observeBoundingBox(render, node);
+  }
+  render->invokePostCallbacks(node);
+}
+
 void
 CoinRenderActionP::markerContentMethod(SoAction * action, SoNode * node)
 {
   // Custom subclasses retain their own virtual callback contract.
   if (node->getTypeId() != SoMarkerSet::getClassTypeId() &&
       node->getTypeId() != SoIndexedMarkerSet::getClassTypeId()) {
-    SoNode::callbackS(action, node);
+    shapeContentMethod(action, node);
     return;
   }
   auto * render = static_cast<CoinRenderAction *>(action);
@@ -1599,6 +1693,11 @@ CoinRenderActionP::markerContentMethod(SoAction * action, SoNode * node)
   render->setCurrentNode(node);
   render->invokePreCallbacks(node);
   if (render->getCurrentResponse() == SoCallbackAction::CONTINUE) {
+    if (render->pimpl->captureBoundingBox(render, node)) {
+      render->pimpl->observeBoundingBox(render, node);
+      render->invokePostCallbacks(node);
+      return;
+    }
     const bool observers = !render->hasSingleShapeCallbacks(node->getTypeId());
     if (render->pimpl->builder.captureMarkerContent(render, node, observers) && observers) {
       // Native marker rendering disables texture-coordinate functions and
@@ -1621,7 +1720,7 @@ CoinRenderActionP::screenContentMethod(SoAction * action, SoNode * node)
   // Subclasses retain their virtual callback and geometry contract.
   if (node->getTypeId() != SoImage::getClassTypeId() &&
       node->getTypeId() != SoText2::getClassTypeId()) {
-    SoNode::callbackS(action, node);
+    shapeContentMethod(action, node);
     return;
   }
   auto * render = static_cast<CoinRenderAction *>(action);
@@ -1629,6 +1728,11 @@ CoinRenderActionP::screenContentMethod(SoAction * action, SoNode * node)
   render->setCurrentNode(node);
   render->invokePreCallbacks(node);
   if (render->getCurrentResponse() == SoCallbackAction::CONTINUE) {
+    if (render->pimpl->captureBoundingBox(render, node)) {
+      render->pimpl->observeBoundingBox(render, node);
+      render->invokePostCallbacks(node);
+      return;
+    }
     render->pimpl->builder.captureScreenContent(render, node);
     // Native image primitive observers still run. Our triangle callback
     // suppresses that legacy quad, leaving only the captured screen pixels.
@@ -1779,6 +1883,7 @@ CoinRenderActionP::triangleCB(void * userdata,
                                const SoPrimitiveVertex * v2)
 {
   CoinRenderActionP * p = static_cast<CoinRenderActionP *>(userdata);
+  if (p->boundingBoxObservers) return;
   const auto type = action->getCurPathTail()->getTypeId();
   if (type == SoImage::getClassTypeId() || type == SoText2::getClassTypeId()) return;
   p->builder.addTriangle(action, v0, v1, v2);
@@ -1791,6 +1896,7 @@ CoinRenderActionP::lineCB(void * userdata,
                            const SoPrimitiveVertex * v1)
 {
   CoinRenderActionP * p = static_cast<CoinRenderActionP *>(userdata);
+  if (p->boundingBoxObservers) return;
   p->builder.addLine(action, v0, v1);
 }
 
@@ -1800,6 +1906,7 @@ CoinRenderActionP::pointCB(void * userdata,
                             const SoPrimitiveVertex * vertex)
 {
   CoinRenderActionP * p = static_cast<CoinRenderActionP *>(userdata);
+  if (p->boundingBoxObservers) return;
   const auto type = action->getCurPathTail()->getTypeId();
   if (type == SoMarkerSet::getClassTypeId() || type == SoIndexedMarkerSet::getClassTypeId()) return;
   p->builder.addPoint(action, vertex);
@@ -2008,8 +2115,15 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, 
   int pathIndexCount=0;
   const int * pathIndices=nullptr;
   bool separateMap = snapshot.parentGroupSlot != 0 ||
+    p->master->callbackRegistrationRevision() != p->captureCallbackRevision ||
+    (SoShapeStyleElement::get(action->getState())->getFlags() & SoShapeStyleElement::BBOXCMPLX) ||
     action->getPathCode(pathIndexCount,pathIndices) == SoAction::IN_PATH;
   SoSearchAction structure;
+  structure.setType(SoComplexity::getClassTypeId());
+  structure.setInterest(SoSearchAction::FIRST);
+  structure.apply(const_cast<SoShadowGroup *>(group));
+  separateMap = separateMap || structure.getPath() != nullptr;
+  structure.reset();
   structure.setType(SoAnnotation::getClassTypeId());
   structure.setInterest(SoSearchAction::FIRST);
   structure.apply(const_cast<SoShadowGroup *>(group));
@@ -2182,7 +2296,9 @@ CoinRenderActionP::indexedFaceSetPreCB(void * userdata,
   // PRUNE skips this shape only; subsequent state nodes still traverse.
   if (CoinRenderFramePlanBuilder::isShapeInvisible(action)) return SoCallbackAction::PRUNE;
   CoinRenderActionP * p = static_cast<CoinRenderActionP *>(userdata);
-  if (!p->fastPathEnabled) {
+  if (!p->fastPathEnabled || p->master->callbackRegistrationRevision() != p->captureCallbackRevision ||
+      (!p->capturingShadowScene && (SoShapeStyleElement::get(action->getState())->getFlags() &
+                                   SoShapeStyleElement::BBOXCMPLX))) {
     return SoCallbackAction::CONTINUE;
   }
 
@@ -2323,7 +2439,9 @@ CoinRenderActionP::indexedLineSetPreCB(void * userdata,
   // PRUNE skips this shape only; subsequent state nodes still traverse.
   if (CoinRenderFramePlanBuilder::isShapeInvisible(action)) return SoCallbackAction::PRUNE;
   CoinRenderActionP * p = static_cast<CoinRenderActionP *>(userdata);
-  if (!p->fastPathEnabled) {
+  if (!p->fastPathEnabled || p->master->callbackRegistrationRevision() != p->captureCallbackRevision ||
+      (!p->capturingShadowScene && (SoShapeStyleElement::get(action->getState())->getFlags() &
+                                   SoShapeStyleElement::BBOXCMPLX))) {
     return SoCallbackAction::CONTINUE;
   }
 

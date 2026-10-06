@@ -71,8 +71,11 @@ não é uma certificação daquele acesso indefinido.
 
 O perfil também recusa raster dentro de `SoShadowGroup` ativo e raster
 transparente interceptado pela ordenação de triângulos, seguindo o contrato
-de texto/imagem. `SoComplexity::BOUNDING_BOX`, `vertexProperty` customizado e
-volumes de visão degenerados exigem um contrato adicional e são recusados.
+de texto/imagem. `vertexProperty` customizado e volumes de visão degenerados
+exigem um contrato adicional e são recusados no perfil raster.
+`SoComplexity::BOUNDING_BOX` usa agora a
+[captura comum de caixas](coin-render-bounding-box-contract.md), preservando
+as diferenças de estado entre MarkerSet e IndexedMarkerSet antes do raster.
 Entradas recusadas conservam o último frame válido.
 
 Os limites por nó são 1.048.576 ocorrências de coordenadas, 4.096 bitmaps

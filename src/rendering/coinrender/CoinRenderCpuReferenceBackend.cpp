@@ -275,7 +275,9 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
       float l1 = w1 * invArea;
       float l2 = w2 * invArea;
 
-      float zVal = l0 * ndcZ[0] + l1 * ndcZ[1] + l2 * ndcZ[2];
+      // Preserve constant-depth planes exactly. Small barycentric sum errors
+      // must not change LEQUAL coverage between coincident bounding-box faces.
+      float zVal = ndcZ[2] + l0 * (ndcZ[0] - ndcZ[2]) + l1 * (ndcZ[1] - ndcZ[2]);
       if (zVal < 0.0f || zVal > 1.0f) continue;
 
       size_t pIdx = static_cast<size_t>(py * width + px);
