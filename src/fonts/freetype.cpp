@@ -1279,7 +1279,6 @@ flwft_conicToCallback(FT_Vector * control, FT_Vector * to, void * COIN_UNUSED_AR
   df2[1] = 2 * b[1] * spline_delta2;
 
   for (i=0;i<flwft_tessellator.tessellation_steps - 1;i++) {
-  if (flwft_tessellator.failed) return 1;
 
     f[0] += df[0];
     f[1] += df[1];
@@ -1353,7 +1352,6 @@ flwft_cubicToCallback(FT_Vector * control1, FT_Vector * control2, FT_Vector * to
 
 
   for (i=0; i < flwft_tessellator.tessellation_steps-1; i++) {
-  if (flwft_tessellator.failed) return 1;
 
     f[0] += df[0];
     f[1] += df[1];
