@@ -42,6 +42,7 @@
 #include "threads/threadsutilp.h"
 #include "tidbitsp.h"
 #include "fonts/glyph2d.h"
+#include "fonts/fontutils.h"
 #include "fonts/glyph.h"
 #include "coindefs.h"
 
@@ -140,6 +141,7 @@ cc_glyph2d_ref(uint32_t character, const cc_font_specification * spec, float ang
   cc_glyph2d_initialize();
   
   assert(spec);
+  angle = coin_font_normalize_angle(angle);
 
   GLYPH2D_MUTEX_LOCK(glyph2d_fonthash_lock);
 
@@ -148,7 +150,7 @@ cc_glyph2d_ref(uint32_t character, const cc_font_specification * spec, float ang
     glyphlist = (cc_list *) val;
     for (i = 0; i < cc_list_get_length(glyphlist); ++i) {
       glyph = (cc_glyph2d *) cc_list_get(glyphlist, i);
-      if (glyph2d_specmatch(spec, glyph->c.fontspec)) {
+      if (glyph->angle == angle && glyph2d_specmatch(spec, glyph->c.fontspec)) {
         glyph->c.refcount++;
         GLYPH2D_MUTEX_UNLOCK(glyph2d_fonthash_lock);
         return glyph;
