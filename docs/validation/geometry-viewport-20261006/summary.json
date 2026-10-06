@@ -1,0 +1,116 @@
+{
+  "date": "2026-10-06",
+  "branch": "codex/coin-render",
+  "source_base_commit": "1158dd7c1f",
+  "source_sha256": {
+    "src/rendering/coinrender/CoinRenderIndexedGeometryCore.cpp": "aa9dfd71eff5bc288d2b6ee89b1eebf4b8f7d91e1663fe3132fb2e3057641a9c",
+    "src/rendering/coinrender/CoinRenderTransformCore.h": "3ed7ebf6c587f2a2a5b0ca49c0db90f5f743afb2ceb34b3dad3d25cb32ee2508",
+    "src/rendering/coinwgpu/CoinWgpuBackend.cpp": "a5d463542cdd558f9db61a05c3c0d7388ce0d1a62e17fffc07e167ffea8c6bcf",
+    "src/rendering/coinwgpu/CoinWgpuFfi.h": "185e9cdbc62dd5c46a328f80cc911fc973ffe7625e56e8277c87931d9c6ddb98",
+    "src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp": "2d9a799c2f9fb58b9291fdd410912eb43e0d47da9aba5df4256e784c701e604c",
+    "src/rendering/coinwgpu/CoinWgpuFfiFrame.h": "d8ad60364384f73cb4f80974695a3fc462e1a6c505a90e88efd02d5ec05374a2",
+    "src/rendering/coinwgpu/rust_bridge/src/lib.rs": "b9126de0291c8e0450a8f8f64d849add46a030ced117c4239f25b6f2b32b2ef8",
+    "testsuite/CMakeLists.txt": "043ecb113eeea85a3fb59dcd62f99b72078c081af8e6f5e1deb240f27a1953cf",
+    "testsuite/coinrender/CoinRenderCompositionTest.cpp": "236800b5a483b32d73ff67904f66c4f0ed58c652e0268a54fa6f73a08b7515bd",
+    "testsuite/coinrender/CoinRenderGeometryViewportTest.cpp": "2f443567125e43e9f986b0064cb4ce8efbbd7b01e20ba6e28ff2edcabb32c2ee",
+    "testsuite/coinrender/CoinRenderIndexedGeometryCoreTest.cpp": "a8ec5bb2f177dd9f03cc576b0de82639a9786d502eb427ea1e87ee9feff19f8c",
+    "testsuite/coinrender/CoinRenderLightingTest.cpp": "d2a7f90582921c3e3e6f84068b9d0a4e6445721923ddcda7ca4e97b58f198c2b",
+    "testsuite/coinrender/CoinRenderProceduralTextureTest.cpp": "9677b6bb69f3b0623ec95be3c025599248c2ea1ed277db305224472e72ae6269",
+    "testsuite/coinrender/CoinRenderRttOwnershipTest.cpp": "3c1fd67013524a2de6a2ebe84171de7a1da0c92fb6c2c507c6bce0eca9f0bb12",
+    "testsuite/coinrender/CoinRenderTransformCoreTest.cpp": "9e4ef152cd68fa5f7f548df149ab8d86d33976792f99aaf0b2f34db273f8d3ae",
+    "testsuite/coinwgpu/CoinWgpuFfiFrameTest.cpp": "b91ca3f0bef4f30aaa5175d85069b66799e7cc90ae59a3ccc8b4e300ef41732a"
+  },
+  "protocol_revision": 46,
+  "ffi_layouts_changed": false,
+  "platform": "Linux x86_64",
+  "build_type": "Release",
+  "gpu": "NVIDIA GeForce RTX 3060 Laptop GPU",
+  "driver": "610.57.04",
+  "environment": {
+    "__NV_PRIME_RENDER_OFFLOAD": "1",
+    "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+    "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+    "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+    "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+  },
+  "wgpu": {
+    "scheduled": 191,
+    "passed": 189,
+    "skipped": [
+      "BumpProgramGLX",
+      "CoinRenderCameraReuseReferenceTest"
+    ],
+    "exit_code": 0,
+    "log": "wgpu-full.log",
+    "command": "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU=1 ctest --test-dir /tmp/coin-render-first-frame-wgpu --output-on-failure -j 2"
+  },
+  "bgfx": {
+    "scheduled": 254,
+    "full_run_passed": 251,
+    "full_run_timeout": [
+      "CoinRenderFogTest"
+    ],
+    "full_run_exit_code": 8,
+    "skipped": [
+      "BumpProgramGLX",
+      "CoinRenderCameraReuseReferenceTest"
+    ],
+    "qualified_distinct_passed": 252,
+    "full_run_log": "bgfx-full-concurrent.log",
+    "command": "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU=1 COIN_BGFX_RENDERER=vulkan ctest --test-dir /tmp/coin-render-first-frame-bgfx --output-on-failure -j 2",
+    "retest": {
+      "command": "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU=1 COIN_BGFX_RENDERER=vulkan ctest --test-dir /tmp/coin-render-first-frame-bgfx --rerun-failed --output-on-failure -j 1",
+      "passed": 1,
+      "exit_code": 0,
+      "seconds": 6.23,
+      "timeout_unchanged_seconds": 30,
+      "log": "bgfx-fog-isolated-retest.log"
+    },
+    "new_fixtures_vulkan_opengl_passed": 6,
+    "new_fixture_log": "bgfx-gates.log"
+  },
+  "rust": {
+    "unit_passed": 34,
+    "depth_shader_passed": 2,
+    "shadow_shader_passed": 3,
+    "total_passed": 39,
+    "exit_code": 0,
+    "log": "rust.log",
+    "command": "CARGO_TARGET_DIR=/tmp/coin-render-first-frame-wgpu/rust_target /home/dikluwe/.cargo/bin/cargo test --manifest-path src/rendering/coinwgpu/rust_bridge/Cargo.toml -- --test-threads=1"
+  },
+  "fixture_coverage": {
+    "geometry_viewport_per_backend": 214,
+    "viewport_style_resize": 118,
+    "bindings_alpha_normals_fastpath": 80,
+    "mixed_lights_fog_depth_external": 16,
+    "p07_cpu_cases": 151,
+    "p07_gpu_cases": 119,
+    "p07_gpu_coingl_references": 61,
+    "added_p02_cpu_styles_uv_cases": 80,
+    "added_p02_gpu_styles_uv_cases": 48,
+    "added_p02_coingl_styles_uv_cases": 32
+  },
+  "known_open_probes": [
+    {
+      "command": "CoinRenderProceduralTextureTest --probe-sphere",
+      "exit_code": 1,
+      "cpu_gpu_max_rgb_error": 1,
+      "cpu_coingl_max_rgb_error": 5,
+      "log": "open-sphere.log"
+    },
+    {
+      "command": "CoinRenderProceduralTextureTest --probe-cone",
+      "exit_code": 1,
+      "cpu_gpu_mae": 2.93584,
+      "cpu_gpu_max_rgb_error": 120,
+      "log": "open-cone.log"
+    }
+  ],
+  "notes": [
+    "Full BGFX and wgpu campaigns ran concurrently; elapsed times are not benchmarks.",
+    "BGFX fog timed out in the concurrent run and passed once isolated, with no code/tolerance/timeout change. This suggests load sensitivity but does not establish its sole cause.",
+    "Open contour probes are opt-in diagnostic failures, excluded from the approved CTest profile; the checklist keeps them open.",
+    "diagnostic-bindings-contours-before.log predates the binding correction; wgpu-gates-before-protocol46.log predates protocol 46 and final annotation/packing regressions.",
+    "No qualification claim for Windows, FreeCAD, arbitrary stroke junctions, extended depth clamp/range/offset, all shapes or all RTT combinations."
+  ]
+}

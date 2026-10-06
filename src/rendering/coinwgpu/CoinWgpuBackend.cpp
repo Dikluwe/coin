@@ -426,27 +426,11 @@ CoinRenderSubmitResult CoinWgpuBackend::preflightRtt(const CoinRenderRttPlan& gr
       return {CoinRenderBackendStatus::UNSUPPORTED,
               "wgpu direct RTT exceeds the capacity of 64 retained textures"};
   }
-  // The bridge cannot encode an external viewport in this profile (P04).
-  // Reject the entire capture before submitting any dependent RTT producer.
-  const auto check = [](const CoinRenderFramePlan& frame, const SbVec2i32& extent) {
-    for (const auto& draw : frame.draws) {
-      const auto& state = frame.renderStates[draw.renderStateSlot];
-      if (state.viewportSlot >= frame.viewports.size())
-        continue;
-      const auto& vp = frame.viewports[state.viewportSlot];
-      if (vp.x < 0 || vp.y < 0 || int64_t(vp.x) + vp.width > extent[0] ||
-          int64_t(vp.y) + vp.height > extent[1])
-        return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED,
-                                      "wgpu RTT preflight: external viewport requires P04 support");
-    }
-    return CoinRenderSubmitResult();
-  };
-  for (const auto& producer : graph.producers) {
-    auto result = check(producer.plan, producer.size);
-    if (result.status != CoinRenderBackendStatus::SUCCESS)
-      return result;
-  }
-  return check(root, size);
+  (void)root;
+  (void)size;
+  // Viewport projection/intersection is resolved by the shared Core during
+  // packing for each producer's own extent, including empty intersections.
+  return CoinRenderSubmitResult();
 }
 
 bool CoinWgpuBackend::readbackLoad(uint64_t& jobs, uint64_t& bytes) const {

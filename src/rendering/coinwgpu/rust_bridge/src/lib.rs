@@ -29,7 +29,7 @@ mod shader_profile;
 mod depth_transfer;
 mod instancing;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 45;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 46;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
@@ -2998,6 +2998,8 @@ fn resolved_viewport(state: &CoinWgpuRenderState, width: u32, height: u32)
     let viewport = if state.viewport[2] == 0 && state.viewport[3] == 0 {
         [0, 0, width as i32, height as i32]
     } else { state.viewport };
+    // Core's empty scissor. Keep the legacy all-zero full-target default.
+    if viewport == [0, 0, 0, 1] { return Ok(viewport); }
     let right = i64::from(viewport[0]) + i64::from(viewport[2]);
     let bottom = i64::from(viewport[1]) + i64::from(viewport[3]);
     if viewport[0] < 0 || viewport[1] < 0 || viewport[2] <= 0 || viewport[3] <= 0
@@ -3006,6 +3008,25 @@ fn resolved_viewport(state: &CoinWgpuRenderState, width: u32, height: u32)
             format!("Invalid viewport {:?}", viewport)));
     }
     Ok(viewport)
+}
+
+#[cfg(test)]
+mod viewport_tests {
+    use super::*;
+    #[test]
+    fn viewport_defaults_empty_and_bounds() {
+        let mut state: CoinWgpuRenderState = unsafe { std::mem::zeroed() };
+        assert_eq!(resolved_viewport(&state, 64, 32).unwrap(), [0,0,64,32]);
+        state.viewport = [0,0,0,1];
+        assert_eq!(resolved_viewport(&state, 64, 32).unwrap(), [0,0,0,1]);
+        state.viewport = [2,3,60,29];
+        assert_eq!(resolved_viewport(&state, 64, 32).unwrap(), [2,3,60,29]);
+        for invalid in [[-1,0,32,32],[0,0,65,32],[0,0,0,2],[0,0,32,-1],
+                        [i32::MAX,0,i32::MAX,32]] {
+            state.viewport = invalid;
+            assert!(resolved_viewport(&state, 64, 32).is_err());
+        }
+    }
 }
 
 // The Coin/Core payload is immutable during one frame. Infra only validates
@@ -3912,7 +3933,8 @@ fn encode_frame(
     for (pass_index, range) in passes.iter().enumerate() {
         if let Some(item) = draw_order.get(range.start) {
             let draw = &draws_slice[item.draw_index];
-            if draw.clear_depth_before != 0 {
+            if draw.clear_depth_before != 0 &&
+                states_slice[draw.render_state_slot as usize].viewport != [0, 0, 0, 1] {
                 let viewport = resolved_viewport(
                     &states_slice[draw.render_state_slot as usize],
                     target_width,
@@ -4043,6 +4065,7 @@ fn encode_frame(
                     continue;
                 }
                 let st = &states_slice[draw.render_state_slot as usize];
+                if st.viewport == [0, 0, 0, 1] { continue; }
                 let mat = &materials_slice[st.material_slot as usize];
 
                 let cull_face = match st.cull_mode {

@@ -344,20 +344,13 @@ int main() {
   }
   for (auto mode : {COIN_RENDER_SCENE_TEXTURE_STAGED, COIN_RENDER_SCENE_TEXTURE_DIRECT}) {
     CoinRenderRttPlan external(mode);
-    external.append(producer(10), id, diagnostic);
     auto outside = producer(11, 4);
     outside.plan = triangle(false, 5);
     external.append(outside, id, diagnostic);
-    CoinRenderTargetP noWork(SbVec2i32(4, 4));
-    CoinWgpuCacheStats before{}, after{};
-    coin_wgpu_get_cache_stats(&before);
-    CoinRenderRttExecution execution(&noWork, options);
-    CoinRenderFramePlan resolved;
-    const auto result = execution.prepare(external, consumer(2, 4), resolved);
-    coin_wgpu_get_cache_stats(&after);
-    ok &= check(result.status == CoinRenderBackendStatus::UNSUPPORTED && !noWork.backend &&
-                    before.submission_serial == after.submission_serial,
-                "external second viewport rejected before either RTT mode submits first producer");
+    auto viewportInspector = CoinRenderTargetP::createBackend();
+    ok &= check(viewportInspector->preflightRtt(external, consumer(1, 4), SbVec2i32(4, 4)).status ==
+                    CoinRenderBackendStatus::SUCCESS,
+                "external producer viewport accepted in both RTT modes after Core compensation");
   }
 #elif defined(HAVE_COIN_BGFX)
   {

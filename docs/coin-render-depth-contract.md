@@ -127,3 +127,10 @@ Limitações restantes: precisão D24 aproximada no BGFX versus bias nativo D32F
 no Rust; custo de early-Z não medido; validação visual do NaviCube/textos/
 wireframes na aplicação FreeCAD ainda pendente. Os overlays coplanares do
 teste GPU passam, mas não substituem essa validação de integração.
+
+## Ampliação de geometria/viewport em 2026-10-06
+
+Veja o [perfil P02/P04/P05/P06](coin-render-geometry-viewport-contract.md):
+viewport externo/vazio no Core, correção de bindings de normais e fixtures
+compartilhadas com resize, alpha, luzes/fog e estilos com UV procedural.
+Os limites de depth/offset e a matriz completa por shape continuam abertos.

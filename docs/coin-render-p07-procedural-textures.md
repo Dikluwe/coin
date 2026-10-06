@@ -17,7 +17,9 @@ A cena entrega coordenadas por uma destas entradas:
 Matrizes de textura continuam separadas das coordenadas e são aplicadas nos
 executores. Q é preservado e dividido por fragmento no contrato projetivo.
 Nenhum ponteiro de função ou estado Coin atravessa a fronteira GPU; não houve
-mudança dos layouts de FramePlan, vértices ou FFI Rust, que continua na revisão 45.
+mudança dos layouts de FramePlan, vértices ou FFI Rust, então na revisão 45. A rodada posterior
+[P02/P04/P05/P06](coin-render-geometry-viewport-contract.md) usa revisão 46
+para a codificação de viewport vazio, sem alterar os layouts.
 
 Wiring lê o estado e executa os callbacks; o Core indexado decide apenas sobre
 os dados explícitos que recebe. DEFAULT/FUNCTION e arrays explícitos vazios

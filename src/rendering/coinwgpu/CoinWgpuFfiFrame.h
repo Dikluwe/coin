@@ -78,7 +78,7 @@ private:
                           uint32_t width, uint32_t height,
                           const CoinRenderFramePreflight * preflight);
   void bindView(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height);
-  void batchOpaqueTriangles(const CoinRenderFramePlan & frame);
+  void batchOpaqueTriangles(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height);
   void rememberOpaqueCamera(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height);
   bool patchOpaqueCamera(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height,
                          const CoinRenderFrameReuseDecision & reuse);

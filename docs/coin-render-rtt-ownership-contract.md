@@ -119,7 +119,9 @@ pixels não era suficiente para esse nó. A fixture staged foi corrigida em P13.
 
 Falhas após executar produtores continuam possíveis; publicação transacional,
 limites concretos e tickets são qualificados no [P13](coin-render-rtt-publication-contract.md).
-Viewport parcialmente externo e recuperação geral permanecem P04/P14. BGFX
+Viewport parcialmente externo wgpu é convertido no Core em P04; combinações
+RTT ampliadas e recuperação geral permanecem abertas no
+[perfil de geometria/viewport](coin-render-geometry-viewport-contract.md). BGFX
 direto segue OBJECT; peeling/OIT dentro do produtor direto continua fora do perfil.
 
 O orçamento continua sendo um débito contratual: staged cobra quatro bytes por

@@ -118,3 +118,11 @@ builds. O teste caracteriza os bloqueios; seu sucesso significa que reproduziu
 as omissões/rejeições declaradas, não que implementou os recursos faltantes.
 O relatório de desempenho e os logs ficam em
 [prédios animados no Windows](coin-render-animated-buildings-windows.md).
+
+## Atualização em 2026-10-06
+
+O gap de viewport parcialmente externo wgpu foi implementado no Core, com
+projeção/interseção e tratamento de viewport vazio. A qualificação Linux
+NVIDIA compara CPU/BGFX Vulkan/OpenGL/wgpu/CoinGL no
+[perfil de geometria/viewport](coin-render-geometry-viewport-contract.md).
+Isso não encerra a qualificação Windows desta auditoria.

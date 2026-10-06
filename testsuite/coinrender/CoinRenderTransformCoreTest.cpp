@@ -61,11 +61,23 @@ int main() {
   const int32_t viewport[4] = {-20,10,80,40};
   CHECK(CoinRenderTransformCore::clipViewport(viewport,100,100,clipped));
   CHECK(clipped[0]==0 && clipped[1]==10 && clipped[2]==60 && clipped[3]==40);
+  const auto relative = CoinRenderTransformCore::clippedViewportTransform(vp,100,100,clipped);
+  relative.multVecMatrix(SbVec3f(-1,-1,.3f), start);
+  relative.multVecMatrix(SbVec3f(1,1,.3f), end);
+  // Native intersection is [0,10,60,40]. Reconstruct original window positions.
+  CHECK(std::abs((start[0]+1)*30-(-20)) < 1e-5f);
+  CHECK(std::abs((end[0]+1)*30-60) < 1e-5f);
+  CHECK(std::abs((start[1]+1)*20+10-10) < 1e-5f);
+  CHECK(std::abs((end[1]+1)*20+10-50) < 1e-5f);
+  CHECK(start[2]==.3f && end[2]==.3f);
   const int32_t absent[4] = {100,100,50,50};
   CHECK(!CoinRenderTransformCore::clipViewport(absent,100,100,clipped));
   CHECK(clipped[0]==0 && clipped[1]==10 && clipped[2]==60 && clipped[3]==40);
   const int32_t huge[4] = {std::numeric_limits<int32_t>::max(),0,std::numeric_limits<int32_t>::max(),10};
   CHECK(!CoinRenderTransformCore::clipViewport(huge,100,100,clipped));
+  auto emptyViewport=vp; emptyViewport.x=100;
+  CHECK(CoinRenderTransformCore::clippedViewportTransform(emptyViewport,100,100,clipped)==identity);
+  CHECK(clipped[0]==0 && clipped[1]==0 && clipped[2]==0 && clipped[3]==0);
   CHECK(vp.x == -20 && vp.width == 80); // Projection was not clipped.
   std::cout << "Shared depth, normal, viewport and scissor transforms passed\n";
   return 0;

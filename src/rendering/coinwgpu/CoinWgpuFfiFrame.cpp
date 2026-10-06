@@ -262,6 +262,21 @@ CoinWgpuFfiFrame::CoinWgpuFfiFrame()
 {
 }
 
+// All packing paths, including camera patches and baked/instanced geometry,
+// must use the same viewport compensation. FFI viewport remains the scissor.
+static SbMatrix coinWgpuProjection(const CoinRenderFramePlan & frame,
+                                  const CoinRenderRenderStateSnapshot & state,
+                                  uint32_t width, uint32_t height) {
+  SbMatrix projection = CoinRenderTransformCore::projection(state.projectionCoin, false);
+  if (state.viewportSlot < frame.viewports.size()) {
+    int32_t clipped[4];
+    projection *= CoinRenderTransformCore::clippedViewportTransform(
+      frame.viewports[state.viewportSlot], width, height, clipped);
+  }
+  return projection;
+}
+
+
 bool
 CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height,
                         std::string & outDiagnostic, bool allowInstancing)
@@ -465,7 +480,7 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     this->samplers[i].filter = static_cast<uint32_t>(frame.samplers[i].filter);
   }
 
-  this->batchOpaqueTriangles(frame);
+  this->batchOpaqueTriangles(frame, width, height);
   this->rememberOpaqueCamera(frame, width, height);
 
   this->shadowFrame = std::move(candidateShadow);
@@ -566,7 +581,7 @@ CoinWgpuFfiFrame::patchOpaqueCamera(const CoinRenderFramePlan & frame, uint32_t 
   if (std::memcmp(&key, &this->opaqueCameraState, sizeof(key)) != 0) return false;
   SbMatrix delta, normal;
   if (!CoinRenderTransformCore::cameraDelta(this->opaqueCameraAnchor, first.view, delta, normal)) return false;
-  const SbMatrix mvp = delta * CoinRenderTransformCore::projection(first.projectionCoin, false);
+  const SbMatrix mvp = delta * coinWgpuProjection(frame, first, width, height);
   if (!CoinRenderTransformCore::finiteMatrix(delta) || !CoinRenderTransformCore::finiteMatrix(normal) ||
       !CoinRenderTransformCore::finiteMatrix(mvp)) return false;
   std::memcpy(updated.model_view, delta.getValue(), sizeof(updated.model_view));
@@ -949,7 +964,7 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
       key.material_slot = 0;
       std::memcpy(key.model_view, identity.getValue(), sizeof(key.model_view));
       std::memcpy(key.normal_matrix, identity.getValue(), sizeof(key.normal_matrix));
-      const SbMatrix projection = CoinRenderTransformCore::projection(frame.renderStates[i].projectionCoin, false);
+      const SbMatrix projection = coinWgpuProjection(frame, frame.renderStates[i], width, height);
       std::memcpy(key.model_view_projection, projection.getValue(), sizeof(key.model_view_projection));
       if (i == 0) common = key;
       else if (std::memcmp(&common, &key, sizeof(key))) return false;
@@ -979,7 +994,7 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
     common.material_slot = 0;
     std::memcpy(common.model_view, identity.getValue(), sizeof(common.model_view));
     std::memcpy(common.normal_matrix, identity.getValue(), sizeof(common.normal_matrix));
-    const SbMatrix projection = CoinRenderTransformCore::projection(first.projectionCoin, false);
+    const SbMatrix projection = coinWgpuProjection(frame, first, width, height);
     std::memcpy(common.model_view_projection, projection.getValue(), sizeof(common.model_view_projection));
   }
   // Match Rust's conservative global bounds exactly: all canonical meshes
@@ -1145,7 +1160,7 @@ CoinWgpuFfiFrame::tryEarlyOpaqueBatch(const CoinRenderFramePlan & frame,
     key.material_slot = 0;
     std::memcpy(key.model_view, identity.getValue(), sizeof(key.model_view));
     std::memcpy(key.normal_matrix, identity.getValue(), sizeof(key.normal_matrix));
-    const SbMatrix projection = CoinRenderTransformCore::projection(frame.renderStates[i].projectionCoin, false);
+    const SbMatrix projection = coinWgpuProjection(frame, frame.renderStates[i], width, height);
     std::memcpy(key.model_view_projection, projection.getValue(), sizeof(key.model_view_projection));
     if (i == 0) common = key;
     else if (std::memcmp(&common, &key, sizeof(key)) != 0) return false;
@@ -1309,7 +1324,7 @@ CoinWgpuFfiFrame::tryEarlyOpaqueBatch(const CoinRenderFramePlan & frame,
 }
 
 void
-CoinWgpuFfiFrame::batchOpaqueTriangles(const CoinRenderFramePlan & frame)
+CoinWgpuFfiFrame::batchOpaqueTriangles(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height)
 {
   // Preserve composition order. Native triangle ranges with one effective
   // state can become a single draw, including shared capture geometry.
@@ -1351,8 +1366,7 @@ CoinWgpuFfiFrame::batchOpaqueTriangles(const CoinRenderFramePlan & frame)
     const SbMatrix identity = SbMatrix::identity();
     std::memcpy(key.model_view, identity.getValue(), sizeof(key.model_view));
     std::memcpy(key.normal_matrix, identity.getValue(), sizeof(key.normal_matrix));
-    const SbMatrix projection = CoinRenderTransformCore::projection(
-      frame.renderStates[draw.render_state_slot].projectionCoin, false);
+    const SbMatrix projection = coinWgpuProjection(frame, frame.renderStates[draw.render_state_slot], width, height);
     std::memcpy(key.model_view_projection, projection.getValue(), sizeof(key.model_view_projection));
     if (i == 0) common = key;
     else if (std::memcmp(&common, &key, sizeof(key)) != 0) return;
@@ -1429,7 +1443,7 @@ CoinWgpuFfiFrame::packState(const CoinRenderFramePlan & frame,
   if (!coin_render_clip_equations(src, dst.clip_planes, outDiagnostic)) return false;
   const SbMatrix modelView = src.model * src.view;
   const SbMatrix normalMatrix = CoinRenderTransformCore::normalMatrix(modelView);
-  const SbMatrix projectionWgpu = CoinRenderTransformCore::projection(src.projectionCoin, false);
+  const SbMatrix projectionWgpu = coinWgpuProjection(frame, src, targetWidth, targetHeight);
   const SbMatrix mvpWgpu = modelView * projectionWgpu;
 
   std::memcpy(dst.model_view, modelView.getValue(), sizeof(float) * 16);
@@ -1481,10 +1495,15 @@ CoinWgpuFfiFrame::packState(const CoinRenderFramePlan & frame,
               sizeof(src.textureBlendColor));
   if (src.viewportSlot < frame.viewports.size()) {
     const CoinRenderViewportSnapshot & viewport = frame.viewports[src.viewportSlot];
-    dst.viewport[0] = viewport.x;
-    dst.viewport[1] = static_cast<int32_t>(targetHeight) - viewport.y - viewport.height;
-    dst.viewport[2] = viewport.width;
-    dst.viewport[3] = viewport.height;
+    int32_t clipped[4];
+    CoinRenderTransformCore::clippedViewportTransform(viewport, targetWidth, targetHeight, clipped);
+    dst.viewport[0] = clipped[0];
+    dst.viewport[1] = static_cast<int32_t>(targetHeight) - clipped[1] - clipped[3];
+    dst.viewport[2] = clipped[2];
+    dst.viewport[3] = clipped[3];
+    // [0,0,0,1] encodes an empty Core intersection; [0,0,0,0]
+    // remains the bridge's legacy full-target default.
+    if (!clipped[2]) { dst.viewport[0] = dst.viewport[1] = 0; dst.viewport[3] = 1; }
   } else {
     dst.viewport[0] = dst.viewport[1] = 0;
     dst.viewport[2] = static_cast<int32_t>(targetWidth);

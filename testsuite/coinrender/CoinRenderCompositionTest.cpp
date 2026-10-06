@@ -663,16 +663,35 @@ bool testAnnotationDepthClearViewport() {
       ok &= check(rgba[right] < 10 && rgba[right + 1] > 240,
         "annotation clear did not release depth inside its viewport");
     }
+    if (ok) {
+      const auto original = plan.viewports[1];
+      // Clip the depth-clear barrier at the left border. Later fullscreen green
+      // stays occluded on the right; an empty barrier must not clear one pixel.
+      for (int x : {-8,80}) {
+        plan.viewports[1].x=x; plan.viewports[1].width=40;
+        const auto clipped=target->getPimpl()->executeFrame(plan);
+        target->readbackRGBA(rgba);
+        const size_t left=(32u*64u+16u)*4u, right=(32u*64u+48u)*4u;
+        ok &= check(clipped.status==CoinRenderBackendStatus::SUCCESS && rgba[right]>240 && rgba[right+1]<10,
+                    "external annotation barrier preserves depth outside intersection");
+        ok &= check(x<0 ? rgba[left]<10 && rgba[left+1]>240 : rgba[left]>240 && rgba[left+1]<10,
+                    "clipped or empty annotation barrier clears exactly its intersection");
+      }
+      plan.viewports[1]=original;
+      const auto restored=target->getPimpl()->executeFrame(plan);
+      target->readbackRGBA(rgba);
+      ok &= check(restored.status==CoinRenderBackendStatus::SUCCESS,"annotation viewport restoration");
+    }
     if (ok && backend == 1) {
       const auto before = rgba;
       const uint64_t serial = target->getLastSubmissionSerial();
-      plan.viewports[1].x = -1;
+      plan.viewports[1].width = -1;
       const auto rejected = target->getPimpl()->executeFrame(plan);
       target->readbackRGBA(rgba);
       ok &= check(rejected.status != CoinRenderBackendStatus::SUCCESS &&
-        rejected.diagnostic.find("viewport") != std::string::npos && rgba == before &&
+        rejected.diagnostic.find("Viewport") != std::string::npos && rgba == before &&
         target->getLastSubmissionSerial() == serial, "invalid annotation viewport changed the frame");
-      plan.viewports[1].x = 32;
+      plan.viewports[1].width = 32;
       CoinRenderFramePlan empty = plan;
       empty.draws.clear();
       const auto cleared = target->getPimpl()->executeFrame(empty);

@@ -1,0 +1,77 @@
+[0/1] Re-running CMake...
+-- Setting C++ standard: '11', which is the minimum needed to compile Coin.
+-- BGFX evaluation: offscreen or native window, Vulkan/OpenGL and Windows D3D12, BASE_COLOR indexed triangles and opt-in transparency modes
+-- /usr/include
+-- /usr/lib/x86_64-linux-gnu/libSM.so;/usr/lib/x86_64-linux-gnu/libICE.so;/usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so;OpenGL::EGL;OpenGL::GL;Threads::Threads
+-- Configuring done (1.0s)
+-- Generating done (0.3s)
+-- Build files have been written to: /tmp/coin-render-first-frame-bgfx
+[1/69] Building CXX object testsuite/CMakeFiles/CoinRenderStabilizationTest.dir/coinrender/CoinRenderStabilizationTest.cpp.o
+[2/69] Building CXX object testsuite/CMakeFiles/CoinRenderIndexedGeometryCoreTest.dir/coinrender/CoinRenderIndexedGeometryCoreTest.cpp.o
+[3/69] Building CXX object src/rendering/coinrender/CMakeFiles/CoinRender.dir/CoinRenderIndexedGeometryCore.cpp.o
+[4/69] Building CXX object testsuite/CMakeFiles/CoinRenderLightingTest.dir/coinrender/CoinRenderLightingTest.cpp.o
+[5/69] Linking CXX shared library lib/libCoinRender.so
+[6/69] Building CXX object testsuite/CMakeFiles/CoinRenderGeometryViewportTest.dir/coinrender/CoinRenderGeometryViewportTest.cpp.o
+[7/69] Linking CXX executable bin/coin_render_window_cone
+[8/69] Linking CXX executable bin/coin_render_viewer
+[9/69] Linking CXX executable bin/coin_render_window_benchmark
+[10/69] Linking CXX executable bin/coin_render_gl_benchmark
+[11/69] Linking CXX executable bin/coin_render_freecad_compare
+[12/69] Linking CXX executable bin/CoinRenderActionTest
+[13/69] Building CXX object testsuite/CMakeFiles/CoinRenderFogTest.dir/coinrender/CoinRenderFogTest.cpp.o
+[14/69] Linking CXX executable bin/CoinRenderBackendBoundaryTest
+[15/69] Linking CXX executable bin/CoinRenderPlanAssemblyCoreTest
+[16/69] Linking CXX executable bin/CoinRenderRuntimeBoundaryTest
+[17/69] Linking CXX executable bin/CoinRenderCameraReuseReferenceTest
+[18/69] Linking CXX executable bin/CoinRenderSelectionTest
+[19/69] Linking CXX executable bin/CoinRenderProductTest
+[20/69] Linking CXX executable bin/CoinRenderBackendContractTest
+[21/69] Linking CXX executable bin/CoinRenderGateG0Test
+[22/69] Linking CXX executable bin/CoinRenderOffscreenTest
+[23/69] Linking CXX executable bin/CoinRenderFrameCoreTest
+[24/69] Linking CXX executable bin/CoinBgfxReadbackModesTest
+[25/69] Building CXX object testsuite/CMakeFiles/CoinRenderProceduralTextureTest.dir/coinrender/CoinRenderProceduralTextureTest.cpp.o
+[26/69] Linking CXX executable bin/CoinBgfxSurfaceFeaturesTest
+[27/69] Linking CXX executable bin/CoinBgfxProgramSelectionTest
+[28/69] Linking CXX executable bin/CoinBgfxCoreTest
+[29/69] Linking CXX executable bin/CoinBgfxOffscreenTest
+[30/69] Linking CXX executable bin/CoinBgfxInstancingTest
+[31/69] Building CXX object testsuite/CMakeFiles/CoinRenderDepthContractTest.dir/coinrender/CoinRenderDepthContractTest.cpp.o
+[32/69] Linking CXX executable bin/CoinBgfxTransparencyTest
+[33/69] Linking CXX executable bin/CoinBgfxWindowTest
+[34/69] Linking CXX executable bin/CoinBgfxMultiWindowTest
+[35/69] Linking CXX executable bin/CoinRenderFrameReuseCoreTest
+[36/69] Linking CXX executable bin/CoinRenderDiagnosticShellTest
+[37/69] Linking CXX executable bin/CoinRenderGateG1Test
+[38/69] Linking CXX executable bin/CoinRenderIndexedGeometryCoreTest
+[39/69] Linking CXX executable bin/CoinRenderIndexedFastPathTest
+[40/69] Linking CXX executable bin/CoinRenderGateG2Test
+[41/69] Linking CXX executable bin/CoinWgpuCacheTest
+[42/69] Linking CXX executable bin/CoinRenderTextureTest
+[43/69] Linking CXX executable bin/CoinRenderStabilizationTest
+[44/69] Linking CXX executable bin/CoinRenderGeometryViewportTest
+[45/69] Linking CXX executable bin/CoinRenderProceduralTextureTest
+[46/69] Linking CXX executable bin/CoinRenderLightingTest
+[47/69] Linking CXX executable bin/CoinRenderFogTest
+[48/69] Linking CXX executable bin/CoinRenderGouraudInterpolationTest
+[49/69] Linking CXX executable bin/CoinRenderClipPlaneTest
+[50/69] Linking CXX executable bin/CoinRenderDrawStyleTest
+[51/69] Linking CXX executable bin/CoinRenderMultitextureTest
+[52/69] Linking CXX executable bin/CoinRenderTransparencyTest
+[53/69] Linking CXX executable bin/CoinRenderPeelingTest
+[54/69] Linking CXX executable bin/CoinRenderNodeInventoryTest
+[55/69] Linking CXX executable bin/CoinRenderFragmentPolicyTest
+[56/69] Linking CXX executable bin/CoinRenderScreenContentTest
+[57/69] Linking CXX executable bin/CoinRenderBoundingBoxTest
+[58/69] Linking CXX executable bin/CoinRenderProjectiveUvTest
+[59/69] Linking CXX executable bin/CoinRenderMarkerSetTest
+[60/69] Linking CXX executable bin/CoinRenderShadowReferenceTest
+[61/69] Linking CXX executable bin/CoinRenderMultiTargetTest
+[62/69] Linking CXX executable bin/CoinRenderPublicationTest
+[63/69] Linking CXX executable bin/CoinRenderRttOwnershipTest
+[64/69] Linking CXX executable bin/CoinRenderSceneTextureTest
+[65/69] Linking CXX executable bin/CoinRenderSceneTextureBudgetTest
+[66/69] Building CXX object testsuite/CMakeFiles/CoinRenderDepthContractTest.dir/__/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp.o
+[67/69] Linking CXX executable bin/CoinRenderDepthContractTest
+[68/69] Building CXX object testsuite/CMakeFiles/CoinRenderCompositionTest.dir/coinrender/CoinRenderCompositionTest.cpp.o
+[69/69] Linking CXX executable bin/CoinRenderCompositionTest

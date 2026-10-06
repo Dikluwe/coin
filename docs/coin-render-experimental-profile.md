@@ -6,7 +6,7 @@ estão em `experimental/include`. Desde a Onda 6, esses headers e a biblioteca
 podem ser instalados com `COIN_INSTALL_RENDER_EXPERIMENTAL=ON`, mas continuam
 experimentais, fora da API e ABI públicas estáveis de `libCoin` no Coin 4.
 A ponte C++/Rust é privada e versionada
-(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=45` nesta revisão). Não promova esses
+(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=46` nesta revisão). Não promova esses
 headers a consumidores externos como se fossem estáveis.
 
 O guia de produto, a matriz de capacidades, o manager, os exemplos instaláveis,
@@ -395,7 +395,8 @@ automática de alpha. P13 corrigiu `SoSceneTexture2` para sua política explíci
 NONE/ALPHA_BLEND; o último snapshot staged continua retendo pixels CPU para o
 log Recording. A ABI privada de frames continua na revisão 28; a consulta do epoch vivo
 do dispositivo default é uma função aditiva. A06 e A04 fecham nos perfis atuais;
-F14/F15, publicação integral, formatos/estados ampliados, viewport externo e
+F14/F15, publicação integral, formatos/estados ampliados, combinações ampliadas
+de viewport externo em RTT e
 recuperação geral permanecem nas etapas próprias. Escopo, matriz de testes e
 limites: [contrato P12](coin-render-rtt-ownership-contract.md).
 
@@ -406,7 +407,8 @@ P13 corrige a política NONE do Coin e suporta ALPHA_BLEND no snapshot comum;
 o Core decide transparência para todos os executores. Preflight detecta a
 capacidade restante de RTT do dispositivo wgpu default e a restrição OBJECT
 de produtores diretos BGFX antes de submeter produtores. Viewport externo
-wgpu é rejeitado em preflight; sua implementação continua P04.
+wgpu passou a ser convertido no Core em P04; ver o
+[perfil de geometria/viewport](coin-render-geometry-viewport-contract.md).
 
 A publicação comum protege cor, depth, serial, revisão validada e borrowed RGBA
 contra falhas tardias, usando buffers candidatos reutilizáveis. Tickets só são

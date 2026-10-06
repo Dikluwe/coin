@@ -71,6 +71,33 @@ CoinRenderFramePlan opaqueFrame(bool shared)
   return frame;
 }
 
+bool externalViewportPacking() {
+  auto frame=opaqueFrame(false);
+  CoinRenderViewportSnapshot viewport;
+  viewport.x=-16;viewport.y=-8;viewport.width=64;viewport.height=48;
+  frame.viewports.push_back(viewport);
+  CoinWgpuFfiFrame packed;
+  std::string error;
+  for (int size : {64,80,64}) {
+    ++frame.revision;
+    if(!check(packed.prepare(frame,size,size,error),"external viewport packing"))return false;
+    const auto & state=packed.getView().states[0];
+    SbMatrix matrix;matrix.setValue(state.model_view_projection);
+    SbVec3f clip;matrix.multVecMatrix(SbVec3f(0,0,0),clip);
+    // Baked geometry uses projection alone. Reconstruct the original window
+    // center (16,16) from the packed intersection, independently of Core math.
+    const float x=state.viewport[0]+(clip[0]+1)*state.viewport[2]*.5f;
+    const float y=size-state.viewport[1]-state.viewport[3]+(clip[1]+1)*state.viewport[3]*.5f;
+    if(!check(packed.getView().draw_count==1 && std::abs(x-16)<1e-5f && std::abs(y-16)<1e-5f &&
+              state.viewport[2]==48 && state.viewport[3]==40,"batched projection preserves external window coordinates after resize"))return false;
+  }
+  frame.viewports[0].x=80;++frame.revision;
+  if(!check(packed.prepare(frame,64,64,error),"empty viewport packing"))return false;
+  const auto & state=packed.getView().states[0];
+  return check(state.viewport[0]==0 && state.viewport[1]==0 && state.viewport[2]==0 && state.viewport[3]==1,
+               "empty viewport is distinct from full-target legacy default");
+}
+
 bool opaqueBatching(bool shared)
 {
   auto frame = opaqueFrame(shared);
@@ -1691,7 +1718,7 @@ main()
 {
   InstancingSwitch instancing;
   instancing.disable(true); // These controls specifically exercise baked storage.
-  if (!opaqueBatching(false) || !opaqueBatching(true) || !anchoredPhongCamera() ||
+  if (!externalViewportPacking() || !opaqueBatching(false) || !opaqueBatching(true) || !anchoredPhongCamera() ||
       !earlyBatchEquivalence(false) || !earlyBatchEquivalence(true) ||
       !incrementalBatchEquivalence(false) || !incrementalBatchEquivalence(true) ||
       !boundedIncrementalBatch()) return 1;
@@ -1734,7 +1761,7 @@ main()
       !check(!packed.reusedLastPrepare(), "initial packing reported reuse")) return 1;
 
   const CoinWgpuFrameView & first = packed.getView();
-  if (!check(first.abi_version == 45 && sizeof(CoinWgpuVertex) == 164 &&
+  if (!check(first.abi_version == 46 && sizeof(CoinWgpuVertex) == 164 &&
              sizeof(CoinWgpuRenderState) == 2292 && first.states[0].texture_projection == 1,
              "projective private protocol and vertex stride")) return 1;
   for (size_t unit = 0; unit < 8; ++unit) {

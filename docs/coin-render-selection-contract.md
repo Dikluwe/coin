@@ -124,6 +124,6 @@ A campanha ampliada corrigiu a herança de opções nas actions filhas que
 planejam RTT sem alvo próprio. O orçamento direto aninhado volta a contar
 attachments diretos. A fixture antiga de pai inválido usava um viewport menor
 que o alvo, que é válido; agora usa uma modalidade Coin desconhecida após a
-captura do produtor. Viewport externo convertido para coordenadas negativas
-pode ser rejeitado pelo wgpu após submits de produtores: o preflight completo
-desse caso continua em P04/P13, sem ser certificado pelo fechamento P11.
+captura do produtor. Viewport externo wgpu foi implementado posteriormente no Core em P04;
+combinações ampliadas em RTT continuam no
+[perfil de geometria/viewport](coin-render-geometry-viewport-contract.md).

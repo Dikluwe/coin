@@ -451,3 +451,10 @@ de ABI 25 acima registram entregas anteriores. Multitextura/combine, raster
 aliased diagonal/fracionário e alpha/clipping estão qualificados no
 [contrato P08](coin-render-multitexture-contract.md). P02 permanece aberto
 para os limites e a qualificação ampliada registrados nesta checklist.
+
+## Ampliação de geometria/viewport em 2026-10-06
+
+Veja o [perfil P02/P04/P05/P06](coin-render-geometry-viewport-contract.md):
+viewport externo/vazio no Core, correção de bindings de normais e fixtures
+compartilhadas com resize, alpha, luzes/fog e estilos com UV procedural.
+Os limites de depth/offset e a matriz completa por shape continuam abertos.

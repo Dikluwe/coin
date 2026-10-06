@@ -91,6 +91,20 @@ public:
     const float ty = (2.0f * viewport.y + viewport.height) / static_cast<float>(height) - 1.0f;
     return SbMatrix(sx,0,0,0, 0,sy,0,0, 0,0,1,0, tx,ty,0,1);
   }
+  // APIs requiring an in-target viewport use the intersection as their native
+  // viewport and compensate projection in Core. Window coordinates and depth
+  // stay those of the original Coin viewport; an empty intersection is a no-op.
+  static SbMatrix clippedViewportTransform(const CoinRenderViewportSnapshot & viewport,
+                                            int width, int height, int32_t clipped[4]) {
+    const int32_t original[4] = {viewport.x, viewport.y, viewport.width, viewport.height};
+    if (!clipViewport(original, width, height, clipped)) {
+      clipped[0] = clipped[1] = clipped[2] = clipped[3] = 0;
+      return SbMatrix::identity();
+    }
+    auto relative = viewport;
+    relative.x -= clipped[0]; relative.y -= clipped[1];
+    return viewportTransform(relative, clipped[2], clipped[3]);
+  }
   // Coin bottom-left coordinates. Empty intersection leaves the output intact.
   static bool clipViewport(const int32_t viewport[4], int width, int height,
                             int32_t clipped[4]) {

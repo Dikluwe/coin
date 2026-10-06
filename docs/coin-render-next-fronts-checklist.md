@@ -1,6 +1,6 @@
 # CoinRender: checklist das próximas frentes
 
-Atualizada em 2026-10-06, sobre a integração `601ccdf2e5`, na branch
+Atualizada em 2026-10-06, após P07 `1158dd7c1f` e a rodada P02/P04/P05/P06, na branch
 `codex/coin-render`. Os itens abaixo são pendências; capacidades já implementadas
 precisam de ampliação ou qualificação apenas nos escopos indicados.
 O [plano geral](coin-render-work-plan.md) conserva os identificadores P/F/A.
@@ -23,15 +23,26 @@ referência CoinGL no domínio válido e capacidades/documentação atualizadas.
 
 ## 2. Paridade de geometria e viewport — P02/P04/P05/P06
 
-- [ ] Ampliar LINES/POINTS/INVISIBLE por shape: contornos, clipping, offset,
-  materiais, multitextura e interação com UV procedural.
-- [ ] Resolver viewport parcialmente externo no wgpu com projeção/scissor no
-  Core; comparar a mesma entrada em BGFX e CoinGL.
-- [ ] Ampliar depth range/clamp/offset, bordas, múltiplas regiões e resize.
-- [ ] Completar a matriz de bindings/índices de materiais e normais por shape,
-  inclusive alpha heterogêneo e normais geradas.
-- [ ] Ampliar a matriz numérica de luzes e fog; preservar Gouraud no perfil
-  PHONG clássico e identificar iluminação por fragmento como extensão.
+- [x] Resolver viewport externo no wgpu com projeção/interseção no Core;
+  comparar CPU/BGFX/wgpu/CoinGL, bordas/cantos, interseção vazia, resize e
+  clear de depth das annotations em CPU/wgpu no [perfil ampliado](coin-render-geometry-viewport-contract.md).
+- [x] Corrigir normais indexadas de face/part e a ordem não indexada no fast
+  path; verificar fallback atômico e vetores esperados independentes.
+- [x] Ampliar FaceSet/IndexedFaceSet: cinco bindings, alpha heterogêneo,
+  normais fornecidas/geradas e fast path ligado/desligado (80 cenas).
+- [x] Ampliar luzes directional/point/spot simultâneas com quatro modos de fog,
+  range [.2,.8] e viewport externo (16 cenas); conservar Gouraud clássico.
+- [x] Ampliar estilos com DEFAULT/Plane e multitextura: IndexedFaceSet/Cube
+  CPU/GPU/CoinGL; Sphere CPU/GPU; Cone/Cylinder na captura CPU.
+- [ ] Resolver UV nas junções texturizadas curvas/coincidentes: Sphere/CoinGL
+  (`--probe-sphere`) e Cone CPU/GPU (`--probe-cone`); qualificar Cylinder GPU.
+- [ ] Completar estilos por shape com clipping, offset, materiais e todas as
+  combinações UV; os contornos convexos continuam delimitados por contrato.
+- [ ] Ampliar depth clamp/range/offset fora do perfil atual, múltiplas regiões,
+  transparência/sombras/RTT com viewport externo e demais bordas de raster.
+- [ ] Completar bindings/índices de materiais e normais nos demais shapes.
+- [ ] Completar a matriz numérica de luzes/fog por shape e estado; manter
+  iluminação por fragmento identificada como extensão.
 
 Fechamento: fixtures compartilhadas, restauração de estado, recuperação após
 rejeição e diferenças de raster diagnosticadas sem relaxar o esperado.

@@ -135,7 +135,7 @@ struct Scene {
     root->addChild(camera);
     auto * light = new SoLightModel; light->model = SoLightModel::BASE_COLOR; root->addChild(light);
     quality = new SoComplexity; quality->textureQuality = .5f; root->addChild(quality);
-    auto * style=new SoDrawStyle; style->lineWidth=4; style->pointSize=5; root->addChild(style);
+    style=new SoDrawStyle; style->lineWidth=4; style->pointSize=5; root->addChild(style);
     // State must reach geometry, so this group is deliberately not a separator.
     stages = new SoGroup; root->addChild(stages);
     auto * coords = new SoCoordinate3;
@@ -186,6 +186,7 @@ struct Scene {
   SoSeparator * root;
   SoGroup * stages;
   SoComplexity * quality;
+  SoDrawStyle * style;
   ProceduralFaces * faces=nullptr;
 };
 SbVec4f coordinate(const CoinRenderVertexSnapshot & v, int unit) {
@@ -301,6 +302,22 @@ bool run(bool gpu) {
       if (gpu && (shape<5 || shape==7) && (mode!=3 || shape==0 || shape==7) && !h.gl(scene,"native")) return false;
     }
   }
+  // P02/P07 interaction: native polygon contours/vertices retain procedural
+  // coordinates on canonical primitives and indexed faces, also across units.
+  h.radius=0; h.minimum=4;
+  for (int shape=0;shape<(gpu ? 3 : 5);++shape)
+    for (int style : {SoDrawStyle::LINES,SoDrawStyle::POINTS})
+      for (int mode : {0,1}) for (bool multi : {false,true}) {
+        Scene scene(shape); scene.style->style=style; scene.stage(0,mode);
+        if (multi) scene.stage(1,1);
+        for (bool fast : {false,true}) {
+          if (!h.render(scene,"polygon-style/shape-"+std::to_string(shape)+"/style-"+std::to_string(style)+
+            "/UV-"+std::to_string(mode)+"/multi-"+std::to_string(multi),fast)) return false;
+          // Curved overlapping contours keep CPU/GPU qualification; their
+          // textured CoinGL raster junctions need a dedicated sampling oracle.
+          if (gpu && shape<2 && !h.gl(scene,"polygon-style-native")) return false;
+        }
+      }
   h.radius=1; h.minimum=100;
   // Per-unit functions, mixed modes, and a primary unit above zero.
   for (int mixed=0;mixed<9;++mixed) {
@@ -388,5 +405,14 @@ bool run(bool gpu) {
 }
 int main(int argc,char ** argv) {
   SoDB::init(); CoinRenderAction::initClass(); ProceduralCoordinates::initClass(); ProceduralFaces::initClass(); EnabledEmptyTexture::initClass();
+  // Opt-in reproducers for the open textured contour junctions. These are
+  // intentionally outside the qualified CTest profile; thresholds stay intact.
+  if (argc>1 && (std::string(argv[1])=="--probe-sphere" || std::string(argv[1])=="--probe-cone")) {
+    const bool sphere=std::string(argv[1])=="--probe-sphere";
+    Harness h(true);h.radius=0;h.minimum=4;Scene scene(sphere?2:3);
+    scene.style->style=SoDrawStyle::LINES;scene.stage(0,0);
+    if (!h.render(scene,"open-coincident-contour",true)) return 1;
+    return sphere && !h.gl(scene,"open-curved-CoinGL") ? 1 : 0;
+  }
   return run(argc>1 && std::string(argv[1])=="--gpu") ? 0 : 1;
 }

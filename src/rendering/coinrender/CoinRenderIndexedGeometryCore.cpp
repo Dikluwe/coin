@@ -265,7 +265,8 @@ CoinRenderIndexedGeometryCore::buildFaces(
   CoinRenderIndexedGeometryResult output;
   output.status = CoinRenderFastPathResult::SUCCESS_PRUNE;
   std::map<VertexKey, uint32_t> uniqueVertices;
-  size_t materialVertexCounter = 0;
+  size_t vertexCounter = 0;
+  bool invalidNormalIndex = false;
   size_t validFaceIndex = 0;
 
   for (size_t faceIndex = 0; faceIndex < faces.size(); ++faceIndex) {
@@ -278,14 +279,21 @@ CoinRenderIndexedGeometryCore::buildFaces(
       faceNormal = view.normals[0];
     }
     else if ((view.normalBinding == SoNormalBindingElement::PER_FACE ||
-              view.normalBinding == SoNormalBindingElement::PER_PART) &&
+              view.normalBinding == SoNormalBindingElement::PER_PART ||
+              view.normalBinding == SoNormalBindingElement::PER_FACE_INDEXED ||
+              view.normalBinding == SoNormalBindingElement::PER_PART_INDEXED) &&
              !view.normals.empty()) {
-      const size_t normalIndex = view.normalIndex.empty()
-        ? validFaceIndex
-        : static_cast<size_t>(view.normalIndex[validFaceIndex]);
-      if (normalIndex < view.normals.size) {
-        faceNormal = view.normals[normalIndex];
+      size_t normalIndex = validFaceIndex;
+      const bool indexed = view.normalBinding == SoNormalBindingElement::PER_FACE_INDEXED ||
+                           view.normalBinding == SoNormalBindingElement::PER_PART_INDEXED;
+      if (indexed && !view.normalIndex.empty()) {
+        if (validFaceIndex >= view.normalIndex.size || view.normalIndex[validFaceIndex] < 0)
+          return finish(CoinRenderFastPathResult::FALLBACK_CONTINUE);
+        normalIndex = static_cast<size_t>(view.normalIndex[validFaceIndex]);
       }
+      if (normalIndex >= view.normals.size)
+        return finish(CoinRenderFastPathResult::FALLBACK_CONTINUE);
+      faceNormal = view.normals[normalIndex];
     }
     else if (view.normals.empty()) {
       const int32_t c0 = view.coordIndex[start];
@@ -317,6 +325,7 @@ CoinRenderIndexedGeometryCore::buildFaces(
       [&](size_t vertexOffsetInFace) -> uint32_t {
         const size_t indexPosition = start + vertexOffsetInFace;
         const int32_t coordinateIndex = view.coordIndex[indexPosition];
+        const size_t occurrence = vertexCounter++;
         const SbVec3f & position = view.positions[coordinateIndex];
         SbVec3f normal = faceNormal;
         int32_t normalKey = 0;
@@ -330,19 +339,17 @@ CoinRenderIndexedGeometryCore::buildFaces(
                  view.normalBinding == SoNormalBindingElement::PER_VERTEX_INDEXED) {
           normalKey = coordinateIndex;
           if (!view.normals.empty()) {
-            size_t normalIndex = static_cast<size_t>(coordinateIndex);
-            if (!view.normalIndex.empty() &&
-                indexPosition < view.normalIndex.size) {
-              const int32_t value = view.normalIndex[indexPosition];
-              if (value >= 0 &&
-                  static_cast<size_t>(value) < view.normals.size) {
-                normalIndex = static_cast<size_t>(value);
-              }
+            const bool indexed = view.normalBinding == SoNormalBindingElement::PER_VERTEX_INDEXED;
+            size_t normalIndex = indexed ? static_cast<size_t>(coordinateIndex) : occurrence;
+            if (indexed && !view.normalIndex.empty()) {
+              if (indexPosition >= view.normalIndex.size || view.normalIndex[indexPosition] < 0)
+                invalidNormalIndex = true;
+              else normalIndex = static_cast<size_t>(view.normalIndex[indexPosition]);
             }
             if (normalIndex < view.normals.size) {
               normal = view.normals[normalIndex];
               normalKey = static_cast<int32_t>(normalIndex);
-            }
+            } else invalidNormalIndex = true;
           }
         }
 
@@ -351,7 +358,7 @@ CoinRenderIndexedGeometryCore::buildFaces(
           materialIndex = 0;
         }
         else if (view.materialBinding == SoMaterialBindingElement::PER_VERTEX) {
-          materialIndex = static_cast<int32_t>(materialVertexCounter++);
+          materialIndex = static_cast<int32_t>(occurrence);
         }
         else if (view.materialBinding ==
                  SoMaterialBindingElement::PER_VERTEX_INDEXED) {
@@ -405,6 +412,7 @@ CoinRenderIndexedGeometryCore::buildFaces(
     }
     ++validFaceIndex;
   }
+  if (invalidNormalIndex) return finish(CoinRenderFastPathResult::FALLBACK_CONTINUE);
   return output;
 }
 

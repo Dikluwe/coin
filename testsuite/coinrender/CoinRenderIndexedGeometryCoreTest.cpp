@@ -79,6 +79,35 @@ main()
               overriddenMaterial.vertices.size() == 4,
               "material override rejected pre-existing material indices");
 
+  // Authored indices affect only indexed normal bindings. Reversed coordinate
+  // order distinguishes PER_VERTEX occurrences from coordinate-index lookup.
+  const int32_t reversed[] = {3,2,1,0,-1};
+  const SbVec3f authoredNormals[] = {{1,0,0},{0,1,0},{0,0,1},{-1,0,0}};
+  const int32_t normalIndices[] = {2,1,0,3,-1};
+  auto normalsView = makeView(quad,4,reversed,5);
+  normalsView.normals = CoinRenderSpan<SbVec3f>(authoredNormals,4);
+  normalsView.normalIndex = CoinRenderSpan<int32_t>(normalIndices,5);
+  for (auto binding : {SoNormalBindingElement::PER_FACE,SoNormalBindingElement::PER_FACE_INDEXED,
+                       SoNormalBindingElement::PER_PART,SoNormalBindingElement::PER_PART_INDEXED,
+                       SoNormalBindingElement::PER_VERTEX,SoNormalBindingElement::PER_VERTEX_INDEXED}) {
+    normalsView.normalBinding=binding;
+    auto result=CoinRenderIndexedGeometryCore::buildFaces(normalsView,baseColor);
+    ok &= check(result.status==CoinRenderFastPathResult::SUCCESS_PRUNE && result.vertices.size()==4,
+                "authored normal binding capture");
+    for(size_t i=0;i<result.vertices.size();++i) {
+      const size_t expected=binding==SoNormalBindingElement::PER_VERTEX ? i :
+        binding==SoNormalBindingElement::PER_VERTEX_INDEXED ? normalIndices[i] :
+        (binding==SoNormalBindingElement::PER_FACE_INDEXED || binding==SoNormalBindingElement::PER_PART_INDEXED) ? 2 : 0;
+      ok &= check(SbVec3f(result.vertices[i].vertex.normal)==authoredNormals[expected],
+                  "normal binding ignores or applies indices according to contract");
+    }
+  }
+  normalsView.normalBinding=SoNormalBindingElement::PER_FACE_INDEXED;
+  normalsView.normalIndex=CoinRenderSpan<int32_t>(overriddenMaterialIndices,5);
+  const auto absentNormal=CoinRenderIndexedGeometryCore::buildFaces(normalsView,baseColor);
+  ok &= check(absentNormal.status==CoinRenderFastPathResult::FALLBACK_CONTINUE && absentNormal.vertices.empty(),
+              "unavailable authored normal falls back atomically to Coin");
+
   const int32_t invalidIndices[] = {0, 1, 7, -1};
   const CoinRenderIndexedGeometryResult invalid =
     CoinRenderIndexedGeometryCore::buildFaces(
