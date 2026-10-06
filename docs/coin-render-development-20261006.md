@@ -71,4 +71,29 @@ nenhuma tolerância ou esperado visual foi relaxado para aprovar a integração.
 ## Validação
 
 Os logs desta rodada ficam em [validation/upstream-20261006](validation/upstream-20261006).
-Os resultados e limites finais são registrados após o término das campanhas.
+Código validado: `fafd3ab325`. Builds Release completos BGFX e wgpu.
+
+| Campanha | Passaram | Pulados | Falharam |
+| --- | ---: | ---: | ---: |
+| BGFX (Vulkan/OpenGL conforme o caso) | 246 | 2 | 0 |
+| wgpu/Vulkan | 185 | 2 | 0 |
+| Regressão de textura BGFX/OpenGL adicional | 1 | 0 | 0 |
+| Rust unitários | 33 | 0 | 0 |
+| Shaders Rust (depth/sombras) | 5 | 0 | 0 |
+
+`CoinTests`, incluído nas campanhas CTest, passou **418 casos e 309.076 checks**.
+Os dois skips em cada suíte foram `BumpProgramGLX` e
+`CoinRenderCameraReuseReferenceTest`; não foram contados como passes.
+Sombras GPU e referência GL foram exigidas nos testes habilitados, mas o
+oráculo CoinGL específico de oito mapas não foi exigido nesta campanha.
+
+As tentativas iniciais sob Xvfb não forneceram o oráculo GL. No display real
+com pixmap AMD, algumas comparações ficaram fora do perfil anteriormente
+qualificado. A campanha final usa NVIDIA, pbuffer GLX padrão e as variáveis
+registradas no [manifesto](validation/upstream-20261006/summary.json).
+Esses resultados não qualificam o caminho pixmap AMD desta integração.
+
+Não houve nova execução Windows, Intel física, macOS ou Android. As campanhas
+GPU concorrentes verificam contratos; seus tempos CTest não são benchmark de
+desempenho. A API pública estável Coin 4 e a ponte privada Rust mantêm seus
+formatos anteriores a esta rodada; a ponte continua na revisão 45.

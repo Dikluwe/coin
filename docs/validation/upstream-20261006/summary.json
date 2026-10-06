@@ -1,0 +1,70 @@
+{
+  "source_commit": "fafd3ab325",
+  "upstream_commit": "674e74267df863dbaf50416c477bc7f918a826d8",
+  "consolidated_parent": "468b33fa71bbc9978f67a8eabea741351b026c64",
+  "build_type": "Release",
+  "wgpu": {
+    "passed": 185,
+    "skipped": 2,
+    "failed": 0,
+    "skips": [
+      "BumpProgramGLX",
+      "CoinRenderCameraReuseReferenceTest"
+    ]
+  },
+  "rust": {
+    "unit": 33,
+    "depth_shader": 2,
+    "shadow_shader": 3,
+    "failed": 0
+  },
+  "common_environment": {
+    "__NV_PRIME_RENDER_OFFLOAD": "1",
+    "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+    "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+    "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+    "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+  },
+  "wgpu_environment": {
+    "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1"
+  },
+  "bgfx_environment": {
+    "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+    "COIN_BGFX_RENDERER": "vulkan"
+  },
+  "ctest_arguments": [
+    "--output-on-failure",
+    "-j",
+    "2"
+  ],
+  "rust_arguments": [
+    "test",
+    "--offline",
+    "--release",
+    "--",
+    "--test-threads=1"
+  ],
+  "limitations": [
+    "GL eight-map reference not required",
+    "No new Windows/Intel/macOS/Android qualification",
+    "No timing benchmark; GPU test campaigns ran concurrently"
+  ],
+  "bgfx": {
+    "passed": 246,
+    "skipped": 2,
+    "failed": 0,
+    "skips": [
+      "BumpProgramGLX",
+      "CoinRenderCameraReuseReferenceTest"
+    ]
+  },
+  "bgfx_opengl_texture": {
+    "passed": 1,
+    "failed": 0
+  },
+  "coin_inline_cases": {
+    "passed": 418,
+    "checks": 309076,
+    "included_in_ctest": true
+  }
+}

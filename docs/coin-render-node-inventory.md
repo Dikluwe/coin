@@ -125,11 +125,14 @@ uma adaptação explícita no host. Não deve ser reinterpretada em CoinBgfx e C
 
 - **SoImage:** `src/shapenodes/SoImage.cpp`, generatePrimitives, publica imagem no
   SoMultiTextureImageElement e emite um quad em espaço de viewport. GLRender usa
-  rasterização de imagem. O builder exige unidade habilitada; o SoImage isolado
-  não a habilita. O ensaio confirma quad capturado sem textura, com SUCCESS.
-  A geometria existente não encerra o contrato de imagem, alpha e alinhamento.
+  rasterização de imagem. Na caracterização inicial P15, o builder exigia unidade
+  habilitada e o SoImage isolado não a habilitava: o ensaio então capturava quad
+  sem textura, com SUCCESS. A captura explícita atual dos tipos nativos exatos
+  resolve o payload, alpha e alinhamento no perfil Linux descrito acima.
 - **SoText2:** `src/shapenodes/SoText2.cpp`, generatePrimitives, é vazio por projeto;
-  texto GL é rasterizado por outro caminho. O ensaio confirma SUCCESS sem draws.
+  texto GL é rasterizado por outro caminho. A caracterização inicial P15 retornava
+  SUCCESS sem draws. O ensaio atual exige draws e texturas da captura explícita
+  dos tipos nativos exatos; subclasses sem adaptação seguem pelo callback virtual.
 - **SoShaderProgram/SoFragmentShader:** o GL instala/executa um programa próprio;
   o plano CoinRender não captura esse programa. P25 passou a rejeitar programas
   ativos antes da publicação; o contrato de shader portátil segue aberto.
