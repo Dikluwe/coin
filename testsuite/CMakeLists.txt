@@ -412,6 +412,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND COIN_BUILD_SHARED_LIBS AND
   set_tests_properties(FontBackendMetricsAndFallback PROPERTIES SKIP_RETURN_CODE 77)
 endif()
 
+# Private C helpers are not exported by Windows shared builds.
+if(NOT WIN32 OR NOT COIN_BUILD_SHARED_LIBS)
 if(HAVE_THREADS)
   find_package(Threads REQUIRED)
   add_executable(CoinFontCacheThreadTest FontCacheThreadTest.cpp)
@@ -451,6 +453,8 @@ add_test(NAME FontSpecificationParsing COMMAND CoinFontSpecTest)
 add_test(NAME FontSpecificationWithoutFontconfig COMMAND CoinFontSpecTest)
 set_tests_properties(FontSpecificationWithoutFontconfig PROPERTIES ENVIRONMENT "COIN_FORCE_FONTCONFIG_OFF=1")
 
+endif()
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND COIN_BUILD_SHARED_LIBS AND
    (HAVE_FREETYPE OR FREETYPE_RUNTIME_LINKING))
   add_executable(CoinFontRepresentationTest FontRepresentationTest.cpp)
@@ -468,4 +472,13 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND COIN_BUILD_SHARED_LIBS AND
   target_include_directories(CoinFontconfigCleanupTest PRIVATE ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
   target_link_libraries(CoinFontconfigCleanupTest PRIVATE Coin)
   add_test(NAME FontconfigFailureCleanup COMMAND CoinFontconfigCleanupTest)
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND COIN_BUILD_SHARED_LIBS AND
+   (HAVE_FREETYPE OR FREETYPE_RUNTIME_LINKING))
+  add_executable(CoinFontTessellationTest FontTessellationTest.cpp)
+  target_compile_definitions(CoinFontTessellationTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+  target_include_directories(CoinFontTessellationTest PRIVATE ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+  target_link_libraries(CoinFontTessellationTest PRIVATE Coin)
+  add_test(NAME FontTessellationFailureRecovery COMMAND CoinFontTessellationTest)
 endif()
