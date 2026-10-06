@@ -29,7 +29,7 @@ void main()
   }
   v_color0 = vec4(clamp(color, 0.0, 1.0), a_color0.a);
   v_specular = a_color2;
-  v_texcoord0 = a_texcoord0;
+  v_texcoord0 = vec3(a_texcoord0, a_texcoord3.w);
   v_viewPosition = a_texcoord1;
   v_viewNormal = a_texcoord2;
   v_material = a_texcoord3.xy;

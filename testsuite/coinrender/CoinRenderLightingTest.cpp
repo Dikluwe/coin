@@ -34,9 +34,11 @@
 #include <string>
 #include <vector>
 
-static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 44,
-              "Shadow, opaque-instance and alpha-test bridge protocol");
+static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 45,
+              "Shadow, opaque-instance, alpha-test and projective-UV bridge protocol");
 static_assert(sizeof(CoinWgpuLight) == 64, "3C light layout");
+static_assert(sizeof(CoinWgpuRenderState) == 2292, "Texture projection policy bridge layout");
+static_assert(offsetof(CoinWgpuRenderState, texture_projection) == 2288, "Texture projection policy bridge tail");
 
 namespace {
 enum SceneLight { DIRECTIONAL, POINT, SPOT_INSIDE, SPOT_OUTSIDE };

@@ -409,6 +409,7 @@ bool sameTextureState(const CoinBgfxDraw & lhs,
                       const CoinBgfxDraw & rhs)
 {
   return std::memcmp(lhs.textureCombines, rhs.textureCombines, sizeof(lhs.textureCombines)) == 0 &&
+    lhs.textureProjection == rhs.textureProjection &&
     std::memcmp(lhs.extraTextures, rhs.extraTextures, sizeof(lhs.extraTextures)) == 0 &&
     lhs.hasTexture == rhs.hasTexture &&
     lhs.textureSlot == rhs.textureSlot && lhs.textureModel == rhs.textureModel &&
@@ -1200,6 +1201,8 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
     .add(bgfx::Attrib::TexCoord5, 4, bgfx::AttribType::Float)
     .add(bgfx::Attrib::TexCoord6, 4, bgfx::AttribType::Float)
     .add(bgfx::Attrib::TexCoord7, 4, bgfx::AttribType::Float)
+    .add(bgfx::Attrib::Tangent, 4, bgfx::AttribType::Float)
+    .add(bgfx::Attrib::Bitangent, 4, bgfx::AttribType::Float)
     .end();
   this->instancedLayout.begin()
     .add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
@@ -1634,6 +1637,7 @@ CoinBgfxBackend::bindDrawTexture(
     params[unit][0] = layer.enabled ? 1.0f : 0.0f;
     params[unit][1] = static_cast<float>(layer.model);
     params[unit][2] = directRenderTarget && !bgfx::getCaps()->originBottomLeft ? 1.0f : 0.0f;
+    params[unit][3] = static_cast<float>(draw.textureProjection);
     std::memcpy(blend[unit], layer.blendColor, sizeof(layer.blendColor));
     bgfx::setTexture(static_cast<uint8_t>(unit + 2),
       unit == 0 ? this->textureSampler : this->extraTextureSamplers[unit - 1], texture, flags);

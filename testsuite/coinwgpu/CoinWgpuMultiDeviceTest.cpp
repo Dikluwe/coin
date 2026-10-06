@@ -345,6 +345,7 @@ bool cacheIsolation() {
     vertices[i].normal[2] = 1.0f;
     vertices[i].texcoord[0] = 0.5f;
     vertices[i].texcoord[1] = 0.5f;
+    vertices[i].texcoord[3] = 1.0f;
   }
   const uint32_t indices[3] = {0, 1, 2};
   CoinWgpuDraw draw{};

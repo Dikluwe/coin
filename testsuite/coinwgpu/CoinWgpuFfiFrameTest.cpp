@@ -802,6 +802,12 @@ bool instancedMatchesBake(const CoinWgpuFrameView & fast, const CoinWgpuFrameVie
 bool opaqueInstancingEquivalence(bool shared)
 {
   auto frame = opaqueFrame(shared);
+  // Dormant texture coordinates still belong to the canonical geometry proof.
+  // Every occurrence shares the same homogeneous values, including non-unit q.
+  for (size_t v = 0; v < frame.vertices.size(); ++v) for (size_t unit = 0; unit < 8; ++unit) {
+    frame.vertices[v].textureR[unit] = float(unit + (v % 3)) * .125f;
+    frame.vertices[v].textureQ[unit] = float(unit + 1) * .25f;
+  }
   frame.revision = 1800;
   frame.lightingStates.resize(1);
   CoinRenderLightSourceSnapshot light;
@@ -1700,6 +1706,13 @@ main()
   frame.vertices[0].position[0] = 2.0f;
   frame.vertices[0].screenSpaceW = 2.0f;
   frame.vertices[0].fogEyeDepth = 4.0f;
+  for (size_t unit = 0; unit < 8; ++unit) {
+    float * uv = unit ? frame.vertices[0].extraTexcoords[unit - 1] : frame.vertices[0].texcoord;
+    uv[0] = float(unit + 1) * .125f;
+    uv[1] = float(unit + 2) * .25f;
+    frame.vertices[0].textureR[unit] = float(unit + 3) * .5f;
+    frame.vertices[0].textureQ[unit] = float(unit + 4) * .75f;
+  }
   frame.indices.push_back(0);
   CoinRenderTextureImageSnapshot texture;
   texture.width = 1;
@@ -1711,6 +1724,7 @@ main()
   frame.textures.push_back(texture);
   frame.lightingStates.push_back(CoinRenderLightingSnapshot{});
   frame.renderStates.push_back(CoinRenderRenderStateSnapshot{});
+  frame.renderStates[0].textureProjection = CoinRenderTextureProjection::DIRECT_ST;
   frame.renderStates[0].polygonOffsetSlopeBias = -.01f;
   frame.renderStates[0].polygonOffsetMaxDepth = .75f;
 
@@ -1720,6 +1734,17 @@ main()
       !check(!packed.reusedLastPrepare(), "initial packing reported reuse")) return 1;
 
   const CoinWgpuFrameView & first = packed.getView();
+  if (!check(first.abi_version == 45 && sizeof(CoinWgpuVertex) == 164 &&
+             sizeof(CoinWgpuRenderState) == 2292 && first.states[0].texture_projection == 1,
+             "projective private protocol and vertex stride")) return 1;
+  for (size_t unit = 0; unit < 8; ++unit) {
+    const float * packedUv = unit ? first.vertices[0].extra_texcoords[unit - 1] : first.vertices[0].texcoord;
+    const float * sourceUv = unit ? frame.vertices[0].extraTexcoords[unit - 1] : frame.vertices[0].texcoord;
+    if (!check(packedUv[0] == sourceUv[0] && packedUv[1] == sourceUv[1] &&
+               packedUv[2] == frame.vertices[0].textureR[unit] &&
+               packedUv[3] == frame.vertices[0].textureQ[unit],
+               "all eight homogeneous texture coordinates must be owned without predivision")) return 1;
+  }
   if (!check(first.sorted_layers_passes == 4 && first.transparency_reserved == 0 &&
                  first.transparency_budget_bytes == uint64_t(256) * 1024 * 1024,
              "transparency options were not packed") ||
@@ -1737,6 +1762,9 @@ main()
     return 1;
 
   frame.vertices[0].position[0] = 9.0f;
+  frame.renderStates[0].textureProjection = CoinRenderTextureProjection::PROJECTIVE;
+  frame.vertices[0].textureR[7] = 99.0f;
+  frame.vertices[0].textureQ[7] = 100.0f;
   frame.indices[0] = 7;
   frame.textures[0].pixelsRgba[0] = 99;
   if (!check(packed.prepare(frame, 128, 16, diagnostic), "cached packing failed") ||
@@ -1745,13 +1773,21 @@ main()
   if (!check(reused.width == 128 && reused.height == 16, "reuse did not update target dimensions") ||
       !check(reused.camera_base_revision == 0, "exact reuse must not claim a camera patch") ||
       !check(reused.vertices[0].position[0] == 2.0f, "reuse observed a mutated source frame") ||
+      !check(reused.states[0].texture_projection == 1, "reuse observed mutated source projection policy") ||
+      !check(reused.vertices[0].extra_texcoords[6][2] == 5.0f &&
+                 reused.vertices[0].extra_texcoords[6][3] == 8.25f,
+             "reuse observed mutated source homogeneous texture coordinates") ||
       !check(reused.indices[0] == 0, "reuse observed mutated source indices") ||
       !check(reused.textures[0].pixels[0] == 10, "reuse observed mutated texture bytes")) return 1;
 
   frame.revision = 42;
   if (!check(packed.prepare(frame, 128, 16, diagnostic), "new revision packing failed") ||
       !check(!packed.reusedLastPrepare(), "new revision incorrectly reused packing") ||
-      !check(packed.getView().vertices[0].position[0] == 9.0f, "new revision was not repacked")) return 1;
+      !check(packed.getView().vertices[0].position[0] == 9.0f, "new revision was not repacked") ||
+      !check(packed.getView().states[0].texture_projection == 0, "new revision must repack projection policy") ||
+      !check(packed.getView().vertices[0].extra_texcoords[6][2] == 99.0f &&
+                 packed.getView().vertices[0].extra_texcoords[6][3] == 100.0f,
+             "new revision must repack homogeneous texture coordinates")) return 1;
 
   frame.revision = 43;
   SbMatrix moved = SbMatrix::identity();

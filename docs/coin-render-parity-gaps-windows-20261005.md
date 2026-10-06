@@ -23,6 +23,15 @@ O [contrato de marcadores](coin-render-marker-contract.md) registra o perfil
 qualificado em Linux e os limites herdados do registro/alinhamento do CoinGL.
 Essa atualização ainda exige qualificação Windows.
 
+UV projetivo também recebeu captura homogênea ST/R/Q e divisão por fragmento.
+O [contrato de UV](coin-render-projective-uv-contract.md) distingue o render
+clássico do shader de ShadowGroup e registra os limites da referência CoinGL
+para multitextura nesta GPU. UV procedural/default continua na tabela abaixo.
+O piloto também registrou uma diferença de RTT: o produtor FBO nativo herda
+a matriz de textura externa, enquanto pbuffer e captura CoinRender começam
+independentemente. Essa herança ainda precisa de um contrato próprio; os gates
+projetivos aplicam a matriz do consumidor após `SceneTexture`.
+
 ## Funcionalidades que faltam ou têm contrato limitado
 
 | Prioridade | Recurso Coin | Comportamento atual verificado | Dono e próximo fechamento |

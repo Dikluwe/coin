@@ -205,7 +205,7 @@ void main()
   if (depth <= texture2D(s_prevDepth, gl_FragCoord.xy * u_depthInfo.xy).x) discard;
 #endif
   vec4 surface = coinSurfaceColor(gl_FragCoord.xy, color, v_texcoord0,
-    v_viewPosition, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7);
+    v_viewPosition, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7, vec4_splat(1.0), vec4_splat(1.0));
   surface.rgb = clamp(surface.rgb + specularColor, 0.0, 1.0);
 #ifdef COIN_SHADOW_OIT
   if (surface.a <= 0.0) discard;

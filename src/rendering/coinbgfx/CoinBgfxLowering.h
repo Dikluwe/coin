@@ -32,8 +32,11 @@ struct CoinBgfxVertex {
   float ambient[4];
   float specular[4];
   float emission[4];
-  float material[4]; // shininess, PHONG enabled, homogeneous W, reserved
+  float material[4]; // shininess, PHONG enabled, clip W, texture unit zero Q
   float extraTexcoords[4][4]; // pairs of UVs for units 1..7
+  // Homogeneous texture divisors for units 1..7, carried by the otherwise
+  // unused tangent/bitangent attributes. Unit zero stays in the compact prefix.
+  float extraTextureQ[2][4];
 };
 struct CoinBgfxInstancedVertex {
   float position[3];
@@ -51,6 +54,7 @@ static_assert(sizeof(CoinBgfxInstance) == 160, "BGFX instance stride");
 typedef std::array<float, 31> CoinBgfxVertexPrefix;
 static_assert(sizeof(CoinBgfxVertexPrefix) == offsetof(CoinBgfxVertex, extraTexcoords),
               "BGFX compact layout must match the full vertex attribute prefix");
+static_assert(sizeof(CoinBgfxVertex) == 220, "BGFX projective vertex stride");
 
 struct CoinBgfxDraw {
   float mvp[16];
@@ -69,6 +73,7 @@ struct CoinBgfxDraw {
   CoinRenderFrontFace frontFace;
   bool depthTest = true;
   bool depthWrite = true;
+  CoinRenderTextureProjection textureProjection = CoinRenderTextureProjection::PROJECTIVE;
   CoinRenderDepthFunction depthFunction = CoinRenderDepthFunction::LESS;
   float depthRange[2] = {0.0f, 1.0f};
   float polygonOffsetFactor = 0.0f; // Effective, style-filtered bias.

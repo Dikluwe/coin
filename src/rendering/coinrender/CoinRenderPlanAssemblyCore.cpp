@@ -56,10 +56,6 @@ void CoinRenderPlanAssemblyCore::normalizeState(CoinRenderRenderStateSnapshot & 
   state.linePattern &= 0xffffu;
   state.linePatternScaleFactor = std::max(1, state.linePatternScaleFactor);
 }
-bool CoinRenderPlanAssemblyCore::projectTexcoord(const SbVec4f & uv, float (&output)[2]) {
-  if (std::abs(uv[3]) <= 1.0e-8f) return false;
-  output[0] = uv[0] / uv[3]; output[1] = uv[1] / uv[3]; return true;
-}
 void CoinRenderPlanAssemblyCore::sortingCenter(CoinRenderDrawPacket & draw,
                                               const SbMatrix & model, const SbVec3f & local) {
   SbVec3f center;
@@ -188,6 +184,7 @@ uint32_t CoinRenderPlanAssemblyCore::state(CoinRenderFramePlan & plan, StateInde
         existing.frontFace == rs.frontFace &&
         existing.depthTest == rs.depthTest &&
         existing.depthWrite == rs.depthWrite &&
+        existing.textureProjection == rs.textureProjection &&
         existing.depthFunction == rs.depthFunction &&
         existing.alphaTestFunction == rs.alphaTestFunction &&
         existing.alphaTestReference == rs.alphaTestReference &&

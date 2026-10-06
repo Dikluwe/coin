@@ -20,7 +20,6 @@ public:
   static void normalizeCamera(CoinRenderCameraSnapshot &);
   static void transformLight(CoinRenderLightSourceSnapshot &);
   static void normalizeState(CoinRenderRenderStateSnapshot &, const CoinRenderCameraSnapshot &);
-  static bool projectTexcoord(const SbVec4f &, float (&)[2]);
   static void sortingCenter(CoinRenderDrawPacket &, const SbMatrix &, const SbVec3f &);
   static uint32_t material(CoinRenderFramePlan &, const CoinRenderMaterialSnapshot &);
   static uint32_t lighting(CoinRenderFramePlan &, const CoinRenderLightingSnapshot &);

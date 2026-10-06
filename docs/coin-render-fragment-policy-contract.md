@@ -59,6 +59,8 @@ o par C++/Rust; os offsets anteriores são preservados.
 Neste build Linux, o estado comum cresce de 1.640 para 1.648 bytes e o estado
 FFI de 2.280 para 2.288 bytes. O stride da tabela GPU de materiais permanece
 80 bytes; nenhuma classe pública Coin foi alterada.
+A revisão posterior de [UV projetivo](coin-render-projective-uv-contract.md)
+leva a ABI privada a 45 e o estado FFI a 2292 bytes, sem mudar esse stride.
 
 ## REPLACE por formato de imagem
 

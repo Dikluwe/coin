@@ -246,7 +246,7 @@ bool testFiniteValidation() {
   const float invalid[] = {std::numeric_limits<float>::infinity(),
     -std::numeric_limits<float>::infinity(), std::numeric_limits<float>::quiet_NaN()};
   for (float value : invalid) {
-    for (unsigned field = 0; field < 24; ++field) {
+    for (unsigned field = 0; field < 40; ++field) {
       auto plan = validPlan();
       auto & v = plan.vertices[0];
       const char * expected;
@@ -255,7 +255,8 @@ bool testFiniteValidation() {
       else if (field < 8) { v.texcoord[field - 6] = value; expected = "Vertex contains non-finite texcoord"; }
       else if (field == 8) { v.screenSpaceW = value; expected = "Invalid expanded primitive attributes"; }
       else if (field == 9) { v.fogEyeDepth = value; expected = "Invalid expanded primitive attributes"; }
-      else { v.extraTexcoords[(field - 10) / 2][(field - 10) % 2] = value; expected = "Non-finite multitexture coordinate"; }
+      else if (field < 24) { v.extraTexcoords[(field - 10) / 2][(field - 10) % 2] = value; expected = "Non-finite multitexture coordinate"; }
+      else { (field < 32 ? v.textureR[field - 24] : v.textureQ[field - 32]) = value; expected = "Non-finite homogeneous texture coordinate"; }
       std::string diagnostic;
       ok &= check(!plan.isValid(&diagnostic) && diagnostic == expected,
                   "every captured vertex float must reject invalid data with the same diagnostic");
@@ -274,6 +275,12 @@ bool testFiniteValidation() {
                 "matrix finiteness must remain enforced");
   }
   auto finite = validPlan();
+  auto invalidPolicy = validPlan();
+  invalidPolicy.renderStates[0].textureProjection = static_cast<CoinRenderTextureProjection>(2);
+  std::string policyDiagnostic;
+  ok &= check(!invalidPolicy.isValid(&policyDiagnostic) &&
+              policyDiagnostic == "Invalid texture coordinate projection policy",
+              "invalid texture sampling policy must reject transactionally");
   finite.vertices[0].position[0] = std::numeric_limits<float>::max();
   finite.vertices[0].normal[0] = -std::numeric_limits<float>::max();
   finite.vertices[0].texcoord[0] = std::numeric_limits<float>::denorm_min();

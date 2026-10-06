@@ -29,7 +29,7 @@ mod shader_profile;
 mod depth_transfer;
 mod instancing;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 44;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 45;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
@@ -100,11 +100,11 @@ pub struct CoinWgpuSurfaceCreateInfo {
 pub struct CoinWgpuVertex {
     pub position: [f32; 3],
     pub normal: [f32; 3],
-    pub texcoord: [f32; 2],
+    pub texcoord: [f32; 4],
     pub material_slot: u32,
     pub screen_space_w: f32,
     pub fog_eye_depth_plus_one: f32,
-    pub extra_texcoords: [[f32; 2]; 7],
+    pub extra_texcoords: [[f32; 4]; 7],
 }
 
 #[repr(C)]
@@ -309,6 +309,7 @@ pub struct CoinWgpuRenderState {
     pub texture_combines: [[[f32; 4]; 4]; 8],
     pub alpha_test_function: u32,
     pub alpha_test_reference: f32,
+    pub texture_projection: u32,
 }
 
 fn valid_alpha_test(st: &CoinWgpuRenderState) -> bool {
@@ -328,14 +329,173 @@ fn valid_texture_program(p: &[[f32; 4]; 4]) -> bool {
 }
 
 fn valid_texture_payload(st: &CoinWgpuRenderState) -> bool {
-    st.texture_combines.iter().all(valid_texture_program)
+    st.texture_projection <= 1 && st.texture_combines.iter().all(valid_texture_program)
         && st.extra_textures.iter().all(|t| t.enabled <= 1 && (t.enabled == 0
             || (t.model <= 3 && t.matrix.iter().chain(t.blend_color.iter()).all(|v| v.is_finite()))))
+}
+
+// Direct FFI callers obey the same nonsingular primitive contract as the
+// common capture. Inactive units permit zeroed transport, including q=0.
+fn validate_texture_coordinates(st: &CoinWgpuRenderState, topology: u32,
+    vertices: &[CoinWgpuVertex], indices: &[u32]) -> Result<(), String> {
+    if st.texture_projection > 1 { return Err("Invalid texture projection policy".into()); }
+    if st.has_texture == 0 && st.extra_textures.iter().all(|t| t.enabled == 0) {
+        return Ok(());
+    }
+    let primitive_size = match topology { 1 => 2, 2 => 1, _ => 3 };
+    for unit in 0..8 {
+        let matrix = if unit == 0 {
+            if st.has_texture == 0 { continue; }
+            &st.texture_matrix
+        } else {
+            let layer = &st.extra_textures[unit - 1];
+            if layer.enabled == 0 { continue; }
+            &layer.matrix
+        };
+        for primitive in indices.chunks_exact(primitive_size) {
+            let mut previous_negative = None;
+            for index in primitive {
+                let vertex = vertices.get(*index as usize).ok_or_else(||
+                    "Projective texture index out of bounds".to_string())?;
+                let coordinate = if unit == 0 { &vertex.texcoord }
+                    else { &vertex.extra_texcoords[unit - 1] };
+                if !coordinate.iter().chain(matrix.iter()).all(|v| v.is_finite()) {
+                    return Err("Non-finite homogeneous texture coordinate or matrix".into());
+                }
+                let mut transformed = [0.0_f32; 4];
+                for row in 0..4 {
+                    transformed[row] = matrix[row] * coordinate[0]
+                        + matrix[4 + row] * coordinate[1]
+                        + matrix[8 + row] * coordinate[2]
+                        + matrix[12 + row] * coordinate[3];
+                }
+                if st.texture_projection == 1 {
+                    if !transformed[..2].iter().all(|v| v.is_finite()) {
+                        return Err("Non-finite transformed direct ST texture coordinate".into());
+                    }
+                    continue;
+                }
+                if !transformed.iter().all(|v| v.is_finite()) {
+                    return Err("Non-finite transformed homogeneous texture coordinate".into());
+                }
+                let q = transformed[3];
+                let negative = q < 0.0;
+                if q == 0.0 || previous_negative.is_some_and(|previous| previous != negative) {
+                    return Err("Projective texture Q is zero or changes sign within a primitive".into());
+                }
+                if q.abs() < f32::MIN_POSITIVE || !(transformed[0] / q).is_finite()
+                    || !(transformed[1] / q).is_finite() {
+                    return Err("Projective texture coordinate exceeds finite sampling precision".into());
+                }
+                previous_negative = Some(negative);
+            }
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]
 mod texture_payload_tests {
     use super::*;
+    fn projective_fixture() -> (CoinWgpuRenderState, [CoinWgpuVertex; 3]) {
+        let mut state: CoinWgpuRenderState = unsafe { std::mem::zeroed() };
+        state.has_texture = 1;
+        for i in 0..4 { state.texture_matrix[i * 5] = 1.0; }
+        let mut vertices = [CoinWgpuVertex::zeroed(); 3];
+        for vertex in &mut vertices { vertex.texcoord = [0.5, 0.25, 0.0, 1.0]; }
+        (state, vertices)
+    }
+
+    #[test]
+    fn rejects_singular_crossing_nonfinite_and_overflowing_projective_coordinates() {
+        let (mut state, mut vertices) = projective_fixture();
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_ok());
+        vertices[1].texcoord[3] = 0.0;
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_err());
+        vertices[1].texcoord[3] = -1.0;
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_err());
+        assert!(validate_texture_coordinates(&state, 1, &vertices, &[0, 1]).is_err());
+        assert!(validate_texture_coordinates(&state, 2, &vertices, &[0, 1, 2]).is_ok(),
+            "each point owns its own q sign");
+        for vertex in &mut vertices { vertex.texcoord[3] = -2.0; }
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_ok());
+        vertices[0].texcoord[3] = f32::MIN_POSITIVE * 0.5;
+        assert!(validate_texture_coordinates(&state, 2, &vertices, &[0]).is_err());
+        vertices[0].texcoord = [f32::MAX, 0.25, 0.0, 0.5];
+        assert!(validate_texture_coordinates(&state, 2, &vertices, &[0]).is_err());
+        vertices[0].texcoord = [f32::MAX, 0.25, 0.0, 1.0];
+        state.texture_matrix[0] = 2.0;
+        assert!(validate_texture_coordinates(&state, 2, &vertices, &[0]).is_err());
+        vertices[0].texcoord = [0.5, 0.25, f32::NAN, 1.0];
+        assert!(validate_texture_coordinates(&state, 2, &vertices, &[0]).is_err());
+        vertices[0] = CoinWgpuVertex::zeroed();
+        state.has_texture = 0;
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_ok(),
+            "inactive unit zero q is valid dormant transport");
+    }
+
+    #[test]
+    fn transforms_r_into_q_and_validates_upper_unit_independently() {
+        let (mut state, mut vertices) = projective_fixture();
+        // q' = r + q. Raw positive q cannot qualify a zero/crossing transformed q.
+        state.texture_matrix[11] = 1.0;
+        vertices[1].texcoord[2] = -1.0;
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_err());
+        vertices[1].texcoord[2] = -2.0;
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_err());
+        for vertex in &mut vertices { vertex.texcoord[2] = -3.0; }
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_ok());
+        state.has_texture = 0;
+        let upper = &mut state.extra_textures[6];
+        upper.enabled = 1;
+        for i in 0..4 { upper.matrix[i * 5] = 1.0; }
+        upper.matrix[11] = 1.0;
+        for vertex in &mut vertices { vertex.extra_texcoords[6] = [0.5, 0.25, 0.0, 1.0]; }
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_ok());
+        vertices[2].extra_texcoords[6][2] = -1.0;
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_err());
+        state.extra_textures[6].enabled = 0;
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_ok());
+    }
+
+    #[test]
+    fn direct_st_policy_permits_singular_q_but_requires_finite_st_and_raw_payload() {
+        let (mut state, mut vertices) = projective_fixture();
+        vertices[0].texcoord[3] = 0.0;
+        vertices[1].texcoord[3] = -1.0;
+        vertices[2].texcoord[3] = f32::MIN_POSITIVE * 0.5;
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_err());
+        let projective = state;
+        state.texture_projection = 1;
+        assert!(valid_texture_payload(&state));
+        assert!(!same_camera_independent_state(&projective, &state),
+            "projection policy participates in state reuse even without a shadow map");
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_ok());
+        // Native direct ST does not sample R/Q, so a finite input whose Q row
+        // overflows remains valid when the transformed S/T rows stay finite.
+        vertices[0].texcoord = [0.5, 0.25, f32::MAX, 1.0];
+        state.texture_matrix[11] = 2.0;
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_ok());
+        vertices[0].texcoord[0] = f32::MAX;
+        state.texture_matrix[0] = 2.0;
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_err());
+        vertices[0].texcoord = [0.5, 0.25, f32::NAN, 1.0];
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_err());
+        vertices[0].texcoord = [0.5, 0.25, 0.0, 1.0];
+        state.has_texture = 0;
+        state.extra_textures[6].enabled = 1;
+        for i in 0..4 { state.extra_textures[6].matrix[i * 5] = 1.0; }
+        for vertex in &mut vertices { vertex.extra_texcoords[6] = [0.5, 0.25, 0.0, 0.0]; }
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_ok());
+        state.texture_projection = 0;
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_err());
+        state.texture_projection = 2;
+        state.extra_textures[6].enabled = 0;
+        assert!(!valid_texture_payload(&state));
+        assert!(validate_texture_coordinates(&state, 0, &vertices, &[0, 1, 2]).is_err(),
+            "unknown projection policy is rejected even without active texture units");
+    }
+
     #[test]
     fn rejects_malformed_programs_and_extra_unit_values() {
         let mut state: CoinWgpuRenderState = unsafe { std::mem::zeroed() };
@@ -360,13 +520,18 @@ mod texture_payload_tests {
 
 const _: () = {
     assert!(std::mem::size_of::<CoinWgpuTextureUnit>() == 96);
-    assert!(std::mem::offset_of!(CoinWgpuVertex, extra_texcoords) == 44);
+    assert!(std::mem::offset_of!(CoinWgpuVertex, texcoord) == 24);
+    assert!(std::mem::offset_of!(CoinWgpuVertex, material_slot) == 40);
+    assert!(std::mem::offset_of!(CoinWgpuVertex, screen_space_w) == 44);
+    assert!(std::mem::offset_of!(CoinWgpuVertex, fog_eye_depth_plus_one) == 48);
+    assert!(std::mem::offset_of!(CoinWgpuVertex, extra_texcoords) == 52);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, extra_textures) == 1096);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, texture_combines) == 1768);
-    assert!(std::mem::size_of::<CoinWgpuVertex>() == 100);
-    assert!(std::mem::size_of::<CoinWgpuRenderState>() == 2288);
+    assert!(std::mem::size_of::<CoinWgpuVertex>() == 164);
+    assert!(std::mem::size_of::<CoinWgpuRenderState>() == 2292);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, alpha_test_function) == 2280);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, alpha_test_reference) == 2284);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, texture_projection) == 2288);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, polygon_offset_max_depth_bits) == 1092);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, polygon_offset_slope_bias) == 1088);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, clip_plane_count) == 956);
@@ -951,7 +1116,7 @@ impl CachedOffscreenAttachments {
 }
 
 fn same_camera_independent_state(a: &CoinWgpuRenderState, b: &CoinWgpuRenderState) -> bool {
-    if a.alpha_test_function != b.alpha_test_function ||
+    if a.texture_projection != b.texture_projection || a.alpha_test_function != b.alpha_test_function ||
         a.alpha_test_reference.to_bits() != b.alpha_test_reference.to_bits() { return false; }
     a.light_direction == b.light_direction && a.light_color == b.light_color
         && a.light_intensity == b.light_intensity && a.has_light == b.has_light
@@ -1053,10 +1218,11 @@ fn camera_scene_eligible(
     owned_bytes <= max_owned_scene_bytes
         && textures.is_empty() && samplers.is_empty()
         && states.iter().all(|s| (s.light_model == 0 || opaque_camera_batch(states, draws, order))
-            && s.fog_mode == 0 && s.has_texture == 0 && s.extra_textures.iter().all(|t| t.enabled == 0))
+            && s.fog_mode == 0 && s.has_texture == 0 && s.texture_projection <= 1
+            && s.extra_textures.iter().all(|t| t.enabled == 0))
         && materials.iter().all(|m| m.diffuse[3] == 1.0 && m.transparency == 0.0)
         && order.iter().all(|item| !item.blend)
-        && vertices.iter().all(|v| v.position.iter().chain(v.normal.iter()).all(|x| x.is_finite())
+        && vertices.iter().all(|v| v.position.iter().chain(v.normal.iter()).chain(v.texcoord.iter()).all(|x| x.is_finite())
             && v.extra_texcoords.iter().flatten().all(|x| x.is_finite())
             && v.screen_space_w.is_finite() && v.screen_space_w >= 0.0
             && v.fog_eye_depth_plus_one.is_finite() && v.fog_eye_depth_plus_one >= 0.0
@@ -2673,32 +2839,32 @@ fn get_or_create_pipeline<'a>(
                 shader_location: 1,
             },
             wgpu::VertexAttribute {
-                format: wgpu::VertexFormat::Float32x2,
+                format: wgpu::VertexFormat::Float32x4,
                 offset: 24,
                 shader_location: 2,
             },
             wgpu::VertexAttribute {
                 format: wgpu::VertexFormat::Uint32,
-                offset: 32,
+                offset: 40,
                 shader_location: 3,
             },
             wgpu::VertexAttribute {
                 format: wgpu::VertexFormat::Float32,
-                offset: 36,
+                offset: 44,
                 shader_location: 4,
             },
             wgpu::VertexAttribute {
                 format: wgpu::VertexFormat::Float32,
-                offset: 40,
+                offset: 48,
                 shader_location: 5,
             },
-            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x2, offset: 44, shader_location: 6 },
-            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x2, offset: 52, shader_location: 7 },
-            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x2, offset: 60, shader_location: 8 },
-            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x2, offset: 68, shader_location: 9 },
-            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x2, offset: 76, shader_location: 10 },
-            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x2, offset: 84, shader_location: 11 },
-            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x2, offset: 92, shader_location: 12 },
+            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x4, offset: 52, shader_location: 6 },
+            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x4, offset: 68, shader_location: 7 },
+            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x4, offset: 84, shader_location: 8 },
+            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x4, offset: 100, shader_location: 9 },
+            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x4, offset: 116, shader_location: 10 },
+            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x4, offset: 132, shader_location: 11 },
+            wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x4, offset: 148, shader_location: 12 },
         ],
     };
 
@@ -2899,6 +3065,9 @@ fn encode_frame(
     use wgpu::util::DeviceExt;
     if !states_slice.iter().all(valid_alpha_test) {
         return Err((CoinWgpuStatus::InvalidArgument, "Invalid alpha comparison function or reference".into()));
+    }
+    if states_slice.iter().any(|st| st.texture_projection > 1) {
+        return Err((CoinWgpuStatus::InvalidArgument, "Invalid texture projection policy".into()));
     }
     if shadow_frame.is_some() && states_slice.iter().any(|st|
         st.alpha_test_function != 0 && st.alpha_test_function != 2) {
@@ -3292,11 +3461,11 @@ fn encode_frame(
     // frames update only states; scanning a million vertices would defeat reuse.
     let unchecked_vertices = if camera_geometry.is_none() { vertices_slice } else { &[] };
     for (v_idx, v) in unchecked_vertices.iter().enumerate() {
-        if !v.extra_texcoords.iter().flatten().all(|x| x.is_finite())
+        if !v.texcoord.iter().chain(v.extra_texcoords.iter().flatten()).all(|x| x.is_finite())
             || !v.screen_space_w.is_finite() || v.screen_space_w < 0.0
             || !v.fog_eye_depth_plus_one.is_finite() || v.fog_eye_depth_plus_one < 0.0 {
             return Err((CoinWgpuStatus::InvalidArgument,
-                format!("Vertex {} has invalid homogeneous stroke attributes", v_idx)));
+                format!("Vertex {} has invalid homogeneous texture/stroke attributes", v_idx)));
         }
         if (v.material_slot as usize) >= materials_slice.len() {
             return Err((CoinWgpuStatus::InvalidArgument, format!("Vertex {} references invalid material_slot {} >= material_count {}", v_idx, v.material_slot, materials_slice.len())));
@@ -4038,7 +4207,7 @@ fn encode_frame(
                         } else {
                             0.0
                         },
-                        0.0,
+                        st.texture_projection as f32,
                     ]
                 });
                 let extra_texture_blends =
@@ -4119,7 +4288,7 @@ fn encode_frame(
                         } else {
                             0.0
                         },
-                        0.0,
+                        st.texture_projection as f32,
                     ],
                     ambient_light: st.ambient_light,
                     light_meta: [st.light_count as f32, 0.0,
@@ -5254,6 +5423,11 @@ fn coin_wgpu_surface_submit_internal(
             }
             if !valid_texture_payload(st) {
                 set_error(error_buf, error_buf_len, "Invalid normalized texture program or extra unit state");
+                return CoinWgpuStatus::InvalidArgument;
+            }
+            if let Err(message) = validate_texture_coordinates(st, draw.topology, vertices_slice,
+                &indices_slice[draw.first_index as usize..idx_end]) {
+                set_error(error_buf, error_buf_len, &format!("Draw {i}: {message}"));
                 return CoinWgpuStatus::InvalidArgument;
             }
             for layer in &st.extra_textures {
@@ -6417,6 +6591,11 @@ fn coin_wgpu_submit_internal(
             }
             if !valid_texture_payload(st) {
                 set_error(error_buf, error_buf_len, "Invalid normalized texture program or extra unit state");
+                return CoinWgpuStatus::InvalidArgument;
+            }
+            if let Err(message) = validate_texture_coordinates(st, draw.topology, vertices_slice,
+                &indices_slice[draw.first_index as usize..idx_end]) {
+                set_error(error_buf, error_buf_len, &format!("Draw {i}: {message}"));
                 return CoinWgpuStatus::InvalidArgument;
             }
             for layer in &st.extra_textures {

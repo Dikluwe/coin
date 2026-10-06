@@ -534,6 +534,11 @@ CoinRenderIndexedGeometryCore::payloadDigest(
     hashBytes(vertex.normal, sizeof(vertex.normal));
     hashBytes(vertex.texcoord, sizeof(vertex.texcoord));
     hashBytes(&vertex.materialSlot, sizeof(vertex.materialSlot));
+    hashBytes(vertex.extraTexcoords, sizeof(vertex.extraTexcoords));
+    hashBytes(&vertex.screenSpaceW, sizeof(vertex.screenSpaceW));
+    hashBytes(&vertex.fogEyeDepth, sizeof(vertex.fogEyeDepth));
+    hashBytes(vertex.textureR, sizeof(vertex.textureR));
+    hashBytes(vertex.textureQ, sizeof(vertex.textureQ));
   }
   if (!indices.empty()) {
     hashBytes(indices.data(), indices.size() * sizeof(uint32_t));

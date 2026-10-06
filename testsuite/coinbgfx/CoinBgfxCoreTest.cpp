@@ -586,6 +586,169 @@ bool diagonalInstancing(const CoinRenderFramePlan & base)
               "bounded span metadata must decline without publishing a partial instance plan");
   return ok;
 }
+
+bool projectiveTextureLowering(const CoinRenderFramePlan & base)
+{
+  bool ok = check(sizeof(CoinBgfxVertex) == 220 &&
+                  sizeof(CoinBgfxVertexPrefix) == 124 &&
+                  offsetof(CoinBgfxVertex, extraTexcoords) == 124 &&
+                  offsetof(CoinBgfxVertex, extraTextureQ) == 188 &&
+                  sizeof(CoinBgfxInstancedVertex) == 24 && sizeof(CoinBgfxInstance) == 160,
+                  "projective transport changed the compact or instanced vertex layout");
+  CoinRenderFramePlan frame = base;
+  CoinRenderTextureImageSnapshot image;
+  image.width = image.height = 1;
+  image.pixelsRgba = {255, 255, 255, 255};
+  frame.textures.push_back(image);
+  frame.samplers.emplace_back();
+  auto & state = frame.renderStates[0];
+  state.hasTexture = true;
+  SbMatrix textureMatrix = SbMatrix::identity();
+  textureMatrix[0][0] = 2.0f;
+  textureMatrix[1][1] = 3.0f;
+  textureMatrix[2][0] = .5f;
+  textureMatrix[2][1] = .25f;
+  textureMatrix[3][0] = .125f;
+  textureMatrix[3][1] = -.25f;
+  textureMatrix[0][3] = .1f;
+  textureMatrix[1][3] = .05f;
+  textureMatrix[2][3] = .2f;
+  textureMatrix[3][3] = 4.0f;
+  state.textureMatrix = textureMatrix;
+  for (auto & layer : state.extraTextures) {
+    layer.enabled = true;
+    layer.matrix = textureMatrix;
+  }
+  for (size_t vertex = 0; vertex < frame.vertices.size(); ++vertex) {
+    auto & source = frame.vertices[vertex];
+    for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+      float * st = unit ? source.extraTexcoords[unit - 1] : source.texcoord;
+      st[0] = .25f * float(vertex + 1) + float(unit);
+      st[1] = .5f * float(vertex + 1) - float(unit);
+      source.textureR[unit] = 2.0f + float(unit);
+      source.textureQ[unit] = 2.0f + .5f * float(vertex) + .25f * float(unit);
+    }
+  }
+  CoinBgfxPlan plan;
+  std::string diagnostic;
+  if (!check(CoinBgfxLowering::lower(frame, 4, 4, false, plan, diagnostic),
+             "valid homogeneous coordinates were rejected during BGFX lowering")) return false;
+  ok &= check(!plan.usesCompactVertices && !plan.usesInstancing &&
+              plan.vertices.size() == frame.vertices.size() &&
+              plan.draws[0].textureProjection == CoinRenderTextureProjection::PROJECTIVE,
+              "textured homogeneous geometry entered an untextured compact/instance profile");
+  const auto near = [](float a, float b) {
+    return std::abs(a - b) <= 2.0e-6f * std::max(1.0f, std::abs(b));
+  };
+  for (size_t vertex = 0; vertex < plan.vertices.size(); ++vertex) {
+    const auto & source = frame.vertices[vertex];
+    const auto & lowered = plan.vertices[vertex];
+    for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+      const float * st = unit ? source.extraTexcoords[unit - 1] : source.texcoord;
+      const float * packedSt = unit
+        ? &lowered.extraTexcoords[(unit - 1) / 2][((unit - 1) % 2) * 2] : lowered.texcoord;
+      const float r = source.textureR[unit], q = source.textureQ[unit];
+      const float expectedS = 2.0f * st[0] + .5f * r + .125f * q;
+      const float expectedT = 3.0f * st[1] + .25f * r - .25f * q;
+      const float expectedQ = .1f * st[0] + .05f * st[1] + .2f * r + 4.0f * q;
+      const float packedQ = unit ? lowered.extraTextureQ[(unit - 1) / 4][(unit - 1) % 4]
+                                : lowered.material[3];
+      ok &= check(near(packedSt[0], expectedS) && near(packedSt[1], expectedT) &&
+                  near(packedQ, expectedQ),
+                  "BGFX must preserve transformed S/T/Q, including R and every texture unit");
+      ok &= check(!near(packedSt[0], expectedS / expectedQ),
+                  "BGFX lowering divided projective coordinates before fragment interpolation");
+    }
+    ok &= check(lowered.extraTextureQ[1][3] == 1.0f,
+                "unused final texture Q packing lane must retain its neutral value");
+  }
+  CoinBgfxPlan materialUpdate = plan;
+  materialUpdate.vertices[1].color[0] = .25f;
+  materialUpdate.vertices[1].material[0] = .75f;
+  std::vector<CoinBgfxVertexRange> ranges;
+  ok &= check(CoinBgfxLowering::materialPatchRanges(plan, materialUpdate, ranges) &&
+              ranges.size() == 1 && ranges[0].first == 1 && ranges[0].count == 1,
+              "unchanged homogeneous coordinates must allow a real material-only patch");
+  for (int lane : {0, 1, 7}) {
+    CoinBgfxPlan changed = materialUpdate;
+    if (lane == 0) changed.vertices[2].material[3] += .5f;
+    else changed.vertices[2].extraTextureQ[(lane - 1) / 4][(lane - 1) % 4] += .5f;
+    ok &= check(!CoinBgfxLowering::materialPatchRanges(plan, changed, ranges) &&
+                ranges.size() == 1 && ranges[0].first == 1 && ranges[0].count == 1,
+                "a texture Q change must reject a material patch without publishing partial ranges");
+  }
+  CoinBgfxPlan policyChanged = materialUpdate;
+  policyChanged.draws[0].textureProjection = CoinRenderTextureProjection::DIRECT_ST;
+  ok &= check(!CoinBgfxLowering::materialPatchRanges(plan, policyChanged, ranges) &&
+              ranges.size() == 1 && ranges[0].first == 1 && ranges[0].count == 1,
+              "a texture sampling policy change must reject a material patch transactionally");
+  CoinRenderFramePlan direct = frame;
+  direct.renderStates[0].textureProjection = CoinRenderTextureProjection::DIRECT_ST;
+  direct.renderStates[0].textureMatrix = SbMatrix::identity();
+  for (auto & layer : direct.renderStates[0].extraTextures) layer.matrix = SbMatrix::identity();
+  for (size_t vertex = 0; vertex < direct.vertices.size(); ++vertex)
+    for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit)
+      direct.vertices[vertex].textureQ[unit] = vertex == 0 ? 0.0f : vertex == 1 ? -2.0f : 3.0f;
+  CoinBgfxPlan directPlan;
+  if (!check(CoinBgfxLowering::lower(direct, 4, 4, false, directPlan, diagnostic) &&
+             directPlan.draws.size() == 1 &&
+             directPlan.draws[0].textureProjection == CoinRenderTextureProjection::DIRECT_ST,
+             "direct ST sampling must carry its policy and permit unused zero/sign-changing Q")) return false;
+  for (size_t vertex = 0; vertex < directPlan.vertices.size(); ++vertex) {
+    const auto & source = direct.vertices[vertex];
+    const auto & lowered = directPlan.vertices[vertex];
+    ok &= check(lowered.texcoord[0] == source.texcoord[0] &&
+                lowered.texcoord[1] == source.texcoord[1] &&
+                lowered.material[3] == source.textureQ[0] &&
+                lowered.extraTextureQ[1][2] == source.textureQ[7],
+                "direct ST policy must preserve captured homogeneous payload without clamping Q");
+  }
+  CoinRenderFramePlan directReplay = direct;
+  directReplay.renderStates[0].lightModel = CoinRenderLightModel::PHONG;
+  directReplay.draws.resize(300, directReplay.draws[0]);
+  ok &= sharedRangeMatchesGeneral(directReplay);
+  direct.renderStates[0].textureProjection = CoinRenderTextureProjection::PROJECTIVE;
+  const CoinBgfxPlan unchanged = directPlan;
+  ok &= check(!CoinBgfxLowering::lower(direct, 4, 4, false, directPlan, diagnostic) &&
+              diagnostic.find("Projective texture Q") != std::string::npos &&
+              sameBytes(directPlan.vertices, unchanged.vertices) &&
+              sameBytes(directPlan.draws, unchanged.draws),
+              "projective policy must reject singular Q without publishing a partial direct ST plan");
+  CoinRenderFramePlan disabled = frame;
+  disabled.renderStates[0].hasTexture = false;
+  for (size_t unit = 1; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit)
+    if (unit % 2) disabled.renderStates[0].extraTextures[unit - 1].enabled = false;
+  CoinBgfxPlan disabledPlan;
+  if (!check(CoinBgfxLowering::lower(disabled, 4, 4, false, disabledPlan, diagnostic),
+             "disabled units rejected a valid homogeneous texture plan")) return false;
+  for (size_t vertex = 0; vertex < disabledPlan.vertices.size(); ++vertex) {
+    const auto & lowered = disabledPlan.vertices[vertex];
+    ok &= check(lowered.material[3] == 1.0f,
+                "disabled unit zero must keep a neutral Q in the compact prefix");
+    for (size_t unit = 1; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+      const float q = lowered.extraTextureQ[(unit - 1) / 4][(unit - 1) % 4];
+      ok &= check(unit % 2 ? q == 1.0f
+                          : q == plan.vertices[vertex].extraTextureQ[(unit - 1) / 4][(unit - 1) % 4],
+                  "disabled unit Q must stay neutral without disturbing another unit");
+    }
+  }
+  CoinRenderFramePlan negative = frame;
+  for (auto & source : negative.vertices)
+    for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+      float * st = unit ? source.extraTexcoords[unit - 1] : source.texcoord;
+      st[0] = -st[0]; st[1] = -st[1];
+      source.textureR[unit] = -source.textureR[unit];
+      source.textureQ[unit] = -source.textureQ[unit];
+    }
+  CoinBgfxPlan negativePlan;
+  if (!check(CoinBgfxLowering::lower(negative, 4, 4, false, negativePlan, diagnostic),
+             "sign-consistent negative homogeneous Q must remain supported")) return false;
+  for (size_t vertex = 0; vertex < negativePlan.vertices.size(); ++vertex)
+    ok &= check(negativePlan.vertices[vertex].material[3] == -plan.vertices[vertex].material[3] &&
+                negativePlan.vertices[vertex].extraTextureQ[1][2] == -plan.vertices[vertex].extraTextureQ[1][2],
+                "BGFX changed the sign of a valid homogeneous texture divisor");
+  return ok;
+}
 }
 
 int main()
@@ -611,6 +774,7 @@ int main()
   frame.draws.push_back(draw);
 
   bool ok = compositionBorrowLowering(frame);
+  ok &= projectiveTextureLowering(frame);
   CoinBgfxProgramCache programCache(16, 12, 2);
   const uint8_t binary[8] = {0, 1, 2, 3, 4, 5, 6, 7};
   const uint8_t replacement[8] = {7, 6, 5, 4, 3, 2, 1, 0};

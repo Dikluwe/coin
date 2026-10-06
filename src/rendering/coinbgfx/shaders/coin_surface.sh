@@ -21,8 +21,12 @@ uniform vec4 u_clipMeta;
 uniform vec4 u_clipPlanes[8];
 #include "coin_alpha.sh"
 
-vec2 coinSurfaceUv(vec2 uv, vec4 params)
+vec2 coinSurfaceUv(vec2 st, float q, vec4 params)
 {
+  // Coin's fixed-function surface divides after perspective interpolation.
+  // Its ShadowGroup shader samples transformed ST directly, ignoring Q.
+  // Core captures this policy independently of the selected GPU pipeline.
+  vec2 uv = params.w > 0.5 ? st : st / q;
   return params.z > 0.5 ? vec2(uv.x, 1.0 - uv.y) : uv;
 }
 vec4 coinTextureLayer(vec4 color, vec4 texColor, vec4 params, vec4 blendColor)
@@ -64,8 +68,9 @@ vec4 coinTextureProgram(vec4 primary, vec4 previous, vec4 tex, vec4 params, vec4
   float a = meta.y > 6.5 ? rgb.r * alphaArgs.w : alpha.a * alphaArgs.w;
   return clamp(vec4(rgb.rgb * rgbArgs.w, a), 0.0, 1.0);
 }
-vec4 coinSurfaceColor(vec2 pixelCoord, vec4 v_color0, vec2 v_texcoord0, vec3 v_viewPosition,
-                      vec4 v_texcoords4, vec4 v_texcoords5, vec4 v_texcoords6, vec4 v_texcoords7)
+vec4 coinSurfaceColor(vec2 pixelCoord, vec4 v_color0, vec3 v_texcoord0, vec3 v_viewPosition,
+                      vec4 v_texcoords4, vec4 v_texcoords5, vec4 v_texcoords6, vec4 v_texcoords7,
+                      vec4 textureQ0, vec4 textureQ1)
 {
   for (int i = 0; i < 8; ++i) {
     if (float(i) >= u_clipMeta.x) break;
@@ -91,22 +96,22 @@ vec4 coinSurfaceColor(vec2 pixelCoord, vec4 v_color0, vec2 v_texcoord0, vec3 v_v
   if (u_screenDoor.w > 0.5) color.a = 1.0;
   vec4 primary = color;
   if (u_texParams[0].x > 0.5)
-    color = coinTextureProgram(primary, color, texture2D(s_texColor, coinSurfaceUv(v_texcoord0, u_texParams[0])), u_texParams[0], u_texBlend[0], 0);
+    color = coinTextureProgram(primary, color, texture2D(s_texColor, coinSurfaceUv(v_texcoord0.xy, v_texcoord0.z, u_texParams[0])), u_texParams[0], u_texBlend[0], 0);
 #ifndef COIN_SHADOW_SURFACE
   if (u_texParams[1].x > 0.5)
-    color = coinTextureProgram(primary, color, texture2D(s_texColor1, coinSurfaceUv(v_texcoords4.xy, u_texParams[1])), u_texParams[1], u_texBlend[1], 1);
+    color = coinTextureProgram(primary, color, texture2D(s_texColor1, coinSurfaceUv(v_texcoords4.xy, textureQ0.x, u_texParams[1])), u_texParams[1], u_texBlend[1], 1);
   if (u_texParams[2].x > 0.5)
-    color = coinTextureProgram(primary, color, texture2D(s_texColor2, coinSurfaceUv(v_texcoords4.zw, u_texParams[2])), u_texParams[2], u_texBlend[2], 2);
+    color = coinTextureProgram(primary, color, texture2D(s_texColor2, coinSurfaceUv(v_texcoords4.zw, textureQ0.y, u_texParams[2])), u_texParams[2], u_texBlend[2], 2);
   if (u_texParams[3].x > 0.5)
-    color = coinTextureProgram(primary, color, texture2D(s_texColor3, coinSurfaceUv(v_texcoords5.xy, u_texParams[3])), u_texParams[3], u_texBlend[3], 3);
+    color = coinTextureProgram(primary, color, texture2D(s_texColor3, coinSurfaceUv(v_texcoords5.xy, textureQ0.z, u_texParams[3])), u_texParams[3], u_texBlend[3], 3);
   if (u_texParams[4].x > 0.5)
-    color = coinTextureProgram(primary, color, texture2D(s_texColor4, coinSurfaceUv(v_texcoords5.zw, u_texParams[4])), u_texParams[4], u_texBlend[4], 4);
+    color = coinTextureProgram(primary, color, texture2D(s_texColor4, coinSurfaceUv(v_texcoords5.zw, textureQ0.w, u_texParams[4])), u_texParams[4], u_texBlend[4], 4);
   if (u_texParams[5].x > 0.5)
-    color = coinTextureProgram(primary, color, texture2D(s_texColor5, coinSurfaceUv(v_texcoords6.xy, u_texParams[5])), u_texParams[5], u_texBlend[5], 5);
+    color = coinTextureProgram(primary, color, texture2D(s_texColor5, coinSurfaceUv(v_texcoords6.xy, textureQ1.x, u_texParams[5])), u_texParams[5], u_texBlend[5], 5);
   if (u_texParams[6].x > 0.5)
-    color = coinTextureProgram(primary, color, texture2D(s_texColor6, coinSurfaceUv(v_texcoords6.zw, u_texParams[6])), u_texParams[6], u_texBlend[6], 6);
+    color = coinTextureProgram(primary, color, texture2D(s_texColor6, coinSurfaceUv(v_texcoords6.zw, textureQ1.y, u_texParams[6])), u_texParams[6], u_texBlend[6], 6);
   if (u_texParams[7].x > 0.5)
-    color = coinTextureProgram(primary, color, texture2D(s_texColor7, coinSurfaceUv(v_texcoords7.xy, u_texParams[7])), u_texParams[7], u_texBlend[7], 7);
+    color = coinTextureProgram(primary, color, texture2D(s_texColor7, coinSurfaceUv(v_texcoords7.xy, textureQ1.z, u_texParams[7])), u_texParams[7], u_texBlend[7], 7);
 #endif
   coinAlphaTest(color.a);
   float mode = u_fogColorMode.w;

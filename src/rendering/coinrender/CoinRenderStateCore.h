@@ -32,6 +32,7 @@ coin_render_same_state_except_camera(const CoinRenderRenderStateSnapshot & a,
     a.cameraSlot == b.cameraSlot && a.viewportSlot == b.viewportSlot &&
     a.cullMode == b.cullMode && a.frontFace == b.frontFace &&
     a.depthTest == b.depthTest && a.depthWrite == b.depthWrite &&
+    a.textureProjection == b.textureProjection &&
     a.explicitDepthMask == b.explicitDepthMask &&
     a.screenDoorTransparency == b.screenDoorTransparency &&
     a.depthFunction == b.depthFunction &&

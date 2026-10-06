@@ -61,12 +61,13 @@ static_assert(offsetof(CoinWgpuFrameView, transparency_reserved) == 164,
 static_assert(offsetof(CoinWgpuFrameView, transparency_budget_bytes) == 168,
               "Transparency budget ABI offset changed");
 static_assert(sizeof(CoinWgpuTextureUnit) == 96, "Texture unit ABI size changed");
-static_assert(offsetof(CoinWgpuVertex, extra_texcoords) == 44, "Extra UV ABI offset changed");
+static_assert(offsetof(CoinWgpuVertex, extra_texcoords) == 52, "Extra UV ABI offset changed");
 static_assert(offsetof(CoinWgpuRenderState, extra_textures) == 1096, "Extra textures ABI offset changed");
 static_assert(offsetof(CoinWgpuRenderState, texture_combines) == 1768, "Combine ABI offset changed");
-static_assert(sizeof(CoinWgpuRenderState) == 2288, "CoinWgpuRenderState ABI size changed");
+static_assert(sizeof(CoinWgpuRenderState) == 2292, "CoinWgpuRenderState ABI size changed");
 static_assert(offsetof(CoinWgpuRenderState, alpha_test_function) == 2280, "Alpha function ABI tail changed");
 static_assert(offsetof(CoinWgpuRenderState, alpha_test_reference) == 2284, "Alpha reference ABI tail changed");
+static_assert(offsetof(CoinWgpuRenderState, texture_projection) == 2288, "Texture projection ABI tail changed");
 static_assert(offsetof(CoinWgpuRenderState, polygon_offset_max_depth_bits) == 1092, "Maximum depth ABI offset changed");
 static_assert(offsetof(CoinWgpuRenderState, polygon_offset_slope_bias) == 1088, "Slope bias ABI offset changed");
 static_assert(offsetof(CoinWgpuRenderState, polygon_offset_enabled) == 936, "Polygon offset ABI tail changed");
@@ -189,7 +190,7 @@ bool sameOpaquePackedFields(const CoinRenderRenderStateSnapshot & a,
       std::memcmp(&a.alphaTestReference, &b.alphaTestReference, sizeof(float)) ||
       std::memcmp(a.textureCombines, b.textureCombines, sizeof(a.textureCombines)) ||
       a.textureImageSlot != b.textureImageSlot || a.samplerSlot != b.samplerSlot ||
-      a.textureModel != b.textureModel ||
+      a.textureModel != b.textureModel || a.textureProjection != b.textureProjection ||
       std::memcmp(a.textureBlendColor, b.textureBlendColor, sizeof(a.textureBlendColor)) ||
       std::memcmp(a.fogColor, b.fogColor, sizeof(a.fogColor)) ||
       std::memcmp(&a.fogStart, &b.fogStart, sizeof(float)) ||
@@ -233,7 +234,13 @@ void packVertex(const CoinRenderVertexSnapshot & src, CoinWgpuVertex & dst)
   std::memcpy(dst.normal, src.normal, sizeof(src.normal));
   std::memcpy(dst.texcoord, src.texcoord, sizeof(src.texcoord));
   dst.material_slot = src.materialSlot;
-  std::memcpy(dst.extra_texcoords, src.extraTexcoords, sizeof(dst.extra_texcoords));
+  dst.texcoord[2] = src.textureR[0];
+  dst.texcoord[3] = src.textureQ[0];
+  for (size_t unit = 0; unit < 7; ++unit) {
+    std::memcpy(dst.extra_texcoords[unit], src.extraTexcoords[unit], sizeof(src.extraTexcoords[unit]));
+    dst.extra_texcoords[unit][2] = src.textureR[unit + 1];
+    dst.extra_texcoords[unit][3] = src.textureQ[unit + 1];
+  }
   dst.screen_space_w = src.screenSpaceW;
   dst.fog_eye_depth_plus_one = src.fogEyeDepth >= 0 ? src.fogEyeDepth + 1.0f : 0.0f;
 }
@@ -659,7 +666,7 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
   const char * loweringDisabled = std::getenv("COIN_WGPU_DISABLE_DIAGONAL_MESH_LOWERING");
   const bool diagonalEnabled = !(loweringDisabled && std::strcmp(loweringDisabled, "1") == 0);
   const size_t materialOffset = offsetof(CoinRenderVertexSnapshot, materialSlot);
-  static_assert(sizeof(CoinRenderVertexSnapshot) == 100, "Source vertex proof layout changed");
+  static_assert(sizeof(CoinRenderVertexSnapshot) == 164, "Source vertex proof layout changed");
   const auto hashBytes = [](uint64_t hash, const unsigned char * bytes, size_t length) {
     for (size_t i = 0; i < length; ++i) hash = (hash ^ bytes[i]) * 1099511628211ull;
     return hash;
@@ -682,7 +689,7 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
       }
       // Positions are handled above; every remaining attribute except the
       // uniform per-instance material is compared directly, without hashing
-      // or making a 100-byte temporary vertex for each source occurrence.
+      // or making a temporary vertex for each source occurrence.
       const auto * p = reinterpret_cast<const unsigned char *>(&x);
       const auto * q = reinterpret_cast<const unsigned char *>(&y);
       if (std::memcmp(p + sizeof(x.position), q + sizeof(y.position), materialOffset - sizeof(x.position)) ||
@@ -792,6 +799,8 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
             candidate.maxNormal[c] = std::max(candidate.maxNormal[c],std::abs(double(vertex.normal[c])));
           }
           for (float coordinate : vertex.texcoord) if (!std::isfinite(coordinate)) return false;
+          for (float coordinate : vertex.textureR) if (!std::isfinite(coordinate)) return false;
+          for (float coordinate : vertex.textureQ) if (!std::isfinite(coordinate)) return false;
           for (const auto & unit : vertex.extraTexcoords)
             for (float coordinate : unit) if (!std::isfinite(coordinate)) return false;
         }
@@ -920,7 +929,7 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
       }
       else {
         // Every state is visited, including unreferenced states. Common source
-        // equality proves the ordinary packed key without rewriting 2288 bytes
+        // equality proves the ordinary packed key without rewriting 2292 bytes
         // or computing an MVP which the instanced payload discards.
         modelView = frame.renderStates[i].model * frame.renderStates[i].view;
         normal = CoinRenderTransformCore::normalMatrix(modelView);
@@ -1057,7 +1066,7 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
   return true;
 }
 
-// Qualify without allocating one 2288-byte GPU state per occurrence. Every
+// Qualify without allocating one 2292-byte GPU state per occurrence. Every
 // captured state still passes the ordinary packer; only its two bake matrices
 // survive the scan. Publication happens after all draws and states qualify.
 // Unsupported profiles keep the full pack-then-batch mechanism below.
@@ -1409,7 +1418,13 @@ CoinWgpuFfiFrame::packState(const CoinRenderFramePlan & frame,
     return false;
   }
   dst.alpha_test_function = static_cast<uint32_t>(src.alphaTestFunction);
+  if (src.textureProjection != CoinRenderTextureProjection::PROJECTIVE &&
+      src.textureProjection != CoinRenderTextureProjection::DIRECT_ST) {
+    outDiagnostic = "Invalid texture projection policy";
+    return false;
+  }
   dst.alpha_test_reference = src.alphaTestReference;
+  dst.texture_projection = static_cast<uint32_t>(src.textureProjection);
   dst.clip_plane_count = static_cast<uint32_t>(src.clipPlanesWorld.size());
   if (!coin_render_clip_equations(src, dst.clip_planes, outDiagnostic)) return false;
   const SbMatrix modelView = src.model * src.view;

@@ -235,6 +235,30 @@ mod tests {
     }
 
     #[test]
+    fn homogeneous_coordinates_are_part_of_owned_geometry_and_admission() {
+        let (frame, mut vertices, draws, materials, states, instances, ranges) = fixture();
+        let order = [composition::CompositionItem { draw_index: 0, blend: false, additive: false,
+            screen_door: false, screen_door_level: 0, peel: false, weighted: false }];
+        let base = camera_scene(7, &frame, &vertices, &[0, 1, 2], &draws, &materials,
+            &states, &order, &[], &[], &instances, &ranges, None).unwrap();
+        assert!(same_geometry(&base.geometry, &vertices, &[0, 1, 2]));
+        vertices[0].texcoord[2] = 0.25;
+        assert!(!same_geometry(&base.geometry, &vertices, &[0, 1, 2]));
+        vertices[0].texcoord[2] = 0.0;
+        vertices[0].extra_texcoords[6][3] = 2.0;
+        assert!(!same_geometry(&base.geometry, &vertices, &[0, 1, 2]));
+        assert!(validate_payload(&frame, &vertices, &[0, 1, 2], &draws, &materials,
+            &states, &instances, &ranges).is_ok());
+        vertices[0].extra_texcoords[6][3] = f32::INFINITY;
+        assert!(validate_payload(&frame, &vertices, &[0, 1, 2], &draws, &materials,
+            &states, &instances, &ranges).is_err());
+        vertices[0].extra_texcoords[6][3] = 0.0;
+        vertices[0].texcoord[2] = f32::NAN;
+        assert!(validate_payload(&frame, &vertices, &[0, 1, 2], &draws, &materials,
+            &states, &instances, &ranges).is_err());
+    }
+
+    #[test]
     fn rejects_partial_overflow_nonfinite_slots_and_noncontiguous_ranges() {
         let (mut frame, vertices, draws, mut materials, states, mut instances, mut ranges) = fixture();
         let valid = |instances: &[CoinWgpuInstance], ranges: &[CoinWgpuInstanceRange], materials: &[CoinWgpuMaterial]| {

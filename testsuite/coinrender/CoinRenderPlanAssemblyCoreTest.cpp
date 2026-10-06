@@ -1,5 +1,7 @@
 #include "rendering/coinrender/CoinRenderPlanAssemblyCore.h"
 #include "rendering/coinrender/CoinRenderImageCore.h"
+#include "rendering/coinrender/CoinRenderTextureCoordinateCore.h"
+#include "rendering/coinrender/CoinRenderStateCore.h"
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -238,11 +240,22 @@ int main() {
   CHECK(SbVec3f(light.position) == SbVec3f(3,-1,3));
   CHECK(SbVec3f(light.direction) == SbVec3f(0,0,-1));
   CHECK(light.cutOffAngle == 1.570796327f && light.dropOffRate == 0);
-  float uv[2] = {7,8};
-  CHECK(!CoinRenderPlanAssemblyCore::projectTexcoord(SbVec4f(1,2,0,0), uv));
-  CHECK(uv[0] == 7 && uv[1] == 8);
-  CHECK(CoinRenderPlanAssemblyCore::projectTexcoord(SbVec4f(2,4,0,2), uv));
-  CHECK(uv[0] == 1 && uv[1] == 2);
+  CoinRenderVertexSnapshot coordinate;
+  coordinate.texcoord[0] = 2; coordinate.texcoord[1] = 4;
+  coordinate.textureR[0] = 3; coordinate.textureQ[0] = 2;
+  CHECK(coin_render_texture_coordinate(coordinate, 0) == SbVec4f(2,4,3,2));
+  SbMatrix textureMatrix = SbMatrix::identity();
+  textureMatrix[2][0] = 2; textureMatrix[2][3] = 1;
+  CHECK(coin_render_transformed_texture_coordinate(coordinate, 0, textureMatrix) == SbVec4f(8,4,3,5));
+  CoinRenderRenderStateSnapshot projectedState, directState;
+  directState.textureProjection = CoinRenderTextureProjection::DIRECT_ST;
+  CHECK(!coin_render_same_state_except_camera(projectedState, directState));
+  CoinRenderFramePlan projectionPlan;
+  CoinRenderPlanAssemblyCore::StateIndex projectionIndex;
+  CHECK(CoinRenderPlanAssemblyCore::state(projectionPlan, projectionIndex, projectedState) == 0);
+  CHECK(CoinRenderPlanAssemblyCore::state(projectionPlan, projectionIndex, directState) == 1);
+  CHECK(coin_render_project_texture_coordinate(SbVec3f(4,8,2), CoinRenderTextureProjection::PROJECTIVE) == SbVec2f(2,4));
+  CHECK(coin_render_project_texture_coordinate(SbVec3f(4,8,0), CoinRenderTextureProjection::DIRECT_ST) == SbVec2f(4,8));
 
   const uint8_t source[] = {10,20,30,40,50,60,70,80};
   const std::vector<uint8_t> expected[] = {

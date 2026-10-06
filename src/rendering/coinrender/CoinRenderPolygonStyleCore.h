@@ -3,6 +3,7 @@
 
 #include "rendering/coinrender/CoinRenderClipCore.h"
 #include "rendering/coinrender/CoinRenderLightingCore.h"
+#include "rendering/coinrender/CoinRenderTextureCoordinateCore.h"
 #include <Inventor/SbVec3d.h>
 #include <limits>
 
@@ -185,6 +186,14 @@ inline bool coin_render_prepare_polygon_style(
     CoinRenderPolygonStyleResult& result, std::string& diagnostic,
     const CoinRenderViewportSnapshot& viewport) {
   result = CoinRenderPolygonStyleResult{};
+  if (style == CoinRenderPolygonStyle::LINES) {
+    if (!coin_render_validate_texture_coordinates(state, ring.size(),
+        [&](size_t i) -> const CoinRenderVertexSnapshot & { return ring[i]; }, diagnostic)) return false;
+  } else {
+    for (const auto & vertex : ring)
+      if (!coin_render_validate_texture_coordinates(state, 1,
+          [&](size_t) -> const CoinRenderVertexSnapshot & { return vertex; }, diagnostic)) return false;
+  }
   const uint32_t primitiveStyle = style == CoinRenderPolygonStyle::LINES ? 2u : 4u;
   if (!coin_render_resolve_polygon_style(ring, state, materials, lighting, result.vertices,
                                          diagnostic))

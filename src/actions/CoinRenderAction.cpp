@@ -1725,9 +1725,13 @@ CoinRenderActionP::unsupportedEffectPreCB(void * userdata, SoCallbackAction *, c
       return SoCallbackAction::CONTINUE;
     diagnostic = "SoSceneTextureCubeMap requires a cube RTT contract and executor";
   } else if (node->isOfType(SoShaderProgram::getClassTypeId())) {
-    if (static_cast<const SoShaderProgram *>(node)->shaderObject.getNum() == 0)
-      return SoCallbackAction::CONTINUE;
-    diagnostic = "SoShaderProgram has no portable shader contract";
+    if (static_cast<const SoShaderProgram *>(node)->shaderObject.getNum() == 0) {
+      const auto * owner = static_cast<CoinRenderActionP *>(userdata);
+      if (!owner->builder.hasActiveShadowGroup()) return SoCallbackAction::CONTINUE;
+      // Empty programs remove Coin's generated shadow program, changing both
+      // lighting/shadows and texture projection without changing ShadowStyle.
+      diagnostic = "Empty SoShaderProgram disables the active shadow shader; this profile is unsupported";
+    } else diagnostic = "SoShaderProgram has no portable shader contract";
   }
   if (!diagnostic) return SoCallbackAction::CONTINUE;
   auto * p = static_cast<CoinRenderActionP *>(userdata);
@@ -2268,6 +2272,12 @@ CoinRenderActionP::indexedFaceSetPreCB(void * userdata,
   if (tcElem) {
     SoMultiTextureCoordinateElement::CoordType ct = tcElem->getType(0);
     if (ct == SoMultiTextureCoordinateElement::EXPLICIT) {
+      // The direct geometry view carries 2D coordinates. Native callbacks
+      // preserve R and Q for explicit 3D/4D coordinates.
+      if (tcElem->getDimension(0) != 2) {
+        if (vp) state->pop();
+        return SoCallbackAction::CONTINUE;
+      }
       int32_t numTc = tcElem->getNum(0);
       if (numTc > 0) {
         const SbVec2f * tcPtr = tcElem->getArrayPtr2(0);

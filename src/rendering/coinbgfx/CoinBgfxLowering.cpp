@@ -174,6 +174,7 @@ int compareDrawGroupingKey(const CoinBgfxDraw & lhs,
   if (result == 0) result = compareValue(lhs.frontFace, rhs.frontFace);
   if (result == 0) result = compareValue(lhs.depthTest, rhs.depthTest);
   if (result == 0) result = compareValue(lhs.depthWrite, rhs.depthWrite);
+  if (result == 0) result = compareValue(lhs.textureProjection, rhs.textureProjection);
   if (result == 0) result = compareValue(lhs.depthFunction, rhs.depthFunction);
   if (result == 0) result = compareBytes(lhs.depthRange, rhs.depthRange, sizeof(lhs.depthRange));
   if (result == 0) result = compareValue(lhs.polygonOffsetFactor, rhs.polygonOffsetFactor);
@@ -334,6 +335,7 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
   drawTemplate.depthFunction = firstState.depthFunction;
   drawTemplate.alphaTestFunction = firstState.alphaTestFunction;
   drawTemplate.alphaTestReference = firstState.alphaTestReference;
+  drawTemplate.textureProjection = firstState.textureProjection;
   drawTemplate.alpha = 1.0f;
   drawTemplate.viewport[0] = viewport.x; drawTemplate.viewport[1] = viewport.y;
   drawTemplate.viewport[2] = viewport.width; drawTemplate.viewport[3] = viewport.height;
@@ -376,6 +378,8 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
     if (state.alphaTestFunction != drawTemplate.alphaTestFunction ||
         std::memcmp(&state.alphaTestReference, &drawTemplate.alphaTestReference, sizeof(state.alphaTestReference)) != 0)
       return declineDraw("different inactive alpha-test state");
+    if (state.textureProjection != drawTemplate.textureProjection)
+      return declineDraw("different texture projection policy");
     if (item.drawIndex != ordinal || item.firstIndex != geometry.firstIndex ||
         item.indexCount != geometry.indexCount) return declineDraw("composition order/range");
     if (item.blend || (item.screenDoor && item.screenDoorLevel != 0) || item.sortTriangles || item.additive)
@@ -756,6 +760,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     }
     lowered.depthTest = item.depthTest;
     lowered.depthWrite = item.depthWrite;
+    lowered.textureProjection = state.textureProjection;
     lowered.depthFunction = item.depthFunction;
     lowered.depthRange[0] = item.depthRange[0];
     lowered.depthRange[1] = item.depthRange[1];
@@ -891,6 +896,9 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     if (replayRange) lowered.materialSignature = sharedRange->materialSignature;
     else if (indexed) vertexRemap.assign(draw.geometry.vertexCount, UINT32_MAX);
     CoinBgfxVertex materialVertex{};
+    materialVertex.material[3] = 1.0f;
+    for (auto & packedQ : materialVertex.extraTextureQ)
+      for (float & q : packedQ) q = 1.0f;
     const auto setMaterial = [&](CoinBgfxVertex & vertex,
                                  const CoinRenderMaterialSnapshot & material) {
       std::memcpy(vertex.color, material.diffuse, sizeof(vertex.color));
@@ -960,19 +968,22 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       if (state.hasTexture) {
         SbVec4f transformed;
         state.textureMatrix.multVecMatrix(
-          SbVec4f(source.texcoord[0], source.texcoord[1], 0.0f, 1.0f),
+          SbVec4f(source.texcoord[0], source.texcoord[1], source.textureR[0], source.textureQ[0]),
           transformed);
         vertex.texcoord[0] = transformed[0];
         vertex.texcoord[1] = transformed[1];
+        vertex.material[3] = transformed[3];
       }
       for (size_t unit = 1; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
         const auto & layer = state.extraTextures[unit - 1];
         if (!layer.enabled) continue;
         SbVec4f uv;
         layer.matrix.multVecMatrix(
-          SbVec4f(source.extraTexcoords[unit - 1][0], source.extraTexcoords[unit - 1][1], 0, 1), uv);
+          SbVec4f(source.extraTexcoords[unit - 1][0], source.extraTexcoords[unit - 1][1],
+                  source.textureR[unit], source.textureQ[unit]), uv);
         float * packed = &vertex.extraTexcoords[(unit - 1) / 2][((unit - 1) % 2) * 2];
         packed[0] = uv[0]; packed[1] = uv[1];
+        vertex.extraTextureQ[(unit - 1) / 4][(unit - 1) % 4] = uv[3];
       }
       if (!replayRange) candidate.indices.push_back(emittedIndex);
       if (compact) {
@@ -1208,6 +1219,7 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
           state.polygonOffsetEnabled || state.polygonLinePattern || state.linePattern != 0xffffu ||
           coin_render_alpha_test_active(state.alphaTestFunction) ||
           state.alphaTestFunction != draw.alphaTestFunction ||
+          state.textureProjection != draw.textureProjection ||
           std::memcmp(&state.alphaTestReference, &draw.alphaTestReference, sizeof(state.alphaTestReference)) != 0 ||
           state.explicitDepthMask || state.cullMode != draw.cullMode || state.frontFace != draw.frontFace ||
           !state.depthTest || !state.depthWrite || state.depthFunction != draw.depthFunction ||
@@ -1289,6 +1301,7 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
         state.frontFace != previous.frontFace ||
         state.depthTest != previous.depthTest ||
         state.depthWrite != previous.depthWrite ||
+        state.textureProjection != previous.textureProjection ||
         state.depthFunction != previous.depthFunction ||
         state.depthRange[0] != previous.depthRange[0] ||
         state.depthRange[1] != previous.depthRange[1] ||

@@ -7,6 +7,7 @@
 #include "rendering/coinrender/CoinRenderFramePlanBuilder.h"
 #include "rendering/coinrender/CoinRenderImageCore.h"
 #include "rendering/coinrender/CoinRenderPlanAssemblyCore.h"
+#include "rendering/coinrender/CoinRenderTextureCoordinateCore.h"
 #include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
 #include "rendering/coinrender/CoinRenderText2Capture.h"
 #include "rendering/coinrender/CoinRenderScreenRasterCore.h"
@@ -848,6 +849,8 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   rs.transparentMaterial = SoLazyElement::getInstance(state)->isTransparent() != FALSE;
   rs.shadowGroupSlot = this->activeShadowGroupSlot();
   if (rs.shadowGroupSlot) rs.shadowStyle = static_cast<uint32_t>(SoShadowStyleElement::get(state));
+  if (rs.shadowGroupSlot && (rs.shadowStyle & 2u))
+    rs.textureProjection = CoinRenderTextureProjection::DIRECT_ST;
   rs.lightingSlot = lightingSlot;
   rs.cameraSlot = cameraSlot;
   rs.viewportSlot = viewportSlot;
@@ -1523,6 +1526,8 @@ CoinRenderFramePlanBuilder::captureVertex(SoCallbackAction * action, const SoPri
 
   v.texcoord[0] = tc[0];
   v.texcoord[1] = tc[1];
+  v.textureR[0] = tc[2];
+  v.textureQ[0] = tc[3];
   v.materialSlot = materialSlot;
 
   bool hasExtraCoordinates = false;
@@ -1568,11 +1573,11 @@ CoinRenderFramePlanBuilder::captureVertex(SoCallbackAction * action, const SoPri
     } else if (dimension == 3) {
       const SbVec3f & uv = coords->get3(unit, texIndex);
       v.extraTexcoords[unit - 1][0] = uv[0]; v.extraTexcoords[unit - 1][1] = uv[1];
+      v.textureR[unit] = uv[2];
     } else {
       const SbVec4f & uv = coords->get4(unit, texIndex);
-      if (!CoinRenderPlanAssemblyCore::projectTexcoord(uv, v.extraTexcoords[unit - 1])) {
-        this->isUnsupported = true; this->builderError = "Invalid homogeneous texture coordinate";
-      }
+      v.extraTexcoords[unit - 1][0] = uv[0]; v.extraTexcoords[unit - 1][1] = uv[1];
+      v.textureR[unit] = uv[2]; v.textureQ[unit] = uv[3];
     }
   }
 
@@ -1928,7 +1933,9 @@ void CoinRenderFramePlanBuilder::addStyledTriangle(SoCallbackAction* action,
           SbVec3f(previous.normal) != SbVec3f(captured.normal) ||
           SbVec2f(previous.texcoord) != SbVec2f(captured.texcoord) ||
           std::memcmp(previous.extraTexcoords, captured.extraTexcoords,
-                      sizeof(previous.extraTexcoords)) != 0) {
+                      sizeof(previous.extraTexcoords)) != 0 ||
+          std::memcmp(previous.textureR, captured.textureR, sizeof(previous.textureR)) != 0 ||
+          std::memcmp(previous.textureQ, captured.textureQ, sizeof(previous.textureQ)) != 0) {
         reject("Inconsistent attributes across triangles of one polygon");
         return;
       }

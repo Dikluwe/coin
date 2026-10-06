@@ -36,6 +36,10 @@ struct CoinRenderVertexSnapshot {
   float extraTexcoords[COIN_RENDER_MAX_TEXTURE_UNITS - 1][2] = {};
   float screenSpaceW = 1.0f; // Preserves perspective interpolation after stroke expansion.
   float fogEyeDepth = -1.0f; // Negative means derive depth from model-view.
+  // Homogeneous texture coordinates remain separate from geometric clip W.
+  // A 2D coordinate is (s,t,0,1); division by texture Q happens per fragment.
+  float textureR[COIN_RENDER_MAX_TEXTURE_UNITS] = {};
+  float textureQ[COIN_RENDER_MAX_TEXTURE_UNITS] = {1,1,1,1,1,1,1,1};
 };
 
 enum class CoinRenderPrimitiveTopology : uint32_t {
@@ -252,6 +256,12 @@ enum class CoinRenderAlphaTestFunction : uint32_t {
   GEQUAL = 6, GREATER = 7, NOTEQUAL = 8
 };
 
+// Fixed-function Coin divides ST by Q; its generated shadow shader samples
+// transformed ST directly. Capture that semantic policy independently of API.
+enum class CoinRenderTextureProjection : uint8_t {
+  PROJECTIVE = 0, DIRECT_ST = 1
+};
+
 struct CoinRenderTextureUnitSnapshot {
   bool enabled = false;
   uint32_t imageSlot = 0, samplerSlot = 0;
@@ -273,6 +283,7 @@ struct CoinRenderRenderStateSnapshot {
   CoinRenderFrontFace frontFace = CoinRenderFrontFace::CCW;
   bool depthTest = true;
   bool depthWrite = true;
+  CoinRenderTextureProjection textureProjection = CoinRenderTextureProjection::PROJECTIVE;
   CoinRenderAlphaTestFunction alphaTestFunction = CoinRenderAlphaTestFunction::NONE;
   float alphaTestReference = 0.5f; // GL resolves the reference into [0,1].
   uint32_t explicitDepthMask = 0; // test=1, write=2, function=4, range=8; path replay overrides.

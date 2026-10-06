@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 44
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 45
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -62,11 +62,11 @@ typedef struct CoinWgpuSurfaceCreateInfo {
 typedef struct CoinWgpuVertex {
   float position[3];
   float normal[3];
-  float texcoord[2];
+  float texcoord[4]; /* homogeneous s,t,r,q; project after fragment interpolation */
   uint32_t material_slot;
   float screen_space_w; /* zero means ordinary unexpanded geometry */
   float fog_eye_depth_plus_one; /* zero means compute from model-view */
-  float extra_texcoords[7][2];
+  float extra_texcoords[7][4];
 } CoinWgpuVertex;
 
 typedef struct CoinWgpuDraw {
@@ -182,6 +182,7 @@ typedef struct CoinWgpuRenderState {
   float texture_combines[8][4][4];
   uint32_t alpha_test_function; /* semantic 0=None,1=Never,2=Always,3=Less,4=LEqual,5=Equal,6=GEqual,7=Greater,8=NotEqual */
   float alpha_test_reference; /* finite and clamped to [0,1] */
+  uint32_t texture_projection; /* 0=project ST/Q; 1=native Coin shadow-shader direct ST */
 } CoinWgpuRenderState;
 
 typedef struct CoinWgpuShadowDraw {

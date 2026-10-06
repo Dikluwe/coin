@@ -212,6 +212,8 @@ CoinRenderRecordingBackend::recordToString(const CoinRenderFramePlan & frame) co
     if (rs.hasTexture) {
       out << "    texMat: " << formatMatrix(rs.textureMatrix) << "\n";
     }
+    if (rs.textureProjection == CoinRenderTextureProjection::DIRECT_ST)
+      out << "    textureProjection: DIRECT_ST\n";
   }
 
   out << "textures count: " << frame.textures.size() << "\n";
@@ -237,7 +239,11 @@ CoinRenderRecordingBackend::recordToString(const CoinRenderFramePlan & frame) co
         << " pos=[" << formatFloat(v.position[0]) << "," << formatFloat(v.position[1]) << "," << formatFloat(v.position[2]) << "]"
         << " norm=[" << formatFloat(v.normal[0]) << "," << formatFloat(v.normal[1]) << "," << formatFloat(v.normal[2]) << "]"
         << " uv=[" << formatFloat(v.texcoord[0]) << "," << formatFloat(v.texcoord[1]) << "]"
-        << " matSlot=" << v.materialSlot << "\n";
+        << " matSlot=" << v.materialSlot;
+    for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit)
+      if (v.textureR[unit] != 0 || v.textureQ[unit] != 1)
+        out << " rq" << unit << "=[" << formatFloat(v.textureR[unit]) << "," << formatFloat(v.textureQ[unit]) << "]";
+    out << "\n";
   }
 
   out << "indices count: " << frame.indices.size() << "\n";

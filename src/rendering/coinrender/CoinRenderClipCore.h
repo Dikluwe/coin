@@ -82,6 +82,10 @@ inline CoinRenderVertexSnapshot coin_render_clip_interpolate(
       out.extraTexcoords[u][c] = a.extraTexcoords[u][c] +
         (b.extraTexcoords[u][c] - a.extraTexcoords[u][c]) * t;
   }
+  for (size_t u = 0; u < COIN_RENDER_MAX_TEXTURE_UNITS; ++u) {
+    out.textureR[u] = a.textureR[u] + (b.textureR[u] - a.textureR[u]) * t;
+    out.textureQ[u] = a.textureQ[u] + (b.textureQ[u] - a.textureQ[u]) * t;
+  }
   out.materialSlot = materialSlot;
   return out;
 }

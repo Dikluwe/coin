@@ -3,6 +3,7 @@
 #include "rendering/coinrender/CoinRenderClipCore.h"
 #include "rendering/coinrender/CoinRenderLightingCore.h"
 #include "rendering/coinrender/CoinRenderAlphaTestCore.h"
+#include "rendering/coinrender/CoinRenderTextureCoordinateCore.h"
 #include <atomic>
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
@@ -23,8 +24,8 @@ struct ShadedVertex {
   SbVec4f clipPos;
   SbVec3f viewPos;
   SbVec4f litColor;
-  SbVec2f texCoord;
-  SbVec2f extraTexcoords[COIN_RENDER_MAX_TEXTURE_UNITS - 1];
+  SbVec3f texCoord;
+  SbVec3f extraTexcoords[COIN_RENDER_MAX_TEXTURE_UNITS - 1];
 };
 
 inline float edgeFunction(const SbVec2f & a, const SbVec2f & b, const SbVec2f & c) {
@@ -145,11 +146,11 @@ inline SbVec4f rawFragmentColor(const CoinRenderFramePlan & frame,
   for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
     const auto layer = coin_render_texture_unit(state, unit);
     if (!layer.enabled) continue;
-    const float * uv = unit == 0 ? vertex.texcoord : vertex.extraTexcoords[unit - 1];
-    SbVec4f transformed;
-    layer.matrix.multVecMatrix(SbVec4f(uv[0], uv[1], 0, 1), transformed);
+    const SbVec4f transformed = coin_render_transformed_texture_coordinate(vertex, unit, layer.matrix);
+    const SbVec2f projected = coin_render_project_texture_coordinate(
+      SbVec3f(transformed[0], transformed[1], transformed[3]), state.textureProjection);
     const SbVec4f tex = sampleTexture(frame.textures[layer.imageSlot], frame.samplers[layer.samplerSlot],
-                                    transformed[0], transformed[1]);
+                                    projected[0], projected[1]);
     if (state.textureCombines[unit].instructions[0][0] > .5f)
       color = coin_render_texture_combine(state.textureCombines[unit], primary, tex, color);
     else if (layer.model == CoinRenderTextureModel::REPLACE) color = tex;
@@ -313,9 +314,10 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
       for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
         const CoinRenderTextureUnitSnapshot layer = coin_render_texture_unit(rs, unit);
         if (!layer.enabled) continue;
-        const SbVec2f tc = unit == 0 ? sv0.texCoord * b0 + sv1.texCoord * b1 + sv2.texCoord * b2 :
+        const SbVec3f tc = unit == 0 ? sv0.texCoord * b0 + sv1.texCoord * b1 + sv2.texCoord * b2 :
           sv0.extraTexcoords[unit - 1] * b0 + sv1.extraTexcoords[unit - 1] * b1 + sv2.extraTexcoords[unit - 1] * b2;
-        SbVec4f texCol = sampleTexture(frame.textures[layer.imageSlot], frame.samplers[layer.samplerSlot], tc[0], tc[1]);
+        const SbVec2f projected = coin_render_project_texture_coordinate(tc, rs.textureProjection);
+        SbVec4f texCol = sampleTexture(frame.textures[layer.imageSlot], frame.samplers[layer.samplerSlot], projected[0], projected[1]);
         if (rs.textureCombines[unit].instructions[0][0] > .5f) {
           const SbVec4f combined = coin_render_texture_combine(rs.textureCombines[unit], color,
               texCol, SbVec4f(finalR, finalG, finalB, sourceAlpha));
@@ -595,20 +597,11 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
           const auto & material = rawV[k]->materialSlot < frame.materials.size()
             ? frame.materials[rawV[k]->materialSlot] : CoinRenderMaterialSnapshot{};
           sv[k].litColor = coin_render_shade_vertex(material, sv[k].viewPos, viewNormal, lighting, rs);
-          if (rs.hasTexture) {
-            SbVec4f tc4(rawV[k]->texcoord[0], rawV[k]->texcoord[1], 0.0f, 1.0f);
-            SbVec4f tcTrans;
-            rs.textureMatrix.multVecMatrix(tc4, tcTrans);
-            sv[k].texCoord.setValue(tcTrans[0], tcTrans[1]);
-          } else {
-            sv[k].texCoord.setValue(rawV[k]->texcoord[0], rawV[k]->texcoord[1]);
-          }
-          for (size_t unit = 1; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
-            const auto & layer = rs.extraTextures[unit - 1];
-            SbVec4f uv;
-            layer.matrix.multVecMatrix(SbVec4f(rawV[k]->extraTexcoords[unit - 1][0],
-                                              rawV[k]->extraTexcoords[unit - 1][1], 0, 1), uv);
-            sv[k].extraTexcoords[unit - 1].setValue(uv[0], uv[1]);
+          for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+            const auto layer = coin_render_texture_unit(rs, unit);
+            const SbVec4f uv = coin_render_transformed_texture_coordinate(*rawV[k], unit, layer.matrix);
+            SbVec3f & destination = unit ? sv[k].extraTexcoords[unit - 1] : sv[k].texCoord;
+            destination.setValue(uv[0], uv[1], uv[3]);
           }
         }
 

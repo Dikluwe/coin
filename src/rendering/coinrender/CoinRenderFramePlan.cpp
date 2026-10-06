@@ -13,6 +13,7 @@
 #include "rendering/coinrender/CoinRenderStateCore.h"
 #include "rendering/coinrender/CoinRenderPhaseTimer.h"
 #include "rendering/coinrender/CoinRenderFloatCore.h"
+#include "rendering/coinrender/CoinRenderTextureCoordinateCore.h"
 
 #include <cmath>
 #include <cstdio>
@@ -195,6 +196,12 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
           if (outDiagnostic) *outDiagnostic = "Non-finite multitexture coordinate";
           return false;
         }
+    for (size_t u = 0; u < COIN_RENDER_MAX_TEXTURE_UNITS; ++u) {
+      if (!isFiniteF(v.textureR[u]) || !isFiniteF(v.textureQ[u])) {
+        if (outDiagnostic) *outDiagnostic = "Non-finite homogeneous texture coordinate";
+        return false;
+      }
+    }
     if (this->materials.empty() || v.materialSlot >= this->materials.size()) {
       if (outDiagnostic) *outDiagnostic = "Vertex references out-of-range material slot";
       return false;
@@ -380,6 +387,11 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
       if (outDiagnostic) *outDiagnostic = "Invalid alpha comparison function or reference";
       return false;
     }
+    if (state.textureProjection != CoinRenderTextureProjection::PROJECTIVE &&
+        state.textureProjection != CoinRenderTextureProjection::DIRECT_ST) {
+      if (outDiagnostic) *outDiagnostic = "Invalid texture coordinate projection policy";
+      return false;
+    }
     if (!isFiniteF(state.polygonOffsetFactor) || !isFiniteF(state.polygonOffsetUnits) ||
         !isFiniteF(state.polygonOffsetSlopeBias) ||
         !isFiniteF(state.polygonOffsetMaxDepth) ||
@@ -528,6 +540,18 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
     if (this->viewports.empty() || state.viewportSlot >= this->viewports.size()) {
       if (outDiagnostic) *outDiagnostic = "RenderState viewportSlot out of range";
       return false;
+    }
+    if (!this->textures.empty()) {
+      const size_t primitiveSize = draw.topology == CoinRenderPrimitiveTopology::TRIANGLE_LIST ? 3 :
+        draw.topology == CoinRenderPrimitiveTopology::LINE_LIST ? 2 : 1;
+      std::string textureDiagnostic;
+      for (size_t index = 0; index + primitiveSize <= geometry.indexCount; index += primitiveSize) {
+        if (!coin_render_validate_texture_primitive(*this, state,
+            this->indices.data() + geometry.firstIndex + index, primitiveSize, textureDiagnostic)) {
+          if (outDiagnostic) *outDiagnostic = textureDiagnostic;
+          return false;
+        }
+      }
     }
   }
 
