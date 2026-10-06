@@ -118,6 +118,7 @@ static int flww32_calcfontsize(float complexity);
 #include <Inventor/C/base/string.h>
 
 #include "base/dict.h"
+#include "base/oomp.h"
 #include "glue/win32api.h"
 #include "fonts/common.h"
 
@@ -237,6 +238,18 @@ cc_flww32_initialize(void)
 
   cc_flww32_globals.font2kerninghash = cc_dict_construct(17, 0.75);
   cc_flww32_globals.fontsizehash = cc_dict_construct(17, 0.75f);
+  if (cc_flww32_globals.font2kerninghash == NULL ||
+      cc_flww32_globals.fontsizehash == NULL) {
+    if (cc_flww32_globals.font2kerninghash)
+      cc_dict_destruct(cc_flww32_globals.font2kerninghash);
+    if (cc_flww32_globals.fontsizehash)
+      cc_dict_destruct(cc_flww32_globals.fontsizehash);
+    cc_flww32_globals.font2kerninghash = NULL;
+    cc_flww32_globals.fontsizehash = NULL;
+    DeleteDC(cc_flww32_globals.devctx);
+    cc_flww32_globals.devctx = NULL;
+    return FALSE;
+  }
 
   /* Setup temporary glyph-struct used during for tessellation */
   flww32_tessellator.vertexlist = NULL;
@@ -568,6 +581,7 @@ cc_flww32_get_font(const char * fontname, int sizey, float angle, float complexi
   if (nrkpairs) {
 
     kpairs = (KERNINGPAIR *) malloc(nrkpairs * sizeof(KERNINGPAIR));
+    if (kpairs == NULL) coin_oom_abort("cc_flww32_get_font kerning pairs");
 
     ret = GetKerningPairs(cc_flww32_globals.devctx, nrkpairs, kpairs);
     if (ret == 0) {
@@ -577,7 +591,10 @@ cc_flww32_get_font(const char * fontname, int sizey, float angle, float complexi
 
     if (!cc_dict_get(cc_flww32_globals.font2kerninghash, (uintptr_t) wfont, (void **) &fontkerninghash)) {
       fontkerninghash = cc_dict_construct(5, 0.75);
-      cc_dict_put(cc_flww32_globals.font2kerninghash, (uintptr_t) wfont, fontkerninghash);
+      if (fontkerninghash == NULL ||
+          cc_dict_try_put(cc_flww32_globals.font2kerninghash,
+                          (uintptr_t) wfont, fontkerninghash) == CC_DICT_PUT_FAILED)
+        coin_oom_abort("cc_flww32_get_font kerning cache");
     }
 
     for (i=0;i<(int) nrkpairs;++i) {
@@ -585,14 +602,19 @@ cc_flww32_get_font(const char * fontname, int sizey, float angle, float complexi
 
         if (!cc_dict_get(khash, kpairs[i].wSecond, (void **) &khash)) {
           kerningvalue = (float *) malloc(sizeof(float)); /* Ugly... (handegar)*/
+          if (kerningvalue == NULL) coin_oom_abort("cc_flww32_get_font kerning");
           kerningvalue[0] = (float) kpairs[i].iKernAmount;
-          cc_dict_put(khash, kpairs[i].wSecond, kerningvalue);
+          if (cc_dict_try_put(khash, kpairs[i].wSecond, kerningvalue) ==
+              CC_DICT_PUT_FAILED)
+            coin_oom_abort("cc_flww32_get_font kerning cache insertion");
         }
 
       } else {
 
         khash = cc_dict_construct(127, 0.75);
+        if (khash == NULL) coin_oom_abort("cc_flww32_get_font kerning cache");
         kerningvalue = (float *) malloc(sizeof(float)); /* Ugly... (handegar)*/
+        if (kerningvalue == NULL) coin_oom_abort("cc_flww32_get_font kerning");
         kerningvalue[0] = (float) kpairs[i].iKernAmount;
 
         /* FIXME: A standalone cc_floathash should have been made so that we dont have to
@@ -600,8 +622,11 @@ cc_flww32_get_font(const char * fontname, int sizey, float angle, float complexi
            store the float, but that might cause problems later when we go from 32 to 64 bits.
            (20030929 handegar) */
 
-        cc_dict_put(khash, (uintptr_t) kpairs[i].wSecond, kerningvalue);
-        cc_dict_put(fontkerninghash, (uintptr_t) kpairs[i].wFirst, khash);
+        if (cc_dict_try_put(khash, (uintptr_t) kpairs[i].wSecond,
+                            kerningvalue) == CC_DICT_PUT_FAILED ||
+            cc_dict_try_put(fontkerninghash, (uintptr_t) kpairs[i].wFirst,
+                            khash) == CC_DICT_PUT_FAILED)
+          coin_oom_abort("cc_flww32_get_font kerning cache insertion");
 
       }
     }
@@ -612,7 +637,9 @@ cc_flww32_get_font(const char * fontname, int sizey, float angle, float complexi
   {
     /* MSVC7 on 64-bit Windows wants this extra cast. */
     const uintptr_t tmp = (uintptr_t)sizey;
-    (void) cc_dict_put(cc_flww32_globals.fontsizehash, (uintptr_t)wfont, (void *)tmp);
+    if (cc_dict_try_put(cc_flww32_globals.fontsizehash, (uintptr_t)wfont,
+                        (void *)tmp) == CC_DICT_PUT_FAILED)
+      coin_oom_abort("cc_flww32_get_font size cache insertion");
   }
 
   return (void *)wfont;
@@ -637,7 +664,7 @@ cc_flww32_get_font_name(void * font, cc_string * str)
 
   /* 'size' will never be 0. Then GetTextFaceW would have asserted. */
   s = (char *)malloc(size);
-  assert(s); /* FIXME: handle alloc problem better. 20030530 mortene. */
+  if (s == NULL) coin_oom_abort("cc_flww32_get_font_name");
 
   newsize = cc_win32()->GetTextFace(cc_flww32_globals.devctx, size, s);
 

@@ -7,6 +7,9 @@ Unreleased:
     remove undefined SoPath-to-SoNodeKitPath downcasts in manipulators.
     Handle temporary null entries in nodekit paths and restore nodekit
     search state if path append fails.
+  - Handle allocation failures in dictionary and allocator consumers,
+    including the legacy hash, worker pool, synchronizer, GL cache and font
+    caches. Preserve mappings when hash-table bucket growth fails.
   - Relink cc_dict entries during resize without reallocating entries or
     triggering nested growth. If bucket allocation fails, retain the
     current table and the newly inserted mapping so later growth can retry.
