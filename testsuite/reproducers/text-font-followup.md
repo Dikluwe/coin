@@ -193,7 +193,9 @@ skipped**. Added focused evidence includes:
 Seven changed production units (SoText2, glyph2d, glyph3d, fontspec,
 fontlib_wrapper, freetype and SoGlyph) passed targeted ASan/UBSan and
 float-cast-overflow runs through the relevant fixtures. Assertions were enabled;
-other library units stayed Release and leak detection was disabled. Targeted
+other library units stayed Release and leak detection was disabled for the broad
+fixture run. Tessellation rollback and Fontconfig cleanup also passed separately
+with LeakSanitizer enabled, outside the sandbox ptrace restrictions. Targeted
 TSan cache and registry fixtures passed with ASLR disabled **only for their
 processes**; the first ordinary-ASLR run failed before main with an unexpected
 memory mapping. This is not whole-library sanitizer coverage.
