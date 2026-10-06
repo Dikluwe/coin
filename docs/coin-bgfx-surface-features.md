@@ -28,8 +28,8 @@ Sua implementação está em `src/rendering/coinbgfx`, sem captura independente.
 
 `SoTextureCombine` está implementado pelo programa comum de P08, com operações
 e limites no [contrato](coin-render-multitexture-contract.md). Mais de oito
-unidades e coordenadas procedurais nas unidades
-adicionais também são rejeitadas. Esta entrega não acrescenta texturas 3D,
+unidades são rejeitadas. Coordenadas DEFAULT/FUNCTION nas unidades adicionais
+têm agora o [perfil comum inicial P07](coin-render-p07-procedural-textures.md). Esta entrega não acrescenta texturas 3D,
 cube maps, point sprites ou RTT direto. Transparência aditiva e readback GPU de
 depth/assíncrono são tratados em [bgfx-transparency-readback.md](bgfx-transparency-readback.md).
 O perfil de qualidade capturado continua aceitando 0 (desligado) e 0.5 (linear).

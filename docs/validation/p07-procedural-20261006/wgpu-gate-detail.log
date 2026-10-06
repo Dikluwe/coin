@@ -1,0 +1,164 @@
+Start testing: Oct 06 10:46 -03
+----------------------------------------------------------
+69/189 Testing: CoinRenderProceduralTextureCaptureTest
+69/189 Test: CoinRenderProceduralTextureCaptureTest
+Command: "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderProceduralTextureTest"
+Directory: /tmp/coin-render-first-frame-wgpu/testsuite
+"CoinRenderProceduralTextureCaptureTest" start time: Oct 06 10:46 -03
+Output:
+----------------------------------------------------------
+P07 passed cases=71 CoinGL_references=0
+<end of output>
+Test time =   0.05 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderProceduralTextureCaptureTest" end time: Oct 06 10:46 -03
+"CoinRenderProceduralTextureCaptureTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+70/189 Testing: CoinRenderProceduralTextureGpuTest
+70/189 Test: CoinRenderProceduralTextureGpuTest
+Command: "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderProceduralTextureTest" "--gpu"
+Directory: /tmp/coin-render-first-frame-wgpu/testsuite
+"CoinRenderProceduralTextureGpuTest" start time: Oct 06 10:46 -03
+Output:
+----------------------------------------------------------
+shape-0/mode-0/CPU-GPU pixels=1380 mae=0.175604 max=1
+native/CPU-CoinGL pixels=1380 mae=0.175604 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-0/CPU-GPU pixels=1380 mae=0.175604 max=1
+native/CPU-CoinGL pixels=1380 mae=0.175604 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-1/CPU-GPU pixels=1380 mae=0.121256 max=1
+native/CPU-CoinGL pixels=1380 mae=0.121256 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-1/CPU-GPU pixels=1380 mae=0.121256 max=1
+native/CPU-CoinGL pixels=1380 mae=0.121256 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-3/CPU-GPU pixels=1380 mae=0.323913 max=1
+native/CPU-CoinGL pixels=1380 mae=0.323913 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-3/CPU-GPU pixels=1380 mae=0.323913 max=1
+native/CPU-CoinGL pixels=1380 mae=0.323913 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-1/mode-0/CPU-GPU pixels=1140 mae=0.25 max=1
+native/CPU-CoinGL pixels=1140 mae=0.25 max=1
+native/GPU-CoinGL pixels=1140 mae=0 max=0
+shape-1/mode-0/CPU-GPU pixels=1140 mae=0.25 max=1
+native/CPU-CoinGL pixels=1140 mae=0.25 max=1
+native/GPU-CoinGL pixels=1140 mae=0 max=0
+shape-1/mode-1/CPU-GPU pixels=1140 mae=0.118713 max=1
+native/CPU-CoinGL pixels=1140 mae=0.118713 max=1
+native/GPU-CoinGL pixels=1140 mae=0 max=0
+shape-1/mode-1/CPU-GPU pixels=1140 mae=0.118713 max=1
+native/CPU-CoinGL pixels=1140 mae=0.118713 max=1
+native/GPU-CoinGL pixels=1140 mae=0 max=0
+shape-1/mode-3/CPU-GPU pixels=1140 mae=0.313743 max=1
+shape-1/mode-3/CPU-GPU pixels=1140 mae=0.313743 max=1
+shape-2/mode-0/CPU-GPU pixels=1236 mae=0.313916 max=1
+native/CPU-CoinGL pixels=1236 mae=0.313916 max=1
+native/GPU-CoinGL pixels=1236 mae=0 max=0
+shape-2/mode-0/CPU-GPU pixels=1236 mae=0.313916 max=1
+native/CPU-CoinGL pixels=1236 mae=0.313916 max=1
+native/GPU-CoinGL pixels=1236 mae=0 max=0
+shape-2/mode-1/CPU-GPU pixels=1236 mae=0.106796 max=1
+native/CPU-CoinGL pixels=1236 mae=0.106796 max=1
+native/GPU-CoinGL pixels=1236 mae=0 max=0
+shape-2/mode-1/CPU-GPU pixels=1236 mae=0.106796 max=1
+native/CPU-CoinGL pixels=1236 mae=0.106796 max=1
+native/GPU-CoinGL pixels=1236 mae=0 max=0
+shape-2/mode-3/CPU-GPU pixels=1236 mae=0.322006 max=1
+shape-2/mode-3/CPU-GPU pixels=1236 mae=0.322006 max=1
+shape-3/mode-0/CPU-GPU pixels=578 mae=0.295271 max=1
+native/CPU-CoinGL pixels=578 mae=0.295271 max=1
+native/GPU-CoinGL pixels=578 mae=0 max=0
+shape-3/mode-0/CPU-GPU pixels=578 mae=0.295271 max=1
+native/CPU-CoinGL pixels=578 mae=0.295271 max=1
+native/GPU-CoinGL pixels=578 mae=0 max=0
+shape-3/mode-1/CPU-GPU pixels=578 mae=0.0605536 max=1
+native/CPU-CoinGL pixels=578 mae=0.0605536 max=1
+native/GPU-CoinGL pixels=578 mae=0 max=0
+shape-3/mode-1/CPU-GPU pixels=578 mae=0.0605536 max=1
+native/CPU-CoinGL pixels=578 mae=0.0605536 max=1
+native/GPU-CoinGL pixels=578 mae=0 max=0
+shape-3/mode-3/CPU-GPU pixels=578 mae=0.346597 max=1
+shape-3/mode-3/CPU-GPU pixels=578 mae=0.346597 max=1
+shape-4/mode-0/CPU-GPU pixels=1296 mae=0.30144 max=1
+native/CPU-CoinGL pixels=1296 mae=0.30144 max=1
+native/GPU-CoinGL pixels=1296 mae=0 max=0
+shape-4/mode-0/CPU-GPU pixels=1296 mae=0.30144 max=1
+native/CPU-CoinGL pixels=1296 mae=0.30144 max=1
+native/GPU-CoinGL pixels=1296 mae=0 max=0
+shape-4/mode-1/CPU-GPU pixels=1296 mae=0.111626 max=1
+native/CPU-CoinGL pixels=1296 mae=0.111626 max=1
+native/GPU-CoinGL pixels=1296 mae=0 max=0
+shape-4/mode-1/CPU-GPU pixels=1296 mae=0.111626 max=1
+native/CPU-CoinGL pixels=1296 mae=0.111626 max=1
+native/GPU-CoinGL pixels=1296 mae=0 max=0
+shape-4/mode-3/CPU-GPU pixels=1296 mae=0.322274 max=1
+shape-4/mode-3/CPU-GPU pixels=1296 mae=0.322274 max=1
+shape-5/mode-0/CPU-GPU pixels=504 mae=0.121693 max=1
+shape-5/mode-0/CPU-GPU pixels=504 mae=0.121693 max=1
+shape-5/mode-1/CPU-GPU pixels=504 mae=0.138228 max=1
+shape-5/mode-1/CPU-GPU pixels=504 mae=0.138228 max=1
+shape-5/mode-3/CPU-GPU pixels=504 mae=0.272487 max=1
+shape-5/mode-3/CPU-GPU pixels=504 mae=0.272487 max=1
+shape-6/mode-0/CPU-GPU pixels=100 mae=0 max=0
+shape-6/mode-0/CPU-GPU pixels=100 mae=0 max=0
+shape-6/mode-1/CPU-GPU pixels=100 mae=0.166667 max=1
+shape-6/mode-1/CPU-GPU pixels=100 mae=0.166667 max=1
+shape-6/mode-3/CPU-GPU pixels=100 mae=0.0833333 max=1
+shape-6/mode-3/CPU-GPU pixels=100 mae=0.0833333 max=1
+shape-7/mode-0/CPU-GPU pixels=1380 mae=0.175604 max=1
+native/CPU-CoinGL pixels=1380 mae=0.175604 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-7/mode-0/CPU-GPU pixels=1380 mae=0.175604 max=1
+native/CPU-CoinGL pixels=1380 mae=0.175604 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-7/mode-1/CPU-GPU pixels=1380 mae=0.121256 max=1
+native/CPU-CoinGL pixels=1380 mae=0.121256 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-7/mode-1/CPU-GPU pixels=1380 mae=0.121256 max=1
+native/CPU-CoinGL pixels=1380 mae=0.121256 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-7/mode-3/CPU-GPU pixels=1380 mae=0.323913 max=1
+native/CPU-CoinGL pixels=1380 mae=0.323913 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-7/mode-3/CPU-GPU pixels=1380 mae=0.323913 max=1
+native/CPU-CoinGL pixels=1380 mae=0.323913 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+mixed-0/CPU-GPU pixels=1380 mae=0.632126 max=1
+mixed-0/CPU-GPU pixels=1380 mae=0.632126 max=1
+mixed-1/CPU-GPU pixels=1380 mae=0.727778 max=1
+mixed-1/CPU-GPU pixels=1380 mae=0.727778 max=1
+mixed-2/CPU-GPU pixels=1380 mae=0.317874 max=1
+mixed-2/CPU-GPU pixels=1380 mae=0.317874 max=1
+mixed-3/CPU-GPU pixels=1380 mae=0.271014 max=1
+mixed-3/CPU-GPU pixels=1380 mae=0.271014 max=1
+mixed-4/CPU-GPU pixels=1380 mae=0.64058 max=1
+mixed-4/CPU-GPU pixels=1380 mae=0.64058 max=1
+mixed-5/CPU-GPU pixels=1380 mae=0.65628 max=1
+mixed-5/CPU-GPU pixels=1380 mae=0.65628 max=1
+mixed-6/CPU-GPU pixels=1380 mae=0.317874 max=1
+mixed-6/CPU-GPU pixels=1380 mae=0.317874 max=1
+mixed-7/CPU-GPU pixels=1380 mae=0.651691 max=1
+mixed-7/CPU-GPU pixels=1380 mae=0.651691 max=1
+mixed-8/CPU-GPU pixels=1380 mae=0.607729 max=1
+mixed-8/CPU-GPU pixels=1380 mae=0.607729 max=1
+homogeneous-function/projective-matrix/CPU-GPU pixels=1380 mae=0.313768 max=1
+homogeneous-function/projective-matrix/CPU-CoinGL pixels=1380 mae=0.313768 max=1
+homogeneous-function/projective-matrix/GPU-CoinGL pixels=1380 mae=0 max=0
+recovery-before/CPU-GPU pixels=1380 mae=0.323913 max=1
+external-function-data-change/CPU-GPU pixels=1380 mae=0.30942 max=1
+recovery-after/CPU-GPU pixels=1380 mae=0.30942 max=1
+quality-recovery/CPU-GPU pixels=1380 mae=0.30942 max=1
+P07 passed cases=71 CoinGL_references=29
+<end of output>
+Test time =   0.81 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderProceduralTextureGpuTest" end time: Oct 06 10:46 -03
+"CoinRenderProceduralTextureGpuTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 06 10:46 -03

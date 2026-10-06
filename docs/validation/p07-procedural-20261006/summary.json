@@ -1,0 +1,66 @@
+{
+  "base_commit": "601ccdf2e5",
+  "build_type": "Release",
+  "bridge_protocol_revision": 45,
+  "capabilities_version": 3,
+  "results": {
+    "wgpu": {
+      "passed": 187,
+      "skipped": 2,
+      "failed": 0
+    },
+    "bgfx": {
+      "passed": 249,
+      "skipped": 2,
+      "failed": 0
+    }
+  },
+  "coin_inline_cases": 418,
+  "coin_inline_checks": 309076,
+  "procedural_gate_cases_per_process": 71,
+  "mandatory_CoinGL_references_per_gpu_process": 29,
+  "skips": [
+    "BumpProgramGLX",
+    "CoinRenderCameraReuseReferenceTest"
+  ],
+  "common_environment": {
+    "__NV_PRIME_RENDER_OFFLOAD": "1",
+    "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+    "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+    "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+    "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+  },
+  "backend_environment": {
+    "wgpu": {
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1"
+    },
+    "bgfx": {
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_BGFX_RENDERER": "vulkan"
+    }
+  },
+  "ctest_arguments": [
+    "--output-on-failure",
+    "-j",
+    "2"
+  ],
+  "gate_args": "--gpu",
+  "limits": [
+    "No new Windows/Intel/macOS/Android qualification",
+    "GL reference for eight shadow maps not required",
+    "No timing benchmark; qualification campaigns ran concurrently",
+    "Procedural node Environment/Cube/Cylinder/Sphere dedicated GL matrices remain open"
+  ],
+  "source_sha256": {
+    "src/bundles/SoTextureCoordinateBundle.cpp": "426457b4ed201f9c0d20cc3242cbbe31f57b31091eb8c3ed3d3c0da51c1f5cf4",
+    "src/actions/CoinRenderAction.cpp": "80b17353bc5f1e398d2c9051c56c3a57622a8a0753da369e8e03b3179a441b4f",
+    "src/rendering/coinrender/CoinRenderFramePlanBuilder.cpp": "bcf1b5d82b25164eec65a555ea35390b844014a0c52f60a5c6bcc31f107c5dfd",
+    "src/rendering/coinrender/CoinRenderFramePlanBuilder.h": "dfcdfa312617f10892900aca9bf178defb16023ada21593baf27b48673b8a8ff",
+    "src/rendering/coinrender/CoinRenderCapabilities.cpp": "8ea73b3164ac521c195c9cb221f440fedbc09084bcdfbdf5a337dd1e3bd4cc84",
+    "experimental/include/Inventor/rendering/CoinRenderCapabilities.h": "124f9f39d5f46bc63cf0789c5d1a2a267851c0ca1cdce0d61748f028d82b58ea",
+    "testsuite/CMakeLists.txt": "a6f89dd361ae1b72e27cf11bb50cde07d6dfbe0b7269c2c5fb751a6632359626",
+    "testsuite/coinrender/CoinRenderProceduralTextureTest.cpp": "156e718478784761637a48d1c0bb4316957c66dc0ae9b52984c84a135ae00520",
+    "testsuite/coinrender/CoinRenderTextureTest.cpp": "d91635eae8c4698932db4b276a1203566492d14d32c06a98b20e03547c2af789",
+    "testsuite/coinbgfx/CoinBgfxSurfaceFeaturesTest.cpp": "55de078a67f0a5a7252343026f472369bf8e6bf752b95bd583c022066ff6854f"
+  }
+}

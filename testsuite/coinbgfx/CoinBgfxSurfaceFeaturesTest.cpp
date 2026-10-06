@@ -269,11 +269,16 @@ int main() {
     root->unref();
   }
   {
-    auto * root=scene(0,8,SoTexture2::REPLACE,255,false,true);
+    auto * root=scene(0,8,SoTexture2::REPLACE,255,false,true,true);
+    auto * reference=scene(0,8,SoTexture2::REPLACE,255,false,true,true,true);
     root->replaceChild(5,new SoTextureCoordinatePlane);
-    action.apply(root); root->unref();
-    if (!check(action.getLastStatus()==CoinBgfxAction::UNSUPPORTED,"procedural higher unit rejected before primitive generation")) return 1;
+    reference->replaceChild(5,new SoTextureCoordinatePlane);
+    Pixel left,right;
+    const bool ok=compare(root,8,32,&left,reference) && compare(root,55,32,&right,reference);
+    root->unref(); reference->unref();
+    if (!check(ok && left[0]>220 && right[1]>220,"procedural unit 7 UV with unit 0 disabled")) return 1;
   }
+
   for(int topology=0;topology<3;++topology) {
     auto* root=scene(topology,2,SoTexture2::MODULATE,128);
     auto* combine=new SoTextureCombine;

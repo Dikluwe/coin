@@ -26,7 +26,8 @@ Essa atualização ainda exige qualificação Windows.
 UV projetivo também recebeu captura homogênea ST/R/Q e divisão por fragmento.
 O [contrato de UV](coin-render-projective-uv-contract.md) distingue o render
 clássico do shader de ShadowGroup e registra os limites da referência CoinGL
-para multitextura nesta GPU. UV procedural/default continua na tabela abaixo.
+para multitextura nesta GPU. O [perfil inicial de UV procedural/default](coin-render-p07-procedural-textures.md)
+foi implementado na captura comum; a qualificação ampliada segue na tabela abaixo.
 O piloto também registrou uma diferença de RTT: o produtor FBO nativo herda
 a matriz de textura externa, enquanto pbuffer e captura CoinRender começam
 independentemente. Essa herança ainda precisa de um contrato próprio; os gates
@@ -54,7 +55,7 @@ igualdade com o legado não é suficiente para certificar correção.
 | 1 | `SoText2` | Captura explícita dos tipos nativos exatos implementada e qualificada em Linux. O callback genérico continua sem primitivas para subclasses sem adaptação. | Qualificação Windows/FreeCAD ampliada e subclasses. P03/F05. |
 | 1 | `SoImage` independente | Captura explícita dos pixels dos tipos nativos exatos implementada e qualificada em Linux. Subclasses continuam pelo callback virtual. | Qualificação Windows/FreeCAD ampliada e subclasses. F20/I02. |
 | 1 | Nós customizados com semântica somente em `GLRender` | CoinRender deriva de `SoCallbackAction`; não executa o override GL para obter sua semântica. Um nó pode passar sem produzir sua parte visual. Não há introspecção genérica segura de overrides C++. | Adaptação explícita no nó/host. Inventário FreeCAD P15 e fechamento por workbench P16. |
-| 2 | UV procedural/default | `captureTextureUnit` rejeita DEFAULT/FUNCTION em uma unidade de textura habilitada com imagem, inclusive unidade 0. O fast path também tem restrições próprias; falta matriz completa por shape/função. | Captura de coordenadas e interpretação comum P07/F06. |
+| 2 | UV procedural/default | Perfil inicial implementado para geradores nativos e funções homogêneas, com oito unidades, modos mistos e fallback de faces indexadas para callbacks. | Ampliar a matriz por shape/função e qualificar Windows/FreeCAD. P07/F06. |
 | 2 | Qualidade/filtros de texturas | O builder aceita textura desligada (`quality <= 0`) ou qualidade próxima de 0,5, com filtro LINEAR. Outros valores são rejeitados. REPEAT/CLAMP e quatro modelos legados têm caminho; isso não cobre qualidade/filtros/mipmaps gerais do GL. | Contrato de sampler/formato e recursos dos executores. P07/F11. |
 | 2 | `SoShaderProgram` ativo | Rejeição explícita antes da submissão: não há contrato de shader portátil. | Definir entrada/estado comuns e tradução/execução por backend. I07. |
 | 2 | `SoTexture3`, `SoTextureCubeMap`, `SoSceneTextureCubeMap` ativos | Rejeição explícita: faltam planos e executores de textura volumétrica, faces de cubo e RTT de cubo. Nós vazios permanecem inertes. | Captura comum, formatos/UV/orientação e execução BGFX/wgpu. P28. |

@@ -185,6 +185,7 @@ CoinRenderFramePlanBuilder::reset()
   this->hasError = false;
   this->isUnsupported = false;
   this->screenContentCaptured = false;
+  this->coordinateFunctionsCaptured = false;
   this->savedAnnotationLayer = 0;
   this->savedAnnotationClear = false;
   this->foregroundLayer = 0;
@@ -738,17 +739,8 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     rs.samplerSlot = 0;
     return true;
   }
-  // Check for procedural/DEFAULT texture coordinates
-  const SoMultiTextureCoordinateElement * tcElem = SoMultiTextureCoordinateElement::getInstance(state);
-  if (tcElem) {
-    auto ct = tcElem->getType(unit);
-    if (ct == SoMultiTextureCoordinateElement::DEFAULT || ct == SoMultiTextureCoordinateElement::FUNCTION) {
-      if (outError) *outError = "Procedural/DEFAULT texture coordinates are unsupported for texture unit " + std::to_string(unit);
-      this->isUnsupported = true;
-      this->builderError = "Procedural/DEFAULT texture coordinates are unsupported for texture unit " + std::to_string(unit);
-      return false;
-    }
-  }
+  if (SoMultiTextureCoordinateElement::getType(state, unit) == SoMultiTextureCoordinateElement::FUNCTION)
+    this->coordinateFunctionsCaptured = true;
 
   if (std::abs(quality - 0.5f) > 0.05f) {
     if (outError) *outError = "Unsupported texture quality, only 0.0 (off) and 0.5 (linear) are supported in Subwave 3B";
@@ -1623,7 +1615,18 @@ CoinRenderFramePlanBuilder::captureVertex(SoCallbackAction * action, const SoPri
   CoinRenderVertexSnapshot v;
   const SbVec3f & pt = pv->getPoint();
   const SbVec3f & n = pv->getNormal();
-  const SbVec4f & tc = pv->getTextureCoords();
+  SbVec4f tc = pv->getTextureCoords();
+  SoState * state = action->getState();
+  const auto * coords = SoMultiTextureCoordinateElement::getInstance(state);
+  const SoType shapeType = action->getCurPathTail()->getTypeId();
+  const bool canonicalGenerator = shapeType == SoCube::getClassTypeId() ||
+    shapeType == SoCone::getClassTypeId() || shapeType == SoCylinder::getClassTypeId() ||
+    shapeType == SoSphere::getClassTypeId();
+  // Other generators already evaluated the primary callback. Preserve that
+  // value, including R/Q, rather than calling a user function twice.
+  if (rs.hasTexture && canonicalGenerator &&
+      coords->getType(0) == SoMultiTextureCoordinateElement::FUNCTION)
+    tc = coords->get(0, pt, n);
 
   v.position[0] = pt[0];
   v.position[1] = pt[1];
@@ -1644,8 +1647,6 @@ CoinRenderFramePlanBuilder::captureVertex(SoCallbackAction * action, const SoPri
     if (texture.enabled) hasExtraCoordinates = true;
   if (!hasExtraCoordinates) return v;
 
-  SoState * state = action->getState();
-  const auto * coords = SoMultiTextureCoordinateElement::getInstance(state);
   const auto * positions = SoCoordinateElement::getInstance(state);
   const SoDetail * detail = pv->getDetail();
   int texIndex = -1;
@@ -1667,6 +1668,29 @@ CoinRenderFramePlanBuilder::captureVertex(SoCallbackAction * action, const SoPri
   }
   for (size_t unit = 1; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
     if (!rs.extraTextures[unit - 1].enabled) continue;
+    const auto type = coords->getType(unit);
+    if (type == SoMultiTextureCoordinateElement::FUNCTION ||
+        (canonicalGenerator && type == SoMultiTextureCoordinateElement::DEFAULT)) {
+      // Built-ins use their canonical map for DEFAULT in every GL texture unit.
+      // General shapes install per-unit default functions while generating.
+      int primaryUnit = 0;
+      if (!SoMultiTextureEnabledElement::get(state, 0)) {
+        for (primaryUnit = 1; primaryUnit < int(COIN_RENDER_MAX_TEXTURE_UNITS); ++primaryUnit)
+          if (SoMultiTextureEnabledElement::get(state, primaryUnit)) break;
+      }
+      const SbVec4f generated = type == SoMultiTextureCoordinateElement::DEFAULT ||
+        (!canonicalGenerator && int(unit) == primaryUnit) ?
+        pv->getTextureCoords() : coords->get(int(unit), pt, n);
+      v.extraTexcoords[unit - 1][0] = generated[0];
+      v.extraTexcoords[unit - 1][1] = generated[1];
+      v.textureR[unit] = generated[2]; v.textureQ[unit] = generated[3];
+      continue;
+    }
+    if (type != SoMultiTextureCoordinateElement::EXPLICIT) {
+      this->isUnsupported = true;
+      this->builderError = "Texture coordinate generator unavailable for unit " + std::to_string(unit);
+      continue;
+    }
     if (texIndex < 0 || texIndex >= coords->getNum(unit)) {
       this->hasError = true;
       this->builderError = "Multitexture explicit coordinates require a valid primitive detail index: " +
@@ -2272,6 +2296,10 @@ CoinRenderFramePlanBuilder::processIndexedFaceSet(
 
   const CoinRenderIndexedGeometryOptions options =
     captureIndexedGeometryOptions(action, node);
+  // Native shape generation owns default maps and coordinate callbacks.
+  // Do not approximate them or evaluate user functions in the indexed Core.
+  if (options.hasTexture && (options.proceduralTextureCoordinates || view.texcoords.empty()))
+    return CoinRenderFastPathResult::FALLBACK_CONTINUE;
   CoinRenderIndexedGeometryResult transformed =
     CoinRenderIndexedGeometryCore::buildFaces(view, options);
   publishCoreDiagnostic(transformed, outError);

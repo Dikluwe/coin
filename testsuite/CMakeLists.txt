@@ -902,6 +902,25 @@ if(COIN_BUILD_RENDER)
 	add_test(NAME CoinRenderTextureTest COMMAND CoinRenderTextureTest)
 	set_tests_properties(CoinRenderTextureTest PROPERTIES TIMEOUT 30)
 
+	add_executable(CoinRenderProceduralTextureTest coinrender/CoinRenderProceduralTextureTest.cpp)
+	target_compile_definitions(CoinRenderProceduralTextureTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+	target_link_libraries(CoinRenderProceduralTextureTest CoinRender Coin)
+	target_include_directories(CoinRenderProceduralTextureTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	add_test(NAME CoinRenderProceduralTextureCaptureTest COMMAND CoinRenderProceduralTextureTest)
+	set_tests_properties(CoinRenderProceduralTextureCaptureTest PROPERTIES TIMEOUT 60)
+	if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
+		add_test(NAME CoinRenderProceduralTextureGpuTest COMMAND CoinRenderProceduralTextureTest --gpu)
+		set_tests_properties(CoinRenderProceduralTextureGpuTest PROPERTIES TIMEOUT 120)
+	elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
+		foreach(renderer ${_coin_bgfx_test_renderers})
+			add_test(NAME CoinRenderProceduralTexture_${renderer} COMMAND CoinRenderProceduralTextureTest --gpu)
+			set_tests_properties(CoinRenderProceduralTexture_${renderer} PROPERTIES TIMEOUT 120
+				ENVIRONMENT "COIN_BGFX_RENDERER=${renderer}")
+		endforeach()
+	endif()
+
 	add_executable(CoinRenderLightingTest
 		coinrender/CoinRenderLightingTest.cpp
 	)

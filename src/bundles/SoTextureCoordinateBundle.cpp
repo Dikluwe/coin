@@ -75,6 +75,15 @@
 #define FLAG_DIDINITDEFAULT     0x20
 #define FLAG_NEEDINDICES        0x40
 
+namespace {
+int callbackTextureUnit(SoState * state) {
+  int last = -1;
+  const SbBool * enabled = SoMultiTextureEnabledElement::getEnabledUnits(state, last);
+  for (int unit = 0; unit <= last; ++unit) if (enabled[unit]) return unit;
+  return 0;
+}
+}
+
 /*!
   Constructor with \a action being the action applied to the node.
   The \a forRendering parameter must be \e TRUE if the bundle is to
@@ -89,6 +98,8 @@ SoTextureCoordinateBundle(SoAction * const action,
   : SoBundle(action)
 {
   this->flags = 0;
+  this->coordElt = NULL;
+  this->glElt = NULL;
   //
   // return immediately if there is no texture
   //
@@ -188,6 +199,10 @@ SoTextureCoordinateBundle::needCoordinates() const
 SbBool
 SoTextureCoordinateBundle::isFunction() const
 {
+  if (!this->state->getAction()->isOfType(SoGLRenderAction::getClassTypeId()) && this->coordElt) {
+    const auto type = this->coordElt->getType(callbackTextureUnit(this->state));
+    return type == SoMultiTextureCoordinateElement::FUNCTION || type == SoMultiTextureCoordinateElement::TEXGEN;
+  }
   return (this->flags & FLAG_FUNCTION) != 0;
 }
 
@@ -213,7 +228,9 @@ SoTextureCoordinateBundle::needIndices(void) const
 const SbVec4f &
 SoTextureCoordinateBundle::get(const SbVec3f &point, const SbVec3f &normal)
 {
-  assert(this->coordElt != NULL && (this->flags & FLAG_FUNCTION));
+  assert(this->coordElt != NULL && this->isFunction());
+  if (!this->glElt)
+    return this->coordElt->get(callbackTextureUnit(this->state), point, normal);
   if (this->flags & FLAG_DEFAULT) {
     SbVec3f pt;
     if (this->flags & FLAG_3DTEXTURES) {
@@ -241,7 +258,7 @@ SoTextureCoordinateBundle::get(const SbVec3f &point, const SbVec3f &normal)
 const SbVec4f &
 SoTextureCoordinateBundle::get(const int index)
 {
-  assert(coordElt && !(this->flags & FLAG_FUNCTION));
+  assert(coordElt && !this->isFunction());
   // A callback has one primary UV, even when only higher units are enabled.
   // Do not read the DEFAULT unit-zero array in that case (asserts in Debug).
   int unit = 0;

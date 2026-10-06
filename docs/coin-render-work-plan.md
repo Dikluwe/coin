@@ -4,6 +4,9 @@ Plano organizado em 2026-09-28. A [checklist de responsabilidades](rendering-res
 registra estados e evidências; este documento define sequência e dependências.
 As caixas abaixo representam entregas ainda não fechadas.
 
+A [checklist das próximas frentes](coin-render-next-fronts-checklist.md) detalha
+as pendências após a integração de 2026-10-06 e os critérios de cada entrega.
+
 ## Base já entregue
 
 CoinRender identifica o contrato comum; CoinBgfx e CoinWgpu identificam os
@@ -51,6 +54,8 @@ Core transforma snapshots. Não exigir uma refatoração global prévia.
   fragmento deve ser distinguida como extensão.
 - [ ] **P07 — UV/texturas (F06/F11):** procedural/default, matriz, modelos
   MODULATE/REPLACE/DECAL/BLEND, wrap, filtros, qualidade e formatos.
+  [Primeiro perfil de DEFAULT/FUNCTION entregue](coin-render-p07-procedural-textures.md);
+  filtros/formatos gerais, RTT e qualificação ampliada continuam abertos.
 - [x] **P08 — Multitextura/strokes (F07/F08):** oito unidades, SoTextureCombine,
   UVs/matrizes independentes e execução comum em CPU/BGFX/wgpu; raster aliased,
   largura/tamanho arredondados, padrão, cor/alpha, perspectiva, clipping,

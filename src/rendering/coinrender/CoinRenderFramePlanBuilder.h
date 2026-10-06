@@ -33,6 +33,7 @@ public:
   bool captureMarkerContent(SoCallbackAction * action, const SoNode * node,
                             bool primitiveObservers);
   bool hasScreenContent() const { return this->screenContentCaptured; }
+  bool hasCoordinateFunctions() const { return this->coordinateFunctionsCaptured; }
   // Wiring reads the effective Coin state, including ignored fields and overrides.
   static bool isShapeInvisible(SoCallbackAction * action);
   static int polygonDrawStyle(SoCallbackAction * action);
@@ -131,6 +132,7 @@ private:
   bool hasError;
   bool isUnsupported;
   bool screenContentCaptured = false;
+  bool coordinateFunctionsCaptured = false;
   uint32_t savedAnnotationLayer = 0;
   bool savedAnnotationClear = false;
   uint32_t foregroundLayer = 0;

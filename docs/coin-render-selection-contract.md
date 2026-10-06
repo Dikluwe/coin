@@ -69,7 +69,10 @@ prefixo correspondente, sem escrever além dele. V3 acrescenta:
 
 `features` continua descrevendo o perfil compilado legado; não é uma máscara
 de hardware nem prova de qualificação. O máximo de unidades de textura foi
-corrigido para oito também no wgpu/CPU. `gpu_available` não demonstra suporte
+corrigido para oito também no wgpu/CPU. O bit
+`COIN_RENDER_FEATURE_PROCEDURAL_TEXTURE_COORDINATES` descreve o
+[perfil inicial P07](coin-render-p07-procedural-textures.md), sem alterar os
+tamanhos V1/V2/V3 ou certificar todos os geradores/devices. `gpu_available` não demonstra suporte
 a weighted OIT, a depth overrides ou a um estado particular de RTT.
 
 O probe BGFX ignora o modo de transparência para medir hardware; um texto

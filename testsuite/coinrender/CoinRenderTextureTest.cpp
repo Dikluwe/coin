@@ -436,7 +436,7 @@ static bool testUnsupportedRejections() {
 static bool testTextureCoordinatesExplicitVsProcedural() {
   std::cout << "-> Test 4: UV coordinates (explicit vs procedural vs out-of-bounds)..." << std::endl;
 
-  // Case 4A: Procedural / default texture coordinates (unsupported)
+  // Case 4A: Native default coordinates use callback generation.
   {
     SoSeparator * root = new SoSeparator;
     root->ref();
@@ -453,8 +453,8 @@ static bool testTextureCoordinatesExplicitVsProcedural() {
     action.setRenderTarget(target);
     action.apply(root);
 
-    ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::UNSUPPORTED,
-                "Procedural texture coordinates must be rejected with UNSUPPORTED");
+    ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::SUCCESS,
+                "Default texture coordinates must render through native callbacks");
     delete target;
     root->unref();
   }
@@ -717,16 +717,16 @@ static bool testQualityZeroDisablesTexture() {
                   "Disabled texture must publish color");
       comp->textureQuality = 0.5f;
       action.apply(root);
-      ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::UNSUPPORTED,
-                  "Enabled default/function texture remains outside the UV profile");
+      ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::SUCCESS,
+                  "Enabled default/function texture must render");
       std::vector<uint8_t> preserved;
       target->readbackRGBA(preserved);
-      ASSERT_TRUE(preserved == disabled,
-                  "Rejected UV must preserve the previous pixels");
+      ASSERT_TRUE(preserved.size() == disabled.size() && preserved != disabled,
+                  "Reactivating the red texture must change the published pixels");
       comp->textureQuality = 0.0f;
       action.apply(root);
       ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::SUCCESS,
-                  "Disabling texture must recover after rejected UV");
+                  "Disabling texture must succeed after procedural UV render");
       if (plane) quad->removeChild(plane);
     }
   }

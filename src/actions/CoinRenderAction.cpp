@@ -1335,6 +1335,9 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   // Pixel geometry is already projected. Camera/transform overlays cannot
   // patch it like object-space geometry, including a currently clipped node.
   if (this->builder.hasScreenContent()) planCacheAllowed = false;
+  // Coordinate callbacks can depend on Coin state or mutable application data.
+  // Snapshots may be reused by the executor only after a fresh capture.
+  if (this->builder.hasCoordinateFunctions()) planCacheAllowed = false;
   CoinRenderTransparencyOptions capturedTransparency = this->transparencyOptions;
   capturedTransparency.mode = this->executionOptions.transparency;
   if (!traversalSkipped && !cameraOverlay && !translationOverlay &&
@@ -1569,15 +1572,15 @@ CoinRenderActionP::textureUnitsPreCB(void * userdata, SoCallbackAction * action,
       SbString("At most eight texture units are supported")));
     return SoCallbackAction::ABORT;
   }
-  const auto * coords = SoMultiTextureCoordinateElement::getInstance(state);
-  for (int unit = 1; unit <= last; ++unit) {
-    if (enabled[unit] && coords->getType(unit) != SoMultiTextureCoordinateElement::EXPLICIT) {
-      // Coin callbacks have only one primary UV/function. Reject before the
-      // texture bundle attempts to call an absent unit-zero function.
-      p->setDiagnostic(CoinRenderDiagnosticShell::action(
-        CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
-        SbString("Additional texture units require explicit coordinates")));
-      return SoCallbackAction::ABORT;
+  if (SoTextureQualityElement::get(state) > 0.0f) {
+    for (int unit = 0; unit <= last; ++unit) {
+      if (enabled[unit] && SoMultiTextureCoordinateElement::getType(state, unit) ==
+          SoMultiTextureCoordinateElement::TEXGEN) {
+        p->setDiagnostic(CoinRenderDiagnosticShell::action(
+          CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+          SbString("Hardware-only texture generators require a CPU coordinate callback")));
+        return SoCallbackAction::ABORT;
+      }
     }
   }
   p->builder.endShape();
