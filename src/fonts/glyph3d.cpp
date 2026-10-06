@@ -46,6 +46,7 @@
 #include "base/dict.h"
 #include "threads/threadsutilp.h"
 #include "fonts/fontlib_wrapper.h"
+#include "glue/freetype.h"
 #include "fonts/glyph.h"
 #include "fonts/defaultfonts.h"
 #include "coindefs.h"
@@ -193,8 +194,17 @@ cc_glyph3d_ref(uint32_t character, const cc_font_specification * spec)
   fonttoload = cc_string_construct_new();
   cc_string_set_text(fonttoload, cc_string_get_text(&spec->name));
   if (cc_string_length(&spec->style) > 0) {
-    cc_string_append_text(fonttoload, " ");
-    cc_string_append_string(fonttoload, &spec->style);
+    cc_string_append_text(fonttoload, cc_fcglue_available() ? ":style=" : " ");
+    // Escape separators when embedding a legacy style in a Fontconfig pattern.
+    const char * style = cc_string_get_text(&spec->style);
+    if (cc_fcglue_available()) {
+      for (; *style; ++style) {
+        if (*style == ':' || *style == '\\') cc_string_append_text(fonttoload, "\\");
+        const char character[2] = {*style, 0};
+        cc_string_append_text(fonttoload, character);
+      }
+    }
+    else cc_string_append_string(fonttoload, &spec->style);
   }
   
   fontidx = cc_flw_get_font_id_and_ref(cc_string_get_text(fonttoload), 
