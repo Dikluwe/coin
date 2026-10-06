@@ -32,6 +32,12 @@ include_directories(BEFORE
   "${PROJECT_BINARY_DIR}/data"
 )
 
+# Tracy profiler integration (optional, propagates to all OBJECT libraries)
+if(COIN_USE_TRACY)
+  add_definitions(-DTRACY_ENABLE -DCOIN_USE_TRACY)
+  include_directories("${COIN_TRACY_INCLUDE_DIR}")
+endif()
+
 # add include dirs for non targets
 if(NOT "${COIN_TARGET_INCLUDE_DIRECTORIES}" STREQUAL "")
   include_directories(${COIN_TARGET_INCLUDE_DIRECTORIES})
@@ -296,6 +302,19 @@ if (COIN_BUILD_SHARED_LIBS)
   target_link_libraries(${PROJECT_NAME} PRIVATE ${COIN_TARGET_LINK_LIBRARIES})
 else()
   target_link_libraries(${PROJECT_NAME} INTERFACE ${COIN_TARGET_LINK_LIBRARIES})
+endif()
+
+# Tracy profiler integration (optional)
+# Use -undefined dynamic_lookup on macOS so Tracy symbols are resolved lazily
+# at runtime. When loaded by FreeCAD (TracyClient present), profiling is active.
+# When loaded by pivy standalone, CoinTracyConfig.h's runtime check via dlsym
+# detects TracyClient's absence and disables zones.
+if(COIN_USE_TRACY)
+  target_include_directories(${PROJECT_NAME} PRIVATE "${COIN_TRACY_INCLUDE_DIR}")
+  target_compile_definitions(${PROJECT_NAME} PRIVATE TRACY_ENABLE COIN_USE_TRACY)
+  if(APPLE)
+    target_link_options(${PROJECT_NAME} PRIVATE "-undefined" "dynamic_lookup")
+  endif()
 endif()
 
 if(NOT COIN_BUILD_MAC_FRAMEWORK)
