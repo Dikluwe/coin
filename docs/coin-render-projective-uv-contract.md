@@ -83,6 +83,34 @@ recompilados juntos. O estado comum usa um byte de padding anterior para a
 política; a tabela GPU de materiais permanece com stride 80. A ABI pública
 estável de libCoin não é alterada.
 
+### Compatibilidade com Coin 4
+
+UV projetivo continua na linha Coin 4, sem integrar as alterações incompatíveis
+de `origin/coin-5`. A revisão 45 é da ponte privada C++/Rust; não é a versão da
+ABI pública da libCoin. O commit de UV não modifica `include/Inventor` nem
+`experimental/include`: os atributos homogêneos ficam no plano e no transporte
+privados do renderer.
+
+O enum público `SoLazyElement::LightModel`, renomeado numa etapa anterior,
+volta a ser o tipo canônico. `CoinRenderLightModel` permanece como alias desse
+mesmo tipo, conservando valores e layout. A biblioteca permanece na versão
+4.0.10, com SONAME `libCoin.so.80`.
+
+A qualificação contra a release `v4.0.10` usa builds equivalentes com DWARF,
+comparação libabigail e um consumidor externo compilado pelos headers antigos
+que executa com a biblioteca nova sem recompilação. Logs e escopo ficam em
+[validation/projective-uv-public-abi-linux](validation/projective-uv-public-abi-linux).
+
+Em Linux/GCC, libabigail 2.4 no recorte de tipos públicos registra zero tipos
+alterados, zero funções existentes removidas/alteradas e somente adições de
+símbolos. O relatório completo é preservado: suas duas diferenças indiretas
+não têm alterações de tamanho ou membros públicos; o recorte mantém tipos
+privados opacos, sem suppressions customizadas. O consumidor antigo passa
+14 checks carregando a libCoin nova e os três gates GPU de UV passam novamente.
+Essa evidência qualifica compatibilidade binária Linux; MSVC/macOS precisam de
+seus gates. Não é uma declaração de compatibilidade geral de fonte das demais
+mudanças herdadas da branch.
+
 wgpu usa 13 atributos de vértice. BGFX usa os atributos tangent/bitangent
 livres para os Q adicionais; o layout geral usa 15 atributos. Os layouts de
 instancing permanecem inalterados. O aumento de memória dos vértices completos

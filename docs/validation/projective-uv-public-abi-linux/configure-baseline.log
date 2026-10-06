@@ -1,0 +1,153 @@
+-- The C compiler identification is GNU 13.3.0
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Setting C++ standard: '11', which is the minimum needed to compile Coin.
+-- Looking for C++ include thread
+-- Looking for C++ include thread - found
+-- Found X11: /usr/include
+-- Looking for XOpenDisplay in /usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so
+-- Looking for XOpenDisplay in /usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so - found
+-- Looking for gethostbyname
+-- Looking for gethostbyname - found
+-- Looking for connect
+-- Looking for connect - found
+-- Looking for remove
+-- Looking for remove - found
+-- Looking for shmat
+-- Looking for shmat - found
+-- Looking for IceConnectionNumber in ICE
+-- Looking for IceConnectionNumber in ICE - found
+-- Found OpenGL: /usr/lib/x86_64-linux-gnu/libOpenGL.so
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+-- /usr/include
+-- /usr/lib/x86_64-linux-gnu/libSM.so;/usr/lib/x86_64-linux-gnu/libICE.so;/usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so;OpenGL::EGL;OpenGL::GL;Threads::Threads
+-- Looking for sys/types.h
+-- Looking for sys/types.h - found
+-- Looking for stdint.h
+-- Looking for stdint.h - found
+-- Looking for stddef.h
+-- Looking for stddef.h - found
+-- Check size of int8_t
+-- Check size of int8_t - done
+-- Check size of uint8_t
+-- Check size of uint8_t - done
+-- Check size of int16_t
+-- Check size of int16_t - done
+-- Check size of uint16_t
+-- Check size of uint16_t - done
+-- Check size of int32_t
+-- Check size of int32_t - done
+-- Check size of uint32_t
+-- Check size of uint32_t - done
+-- Check size of int64_t
+-- Check size of int64_t - done
+-- Check size of uint64_t
+-- Check size of uint64_t - done
+-- Check size of intptr_t
+-- Check size of intptr_t - done
+-- Check size of uintptr_t
+-- Check size of uintptr_t - done
+-- Looking for inttypes.h
+-- Looking for inttypes.h - found
+-- Looking for unistd.h
+-- Looking for unistd.h - found
+-- Looking for sys/time.h
+-- Looking for sys/time.h - found
+-- Looking for sys/timeb.h
+-- Looking for sys/timeb.h - found
+-- Looking for sys/stat.h
+-- Looking for sys/stat.h - found
+-- Looking for sys/param.h
+-- Looking for sys/param.h - found
+-- Looking for io.h
+-- Looking for io.h - not found
+-- Looking for ieeefp.h
+-- Looking for ieeefp.h - not found
+-- Looking for time.h
+-- Looking for time.h - found
+-- Looking for 4 include files stdlib.h, ..., float.h
+-- Looking for 4 include files stdlib.h, ..., float.h - found
+-- Looking for windows.h
+-- Looking for windows.h - not found
+-- Looking for libgen.h
+-- Looking for libgen.h - found
+-- Looking for gettimeofday
+-- Looking for gettimeofday - found
+-- Looking for mach-o/dyld.h
+-- Looking for mach-o/dyld.h - not found
+-- Looking for dlfcn.h
+-- Looking for dlfcn.h - found
+-- Looking for shl_load in dld
+-- Looking for shl_load in dld - not found
+-- Performing Test HAVE_GLX
+-- Performing Test HAVE_GLX - Success
+-- Looking for include file GL/gl.h
+-- Looking for include file GL/gl.h - found
+-- Looking for include file GL/glu.h
+-- Looking for include file GL/glu.h - found
+-- Looking for include files GL/gl.h, GL/glext.h
+-- Looking for include files GL/gl.h, GL/glext.h - found
+-- Looking for va_copy
+-- Looking for va_copy - found
+-- Looking for strncasecmp
+-- Looking for strncasecmp - found
+-- Looking for memmove
+-- Looking for memmove - found
+-- Looking for bcopy
+-- Looking for bcopy - found
+-- Looking for fstat
+-- Looking for fstat - found
+-- Looking for localtime_s
+-- Looking for localtime_s - not found
+-- Looking for localtime_r
+-- Looking for localtime_r - found
+-- Looking for ftime
+-- Looking for ftime - found
+-- Looking for getcwd
+-- Looking for getcwd - found
+-- Looking for isinf
+-- Looking for isinf - found
+-- Looking for isnan
+-- Looking for isnan - found
+-- Looking for finite
+-- Looking for finite - found
+-- Looking for ilogb
+-- Looking for ilogb - not found
+-- Looking for _logb
+-- Looking for _logb - not found
+-- Looking for vsnprintf
+-- Looking for vsnprintf - found
+-- Looking for __builtin_expect
+-- Looking for __builtin_expect - not found
+-- Looking for __func__
+-- Looking for __func__ - found
+-- Looking for __PRETTY_FUNCTION__
+-- Looking for __PRETTY_FUNCTION__ - found
+-- Looking for __FUNCTION__
+-- Looking for __FUNCTION__ - found
+-- Performing Test HAVE_PTHREAD_TIMESPEC_NSEC
+-- Performing Test HAVE_PTHREAD_TIMESPEC_NSEC - Success
+-- Check size of ((struct timeval*)0)->tv_sec
+-- Check size of ((struct timeval*)0)->tv_sec - done
+-- Check size of time_t
+-- Check size of time_t - done
+-- Check size of ((struct timeval*)0)->tv_usec
+-- Check size of ((struct timeval*)0)->tv_usec - done
+-- Check size of suseconds_t
+-- Check size of suseconds_t - done
+-- Performing Test HAVE_HASH_QUOTING
+-- Performing Test HAVE_HASH_QUOTING - Success
+-- Configuring done (4.5s)
+-- Generating done (0.1s)
+-- Build files have been written to: /tmp/coin-uv-abi-baseline-build

@@ -1,0 +1,75 @@
+Functions changes summary: 0 Removed, 2 Changed (8491 filtered out), 40 Added functions
+Variables changes summary: 0 Removed, 0 Changed (37 filtered out), 0 Added variables
+Function symbols changes summary: 0 Removed, 0 Added function symbol not referenced by debug info
+Variable symbols changes summary: 0 Removed, 4 Added variable symbols not referenced by debug info
+
+40 Added functions:
+
+  [A] 'method void SbList<SbMatrix>::grow(int)'    {_ZN6SbListI8SbMatrixE4growEi}
+  [A] 'method void SbList<SbString>::grow(int)'    {_ZN6SbListI8SbStringE4growEi}
+  [A] 'method void SbList<SoMultiTextureMatrixElement::UnitData>::grow(int)'    {_ZN6SbListIN27SoMultiTextureMatrixElement8UnitDataEE4growEi}
+  [A] 'method void SbList<SoPointDetail>::grow(int)'    {_ZN6SbListI13SoPointDetailE4growEi}
+  [A] 'method SbList<SoPointDetail>::~SbList(int)'    {_ZN6SbListI13SoPointDetailED2Ev, aliases _ZN6SbListI13SoPointDetailED1Ev}
+  [A] 'method void SbList<SoPrimitiveVertex>::grow(int)'    {_ZN6SbListI17SoPrimitiveVertexE4growEi}
+  [A] 'method void SbList<coin_glyph_info>::grow(int)'    {_ZN6SbListI15coin_glyph_infoE4growEi}
+  [A] 'method SbList<void (*)(void*, SoDragger*)>::~SbList(int)'    {_ZN6SbListIPFvPvP9SoDraggerEED2Ev, aliases _ZN6SbListIPFvPvP9SoDraggerEED1Ev}
+  [A] 'method SbList<void (*)(void*, SoGLRenderAction*)>::~SbList(int)'    {_ZN6SbListIPFvPvP16SoGLRenderActionEED2Ev, aliases _ZN6SbListIPFvPvP16SoGLRenderActionEED1Ev}
+  [A] 'method void SbPimplPtr<SoDraggerP>::SbPimplPtr()'    {_ZN10SbPimplPtrI10SoDraggerPEC2Ev, aliases _ZN10SbPimplPtrI10SoDraggerPEC1Ev}
+  [A] 'method void SbPimplPtr<SoGLRenderActionP>::SbPimplPtr()'    {_ZN10SbPimplPtrI17SoGLRenderActionPEC2Ev, aliases _ZN10SbPimplPtrI17SoGLRenderActionPEC1Ev}
+  [A] 'method uint64_t SoCallbackAction::callbackRegistrationRevision() const'    {_ZNK16SoCallbackAction28callbackRegistrationRevisionEv}
+  [A] 'method SbBool SoCallbackAction::hasSingleShapeCallbacks(SoType) const'    {_ZNK16SoCallbackAction23hasSingleShapeCallbacksE6SoType}
+  [A] 'method void SoCallbackListP::addCallback(SoCallbackListCB*, void*, SoCallbackListCB*, void*, void (void*)*)'    {_ZN15SoCallbackListP11addCallbackEP14SoCallbackListPFvPvS2_ES2_S4_S2_PFvS2_E}
+  [A] 'method void SoCallbackListP::clearData()'    {_ZN15SoCallbackListP9clearDataEPK7SbPList}
+  [A] 'method void SoCallbackListP::copyData(const SbPList*)'    {_ZN15SoCallbackListP8copyDataEPK7SbPListS2_}
+  [A] 'method void SoDraggerCBList::invoke(SoDragger*)'    {_ZN15SoDraggerCBList6invokeEP9SoDragger}
+  [A] 'method unsigned int SoGLRenderAction::getShadowPeelDepthTexture() const'    {_ZNK16SoGLRenderAction25getShadowPeelDepthTextureEv}
+  [A] 'method void SoRenderManager::finishFrame(SbBool)'    {_ZN15SoRenderManager11finishFrameEi}
+  [A] 'method SbBool SoRenderManager::prepareFrame(SbBool)'    {_ZN15SoRenderManager12prepareFrameEi}
+  [A] 'method void SoSelectionCBTrampolines::Entry<void(void*, SoPath*), SoPath>::destroy()'    {_ZN24SoSelectionCBTrampolines5EntryIFvPvP6SoPathES2_E7destroyES1_}
+  [A] 'method void SoSelectionCBTrampolines::Entry<void(void*, SoPath*), SoPath>::invoke(void*)'    {_ZN24SoSelectionCBTrampolines5EntryIFvPvP6SoPathES2_E6invokeES1_S1_}
+  [A] 'method void SoSelectionCBTrampolines::Entry<void(void*, SoSelection*), SoSelection>::destroy()'    {_ZN24SoSelectionCBTrampolines5EntryIFvPvP11SoSelectionES2_E7destroyES1_}
+  [A] 'method void SoSelectionCBTrampolines::Entry<void(void*, SoSelection*), SoSelection>::invoke(void*)'    {_ZN24SoSelectionCBTrampolines5EntryIFvPvP11SoSelectionES2_E6invokeES1_S1_}
+  [A] 'method SbBool SoSeparatorP::containsShadowGroup()'    {_ZN12SoSeparatorP19containsShadowGroupEv}
+  [A] 'function int coin_render_glyph_advance(const coin_render_glyph_handle*, int*, int*)'    {coin_render_glyph_advance}
+  [A] 'function int coin_render_glyph_bitmap(const coin_render_glyph_handle*, coin_render_glyph_bitmap_view*)'    {coin_render_glyph_bitmap}
+  [A] 'function void coin_render_glyph_font_close(coin_render_glyph_font*)'    {coin_render_glyph_font_close}
+  [A] 'function coin_render_glyph_font* coin_render_glyph_font_open(const char*, float, float)'    {coin_render_glyph_font_open}
+  [A] 'function int coin_render_glyph_kerning(const coin_render_glyph_handle*, const coin_render_glyph_handle*, int*, int*)'    {coin_render_glyph_kerning}
+  [A] 'function coin_render_glyph_handle* coin_render_glyph_ref(const coin_render_glyph_font*, uint32_t)'    {coin_render_glyph_ref}
+  [A] 'function void coin_render_glyph_release(coin_render_glyph_handle*)'    {coin_render_glyph_release}
+  [A] 'function int coin_render_marker_bitmap(int, coin_render_marker_bitmap_view*)'    {coin_render_marker_bitmap}
+  [A] 'method void soshape_primdata::growPolygonBuffers()'    {_ZN16soshape_primdata18growPolygonBuffersEv}
+  [A] 'method void std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release()'    {_ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE10_M_releaseEv}
+  [A] 'method virtual void std::_Sp_counted_deleter<void*, void (*)(void*), std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_destroy()'    {_ZNSt19_Sp_counted_deleterIPvPFvS0_ESaIvELN9__gnu_cxx12_Lock_policyE2EE10_M_destroyEv}
+    note that this adds a new entry to the vtable of class std::_Sp_counted_deleter<void*, void (*)(void*), std::allocator<void>, (__gnu_cxx::_Lock_policy)2>
+  [A] 'method virtual void std::_Sp_counted_deleter<void*, void (*)(void*), std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_dispose()'    {_ZNSt19_Sp_counted_deleterIPvPFvS0_ESaIvELN9__gnu_cxx12_Lock_policyE2EE10_M_disposeEv}
+    note that this adds a new entry to the vtable of class std::_Sp_counted_deleter<void*, void (*)(void*), std::allocator<void>, (__gnu_cxx::_Lock_policy)2>
+  [A] 'method virtual void* std::_Sp_counted_deleter<void*, void (*)(void*), std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_get_deleter(const std::type_info&)'    {_ZNSt19_Sp_counted_deleterIPvPFvS0_ESaIvELN9__gnu_cxx12_Lock_policyE2EE14_M_get_deleterERKSt9type_info}
+    note that this adds a new entry to the vtable of class std::_Sp_counted_deleter<void*, void (*)(void*), std::allocator<void>, (__gnu_cxx::_Lock_policy)2>
+  [A] 'method virtual std::_Sp_counted_deleter<void*, void (*)(void*), std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::~_Sp_counted_deleter(int)'    {_ZNSt19_Sp_counted_deleterIPvPFvS0_ESaIvELN9__gnu_cxx12_Lock_policyE2EED0Ev}
+    note that this adds a new entry to the vtable of class std::_Sp_counted_deleter<void*, void (*)(void*), std::allocator<void>, (__gnu_cxx::_Lock_policy)2>
+  [A] 'method virtual std::_Sp_counted_deleter<void*, void (*)(void*), std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::~_Sp_counted_deleter(int)'    {_ZNSt19_Sp_counted_deleterIPvPFvS0_ESaIvELN9__gnu_cxx12_Lock_policyE2EED2Ev, aliases _ZNSt19_Sp_counted_deleterIPvPFvS0_ESaIvELN9__gnu_cxx12_Lock_policyE2EED1Ev}
+    note that this adds a new entry to the vtable of class std::_Sp_counted_deleter<void*, void (*)(void*), std::allocator<void>, (__gnu_cxx::_Lock_policy)2>
+
+2 functions with some indirect sub-type change:
+
+  [C] 'method void CoinVrmlJsMFHandler<SoMFColor, SoSFColor, (& CoinVrmlJs::MFColor)>::field2jsval(const SoField*, jsval*)' has some indirect sub-type changes:
+    parameter 2 of type 'const SoField*' has sub-type changes:
+      in pointed to type 'const SoField':
+        in unqualified underlying type 'class SoField':
+          type size hasn't changed
+          no member function changes (21 filtered);
+          no data member change (1 filtered);
+
+  [C] 'method SbList<SoNode*>::~SbList(int)' has some indirect sub-type changes:
+    implicit parameter 0 of type 'SbList<SoNode*>*' has sub-type changes:
+      in pointed to type 'class SbList<SoNode*>':
+        type size hasn't changed
+        no data member changes (2 filtered);
+
+4 Added variable symbols not referenced by debug info:
+
+  [A] _ZTISt19_Sp_counted_deleterIPvPFvS0_ESaIvELN9__gnu_cxx12_Lock_policyE2EE
+  [A] _ZTSPFvPvE
+  [A] _ZTSSt19_Sp_counted_deleterIPvPFvS0_ESaIvELN9__gnu_cxx12_Lock_policyE2EE
+  [A] _ZTVSt19_Sp_counted_deleterIPvPFvS0_ESaIvELN9__gnu_cxx12_Lock_policyE2EE

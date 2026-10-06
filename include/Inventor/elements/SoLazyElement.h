@@ -100,10 +100,12 @@ public:
     DIFFUSE_ONLY_MASK = ALL_MASK &(~ OTHER_COLOR_MASK)
   };
 
-  enum CoinRenderLightModel {
+  enum LightModel {
     BASE_COLOR,
     PHONG
   };
+  // Keep the experimental spelling as an alias of the original Coin 4 type.
+  typedef LightModel CoinRenderLightModel;
 
   enum VertexOrdering {
     CW,
